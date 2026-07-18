@@ -39,7 +39,7 @@ export function PatchButton({ disabled = false, disabledTitle, onRename, patch }
   return (
     <>
       <motion.div
-        className="patch-edge-gradient group relative h-full min-h-16 touch-none overflow-hidden rounded-lg border border-border/70 bg-background/50 shadow-sm backdrop-blur-sm transition duration-200 before:absolute before:inset-y-0 before:left-0 before:w-0.5 hover:border-primary/70 hover:bg-background/70 hover:shadow-[0_7px_20px_hsl(315_100%_55%_/_0.13)] data-[disabled=true]:opacity-50"
+        className="patch-edge-gradient group relative h-full min-h-16 touch-none overflow-hidden rounded-lg border border-border/70 bg-background/50 shadow-sm backdrop-blur-[3px] transition duration-200 before:absolute before:inset-y-0 before:left-0 before:w-0.5 hover:border-primary/70 hover:bg-background/70 hover:shadow-[0_7px_20px_hsl(315_100%_55%_/_0.13)] data-[disabled=true]:opacity-50"
         data-disabled={disabled}
         ref={sortable.setNodeRef}
         style={{ opacity: sortable.isDragging ? 0.55 : 1, transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition, zIndex: sortable.isDragging ? 10 : undefined }}
