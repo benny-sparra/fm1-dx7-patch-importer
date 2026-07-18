@@ -45,7 +45,9 @@ export function RootLayout({ children, midi, theme }: RootLayoutProps) {
                 <MidiSettingsMenu midi={midi} theme={theme} />
               </div>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                Use this librarian to import DX7-style patch banks into the FM1.{' '}
+                Use this librarian to import DX7-style patch banks into the FM1.
+              </p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
                 <Dx7BankSourcesDialog /> for a list of sites with banks to download.
               </p>
 

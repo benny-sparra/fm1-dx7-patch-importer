@@ -11,10 +11,16 @@ type MidiLogDialogProps = {
 
 export function MidiLogDialog({ log }: MidiLogDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const hasMidiActivity = !(
+    log.length === 1 &&
+    log[0].direction === 'system' &&
+    log[0].message === 'Ready. Connect a Chromium browser to begin.'
+  )
 
   return (
     <>
       <Button
+        disabled={!hasMidiActivity}
         onClick={() => dialogRef.current?.showModal()}
         type="button"
         variant="secondary"
