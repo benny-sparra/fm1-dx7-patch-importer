@@ -187,6 +187,7 @@ export function LibrarianPage({ library, midi }: LibrarianPageProps) {
             </div>
             <input
               accept=".syx,application/octet-stream"
+              aria-label="Import DX7 bank file"
               className="sr-only"
               disabled={isImporting}
               onChange={async (event) => {

@@ -4,7 +4,7 @@ import { ListMusic, Search } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { type ReactNode } from 'react'
 
-import fm1Keyboard from '@/assets/fm1-keyboard.jpg'
+import fm1Keyboard from '@/assets/fm1-keyboard.webp'
 import {
   Card,
   CardContent,

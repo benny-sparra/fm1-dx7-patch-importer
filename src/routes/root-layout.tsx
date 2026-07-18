@@ -2,7 +2,7 @@ import { motion } from 'motion/react'
 import { TriangleAlert } from 'lucide-react'
 import { type ReactNode } from 'react'
 
-import fm1HeaderImage from '@/assets/fm1-header.png'
+import fm1HeaderImage from '@/assets/fm1-header.webp'
 import {
   MidiConnectActions,
   MidiConnectionError,
@@ -69,7 +69,10 @@ export function RootLayout({ children, midi, theme }: RootLayoutProps) {
                 <img
                   alt="M-VAVE FM1 synthesiser front panel"
                   className="aspect-video h-full w-full object-cover"
+                  decoding="async"
+                  height="256"
                   src={fm1HeaderImage}
+                  width="432"
                 />
               </motion.figure>
             </div>
