@@ -99,6 +99,10 @@ The importer intentionally validates DX7 bank files before loading them. A compa
 
 Single-voice dumps, larger archive files, and banks using another SysEx format are not accepted.
 
+## Future development
+
+Future development could expand the librarian with more complete bank-management tools and add deeper patch-editing functionality for the FM1. Implementing these features depends on obtaining complete MIDI specifications for the FM1, including documentation of its supported SysEx messages and patch-parameter format.
+
 ## Project structure
 
 ```text
