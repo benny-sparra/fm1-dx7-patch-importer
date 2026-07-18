@@ -58,7 +58,7 @@ export function RootLayout({ children, midi, theme }: RootLayoutProps) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 lg:col-start-3">
+            <div className="hidden flex-col gap-3 lg:col-start-3 lg:flex">
               <motion.figure
                 animate={{ opacity: 1, scale: 1 }}
                 className="overflow-hidden rounded-lg border border-primary/30 bg-primary shadow-sm"

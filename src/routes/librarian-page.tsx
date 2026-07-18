@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { PatchGrid } from '@/components/patches/patch-grid'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
+import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
 import { makeDx7BankFile } from '@/lib/dx7'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { cn } from '@/lib/utils'
@@ -27,6 +28,7 @@ export function LibrarianPage({ library, midi }: LibrarianPageProps) {
   const importInputRef = useRef<HTMLInputElement>(null)
   const importMenuRef = useRef<HTMLDetailsElement>(null)
   const bankSelectionDialogRef = useRef<HTMLDialogElement>(null)
+  const midiConnectionRequiredDialogRef = useRef<HTMLDialogElement>(null)
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
 
   const downloadBank = () => {
@@ -120,8 +122,12 @@ export function LibrarianPage({ library, midi }: LibrarianPageProps) {
             </div>
             <button
               className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-              disabled={isSending || !midi.hasMidiOutput || !isDestinationBankLoaded}
+              disabled={isSending || !isDestinationBankLoaded}
               onClick={async () => {
+                if (!midi.hasMidiOutput) {
+                  midiConnectionRequiredDialogRef.current?.showModal()
+                  return
+                }
                 if (shouldShowFm1BankSelectionDialog()) {
                   bankSelectionDialogRef.current?.showModal()
                 }
@@ -210,6 +216,7 @@ export function LibrarianPage({ library, midi }: LibrarianPageProps) {
       ) : null}
 
       <Fm1BankSelectionDialog dialogRef={bankSelectionDialogRef} />
+      <MidiConnectionRequiredDialog dialogRef={midiConnectionRequiredDialogRef} />
     </motion.section>
   )
 }

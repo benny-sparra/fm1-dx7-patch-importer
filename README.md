@@ -40,6 +40,8 @@ Web MIDI requires a secure context. `localhost` works during normal local develo
 7. Choose **Send to FM1**.
 8. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay.
 
+After the first successful connection, the app remembers the selected MIDI ports and channel and reconnects automatically on future visits. Choose **MIDI online · Disconnect** to disable automatic connection.
+
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 
 To save an edited bank to disk, open the arrow menu beside **Import DX7 bank** and choose **Download**.
@@ -111,5 +113,3 @@ src/
 ## Acknowledgements
 
 The interface links to independent DX7 patch archives to help users find compatible banks. Those downloads are provided by their respective sites; only import files you trust.
-
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for third-party attribution.

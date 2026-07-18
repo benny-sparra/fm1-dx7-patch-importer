@@ -22,19 +22,50 @@ import { MidiTransferQueue } from '@/lib/midi-transfer-queue'
 
 export const midiChannels = Array.from({ length: 16 }, (_, index) => index + 1)
 
+const midiStorageKeys = {
+  autoConnect: 'fm1-midi-auto-connect',
+  channel: 'fm1-midi-channel',
+  inputId: 'fm1-midi-input-id',
+  outputId: 'fm1-midi-output-id',
+} as const
+
+function readStoredValue(key: string) {
+  try {
+    return localStorage.getItem(key) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function storeValue(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value)
+  } catch {
+    // MIDI still works when storage is unavailable (for example, in private browsing).
+  }
+}
+
+function readStoredChannel() {
+  const storedChannel = Number(readStoredValue(midiStorageKeys.channel))
+  return midiChannels.includes(storedChannel) ? storedChannel : 1
+}
+
 export function useMidi() {
   const [midiAccess, setMidiAccess] = useState(false)
   const [outputs, setOutputs] = useState<MidiDevice<Output>[]>([])
   const [inputs, setInputs] = useState<MidiDevice<Input>[]>([])
   const [selectedOutputId, setSelectedOutputId] = useState('')
   const [selectedInputId, setSelectedInputId] = useState('')
-  const [channel, setChannel] = useState(1)
+  const [channel, setChannelState] = useState(readStoredChannel)
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState('')
   const [log, setLog] = useState<MidiLogEntry[]>([
     makeLogEntry('system', 'Ready. Connect a Chromium browser to begin.'),
   ])
   const transferQueue = useRef(new MidiTransferQueue({ minimumIntervalMs: 35 }))
+  const preferredOutputId = useRef(readStoredValue(midiStorageKeys.outputId))
+  const preferredInputId = useRef(readStoredValue(midiStorageKeys.inputId))
+  const startupConnectionAttempted = useRef(false)
 
   const midiSupport = getMidiSupport()
 
@@ -60,19 +91,21 @@ export function useMidi() {
 
     setOutputs(nextOutputs)
     setInputs(nextInputs)
-    setSelectedOutputId((current) =>
-      nextOutputs.some((device) => device.id === current)
-        ? current
-        : (nextOutputs[0]?.id ?? ''),
-    )
-    setSelectedInputId((current) =>
-      nextInputs.some((device) => device.id === current)
-        ? current
-        : (nextInputs[0]?.id ?? ''),
-    )
+    setSelectedOutputId((current) => {
+      const preferred = preferredOutputId.current
+      if (nextOutputs.some((device) => device.id === preferred)) return preferred
+      if (nextOutputs.some((device) => device.id === current)) return current
+      return nextOutputs[0]?.id ?? ''
+    })
+    setSelectedInputId((current) => {
+      const preferred = preferredInputId.current
+      if (nextInputs.some((device) => device.id === preferred)) return preferred
+      if (nextInputs.some((device) => device.id === current)) return current
+      return nextInputs[0]?.id ?? ''
+    })
   }, [])
 
-  const connectMidi = useCallback(async () => {
+  const enableMidi = useCallback(async (remember: boolean) => {
     if (midiSupport !== 'supported') {
       setError(
         midiSupport === 'insecure'
@@ -88,6 +121,7 @@ export function useMidi() {
     try {
       await WebMidi.enable({ sysex: true })
       setMidiAccess(true)
+      if (remember) storeValue(midiStorageKeys.autoConnect, 'true')
       refreshDevices()
       appendLog(
         makeLogEntry(
@@ -106,12 +140,15 @@ export function useMidi() {
     }
   }, [appendLog, midiSupport, refreshDevices])
 
+  const connectMidi = useCallback(() => enableMidi(true), [enableMidi])
+
   const disconnectMidi = useCallback(async () => {
     setIsConnecting(true)
     setError('')
 
     try {
       await WebMidi.disable()
+      storeValue(midiStorageKeys.autoConnect, 'false')
       setMidiAccess(false)
       setOutputs([])
       setInputs([])
@@ -128,6 +165,35 @@ export function useMidi() {
       setIsConnecting(false)
     }
   }, [appendLog])
+
+  useEffect(() => {
+    if (
+      startupConnectionAttempted.current ||
+      readStoredValue(midiStorageKeys.autoConnect) !== 'true'
+    ) {
+      return
+    }
+
+    startupConnectionAttempted.current = true
+    void enableMidi(false)
+  }, [enableMidi])
+
+  const selectOutput = useCallback((id: string) => {
+    preferredOutputId.current = id
+    storeValue(midiStorageKeys.outputId, id)
+    setSelectedOutputId(id)
+  }, [])
+
+  const selectInput = useCallback((id: string) => {
+    preferredInputId.current = id
+    storeValue(midiStorageKeys.inputId, id)
+    setSelectedInputId(id)
+  }, [])
+
+  const setChannel = useCallback((nextChannel: number) => {
+    setChannelState(nextChannel)
+    storeValue(midiStorageKeys.channel, String(nextChannel))
+  }, [])
 
   useEffect(() => {
     if (!midiAccess) {
@@ -229,8 +295,8 @@ export function useMidi() {
     selectedInputId,
     selectedOutputId,
     setChannel,
-    setSelectedInputId,
-    setSelectedOutputId,
+    setSelectedInputId: selectInput,
+    setSelectedOutputId: selectOutput,
     startNote,
     stopNote,
   }
