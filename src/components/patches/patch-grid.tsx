@@ -4,6 +4,7 @@ import { ListMusic, Search } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { type ReactNode } from 'react'
 
+import fm1Keyboard from '@/assets/fm1-keyboard.png'
 import {
   Card,
   CardContent,
@@ -52,7 +53,7 @@ export function PatchGrid({
 
   return (
     <Card className="synthwave-panel overflow-hidden border-primary/25 bg-card/95 backdrop-blur-sm">
-      <CardHeader className="gap-5 pb-3">
+      <CardHeader className="gap-5 bg-white pb-3">
         <div>
           <CardTitle className="flex items-center gap-2 tracking-wide">
             <ListMusic className="size-5 text-primary drop-shadow-[0_0_2px_currentColor]" />
@@ -79,7 +80,14 @@ export function PatchGrid({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="relative isolate space-y-4 overflow-hidden bg-white pb-6 pt-0">
+        <img
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 size-full object-contain object-center opacity-50"
+          src={fm1Keyboard}
+        />
+        <div className="relative z-10">
         {patches.length > 0 ? (
           <DndContext collisionDetection={closestCenter} onDragEnd={finishReorder} sensors={sensors}>
           <SortableContext items={patches.map((patch) => patch.id)} strategy={rectSortingStrategy}>
@@ -116,6 +124,7 @@ export function PatchGrid({
             No patches match this search.
           </div>
         )}
+        </div>
       </CardContent>
     </Card>
   )

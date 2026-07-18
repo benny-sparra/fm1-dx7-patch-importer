@@ -196,6 +196,34 @@
     box-shadow: 0 18px 45px hsl(264 70% 8% / 14%), 0 0 0 1px hsl(315 100% 60% / 8%);
   }
 
+  .patch-edge-gradient::before {
+    content: "";
+    background: linear-gradient(
+      to bottom,
+      var(--color-primary),
+      hsl(188 100% 58%),
+      var(--color-primary)
+    );
+    background-size: 100% 200%;
+    animation: patch-edge-drift 5s ease-in-out infinite alternate;
+  }
+
+  @keyframes patch-edge-drift {
+    from {
+      background-position: 0 0;
+    }
+
+    to {
+      background-position: 0 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .patch-edge-gradient::before {
+      animation: none;
+    }
+  }
+
   :root[data-theme="dark"] .synthwave-panel {
     box-shadow: 0 18px 55px hsl(264 90% 3% / 55%), 0 0 24px hsl(315 100% 60% / 8%);
   }
