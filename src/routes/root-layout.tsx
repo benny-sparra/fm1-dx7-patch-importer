@@ -1,4 +1,3 @@
-import { motion } from 'motion/react'
 import { TriangleAlert } from 'lucide-react'
 import { type ReactNode } from 'react'
 
@@ -29,11 +28,8 @@ export function RootLayout({ children, midi, theme }: RootLayoutProps) {
 
   return (
     <main className="synthwave-shell min-h-screen text-foreground">
-      <motion.section
-        animate={{ opacity: 1, y: 0 }}
+      <section
         className="synthwave-hero border-b"
-        initial={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.28, ease: 'easeOut' }}
       >
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-6 lg:px-8">
           <div className="grid gap-3 lg:grid-cols-3 lg:items-stretch lg:gap-x-4">
@@ -60,11 +56,8 @@ export function RootLayout({ children, midi, theme }: RootLayoutProps) {
             </div>
 
             <div className="hidden flex-col gap-3 lg:col-start-3 lg:flex">
-              <motion.figure
-                animate={{ opacity: 1, scale: 1 }}
+              <figure
                 className="overflow-hidden rounded-lg shadow-[0_10px_28px_hsl(260_70%_5%_/_0.35),0_0_22px_hsl(315_100%_60%_/_0.12)]"
-                initial={{ opacity: 0, scale: 0.985 }}
-                transition={{ delay: 0.08, duration: 0.28, ease: 'easeOut' }}
               >
                 <img
                   alt="M-VAVE FM1 synthesiser front panel"
@@ -74,7 +67,7 @@ export function RootLayout({ children, midi, theme }: RootLayoutProps) {
                   src={fm1HeaderImage}
                   width="432"
                 />
-              </motion.figure>
+              </figure>
             </div>
           </div>
 
@@ -93,7 +86,7 @@ export function RootLayout({ children, midi, theme }: RootLayoutProps) {
             </div>
           ) : null}
         </div>
-      </motion.section>
+      </section>
 
       {children}
     </main>

@@ -1,4 +1,3 @@
-import { motion } from 'motion/react'
 import { ChevronDown, Download, Send, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -80,11 +79,8 @@ export function LibrarianPage({ library, midi }: LibrarianPageProps) {
   }
 
   return (
-    <motion.section
-      animate={{ opacity: 1, y: 0 }}
+    <section
       className="mx-auto grid max-w-7xl gap-5 px-5 py-6 lg:px-8"
-      initial={{ opacity: 0, y: 10 }}
-      transition={{ duration: 0.22, ease: 'easeOut' }}
     >
       <PatchGrid
         actions={
@@ -219,6 +215,6 @@ export function LibrarianPage({ library, midi }: LibrarianPageProps) {
 
       <Fm1BankSelectionDialog dialogRef={bankSelectionDialogRef} />
       <MidiConnectionRequiredDialog dialogRef={midiConnectionRequiredDialogRef} />
-    </motion.section>
+    </section>
   )
 }

@@ -1,5 +1,4 @@
 import { Check, Clipboard } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
@@ -55,16 +54,10 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
           tabIndex={0}
         >
           <div className="space-y-2">
-            <AnimatePresence initial={false}>
               {log.map((entry) => (
-                <motion.div
-                  animate={{ opacity: 1, x: 0 }}
+                <div
                   className="grid grid-cols-[54px_1fr] gap-3 rounded-md border bg-background p-3 text-xs"
-                  exit={{ opacity: 0, x: 8 }}
-                  initial={{ opacity: 0, x: -8 }}
                   key={entry.id}
-                  layout
-                  transition={{ duration: 0.16, ease: 'easeOut' }}
                 >
                   <span className="font-mono text-muted-foreground">
                     {entry.createdAt}
@@ -124,9 +117,8 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
                       </pre>
                     </div>
                   ) : null}
-                </motion.div>
+                </div>
               ))}
-            </AnimatePresence>
           </div>
         </div>
       </CardContent>

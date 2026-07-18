@@ -1,7 +1,6 @@
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { rectSortingStrategy, sortableKeyboardCoordinates, SortableContext } from '@dnd-kit/sortable'
 import { ListMusic, Search } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
 import { type ReactNode } from 'react'
 
 import fm1Keyboard from '@/assets/fm1-keyboard.webp'
@@ -92,20 +91,10 @@ export function PatchGrid({
           <DndContext collisionDetection={closestCenter} onDragEnd={finishReorder} sensors={sensors}>
           <SortableContext items={patches.map((patch) => patch.id)} strategy={rectSortingStrategy}>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
-            <AnimatePresence mode="popLayout">
-              {patches.map((patch, index) => (
-                <motion.div
-                  animate={{ opacity: 1, y: 0 }}
+              {patches.map((patch) => (
+                <div
                   className="h-full w-full"
-                  exit={{ opacity: 0, y: -6 }}
-                  initial={{ opacity: 0, y: 8 }}
                   key={patch.id}
-                  layout
-                  transition={{
-                    delay: index * 0.006,
-                    duration: 0.16,
-                    ease: 'easeOut',
-                  }}
                 >
                   <PatchButton
                     disabled={isPatchDisabled(patch)}
@@ -113,9 +102,8 @@ export function PatchGrid({
                     onRename={onPatchRename}
                     patch={patch}
                   />
-                </motion.div>
+                </div>
               ))}
-            </AnimatePresence>
           </div>
           </SortableContext>
           </DndContext>

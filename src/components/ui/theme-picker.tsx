@@ -1,6 +1,4 @@
 import { Monitor, Moon, Sun } from 'lucide-react'
-import { motion } from 'motion/react'
-
 import { type ThemePreference } from '@/hooks/use-theme'
 
 type ThemePickerProps = {
@@ -32,10 +30,8 @@ export function ThemePicker({ onChange, value }: ThemePickerProps) {
             key={option.value}
           >
             {selected && (
-              <motion.span
+              <span
                 className="absolute inset-0 -z-10 rounded-sm bg-primary shadow-sm"
-                layoutId="active-theme"
-                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
               />
             )}
             <input

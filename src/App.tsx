@@ -1,5 +1,3 @@
-import { MotionConfig } from 'motion/react'
-
 import { useMidi } from '@/hooks/use-midi'
 import { usePatchLibrary } from '@/hooks/use-patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
@@ -12,11 +10,9 @@ function App() {
   const theme = useTheme()
 
   return (
-    <MotionConfig reducedMotion="user">
-      <RootLayout midi={midi} theme={theme}>
-        <LibrarianPage library={library} midi={midi} />
-      </RootLayout>
-    </MotionConfig>
+    <RootLayout midi={midi} theme={theme}>
+      <LibrarianPage library={library} midi={midi} />
+    </RootLayout>
   )
 }
 

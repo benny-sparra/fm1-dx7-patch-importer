@@ -1,5 +1,4 @@
 import { ChevronLeft, ChevronRight, GripHorizontal, X } from 'lucide-react'
-import { motion } from 'motion/react'
 import { type MouseEvent as ReactMouseEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -457,14 +456,12 @@ function OctaveButton({
   const Icon = direction === 'down' ? ChevronLeft : ChevronRight
 
   return (
-    <motion.button
+    <button
       aria-label={`Shift octave ${direction}`}
       className="flex min-h-56 items-center justify-center rounded-md border border-black bg-gradient-to-b from-[#343746] to-[#12141d] text-white shadow-inner transition hover:from-[#3f4252] disabled:cursor-not-allowed disabled:opacity-45"
       disabled={disabled}
       onClick={onClick}
       type="button"
-      whileHover={{ scale: disabled ? 1 : 1.02 }}
-      whileTap={{ scale: disabled ? 1 : 0.97 }}
     >
       <span className="flex flex-col items-center gap-2">
         <Icon className="size-7" />
@@ -472,7 +469,7 @@ function OctaveButton({
           {keyboardKey}
         </span>
       </span>
-    </motion.button>
+    </button>
   )
 }
 
@@ -492,7 +489,7 @@ function PianoKeyButton({
   const isBlack = noteKey.kind === 'black'
 
   return (
-    <motion.button
+    <button
       aria-label={`Play ${noteKey.label}`}
       className={cn(
         'select-none touch-none border font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -531,7 +528,6 @@ function PianoKeyButton({
           : undefined
       }
       type="button"
-      whileTap={{ y: isBlack ? 3 : 5 }}
     >
       <span className="flex flex-col items-center gap-1">
         {noteKey.computerKey ? (
@@ -546,6 +542,6 @@ function PianoKeyButton({
         ) : null}
         <span>{noteKey.label}</span>
       </span>
-    </motion.button>
+    </button>
   )
 }
