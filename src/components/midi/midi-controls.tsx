@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { ThemePicker } from '@/components/ui/theme-picker'
 import { midiChannels, type MidiController } from '@/hooks/use-midi'
 import { type ThemePreference } from '@/hooks/use-theme'
+import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 
 import { DeviceSelect } from './device-select'
 
@@ -56,8 +57,10 @@ export function MidiConnectionError({ midi }: MidiControlsProps) {
 }
 
 export function MidiSettingsMenu({ midi, theme }: MidiSettingsMenuProps) {
+  const menuRef = useDismissableDetails()
+
   return (
-    <details className="group relative">
+    <details className="group relative" ref={menuRef}>
       <summary
         aria-label="Settings"
         className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md border bg-background text-muted-foreground transition hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"

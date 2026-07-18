@@ -39,14 +39,14 @@ export function PatchButton({ disabled = false, disabledTitle, onRename, patch }
   return (
     <>
       <motion.div
-        className="group relative h-full min-h-16 touch-none overflow-hidden rounded-lg border bg-background transition hover:border-primary/60 hover:bg-accent data-[disabled=true]:opacity-50"
+        className="group relative h-full min-h-16 touch-none overflow-hidden rounded-lg border bg-background/80 transition duration-200 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-gradient-to-b before:from-primary before:to-cyan-400 hover:-translate-y-0.5 hover:border-primary/70 hover:bg-accent/40 hover:shadow-[0_7px_20px_hsl(315_100%_55%_/_0.13)] data-[disabled=true]:opacity-50"
         data-disabled={disabled}
         ref={sortable.setNodeRef}
         style={{ opacity: sortable.isDragging ? 0.55 : 1, transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition, zIndex: sortable.isDragging ? 10 : undefined }}
         title={disabled ? disabledTitle : undefined}
       >
         <div className="pointer-events-none grid h-full min-h-16 grid-cols-[2.75rem_1fr] items-center gap-2 p-2 pl-9 text-left">
-          <span className="flex size-11 items-center justify-center rounded-md bg-muted font-mono text-sm font-semibold text-muted-foreground">
+          <span className="flex size-11 items-center justify-center rounded-md border border-primary/15 bg-muted font-mono text-sm font-bold text-primary shadow-inner">
             {patch.bank}{patch.number.toString().padStart(2, '0')}
           </span>
           <button

@@ -10,6 +10,7 @@ import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { cn } from '@/lib/utils'
 import { type MidiController } from '@/hooks/use-midi'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
+import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 
 const banks = ['A', 'B', 'C', 'D']
 
@@ -26,7 +27,7 @@ export function LibrarianPage({ library, midi }: LibrarianPageProps) {
   const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const importInputRef = useRef<HTMLInputElement>(null)
-  const importMenuRef = useRef<HTMLDetailsElement>(null)
+  const importMenuRef = useDismissableDetails()
   const bankSelectionDialogRef = useRef<HTMLDialogElement>(null)
   const midiConnectionRequiredDialogRef = useRef<HTMLDialogElement>(null)
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)

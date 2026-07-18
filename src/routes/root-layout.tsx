@@ -28,28 +28,29 @@ export function RootLayout({ children, midi, theme }: RootLayoutProps) {
   const isChromium = isChromiumBrowser()
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="synthwave-shell min-h-screen text-foreground">
       <motion.section
         animate={{ opacity: 1, y: 0 }}
-        className="border-b bg-muted/35"
+        className="synthwave-hero border-b"
         initial={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.28, ease: 'easeOut' }}
       >
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-6 lg:px-8">
           <div className="grid gap-3 lg:grid-cols-3 lg:items-stretch lg:gap-x-4">
             <div className="flex flex-col lg:col-span-2 lg:pt-2">
+              <p className="synthwave-kicker mb-2">DX7 voice transfer system</p>
               <div className="flex items-start justify-between gap-4">
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                  M-VAVE FM1 patch importer
+                <h1 className="synthwave-title text-4xl font-bold tracking-tight sm:text-5xl">
+                  M-VAVE FM1 <span className="text-primary">patch librarian</span>
                 </h1>
                 <MidiSettingsMenu midi={midi} theme={theme} />
               </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              <p className="mt-3 text-sm leading-6 text-white/65">
                 Use this librarian to import DX7-style patch banks into the FM1.
               </p>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              <div className="mt-3 text-sm leading-6 text-white/65">
                 <Dx7BankSourcesDialog /> for a list of sites with banks to download.
-              </p>
+              </div>
 
               <div className="mt-auto flex flex-wrap items-center gap-3 pt-5">
                 <MidiConnectActions midi={midi} />
@@ -61,7 +62,7 @@ export function RootLayout({ children, midi, theme }: RootLayoutProps) {
             <div className="hidden flex-col gap-3 lg:col-start-3 lg:flex">
               <motion.figure
                 animate={{ opacity: 1, scale: 1 }}
-                className="overflow-hidden rounded-lg border border-primary/30 bg-primary shadow-sm"
+                className="overflow-hidden rounded-lg shadow-[0_10px_28px_hsl(260_70%_5%_/_0.35),0_0_22px_hsl(315_100%_60%_/_0.12)]"
                 initial={{ opacity: 0, scale: 0.985 }}
                 transition={{ delay: 0.08, duration: 0.28, ease: 'easeOut' }}
               >

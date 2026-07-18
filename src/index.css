@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: hsl(235 48% 96%);
-  --color-foreground: hsl(220 24% 12%);
-  --color-card: hsl(228 45% 99%);
-  --color-card-foreground: hsl(220 24% 12%);
-  --color-popover: hsl(228 45% 99%);
-  --color-popover-foreground: hsl(220 24% 12%);
-  --color-primary: hsl(240 56% 48%);
+  --color-background: hsl(260 56% 96%);
+  --color-foreground: hsl(247 34% 15%);
+  --color-card: hsl(270 50% 99%);
+  --color-card-foreground: hsl(247 34% 15%);
+  --color-popover: hsl(270 50% 99%);
+  --color-popover-foreground: hsl(247 34% 15%);
+  --color-primary: hsl(315 82% 47%);
   --color-primary-foreground: hsl(0 0% 100%);
-  --color-secondary: hsl(231 42% 90%);
+  --color-secondary: hsl(187 68% 88%);
   --color-secondary-foreground: hsl(220 24% 16%);
-  --color-muted: hsl(232 38% 91%);
-  --color-muted-foreground: hsl(231 18% 38%);
-  --color-accent: hsl(45 86% 88%);
+  --color-muted: hsl(260 38% 91%);
+  --color-muted-foreground: hsl(255 18% 39%);
+  --color-accent: hsl(185 78% 86%);
   --color-accent-foreground: hsl(220 24% 14%);
   --color-destructive: hsl(0 72% 44%);
   --color-destructive-foreground: hsl(0 0% 100%);
-  --color-border: hsl(232 28% 78%);
-  --color-input: hsl(232 28% 78%);
-  --color-ring: hsl(240 56% 48%);
-  --radius-lg: 0.5rem;
-  --radius-md: 0.375rem;
-  --radius-sm: 0.25rem;
+  --color-border: hsl(267 28% 76%);
+  --color-input: hsl(267 28% 76%);
+  --color-ring: hsl(315 82% 47%);
+  --radius-lg: 0.65rem;
+  --radius-md: 0.45rem;
+  --radius-sm: 0.3rem;
 }
 
 @layer base {
@@ -36,49 +36,49 @@
 
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --color-background: hsl(236 31% 12%);
-    --color-foreground: hsl(226 38% 94%);
-    --color-card: hsl(235 27% 17%);
+    --color-background: hsl(253 52% 7%);
+    --color-foreground: hsl(184 52% 94%);
+    --color-card: hsl(255 45% 11%);
     --color-card-foreground: hsl(226 38% 94%);
-    --color-popover: hsl(235 27% 17%);
+    --color-popover: hsl(255 45% 11%);
     --color-popover-foreground: hsl(226 38% 94%);
-    --color-primary: hsl(240 66% 64%);
-    --color-primary-foreground: hsl(0 0% 100%);
-    --color-secondary: hsl(233 22% 25%);
+    --color-primary: hsl(316 100% 66%);
+    --color-primary-foreground: hsl(254 58% 8%);
+    --color-secondary: hsl(187 74% 19%);
     --color-secondary-foreground: hsl(226 38% 92%);
-    --color-muted: hsl(234 24% 21%);
-    --color-muted-foreground: hsl(228 22% 73%);
-    --color-accent: hsl(47 74% 62%);
-    --color-accent-foreground: hsl(236 31% 12%);
+    --color-muted: hsl(257 34% 17%);
+    --color-muted-foreground: hsl(248 18% 70%);
+    --color-accent: hsl(187 100% 45%);
+    --color-accent-foreground: hsl(253 52% 7%);
     --color-destructive: hsl(0 78% 64%);
     --color-destructive-foreground: hsl(0 0% 100%);
-    --color-border: hsl(232 20% 34%);
-    --color-input: hsl(232 20% 34%);
-    --color-ring: hsl(240 66% 68%);
+    --color-border: hsl(281 43% 32%);
+    --color-input: hsl(281 43% 32%);
+    --color-ring: hsl(185 100% 50%);
   }
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
       color-scheme: dark;
-      --color-background: hsl(236 31% 12%);
+      --color-background: hsl(253 52% 7%);
       --color-foreground: hsl(226 38% 94%);
-      --color-card: hsl(235 27% 17%);
+      --color-card: hsl(255 45% 11%);
       --color-card-foreground: hsl(226 38% 94%);
-      --color-popover: hsl(235 27% 17%);
+      --color-popover: hsl(255 45% 11%);
       --color-popover-foreground: hsl(226 38% 94%);
-      --color-primary: hsl(240 66% 64%);
-      --color-primary-foreground: hsl(0 0% 100%);
-      --color-secondary: hsl(233 22% 25%);
+      --color-primary: hsl(316 100% 66%);
+      --color-primary-foreground: hsl(254 58% 8%);
+      --color-secondary: hsl(187 74% 19%);
       --color-secondary-foreground: hsl(226 38% 92%);
-      --color-muted: hsl(234 24% 21%);
-      --color-muted-foreground: hsl(228 22% 73%);
-      --color-accent: hsl(47 74% 62%);
-      --color-accent-foreground: hsl(236 31% 12%);
+      --color-muted: hsl(257 34% 17%);
+      --color-muted-foreground: hsl(248 18% 70%);
+      --color-accent: hsl(187 100% 45%);
+      --color-accent-foreground: hsl(253 52% 7%);
       --color-destructive: hsl(0 78% 64%);
       --color-destructive-foreground: hsl(0 0% 100%);
-      --color-border: hsl(232 20% 34%);
-      --color-input: hsl(232 20% 34%);
-      --color-ring: hsl(240 66% 68%);
+      --color-border: hsl(281 43% 32%);
+      --color-input: hsl(281 43% 32%);
+      --color-ring: hsl(185 100% 50%);
     }
   }
 
@@ -109,6 +109,12 @@
     font-family:
       "Nunito Variable", Nunito, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
       "Segoe UI", sans-serif;
+    background:
+      radial-gradient(ellipse at 50% 28%, hsl(326 100% 72% / 20%), transparent 32rem),
+      radial-gradient(circle at 88% 4%, hsl(264 88% 65% / 18%), transparent 26rem),
+      radial-gradient(circle at 8% 30%, hsl(190 100% 60% / 12%), transparent 24rem),
+      linear-gradient(180deg, hsl(251 62% 94%), var(--color-background) 45%, hsl(302 62% 94%));
+    background-attachment: fixed;
   }
 
   button,
@@ -120,5 +126,99 @@
   dialog::backdrop {
     background: hsl(240 56% 16% / 55%);
     backdrop-filter: blur(4px);
+  }
+}
+
+@layer components {
+  .synthwave-shell {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .synthwave-shell::before {
+    position: fixed;
+    z-index: -1;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 38vh;
+    content: "";
+    opacity: 0.13;
+    background-image:
+      linear-gradient(hsl(315 100% 60% / 55%) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(185 100% 50% / 45%) 1px, transparent 1px);
+    background-size: 44px 28px;
+    animation: synthwave-grid-drift 14s linear infinite;
+    mask-image: linear-gradient(to bottom, transparent, black 28%);
+    transform: perspective(420px) rotateX(55deg) scale(1.35);
+    transform-origin: bottom;
+    pointer-events: none;
+  }
+
+  @keyframes synthwave-grid-drift {
+    to {
+      background-position: 0 28px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .synthwave-shell::before {
+      animation: none;
+    }
+  }
+
+  .synthwave-hero {
+    position: relative;
+    background:
+      radial-gradient(ellipse at 78% 115%, hsl(34 100% 72% / 26%), transparent 17rem),
+      radial-gradient(ellipse at 66% 112%, hsl(320 100% 61% / 27%), transparent 34rem),
+      radial-gradient(circle at 24% -25%, hsl(246 88% 66% / 25%), transparent 25rem),
+      linear-gradient(118deg, hsl(252 58% 10%), hsl(268 60% 17%) 57%, hsl(235 55% 15%));
+    color: hsl(184 52% 94%);
+    box-shadow: inset 0 -1px hsl(185 100% 50% / 45%), 0 10px 35px hsl(270 80% 8% / 18%);
+  }
+
+  .synthwave-title {
+    color: white;
+    text-shadow: 0 0 18px hsl(315 100% 62% / 18%);
+  }
+
+  .synthwave-kicker {
+    color: hsl(185 100% 72%);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  .synthwave-panel {
+    box-shadow: 0 18px 45px hsl(264 70% 8% / 14%), 0 0 0 1px hsl(315 100% 60% / 8%);
+  }
+
+  :root[data-theme="dark"] .synthwave-panel {
+    box-shadow: 0 18px 55px hsl(264 90% 3% / 55%), 0 0 24px hsl(315 100% 60% / 8%);
+  }
+
+  :root[data-theme="dark"] body {
+    background:
+      radial-gradient(ellipse at 50% 30%, hsl(319 100% 55% / 16%), transparent 34rem),
+      radial-gradient(circle at 86% 4%, hsl(258 100% 65% / 18%), transparent 28rem),
+      radial-gradient(circle at 8% 28%, hsl(188 100% 48% / 10%), transparent 25rem),
+      linear-gradient(180deg, hsl(247 55% 8%), var(--color-background) 48%, hsl(278 52% 9%));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .synthwave-panel {
+      box-shadow: 0 18px 55px hsl(264 90% 3% / 55%), 0 0 24px hsl(315 100% 60% / 8%);
+    }
+
+    :root:not([data-theme]) body {
+      background:
+        radial-gradient(ellipse at 50% 30%, hsl(319 100% 55% / 16%), transparent 34rem),
+        radial-gradient(circle at 86% 4%, hsl(258 100% 65% / 18%), transparent 28rem),
+        radial-gradient(circle at 8% 28%, hsl(188 100% 48% / 10%), transparent 25rem),
+        linear-gradient(180deg, hsl(247 55% 8%), var(--color-background) 48%, hsl(278 52% 9%));
+    }
   }
 }
