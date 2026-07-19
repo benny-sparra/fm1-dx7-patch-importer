@@ -63,10 +63,10 @@ export function MidiSettingsMenu({ midi, theme }: MidiSettingsMenuProps) {
     <details className="group relative" ref={menuRef}>
       <summary
         aria-label="Settings"
-        className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md border bg-background text-muted-foreground transition hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+        className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md bg-transparent text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
         title="Settings"
       >
-        <MoreVertical className="size-4" />
+        <MoreVertical className="size-7" />
       </summary>
       <div className="absolute right-0 top-12 z-30 grid w-[min(18rem,calc(100vw-2.5rem))] gap-3 rounded-lg border bg-popover p-3 text-popover-foreground shadow-lg">
         <div className="px-1 pt-1">

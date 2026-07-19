@@ -52,7 +52,7 @@ export function PatchGrid({
 
   return (
     <Card className="synthwave-panel overflow-hidden border-primary/25 bg-card/95 backdrop-blur-sm">
-      <CardHeader className="gap-5 bg-white pb-3">
+      <CardHeader className="patch-area-surface gap-5 pb-3">
         <div>
           <CardTitle className="flex items-center gap-2 tracking-wide">
             <ListMusic className="size-5 text-primary drop-shadow-[0_0_2px_currentColor]" />
@@ -79,11 +79,11 @@ export function PatchGrid({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="relative isolate space-y-4 overflow-hidden bg-white pb-6 pt-0">
+      <CardContent className="patch-area-surface relative isolate space-y-4 overflow-hidden pb-6 pt-0">
         <img
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 size-full object-contain object-center opacity-50"
+          className="patch-area-image pointer-events-none absolute inset-0 z-0 size-full object-contain object-center opacity-50"
           src={fm1Keyboard}
         />
         <div className="relative z-10">

@@ -2,6 +2,7 @@ import { TriangleAlert } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import fm1HeaderImage from '@/assets/fm1-header.webp'
+import { HelpDialog } from '@/components/help-dialog'
 import {
   MidiConnectActions,
   MidiConnectionError,
@@ -39,7 +40,10 @@ export function RootLayout({ children, midi, theme }: RootLayoutProps) {
                 <h1 className="synthwave-title text-4xl font-bold tracking-tight sm:text-5xl">
                   M-VAVE FM1 <span className="text-primary">patch librarian</span>
                 </h1>
-                <MidiSettingsMenu midi={midi} theme={theme} />
+                <div className="flex shrink-0 items-center gap-2">
+                  <HelpDialog />
+                  <MidiSettingsMenu midi={midi} theme={theme} />
+                </div>
               </div>
               <p className="mt-3 text-sm leading-6 text-white/65">
                 Use this librarian to import DX7-style patch banks into the FM1.

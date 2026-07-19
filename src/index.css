@@ -196,6 +196,10 @@
     box-shadow: 0 18px 45px hsl(264 70% 8% / 14%), 0 0 0 1px hsl(315 100% 60% / 8%);
   }
 
+  .patch-area-surface {
+    background-color: white;
+  }
+
   .patch-edge-gradient::before {
     content: "";
     background: linear-gradient(
@@ -228,6 +232,14 @@
     box-shadow: 0 18px 55px hsl(264 90% 3% / 55%), 0 0 24px hsl(315 100% 60% / 8%);
   }
 
+  :root[data-theme="dark"] .patch-area-surface {
+    background-color: var(--color-card);
+  }
+
+  :root[data-theme="dark"] .patch-area-image {
+    display: none;
+  }
+
   :root[data-theme="dark"] body {
     background:
       radial-gradient(ellipse at 50% 30%, hsl(319 100% 55% / 16%), transparent 34rem),
@@ -239,6 +251,14 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) .synthwave-panel {
       box-shadow: 0 18px 55px hsl(264 90% 3% / 55%), 0 0 24px hsl(315 100% 60% / 8%);
+    }
+
+    :root:not([data-theme]) .patch-area-surface {
+      background-color: var(--color-card);
+    }
+
+    :root:not([data-theme]) .patch-area-image {
+      display: none;
     }
 
     :root:not([data-theme]) body {
