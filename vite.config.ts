@@ -4,6 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 import path from 'node:path'
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   build: {
@@ -13,6 +15,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     tailwindcss(),
     mode === 'https' ? basicSsl() : undefined,
+    cloudflare()
   ],
   resolve: {
     alias: {
