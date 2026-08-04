@@ -99,6 +99,19 @@ export function updateDx7VoiceName(voice: Dx7Voice, name: string): Dx7Voice {
   return { data, name: decodeVoiceName(data) }
 }
 
+export function makeDx7VoiceNameEdits(
+  parameters: Uint8Array,
+  name: string,
+): [parameter: number, value: number][] {
+  const normalized = name.slice(0, 10).padEnd(10, ' ')
+
+  return Array.from({ length: 10 }, (_, offset) => {
+    const code = normalized.charCodeAt(offset)
+    const value = code >= 0x20 && code <= 0x7e ? code : 0x20
+    return [145 + offset, value] as [number, number]
+  }).filter(([parameter, value]) => parameters[parameter] !== value)
+}
+
 export function updateDx7VoiceBits(
   voice: Dx7Voice,
   offset: number,
@@ -146,8 +159,50 @@ export function unpackDx7Voice(voice: Dx7Voice) {
   return Uint8Array.from(unpacked)
 }
 
+/** Converts the DX7's 155-byte edit-buffer format to a packed 128-byte bank voice. */
+export function packDx7Voice(unpacked: Uint8Array): Dx7Voice {
+  if (unpacked.length !== 155) {
+    throw new Error(`Expected 155 DX7 edit-buffer bytes; received ${unpacked.length}.`)
+  }
+  if (unpacked.some((value) => value > 0x7f)) {
+    throw new Error('DX7 edit-buffer data must contain only 7-bit values.')
+  }
+
+  const packed = new Uint8Array(128)
+  for (let operator = 0; operator < 6; operator += 1) {
+    const source = operator * 21
+    const target = operator * 17
+    packed.set(unpacked.slice(source, source + 11), target)
+    packed[target + 11] = (unpacked[source + 11] & 0x03)
+      | ((unpacked[source + 12] & 0x03) << 2)
+    packed[target + 12] = (unpacked[source + 13] & 0x07)
+      | ((unpacked[source + 20] & 0x0f) << 3)
+    packed[target + 13] = (unpacked[source + 14] & 0x03)
+      | ((unpacked[source + 15] & 0x07) << 2)
+    packed[target + 14] = unpacked[source + 16]
+    packed[target + 15] = (unpacked[source + 17] & 0x01)
+      | ((unpacked[source + 18] & 0x1f) << 1)
+    packed[target + 16] = unpacked[source + 19]
+  }
+
+  packed.set(unpacked.slice(126, 135), 102)
+  packed[111] = (unpacked[135] & 0x07) | ((unpacked[136] & 0x01) << 3)
+  packed.set(unpacked.slice(137, 141), 112)
+  packed[116] = (unpacked[141] & 0x01)
+    | ((unpacked[142] & 0x07) << 1)
+    | ((unpacked[143] & 0x07) << 4)
+  packed.set(unpacked.slice(144, 155), 117)
+
+  return { data: packed, name: decodeVoiceName(packed) }
+}
+
 /** Yamaha DX7 single-voice bulk dump, excluding the F0/43 manufacturer prefix and F7 terminator. */
 export function makeDx7SingleVoicePayload(voice: Dx7Voice, channel = 1) {
+  if (voice.data.length !== dx7PackedVoiceSize) {
+    throw new Error(
+      `Expected a ${dx7PackedVoiceSize}-byte packed DX7 voice; received ${voice.data.length} bytes.`,
+    )
+  }
   const data = unpackDx7Voice(voice)
   const checksum = (128 - (data.reduce((sum, byte) => sum + byte, 0) & 0x7f)) & 0x7f
 

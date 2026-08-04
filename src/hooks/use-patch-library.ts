@@ -1,73 +1,201 @@
-import { useCallback, useState } from 'react'
-import { patches as placeholders, type Patch } from '@/data/patches'
-import { parseDx7Bank, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import { parseDx7Bank, type Dx7Voice } from '@/lib/dx7'
+import { normalizeFm1Effects } from '@/lib/fm1-effects'
+import {
+  clearLibraryBank,
+  emptyPatchLibrary,
+  getBankVoices as selectBankVoices,
+  importVoices,
+  makeDemoVoices,
+  makePatches,
+  moveVoice as moveLibraryVoice,
+  renameVoice as renameLibraryVoice,
+  type PatchLibrarySnapshot,
+} from '@/lib/patch-library'
+import {
+  clearStoredPatchLibrary,
+  loadStoredPatchLibrary,
+  saveStoredPatchLibrary,
+} from '@/lib/patch-library-storage'
+
+type History = {
+  future: PatchLibrarySnapshot[]
+  past: PatchLibrarySnapshot[]
+  present: PatchLibrarySnapshot
+}
+
+export type LibrarySaveStatus = 'loading' | 'saved' | 'unsaved' | 'unavailable'
+
+const historyLimit = 50
 
 export function usePatchLibrary() {
-  const [patches, setPatches] = useState<Patch[]>(() =>
-    placeholders.map((patch) => ({ ...patch, name: 'Empty', family: '' })),
-  )
-  const [voices, setVoices] = useState<Record<string, Dx7Voice>>({})
-  const [loadedBanks, setLoadedBanks] = useState<string[]>([])
+  const [history, setHistory] = useState<History>({
+    future: [],
+    past: [],
+    present: emptyPatchLibrary(),
+  })
+  const [saveStatus, setSaveStatus] = useState<LibrarySaveStatus>('loading')
+  const [lastSavedAt, setLastSavedAt] = useState('')
+  const hydrated = useRef(false)
+
+  useEffect(() => {
+    let cancelled = false
+    void loadStoredPatchLibrary()
+      .then((stored) => {
+        if (cancelled) return
+        if (stored) {
+          setHistory({
+            future: [],
+            past: [],
+            present: {
+              effects: stored.effects,
+              loadedBanks: stored.loadedBanks,
+              voices: stored.voices,
+            },
+          })
+          setLastSavedAt(stored.savedAt)
+        }
+        hydrated.current = true
+        setSaveStatus('saved')
+      })
+      .catch(() => {
+        if (cancelled) return
+        hydrated.current = true
+        setSaveStatus('unavailable')
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated.current || saveStatus === 'unavailable') return
+    setSaveStatus('unsaved')
+    const timeout = window.setTimeout(() => {
+      void saveStoredPatchLibrary(history.present)
+        .then(() => {
+          setLastSavedAt(new Date().toISOString())
+          setSaveStatus('saved')
+        })
+        .catch(() => setSaveStatus('unavailable'))
+    }, 350)
+    return () => window.clearTimeout(timeout)
+  }, [history.present])
+
+  const commit = useCallback((update: (current: PatchLibrarySnapshot) => PatchLibrarySnapshot) => {
+    setHistory((current) => {
+      const next = update(current.present)
+      if (next === current.present) return current
+      return {
+        future: [],
+        past: [...current.past, current.present].slice(-historyLimit),
+        present: next,
+      }
+    })
+  }, [])
 
   const importBank = useCallback(async (bank: string, file: File) => {
     const imported = parseDx7Bank(await file.arrayBuffer())
-    setPatches((current) => current.map((patch) => patch.bank !== bank ? patch : {
-      ...patch, id: `bank-${bank}-${patch.number}`, name: imported[patch.number - 1].name, family: 'DX7',
-    }))
-    setVoices((current) => {
-      const next = { ...current }
-      imported.forEach((voice, index) => { next[`bank-${bank}-${index + 1}`] = voice })
-      return next
-    })
-    setLoadedBanks((current) => current.includes(bank) ? current : [...current, bank].sort())
-  }, [])
+    commit((current) => importVoices(current, bank, imported))
+  }, [commit])
+
+  const loadDemoBank = useCallback((bank: string) => {
+    commit((current) => importVoices(current, bank, makeDemoVoices()))
+  }, [commit])
 
   const updateVoice = useCallback((id: string, update: (voice: Dx7Voice) => Dx7Voice) => {
-    setVoices((current) => current[id] ? { ...current, [id]: update(current[id]) } : current)
-  }, [])
+    commit((current) => current.voices[id]
+      ? { ...current, voices: { ...current.voices, [id]: update(current.voices[id]) } }
+      : current)
+  }, [commit])
+
+  const updatePatch = useCallback((
+    id: string,
+    voice: Dx7Voice,
+    effects: Uint8Array,
+  ) => {
+    commit((current) => current.voices[id]
+      ? {
+          ...current,
+          effects: { ...current.effects, [id]: normalizeFm1Effects(effects) },
+          voices: { ...current.voices, [id]: voice },
+        }
+      : current)
+  }, [commit])
 
   const renameVoice = useCallback((id: string, name: string) => {
-    const trimmedName = name.trim()
-    if (!trimmedName) return
-    const displayName = trimmedName.slice(0, 10).replace(/[^\x20-\x7e]/g, ' ').trim() || 'UNTITLED'
-    setVoices((current) => current[id]
-      ? { ...current, [id]: updateDx7VoiceName(current[id], trimmedName) }
-      : current)
-    setPatches((current) => current.map((patch) => patch.id === id ? { ...patch, name: displayName } : patch))
-  }, [])
+    commit((current) => renameLibraryVoice(current, id, name))
+  }, [commit])
 
   const moveVoice = useCallback((bank: string, from: number, to: number) => {
-    if (to < 1 || to > 32 || from === to) return
-    const fromId = `bank-${bank}-${from}`
-    setVoices((current) => {
-      if (!current[fromId]) return current
-      const next = { ...current }
-      const moved = current[fromId]
-      const direction = from < to ? 1 : -1
-      for (let slot = from; slot !== to; slot += direction) {
-        next[`bank-${bank}-${slot}`] = current[`bank-${bank}-${slot + direction}`]
+    commit((current) => moveLibraryVoice(current, bank, from, to))
+  }, [commit])
+
+  const clearBank = useCallback((bank: string) => {
+    commit((current) => clearLibraryBank(current, bank))
+  }, [commit])
+
+  const clearAllBanks = useCallback(async () => {
+    setHistory({ future: [], past: [], present: emptyPatchLibrary() })
+    try {
+      await clearStoredPatchLibrary()
+      setLastSavedAt('')
+      setSaveStatus('saved')
+    } catch {
+      setSaveStatus('unavailable')
+    }
+  }, [])
+
+  const undo = useCallback(() => {
+    setHistory((current) => {
+      const previous = current.past.at(-1)
+      if (!previous) return current
+      return {
+        future: [current.present, ...current.future],
+        past: current.past.slice(0, -1),
+        present: previous,
       }
-      next[`bank-${bank}-${to}`] = moved
-      return next
-    })
-    setPatches((current) => {
-      const bankPatches = current.filter((patch) => patch.bank === bank).sort((a, b) => a.number - b.number)
-      const reordered = [...bankPatches]
-      const [moved] = reordered.splice(from - 1, 1)
-      reordered.splice(to - 1, 0, moved)
-      return current.map((patch) => patch.bank !== bank ? patch : {
-        ...patch,
-        name: reordered[patch.number - 1].name,
-        family: reordered[patch.number - 1].family,
-      })
     })
   }, [])
 
-  const getBankVoices = useCallback((bank: string) => {
-    return Array.from({ length: 32 }, (_, index) => voices[`bank-${bank}-${index + 1}`])
-      .filter((voice): voice is Dx7Voice => Boolean(voice))
-  }, [voices])
+  const redo = useCallback(() => {
+    setHistory((current) => {
+      const next = current.future[0]
+      if (!next) return current
+      return {
+        future: current.future.slice(1),
+        past: [...current.past, current.present].slice(-historyLimit),
+        present: next,
+      }
+    })
+  }, [])
 
-  return { getBankVoices, importBank, loadedBanks, moveVoice, patches, renameVoice, updateVoice, voices }
+  const patches = useMemo(() => makePatches(history.present), [history.present])
+  const getBankVoices = useCallback(
+    (bank: string) => selectBankVoices(history.present, bank),
+    [history.present],
+  )
+
+  return {
+    canRedo: history.future.length > 0,
+    canUndo: history.past.length > 0,
+    clearAllBanks,
+    clearBank,
+    getBankVoices,
+    importBank,
+    lastSavedAt,
+    loadDemoBank,
+    loadedBanks: history.present.loadedBanks,
+    moveVoice,
+    patches,
+    redo,
+    renameVoice,
+    saveStatus,
+    undo,
+    updatePatch,
+    updateVoice,
+    effects: history.present.effects,
+    voices: history.present.voices,
+  }
 }
+
 export type PatchLibrary = ReturnType<typeof usePatchLibrary>

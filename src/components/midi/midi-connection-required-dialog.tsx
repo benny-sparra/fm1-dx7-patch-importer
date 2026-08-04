@@ -44,7 +44,7 @@ export function MidiConnectionRequiredDialog({ dialogRef }: MidiConnectionRequir
       </div>
 
       <div className="grid gap-3 px-5 py-4 text-sm leading-5">
-        <p>Use <strong>MIDI idle · Connect</strong> at the top of the page, allow MIDI access, then select the FM1 MIDI output in Settings.</p>
+        <p>Switch <strong>MIDI online</strong> on at the top of the page, allow MIDI access, then select the FM1 MIDI output in Settings.</p>
       </div>
 
       <div className="flex justify-end border-t bg-muted/40 px-5 py-4">

@@ -28,6 +28,64 @@
 @layer base {
   :root {
     color-scheme: light;
+    --fm1-accent: hsl(190 60% 50%);
+    --fm1-accent-secondary: hsl(216 12% 42%);
+    --fm1-case: hsl(210 7% 16%);
+    --fm1-keys: hsl(210 6% 24%);
+  }
+
+  :root[data-fm1-colorway="black"] {
+    --color-primary: hsl(190 62% 36%);
+    --color-ring: hsl(190 72% 42%);
+    --fm1-accent: hsl(190 67% 50%);
+    --fm1-accent-secondary: hsl(215 11% 44%);
+    --fm1-case: hsl(210 7% 16%);
+    --fm1-keys: hsl(210 6% 24%);
+  }
+
+  :root[data-fm1-colorway="purple"] {
+    --color-primary: hsl(282 47% 44%);
+    --color-ring: hsl(282 60% 51%);
+    --fm1-accent: hsl(284 54% 68%);
+    --fm1-accent-secondary: hsl(252 46% 60%);
+    --fm1-case: hsl(285 43% 65%);
+    --fm1-keys: hsl(251 43% 59%);
+  }
+
+  :root[data-fm1-colorway="orange"] {
+    --color-primary: hsl(17 64% 39%);
+    --color-ring: hsl(17 72% 47%);
+    --fm1-accent: hsl(18 63% 57%);
+    --fm1-accent-secondary: hsl(8 32% 48%);
+    --fm1-case: hsl(17 53% 55%);
+    --fm1-keys: hsl(9 31% 47%);
+  }
+
+  :root[data-fm1-colorway="black-green"] {
+    --color-primary: hsl(169 58% 32%);
+    --color-ring: hsl(169 66% 40%);
+    --fm1-accent: hsl(170 54% 64%);
+    --fm1-accent-secondary: hsl(177 11% 25%);
+    --fm1-case: hsl(190 7% 16%);
+    --fm1-keys: hsl(170 53% 63%);
+  }
+
+  :root[data-fm1-colorway="cool-gray"] {
+    --color-primary: hsl(207 20% 38%);
+    --color-ring: hsl(207 27% 46%);
+    --fm1-accent: hsl(35 15% 81%);
+    --fm1-accent-secondary: hsl(207 8% 35%);
+    --fm1-case: hsl(35 17% 82%);
+    --fm1-keys: hsl(207 8% 31%);
+  }
+
+  :root[data-fm1-colorway="white-blue"] {
+    --color-primary: hsl(209 48% 39%);
+    --color-ring: hsl(209 57% 47%);
+    --fm1-accent: hsl(209 42% 60%);
+    --fm1-accent-secondary: hsl(39 20% 88%);
+    --fm1-case: hsl(39 20% 90%);
+    --fm1-keys: hsl(209 34% 56%);
   }
 
   :root[data-theme="light"] {
@@ -107,11 +165,11 @@
     margin: 0;
     min-width: 320px;
     font-family:
-      "Nunito Variable", Nunito, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", sans-serif;
+      "Space Grotesk Variable", "Space Grotesk", ui-sans-serif, system-ui, -apple-system,
+      BlinkMacSystemFont, "Segoe UI", sans-serif;
     background:
-      radial-gradient(ellipse at 50% 28%, hsl(326 100% 72% / 20%), transparent 32rem),
-      radial-gradient(circle at 88% 4%, hsl(264 88% 65% / 18%), transparent 26rem),
+      radial-gradient(ellipse at 50% 28%, color-mix(in srgb, var(--fm1-accent) 24%, transparent), transparent 32rem),
+      radial-gradient(circle at 88% 4%, color-mix(in srgb, var(--fm1-keys) 20%, transparent), transparent 26rem),
       radial-gradient(circle at 8% 30%, hsl(190 100% 60% / 12%), transparent 24rem),
       linear-gradient(180deg, hsl(251 62% 94%), var(--color-background) 45%, hsl(302 62% 94%));
     background-attachment: fixed;
@@ -133,7 +191,7 @@
   .synthwave-shell {
     position: relative;
     isolation: isolate;
-    overflow: hidden;
+    overflow-x: clip;
   }
 
   .synthwave-shell::before {
@@ -146,8 +204,8 @@
     content: "";
     opacity: 0.13;
     background-image:
-      linear-gradient(hsl(315 100% 60% / 55%) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(185 100% 50% / 45%) 1px, transparent 1px);
+      linear-gradient(color-mix(in srgb, var(--fm1-accent) 58%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--fm1-keys) 50%, transparent) 1px, transparent 1px);
     background-size: 44px 28px;
     animation: synthwave-grid-drift 14s linear infinite;
     mask-image: linear-gradient(to bottom, transparent, black 28%);
@@ -171,12 +229,12 @@
   .synthwave-hero {
     position: relative;
     background:
-      radial-gradient(ellipse at 78% 115%, hsl(34 100% 72% / 26%), transparent 17rem),
-      radial-gradient(ellipse at 66% 112%, hsl(320 100% 61% / 27%), transparent 34rem),
-      radial-gradient(circle at 24% -25%, hsl(246 88% 66% / 25%), transparent 25rem),
-      linear-gradient(118deg, hsl(252 58% 10%), hsl(268 60% 17%) 57%, hsl(235 55% 15%));
+      radial-gradient(ellipse at 78% 115%, color-mix(in srgb, var(--fm1-accent) 40%, transparent), transparent 17rem),
+      radial-gradient(ellipse at 66% 112%, color-mix(in srgb, var(--fm1-keys) 36%, transparent), transparent 34rem),
+      radial-gradient(circle at 24% -25%, color-mix(in srgb, var(--fm1-accent-secondary) 42%, transparent), transparent 25rem),
+      linear-gradient(118deg, color-mix(in srgb, var(--fm1-case) 40%, black), color-mix(in srgb, var(--fm1-case) 44%, hsl(260 45% 12%)) 57%, color-mix(in srgb, var(--fm1-keys) 35%, black));
     color: hsl(184 52% 94%);
-    box-shadow: inset 0 -1px hsl(185 100% 50% / 45%), 0 10px 35px hsl(270 80% 8% / 18%);
+    box-shadow: inset 0 -1px color-mix(in srgb, var(--fm1-accent) 62%, transparent), 0 10px 35px hsl(270 80% 8% / 18%);
   }
 
   .synthwave-title {
@@ -194,6 +252,141 @@
 
   .synthwave-panel {
     box-shadow: 0 18px 45px hsl(264 70% 8% / 14%), 0 0 0 1px hsl(315 100% 60% / 8%);
+  }
+
+  .editor-console {
+    background:
+      radial-gradient(circle at 84% 12%, color-mix(in srgb, var(--fm1-accent) 26%, transparent), transparent 9rem),
+      linear-gradient(hsl(185 100% 55% / 6%) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(315 100% 60% / 6%) 1px, transparent 1px),
+      linear-gradient(145deg, color-mix(in srgb, var(--fm1-case) 48%, hsl(257 52% 13%)), color-mix(in srgb, var(--fm1-keys) 24%, hsl(249 58% 7%)));
+    background-size: auto, 22px 22px, 22px 22px, auto;
+    box-shadow:
+      inset 0 0 0 1px hsl(185 100% 55% / 8%),
+      0 18px 45px hsl(260 80% 4% / 30%);
+  }
+
+  .editor-operator-header {
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--operator-color) 22%, transparent), transparent 44%),
+      linear-gradient(180deg, hsl(258 48% 18%), hsl(252 52% 10%));
+  }
+
+  .synthwave-keyboard {
+    border: 1px solid hsl(315 100% 62% / 72%);
+    background:
+      linear-gradient(135deg, hsl(255 55% 12% / 98%), hsl(266 58% 8% / 98%));
+    box-shadow:
+      inset 0 0 0 1px hsl(185 100% 55% / 15%),
+      0 0 0 1px hsl(315 100% 60% / 12%),
+      0 0 30px hsl(315 100% 55% / 22%),
+      0 24px 70px hsl(260 90% 4% / 68%);
+  }
+
+  .synthwave-keyboard-header {
+    border-bottom: 1px solid hsl(185 100% 55% / 28%);
+    background:
+      linear-gradient(90deg, hsl(315 100% 58% / 14%), transparent 32%, hsl(185 100% 52% / 10%)),
+      linear-gradient(180deg, hsl(260 45% 20%), hsl(255 52% 12%));
+    box-shadow: inset 0 -1px hsl(315 100% 62% / 20%);
+  }
+
+  .synthwave-keyboard-stage {
+    background:
+      linear-gradient(hsl(315 100% 60% / 7%) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(185 100% 55% / 7%) 1px, transparent 1px),
+      radial-gradient(ellipse at 50% 115%, hsl(315 100% 56% / 18%), transparent 55%),
+      hsl(254 52% 8%);
+    background-size: 28px 20px, 28px 20px, auto, auto;
+  }
+
+  .synthwave-keybed {
+    border: 1px solid hsl(185 100% 55% / 50%);
+    background: linear-gradient(180deg, hsl(250 55% 5%), hsl(260 58% 9%));
+    box-shadow:
+      inset 0 0 22px hsl(260 100% 2% / 90%),
+      0 0 0 1px hsl(315 100% 60% / 18%),
+      0 0 18px hsl(185 100% 50% / 10%);
+  }
+
+  .synthwave-octave-button {
+    border: 1px solid hsl(315 100% 62% / 42%);
+    background:
+      linear-gradient(180deg, hsl(265 48% 22%), hsl(252 55% 9%));
+    box-shadow:
+      inset 0 0 18px hsl(185 100% 50% / 6%),
+      0 0 14px hsl(315 100% 55% / 8%);
+  }
+
+  .synthwave-octave-button:hover:not(:disabled) {
+    border-color: hsl(185 100% 55% / 72%);
+    background:
+      linear-gradient(180deg, hsl(278 56% 27%), hsl(253 58% 11%));
+    box-shadow:
+      inset 0 0 20px hsl(315 100% 60% / 10%),
+      0 0 16px hsl(185 100% 50% / 16%);
+  }
+
+  .synthwave-key-hint {
+    border: 1px solid hsl(185 100% 65% / 30%);
+    background: hsl(250 35% 4% / 58%);
+    color: hsl(185 100% 85%);
+    box-shadow: 0 0 8px hsl(185 100% 50% / 12%);
+  }
+
+  .synthwave-piano-key-white {
+    border-color: hsl(257 28% 65%);
+    background:
+      linear-gradient(180deg, hsl(191 65% 98%), hsl(268 55% 97%) 62%, hsl(263 40% 83%));
+    box-shadow:
+      inset 0 -14px 20px hsl(260 45% 35% / 13%),
+      inset 0 1px hsl(185 100% 80% / 85%);
+  }
+
+  .synthwave-piano-key-white:hover {
+    background:
+      linear-gradient(180deg, hsl(184 100% 97%), hsl(280 65% 95%) 62%, hsl(315 55% 82%));
+    box-shadow:
+      inset 0 -14px 20px hsl(315 70% 42% / 14%),
+      0 0 12px hsl(185 100% 55% / 18%);
+  }
+
+  .synthwave-piano-key-black {
+    border-color: hsl(290 64% 7%);
+    background:
+      linear-gradient(180deg, hsl(272 45% 24%), hsl(257 52% 10%) 62%, hsl(247 65% 4%));
+    box-shadow:
+      inset 0 -8px 12px hsl(185 100% 60% / 8%),
+      inset 0 1px hsl(315 100% 75% / 24%),
+      0 6px 10px hsl(260 80% 3% / 62%);
+  }
+
+  .synthwave-piano-key-black:hover {
+    background:
+      linear-gradient(180deg, hsl(298 55% 29%), hsl(264 58% 12%) 62%, hsl(248 65% 5%));
+    box-shadow:
+      inset 0 -8px 12px hsl(185 100% 60% / 10%),
+      0 0 12px hsl(315 100% 58% / 26%),
+      0 6px 10px hsl(260 80% 3% / 62%);
+  }
+
+  .synthwave-piano-key-white-active {
+    color: hsl(260 55% 11%);
+    transform: translateY(2px);
+    background:
+      linear-gradient(180deg, hsl(184 100% 86%), hsl(315 100% 83%) 68%, hsl(317 100% 66%));
+    box-shadow:
+      inset 0 -10px 18px hsl(315 100% 45% / 22%),
+      0 0 18px hsl(185 100% 55% / 58%);
+  }
+
+  .synthwave-piano-key-black-active {
+    transform: translateY(2px);
+    background:
+      linear-gradient(180deg, hsl(315 100% 68%), hsl(288 82% 48%) 58%, hsl(252 72% 25%));
+    box-shadow:
+      inset 0 -8px 12px hsl(185 100% 60% / 18%),
+      0 0 18px hsl(315 100% 58% / 72%);
   }
 
   .patch-area-surface {

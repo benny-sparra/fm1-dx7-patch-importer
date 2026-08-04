@@ -1,4 +1,4 @@
-import { CircleHelp, Download, FileUp, PlugZap, Send, X } from 'lucide-react'
+import { CircleHelp, Library, PlugZap, Send, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -7,22 +7,22 @@ const HELP_SEEN_KEY = 'fm1-librarian-help-seen'
 
 const steps = [
   {
-    description: 'Download a standard 32-voice Yamaha DX7 SysEx (.syx) bank from a source you trust.',
-    icon: Download,
-    title: 'Find a DX7 bank',
+    description: 'Load the demo sounds to explore, or import a standard 32-voice DX7 SysEx bank of your own.',
+    icon: Library,
+    title: 'Build your library',
   },
   {
-    description: 'Choose browser bank A–D, then import the file. You can rename and rearrange patches before sending.',
-    icon: FileUp,
-    title: 'Import and organise',
+    description: 'Open any sound in the voice editor. Save it to the browser library, or revert and restore the saved version on the FM1.',
+    icon: SlidersHorizontal,
+    title: 'Edit and organise',
   },
   {
-    description: 'Connect the FM1 over USB or MIDI, click MIDI idle · Connect, and select its output in Settings.',
+    description: 'Connect the FM1 over USB or MIDI, switch MIDI online on, and select its input and output in Settings.',
     icon: PlugZap,
     title: 'Connect your FM1',
   },
   {
-    description: 'Click Send to FM1, then choose the matching destination bank on the synth when prompted.',
+    description: 'Audition individual sounds in their matching FM1 slots, or transfer a complete bank and choose its destination on the synth.',
     icon: Send,
     title: 'Transfer the sounds',
   },
@@ -54,7 +54,7 @@ export function HelpDialog() {
   return (
     <>
       <Button
-        aria-label="How to use the FM1 patch librarian"
+        aria-label="How to use the FM1 editor and librarian"
         className="cursor-pointer bg-transparent text-white/70 hover:bg-transparent hover:text-white"
         onClick={() => dialogRef.current?.showModal()}
         size="icon"
@@ -79,10 +79,11 @@ export function HelpDialog() {
             <CircleHelp className="mt-0.5 size-6 shrink-0 text-primary" />
             <div>
               <h2 className="text-lg font-bold" id="help-dialog-title">
-                Welcome to the FM1 patch librarian
+                Welcome to the FM1 editor &amp; librarian
               </h2>
               <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                Import, organise, audition, and transfer DX7-compatible sounds to your M-VAVE FM1 from the browser.
+                Manage your sound library, shape voices in the editor, and audition
+                or transfer them on your M-VAVE FM1—all from the browser.
               </p>
             </div>
           </div>
@@ -97,6 +98,12 @@ export function HelpDialog() {
             <X />
           </Button>
         </div>
+
+        <p className="mx-5 mt-5 rounded-lg border border-primary/30 bg-primary/10 p-4 text-sm leading-6">
+          <span className="font-semibold">Browser banks are the source of truth.</span>{' '}
+          The FM1 accepts voices and banks but cannot send its stored banks back.
+          Import or restore sounds here, edit them, then transfer them to the FM1.
+        </p>
 
         <ol className="grid gap-3 p-5 sm:grid-cols-2">
           {steps.map(({ description, icon: Icon, title }, index) => (
@@ -117,7 +124,7 @@ export function HelpDialog() {
 
         <div className="flex justify-end border-t bg-muted/40 px-5 py-4">
           <Button className="shrink-0" onClick={closeDialog} type="button">
-            Start using the librarian
+            Start editing
           </Button>
         </div>
       </dialog>

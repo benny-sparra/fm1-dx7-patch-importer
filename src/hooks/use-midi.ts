@@ -6,16 +6,34 @@ import {
   type Output,
 } from 'webmidi'
 
-import { makeDx7BankPayload, type Dx7Voice } from '@/lib/dx7'
+import {
+  makeDx7BankPayload,
+  makeDx7SingleVoicePayload,
+  type Dx7Voice,
+} from '@/lib/dx7'
+import {
+  fm1EffectParameterCount,
+  normalizeFm1Effects,
+} from '@/lib/fm1-effects'
 import {
   formatMidiBytes,
+  classifyFm1CapabilityResponse,
   getMidiSupport,
+  makeFm1CapabilityRequest,
+  makeFm1EffectControlMessage,
+  makeFm1ParameterPayload,
+  makeFm1ProgramChangeMessage,
   makeLogEntry,
   portsToDevices,
+  sendFm1Parameter,
+  sendFm1ProgramChange,
+  sendFm1EffectControl,
   sendNoteOff,
   sendNoteOn,
   sendDx7Bank,
+  sendDx7Voice,
   type MidiDevice,
+  type Fm1CapabilityKind,
   type MidiLogEntry,
 } from '@/lib/midi'
 import { MidiTransferQueue } from '@/lib/midi-transfer-queue'
@@ -25,9 +43,15 @@ export const midiChannels = Array.from({ length: 16 }, (_, index) => index + 1)
 const midiStorageKeys = {
   autoConnect: 'fm1-midi-auto-connect',
   channel: 'fm1-midi-channel',
+  effectChannel: 'fm1-midi-effect-channel',
   inputId: 'fm1-midi-input-id',
   outputId: 'fm1-midi-output-id',
 } as const
+
+export type Fm1CapabilityProbeResult = {
+  kind: Fm1CapabilityKind
+  status: 'invalid' | 'no-response' | 'supported'
+}
 
 function readStoredValue(key: string) {
   try {
@@ -50,6 +74,11 @@ function readStoredChannel() {
   return midiChannels.includes(storedChannel) ? storedChannel : 1
 }
 
+function readStoredEffectChannel() {
+  const storedChannel = Number(readStoredValue(midiStorageKeys.effectChannel))
+  return midiChannels.includes(storedChannel) ? storedChannel : 2
+}
+
 export function useMidi() {
   const [midiAccess, setMidiAccess] = useState(false)
   const [outputs, setOutputs] = useState<MidiDevice<Output>[]>([])
@@ -57,12 +86,14 @@ export function useMidi() {
   const [selectedOutputId, setSelectedOutputId] = useState('')
   const [selectedInputId, setSelectedInputId] = useState('')
   const [channel, setChannelState] = useState(readStoredChannel)
+  const [effectChannel, setEffectChannelState] = useState(readStoredEffectChannel)
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState('')
   const [log, setLog] = useState<MidiLogEntry[]>([
     makeLogEntry('system', 'Ready. Connect a Chromium browser to begin.'),
   ])
   const transferQueue = useRef(new MidiTransferQueue({ minimumIntervalMs: 35 }))
+  const capabilityProbeInFlight = useRef<Promise<Fm1CapabilityProbeResult[]> | null>(null)
   const preferredOutputId = useRef(readStoredValue(midiStorageKeys.outputId))
   const preferredInputId = useRef(readStoredValue(midiStorageKeys.inputId))
   const startupConnectionAttempted = useRef(false)
@@ -80,6 +111,7 @@ export function useMidi() {
   )
 
   const hasMidiOutput = Boolean(selectedOutput)
+  const hasMidiInput = Boolean(selectedInput)
 
   const appendLog = useCallback((entry: MidiLogEntry) => {
     setLog((current) => [entry, ...current].slice(0, 8))
@@ -195,6 +227,12 @@ export function useMidi() {
     storeValue(midiStorageKeys.channel, String(nextChannel))
   }, [])
 
+  const setEffectChannel = useCallback((nextChannel: number) => {
+    if (!midiChannels.includes(nextChannel)) return
+    setEffectChannelState(nextChannel)
+    storeValue(midiStorageKeys.effectChannel, String(nextChannel))
+  }, [])
+
   useEffect(() => {
     if (!midiAccess) {
       return
@@ -242,6 +280,184 @@ export function useMidi() {
     [appendLog, channel, selectedOutput],
   )
 
+  const sendVoice = useCallback(
+    (voice: Dx7Voice) => {
+      if (!selectedOutput) {
+        appendLog(makeLogEntry('system', `Could not send ${voice.name}; no MIDI output selected.`))
+        return Promise.resolve(false)
+      }
+      if (!WebMidi.sysexEnabled) {
+        appendLog(makeLogEntry('system', 'Enable SysEx before sending a browser patch.'))
+        return Promise.resolve(false)
+      }
+
+      const payload = makeDx7SingleVoicePayload(voice, channel)
+      const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
+      appendLog(makeLogEntry('out', `Sending ${voice.name} to the FM1 edit buffer…`, message))
+
+      return transferQueue.current.enqueue(() => sendDx7Voice(selectedOutput, channel, voice))
+        .then(() => {
+          appendLog(makeLogEntry(
+            'out',
+            `Sent ${voice.name}. Hold SAVE on the FM1 to store it.`,
+            message,
+          ))
+          return true
+        })
+        .catch((caughtError) => {
+          appendLog(makeLogEntry(
+            'system',
+            caughtError instanceof Error ? caughtError.message : 'Patch transfer failed.',
+          ))
+          return false
+        })
+    },
+    [appendLog, channel, selectedOutput],
+  )
+
+  const sendProgramChange = useCallback((program: number) => {
+    if (!selectedOutput) {
+      appendLog(makeLogEntry('system', 'Could not select an FM1 program; no MIDI output selected.'))
+      return false
+    }
+
+    try {
+      const message = makeFm1ProgramChangeMessage(program, channel)
+      sendFm1ProgramChange(selectedOutput, channel, program)
+      appendLog(makeLogEntry(
+        'out',
+        `Selected FM1 program ${program} on channel ${channel}.`,
+        message,
+      ))
+      return true
+    } catch (caughtError) {
+      appendLog(makeLogEntry(
+        'system',
+        caughtError instanceof Error ? caughtError.message : 'FM1 program selection failed.',
+      ))
+      return false
+    }
+  }, [appendLog, channel, selectedOutput])
+
+  const sendParameter = useCallback(
+    (parameter: number, value: number) => {
+      if (!selectedOutput) {
+        appendLog(makeLogEntry('system', 'Could not send FM1 parameter; no MIDI output selected.'))
+        return false
+      }
+      if (!WebMidi.sysexEnabled) {
+        appendLog(makeLogEntry('system', 'Enable SysEx before testing parameter editing.'))
+        return false
+      }
+
+      try {
+        const payload = makeFm1ParameterPayload(parameter, value, channel)
+        const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
+        appendLog(makeLogEntry(
+          'out',
+          `Queued FM1 parameter ${parameter} = ${value} on channel ${channel}.`,
+          message,
+        ))
+        void transferQueue.current
+          .enqueue(
+            () => sendFm1Parameter(selectedOutput, channel, parameter, value),
+            `parameter-${parameter}`,
+          )
+          .catch((caughtError) => {
+            appendLog(makeLogEntry(
+              'system',
+              caughtError instanceof Error ? caughtError.message : 'FM1 parameter write failed.',
+            ))
+          })
+        return true
+      } catch (caughtError) {
+        appendLog(makeLogEntry(
+          'system',
+          caughtError instanceof Error ? caughtError.message : 'FM1 parameter test failed.',
+        ))
+        return false
+      }
+    },
+    [appendLog, channel, selectedOutput],
+  )
+
+  const sendEffectParameter = useCallback(
+    (controller: number, value: number) => {
+      if (!selectedOutput) {
+        appendLog(makeLogEntry('system', 'Could not send FM1 effect; no MIDI output selected.'))
+        return false
+      }
+
+      try {
+        const message = makeFm1EffectControlMessage(controller, value, effectChannel)
+        appendLog(makeLogEntry(
+          'out',
+          `Queued FM1 effect CC ${controller} = ${value} on channel ${effectChannel}.`,
+          message,
+        ))
+        void transferQueue.current
+          .enqueue(
+            () => sendFm1EffectControl(
+              selectedOutput,
+              effectChannel,
+              controller,
+              value,
+            ),
+            `effect-${controller}`,
+          )
+          .catch((caughtError) => {
+            appendLog(makeLogEntry(
+              'system',
+              caughtError instanceof Error ? caughtError.message : 'FM1 effect write failed.',
+            ))
+          })
+        return true
+      } catch (caughtError) {
+        appendLog(makeLogEntry(
+          'system',
+          caughtError instanceof Error ? caughtError.message : 'FM1 effect write failed.',
+        ))
+        return false
+      }
+    },
+    [appendLog, effectChannel, selectedOutput],
+  )
+
+  const sendEffectSettings = useCallback((settings: Uint8Array) => {
+    const normalized = normalizeFm1Effects(settings)
+    if (!selectedOutput) {
+      appendLog(makeLogEntry('system', 'Could not send FM1 effects; no MIDI output selected.'))
+      return Promise.resolve(false)
+    }
+
+    const transfers = Array.from(
+      { length: fm1EffectParameterCount },
+      (_, controller) => transferQueue.current.enqueue(
+        () => sendFm1EffectControl(
+          selectedOutput,
+          effectChannel,
+          controller,
+          normalized[controller],
+        ),
+        `effect-${controller}`,
+      ),
+    )
+
+    appendLog(makeLogEntry(
+      'out',
+      `Sending FM1 effect unit on channel ${effectChannel}…`,
+    ))
+    return Promise.all(transfers)
+      .then(() => true)
+      .catch((caughtError) => {
+        appendLog(makeLogEntry(
+          'system',
+          caughtError instanceof Error ? caughtError.message : 'FM1 effect transfer failed.',
+        ))
+        return false
+      })
+  }, [appendLog, effectChannel, selectedOutput])
+
   const startNote = useCallback(
     (note: number, label: string) => {
       if (!selectedOutput) {
@@ -280,21 +496,102 @@ export function useMidi() {
     return () => selectedInput.removeListener('midimessage', handleMidiMessage)
   }, [appendLog, selectedInput])
 
+  const probeFm1Capabilities = useCallback(() => {
+    if (capabilityProbeInFlight.current) return capabilityProbeInFlight.current
+    if (!selectedOutput || !selectedInput) {
+      return Promise.reject(new Error('Select both the FM1 MIDI input and output before running the capability test.'))
+    }
+    if (!WebMidi.sysexEnabled) {
+      return Promise.reject(new Error('Reconnect MIDI with SysEx permission before running the capability test.'))
+    }
+
+    const probeOne = (
+      kind: Fm1CapabilityKind,
+      timeoutMs: number,
+    ) => new Promise<Fm1CapabilityProbeResult>((resolve, reject) => {
+      let settled = false
+      let timeout = 0
+
+      const finish = (result: Fm1CapabilityProbeResult) => {
+        if (settled) return
+        settled = true
+        window.clearTimeout(timeout)
+        selectedInput.removeListener('midimessage', handleMidiMessage)
+        resolve(result)
+      }
+
+      const handleMidiMessage = (event: MessageEvent) => {
+        const response = classifyFm1CapabilityResponse(event.data)
+        if (!response || response.kind !== kind) return
+        finish({
+          kind,
+          status: response.valid ? 'supported' : 'invalid',
+        })
+      }
+
+      const request = makeFm1CapabilityRequest(kind, channel)
+      selectedInput.addListener('midimessage', handleMidiMessage)
+      timeout = window.setTimeout(
+        () => finish({ kind, status: 'no-response' }),
+        timeoutMs,
+      )
+
+      try {
+        selectedOutput.sendSysex(request[1], request.slice(2, -1))
+        appendLog(makeLogEntry('out', `Requested FM1 ${kind} response.`, request))
+      } catch (caughtError) {
+        selectedInput.removeListener('midimessage', handleMidiMessage)
+        window.clearTimeout(timeout)
+        settled = true
+        reject(caughtError)
+      }
+    })
+
+    const run = (async () => {
+      const results: Fm1CapabilityProbeResult[] = []
+      results.push(await probeOne('identity', 1_500))
+      results.push(await probeOne('voice', 2_000))
+      results.push(await probeOne('bank', 4_000))
+      appendLog(makeLogEntry(
+        'system',
+        results.some((result) => result.status === 'supported')
+          ? 'FM1 capability test received a recognized response.'
+          : 'FM1 capability test completed without a recognized response.',
+      ))
+      return results
+    })()
+      .finally(() => {
+        capabilityProbeInFlight.current = null
+      })
+
+    capabilityProbeInFlight.current = run
+    return run
+  }, [appendLog, channel, selectedInput, selectedOutput])
+
   return {
     channel,
     connectMidi,
     disconnectMidi,
     error,
+    effectChannel,
     hasMidiOutput,
+    hasMidiInput,
     inputs,
     isConnecting,
     log,
     midiAccess,
     outputs,
+    probeFm1Capabilities,
     sendBank,
+    sendEffectParameter,
+    sendEffectSettings,
+    sendParameter,
+    sendProgramChange,
+    sendVoice,
     selectedInputId,
     selectedOutputId,
     setChannel,
+    setEffectChannel,
     setSelectedInputId: selectInput,
     setSelectedOutputId: selectOutput,
     startNote,

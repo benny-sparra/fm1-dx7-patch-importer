@@ -348,7 +348,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
 
       <dialog
         aria-label="Piano keyboard"
-        className="fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1040px,calc(100vw-1rem))] overflow-hidden rounded-lg border border-primary/30 bg-[#151722] p-0 text-card-foreground shadow-2xl"
+        className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1040px,calc(100vw-1rem))] overflow-hidden rounded-xl p-0 text-card-foreground"
         onCancel={releaseAllNotes}
         onClose={releaseAllNotes}
         ref={dialogRef}
@@ -365,14 +365,24 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
       >
         <div
           aria-label="Drag keyboard"
-          className="flex h-10 cursor-move touch-none items-center justify-between border-b border-white/10 bg-gradient-to-b from-[#303345] to-[#1d202d] px-3 text-white"
+          className="synthwave-keyboard-header flex h-12 cursor-move touch-none items-center justify-between px-4 text-white"
           onPointerCancel={stopDrag}
           onPointerDown={startDrag}
           onPointerMove={moveDialog}
           onPointerUp={stopDrag}
           onMouseDown={startMouseDrag}
         >
-          <GripHorizontal className="size-5 text-white/55" />
+          <div className="flex items-center gap-3">
+            <GripHorizontal className="size-5 text-cyan-200/60" />
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-xs font-extrabold tracking-[0.24em] text-white">
+                PERFORMANCE
+              </span>
+              <span className="text-[0.62rem] font-bold tracking-[0.2em] text-cyan-200/75">
+                KEYBOARD
+              </span>
+            </div>
+          </div>
           <Button
             aria-label="Close keyboard"
             autoFocus
@@ -382,12 +392,13 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
             size="icon"
             type="button"
             variant="ghost"
+            className="text-cyan-100 hover:bg-primary/20 hover:text-white"
           >
             <X />
           </Button>
         </div>
 
-        <div className="overflow-x-auto p-4">
+        <div className="synthwave-keyboard-stage overflow-x-auto p-4">
           <div
             className="grid items-stretch gap-3"
             style={{
@@ -402,8 +413,8 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
               onClick={() => shiftOctave(-1)}
             />
 
-            <div className="relative h-56 overflow-hidden rounded-md border border-black bg-[#0b0c11] px-2 pb-3 pt-2 shadow-inner">
-              <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white/12 to-transparent" />
+            <div className="synthwave-keybed relative h-56 overflow-hidden rounded-lg px-2 pb-3 pt-2">
+              <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-cyan-200/15 to-transparent" />
               <div className="grid h-full grid-cols-[repeat(15,56px)]">
                 {whiteKeys.map((key) => (
                   <PianoKeyButton
@@ -458,14 +469,14 @@ function OctaveButton({
   return (
     <button
       aria-label={`Shift octave ${direction}`}
-      className="flex min-h-56 items-center justify-center rounded-md border border-black bg-gradient-to-b from-[#343746] to-[#12141d] text-white shadow-inner transition hover:from-[#3f4252] disabled:cursor-not-allowed disabled:opacity-45"
+      className="synthwave-octave-button group flex min-h-56 items-center justify-center rounded-lg text-white transition disabled:cursor-not-allowed disabled:opacity-35"
       disabled={disabled}
       onClick={onClick}
       type="button"
     >
       <span className="flex flex-col items-center gap-2">
-        <Icon className="size-7" />
-        <span className="rounded bg-white/10 px-1.5 py-0.5 text-xs">
+        <Icon className="size-7 text-cyan-100 transition group-hover:text-white" />
+        <span className="synthwave-key-hint rounded px-1.5 py-0.5 text-xs">
           {keyboardKey}
         </span>
       </span>
@@ -492,14 +503,14 @@ function PianoKeyButton({
     <button
       aria-label={`Play ${noteKey.label}`}
       className={cn(
-        'select-none touch-none border font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'select-none touch-none border font-semibold transition-[background,box-shadow,transform,color] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300',
         isBlack
-          ? 'absolute top-2 z-10 flex h-32 w-9 items-end justify-center rounded-b-[0.4rem] border-black bg-gradient-to-b from-[#2b2d33] via-[#111216] to-black pb-3 text-[0.7rem] text-white shadow-[inset_0_-8px_12px_rgb(255_255_255_/_0.08),0_5px_10px_rgb(0_0_0_/_0.45)] hover:from-[#383b43]'
-          : 'relative flex h-52 items-end justify-center rounded-b-[0.45rem] border-x border-b border-[#b6bac8] bg-gradient-to-b from-white via-[#f8f8fb] to-[#d8dbe5] pb-4 text-xs text-[#20222d] shadow-[inset_0_-12px_18px_rgb(20_22_34_/_0.12)] hover:from-[#fff9df] hover:to-[#e9dfb8]',
+          ? 'synthwave-piano-key-black absolute top-2 z-10 flex h-32 w-9 items-end justify-center rounded-b-[0.45rem] pb-3 text-[0.7rem] text-white'
+          : 'synthwave-piano-key-white relative flex h-52 items-end justify-center rounded-b-[0.5rem] pb-4 text-xs text-[#25213c]',
         isActive &&
           (isBlack
-            ? 'from-primary via-primary to-[#1b1b83]'
-            : 'from-[#fff3b8] via-accent to-[#d4c46a]'),
+            ? 'synthwave-piano-key-black-active'
+            : 'synthwave-piano-key-white-active'),
       )}
       onKeyDown={(event) => {
         if (event.repeat || (event.key !== 'Enter' && event.key !== ' ')) {
@@ -534,7 +545,9 @@ function PianoKeyButton({
           <span
             className={cn(
               'rounded px-1.5 py-0.5 text-[0.65rem] uppercase',
-              isBlack ? 'bg-white/15 text-white/85' : 'bg-black/10 text-[#20222d]',
+              isBlack
+                ? 'bg-cyan-200/15 text-cyan-100'
+                : 'bg-violet-950/10 text-violet-950/80',
             )}
           >
             {noteKey.computerKey}
