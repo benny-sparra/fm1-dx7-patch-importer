@@ -95,6 +95,7 @@ const effects: EffectDefinition[] = [
 function EffectControl({
   disabled,
   effectName,
+  placement = 'body',
   onChange,
   onGestureEnd,
   onGestureStart,
@@ -103,6 +104,7 @@ function EffectControl({
 }: {
   disabled: boolean
   effectName: string
+  placement?: 'body' | 'header'
   onChange: (controller: number, value: number) => void
   onGestureEnd: () => void
   onGestureStart: () => void
@@ -128,6 +130,33 @@ function EffectControl({
             <option key={option} value={index}>{option}</option>
           ))}
         </select>
+      </label>
+    )
+  }
+
+  if (placement === 'header') {
+    return (
+      <label className="ml-auto flex w-1/2 min-w-0 items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+        <span className="flex shrink-0 items-center gap-1">
+          {parameter.label}
+          {helpText ? <HelpPopover label={`${effectName} ${parameter.label}`} text={helpText} /> : null}
+        </span>
+        <input
+          aria-label={`${effectName} ${parameter.label}`}
+          className="h-2 min-w-0 flex-1 cursor-pointer accent-[var(--effect-color)] disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={disabled}
+          max={parameter.max}
+          min={0}
+          onChange={(event) => onChange(parameter.controller, Number(event.target.value))}
+          onPointerCancel={onGestureEnd}
+          onPointerDown={onGestureStart}
+          onPointerUp={onGestureEnd}
+          type="range"
+          value={value}
+        />
+        <output className="w-8 shrink-0 text-right font-mono text-xs text-foreground">
+          {value}{parameter.suffix}
+        </output>
       </label>
     )
   }
@@ -180,6 +209,8 @@ export function EffectsUnit({
         <div className={cn('grid gap-3', !isSidebar && 'md:grid-cols-2 2xl:grid-cols-6')}>
           {effects.map((effect, index) => {
             const enabled = values[effect.switchController] > 0
+            const mixParameter = effect.parameters.find((parameter) => parameter.label === 'Mix')
+            const bodyParameters = effect.parameters.filter((parameter) => parameter !== mixParameter)
             return (
               <div className="relative flex min-w-0" key={effect.name}>
                 <section
@@ -191,7 +222,7 @@ export function EffectsUnit({
                   )}
                   style={{ '--effect-color': effect.color } as React.CSSProperties}
                 >
-                  <div className="flex items-center gap-2 border-b pb-2">
+                  <div className="flex flex-wrap items-center gap-2 border-b pb-2">
                     <Button
                       aria-label={`${enabled ? 'Bypass' : 'Enable'} ${effect.name}`}
                       aria-pressed={enabled}
@@ -216,9 +247,26 @@ export function EffectsUnit({
                         text={effectHelp[effect.name as keyof typeof effectHelp]}
                       />
                     </h3>
+                    {mixParameter ? (
+                      <EffectControl
+                        disabled={!enabled}
+                        effectName={effect.name}
+                        onChange={onChange}
+                        onGestureEnd={onGestureEnd}
+                        onGestureStart={onGestureStart}
+                        parameter={mixParameter}
+                        placement="header"
+                        value={values[mixParameter.controller]}
+                      />
+                    ) : null}
                   </div>
-                  <div className="grid min-w-0 grid-cols-3 items-start gap-3">
-                    {effect.parameters.map((parameter) => (
+                  <div
+                    className={cn(
+                      'grid min-w-0 items-start gap-3',
+                      bodyParameters.length === 2 ? 'grid-cols-2' : 'grid-cols-3',
+                    )}
+                  >
+                    {bodyParameters.map((parameter) => (
                       <EffectControl
                         disabled={!enabled}
                         effectName={effect.name}

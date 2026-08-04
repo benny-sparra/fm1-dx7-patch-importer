@@ -140,10 +140,6 @@ export function LibrarianPage({
     <section
       className="mx-auto grid min-w-0 max-w-7xl gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:px-8"
     >
-      <div className="rounded-md border border-primary/25 bg-primary/10 px-4 py-3 text-sm leading-6">
-        <span className="font-semibold">Browser banks are the source of truth.</span>{' '}
-        The FM1 accepts voices and banks but cannot send its stored banks back. Import or restore sounds here, edit them, then transfer them to the FM1.
-      </div>
       <PatchGrid
         activePatchId={activePatchId}
         actions={

@@ -13,9 +13,11 @@ import { cn } from '@/lib/utils'
 
 function AlgorithmDiagram({
   className,
+  featured = false,
   operators,
 }: {
   className?: string
+  featured?: boolean
   operators: readonly Dx7AlgorithmOperator[]
 }) {
   const nodeX = (operator: Dx7AlgorithmOperator) => operator.x * 18 + 9
@@ -47,7 +49,11 @@ function AlgorithmDiagram({
   }
 
   return (
-    <svg aria-hidden="true" className={cn('h-16 w-full overflow-visible', className)} viewBox="0 -3 110 68">
+    <svg
+      aria-hidden="true"
+      className={cn('h-16 w-full overflow-visible', className)}
+      viewBox={featured ? '11 4 88 54' : '0 -3 110 68'}
+    >
       <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8">
         {operators.map((operator) => <path d={linkPath(operator)} key={`link-${operator.id}`} />)}
         {operators.map((operator) => {
@@ -126,15 +132,19 @@ export function AlgorithmPanel({
             </span>
             <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" />
           </span>
-          <span className="mt-1 flex min-h-0 w-full flex-1 items-center gap-1">
+          <span className="mt-1 flex min-h-0 w-full flex-1 -translate-y-2 items-center gap-1">
             <span className="font-mono text-xl font-black leading-none text-white">
               {String(algorithm + 1).padStart(2, '0')}
             </span>
-            <AlgorithmDiagram className="h-[4.75rem] min-w-0 flex-1" operators={dx7Algorithms[algorithm]} />
-          </span>
-          <span className="flex w-full justify-end gap-2 text-[8px] font-bold uppercase tracking-wide text-cyan-100/65">
-            <span><span className="mr-1 inline-block size-1.5 rounded-full bg-current" />Carrier</span>
-            <span><span className="mr-1 inline-block size-1.5 rounded-full border border-current" />Modulator</span>
+            <AlgorithmDiagram
+              className="h-[4.75rem] min-w-0 flex-1"
+              featured
+              operators={dx7Algorithms[algorithm]}
+            />
+            <span className="flex shrink-0 flex-col items-start gap-1 text-[8px] font-bold uppercase tracking-wide text-cyan-100/65">
+              <span><span className="mr-1 inline-block size-1.5 rounded-full bg-current" />Carrier</span>
+              <span><span className="mr-1 inline-block size-1.5 rounded-full border border-current" />Modulator</span>
+            </span>
           </span>
         </summary>
 
