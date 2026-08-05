@@ -33,7 +33,7 @@ export function PatchButton({
   return (
     <div
       className={cn(
-        'patch-edge-gradient group relative h-full min-h-16 touch-none overflow-hidden rounded-lg border border-border/70 bg-background/50 shadow-sm backdrop-blur-[3px] transition duration-200 before:absolute before:inset-y-0 before:left-0 before:w-0.5 hover:border-primary/70 hover:bg-background/70 hover:shadow-[0_7px_20px_hsl(315_100%_55%_/_0.13)] data-[disabled=true]:opacity-50',
+        'patch-edge-gradient group relative h-full min-h-16 touch-none overflow-hidden rounded-lg border border-border/70 bg-background/50 shadow-sm backdrop-blur-[3px] transition duration-200 before:absolute before:inset-y-0 before:left-0 before:w-0.5 hover:border-primary/70 hover:bg-background/70 data-[disabled=true]:opacity-50',
         isActive && 'border-primary ring-2 ring-primary/35',
       )}
       data-active={isActive}
@@ -56,7 +56,7 @@ export function PatchButton({
           <span className="flex size-11 items-center justify-center rounded-md border border-primary/15 bg-muted/70 font-mono text-sm font-bold text-primary shadow-inner backdrop-blur-sm">
             {patch.bank}{patch.number.toString().padStart(2, '0')}
           </span>
-          <span className="min-w-0 truncate text-sm font-semibold">
+          <span className="min-w-0 truncate whitespace-pre font-mono text-sm font-semibold">
             {patch.name}
           </span>
           {!disabled ? (

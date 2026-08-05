@@ -2,7 +2,11 @@ import { useRef, type KeyboardEvent, type PointerEvent } from 'react'
 
 import { HelpPopover } from '@/components/ui/help-popover'
 import { controlHelp } from '@/data/control-help'
-import { envelopePath, envelopePointPosition } from '@/lib/editor-visuals'
+import {
+  clampEnvelopeValue,
+  envelopePath,
+  envelopePointPosition,
+} from '@/lib/editor-visuals'
 import { cn } from '@/lib/utils'
 
 type EnvelopeEditorProps = {
@@ -58,6 +62,18 @@ export function EnvelopeEditor({
   }
 
   const points = rates.map((rate, index) => envelopePointPosition(rate, levels[index], index))
+
+  const updateNumericValue = (kind: 'level' | 'rate', value: number, point: number) => {
+    const currentRate = rates[point] ?? 0
+    const currentLevel = levels[point] ?? 0
+    const currentValue = kind === 'rate' ? currentRate : currentLevel
+    const nextValue = clampEnvelopeValue(value, currentValue)
+    onChange(
+      kind === 'rate' ? nextValue : currentRate,
+      kind === 'level' ? nextValue : currentLevel,
+      point,
+    )
+  }
 
   return (
     <div
@@ -179,6 +195,56 @@ export function EnvelopeEditor({
           </g>
         ))}
       </svg>
+      <div className="mt-3 grid grid-cols-4 gap-2 border-t border-white/10 pt-3">
+        {rates.map((rate, index) => (
+          <div className="grid min-w-0 grid-cols-2 gap-1 rounded-md border border-white/10 bg-black/20 p-1.5" key={index}>
+            <label className="grid min-w-0 gap-1 text-center text-[9px] font-black uppercase tracking-wide text-white/50">
+              R{index + 1}
+              <input
+                aria-label={`Envelope rate ${index + 1}`}
+                className="h-7 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition [appearance:textfield] focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                inputMode="numeric"
+                max={99}
+                min={0}
+                onBlur={onGestureEnd}
+                onChange={(event) => updateNumericValue('rate', event.currentTarget.valueAsNumber, index)}
+                onFocus={(event) => {
+                  onGestureStart()
+                  event.currentTarget.select()
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') event.currentTarget.blur()
+                }}
+                step={1}
+                type="number"
+                value={rate}
+              />
+            </label>
+            <label className="grid min-w-0 gap-1 text-center text-[9px] font-black uppercase tracking-wide text-white/50">
+              L{index + 1}
+              <input
+                aria-label={`Envelope level ${index + 1}`}
+                className="h-7 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition [appearance:textfield] focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                inputMode="numeric"
+                max={99}
+                min={0}
+                onBlur={onGestureEnd}
+                onChange={(event) => updateNumericValue('level', event.currentTarget.valueAsNumber, index)}
+                onFocus={(event) => {
+                  onGestureStart()
+                  event.currentTarget.select()
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') event.currentTarget.blur()
+                }}
+                step={1}
+                type="number"
+                value={levels[index] ?? 0}
+              />
+            </label>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

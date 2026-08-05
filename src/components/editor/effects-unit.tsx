@@ -31,7 +31,7 @@ type EffectDefinition = {
 
 const effects: EffectDefinition[] = [
   {
-    color: '#38bdf8',
+    color: 'var(--fm1-accent)',
     name: 'Filter',
     parameters: [
       { controller: 1, label: 'Type', max: 2, options: ['Low pass', 'Band pass', 'High pass'] },

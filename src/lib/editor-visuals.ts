@@ -7,6 +7,11 @@ export const operatorColors = [
   'hsl(181 92% 48%)',
 ] as const
 
+export function clampEnvelopeValue(value: number, fallback: number) {
+  if (!Number.isFinite(value)) return fallback
+  return Math.min(99, Math.max(0, Math.round(value)))
+}
+
 export function rotaryControlAngle(value: number, min: number, max: number) {
   if (max <= min) return -135
   const clampedValue = Math.min(max, Math.max(min, value))
@@ -14,15 +19,15 @@ export function rotaryControlAngle(value: number, min: number, max: number) {
 }
 
 export function formatOperatorRatio(ratio: number) {
-  const octaveOffset = Math.log2(ratio)
-
-  if (Math.abs(octaveOffset - Math.round(octaveOffset)) < 1e-10) {
-    const octaves = Math.round(octaveOffset)
-    if (octaves === 0) return 'UNISON'
-    return `${octaves > 0 ? '+' : '−'}${Math.abs(octaves)} OCT`
-  }
-
   return `${ratio.toFixed(2)}×`
+}
+
+export function formatOperatorFixedFrequency(coarse: number, fine: number) {
+  const frequency = 10 ** ((coarse & 0b11) + fine / 100)
+
+  if (frequency >= 1000) return `${(frequency / 1000).toFixed(2)} kHz`
+  if (frequency >= 10) return `${frequency.toFixed(1)} Hz`
+  return `${frequency.toFixed(2)} Hz`
 }
 
 const plotTop = 20

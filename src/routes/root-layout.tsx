@@ -1,7 +1,6 @@
 import { TriangleAlert } from 'lucide-react'
 import { type ReactNode } from 'react'
 
-import fm1HeaderImage from '@/assets/fm1-header.webp'
 import mVaveLogo from '@/assets/m-vave-logo.png'
 import { HelpDialog } from '@/components/help-dialog'
 import {
@@ -16,6 +15,7 @@ import { type MidiController } from '@/hooks/use-midi'
 import { type ThemePreference } from '@/hooks/use-theme'
 import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { isChromiumBrowser } from '@/lib/browser'
+import { fm1ColorwayImages } from '@/lib/fm1-colorway-images'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
 type RootLayoutProps = {
@@ -60,7 +60,7 @@ export function RootLayout({ children, compact = false, midi, theme }: RootLayou
                     />
                   </span>
                   <span>FM1</span>
-                  <span className="text-primary">editor &amp; librarian</span>
+                  <span className="synthwave-hero-accent">editor &amp; librarian</span>
                 </h1>
                 <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
                   <Fm1ColorwayPicker onChange={setColorway} value={colorway} />
@@ -112,7 +112,7 @@ export function RootLayout({ children, compact = false, midi, theme }: RootLayou
                   className="aspect-video h-full w-full object-cover"
                   decoding="async"
                   height="504"
-                  src={fm1HeaderImage}
+                  src={fm1ColorwayImages[colorway]}
                   width="844"
                 />
               </figure>

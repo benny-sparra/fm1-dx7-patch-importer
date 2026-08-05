@@ -32,7 +32,7 @@ export function Dx7BankSourcesDialog() {
   return (
     <>
       <button
-        className="cursor-pointer font-semibold text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:text-primary/80"
+        className="synthwave-hero-accent cursor-pointer font-semibold underline decoration-current/40 underline-offset-4 transition-opacity hover:opacity-80"
         onClick={() => dialogRef.current?.showModal()}
         type="button"
       >

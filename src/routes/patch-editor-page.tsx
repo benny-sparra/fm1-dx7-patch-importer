@@ -4,7 +4,6 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  CircleDot,
   Pencil,
   Redo2,
   RefreshCw,
@@ -49,6 +48,10 @@ import {
   type EditorHistory,
   type ParameterEdit,
 } from '@/lib/patch-editor'
+import {
+  auditionedParameterValue,
+  makeOperatorAuditionEdits,
+} from '@/lib/operator-audition'
 import {
   applySoundPreset,
   soundPresets,
@@ -118,7 +121,7 @@ function SliderParameterControl({
       </span>
       <input
         aria-label={label}
-        className="h-2 w-full cursor-pointer accent-[var(--operator-color,var(--color-primary))]"
+        className="h-2 w-full cursor-pointer accent-primary"
         max={max}
         min={min}
         onBlur={onGestureEnd}
@@ -400,14 +403,17 @@ export function PatchEditorPage({
   const [history, setHistory] = useState(() => makeEditorHistory(initialParameters))
   const [savedParameters, setSavedParameters] = useState(() => initialParameters.slice())
   const [selectedOperator, setSelectedOperator] = useState(1)
+  const [mutedOperators, setMutedOperators] = useState<ReadonlySet<number>>(() => new Set())
+  const [soloOperator, setSoloOperator] = useState<number | null>(null)
   const [leftPanelTab, setLeftPanelTab] = useState<'effects' | 'global'>('global')
   const [isPitchEnvelopeOpen, setIsPitchEnvelopeOpen] = useState(true)
   const [isLfoGlobalOpen, setIsLfoGlobalOpen] = useState(true)
   const [syncState, setSyncState] = useState<'live' | 'local' | 'sending'>('sending')
-  const [syncMessage, setSyncMessage] = useState('Sending this browser patch to the FM1 edit buffer…')
   const [isNavigationPending, setIsNavigationPending] = useState(false)
   const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
   const historyRef = useRef(history)
+  const mutedOperatorsRef = useRef<ReadonlySet<number>>(mutedOperators)
+  const soloOperatorRef = useRef<number | null>(soloOperator)
   const unsavedDialogRef = useRef<HTMLDialogElement>(null)
   const presetsMenuRef = useDismissableDetails()
   const saveMenuRef = useDismissableDetails()
@@ -421,6 +427,14 @@ export function PatchEditorPage({
   useEffect(() => {
     historyRef.current = history
   }, [history])
+
+  useEffect(() => {
+    const noMutedOperators = new Set<number>()
+    mutedOperatorsRef.current = noMutedOperators
+    soloOperatorRef.current = null
+    setMutedOperators(noMutedOperators)
+    setSoloOperator(null)
+  }, [patch.id])
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
@@ -441,6 +455,15 @@ export function PatchEditorPage({
     [parameters],
   )
 
+  const sendOperatorAuditionParameters = useCallback((
+    nextParameters: Uint8Array,
+    nextMutedOperators = mutedOperatorsRef.current,
+    nextSoloOperator = soloOperatorRef.current,
+  ) => {
+    makeOperatorAuditionEdits(nextParameters, nextMutedOperators, nextSoloOperator)
+      .forEach(([parameter, value]) => midi.sendParameter(parameter, value))
+  }, [midi])
+
   const applyEdits = useCallback((edits: ParameterEdit[], send = true) => {
     const activeGesture = gestureStart.current
     setHistory((current) => {
@@ -452,7 +475,13 @@ export function PatchEditorPage({
 
     if (send && syncState === 'live') {
       edits.forEach(([index, value, min = 0, max = 127]) => {
-        midi.sendParameter(index, Math.max(min, Math.min(max, Math.round(value))))
+        const normalized = Math.max(min, Math.min(max, Math.round(value)))
+        midi.sendParameter(index, auditionedParameterValue(
+          index,
+          normalized,
+          mutedOperatorsRef.current,
+          soloOperatorRef.current,
+        ))
       })
     }
   }, [midi, syncState])
@@ -485,14 +514,10 @@ export function PatchEditorPage({
     })
   }, [])
 
-  const sendParametersToFm1 = useCallback(async (
-    nextParameters: Uint8Array,
-    message = 'Sending the current editor settings to the FM1 edit buffer…',
-  ) => {
+  const sendParametersToFm1 = useCallback(async (nextParameters: Uint8Array) => {
     if (sendInFlight.current) return false
     sendInFlight.current = true
     setSyncState('sending')
-    setSyncMessage(message)
     const currentVoice = packDx7Voice(getFm1VoiceParameters(nextParameters))
     const sent = await midi.sendVoice(currentVoice)
     const effectsSent = sent
@@ -501,15 +526,16 @@ export function PatchEditorPage({
     sendInFlight.current = false
     if (sent && effectsSent) {
       sentName.current = nextParameters.slice(145, 155)
+      if (mutedOperatorsRef.current.size > 0 || soloOperatorRef.current !== null) {
+        sendOperatorAuditionParameters(nextParameters)
+      }
       setSyncState('live')
-      setSyncMessage(`${currentVoice.name} is loaded on the FM1. Parameter changes are sent live.`)
       return true
     } else {
       setSyncState('local')
-      setSyncMessage('Editing locally. Connect a SysEx-capable MIDI output to hear changes live.')
       return false
     }
-  }, [midi])
+  }, [midi, sendOperatorAuditionParameters])
 
   const sendToFm1 = useCallback(
     () => sendParametersToFm1(historyRef.current.present),
@@ -547,6 +573,11 @@ export function PatchEditorPage({
         .then((sent) => sent
           ? midi.sendEffectSettings(getFm1EffectParameters(next.present))
           : false)
+        .then((sent) => {
+          if (sent && (mutedOperatorsRef.current.size > 0 || soloOperatorRef.current !== null)) {
+            sendOperatorAuditionParameters(next.present)
+          }
+        })
     }
   }
 
@@ -554,6 +585,41 @@ export function PatchEditorPage({
     applyEdits([[155 + controller, value, 0, 127]], false)
     if (syncState === 'live') midi.sendEffectParameter(controller, value)
   }, [applyEdits, midi, syncState])
+
+  const updateOperatorAudition = (
+    nextMutedOperators: ReadonlySet<number>,
+    nextSoloOperator: number | null,
+    send = syncState === 'live',
+  ) => {
+    mutedOperatorsRef.current = nextMutedOperators
+    soloOperatorRef.current = nextSoloOperator
+    setMutedOperators(nextMutedOperators)
+    setSoloOperator(nextSoloOperator)
+    if (send) {
+      sendOperatorAuditionParameters(
+        historyRef.current.present,
+        nextMutedOperators,
+        nextSoloOperator,
+      )
+    }
+  }
+
+  const toggleOperatorMute = (operator: number) => {
+    const nextMutedOperators = new Set(mutedOperatorsRef.current)
+    if (nextMutedOperators.has(operator)) nextMutedOperators.delete(operator)
+    else nextMutedOperators.add(operator)
+    updateOperatorAudition(nextMutedOperators, soloOperatorRef.current)
+  }
+
+  const toggleOperatorSolo = (operator: number) => {
+    const nextSoloOperator = soloOperatorRef.current === operator ? null : operator
+    updateOperatorAudition(mutedOperatorsRef.current, nextSoloOperator)
+  }
+
+  const clearOperatorAudition = (send = syncState === 'live') => {
+    if (mutedOperatorsRef.current.size === 0 && soloOperatorRef.current === null) return
+    updateOperatorAudition(new Set(), null, send)
+  }
 
   const saveToLibrary = () => {
     const current = historyRef.current.present
@@ -566,6 +632,7 @@ export function PatchEditorPage({
 
   const requestNavigation = () => {
     if (!isDirty) {
+      clearOperatorAudition()
       onBack()
       return
     }
@@ -577,15 +644,14 @@ export function PatchEditorPage({
     if (!isNavigationPending) return
     setIsResolvingNavigation(true)
     if (choice === 'save') {
+      clearOperatorAudition()
       saveToLibrary()
     } else {
+      clearOperatorAudition(false)
       const restored = makeEditorHistory(savedParameters)
       historyRef.current = restored
       setHistory(restored)
-      await sendParametersToFm1(
-        savedParameters,
-        'Restoring the saved library version on the FM1…',
-      )
+      await sendParametersToFm1(savedParameters)
     }
     setIsResolvingNavigation(false)
     unsavedDialogRef.current?.close()
@@ -598,10 +664,7 @@ export function PatchEditorPage({
     const restored = makeEditorHistory(savedParameters)
     historyRef.current = restored
     setHistory(restored)
-    await sendParametersToFm1(
-      savedParameters,
-      'Restoring the saved library version on the FM1…',
-    )
+    await sendParametersToFm1(savedParameters)
   }
 
   const resendToFm1 = () => {
@@ -623,14 +686,13 @@ export function PatchEditorPage({
     gestureStart.current = null
     historyRef.current = next
     setHistory(next)
-    void sendParametersToFm1(
-      next.present,
-      'Applying the sound starter to the FM1 edit buffer…',
-    )
+    void sendParametersToFm1(next.present)
   }
 
   const operatorBase = (6 - selectedOperator) * 21
   const operatorColor = operatorColors[selectedOperator - 1]
+  const selectedOperatorIsMuted = mutedOperators.has(selectedOperator)
+  const selectedOperatorIsSoloed = soloOperator === selectedOperator
   const control = (
     label: string,
     offset: number,
@@ -668,8 +730,8 @@ export function PatchEditorPage({
 
   return (
     <section className="mx-auto grid min-w-0 max-w-[90rem] gap-4 px-3 py-4 sm:px-5 lg:px-8">
-      <header className="sticky top-0 z-20 min-w-0 border-b border-primary/15 bg-background/90 px-3 py-3 shadow-sm backdrop-blur-xl sm:px-5 lg:px-8">
-        <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3">
+      <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] min-w-0 w-screen border-b border-primary/15 bg-background/90 py-3 shadow-sm backdrop-blur-xl">
+        <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-3 sm:px-5 lg:px-8">
           <Button aria-label="Back to patch banks" disabled={syncState === 'sending'} onClick={requestNavigation} size="icon" type="button" variant="outline">
             <ArrowLeft />
           </Button>
@@ -683,7 +745,7 @@ export function PatchEditorPage({
                 <span className="flex items-center gap-1">
                   <input
                     aria-label="Patch name"
-                    className="-ml-1 w-[12ch] max-w-[42vw] rounded border border-transparent bg-transparent px-1 text-xl font-black uppercase text-foreground outline-none transition hover:border-border hover:bg-card/60 focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/30"
+                    className="-ml-1 w-[12ch] max-w-[42vw] rounded border border-transparent bg-transparent px-1 font-mono text-xl font-black uppercase text-foreground outline-none transition hover:border-border hover:bg-card/60 focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/30"
                     maxLength={10}
                     onBlur={sendNameToFm1}
                     onChange={(event) => updateName(event.target.value.toUpperCase())}
@@ -701,25 +763,6 @@ export function PatchEditorPage({
               ) : null}
             </div>
           </div>
-
-          <p
-            aria-live="polite"
-            className={cn(
-              'order-last flex basis-full items-center gap-2 rounded-md border px-3 py-2 text-xs sm:order-none sm:ml-2 sm:basis-auto',
-              (syncState === 'local' || isDirty) && 'border-amber-600/30 bg-amber-500/10 text-amber-800 dark:text-amber-300',
-              syncState === 'sending' && 'bg-muted text-muted-foreground',
-              syncState === 'live' && !isDirty && 'border-emerald-600/30 bg-emerald-600/10 text-emerald-700 dark:text-emerald-300',
-            )}
-            role="status"
-            title={syncMessage}
-          >
-            <CircleDot className={cn('size-3.5', syncState === 'sending' && 'animate-pulse')} />
-            <span className="font-bold">
-              {syncState === 'sending'
-                ? 'Sending…'
-                : `${isDirty ? 'Unsaved' : 'Saved'} · ${syncState === 'live' ? 'Live on FM1' : 'Local only'}`}
-            </span>
-          </p>
 
           <div className="ml-auto flex items-center gap-1.5">
             <details className="group static sm:relative" ref={presetsMenuRef}>
@@ -836,15 +879,22 @@ export function PatchEditorPage({
         <aside aria-label="Patch configuration" className="grid min-w-0 gap-4">
           <div
             aria-label="Patch configuration sections"
-            className="grid grid-cols-2 rounded-lg border border-primary/20 bg-card/75 p-1 shadow-sm"
+            className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-card/75 p-1 shadow-sm"
             role="tablist"
           >
+            <span
+              aria-hidden="true"
+              className={cn(
+                'pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-md bg-primary shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none',
+                leftPanelTab === 'effects' && 'translate-x-full',
+              )}
+            />
             <button
               aria-controls="global-configuration-panel"
               aria-selected={leftPanelTab === 'global'}
               className={cn(
-                'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                leftPanelTab === 'global' && 'bg-primary text-primary-foreground shadow-sm hover:bg-primary hover:text-primary-foreground',
+                'relative z-10 flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                leftPanelTab === 'global' && 'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
               )}
               id="global-configuration-tab"
               onClick={() => setLeftPanelTab('global')}
@@ -858,8 +908,8 @@ export function PatchEditorPage({
               aria-controls="effects-configuration-panel"
               aria-selected={leftPanelTab === 'effects'}
               className={cn(
-                'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                leftPanelTab === 'effects' && 'bg-primary text-primary-foreground shadow-sm hover:bg-primary hover:text-primary-foreground',
+                'relative z-10 flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                leftPanelTab === 'effects' && 'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
               )}
               id="effects-configuration-tab"
               onClick={() => setLeftPanelTab('effects')}
@@ -1014,6 +1064,44 @@ export function PatchEditorPage({
               </span>
               </CardTitle>
               <div className="flex items-center gap-2">
+              <div aria-label={`Operator ${selectedOperator} audition`} className="flex items-center gap-1" role="group">
+                <Button
+                  aria-label={`${selectedOperatorIsMuted ? 'Unmute' : 'Mute'} operator ${selectedOperator} for audition`}
+                  aria-pressed={selectedOperatorIsMuted}
+                  className={cn(
+                    'h-8 border-white/15 bg-black/15 px-3 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white',
+                    selectedOperatorIsMuted && 'border-rose-400 bg-rose-400/20 text-rose-200 hover:bg-rose-400/25 hover:text-rose-100',
+                  )}
+                  disabled={syncState === 'sending'}
+                  onClick={() => toggleOperatorMute(selectedOperator)}
+                  size="sm"
+                  title={syncState === 'local'
+                    ? `${selectedOperatorIsMuted ? 'Unmute' : 'Mute'} operator ${selectedOperator}; connect MIDI to hear audition changes`
+                    : `${selectedOperatorIsMuted ? 'Unmute' : 'Mute'} operator ${selectedOperator} temporarily`}
+                  type="button"
+                  variant="outline"
+                >
+                  {selectedOperatorIsMuted ? 'Muted' : 'Mute'}
+                </Button>
+                <Button
+                  aria-label={`${selectedOperatorIsSoloed ? 'Unsolo' : 'Solo'} operator ${selectedOperator} for audition`}
+                  aria-pressed={selectedOperatorIsSoloed}
+                  className={cn(
+                    'h-8 border-white/15 bg-black/15 px-3 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white',
+                    selectedOperatorIsSoloed && 'border-amber-300 bg-amber-300/20 text-amber-100 hover:bg-amber-300/25 hover:text-amber-50',
+                  )}
+                  disabled={syncState === 'sending'}
+                  onClick={() => toggleOperatorSolo(selectedOperator)}
+                  size="sm"
+                  title={syncState === 'local'
+                    ? `${selectedOperatorIsSoloed ? 'Unsolo' : 'Solo'} operator ${selectedOperator}; connect MIDI to hear audition changes`
+                    : `${selectedOperatorIsSoloed ? 'Unsolo' : 'Solo'} operator ${selectedOperator} temporarily`}
+                  type="button"
+                  variant="outline"
+                >
+                  {selectedOperatorIsSoloed ? 'Soloed' : 'Solo'}
+                </Button>
+              </div>
               <label className="flex min-w-[10rem] items-center gap-2 rounded-md border border-white/10 bg-black/15 px-3 py-2 text-xs text-white/70 sm:min-w-[13rem]">
                 <span className="flex items-center gap-1 font-mono font-black uppercase tracking-wide">
                   Out
@@ -1062,7 +1150,7 @@ export function PatchEditorPage({
             />
 
             <div className="grid gap-5">
-              <fieldset className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--operator-color)_24%,var(--color-border))] bg-[color-mix(in_srgb,var(--operator-color)_5%,var(--color-card))] px-3 pb-4 sm:px-4">
+              <fieldset className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] px-3 pb-4 transition-colors sm:px-4">
                 <legend className="-ml-1 mb-2 px-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
                   Oscillator
                 </legend>
@@ -1107,16 +1195,21 @@ export function PatchEditorPage({
                 </div>
               </fieldset>
 
-              <fieldset className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] bg-[color-mix(in_srgb,var(--color-primary)_4%,var(--color-card))] px-3 pb-4 sm:px-4">
+              <fieldset className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] px-3 pb-4 transition-colors sm:px-4">
                 <legend className="-ml-1 mb-2 px-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
                   Keyboard scaling
                 </legend>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3 @3xl:grid-cols-1">
+                <div className="grid gap-y-3">
                   {sliderControl('Breakpoint', 8, 99, controlHelp.breakpoint)}
-                  {sliderControl('Left depth', 9, 99, controlHelp.leftDepth)}
-                  {sliderControl('Right depth', 10, 99, controlHelp.rightDepth)}
+                  <div className="grid gap-y-2">
+                    <p className="text-sm font-bold text-foreground">Depth</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                      {sliderControl('Left', 9, 99, controlHelp.leftDepth)}
+                      {sliderControl('Right', 10, 99, controlHelp.rightDepth)}
+                    </div>
+                  </div>
                   {sliderControl('Rate scaling', 13, 7, controlHelp.rateScaling)}
-                  <div className="col-span-full grid grid-cols-2 gap-x-4 gap-y-3">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                     {control('Left curve', 11, 3, curves, controlHelp.curve)}
                     {control('Right curve', 12, 3, curves, controlHelp.curve)}
                   </div>

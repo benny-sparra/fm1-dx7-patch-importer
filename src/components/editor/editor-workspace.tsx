@@ -8,7 +8,12 @@ import {
   getDx7OperatorRole,
   type Dx7AlgorithmOperator,
 } from '@/lib/dx7-algorithms'
-import { envelopePath, formatOperatorRatio, operatorColors } from '@/lib/editor-visuals'
+import {
+  envelopePath,
+  formatOperatorFixedFrequency,
+  formatOperatorRatio,
+  operatorColors,
+} from '@/lib/editor-visuals'
 import { cn } from '@/lib/utils'
 
 function AlgorithmDiagram({
@@ -240,6 +245,12 @@ export function OperatorStrip({
         const coarse = parameters[base + 18]
         const fine = parameters[base + 19]
         const ratio = (coarse === 0 ? 0.5 : coarse) * (1 + fine / 100)
+        const frequencyLabel = mode === 0
+          ? formatOperatorRatio(ratio)
+          : formatOperatorFixedFrequency(coarse, fine)
+        const frequencyDescription = mode === 0
+          ? `Frequency ratio: ${frequencyLabel}`
+          : `Fixed frequency: ${frequencyLabel}`
         const color = operatorColors[index]
         const isSelected = selectedOperator === operator
         const algorithmOperator = dx7Algorithms[algorithm].find(({ id }) => id === operator)
@@ -252,7 +263,7 @@ export function OperatorStrip({
             aria-label={`Operator ${operator}, ${roleLabel}`}
             aria-selected={isSelected}
             className={cn(
-              'group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 bg-card/45 px-3 py-2.5 text-left opacity-75 transition-[background-color,opacity,transform,box-shadow] hover:bg-card/80 hover:opacity-100 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:min-w-[10.5rem]',
+              'group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 bg-card/45 px-3 py-2 text-left opacity-75 transition-[background-color,opacity,transform,box-shadow] hover:bg-card/80 hover:opacity-100 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:min-w-[10.5rem]',
               index > 0 && '-ml-px',
               isSelected && 'z-[1] mt-0 bg-card opacity-100 shadow-[0_-4px_18px_hsl(260_60%_5%_/_0.08)] after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-[var(--operator-color)]',
             )}
@@ -268,11 +279,11 @@ export function OperatorStrip({
                 <span className="text-lg text-[var(--operator-color)]">{operator}</span>
               </span>
               <span
-                aria-label={mode === 0 ? `Frequency ratio: ${ratio.toFixed(2)} times` : undefined}
+                aria-label={frequencyDescription}
                 className="rounded bg-muted px-1.5 py-1 font-mono text-[10px] font-bold text-muted-foreground"
-                title={mode === 0 ? `Frequency ratio: ${ratio.toFixed(2)}×` : undefined}
+                title={frequencyDescription}
               >
-                {mode === 0 ? formatOperatorRatio(ratio) : `F ${coarse}:${String(fine).padStart(2, '0')}`}
+                {frequencyLabel}
               </span>
             </div>
             <span
@@ -285,20 +296,22 @@ export function OperatorStrip({
             >
               {roleLabel}
             </span>
-            <svg aria-hidden="true" className="my-1.5 h-6 w-full overflow-visible" viewBox="0 0 400 180">
-              <path
-                d={envelopePath(rates, levels)}
-                fill="none"
-                stroke={color}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="10"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
-            <div className="flex items-center justify-between pb-1 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
-              <span>Out</span>
-              <span className="font-mono text-sm text-foreground">{output}</span>
+            <div className="mt-1 flex items-center gap-2 pb-0.5">
+              <svg aria-hidden="true" className="h-7 min-w-0 flex-1 overflow-visible" viewBox="0 0 400 180">
+                <path
+                  d={envelopePath(rates, levels)}
+                  fill="none"
+                  stroke={color}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="10"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+              <div className="flex shrink-0 items-baseline gap-1 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
+                <span>Out</span>
+                <span className="font-mono text-sm text-foreground">{output}</span>
+              </div>
             </div>
           </button>
         )

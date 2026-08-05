@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatOperatorRatio, rotaryControlAngle } from './editor-visuals'
+import {
+  clampEnvelopeValue,
+  formatOperatorFixedFrequency,
+  formatOperatorRatio,
+  rotaryControlAngle,
+} from './editor-visuals'
 
 describe('rotary control angle', () => {
   it('maps the full value range onto the knob sweep', () => {
@@ -21,18 +26,44 @@ describe('rotary control angle', () => {
 })
 
 describe('operator ratio labels', () => {
-  it('names exact octave relationships in musical terms', () => {
-    expect(formatOperatorRatio(0.5)).toBe('−1 OCT')
-    expect(formatOperatorRatio(1)).toBe('UNISON')
-    expect(formatOperatorRatio(2)).toBe('+1 OCT')
-    expect(formatOperatorRatio(4)).toBe('+2 OCT')
-  })
-
-  it('keeps non-octave harmonic ratios numeric', () => {
+  it('shows every ratio numerically for direct comparison', () => {
+    expect(formatOperatorRatio(0.5)).toBe('0.50×')
+    expect(formatOperatorRatio(1)).toBe('1.00×')
+    expect(formatOperatorRatio(2)).toBe('2.00×')
     expect(formatOperatorRatio(3)).toBe('3.00×')
   })
 
   it('keeps fine-tuned ratios numeric', () => {
     expect(formatOperatorRatio(1.01)).toBe('1.01×')
+  })
+})
+
+describe('operator fixed-frequency labels', () => {
+  it('combines the coarse decade and logarithmic fine setting', () => {
+    expect(formatOperatorFixedFrequency(0, 0)).toBe('1.00 Hz')
+    expect(formatOperatorFixedFrequency(2, 99)).toBe('977.2 Hz')
+  })
+
+  it('uses kilohertz for compact four-digit frequencies', () => {
+    expect(formatOperatorFixedFrequency(3, 99)).toBe('9.77 kHz')
+  })
+
+  it('uses the two fixed-mode coarse bits from a packed DX7 value', () => {
+    expect(formatOperatorFixedFrequency(6, 0)).toBe('100.0 Hz')
+  })
+})
+
+describe('envelope numeric values', () => {
+  it('keeps values within the DX7 envelope range', () => {
+    expect(clampEnvelopeValue(-1, 42)).toBe(0)
+    expect(clampEnvelopeValue(100, 42)).toBe(99)
+  })
+
+  it('rounds envelope values to whole numbers', () => {
+    expect(clampEnvelopeValue(48.6, 42)).toBe(49)
+  })
+
+  it('retains the current value for an invalid edit', () => {
+    expect(clampEnvelopeValue(Number.NaN, 42)).toBe(42)
   })
 })
