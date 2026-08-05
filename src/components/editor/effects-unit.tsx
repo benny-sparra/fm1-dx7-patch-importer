@@ -263,7 +263,9 @@ export function EffectsUnit({
                   <div
                     className={cn(
                       'grid min-w-0 items-start gap-3',
-                      bodyParameters.length === 2 ? 'grid-cols-2' : 'grid-cols-3',
+                      bodyParameters.length === 2
+                        ? 'grid-cols-2'
+                        : 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.1fr)]',
                     )}
                   >
                     {bodyParameters.map((parameter) => (

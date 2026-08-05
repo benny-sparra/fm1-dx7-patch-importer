@@ -14,6 +14,7 @@ import {
   formatOperatorRatio,
   operatorColors,
 } from '@/lib/editor-visuals'
+import { getOperatorAuditionStatus } from '@/lib/operator-audition'
 import { cn } from '@/lib/utils'
 
 function AlgorithmDiagram({
@@ -218,16 +219,20 @@ export function AlgorithmPanel({
 
 type OperatorStripProps = {
   algorithm: number
+  mutedOperators: ReadonlySet<number>
   onSelect: (operator: number) => void
   parameters: Uint8Array
   selectedOperator: number
+  soloOperator: number | null
 }
 
 export function OperatorStrip({
   algorithm,
+  mutedOperators,
   onSelect,
   parameters,
   selectedOperator,
+  soloOperator,
 }: OperatorStripProps) {
   return (
     <div
@@ -256,11 +261,16 @@ export function OperatorStrip({
         const algorithmOperator = dx7Algorithms[algorithm].find(({ id }) => id === operator)
         const role = algorithmOperator ? getDx7OperatorRole(algorithmOperator) : 'modulator'
         const roleLabel = role === 'carrier' ? 'Carrier' : 'Modulator'
+        const auditionStatus = getOperatorAuditionStatus(operator, mutedOperators, soloOperator)
+        const auditionLabel = [
+          auditionStatus.muted ? 'muted' : null,
+          auditionStatus.soloed ? 'soloed' : null,
+        ].filter(Boolean).join(', ')
 
         return (
           <button
             aria-controls="focused-operator-panel"
-            aria-label={`Operator ${operator}, ${roleLabel}`}
+            aria-label={`Operator ${operator}, ${roleLabel}${auditionLabel ? `, ${auditionLabel}` : ''}`}
             aria-selected={isSelected}
             className={cn(
               'group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 bg-card/45 px-3 py-2 text-left opacity-75 transition-[background-color,opacity,transform,box-shadow] hover:bg-card/80 hover:opacity-100 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:min-w-[10.5rem]',
@@ -274,10 +284,19 @@ export function OperatorStrip({
             type="button"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="font-black text-foreground">
-                <span className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Op </span>
-                <span className="text-lg text-[var(--operator-color)]">{operator}</span>
-              </span>
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="text-lg font-black text-[var(--operator-color)]">{operator}</span>
+                <span
+                  className={cn(
+                    'inline-flex rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.1em]',
+                    role === 'carrier'
+                      ? 'border-[var(--operator-color)] bg-[color-mix(in_srgb,var(--operator-color)_14%,transparent)] text-[var(--operator-color)]'
+                      : 'border-border/80 text-muted-foreground',
+                  )}
+                >
+                  {roleLabel}
+                </span>
+              </div>
               <span
                 aria-label={frequencyDescription}
                 className="rounded bg-muted px-1.5 py-1 font-mono text-[10px] font-bold text-muted-foreground"
@@ -286,17 +305,19 @@ export function OperatorStrip({
                 {frequencyLabel}
               </span>
             </div>
-            <span
-              className={cn(
-                'mt-0.5 inline-flex rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.1em]',
-                role === 'carrier'
-                  ? 'border-[var(--operator-color)] bg-[color-mix(in_srgb,var(--operator-color)_14%,transparent)] text-[var(--operator-color)]'
-                  : 'border-border/80 text-muted-foreground',
-              )}
-            >
-              {roleLabel}
-            </span>
-            <div className="mt-1 flex items-center gap-2 pb-0.5">
+            <div aria-hidden="true" className="mt-0.5 flex h-4 items-center gap-1">
+              {auditionStatus.muted ? (
+                <span className="rounded border border-rose-400/70 bg-rose-400/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-rose-300">
+                  Muted
+                </span>
+              ) : null}
+              {auditionStatus.soloed ? (
+                <span className="rounded border border-amber-300/70 bg-amber-300/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-amber-700 dark:text-amber-200">
+                  Solo
+                </span>
+              ) : null}
+            </div>
+            <div className="mt-0.5 flex items-center gap-2 pb-0.5">
               <svg aria-hidden="true" className="h-7 min-w-0 flex-1 overflow-visible" viewBox="0 0 400 180">
                 <path
                   d={envelopePath(rates, levels)}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   auditionedParameterValue,
+  getOperatorAuditionStatus,
   makeOperatorAuditionEdits,
   operatorOutputParameter,
 } from './operator-audition'
@@ -38,6 +39,14 @@ describe('operator audition parameter mapping', () => {
     expect(makeOperatorAuditionEdits(makeParameters(), new Set([2]), 2)).toEqual([
       [121, 0], [100, 82], [79, 0], [58, 0], [37, 0], [16, 0],
     ])
+  })
+
+  it('reports mute and solo independently while solo determines audibility', () => {
+    expect(getOperatorAuditionStatus(2, new Set([2]), 2)).toEqual({
+      audible: true,
+      muted: true,
+      soloed: true,
+    })
   })
 
   it('keeps a muted output silent when its stored value is edited', () => {

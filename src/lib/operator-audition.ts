@@ -23,13 +23,20 @@ function outputParameterOperator(parameter: number) {
   return operator >= 1 && operator <= operatorCount ? operator : null
 }
 
-function operatorIsAudible(
+export function getOperatorAuditionStatus(
   operator: number,
   mutedOperators: ReadonlySet<number>,
   soloOperator: number | null,
 ) {
-  if (soloOperator !== null) return operator === soloOperator
-  return !mutedOperators.has(operator)
+  assertOperator(operator)
+  const muted = mutedOperators.has(operator)
+  const soloed = soloOperator === operator
+
+  return {
+    audible: soloOperator !== null ? soloed : !muted,
+    muted,
+    soloed,
+  }
 }
 
 export function auditionedParameterValue(
@@ -40,7 +47,7 @@ export function auditionedParameterValue(
 ) {
   const operator = outputParameterOperator(parameter)
   if (operator === null) return value
-  return operatorIsAudible(operator, mutedOperators, soloOperator) ? value : 0
+  return getOperatorAuditionStatus(operator, mutedOperators, soloOperator).audible ? value : 0
 }
 
 export function makeOperatorAuditionEdits(
@@ -57,7 +64,7 @@ export function makeOperatorAuditionEdits(
   return Array.from({ length: operatorCount }, (_, index) => {
     const operator = index + 1
     const parameter = operatorOutputParameter(operator)
-    const value = operatorIsAudible(operator, mutedOperators, soloOperator)
+    const value = getOperatorAuditionStatus(operator, mutedOperators, soloOperator).audible
       ? parameters[parameter]
       : 0
     return [parameter, value]

@@ -1039,9 +1039,11 @@ export function PatchEditorPage({
         <div className="grid min-w-0 gap-0">
           <OperatorStrip
             algorithm={parameters[134]}
+            mutedOperators={mutedOperators}
             onSelect={setSelectedOperator}
             parameters={parameters}
             selectedOperator={selectedOperator}
+            soloOperator={soloOperator}
           />
 
           <Card
@@ -1069,7 +1071,7 @@ export function PatchEditorPage({
                   aria-label={`${selectedOperatorIsMuted ? 'Unmute' : 'Mute'} operator ${selectedOperator} for audition`}
                   aria-pressed={selectedOperatorIsMuted}
                   className={cn(
-                    'h-8 border-white/15 bg-black/15 px-3 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white',
+                    'h-8 w-[4.25rem] border-white/15 bg-black/15 px-3 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white',
                     selectedOperatorIsMuted && 'border-rose-400 bg-rose-400/20 text-rose-200 hover:bg-rose-400/25 hover:text-rose-100',
                   )}
                   disabled={syncState === 'sending'}
@@ -1081,13 +1083,13 @@ export function PatchEditorPage({
                   type="button"
                   variant="outline"
                 >
-                  {selectedOperatorIsMuted ? 'Muted' : 'Mute'}
+                  Mute
                 </Button>
                 <Button
                   aria-label={`${selectedOperatorIsSoloed ? 'Unsolo' : 'Solo'} operator ${selectedOperator} for audition`}
                   aria-pressed={selectedOperatorIsSoloed}
                   className={cn(
-                    'h-8 border-white/15 bg-black/15 px-3 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white',
+                    'h-8 w-[4.25rem] border-white/15 bg-black/15 px-3 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white',
                     selectedOperatorIsSoloed && 'border-amber-300 bg-amber-300/20 text-amber-100 hover:bg-amber-300/25 hover:text-amber-50',
                   )}
                   disabled={syncState === 'sending'}
@@ -1099,7 +1101,7 @@ export function PatchEditorPage({
                   type="button"
                   variant="outline"
                 >
-                  {selectedOperatorIsSoloed ? 'Soloed' : 'Solo'}
+                  Solo
                 </Button>
               </div>
               <label className="flex min-w-[10rem] items-center gap-2 rounded-md border border-white/10 bg-black/15 px-3 py-2 text-xs text-white/70 sm:min-w-[13rem]">
