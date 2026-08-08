@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { zipSync } from 'fflate'
 
 import { PatchGrid } from '@/components/patches/patch-grid'
 import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
@@ -95,8 +94,9 @@ export function LibrarianPage({
     }
   }
 
-  const downloadAllBanks = () => {
+  const downloadAllBanks = async () => {
     try {
+      const { zipSync } = await import('fflate')
       const files = Object.fromEntries(library.loadedBanks.map((bank) => [
         `fm1-bank-${bank.toLowerCase()}.syx`,
         makeDx7BankFile(library.getBankVoices(bank)),
@@ -180,7 +180,7 @@ export function LibrarianPage({
                   <button
                     className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                     disabled={library.loadedBanks.length === 0}
-                    onClick={downloadAllBanks}
+                    onClick={() => void downloadAllBanks()}
                     type="button"
                   >
                     <Archive className="size-4" />

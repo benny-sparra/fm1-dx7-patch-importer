@@ -2,7 +2,7 @@ import { CircleCheck, X } from 'lucide-react'
 import { type RefObject, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import fm1Synth from '@/assets/fm1-synth.png'
+import fm1Synth from '@/assets/fm1-synth.webp'
 import { Button } from '@/components/ui/button'
 import { dismissFm1BankSelectionDialogForSession } from '@/lib/session'
 
@@ -68,6 +68,8 @@ export function Fm1BankSelectionDialog({ dialogRef }: Fm1BankSelectionDialogProp
           <img
             alt={t('dialogs.bankImage')}
             className="mx-auto h-auto w-full"
+            decoding="async"
+            loading="lazy"
             src={fm1Synth}
           />
         </figure>

@@ -26,8 +26,6 @@ type History = {
   present: PatchLibrarySnapshot
 }
 
-export type LibrarySaveStatus = 'loading' | 'saved' | 'unsaved' | 'unavailable'
-
 const historyLimit = 50
 
 export function usePatchLibrary() {
@@ -36,9 +34,8 @@ export function usePatchLibrary() {
     past: [],
     present: emptyPatchLibrary(),
   })
-  const [saveStatus, setSaveStatus] = useState<LibrarySaveStatus>('loading')
-  const [lastSavedAt, setLastSavedAt] = useState('')
   const hydrated = useRef(false)
+  const storageAvailable = useRef(true)
 
   useEffect(() => {
     let cancelled = false
@@ -55,31 +52,22 @@ export function usePatchLibrary() {
           past: [],
           present: initializePatchLibrary(savedLibrary),
         })
-        if (stored) {
-          setLastSavedAt(stored.savedAt)
-        }
         hydrated.current = true
-        setSaveStatus('saved')
       })
       .catch(() => {
         if (cancelled) return
         setHistory({ future: [], past: [], present: makeFactoryPatchLibrary() })
         hydrated.current = true
-        setSaveStatus('unavailable')
+        storageAvailable.current = false
       })
     return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
-    if (!hydrated.current || saveStatus === 'unavailable') return
-    setSaveStatus('unsaved')
+    if (!hydrated.current || !storageAvailable.current) return
     const timeout = window.setTimeout(() => {
       void saveStoredPatchLibrary(history.present)
-        .then(() => {
-          setLastSavedAt(new Date().toISOString())
-          setSaveStatus('saved')
-        })
-        .catch(() => setSaveStatus('unavailable'))
+        .catch(() => { storageAvailable.current = false })
     }, 350)
     return () => window.clearTimeout(timeout)
   }, [history.present])
@@ -143,10 +131,9 @@ export function usePatchLibrary() {
     try {
       // Keep an explicit empty record so a deliberate clear is not mistaken for first use.
       await saveStoredPatchLibrary(emptyLibrary)
-      setLastSavedAt('')
-      setSaveStatus('saved')
+      storageAvailable.current = true
     } catch {
-      setSaveStatus('unavailable')
+      storageAvailable.current = false
     }
   }, [])
 
@@ -191,7 +178,6 @@ export function usePatchLibrary() {
     clearBank,
     getBankVoices,
     importBank,
-    lastSavedAt,
     loadDemoBank,
     loadedBanks: history.present.loadedBanks,
     moveVoice,
@@ -199,7 +185,6 @@ export function usePatchLibrary() {
     redo,
     renameVoice,
     resetFactoryBanks,
-    saveStatus,
     undo,
     updatePatch,
     updateVoice,

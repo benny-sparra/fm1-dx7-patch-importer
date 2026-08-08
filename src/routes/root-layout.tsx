@@ -74,7 +74,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               <div className={compact ? 'mt-2 flex flex-wrap items-center gap-2' : 'mt-auto flex flex-wrap items-center gap-3 pt-5'}>
                 <MidiConnectActions midi={midi} />
                 <PianoKeyboardDialog midi={midi} />
-                <MidiLogDialog log={midi.log} />
+                <MidiLogDialog logStore={midi.logStore} />
               </div>
             </div>
 

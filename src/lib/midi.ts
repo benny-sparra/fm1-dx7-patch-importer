@@ -1,4 +1,4 @@
-import { type Input, type Output } from 'webmidi'
+import type { Input, Output } from 'webmidi'
 
 import { makeDx7BankPayload, makeDx7SingleVoicePayload, type Dx7Voice } from '@/lib/dx7'
 import {

@@ -1,18 +1,23 @@
 import { ListMusic, X } from 'lucide-react'
-import { useRef } from 'react'
+import { useRef, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { MidiLogCard } from '@/components/midi/midi-log-card'
 import { Button } from '@/components/ui/button'
-import { type MidiLogEntry } from '@/lib/midi'
+import { type MidiLogStore } from '@/lib/midi-log-store'
 
 type MidiLogDialogProps = {
-  log: MidiLogEntry[]
+  logStore: MidiLogStore
 }
 
-export function MidiLogDialog({ log }: MidiLogDialogProps) {
+export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const log = useSyncExternalStore(
+    logStore.subscribe,
+    logStore.getSnapshot,
+    logStore.getSnapshot,
+  )
   const hasMidiActivity = !(
     log.length === 1 &&
     log[0].direction === 'system' &&

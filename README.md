@@ -88,6 +88,20 @@ To use HTTP instead, run `npm run dev:http`.
 | `npm run lint` | Run Oxlint |
 | `npm test` | Run the automated unit tests |
 | `npm run preview` | Preview the production build locally |
+| `npm run preview:https` | Preview the production build locally over HTTPS |
+
+### Lighthouse
+
+Run Lighthouse against a production build rather than the Vite development server:
+
+```bash
+npm run build
+npm run preview:https
+```
+
+Then audit the HTTPS URL printed by Vite in a private browser window. The development
+server includes React diagnostics, hot reloading, source modules, and unminified
+dependencies, so its performance score does not represent a deployed build.
 
 ## Tech stack
 

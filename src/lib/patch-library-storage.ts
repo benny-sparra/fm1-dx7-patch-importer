@@ -39,14 +39,26 @@ async function runTransaction<T>(
   return new Promise<T>((resolve, reject) => {
     const transaction = database.transaction(storeName, mode)
     const request = operation(transaction.objectStore(storeName))
+    let finished = false
+    let result: T
 
-    request.onerror = () => reject(request.error ?? new Error('Browser storage operation failed.'))
-    request.onsuccess = () => resolve(request.result)
-    transaction.oncomplete = () => database.close()
-    transaction.onerror = () => {
+    const fail = (error: DOMException | null, fallback: string) => {
+      if (finished) return
+      finished = true
       database.close()
-      reject(transaction.error ?? new Error('Browser storage transaction failed.'))
+      reject(error ?? new Error(fallback))
     }
+
+    request.onerror = () => fail(request.error, 'Browser storage operation failed.')
+    request.onsuccess = () => { result = request.result }
+    transaction.oncomplete = () => {
+      if (finished) return
+      finished = true
+      database.close()
+      resolve(result)
+    }
+    transaction.onabort = () => fail(transaction.error, 'Browser storage transaction was aborted.')
+    transaction.onerror = () => fail(transaction.error, 'Browser storage transaction failed.')
   })
 }
 
@@ -95,8 +107,4 @@ export function saveStoredPatchLibrary(
       version: 2,
     } satisfies StoredPatchLibrary, recordKey),
   )
-}
-
-export function clearStoredPatchLibrary() {
-  return runTransaction<undefined>('readwrite', (store) => store.delete(recordKey))
 }
