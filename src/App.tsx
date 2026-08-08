@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { LoaderCircle } from 'lucide-react'
 
 import { useMidi } from '@/hooks/use-midi'
 import { usePatchLibrary } from '@/hooks/use-patch-library'
@@ -34,9 +35,10 @@ function App() {
         <Suspense fallback={(
           <section
             aria-live="polite"
-            className="mx-auto grid min-h-64 max-w-[90rem] place-items-center px-4 py-8 text-sm font-semibold text-muted-foreground"
+            className="mx-auto flex min-h-64 max-w-[90rem] flex-col items-center justify-center gap-3 px-4 py-8 text-sm font-semibold text-muted-foreground"
             role="status"
           >
+            <LoaderCircle aria-hidden="true" className="size-7 animate-spin text-primary motion-reduce:animate-none" />
             {t('common.loading')}
           </section>
         )}

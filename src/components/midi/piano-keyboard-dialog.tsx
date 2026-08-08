@@ -367,7 +367,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
       >
         <div
           aria-label={t('ui.dragKeyboard')}
-          className="synthwave-keyboard-header flex h-12 cursor-move touch-none items-center justify-between px-4 text-white"
+          className="synthwave-keyboard-header flex h-12 cursor-move touch-none items-center justify-between px-4"
           onPointerCancel={stopDrag}
           onPointerDown={startDrag}
           onPointerMove={moveDialog}
@@ -375,12 +375,12 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
           onMouseDown={startMouseDrag}
         >
           <div className="flex items-center gap-3">
-            <GripHorizontal className="size-5 text-cyan-200/60" />
+            <GripHorizontal className="size-5 opacity-60" />
             <div className="flex items-baseline gap-2.5">
-              <span className="text-xs font-extrabold tracking-[0.24em] text-white">
+              <span className="text-xs font-extrabold tracking-[0.24em]">
                 {t('ui.performance')}
               </span>
-              <span className="text-[0.62rem] font-bold tracking-[0.2em] text-cyan-200/75">
+              <span className="text-[0.62rem] font-bold tracking-[0.2em] opacity-70">
                 {t('ui.keyboard').toUpperCase()}
               </span>
             </div>
@@ -394,7 +394,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
             size="icon"
             type="button"
             variant="ghost"
-            className="text-cyan-100 hover:bg-primary/20 hover:text-white"
+            className="text-current hover:bg-black/10 hover:text-current"
           >
             <X />
           </Button>
@@ -416,7 +416,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
             />
 
             <div className="synthwave-keybed relative h-56 overflow-hidden rounded-lg px-2 pb-3 pt-2">
-              <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-cyan-200/15 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-[color-mix(in_srgb,var(--fm1-accent)_20%,transparent)] to-transparent" />
               <div className="grid h-full grid-cols-[repeat(15,56px)]">
                 {whiteKeys.map((key) => (
                   <PianoKeyButton
@@ -472,13 +472,13 @@ function OctaveButton({
   return (
     <button
       aria-label={t('ui.shiftOctave', { direction: t(`ui.direction${direction === 'down' ? 'Down' : 'Up'}`) })}
-      className="synthwave-octave-button group flex min-h-56 items-center justify-center rounded-lg text-white transition disabled:cursor-not-allowed disabled:opacity-35"
+      className="synthwave-octave-button group flex min-h-56 items-center justify-center rounded-lg transition disabled:cursor-not-allowed disabled:opacity-35"
       disabled={disabled}
       onClick={onClick}
       type="button"
     >
       <span className="flex flex-col items-center gap-2">
-        <Icon className="size-7 text-cyan-100 transition group-hover:text-white" />
+        <Icon className="size-7 opacity-80 transition group-hover:opacity-100" />
         <span className="synthwave-key-hint rounded px-1.5 py-0.5 text-xs">
           {keyboardKey}
         </span>
@@ -507,7 +507,7 @@ function PianoKeyButton({
     <button
       aria-label={t('ui.playNote', { note: noteKey.label })}
       className={cn(
-        'select-none touch-none border font-semibold transition-[background,box-shadow,transform,color] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300',
+        'select-none touch-none border font-semibold transition-[background,box-shadow,transform,color] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fm1-accent)]',
         isBlack
           ? 'synthwave-piano-key-black absolute top-2 z-10 flex h-32 w-9 items-end justify-center rounded-b-[0.45rem] pb-3 text-[0.7rem] text-white'
           : 'synthwave-piano-key-white relative flex h-52 items-end justify-center rounded-b-[0.5rem] pb-4 text-xs text-[#25213c]',
@@ -550,7 +550,7 @@ function PianoKeyButton({
             className={cn(
               'rounded px-1.5 py-0.5 text-[0.65rem] uppercase',
               isBlack
-                ? 'bg-cyan-200/15 text-cyan-100'
+                ? 'bg-white/15 text-white'
                 : 'bg-violet-950/10 text-violet-950/80',
             )}
           >
