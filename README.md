@@ -2,33 +2,36 @@
 
 A browser-based voice editor and patch librarian for the [M-VAVE FM1](https://www.mvave.com/).
 
-The app runs entirely in the browser. Build and organise four local patch banks, edit every standard DX7 voice parameter, audition sounds on the FM1, and transfer individual voices or complete banks over MIDI SysEx. A built-in demo bank gets you started; standard 32-voice DX7 `.syx` bank import is also supported.
+The app runs entirely in the browser. Build and organise four local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, audition sounds on the FM1, and transfer individual voices or complete banks over MIDI SysEx. Four classic Yamaha DX7 factory banks are included, and standard 32-voice DX7 `.syx` bank import is supported.
 
 ![M-VAVE FM1 synthesiser](src/assets/fm1-header.png)
 
 ## Features
 
-- Organise up to four browser-side banks (A–D)
-- Restore imported and edited banks automatically from local browser storage
-- Edit all standard DX7 voice parameters and the FM1's six-effect unit, with live MIDI updates
-- Rename patches using DX7-compatible 10-character names
-- Reorder patches with pointer or keyboard drag-and-drop
-- Undo and redo patch-library edits
-- Copy patches between loaded browser banks
-- Search the currently selected bank
-- Export one edited bank as `.syx` or all loaded banks as a `.zip`
-- Load a built-in demo bank to explore the workflow
+- Start with Yamaha DX7 ROM 1A, ROM 1B, ROM 2A, and ROM 2B in browser banks A–D
+- Restore the four factory banks at any time, or clear one or all local banks
+- Restore imported and edited banks automatically from IndexedDB browser storage
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
-- Send a complete 32-patch bank to the FM1 over Web MIDI
-- Select matching FM1 slots with MIDI Program Change and send individual sounds to the edit buffer
-- Move between adjacent patches without leaving the editor
-- Save edits to the browser library, or revert both the editor and FM1 to the last saved version
+- Search and reorder patches with pointer or keyboard drag-and-drop
+- Export one browser bank as `.syx` or all loaded banks as a `.zip`
+- Edit all standard DX7 voice parameters with live MIDI updates
+- Visualise all 32 DX7 algorithms, including carrier and modulator roles
+- Edit four-stage envelopes graphically or with precise numeric controls
+- Edit the FM1's filter, reverb, delay, distortion, chorus, and phaser
+- Apply six sound-shaping presets as undoable starting points
+- Mute or solo operators temporarily while designing a sound
+- Open contextual help for voice, envelope, algorithm, and effect controls
+- Rename patches using DX7-compatible 10-character names
+- Undo and redo edits within the voice editor
+- Save edits to the browser library, resend them, or revert both the editor and FM1 to the last saved version
 - Warn before leaving an unsaved editing session, with save, discard, and keep-editing choices
-- Track whether each browser bank is local, transferred, or changed since transfer
-- Select MIDI input, output, and channel
-- Monitor incoming and outgoing MIDI messages
+- Send individual sounds to the edit buffer or a complete 32-patch bank over Web MIDI
+- Select matching FM1 slots with MIDI Program Change and track whether a bank is local, transferred, or changed since transfer
+- Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
+- Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard
-- Light, dark, and system colour themes
+- Use the interface in English, French, Spanish, German, Brazilian Portuguese, or Simplified Chinese
+- Match the interface accent and product image to any of the six FM1 colour finishes
 
 ## Requirements
 
@@ -44,23 +47,25 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 
 1. Open the app in a supported browser.
 2. Switch **MIDI online** on and grant MIDI/SysEx permission.
-3. Open **Settings** to select the FM1 MIDI output and, if needed, the MIDI channel.
-4. Select browser bank A, B, C, or D.
-5. Choose **Import DX7 bank** and select a compatible `.syx` file.
-6. Click a patch to select the matching FM1 slot, load it into the edit buffer, and open the voice editor. Use **Save to Library** to keep an edit, or **Revert to Saved** to restore the browser and FM1 working copy.
-7. Choose **Send to FM1**.
+3. Open **Settings** to select the FM1 MIDI output and, if needed, the note/program and effects channels.
+4. Select browser bank A, B, C, or D. On first use these contain DX7 factory ROM 1A, ROM 1B, ROM 2A, and ROM 2B respectively.
+5. Click a patch to select the matching FM1 slot, load it into the edit buffer, and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
+6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
+7. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank.
 8. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay.
 
-After the first successful connection, the app remembers the selected MIDI ports and channel and reconnects automatically on future visits. Choose **MIDI online · Disconnect** to disable automatic connection.
+After the first successful connection, the app remembers the selected MIDI ports and both channels and reconnects automatically on future visits. Switch **MIDI online** off to disable automatic connection.
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 
 To send one sound instead, choose the send icon on its patch card. This loads the sound into the FM1 edit buffer; hold **SAVE** on the FM1 to store it in the current hardware slot.
 
-To save an edited bank to disk, open the arrow menu beside **Import DX7 bank** and choose **Download**.
+To import another bank, choose **Import DX7 bank** and select a compatible `.syx` file. The arrow menu beside it also lets you download the current bank, download all loaded banks, restore the four factory banks, or clear local banks. If a bank is empty, you can load the built-in demo bank instead.
+
+The interface follows the browser language on first use when it is supported. Change it later in **Settings**; the selection is remembered. Settings also provides separate channels for notes/program changes and effects because the FM1 defaults its effects controls to MIDI channel 2.
 
 > [!IMPORTANT]
-> Imported and edited banks are saved in this browser and restored after a page reload. Download important banks as `.syx` files as an additional backup, especially before clearing browser data.
+> Imported voices, edits, and FM1 effect settings are saved in this browser and restored after a page reload. Download important banks as `.syx` files as an additional backup, especially before clearing browser data. DX7 `.syx` export contains voice data only; the FM1-specific effect settings remain in the browser library.
 
 ## Local development
 
@@ -110,7 +115,8 @@ dependencies, so its performance score does not represent a deployed build.
 - Tailwind CSS
 - WebMidi.js
 - dnd-kit
-- Motion
+- i18next and react-i18next
+- fflate
 - Lucide icons
 
 ## SysEx compatibility
@@ -128,17 +134,18 @@ The browser library is the source of truth. The current FM1 firmware does not do
 
 ## Future development
 
-Future development could add richer DX7 visualizations, grouped modulation workflows, and device readback if M-VAVE documents a compatible transmit protocol.
+Future development could add grouped modulation workflows and device readback if M-VAVE documents a compatible transmit protocol.
 
 ## Project structure
 
 ```text
 src/
 ├── components/       UI, MIDI controls, and patch-bank components
-├── data/             Patch-slot metadata
+├── data/             Patch metadata and bundled DX7 factory banks
 ├── hooks/            Patch-library, MIDI, and FM1 colourway state
+├── i18n/             Localisation setup and translated interface/help text
 ├── lib/              DX7 SysEx parsing, MIDI transfer, and utilities
-└── routes/           Main application layout and librarian page
+└── routes/           Application layout, librarian, and voice editor pages
 ```
 
 ## Acknowledgements
