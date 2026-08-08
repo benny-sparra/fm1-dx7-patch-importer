@@ -1,5 +1,6 @@
-import { TriangleAlert } from 'lucide-react'
+import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
 import { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import mVaveLogo from '@/assets/m-vave-logo.png'
 import { HelpDialog } from '@/components/help-dialog'
@@ -12,7 +13,6 @@ import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
 import { PianoKeyboardDialog } from '@/components/midi/piano-keyboard-dialog'
 import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dialog'
 import { type MidiController } from '@/hooks/use-midi'
-import { type ThemePreference } from '@/hooks/use-theme'
 import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { isChromiumBrowser } from '@/lib/browser'
 import { fm1ColorwayImages } from '@/lib/fm1-colorway-images'
@@ -22,18 +22,15 @@ type RootLayoutProps = {
   children: ReactNode
   compact?: boolean
   midi: MidiController
-  theme: {
-    theme: ThemePreference
-    setTheme: (theme: ThemePreference) => void
-  }
 }
 
-export function RootLayout({ children, compact = false, midi, theme }: RootLayoutProps) {
+export function RootLayout({ children, compact = false, midi }: RootLayoutProps) {
+  const { t } = useTranslation()
   const isChromium = isChromiumBrowser()
   const { colorway, setColorway } = useFm1Colorway()
 
   return (
-    <main className="synthwave-shell min-h-screen text-foreground">
+    <main className="synthwave-shell flex min-h-screen flex-col text-foreground">
       <section
         className="synthwave-hero border-b"
       >
@@ -60,40 +57,18 @@ export function RootLayout({ children, compact = false, midi, theme }: RootLayou
                     />
                   </span>
                   <span>FM1</span>
-                  <span className="synthwave-hero-accent">editor &amp; librarian</span>
+                  <span className="synthwave-hero-accent">{t('root.subtitle')}</span>
                 </h1>
                 <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
                   <Fm1ColorwayPicker onChange={setColorway} value={colorway} />
-                  <a
-                    aria-label="View the FM1 editor and librarian source code on GitHub"
-                    className="flex size-10 items-center justify-center rounded-md text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    href="https://github.com/benny-sparra/fm1-dx7-patch-importer"
-                    rel="noreferrer"
-                    target="_blank"
-                    title="View on GitHub"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      className="size-7 fill-current"
-                      viewBox="0 0 19 19"
-                    >
-                      <path
-                        clipRule="evenodd"
-                        d="M9.356 1.85C5.05 1.85 1.57 5.356 1.57 9.694a7.84 7.84 0 0 0 5.324 7.44c.387.079.528-.168.528-.376 0-.182-.013-.805-.013-1.454-2.165.467-2.616-.935-2.616-.935-.349-.91-.864-1.143-.864-1.143-.71-.48.051-.48.051-.48.787.051 1.2.805 1.2.805.695 1.194 1.817.857 2.268.649.064-.507.27-.857.49-1.052-1.728-.182-3.545-.857-3.545-3.87 0-.857.31-1.558.8-2.104-.078-.195-.349-1 .077-2.078 0 0 .657-.208 2.14.805a7.5 7.5 0 0 1 1.946-.26c.657 0 1.328.092 1.946.26 1.483-1.013 2.14-.805 2.14-.805.426 1.078.155 1.883.078 2.078.502.546.799 1.247.799 2.104 0 3.013-1.818 3.675-3.558 3.87.284.247.528.714.528 1.454 0 1.052-.012 1.896-.012 2.156 0 .208.142.455.528.377a7.84 7.84 0 0 0 5.324-7.441c.013-4.338-3.48-7.844-7.773-7.844"
-                        fillRule="evenodd"
-                      />
-                    </svg>
-                  </a>
                   <HelpDialog />
-                  <MidiSettingsMenu midi={midi} theme={theme} />
+                  <MidiSettingsMenu midi={midi} />
                 </div>
               </div>
               {!compact ? (
-                <p className="mt-3 text-sm leading-6 text-white/65">
-                  Edit, organise, audition, and transfer sounds for your FM1. Import
-                  standard DX7 SysEx banks when you want to bring in more voices.{' '}
-                  <Dx7BankSourcesDialog /> for a list of sites with banks to download.
-                </p>
+                <div className="mt-3 text-sm leading-6 text-white/65">
+                  {t('root.intro')}{' '}<Dx7BankSourcesDialog /> {t('root.sourcesSuffix')}
+                </div>
               ) : null}
 
               <div className={compact ? 'mt-2 flex flex-wrap items-center gap-2' : 'mt-auto flex flex-wrap items-center gap-3 pt-5'}>
@@ -108,7 +83,7 @@ export function RootLayout({ children, compact = false, midi, theme }: RootLayou
                 className="overflow-hidden rounded-lg shadow-[0_10px_28px_hsl(260_70%_5%_/_0.35),0_0_22px_hsl(315_100%_60%_/_0.12)]"
               >
                 <img
-                  alt="M-VAVE FM1 synthesiser front panel"
+                  alt={t('root.synthAlt')}
                   className="aspect-video h-full w-full object-cover"
                   decoding="async"
                   height="504"
@@ -127,16 +102,52 @@ export function RootLayout({ children, compact = false, midi, theme }: RootLayou
             >
               <TriangleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
               <p>
-                <span className="font-semibold">Unsupported browser.</span>{' '}
-                This librarian needs a Chromium-based browser such as Chrome,
-                Edge, or Opera for Web MIDI and SysEx support.
+                <span className="font-semibold">{t('root.unsupportedTitle')}</span>{' '}
+                {t('root.unsupportedBody')}
               </p>
             </div>
           ) : null}
         </div>
       </section>
 
-      {children}
+      <div className="flex-1">{children}</div>
+
+      <footer className="synthwave-hero border-t border-white/10 text-white/65">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-xs sm:px-5 lg:px-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <span>{t('root.localOnly')}</span>
+              <span aria-hidden="true" className="text-white/25">•</span>
+              <span>{t('root.requires')}</span>
+            </div>
+
+            <nav aria-label={t('root.projectLinks')} className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <a
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                href="https://github.com/benny-sparra/fm1-dx7-patch-importer"
+                rel="noreferrer"
+                target="_blank"
+              >
+                <CodeXml aria-hidden="true" className="size-3.5" />
+                GitHub
+              </a>
+              <a
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                href="https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new"
+                rel="noreferrer"
+                target="_blank"
+              >
+                <MessageCircleWarning aria-hidden="true" className="size-3.5" />
+                {t('root.reportIssue')}
+              </a>
+            </nav>
+          </div>
+
+          <p className="border-t border-white/10 pt-3 text-[0.6875rem] leading-relaxed">
+            {t('root.disclaimer')}
+          </p>
+        </div>
+      </footer>
     </main>
   )
 }

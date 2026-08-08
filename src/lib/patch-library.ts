@@ -1,5 +1,6 @@
 import { patches as placeholders, type Patch } from '@/data/patches'
-import { updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
+import { encodedDx7FactoryBanks } from '@/data/dx7-factory-banks'
+import { parseDx7Bank, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
 import {
   makeDefaultFm1Effects,
   normalizeFm1Effects,
@@ -16,6 +17,18 @@ export type PatchLibrarySnapshot = {
 
 export function emptyPatchLibrary(): PatchLibrarySnapshot {
   return { effects: {}, loadedBanks: [], voices: {} }
+}
+
+export function makeFactoryPatchLibrary(): PatchLibrarySnapshot {
+  return browserBanks.reduce((snapshot, bank) => {
+    const binary = atob(encodedDx7FactoryBanks[bank])
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
+    return importVoices(snapshot, bank, parseDx7Bank(bytes.buffer))
+  }, emptyPatchLibrary())
+}
+
+export function initializePatchLibrary(stored: PatchLibrarySnapshot | null) {
+  return stored ?? makeFactoryPatchLibrary()
 }
 
 export function voiceId(bank: string, number: number) {

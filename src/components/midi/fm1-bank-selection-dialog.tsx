@@ -1,5 +1,6 @@
 import { CircleCheck, X } from 'lucide-react'
 import { type RefObject, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import fm1Synth from '@/assets/fm1-synth.png'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,7 @@ type Fm1BankSelectionDialogProps = {
 }
 
 export function Fm1BankSelectionDialog({ dialogRef }: Fm1BankSelectionDialogProps) {
+  const { t } = useTranslation()
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const closeDialog = () => dialogRef.current?.close()
 
@@ -28,14 +30,14 @@ export function Fm1BankSelectionDialog({ dialogRef }: Fm1BankSelectionDialogProp
       <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
         <div>
           <h2 className="text-lg font-bold" id="fm1-bank-selection-title">
-            Choose the destination bank on your FM1
+            {t('dialogs.bankTitle')}
           </h2>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
-            The SysEx bank is being sent. Finish the import on the unit.
+            {t('dialogs.bankIntro')}
           </p>
         </div>
         <Button
-          aria-label="Close bank selection instructions"
+          aria-label={t('dialogs.bankClose')}
           className="shrink-0"
           onClick={closeDialog}
           size="icon"
@@ -50,21 +52,21 @@ export function Fm1BankSelectionDialog({ dialogRef }: Fm1BankSelectionDialogProp
         <ol className="grid gap-4 text-sm leading-5">
           <li className="flex gap-3">
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">1</span>
-            <span>Wait for the bank selection screen to appear on the FM1 display.</span>
+            <span>{t('dialogs.bankStep1')}</span>
           </li>
           <li className="flex gap-3">
             <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">2</span>
-            <span>Turn <strong>Knob 1, 2, 3 or 4</strong> to choose destination bank <strong>A, B, C or D</strong>.</span>
+            <span>{t('dialogs.bankStep2')}</span>
           </li>
           <li className="flex gap-3">
             <CircleCheck className="size-6 shrink-0 text-primary" />
-            <span>The FM1 saves the 32 patches automatically after a brief delay.</span>
+            <span>{t('dialogs.bankStep3')}</span>
           </li>
         </ol>
 
         <figure className="rounded-lg border bg-[#22242a] p-3 shadow-inner">
           <img
-            alt="M-VAVE FM1 front panel showing the display and four numbered knobs"
+            alt={t('dialogs.bankImage')}
             className="mx-auto h-auto w-full"
             src={fm1Synth}
           />
@@ -79,10 +81,10 @@ export function Fm1BankSelectionDialog({ dialogRef }: Fm1BankSelectionDialogProp
             onChange={(event) => setDontShowAgain(event.target.checked)}
             type="checkbox"
           />
-          Don't show me again
+          {t('dialogs.dontShow')}
         </label>
         <Button autoFocus onClick={closeDialog} type="button">
-          Close
+          {t('common.close')}
         </Button>
       </div>
     </dialog>

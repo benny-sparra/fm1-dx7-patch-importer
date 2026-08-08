@@ -28,8 +28,6 @@ The app runs entirely in the browser. Build and organise four local patch banks,
 - Select MIDI input, output, and channel
 - Monitor incoming and outgoing MIDI messages
 - Play notes on the FM1 from an on-screen keyboard
-- Test real-time FM1 parameter editing with an audible transpose change
-- Run advanced diagnostics for MIDI identity, current-voice, and bank readback support
 - Light, dark, and system colour themes
 
 ## Requirements
@@ -124,7 +122,7 @@ Future development could add richer DX7 visualizations, grouped modulation workf
 src/
 ├── components/       UI, MIDI controls, and patch-bank components
 ├── data/             Patch-slot metadata
-├── hooks/            Patch-library, MIDI, and theme state
+├── hooks/            Patch-library, MIDI, and FM1 colourway state
 ├── lib/              DX7 SysEx parsing, MIDI transfer, and utilities
 └── routes/           Main application layout and librarian page
 ```

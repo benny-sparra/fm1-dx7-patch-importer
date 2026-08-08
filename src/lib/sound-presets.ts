@@ -9,47 +9,33 @@ export type SoundPresetId =
 export type SoundPreset = {
   /** Zero-based DX7 algorithm value used by the FM1 edit buffer. */
   algorithm: number
-  description: string
   id: SoundPresetId
-  name: string
 }
 
 export const soundPresets: readonly SoundPreset[] = [
   {
     algorithm: 4, // Algorithm 5: three parallel two-operator stacks
-    description: 'Slow envelopes, gentle chorus, and a soft hall reverb.',
     id: 'soft-pad',
-    name: 'Soft pad',
   },
   {
     algorithm: 0, // Algorithm 1: deep modulation for a harmonically rich attack
-    description: 'A crisp decay with a short room and a light echo.',
     id: 'bright-pluck',
-    name: 'Bright pluck',
   },
   {
     algorithm: 31, // Algorithm 32: six additive carriers
-    description: 'Even sustain with subtle chorus and phaser movement.',
     id: 'steady-organ',
-    name: 'Steady organ',
   },
   {
     algorithm: 5, // Algorithm 6: three independently moving stacks
-    description: 'A delayed sine LFO, light chorus, and soft hall ambience.',
     id: 'gentle-motion',
-    name: 'Gentle motion',
   },
   {
     algorithm: 18, // Algorithm 19: three carriers with shared modulation
-    description: 'Low-pass filtering and a small room soften the edges.',
     id: 'warm-filter',
-    name: 'Warm filter',
   },
   {
     algorithm: 24, // Algorithm 25: five carriers for a broad layered sound
-    description: 'Chorus and hall reverb create a broad ambient layer.',
     id: 'wide-space',
-    name: 'Wide space',
   },
 ]
 

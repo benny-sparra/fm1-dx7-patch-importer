@@ -1,8 +1,8 @@
 import { ChevronDown, RadioTower, Route } from 'lucide-react'
 import { useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { HelpPopover } from '@/components/ui/help-popover'
-import { controlHelp } from '@/data/control-help'
 import {
   dx7Algorithms,
   getDx7OperatorRole,
@@ -112,6 +112,7 @@ export function AlgorithmPanel({
   onFeedbackGestureEnd,
   onFeedbackGestureStart,
 }: AlgorithmPanelProps) {
+  const { t } = useTranslation()
   const dropdownRef = useRef<HTMLDetailsElement>(null)
 
   const selectAlgorithm = (index: number) => {
@@ -132,8 +133,8 @@ export function AlgorithmPanel({
               Algorithm
               <HelpPopover
                 className="text-cyan-100/70 hover:bg-white/10 hover:text-white"
-                label="Algorithm"
-                text={controlHelp.algorithm}
+                label={t('editor.algorithm')}
+                text={t('controlHelp.algorithm')}
               />
             </span>
             <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" />
@@ -148,14 +149,14 @@ export function AlgorithmPanel({
               operators={dx7Algorithms[algorithm]}
             />
             <span className="flex shrink-0 flex-col items-start gap-1 text-[8px] font-bold uppercase tracking-wide text-cyan-100/65">
-              <span><span className="mr-1 inline-block size-1.5 rounded-full bg-current" />Carrier</span>
-              <span><span className="mr-1 inline-block size-1.5 rounded-full border border-current" />Modulator</span>
+              <span><span className="mr-1 inline-block size-1.5 rounded-full bg-current" />{t('editor.carrier')}</span>
+              <span><span className="mr-1 inline-block size-1.5 rounded-full border border-current" />{t('editor.modulator')}</span>
             </span>
           </span>
         </summary>
 
         <div
-          aria-label="DX7 algorithm"
+          aria-label={t('ui.dx7Algorithm')}
           className="absolute left-0 top-[calc(100%+0.5rem)] z-30 grid max-h-[min(34rem,70vh)] w-[min(42rem,calc(100vw-1.5rem))] grid-cols-2 gap-2 overflow-y-auto rounded-xl border border-cyan-300/35 bg-slate-950/95 p-2 shadow-2xl backdrop-blur sm:grid-cols-4"
           role="radiogroup"
         >
@@ -187,12 +188,12 @@ export function AlgorithmPanel({
           Feedback
           <HelpPopover
             className="text-white/55 hover:bg-white/10 hover:text-white"
-            label="Feedback"
-            text={controlHelp.feedback}
+            label={t('editor.feedback')}
+            text={t('controlHelp.feedback')}
           />
         </span>
         <input
-          aria-label="Feedback"
+          aria-label={t('editor.feedback')}
           className="h-1.5 min-w-0 cursor-pointer accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
           max={7}
           min={0}
@@ -234,9 +235,10 @@ export function OperatorStrip({
   selectedOperator,
   soloOperator,
 }: OperatorStripProps) {
+  const { t } = useTranslation()
   return (
     <div
-      aria-label="Operators"
+      aria-label={t('editor.operators')}
       className="scrollbar-none flex min-w-0 flex-1 items-stretch overflow-x-auto"
       role="tablist"
     >
@@ -260,7 +262,7 @@ export function OperatorStrip({
         const isSelected = selectedOperator === operator
         const algorithmOperator = dx7Algorithms[algorithm].find(({ id }) => id === operator)
         const role = algorithmOperator ? getDx7OperatorRole(algorithmOperator) : 'modulator'
-        const roleLabel = role === 'carrier' ? 'Carrier' : 'Modulator'
+        const roleLabel = role === 'carrier' ? t('editor.carrier') : t('editor.modulator')
         const auditionStatus = getOperatorAuditionStatus(operator, mutedOperators, soloOperator)
         const auditionLabel = [
           auditionStatus.muted ? 'muted' : null,
@@ -308,12 +310,12 @@ export function OperatorStrip({
             <div aria-hidden="true" className="mt-0.5 flex h-4 items-center gap-1">
               {auditionStatus.muted ? (
                 <span className="rounded border border-rose-400/70 bg-rose-400/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-rose-300">
-                  Muted
+                  {t('editor.muted')}
                 </span>
               ) : null}
               {auditionStatus.soloed ? (
-                <span className="rounded border border-amber-300/70 bg-amber-300/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-amber-700 dark:text-amber-200">
-                  Solo
+                <span className="rounded border border-amber-300/70 bg-amber-300/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-amber-700">
+                  {t('editor.solo')}
                 </span>
               ) : null}
             </div>
@@ -330,7 +332,7 @@ export function OperatorStrip({
                 />
               </svg>
               <div className="flex shrink-0 items-baseline gap-1 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
-                <span>Out</span>
+                <span>{t('editor.output')}</span>
                 <span className="font-mono text-sm text-foreground">{output}</span>
               </div>
             </div>

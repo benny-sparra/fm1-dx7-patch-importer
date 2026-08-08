@@ -2,6 +2,7 @@ import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, us
 import { rectSortingStrategy, sortableKeyboardCoordinates, SortableContext } from '@dnd-kit/sortable'
 import { FileMusic, ListMusic, Search } from 'lucide-react'
 import { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import fm1Keyboard from '@/assets/fm1-keyboard.webp'
 import {
@@ -48,6 +49,7 @@ export function PatchGrid({
   setSearch,
   toolbar,
 }: PatchGridProps) {
+  const { t } = useTranslation()
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -66,10 +68,10 @@ export function PatchGrid({
         <div>
           <CardTitle className="flex items-center gap-2 tracking-wide">
             <ListMusic className="size-5 text-primary drop-shadow-[0_0_2px_currentColor]" />
-            Patch banks
+            {t('banks.gridTitle')}
           </CardTitle>
           <CardDescription>
-            Import, edit, and arrange each browser bank before transferring it to the FM1.
+            {t('banks.gridDescription')}
           </CardDescription>
         </div>
         <div className="flex w-full flex-col gap-3">
@@ -82,7 +84,7 @@ export function PatchGrid({
                 className="h-10 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none ring-ring transition focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={searchDisabled}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by patch name"
+                placeholder={t('banks.search')}
                 value={search}
               />
             </label>
@@ -108,7 +110,7 @@ export function PatchGrid({
                 >
                   <PatchButton
                     disabled={isPatchDisabled(patch)}
-                    disabledTitle={`Import bank ${patch.bank} first`}
+                    disabledTitle={t('banks.importFirst', { bank: patch.bank })}
                     onEdit={onPatchEdit}
                     onSend={onPatchSend}
                     patch={patch}
@@ -124,13 +126,12 @@ export function PatchGrid({
             <div className="max-w-md">
               <FileMusic className="mx-auto size-10 text-primary" />
               <h3 className="mt-3 text-lg font-bold text-foreground">
-                {isBankLoaded ? 'No patches match this search' : 'This browser bank is empty'}
+                {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
               </h3>
               {!isBankLoaded ? (
                 <>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Load the demo bank to explore the editor, or import a standard
-                    32-voice DX7 SysEx bank of your own.
+                    {t('banks.emptyHelp')}
                   </p>
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
                     <button
@@ -138,14 +139,14 @@ export function PatchGrid({
                       onClick={onImportEmptyBank}
                       type="button"
                     >
-                      Import DX7 bank
+                      {t('banks.import')}
                     </button>
                     <button
                       className="rounded-md border bg-background px-4 py-2 text-sm font-semibold text-foreground"
                       onClick={onLoadDemoBank}
                       type="button"
                     >
-                      Load demo bank
+                      {t('banks.loadDemo')}
                     </button>
                   </div>
                 </>

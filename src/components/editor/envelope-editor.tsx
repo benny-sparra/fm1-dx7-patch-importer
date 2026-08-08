@@ -1,7 +1,7 @@
 import { useRef, type KeyboardEvent, type PointerEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { HelpPopover } from '@/components/ui/help-popover'
-import { controlHelp } from '@/data/control-help'
 import {
   clampEnvelopeValue,
   envelopePath,
@@ -32,6 +32,7 @@ export function EnvelopeEditor({
   onGestureStart,
   rates,
 }: EnvelopeEditorProps) {
+  const { t } = useTranslation()
   const svgRef = useRef<SVGSVGElement>(null)
   const activePointer = useRef<number | null>(null)
 
@@ -83,14 +84,14 @@ export function EnvelopeEditor({
       <div className="mb-2 flex items-center justify-between gap-3">
         <div>
           <p className="flex items-center gap-1 text-xs font-black uppercase tracking-[0.18em] text-white/85">
-            Amplitude envelope
+            {t('editor.amplitudeEnvelope')}
             <HelpPopover
               className="text-white/60 hover:bg-white/10 hover:text-white"
-              label="Amplitude envelope"
-              text={controlHelp.amplitudeEnvelope}
+              label={t('editor.amplitudeEnvelope')}
+              text={t('controlHelp.amplitudeEnvelope')}
             />
           </p>
-          <p className="text-[11px] text-white/50">Drag a point; arrows adjust, Shift moves by 10.</p>
+          <p className="text-[11px] text-white/50">{t('ui.envelopeInstruction')}</p>
         </div>
         <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white/50">
           <span className="size-2 rounded-full bg-[var(--operator-color)] shadow-[0_0_10px_var(--operator-color)]" />
@@ -98,7 +99,7 @@ export function EnvelopeEditor({
         </div>
       </div>
       <svg
-        aria-label="Editable four-stage amplitude envelope"
+        aria-label={t('ui.editableEnvelope')}
         className="block min-h-0 w-full flex-1 touch-none"
         ref={svgRef}
         role="group"
@@ -202,7 +203,7 @@ export function EnvelopeEditor({
               R{index + 1}
               <input
                 aria-label={`Envelope rate ${index + 1}`}
-                className="h-7 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition [appearance:textfield] focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="h-7 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
                 inputMode="numeric"
                 max={99}
                 min={0}
@@ -224,7 +225,7 @@ export function EnvelopeEditor({
               L{index + 1}
               <input
                 aria-label={`Envelope level ${index + 1}`}
-                className="h-7 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition [appearance:textfield] focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="h-7 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
                 inputMode="numeric"
                 max={99}
                 min={0}

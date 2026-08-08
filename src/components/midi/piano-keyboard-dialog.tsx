@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, GripHorizontal, X } from 'lucide-react'
 import { type MouseEvent as ReactMouseEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -98,6 +99,7 @@ function makeKeys(baseOctave: number) {
 }
 
 export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
+  const { t } = useTranslation()
   const { startNote: sendMidiNoteOn, stopNote: sendMidiNoteOff } = midi
   const dialogRef = useRef<HTMLDialogElement>(null)
   const dragOffsetRef = useRef<{ x: number; y: number } | null>(null)
@@ -338,16 +340,16 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
         className="ml-auto"
         disabled={!midi.hasMidiOutput}
         onClick={openDialog}
-        title={!midi.hasMidiOutput ? 'Connect a MIDI output first' : undefined}
+        title={!midi.hasMidiOutput ? t('midi.connectFirst') : undefined}
         type="button"
         variant="secondary"
       >
         <PianoKeysIcon />
-        Keyboard
+        {t('ui.keyboard')}
       </Button>
 
       <dialog
-        aria-label="Piano keyboard"
+        aria-label={t('ui.pianoKeyboard')}
         className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1040px,calc(100vw-1rem))] overflow-hidden rounded-xl p-0 text-card-foreground"
         onCancel={releaseAllNotes}
         onClose={releaseAllNotes}
@@ -364,7 +366,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
         }
       >
         <div
-          aria-label="Drag keyboard"
+          aria-label={t('ui.dragKeyboard')}
           className="synthwave-keyboard-header flex h-12 cursor-move touch-none items-center justify-between px-4 text-white"
           onPointerCancel={stopDrag}
           onPointerDown={startDrag}
@@ -376,15 +378,15 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
             <GripHorizontal className="size-5 text-cyan-200/60" />
             <div className="flex items-baseline gap-2.5">
               <span className="text-xs font-extrabold tracking-[0.24em] text-white">
-                PERFORMANCE
+                {t('ui.performance')}
               </span>
               <span className="text-[0.62rem] font-bold tracking-[0.2em] text-cyan-200/75">
-                KEYBOARD
+                {t('ui.keyboard').toUpperCase()}
               </span>
             </div>
           </div>
           <Button
-            aria-label="Close keyboard"
+            aria-label={t('ui.closeKeyboard')}
             autoFocus
             onClick={closeDialog}
             onMouseDown={(event) => event.stopPropagation()}
@@ -464,11 +466,12 @@ function OctaveButton({
   keyboardKey,
   onClick,
 }: OctaveButtonProps) {
+  const { t } = useTranslation()
   const Icon = direction === 'down' ? ChevronLeft : ChevronRight
 
   return (
     <button
-      aria-label={`Shift octave ${direction}`}
+      aria-label={t('ui.shiftOctave', { direction: t(`ui.direction${direction === 'down' ? 'Down' : 'Up'}`) })}
       className="synthwave-octave-button group flex min-h-56 items-center justify-center rounded-lg text-white transition disabled:cursor-not-allowed disabled:opacity-35"
       disabled={disabled}
       onClick={onClick}
@@ -497,11 +500,12 @@ function PianoKeyButton({
   onStart,
   onStop,
 }: PianoKeyButtonProps) {
+  const { t } = useTranslation()
   const isBlack = noteKey.kind === 'black'
 
   return (
     <button
-      aria-label={`Play ${noteKey.label}`}
+      aria-label={t('ui.playNote', { note: noteKey.label })}
       className={cn(
         'select-none touch-none border font-semibold transition-[background,box-shadow,transform,color] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300',
         isBlack

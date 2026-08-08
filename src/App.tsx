@@ -5,13 +5,11 @@ import { usePatchLibrary } from '@/hooks/use-patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { PatchEditorPage } from '@/routes/patch-editor-page'
 import { RootLayout } from '@/routes/root-layout'
-import { useTheme } from '@/hooks/use-theme'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 
 function App() {
   const midi = useMidi()
   const library = usePatchLibrary()
-  const theme = useTheme()
   const [selectedPatchId, setSelectedPatchId] = useState('')
   const [auditionedPatchId, setAuditionedPatchId] = useState('')
   const [transferredBankFingerprints, setTransferredBankFingerprints] = useState<Record<string, string>>({})
@@ -26,7 +24,7 @@ function App() {
   }
 
   return (
-    <RootLayout compact={Boolean(selectedPatch && selectedVoice)} midi={midi} theme={theme}>
+    <RootLayout compact={Boolean(selectedPatch && selectedVoice)} midi={midi}>
       {selectedPatch && selectedVoice ? (
         <PatchEditorPage
           key={selectedPatch.id}

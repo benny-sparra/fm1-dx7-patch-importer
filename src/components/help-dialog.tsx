@@ -1,5 +1,6 @@
 import { CircleHelp, Library, PlugZap, Send, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 
@@ -7,28 +8,29 @@ const HELP_SEEN_KEY = 'fm1-librarian-help-seen'
 
 const steps = [
   {
-    description: 'Load the demo sounds to explore, or import a standard 32-voice DX7 SysEx bank of your own.',
+    description: 'help.steps.libraryBody',
     icon: Library,
-    title: 'Build your library',
+    title: 'help.steps.libraryTitle',
   },
   {
-    description: 'Open any sound in the voice editor. Save it to the browser library, or revert and restore the saved version on the FM1.',
+    description: 'help.steps.editBody',
     icon: SlidersHorizontal,
-    title: 'Edit and organise',
+    title: 'help.steps.editTitle',
   },
   {
-    description: 'Connect the FM1 over USB or MIDI, switch MIDI online on, and select its input and output in Settings.',
+    description: 'help.steps.connectBody',
     icon: PlugZap,
-    title: 'Connect your FM1',
+    title: 'help.steps.connectTitle',
   },
   {
-    description: 'Audition individual sounds in their matching FM1 slots, or transfer a complete bank and choose its destination on the synth.',
+    description: 'help.steps.transferBody',
     icon: Send,
-    title: 'Transfer the sounds',
+    title: 'help.steps.transferTitle',
   },
 ]
 
 export function HelpDialog() {
+  const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
@@ -54,11 +56,11 @@ export function HelpDialog() {
   return (
     <>
       <Button
-        aria-label="How to use the FM1 editor and librarian"
+        aria-label={t('help.open')}
         className="cursor-pointer bg-transparent text-white/70 hover:bg-transparent hover:text-white"
         onClick={() => dialogRef.current?.showModal()}
         size="icon"
-        title="Help"
+        title={t('help.open')}
         type="button"
         variant="ghost"
       >
@@ -79,16 +81,15 @@ export function HelpDialog() {
             <CircleHelp className="mt-0.5 size-6 shrink-0 text-primary" />
             <div>
               <h2 className="text-lg font-bold" id="help-dialog-title">
-                Welcome to the FM1 editor &amp; librarian
+                {t('help.title')}
               </h2>
               <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                Manage your sound library, shape voices in the editor, and audition
-                or transfer them on your M-VAVE FM1—all from the browser.
+                {t('help.intro')}
               </p>
             </div>
           </div>
           <Button
-            aria-label="Close help"
+            aria-label={t('help.close')}
             className="shrink-0"
             onClick={closeDialog}
             size="icon"
@@ -100,9 +101,7 @@ export function HelpDialog() {
         </div>
 
         <p className="mx-5 mt-5 rounded-lg border border-primary/30 bg-primary/10 p-4 text-sm leading-6">
-          <span className="font-semibold">Browser banks are the source of truth.</span>{' '}
-          The FM1 accepts voices and banks but cannot send its stored banks back.
-          Import or restore sounds here, edit them, then transfer them to the FM1.
+          <span className="font-semibold">{t('help.truthTitle')}</span>{' '}{t('help.truthBody')}
         </p>
 
         <ol className="grid gap-3 p-5 sm:grid-cols-2">
@@ -113,10 +112,10 @@ export function HelpDialog() {
                   {index + 1}
                 </span>
                 <Icon className="size-4 text-primary" />
-                {title}
+                {t(title)}
               </div>
               <p className="mt-2 text-sm leading-5 text-muted-foreground">
-                {description}
+                {t(description)}
               </p>
             </li>
           ))}
@@ -124,7 +123,7 @@ export function HelpDialog() {
 
         <div className="flex justify-end border-t bg-muted/40 px-5 py-4">
           <Button className="shrink-0" onClick={closeDialog} type="button">
-            Start editing
+            {t('help.start')}
           </Button>
         </div>
       </dialog>

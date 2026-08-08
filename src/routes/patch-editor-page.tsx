@@ -14,6 +14,7 @@ import {
   WandSparkles,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   AlgorithmPanel,
@@ -24,7 +25,6 @@ import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
-import { controlHelp } from '@/data/control-help'
 import { type Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { type MidiController } from '@/hooks/use-midi'
@@ -110,12 +110,12 @@ function SliderParameterControl({
 }: SliderParameterControlProps) {
   return (
     <label className="grid min-w-0 gap-2 text-xs font-semibold text-muted-foreground">
-      <span className="flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1">
-          <span className="truncate" title={label}>{label}</span>
+      <span className="flex min-w-0 items-center gap-2">
+        <span className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+          <span className="min-w-0 flex-1 truncate" title={label}>{label}</span>
           {helpText ? <HelpPopover label={label} text={helpText} /> : null}
         </span>
-        <output className="rounded border border-border/70 bg-background/70 px-1.5 py-0.5 font-mono text-xs text-foreground">
+        <output className="shrink-0 rounded border border-border/70 bg-background/70 px-1.5 py-0.5 font-mono text-xs text-foreground">
           {valueLabel(value)}
         </output>
       </span>
@@ -154,15 +154,17 @@ function CollapseButton({
   label: string
   onClick: () => void
 }) {
+  const { t } = useTranslation()
+  const actionLabel = t(expanded ? 'editor.collapse' : 'editor.expand', { label })
   return (
     <Button
       aria-controls={controls}
       aria-expanded={expanded}
-      aria-label={`${expanded ? 'Collapse' : 'Expand'} ${label}`}
+      aria-label={actionLabel}
       className="size-8 shrink-0 text-muted-foreground"
       onClick={onClick}
       size="icon"
-      title={`${expanded ? 'Collapse' : 'Expand'} ${label}`}
+      title={actionLabel}
       type="button"
       variant="ghost"
     >
@@ -177,6 +179,7 @@ function SwitchParameterControl({
   onChange,
   value,
 }: SwitchParameterControlProps) {
+  const { t } = useTranslation()
   const checked = value > 0
 
   return (
@@ -198,7 +201,7 @@ function SwitchParameterControl({
           aria-hidden="true"
           className="relative h-6 w-11 shrink-0 rounded-full border border-border bg-muted transition-colors after:absolute after:left-0.5 after:top-0.5 after:size-[1.125rem] after:rounded-full after:bg-background after:shadow-sm after:transition-transform peer-checked:border-primary peer-checked:bg-primary peer-checked:after:translate-x-5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring"
         />
-        <span className="text-sm font-bold text-foreground">{checked ? 'On' : 'Off'}</span>
+        <span className="text-sm font-bold text-foreground">{checked ? t('editor.on') : t('editor.off')}</span>
       </span>
     </label>
   )
@@ -329,6 +332,7 @@ function LfoWaveControl({
   onChange: (value: number) => void
   value: number
 }) {
+  const { t } = useTranslation()
   const dropdownRef = useDismissableDetails()
   const selectedWave = lfoWaves[value] ?? lfoWaves[0]
 
@@ -340,12 +344,12 @@ function LfoWaveControl({
   return (
     <div className="grid min-w-0 gap-1 text-xs font-semibold text-muted-foreground">
       <span className="flex items-center gap-1">
-        LFO wave
-        <HelpPopover label="LFO wave" text={controlHelp.lfoWave} />
+        {t('ui.lfoWave')}
+        <HelpPopover label={t('ui.lfoWave')} text={t('controlHelp.lfoWave')} />
       </span>
       <details className="group relative min-w-0" ref={dropdownRef}>
         <summary
-          aria-label={`LFO wave: ${selectedWave}. Choose waveform`}
+          aria-label={`${t('ui.lfoWave')}: ${selectedWave}`}
           className="flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-md border bg-background px-2 text-sm text-foreground outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
         >
           <WaveShapeIcon wave={value} />
@@ -353,7 +357,7 @@ function LfoWaveControl({
           <ChevronDown className="size-3.5 shrink-0 transition-transform group-open:rotate-180" />
         </summary>
         <div
-          aria-label="LFO waveform"
+          aria-label={t('editor.lfoWave')}
           className="absolute left-0 top-[calc(100%+0.25rem)] z-30 grid w-full min-w-48 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg"
           role="radiogroup"
         >
@@ -396,6 +400,7 @@ export function PatchEditorPage({
   patch,
   voice,
 }: PatchEditorPageProps) {
+  const { t } = useTranslation()
   const initialParameters = useMemo(
     () => makeFm1EditorParameters(unpackDx7Voice(voice), effects),
     [patch.id],
@@ -732,7 +737,7 @@ export function PatchEditorPage({
     <section className="mx-auto grid min-w-0 max-w-[90rem] gap-4 px-3 py-4 sm:px-5 lg:px-8">
       <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] min-w-0 w-screen border-b border-primary/15 bg-background/90 py-3 shadow-sm backdrop-blur-xl">
         <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-3 sm:px-5 lg:px-8">
-          <Button aria-label="Back to patch banks" disabled={syncState === 'sending'} onClick={requestNavigation} size="icon" type="button" variant="outline">
+          <Button aria-label={t('editor.back')} disabled={syncState === 'sending'} onClick={requestNavigation} size="icon" type="button" variant="outline">
             <ArrowLeft />
           </Button>
           <div className="min-w-0">
@@ -740,11 +745,11 @@ export function PatchEditorPage({
               {patch.bank}{String(patch.number).padStart(2, '0')}
             </p>
             <div className="flex items-center gap-2">
-              <label className="min-w-0" title="Edit patch name">
-                <span className="sr-only">Patch name</span>
+              <label className="min-w-0" title={t('editor.editName')}>
+                <span className="sr-only">{t('editor.patchName')}</span>
                 <span className="flex items-center gap-1">
                   <input
-                    aria-label="Patch name"
+                    aria-label={t('editor.patchName')}
                     className="-ml-1 w-[12ch] max-w-[42vw] rounded border border-transparent bg-transparent px-1 font-mono text-xl font-black uppercase text-foreground outline-none transition hover:border-border hover:bg-card/60 focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/30"
                     maxLength={10}
                     onBlur={sendNameToFm1}
@@ -759,7 +764,7 @@ export function PatchEditorPage({
                 </span>
               </label>
               {isDirty ? (
-                <span aria-label="Unsaved changes" className="size-2 rounded-full bg-amber-500" title="Unsaved changes" />
+                <span aria-label={t('editor.unsaved')} className="size-2 rounded-full bg-amber-500" title={t('editor.unsaved')} />
               ) : null}
             </div>
           </div>
@@ -767,19 +772,19 @@ export function PatchEditorPage({
           <div className="ml-auto flex items-center gap-1.5">
             <details className="group static sm:relative" ref={presetsMenuRef}>
               <summary
-                aria-label="Sound presets"
+                aria-label={t('editor.presets')}
                 className="flex h-10 cursor-pointer list-none items-center justify-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-bold transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
-                title="Sound presets"
+                title={t('editor.presets')}
               >
                 <WandSparkles className="size-4" />
-                <span className="hidden xl:inline">Presets</span>
+                <span className="hidden xl:inline">{t('editor.presetsShort')}</span>
                 <ChevronDown className="hidden size-3.5 transition-transform group-open:rotate-180 xl:block" />
               </summary>
               <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground shadow-xl sm:left-auto sm:top-12 sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
                 <div className="px-2 pb-2 pt-1">
-                  <p className="text-sm font-bold">Sound presets</p>
+                  <p className="text-sm font-bold">{t('editor.presets')}</p>
                   <p className="mt-0.5 text-xs leading-4 text-muted-foreground">
-                    Try a direction, then shape it with the controls. Your current sound is one undo away.
+                    {t('editor.presetsHelp')}
                   </p>
                 </div>
                 {soundPresets.map((preset) => (
@@ -790,29 +795,33 @@ export function PatchEditorPage({
                     onClick={() => selectPreset(preset.id)}
                     type="button"
                   >
-                    <span className="text-sm font-bold">{preset.name}</span>
-                    <span className="text-xs leading-4 text-muted-foreground">{preset.description}</span>
+                    <span className="text-sm font-bold">
+                      {t(`editor.presetOptions.${preset.id}.name`)}
+                    </span>
+                    <span className="text-xs leading-4 text-muted-foreground">
+                      {t(`editor.presetOptions.${preset.id}.description`)}
+                    </span>
                   </button>
                 ))}
               </div>
             </details>
             <Button
-              aria-label="Undo"
+              aria-label={t('editor.undo')}
               disabled={history.past.length === 0}
               onClick={() => restoreHistory('undo')}
               size="icon"
-              title="Undo"
+              title={t('editor.undo')}
               type="button"
               variant="ghost"
             >
               <Undo2 />
             </Button>
             <Button
-              aria-label="Redo"
+              aria-label={t('editor.redo')}
               disabled={history.future.length === 0}
               onClick={() => restoreHistory('redo')}
               size="icon"
-              title="Redo"
+              title={t('editor.redo')}
               type="button"
               variant="ghost"
             >
@@ -826,14 +835,14 @@ export function PatchEditorPage({
                 type="button"
               >
                 <Save />
-                <span className="hidden sm:inline">Save to Library</span>
+                <span className="hidden sm:inline">{t('editor.save')}</span>
               </Button>
               <details className="group relative" ref={saveMenuRef}>
                 <summary
                   aria-haspopup="menu"
-                  aria-label="More save options"
+                  aria-label={t('editor.moreSave')}
                   className="flex h-10 w-9 cursor-pointer list-none items-center justify-center rounded-r-md border-l border-primary-foreground/25 bg-primary text-primary-foreground shadow-[0_0_14px_hsl(315_100%_60%_/_0.16)] transition-all hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
-                  title="More save options"
+                  title={t('editor.moreSave')}
                 >
                   <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
                 </summary>
@@ -850,8 +859,8 @@ export function PatchEditorPage({
                   >
                     <RefreshCw className={cn('mt-0.5 size-4 shrink-0', syncState === 'sending' && 'animate-spin')} />
                     <span>
-                      <span className="block text-sm font-bold">Resend to FM1</span>
-                      <span className="mt-0.5 block text-xs leading-4 text-muted-foreground">Send the current editor settings again.</span>
+                      <span className="block text-sm font-bold">{t('editor.resend')}</span>
+                      <span className="mt-0.5 block text-xs leading-4 text-muted-foreground">{t('editor.resendHelp')}</span>
                     </span>
                   </button>
                   <button
@@ -859,13 +868,13 @@ export function PatchEditorPage({
                     disabled={!isDirty || syncState === 'sending'}
                     onClick={() => void revertToSaved()}
                     role="menuitem"
-                    title="Discard every edit since the last library save and restore that sound on the FM1"
+                    title={t('ui.revertTitle')}
                     type="button"
                   >
                     <RotateCcw className="mt-0.5 size-4 shrink-0" />
                     <span>
-                      <span className="block text-sm font-bold">Revert to Saved</span>
-                      <span className="mt-0.5 block text-xs leading-4 text-muted-foreground">Discard edits and restore the saved sound.</span>
+                      <span className="block text-sm font-bold">{t('editor.revert')}</span>
+                      <span className="mt-0.5 block text-xs leading-4 text-muted-foreground">{t('editor.revertHelp')}</span>
                     </span>
                   </button>
                 </div>
@@ -876,9 +885,9 @@ export function PatchEditorPage({
       </header>
 
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(14rem,1fr)_minmax(0,3fr)] lg:items-start">
-        <aside aria-label="Patch configuration" className="grid min-w-0 gap-4">
+        <aside aria-label={t('editor.configuration')} className="grid min-w-0 gap-4">
           <div
-            aria-label="Patch configuration sections"
+            aria-label={t('editor.sections')}
             className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-card/75 p-1 shadow-sm"
             role="tablist"
           >
@@ -902,7 +911,7 @@ export function PatchEditorPage({
               type="button"
             >
               <SlidersHorizontal className="size-4" />
-              Global
+              {t('editor.global')}
             </button>
             <button
               aria-controls="effects-configuration-panel"
@@ -917,7 +926,7 @@ export function PatchEditorPage({
               type="button"
             >
               <AudioWaveform className="size-4" />
-              Effects
+              {t('editor.effects')}
             </button>
           </div>
 
@@ -940,13 +949,13 @@ export function PatchEditorPage({
             <Card className="min-w-0 border-primary/20 bg-card/95">
               <CardHeader className={cn('flex-row items-center justify-between gap-2 px-4 py-3', isPitchEnvelopeOpen && 'border-b')}>
                 <CardTitle className="flex min-w-0 items-center gap-1 text-base text-primary">
-                  Pitch envelope
-                  <HelpPopover label="Pitch envelope" text={controlHelp.pitchEnvelope} />
+                  {t('editor.pitchEnvelope')}
+                  <HelpPopover label={t('editor.pitchEnvelope')} text={t('controlHelp.pitchEnvelope')} />
                 </CardTitle>
                 <CollapseButton
                   controls="pitch-envelope-controls"
                   expanded={isPitchEnvelopeOpen}
-                  label="pitch envelope"
+                  label={t('editor.pitchEnvelope')}
                   onClick={() => setIsPitchEnvelopeOpen((open) => !open)}
                 />
               </CardHeader>
@@ -957,9 +966,9 @@ export function PatchEditorPage({
               >
                 {[0, 1, 2, 3].map((offset) => (
                   <SliderParameterControl
-                    helpText={controlHelp.pitchEnvelopeRate}
+                    helpText={t('controlHelp.pitchEnvelopeRate')}
                     key={`pr-${offset}`}
-                    label={`Rate ${offset + 1}`}
+                    label={t('editor.rate', { number: offset + 1 })}
                     max={99}
                     onChange={(value) => setParameter(126 + offset, value, 99)}
                     onGestureEnd={endGesture}
@@ -969,9 +978,9 @@ export function PatchEditorPage({
                 ))}
                 {[0, 1, 2, 3].map((offset) => (
                   <SliderParameterControl
-                    helpText={controlHelp.pitchEnvelopeLevel}
+                    helpText={t('controlHelp.pitchEnvelopeLevel')}
                     key={`pl-${offset}`}
-                    label={`Level ${offset + 1}`}
+                    label={t('editor.level', { number: offset + 1 })}
                     max={99}
                     onChange={(value) => setParameter(130 + offset, value, 99)}
                     onGestureEnd={endGesture}
@@ -984,11 +993,11 @@ export function PatchEditorPage({
 
             <Card className="min-w-0 border-primary/20 bg-card/95">
               <CardHeader className={cn('flex-row items-center justify-between gap-2 px-4 py-3', isLfoGlobalOpen && 'border-b')}>
-                <CardTitle className="text-base text-primary">LFO &amp; global</CardTitle>
+                <CardTitle className="text-base text-primary">{t('editor.lfoGlobal')}</CardTitle>
                 <CollapseButton
                   controls="lfo-global-controls"
                   expanded={isLfoGlobalOpen}
-                  label="LFO and global"
+                  label={t('editor.lfoGlobal')}
                   onClick={() => setIsLfoGlobalOpen((open) => !open)}
                 />
               </CardHeader>
@@ -997,17 +1006,17 @@ export function PatchEditorPage({
                 hidden={!isLfoGlobalOpen}
                 id="lfo-global-controls"
               >
-                <SwitchParameterControl helpText={controlHelp.oscillatorSync} label="Oscillator sync" onChange={(value) => setParameter(136, value, 1)} value={parameters[136]} />
-                <SwitchParameterControl helpText={controlHelp.lfoSync} label="LFO sync" onChange={(value) => setParameter(141, value, 1)} value={parameters[141]} />
+                <SwitchParameterControl helpText={t('controlHelp.oscillatorSync')} label={t('editor.oscillatorSync')} onChange={(value) => setParameter(136, value, 1)} value={parameters[136]} />
+                <SwitchParameterControl helpText={t('controlHelp.lfoSync')} label={t('editor.lfoSync')} onChange={(value) => setParameter(141, value, 1)} value={parameters[141]} />
                 <LfoWaveControl onChange={(value) => setParameter(142, value, 5)} value={parameters[142]} />
-                <SliderParameterControl helpText={controlHelp.lfoSpeed} label="LFO speed" max={99} onChange={(value) => setParameter(137, value, 99)} onGestureEnd={endGesture} onGestureStart={beginGesture} value={parameters[137]} />
-                <SliderParameterControl helpText={controlHelp.lfoDelay} label="LFO delay" max={99} onChange={(value) => setParameter(138, value, 99)} onGestureEnd={endGesture} onGestureStart={beginGesture} value={parameters[138]} />
-                <SliderParameterControl helpText={controlHelp.pitchModDepth} label="Pitch mod depth" max={99} onChange={(value) => setParameter(139, value, 99)} onGestureEnd={endGesture} onGestureStart={beginGesture} value={parameters[139]} />
-                <SliderParameterControl helpText={controlHelp.ampModDepth} label="Amp mod depth" max={99} onChange={(value) => setParameter(140, value, 99)} onGestureEnd={endGesture} onGestureStart={beginGesture} value={parameters[140]} />
-                <SliderParameterControl helpText={controlHelp.pitchModSensitivity} label="Pitch mod sens." max={7} onChange={(value) => setParameter(143, value, 7)} onGestureEnd={endGesture} onGestureStart={beginGesture} value={parameters[143]} />
+                <SliderParameterControl helpText={t('controlHelp.lfoSpeed')} label={t('editor.lfoSpeed')} max={99} onChange={(value) => setParameter(137, value, 99)} onGestureEnd={endGesture} onGestureStart={beginGesture} value={parameters[137]} />
+                <SliderParameterControl helpText={t('controlHelp.lfoDelay')} label={t('editor.lfoDelay')} max={99} onChange={(value) => setParameter(138, value, 99)} onGestureEnd={endGesture} onGestureStart={beginGesture} value={parameters[138]} />
+                <SliderParameterControl helpText={t('controlHelp.pitchModDepth')} label={t('editor.pitchModDepth')} max={99} onChange={(value) => setParameter(139, value, 99)} onGestureEnd={endGesture} onGestureStart={beginGesture} value={parameters[139]} />
+                <SliderParameterControl helpText={t('controlHelp.ampModDepth')} label={t('editor.ampModDepth')} max={99} onChange={(value) => setParameter(140, value, 99)} onGestureEnd={endGesture} onGestureStart={beginGesture} value={parameters[140]} />
+                <SliderParameterControl helpText={t('controlHelp.pitchModSensitivity')} label={t('editor.pitchModSensitivity')} max={7} onChange={(value) => setParameter(143, value, 7)} onGestureEnd={endGesture} onGestureStart={beginGesture} value={parameters[143]} />
                 <SliderParameterControl
-                  helpText={controlHelp.transpose}
-                  label="Transpose"
+                  helpText={t('controlHelp.transpose')}
+                  label={t('editor.transpose')}
                   max={24}
                   min={-24}
                   onChange={(value) => setParameter(144, value + 24, 48)}
@@ -1060,15 +1069,15 @@ export function PatchEditorPage({
                   {selectedOperator}
                 </span>
                 <span className="flex items-center gap-1 text-base text-white">
-                  Operator {selectedOperator}
-                  <HelpPopover className="text-white/65 hover:bg-white/10 hover:text-white" label="FM operators" text={controlHelp.operator} />
+                  {t('editor.operator', { number: selectedOperator })}
+                  <HelpPopover className="text-white/65 hover:bg-white/10 hover:text-white" label={t('editor.fmOperators')} text={t('controlHelp.operator')} />
                 </span>
               </span>
               </CardTitle>
               <div className="flex items-center gap-2">
-              <div aria-label={`Operator ${selectedOperator} audition`} className="flex items-center gap-1" role="group">
+              <div aria-label={t('ui.auditionGroup', { number: selectedOperator })} className="flex items-center gap-1" role="group">
                 <Button
-                  aria-label={`${selectedOperatorIsMuted ? 'Unmute' : 'Mute'} operator ${selectedOperator} for audition`}
+                  aria-label={t('ui.auditionAction', { action: t(selectedOperatorIsMuted ? 'ui.unmute' : 'ui.mute'), number: selectedOperator })}
                   aria-pressed={selectedOperatorIsMuted}
                   className={cn(
                     'h-8 w-[4.25rem] border-white/15 bg-black/15 px-3 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white',
@@ -1078,15 +1087,15 @@ export function PatchEditorPage({
                   onClick={() => toggleOperatorMute(selectedOperator)}
                   size="sm"
                   title={syncState === 'local'
-                    ? `${selectedOperatorIsMuted ? 'Unmute' : 'Mute'} operator ${selectedOperator}; connect MIDI to hear audition changes`
-                    : `${selectedOperatorIsMuted ? 'Unmute' : 'Mute'} operator ${selectedOperator} temporarily`}
+                    ? t('ui.auditionConnect', { action: t(selectedOperatorIsMuted ? 'ui.unmute' : 'ui.mute'), number: selectedOperator })
+                    : t('ui.auditionTemporary', { action: t(selectedOperatorIsMuted ? 'ui.unmute' : 'ui.mute'), number: selectedOperator })}
                   type="button"
                   variant="outline"
                 >
-                  Mute
+                  {t('ui.mute')}
                 </Button>
                 <Button
-                  aria-label={`${selectedOperatorIsSoloed ? 'Unsolo' : 'Solo'} operator ${selectedOperator} for audition`}
+                  aria-label={t('ui.auditionAction', { action: t(selectedOperatorIsSoloed ? 'ui.unsolo' : 'ui.solo'), number: selectedOperator })}
                   aria-pressed={selectedOperatorIsSoloed}
                   className={cn(
                     'h-8 w-[4.25rem] border-white/15 bg-black/15 px-3 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white',
@@ -1096,21 +1105,21 @@ export function PatchEditorPage({
                   onClick={() => toggleOperatorSolo(selectedOperator)}
                   size="sm"
                   title={syncState === 'local'
-                    ? `${selectedOperatorIsSoloed ? 'Unsolo' : 'Solo'} operator ${selectedOperator}; connect MIDI to hear audition changes`
-                    : `${selectedOperatorIsSoloed ? 'Unsolo' : 'Solo'} operator ${selectedOperator} temporarily`}
+                    ? t('ui.auditionConnect', { action: t(selectedOperatorIsSoloed ? 'ui.unsolo' : 'ui.solo'), number: selectedOperator })
+                    : t('ui.auditionTemporary', { action: t(selectedOperatorIsSoloed ? 'ui.unsolo' : 'ui.solo'), number: selectedOperator })}
                   type="button"
                   variant="outline"
                 >
-                  Solo
+                  {t('ui.solo')}
                 </Button>
               </div>
               <label className="flex min-w-[10rem] items-center gap-2 rounded-md border border-white/10 bg-black/15 px-3 py-2 text-xs text-white/70 sm:min-w-[13rem]">
                 <span className="flex items-center gap-1 font-mono font-black uppercase tracking-wide">
-                  Out
-                  <HelpPopover className="text-white/60 hover:bg-white/10 hover:text-white" label="Operator output level" text={controlHelp.outputLevel} />
+                  {t('editor.output')}
+                  <HelpPopover className="text-white/60 hover:bg-white/10 hover:text-white" label={t('editor.outputLevel')} text={t('controlHelp.outputLevel')} />
                 </span>
                 <input
-                  aria-label={`Operator ${selectedOperator} output level`}
+                  aria-label={t('ui.operatorOutput', { number: selectedOperator })}
                   className="h-2 min-w-0 flex-1 cursor-pointer accent-[var(--operator-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                   max={99}
                   min={0}
@@ -1154,20 +1163,20 @@ export function PatchEditorPage({
             <div className="grid gap-5">
               <fieldset className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] px-3 pb-4 transition-colors sm:px-4">
                 <legend className="-ml-1 mb-2 px-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
-                  Oscillator
+                  {t('ui.oscillator')}
                 </legend>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 @3xl:grid-cols-1">
                   <RadioParameterControl
-                    helpText={controlHelp.oscillatorMode}
-                    label="Mode"
+                    helpText={t('controlHelp.oscillatorMode')}
+                    label={t('ui.mode')}
                     name={`oscillator-mode-${selectedOperator}`}
                     onChange={(value) => setParameter(operatorBase + 17, value, 1)}
                     options={oscillatorModes}
                     value={parameters[operatorBase + 17]}
                   />
                   <SliderParameterControl
-                    helpText={controlHelp.coarse}
-                    label="Coarse"
+                    helpText={t('controlHelp.coarse')}
+                    label={t('ui.coarse')}
                     max={31}
                     onChange={(value) => setParameter(operatorBase + 18, value, 31)}
                     onGestureEnd={endGesture}
@@ -1175,8 +1184,8 @@ export function PatchEditorPage({
                     value={parameters[operatorBase + 18]}
                   />
                   <SliderParameterControl
-                    helpText={controlHelp.fine}
-                    label="Fine"
+                    helpText={t('controlHelp.fine')}
+                    label={t('ui.fine')}
                     max={99}
                     onChange={(value) => setParameter(operatorBase + 19, value, 99)}
                     onGestureEnd={endGesture}
@@ -1184,8 +1193,8 @@ export function PatchEditorPage({
                     value={parameters[operatorBase + 19]}
                   />
                   <SliderParameterControl
-                    helpText={controlHelp.detune}
-                    label="Detune"
+                    helpText={t('controlHelp.detune')}
+                    label={t('ui.detune')}
                     max={7}
                     min={-7}
                     onChange={(value) => setParameter(operatorBase + 20, value + 7, 14)}
@@ -1199,24 +1208,24 @@ export function PatchEditorPage({
 
               <fieldset className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] px-3 pb-4 transition-colors sm:px-4">
                 <legend className="-ml-1 mb-2 px-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
-                  Keyboard scaling
+                  {t('ui.keyboardScaling')}
                 </legend>
                 <div className="grid gap-y-3">
-                  {sliderControl('Breakpoint', 8, 99, controlHelp.breakpoint)}
+                  {sliderControl(t('ui.breakpoint'), 8, 99, t('controlHelp.breakpoint'))}
                   <div className="grid gap-y-2">
-                    <p className="text-sm font-bold text-foreground">Depth</p>
+                    <p className="text-sm font-bold text-foreground">{t('ui.depth')}</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                      {sliderControl('Left', 9, 99, controlHelp.leftDepth)}
-                      {sliderControl('Right', 10, 99, controlHelp.rightDepth)}
+                      {sliderControl(t('ui.left'), 9, 99, t('controlHelp.leftDepth'))}
+                      {sliderControl(t('ui.right'), 10, 99, t('controlHelp.rightDepth'))}
                     </div>
                   </div>
-                  {sliderControl('Rate scaling', 13, 7, controlHelp.rateScaling)}
+                  {sliderControl(t('ui.rateScaling'), 13, 7, t('controlHelp.rateScaling'))}
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                    {control('Left curve', 11, 3, curves, controlHelp.curve)}
-                    {control('Right curve', 12, 3, curves, controlHelp.curve)}
+                    {control(t('ui.leftCurve'), 11, 3, curves, t('controlHelp.curve'))}
+                    {control(t('ui.rightCurve'), 12, 3, curves, t('controlHelp.curve'))}
                   </div>
-                  {sliderControl('Velocity', 15, 7, controlHelp.velocity)}
-                  {sliderControl('Amp mod sens.', 14, 3, controlHelp.ampModSensitivity)}
+                  {sliderControl(t('ui.velocity'), 15, 7, t('controlHelp.velocity'))}
+                  {sliderControl(t('ui.ampModSensitivity'), 14, 3, t('controlHelp.ampModSensitivity'))}
                 </div>
               </fieldset>
             </div>
@@ -1232,9 +1241,9 @@ export function PatchEditorPage({
         ref={unsavedDialogRef}
       >
         <div className="border-b px-5 py-4">
-          <h2 className="text-lg font-bold" id="unsaved-editor-title">Unsaved patch changes</h2>
+          <h2 className="text-lg font-bold" id="unsaved-editor-title">{t('editor.unsavedTitle')}</h2>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
-            Save this working copy to the browser library, or discard it and restore the saved sound on the FM1.
+            {t('ui.unsavedBody')}
           </p>
         </div>
         <div className="flex flex-col-reverse gap-2 px-5 py-4 sm:flex-row sm:justify-end">
@@ -1244,7 +1253,7 @@ export function PatchEditorPage({
             type="button"
             variant="ghost"
           >
-            Keep Editing
+            {t('editor.keepEditing')}
           </Button>
           <Button
             disabled={isResolvingNavigation}
@@ -1252,14 +1261,14 @@ export function PatchEditorPage({
             type="button"
             variant="outline"
           >
-            {isResolvingNavigation ? 'Restoring…' : 'Discard Changes'}
+            {isResolvingNavigation ? `${t('editor.discard')}…` : t('editor.discard')}
           </Button>
           <Button
             disabled={isResolvingNavigation}
             onClick={() => void finishPendingNavigation('save')}
             type="button"
           >
-            Save to Library
+            {t('editor.saveAndReturn')}
           </Button>
         </div>
       </dialog>

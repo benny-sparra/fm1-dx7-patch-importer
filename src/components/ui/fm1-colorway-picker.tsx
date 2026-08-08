@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { fm1Colorways, type Fm1Colorway } from '@/lib/fm1-colorway'
 
@@ -8,6 +9,7 @@ type Fm1ColorwayPickerProps = {
 }
 
 export function Fm1ColorwayPicker({ onChange, value }: Fm1ColorwayPickerProps) {
+  const { t } = useTranslation()
   const selected = fm1Colorways.find((colorway) => colorway.value === value) ?? fm1Colorways[0]
   const orderedColorways = [
     selected,
@@ -18,10 +20,10 @@ export function Fm1ColorwayPicker({ onChange, value }: Fm1ColorwayPickerProps) {
     <div className="relative h-[38px] w-[42px] shrink-0">
       <div className="fm1-finish-picker group absolute right-0 top-0 z-40 flex items-center rounded-md border border-white/15 bg-black/70 px-2 py-1.5 shadow-sm backdrop-blur-sm transition-shadow hover:shadow-lg focus-within:shadow-lg">
       <span className="max-w-0 overflow-hidden whitespace-nowrap text-[10px] font-black uppercase tracking-[0.14em] text-white/55 opacity-0 transition-[max-width,margin,opacity] duration-200 group-hover:mr-2 group-hover:max-w-20 group-hover:opacity-100 group-focus-within:mr-2 group-focus-within:max-w-20 group-focus-within:opacity-100">
-        FM1 finish
+        {t('colorway.finish')}
       </span>
       <fieldset className="flex items-center gap-0 transition-[gap] duration-200 group-hover:gap-1 group-focus-within:gap-1">
-        <legend className="sr-only">FM1 colour finish</legend>
+        <legend className="sr-only">{t('colorway.legend')}</legend>
         {orderedColorways.map((colorway) => {
           const isSelected = colorway.value === value
 
@@ -34,10 +36,10 @@ export function Fm1ColorwayPicker({ onChange, value }: Fm1ColorwayPickerProps) {
               }`}
               key={colorway.value}
               style={{ backgroundColor: colorway.swatch }}
-              title={colorway.label}
+              title={t(`colorway.${colorway.value.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())}`)}
             >
               <input
-                aria-label={`${colorway.label} FM1 finish`}
+                aria-label={t('colorway.option', { colour: t(`colorway.${colorway.value.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())}`) })}
                 checked={isSelected}
                 className="sr-only"
                 name="fm1-colorway"

@@ -7,14 +7,15 @@ import {
   emptyPatchLibrary,
   getBankVoices as selectBankVoices,
   importVoices,
+  initializePatchLibrary,
   makeDemoVoices,
+  makeFactoryPatchLibrary,
   makePatches,
   moveVoice as moveLibraryVoice,
   renameVoice as renameLibraryVoice,
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
 import {
-  clearStoredPatchLibrary,
   loadStoredPatchLibrary,
   saveStoredPatchLibrary,
 } from '@/lib/patch-library-storage'
@@ -44,16 +45,17 @@ export function usePatchLibrary() {
     void loadStoredPatchLibrary()
       .then((stored) => {
         if (cancelled) return
+        const savedLibrary = stored ? {
+          effects: stored.effects,
+          loadedBanks: stored.loadedBanks,
+          voices: stored.voices,
+        } : null
+        setHistory({
+          future: [],
+          past: [],
+          present: initializePatchLibrary(savedLibrary),
+        })
         if (stored) {
-          setHistory({
-            future: [],
-            past: [],
-            present: {
-              effects: stored.effects,
-              loadedBanks: stored.loadedBanks,
-              voices: stored.voices,
-            },
-          })
           setLastSavedAt(stored.savedAt)
         }
         hydrated.current = true
@@ -61,6 +63,7 @@ export function usePatchLibrary() {
       })
       .catch(() => {
         if (cancelled) return
+        setHistory({ future: [], past: [], present: makeFactoryPatchLibrary() })
         hydrated.current = true
         setSaveStatus('unavailable')
       })
@@ -135,15 +138,21 @@ export function usePatchLibrary() {
   }, [commit])
 
   const clearAllBanks = useCallback(async () => {
-    setHistory({ future: [], past: [], present: emptyPatchLibrary() })
+    const emptyLibrary = emptyPatchLibrary()
+    setHistory({ future: [], past: [], present: emptyLibrary })
     try {
-      await clearStoredPatchLibrary()
+      // Keep an explicit empty record so a deliberate clear is not mistaken for first use.
+      await saveStoredPatchLibrary(emptyLibrary)
       setLastSavedAt('')
       setSaveStatus('saved')
     } catch {
       setSaveStatus('unavailable')
     }
   }, [])
+
+  const resetFactoryBanks = useCallback(() => {
+    commit(() => makeFactoryPatchLibrary())
+  }, [commit])
 
   const undo = useCallback(() => {
     setHistory((current) => {
@@ -189,6 +198,7 @@ export function usePatchLibrary() {
     patches,
     redo,
     renameVoice,
+    resetFactoryBanks,
     saveStatus,
     undo,
     updatePatch,

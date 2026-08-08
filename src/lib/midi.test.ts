@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  classifyFm1CapabilityResponse,
-  makeFm1CapabilityRequest,
   makeFm1EffectControlMessage,
   makeFm1ParameterPayload,
   makeFm1ProgramChangeMessage,
@@ -83,97 +81,5 @@ describe('makeFm1ProgramChangeMessage', () => {
     ['channel above sixteen', 0, 17],
   ])('rejects %s', (_name, program, channel) => {
     expect(() => makeFm1ProgramChangeMessage(program, channel)).toThrow(RangeError)
-  })
-})
-
-describe('makeFm1CapabilityRequest', () => {
-  it('encodes the universal non-realtime identity request', () => {
-    expect(Array.from(makeFm1CapabilityRequest('identity', 1))).toEqual([
-      0xf0, 0x7e, 0x7f, 0x06, 0x01, 0xf7,
-    ])
-  })
-
-  it('encodes Yamaha edit-buffer and bank dump requests for the selected channel', () => {
-    expect(Array.from(makeFm1CapabilityRequest('voice', 3))).toEqual([
-      0xf0, 0x43, 0x22, 0x00, 0xf7,
-    ])
-    expect(Array.from(makeFm1CapabilityRequest('bank', 16))).toEqual([
-      0xf0, 0x43, 0x2f, 0x09, 0xf7,
-    ])
-  })
-
-  it.each([0, 17, 1.5])('rejects invalid MIDI channel %s', (channel) => {
-    expect(() => makeFm1CapabilityRequest('voice', channel)).toThrow(RangeError)
-  })
-})
-
-describe('classifyFm1CapabilityResponse', () => {
-  it('recognizes a universal identity reply', () => {
-    expect(classifyFm1CapabilityResponse(Uint8Array.from([
-      0xf0, 0x7e, 0x00, 0x06, 0x02, 0x43, 0x01, 0xf7,
-    ]))).toEqual({ kind: 'identity', valid: true })
-  })
-
-  it('recognizes a checksum-valid DX7 edit-buffer dump', () => {
-    const data = new Uint8Array(155)
-    data[145] = 0x54
-    const checksum = (128 - (data.reduce((sum, byte) => sum + byte, 0) & 0x7f)) & 0x7f
-    const response = Uint8Array.from([
-      0xf0, 0x43, 0x00, 0x00, 0x01, 0x1b, ...data, checksum, 0xf7,
-    ])
-
-    expect(classifyFm1CapabilityResponse(response)).toEqual({
-      kind: 'voice',
-      valid: true,
-    })
-  })
-
-  it('reports a malformed edit-buffer dump instead of accepting it', () => {
-    const response = new Uint8Array(163)
-    response.set([0xf0, 0x43, 0x00, 0x00, 0x01, 0x1b])
-    response[6] = 1
-    response[162] = 0xf7
-
-    expect(classifyFm1CapabilityResponse(response)).toEqual({
-      kind: 'voice',
-      valid: false,
-    })
-  })
-
-  it('recognizes a checksum-valid DX7 bank dump', () => {
-    const data = new Uint8Array(4096)
-    data[0] = 1
-    const checksum = 127
-    const response = Uint8Array.from([
-      0xf0, 0x43, 0x00, 0x09, 0x20, 0x00, ...data, checksum, 0xf7,
-    ])
-
-    expect(classifyFm1CapabilityResponse(response)).toEqual({
-      kind: 'bank',
-      valid: true,
-    })
-  })
-
-  it('reports a malformed bank dump instead of accepting it', () => {
-    const response = new Uint8Array(4104)
-    response.set([0xf0, 0x43, 0x00, 0x09, 0x20, 0x00])
-    response[6] = 1
-    response[4103] = 0xf7
-
-    expect(classifyFm1CapabilityResponse(response)).toEqual({
-      kind: 'bank',
-      valid: false,
-    })
-  })
-
-  it('ignores truncated Yamaha dumps', () => {
-    expect(classifyFm1CapabilityResponse(Uint8Array.from([
-      0xf0, 0x43, 0x00, 0x09, 0x20, 0x00, 0xf7,
-    ]))).toBeNull()
-  })
-
-  it('ignores unrelated MIDI traffic', () => {
-    expect(classifyFm1CapabilityResponse(Uint8Array.from([0x90, 60, 100])))
-      .toBeNull()
   })
 })

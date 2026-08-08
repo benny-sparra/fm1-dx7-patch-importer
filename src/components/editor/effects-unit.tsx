@@ -1,9 +1,9 @@
 import { ArrowRight, Power } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
-import { effectHelp, effectParameterHelp } from '@/data/control-help'
 import { cn } from '@/lib/utils'
 
 type EffectsUnitProps = {
@@ -92,6 +92,15 @@ const effects: EffectDefinition[] = [
   },
 ]
 
+const optionKeys: Record<string, string> = {
+  'Low pass': 'lowPass', 'Band pass': 'bandPass', 'High pass': 'highPass',
+  Room: 'room', Hall: 'hall', Plate: 'plate',
+}
+
+function lowerFirst(value: string) {
+  return value.charAt(0).toLowerCase() + value.slice(1)
+}
+
 function EffectControl({
   disabled,
   effectName,
@@ -111,14 +120,17 @@ function EffectControl({
   parameter: EffectParameter
   value: number
 }) {
-  const helpText = effectParameterHelp[`${effectName} ${parameter.label}`]
+  const { t } = useTranslation()
+  const helpText = t(`effectParameterHelp.${effectName} ${parameter.label}`)
+  const translatedEffect = t(`ui.effects.${effectName.toLowerCase()}`)
+  const translatedParameter = t(`ui.parameters.${lowerFirst(parameter.label)}`)
 
   if (parameter.options) {
     return (
       <label className="grid min-w-0 gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-        <span className="flex items-center gap-1">
-          {parameter.label}
-          {helpText ? <HelpPopover label={`${effectName} ${parameter.label}`} text={helpText} /> : null}
+        <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+          <span className="min-w-0 flex-1 truncate" title={translatedParameter}>{translatedParameter}</span>
+          {helpText ? <HelpPopover label={`${translatedEffect} ${translatedParameter}`} text={helpText} /> : null}
         </span>
         <select
           className="h-9 min-w-0 w-full rounded-md border bg-background px-2 text-sm font-semibold normal-case text-foreground disabled:opacity-50"
@@ -127,7 +139,7 @@ function EffectControl({
           value={value}
         >
           {parameter.options.map((option, index) => (
-            <option key={option} value={index}>{option}</option>
+            <option key={option} value={index}>{t(`ui.options.${optionKeys[option]}`)}</option>
           ))}
         </select>
       </label>
@@ -137,12 +149,12 @@ function EffectControl({
   if (placement === 'header') {
     return (
       <label className="ml-auto flex w-1/2 min-w-0 items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-        <span className="flex shrink-0 items-center gap-1">
-          {parameter.label}
-          {helpText ? <HelpPopover label={`${effectName} ${parameter.label}`} text={helpText} /> : null}
+        <span className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+          <span className="min-w-0 flex-1 truncate" title={translatedParameter}>{translatedParameter}</span>
+          {helpText ? <HelpPopover label={`${translatedEffect} ${translatedParameter}`} text={helpText} /> : null}
         </span>
         <input
-          aria-label={`${effectName} ${parameter.label}`}
+          aria-label={`${translatedEffect} ${translatedParameter}`}
           className="h-2 min-w-0 flex-1 cursor-pointer accent-[var(--effect-color)] disabled:cursor-not-allowed disabled:opacity-40"
           disabled={disabled}
           max={parameter.max}
@@ -163,17 +175,17 @@ function EffectControl({
 
   return (
     <label className="grid min-w-0 gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-      <span className="flex items-center justify-between gap-2">
-        <span className="flex items-center gap-1">
-          {parameter.label}
-          {helpText ? <HelpPopover label={`${effectName} ${parameter.label}`} text={helpText} /> : null}
+      <span className="flex min-w-0 items-center gap-2">
+        <span className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+          <span className="min-w-0 flex-1 truncate" title={translatedParameter}>{translatedParameter}</span>
+          {helpText ? <HelpPopover label={`${translatedEffect} ${translatedParameter}`} text={helpText} /> : null}
         </span>
-        <output className="font-mono text-xs text-foreground">
+        <output className="shrink-0 font-mono text-xs text-foreground">
           {value}{parameter.suffix}
         </output>
       </span>
       <input
-        aria-label={parameter.label}
+        aria-label={translatedParameter}
         className="h-2 w-full cursor-pointer accent-[var(--effect-color)] disabled:cursor-not-allowed disabled:opacity-40"
         disabled={disabled}
         max={parameter.max}
@@ -196,6 +208,7 @@ export function EffectsUnit({
   onGestureStart,
   values,
 }: EffectsUnitProps) {
+  const { t } = useTranslation()
   const isSidebar = layout === 'sidebar'
 
   return (
@@ -209,6 +222,7 @@ export function EffectsUnit({
         <div className={cn('grid gap-3', !isSidebar && 'md:grid-cols-2 2xl:grid-cols-6')}>
           {effects.map((effect, index) => {
             const enabled = values[effect.switchController] > 0
+            const translatedEffect = t(`ui.effects.${effect.name.toLowerCase()}`)
             const mixParameter = effect.parameters.find((parameter) => parameter.label === 'Mix')
             const bodyParameters = effect.parameters.filter((parameter) => parameter !== mixParameter)
             return (
@@ -224,7 +238,7 @@ export function EffectsUnit({
                 >
                   <div className="flex flex-wrap items-center gap-2 border-b pb-2">
                     <Button
-                      aria-label={`${enabled ? 'Bypass' : 'Enable'} ${effect.name}`}
+                      aria-label={t(enabled ? 'ui.bypassEffect' : 'ui.enableEffect', { effect: translatedEffect })}
                       aria-pressed={enabled}
                       className={cn(
                         'size-8 rounded-full border p-0',
@@ -234,17 +248,17 @@ export function EffectsUnit({
                       )}
                       onClick={() => onChange(effect.switchController, enabled ? 0 : 1)}
                       size="icon"
-                      title={`${effect.name}: ${enabled ? 'on' : 'bypassed'}`}
+                      title={t('ui.effectState', { effect: translatedEffect, state: t(enabled ? 'editor.on' : 'ui.bypassed') })}
                       type="button"
                       variant="outline"
                     >
                       <Power className="size-3.5" />
                     </Button>
                     <h3 className={cn('flex items-center gap-1 font-black', enabled && 'text-[var(--effect-color)]')}>
-                      {effect.name}
+                      {translatedEffect}
                       <HelpPopover
-                        label={effect.name}
-                        text={effectHelp[effect.name as keyof typeof effectHelp]}
+                        label={translatedEffect}
+                        text={t(`effectHelp.${effect.name}`)}
                       />
                     </h3>
                     {mixParameter ? (

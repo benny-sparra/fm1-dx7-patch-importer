@@ -17,9 +17,7 @@ import {
 } from '@/lib/fm1-effects'
 import {
   formatMidiBytes,
-  classifyFm1CapabilityResponse,
   getMidiSupport,
-  makeFm1CapabilityRequest,
   makeFm1EffectControlMessage,
   makeFm1ParameterPayload,
   makeFm1ProgramChangeMessage,
@@ -33,7 +31,6 @@ import {
   sendDx7Bank,
   sendDx7Voice,
   type MidiDevice,
-  type Fm1CapabilityKind,
   type MidiLogEntry,
 } from '@/lib/midi'
 import { MidiTransferQueue } from '@/lib/midi-transfer-queue'
@@ -47,11 +44,6 @@ const midiStorageKeys = {
   inputId: 'fm1-midi-input-id',
   outputId: 'fm1-midi-output-id',
 } as const
-
-export type Fm1CapabilityProbeResult = {
-  kind: Fm1CapabilityKind
-  status: 'invalid' | 'no-response' | 'supported'
-}
 
 function readStoredValue(key: string) {
   try {
@@ -93,7 +85,6 @@ export function useMidi() {
     makeLogEntry('system', 'Ready. Connect a Chromium browser to begin.'),
   ])
   const transferQueue = useRef(new MidiTransferQueue({ minimumIntervalMs: 35 }))
-  const capabilityProbeInFlight = useRef<Promise<Fm1CapabilityProbeResult[]> | null>(null)
   const preferredOutputId = useRef(readStoredValue(midiStorageKeys.outputId))
   const preferredInputId = useRef(readStoredValue(midiStorageKeys.inputId))
   const startupConnectionAttempted = useRef(false)
@@ -496,78 +487,6 @@ export function useMidi() {
     return () => selectedInput.removeListener('midimessage', handleMidiMessage)
   }, [appendLog, selectedInput])
 
-  const probeFm1Capabilities = useCallback(() => {
-    if (capabilityProbeInFlight.current) return capabilityProbeInFlight.current
-    if (!selectedOutput || !selectedInput) {
-      return Promise.reject(new Error('Select both the FM1 MIDI input and output before running the capability test.'))
-    }
-    if (!WebMidi.sysexEnabled) {
-      return Promise.reject(new Error('Reconnect MIDI with SysEx permission before running the capability test.'))
-    }
-
-    const probeOne = (
-      kind: Fm1CapabilityKind,
-      timeoutMs: number,
-    ) => new Promise<Fm1CapabilityProbeResult>((resolve, reject) => {
-      let settled = false
-      let timeout = 0
-
-      const finish = (result: Fm1CapabilityProbeResult) => {
-        if (settled) return
-        settled = true
-        window.clearTimeout(timeout)
-        selectedInput.removeListener('midimessage', handleMidiMessage)
-        resolve(result)
-      }
-
-      const handleMidiMessage = (event: MessageEvent) => {
-        const response = classifyFm1CapabilityResponse(event.data)
-        if (!response || response.kind !== kind) return
-        finish({
-          kind,
-          status: response.valid ? 'supported' : 'invalid',
-        })
-      }
-
-      const request = makeFm1CapabilityRequest(kind, channel)
-      selectedInput.addListener('midimessage', handleMidiMessage)
-      timeout = window.setTimeout(
-        () => finish({ kind, status: 'no-response' }),
-        timeoutMs,
-      )
-
-      try {
-        selectedOutput.sendSysex(request[1], request.slice(2, -1))
-        appendLog(makeLogEntry('out', `Requested FM1 ${kind} response.`, request))
-      } catch (caughtError) {
-        selectedInput.removeListener('midimessage', handleMidiMessage)
-        window.clearTimeout(timeout)
-        settled = true
-        reject(caughtError)
-      }
-    })
-
-    const run = (async () => {
-      const results: Fm1CapabilityProbeResult[] = []
-      results.push(await probeOne('identity', 1_500))
-      results.push(await probeOne('voice', 2_000))
-      results.push(await probeOne('bank', 4_000))
-      appendLog(makeLogEntry(
-        'system',
-        results.some((result) => result.status === 'supported')
-          ? 'FM1 capability test received a recognized response.'
-          : 'FM1 capability test completed without a recognized response.',
-      ))
-      return results
-    })()
-      .finally(() => {
-        capabilityProbeInFlight.current = null
-      })
-
-    capabilityProbeInFlight.current = run
-    return run
-  }, [appendLog, channel, selectedInput, selectedOutput])
-
   return {
     channel,
     connectMidi,
@@ -581,7 +500,6 @@ export function useMidi() {
     log,
     midiAccess,
     outputs,
-    probeFm1Capabilities,
     sendBank,
     sendEffectParameter,
     sendEffectSettings,

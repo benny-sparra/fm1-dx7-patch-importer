@@ -1,6 +1,7 @@
 import { useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Send } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { type Patch } from '@/data/patches'
 import { cn } from '@/lib/utils'
@@ -24,6 +25,7 @@ export function PatchButton({
   onSend,
   patch,
 }: PatchButtonProps) {
+  const { t } = useTranslation()
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
     id: patch.id,
@@ -45,10 +47,10 @@ export function PatchButton({
       {!disabled && onEdit ? (
           <button
             aria-current={isActive ? 'true' : undefined}
-            aria-label={`Edit ${patch.name}`}
+            aria-label={t('banks.edit', { name: patch.name })}
             className="absolute inset-0 z-0 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
             onClick={() => onEdit(patch)}
-            title={`Open ${patch.name} in the voice editor`}
+            title={t('banks.openEditor', { name: patch.name })}
             type="button"
           />
         ) : null}
@@ -62,10 +64,10 @@ export function PatchButton({
           {!disabled ? (
             <span className="pointer-events-auto relative z-[1] flex">
               <button
-                aria-label={`Send ${patch.name} to FM1`}
+                aria-label={t('banks.sendPatch', { name: patch.name })}
                 className="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => onSend?.(patch)}
-                title="Send this patch to the FM1 edit buffer"
+                title={t('banks.sendPatchTitle')}
                 type="button"
               >
                 <Send className="size-4" />
@@ -74,12 +76,12 @@ export function PatchButton({
           ) : null}
           {isActive ? (
             <span className="pointer-events-none absolute right-2 top-1 rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-primary">
-              Auditioning
+              {t('banks.auditioning')}
             </span>
           ) : null}
         </div>
         {patch.family === 'DX7' ? (
-          <button {...sortable.attributes} {...sortable.listeners} aria-label={`Reorder ${patch.name}`} className="absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 cursor-grab rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing" title="Drag to reorder; use arrow keys when focused" type="button">
+          <button {...sortable.attributes} {...sortable.listeners} aria-label={t('banks.reorder', { name: patch.name })} className="absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 cursor-grab rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing" title={t('banks.reorderTitle')} type="button">
             <GripVertical className="size-4" />
           </button>
         ) : (

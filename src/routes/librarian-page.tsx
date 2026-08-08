@@ -8,9 +8,11 @@ import {
   Upload,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { zipSync } from 'fflate'
 
 import { PatchGrid } from '@/components/patches/patch-grid'
+import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
 import { makeDx7BankFile } from '@/lib/dx7'
@@ -44,6 +46,7 @@ export function LibrarianPage({
   onPatchAuditioned,
   transferredBankFingerprints,
 }: LibrarianPageProps) {
+  const { t } = useTranslation()
   const { patches } = library
   const [search, setSearch] = useState('')
   const [destinationBank, setDestinationBank] = useState('A')
@@ -55,6 +58,7 @@ export function LibrarianPage({
   const importMenuRef = useDismissableDetails()
   const bankSelectionDialogRef = useRef<HTMLDialogElement>(null)
   const midiConnectionRequiredDialogRef = useRef<HTMLDialogElement>(null)
+  const restoreFactoryBanksDialogRef = useRef<HTMLDialogElement>(null)
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
   const bankFingerprints = useMemo(
     () => Object.fromEntries(library.loadedBanks.map((bank) => [
@@ -65,10 +69,10 @@ export function LibrarianPage({
   )
 
   const bankTransferLabel = (bank: string) => {
-    if (!library.loadedBanks.includes(bank)) return 'Empty'
+    if (!library.loadedBanks.includes(bank)) return t('banks.empty')
     const transferred = transferredBankFingerprints[bank]
-    if (!transferred) return 'Local only'
-    return transferred === bankFingerprints[bank] ? 'Transferred' : 'Changed'
+    if (!transferred) return t('banks.localOnly')
+    return transferred === bankFingerprints[bank] ? t('banks.transferred') : t('banks.changed')
   }
 
   const saveBlob = (blob: Blob, filename: string) => {
@@ -87,7 +91,7 @@ export function LibrarianPage({
       setImportError('')
       importMenuRef.current?.removeAttribute('open')
     } catch (error) {
-      setImportError(error instanceof Error ? error.message : 'Export failed.')
+      setImportError(error instanceof Error ? error.message : t('banks.exportFailed'))
     }
   }
 
@@ -101,7 +105,7 @@ export function LibrarianPage({
       setImportError('')
       importMenuRef.current?.removeAttribute('open')
     } catch (error) {
-      setImportError(error instanceof Error ? error.message : 'Bulk export failed.')
+      setImportError(error instanceof Error ? error.message : t('banks.bulkExportFailed'))
     }
   }
 
@@ -152,13 +156,13 @@ export function LibrarianPage({
                 type="button"
               >
                 <Upload className="size-4" />
-                {isImporting ? 'Importing…' : 'Import DX7 bank'}
+                {isImporting ? t('banks.importing') : t('banks.import')}
               </button>
               <details className="group relative" ref={importMenuRef}>
                 <summary
-                  aria-label="More bank file actions"
+                  aria-label={t('banks.moreActions')}
                   className="flex h-full w-9 cursor-pointer list-none items-center justify-center rounded-r-[calc(var(--radius-md)-1px)] border-l border-input transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
-                  title="More bank file actions"
+                  title={t('banks.moreActions')}
                 >
                   <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
                 </summary>
@@ -167,11 +171,11 @@ export function LibrarianPage({
                     className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                     disabled={!isDestinationBankLoaded}
                     onClick={downloadBank}
-                    title={isDestinationBankLoaded ? `Download browser bank ${destinationBank} as SysEx` : `Import bank ${destinationBank} first`}
+                    title={isDestinationBankLoaded ? t('banks.downloadTitle', { bank: destinationBank }) : t('banks.importFirst', { bank: destinationBank })}
                     type="button"
                   >
                     <Download className="size-4" />
-                    Download this bank
+                    {t('banks.download')}
                   </button>
                   <button
                     className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
@@ -180,13 +184,24 @@ export function LibrarianPage({
                     type="button"
                   >
                     <Archive className="size-4" />
-                    Download all banks (.zip)
+                    {t('banks.downloadAll')}
+                  </button>
+                  <button
+                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm border-t px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                    onClick={() => {
+                      importMenuRef.current?.removeAttribute('open')
+                      restoreFactoryBanksDialogRef.current?.showModal()
+                    }}
+                    type="button"
+                  >
+                    <RotateCcw className="size-4" />
+                    {t('banks.restoreFactory')}
                   </button>
                   <button
                     className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
                     disabled={!isDestinationBankLoaded}
                     onClick={() => {
-                      if (window.confirm(`Clear browser bank ${destinationBank}? You can undo this action.`)) {
+                      if (window.confirm(t('banks.clearConfirm', { bank: destinationBank }))) {
                         library.clearBank(destinationBank)
                         importMenuRef.current?.removeAttribute('open')
                       }
@@ -194,13 +209,13 @@ export function LibrarianPage({
                     type="button"
                   >
                     <RotateCcw className="size-4" />
-                    Clear this bank
+                    {t('banks.clear')}
                   </button>
                   <button
                     className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
                     disabled={library.loadedBanks.length === 0}
                     onClick={() => {
-                      if (window.confirm('Clear every locally saved browser bank? Download anything you want to keep first.')) {
+                      if (window.confirm(t('banks.clearAllConfirm'))) {
                         void library.clearAllBanks()
                         importMenuRef.current?.removeAttribute('open')
                       }
@@ -208,7 +223,7 @@ export function LibrarianPage({
                     type="button"
                   >
                     <Trash2 className="size-4" />
-                    Clear all local banks
+                    {t('banks.clearAll')}
                   </button>
                 </div>
               </details>
@@ -225,24 +240,24 @@ export function LibrarianPage({
                   bankSelectionDialogRef.current?.showModal()
                 }
                 setIsSending(true)
-                setTransferStatus({ kind: 'idle', message: 'Sending 32 patches to the FM1…' })
+                setTransferStatus({ kind: 'idle', message: t('banks.sendingStatus') })
                 try {
                   const sent = await midi.sendBank(destinationBank, library.getBankVoices(destinationBank))
                   if (sent) {
                     onBankTransferred(destinationBank, bankFingerprints[destinationBank])
                   }
                   setTransferStatus(sent
-                    ? { kind: 'success', message: `Browser bank ${destinationBank} was sent. Choose its destination on the FM1.` }
-                    : { kind: 'error', message: 'The bank was not sent. Open the MIDI log for details, then retry.' })
+                    ? { kind: 'success', message: t('banks.sentStatus', { bank: destinationBank }) }
+                    : { kind: 'error', message: t('banks.notSent') })
                 } finally {
                   setIsSending(false)
                 }
               }}
-              title={!midi.hasMidiOutput ? 'Connect a MIDI output first' : isDestinationBankLoaded ? 'Send all 32 voices; choose the destination bank on the FM1' : `Import bank ${destinationBank} first`}
+              title={!midi.hasMidiOutput ? t('midi.connectFirst') : isDestinationBankLoaded ? t('banks.sendTitle') : t('banks.importFirst', { bank: destinationBank })}
               type="button"
             >
               <Send className="size-4" />
-              {isSending ? 'Sending…' : 'Send to FM1'}
+              {isSending ? t('banks.sending') : t('banks.send')}
             </button>
           </>
         }
@@ -258,8 +273,8 @@ export function LibrarianPage({
           if (sent) await midi.sendEffectSettings(library.effects[patch.id])
           if (sent) onPatchAuditioned(patch)
           setTransferStatus(sent
-            ? { kind: 'success', message: `${patch.name} is in the FM1 edit buffer. Hold SAVE on the FM1 to store it in the current slot.` }
-            : { kind: 'error', message: 'The sound was not sent. Connect a SysEx-capable MIDI output and retry.' })
+            ? { kind: 'success', message: t('banks.soundSent', { name: patch.name }) }
+            : { kind: 'error', message: t('banks.soundNotSent') })
         }}
         onPatchEdit={onEditPatch}
         onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
@@ -270,7 +285,7 @@ export function LibrarianPage({
         toolbar={
           <>
             <div
-              aria-label="Destination browser bank"
+              aria-label={t('banks.destination')}
               className="scrollbar-none flex overflow-x-auto border-b"
               role="tablist"
             >
@@ -291,7 +306,7 @@ export function LibrarianPage({
                   tabIndex={destinationBank === bank ? 0 : -1}
                   type="button"
                 >
-                  Bank {bank}
+                  {t('banks.bank', { bank })}
                   <span className="block text-xs opacity-75">
                     {bankTransferLabel(bank)}
                   </span>
@@ -300,7 +315,7 @@ export function LibrarianPage({
             </div>
             <input
               accept=".syx,application/octet-stream"
-              aria-label="Import DX7 bank file"
+              aria-label={t('banks.importFile')}
               className="sr-only"
               disabled={isImporting}
               onChange={async (event) => {
@@ -311,7 +326,7 @@ export function LibrarianPage({
                   await library.importBank(destinationBank, file)
                   setImportError('')
                 } catch (error) {
-                  setImportError(error instanceof Error ? error.message : 'Import failed.')
+                  setImportError(error instanceof Error ? error.message : t('banks.importFailed'))
                 } finally {
                   setIsImporting(false)
                   event.target.value = ''
@@ -329,7 +344,7 @@ export function LibrarianPage({
           aria-live="polite"
           className={cn(
             'text-sm',
-            transferStatus.kind === 'success' && 'text-emerald-700 dark:text-emerald-300',
+            transferStatus.kind === 'success' && 'text-emerald-700',
             transferStatus.kind === 'error' && 'text-destructive',
             transferStatus.kind === 'idle' && 'text-muted-foreground',
           )}
@@ -347,6 +362,10 @@ export function LibrarianPage({
 
       <Fm1BankSelectionDialog dialogRef={bankSelectionDialogRef} />
       <MidiConnectionRequiredDialog dialogRef={midiConnectionRequiredDialogRef} />
+      <RestoreFactoryBanksDialog
+        dialogRef={restoreFactoryBanksDialogRef}
+        onRestore={library.resetFactoryBanks}
+      />
     </section>
   )
 }
