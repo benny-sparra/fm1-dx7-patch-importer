@@ -1,5 +1,6 @@
 import { ExternalLink, Library, X } from 'lucide-react'
 import { useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 
@@ -27,16 +28,17 @@ const bankSources = [
 ]
 
 export function Dx7BankSourcesDialog() {
+  const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   return (
     <>
       <button
-        className="cursor-pointer font-semibold text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:text-primary/80"
+        className="synthwave-hero-accent cursor-pointer font-semibold underline decoration-current/40 underline-offset-4 transition-opacity hover:opacity-80"
         onClick={() => dialogRef.current?.showModal()}
         type="button"
       >
-        Click here
+        {t('dialogs.sourcesOpen')}
       </button>
 
       <dialog
@@ -51,14 +53,14 @@ export function Dx7BankSourcesDialog() {
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold" id="dx7-bank-sources-title">
               <Library className="size-5 text-primary" />
-              Find DX7 patch banks
+              {t('dialogs.sourcesTitle')}
             </h2>
             <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              Download a 32-voice DX7 SysEx bank (.syx), then return here and choose Import DX7 bank.
+              {t('dialogs.sourcesIntro')}
             </p>
           </div>
           <Button
-            aria-label="Close patch bank sources"
+            aria-label={t('dialogs.sourcesClose')}
             className="shrink-0"
             onClick={() => dialogRef.current?.close()}
             size="icon"
@@ -92,7 +94,7 @@ export function Dx7BankSourcesDialog() {
         </ul>
 
         <p className="border-t bg-muted/40 px-5 py-3 text-xs leading-5 text-muted-foreground">
-          Only import files you trust. This librarian expects a standard 32-voice Yamaha DX7 bulk bank.
+          {t('dialogs.sourcesSafety')}
         </p>
       </dialog>
     </>

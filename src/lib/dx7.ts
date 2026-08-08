@@ -5,41 +5,6 @@ export const dx7BankFileSize = dx7BankDataSize + 8
 
 export type Dx7Voice = { data: Uint8Array; name: string }
 
-export type Dx7Operator = {
-  rates: number[]
-  levels: number[]
-  breakpoint: number
-  leftDepth: number
-  rightDepth: number
-  leftCurve: number
-  rightCurve: number
-  rateScaling: number
-  detune: number
-  amplitudeModulationSensitivity: number
-  keyVelocitySensitivity: number
-  outputLevel: number
-  oscillatorMode: number
-  frequencyCoarse: number
-  frequencyFine: number
-}
-
-export type Dx7VoiceParameters = {
-  operators: Dx7Operator[]
-  pitchRates: number[]
-  pitchLevels: number[]
-  algorithm: number
-  feedback: number
-  oscillatorSync: number
-  lfoSpeed: number
-  lfoDelay: number
-  pitchModulationDepth: number
-  amplitudeModulationDepth: number
-  lfoSync: number
-  lfoWave: number
-  pitchModulationSensitivity: number
-  transpose: number
-}
-
 export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
   const bytes = new Uint8Array(file)
   if (bytes.length !== dx7BankFileSize) {
@@ -58,37 +23,6 @@ export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
   })
 }
 
-export function decodeDx7Voice(voice: Dx7Voice): Dx7VoiceParameters {
-  const data = voice.data
-  const operators = Array.from({ length: 6 }, (_, displayIndex) => {
-    const offset = (5 - displayIndex) * 17
-    return {
-      rates: Array.from(data.slice(offset, offset + 4)),
-      levels: Array.from(data.slice(offset + 4, offset + 8)),
-      breakpoint: data[offset + 8], leftDepth: data[offset + 9], rightDepth: data[offset + 10],
-      leftCurve: data[offset + 11] & 0x03, rightCurve: (data[offset + 11] >> 2) & 0x03,
-      rateScaling: data[offset + 12] & 0x07, detune: (data[offset + 12] >> 3) & 0x0f,
-      amplitudeModulationSensitivity: data[offset + 13] & 0x03,
-      keyVelocitySensitivity: (data[offset + 13] >> 2) & 0x07,
-      outputLevel: data[offset + 14], oscillatorMode: data[offset + 15] & 0x01,
-      frequencyCoarse: (data[offset + 15] >> 1) & 0x1f, frequencyFine: data[offset + 16],
-    }
-  })
-  return {
-    operators, pitchRates: Array.from(data.slice(102, 106)), pitchLevels: Array.from(data.slice(106, 110)),
-    algorithm: data[110], feedback: data[111] & 0x07, oscillatorSync: (data[111] >> 3) & 0x01,
-    lfoSpeed: data[112], lfoDelay: data[113], pitchModulationDepth: data[114], amplitudeModulationDepth: data[115],
-    lfoSync: data[116] & 0x01, lfoWave: (data[116] >> 1) & 0x07,
-    pitchModulationSensitivity: (data[116] >> 4) & 0x07, transpose: data[117],
-  }
-}
-
-export function updateDx7VoiceByte(voice: Dx7Voice, offset: number, value: number): Dx7Voice {
-  const data = voice.data.slice()
-  data[offset] = value
-  return { data, name: decodeVoiceName(data) }
-}
-
 export function updateDx7VoiceName(voice: Dx7Voice, name: string): Dx7Voice {
   const data = voice.data.slice()
   const normalized = name.slice(0, 10).padEnd(10, ' ')
@@ -99,15 +33,17 @@ export function updateDx7VoiceName(voice: Dx7Voice, name: string): Dx7Voice {
   return { data, name: decodeVoiceName(data) }
 }
 
-export function updateDx7VoiceBits(
-  voice: Dx7Voice,
-  offset: number,
-  mask: number,
-  shift: number,
-  value: number,
-): Dx7Voice {
-  const current = voice.data[offset]
-  return updateDx7VoiceByte(voice, offset, (current & ~mask) | ((value << shift) & mask))
+export function makeDx7VoiceNameEdits(
+  parameters: Uint8Array,
+  name: string,
+): [parameter: number, value: number][] {
+  const normalized = name.slice(0, 10).padEnd(10, ' ')
+
+  return Array.from({ length: 10 }, (_, offset) => {
+    const code = normalized.charCodeAt(offset)
+    const value = code >= 0x20 && code <= 0x7e ? code : 0x20
+    return [145 + offset, value] as [number, number]
+  }).filter(([parameter, value]) => parameters[parameter] !== value)
 }
 
 /** Converts a packed 128-byte bank voice to the DX7's 155-byte edit-buffer format. */
@@ -146,8 +82,50 @@ export function unpackDx7Voice(voice: Dx7Voice) {
   return Uint8Array.from(unpacked)
 }
 
+/** Converts the DX7's 155-byte edit-buffer format to a packed 128-byte bank voice. */
+export function packDx7Voice(unpacked: Uint8Array): Dx7Voice {
+  if (unpacked.length !== 155) {
+    throw new Error(`Expected 155 DX7 edit-buffer bytes; received ${unpacked.length}.`)
+  }
+  if (unpacked.some((value) => value > 0x7f)) {
+    throw new Error('DX7 edit-buffer data must contain only 7-bit values.')
+  }
+
+  const packed = new Uint8Array(128)
+  for (let operator = 0; operator < 6; operator += 1) {
+    const source = operator * 21
+    const target = operator * 17
+    packed.set(unpacked.slice(source, source + 11), target)
+    packed[target + 11] = (unpacked[source + 11] & 0x03)
+      | ((unpacked[source + 12] & 0x03) << 2)
+    packed[target + 12] = (unpacked[source + 13] & 0x07)
+      | ((unpacked[source + 20] & 0x0f) << 3)
+    packed[target + 13] = (unpacked[source + 14] & 0x03)
+      | ((unpacked[source + 15] & 0x07) << 2)
+    packed[target + 14] = unpacked[source + 16]
+    packed[target + 15] = (unpacked[source + 17] & 0x01)
+      | ((unpacked[source + 18] & 0x1f) << 1)
+    packed[target + 16] = unpacked[source + 19]
+  }
+
+  packed.set(unpacked.slice(126, 135), 102)
+  packed[111] = (unpacked[135] & 0x07) | ((unpacked[136] & 0x01) << 3)
+  packed.set(unpacked.slice(137, 141), 112)
+  packed[116] = (unpacked[141] & 0x01)
+    | ((unpacked[142] & 0x07) << 1)
+    | ((unpacked[143] & 0x07) << 4)
+  packed.set(unpacked.slice(144, 155), 117)
+
+  return { data: packed, name: decodeVoiceName(packed) }
+}
+
 /** Yamaha DX7 single-voice bulk dump, excluding the F0/43 manufacturer prefix and F7 terminator. */
 export function makeDx7SingleVoicePayload(voice: Dx7Voice, channel = 1) {
+  if (voice.data.length !== dx7PackedVoiceSize) {
+    throw new Error(
+      `Expected a ${dx7PackedVoiceSize}-byte packed DX7 voice; received ${voice.data.length} bytes.`,
+    )
+  }
   const data = unpackDx7Voice(voice)
   const checksum = (128 - (data.reduce((sum, byte) => sum + byte, 0) & 0x7f)) & 0x7f
 

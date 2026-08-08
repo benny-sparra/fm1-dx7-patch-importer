@@ -1,5 +1,6 @@
 import { Check, Clipboard } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,7 @@ type MidiLogCardProps = {
 }
 
 export function MidiLogCard({ log }: MidiLogCardProps) {
+  const { t } = useTranslation()
   const [selectedEntry, setSelectedEntry] = useState<MidiLogEntry | null>(null)
   const [copied, setCopied] = useState(false)
   const formattedData = useMemo(() => {
@@ -44,12 +46,12 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>MIDI log</CardTitle>
-        <CardDescription>Recent browser MIDI activity.</CardDescription>
+        <CardTitle>{t('midi.log')}</CardTitle>
+        <CardDescription>{t('midi.recent')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div
-          aria-label="Recent MIDI log entries"
+          aria-label={t('midi.entries')}
           className="max-h-[55vh] overflow-y-auto pr-2"
           tabIndex={0}
         >
@@ -82,7 +84,7 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
                         onClick={() => viewData(entry)}
                         type="button"
                       >
-                        {selectedEntry?.id === entry.id ? 'Hide data' : 'View data'}
+                        {selectedEntry?.id === entry.id ? t('midi.hideData') : t('midi.viewData')}
                       </button>
                     ) : null}
                   </span>
@@ -91,11 +93,10 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm">
                           <span className="font-semibold">
-                            {entry.data?.length.toLocaleString()}
-                          </span>{' '}
-                          bytes
+                            {t('midi.bytes', { count: entry.data?.length ?? 0 })}
+                          </span>
                           {entry.data?.[0] === 0xf0
-                            ? ' · Complete SysEx message'
+                            ? ` · ${t('midi.completeSysex')}`
                             : ''}
                         </p>
                         <Button
@@ -109,7 +110,7 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
                           ) : (
                             <Clipboard className="size-4" />
                           )}
-                          {copied ? 'Copied' : 'Copy hex'}
+                          {copied ? t('midi.copied') : t('midi.copyHex')}
                         </Button>
                       </div>
                       <pre className="max-h-[40vh] overflow-auto whitespace-pre rounded-lg border bg-muted/40 p-4 font-mono text-xs leading-5">

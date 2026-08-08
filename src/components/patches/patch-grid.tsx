@@ -1,7 +1,8 @@
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { rectSortingStrategy, sortableKeyboardCoordinates, SortableContext } from '@dnd-kit/sortable'
-import { ListMusic, Search } from 'lucide-react'
+import { FileMusic, ListMusic, Search } from 'lucide-react'
 import { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import fm1Keyboard from '@/assets/fm1-keyboard.webp'
 import {
@@ -16,10 +17,15 @@ import { type Patch } from '@/data/patches'
 import { PatchButton } from './patch-button'
 
 type PatchGridProps = {
+  activePatchId?: string
   actions?: ReactNode
+  isBankLoaded?: boolean
   isPatchDisabled?: (patch: Patch) => boolean
   onPatchMove: (patch: Patch, target: Patch) => void
-  onPatchRename: (id: string, name: string) => void
+  onPatchEdit?: (patch: Patch) => void
+  onPatchSend?: (patch: Patch) => void
+  onImportEmptyBank?: () => void
+  onLoadDemoBank?: () => void
   patches: Patch[]
   search: string
   searchDisabled?: boolean
@@ -28,16 +34,22 @@ type PatchGridProps = {
 }
 
 export function PatchGrid({
+  activePatchId = '',
   actions,
+  isBankLoaded = true,
   isPatchDisabled = () => false,
   onPatchMove,
-  onPatchRename,
+  onPatchEdit,
+  onPatchSend,
+  onImportEmptyBank,
+  onLoadDemoBank,
   patches,
   search,
   searchDisabled = false,
   setSearch,
   toolbar,
 }: PatchGridProps) {
+  const { t } = useTranslation()
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -56,23 +68,23 @@ export function PatchGrid({
         <div>
           <CardTitle className="flex items-center gap-2 tracking-wide">
             <ListMusic className="size-5 text-primary drop-shadow-[0_0_2px_currentColor]" />
-            Patch banks
+            {t('banks.gridTitle')}
           </CardTitle>
           <CardDescription>
-            Rename and arrange a 32-patch bank before copying it to the FM1.
+            {t('banks.gridDescription')}
           </CardDescription>
         </div>
         <div className="flex w-full flex-col gap-3">
           {toolbar}
           <div className="flex flex-col gap-2 md:flex-row md:items-center">
-            {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+            {actions ? <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div> : null}
             <label className="relative block w-full md:ml-auto md:w-56 md:flex-none xl:w-[calc(40%-0.3rem)]">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 className="h-10 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none ring-ring transition focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={searchDisabled}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by patch name"
+                placeholder={t('banks.search')}
                 value={search}
               />
             </label>
@@ -98,9 +110,11 @@ export function PatchGrid({
                 >
                   <PatchButton
                     disabled={isPatchDisabled(patch)}
-                    disabledTitle={`Import bank ${patch.bank} first`}
-                    onRename={onPatchRename}
+                    disabledTitle={t('banks.importFirst', { bank: patch.bank })}
+                    onEdit={onPatchEdit}
+                    onSend={onPatchSend}
                     patch={patch}
+                    isActive={patch.id === activePatchId}
                   />
                 </div>
               ))}
@@ -108,8 +122,36 @@ export function PatchGrid({
           </SortableContext>
           </DndContext>
         ) : (
-          <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-            No patches match this search.
+          <div className="grid min-h-72 place-items-center rounded-lg border border-dashed bg-background/70 p-6 text-center">
+            <div className="max-w-md">
+              <FileMusic className="mx-auto size-10 text-primary" />
+              <h3 className="mt-3 text-lg font-bold text-foreground">
+                {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
+              </h3>
+              {!isBankLoaded ? (
+                <>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    {t('banks.emptyHelp')}
+                  </p>
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    <button
+                      className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                      onClick={onImportEmptyBank}
+                      type="button"
+                    >
+                      {t('banks.import')}
+                    </button>
+                    <button
+                      className="rounded-md border bg-background px-4 py-2 text-sm font-semibold text-foreground"
+                      onClick={onLoadDemoBank}
+                      type="button"
+                    >
+                      {t('banks.loadDemo')}
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </div>
           </div>
         )}
         </div>

@@ -1,16 +1,23 @@
 import { ListMusic, X } from 'lucide-react'
-import { useRef } from 'react'
+import { useRef, useSyncExternalStore } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { MidiLogCard } from '@/components/midi/midi-log-card'
 import { Button } from '@/components/ui/button'
-import { type MidiLogEntry } from '@/lib/midi'
+import { type MidiLogStore } from '@/lib/midi-log-store'
 
 type MidiLogDialogProps = {
-  log: MidiLogEntry[]
+  logStore: MidiLogStore
 }
 
-export function MidiLogDialog({ log }: MidiLogDialogProps) {
+export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
+  const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const log = useSyncExternalStore(
+    logStore.subscribe,
+    logStore.getSnapshot,
+    logStore.getSnapshot,
+  )
   const hasMidiActivity = !(
     log.length === 1 &&
     log[0].direction === 'system' &&
@@ -26,17 +33,17 @@ export function MidiLogDialog({ log }: MidiLogDialogProps) {
         variant="secondary"
       >
         <ListMusic className="size-4" />
-        MIDI log
+        {t('midi.log')}
       </Button>
 
       <dialog
-        aria-label="MIDI log"
+        aria-label={t('midi.log')}
         className="m-auto max-h-[90vh] w-[min(52rem,calc(100vw-2rem))] overflow-auto rounded-xl bg-transparent p-0 text-card-foreground shadow-2xl backdrop:bg-black/55"
         ref={dialogRef}
       >
         <div className="relative">
           <Button
-            aria-label="Close MIDI log"
+            aria-label={t('midi.closeLog')}
             className="absolute right-4 top-4 z-10"
             onClick={() => dialogRef.current?.close()}
             size="icon"

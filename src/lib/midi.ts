@@ -1,6 +1,10 @@
-import { type Input, type Output } from 'webmidi'
+import type { Input, Output } from 'webmidi'
 
 import { makeDx7BankPayload, makeDx7SingleVoicePayload, type Dx7Voice } from '@/lib/dx7'
+import {
+  fm1EffectParameterMaximums,
+  fm1EffectParameterCount,
+} from '@/lib/fm1-effects'
 
 export type MidiPort = Input | Output
 
@@ -50,6 +54,96 @@ export function sendDx7Voice(output: Output, channel: number, voice: Dx7Voice) {
 
 export function sendDx7Bank(output: Output, channel: number, voices: Dx7Voice[]) {
   output.sendSysex(0x43, makeDx7BankPayload(voices, channel))
+}
+
+export function makeFm1ProgramChangeMessage(program: number, channel = 1) {
+  if (!Number.isInteger(program) || program < 0 || program > 127) {
+    throw new RangeError('FM1 program must be an integer from 0 to 127.')
+  }
+  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
+    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
+  }
+
+  return Uint8Array.from([0xc0 | ((channel - 1) & 0x0f), program])
+}
+
+export function sendFm1ProgramChange(
+  output: Output,
+  channel: number,
+  program: number,
+) {
+  makeFm1ProgramChangeMessage(program, channel)
+  output.sendProgramChange(program, { channels: channel })
+}
+
+/**
+ * FM1/DX7 single-parameter write payload, excluding F0/43 and F7.
+ * The complete message is F0 43 1n pp qq vv F7.
+ */
+export function makeFm1ParameterPayload(
+  parameter: number,
+  value: number,
+  channel = 1,
+) {
+  if (!Number.isInteger(parameter) || parameter < 0 || parameter > 155) {
+    throw new RangeError('FM1 parameter must be an integer from 0 to 155.')
+  }
+  if (!Number.isInteger(value) || value < 0 || value > 127) {
+    throw new RangeError('FM1 parameter value must be an integer from 0 to 127.')
+  }
+  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
+    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
+  }
+
+  return Uint8Array.from([
+    0x10 | ((channel - 1) & 0x0f),
+    Math.floor(parameter / 128),
+    parameter % 128,
+    value,
+  ])
+}
+
+export function sendFm1Parameter(
+  output: Output,
+  channel: number,
+  parameter: number,
+  value: number,
+) {
+  output.sendSysex(0x43, makeFm1ParameterPayload(parameter, value, channel))
+}
+
+export function makeFm1EffectControlMessage(
+  controller: number,
+  value: number,
+  channel = 2,
+) {
+  if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
+    throw new RangeError('FM1 effect controller must be an integer from 0 to 23.')
+  }
+  if (!Number.isInteger(value) || value < 0 || value > fm1EffectParameterMaximums[controller]) {
+    throw new RangeError(
+      `FM1 effect controller ${controller} value must be an integer from 0 to ${fm1EffectParameterMaximums[controller]}.`,
+    )
+  }
+  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
+    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
+  }
+
+  return Uint8Array.from([
+    0xb0 | ((channel - 1) & 0x0f),
+    controller,
+    value,
+  ])
+}
+
+export function sendFm1EffectControl(
+  output: Output,
+  channel: number,
+  controller: number,
+  value: number,
+) {
+  makeFm1EffectControlMessage(controller, value, channel)
+  output.sendControlChange(controller, value, { channels: channel })
 }
 
 export function sendNoteOn(

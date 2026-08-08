@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { type MidiDevice, type MidiPort } from '@/lib/midi'
 
@@ -18,6 +19,7 @@ export function DeviceSelect({
   onChange,
   value,
 }: DeviceSelectProps) {
+  const { t } = useTranslation()
   return (
     <label className="flex min-h-16 flex-col justify-center gap-2 rounded-lg border bg-card px-4 py-3">
       <span className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
@@ -31,7 +33,7 @@ export function DeviceSelect({
           value={value}
         >
           {devices.length === 0 ? (
-            <option value="">No device found</option>
+            <option value="">{t('settings.noDevice')}</option>
           ) : (
             devices.map((device) => (
               <option key={device.id} value={device.id}>

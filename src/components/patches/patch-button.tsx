@@ -1,107 +1,94 @@
 import { useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, X } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { GripVertical, Send } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
 import { type Patch } from '@/data/patches'
+import { cn } from '@/lib/utils'
 
-type PatchButtonProps = { disabled?: boolean; disabledTitle?: string; onRename: (id: string, name: string) => void; patch: Patch }
+type PatchButtonProps = {
+  disabled?: boolean
+  disabledTitle?: string
+  isActive?: boolean
+  onEdit?: (patch: Patch) => void
+  onSend?: (patch: Patch) => void
+  patch: Patch
+}
 
 const animateWhileSorting: AnimateLayoutChanges = ({ isSorting }) => isSorting
 
-export function PatchButton({ disabled = false, disabledTitle, onRename, patch }: PatchButtonProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [name, setName] = useState(patch.name)
+export function PatchButton({
+  disabled = false,
+  disabledTitle,
+  isActive = false,
+  onEdit,
+  onSend,
+  patch,
+}: PatchButtonProps) {
+  const { t } = useTranslation()
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
     id: patch.id,
     disabled: disabled || patch.family !== 'DX7',
   })
 
-  const openRenameDialog = () => {
-    setName(patch.name)
-    dialogRef.current?.showModal()
-    requestAnimationFrame(() => inputRef.current?.select())
-  }
-
-  const closeRenameDialog = () => dialogRef.current?.close()
-
-  const saveName = () => {
-    const trimmedName = name.trim()
-    if (!trimmedName) return
-    onRename(patch.id, trimmedName)
-    closeRenameDialog()
-  }
-
   return (
-    <>
-      <div
-        className="patch-edge-gradient group relative h-full min-h-16 touch-none overflow-hidden rounded-lg border border-border/70 bg-background/50 shadow-sm backdrop-blur-[3px] transition duration-200 before:absolute before:inset-y-0 before:left-0 before:w-0.5 hover:border-primary/70 hover:bg-background/70 hover:shadow-[0_7px_20px_hsl(315_100%_55%_/_0.13)] data-[disabled=true]:opacity-50"
-        data-disabled={disabled}
-        ref={sortable.setNodeRef}
-        style={{ opacity: sortable.isDragging ? 0.55 : 1, transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition, zIndex: sortable.isDragging ? 10 : undefined }}
-        title={disabled ? disabledTitle : undefined}
-      >
-        <div className="pointer-events-none grid h-full min-h-16 grid-cols-[2.75rem_1fr] items-center gap-2 p-2 pl-9 text-left">
+    <div
+      className={cn(
+        'patch-edge-gradient group relative h-full min-h-16 touch-none overflow-hidden rounded-lg border border-border/70 bg-background/50 shadow-sm backdrop-blur-[3px] transition duration-200 before:absolute before:inset-y-0 before:left-0 before:w-0.5 hover:border-primary/70 hover:bg-background/70 data-[disabled=true]:opacity-50',
+        isActive && 'border-primary ring-2 ring-primary/35',
+      )}
+      data-active={isActive}
+      data-disabled={disabled}
+      ref={sortable.setNodeRef}
+      style={{ opacity: sortable.isDragging ? 0.55 : 1, transform: CSS.Transform.toString(sortable.transform), transition: sortable.transition, zIndex: sortable.isDragging ? 10 : undefined }}
+      title={disabled ? disabledTitle : undefined}
+    >
+      {!disabled && onEdit ? (
+          <button
+            aria-current={isActive ? 'true' : undefined}
+            aria-label={t('banks.edit', { name: patch.name })}
+            className="absolute inset-0 z-0 cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            onClick={() => onEdit(patch)}
+            title={t('banks.openEditor', { name: patch.name })}
+            type="button"
+          />
+        ) : null}
+        <div className="pointer-events-none grid h-full min-h-16 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2 p-2 pl-9 text-left">
           <span className="flex size-11 items-center justify-center rounded-md border border-primary/15 bg-muted/70 font-mono text-sm font-bold text-primary shadow-inner backdrop-blur-sm">
             {patch.bank}{patch.number.toString().padStart(2, '0')}
           </span>
-          <button
-            className="pointer-events-auto relative z-[1] min-w-0 cursor-text truncate rounded-sm text-left text-sm font-semibold hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none"
-            disabled={disabled}
-            onClick={openRenameDialog}
-            title={`Rename ${patch.name}`}
-            type="button"
-          >
+          <span className="min-w-0 truncate whitespace-pre font-mono text-sm font-semibold">
             {patch.name}
-          </button>
+          </span>
+          {!disabled ? (
+            <span className="pointer-events-auto relative z-[1] flex">
+              <button
+                aria-label={t('banks.sendPatch', { name: patch.name })}
+                className="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={() => onSend?.(patch)}
+                title={t('banks.sendPatchTitle')}
+                type="button"
+              >
+                <Send className="size-4" />
+              </button>
+            </span>
+          ) : null}
+          {isActive ? (
+            <span className="pointer-events-none absolute right-2 top-1 rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-primary">
+              {t('banks.auditioning')}
+            </span>
+          ) : null}
         </div>
         {patch.family === 'DX7' ? (
-          <button {...sortable.attributes} {...sortable.listeners} aria-label={`Reorder ${patch.name}`} className="absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 cursor-grab rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing" title="Drag to reorder; use arrow keys when focused" type="button">
+          <button {...sortable.attributes} {...sortable.listeners} aria-label={t('banks.reorder', { name: patch.name })} className="absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 cursor-grab rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing" title={t('banks.reorderTitle')} type="button">
             <GripVertical className="size-4" />
           </button>
         ) : (
           <span aria-hidden="true" className="absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 p-1 text-muted-foreground/20">
             <GripVertical className="size-4" />
           </span>
-        )}
-      </div>
-
-      <dialog
-        aria-labelledby={`rename-patch-${patch.id}`}
-        className="fixed inset-0 z-50 m-auto w-[min(420px,calc(100vw-2rem))] rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl"
-        onClick={(event) => {
-          if (event.target === event.currentTarget) closeRenameDialog()
-        }}
-        ref={dialogRef}
-      >
-        <form onSubmit={(event) => { event.preventDefault(); saveName() }}>
-          <div className="flex items-center justify-between gap-4 border-b px-5 py-4">
-            <h2 className="text-lg font-bold" id={`rename-patch-${patch.id}`}>Rename patch</h2>
-            <Button aria-label="Close rename patch dialog" onClick={closeRenameDialog} size="icon" type="button" variant="ghost">
-              <X />
-            </Button>
-          </div>
-          <div className="p-5">
-            <label className="text-sm font-medium" htmlFor={`patch-name-${patch.id}`}>Patch name</label>
-            <input
-              className="mt-2 h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              id={`patch-name-${patch.id}`}
-              maxLength={10}
-              onChange={(event) => setName(event.target.value)}
-              ref={inputRef}
-              required
-              value={name}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">{name.length}/10 characters</p>
-          </div>
-          <div className="flex justify-end gap-2 border-t px-5 py-4">
-            <Button disabled={!name.trim() || name.trim() === patch.name} type="submit">Save</Button>
-          </div>
-        </form>
-      </dialog>
-    </>
+      )}
+    </div>
   )
 }

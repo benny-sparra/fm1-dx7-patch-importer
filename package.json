@@ -1,27 +1,34 @@
 {
-  "name": "fm1-librarian",
+  "name": "fm1-editor-librarian",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode https --host 127.0.0.1",
+    "dev:http": "vite",
     "dev:https": "vite --mode https --host 127.0.0.1",
+    "setup:https": "bash scripts/setup-https.sh",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:https": "vite preview --mode https",
+    "test": "vitest run"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@fontsource-variable/nunito": "^5.2.7",
+    "@fontsource-variable/space-grotesk": "^5.3.0",
     "@radix-ui/react-slot": "^1.3.0",
     "@tailwindcss/vite": "^4.3.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "fflate": "^0.8.3",
+    "i18next": "^26.3.6",
     "lucide-react": "^1.23.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-i18next": "^17.0.11",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.2",
     "webmidi": "^3.1.16"
@@ -30,10 +37,10 @@
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-react": "^6.0.3",
     "oxlint": "^1.71.0",
     "typescript": "~6.0.2",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "vitest": "^4.1.10"
   }
 }
