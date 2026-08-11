@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
 type EffectsUnitProps = {
@@ -163,6 +164,7 @@ function EffectControl({
           onPointerCancel={onGestureEnd}
           onPointerDown={onGestureStart}
           onPointerUp={onGestureEnd}
+          style={rangeStyle(value, 0, parameter.max, 'var(--effect-color)')}
           type="range"
           value={value}
         />
@@ -194,6 +196,7 @@ function EffectControl({
         onPointerCancel={onGestureEnd}
         onPointerDown={onGestureStart}
         onPointerUp={onGestureEnd}
+        style={rangeStyle(value, 0, parameter.max, 'var(--effect-color)')}
         type="range"
         value={value}
       />

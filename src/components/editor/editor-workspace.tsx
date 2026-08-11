@@ -15,6 +15,7 @@ import {
   operatorColors,
 } from '@/lib/editor-visuals'
 import { getOperatorAuditionStatus } from '@/lib/operator-audition'
+import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
 function AlgorithmDiagram({
@@ -79,7 +80,7 @@ function AlgorithmDiagram({
           />
           <text
             className={cn(
-              'font-mono text-[7px] font-black',
+              'font-dot-matrix text-[7px] font-black',
               getDx7OperatorRole(operator) === 'carrier' ? 'fill-slate-950' : 'fill-current',
             )}
             dominantBaseline="central"
@@ -209,6 +210,7 @@ export function AlgorithmPanel({
           onPointerDown={onFeedbackGestureStart}
           onPointerUp={onFeedbackGestureEnd}
           step={1}
+          style={rangeStyle(feedback, 0, 7)}
           type="range"
           value={feedback}
         />
@@ -239,7 +241,7 @@ export function OperatorStrip({
   return (
     <div
       aria-label={t('editor.operators')}
-      className="scrollbar-none flex min-w-0 flex-1 items-stretch overflow-x-auto"
+      className="operator-strip scrollbar-none flex min-w-0 flex-1 items-stretch overflow-x-auto"
       role="tablist"
     >
       {Array.from({ length: 6 }, (_, index) => {
@@ -275,7 +277,7 @@ export function OperatorStrip({
             aria-label={`Operator ${operator}, ${roleLabel}${auditionLabel ? `, ${auditionLabel}` : ''}`}
             aria-selected={isSelected}
             className={cn(
-              'group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 bg-card/45 px-3 py-2 text-left opacity-75 transition-[background-color,opacity,transform,box-shadow] hover:bg-card/80 hover:opacity-100 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:min-w-[10.5rem]',
+              'operator-tab group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 bg-card/45 px-3 py-2 text-left opacity-75 transition-[background-color,opacity,transform,box-shadow] hover:bg-card/80 hover:opacity-100 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:min-w-[10.5rem]',
               index > 0 && '-ml-px',
               isSelected && 'z-[1] mt-0 bg-card opacity-100 shadow-[0_-4px_18px_hsl(260_60%_5%_/_0.08)] after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-[var(--operator-color)]',
             )}
@@ -290,7 +292,7 @@ export function OperatorStrip({
                 <span className="text-lg font-black text-[var(--operator-color)]">{operator}</span>
                 <span
                   className={cn(
-                    'inline-flex rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.1em]',
+                    'operator-role-badge inline-flex rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.1em]',
                     role === 'carrier'
                       ? 'border-[var(--operator-color)] bg-[color-mix(in_srgb,var(--operator-color)_14%,transparent)] text-[var(--operator-color)]'
                       : 'border-border/80 text-muted-foreground',
@@ -301,7 +303,7 @@ export function OperatorStrip({
               </div>
               <span
                 aria-label={frequencyDescription}
-                className="rounded bg-muted px-1.5 py-1 font-mono text-[10px] font-bold text-muted-foreground"
+                className="operator-frequency rounded bg-muted px-1.5 py-1 font-mono text-[10px] font-bold text-muted-foreground"
                 title={frequencyDescription}
               >
                 {frequencyLabel}
@@ -309,12 +311,12 @@ export function OperatorStrip({
             </div>
             <div aria-hidden="true" className="mt-0.5 flex h-4 items-center gap-1">
               {auditionStatus.muted ? (
-                <span className="rounded border border-rose-400/70 bg-rose-400/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-rose-300">
+                <span className="operator-audition-badge rounded border border-rose-400/70 bg-rose-400/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-rose-300">
                   {t('editor.muted')}
                 </span>
               ) : null}
               {auditionStatus.soloed ? (
-                <span className="rounded border border-amber-300/70 bg-amber-300/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-amber-700">
+                <span className="operator-audition-badge rounded border border-amber-300/70 bg-amber-300/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-amber-700">
                   {t('editor.solo')}
                 </span>
               ) : null}
@@ -324,7 +326,7 @@ export function OperatorStrip({
                 <path
                   d={envelopePath(rates, levels)}
                   fill="none"
-                  stroke={color}
+                  stroke="var(--fm1-accent)"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="10"

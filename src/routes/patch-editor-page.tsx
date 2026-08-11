@@ -48,6 +48,7 @@ import {
   type EditorHistory,
   type ParameterEdit,
 } from '@/lib/patch-editor'
+import { rangeStyle } from '@/lib/range-style'
 import {
   auditionedParameterValue,
   makeOperatorAuditionEdits,
@@ -136,6 +137,7 @@ function SliderParameterControl({
         onPointerDown={onGestureStart}
         onPointerUp={onGestureEnd}
         step={1}
+        style={rangeStyle(value, min, max)}
         type="range"
         value={value}
       />
@@ -735,7 +737,7 @@ export function PatchEditorPage({
 
   return (
     <section className="mx-auto grid min-w-0 max-w-[90rem] gap-4 px-3 py-4 sm:px-5 lg:px-8">
-      <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] min-w-0 w-screen border-b border-primary/15 bg-background/90 py-3 shadow-sm backdrop-blur-xl">
+      <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] min-w-0 w-screen border-b border-primary/15 bg-white py-3 shadow-sm">
         <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-3 sm:px-5 lg:px-8">
           <Button aria-label={t('editor.back')} disabled={syncState === 'sending'} onClick={requestNavigation} size="icon" type="button" variant="outline">
             <ArrowLeft />
@@ -750,7 +752,7 @@ export function PatchEditorPage({
                 <span className="flex items-center gap-1">
                   <input
                     aria-label={t('editor.patchName')}
-                    className="-ml-1 w-[12ch] max-w-[42vw] rounded border border-transparent bg-transparent px-1 font-mono text-xl font-black uppercase text-foreground outline-none transition hover:border-border hover:bg-card/60 focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/30"
+                    className="font-dot-matrix -ml-1 w-[12ch] max-w-[42vw] rounded border border-transparent bg-transparent px-1 text-xl font-black uppercase text-foreground outline-none transition hover:border-border hover:bg-card/60 focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/30"
                     maxLength={10}
                     onBlur={sendNameToFm1}
                     onChange={(event) => updateName(event.target.value.toUpperCase())}
@@ -888,7 +890,7 @@ export function PatchEditorPage({
         <aside aria-label={t('editor.configuration')} className="grid min-w-0 gap-4">
           <div
             aria-label={t('editor.sections')}
-            className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-card/75 p-1 shadow-sm"
+            className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-white p-1 shadow-sm"
             role="tablist"
           >
             <span
@@ -1065,7 +1067,7 @@ export function PatchEditorPage({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle>
               <span className="flex items-center gap-3">
-                <span className="grid size-9 place-items-center rounded-full bg-[var(--operator-color)] font-mono text-lg font-black text-slate-950 shadow-[0_0_18px_var(--operator-color)]">
+                <span className="font-dot-matrix grid size-9 place-items-center rounded-full bg-[var(--operator-color)] text-lg font-black text-slate-950 shadow-[0_0_18px_var(--operator-color)]">
                   {selectedOperator}
                 </span>
                 <span className="flex items-center gap-1 text-base text-white">
@@ -1135,6 +1137,7 @@ export function PatchEditorPage({
                   onPointerDown={beginGesture}
                   onPointerUp={endGesture}
                   step={1}
+                  style={rangeStyle(parameters[operatorBase + 16], 0, 99, 'var(--operator-color)')}
                   type="range"
                   value={parameters[operatorBase + 16]}
                 />
@@ -1147,7 +1150,7 @@ export function PatchEditorPage({
           </CardHeader>
           <CardContent className="grid min-w-0 gap-5 p-4 sm:p-5 @3xl:grid-cols-[minmax(0,3fr)_minmax(16rem,1fr)]">
             <EnvelopeEditor
-              color={operatorColor}
+              color="var(--fm1-accent)"
               levels={Array.from(parameters.slice(operatorBase + 4, operatorBase + 8))}
               onChange={(rate, level, point) => {
                 applyEdits([

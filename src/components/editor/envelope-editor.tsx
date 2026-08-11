@@ -36,7 +36,7 @@ export function EnvelopeEditor({
   const svgRef = useRef<SVGSVGElement>(null)
   const activePointer = useRef<number | null>(null)
 
-  const updateFromPointer = (event: PointerEvent<SVGCircleElement>, point: number) => {
+  const updateFromPointer = (event: PointerEvent<SVGRectElement>, point: number) => {
     const bounds = svgRef.current?.getBoundingClientRect()
     if (!bounds) return
 
@@ -48,7 +48,7 @@ export function EnvelopeEditor({
     onChange(rate, level, point)
   }
 
-  const handleKeyDown = (event: KeyboardEvent<SVGCircleElement>, point: number) => {
+  const handleKeyDown = (event: KeyboardEvent<SVGRectElement>, point: number) => {
     const step = event.shiftKey ? 10 : 1
     const nextRate = event.key === 'ArrowLeft' ? rates[point] + step
       : event.key === 'ArrowRight' ? rates[point] - step
@@ -155,18 +155,17 @@ export function EnvelopeEditor({
             >
               {index + 1}
             </text>
-            <circle
+            <rect
               aria-label={`Envelope point ${index + 1}`}
               aria-valuemax={99}
               aria-valuemin={0}
               aria-valuenow={levels[index]}
               aria-valuetext={`Rate ${rates[index]}, level ${levels[index]}`}
               className={cn(
-                'cursor-grab outline-none transition-[r] focus-visible:[filter:drop-shadow(0_0_5px_var(--operator-color))] active:cursor-grabbing',
+                'cursor-grab outline-none focus-visible:[filter:drop-shadow(0_0_5px_var(--operator-color))] active:cursor-grabbing',
               )}
-              cx={point.x}
-              cy={point.y}
               fill="hsl(253 52% 8%)"
+              height="14"
               onKeyDown={(event) => handleKeyDown(event, index)}
               onPointerCancel={() => {
                 activePointer.current = null
@@ -187,11 +186,13 @@ export function EnvelopeEditor({
                 event.currentTarget.releasePointerCapture(event.pointerId)
                 onGestureEnd()
               }}
-              r="7"
               role="slider"
               stroke={color}
               strokeWidth="3"
               tabIndex={0}
+              width="14"
+              x={point.x - 7}
+              y={point.y - 7}
             />
           </g>
         ))}
@@ -203,7 +204,7 @@ export function EnvelopeEditor({
               R{index + 1}
               <input
                 aria-label={`Envelope rate ${index + 1}`}
-                className="h-7 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
+                className="h-8 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
                 inputMode="numeric"
                 max={99}
                 min={0}
@@ -225,7 +226,7 @@ export function EnvelopeEditor({
               L{index + 1}
               <input
                 aria-label={`Envelope level ${index + 1}`}
-                className="h-7 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
+                className="h-8 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
                 inputMode="numeric"
                 max={99}
                 min={0}

@@ -46,8 +46,10 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('midi.log')}</CardTitle>
-        <CardDescription>{t('midi.recent')}</CardDescription>
+        <CardTitle className="text-foreground">{t('midi.log')}</CardTitle>
+        <CardDescription className="font-medium text-foreground">
+          {t('midi.recent')}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div
@@ -58,13 +60,13 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
           <div className="space-y-2">
               {log.map((entry) => (
                 <div
-                  className="grid grid-cols-[54px_1fr] gap-3 rounded-md border bg-background p-3 text-xs"
+                  className="grid grid-cols-[54px_1fr] gap-3 rounded-md border bg-background p-3 text-xs text-foreground"
                   key={entry.id}
                 >
-                  <span className="font-mono text-muted-foreground">
+                  <span className="font-mono font-bold text-foreground">
                     {entry.createdAt}
                   </span>
-                  <span className="min-w-0 break-words">
+                  <span className="min-w-0 break-words font-medium text-foreground">
                     <Badge
                       className="mr-2 align-middle"
                       variant={
