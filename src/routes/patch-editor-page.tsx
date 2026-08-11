@@ -13,7 +13,7 @@ import {
   Undo2,
   WandSparkles,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -183,18 +183,20 @@ function SwitchParameterControl({
 }: SwitchParameterControlProps) {
   const { t } = useTranslation()
   const checked = value > 0
+  const inputId = useId()
 
   return (
-    <label className="grid min-w-0 cursor-pointer gap-1 text-xs font-semibold text-muted-foreground">
+    <div className="grid min-w-0 gap-1 text-xs font-semibold text-muted-foreground">
       <span className="flex min-w-0 items-center gap-1">
         <span className="truncate" title={label}>{label}</span>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
       </span>
-      <span className="flex h-9 items-center gap-2">
+      <label className="flex h-9 cursor-pointer items-center gap-2" htmlFor={inputId}>
         <input
           aria-label={label}
           checked={checked}
           className="peer sr-only"
+          id={inputId}
           onChange={(event) => onChange(event.target.checked ? 1 : 0)}
           role="switch"
           type="checkbox"
@@ -204,8 +206,8 @@ function SwitchParameterControl({
           className="relative h-6 w-11 shrink-0 rounded-full border border-border bg-muted transition-colors after:absolute after:left-0.5 after:top-0.5 after:size-[1.125rem] after:rounded-full after:bg-background after:shadow-sm after:transition-transform peer-checked:border-primary peer-checked:bg-primary peer-checked:after:translate-x-5 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring"
         />
         <span className="text-sm font-bold text-foreground">{checked ? t('editor.on') : t('editor.off')}</span>
-      </span>
-    </label>
+      </label>
+    </div>
   )
 }
 
@@ -1239,7 +1241,7 @@ export function PatchEditorPage({
 
       <dialog
         aria-labelledby="unsaved-editor-title"
-        className="fixed inset-0 z-50 m-auto w-[min(480px,calc(100vw-2rem))] rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl backdrop:bg-black/55"
+        className="fixed inset-0 z-50 m-auto w-[min(640px,calc(100vw-2rem))] rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl backdrop:bg-black/55"
         onClose={() => setIsNavigationPending(false)}
         ref={unsavedDialogRef}
       >
@@ -1251,6 +1253,7 @@ export function PatchEditorPage({
         </div>
         <div className="flex flex-col-reverse gap-2 px-5 py-4 sm:flex-row sm:justify-end">
           <Button
+            className="sm:h-auto sm:min-h-10 sm:min-w-0 sm:flex-1 sm:shrink sm:whitespace-normal"
             disabled={isResolvingNavigation}
             onClick={() => unsavedDialogRef.current?.close()}
             type="button"
@@ -1259,6 +1262,7 @@ export function PatchEditorPage({
             {t('editor.keepEditing')}
           </Button>
           <Button
+            className="sm:h-auto sm:min-h-10 sm:min-w-0 sm:flex-1 sm:shrink sm:whitespace-normal"
             disabled={isResolvingNavigation}
             onClick={() => void finishPendingNavigation('discard')}
             type="button"
@@ -1267,6 +1271,7 @@ export function PatchEditorPage({
             {isResolvingNavigation ? `${t('editor.discard')}…` : t('editor.discard')}
           </Button>
           <Button
+            className="sm:h-auto sm:min-h-10 sm:min-w-0 sm:flex-1 sm:shrink sm:whitespace-normal"
             disabled={isResolvingNavigation}
             onClick={() => void finishPendingNavigation('save')}
             type="button"
