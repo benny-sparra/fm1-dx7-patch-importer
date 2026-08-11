@@ -148,9 +148,9 @@ export function LibrarianPage({
         activePatchId={activePatchId}
         actions={
           <>
-            <div className="inline-flex h-10 shrink-0 rounded-md border border-input bg-background">
+            <div className="inline-flex h-10 shrink-0 rounded-md border border-input bg-secondary text-secondary-foreground">
               <button
-                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-l-[calc(var(--radius-md)-1px)] px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-l-[calc(var(--radius-md)-1px)] px-4 text-sm font-medium transition-colors hover:bg-primary/15 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                 disabled={isImporting}
                 onClick={() => importInputRef.current?.click()}
                 type="button"
@@ -161,7 +161,7 @@ export function LibrarianPage({
               <details className="group relative" ref={importMenuRef}>
                 <summary
                   aria-label={t('banks.moreActions')}
-                  className="flex h-full w-9 cursor-pointer list-none items-center justify-center rounded-r-[calc(var(--radius-md)-1px)] border-l border-input transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+                  className="flex h-full w-9 cursor-pointer list-none items-center justify-center rounded-r-[calc(var(--radius-md)-1px)] border-l border-input transition-colors hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
                   title={t('banks.moreActions')}
                 >
                   <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
@@ -295,8 +295,8 @@ export function LibrarianPage({
                   className={cn(
                     'relative -mb-px min-w-24 flex-1 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring',
                     destinationBank === bank
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-transparent text-muted-foreground hover:border-border hover:bg-muted/60 hover:text-foreground',
+                      ? 'bank-tab-active border-primary bg-primary font-bold text-primary-foreground'
+                      : 'border-transparent text-foreground/80 hover:border-border hover:bg-muted/60 hover:text-foreground',
                   )}
                   id={`bank-tab-${bank}`}
                   key={bank}
@@ -307,7 +307,7 @@ export function LibrarianPage({
                   type="button"
                 >
                   {t('banks.bank', { bank })}
-                  <span className="block text-xs opacity-75">
+                  <span className="block text-xs">
                     {bankTransferLabel(bank)}
                   </span>
                 </button>

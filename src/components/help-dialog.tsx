@@ -1,10 +1,21 @@
-import { CircleHelp, Library, PlugZap, Send, SlidersHorizontal, X } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { CircleHelp, Library, PlugZap, Send, SlidersHorizontal } from 'lucide-react'
+import { type SVGProps, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 
 const HELP_SEEN_KEY = 'fm1-librarian-help-seen'
+
+function PixelCloseIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg aria-hidden="true" fill="none" viewBox="0 0 18 18" {...props}>
+      <path
+        d="M2 2h4v4h2v2h2V6h2V2h4v4h-2v2h-2v2h2v2h2v4h-4v-4h-2v-2H8v2H6v4H2v-4h2v-2h2V8H4V6H2V2Z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
 
 const steps = [
   {
@@ -69,7 +80,7 @@ export function HelpDialog() {
 
       <dialog
         aria-labelledby="help-dialog-title"
-        className="fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] w-[min(620px,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl"
+        className="fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] w-[min(760px,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl"
         onClick={(event) => {
           if (event.target === event.currentTarget) closeDialog()
         }}
@@ -96,7 +107,7 @@ export function HelpDialog() {
             type="button"
             variant="ghost"
           >
-            <X />
+            <PixelCloseIcon className="!size-5" />
           </Button>
         </div>
 

@@ -1,6 +1,6 @@
 import { useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Send } from 'lucide-react'
+import { Send } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { type Patch } from '@/data/patches'
@@ -54,18 +54,31 @@ export function PatchButton({
             type="button"
           />
         ) : null}
-        <div className="pointer-events-none grid h-full min-h-16 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2 p-2 pl-9 text-left">
-          <span className="flex size-11 items-center justify-center rounded-md border border-primary/15 bg-muted/70 font-mono text-sm font-bold text-primary shadow-inner backdrop-blur-sm">
-            {patch.bank}{patch.number.toString().padStart(2, '0')}
-          </span>
-          <span className="min-w-0 truncate whitespace-pre font-mono text-sm font-semibold">
+        <div className="pointer-events-none grid h-full min-h-16 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-1 p-2 text-left">
+          {patch.family === 'DX7' ? (
+            <button
+              {...sortable.attributes}
+              {...sortable.listeners}
+              aria-label={t('banks.reorder', { name: patch.name })}
+              className="patch-slot font-dot-matrix pointer-events-auto relative z-[1] flex size-11 cursor-grab items-center justify-center rounded-md border border-primary/15 bg-muted/70 text-sm font-bold text-[var(--hero-accent)] shadow-inner backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+              title={t('banks.reorderTitle')}
+              type="button"
+            >
+              {patch.bank}{patch.number.toString().padStart(2, '0')}
+            </button>
+          ) : (
+            <span className="patch-slot font-dot-matrix flex size-11 items-center justify-center rounded-md border border-primary/15 bg-muted/70 text-sm font-bold text-[var(--hero-accent)] shadow-inner backdrop-blur-sm">
+              {patch.bank}{patch.number.toString().padStart(2, '0')}
+            </span>
+          )}
+          <span className="patch-name font-dot-matrix min-w-0 truncate whitespace-pre text-sm font-bold text-white">
             {patch.name}
           </span>
           {!disabled ? (
             <span className="pointer-events-auto relative z-[1] flex">
               <button
                 aria-label={t('banks.sendPatch', { name: patch.name })}
-                className="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="patch-send-button rounded-md border border-current/35 bg-background/85 p-1.5 text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => onSend?.(patch)}
                 title={t('banks.sendPatchTitle')}
                 type="button"
@@ -75,20 +88,11 @@ export function PatchButton({
             </span>
           ) : null}
           {isActive ? (
-            <span className="pointer-events-none absolute right-2 top-1 rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-primary">
+            <span className="pointer-events-none absolute right-2 top-1 rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white">
               {t('banks.auditioning')}
             </span>
           ) : null}
         </div>
-        {patch.family === 'DX7' ? (
-          <button {...sortable.attributes} {...sortable.listeners} aria-label={t('banks.reorder', { name: patch.name })} className="absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 cursor-grab rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing" title={t('banks.reorderTitle')} type="button">
-            <GripVertical className="size-4" />
-          </button>
-        ) : (
-          <span aria-hidden="true" className="absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 p-1 text-muted-foreground/20">
-            <GripVertical className="size-4" />
-          </span>
-      )}
     </div>
   )
 }

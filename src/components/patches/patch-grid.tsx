@@ -1,7 +1,7 @@
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { rectSortingStrategy, sortableKeyboardCoordinates, SortableContext } from '@dnd-kit/sortable'
-import { FileMusic, ListMusic, Search } from 'lucide-react'
-import { type ReactNode } from 'react'
+import { FileMusic, Search } from 'lucide-react'
+import { type ReactNode, type SVGProps } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import fm1Keyboard from '@/assets/fm1-keyboard.webp'
@@ -31,6 +31,18 @@ type PatchGridProps = {
   searchDisabled?: boolean
   setSearch: (search: string) => void
   toolbar?: ReactNode
+}
+
+function PixelBankIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg fill="none" viewBox="0 0 20 20" {...props}>
+      <path
+        d="M5 1h2v2h2V1h2v2h2V1h2v2h2v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h-2v2h-2v-2H9v2H7v-2H5v-2H3v-2H1v-2h2v-2H1V9h2V7H1V5h2V3h2V1Zm0 4v10h10V5H5Zm2 2h3v3H7V7Zm4 0h2v3h-2V7Zm-4 4h3v2H7v-2Zm4 0h2v2h-2v-2Z"
+        fill="currentColor"
+        fillRule="evenodd"
+      />
+    </svg>
+  )
 }
 
 export function PatchGrid({
@@ -66,11 +78,11 @@ export function PatchGrid({
     <Card className="synthwave-panel overflow-hidden border-primary/25 bg-card/95 backdrop-blur-sm">
       <CardHeader className="patch-area-surface gap-5 pb-3">
         <div>
-          <CardTitle className="flex items-center gap-2 tracking-wide">
-            <ListMusic className="size-5 text-primary drop-shadow-[0_0_2px_currentColor]" />
+          <CardTitle className="flex items-center gap-2 font-bold tracking-wide text-foreground">
+            <PixelBankIcon aria-hidden="true" className="size-5 shrink-0 text-primary" />
             {t('banks.gridTitle')}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="font-medium leading-relaxed text-black">
             {t('banks.gridDescription')}
           </CardDescription>
         </div>
@@ -81,7 +93,7 @@ export function PatchGrid({
             <label className="relative block w-full md:ml-auto md:w-56 md:flex-none xl:w-[calc(40%-0.3rem)]">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
-                className="h-10 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none ring-ring transition focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-10 w-full rounded-md border bg-secondary pl-9 pr-3 text-sm text-secondary-foreground outline-none ring-ring transition placeholder:text-secondary-foreground/60 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={searchDisabled}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={t('banks.search')}

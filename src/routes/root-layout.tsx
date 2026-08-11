@@ -32,7 +32,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   return (
     <main className="synthwave-shell flex min-h-screen flex-col text-foreground">
       <section
-        className="synthwave-hero border-b"
+        className="synthwave-header synthwave-hero border-b"
       >
         <div className={compact
           ? 'mx-auto flex max-w-[90rem] flex-col gap-3 px-4 py-3 sm:px-5 lg:px-8'
@@ -53,7 +53,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                         : 'h-6 w-auto shrink-0 mix-blend-screen sm:h-7'}
                       height="124"
                       src={mVaveLogo}
-                      width="427"
+                      width="405"
                     />
                   </span>
                   <span>FM1</span>
@@ -80,7 +80,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
 
             <div className={compact ? 'hidden' : 'hidden flex-col gap-3 lg:col-start-3 lg:flex'}>
               <figure
-                className="overflow-hidden rounded-lg shadow-[0_10px_28px_hsl(260_70%_5%_/_0.35),0_0_22px_hsl(315_100%_60%_/_0.12)]"
+                className="overflow-hidden rounded-[1.5rem] shadow-[0_10px_28px_hsl(260_70%_5%_/_0.35),0_0_22px_hsl(315_100%_60%_/_0.12)]"
               >
                 <img
                   alt={t('root.synthAlt')}

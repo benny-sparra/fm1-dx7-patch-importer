@@ -80,13 +80,13 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
             {t('settings.description')}
           </p>
         </div>
-        <label className="flex min-h-16 flex-col justify-center gap-2 rounded-lg border bg-card px-4 py-3 sm:col-span-2">
+        <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3 sm:col-span-2">
           <span className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
             <Languages className="size-3.5" />
             {t('language')}
           </span>
           <select
-            className="h-8 rounded-md border bg-background px-2 text-sm"
+            className="settings-option-select h-8 rounded-md border px-2 text-sm"
             onChange={(event) => void setLocale(event.target.value as SupportedLocale)}
             value={i18n.resolvedLanguage}
           >
@@ -107,13 +107,13 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
           onChange={midi.setSelectedInputId}
           value={midi.selectedInputId}
         />
-        <label className="flex min-h-16 flex-col justify-start gap-2 rounded-lg border bg-card px-4 py-3">
+        <label className="settings-option flex min-h-16 flex-col justify-start gap-2 rounded-lg border px-4 py-3">
           <span className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
             <SlidersHorizontal className="size-3.5" />
             {t('settings.noteChannel')}
           </span>
           <select
-            className="h-8 rounded-md border bg-background px-2 text-sm"
+            className="settings-option-select h-8 rounded-md border px-2 text-sm"
             onChange={(event) => midi.setChannel(Number(event.target.value))}
             value={midi.channel}
           >
@@ -124,13 +124,13 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
             ))}
           </select>
         </label>
-        <label className="flex min-h-16 flex-col justify-center gap-2 rounded-lg border bg-card px-4 py-3">
+        <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3">
           <span className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
             <SlidersHorizontal className="size-3.5" />
             {t('settings.fxChannel')}
           </span>
           <select
-            className="h-8 rounded-md border bg-background px-2 text-sm"
+            className="settings-option-select h-8 rounded-md border px-2 text-sm"
             onChange={(event) => midi.setEffectChannel(Number(event.target.value))}
             value={midi.effectChannel}
           >
