@@ -22,7 +22,7 @@ export function DeviceSelect({
   const { t } = useTranslation()
   return (
     <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3">
-      <span className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
+      <span className="font-vt323 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
         <span className="[&_svg]:size-3.5">{icon}</span>
         {label}
       </span>

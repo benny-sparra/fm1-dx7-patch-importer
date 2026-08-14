@@ -34,6 +34,7 @@
     --fm1-case: hsl(210 7% 16%);
     --fm1-case-foreground: hsl(0 0% 100%);
     --fm1-finish-tint: hsl(210 7% 16%);
+    --fm1-finish-foreground: hsl(0 0% 100%);
     --fm1-keys: hsl(210 6% 24%);
     --fm1-keys-foreground: hsl(0 0% 100%);
   }
@@ -47,6 +48,7 @@
     --fm1-case: hsl(210 7% 16%);
     --fm1-case-foreground: hsl(0 0% 100%);
     --fm1-finish-tint: hsl(210 7% 16%);
+    --fm1-finish-foreground: hsl(0 0% 100%);
     --fm1-keys: hsl(210 6% 24%);
     --fm1-keys-foreground: hsl(0 0% 100%);
   }
@@ -60,6 +62,7 @@
     --fm1-case: hsl(285 43% 65%);
     --fm1-case-foreground: hsl(270 42% 14%);
     --fm1-finish-tint: hsl(285 43% 65%);
+    --fm1-finish-foreground: hsl(270 42% 14%);
     --fm1-keys: hsl(251 43% 59%);
     --fm1-keys-foreground: hsl(0 0% 4%);
   }
@@ -73,6 +76,7 @@
     --fm1-case: hsl(17 53% 55%);
     --fm1-case-foreground: hsl(12 48% 12%);
     --fm1-finish-tint: hsl(17 53% 55%);
+    --fm1-finish-foreground: hsl(12 48% 12%);
     --fm1-keys: hsl(9 31% 47%);
     --fm1-keys-foreground: hsl(0 0% 4%);
   }
@@ -86,6 +90,7 @@
     --fm1-case: hsl(190 7% 16%);
     --fm1-case-foreground: hsl(0 0% 100%);
     --fm1-finish-tint: hsl(170 53% 63%);
+    --fm1-finish-foreground: hsl(174 38% 11%);
     --fm1-keys: hsl(170 53% 63%);
     --fm1-keys-foreground: hsl(174 38% 11%);
   }
@@ -99,6 +104,7 @@
     --fm1-case: hsl(35 17% 82%);
     --fm1-case-foreground: hsl(207 14% 16%);
     --fm1-finish-tint: hsl(35 17% 72%);
+    --fm1-finish-foreground: hsl(207 14% 16%);
     --fm1-keys: hsl(207 8% 31%);
     --fm1-keys-foreground: hsl(0 0% 100%);
   }
@@ -112,6 +118,7 @@
     --fm1-case: hsl(39 20% 90%);
     --fm1-case-foreground: hsl(209 28% 16%);
     --fm1-finish-tint: hsl(209 42% 60%);
+    --fm1-finish-foreground: hsl(210 42% 12%);
     --fm1-keys: hsl(209 34% 56%);
     --fm1-keys-foreground: hsl(210 42% 12%);
   }
@@ -166,6 +173,14 @@
 @layer components {
   .font-dot-matrix {
     font-family: "Doto Variable", "SFMono-Regular", "Cascadia Mono", monospace;
+  }
+
+  .font-vt323 {
+    font-family: "VT323", "SFMono-Regular", "Cascadia Mono", monospace;
+  }
+
+  .patch-editor-page :is(select, details) {
+    font-family: "VT323", "SFMono-Regular", "Cascadia Mono", monospace;
   }
 
   .settings-option {
@@ -463,28 +478,26 @@
     font-weight: 550;
     letter-spacing: 0.015em;
     background-color: hsl(0 0% 19%);
-    background-image:
-      radial-gradient(circle, color-mix(in srgb, var(--dx7-pattern-color) 72%, transparent) 0 2px, transparent 2.5px),
-      radial-gradient(circle, color-mix(in srgb, var(--dx7-pattern-color) 58%, transparent) 0 1.5px, transparent 2px),
-      radial-gradient(circle, color-mix(in srgb, var(--dx7-pattern-color) 45%, transparent) 0 1px, transparent 1.5px),
-      radial-gradient(circle, color-mix(in srgb, var(--dx7-pattern-color) 34%, transparent) 0 1px, transparent 1.5px),
-      radial-gradient(circle, color-mix(in srgb, var(--dx7-pattern-color) 25%, hsl(0 0% 62% / 45%)) 0 1px, transparent 1.5px);
-    background-position: 3px 7px, 19px 11px, 7px 29px, 31px 17px, 13px 41px;
-    background-size: 47px 43px, 61px 53px, 37px 67px, 73px 59px, 89px 79px;
-    background-attachment: fixed;
-    animation: dx7-background-drift 96s linear infinite;
+    background-image: none;
   }
 
-  @keyframes dx7-background-drift {
-    to {
-      background-position: 50px 50px, 80px 64px, 44px 96px, 104px 76px, 102px 120px;
-    }
+  :root[data-theme="dx7"] body::before {
+    position: fixed;
+    z-index: 0;
+    inset: 0;
+    background-color: var(--dx7-pattern-color);
+    content: "";
+    mask-image: url("/dx7-algorithm-blueprint.svg");
+    mask-position: 0 0;
+    mask-repeat: repeat;
+    mask-size: 420px 280px;
+    opacity: 0.22;
+    pointer-events: none;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    :root[data-theme="dx7"] body {
-      animation: none;
-    }
+  :root[data-theme="dx7"] #root {
+    position: relative;
+    z-index: 1;
   }
 
   :root[data-theme="dx7"] button,
@@ -649,6 +662,10 @@
     box-shadow: none;
   }
 
+  :root[data-theme="dx7"] .patch-edge-gradient:hover .patch-slot {
+    background-color: color-mix(in srgb, var(--dx7-highlight) 28%, black) !important;
+  }
+
   :root[data-theme="dx7"] .patch-edge-gradient .patch-name {
     color: hsl(0 0% 100%);
   }
@@ -701,8 +718,9 @@
     border-radius: 0;
     background: linear-gradient(
       to right,
-      var(--range-color) 0 var(--range-progress),
-      hsl(120 3% 93%) var(--range-progress) 100%
+      hsl(120 3% 93%) 0 var(--range-start),
+      var(--range-color) var(--range-start) var(--range-end),
+      hsl(120 3% 93%) var(--range-end) 100%
     );
     box-shadow: inset 1px 1px 0 hsl(150 10% 12% / 18%);
   }
@@ -723,8 +741,9 @@
     border-radius: 0;
     background: linear-gradient(
       to right,
-      var(--range-color) 0 var(--range-progress),
-      hsl(120 3% 93%) var(--range-progress) 100%
+      hsl(120 3% 93%) 0 var(--range-start),
+      var(--range-color) var(--range-start) var(--range-end),
+      hsl(120 3% 93%) var(--range-end) 100%
     );
     box-shadow: inset 1px 1px 0 hsl(150 10% 12% / 18%);
   }

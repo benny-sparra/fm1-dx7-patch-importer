@@ -7,6 +7,7 @@ import {
   undoParameters,
 } from '@/lib/patch-editor'
 import { applySoundPreset, soundPresets } from '@/lib/sound-presets'
+import { randomizeSound } from '@/lib/sound-randomizer'
 
 describe('patch editor history', () => {
   it('records an edit and clears redo history', () => {
@@ -135,5 +136,42 @@ describe('sound starters', () => {
 
   it('rejects incomplete editor data', () => {
     expect(() => applySoundPreset(new Uint8Array(155), 'soft-pad')).toThrow('179')
+  })
+})
+
+describe('sound randomisation', () => {
+  const maximums = [
+    ...Array(6).fill([
+      99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
+      3, 3, 7, 3, 7, 99, 1, 31, 99, 14,
+    ]).flat(),
+    99, 99, 99, 99, 99, 99, 99, 99, 31, 7, 1, 99, 99, 99, 99, 1, 5, 7, 48,
+  ]
+
+  it('randomises editable parameters within their documented ranges', () => {
+    const parameters = new Uint8Array(179)
+    parameters.set(new TextEncoder().encode('PATCH NAME'), 145)
+    const randomised = randomizeSound(parameters, () => 0.999999)
+
+    expect(Array.from(randomised.slice(0, 145))).toEqual(maximums)
+    expect(Array.from(randomised.slice(145, 155))).toEqual(Array.from(parameters.slice(145, 155)))
+    expect(Array.from(randomised.slice(155))).toEqual([
+      1, 2, 107, 10, 1, 2, 100, 100, 1, 100, 100, 100,
+      1, 100, 100, 100, 1, 100, 100, 100, 1, 100, 100, 100,
+    ])
+  })
+
+  it('can produce the minimum value for every editable parameter', () => {
+    const parameters = new Uint8Array(179).fill(127)
+    parameters.fill(65, 145, 155)
+    const randomised = randomizeSound(parameters, () => 0)
+
+    expect(randomised.slice(0, 145).every((value) => value === 0)).toBe(true)
+    expect(randomised.slice(155).every((value) => value === 0)).toBe(true)
+    expect(Array.from(randomised.slice(145, 155))).toEqual(Array(10).fill(65))
+  })
+
+  it('rejects incomplete editor data', () => {
+    expect(() => randomizeSound(new Uint8Array(155))).toThrow('179')
   })
 })

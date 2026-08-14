@@ -38,6 +38,7 @@ export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
   return (
     <>
       <Button
+        className="font-vt323"
         disabled={!hasMidiActivity}
         onClick={() => dialogRef.current?.showModal()}
         type="button"
@@ -49,7 +50,7 @@ export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
 
       <dialog
         aria-label={t('midi.log')}
-        className="m-auto max-h-[90vh] w-[min(52rem,calc(100vw-2rem))] overflow-auto rounded-xl bg-transparent p-0 text-card-foreground shadow-2xl backdrop:bg-black/55"
+        className="m-auto max-h-[90vh] w-[min(52rem,calc(100vw-2rem))] overflow-auto rounded-xl bg-white p-0 text-card-foreground shadow-2xl backdrop:bg-black/55"
         ref={dialogRef}
       >
         <div className="relative">

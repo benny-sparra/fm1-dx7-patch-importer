@@ -18,7 +18,7 @@ export function Fm1BankSelectionDialog({ dialogRef }: Fm1BankSelectionDialogProp
   return (
     <dialog
       aria-labelledby="fm1-bank-selection-title"
-      className="fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] w-[min(620px,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl"
+      className="fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] w-[min(620px,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-primary/30 bg-white p-0 text-card-foreground shadow-2xl"
       onClick={(event) => {
         if (event.target === event.currentTarget) closeDialog()
       }}

@@ -10,13 +10,14 @@ export const browserBanks = ['A', 'B', 'C', 'D'] as const
 export type BrowserBank = typeof browserBanks[number]
 
 export type PatchLibrarySnapshot = {
+  bankNames: Record<string, string>
   effects: Record<string, Uint8Array>
   loadedBanks: string[]
   voices: Record<string, Dx7Voice>
 }
 
 export function emptyPatchLibrary(): PatchLibrarySnapshot {
-  return { effects: {}, loadedBanks: [], voices: {} }
+  return { bankNames: {}, effects: {}, loadedBanks: [], voices: {} }
 }
 
 export function makeFactoryPatchLibrary(): PatchLibrarySnapshot {
@@ -58,16 +59,36 @@ export function importVoices(
 
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }
+  const bankNames = { ...snapshot.bankNames }
+  delete bankNames[bank]
   imported.forEach((voice, index) => {
     const id = voiceId(bank, index + 1)
     voices[id] = voice
     effects[id] = makeDefaultFm1Effects()
   })
   return {
+    bankNames,
     effects,
     loadedBanks: [...new Set([...snapshot.loadedBanks, bank])].sort(),
     voices,
   }
+}
+
+export function renameBank(
+  snapshot: PatchLibrarySnapshot,
+  bank: string,
+  name: string,
+): PatchLibrarySnapshot {
+  if (!browserBanks.includes(bank as BrowserBank)) return snapshot
+  const bankNames = { ...snapshot.bankNames }
+  const normalized = normalizeWorkspaceBankNameForSave(name)
+  if (normalized) bankNames[bank] = normalized
+  else delete bankNames[bank]
+  return { ...snapshot, bankNames }
+}
+
+export function normalizeWorkspaceBankNameForSave(name: string) {
+  return name.trim().slice(0, 80).trimEnd() || null
 }
 
 export function renameVoice(
@@ -113,12 +134,15 @@ export function moveVoice(
 export function clearLibraryBank(snapshot: PatchLibrarySnapshot, bank: string) {
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }
+  const bankNames = { ...snapshot.bankNames }
+  delete bankNames[bank]
   for (let slot = 1; slot <= 32; slot += 1) {
     const id = voiceId(bank, slot)
     delete voices[id]
     delete effects[id]
   }
   return {
+    bankNames,
     effects,
     loadedBanks: snapshot.loadedBanks.filter((loadedBank) => loadedBank !== bank),
     voices,

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="280" viewBox="0 0 420 280">
+  <g fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+    <!-- Algorithm 1: two carriers, with a four-operator modulation stack. -->
+    <g transform="translate(22 20)">
+      <path d="M72 12v18m0 12v18m0 12v18m0 12v13M72 115H40m32 0h32M40 102v13m64-13v13"/>
+      <circle cx="72" cy="6" r="6"/>
+      <circle cx="72" cy="36" r="6"/>
+      <circle cx="72" cy="66" r="6"/>
+      <circle cx="72" cy="96" r="6"/>
+      <circle cx="40" cy="96" r="6"/>
+      <circle cx="104" cy="96" r="6"/>
+      <path d="M66 6h-11v20h11"/>
+    </g>
+
+    <!-- A split pair of three-operator stacks. -->
+    <g transform="translate(232 24)">
+      <path d="M34 12v22m0 12v22m0 12v18M92 12v22m0 12v22m0 12v18M18 98h90"/>
+      <circle cx="34" cy="6" r="6"/>
+      <circle cx="34" cy="40" r="6"/>
+      <circle cx="34" cy="74" r="6"/>
+      <circle cx="92" cy="6" r="6"/>
+      <circle cx="92" cy="40" r="6"/>
+      <circle cx="92" cy="74" r="6"/>
+      <path d="M98 6h11v22H98"/>
+    </g>
+
+    <!-- Branching modulation feeding three carriers. -->
+    <g transform="translate(76 160)">
+      <path d="M58 12v18m0 12v16H24m34 0h34M24 58v18m68-18v18M24 88v14m34-14v14m34-14v14M10 102h96"/>
+      <circle cx="58" cy="6" r="6"/>
+      <circle cx="58" cy="36" r="6"/>
+      <circle cx="24" cy="82" r="6"/>
+      <circle cx="58" cy="82" r="6"/>
+      <circle cx="92" cy="82" r="6"/>
+      <circle cx="24" cy="52" r="6"/>
+      <path d="M52 6H41v19h11"/>
+    </g>
+
+    <!-- Six parallel carriers, as in the additive-style DX7 algorithms. -->
+    <g transform="translate(258 177)">
+      <path d="M10 22v24m24-24v24m24-24v24m24-24v24m24-24v24m24-24v24M0 46h140"/>
+      <circle cx="10" cy="16" r="6"/>
+      <circle cx="34" cy="16" r="6"/>
+      <circle cx="58" cy="16" r="6"/>
+      <circle cx="82" cy="16" r="6"/>
+      <circle cx="106" cy="16" r="6"/>
+      <circle cx="130" cy="16" r="6"/>
+      <path d="M4 16H-7V2H4"/>
+    </g>
+  </g>
+</svg>

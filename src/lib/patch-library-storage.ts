@@ -1,15 +1,18 @@
 import { type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
+import { type NamedBank, validateNamedBank } from '@/lib/named-bank'
 
 const databaseName = 'fm1-librarian'
-const storeName = 'library'
+const workspaceStoreName = 'library'
+const namedBankStoreName = 'named-banks'
 const recordKey = 'current'
 
 export type StoredPatchLibrary = {
+  bankNames: Record<string, string>
   effects: Record<string, Uint8Array>
   loadedBanks: string[]
   savedAt: string
-  version: 2
+  version: 3
   voices: Record<string, Dx7Voice>
 }
 
@@ -20,11 +23,14 @@ function openDatabase() {
       return
     }
 
-    const request = indexedDB.open(databaseName, 1)
+    const request = indexedDB.open(databaseName, 2)
     request.onerror = () => reject(request.error ?? new Error('Could not open browser storage.'))
     request.onupgradeneeded = () => {
-      if (!request.result.objectStoreNames.contains(storeName)) {
-        request.result.createObjectStore(storeName)
+      if (!request.result.objectStoreNames.contains(workspaceStoreName)) {
+        request.result.createObjectStore(workspaceStoreName)
+      }
+      if (!request.result.objectStoreNames.contains(namedBankStoreName)) {
+        request.result.createObjectStore(namedBankStoreName, { keyPath: 'id' })
       }
     }
     request.onsuccess = () => resolve(request.result)
@@ -32,6 +38,7 @@ function openDatabase() {
 }
 
 async function runTransaction<T>(
+  storeName: string,
   mode: IDBTransactionMode,
   operation: (store: IDBObjectStore) => IDBRequest<T>,
 ) {
@@ -65,33 +72,44 @@ async function runTransaction<T>(
 export async function loadStoredPatchLibrary() {
   const stored = await runTransaction<
     | StoredPatchLibrary
-    | (Omit<StoredPatchLibrary, 'effects' | 'version'> & { version: 1 })
+    | (Omit<StoredPatchLibrary, 'bankNames' | 'version'> & { version: 2 })
+    | (Omit<StoredPatchLibrary, 'bankNames' | 'effects' | 'version'> & { version: 1 })
     | undefined
   >(
+    workspaceStoreName,
     'readonly',
     (store) => store.get(recordKey),
   )
 
   if (!stored) return null
   if (
-    (stored.version !== 1 && stored.version !== 2)
+    (stored.version !== 1 && stored.version !== 2 && stored.version !== 3)
     || !Array.isArray(stored.loadedBanks)
     || typeof stored.voices !== 'object'
   ) {
     throw new Error('The saved patch library is not compatible with this version.')
   }
 
-  const storedEffects = stored.version === 2 && typeof stored.effects === 'object'
+  const storedEffects = (stored.version === 2 || stored.version === 3) && typeof stored.effects === 'object'
     ? stored.effects
+    : {}
+  const storedBankNames = stored.version === 3 && typeof stored.bankNames === 'object'
+    ? stored.bankNames
     : {}
 
   return {
+    bankNames: Object.fromEntries(
+      Object.entries(storedBankNames)
+        .filter(([bank, name]) => ['A', 'B', 'C', 'D'].includes(bank) && typeof name === 'string')
+        .map(([bank, name]) => [bank, name.trim().slice(0, 80).trimEnd()])
+        .filter(([, name]) => Boolean(name)),
+    ),
     effects: Object.fromEntries(
       Object.keys(stored.voices).map((id) => [id, normalizeFm1Effects(storedEffects[id])]),
     ),
     loadedBanks: stored.loadedBanks,
     savedAt: stored.savedAt,
-    version: 2 as const,
+    version: 3 as const,
     voices: stored.voices,
   }
 }
@@ -100,11 +118,40 @@ export function saveStoredPatchLibrary(
   library: Omit<StoredPatchLibrary, 'savedAt' | 'version'>,
 ) {
   return runTransaction<IDBValidKey>(
+    workspaceStoreName,
     'readwrite',
     (store) => store.put({
       ...library,
       savedAt: new Date().toISOString(),
-      version: 2,
+      version: 3,
     } satisfies StoredPatchLibrary, recordKey),
+  )
+}
+
+export async function listStoredNamedBanks() {
+  const banks = await runTransaction<NamedBank[]>(
+    namedBankStoreName,
+    'readonly',
+    (store) => store.getAll(),
+  )
+  banks.forEach(validateNamedBank)
+  return banks.sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+}
+
+export async function saveStoredNamedBank(bank: NamedBank) {
+  validateNamedBank(bank)
+  return runTransaction<IDBValidKey>(
+    namedBankStoreName,
+    'readwrite',
+    (store) => store.put(bank),
+  )
+}
+
+export function deleteStoredNamedBank(id: string) {
+  if (!id) return Promise.reject(new Error('A saved bank ID is required.'))
+  return runTransaction<undefined>(
+    namedBankStoreName,
+    'readwrite',
+    (store) => store.delete(id),
   )
 }

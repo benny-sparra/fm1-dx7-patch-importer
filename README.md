@@ -9,6 +9,7 @@ The app runs entirely in the browser. Build and organise four local patch banks,
 ## Features
 
 - Start with Yamaha DX7 ROM 1A, ROM 1B, ROM 2A, and ROM 2B in browser banks A–D
+- Keep unlimited named bank snapshots in the browser and load any one into workspace bank A–D
 - Restore the four factory banks at any time, or clear one or all local banks
 - Restore imported and edited banks automatically from IndexedDB browser storage
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
@@ -66,6 +67,8 @@ The interface follows the browser language on first use when it is supported. Ch
 
 > [!IMPORTANT]
 > Imported voices, edits, and FM1 effect settings are saved in this browser and restored after a page reload. Download important banks as `.syx` files as an additional backup, especially before clearing browser data. DX7 `.syx` export contains voice data only; the FM1-specific effect settings remain in the browser library.
+
+Use **My library** to save any complete workspace bank under a descriptive name. Named banks are independent snapshots containing all 32 DX7 voices and their FM1 effect settings. They remain local to the current browser and can be renamed, duplicated, searched, deleted, or loaded into any A–D workspace bank.
 
 ## Local development
 

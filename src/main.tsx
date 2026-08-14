@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@fontsource/vt323'
 import '@fontsource-variable/doto/index.css'
 import '@fontsource-variable/space-grotesk/index.css'
 import './index.css'

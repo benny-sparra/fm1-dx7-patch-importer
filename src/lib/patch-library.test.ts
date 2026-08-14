@@ -9,6 +9,8 @@ import {
   makeDemoVoices,
   makeFactoryPatchLibrary,
   moveVoice,
+  normalizeWorkspaceBankNameForSave,
+  renameBank,
   renameVoice,
   voiceId,
 } from '@/lib/patch-library'
@@ -47,6 +49,27 @@ describe('patch library operations', () => {
     expect(initializePatchLibrary(null).loadedBanks).toEqual(['A', 'B', 'C', 'D'])
     expect(initializePatchLibrary(savedEmptyLibrary)).toBe(savedEmptyLibrary)
     expect(initializePatchLibrary(savedEmptyLibrary).loadedBanks).toEqual([])
+  })
+
+  it('stores trimmed workspace bank names and removes blank names', () => {
+    const initial = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const renamed = renameBank(initial, 'A', '  Saturday set  ')
+    const reset = renameBank(renamed, 'A', '   ')
+
+    expect(renamed.bankNames.A).toBe('Saturday set')
+    expect(reset.bankNames.A).toBeUndefined()
+  })
+
+  it('rejects invalid workspace banks and limits stored names to 80 characters', () => {
+    const initial = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+
+    expect(renameBank(initial, 'Z', 'Wrong')).toBe(initial)
+    expect(renameBank(initial, 'A', 'x'.repeat(90)).bankNames.A).toHaveLength(80)
+  })
+
+  it('only prepares non-empty workspace bank names for saving', () => {
+    expect(normalizeWorkspaceBankNameForSave('  Saturday set  ')).toBe('Saturday set')
+    expect(normalizeWorkspaceBankNameForSave('   ')).toBeNull()
   })
 
   it('fingerprints equal bank contents identically and detects a voice edit', () => {

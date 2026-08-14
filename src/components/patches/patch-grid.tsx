@@ -78,17 +78,17 @@ export function PatchGrid({
     <Card className="synthwave-panel overflow-hidden border-primary/25 bg-card/95 backdrop-blur-sm">
       <CardHeader className="patch-area-surface gap-5 pb-3">
         <div>
-          <CardTitle className="flex items-center gap-2 font-bold tracking-wide text-foreground">
-            <PixelBankIcon aria-hidden="true" className="size-5 shrink-0 text-primary" />
+          <CardTitle className="flex items-center gap-2 text-2xl font-bold tracking-wide text-black">
+            <PixelBankIcon aria-hidden="true" className="size-5 shrink-0 text-black" />
             {t('banks.gridTitle')}
           </CardTitle>
-          <CardDescription className="font-medium leading-relaxed text-black">
+          <CardDescription className="font-vt323 text-lg leading-relaxed text-black">
             {t('banks.gridDescription')}
           </CardDescription>
         </div>
         <div className="flex w-full flex-col gap-3">
           {toolbar}
-          <div className="flex flex-col gap-2 md:flex-row md:items-center">
+          <div className="font-vt323 flex flex-col gap-2 md:flex-row md:items-center">
             {actions ? <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div> : null}
             <label className="relative block w-full md:ml-auto md:w-56 md:flex-none xl:w-[calc(40%-0.3rem)]">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

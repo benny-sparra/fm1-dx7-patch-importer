@@ -4,6 +4,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Dices,
   Pencil,
   Redo2,
   RefreshCw,
@@ -58,6 +59,7 @@ import {
   soundPresets,
   type SoundPresetId,
 } from '@/lib/sound-presets'
+import { randomizeSound } from '@/lib/sound-randomizer'
 import { cn } from '@/lib/utils'
 
 type PatchEditorPageProps = {
@@ -94,6 +96,7 @@ type SliderParameterControlProps = {
   onChange: (value: number) => void
   onGestureEnd: () => void
   onGestureStart: () => void
+  origin?: number
   value: number
   valueLabel?: (value: number) => string
 }
@@ -106,6 +109,7 @@ function SliderParameterControl({
   onChange,
   onGestureEnd,
   onGestureStart,
+  origin,
   value,
   valueLabel = String,
 }: SliderParameterControlProps) {
@@ -116,7 +120,7 @@ function SliderParameterControl({
           <span className="min-w-0 flex-1 truncate" title={label}>{label}</span>
           {helpText ? <HelpPopover label={label} text={helpText} /> : null}
         </span>
-        <output className="shrink-0 rounded border border-border/70 bg-background/70 px-1.5 py-0.5 font-mono text-xs text-foreground">
+        <output className="shrink-0 rounded border border-border/70 bg-background/70 px-1.5 py-0.5 font-vt323 text-xs text-foreground">
           {valueLabel(value)}
         </output>
       </span>
@@ -137,7 +141,7 @@ function SliderParameterControl({
         onPointerDown={onGestureStart}
         onPointerUp={onGestureEnd}
         step={1}
-        style={rangeStyle(value, min, max)}
+        style={rangeStyle(value, min, max, undefined, origin)}
         type="range"
         value={value}
       />
@@ -286,7 +290,7 @@ function ParameterControl({
         </select>
       ) : (
         <input
-          className="h-9 min-w-0 rounded-md border bg-background px-2 font-mono text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-9 min-w-0 rounded-md border bg-background px-2 font-vt323 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           max={max}
           min={min}
           onChange={(event) => {
@@ -415,6 +419,7 @@ export function PatchEditorPage({
   const [mutedOperators, setMutedOperators] = useState<ReadonlySet<number>>(() => new Set())
   const [soloOperator, setSoloOperator] = useState<number | null>(null)
   const [leftPanelTab, setLeftPanelTab] = useState<'effects' | 'global'>('global')
+  const [operatorPanelTab, setOperatorPanelTab] = useState<'oscillator' | 'scaling'>('oscillator')
   const [isPitchEnvelopeOpen, setIsPitchEnvelopeOpen] = useState(true)
   const [isLfoGlobalOpen, setIsLfoGlobalOpen] = useState(true)
   const [syncState, setSyncState] = useState<'live' | 'local' | 'sending'>('sending')
@@ -698,6 +703,22 @@ export function PatchEditorPage({
     void sendParametersToFm1(next.present)
   }
 
+  const randomise = () => {
+    const current = historyRef.current
+    const randomParameters = randomizeSound(current.present)
+    const edits = Array.from(randomParameters.entries())
+      .filter(([index, value]) => current.present[index] !== value)
+      .map(([index, value]) => [index, value] as ParameterEdit)
+    const next = editParameters(current, edits)
+
+    if (next === current) return
+
+    gestureStart.current = null
+    historyRef.current = next
+    setHistory(next)
+    void sendParametersToFm1(next.present)
+  }
+
   const operatorBase = (6 - selectedOperator) * 21
   const operatorColor = operatorColors[selectedOperator - 1]
   const selectedOperatorIsMuted = mutedOperators.has(selectedOperator)
@@ -738,10 +759,18 @@ export function PatchEditorPage({
   )
 
   return (
-    <section className="mx-auto grid min-w-0 max-w-[90rem] gap-4 px-3 py-4 sm:px-5 lg:px-8">
+    <section className="patch-editor-page mx-auto grid min-w-0 max-w-[90rem] gap-4 px-3 py-4 sm:px-5 lg:px-8">
       <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] min-w-0 w-screen border-b border-primary/15 bg-white py-3 shadow-sm">
         <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-3 sm:px-5 lg:px-8">
-          <Button aria-label={t('editor.back')} disabled={syncState === 'sending'} onClick={requestNavigation} size="icon" type="button" variant="outline">
+          <Button
+            aria-label={t('editor.back')}
+            className="border-[color-mix(in_srgb,var(--fm1-finish-tint)_72%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_38%,white)] text-foreground hover:border-[var(--fm1-finish-tint)] hover:bg-[var(--fm1-finish-tint)] hover:text-[var(--fm1-finish-foreground)]"
+            disabled={syncState === 'sending'}
+            onClick={requestNavigation}
+            size="icon"
+            type="button"
+            variant="outline"
+          >
             <ArrowLeft />
           </Button>
           <div className="min-w-0">
@@ -771,6 +800,31 @@ export function PatchEditorPage({
                 <span aria-label={t('editor.unsaved')} className="size-2 rounded-full bg-amber-500" title={t('editor.unsaved')} />
               ) : null}
             </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <Button
+              aria-label={t('editor.undo')}
+              disabled={history.past.length === 0}
+              onClick={() => restoreHistory('undo')}
+              size="icon"
+              title={t('editor.undo')}
+              type="button"
+              variant="ghost"
+            >
+              <Undo2 />
+            </Button>
+            <Button
+              aria-label={t('editor.redo')}
+              disabled={history.future.length === 0}
+              onClick={() => restoreHistory('redo')}
+              size="icon"
+              title={t('editor.redo')}
+              type="button"
+              variant="ghost"
+            >
+              <Redo2 />
+            </Button>
           </div>
 
           <div className="ml-auto flex items-center gap-1.5">
@@ -810,30 +864,20 @@ export function PatchEditorPage({
               </div>
             </details>
             <Button
-              aria-label={t('editor.undo')}
-              disabled={history.past.length === 0}
-              onClick={() => restoreHistory('undo')}
-              size="icon"
-              title={t('editor.undo')}
+              aria-label={t('editor.randomise')}
+              className="font-vt323"
+              disabled={syncState === 'sending'}
+              onClick={randomise}
+              title={t('editor.randomise')}
               type="button"
-              variant="ghost"
+              variant="outline"
             >
-              <Undo2 />
-            </Button>
-            <Button
-              aria-label={t('editor.redo')}
-              disabled={history.future.length === 0}
-              onClick={() => restoreHistory('redo')}
-              size="icon"
-              title={t('editor.redo')}
-              type="button"
-              variant="ghost"
-            >
-              <Redo2 />
+              <Dices />
+              <span className="hidden xl:inline">{t('editor.randomise')}</span>
             </Button>
             <div className="flex items-center">
               <Button
-                className="rounded-r-none pr-3"
+                className="rounded-r-none pr-3 font-vt323"
                 disabled={!isDirty}
                 onClick={saveToLibrary}
                 type="button"
@@ -952,7 +996,7 @@ export function PatchEditorPage({
 
             <Card className="min-w-0 border-primary/20 bg-card/95">
               <CardHeader className={cn('flex-row items-center justify-between gap-2 px-4 py-3', isPitchEnvelopeOpen && 'border-b')}>
-                <CardTitle className="flex min-w-0 items-center gap-1 text-base text-primary">
+                <CardTitle className="flex min-w-0 items-center gap-1 text-base text-black">
                   {t('editor.pitchEnvelope')}
                   <HelpPopover label={t('editor.pitchEnvelope')} text={t('controlHelp.pitchEnvelope')} />
                 </CardTitle>
@@ -997,7 +1041,7 @@ export function PatchEditorPage({
 
             <Card className="min-w-0 border-primary/20 bg-card/95">
               <CardHeader className={cn('flex-row items-center justify-between gap-2 px-4 py-3', isLfoGlobalOpen && 'border-b')}>
-                <CardTitle className="text-base text-primary">{t('editor.lfoGlobal')}</CardTitle>
+                <CardTitle className="text-base text-black">{t('editor.lfoGlobal')}</CardTitle>
                 <CollapseButton
                   controls="lfo-global-controls"
                   expanded={isLfoGlobalOpen}
@@ -1118,7 +1162,7 @@ export function PatchEditorPage({
                 </Button>
               </div>
               <label className="flex min-w-[10rem] items-center gap-2 rounded-md border border-white/10 bg-black/15 px-3 py-2 text-xs text-white/70 sm:min-w-[13rem]">
-                <span className="flex items-center gap-1 font-mono font-black uppercase tracking-wide">
+                <span className="flex items-center gap-1 font-vt323 font-black uppercase tracking-wide">
                   {t('editor.output')}
                   <HelpPopover className="text-white/60 hover:bg-white/10 hover:text-white" label={t('editor.outputLevel')} text={t('controlHelp.outputLevel')} />
                 </span>
@@ -1143,14 +1187,14 @@ export function PatchEditorPage({
                   type="range"
                   value={parameters[operatorBase + 16]}
                 />
-                <output className="w-6 text-right font-mono font-black text-white">
+                <output className="w-6 text-right font-vt323 font-black text-white">
                   {parameters[operatorBase + 16]}
                 </output>
               </label>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="grid min-w-0 gap-5 p-4 sm:p-5 @3xl:grid-cols-[minmax(0,3fr)_minmax(16rem,1fr)]">
+          <CardContent className="grid min-w-0 gap-5 p-4 sm:p-5 @3xl:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
             <EnvelopeEditor
               color="var(--fm1-accent)"
               levels={Array.from(parameters.slice(operatorBase + 4, operatorBase + 8))}
@@ -1165,12 +1209,59 @@ export function PatchEditorPage({
               rates={Array.from(parameters.slice(operatorBase, operatorBase + 4))}
             />
 
-            <div className="grid gap-5">
-              <fieldset className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] px-3 pb-4 transition-colors sm:px-4">
-                <legend className="-ml-1 mb-2 px-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
-                  {t('ui.oscillator')}
-                </legend>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 @3xl:grid-cols-1">
+            <div className="grid min-w-0 content-start gap-3">
+              <div
+                aria-label={`${t('ui.oscillator')} / ${t('ui.keyboardScaling')}`}
+                className="relative grid grid-cols-2 rounded-lg border border-[color-mix(in_srgb,var(--operator-color)_35%,var(--color-border))] bg-white p-1 shadow-sm"
+                role="tablist"
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-md bg-[var(--operator-color)] shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none',
+                    operatorPanelTab === 'scaling' && 'translate-x-full',
+                  )}
+                />
+                <button
+                  aria-controls="operator-oscillator-panel"
+                  aria-selected={operatorPanelTab === 'oscillator'}
+                  className={cn(
+                    'relative z-10 flex h-10 min-w-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    operatorPanelTab === 'oscillator' && 'text-slate-950 hover:bg-transparent hover:text-slate-950',
+                  )}
+                  id="operator-oscillator-tab"
+                  onClick={() => setOperatorPanelTab('oscillator')}
+                  role="tab"
+                  type="button"
+                >
+                  <AudioWaveform className="size-4 shrink-0" />
+                  <span className="truncate" title={t('ui.oscillator')}>{t('ui.oscillator')}</span>
+                </button>
+                <button
+                  aria-controls="operator-scaling-panel"
+                  aria-selected={operatorPanelTab === 'scaling'}
+                  className={cn(
+                    'relative z-10 flex h-10 min-w-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    operatorPanelTab === 'scaling' && 'text-slate-950 hover:bg-transparent hover:text-slate-950',
+                  )}
+                  id="operator-scaling-tab"
+                  onClick={() => setOperatorPanelTab('scaling')}
+                  role="tab"
+                  type="button"
+                >
+                  <SlidersHorizontal className="size-4 shrink-0" />
+                  <span className="truncate" title={t('ui.keyboardScaling')}>{t('ui.keyboardScaling')}</span>
+                </button>
+              </div>
+
+              <section
+                aria-labelledby="operator-oscillator-tab"
+                className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] p-4 transition-colors"
+                hidden={operatorPanelTab !== 'oscillator'}
+                id="operator-oscillator-panel"
+                role="tabpanel"
+              >
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 @3xl:grid-cols-1">
                   <RadioParameterControl
                     helpText={t('controlHelp.oscillatorMode')}
                     label={t('ui.mode')}
@@ -1205,16 +1296,20 @@ export function PatchEditorPage({
                     onChange={(value) => setParameter(operatorBase + 20, value + 7, 14)}
                     onGestureEnd={endGesture}
                     onGestureStart={beginGesture}
+                    origin={0}
                     value={parameters[operatorBase + 20] - 7}
                     valueLabel={(value) => value > 0 ? `+${value}` : String(value)}
                   />
                 </div>
-              </fieldset>
+              </section>
 
-              <fieldset className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] px-3 pb-4 transition-colors sm:px-4">
-                <legend className="-ml-1 mb-2 px-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
-                  {t('ui.keyboardScaling')}
-                </legend>
+              <section
+                aria-labelledby="operator-scaling-tab"
+                className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] p-4 transition-colors"
+                hidden={operatorPanelTab !== 'scaling'}
+                id="operator-scaling-panel"
+                role="tabpanel"
+              >
                 <div className="grid gap-y-3">
                   {sliderControl(t('ui.breakpoint'), 8, 99, t('controlHelp.breakpoint'))}
                   <div className="grid gap-y-2">
@@ -1232,7 +1327,7 @@ export function PatchEditorPage({
                   {sliderControl(t('ui.velocity'), 15, 7, t('controlHelp.velocity'))}
                   {sliderControl(t('ui.ampModSensitivity'), 14, 3, t('controlHelp.ampModSensitivity'))}
                 </div>
-              </fieldset>
+              </section>
             </div>
           </CardContent>
           </Card>
@@ -1241,7 +1336,7 @@ export function PatchEditorPage({
 
       <dialog
         aria-labelledby="unsaved-editor-title"
-        className="fixed inset-0 z-50 m-auto w-[min(640px,calc(100vw-2rem))] rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl backdrop:bg-black/55"
+        className="fixed inset-0 z-50 m-auto w-[min(640px,calc(100vw-2rem))] rounded-lg border border-primary/30 bg-white p-0 text-card-foreground shadow-2xl backdrop:bg-black/55"
         onClose={() => setIsNavigationPending(false)}
         ref={unsavedDialogRef}
       >

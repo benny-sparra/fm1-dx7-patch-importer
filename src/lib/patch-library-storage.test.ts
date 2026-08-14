@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { emptyPatchLibrary } from '@/lib/patch-library'
-import { saveStoredPatchLibrary } from '@/lib/patch-library-storage'
+import { createNamedBank } from '@/lib/named-bank'
+import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
+import {
+  loadStoredPatchLibrary,
+  saveStoredNamedBank,
+  saveStoredPatchLibrary,
+} from '@/lib/patch-library-storage'
 
 type FakeRequest<T> = {
   error: DOMException | null
@@ -14,29 +19,32 @@ function makeRequest<T>(result: T): FakeRequest<T> {
   return { error: null, onerror: null, onsuccess: null, result }
 }
 
-function installIndexedDb() {
+function installIndexedDb(readResult?: unknown) {
   const writeRequest = makeRequest<IDBValidKey>('current')
+  const readRequest = makeRequest(readResult)
+  const put = vi.fn(() => writeRequest)
   const transaction = {
     error: null as DOMException | null,
     onabort: null as (() => void) | null,
     oncomplete: null as (() => void) | null,
     onerror: null as (() => void) | null,
-    objectStore: () => ({ put: () => writeRequest }),
+    objectStore: () => ({ get: () => readRequest, put }),
   }
   const database = {
     close: vi.fn(),
-    transaction: () => transaction,
+    createObjectStore: vi.fn(),
+    objectStoreNames: { contains: vi.fn(() => false) },
+    transaction: vi.fn(() => transaction),
   }
   const openRequest = {
     ...makeRequest(database),
     onupgradeneeded: null as (() => void) | null,
   }
 
-  vi.stubGlobal('indexedDB', {
-    open: () => openRequest,
-  })
+  const open = vi.fn(() => openRequest)
+  vi.stubGlobal('indexedDB', { open })
 
-  return { database, openRequest, transaction, writeRequest }
+  return { database, open, openRequest, put, readRequest, transaction, writeRequest }
 }
 
 async function openDatabase(openRequest: FakeRequest<unknown>) {
@@ -49,6 +57,41 @@ afterEach(() => {
 })
 
 describe('saveStoredPatchLibrary', () => {
+  it('loads version 2 workspaces with untitled bank names', async () => {
+    const fake = installIndexedDb({
+      effects: {},
+      loadedBanks: ['A'],
+      savedAt: '2026-08-12T12:00:00.000Z',
+      version: 2,
+      voices: {},
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).resolves.toMatchObject({ bankNames: {}, version: 3 })
+  })
+
+  it('upgrades the database without replacing the existing workspace store', async () => {
+    const fake = installIndexedDb()
+    fake.database.objectStoreNames.contains
+      .mockReturnValueOnce(true)
+      .mockReturnValueOnce(false)
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+
+    fake.openRequest.onupgradeneeded?.()
+    await openDatabase(fake.openRequest)
+    fake.writeRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+    await saving
+
+    expect(fake.open).toHaveBeenCalledWith('fm1-librarian', 2)
+    expect(fake.database.createObjectStore).toHaveBeenCalledOnce()
+    expect(fake.database.createObjectStore).toHaveBeenCalledWith('named-banks', { keyPath: 'id' })
+  })
+
   it('resolves only after the write transaction commits', async () => {
     const fake = installIndexedDb()
     const saving = saveStoredPatchLibrary(emptyPatchLibrary())
@@ -65,6 +108,7 @@ describe('saveStoredPatchLibrary', () => {
     fake.transaction.oncomplete?.()
 
     await expect(saving).resolves.toBe('current')
+    expect(fake.put).toHaveBeenCalledWith(expect.objectContaining({ bankNames: {}, version: 3 }), 'current')
     expect(fake.database.close).toHaveBeenCalledOnce()
   })
 
@@ -92,5 +136,25 @@ describe('saveStoredPatchLibrary', () => {
 
     await expect(saving).rejects.toThrow('Commit failed')
     expect(fake.database.close).toHaveBeenCalledOnce()
+  })
+
+  it('commits named banks to their independent object store', async () => {
+    const fake = installIndexedDb()
+    const snapshot = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const bank = createNamedBank(snapshot, 'A', {
+      description: 'Local snapshot',
+      id: 'bank-1',
+      name: 'My bank',
+      now: '2026-08-13T12:00:00.000Z',
+    })
+    const saving = saveStoredNamedBank(bank)
+
+    await openDatabase(fake.openRequest)
+    fake.writeRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(saving).resolves.toBe('current')
+    expect(fake.database.transaction).toHaveBeenCalledWith('named-banks', 'readwrite')
+    expect(fake.put).toHaveBeenCalledWith(bank)
   })
 })

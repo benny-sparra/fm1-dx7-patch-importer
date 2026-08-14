@@ -1,6 +1,6 @@
 import { useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Send } from 'lucide-react'
+import { GripVertical, Send } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { type Patch } from '@/data/patches'
@@ -54,23 +54,10 @@ export function PatchButton({
             type="button"
           />
         ) : null}
-        <div className="pointer-events-none grid h-full min-h-16 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-1 p-2 text-left">
-          {patch.family === 'DX7' ? (
-            <button
-              {...sortable.attributes}
-              {...sortable.listeners}
-              aria-label={t('banks.reorder', { name: patch.name })}
-              className="patch-slot font-dot-matrix pointer-events-auto relative z-[1] flex size-11 cursor-grab items-center justify-center rounded-md border border-primary/15 bg-muted/70 text-sm font-bold text-[var(--hero-accent)] shadow-inner backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
-              title={t('banks.reorderTitle')}
-              type="button"
-            >
-              {patch.bank}{patch.number.toString().padStart(2, '0')}
-            </button>
-          ) : (
-            <span className="patch-slot font-dot-matrix flex size-11 items-center justify-center rounded-md border border-primary/15 bg-muted/70 text-sm font-bold text-[var(--hero-accent)] shadow-inner backdrop-blur-sm">
-              {patch.bank}{patch.number.toString().padStart(2, '0')}
-            </span>
-          )}
+        <div className="pointer-events-none grid h-full min-h-16 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-1 p-2 pl-9 text-left">
+          <span className="patch-slot font-dot-matrix flex size-11 items-center justify-center rounded-md border border-primary/15 bg-muted/70 text-sm font-bold text-[var(--hero-accent)] shadow-inner backdrop-blur-sm">
+            {patch.bank}{patch.number.toString().padStart(2, '0')}
+          </span>
           <span className="patch-name font-dot-matrix min-w-0 truncate whitespace-pre text-sm font-bold text-white">
             {patch.name}
           </span>
@@ -93,6 +80,22 @@ export function PatchButton({
             </span>
           ) : null}
         </div>
+        {patch.family === 'DX7' ? (
+          <button
+            {...sortable.attributes}
+            {...sortable.listeners}
+            aria-label={t('banks.reorder', { name: patch.name })}
+            className="absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 cursor-grab rounded p-1 text-[var(--hero-accent)] hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+            title={t('banks.reorderTitle')}
+            type="button"
+          >
+            <GripVertical className="size-4" />
+          </button>
+        ) : (
+          <span aria-hidden="true" className="absolute left-1.5 top-1/2 z-[1] -translate-y-1/2 p-1 text-muted-foreground/20">
+            <GripVertical className="size-4" />
+          </span>
+        )}
     </div>
   )
 }

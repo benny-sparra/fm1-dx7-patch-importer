@@ -20,7 +20,7 @@ export function RestoreFactoryBanksDialog({
     <dialog
       aria-describedby="restore-factory-banks-description"
       aria-labelledby="restore-factory-banks-title"
-      className="fixed inset-0 z-50 m-auto w-[min(520px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl"
+      className="fixed inset-0 z-50 m-auto w-[min(520px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-primary/30 bg-white p-0 text-card-foreground shadow-2xl"
       onClick={(event) => {
         if (event.target === event.currentTarget) closeDialog()
       }}
