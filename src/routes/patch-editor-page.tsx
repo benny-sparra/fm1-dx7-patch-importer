@@ -101,6 +101,144 @@ type SliderParameterControlProps = {
   valueLabel?: (value: number) => string
 }
 
+type RotaryParameterControlProps = Omit<SliderParameterControlProps, 'origin'>
+
+const rotaryControlKeys = [
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'End',
+  'Home',
+  'PageDown',
+  'PageUp',
+]
+
+function RotaryParameterControl({
+  helpText,
+  label,
+  max,
+  min = 0,
+  onChange,
+  onGestureEnd,
+  onGestureStart,
+  value,
+  valueLabel = String,
+}: RotaryParameterControlProps) {
+  const drag = useRef<{ pointerId: number; startValue: number; startY: number } | null>(null)
+  const displayValue = valueLabel(value)
+  const fraction = (value - min) / (max - min)
+  const angle = -135 + fraction * 270
+  const clamp = (nextValue: number) => Math.max(min, Math.min(max, Math.round(nextValue)))
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!rotaryControlKeys.includes(event.key)) return
+    event.preventDefault()
+    if (!event.repeat) onGestureStart()
+
+    const pageStep = Math.max(1, Math.round((max - min) / 10))
+    const nextValue = event.key === 'Home'
+      ? min
+      : event.key === 'End'
+        ? max
+        : value + (['ArrowUp', 'ArrowRight'].includes(event.key)
+            ? 1
+            : ['ArrowDown', 'ArrowLeft'].includes(event.key)
+              ? -1
+              : event.key === 'PageUp'
+                ? pageStep
+                : -pageStep)
+    onChange(clamp(nextValue))
+  }
+
+  return (
+    <div className="grid min-w-0 justify-items-center gap-1 text-xs font-semibold text-muted-foreground">
+      <span className="flex min-w-0 max-w-full items-center gap-1">
+        <span className="truncate" title={label}>{label}</span>
+        {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+      </span>
+      <div
+        aria-label={label}
+        aria-valuemax={max}
+        aria-valuemin={min}
+        aria-valuenow={value}
+        aria-valuetext={displayValue}
+        className="group relative size-[4.75rem] cursor-ns-resize touch-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        onBlur={onGestureEnd}
+        onKeyDown={handleKeyDown}
+        onKeyUp={(event) => {
+          if (rotaryControlKeys.includes(event.key)) onGestureEnd()
+        }}
+        onPointerCancel={() => {
+          drag.current = null
+          onGestureEnd()
+        }}
+        onPointerDown={(event) => {
+          drag.current = { pointerId: event.pointerId, startValue: value, startY: event.clientY }
+          event.currentTarget.setPointerCapture(event.pointerId)
+          onGestureStart()
+        }}
+        onPointerMove={(event) => {
+          const activeDrag = drag.current
+          if (!activeDrag || activeDrag.pointerId !== event.pointerId) return
+          const valuePerPixel = (max - min) / 120
+          onChange(clamp(activeDrag.startValue + (activeDrag.startY - event.clientY) * valuePerPixel))
+        }}
+        onPointerUp={(event) => {
+          if (drag.current?.pointerId !== event.pointerId) return
+          drag.current = null
+          event.currentTarget.releasePointerCapture(event.pointerId)
+          onGestureEnd()
+        }}
+        role="slider"
+        tabIndex={0}
+        title={`${label}: ${displayValue}. Drag up or down to adjust.`}
+      >
+        <svg aria-hidden="true" className="size-full overflow-visible" viewBox="0 0 76 76">
+          {Array.from({ length: 11 }, (_, index) => {
+            const tickAngle = -135 + index * 27
+            return (
+              <line
+                className={index / 10 <= fraction ? 'stroke-[var(--operator-color)]' : 'stroke-border'}
+                key={index}
+                strokeLinecap="round"
+                strokeWidth="2"
+                transform={`rotate(${tickAngle} 38 38)`}
+                x1="38"
+                x2="38"
+                y1="4"
+                y2={index % 5 === 0 ? '10' : '8'}
+              />
+            )
+          })}
+          <circle
+            className="fill-[color-mix(in_srgb,var(--fm1-finish-tint)_24%,white)] stroke-[color-mix(in_srgb,var(--fm1-finish-tint)_55%,var(--color-border))] transition group-hover:stroke-[var(--operator-color)]"
+            cx="38"
+            cy="38"
+            r="24"
+            strokeWidth="2"
+          />
+          <circle cx="38" cy="38" fill="none" r="20.5" stroke="white" strokeOpacity="0.45" />
+          <line
+            className="stroke-[var(--operator-color)]"
+            strokeLinecap="round"
+            strokeWidth="3"
+            transform={`rotate(${angle} 38 38)`}
+            x1="38"
+            x2="38"
+            y1="17"
+            y2="29"
+          />
+          <circle className="fill-[var(--operator-color)]" cx="38" cy="38" r="2.5" />
+        </svg>
+      </div>
+      <output className="min-w-9 rounded border border-border/70 bg-background/80 px-1.5 py-0.5 text-center font-vt323 text-sm text-foreground">
+        {displayValue}
+      </output>
+    </div>
+  )
+}
+
 function SliderParameterControl({
   helpText,
   label,
@@ -740,13 +878,13 @@ export function PatchEditorPage({
       value={parameters[operatorBase + offset]}
     />
   )
-  const sliderControl = (
+  const rotaryControl = (
     label: string,
     offset: number,
     max: number,
     helpText?: string,
   ) => (
-    <SliderParameterControl
+    <RotaryParameterControl
       helpText={helpText}
       key={`${selectedOperator}-${offset}`}
       label={label}
@@ -1261,7 +1399,7 @@ export function PatchEditorPage({
                 id="operator-oscillator-panel"
                 role="tabpanel"
               >
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 @3xl:grid-cols-1">
+                <div className="grid gap-4">
                   <RadioParameterControl
                     helpText={t('controlHelp.oscillatorMode')}
                     label={t('ui.mode')}
@@ -1270,36 +1408,40 @@ export function PatchEditorPage({
                     options={oscillatorModes}
                     value={parameters[operatorBase + 17]}
                   />
-                  <SliderParameterControl
-                    helpText={t('controlHelp.coarse')}
-                    label={t('ui.coarse')}
-                    max={31}
-                    onChange={(value) => setParameter(operatorBase + 18, value, 31)}
-                    onGestureEnd={endGesture}
-                    onGestureStart={beginGesture}
-                    value={parameters[operatorBase + 18]}
-                  />
-                  <SliderParameterControl
-                    helpText={t('controlHelp.fine')}
-                    label={t('ui.fine')}
-                    max={99}
-                    onChange={(value) => setParameter(operatorBase + 19, value, 99)}
-                    onGestureEnd={endGesture}
-                    onGestureStart={beginGesture}
-                    value={parameters[operatorBase + 19]}
-                  />
-                  <SliderParameterControl
-                    helpText={t('controlHelp.detune')}
-                    label={t('ui.detune')}
-                    max={7}
-                    min={-7}
-                    onChange={(value) => setParameter(operatorBase + 20, value + 7, 14)}
-                    onGestureEnd={endGesture}
-                    onGestureStart={beginGesture}
-                    origin={0}
-                    value={parameters[operatorBase + 20] - 7}
-                    valueLabel={(value) => value > 0 ? `+${value}` : String(value)}
-                  />
+                  <div className="grid grid-cols-3 gap-2">
+                    <RotaryParameterControl
+                      helpText={t('controlHelp.coarse')}
+                      key={`${selectedOperator}-18`}
+                      label={t('ui.coarse')}
+                      max={31}
+                      onChange={(value) => setParameter(operatorBase + 18, value, 31)}
+                      onGestureEnd={endGesture}
+                      onGestureStart={beginGesture}
+                      value={parameters[operatorBase + 18]}
+                    />
+                    <RotaryParameterControl
+                      helpText={t('controlHelp.fine')}
+                      key={`${selectedOperator}-19`}
+                      label={t('ui.fine')}
+                      max={99}
+                      onChange={(value) => setParameter(operatorBase + 19, value, 99)}
+                      onGestureEnd={endGesture}
+                      onGestureStart={beginGesture}
+                      value={parameters[operatorBase + 19]}
+                    />
+                    <RotaryParameterControl
+                      helpText={t('controlHelp.detune')}
+                      key={`${selectedOperator}-20`}
+                      label={t('ui.detune')}
+                      max={7}
+                      min={-7}
+                      onChange={(value) => setParameter(operatorBase + 20, value + 7, 14)}
+                      onGestureEnd={endGesture}
+                      onGestureStart={beginGesture}
+                      value={parameters[operatorBase + 20] - 7}
+                      valueLabel={(value) => value > 0 ? `+${value}` : String(value)}
+                    />
+                  </div>
                 </div>
               </section>
 
@@ -1310,22 +1452,26 @@ export function PatchEditorPage({
                 id="operator-scaling-panel"
                 role="tabpanel"
               >
-                <div className="grid gap-y-3">
-                  {sliderControl(t('ui.breakpoint'), 8, 99, t('controlHelp.breakpoint'))}
-                  <div className="grid gap-y-2">
-                    <p className="text-sm font-bold text-foreground">{t('ui.depth')}</p>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                      {sliderControl(t('ui.left'), 9, 99, t('controlHelp.leftDepth'))}
-                      {sliderControl(t('ui.right'), 10, 99, t('controlHelp.rightDepth'))}
+                <div className="grid gap-y-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    {rotaryControl(t('ui.breakpoint'), 8, 99, t('controlHelp.breakpoint'))}
+                    {rotaryControl(t('ui.rateScaling'), 13, 7, t('controlHelp.rateScaling'))}
+                  </div>
+                  <div className="grid gap-y-1">
+                    <p className="text-center text-xs font-bold text-foreground">{t('ui.depth')}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {rotaryControl(t('ui.left'), 9, 99, t('controlHelp.leftDepth'))}
+                      {rotaryControl(t('ui.right'), 10, 99, t('controlHelp.rightDepth'))}
                     </div>
                   </div>
-                  {sliderControl(t('ui.rateScaling'), 13, 7, t('controlHelp.rateScaling'))}
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                     {control(t('ui.leftCurve'), 11, 3, curves, t('controlHelp.curve'))}
                     {control(t('ui.rightCurve'), 12, 3, curves, t('controlHelp.curve'))}
                   </div>
-                  {sliderControl(t('ui.velocity'), 15, 7, t('controlHelp.velocity'))}
-                  {sliderControl(t('ui.ampModSensitivity'), 14, 3, t('controlHelp.ampModSensitivity'))}
+                  <div className="grid grid-cols-2 gap-2">
+                    {rotaryControl(t('ui.velocity'), 15, 7, t('controlHelp.velocity'))}
+                    {rotaryControl(t('ui.ampModSensitivity'), 14, 3, t('controlHelp.ampModSensitivity'))}
+                  </div>
                 </div>
               </section>
             </div>
