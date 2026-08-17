@@ -3,6 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "npm@10.9.2",
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": "10.9.2",
+      "onFail": "error"
+    }
+  },
   "scripts": {
     "dev": "vite --mode https --host 127.0.0.1",
     "dev:http": "vite",
