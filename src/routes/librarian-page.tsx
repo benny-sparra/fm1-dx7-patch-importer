@@ -255,7 +255,7 @@ export function LibrarianPage({
         activePatchId={activePatchId}
         actions={
           <button
-              className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-black bg-white px-4 text-sm font-medium text-black transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+              className="inline-flex h-10 w-full shrink-0 cursor-pointer items-center justify-start gap-2 rounded-md border border-black bg-white px-4 text-left text-sm font-medium text-black transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
               disabled={isSending || !isDestinationBankLoaded}
               onClick={async () => {
                 if (!midi.hasMidiOutput) {

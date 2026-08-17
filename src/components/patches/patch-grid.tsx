@@ -94,7 +94,11 @@ export function PatchGrid({
         {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
         <div className="min-w-0 flex-1">
           <div className="font-vt323 flex flex-col gap-2 bg-primary p-3 sm:p-4 md:flex-row md:items-center">
-            {actions ? <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div> : null}
+            {actions ? (
+              <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-[calc(25%-0.375rem)]">
+                {actions}
+              </div>
+            ) : null}
             <label className="relative block w-full sm:ml-auto sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-[calc(25%-0.375rem)]">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
