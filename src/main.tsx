@@ -6,9 +6,12 @@ import '@fontsource-variable/space-grotesk/index.css'
 import './index.css'
 import './i18n'
 import App from './App.tsx'
+import { ToastProvider } from './components/ui/toast.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ToastProvider>
+      <App />
+    </ToastProvider>
   </StrictMode>,
 )

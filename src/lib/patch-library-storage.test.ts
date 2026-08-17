@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createNamedBank } from '@/lib/named-bank'
+import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import {
   loadStoredPatchLibrary,
@@ -57,6 +58,17 @@ afterEach(() => {
 })
 
 describe('saveStoredPatchLibrary', () => {
+  it('returns no workspace when IndexedDB has no saved record', async () => {
+    const fake = installIndexedDb()
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).resolves.toBeNull()
+  })
+
   it('loads version 2 workspaces with untitled bank names', async () => {
     const fake = installIndexedDb({
       effects: {},
@@ -125,6 +137,37 @@ describe('saveStoredPatchLibrary', () => {
       bankNames: { A: 'Studio Fav' },
       version: 5,
     })
+  })
+
+  it('treats stored banks as authoritative and compacts legacy gaps', async () => {
+    const shiftedVoice = { data: new Uint8Array(128), name: 'SHIFTED' }
+    const shiftedEffects = makeDefaultFm1Effects()
+    const fake = installIndexedDb({
+      bankDescriptions: { C: 'Third bank' },
+      bankNames: { C: 'Stage' },
+      effects: { 'bank-C-1': shiftedEffects },
+      loadedBanks: ['A', 'C'],
+      savedAt: '2026-08-17T08:00:00.000Z',
+      version: 5,
+      voices: { 'bank-C-1': shiftedVoice },
+      workspaceBanks: ['A', 'C'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).resolves.toMatchObject({
+      bankDescriptions: { B: 'Third bank' },
+      bankNames: { B: 'Stage' },
+      loadedBanks: ['A', 'B'],
+      workspaceBanks: ['A', 'B'],
+    })
+    const loaded = await loading
+    expect(loaded?.voices['bank-B-1']).toEqual(shiftedVoice)
+    expect(loaded?.effects['bank-B-1']).toEqual(shiftedEffects)
+    expect(loaded?.voices['bank-C-1']).toBeUndefined()
   })
 
   it('upgrades the database without replacing the existing workspace store', async () => {

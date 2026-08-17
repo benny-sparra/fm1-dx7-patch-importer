@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogCloseButton, DialogHeader } from '@/components/ui/dialog'
+import { useToast } from '@/components/ui/toast'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import {
   normalizeWorkspaceBankNameForSave,
@@ -24,6 +25,7 @@ export function BankInformationDialog({
   onClose,
 }: BankInformationDialogProps) {
   const { t } = useTranslation()
+  const toast = useToast()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const [description, setDescription] = useState('')
@@ -91,6 +93,7 @@ export function BankInformationDialog({
               return
             }
             library.updateBankInformation(bank, normalizedTitle, description)
+            toast.success(t('toasts.bankUpdated', { bank: normalizedTitle }))
             dialogRef.current?.close()
           }}
         >

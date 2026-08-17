@@ -38,19 +38,12 @@ describe('patch library operations', () => {
     expect(addWorkspaceBank(added, 'E')).toBe(added)
   })
 
-  it('creates a named empty workspace bank', () => {
-    const created = createWorkspaceBank(emptyPatchLibrary(), 'E', '  My fifth bank  ')
-
-    expect(created.workspaceBanks).toEqual(['A', 'B', 'C', 'D', 'E'])
-    expect(created.bankNames.E).toBe('My fifth b')
-    expect(created.loadedBanks).toEqual([])
-  })
-
   it('creates and names a workspace bank from imported voices atomically', () => {
     const created = createWorkspaceBank(
       emptyPatchLibrary(),
       'E',
       'Imported favourites',
+      'Studio collection',
       makeDemoVoices(),
     )
 
@@ -62,8 +55,15 @@ describe('patch library operations', () => {
   it('rejects invalid new-bank details without changing the source snapshot', () => {
     const initial = emptyPatchLibrary()
 
-    expect(() => createWorkspaceBank(initial, 'E', '   ')).toThrow('name')
-    expect(() => createWorkspaceBank(initial, 'E', 'Incomplete', makeDemoVoices().slice(0, 31)))
+    expect(() => createWorkspaceBank(initial, 'E', '   ', '', makeDemoVoices())).toThrow('name')
+    expect(() => createWorkspaceBank(
+      initial,
+      'E',
+      'Missing sounds',
+      '',
+      undefined as unknown as ReturnType<typeof makeDemoVoices>,
+    )).toThrow('sound data')
+    expect(() => createWorkspaceBank(initial, 'E', 'Incomplete', '', makeDemoVoices().slice(0, 31)))
       .toThrow('exactly 32')
     expect(initial).toEqual(emptyPatchLibrary())
   })
@@ -73,6 +73,7 @@ describe('patch library operations', () => {
       emptyPatchLibrary(),
       'E',
       'Live set',
+      '',
       makeDemoVoices(),
     ), 'E', 'Live set', 'Friday performance')
     const deleted = deleteWorkspaceBank(populated, 'E')
@@ -82,6 +83,34 @@ describe('patch library operations', () => {
     expect(deleted.bankDescriptions.E).toBeUndefined()
     expect(deleted.loadedBanks).toEqual([])
     expect(getBankVoices(deleted, 'E')).toEqual([])
+  })
+
+  it('compacts later banks and their data when a middle bank is deleted', () => {
+    const factory = makeFactoryPatchLibrary()
+    const described = updateBankInformation(factory, 'C', 'Third bank', 'Moves into B')
+    const effects = {
+      ...described.effects,
+      [voiceId('C', 1)]: Uint8Array.from({ length: 24 }, (_, index) => index),
+    }
+    const deleted = deleteWorkspaceBank({ ...described, effects }, 'B')
+
+    expect(deleted.workspaceBanks).toEqual(['A', 'B', 'C'])
+    expect(deleted.loadedBanks).toEqual(['A', 'B', 'C'])
+    expect(deleted.voices[voiceId('B', 1)].name).toBe('PICCOLO')
+    expect(deleted.effects[voiceId('B', 1)]).toEqual(effects[voiceId('C', 1)])
+    expect(deleted.bankNames.B).toBe('Third bank')
+    expect(deleted.bankDescriptions.B).toBe('Moves into B')
+    expect(deleted.voices[voiceId('C', 1)].name).toBe('SYN-LEAD 2')
+    expect(deleted.voices[voiceId('D', 1)]).toBeUndefined()
+  })
+
+  it('moves the second bank into A when the first bank is deleted', () => {
+    const deleted = deleteWorkspaceBank(makeFactoryPatchLibrary(), 'A')
+
+    expect(deleted.workspaceBanks).toEqual(['A', 'B', 'C'])
+    expect(deleted.voices[voiceId('A', 1)].name).toBe('PIANO   4')
+    expect(deleted.voices[voiceId('B', 1)].name).toBe('PICCOLO')
+    expect(deleted.voices[voiceId('C', 1)].name).toBe('SYN-LEAD 2')
   })
 
   it('keeps the sole remaining workspace bank', () => {
@@ -98,7 +127,7 @@ describe('patch library operations', () => {
     expect(full.workspaceBanks).toHaveLength(10)
     expect(getNextWorkspaceBank(full.workspaceBanks)).toBeNull()
     expect(addWorkspaceBank(full, 'K')).toBe(full)
-    expect(() => createWorkspaceBank(full, 'K', 'Eleventh')).toThrow('no longer available')
+    expect(() => createWorkspaceBank(full, 'K', 'Eleventh', '', makeDemoVoices())).toThrow('no longer available')
   })
 
   it('uses the first free bank ID while enforcing the total bank limit', () => {
@@ -134,6 +163,14 @@ describe('patch library operations', () => {
     expect(restored.workspaceBanks).toEqual(['A', 'B', 'C', 'D', 'E'])
     expect(restored.loadedBanks).toEqual(['A', 'B', 'C', 'D', 'E'])
     expect(getBankVoices(restored, 'E')[0].name).toBe('E.PIANO1')
+  })
+
+  it('recreates four slots when factory banks are restored after a deletion', () => {
+    const reduced = deleteWorkspaceBank(makeFactoryPatchLibrary(), 'B')
+    const restored = restoreFactoryPatchLibrary(reduced)
+
+    expect(restored.workspaceBanks).toEqual(['A', 'B', 'C', 'D'])
+    expect(restored.loadedBanks).toEqual(['A', 'B', 'C', 'D'])
   })
 
   it('maps the first four Yamaha factory ROM banks to browser banks A through D', () => {

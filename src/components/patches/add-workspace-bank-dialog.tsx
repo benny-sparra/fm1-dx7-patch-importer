@@ -1,15 +1,19 @@
-import { Plus, Upload } from 'lucide-react'
+import { Library, Plus, Upload } from 'lucide-react'
 import { type RefObject, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogCloseButton, DialogHeader } from '@/components/ui/dialog'
+import { useToast } from '@/components/ui/toast'
+import { dx7BankCatalog } from '@/data/dx7-bank-catalog'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { parseDx7Bank } from '@/lib/dx7'
+import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
 import {
   normalizeWorkspaceBankNameForSave,
   workspaceBankTitleLength,
 } from '@/lib/patch-library'
+import { cn } from '@/lib/utils'
 
 type AddWorkspaceBankDialogProps = {
   bank: string | null
@@ -27,16 +31,23 @@ export function AddWorkspaceBankDialog({
   suggestedName,
 }: AddWorkspaceBankDialogProps) {
   const { t } = useTranslation()
+  const toast = useToast()
   const nameInputRef = useRef<HTMLInputElement>(null)
+  const [description, setDescription] = useState('')
+  const [catalogBankId, setCatalogBankId] = useState('')
   const [error, setError] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [name, setName] = useState('')
+  const [source, setSource] = useState<'catalog' | 'upload'>('catalog')
   const [working, setWorking] = useState(false)
 
   const reset = () => {
+    setCatalogBankId('')
+    setDescription('')
     setError('')
     setFile(null)
     setName('')
+    setSource('catalog')
     setWorking(false)
   }
 
@@ -87,13 +98,24 @@ export function AddWorkspaceBankDialog({
             setError(t('banks.bankNameRequired'))
             return
           }
+          if (source === 'catalog' && !catalogBankId) {
+            setError(t('banks.soundSourceRequired'))
+            return
+          }
+          if (source === 'upload' && !file) {
+            setError(t('banks.soundSourceRequired'))
+            return
+          }
 
           setWorking(true)
           setError('')
           try {
-            const imported = file ? parseDx7Bank(await file.arrayBuffer()) : undefined
-            library.addBank(bank, normalizedName, imported)
+            const imported = source === 'catalog'
+              ? await loadDx7CatalogBank(catalogBankId)
+              : parseDx7Bank(await file!.arrayBuffer())
+            library.addBank(bank, normalizedName, description, imported)
             onCreated(bank)
+            toast.success(t('toasts.bankCreated', { bank: normalizedName }))
             dialogRef.current?.close()
           } catch (cause) {
             setError(cause instanceof Error ? cause.message : t('banks.addBankFailed'))
@@ -116,23 +138,109 @@ export function AddWorkspaceBankDialog({
           />
         </label>
 
-        <label className="grid gap-2 text-sm font-semibold">
-          {t('banks.soundData')}
-          <span className="flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-dashed border-input bg-background px-3 py-2 font-normal transition-colors hover:bg-muted/50">
-            <Upload className="size-5 shrink-0 text-muted-foreground" />
-            <span className="min-w-0 truncate">
-              {file?.name ?? t('banks.chooseSysexFile')}
-            </span>
-            <input
-              accept=".syx,application/octet-stream"
-              className="sr-only"
-              disabled={working}
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-              type="file"
-            />
-          </span>
-          <span className="font-normal text-muted-foreground">{t('banks.soundDataHelp')}</span>
+        <label className="grid gap-1 text-sm font-semibold">
+          {t('namedBanks.description')}
+          <textarea
+            className="min-h-24 resize-y rounded-md border border-input bg-background px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            maxLength={500}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder={t('namedBanks.descriptionPlaceholder')}
+            value={description}
+          />
         </label>
+
+        <fieldset className="grid gap-2">
+          <legend className="mb-1 text-sm font-semibold">{t('banks.soundSource')}</legend>
+
+          <div className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-white p-1 shadow-sm">
+            <span
+              aria-hidden="true"
+              className={cn(
+                'pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-md bg-primary shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none',
+                source === 'upload' && 'translate-x-full',
+              )}
+            />
+            <label className="relative z-10 min-w-0 cursor-pointer">
+              <input
+                checked={source === 'catalog'}
+                className="peer sr-only"
+                disabled={working}
+                name="sound-source"
+                onChange={() => {
+                  setFile(null)
+                  setSource('catalog')
+                }}
+                type="radio"
+              />
+              <span className={cn(
+                'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+                source === 'catalog' && 'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
+              )}>
+                <Library className="size-4 shrink-0" />
+                {t('banks.catalogSource')}
+              </span>
+            </label>
+            <label className="relative z-10 min-w-0 cursor-pointer">
+              <input
+                checked={source === 'upload'}
+                className="peer sr-only"
+                disabled={working}
+                name="sound-source"
+                onChange={() => {
+                  setCatalogBankId('')
+                  setSource('upload')
+                }}
+                type="radio"
+              />
+              <span className={cn(
+                'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+                source === 'upload' && 'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
+              )}>
+                <Upload className="size-4 shrink-0" />
+                {t('banks.uploadSource')}
+              </span>
+            </label>
+          </div>
+
+          <div className="modal-input-surface rounded-md border border-input p-3">
+            {source === 'catalog' ? (
+              <select
+                aria-label={t('banks.catalogBank')}
+                className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                disabled={working}
+                onChange={(event) => setCatalogBankId(event.target.value)}
+                value={catalogBankId}
+              >
+                <option value="">{t('banks.chooseCatalogBank')}</option>
+                {(['Factory', 'VRC Voice ROMs', 'Grey Matter E!'] as const).map((category) => (
+                  <optgroup key={category} label={category}>
+                    {dx7BankCatalog
+                      .filter((catalogBank) => catalogBank.category === category)
+                      .map((catalogBank) => (
+                        <option key={catalogBank.id} value={catalogBank.id}>
+                          {catalogBank.name} — {catalogBank.description}
+                        </option>
+                      ))}
+                  </optgroup>
+                ))}
+              </select>
+            ) : (
+              <label className="flex min-h-10 cursor-pointer items-center rounded-md border border-dashed border-input bg-background px-3 text-sm transition-colors hover:bg-muted/50">
+                <span className="min-w-0 truncate">
+                  {file?.name ?? t('banks.chooseSysexFile')}
+                </span>
+                <input
+                  accept=".syx,application/octet-stream"
+                  className="sr-only"
+                  disabled={working}
+                  onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                  type="file"
+                />
+              </label>
+            )}
+          </div>
+          <span className="text-sm text-muted-foreground">{t('banks.soundDataHelp')}</span>
+        </fieldset>
 
         {error ? (
           <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
@@ -141,7 +249,10 @@ export function AddWorkspaceBankDialog({
         ) : null}
 
         <div className="flex flex-wrap justify-end gap-2">
-          <Button disabled={working || !bank} type="submit">
+          <Button
+            disabled={working || !bank || (source === 'catalog' ? !catalogBankId : !file)}
+            type="submit"
+          >
             <Plus />
             {working ? t('banks.creatingBank') : t('banks.createBank')}
           </Button>

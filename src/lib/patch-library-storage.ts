@@ -3,7 +3,9 @@ import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { type NamedBank, validateNamedBank } from '@/lib/named-bank'
 import {
   browserBanks,
+  compactWorkspaceBanks,
   isWorkspaceBankId,
+  maximumWorkspaceBanks,
   workspaceBankTitleLength,
 } from '@/lib/patch-library'
 
@@ -109,12 +111,14 @@ export async function loadStoredPatchLibrary() {
   const storedBankDescriptions = stored.version === 5 && typeof stored.bankDescriptions === 'object'
     ? stored.bankDescriptions
     : {}
-  const workspaceBanks = [...new Set([
-    ...browserBanks,
-    ...((stored.version === 4 || stored.version === 5) ? stored.workspaceBanks.filter(isWorkspaceBankId) : []),
-  ])].sort()
+  const workspaceBanks = stored.version === 4 || stored.version === 5
+    ? [...new Set(stored.workspaceBanks.filter(isWorkspaceBankId))]
+    : [...browserBanks]
+  if (workspaceBanks.length === 0 || workspaceBanks.length > maximumWorkspaceBanks) {
+    throw new Error('The saved patch library has an invalid workspace bank list.')
+  }
 
-  return {
+  const compacted = compactWorkspaceBanks({
     bankDescriptions: Object.fromEntries(
       Object.entries(storedBankDescriptions)
         .filter(([bank, description]) => workspaceBanks.includes(bank) && typeof description === 'string')
@@ -131,11 +135,10 @@ export async function loadStoredPatchLibrary() {
       Object.keys(stored.voices).map((id) => [id, normalizeFm1Effects(storedEffects[id])]),
     ),
     loadedBanks: stored.loadedBanks.filter((bank) => workspaceBanks.includes(bank)),
-    savedAt: stored.savedAt,
-    version: 5 as const,
     voices: stored.voices,
     workspaceBanks,
-  }
+  })
+  return { ...compacted, savedAt: stored.savedAt, version: 5 as const }
 }
 
 export function saveStoredPatchLibrary(

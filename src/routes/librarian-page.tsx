@@ -15,6 +15,7 @@ import { PatchGrid } from '@/components/patches/patch-grid'
 import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
 import { BankInformationDialog } from '@/components/patches/bank-information-dialog'
 import { DeleteWorkspaceBankDialog } from '@/components/patches/delete-workspace-bank-dialog'
+import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog'
 import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
@@ -26,6 +27,8 @@ import { type MidiController } from '@/hooks/use-midi'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { type Patch } from '@/data/patches'
+import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
+import { useToast } from '@/components/ui/toast'
 
 type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
 
@@ -107,7 +110,7 @@ function WorkspaceBankTab({
         >
           <EllipsisVertical className="size-4" />
         </summary>
-        <div className="absolute left-full top-0 z-40 min-w-56 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+        <div className="font-vt323 absolute left-full top-0 z-40 min-w-56 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
           {renderMenu(closeMenu)}
         </div>
       </details>
@@ -129,6 +132,7 @@ export function LibrarianPage({
   onEditPatch,
 }: LibrarianPageProps) {
   const { t } = useTranslation()
+  const toast = useToast()
   const { patches } = library
   const banks = library.workspaceBanks
   const nextBank = getNextWorkspaceBank(banks)
@@ -139,7 +143,9 @@ export function LibrarianPage({
   const [isSending, setIsSending] = useState(false)
   const [transferStatus, setTransferStatus] = useState<TransferStatus>({ kind: 'idle', message: '' })
   const importInputRef = useRef<HTMLInputElement>(null)
+  const importTargetRef = useRef(createBankFileSelectionTarget())
   const addWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
+  const importDx7BankDialogRef = useRef<HTMLDialogElement>(null)
   const bankSelectionDialogRef = useRef<HTMLDialogElement>(null)
   const deleteWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
   const midiConnectionRequiredDialogRef = useRef<HTMLDialogElement>(null)
@@ -149,8 +155,14 @@ export function LibrarianPage({
     name: string
     nextBank: string
   } | null>(null)
+  const [bankPendingImport, setBankPendingImport] = useState<{
+    bank: string
+    name: string
+  } | null>(null)
   const allBanksMenuRef = useDismissableDetails()
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
+  const bankDisplayName = (bank: string) => library.bankNames[bank]
+    ?? defaultWorkspaceBankTitle(t, banks.indexOf(bank) + 1)
   const saveBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -160,11 +172,26 @@ export function LibrarianPage({
     window.setTimeout(() => URL.revokeObjectURL(url), 1_000)
   }
 
-  const downloadBank = () => {
+  const beginImport = (bank: string) => {
+    if (library.loadedBanks.includes(bank)) {
+      const index = banks.indexOf(bank)
+      setBankPendingImport({
+        bank,
+        name: library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, index + 1),
+      })
+      importDx7BankDialogRef.current?.showModal()
+      return
+    }
+    importTargetRef.current.begin(bank)
+    importInputRef.current?.click()
+  }
+
+  const downloadBank = (bank: string) => {
     try {
-      const bytes = makeDx7BankFile(library.getBankVoices(destinationBank))
-      saveBlob(new Blob([bytes], { type: 'application/octet-stream' }), `fm1-bank-${destinationBank.toLowerCase()}.syx`)
+      const bytes = makeDx7BankFile(library.getBankVoices(bank))
+      saveBlob(new Blob([bytes], { type: 'application/octet-stream' }), `fm1-bank-${bank.toLowerCase()}.syx`)
       setImportError('')
+      toast.success(t('toasts.bankDownloadStarted', { bank: bankDisplayName(bank) }))
     } catch (error) {
       setImportError(error instanceof Error ? error.message : t('banks.exportFailed'))
     }
@@ -179,6 +206,7 @@ export function LibrarianPage({
       ]))
       saveBlob(new Blob([zipSync(files)], { type: 'application/zip' }), 'fm1-browser-banks.zip')
       setImportError('')
+      toast.success(t('toasts.banksDownloadStarted'))
     } catch (error) {
       setImportError(error instanceof Error ? error.message : t('banks.bulkExportFailed'))
     }
@@ -244,6 +272,7 @@ export function LibrarianPage({
                   setTransferStatus(sent
                     ? { kind: 'success', message: t('banks.sentStatus', { bank: destinationBank }) }
                     : { kind: 'error', message: t('banks.notSent') })
+                  if (sent) toast.success(t('banks.sentStatus', { bank: destinationBank }))
                 } finally {
                   setIsSending(false)
                 }
@@ -264,7 +293,7 @@ export function LibrarianPage({
             >
               <EllipsisVertical className="size-5" />
             </summary>
-            <div className="absolute right-0 top-full z-50 mt-1 min-w-60 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+            <div className="font-vt323 absolute right-0 top-full z-50 mt-1 min-w-60 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
               <button
                 className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                 disabled={library.loadedBanks.length === 0}
@@ -293,8 +322,11 @@ export function LibrarianPage({
         )}
         isBankLoaded={isDestinationBankLoaded}
         isPatchDisabled={(patch) => !library.loadedBanks.includes(patch.bank)}
-        onImportEmptyBank={() => importInputRef.current?.click()}
-        onLoadDemoBank={() => library.loadDemoBank(destinationBank)}
+        onImportEmptyBank={() => beginImport(destinationBank)}
+        onLoadDemoBank={() => {
+          library.loadDemoBank(destinationBank)
+          toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
+        }}
         onPatchEdit={onEditPatch}
         onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
         patches={visiblePatches}
@@ -333,7 +365,7 @@ export function LibrarianPage({
                           disabled={isImporting}
                           onClick={() => {
                             closeMenu()
-                            importInputRef.current?.click()
+                            beginImport(bank)
                           }}
                           type="button"
                         >
@@ -342,12 +374,12 @@ export function LibrarianPage({
                         </button>
                         <button
                           className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                          disabled={!isDestinationBankLoaded}
+                          disabled={!library.loadedBanks.includes(bank)}
                           onClick={() => {
                             closeMenu()
-                            downloadBank()
+                            downloadBank(bank)
                           }}
-                          title={isDestinationBankLoaded ? t('banks.downloadTitle', { bank: destinationBank }) : t('banks.importFirst', { bank: destinationBank })}
+                          title={library.loadedBanks.includes(bank) ? t('banks.downloadTitle', { bank }) : t('banks.importFirst', { bank })}
                           type="button"
                         >
                           <Download className="size-4" />
@@ -362,7 +394,7 @@ export function LibrarianPage({
                               setBankPendingDeletion({
                                 bank,
                                 name,
-                                nextBank: banks[index + 1] ?? banks[index - 1],
+                                nextBank: banks[index + 1] ? bank : banks[index - 1],
                               })
                               deleteWorkspaceBankDialogRef.current?.showModal()
                             }}
@@ -399,10 +431,13 @@ export function LibrarianPage({
               onChange={async (event) => {
                 const file = event.target.files?.[0]
                 if (!file) return
+                const importTarget = importTargetRef.current.consume()
+                if (!importTarget) return
                 setIsImporting(true)
                 try {
-                  await library.importBank(destinationBank, file)
+                  await library.importBank(importTarget, file)
                   setImportError('')
+                  toast.success(t('toasts.bankImported', { bank: bankDisplayName(importTarget) }))
                 } catch (error) {
                   setImportError(error instanceof Error ? error.message : t('banks.importFailed'))
                 } finally {
@@ -446,6 +481,12 @@ export function LibrarianPage({
         onCreated={setDestinationBank}
         suggestedName={defaultWorkspaceBankTitle(t, banks.length + 1)}
       />
+      <ImportDx7BankDialog
+        bank={bankPendingImport?.bank ?? null}
+        bankName={bankPendingImport?.name ?? ''}
+        dialogRef={importDx7BankDialogRef}
+        library={library}
+      />
       <MidiConnectionRequiredDialog dialogRef={midiConnectionRequiredDialogRef} />
       <DeleteWorkspaceBankDialog
         bankName={bankPendingDeletion?.name ?? ''}
@@ -454,12 +495,16 @@ export function LibrarianPage({
           if (!bankPendingDeletion) return
           setDestinationBank(bankPendingDeletion.nextBank)
           library.deleteBank(bankPendingDeletion.bank)
+          toast.success(t('toasts.bankDeleted', { bank: bankPendingDeletion.name }))
           setBankPendingDeletion(null)
         }}
       />
       <RestoreFactoryBanksDialog
         dialogRef={restoreFactoryBanksDialogRef}
-        onRestore={library.resetFactoryBanks}
+        onRestore={() => {
+          library.resetFactoryBanks()
+          toast.success(t('toasts.banksRestored'))
+        }}
       />
     </section>
   )

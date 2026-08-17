@@ -51,6 +51,7 @@ export function usePatchLibrary() {
   const [namedBanks, setNamedBanks] = useState<NamedBank[]>([])
   const [namedBanksError, setNamedBanksError] = useState('')
   const [namedBanksLoading, setNamedBanksLoading] = useState(true)
+  const [workspaceLoading, setWorkspaceLoading] = useState(true)
   const hydrated = useRef(false)
   const storageAvailable = useRef(true)
 
@@ -73,12 +74,14 @@ export function usePatchLibrary() {
           present: initializePatchLibrary(savedLibrary),
         })
         hydrated.current = true
+        setWorkspaceLoading(false)
       })
       .catch(() => {
         if (cancelled) return
         setHistory({ future: [], past: [], present: makeFactoryPatchLibrary() })
         hydrated.current = true
         storageAvailable.current = false
+        setWorkspaceLoading(false)
       })
     return () => { cancelled = true }
   }, [])
@@ -168,8 +171,8 @@ export function usePatchLibrary() {
     commit((current) => deleteWorkspaceBank(current, bank))
   }, [commit])
 
-  const addBank = useCallback((bank: string, name: string, voices?: Dx7Voice[]) => {
-    commit((current) => createWorkspaceBank(current, bank, name, voices))
+  const addBank = useCallback((bank: string, name: string, description: string, voices: Dx7Voice[]) => {
+    commit((current) => createWorkspaceBank(current, bank, name, description, voices))
   }, [commit])
 
   const resetFactoryBanks = useCallback(() => {
@@ -288,6 +291,7 @@ export function usePatchLibrary() {
     effects: history.present.effects,
     voices: history.present.voices,
     workspaceBanks: history.present.workspaceBanks,
+    workspaceLoading,
   }
 }
 

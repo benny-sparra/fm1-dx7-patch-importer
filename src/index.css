@@ -185,6 +185,10 @@
   background-color: color-mix(in srgb, var(--fm1-finish-tint) 20%, white);
 }
 
+.modal-surface .modal-input-surface {
+  background-color: color-mix(in srgb, var(--fm1-finish-tint) 20%, white);
+}
+
 @layer components {
   .font-dot-matrix {
     font-family: "Doto Variable", "SFMono-Regular", "Cascadia Mono", monospace;
