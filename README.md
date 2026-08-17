@@ -9,7 +9,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 ## Features
 
 - Start with Yamaha DX7 ROM 1A, ROM 1B, ROM 2A, and ROM 2B in browser banks A–D
-- Add named workspace banks E–Z from the bundled DX7 bank catalog or your own SysEx file, so every bank starts populated
+- Add up to six named workspace banks from the bundled DX7 bank catalog or your own SysEx file, so every bank starts populated
 - Give each workspace bank a title and description, shown when hovering over its tab
 - Restore the four factory banks at any time
 - Restore imported and edited banks automatically from IndexedDB browser storage
@@ -21,6 +21,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Edit four-stage envelopes graphically or with precise numeric controls
 - Edit the FM1's filter, reverb, delay, distortion, chorus, and phaser
 - Apply six sound-shaping presets as undoable starting points
+- Randomise a sound as an undoable starting point
 - Mute or solo operators temporarily while designing a sound
 - Open contextual help for voice, envelope, algorithm, and effect controls
 - Rename patches using DX7-compatible 10-character names
@@ -60,7 +61,7 @@ After the first successful connection, the app remembers the selected MIDI ports
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 
-To import another bank, choose **Import DX7 bank** and select a compatible `.syx` file. The arrow menu beside it also lets you download the current bank, download all loaded banks, or restore the four factory banks. If a bank is empty, you can load the built-in demo bank instead.
+To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. The same bank menu lets you download that bank. Use the menu in the patch-bank header to download all loaded banks or restore the four factory banks. If a bank is empty, you can load the built-in demo bank instead.
 
 The interface follows the browser language on first use when it is supported. Change it later in **Settings**; the selection is remembered. Settings also provides separate channels for notes/program changes and effects because the FM1 defaults its effects controls to MIDI channel 2.
 
