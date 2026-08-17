@@ -10,7 +10,8 @@ import {
   type NamedBank,
 } from '@/lib/named-bank'
 import {
-  clearLibraryBank,
+  createWorkspaceBank,
+  deleteWorkspaceBank,
   emptyPatchLibrary,
   getBankVoices as selectBankVoices,
   importVoices,
@@ -21,6 +22,8 @@ import {
   moveVoice as moveLibraryVoice,
   renameBank as renameLibraryBank,
   renameVoice as renameLibraryVoice,
+  restoreFactoryPatchLibrary,
+  updateBankInformation as updateLibraryBankInformation,
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
 import {
@@ -57,10 +60,12 @@ export function usePatchLibrary() {
       .then((stored) => {
         if (cancelled) return
         const savedLibrary = stored ? {
+          bankDescriptions: stored.bankDescriptions,
           bankNames: stored.bankNames,
           effects: stored.effects,
           loadedBanks: stored.loadedBanks,
           voices: stored.voices,
+          workspaceBanks: stored.workspaceBanks,
         } : null
         setHistory({
           future: [],
@@ -151,28 +156,24 @@ export function usePatchLibrary() {
     commit((current) => renameLibraryBank(current, bank, name))
   }, [commit])
 
+  const updateBankInformation = useCallback((bank: string, title: string, description: string) => {
+    commit((current) => updateLibraryBankInformation(current, bank, title, description))
+  }, [commit])
+
   const moveVoice = useCallback((bank: string, from: number, to: number) => {
     commit((current) => moveLibraryVoice(current, bank, from, to))
   }, [commit])
 
-  const clearBank = useCallback((bank: string) => {
-    commit((current) => clearLibraryBank(current, bank))
+  const deleteBank = useCallback((bank: string) => {
+    commit((current) => deleteWorkspaceBank(current, bank))
   }, [commit])
 
-  const clearAllBanks = useCallback(async () => {
-    const emptyLibrary = emptyPatchLibrary()
-    setHistory({ future: [], past: [], present: emptyLibrary })
-    try {
-      // Keep an explicit empty record so a deliberate clear is not mistaken for first use.
-      await saveStoredPatchLibrary(emptyLibrary)
-      storageAvailable.current = true
-    } catch {
-      storageAvailable.current = false
-    }
-  }, [])
+  const addBank = useCallback((bank: string, name: string, voices?: Dx7Voice[]) => {
+    commit((current) => createWorkspaceBank(current, bank, name, voices))
+  }, [commit])
 
   const resetFactoryBanks = useCallback(() => {
-    commit(() => makeFactoryPatchLibrary())
+    commit((current) => restoreFactoryPatchLibrary(current))
   }, [commit])
 
   const saveNamedBank = useCallback(async (
@@ -256,16 +257,17 @@ export function usePatchLibrary() {
   )
 
   return {
+    addBank,
     canRedo: history.future.length > 0,
     canUndo: history.past.length > 0,
-    clearAllBanks,
-    clearBank,
     copyNamedBank,
     deleteNamedBank,
+    deleteBank,
     getBankVoices,
     importBank,
     loadDemoBank,
     loadSavedBank,
+    bankDescriptions: history.present.bankDescriptions,
     bankNames: history.present.bankNames,
     loadedBanks: history.present.loadedBanks,
     moveVoice,
@@ -280,10 +282,12 @@ export function usePatchLibrary() {
     saveNamedBank,
     undo,
     updatePatch,
+    updateBankInformation,
     updateNamedBankDetails,
     updateVoice,
     effects: history.present.effects,
     voices: history.present.voices,
+    workspaceBanks: history.present.workspaceBanks,
   }
 }
 

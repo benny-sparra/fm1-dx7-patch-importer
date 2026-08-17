@@ -67,7 +67,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               </div>
               {!compact ? (
                 <div className="font-vt323 mt-3 text-lg leading-6 text-white/65">
-                  {t('root.intro')}{' '}<Dx7BankSourcesDialog /> {t('root.sourcesSuffix')}
+                  {t('root.intro')}{' '}<Dx7BankSourcesDialog />
                 </div>
               ) : null}
 

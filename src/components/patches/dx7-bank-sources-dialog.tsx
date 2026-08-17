@@ -1,8 +1,8 @@
-import { ExternalLink, Library, X } from 'lucide-react'
+import { ExternalLink, Library } from 'lucide-react'
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
+import { Dialog, DialogCloseButton, DialogHeader } from '@/components/ui/dialog'
 
 const bankSources = [
   {
@@ -41,15 +41,12 @@ export function Dx7BankSourcesDialog() {
         {t('dialogs.sourcesOpen')}
       </button>
 
-      <dialog
+      <Dialog
         aria-labelledby="dx7-bank-sources-title"
-        className="fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] w-[min(560px,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-primary/30 bg-white p-0 text-card-foreground shadow-2xl"
-        onClick={(event) => {
-          if (event.target === event.currentTarget) event.currentTarget.close()
-        }}
         ref={dialogRef}
+        size="lg"
       >
-        <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
+        <DialogHeader>
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold" id="dx7-bank-sources-title">
               <Library className="size-5 text-primary" />
@@ -59,16 +56,11 @@ export function Dx7BankSourcesDialog() {
               {t('dialogs.sourcesIntro')}
             </p>
           </div>
-          <Button
-            aria-label={t('dialogs.sourcesClose')}
-            className="shrink-0"
+          <DialogCloseButton
+            label={t('dialogs.sourcesClose')}
             onClick={() => dialogRef.current?.close()}
-            size="icon"
-            variant="ghost"
-          >
-            <X />
-          </Button>
-        </div>
+          />
+        </DialogHeader>
 
         <ul className="grid gap-3 p-5">
           {bankSources.map((source) => (
@@ -96,7 +88,7 @@ export function Dx7BankSourcesDialog() {
         <p className="border-t bg-muted/40 px-5 py-3 text-xs leading-5 text-muted-foreground">
           {t('dialogs.sourcesSafety')}
         </p>
-      </dialog>
+      </Dialog>
     </>
   )
 }

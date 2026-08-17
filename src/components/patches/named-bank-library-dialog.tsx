@@ -1,8 +1,9 @@
 import { Copy, Database, Download, FolderOpen, Pencil, Save, Trash2 } from 'lucide-react'
-import { type SVGProps, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogCloseButton, DialogHeader } from '@/components/ui/dialog'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import {
   makeNamedBankSysexFile,
@@ -13,17 +14,7 @@ import {
 type NamedBankLibraryDialogProps = {
   destinationBank: string
   library: PatchLibrary
-}
-
-function PixelCloseIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg aria-hidden="true" fill="none" viewBox="0 0 18 18" {...props}>
-      <path
-        d="M2 2h4v4h2v2h2V6h2V2h4v4h-2v2h-2v2h2v2h2v4h-4v-4h-2v-2H8v2H6v4H2v-4h2v-2h2V8H4V6H2V2Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
+  onClose?: () => void
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -38,6 +29,7 @@ function downloadBlob(blob: Blob, filename: string) {
 function SaveNamedBankDialog({
   destinationBank,
   library,
+  onClose,
 }: NamedBankLibraryDialogProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -56,8 +48,8 @@ function SaveNamedBankDialog({
 
   return (
     <>
-      <Button
-        className="h-full rounded-l-[calc(var(--radius-md)-1px)] rounded-r-none border-0 bg-transparent px-4 font-medium hover:bg-primary/15"
+      <button
+        className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
         disabled={!currentBankLoaded}
         onClick={() => {
           setName(library.bankNames[destinationBank] ?? '')
@@ -69,26 +61,26 @@ function SaveNamedBankDialog({
         }}
         title={currentBankLoaded ? undefined : t('banks.importFirst', { bank: destinationBank })}
         type="button"
-        variant="outline"
       >
-        <Save />
+        <Save className="size-4" />
         {t('namedBanks.save')}
-      </Button>
+      </button>
 
-      <dialog
+      <Dialog
         aria-describedby="save-named-bank-description"
         aria-labelledby="save-named-bank-title"
-        className="fixed inset-0 z-50 m-auto w-[min(620px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl"
+        closeOnBackdrop={!working}
         onCancel={(event) => {
           if (working) event.preventDefault()
         }}
-        onClick={(event) => {
-          if (!working && event.target === event.currentTarget) event.currentTarget.close()
+        onClose={() => {
+          reset()
+          onClose?.()
         }}
-        onClose={reset}
         ref={dialogRef}
+        size="xl"
       >
-        <div className="flex items-start justify-between gap-4 border-b bg-card px-5 py-4">
+        <DialogHeader>
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold" id="save-named-bank-title">
               <Save className="size-5 text-primary" />
@@ -98,18 +90,12 @@ function SaveNamedBankDialog({
               {t('namedBanks.snapshotHelp')}
             </p>
           </div>
-          <Button
-            aria-label={t('common.close')}
-            className="shrink-0"
+          <DialogCloseButton
             disabled={working}
+            label={t('common.close')}
             onClick={() => dialogRef.current?.close()}
-            size="icon"
-            type="button"
-            variant="ghost"
-          >
-            <PixelCloseIcon className="!size-5" />
-          </Button>
-        </div>
+          />
+        </DialogHeader>
 
         <form
           className="grid gap-4 p-5"
@@ -156,16 +142,13 @@ function SaveNamedBankDialog({
             </p>
           ) : null}
           <div className="flex flex-wrap justify-end gap-2">
-            <Button disabled={working} onClick={() => dialogRef.current?.close()} type="button" variant="outline">
-              {t('common.cancel')}
-            </Button>
             <Button disabled={working} type="submit">
               <Save />
               {t('namedBanks.save')}
             </Button>
           </div>
         </form>
-      </dialog>
+      </Dialog>
     </>
   )
 }
@@ -173,6 +156,7 @@ function SaveNamedBankDialog({
 function LoadNamedBankDialog({
   destinationBank,
   library,
+  onClose,
 }: NamedBankLibraryDialogProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -232,29 +216,28 @@ function LoadNamedBankDialog({
 
   return (
     <>
-      <Button
-        className="h-full rounded-none border-0 border-l border-input bg-transparent px-4 font-medium hover:bg-primary/15"
+      <button
+        className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
         onClick={() => {
           dialogRef.current?.showModal()
           window.requestAnimationFrame(() => searchRef.current?.focus())
         }}
         type="button"
-        variant="outline"
       >
-        <Database />
+        <Database className="size-4" />
         {t('namedBanks.loadBank')}
-      </Button>
+      </button>
 
-      <dialog
+      <Dialog
         aria-labelledby="named-bank-library-title"
-        className="fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] w-[min(760px,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl"
-        onClick={(event) => {
-          if (event.target === event.currentTarget) event.currentTarget.close()
+        onClose={() => {
+          reset()
+          onClose?.()
         }}
-        onClose={reset}
         ref={dialogRef}
+        size="3xl"
       >
-        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b bg-card px-5 py-4">
+        <DialogHeader className="sticky top-0 z-10">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold" id="named-bank-library-title">
               <Database className="size-5 text-primary" />
@@ -264,17 +247,11 @@ function LoadNamedBankDialog({
               {t('namedBanks.intro', { bank: destinationBank })}
             </p>
           </div>
-          <Button
-            aria-label={t('common.close')}
-            className="shrink-0"
+          <DialogCloseButton
+            label={t('common.close')}
             onClick={() => dialogRef.current?.close()}
-            size="icon"
-            type="button"
-            variant="ghost"
-          >
-            <PixelCloseIcon className="!size-5" />
-          </Button>
-        </div>
+          />
+        </DialogHeader>
 
         <div className="grid gap-5 p-5">
           {editingId ? (
@@ -460,7 +437,7 @@ function LoadNamedBankDialog({
             <p aria-live="polite" className="text-sm text-emerald-700" role="status">{status}</p>
           ) : null}
         </div>
-      </dialog>
+      </Dialog>
     </>
   )
 }

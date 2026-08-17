@@ -1,21 +1,11 @@
 import { CircleHelp, Library, PlugZap, Send, SlidersHorizontal } from 'lucide-react'
-import { type SVGProps, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogCloseButton, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 
 const HELP_SEEN_KEY = 'fm1-librarian-help-seen'
-
-function PixelCloseIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg aria-hidden="true" fill="none" viewBox="0 0 18 18" {...props}>
-      <path
-        d="M2 2h4v4h2v2h2V6h2V2h4v4h-2v2h-2v2h2v2h2v4h-4v-4h-2v-2H8v2H6v4H2v-4h2v-2h2V8H4V6H2V2Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
 
 const steps = [
   {
@@ -78,16 +68,13 @@ export function HelpDialog() {
         <CircleHelp className="!size-7" />
       </Button>
 
-      <dialog
+      <Dialog
         aria-labelledby="help-dialog-title"
-        className="fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] w-[min(760px,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-primary/30 bg-white p-0 text-card-foreground shadow-2xl"
-        onClick={(event) => {
-          if (event.target === event.currentTarget) closeDialog()
-        }}
         onClose={rememberHelpWasSeen}
         ref={dialogRef}
+        size="3xl"
       >
-        <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
+        <DialogHeader>
           <div className="flex gap-3">
             <CircleHelp className="mt-0.5 size-6 shrink-0 text-primary" />
             <div>
@@ -99,17 +86,11 @@ export function HelpDialog() {
               </p>
             </div>
           </div>
-          <Button
-            aria-label={t('help.close')}
-            className="shrink-0"
+          <DialogCloseButton
+            label={t('help.close')}
             onClick={closeDialog}
-            size="icon"
-            type="button"
-            variant="ghost"
-          >
-            <PixelCloseIcon className="!size-5" />
-          </Button>
-        </div>
+          />
+        </DialogHeader>
 
         <p className="mx-5 mt-5 rounded-lg border border-primary/30 bg-primary/10 p-4 text-sm leading-6">
           <span className="font-semibold">{t('help.truthTitle')}</span>{' '}{t('help.truthBody')}
@@ -132,12 +113,12 @@ export function HelpDialog() {
           ))}
         </ol>
 
-        <div className="flex justify-end border-t bg-muted/40 px-5 py-4">
+        <DialogFooter>
           <Button className="shrink-0" onClick={closeDialog} type="button">
             {t('help.start')}
           </Button>
-        </div>
-      </dialog>
+        </DialogFooter>
+      </Dialog>
     </>
   )
 }

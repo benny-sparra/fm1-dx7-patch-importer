@@ -29,4 +29,12 @@ describe('translation resources', () => {
     expect(chinese.effectHelp.Reverb).toBe('加入模拟空间反射，让声音具有空间感和距离感。')
     expect(chinese.effectParameterHelp['Filter Cutoff']).toBe('设置滤波开始作用的频率。听感上的变化方向取决于所选滤波器类型。')
   })
+
+  it('provides localized text for saved-bank dialogs', () => {
+    expect(resources.fr.translation.namedBanks.title).toBe('Mes banques enregistrées')
+    expect(resources.es.translation.namedBanks.save).toBe('Guardar banco')
+    expect(resources.de.translation.namedBanks.loadBank).toBe('Bank laden')
+    expect(resources['pt-BR'].translation.namedBanks.deleteAction).toBe('Excluir banco')
+    expect(resources['zh-Hans'].translation.namedBanks.search).toBe('搜索已保存的音色库')
+  })
 })

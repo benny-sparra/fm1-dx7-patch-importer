@@ -8,10 +8,10 @@ import fm1Keyboard from '@/assets/fm1-keyboard.webp'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
 
 import { PatchButton } from './patch-button'
@@ -19,11 +19,11 @@ import { PatchButton } from './patch-button'
 type PatchGridProps = {
   activePatchId?: string
   actions?: ReactNode
+  headerActions?: ReactNode
   isBankLoaded?: boolean
   isPatchDisabled?: (patch: Patch) => boolean
   onPatchMove: (patch: Patch, target: Patch) => void
   onPatchEdit?: (patch: Patch) => void
-  onPatchSend?: (patch: Patch) => void
   onImportEmptyBank?: () => void
   onLoadDemoBank?: () => void
   patches: Patch[]
@@ -48,11 +48,11 @@ function PixelBankIcon(props: SVGProps<SVGSVGElement>) {
 export function PatchGrid({
   activePatchId = '',
   actions,
+  headerActions,
   isBankLoaded = true,
   isPatchDisabled = () => false,
   onPatchMove,
   onPatchEdit,
-  onPatchSend,
   onImportEmptyBank,
   onLoadDemoBank,
   patches,
@@ -76,24 +76,29 @@ export function PatchGrid({
 
   return (
     <Card className="synthwave-panel overflow-hidden border-primary/25 bg-card/95 backdrop-blur-sm">
-      <CardHeader className="patch-area-surface gap-5 pb-3">
-        <div>
+      <CardHeader className="patch-area-surface pb-3">
+        <div className="flex items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2 text-2xl font-bold tracking-wide text-black">
             <PixelBankIcon aria-hidden="true" className="size-5 shrink-0 text-black" />
             {t('banks.gridTitle')}
+            <HelpPopover
+              className="text-black/70 hover:text-black"
+              label={t('banks.gridTitle')}
+              text={t('banks.gridDescription')}
+            />
           </CardTitle>
-          <CardDescription className="font-vt323 text-lg leading-relaxed text-black">
-            {t('banks.gridDescription')}
-          </CardDescription>
+          {headerActions ? <div className="shrink-0">{headerActions}</div> : null}
         </div>
-        <div className="flex w-full flex-col gap-3">
-          {toolbar}
-          <div className="font-vt323 flex flex-col gap-2 md:flex-row md:items-center">
+      </CardHeader>
+      <div className="patch-area-surface flex min-w-0 items-stretch">
+        {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
+        <div className="min-w-0 flex-1">
+          <div className="font-vt323 flex flex-col gap-2 bg-primary p-3 sm:p-4 md:flex-row md:items-center">
             {actions ? <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div> : null}
-            <label className="relative block w-full md:ml-auto md:w-56 md:flex-none xl:w-[calc(40%-0.3rem)]">
+            <label className="relative block w-full sm:ml-auto sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-[calc(25%-0.375rem)]">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
-                className="h-10 w-full rounded-md border bg-secondary pl-9 pr-3 text-sm text-secondary-foreground outline-none ring-ring transition placeholder:text-secondary-foreground/60 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="patch-search-input h-10 w-full rounded-md border bg-white pl-9 pr-3 text-sm text-secondary-foreground outline-none ring-ring transition placeholder:text-secondary-foreground/60 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={searchDisabled}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={t('banks.search')}
@@ -101,20 +106,18 @@ export function PatchGrid({
               />
             </label>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="patch-area-surface relative isolate space-y-4 overflow-hidden pb-6 pt-0">
-        <img
-          alt=""
-          aria-hidden="true"
-          className="patch-area-image pointer-events-none absolute inset-0 z-0 size-full object-contain object-center opacity-50"
-          src={fm1Keyboard}
-        />
-        <div className="relative z-10">
+          <CardContent className="relative isolate space-y-4 overflow-hidden bg-primary px-3 pb-3 pt-0 sm:px-4 sm:pb-4">
+            <img
+              alt=""
+              aria-hidden="true"
+              className="patch-area-image pointer-events-none absolute inset-0 z-0 size-full object-contain object-center opacity-50"
+              src={fm1Keyboard}
+            />
+            <div className="relative z-10">
         {patches.length > 0 ? (
           <DndContext collisionDetection={closestCenter} onDragEnd={finishReorder} sensors={sensors}>
           <SortableContext items={patches.map((patch) => patch.id)} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
               {patches.map((patch) => (
                 <div
                   className="h-full w-full"
@@ -124,7 +127,6 @@ export function PatchGrid({
                     disabled={isPatchDisabled(patch)}
                     disabledTitle={t('banks.importFirst', { bank: patch.bank })}
                     onEdit={onPatchEdit}
-                    onSend={onPatchSend}
                     patch={patch}
                     isActive={patch.id === activePatchId}
                   />
@@ -166,8 +168,10 @@ export function PatchGrid({
             </div>
           </div>
         )}
+            </div>
+          </CardContent>
         </div>
-      </CardContent>
+      </div>
     </Card>
   )
 }

@@ -1,6 +1,6 @@
 import { useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Send } from 'lucide-react'
+import { GripVertical } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { type Patch } from '@/data/patches'
@@ -11,7 +11,6 @@ type PatchButtonProps = {
   disabledTitle?: string
   isActive?: boolean
   onEdit?: (patch: Patch) => void
-  onSend?: (patch: Patch) => void
   patch: Patch
 }
 
@@ -22,7 +21,6 @@ export function PatchButton({
   disabledTitle,
   isActive = false,
   onEdit,
-  onSend,
   patch,
 }: PatchButtonProps) {
   const { t } = useTranslation()
@@ -54,26 +52,13 @@ export function PatchButton({
             type="button"
           />
         ) : null}
-        <div className="pointer-events-none grid h-full min-h-16 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-1 p-2 pl-9 text-left">
+        <div className="pointer-events-none grid h-full min-h-16 grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-1 p-2 pl-9 text-left">
           <span className="patch-slot font-dot-matrix flex size-11 items-center justify-center rounded-md border border-primary/15 bg-muted/70 text-sm font-bold text-[var(--hero-accent)] shadow-inner backdrop-blur-sm">
             {patch.bank}{patch.number.toString().padStart(2, '0')}
           </span>
           <span className="patch-name font-dot-matrix min-w-0 truncate whitespace-pre text-sm font-bold text-white">
             {patch.name}
           </span>
-          {!disabled ? (
-            <span className="pointer-events-auto relative z-[1] flex">
-              <button
-                aria-label={t('banks.sendPatch', { name: patch.name })}
-                className="patch-send-button rounded-md border border-current/35 bg-background/85 p-1.5 text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                onClick={() => onSend?.(patch)}
-                title={t('banks.sendPatchTitle')}
-                type="button"
-              >
-                <Send className="size-4" />
-              </button>
-            </span>
-          ) : null}
           {isActive ? (
             <span className="pointer-events-none absolute right-2 top-1 rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-white">
               {t('banks.auditioning')}

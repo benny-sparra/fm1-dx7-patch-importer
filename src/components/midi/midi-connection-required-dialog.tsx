@@ -1,8 +1,9 @@
-import { Cable, X } from 'lucide-react'
+import { Cable } from 'lucide-react'
 import { type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogCloseButton, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 
 type MidiConnectionRequiredDialogProps = {
   dialogRef: RefObject<HTMLDialogElement | null>
@@ -13,15 +14,12 @@ export function MidiConnectionRequiredDialog({ dialogRef }: MidiConnectionRequir
   const closeDialog = () => dialogRef.current?.close()
 
   return (
-    <dialog
+    <Dialog
       aria-labelledby="midi-connection-required-title"
-      className="fixed inset-0 z-50 m-auto w-[min(480px,calc(100vw-2rem))] rounded-lg border border-primary/30 bg-white p-0 text-card-foreground shadow-2xl"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) closeDialog()
-      }}
       ref={dialogRef}
+      size="sm"
     >
-      <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
+      <DialogHeader>
         <div className="flex gap-3">
           <Cable className="mt-0.5 size-6 shrink-0 text-primary" />
           <div>
@@ -33,27 +31,21 @@ export function MidiConnectionRequiredDialog({ dialogRef }: MidiConnectionRequir
             </p>
           </div>
         </div>
-        <Button
-          aria-label={t('dialogs.midiClose')}
-          className="shrink-0"
+        <DialogCloseButton
+          label={t('dialogs.midiClose')}
           onClick={closeDialog}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          <X />
-        </Button>
-      </div>
+        />
+      </DialogHeader>
 
       <div className="grid gap-3 px-5 py-4 text-sm leading-5">
         <p>{t('dialogs.midiSteps')}</p>
       </div>
 
-      <div className="flex justify-end border-t bg-muted/40 px-5 py-4">
+      <DialogFooter>
         <Button autoFocus onClick={closeDialog} type="button">
           {t('common.close')}
         </Button>
-      </div>
-    </dialog>
+      </DialogFooter>
+    </Dialog>
   )
 }

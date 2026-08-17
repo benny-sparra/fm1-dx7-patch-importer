@@ -25,6 +25,7 @@ import { EffectsUnit } from '@/components/editor/effects-unit'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
@@ -940,7 +941,7 @@ export function PatchEditorPage({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="ml-auto flex items-center gap-1.5">
             <Button
               aria-label={t('editor.undo')}
               disabled={history.past.length === 0}
@@ -948,7 +949,7 @@ export function PatchEditorPage({
               size="icon"
               title={t('editor.undo')}
               type="button"
-              variant="ghost"
+              variant="outline"
             >
               <Undo2 />
             </Button>
@@ -959,13 +960,10 @@ export function PatchEditorPage({
               size="icon"
               title={t('editor.redo')}
               type="button"
-              variant="ghost"
+              variant="outline"
             >
               <Redo2 />
             </Button>
-          </div>
-
-          <div className="ml-auto flex items-center gap-1.5">
             <details className="group static sm:relative" ref={presetsMenuRef}>
               <summary
                 aria-label={t('editor.presets')}
@@ -1394,7 +1392,7 @@ export function PatchEditorPage({
 
               <section
                 aria-labelledby="operator-oscillator-tab"
-                className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] p-4 transition-colors"
+                className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-white p-4 transition-colors"
                 hidden={operatorPanelTab !== 'oscillator'}
                 id="operator-oscillator-panel"
                 role="tabpanel"
@@ -1447,7 +1445,7 @@ export function PatchEditorPage({
 
               <section
                 aria-labelledby="operator-scaling-tab"
-                className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] p-4 transition-colors"
+                className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-white p-4 transition-colors"
                 hidden={operatorPanelTab !== 'scaling'}
                 id="operator-scaling-panel"
                 role="tabpanel"
@@ -1480,19 +1478,20 @@ export function PatchEditorPage({
         </div>
       </div>
 
-      <dialog
+      <Dialog
         aria-labelledby="unsaved-editor-title"
-        className="fixed inset-0 z-50 m-auto w-[min(640px,calc(100vw-2rem))] rounded-lg border border-primary/30 bg-white p-0 text-card-foreground shadow-2xl backdrop:bg-black/55"
+        closeOnBackdrop={false}
         onClose={() => setIsNavigationPending(false)}
         ref={unsavedDialogRef}
+        size="2xl"
       >
-        <div className="border-b px-5 py-4">
+        <DialogHeader className="block">
           <h2 className="text-lg font-bold" id="unsaved-editor-title">{t('editor.unsavedTitle')}</h2>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
             {t('ui.unsavedBody')}
           </p>
-        </div>
-        <div className="flex flex-col-reverse gap-2 px-5 py-4 sm:flex-row sm:justify-end">
+        </DialogHeader>
+        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end">
           <Button
             className="sm:h-auto sm:min-h-10 sm:min-w-0 sm:flex-1 sm:shrink sm:whitespace-normal"
             disabled={isResolvingNavigation}
@@ -1519,8 +1518,8 @@ export function PatchEditorPage({
           >
             {t('editor.saveAndReturn')}
           </Button>
-        </div>
-      </dialog>
+        </DialogFooter>
+      </Dialog>
 
     </section>
   )

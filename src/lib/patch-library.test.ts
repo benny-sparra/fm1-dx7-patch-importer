@@ -1,22 +1,141 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  addWorkspaceBank,
+  clearLibraryBank,
+  createWorkspaceBank,
+  deleteWorkspaceBank,
   emptyPatchLibrary,
+  getNextWorkspaceBank,
   getBankVoices,
   initializePatchLibrary,
   importVoices,
   makeBankFingerprint,
   makeDemoVoices,
   makeFactoryPatchLibrary,
+  makePatches,
   moveVoice,
   normalizeWorkspaceBankNameForSave,
   renameBank,
   renameVoice,
+  restoreFactoryPatchLibrary,
+  updateBankInformation,
   voiceId,
 } from '@/lib/patch-library'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 
 describe('patch library operations', () => {
+  it('starts every workspace with the four DX7 banks', () => {
+    expect(emptyPatchLibrary().workspaceBanks).toEqual(['A', 'B', 'C', 'D'])
+  })
+
+  it('adds the next empty workspace bank once', () => {
+    const initial = emptyPatchLibrary()
+    const added = addWorkspaceBank(initial, 'E')
+
+    expect(added.workspaceBanks).toEqual(['A', 'B', 'C', 'D', 'E'])
+    expect(added.loadedBanks).toEqual([])
+    expect(addWorkspaceBank(added, 'E')).toBe(added)
+  })
+
+  it('creates a named empty workspace bank', () => {
+    const created = createWorkspaceBank(emptyPatchLibrary(), 'E', '  My fifth bank  ')
+
+    expect(created.workspaceBanks).toEqual(['A', 'B', 'C', 'D', 'E'])
+    expect(created.bankNames.E).toBe('My fifth b')
+    expect(created.loadedBanks).toEqual([])
+  })
+
+  it('creates and names a workspace bank from imported voices atomically', () => {
+    const created = createWorkspaceBank(
+      emptyPatchLibrary(),
+      'E',
+      'Imported favourites',
+      makeDemoVoices(),
+    )
+
+    expect(created.bankNames.E).toBe('Imported f')
+    expect(created.loadedBanks).toEqual(['E'])
+    expect(getBankVoices(created, 'E')).toHaveLength(32)
+  })
+
+  it('rejects invalid new-bank details without changing the source snapshot', () => {
+    const initial = emptyPatchLibrary()
+
+    expect(() => createWorkspaceBank(initial, 'E', '   ')).toThrow('name')
+    expect(() => createWorkspaceBank(initial, 'E', 'Incomplete', makeDemoVoices().slice(0, 31)))
+      .toThrow('exactly 32')
+    expect(initial).toEqual(emptyPatchLibrary())
+  })
+
+  it('deletes a workspace bank and all of its stored data', () => {
+    const populated = updateBankInformation(createWorkspaceBank(
+      emptyPatchLibrary(),
+      'E',
+      'Live set',
+      makeDemoVoices(),
+    ), 'E', 'Live set', 'Friday performance')
+    const deleted = deleteWorkspaceBank(populated, 'E')
+
+    expect(deleted.workspaceBanks).toEqual(['A', 'B', 'C', 'D'])
+    expect(deleted.bankNames.E).toBeUndefined()
+    expect(deleted.bankDescriptions.E).toBeUndefined()
+    expect(deleted.loadedBanks).toEqual([])
+    expect(getBankVoices(deleted, 'E')).toEqual([])
+  })
+
+  it('keeps the sole remaining workspace bank', () => {
+    const soleBank = emptyPatchLibrary(['A'])
+
+    expect(deleteWorkspaceBank(soleBank, 'A')).toBe(soleBank)
+    expect(deleteWorkspaceBank(soleBank, 'Z')).toBe(soleBank)
+  })
+
+  it('stops adding workspace banks after 10', () => {
+    const full = Array.from({ length: 6 }, (_, index) => String.fromCharCode(69 + index))
+      .reduce((snapshot, bank) => addWorkspaceBank(snapshot, bank), emptyPatchLibrary())
+
+    expect(full.workspaceBanks).toHaveLength(10)
+    expect(getNextWorkspaceBank(full.workspaceBanks)).toBeNull()
+    expect(addWorkspaceBank(full, 'K')).toBe(full)
+    expect(() => createWorkspaceBank(full, 'K', 'Eleventh')).toThrow('no longer available')
+  })
+
+  it('uses the first free bank ID while enforcing the total bank limit', () => {
+    const withGapAtLimit = emptyPatchLibrary(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K'])
+    const withGapBelowLimit = emptyPatchLibrary(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'K'])
+
+    expect(getNextWorkspaceBank(withGapAtLimit.workspaceBanks)).toBeNull()
+    expect(getNextWorkspaceBank(withGapBelowLimit.workspaceBanks)).toBe('I')
+  })
+
+  it('creates patch slots for added banks without invalid MIDI programs', () => {
+    const added = addWorkspaceBank(emptyPatchLibrary(), 'E')
+    const patches = makePatches(added).filter((patch) => patch.bank === 'E')
+
+    expect(patches).toHaveLength(32)
+    expect(patches[0]).toMatchObject({ bank: 'E', number: 1, program: 0 })
+    expect(patches[31]).toMatchObject({ bank: 'E', number: 32, program: 31 })
+  })
+
+  it('imports voices into a newly added workspace bank', () => {
+    const added = addWorkspaceBank(emptyPatchLibrary(), 'E')
+    const imported = importVoices(added, 'E', makeDemoVoices())
+
+    expect(imported.loadedBanks).toEqual(['E'])
+    expect(getBankVoices(imported, 'E')).toHaveLength(32)
+  })
+
+  it('restores the four factory banks without removing added banks', () => {
+    const added = addWorkspaceBank(emptyPatchLibrary(), 'E')
+    const imported = importVoices(added, 'E', makeDemoVoices())
+    const restored = restoreFactoryPatchLibrary(imported)
+
+    expect(restored.workspaceBanks).toEqual(['A', 'B', 'C', 'D', 'E'])
+    expect(restored.loadedBanks).toEqual(['A', 'B', 'C', 'D', 'E'])
+    expect(getBankVoices(restored, 'E')[0].name).toBe('E.PIANO1')
+  })
+
   it('maps the first four Yamaha factory ROM banks to browser banks A through D', () => {
     const result = makeFactoryPatchLibrary()
 
@@ -56,19 +175,48 @@ describe('patch library operations', () => {
     const renamed = renameBank(initial, 'A', '  Saturday set  ')
     const reset = renameBank(renamed, 'A', '   ')
 
-    expect(renamed.bankNames.A).toBe('Saturday set')
+    expect(renamed.bankNames.A).toBe('Saturday s')
     expect(reset.bankNames.A).toBeUndefined()
   })
 
-  it('rejects invalid workspace banks and limits stored names to 80 characters', () => {
+  it('stores normalized workspace bank titles and descriptions', () => {
+    const updated = updateBankInformation(
+      emptyPatchLibrary(),
+      'A',
+      `  ${'x'.repeat(90)}  `,
+      `  ${'y'.repeat(510)}  `,
+    )
+
+    expect(updated.bankNames.A).toBe('xxxxxxxxxx')
+    expect(updated.bankDescriptions.A).toHaveLength(500)
+    expect(() => updateBankInformation(updated, 'A', '   ', 'Description')).toThrow('title')
+    expect(updateBankInformation(updated, 'Z', 'Wrong', 'Wrong')).toBe(updated)
+  })
+
+  it('preserves bank information when sounds are imported or cleared', () => {
+    const described = updateBankInformation(
+      emptyPatchLibrary(),
+      'A',
+      'Live set',
+      'Friday performance',
+    )
+    const imported = importVoices(described, 'A', makeDemoVoices())
+    const cleared = clearLibraryBank(imported, 'A')
+
+    expect(cleared.bankNames.A).toBe('Live set')
+    expect(cleared.bankDescriptions.A).toBe('Friday performance')
+  })
+
+  it('rejects invalid workspace banks and limits stored names to 10 characters', () => {
     const initial = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
 
     expect(renameBank(initial, 'Z', 'Wrong')).toBe(initial)
-    expect(renameBank(initial, 'A', 'x'.repeat(90)).bankNames.A).toHaveLength(80)
+    expect(renameBank(initial, 'A', 'x'.repeat(90)).bankNames.A).toHaveLength(10)
   })
 
   it('only prepares non-empty workspace bank names for saving', () => {
-    expect(normalizeWorkspaceBankNameForSave('  Saturday set  ')).toBe('Saturday set')
+    expect(normalizeWorkspaceBankNameForSave('  Live set  ')).toBe('Live set')
+    expect(normalizeWorkspaceBankNameForSave('ABCDEFGHIJKLM')).toBe('ABCDEFGHIJ')
     expect(normalizeWorkspaceBankNameForSave('   ')).toBeNull()
   })
 

@@ -1,23 +1,25 @@
 import {
   Archive,
-  ChevronDown,
   Download,
-  Pencil,
+  EllipsisVertical,
+  Plus,
   RotateCcw,
   Send,
   Trash2,
   Upload,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PatchGrid } from '@/components/patches/patch-grid'
-import { NamedBankLibraryDialog } from '@/components/patches/named-bank-library-dialog'
+import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
+import { BankInformationDialog } from '@/components/patches/bank-information-dialog'
+import { DeleteWorkspaceBankDialog } from '@/components/patches/delete-workspace-bank-dialog'
 import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
 import { makeDx7BankFile } from '@/lib/dx7'
-import { normalizeWorkspaceBankNameForSave } from '@/lib/patch-library'
+import { getNextWorkspaceBank } from '@/lib/patch-library'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { cn } from '@/lib/utils'
 import { type MidiController } from '@/hooks/use-midi'
@@ -25,118 +27,90 @@ import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { type Patch } from '@/data/patches'
 
-const banks = ['A', 'B', 'C', 'D']
 type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
+
+function defaultWorkspaceBankTitle(
+  t: ReturnType<typeof useTranslation>['t'],
+  bankNumber: number,
+) {
+  return t(bankNumber < 10 ? 'banks.bank' : 'banks.bankShort', { bank: bankNumber })
+}
 
 type WorkspaceBankTabProps = {
   bank: string
+  description: string
   index: number
   name: string
-  onRename: (name: string) => void
   onSelect: () => void
   onSelectFromKeyboard: (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => void
+  renderMenu: (closeMenu: () => void) => ReactNode
   selected: boolean
 }
 
 function WorkspaceBankTab({
   bank,
+  description,
   index,
   name,
-  onRename,
   onSelect,
   onSelectFromKeyboard,
+  renderMenu,
   selected,
 }: WorkspaceBankTabProps) {
   const { t } = useTranslation()
-  const defaultName = t('banks.bank', { bank: index + 1 })
+  const defaultName = defaultWorkspaceBankTitle(t, index + 1)
   const displayName = name || defaultName
-  const [draftName, setDraftName] = useState(name)
-  const [isEditing, setIsEditing] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const menuRef = useDismissableDetails()
+  const closeMenu = () => menuRef.current?.removeAttribute('open')
 
   useEffect(() => {
-    if (!selected) setIsEditing(false)
-  }, [selected])
-
-  useEffect(() => {
-    if (!isEditing) return
-    inputRef.current?.focus()
-    inputRef.current?.select()
-  }, [isEditing])
+    if (selected) return
+    menuRef.current?.removeAttribute('open')
+  }, [menuRef, selected])
 
   return (
     <div
       className={cn(
-        'relative -mb-px flex min-w-24 flex-1 items-center gap-1 whitespace-nowrap border-b-2 px-2 py-2 transition-colors',
+        'relative -mr-px flex w-full items-center gap-1 whitespace-nowrap border-y border-l-4 border-r px-2 py-2 transition-colors',
         selected
-          ? 'bank-tab-active border-primary bg-primary text-primary-foreground'
-          : 'border-transparent text-foreground/80 hover:border-border hover:bg-muted/60 hover:text-foreground',
+          ? 'bank-tab-active z-10 border-primary bg-primary text-primary-foreground shadow-sm'
+          : 'border-transparent text-foreground/80 hover:border-y-border hover:border-l-border hover:bg-muted/60 hover:text-foreground',
       )}
       role="presentation"
     >
       <button
         aria-selected={selected}
-        className={cn(
-          'flex cursor-pointer items-center gap-2 text-left focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
-          isEditing ? 'shrink-0' : 'min-w-0 flex-1',
-        )}
+        className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         id={`bank-tab-${bank}`}
         onClick={onSelect}
         onKeyDown={(event) => onSelectFromKeyboard(event, index)}
         role="tab"
         tabIndex={selected ? 0 : -1}
-        title={displayName}
+        title={description || displayName}
         type="button"
       >
         <span className="font-vt323 grid size-8 shrink-0 place-items-center rounded border border-current/50 text-base font-bold">
           {bank}
         </span>
-        {!isEditing ? (
-          <span className="font-dot-matrix min-w-0 flex-1 truncate px-2 py-1 text-left text-base font-bold">
-            {displayName}
-          </span>
-        ) : null}
+        <span className="font-dot-matrix hidden min-w-0 flex-1 truncate px-2 py-1 text-left text-base font-bold sm:block">
+          {displayName}
+        </span>
       </button>
-      {isEditing ? (
-        <form
-          className="min-w-0 flex-1"
-          onSubmit={(event) => {
-            event.preventDefault()
-            const nameToSave = normalizeWorkspaceBankNameForSave(draftName)
-            if (!nameToSave) return
-            onRename(nameToSave)
-            setIsEditing(false)
-          }}
+      <details className="group relative shrink-0" ref={menuRef}>
+        <summary
+          aria-label={t('banks.bankMenu', { bank: displayName })}
+          className={cn(
+            'grid size-8 cursor-pointer list-none place-items-center rounded transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring [&::-webkit-details-marker]:hidden',
+            selected ? 'hover:bg-primary-foreground/15' : 'hover:bg-foreground/10',
+          )}
+          title={t('banks.bankMenu', { bank: displayName })}
         >
-          <input
-            aria-label={t('namedBanks.workspaceName', { bank })}
-            className="font-dot-matrix h-8 w-full min-w-0 rounded border border-primary-foreground/50 bg-background px-2 text-base font-bold text-foreground outline-none focus:ring-2 focus:ring-ring"
-            maxLength={80}
-            onChange={(event) => setDraftName(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key !== 'Escape') return
-              event.preventDefault()
-              setIsEditing(false)
-              window.requestAnimationFrame(() => document.getElementById(`bank-tab-${bank}`)?.focus())
-            }}
-            ref={inputRef}
-            value={draftName}
-          />
-        </form>
-      ) : selected ? (
-        <button
-          aria-label={t('namedBanks.editWorkspaceName')}
-          className="grid size-8 shrink-0 cursor-pointer place-items-center rounded transition-colors hover:bg-primary-foreground/15 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
-          onClick={() => {
-            setDraftName(name)
-            setIsEditing(true)
-          }}
-          title={t('namedBanks.editWorkspaceName')}
-          type="button"
-        >
-          <Pencil className="size-3.5" />
-        </button>
-      ) : null}
+          <EllipsisVertical className="size-4" />
+        </summary>
+        <div className="absolute left-full top-0 z-40 min-w-56 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+          {renderMenu(closeMenu)}
+        </div>
+      </details>
     </div>
   )
 }
@@ -146,7 +120,6 @@ type LibrarianPageProps = {
   library: PatchLibrary
   midi: MidiController
   onEditPatch: (patch: Patch) => void
-  onPatchAuditioned: (patch: Patch) => void
 }
 
 export function LibrarianPage({
@@ -154,10 +127,11 @@ export function LibrarianPage({
   library,
   midi,
   onEditPatch,
-  onPatchAuditioned,
 }: LibrarianPageProps) {
   const { t } = useTranslation()
   const { patches } = library
+  const banks = library.workspaceBanks
+  const nextBank = getNextWorkspaceBank(banks)
   const [search, setSearch] = useState('')
   const [destinationBank, setDestinationBank] = useState('A')
   const [importError, setImportError] = useState('')
@@ -165,10 +139,17 @@ export function LibrarianPage({
   const [isSending, setIsSending] = useState(false)
   const [transferStatus, setTransferStatus] = useState<TransferStatus>({ kind: 'idle', message: '' })
   const importInputRef = useRef<HTMLInputElement>(null)
-  const importMenuRef = useDismissableDetails()
+  const addWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
   const bankSelectionDialogRef = useRef<HTMLDialogElement>(null)
+  const deleteWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
   const midiConnectionRequiredDialogRef = useRef<HTMLDialogElement>(null)
   const restoreFactoryBanksDialogRef = useRef<HTMLDialogElement>(null)
+  const [bankPendingDeletion, setBankPendingDeletion] = useState<{
+    bank: string
+    name: string
+    nextBank: string
+  } | null>(null)
+  const allBanksMenuRef = useDismissableDetails()
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
   const saveBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob)
@@ -184,7 +165,6 @@ export function LibrarianPage({
       const bytes = makeDx7BankFile(library.getBankVoices(destinationBank))
       saveBlob(new Blob([bytes], { type: 'application/octet-stream' }), `fm1-bank-${destinationBank.toLowerCase()}.syx`)
       setImportError('')
-      importMenuRef.current?.removeAttribute('open')
     } catch (error) {
       setImportError(error instanceof Error ? error.message : t('banks.exportFailed'))
     }
@@ -199,7 +179,6 @@ export function LibrarianPage({
       ]))
       saveBlob(new Blob([zipSync(files)], { type: 'application/zip' }), 'fm1-browser-banks.zip')
       setImportError('')
-      importMenuRef.current?.removeAttribute('open')
     } catch (error) {
       setImportError(error instanceof Error ? error.message : t('banks.bulkExportFailed'))
     }
@@ -220,12 +199,16 @@ export function LibrarianPage({
     if (!isDestinationBankLoaded) setSearch('')
   }, [isDestinationBankLoaded])
 
+  useEffect(() => {
+    if (!banks.includes(destinationBank)) setDestinationBank(banks[0] ?? 'A')
+  }, [banks, destinationBank])
+
   const selectBankFromKeyboard = (
     event: React.KeyboardEvent<HTMLButtonElement>,
     index: number,
   ) => {
-    const nextIndex = event.key === 'ArrowRight' ? (index + 1) % banks.length
-      : event.key === 'ArrowLeft' ? (index - 1 + banks.length) % banks.length
+    const nextIndex = event.key === 'ArrowDown' ? (index + 1) % banks.length
+      : event.key === 'ArrowUp' ? (index - 1 + banks.length) % banks.length
         : event.key === 'Home' ? 0
           : event.key === 'End' ? banks.length - 1
             : null
@@ -243,96 +226,8 @@ export function LibrarianPage({
       <PatchGrid
         activePatchId={activePatchId}
         actions={
-          <>
-            <div className="inline-flex h-10 shrink-0 rounded-md border border-input bg-secondary text-secondary-foreground">
-              <NamedBankLibraryDialog
-                destinationBank={destinationBank}
-                library={library}
-              />
-              <details className="group relative" ref={importMenuRef}>
-                <summary
-                  aria-label={t('banks.moreActions')}
-                  className="flex h-full w-9 cursor-pointer list-none items-center justify-center rounded-r-[calc(var(--radius-md)-1px)] border-l border-input transition-colors hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
-                  title={t('banks.moreActions')}
-                >
-                  <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
-                </summary>
-                <div className="absolute right-0 top-11 z-30 min-w-52 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
-                  <button
-                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm border-b px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                    disabled={isImporting}
-                    onClick={() => {
-                      importMenuRef.current?.removeAttribute('open')
-                      importInputRef.current?.click()
-                    }}
-                    type="button"
-                  >
-                    <Upload className="size-4" />
-                    {isImporting ? t('banks.importing') : t('banks.import')}
-                  </button>
-                  <button
-                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                    disabled={!isDestinationBankLoaded}
-                    onClick={downloadBank}
-                    title={isDestinationBankLoaded ? t('banks.downloadTitle', { bank: destinationBank }) : t('banks.importFirst', { bank: destinationBank })}
-                    type="button"
-                  >
-                    <Download className="size-4" />
-                    {t('banks.download')}
-                  </button>
-                  <button
-                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                    disabled={library.loadedBanks.length === 0}
-                    onClick={() => void downloadAllBanks()}
-                    type="button"
-                  >
-                    <Archive className="size-4" />
-                    {t('banks.downloadAll')}
-                  </button>
-                  <button
-                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm border-t px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => {
-                      importMenuRef.current?.removeAttribute('open')
-                      restoreFactoryBanksDialogRef.current?.showModal()
-                    }}
-                    type="button"
-                  >
-                    <RotateCcw className="size-4" />
-                    {t('banks.restoreFactory')}
-                  </button>
-                  <button
-                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
-                    disabled={!isDestinationBankLoaded}
-                    onClick={() => {
-                      if (window.confirm(t('banks.clearConfirm', { bank: destinationBank }))) {
-                        library.clearBank(destinationBank)
-                        importMenuRef.current?.removeAttribute('open')
-                      }
-                    }}
-                    type="button"
-                  >
-                    <RotateCcw className="size-4" />
-                    {t('banks.clear')}
-                  </button>
-                  <button
-                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-50"
-                    disabled={library.loadedBanks.length === 0}
-                    onClick={() => {
-                      if (window.confirm(t('banks.clearAllConfirm'))) {
-                        void library.clearAllBanks()
-                        importMenuRef.current?.removeAttribute('open')
-                      }
-                    }}
-                    type="button"
-                  >
-                    <Trash2 className="size-4" />
-                    {t('banks.clearAll')}
-                  </button>
-                </div>
-              </details>
-            </div>
-            <button
-              className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+          <button
+              className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-black bg-white px-4 text-sm font-medium text-black transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
               disabled={isSending || !isDestinationBankLoaded}
               onClick={async () => {
                 if (!midi.hasMidiOutput) {
@@ -358,24 +253,48 @@ export function LibrarianPage({
             >
               <Send className="size-4" />
               {isSending ? t('banks.sending') : t('banks.send')}
-            </button>
-          </>
+          </button>
         }
+        headerActions={(
+          <details className="group relative" ref={allBanksMenuRef}>
+            <summary
+              aria-label={t('banks.moreActions')}
+              className="grid size-9 cursor-pointer list-none place-items-center rounded text-black/75 transition-colors hover:bg-black/10 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black [&::-webkit-details-marker]:hidden"
+              title={t('banks.moreActions')}
+            >
+              <EllipsisVertical className="size-5" />
+            </summary>
+            <div className="absolute right-0 top-full z-50 mt-1 min-w-60 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+              <button
+                className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+                disabled={library.loadedBanks.length === 0}
+                onClick={() => {
+                  allBanksMenuRef.current?.removeAttribute('open')
+                  void downloadAllBanks()
+                }}
+                type="button"
+              >
+                <Archive className="size-4" />
+                {t('banks.downloadAll')}
+              </button>
+              <button
+                className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                onClick={() => {
+                  allBanksMenuRef.current?.removeAttribute('open')
+                  restoreFactoryBanksDialogRef.current?.showModal()
+                }}
+                type="button"
+              >
+                <RotateCcw className="size-4" />
+                {t('banks.restoreAll')}
+              </button>
+            </div>
+          </details>
+        )}
         isBankLoaded={isDestinationBankLoaded}
         isPatchDisabled={(patch) => !library.loadedBanks.includes(patch.bank)}
         onImportEmptyBank={() => importInputRef.current?.click()}
         onLoadDemoBank={() => library.loadDemoBank(destinationBank)}
-        onPatchSend={async (patch) => {
-          const voice = library.voices[patch.id]
-          if (!voice) return
-          midi.sendProgramChange(patch.program)
-          const sent = await midi.sendVoice(voice)
-          if (sent) await midi.sendEffectSettings(library.effects[patch.id])
-          if (sent) onPatchAuditioned(patch)
-          setTransferStatus(sent
-            ? { kind: 'success', message: t('banks.soundSent', { name: patch.name }) }
-            : { kind: 'error', message: t('banks.soundNotSent') })
-        }}
         onPatchEdit={onEditPatch}
         onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
         patches={visiblePatches}
@@ -384,23 +303,93 @@ export function LibrarianPage({
         setSearch={setSearch}
         toolbar={
           <>
-            <div
-              aria-label={t('banks.destination')}
-              className="scrollbar-none flex overflow-x-auto border-b"
-              role="tablist"
-            >
-              {banks.map((bank, index) => (
-                <WorkspaceBankTab
-                  bank={bank}
-                  index={index}
-                  key={bank}
-                  name={library.bankNames[bank] ?? ''}
-                  onRename={(name) => library.renameBank(bank, name)}
-                  onSelect={() => setDestinationBank(bank)}
-                  onSelectFromKeyboard={selectBankFromKeyboard}
-                  selected={destinationBank === bank}
-                />
-              ))}
+            <div className="flex h-full w-16 flex-col bg-muted/30 sm:w-72">
+              <div
+                aria-label={t('banks.destination')}
+                aria-orientation="vertical"
+                className="flex flex-col"
+                role="tablist"
+              >
+                {banks.map((bank, index) => (
+                  <WorkspaceBankTab
+                    bank={bank}
+                    description={library.bankDescriptions[bank] ?? ''}
+                    index={index}
+                    key={bank}
+                    name={library.bankNames[bank] ?? ''}
+                    onSelect={() => setDestinationBank(bank)}
+                    onSelectFromKeyboard={selectBankFromKeyboard}
+                    renderMenu={(closeMenu) => (
+                      <>
+                        <BankInformationDialog
+                          bank={bank}
+                          defaultTitle={defaultWorkspaceBankTitle(t, index + 1)}
+                          library={library}
+                          onClose={closeMenu}
+                        />
+                        <div className="my-1 border-t" />
+                        <button
+                          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+                          disabled={isImporting}
+                          onClick={() => {
+                            closeMenu()
+                            importInputRef.current?.click()
+                          }}
+                          type="button"
+                        >
+                          <Upload className="size-4" />
+                          {isImporting ? t('banks.importing') : t('banks.import')}
+                        </button>
+                        <button
+                          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+                          disabled={!isDestinationBankLoaded}
+                          onClick={() => {
+                            closeMenu()
+                            downloadBank()
+                          }}
+                          title={isDestinationBankLoaded ? t('banks.downloadTitle', { bank: destinationBank }) : t('banks.importFirst', { bank: destinationBank })}
+                          type="button"
+                        >
+                          <Download className="size-4" />
+                          {t('banks.download')}
+                        </button>
+                        {banks.length > 1 ? (
+                          <button
+                            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent"
+                            onClick={() => {
+                              closeMenu()
+                              const name = library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, index + 1)
+                              setBankPendingDeletion({
+                                bank,
+                                name,
+                                nextBank: banks[index + 1] ?? banks[index - 1],
+                              })
+                              deleteWorkspaceBankDialogRef.current?.showModal()
+                            }}
+                            type="button"
+                          >
+                            <Trash2 className="size-4" />
+                            {t('banks.deleteBank')}
+                          </button>
+                        ) : null}
+                      </>
+                    )}
+                    selected={destinationBank === bank}
+                  />
+                ))}
+              </div>
+              {nextBank ? (
+                <button
+                  aria-label={t('banks.addBank')}
+                  className="font-vt323 flex w-full cursor-pointer items-center justify-center gap-2 border-t border-dashed px-2 py-3 text-base text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:justify-start sm:px-4"
+                  onClick={() => addWorkspaceBankDialogRef.current?.showModal()}
+                  title={t('banks.addBank')}
+                  type="button"
+                >
+                  <Plus className="size-4 shrink-0" />
+                  <span className="hidden sm:inline">{t('banks.addBank')}</span>
+                </button>
+              ) : null}
             </div>
             <input
               accept=".syx,application/octet-stream"
@@ -450,7 +439,24 @@ export function LibrarianPage({
       ) : null}
 
       <Fm1BankSelectionDialog dialogRef={bankSelectionDialogRef} />
+      <AddWorkspaceBankDialog
+        bank={nextBank}
+        dialogRef={addWorkspaceBankDialogRef}
+        library={library}
+        onCreated={setDestinationBank}
+        suggestedName={defaultWorkspaceBankTitle(t, banks.length + 1)}
+      />
       <MidiConnectionRequiredDialog dialogRef={midiConnectionRequiredDialogRef} />
+      <DeleteWorkspaceBankDialog
+        bankName={bankPendingDeletion?.name ?? ''}
+        dialogRef={deleteWorkspaceBankDialogRef}
+        onDelete={() => {
+          if (!bankPendingDeletion) return
+          setDestinationBank(bankPendingDeletion.nextBank)
+          library.deleteBank(bankPendingDeletion.bank)
+          setBankPendingDeletion(null)
+        }}
+      />
       <RestoreFactoryBanksDialog
         dialogRef={restoreFactoryBanksDialogRef}
         onRestore={library.resetFactoryBanks}

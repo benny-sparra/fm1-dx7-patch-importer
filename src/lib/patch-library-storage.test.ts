@@ -71,7 +71,60 @@ describe('saveStoredPatchLibrary', () => {
     fake.readRequest.onsuccess?.()
     fake.transaction.oncomplete?.()
 
-    await expect(loading).resolves.toMatchObject({ bankNames: {}, version: 3 })
+    await expect(loading).resolves.toMatchObject({
+      bankDescriptions: {},
+      bankNames: {},
+      version: 5,
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+  })
+
+  it('restores added empty workspace banks from version 4 storage', async () => {
+    const fake = installIndexedDb({
+      bankNames: {},
+      effects: {},
+      loadedBanks: [],
+      savedAt: '2026-08-17T08:00:00.000Z',
+      version: 4,
+      voices: {},
+      workspaceBanks: ['A', 'B', 'C', 'D', 'E'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).resolves.toMatchObject({
+      bankDescriptions: {},
+      loadedBanks: [],
+      version: 5,
+      workspaceBanks: ['A', 'B', 'C', 'D', 'E'],
+    })
+  })
+
+  it('restores normalized bank descriptions from version 5 storage', async () => {
+    const fake = installIndexedDb({
+      bankDescriptions: { A: '  Friday performance  ', Z: 'Missing bank' },
+      bankNames: { A: 'Studio Favourites' },
+      effects: {},
+      loadedBanks: [],
+      savedAt: '2026-08-17T08:00:00.000Z',
+      version: 5,
+      voices: {},
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).resolves.toMatchObject({
+      bankDescriptions: { A: 'Friday performance' },
+      bankNames: { A: 'Studio Fav' },
+      version: 5,
+    })
   })
 
   it('upgrades the database without replacing the existing workspace store', async () => {
@@ -108,7 +161,12 @@ describe('saveStoredPatchLibrary', () => {
     fake.transaction.oncomplete?.()
 
     await expect(saving).resolves.toBe('current')
-    expect(fake.put).toHaveBeenCalledWith(expect.objectContaining({ bankNames: {}, version: 3 }), 'current')
+    expect(fake.put).toHaveBeenCalledWith(expect.objectContaining({
+      bankDescriptions: {},
+      bankNames: {},
+      version: 5,
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    }), 'current')
     expect(fake.database.close).toHaveBeenCalledOnce()
   })
 

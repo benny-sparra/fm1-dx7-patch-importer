@@ -170,6 +170,21 @@
   }
 }
 
+.modal-surface input:not(:where(
+  [type="button"],
+  [type="checkbox"],
+  [type="color"],
+  [type="file"],
+  [type="hidden"],
+  [type="radio"],
+  [type="range"],
+  [type="reset"],
+  [type="submit"]
+)),
+.modal-surface textarea {
+  background-color: color-mix(in srgb, var(--fm1-finish-tint) 20%, white);
+}
+
 @layer components {
   .font-dot-matrix {
     font-family: "Doto Variable", "SFMono-Regular", "Cascadia Mono", monospace;
@@ -670,18 +685,6 @@
     color: hsl(0 0% 100%);
   }
 
-  :root[data-theme="dx7"] .patch-edge-gradient .patch-send-button {
-    border-color: color-mix(in srgb, var(--dx7-highlight) 72%, transparent);
-    color: var(--dx7-highlight);
-    background: color-mix(in srgb, var(--dx7-highlight) 12%, hsl(150 14% 9%));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dx7-highlight) 8%, transparent);
-  }
-
-  :root[data-theme="dx7"] .patch-edge-gradient .patch-send-button:hover {
-    color: hsl(0 0% 100%);
-    background: color-mix(in srgb, var(--dx7-highlight) 32%, hsl(150 14% 8%));
-  }
-
   :root[data-theme="dx7"] .patch-edge-gradient button {
     border-radius: 0;
   }
@@ -699,6 +702,10 @@
     border-width: 1px;
     background: hsl(125 4% 79%);
     box-shadow: inset 2px 2px 0 hsl(150 10% 18% / 18%);
+  }
+
+  :root[data-theme="dx7"] input.patch-search-input {
+    background: hsl(0 0% 100%);
   }
 
   :root[data-theme="dx7"] .settings-option-select {

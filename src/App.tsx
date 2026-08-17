@@ -60,7 +60,6 @@ function App() {
           library={library}
           midi={midi}
           onEditPatch={(patch) => editPatch(patch.id)}
-          onPatchAuditioned={(patch) => setAuditionedPatchId(patch.id)}
         />
       )}
     </RootLayout>

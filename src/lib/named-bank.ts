@@ -1,10 +1,8 @@
 import { makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import {
-  browserBanks,
   importVoices,
   voiceId,
-  type BrowserBank,
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
 
@@ -91,7 +89,7 @@ export function createNamedBank(
   sourceBank: string,
   options: CreateNamedBankOptions,
 ): NamedBank {
-  if (!browserBanks.includes(sourceBank as BrowserBank)) {
+  if (!snapshot.workspaceBanks.includes(sourceBank)) {
     throw new Error('The source browser bank is invalid.')
   }
 
@@ -135,6 +133,10 @@ export function loadNamedBank(
   })
   return {
     ...loaded,
+    bankDescriptions: {
+      ...loaded.bankDescriptions,
+      ...(bank.description ? { [destinationBank]: bank.description } : {}),
+    },
     bankNames: { ...loaded.bankNames, [destinationBank]: bank.name },
     effects,
   }

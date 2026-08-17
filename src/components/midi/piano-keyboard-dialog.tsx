@@ -350,7 +350,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
 
       <dialog
         aria-label={t('ui.pianoKeyboard')}
-        className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1040px,calc(100vw-1rem))] overflow-hidden rounded-xl bg-white p-0 text-card-foreground"
+        className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1040px,calc(100vw-1rem))] overflow-auto whitespace-normal rounded-xl bg-white p-0 text-card-foreground"
         onCancel={releaseAllNotes}
         onClose={releaseAllNotes}
         ref={dialogRef}
