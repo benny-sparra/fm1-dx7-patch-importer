@@ -141,7 +141,7 @@ export function AlgorithmPanel({
             <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" />
           </span>
           <span className="mt-1 flex min-h-0 w-full flex-1 -translate-y-2 items-center gap-1">
-            <span className="font-mono text-xl font-black leading-none text-white">
+            <span className="font-vt323 text-xl font-black leading-none text-white">
               {String(algorithm + 1).padStart(2, '0')}
             </span>
             <AlgorithmDiagram
@@ -166,7 +166,7 @@ export function AlgorithmPanel({
               aria-checked={algorithm === index}
               aria-label={`Algorithm ${index + 1}`}
               className={cn(
-                'relative min-w-0 rounded-md border border-white/10 bg-white/5 px-2 pb-1 pt-2 font-mono text-cyan-100/65 transition hover:border-cyan-300/60 hover:bg-cyan-300/10 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300',
+                'relative min-w-0 rounded-md border border-white/10 bg-white/5 px-2 pb-1 pt-2 font-vt323 text-cyan-100/65 transition hover:border-cyan-300/60 hover:bg-cyan-300/10 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300',
                 algorithm === index && 'border-primary bg-primary/20 text-primary shadow-[0_0_14px_hsl(315_100%_60%_/_0.4)] ring-1 ring-primary',
               )}
               key={index}
@@ -214,7 +214,7 @@ export function AlgorithmPanel({
           type="range"
           value={feedback}
         />
-        <output className="text-right font-mono text-sm font-black text-white">{feedback}</output>
+        <output className="text-right font-vt323 text-sm font-black text-white">{feedback}</output>
       </label>
     </section>
   )
@@ -303,7 +303,7 @@ export function OperatorStrip({
               </div>
               <span
                 aria-label={frequencyDescription}
-                className="operator-frequency rounded bg-muted px-1.5 py-1 font-mono text-[10px] font-bold text-muted-foreground"
+                className="operator-frequency rounded bg-muted px-1.5 py-1 font-vt323 text-[10px] font-bold text-muted-foreground"
                 title={frequencyDescription}
               >
                 {frequencyLabel}
@@ -335,7 +335,7 @@ export function OperatorStrip({
               </svg>
               <div className="flex shrink-0 items-baseline gap-1 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
                 <span>{t('editor.output')}</span>
-                <span className="font-mono text-sm text-foreground">{output}</span>
+                <span className="font-vt323 text-sm text-foreground">{output}</span>
               </div>
             </div>
           </button>

@@ -129,7 +129,7 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
       </button>
       {open && createPortal(
         <div
-          className="fixed z-[100] w-[min(18.5rem,calc(100vw-1.5rem))] rounded-lg border border-primary/30 bg-popover p-3 text-left text-popover-foreground shadow-2xl"
+          className="font-vt323 fixed z-[100] w-[min(18.5rem,calc(100vw-1.5rem))] rounded-lg border border-primary/30 bg-popover p-3 text-left text-popover-foreground shadow-2xl"
           id={popoverId}
           onMouseEnter={cancelScheduledClose}
           onMouseLeave={scheduleClose}

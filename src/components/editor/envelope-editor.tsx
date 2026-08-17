@@ -91,7 +91,7 @@ export function EnvelopeEditor({
               text={t('controlHelp.amplitudeEnvelope')}
             />
           </p>
-          <p className="text-[11px] text-white/50">{t('ui.envelopeInstruction')}</p>
+          <p className="font-vt323 text-[11px] text-white/50">{t('ui.envelopeInstruction')}</p>
         </div>
         <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white/50">
           <span className="size-2 rounded-full bg-[var(--operator-color)] shadow-[0_0_10px_var(--operator-color)]" />
@@ -204,7 +204,7 @@ export function EnvelopeEditor({
               R{index + 1}
               <input
                 aria-label={`Envelope rate ${index + 1}`}
-                className="h-8 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
+                className="h-9 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-vt323 text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
                 inputMode="numeric"
                 max={99}
                 min={0}
@@ -226,7 +226,7 @@ export function EnvelopeEditor({
               L{index + 1}
               <input
                 aria-label={`Envelope level ${index + 1}`}
-                className="h-8 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-mono text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
+                className="h-9 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-vt323 text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
                 inputMode="numeric"
                 max={99}
                 min={0}

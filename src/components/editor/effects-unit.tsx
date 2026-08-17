@@ -168,7 +168,7 @@ function EffectControl({
           type="range"
           value={value}
         />
-        <output className="w-8 shrink-0 text-right font-mono text-xs text-foreground">
+        <output className="w-8 shrink-0 text-right font-vt323 text-xs text-foreground">
           {value}{parameter.suffix}
         </output>
       </label>
@@ -182,7 +182,7 @@ function EffectControl({
           <span className="min-w-0 flex-1 truncate" title={translatedParameter}>{translatedParameter}</span>
           {helpText ? <HelpPopover label={`${translatedEffect} ${translatedParameter}`} text={helpText} /> : null}
         </span>
-        <output className="shrink-0 font-mono text-xs text-foreground">
+        <output className="shrink-0 font-vt323 text-xs text-foreground">
           {value}{parameter.suffix}
         </output>
       </span>

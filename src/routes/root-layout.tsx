@@ -2,7 +2,7 @@ import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import mVaveLogo from '@/assets/m-vave-logo.png'
+import mVaveLogo from '@/assets/m-vave-logo.svg'
 import { HelpDialog } from '@/components/help-dialog'
 import {
   MidiConnectActions,
@@ -49,8 +49,8 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                     <img
                       alt="M-VAVE"
                       className={compact
-                        ? 'h-4 w-auto shrink-0 mix-blend-screen sm:h-5'
-                        : 'h-6 w-auto shrink-0 mix-blend-screen sm:h-7'}
+                        ? 'h-2.5 w-auto shrink-0 mix-blend-screen sm:h-3.5'
+                        : 'h-4 w-auto shrink-0 mix-blend-screen sm:h-[1.125rem]'}
                       height="124"
                       src={mVaveLogo}
                       width="405"
@@ -66,8 +66,8 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 </div>
               </div>
               {!compact ? (
-                <div className="mt-3 text-sm leading-6 text-white/65">
-                  {t('root.intro')}{' '}<Dx7BankSourcesDialog /> {t('root.sourcesSuffix')}
+                <div className="font-vt323 mt-3 text-lg leading-6 text-white/65">
+                  {t('root.intro')}{' '}<Dx7BankSourcesDialog />
                 </div>
               ) : null}
 

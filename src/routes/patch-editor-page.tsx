@@ -4,6 +4,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  Dices,
   Pencil,
   Redo2,
   RefreshCw,
@@ -24,6 +25,7 @@ import { EffectsUnit } from '@/components/editor/effects-unit'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
@@ -58,6 +60,7 @@ import {
   soundPresets,
   type SoundPresetId,
 } from '@/lib/sound-presets'
+import { randomizeSound } from '@/lib/sound-randomizer'
 import { cn } from '@/lib/utils'
 
 type PatchEditorPageProps = {
@@ -94,8 +97,147 @@ type SliderParameterControlProps = {
   onChange: (value: number) => void
   onGestureEnd: () => void
   onGestureStart: () => void
+  origin?: number
   value: number
   valueLabel?: (value: number) => string
+}
+
+type RotaryParameterControlProps = Omit<SliderParameterControlProps, 'origin'>
+
+const rotaryControlKeys = [
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'End',
+  'Home',
+  'PageDown',
+  'PageUp',
+]
+
+function RotaryParameterControl({
+  helpText,
+  label,
+  max,
+  min = 0,
+  onChange,
+  onGestureEnd,
+  onGestureStart,
+  value,
+  valueLabel = String,
+}: RotaryParameterControlProps) {
+  const drag = useRef<{ pointerId: number; startValue: number; startY: number } | null>(null)
+  const displayValue = valueLabel(value)
+  const fraction = (value - min) / (max - min)
+  const angle = -135 + fraction * 270
+  const clamp = (nextValue: number) => Math.max(min, Math.min(max, Math.round(nextValue)))
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!rotaryControlKeys.includes(event.key)) return
+    event.preventDefault()
+    if (!event.repeat) onGestureStart()
+
+    const pageStep = Math.max(1, Math.round((max - min) / 10))
+    const nextValue = event.key === 'Home'
+      ? min
+      : event.key === 'End'
+        ? max
+        : value + (['ArrowUp', 'ArrowRight'].includes(event.key)
+            ? 1
+            : ['ArrowDown', 'ArrowLeft'].includes(event.key)
+              ? -1
+              : event.key === 'PageUp'
+                ? pageStep
+                : -pageStep)
+    onChange(clamp(nextValue))
+  }
+
+  return (
+    <div className="grid min-w-0 justify-items-center gap-1 text-xs font-semibold text-muted-foreground">
+      <span className="flex min-w-0 max-w-full items-center gap-1">
+        <span className="truncate" title={label}>{label}</span>
+        {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+      </span>
+      <div
+        aria-label={label}
+        aria-valuemax={max}
+        aria-valuemin={min}
+        aria-valuenow={value}
+        aria-valuetext={displayValue}
+        className="group relative size-[4.75rem] cursor-ns-resize touch-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        onBlur={onGestureEnd}
+        onKeyDown={handleKeyDown}
+        onKeyUp={(event) => {
+          if (rotaryControlKeys.includes(event.key)) onGestureEnd()
+        }}
+        onPointerCancel={() => {
+          drag.current = null
+          onGestureEnd()
+        }}
+        onPointerDown={(event) => {
+          drag.current = { pointerId: event.pointerId, startValue: value, startY: event.clientY }
+          event.currentTarget.setPointerCapture(event.pointerId)
+          onGestureStart()
+        }}
+        onPointerMove={(event) => {
+          const activeDrag = drag.current
+          if (!activeDrag || activeDrag.pointerId !== event.pointerId) return
+          const valuePerPixel = (max - min) / 120
+          onChange(clamp(activeDrag.startValue + (activeDrag.startY - event.clientY) * valuePerPixel))
+        }}
+        onPointerUp={(event) => {
+          if (drag.current?.pointerId !== event.pointerId) return
+          drag.current = null
+          event.currentTarget.releasePointerCapture(event.pointerId)
+          onGestureEnd()
+        }}
+        role="slider"
+        tabIndex={0}
+        title={`${label}: ${displayValue}. Drag up or down to adjust.`}
+      >
+        <svg aria-hidden="true" className="size-full overflow-visible" viewBox="0 0 76 76">
+          {Array.from({ length: 11 }, (_, index) => {
+            const tickAngle = -135 + index * 27
+            return (
+              <line
+                className={index / 10 <= fraction ? 'stroke-[var(--operator-color)]' : 'stroke-border'}
+                key={index}
+                strokeLinecap="round"
+                strokeWidth="2"
+                transform={`rotate(${tickAngle} 38 38)`}
+                x1="38"
+                x2="38"
+                y1="4"
+                y2={index % 5 === 0 ? '10' : '8'}
+              />
+            )
+          })}
+          <circle
+            className="fill-[color-mix(in_srgb,var(--fm1-finish-tint)_24%,white)] stroke-[color-mix(in_srgb,var(--fm1-finish-tint)_55%,var(--color-border))] transition group-hover:stroke-[var(--operator-color)]"
+            cx="38"
+            cy="38"
+            r="24"
+            strokeWidth="2"
+          />
+          <circle cx="38" cy="38" fill="none" r="20.5" stroke="white" strokeOpacity="0.45" />
+          <line
+            className="stroke-[var(--operator-color)]"
+            strokeLinecap="round"
+            strokeWidth="3"
+            transform={`rotate(${angle} 38 38)`}
+            x1="38"
+            x2="38"
+            y1="17"
+            y2="29"
+          />
+          <circle className="fill-[var(--operator-color)]" cx="38" cy="38" r="2.5" />
+        </svg>
+      </div>
+      <output className="min-w-9 rounded border border-border/70 bg-background/80 px-1.5 py-0.5 text-center font-vt323 text-sm text-foreground">
+        {displayValue}
+      </output>
+    </div>
+  )
 }
 
 function SliderParameterControl({
@@ -106,6 +248,7 @@ function SliderParameterControl({
   onChange,
   onGestureEnd,
   onGestureStart,
+  origin,
   value,
   valueLabel = String,
 }: SliderParameterControlProps) {
@@ -116,7 +259,7 @@ function SliderParameterControl({
           <span className="min-w-0 flex-1 truncate" title={label}>{label}</span>
           {helpText ? <HelpPopover label={label} text={helpText} /> : null}
         </span>
-        <output className="shrink-0 rounded border border-border/70 bg-background/70 px-1.5 py-0.5 font-mono text-xs text-foreground">
+        <output className="shrink-0 rounded border border-border/70 bg-background/70 px-1.5 py-0.5 font-vt323 text-xs text-foreground">
           {valueLabel(value)}
         </output>
       </span>
@@ -137,7 +280,7 @@ function SliderParameterControl({
         onPointerDown={onGestureStart}
         onPointerUp={onGestureEnd}
         step={1}
-        style={rangeStyle(value, min, max)}
+        style={rangeStyle(value, min, max, undefined, origin)}
         type="range"
         value={value}
       />
@@ -286,7 +429,7 @@ function ParameterControl({
         </select>
       ) : (
         <input
-          className="h-9 min-w-0 rounded-md border bg-background px-2 font-mono text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-9 min-w-0 rounded-md border bg-background px-2 font-vt323 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           max={max}
           min={min}
           onChange={(event) => {
@@ -415,6 +558,7 @@ export function PatchEditorPage({
   const [mutedOperators, setMutedOperators] = useState<ReadonlySet<number>>(() => new Set())
   const [soloOperator, setSoloOperator] = useState<number | null>(null)
   const [leftPanelTab, setLeftPanelTab] = useState<'effects' | 'global'>('global')
+  const [operatorPanelTab, setOperatorPanelTab] = useState<'oscillator' | 'scaling'>('oscillator')
   const [isPitchEnvelopeOpen, setIsPitchEnvelopeOpen] = useState(true)
   const [isLfoGlobalOpen, setIsLfoGlobalOpen] = useState(true)
   const [syncState, setSyncState] = useState<'live' | 'local' | 'sending'>('sending')
@@ -698,6 +842,22 @@ export function PatchEditorPage({
     void sendParametersToFm1(next.present)
   }
 
+  const randomise = () => {
+    const current = historyRef.current
+    const randomParameters = randomizeSound(current.present)
+    const edits = Array.from(randomParameters.entries())
+      .filter(([index, value]) => current.present[index] !== value)
+      .map(([index, value]) => [index, value] as ParameterEdit)
+    const next = editParameters(current, edits)
+
+    if (next === current) return
+
+    gestureStart.current = null
+    historyRef.current = next
+    setHistory(next)
+    void sendParametersToFm1(next.present)
+  }
+
   const operatorBase = (6 - selectedOperator) * 21
   const operatorColor = operatorColors[selectedOperator - 1]
   const selectedOperatorIsMuted = mutedOperators.has(selectedOperator)
@@ -719,13 +879,13 @@ export function PatchEditorPage({
       value={parameters[operatorBase + offset]}
     />
   )
-  const sliderControl = (
+  const rotaryControl = (
     label: string,
     offset: number,
     max: number,
     helpText?: string,
   ) => (
-    <SliderParameterControl
+    <RotaryParameterControl
       helpText={helpText}
       key={`${selectedOperator}-${offset}`}
       label={label}
@@ -738,10 +898,18 @@ export function PatchEditorPage({
   )
 
   return (
-    <section className="mx-auto grid min-w-0 max-w-[90rem] gap-4 px-3 py-4 sm:px-5 lg:px-8">
+    <section className="patch-editor-page mx-auto grid min-w-0 max-w-[90rem] gap-4 px-3 py-4 sm:px-5 lg:px-8">
       <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] min-w-0 w-screen border-b border-primary/15 bg-white py-3 shadow-sm">
         <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-3 sm:px-5 lg:px-8">
-          <Button aria-label={t('editor.back')} disabled={syncState === 'sending'} onClick={requestNavigation} size="icon" type="button" variant="outline">
+          <Button
+            aria-label={t('editor.back')}
+            className="border-[color-mix(in_srgb,var(--fm1-finish-tint)_72%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_38%,white)] text-foreground hover:border-[var(--fm1-finish-tint)] hover:bg-[var(--fm1-finish-tint)] hover:text-[var(--fm1-finish-foreground)]"
+            disabled={syncState === 'sending'}
+            onClick={requestNavigation}
+            size="icon"
+            type="button"
+            variant="outline"
+          >
             <ArrowLeft />
           </Button>
           <div className="min-w-0">
@@ -774,6 +942,28 @@ export function PatchEditorPage({
           </div>
 
           <div className="ml-auto flex items-center gap-1.5">
+            <Button
+              aria-label={t('editor.undo')}
+              disabled={history.past.length === 0}
+              onClick={() => restoreHistory('undo')}
+              size="icon"
+              title={t('editor.undo')}
+              type="button"
+              variant="outline"
+            >
+              <Undo2 />
+            </Button>
+            <Button
+              aria-label={t('editor.redo')}
+              disabled={history.future.length === 0}
+              onClick={() => restoreHistory('redo')}
+              size="icon"
+              title={t('editor.redo')}
+              type="button"
+              variant="outline"
+            >
+              <Redo2 />
+            </Button>
             <details className="group static sm:relative" ref={presetsMenuRef}>
               <summary
                 aria-label={t('editor.presets')}
@@ -810,30 +1000,20 @@ export function PatchEditorPage({
               </div>
             </details>
             <Button
-              aria-label={t('editor.undo')}
-              disabled={history.past.length === 0}
-              onClick={() => restoreHistory('undo')}
-              size="icon"
-              title={t('editor.undo')}
+              aria-label={t('editor.randomise')}
+              className="font-vt323"
+              disabled={syncState === 'sending'}
+              onClick={randomise}
+              title={t('editor.randomise')}
               type="button"
-              variant="ghost"
+              variant="outline"
             >
-              <Undo2 />
-            </Button>
-            <Button
-              aria-label={t('editor.redo')}
-              disabled={history.future.length === 0}
-              onClick={() => restoreHistory('redo')}
-              size="icon"
-              title={t('editor.redo')}
-              type="button"
-              variant="ghost"
-            >
-              <Redo2 />
+              <Dices />
+              <span className="hidden xl:inline">{t('editor.randomise')}</span>
             </Button>
             <div className="flex items-center">
               <Button
-                className="rounded-r-none pr-3"
+                className="rounded-r-none pr-3 font-vt323"
                 disabled={!isDirty}
                 onClick={saveToLibrary}
                 type="button"
@@ -952,7 +1132,7 @@ export function PatchEditorPage({
 
             <Card className="min-w-0 border-primary/20 bg-card/95">
               <CardHeader className={cn('flex-row items-center justify-between gap-2 px-4 py-3', isPitchEnvelopeOpen && 'border-b')}>
-                <CardTitle className="flex min-w-0 items-center gap-1 text-base text-primary">
+                <CardTitle className="flex min-w-0 items-center gap-1 text-base text-black">
                   {t('editor.pitchEnvelope')}
                   <HelpPopover label={t('editor.pitchEnvelope')} text={t('controlHelp.pitchEnvelope')} />
                 </CardTitle>
@@ -997,7 +1177,7 @@ export function PatchEditorPage({
 
             <Card className="min-w-0 border-primary/20 bg-card/95">
               <CardHeader className={cn('flex-row items-center justify-between gap-2 px-4 py-3', isLfoGlobalOpen && 'border-b')}>
-                <CardTitle className="text-base text-primary">{t('editor.lfoGlobal')}</CardTitle>
+                <CardTitle className="text-base text-black">{t('editor.lfoGlobal')}</CardTitle>
                 <CollapseButton
                   controls="lfo-global-controls"
                   expanded={isLfoGlobalOpen}
@@ -1118,7 +1298,7 @@ export function PatchEditorPage({
                 </Button>
               </div>
               <label className="flex min-w-[10rem] items-center gap-2 rounded-md border border-white/10 bg-black/15 px-3 py-2 text-xs text-white/70 sm:min-w-[13rem]">
-                <span className="flex items-center gap-1 font-mono font-black uppercase tracking-wide">
+                <span className="flex items-center gap-1 font-vt323 font-black uppercase tracking-wide">
                   {t('editor.output')}
                   <HelpPopover className="text-white/60 hover:bg-white/10 hover:text-white" label={t('editor.outputLevel')} text={t('controlHelp.outputLevel')} />
                 </span>
@@ -1143,14 +1323,14 @@ export function PatchEditorPage({
                   type="range"
                   value={parameters[operatorBase + 16]}
                 />
-                <output className="w-6 text-right font-mono font-black text-white">
+                <output className="w-6 text-right font-vt323 font-black text-white">
                   {parameters[operatorBase + 16]}
                 </output>
               </label>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="grid min-w-0 gap-5 p-4 sm:p-5 @3xl:grid-cols-[minmax(0,3fr)_minmax(16rem,1fr)]">
+          <CardContent className="grid min-w-0 gap-5 p-4 sm:p-5 @3xl:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
             <EnvelopeEditor
               color="var(--fm1-accent)"
               levels={Array.from(parameters.slice(operatorBase + 4, operatorBase + 8))}
@@ -1165,12 +1345,59 @@ export function PatchEditorPage({
               rates={Array.from(parameters.slice(operatorBase, operatorBase + 4))}
             />
 
-            <div className="grid gap-5">
-              <fieldset className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] px-3 pb-4 transition-colors sm:px-4">
-                <legend className="-ml-1 mb-2 px-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
-                  {t('ui.oscillator')}
-                </legend>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 @3xl:grid-cols-1">
+            <div className="grid min-w-0 content-start gap-3">
+              <div
+                aria-label={`${t('ui.oscillator')} / ${t('ui.keyboardScaling')}`}
+                className="relative grid grid-cols-2 rounded-lg border border-[color-mix(in_srgb,var(--operator-color)_35%,var(--color-border))] bg-white p-1 shadow-sm"
+                role="tablist"
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-md bg-[var(--operator-color)] shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none',
+                    operatorPanelTab === 'scaling' && 'translate-x-full',
+                  )}
+                />
+                <button
+                  aria-controls="operator-oscillator-panel"
+                  aria-selected={operatorPanelTab === 'oscillator'}
+                  className={cn(
+                    'relative z-10 flex h-10 min-w-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    operatorPanelTab === 'oscillator' && 'text-slate-950 hover:bg-transparent hover:text-slate-950',
+                  )}
+                  id="operator-oscillator-tab"
+                  onClick={() => setOperatorPanelTab('oscillator')}
+                  role="tab"
+                  type="button"
+                >
+                  <AudioWaveform className="size-4 shrink-0" />
+                  <span className="truncate" title={t('ui.oscillator')}>{t('ui.oscillator')}</span>
+                </button>
+                <button
+                  aria-controls="operator-scaling-panel"
+                  aria-selected={operatorPanelTab === 'scaling'}
+                  className={cn(
+                    'relative z-10 flex h-10 min-w-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    operatorPanelTab === 'scaling' && 'text-slate-950 hover:bg-transparent hover:text-slate-950',
+                  )}
+                  id="operator-scaling-tab"
+                  onClick={() => setOperatorPanelTab('scaling')}
+                  role="tab"
+                  type="button"
+                >
+                  <SlidersHorizontal className="size-4 shrink-0" />
+                  <span className="truncate" title={t('ui.keyboardScaling')}>{t('ui.keyboardScaling')}</span>
+                </button>
+              </div>
+
+              <section
+                aria-labelledby="operator-oscillator-tab"
+                className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-white p-4 transition-colors"
+                hidden={operatorPanelTab !== 'oscillator'}
+                id="operator-oscillator-panel"
+                role="tabpanel"
+              >
+                <div className="grid gap-4">
                   <RadioParameterControl
                     helpText={t('controlHelp.oscillatorMode')}
                     label={t('ui.mode')}
@@ -1179,79 +1406,92 @@ export function PatchEditorPage({
                     options={oscillatorModes}
                     value={parameters[operatorBase + 17]}
                   />
-                  <SliderParameterControl
-                    helpText={t('controlHelp.coarse')}
-                    label={t('ui.coarse')}
-                    max={31}
-                    onChange={(value) => setParameter(operatorBase + 18, value, 31)}
-                    onGestureEnd={endGesture}
-                    onGestureStart={beginGesture}
-                    value={parameters[operatorBase + 18]}
-                  />
-                  <SliderParameterControl
-                    helpText={t('controlHelp.fine')}
-                    label={t('ui.fine')}
-                    max={99}
-                    onChange={(value) => setParameter(operatorBase + 19, value, 99)}
-                    onGestureEnd={endGesture}
-                    onGestureStart={beginGesture}
-                    value={parameters[operatorBase + 19]}
-                  />
-                  <SliderParameterControl
-                    helpText={t('controlHelp.detune')}
-                    label={t('ui.detune')}
-                    max={7}
-                    min={-7}
-                    onChange={(value) => setParameter(operatorBase + 20, value + 7, 14)}
-                    onGestureEnd={endGesture}
-                    onGestureStart={beginGesture}
-                    value={parameters[operatorBase + 20] - 7}
-                    valueLabel={(value) => value > 0 ? `+${value}` : String(value)}
-                  />
+                  <div className="grid grid-cols-3 gap-2">
+                    <RotaryParameterControl
+                      helpText={t('controlHelp.coarse')}
+                      key={`${selectedOperator}-18`}
+                      label={t('ui.coarse')}
+                      max={31}
+                      onChange={(value) => setParameter(operatorBase + 18, value, 31)}
+                      onGestureEnd={endGesture}
+                      onGestureStart={beginGesture}
+                      value={parameters[operatorBase + 18]}
+                    />
+                    <RotaryParameterControl
+                      helpText={t('controlHelp.fine')}
+                      key={`${selectedOperator}-19`}
+                      label={t('ui.fine')}
+                      max={99}
+                      onChange={(value) => setParameter(operatorBase + 19, value, 99)}
+                      onGestureEnd={endGesture}
+                      onGestureStart={beginGesture}
+                      value={parameters[operatorBase + 19]}
+                    />
+                    <RotaryParameterControl
+                      helpText={t('controlHelp.detune')}
+                      key={`${selectedOperator}-20`}
+                      label={t('ui.detune')}
+                      max={7}
+                      min={-7}
+                      onChange={(value) => setParameter(operatorBase + 20, value + 7, 14)}
+                      onGestureEnd={endGesture}
+                      onGestureStart={beginGesture}
+                      value={parameters[operatorBase + 20] - 7}
+                      valueLabel={(value) => value > 0 ? `+${value}` : String(value)}
+                    />
+                  </div>
                 </div>
-              </fieldset>
+              </section>
 
-              <fieldset className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_12%,var(--color-card))] px-3 pb-4 transition-colors sm:px-4">
-                <legend className="-ml-1 mb-2 px-1 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
-                  {t('ui.keyboardScaling')}
-                </legend>
-                <div className="grid gap-y-3">
-                  {sliderControl(t('ui.breakpoint'), 8, 99, t('controlHelp.breakpoint'))}
-                  <div className="grid gap-y-2">
-                    <p className="text-sm font-bold text-foreground">{t('ui.depth')}</p>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                      {sliderControl(t('ui.left'), 9, 99, t('controlHelp.leftDepth'))}
-                      {sliderControl(t('ui.right'), 10, 99, t('controlHelp.rightDepth'))}
+              <section
+                aria-labelledby="operator-scaling-tab"
+                className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-white p-4 transition-colors"
+                hidden={operatorPanelTab !== 'scaling'}
+                id="operator-scaling-panel"
+                role="tabpanel"
+              >
+                <div className="grid gap-y-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    {rotaryControl(t('ui.breakpoint'), 8, 99, t('controlHelp.breakpoint'))}
+                    {rotaryControl(t('ui.rateScaling'), 13, 7, t('controlHelp.rateScaling'))}
+                  </div>
+                  <div className="grid gap-y-1">
+                    <p className="text-center text-xs font-bold text-foreground">{t('ui.depth')}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {rotaryControl(t('ui.left'), 9, 99, t('controlHelp.leftDepth'))}
+                      {rotaryControl(t('ui.right'), 10, 99, t('controlHelp.rightDepth'))}
                     </div>
                   </div>
-                  {sliderControl(t('ui.rateScaling'), 13, 7, t('controlHelp.rateScaling'))}
                   <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                     {control(t('ui.leftCurve'), 11, 3, curves, t('controlHelp.curve'))}
                     {control(t('ui.rightCurve'), 12, 3, curves, t('controlHelp.curve'))}
                   </div>
-                  {sliderControl(t('ui.velocity'), 15, 7, t('controlHelp.velocity'))}
-                  {sliderControl(t('ui.ampModSensitivity'), 14, 3, t('controlHelp.ampModSensitivity'))}
+                  <div className="grid grid-cols-2 gap-2">
+                    {rotaryControl(t('ui.velocity'), 15, 7, t('controlHelp.velocity'))}
+                    {rotaryControl(t('ui.ampModSensitivity'), 14, 3, t('controlHelp.ampModSensitivity'))}
+                  </div>
                 </div>
-              </fieldset>
+              </section>
             </div>
           </CardContent>
           </Card>
         </div>
       </div>
 
-      <dialog
+      <Dialog
         aria-labelledby="unsaved-editor-title"
-        className="fixed inset-0 z-50 m-auto w-[min(640px,calc(100vw-2rem))] rounded-lg border border-primary/30 bg-card p-0 text-card-foreground shadow-2xl backdrop:bg-black/55"
+        closeOnBackdrop={false}
         onClose={() => setIsNavigationPending(false)}
         ref={unsavedDialogRef}
+        size="2xl"
       >
-        <div className="border-b px-5 py-4">
+        <DialogHeader className="block">
           <h2 className="text-lg font-bold" id="unsaved-editor-title">{t('editor.unsavedTitle')}</h2>
           <p className="mt-1 text-sm leading-5 text-muted-foreground">
             {t('ui.unsavedBody')}
           </p>
-        </div>
-        <div className="flex flex-col-reverse gap-2 px-5 py-4 sm:flex-row sm:justify-end">
+        </DialogHeader>
+        <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end">
           <Button
             className="sm:h-auto sm:min-h-10 sm:min-w-0 sm:flex-1 sm:shrink sm:whitespace-normal"
             disabled={isResolvingNavigation}
@@ -1278,8 +1518,8 @@ export function PatchEditorPage({
           >
             {t('editor.saveAndReturn')}
           </Button>
-        </div>
-      </dialog>
+        </DialogFooter>
+      </Dialog>
 
     </section>
   )

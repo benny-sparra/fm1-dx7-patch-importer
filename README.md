@@ -2,14 +2,16 @@
 
 A browser-based voice editor and patch librarian for the [M-VAVE FM1](https://www.mvave.com/).
 
-The app runs entirely in the browser. Build and organise four local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, audition sounds on the FM1, and transfer individual voices or complete banks over MIDI SysEx. Four classic Yamaha DX7 factory banks are included, and standard 32-voice DX7 `.syx` bank import is supported.
+The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, audition sounds on the FM1, and transfer individual voices or complete banks over MIDI SysEx. Four classic Yamaha DX7 factory banks are loaded initially. New workspace banks can use any of 35 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
 
 ![M-VAVE FM1 synthesiser](src/assets/fm1-header.png)
 
 ## Features
 
 - Start with Yamaha DX7 ROM 1A, ROM 1B, ROM 2A, and ROM 2B in browser banks A–D
-- Restore the four factory banks at any time, or clear one or all local banks
+- Add up to six named workspace banks from the bundled DX7 bank catalog or your own SysEx file, so every bank starts populated
+- Give each workspace bank a title and description, shown when hovering over its tab
+- Restore the four factory banks at any time
 - Restore imported and edited banks automatically from IndexedDB browser storage
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
 - Search and reorder patches with pointer or keyboard drag-and-drop
@@ -19,6 +21,7 @@ The app runs entirely in the browser. Build and organise four local patch banks,
 - Edit four-stage envelopes graphically or with precise numeric controls
 - Edit the FM1's filter, reverb, delay, distortion, chorus, and phaser
 - Apply six sound-shaping presets as undoable starting points
+- Randomise a sound as an undoable starting point
 - Mute or solo operators temporarily while designing a sound
 - Open contextual help for voice, envelope, algorithm, and effect controls
 - Rename patches using DX7-compatible 10-character names
@@ -48,7 +51,7 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 1. Open the app in a supported browser.
 2. Switch **MIDI online** on and grant MIDI/SysEx permission.
 3. Open **Settings** to select the FM1 MIDI output and, if needed, the note/program and effects channels.
-4. Select browser bank A, B, C, or D. On first use these contain DX7 factory ROM 1A, ROM 1B, ROM 2A, and ROM 2B respectively.
+4. Select DX7 Bank 1, 2, 3, or 4. On first use these contain DX7 factory ROM 1A, ROM 1B, ROM 2A, and ROM 2B respectively. Use **Add new bank** to name an additional workspace bank, then populate it from the bundled [Yamaha Black Boxes DX7 catalog](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) or your own standard 32-voice DX7 SysEx file.
 5. Click a patch to select the matching FM1 slot, load it into the edit buffer, and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
 6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
 7. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank.
@@ -58,14 +61,14 @@ After the first successful connection, the app remembers the selected MIDI ports
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 
-To send one sound instead, choose the send icon on its patch card. This loads the sound into the FM1 edit buffer; hold **SAVE** on the FM1 to store it in the current hardware slot.
-
-To import another bank, choose **Import DX7 bank** and select a compatible `.syx` file. The arrow menu beside it also lets you download the current bank, download all loaded banks, restore the four factory banks, or clear local banks. If a bank is empty, you can load the built-in demo bank instead.
+To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. The same bank menu lets you download that bank. Use the menu in the patch-bank header to download all loaded banks or restore the four factory banks. If a bank is empty, you can load the built-in demo bank instead.
 
 The interface follows the browser language on first use when it is supported. Change it later in **Settings**; the selection is remembered. Settings also provides separate channels for notes/program changes and effects because the FM1 defaults its effects controls to MIDI channel 2.
 
 > [!IMPORTANT]
 > Imported voices, edits, and FM1 effect settings are saved in this browser and restored after a page reload. Download important banks as `.syx` files as an additional backup, especially before clearing browser data. DX7 `.syx` export contains voice data only; the FM1-specific effect settings remain in the browser library.
+
+Workspace-bank titles, descriptions, imported sounds, voice ordering, saved editor changes, and FM1 effect settings are saved automatically in the browser.
 
 ## Local development
 

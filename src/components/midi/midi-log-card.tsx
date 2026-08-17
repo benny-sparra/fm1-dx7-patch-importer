@@ -44,7 +44,7 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
   }
 
   return (
-    <Card>
+    <Card className="bg-white">
       <CardHeader>
         <CardTitle className="text-foreground">{t('midi.log')}</CardTitle>
         <CardDescription className="font-medium text-foreground">
@@ -63,7 +63,7 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
                   className="grid grid-cols-[54px_1fr] gap-3 rounded-md border bg-background p-3 text-xs text-foreground"
                   key={entry.id}
                 >
-                  <span className="font-mono font-bold text-foreground">
+                  <span className="font-vt323 font-bold text-foreground">
                     {entry.createdAt}
                   </span>
                   <span className="min-w-0 break-words font-medium text-foreground">
@@ -115,7 +115,7 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
                           {copied ? t('midi.copied') : t('midi.copyHex')}
                         </Button>
                       </div>
-                      <pre className="max-h-[40vh] overflow-auto whitespace-pre rounded-lg border bg-muted/40 p-4 font-mono text-xs leading-5">
+                      <pre className="max-h-[40vh] overflow-auto whitespace-pre rounded-lg border bg-muted/40 p-4 font-vt323 text-xs leading-5">
                         {formattedData}
                       </pre>
                     </div>

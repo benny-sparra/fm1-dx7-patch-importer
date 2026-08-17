@@ -1,4 +1,4 @@
-import { patches as placeholders, type Patch } from '@/data/patches'
+import { type Patch } from '@/data/patches'
 import { encodedDx7FactoryBanks } from '@/data/dx7-factory-banks'
 import { parseDx7Bank, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
 import {
@@ -7,24 +7,54 @@ import {
 } from '@/lib/fm1-effects'
 
 export const browserBanks = ['A', 'B', 'C', 'D'] as const
-export type BrowserBank = typeof browserBanks[number]
+export const maximumWorkspaceBanks = 10
+export const workspaceBankTitleLength = 10
 
 export type PatchLibrarySnapshot = {
+  bankDescriptions: Record<string, string>
+  bankNames: Record<string, string>
   effects: Record<string, Uint8Array>
   loadedBanks: string[]
   voices: Record<string, Dx7Voice>
+  workspaceBanks: string[]
 }
 
-export function emptyPatchLibrary(): PatchLibrarySnapshot {
-  return { effects: {}, loadedBanks: [], voices: {} }
+export function emptyPatchLibrary(
+  workspaceBanks: readonly string[] = browserBanks,
+): PatchLibrarySnapshot {
+  return {
+    bankDescriptions: {},
+    bankNames: {},
+    effects: {},
+    loadedBanks: [],
+    voices: {},
+    workspaceBanks: [...workspaceBanks],
+  }
 }
 
 export function makeFactoryPatchLibrary(): PatchLibrarySnapshot {
-  return browserBanks.reduce((snapshot, bank) => {
+  return restoreFactoryPatchLibrary(emptyPatchLibrary())
+}
+
+export function restoreFactoryPatchLibrary(snapshot: PatchLibrarySnapshot): PatchLibrarySnapshot {
+  const prepared = snapshot.workspaceBanks.length >= browserBanks.length
+    ? snapshot
+    : {
+        ...snapshot,
+        workspaceBanks: Array.from(
+          { length: browserBanks.length },
+          (_, index) => String.fromCharCode(65 + index),
+        ),
+      }
+  const cleared = browserBanks.reduce(
+    (current, bank) => clearLibraryBank(current, bank),
+    prepared,
+  )
+  return browserBanks.reduce((current, bank) => {
     const binary = atob(encodedDx7FactoryBanks[bank])
     const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
-    return importVoices(snapshot, bank, parseDx7Bank(bytes.buffer))
-  }, emptyPatchLibrary())
+    return importVoices(current, bank, parseDx7Bank(bytes.buffer))
+  }, cleared)
 }
 
 export function initializePatchLibrary(stored: PatchLibrarySnapshot | null) {
@@ -35,16 +65,90 @@ export function voiceId(bank: string, number: number) {
   return `bank-${bank}-${number}`
 }
 
-export function makePatches(snapshot: PatchLibrarySnapshot): Patch[] {
-  return placeholders.map((patch) => {
-    const voice = snapshot.voices[voiceId(patch.bank, patch.number)]
-    return {
-      ...patch,
-      id: voiceId(patch.bank, patch.number),
-      name: voice?.name ?? 'Empty',
-      family: voice ? 'DX7' : '',
+export function isWorkspaceBankId(bank: string) {
+  return /^[A-Z]$/.test(bank)
+}
+
+export function getNextWorkspaceBank(workspaceBanks: readonly string[]) {
+  if (workspaceBanks.length >= maximumWorkspaceBanks) return null
+
+  for (let index = 0; index < 26; index += 1) {
+    const bank = String.fromCharCode(65 + index)
+    if (!workspaceBanks.includes(bank)) return bank
+  }
+  return null
+}
+
+export function addWorkspaceBank(snapshot: PatchLibrarySnapshot, bank: string) {
+  if (bank !== getNextWorkspaceBank(snapshot.workspaceBanks)) return snapshot
+  return { ...snapshot, workspaceBanks: [...snapshot.workspaceBanks, bank] }
+}
+
+export function compactWorkspaceBanks(snapshot: PatchLibrarySnapshot): PatchLibrarySnapshot {
+  const sourceBanks = [...new Set(snapshot.workspaceBanks)]
+  const bankDescriptions: Record<string, string> = {}
+  const bankNames: Record<string, string> = {}
+  const effects: Record<string, Uint8Array> = {}
+  const loadedBanks: string[] = []
+  const voices: Record<string, Dx7Voice> = {}
+  const workspaceBanks = sourceBanks.map((_, index) => String.fromCharCode(65 + index))
+
+  sourceBanks.forEach((sourceBank, bankIndex) => {
+    const destinationBank = workspaceBanks[bankIndex]
+    if (snapshot.bankDescriptions[sourceBank]) {
+      bankDescriptions[destinationBank] = snapshot.bankDescriptions[sourceBank]
+    }
+    if (snapshot.bankNames[sourceBank]) {
+      bankNames[destinationBank] = snapshot.bankNames[sourceBank]
+    }
+    if (snapshot.loadedBanks.includes(sourceBank)) loadedBanks.push(destinationBank)
+
+    for (let slot = 1; slot <= 32; slot += 1) {
+      const sourceId = voiceId(sourceBank, slot)
+      const destinationId = voiceId(destinationBank, slot)
+      if (snapshot.voices[sourceId]) voices[destinationId] = snapshot.voices[sourceId]
+      if (snapshot.effects[sourceId]) effects[destinationId] = snapshot.effects[sourceId]
     }
   })
+
+  return { bankDescriptions, bankNames, effects, loadedBanks, voices, workspaceBanks }
+}
+
+export function createWorkspaceBank(
+  snapshot: PatchLibrarySnapshot,
+  bank: string,
+  name: string,
+  description: string,
+  imported: Dx7Voice[],
+) {
+  const normalizedName = normalizeWorkspaceBankNameForSave(name)
+  if (!normalizedName) throw new Error('A workspace bank needs a name.')
+  if (bank !== getNextWorkspaceBank(snapshot.workspaceBanks)) {
+    throw new Error('That workspace bank is no longer available.')
+  }
+  if (!imported) throw new Error('A workspace bank needs sound data.')
+
+  const added = addWorkspaceBank(snapshot, bank)
+  const populated = importVoices(added, bank, imported)
+  return updateBankInformation(populated, bank, normalizedName, description)
+}
+
+export function makePatches(snapshot: PatchLibrarySnapshot): Patch[] {
+  return snapshot.workspaceBanks.flatMap((bank, bankIndex) => (
+    Array.from({ length: 32 }, (_, slotIndex) => {
+      const number = slotIndex + 1
+      const id = voiceId(bank, number)
+      const voice = snapshot.voices[id]
+      return {
+        bank,
+        family: voice ? 'DX7' : '',
+        id,
+        name: voice?.name ?? 'Empty',
+        number,
+        program: (bankIndex % browserBanks.length) * 32 + slotIndex,
+      }
+    })
+  ))
 }
 
 export function importVoices(
@@ -52,7 +156,7 @@ export function importVoices(
   bank: string,
   imported: Dx7Voice[],
 ): PatchLibrarySnapshot {
-  if (!browserBanks.includes(bank as BrowserBank) || imported.length !== 32) {
+  if (!snapshot.workspaceBanks.includes(bank) || imported.length !== 32) {
     throw new Error('A browser bank requires exactly 32 DX7 voices.')
   }
 
@@ -64,10 +168,50 @@ export function importVoices(
     effects[id] = makeDefaultFm1Effects()
   })
   return {
+    bankDescriptions: snapshot.bankDescriptions,
+    bankNames: snapshot.bankNames,
     effects,
     loadedBanks: [...new Set([...snapshot.loadedBanks, bank])].sort(),
     voices,
+    workspaceBanks: snapshot.workspaceBanks,
   }
+}
+
+export function renameBank(
+  snapshot: PatchLibrarySnapshot,
+  bank: string,
+  name: string,
+): PatchLibrarySnapshot {
+  if (!snapshot.workspaceBanks.includes(bank)) return snapshot
+  const bankNames = { ...snapshot.bankNames }
+  const normalized = normalizeWorkspaceBankNameForSave(name)
+  if (normalized) bankNames[bank] = normalized
+  else delete bankNames[bank]
+  return { ...snapshot, bankNames }
+}
+
+export function updateBankInformation(
+  snapshot: PatchLibrarySnapshot,
+  bank: string,
+  title: string,
+  description: string,
+): PatchLibrarySnapshot {
+  if (!snapshot.workspaceBanks.includes(bank)) return snapshot
+  const normalizedTitle = normalizeWorkspaceBankNameForSave(title)
+  if (!normalizedTitle) throw new Error('A workspace bank needs a title.')
+  const normalizedDescription = description.trim().slice(0, 500).trimEnd()
+  const bankDescriptions = { ...snapshot.bankDescriptions }
+  if (normalizedDescription) bankDescriptions[bank] = normalizedDescription
+  else delete bankDescriptions[bank]
+  return {
+    ...snapshot,
+    bankDescriptions,
+    bankNames: { ...snapshot.bankNames, [bank]: normalizedTitle },
+  }
+}
+
+export function normalizeWorkspaceBankNameForSave(name: string) {
+  return name.trim().slice(0, workspaceBankTitleLength).trimEnd() || null
 }
 
 export function renameVoice(
@@ -119,10 +263,23 @@ export function clearLibraryBank(snapshot: PatchLibrarySnapshot, bank: string) {
     delete effects[id]
   }
   return {
+    bankDescriptions: snapshot.bankDescriptions,
+    bankNames: snapshot.bankNames,
     effects,
     loadedBanks: snapshot.loadedBanks.filter((loadedBank) => loadedBank !== bank),
     voices,
+    workspaceBanks: snapshot.workspaceBanks,
   }
+}
+
+export function deleteWorkspaceBank(snapshot: PatchLibrarySnapshot, bank: string) {
+  if (snapshot.workspaceBanks.length <= 1 || !snapshot.workspaceBanks.includes(bank)) {
+    return snapshot
+  }
+  return compactWorkspaceBanks({
+    ...snapshot,
+    workspaceBanks: snapshot.workspaceBanks.filter((workspaceBank) => workspaceBank !== bank),
+  })
 }
 
 export function getBankVoices(snapshot: PatchLibrarySnapshot, bank: string) {
