@@ -63,7 +63,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "axe-core": "^4.13.0",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.1",
     "knip": "6.32.2",
     "oxlint": "^1.71.0",
     "oxlint-tsgolint": "7.0.2001",
