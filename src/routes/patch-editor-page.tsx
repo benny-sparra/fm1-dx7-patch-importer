@@ -50,6 +50,11 @@ import {
   type EditorHistory,
   type ParameterEdit,
 } from '@/lib/patch-editor'
+import {
+  createPatchSyncCoordinator,
+  type PatchSyncCoordinator,
+  type PatchSyncState,
+} from '@/lib/patch-sync-coordinator'
 import { rangeStyle } from '@/lib/range-style'
 import {
   auditionedParameterValue,
@@ -561,25 +566,63 @@ export function PatchEditorPage({
   const [operatorPanelTab, setOperatorPanelTab] = useState<'oscillator' | 'scaling'>('oscillator')
   const [isPitchEnvelopeOpen, setIsPitchEnvelopeOpen] = useState(true)
   const [isLfoGlobalOpen, setIsLfoGlobalOpen] = useState(true)
-  const [syncState, setSyncState] = useState<'live' | 'local' | 'sending'>('sending')
+  const [syncState, setSyncState] = useState<PatchSyncState>('sending')
   const [isNavigationPending, setIsNavigationPending] = useState(false)
   const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
   const historyRef = useRef(history)
+  const historyRevisionRef = useRef(0)
+  const syncStateRef = useRef<PatchSyncState>('sending')
+  const midiRef = useRef(midi)
+  const editorActiveRef = useRef(true)
   const mutedOperatorsRef = useRef<ReadonlySet<number>>(mutedOperators)
   const soloOperatorRef = useRef<number | null>(soloOperator)
   const unsavedDialogRef = useRef<HTMLDialogElement>(null)
   const presetsMenuRef = useDismissableDetails()
   const saveMenuRef = useDismissableDetails()
   const gestureStart = useRef<EditorHistory | null>(null)
-  const sentPatchId = useRef('')
-  const sendInFlight = useRef(false)
   const sentName = useRef(history.present.slice(145, 155))
+  const patchSyncRef = useRef<PatchSyncCoordinator | null>(null)
   const parameters = history.present
   const isDirty = !parametersMatch(parameters, savedParameters)
 
+  midiRef.current = midi
+
+  if (!patchSyncRef.current) {
+    patchSyncRef.current = createPatchSyncCoordinator({
+      getLatestSnapshot: () => ({
+        parameters: historyRef.current.present,
+        revision: historyRevisionRef.current,
+      }),
+      isCurrent: () => editorActiveRef.current,
+      onStateChange: (state) => {
+        syncStateRef.current = state
+        setSyncState(state)
+      },
+      onSynchronized: (sentParameters) => {
+        sentName.current = sentParameters.slice(145, 155)
+        if (mutedOperatorsRef.current.size > 0 || soloOperatorRef.current !== null) {
+          makeOperatorAuditionEdits(
+            sentParameters,
+            mutedOperatorsRef.current,
+            soloOperatorRef.current,
+          ).forEach(([parameter, value]) => midiRef.current.sendParameter(parameter, value))
+        }
+      },
+      sendEffects: (sentParameters) => (
+        midiRef.current.sendEffectSettings(getFm1EffectParameters(sentParameters))
+      ),
+      sendVoice: (sentParameters) => (
+        midiRef.current.sendVoice(packDx7Voice(getFm1VoiceParameters(sentParameters)))
+      ),
+    })
+  }
+
   useEffect(() => {
-    historyRef.current = history
-  }, [history])
+    editorActiveRef.current = true
+    return () => {
+      editorActiveRef.current = false
+    }
+  }, [])
 
   useEffect(() => {
     const noMutedOperators = new Set<number>()
@@ -617,16 +660,24 @@ export function PatchEditorPage({
       .forEach(([parameter, value]) => midi.sendParameter(parameter, value))
   }, [midi])
 
+  const commitHistory = useCallback((next: EditorHistory) => {
+    const current = historyRef.current
+    if (next === current) return false
+
+    historyRef.current = next
+    if (!parametersMatch(current.present, next.present)) historyRevisionRef.current += 1
+    setHistory(next)
+    return true
+  }, [])
+
   const applyEdits = useCallback((edits: ParameterEdit[], send = true) => {
     const activeGesture = gestureStart.current
-    setHistory((current) => {
-      const edited = editParameters(current, edits)
-      if (edited === current) return current
-      if (!activeGesture) return edited
-      return { ...edited, past: activeGesture.past }
-    })
+    const current = historyRef.current
+    const edited = editParameters(current, edits)
+    if (edited === current) return
+    commitHistory(activeGesture ? { ...edited, past: activeGesture.past } : edited)
 
-    if (send && syncState === 'live') {
+    if (send && syncStateRef.current === 'live') {
       edits.forEach(([index, value, min = 0, max = 127]) => {
         const normalized = Math.max(min, Math.min(max, Math.round(value)))
         midi.sendParameter(index, auditionedParameterValue(
@@ -637,7 +688,7 @@ export function PatchEditorPage({
         ))
       })
     }
-  }, [midi, syncState])
+  }, [commitHistory, midi])
 
   const setParameter = useCallback((
     index: number,
@@ -658,57 +709,31 @@ export function PatchEditorPage({
     gestureStart.current = null
     if (!start) return
 
-    setHistory((current) => {
-      if (parametersMatch(start.present, current.present)) return current
-      return {
-        ...current,
-        past: [...start.past, start.present].slice(-100),
-      }
+    const current = historyRef.current
+    if (parametersMatch(start.present, current.present)) return
+    commitHistory({
+      ...current,
+      past: [...start.past, start.present].slice(-100),
     })
-  }, [])
-
-  const sendParametersToFm1 = useCallback(async (nextParameters: Uint8Array) => {
-    if (sendInFlight.current) return false
-    sendInFlight.current = true
-    setSyncState('sending')
-    const currentVoice = packDx7Voice(getFm1VoiceParameters(nextParameters))
-    const sent = await midi.sendVoice(currentVoice)
-    const effectsSent = sent
-      ? await midi.sendEffectSettings(getFm1EffectParameters(nextParameters))
-      : false
-    sendInFlight.current = false
-    if (sent && effectsSent) {
-      sentName.current = nextParameters.slice(145, 155)
-      if (mutedOperatorsRef.current.size > 0 || soloOperatorRef.current !== null) {
-        sendOperatorAuditionParameters(nextParameters)
-      }
-      setSyncState('live')
-      return true
-    } else {
-      setSyncState('local')
-      return false
-    }
-  }, [midi, sendOperatorAuditionParameters])
+  }, [commitHistory])
 
   const sendToFm1 = useCallback(
-    () => sendParametersToFm1(historyRef.current.present),
-    [sendParametersToFm1],
+    () => patchSyncRef.current!.requestSync(),
+    [],
   )
 
   useEffect(() => {
-    if (sentPatchId.current === patch.id) return
-    sentPatchId.current = patch.id
-    void sendToFm1()
-  }, [patch.id, sendToFm1])
+    void patchSyncRef.current!.requestInitialSync(patch.id)
+  }, [patch.id])
 
   const updateName = (name: string) => {
-    const edits = makeDx7VoiceNameEdits(parameters, name)
+    const edits = makeDx7VoiceNameEdits(historyRef.current.present, name)
       .map(([parameter, value]) => [parameter, value] as ParameterEdit)
     applyEdits(edits, false)
   }
 
   const sendNameToFm1 = () => {
-    if (syncState !== 'live') return
+    if (syncStateRef.current !== 'live') return
     const lastSentParameters = parameters.slice()
     lastSentParameters.set(sentName.current, 145)
     const edits = makeDx7VoiceNameEdits(lastSentParameters, liveName)
@@ -718,31 +743,21 @@ export function PatchEditorPage({
   }
 
   const restoreHistory = (direction: 'undo' | 'redo') => {
-    const next = direction === 'undo' ? undoParameters(history) : redoParameters(history)
-    if (next === history) return
-    setHistory(next)
-    if (syncState === 'live') {
-      void midi.sendVoice(packDx7Voice(getFm1VoiceParameters(next.present)))
-        .then((sent) => sent
-          ? midi.sendEffectSettings(getFm1EffectParameters(next.present))
-          : false)
-        .then((sent) => {
-          if (sent && (mutedOperatorsRef.current.size > 0 || soloOperatorRef.current !== null)) {
-            sendOperatorAuditionParameters(next.present)
-          }
-        })
-    }
+    const current = historyRef.current
+    const next = direction === 'undo' ? undoParameters(current) : redoParameters(current)
+    if (!commitHistory(next)) return
+    if (syncStateRef.current === 'live') void sendToFm1()
   }
 
   const setEffectParameter = useCallback((controller: number, value: number) => {
     applyEdits([[155 + controller, value, 0, 127]], false)
-    if (syncState === 'live') midi.sendEffectParameter(controller, value)
-  }, [applyEdits, midi, syncState])
+    if (syncStateRef.current === 'live') midi.sendEffectParameter(controller, value)
+  }, [applyEdits, midi])
 
   const updateOperatorAudition = (
     nextMutedOperators: ReadonlySet<number>,
     nextSoloOperator: number | null,
-    send = syncState === 'live',
+    send = syncStateRef.current === 'live',
   ) => {
     mutedOperatorsRef.current = nextMutedOperators
     soloOperatorRef.current = nextSoloOperator
@@ -769,7 +784,7 @@ export function PatchEditorPage({
     updateOperatorAudition(mutedOperatorsRef.current, nextSoloOperator)
   }
 
-  const clearOperatorAudition = (send = syncState === 'live') => {
+  const clearOperatorAudition = (send = syncStateRef.current === 'live') => {
     if (mutedOperatorsRef.current.size === 0 && soloOperatorRef.current === null) return
     updateOperatorAudition(new Set(), null, send)
   }
@@ -802,9 +817,9 @@ export function PatchEditorPage({
     } else {
       clearOperatorAudition(false)
       const restored = makeEditorHistory(savedParameters)
-      historyRef.current = restored
-      setHistory(restored)
-      await sendParametersToFm1(savedParameters)
+      commitHistory(restored)
+      await sendToFm1()
+      if (!editorActiveRef.current) return
     }
     setIsResolvingNavigation(false)
     unsavedDialogRef.current?.close()
@@ -815,9 +830,8 @@ export function PatchEditorPage({
   const revertToSaved = async () => {
     saveMenuRef.current?.removeAttribute('open')
     const restored = makeEditorHistory(savedParameters)
-    historyRef.current = restored
-    setHistory(restored)
-    await sendParametersToFm1(savedParameters)
+    commitHistory(restored)
+    await sendToFm1()
   }
 
   const resendToFm1 = () => {
@@ -837,9 +851,8 @@ export function PatchEditorPage({
     if (next === current) return
 
     gestureStart.current = null
-    historyRef.current = next
-    setHistory(next)
-    void sendParametersToFm1(next.present)
+    commitHistory(next)
+    void sendToFm1()
   }
 
   const randomise = () => {
@@ -853,9 +866,8 @@ export function PatchEditorPage({
     if (next === current) return
 
     gestureStart.current = null
-    historyRef.current = next
-    setHistory(next)
-    void sendParametersToFm1(next.present)
+    commitHistory(next)
+    void sendToFm1()
   }
 
   const operatorBase = (6 - selectedOperator) * 21
