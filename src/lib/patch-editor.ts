@@ -1,9 +1,4 @@
-export type ParameterEdit = [
-  index: number,
-  value: number,
-  min?: number,
-  max?: number,
-]
+export type ParameterEdit = [index: number, value: number, min?: number, max?: number]
 
 export type EditorHistory = {
   future: Uint8Array[]
@@ -21,10 +16,7 @@ export function makeEditorHistory(parameters: Uint8Array): EditorHistory {
   }
 }
 
-export function editParameters(
-  history: EditorHistory,
-  edits: ParameterEdit[],
-): EditorHistory {
+export function editParameters(history: EditorHistory, edits: ParameterEdit[]): EditorHistory {
   const next = history.present.slice()
   let changed = false
 

@@ -30,24 +30,23 @@ export function Fm1BankSelectionDialog({ dialogRef }: Fm1BankSelectionDialogProp
           <h2 className="text-lg font-bold" id="fm1-bank-selection-title">
             {t('dialogs.bankTitle')}
           </h2>
-          <p className="mt-1 text-sm leading-5 text-muted-foreground">
-            {t('dialogs.bankIntro')}
-          </p>
+          <p className="mt-1 text-sm leading-5 text-muted-foreground">{t('dialogs.bankIntro')}</p>
         </div>
-        <DialogCloseButton
-          label={t('dialogs.bankClose')}
-          onClick={closeDialog}
-        />
+        <DialogCloseButton label={t('dialogs.bankClose')} onClick={closeDialog} />
       </DialogHeader>
 
       <div className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-center">
         <ol className="grid gap-4 text-sm leading-5">
           <li className="flex gap-3">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">1</span>
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+              1
+            </span>
             <span>{t('dialogs.bankStep1')}</span>
           </li>
           <li className="flex gap-3">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">2</span>
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+              2
+            </span>
             <span>{t('dialogs.bankStep2')}</span>
           </li>
           <li className="flex gap-3">

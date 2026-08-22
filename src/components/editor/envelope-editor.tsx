@@ -2,11 +2,7 @@ import { useRef, type KeyboardEvent, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpPopover } from '@/components/ui/help-popover'
-import {
-  clampEnvelopeValue,
-  envelopePath,
-  envelopePointPosition,
-} from '@/lib/editor-visuals'
+import { clampEnvelopeValue, envelopePath, envelopePointPosition } from '@/lib/editor-visuals'
 import { cn } from '@/lib/utils'
 
 type EnvelopeEditorProps = {
@@ -50,12 +46,18 @@ export function EnvelopeEditor({
 
   const handleKeyDown = (event: KeyboardEvent<SVGRectElement>, point: number) => {
     const step = event.shiftKey ? 10 : 1
-    const nextRate = event.key === 'ArrowLeft' ? rates[point] + step
-      : event.key === 'ArrowRight' ? rates[point] - step
-        : rates[point]
-    const nextLevel = event.key === 'ArrowUp' ? levels[point] + step
-      : event.key === 'ArrowDown' ? levels[point] - step
-        : levels[point]
+    const nextRate =
+      event.key === 'ArrowLeft'
+        ? rates[point] + step
+        : event.key === 'ArrowRight'
+          ? rates[point] - step
+          : rates[point]
+    const nextLevel =
+      event.key === 'ArrowUp'
+        ? levels[point] + step
+        : event.key === 'ArrowDown'
+          ? levels[point] - step
+          : levels[point]
 
     if (!event.key.startsWith('Arrow')) return
     event.preventDefault()
@@ -83,7 +85,7 @@ export function EnvelopeEditor({
     >
       <div className="mb-2 flex items-center justify-between gap-3">
         <div>
-          <p className="flex items-center gap-1 text-xs font-black uppercase tracking-[0.18em] text-white/85">
+          <p className="flex items-center gap-1 text-xs font-black tracking-[0.18em] text-white/85 uppercase">
             {t('editor.amplitudeEnvelope')}
             <HelpPopover
               className="text-white/60 hover:bg-white/10 hover:text-white"
@@ -93,7 +95,7 @@ export function EnvelopeEditor({
           </p>
           <p className="font-vt323 text-[11px] text-white/50">{t('ui.envelopeInstruction')}</p>
         </div>
-        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white/50">
+        <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-white/50 uppercase">
           <span className="size-2 rounded-full bg-[var(--operator-color)] shadow-[0_0_10px_var(--operator-color)]" />
           R / L
         </div>
@@ -199,17 +201,22 @@ export function EnvelopeEditor({
       </svg>
       <div className="mt-3 grid grid-cols-4 gap-2 border-t border-white/10 pt-3">
         {rates.map((rate, index) => (
-          <div className="grid min-w-0 grid-cols-2 gap-1 rounded-md border border-white/10 bg-black/20 p-1.5" key={index}>
-            <label className="grid min-w-0 gap-1 text-center text-[9px] font-black uppercase tracking-wide text-white/50">
+          <div
+            className="grid min-w-0 grid-cols-2 gap-1 rounded-md border border-white/10 bg-black/20 p-1.5"
+            key={index}
+          >
+            <label className="grid min-w-0 gap-1 text-center text-[9px] font-black tracking-wide text-white/50 uppercase">
               R{index + 1}
               <input
                 aria-label={`Envelope rate ${index + 1}`}
-                className="h-9 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-vt323 text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
+                className="font-vt323 h-9 w-full min-w-0 rounded border border-white/15 bg-white/[0.06] px-1 text-center text-xs font-bold text-white transition outline-none focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
                 inputMode="numeric"
                 max={99}
                 min={0}
                 onBlur={onGestureEnd}
-                onChange={(event) => updateNumericValue('rate', event.currentTarget.valueAsNumber, index)}
+                onChange={(event) =>
+                  updateNumericValue('rate', event.currentTarget.valueAsNumber, index)
+                }
                 onFocus={(event) => {
                   onGestureStart()
                   event.currentTarget.select()
@@ -222,16 +229,18 @@ export function EnvelopeEditor({
                 value={rate}
               />
             </label>
-            <label className="grid min-w-0 gap-1 text-center text-[9px] font-black uppercase tracking-wide text-white/50">
+            <label className="grid min-w-0 gap-1 text-center text-[9px] font-black tracking-wide text-white/50 uppercase">
               L{index + 1}
               <input
                 aria-label={`Envelope level ${index + 1}`}
-                className="h-9 min-w-0 w-full rounded border border-white/15 bg-white/[0.06] px-1 text-center font-vt323 text-xs font-bold text-white outline-none transition focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
+                className="font-vt323 h-9 w-full min-w-0 rounded border border-white/15 bg-white/[0.06] px-1 text-center text-xs font-bold text-white transition outline-none focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
                 inputMode="numeric"
                 max={99}
                 min={0}
                 onBlur={onGestureEnd}
-                onChange={(event) => updateNumericValue('level', event.currentTarget.valueAsNumber, index)}
+                onChange={(event) =>
+                  updateNumericValue('level', event.currentTarget.valueAsNumber, index)
+                }
                 onFocus={(event) => {
                   onGestureStart()
                   event.currentTarget.select()

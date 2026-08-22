@@ -36,11 +36,7 @@ export function Dx7BankSourcesDialog() {
         {t('dialogs.sourcesOpen')}
       </button>
 
-      <Dialog
-        aria-labelledby="dx7-bank-sources-title"
-        ref={dialogRef}
-        size="lg"
-      >
+      <Dialog aria-labelledby="dx7-bank-sources-title" ref={dialogRef} size="lg">
         <DialogHeader>
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold" id="dx7-bank-sources-title">
@@ -79,7 +75,6 @@ export function Dx7BankSourcesDialog() {
             </li>
           ))}
         </ul>
-
       </Dialog>
     </>
   )

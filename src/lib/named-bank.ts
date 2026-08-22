@@ -1,12 +1,8 @@
 import { makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
-import {
-  importVoices,
-  voiceId,
-  type PatchLibrarySnapshot,
-} from '@/lib/patch-library'
+import { importVoices, voiceId, type PatchLibrarySnapshot } from '@/lib/patch-library'
 
-export type NamedBankSlot = {
+type NamedBankSlot = {
   effects: Uint8Array
   slot: number
   voice: Dx7Voice
@@ -38,7 +34,8 @@ function normalizeName(name: string) {
 
 function normalizeDescription(description: string) {
   const normalized = description.trim()
-  if (normalized.length > 500) throw new Error('A saved bank description cannot exceed 500 characters.')
+  if (normalized.length > 500)
+    throw new Error('A saved bank description cannot exceed 500 characters.')
   return normalized
 }
 
@@ -54,15 +51,15 @@ export function validateNamedBank(value: unknown): asserts value is NamedBank {
   if (!value || typeof value !== 'object') throw new Error('A saved bank record is invalid.')
   const bank = value as Partial<NamedBank>
   if (
-    bank.version !== 1
-    || typeof bank.id !== 'string'
-    || !bank.id
-    || typeof bank.name !== 'string'
-    || typeof bank.description !== 'string'
-    || typeof bank.createdAt !== 'string'
-    || typeof bank.updatedAt !== 'string'
-    || !Array.isArray(bank.slots)
-    || bank.slots.length !== 32
+    bank.version !== 1 ||
+    typeof bank.id !== 'string' ||
+    !bank.id ||
+    typeof bank.name !== 'string' ||
+    typeof bank.description !== 'string' ||
+    typeof bank.createdAt !== 'string' ||
+    typeof bank.updatedAt !== 'string' ||
+    !Array.isArray(bank.slots) ||
+    bank.slots.length !== 32
   ) {
     throw new Error('A saved bank record is invalid.')
   }
@@ -71,13 +68,13 @@ export function validateNamedBank(value: unknown): asserts value is NamedBank {
   normalizeDescription(bank.description)
   bank.slots.forEach((slot, index) => {
     if (
-      !slot
-      || slot.slot !== index + 1
-      || !(slot.voice?.data instanceof Uint8Array)
-      || slot.voice.data.length !== 128
-      || typeof slot.voice.name !== 'string'
-      || !(slot.effects instanceof Uint8Array)
-      || slot.effects.length !== 24
+      !slot ||
+      slot.slot !== index + 1 ||
+      !(slot.voice?.data instanceof Uint8Array) ||
+      slot.voice.data.length !== 128 ||
+      typeof slot.voice.name !== 'string' ||
+      !(slot.effects instanceof Uint8Array) ||
+      slot.effects.length !== 24
     ) {
       throw new Error('A saved bank must contain 32 valid sound slots.')
     }

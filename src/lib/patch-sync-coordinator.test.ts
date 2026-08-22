@@ -61,8 +61,12 @@ function makeHarness(initial = Uint8Array.from([10, 20, 30])) {
     coordinator,
     effectCalls,
     effectResults,
-    get maximumActiveSends() { return maximumActiveSends },
-    get parameters() { return parameters },
+    get maximumActiveSends() {
+      return maximumActiveSends
+    },
+    get parameters() {
+      return parameters
+    },
     replace(nextParameters: Uint8Array) {
       parameters = nextParameters
       revision += 1
@@ -103,7 +107,10 @@ describe('patch sync coordinator', () => {
     await flushPromises()
 
     expect(harness.states).toEqual(['sending'])
-    expect(harness.voiceCalls).toEqual([[10, 20, 30], [11, 20, 30]])
+    expect(harness.voiceCalls).toEqual([
+      [10, 20, 30],
+      [11, 20, 30],
+    ])
 
     harness.voiceResults[1].resolve(true)
     await flushPromises()
@@ -124,7 +131,10 @@ describe('patch sync coordinator', () => {
     harness.effectResults[0].resolve(true)
     await flushPromises()
 
-    expect(harness.voiceCalls).toEqual([[10, 20, 30], [10, 21, 30]])
+    expect(harness.voiceCalls).toEqual([
+      [10, 20, 30],
+      [10, 21, 30],
+    ])
     harness.voiceResults[1].resolve(true)
     await flushPromises()
     harness.effectResults[1].resolve(true)
@@ -151,7 +161,10 @@ describe('patch sync coordinator', () => {
 
     await expect(firstRequest).resolves.toBe(true)
     await expect(duplicateRequest).resolves.toBe(true)
-    expect(harness.voiceCalls).toEqual([[10, 20, 30], [13, 23, 33]])
+    expect(harness.voiceCalls).toEqual([
+      [10, 20, 30],
+      [13, 23, 33],
+    ])
     expect(harness.maximumActiveSends).toBe(1)
   })
 

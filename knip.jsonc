@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/main.tsx",
+    "src/**/*.test.{ts,tsx}",
+    "vite.config.ts",
+    "scripts/check-layout-shift.mjs",
+  ],
+  "project": ["src/**/*.{ts,tsx}", "vite.config.ts", "scripts/**/*.mjs"],
+  "ignore": [
+    // This merged named-bank UI is intentionally retained while its navigation entry point is completed.
+    "src/components/patches/named-bank-library-dialog.tsx",
+  ],
+  "ignoreDependencies": [
+    // These packages are referenced from CSS, which Knip does not follow in this TypeScript project.
+    "@fontsource-variable/doto",
+    "@fontsource-variable/space-grotesk",
+    "@fontsource/vt323",
+    "tailwindcss",
+  ],
+}

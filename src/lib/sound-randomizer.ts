@@ -1,13 +1,11 @@
 import { fm1EffectParameterMaximums } from '@/lib/fm1-effects'
 
 const operatorParameterMaximums = [
-  99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
-  3, 3, 7, 3, 7, 99, 1, 31, 99, 14,
+  99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 3, 3, 7, 3, 7, 99, 1, 31, 99, 14,
 ] as const
 
 const globalParameterMaximums = [
-  99, 99, 99, 99, 99, 99, 99, 99,
-  31, 7, 1, 99, 99, 99, 99, 1, 5, 7, 48,
+  99, 99, 99, 99, 99, 99, 99, 99, 31, 7, 1, 99, 99, 99, 99, 1, 5, 7, 48,
 ] as const
 
 const editorParameterCount = 179
@@ -17,12 +15,11 @@ function randomInteger(maximum: number, random: () => number) {
 }
 
 /** Randomises every editable sound parameter while preserving the patch name. */
-export function randomizeSound(
-  parameters: Uint8Array,
-  random: () => number = Math.random,
-) {
+export function randomizeSound(parameters: Uint8Array, random: () => number = Math.random) {
   if (parameters.length !== editorParameterCount) {
-    throw new RangeError(`Sound randomisation requires ${editorParameterCount} FM1 editor parameters.`)
+    throw new RangeError(
+      `Sound randomisation requires ${editorParameterCount} FM1 editor parameters.`,
+    )
   }
 
   const next = parameters.slice()

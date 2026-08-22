@@ -1,5 +1,5 @@
 import { TriangleAlert, Upload } from 'lucide-react'
-import { type RefObject, useRef, useState } from 'react'
+import { type FormEvent, type RefObject, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -34,6 +34,23 @@ export function ImportDx7BankDialog({
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!bank || !file) return
+
+    setWorking(true)
+    setError('')
+    try {
+      await library.importBank(bank, file)
+      toast.success(t('toasts.bankImported', { bank: bankName }))
+      dialogRef.current?.close()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('banks.importFailed'))
+    } finally {
+      setWorking(false)
+    }
+  }
+
   return (
     <Dialog
       aria-describedby="import-dx7-bank-description"
@@ -56,7 +73,10 @@ export function ImportDx7BankDialog({
             <Upload className="size-5 text-primary" />
             {t('overwriteImport.title', { bank: bankName })}
           </h2>
-          <p className="font-vt323 mt-1 text-lg text-muted-foreground" id="import-dx7-bank-description">
+          <p
+            className="font-vt323 mt-1 text-lg text-muted-foreground"
+            id="import-dx7-bank-description"
+          >
             {t('overwriteImport.help')}
           </p>
         </div>
@@ -67,25 +87,7 @@ export function ImportDx7BankDialog({
         />
       </DialogHeader>
 
-      <form
-        className="grid gap-5 p-5"
-        onSubmit={async (event) => {
-          event.preventDefault()
-          if (!bank || !file) return
-
-          setWorking(true)
-          setError('')
-          try {
-            await library.importBank(bank, file)
-            toast.success(t('toasts.bankImported', { bank: bankName }))
-            dialogRef.current?.close()
-          } catch (cause) {
-            setError(cause instanceof Error ? cause.message : t('banks.importFailed'))
-          } finally {
-            setWorking(false)
-          }
-        }}
-      >
+      <form className="grid gap-5 p-5" onSubmit={(event) => void submit(event)}>
         <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <TriangleAlert className="mt-0.5 size-5 shrink-0" />
           <p>{t('overwriteImport.warning')}</p>
@@ -94,9 +96,7 @@ export function ImportDx7BankDialog({
         <label className="grid gap-2 text-sm font-semibold">
           {t('banks.soundData')}
           <span className="modal-input-surface flex min-h-11 cursor-pointer items-center rounded-md border border-dashed border-input px-3 font-normal transition-colors hover:bg-muted/50">
-            <span className="min-w-0 truncate">
-              {file?.name ?? t('banks.chooseSysexFile')}
-            </span>
+            <span className="min-w-0 truncate">{file?.name ?? t('banks.chooseSysexFile')}</span>
             <input
               accept=".syx,application/octet-stream"
               className="sr-only"
@@ -112,7 +112,10 @@ export function ImportDx7BankDialog({
         </label>
 
         {error ? (
-          <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
+          <p
+            className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            role="alert"
+          >
             {error}
           </p>
         ) : null}

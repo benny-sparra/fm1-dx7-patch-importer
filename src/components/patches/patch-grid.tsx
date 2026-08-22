@@ -1,16 +1,23 @@
-import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
-import { rectSortingStrategy, sortableKeyboardCoordinates, SortableContext } from '@dnd-kit/sortable'
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  SortableContext,
+} from '@dnd-kit/sortable'
 import { FileMusic, Search } from 'lucide-react'
 import { type ReactNode, type SVGProps } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import fm1Keyboard from '@/assets/fm1-keyboard.webp'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
 
@@ -100,17 +107,19 @@ export function PatchGrid({
               </div>
             ) : null}
             <label className="relative block w-full sm:ml-auto sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-[calc(25%-0.375rem)]">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
-                className="patch-search-input h-10 w-full rounded-md border bg-white pl-9 pr-3 text-sm text-secondary-foreground outline-none ring-ring transition placeholder:text-secondary-foreground/60 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label={t('banks.search')}
+                className="patch-search-input h-10 w-full rounded-md border bg-white pr-3 pl-9 text-sm text-secondary-foreground ring-ring transition outline-none placeholder:text-secondary-foreground/60 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={searchDisabled}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={t('banks.search')}
+                type="search"
                 value={search}
               />
             </label>
           </div>
-          <CardContent className="relative isolate space-y-4 overflow-hidden bg-primary px-3 pb-3 pt-0 sm:px-4 sm:pb-4">
+          <CardContent className="relative isolate space-y-4 overflow-hidden bg-primary px-3 pt-0 pb-3 sm:px-4 sm:pb-4">
             <img
               alt=""
               aria-hidden="true"
@@ -118,60 +127,64 @@ export function PatchGrid({
               src={fm1Keyboard}
             />
             <div className="relative z-10">
-        {patches.length > 0 ? (
-          <DndContext collisionDetection={closestCenter} onDragEnd={finishReorder} sensors={sensors}>
-          <SortableContext items={patches.map((patch) => patch.id)} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
-              {patches.map((patch) => (
-                <div
-                  className="h-full w-full"
-                  key={patch.id}
+              {patches.length > 0 ? (
+                <DndContext
+                  collisionDetection={closestCenter}
+                  onDragEnd={finishReorder}
+                  sensors={sensors}
                 >
-                  <PatchButton
-                    disabled={isPatchDisabled(patch)}
-                    disabledTitle={t('banks.importFirst', { bank: patch.bank })}
-                    onEdit={onPatchEdit}
-                    patch={patch}
-                    isActive={patch.id === activePatchId}
-                  />
-                </div>
-              ))}
-          </div>
-          </SortableContext>
-          </DndContext>
-        ) : (
-          <div className="grid min-h-72 place-items-center rounded-lg border border-dashed bg-background/70 p-6 text-center">
-            <div className="max-w-md">
-              <FileMusic className="mx-auto size-10 text-primary" />
-              <h3 className="mt-3 text-lg font-bold text-foreground">
-                {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
-              </h3>
-              {!isBankLoaded ? (
-                <>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    {t('banks.emptyHelp')}
-                  </p>
-                  <div className="mt-4 flex flex-wrap justify-center gap-2">
-                    <button
-                      className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-                      onClick={onImportEmptyBank}
-                      type="button"
-                    >
-                      {t('banks.import')}
-                    </button>
-                    <button
-                      className="rounded-md border bg-background px-4 py-2 text-sm font-semibold text-foreground"
-                      onClick={onLoadDemoBank}
-                      type="button"
-                    >
-                      {t('banks.loadDemo')}
-                    </button>
+                  <SortableContext
+                    items={patches.map((patch) => patch.id)}
+                    strategy={rectSortingStrategy}
+                  >
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                      {patches.map((patch) => (
+                        <div className="h-full w-full" key={patch.id}>
+                          <PatchButton
+                            disabled={isPatchDisabled(patch)}
+                            disabledTitle={t('banks.importFirst', { bank: patch.bank })}
+                            onEdit={onPatchEdit}
+                            patch={patch}
+                            isActive={patch.id === activePatchId}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              ) : (
+                <div className="grid min-h-72 place-items-center rounded-lg border border-dashed bg-background/70 p-6 text-center">
+                  <div className="max-w-md">
+                    <FileMusic className="mx-auto size-10 text-primary" />
+                    <h3 className="mt-3 text-lg font-bold text-foreground">
+                      {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
+                    </h3>
+                    {!isBankLoaded ? (
+                      <>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                          {t('banks.emptyHelp')}
+                        </p>
+                        <div className="mt-4 flex flex-wrap justify-center gap-2">
+                          <button
+                            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                            onClick={onImportEmptyBank}
+                            type="button"
+                          >
+                            {t('banks.import')}
+                          </button>
+                          <button
+                            className="rounded-md border bg-background px-4 py-2 text-sm font-semibold text-foreground"
+                            onClick={onLoadDemoBank}
+                            type="button"
+                          >
+                            {t('banks.loadDemo')}
+                          </button>
+                        </div>
+                      </>
+                    ) : null}
                   </div>
-                </>
-              ) : null}
-            </div>
-          </div>
-        )}
+                </div>
+              )}
             </div>
           </CardContent>
         </div>

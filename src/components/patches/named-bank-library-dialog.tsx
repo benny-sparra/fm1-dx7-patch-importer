@@ -1,5 +1,5 @@
 import { Copy, Database, Download, FolderOpen, Pencil, Save, Trash2 } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { type FormEvent, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -26,11 +26,7 @@ function downloadBlob(blob: Blob, filename: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1_000)
 }
 
-function SaveNamedBankDialog({
-  destinationBank,
-  library,
-  onClose,
-}: NamedBankLibraryDialogProps) {
+function SaveNamedBankDialog({ destinationBank, library, onClose }: NamedBankLibraryDialogProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
@@ -44,6 +40,20 @@ function SaveNamedBankDialog({
     setDescription('')
     setError('')
     setName('')
+  }
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setWorking(true)
+    setError('')
+    try {
+      await library.saveNamedBank(destinationBank, name, description)
+      dialogRef.current?.close()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('namedBanks.operationFailed'))
+    } finally {
+      setWorking(false)
+    }
   }
 
   return (
@@ -86,7 +96,10 @@ function SaveNamedBankDialog({
               <Save className="size-5 text-primary" />
               {t('namedBanks.saveCurrent', { bank: destinationBank })}
             </h2>
-            <p className="font-vt323 mt-1 text-lg text-muted-foreground" id="save-named-bank-description">
+            <p
+              className="font-vt323 mt-1 text-lg text-muted-foreground"
+              id="save-named-bank-description"
+            >
               {t('namedBanks.snapshotHelp')}
             </p>
           </div>
@@ -97,22 +110,7 @@ function SaveNamedBankDialog({
           />
         </DialogHeader>
 
-        <form
-          className="grid gap-4 p-5"
-          onSubmit={async (event) => {
-            event.preventDefault()
-            setWorking(true)
-            setError('')
-            try {
-              await library.saveNamedBank(destinationBank, name, description)
-              dialogRef.current?.close()
-            } catch (cause) {
-              setError(cause instanceof Error ? cause.message : t('namedBanks.operationFailed'))
-            } finally {
-              setWorking(false)
-            }
-          }}
-        >
+        <form className="grid gap-4 p-5" onSubmit={(event) => void submit(event)}>
           <label className="grid gap-1 text-sm font-semibold">
             {t('namedBanks.name')}
             <input
@@ -137,7 +135,10 @@ function SaveNamedBankDialog({
             />
           </label>
           {error ? (
-            <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
+            <p
+              className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+              role="alert"
+            >
               {error}
             </p>
           ) : null}
@@ -153,11 +154,7 @@ function SaveNamedBankDialog({
   )
 }
 
-function LoadNamedBankDialog({
-  destinationBank,
-  library,
-  onClose,
-}: NamedBankLibraryDialogProps) {
+function LoadNamedBankDialog({ destinationBank, library, onClose }: NamedBankLibraryDialogProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const editNameRef = useRef<HTMLInputElement>(null)
@@ -173,9 +170,9 @@ function LoadNamedBankDialog({
   const visibleBanks = useMemo(() => {
     const normalized = query.trim().toLowerCase()
     if (!normalized) return library.namedBanks
-    return library.namedBanks.filter((bank) => (
-      `${bank.name} ${bank.description}`.toLowerCase().includes(normalized)
-    ))
+    return library.namedBanks.filter((bank) =>
+      `${bank.name} ${bank.description}`.toLowerCase().includes(normalized),
+    )
   }, [library.namedBanks, query])
 
   const clearForm = () => {
@@ -247,10 +244,7 @@ function LoadNamedBankDialog({
               {t('namedBanks.intro', { bank: destinationBank })}
             </p>
           </div>
-          <DialogCloseButton
-            label={t('common.close')}
-            onClick={() => dialogRef.current?.close()}
-          />
+          <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />
         </DialogHeader>
 
         <div className="grid gap-5 p-5">
@@ -296,7 +290,12 @@ function LoadNamedBankDialog({
                 />
               </label>
               <div className="flex flex-wrap justify-end gap-2">
-                <Button disabled={workingId !== ''} onClick={clearForm} type="button" variant="outline">
+                <Button
+                  disabled={workingId !== ''}
+                  onClick={clearForm}
+                  type="button"
+                  variant="outline"
+                >
                   {t('common.cancel')}
                 </Button>
                 <Button disabled={workingId !== ''} type="submit">
@@ -327,7 +326,9 @@ function LoadNamedBankDialog({
             </div>
 
             {library.namedBanksLoading ? (
-              <p className="rounded-md border p-4 text-sm text-muted-foreground">{t('namedBanks.loading')}</p>
+              <p className="rounded-md border p-4 text-sm text-muted-foreground">
+                {t('namedBanks.loading')}
+              </p>
             ) : visibleBanks.length === 0 ? (
               <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
                 {query ? t('namedBanks.noMatches') : t('namedBanks.empty')}
@@ -340,10 +341,14 @@ function LoadNamedBankDialog({
                       <div className="min-w-0">
                         <p className="truncate font-bold">{bank.name}</p>
                         {bank.description ? (
-                          <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{bank.description}</p>
+                          <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
+                            {bank.description}
+                          </p>
                         ) : null}
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {t('namedBanks.updatedAt', { date: new Date(bank.updatedAt).toLocaleDateString() })}
+                          {t('namedBanks.updatedAt', {
+                            date: new Date(bank.updatedAt).toLocaleDateString(),
+                          })}
                         </p>
                       </div>
                       <div className="flex shrink-0 flex-wrap gap-1">
@@ -373,14 +378,16 @@ function LoadNamedBankDialog({
                         <Button
                           aria-label={t('namedBanks.download', { name: bank.name })}
                           disabled={workingId !== ''}
-                          onClick={() => void run(bank.id, async () => {
-                            const bytes = makeNamedBankSysexFile(bank)
-                            downloadBlob(
-                              new Blob([bytes], { type: 'application/octet-stream' }),
-                              makeNamedBankSysexFilename(bank),
-                            )
-                            setStatus(t('namedBanks.downloaded', { name: bank.name }))
-                          })}
+                          onClick={() =>
+                            void run(bank.id, async () => {
+                              const bytes = makeNamedBankSysexFile(bank)
+                              downloadBlob(
+                                new Blob([bytes], { type: 'application/octet-stream' }),
+                                makeNamedBankSysexFilename(bank),
+                              )
+                              setStatus(t('namedBanks.downloaded', { name: bank.name }))
+                            })
+                          }
                           size="icon"
                           title={t('namedBanks.downloadAction')}
                           type="button"
@@ -391,10 +398,12 @@ function LoadNamedBankDialog({
                         <Button
                           aria-label={t('namedBanks.duplicate', { name: bank.name })}
                           disabled={workingId !== ''}
-                          onClick={() => void run(bank.id, async () => {
-                            const copy = await library.copyNamedBank(bank)
-                            setStatus(t('namedBanks.copied', { name: copy.name }))
-                          })}
+                          onClick={() =>
+                            void run(bank.id, async () => {
+                              const copy = await library.copyNamedBank(bank)
+                              setStatus(t('namedBanks.copied', { name: copy.name }))
+                            })
+                          }
                           size="icon"
                           title={t('namedBanks.duplicateAction')}
                           type="button"
@@ -407,7 +416,8 @@ function LoadNamedBankDialog({
                           className="text-destructive"
                           disabled={workingId !== ''}
                           onClick={() => {
-                            if (!window.confirm(t('namedBanks.deleteConfirm', { name: bank.name }))) return
+                            if (!window.confirm(t('namedBanks.deleteConfirm', { name: bank.name })))
+                              return
                             void run(bank.id, async () => {
                               await library.deleteNamedBank(bank.id)
                               if (editingId === bank.id) clearForm()
@@ -430,11 +440,16 @@ function LoadNamedBankDialog({
           </div>
 
           {error || library.namedBanksError ? (
-            <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
+            <p
+              className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+              role="alert"
+            >
               {error || library.namedBanksError}
             </p>
           ) : status ? (
-            <p aria-live="polite" className="text-sm text-emerald-700" role="status">{status}</p>
+            <p aria-live="polite" className="text-sm text-emerald-700" role="status">
+              {status}
+            </p>
           ) : null}
         </div>
       </Dialog>

@@ -110,17 +110,21 @@ async function main() {
 
   try {
     await waitFor(async () => (await fetch(url)).ok, 'the production preview')
-    chrome = spawn(chromePath, [
-      '--headless=new',
-      '--disable-extensions',
-      '--disable-background-networking',
-      '--disable-component-update',
-      '--no-first-run',
-      '--no-default-browser-check',
-      '--remote-debugging-port=0',
-      `--user-data-dir=${profileDirectory}`,
-      'about:blank',
-    ], { stdio: ['ignore', 'pipe', 'pipe'] })
+    chrome = spawn(
+      chromePath,
+      [
+        '--headless=new',
+        '--disable-extensions',
+        '--disable-background-networking',
+        '--disable-component-update',
+        '--no-first-run',
+        '--no-default-browser-check',
+        '--remote-debugging-port=0',
+        `--user-data-dir=${profileDirectory}`,
+        'about:blank',
+      ],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    )
 
     const devtoolsPort = await waitFor(async () => {
       const contents = await readFile(path.join(profileDirectory, 'DevToolsActivePort'), 'utf8')

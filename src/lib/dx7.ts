@@ -1,7 +1,7 @@
-export const dx7BankVoiceCount = 32
-export const dx7PackedVoiceSize = 128
-export const dx7BankDataSize = dx7BankVoiceCount * dx7PackedVoiceSize
-export const dx7BankFileSize = dx7BankDataSize + 8
+const dx7BankVoiceCount = 32
+const dx7PackedVoiceSize = 128
+const dx7BankDataSize = dx7BankVoiceCount * dx7PackedVoiceSize
+const dx7BankFileSize = dx7BankDataSize + 8
 
 export type Dx7Voice = { data: Uint8Array; name: string }
 
@@ -10,7 +10,14 @@ export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
   if (bytes.length !== dx7BankFileSize) {
     throw new Error(`Expected a 4104-byte DX7 bank; received ${bytes.length} bytes.`)
   }
-  if (bytes[0] !== 0xf0 || bytes[1] !== 0x43 || bytes[3] !== 0x09 || bytes[4] !== 0x20 || bytes[5] !== 0x00 || bytes.at(-1) !== 0xf7) {
+  if (
+    bytes[0] !== 0xf0 ||
+    bytes[1] !== 0x43 ||
+    bytes[3] !== 0x09 ||
+    bytes[4] !== 0x20 ||
+    bytes[5] !== 0x00 ||
+    bytes.at(-1) !== 0xf7
+  ) {
     throw new Error('This is not a Yamaha DX7 32-voice bulk SysEx bank.')
   }
   const voiceData = bytes.slice(6, 6 + dx7BankDataSize)
@@ -96,24 +103,19 @@ export function packDx7Voice(unpacked: Uint8Array): Dx7Voice {
     const source = operator * 21
     const target = operator * 17
     packed.set(unpacked.slice(source, source + 11), target)
-    packed[target + 11] = (unpacked[source + 11] & 0x03)
-      | ((unpacked[source + 12] & 0x03) << 2)
-    packed[target + 12] = (unpacked[source + 13] & 0x07)
-      | ((unpacked[source + 20] & 0x0f) << 3)
-    packed[target + 13] = (unpacked[source + 14] & 0x03)
-      | ((unpacked[source + 15] & 0x07) << 2)
+    packed[target + 11] = (unpacked[source + 11] & 0x03) | ((unpacked[source + 12] & 0x03) << 2)
+    packed[target + 12] = (unpacked[source + 13] & 0x07) | ((unpacked[source + 20] & 0x0f) << 3)
+    packed[target + 13] = (unpacked[source + 14] & 0x03) | ((unpacked[source + 15] & 0x07) << 2)
     packed[target + 14] = unpacked[source + 16]
-    packed[target + 15] = (unpacked[source + 17] & 0x01)
-      | ((unpacked[source + 18] & 0x1f) << 1)
+    packed[target + 15] = (unpacked[source + 17] & 0x01) | ((unpacked[source + 18] & 0x1f) << 1)
     packed[target + 16] = unpacked[source + 19]
   }
 
   packed.set(unpacked.slice(126, 135), 102)
   packed[111] = (unpacked[135] & 0x07) | ((unpacked[136] & 0x01) << 3)
   packed.set(unpacked.slice(137, 141), 112)
-  packed[116] = (unpacked[141] & 0x01)
-    | ((unpacked[142] & 0x07) << 1)
-    | ((unpacked[143] & 0x07) << 4)
+  packed[116] =
+    (unpacked[141] & 0x01) | ((unpacked[142] & 0x07) << 1) | ((unpacked[143] & 0x07) << 4)
   packed.set(unpacked.slice(144, 155), 117)
 
   return { data: packed, name: decodeVoiceName(packed) }
@@ -151,5 +153,9 @@ export function makeDx7BankFile(voices: Dx7Voice[], channel = 1) {
 }
 
 function decodeVoiceName(data: Uint8Array) {
-  return String.fromCharCode(...data.slice(118, 128)).replace(/[^\x20-\x7e]/g, ' ').trim() || 'UNTITLED'
+  return (
+    String.fromCharCode(...data.slice(118, 128))
+      .replace(/[^\x20-\x7e]/g, ' ')
+      .trim() || 'UNTITLED'
+  )
 }

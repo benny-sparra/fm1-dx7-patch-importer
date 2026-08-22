@@ -14,11 +14,7 @@ export function MidiConnectionRequiredDialog({ dialogRef }: MidiConnectionRequir
   const closeDialog = () => dialogRef.current?.close()
 
   return (
-    <Dialog
-      aria-labelledby="midi-connection-required-title"
-      ref={dialogRef}
-      size="sm"
-    >
+    <Dialog aria-labelledby="midi-connection-required-title" ref={dialogRef} size="sm">
       <DialogHeader>
         <div className="flex gap-3">
           <Cable className="mt-0.5 size-6 shrink-0 text-primary" />
@@ -26,15 +22,10 @@ export function MidiConnectionRequiredDialog({ dialogRef }: MidiConnectionRequir
             <h2 className="text-lg font-bold" id="midi-connection-required-title">
               {t('dialogs.midiTitle')}
             </h2>
-            <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              {t('dialogs.midiIntro')}
-            </p>
+            <p className="mt-1 text-sm leading-5 text-muted-foreground">{t('dialogs.midiIntro')}</p>
           </div>
         </div>
-        <DialogCloseButton
-          label={t('dialogs.midiClose')}
-          onClick={closeDialog}
-        />
+        <DialogCloseButton label={t('dialogs.midiClose')} onClick={closeDialog} />
       </DialogHeader>
 
       <div className="grid gap-3 px-5 py-4 text-sm leading-5">

@@ -4,15 +4,10 @@ import {
   type PatchLibraryStorageErrorCode,
 } from '@/lib/patch-library-storage'
 
-export type WorkspacePersistenceStatus =
-  | 'loading'
-  | 'ready'
-  | 'saving'
-  | 'load-error'
-  | 'save-error'
-  | 'session-only'
+type WorkspacePersistenceStatus =
+  'loading' | 'ready' | 'saving' | 'load-error' | 'save-error' | 'session-only'
 
-export type WorkspacePersistenceError = {
+type WorkspacePersistenceError = {
   code: PatchLibraryStorageErrorCode
   detail: string
 }
@@ -96,7 +91,9 @@ export class WorkspacePersistenceController {
   subscribe(listener: (state: WorkspacePersistenceState) => void) {
     this.listeners.add(listener)
     listener(this.state)
-    return () => { this.listeners.delete(listener) }
+    return () => {
+      this.listeners.delete(listener)
+    }
   }
 
   start() {
@@ -129,9 +126,10 @@ export class WorkspacePersistenceController {
   updateWorkspace(workspace: PatchLibrarySnapshot) {
     if (this.disposed || !this.state.workspace || workspace === this.state.workspace) return
     this.currentRevision += 1
-    const status = this.mode === 'persistent' && this.state.status !== 'save-error'
-      ? 'saving'
-      : this.state.status
+    const status =
+      this.mode === 'persistent' && this.state.status !== 'save-error'
+        ? 'saving'
+        : this.state.status
     this.setState({
       ...this.state,
       hasUnsavedChanges: true,
@@ -208,12 +206,13 @@ export class WorkspacePersistenceController {
 
   private flushSave() {
     if (
-      this.disposed
-      || this.mode !== 'persistent'
-      || this.saveInFlight
-      || !this.state.workspace
-      || this.currentRevision <= this.savedRevision
-    ) return
+      this.disposed ||
+      this.mode !== 'persistent' ||
+      this.saveInFlight ||
+      !this.state.workspace ||
+      this.currentRevision <= this.savedRevision
+    )
+      return
 
     if (this.timer !== null) globalThis.clearTimeout(this.timer)
     this.timer = null

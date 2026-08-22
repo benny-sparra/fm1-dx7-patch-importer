@@ -8,7 +8,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PatchGrid } from '@/components/patches/patch-grid'
@@ -33,10 +33,7 @@ import { useToast } from '@/components/ui/toast'
 
 type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
 
-function defaultWorkspaceBankTitle(
-  t: ReturnType<typeof useTranslation>['t'],
-  bankNumber: number,
-) {
+function defaultWorkspaceBankTitle(t: ReturnType<typeof useTranslation>['t'], bankNumber: number) {
   return t(bankNumber < 10 ? 'banks.bank' : 'banks.bankShort', { bank: bankNumber })
 }
 
@@ -47,12 +44,7 @@ type LibrarianPageProps = {
   onEditPatch: (patch: Patch) => void
 }
 
-export function LibrarianPage({
-  activePatchId,
-  library,
-  midi,
-  onEditPatch,
-}: LibrarianPageProps) {
+export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: LibrarianPageProps) {
   const { t } = useTranslation()
   const toast = useToast()
   const { patches } = library
@@ -63,7 +55,10 @@ export function LibrarianPage({
   const [importError, setImportError] = useState('')
   const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [transferStatus, setTransferStatus] = useState<TransferStatus>({ kind: 'idle', message: '' })
+  const [transferStatus, setTransferStatus] = useState<TransferStatus>({
+    kind: 'idle',
+    message: '',
+  })
   const importInputRef = useRef<HTMLInputElement>(null)
   const importTargetRef = useRef(createBankFileSelectionTarget())
   const addWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
@@ -83,8 +78,8 @@ export function LibrarianPage({
   } | null>(null)
   const allBanksMenuRef = useDismissableDetails()
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
-  const bankDisplayName = (bank: string) => library.bankNames[bank]
-    ?? defaultWorkspaceBankTitle(t, banks.indexOf(bank) + 1)
+  const bankDisplayName = (bank: string) =>
+    library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, banks.indexOf(bank) + 1)
   const saveBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -111,7 +106,10 @@ export function LibrarianPage({
   const downloadBank = (bank: string) => {
     try {
       const bytes = makeDx7BankFile(library.getBankVoices(bank))
-      saveBlob(new Blob([bytes], { type: 'application/octet-stream' }), `fm1-bank-${bank.toLowerCase()}.syx`)
+      saveBlob(
+        new Blob([bytes], { type: 'application/octet-stream' }),
+        `fm1-bank-${bank.toLowerCase()}.syx`,
+      )
       setImportError('')
       toast.success(t('toasts.bankDownloadStarted', { bank: bankDisplayName(bank) }))
     } catch (error) {
@@ -122,10 +120,12 @@ export function LibrarianPage({
   const downloadAllBanks = async () => {
     try {
       const { zipSync } = await import('fflate')
-      const files = Object.fromEntries(library.loadedBanks.map((bank) => [
-        `fm1-bank-${bank.toLowerCase()}.syx`,
-        makeDx7BankFile(library.getBankVoices(bank)),
-      ]))
+      const files = Object.fromEntries(
+        library.loadedBanks.map((bank) => [
+          `fm1-bank-${bank.toLowerCase()}.syx`,
+          makeDx7BankFile(library.getBankVoices(bank)),
+        ]),
+      )
       saveBlob(new Blob([zipSync(files)], { type: 'application/zip' }), 'fm1-browser-banks.zip')
       setImportError('')
       toast.success(t('toasts.banksDownloadStarted'))
@@ -134,15 +134,64 @@ export function LibrarianPage({
     }
   }
 
+  const sendSelectedBank = async () => {
+    if (!midi.hasMidiOutput) {
+      midiConnectionRequiredDialogRef.current?.showModal()
+      return
+    }
+    if (shouldShowFm1BankSelectionDialog()) {
+      bankSelectionDialogRef.current?.showModal()
+    }
+    setIsSending(true)
+    setTransferStatus({ kind: 'idle', message: t('banks.sendingStatus') })
+    try {
+      const sent = await midi.sendBank(destinationBank, library.getBankVoices(destinationBank))
+      setTransferStatus(
+        sent
+          ? { kind: 'success', message: t('banks.sentStatus', { bank: destinationBank }) }
+          : { kind: 'error', message: t('banks.notSent') },
+      )
+      if (sent) toast.success(t('banks.sentStatus', { bank: destinationBank }))
+    } catch (error) {
+      setTransferStatus({
+        kind: 'error',
+        message: error instanceof Error ? error.message : t('banks.notSent'),
+      })
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  const importSelectedBankFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const importTarget = importTargetRef.current.consume()
+    if (!importTarget) return
+    setIsImporting(true)
+    try {
+      await library.importBank(importTarget, file)
+      setImportError('')
+      toast.success(t('toasts.bankImported', { bank: bankDisplayName(importTarget) }))
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : t('banks.importFailed'))
+    } finally {
+      setIsImporting(false)
+      event.target.value = ''
+    }
+  }
+
   const visiblePatches = useMemo(() => {
     const query = search.trim().toLowerCase()
 
     if (!isDestinationBankLoaded) return []
-    return patches.filter((patch) => patch.bank === destinationBank && (
-      !query || `${patch.bank}${patch.number} ${patch.name} ${patch.family}`
-        .toLowerCase()
-        .includes(query)
-    ))
+    return patches.filter(
+      (patch) =>
+        patch.bank === destinationBank &&
+        (!query ||
+          `${patch.bank}${patch.number} ${patch.name} ${patch.family}`
+            .toLowerCase()
+            .includes(query)),
+    )
   }, [destinationBank, isDestinationBankLoaded, patches, search])
 
   useEffect(() => {
@@ -154,43 +203,28 @@ export function LibrarianPage({
   }, [banks, destinationBank])
 
   return (
-    <section
-      className="mx-auto grid min-w-0 max-w-7xl gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:px-8"
-    >
+    <section className="mx-auto grid max-w-7xl min-w-0 gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
       <PatchGrid
         activePatchId={activePatchId}
         actions={
           <button
-              className="inline-flex h-10 w-full shrink-0 cursor-pointer items-center justify-start gap-2 rounded-md border border-black bg-white px-4 text-left text-sm font-medium text-black transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-              disabled={isSending || !isDestinationBankLoaded}
-              onClick={async () => {
-                if (!midi.hasMidiOutput) {
-                  midiConnectionRequiredDialogRef.current?.showModal()
-                  return
-                }
-                if (shouldShowFm1BankSelectionDialog()) {
-                  bankSelectionDialogRef.current?.showModal()
-                }
-                setIsSending(true)
-                setTransferStatus({ kind: 'idle', message: t('banks.sendingStatus') })
-                try {
-                  const sent = await midi.sendBank(destinationBank, library.getBankVoices(destinationBank))
-                  setTransferStatus(sent
-                    ? { kind: 'success', message: t('banks.sentStatus', { bank: destinationBank }) }
-                    : { kind: 'error', message: t('banks.notSent') })
-                  if (sent) toast.success(t('banks.sentStatus', { bank: destinationBank }))
-                } finally {
-                  setIsSending(false)
-                }
-              }}
-              title={!midi.hasMidiOutput ? t('midi.connectFirst') : isDestinationBankLoaded ? t('banks.sendTitle') : t('banks.importFirst', { bank: destinationBank })}
-              type="button"
-            >
-              <Send className="size-4" />
-              {isSending ? t('banks.sending') : t('banks.send')}
+            className="inline-flex h-10 w-full shrink-0 cursor-pointer items-center justify-start gap-2 rounded-md border border-black bg-white px-4 text-left text-sm font-medium text-black transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+            disabled={isSending || !isDestinationBankLoaded}
+            onClick={() => void sendSelectedBank()}
+            title={
+              !midi.hasMidiOutput
+                ? t('midi.connectFirst')
+                : isDestinationBankLoaded
+                  ? t('banks.sendTitle')
+                  : t('banks.importFirst', { bank: destinationBank })
+            }
+            type="button"
+          >
+            <Send className="size-4" />
+            {isSending ? t('banks.sending') : t('banks.send')}
           </button>
         }
-        headerActions={(
+        headerActions={
           <details className="group relative" ref={allBanksMenuRef}>
             <summary
               aria-label={t('banks.moreActions')}
@@ -199,7 +233,7 @@ export function LibrarianPage({
             >
               <EllipsisVertical className="size-5" />
             </summary>
-            <div className="font-vt323 absolute right-0 top-full z-50 mt-1 min-w-60 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+            <div className="font-vt323 absolute top-full right-0 z-50 mt-1 min-w-60 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
               <button
                 className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                 disabled={library.loadedBanks.length === 0}
@@ -225,7 +259,7 @@ export function LibrarianPage({
               </button>
             </div>
           </details>
-        )}
+        }
         isBankLoaded={isDestinationBankLoaded}
         isPatchDisabled={(patch) => !library.loadedBanks.includes(patch.bank)}
         onImportEmptyBank={() => beginImport(destinationBank)}
@@ -285,7 +319,11 @@ export function LibrarianPage({
                           closeMenu()
                           downloadBank(bank)
                         }}
-                        title={library.loadedBanks.includes(bank) ? t('banks.downloadTitle', { bank }) : t('banks.importFirst', { bank })}
+                        title={
+                          library.loadedBanks.includes(bank)
+                            ? t('banks.downloadTitle', { bank })
+                            : t('banks.importFirst', { bank })
+                        }
                         type="button"
                       >
                         <Download className="size-4" />
@@ -296,13 +334,14 @@ export function LibrarianPage({
                           className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent"
                           onClick={() => {
                             closeMenu()
-                            const name = library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, index + 1)
-                            const nextBank = banks[index + 1] ?? banks[index - 1]
-                            if (!nextBank) return
+                            const name =
+                              library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, index + 1)
+                            const replacementBank = banks[index + 1] ?? banks[index - 1]
+                            if (!replacementBank) return
                             setBankPendingDeletion({
                               bank,
                               name,
-                              nextBank,
+                              nextBank: replacementBank,
                             })
                             deleteWorkspaceBankDialogRef.current?.showModal()
                           }}
@@ -335,23 +374,7 @@ export function LibrarianPage({
               aria-label={t('banks.importFile')}
               className="sr-only"
               disabled={isImporting}
-              onChange={async (event) => {
-                const file = event.target.files?.[0]
-                if (!file) return
-                const importTarget = importTargetRef.current.consume()
-                if (!importTarget) return
-                setIsImporting(true)
-                try {
-                  await library.importBank(importTarget, file)
-                  setImportError('')
-                  toast.success(t('toasts.bankImported', { bank: bankDisplayName(importTarget) }))
-                } catch (error) {
-                  setImportError(error instanceof Error ? error.message : t('banks.importFailed'))
-                } finally {
-                  setIsImporting(false)
-                  event.target.value = ''
-                }
-              }}
+              onChange={(event) => void importSelectedBankFile(event)}
               ref={importInputRef}
               type="file"
             />

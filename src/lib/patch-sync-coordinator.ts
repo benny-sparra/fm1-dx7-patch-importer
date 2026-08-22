@@ -1,6 +1,6 @@
 export type PatchSyncState = 'live' | 'local' | 'sending'
 
-export type PatchSyncSnapshot = {
+type PatchSyncSnapshot = {
   parameters: Uint8Array
   revision: number
 }
@@ -37,13 +37,13 @@ export function createPatchSyncCoordinator(
           revision: latest.revision,
         }
 
-        if (!await options.sendVoice(snapshot.parameters)) {
+        if (!(await options.sendVoice(snapshot.parameters))) {
           if (options.isCurrent()) options.onStateChange('local')
           return false
         }
         if (!options.isCurrent()) return false
 
-        if (!await options.sendEffects(snapshot.parameters)) {
+        if (!(await options.sendEffects(snapshot.parameters))) {
           if (options.isCurrent()) options.onStateChange('local')
           return false
         }

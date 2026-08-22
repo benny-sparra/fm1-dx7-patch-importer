@@ -1,0 +1,146 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "ignorePatterns": ["dist/**", "coverage/**"],
+  "options": {
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error",
+    "typeAware": true
+  },
+  "plugins": ["typescript", "unicorn", "oxc", "react", "jsx-a11y", "import", "promise", "vitest"],
+  "rules": {
+    // CSS and i18n bootstrap modules are intentionally imported for side effects.
+    "import/no-unassigned-import": "off",
+    // i18next's callable default export also exposes members; this rule misidentifies that API.
+    "import/no-named-as-default-member": "off",
+    "import/default": "error",
+    "import/export": "error",
+    "import/first": "error",
+    "import/named": "error",
+    "import/namespace": "error",
+    "import/no-duplicates": "error",
+    "import/no-self-import": "error",
+    "jsx-a11y/anchor-has-content": "error",
+    "jsx-a11y/anchor-is-valid": "error",
+    "jsx-a11y/aria-activedescendant-has-tabindex": "error",
+    "jsx-a11y/aria-props": "error",
+    "jsx-a11y/aria-proptypes": "error",
+    "jsx-a11y/aria-role": "error",
+    "jsx-a11y/aria-unsupported-elements": "error",
+    "jsx-a11y/autocomplete-valid": "error",
+    "jsx-a11y/click-events-have-key-events": "error",
+    "jsx-a11y/control-has-associated-label": "error",
+    "jsx-a11y/heading-has-content": "error",
+    "jsx-a11y/interactive-supports-focus": "error",
+    "jsx-a11y/label-has-associated-control": "error",
+    "jsx-a11y/no-aria-hidden-on-focusable": "error",
+    "jsx-a11y/no-noninteractive-element-interactions": "error",
+    // Composite widgets legitimately use roles such as tablist and group when no native element is equivalent.
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "jsx-a11y/role-has-required-aria-props": "error",
+    "jsx-a11y/role-supports-aria-props": "error",
+    "jsx-a11y/tabindex-no-positive": "error",
+    "no-unused-vars": "error",
+    "promise/catch-or-return": "error",
+    // Void .then() callbacks are used only when the following .catch() owns failure handling.
+    "promise/always-return": "off",
+    "promise/no-multiple-resolved": "error",
+    "promise/no-return-in-finally": "error",
+    "promise/valid-params": "error",
+    "react/button-has-type": "error",
+    "react/exhaustive-deps": "error",
+    "react/jsx-key": "error",
+    "react/jsx-no-duplicate-props": "error",
+    "react/jsx-no-script-url": "error",
+    "react/jsx-no-target-blank": "error",
+    "react/jsx-no-undef": "error",
+    "react/no-children-prop": "error",
+    "react/no-danger-with-children": "error",
+    "react/no-unknown-property": "error",
+    // React 19 uses the automatic JSX runtime configured by tsconfig.app.json.
+    "react/react-in-jsx-scope": "off",
+    "react/rules-of-hooks": "error",
+    "typescript/await-thenable": "error",
+    // React effects legitimately return either cleanup functions or undefined.
+    "typescript/consistent-return": "off",
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    // Runtime-validated browser boundaries require intentional narrowing assertions.
+    "typescript/no-unsafe-type-assertion": "off",
+    // These conversion rules are readability preferences rather than correctness checks.
+    "typescript/no-unnecessary-type-assertion": "off",
+    "typescript/no-unnecessary-type-conversion": "off",
+    "typescript/prefer-promise-reject-errors": "error",
+    // Function placement and immutable sorting are formatting/style choices in this project.
+    "unicorn/consistent-function-scoping": "off",
+    "unicorn/no-array-sort": "off",
+    // IndexedDB request handlers intentionally replace a single event callback.
+    "unicorn/prefer-add-event-listener": "off"
+  },
+  "settings": {
+    "react": {
+      "version": "19"
+    }
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.test.ts", "src/**/*.test.tsx"],
+      "env": {
+        "browser": true,
+        "node": true
+      },
+      "rules": {
+        "vitest/expect-expect": "error",
+        "vitest/no-conditional-expect": "error",
+        "vitest/no-disabled-tests": "error",
+        "vitest/no-focused-tests": "error",
+        "vitest/no-identical-title": "error",
+        "vitest/no-standalone-expect": "error",
+        "vitest/valid-describe-callback": "error",
+        "vitest/valid-expect": "error",
+        "vitest/valid-expect-in-promise": "error",
+        "vitest/valid-title": "error",
+        // Mock signatures are already checked at their typed call sites; explicit generics add noise.
+        "vitest/require-mock-type-parameters": "off"
+      }
+    },
+    {
+      "files": [
+        "src/components/midi/midi-connection-required-dialog.tsx",
+        "src/components/midi/fm1-bank-selection-dialog.tsx"
+      ],
+      "rules": {
+        // Opening a modal must move focus inside it; these dialogs focus their safe close action.
+        "jsx-a11y/no-autofocus": "off"
+      }
+    },
+    {
+      "files": ["src/components/midi/midi-log-card.tsx"],
+      "rules": {
+        // The named scroll region is focusable so keyboard users can scroll long MIDI logs.
+        "jsx-a11y/no-noninteractive-tabindex": "off"
+      }
+    },
+    {
+      "files": ["src/components/midi/piano-keyboard-dialog.tsx"],
+      "rules": {
+        // Pointer dragging only repositions the dialog; every keyboard action remains available without it.
+        "jsx-a11y/no-static-element-interactions": "off"
+      }
+    },
+    {
+      "files": ["vite.config.ts", "scripts/**/*.mjs"],
+      "env": {
+        "browser": false,
+        "node": true
+      }
+    }
+  ]
+}

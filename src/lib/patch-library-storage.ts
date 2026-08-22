@@ -15,10 +15,7 @@ const namedBankStoreName = 'named-banks'
 const recordKey = 'current'
 
 export type PatchLibraryStorageErrorCode =
-  | 'unavailable'
-  | 'read-failed'
-  | 'incompatible'
-  | 'write-failed'
+  'unavailable' | 'read-failed' | 'incompatible' | 'write-failed'
 
 export class PatchLibraryStorageError extends Error {
   readonly code: PatchLibraryStorageErrorCode
@@ -28,9 +25,7 @@ export class PatchLibraryStorageError extends Error {
     super(cause instanceof Error ? cause.message : message, { cause })
     this.name = 'PatchLibraryStorageError'
     this.code = code
-    this.technicalMessage = cause instanceof Error
-      ? `${cause.name}: ${cause.message}`
-      : message
+    this.technicalMessage = cause instanceof Error ? `${cause.name}: ${cause.message}` : message
   }
 }
 
@@ -56,7 +51,9 @@ function openDatabase() {
     try {
       request = indexedDB.open(databaseName, 2)
     } catch (error) {
-      reject(new PatchLibraryStorageError('unavailable', 'Browser storage could not be opened.', error))
+      reject(
+        new PatchLibraryStorageError('unavailable', 'Browser storage could not be opened.', error),
+      )
       return
     }
     let finished = false
@@ -100,7 +97,7 @@ async function runTransaction<T>(
       request = operation(transaction.objectStore(storeName))
     } catch (error) {
       database.close()
-      reject(error)
+      reject(error instanceof Error ? error : new Error(String(error)))
       return
     }
     let finished = false
@@ -114,7 +111,9 @@ async function runTransaction<T>(
     }
 
     request.onerror = () => fail(request.error, 'Browser storage operation failed.')
-    request.onsuccess = () => { result = request.result }
+    request.onsuccess = () => {
+      result = request.result
+    }
     transaction.oncomplete = () => {
       if (finished) return
       finished = true
@@ -131,26 +130,35 @@ export async function loadStoredPatchLibrary() {
     | StoredPatchLibrary
     | (Omit<StoredPatchLibrary, 'bankDescriptions' | 'version'> & { version: 4 })
     | (Omit<StoredPatchLibrary, 'bankDescriptions' | 'workspaceBanks' | 'version'> & { version: 3 })
-    | (Omit<StoredPatchLibrary, 'bankDescriptions' | 'bankNames' | 'workspaceBanks' | 'version'> & { version: 2 })
-    | (Omit<StoredPatchLibrary, 'bankDescriptions' | 'bankNames' | 'effects' | 'workspaceBanks' | 'version'> & { version: 1 })
+    | (Omit<StoredPatchLibrary, 'bankDescriptions' | 'bankNames' | 'workspaceBanks' | 'version'> & {
+        version: 2
+      })
+    | (Omit<
+        StoredPatchLibrary,
+        'bankDescriptions' | 'bankNames' | 'effects' | 'workspaceBanks' | 'version'
+      > & { version: 1 })
     | undefined
   try {
-    stored = await runTransaction(
-      workspaceStoreName,
-      'readonly',
-      (store) => store.get(recordKey),
-    )
+    stored = await runTransaction(workspaceStoreName, 'readonly', (store) => store.get(recordKey))
   } catch (error) {
     if (error instanceof PatchLibraryStorageError) throw error
-    throw new PatchLibraryStorageError('read-failed', 'The saved workspace could not be read.', error)
+    throw new PatchLibraryStorageError(
+      'read-failed',
+      'The saved workspace could not be read.',
+      error,
+    )
   }
 
   if (!stored) return null
   if (
-    (stored.version !== 1 && stored.version !== 2 && stored.version !== 3 && stored.version !== 4 && stored.version !== 5)
-    || !Array.isArray(stored.loadedBanks)
-    || typeof stored.voices !== 'object'
-    || ((stored.version === 4 || stored.version === 5) && !Array.isArray(stored.workspaceBanks))
+    (stored.version !== 1 &&
+      stored.version !== 2 &&
+      stored.version !== 3 &&
+      stored.version !== 4 &&
+      stored.version !== 5) ||
+    !Array.isArray(stored.loadedBanks) ||
+    typeof stored.voices !== 'object' ||
+    ((stored.version === 4 || stored.version === 5) && !Array.isArray(stored.workspaceBanks))
   ) {
     throw new PatchLibraryStorageError(
       'incompatible',
@@ -159,18 +167,24 @@ export async function loadStoredPatchLibrary() {
   }
 
   try {
-    const storedEffects = stored.version !== 1 && stored.effects && typeof stored.effects === 'object'
-      ? stored.effects
-      : {}
-    const storedBankNames = (stored.version === 3 || stored.version === 4 || stored.version === 5) && stored.bankNames && typeof stored.bankNames === 'object'
-      ? stored.bankNames
-      : {}
-    const storedBankDescriptions = stored.version === 5 && stored.bankDescriptions && typeof stored.bankDescriptions === 'object'
-      ? stored.bankDescriptions
-      : {}
-    const workspaceBanks = stored.version === 4 || stored.version === 5
-      ? [...new Set(stored.workspaceBanks.filter(isWorkspaceBankId))]
-      : [...browserBanks]
+    const storedEffects =
+      stored.version !== 1 && stored.effects && typeof stored.effects === 'object'
+        ? stored.effects
+        : {}
+    const storedBankNames =
+      (stored.version === 3 || stored.version === 4 || stored.version === 5) &&
+      stored.bankNames &&
+      typeof stored.bankNames === 'object'
+        ? stored.bankNames
+        : {}
+    const storedBankDescriptions =
+      stored.version === 5 && stored.bankDescriptions && typeof stored.bankDescriptions === 'object'
+        ? stored.bankDescriptions
+        : {}
+    const workspaceBanks =
+      stored.version === 4 || stored.version === 5
+        ? [...new Set(stored.workspaceBanks.filter(isWorkspaceBankId))]
+        : [...browserBanks]
     if (workspaceBanks.length === 0 || workspaceBanks.length > maximumWorkspaceBanks) {
       throw new PatchLibraryStorageError(
         'incompatible',
@@ -181,7 +195,10 @@ export async function loadStoredPatchLibrary() {
     const compacted = compactWorkspaceBanks({
       bankDescriptions: Object.fromEntries(
         Object.entries(storedBankDescriptions)
-          .filter(([bank, description]) => workspaceBanks.includes(bank) && typeof description === 'string')
+          .filter(
+            ([bank, description]) =>
+              workspaceBanks.includes(bank) && typeof description === 'string',
+          )
           .map(([bank, description]) => [bank, description.trim().slice(0, 500).trimEnd()])
           .filter(([, description]) => Boolean(description)),
       ),
@@ -213,14 +230,15 @@ export async function saveStoredPatchLibrary(
   library: Omit<StoredPatchLibrary, 'savedAt' | 'version'>,
 ) {
   try {
-    return await runTransaction<IDBValidKey>(
-      workspaceStoreName,
-      'readwrite',
-      (store) => store.put({
-        ...library,
-        savedAt: new Date().toISOString(),
-        version: 5,
-      } satisfies StoredPatchLibrary, recordKey),
+    return await runTransaction<IDBValidKey>(workspaceStoreName, 'readwrite', (store) =>
+      store.put(
+        {
+          ...library,
+          savedAt: new Date().toISOString(),
+          version: 5,
+        } satisfies StoredPatchLibrary,
+        recordKey,
+      ),
     )
   } catch (error) {
     if (error instanceof PatchLibraryStorageError) throw error
@@ -229,10 +247,8 @@ export async function saveStoredPatchLibrary(
 }
 
 export async function listStoredNamedBanks() {
-  const banks = await runTransaction<NamedBank[]>(
-    namedBankStoreName,
-    'readonly',
-    (store) => store.getAll(),
+  const banks = await runTransaction<NamedBank[]>(namedBankStoreName, 'readonly', (store) =>
+    store.getAll(),
   )
   banks.forEach(validateNamedBank)
   return banks.sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
@@ -240,18 +256,10 @@ export async function listStoredNamedBanks() {
 
 export async function saveStoredNamedBank(bank: NamedBank) {
   validateNamedBank(bank)
-  return runTransaction<IDBValidKey>(
-    namedBankStoreName,
-    'readwrite',
-    (store) => store.put(bank),
-  )
+  return runTransaction<IDBValidKey>(namedBankStoreName, 'readwrite', (store) => store.put(bank))
 }
 
 export function deleteStoredNamedBank(id: string) {
   if (!id) return Promise.reject(new Error('A saved bank ID is required.'))
-  return runTransaction<undefined>(
-    namedBankStoreName,
-    'readwrite',
-    (store) => store.delete(id),
-  )
+  return runTransaction<undefined>(namedBankStoreName, 'readwrite', (store) => store.delete(id))
 }

@@ -1,4 +1,4 @@
-export type Dx7BankCatalogEntry = {
+type Dx7BankCatalogEntry = {
   category: 'Factory' | 'Grey Matter E!' | 'VRC Voice ROMs'
   description: string
   file: string
@@ -16,7 +16,11 @@ const factoryBanks: Dx7BankCatalogEntry[] = [
   ['rom4a', 'ROM4A Orchestral & Percussive', 'US'],
   ['rom4b', 'ROM4B Synth, Complex & Effects', 'US'],
 ].map(([id, name, description]) => ({
-  category: 'Factory', description, file: `/dx7-banks/factory/${id}.syx`, id, name,
+  category: 'Factory',
+  description,
+  file: `/dx7-banks/factory/${id}.syx`,
+  id,
+  name,
 }))
 
 const vrcDescriptions = [

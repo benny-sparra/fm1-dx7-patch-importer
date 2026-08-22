@@ -11,10 +11,7 @@ const toast = (id: number, message = `Toast ${id}`): ToastMessage => ({
 describe('toast queue', () => {
   it('keeps repeated completion messages as separate events', () => {
     const first = appendToast([], toast(1, 'Saved'))
-    expect(appendToast(first, toast(2, 'Saved'))).toEqual([
-      toast(1, 'Saved'),
-      toast(2, 'Saved'),
-    ])
+    expect(appendToast(first, toast(2, 'Saved'))).toEqual([toast(1, 'Saved'), toast(2, 'Saved')])
   })
 
   it('keeps the newest notifications within the visible limit', () => {

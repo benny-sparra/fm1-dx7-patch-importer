@@ -1,12 +1,8 @@
 export const fm1EffectParameterCount = 24
 
 export const fm1EffectParameterMaximums = Uint8Array.from([
-  1, 2, 107, 10,
-  1, 2, 100, 100,
-  1, 100, 100, 100,
-  1, 100, 100, 100,
-  1, 100, 100, 100,
-  1, 100, 100, 100,
+  1, 2, 107, 10, 1, 2, 100, 100, 1, 100, 100, 100, 1, 100, 100, 100, 1, 100, 100, 100, 1, 100, 100,
+  100,
 ])
 
 export function makeDefaultFm1Effects() {
@@ -18,15 +14,12 @@ export function normalizeFm1Effects(value: unknown) {
     return makeDefaultFm1Effects()
   }
 
-  return Uint8Array.from(value, (parameter, index) => (
-    Math.min(parameter, fm1EffectParameterMaximums[index])
-  ))
+  return Uint8Array.from(value, (parameter, index) =>
+    Math.min(parameter, fm1EffectParameterMaximums[index]),
+  )
 }
 
-export function makeFm1EditorParameters(
-  voiceParameters: Uint8Array,
-  effects: Uint8Array,
-) {
+export function makeFm1EditorParameters(voiceParameters: Uint8Array, effects: Uint8Array) {
   if (voiceParameters.length !== 155) {
     throw new RangeError('FM1 voice editor data must contain 155 parameters.')
   }

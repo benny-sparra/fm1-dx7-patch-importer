@@ -11,6 +11,6 @@ export type Fm1Colorway = (typeof fm1Colorways)[number]['value']
 
 export function normalizeFm1Colorway(value: string | null): Fm1Colorway {
   return fm1Colorways.some((colorway) => colorway.value === value)
-    ? value as Fm1Colorway
+    ? (value as Fm1Colorway)
     : 'black'
 }

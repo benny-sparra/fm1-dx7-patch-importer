@@ -56,26 +56,28 @@ describe('patch library operations', () => {
     const initial = emptyPatchLibrary()
 
     expect(() => createWorkspaceBank(initial, 'E', '   ', '', makeDemoVoices())).toThrow('name')
-    expect(() => createWorkspaceBank(
-      initial,
-      'E',
-      'Missing sounds',
-      '',
-      undefined as unknown as ReturnType<typeof makeDemoVoices>,
-    )).toThrow('sound data')
-    expect(() => createWorkspaceBank(initial, 'E', 'Incomplete', '', makeDemoVoices().slice(0, 31)))
-      .toThrow('exactly 32')
+    expect(() =>
+      createWorkspaceBank(
+        initial,
+        'E',
+        'Missing sounds',
+        '',
+        undefined as unknown as ReturnType<typeof makeDemoVoices>,
+      ),
+    ).toThrow('sound data')
+    expect(() =>
+      createWorkspaceBank(initial, 'E', 'Incomplete', '', makeDemoVoices().slice(0, 31)),
+    ).toThrow('exactly 32')
     expect(initial).toEqual(emptyPatchLibrary())
   })
 
   it('deletes a workspace bank and all of its stored data', () => {
-    const populated = updateBankInformation(createWorkspaceBank(
-      emptyPatchLibrary(),
+    const populated = updateBankInformation(
+      createWorkspaceBank(emptyPatchLibrary(), 'E', 'Live set', '', makeDemoVoices()),
       'E',
       'Live set',
-      '',
-      makeDemoVoices(),
-    ), 'E', 'Live set', 'Friday performance')
+      'Friday performance',
+    )
     const deleted = deleteWorkspaceBank(populated, 'E')
 
     expect(deleted.workspaceBanks).toEqual(['A', 'B', 'C', 'D'])
@@ -121,13 +123,17 @@ describe('patch library operations', () => {
   })
 
   it('stops adding workspace banks after 10', () => {
-    const full = Array.from({ length: 6 }, (_, index) => String.fromCharCode(69 + index))
-      .reduce((snapshot, bank) => addWorkspaceBank(snapshot, bank), emptyPatchLibrary())
+    const full = Array.from({ length: 6 }, (_, index) => String.fromCharCode(69 + index)).reduce(
+      (snapshot, bank) => addWorkspaceBank(snapshot, bank),
+      emptyPatchLibrary(),
+    )
 
     expect(full.workspaceBanks).toHaveLength(10)
     expect(getNextWorkspaceBank(full.workspaceBanks)).toBeNull()
     expect(addWorkspaceBank(full, 'K')).toBe(full)
-    expect(() => createWorkspaceBank(full, 'K', 'Eleventh', '', makeDemoVoices())).toThrow('no longer available')
+    expect(() => createWorkspaceBank(full, 'K', 'Eleventh', '', makeDemoVoices())).toThrow(
+      'no longer available',
+    )
   })
 
   it('uses the first free bank ID while enforcing the total bank limit', () => {
@@ -277,8 +283,9 @@ describe('patch library operations', () => {
   })
 
   it('rejects incomplete bank imports', () => {
-    expect(() => importVoices(emptyPatchLibrary(), 'A', makeDemoVoices().slice(0, 31)))
-      .toThrow('exactly 32')
+    expect(() => importVoices(emptyPatchLibrary(), 'A', makeDemoVoices().slice(0, 31))).toThrow(
+      'exactly 32',
+    )
   })
 
   it('moves a voice and shifts the intervening slots', () => {

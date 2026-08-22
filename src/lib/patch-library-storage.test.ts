@@ -195,9 +195,7 @@ describe('saveStoredPatchLibrary', () => {
 
   it('upgrades the database without replacing the existing workspace store', async () => {
     const fake = installIndexedDb()
-    fake.database.objectStoreNames.contains
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(false)
+    fake.database.objectStoreNames.contains.mockReturnValueOnce(true).mockReturnValueOnce(false)
     const saving = saveStoredPatchLibrary(emptyPatchLibrary())
 
     fake.openRequest.onupgradeneeded?.()
@@ -215,7 +213,9 @@ describe('saveStoredPatchLibrary', () => {
     const fake = installIndexedDb()
     const saving = saveStoredPatchLibrary(emptyPatchLibrary())
     let settled = false
-    void saving.finally(() => { settled = true })
+    void saving.finally(() => {
+      settled = true
+    })
 
     await openDatabase(fake.openRequest)
     fake.writeRequest.onsuccess?.()
@@ -227,12 +227,15 @@ describe('saveStoredPatchLibrary', () => {
     fake.transaction.oncomplete?.()
 
     await expect(saving).resolves.toBe('current')
-    expect(fake.put).toHaveBeenCalledWith(expect.objectContaining({
-      bankDescriptions: {},
-      bankNames: {},
-      version: 5,
-      workspaceBanks: ['A', 'B', 'C', 'D'],
-    }), 'current')
+    expect(fake.put).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bankDescriptions: {},
+        bankNames: {},
+        version: 5,
+        workspaceBanks: ['A', 'B', 'C', 'D'],
+      }),
+      'current',
+    )
     expect(fake.database.close).toHaveBeenCalledOnce()
   })
 

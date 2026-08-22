@@ -1,10 +1,4 @@
-import {
-  KeyboardMusic,
-  Languages,
-  MoreVertical,
-  Radio,
-  SlidersHorizontal,
-} from 'lucide-react'
+import { KeyboardMusic, Languages, MoreVertical, Radio, SlidersHorizontal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { midiChannels, type MidiController } from '@/hooks/use-midi'
@@ -22,18 +16,17 @@ export function MidiConnectActions({ midi }: MidiControlsProps) {
   const { t } = useTranslation()
   const handleChange = () => {
     if (midi.midiAccess) {
-      midi.disconnectMidi()
+      void midi.disconnectMidi()
     } else {
-      midi.connectMidi()
+      void midi.connectMidi()
     }
   }
 
   return (
-    <label
-      className="font-vt323 inline-flex min-h-10 cursor-pointer items-center gap-3 rounded-md border border-white/20 bg-white/10 px-3 text-sm font-medium text-white transition hover:bg-white/15"
-    >
+    <label className="font-vt323 inline-flex min-h-10 cursor-pointer items-center gap-3 rounded-md border border-white/20 bg-white/10 px-3 text-sm font-medium text-white transition hover:bg-white/15">
       <input
         aria-label={t('midi.online')}
+        aria-checked={Boolean(midi.midiAccess)}
         checked={Boolean(midi.midiAccess)}
         className="peer sr-only"
         disabled={midi.isConnecting}
@@ -43,7 +36,7 @@ export function MidiConnectActions({ midi }: MidiControlsProps) {
       />
       <span
         aria-hidden="true"
-        className="relative h-5 w-9 shrink-0 rounded-full border border-white/40 bg-white/20 transition-colors after:absolute after:left-0.5 after:top-0.5 after:size-3.5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:border-primary peer-checked:bg-primary peer-checked:after:translate-x-4 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring"
+        className="relative h-5 w-9 shrink-0 rounded-full border border-white/40 bg-white/20 transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring after:absolute after:top-0.5 after:left-0.5 after:size-3.5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:after:translate-x-4"
       />
       <span>{t('midi.online')}</span>
     </label>
@@ -68,12 +61,12 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
     <details className="group relative" ref={menuRef}>
       <summary
         aria-label={t('common.settings')}
-        className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md bg-transparent text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+        className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md bg-transparent text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
         title={t('common.settings')}
       >
         <MoreVertical className="size-7" />
       </summary>
-      <div className="absolute right-0 top-12 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 rounded-lg border bg-popover p-3 text-popover-foreground shadow-lg sm:grid-cols-2">
+      <div className="absolute top-12 right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 rounded-lg border bg-popover p-3 text-popover-foreground shadow-lg sm:grid-cols-2">
         <div className="px-1 pt-1 sm:col-span-2">
           <p className="font-dot-matrix text-base font-semibold">{t('common.settings')}</p>
           <p className="font-vt323 mt-0.5 text-xs text-muted-foreground">
@@ -81,7 +74,7 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
           </p>
         </div>
         <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3 sm:col-span-2">
-          <span className="font-vt323 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
+          <span className="font-vt323 flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase">
             <Languages className="size-3.5" />
             {t('language')}
           </span>
@@ -90,7 +83,11 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
             onChange={(event) => void setLocale(event.target.value as SupportedLocale)}
             value={i18n.resolvedLanguage}
           >
-            {supportedLocales.map((locale) => <option key={locale} value={locale}>{localeNames[locale]}</option>)}
+            {supportedLocales.map((locale) => (
+              <option key={locale} value={locale}>
+                {localeNames[locale]}
+              </option>
+            ))}
           </select>
         </label>
         <DeviceSelect
@@ -108,7 +105,7 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
           value={midi.selectedInputId}
         />
         <label className="settings-option flex min-h-16 flex-col justify-start gap-2 rounded-lg border px-4 py-3">
-          <span className="font-vt323 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
+          <span className="font-vt323 flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase">
             <SlidersHorizontal className="size-3.5" />
             {t('settings.noteChannel')}
           </span>
@@ -125,7 +122,7 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
           </select>
         </label>
         <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3">
-          <span className="font-vt323 flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
+          <span className="font-vt323 flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase">
             <SlidersHorizontal className="size-3.5" />
             {t('settings.fxChannel')}
           </span>

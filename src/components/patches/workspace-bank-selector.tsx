@@ -1,12 +1,5 @@
 import { EllipsisVertical } from 'lucide-react'
-import {
-  type KeyboardEvent,
-  type ReactNode,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-} from 'react'
+import { type KeyboardEvent, type ReactNode, useEffect, useId, useMemo, useRef } from 'react'
 
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { cn } from '@/lib/utils'
@@ -43,13 +36,14 @@ function WorkspaceBankRow({
   const selectionLabel = `${bank.id} — ${bank.name}`
 
   useEffect(() => {
-    if (!selected) closeActions()
-  }, [selected])
+    const details = detailsRef.current
+    if (!selected) details?.removeAttribute('open')
+  }, [detailsRef, selected])
 
   return (
     <li
       className={cn(
-        'relative -mr-px flex w-full items-center gap-1 whitespace-nowrap border-y border-l-4 border-r px-2 py-2 transition-colors',
+        'relative -mr-px flex w-full items-center gap-1 border-y border-r border-l-4 px-2 py-2 whitespace-nowrap transition-colors',
         selected
           ? 'bank-tab-active z-10 border-primary bg-primary text-primary-foreground shadow-sm'
           : 'border-transparent text-foreground/80 hover:border-y-border hover:border-l-border hover:bg-muted/60 hover:text-foreground',
@@ -95,7 +89,7 @@ function WorkspaceBankRow({
         >
           <EllipsisVertical className="size-4" />
         </summary>
-        <div className="font-vt323 absolute left-full top-0 z-40 min-w-56 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+        <div className="font-vt323 absolute top-0 left-full z-40 min-w-56 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
           {renderActions(bank, closeActions)}
         </div>
       </details>
@@ -126,13 +120,14 @@ export function WorkspaceBankSelector({
   const previousBanksRef = useRef(banks.map((bank) => bank.id))
   const previousSelectedBankRef = useRef(selectedBank)
   const effectiveSelectedBank = useMemo(
-    () => banks.some((bank) => bank.id === selectedBank) ? selectedBank : (banks[0]?.id ?? ''),
+    () => (banks.some((bank) => bank.id === selectedBank) ? selectedBank : (banks[0]?.id ?? '')),
     [banks, selectedBank],
   )
 
   useEffect(() => {
-    const selectedBankWasRemoved = previousBanksRef.current.includes(previousSelectedBankRef.current)
-      && !banks.some((bank) => bank.id === previousSelectedBankRef.current)
+    const selectedBankWasRemoved =
+      previousBanksRef.current.includes(previousSelectedBankRef.current) &&
+      !banks.some((bank) => bank.id === previousSelectedBankRef.current)
 
     if (selectedBankWasRemoved && effectiveSelectedBank) {
       buttonRefs.current.get(effectiveSelectedBank)?.focus()
@@ -148,11 +143,16 @@ export function WorkspaceBankSelector({
 
   const selectFromKeyboard = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     if (banks.length === 0) return
-    const nextIndex = event.key === 'ArrowDown' ? (index + 1) % banks.length
-      : event.key === 'ArrowUp' ? (index - 1 + banks.length) % banks.length
-        : event.key === 'Home' ? 0
-          : event.key === 'End' ? banks.length - 1
-            : null
+    const nextIndex =
+      event.key === 'ArrowDown'
+        ? (index + 1) % banks.length
+        : event.key === 'ArrowUp'
+          ? (index - 1 + banks.length) % banks.length
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? banks.length - 1
+              : null
 
     if (nextIndex === null) return
     event.preventDefault()

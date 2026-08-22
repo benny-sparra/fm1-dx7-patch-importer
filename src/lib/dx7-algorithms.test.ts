@@ -8,11 +8,46 @@ describe('DX7 algorithm diagrams', () => {
   })
 
   it('shows every operator exactly once in every algorithm', () => {
-    expect(dx7Algorithms.map((algorithm) => algorithm.map(({ id }) => id).sort().join(''))).toEqual([
-      '123456', '123456', '123456', '123456', '123456', '123456', '123456', '123456',
-      '123456', '123456', '123456', '123456', '123456', '123456', '123456', '123456',
-      '123456', '123456', '123456', '123456', '123456', '123456', '123456', '123456',
-      '123456', '123456', '123456', '123456', '123456', '123456', '123456', '123456',
+    expect(
+      dx7Algorithms.map((algorithm) =>
+        algorithm
+          .map(({ id }) => id)
+          .sort((a, b) => a - b)
+          .join(''),
+      ),
+    ).toEqual([
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
+      '123456',
     ])
   })
 
@@ -28,14 +63,16 @@ describe('DX7 algorithm diagrams', () => {
   })
 
   it('classifies operators by whether they feed the audio output', () => {
-    expect(dx7Algorithms[0].map((operator) => [operator.id, getDx7OperatorRole(operator)])).toEqual([
-      [6, 'modulator'],
-      [5, 'modulator'],
-      [4, 'modulator'],
-      [3, 'carrier'],
-      [2, 'modulator'],
-      [1, 'carrier'],
-    ])
+    expect(dx7Algorithms[0].map((operator) => [operator.id, getDx7OperatorRole(operator)])).toEqual(
+      [
+        [6, 'modulator'],
+        [5, 'modulator'],
+        [4, 'modulator'],
+        [3, 'carrier'],
+        [2, 'modulator'],
+        [1, 'carrier'],
+      ],
+    )
   })
 
   it('classifies every operator in algorithm 32 as a carrier', () => {

@@ -1,10 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { importVoices, makeDemoVoices, makeFactoryPatchLibrary } from '@/lib/patch-library'
-import {
-  shouldWarnBeforeUnload,
-  WorkspacePersistenceController,
-} from '@/lib/workspace-persistence'
+import { shouldWarnBeforeUnload, WorkspacePersistenceController } from '@/lib/workspace-persistence'
 
 function deferred<T = void>() {
   let resolve!: (value: T | PromiseLike<T>) => void
@@ -77,7 +74,9 @@ describe('WorkspacePersistenceController', () => {
     const save = vi.fn(async () => {})
     const controller = new WorkspacePersistenceController({
       createFactory: makeFactoryPatchLibrary,
-      load: async () => { throw new Error('Temporary read failure') },
+      load: async () => {
+        throw new Error('Temporary read failure')
+      },
       save,
     })
 
@@ -92,7 +91,9 @@ describe('WorkspacePersistenceController', () => {
   it('exposes a load error instead of a replacement workspace', async () => {
     const controller = new WorkspacePersistenceController({
       createFactory: makeFactoryPatchLibrary,
-      load: async () => { throw new Error('Temporary read failure') },
+      load: async () => {
+        throw new Error('Temporary read failure')
+      },
       save: async () => {},
     })
 
@@ -109,7 +110,8 @@ describe('WorkspacePersistenceController', () => {
 
   it('can retry a failed read and hydrate the recovered workspace', async () => {
     const stored = importVoices(makeFactoryPatchLibrary(), 'B', makeDemoVoices())
-    const load = vi.fn()
+    const load = vi
+      .fn()
       .mockRejectedValueOnce(new Error('Temporary read failure'))
       .mockResolvedValueOnce(stored)
     const controller = new WorkspacePersistenceController({
@@ -133,7 +135,9 @@ describe('WorkspacePersistenceController', () => {
     const save = vi.fn(async () => {})
     const controller = new WorkspacePersistenceController({
       createFactory: makeFactoryPatchLibrary,
-      load: async () => { throw new Error('Storage unavailable') },
+      load: async () => {
+        throw new Error('Storage unavailable')
+      },
       save,
     })
 
@@ -177,7 +181,9 @@ describe('WorkspacePersistenceController', () => {
     const controller = new WorkspacePersistenceController({
       createFactory: makeFactoryPatchLibrary,
       load: async () => initial,
-      save: async () => { throw new Error('Quota exceeded') },
+      save: async () => {
+        throw new Error('Quota exceeded')
+      },
     })
 
     controller.start()
@@ -224,7 +230,8 @@ describe('WorkspacePersistenceController', () => {
     const firstEdit = importVoices(initial, 'A', makeDemoVoices())
     const latestEdit = importVoices(firstEdit, 'B', makeDemoVoices())
     const retryCompleted = deferred()
-    const save = vi.fn()
+    const save = vi
+      .fn()
       .mockRejectedValueOnce(new Error('Quota exceeded'))
       .mockImplementationOnce(() => retryCompleted.promise)
     const controller = new WorkspacePersistenceController({
@@ -247,7 +254,11 @@ describe('WorkspacePersistenceController', () => {
 
     retryCompleted.resolve()
     await flushPromises()
-    expect(controller.getState()).toMatchObject({ error: null, hasUnsavedChanges: false, status: 'ready' })
+    expect(controller.getState()).toMatchObject({
+      error: null,
+      hasUnsavedChanges: false,
+      status: 'ready',
+    })
     expect(shouldWarnBeforeUnload(controller.getState())).toBe(false)
   })
 
@@ -259,7 +270,8 @@ describe('WorkspacePersistenceController', () => {
     const firstWrite = deferred()
     const secondWrite = deferred()
     let stored = initial
-    const save = vi.fn()
+    const save = vi
+      .fn()
       .mockImplementationOnce(async (snapshot) => {
         await firstWrite.promise
         stored = snapshot

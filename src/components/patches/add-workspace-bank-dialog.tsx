@@ -1,5 +1,5 @@
 import { Library, Plus, Upload } from 'lucide-react'
-import { type RefObject, useRef, useState } from 'react'
+import { type FormEvent, type RefObject, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -9,10 +9,7 @@ import { dx7BankCatalog } from '@/data/dx7-bank-catalog'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { parseDx7Bank } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
-import {
-  normalizeWorkspaceBankNameForSave,
-  workspaceBankTitleLength,
-} from '@/lib/patch-library'
+import { normalizeWorkspaceBankNameForSave, workspaceBankTitleLength } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
 
 type AddWorkspaceBankDialogProps = {
@@ -51,6 +48,41 @@ export function AddWorkspaceBankDialog({
     setWorking(false)
   }
 
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!bank) return
+    const normalizedName = normalizeWorkspaceBankNameForSave(name)
+    if (!normalizedName) {
+      setError(t('banks.bankNameRequired'))
+      return
+    }
+    if (source === 'catalog' && !catalogBankId) {
+      setError(t('banks.soundSourceRequired'))
+      return
+    }
+    if (source === 'upload' && !file) {
+      setError(t('banks.soundSourceRequired'))
+      return
+    }
+
+    setWorking(true)
+    setError('')
+    try {
+      const imported =
+        source === 'catalog'
+          ? await loadDx7CatalogBank(catalogBankId)
+          : parseDx7Bank(await file!.arrayBuffer())
+      library.addBank(bank, normalizedName, description, imported)
+      onCreated(bank)
+      toast.success(t('toasts.bankCreated', { bank: normalizedName }))
+      dialogRef.current?.close()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t('banks.addBankFailed'))
+    } finally {
+      setWorking(false)
+    }
+  }
+
   return (
     <Dialog
       aria-describedby="add-workspace-bank-description"
@@ -77,7 +109,10 @@ export function AddWorkspaceBankDialog({
             <Plus className="size-5 text-primary" />
             {t('banks.addBankTitle', { bank })}
           </h2>
-          <p className="font-vt323 mt-1 text-lg text-muted-foreground" id="add-workspace-bank-description">
+          <p
+            className="font-vt323 mt-1 text-lg text-muted-foreground"
+            id="add-workspace-bank-description"
+          >
             {t('banks.addBankHelp')}
           </p>
         </div>
@@ -88,42 +123,7 @@ export function AddWorkspaceBankDialog({
         />
       </DialogHeader>
 
-      <form
-        className="grid gap-5 p-5"
-        onSubmit={async (event) => {
-          event.preventDefault()
-          if (!bank) return
-          const normalizedName = normalizeWorkspaceBankNameForSave(name)
-          if (!normalizedName) {
-            setError(t('banks.bankNameRequired'))
-            return
-          }
-          if (source === 'catalog' && !catalogBankId) {
-            setError(t('banks.soundSourceRequired'))
-            return
-          }
-          if (source === 'upload' && !file) {
-            setError(t('banks.soundSourceRequired'))
-            return
-          }
-
-          setWorking(true)
-          setError('')
-          try {
-            const imported = source === 'catalog'
-              ? await loadDx7CatalogBank(catalogBankId)
-              : parseDx7Bank(await file!.arrayBuffer())
-            library.addBank(bank, normalizedName, description, imported)
-            onCreated(bank)
-            toast.success(t('toasts.bankCreated', { bank: normalizedName }))
-            dialogRef.current?.close()
-          } catch (cause) {
-            setError(cause instanceof Error ? cause.message : t('banks.addBankFailed'))
-          } finally {
-            setWorking(false)
-          }
-        }}
-      >
+      <form className="grid gap-5 p-5" onSubmit={(event) => void submit(event)}>
         <label className="grid gap-1 text-sm font-semibold">
           {t('banks.bankName')}
           <input
@@ -172,10 +172,13 @@ export function AddWorkspaceBankDialog({
                 }}
                 type="radio"
               />
-              <span className={cn(
-                'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
-                source === 'catalog' && 'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
-              )}>
+              <span
+                className={cn(
+                  'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold text-muted-foreground transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50 hover:bg-accent hover:text-accent-foreground',
+                  source === 'catalog' &&
+                    'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
+                )}
+              >
                 <Library className="size-4 shrink-0" />
                 {t('banks.catalogSource')}
               </span>
@@ -192,10 +195,13 @@ export function AddWorkspaceBankDialog({
                 }}
                 type="radio"
               />
-              <span className={cn(
-                'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
-                source === 'upload' && 'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
-              )}>
+              <span
+                className={cn(
+                  'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold text-muted-foreground transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50 hover:bg-accent hover:text-accent-foreground',
+                  source === 'upload' &&
+                    'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
+                )}
+              >
                 <Upload className="size-4 shrink-0" />
                 {t('banks.uploadSource')}
               </span>
@@ -226,9 +232,7 @@ export function AddWorkspaceBankDialog({
               </select>
             ) : (
               <label className="flex min-h-10 cursor-pointer items-center rounded-md border border-dashed border-input bg-background px-3 text-sm transition-colors hover:bg-muted/50">
-                <span className="min-w-0 truncate">
-                  {file?.name ?? t('banks.chooseSysexFile')}
-                </span>
+                <span className="min-w-0 truncate">{file?.name ?? t('banks.chooseSysexFile')}</span>
                 <input
                   accept=".syx,application/octet-stream"
                   className="sr-only"
@@ -243,7 +247,10 @@ export function AddWorkspaceBankDialog({
         </fieldset>
 
         {error ? (
-          <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
+          <p
+            className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            role="alert"
+          >
             {error}
           </p>
         ) : null}

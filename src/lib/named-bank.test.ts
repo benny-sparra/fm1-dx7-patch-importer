@@ -46,20 +46,33 @@ describe('named bank operations', () => {
   })
 
   it('rejects an empty name and an incomplete source bank', () => {
-    expect(() => createNamedBank(makeLoadedLibrary(), 'A', {
-      description: '', id: 'bank-1', name: '  ', now: createdAt,
-    })).toThrow('name')
+    expect(() =>
+      createNamedBank(makeLoadedLibrary(), 'A', {
+        description: '',
+        id: 'bank-1',
+        name: '  ',
+        now: createdAt,
+      }),
+    ).toThrow('name')
 
-    expect(() => createNamedBank(emptyPatchLibrary(), 'A', {
-      description: '', id: 'bank-1', name: 'Empty', now: createdAt,
-    })).toThrow('32')
+    expect(() =>
+      createNamedBank(emptyPatchLibrary(), 'A', {
+        description: '',
+        id: 'bank-1',
+        name: 'Empty',
+        now: createdAt,
+      }),
+    ).toThrow('32')
   })
 
   it('loads a saved bank into a different workspace destination', () => {
     const source = makeLoadedLibrary()
     source.effects[voiceId('A', 1)][0] = 1
     const bank = createNamedBank(source, 'A', {
-      description: '', id: 'bank-1', name: 'Source', now: createdAt,
+      description: '',
+      id: 'bank-1',
+      name: 'Source',
+      now: createdAt,
     })
 
     const loaded = loadNamedBank(emptyPatchLibrary(), 'C', bank)
@@ -73,7 +86,10 @@ describe('named bank operations', () => {
 
   it('renames and duplicates without mutating the source bank', () => {
     const bank = createNamedBank(makeLoadedLibrary(), 'A', {
-      description: '', id: 'bank-1', name: 'Original', now: createdAt,
+      description: '',
+      id: 'bank-1',
+      name: 'Original',
+      now: createdAt,
     })
     const renamed = renameNamedBank(bank, 'Renamed', 'New notes', '2026-08-13T13:00:00.000Z')
     const duplicate = duplicateNamedBank(bank, 'bank-2', '2026-08-13T14:00:00.000Z')
@@ -88,7 +104,10 @@ describe('named bank operations', () => {
 
   it('exports the saved bank as a standard 32-voice DX7 SysEx file', () => {
     const bank = createNamedBank(makeLoadedLibrary(), 'A', {
-      description: '', id: 'bank-1', name: 'Gig bank', now: createdAt,
+      description: '',
+      id: 'bank-1',
+      name: 'Gig bank',
+      now: createdAt,
     })
 
     const exported = parseDx7Bank(makeNamedBankSysexFile(bank).buffer as ArrayBuffer)
@@ -101,7 +120,10 @@ describe('named bank operations', () => {
 
   it('uses a safe .sysex filename derived from the saved bank name', () => {
     const bank = createNamedBank(makeLoadedLibrary(), 'A', {
-      description: '', id: 'bank-1', name: '../../Gig: Friday*?', now: createdAt,
+      description: '',
+      id: 'bank-1',
+      name: '../../Gig: Friday*?',
+      now: createdAt,
     })
 
     expect(makeNamedBankSysexFilename(bank)).toBe('fm1-Gig-Friday.sysex')
@@ -109,7 +131,10 @@ describe('named bank operations', () => {
 
   it('rejects exporting a malformed saved bank', () => {
     const bank = createNamedBank(makeLoadedLibrary(), 'A', {
-      description: '', id: 'bank-1', name: 'Incomplete', now: createdAt,
+      description: '',
+      id: 'bank-1',
+      name: 'Incomplete',
+      now: createdAt,
     })
     bank.slots.pop()
 

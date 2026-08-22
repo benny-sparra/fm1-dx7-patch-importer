@@ -13,12 +13,7 @@ type PianoKeyboardDialogProps = {
 
 function PianoKeysIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      className="!h-4 !w-6"
-      fill="none"
-      viewBox="0 0 30 20"
-    >
+    <svg aria-hidden="true" className="!h-4 !w-6" fill="none" viewBox="0 0 30 20">
       <rect fill="white" height="18" rx="1.5" stroke="currentColor" width="28" x="1" y="1" />
       <path d="M10.3 1v18M19.7 1v18" stroke="currentColor" />
       <path d="M7.8 1h5v10h-5zM17.2 1h5v10h-5z" fill="currentColor" />
@@ -69,9 +64,8 @@ function makeKeys(baseOctave: number) {
     const note = (octave + 1) * 12 + whiteKeySteps[noteIndex]
 
     return {
-      computerKey: computerKeyMap.find(
-        (mapping) => mapping.step === note - (baseOctave + 1) * 12,
-      )?.key,
+      computerKey: computerKeyMap.find((mapping) => mapping.step === note - (baseOctave + 1) * 12)
+        ?.key,
       kind: 'white',
       label: `${whiteKeyNames[noteIndex]}${octave}`,
       note,
@@ -81,18 +75,15 @@ function makeKeys(baseOctave: number) {
   const blackKeys = [0, 1].flatMap((octaveOffset) => {
     const octave = baseOctave + octaveOffset
 
-    return blackKeyMap.map(
-      (key): PianoKey => ({
-        kind: 'black',
-        label: `${key.name}${octave}`,
-        computerKey: computerKeyMap.find(
-          (mapping) =>
-            mapping.step === (octave + 1) * 12 + key.step - (baseOctave + 1) * 12,
-        )?.key,
-        note: (octave + 1) * 12 + key.step,
-        position: key.position + octaveOffset * 7,
-      }),
-    )
+    return blackKeyMap.map((key): PianoKey => ({
+      kind: 'black',
+      label: `${key.name}${octave}`,
+      computerKey: computerKeyMap.find(
+        (mapping) => mapping.step === (octave + 1) * 12 + key.step - (baseOctave + 1) * 12,
+      )?.key,
+      note: (octave + 1) * 12 + key.step,
+      position: key.position + octaveOffset * 7,
+    }))
   })
 
   return { blackKeys, whiteKeys }
@@ -112,10 +103,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
     top: number
   } | null>(null)
 
-  const { blackKeys, whiteKeys } = useMemo(
-    () => makeKeys(baseOctave),
-    [baseOctave],
-  )
+  const { blackKeys, whiteKeys } = useMemo(() => makeKeys(baseOctave), [baseOctave])
 
   const computerKeys = useMemo(
     () =>
@@ -145,12 +133,12 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
 
   const playNote = useCallback(
     (key: PianoKey) => {
-    if (activeNotesRef.current.has(key.note)) {
-      return
-    }
+      if (activeNotesRef.current.has(key.note)) {
+        return
+      }
 
-    activeNotesRef.current.add(key.note)
-    setActiveNotes(new Set(activeNotesRef.current))
+      activeNotesRef.current.add(key.note)
+      setActiveNotes(new Set(activeNotesRef.current))
       sendMidiNoteOn(key.note, key.label)
     },
     [sendMidiNoteOn],
@@ -158,12 +146,12 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
 
   const releaseNote = useCallback(
     (note: number) => {
-    if (!activeNotesRef.current.has(note)) {
-      return
-    }
+      if (!activeNotesRef.current.has(note)) {
+        return
+      }
 
-    activeNotesRef.current.delete(note)
-    setActiveNotes(new Set(activeNotesRef.current))
+      activeNotesRef.current.delete(note)
+      setActiveNotes(new Set(activeNotesRef.current))
       sendMidiNoteOff(note)
     },
     [sendMidiNoteOff],
@@ -179,7 +167,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
   const shiftOctave = useCallback(
     (direction: -1 | 1) => {
       releaseAllNotes()
-    setBaseOctave((current) => Math.min(5, Math.max(1, current + direction)))
+      setBaseOctave((current) => Math.min(5, Math.max(1, current + direction)))
     },
     [releaseAllNotes],
   )
@@ -190,9 +178,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
         return false
       }
 
-      return Boolean(
-        target.closest('input, textarea, select, [contenteditable="true"]'),
-      )
+      return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'))
     }
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -318,10 +304,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
     }
 
     const rect = dialog.getBoundingClientRect()
-    const left = Math.min(
-      window.innerWidth - rect.width - 8,
-      Math.max(8, event.clientX - offset.x),
-    )
+    const left = Math.min(window.innerWidth - rect.width - 8, Math.max(8, event.clientX - offset.x))
     const top = Math.min(
       window.innerHeight - rect.height - 8,
       Math.max(8, event.clientY - offset.y),
@@ -350,7 +333,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
 
       <dialog
         aria-label={t('ui.pianoKeyboard')}
-        className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1040px,calc(100vw-1rem))] overflow-auto whitespace-normal rounded-xl bg-white p-0 text-card-foreground"
+        className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1040px,calc(100vw-1rem))] overflow-auto rounded-xl bg-white p-0 whitespace-normal text-card-foreground"
         onCancel={releaseAllNotes}
         onClose={releaseAllNotes}
         ref={dialogRef}
@@ -415,7 +398,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
               onClick={() => shiftOctave(-1)}
             />
 
-            <div className="synthwave-keybed relative h-56 overflow-hidden rounded-lg px-2 pb-3 pt-2">
+            <div className="synthwave-keybed relative h-56 overflow-hidden rounded-lg px-2 pt-2 pb-3">
               <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-[color-mix(in_srgb,var(--fm1-accent)_20%,transparent)] to-transparent" />
               <div className="grid h-full grid-cols-[repeat(15,56px)]">
                 {whiteKeys.map((key) => (
@@ -460,18 +443,15 @@ type OctaveButtonProps = {
   onClick: () => void
 }
 
-function OctaveButton({
-  direction,
-  disabled,
-  keyboardKey,
-  onClick,
-}: OctaveButtonProps) {
+function OctaveButton({ direction, disabled, keyboardKey, onClick }: OctaveButtonProps) {
   const { t } = useTranslation()
   const Icon = direction === 'down' ? ChevronLeft : ChevronRight
 
   return (
     <button
-      aria-label={t('ui.shiftOctave', { direction: t(`ui.direction${direction === 'down' ? 'Down' : 'Up'}`) })}
+      aria-label={t('ui.shiftOctave', {
+        direction: t(`ui.direction${direction === 'down' ? 'Down' : 'Up'}`),
+      })}
       className="synthwave-octave-button group flex min-h-56 items-center justify-center rounded-lg transition disabled:cursor-not-allowed disabled:opacity-35"
       disabled={disabled}
       onClick={onClick}
@@ -479,9 +459,7 @@ function OctaveButton({
     >
       <span className="flex flex-col items-center gap-2">
         <Icon className="size-7 opacity-80 transition group-hover:opacity-100" />
-        <span className="synthwave-key-hint rounded px-1.5 py-0.5 text-xs">
-          {keyboardKey}
-        </span>
+        <span className="synthwave-key-hint rounded px-1.5 py-0.5 text-xs">{keyboardKey}</span>
       </span>
     </button>
   )
@@ -494,12 +472,7 @@ type PianoKeyButtonProps = {
   onStop: (note: number) => void
 }
 
-function PianoKeyButton({
-  isActive,
-  noteKey,
-  onStart,
-  onStop,
-}: PianoKeyButtonProps) {
+function PianoKeyButton({ isActive, noteKey, onStart, onStop }: PianoKeyButtonProps) {
   const { t } = useTranslation()
   const isBlack = noteKey.kind === 'black'
 
@@ -507,14 +480,12 @@ function PianoKeyButton({
     <button
       aria-label={t('ui.playNote', { note: noteKey.label })}
       className={cn(
-        'select-none touch-none border font-semibold transition-[background,box-shadow,transform,color] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fm1-accent)]',
+        'touch-none border font-semibold transition-[background,box-shadow,transform,color] duration-100 select-none focus-visible:ring-2 focus-visible:ring-[var(--fm1-accent)] focus-visible:outline-none',
         isBlack
           ? 'synthwave-piano-key-black absolute top-2 z-10 flex h-32 w-9 items-end justify-center rounded-b-[0.45rem] pb-3 text-[0.7rem] text-white'
           : 'synthwave-piano-key-white relative flex h-52 items-end justify-center rounded-b-[0.5rem] pb-4 text-xs text-[#25213c]',
         isActive &&
-          (isBlack
-            ? 'synthwave-piano-key-black-active'
-            : 'synthwave-piano-key-white-active'),
+          (isBlack ? 'synthwave-piano-key-black-active' : 'synthwave-piano-key-white-active'),
       )}
       onKeyDown={(event) => {
         if (event.repeat || (event.key !== 'Enter' && event.key !== ' ')) {
@@ -549,9 +520,7 @@ function PianoKeyButton({
           <span
             className={cn(
               'rounded px-1.5 py-0.5 text-[0.65rem] uppercase',
-              isBlack
-                ? 'bg-white/15 text-white'
-                : 'bg-violet-950/10 text-violet-950/80',
+              isBlack ? 'bg-white/15 text-white' : 'bg-violet-950/10 text-violet-950/80',
             )}
           >
             {noteKey.computerKey}

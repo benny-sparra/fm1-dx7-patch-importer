@@ -1,10 +1,7 @@
 import type { Input, Output } from 'webmidi'
 
 import { makeDx7BankPayload, makeDx7SingleVoicePayload, type Dx7Voice } from '@/lib/dx7'
-import {
-  fm1EffectParameterMaximums,
-  fm1EffectParameterCount,
-} from '@/lib/fm1-effects'
+import { fm1EffectParameterMaximums, fm1EffectParameterCount } from '@/lib/fm1-effects'
 
 export type MidiPort = Input | Output
 
@@ -36,9 +33,7 @@ export function getMidiSupport() {
   return 'supported'
 }
 
-export function portsToDevices<TPort extends MidiPort>(
-  ports: TPort[],
-) {
+export function portsToDevices<TPort extends MidiPort>(ports: TPort[]) {
   return ports.map((port) => ({
     id: port.id,
     name: port.name ?? 'Unnamed MIDI device',
@@ -67,11 +62,7 @@ export function makeFm1ProgramChangeMessage(program: number, channel = 1) {
   return Uint8Array.from([0xc0 | ((channel - 1) & 0x0f), program])
 }
 
-export function sendFm1ProgramChange(
-  output: Output,
-  channel: number,
-  program: number,
-) {
+export function sendFm1ProgramChange(output: Output, channel: number, program: number) {
   makeFm1ProgramChangeMessage(program, channel)
   output.sendProgramChange(program, { channels: channel })
 }
@@ -80,11 +71,7 @@ export function sendFm1ProgramChange(
  * FM1/DX7 single-parameter write payload, excluding F0/43 and F7.
  * The complete message is F0 43 1n pp qq vv F7.
  */
-export function makeFm1ParameterPayload(
-  parameter: number,
-  value: number,
-  channel = 1,
-) {
+export function makeFm1ParameterPayload(parameter: number, value: number, channel = 1) {
   if (!Number.isInteger(parameter) || parameter < 0 || parameter > 155) {
     throw new RangeError('FM1 parameter must be an integer from 0 to 155.')
   }
@@ -112,11 +99,7 @@ export function sendFm1Parameter(
   output.sendSysex(0x43, makeFm1ParameterPayload(parameter, value, channel))
 }
 
-export function makeFm1EffectControlMessage(
-  controller: number,
-  value: number,
-  channel = 2,
-) {
+export function makeFm1EffectControlMessage(controller: number, value: number, channel = 2) {
   if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
     throw new RangeError('FM1 effect controller must be an integer from 0 to 23.')
   }
@@ -129,11 +112,7 @@ export function makeFm1EffectControlMessage(
     throw new RangeError('MIDI channel must be an integer from 1 to 16.')
   }
 
-  return Uint8Array.from([
-    0xb0 | ((channel - 1) & 0x0f),
-    controller,
-    value,
-  ])
+  return Uint8Array.from([0xb0 | ((channel - 1) & 0x0f), controller, value])
 }
 
 export function sendFm1EffectControl(
@@ -146,21 +125,11 @@ export function sendFm1EffectControl(
   output.sendControlChange(controller, value, { channels: channel })
 }
 
-export function sendNoteOn(
-  output: Output,
-  channel: number,
-  note: number,
-  velocity = 96,
-) {
+export function sendNoteOn(output: Output, channel: number, note: number, velocity = 96) {
   output.sendNoteOn(note, { channels: channel, rawAttack: velocity })
 }
 
-export function sendNoteOff(
-  output: Output,
-  channel: number,
-  note: number,
-  velocity = 0,
-) {
+export function sendNoteOff(output: Output, channel: number, note: number, velocity = 0) {
   output.sendNoteOff(note, { channels: channel, rawRelease: velocity })
 }
 
@@ -178,29 +147,14 @@ export function formatMidiBytes(data: Uint8Array | number[]) {
     (messageType === 0x80 || messageType === 0x90)
   ) {
     const channel = (status & 0x0f) + 1
-    const noteNames = [
-      'C',
-      'C#',
-      'D',
-      'D#',
-      'E',
-      'F',
-      'F#',
-      'G',
-      'G#',
-      'A',
-      'A#',
-      'B',
-    ]
+    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
     const noteName = `${noteNames[note % 12]}${Math.floor(note / 12) - 1}`
     const isNoteOff = messageType === 0x80 || velocity === 0
 
     return `Ch ${channel} Note ${isNoteOff ? 'Off' : 'On'}: ${noteName} (velocity ${velocity})`
   }
 
-  return bytes
-    .map((byte) => byte.toString(16).padStart(2, '0').toUpperCase())
-    .join(' ')
+  return bytes.map((byte) => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ')
 }
 
 export function makeLogEntry(

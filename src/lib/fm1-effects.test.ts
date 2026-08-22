@@ -28,8 +28,6 @@ describe('FM1 effect editor data', () => {
   it('clamps malformed stored values to documented effect ranges', () => {
     const stored = new Uint8Array(24).fill(127)
 
-    expect(Array.from(normalizeFm1Effects(stored).slice(0, 4))).toEqual([
-      1, 2, 107, 10,
-    ])
+    expect(Array.from(normalizeFm1Effects(stored).slice(0, 4))).toEqual([1, 2, 107, 10])
   })
 })

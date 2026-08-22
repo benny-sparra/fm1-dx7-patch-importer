@@ -43,12 +43,7 @@ describe('LibrarianPage bank selection', () => {
     const user = userEvent.setup()
     render(
       <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onEditPatch={vi.fn()}
-        />
+        <LibrarianPage activePatchId="" library={library} midi={midi} onEditPatch={vi.fn()} />
       </ToastProvider>,
     )
 

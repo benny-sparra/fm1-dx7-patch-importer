@@ -32,19 +32,23 @@ describe('DX7 bank catalog', () => {
   it('ships a checksum-valid 32-voice SysEx file for every entry', () => {
     for (const bank of dx7BankCatalog) {
       const bytes = Uint8Array.from(readFileSync(resolve('public', bank.file.slice(1))))
-      expect(parseDx7Bank(bytes.buffer), bank.file).toHaveLength(32)
+      expect(parseDx7Bank(bytes.buffer)).toHaveLength(32)
     }
   })
 
   it('rejects missing choices, failed loads, and malformed catalog data', async () => {
     await expect(loadDx7CatalogBank('', vi.fn())).rejects.toThrow('Choose')
-    await expect(loadDx7CatalogBank('rom1a', async () => ({
-      arrayBuffer: async () => new ArrayBuffer(0),
-      ok: false,
-    }))).rejects.toThrow('could not be loaded')
-    await expect(loadDx7CatalogBank('rom1a', async () => ({
-      arrayBuffer: async () => new ArrayBuffer(12),
-      ok: true,
-    }))).rejects.toThrow('4104-byte')
+    await expect(
+      loadDx7CatalogBank('rom1a', async () => ({
+        arrayBuffer: async () => new ArrayBuffer(0),
+        ok: false,
+      })),
+    ).rejects.toThrow('could not be loaded')
+    await expect(
+      loadDx7CatalogBank('rom1a', async () => ({
+        arrayBuffer: async () => new ArrayBuffer(12),
+        ok: true,
+      })),
+    ).rejects.toThrow('4104-byte')
   })
 })

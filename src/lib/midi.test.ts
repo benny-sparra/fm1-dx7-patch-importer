@@ -8,15 +8,11 @@ import {
 
 describe('makeFm1ParameterPayload', () => {
   it('encodes the documented FM1 transpose parameter message on channel 1', () => {
-    expect(Array.from(makeFm1ParameterPayload(144, 36, 1))).toEqual([
-      0x10, 0x01, 0x10, 0x24,
-    ])
+    expect(Array.from(makeFm1ParameterPayload(144, 36, 1))).toEqual([0x10, 0x01, 0x10, 0x24])
   })
 
   it('encodes the maximum documented parameter on channel 16', () => {
-    expect(Array.from(makeFm1ParameterPayload(155, 127, 16))).toEqual([
-      0x1f, 0x01, 0x1b, 0x7f,
-    ])
+    expect(Array.from(makeFm1ParameterPayload(155, 127, 16))).toEqual([0x1f, 0x01, 0x1b, 0x7f])
   })
 
   it.each([
@@ -30,23 +26,17 @@ describe('makeFm1ParameterPayload', () => {
     ['channel above sixteen', 0, 0, 17],
     ['fractional channel', 0, 0, 1.5],
   ])('rejects %s', (_name, parameter, value, channel) => {
-    expect(() => makeFm1ParameterPayload(parameter, value, channel)).toThrow(
-      RangeError,
-    )
+    expect(() => makeFm1ParameterPayload(parameter, value, channel)).toThrow(RangeError)
   })
 })
 
 describe('makeFm1EffectControlMessage', () => {
   it('encodes an FM1 chorus depth change on the default FX channel', () => {
-    expect(Array.from(makeFm1EffectControlMessage(18, 75))).toEqual([
-      0xb1, 18, 75,
-    ])
+    expect(Array.from(makeFm1EffectControlMessage(18, 75))).toEqual([0xb1, 18, 75])
   })
 
   it('accepts the documented upper bound for filter cutoff', () => {
-    expect(Array.from(makeFm1EffectControlMessage(2, 107, 16))).toEqual([
-      0xbf, 2, 107,
-    ])
+    expect(Array.from(makeFm1EffectControlMessage(2, 107, 16))).toEqual([0xbf, 2, 107])
   })
 
   it.each([
@@ -59,8 +49,7 @@ describe('makeFm1EffectControlMessage', () => {
     ['channel below one', 0, 0, 0],
     ['channel above sixteen', 0, 0, 17],
   ])('rejects %s', (_name, controller, value, channel) => {
-    expect(() => makeFm1EffectControlMessage(controller, value, channel))
-      .toThrow(RangeError)
+    expect(() => makeFm1EffectControlMessage(controller, value, channel)).toThrow(RangeError)
   })
 })
 

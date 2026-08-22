@@ -21,10 +21,7 @@ type ToastContextValue = {
 
 const ToastContext = createContext<ToastContextValue | null>(null)
 
-function ToastItem({ dismiss, toast }: {
-  dismiss: (id: number) => void
-  toast: ToastMessage
-}) {
+function ToastItem({ dismiss, toast }: { dismiss: (id: number) => void; toast: ToastMessage }) {
   const { t } = useTranslation()
 
   useEffect(() => {
@@ -38,7 +35,7 @@ function ToastItem({ dismiss, toast }: {
       role="status"
     >
       <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-emerald-700" />
-      <p className="min-w-0 flex-1 text-sm font-semibold leading-5">{toast.message}</p>
+      <p className="min-w-0 flex-1 text-sm leading-5 font-semibold">{toast.message}</p>
       <button
         aria-label={t('toasts.dismiss')}
         className="-mr-1 grid size-7 shrink-0 cursor-pointer place-items-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
@@ -74,7 +71,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <section
         aria-label={t('toasts.notifications')}
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-3 bottom-3 z-[100] ml-auto grid w-auto max-w-sm gap-2 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-full"
+        className="pointer-events-none fixed inset-x-3 bottom-3 z-[100] ml-auto grid w-auto max-w-sm gap-2 sm:inset-x-auto sm:right-5 sm:bottom-5 sm:w-full"
       >
         {toasts.map((toast) => (
           <ToastItem dismiss={dismiss} key={toast.id} toast={toast} />

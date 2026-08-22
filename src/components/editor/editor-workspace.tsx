@@ -3,11 +3,7 @@ import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpPopover } from '@/components/ui/help-popover'
-import {
-  dx7Algorithms,
-  getDx7OperatorRole,
-  type Dx7AlgorithmOperator,
-} from '@/lib/dx7-algorithms'
+import { dx7Algorithms, getDx7OperatorRole, type Dx7AlgorithmOperator } from '@/lib/dx7-algorithms'
 import {
   envelopePath,
   formatOperatorFixedFrequency,
@@ -35,13 +31,20 @@ function AlgorithmDiagram({
     const y = nodeY(operator) + 5
 
     switch (operator.link) {
-      case 0: return `M ${x} ${y} V ${y + 10}`
-      case 1: return `M ${x} ${y} V ${y + 7} H ${x + 18}`
-      case 2: return `M ${x} ${y} V ${y + 8}`
-      case 3: return `M ${x} ${y} V ${y + 10} M ${x} ${y + 7} H ${x + 18} V ${y + 10}`
-      case 4: return `M ${x} ${y} V ${y + 10} M ${x - 18} ${y + 7} V ${y + 10} H ${x + 18} V ${y + 10}`
-      case 6: return `M ${x} ${y} V ${y + 7} H ${x + 36}`
-      case 7: return `M ${x} ${y} V ${y + 7} H ${x - 18}`
+      case 0:
+        return `M ${x} ${y} V ${y + 10}`
+      case 1:
+        return `M ${x} ${y} V ${y + 7} H ${x + 18}`
+      case 2:
+        return `M ${x} ${y} V ${y + 8}`
+      case 3:
+        return `M ${x} ${y} V ${y + 10} M ${x} ${y + 7} H ${x + 18} V ${y + 10}`
+      case 4:
+        return `M ${x} ${y} V ${y + 10} M ${x - 18} ${y + 7} V ${y + 10} H ${x + 18} V ${y + 10}`
+      case 6:
+        return `M ${x} ${y} V ${y + 7} H ${x + 36}`
+      case 7:
+        return `M ${x} ${y} V ${y + 7} H ${x - 18}`
     }
   }
 
@@ -61,11 +64,21 @@ function AlgorithmDiagram({
       className={cn('h-16 w-full overflow-visible', className)}
       viewBox={featured ? '11 4 88 54' : '0 -3 110 68'}
     >
-      <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8">
-        {operators.map((operator) => <path d={linkPath(operator)} key={`link-${operator.id}`} />)}
+      <g
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      >
+        {operators.map((operator) => (
+          <path d={linkPath(operator)} key={`link-${operator.id}`} />
+        ))}
         {operators.map((operator) => {
           const path = feedbackPath(operator)
-          return path ? <path className="opacity-65" d={path} key={`feedback-${operator.id}`} /> : null
+          return path ? (
+            <path className="opacity-65" d={path} key={`feedback-${operator.id}`} />
+          ) : null
         })}
       </g>
       {operators.map((operator) => (
@@ -73,7 +86,11 @@ function AlgorithmDiagram({
           <circle
             cx={nodeX(operator)}
             cy={nodeY(operator)}
-            fill={getDx7OperatorRole(operator) === 'carrier' ? 'currentColor' : 'var(--algorithm-background, #020617)'}
+            fill={
+              getDx7OperatorRole(operator) === 'carrier'
+                ? 'currentColor'
+                : 'var(--algorithm-background, #020617)'
+            }
             r="6"
             stroke="currentColor"
             strokeWidth="1.8"
@@ -126,10 +143,10 @@ export function AlgorithmPanel({
       <details className="group flex-1" ref={dropdownRef}>
         <summary
           aria-label={`Algorithm ${algorithm + 1}. Choose algorithm`}
-          className="flex h-[8rem] cursor-pointer list-none flex-col rounded-t-xl px-3 pb-1.5 pt-2 text-cyan-100 transition hover:bg-cyan-300/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-300 [&::-webkit-details-marker]:hidden"
+          className="flex h-[8rem] cursor-pointer list-none flex-col rounded-t-xl px-3 pt-2 pb-1.5 text-cyan-100 transition hover:bg-cyan-300/10 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none focus-visible:ring-inset [&::-webkit-details-marker]:hidden"
         >
           <span className="flex w-full items-center justify-between gap-2">
-            <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-cyan-200">
+            <span className="flex items-center gap-1.5 text-[10px] font-black tracking-[0.14em] text-cyan-200 uppercase">
               <Route className="size-3.5" />
               Algorithm
               <HelpPopover
@@ -141,7 +158,7 @@ export function AlgorithmPanel({
             <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" />
           </span>
           <span className="mt-1 flex min-h-0 w-full flex-1 -translate-y-2 items-center gap-1">
-            <span className="font-vt323 text-xl font-black leading-none text-white">
+            <span className="font-vt323 text-xl leading-none font-black text-white">
               {String(algorithm + 1).padStart(2, '0')}
             </span>
             <AlgorithmDiagram
@@ -149,16 +166,22 @@ export function AlgorithmPanel({
               featured
               operators={dx7Algorithms[algorithm]}
             />
-            <span className="flex shrink-0 flex-col items-start gap-1 text-[8px] font-bold uppercase tracking-wide text-cyan-100/65">
-              <span><span className="mr-1 inline-block size-1.5 rounded-full bg-current" />{t('editor.carrier')}</span>
-              <span><span className="mr-1 inline-block size-1.5 rounded-full border border-current" />{t('editor.modulator')}</span>
+            <span className="flex shrink-0 flex-col items-start gap-1 text-[8px] font-bold tracking-wide text-cyan-100/65 uppercase">
+              <span>
+                <span className="mr-1 inline-block size-1.5 rounded-full bg-current" />
+                {t('editor.carrier')}
+              </span>
+              <span>
+                <span className="mr-1 inline-block size-1.5 rounded-full border border-current" />
+                {t('editor.modulator')}
+              </span>
             </span>
           </span>
         </summary>
 
         <div
           aria-label={t('ui.dx7Algorithm')}
-          className="absolute left-0 top-[calc(100%+0.5rem)] z-30 grid max-h-[min(34rem,70vh)] w-[min(42rem,calc(100vw-1.5rem))] grid-cols-2 gap-2 overflow-y-auto rounded-xl border border-cyan-300/35 bg-slate-950/95 p-2 shadow-2xl backdrop-blur sm:grid-cols-4"
+          className="absolute top-[calc(100%+0.5rem)] left-0 z-30 grid max-h-[min(34rem,70vh)] w-[min(42rem,calc(100vw-1.5rem))] grid-cols-2 gap-2 overflow-y-auto rounded-xl border border-cyan-300/35 bg-slate-950/95 p-2 shadow-2xl backdrop-blur sm:grid-cols-4"
           role="radiogroup"
         >
           {dx7Algorithms.map((operators, index) => (
@@ -166,15 +189,16 @@ export function AlgorithmPanel({
               aria-checked={algorithm === index}
               aria-label={`Algorithm ${index + 1}`}
               className={cn(
-                'relative min-w-0 rounded-md border border-white/10 bg-white/5 px-2 pb-1 pt-2 font-vt323 text-cyan-100/65 transition hover:border-cyan-300/60 hover:bg-cyan-300/10 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300',
-                algorithm === index && 'border-primary bg-primary/20 text-primary shadow-[0_0_14px_hsl(315_100%_60%_/_0.4)] ring-1 ring-primary',
+                'font-vt323 relative min-w-0 rounded-md border border-white/10 bg-white/5 px-2 pt-2 pb-1 text-cyan-100/65 transition hover:border-cyan-300/60 hover:bg-cyan-300/10 hover:text-cyan-100 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none',
+                algorithm === index &&
+                  'border-primary bg-primary/20 text-primary shadow-[0_0_14px_hsl(315_100%_60%_/_0.4)] ring-1 ring-primary',
               )}
               key={index}
               onClick={() => selectAlgorithm(index)}
               role="radio"
               type="button"
             >
-              <span className="absolute left-2 top-1.5 text-[10px] font-black text-white/70">
+              <span className="absolute top-1.5 left-2 text-[10px] font-black text-white/70">
                 {String(index + 1).padStart(2, '0')}
               </span>
               <AlgorithmDiagram operators={operators} />
@@ -184,7 +208,7 @@ export function AlgorithmPanel({
       </details>
 
       <label className="grid h-10 grid-cols-[auto_minmax(2rem,1fr)_1.25rem] items-center gap-2 rounded-b-xl border-t border-white/10 bg-black/15 px-3">
-        <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide text-white/60">
+        <span className="flex items-center gap-1 text-[9px] font-black tracking-wide text-white/60 uppercase">
           <RadioTower className="size-3 text-primary" />
           Feedback
           <HelpPopover
@@ -195,13 +219,24 @@ export function AlgorithmPanel({
         </span>
         <input
           aria-label={t('editor.feedback')}
-          className="h-1.5 min-w-0 cursor-pointer accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          className="h-1.5 min-w-0 cursor-pointer accent-primary focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none"
           max={7}
           min={0}
           onBlur={onFeedbackGestureEnd}
           onChange={(event) => onFeedbackChange(Number(event.target.value))}
           onKeyDown={(event) => {
-            if (['ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp'].includes(event.key)) {
+            if (
+              [
+                'ArrowDown',
+                'ArrowLeft',
+                'ArrowRight',
+                'ArrowUp',
+                'End',
+                'Home',
+                'PageDown',
+                'PageUp',
+              ].includes(event.key)
+            ) {
               onFeedbackGestureStart()
             }
           }}
@@ -214,7 +249,7 @@ export function AlgorithmPanel({
           type="range"
           value={feedback}
         />
-        <output className="text-right font-vt323 text-sm font-black text-white">{feedback}</output>
+        <output className="font-vt323 text-right text-sm font-black text-white">{feedback}</output>
       </label>
     </section>
   )
@@ -241,7 +276,7 @@ export function OperatorStrip({
   return (
     <div
       aria-label={t('editor.operators')}
-      className="operator-strip scrollbar-none flex min-w-0 flex-1 items-stretch overflow-x-auto"
+      className="operator-strip flex min-w-0 flex-1 scrollbar-none items-stretch overflow-x-auto"
       role="tablist"
     >
       {Array.from({ length: 6 }, (_, index) => {
@@ -254,12 +289,10 @@ export function OperatorStrip({
         const coarse = parameters[base + 18]
         const fine = parameters[base + 19]
         const ratio = (coarse === 0 ? 0.5 : coarse) * (1 + fine / 100)
-        const frequencyLabel = mode === 0
-          ? formatOperatorRatio(ratio)
-          : formatOperatorFixedFrequency(coarse, fine)
-        const frequencyDescription = mode === 0
-          ? `Frequency ratio: ${frequencyLabel}`
-          : `Fixed frequency: ${frequencyLabel}`
+        const frequencyLabel =
+          mode === 0 ? formatOperatorRatio(ratio) : formatOperatorFixedFrequency(coarse, fine)
+        const frequencyDescription =
+          mode === 0 ? `Frequency ratio: ${frequencyLabel}` : `Fixed frequency: ${frequencyLabel}`
         const color = operatorColors[index]
         const isSelected = selectedOperator === operator
         const algorithmOperator = dx7Algorithms[algorithm].find(({ id }) => id === operator)
@@ -269,7 +302,9 @@ export function OperatorStrip({
         const auditionLabel = [
           auditionStatus.muted ? 'muted' : null,
           auditionStatus.soloed ? 'soloed' : null,
-        ].filter(Boolean).join(', ')
+        ]
+          .filter(Boolean)
+          .join(', ')
 
         return (
           <button
@@ -277,9 +312,10 @@ export function OperatorStrip({
             aria-label={`Operator ${operator}, ${roleLabel}${auditionLabel ? `, ${auditionLabel}` : ''}`}
             aria-selected={isSelected}
             className={cn(
-              'operator-tab group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 bg-card/45 px-3 py-2 text-left opacity-75 transition-[background-color,opacity,transform,box-shadow] hover:bg-card/80 hover:opacity-100 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:min-w-[10.5rem]',
+              'operator-tab group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 bg-card/45 px-3 py-2 text-left opacity-75 transition-[background-color,opacity,transform,box-shadow] hover:bg-card/80 hover:opacity-100 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset sm:min-w-[10.5rem]',
               index > 0 && '-ml-px',
-              isSelected && 'z-[1] mt-0 bg-card opacity-100 shadow-[0_-4px_18px_hsl(260_60%_5%_/_0.08)] after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-[var(--operator-color)]',
+              isSelected &&
+                'z-[1] mt-0 bg-card opacity-100 shadow-[0_-4px_18px_hsl(260_60%_5%_/_0.08)] after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-[var(--operator-color)]',
             )}
             key={operator}
             onClick={() => onSelect(operator)}
@@ -292,7 +328,7 @@ export function OperatorStrip({
                 <span className="text-lg font-black text-[var(--operator-color)]">{operator}</span>
                 <span
                   className={cn(
-                    'operator-role-badge inline-flex rounded-full border px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.1em]',
+                    'operator-role-badge inline-flex rounded-full border px-1.5 py-0.5 text-[8px] font-black tracking-[0.1em] uppercase',
                     role === 'carrier'
                       ? 'border-[var(--operator-color)] bg-[color-mix(in_srgb,var(--operator-color)_14%,transparent)] text-[var(--operator-color)]'
                       : 'border-border/80 text-muted-foreground',
@@ -303,7 +339,7 @@ export function OperatorStrip({
               </div>
               <span
                 aria-label={frequencyDescription}
-                className="operator-frequency rounded bg-muted px-1.5 py-1 font-vt323 text-[10px] font-bold text-muted-foreground"
+                className="operator-frequency font-vt323 rounded bg-muted px-1.5 py-1 text-[10px] font-bold text-muted-foreground"
                 title={frequencyDescription}
               >
                 {frequencyLabel}
@@ -311,18 +347,22 @@ export function OperatorStrip({
             </div>
             <div aria-hidden="true" className="mt-0.5 flex h-4 items-center gap-1">
               {auditionStatus.muted ? (
-                <span className="operator-audition-badge rounded border border-rose-400/70 bg-rose-400/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-rose-300">
+                <span className="operator-audition-badge rounded border border-rose-400/70 bg-rose-400/15 px-1.5 py-0.5 text-[8px] leading-none font-black tracking-[0.08em] text-rose-300 uppercase">
                   {t('editor.muted')}
                 </span>
               ) : null}
               {auditionStatus.soloed ? (
-                <span className="operator-audition-badge rounded border border-amber-300/70 bg-amber-300/15 px-1.5 py-0.5 text-[8px] font-black uppercase leading-none tracking-[0.08em] text-amber-700">
+                <span className="operator-audition-badge rounded border border-amber-300/70 bg-amber-300/15 px-1.5 py-0.5 text-[8px] leading-none font-black tracking-[0.08em] text-amber-700 uppercase">
                   {t('editor.solo')}
                 </span>
               ) : null}
             </div>
             <div className="mt-0.5 flex items-center gap-2 pb-0.5">
-              <svg aria-hidden="true" className="h-7 min-w-0 flex-1 overflow-visible" viewBox="0 0 400 180">
+              <svg
+                aria-hidden="true"
+                className="h-7 min-w-0 flex-1 overflow-visible"
+                viewBox="0 0 400 180"
+              >
                 <path
                   d={envelopePath(rates, levels)}
                   fill="none"
@@ -333,7 +373,7 @@ export function OperatorStrip({
                   vectorEffect="non-scaling-stroke"
                 />
               </svg>
-              <div className="flex shrink-0 items-baseline gap-1 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
+              <div className="flex shrink-0 items-baseline gap-1 text-[9px] font-bold tracking-wide text-muted-foreground uppercase">
                 <span>{t('editor.output')}</span>
                 <span className="font-vt323 text-sm text-foreground">{output}</span>
               </div>

@@ -14,11 +14,7 @@ type MidiLogDialogProps = {
 export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const log = useSyncExternalStore(
-    logStore.subscribe,
-    logStore.getSnapshot,
-    logStore.getSnapshot,
-  )
+  const log = useSyncExternalStore(logStore.subscribe, logStore.getSnapshot, logStore.getSnapshot)
   const hasMidiActivity = !(
     log.length === 1 &&
     log[0].direction === 'system' &&
@@ -38,14 +34,10 @@ export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
         {t('midi.log')}
       </Button>
 
-      <Dialog
-        aria-label={t('midi.log')}
-        ref={dialogRef}
-        size="4xl"
-      >
+      <Dialog aria-label={t('midi.log')} ref={dialogRef} size="4xl">
         <div className="relative">
           <DialogCloseButton
-            className="absolute right-4 top-4 z-10"
+            className="absolute top-4 right-4 z-10"
             label={t('midi.closeLog')}
             onClick={() => dialogRef.current?.close()}
           />

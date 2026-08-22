@@ -25,10 +25,10 @@ describe('patch editor history', () => {
   })
 
   it('clamps edits to their declared parameter range', () => {
-    const history = editParameters(
-      makeEditorHistory(Uint8Array.from([10, 20, 30])),
-      [[0, -4, 0, 99], [1, 140, 0, 99]],
-    )
+    const history = editParameters(makeEditorHistory(Uint8Array.from([10, 20, 30])), [
+      [0, -4, 0, 99],
+      [1, 140, 0, 99],
+    ])
 
     expect(Array.from(history.present)).toEqual([0, 99, 30])
   })
@@ -62,10 +62,8 @@ describe('patch editor history', () => {
 })
 
 describe('sound starters', () => {
-  const makeParameters = () => Uint8Array.from(
-    { length: 179 },
-    (_, index) => index < 155 ? index % 100 : 0,
-  )
+  const makeParameters = () =>
+    Uint8Array.from({ length: 179 }, (_, index) => (index < 155 ? index % 100 : 0))
 
   it('offers repeatable presets that stay within MIDI data limits', () => {
     for (const preset of soundPresets) {
@@ -95,34 +93,30 @@ describe('sound starters', () => {
     parameters.fill(99, 155)
 
     expect(Array.from(applySoundPreset(parameters, 'soft-pad').slice(155))).toEqual([
-      0, 0, 0, 0, 1, 1, 52, 24, 0, 0, 0, 0,
-      0, 0, 0, 0, 1, 18, 28, 20, 0, 0, 0, 0,
+      0, 0, 0, 0, 1, 1, 52, 24, 0, 0, 0, 0, 0, 0, 0, 0, 1, 18, 28, 20, 0, 0, 0, 0,
     ])
     expect(Array.from(applySoundPreset(parameters, 'bright-pluck').slice(155))).toEqual([
-      0, 0, 0, 0, 1, 0, 22, 12, 1, 18, 24, 14,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 1, 0, 22, 12, 1, 18, 24, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     ])
     expect(Array.from(applySoundPreset(parameters, 'steady-organ').slice(155))).toEqual([
-      0, 0, 0, 0, 1, 0, 18, 10, 0, 0, 0, 0,
-      0, 0, 0, 0, 1, 12, 22, 16, 1, 10, 24, 14,
+      0, 0, 0, 0, 1, 0, 18, 10, 0, 0, 0, 0, 0, 0, 0, 0, 1, 12, 22, 16, 1, 10, 24, 14,
     ])
     expect(Array.from(applySoundPreset(parameters, 'gentle-motion').slice(155))).toEqual([
-      0, 0, 0, 0, 1, 1, 34, 16, 0, 0, 0, 0,
-      0, 0, 0, 0, 1, 16, 20, 14, 0, 0, 0, 0,
+      0, 0, 0, 0, 1, 1, 34, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 16, 20, 14, 0, 0, 0, 0,
     ])
     expect(Array.from(applySoundPreset(parameters, 'warm-filter').slice(155))).toEqual([
-      1, 0, 58, 1, 1, 0, 32, 18, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      1, 0, 58, 1, 1, 0, 32, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     ])
     expect(Array.from(applySoundPreset(parameters, 'wide-space').slice(155))).toEqual([
-      0, 0, 0, 0, 1, 1, 62, 28, 0, 0, 0, 0,
-      0, 0, 0, 0, 1, 34, 46, 38, 0, 0, 0, 0,
+      0, 0, 0, 0, 1, 1, 62, 28, 0, 0, 0, 0, 0, 0, 0, 0, 1, 34, 46, 38, 0, 0, 0, 0,
     ])
   })
 
   it('preserves the patch name and operator tuning', () => {
     const parameters = makeParameters()
-    const protectedIndexes = [18, 19, 20, 39, 40, 41, 60, 61, 62, 81, 82, 83, 102, 103, 104, 123, 124, 125]
+    const protectedIndexes = [
+      18, 19, 20, 39, 40, 41, 60, 61, 62, 81, 82, 83, 102, 103, 104, 123, 124, 125,
+    ]
 
     for (const preset of soundPresets) {
       const applied = applySoundPreset(parameters, preset.id)
@@ -141,11 +135,28 @@ describe('sound starters', () => {
 
 describe('sound randomisation', () => {
   const maximums = [
-    ...Array(6).fill([
-      99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
-      3, 3, 7, 3, 7, 99, 1, 31, 99, 14,
+    ...Array.from({ length: 6 }, () => [
+      99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 3, 3, 7, 3, 7, 99, 1, 31, 99, 14,
     ]).flat(),
-    99, 99, 99, 99, 99, 99, 99, 99, 31, 7, 1, 99, 99, 99, 99, 1, 5, 7, 48,
+    99,
+    99,
+    99,
+    99,
+    99,
+    99,
+    99,
+    99,
+    31,
+    7,
+    1,
+    99,
+    99,
+    99,
+    99,
+    1,
+    5,
+    7,
+    48,
   ]
 
   it('randomises editable parameters within their documented ranges', () => {
@@ -156,8 +167,8 @@ describe('sound randomisation', () => {
     expect(Array.from(randomised.slice(0, 145))).toEqual(maximums)
     expect(Array.from(randomised.slice(145, 155))).toEqual(Array.from(parameters.slice(145, 155)))
     expect(Array.from(randomised.slice(155))).toEqual([
-      1, 2, 107, 10, 1, 2, 100, 100, 1, 100, 100, 100,
-      1, 100, 100, 100, 1, 100, 100, 100, 1, 100, 100, 100,
+      1, 2, 107, 10, 1, 2, 100, 100, 1, 100, 100, 100, 1, 100, 100, 100, 1, 100, 100, 100, 1, 100,
+      100, 100,
     ])
   })
 

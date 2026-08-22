@@ -17,22 +17,21 @@ const initialLocale = resolveLocale(
   typeof navigator === 'undefined' ? [] : navigator.languages,
 )
 
-void i18n
-  .use(initReactI18next)
-  .init({
-    fallbackLng: 'en',
-    initAsync: false,
-    interpolation: { escapeValue: false },
-    lng: initialLocale,
-    resources,
-    returnEmptyString: false,
-    supportedLngs: ['en', 'fr', 'es', 'de', 'pt-BR', 'zh-Hans'],
-  })
+void i18n.use(initReactI18next).init({
+  fallbackLng: 'en',
+  initAsync: false,
+  interpolation: { escapeValue: false },
+  lng: initialLocale,
+  resources,
+  returnEmptyString: false,
+  supportedLngs: ['en', 'fr', 'es', 'de', 'pt-BR', 'zh-Hans'],
+})
 
 function applyDocumentLanguage(locale: string) {
   document.documentElement.lang = locale
   document.title = i18n.t('meta.title')
-  document.querySelector<HTMLMetaElement>('meta[name="description"]')
+  document
+    .querySelector<HTMLMetaElement>('meta[name="description"]')
     ?.setAttribute('content', i18n.t('meta.description'))
 }
 
@@ -49,5 +48,3 @@ export async function setLocale(locale: SupportedLocale) {
     // The selected language still applies when storage is unavailable.
   }
 }
-
-export default i18n

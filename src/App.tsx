@@ -10,9 +10,11 @@ import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { useToast } from '@/components/ui/toast'
 import { WorkspacePersistenceStatus } from '@/components/workspace-persistence-status'
 
-const PatchEditorPage = lazy(() => import('@/routes/patch-editor-page').then((module) => ({
-  default: module.PatchEditorPage,
-})))
+const PatchEditorPage = lazy(() =>
+  import('@/routes/patch-editor-page').then((module) => ({
+    default: module.PatchEditorPage,
+  })),
+)
 
 function App() {
   const { t } = useTranslation()
@@ -37,7 +39,10 @@ function App() {
       role="status"
     >
       <div className="flex flex-col items-center gap-3 rounded-md bg-white px-6 py-5">
-        <LoaderCircle aria-hidden="true" className="size-7 animate-spin text-primary motion-reduce:animate-none" />
+        <LoaderCircle
+          aria-hidden="true"
+          className="size-7 animate-spin text-primary motion-reduce:animate-none"
+        />
         {label}
       </div>
     </section>
@@ -45,37 +50,38 @@ function App() {
 
   return (
     <RootLayout compact={Boolean(selectedPatch && selectedVoice)} midi={midi}>
-      {library.workspaceLoading ? loadingSection(t('common.loadingLibrary'))
-        : library.persistenceStatus === 'load-error' ? (
+      {library.workspaceLoading ? (
+        loadingSection(t('common.loadingLibrary'))
+      ) : library.persistenceStatus === 'load-error' ? (
+        <WorkspacePersistenceStatus library={library} />
+      ) : (
+        <>
           <WorkspacePersistenceStatus library={library} />
-        ) : (
-          <>
-            <WorkspacePersistenceStatus library={library} />
-            {selectedPatch && selectedVoice ? (
-              <Suspense fallback={loadingSection(t('common.loading'))}>
-                <PatchEditorPage
-                  key={selectedPatch.id}
-                  midi={midi}
-                  onBack={() => setSelectedPatchId('')}
-                  effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
-                  onSave={(voice, effects) => {
-                    library.updatePatch(selectedPatch.id, voice, effects)
-                    toast.success(t('toasts.patchSaved', { patch: selectedPatch.name }))
-                  }}
-                  patch={selectedPatch}
-                  voice={selectedVoice}
-                />
-              </Suspense>
-            ) : (
-              <LibrarianPage
-                activePatchId={auditionedPatchId}
-                library={library}
+          {selectedPatch && selectedVoice ? (
+            <Suspense fallback={loadingSection(t('common.loading'))}>
+              <PatchEditorPage
+                key={selectedPatch.id}
                 midi={midi}
-                onEditPatch={(patch) => editPatch(patch.id)}
+                onBack={() => setSelectedPatchId('')}
+                effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
+                onSave={(voice, effects) => {
+                  library.updatePatch(selectedPatch.id, voice, effects)
+                  toast.success(t('toasts.patchSaved', { patch: selectedPatch.name }))
+                }}
+                patch={selectedPatch}
+                voice={selectedVoice}
               />
-            )}
-          </>
-        )}
+            </Suspense>
+          ) : (
+            <LibrarianPage
+              activePatchId={auditionedPatchId}
+              library={library}
+              midi={midi}
+              onEditPatch={(patch) => editPatch(patch.id)}
+            />
+          )}
+        </>
+      )}
     </RootLayout>
   )
 }

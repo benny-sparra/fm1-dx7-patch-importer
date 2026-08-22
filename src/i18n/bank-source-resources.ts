@@ -18,7 +18,8 @@ export const bankSourceResources = {
     chooseCatalogBank: 'Soundbank auswählen…',
     creatingBank: 'Importieren…',
     soundData: 'Sounddaten',
-    soundDataHelp: 'Jede neue Arbeitsbank beginnt mit einer vollständigen DX7-Standardbank mit 32 Voices.',
+    soundDataHelp:
+      'Jede neue Arbeitsbank beginnt mit einer vollständigen DX7-Standardbank mit 32 Voices.',
     soundSource: 'Soundquelle wählen',
     soundSourceRequired: 'Wähle eine Katalogbank oder lade deine eigene DX7-SysEx-Datei hoch.',
     uploadSource: 'Eigene Bank hochladen',

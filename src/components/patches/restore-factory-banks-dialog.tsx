@@ -39,10 +39,7 @@ export function RestoreFactoryBanksDialog({
             </p>
           </div>
         </div>
-        <DialogCloseButton
-          label={t('dialogs.restoreClose')}
-          onClick={closeDialog}
-        />
+        <DialogCloseButton label={t('dialogs.restoreClose')} onClick={closeDialog} />
       </DialogHeader>
 
       <div className="p-5">

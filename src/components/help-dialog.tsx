@@ -81,19 +81,14 @@ export function HelpDialog() {
               <h2 className="text-lg font-bold" id="help-dialog-title">
                 {t('help.title')}
               </h2>
-              <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                {t('help.intro')}
-              </p>
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">{t('help.intro')}</p>
             </div>
           </div>
-          <DialogCloseButton
-            label={t('help.close')}
-            onClick={closeDialog}
-          />
+          <DialogCloseButton label={t('help.close')} onClick={closeDialog} />
         </DialogHeader>
 
         <p className="mx-5 mt-5 rounded-lg border border-primary/30 bg-primary/10 p-4 text-sm leading-6">
-          <span className="font-semibold">{t('help.truthTitle')}</span>{' '}{t('help.truthBody')}
+          <span className="font-semibold">{t('help.truthTitle')}</span> {t('help.truthBody')}
         </p>
 
         <ol className="grid gap-3 p-5 sm:grid-cols-2">
@@ -106,9 +101,7 @@ export function HelpDialog() {
                 <Icon className="size-4 text-primary" />
                 {t(title)}
               </div>
-              <p className="mt-2 text-sm leading-5 text-muted-foreground">
-                {t(description)}
-              </p>
+              <p className="mt-2 text-sm leading-5 text-muted-foreground">{t(description)}</p>
             </li>
           ))}
         </ol>

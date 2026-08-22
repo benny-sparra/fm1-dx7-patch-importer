@@ -31,13 +31,23 @@ describe('operator audition parameter mapping', () => {
 
   it('zeros every muted operator while retaining other output levels', () => {
     expect(makeOperatorAuditionEdits(makeParameters(), new Set([2, 5]), null)).toEqual([
-      [121, 91], [100, 0], [79, 73], [58, 64], [37, 0], [16, 46],
+      [121, 91],
+      [100, 0],
+      [79, 73],
+      [58, 64],
+      [37, 0],
+      [16, 46],
     ])
   })
 
   it('isolates the soloed operator and temporarily overrides its mute', () => {
     expect(makeOperatorAuditionEdits(makeParameters(), new Set([2]), 2)).toEqual([
-      [121, 0], [100, 82], [79, 0], [58, 0], [37, 0], [16, 0],
+      [121, 0],
+      [100, 82],
+      [79, 0],
+      [58, 0],
+      [37, 0],
+      [16, 0],
     ])
   })
 

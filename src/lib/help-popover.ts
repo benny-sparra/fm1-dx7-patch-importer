@@ -14,14 +14,10 @@ export function positionHelpPopover(
   gap = 8,
   margin = 12,
 ): HelpPopoverPosition {
-  const left = Math.max(
-    margin,
-    Math.min(trigger.left - 8, viewportWidth - popoverWidth - margin),
-  )
+  const left = Math.max(margin, Math.min(trigger.left - 8, viewportWidth - popoverWidth - margin))
   const roomBelow = viewportHeight - trigger.bottom - margin
-  const preferredTop = roomBelow >= popoverHeight + gap
-    ? trigger.bottom + gap
-    : trigger.top - popoverHeight - gap
+  const preferredTop =
+    roomBelow >= popoverHeight + gap ? trigger.bottom + gap : trigger.top - popoverHeight - gap
 
   return {
     left,

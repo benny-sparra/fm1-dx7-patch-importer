@@ -6,10 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogCloseButton, DialogHeader } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/toast'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
-import {
-  normalizeWorkspaceBankNameForSave,
-  workspaceBankTitleLength,
-} from '@/lib/patch-library'
+import { normalizeWorkspaceBankNameForSave, workspaceBankTitleLength } from '@/lib/patch-library'
 
 type BankInformationDialogProps = {
   bank: string
@@ -73,14 +70,14 @@ export function BankInformationDialog({
               <Info className="size-5 text-primary" />
               {t('banks.bankInformation')}
             </h2>
-            <p className="font-vt323 mt-1 text-lg text-muted-foreground" id="bank-information-description">
+            <p
+              className="font-vt323 mt-1 text-lg text-muted-foreground"
+              id="bank-information-description"
+            >
               {t('banks.bankInformationHelp')}
             </p>
           </div>
-          <DialogCloseButton
-            label={t('common.close')}
-            onClick={() => dialogRef.current?.close()}
-          />
+          <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />
         </DialogHeader>
 
         <form
@@ -120,14 +117,15 @@ export function BankInformationDialog({
             />
           </label>
           {error ? (
-            <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
+            <p
+              className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+              role="alert"
+            >
               {error}
             </p>
           ) : null}
           <div className="flex justify-end">
-            <Button type="submit">
-              {t('namedBanks.update')}
-            </Button>
+            <Button type="submit">{t('namedBanks.update')}</Button>
           </div>
         </form>
       </Dialog>

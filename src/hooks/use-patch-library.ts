@@ -69,14 +69,16 @@ export function usePatchLibrary() {
       createFactory: makeFactoryPatchLibrary,
       load: async () => {
         const stored = await loadStoredPatchLibrary()
-        return stored ? {
-          bankDescriptions: stored.bankDescriptions,
-          bankNames: stored.bankNames,
-          effects: stored.effects,
-          loadedBanks: stored.loadedBanks,
-          voices: stored.voices,
-          workspaceBanks: stored.workspaceBanks,
-        } : null
+        return stored
+          ? {
+              bankDescriptions: stored.bankDescriptions,
+              bankNames: stored.bankNames,
+              effects: stored.effects,
+              loadedBanks: stored.loadedBanks,
+              voices: stored.voices,
+              workspaceBanks: stored.workspaceBanks,
+            }
+          : null
       },
       onWorkspaceLoaded: (workspace) => {
         setHistory({
@@ -104,12 +106,15 @@ export function usePatchLibrary() {
         if (!cancelled) setNamedBanks(banks)
       })
       .catch((error) => {
-        if (!cancelled) setNamedBanksError(error instanceof Error ? error.message : 'Could not load saved banks.')
+        if (!cancelled)
+          setNamedBanksError(error instanceof Error ? error.message : 'Could not load saved banks.')
       })
       .finally(() => {
         if (!cancelled) setNamedBanksLoading(false)
       })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -150,98 +155,131 @@ export function usePatchLibrary() {
     })
   }, [])
 
-  const importBank = useCallback(async (bank: string, file: File) => {
-    const imported = parseDx7Bank(await file.arrayBuffer())
-    commit((current) => importVoices(current, bank, imported))
-  }, [commit])
+  const importBank = useCallback(
+    async (bank: string, file: File) => {
+      const imported = parseDx7Bank(await file.arrayBuffer())
+      commit((current) => importVoices(current, bank, imported))
+    },
+    [commit],
+  )
 
-  const loadDemoBank = useCallback((bank: string) => {
-    commit((current) => importVoices(current, bank, makeDemoVoices()))
-  }, [commit])
+  const loadDemoBank = useCallback(
+    (bank: string) => {
+      commit((current) => importVoices(current, bank, makeDemoVoices()))
+    },
+    [commit],
+  )
 
-  const updateVoice = useCallback((id: string, update: (voice: Dx7Voice) => Dx7Voice) => {
-    commit((current) => current.voices[id]
-      ? { ...current, voices: { ...current.voices, [id]: update(current.voices[id]) } }
-      : current)
-  }, [commit])
+  const updateVoice = useCallback(
+    (id: string, update: (voice: Dx7Voice) => Dx7Voice) => {
+      commit((current) =>
+        current.voices[id]
+          ? { ...current, voices: { ...current.voices, [id]: update(current.voices[id]) } }
+          : current,
+      )
+    },
+    [commit],
+  )
 
-  const updatePatch = useCallback((
-    id: string,
-    voice: Dx7Voice,
-    effects: Uint8Array,
-  ) => {
-    commit((current) => current.voices[id]
-      ? {
-          ...current,
-          effects: { ...current.effects, [id]: normalizeFm1Effects(effects) },
-          voices: { ...current.voices, [id]: voice },
-        }
-      : current)
-  }, [commit])
+  const updatePatch = useCallback(
+    (id: string, voice: Dx7Voice, effects: Uint8Array) => {
+      commit((current) =>
+        current.voices[id]
+          ? {
+              ...current,
+              effects: { ...current.effects, [id]: normalizeFm1Effects(effects) },
+              voices: { ...current.voices, [id]: voice },
+            }
+          : current,
+      )
+    },
+    [commit],
+  )
 
-  const renameVoice = useCallback((id: string, name: string) => {
-    commit((current) => renameLibraryVoice(current, id, name))
-  }, [commit])
+  const renameVoice = useCallback(
+    (id: string, name: string) => {
+      commit((current) => renameLibraryVoice(current, id, name))
+    },
+    [commit],
+  )
 
-  const renameBank = useCallback((bank: string, name: string) => {
-    commit((current) => renameLibraryBank(current, bank, name))
-  }, [commit])
+  const renameBank = useCallback(
+    (bank: string, name: string) => {
+      commit((current) => renameLibraryBank(current, bank, name))
+    },
+    [commit],
+  )
 
-  const updateBankInformation = useCallback((bank: string, title: string, description: string) => {
-    commit((current) => updateLibraryBankInformation(current, bank, title, description))
-  }, [commit])
+  const updateBankInformation = useCallback(
+    (bank: string, title: string, description: string) => {
+      commit((current) => updateLibraryBankInformation(current, bank, title, description))
+    },
+    [commit],
+  )
 
-  const moveVoice = useCallback((bank: string, from: number, to: number) => {
-    commit((current) => moveLibraryVoice(current, bank, from, to))
-  }, [commit])
+  const moveVoice = useCallback(
+    (bank: string, from: number, to: number) => {
+      commit((current) => moveLibraryVoice(current, bank, from, to))
+    },
+    [commit],
+  )
 
-  const deleteBank = useCallback((bank: string) => {
-    commit((current) => deleteWorkspaceBank(current, bank))
-  }, [commit])
+  const deleteBank = useCallback(
+    (bank: string) => {
+      commit((current) => deleteWorkspaceBank(current, bank))
+    },
+    [commit],
+  )
 
-  const addBank = useCallback((bank: string, name: string, description: string, voices: Dx7Voice[]) => {
-    commit((current) => createWorkspaceBank(current, bank, name, description, voices))
-  }, [commit])
+  const addBank = useCallback(
+    (bank: string, name: string, description: string, voices: Dx7Voice[]) => {
+      commit((current) => createWorkspaceBank(current, bank, name, description, voices))
+    },
+    [commit],
+  )
 
   const resetFactoryBanks = useCallback(() => {
     commit((current) => restoreFactoryPatchLibrary(current))
   }, [commit])
 
-  const saveNamedBank = useCallback(async (
-    sourceBank: string,
-    name: string,
-    description: string,
-  ) => {
-    const now = new Date().toISOString()
-    const bank = createNamedBank(history.present, sourceBank, {
-      description,
-      id: crypto.randomUUID(),
-      name,
-      now,
-    })
-    await saveStoredNamedBank(bank)
-    setNamedBanks((current) => [bank, ...current])
-    setNamedBanksError('')
-    return bank
-  }, [history.present])
+  const saveNamedBank = useCallback(
+    async (sourceBank: string, name: string, description: string) => {
+      const now = new Date().toISOString()
+      const bank = createNamedBank(history.present, sourceBank, {
+        description,
+        id: crypto.randomUUID(),
+        name,
+        now,
+      })
+      await saveStoredNamedBank(bank)
+      setNamedBanks((current) => [bank, ...current])
+      setNamedBanksError('')
+      return bank
+    },
+    [history.present],
+  )
 
-  const loadSavedBank = useCallback((bank: NamedBank, destinationBank: string) => {
-    commit((current) => loadNamedBank(current, destinationBank, bank))
-  }, [commit])
+  const loadSavedBank = useCallback(
+    (bank: NamedBank, destinationBank: string) => {
+      commit((current) => loadNamedBank(current, destinationBank, bank))
+    },
+    [commit],
+  )
 
-  const updateNamedBankDetails = useCallback(async (
-    bank: NamedBank,
-    name: string,
-    description: string,
-  ) => {
-    const updated = renameNamedBank(bank, name, description, new Date().toISOString())
-    await saveStoredNamedBank(updated)
-    setNamedBanks((current) => current
-      .map((candidate) => candidate.id === updated.id ? updated : candidate)
-      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)))
-    setNamedBanksError('')
-    return updated
-  }, [])
+  const updateNamedBankDetails = useCallback(
+    async (bank: NamedBank, name: string, description: string) => {
+      const updated = renameNamedBank(bank, name, description, new Date().toISOString())
+      await saveStoredNamedBank(updated)
+      setNamedBanks((current) =>
+        current
+          .map((candidate) => (candidate.id === updated.id ? updated : candidate))
+          .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)),
+      )
+      setNamedBanksError('')
+      return updated
+    },
+    [],
+  )
 
   const copyNamedBank = useCallback(async (bank: NamedBank) => {
     const duplicate = duplicateNamedBank(bank, crypto.randomUUID(), new Date().toISOString())

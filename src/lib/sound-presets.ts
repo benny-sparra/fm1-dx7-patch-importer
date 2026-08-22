@@ -1,10 +1,5 @@
 export type SoundPresetId =
-  | 'soft-pad'
-  | 'bright-pluck'
-  | 'steady-organ'
-  | 'gentle-motion'
-  | 'warm-filter'
-  | 'wide-space'
+  'soft-pad' | 'bright-pluck' | 'steady-organ' | 'gentle-motion' | 'warm-filter' | 'wide-space'
 
 export type SoundPreset = {
   /** Zero-based DX7 algorithm value used by the FM1 edit buffer. */
@@ -54,10 +49,7 @@ function setOperatorEnvelopes(
 }
 
 /** Applies a repeatable starting point without changing identity or operator tuning. */
-export function applySoundPreset(
-  parameters: Uint8Array,
-  presetId: SoundPresetId,
-) {
+export function applySoundPreset(parameters: Uint8Array, presetId: SoundPresetId) {
   if (parameters.length !== editorParameterCount) {
     throw new RangeError(`Sound presets require ${editorParameterCount} FM1 editor parameters.`)
   }

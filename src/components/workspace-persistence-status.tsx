@@ -27,7 +27,10 @@ export function WorkspacePersistenceStatus({ library }: { library: PersistenceLi
         role="status"
       >
         {persistenceStatus === 'saving' ? (
-          <LoaderCircle aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />
+          <LoaderCircle
+            aria-hidden="true"
+            className="size-4 animate-spin motion-reduce:animate-none"
+          />
         ) : (
           <CheckCircle2 aria-hidden="true" className="size-4 text-emerald-700" />
         )}
@@ -38,8 +41,10 @@ export function WorkspacePersistenceStatus({ library }: { library: PersistenceLi
 
   const technicalDetails = persistenceError?.detail ? (
     <details className="text-xs">
-      <summary className="cursor-pointer font-semibold">{t('persistence.technicalDetails')}</summary>
-      <p className="mt-1 break-words font-mono opacity-80">{persistenceError.detail}</p>
+      <summary className="cursor-pointer font-semibold">
+        {t('persistence.technicalDetails')}
+      </summary>
+      <p className="mt-1 font-mono break-words opacity-80">{persistenceError.detail}</p>
     </details>
   ) : null
 
@@ -88,14 +93,18 @@ export function WorkspacePersistenceStatus({ library }: { library: PersistenceLi
           <AlertTriangle aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-amber-700" />
           <div className="grid gap-1">
             <p className="font-bold">
-              {t(persistenceStatus === 'save-error'
-                ? 'persistence.saveErrorTitle'
-                : 'persistence.sessionOnlyTitle')}
+              {t(
+                persistenceStatus === 'save-error'
+                  ? 'persistence.saveErrorTitle'
+                  : 'persistence.sessionOnlyTitle',
+              )}
             </p>
             <p className="text-sm leading-5">
-              {t(persistenceStatus === 'save-error'
-                ? 'persistence.saveErrorBody'
-                : 'persistence.sessionOnlyBody')}
+              {t(
+                persistenceStatus === 'save-error'
+                  ? 'persistence.saveErrorBody'
+                  : 'persistence.sessionOnlyBody',
+              )}
             </p>
             {technicalDetails}
           </div>

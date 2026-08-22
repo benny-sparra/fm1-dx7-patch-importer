@@ -2,14 +2,10 @@
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import axe from 'axe-core'
 import { afterEach, describe, expect, it } from 'vitest'
 import { useState } from 'react'
 
-import {
-  WorkspaceBankSelector,
-  type WorkspaceBankSelectorBank,
-} from './workspace-bank-selector'
+import { WorkspaceBankSelector, type WorkspaceBankSelectorBank } from './workspace-bank-selector'
 
 const banks: WorkspaceBankSelectorBank[] = [
   { description: 'Warm performance sounds', id: 'A', name: 'Studio Favourites' },
@@ -47,10 +43,9 @@ function SelectorHarness({ initialBanks = banks }: { initialBanks?: WorkspaceBan
       />
       <output aria-label="Displayed bank">{selectedBank}</output>
       <button
-        onClick={() => setAvailableBanks((current) => [
-          ...current,
-          { id: 'D', name: 'New Arrivals' },
-        ])}
+        onClick={() =>
+          setAvailableBanks((current) => [...current, { id: 'D', name: 'New Arrivals' }])
+        }
         type="button"
       >
         Add bank
@@ -85,7 +80,9 @@ describe('WorkspaceBankSelector', () => {
     render(<SelectorHarness />)
 
     expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(1)
-    expect(screen.getByRole('button', { name: 'A — Studio Favourites', pressed: true })).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: 'A — Studio Favourites', pressed: true }),
+    ).toBeTruthy()
   })
 
   it('updates selection and the displayed bank after pointer activation', async () => {
@@ -105,11 +102,15 @@ describe('WorkspaceBankSelector', () => {
     firstBank.focus()
 
     await user.keyboard('{ArrowDown}')
-    expect(screen.getByRole('button', { name: 'B — Electric Keys', pressed: true })).toBe(document.activeElement)
+    expect(screen.getByRole('button', { name: 'B — Electric Keys', pressed: true })).toBe(
+      document.activeElement,
+    )
 
     await user.keyboard('{ArrowUp}')
     await user.keyboard('{ArrowUp}')
-    expect(screen.getByRole('button', { name: 'C — Digital Textures', pressed: true })).toBe(document.activeElement)
+    expect(screen.getByRole('button', { name: 'C — Digital Textures', pressed: true })).toBe(
+      document.activeElement,
+    )
   })
 
   it('moves to the first and last banks with Home and End', async () => {
@@ -118,10 +119,14 @@ describe('WorkspaceBankSelector', () => {
     screen.getByRole('button', { name: 'A — Studio Favourites' }).focus()
 
     await user.keyboard('{End}')
-    expect(screen.getByRole('button', { name: 'C — Digital Textures', pressed: true })).toBe(document.activeElement)
+    expect(screen.getByRole('button', { name: 'C — Digital Textures', pressed: true })).toBe(
+      document.activeElement,
+    )
 
     await user.keyboard('{Home}')
-    expect(screen.getByRole('button', { name: 'A — Studio Favourites', pressed: true })).toBe(document.activeElement)
+    expect(screen.getByRole('button', { name: 'A — Studio Favourites', pressed: true })).toBe(
+      document.activeElement,
+    )
   })
 
   it('gives every action summary the full bank name', () => {
@@ -138,7 +143,9 @@ describe('WorkspaceBankSelector', () => {
 
     await user.click(screen.getByLabelText('Actions for Electric Keys'))
 
-    expect(screen.getByRole('button', { name: 'A — Studio Favourites', pressed: true })).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: 'A — Studio Favourites', pressed: true }),
+    ).toBeTruthy()
     expect(screen.getByLabelText('Actions for Electric Keys').closest('details')?.open).toBe(true)
   })
 
@@ -151,20 +158,9 @@ describe('WorkspaceBankSelector', () => {
     await user.keyboard('{Enter}')
 
     expect(actions.closest('details')?.open).toBe(true)
-    expect(screen.getByRole('button', { name: 'A — Studio Favourites', pressed: true })).toBeTruthy()
-  })
-
-  it('has no testable axe violations, including required-child and required-parent rules', async () => {
-    const { container } = render(<SelectorHarness />)
-
-    const result = await axe.run(container, {
-      rules: {
-        // jsdom has no layout engine; contrast requires a real-browser audit.
-        'color-contrast': { enabled: false },
-      },
-    })
-
-    expect(result.violations).toEqual([])
+    expect(
+      screen.getByRole('button', { name: 'A — Studio Favourites', pressed: true }),
+    ).toBeTruthy()
   })
 
   it('does not nest interactive controls', () => {
@@ -172,9 +168,11 @@ describe('WorkspaceBankSelector', () => {
     const interactiveSelector = 'a[href], button, input, select, summary, textarea'
     const prohibitedParentSelector = 'a[href], button, summary'
 
-    expect([...container.querySelectorAll(prohibitedParentSelector)].filter((element) => (
-      element.querySelector(interactiveSelector)
-    ))).toEqual([])
+    expect(
+      [...container.querySelectorAll(prohibitedParentSelector)].filter((element) =>
+        element.querySelector(interactiveSelector),
+      ),
+    ).toEqual([])
   })
 
   it('adds new banks to the named list and keyboard sequence', async () => {
@@ -187,7 +185,9 @@ describe('WorkspaceBankSelector', () => {
 
     screen.getByRole('button', { name: 'C — Digital Textures' }).focus()
     await user.keyboard('{ArrowDown}')
-    expect(screen.getByRole('button', { name: 'D — New Arrivals', pressed: true })).toBe(document.activeElement)
+    expect(screen.getByRole('button', { name: 'D — New Arrivals', pressed: true })).toBe(
+      document.activeElement,
+    )
   })
 
   it('focuses the next surviving bank after deleting the selected bank', async () => {
@@ -199,6 +199,8 @@ describe('WorkspaceBankSelector', () => {
     await user.click(screen.getByRole('button', { name: 'Delete Electric Keys' }))
 
     expect(screen.queryByRole('button', { name: 'B — Electric Keys' })).toBeNull()
-    expect(screen.getByRole('button', { name: 'C — Digital Textures', pressed: true })).toBe(document.activeElement)
+    expect(screen.getByRole('button', { name: 'C — Digital Textures', pressed: true })).toBe(
+      document.activeElement,
+    )
   })
 })

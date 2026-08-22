@@ -24,17 +24,16 @@ type DialogProps = Omit<ComponentPropsWithoutRef<'dialog'>, 'onClick'> & {
   size?: keyof typeof dialogWidths
 }
 
-export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog({
-  className,
-  closeOnBackdrop = true,
-  onClick,
-  size = 'lg',
-  ...props
-}, ref) {
+export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog(
+  { className, closeOnBackdrop = true, onClick, size = 'lg', ...props },
+  ref,
+) {
   return (
+    // Native dialog handles Escape; this click handler only detects pointer activation on its backdrop.
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog
       className={cn(
-        'modal-surface fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] overflow-x-hidden overflow-y-auto whitespace-normal rounded-lg border border-primary/30 bg-white p-0 text-card-foreground shadow-2xl',
+        'modal-surface fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] overflow-x-hidden overflow-y-auto rounded-lg border border-primary/30 bg-white p-0 whitespace-normal text-card-foreground shadow-2xl',
         dialogWidths[size],
         className,
       )}
@@ -87,7 +86,10 @@ function PixelCloseIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
-type DialogCloseButtonProps = Omit<ComponentPropsWithoutRef<typeof Button>, 'aria-label' | 'size' | 'variant'> & {
+type DialogCloseButtonProps = Omit<
+  ComponentPropsWithoutRef<typeof Button>,
+  'aria-label' | 'size' | 'variant'
+> & {
   label: string
 }
 

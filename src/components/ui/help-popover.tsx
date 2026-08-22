@@ -50,13 +50,15 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
       const trigger = buttonRef.current?.getBoundingClientRect()
       const popover = popoverRef.current
       if (!trigger || !popover) return
-      setPosition(positionHelpPopover(
-        trigger,
-        popover.offsetWidth,
-        popover.offsetHeight,
-        window.innerWidth,
-        window.innerHeight,
-      ))
+      setPosition(
+        positionHelpPopover(
+          trigger,
+          popover.offsetWidth,
+          popover.offsetHeight,
+          window.innerWidth,
+          window.innerHeight,
+        ),
+      )
     }
 
     updatePosition()
@@ -82,7 +84,8 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
     }
     const closeOnOutsidePointer = (event: PointerEvent) => {
       const target = event.target as Node
-      if (!buttonRef.current?.contains(target) && !popoverRef.current?.contains(target)) setOpen(false)
+      if (!buttonRef.current?.contains(target) && !popoverRef.current?.contains(target))
+        setOpen(false)
     }
 
     window.addEventListener(openHelpEvent, closeForAnotherPopover)
@@ -110,7 +113,7 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
         aria-expanded={open}
         aria-label={`Help: ${label}`}
         className={cn(
-          'inline-grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground/75 transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'inline-grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground/75 transition-colors hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
           className,
         )}
         onClick={(event) => {
@@ -127,21 +130,26 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
       >
         <CircleHelp aria-hidden="true" className="size-3.5" />
       </button>
-      {open && createPortal(
-        <div
-          className="font-vt323 fixed z-[100] w-[min(18.5rem,calc(100vw-1.5rem))] rounded-lg border border-primary/30 bg-popover p-3 text-left text-popover-foreground shadow-2xl"
-          id={popoverId}
-          onMouseEnter={cancelScheduledClose}
-          onMouseLeave={scheduleClose}
-          ref={popoverRef}
-          role="note"
-          style={position}
-        >
-          <p className="text-xs font-black uppercase tracking-[0.12em] text-primary">{label}</p>
-          <p className="mt-1 text-sm font-normal leading-5 normal-case tracking-normal text-popover-foreground/85">{text}</p>
-        </div>,
-        document.body,
-      )}
+      {open &&
+        createPortal(
+          // Hover handlers keep the explanatory popup open; the note itself is intentionally not interactive.
+          // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+          <div
+            className="font-vt323 fixed z-[100] w-[min(18.5rem,calc(100vw-1.5rem))] rounded-lg border border-primary/30 bg-popover p-3 text-left text-popover-foreground shadow-2xl"
+            id={popoverId}
+            onMouseEnter={cancelScheduledClose}
+            onMouseLeave={scheduleClose}
+            ref={popoverRef}
+            role="note"
+            style={position}
+          >
+            <p className="text-xs font-black tracking-[0.12em] text-primary uppercase">{label}</p>
+            <p className="mt-1 text-sm leading-5 font-normal tracking-normal text-popover-foreground/85 normal-case">
+              {text}
+            </p>
+          </div>,
+          document.body,
+        )}
     </>
   )
 }

@@ -29,10 +29,12 @@ describe('DX7 edit-buffer conversion', () => {
   })
 
   it('rejects a malformed packed voice before creating a single-voice dump', () => {
-    expect(() => makeDx7SingleVoicePayload({
-      data: new Uint8Array(127),
-      name: 'TOO SHORT',
-    })).toThrow('128')
+    expect(() =>
+      makeDx7SingleVoicePayload({
+        data: new Uint8Array(127),
+        name: 'TOO SHORT',
+      }),
+    ).toThrow('128')
   })
 })
 
@@ -40,9 +42,7 @@ describe('DX7 live voice-name edits', () => {
   it('emits only the name bytes that changed', () => {
     const parameters = unpackDx7Voice(makeVoice())
 
-    expect(makeDx7VoiceNameEdits(parameters, 'ROUNDTWIP')).toEqual([
-      [151, 0x57],
-    ])
+    expect(makeDx7VoiceNameEdits(parameters, 'ROUNDTWIP')).toEqual([[151, 0x57]])
   })
 
   it('pads a shortened name with spaces on the synth', () => {

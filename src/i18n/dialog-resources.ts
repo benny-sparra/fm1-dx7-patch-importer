@@ -1,8 +1,171 @@
-const en = { dialogs: { bankTitle: 'Choose the destination bank on your FM1', bankIntro: 'The SysEx bank is being sent. Finish the import on the unit.', bankClose: 'Close bank selection instructions', bankStep1: 'Wait for the bank selection screen to appear on the FM1 display.', bankStep2: 'Turn Knob 1, 2, 3 or 4 to choose destination bank A, B, C or D.', bankStep3: 'The FM1 saves the 32 patches automatically after a brief delay.', bankImage: 'M-VAVE FM1 front panel showing the display and four numbered knobs', dontShow: 'Don’t show me again', midiTitle: 'Connect MIDI to send this bank', midiIntro: 'The FM1 must be connected as a MIDI output before a bank of sounds can be sent.', midiClose: 'Close MIDI connection message', midiSteps: 'Switch MIDI online on at the top of the page, allow MIDI access, then select the FM1 MIDI output in Settings.', restoreTitle: 'Restore Yamaha DX7 factory banks?', restoreIntro: 'This replaces all four local browser banks. You can undo the restore immediately afterwards.', restoreClose: 'Close factory bank restore', restoreDetails: 'Banks A, B, C, and D will be restored to Yamaha DX7 ROM 1A, ROM 1B, ROM 2A, and ROM 2B respectively.', restoreAction: 'Restore four banks', sourcesOpen: 'Find voice banks to download here.', sourcesTitle: 'Find DX7 patch banks', sourcesIntro: 'Download a 32-voice DX7 SysEx bank (.syx), then return here and choose Import DX7 bank.', sourcesClose: 'Close patch bank sources' } }
-const fr = { dialogs: { bankTitle: 'Choisissez la banque de destination sur votre FM1', bankIntro: 'La banque SysEx est en cours d’envoi. Terminez l’importation sur l’appareil.', bankClose: 'Fermer les instructions de sélection', bankStep1: 'Attendez que l’écran de sélection de banque apparaisse sur le FM1.', bankStep2: 'Tournez le bouton 1, 2, 3 ou 4 pour choisir la banque A, B, C ou D.', bankStep3: 'Le FM1 enregistre automatiquement les 32 sons après un court délai.', bankImage: 'Panneau avant du M-VAVE FM1 avec écran et quatre boutons numérotés', dontShow: 'Ne plus afficher', midiTitle: 'Connectez le MIDI pour envoyer cette banque', midiIntro: 'Le FM1 doit être connecté comme sortie MIDI avant l’envoi d’une banque.', midiClose: 'Fermer le message de connexion MIDI', midiSteps: 'Activez MIDI en ligne en haut de la page, autorisez l’accès MIDI, puis sélectionnez la sortie MIDI du FM1 dans les réglages.', restoreTitle: 'Restaurer les banques d’usine Yamaha DX7 ?', restoreIntro: 'Cette opération remplace les quatre banques locales. Vous pourrez l’annuler immédiatement.', restoreClose: 'Fermer la restauration', restoreDetails: 'Les banques A, B, C et D seront respectivement restaurées avec Yamaha DX7 ROM 1A, ROM 1B, ROM 2A et ROM 2B.', restoreAction: 'Restaurer quatre banques', sourcesOpen: 'Trouver des banques de sons à télécharger.', sourcesTitle: 'Trouver des banques DX7', sourcesIntro: 'Téléchargez une banque SysEx DX7 de 32 voix (.syx), puis revenez ici et choisissez Importer une banque DX7.', sourcesClose: 'Fermer les sources de banques' } }
-const es = { dialogs: { bankTitle: 'Elige el banco de destino en tu FM1', bankIntro: 'Se está enviando el banco SysEx. Termina la importación en la unidad.', bankClose: 'Cerrar las instrucciones de selección', bankStep1: 'Espera a que aparezca la pantalla de selección de banco en el FM1.', bankStep2: 'Gira el mando 1, 2, 3 o 4 para elegir el banco A, B, C o D.', bankStep3: 'El FM1 guarda automáticamente los 32 sonidos tras una breve espera.', bankImage: 'Panel frontal del M-VAVE FM1 con pantalla y cuatro mandos numerados', dontShow: 'No volver a mostrar', midiTitle: 'Conecta MIDI para enviar este banco', midiIntro: 'El FM1 debe estar conectado como salida MIDI antes de enviar un banco.', midiClose: 'Cerrar el mensaje de conexión MIDI', midiSteps: 'Activa MIDI en línea, permite el acceso MIDI y selecciona la salida MIDI del FM1 en Ajustes.', restoreTitle: '¿Restaurar los bancos de fábrica del Yamaha DX7?', restoreIntro: 'Esto sustituye los cuatro bancos locales. Puedes deshacerlo inmediatamente.', restoreClose: 'Cerrar la restauración', restoreDetails: 'Los bancos A, B, C y D se restaurarán respectivamente con Yamaha DX7 ROM 1A, ROM 1B, ROM 2A y ROM 2B.', restoreAction: 'Restaurar cuatro bancos', sourcesOpen: 'Encuentra bancos de sonidos para descargar.', sourcesTitle: 'Buscar bancos DX7', sourcesIntro: 'Descarga un banco SysEx DX7 de 32 voces (.syx), vuelve aquí y elige Importar banco DX7.', sourcesClose: 'Cerrar fuentes de bancos' } }
-const de = { dialogs: { bankTitle: 'Zielbank am FM1 auswählen', bankIntro: 'Die SysEx-Bank wird gesendet. Schließe den Import am Gerät ab.', bankClose: 'Anweisungen zur Bankauswahl schließen', bankStep1: 'Warte, bis die Bankauswahl im Display des FM1 erscheint.', bankStep2: 'Wähle mit Regler 1, 2, 3 oder 4 die Zielbank A, B, C oder D.', bankStep3: 'Der FM1 speichert die 32 Sounds nach kurzer Wartezeit automatisch.', bankImage: 'Vorderseite des M-VAVE FM1 mit Display und vier nummerierten Reglern', dontShow: 'Nicht erneut anzeigen', midiTitle: 'MIDI verbinden, um diese Bank zu senden', midiIntro: 'Der FM1 muss als MIDI-Ausgang verbunden sein, bevor eine Bank gesendet werden kann.', midiClose: 'MIDI-Verbindungshinweis schließen', midiSteps: 'Aktiviere MIDI online, erlaube den MIDI-Zugriff und wähle den FM1-MIDI-Ausgang in den Einstellungen.', restoreTitle: 'Yamaha-DX7-Werksbänke wiederherstellen?', restoreIntro: 'Dadurch werden alle vier lokalen Bänke ersetzt. Die Wiederherstellung kann sofort rückgängig gemacht werden.', restoreClose: 'Wiederherstellung schließen', restoreDetails: 'Bank A, B, C und D werden mit Yamaha DX7 ROM 1A, ROM 1B, ROM 2A bzw. ROM 2B wiederhergestellt.', restoreAction: 'Vier Bänke wiederherstellen', sourcesOpen: 'Sound-Bänke zum Herunterladen finden.', sourcesTitle: 'DX7-Sound-Bänke finden', sourcesIntro: 'Lade eine DX7-SysEx-Bank mit 32 Voices (.syx) herunter, kehre zurück und wähle DX7-Bank importieren.', sourcesClose: 'Bankquellen schließen' } }
-const ptBR = { dialogs: { bankTitle: 'Escolha o banco de destino no FM1', bankIntro: 'O banco SysEx está sendo enviado. Conclua a importação no aparelho.', bankClose: 'Fechar instruções de seleção', bankStep1: 'Aguarde a tela de seleção de banco aparecer no FM1.', bankStep2: 'Gire o botão 1, 2, 3 ou 4 para escolher o banco A, B, C ou D.', bankStep3: 'O FM1 salva automaticamente os 32 sons após uma breve espera.', bankImage: 'Painel frontal do M-VAVE FM1 com tela e quatro botões numerados', dontShow: 'Não mostrar novamente', midiTitle: 'Conecte o MIDI para enviar este banco', midiIntro: 'O FM1 deve estar conectado como saída MIDI antes que um banco seja enviado.', midiClose: 'Fechar mensagem de conexão MIDI', midiSteps: 'Ative MIDI online, permita o acesso MIDI e selecione a saída MIDI do FM1 em Configurações.', restoreTitle: 'Restaurar os bancos de fábrica do Yamaha DX7?', restoreIntro: 'Isso substitui os quatro bancos locais. Você pode desfazer logo depois.', restoreClose: 'Fechar restauração', restoreDetails: 'Os bancos A, B, C e D serão restaurados respectivamente com Yamaha DX7 ROM 1A, ROM 1B, ROM 2A e ROM 2B.', restoreAction: 'Restaurar quatro bancos', sourcesOpen: 'Encontre bancos de sons para baixar.', sourcesTitle: 'Encontrar bancos DX7', sourcesIntro: 'Baixe um banco SysEx DX7 de 32 vozes (.syx), volte aqui e escolha Importar banco DX7.', sourcesClose: 'Fechar fontes de bancos' } }
-const zhHans = { dialogs: { bankTitle: '在 FM1 上选择目标音色库', bankIntro: '正在发送 SysEx 音色库。请在设备上完成导入。', bankClose: '关闭音色库选择说明', bankStep1: '等待 FM1 屏幕显示音色库选择界面。', bankStep2: '转动旋钮 1、2、3 或 4，选择目标音色库 A、B、C 或 D。', bankStep3: '稍等片刻，FM1 会自动保存全部 32 个音色。', bankImage: 'M-VAVE FM1 前面板，显示屏和四个编号旋钮', dontShow: '不再显示', midiTitle: '连接 MIDI 以发送此音色库', midiIntro: '必须先将 FM1 连接为 MIDI 输出，才能发送音色库。', midiClose: '关闭 MIDI 连接提示', midiSteps: '开启 MIDI 在线，允许 MIDI 访问，然后在设置中选择 FM1 MIDI 输出。', restoreTitle: '恢复 Yamaha DX7 原厂音色库？', restoreIntro: '这将替换全部四个本地音色库。恢复后可立即撤销。', restoreClose: '关闭原厂音色库恢复', restoreDetails: '音色库 A、B、C、D 将分别恢复为 Yamaha DX7 ROM 1A、ROM 1B、ROM 2A、ROM 2B。', restoreAction: '恢复四个音色库', sourcesOpen: '查找可下载的音色库。', sourcesTitle: '查找 DX7 音色库', sourcesIntro: '下载 32 音色 DX7 SysEx 音色库 (.syx)，返回此处并选择“导入 DX7 音色库”。', sourcesClose: '关闭音色库来源' } }
+const en = {
+  dialogs: {
+    bankTitle: 'Choose the destination bank on your FM1',
+    bankIntro: 'The SysEx bank is being sent. Finish the import on the unit.',
+    bankClose: 'Close bank selection instructions',
+    bankStep1: 'Wait for the bank selection screen to appear on the FM1 display.',
+    bankStep2: 'Turn Knob 1, 2, 3 or 4 to choose destination bank A, B, C or D.',
+    bankStep3: 'The FM1 saves the 32 patches automatically after a brief delay.',
+    bankImage: 'M-VAVE FM1 front panel showing the display and four numbered knobs',
+    dontShow: 'Don’t show me again',
+    midiTitle: 'Connect MIDI to send this bank',
+    midiIntro: 'The FM1 must be connected as a MIDI output before a bank of sounds can be sent.',
+    midiClose: 'Close MIDI connection message',
+    midiSteps:
+      'Switch MIDI online on at the top of the page, allow MIDI access, then select the FM1 MIDI output in Settings.',
+    restoreTitle: 'Restore Yamaha DX7 factory banks?',
+    restoreIntro:
+      'This replaces all four local browser banks. You can undo the restore immediately afterwards.',
+    restoreClose: 'Close factory bank restore',
+    restoreDetails:
+      'Banks A, B, C, and D will be restored to Yamaha DX7 ROM 1A, ROM 1B, ROM 2A, and ROM 2B respectively.',
+    restoreAction: 'Restore four banks',
+    sourcesOpen: 'Find voice banks to download here.',
+    sourcesTitle: 'Find DX7 patch banks',
+    sourcesIntro:
+      'Download a 32-voice DX7 SysEx bank (.syx), then return here and choose Import DX7 bank.',
+    sourcesClose: 'Close patch bank sources',
+  },
+}
+const fr = {
+  dialogs: {
+    bankTitle: 'Choisissez la banque de destination sur votre FM1',
+    bankIntro: 'La banque SysEx est en cours d’envoi. Terminez l’importation sur l’appareil.',
+    bankClose: 'Fermer les instructions de sélection',
+    bankStep1: 'Attendez que l’écran de sélection de banque apparaisse sur le FM1.',
+    bankStep2: 'Tournez le bouton 1, 2, 3 ou 4 pour choisir la banque A, B, C ou D.',
+    bankStep3: 'Le FM1 enregistre automatiquement les 32 sons après un court délai.',
+    bankImage: 'Panneau avant du M-VAVE FM1 avec écran et quatre boutons numérotés',
+    dontShow: 'Ne plus afficher',
+    midiTitle: 'Connectez le MIDI pour envoyer cette banque',
+    midiIntro: 'Le FM1 doit être connecté comme sortie MIDI avant l’envoi d’une banque.',
+    midiClose: 'Fermer le message de connexion MIDI',
+    midiSteps:
+      'Activez MIDI en ligne en haut de la page, autorisez l’accès MIDI, puis sélectionnez la sortie MIDI du FM1 dans les réglages.',
+    restoreTitle: 'Restaurer les banques d’usine Yamaha DX7 ?',
+    restoreIntro:
+      'Cette opération remplace les quatre banques locales. Vous pourrez l’annuler immédiatement.',
+    restoreClose: 'Fermer la restauration',
+    restoreDetails:
+      'Les banques A, B, C et D seront respectivement restaurées avec Yamaha DX7 ROM 1A, ROM 1B, ROM 2A et ROM 2B.',
+    restoreAction: 'Restaurer quatre banques',
+    sourcesOpen: 'Trouver des banques de sons à télécharger.',
+    sourcesTitle: 'Trouver des banques DX7',
+    sourcesIntro:
+      'Téléchargez une banque SysEx DX7 de 32 voix (.syx), puis revenez ici et choisissez Importer une banque DX7.',
+    sourcesClose: 'Fermer les sources de banques',
+  },
+}
+const es = {
+  dialogs: {
+    bankTitle: 'Elige el banco de destino en tu FM1',
+    bankIntro: 'Se está enviando el banco SysEx. Termina la importación en la unidad.',
+    bankClose: 'Cerrar las instrucciones de selección',
+    bankStep1: 'Espera a que aparezca la pantalla de selección de banco en el FM1.',
+    bankStep2: 'Gira el mando 1, 2, 3 o 4 para elegir el banco A, B, C o D.',
+    bankStep3: 'El FM1 guarda automáticamente los 32 sonidos tras una breve espera.',
+    bankImage: 'Panel frontal del M-VAVE FM1 con pantalla y cuatro mandos numerados',
+    dontShow: 'No volver a mostrar',
+    midiTitle: 'Conecta MIDI para enviar este banco',
+    midiIntro: 'El FM1 debe estar conectado como salida MIDI antes de enviar un banco.',
+    midiClose: 'Cerrar el mensaje de conexión MIDI',
+    midiSteps:
+      'Activa MIDI en línea, permite el acceso MIDI y selecciona la salida MIDI del FM1 en Ajustes.',
+    restoreTitle: '¿Restaurar los bancos de fábrica del Yamaha DX7?',
+    restoreIntro: 'Esto sustituye los cuatro bancos locales. Puedes deshacerlo inmediatamente.',
+    restoreClose: 'Cerrar la restauración',
+    restoreDetails:
+      'Los bancos A, B, C y D se restaurarán respectivamente con Yamaha DX7 ROM 1A, ROM 1B, ROM 2A y ROM 2B.',
+    restoreAction: 'Restaurar cuatro bancos',
+    sourcesOpen: 'Encuentra bancos de sonidos para descargar.',
+    sourcesTitle: 'Buscar bancos DX7',
+    sourcesIntro:
+      'Descarga un banco SysEx DX7 de 32 voces (.syx), vuelve aquí y elige Importar banco DX7.',
+    sourcesClose: 'Cerrar fuentes de bancos',
+  },
+}
+const de = {
+  dialogs: {
+    bankTitle: 'Zielbank am FM1 auswählen',
+    bankIntro: 'Die SysEx-Bank wird gesendet. Schließe den Import am Gerät ab.',
+    bankClose: 'Anweisungen zur Bankauswahl schließen',
+    bankStep1: 'Warte, bis die Bankauswahl im Display des FM1 erscheint.',
+    bankStep2: 'Wähle mit Regler 1, 2, 3 oder 4 die Zielbank A, B, C oder D.',
+    bankStep3: 'Der FM1 speichert die 32 Sounds nach kurzer Wartezeit automatisch.',
+    bankImage: 'Vorderseite des M-VAVE FM1 mit Display und vier nummerierten Reglern',
+    dontShow: 'Nicht erneut anzeigen',
+    midiTitle: 'MIDI verbinden, um diese Bank zu senden',
+    midiIntro:
+      'Der FM1 muss als MIDI-Ausgang verbunden sein, bevor eine Bank gesendet werden kann.',
+    midiClose: 'MIDI-Verbindungshinweis schließen',
+    midiSteps:
+      'Aktiviere MIDI online, erlaube den MIDI-Zugriff und wähle den FM1-MIDI-Ausgang in den Einstellungen.',
+    restoreTitle: 'Yamaha-DX7-Werksbänke wiederherstellen?',
+    restoreIntro:
+      'Dadurch werden alle vier lokalen Bänke ersetzt. Die Wiederherstellung kann sofort rückgängig gemacht werden.',
+    restoreClose: 'Wiederherstellung schließen',
+    restoreDetails:
+      'Bank A, B, C und D werden mit Yamaha DX7 ROM 1A, ROM 1B, ROM 2A bzw. ROM 2B wiederhergestellt.',
+    restoreAction: 'Vier Bänke wiederherstellen',
+    sourcesOpen: 'Sound-Bänke zum Herunterladen finden.',
+    sourcesTitle: 'DX7-Sound-Bänke finden',
+    sourcesIntro:
+      'Lade eine DX7-SysEx-Bank mit 32 Voices (.syx) herunter, kehre zurück und wähle DX7-Bank importieren.',
+    sourcesClose: 'Bankquellen schließen',
+  },
+}
+const ptBR = {
+  dialogs: {
+    bankTitle: 'Escolha o banco de destino no FM1',
+    bankIntro: 'O banco SysEx está sendo enviado. Conclua a importação no aparelho.',
+    bankClose: 'Fechar instruções de seleção',
+    bankStep1: 'Aguarde a tela de seleção de banco aparecer no FM1.',
+    bankStep2: 'Gire o botão 1, 2, 3 ou 4 para escolher o banco A, B, C ou D.',
+    bankStep3: 'O FM1 salva automaticamente os 32 sons após uma breve espera.',
+    bankImage: 'Painel frontal do M-VAVE FM1 com tela e quatro botões numerados',
+    dontShow: 'Não mostrar novamente',
+    midiTitle: 'Conecte o MIDI para enviar este banco',
+    midiIntro: 'O FM1 deve estar conectado como saída MIDI antes que um banco seja enviado.',
+    midiClose: 'Fechar mensagem de conexão MIDI',
+    midiSteps:
+      'Ative MIDI online, permita o acesso MIDI e selecione a saída MIDI do FM1 em Configurações.',
+    restoreTitle: 'Restaurar os bancos de fábrica do Yamaha DX7?',
+    restoreIntro: 'Isso substitui os quatro bancos locais. Você pode desfazer logo depois.',
+    restoreClose: 'Fechar restauração',
+    restoreDetails:
+      'Os bancos A, B, C e D serão restaurados respectivamente com Yamaha DX7 ROM 1A, ROM 1B, ROM 2A e ROM 2B.',
+    restoreAction: 'Restaurar quatro bancos',
+    sourcesOpen: 'Encontre bancos de sons para baixar.',
+    sourcesTitle: 'Encontrar bancos DX7',
+    sourcesIntro:
+      'Baixe um banco SysEx DX7 de 32 vozes (.syx), volte aqui e escolha Importar banco DX7.',
+    sourcesClose: 'Fechar fontes de bancos',
+  },
+}
+const zhHans = {
+  dialogs: {
+    bankTitle: '在 FM1 上选择目标音色库',
+    bankIntro: '正在发送 SysEx 音色库。请在设备上完成导入。',
+    bankClose: '关闭音色库选择说明',
+    bankStep1: '等待 FM1 屏幕显示音色库选择界面。',
+    bankStep2: '转动旋钮 1、2、3 或 4，选择目标音色库 A、B、C 或 D。',
+    bankStep3: '稍等片刻，FM1 会自动保存全部 32 个音色。',
+    bankImage: 'M-VAVE FM1 前面板，显示屏和四个编号旋钮',
+    dontShow: '不再显示',
+    midiTitle: '连接 MIDI 以发送此音色库',
+    midiIntro: '必须先将 FM1 连接为 MIDI 输出，才能发送音色库。',
+    midiClose: '关闭 MIDI 连接提示',
+    midiSteps: '开启 MIDI 在线，允许 MIDI 访问，然后在设置中选择 FM1 MIDI 输出。',
+    restoreTitle: '恢复 Yamaha DX7 原厂音色库？',
+    restoreIntro: '这将替换全部四个本地音色库。恢复后可立即撤销。',
+    restoreClose: '关闭原厂音色库恢复',
+    restoreDetails: '音色库 A、B、C、D 将分别恢复为 Yamaha DX7 ROM 1A、ROM 1B、ROM 2A、ROM 2B。',
+    restoreAction: '恢复四个音色库',
+    sourcesOpen: '查找可下载的音色库。',
+    sourcesTitle: '查找 DX7 音色库',
+    sourcesIntro: '下载 32 音色 DX7 SysEx 音色库 (.syx)，返回此处并选择“导入 DX7 音色库”。',
+    sourcesClose: '关闭音色库来源',
+  },
+}
 
 export const dialogResources = { en, fr, es, de, ptBR, zhHans }
