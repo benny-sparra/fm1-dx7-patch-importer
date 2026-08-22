@@ -11,6 +11,11 @@ import {
   operatorColors,
 } from '@/lib/editor-visuals'
 import { getOperatorAuditionStatus } from '@/lib/operator-audition'
+import {
+  FM1_OPERATOR_COUNT,
+  getOperatorParameterDefinition,
+  resolveOperatorParameterIndex,
+} from '@/lib/fm1-parameters'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
@@ -279,15 +284,17 @@ export function OperatorStrip({
       className="operator-strip flex min-w-0 flex-1 scrollbar-none items-stretch overflow-x-auto"
       role="tablist"
     >
-      {Array.from({ length: 6 }, (_, index) => {
+      {Array.from({ length: FM1_OPERATOR_COUNT }, (_, index) => {
         const operator = index + 1
-        const base = (6 - operator) * 21
+        const base = resolveOperatorParameterIndex(operator, 'operator.envelope.rate1')
+        const levelOffset = getOperatorParameterDefinition('operator.envelope.level1').offset
         const rates = Array.from(parameters.slice(base, base + 4))
-        const levels = Array.from(parameters.slice(base + 4, base + 8))
-        const output = parameters[base + 16]
-        const mode = parameters[base + 17]
-        const coarse = parameters[base + 18]
-        const fine = parameters[base + 19]
+        const levels = Array.from(parameters.slice(base + levelOffset, base + levelOffset + 4))
+        const output = parameters[resolveOperatorParameterIndex(operator, 'operator.outputLevel')]
+        const mode = parameters[resolveOperatorParameterIndex(operator, 'operator.oscillatorMode')]
+        const coarse =
+          parameters[resolveOperatorParameterIndex(operator, 'operator.frequency.coarse')]
+        const fine = parameters[resolveOperatorParameterIndex(operator, 'operator.frequency.fine')]
         const ratio = (coarse === 0 ? 0.5 : coarse) * (1 + fine / 100)
         const frequencyLabel =
           mode === 0 ? formatOperatorRatio(ratio) : formatOperatorFixedFrequency(coarse, fine)

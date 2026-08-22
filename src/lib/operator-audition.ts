@@ -1,26 +1,31 @@
+import {
+  FM1_OPERATOR_COUNT,
+  FM1_OPERATOR_PARAMETER_COUNT,
+  getOperatorParameterDefinition,
+  resolveOperatorParameterIndex,
+} from '@/lib/fm1-parameters'
+
 export type OperatorAuditionEdit = [parameter: number, value: number]
 
-const operatorCount = 6
-const operatorParameterCount = 21
-const outputOffset = 16
+const outputOffset = getOperatorParameterDefinition('operator.outputLevel').offset
 
 function assertOperator(operator: number) {
-  if (!Number.isInteger(operator) || operator < 1 || operator > operatorCount) {
+  if (!Number.isInteger(operator) || operator < 1 || operator > FM1_OPERATOR_COUNT) {
     throw new RangeError('Operator number must be an integer from 1 to 6.')
   }
 }
 
 export function operatorOutputParameter(operator: number) {
   assertOperator(operator)
-  return (operatorCount - operator) * operatorParameterCount + outputOffset
+  return resolveOperatorParameterIndex(operator, 'operator.outputLevel')
 }
 
 function outputParameterOperator(parameter: number) {
   if (!Number.isInteger(parameter) || parameter < outputOffset) return null
-  if ((parameter - outputOffset) % operatorParameterCount !== 0) return null
+  if ((parameter - outputOffset) % FM1_OPERATOR_PARAMETER_COUNT !== 0) return null
 
-  const operator = operatorCount - (parameter - outputOffset) / operatorParameterCount
-  return operator >= 1 && operator <= operatorCount ? operator : null
+  const operator = FM1_OPERATOR_COUNT - (parameter - outputOffset) / FM1_OPERATOR_PARAMETER_COUNT
+  return operator >= 1 && operator <= FM1_OPERATOR_COUNT ? operator : null
 }
 
 export function getOperatorAuditionStatus(
@@ -61,7 +66,7 @@ export function makeOperatorAuditionEdits(
   for (const operator of mutedOperators) assertOperator(operator)
   if (soloOperator !== null) assertOperator(soloOperator)
 
-  return Array.from({ length: operatorCount }, (_, index) => {
+  return Array.from({ length: FM1_OPERATOR_COUNT }, (_, index) => {
     const operator = index + 1
     const parameter = operatorOutputParameter(operator)
     const value = getOperatorAuditionStatus(operator, mutedOperators, soloOperator).audible

@@ -4,8 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { PianoKeyButton } from '@/components/midi/piano-key'
 import { type MidiController } from '@/hooks/use-midi'
+import {
+  makePianoKeys,
+  mapComputerPianoKeys,
+  PIANO_KEY_WIDTH,
+  type PianoKey,
+} from '@/lib/piano-keyboard'
 
 type PianoKeyboardDialogProps = {
   midi: MidiController
@@ -19,74 +25,6 @@ function PianoKeysIcon() {
       <path d="M7.8 1h5v10h-5zM17.2 1h5v10h-5z" fill="currentColor" />
     </svg>
   )
-}
-
-type PianoKey = {
-  computerKey?: string
-  label: string
-  note: number
-  kind: 'white' | 'black'
-  position?: number
-}
-
-const keyWidth = 56
-const whiteKeySteps = [0, 2, 4, 5, 7, 9, 11]
-const whiteKeyNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
-const blackKeyMap = [
-  { name: 'C#', step: 1, position: 0 },
-  { name: 'D#', step: 3, position: 1 },
-  { name: 'F#', step: 6, position: 3 },
-  { name: 'G#', step: 8, position: 4 },
-  { name: 'A#', step: 10, position: 5 },
-]
-const computerKeyMap = [
-  { key: 'a', step: 0 },
-  { key: 'w', step: 1 },
-  { key: 's', step: 2 },
-  { key: 'e', step: 3 },
-  { key: 'd', step: 4 },
-  { key: 'f', step: 5 },
-  { key: 't', step: 6 },
-  { key: 'g', step: 7 },
-  { key: 'y', step: 8 },
-  { key: 'h', step: 9 },
-  { key: 'u', step: 10 },
-  { key: 'j', step: 11 },
-  { key: 'k', step: 12 },
-]
-
-function makeKeys(baseOctave: number) {
-  const whiteKeys = Array.from({ length: 15 }, (_, index): PianoKey => {
-    const octaveOffset = Math.floor(index / 7)
-    const noteIndex = index % 7
-    const octave = baseOctave + octaveOffset
-
-    const note = (octave + 1) * 12 + whiteKeySteps[noteIndex]
-
-    return {
-      computerKey: computerKeyMap.find((mapping) => mapping.step === note - (baseOctave + 1) * 12)
-        ?.key,
-      kind: 'white',
-      label: `${whiteKeyNames[noteIndex]}${octave}`,
-      note,
-    }
-  })
-
-  const blackKeys = [0, 1].flatMap((octaveOffset) => {
-    const octave = baseOctave + octaveOffset
-
-    return blackKeyMap.map((key): PianoKey => ({
-      kind: 'black',
-      label: `${key.name}${octave}`,
-      computerKey: computerKeyMap.find(
-        (mapping) => mapping.step === (octave + 1) * 12 + key.step - (baseOctave + 1) * 12,
-      )?.key,
-      note: (octave + 1) * 12 + key.step,
-      position: key.position + octaveOffset * 7,
-    }))
-  })
-
-  return { blackKeys, whiteKeys }
 }
 
 export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
@@ -103,17 +41,10 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
     top: number
   } | null>(null)
 
-  const { blackKeys, whiteKeys } = useMemo(() => makeKeys(baseOctave), [baseOctave])
+  const { blackKeys, whiteKeys } = useMemo(() => makePianoKeys(baseOctave), [baseOctave])
 
   const computerKeys = useMemo(
-    () =>
-      [...whiteKeys, ...blackKeys].reduce((keys, key) => {
-        if (key.computerKey) {
-          keys.set(key.computerKey, key)
-        }
-
-        return keys
-      }, new Map<string, PianoKey>()),
+    () => mapComputerPianoKeys([...whiteKeys, ...blackKeys]),
     [blackKeys, whiteKeys],
   )
 
@@ -171,6 +102,14 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
     },
     [releaseAllNotes],
   )
+
+  useEffect(() => {
+    window.addEventListener('blur', releaseAllNotes)
+    return () => {
+      window.removeEventListener('blur', releaseAllNotes)
+      releaseAllNotes()
+    }
+  }, [releaseAllNotes])
 
   useEffect(() => {
     function isEditableTarget(target: EventTarget | null) {
@@ -387,8 +326,8 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
           <div
             className="grid items-stretch gap-3"
             style={{
-              gridTemplateColumns: `56px ${whiteKeys.length * keyWidth}px 56px`,
-              width: `${whiteKeys.length * keyWidth + 136}px`,
+              gridTemplateColumns: `56px ${whiteKeys.length * PIANO_KEY_WIDTH}px 56px`,
+              width: `${whiteKeys.length * PIANO_KEY_WIDTH + 136}px`,
             }}
           >
             <OctaveButton
@@ -460,73 +399,6 @@ function OctaveButton({ direction, disabled, keyboardKey, onClick }: OctaveButto
       <span className="flex flex-col items-center gap-2">
         <Icon className="size-7 opacity-80 transition group-hover:opacity-100" />
         <span className="synthwave-key-hint rounded px-1.5 py-0.5 text-xs">{keyboardKey}</span>
-      </span>
-    </button>
-  )
-}
-
-type PianoKeyButtonProps = {
-  isActive: boolean
-  noteKey: PianoKey
-  onStart: (key: PianoKey) => void
-  onStop: (note: number) => void
-}
-
-function PianoKeyButton({ isActive, noteKey, onStart, onStop }: PianoKeyButtonProps) {
-  const { t } = useTranslation()
-  const isBlack = noteKey.kind === 'black'
-
-  return (
-    <button
-      aria-label={t('ui.playNote', { note: noteKey.label })}
-      className={cn(
-        'touch-none border font-semibold transition-[background,box-shadow,transform,color] duration-100 select-none focus-visible:ring-2 focus-visible:ring-[var(--fm1-accent)] focus-visible:outline-none',
-        isBlack
-          ? 'synthwave-piano-key-black absolute top-2 z-10 flex h-32 w-9 items-end justify-center rounded-b-[0.45rem] pb-3 text-[0.7rem] text-white'
-          : 'synthwave-piano-key-white relative flex h-52 items-end justify-center rounded-b-[0.5rem] pb-4 text-xs text-[#25213c]',
-        isActive &&
-          (isBlack ? 'synthwave-piano-key-black-active' : 'synthwave-piano-key-white-active'),
-      )}
-      onKeyDown={(event) => {
-        if (event.repeat || (event.key !== 'Enter' && event.key !== ' ')) {
-          return
-        }
-
-        onStart(noteKey)
-      }}
-      onKeyUp={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          onStop(noteKey.note)
-        }
-      }}
-      onPointerCancel={() => onStop(noteKey.note)}
-      onPointerDown={(event) => {
-        event.currentTarget.setPointerCapture(event.pointerId)
-        onStart(noteKey)
-      }}
-      onPointerLeave={() => onStop(noteKey.note)}
-      onPointerUp={() => onStop(noteKey.note)}
-      style={
-        isBlack
-          ? {
-              left: `${(noteKey.position ?? 0) * keyWidth + keyWidth - 10}px`,
-            }
-          : undefined
-      }
-      type="button"
-    >
-      <span className="flex flex-col items-center gap-1">
-        {noteKey.computerKey ? (
-          <span
-            className={cn(
-              'rounded px-1.5 py-0.5 text-[0.65rem] uppercase',
-              isBlack ? 'bg-white/15 text-white' : 'bg-violet-950/10 text-violet-950/80',
-            )}
-          >
-            {noteKey.computerKey}
-          </span>
-        ) : null}
-        <span>{noteKey.label}</span>
       </span>
     </button>
   )

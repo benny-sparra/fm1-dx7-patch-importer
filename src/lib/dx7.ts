@@ -1,7 +1,26 @@
+import {
+  FM1_GLOBAL_PARAMETER_START,
+  FM1_OPERATOR_COUNT,
+  FM1_OPERATOR_PARAMETER_COUNT,
+  FM1_VOICE_NAME_LENGTH,
+  FM1_VOICE_NAME_START,
+  FM1_VOICE_PARAMETER_COUNT,
+  getGlobalParameterDefinition,
+} from '@/lib/fm1-parameters'
+
 const dx7BankVoiceCount = 32
 const dx7PackedVoiceSize = 128
 const dx7BankDataSize = dx7BankVoiceCount * dx7PackedVoiceSize
 const dx7BankFileSize = dx7BankDataSize + 8
+const feedbackIndex = getGlobalParameterDefinition('global.feedback').voiceIndex
+const oscillatorSyncIndex = getGlobalParameterDefinition('global.oscillatorSync').voiceIndex
+const lfoSpeedIndex = getGlobalParameterDefinition('global.lfoSpeed').voiceIndex
+const lfoKeySyncIndex = getGlobalParameterDefinition('global.lfoKeySync').voiceIndex
+const lfoWaveIndex = getGlobalParameterDefinition('global.lfoWave').voiceIndex
+const pitchModSensitivityIndex = getGlobalParameterDefinition(
+  'global.pitchModSensitivity',
+).voiceIndex
+const transposeIndex = getGlobalParameterDefinition('global.transpose').voiceIndex
 
 export type Dx7Voice = { data: Uint8Array; name: string }
 
@@ -32,8 +51,8 @@ export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
 
 export function updateDx7VoiceName(voice: Dx7Voice, name: string): Dx7Voice {
   const data = voice.data.slice()
-  const normalized = name.slice(0, 10).padEnd(10, ' ')
-  for (let index = 0; index < 10; index += 1) {
+  const normalized = name.slice(0, FM1_VOICE_NAME_LENGTH).padEnd(FM1_VOICE_NAME_LENGTH, ' ')
+  for (let index = 0; index < FM1_VOICE_NAME_LENGTH; index += 1) {
     const code = normalized.charCodeAt(index)
     data[118 + index] = code >= 0x20 && code <= 0x7e ? code : 0x20
   }
@@ -44,12 +63,12 @@ export function makeDx7VoiceNameEdits(
   parameters: Uint8Array,
   name: string,
 ): [parameter: number, value: number][] {
-  const normalized = name.slice(0, 10).padEnd(10, ' ')
+  const normalized = name.slice(0, FM1_VOICE_NAME_LENGTH).padEnd(FM1_VOICE_NAME_LENGTH, ' ')
 
-  return Array.from({ length: 10 }, (_, offset) => {
+  return Array.from({ length: FM1_VOICE_NAME_LENGTH }, (_, offset) => {
     const code = normalized.charCodeAt(offset)
     const value = code >= 0x20 && code <= 0x7e ? code : 0x20
-    return [145 + offset, value] as [number, number]
+    return [FM1_VOICE_NAME_START + offset, value] as [number, number]
   }).filter(([parameter, value]) => parameters[parameter] !== value)
 }
 
@@ -58,7 +77,7 @@ export function unpackDx7Voice(voice: Dx7Voice) {
   const packed = voice.data
   const unpacked: number[] = []
 
-  for (let operator = 0; operator < 6; operator += 1) {
+  for (let operator = 0; operator < FM1_OPERATOR_COUNT; operator += 1) {
     const offset = operator * 17
     unpacked.push(
       ...packed.slice(offset, offset + 11),
@@ -91,16 +110,18 @@ export function unpackDx7Voice(voice: Dx7Voice) {
 
 /** Converts the DX7's 155-byte edit-buffer format to a packed 128-byte bank voice. */
 export function packDx7Voice(unpacked: Uint8Array): Dx7Voice {
-  if (unpacked.length !== 155) {
-    throw new Error(`Expected 155 DX7 edit-buffer bytes; received ${unpacked.length}.`)
+  if (unpacked.length !== FM1_VOICE_PARAMETER_COUNT) {
+    throw new Error(
+      `Expected ${FM1_VOICE_PARAMETER_COUNT} DX7 edit-buffer bytes; received ${unpacked.length}.`,
+    )
   }
   if (unpacked.some((value) => value > 0x7f)) {
     throw new Error('DX7 edit-buffer data must contain only 7-bit values.')
   }
 
   const packed = new Uint8Array(128)
-  for (let operator = 0; operator < 6; operator += 1) {
-    const source = operator * 21
+  for (let operator = 0; operator < FM1_OPERATOR_COUNT; operator += 1) {
+    const source = operator * FM1_OPERATOR_PARAMETER_COUNT
     const target = operator * 17
     packed.set(unpacked.slice(source, source + 11), target)
     packed[target + 11] = (unpacked[source + 11] & 0x03) | ((unpacked[source + 12] & 0x03) << 2)
@@ -111,12 +132,14 @@ export function packDx7Voice(unpacked: Uint8Array): Dx7Voice {
     packed[target + 16] = unpacked[source + 19]
   }
 
-  packed.set(unpacked.slice(126, 135), 102)
-  packed[111] = (unpacked[135] & 0x07) | ((unpacked[136] & 0x01) << 3)
-  packed.set(unpacked.slice(137, 141), 112)
+  packed.set(unpacked.slice(FM1_GLOBAL_PARAMETER_START, feedbackIndex), 102)
+  packed[111] = (unpacked[feedbackIndex] & 0x07) | ((unpacked[oscillatorSyncIndex] & 0x01) << 3)
+  packed.set(unpacked.slice(lfoSpeedIndex, lfoKeySyncIndex), 112)
   packed[116] =
-    (unpacked[141] & 0x01) | ((unpacked[142] & 0x07) << 1) | ((unpacked[143] & 0x07) << 4)
-  packed.set(unpacked.slice(144, 155), 117)
+    (unpacked[lfoKeySyncIndex] & 0x01) |
+    ((unpacked[lfoWaveIndex] & 0x07) << 1) |
+    ((unpacked[pitchModSensitivityIndex] & 0x07) << 4)
+  packed.set(unpacked.slice(transposeIndex, FM1_VOICE_PARAMETER_COUNT), 117)
 
   return { data: packed, name: decodeVoiceName(packed) }
 }

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
@@ -16,10 +17,8 @@ type EffectsUnitProps = {
 }
 
 type EffectParameter = {
-  controller: number
+  id: EffectParameterId
   label: string
-  max: number
-  options?: string[]
   suffix?: string
 }
 
@@ -27,7 +26,7 @@ type EffectDefinition = {
   color: string
   name: string
   parameters: EffectParameter[]
-  switchController: number
+  switchId: EffectParameterId
 }
 
 const effects: EffectDefinition[] = [
@@ -35,61 +34,61 @@ const effects: EffectDefinition[] = [
     color: 'var(--fm1-accent)',
     name: 'Filter',
     parameters: [
-      { controller: 1, label: 'Type', max: 2, options: ['Low pass', 'Band pass', 'High pass'] },
-      { controller: 2, label: 'Cutoff', max: 107 },
-      { controller: 3, label: 'Resonance', max: 10 },
+      { id: 'effect.filter.type', label: 'Type' },
+      { id: 'effect.filter.cutoff', label: 'Cutoff' },
+      { id: 'effect.filter.resonance', label: 'Resonance' },
     ],
-    switchController: 0,
+    switchId: 'effect.filter.enabled',
   },
   {
     color: '#a78bfa',
     name: 'Reverb',
     parameters: [
-      { controller: 5, label: 'Space', max: 2, options: ['Room', 'Hall', 'Plate'] },
-      { controller: 6, label: 'Decay', max: 100, suffix: '%' },
-      { controller: 7, label: 'Mix', max: 100, suffix: '%' },
+      { id: 'effect.reverb.space', label: 'Space' },
+      { id: 'effect.reverb.decay', label: 'Decay', suffix: '%' },
+      { id: 'effect.reverb.mix', label: 'Mix', suffix: '%' },
     ],
-    switchController: 4,
+    switchId: 'effect.reverb.enabled',
   },
   {
     color: '#fb7185',
     name: 'Delay',
     parameters: [
-      { controller: 9, label: 'Decay', max: 100, suffix: '%' },
-      { controller: 10, label: 'Rate', max: 100, suffix: '%' },
-      { controller: 11, label: 'Mix', max: 100, suffix: '%' },
+      { id: 'effect.delay.decay', label: 'Decay', suffix: '%' },
+      { id: 'effect.delay.rate', label: 'Rate', suffix: '%' },
+      { id: 'effect.delay.mix', label: 'Mix', suffix: '%' },
     ],
-    switchController: 8,
+    switchId: 'effect.delay.enabled',
   },
   {
     color: '#f97316',
     name: 'Distortion',
     parameters: [
-      { controller: 13, label: 'Gain', max: 100, suffix: '%' },
-      { controller: 14, label: 'Tone', max: 100, suffix: '%' },
-      { controller: 15, label: 'Level', max: 100, suffix: '%' },
+      { id: 'effect.distortion.gain', label: 'Gain', suffix: '%' },
+      { id: 'effect.distortion.tone', label: 'Tone', suffix: '%' },
+      { id: 'effect.distortion.level', label: 'Level', suffix: '%' },
     ],
-    switchController: 12,
+    switchId: 'effect.distortion.enabled',
   },
   {
     color: '#2dd4bf',
     name: 'Chorus',
     parameters: [
-      { controller: 17, label: 'Frequency', max: 100, suffix: '%' },
-      { controller: 18, label: 'Depth', max: 100, suffix: '%' },
-      { controller: 19, label: 'Mix', max: 100, suffix: '%' },
+      { id: 'effect.chorus.frequency', label: 'Frequency', suffix: '%' },
+      { id: 'effect.chorus.depth', label: 'Depth', suffix: '%' },
+      { id: 'effect.chorus.mix', label: 'Mix', suffix: '%' },
     ],
-    switchController: 16,
+    switchId: 'effect.chorus.enabled',
   },
   {
     color: '#facc15',
     name: 'Phaser',
     parameters: [
-      { controller: 21, label: 'Frequency', max: 100, suffix: '%' },
-      { controller: 22, label: 'Depth', max: 100, suffix: '%' },
-      { controller: 23, label: 'Mix', max: 100, suffix: '%' },
+      { id: 'effect.phaser.frequency', label: 'Frequency', suffix: '%' },
+      { id: 'effect.phaser.depth', label: 'Depth', suffix: '%' },
+      { id: 'effect.phaser.mix', label: 'Mix', suffix: '%' },
     ],
-    switchController: 20,
+    switchId: 'effect.phaser.enabled',
   },
 ]
 
@@ -126,11 +125,12 @@ function EffectControl({
   value: number
 }) {
   const { t } = useTranslation()
+  const definition = getEffectParameterDefinition(parameter.id)
   const helpText = t(`effectParameterHelp.${effectName} ${parameter.label}`)
   const translatedEffect = t(`ui.effects.${effectName.toLowerCase()}`)
   const translatedParameter = t(`ui.parameters.${lowerFirst(parameter.label)}`)
 
-  if (parameter.options) {
+  if (definition.optionIds) {
     return (
       <label className="grid min-w-0 gap-1.5 text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
         <span className="flex min-w-0 items-center gap-1 overflow-hidden">
@@ -144,12 +144,12 @@ function EffectControl({
         <select
           className="h-9 w-full min-w-0 rounded-md border bg-background px-2 text-sm font-semibold text-foreground normal-case disabled:opacity-50"
           disabled={disabled}
-          onChange={(event) => onChange(parameter.controller, Number(event.target.value))}
+          onChange={(event) => onChange(definition.controller, Number(event.target.value))}
           value={value}
         >
-          {parameter.options.map((option, index) => (
+          {definition.optionIds.map((option, index) => (
             <option key={option} value={index}>
-              {t(`ui.options.${optionKeys[option]}`)}
+              {t(`ui.options.${optionKeys[option] ?? option}`)}
             </option>
           ))}
         </select>
@@ -172,13 +172,13 @@ function EffectControl({
           aria-label={`${translatedEffect} ${translatedParameter}`}
           className="h-2 min-w-0 flex-1 cursor-pointer accent-[var(--effect-color)] disabled:cursor-not-allowed disabled:opacity-40"
           disabled={disabled}
-          max={parameter.max}
+          max={definition.max}
           min={0}
-          onChange={(event) => onChange(parameter.controller, Number(event.target.value))}
+          onChange={(event) => onChange(definition.controller, Number(event.target.value))}
           onPointerCancel={onGestureEnd}
           onPointerDown={onGestureStart}
           onPointerUp={onGestureEnd}
-          style={rangeStyle(value, 0, parameter.max, 'var(--effect-color)')}
+          style={rangeStyle(value, 0, definition.max, 'var(--effect-color)')}
           type="range"
           value={value}
         />
@@ -210,13 +210,13 @@ function EffectControl({
         aria-label={translatedParameter}
         className="h-2 w-full cursor-pointer accent-[var(--effect-color)] disabled:cursor-not-allowed disabled:opacity-40"
         disabled={disabled}
-        max={parameter.max}
+        max={definition.max}
         min={0}
-        onChange={(event) => onChange(parameter.controller, Number(event.target.value))}
+        onChange={(event) => onChange(definition.controller, Number(event.target.value))}
         onPointerCancel={onGestureEnd}
         onPointerDown={onGestureStart}
         onPointerUp={onGestureEnd}
-        style={rangeStyle(value, 0, parameter.max, 'var(--effect-color)')}
+        style={rangeStyle(value, 0, definition.max, 'var(--effect-color)')}
         type="range"
         value={value}
       />
@@ -244,7 +244,8 @@ export function EffectsUnit({
       <CardContent className={cn(isSidebar ? 'p-0' : 'p-4 sm:p-5')}>
         <div className={cn('grid gap-3', !isSidebar && 'md:grid-cols-2 2xl:grid-cols-6')}>
           {effects.map((effect, index) => {
-            const enabled = values[effect.switchController] > 0
+            const switchController = getEffectParameterDefinition(effect.switchId).controller
+            const enabled = values[switchController] > 0
             const translatedEffect = t(`ui.effects.${effect.name.toLowerCase()}`)
             const mixParameter = effect.parameters.find((parameter) => parameter.label === 'Mix')
             const bodyParameters = effect.parameters.filter(
@@ -273,7 +274,7 @@ export function EffectsUnit({
                           ? 'border-[var(--effect-color)] bg-[var(--effect-color)] text-slate-950 hover:bg-[var(--effect-color)]'
                           : 'bg-background text-muted-foreground',
                       )}
-                      onClick={() => onChange(effect.switchController, enabled ? 0 : 1)}
+                      onClick={() => onChange(switchController, enabled ? 0 : 1)}
                       size="icon"
                       title={t('ui.effectState', {
                         effect: translatedEffect,
@@ -302,7 +303,7 @@ export function EffectsUnit({
                         onGestureStart={onGestureStart}
                         parameter={mixParameter}
                         placement="header"
-                        value={values[mixParameter.controller]}
+                        value={values[getEffectParameterDefinition(mixParameter.id).controller]}
                       />
                     ) : null}
                   </div>
@@ -318,12 +319,12 @@ export function EffectsUnit({
                       <EffectControl
                         disabled={!enabled}
                         effectName={effect.name}
-                        key={parameter.controller}
+                        key={parameter.id}
                         onChange={onChange}
                         onGestureEnd={onGestureEnd}
                         onGestureStart={onGestureStart}
                         parameter={parameter}
-                        value={values[parameter.controller]}
+                        value={values[getEffectParameterDefinition(parameter.id).controller]}
                       />
                     ))}
                   </div>
