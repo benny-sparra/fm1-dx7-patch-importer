@@ -70,6 +70,15 @@ The interface follows the browser language on first use when it is supported. Ch
 
 Workspace-bank titles, descriptions, imported sounds, voice ordering, saved editor changes, and FM1 effect settings are saved automatically in the browser.
 
+## Anonymous usage analytics
+
+The deployed site uses cookie-free [Umami](https://umami.is/) analytics to understand aggregate
+feature usage and connection failures. Tracking is restricted to the production domain, respects
+the browser's Do Not Track preference, and excludes URL query strings and fragments. Events contain
+only fixed feature names and coarse diagnostic categories. Patch and bank names, uploaded filenames,
+MIDI port identities, SysEx data, browser error messages, and persistent user identifiers are never
+sent. The interface links to [Umami's privacy policy](https://umami.is/privacy).
+
 ## Local development
 
 Use Node.js 24.18.0 and npm 11.16.0, as pinned by `.node-version` and
@@ -105,9 +114,10 @@ npm run check
 ```
 
 This checks formatting, TypeScript/React and CSS linting, compiler types, unused
-dependencies/files/exports, unit and rendered accessibility tests, and the production build. It
-does not contact the npm registry. GitHub Actions runs the same layers on pushes to `main` and on
-pull requests.
+dependencies/files/exports, unit and rendered accessibility tests, reproducible responsive image
+assets, the production build, public source maps, and the initial JavaScript budget. It does not
+contact the npm registry. GitHub Actions runs the same layers on pushes to `main` and on pull
+requests.
 
 Use `npm run format` for deterministic formatting and Tailwind class ordering. Use
 `npm run lint:fix` for ordinary Oxlint and Stylelint autofixes. Review both diffs before committing,
@@ -128,32 +138,65 @@ clean result. Both commands block on high or critical advisories.
 
 ## Available scripts
 
-| Command                    | Description                                                         |
-| -------------------------- | ------------------------------------------------------------------- |
-| `npm run check`            | Run all deterministic checks expected before a pull request         |
-| `npm run format:check`     | Verify Prettier formatting and Tailwind class ordering              |
-| `npm run format`           | Apply Prettier formatting and Tailwind class ordering               |
-| `npm run lint`             | Run Oxlint and Stylelint; warnings fail the command                 |
-| `npm run lint:code`        | Run type-aware TypeScript, React, import, promise, and test linting |
-| `npm run lint:css`         | Check CSS with Stylelint                                            |
-| `npm run lint:fix`         | Apply ordinary safe Oxlint and Stylelint fixes                      |
-| `npm run lint:css:fix`     | Apply Stylelint fixes only                                          |
-| `npm run typecheck`        | Check TypeScript with `tsc` without emitting files                  |
-| `npm run deps:check`       | Find unused dependencies, source files, and exports with Knip       |
-| `npm run deps:audit:prod`  | Audit production dependencies (requires registry access)            |
-| `npm run deps:audit`       | Audit the full dependency tree (requires registry access)           |
-| `npm test`                 | Run all unit and rendered accessibility tests                       |
-| `npm run test:a11y`        | Run the focused rendered Axe accessibility suite                    |
-| `npm run build`            | Create a production Vite build in `dist/`                           |
-| `npm run bundle:check`     | Enforce the transitive initial JavaScript gzip budget               |
-| `npm run check:install`    | Validate a clean install (requires registry access)                 |
-| `npm run lockfile:refresh` | Refresh the lockfile (requires registry access)                     |
-| `npm run setup:https`      | Create and trust the local HTTPS certificate                        |
-| `npm run dev`              | Start Vite on `127.0.0.1` with HTTPS                                |
-| `npm run dev:http`         | Start the Vite development server with HTTP                         |
-| `npm run dev:https`        | Start Vite on `127.0.0.1` with HTTPS                                |
-| `npm run preview`          | Preview the production build locally                                |
-| `npm run preview:https`    | Preview the production build locally over HTTPS                     |
+| Command                     | Description                                                         |
+| --------------------------- | ------------------------------------------------------------------- |
+| `npm run check`             | Run all deterministic checks expected before a pull request         |
+| `npm run format:check`      | Verify Prettier formatting and Tailwind class ordering              |
+| `npm run format`            | Apply Prettier formatting and Tailwind class ordering               |
+| `npm run images:generate`   | Regenerate committed responsive WebP candidates with Sharp          |
+| `npm run images:check`      | Verify responsive candidates are current, sized, and reproducible   |
+| `npm run images:check:dist` | Verify hashed responsive candidates in the production output        |
+| `npm run lint`              | Run Oxlint and Stylelint; warnings fail the command                 |
+| `npm run lint:code`         | Run type-aware TypeScript, React, import, promise, and test linting |
+| `npm run lint:css`          | Check CSS with Stylelint                                            |
+| `npm run lint:fix`          | Apply ordinary safe Oxlint and Stylelint fixes                      |
+| `npm run lint:css:fix`      | Apply Stylelint fixes only                                          |
+| `npm run typecheck`         | Check TypeScript with `tsc` without emitting files                  |
+| `npm run deps:check`        | Find unused dependencies, source files, and exports with Knip       |
+| `npm run deps:audit:prod`   | Audit production dependencies (requires registry access)            |
+| `npm run deps:audit`        | Audit the full dependency tree (requires registry access)           |
+| `npm test`                  | Run all unit and rendered accessibility tests                       |
+| `npm run test:a11y`         | Run the focused rendered Axe accessibility suite                    |
+| `npm run build`             | Create a production Vite build in `dist/`                           |
+| `npm run bundle:check`      | Enforce the transitive initial JavaScript gzip budget               |
+| `npm run check:install`     | Validate a clean install (requires registry access)                 |
+| `npm run lockfile:refresh`  | Refresh the lockfile (requires registry access)                     |
+| `npm run setup:https`       | Create and trust the local HTTPS certificate                        |
+| `npm run sourcemaps:check`  | Validate every emitted JavaScript chunk and production source map   |
+| `npm run dev`               | Start Vite on `127.0.0.1` with HTTPS                                |
+| `npm run dev:http`          | Start the Vite development server with HTTP                         |
+| `npm run dev:https`         | Start Vite on `127.0.0.1` with HTTPS                                |
+| `npm run preview`           | Preview the production build locally                                |
+| `npm run preview:https`     | Preview the production build locally over HTTPS                     |
+
+### Responsive image assets
+
+The full-size WebPs in `src/assets/` are the source images and the largest browser fallbacks.
+Smaller candidates in `src/assets/generated/` are committed build inputs so a normal Vite build
+does not depend on platform-specific manual tooling. After changing a source image, run
+`npm run images:generate` with the pinned Node/npm toolchain and commit the regenerated candidates.
+`npm run images:check` recreates every candidate in memory with the pinned dev-only Sharp version,
+checks dimensions and aspect ratios, rejects candidates larger than their source, and byte-compares
+the result with the committed file. The post-build check also requires a hashed production asset
+for every candidate. Do not edit files in `src/assets/generated/` manually.
+
+### Production source maps
+
+The standard `npm run build` produces public external source maps for every first-party JavaScript
+chunk, including lazy chunks. This is intentional: the project is open source, has no private
+source-map upload service, and public maps make production debugging and Lighthouse analysis useful.
+Maps retain `sourcesContent` for reliable debugging. Browsers do not ordinarily request external
+maps during page loading; developer tools fetch them when needed.
+
+`npm run sourcemaps:check` verifies that each JavaScript chunk advertises exactly one matching map,
+that every map is valid and non-orphaned, and that maps contain no inline data, private filesystem
+paths, environment files, or development certificate material. `dist/`, source maps, and one-off
+Lighthouse reports are generated deployment artifacts and must not be committed.
+
+The deliberate alternatives are `SOURCE_MAPS=none npm run build` and
+`SOURCE_MAPS=hidden npm run build`; unknown values fail the build. Hidden maps should only become the
+deployment default after a real monitoring service, upload step, hash matching, access policy, and
+retention policy exist. Run the source-map check with the same `SOURCE_MAPS` value used for the build.
 
 ### Lighthouse
 

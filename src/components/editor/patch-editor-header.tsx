@@ -168,16 +168,16 @@ export function PatchEditorHeader({
             </div>
           </details>
           <Button
-            aria-label={t('editor.onRandomise')}
+            aria-label={t('editor.randomise')}
             className="font-vt323"
             disabled={syncState === 'sending'}
             onClick={onRandomise}
-            title={t('editor.onRandomise')}
+            title={t('editor.randomise')}
             type="button"
             variant="outline"
           >
             <Dices />
-            <span className="hidden xl:inline">{t('editor.onRandomise')}</span>
+            <span className="hidden xl:inline">{t('editor.randomise')}</span>
           </Button>
           <div className="flex items-center">
             <Button

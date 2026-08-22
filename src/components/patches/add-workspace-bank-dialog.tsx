@@ -11,6 +11,7 @@ import { parseDx7Bank } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
 import { normalizeWorkspaceBankNameForSave, workspaceBankTitleLength } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
+import { trackAnalyticsEvent } from '@/lib/analytics'
 
 type AddWorkspaceBankDialogProps = {
   bank: string | null
@@ -73,6 +74,10 @@ export function AddWorkspaceBankDialog({
           ? await loadDx7CatalogBank(catalogBankId)
           : parseDx7Bank(await file!.arrayBuffer())
       library.addBank(bank, normalizedName, description, imported)
+      trackAnalyticsEvent({
+        data: { source: source === 'catalog' ? 'catalog' : 'file' },
+        name: 'bank_imported',
+      })
       onCreated(bank)
       toast.success(t('toasts.bankCreated', { bank: normalizedName }))
       dialogRef.current?.close()

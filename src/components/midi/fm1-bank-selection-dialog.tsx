@@ -2,9 +2,9 @@ import { CircleCheck } from 'lucide-react'
 import { type RefObject, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import fm1Synth from '@/assets/fm1-synth.webp'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogCloseButton, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { fm1SynthImage } from '@/lib/fm1-responsive-images'
 import { dismissFm1BankSelectionDialogForSession } from '@/lib/session'
 
 type Fm1BankSelectionDialogProps = {
@@ -60,8 +60,12 @@ export function Fm1BankSelectionDialog({ dialogRef }: Fm1BankSelectionDialogProp
             alt={t('dialogs.bankImage')}
             className="mx-auto h-auto w-full"
             decoding="async"
+            height={fm1SynthImage.height}
             loading="lazy"
-            src={fm1Synth}
+            sizes="(min-width: 640px) 194px, calc(100vw - 98px)"
+            src={fm1SynthImage.src}
+            srcSet={fm1SynthImage.srcSet}
+            width={fm1SynthImage.width}
           />
         </figure>
       </div>

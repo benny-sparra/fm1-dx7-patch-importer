@@ -58,6 +58,7 @@ async function waitFor(check, description) {
 
 class CdpConnection {
   constructor(url) {
+    this.listeners = new Map()
     this.nextId = 1
     this.pending = new Map()
     this.socket = new WebSocket(url)
@@ -78,7 +79,15 @@ class CdpConnection {
         else pending.resolve(message.result)
         return
       }
+      for (const listener of this.listeners.get(message.method) ?? []) listener(message.params)
     })
+  }
+
+  on(method, listener) {
+    const listeners = this.listeners.get(method) ?? new Set()
+    listeners.add(listener)
+    this.listeners.set(method, listeners)
+    return () => listeners.delete(listener)
   }
 
   send(method, params = {}) {
@@ -142,6 +151,8 @@ async function main() {
       connection.send('Runtime.enable'),
       connection.send('Network.enable'),
     ])
+    const requestedUrls = new Set()
+    connection.on('Network.responseReceived', ({ response }) => requestedUrls.add(response.url))
     await connection.send('Network.setCacheDisabled', { cacheDisabled: true })
     await connection.send('Network.emulateNetworkConditions', {
       connectionType: 'cellular3g',
@@ -198,10 +209,192 @@ async function main() {
       returnByValue: true,
     })
     const measurement = result.result.value
-    console.log(JSON.stringify({ maximumCls, ...measurement }, null, 2))
     if (measurement.value > maximumCls) {
       throw new Error(`Initial-page CLS ${measurement.value.toFixed(4)} exceeded ${maximumCls}.`)
     }
+
+    const mobileImages = await connection.send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          const images = [...document.images];
+          const keyboard = images.find((image) => image.alt === '');
+          const header = images.find((image) => image.alt.includes('synthesiser front panel'));
+          const dialog = images.find((image) => image.alt.includes('four numbered knobs'));
+          return {
+            dialog: dialog?.currentSrc || null,
+            dialogSizes: dialog?.sizes || null,
+            header: header?.currentSrc || null,
+            keyboard: keyboard?.currentSrc || null,
+            keyboardSizes: keyboard?.sizes || null,
+          };
+        })()
+      `,
+      returnByValue: true,
+    })
+    if (!mobileImages.result.value.keyboard?.includes('fm1-keyboard-400-')) {
+      throw new Error(`The 412px mobile viewport did not select the 400px keyboard candidate.`)
+    }
+    if (mobileImages.result.value.header) {
+      throw new Error(`The colourway image mounted below the lg breakpoint.`)
+    }
+    if (mobileImages.result.value.dialog) {
+      throw new Error(`The closed dialog loaded its lazy image.`)
+    }
+    if (!mobileImages.result.value.keyboardSizes || !mobileImages.result.value.dialogSizes) {
+      throw new Error(`A responsive image with width descriptors is missing its sizes attribute.`)
+    }
+    if (
+      [...requestedUrls].some((requestUrl) =>
+        /fm1-(?:black|black-green|cool-gray|orange|purple|white-blue)-/.test(requestUrl),
+      )
+    ) {
+      throw new Error(`A colourway raster was requested below the lg breakpoint.`)
+    }
+    if ([...requestedUrls].some((requestUrl) => requestUrl.endsWith('.map'))) {
+      throw new Error(`Ordinary page loading requested a source map.`)
+    }
+
+    await connection.send('Emulation.setDeviceMetricsOverride', {
+      deviceScaleFactor: 1,
+      height: 900,
+      mobile: false,
+      width: 1280,
+    })
+    const desktopHeader = await waitFor(async () => {
+      const state = await connection.send('Runtime.evaluate', {
+        expression: `(() => {
+          const image = document.querySelector('img[alt*="synthesiser front panel"]');
+          return image ? { currentSrc: image.currentSrc, sizes: image.sizes } : null;
+        })()`,
+        returnByValue: true,
+      })
+      return state.result.value?.currentSrc ? state.result.value : null
+    }, 'the desktop colourway image')
+    if (!desktopHeader.currentSrc.includes('fm1-black-460-')) {
+      throw new Error(`The desktop viewport did not select the 460px black colourway candidate.`)
+    }
+    if (!desktopHeader.sizes) throw new Error(`The colourway image is missing its sizes attribute.`)
+
+    await connection.send('Runtime.evaluate', {
+      expression: `document.querySelector('input[name="fm1-colorway"][value="purple"]')?.click()`,
+    })
+    const purpleHeader = await waitFor(async () => {
+      const state = await connection.send('Runtime.evaluate', {
+        expression: `document.querySelector('img[alt*="synthesiser front panel"]')?.currentSrc || ''`,
+        returnByValue: true,
+      })
+      return state.result.value.includes('fm1-purple-460-') ? state.result.value : null
+    }, 'the selected purple colourway image')
+
+    await connection.send('Emulation.setDeviceMetricsOverride', {
+      deviceScaleFactor: 1,
+      height: 823,
+      mobile: true,
+      width: 412,
+    })
+    await waitFor(async () => {
+      const state = await connection.send('Runtime.evaluate', {
+        expression: `!document.querySelector('img[alt*="synthesiser front panel"]')`,
+        returnByValue: true,
+      })
+      return state.result.value
+    }, 'the colourway image to unmount on mobile')
+
+    await connection.send('Runtime.evaluate', {
+      expression: `document.querySelector('dialog[aria-labelledby="fm1-bank-selection-title"]')?.showModal()`,
+    })
+    const dialogImage = await waitFor(async () => {
+      const state = await connection.send('Runtime.evaluate', {
+        expression: `document.querySelector('img[alt*="four numbered knobs"]')?.currentSrc || ''`,
+        returnByValue: true,
+      })
+      return state.result.value || null
+    }, 'the dialog image')
+    if (!dialogImage.includes('fm1-synth-360-')) {
+      throw new Error(`The narrow dialog did not select the 360px synth candidate.`)
+    }
+
+    const requestedColorways = [...requestedUrls].filter((requestUrl) =>
+      /fm1-(?:black|black-green|cool-gray|orange|purple|white-blue)-/.test(requestUrl),
+    )
+    if (
+      requestedColorways.some(
+        (requestUrl) =>
+          !requestUrl.includes('fm1-black-460-') && !requestUrl.includes('fm1-purple-460-'),
+      )
+    ) {
+      throw new Error(`Changing colourway requested an inactive colourway image.`)
+    }
+
+    await connection.send('Network.emulateNetworkConditions', {
+      connectionType: 'none',
+      downloadThroughput: -1,
+      latency: 0,
+      offline: false,
+      uploadThroughput: -1,
+    })
+    const selectMobileKeyboard = async (deviceScaleFactor) => {
+      await connection.send('Emulation.setDeviceMetricsOverride', {
+        deviceScaleFactor,
+        height: 823,
+        mobile: true,
+        width: 412,
+      })
+      const candidateUrl = `${url}?image-dpr=${deviceScaleFactor}`
+      await connection.send('Page.navigate', { url: candidateUrl })
+      return waitFor(async () => {
+        const state = await connection.send('Runtime.evaluate', {
+          expression: `
+            location.href === ${JSON.stringify(candidateUrl)} && document.readyState === 'complete'
+              ? [...document.images].find((image) => image.alt === '')?.currentSrc || ''
+              : ''
+          `,
+          returnByValue: true,
+        })
+        return state.result.value || null
+      }, `the ${deviceScaleFactor}x keyboard candidate`)
+    }
+    const keyboardCandidatesByDpr = {
+      1: mobileImages.result.value.keyboard,
+      1.5: await selectMobileKeyboard(1.5),
+      2: await selectMobileKeyboard(2),
+      3: await selectMobileKeyboard(3),
+    }
+    const originalKeyboardPattern = /\/fm1-keyboard-(?!320-|400-|600-)[^/]+\.webp$/
+    if (!/fm1-keyboard-400-/.test(keyboardCandidatesByDpr[1])) {
+      throw new Error(`The 1x mobile viewport selected an unexpected keyboard candidate.`)
+    }
+    if (!/fm1-keyboard-600-/.test(keyboardCandidatesByDpr[1.5])) {
+      throw new Error(`The 1.5x mobile viewport selected an unexpected keyboard candidate.`)
+    }
+    if (!originalKeyboardPattern.test(keyboardCandidatesByDpr[2])) {
+      throw new Error(`The 2x mobile viewport selected an unexpected keyboard candidate.`)
+    }
+    if (!originalKeyboardPattern.test(keyboardCandidatesByDpr[3])) {
+      throw new Error(`The 3x mobile viewport selected an unexpected keyboard candidate.`)
+    }
+
+    console.log(
+      JSON.stringify(
+        {
+          maximumCls,
+          ...measurement,
+          responsiveImages: {
+            desktopHeader: desktopHeader.currentSrc,
+            dialogImage,
+            keyboardCandidatesByDpr,
+            mobileKeyboard: mobileImages.result.value.keyboard,
+            purpleHeader,
+            requestedColorways,
+            sourceMapsRequested: [...requestedUrls].filter((requestUrl) =>
+              requestUrl.endsWith('.map'),
+            ),
+          },
+        },
+        null,
+        2,
+      ),
+    )
   } finally {
     connection?.close()
     chrome?.kill('SIGTERM')

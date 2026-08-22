@@ -16,10 +16,10 @@ import { FileMusic, Search } from 'lucide-react'
 import { type ReactNode, type SVGProps } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import fm1Keyboard from '@/assets/fm1-keyboard.webp'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
+import { fm1KeyboardImage } from '@/lib/fm1-responsive-images'
 
 import { PatchButton } from './patch-button'
 
@@ -124,7 +124,11 @@ export function PatchGrid({
               alt=""
               aria-hidden="true"
               className="patch-area-image pointer-events-none absolute inset-0 z-0 size-full object-contain object-center opacity-50"
-              src={fm1Keyboard}
+              height={fm1KeyboardImage.height}
+              sizes="(min-width: 1280px) 928px, (min-width: 1024px) calc(100vw - 352px), (min-width: 640px) calc(100vw - 328px), calc(100vw - 88px)"
+              src={fm1KeyboardImage.src}
+              srcSet={fm1KeyboardImage.srcSet}
+              width={fm1KeyboardImage.width}
             />
             <div className="relative z-10">
               {patches.length > 0 ? (

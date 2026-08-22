@@ -39,8 +39,16 @@ jobs:
         run: npm run deps:check
       - name: Run unit and accessibility tests
         run: npm test
+      - name: Check responsive image sources
+        run: npm run images:check
       - name: Build production bundle
         run: npm run build
+      - name: Check responsive production assets
+        run: npm run images:check:dist
+      - name: Check production source maps
+        run: npm run sourcemaps:check
+      - name: Check initial JavaScript budget
+        run: npm run bundle:check
 
   audit:
     name: Dependency audits

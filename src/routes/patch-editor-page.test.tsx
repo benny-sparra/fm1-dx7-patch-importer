@@ -12,7 +12,10 @@ beforeAll(() => {
   window.scrollTo = vi.fn()
 })
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  delete window.umami
+})
 
 function setup() {
   const midi = {
@@ -65,5 +68,36 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(
       screen.getByRole('button', { name: /Unmute operator 1/ }).getAttribute('aria-pressed'),
     ).toBe('true')
+  })
+})
+
+describe('PatchEditorPage analytics', () => {
+  it('tracks the first real edit once per editor session', async () => {
+    const track = vi.fn()
+    window.umami = { track }
+    setup()
+    await waitFor(() => expect(screen.getByRole('slider', { name: 'Feedback' })).toBeTruthy())
+
+    const feedback = screen.getByRole('slider', { name: 'Feedback' })
+    fireEvent.change(feedback, { target: { value: '6' } })
+    fireEvent.change(feedback, { target: { value: '5' } })
+
+    expect(track).toHaveBeenCalledOnce()
+    expect(track).toHaveBeenCalledWith('patch_edit_started', undefined)
+  })
+
+  it('tracks saving an edited patch', async () => {
+    const user = userEvent.setup()
+    const track = vi.fn()
+    window.umami = { track }
+    setup()
+    await waitFor(() => expect(screen.getByRole('slider', { name: 'Feedback' })).toBeTruthy())
+    fireEvent.change(screen.getByRole('slider', { name: 'Feedback' }), {
+      target: { value: '6' },
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Save to Library' }))
+
+    expect(track).toHaveBeenNthCalledWith(2, 'patch_saved', undefined)
   })
 })

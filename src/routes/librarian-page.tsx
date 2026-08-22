@@ -30,6 +30,7 @@ import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { type Patch } from '@/data/patches'
 import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
 import { useToast } from '@/components/ui/toast'
+import { trackAnalyticsEvent } from '@/lib/analytics'
 
 type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
 
@@ -111,6 +112,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
         `fm1-bank-${bank.toLowerCase()}.syx`,
       )
       setImportError('')
+      trackAnalyticsEvent({ data: { scope: 'single' }, name: 'bank_exported' })
       toast.success(t('toasts.bankDownloadStarted', { bank: bankDisplayName(bank) }))
     } catch (error) {
       setImportError(error instanceof Error ? error.message : t('banks.exportFailed'))
@@ -128,6 +130,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
       )
       saveBlob(new Blob([zipSync(files)], { type: 'application/zip' }), 'fm1-browser-banks.zip')
       setImportError('')
+      trackAnalyticsEvent({ data: { scope: 'all' }, name: 'bank_exported' })
       toast.success(t('toasts.banksDownloadStarted'))
     } catch (error) {
       setImportError(error instanceof Error ? error.message : t('banks.bulkExportFailed'))
@@ -136,6 +139,10 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
 
   const sendSelectedBank = async () => {
     if (!midi.hasMidiOutput) {
+      trackAnalyticsEvent({
+        data: { reason: 'no_output' },
+        name: 'bank_transfer_failed',
+      })
       midiConnectionRequiredDialogRef.current?.showModal()
       return
     }
@@ -145,14 +152,20 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
     setIsSending(true)
     setTransferStatus({ kind: 'idle', message: t('banks.sendingStatus') })
     try {
-      const sent = await midi.sendBank(destinationBank, library.getBankVoices(destinationBank))
+      const result = await midi.sendBank(destinationBank, library.getBankVoices(destinationBank))
       setTransferStatus(
-        sent
+        result.ok
           ? { kind: 'success', message: t('banks.sentStatus', { bank: destinationBank }) }
           : { kind: 'error', message: t('banks.notSent') },
       )
-      if (sent) toast.success(t('banks.sentStatus', { bank: destinationBank }))
+      if (result.ok) {
+        trackAnalyticsEvent({ name: 'bank_transfer_completed' })
+        toast.success(t('banks.sentStatus', { bank: destinationBank }))
+      } else {
+        trackAnalyticsEvent({ data: { reason: result.reason }, name: 'bank_transfer_failed' })
+      }
     } catch (error) {
+      trackAnalyticsEvent({ data: { reason: 'transport' }, name: 'bank_transfer_failed' })
       setTransferStatus({
         kind: 'error',
         message: error instanceof Error ? error.message : t('banks.notSent'),
@@ -171,6 +184,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
     try {
       await library.importBank(importTarget, file)
       setImportError('')
+      trackAnalyticsEvent({ data: { source: 'file' }, name: 'bank_imported' })
       toast.success(t('toasts.bankImported', { bank: bankDisplayName(importTarget) }))
     } catch (error) {
       setImportError(error instanceof Error ? error.message : t('banks.importFailed'))

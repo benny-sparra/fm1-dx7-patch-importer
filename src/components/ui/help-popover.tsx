@@ -3,6 +3,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { positionHelpPopover, type HelpPopoverPosition } from '@/lib/help-popover'
+import { trackAnalyticsEvent } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 
 const openHelpEvent = 'fm1-help-popover-open'
@@ -19,6 +20,7 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const analyticsTrackedRef = useRef(false)
   const instanceId = useId()
   const popoverId = `${instanceId}-help`
 
@@ -29,9 +31,18 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
     }
   }
 
+  const trackFirstOpen = () => {
+    if (analyticsTrackedRef.current) return
+    analyticsTrackedRef.current = true
+    trackAnalyticsEvent({ data: { surface: 'contextual' }, name: 'help_opened' })
+  }
+
   const openPopover = () => {
     cancelScheduledClose()
-    if (!open) window.dispatchEvent(new CustomEvent(openHelpEvent, { detail: instanceId }))
+    if (!open) {
+      window.dispatchEvent(new CustomEvent(openHelpEvent, { detail: instanceId }))
+      trackFirstOpen()
+    }
     setOpen(true)
   }
 
@@ -102,7 +113,10 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
 
   const toggle = () => {
     const nextOpen = !open
-    if (nextOpen) window.dispatchEvent(new CustomEvent(openHelpEvent, { detail: instanceId }))
+    if (nextOpen) {
+      window.dispatchEvent(new CustomEvent(openHelpEvent, { detail: instanceId }))
+      trackFirstOpen()
+    }
     setOpen(nextOpen)
   }
 

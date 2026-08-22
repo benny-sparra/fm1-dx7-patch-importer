@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogCloseButton, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { trackAnalyticsEvent } from '@/lib/analytics'
 
 const HELP_SEEN_KEY = 'fm1-librarian-help-seen'
 
@@ -59,7 +60,10 @@ export function HelpDialog() {
       <Button
         aria-label={t('help.open')}
         className="hero-action cursor-pointer bg-transparent hover:bg-transparent hover:text-[var(--hero-action-hover-foreground)]"
-        onClick={() => dialogRef.current?.showModal()}
+        onClick={() => {
+          trackAnalyticsEvent({ data: { surface: 'guide' }, name: 'help_opened' })
+          dialogRef.current?.showModal()
+        }}
         size="icon"
         title={t('help.open')}
         type="button"

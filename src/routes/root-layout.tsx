@@ -14,6 +14,7 @@ import { PianoKeyboardDialog } from '@/components/midi/piano-keyboard-dialog'
 import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dialog'
 import { type MidiController } from '@/hooks/use-midi'
 import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { isChromiumBrowser } from '@/lib/browser'
 import { fm1ColorwayImages } from '@/lib/fm1-colorway-images'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
@@ -28,6 +29,8 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const { t } = useTranslation()
   const isChromium = isChromiumBrowser()
   const { colorway, setColorway } = useFm1Colorway()
+  const showColorwayImage = useMediaQuery('(min-width: 1024px)')
+  const colorwayImage = fm1ColorwayImages[colorway]
 
   return (
     <main className="synthwave-shell flex min-h-screen flex-col text-foreground">
@@ -95,18 +98,22 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               </div>
             </div>
 
-            <div className={compact ? 'hidden' : 'hidden flex-col gap-3 lg:col-start-3 lg:flex'}>
-              <figure className="overflow-hidden rounded-[1.5rem] shadow-[0_10px_28px_hsl(260_70%_5%_/_0.35),0_0_22px_hsl(315_100%_60%_/_0.12)]">
-                <img
-                  alt={t('root.synthAlt')}
-                  className="aspect-video h-full w-full object-cover"
-                  decoding="async"
-                  height="504"
-                  src={fm1ColorwayImages[colorway]}
-                  width="844"
-                />
-              </figure>
-            </div>
+            {!compact && showColorwayImage ? (
+              <div className="hidden flex-col gap-3 lg:col-start-3 lg:flex">
+                <figure className="overflow-hidden rounded-[1.5rem] shadow-[0_10px_28px_hsl(260_70%_5%_/_0.35),0_0_22px_hsl(315_100%_60%_/_0.12)]">
+                  <img
+                    alt={t('root.synthAlt')}
+                    className="aspect-video h-full w-full object-cover"
+                    decoding="async"
+                    height={colorwayImage.height}
+                    sizes="(min-width: 1280px) 395px, calc((100vw - 96px) / 3)"
+                    src={colorwayImage.src}
+                    srcSet={colorwayImage.srcSet}
+                    width={colorwayImage.width}
+                  />
+                </figure>
+              </div>
+            ) : null}
           </div>
 
           <MidiConnectionError midi={midi} />
@@ -136,6 +143,17 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 •
               </span>
               <span>{t('root.requires')}</span>
+              <span aria-hidden="true" className="text-white/25">
+                •
+              </span>
+              <a
+                className="transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                href="https://umami.is/privacy"
+                rel="noreferrer"
+                target="_blank"
+              >
+                {t('root.analytics')}
+              </a>
             </div>
 
             <nav

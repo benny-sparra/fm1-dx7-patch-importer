@@ -7,6 +7,7 @@ import { usePatchLibrary } from '@/hooks/use-patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { RootLayout } from '@/routes/root-layout'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
+import { trackAnalyticsEvent } from '@/lib/analytics'
 import { useToast } from '@/components/ui/toast'
 import { WorkspacePersistenceStatus } from '@/components/workspace-persistence-status'
 
@@ -31,6 +32,7 @@ function App() {
     midi.sendProgramChange(patch.program)
     setAuditionedPatchId(patch.id)
     setSelectedPatchId(patch.id)
+    trackAnalyticsEvent({ name: 'editor_opened' })
   }
   const loadingSection = (label: string) => (
     <section

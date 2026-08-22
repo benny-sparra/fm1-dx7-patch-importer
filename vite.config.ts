@@ -7,6 +7,15 @@ import path from 'node:path'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  const sourceMapModes = {
+    hidden: 'hidden',
+    none: false,
+    public: true,
+  } as const
+  const sourceMapMode = env.SOURCE_MAPS || 'public'
+  if (!(sourceMapMode in sourceMapModes)) {
+    throw new Error(`Invalid SOURCE_MAPS value "${sourceMapMode}". Use public, hidden, or none.`)
+  }
   const https =
     mode === 'https'
       ? {
@@ -18,7 +27,7 @@ export default defineConfig(({ mode }) => {
   return {
     build: {
       manifest: true,
-      sourcemap: env.SOURCE_MAPS === 'true',
+      sourcemap: sourceMapModes[sourceMapMode as keyof typeof sourceMapModes],
     },
     plugins: [react(), tailwindcss()],
     preview: {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Input, MessageEvent, Output } from 'webmidi'
 
+import { trackAnalyticsEvent } from '@/lib/analytics'
 import { makeDx7BankPayload, makeDx7SingleVoicePayload, type Dx7Voice } from '@/lib/dx7'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
 import {
@@ -25,6 +26,13 @@ import { MidiTransferQueue } from '@/lib/midi-transfer-queue'
 import { MidiLogStore } from '@/lib/midi-log-store'
 
 type WebMidiApi = (typeof import('webmidi'))['WebMidi']
+
+export type BankTransferResult =
+  | { ok: true }
+  | {
+      ok: false
+      reason: 'invalid_bank' | 'no_output' | 'sysex_unavailable' | 'transport'
+    }
 
 export const midiChannels = Array.from({ length: 16 }, (_, index) => index + 1)
 
@@ -60,6 +68,13 @@ function readStoredChannel() {
 function readStoredEffectChannel() {
   const storedChannel = Number(readStoredValue(midiStorageKeys.effectChannel))
   return midiChannels.includes(storedChannel) ? storedChannel : 2
+}
+
+function midiConnectionFailureReason(error: unknown) {
+  return error instanceof Error &&
+    (error.name === 'NotAllowedError' || error.name === 'SecurityError')
+    ? ('permission_denied' as const)
+    : ('enable_failed' as const)
 }
 
 export function useMidi() {
@@ -144,12 +159,20 @@ export function useMidi() {
 
   const enableMidi = useCallback(
     async (remember: boolean) => {
+      const method = remember ? ('manual' as const) : ('automatic' as const)
       if (midiSupport !== 'supported') {
         setError(
           midiSupport === 'insecure'
             ? 'Web MIDI needs HTTPS or localhost.'
             : 'This browser does not expose Web MIDI.',
         )
+        trackAnalyticsEvent({
+          data: {
+            method,
+            reason: midiSupport === 'insecure' ? 'insecure_context' : 'unsupported_browser',
+          },
+          name: 'midi_connection_failed',
+        })
         return
       }
 
@@ -168,8 +191,20 @@ export function useMidi() {
             `MIDI connected${activeWebMidi.sysexEnabled ? ' with SysEx enabled' : ''}.`,
           ),
         )
+        trackAnalyticsEvent({
+          data: {
+            method,
+            output: activeWebMidi.outputs.length > 0 ? 'available' : 'missing',
+            sysex: activeWebMidi.sysexEnabled ? 'enabled' : 'disabled',
+          },
+          name: 'midi_connected',
+        })
       } catch (caughtError) {
         setError(caughtError instanceof Error ? caughtError.message : 'MIDI permission was denied.')
+        trackAnalyticsEvent({
+          data: { method, reason: midiConnectionFailureReason(caughtError) },
+          name: 'midi_connection_failed',
+        })
       } finally {
         setIsConnecting(false)
       }
@@ -253,17 +288,17 @@ export function useMidi() {
     (bank: string, voices: Dx7Voice[]) => {
       if (!selectedOutput) {
         appendLog(makeLogEntry('system', `Could not send bank ${bank}; no MIDI output selected.`))
-        return Promise.resolve(false)
+        return Promise.resolve<BankTransferResult>({ ok: false, reason: 'no_output' })
       }
 
       if (!webMidi.current?.sysexEnabled) {
         appendLog(makeLogEntry('system', 'Enable SysEx before connecting MIDI to send a bank.'))
-        return Promise.resolve(false)
+        return Promise.resolve<BankTransferResult>({ ok: false, reason: 'sysex_unavailable' })
       }
 
       if (voices.length !== 32) {
         appendLog(makeLogEntry('system', `Bank ${bank} is not loaded with 32 voices.`))
-        return Promise.resolve(false)
+        return Promise.resolve<BankTransferResult>({ ok: false, reason: 'invalid_bank' })
       }
 
       const payload = makeDx7BankPayload(voices, channel)
@@ -276,7 +311,7 @@ export function useMidi() {
           appendLog(
             makeLogEntry('out', `Sent bank ${bank}. Choose its destination on the FM1.`, message),
           )
-          return true
+          return { ok: true } as const
         })
         .catch((caughtError) => {
           appendLog(
@@ -285,7 +320,7 @@ export function useMidi() {
               caughtError instanceof Error ? caughtError.message : 'Bank transfer failed.',
             ),
           )
-          return false
+          return { ok: false, reason: 'transport' } as const
         })
     },
     [appendLog, channel, selectedOutput],

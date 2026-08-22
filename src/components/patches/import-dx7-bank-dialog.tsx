@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogCloseButton, DialogHeader } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/toast'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
+import { trackAnalyticsEvent } from '@/lib/analytics'
 
 type ImportDx7BankDialogProps = {
   bank: string | null
@@ -42,6 +43,7 @@ export function ImportDx7BankDialog({
     setError('')
     try {
       await library.importBank(bank, file)
+      trackAnalyticsEvent({ data: { source: 'file' }, name: 'bank_imported' })
       toast.success(t('toasts.bankImported', { bank: bankName }))
       dialogRef.current?.close()
     } catch (cause) {

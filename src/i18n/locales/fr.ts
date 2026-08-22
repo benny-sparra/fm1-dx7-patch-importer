@@ -267,6 +267,7 @@ export default {
     unsupportedBody:
       'Ce bibliothécaire nécessite un navigateur basé sur Chromium, comme Chrome, Edge ou Opera, pour la prise en charge de Web MIDI et SysEx.',
     localOnly: 'Vos sons restent dans ce navigateur',
+    analytics: 'Statistiques d’utilisation anonymes',
     requires: 'Nécessite Chromium et Web MIDI',
     projectLinks: 'Liens du projet',
     reportIssue: 'Signaler un problème',

@@ -36,6 +36,7 @@ import {
 import { auditionedParameterValue, makeOperatorAuditionEdits } from '@/lib/operator-audition'
 import { applySoundPreset, type SoundPresetId } from '@/lib/sound-presets'
 import { randomizeSound } from '@/lib/sound-randomizer'
+import { trackAnalyticsEvent } from '@/lib/analytics'
 
 type PatchEditorPageProps = {
   effects: Uint8Array
@@ -78,6 +79,7 @@ export function PatchEditorPage({
   const syncStateRef = useRef<PatchSyncState>('sending')
   const midiRef = useRef(midi)
   const editorActiveRef = useRef(true)
+  const editStartedTrackedRef = useRef(false)
   const mutedOperatorsRef = useRef<ReadonlySet<number>>(mutedOperators)
   const soloOperatorRef = useRef<number | null>(soloOperator)
   const unsavedDialogRef = useRef<HTMLDialogElement>(null)
@@ -181,7 +183,13 @@ export function PatchEditorPage({
     if (next === current) return false
 
     historyRef.current = next
-    if (!parametersMatch(current.present, next.present)) historyRevisionRef.current += 1
+    if (!parametersMatch(current.present, next.present)) {
+      historyRevisionRef.current += 1
+      if (!editStartedTrackedRef.current) {
+        editStartedTrackedRef.current = true
+        trackAnalyticsEvent({ name: 'patch_edit_started' })
+      }
+    }
     setHistory(next)
     return true
   }, [])
@@ -315,6 +323,7 @@ export function PatchEditorPage({
     const current = historyRef.current.present
     onSave(packDx7Voice(getFm1VoiceParameters(current)), getFm1EffectParameters(current))
     setSavedParameters(current.slice())
+    trackAnalyticsEvent({ name: 'patch_saved' })
   }
 
   const requestNavigation = () => {

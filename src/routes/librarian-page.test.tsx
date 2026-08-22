@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
@@ -11,7 +11,16 @@ import { type MidiController } from '@/hooks/use-midi'
 
 import { LibrarianPage } from './librarian-page'
 
-afterEach(cleanup)
+beforeEach(() => {
+  vi.clearAllMocks()
+  sessionStorage.setItem('fm1-bank-selection-dialog-dismissed', 'true')
+})
+
+afterEach(() => {
+  cleanup()
+  sessionStorage.clear()
+  delete window.umami
+})
 
 const library = {
   addBank: vi.fn(),
@@ -59,5 +68,59 @@ describe('LibrarianPage bank selection', () => {
 
     await user.type(screen.getByPlaceholderText('Search by name'), 'no match')
     expect(screen.getByText('No patches match this search')).toBeTruthy()
+  })
+})
+
+describe('LibrarianPage transfer analytics', () => {
+  it('tracks a completed bank transfer after MIDI reports success', async () => {
+    const user = userEvent.setup()
+    const track = vi.fn()
+    window.umami = { track }
+    const connectedMidi = {
+      hasMidiOutput: true,
+      sendBank: vi.fn(async () => ({ ok: true }) as const),
+    } as unknown as MidiController
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={connectedMidi}
+          onEditPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+
+    expect(track).toHaveBeenCalledOnce()
+    expect(track).toHaveBeenCalledWith('bank_transfer_completed', undefined)
+  })
+
+  it('tracks a sanitized bank transfer failure reason', async () => {
+    const user = userEvent.setup()
+    const track = vi.fn()
+    window.umami = { track }
+    const connectedMidi = {
+      hasMidiOutput: true,
+      sendBank: vi.fn(async () => ({ ok: false, reason: 'sysex_unavailable' }) as const),
+    } as unknown as MidiController
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={connectedMidi}
+          onEditPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+
+    expect(track).toHaveBeenCalledOnce()
+    expect(track).toHaveBeenCalledWith('bank_transfer_failed', {
+      reason: 'sysex_unavailable',
+    })
   })
 })
