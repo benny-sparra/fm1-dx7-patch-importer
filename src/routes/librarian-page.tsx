@@ -8,10 +8,11 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PatchGrid } from '@/components/patches/patch-grid'
+import { WorkspaceBankSelector } from '@/components/patches/workspace-bank-selector'
 import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
 import { BankInformationDialog } from '@/components/patches/bank-information-dialog'
 import { DeleteWorkspaceBankDialog } from '@/components/patches/delete-workspace-bank-dialog'
@@ -37,85 +38,6 @@ function defaultWorkspaceBankTitle(
   bankNumber: number,
 ) {
   return t(bankNumber < 10 ? 'banks.bank' : 'banks.bankShort', { bank: bankNumber })
-}
-
-type WorkspaceBankTabProps = {
-  bank: string
-  description: string
-  index: number
-  name: string
-  onSelect: () => void
-  onSelectFromKeyboard: (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => void
-  renderMenu: (closeMenu: () => void) => ReactNode
-  selected: boolean
-}
-
-function WorkspaceBankTab({
-  bank,
-  description,
-  index,
-  name,
-  onSelect,
-  onSelectFromKeyboard,
-  renderMenu,
-  selected,
-}: WorkspaceBankTabProps) {
-  const { t } = useTranslation()
-  const defaultName = defaultWorkspaceBankTitle(t, index + 1)
-  const displayName = name || defaultName
-  const menuRef = useDismissableDetails()
-  const closeMenu = () => menuRef.current?.removeAttribute('open')
-
-  useEffect(() => {
-    if (selected) return
-    menuRef.current?.removeAttribute('open')
-  }, [menuRef, selected])
-
-  return (
-    <div
-      className={cn(
-        'relative -mr-px flex w-full items-center gap-1 whitespace-nowrap border-y border-l-4 border-r px-2 py-2 transition-colors',
-        selected
-          ? 'bank-tab-active z-10 border-primary bg-primary text-primary-foreground shadow-sm'
-          : 'border-transparent text-foreground/80 hover:border-y-border hover:border-l-border hover:bg-muted/60 hover:text-foreground',
-      )}
-      role="presentation"
-    >
-      <button
-        aria-selected={selected}
-        className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        id={`bank-tab-${bank}`}
-        onClick={onSelect}
-        onKeyDown={(event) => onSelectFromKeyboard(event, index)}
-        role="tab"
-        tabIndex={selected ? 0 : -1}
-        title={description || displayName}
-        type="button"
-      >
-        <span className="font-vt323 grid size-8 shrink-0 place-items-center rounded border border-current/50 text-base font-bold">
-          {bank}
-        </span>
-        <span className="font-dot-matrix hidden min-w-0 flex-1 truncate px-2 py-1 text-left text-base font-bold sm:block">
-          {displayName}
-        </span>
-      </button>
-      <details className="group relative shrink-0" ref={menuRef}>
-        <summary
-          aria-label={t('banks.bankMenu', { bank: displayName })}
-          className={cn(
-            'grid size-8 cursor-pointer list-none place-items-center rounded transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring [&::-webkit-details-marker]:hidden',
-            selected ? 'hover:bg-primary-foreground/15' : 'hover:bg-foreground/10',
-          )}
-          title={t('banks.bankMenu', { bank: displayName })}
-        >
-          <EllipsisVertical className="size-4" />
-        </summary>
-        <div className="font-vt323 absolute left-full top-0 z-40 min-w-56 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
-          {renderMenu(closeMenu)}
-        </div>
-      </details>
-    </div>
-  )
 }
 
 type LibrarianPageProps = {
@@ -231,22 +153,6 @@ export function LibrarianPage({
     if (!banks.includes(destinationBank)) setDestinationBank(banks[0] ?? 'A')
   }, [banks, destinationBank])
 
-  const selectBankFromKeyboard = (
-    event: React.KeyboardEvent<HTMLButtonElement>,
-    index: number,
-  ) => {
-    const nextIndex = event.key === 'ArrowDown' ? (index + 1) % banks.length
-      : event.key === 'ArrowUp' ? (index - 1 + banks.length) % banks.length
-        : event.key === 'Home' ? 0
-          : event.key === 'End' ? banks.length - 1
-            : null
-
-    if (nextIndex === null) return
-    event.preventDefault()
-    setDestinationBank(banks[nextIndex])
-    document.getElementById(`bank-tab-${banks[nextIndex]}`)?.focus()
-  }
-
   return (
     <section
       className="mx-auto grid min-w-0 max-w-7xl gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:px-8"
@@ -336,80 +242,81 @@ export function LibrarianPage({
         toolbar={
           <>
             <div className="flex h-full w-16 flex-col bg-muted/30 sm:w-72">
-              <div
-                aria-label={t('banks.destination')}
-                aria-orientation="vertical"
-                className="flex flex-col"
-                role="tablist"
-              >
-                {banks.map((bank, index) => (
-                  <WorkspaceBankTab
-                    bank={bank}
-                    description={library.bankDescriptions[bank] ?? ''}
-                    index={index}
-                    key={bank}
-                    name={library.bankNames[bank] ?? ''}
-                    onSelect={() => setDestinationBank(bank)}
-                    onSelectFromKeyboard={selectBankFromKeyboard}
-                    renderMenu={(closeMenu) => (
-                      <>
-                        <BankInformationDialog
-                          bank={bank}
-                          defaultTitle={defaultWorkspaceBankTitle(t, index + 1)}
-                          library={library}
-                          onClose={closeMenu}
-                        />
-                        <div className="my-1 border-t" />
+              <WorkspaceBankSelector
+                banks={banks.map((bank, index) => {
+                  const name = library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, index + 1)
+                  return {
+                    actionsLabel: t('banks.bankMenu', { bank: name }),
+                    description: library.bankDescriptions[bank] ?? '',
+                    id: bank,
+                    name,
+                  }
+                })}
+                label={t('banks.destination')}
+                onSelect={setDestinationBank}
+                renderActions={(selectedBank, closeMenu) => {
+                  const bank = selectedBank.id
+                  const index = banks.indexOf(bank)
+                  return (
+                    <>
+                      <BankInformationDialog
+                        bank={bank}
+                        defaultTitle={defaultWorkspaceBankTitle(t, index + 1)}
+                        library={library}
+                        onClose={closeMenu}
+                      />
+                      <div className="my-1 border-t" />
+                      <button
+                        className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+                        disabled={isImporting}
+                        onClick={() => {
+                          closeMenu()
+                          beginImport(bank)
+                        }}
+                        type="button"
+                      >
+                        <Upload className="size-4" />
+                        {isImporting ? t('banks.importing') : t('banks.import')}
+                      </button>
+                      <button
+                        className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+                        disabled={!library.loadedBanks.includes(bank)}
+                        onClick={() => {
+                          closeMenu()
+                          downloadBank(bank)
+                        }}
+                        title={library.loadedBanks.includes(bank) ? t('banks.downloadTitle', { bank }) : t('banks.importFirst', { bank })}
+                        type="button"
+                      >
+                        <Download className="size-4" />
+                        {t('banks.download')}
+                      </button>
+                      {banks.length > 1 ? (
                         <button
-                          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                          disabled={isImporting}
+                          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent"
                           onClick={() => {
                             closeMenu()
-                            beginImport(bank)
+                            const name = library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, index + 1)
+                            const nextBank = banks[index + 1] ?? banks[index - 1]
+                            if (!nextBank) return
+                            setBankPendingDeletion({
+                              bank,
+                              name,
+                              nextBank,
+                            })
+                            deleteWorkspaceBankDialogRef.current?.showModal()
                           }}
                           type="button"
                         >
-                          <Upload className="size-4" />
-                          {isImporting ? t('banks.importing') : t('banks.import')}
+                          <Trash2 className="size-4" />
+                          {t('banks.deleteBank')}
                         </button>
-                        <button
-                          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                          disabled={!library.loadedBanks.includes(bank)}
-                          onClick={() => {
-                            closeMenu()
-                            downloadBank(bank)
-                          }}
-                          title={library.loadedBanks.includes(bank) ? t('banks.downloadTitle', { bank }) : t('banks.importFirst', { bank })}
-                          type="button"
-                        >
-                          <Download className="size-4" />
-                          {t('banks.download')}
-                        </button>
-                        {banks.length > 1 ? (
-                          <button
-                            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent"
-                            onClick={() => {
-                              closeMenu()
-                              const name = library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, index + 1)
-                              setBankPendingDeletion({
-                                bank,
-                                name,
-                                nextBank: banks[index + 1] ? bank : banks[index - 1],
-                              })
-                              deleteWorkspaceBankDialogRef.current?.showModal()
-                            }}
-                            type="button"
-                          >
-                            <Trash2 className="size-4" />
-                            {t('banks.deleteBank')}
-                          </button>
-                        ) : null}
-                      </>
-                    )}
-                    selected={destinationBank === bank}
-                  />
-                ))}
-              </div>
+                      ) : null}
+                    </>
+                  )
+                }}
+                selectedBank={destinationBank}
+              />
               {nextBank ? (
                 <button
                   aria-label={t('banks.addBank')}
