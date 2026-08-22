@@ -186,7 +186,7 @@ export function AlgorithmPanel({
 
         <div
           aria-label={t('ui.dx7Algorithm')}
-          className="absolute top-[calc(100%+0.5rem)] left-0 z-30 grid max-h-[min(34rem,70vh)] w-[min(42rem,calc(100vw-1.5rem))] grid-cols-2 gap-2 overflow-y-auto rounded-xl border border-cyan-300/35 bg-slate-950/95 p-2 shadow-2xl backdrop-blur sm:grid-cols-4"
+          className="editor-overlay-surface absolute top-[calc(100%+0.5rem)] left-0 z-30 grid max-h-[min(34rem,70vh)] w-[min(42rem,calc(100vw-1.5rem))] grid-cols-2 gap-2 overflow-y-auto rounded-xl border border-cyan-300/35 bg-slate-950/95 p-2 backdrop-blur sm:grid-cols-4"
           role="radiogroup"
         >
           {dx7Algorithms.map((operators, index) => (

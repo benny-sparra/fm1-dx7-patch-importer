@@ -31,7 +31,7 @@ function ToastItem({ dismiss, toast }: { dismiss: (id: number) => void; toast: T
 
   return (
     <div
-      className="pointer-events-auto flex w-full items-start gap-3 rounded-lg border border-emerald-700/25 bg-white px-4 py-3 text-foreground shadow-xl"
+      className="toast-surface pointer-events-auto flex w-full items-start gap-3 rounded-lg border border-emerald-700/25 bg-white px-4 py-3 text-foreground"
       role="status"
     >
       <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-emerald-700" />

@@ -17,6 +17,16 @@
     "no-invalid-position-at-import-rule": true,
     "property-no-unknown": true,
     "selector-anb-no-unmatchable": true,
+    "selector-disallowed-list": [
+      [
+        "/\\[\\s*class(?:\\s*[~|^$*]?=|\\s*\\])/i",
+        "/\\.(?:text|rounded|shadow|drop-shadow|bg|border)-/",
+        "/\\\\\\[/"
+      ],
+      {
+        "message": "Use theme design tokens or semantic classes instead of selecting generated utility classes."
+      }
+    ],
     "selector-pseudo-class-no-unknown": true,
     "selector-pseudo-element-no-unknown": true,
     "selector-type-no-unknown": true,

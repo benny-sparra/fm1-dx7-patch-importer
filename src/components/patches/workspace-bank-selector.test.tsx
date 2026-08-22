@@ -55,6 +55,13 @@ function SelectorHarness({ initialBanks = banks }: { initialBanks?: WorkspaceBan
 }
 
 describe('WorkspaceBankSelector', () => {
+  it('marks the bank actions as a semantic menu surface', () => {
+    render(<SelectorHarness />)
+
+    const action = screen.getByRole('button', { name: 'Delete Studio Favourites' })
+    expect(action.parentElement?.classList.contains('menu-surface')).toBe(true)
+  })
+
   it('exposes the selector as a named list', () => {
     render(<SelectorHarness />)
 

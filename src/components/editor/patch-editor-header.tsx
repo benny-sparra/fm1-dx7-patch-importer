@@ -142,7 +142,7 @@ export function PatchEditorHeader({
               <span className="hidden xl:inline">{t('editor.presetsShort')}</span>
               <ChevronDown className="hidden size-3.5 transition-transform group-open:rotate-180 xl:block" />
             </summary>
-            <div className="absolute top-[calc(100%+0.5rem)] right-0 left-0 z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground shadow-xl sm:top-12 sm:left-auto sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
+            <div className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 left-0 z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground sm:top-12 sm:left-auto sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
               <div className="px-2 pt-1 pb-2">
                 <p className="text-sm font-bold">{t('editor.presets')}</p>
                 <p className="mt-0.5 text-xs leading-4 text-muted-foreground">
@@ -199,7 +199,7 @@ export function PatchEditorHeader({
                 <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
               </summary>
               <div
-                className="absolute top-12 right-0 z-40 grid w-64 gap-1 rounded-lg border bg-popover p-2 text-popover-foreground shadow-xl"
+                className="editor-menu-surface absolute top-12 right-0 z-40 grid w-64 gap-1 rounded-lg border bg-popover p-2 text-popover-foreground"
                 role="menu"
               >
                 <button

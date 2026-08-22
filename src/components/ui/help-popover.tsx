@@ -135,7 +135,7 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
           // Hover handlers keep the explanatory popup open; the note itself is intentionally not interactive.
           // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
           <div
-            className="font-vt323 fixed z-[100] w-[min(18.5rem,calc(100vw-1.5rem))] rounded-lg border border-primary/30 bg-popover p-3 text-left text-popover-foreground shadow-2xl"
+            className="popover-surface font-vt323 fixed z-[100] w-[min(18.5rem,calc(100vw-1.5rem))] rounded-lg border border-primary/30 bg-popover p-3 text-left text-popover-foreground"
             id={popoverId}
             onMouseEnter={cancelScheduledClose}
             onMouseLeave={scheduleClose}

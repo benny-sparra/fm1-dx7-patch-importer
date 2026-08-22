@@ -89,7 +89,7 @@ function WorkspaceBankRow({
         >
           <EllipsisVertical className="size-4" />
         </summary>
-        <div className="font-vt323 absolute top-0 left-full z-40 min-w-56 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+        <div className="menu-surface font-vt323 absolute top-0 left-full z-40 min-w-56 rounded-md border bg-popover p-1 text-popover-foreground">
           {renderActions(bank, closeActions)}
         </div>
       </details>

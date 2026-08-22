@@ -61,12 +61,12 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
     <details className="group relative" ref={menuRef}>
       <summary
         aria-label={t('common.settings')}
-        className="flex size-10 cursor-pointer list-none items-center justify-center rounded-md bg-transparent text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+        className="hero-action flex size-10 cursor-pointer list-none items-center justify-center rounded-md bg-transparent transition hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
         title={t('common.settings')}
       >
         <MoreVertical className="size-7" />
       </summary>
-      <div className="absolute top-12 right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 rounded-lg border bg-popover p-3 text-popover-foreground shadow-lg sm:grid-cols-2">
+      <div className="menu-surface absolute top-12 right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 rounded-lg border bg-popover p-3 text-popover-foreground sm:grid-cols-2">
         <div className="px-1 pt-1 sm:col-span-2">
           <p className="font-dot-matrix text-base font-semibold">{t('common.settings')}</p>
           <p className="font-vt323 mt-0.5 text-xs text-muted-foreground">

@@ -33,7 +33,7 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
     // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog
       className={cn(
-        'modal-surface fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] overflow-x-hidden overflow-y-auto rounded-lg border border-primary/30 bg-white p-0 whitespace-normal text-card-foreground shadow-2xl',
+        'modal-surface fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] overflow-x-hidden overflow-y-auto rounded-lg border border-primary/30 bg-white p-0 whitespace-normal text-card-foreground',
         dialogWidths[size],
         className,
       )}

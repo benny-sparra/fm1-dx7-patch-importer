@@ -233,7 +233,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
             >
               <EllipsisVertical className="size-5" />
             </summary>
-            <div className="font-vt323 absolute top-full right-0 z-50 mt-1 min-w-60 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg">
+            <div className="menu-surface font-vt323 absolute top-full right-0 z-50 mt-1 min-w-60 rounded-md border bg-popover p-1 text-popover-foreground">
               <button
                 className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                 disabled={library.loadedBanks.length === 0}

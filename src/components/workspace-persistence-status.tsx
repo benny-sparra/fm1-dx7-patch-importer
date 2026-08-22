@@ -53,7 +53,7 @@ export function WorkspacePersistenceStatus({ library }: { library: PersistenceLi
     return (
       <section className="mx-auto max-w-3xl px-4 py-8 sm:px-5 lg:px-8">
         <div
-          className="flex flex-col gap-4 rounded-lg border border-destructive/35 bg-white p-5 text-foreground shadow-lg sm:p-6"
+          className="raised-surface flex flex-col gap-4 rounded-lg border border-destructive/35 bg-white p-5 text-foreground sm:p-6"
           role="alert"
         >
           <div className="flex items-start gap-3">

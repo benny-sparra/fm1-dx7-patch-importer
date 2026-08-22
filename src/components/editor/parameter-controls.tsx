@@ -468,7 +468,7 @@ export function LfoWaveControl({
         </summary>
         <div
           aria-label={t('editor.lfoWave')}
-          className="absolute top-[calc(100%+0.25rem)] left-0 z-30 grid w-full min-w-48 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-lg"
+          className="menu-surface absolute top-[calc(100%+0.25rem)] left-0 z-30 grid w-full min-w-48 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground"
           role="radiogroup"
         >
           {lfoWaves.map((wave, index) => (

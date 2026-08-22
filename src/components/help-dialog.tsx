@@ -58,7 +58,7 @@ export function HelpDialog() {
     <>
       <Button
         aria-label={t('help.open')}
-        className="cursor-pointer bg-transparent text-white/70 hover:bg-transparent hover:text-white"
+        className="hero-action cursor-pointer bg-transparent hover:bg-transparent hover:text-[var(--hero-action-hover-foreground)]"
         onClick={() => dialogRef.current?.showModal()}
         size="icon"
         title={t('help.open')}

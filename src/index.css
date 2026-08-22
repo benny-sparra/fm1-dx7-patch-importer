@@ -21,6 +21,7 @@
   --color-input: hsl(267 28% 76%);
   --color-ring: hsl(315 82% 47%);
   --radius-lg: 0.65rem;
+  --radius-xl: 0.75rem;
   --radius-md: 0.45rem;
   --radius-sm: 0.3rem;
 }
@@ -37,6 +38,17 @@
     --fm1-finish-foreground: hsl(0 0% 100%);
     --fm1-keys: hsl(210 6% 24%);
     --fm1-keys-foreground: hsl(0 0% 100%);
+    --hero-supporting-foreground: hsl(0 0% 100% / 65%);
+    --hero-footer-foreground: hsl(0 0% 100% / 65%);
+    --hero-action-foreground: hsl(0 0% 100% / 70%);
+    --hero-action-hover-foreground: hsl(0 0% 100%);
+    --shadow-raised-surface: 0 10px 15px -3px hsl(0 0% 0% / 10%), 0 4px 6px -4px hsl(0 0% 0% / 10%);
+    --shadow-menu: 0 10px 15px -3px hsl(0 0% 0% / 10%), 0 4px 6px -4px hsl(0 0% 0% / 10%);
+    --shadow-editor-menu: 0 20px 25px -5px hsl(0 0% 0% / 10%), 0 8px 10px -6px hsl(0 0% 0% / 10%);
+    --shadow-editor-overlay: 0 25px 50px -12px hsl(0 0% 0% / 25%);
+    --shadow-popover: 0 25px 50px -12px hsl(0 0% 0% / 25%);
+    --shadow-modal: 0 25px 50px -12px hsl(0 0% 0% / 25%);
+    --shadow-toast: 0 20px 25px -5px hsl(0 0% 0% / 10%), 0 8px 10px -6px hsl(0 0% 0% / 10%);
   }
 
   :root[data-fm1-colorway='black'] {
@@ -228,6 +240,34 @@
     background-color: color-mix(in srgb, var(--fm1-finish-tint) 38%, var(--color-background));
   }
 
+  .raised-surface {
+    box-shadow: var(--shadow-raised-surface);
+  }
+
+  .menu-surface {
+    box-shadow: var(--shadow-menu);
+  }
+
+  .editor-menu-surface {
+    box-shadow: var(--shadow-editor-menu);
+  }
+
+  .editor-overlay-surface {
+    box-shadow: var(--shadow-editor-overlay);
+  }
+
+  .popover-surface {
+    box-shadow: var(--shadow-popover);
+  }
+
+  .modal-surface {
+    box-shadow: var(--shadow-modal);
+  }
+
+  .toast-surface {
+    box-shadow: var(--shadow-toast);
+  }
+
   .synthwave-shell {
     position: relative;
     isolation: isolate;
@@ -301,11 +341,52 @@
   }
 
   .synthwave-title {
+    display: flex;
+    flex-wrap: wrap;
     color: white;
     text-shadow:
       0 0 2px hsl(315 100% 76% / 42%),
       0 0 9px hsl(315 100% 62% / 22%),
       0 0 18px hsl(315 100% 62% / 12%);
+  }
+
+  .synthwave-title[data-layout='compact'] {
+    font-size: 1.25rem;
+  }
+
+  .synthwave-title[data-layout='full'] {
+    font-size: 2.25rem;
+  }
+
+  .synthwave-brand-row {
+    display: flex;
+    flex-basis: 100%;
+  }
+
+  .hero-supporting-text {
+    color: var(--hero-supporting-foreground);
+  }
+
+  .hero-footer-text {
+    color: var(--hero-footer-foreground);
+  }
+
+  .hero-action {
+    color: var(--hero-action-foreground);
+  }
+
+  .hero-action:hover {
+    color: var(--hero-action-hover-foreground);
+  }
+
+  @media (width >= 40rem) {
+    .synthwave-title[data-layout='compact'] {
+      font-size: 1.5rem;
+    }
+
+    .synthwave-title[data-layout='full'] {
+      font-size: 3rem;
+    }
   }
 
   .synthwave-hero-accent {
@@ -581,6 +662,7 @@
     --color-input: hsl(150 10% 16%);
     --color-ring: hsl(190 100% 22%);
     --radius-lg: 0.125rem;
+    --radius-xl: 0.125rem;
     --radius-md: 0.0625rem;
     --radius-sm: 0;
     --dx7-ink: hsl(0 0% 0%);
@@ -590,6 +672,16 @@
     --dx7-highlight: var(--fm1-accent);
     --dx7-highlight-text: var(--hero-accent);
     --dx7-pattern-color: var(--fm1-finish-tint);
+    --hero-supporting-foreground: color-mix(in srgb, var(--dx7-highlight) 46%, hsl(0 0% 82%));
+    --hero-footer-foreground: color-mix(in srgb, var(--dx7-highlight) 46%, hsl(0 0% 82%));
+    --hero-action-foreground: color-mix(in srgb, var(--dx7-highlight) 46%, hsl(0 0% 82%));
+    --shadow-raised-surface: 5px 5px 0 hsl(150 12% 12% / 55%);
+    --shadow-menu: 5px 5px 0 hsl(150 12% 12% / 55%);
+    --shadow-editor-menu: 5px 5px 0 hsl(150 12% 12% / 55%);
+    --shadow-editor-overlay: 5px 5px 0 hsl(150 12% 12% / 55%);
+    --shadow-popover: 5px 5px 0 hsl(150 12% 12% / 55%);
+    --shadow-modal: 5px 5px 0 hsl(150 12% 12% / 55%);
+    --shadow-toast: 5px 5px 0 hsl(150 12% 12% / 55%);
   }
 
   :root[data-theme='dx7'][data-fm1-colorway='black'] {
@@ -694,20 +786,21 @@
       0 0 16px color-mix(in srgb, var(--dx7-highlight) 12%, transparent);
   }
 
-  :root[data-theme='dx7'] .synthwave-title[class~='text-4xl'] {
-    display: grid !important;
+  :root[data-theme='dx7'] .synthwave-title[data-layout='full'] {
+    display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
     column-gap: 0.75rem;
     align-items: baseline;
-    font-size: clamp(1.4rem, 3vw, 2.5rem) !important;
+    font-size: clamp(1.4rem, 3vw, 2.5rem);
   }
 
-  :root[data-theme='dx7'] .synthwave-title[class~='text-4xl'] > :first-child {
+  :root[data-theme='dx7'] .synthwave-title[data-layout='full'] .synthwave-brand-row {
     grid-column: 1 / -1;
   }
 
-  :root[data-theme='dx7'] .synthwave-title[class~='text-4xl'] .synthwave-hero-accent {
-    white-space: nowrap;
+  :root[data-theme='dx7'] .synthwave-title[data-layout='full'] .synthwave-hero-accent {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   :root[data-theme='dx7'] .synthwave-hero-accent,
@@ -724,12 +817,6 @@
     border: 2px solid color-mix(in srgb, var(--dx7-highlight) 72%, transparent);
     border-radius: 0;
     box-shadow: 4px 4px 0 color-mix(in srgb, var(--dx7-highlight) 14%, transparent);
-  }
-
-  :root[data-theme='dx7'] .synthwave-hero .text-white\/65,
-  :root[data-theme='dx7'] .synthwave-hero .text-white\/70,
-  :root[data-theme='dx7'] footer.synthwave-hero {
-    color: color-mix(in srgb, var(--dx7-highlight) 46%, hsl(0 0% 82%));
   }
 
   :root[data-theme='dx7'] .synthwave-panel {
@@ -951,19 +1038,5 @@
     border-color: var(--dx7-highlight) !important;
     background: var(--dx7-highlight) !important;
     color: var(--dx7-ink) !important;
-  }
-
-  :root[data-theme='dx7'] :is(.rounded-lg, .rounded-xl) {
-    border-radius: 2px;
-  }
-
-  :root[data-theme='dx7'] .shadow-lg,
-  :root[data-theme='dx7'] .shadow-xl,
-  :root[data-theme='dx7'] .shadow-2xl {
-    box-shadow: 5px 5px 0 hsl(150 12% 12% / 55%);
-  }
-
-  :root[data-theme='dx7'] .drop-shadow-\[0_0_2px_currentColor\] {
-    filter: none;
   }
 }
