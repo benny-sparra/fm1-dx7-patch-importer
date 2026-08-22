@@ -145,6 +145,7 @@ clean result. Both commands block on high or critical advisories.
 | `npm test`                 | Run all unit and rendered accessibility tests                       |
 | `npm run test:a11y`        | Run the focused rendered Axe accessibility suite                    |
 | `npm run build`            | Create a production Vite build in `dist/`                           |
+| `npm run bundle:check`     | Enforce the transitive initial JavaScript gzip budget               |
 | `npm run check:install`    | Validate a clean install (requires registry access)                 |
 | `npm run lockfile:refresh` | Refresh the lockfile (requires registry access)                     |
 | `npm run setup:https`      | Create and trust the local HTTPS certificate                        |

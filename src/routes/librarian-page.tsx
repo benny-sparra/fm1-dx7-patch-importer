@@ -431,8 +431,8 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
       />
       <RestoreFactoryBanksDialog
         dialogRef={restoreFactoryBanksDialogRef}
-        onRestore={() => {
-          library.resetFactoryBanks()
+        onRestore={async () => {
+          await library.resetFactoryBanks()
           toast.success(t('toasts.banksRestored'))
         }}
       />

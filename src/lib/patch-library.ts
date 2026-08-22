@@ -1,6 +1,5 @@
 import { type Patch } from '@/data/patches'
-import { encodedDx7FactoryBanks } from '@/data/dx7-factory-banks'
-import { parseDx7Bank, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
+import { updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
 import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
 
 export const browserBanks = ['A', 'B', 'C', 'D'] as const
@@ -27,32 +26,6 @@ export function emptyPatchLibrary(
     voices: {},
     workspaceBanks: [...workspaceBanks],
   }
-}
-
-export function makeFactoryPatchLibrary(): PatchLibrarySnapshot {
-  return restoreFactoryPatchLibrary(emptyPatchLibrary())
-}
-
-export function restoreFactoryPatchLibrary(snapshot: PatchLibrarySnapshot): PatchLibrarySnapshot {
-  const prepared =
-    snapshot.workspaceBanks.length >= browserBanks.length
-      ? snapshot
-      : {
-          ...snapshot,
-          workspaceBanks: Array.from({ length: browserBanks.length }, (_, index) =>
-            String.fromCharCode(65 + index),
-          ),
-        }
-  const cleared = browserBanks.reduce((current, bank) => clearLibraryBank(current, bank), prepared)
-  return browserBanks.reduce((current, bank) => {
-    const binary = atob(encodedDx7FactoryBanks[bank])
-    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
-    return importVoices(current, bank, parseDx7Bank(bytes.buffer))
-  }, cleared)
-}
-
-export function initializePatchLibrary(stored: PatchLibrarySnapshot | null) {
-  return stored ?? makeFactoryPatchLibrary()
 }
 
 export function voiceId(bank: string, number: number) {

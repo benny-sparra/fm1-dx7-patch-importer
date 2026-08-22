@@ -8,20 +8,22 @@ import {
   emptyPatchLibrary,
   getNextWorkspaceBank,
   getBankVoices,
-  initializePatchLibrary,
   importVoices,
   makeBankFingerprint,
   makeDemoVoices,
-  makeFactoryPatchLibrary,
   makePatches,
   moveVoice,
   normalizeWorkspaceBankNameForSave,
   renameBank,
   renameVoice,
-  restoreFactoryPatchLibrary,
   updateBankInformation,
   voiceId,
 } from '@/lib/patch-library'
+import {
+  initializePatchLibrary,
+  makeFactoryPatchLibrary,
+  restoreFactoryPatchLibrary,
+} from '@/lib/factory-patch-library'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 
 describe('patch library operations', () => {

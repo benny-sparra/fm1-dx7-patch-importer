@@ -21,7 +21,7 @@ export type WorkspacePersistenceState = {
 }
 
 type WorkspacePersistenceDependencies = {
-  createFactory: () => PatchLibrarySnapshot
+  createFactory: () => PatchLibrarySnapshot | Promise<PatchLibrarySnapshot>
   debounceMs?: number
   load: () => Promise<PatchLibrarySnapshot | null>
   onWorkspaceLoaded?: (workspace: PatchLibrarySnapshot) => void
@@ -48,7 +48,7 @@ function persistenceError(
 }
 
 export class WorkspacePersistenceController {
-  private readonly createFactory: () => PatchLibrarySnapshot
+  private readonly createFactory: () => PatchLibrarySnapshot | Promise<PatchLibrarySnapshot>
   private readonly debounceMs: number
   private readonly listeners = new Set<(state: WorkspacePersistenceState) => void>()
   private readonly load: () => Promise<PatchLibrarySnapshot | null>
@@ -109,18 +109,41 @@ export class WorkspacePersistenceController {
 
   continueWithoutSaving() {
     if (this.disposed || this.state.status !== 'load-error') return
-    const workspace = this.createFactory()
-    this.mode = 'session-only'
-    this.currentRevision = 1
-    this.savedRevision = 0
+    const attempt = ++this.loadAttempt
+    this.mode = 'loading'
     this.setState({
       error: null,
       hasSaveFailure: false,
-      hasUnsavedChanges: true,
-      status: 'session-only',
-      workspace,
+      hasUnsavedChanges: false,
+      status: 'loading',
+      workspace: null,
     })
-    this.onWorkspaceLoaded?.(workspace)
+    void Promise.resolve()
+      .then(() => this.createFactory())
+      .then((workspace) => {
+        if (this.disposed || attempt !== this.loadAttempt) return
+        this.mode = 'session-only'
+        this.currentRevision = 1
+        this.savedRevision = 0
+        this.setState({
+          error: null,
+          hasSaveFailure: false,
+          hasUnsavedChanges: true,
+          status: 'session-only',
+          workspace,
+        })
+        this.onWorkspaceLoaded?.(workspace)
+      })
+      .catch((error: unknown) => {
+        if (this.disposed || attempt !== this.loadAttempt) return
+        this.setState({
+          error: persistenceError(error, 'read-failed'),
+          hasSaveFailure: false,
+          hasUnsavedChanges: false,
+          status: 'load-error',
+          workspace: null,
+        })
+      })
   }
 
   updateWorkspace(workspace: PatchLibrarySnapshot) {
@@ -168,9 +191,10 @@ export class WorkspacePersistenceController {
     })
 
     void this.load()
-      .then((stored) => {
+      .then(async (stored) => {
         if (this.disposed || attempt !== this.loadAttempt) return
-        const workspace = stored ?? this.createFactory()
+        const workspace = stored ?? (await this.createFactory())
+        if (this.disposed || attempt !== this.loadAttempt) return
         this.mode = 'persistent'
         this.currentRevision = stored ? 0 : 1
         this.savedRevision = 0

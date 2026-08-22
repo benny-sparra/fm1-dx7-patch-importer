@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     build: {
+      manifest: true,
       sourcemap: env.SOURCE_MAPS === 'true',
     },
     plugins: [react(), tailwindcss()],

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { importVoices, makeDemoVoices, makeFactoryPatchLibrary } from '@/lib/patch-library'
+import { makeFactoryPatchLibrary } from '@/lib/factory-patch-library'
+import { importVoices, makeDemoVoices } from '@/lib/patch-library'
 import { shouldWarnBeforeUnload, WorkspacePersistenceController } from '@/lib/workspace-persistence'
 
 function deferred<T = void>() {
@@ -14,6 +15,8 @@ function deferred<T = void>() {
 }
 
 const flushPromises = async () => {
+  await Promise.resolve()
+  await Promise.resolve()
   await Promise.resolve()
   await Promise.resolve()
 }
@@ -43,6 +46,68 @@ describe('WorkspacePersistenceController', () => {
       workspace: stored,
     })
     expect(save).not.toHaveBeenCalled()
+  })
+
+  it('does not request factory data when stored workspace loading succeeds', async () => {
+    const stored = makeFactoryPatchLibrary()
+    const createFactory = vi.fn(makeFactoryPatchLibrary)
+    const controller = new WorkspacePersistenceController({
+      createFactory,
+      load: async () => stored,
+      save: async () => {},
+    })
+
+    controller.start()
+    await flushPromises()
+
+    expect(controller.getState()).toMatchObject({ status: 'ready', workspace: stored })
+    expect(createFactory).not.toHaveBeenCalled()
+  })
+
+  it('keeps loading until first-run factory data is ready', async () => {
+    const factory = deferred<ReturnType<typeof makeFactoryPatchLibrary>>()
+    const controller = new WorkspacePersistenceController({
+      createFactory: () => factory.promise,
+      load: async () => null,
+      save: async () => {},
+    })
+
+    controller.start()
+    await flushPromises()
+    expect(controller.getState().status).toBe('loading')
+
+    const workspace = makeFactoryPatchLibrary()
+    factory.resolve(workspace)
+    await flushPromises()
+
+    expect(controller.getState()).toMatchObject({ status: 'saving', workspace })
+  })
+
+  it('exposes a factory load failure and can retry it', async () => {
+    const workspace = makeFactoryPatchLibrary()
+    const createFactory = vi
+      .fn<() => Promise<typeof workspace>>()
+      .mockRejectedValueOnce(new Error('Factory chunk unavailable'))
+      .mockResolvedValueOnce(workspace)
+    const controller = new WorkspacePersistenceController({
+      createFactory,
+      load: async () => null,
+      save: async () => {},
+    })
+
+    controller.start()
+    await flushPromises()
+    expect(controller.getState()).toMatchObject({
+      error: { detail: 'Factory chunk unavailable' },
+      status: 'load-error',
+      workspace: null,
+    })
+
+    controller.retryLoading()
+    await flushPromises()
+
+    expect(createFactory).toHaveBeenCalledTimes(2)
+    expect(controller.getState()).toMatchObject({ status: 'saving', workspace })
   })
 
   it('creates and persists a factory workspace after a successful empty read', async () => {
@@ -165,6 +230,7 @@ describe('WorkspacePersistenceController', () => {
     controller.start()
     await flushPromises()
     controller.continueWithoutSaving()
+    await flushPromises()
     const edited = importVoices(controller.getState().workspace!, 'A', makeDemoVoices())
     controller.updateWorkspace(edited)
     controller.retryLoading()
@@ -366,6 +432,29 @@ describe('WorkspacePersistenceController', () => {
     await flushPromises()
 
     expect(saveListener).toHaveBeenCalledTimes(callsBeforeDisposal)
+  })
+
+  it('ignores factory data that finishes loading after disposal', async () => {
+    const factory = deferred<ReturnType<typeof makeFactoryPatchLibrary>>()
+    const onWorkspaceLoaded = vi.fn()
+    const listener = vi.fn()
+    const controller = new WorkspacePersistenceController({
+      createFactory: () => factory.promise,
+      load: async () => null,
+      onWorkspaceLoaded,
+      save: async () => {},
+    })
+    controller.subscribe(listener)
+    controller.start()
+    await flushPromises()
+    const callsBeforeDisposal = listener.mock.calls.length
+
+    controller.dispose()
+    factory.resolve(makeFactoryPatchLibrary())
+    await flushPromises()
+
+    expect(onWorkspaceLoaded).not.toHaveBeenCalled()
+    expect(listener).toHaveBeenCalledTimes(callsBeforeDisposal)
   })
 })
 

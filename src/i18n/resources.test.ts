@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest'
 
-import { resources } from './resources'
+import de from './locales/de'
+import en from './locales/en'
+import es from './locales/es'
+import fr from './locales/fr'
+import ptBR from './locales/pt-BR'
+import zhHans from './locales/zh-Hans'
+
+const resources = {
+  de: { translation: de },
+  en: { translation: en },
+  es: { translation: es },
+  fr: { translation: fr },
+  'pt-BR': { translation: ptBR },
+  'zh-Hans': { translation: zhHans },
+}
 
 function flattenKeys(value: object, prefix = ''): string[] {
   return Object.entries(value).flatMap(([key, child]) => {

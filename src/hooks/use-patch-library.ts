@@ -16,12 +16,10 @@ import {
   getBankVoices as selectBankVoices,
   importVoices,
   makeDemoVoices,
-  makeFactoryPatchLibrary,
   makePatches,
   moveVoice as moveLibraryVoice,
   renameBank as renameLibraryBank,
   renameVoice as renameLibraryVoice,
-  restoreFactoryPatchLibrary,
   updateBankInformation as updateLibraryBankInformation,
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
@@ -66,7 +64,10 @@ export function usePatchLibrary() {
 
   useEffect(() => {
     const controller = new WorkspacePersistenceController({
-      createFactory: makeFactoryPatchLibrary,
+      createFactory: async () => {
+        const { makeFactoryPatchLibrary } = await import('@/lib/factory-patch-library')
+        return makeFactoryPatchLibrary()
+      },
       load: async () => {
         const stored = await loadStoredPatchLibrary()
         return stored
@@ -238,7 +239,8 @@ export function usePatchLibrary() {
     [commit],
   )
 
-  const resetFactoryBanks = useCallback(() => {
+  const resetFactoryBanks = useCallback(async () => {
+    const { restoreFactoryPatchLibrary } = await import('@/lib/factory-patch-library')
     commit((current) => restoreFactoryPatchLibrary(current))
   }, [commit])
 
