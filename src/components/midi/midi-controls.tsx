@@ -54,7 +54,7 @@ export function MidiConnectionError({ midi }: MidiControlsProps) {
   if (!midi.error) return null
 
   return (
-    <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+    <div className="rounded-md border border-white/20 bg-white/10 px-4 py-3 text-sm text-white">
       {midi.error}
     </div>
   )

@@ -10,7 +10,9 @@
     "dev:https": "vite --mode https --host 127.0.0.1",
     "setup:https": "bash scripts/setup-https.sh",
     "build": "tsc -b && vite build",
+    "check:install": "npx --yes npm@11.16.0 ci --dry-run --ignore-scripts --no-audit --no-fund",
     "lint": "oxlint",
+    "lockfile:refresh": "npx --yes npm@11.16.0 install --package-lock-only --ignore-scripts --no-audit --no-fund",
     "preview": "vite preview",
     "preview:https": "vite preview --mode https",
     "test": "vitest run"

@@ -72,13 +72,25 @@ Workspace-bank titles, descriptions, imported sounds, voice ordering, saved edit
 
 ## Local development
 
-Install a current Node.js LTS release, then run:
+Use Node.js 24.18.0 and npm 11.16.0, as pinned by `.node-version` and
+`package.json`, then run:
 
 ```bash
 npm install
 npm run setup:https
 npm run dev
 ```
+
+After adding, removing, or updating a dependency, refresh and validate the
+lockfile with the same npm release used by Cloudflare:
+
+```bash
+npm run lockfile:refresh
+npm run check:install
+```
+
+The second command catches incomplete platform-specific optional dependency
+entries before they reach a pull request build.
 
 The one-time HTTPS setup uses [`mkcert`](https://github.com/FiloSottile/mkcert) to create and trust a local certificate. On macOS, install it first with `brew install mkcert`. Open the HTTPS URL printed by Vite.
 
@@ -93,7 +105,9 @@ To use HTTP instead, run `npm run dev:http`.
 | `npm run dev:http` | Start the Vite development server with HTTP |
 | `npm run dev:https` | Start Vite on `127.0.0.1` with HTTPS |
 | `npm run build` | Type-check and create a production build in `dist/` |
+| `npm run check:install` | Validate a clean install with Cloudflare's npm release |
 | `npm run lint` | Run Oxlint |
+| `npm run lockfile:refresh` | Refresh the lockfile with Cloudflare's npm release |
 | `npm test` | Run the automated unit tests |
 | `npm run preview` | Preview the production build locally |
 | `npm run preview:https` | Preview the production build locally over HTTPS |
