@@ -201,8 +201,6 @@ export default {
       'Der aktuelle Inhalt der Bank wird gelöscht und durch die importierten Sounds ersetzt.',
   },
   persistence: {
-    saved: 'Arbeitsbereich gespeichert',
-    saving: 'Arbeitsbereich wird gespeichert…',
     retryLoading: 'Erneut versuchen',
     continueSessionOnly: 'Ohne Speichern fortfahren',
     retrySaving: 'Speichern erneut versuchen',

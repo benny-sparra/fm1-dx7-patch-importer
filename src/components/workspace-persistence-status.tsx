@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, LoaderCircle } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -17,27 +17,12 @@ export function WorkspacePersistenceStatus({ library }: { library: PersistenceLi
   const { t } = useTranslation()
   const { persistenceError, persistenceStatus } = library
 
-  if (persistenceStatus === 'loading') return null
-
-  if (persistenceStatus === 'ready' || persistenceStatus === 'saving') {
-    return (
-      <div
-        aria-live="polite"
-        className="mx-auto flex max-w-7xl items-center gap-2 px-4 pt-4 text-xs font-semibold text-muted-foreground sm:px-5 lg:px-8"
-        role="status"
-      >
-        {persistenceStatus === 'saving' ? (
-          <LoaderCircle
-            aria-hidden="true"
-            className="size-4 animate-spin motion-reduce:animate-none"
-          />
-        ) : (
-          <CheckCircle2 aria-hidden="true" className="size-4 text-emerald-700" />
-        )}
-        {t(persistenceStatus === 'saving' ? 'persistence.saving' : 'persistence.saved')}
-      </div>
-    )
-  }
+  if (
+    persistenceStatus === 'loading' ||
+    persistenceStatus === 'ready' ||
+    persistenceStatus === 'saving'
+  )
+    return null
 
   const technicalDetails = persistenceError?.detail ? (
     <details className="text-xs">

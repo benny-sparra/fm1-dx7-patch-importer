@@ -198,8 +198,6 @@ export default {
     warning: 'El contenido actual del banco se borrará y se sustituirá por los sonidos importados.',
   },
   persistence: {
-    saved: 'Espacio de trabajo guardado',
-    saving: 'Guardando el espacio de trabajo…',
     retryLoading: 'Reintentar',
     continueSessionOnly: 'Continuar sin guardar',
     retrySaving: 'Reintentar guardado',

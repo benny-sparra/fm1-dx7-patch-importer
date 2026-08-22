@@ -175,8 +175,6 @@ export default {
     warning: '此音色库的现有内容将被清除，并替换为导入的声音。',
   },
   persistence: {
-    saved: '工作区已保存',
-    saving: '正在保存工作区…',
     retryLoading: '重试',
     continueSessionOnly: '继续但不保存',
     retrySaving: '重试保存',

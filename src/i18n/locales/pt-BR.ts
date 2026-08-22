@@ -197,8 +197,6 @@ export default {
     warning: 'O conteúdo atual do banco será apagado e substituído pelos sons importados.',
   },
   persistence: {
-    saved: 'Espaço de trabalho salvo',
-    saving: 'Salvando o espaço de trabalho…',
     retryLoading: 'Tentar novamente',
     continueSessionOnly: 'Continuar sem salvar',
     retrySaving: 'Tentar salvar novamente',

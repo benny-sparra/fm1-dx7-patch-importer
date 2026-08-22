@@ -200,8 +200,6 @@ export default {
     warning: 'Le contenu actuel de la banque sera effacé et remplacé par les sons importés.',
   },
   persistence: {
-    saved: 'Espace de travail enregistré',
-    saving: 'Enregistrement de l’espace de travail…',
     retryLoading: 'Réessayer',
     continueSessionOnly: 'Continuer sans enregistrer',
     retrySaving: 'Réessayer l’enregistrement',

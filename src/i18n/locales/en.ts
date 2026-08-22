@@ -198,8 +198,6 @@ export default {
     warning: 'The bank’s current contents will be wiped and replaced by the imported sounds.',
   },
   persistence: {
-    saved: 'Workspace saved',
-    saving: 'Saving workspace…',
     retryLoading: 'Retry',
     continueSessionOnly: 'Continue without saving',
     retrySaving: 'Retry saving',
