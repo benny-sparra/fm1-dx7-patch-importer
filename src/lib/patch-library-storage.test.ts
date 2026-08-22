@@ -139,6 +139,29 @@ describe('saveStoredPatchLibrary', () => {
     })
   })
 
+  it('classifies a malformed saved record as incompatible without changing it', async () => {
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {},
+      loadedBanks: [],
+      savedAt: '2026-08-17T08:00:00.000Z',
+      version: 5,
+      voices: null,
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'incompatible',
+    })
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+
   it('treats stored banks as authoritative and compacts legacy gaps', async () => {
     const shiftedVoice = { data: new Uint8Array(128), name: 'SHIFTED' }
     const shiftedEffects = makeDefaultFm1Effects()

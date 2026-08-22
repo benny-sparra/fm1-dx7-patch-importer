@@ -15,7 +15,6 @@ import {
   emptyPatchLibrary,
   getBankVoices as selectBankVoices,
   importVoices,
-  initializePatchLibrary,
   makeDemoVoices,
   makeFactoryPatchLibrary,
   makePatches,
@@ -33,6 +32,11 @@ import {
   saveStoredNamedBank,
   saveStoredPatchLibrary,
 } from '@/lib/patch-library-storage'
+import {
+  shouldWarnBeforeUnload,
+  WorkspacePersistenceController,
+  type WorkspacePersistenceState,
+} from '@/lib/workspace-persistence'
 
 type History = {
   future: PatchLibrarySnapshot[]
@@ -51,16 +55,21 @@ export function usePatchLibrary() {
   const [namedBanks, setNamedBanks] = useState<NamedBank[]>([])
   const [namedBanksError, setNamedBanksError] = useState('')
   const [namedBanksLoading, setNamedBanksLoading] = useState(true)
-  const [workspaceLoading, setWorkspaceLoading] = useState(true)
-  const hydrated = useRef(false)
-  const storageAvailable = useRef(true)
+  const [persistence, setPersistence] = useState<WorkspacePersistenceState>({
+    error: null,
+    hasSaveFailure: false,
+    hasUnsavedChanges: false,
+    status: 'loading',
+    workspace: null,
+  })
+  const persistenceController = useRef<WorkspacePersistenceController | null>(null)
 
   useEffect(() => {
-    let cancelled = false
-    void loadStoredPatchLibrary()
-      .then((stored) => {
-        if (cancelled) return
-        const savedLibrary = stored ? {
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => {
+        const stored = await loadStoredPatchLibrary()
+        return stored ? {
           bankDescriptions: stored.bankDescriptions,
           bankNames: stored.bankNames,
           effects: stored.effects,
@@ -68,22 +77,24 @@ export function usePatchLibrary() {
           voices: stored.voices,
           workspaceBanks: stored.workspaceBanks,
         } : null
+      },
+      onWorkspaceLoaded: (workspace) => {
         setHistory({
           future: [],
           past: [],
-          present: initializePatchLibrary(savedLibrary),
+          present: workspace,
         })
-        hydrated.current = true
-        setWorkspaceLoading(false)
-      })
-      .catch(() => {
-        if (cancelled) return
-        setHistory({ future: [], past: [], present: makeFactoryPatchLibrary() })
-        hydrated.current = true
-        storageAvailable.current = false
-        setWorkspaceLoading(false)
-      })
-    return () => { cancelled = true }
+      },
+      save: saveStoredPatchLibrary,
+    })
+    persistenceController.current = controller
+    const unsubscribe = controller.subscribe(setPersistence)
+    controller.start()
+    return () => {
+      unsubscribe()
+      controller.dispose()
+      if (persistenceController.current === controller) persistenceController.current = null
+    }
   }, [])
 
   useEffect(() => {
@@ -102,13 +113,30 @@ export function usePatchLibrary() {
   }, [])
 
   useEffect(() => {
-    if (!hydrated.current || !storageAvailable.current) return
-    const timeout = window.setTimeout(() => {
-      void saveStoredPatchLibrary(history.present)
-        .catch(() => { storageAvailable.current = false })
-    }, 350)
-    return () => window.clearTimeout(timeout)
+    persistenceController.current?.updateWorkspace(history.present)
   }, [history.present])
+
+  useEffect(() => {
+    if (!shouldWarnBeforeUnload(persistence)) return
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', warnBeforeUnload)
+    return () => window.removeEventListener('beforeunload', warnBeforeUnload)
+  }, [persistence])
+
+  const retryWorkspaceLoading = useCallback(() => {
+    persistenceController.current?.retryLoading()
+  }, [])
+
+  const continueWithoutWorkspaceSaving = useCallback(() => {
+    persistenceController.current?.continueWithoutSaving()
+  }, [])
+
+  const retryWorkspaceSaving = useCallback(() => {
+    persistenceController.current?.retrySaving()
+  }, [])
 
   const commit = useCallback((update: (current: PatchLibrarySnapshot) => PatchLibrarySnapshot) => {
     setHistory((current) => {
@@ -264,6 +292,7 @@ export function usePatchLibrary() {
     canRedo: history.future.length > 0,
     canUndo: history.past.length > 0,
     copyNamedBank,
+    continueWithoutWorkspaceSaving,
     deleteNamedBank,
     deleteBank,
     getBankVoices,
@@ -278,9 +307,13 @@ export function usePatchLibrary() {
     namedBanksError,
     namedBanksLoading,
     patches,
+    persistenceError: persistence.error,
+    persistenceStatus: persistence.status,
     redo,
     renameBank,
     renameVoice,
+    retryWorkspaceLoading,
+    retryWorkspaceSaving,
     resetFactoryBanks,
     saveNamedBank,
     undo,
@@ -291,7 +324,8 @@ export function usePatchLibrary() {
     effects: history.present.effects,
     voices: history.present.voices,
     workspaceBanks: history.present.workspaceBanks,
-    workspaceLoading,
+    workspaceHasUnsavedChanges: persistence.hasUnsavedChanges,
+    workspaceLoading: persistence.status === 'loading',
   }
 }
 

@@ -3,6 +3,7 @@ import { bankSourceResources } from './bank-source-resources'
 import { helpResources } from './help-resources'
 import { namedBankResources } from './named-bank-resources'
 import { overwriteImportResources } from './overwrite-import-resources'
+import { persistenceResources } from './persistence-resources'
 import { toastResources } from './toast-resources'
 import { uiResources } from './ui-resources'
 
@@ -13,6 +14,7 @@ export const resources = {
       ...helpResources.en,
       ...uiResources.en,
       ...overwriteImportResources.en,
+      ...persistenceResources.en,
       ...toastResources.en,
       meta: {
         title: 'M-VAVE FM1 Editor & Librarian',
@@ -68,6 +70,7 @@ export const resources = {
       ...helpResources.fr,
       ...uiResources.fr,
       ...overwriteImportResources.fr,
+      ...persistenceResources.fr,
       ...toastResources.fr,
       meta: {
         title: 'Éditeur et bibliothécaire M-VAVE FM1',
@@ -103,6 +106,7 @@ export const resources = {
       ...helpResources.es,
       ...uiResources.es,
       ...overwriteImportResources.es,
+      ...persistenceResources.es,
       ...toastResources.es,
       meta: {
         title: 'Editor y bibliotecario M-VAVE FM1',
@@ -126,6 +130,7 @@ export const resources = {
       ...helpResources.de,
       ...uiResources.de,
       ...overwriteImportResources.de,
+      ...persistenceResources.de,
       ...toastResources.de,
       meta: {
         title: 'M-VAVE FM1 Editor und Librarian',
@@ -149,6 +154,7 @@ export const resources = {
       ...helpResources.ptBR,
       ...uiResources.ptBR,
       ...overwriteImportResources.ptBR,
+      ...persistenceResources.ptBR,
       ...toastResources.ptBR,
       meta: {
         title: 'Editor e bibliotecário M-VAVE FM1',
@@ -172,6 +178,7 @@ export const resources = {
       ...helpResources.zhHans,
       ...uiResources.zhHans,
       ...overwriteImportResources.zhHans,
+      ...persistenceResources.zhHans,
       ...toastResources.zhHans,
       meta: {
         title: 'M-VAVE FM1 音色编辑器与音色库',

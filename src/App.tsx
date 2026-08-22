@@ -8,6 +8,7 @@ import { LibrarianPage } from '@/routes/librarian-page'
 import { RootLayout } from '@/routes/root-layout'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { useToast } from '@/components/ui/toast'
+import { WorkspacePersistenceStatus } from '@/components/workspace-persistence-status'
 
 const PatchEditorPage = lazy(() => import('@/routes/patch-editor-page').then((module) => ({
   default: module.PatchEditorPage,
@@ -44,29 +45,37 @@ function App() {
 
   return (
     <RootLayout compact={Boolean(selectedPatch && selectedVoice)} midi={midi}>
-      {selectedPatch && selectedVoice ? (
-        <Suspense fallback={loadingSection(t('common.loading'))}>
-          <PatchEditorPage
-            key={selectedPatch.id}
-            midi={midi}
-            onBack={() => setSelectedPatchId('')}
-            effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
-            onSave={(voice, effects) => {
-              library.updatePatch(selectedPatch.id, voice, effects)
-              toast.success(t('toasts.patchSaved', { patch: selectedPatch.name }))
-            }}
-            patch={selectedPatch}
-            voice={selectedVoice}
-          />
-        </Suspense>
-      ) : library.workspaceLoading ? loadingSection(t('common.loadingLibrary')) : (
-        <LibrarianPage
-          activePatchId={auditionedPatchId}
-          library={library}
-          midi={midi}
-          onEditPatch={(patch) => editPatch(patch.id)}
-        />
-      )}
+      {library.workspaceLoading ? loadingSection(t('common.loadingLibrary'))
+        : library.persistenceStatus === 'load-error' ? (
+          <WorkspacePersistenceStatus library={library} />
+        ) : (
+          <>
+            <WorkspacePersistenceStatus library={library} />
+            {selectedPatch && selectedVoice ? (
+              <Suspense fallback={loadingSection(t('common.loading'))}>
+                <PatchEditorPage
+                  key={selectedPatch.id}
+                  midi={midi}
+                  onBack={() => setSelectedPatchId('')}
+                  effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
+                  onSave={(voice, effects) => {
+                    library.updatePatch(selectedPatch.id, voice, effects)
+                    toast.success(t('toasts.patchSaved', { patch: selectedPatch.name }))
+                  }}
+                  patch={selectedPatch}
+                  voice={selectedVoice}
+                />
+              </Suspense>
+            ) : (
+              <LibrarianPage
+                activePatchId={auditionedPatchId}
+                library={library}
+                midi={midi}
+                onEditPatch={(patch) => editPatch(patch.id)}
+              />
+            )}
+          </>
+        )}
     </RootLayout>
   )
 }
