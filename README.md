@@ -175,10 +175,11 @@ The full-size WebPs in `src/assets/` are the source images and the largest brows
 Smaller candidates in `src/assets/generated/` are committed build inputs so a normal Vite build
 does not depend on platform-specific manual tooling. After changing a source image, run
 `npm run images:generate` with the pinned Node/npm toolchain and commit the regenerated candidates.
-`npm run images:check` recreates every candidate in memory with the pinned dev-only Sharp version,
-checks dimensions and aspect ratios, rejects candidates larger than their source, and byte-compares
-the result with the committed file. The post-build check also requires a hashed production asset
-for every candidate. Do not edit files in `src/assets/generated/` manually.
+`npm run images:check` checks the source and candidate dimensions and aspect ratios, verifies each
+candidate is a readable WebP, and rejects candidates larger than their source. It intentionally does
+not byte-compare newly encoded images because native WebP output can vary by platform. The
+post-build check also requires a hashed production asset for every candidate. Do not edit files in
+`src/assets/generated/` manually.
 
 ### Production source maps
 

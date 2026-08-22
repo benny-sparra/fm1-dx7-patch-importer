@@ -39,7 +39,7 @@ jobs:
         run: npm run deps:check
       - name: Run unit and accessibility tests
         run: npm test
-      - name: Check responsive image sources
+      - name: Check responsive image assets
         run: npm run images:check
       - name: Build production bundle
         run: npm run build
