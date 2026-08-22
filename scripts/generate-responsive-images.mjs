@@ -11,6 +11,10 @@ import {
 } from './responsive-image-config.mjs'
 
 const checkOnly = process.argv.includes('--check')
+
+// Keep resize rounding identical across CPU architectures so byte checks are portable.
+sharp.simd(false)
+
 const webpOptions = {
   alphaQuality: 100,
   effort: 6,
