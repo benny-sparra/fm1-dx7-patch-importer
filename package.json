@@ -15,7 +15,8 @@
     "lockfile:refresh": "npx --yes npm@11.16.0 install --package-lock-only --ignore-scripts --no-audit --no-fund",
     "preview": "vite preview",
     "preview:https": "vite preview --mode https",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:cls": "npm run build && node scripts/check-layout-shift.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

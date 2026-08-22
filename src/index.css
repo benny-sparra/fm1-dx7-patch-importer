@@ -147,6 +147,7 @@
   body {
     margin: 0;
     min-width: 320px;
+    line-height: 1.5;
     font-family:
       "Space Grotesk Variable", "Space Grotesk", ui-sans-serif, system-ui, -apple-system,
       BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -191,15 +192,15 @@
 
 @layer components {
   .font-dot-matrix {
-    font-family: "Doto Variable", "SFMono-Regular", "Cascadia Mono", monospace;
+    font-family: "Doto Variable", "Doto Metrics Fallback", ui-monospace, monospace;
   }
 
   .font-vt323 {
-    font-family: "VT323", "SFMono-Regular", "Cascadia Mono", monospace;
+    font-family: "VT323", "VT323 Metrics Fallback", ui-monospace, monospace;
   }
 
   .patch-editor-page :is(select, details) {
-    font-family: "VT323", "SFMono-Regular", "Cascadia Mono", monospace;
+    font-family: "VT323", "VT323 Metrics Fallback", ui-monospace, monospace;
   }
 
   .settings-option {
@@ -492,8 +493,7 @@
   }
 
   :root[data-theme="dx7"] body {
-    font-family: "Doto Variable", "SFMono-Regular", "Cascadia Mono", monospace;
-    font-size-adjust: 0.55;
+    font-family: "Doto Variable", "Doto Metrics Fallback", ui-monospace, monospace;
     font-weight: 550;
     letter-spacing: 0.015em;
     background-color: hsl(0 0% 19%);

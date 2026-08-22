@@ -33,7 +33,7 @@ function App() {
   const loadingSection = (label: string) => (
     <section
       aria-live="polite"
-      className="mx-auto flex min-h-64 max-w-[90rem] items-center justify-center px-4 py-8 text-sm font-semibold text-muted-foreground"
+      className="mx-auto flex min-h-svh max-w-[90rem] items-center justify-center px-4 py-8 text-sm font-semibold text-muted-foreground"
       role="status"
     >
       <div className="flex flex-col items-center gap-3 rounded-md bg-white px-6 py-5">
