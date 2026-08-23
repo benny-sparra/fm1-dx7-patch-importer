@@ -376,7 +376,7 @@ export function OperatorStrip({
                   stroke="var(--fm1-accent)"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth="10"
+                  strokeWidth="3"
                   vectorEffect="non-scaling-stroke"
                 />
               </svg>
