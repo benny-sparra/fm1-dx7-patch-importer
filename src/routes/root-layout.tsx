@@ -2,7 +2,7 @@ import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import mVaveLogo from '@/assets/m-vave-logo.svg'
+import mVaveLogo from '@/assets/m-vave-logo.svg?no-inline'
 import { HelpDialog } from '@/components/help-dialog'
 import {
   MidiConnectActions,

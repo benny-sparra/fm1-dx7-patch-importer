@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 
 const expectedDirectives = new Map([
@@ -10,7 +10,7 @@ const expectedDirectives = new Map([
   ['form-action', ["'self'"]],
   ['script-src', ["'self'", 'https://cloud.umami.is']],
   ['script-src-attr', ["'none'"]],
-  ['connect-src', ["'self'", 'https://cloud.umami.is']],
+  ['connect-src', ["'self'", 'https://gateway.umami.is']],
   ['style-src', ["'self'"]],
   ['style-src-attr', ["'unsafe-inline'"]],
   ['img-src', ["'self'"]],
@@ -69,6 +69,23 @@ for (const [name, expectedSources] of expectedDirectives) {
   if (!sources || sources.join(' ') !== expectedSources.join(' ')) {
     throw new Error(
       `${name} is ${sources?.join(' ') || 'missing'}; expected ${expectedSources.join(' ') || 'no sources'}.`,
+    )
+  }
+}
+
+const outputDirectory = path.resolve('dist')
+const assetDirectory = path.join(outputDirectory, 'assets')
+const browserTextFiles = [
+  path.join(outputDirectory, 'index.html'),
+  ...(await readdir(assetDirectory))
+    .filter((filename) => /\.(?:css|js)$/.test(filename))
+    .map((filename) => path.join(assetDirectory, filename)),
+]
+for (const filename of browserTextFiles) {
+  const contents = await readFile(filename, 'utf8')
+  if (contents.includes('data:image/')) {
+    throw new Error(
+      `${path.relative(outputDirectory, filename)} contains an image blocked by img-src 'self'.`,
     )
   }
 }
