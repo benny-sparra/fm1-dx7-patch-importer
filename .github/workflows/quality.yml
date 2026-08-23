@@ -45,6 +45,8 @@ jobs:
         run: npm run build
       - name: Check responsive production assets
         run: npm run images:check:dist
+      - name: Check production security headers
+        run: npm run security:check
       - name: Check production source maps
         run: npm run sourcemaps:check
       - name: Check initial JavaScript budget

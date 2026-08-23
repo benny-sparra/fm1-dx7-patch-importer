@@ -79,6 +79,13 @@ only fixed feature names and coarse diagnostic categories. Patch and bank names,
 MIDI port identities, SysEx data, browser error messages, and persistent user identifiers are never
 sent. The interface links to [Umami's privacy policy](https://umami.is/privacy).
 
+## Deployment security
+
+Cloudflare Pages applies the Content Security Policy in `public/_headers` to every route. The policy
+keeps scripts, styles, fonts, images, frames, workers, and network requests self-hosted except for the
+Umami tracker and its event endpoint. Run `npm run build` followed by `npm run security:check` after
+changing the policy or introducing a new browser resource origin.
+
 ## Local development
 
 Use Node.js 24.18.0 and npm 11.16.0, as pinned by `.node-version` and
@@ -115,9 +122,9 @@ npm run check
 
 This checks formatting, TypeScript/React and CSS linting, compiler types, unused
 dependencies/files/exports, unit and rendered accessibility tests, reproducible responsive image
-assets, the production build, public source maps, and the initial JavaScript budget. It does not
-contact the npm registry. GitHub Actions runs the same layers on pushes to `main` and on pull
-requests.
+assets, the production build, deployed security headers, public source maps, and the initial
+JavaScript budget. It does not contact the npm registry. GitHub Actions runs the same layers on
+pushes to `main` and on pull requests.
 
 Use `npm run format` for deterministic formatting and Tailwind class ordering. Use
 `npm run lint:fix` for ordinary Oxlint and Stylelint autofixes. Review both diffs before committing,
@@ -151,6 +158,7 @@ clean result. Both commands block on high or critical advisories.
 | `npm run lint:css`          | Check CSS with Stylelint                                            |
 | `npm run lint:fix`          | Apply ordinary safe Oxlint and Stylelint fixes                      |
 | `npm run lint:css:fix`      | Apply Stylelint fixes only                                          |
+| `npm run security:check`    | Verify the built Cloudflare Pages Content Security Policy           |
 | `npm run typecheck`         | Check TypeScript with `tsc` without emitting files                  |
 | `npm run deps:check`        | Find unused dependencies, source files, and exports with Knip       |
 | `npm run deps:audit:prod`   | Audit production dependencies (requires registry access)            |

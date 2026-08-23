@@ -1,0 +1,2 @@
+/*
+  Content-Security-Policy: default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; frame-src 'none'; form-action 'self'; script-src 'self' https://cloud.umami.is; script-src-attr 'none'; connect-src 'self' https://cloud.umami.is; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self'; font-src 'self'; worker-src 'none'; upgrade-insecure-requests
