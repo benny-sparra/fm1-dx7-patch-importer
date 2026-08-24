@@ -226,9 +226,9 @@ tools fetch them when needed.
 The official Sentry Vite plugin additionally uploads source maps when all of these build-time
 variables are available:
 
-- `SENTRY_AUTH_TOKEN`: a Sentry organization token stored as an encrypted deployment secret
-- `SENTRY_ORG`: the organization slug shown in Sentry settings
-- `SENTRY_PROJECT`: the project slug shown in Sentry project settings
+- `SENTRY_AUTH_TOKEN`: a Sentry upload token stored as an encrypted deployment secret
+- `SENTRY_ORG`: `little-old-me`
+- `SENTRY_PROJECT`: `fm1-editor`
 
 Set all three for the production environment in Cloudflare Pages. The token needs Sentry's
 source-map upload permissions and must never use a `VITE_` prefix. A build with none of the variables
