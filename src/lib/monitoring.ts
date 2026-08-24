@@ -23,7 +23,7 @@ type MonitoringConfiguration = {
 }
 
 const sentryDsn =
-  'https://c8ac96b7f5a6c778afd0c51c98bce7ec@o4511966934859776.ingest.de.sentry.io/4511966955503696'
+  'https://7b1d3bf3196f9dcdac24f9ea0401f275@o4511966934859776.ingest.de.sentry.io/4511966958846032'
 
 function removeUrlDetails(value: string) {
   return value.replace(/[?#].*$/u, '')
