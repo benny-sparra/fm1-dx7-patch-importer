@@ -10,7 +10,10 @@ const expectedDirectives = new Map([
   ['form-action', ["'self'"]],
   ['script-src', ["'self'", 'https://cloud.umami.is']],
   ['script-src-attr', ["'none'"]],
-  ['connect-src', ["'self'", 'https://gateway.umami.is']],
+  [
+    'connect-src',
+    ["'self'", 'https://gateway.umami.is', 'https://o4511966934859776.ingest.de.sentry.io'],
+  ],
   ['style-src', ["'self'"]],
   ['style-src-attr', ["'unsafe-inline'"]],
   ['img-src', ["'self'"]],

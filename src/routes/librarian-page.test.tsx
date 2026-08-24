@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
@@ -10,6 +10,15 @@ import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { type MidiController } from '@/hooks/use-midi'
 
 import { LibrarianPage } from './librarian-page'
+
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.open = true
+  }
+  HTMLDialogElement.prototype.close = function close() {
+    this.open = false
+  }
+})
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -72,6 +81,37 @@ describe('LibrarianPage bank selection', () => {
 })
 
 describe('LibrarianPage transfer analytics', () => {
+  it('waits for confirmation in the bank guide before starting its first transfer', async () => {
+    sessionStorage.removeItem('fm1-bank-selection-dialog-dismissed')
+    const user = userEvent.setup()
+    const connectedMidi = {
+      hasMidiOutput: true,
+      sendBank: vi.fn(async () => ({ ok: true }) as const),
+      sysexAvailable: true,
+    } as unknown as MidiController
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={connectedMidi}
+          onEditPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    const dialog = screen.getByRole('dialog', {
+      name: 'Choose the destination bank on your FM1',
+    })
+
+    expect(connectedMidi.sendBank).not.toHaveBeenCalled()
+
+    await user.click(within(dialog).getByRole('button', { name: 'Send to FM1' }))
+
+    expect(connectedMidi.sendBank).toHaveBeenCalledOnce()
+  })
+
   it('tracks a completed bank transfer after MIDI reports success', async () => {
     const user = userEvent.setup()
     const track = vi.fn()
@@ -79,6 +119,7 @@ describe('LibrarianPage transfer analytics', () => {
     const connectedMidi = {
       hasMidiOutput: true,
       sendBank: vi.fn(async () => ({ ok: true }) as const),
+      sysexAvailable: true,
     } as unknown as MidiController
     render(
       <ToastProvider>
@@ -97,13 +138,18 @@ describe('LibrarianPage transfer analytics', () => {
     expect(track).toHaveBeenCalledWith('bank_transfer_completed', undefined)
   })
 
-  it('tracks a sanitized bank transfer failure reason', async () => {
+  it('shows recovery without attempting a bank transfer when SysEx is unavailable', async () => {
     const user = userEvent.setup()
     const track = vi.fn()
     window.umami = { track }
     const connectedMidi = {
+      connectMidi: vi.fn(async () => undefined),
+      disconnectMidi: vi.fn(async () => undefined),
       hasMidiOutput: true,
-      sendBank: vi.fn(async () => ({ ok: false, reason: 'sysex_unavailable' }) as const),
+      isConnecting: false,
+      midiAccess: true,
+      sendBank: vi.fn(async () => ({ ok: true }) as const),
+      sysexAvailable: false,
     } as unknown as MidiController
     render(
       <ToastProvider>
@@ -118,9 +164,64 @@ describe('LibrarianPage transfer analytics', () => {
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
 
+    expect(screen.getByRole('dialog', { name: 'SysEx access unavailable.' })).toBeTruthy()
+    expect(connectedMidi.sendBank).not.toHaveBeenCalled()
     expect(track).toHaveBeenCalledOnce()
     expect(track).toHaveBeenCalledWith('bank_transfer_failed', {
       reason: 'sysex_unavailable',
     })
+  })
+
+  it('reconnects from the SysEx warning before restoring normal bank instructions', async () => {
+    const user = userEvent.setup()
+    const disconnectMidi = vi.fn(async () => undefined)
+    const connectMidi = vi.fn(async () => undefined)
+    const blockedMidi = {
+      connectMidi,
+      disconnectMidi,
+      hasMidiOutput: true,
+      isConnecting: false,
+      midiAccess: true,
+      sendBank: vi.fn(),
+      sysexAvailable: false,
+    } as unknown as MidiController
+    const view = render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={blockedMidi}
+          onEditPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    await user.click(screen.getByRole('button', { name: 'Reconnect MIDI with SysEx' }))
+
+    expect(disconnectMidi).toHaveBeenCalledOnce()
+    expect(connectMidi).toHaveBeenCalledOnce()
+    expect(disconnectMidi.mock.invocationCallOrder[0]).toBeLessThan(
+      connectMidi.mock.invocationCallOrder[0],
+    )
+    expect(screen.getByRole('dialog', { name: 'SysEx access unavailable.' })).toBeTruthy()
+
+    view.rerender(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={{ ...blockedMidi, sysexAvailable: true }}
+          onEditPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    const dialog = screen.getByRole('dialog', {
+      name: 'Choose the destination bank on your FM1',
+    })
+    await user.click(within(dialog).getByRole('button', { name: 'Send to FM1' }))
+
+    expect(blockedMidi.sendBank).toHaveBeenCalledOnce()
   })
 })

@@ -5,6 +5,7 @@ import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
+import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
 import { type Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { type MidiController } from '@/hooks/use-midi'
@@ -92,6 +93,8 @@ export function PatchEditorPage({
   const patchSyncRef = useRef<PatchSyncCoordinator | null>(null)
   const parameters = history.present
   const isDirty = !parametersMatch(parameters, savedParameters)
+  const canSync = midi.hasMidiOutput && midi.sysexAvailable
+  const initializedPatchRef = useRef('')
 
   midiRef.current = midi
 
@@ -171,11 +174,12 @@ export function PatchEditorPage({
       nextMutedOperators = mutedOperatorsRef.current,
       nextSoloOperator = soloOperatorRef.current,
     ) => {
+      if (!canSync) return
       makeOperatorAuditionEdits(nextParameters, nextMutedOperators, nextSoloOperator).forEach(
         ([parameter, value]) => midi.sendParameter(parameter, value),
       )
     },
-    [midi],
+    [canSync, midi],
   )
 
   const commitHistory = useCallback((next: EditorHistory) => {
@@ -202,7 +206,7 @@ export function PatchEditorPage({
       if (edited === current) return
       commitHistory(activeGesture ? { ...edited, past: activeGesture.past } : edited)
 
-      if (send && syncStateRef.current === 'live') {
+      if (send && canSync && syncStateRef.current === 'live') {
         edits.forEach(([index, value, min = 0, max = 127]) => {
           const normalized = Math.max(min, Math.min(max, Math.round(value)))
           midi.sendParameter(
@@ -217,7 +221,7 @@ export function PatchEditorPage({
         })
       }
     },
-    [commitHistory, midi],
+    [canSync, commitHistory, midi],
   )
 
   const setParameter = useCallback(
@@ -244,11 +248,28 @@ export function PatchEditorPage({
     })
   }, [commitHistory])
 
-  const sendToFm1 = useCallback(() => patchSyncRef.current!.requestSync(), [])
+  const sendToFm1 = useCallback(
+    () => (canSync ? patchSyncRef.current!.requestSync() : Promise.resolve(false)),
+    [canSync],
+  )
 
   useEffect(() => {
-    void patchSyncRef.current!.requestInitialSync(patch.id)
-  }, [patch.id])
+    if (initializedPatchRef.current === patch.id) {
+      if (!canSync && syncStateRef.current !== 'local') {
+        syncStateRef.current = 'local'
+        setSyncState('local')
+      }
+      return
+    }
+
+    initializedPatchRef.current = patch.id
+    if (canSync) {
+      void patchSyncRef.current!.requestInitialSync(patch.id)
+    } else {
+      syncStateRef.current = 'local'
+      setSyncState('local')
+    }
+  }, [canSync, patch.id])
 
   const updateName = (name: string) => {
     const edits = makeDx7VoiceNameEdits(historyRef.current.present, name).map(
@@ -258,7 +279,7 @@ export function PatchEditorPage({
   }
 
   const sendNameToFm1 = () => {
-    if (syncStateRef.current !== 'live') return
+    if (!canSync || syncStateRef.current !== 'live') return
     const lastSentParameters = parameters.slice()
     lastSentParameters.set(sentName.current, FM1_VOICE_NAME_START)
     const edits = makeDx7VoiceNameEdits(lastSentParameters, liveName)
@@ -273,21 +294,21 @@ export function PatchEditorPage({
     const current = historyRef.current
     const next = direction === 'undo' ? undoParameters(current) : redoParameters(current)
     if (!commitHistory(next)) return
-    if (syncStateRef.current === 'live') void sendToFm1()
+    if (canSync && syncStateRef.current === 'live') void sendToFm1()
   }
 
   const setEffectParameter = useCallback(
     (controller: number, value: number) => {
       applyEdits([[resolveEffectEditorIndex(controller), value, 0, 127]], false)
-      if (syncStateRef.current === 'live') midi.sendEffectParameter(controller, value)
+      if (canSync && syncStateRef.current === 'live') midi.sendEffectParameter(controller, value)
     },
-    [applyEdits, midi],
+    [applyEdits, canSync, midi],
   )
 
   const updateOperatorAudition = (
     nextMutedOperators: ReadonlySet<number>,
     nextSoloOperator: number | null,
-    send = syncStateRef.current === 'live',
+    send = canSync && syncStateRef.current === 'live',
   ) => {
     mutedOperatorsRef.current = nextMutedOperators
     soloOperatorRef.current = nextSoloOperator
@@ -314,7 +335,7 @@ export function PatchEditorPage({
     updateOperatorAudition(mutedOperatorsRef.current, nextSoloOperator)
   }
 
-  const clearOperatorAudition = (send = syncStateRef.current === 'live') => {
+  const clearOperatorAudition = (send = canSync && syncStateRef.current === 'live') => {
     if (mutedOperatorsRef.current.size === 0 && soloOperatorRef.current === null) return
     updateOperatorAudition(new Set(), null, send)
   }
@@ -404,6 +425,7 @@ export function PatchEditorPage({
   return (
     <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-4 px-3 py-4 sm:px-5 lg:px-8">
       <PatchEditorHeader
+        canSync={canSync}
         canRedo={history.future.length > 0}
         canUndo={history.past.length > 0}
         isDirty={isDirty}
@@ -423,6 +445,8 @@ export function PatchEditorPage({
         saveMenuRef={saveMenuRef}
         syncState={syncState}
       />
+
+      {midi.midiAccess && !midi.sysexAvailable ? <MidiSysexWarning /> : null}
 
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(14rem,1fr)_minmax(0,3fr)] lg:items-start">
         <GlobalConfigurationPanel

@@ -74,7 +74,7 @@ if (sourceMapMode !== 'none' && mapFiles.length !== javascriptFiles.length) {
 }
 
 const privateReference =
-  /(?:^|[\\/])(?:\.cert|\.env(?:\.|$))|\/Users\/|[A-Za-z]:\\|localhost-key|-----BEGIN [A-Z ]*PRIVATE KEY-----/
+  /(?:^|[\\/])(?:\.cert|\.env(?:\.|$))|\/Users\/|(?:^|[\s"'(=])[A-Za-z]:\\|localhost-key|-----BEGIN [A-Z ]*PRIVATE KEY-----/
 for (const mapFile of mapFiles) {
   if (sourceMapMode === 'public' && !referencedMaps.has(mapFile)) {
     throw new Error(`${path.relative(outputDirectory, mapFile)} is an orphaned source map.`)

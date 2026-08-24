@@ -85,12 +85,31 @@ only fixed feature names and coarse diagnostic categories. Patch and bank names,
 MIDI port identities, SysEx data, browser error messages, and persistent user identifiers are never
 sent. The interface links to [Umami's privacy policy](https://umami.is/privacy).
 
+## Error monitoring
+
+Production builds load the official Sentry React SDK in a recoverable dynamic chunk and report
+unhandled browser and React errors to the project's EU Sentry endpoint. Sentry structured logging is
+enabled for future fixed, non-user-authored diagnostic messages. Performance tracing, application
+metrics, and session replay are disabled.
+
+The integration does not collect cookies, HTTP headers or bodies, URL query parameters, user
+details, or stack-frame local values. Console and UI-interaction breadcrumbs are discarded because
+they could contain patch or bank names. Request and navigation URLs are stripped of query strings
+and fragments again immediately before an event is sent. Development and test builds do not load
+Sentry or send events.
+
+The Sentry DSN is a public routing identifier embedded in the production client, not an
+authentication secret. Production deployments with the three server-side Sentry build variables
+described below also inject debug IDs and upload source maps so Sentry can reliably resolve minified
+stack traces.
+
 ## Deployment security
 
 Cloudflare Pages applies the Content Security Policy in `public/_headers` to every route. The policy
 keeps scripts, styles, fonts, images, frames, workers, and network requests self-hosted except for the
-Umami tracker and its event endpoint. Run `npm run build` followed by `npm run security:check` after
-changing the policy or introducing a new browser resource origin.
+Umami tracker, the Umami event endpoint, and the project's Sentry ingestion endpoint. Run
+`npm run build` followed by `npm run security:check` after changing the policy or introducing a new
+browser resource origin.
 
 ## Local development
 
@@ -199,10 +218,34 @@ post-build check also requires a hashed production asset for every candidate. Do
 ### Production source maps
 
 The standard `npm run build` produces public external source maps for every first-party JavaScript
-chunk, including lazy chunks. This is intentional: the project is open source, has no private
-source-map upload service, and public maps make production debugging and Lighthouse analysis useful.
-Maps retain `sourcesContent` for reliable debugging. Browsers do not ordinarily request external
-maps during page loading; developer tools fetch them when needed.
+chunk, including lazy chunks. This remains intentional because the project is open source and public
+maps make browser debugging and Lighthouse analysis useful. Maps retain `sourcesContent` for
+reliable debugging. Browsers do not ordinarily request external maps during page loading; developer
+tools fetch them when needed.
+
+The official Sentry Vite plugin additionally uploads source maps when all of these build-time
+variables are available:
+
+- `SENTRY_AUTH_TOKEN`: a Sentry organization token stored as an encrypted deployment secret
+- `SENTRY_ORG`: the organization slug shown in Sentry settings
+- `SENTRY_PROJECT`: the project slug shown in Sentry project settings
+
+Set all three for the production environment in Cloudflare Pages. The token needs Sentry's
+source-map upload permissions and must never use a `VITE_` prefix. A build with none of the variables
+stays offline; a partial configuration or upload failure stops the build rather than silently
+deploying unmatched artifacts. The plugin's own usage telemetry is disabled.
+
+For a one-off local upload, put the same variables in the already-ignored
+`.env.production.local` file and run `npm run build`. Never commit the token. The pinned
+`@sentry/cli` install script is explicitly approved because the plugin needs its platform uploader;
+other dependency install scripts remain unapproved.
+
+To complete Sentry's onboarding verification, temporarily add `VITE_SENTRY_VERIFY=true` to the
+Cloudflare Pages production environment and deploy. A clearly labelled verification strip appears
+above the librarian patch grid. Clicking **Send Sentry test error** emits Sentry's fixed onboarding
+log and counter, then throws `This is your first error!`. Remove the variable and deploy again as
+soon as Sentry confirms the event; the control is absent unless the flag is exactly `true` in a
+production build. The flag is public configuration and contains no credential.
 
 `npm run sourcemaps:check` verifies that each JavaScript chunk advertises exactly one matching map,
 that every map is valid and non-orphaned, and that maps contain no inline data, private filesystem
@@ -210,9 +253,9 @@ paths, environment files, or development certificate material. `dist/`, source m
 Lighthouse reports are generated deployment artifacts and must not be committed.
 
 The deliberate alternatives are `SOURCE_MAPS=none npm run build` and
-`SOURCE_MAPS=hidden npm run build`; unknown values fail the build. Hidden maps should only become the
-deployment default after a real monitoring service, upload step, hash matching, access policy, and
-retention policy exist. Run the source-map check with the same `SOURCE_MAPS` value used for the build.
+`SOURCE_MAPS=hidden npm run build`; unknown values fail the build. An authenticated Sentry upload
+rejects `SOURCE_MAPS=none` because there would be nothing to upload. Run the source-map check with the
+same `SOURCE_MAPS` value used for the build.
 
 ### Lighthouse
 

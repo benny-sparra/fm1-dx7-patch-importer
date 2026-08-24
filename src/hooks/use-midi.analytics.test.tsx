@@ -55,6 +55,16 @@ describe('useMidi connection analytics', () => {
     })
   })
 
+  it('exposes when a successful MIDI connection has no SysEx access', async () => {
+    webMidi.sysexEnabled = false
+    const { result } = renderHook(() => useMidi())
+
+    await act(() => result.current.connectMidi())
+
+    expect(result.current.midiAccess).toBe(true)
+    expect(result.current.sysexAvailable).toBe(false)
+  })
+
   it('reports permission denial as a fixed category instead of sending the browser error', async () => {
     const denied = new Error('The user denied a site-specific MIDI permission prompt')
     denied.name = 'NotAllowedError'

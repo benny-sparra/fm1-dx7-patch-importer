@@ -13,6 +13,7 @@ dist
 dist-ssr
 .cert
 *.local
+.env.sentry-build-plugin
 
 # Editor files
 .vscode/*

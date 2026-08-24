@@ -15,6 +15,7 @@ describe('PatchEditorHeader', () => {
     const noop = vi.fn()
     render(
       <PatchEditorHeader
+        canSync
         canRedo={false}
         canUndo={false}
         isDirty={false}

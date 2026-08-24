@@ -5,9 +5,10 @@ import './index.css'
 import { i18nReady } from './i18n'
 import App from './App.tsx'
 import { ToastProvider } from './components/ui/toast.tsx'
+import { initializeMonitoring } from './lib/monitoring.ts'
 
-void i18nReady.then(() => {
-  createRoot(document.getElementById('root')!).render(
+void Promise.all([i18nReady, initializeMonitoring()]).then(([, monitoringRootOptions]) => {
+  createRoot(document.getElementById('root')!, monitoringRootOptions).render(
     <StrictMode>
       <ToastProvider>
         <App />

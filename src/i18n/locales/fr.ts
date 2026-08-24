@@ -1,7 +1,8 @@
 export default {
   dialogs: {
     bankTitle: 'Choisissez la banque de destination sur votre FM1',
-    bankIntro: 'La banque SysEx est en cours d’envoi. Terminez l’importation sur l’appareil.',
+    bankIntro:
+      'Lorsque le FM1 est prêt, lancez le transfert SysEx et terminez l’importation sur l’appareil.',
     bankClose: 'Fermer les instructions de sélection',
     bankStep1: 'Attendez que l’écran de sélection de banque apparaisse sur le FM1.',
     bankStep2: 'Tournez le bouton 1, 2, 3 ou 4 pour choisir la banque A, B, C ou D.',
@@ -404,6 +405,14 @@ export default {
   midi: {
     online: 'MIDI en ligne',
     connectFirst: 'Connectez d’abord une sortie MIDI',
+    closeSysexWarning: 'Fermer l’avertissement SysEx',
+    connecting: 'Connexion…',
+    reconnectForSysex: 'Reconnecter le MIDI avec SysEx',
+    sysexRecovery:
+      'Aucune donnée de banque n’a été envoyée. Reconnectez le MIDI et autorisez l’accès SysEx avant de réessayer.',
+    sysexWarningTitle: 'L’accès SysEx n’est pas disponible.',
+    sysexWarningBody:
+      'Les banques et les sons ne peuvent pas être envoyés. Déconnectez le MIDI, reconnectez-le et autorisez l’accès SysEx lorsque vous y êtes invité.',
     log: 'Journal MIDI',
     closeLog: 'Fermer le journal MIDI',
     recent: 'Activité MIDI récente du navigateur.',

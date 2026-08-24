@@ -17,15 +17,19 @@ afterEach(() => {
   delete window.umami
 })
 
-function setup() {
+function setup(overrides: Partial<MidiController> = {}) {
   const midi = {
+    hasMidiOutput: true,
+    midiAccess: true,
     sendEffectParameter: vi.fn(() => true),
     sendEffectSettings: vi.fn(async () => true),
     sendParameter: vi.fn(() => true),
     sendVoice: vi.fn(async () => true),
+    sysexAvailable: true,
+    ...overrides,
   } as unknown as MidiController
   const onSave = vi.fn()
-  render(
+  const view = render(
     <PatchEditorPage
       effects={new Uint8Array(24)}
       midi={midi}
@@ -35,10 +39,48 @@ function setup() {
       voice={{ data: new Uint8Array(128), name: 'INIT' }}
     />,
   )
-  return { midi, onSave }
+  const rerenderMidi = (nextMidi: MidiController) =>
+    view.rerender(
+      <PatchEditorPage
+        effects={new Uint8Array(24)}
+        midi={nextMidi}
+        onBack={vi.fn()}
+        onSave={onSave}
+        patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
+        voice={{ data: new Uint8Array(128), name: 'INIT' }}
+      />,
+    )
+  return { midi, onSave, rerenderMidi }
 }
 
 describe('PatchEditorPage MIDI paths', () => {
+  it('stays local and explains the unavailable SysEx connection without attempting initial sync', async () => {
+    const { midi } = setup({ sysexAvailable: false })
+
+    expect(await screen.findByText('SysEx access unavailable.')).toBeTruthy()
+    expect(midi.sendVoice).not.toHaveBeenCalled()
+  })
+
+  it('keeps full-sync editor actions local until SysEx becomes available', async () => {
+    const user = userEvent.setup()
+    const { midi, rerenderMidi } = setup({ sysexAvailable: false })
+
+    await user.click(screen.getByRole('button', { name: 'Randomise' }))
+    await user.click(screen.getByLabelText('More save options'))
+
+    expect(screen.getByRole('menuitem', { name: /Resend to FM1/ }).hasAttribute('disabled')).toBe(
+      true,
+    )
+    expect(midi.sendVoice).not.toHaveBeenCalled()
+
+    rerenderMidi({ ...midi, sysexAvailable: true })
+
+    expect(screen.queryByText('SysEx access unavailable.')).toBeNull()
+    expect(screen.getByRole('menuitem', { name: /Resend to FM1/ }).hasAttribute('disabled')).toBe(
+      false,
+    )
+  })
+
   it('synchronizes once, then sends a global edit through the voice parameter path', async () => {
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))

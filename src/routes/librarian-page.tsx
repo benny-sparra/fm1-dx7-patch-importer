@@ -20,6 +20,7 @@ import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog
 import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
+import { SentryVerificationButton } from '@/components/sentry-verification-button'
 import { makeDx7BankFile } from '@/lib/dx7'
 import { getNextWorkspaceBank } from '@/lib/patch-library'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
@@ -137,18 +138,16 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
     }
   }
 
-  const sendSelectedBank = async () => {
+  const transferSelectedBank = async () => {
     if (!midi.hasMidiOutput) {
-      trackAnalyticsEvent({
-        data: { reason: 'no_output' },
-        name: 'bank_transfer_failed',
-      })
-      midiConnectionRequiredDialogRef.current?.showModal()
+      trackAnalyticsEvent({ data: { reason: 'no_output' }, name: 'bank_transfer_failed' })
       return
     }
-    if (shouldShowFm1BankSelectionDialog()) {
-      bankSelectionDialogRef.current?.showModal()
+    if (!midi.sysexAvailable) {
+      trackAnalyticsEvent({ data: { reason: 'sysex_unavailable' }, name: 'bank_transfer_failed' })
+      return
     }
+
     setIsSending(true)
     setTransferStatus({ kind: 'idle', message: t('banks.sendingStatus') })
     try {
@@ -173,6 +172,27 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
     } finally {
       setIsSending(false)
     }
+  }
+
+  const sendSelectedBank = () => {
+    if (!midi.hasMidiOutput) {
+      trackAnalyticsEvent({
+        data: { reason: 'no_output' },
+        name: 'bank_transfer_failed',
+      })
+      midiConnectionRequiredDialogRef.current?.showModal()
+      return
+    }
+    if (!midi.sysexAvailable) {
+      trackAnalyticsEvent({ data: { reason: 'sysex_unavailable' }, name: 'bank_transfer_failed' })
+      bankSelectionDialogRef.current?.showModal()
+      return
+    }
+    if (shouldShowFm1BankSelectionDialog()) {
+      bankSelectionDialogRef.current?.showModal()
+      return
+    }
+    void transferSelectedBank()
   }
 
   const importSelectedBankFile = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -218,13 +238,14 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
 
   return (
     <section className="mx-auto grid max-w-7xl min-w-0 gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
+      <SentryVerificationButton />
       <PatchGrid
         activePatchId={activePatchId}
         actions={
           <button
             className="inline-flex h-10 w-full shrink-0 cursor-pointer items-center justify-start gap-2 rounded-md border border-black bg-white px-4 text-left text-sm font-medium text-black transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
             disabled={isSending || !isDestinationBankLoaded}
-            onClick={() => void sendSelectedBank()}
+            onClick={sendSelectedBank}
             title={
               !midi.hasMidiOutput
                 ? t('midi.connectFirst')
@@ -417,7 +438,12 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
         </p>
       ) : null}
 
-      <Fm1BankSelectionDialog dialogRef={bankSelectionDialogRef} />
+      <Fm1BankSelectionDialog
+        dialogRef={bankSelectionDialogRef}
+        isSending={isSending}
+        midi={midi}
+        onSend={() => void transferSelectedBank()}
+      />
       <AddWorkspaceBankDialog
         bank={nextBank}
         dialogRef={addWorkspaceBankDialogRef}

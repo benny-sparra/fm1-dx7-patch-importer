@@ -20,6 +20,7 @@ import { soundPresets, type SoundPresetId } from '@/lib/sound-presets'
 import { cn } from '@/lib/utils'
 
 type PatchEditorHeaderProps = {
+  canSync: boolean
   canRedo: boolean
   canUndo: boolean
   isDirty: boolean
@@ -41,6 +42,7 @@ type PatchEditorHeaderProps = {
 }
 
 export function PatchEditorHeader({
+  canSync,
   canRedo,
   canUndo,
   isDirty,
@@ -204,7 +206,7 @@ export function PatchEditorHeader({
               >
                 <button
                   className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50"
-                  disabled={syncState === 'sending'}
+                  disabled={!canSync || syncState === 'sending'}
                   onClick={onResend}
                   role="menuitem"
                   type="button"

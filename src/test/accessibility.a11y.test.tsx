@@ -6,6 +6,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { MidiSettingsMenu } from '@/components/midi/midi-controls'
+import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
 import {
   WorkspaceBankSelector,
   type WorkspaceBankSelectorBank,
@@ -61,6 +62,16 @@ const library = {
 const disconnectedMidi = {
   hasMidiOutput: false,
   sendBank: vi.fn(),
+} as unknown as MidiController
+
+const connectedWithoutSysexMidi = {
+  connectMidi: vi.fn(),
+  disconnectMidi: vi.fn(),
+  hasMidiOutput: true,
+  isConnecting: false,
+  midiAccess: true,
+  sendBank: vi.fn(),
+  sysexAvailable: false,
 } as unknown as MidiController
 
 const settingsMidi = {
@@ -132,6 +143,26 @@ describe('rendered accessibility', () => {
     await expectNoAxeViolations(container)
   })
 
+  it('keeps the contextual SysEx recovery dialog accessible', async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={connectedWithoutSysexMidi}
+          onEditPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+
+    expect(screen.getByRole('dialog', { name: 'SysEx access unavailable.' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Reconnect MIDI with SysEx' })).toBeTruthy()
+    await expectNoAxeViolations(container)
+  })
+
   it('keeps the expanded MIDI settings panel labelled and axe-clean', async () => {
     const user = userEvent.setup()
     const { container } = render(<MidiSettingsMenu midi={settingsMidi} />)
@@ -141,6 +172,13 @@ describe('rendered accessibility', () => {
     expect(screen.getByRole('combobox', { name: 'Language' })).toBeTruthy()
     expect(screen.getByRole('combobox', { name: 'Output' })).toBeTruthy()
     expect(screen.getByRole('combobox', { name: 'Note channel' })).toBeTruthy()
+    await expectNoAxeViolations(container)
+  })
+
+  it('announces the missing SysEx warning without accessibility violations', async () => {
+    const { container } = render(<MidiSysexWarning />)
+
+    expect(screen.getByText('SysEx access unavailable.').closest('[role="alert"]')).toBeTruthy()
     await expectNoAxeViolations(container)
   })
 })

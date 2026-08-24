@@ -1,7 +1,7 @@
 export default {
   dialogs: {
     bankTitle: '在 FM1 上选择目标音色库',
-    bankIntro: '正在发送 SysEx 音色库。请在设备上完成导入。',
+    bankIntro: 'FM1 准备就绪后，开始 SysEx 传输并在设备上完成导入。',
     bankClose: '关闭音色库选择说明',
     bankStep1: '等待 FM1 屏幕显示音色库选择界面。',
     bankStep2: '转动旋钮 1、2、3 或 4，选择目标音色库 A、B、C 或 D。',
@@ -368,6 +368,12 @@ export default {
   midi: {
     online: 'MIDI 在线',
     connectFirst: '请先连接 MIDI 输出',
+    closeSysexWarning: '关闭 SysEx 警告',
+    connecting: '正在连接…',
+    reconnectForSysex: '使用 SysEx 重新连接 MIDI',
+    sysexRecovery: '尚未发送任何音色库数据。请重新连接 MIDI 并允许 SysEx 访问，然后重试。',
+    sysexWarningTitle: 'SysEx 访问权限不可用。',
+    sysexWarningBody: '无法发送音色库或音色。请断开 MIDI 后重新连接，并在提示时允许 SysEx 访问。',
     log: 'MIDI 日志',
     closeLog: '关闭 MIDI 日志',
     recent: '最近的浏览器 MIDI 活动。',

@@ -111,6 +111,7 @@ export function useMidi() {
 
   const hasMidiOutput = Boolean(selectedOutput)
   const hasMidiInput = Boolean(selectedInput)
+  const sysexAvailable = midiAccess && Boolean(webMidi.current?.sysexEnabled)
 
   const appendLog = useCallback(
     (entry: MidiLogEntry) => {
@@ -581,6 +582,7 @@ export function useMidi() {
     setSelectedOutputId: selectOutput,
     startNote,
     stopNote,
+    sysexAvailable,
   }
 }
 
