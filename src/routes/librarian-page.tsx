@@ -22,6 +22,7 @@ import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dia
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
 import { SentryVerificationButton } from '@/components/sentry-verification-button'
 import { makeDx7BankFile } from '@/lib/dx7'
+import { reportBankTransferFailure } from '@/lib/monitoring'
 import { getNextWorkspaceBank } from '@/lib/patch-library'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { cn } from '@/lib/utils'
@@ -150,8 +151,11 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
 
     setIsSending(true)
     setTransferStatus({ kind: 'idle', message: t('banks.sendingStatus') })
+    let voiceCount: number | undefined
     try {
-      const result = await midi.sendBank(destinationBank, library.getBankVoices(destinationBank))
+      const voices = library.getBankVoices(destinationBank)
+      voiceCount = voices.length
+      const result = await midi.sendBank(destinationBank, voices)
       setTransferStatus(
         result.ok
           ? { kind: 'success', message: t('banks.sentStatus', { bank: destinationBank }) }
@@ -164,6 +168,12 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
         trackAnalyticsEvent({ data: { reason: result.reason }, name: 'bank_transfer_failed' })
       }
     } catch (error) {
+      reportBankTransferFailure({
+        channel: midi.channel,
+        stage: 'page',
+        sysexAvailable: midi.sysexAvailable,
+        voiceCount,
+      })
       trackAnalyticsEvent({ data: { reason: 'transport' }, name: 'bank_transfer_failed' })
       setTransferStatus({
         kind: 'error',

@@ -1,1 +1,1 @@
-export { init, logger, metrics, reactErrorHandler } from '@sentry/react'
+export { captureException, init, logger, metrics, reactErrorHandler } from '@sentry/react'

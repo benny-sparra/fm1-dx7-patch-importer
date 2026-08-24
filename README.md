@@ -98,6 +98,12 @@ they could contain patch or bank names. Request and navigation URLs are stripped
 and fragments again immediately before an event is sent. Development and test builds do not load
 Sentry or send events.
 
+Genuine MIDI bank transport exceptions are reported with a fixed error message, source-mappable
+stack frames, and safe operational context: MIDI channel, SysEx availability, voice count, and the
+failure stage. Raw browser error text, MIDI port identities, bank and patch names, voice contents,
+and SysEx bytes are excluded. Expected states such as a missing output or unavailable SysEx remain
+anonymous analytics events rather than Sentry issues.
+
 The Sentry DSN is a public routing identifier embedded in the production client, not an
 authentication secret. Production deployments with the three server-side Sentry build variables
 described below also inject debug IDs and upload source maps so Sentry can reliably resolve minified

@@ -4,7 +4,11 @@ import { StrictMode, type ReactNode } from 'react'
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { makeDemoVoices } from '@/lib/patch-library'
+
 import { useMidi } from './use-midi'
+
+const reportBankTransferFailure = vi.hoisted(() => vi.fn())
 
 const webMidi = vi.hoisted(() => ({
   addListener: vi.fn(() => ({ remove: vi.fn() })),
@@ -16,6 +20,7 @@ const webMidi = vi.hoisted(() => ({
 }))
 
 vi.mock('webmidi', () => ({ WebMidi: webMidi }))
+vi.mock('@/lib/monitoring', () => ({ reportBankTransferFailure }))
 
 beforeEach(() => {
   localStorage.clear()
@@ -32,6 +37,7 @@ beforeEach(() => {
   webMidi.inputs = []
   webMidi.outputs = []
   webMidi.sysexEnabled = true
+  reportBankTransferFailure.mockReset()
 })
 
 afterEach(() => {
@@ -96,6 +102,49 @@ describe('useMidi connection analytics', () => {
       method: 'automatic',
       output: 'missing',
       sysex: 'enabled',
+    })
+  })
+})
+
+describe('useMidi transfer monitoring', () => {
+  it('keeps an expected missing-output failure out of Sentry', async () => {
+    const { result } = renderHook(() => useMidi())
+
+    await expect(result.current.sendBank('A', makeDemoVoices())).resolves.toEqual({
+      ok: false,
+      reason: 'no_output',
+    })
+    expect(reportBankTransferFailure).not.toHaveBeenCalled()
+  })
+
+  it('reports a rejected bank transport with safe operational context', async () => {
+    const transportError = new Error('Private FM1 output disconnected')
+    webMidi.outputs = [
+      {
+        id: 'private-port-id',
+        manufacturer: 'Private manufacturer',
+        name: 'Private FM1 output',
+        sendSysex: vi.fn(() => {
+          throw transportError
+        }),
+        state: 'connected',
+      },
+    ]
+    const { result } = renderHook(() => useMidi())
+
+    await act(() => result.current.connectMidi())
+    await waitFor(() => expect(result.current.hasMidiOutput).toBe(true))
+
+    await expect(result.current.sendBank('A', makeDemoVoices())).resolves.toEqual({
+      ok: false,
+      reason: 'transport',
+    })
+    expect(reportBankTransferFailure).toHaveBeenCalledOnce()
+    expect(reportBankTransferFailure).toHaveBeenCalledWith({
+      channel: 1,
+      stage: 'controller',
+      sysexAvailable: true,
+      voiceCount: 32,
     })
   })
 })

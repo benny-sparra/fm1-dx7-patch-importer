@@ -9,7 +9,7 @@ export type MonitoringRootOptions = {
 }
 
 type SentryModule = typeof import('./sentry-sdk')
-type SentrySdk = Pick<SentryModule, 'init' | 'reactErrorHandler'> & {
+type SentrySdk = Pick<SentryModule, 'captureException' | 'init' | 'reactErrorHandler'> & {
   logger: Pick<SentryModule['logger'], 'info'>
   metrics: Pick<SentryModule['metrics'], 'count'>
 }
@@ -109,6 +109,39 @@ export function createMonitoringInitializer({
 
 type SentryVerificationSdk = Pick<SentrySdk, 'logger' | 'metrics'>
 
+type BankTransferFailureContext = {
+  channel: number
+  stage: 'controller' | 'page'
+  sysexAvailable: boolean
+  voiceCount?: number
+}
+
+type BankTransferCaptureSdk = Pick<SentrySdk, 'captureException'>
+
+export function captureBankTransferFailure(
+  sentry: BankTransferCaptureSdk,
+  context: BankTransferFailureContext,
+) {
+  const midiTransferContext: Record<string, boolean | number | string> = {
+    channel: context.channel,
+    stage: context.stage,
+    sysex_available: context.sysexAvailable,
+  }
+  if (context.voiceCount !== undefined) midiTransferContext.voice_count = context.voiceCount
+
+  try {
+    sentry.captureException(new Error('MIDI bank transfer failed'), {
+      contexts: { midi_transfer: midiTransferContext },
+      tags: {
+        analytics_event: 'bank_transfer_failed',
+        failure_reason: 'transport',
+      },
+    })
+  } catch {
+    // Monitoring is best-effort and must never interrupt MIDI recovery.
+  }
+}
+
 export function runSentryVerification(sentry: SentryVerificationSdk): never {
   sentry.logger.info('User triggered test error', {
     action: 'test_error_button_click',
@@ -124,6 +157,11 @@ export function triggerSentryVerification(): never {
     throw new Error('Sentry verification requires initialized production monitoring.')
   }
   return runSentryVerification(initializedSentry)
+}
+
+export function reportBankTransferFailure(context: BankTransferFailureContext) {
+  if (!initializedSentry) return
+  captureBankTransferFailure(initializedSentry, context)
 }
 
 export const initializeMonitoring = createMonitoringInitializer({

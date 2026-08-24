@@ -1,12 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { createMonitoringInitializer, runSentryVerification } from './monitoring'
+import {
+  captureBankTransferFailure,
+  createMonitoringInitializer,
+  runSentryVerification,
+} from './monitoring'
 
 function createSdk() {
   const reactErrorHandler = vi.fn()
   return {
     handler: reactErrorHandler,
     sdk: {
+      captureException: vi.fn(),
       init: vi.fn(),
       logger: { info: vi.fn() },
       metrics: { count: vi.fn() },
@@ -161,5 +166,51 @@ describe('Sentry monitoring', () => {
     })
     expect(sdk.metrics.count).toHaveBeenCalledOnce()
     expect(sdk.metrics.count).toHaveBeenCalledWith('test_counter', 1)
+  })
+
+  it('reports a bank transport stack with fixed privacy-safe diagnostics', () => {
+    const { sdk } = createSdk()
+
+    captureBankTransferFailure(sdk, {
+      channel: 4,
+      stage: 'controller',
+      sysexAvailable: true,
+      voiceCount: 32,
+    })
+
+    const [reportedError, captureContext] = sdk.captureException.mock.calls[0]
+    expect(reportedError).toBeInstanceOf(Error)
+    expect(reportedError.message).toBe('MIDI bank transfer failed')
+    expect(reportedError.stack).toContain('captureBankTransferFailure')
+    expect(captureContext).toEqual({
+      contexts: {
+        midi_transfer: {
+          channel: 4,
+          stage: 'controller',
+          sysex_available: true,
+          voice_count: 32,
+        },
+      },
+      tags: {
+        analytics_event: 'bank_transfer_failed',
+        failure_reason: 'transport',
+      },
+    })
+  })
+
+  it('keeps a Sentry reporting failure from interrupting MIDI recovery', () => {
+    const { sdk } = createSdk()
+    sdk.captureException.mockImplementation(() => {
+      throw new Error('Sentry unavailable')
+    })
+
+    expect(() =>
+      captureBankTransferFailure(sdk, {
+        channel: 1,
+        stage: 'controller',
+        sysexAvailable: true,
+        voiceCount: 32,
+      }),
+    ).not.toThrow()
   })
 })

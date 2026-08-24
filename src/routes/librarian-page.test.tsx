@@ -11,6 +11,13 @@ import { type MidiController } from '@/hooks/use-midi'
 
 import { LibrarianPage } from './librarian-page'
 
+const reportBankTransferFailure = vi.hoisted(() => vi.fn())
+
+vi.mock('@/lib/monitoring', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/monitoring')>()),
+  reportBankTransferFailure,
+}))
+
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
     this.open = true
@@ -169,6 +176,37 @@ describe('LibrarianPage transfer analytics', () => {
     expect(track).toHaveBeenCalledOnce()
     expect(track).toHaveBeenCalledWith('bank_transfer_failed', {
       reason: 'sysex_unavailable',
+    })
+  })
+
+  it('reports an unexpected bank transfer rejection with safe operational context', async () => {
+    const user = userEvent.setup()
+    const transportError = new Error('Private browser transport failure')
+    const connectedMidi = {
+      channel: 6,
+      hasMidiOutput: true,
+      sendBank: vi.fn(async () => Promise.reject(transportError)),
+      sysexAvailable: true,
+    } as unknown as MidiController
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={connectedMidi}
+          onEditPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+
+    expect(reportBankTransferFailure).toHaveBeenCalledOnce()
+    expect(reportBankTransferFailure).toHaveBeenCalledWith({
+      channel: 6,
+      stage: 'page',
+      sysexAvailable: true,
+      voiceCount: 0,
     })
   })
 

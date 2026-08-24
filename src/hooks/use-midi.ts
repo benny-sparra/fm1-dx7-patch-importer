@@ -4,6 +4,7 @@ import type { Input, MessageEvent, Output } from 'webmidi'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { makeDx7BankPayload, makeDx7SingleVoicePayload, type Dx7Voice } from '@/lib/dx7'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
+import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   formatMidiBytes,
   getMidiSupport,
@@ -315,6 +316,12 @@ export function useMidi() {
           return { ok: true } as const
         })
         .catch((caughtError) => {
+          reportBankTransferFailure({
+            channel,
+            stage: 'controller',
+            sysexAvailable: Boolean(webMidi.current?.sysexEnabled),
+            voiceCount: voices.length,
+          })
           appendLog(
             makeLogEntry(
               'system',
