@@ -11,6 +11,19 @@ library is the source of truth.
 
 Use Node.js 24.18.0 and npm 11.16.0, as pinned by `.node-version` and `package.json`.
 
+## Technology and architecture
+
+- React 19, TypeScript, and Vite provide the application shell and production build.
+- Tailwind CSS 4 is configured through the Vite plugin; shared theme and component styles live in
+  `src/index.css` and `src/fonts.css`.
+- IndexedDB persistence is isolated behind the patch-library storage modules. React hooks own the
+  browser-facing orchestration; keep MIDI, storage, and file-format rules in testable `src/lib/`
+  modules rather than UI components.
+- `i18next` and `react-i18next` provide localisation. `dnd-kit` provides patch reordering, and
+  Testing Library with Vitest covers observable UI behaviour.
+- Production hosting is static. Cloudflare Pages headers provide the deployed security policy;
+  Umami supplies privacy-limited analytics, and Sentry is loaded as an optional monitoring chunk.
+
 ## Repository layout
 
 - `src/components/`: UI grouped by editor, MIDI, patch-library, and shared UI concerns.
@@ -19,6 +32,7 @@ Use Node.js 24.18.0 and npm 11.16.0, as pinned by `.node-version` and `package.j
 - `src/routes/`: the eager root/librarian views and lazy patch editor.
 - `src/i18n/locales/`: complete resources for each supported locale.
 - `src/data/`: bundled static data.
+- `src/assets/`: source artwork; `src/assets/generated/` contains committed responsive derivatives.
 - `src/test/`: shared accessibility helpers and rendered accessibility coverage.
 - `scripts/`: deterministic repository checks that do not belong in application code.
 - `public/`: files served unchanged by Vite.
@@ -33,6 +47,8 @@ files when that is clearer.
 - Let `prettier-plugin-tailwindcss` order utility classes. Add conditional class names through
   `cn(...)`; review formatting changes to conditional strings carefully.
 - Prefer small named functions and explicit domain types. Keep state near the behavior that owns it.
+- Keep TypeScript compatible with `verbatimModuleSyntax` and `erasableSyntaxOnly`; use type-only
+  imports where required and avoid runtime TypeScript-only constructs.
 - Use Lucide icons and the existing components in `src/components/ui/` before adding new UI
   primitives.
 - Do not use dangerous lint autofixes. `npm run lint:fix` is the supported autofix command.
@@ -73,8 +89,8 @@ files when that is clearer.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, locale resources by locale, and factory data only for first-run/recovery or
-  explicit restoration.
+  `fflate` on bulk export, locale resources by locale, Sentry on production monitoring startup, and
+  factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
 - Prefer source-level `import()` at genuine interaction or data boundaries. Do not move initial code
@@ -84,6 +100,25 @@ files when that is clearer.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
   Dynamic imports are excluded. Do not weaken or bypass the 148 KiB gzip budget.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
+
+### Privacy, monitoring, and deployment security
+
+- The application handles user-authored patch names, bank names, uploaded filenames, MIDI port
+  identities, voice data, and SysEx bytes. Do not send those values to analytics or error monitoring.
+- Analytics events must use fixed event names and coarse, bounded properties. Sentry reports must
+  keep query strings, fragments, console breadcrumbs, UI breadcrumbs, request data, and user details
+  out of events.
+- Monitoring must remain disabled in development and tests, and a failed optional monitoring import
+  must never prevent the app from rendering.
+- Keep `public/_headers`, the origins used by browser code, and `scripts/check-security-headers.mjs`
+  aligned. Any new remote resource or endpoint needs an explicit privacy and CSP review.
+
+### Images and generated assets
+
+- Full-size WebP files in `src/assets/` are sources and fallbacks. Do not hand-edit files in
+  `src/assets/generated/`; run `npm run images:generate` after a source image changes.
+- Keep explicit image dimensions and responsive `srcSet`/`sizes` data to avoid layout shift. Run the
+  image checks and `npm run test:cls` for image, font, initial-render, or loading-layout changes.
 
 ### UI and accessibility
 
@@ -118,7 +153,8 @@ npm run check
 ```
 
 It checks formatting, TypeScript/React and CSS linting, types, unused files/dependencies/exports, all
-unit and accessibility tests, the production build, and the transitive initial-JavaScript budget.
+unit and accessibility tests, responsive image assets, the production build, deployed security
+headers, emitted source maps, and the transitive initial-JavaScript budget.
 
 Useful focused commands:
 
@@ -129,7 +165,11 @@ npm run typecheck
 npm run deps:check
 npm test
 npm run test:a11y
+npm run images:check
 npm run build
+npm run images:check:dist
+npm run security:check
+npm run sourcemaps:check
 npm run bundle:check
 npm run test:cls
 ```
@@ -145,7 +185,7 @@ npm run deps:audit:prod
 npm run deps:audit
 ```
 
-When dependencies change, update `package-lock.json` with the pinned npm release and run
+When dependencies change, run `npm run lockfile:refresh` with the pinned npm release, then run
 `npm run check:install`. Do not use `npm audit fix --force`.
 
 ## Change discipline
