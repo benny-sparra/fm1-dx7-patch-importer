@@ -17,6 +17,7 @@ function makeVoice(): Dx7Voice {
     data[offset + 13] &= 0x1f
     data[offset + 15] &= 0x3f
   }
+  data[110] &= 0x1f
   data[111] &= 0x0f
   return updateDx7VoiceName({ data, name: '' }, 'ROUNDTRIP')
 }
@@ -26,6 +27,13 @@ describe('DX7 edit-buffer conversion', () => {
     const original = makeVoice()
 
     expect(packDx7Voice(unpackDx7Voice(original))).toEqual(original)
+  })
+
+  it('ignores reserved high bits in the packed algorithm byte', () => {
+    const voice = makeVoice()
+    voice.data[110] = 0b1110_0101
+
+    expect(unpackDx7Voice(voice)[134]).toBe(5)
   })
 
   it('rejects a malformed packed voice before creating a single-voice dump', () => {

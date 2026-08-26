@@ -95,7 +95,8 @@ export function unpackDx7Voice(voice: Dx7Voice) {
   }
 
   unpacked.push(
-    ...packed.slice(102, 111),
+    ...packed.slice(102, 110),
+    packed[110] & 0x1f,
     packed[111] & 0x07,
     (packed[111] >> 3) & 0x01,
     ...packed.slice(112, 116),
