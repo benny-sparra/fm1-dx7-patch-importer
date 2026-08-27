@@ -254,6 +254,11 @@ export default {
     channel: 'Canal {{number}}',
     loading: 'Cargando el editor…',
     loadingLibrary: 'Cargando la biblioteca',
+    editorLoadErrorTitle: 'No se pudo cargar el editor.',
+    editorLoadErrorBody:
+      'Es posible que la aplicación se haya actualizado o que se haya interrumpido la conexión. Recarga para usar la última versión o vuelve a la biblioteca.',
+    reloadApp: 'Recargar la aplicación',
+    backToLibrary: 'Volver a la biblioteca',
   },
   root: {
     subtitle: 'editor y bibliotecario',
@@ -419,6 +424,7 @@ export default {
     completeSysex: 'Mensaje SysEx completo',
     copied: 'Copiado',
     copyHex: 'Copiar hexadecimal',
+    copyUnavailable: 'Copia no disponible',
   },
   banks: {
     addBankHelp: 'Asigna un nombre al banco e importa sus datos de sonido si quieres.',

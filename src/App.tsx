@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, type ComponentProps, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LoaderCircle } from 'lucide-react'
 
@@ -8,21 +8,33 @@ import { LibrarianPage } from '@/routes/librarian-page'
 import { RootLayout } from '@/routes/root-layout'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { trackAnalyticsEvent } from '@/lib/analytics'
+import {
+  beginDynamicImportRecovery,
+  cancelDynamicImportRecovery,
+  getDynamicImportRecoveryIntent,
+} from '@/lib/dynamic-import-recovery'
 import { useToast } from '@/components/ui/toast'
+import { PatchEditorErrorBoundary } from '@/components/editor/patch-editor-error-boundary'
 import { WorkspacePersistenceStatus } from '@/components/workspace-persistence-status'
+import { loadPatchEditorPage } from '@/routes/load-patch-editor-page'
 
-const PatchEditorPage = lazy(() =>
-  import('@/routes/patch-editor-page').then((module) => ({
-    default: module.PatchEditorPage,
-  })),
-)
+const PatchEditorPage = lazy(loadPatchEditorPage)
+
+function LoadedPatchEditorPage(props: ComponentProps<typeof PatchEditorPage>) {
+  useEffect(() => cancelDynamicImportRecovery(), [])
+  return <PatchEditorPage {...props} />
+}
 
 function App() {
   const { t } = useTranslation()
   const toast = useToast()
   const midi = useMidi()
   const library = usePatchLibrary()
-  const [selectedPatchId, setSelectedPatchId] = useState('')
+  const [selectedPatchId, setSelectedPatchId] = useState(() => {
+    const recoveryPatchId = getDynamicImportRecoveryIntent()
+    if (recoveryPatchId) beginDynamicImportRecovery(recoveryPatchId)
+    return recoveryPatchId
+  })
   const [auditionedPatchId, setAuditionedPatchId] = useState('')
   const selectedPatch = library.patches.find((patch) => patch.id === selectedPatchId)
   const selectedVoice = selectedPatch ? library.voices[selectedPatch.id] : undefined
@@ -31,8 +43,13 @@ function App() {
     if (!patch) return
     midi.sendProgramChange(patch.program)
     setAuditionedPatchId(patch.id)
+    beginDynamicImportRecovery(patch.id)
     setSelectedPatchId(patch.id)
     trackAnalyticsEvent({ name: 'editor_opened' })
+  }
+  const closeEditor = () => {
+    cancelDynamicImportRecovery()
+    setSelectedPatchId('')
   }
   const loadingSection = (label: string) => (
     <section
@@ -60,20 +77,21 @@ function App() {
         <>
           <WorkspacePersistenceStatus library={library} />
           {selectedPatch && selectedVoice ? (
-            <Suspense fallback={loadingSection(t('common.loading'))}>
-              <PatchEditorPage
-                key={selectedPatch.id}
-                midi={midi}
-                onBack={() => setSelectedPatchId('')}
-                effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
-                onSave={(voice, effects) => {
-                  library.updatePatch(selectedPatch.id, voice, effects)
-                  toast.success(t('toasts.patchSaved', { patch: selectedPatch.name }))
-                }}
-                patch={selectedPatch}
-                voice={selectedVoice}
-              />
-            </Suspense>
+            <PatchEditorErrorBoundary key={selectedPatch.id} onBack={closeEditor}>
+              <Suspense fallback={loadingSection(t('common.loading'))}>
+                <LoadedPatchEditorPage
+                  midi={midi}
+                  onBack={closeEditor}
+                  effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
+                  onSave={(voice, effects) => {
+                    library.updatePatch(selectedPatch.id, voice, effects)
+                    toast.success(t('toasts.patchSaved', { patch: selectedPatch.name }))
+                  }}
+                  patch={selectedPatch}
+                  voice={selectedVoice}
+                />
+              </Suspense>
+            </PatchEditorErrorBoundary>
           ) : (
             <LibrarianPage
               activePatchId={auditionedPatchId}

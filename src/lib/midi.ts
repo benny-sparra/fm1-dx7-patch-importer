@@ -2,6 +2,7 @@ import type { Input, Output } from 'webmidi'
 
 import { makeDx7BankPayload, makeDx7SingleVoicePayload, type Dx7Voice } from '@/lib/dx7'
 import { fm1EffectParameterMaximums, fm1EffectParameterCount } from '@/lib/fm1-effects'
+import { createId } from '@/lib/id'
 
 export type MidiPort = Input | Output
 
@@ -22,12 +23,12 @@ export type MidiLogEntry = {
 }
 
 export function getMidiSupport() {
-  if (!navigator.requestMIDIAccess) {
-    return 'unsupported'
-  }
-
   if (!window.isSecureContext) {
     return 'insecure'
+  }
+
+  if (!navigator.requestMIDIAccess) {
+    return 'unsupported'
   }
 
   return 'supported'
@@ -163,7 +164,7 @@ export function makeLogEntry(
   data?: Uint8Array | number[],
 ): MidiLogEntry {
   return {
-    id: crypto.randomUUID(),
+    id: createId(),
     direction,
     message,
     data: data ? Uint8Array.from(data) : undefined,

@@ -14,7 +14,7 @@ type MidiLogCardProps = {
 export function MidiLogCard({ log }: MidiLogCardProps) {
   const { t } = useTranslation()
   const [selectedEntry, setSelectedEntry] = useState<MidiLogEntry | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [copyStatus, setCopyStatus] = useState<'copied' | 'idle' | 'unavailable'>('idle')
   const formattedData = useMemo(() => {
     if (!selectedEntry?.data) return ''
 
@@ -29,12 +29,19 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
 
   function viewData(entry: MidiLogEntry) {
     setSelectedEntry((current) => (current?.id === entry.id ? null : entry))
-    setCopied(false)
+    setCopyStatus('idle')
   }
 
   async function copyData() {
-    await navigator.clipboard.writeText(formattedData.replaceAll('\n', ' '))
-    setCopied(true)
+    try {
+      if (typeof navigator.clipboard?.writeText !== 'function') {
+        throw new Error('The Clipboard API is unavailable.')
+      }
+      await navigator.clipboard.writeText(formattedData.replaceAll('\n', ' '))
+      setCopyStatus('copied')
+    } catch {
+      setCopyStatus('unavailable')
+    }
   }
 
   return (
@@ -98,8 +105,16 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
                         type="button"
                         variant="outline"
                       >
-                        {copied ? <Check className="size-4" /> : <Clipboard className="size-4" />}
-                        {copied ? t('midi.copied') : t('midi.copyHex')}
+                        {copyStatus === 'copied' ? (
+                          <Check className="size-4" />
+                        ) : (
+                          <Clipboard className="size-4" />
+                        )}
+                        {copyStatus === 'copied'
+                          ? t('midi.copied')
+                          : copyStatus === 'unavailable'
+                            ? t('midi.copyUnavailable')
+                            : t('midi.copyHex')}
                       </Button>
                     </div>
                     <pre className="font-vt323 max-h-[40vh] overflow-auto rounded-lg border bg-muted/40 p-4 text-xs leading-5 whitespace-pre">

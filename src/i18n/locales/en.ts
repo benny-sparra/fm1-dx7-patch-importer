@@ -253,6 +253,11 @@ export default {
     channel: 'Channel {{number}}',
     loading: 'Loading editor…',
     loadingLibrary: 'Loading library',
+    editorLoadErrorTitle: 'The editor could not be loaded.',
+    editorLoadErrorBody:
+      'The app may have been updated or the connection was interrupted. Reload to use the latest version, or return to the library.',
+    reloadApp: 'Reload app',
+    backToLibrary: 'Back to library',
   },
   root: {
     subtitle: 'editor & librarian',
@@ -418,6 +423,7 @@ export default {
     completeSysex: 'Complete SysEx message',
     copied: 'Copied',
     copyHex: 'Copy hex',
+    copyUnavailable: 'Copy unavailable',
   },
   banks: {
     empty: 'Empty',

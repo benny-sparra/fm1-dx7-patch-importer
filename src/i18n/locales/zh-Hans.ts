@@ -227,6 +227,10 @@ export default {
     channel: '通道 {{number}}',
     loading: '正在加载编辑器…',
     loadingLibrary: '正在加载音色库',
+    editorLoadErrorTitle: '无法加载编辑器。',
+    editorLoadErrorBody: '应用可能已更新或连接中断。请重新加载以使用最新版本，或返回音色库。',
+    reloadApp: '重新加载应用',
+    backToLibrary: '返回音色库',
   },
   root: {
     subtitle: '音色编辑器与音色库',
@@ -384,6 +388,7 @@ export default {
     completeSysex: '完整 SysEx 消息',
     copied: '已复制',
     copyHex: '复制十六进制数据',
+    copyUnavailable: '无法复制',
   },
   banks: {
     addBankHelp: '为音色库命名，并可选择导入声音数据。',

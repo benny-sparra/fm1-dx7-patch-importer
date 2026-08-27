@@ -256,6 +256,11 @@ export default {
     channel: 'Canal {{number}}',
     loading: 'Chargement de l’éditeur…',
     loadingLibrary: 'Chargement de la bibliothèque',
+    editorLoadErrorTitle: 'Impossible de charger l’éditeur.',
+    editorLoadErrorBody:
+      'L’application a peut-être été mise à jour ou la connexion a été interrompue. Rechargez pour utiliser la dernière version, ou revenez à la bibliothèque.',
+    reloadApp: 'Recharger l’application',
+    backToLibrary: 'Retour à la bibliothèque',
   },
   root: {
     subtitle: 'éditeur et bibliothécaire',
@@ -423,6 +428,7 @@ export default {
     completeSysex: 'Message SysEx complet',
     copied: 'Copié',
     copyHex: 'Copier en hexadécimal',
+    copyUnavailable: 'Copie indisponible',
   },
   banks: {
     empty: 'Vide',

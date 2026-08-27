@@ -253,6 +253,11 @@ export default {
     channel: 'Canal {{number}}',
     loading: 'Carregando o editor…',
     loadingLibrary: 'Carregando a biblioteca',
+    editorLoadErrorTitle: 'Não foi possível carregar o editor.',
+    editorLoadErrorBody:
+      'O aplicativo pode ter sido atualizado ou a conexão foi interrompida. Recarregue para usar a versão mais recente ou volte à biblioteca.',
+    reloadApp: 'Recarregar aplicativo',
+    backToLibrary: 'Voltar à biblioteca',
   },
   root: {
     subtitle: 'editor e bibliotecário',
@@ -418,6 +423,7 @@ export default {
     completeSysex: 'Mensagem SysEx completa',
     copied: 'Copiado',
     copyHex: 'Copiar hexadecimal',
+    copyUnavailable: 'Cópia indisponível',
   },
   banks: {
     addBankHelp: 'Dê um nome ao banco e, opcionalmente, importe os dados dos sons.',

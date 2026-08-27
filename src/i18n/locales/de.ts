@@ -257,6 +257,11 @@ export default {
     channel: 'Kanal {{number}}',
     loading: 'Editor wird geladen…',
     loadingLibrary: 'Bibliothek wird geladen',
+    editorLoadErrorTitle: 'Der Editor konnte nicht geladen werden.',
+    editorLoadErrorBody:
+      'Die App wurde möglicherweise aktualisiert oder die Verbindung wurde unterbrochen. Lade die App neu, um die neueste Version zu verwenden, oder kehre zur Bibliothek zurück.',
+    reloadApp: 'App neu laden',
+    backToLibrary: 'Zurück zur Bibliothek',
   },
   root: {
     subtitle: 'Editor und Librarian',
@@ -423,6 +428,7 @@ export default {
     completeSysex: 'Vollständige SysEx-Nachricht',
     copied: 'Kopiert',
     copyHex: 'Hex-Daten kopieren',
+    copyUnavailable: 'Kopieren nicht verfügbar',
   },
   banks: {
     addBankHelp: 'Gib der Bank einen Namen und importiere optional ihre Sounddaten.',

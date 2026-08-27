@@ -1,10 +1,38 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  getMidiSupport,
   makeFm1EffectControlMessage,
   makeFm1ParameterPayload,
   makeFm1ProgramChangeMessage,
 } from '@/lib/midi'
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
+describe('getMidiSupport', () => {
+  it('identifies an insecure context even when the browser hides the MIDI API', () => {
+    vi.stubGlobal('navigator', {})
+    vi.stubGlobal('window', { isSecureContext: false })
+
+    expect(getMidiSupport()).toBe('insecure')
+  })
+
+  it('identifies a secure browser without Web MIDI support', () => {
+    vi.stubGlobal('navigator', {})
+    vi.stubGlobal('window', { isSecureContext: true })
+
+    expect(getMidiSupport()).toBe('unsupported')
+  })
+
+  it('identifies Web MIDI support in a secure context', () => {
+    vi.stubGlobal('navigator', { requestMIDIAccess: vi.fn() })
+    vi.stubGlobal('window', { isSecureContext: true })
+
+    expect(getMidiSupport()).toBe('supported')
+  })
+})
 
 describe('makeFm1ParameterPayload', () => {
   it('encodes the documented FM1 transpose parameter message on channel 1', () => {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { parseDx7Bank, type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
+import { createId } from '@/lib/id'
 import {
   createNamedBank,
   duplicateNamedBank,
@@ -249,7 +250,7 @@ export function usePatchLibrary() {
       const now = new Date().toISOString()
       const bank = createNamedBank(history.present, sourceBank, {
         description,
-        id: crypto.randomUUID(),
+        id: createId(),
         name,
         now,
       })
@@ -284,7 +285,7 @@ export function usePatchLibrary() {
   )
 
   const copyNamedBank = useCallback(async (bank: NamedBank) => {
-    const duplicate = duplicateNamedBank(bank, crypto.randomUUID(), new Date().toISOString())
+    const duplicate = duplicateNamedBank(bank, createId(), new Date().toISOString())
     await saveStoredNamedBank(duplicate)
     setNamedBanks((current) => [duplicate, ...current])
     setNamedBanksError('')
