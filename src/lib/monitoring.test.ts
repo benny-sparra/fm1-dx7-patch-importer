@@ -116,6 +116,67 @@ describe('Sentry monitoring', () => {
     })
   })
 
+  it('drops errors raised entirely by the Android in-app navigation logger', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const event = {
+      exception: {
+        values: [
+          {
+            type: 'Error',
+            value: 'Error invoking postMessage: Java exception was raised during method invocation',
+            stacktrace: {
+              frames: [
+                { filename: 'iabjs://navigation_performance_logger_android' },
+                { filename: 'iabjs://navigation_performance_logger_android' },
+                { filename: '<anonymous>' },
+              ],
+            },
+          },
+        ],
+      },
+    }
+
+    expect(options.beforeSend?.(event)).toBeNull()
+  })
+
+  it('keeps bridge errors that also contain an application frame', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const event = {
+      exception: {
+        values: [
+          {
+            type: 'Error',
+            value: 'Error invoking postMessage: Java exception was raised during method invocation',
+            stacktrace: {
+              frames: [
+                { filename: 'iabjs://navigation_performance_logger_android' },
+                { filename: 'https://fm1-editor.com/assets/index.js' },
+              ],
+            },
+          },
+        ],
+      },
+    }
+
+    expect(options.beforeSend?.(event)).toBe(event)
+  })
+
   it('provides Sentry handlers for React root errors', async () => {
     const { handler, sdk } = createSdk()
     const initialize = createMonitoringInitializer({

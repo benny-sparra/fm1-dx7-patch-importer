@@ -24,9 +24,27 @@ type MonitoringConfiguration = {
 
 const sentryDsn =
   'https://7b1d3bf3196f9dcdac24f9ea0401f275@o4511966934859776.ingest.de.sentry.io/4511966958846032'
+const androidNavigationLoggerUrl = 'iabjs://navigation_performance_logger_android'
 
 function removeUrlDetails(value: string) {
   return value.replace(/[?#].*$/u, '')
+}
+
+function isAndroidNavigationLoggerError(event: {
+  exception?: {
+    values?: { stacktrace?: { frames?: { filename?: string }[] } }[]
+  }
+}) {
+  const filenames =
+    event.exception?.values?.flatMap(
+      (exception) => exception.stacktrace?.frames?.flatMap((frame) => frame.filename ?? []) ?? [],
+    ) ?? []
+  const attributableFilenames = filenames.filter((filename) => filename !== '<anonymous>')
+
+  return (
+    attributableFilenames.length > 0 &&
+    attributableFilenames.every((filename) => filename.startsWith(androidNavigationLoggerUrl))
+  )
 }
 
 export function createMonitoringInitializer({
@@ -63,6 +81,8 @@ export function createMonitoringInitializer({
             }
           },
           beforeSend(event) {
+            if (isAndroidNavigationLoggerError(event)) return null
+
             delete event.user
             if (event.request) {
               delete event.request.cookies
