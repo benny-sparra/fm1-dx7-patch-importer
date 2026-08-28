@@ -148,3 +148,53 @@ describe('useMidi transfer monitoring', () => {
     })
   })
 })
+
+describe('useMidi note transport failures', () => {
+  it('contains a disconnected transport error when starting a note', async () => {
+    const transportError = new Error('The FM1 LAN bridge is disconnected.')
+    webMidi.outputs = [
+      {
+        id: 'lan-bridge',
+        manufacturer: 'FM1',
+        name: 'LAN bridge',
+        sendNoteOn: vi.fn(() => {
+          throw transportError
+        }),
+        state: 'connected',
+      },
+    ]
+    const { result } = renderHook(() => useMidi())
+
+    await act(() => result.current.connectMidi())
+    await waitFor(() => expect(result.current.hasMidiOutput).toBe(true))
+
+    expect(() => result.current.startNote(48, 'C3')).not.toThrow()
+    expect(result.current.logStore.getSnapshot()[0]?.message).toBe(
+      'The FM1 LAN bridge is disconnected.',
+    )
+  })
+
+  it('contains a disconnected transport error when stopping a note', async () => {
+    const transportError = new Error('The FM1 LAN bridge is disconnected.')
+    webMidi.outputs = [
+      {
+        id: 'lan-bridge',
+        manufacturer: 'FM1',
+        name: 'LAN bridge',
+        sendNoteOff: vi.fn(() => {
+          throw transportError
+        }),
+        state: 'connected',
+      },
+    ]
+    const { result } = renderHook(() => useMidi())
+
+    await act(() => result.current.connectMidi())
+    await waitFor(() => expect(result.current.hasMidiOutput).toBe(true))
+
+    expect(() => result.current.stopNote(48)).not.toThrow()
+    expect(result.current.logStore.getSnapshot()[0]?.message).toBe(
+      'The FM1 LAN bridge is disconnected.',
+    )
+  })
+})

@@ -527,14 +527,23 @@ export function useMidi() {
         return
       }
 
-      sendNoteOn(selectedOutput, channel, note)
-      appendLog(
-        makeLogEntry('out', `Ch ${channel} Note On: ${label}`, [
-          0x90 | ((channel - 1) & 0x0f),
-          note,
-          96,
-        ]),
-      )
+      try {
+        sendNoteOn(selectedOutput, channel, note)
+        appendLog(
+          makeLogEntry('out', `Ch ${channel} Note On: ${label}`, [
+            0x90 | ((channel - 1) & 0x0f),
+            note,
+            96,
+          ]),
+        )
+      } catch (caughtError) {
+        appendLog(
+          makeLogEntry(
+            'system',
+            caughtError instanceof Error ? caughtError.message : 'MIDI note-on failed.',
+          ),
+        )
+      }
     },
     [appendLog, channel, selectedOutput],
   )
@@ -542,10 +551,19 @@ export function useMidi() {
   const stopNote = useCallback(
     (note: number) => {
       if (selectedOutput) {
-        sendNoteOff(selectedOutput, channel, note)
+        try {
+          sendNoteOff(selectedOutput, channel, note)
+        } catch (caughtError) {
+          appendLog(
+            makeLogEntry(
+              'system',
+              caughtError instanceof Error ? caughtError.message : 'MIDI note-off failed.',
+            ),
+          )
+        }
       }
     },
-    [channel, selectedOutput],
+    [appendLog, channel, selectedOutput],
   )
 
   useEffect(() => {
