@@ -196,3 +196,136 @@ When dependencies change, run `npm run lockfile:refresh` with the pinned npm rel
 - Update README documentation when commands, setup, supported behavior, or user workflows change.
 - Before handoff, run `git diff --check`, report validation performed, and call out any check that
   could not run.
+
+## FM1 protocol research
+
+Before changing FM1-specific MIDI behaviour, read:
+
+- `docs/fm1-research.md`
+- `docs/fm1-roadmap.md`
+- the applicable task in `docs/codex-tasks.md`
+
+Treat `docs/fm1-research.md` as the project source of truth for known stock-FM1 behaviour.
+
+Use these confidence levels:
+
+- **Confirmed** — supported by firmware analysis and/or repeated hardware testing.
+- **Likely** — supported by analysis but not yet verified through the editor on physical hardware.
+- **Needs hardware test** — do not make production behaviour depend on it yet.
+- **Dangerous / excluded** — OTA, loader, flash, recovery, or unknown commands that must not be sent by normal editor code.
+
+Do not invent missing FM1 protocol behaviour. If an encoding, command ID, flag meaning, readback mechanism, or persistence rule is unknown, leave the implementation blocked and document the question.
+
+## FM1 runtime MIDI boundaries
+
+Keep Yamaha DX7 voice data separate from FM1-specific data such as effects, arpeggiator settings and sequencer patterns.
+
+FM1-specific byte encoding must live in testable domain/MIDI modules rather than React components.
+
+UI code should call bounded semantic operations rather than construct raw SysEx/vendor messages.
+
+Examples of acceptable API shape:
+
+```ts
+setVoiceParameter(...)
+requestSequence(...)
+sendSequence(...)
+setEffectParameter(...)
+```
+
+These examples are illustrative; use existing repository conventions and do not introduce an operation until its protocol is known.
+
+Validate at the domain boundary:
+
+- message length
+- MIDI channel
+- 7-bit payload values where required
+- parameter ranges
+- sequence record lengths
+- note and velocity bounds
+- vendor payload lengths
+- all enumerated values
+
+Preserve unknown device fields/bits during read-modify-write where possible rather than silently zeroing them.
+
+## Sequencer scope
+
+The Sequencer feature exists only to edit the **FM1's internal sequencer** more conveniently.
+
+Do not turn it into a general sequencer or DAW.
+
+Unless explicitly approved by a future task, do not add:
+
+- multitrack sequencing
+- MIDI-file composition
+- an audio engine
+- arrangements
+- clip launching
+- automation lanes
+- plugins
+- a mixer
+- generic DAW transport architecture
+
+Prefer a small UI tailored to the stock FM1 sequence representation.
+
+Build in this order:
+
+1. domain model
+2. codec
+3. mock/read-only UI
+4. verified hardware read
+5. smallest safe write
+6. broader write support
+
+Do not let UI implementation force assumptions about unresolved device protocol.
+
+## Vendor/syscmd safety
+
+The stock firmware recognises M-VAVE-specific protocol traffic in addition to normal Yamaha DX7 SysEx.
+
+The public reverse-engineering work also documents OTA/update/loader paths.
+
+Normal production editor code must never:
+
+- enter the loader
+- invoke OTA/update mode
+- erase or write firmware flash
+- use raw flash operations
+- send guessed vendor command IDs
+- expose a generic arbitrary vendor-command transmitter
+
+Unknown vendor commands default to **Dangerous / excluded** until classified.
+
+Any future update/recovery research must remain physically and logically separate from normal runtime editor MIDI code and should not ship in the production application bundle unless explicitly justified.
+
+## Hardware research discipline
+
+When reverse engineering a normal FM1 control:
+
+1. capture a baseline
+2. change exactly one stock-device value
+3. capture again
+4. diff messages
+5. repeat across several values
+6. reconnect/reset and confirm repeatability
+7. document the result in `docs/fm1-research.md`
+8. add fixture-based tests
+9. only then implement a bounded production operation
+
+Never make unit tests require MIDI permission or physical hardware.
+
+Prefer captured fixtures for parser/codec tests.
+
+Do not automatically replay an unknown captured message.
+
+## Protocol-backed feature definition of done
+
+For FM1-specific protocol work, handoff must state:
+
+- documentation updated
+- confidence level
+- fixtures/tests added
+- validation performed
+- hardware test performed or explicitly still required
+- persistence semantics if the device stores the change
+- confirmation that no OTA/loader path is involved
