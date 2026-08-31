@@ -411,18 +411,12 @@ export function useMidi() {
       }
 
       try {
-        const payload = makeFm1ParameterPayload(parameter, value, channel)
+        const payload = makeFm1ParameterPayload(parameter, value)
         const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
         void transferQueue.current
           .enqueue(() => {
-            sendFm1Parameter(selectedOutput, channel, parameter, value)
-            appendLog(
-              makeLogEntry(
-                'out',
-                `Sent FM1 parameter ${parameter} = ${value} on channel ${channel}.`,
-                message,
-              ),
-            )
+            sendFm1Parameter(selectedOutput, parameter, value)
+            appendLog(makeLogEntry('out', `Sent FM1 parameter ${parameter} = ${value}.`, message))
           }, `parameter-${parameter}`)
           .catch((caughtError) => {
             appendLog(
@@ -443,7 +437,7 @@ export function useMidi() {
         return false
       }
     },
-    [appendLog, channel, selectedOutput],
+    [appendLog, selectedOutput],
   )
 
   const sendEffectParameter = useCallback(

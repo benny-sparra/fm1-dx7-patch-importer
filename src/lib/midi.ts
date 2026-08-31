@@ -2,6 +2,7 @@ import type { Input, Output } from 'webmidi'
 
 import { makeDx7BankPayload, makeDx7SingleVoicePayload, type Dx7Voice } from '@/lib/dx7'
 import { fm1EffectParameterMaximums, fm1EffectParameterCount } from '@/lib/fm1-effects'
+import { fm1VoiceParameterMaximums } from '@/lib/fm1-parameters'
 import { createId } from '@/lib/id'
 
 export type MidiPort = Input | Output
@@ -70,34 +71,28 @@ export function sendFm1ProgramChange(output: Output, channel: number, program: n
 
 /**
  * FM1/DX7 single-parameter write payload, excluding F0/43 and F7.
- * The complete message is F0 43 1n pp qq vv F7.
+ * The complete message is F0 43 10 pp qq vv F7.
  */
-export function makeFm1ParameterPayload(parameter: number, value: number, channel = 1) {
-  if (!Number.isInteger(parameter) || parameter < 0 || parameter > 155) {
-    throw new RangeError('FM1 parameter must be an integer from 0 to 155.')
+export function makeFm1ParameterPayload(parameter: number, value: number) {
+  if (
+    !Number.isInteger(parameter) ||
+    parameter < 0 ||
+    parameter >= fm1VoiceParameterMaximums.length
+  ) {
+    throw new RangeError(
+      `FM1 voice parameter must be an integer from 0 to ${fm1VoiceParameterMaximums.length - 1}.`,
+    )
   }
-  if (!Number.isInteger(value) || value < 0 || value > 127) {
-    throw new RangeError('FM1 parameter value must be an integer from 0 to 127.')
+  if (!Number.isInteger(value) || value < 0 || value > fm1VoiceParameterMaximums[parameter]) {
+    throw new RangeError(
+      `FM1 voice parameter ${parameter} value must be an integer from 0 to ${fm1VoiceParameterMaximums[parameter]}.`,
+    )
   }
-  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
-    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
-  }
-
-  return Uint8Array.from([
-    0x10 | ((channel - 1) & 0x0f),
-    Math.floor(parameter / 128),
-    parameter % 128,
-    value,
-  ])
+  return Uint8Array.from([0x10, Math.floor(parameter / 128), parameter % 128, value])
 }
 
-export function sendFm1Parameter(
-  output: Output,
-  channel: number,
-  parameter: number,
-  value: number,
-) {
-  output.sendSysex(0x43, makeFm1ParameterPayload(parameter, value, channel))
+export function sendFm1Parameter(output: Output, parameter: number, value: number) {
+  output.sendSysex(0x43, makeFm1ParameterPayload(parameter, value))
 }
 
 export function makeFm1EffectControlMessage(controller: number, value: number, channel = 2) {

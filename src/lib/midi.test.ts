@@ -5,6 +5,7 @@ import {
   makeFm1EffectControlMessage,
   makeFm1ParameterPayload,
   makeFm1ProgramChangeMessage,
+  sendFm1Parameter,
 } from '@/lib/midi'
 
 afterEach(() => {
@@ -36,25 +37,33 @@ describe('getMidiSupport', () => {
 
 describe('makeFm1ParameterPayload', () => {
   it('encodes the documented FM1 transpose parameter message on channel 1', () => {
-    expect(Array.from(makeFm1ParameterPayload(144, 36, 1))).toEqual([0x10, 0x01, 0x10, 0x24])
+    expect(Array.from(makeFm1ParameterPayload(144, 36))).toEqual([0x10, 0x01, 0x10, 0x24])
   })
 
-  it('encodes the maximum documented parameter on channel 16', () => {
-    expect(Array.from(makeFm1ParameterPayload(155, 127, 16))).toEqual([0x1f, 0x01, 0x1b, 0x7f])
+  it('encodes the final edit-buffer parameter with the fixed FM1 sub-status', () => {
+    expect(Array.from(makeFm1ParameterPayload(154, 127))).toEqual([0x10, 0x01, 0x1a, 0x7f])
   })
 
   it.each([
-    ['parameter below zero', -1, 0, 1],
-    ['parameter above 155', 156, 0, 1],
-    ['fractional parameter', 1.5, 0, 1],
-    ['value below zero', 0, -1, 1],
-    ['value above 127', 0, 128, 1],
-    ['fractional value', 0, 1.5, 1],
-    ['channel below one', 0, 0, 0],
-    ['channel above sixteen', 0, 0, 17],
-    ['fractional channel', 0, 0, 1.5],
-  ])('rejects %s', (_name, parameter, value, channel) => {
-    expect(() => makeFm1ParameterPayload(parameter, value, channel)).toThrow(RangeError)
+    ['parameter below zero', -1, 0],
+    ['parameter outside the 155-byte edit buffer', 155, 0],
+    ['fractional parameter', 1.5, 0],
+    ['value below zero', 0, -1],
+    ['value above 127', 0, 128],
+    ['operator rate above its range', 0, 100],
+    ['algorithm above its range', 134, 32],
+    ['transpose above its range', 144, 49],
+    ['fractional value', 0, 1.5],
+  ])('rejects %s', (_name, parameter, value) => {
+    expect(() => makeFm1ParameterPayload(parameter, value)).toThrow(RangeError)
+  })
+
+  it('sends the standard seven-byte Yamaha parameter-change SysEx encoding', () => {
+    const output = { sendSysex: vi.fn() }
+
+    sendFm1Parameter(output as never, 144, 36)
+
+    expect(output.sendSysex).toHaveBeenCalledWith(0x43, Uint8Array.from([0x10, 0x01, 0x10, 0x24]))
   })
 })
 
