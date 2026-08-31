@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "capture_status": "incomplete",
+  "fixture_id": "seq-V15-pattern-01-keypress-attempt-2026-08-31",
+  "firmware": {
+    "version": "V15",
+    "observed_from": "Operator reports the latest firmware with Glide/portamento; device version screen not recorded."
+  },
+  "editor": {
+    "involved": false,
+    "version_or_commit": null
+  },
+  "capture": {
+    "transport": "USB CoreMIDI receive source only",
+    "topology": "FM1 USB source -> macOS CoreMIDI input port; no output port created",
+    "tool": "scripts/capture-midi.swift",
+    "started_at_utc": "not_recorded",
+    "source_export": {
+      "location_or_identifier": "seq-V15-pattern-01-keypress-attempt-2026-08-31.ndjson",
+      "sha256": "3ba8b3a1c245d1d4520c408e275d01e6d6dcfeab068bfc09ed4c2474741aa57e"
+    }
+  },
+  "initial_state": {
+    "mode": "unknown",
+    "bank": "unknown",
+    "slot_or_pattern": "Pattern 1 (operator-reported current selection)",
+    "pattern_description": "unknown",
+    "voice_or_patch": "unknown",
+    "other_relevant_stock_controls": []
+  },
+  "human_action": {
+    "exact_steps": [
+      "Operator pressed device keys while trying to identify the stock clear control; no clear action was confirmed."
+    ],
+    "declared_independent_variable": "uncontrolled exploratory physical key presses",
+    "expected_result_before_observation": "not_recorded"
+  },
+  "traffic": [
+    {
+      "ordinal": 1,
+      "relative_time_ms": 0,
+      "direction": "from_fm1",
+      "bytes_hex": "90 39 5A",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note On, note 57, velocity 90. Its relationship to the reported clear is unknown."
+    },
+    {
+      "ordinal": 2,
+      "relative_time_ms": 299,
+      "direction": "from_fm1",
+      "bytes_hex": "80 39 64",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note Off, note 57, release velocity 100. Its relationship to the reported clear is unknown."
+    },
+    {
+      "ordinal": 3,
+      "relative_time_ms": 659,
+      "direction": "from_fm1",
+      "bytes_hex": "90 37 5A",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note On, note 55, velocity 90. Its relationship to the reported clear is unknown."
+    },
+    {
+      "ordinal": 4,
+      "relative_time_ms": 719,
+      "direction": "from_fm1",
+      "bytes_hex": "90 39 5A",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note On, note 57, velocity 90. Its relationship to the reported clear is unknown."
+    },
+    {
+      "ordinal": 5,
+      "relative_time_ms": 899,
+      "direction": "from_fm1",
+      "bytes_hex": "80 39 64",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note Off, note 57, release velocity 100. Its relationship to the reported clear is unknown."
+    },
+    {
+      "ordinal": 6,
+      "relative_time_ms": 959,
+      "direction": "from_fm1",
+      "bytes_hex": "80 37 64",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note Off, note 55, release velocity 100. Its relationship to the reported clear is unknown."
+    },
+    {
+      "ordinal": 7,
+      "relative_time_ms": 1439,
+      "direction": "from_fm1",
+      "bytes_hex": "90 38 5A",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note On, note 56, velocity 90. Its relationship to the reported clear is unknown."
+    },
+    {
+      "ordinal": 8,
+      "relative_time_ms": 1739,
+      "direction": "from_fm1",
+      "bytes_hex": "80 38 64",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note Off, note 56, release velocity 100. Its relationship to the reported clear is unknown."
+    }
+  ],
+  "observations": {
+    "resulting_sequencer_behaviour": "No sequencer state change was confirmed; playback was not recorded.",
+    "pattern_change": "not_tested",
+    "patch_change": "not_tested",
+    "reconnect": "not_tested",
+    "power_cycle": "not_tested"
+  },
+  "record_evidence": {
+    "available": false,
+    "bytes_hex": null,
+    "provenance": null,
+    "analysis_notes": "No 32-byte record/state evidence was received."
+  },
+  "comparison": {
+    "baseline_fixture_id": null,
+    "only_intended_difference": "not_established",
+    "repeat_count": 0,
+    "differential_result": "not_applicable"
+  },
+  "notes": [
+    "The captured Note On/Off messages are operator physical key presses, not a clear operation.",
+    "The receive-only capture utility never creates a CoreMIDI output port, so it sent no MIDI.",
+    "This setup cannot observe traffic sent to the FM1 by another endpoint; full bidirectional traffic is unavailable.",
+    "This incomplete attempt is not a core hardware fixture and cannot support byte or vendor-command semantics."
+  ]
+}

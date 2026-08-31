@@ -25,6 +25,7 @@ import {
   isValidFm1ParameterValue,
   storedToDisplayValue,
 } from '@/lib/fm1-parameters'
+import { fm1EffectMappingFixture } from '@/test/fm1-effect-mapping.fixture'
 
 describe('FM1 parameter schema', () => {
   it('describes the complete, non-overlapping editor buffer', () => {
@@ -123,6 +124,34 @@ describe('FM1 parameter schema', () => {
       ['global.pitchModSensitivity', 143, 7],
       ['global.transpose', 144, 48],
     ])
+  })
+
+  it('maps all six effects and all four controls to the documented controller domains', () => {
+    expect(
+      fm1EffectParameters.map(({ controller, id, kind, max, min }) => ({
+        controller,
+        id,
+        kind,
+        max,
+        min,
+      })),
+    ).toEqual(
+      fm1EffectMappingFixture.map(({ controller, id, kind, max, min }) => ({
+        controller,
+        id,
+        kind,
+        max,
+        min,
+      })),
+    )
+    expect(
+      Object.fromEntries(
+        ['Filter', 'Reverb', 'Delay', 'Distortion', 'Chorus', 'Phaser'].map((effect) => [
+          effect,
+          fm1EffectMappingFixture.filter((mapping) => mapping.effect === effect).length,
+        ]),
+      ),
+    ).toEqual({ Chorus: 4, Delay: 4, Distortion: 4, Filter: 4, Phaser: 4, Reverb: 4 })
   })
 
   it('provides a legal value maximum for every address in the 155-byte edit buffer', () => {

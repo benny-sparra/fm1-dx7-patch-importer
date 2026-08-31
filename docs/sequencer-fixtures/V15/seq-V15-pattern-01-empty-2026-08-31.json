@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "capture_status": "incomplete",
+  "fixture_id": "seq-V15-pattern-01-empty-2026-08-31",
+  "firmware": {
+    "version": "V15",
+    "observed_from": "Operator reports the latest firmware with Glide/portamento; device version screen not recorded."
+  },
+  "editor": {
+    "involved": false,
+    "version_or_commit": null
+  },
+  "capture": {
+    "transport": "USB CoreMIDI receive source only",
+    "topology": "FM1 USB source -> macOS CoreMIDI input port; no output port created",
+    "tool": "scripts/capture-midi.swift",
+    "started_at_utc": "not_recorded",
+    "source_export": {
+      "location_or_identifier": "No packets received during this capture window.",
+      "sha256": null
+    }
+  },
+  "initial_state": {
+    "mode": "Sequencer clear-confirmation screen, page 1/3",
+    "bank": "unknown",
+    "slot_or_pattern": "Pattern 1",
+    "pattern_description": "unknown before clear",
+    "voice_or_patch": "001 BRASSBEN shown on the photographed clear-confirmation screen",
+    "other_relevant_stock_controls": ["K2 Cancel Clear", "K3 Clear Step", "K4 Clear Pattern"]
+  },
+  "human_action": {
+    "exact_steps": [
+      "On the photographed V15 clear-confirmation screen, turn K4 clockwise once to execute Clear Pattern.",
+      "Observe the screen message Cleared.",
+      "Without pressing piano keys, press PLAY/STOP once and observe playback."
+    ],
+    "declared_independent_variable": "K4 Clear Pattern action on Pattern 1",
+    "expected_result_before_observation": "empty pattern should have no audible playback or lit step LEDs"
+  },
+  "traffic": [],
+  "observations": {
+    "resulting_sequencer_behaviour": "The display showed Cleared. PLAY/STOP produced no sound and no step LEDs lit or blinked.",
+    "pattern_change": "not_tested",
+    "patch_change": "not_tested",
+    "reconnect": "not_tested",
+    "power_cycle": "not_tested"
+  },
+  "record_evidence": {
+    "available": false,
+    "bytes_hex": null,
+    "provenance": null,
+    "analysis_notes": "No 32-byte record/state evidence was received."
+  },
+  "comparison": {
+    "baseline_fixture_id": null,
+    "only_intended_difference": "not_applicable; this fixture establishes the empty baseline",
+    "repeat_count": 1,
+    "differential_result": "No device-to-host packets were received during the clear/playback observation."
+  },
+  "notes": [
+    "The receiver created no CoreMIDI output port and sent no MIDI.",
+    "A receive-only source cannot observe messages sent to the FM1 by another endpoint; this is not a full bidirectional traffic capture.",
+    "The empty playback result and K4 clear outcome are directly observed stock-device behaviour, but no record-byte, wire-command, or persistence conclusion follows."
+  ]
+}

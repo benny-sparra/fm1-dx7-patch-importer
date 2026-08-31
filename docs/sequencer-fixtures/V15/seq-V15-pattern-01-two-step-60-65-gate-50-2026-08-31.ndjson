@@ -1,0 +1,12 @@
+{"captured_at_utc":"2026-08-31T15:31:09.208Z","core_midi_packet_hex":"90 3C 5A","core_midi_timestamp":17922497983026,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:09.291Z","core_midi_packet_hex":"80 3C 64","core_midi_timestamp":17922499995275,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:09.374Z","core_midi_packet_hex":"90 41 5A","core_midi_timestamp":17922502010126,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:09.457Z","core_midi_packet_hex":"80 41 64","core_midi_timestamp":17922503979492,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:11.707Z","core_midi_packet_hex":"90 3C 5A","core_midi_timestamp":17922557987837,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:11.791Z","core_midi_packet_hex":"80 3C 64","core_midi_timestamp":17922560001386,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:11.873Z","core_midi_packet_hex":"90 41 5A","core_midi_timestamp":17922561971212,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:11.957Z","core_midi_packet_hex":"80 41 64","core_midi_timestamp":17922563982872,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:14.207Z","core_midi_packet_hex":"90 3C 5A","core_midi_timestamp":17922617991832,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:14.291Z","core_midi_packet_hex":"80 3C 64","core_midi_timestamp":17922620005218,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:14.373Z","core_midi_packet_hex":"90 41 5A","core_midi_timestamp":17922621974906,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}
+{"captured_at_utc":"2026-08-31T15:31:14.457Z","core_midi_packet_hex":"80 41 64","core_midi_timestamp":17922623987918,"direction":"from_fm1","source_index":0,"source_name":"USB Composite Device"}

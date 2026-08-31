@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "capture_status": "incomplete",
+  "fixture_id": "seq-V15-pattern-01-one-note-64-repeat-2026-08-31",
+  "firmware": {
+    "version": "V15",
+    "observed_from": "Operator reports the latest firmware with Glide/portamento; device version screen not recorded."
+  },
+  "editor": {
+    "involved": false,
+    "version_or_commit": null
+  },
+  "capture": {
+    "transport": "USB CoreMIDI receive source only",
+    "topology": "FM1 USB source -> macOS CoreMIDI input port; no output port created",
+    "tool": "scripts/capture-midi.swift",
+    "started_at_utc": "not_recorded",
+    "source_export": {
+      "location_or_identifier": "seq-V15-pattern-01-one-note-64-repeat-2026-08-31.ndjson",
+      "sha256": "c0bc531b0012aab128d809946c14539a090e66eee80e58a74c3febcf615367ba"
+    }
+  },
+  "initial_state": {
+    "mode": "Sequencer active",
+    "bank": "unknown",
+    "slot_or_pattern": "Pattern 1",
+    "pattern_description": "Cleared immediately before the identical one-note recording run",
+    "voice_or_patch": "001 BRASSBEN shown in the preceding V15 clear observation",
+    "other_relevant_stock_controls": [
+      "K4 Clear Pattern showed Cleared before this run",
+      "REC entered then exited recording",
+      "PLAY/STOP was used after recording"
+    ]
+  },
+  "human_action": {
+    "exact_steps": [
+      "In Sequencer mode, use K4 Clear Pattern and observe Cleared.",
+      "Press REC once.",
+      "Press and release the same physical piano key used by seq-V15-pattern-01-one-note-64-velocity-90-2026-08-31.",
+      "Press REC again, then PLAY/STOP and allow three repetitions."
+    ],
+    "declared_independent_variable": "fresh-baseline repetition of the one physical Note 64 recording",
+    "expected_result_before_observation": "same note/velocity and repeat cadence as the first controlled run"
+  },
+  "traffic": [
+    {
+      "ordinal": 1,
+      "relative_time_ms": 0,
+      "direction": "from_fm1",
+      "bytes_hex": "90 40 5A",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note On, note 64, velocity 90; operator's one physical key press."
+    },
+    {
+      "ordinal": 2,
+      "relative_time_ms": 180,
+      "direction": "from_fm1",
+      "bytes_hex": "80 40 64",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note Off, note 64, release velocity 100; paired with the physical key press."
+    },
+    {
+      "ordinal": 3,
+      "relative_time_ms": 7142,
+      "direction": "from_fm1",
+      "bytes_hex": "90 40 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Same note/velocity recurred after the instructed PLAY/STOP action, without another reported physical key press."
+    },
+    {
+      "ordinal": 4,
+      "relative_time_ms": 7274,
+      "direction": "from_fm1",
+      "bytes_hex": "80 40 64",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Paired with the first candidate playback Note On."
+    },
+    {
+      "ordinal": 5,
+      "relative_time_ms": 9640,
+      "direction": "from_fm1",
+      "bytes_hex": "90 40 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Same Note On recurred 2,498 ms after the preceding candidate playback event."
+    },
+    {
+      "ordinal": 6,
+      "relative_time_ms": 9774,
+      "direction": "from_fm1",
+      "bytes_hex": "80 40 64",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Paired with the second candidate playback Note On."
+    },
+    {
+      "ordinal": 7,
+      "relative_time_ms": 12140,
+      "direction": "from_fm1",
+      "bytes_hex": "90 40 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Same Note On recurred 2,500 ms after the preceding candidate playback event."
+    },
+    {
+      "ordinal": 8,
+      "relative_time_ms": 12274,
+      "direction": "from_fm1",
+      "bytes_hex": "80 40 64",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Paired with the third candidate playback Note On."
+    }
+  ],
+  "observations": {
+    "resulting_sequencer_behaviour": "The physical key press was again note 64 at velocity 90. Three subsequent matching note pairs were emitted after playback started, with Note On intervals of 2,498 ms and 2,500 ms between the observed playback cycles.",
+    "pattern_change": "not_tested",
+    "patch_change": "not_tested",
+    "reconnect": "not_tested",
+    "power_cycle": "not_tested"
+  },
+  "record_evidence": {
+    "available": false,
+    "bytes_hex": null,
+    "provenance": null,
+    "analysis_notes": "No raw pattern record/state evidence was received. The physical key hold was 180 ms; observed candidate playback gates were 132 ms, 134 ms, and 134 ms. This does not establish duration encoding."
+  },
+  "comparison": {
+    "baseline_fixture_id": "seq-V15-pattern-01-one-note-64-velocity-90-2026-08-31",
+    "only_intended_difference": "fresh baseline; physical key hold changed from 299 ms to 180 ms",
+    "repeat_count": 2,
+    "differential_result": "The note, velocity, candidate playback cadence, and candidate playback gate remained close across both runs; repeatable hardware testing still cannot establish the record representation or duration model."
+  },
+  "notes": [
+    "The receiver created no CoreMIDI output port and sent no MIDI.",
+    "A receive-only source cannot observe messages sent to the FM1 by another endpoint; this is not a full bidirectional traffic capture.",
+    "Candidate playback classification is now supported by two fresh-baseline runs but must not be used to infer V15 record bytes, a wire command, or persistence."
+  ]
+}

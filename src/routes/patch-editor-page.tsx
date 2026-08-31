@@ -18,6 +18,7 @@ import {
 import {
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
+  fm1EffectParameters,
   getGlobalParameterDefinition,
   resolveEffectEditorIndex,
 } from '@/lib/fm1-parameters'
@@ -299,7 +300,12 @@ export function PatchEditorPage({
 
   const setEffectParameter = useCallback(
     (controller: number, value: number) => {
-      applyEdits([[resolveEffectEditorIndex(controller), value, 0, 127]], false)
+      const definition = fm1EffectParameters[controller]
+      if (!definition) return
+      applyEdits(
+        [[resolveEffectEditorIndex(controller), value, definition.min, definition.max]],
+        false,
+      )
       if (canSync && syncStateRef.current === 'live') midi.sendEffectParameter(controller, value)
     },
     [applyEdits, canSync, midi],

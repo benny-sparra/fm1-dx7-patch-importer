@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "capture_status": "pending_hardware",
+  "fixture_id": "seq-V13-REPLACE-WITH-UNIQUE-ID",
+  "firmware": {
+    "version": "V13",
+    "observed_from": "REPLACE-WITH-STOCK-DEVICE-VERSION-SCREEN-OR-OTHER-EVIDENCE"
+  },
+  "editor": {
+    "involved": false,
+    "version_or_commit": null
+  },
+  "capture": {
+    "transport": "USB",
+    "topology": "REPLACE-WITH-BIDIRECTIONAL-MONITOR-TOPOLOGY",
+    "tool": "REPLACE-WITH-CAPTURE-TOOL-AND-VERSION",
+    "started_at_utc": "REPLACE-WITH-ISO-8601-TIMESTAMP",
+    "source_export": {
+      "location_or_identifier": "REDACTED-EXTERNAL-EXPORT-REFERENCE",
+      "sha256": "REPLACE-WITH-SHA256-OF-ORIGINAL-EXPORT"
+    }
+  },
+  "initial_state": {
+    "mode": "REPLACE-WITH-OBSERVED-OR-unknown",
+    "bank": "REPLACE-WITH-OBSERVED-OR-unknown",
+    "slot_or_pattern": "REPLACE-WITH-OBSERVED-OR-unknown",
+    "pattern_description": "REPLACE-WITH-OBSERVED-INITIAL-PATTERN",
+    "voice_or_patch": "REDACTED-IDENTIFIER-OR-unknown",
+    "other_relevant_stock_controls": []
+  },
+  "human_action": {
+    "exact_steps": ["REPLACE-WITH-LITERAL-PHYSICAL-GESTURE-OR-EXTERNAL-CONTROLLER-ACTION"],
+    "declared_independent_variable": "REPLACE-WITH-ONE-INTENDED-CHANGE",
+    "expected_result_before_observation": "REPLACE-WITH-HYPOTHESIS-OR-unknown"
+  },
+  "traffic": [
+    {
+      "ordinal": 1,
+      "relative_time_ms": 0,
+      "direction": "to_fm1",
+      "bytes_hex": "REPLACE-WITH-COMPLETE-UPPERCASE-HEX-MESSAGE",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "REPLACE-WITH-EVIDENCE-BASED-REASON"
+    }
+  ],
+  "observations": {
+    "resulting_sequencer_behaviour": "REPLACE-WITH-WHAT-WAS-SEEN-OR-HEARD",
+    "pattern_change": "not_tested",
+    "patch_change": "not_tested",
+    "reconnect": "not_tested",
+    "power_cycle": "not_tested"
+  },
+  "record_evidence": {
+    "available": false,
+    "bytes_hex": null,
+    "provenance": null,
+    "analysis_notes": "No hardware record bytes have been captured."
+  },
+  "comparison": {
+    "baseline_fixture_id": "REPLACE-WITH-PAIRED-BASELINE-ID",
+    "only_intended_difference": "REPLACE-WITH-ONE-VARIABLE",
+    "repeat_count": 0,
+    "differential_result": "pending_hardware"
+  },
+  "notes": [
+    "Replace every REPLACE-WITH value before setting capture_status to captured.",
+    "Do not infer a vendor-command meaning from its presence alone."
+  ]
+}

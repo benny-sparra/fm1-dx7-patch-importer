@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "capture_status": "incomplete",
+  "fixture_id": "seq-V15-pattern-01-note-60-velocity-32-2026-08-31",
+  "firmware": {
+    "version": "V15",
+    "observed_from": "Operator-reported Glide/portamento release; device version screen not recorded."
+  },
+  "editor": { "involved": false, "version_or_commit": null },
+  "capture": {
+    "transport": "USB CoreMIDI receive source plus bounded standard-MIDI sender",
+    "topology": "Host destination 0 -> FM1 and FM1 source -> host; no SysEx",
+    "tool": "scripts/capture-midi.swift; scripts/send-standard-midi-note.c",
+    "started_at_utc": "not_recorded",
+    "source_export": {
+      "location_or_identifier": "seq-V15-pattern-01-note-60-velocity-32-2026-08-31.ndjson",
+      "sha256": "9b8434152278c2cdf3b268d10bdafe11fca58ff3ed872eeda8f3805a2a9a2468"
+    }
+  },
+  "initial_state": {
+    "mode": "Sequencer recording armed by operator",
+    "bank": "unknown",
+    "slot_or_pattern": "Pattern 1",
+    "pattern_description": "operator cleared Pattern 1 before arming",
+    "voice_or_patch": "unknown",
+    "other_relevant_stock_controls": ["REC then PLAY/STOP"]
+  },
+  "human_action": {
+    "exact_steps": [
+      "Operator armed recording with REC.",
+      "Host sent 90 3C 20, waited 300 ms, then sent 80 3C 00.",
+      "Operator exited REC and started PLAY/STOP."
+    ],
+    "declared_independent_variable": "host note 60 velocity 32",
+    "expected_result_before_observation": "observable playback preserves low attack velocity"
+  },
+  "traffic": [
+    {
+      "ordinal": 1,
+      "relative_time_ms": 0,
+      "direction": "to_fm1",
+      "bytes_hex": "90 3C 20",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Validated host Note On, channel 1/note 60/velocity 32."
+    },
+    {
+      "ordinal": 2,
+      "relative_time_ms": 300,
+      "direction": "to_fm1",
+      "bytes_hex": "80 3C 00",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Validated host Note Off."
+    },
+    {
+      "ordinal": 3,
+      "relative_time_ms": 0,
+      "direction": "from_fm1",
+      "bytes_hex": "90 3C 20",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "FM1 emitted matching Note On."
+    },
+    {
+      "ordinal": 4,
+      "relative_time_ms": 132,
+      "direction": "from_fm1",
+      "bytes_hex": "80 3C 64",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "FM1 Note Off/release velocity 100."
+    },
+    {
+      "ordinal": 5,
+      "relative_time_ms": 2500,
+      "direction": "from_fm1",
+      "bytes_hex": "90 3C 20",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Matching note repeated during instructed playback."
+    },
+    {
+      "ordinal": 6,
+      "relative_time_ms": 2632,
+      "direction": "from_fm1",
+      "bytes_hex": "80 3C 64",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Paired candidate playback Note Off."
+    },
+    {
+      "ordinal": 7,
+      "relative_time_ms": 5000,
+      "direction": "from_fm1",
+      "bytes_hex": "90 3C 20",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Matching note repeated during instructed playback."
+    },
+    {
+      "ordinal": 8,
+      "relative_time_ms": 5132,
+      "direction": "from_fm1",
+      "bytes_hex": "80 3C 64",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Paired candidate playback Note Off."
+    }
+  ],
+  "observations": {
+    "resulting_sequencer_behaviour": "FM1 emitted and replayed Note 60 attack velocity 32 at a 2,500 ms cadence; observed Note Off release velocity was 100.",
+    "pattern_change": "not_tested",
+    "patch_change": "not_tested",
+    "reconnect": "not_tested",
+    "power_cycle": "not_tested"
+  },
+  "record_evidence": {
+    "available": false,
+    "bytes_hex": null,
+    "provenance": null,
+    "analysis_notes": "No raw record/state evidence."
+  },
+  "comparison": {
+    "baseline_fixture_id": "seq-V15-pattern-01-one-note-64-velocity-90-2026-08-31",
+    "only_intended_difference": "both note and velocity changed; identical-pitch control remains required",
+    "repeat_count": 1,
+    "differential_result": "Observable low-velocity playback established for note 60/velocity 32 only."
+  },
+  "notes": [
+    "The sender validates and emits only standard Note On/Off bytes; no SysEx/vendor path exists.",
+    "An identical-pitch velocity-90 control remains required."
+  ]
+}

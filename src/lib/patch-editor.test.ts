@@ -8,6 +8,7 @@ import {
 } from '@/lib/patch-editor'
 import { applySoundPreset, soundPresets } from '@/lib/sound-presets'
 import { randomizeSound } from '@/lib/sound-randomizer'
+import { fm1EffectMappingFixture } from '@/test/fm1-effect-mapping.fixture'
 
 describe('patch editor history', () => {
   it('records an edit and clears redo history', () => {
@@ -32,6 +33,21 @@ describe('patch editor history', () => {
 
     expect(Array.from(history.present)).toEqual([0, 99, 30])
   })
+
+  it.each(fm1EffectMappingFixture)(
+    'accepts and clamps $effect $control edits using its declared $min–$max range',
+    ({ controller, max, min }) => {
+      const editorIndex = 155 + controller
+      const initial = new Uint8Array(179)
+      const atMaximum = editParameters(makeEditorHistory(initial), [[editorIndex, max, min, max]])
+      const aboveMaximum = editParameters(atMaximum, [[editorIndex, max + 1, min, max]])
+      const belowMinimum = editParameters(aboveMaximum, [[editorIndex, min - 1, min, max]])
+
+      expect(atMaximum.present[editorIndex]).toBe(max)
+      expect(aboveMaximum).toBe(atMaximum)
+      expect(belowMinimum.present[editorIndex]).toBe(min)
+    },
+  )
 
   it('rejects non-finite parameter values', () => {
     const history = makeEditorHistory(Uint8Array.from([10]))
