@@ -7,6 +7,7 @@ import { HelpPopover } from '@/components/ui/help-popover'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
+import { EffectPreview, type EffectPreviewName } from './effect-preview'
 
 type EffectsUnitProps = {
   layout?: 'sidebar' | 'workspace'
@@ -24,7 +25,7 @@ type EffectParameter = {
 
 type EffectDefinition = {
   color: string
-  name: string
+  name: EffectPreviewName
   parameters: EffectParameter[]
   switchId: EffectParameterId
 }
@@ -292,13 +293,14 @@ export function EffectsUnit({
                     </Button>
                     <h3
                       className={cn(
-                        'flex items-center gap-1 font-black',
+                        'flex min-w-0 items-center gap-1 font-black',
                         enabled && 'text-[var(--effect-color)]',
                       )}
                     >
                       {translatedEffect}
                       <HelpPopover label={translatedEffect} text={t(`effectHelp.${effect.name}`)} />
                     </h3>
+                    <EffectPreview effect={effect.name} enabled={enabled} />
                     {headerMixParameter ? (
                       <EffectControl
                         disabled={!enabled}

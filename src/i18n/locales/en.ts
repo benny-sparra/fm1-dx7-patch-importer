@@ -141,7 +141,6 @@ export default {
     rightCurve: 'Right curve',
     velocity: 'Velocity',
     ampModSensitivity: 'Amp mod sens.',
-    envelopeInstruction: 'Drag a point; arrows adjust, Shift moves by 10.',
     editableEnvelope: 'Editable four-stage amplitude envelope',
     lfoWave: 'LFO wave',
     dx7Algorithm: 'DX7 algorithm',

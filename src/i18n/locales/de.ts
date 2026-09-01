@@ -143,7 +143,6 @@ export default {
     rightCurve: 'Rechte Kurve',
     velocity: 'Anschlagstärke',
     ampModSensitivity: 'Empf. Amplitudenmod.',
-    envelopeInstruction: 'Punkt ziehen; Pfeile ändern, Umschalt bewegt um 10.',
     editableEnvelope: 'Editierbare vierstufige Amplitudenhüllkurve',
     lfoWave: 'LFO-Wellenform',
     dx7Algorithm: 'DX7-Algorithmus',

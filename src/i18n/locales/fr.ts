@@ -143,7 +143,6 @@ export default {
     rightCurve: 'Courbe droite',
     velocity: 'Vélocité',
     ampModSensitivity: 'Sens. mod. amplitude',
-    envelopeInstruction: 'Faites glisser un point ; les flèches ajustent, Maj déplace de 10.',
     editableEnvelope: 'Enveloppe d’amplitude modifiable à quatre étapes',
     lfoWave: 'Forme d’onde LFO',
     dx7Algorithm: 'Algorithme DX7',

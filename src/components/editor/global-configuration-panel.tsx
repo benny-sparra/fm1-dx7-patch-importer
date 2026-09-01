@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { AlgorithmPanel } from '@/components/editor/editor-workspace'
 import { EffectsUnit } from '@/components/editor/effects-unit'
+import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import {
   CollapseButton,
   LfoWaveControl,
@@ -139,42 +140,35 @@ export function GlobalConfigurationPanel({
               controls="pitch-envelope-controls"
               expanded={isPitchEnvelopeOpen}
               label={t('editor.pitchEnvelope')}
-              onClick={() => onTogglePitchEnvelope}
+              onClick={onTogglePitchEnvelope}
             />
           </CardHeader>
-          <CardContent
-            className="grid grid-cols-2 gap-x-3 gap-y-5 p-4"
-            hidden={!isPitchEnvelopeOpen}
-            id="pitch-envelope-controls"
-          >
-            {[0, 1, 2, 3].map((offset) => (
-              <SliderParameterControl
-                helpText={t('controlHelp.pitchEnvelopeRate')}
-                key={`pr-${offset}`}
-                label={t('editor.rate', { number: offset + 1 })}
-                max={99}
-                onChange={(value) =>
-                  setParameter(globalIndex('global.pitchEnvelope.rate1') + offset, value, 99)
-                }
-                onGestureEnd={endGesture}
-                onGestureStart={beginGesture}
-                value={parameters[globalIndex('global.pitchEnvelope.rate1') + offset]}
-              />
-            ))}
-            {[0, 1, 2, 3].map((offset) => (
-              <SliderParameterControl
-                helpText={t('controlHelp.pitchEnvelopeLevel')}
-                key={`pl-${offset}`}
-                label={t('editor.level', { number: offset + 1 })}
-                max={99}
-                onChange={(value) =>
-                  setParameter(globalIndex('global.pitchEnvelope.level1') + offset, value, 99)
-                }
-                onGestureEnd={endGesture}
-                onGestureStart={beginGesture}
-                value={parameters[globalIndex('global.pitchEnvelope.level1') + offset]}
-              />
-            ))}
+          <CardContent className="p-2" hidden={!isPitchEnvelopeOpen} id="pitch-envelope-controls">
+            <EnvelopeEditor
+              color="hsl(276 92% 68%)"
+              helpText={t('controlHelp.pitchEnvelope')}
+              levels={Array.from(
+                parameters.slice(
+                  globalIndex('global.pitchEnvelope.level1'),
+                  globalIndex('global.pitchEnvelope.level1') + 4,
+                ),
+              )}
+              onChange={(rate, level, point) => {
+                setParameter(globalIndex('global.pitchEnvelope.rate1') + point, rate, 99)
+                setParameter(globalIndex('global.pitchEnvelope.level1') + point, level, 99)
+              }}
+              onGestureEnd={endGesture}
+              onGestureStart={beginGesture}
+              rates={Array.from(
+                parameters.slice(
+                  globalIndex('global.pitchEnvelope.rate1'),
+                  globalIndex('global.pitchEnvelope.rate1') + 4,
+                ),
+              )}
+              showTitle={false}
+              title={t('editor.pitchEnvelope')}
+              variant="pitch"
+            />
           </CardContent>
         </Card>
 

@@ -1,17 +1,26 @@
 import { useRef, type KeyboardEvent, type PointerEvent } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { HelpPopover } from '@/components/ui/help-popover'
-import { clampEnvelopeValue, envelopePath, envelopePointPosition } from '@/lib/editor-visuals'
+import {
+  clampEnvelopeValue,
+  envelopePath,
+  envelopePointPosition,
+  pitchEnvelopeLevelFromY,
+  pitchEnvelopePointPosition,
+} from '@/lib/editor-visuals'
 import { cn } from '@/lib/utils'
 
 type EnvelopeEditorProps = {
   color: string
+  helpText: string
   levels: number[]
   onChange: (rate: number, level: number, point: number) => void
   onGestureEnd: () => void
   onGestureStart: () => void
   rates: number[]
+  showTitle?: boolean
+  title: string
+  variant?: 'amplitude' | 'pitch'
 }
 
 const width = 400
@@ -22,13 +31,16 @@ const slotWidth = 90
 
 export function EnvelopeEditor({
   color,
+  helpText,
   levels,
   onChange,
   onGestureEnd,
   onGestureStart,
   rates,
+  showTitle = true,
+  title,
+  variant = 'amplitude',
 }: EnvelopeEditorProps) {
-  const { t } = useTranslation()
   const svgRef = useRef<SVGSVGElement>(null)
   const activePointer = useRef<number | null>(null)
 
@@ -39,8 +51,11 @@ export function EnvelopeEditor({
     const x = ((event.clientX - bounds.left) / bounds.width) * width
     const y = ((event.clientY - bounds.top) / bounds.height) * height
     const slotStart = 28 + point * slotWidth
-    const rate = 99 - ((x - slotStart) / 58) * 99
-    const level = ((plotBottom - y) / (plotBottom - plotTop)) * 99
+    const rate = clampEnvelopeValue(99 - ((x - slotStart) / 58) * 99, rates[point] ?? 0)
+    const level =
+      variant === 'pitch'
+        ? pitchEnvelopeLevelFromY(y)
+        : clampEnvelopeValue(((plotBottom - y) / (plotBottom - plotTop)) * 99, levels[point] ?? 0)
     onChange(rate, level, point)
   }
 
@@ -64,7 +79,9 @@ export function EnvelopeEditor({
     onChange(nextRate, nextLevel, point)
   }
 
-  const points = rates.map((rate, index) => envelopePointPosition(rate, levels[index], index))
+  const pointPosition = variant === 'pitch' ? pitchEnvelopePointPosition : envelopePointPosition
+  const fillBaseline = variant === 'pitch' ? pitchEnvelopePointPosition(0, 50, 0).y : plotBottom
+  const points = rates.map((rate, index) => pointPosition(rate, levels[index], index))
 
   const updateNumericValue = (kind: 'level' | 'rate', value: number, point: number) => {
     const currentRate = rates[point] ?? 0
@@ -85,15 +102,16 @@ export function EnvelopeEditor({
     >
       <div className="mb-2 flex items-center justify-between gap-3">
         <div>
-          <p className="flex items-center gap-1 text-xs font-black tracking-[0.18em] text-white/85 uppercase">
-            {t('editor.amplitudeEnvelope')}
-            <HelpPopover
-              className="text-white/60 hover:bg-white/10 hover:text-white"
-              label={t('editor.amplitudeEnvelope')}
-              text={t('controlHelp.amplitudeEnvelope')}
-            />
-          </p>
-          <p className="font-vt323 text-[11px] text-white/50">{t('ui.envelopeInstruction')}</p>
+          {showTitle ? (
+            <p className="flex items-center gap-1 text-xs font-black tracking-[0.18em] text-white/85 uppercase">
+              {title}
+              <HelpPopover
+                className="text-white/60 hover:bg-white/10 hover:text-white"
+                label={title}
+                text={helpText}
+              />
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-white/50 uppercase">
           <span className="size-2 rounded-full bg-[var(--operator-color)] shadow-[0_0_10px_var(--operator-color)]" />
@@ -101,7 +119,7 @@ export function EnvelopeEditor({
         </div>
       </div>
       <svg
-        aria-label={t('ui.editableEnvelope')}
+        aria-label={title}
         className="block min-h-0 w-full flex-1 touch-none"
         ref={svgRef}
         role="group"
@@ -116,7 +134,9 @@ export function EnvelopeEditor({
         {[0, 1, 2, 3, 4].map((line) => (
           <line
             key={`h-${line}`}
-            stroke="rgba(255,255,255,.08)"
+            stroke={
+              variant === 'pitch' && line === 2 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.08)'
+            }
             x1="8"
             x2="392"
             y1={plotTop + line * 34}
@@ -134,11 +154,11 @@ export function EnvelopeEditor({
           />
         ))}
         <path
-          d={`${envelopePath(rates, levels)} L ${points.at(-1)?.x ?? 360} ${plotBottom} L 8 ${plotBottom} Z`}
+          d={`${envelopePath(rates, levels, pointPosition)} L ${points.at(-1)?.x ?? 360} ${fillBaseline} L 8 ${fillBaseline} Z`}
           fill="url(#envelope-fill)"
         />
         <path
-          d={envelopePath(rates, levels)}
+          d={envelopePath(rates, levels, pointPosition)}
           fill="none"
           stroke={color}
           strokeLinecap="round"
@@ -158,7 +178,7 @@ export function EnvelopeEditor({
               {index + 1}
             </text>
             <rect
-              aria-label={`Envelope point ${index + 1}`}
+              aria-label={`${title} point ${index + 1}`}
               aria-valuemax={99}
               aria-valuemin={0}
               aria-valuenow={levels[index]}
@@ -199,7 +219,12 @@ export function EnvelopeEditor({
           </g>
         ))}
       </svg>
-      <div className="mt-3 grid grid-cols-4 gap-2 border-t border-white/10 pt-3">
+      <div
+        className={cn(
+          'mt-3 grid gap-2 border-t border-white/10 pt-3',
+          variant === 'pitch' ? 'grid-cols-2' : 'grid-cols-4',
+        )}
+      >
         {rates.map((rate, index) => (
           <div
             className="grid min-w-0 grid-cols-2 gap-1 rounded-md border border-white/10 bg-black/20 p-1.5"
@@ -208,7 +233,7 @@ export function EnvelopeEditor({
             <label className="grid min-w-0 gap-1 text-center text-[9px] font-black tracking-wide text-white/50 uppercase">
               R{index + 1}
               <input
-                aria-label={`Envelope rate ${index + 1}`}
+                aria-label={`${title} rate ${index + 1}`}
                 className="font-vt323 h-9 w-full min-w-0 rounded border border-white/15 bg-white/[0.06] px-1 text-center text-xs font-bold text-white transition outline-none focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
                 inputMode="numeric"
                 max={99}
@@ -232,7 +257,7 @@ export function EnvelopeEditor({
             <label className="grid min-w-0 gap-1 text-center text-[9px] font-black tracking-wide text-white/50 uppercase">
               L{index + 1}
               <input
-                aria-label={`Envelope level ${index + 1}`}
+                aria-label={`${title} level ${index + 1}`}
                 className="font-vt323 h-9 w-full min-w-0 rounded border border-white/15 bg-white/[0.06] px-1 text-center text-xs font-bold text-white transition outline-none focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
                 inputMode="numeric"
                 max={99}

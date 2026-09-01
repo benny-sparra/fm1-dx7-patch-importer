@@ -110,17 +110,17 @@ export function FocusedOperatorPanel({
       role="tabpanel"
       style={{ '--operator-color': operatorColor } as React.CSSProperties}
     >
-      <CardHeader className="editor-operator-header border-b px-4 py-3 sm:px-5">
+      <CardHeader className="editor-operator-header border-t border-b border-t-black px-4 py-3 sm:px-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle>
             <span className="flex items-center gap-3">
-              <span className="font-dot-matrix grid size-9 place-items-center rounded-full bg-[var(--operator-color)] text-lg font-black text-slate-950 shadow-[0_0_18px_var(--operator-color)]">
+              <span className="font-dot-matrix grid size-9 place-items-center rounded-full bg-[var(--operator-color)] text-lg font-black text-slate-950">
                 {selectedOperator}
               </span>
-              <span className="flex items-center gap-1 text-base text-white">
+              <span className="flex items-center gap-1 text-base text-foreground">
                 {t('editor.operator', { number: selectedOperator })}
                 <HelpPopover
-                  className="text-white/65 hover:bg-white/10 hover:text-white"
+                  className="text-muted-foreground hover:bg-accent hover:text-foreground"
                   label={t('editor.fmOperators')}
                   text={t('controlHelp.operator')}
                 />
@@ -140,9 +140,9 @@ export function FocusedOperatorPanel({
                 })}
                 aria-pressed={selectedOperatorIsMuted}
                 className={cn(
-                  'h-8 w-[4.25rem] border-white/15 bg-black/15 px-3 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white',
+                  'h-8 w-[4.25rem] border-border bg-background px-3 text-xs font-black text-muted-foreground hover:bg-accent hover:text-foreground',
                   selectedOperatorIsMuted &&
-                    'border-rose-400 bg-rose-400/20 text-rose-200 hover:bg-rose-400/25 hover:text-rose-100',
+                    'border-rose-400 bg-rose-400/20 text-rose-700 hover:bg-rose-400/25 hover:text-rose-800',
                 )}
                 disabled={syncState === 'sending'}
                 onClick={() => onToggleMute()}
@@ -170,9 +170,9 @@ export function FocusedOperatorPanel({
                 })}
                 aria-pressed={selectedOperatorIsSoloed}
                 className={cn(
-                  'h-8 w-[4.25rem] border-white/15 bg-black/15 px-3 text-xs font-black text-white/70 hover:bg-white/10 hover:text-white',
+                  'h-8 w-[4.25rem] border-border bg-background px-3 text-xs font-black text-muted-foreground hover:bg-accent hover:text-foreground',
                   selectedOperatorIsSoloed &&
-                    'border-amber-300 bg-amber-300/20 text-amber-100 hover:bg-amber-300/25 hover:text-amber-50',
+                    'border-amber-300 bg-amber-300/20 text-amber-800 hover:bg-amber-300/25 hover:text-amber-950',
                 )}
                 disabled={syncState === 'sending'}
                 onClick={() => onToggleSolo()}
@@ -194,18 +194,18 @@ export function FocusedOperatorPanel({
                 {t('ui.solo')}
               </Button>
             </div>
-            <label className="flex min-w-[10rem] items-center gap-2 rounded-md border border-white/10 bg-black/15 px-3 py-2 text-xs text-white/70 sm:min-w-[13rem]">
+            <label className="flex min-w-[10rem] items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground sm:min-w-[13rem]">
               <span className="font-vt323 flex items-center gap-1 font-black tracking-wide uppercase">
                 {t('editor.output')}
                 <HelpPopover
-                  className="text-white/60 hover:bg-white/10 hover:text-white"
+                  className="text-muted-foreground hover:bg-accent hover:text-foreground"
                   label={t('editor.outputLevel')}
                   text={t('controlHelp.outputLevel')}
                 />
               </span>
               <input
                 aria-label={t('ui.operatorOutput', { number: selectedOperator })}
-                className="h-2 min-w-0 flex-1 cursor-pointer accent-[var(--operator-color)] focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
+                className="h-2 min-w-0 flex-1 cursor-pointer accent-[var(--operator-color)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 max={99}
                 min={0}
                 onBlur={endGesture}
@@ -246,7 +246,7 @@ export function FocusedOperatorPanel({
                 type="range"
                 value={parameters[operatorIndex('operator.outputLevel')]}
               />
-              <output className="font-vt323 w-6 text-right font-black text-white">
+              <output className="font-vt323 w-6 text-right font-black text-foreground">
                 {parameters[operatorIndex('operator.outputLevel')]}
               </output>
             </label>
@@ -256,6 +256,7 @@ export function FocusedOperatorPanel({
       <CardContent className="grid min-w-0 gap-5 p-4 sm:p-5 @3xl:grid-cols-[minmax(0,2fr)_minmax(20rem,1fr)]">
         <EnvelopeEditor
           color="var(--fm1-accent)"
+          helpText={t('controlHelp.amplitudeEnvelope')}
           levels={Array.from(parameters.slice(operatorBase + 4, operatorBase + 8))}
           onChange={(rate, level, point) => {
             applyEdits([
@@ -266,6 +267,7 @@ export function FocusedOperatorPanel({
           onGestureEnd={endGesture}
           onGestureStart={beginGesture}
           rates={Array.from(parameters.slice(operatorBase, operatorBase + 4))}
+          title={t('editor.amplitudeEnvelope')}
         />
 
         <div className="grid min-w-0 content-start gap-3">

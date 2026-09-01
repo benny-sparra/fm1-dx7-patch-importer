@@ -119,7 +119,6 @@ export default {
     rightCurve: '右曲线',
     velocity: '力度',
     ampModSensitivity: '幅度调制灵敏度',
-    envelopeInstruction: '拖动节点；方向键微调，Shift 键每次移动 10。',
     editableEnvelope: '可编辑的四阶段幅度包络',
     lfoWave: 'LFO 波形',
     dx7Algorithm: 'DX7 算法',
