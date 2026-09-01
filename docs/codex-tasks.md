@@ -207,29 +207,58 @@ Make current FM1-specific messages testable and range-safe.
 
 ---
 
-## FX-003 — Identify firmware-backed effect enhancements
+## FX-003 — Controlled hardware verification of FM1 effects
 
-**Status:** research
+**Status:** ready for manual hardware execution
 
 ### Goal
 
-Compare existing controls with the public firmware reverse engineering.
+Distinguish historical editor assumptions from behaviour demonstrated on a physical FM1 for all six
+effect blocks and 24 FX CC controls.
 
 ### Deliverable
 
-List candidate additions only.
+Execute and complete [`fx-003-hardware-verification.md`](fx-003-hardware-verification.md), including:
 
-For each candidate:
+- exact outgoing bytes and values;
+- repeatable device/audio observation;
+- accepted/useful range, out-of-range behaviour, names, enum order, enable polarity, and scaling;
+- cross-control interaction and patch-change/power-cycle/stock-save retention;
+- one of Confirmed by hardware, Strongly supported, Needs further hardware testing, or Unknown for
+  each claim.
 
-- stock user-facing meaning
-- known value range
-- known runtime write mechanism
-- confidence
-- whether hardware test is required
+The development-only FX probe is permitted only for known CC 0–23 and raw values 0–127 on the
+selected FX channel. It must retain exact local MIDI logging and must not become production UI or a
+general MIDI utility.
 
 ### Do not
 
-Implement candidates that lack a known safe runtime control path.
+Change production FX names, labels, ranges, scaling, controls, or transport before the corresponding
+hardware evidence exists. Do not touch sequencer functionality or send vendor/OTA/loader/flash
+traffic.
+
+---
+
+## FX-004 — Correct verified FM1 effect behaviour
+
+**Status:** blocked on completed FX-003 evidence
+
+### Goal
+
+Implement only the smallest corrections directly justified by FX-003 hardware evidence.
+
+### Requirements
+
+- Every change cites the completed FX-003 row, exact bytes/values, repeated observation, and FM1
+  firmware/transport details.
+- Add regression tests for each evidence-backed correction.
+- Preserve unknown fields and keep normal FX traffic restricted to the verified CC path.
+
+### Do not
+
+Change a label, range, percentage suffix, enum order, enable polarity, scaling, or persistence model
+because it merely appears plausible. An empty implementation scope is the correct FX-004 result until
+hardware evidence supports a correction.
 
 ---
 
@@ -372,33 +401,30 @@ No transmission code.
 
 # Sequencer model
 
-## SEQ-001 — Create FM1 sequence domain types
+## SEQ-001 — Audit and document the FM1 internal sequencer protocol
 
-**Status:** ready after confirming current upstream offsets
+**Status:** completed (2026-08-31); see [`seq-001-findings.md`](seq-001-findings.md)
 
 ### Goal
 
-Represent the documented stock sequencer pattern in TypeScript.
+Establish the evidence boundary for a future stock-sequencer model and transport.
 
 ### Requirements
 
-- no React
-- no MIDI
-- no IndexedDB
-- explicit step/note representation
-- explicit velocity
-- explicit valid-count
-- preserve unknown flags
+- audit application paths and upstream V13 firmware evidence
+- document record offsets, command paths, ranges, unresolved bytes, and persistence uncertainty
+- distinguish Confirmed, Strongly inferred, Needs hardware test, and Unknown claims
+- define hardware captures needed before implementation
 
 ### Do not
 
-Guess unknown flag meaning.
+Implement a codec, UI, MIDI/SysEx, or generic vendor-command path.
 
 ---
 
 ## SEQ-002 — Implement 32-byte pattern decoder
 
-**Status:** blocked until offsets are copied/verified from current upstream RE docs
+**Status:** blocked until version-labelled hardware fixtures corroborate the V13 record layout
 
 ### Goal
 
@@ -408,13 +434,39 @@ Decode a verified raw stock pattern record into the domain model.
 
 - exactly 32 bytes
 - validate bounds
-- signed/rest representation handled correctly
+- only the observed `FF` rest representation treated as known
 - unknown fields preserved
 - descriptive decode errors
 
 ### Tests
 
 Use static fixtures only.
+
+---
+
+## SEQ-001A — Capture version-labelled sequencer hardware fixtures
+
+**Status:** V15 observable-behaviour captures collected; byte-level record correlation and any safe
+sequencer transport remain blocked.
+
+### Goal
+
+Collect real, version-labelled stock-device captures that correlate controlled sequencer actions,
+complete MIDI traffic, observable playback, persistence behaviour, and lawful record/state evidence
+where available.
+
+### Deliverables
+
+- fixture contract: [`sequencer-fixtures/README.md`](sequencer-fixtures/README.md)
+- JSON capture template: [`sequencer-fixtures/fixture.template.json`](sequencer-fixtures/fixture.template.json)
+- controlled core matrix, traffic taxonomy, differential ledger, and unblock gate:
+  [`seq-001a-capture-plan.md`](seq-001a-capture-plan.md)
+
+### Safety boundary
+
+Do not manufacture fixtures from firmware analysis. Do not send unidentified vendor frames, guessed
+SysEx, loader, OTA, update, or raw-flash traffic. A captured unknown message stays excluded from
+production until repeatable evidence proves both its semantics and normal-runtime safety.
 
 ---
 
@@ -444,7 +496,7 @@ for multiple fixtures.
 
 ## SEQ-UI-001 — Add lazy Sequencer route/screen shell
 
-**Status:** after SEQ-001
+**Status:** after SEQ-002 (verified static decoder)
 
 ### Goal
 
@@ -462,7 +514,7 @@ Create the navigation and feature boundary only.
 
 ## SEQ-UI-002 — Build pattern editor using mock domain data
 
-**Status:** after SEQ-001
+**Status:** after SEQ-UI-001 and SEQ-002
 
 ### Goal
 

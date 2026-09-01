@@ -121,6 +121,41 @@ export function sendFm1EffectControl(
   output.sendControlChange(controller, value, { channels: channel })
 }
 
+/**
+ * Development-only hardware-research probe for the known FM1 FX CC block.
+ *
+ * Unlike normal editor writes, this deliberately permits every MIDI 7-bit value so a hardware
+ * test can establish whether a historical editor maximum is accepted or clamped by the device.
+ * Production UI must not call this function.
+ */
+export function makeFm1EffectDiagnosticControlMessage(
+  controller: number,
+  value: number,
+  channel = 2,
+) {
+  if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
+    throw new RangeError('FM1 effect diagnostic controller must be an integer from 0 to 23.')
+  }
+  if (!Number.isInteger(value) || value < 0 || value > 127) {
+    throw new RangeError('FM1 effect diagnostic value must be an integer from 0 to 127.')
+  }
+  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
+    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
+  }
+
+  return Uint8Array.from([0xb0 | ((channel - 1) & 0x0f), controller, value])
+}
+
+export function sendFm1EffectDiagnosticControl(
+  output: Output,
+  channel: number,
+  controller: number,
+  value: number,
+) {
+  makeFm1EffectDiagnosticControlMessage(controller, value, channel)
+  output.sendControlChange(controller, value, { channels: channel })
+}
+
 export function sendNoteOn(output: Output, channel: number, note: number, velocity = 96) {
   output.sendNoteOn(note, { channels: channel, rawAttack: velocity })
 }

@@ -7,6 +7,7 @@ import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   formatMidiBytes,
+  makeFm1EffectDiagnosticControlMessage,
   getMidiSupport,
   makeFm1EffectControlMessage,
   makeFm1ParameterPayload,
@@ -16,6 +17,7 @@ import {
   sendFm1Parameter,
   sendFm1ProgramChange,
   sendFm1EffectControl,
+  sendFm1EffectDiagnosticControl,
   sendNoteOff,
   sendNoteOn,
   sendDx7Bank,
@@ -482,6 +484,52 @@ export function useMidi() {
     [appendLog, effectChannel, selectedOutput],
   )
 
+  const sendEffectDiagnosticControl = useCallback(
+    (controller: number, value: number) => {
+      if (!import.meta.env.DEV) return false
+
+      if (!selectedOutput) {
+        appendLog(
+          makeLogEntry('system', 'Could not send development FX probe; no MIDI output selected.'),
+        )
+        return false
+      }
+
+      try {
+        const message = makeFm1EffectDiagnosticControlMessage(controller, value, effectChannel)
+        void transferQueue.current
+          .enqueue(() => {
+            sendFm1EffectDiagnosticControl(selectedOutput, effectChannel, controller, value)
+            appendLog(
+              makeLogEntry(
+                'out',
+                `Sent development FX probe CC ${controller} = ${value} on channel ${effectChannel}.`,
+                message,
+              ),
+            )
+          }, `effect-diagnostic-${controller}`)
+          .catch((caughtError) => {
+            appendLog(
+              makeLogEntry(
+                'system',
+                caughtError instanceof Error ? caughtError.message : 'Development FX probe failed.',
+              ),
+            )
+          })
+        return true
+      } catch (caughtError) {
+        appendLog(
+          makeLogEntry(
+            'system',
+            caughtError instanceof Error ? caughtError.message : 'Development FX probe failed.',
+          ),
+        )
+        return false
+      }
+    },
+    [appendLog, effectChannel, selectedOutput],
+  )
+
   const sendEffectSettings = useCallback(
     (settings: Uint8Array) => {
       const normalized = normalizeFm1Effects(settings)
@@ -588,6 +636,7 @@ export function useMidi() {
     midiAccess,
     outputs,
     sendBank,
+    sendEffectDiagnosticControl,
     sendEffectParameter,
     sendEffectSettings,
     sendParameter,
