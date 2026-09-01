@@ -70,7 +70,6 @@ export function PatchEditorPage({
   const [mutedOperators, setMutedOperators] = useState<ReadonlySet<number>>(() => new Set())
   const [soloOperator, setSoloOperator] = useState<number | null>(null)
   const [leftPanelTab, setLeftPanelTab] = useState<'effects' | 'global'>('global')
-  const [operatorPanelTab, setOperatorPanelTab] = useState<'oscillator' | 'scaling'>('oscillator')
   const [isPitchEnvelopeOpen, setIsPitchEnvelopeOpen] = useState(true)
   const [isLfoGlobalOpen, setIsLfoGlobalOpen] = useState(true)
   const [syncState, setSyncState] = useState<PatchSyncState>('sending')
@@ -454,22 +453,8 @@ export function PatchEditorPage({
 
       {midi.midiAccess && !midi.sysexAvailable ? <MidiSysexWarning /> : null}
 
-      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(14rem,1fr)_minmax(0,3fr)] lg:items-start">
-        <GlobalConfigurationPanel
-          beginGesture={beginGesture}
-          endGesture={endGesture}
-          isLfoGlobalOpen={isLfoGlobalOpen}
-          isPitchEnvelopeOpen={isPitchEnvelopeOpen}
-          leftPanelTab={leftPanelTab}
-          onTabChange={setLeftPanelTab}
-          onToggleLfoGlobal={() => setIsLfoGlobalOpen((open) => !open)}
-          onTogglePitchEnvelope={() => setIsPitchEnvelopeOpen((open) => !open)}
-          parameters={parameters}
-          setEffectParameter={setEffectParameter}
-          setParameter={setParameter}
-        />
-
-        <div className="grid min-w-0 gap-0">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(14rem,1fr)] lg:items-start">
+        <div className="grid min-w-0 gap-0 xl:grid-cols-[minmax(12.5rem,0.72fr)_minmax(0,3fr)] xl:items-stretch">
           <OperatorStrip
             algorithm={parameters[algorithmParameter.voiceIndex]}
             mutedOperators={mutedOperators}
@@ -483,10 +468,8 @@ export function PatchEditorPage({
             applyEdits={applyEdits}
             beginGesture={beginGesture}
             endGesture={endGesture}
-            onTabChange={setOperatorPanelTab}
             onToggleMute={() => toggleOperatorMute(selectedOperator)}
             onToggleSolo={() => toggleOperatorSolo(selectedOperator)}
-            operatorPanelTab={operatorPanelTab}
             parameters={parameters}
             selectedOperator={selectedOperator}
             selectedOperatorIsMuted={selectedOperatorIsMuted}
@@ -495,6 +478,20 @@ export function PatchEditorPage({
             syncState={syncState}
           />
         </div>
+
+        <GlobalConfigurationPanel
+          beginGesture={beginGesture}
+          endGesture={endGesture}
+          isLfoGlobalOpen={isLfoGlobalOpen}
+          isPitchEnvelopeOpen={isPitchEnvelopeOpen}
+          leftPanelTab={leftPanelTab}
+          onTabChange={setLeftPanelTab}
+          onToggleLfoGlobal={() => setIsLfoGlobalOpen((open) => !open)}
+          onTogglePitchEnvelope={() => setIsPitchEnvelopeOpen((open) => !open)}
+          parameters={parameters}
+          setEffectParameter={setEffectParameter}
+          setParameter={setParameter}
+        />
       </div>
 
       <UnsavedEditorDialog

@@ -151,7 +151,7 @@ export function AlgorithmPanel({
           className="flex h-[8rem] cursor-pointer list-none flex-col rounded-t-xl px-3 pt-2 pb-1.5 text-cyan-100 transition hover:bg-cyan-300/10 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none focus-visible:ring-inset [&::-webkit-details-marker]:hidden"
         >
           <span className="flex w-full items-center justify-between gap-2">
-            <span className="flex items-center gap-1.5 text-[10px] font-black tracking-[0.14em] text-cyan-200 uppercase">
+            <span className="font-dot-matrix flex items-center gap-1.5 text-base leading-none font-semibold tracking-normal text-cyan-200 normal-case">
               <Route className="size-3.5" />
               Algorithm
               <HelpPopover
@@ -281,7 +281,7 @@ export function OperatorStrip({
   return (
     <div
       aria-label={t('editor.operators')}
-      className="operator-strip flex min-w-0 flex-1 scrollbar-none items-stretch overflow-x-auto"
+      className="operator-strip flex min-w-0 flex-1 scrollbar-none items-stretch overflow-x-auto xl:max-h-[54rem] xl:flex-col xl:overflow-x-visible xl:overflow-y-auto"
       role="tablist"
     >
       {Array.from({ length: FM1_OPERATOR_COUNT }, (_, index) => {
@@ -319,10 +319,11 @@ export function OperatorStrip({
             aria-label={`Operator ${operator}, ${roleLabel}${auditionLabel ? `, ${auditionLabel}` : ''}`}
             aria-selected={isSelected}
             className={cn(
-              'operator-tab group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 bg-card/45 px-3 py-2 text-left opacity-75 transition-[background-color,opacity,transform,box-shadow] hover:bg-card/80 hover:opacity-100 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset sm:min-w-[10.5rem]',
-              index > 0 && '-ml-px',
+              'operator-tab group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 bg-card/45 px-3 py-2 text-left opacity-75 transition-[background-color,opacity,transform,box-shadow] hover:bg-card/80 hover:opacity-100 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset sm:min-w-[10.5rem] xl:mt-0 xl:min-h-[6.5rem] xl:min-w-0 xl:flex-none xl:rounded-l-xl xl:rounded-tr-none xl:border-b xl:px-3',
+              index > 0 && '-ml-px xl:-mt-px xl:ml-0',
+              !isSelected && 'xl:border-r-black',
               isSelected &&
-                'z-[1] mt-0 bg-card opacity-100 shadow-[0_-4px_18px_hsl(260_60%_5%_/_0.08)] after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-[var(--operator-color)]',
+                'z-[1] border-transparent bg-card opacity-100 shadow-[0_-4px_18px_hsl(260_60%_5%_/_0.08)] after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-[var(--operator-color)] xl:shadow-[-4px_0_18px_hsl(260_60%_5%_/_0.08)] xl:after:inset-y-0 xl:after:right-0 xl:after:bottom-auto xl:after:left-auto xl:after:h-auto xl:after:w-2 xl:after:bg-white',
             )}
             key={operator}
             onClick={() => onSelect(operator)}

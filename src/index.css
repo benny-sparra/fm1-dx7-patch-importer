@@ -1141,8 +1141,8 @@
   }
 
   :root[data-theme='dx7'] .operator-tab[aria-selected='true'] {
-    border-width: 2px;
-    border-bottom-width: 0;
+    border-width: 1px !important;
+    border-color: transparent !important;
     background: hsl(0 0% 100%) !important;
     box-shadow: inset 0 2px hsl(0 0% 100% / 55%) !important;
   }
