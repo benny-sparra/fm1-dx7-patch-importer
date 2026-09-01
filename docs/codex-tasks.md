@@ -209,23 +209,22 @@ Make current FM1-specific messages testable and range-safe.
 
 ## FX-003 — Controlled hardware verification of FM1 effects
 
-**Status:** ready for manual hardware execution
+**Status:** mapping verification completed (2026-09-01); V15 persistence, interaction, and
+above-range behaviour are deferred hardware follow-up.
 
 ### Goal
 
-Distinguish historical editor assumptions from behaviour demonstrated on a physical FM1 for all six
-effect blocks and 24 FX CC controls.
+Replace historical assumptions with published vendor documentation, and use bounded physical tests
+only to check V15 compatibility or behaviour the documentation does not establish.
 
 ### Deliverable
 
-Execute and complete [`fx-003-hardware-verification.md`](fx-003-hardware-verification.md), including:
+Complete [`fx-003-hardware-verification.md`](fx-003-hardware-verification.md), including:
 
-- exact outgoing bytes and values;
-- repeatable device/audio observation;
-- accepted/useful range, out-of-range behaviour, names, enum order, enable polarity, and scaling;
-- cross-control interaction and patch-change/power-cycle/stock-save retention;
-- one of Confirmed by hardware, Strongly supported, Needs further hardware testing, or Unknown for
-  each claim.
+- the published M-VAVE mapping source and a comparison against the editor;
+- exact bytes and repeated V15 observations for the tested Filter Switch/Cutoff path;
+- calibrated distinction between documented mapping facts and still-unresolved V15 runtime,
+  interaction, persistence, scaling, and above-range behaviour.
 
 The development-only FX probe is permitted only for known CC 0–23 and raw values 0–127 on the
 selected FX channel. It must retain exact local MIDI logging and must not become production UI or a
@@ -241,11 +240,11 @@ traffic.
 
 ## FX-004 — Correct verified FM1 effect behaviour
 
-**Status:** blocked on completed FX-003 evidence
+**Status:** completed (2026-09-01): no production correction justified
 
 ### Goal
 
-Implement only the smallest corrections directly justified by FX-003 hardware evidence.
+Implement only the smallest corrections directly justified by FX-003 evidence.
 
 ### Requirements
 
@@ -257,8 +256,9 @@ Implement only the smallest corrections directly justified by FX-003 hardware ev
 ### Do not
 
 Change a label, range, percentage suffix, enum order, enable polarity, scaling, or persistence model
-because it merely appears plausible. An empty implementation scope is the correct FX-004 result until
-hardware evidence supports a correction.
+because it merely appears plausible. The completed FX-004 outcome is intentionally no code change:
+the current mapping/ranges agree with the published guide, and the remaining V15 questions do not
+identify a correction.
 
 ---
 

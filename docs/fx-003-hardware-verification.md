@@ -1,14 +1,30 @@
 # FX-003 — Controlled FM1 effects hardware verification
 
 **Prepared:** 2026-08-31
-**Execution status:** prepared; no physical FM1 was available to this task.
-**Result status:** no mapping, name, range, scaling, polarity, or persistence claim has been
-confirmed or disproved by hardware.
+**Execution status:** partially executed on 2026-09-01; V15 FM1 over USB CoreMIDI.
+**Result status:** The published M-VAVE guide matches the editor's mapping/ranges; Filter Switch
+polarity is also confirmed by repeated V15 hardware observation. Scaling, interaction, persistence,
+and above-range behaviour remain unresolved unless a result row below says otherwise.
 
 This is a repeatable test record, not evidence that the historical editor meanings are correct.
 The only non-hardware support for the six CC groups is the firmware-analysis transport evidence
 recorded in `docs/fm1-research.md` §7.2: the configured FX channel gates CC 0–23. It is **Strongly
 supported** for transport, not confirmed by hardware.
+
+## Published vendor control guide
+
+On 2026-09-01, M-VAVE's published [FM-1 MIDI Control English guide](https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/releaseNote/firmware/FM-1%20MIDI%20EN.docx)
+was retrieved from its [download centre](https://www.m-vave.com/download). It identifies `effectch`
+as defaulting to channel 2 and lists CC 0–23 with the same six groups, controller order, switch
+rule, enum order, and maxima that the editor currently uses: Filter `0–3` (Switch, Type 0–2
+LPF/BPF/HPF, Cutoff 0–107, Q 0–10), Reverb `4–7`, Delay `8–11`, Distortion `12–15`, Chorus
+`16–19`, and Phaser `20–23`; the remaining continuous ranges are 0–100.
+
+The published document is associated with the V14 download, whereas the connected physical device
+is V15. It is therefore authoritative documentation for the intended map, but not proof that every
+row has identical V15 runtime semantics. The controlled V15 Filter Switch/Cutoff result below
+confirms compatibility for CC 0 and 2 only. Do not use the document alone to infer scaling curves,
+device persistence, interaction/routing, or acceptance behaviour above a documented maximum.
 
 ## 1. Test setup and controls
 
@@ -125,33 +141,47 @@ out-of-range probe value for a save test.
 
 ## 5. Tests actually performed and evidence ledger
 
-No physical hardware, audio capture, front-panel readback, device response, patch-change test,
-power-cycle test, or stock-save test was performed during FX-003 preparation. The following is the
-complete result ledger at handoff; it must be replaced row-by-row with an execution record, never
-silently upgraded from editor code or firmware analysis.
+### 2026-09-01 — Filter switch polarity, first hardware run
 
-| Claim group                                      | Current classification         | Evidence / result                                                                                                 |
-| ------------------------------------------------ | ------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| Raw CC 0–23 on independently selected FX channel | Strongly supported             | Existing sender/hex logging and public firmware analysis corroborate the envelope; no FM1 hardware run in FX-003. |
-| All 24 controller-to-effect/parameter meanings   | Needs further hardware testing | Historical editor labels only; no row has a hardware observation.                                                 |
-| Filter cutoff maximum 107                        | Needs further hardware testing | `107`, `108`, `126`, and `127` are prepared but unsent to hardware.                                               |
-| Filter resonance maximum 10                      | Needs further hardware testing | `10`, `11`, `126`, and `127` are prepared but unsent to hardware.                                                 |
-| Repeated 100 maxima                              | Needs further hardware testing | `100`, `101`, `126`, and `127` are prepared but unsent to hardware.                                               |
-| Percentage terminology / direct raw values       | Needs further hardware testing | The editor transmits raw integers; no device scaling or units have been measured.                                 |
-| Delay “Decay” / “Rate” terminology               | Needs further hardware testing | No measured repeat count/time evidence.                                                                           |
-| Enable polarity and binary behaviour             | Needs further hardware testing | No hardware response to `0`, `1`, `2`, `126`, or `127`.                                                           |
-| Enum ordering (Filter Type / Reverb Space)       | Needs further hardware testing | No device/UI or repeatable audio evidence for value ordering.                                                     |
-| Effect persistence and interaction               | Needs further hardware testing | No patch-change, power-cycle, stock-save, or interaction pass has run.                                            |
+- **Setup:** FM1 V15, USB CoreMIDI host destination 0, channel 2 (`B1`), patch `003 BRASS. 3`,
+  normal play mode, no save operation. The bounded `scripts/send-standard-midi-cc.c` sender issued
+  only the logged standard CC messages; no SysEx, vendor, loader, OTA, flash, or save traffic was
+  sent. Audio observation was performed by the operator on the FM1's normal output.
+- **Common setup:** `B1 01 00` (Filter Type 0), `B1 03 05` (Filter Q 5). The initial midpoint
+  setup `B1 02 36` (Cutoff 54) was audibly unchanged both with the switch at 0 and then 1; this is
+  inconclusive for a midpoint response, not counter-evidence to the mapping.
+- **Decisive setup:** `B1 02 00` (Cutoff 0) while the switch was 1 made the patch dramatically
+  quieter. With every other controlled value retained, the two following switch cycles were
+  repeatable: `B1 00 00` restored normal volume/brightness and `B1 00 01` again made the patch
+  dramatically quieter.
+- **Classification:** **Confirmed by hardware** for the limited claim that CC 0 on channel 2
+  switches the configured filter path off at 0 and on at 1. This does not establish filter type
+  order, cutoff scaling/range, Q behaviour, persistence, or any other effect-control mapping.
+
+| Claim group                                      | Current classification         | Evidence / result                                                                                                                                                         |
+| ------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Raw CC 0–23 on independently selected FX channel | Strongly supported             | Firmware analysis and M-VAVE's published V14 guide corroborate the complete envelope; the V15 run confirms CC 0/2 only.                                                   |
+| Filter Switch (`B1 00 vv`)                       | Confirmed by hardware          | With type 0, Q 5, and cutoff 0, `vv=0` restored normal output and `vv=1` made output dramatically quieter in two controlled cycles.                                       |
+| All 24 controller-to-effect/parameter meanings   | Strongly supported             | M-VAVE's published V14 guide matches the editor's controller group/order and names closely; V15 runtime compatibility is directly tested only for Filter Switch/Cutoff.   |
+| Filter cutoff maximum 107                        | Strongly supported             | The guide lists 0–107. V15 Cutoff 0 was dramatically quieter and 107 restored normal brightness; 108 and the high sweep did not establish clamp/wrap behaviour.           |
+| Filter resonance maximum 10                      | Strongly supported             | The guide lists Filter Q 0–10; the editor's “Resonance” is a descriptive label for that documented field.                                                                 |
+| Repeated 100 maxima                              | Strongly supported             | The guide lists 0–100 for the corresponding continuous controls; no V15 above-range acceptance/persistence claim follows.                                                 |
+| Percentage terminology / direct raw values       | Needs further hardware testing | The guide gives raw 0–100 ranges but no percentage units, scaling curve, or display unit. The editor's `%` suffixes remain a UI convention, not a documented device unit. |
+| Delay “Decay” / “Rate” terminology               | Strongly supported             | The guide uses the same two parameter names, but does not define their physical units or scaling.                                                                         |
+| Enable polarity and binary behaviour             | Strongly supported             | The guide documents every switch as 0=off / ≥1=on. Filter has the stronger repeated V15 confirmation above; other blocks still lack direct V15 observation.               |
+| Enum ordering (Filter Type / Reverb Space)       | Strongly supported             | The guide specifies Filter LPF/BPF/HPF and Reverb Room/Hall/Plate in the current editor order; direct V15 screen/audio confirmation remains incomplete.                   |
+| Effect persistence and interaction               | Needs further hardware testing | No patch-change, power-cycle, stock-save, or interaction pass has run.                                                                                                    |
 
 ### Editor assumptions confirmed or disproved
 
-**None by hardware.** FX-003 confirms only the editor's own emitted bytes and its ability to log
-them. It does not confirm or disprove a hardware mapping, range, name, `%` suffix, scaling curve,
-enum order, enable polarity, or persistence model.
+The published guide supports the editor's current controller map, maxima, switch rule, and enum
+order; no production mapping/range correction is identified. The repeated V15 Filter Switch/Cutoff
+run additionally confirms that those two controls are accepted at runtime. The guide does not prove
+the editor's `%` suffixes, scaling curves, interaction/routing, persistence, or above-range response.
 
 ## 6. FX-004 proposal — implement only verified corrections
 
-**Status: blocked on FX-003 execution; current implementation scope is empty.**
+**Status: completed with no production change.**
 
 FX-004 may contain only a correction whose corresponding FX-003 result row is **Confirmed by
 hardware** or, for a strictly transport-level defensive fix, independently supported by repeatable
@@ -162,21 +192,17 @@ hardware evidence and reviewed as such. Each included change must cite:
 - the smallest resulting code/UI/documentation change and regression test;
 - retention and interaction impact, if any.
 
-Potential corrections such as changing the `107`, `10`, or `100` bounds; renaming delay controls;
-changing `%` suffixes; inverting enables; reordering enums; adding scaling; or altering persistence
-must remain out of FX-004 unless that evidence exists. This task authorizes no implementation change
-today.
+The published guide agrees with the existing `107`, `10`, and `100` maxima, switch rule, and enum
+order. It uses the same Delay names. Its silence on display units/scaling does not justify changing
+the UI's `%` suffixes. No FX-004 implementation is authorized or required.
 
-## 7. Remaining manual experiments
+## 7. Deferred V15 hardware follow-up
 
-1. Execute every row in §2 twice, retaining exact log bytes and an audio/device observation.
-2. Repeat any high-value result (`current max + 1`, `126`, `127`) after USB reconnect and after a
-   device reset; determine clamp, wrap, ignore, or distinct behaviour before proposing a range.
-3. Perform five-or-more-point measurement series for any accepted continuous parameter whose curve
-   matters to UI terminology or scaling.
-4. Complete all six blocks' interaction and persistence pass in §4, including separate slots where
-   practical.
-5. If an FM1 front-panel effect display exists, photograph/read it for enum and range tests; retain
-   it as device evidence but do not rely on it in place of the exact outbound CC log.
-6. Report ambiguous/no-audible-change cases with patch, notes, levels, controls held constant, and
-   recording rather than guessing that the mapping is wrong.
+No broad subjective audio matrix is required while the published mapping agrees with the editor.
+Future work is limited to questions the guide does not answer:
+
+1. Test a documented, distinctive in-range effect setting across stock patch change, power cycle,
+   and stock save to establish its V15 retention model.
+2. Test any apparent V15 divergence from the published table with exact bytes and a repeatable
+   device/front-panel observation before proposing a correction.
+3. Measure a curve or high-range behaviour only when a concrete UI/product decision depends on it.

@@ -495,8 +495,9 @@ Do not send unknown command IDs experimentally without understanding their desti
 
 # 7. Effects
 
-**Status: FX-003 controlled hardware procedure prepared on 2026-08-31; no physical FM1 execution
-has been recorded, so row-level semantic mappings remain Needs further hardware testing.**
+**Status: M-VAVE's published MIDI-control guide was compared with the editor on 2026-09-01 and
+matches its FX map/ranges. A repeated V15 hardware run confirms Filter Switch/Cutoff compatibility;
+V15 persistence, interaction, scaling, and above-range behaviour remain unresolved.**
 
 ## 7.1 Current editor data flow
 
@@ -661,11 +662,11 @@ metadata minimum and maximum when entering history. No parameter name, range, la
 control layout, transport, or user-visible semantic behaviour changed. Values outside the metadata
 range continue to be clamped by storage/history normalization and rejected at the MIDI boundary.
 
-No additional implementation inconsistencies were found by the new coverage. Hardware semantics
-remain unchanged from FX-001: the six-slot CC 0–23 transport and separate CC channel are corroborated
-by firmware analysis, but individual parameter meanings, option ordering, maxima, scaling,
-persistence, and physical-device behaviour still require controlled hardware testing. FX-002 used no
-hardware and introduced no SysEx, vendor command, OTA, loader, flash, or recovery path.
+No additional implementation inconsistencies were found by the new coverage. M-VAVE's published
+MIDI-control guide now corroborates the six-slot CC 0–23 map, separate effect channel, controller
+meanings, enum order, and maxima. FX-002 used no hardware and introduced no SysEx, vendor command,
+OTA, loader, flash, or recovery path. V15-specific persistence, interaction, scaling, and
+above-range behaviour remain separate evidence questions.
 
 ## 7.7 FX-003 controlled hardware-verification status
 
@@ -680,11 +681,14 @@ it is absent from the production UI and does not change normal editor validation
 does not send SysEx, vendor commands, OTA/loader traffic, flash writes, or a generic MIDI utility
 interface.
 
-No physical FM1 was available during preparation. Therefore no row-level mapping, parameter name,
-maxima (including 107, 10, and 100), display percentage, scaling curve, enum ordering, enable
-polarity, interaction, or persistence claim is confirmed or disproved by FX-003. The raw CC 0–23
-envelope on the independent FX channel remains **Strongly supported** by the existing implementation
-and firmware analysis, but not confirmed by hardware.
+On 2026-09-01, the M-VAVE [FM-1 MIDI Control English guide](https://yms-file-store.oss-cn-hongkong.aliyuncs.com/software/releaseNote/firmware/FM-1%20MIDI%20EN.docx)
+was retrieved from the [official download centre](https://www.m-vave.com/download). It matches the
+editor's FX CC 0–23 grouping, order, maxima, switch rule, and enum order. On a connected V15 FM1,
+repeated channel-2 tests confirmed Filter Switch `B1 00 00` as off and `B1 00 01` as on, and showed
+the documented Cutoff endpoints 0 and 107 produce a large audible contrast. No FX-004 code change
+is justified: the published map agrees with the implementation. The remaining V15 questions are
+persistence, interaction/routing, scaling/display units, and above-range behaviour; they do not
+authorize a correction without further targeted evidence.
 
 ---
 
