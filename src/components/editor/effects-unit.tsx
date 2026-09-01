@@ -142,7 +142,10 @@ function EffectControl({
           ) : null}
         </span>
         <select
-          className="h-9 w-full min-w-0 rounded-md border bg-background px-2 text-sm font-semibold text-foreground normal-case disabled:opacity-50"
+          className={cn(
+            'h-9 w-full min-w-0 rounded-md border bg-background px-2 text-sm font-semibold text-foreground normal-case disabled:opacity-50',
+            !disabled && 'border-[var(--effect-color)] bg-[var(--effect-color)] text-slate-950',
+          )}
           disabled={disabled}
           onChange={(event) => onChange(definition.controller, Number(event.target.value))}
           value={value}
@@ -247,9 +250,11 @@ export function EffectsUnit({
             const switchController = getEffectParameterDefinition(effect.switchId).controller
             const enabled = values[switchController] > 0
             const translatedEffect = t(`ui.effects.${effect.name.toLowerCase()}`)
-            const mixParameter = effect.parameters.find((parameter) => parameter.label === 'Mix')
+            const headerMixParameter = isSidebar
+              ? undefined
+              : effect.parameters.find((parameter) => parameter.label === 'Mix')
             const bodyParameters = effect.parameters.filter(
-              (parameter) => parameter !== mixParameter,
+              (parameter) => parameter !== headerMixParameter,
             )
             return (
               <div className="relative flex min-w-0" key={effect.name}>
@@ -294,25 +299,29 @@ export function EffectsUnit({
                       {translatedEffect}
                       <HelpPopover label={translatedEffect} text={t(`effectHelp.${effect.name}`)} />
                     </h3>
-                    {mixParameter ? (
+                    {headerMixParameter ? (
                       <EffectControl
                         disabled={!enabled}
                         effectName={effect.name}
                         onChange={onChange}
                         onGestureEnd={onGestureEnd}
                         onGestureStart={onGestureStart}
-                        parameter={mixParameter}
+                        parameter={headerMixParameter}
                         placement="header"
-                        value={values[getEffectParameterDefinition(mixParameter.id).controller]}
+                        value={
+                          values[getEffectParameterDefinition(headerMixParameter.id).controller]
+                        }
                       />
                     ) : null}
                   </div>
                   <div
                     className={cn(
                       'grid min-w-0 items-start gap-3',
-                      bodyParameters.length === 2
-                        ? 'grid-cols-2'
-                        : 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.1fr)]',
+                      isSidebar
+                        ? 'grid-cols-2 [&>*:first-child]:col-span-2'
+                        : bodyParameters.length === 2
+                          ? 'grid-cols-2'
+                          : 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.1fr)]',
                     )}
                   >
                     {bodyParameters.map((parameter) => (
