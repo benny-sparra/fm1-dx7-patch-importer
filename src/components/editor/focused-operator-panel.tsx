@@ -101,7 +101,7 @@ export function FocusedOperatorPanel({
   }
   return (
     <Card
-      className="@container -mt-px min-w-0 rounded-t-none border-l-0 border-[var(--operator-color)] bg-card/95 shadow-[0_16px_48px_hsl(260_60%_5%_/_0.16)] xl:-mt-px xl:rounded-tr-xl xl:rounded-bl-none"
+      className="@container -mt-px min-w-0 rounded-t-none border-l-0 border-[var(--operator-color)] bg-card/95 shadow-[0_16px_48px_hsl(260_60%_5%_/_0.16)] xl:mt-0 xl:rounded-tr-xl xl:rounded-bl-none"
       id="focused-operator-panel"
       role="tabpanel"
       style={{ '--operator-color': operatorColor } as React.CSSProperties}
