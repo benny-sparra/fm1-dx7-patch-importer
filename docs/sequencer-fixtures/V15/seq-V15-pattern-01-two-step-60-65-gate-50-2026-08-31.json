@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "capture_status": "incomplete",
+  "fixture_id": "seq-V15-pattern-01-two-step-60-65-gate-50-2026-08-31",
+  "firmware": {
+    "version": "V15",
+    "observed_from": "Operator-reported Glide/portamento release; device version screen not recorded."
+  },
+  "editor": { "involved": false, "version_or_commit": null },
+  "capture": {
+    "transport": "USB CoreMIDI receive source",
+    "topology": "FM1 source -> host receive-only; no outgoing host traffic, SysEx, or vendor commands",
+    "tool": "scripts/capture-midi.swift",
+    "started_at_utc": "not_recorded",
+    "source_export": {
+      "location_or_identifier": "seq-V15-pattern-01-two-step-60-65-gate-50-2026-08-31.ndjson",
+      "sha256": "31127eddf7fa0dd7ed93791de81af4418d12a5bb8531c50106a2daaae77e243c"
+    }
+  },
+  "initial_state": {
+    "mode": "Sequencer page 2/3; stopped two-note C4 then F4 playback pattern",
+    "bank": "unknown",
+    "slot_or_pattern": "Pattern 1",
+    "pattern_description": "C4 then F4, both observable velocity 90; established in seq-V15-pattern-01-two-step-60-65-velocity-90-2026-08-31",
+    "voice_or_patch": "001 BRASSBEN (shown in operator-provided V15 page photo)",
+    "other_relevant_stock_controls": [
+      "Rate 1/8T",
+      "Tempo 120",
+      "Gate 80%",
+      "Swing 50%",
+      "Sync Off",
+      "Transpose 0"
+    ]
+  },
+  "human_action": {
+    "exact_steps": [
+      "Operator stayed on Sequencer page 2/3.",
+      "Operator turned only K4 Gate from 80% to 50%.",
+      "Operator pressed PLAY/STOP and allowed three repetitions."
+    ],
+    "declared_independent_variable": "visible global sequencer Gate: 80% -> 50%",
+    "expected_result_before_observation": "shorter observable Note On-to-Off duration without pitch or step-period change"
+  },
+  "traffic": [
+    {
+      "ordinal": 1,
+      "relative_time_ms": 0,
+      "direction": "from_fm1",
+      "bytes_hex": "90 3C 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Playback C4 Note On."
+    },
+    {
+      "ordinal": 2,
+      "relative_time_ms": 83,
+      "direction": "from_fm1",
+      "bytes_hex": "80 3C 64",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "C4 Note Off/release velocity 100."
+    },
+    {
+      "ordinal": 3,
+      "relative_time_ms": 166,
+      "direction": "from_fm1",
+      "bytes_hex": "90 41 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Playback F4 Note On."
+    },
+    {
+      "ordinal": 4,
+      "relative_time_ms": 249,
+      "direction": "from_fm1",
+      "bytes_hex": "80 41 64",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "F4 Note Off/release velocity 100."
+    },
+    {
+      "ordinal": 5,
+      "relative_time_ms": 2499,
+      "direction": "from_fm1",
+      "bytes_hex": "90 3C 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Next playback pass C4 Note On."
+    },
+    {
+      "ordinal": 6,
+      "relative_time_ms": 2665,
+      "direction": "from_fm1",
+      "bytes_hex": "90 41 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Next playback pass F4 Note On."
+    },
+    {
+      "ordinal": 7,
+      "relative_time_ms": 4999,
+      "direction": "from_fm1",
+      "bytes_hex": "90 3C 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Third playback pass C4 Note On."
+    },
+    {
+      "ordinal": 8,
+      "relative_time_ms": 5165,
+      "direction": "from_fm1",
+      "bytes_hex": "90 41 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Third playback pass F4 Note On."
+    }
+  ],
+  "observations": {
+    "resulting_sequencer_behaviour": "Gate 50% produced observed 83 ms note gates, down from the prior 131-134 ms at 80%, while the 166 ms C4-to-F4 step interval and 2,499-2,500 ms pattern cycle remained materially unchanged.",
+    "pattern_change": "not_tested",
+    "patch_change": "not_tested",
+    "reconnect": "not_tested",
+    "power_cycle": "not_tested"
+  },
+  "record_evidence": {
+    "available": false,
+    "bytes_hex": null,
+    "provenance": null,
+    "analysis_notes": "No raw record/state evidence."
+  },
+  "comparison": {
+    "baseline_fixture_id": "seq-V15-pattern-01-two-step-60-65-velocity-90-2026-08-31",
+    "only_intended_difference": "visible global Gate: 80% -> 50%",
+    "repeat_count": 3,
+    "differential_result": "Observed note gates shortened to 83 ms, approximately half the 1/8-triplet 166.7 ms step duration. This indicates a visible global playback gate; it does not establish a per-recorded-note duration field."
+  },
+  "notes": [
+    "No vendor/SysEx traffic was sent or observed.",
+    "This capture is receive-only and cannot prove the absence of host-to-FM1 traffic outside the monitored source."
+  ]
+}

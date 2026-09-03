@@ -220,6 +220,147 @@
 }
 
 @layer components {
+  .effect-preview {
+    width: 5.5rem;
+    height: 1.75rem;
+    color: var(--effect-color);
+    opacity: 0.72;
+    filter: drop-shadow(0 1px 1px hsl(248 35% 7% / 20%));
+  }
+
+  .effect-preview--active {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--effect-color) 42%, transparent));
+  }
+
+  .effect-preview__frame {
+    fill: hsl(246 32% 12%);
+    stroke: color-mix(in srgb, var(--effect-color) 54%, hsl(246 32% 34%));
+  }
+
+  .effect-preview__guide {
+    opacity: 0.26;
+  }
+
+  .effect-preview__signal,
+  .effect-preview__filter-muted,
+  .effect-preview__reflection {
+    opacity: 0.66;
+  }
+
+  .effect-preview__filter-muted {
+    stroke-dasharray: 2 3;
+  }
+
+  .effect-preview__filter-gate {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: effect-preview-filter 2.8s ease-in-out infinite alternate;
+  }
+
+  .effect-preview__reverb-ring {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: effect-preview-reverb 2.4s ease-out infinite;
+  }
+
+  .effect-preview__reverb-ring--late {
+    animation-delay: 1.2s;
+  }
+
+  .effect-preview__delay-repeat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: effect-preview-delay 1.8s ease-in-out infinite;
+  }
+
+  .effect-preview__delay-repeat--middle {
+    animation-delay: 0.25s;
+  }
+
+  .effect-preview__delay-repeat--late {
+    animation-delay: 0.5s;
+  }
+
+  .effect-preview__distortion-wave {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: effect-preview-distortion 1.2s ease-in-out infinite alternate;
+  }
+
+  .effect-preview__chorus-wave {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0.42;
+    animation: effect-preview-chorus 1.8s ease-in-out infinite alternate;
+  }
+
+  .effect-preview__chorus-wave--late {
+    animation-delay: -0.9s;
+  }
+
+  .effect-preview__phaser-notches {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0.6;
+    animation: effect-preview-phaser 2.2s ease-in-out infinite alternate;
+  }
+
+  @keyframes effect-preview-filter {
+    to {
+      transform: translateX(21px);
+    }
+  }
+
+  @keyframes effect-preview-reverb {
+    0% {
+      opacity: 0.8;
+      transform: scale(0.25);
+    }
+
+    100% {
+      opacity: 0;
+      transform: scale(2.3);
+    }
+  }
+
+  @keyframes effect-preview-delay {
+    0%,
+    100% {
+      opacity: 0.2;
+      transform: scale(0.72);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+  }
+
+  @keyframes effect-preview-distortion {
+    to {
+      transform: scaleY(0.62);
+    }
+  }
+
+  @keyframes effect-preview-chorus {
+    to {
+      transform: translateY(3px) scaleY(0.68);
+    }
+  }
+
+  @keyframes effect-preview-phaser {
+    to {
+      transform: translateX(16px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .effect-preview__motion {
+      animation: none;
+    }
+  }
+
   .font-dot-matrix {
     font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
   }
@@ -432,13 +573,8 @@
   }
 
   .editor-operator-header {
-    background:
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--operator-color) 22%, transparent),
-        transparent 44%
-      ),
-      linear-gradient(180deg, hsl(258 48% 18%), hsl(252 52% 10%));
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
   }
 
   .synthwave-keyboard {
@@ -904,10 +1040,6 @@
     border-radius: 0;
   }
 
-  :root[data-theme='dx7'] :is(button, summary):active:not(:disabled) {
-    transform: translate(1px, 1px);
-  }
-
   :root[data-theme='dx7'] input,
   :root[data-theme='dx7'] select {
     border-width: 1px;
@@ -989,27 +1121,32 @@
   }
 
   :root[data-theme='dx7'] .editor-operator-header {
-    background: var(--dx7-ink);
+    background: var(--color-primary) !important;
+    color: var(--color-primary-foreground) !important;
   }
 
   :root[data-theme='dx7'] .operator-tab {
     --operator-color: var(--dx7-accent-ink) !important;
     border-color: var(--dx7-ink) !important;
-    background: var(--dx7-panel) !important;
+    border-left-color: transparent !important;
+    background: #e7e8e7 !important;
     color: var(--dx7-ink) !important;
     opacity: 1 !important;
     box-shadow: inset 0 1px hsl(0 0% 100% / 32%) !important;
   }
 
   :root[data-theme='dx7'] .operator-tab:hover {
-    background: hsl(120 3% 80%) !important;
+    border-left-color: var(--color-border) !important;
+    background-color: color-mix(in srgb, var(--color-muted) 60%, transparent) !important;
+    color: var(--color-foreground) !important;
   }
 
   :root[data-theme='dx7'] .operator-tab[aria-selected='true'] {
-    border-width: 2px;
-    border-bottom-width: 0;
-    background: hsl(0 0% 100%) !important;
-    box-shadow: inset 0 2px hsl(0 0% 100% / 55%) !important;
+    border-width: 0 !important;
+    border-color: var(--color-primary) !important;
+    background: var(--color-primary) !important;
+    color: var(--color-primary-foreground) !important;
+    box-shadow: none !important;
   }
 
   :root[data-theme='dx7'] .operator-role-badge {
@@ -1022,6 +1159,10 @@
     color: hsl(120 3% 91%) !important;
   }
 
+  :root[data-theme='dx7'] .operator-tab[aria-selected='true'] .operator-frequency {
+    color: var(--color-primary-foreground) !important;
+  }
+
   :root[data-theme='dx7'] .operator-audition-badge {
     border-color: var(--dx7-ink) !important;
     background: var(--dx7-ink) !important;
@@ -1031,7 +1172,7 @@
   :root[data-theme='dx7'] #focused-operator-panel {
     --operator-color: var(--dx7-highlight) !important;
     border-color: var(--dx7-ink) !important;
-    background: var(--dx7-panel) !important;
+    background: #e7e8e7 !important;
   }
 
   :root[data-theme='dx7'] .editor-operator-header [aria-pressed='true'] {

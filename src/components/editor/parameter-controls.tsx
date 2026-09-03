@@ -1,8 +1,7 @@
-import { Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 import { useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { rangeStyle } from '@/lib/range-style'
@@ -244,36 +243,6 @@ export function SliderParameterControl({
         value={value}
       />
     </label>
-  )
-}
-
-export function CollapseButton({
-  controls,
-  expanded,
-  label,
-  onClick,
-}: {
-  controls: string
-  expanded: boolean
-  label: string
-  onClick: () => void
-}) {
-  const { t } = useTranslation()
-  const actionLabel = t(expanded ? 'editor.collapse' : 'editor.expand', { label })
-  return (
-    <Button
-      aria-controls={controls}
-      aria-expanded={expanded}
-      aria-label={actionLabel}
-      className="size-8 shrink-0 text-muted-foreground"
-      onClick={onClick}
-      size="icon"
-      title={actionLabel}
-      type="button"
-      variant="ghost"
-    >
-      {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-    </Button>
   )
 }
 

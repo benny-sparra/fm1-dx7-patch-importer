@@ -83,7 +83,7 @@ export function PatchGrid({
 
   return (
     <Card className="synthwave-panel overflow-hidden border-primary/25 bg-card/95 backdrop-blur-sm">
-      <CardHeader className="patch-area-surface pb-3">
+      <CardHeader className="patch-area-surface px-5 py-3">
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2 text-2xl font-bold tracking-wide text-black">
             <PixelBankIcon aria-hidden="true" className="size-5 shrink-0 text-black" />

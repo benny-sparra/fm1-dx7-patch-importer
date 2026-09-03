@@ -13,6 +13,7 @@ import {
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
   FM1_VOICE_PARAMETER_COUNT,
+  fm1VoiceParameterMaximums,
   fm1EffectParameters,
   fm1GlobalParameters,
   fm1OperatorParameters,
@@ -24,6 +25,7 @@ import {
   isValidFm1ParameterValue,
   storedToDisplayValue,
 } from '@/lib/fm1-parameters'
+import { fm1EffectMappingFixture } from '@/test/fm1-effect-mapping.fixture'
 
 describe('FM1 parameter schema', () => {
   it('describes the complete, non-overlapping editor buffer', () => {
@@ -60,6 +62,123 @@ describe('FM1 parameter schema', () => {
     expect(resolveOperatorParameterIndex(1, 'operator.outputLevel')).toBe(121)
     expect(resolveOperatorParameterIndex(6, 'operator.envelope.rate1')).toBe(0)
     expect(resolveOperatorParameterIndex(6, 'operator.outputLevel')).toBe(16)
+  })
+
+  it.each([
+    [6, 0, 20],
+    [5, 21, 41],
+    [4, 42, 62],
+    [3, 63, 83],
+    [2, 84, 104],
+    [1, 105, 125],
+  ])('maps operator %i to edit-buffer addresses %i through %i', (operator, first, last) => {
+    expect(resolveOperatorParameterIndex(operator, 'operator.envelope.rate1')).toBe(first)
+    expect(resolveOperatorParameterIndex(operator, 'operator.detune')).toBe(last)
+  })
+
+  it('matches the documented operator parameter offsets and ranges', () => {
+    expect(fm1OperatorParameters.map(({ id, max, offset }) => [id, offset, max])).toEqual([
+      ['operator.envelope.rate1', 0, 99],
+      ['operator.envelope.rate2', 1, 99],
+      ['operator.envelope.rate3', 2, 99],
+      ['operator.envelope.rate4', 3, 99],
+      ['operator.envelope.level1', 4, 99],
+      ['operator.envelope.level2', 5, 99],
+      ['operator.envelope.level3', 6, 99],
+      ['operator.envelope.level4', 7, 99],
+      ['operator.keyboard.breakpoint', 8, 99],
+      ['operator.keyboard.leftDepth', 9, 99],
+      ['operator.keyboard.rightDepth', 10, 99],
+      ['operator.keyboard.leftCurve', 11, 3],
+      ['operator.keyboard.rightCurve', 12, 3],
+      ['operator.keyboard.rateScaling', 13, 7],
+      ['operator.ampModSensitivity', 14, 3],
+      ['operator.velocitySensitivity', 15, 7],
+      ['operator.outputLevel', 16, 99],
+      ['operator.oscillatorMode', 17, 1],
+      ['operator.frequency.coarse', 18, 31],
+      ['operator.frequency.fine', 19, 99],
+      ['operator.detune', 20, 14],
+    ])
+  })
+
+  it('matches the documented global parameter addresses and ranges', () => {
+    expect(fm1GlobalParameters.map(({ id, max, voiceIndex }) => [id, voiceIndex, max])).toEqual([
+      ['global.pitchEnvelope.rate1', 126, 99],
+      ['global.pitchEnvelope.rate2', 127, 99],
+      ['global.pitchEnvelope.rate3', 128, 99],
+      ['global.pitchEnvelope.rate4', 129, 99],
+      ['global.pitchEnvelope.level1', 130, 99],
+      ['global.pitchEnvelope.level2', 131, 99],
+      ['global.pitchEnvelope.level3', 132, 99],
+      ['global.pitchEnvelope.level4', 133, 99],
+      ['global.algorithm', 134, 31],
+      ['global.feedback', 135, 7],
+      ['global.oscillatorSync', 136, 1],
+      ['global.lfoSpeed', 137, 99],
+      ['global.lfoDelay', 138, 99],
+      ['global.lfoPitchModDepth', 139, 99],
+      ['global.lfoAmpModDepth', 140, 99],
+      ['global.lfoKeySync', 141, 1],
+      ['global.lfoWave', 142, 5],
+      ['global.pitchModSensitivity', 143, 7],
+      ['global.transpose', 144, 48],
+    ])
+  })
+
+  it('maps all six effects and all four controls to the documented controller domains', () => {
+    expect(
+      fm1EffectParameters.map(({ controller, id, kind, max, min }) => ({
+        controller,
+        id,
+        kind,
+        max,
+        min,
+      })),
+    ).toEqual(
+      fm1EffectMappingFixture.map(({ controller, id, kind, max, min }) => ({
+        controller,
+        id,
+        kind,
+        max,
+        min,
+      })),
+    )
+    expect(
+      Object.fromEntries(
+        ['Filter', 'Reverb', 'Delay', 'Distortion', 'Chorus', 'Phaser'].map((effect) => [
+          effect,
+          fm1EffectMappingFixture.filter((mapping) => mapping.effect === effect).length,
+        ]),
+      ),
+    ).toEqual({ Chorus: 4, Delay: 4, Distortion: 4, Filter: 4, Phaser: 4, Reverb: 4 })
+  })
+
+  it('provides a legal value maximum for every address in the 155-byte edit buffer', () => {
+    const operatorMaximums = [
+      99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 3, 3, 7, 3, 7, 99, 1, 31, 99, 14,
+    ]
+    const globalMaximums = [99, 99, 99, 99, 99, 99, 99, 99, 31, 7, 1, 99, 99, 99, 99, 1, 5, 7, 48]
+
+    expect(Array.from(fm1VoiceParameterMaximums)).toEqual([
+      ...operatorMaximums,
+      ...operatorMaximums,
+      ...operatorMaximums,
+      ...operatorMaximums,
+      ...operatorMaximums,
+      ...operatorMaximums,
+      ...globalMaximums,
+      127,
+      127,
+      127,
+      127,
+      127,
+      127,
+      127,
+      127,
+      127,
+      127,
+    ])
   })
 
   it('assigns every editor index exactly once', () => {

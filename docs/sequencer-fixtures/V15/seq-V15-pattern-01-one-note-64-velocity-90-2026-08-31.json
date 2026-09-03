@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "capture_status": "incomplete",
+  "fixture_id": "seq-V15-pattern-01-one-note-64-velocity-90-2026-08-31",
+  "firmware": {
+    "version": "V15",
+    "observed_from": "Operator reports the latest firmware with Glide/portamento; device version screen not recorded."
+  },
+  "editor": {
+    "involved": false,
+    "version_or_commit": null
+  },
+  "capture": {
+    "transport": "USB CoreMIDI receive source only",
+    "topology": "FM1 USB source -> macOS CoreMIDI input port; no output port created",
+    "tool": "scripts/capture-midi.swift",
+    "started_at_utc": "not_recorded",
+    "source_export": {
+      "location_or_identifier": "seq-V15-pattern-01-one-note-64-velocity-90-2026-08-31.ndjson",
+      "sha256": "0cbe8fa13bdda5d48792d34123caee1d3eaae1bf1bc6e10c4be03163df3cf537"
+    }
+  },
+  "initial_state": {
+    "mode": "Sequencer active",
+    "bank": "unknown",
+    "slot_or_pattern": "Pattern 1",
+    "pattern_description": "Cleared empty baseline in seq-V15-pattern-01-empty-2026-08-31",
+    "voice_or_patch": "001 BRASSBEN shown in the preceding V15 clear observation",
+    "other_relevant_stock_controls": [
+      "REC entered then exited recording according to the instructed stock operation",
+      "PLAY/STOP was used after recording"
+    ]
+  },
+  "human_action": {
+    "exact_steps": [
+      "Ensure Sequencer is active and Pattern 1 is selected.",
+      "Press REC once.",
+      "Press and release one physical piano key once.",
+      "Press REC again to exit recording.",
+      "Press PLAY/STOP once."
+    ],
+    "declared_independent_variable": "Record one physical key press into the empty Pattern 1 baseline",
+    "expected_result_before_observation": "one recorded step should produce a repeating note on playback"
+  },
+  "traffic": [
+    {
+      "ordinal": 1,
+      "relative_time_ms": 0,
+      "direction": "from_fm1",
+      "bytes_hex": "90 40 5A",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note On, note 64, velocity 90; operator's single physical key press."
+    },
+    {
+      "ordinal": 2,
+      "relative_time_ms": 299,
+      "direction": "from_fm1",
+      "bytes_hex": "80 40 64",
+      "transport_frame_hex": null,
+      "classification": "known_standard_midi",
+      "classification_reason": "Channel 1 Note Off, note 64, release velocity 100; paired with the physical key press."
+    },
+    {
+      "ordinal": 3,
+      "relative_time_ms": 6740,
+      "direction": "from_fm1",
+      "bytes_hex": "90 40 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Same note/velocity recurred after the instructed PLAY/STOP action, without another reported physical key press."
+    },
+    {
+      "ordinal": 4,
+      "relative_time_ms": 6874,
+      "direction": "from_fm1",
+      "bytes_hex": "80 40 64",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Paired with the first candidate playback Note On."
+    },
+    {
+      "ordinal": 5,
+      "relative_time_ms": 9240,
+      "direction": "from_fm1",
+      "bytes_hex": "90 40 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Same Note On recurred about 2.5 seconds after the preceding candidate playback event."
+    },
+    {
+      "ordinal": 6,
+      "relative_time_ms": 9372,
+      "direction": "from_fm1",
+      "bytes_hex": "80 40 64",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Paired with the second candidate playback Note On."
+    },
+    {
+      "ordinal": 7,
+      "relative_time_ms": 11741,
+      "direction": "from_fm1",
+      "bytes_hex": "90 40 5A",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Same Note On recurred about 2.5 seconds after the preceding candidate playback event."
+    },
+    {
+      "ordinal": 8,
+      "relative_time_ms": 11872,
+      "direction": "from_fm1",
+      "bytes_hex": "80 40 64",
+      "transport_frame_hex": null,
+      "classification": "candidate_sequencer_related",
+      "classification_reason": "Paired with the third candidate playback Note On."
+    }
+  ],
+  "observations": {
+    "resulting_sequencer_behaviour": "The first physical key press was note 64 at velocity 90. Three subsequent matching note pairs were emitted after playback started, with Note On intervals of 2,500 ms and 2,501 ms between the observed playback cycles.",
+    "pattern_change": "not_tested",
+    "patch_change": "not_tested",
+    "reconnect": "not_tested",
+    "power_cycle": "not_tested"
+  },
+  "record_evidence": {
+    "available": false,
+    "bytes_hex": null,
+    "provenance": null,
+    "analysis_notes": "No raw pattern record/state evidence was received. The physical key hold was 299 ms; observed candidate playback gates were 134 ms, 132 ms, and 131 ms. This does not establish duration encoding."
+  },
+  "comparison": {
+    "baseline_fixture_id": "seq-V15-pattern-01-empty-2026-08-31",
+    "only_intended_difference": "one physical key press while recording",
+    "repeat_count": 1,
+    "differential_result": "Candidate playback traffic appeared after the single recorded key press; repeatable hardware testing is still required."
+  },
+  "notes": [
+    "The receiver created no CoreMIDI output port and sent no MIDI.",
+    "A receive-only source cannot observe messages sent to the FM1 by another endpoint; this is not a full bidirectional traffic capture.",
+    "Candidate playback classification is based on one controlled run and must not be used to infer V15 record bytes, a wire command, or persistence."
+  ]
+}

@@ -222,7 +222,6 @@ async function main() {
           const dialog = images.find((image) => image.alt.includes('four numbered knobs'));
           return {
             dialog: dialog?.currentSrc || null,
-            dialogSizes: dialog?.sizes || null,
             header: header?.currentSrc || null,
             keyboard: keyboard?.currentSrc || null,
             keyboardSizes: keyboard?.sizes || null,
@@ -240,7 +239,7 @@ async function main() {
     if (mobileImages.result.value.dialog) {
       throw new Error(`The closed dialog loaded its lazy image.`)
     }
-    if (!mobileImages.result.value.keyboardSizes || !mobileImages.result.value.dialogSizes) {
+    if (!mobileImages.result.value.keyboardSizes) {
       throw new Error(`A responsive image with width descriptors is missing its sizes attribute.`)
     }
     if (
@@ -303,16 +302,18 @@ async function main() {
     await connection.send('Runtime.evaluate', {
       expression: `document.querySelector('dialog[aria-labelledby="fm1-bank-selection-title"]')?.showModal()`,
     })
-    const dialogImage = await waitFor(async () => {
+    await waitFor(async () => {
       const state = await connection.send('Runtime.evaluate', {
-        expression: `document.querySelector('img[alt*="four numbered knobs"]')?.currentSrc || ''`,
+        expression: `
+          Boolean(
+            document.querySelector('dialog[aria-labelledby="fm1-bank-selection-title"]')?.open &&
+              document.querySelector('dialog[aria-labelledby="fm1-bank-selection-title"] [role="alert"]'),
+          )
+        `,
         returnByValue: true,
       })
-      return state.result.value || null
-    }, 'the dialog image')
-    if (!dialogImage.includes('fm1-synth-360-')) {
-      throw new Error(`The narrow dialog did not select the 360px synth candidate.`)
-    }
+      return state.result.value
+    }, 'the SysEx warning dialog')
 
     const requestedColorways = [...requestedUrls].filter((requestUrl) =>
       /fm1-(?:black|black-green|cool-gray|orange|purple|white-blue)-/.test(requestUrl),
@@ -381,7 +382,6 @@ async function main() {
           ...measurement,
           responsiveImages: {
             desktopHeader: desktopHeader.currentSrc,
-            dialogImage,
             keyboardCandidatesByDpr,
             mobileKeyboard: mobileImages.result.value.keyboard,
             purpleHeader,

@@ -20,8 +20,9 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Export one browser bank as `.syx` or all loaded banks as a `.zip`
 - Edit all standard DX7 voice parameters with live MIDI updates
 - Visualise all 32 DX7 algorithms, including carrier and modulator roles
-- Edit four-stage envelopes graphically or with precise numeric controls
-- Edit the FM1's filter, reverb, delay, distortion, chorus, and phaser
+- Edit four-stage amplitude and pitch envelopes graphically or with precise numeric controls
+- Edit the FM1's filter, reverb, delay, distortion, chorus, and phaser within their documented ranges
+- See compact signal previews for each FM1 effect while adjusting the effects chain
 - Apply six sound-shaping presets as undoable starting points
 - Randomise a sound as an undoable starting point
 - Mute or solo operators temporarily while designing a sound
@@ -157,6 +158,21 @@ assets, the production build, deployed security headers, public source maps, and
 JavaScript budget. It does not contact the npm registry. GitHub Actions runs the same layers on
 pushes to `main` and on pull requests.
 
+The separate browser-journey job uses Playwright and a production preview to cover IndexedDB
+persistence, editor loading, DX7 import validation, downloads, keyboard reordering, and narrow
+viewport controls. Install its Chromium runtime once locally, then run it with:
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+Add or update automated tests whenever functionality or a regression path changes. Use focused
+Vitest coverage for domain, component, and mocked browser behaviour; add a Playwright journey when
+the behaviour depends on a real browser or production build, such as storage, downloads, native
+dialogs, drag-and-drop, responsive layout, or lazy-loaded code. Keep FM1 hardware MIDI validation
+fixture-based rather than requiring a device in automated tests.
+
 Use `npm run format` for deterministic formatting and Tailwind class ordering. Use
 `npm run lint:fix` for ordinary Oxlint and Stylelint autofixes. Review both diffs before committing,
 especially conditional class strings passed to `cn(...)`. Do not use Oxlint's
@@ -196,6 +212,7 @@ clean result. Both commands block on high or critical advisories.
 | `npm run deps:audit`        | Audit the full dependency tree (requires registry access)           |
 | `npm test`                  | Run all unit and rendered accessibility tests                       |
 | `npm run test:a11y`         | Run the focused rendered Axe accessibility suite                    |
+| `npm run test:e2e`          | Build and run Chromium browser journeys with Playwright             |
 | `npm run test:cls`          | Check layout stability across representative responsive viewports   |
 | `npm run build`             | Create a production Vite build in `dist/`                           |
 | `npm run bundle:check`      | Enforce the transitive initial JavaScript gzip budget               |
@@ -300,9 +317,18 @@ Single-voice dumps, larger archive files, and banks using another SysEx format a
 
 The browser library is the source of truth. The current FM1 firmware does not document transmission of stored voices or banks over MIDI, so the librarian cannot import a bank directly from the hardware. Keep `.syx` source files or download browser banks as backups. If M-VAVE adds bulk-dump output in a future firmware release, device-to-browser bank import can be added without changing the saved library format.
 
+## FM1 protocol research
+
+The repository records the evidence behind FM1-specific behaviour in
+[the FM1 research notes](docs/fm1-research.md). The live effect controls use the documented
+24-controller FM1 effects block, with their supported ranges enforced by the editor. The internal
+sequencer is being researched through captured fixtures only; it is not yet exposed in the app and
+the editor does not send sequencer or other unclassified vendor commands.
+
 ## Future development
 
-Future development could add grouped modulation workflows and device readback if M-VAVE documents a compatible transmit protocol.
+Future development could add grouped modulation workflows, a focused internal-sequencer editor once
+its protocol is proven safe, and device readback if M-VAVE documents a compatible transmit protocol.
 
 ## Project structure
 

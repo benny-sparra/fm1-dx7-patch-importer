@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 
 import { AlgorithmPanel } from '@/components/editor/editor-workspace'
 import { EffectsUnit } from '@/components/editor/effects-unit'
+import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import {
-  CollapseButton,
   LfoWaveControl,
   SliderParameterControl,
   SwitchParameterControl,
@@ -23,12 +23,8 @@ import { cn } from '@/lib/utils'
 type GlobalConfigurationPanelProps = {
   beginGesture: () => void
   endGesture: () => void
-  isLfoGlobalOpen: boolean
-  isPitchEnvelopeOpen: boolean
   leftPanelTab: 'effects' | 'global'
   onTabChange: (tab: 'effects' | 'global') => void
-  onToggleLfoGlobal: () => void
-  onTogglePitchEnvelope: () => void
   parameters: Uint8Array
   setEffectParameter: (controller: number, value: number) => void
   setParameter: (parameter: number, value: number, maximum: number) => void
@@ -42,12 +38,8 @@ const transposeParameter = getGlobalParameterDefinition('global.transpose')
 export function GlobalConfigurationPanel({
   beginGesture,
   endGesture,
-  isLfoGlobalOpen,
-  isPitchEnvelopeOpen,
   leftPanelTab,
   onTabChange,
-  onToggleLfoGlobal,
-  onTogglePitchEnvelope,
   parameters,
   setEffectParameter,
   setParameter,
@@ -122,82 +114,10 @@ export function GlobalConfigurationPanel({
         />
 
         <Card className="min-w-0 border-primary/20 bg-card/95">
-          <CardHeader
-            className={cn(
-              'flex-row items-center justify-between gap-2 px-4 py-3',
-              isPitchEnvelopeOpen && 'border-b',
-            )}
-          >
-            <CardTitle className="flex min-w-0 items-center gap-1 text-base text-black">
-              {t('editor.pitchEnvelope')}
-              <HelpPopover
-                label={t('editor.pitchEnvelope')}
-                text={t('controlHelp.pitchEnvelope')}
-              />
-            </CardTitle>
-            <CollapseButton
-              controls="pitch-envelope-controls"
-              expanded={isPitchEnvelopeOpen}
-              label={t('editor.pitchEnvelope')}
-              onClick={() => onTogglePitchEnvelope}
-            />
-          </CardHeader>
-          <CardContent
-            className="grid grid-cols-2 gap-x-3 gap-y-5 p-4"
-            hidden={!isPitchEnvelopeOpen}
-            id="pitch-envelope-controls"
-          >
-            {[0, 1, 2, 3].map((offset) => (
-              <SliderParameterControl
-                helpText={t('controlHelp.pitchEnvelopeRate')}
-                key={`pr-${offset}`}
-                label={t('editor.rate', { number: offset + 1 })}
-                max={99}
-                onChange={(value) =>
-                  setParameter(globalIndex('global.pitchEnvelope.rate1') + offset, value, 99)
-                }
-                onGestureEnd={endGesture}
-                onGestureStart={beginGesture}
-                value={parameters[globalIndex('global.pitchEnvelope.rate1') + offset]}
-              />
-            ))}
-            {[0, 1, 2, 3].map((offset) => (
-              <SliderParameterControl
-                helpText={t('controlHelp.pitchEnvelopeLevel')}
-                key={`pl-${offset}`}
-                label={t('editor.level', { number: offset + 1 })}
-                max={99}
-                onChange={(value) =>
-                  setParameter(globalIndex('global.pitchEnvelope.level1') + offset, value, 99)
-                }
-                onGestureEnd={endGesture}
-                onGestureStart={beginGesture}
-                value={parameters[globalIndex('global.pitchEnvelope.level1') + offset]}
-              />
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="min-w-0 border-primary/20 bg-card/95">
-          <CardHeader
-            className={cn(
-              'flex-row items-center justify-between gap-2 px-4 py-3',
-              isLfoGlobalOpen && 'border-b',
-            )}
-          >
+          <CardHeader className="flex-row items-center justify-between gap-2 border-b px-4 py-3">
             <CardTitle className="text-base text-black">{t('editor.lfoGlobal')}</CardTitle>
-            <CollapseButton
-              controls="lfo-global-controls"
-              expanded={isLfoGlobalOpen}
-              label={t('editor.lfoGlobal')}
-              onClick={() => onToggleLfoGlobal}
-            />
           </CardHeader>
-          <CardContent
-            className="grid grid-cols-2 gap-x-3 gap-y-4 p-4"
-            hidden={!isLfoGlobalOpen}
-            id="lfo-global-controls"
-          >
+          <CardContent className="grid grid-cols-2 gap-x-3 gap-y-4 p-4">
             <SwitchParameterControl
               helpText={t('controlHelp.oscillatorSync')}
               label={t('editor.oscillatorSync')}
@@ -280,6 +200,45 @@ export function GlobalConfigurationPanel({
                 parameters[transposeParameter.voiceIndex],
               )}
               valueLabel={(value) => (value > 0 ? `+${value}` : String(value))}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="min-w-0 border-primary/20 bg-card/95">
+          <CardHeader className="flex-row items-center justify-between gap-2 border-b px-4 py-3">
+            <CardTitle className="flex min-w-0 items-center gap-1 text-base text-black">
+              {t('editor.pitchEnvelope')}
+              <HelpPopover
+                label={t('editor.pitchEnvelope')}
+                text={t('controlHelp.pitchEnvelope')}
+              />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2">
+            <EnvelopeEditor
+              color="hsl(276 92% 68%)"
+              helpText={t('controlHelp.pitchEnvelope')}
+              levels={Array.from(
+                parameters.slice(
+                  globalIndex('global.pitchEnvelope.level1'),
+                  globalIndex('global.pitchEnvelope.level1') + 4,
+                ),
+              )}
+              onChange={(rate, level, point) => {
+                setParameter(globalIndex('global.pitchEnvelope.rate1') + point, rate, 99)
+                setParameter(globalIndex('global.pitchEnvelope.level1') + point, level, 99)
+              }}
+              onGestureEnd={endGesture}
+              onGestureStart={beginGesture}
+              rates={Array.from(
+                parameters.slice(
+                  globalIndex('global.pitchEnvelope.rate1'),
+                  globalIndex('global.pitchEnvelope.rate1') + 4,
+                ),
+              )}
+              showTitle={false}
+              title={t('editor.pitchEnvelope')}
+              variant="pitch"
             />
           </CardContent>
         </Card>

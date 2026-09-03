@@ -10,6 +10,7 @@ import {
   MidiSettingsMenu,
 } from '@/components/midi/midi-controls'
 import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
+import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
 import { PianoKeyboardDialog } from '@/components/midi/piano-keyboard-dialog'
 import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dialog'
 import { type MidiController } from '@/hooks/use-midi'
@@ -95,6 +96,9 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 <MidiConnectActions midi={midi} />
                 <PianoKeyboardDialog midi={midi} />
                 <MidiLogDialog logStore={midi.logStore} />
+                {import.meta.env.DEV ? (
+                  <FxHardwareProbe send={midi.sendEffectDiagnosticControl} />
+                ) : null}
               </div>
             </div>
 

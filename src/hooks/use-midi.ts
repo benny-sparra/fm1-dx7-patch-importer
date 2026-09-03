@@ -7,6 +7,7 @@ import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   formatMidiBytes,
+  makeFm1EffectDiagnosticControlMessage,
   getMidiSupport,
   makeFm1EffectControlMessage,
   makeFm1ParameterPayload,
@@ -16,6 +17,7 @@ import {
   sendFm1Parameter,
   sendFm1ProgramChange,
   sendFm1EffectControl,
+  sendFm1EffectDiagnosticControl,
   sendNoteOff,
   sendNoteOn,
   sendDx7Bank,
@@ -411,18 +413,12 @@ export function useMidi() {
       }
 
       try {
-        const payload = makeFm1ParameterPayload(parameter, value, channel)
+        const payload = makeFm1ParameterPayload(parameter, value)
         const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
         void transferQueue.current
           .enqueue(() => {
-            sendFm1Parameter(selectedOutput, channel, parameter, value)
-            appendLog(
-              makeLogEntry(
-                'out',
-                `Sent FM1 parameter ${parameter} = ${value} on channel ${channel}.`,
-                message,
-              ),
-            )
+            sendFm1Parameter(selectedOutput, parameter, value)
+            appendLog(makeLogEntry('out', `Sent FM1 parameter ${parameter} = ${value}.`, message))
           }, `parameter-${parameter}`)
           .catch((caughtError) => {
             appendLog(
@@ -443,7 +439,7 @@ export function useMidi() {
         return false
       }
     },
-    [appendLog, channel, selectedOutput],
+    [appendLog, selectedOutput],
   )
 
   const sendEffectParameter = useCallback(
@@ -480,6 +476,52 @@ export function useMidi() {
           makeLogEntry(
             'system',
             caughtError instanceof Error ? caughtError.message : 'FM1 effect write failed.',
+          ),
+        )
+        return false
+      }
+    },
+    [appendLog, effectChannel, selectedOutput],
+  )
+
+  const sendEffectDiagnosticControl = useCallback(
+    (controller: number, value: number) => {
+      if (!import.meta.env.DEV) return false
+
+      if (!selectedOutput) {
+        appendLog(
+          makeLogEntry('system', 'Could not send development FX probe; no MIDI output selected.'),
+        )
+        return false
+      }
+
+      try {
+        const message = makeFm1EffectDiagnosticControlMessage(controller, value, effectChannel)
+        void transferQueue.current
+          .enqueue(() => {
+            sendFm1EffectDiagnosticControl(selectedOutput, effectChannel, controller, value)
+            appendLog(
+              makeLogEntry(
+                'out',
+                `Sent development FX probe CC ${controller} = ${value} on channel ${effectChannel}.`,
+                message,
+              ),
+            )
+          }, `effect-diagnostic-${controller}`)
+          .catch((caughtError) => {
+            appendLog(
+              makeLogEntry(
+                'system',
+                caughtError instanceof Error ? caughtError.message : 'Development FX probe failed.',
+              ),
+            )
+          })
+        return true
+      } catch (caughtError) {
+        appendLog(
+          makeLogEntry(
+            'system',
+            caughtError instanceof Error ? caughtError.message : 'Development FX probe failed.',
           ),
         )
         return false
@@ -594,6 +636,7 @@ export function useMidi() {
     midiAccess,
     outputs,
     sendBank,
+    sendEffectDiagnosticControl,
     sendEffectParameter,
     sendEffectSettings,
     sendParameter,

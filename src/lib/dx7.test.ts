@@ -1,9 +1,16 @@
+/// <reference types="node" />
+
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { describe, expect, it } from 'vitest'
 
 import {
+  makeDx7BankFile,
   makeDx7VoiceNameEdits,
   makeDx7SingleVoicePayload,
   packDx7Voice,
+  parseDx7Bank,
   unpackDx7Voice,
   updateDx7VoiceName,
   type Dx7Voice,
@@ -27,6 +34,30 @@ describe('DX7 edit-buffer conversion', () => {
     const original = makeVoice()
 
     expect(packDx7Voice(unpackDx7Voice(original))).toEqual(original)
+  })
+
+  it('preserves unrelated packed fields and voices after import, edit, export, and re-import', () => {
+    const bankFile = Uint8Array.from(readFileSync(resolve('public/dx7-banks/factory/rom1a.syx')))
+    const imported = parseDx7Bank(bankFile.buffer)
+    const parameters = unpackDx7Voice(imported[0])
+
+    expect([parameters[11], parameters[12], parameters[13], parameters[20]]).toEqual([1, 1, 4, 7])
+
+    parameters[11] = 3
+    parameters[20] = 14
+    const editedVoice = packDx7Voice(parameters)
+    const expectedPackedVoice = imported[0].data.slice()
+    expectedPackedVoice[11] = 0x07
+    expectedPackedVoice[12] = 0x74
+
+    expect(editedVoice.data).toEqual(expectedPackedVoice)
+
+    const reimported = parseDx7Bank(
+      makeDx7BankFile([editedVoice, ...imported.slice(1)]).buffer as ArrayBuffer,
+    )
+
+    expect(unpackDx7Voice(reimported[0])).toEqual(parameters)
+    expect(reimported.slice(1)).toEqual(imported.slice(1))
   })
 
   it('ignores reserved high bits in the packed algorithm byte', () => {

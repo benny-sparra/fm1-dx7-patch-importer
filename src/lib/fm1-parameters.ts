@@ -163,6 +163,15 @@ export const fm1VoiceNameParameter: VoiceNameParameterDefinition = {
   start: FM1_VOICE_NAME_START,
 }
 
+/** Legal maximum for each live Yamaha DX7 parameter-change address in the VCED buffer. */
+export const fm1VoiceParameterMaximums = Uint8Array.from([
+  ...Array.from({ length: FM1_OPERATOR_COUNT }, () =>
+    fm1OperatorParameters.map(({ max }) => max),
+  ).flat(),
+  ...fm1GlobalParameters.map(({ max }) => max),
+  ...Array<number>(FM1_VOICE_NAME_LENGTH).fill(127),
+])
+
 const effect = <const Id extends string>(
   id: Id,
   controller: number,

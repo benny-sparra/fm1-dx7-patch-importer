@@ -32,7 +32,19 @@ export function formatOperatorFixedFrequency(coarse: number, fine: number) {
 
 const plotTop = 20
 const plotBottom = 156
+const pitchCenter = 88
 const slotWidth = 90
+
+type EnvelopePointPosition = {
+  x: number
+  y: number
+}
+
+type EnvelopePointPositionFunction = (
+  rate: number,
+  level: number,
+  index: number,
+) => EnvelopePointPosition
 
 export function envelopePointPosition(rate: number, level: number, index: number) {
   return {
@@ -41,10 +53,37 @@ export function envelopePointPosition(rate: number, level: number, index: number
   }
 }
 
-export function envelopePath(rates: number[], levels: number[]) {
-  const points = rates.map((rate, index) => envelopePointPosition(rate, levels[index], index))
+export function pitchEnvelopePointPosition(rate: number, level: number, index: number) {
+  const clampedLevel = clampEnvelopeValue(level, 50)
+  const y =
+    clampedLevel >= 50
+      ? pitchCenter - ((clampedLevel - 50) / 49) * (pitchCenter - plotTop)
+      : pitchCenter + ((50 - clampedLevel) / 50) * (plotBottom - pitchCenter)
+
+  return {
+    x: 28 + index * slotWidth + ((99 - rate) / 99) * 58,
+    y,
+  }
+}
+
+export function pitchEnvelopeLevelFromY(y: number) {
+  const clampedY = Math.min(plotBottom, Math.max(plotTop, y))
+  const level =
+    clampedY <= pitchCenter
+      ? 50 + ((pitchCenter - clampedY) / (pitchCenter - plotTop)) * 49
+      : 50 - ((clampedY - pitchCenter) / (plotBottom - pitchCenter)) * 50
+
+  return clampEnvelopeValue(level, 50)
+}
+
+export function envelopePath(
+  rates: number[],
+  levels: number[],
+  pointPosition: EnvelopePointPositionFunction = envelopePointPosition,
+) {
+  const points = rates.map((rate, index) => pointPosition(rate, levels[index], index))
   return [
-    `M 8 ${envelopePointPosition(0, levels[3] ?? 0, 0).y}`,
+    `M 8 ${pointPosition(0, levels[3] ?? 0, 0).y}`,
     ...points.map((point) => `L ${point.x} ${point.y}`),
   ].join(' ')
 }

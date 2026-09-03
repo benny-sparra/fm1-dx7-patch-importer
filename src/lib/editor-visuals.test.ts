@@ -4,6 +4,8 @@ import {
   clampEnvelopeValue,
   formatOperatorFixedFrequency,
   formatOperatorRatio,
+  pitchEnvelopeLevelFromY,
+  pitchEnvelopePointPosition,
   rotaryControlAngle,
 } from './editor-visuals'
 
@@ -65,5 +67,22 @@ describe('envelope numeric values', () => {
 
   it('retains the current value for an invalid edit', () => {
     expect(clampEnvelopeValue(Number.NaN, 42)).toBe(42)
+  })
+})
+
+describe('pitch envelope geometry', () => {
+  it('centres level 50 on the base-pitch reference line', () => {
+    expect(pitchEnvelopePointPosition(50, 50, 0).y).toBe(88)
+  })
+
+  it('maps the full pitch range above and below the base-pitch reference line', () => {
+    expect(pitchEnvelopePointPosition(50, 99, 0).y).toBe(20)
+    expect(pitchEnvelopePointPosition(50, 0, 0).y).toBe(156)
+  })
+
+  it('converts graph positions back to bounded pitch levels', () => {
+    expect(pitchEnvelopeLevelFromY(20)).toBe(99)
+    expect(pitchEnvelopeLevelFromY(88)).toBe(50)
+    expect(pitchEnvelopeLevelFromY(156)).toBe(0)
   })
 })

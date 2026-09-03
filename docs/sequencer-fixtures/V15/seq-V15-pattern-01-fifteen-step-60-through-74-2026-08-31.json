@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "capture_status": "incomplete",
+  "fixture_id": "seq-V15-pattern-01-fifteen-step-60-through-74-2026-08-31",
+  "firmware": {
+    "version": "V15",
+    "observed_from": "Operator-reported Glide/portamento release; device version screen not recorded."
+  },
+  "editor": { "involved": false, "version_or_commit": null },
+  "capture": {
+    "transport": "USB CoreMIDI receive source plus bounded standard-MIDI sender",
+    "topology": "Host destination 0 -> FM1 and FM1 source -> host; no SysEx",
+    "tool": "scripts/capture-midi.swift; scripts/send-standard-midi-note.c --ascending",
+    "started_at_utc": "not_recorded",
+    "source_export": {
+      "location_or_identifier": "seq-V15-pattern-01-fifteen-step-60-through-74-2026-08-31.ndjson",
+      "sha256": "pending"
+    }
+  },
+  "initial_state": {
+    "mode": "Sequencer recording armed by operator",
+    "bank": "unknown",
+    "slot_or_pattern": "Pattern 1",
+    "pattern_description": "operator cleared Pattern 1 before arming",
+    "voice_or_patch": "001 BRASSBEN (shown in V15 photo)",
+    "other_relevant_stock_controls": [
+      "Rate 1/8T",
+      "Tempo 120",
+      "Gate 50%",
+      "Swing 50%",
+      "Sync Off",
+      "Transpose 0"
+    ]
+  },
+  "human_action": {
+    "exact_steps": [
+      "Operator cleared Pattern 1 with stock K4 and armed REC.",
+      "Host sent ascending notes 60 through 74; each was 90 3N 5A followed 80 ms later by 80 3N 00, with the next Note On 100 ms after the preceding Note On.",
+      "Operator exited REC and started playback."
+    ],
+    "declared_independent_variable": "record 15 distinct ascending notes",
+    "expected_result_before_observation": "all 15 notes appear once before the loop repeats"
+  },
+  "traffic": {
+    "to_fm1": "For N = 3C through 4A inclusive: 90 N 5A at t+0,100,...,1400 ms and 80 N 00 at t+80,180,...,1480 ms. All are known standard MIDI.",
+    "from_fm1": "Exact received packets are in the accompanying NDJSON; all are candidate_sequencer_related standard MIDI during playback.",
+    "vendor_or_sysex": "none sent or observed"
+  },
+  "observations": {
+    "resulting_sequencer_behaviour": "C4 through A4 each appeared exactly once at about 166 ms Note On intervals, then C4 recurred after 2,499 ms. Gates were 81-84 ms at visible Gate 50%.",
+    "pattern_change": "not_tested",
+    "patch_change": "not_tested",
+    "reconnect": "not_tested",
+    "power_cycle": "not_tested"
+  },
+  "record_evidence": {
+    "available": false,
+    "bytes_hex": null,
+    "provenance": null,
+    "analysis_notes": "No raw record/state evidence."
+  },
+  "comparison": {
+    "baseline_fixture_id": "16-note overflow run (console trace, 2026-08-31)",
+    "only_intended_difference": "input count 16 -> 15",
+    "repeat_count": 1,
+    "differential_result": "15 notes are retained and loop; the immediately preceding 16-note input replayed only its last 15 notes. Strong evidence for a V15 15-step capacity, pending repeat of the overflow capture with a complete artifact."
+  },
+  "notes": [
+    "The sender accepts only bounded standard Note On/Off sequences; no SysEx/vendor path exists.",
+    "This is V15-specific observable behaviour and must not be mapped onto the V13 32-byte hypothesis."
+  ]
+}
