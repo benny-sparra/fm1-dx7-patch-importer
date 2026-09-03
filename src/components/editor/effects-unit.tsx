@@ -7,8 +7,6 @@ import { HelpPopover } from '@/components/ui/help-popover'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
-import { EffectPreview, type EffectPreviewName } from './effect-preview'
-
 type EffectsUnitProps = {
   layout?: 'sidebar' | 'workspace'
   onChange: (controller: number, value: number) => void
@@ -23,9 +21,11 @@ type EffectParameter = {
   suffix?: string
 }
 
+type EffectName = 'Filter' | 'Reverb' | 'Delay' | 'Distortion' | 'Chorus' | 'Phaser'
+
 type EffectDefinition = {
   color: string
-  name: EffectPreviewName
+  name: EffectName
   parameters: EffectParameter[]
   switchId: EffectParameterId
 }
@@ -260,15 +260,10 @@ export function EffectsUnit({
             return (
               <div className="relative flex min-w-0" key={effect.name}>
                 <section
-                  className={cn(
-                    'grid w-full content-start gap-3 rounded-lg border bg-white p-3 transition',
-                    enabled
-                      ? 'border-[var(--effect-color)] shadow-[0_0_22px_color-mix(in_srgb,var(--effect-color)_12%,transparent)]'
-                      : 'border-border',
-                  )}
+                  className="grid w-full content-start overflow-hidden rounded-lg border border-primary/20 bg-card/95"
                   style={{ '--effect-color': effect.color } as React.CSSProperties}
                 >
-                  <div className="flex flex-wrap items-center gap-2 border-b pb-2">
+                  <div className="flex flex-wrap items-center gap-2 border-b bg-white px-4 py-3">
                     <Button
                       aria-label={t(enabled ? 'ui.bypassEffect' : 'ui.enableEffect', {
                         effect: translatedEffect,
@@ -300,7 +295,6 @@ export function EffectsUnit({
                       {translatedEffect}
                       <HelpPopover label={translatedEffect} text={t(`effectHelp.${effect.name}`)} />
                     </h3>
-                    <EffectPreview effect={effect.name} enabled={enabled} />
                     {headerMixParameter ? (
                       <EffectControl
                         disabled={!enabled}
@@ -318,7 +312,7 @@ export function EffectsUnit({
                   </div>
                   <div
                     className={cn(
-                      'grid min-w-0 items-start gap-3',
+                      'grid min-w-0 items-start gap-3 p-4',
                       isSidebar
                         ? 'grid-cols-2 [&>*:first-child]:col-span-2'
                         : bodyParameters.length === 2

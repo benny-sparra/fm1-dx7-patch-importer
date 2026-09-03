@@ -114,7 +114,7 @@ export function GlobalConfigurationPanel({
         />
 
         <Card className="min-w-0 border-primary/20 bg-card/95">
-          <CardHeader className="flex-row items-center justify-between gap-2 border-b px-4 py-3">
+          <CardHeader className="flex-row items-center justify-between gap-2 border-b bg-white px-4 py-3">
             <CardTitle className="text-base text-black">{t('editor.lfoGlobal')}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-x-3 gap-y-4 p-4">
@@ -205,7 +205,7 @@ export function GlobalConfigurationPanel({
         </Card>
 
         <Card className="min-w-0 border-primary/20 bg-card/95">
-          <CardHeader className="flex-row items-center justify-between gap-2 border-b px-4 py-3">
+          <CardHeader className="flex-row items-center justify-between gap-2 border-b bg-white px-4 py-3">
             <CardTitle className="flex min-w-0 items-center gap-1 text-base text-black">
               {t('editor.pitchEnvelope')}
               <HelpPopover
