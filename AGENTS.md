@@ -142,6 +142,9 @@ files when that is clearer.
   real sleeps, network calls, hardware, or test-order-dependent state.
 - Give each test one behavioral claim with a descriptive name. Cover success, failure, retry,
   duplicate activation, out-of-order completion, cancellation, and unmount where applicable.
+- Add or update the smallest appropriate automated coverage whenever new functionality, behaviour,
+  regression path, or browser integration is introduced. Use Playwright for browser-only journeys
+  that cannot be faithfully covered by Vitest; keep hardware MIDI validation fixture-based.
 - Run a focused test while developing, then run the complete validation before handoff.
 
 ## Validation
@@ -165,6 +168,7 @@ npm run typecheck
 npm run deps:check
 npm test
 npm run test:a11y
+npm run test:e2e
 npm run images:check
 npm run build
 npm run images:check:dist
@@ -192,6 +196,8 @@ When dependencies change, run `npm run lockfile:refresh` with the pinned npm rel
 
 - Inspect `git status` and the existing diff before editing. Preserve unrelated worktree changes.
 - Make the smallest coherent change and avoid opportunistic reformatting or architecture churn.
+- When removing a user flow, remove its now-dead state, props, component exports, and locale keys;
+  verify the cleanup with `npm run deps:check`.
 - Keep user data safety, initial librarian usability, accessibility, and bundle behavior intact.
 - Update README documentation when commands, setup, supported behavior, or user workflows change.
 - Before handoff, run `git diff --check`, report validation performed, and call out any check that

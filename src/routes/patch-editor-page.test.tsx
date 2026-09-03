@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -54,6 +54,17 @@ function setup(overrides: Partial<MidiController> = {}) {
 }
 
 describe('PatchEditorPage MIDI paths', () => {
+  it('keeps LFO/global and pitch-envelope controls permanently visible without collapse buttons', () => {
+    setup()
+    const configurationPanel = screen.getByRole('complementary', { name: 'Patch configuration' })
+    const panel = within(configurationPanel)
+
+    expect(panel.getByRole('slider', { name: 'LFO speed' })).toBeTruthy()
+    expect(panel.getByRole('slider', { name: 'Pitch envelope point 1' })).toBeTruthy()
+    expect(panel.queryByRole('button', { name: 'Collapse LFO & global' })).toBeNull()
+    expect(panel.queryByRole('button', { name: 'Collapse Pitch envelope' })).toBeNull()
+  })
+
   it('stays local and explains the unavailable SysEx connection without attempting initial sync', async () => {
     const { midi } = setup({ sysexAvailable: false })
 

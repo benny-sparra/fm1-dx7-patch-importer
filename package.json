@@ -33,6 +33,7 @@
     "sourcemaps:check": "node scripts/check-source-maps.mjs",
     "test": "vitest run",
     "test:a11y": "vitest run src/test/accessibility.a11y.test.tsx",
+    "test:e2e": "npm run build && playwright test",
     "typecheck": "tsc -b",
     "test:cls": "npm run build && node scripts/check-layout-shift.mjs"
   },
@@ -59,6 +60,7 @@
   "devDependencies": {
     "@sentry/vite-plugin": "^5.4.0",
     "@tailwindcss/vite": "4.3.2",
+    "@playwright/test": "^1.62.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.6",
     "@types/node": "^24.13.2",

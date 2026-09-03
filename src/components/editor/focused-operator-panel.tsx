@@ -101,22 +101,22 @@ export function FocusedOperatorPanel({
   }
   return (
     <Card
-      className="@container -mt-px min-w-0 rounded-t-none border-l-0 border-[var(--operator-color)] bg-card/95 shadow-[0_16px_48px_hsl(260_60%_5%_/_0.16)] xl:mt-0 xl:rounded-tr-xl xl:rounded-bl-none"
+      className="@container -mt-px min-w-0 rounded-t-none border-l-0 border-[var(--operator-color)] bg-[#E7E8E7] xl:mt-0 xl:rounded-t-none xl:rounded-bl-none"
       id="focused-operator-panel"
       role="tabpanel"
       style={{ '--operator-color': operatorColor } as React.CSSProperties}
     >
-      <CardHeader className="editor-operator-header border-t border-b border-t-black px-4 py-3 sm:px-5">
+      <CardHeader className="editor-operator-header px-4 py-3 sm:px-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle>
             <span className="flex items-center gap-3">
-              <span className="font-dot-matrix grid size-9 place-items-center rounded-full bg-[var(--operator-color)] text-lg font-black text-slate-950">
+              <span className="font-vt323 grid size-9 place-items-center rounded border border-primary-foreground/70 bg-primary-foreground/10 text-lg font-bold text-primary-foreground">
                 {selectedOperator}
               </span>
-              <span className="flex items-center gap-1 text-base text-foreground">
+              <span className="flex items-center gap-1 text-lg text-primary-foreground">
                 {t('editor.operator', { number: selectedOperator })}
                 <HelpPopover
-                  className="text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className="text-primary-foreground/80 hover:bg-primary-foreground/15 hover:text-primary-foreground"
                   label={t('editor.fmOperators')}
                   text={t('controlHelp.operator')}
                 />
@@ -249,7 +249,7 @@ export function FocusedOperatorPanel({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="grid min-w-0 gap-5 p-4 sm:p-5">
+      <CardContent className="grid min-w-0 gap-5 bg-primary p-4 pt-2 sm:p-5 sm:pt-2">
         <EnvelopeEditor
           color="var(--fm1-accent)"
           helpText={t('controlHelp.amplitudeEnvelope')}
@@ -294,7 +294,7 @@ export function FocusedOperatorPanel({
                 options={oscillatorModes}
                 value={parameters[operatorIndex('operator.oscillatorMode')]}
               />
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <RotaryParameterControl
                   helpText={t('controlHelp.coarse')}
                   key={`${selectedOperator}-18`}
@@ -323,34 +323,36 @@ export function FocusedOperatorPanel({
                   onGestureStart={beginGesture}
                   value={parameters[operatorIndex('operator.frequency.fine')]}
                 />
-                <RotaryParameterControl
-                  helpText={t('controlHelp.detune')}
-                  key={`${selectedOperator}-20`}
-                  label={t('ui.detune')}
-                  max={7}
-                  min={-7}
-                  onChange={(value) =>
-                    setParameter(
-                      operatorIndex('operator.detune'),
-                      displayToStoredValue(detuneParameter, value),
-                      detuneParameter.max,
-                    )
-                  }
-                  onGestureEnd={endGesture}
-                  onGestureStart={beginGesture}
-                  value={storedToDisplayValue(
-                    detuneParameter,
-                    parameters[operatorIndex('operator.detune')],
-                  )}
-                  valueLabel={(value) => (value > 0 ? `+${value}` : String(value))}
-                />
+                <div className="col-span-2">
+                  <RotaryParameterControl
+                    helpText={t('controlHelp.detune')}
+                    key={`${selectedOperator}-20`}
+                    label={t('ui.detune')}
+                    max={7}
+                    min={-7}
+                    onChange={(value) =>
+                      setParameter(
+                        operatorIndex('operator.detune'),
+                        displayToStoredValue(detuneParameter, value),
+                        detuneParameter.max,
+                      )
+                    }
+                    onGestureEnd={endGesture}
+                    onGestureStart={beginGesture}
+                    value={storedToDisplayValue(
+                      detuneParameter,
+                      parameters[operatorIndex('operator.detune')],
+                    )}
+                    valueLabel={(value) => (value > 0 ? `+${value}` : String(value))}
+                  />
+                </div>
               </div>
             </div>
           </section>
 
           <section
             aria-labelledby="operator-scaling-heading"
-            className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-white p-4"
+            className="@container min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-white p-4"
             id="operator-scaling-panel"
           >
             <div className="grid gap-y-4">
@@ -361,7 +363,7 @@ export function FocusedOperatorPanel({
                 <SlidersHorizontal className="size-4 text-[var(--operator-color)]" />
                 {t('ui.keyboardScaling')}
               </h3>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 @xl:grid-cols-3">
                 {rotaryControl(
                   t('ui.breakpoint'),
                   'operator.keyboard.breakpoint',
@@ -372,19 +374,32 @@ export function FocusedOperatorPanel({
                   'operator.keyboard.rateScaling',
                   t('controlHelp.rateScaling'),
                 )}
-              </div>
-              <div className="grid gap-y-1">
-                <p className="text-center text-xs font-bold text-foreground">{t('ui.depth')}</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="hidden @xl:block">
                   {rotaryControl(
-                    t('ui.left'),
+                    t('ui.velocity'),
+                    'operator.velocitySensitivity',
+                    t('controlHelp.velocity'),
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 @xl:grid-cols-3">
+                <div className="col-span-2 grid grid-cols-2 gap-2">
+                  {rotaryControl(
+                    t('ui.leftDepth'),
                     'operator.keyboard.leftDepth',
                     t('controlHelp.leftDepth'),
                   )}
                   {rotaryControl(
-                    t('ui.right'),
+                    t('ui.rightDepth'),
                     'operator.keyboard.rightDepth',
                     t('controlHelp.rightDepth'),
+                  )}
+                </div>
+                <div className="hidden @xl:block">
+                  {rotaryControl(
+                    t('ui.ampModSensitivity'),
+                    'operator.ampModSensitivity',
+                    t('controlHelp.ampModSensitivity'),
                   )}
                 </div>
               </div>
@@ -402,7 +417,7 @@ export function FocusedOperatorPanel({
                   t('controlHelp.curve'),
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 @xl:hidden">
                 {rotaryControl(
                   t('ui.velocity'),
                   'operator.velocitySensitivity',

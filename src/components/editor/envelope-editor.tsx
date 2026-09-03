@@ -120,7 +120,10 @@ export function EnvelopeEditor({
       </div>
       <svg
         aria-label={title}
-        className="block min-h-0 w-full flex-1 touch-none"
+        className={cn(
+          'block min-h-0 w-full flex-1 touch-none',
+          variant === 'amplitude' && 'max-h-60',
+        )}
         ref={svgRef}
         role="group"
         viewBox={`0 0 ${width} ${height}`}

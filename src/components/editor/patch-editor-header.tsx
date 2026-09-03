@@ -65,7 +65,7 @@ export function PatchEditorHeader({
   const { t } = useTranslation()
   return (
     <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b border-primary/15 bg-white py-3 shadow-sm">
-      <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-3 sm:px-5 lg:px-8">
+      <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-end gap-3 px-3 sm:px-5 lg:px-8">
         <Button
           aria-label={t('editor.back')}
           className="border-[color-mix(in_srgb,var(--fm1-finish-tint)_72%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_38%,white)] text-foreground hover:border-[var(--fm1-finish-tint)] hover:bg-[var(--fm1-finish-tint)] hover:text-[var(--fm1-finish-foreground)]"
@@ -88,7 +88,7 @@ export function PatchEditorHeader({
               <span className="flex items-center gap-1">
                 <input
                   aria-label={t('editor.patchName')}
-                  className="font-dot-matrix -ml-1 w-[12ch] max-w-[42vw] rounded border border-transparent bg-transparent px-1 text-xl font-black text-foreground uppercase transition outline-none hover:border-border hover:bg-card/60 focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/30"
+                  className="font-dot-matrix -ml-1 w-[12ch] max-w-[42vw] border border-input bg-transparent px-1 text-xl font-black text-foreground uppercase transition outline-none hover:bg-card/60 focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/30"
                   maxLength={10}
                   onBlur={onNameBlur}
                   onChange={(event) => onNameChange(event.target.value.toUpperCase())}

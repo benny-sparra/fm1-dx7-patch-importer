@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { OperatorStrip } from '@/components/editor/editor-workspace'
+import { OperatorsTitle, OperatorStrip } from '@/components/editor/editor-workspace'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
@@ -70,8 +70,6 @@ export function PatchEditorPage({
   const [mutedOperators, setMutedOperators] = useState<ReadonlySet<number>>(() => new Set())
   const [soloOperator, setSoloOperator] = useState<number | null>(null)
   const [leftPanelTab, setLeftPanelTab] = useState<'effects' | 'global'>('global')
-  const [isPitchEnvelopeOpen, setIsPitchEnvelopeOpen] = useState(true)
-  const [isLfoGlobalOpen, setIsLfoGlobalOpen] = useState(true)
   const [syncState, setSyncState] = useState<PatchSyncState>('sending')
   const [isNavigationPending, setIsNavigationPending] = useState(false)
   const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
@@ -454,7 +452,10 @@ export function PatchEditorPage({
       {midi.midiAccess && !midi.sysexAvailable ? <MidiSysexWarning /> : null}
 
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(14rem,1fr)] lg:items-start">
-        <div className="grid min-w-0 gap-0 xl:grid-cols-[minmax(12.5rem,0.72fr)_minmax(0,3fr)] xl:items-stretch">
+        <div className="grid min-w-0 gap-0 border border-white xl:grid-cols-[minmax(12.5rem,0.72fr)_minmax(0,3fr)] xl:items-stretch xl:bg-[#E7E8E7]">
+          <div className="xl:col-span-2">
+            <OperatorsTitle />
+          </div>
           <OperatorStrip
             algorithm={parameters[algorithmParameter.voiceIndex]}
             mutedOperators={mutedOperators}
@@ -482,12 +483,8 @@ export function PatchEditorPage({
         <GlobalConfigurationPanel
           beginGesture={beginGesture}
           endGesture={endGesture}
-          isLfoGlobalOpen={isLfoGlobalOpen}
-          isPitchEnvelopeOpen={isPitchEnvelopeOpen}
           leftPanelTab={leftPanelTab}
           onTabChange={setLeftPanelTab}
-          onToggleLfoGlobal={() => setIsLfoGlobalOpen((open) => !open)}
-          onTogglePitchEnvelope={() => setIsPitchEnvelopeOpen((open) => !open)}
           parameters={parameters}
           setEffectParameter={setEffectParameter}
           setParameter={setParameter}

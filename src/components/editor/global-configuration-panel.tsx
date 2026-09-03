@@ -5,7 +5,6 @@ import { AlgorithmPanel } from '@/components/editor/editor-workspace'
 import { EffectsUnit } from '@/components/editor/effects-unit'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import {
-  CollapseButton,
   LfoWaveControl,
   SliderParameterControl,
   SwitchParameterControl,
@@ -24,12 +23,8 @@ import { cn } from '@/lib/utils'
 type GlobalConfigurationPanelProps = {
   beginGesture: () => void
   endGesture: () => void
-  isLfoGlobalOpen: boolean
-  isPitchEnvelopeOpen: boolean
   leftPanelTab: 'effects' | 'global'
   onTabChange: (tab: 'effects' | 'global') => void
-  onToggleLfoGlobal: () => void
-  onTogglePitchEnvelope: () => void
   parameters: Uint8Array
   setEffectParameter: (controller: number, value: number) => void
   setParameter: (parameter: number, value: number, maximum: number) => void
@@ -43,12 +38,8 @@ const transposeParameter = getGlobalParameterDefinition('global.transpose')
 export function GlobalConfigurationPanel({
   beginGesture,
   endGesture,
-  isLfoGlobalOpen,
-  isPitchEnvelopeOpen,
   leftPanelTab,
   onTabChange,
-  onToggleLfoGlobal,
-  onTogglePitchEnvelope,
   parameters,
   setEffectParameter,
   setParameter,
@@ -123,25 +114,10 @@ export function GlobalConfigurationPanel({
         />
 
         <Card className="min-w-0 border-primary/20 bg-card/95">
-          <CardHeader
-            className={cn(
-              'flex-row items-center justify-between gap-2 px-4 py-3',
-              isLfoGlobalOpen && 'border-b',
-            )}
-          >
+          <CardHeader className="flex-row items-center justify-between gap-2 border-b px-4 py-3">
             <CardTitle className="text-base text-black">{t('editor.lfoGlobal')}</CardTitle>
-            <CollapseButton
-              controls="lfo-global-controls"
-              expanded={isLfoGlobalOpen}
-              label={t('editor.lfoGlobal')}
-              onClick={() => onToggleLfoGlobal}
-            />
           </CardHeader>
-          <CardContent
-            className="grid grid-cols-2 gap-x-3 gap-y-4 p-4"
-            hidden={!isLfoGlobalOpen}
-            id="lfo-global-controls"
-          >
+          <CardContent className="grid grid-cols-2 gap-x-3 gap-y-4 p-4">
             <SwitchParameterControl
               helpText={t('controlHelp.oscillatorSync')}
               label={t('editor.oscillatorSync')}
@@ -229,12 +205,7 @@ export function GlobalConfigurationPanel({
         </Card>
 
         <Card className="min-w-0 border-primary/20 bg-card/95">
-          <CardHeader
-            className={cn(
-              'flex-row items-center justify-between gap-2 px-4 py-3',
-              isPitchEnvelopeOpen && 'border-b',
-            )}
-          >
+          <CardHeader className="flex-row items-center justify-between gap-2 border-b px-4 py-3">
             <CardTitle className="flex min-w-0 items-center gap-1 text-base text-black">
               {t('editor.pitchEnvelope')}
               <HelpPopover
@@ -242,14 +213,8 @@ export function GlobalConfigurationPanel({
                 text={t('controlHelp.pitchEnvelope')}
               />
             </CardTitle>
-            <CollapseButton
-              controls="pitch-envelope-controls"
-              expanded={isPitchEnvelopeOpen}
-              label={t('editor.pitchEnvelope')}
-              onClick={onTogglePitchEnvelope}
-            />
           </CardHeader>
-          <CardContent className="p-2" hidden={!isPitchEnvelopeOpen} id="pitch-envelope-controls">
+          <CardContent className="p-2">
             <EnvelopeEditor
               color="hsl(276 92% 68%)"
               helpText={t('controlHelp.pitchEnvelope')}

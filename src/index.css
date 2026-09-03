@@ -573,7 +573,8 @@
   }
 
   .editor-operator-header {
-    background: hsl(0 0% 100%);
+    background: var(--color-primary);
+    color: var(--color-primary-foreground);
   }
 
   .synthwave-keyboard {
@@ -1039,10 +1040,6 @@
     border-radius: 0;
   }
 
-  :root[data-theme='dx7'] :is(button, summary):active:not(:disabled) {
-    transform: translate(1px, 1px);
-  }
-
   :root[data-theme='dx7'] input,
   :root[data-theme='dx7'] select {
     border-width: 1px;
@@ -1124,27 +1121,32 @@
   }
 
   :root[data-theme='dx7'] .editor-operator-header {
-    background: hsl(0 0% 100%);
+    background: var(--color-primary) !important;
+    color: var(--color-primary-foreground) !important;
   }
 
   :root[data-theme='dx7'] .operator-tab {
     --operator-color: var(--dx7-accent-ink) !important;
     border-color: var(--dx7-ink) !important;
-    background: var(--dx7-panel) !important;
+    border-left-color: transparent !important;
+    background: #e7e8e7 !important;
     color: var(--dx7-ink) !important;
     opacity: 1 !important;
     box-shadow: inset 0 1px hsl(0 0% 100% / 32%) !important;
   }
 
   :root[data-theme='dx7'] .operator-tab:hover {
-    background: hsl(120 3% 80%) !important;
+    border-left-color: var(--color-border) !important;
+    background-color: color-mix(in srgb, var(--color-muted) 60%, transparent) !important;
+    color: var(--color-foreground) !important;
   }
 
   :root[data-theme='dx7'] .operator-tab[aria-selected='true'] {
-    border-width: 1px !important;
-    border-color: transparent !important;
-    background: hsl(0 0% 100%) !important;
-    box-shadow: inset 0 2px hsl(0 0% 100% / 55%) !important;
+    border-width: 0 !important;
+    border-color: var(--color-primary) !important;
+    background: var(--color-primary) !important;
+    color: var(--color-primary-foreground) !important;
+    box-shadow: none !important;
   }
 
   :root[data-theme='dx7'] .operator-role-badge {
@@ -1157,6 +1159,10 @@
     color: hsl(120 3% 91%) !important;
   }
 
+  :root[data-theme='dx7'] .operator-tab[aria-selected='true'] .operator-frequency {
+    color: var(--color-primary-foreground) !important;
+  }
+
   :root[data-theme='dx7'] .operator-audition-badge {
     border-color: var(--dx7-ink) !important;
     background: var(--dx7-ink) !important;
@@ -1166,7 +1172,7 @@
   :root[data-theme='dx7'] #focused-operator-panel {
     --operator-color: var(--dx7-highlight) !important;
     border-color: var(--dx7-ink) !important;
-    background: var(--dx7-panel) !important;
+    background: #e7e8e7 !important;
   }
 
   :root[data-theme='dx7'] .editor-operator-header [aria-pressed='true'] {

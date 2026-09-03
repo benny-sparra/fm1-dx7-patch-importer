@@ -1,4 +1,4 @@
-import { ChevronDown, RadioTower, Route } from 'lucide-react'
+import { AudioWaveform, ChevronDown, RadioTower, Route } from 'lucide-react'
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -171,13 +171,13 @@ export function AlgorithmPanel({
               featured
               operators={dx7Algorithms[algorithm]}
             />
-            <span className="flex shrink-0 flex-col items-start gap-1 text-[8px] font-bold tracking-wide text-cyan-100/65 uppercase">
+            <span className="flex shrink-0 flex-col items-start gap-1 text-xs font-bold tracking-wide text-cyan-100/65 uppercase">
               <span>
-                <span className="mr-1 inline-block size-1.5 rounded-full bg-current" />
+                <span className="mr-1 inline-block size-2.5 rounded-full bg-current" />
                 {t('editor.carrier')}
               </span>
               <span>
-                <span className="mr-1 inline-block size-1.5 rounded-full border border-current" />
+                <span className="mr-1 inline-block size-2.5 rounded-full border border-current" />
                 {t('editor.modulator')}
               </span>
             </span>
@@ -269,6 +269,23 @@ type OperatorStripProps = {
   soloOperator: number | null
 }
 
+export function OperatorsTitle() {
+  const { t } = useTranslation()
+  return (
+    <div className="patch-area-surface flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
+      <h2 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-black">
+        <AudioWaveform aria-hidden="true" className="size-5 shrink-0" />
+        {t('editor.operators')}
+        <HelpPopover
+          className="text-black/70 hover:text-black"
+          label={t('editor.fmOperators')}
+          text={t('controlHelp.operator')}
+        />
+      </h2>
+    </div>
+  )
+}
+
 export function OperatorStrip({
   algorithm,
   mutedOperators,
@@ -281,7 +298,7 @@ export function OperatorStrip({
   return (
     <div
       aria-label={t('editor.operators')}
-      className="operator-strip flex min-w-0 flex-1 scrollbar-none items-stretch overflow-x-auto xl:max-h-[54rem] xl:flex-col xl:overflow-x-visible xl:overflow-y-auto"
+      className="operator-strip flex min-w-0 scrollbar-none items-stretch overflow-x-auto bg-[#E7E8E7] xl:max-h-[54rem] xl:flex-col xl:overflow-x-visible xl:overflow-y-auto"
       role="tablist"
     >
       {Array.from({ length: FM1_OPERATOR_COUNT }, (_, index) => {
@@ -319,11 +336,11 @@ export function OperatorStrip({
             aria-label={`Operator ${operator}, ${roleLabel}${auditionLabel ? `, ${auditionLabel}` : ''}`}
             aria-selected={isSelected}
             className={cn(
-              'operator-tab group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 bg-card/45 px-3 py-2 text-left opacity-75 transition-[background-color,opacity,transform,box-shadow] hover:bg-card/80 hover:opacity-100 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset sm:min-w-[10.5rem] xl:mt-0 xl:min-h-[6.5rem] xl:min-w-0 xl:flex-none xl:rounded-l-xl xl:rounded-tr-none xl:border-b xl:px-3',
+              'operator-tab group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 border-l-4 border-l-transparent bg-[#E7E8E7] px-3 py-2 text-left opacity-100 transition-[background-color,opacity,transform,box-shadow] hover:border-l-border hover:bg-muted/60 hover:text-foreground focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset sm:min-w-[10.5rem] xl:mt-0 xl:h-[6.5rem] xl:min-w-0 xl:flex-none xl:rounded-l-xl xl:rounded-tr-none xl:border-x-0 xl:border-y-0 xl:border-l-4 xl:px-3',
               index > 0 && '-ml-px xl:-mt-px xl:ml-0',
               !isSelected && 'xl:border-r-black',
               isSelected &&
-                'z-[1] border-transparent bg-card opacity-100 shadow-[0_-4px_18px_hsl(260_60%_5%_/_0.08)] after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-[var(--operator-color)] xl:shadow-[-4px_0_18px_hsl(260_60%_5%_/_0.08)] xl:after:inset-y-0 xl:after:right-0 xl:after:bottom-auto xl:after:left-auto xl:after:h-auto xl:after:w-2 xl:after:bg-white',
+                'border-t-0 border-primary bg-primary text-primary-foreground opacity-100',
             )}
             key={operator}
             onClick={() => onSelect(operator)}
@@ -333,12 +350,19 @@ export function OperatorStrip({
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex min-w-0 items-center gap-2">
-                <span className="text-lg font-black text-[var(--operator-color)]">{operator}</span>
+                <span
+                  className={cn(
+                    'font-vt323 grid size-8 shrink-0 place-items-center rounded border border-current/50 text-base font-bold',
+                    isSelected ? 'text-primary-foreground' : 'text-[var(--operator-color)]',
+                  )}
+                >
+                  {operator}
+                </span>
                 <span
                   className={cn(
                     'operator-role-badge inline-flex rounded-full border px-1.5 py-0.5 text-[8px] font-black tracking-[0.1em] uppercase',
-                    role === 'carrier'
-                      ? 'border-[var(--operator-color)] bg-[color-mix(in_srgb,var(--operator-color)_14%,transparent)] text-[var(--operator-color)]'
+                    isSelected
+                      ? 'border-primary-foreground/70 bg-primary-foreground/10 text-primary-foreground'
                       : 'border-border/80 text-muted-foreground',
                   )}
                 >
@@ -347,7 +371,12 @@ export function OperatorStrip({
               </div>
               <span
                 aria-label={frequencyDescription}
-                className="operator-frequency font-vt323 rounded bg-muted px-1.5 py-1 text-[10px] font-bold text-muted-foreground"
+                className={cn(
+                  'operator-frequency font-vt323 rounded px-1.5 py-1 text-[10px] font-bold',
+                  isSelected
+                    ? 'bg-primary-foreground/15 text-primary-foreground'
+                    : 'bg-muted text-muted-foreground',
+                )}
                 title={frequencyDescription}
               >
                 {frequencyLabel}
@@ -381,14 +410,27 @@ export function OperatorStrip({
                   vectorEffect="non-scaling-stroke"
                 />
               </svg>
-              <div className="flex shrink-0 items-baseline gap-1 text-[9px] font-bold tracking-wide text-muted-foreground uppercase">
+              <div
+                className={cn(
+                  'flex shrink-0 items-baseline gap-1 text-[9px] font-bold tracking-wide uppercase',
+                  isSelected ? 'text-primary-foreground' : 'text-muted-foreground',
+                )}
+              >
                 <span>{t('editor.output')}</span>
-                <span className="font-vt323 text-sm text-foreground">{output}</span>
+                <span
+                  className={cn(
+                    'font-vt323 text-sm',
+                    isSelected ? 'text-primary-foreground' : 'text-foreground',
+                  )}
+                >
+                  {output}
+                </span>
               </div>
             </div>
           </button>
         )
       })}
+      <div aria-hidden="true" className="hidden shrink-0 border-t border-dashed xl:block" />
     </div>
   )
 }
