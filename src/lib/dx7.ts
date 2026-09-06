@@ -8,7 +8,7 @@ import {
   getGlobalParameterDefinition,
 } from '@/lib/fm1-parameters'
 
-const dx7BankVoiceCount = 32
+export const dx7BankVoiceCount = 32
 const dx7PackedVoiceSize = 128
 const dx7BankDataSize = dx7BankVoiceCount * dx7PackedVoiceSize
 const dx7BankFileSize = dx7BankDataSize + 8
@@ -23,6 +23,11 @@ const pitchModSensitivityIndex = getGlobalParameterDefinition(
 const transposeIndex = getGlobalParameterDefinition('global.transpose').voiceIndex
 
 export type Dx7Voice = { data: Uint8Array; name: string }
+
+/** Yamaha's bulk-dump checksum: the two's complement of the data sum, in seven bits. */
+function dx7Checksum(bytes: Uint8Array) {
+  return (128 - (bytes.reduce((sum, byte) => sum + byte, 0) & 0x7f)) & 0x7f
+}
 
 export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
   const bytes = new Uint8Array(file)
@@ -40,7 +45,7 @@ export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
     throw new Error('This is not a Yamaha DX7 32-voice bulk SysEx bank.')
   }
   const voiceData = bytes.slice(6, 6 + dx7BankDataSize)
-  const checksum = (128 - (voiceData.reduce((sum, byte) => sum + byte, 0) & 0x7f)) & 0x7f
+  const checksum = dx7Checksum(voiceData)
   if (checksum !== bytes.at(-2)) throw new Error('The DX7 bank checksum is invalid.')
 
   return Array.from({ length: dx7BankVoiceCount }, (_, index) => {
@@ -153,7 +158,7 @@ export function makeDx7SingleVoicePayload(voice: Dx7Voice, channel = 1) {
     )
   }
   const data = unpackDx7Voice(voice)
-  const checksum = (128 - (data.reduce((sum, byte) => sum + byte, 0) & 0x7f)) & 0x7f
+  const checksum = dx7Checksum(data)
 
   return Uint8Array.from([(channel - 1) & 0x0f, 0x00, 0x01, 0x1b, ...data, checksum])
 }
@@ -165,7 +170,7 @@ export function makeDx7BankPayload(voices: Dx7Voice[], channel = 1) {
   }
 
   const data = Uint8Array.from(voices.flatMap((voice) => Array.from(voice.data)))
-  const checksum = (128 - (data.reduce((sum, byte) => sum + byte, 0) & 0x7f)) & 0x7f
+  const checksum = dx7Checksum(data)
 
   return Uint8Array.from([(channel - 1) & 0x0f, 0x09, 0x20, 0x00, ...data, checksum])
 }

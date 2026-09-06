@@ -53,19 +53,26 @@ export function sendDx7Bank(output: Output, channel: number, voices: Dx7Voice[])
   output.sendSysex(0x43, makeDx7BankPayload(voices, channel))
 }
 
-export function makeFm1ProgramChangeMessage(program: number, channel = 1) {
-  if (!Number.isInteger(program) || program < 0 || program > 127) {
-    throw new RangeError('FM1 program must be an integer from 0 to 127.')
-  }
+function assertMidiChannel(channel: number) {
   if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
     throw new RangeError('MIDI channel must be an integer from 1 to 16.')
   }
+}
 
+function assertFm1ProgramChange(program: number, channel: number) {
+  if (!Number.isInteger(program) || program < 0 || program > 127) {
+    throw new RangeError('FM1 program must be an integer from 0 to 127.')
+  }
+  assertMidiChannel(channel)
+}
+
+export function makeFm1ProgramChangeMessage(program: number, channel = 1) {
+  assertFm1ProgramChange(program, channel)
   return Uint8Array.from([0xc0 | ((channel - 1) & 0x0f), program])
 }
 
 export function sendFm1ProgramChange(output: Output, channel: number, program: number) {
-  makeFm1ProgramChangeMessage(program, channel)
+  assertFm1ProgramChange(program, channel)
   output.sendProgramChange(program, { channels: channel })
 }
 
@@ -95,7 +102,7 @@ export function sendFm1Parameter(output: Output, parameter: number, value: numbe
   output.sendSysex(0x43, makeFm1ParameterPayload(parameter, value))
 }
 
-export function makeFm1EffectControlMessage(controller: number, value: number, channel = 2) {
+function assertFm1EffectControl(controller: number, value: number, channel: number) {
   if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
     throw new RangeError('FM1 effect controller must be an integer from 0 to 23.')
   }
@@ -104,10 +111,11 @@ export function makeFm1EffectControlMessage(controller: number, value: number, c
       `FM1 effect controller ${controller} value must be an integer from 0 to ${fm1EffectParameterMaximums[controller]}.`,
     )
   }
-  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
-    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
-  }
+  assertMidiChannel(channel)
+}
 
+export function makeFm1EffectControlMessage(controller: number, value: number, channel = 2) {
+  assertFm1EffectControl(controller, value, channel)
   return Uint8Array.from([0xb0 | ((channel - 1) & 0x0f), controller, value])
 }
 
@@ -117,8 +125,18 @@ export function sendFm1EffectControl(
   controller: number,
   value: number,
 ) {
-  makeFm1EffectControlMessage(controller, value, channel)
+  assertFm1EffectControl(controller, value, channel)
   output.sendControlChange(controller, value, { channels: channel })
+}
+
+function assertFm1EffectDiagnosticControl(controller: number, value: number, channel: number) {
+  if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
+    throw new RangeError('FM1 effect diagnostic controller must be an integer from 0 to 23.')
+  }
+  if (!Number.isInteger(value) || value < 0 || value > 127) {
+    throw new RangeError('FM1 effect diagnostic value must be an integer from 0 to 127.')
+  }
+  assertMidiChannel(channel)
 }
 
 /**
@@ -133,16 +151,7 @@ export function makeFm1EffectDiagnosticControlMessage(
   value: number,
   channel = 2,
 ) {
-  if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
-    throw new RangeError('FM1 effect diagnostic controller must be an integer from 0 to 23.')
-  }
-  if (!Number.isInteger(value) || value < 0 || value > 127) {
-    throw new RangeError('FM1 effect diagnostic value must be an integer from 0 to 127.')
-  }
-  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
-    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
-  }
-
+  assertFm1EffectDiagnosticControl(controller, value, channel)
   return Uint8Array.from([0xb0 | ((channel - 1) & 0x0f), controller, value])
 }
 
@@ -152,7 +161,7 @@ export function sendFm1EffectDiagnosticControl(
   controller: number,
   value: number,
 ) {
-  makeFm1EffectDiagnosticControlMessage(controller, value, channel)
+  assertFm1EffectDiagnosticControl(controller, value, channel)
   output.sendControlChange(controller, value, { channels: channel })
 }
 

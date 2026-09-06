@@ -2,7 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Input, MessageEvent, Output } from 'webmidi'
 
 import { trackAnalyticsEvent } from '@/lib/analytics'
-import { makeDx7BankPayload, makeDx7SingleVoicePayload, type Dx7Voice } from '@/lib/dx7'
+import {
+  dx7BankVoiceCount,
+  makeDx7BankPayload,
+  makeDx7SingleVoicePayload,
+  type Dx7Voice,
+} from '@/lib/dx7'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
@@ -307,15 +312,19 @@ export function useMidi() {
         return Promise.resolve<BankTransferResult>({ ok: false, reason: 'sysex_unavailable' })
       }
 
-      if (voices.length !== 32) {
-        appendLog(makeLogEntry('system', `Bank ${bank} is not loaded with 32 voices.`))
+      if (voices.length !== dx7BankVoiceCount) {
+        appendLog(
+          makeLogEntry('system', `Bank ${bank} is not loaded with ${dx7BankVoiceCount} voices.`),
+        )
         return Promise.resolve<BankTransferResult>({ ok: false, reason: 'invalid_bank' })
       }
 
       const payload = makeDx7BankPayload(voices, channel)
       const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
 
-      appendLog(makeLogEntry('out', `Sending DX7 bank ${bank} (32 voices)…`, message))
+      appendLog(
+        makeLogEntry('out', `Sending DX7 bank ${bank} (${dx7BankVoiceCount} voices)…`, message),
+      )
       return transferQueue
         .enqueue(() => sendDx7Bank(selectedOutput, channel, voices))
         .then(() => {
