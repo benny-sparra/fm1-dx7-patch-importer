@@ -63,9 +63,10 @@ export function PatchEditorPage({
   patch,
   voice,
 }: PatchEditorPageProps) {
-  const initialParameters = makeFm1EditorParameters(unpackDx7Voice(voice), effects)
-  const [history, setHistory] = useState(() => makeEditorHistory(initialParameters))
-  const [savedParameters, setSavedParameters] = useState(() => initialParameters.slice())
+  // Only read while mounting: App remounts this editor for each patch, keyed by patch id.
+  const makeInitialParameters = () => makeFm1EditorParameters(unpackDx7Voice(voice), effects)
+  const [history, setHistory] = useState(() => makeEditorHistory(makeInitialParameters()))
+  const [savedParameters, setSavedParameters] = useState(makeInitialParameters)
   const [selectedOperator, setSelectedOperator] = useState(1)
   const [mutedOperators, setMutedOperators] = useState<ReadonlySet<number>>(() => new Set())
   const [soloOperator, setSoloOperator] = useState<number | null>(null)

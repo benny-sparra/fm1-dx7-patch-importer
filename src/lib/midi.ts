@@ -164,6 +164,20 @@ export function sendNoteOff(output: Output, channel: number, note: number, veloc
   output.sendNoteOff(note, { channels: channel, rawRelease: velocity })
 }
 
+const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+const midiTimingClockStatus = 0xf8
+const midiActiveSensingStatus = 0xfe
+
+/**
+ * Timing clock and active sensing repeat continuously while a sequencer or keyboard is connected.
+ * Logging them would fill the monitor many times a second and hide the messages a user is reading.
+ * Other system real-time messages are rare and stay visible.
+ */
+export function isHighRateMidiMessage(data: Uint8Array | number[]) {
+  return data[0] === midiTimingClockStatus || data[0] === midiActiveSensingStatus
+}
+
 export function formatMidiBytes(data: Uint8Array | number[]) {
   const bytes = Array.from(data)
   const [status, note, velocity] = bytes
@@ -178,7 +192,6 @@ export function formatMidiBytes(data: Uint8Array | number[]) {
     (messageType === 0x80 || messageType === 0x90)
   ) {
     const channel = (status & 0x0f) + 1
-    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
     const noteName = `${noteNames[note % 12]}${Math.floor(note / 12) - 1}`
     const isNoteOff = messageType === 0x80 || velocity === 0
 
@@ -187,6 +200,12 @@ export function formatMidiBytes(data: Uint8Array | number[]) {
 
   return bytes.map((byte) => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ')
 }
+
+const logTimeFormat = new Intl.DateTimeFormat(undefined, {
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+})
 
 export function makeLogEntry(
   direction: MidiLogEntry['direction'],
@@ -198,10 +217,6 @@ export function makeLogEntry(
     direction,
     message,
     data: data ? Uint8Array.from(data) : undefined,
-    createdAt: new Intl.DateTimeFormat(undefined, {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }).format(new Date()),
+    createdAt: logTimeFormat.format(new Date()),
   }
 }

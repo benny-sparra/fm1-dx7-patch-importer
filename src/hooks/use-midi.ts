@@ -9,6 +9,7 @@ import {
   formatMidiBytes,
   makeFm1EffectDiagnosticControlMessage,
   getMidiSupport,
+  isHighRateMidiMessage,
   makeFm1EffectControlMessage,
   makeFm1ParameterPayload,
   makeFm1ProgramChangeMessage,
@@ -93,7 +94,7 @@ export function useMidi() {
   const [logStore] = useState(
     () => new MidiLogStore([makeLogEntry('system', 'Ready. Connect a Chromium browser to begin.')]),
   )
-  const transferQueue = useRef(new MidiTransferQueue({ minimumIntervalMs: 35 }))
+  const [transferQueue] = useState(() => new MidiTransferQueue({ minimumIntervalMs: 35 }))
   const webMidi = useRef<WebMidiApi | null>(null)
   const webMidiLoader = useRef<Promise<WebMidiApi> | null>(null)
   const preferredOutputId = useRef(readStoredValue(midiStorageKeys.outputId))
@@ -252,6 +253,12 @@ export function useMidi() {
     void enableMidi(false)
   }, [enableMidi])
 
+  useEffect(() => {
+    // Drop queued writes on teardown. `clear` rather than `cancel` keeps the queue usable, so a
+    // Strict Mode remount does not leave the hook holding a permanently cancelled queue.
+    return () => transferQueue.clear('MIDI transfers stopped.')
+  }, [transferQueue])
+
   const selectOutput = useCallback((id: string) => {
     preferredOutputId.current = id
     storeValue(midiStorageKeys.outputId, id)
@@ -309,7 +316,7 @@ export function useMidi() {
       const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
 
       appendLog(makeLogEntry('out', `Sending DX7 bank ${bank} (32 voices)…`, message))
-      return transferQueue.current
+      return transferQueue
         .enqueue(() => sendDx7Bank(selectedOutput, channel, voices))
         .then(() => {
           appendLog(
@@ -333,7 +340,7 @@ export function useMidi() {
           return { ok: false, reason: 'transport' } as const
         })
     },
-    [appendLog, channel, selectedOutput],
+    [appendLog, channel, selectedOutput, transferQueue],
   )
 
   const sendVoice = useCallback(
@@ -351,7 +358,7 @@ export function useMidi() {
       const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
       appendLog(makeLogEntry('out', `Sending ${voice.name} to the FM1 edit buffer…`, message))
 
-      return transferQueue.current
+      return transferQueue
         .enqueue(() => sendDx7Voice(selectedOutput, channel, voice))
         .then(() => {
           appendLog(
@@ -369,7 +376,7 @@ export function useMidi() {
           return false
         })
     },
-    [appendLog, channel, selectedOutput],
+    [appendLog, channel, selectedOutput, transferQueue],
   )
 
   const sendProgramChange = useCallback(
@@ -415,7 +422,7 @@ export function useMidi() {
       try {
         const payload = makeFm1ParameterPayload(parameter, value)
         const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
-        void transferQueue.current
+        void transferQueue
           .enqueue(() => {
             sendFm1Parameter(selectedOutput, parameter, value)
             appendLog(makeLogEntry('out', `Sent FM1 parameter ${parameter} = ${value}.`, message))
@@ -439,7 +446,7 @@ export function useMidi() {
         return false
       }
     },
-    [appendLog, selectedOutput],
+    [appendLog, selectedOutput, transferQueue],
   )
 
   const sendEffectParameter = useCallback(
@@ -451,7 +458,7 @@ export function useMidi() {
 
       try {
         const message = makeFm1EffectControlMessage(controller, value, effectChannel)
-        void transferQueue.current
+        void transferQueue
           .enqueue(() => {
             sendFm1EffectControl(selectedOutput, effectChannel, controller, value)
             appendLog(
@@ -481,7 +488,7 @@ export function useMidi() {
         return false
       }
     },
-    [appendLog, effectChannel, selectedOutput],
+    [appendLog, effectChannel, selectedOutput, transferQueue],
   )
 
   const sendEffectDiagnosticControl = useCallback(
@@ -497,7 +504,7 @@ export function useMidi() {
 
       try {
         const message = makeFm1EffectDiagnosticControlMessage(controller, value, effectChannel)
-        void transferQueue.current
+        void transferQueue
           .enqueue(() => {
             sendFm1EffectDiagnosticControl(selectedOutput, effectChannel, controller, value)
             appendLog(
@@ -527,7 +534,7 @@ export function useMidi() {
         return false
       }
     },
-    [appendLog, effectChannel, selectedOutput],
+    [appendLog, effectChannel, selectedOutput, transferQueue],
   )
 
   const sendEffectSettings = useCallback(
@@ -539,7 +546,7 @@ export function useMidi() {
       }
 
       const transfers = Array.from({ length: fm1EffectParameterCount }, (_, controller) =>
-        transferQueue.current.enqueue(
+        transferQueue.enqueue(
           () =>
             sendFm1EffectControl(selectedOutput, effectChannel, controller, normalized[controller]),
           `effect-${controller}`,
@@ -559,7 +566,7 @@ export function useMidi() {
           return false
         })
     },
-    [appendLog, effectChannel, selectedOutput],
+    [appendLog, effectChannel, selectedOutput, transferQueue],
   )
 
   const startNote = useCallback(
@@ -614,6 +621,7 @@ export function useMidi() {
     }
 
     const handleMidiMessage = (event: MessageEvent) => {
+      if (isHighRateMidiMessage(event.data)) return
       appendLog(makeLogEntry('in', formatMidiBytes(event.data), event.data))
     }
 
