@@ -424,7 +424,10 @@ Implement a codec, UI, MIDI/SysEx, or generic vendor-command path.
 
 ## SEQ-002 — Implement 32-byte pattern decoder
 
-**Status:** blocked until version-labelled hardware fixtures corroborate the V13 record layout
+**Status:** blocked until version-labelled hardware fixtures corroborate the V13 record layout.
+Phase 3 closed negative on 2026-09-06 without producing any raw record capture, so this remains
+blocked and is **not** on the critical path; the behavioural model in SEQ-OBS-001 supersedes it for
+shipping purposes.
 
 ### Goal
 
@@ -467,6 +470,44 @@ where available.
 Do not manufacture fixtures from firmware analysis. Do not send unidentified vendor frames, guessed
 SysEx, loader, OTA, update, or raw-flash traffic. A captured unknown message stays excluded from
 production until repeatable evidence proves both its semantics and normal-runtime safety.
+
+---
+
+## SEQ-001B — Capture host-recorded step advance, rests, and repeats
+
+**Status:** open; highest-value next hardware test. Blocks the design of SEQ-REC-001.
+
+### Goal
+
+Resolve the two Unknown behaviours that decide whether a host-authored pattern can express anything
+beyond a contiguous run of notes. Both are observation-only and use standard MIDI exclusively.
+
+### Questions
+
+| Question                                                           | Why it matters                                                                                                  |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Can a host advance the step cursor without sounding a note?        | If not, host-authored patterns cannot contain rests, and SEQ-REC becomes a note-sequence loader, not an editor. |
+| Do two identical successive notes create two distinct steps?       | If not, repeated pitches collapse and the editor must reject or warn on them.                                   |
+| Does recording start at step 1, or at the currently selected step? | Decides whether the editor can address positions at all.                                                        |
+
+### Required fixtures
+
+Follow the existing contract and the core matrix in
+[`seq-001a-capture-plan.md`](seq-001a-capture-plan.md). Each needs two runs from a freshly cleared
+Pattern 1.
+
+- `rest-between` — record two host notes, then attempt one observed stock rest or step-advance
+  operation between them. If the stock UI exposes no such control reachable during host recording,
+  mark `not_available_on_tested_hardware`; do not pad with assumed rests.
+- `repeated-note` — record host note 60 twice at the same velocity and release method. Record
+  whether playback yields one step or two.
+- `record-start-position` — with a nonempty pattern, select a step other than 1, then record one
+  host note. Record where it lands.
+
+### Do not
+
+Send any vendor frame, guess a step-advance SysEx, or infer a rest encoding from the V13 `FF`
+hypothesis. `FF` is V13 firmware evidence and must not be applied to V15 hardware.
 
 ---
 
@@ -562,7 +603,9 @@ Optimise for the FM1's actual limited sequence model rather than importing a gen
 
 ## SEQ-READ-001 — Define sequence read transport interface
 
-**Status:** blocked on protocol research
+**Status:** blocked. Phase 3 closed negative on 2026-09-06: no request/reply transport was observed
+across the full V15 sequencer capture set. Superseded for shipping purposes by SEQ-OBS-002, which
+reads by observing playback instead. Reopen only if a lawful capture proves a repeatable reply.
 
 ### Goal
 
@@ -617,7 +660,9 @@ Allow the user to refresh the current FM1 sequence.
 
 ## SEQ-WRITE-001 — Document smallest verified write operation
 
-**Status:** blocked
+**Status:** blocked. Phase 3 closed negative on 2026-09-06. Superseded for shipping purposes by
+SEQ-REC-001, which writes through stock recording input instead of a runtime command. Reopen only if
+a lawful capture proves a bounded, safe write command.
 
 ### Goal
 
@@ -660,6 +705,135 @@ Safely support all understood pattern fields.
 ### Do not
 
 Write unknown flags or unknown data from newly generated defaults.
+
+---
+
+# Sequencer via stock recording path
+
+These tasks implement the Phase 3 fallback: the editor reads by observing the FM1's own playback
+output and writes by transmitting ordinary Note On/Off while the user has armed record mode by hand.
+Every message in this track is standard channel MIDI. No task here introduces a vendor frame, a
+guessed SysEx, or a new transport.
+
+Shared boundary for the whole section:
+
+- the editor cannot arm record mode, select a pattern or chain, set step length, gate, rate, tempo,
+  swing, or transpose, or trigger the stock `SAVE`; all remain stock-UI-only and must be presented
+  to the user as manual steps
+- the editor must never claim a write succeeded without an observation confirming it
+- the V13 32-byte record layout must not appear anywhere in this track
+
+---
+
+## SEQ-OBS-001 — Model the observed sequence behaviourally
+
+**Status:** ready; depends on the Phase 3 closure only
+
+### Goal
+
+A TypeScript domain model of an FM1 pattern derived from Confirmed observable V15 behaviour, with no
+device transport and no byte-level record assumption.
+
+### Scope
+
+- ordered steps, each carrying pitch and attack velocity
+- loop length `1..16`, modelled as loop length rather than a position selector
+- gate modelled as one pattern-global value, not per step
+- rests representable in the model but flagged as `transmittable: false` until SEQ-001B resolves them
+- every field carries provenance: which fixture confirmed it, at what confidence
+
+### Do not
+
+Model unresolved V13 offsets `11..19` or `31`. Model a per-step gate or duration; the paired
+180 ms / 299 ms fixtures show hold time is not stored per step.
+
+### Tests
+
+Pure unit tests against the committed V15 fixtures. No MIDI.
+
+---
+
+## SEQ-OBS-002 — Reconstruct a pattern from observed playback
+
+**Status:** after SEQ-OBS-001
+
+### Goal
+
+Turn a stream of inbound Note On/Off from a playing FM1 into a SEQ-OBS-001 pattern, so the user can
+see what is actually in the device.
+
+### Requirements
+
+- consume the existing input listener in [`use-midi.ts`](../src/hooks/use-midi.ts); add no new port
+  handling
+- detect the loop period and align repeated passes before declaring a pattern
+- require at least two consistent passes before presenting a result as the pattern
+- present an incomplete or ambiguous observation as incomplete; never display a partial pattern as
+  fact, and never silently fill a gap with a rest
+- surface the observation as read-only; this task performs no transmission
+- respect the existing MIDI log retention rather than growing an unbounded buffer
+
+### Known limits to state in the UI
+
+Observation only sees a pattern while it is playing, only sees the currently selected pattern, and
+cannot distinguish a rest from the end of a shorter loop until the period is established.
+
+### Tests
+
+Feed recorded NDJSON playback captures from `sequencer-fixtures/V15/` through the reconstructor and
+assert the resulting pattern. No hardware in tests.
+
+---
+
+## SEQ-REC-001 — Document the stock recording input contract
+
+**Status:** blocked on SEQ-001B
+
+### Goal
+
+Before any transmit code, document exactly what the editor may send, in what order, with what
+spacing, and what the user must do by hand.
+
+### Deliverable
+
+- the literal manual arming sequence on the stock device, from the photographed V15 page map
+- the note stream the editor would send for a given pattern, as exact bytes
+- minimum safe spacing between notes, justified by capture rather than assumed
+- what SEQ-001B established about rests, repeats, and start position, and how the contract handles
+  each negative outcome
+- the failure and recovery story: what the user does if the device was not armed, was on the wrong
+  pattern, or captured a partial sequence
+- explicit statement that the operation replaces the whole recorded sequence and cannot update one
+  step in place
+
+No implementation in this task.
+
+---
+
+## SEQ-REC-002 — Implement bounded pattern transmit into record mode
+
+**Status:** after SEQ-REC-001 and explicit hardware verification
+
+### Goal
+
+Implement only the operation documented in SEQ-REC-001.
+
+### Requirements
+
+- strict validation: pitch, velocity, and step count bounded before a single byte is sent
+- refuse to transmit a pattern containing anything SEQ-001B proved untransmittable
+- a clear pre-flight step telling the user to arm the device, naming the pattern that will be
+  overwritten
+- the local pattern is retained on failure and the user can resend
+- cancellable mid-transmission, with the partial state reported honestly rather than as success
+- pair with SEQ-OBS-002 to confirm the result by observation, and report a mismatch plainly
+- tell the user that the result is unsaved and that persistence requires the stock `SAVE` action
+- no raw arbitrary note API exposed to the UI beyond this bounded operation
+
+### Do not
+
+Automate arming, saving, or pattern selection. Retry automatically after a failed transmission; a
+second unattended pass could record into whatever the device is now showing.
 
 ---
 

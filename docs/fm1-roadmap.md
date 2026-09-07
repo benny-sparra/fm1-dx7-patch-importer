@@ -196,6 +196,59 @@ At least one safe method is known for one of:
 
 If no safe direct transport exists, document that conclusion and investigate whether controlled stock recording input can satisfy the editor's goals.
 
+## Outcome — closed 2026-09-06 (negative for direct transport)
+
+**No safe direct sequencer transport was found.** The V15 capture set in
+[`sequencer-fixtures/V15/`](sequencer-fixtures/V15/) covers clear, record, playback, velocity, gate,
+step length, pattern separation, save, and power cycle. Across every one of those controlled stock
+sequencer actions, **no SysEx or vendor frame was observed in either direction**. The staged
+`F0 35 59 … F7` transport remains recognised but carries no known sequencer command ID, payload,
+reply, or checksum, and stays excluded under 3.4.
+
+The Phase 3 exit criteria are therefore **not** met for a direct read or write path. Per the exit
+clause, the fallback is now the live track: controlled stock recording input, plus observation of
+the device's own playback output, is the only evidenced route to sequencer functionality.
+
+### What the fallback rests on
+
+Each of these is Confirmed observable V15 behaviour in the committed fixture set:
+
+| Behaviour                                                        | Evidence                                                                 |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| The FM1 records from inbound standard MIDI Note On/Off           | Paired host notes 60/64/65 replayed with pitch and velocity kept         |
+| The FM1 emits its playback as outbound standard MIDI Note On/Off | Ordered playback passes captured with measurable period and gate         |
+| Gate is global, not stored per step                              | 180 ms and 299 ms holds both replayed at 131-134 ms; Gate 50% gave 83 ms |
+| Step `1..16` is loop length, not a record-position selector      | Step 16 recurrence at 2,665 ms; Step 1 gives one note per step           |
+
+The third row is the one that makes a host implementation practical: because the device quantises
+what it records and applies one global gate, host transmission does not need sample-accurate
+timing. Web MIDI scheduling jitter is not a blocker for this path.
+
+### What the fallback does not resolve
+
+Unchanged and still Unknown: arming record mode from the host, selecting pattern or chain, setting
+step length, gate, rate, tempo, swing, or transpose, triggering the stock `SAVE`, and any readback
+of raw record state. All of these remain stock-UI-only operations. The editor must not claim to
+perform them and must not present the V13 32-byte record layout as V15 truth.
+
+Two behaviours are Unknown and gate the fallback's design rather than its safety; see SEQ-001B:
+whether a host can advance a step without sounding a note (rests), and whether two identical
+successive notes create two distinct steps.
+
+### Consequences for later phases
+
+- Phase 4 may proceed for a **behavioural** model built on confirmed V15 playback observations. It
+  must not be built on the V13 record hypothesis, which remains firmware evidence without hardware
+  corroboration. SEQ-002 and SEQ-003 stay blocked.
+- Phase 6 gains a parallel read track: reconstruct the pattern from observed playback rather than
+  from a request/reply. See SEQ-OBS-001 and SEQ-OBS-002.
+- Phase 7 gains a parallel write track: transmit a pattern as recorded input while the user has
+  armed the device by hand. See SEQ-REC-001 and SEQ-REC-002.
+
+Direct-transport work is not abandoned, only unfunded by evidence. If a future firmware or a lawful
+capture of the vendor BLE application produces a repeatable request/reply, Phase 3 reopens and the
+SEQ-READ / SEQ-WRITE tasks resume ahead of the fallback.
+
 ---
 
 # Phase 4 — Sequencer domain model and codec
@@ -203,6 +256,11 @@ If no safe direct transport exists, document that conclusion and investigate whe
 ## Goal
 
 Model the FM1 sequence independently of the UI and independently of device transport.
+
+> **Phase 3 closure applies.** Model the sequence from Confirmed observable V15 behaviour — ordered
+> steps, per-step pitch and velocity, loop length `1..16`, and global gate. Do not model the V13
+> 32-byte record; that layout is firmware evidence without hardware corroboration, and SEQ-002 and
+> SEQ-003 remain blocked.
 
 ## Work
 
@@ -309,6 +367,12 @@ A complete sequence can be edited using in-memory/mock data with strong tests an
 
 Populate the Sequencer UI from the physical FM1.
 
+> **Phase 3 closure applies.** The request/reply flow below has no evidenced transport and is
+> blocked. The available read track is observation: listen to the device's own playback output and
+> reconstruct the pattern from it. See SEQ-OBS-001 and SEQ-OBS-002. The requirements below still
+> govern that track, except that "malformed response rejection" becomes "reject an incomplete or
+> ambiguous observation rather than displaying a partial pattern as fact".
+
 ## Preferred flow
 
 ```text
@@ -341,6 +405,12 @@ The editor can reliably show a sequence read from hardware without altering it.
 ## Goal
 
 Safely edit the FM1's internal sequence.
+
+> **Phase 3 closure applies.** The write operations below have no evidenced transport and are
+> blocked. The available write track is controlled stock recording input: the user arms record mode
+> by hand, and the editor transmits a pattern as ordinary Note On/Off. See SEQ-REC-001 and
+> SEQ-REC-002. That track cannot update one note in place, cannot select a pattern, and cannot save;
+> it replaces the whole recorded sequence, so 7.3 persistence semantics matter more, not less.
 
 ## Staged progression
 
@@ -463,17 +533,19 @@ DX7 audit
   ↓
 Effects audit
   ↓
-Vendor/runtime protocol catalogue
+Vendor/runtime protocol catalogue   [Phase 3: closed negative 2026-09-06]
   ↓
-Sequencer model + codec
+Step-advance / rest hardware test   [SEQ-001B — decides the shape of everything below]
+  ↓
+Behavioural sequence model          [SEQ-OBS-001]
   ↓
 Mock sequencer UI
   ↓
-Hardware read
+Read by observing playback          [SEQ-OBS-002]
   ↓
-Smallest safe write
+Recording-input contract            [SEQ-REC-001]
   ↓
-Full pattern editing
+Bounded pattern transmit            [SEQ-REC-002]
   ↓
 Optional local sequence library
   ↓
@@ -481,3 +553,7 @@ Arpeggiator / globals
 ```
 
 This order gives useful improvements early while keeping the more exciting sequencer work moving forward.
+
+The byte-level track — SEQ-002, SEQ-003, SEQ-READ-\*, SEQ-WRITE-\* — is not in this order because it
+is blocked on evidence that does not exist yet. It resumes ahead of the recording path if a lawful
+capture ever proves a safe request/reply.
