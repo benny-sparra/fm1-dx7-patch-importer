@@ -14,6 +14,10 @@ import { useTranslation } from 'react-i18next'
 import { PatchGrid } from '@/components/patches/patch-grid'
 import { WorkspaceBankSelector } from '@/components/patches/workspace-bank-selector'
 import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
+import {
+  defaultWorkspaceBankTitle,
+  useWorkspaceBankLabel,
+} from '@/components/patches/workspace-bank-label'
 import { BankInformationDialog } from '@/components/patches/bank-information-dialog'
 import { DeleteWorkspaceBankDialog } from '@/components/patches/delete-workspace-bank-dialog'
 import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog'
@@ -35,10 +39,6 @@ import { useToast } from '@/components/ui/toast'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 
 type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
-
-function defaultWorkspaceBankTitle(t: ReturnType<typeof useTranslation>['t'], bankNumber: number) {
-  return t(bankNumber < 10 ? 'banks.bank' : 'banks.bankShort', { bank: bankNumber })
-}
 
 type LibrarianPageProps = {
   activePatchId: string
@@ -81,8 +81,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
   } | null>(null)
   const allBanksMenuRef = useDismissableDetails()
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
-  const bankDisplayName = (bank: string) =>
-    library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, banks.indexOf(bank) + 1)
+  const bankDisplayName = useWorkspaceBankLabel(library)
   const saveBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -94,10 +93,9 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
 
   const beginImport = (bank: string) => {
     if (library.loadedBanks.includes(bank)) {
-      const index = banks.indexOf(bank)
       setBankPendingImport({
         bank,
-        name: library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, index + 1),
+        name: bankDisplayName(bank),
       })
       importDx7BankDialogRef.current?.showModal()
       return
@@ -156,14 +154,15 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
       const voices = library.getBankVoices(destinationBank)
       voiceCount = voices.length
       const result = await midi.sendBank(destinationBank, voices)
+      const sentStatus = t('banks.sentStatus', { bank: bankDisplayName(destinationBank) })
       setTransferStatus(
         result.ok
-          ? { kind: 'success', message: t('banks.sentStatus', { bank: destinationBank }) }
+          ? { kind: 'success', message: sentStatus }
           : { kind: 'error', message: t('banks.notSent') },
       )
       if (result.ok) {
         trackAnalyticsEvent({ name: 'bank_transfer_completed' })
-        toast.success(t('banks.sentStatus', { bank: destinationBank }))
+        toast.success(sentStatus)
       } else {
         trackAnalyticsEvent({ data: { reason: result.reason }, name: 'bank_transfer_failed' })
       }
@@ -261,7 +260,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
                 ? t('midi.connectFirst')
                 : isDestinationBankLoaded
                   ? t('banks.sendTitle')
-                  : t('banks.importFirst', { bank: destinationBank })
+                  : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
             }
             type="button"
           >
@@ -305,6 +304,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
             </div>
           </details>
         }
+        bankLabel={bankDisplayName}
         isBankLoaded={isDestinationBankLoaded}
         isPatchDisabled={(patch) => !library.loadedBanks.includes(patch.bank)}
         onImportEmptyBank={() => beginImport(destinationBank)}
@@ -322,8 +322,8 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
           <>
             <div className="flex h-full w-16 flex-col bg-muted/30 sm:w-72">
               <WorkspaceBankSelector
-                banks={banks.map((bank, index) => {
-                  const name = library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, index + 1)
+                banks={banks.map((bank) => {
+                  const name = bankDisplayName(bank)
                   return {
                     actionsLabel: t('banks.bankMenu', { bank: name }),
                     description: library.bankDescriptions[bank] ?? '',
@@ -366,8 +366,8 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
                         }}
                         title={
                           library.loadedBanks.includes(bank)
-                            ? t('banks.downloadTitle', { bank })
-                            : t('banks.importFirst', { bank })
+                            ? t('banks.downloadTitle', { bank: bankDisplayName(bank) })
+                            : t('banks.importFirst', { bank: bankDisplayName(bank) })
                         }
                         type="button"
                       >
@@ -379,8 +379,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
                           className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent"
                           onClick={() => {
                             closeMenu()
-                            const name =
-                              library.bankNames[bank] ?? defaultWorkspaceBankTitle(t, index + 1)
+                            const name = bankDisplayName(bank)
                             const replacementBank = banks[index + 1] ?? banks[index - 1]
                             if (!replacementBank) return
                             setBankPendingDeletion({

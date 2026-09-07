@@ -38,6 +38,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Play notes on the FM1 from an on-screen keyboard
 - Use the interface in English, French, Spanish, German, Brazilian Portuguese, or Simplified Chinese
 - Match the interface accent and product image to any of the six FM1 colour finishes
+- Install the editor as a standalone desktop app in browsers that support installation
 
 ## Requirements
 
@@ -200,6 +201,8 @@ clean result. Both commands block on high or critical advisories.
 | `npm run images:generate`   | Regenerate committed responsive WebP candidates with Sharp          |
 | `npm run images:check`      | Verify responsive candidates are current, sized, and reproducible   |
 | `npm run images:check:dist` | Verify hashed responsive candidates in the production output        |
+| `npm run icons:generate`    | Regenerate the committed installed-app icons with Sharp             |
+| `npm run icons:check`       | Verify the manifest icons are present, square, and correctly typed  |
 | `npm run lint`              | Run Oxlint and Stylelint; warnings fail the command                 |
 | `npm run lint:code`         | Run type-aware TypeScript, React, import, promise, and test linting |
 | `npm run lint:css`          | Check CSS with Stylelint                                            |
@@ -237,6 +240,20 @@ candidate is a readable WebP, and rejects candidates larger than their source. I
 not byte-compare newly encoded images because native WebP output can vary by platform. The
 post-build check also requires a hashed production asset for every candidate. Do not edit files in
 `src/assets/generated/` manually.
+
+### Installed-app icons
+
+`public/manifest.webmanifest` describes the app for browsers that offer installation, giving the
+editor its own window, launcher entry, and name. It adds no service worker, so the app still
+requires a network connection to load and works offline no further than before.
+
+The PNGs it references are committed build inputs rendered from `public/favicon.svg` by
+`npm run icons:generate`, so the tab icon and the launcher icon cannot drift apart. The maskable
+icon is inset onto an opaque plate because a platform may crop it to any shape inside 80% of its
+width. `npm run icons:check` verifies every icon the manifest declares exists, is a square PNG of
+the declared size, and is fully opaque when it is maskable. Like the responsive image check, it does
+not byte-compare a fresh render, because native PNG output can vary by platform. Do not edit
+`public/icon-*.png` manually.
 
 ### Production source maps
 

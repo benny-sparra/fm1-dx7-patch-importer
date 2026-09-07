@@ -119,6 +119,8 @@ files when that is clearer.
   `src/assets/generated/`; run `npm run images:generate` after a source image changes.
 - Keep explicit image dimensions and responsive `srcSet`/`sizes` data to avoid layout shift. Run the
   image checks and `npm run test:cls` for image, font, initial-render, or loading-layout changes.
+- `public/icon-*.png` are rendered from `public/favicon.svg`. Do not hand-edit them; run
+  `npm run icons:generate` after changing the favicon or the manifest icon list.
 
 ### UI and accessibility
 
@@ -170,6 +172,7 @@ npm test
 npm run test:a11y
 npm run test:e2e
 npm run images:check
+npm run icons:check
 npm run build
 npm run images:check:dist
 npm run security:check

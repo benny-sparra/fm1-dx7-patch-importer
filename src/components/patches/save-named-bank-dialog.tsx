@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogCloseButton, DialogHeader } from '@/components/ui/dialog'
 import { type NamedBankLibraryDialogProps } from '@/components/patches/named-bank-dialog-types'
+import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
 
 export function SaveNamedBankDialog({
   destinationBank,
@@ -19,6 +20,7 @@ export function SaveNamedBankDialog({
   const [name, setName] = useState('')
   const [working, setWorking] = useState(false)
   const currentBankLoaded = library.loadedBanks.includes(destinationBank)
+  const bankLabel = useWorkspaceBankLabel(library)
 
   const reset = () => {
     setDescription('')
@@ -53,7 +55,11 @@ export function SaveNamedBankDialog({
             nameInputRef.current?.select()
           })
         }}
-        title={currentBankLoaded ? undefined : t('banks.importFirst', { bank: destinationBank })}
+        title={
+          currentBankLoaded
+            ? undefined
+            : t('banks.importFirst', { bank: bankLabel(destinationBank) })
+        }
         type="button"
       >
         <Save className="size-4" />
@@ -78,7 +84,7 @@ export function SaveNamedBankDialog({
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold" id="save-named-bank-title">
               <Save className="size-5 text-primary" />
-              {t('namedBanks.saveCurrent', { bank: destinationBank })}
+              {t('namedBanks.saveCurrent', { bank: bankLabel(destinationBank) })}
             </h2>
             <p
               className="font-vt323 mt-1 text-lg text-muted-foreground"

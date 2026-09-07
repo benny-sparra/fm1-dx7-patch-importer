@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { type NamedBankLibraryDialogProps } from '@/components/patches/named-bank-dialog-types'
+import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogCloseButton, DialogHeader } from '@/components/ui/dialog'
 import {
@@ -26,6 +27,7 @@ export function LoadNamedBankDialog({
   onClose,
 }: NamedBankLibraryDialogProps) {
   const { t } = useTranslation()
+  const bankLabel = useWorkspaceBankLabel(library)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const editNameRef = useRef<HTMLInputElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -111,7 +113,7 @@ export function LoadNamedBankDialog({
               {t('namedBanks.title')}
             </h2>
             <p className="font-vt323 mt-1 text-lg text-muted-foreground">
-              {t('namedBanks.intro', { bank: destinationBank })}
+              {t('namedBanks.intro', { bank: bankLabel(destinationBank) })}
             </p>
           </div>
           <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />

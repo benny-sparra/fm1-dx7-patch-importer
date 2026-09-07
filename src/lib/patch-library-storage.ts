@@ -40,6 +40,15 @@ export type StoredPatchLibrary = {
   workspaceBanks: string[]
 }
 
+function asStorageError(
+  error: unknown,
+  code: PatchLibraryStorageErrorCode,
+  message: string,
+): PatchLibraryStorageError {
+  if (error instanceof PatchLibraryStorageError) return error
+  return new PatchLibraryStorageError(code, message, error)
+}
+
 function openDatabase() {
   return new Promise<IDBDatabase>((resolve, reject) => {
     if (!('indexedDB' in globalThis)) {
@@ -141,12 +150,7 @@ export async function loadStoredPatchLibrary() {
   try {
     stored = await runTransaction(workspaceStoreName, 'readonly', (store) => store.get(recordKey))
   } catch (error) {
-    if (error instanceof PatchLibraryStorageError) throw error
-    throw new PatchLibraryStorageError(
-      'read-failed',
-      'The saved workspace could not be read.',
-      error,
-    )
+    throw asStorageError(error, 'read-failed', 'The saved workspace could not be read.')
   }
 
   if (!stored) return null
@@ -217,11 +221,10 @@ export async function loadStoredPatchLibrary() {
     })
     return { ...compacted, savedAt: stored.savedAt, version: 5 as const }
   } catch (error) {
-    if (error instanceof PatchLibraryStorageError) throw error
-    throw new PatchLibraryStorageError(
+    throw asStorageError(
+      error,
       'incompatible',
       'The saved patch library is incompatible or damaged.',
-      error,
     )
   }
 }
@@ -241,25 +244,46 @@ export async function saveStoredPatchLibrary(
       ),
     )
   } catch (error) {
-    if (error instanceof PatchLibraryStorageError) throw error
-    throw new PatchLibraryStorageError('write-failed', 'The workspace could not be saved.', error)
+    throw asStorageError(error, 'write-failed', 'The workspace could not be saved.')
   }
 }
 
 export async function listStoredNamedBanks() {
-  const banks = await runTransaction<NamedBank[]>(namedBankStoreName, 'readonly', (store) =>
-    store.getAll(),
-  )
-  banks.forEach(validateNamedBank)
+  let banks: NamedBank[]
+  try {
+    banks = await runTransaction<NamedBank[]>(namedBankStoreName, 'readonly', (store) =>
+      store.getAll(),
+    )
+  } catch (error) {
+    throw asStorageError(error, 'read-failed', 'The saved banks could not be read.')
+  }
+
+  try {
+    banks.forEach(validateNamedBank)
+  } catch (error) {
+    throw asStorageError(error, 'incompatible', 'A saved bank is incompatible or damaged.')
+  }
   return banks.sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
 }
 
 export async function saveStoredNamedBank(bank: NamedBank) {
   validateNamedBank(bank)
-  return runTransaction<IDBValidKey>(namedBankStoreName, 'readwrite', (store) => store.put(bank))
+  try {
+    return await runTransaction<IDBValidKey>(namedBankStoreName, 'readwrite', (store) =>
+      store.put(bank),
+    )
+  } catch (error) {
+    throw asStorageError(error, 'write-failed', 'The bank could not be saved.')
+  }
 }
 
-export function deleteStoredNamedBank(id: string) {
-  if (!id) return Promise.reject(new Error('A saved bank ID is required.'))
-  return runTransaction<undefined>(namedBankStoreName, 'readwrite', (store) => store.delete(id))
+export async function deleteStoredNamedBank(id: string) {
+  if (!id) throw new Error('A saved bank ID is required.')
+  try {
+    return await runTransaction<undefined>(namedBankStoreName, 'readwrite', (store) =>
+      store.delete(id),
+    )
+  } catch (error) {
+    throw asStorageError(error, 'write-failed', 'The bank could not be deleted.')
+  }
 }

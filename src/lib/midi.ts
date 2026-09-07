@@ -53,19 +53,26 @@ export function sendDx7Bank(output: Output, channel: number, voices: Dx7Voice[])
   output.sendSysex(0x43, makeDx7BankPayload(voices, channel))
 }
 
-export function makeFm1ProgramChangeMessage(program: number, channel = 1) {
-  if (!Number.isInteger(program) || program < 0 || program > 127) {
-    throw new RangeError('FM1 program must be an integer from 0 to 127.')
-  }
+function assertMidiChannel(channel: number) {
   if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
     throw new RangeError('MIDI channel must be an integer from 1 to 16.')
   }
+}
 
+function assertFm1ProgramChange(program: number, channel: number) {
+  if (!Number.isInteger(program) || program < 0 || program > 127) {
+    throw new RangeError('FM1 program must be an integer from 0 to 127.')
+  }
+  assertMidiChannel(channel)
+}
+
+export function makeFm1ProgramChangeMessage(program: number, channel = 1) {
+  assertFm1ProgramChange(program, channel)
   return Uint8Array.from([0xc0 | ((channel - 1) & 0x0f), program])
 }
 
 export function sendFm1ProgramChange(output: Output, channel: number, program: number) {
-  makeFm1ProgramChangeMessage(program, channel)
+  assertFm1ProgramChange(program, channel)
   output.sendProgramChange(program, { channels: channel })
 }
 
@@ -95,7 +102,7 @@ export function sendFm1Parameter(output: Output, parameter: number, value: numbe
   output.sendSysex(0x43, makeFm1ParameterPayload(parameter, value))
 }
 
-export function makeFm1EffectControlMessage(controller: number, value: number, channel = 2) {
+function assertFm1EffectControl(controller: number, value: number, channel: number) {
   if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
     throw new RangeError('FM1 effect controller must be an integer from 0 to 23.')
   }
@@ -104,10 +111,11 @@ export function makeFm1EffectControlMessage(controller: number, value: number, c
       `FM1 effect controller ${controller} value must be an integer from 0 to ${fm1EffectParameterMaximums[controller]}.`,
     )
   }
-  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
-    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
-  }
+  assertMidiChannel(channel)
+}
 
+export function makeFm1EffectControlMessage(controller: number, value: number, channel = 2) {
+  assertFm1EffectControl(controller, value, channel)
   return Uint8Array.from([0xb0 | ((channel - 1) & 0x0f), controller, value])
 }
 
@@ -117,8 +125,18 @@ export function sendFm1EffectControl(
   controller: number,
   value: number,
 ) {
-  makeFm1EffectControlMessage(controller, value, channel)
+  assertFm1EffectControl(controller, value, channel)
   output.sendControlChange(controller, value, { channels: channel })
+}
+
+function assertFm1EffectDiagnosticControl(controller: number, value: number, channel: number) {
+  if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
+    throw new RangeError('FM1 effect diagnostic controller must be an integer from 0 to 23.')
+  }
+  if (!Number.isInteger(value) || value < 0 || value > 127) {
+    throw new RangeError('FM1 effect diagnostic value must be an integer from 0 to 127.')
+  }
+  assertMidiChannel(channel)
 }
 
 /**
@@ -133,16 +151,7 @@ export function makeFm1EffectDiagnosticControlMessage(
   value: number,
   channel = 2,
 ) {
-  if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
-    throw new RangeError('FM1 effect diagnostic controller must be an integer from 0 to 23.')
-  }
-  if (!Number.isInteger(value) || value < 0 || value > 127) {
-    throw new RangeError('FM1 effect diagnostic value must be an integer from 0 to 127.')
-  }
-  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
-    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
-  }
-
+  assertFm1EffectDiagnosticControl(controller, value, channel)
   return Uint8Array.from([0xb0 | ((channel - 1) & 0x0f), controller, value])
 }
 
@@ -152,7 +161,7 @@ export function sendFm1EffectDiagnosticControl(
   controller: number,
   value: number,
 ) {
-  makeFm1EffectDiagnosticControlMessage(controller, value, channel)
+  assertFm1EffectDiagnosticControl(controller, value, channel)
   output.sendControlChange(controller, value, { channels: channel })
 }
 
@@ -162,6 +171,20 @@ export function sendNoteOn(output: Output, channel: number, note: number, veloci
 
 export function sendNoteOff(output: Output, channel: number, note: number, velocity = 0) {
   output.sendNoteOff(note, { channels: channel, rawRelease: velocity })
+}
+
+const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+const midiTimingClockStatus = 0xf8
+const midiActiveSensingStatus = 0xfe
+
+/**
+ * Timing clock and active sensing repeat continuously while a sequencer or keyboard is connected.
+ * Logging them would fill the monitor many times a second and hide the messages a user is reading.
+ * Other system real-time messages are rare and stay visible.
+ */
+export function isHighRateMidiMessage(data: Uint8Array | number[]) {
+  return data[0] === midiTimingClockStatus || data[0] === midiActiveSensingStatus
 }
 
 export function formatMidiBytes(data: Uint8Array | number[]) {
@@ -178,7 +201,6 @@ export function formatMidiBytes(data: Uint8Array | number[]) {
     (messageType === 0x80 || messageType === 0x90)
   ) {
     const channel = (status & 0x0f) + 1
-    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
     const noteName = `${noteNames[note % 12]}${Math.floor(note / 12) - 1}`
     const isNoteOff = messageType === 0x80 || velocity === 0
 
@@ -187,6 +209,12 @@ export function formatMidiBytes(data: Uint8Array | number[]) {
 
   return bytes.map((byte) => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ')
 }
+
+const logTimeFormat = new Intl.DateTimeFormat(undefined, {
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+})
 
 export function makeLogEntry(
   direction: MidiLogEntry['direction'],
@@ -198,10 +226,6 @@ export function makeLogEntry(
     direction,
     message,
     data: data ? Uint8Array.from(data) : undefined,
-    createdAt: new Intl.DateTimeFormat(undefined, {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }).format(new Date()),
+    createdAt: logTimeFormat.format(new Date()),
   }
 }

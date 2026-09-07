@@ -26,6 +26,7 @@ import { PatchButton } from './patch-button'
 type PatchGridProps = {
   activePatchId?: string
   actions?: ReactNode
+  bankLabel?: (bank: string) => string
   headerActions?: ReactNode
   isBankLoaded?: boolean
   isPatchDisabled?: (patch: Patch) => boolean
@@ -55,6 +56,7 @@ function PixelBankIcon(props: SVGProps<SVGSVGElement>) {
 export function PatchGrid({
   activePatchId = '',
   actions,
+  bankLabel = (bank) => bank,
   headerActions,
   isBankLoaded = true,
   isPatchDisabled = () => false,
@@ -146,7 +148,7 @@ export function PatchGrid({
                         <div className="h-full w-full" key={patch.id}>
                           <PatchButton
                             disabled={isPatchDisabled(patch)}
-                            disabledTitle={t('banks.importFirst', { bank: patch.bank })}
+                            disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
                             onEdit={onPatchEdit}
                             patch={patch}
                             isActive={patch.id === activePatchId}

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   getMidiSupport,
+  isHighRateMidiMessage,
   makeFm1EffectDiagnosticControlMessage,
   makeFm1EffectControlMessage,
   makeFm1ParameterPayload,
@@ -185,5 +186,30 @@ describe('makeFm1ProgramChangeMessage', () => {
     ['channel above sixteen', 0, 17],
   ])('rejects %s', (_name, program, channel) => {
     expect(() => makeFm1ProgramChangeMessage(program, channel)).toThrow(RangeError)
+  })
+})
+
+describe('isHighRateMidiMessage', () => {
+  it.each([
+    ['timing clock', 0xf8],
+    ['active sensing', 0xfe],
+  ])('filters %s out of the monitor', (_name, status) => {
+    expect(isHighRateMidiMessage(Uint8Array.from([status]))).toBe(true)
+  })
+
+  it.each([
+    ['note on', [0x90, 60, 96]],
+    ['control change', [0xb1, 12, 64]],
+    ['program change', [0xc0, 3]],
+    ['system exclusive', [0xf0, 0x43, 0x10, 0xf7]],
+    ['start', [0xfa]],
+    ['stop', [0xfc]],
+    ['system reset', [0xff]],
+  ])('keeps %s', (_name, bytes) => {
+    expect(isHighRateMidiMessage(Uint8Array.from(bytes))).toBe(false)
+  })
+
+  it('keeps an empty message', () => {
+    expect(isHighRateMidiMessage(new Uint8Array())).toBe(false)
   })
 })

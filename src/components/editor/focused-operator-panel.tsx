@@ -123,7 +123,7 @@ export function FocusedOperatorPanel({
               </span>
             </span>
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div
               aria-label={t('ui.auditionGroup', { number: selectedOperator })}
               className="flex items-center gap-1"
@@ -190,7 +190,7 @@ export function FocusedOperatorPanel({
                 {t('ui.solo')}
               </Button>
             </div>
-            <label className="flex h-8 min-w-[10rem] items-center gap-2 rounded-md border border-border bg-background px-3 text-xs text-muted-foreground sm:min-w-[13rem]">
+            <label className="flex h-8 min-w-[10rem] flex-1 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs text-muted-foreground sm:min-w-[13rem]">
               <span className="font-vt323 flex items-center gap-1 font-black tracking-wide uppercase">
                 {t('editor.output')}
                 <HelpPopover

@@ -1,5 +1,5 @@
 import { type Patch } from '@/data/patches'
-import { updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
+import { dx7BankVoiceCount, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
 import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
 
 export const browserBanks = ['A', 'B', 'C', 'D'] as const
@@ -70,7 +70,7 @@ export function compactWorkspaceBanks(snapshot: PatchLibrarySnapshot): PatchLibr
     }
     if (snapshot.loadedBanks.includes(sourceBank)) loadedBanks.push(destinationBank)
 
-    for (let slot = 1; slot <= 32; slot += 1) {
+    for (let slot = 1; slot <= dx7BankVoiceCount; slot += 1) {
       const sourceId = voiceId(sourceBank, slot)
       const destinationId = voiceId(destinationBank, slot)
       if (snapshot.voices[sourceId]) voices[destinationId] = snapshot.voices[sourceId]
@@ -102,7 +102,7 @@ export function createWorkspaceBank(
 
 export function makePatches(snapshot: PatchLibrarySnapshot): Patch[] {
   return snapshot.workspaceBanks.flatMap((bank, bankIndex) =>
-    Array.from({ length: 32 }, (_, slotIndex) => {
+    Array.from({ length: dx7BankVoiceCount }, (_, slotIndex) => {
       const number = slotIndex + 1
       const id = voiceId(bank, number)
       const voice = snapshot.voices[id]
@@ -112,7 +112,7 @@ export function makePatches(snapshot: PatchLibrarySnapshot): Patch[] {
         id,
         name: voice?.name ?? 'Empty',
         number,
-        program: (bankIndex % browserBanks.length) * 32 + slotIndex,
+        program: (bankIndex % browserBanks.length) * dx7BankVoiceCount + slotIndex,
       }
     }),
   )
@@ -123,8 +123,8 @@ export function importVoices(
   bank: string,
   imported: Dx7Voice[],
 ): PatchLibrarySnapshot {
-  if (!snapshot.workspaceBanks.includes(bank) || imported.length !== 32) {
-    throw new Error('A browser bank requires exactly 32 DX7 voices.')
+  if (!snapshot.workspaceBanks.includes(bank) || imported.length !== dx7BankVoiceCount) {
+    throw new Error(`A browser bank requires exactly ${dx7BankVoiceCount} DX7 voices.`)
   }
 
   const voices = { ...snapshot.voices }
@@ -202,7 +202,8 @@ export function moveVoice(
   from: number,
   to: number,
 ): PatchLibrarySnapshot {
-  if (to < 1 || to > 32 || from < 1 || from > 32 || from === to) return snapshot
+  if (to < 1 || to > dx7BankVoiceCount || from < 1 || from > dx7BankVoiceCount || from === to)
+    return snapshot
   const moved = snapshot.voices[voiceId(bank, from)]
   if (!moved) return snapshot
 
@@ -224,7 +225,7 @@ export function moveVoice(
 export function clearLibraryBank(snapshot: PatchLibrarySnapshot, bank: string) {
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }
-  for (let slot = 1; slot <= 32; slot += 1) {
+  for (let slot = 1; slot <= dx7BankVoiceCount; slot += 1) {
     const id = voiceId(bank, slot)
     delete voices[id]
     delete effects[id]
@@ -250,9 +251,10 @@ export function deleteWorkspaceBank(snapshot: PatchLibrarySnapshot, bank: string
 }
 
 export function getBankVoices(snapshot: PatchLibrarySnapshot, bank: string) {
-  return Array.from({ length: 32 }, (_, index) => snapshot.voices[voiceId(bank, index + 1)]).filter(
-    (voice): voice is Dx7Voice => Boolean(voice),
-  )
+  return Array.from(
+    { length: dx7BankVoiceCount },
+    (_, index) => snapshot.voices[voiceId(bank, index + 1)],
+  ).filter((voice): voice is Dx7Voice => Boolean(voice))
 }
 
 /** Session-only content identity used to describe whether a browser bank changed after transfer. */
@@ -270,7 +272,7 @@ export function makeBankFingerprint(voices: Dx7Voice[]) {
 export function makeDemoVoices(): Dx7Voice[] {
   const names = ['E.PIANO', 'GLASSBELL', 'FM BASS', 'BRASS', 'WARM PAD', 'PLUCK', 'ORGAN', 'MALLET']
 
-  return Array.from({ length: 32 }, (_, index) => {
+  return Array.from({ length: dx7BankVoiceCount }, (_, index) => {
     const data = new Uint8Array(128)
     for (let operator = 0; operator < 6; operator += 1) {
       const offset = operator * 17

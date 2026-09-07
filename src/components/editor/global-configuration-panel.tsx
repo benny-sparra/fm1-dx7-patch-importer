@@ -216,7 +216,7 @@ export function GlobalConfigurationPanel({
           </CardHeader>
           <CardContent className="p-2">
             <EnvelopeEditor
-              color="hsl(276 92% 68%)"
+              color="var(--fm1-accent)"
               helpText={t('controlHelp.pitchEnvelope')}
               levels={Array.from(
                 parameters.slice(
