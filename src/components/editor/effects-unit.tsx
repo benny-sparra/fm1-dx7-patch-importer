@@ -145,7 +145,8 @@ function EffectControl({
         <select
           className={cn(
             'h-9 w-full min-w-0 rounded-md border bg-background px-2 text-sm font-semibold text-foreground normal-case disabled:opacity-50',
-            !disabled && 'border-[var(--effect-color)] bg-[var(--effect-color)] text-slate-950',
+            !disabled &&
+              'border-[var(--effect-color)] bg-[var(--effect-color)] text-[var(--crt-bg-0)]',
           )}
           disabled={disabled}
           onChange={(event) => onChange(definition.controller, Number(event.target.value))}
@@ -272,7 +273,7 @@ export function EffectsUnit({
                       className={cn(
                         'size-8 rounded-full border p-0',
                         enabled
-                          ? 'border-[var(--effect-color)] bg-[var(--effect-color)] text-slate-950 hover:bg-[var(--effect-color)]'
+                          ? 'border-[var(--effect-color)] bg-[var(--effect-color)] text-[var(--crt-bg-0)] hover:bg-[var(--effect-color)]'
                           : 'bg-background text-muted-foreground',
                       )}
                       onClick={() => onChange(switchController, enabled ? 0 : 1)}

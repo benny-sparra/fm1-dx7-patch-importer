@@ -64,11 +64,11 @@ export function PatchEditorHeader({
 }: PatchEditorHeaderProps) {
   const { t } = useTranslation()
   return (
-    <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b border-primary/15 bg-card py-3 shadow-sm">
+    <header className="crt-hatch sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b-2 border-[var(--crt-shadow)] py-2 shadow-sm">
       <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-end gap-3 px-3 sm:px-5 lg:px-8">
         <Button
           aria-label={t('editor.back')}
-          className="border-[color-mix(in_srgb,var(--fm1-finish-tint)_72%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_38%,white)] text-foreground hover:border-[var(--fm1-finish-tint)] hover:bg-[var(--fm1-finish-tint)] hover:text-[var(--fm1-finish-foreground)]"
+          className="text-[var(--crt-ink-2)]"
           disabled={syncState === 'sending'}
           onClick={onBack}
           size="icon"
@@ -78,7 +78,7 @@ export function PatchEditorHeader({
           <ArrowLeft />
         </Button>
         <div className="min-w-0">
-          <p className="text-[10px] font-black tracking-[0.2em] text-primary uppercase">
+          <p className="font-vt323 text-sm leading-none text-[var(--crt-led)]">
             {patch.bank}
             {String(patch.number).padStart(2, '0')}
           </p>
@@ -88,7 +88,7 @@ export function PatchEditorHeader({
               <span className="flex items-center gap-1">
                 <input
                   aria-label={t('editor.patchName')}
-                  className="font-dot-matrix -ml-1 w-[12ch] max-w-[42vw] border border-input bg-transparent px-1 text-xl font-black text-foreground uppercase transition outline-none hover:bg-card/60 focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/30"
+                  className="font-dot-matrix crt-inset -ml-1 w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
                   maxLength={10}
                   onBlur={onNameBlur}
                   onChange={(event) => onNameChange(event.target.value.toUpperCase())}
@@ -104,7 +104,7 @@ export function PatchEditorHeader({
             {isDirty ? (
               <span
                 aria-label={t('editor.unsaved')}
-                className="size-2 rounded-full bg-amber-500"
+                className="size-2 rounded-full bg-[var(--crt-led)]"
                 title={t('editor.unsaved')}
               />
             ) : null}

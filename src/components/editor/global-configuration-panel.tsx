@@ -49,13 +49,13 @@ export function GlobalConfigurationPanel({
     <aside aria-label={t('editor.configuration')} className="grid min-w-0 gap-4">
       <div
         aria-label={t('editor.sections')}
-        className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-card p-1 shadow-sm"
+        className="relative grid grid-cols-2 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-1)] p-1"
         role="tablist"
       >
         <span
           aria-hidden="true"
           className={cn(
-            'pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-md bg-primary shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none',
+            'pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] bg-[var(--crt-sel-bg)] transition-transform duration-200 ease-out motion-reduce:transition-none',
             leftPanelTab === 'effects' && 'translate-x-full',
           )}
         />
@@ -63,9 +63,8 @@ export function GlobalConfigurationPanel({
           aria-controls="global-configuration-panel"
           aria-selected={leftPanelTab === 'global'}
           className={cn(
-            'relative z-10 flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-            leftPanelTab === 'global' &&
-              'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
+            'font-dot-matrix relative z-10 flex h-8 cursor-pointer items-center justify-center gap-2 px-3 text-xs font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+            leftPanelTab === 'global' && 'text-[var(--crt-acc-lt)]',
           )}
           id="global-configuration-tab"
           onClick={() => onTabChange('global')}
@@ -79,9 +78,8 @@ export function GlobalConfigurationPanel({
           aria-controls="effects-configuration-panel"
           aria-selected={leftPanelTab === 'effects'}
           className={cn(
-            'relative z-10 flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-            leftPanelTab === 'effects' &&
-              'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
+            'font-dot-matrix relative z-10 flex h-8 cursor-pointer items-center justify-center gap-2 px-3 text-xs font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+            leftPanelTab === 'effects' && 'text-[var(--crt-acc-lt)]',
           )}
           id="effects-configuration-tab"
           onClick={() => onTabChange('effects')}
@@ -113,7 +111,7 @@ export function GlobalConfigurationPanel({
           onFeedbackGestureStart={beginGesture}
         />
 
-        <Card className="min-w-0 border-primary/20 bg-card/95">
+        <Card className="min-w-0 border-[var(--crt-line)] bg-card/95">
           <CardHeader className="flex-row items-center justify-between gap-2 border-b bg-card px-4 py-3">
             <CardTitle className="text-base text-foreground">{t('editor.lfoGlobal')}</CardTitle>
           </CardHeader>
@@ -204,7 +202,7 @@ export function GlobalConfigurationPanel({
           </CardContent>
         </Card>
 
-        <Card className="min-w-0 border-primary/20 bg-card/95">
+        <Card className="min-w-0 border-[var(--crt-line)] bg-card/95">
           <CardHeader className="flex-row items-center justify-between gap-2 border-b bg-card px-4 py-3">
             <CardTitle className="flex min-w-0 items-center gap-1 text-base text-foreground">
               {t('editor.pitchEnvelope')}

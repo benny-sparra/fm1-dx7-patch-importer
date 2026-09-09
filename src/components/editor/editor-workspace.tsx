@@ -92,11 +92,7 @@ function AlgorithmDiagram({
           <circle
             cx={nodeX(operator)}
             cy={nodeY(operator)}
-            fill={
-              getDx7OperatorRole(operator) === 'carrier'
-                ? 'currentColor'
-                : 'var(--algorithm-background, #020617)'
-            }
+            fill={getDx7OperatorRole(operator) === 'carrier' ? 'currentColor' : 'var(--crt-bg-2)'}
             r="6"
             stroke="currentColor"
             strokeWidth="1.8"
@@ -104,7 +100,9 @@ function AlgorithmDiagram({
           <text
             className={cn(
               'font-dot-matrix text-[7px] font-black',
-              getDx7OperatorRole(operator) === 'carrier' ? 'fill-slate-950' : 'fill-current',
+              getDx7OperatorRole(operator) === 'carrier'
+                ? 'fill-[var(--crt-bg-0)]'
+                : 'fill-current',
             )}
             dominantBaseline="central"
             textAnchor="middle"
@@ -145,18 +143,18 @@ export function AlgorithmPanel({
   }
 
   return (
-    <section className="editor-console relative z-10 flex w-full min-w-0 flex-col rounded-xl border border-primary/35 text-white shadow-sm">
+    <section className="editor-console relative z-10 flex w-full min-w-0 flex-col text-[var(--crt-ink)]">
       <details className="group flex-1" ref={dropdownRef}>
         <summary
           aria-label={`Algorithm ${algorithm + 1}. Choose algorithm`}
-          className="flex h-[8rem] cursor-pointer list-none flex-col rounded-t-xl px-3 pt-2 pb-1.5 text-cyan-100 transition hover:bg-cyan-300/10 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none focus-visible:ring-inset [&::-webkit-details-marker]:hidden"
+          className="crt-hatch flex h-[8rem] cursor-pointer list-none flex-col border-b border-[var(--crt-shadow)] px-[9px] pt-1.5 pb-1.5 transition-colors hover:bg-[var(--crt-bg-head)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
         >
           <span className="flex w-full items-center justify-between gap-2">
-            <span className="font-dot-matrix flex items-center gap-1.5 text-base leading-none font-semibold tracking-normal text-cyan-200 normal-case">
+            <span className="font-dot-matrix flex items-center gap-1.5 text-[13px] leading-none font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase">
               <Route className="size-3.5" />
               Algorithm
               <HelpPopover
-                className="text-cyan-100/70 hover:bg-white/10 hover:text-white"
+                className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
                 label={t('editor.algorithm')}
                 text={t('controlHelp.algorithm')}
               />
@@ -164,7 +162,7 @@ export function AlgorithmPanel({
             <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" />
           </span>
           <span className="mt-1 flex min-h-0 w-full flex-1 -translate-y-2 items-center gap-1">
-            <span className="font-vt323 text-xl leading-none font-black text-white">
+            <span className="font-vt323 text-2xl leading-none text-[var(--crt-led)]">
               {String(algorithm + 1).padStart(2, '0')}
             </span>
             <AlgorithmDiagram
@@ -172,7 +170,7 @@ export function AlgorithmPanel({
               featured
               operators={dx7Algorithms[algorithm]}
             />
-            <span className="flex shrink-0 flex-col items-start gap-1 text-xs font-bold tracking-wide text-cyan-100/65 uppercase">
+            <span className="flex shrink-0 flex-col items-start gap-1 text-[10px] font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase">
               <span>
                 <span className="mr-1 inline-block size-2.5 rounded-full bg-current" />
                 {t('editor.carrier')}
@@ -187,7 +185,7 @@ export function AlgorithmPanel({
 
         <div
           aria-label={t('ui.dx7Algorithm')}
-          className="editor-overlay-surface absolute top-[calc(100%+0.5rem)] left-0 z-30 grid max-h-[min(34rem,70vh)] w-[min(42rem,calc(100vw-1.5rem))] grid-cols-2 gap-2 overflow-y-auto rounded-xl border border-cyan-300/35 bg-slate-950/95 p-2 backdrop-blur sm:grid-cols-4"
+          className="editor-overlay-surface absolute top-[calc(100%+0.5rem)] left-0 z-30 grid max-h-[min(34rem,70vh)] w-[min(42rem,calc(100vw-1.5rem))] grid-cols-2 gap-1.5 overflow-y-auto border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-2 sm:grid-cols-4"
           role="radiogroup"
         >
           {dx7Algorithms.map((operators, index) => (
@@ -195,16 +193,16 @@ export function AlgorithmPanel({
               aria-checked={algorithm === index}
               aria-label={`Algorithm ${index + 1}`}
               className={cn(
-                'font-vt323 relative min-w-0 rounded-md border border-white/10 bg-white/5 px-2 pt-2 pb-1 text-cyan-100/65 transition hover:border-cyan-300/60 hover:bg-cyan-300/10 hover:text-cyan-100 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none',
+                'font-vt323 relative min-w-0 cursor-pointer border border-[var(--crt-line)] bg-[var(--crt-bg-2)] px-2 pt-2 pb-1 text-[var(--crt-acc-mid)] transition-colors hover:border-[var(--crt-acc-dim)] hover:bg-[var(--crt-bg-head)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
                 algorithm === index &&
-                  'border-primary bg-primary/20 text-primary shadow-[0_0_14px_hsl(315_100%_60%_/_0.4)] ring-1 ring-primary',
+                  'border-[var(--crt-led)] bg-[var(--crt-sel-bg)] text-[var(--crt-led)]',
               )}
               key={index}
               onClick={() => selectAlgorithm(index)}
               role="radio"
               type="button"
             >
-              <span className="absolute top-1.5 left-2 text-[10px] font-black text-white/70">
+              <span className="absolute top-1.5 left-2 text-[10px] text-[var(--crt-ink-3)]">
                 {String(index + 1).padStart(2, '0')}
               </span>
               <AlgorithmDiagram operators={operators} />
@@ -213,19 +211,19 @@ export function AlgorithmPanel({
         </div>
       </details>
 
-      <label className="grid h-10 grid-cols-[auto_minmax(2rem,1fr)_1.25rem] items-center gap-2 rounded-b-xl border-t border-white/10 bg-black/15 px-3">
-        <span className="flex items-center gap-1 text-[9px] font-black tracking-wide text-white/60 uppercase">
-          <RadioTower className="size-3 text-primary" />
+      <label className="grid h-9 grid-cols-[auto_minmax(2rem,1fr)_1.25rem] items-center gap-2 border-t border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-[9px]">
+        <span className="flex items-center gap-1 text-[9px] font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase">
+          <RadioTower className="size-3 text-[var(--crt-acc)]" />
           Feedback
           <HelpPopover
-            className="text-white/55 hover:bg-white/10 hover:text-white"
+            className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
             label={t('editor.feedback')}
             text={t('controlHelp.feedback')}
           />
         </span>
         <input
           aria-label={t('editor.feedback')}
-          className="h-1.5 min-w-0 cursor-pointer accent-primary focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none"
+          className="h-1.5 min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
           max={7}
           min={0}
           onBlur={onFeedbackGestureEnd}
@@ -255,7 +253,7 @@ export function AlgorithmPanel({
           type="range"
           value={feedback}
         />
-        <output className="font-vt323 text-right text-sm font-black text-white">{feedback}</output>
+        <output className="font-vt323 text-right text-sm text-[var(--crt-led)]">{feedback}</output>
       </label>
     </section>
   )
