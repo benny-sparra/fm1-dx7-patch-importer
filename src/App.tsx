@@ -57,7 +57,7 @@ function App() {
       className="mx-auto flex min-h-svh max-w-[90rem] items-center justify-center px-4 py-8 text-sm font-semibold text-muted-foreground"
       role="status"
     >
-      <div className="flex flex-col items-center gap-3 rounded-md bg-white px-6 py-5">
+      <div className="flex flex-col items-center gap-3 rounded-md bg-card px-6 py-5">
         <LoaderCircle
           aria-hidden="true"
           className="size-7 animate-spin text-primary motion-reduce:animate-none"

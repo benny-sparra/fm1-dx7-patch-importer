@@ -252,7 +252,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
         activePatchId={activePatchId}
         actions={
           <button
-            className="inline-flex h-10 w-full shrink-0 cursor-pointer items-center justify-start gap-2 rounded-md border border-black bg-white px-4 text-left text-sm font-medium text-black transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex h-10 w-full shrink-0 cursor-pointer items-center justify-start gap-2 rounded-md border border-black bg-card px-4 text-left text-sm font-medium text-foreground transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
             disabled={isSending || !isDestinationBankLoaded}
             onClick={sendSelectedBank}
             title={
@@ -272,7 +272,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
           <details className="group relative" ref={allBanksMenuRef}>
             <summary
               aria-label={t('banks.moreActions')}
-              className="grid size-9 cursor-pointer list-none place-items-center rounded text-black/75 transition-colors hover:bg-black/10 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black [&::-webkit-details-marker]:hidden"
+              className="grid size-9 cursor-pointer list-none place-items-center rounded text-black/75 transition-colors hover:bg-black/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black [&::-webkit-details-marker]:hidden"
               title={t('banks.moreActions')}
             >
               <EllipsisVertical className="size-5" />

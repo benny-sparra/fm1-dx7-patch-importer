@@ -273,11 +273,11 @@ export function OperatorsTitle() {
   const { t } = useTranslation()
   return (
     <div className="patch-area-surface flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
-      <h2 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-black">
+      <h2 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-foreground">
         <AudioWaveform aria-hidden="true" className="size-5 shrink-0" />
         {t('editor.operators')}
         <HelpPopover
-          className="text-black/70 hover:text-black"
+          className="text-black/70 hover:text-foreground"
           label={t('editor.fmOperators')}
           text={t('controlHelp.operator')}
         />

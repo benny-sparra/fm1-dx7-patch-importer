@@ -49,7 +49,7 @@ export function GlobalConfigurationPanel({
     <aside aria-label={t('editor.configuration')} className="grid min-w-0 gap-4">
       <div
         aria-label={t('editor.sections')}
-        className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-white p-1 shadow-sm"
+        className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-card p-1 shadow-sm"
         role="tablist"
       >
         <span
@@ -114,8 +114,8 @@ export function GlobalConfigurationPanel({
         />
 
         <Card className="min-w-0 border-primary/20 bg-card/95">
-          <CardHeader className="flex-row items-center justify-between gap-2 border-b bg-white px-4 py-3">
-            <CardTitle className="text-base text-black">{t('editor.lfoGlobal')}</CardTitle>
+          <CardHeader className="flex-row items-center justify-between gap-2 border-b bg-card px-4 py-3">
+            <CardTitle className="text-base text-foreground">{t('editor.lfoGlobal')}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-x-3 gap-y-4 p-4">
             <SwitchParameterControl
@@ -205,8 +205,8 @@ export function GlobalConfigurationPanel({
         </Card>
 
         <Card className="min-w-0 border-primary/20 bg-card/95">
-          <CardHeader className="flex-row items-center justify-between gap-2 border-b bg-white px-4 py-3">
-            <CardTitle className="flex min-w-0 items-center gap-1 text-base text-black">
+          <CardHeader className="flex-row items-center justify-between gap-2 border-b bg-card px-4 py-3">
+            <CardTitle className="flex min-w-0 items-center gap-1 text-base text-foreground">
               {t('editor.pitchEnvelope')}
               <HelpPopover
                 label={t('editor.pitchEnvelope')}

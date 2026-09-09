@@ -263,7 +263,7 @@ export function EffectsUnit({
                   className="grid w-full content-start overflow-hidden rounded-lg border border-primary/20 bg-card/95"
                   style={{ '--effect-color': effect.color } as React.CSSProperties}
                 >
-                  <div className="flex flex-wrap items-center gap-2 border-b bg-white px-4 py-3">
+                  <div className="flex flex-wrap items-center gap-2 border-b bg-card px-4 py-3">
                     <Button
                       aria-label={t(enabled ? 'ui.bypassEffect' : 'ui.enableEffect', {
                         effect: translatedEffect,

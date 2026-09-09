@@ -269,7 +269,7 @@ export function FocusedOperatorPanel({
         <div className="grid min-w-0 content-start gap-5 @2xl:grid-cols-2">
           <section
             aria-labelledby="operator-oscillator-heading"
-            className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-white p-4"
+            className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-card p-4"
             id="operator-oscillator-panel"
           >
             <div className="grid gap-4">
@@ -352,7 +352,7 @@ export function FocusedOperatorPanel({
 
           <section
             aria-labelledby="operator-scaling-heading"
-            className="@container min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-white p-4"
+            className="@container min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-card p-4"
             id="operator-scaling-panel"
           >
             <div className="grid gap-y-4">

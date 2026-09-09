@@ -87,11 +87,11 @@ export function PatchGrid({
     <Card className="synthwave-panel overflow-hidden border-primary/25 bg-card/95 backdrop-blur-sm">
       <CardHeader className="patch-area-surface px-5 py-3">
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="flex items-center gap-2 text-2xl font-bold tracking-wide text-black">
-            <PixelBankIcon aria-hidden="true" className="size-5 shrink-0 text-black" />
+          <CardTitle className="flex items-center gap-2 text-2xl font-bold tracking-wide text-foreground">
+            <PixelBankIcon aria-hidden="true" className="size-5 shrink-0 text-foreground" />
             {t('banks.gridTitle')}
             <HelpPopover
-              className="text-black/70 hover:text-black"
+              className="text-black/70 hover:text-foreground"
               label={t('banks.gridTitle')}
               text={t('banks.gridDescription')}
             />
@@ -112,7 +112,7 @@ export function PatchGrid({
               <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 aria-label={t('banks.search')}
-                className="patch-search-input h-10 w-full rounded-md border bg-white pr-3 pl-9 text-sm text-secondary-foreground ring-ring transition outline-none placeholder:text-secondary-foreground/60 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="patch-search-input h-10 w-full rounded-md border bg-card pr-3 pl-9 text-sm text-secondary-foreground ring-ring transition outline-none placeholder:text-secondary-foreground/60 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={searchDisabled}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={t('banks.search')}

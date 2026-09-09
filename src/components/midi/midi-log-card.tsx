@@ -45,7 +45,7 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
   }
 
   return (
-    <Card className="bg-white">
+    <Card className="bg-card">
       <CardHeader>
         <CardTitle className="text-foreground">{t('midi.log')}</CardTitle>
         <CardDescription className="font-medium text-foreground">

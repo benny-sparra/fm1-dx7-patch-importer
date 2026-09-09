@@ -157,7 +157,7 @@ export function AddWorkspaceBankDialog({
         <fieldset className="grid gap-2">
           <legend className="mb-1 text-sm font-semibold">{t('banks.soundSource')}</legend>
 
-          <div className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-white p-1 shadow-sm">
+          <div className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-card p-1 shadow-sm">
             <span
               aria-hidden="true"
               className={cn(

@@ -64,7 +64,7 @@ export function PatchEditorHeader({
 }: PatchEditorHeaderProps) {
   const { t } = useTranslation()
   return (
-    <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b border-primary/15 bg-white py-3 shadow-sm">
+    <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b border-primary/15 bg-card py-3 shadow-sm">
       <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-end gap-3 px-3 sm:px-5 lg:px-8">
         <Button
           aria-label={t('editor.back')}

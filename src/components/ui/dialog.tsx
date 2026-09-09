@@ -33,7 +33,7 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
     // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog
       className={cn(
-        'modal-surface fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] overflow-x-hidden overflow-y-auto rounded-lg border border-primary/30 bg-white p-0 whitespace-normal text-card-foreground',
+        'modal-surface fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] overflow-x-hidden overflow-y-auto rounded-lg border border-primary/30 bg-card p-0 whitespace-normal text-card-foreground',
         dialogWidths[size],
         className,
       )}
@@ -58,7 +58,7 @@ export function DialogHeader({ className, ...props }: ComponentPropsWithoutRef<'
   return (
     <div
       className={cn(
-        'flex items-start justify-between gap-4 border-b bg-white px-5 py-4 [&>*:first-child]:min-w-0 [&>*:first-child]:break-words',
+        'flex items-start justify-between gap-4 border-b bg-card px-5 py-4 [&>*:first-child]:min-w-0 [&>*:first-child]:break-words',
         className,
       )}
       {...props}
@@ -69,7 +69,7 @@ export function DialogHeader({ className, ...props }: ComponentPropsWithoutRef<'
 export function DialogFooter({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div
-      className={cn('flex justify-end gap-2 border-t bg-white px-5 py-4', className)}
+      className={cn('flex justify-end gap-2 border-t bg-card px-5 py-4', className)}
       {...props}
     />
   )
