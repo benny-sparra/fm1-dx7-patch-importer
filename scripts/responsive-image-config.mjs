@@ -1,5 +1,4 @@
 export const responsiveImageConfig = [
-  { height: 595, source: 'fm1-keyboard.webp', width: 800, widths: [320, 400, 600] },
   { height: 554, source: 'fm1-black.webp', width: 923, widths: [460] },
   { height: 554, source: 'fm1-black-green.webp', width: 923, widths: [460] },
   { height: 554, source: 'fm1-cool-gray.webp', width: 923, widths: [460] },

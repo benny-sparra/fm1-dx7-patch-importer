@@ -1,5 +1,5 @@
 import { AudioWaveform, ChevronDown, RadioTower, Route } from 'lucide-react'
-import { useRef } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpPopover } from '@/components/ui/help-popover'
@@ -16,6 +16,7 @@ import {
   getOperatorParameterDefinition,
   resolveOperatorParameterIndex,
 } from '@/lib/fm1-parameters'
+import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
@@ -260,24 +261,28 @@ export function AlgorithmPanel({
   )
 }
 
-type OperatorStripProps = {
+type OperatorRackProps = {
   algorithm: number
   mutedOperators: ReadonlySet<number>
   onSelect: (operator: number) => void
+  onToggleMute: (operator: number) => void
+  onToggleSolo: (operator: number) => void
   parameters: Uint8Array
+  renderOperatorDetail: (operator: number) => ReactNode
   selectedOperator: number
   soloOperator: number | null
+  syncState: PatchSyncState
 }
 
 export function OperatorsTitle() {
   const { t } = useTranslation()
   return (
-    <div className="patch-area-surface flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
-      <h2 className="flex items-center gap-2 text-2xl font-bold tracking-wide text-foreground">
-        <AudioWaveform aria-hidden="true" className="size-5 shrink-0" />
+    <div className="crt-hatch flex items-center justify-between gap-3 border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
+      <h2 className="font-dot-matrix flex items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase">
+        <AudioWaveform aria-hidden="true" className="size-4 shrink-0" />
         {t('editor.operators')}
         <HelpPopover
-          className="text-black/70 hover:text-foreground"
+          className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
           label={t('editor.fmOperators')}
           text={t('controlHelp.operator')}
         />
@@ -286,21 +291,33 @@ export function OperatorsTitle() {
   )
 }
 
-export function OperatorStrip({
+/**
+ * The six operators as a vertical rack. Each row summarises one operator and
+ * expands in place to reveal its full controls.
+ *
+ * This is an accordion rather than the tablist it replaces: the artboard puts
+ * the detail panel directly beneath the row that opened it, and a tabpanel is
+ * not allowed inside a tablist. Rows are therefore `aria-expanded` buttons
+ * owning a labelled region, and only one is open at a time — selecting an
+ * operator is still what opens it, so the editor keeps its single notion of a
+ * "selected operator" and the MIDI audition path is unchanged.
+ */
+export function OperatorRack({
   algorithm,
   mutedOperators,
   onSelect,
+  onToggleMute,
+  onToggleSolo,
   parameters,
+  renderOperatorDetail,
   selectedOperator,
   soloOperator,
-}: OperatorStripProps) {
+  syncState,
+}: OperatorRackProps) {
   const { t } = useTranslation()
+
   return (
-    <div
-      aria-label={t('editor.operators')}
-      className="operator-strip flex min-w-0 scrollbar-none items-stretch overflow-x-auto bg-[#E7E8E7] xl:max-h-[54rem] xl:flex-col xl:overflow-x-visible xl:overflow-y-auto"
-      role="tablist"
-    >
+    <div aria-label={t('editor.operators')} className="flex min-w-0 flex-col" role="group">
       {Array.from({ length: FM1_OPERATOR_COUNT }, (_, index) => {
         const operator = index + 1
         const base = resolveOperatorParameterIndex(operator, 'operator.envelope.rate1')
@@ -329,108 +346,153 @@ export function OperatorStrip({
         ]
           .filter(Boolean)
           .join(', ')
+        const summaryId = `operator-${operator}-summary`
+        const detailId = `operator-${operator}-detail`
 
         return (
-          <button
-            aria-controls="focused-operator-panel"
-            aria-label={`Operator ${operator}, ${roleLabel}${auditionLabel ? `, ${auditionLabel}` : ''}`}
-            aria-selected={isSelected}
+          <div
             className={cn(
-              'operator-tab group relative mt-2 min-w-[9.5rem] flex-1 overflow-hidden rounded-t-xl border border-b-0 border-l-4 border-l-transparent bg-[#E7E8E7] px-3 py-2 text-left opacity-100 transition-[background-color,opacity,transform,box-shadow] hover:border-l-border hover:bg-muted/60 hover:text-foreground focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset sm:min-w-[10.5rem] xl:mt-0 xl:h-[6.5rem] xl:min-w-0 xl:flex-none xl:rounded-l-xl xl:rounded-tr-none xl:border-x-0 xl:border-y-0 xl:border-l-4 xl:px-3',
-              index > 0 && '-ml-px xl:-mt-px xl:ml-0',
-              !isSelected && 'xl:border-r-black',
-              isSelected &&
-                'border-t-0 border-primary bg-primary text-primary-foreground opacity-100',
+              'operator-tab relative min-w-0 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
+              index > 0 && '-mt-px',
+              isSelected
+                ? 'z-10 border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
+                : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel3)]',
             )}
             key={operator}
-            onClick={() => onSelect(operator)}
-            role="tab"
             style={{ '--operator-color': color } as React.CSSProperties}
-            type="button"
           >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2 px-2 py-1.5">
+              <button
+                aria-controls={isSelected ? detailId : undefined}
+                aria-expanded={isSelected}
+                aria-label={`Operator ${operator}, ${roleLabel}${auditionLabel ? `, ${auditionLabel}` : ''}`}
+                className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+                id={summaryId}
+                onClick={() => onSelect(operator)}
+                type="button"
+              >
                 <span
                   className={cn(
-                    'font-vt323 grid size-8 shrink-0 place-items-center rounded border border-current/50 text-base font-bold',
-                    isSelected ? 'text-primary-foreground' : 'text-[var(--operator-color)]',
+                    'font-dot-matrix grid h-6 w-[26px] shrink-0 place-items-center border bg-[var(--crt-bg-1)] text-sm font-bold',
+                    isSelected
+                      ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
+                      : 'border-[var(--crt-line)] text-[var(--operator-color)]',
                   )}
                 >
                   {operator}
                 </span>
                 <span
                   className={cn(
-                    'operator-role-badge inline-flex rounded-full border px-1.5 py-0.5 text-[8px] font-black tracking-[0.1em] uppercase',
+                    'operator-role-badge inline-flex shrink-0 border px-1.5 py-0.5 text-[8px] font-bold tracking-[0.12em] uppercase',
                     isSelected
-                      ? 'border-primary-foreground/70 bg-primary-foreground/10 text-primary-foreground'
-                      : 'border-border/80 text-muted-foreground',
+                      ? 'border-[var(--crt-acc-dim)] text-[var(--crt-acc-lt)]'
+                      : 'border-[var(--crt-line)] text-[var(--crt-ink-3)]',
                   )}
                 >
                   {roleLabel}
                 </span>
-              </div>
-              <span
-                aria-label={frequencyDescription}
-                className={cn(
-                  'operator-frequency font-vt323 rounded px-1.5 py-1 text-[10px] font-bold',
-                  isSelected
-                    ? 'bg-primary-foreground/15 text-primary-foreground'
-                    : 'bg-muted text-muted-foreground',
-                )}
-                title={frequencyDescription}
-              >
-                {frequencyLabel}
-              </span>
-            </div>
-            <div aria-hidden="true" className="mt-0.5 flex h-4 items-center gap-1">
-              {auditionStatus.muted ? (
-                <span className="operator-audition-badge rounded border border-rose-400/70 bg-rose-400/15 px-1.5 py-0.5 text-[8px] leading-none font-black tracking-[0.08em] text-rose-300 uppercase">
-                  {t('editor.muted')}
-                </span>
-              ) : null}
-              {auditionStatus.soloed ? (
-                <span className="operator-audition-badge rounded border border-amber-300/70 bg-amber-300/15 px-1.5 py-0.5 text-[8px] leading-none font-black tracking-[0.08em] text-amber-700 uppercase">
-                  {t('editor.solo')}
-                </span>
-              ) : null}
-            </div>
-            <div className="mt-0.5 flex items-center gap-2 pb-0.5">
-              <svg
-                aria-hidden="true"
-                className="h-7 min-w-0 flex-1 overflow-visible"
-                viewBox="0 0 400 180"
-              >
-                <path
-                  d={envelopePath(rates, levels)}
-                  fill="none"
-                  stroke="var(--fm1-accent)"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </svg>
-              <div
-                className={cn(
-                  'flex shrink-0 items-baseline gap-1 text-[9px] font-bold tracking-wide uppercase',
-                  isSelected ? 'text-primary-foreground' : 'text-muted-foreground',
-                )}
-              >
-                <span>{t('editor.output')}</span>
-                <span
-                  className={cn(
-                    'font-vt323 text-sm',
-                    isSelected ? 'text-primary-foreground' : 'text-foreground',
-                  )}
+
+                {/* A one-line trace of the amplitude envelope, as on the panel. */}
+                <svg
+                  aria-hidden="true"
+                  className="h-6 min-w-0 flex-1 overflow-visible"
+                  viewBox="0 0 400 180"
                 >
-                  {output}
+                  <path
+                    d={envelopePath(rates, levels)}
+                    fill="none"
+                    stroke={isSelected ? 'var(--crt-acc-br)' : 'var(--crt-acc-dim)'}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="3"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
+
+                <span
+                  aria-label={frequencyDescription}
+                  className="operator-frequency font-vt323 shrink-0 border border-[var(--crt-line)] bg-[var(--crt-bg-well)] px-1.5 text-sm text-[var(--crt-acc-lt)]"
+                  title={frequencyDescription}
+                >
+                  {frequencyLabel}
                 </span>
+                <span className="flex shrink-0 items-baseline gap-1 text-[9px] font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase">
+                  {t('editor.output')}
+                  <span className="font-vt323 text-sm text-[var(--crt-ink)]">{output}</span>
+                </span>
+              </button>
+
+              {/*
+                Mute and solo sit on every row, not just the open one, so an
+                operator can be silenced without first expanding it. They keep
+                the labelling and the send-in-flight guard they had when they
+                lived in the operator panel's header.
+              */}
+              <div
+                aria-label={t('ui.auditionGroup', { number: operator })}
+                className="flex shrink-0 items-center gap-1"
+                role="group"
+              >
+                <button
+                  aria-label={t('ui.auditionAction', {
+                    action: t(auditionStatus.muted ? 'ui.unmute' : 'ui.mute'),
+                    number: operator,
+                  })}
+                  aria-pressed={auditionStatus.muted}
+                  className={cn(
+                    'cursor-pointer border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-1.5 py-0.5 text-[9px] font-bold tracking-[0.1em] uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50',
+                    auditionStatus.muted
+                      ? 'operator-audition-badge border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-destructive text-destructive-foreground'
+                      : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)]',
+                  )}
+                  disabled={syncState === 'sending'}
+                  onClick={() => onToggleMute(operator)}
+                  title={t(syncState === 'local' ? 'ui.auditionConnect' : 'ui.auditionTemporary', {
+                    action: t(auditionStatus.muted ? 'ui.unmute' : 'ui.mute'),
+                    number: operator,
+                  })}
+                  type="button"
+                >
+                  {t('ui.mute')}
+                </button>
+                <button
+                  aria-label={t('ui.auditionAction', {
+                    action: t(auditionStatus.soloed ? 'ui.unsolo' : 'ui.solo'),
+                    number: operator,
+                  })}
+                  aria-pressed={auditionStatus.soloed}
+                  className={cn(
+                    'cursor-pointer border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-1.5 py-0.5 text-[9px] font-bold tracking-[0.1em] uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50',
+                    auditionStatus.soloed
+                      ? 'operator-audition-badge border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-led)] text-[var(--crt-bg-0)]'
+                      : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)]',
+                  )}
+                  disabled={syncState === 'sending'}
+                  onClick={() => onToggleSolo(operator)}
+                  title={t(syncState === 'local' ? 'ui.auditionConnect' : 'ui.auditionTemporary', {
+                    action: t(auditionStatus.soloed ? 'ui.unsolo' : 'ui.solo'),
+                    number: operator,
+                  })}
+                  type="button"
+                >
+                  {t('ui.solo')}
+                </button>
               </div>
             </div>
-          </button>
+
+            {isSelected ? (
+              <div
+                aria-labelledby={summaryId}
+                className="border-t border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)]"
+                id={detailId}
+                role="region"
+              >
+                {renderOperatorDetail(operator)}
+              </div>
+            ) : null}
+          </div>
         )
       })}
-      <div aria-hidden="true" className="hidden shrink-0 border-t border-dashed xl:block" />
     </div>
   )
 }

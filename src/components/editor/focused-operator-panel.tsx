@@ -7,8 +7,7 @@ import {
   RadioParameterControl,
   RotaryParameterControl,
 } from '@/components/editor/parameter-controls'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { operatorColors } from '@/lib/editor-visuals'
 import {
@@ -19,9 +18,7 @@ import {
   type OperatorParameterId,
 } from '@/lib/fm1-parameters'
 import { type ParameterEdit } from '@/lib/patch-editor'
-import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { rangeStyle } from '@/lib/range-style'
-import { cn } from '@/lib/utils'
 
 const curves = ['− Linear', '− Exponential', '+ Exponential', '+ Linear']
 const oscillatorModes = ['Ratio', 'Fixed']
@@ -30,28 +27,18 @@ type FocusedOperatorPanelProps = {
   applyEdits: (edits: ParameterEdit[]) => void
   beginGesture: () => void
   endGesture: () => void
-  onToggleMute: () => void
-  onToggleSolo: () => void
   parameters: Uint8Array
   selectedOperator: number
-  selectedOperatorIsMuted: boolean
-  selectedOperatorIsSoloed: boolean
   setParameter: (index: number, value: number, max?: number, min?: number, send?: boolean) => void
-  syncState: PatchSyncState
 }
 
 export function FocusedOperatorPanel({
   applyEdits,
   beginGesture,
   endGesture,
-  onToggleMute,
-  onToggleSolo,
   parameters,
   selectedOperator,
-  selectedOperatorIsMuted,
-  selectedOperatorIsSoloed,
   setParameter,
-  syncState,
 }: FocusedOperatorPanelProps) {
   const { t } = useTranslation()
   const operatorBase = resolveOperatorParameterIndex(selectedOperator, 'operator.envelope.rate1')
@@ -101,155 +88,76 @@ export function FocusedOperatorPanel({
   }
   return (
     <Card
-      className="@container -mt-px min-w-0 rounded-t-none border-l-0 border-[var(--operator-color)] bg-[#E7E8E7] xl:mt-0 xl:rounded-t-none xl:rounded-bl-none"
+      className="@container min-w-0 border-0 bg-[var(--crt-bg-panel)]"
       id="focused-operator-panel"
-      role="tabpanel"
       style={{ '--operator-color': operatorColor } as React.CSSProperties}
     >
-      <CardHeader className="editor-operator-header px-4 py-3 sm:px-5">
+      {/*
+        The operator's identity, mute and solo now live on the rack row that
+        opens this panel, so the header keeps only the output level — the one
+        control here that has no place in a one-line summary.
+      */}
+      <CardHeader className="editor-operator-header px-3 py-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle>
-            <span className="flex items-center gap-3">
-              <span className="font-vt323 grid size-9 place-items-center rounded border border-primary-foreground/70 bg-primary-foreground/10 text-lg font-bold text-primary-foreground">
-                {selectedOperator}
-              </span>
-              <span className="flex items-center gap-1 text-lg text-primary-foreground">
-                {t('editor.operator', { number: selectedOperator })}
-                <HelpPopover
-                  className="text-primary-foreground/80 hover:bg-primary-foreground/15 hover:text-primary-foreground"
-                  label={t('editor.fmOperators')}
-                  text={t('controlHelp.operator')}
-                />
-              </span>
-            </span>
-          </CardTitle>
-          <div className="flex flex-wrap items-center gap-2">
-            <div
-              aria-label={t('ui.auditionGroup', { number: selectedOperator })}
-              className="flex items-center gap-1"
-              role="group"
-            >
-              <Button
-                aria-label={t('ui.auditionAction', {
-                  action: t(selectedOperatorIsMuted ? 'ui.unmute' : 'ui.mute'),
-                  number: selectedOperator,
-                })}
-                aria-pressed={selectedOperatorIsMuted}
-                className={cn(
-                  'font-vt323 h-8 w-[4.25rem] border-border bg-background px-3 text-xs font-black text-muted-foreground hover:bg-accent hover:text-foreground',
-                  selectedOperatorIsMuted &&
-                    'border-rose-400 bg-rose-400/20 text-rose-700 hover:bg-rose-400/25 hover:text-rose-800',
-                )}
-                disabled={syncState === 'sending'}
-                onClick={() => onToggleMute()}
-                size="sm"
-                title={
-                  syncState === 'local'
-                    ? t('ui.auditionConnect', {
-                        action: t(selectedOperatorIsMuted ? 'ui.unmute' : 'ui.mute'),
-                        number: selectedOperator,
-                      })
-                    : t('ui.auditionTemporary', {
-                        action: t(selectedOperatorIsMuted ? 'ui.unmute' : 'ui.mute'),
-                        number: selectedOperator,
-                      })
-                }
-                type="button"
-                variant="outline"
-              >
-                {t('ui.mute')}
-              </Button>
-              <Button
-                aria-label={t('ui.auditionAction', {
-                  action: t(selectedOperatorIsSoloed ? 'ui.unsolo' : 'ui.solo'),
-                  number: selectedOperator,
-                })}
-                aria-pressed={selectedOperatorIsSoloed}
-                className={cn(
-                  'font-vt323 h-8 w-[4.25rem] border-border bg-background px-3 text-xs font-black text-muted-foreground hover:bg-accent hover:text-foreground',
-                  selectedOperatorIsSoloed &&
-                    'border-amber-300 bg-amber-300/20 text-amber-800 hover:bg-amber-300/25 hover:text-amber-950',
-                )}
-                disabled={syncState === 'sending'}
-                onClick={() => onToggleSolo()}
-                size="sm"
-                title={
-                  syncState === 'local'
-                    ? t('ui.auditionConnect', {
-                        action: t(selectedOperatorIsSoloed ? 'ui.unsolo' : 'ui.solo'),
-                        number: selectedOperator,
-                      })
-                    : t('ui.auditionTemporary', {
-                        action: t(selectedOperatorIsSoloed ? 'ui.unsolo' : 'ui.solo'),
-                        number: selectedOperator,
-                      })
-                }
-                type="button"
-                variant="outline"
-              >
-                {t('ui.solo')}
-              </Button>
-            </div>
-            <label className="flex h-8 min-w-[10rem] flex-1 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs text-muted-foreground sm:min-w-[13rem]">
-              <span className="font-vt323 flex items-center gap-1 font-black tracking-wide uppercase">
-                {t('editor.output')}
-                <HelpPopover
-                  className="text-muted-foreground hover:bg-accent hover:text-foreground"
-                  label={t('editor.outputLevel')}
-                  text={t('controlHelp.outputLevel')}
-                />
-              </span>
-              <input
-                aria-label={t('ui.operatorOutput', { number: selectedOperator })}
-                className="h-2 min-w-0 flex-1 cursor-pointer accent-[var(--operator-color)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                max={99}
-                min={0}
-                onBlur={endGesture}
-                onChange={(event) =>
-                  setParameter(
-                    operatorIndex('operator.outputLevel'),
-                    Number(event.target.value),
-                    outputParameter.max,
-                  )
-                }
-                onKeyDown={(event) => {
-                  if (
-                    [
-                      'ArrowDown',
-                      'ArrowLeft',
-                      'ArrowRight',
-                      'ArrowUp',
-                      'End',
-                      'Home',
-                      'PageDown',
-                      'PageUp',
-                    ].includes(event.key)
-                  ) {
-                    beginGesture()
-                  }
-                }}
-                onKeyUp={endGesture}
-                onPointerCancel={endGesture}
-                onPointerDown={beginGesture}
-                onPointerUp={endGesture}
-                step={1}
-                style={rangeStyle(
-                  parameters[operatorIndex('operator.outputLevel')],
-                  0,
-                  99,
-                  'var(--operator-color)',
-                )}
-                type="range"
-                value={parameters[operatorIndex('operator.outputLevel')]}
+          <label className="flex h-8 min-w-[10rem] flex-1 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs text-muted-foreground sm:min-w-[13rem]">
+            <span className="font-vt323 flex items-center gap-1 font-black tracking-wide uppercase">
+              {t('editor.output')}
+              <HelpPopover
+                className="text-muted-foreground hover:bg-accent hover:text-foreground"
+                label={t('editor.outputLevel')}
+                text={t('controlHelp.outputLevel')}
               />
-              <output className="font-vt323 w-6 text-right font-black text-foreground">
-                {parameters[operatorIndex('operator.outputLevel')]}
-              </output>
-            </label>
-          </div>
+            </span>
+            <input
+              aria-label={t('ui.operatorOutput', { number: selectedOperator })}
+              className="h-2 min-w-0 flex-1 cursor-pointer accent-[var(--operator-color)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              max={99}
+              min={0}
+              onBlur={endGesture}
+              onChange={(event) =>
+                setParameter(
+                  operatorIndex('operator.outputLevel'),
+                  Number(event.target.value),
+                  outputParameter.max,
+                )
+              }
+              onKeyDown={(event) => {
+                if (
+                  [
+                    'ArrowDown',
+                    'ArrowLeft',
+                    'ArrowRight',
+                    'ArrowUp',
+                    'End',
+                    'Home',
+                    'PageDown',
+                    'PageUp',
+                  ].includes(event.key)
+                ) {
+                  beginGesture()
+                }
+              }}
+              onKeyUp={endGesture}
+              onPointerCancel={endGesture}
+              onPointerDown={beginGesture}
+              onPointerUp={endGesture}
+              step={1}
+              style={rangeStyle(
+                parameters[operatorIndex('operator.outputLevel')],
+                0,
+                99,
+                'var(--operator-color)',
+              )}
+              type="range"
+              value={parameters[operatorIndex('operator.outputLevel')]}
+            />
+            <output className="font-vt323 w-6 text-right font-black text-foreground">
+              {parameters[operatorIndex('operator.outputLevel')]}
+            </output>
+          </label>
         </div>
       </CardHeader>
-      <CardContent className="grid min-w-0 gap-5 bg-primary p-4 pt-2 sm:p-5 sm:pt-2">
+      <CardContent className="grid min-w-0 gap-5 bg-[var(--crt-bg-panel)] p-3 pt-2">
         <EnvelopeEditor
           color="var(--fm1-accent)"
           helpText={t('controlHelp.amplitudeEnvelope')}

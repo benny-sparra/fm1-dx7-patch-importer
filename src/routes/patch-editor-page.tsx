@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { OperatorsTitle, OperatorStrip } from '@/components/editor/editor-workspace'
+import { OperatorsTitle, OperatorRack } from '@/components/editor/editor-workspace'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
@@ -423,9 +423,6 @@ export function PatchEditorPage({
     void sendToFm1()
   }
 
-  const selectedOperatorIsMuted = mutedOperators.has(selectedOperator)
-  const selectedOperatorIsSoloed = soloOperator === selectedOperator
-
   return (
     <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-4 px-3 py-4 sm:px-5 lg:px-8">
       <PatchEditorHeader
@@ -453,31 +450,28 @@ export function PatchEditorPage({
       {midi.midiAccess && !midi.sysexAvailable ? <MidiSysexWarning /> : null}
 
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(14rem,1fr)] lg:items-start">
-        <div className="grid min-w-0 gap-0 border border-white xl:grid-cols-[minmax(12.5rem,0.72fr)_minmax(0,3fr)] xl:items-stretch xl:bg-[#E7E8E7]">
-          <div className="xl:col-span-2">
-            <OperatorsTitle />
-          </div>
-          <OperatorStrip
+        <div className="synthwave-panel min-w-0 overflow-hidden">
+          <OperatorsTitle />
+          <OperatorRack
             algorithm={parameters[algorithmParameter.voiceIndex]}
             mutedOperators={mutedOperators}
             onSelect={setSelectedOperator}
+            onToggleMute={toggleOperatorMute}
+            onToggleSolo={toggleOperatorSolo}
             parameters={parameters}
+            renderOperatorDetail={(operator) => (
+              <FocusedOperatorPanel
+                applyEdits={applyEdits}
+                beginGesture={beginGesture}
+                endGesture={endGesture}
+                parameters={parameters}
+                selectedOperator={operator}
+                setParameter={setParameter}
+              />
+            )}
             selectedOperator={selectedOperator}
-            soloOperator={soloOperator}
-          />
-
-          <FocusedOperatorPanel
-            applyEdits={applyEdits}
-            beginGesture={beginGesture}
-            endGesture={endGesture}
-            onToggleMute={() => toggleOperatorMute(selectedOperator)}
-            onToggleSolo={() => toggleOperatorSolo(selectedOperator)}
-            parameters={parameters}
-            selectedOperator={selectedOperator}
-            selectedOperatorIsMuted={selectedOperatorIsMuted}
-            selectedOperatorIsSoloed={selectedOperatorIsSoloed}
-            setParameter={setParameter}
             syncState={syncState}
+            soloOperator={soloOperator}
           />
         </div>
 
