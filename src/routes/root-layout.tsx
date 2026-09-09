@@ -104,7 +104,8 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
 
             {!compact && showColorwayImage ? (
               <div className="hidden flex-col gap-3 lg:col-start-3 lg:flex">
-                <figure className="overflow-hidden rounded-[1.5rem] shadow-[0_10px_28px_hsl(260_70%_5%_/_0.35),0_0_22px_hsl(315_100%_60%_/_0.12)]">
+                {/* The hardware photo sits in a recessed bay, not a rounded card. */}
+                <figure className="crt-inset overflow-hidden bg-[var(--crt-bg-2)] p-1">
                   <img
                     alt={t('root.synthAlt')}
                     className="aspect-video h-full w-full object-cover"

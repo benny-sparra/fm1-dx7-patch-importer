@@ -19,7 +19,6 @@ import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
-import { fm1KeyboardImage } from '@/lib/fm1-responsive-images'
 
 import { PatchButton } from './patch-button'
 
@@ -84,14 +83,14 @@ export function PatchGrid({
   }
 
   return (
-    <Card className="synthwave-panel overflow-hidden border-primary/25 bg-card/95 backdrop-blur-sm">
-      <CardHeader className="patch-area-surface px-5 py-3">
+    <Card className="synthwave-panel overflow-hidden">
+      <CardHeader className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="flex items-center gap-2 text-2xl font-bold tracking-wide text-foreground">
-            <PixelBankIcon aria-hidden="true" className="size-5 shrink-0 text-foreground" />
+          <CardTitle className="font-dot-matrix flex items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase">
+            <PixelBankIcon aria-hidden="true" className="size-4 shrink-0" />
             {t('banks.gridTitle')}
             <HelpPopover
-              className="text-black/70 hover:text-foreground"
+              className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
               label={t('banks.gridTitle')}
               text={t('banks.gridDescription')}
             />
@@ -102,17 +101,17 @@ export function PatchGrid({
       <div className="patch-area-surface flex min-w-0 items-stretch">
         {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
         <div className="min-w-0 flex-1">
-          <div className="font-vt323 flex flex-col gap-2 bg-primary p-3 sm:p-4 md:flex-row md:items-center">
+          <div className="crt-hatch flex flex-col gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px] md:flex-row md:items-center">
             {actions ? (
-              <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-[calc(25%-0.375rem)]">
+              <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-auto">
                 {actions}
               </div>
             ) : null}
             <label className="relative block w-full sm:ml-auto sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-[calc(25%-0.375rem)]">
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
               <input
                 aria-label={t('banks.search')}
-                className="patch-search-input h-10 w-full rounded-md border bg-card pr-3 pl-9 text-sm text-secondary-foreground ring-ring transition outline-none placeholder:text-secondary-foreground/60 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="patch-search-input crt-inset h-8 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={searchDisabled}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={t('banks.search')}
@@ -121,17 +120,13 @@ export function PatchGrid({
               />
             </label>
           </div>
-          <CardContent className="relative isolate space-y-4 overflow-hidden bg-primary px-3 pt-0 pb-3 sm:px-4 sm:pb-4">
-            <img
-              alt=""
-              aria-hidden="true"
-              className="patch-area-image pointer-events-none absolute inset-0 z-0 size-full object-contain object-center opacity-50"
-              height={fm1KeyboardImage.height}
-              sizes="(min-width: 1280px) 928px, (min-width: 1024px) calc(100vw - 352px), (min-width: 640px) calc(100vw - 328px), calc(100vw - 88px)"
-              src={fm1KeyboardImage.src}
-              srcSet={fm1KeyboardImage.srcSet}
-              width={fm1KeyboardImage.width}
-            />
+          {/*
+            The hardware photo used to sit behind the grid as a half-opacity
+            watermark. Against the terminal's near-black panel it washed the
+            slots out rather than receding, and the masthead already carries
+            the same photo, so the grid is now a plain well.
+          */}
+          <CardContent className="relative isolate space-y-4 overflow-hidden bg-[var(--crt-bg-panel)] p-[9px]">
             <div className="relative z-10">
               {patches.length > 0 ? (
                 <DndContext
@@ -143,7 +138,7 @@ export function PatchGrid({
                     items={patches.map((patch) => patch.id)}
                     strategy={rectSortingStrategy}
                   >
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
                       {patches.map((patch) => (
                         <div className="h-full w-full" key={patch.id}>
                           <PatchButton
@@ -159,27 +154,27 @@ export function PatchGrid({
                   </SortableContext>
                 </DndContext>
               ) : (
-                <div className="grid min-h-72 place-items-center rounded-lg border border-dashed bg-background/70 p-6 text-center">
+                <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
                   <div className="max-w-md">
-                    <FileMusic className="mx-auto size-10 text-primary" />
-                    <h3 className="mt-3 text-lg font-bold text-foreground">
+                    <FileMusic className="mx-auto size-10 text-[var(--crt-acc-dim)]" />
+                    <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
                       {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
                     </h3>
                     {!isBankLoaded ? (
                       <>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
                           {t('banks.emptyHelp')}
                         </p>
                         <div className="mt-4 flex flex-wrap justify-center gap-2">
                           <button
-                            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                            className="crt-raised-lit cursor-pointer bg-[var(--crt-btn)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-white"
                             onClick={onImportEmptyBank}
                             type="button"
                           >
                             {t('banks.import')}
                           </button>
                           <button
-                            className="rounded-md border bg-background px-4 py-2 text-sm font-semibold text-foreground"
+                            className="crt-raised-thin cursor-pointer bg-[var(--crt-btn-face)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)]"
                             onClick={onLoadDemoBank}
                             type="button"
                           >
@@ -193,6 +188,17 @@ export function PatchGrid({
               )}
             </div>
           </CardContent>
+          {/*
+            The artboard's footer hint reads "double-click to edit"; a slot
+            here opens on a single click, so this reuses the existing
+            reorder-title string, which already describes both the drag and
+            the keyboard path and is translated in every locale.
+          */}
+          {patches.length > 0 ? (
+            <p className="mt-auto border-t border-[var(--crt-line-dk)] bg-[var(--crt-bg-panel)] px-[9px] py-2 text-[11px] tracking-[0.1em] text-[var(--crt-ink-3)] uppercase">
+              {t('banks.reorderTitle')}
+            </p>
+          ) : null}
         </div>
       </div>
     </Card>

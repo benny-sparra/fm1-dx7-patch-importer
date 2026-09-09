@@ -251,33 +251,58 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
       <PatchGrid
         activePatchId={activePatchId}
         actions={
-          <button
-            className="inline-flex h-10 w-full shrink-0 cursor-pointer items-center justify-start gap-2 rounded-md border border-black bg-card px-4 text-left text-sm font-medium text-foreground transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-            disabled={isSending || !isDestinationBankLoaded}
-            onClick={sendSelectedBank}
-            title={
-              !midi.hasMidiOutput
-                ? t('midi.connectFirst')
-                : isDestinationBankLoaded
-                  ? t('banks.sendTitle')
+          <>
+            {/* The selected bank reads back as a lit slot, as on the panel. */}
+            <span className="flex shrink-0 items-center gap-[9px]">
+              <span className="font-dot-matrix grid h-6 w-[26px] place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] text-sm font-bold text-[var(--crt-led)]">
+                {destinationBank}
+              </span>
+              <span className="font-dot-matrix hidden max-w-40 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)] sm:block">
+                {bankDisplayName(destinationBank)}
+              </span>
+            </span>
+            <button
+              className="crt-raised-lit inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] text-white transition-colors hover:bg-[var(--crt-acc-dim)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
+              disabled={isSending || !isDestinationBankLoaded}
+              onClick={sendSelectedBank}
+              title={
+                !midi.hasMidiOutput
+                  ? t('midi.connectFirst')
+                  : isDestinationBankLoaded
+                    ? t('banks.sendTitle')
+                    : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+              }
+              type="button"
+            >
+              <Send aria-hidden="true" className="size-3.5" />
+              {isSending ? t('banks.sending') : t('banks.send')}
+            </button>
+            <button
+              className="crt-raised-thin inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 bg-[var(--crt-btn-face)] px-3 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
+              disabled={!isDestinationBankLoaded}
+              onClick={() => downloadBank(destinationBank)}
+              title={
+                isDestinationBankLoaded
+                  ? t('banks.downloadTitle', { bank: bankDisplayName(destinationBank) })
                   : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
-            }
-            type="button"
-          >
-            <Send className="size-4" />
-            {isSending ? t('banks.sending') : t('banks.send')}
-          </button>
+              }
+              type="button"
+            >
+              <Download aria-hidden="true" className="size-3.5" />
+              {t('banks.download')}
+            </button>
+          </>
         }
         headerActions={
           <details className="group relative" ref={allBanksMenuRef}>
             <summary
               aria-label={t('banks.moreActions')}
-              className="grid size-9 cursor-pointer list-none place-items-center rounded text-black/75 transition-colors hover:bg-black/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black [&::-webkit-details-marker]:hidden"
+              className="grid size-6 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] transition-colors hover:bg-[var(--crt-sel-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
               title={t('banks.moreActions')}
             >
-              <EllipsisVertical className="size-5" />
+              <EllipsisVertical className="size-3.5" />
             </summary>
-            <div className="menu-surface font-vt323 absolute top-full right-0 z-50 mt-1 min-w-60 rounded-md border bg-popover p-1 text-popover-foreground">
+            <div className="menu-surface absolute top-full right-0 z-50 mt-1 min-w-60 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
               <button
                 className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                 disabled={library.loadedBanks.length === 0}
@@ -320,7 +345,10 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
         setSearch={setSearch}
         toolbar={
           <>
-            <div className="flex h-full w-16 flex-col bg-muted/30 sm:w-72">
+            <div className="flex h-full w-16 flex-col border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] sm:w-[226px]">
+              <p className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5 text-[11px] leading-tight tracking-[0.18em] text-[var(--crt-acc-lt)] uppercase">
+                {t('banks.destination')}
+              </p>
               <WorkspaceBankSelector
                 banks={banks.map((bank) => {
                   const name = bankDisplayName(bank)
@@ -403,7 +431,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
               {nextBank ? (
                 <button
                   aria-label={t('banks.addBank')}
-                  className="font-vt323 flex w-full cursor-pointer items-center justify-center gap-2 border-t border-dashed px-2 py-3 text-base text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:justify-start sm:px-4"
+                  className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-xs font-bold tracking-[0.08em] text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] sm:justify-start"
                   onClick={() => addWorkspaceBankDialogRef.current?.showModal()}
                   title={t('banks.addBank')}
                   type="button"

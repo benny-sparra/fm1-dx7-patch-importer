@@ -43,17 +43,18 @@ function WorkspaceBankRow({
   return (
     <li
       className={cn(
-        'relative -mr-px flex w-full items-center gap-1 border-y border-r border-l-4 px-2 py-2 whitespace-nowrap transition-colors',
+        'relative flex w-full items-center gap-[9px] border-t border-r border-b border-l px-2 py-[7px] whitespace-nowrap transition-colors',
+        'border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
         selected
-          ? 'bank-tab-active z-10 border-primary bg-primary text-primary-foreground shadow-sm'
-          : 'border-transparent text-foreground/80 hover:border-y-border hover:border-l-border hover:bg-muted/60 hover:text-foreground',
+          ? 'bank-tab-active z-10 border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
+          : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] hover:bg-[var(--crt-bg-head)]',
       )}
     >
       <button
         aria-describedby={bank.description ? descriptionId : undefined}
         aria-label={selectionLabel}
         aria-pressed={selected}
-        className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-left focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="flex min-w-0 flex-1 cursor-pointer items-center gap-[9px] text-left focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
         onClick={onSelect}
         onKeyDown={(event) => onKeyDown(event, index)}
         ref={(button) => registerButton(bank.id, button)}
@@ -61,10 +62,22 @@ function WorkspaceBankRow({
         title={bank.description || bank.name}
         type="button"
       >
-        <span className="font-vt323 grid size-8 shrink-0 place-items-center rounded border border-current/50 text-base font-bold">
+        <span
+          className={cn(
+            'font-dot-matrix grid h-6 w-[26px] shrink-0 place-items-center border bg-[var(--crt-bg-1)] text-sm font-bold',
+            selected
+              ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
+              : 'border-[var(--crt-line)] text-[var(--crt-ink-3)]',
+          )}
+        >
           {bank.id}
         </span>
-        <span className="font-dot-matrix hidden min-w-0 flex-1 truncate px-2 py-1 text-left text-base font-bold sm:block">
+        <span
+          className={cn(
+            'font-dot-matrix hidden min-w-0 flex-1 truncate text-left text-xs font-bold tracking-[0.06em] sm:block',
+            selected ? 'text-[var(--crt-led)]' : 'text-[var(--crt-ink-2)]',
+          )}
+        >
           {bank.name}
         </span>
       </button>
@@ -77,8 +90,10 @@ function WorkspaceBankRow({
         <summary
           aria-label={bank.actionsLabel ?? `Actions for ${bank.name}`}
           className={cn(
-            'grid size-8 cursor-pointer list-none place-items-center rounded transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring [&::-webkit-details-marker]:hidden',
-            selected ? 'hover:bg-primary-foreground/15' : 'hover:bg-foreground/10',
+            'grid h-6 w-5 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden',
+            selected
+              ? 'text-[var(--crt-led)] group-open:bg-[var(--crt-bg-1)]'
+              : 'text-[var(--crt-ink-2)] group-open:bg-[var(--crt-bg-1)]',
           )}
           onKeyDown={(event) => {
             if (event.key !== 'Enter' && event.key !== ' ') return
@@ -87,9 +102,13 @@ function WorkspaceBankRow({
           }}
           title={bank.actionsLabel ?? `Actions for ${bank.name}`}
         >
-          <EllipsisVertical className="size-4" />
+          <EllipsisVertical className="size-3.5" />
         </summary>
-        <div className="menu-surface font-vt323 absolute top-0 left-full z-40 min-w-56 rounded-md border bg-popover p-1 text-popover-foreground">
+        {/*
+          The menu drops below the row where the sidebar is wide enough to
+          hold it, and swings out to the side on the narrow icon-only rail.
+        */}
+        <div className="menu-surface absolute top-0 left-full z-40 min-w-56 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)] sm:top-[calc(100%-4px)] sm:right-[-6px] sm:left-auto sm:w-[214px]">
           {renderActions(bank, closeActions)}
         </div>
       </details>
@@ -162,7 +181,7 @@ export function WorkspaceBankSelector({
   }
 
   return (
-    <ul aria-label={label} className="flex list-none flex-col p-0">
+    <ul aria-label={label} className="flex list-none flex-col gap-1.5 p-2">
       {banks.map((bank, index) => (
         <WorkspaceBankRow
           bank={bank}

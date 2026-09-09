@@ -33,8 +33,12 @@ export function PatchButton({
   return (
     <div
       className={cn(
-        'patch-edge-gradient group relative h-full min-h-16 touch-none overflow-hidden rounded-lg border border-border/70 bg-background/50 shadow-sm backdrop-blur-[3px] transition duration-200 before:absolute before:inset-y-0 before:left-0 before:w-0.5 hover:border-primary/70 hover:bg-background/70 data-[disabled=true]:opacity-50',
-        isActive && 'border-primary ring-2 ring-primary/35',
+        'patch-edge-gradient group relative flex h-full min-h-9 touch-none items-center gap-2 px-2 py-[7px] transition-colors duration-150',
+        'border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
+        'data-[disabled=true]:opacity-50',
+        isActive
+          ? 'border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
+          : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)]',
       )}
       data-active={isActive}
       data-disabled={disabled}
@@ -51,45 +55,57 @@ export function PatchButton({
         <button
           aria-current={isActive ? 'true' : undefined}
           aria-label={t('banks.edit', { name: patch.name })}
-          className="absolute inset-0 z-0 cursor-pointer rounded-lg focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
+          className="absolute inset-0 z-0 cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
           onClick={() => onEdit(patch)}
           title={t('banks.openEditor', { name: patch.name })}
           type="button"
         />
       ) : null}
-      <div className="pointer-events-none grid h-full min-h-16 grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-1 p-2 pl-9 text-left">
-        <span className="patch-slot font-dot-matrix flex size-11 items-center justify-center rounded-md border border-primary/15 bg-muted/70 text-sm font-bold text-[var(--hero-accent)] shadow-inner backdrop-blur-sm">
-          {patch.bank}
-          {patch.number.toString().padStart(2, '0')}
-        </span>
-        <span className="patch-name font-dot-matrix min-w-0 truncate text-sm font-bold whitespace-pre text-white">
-          {patch.name}
-        </span>
-        {isActive ? (
-          <span className="pointer-events-none absolute top-1 right-2 rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-black tracking-wide text-white uppercase">
-            {t('banks.auditioning')}
-          </span>
-        ) : null}
-      </div>
       {patch.family === 'DX7' ? (
         <button
           {...sortable.attributes}
           {...sortable.listeners}
           aria-label={t('banks.reorder', { name: patch.name })}
-          className="absolute top-1/2 left-1.5 z-[1] -translate-y-1/2 cursor-grab rounded p-1 text-[var(--hero-accent)] hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:cursor-grabbing"
+          className="z-[1] -mr-1 shrink-0 cursor-grab text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] active:cursor-grabbing"
           title={t('banks.reorderTitle')}
           type="button"
         >
-          <GripVertical className="size-4" />
+          <GripVertical aria-hidden="true" className="size-3.5" />
         </button>
       ) : (
-        <span
-          aria-hidden="true"
-          className="absolute top-1/2 left-1.5 z-[1] -translate-y-1/2 p-1 text-muted-foreground/20"
-        >
-          <GripVertical className="size-4" />
+        <span aria-hidden="true" className="-mr-1 shrink-0 text-[var(--crt-line-dk)]">
+          <GripVertical className="size-3.5" />
         </span>
       )}
+      <span
+        className={cn(
+          'patch-slot font-vt323 pointer-events-none shrink-0 border px-1.5 pt-0.5 text-[18px] leading-none',
+          'bg-[var(--crt-bg-well)]',
+          isActive
+            ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
+            : 'border-[var(--crt-line)] text-[var(--crt-acc-lt)]',
+        )}
+      >
+        {patch.bank}
+        {patch.number.toString().padStart(2, '0')}
+      </span>
+      <span
+        className={cn(
+          'patch-name font-dot-matrix pointer-events-none min-w-0 flex-1 truncate text-[11px] font-bold whitespace-pre',
+          isActive ? 'text-white' : 'text-[var(--crt-ink)]',
+        )}
+      >
+        {patch.name}
+      </span>
+      <span
+        aria-hidden="true"
+        className="crt-led pointer-events-none shrink-0"
+        data-state={isActive ? 'on' : 'off'}
+        style={
+          isActive ? { background: 'var(--crt-led)', boxShadow: '0 0 8px var(--crt-led)' } : {}
+        }
+      />
+      {isActive ? <span className="sr-only">{t('banks.auditioning')}</span> : null}
     </div>
   )
 }

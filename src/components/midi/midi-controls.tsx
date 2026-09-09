@@ -23,7 +23,7 @@ export function MidiConnectActions({ midi }: MidiControlsProps) {
   }
 
   return (
-    <label className="font-vt323 inline-flex min-h-10 cursor-pointer items-center gap-3 rounded-md border border-white/20 bg-white/10 px-3 text-sm font-medium text-white transition hover:bg-white/15">
+    <label className="crt-inset inline-flex min-h-8 cursor-pointer items-center gap-2 bg-[var(--crt-bg-2)] px-2.5 text-xs tracking-[0.1em] text-[var(--crt-acc-lt)] uppercase transition-colors hover:bg-[var(--crt-bg-head)]">
       <input
         aria-label={t('midi.online')}
         aria-checked={Boolean(midi.midiAccess)}
@@ -36,7 +36,7 @@ export function MidiConnectActions({ midi }: MidiControlsProps) {
       />
       <span
         aria-hidden="true"
-        className="relative h-5 w-9 shrink-0 rounded-full border border-white/40 bg-white/20 transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring after:absolute after:top-0.5 after:left-0.5 after:size-3.5 after:rounded-full after:bg-card after:shadow-sm after:transition-transform peer-checked:after:translate-x-4"
+        className="relative h-4 w-7 shrink-0 border border-[var(--crt-shadow)] bg-[var(--crt-bg-well)] transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--crt-led)] after:absolute after:top-[2px] after:left-[2px] after:size-2.5 after:bg-[var(--crt-line-dk)] after:transition-[transform,background-color,box-shadow] peer-checked:after:translate-x-3 peer-checked:after:bg-[var(--crt-acc)] peer-checked:after:shadow-[0_0_7px_var(--crt-acc)]"
       />
       <span>{t('midi.online')}</span>
     </label>
@@ -47,7 +47,7 @@ export function MidiConnectionError({ midi }: MidiControlsProps) {
   if (!midi.error) return null
 
   return (
-    <div className="rounded-md border border-white/20 bg-white/10 px-4 py-3 text-sm text-white">
+    <div className="crt-inset bg-[var(--crt-bg-2)] px-4 py-3 text-sm text-[var(--crt-ink-2)]">
       {midi.error}
     </div>
   )
@@ -61,12 +61,12 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
     <details className="group relative" ref={menuRef}>
       <summary
         aria-label={t('common.settings')}
-        className="hero-action flex size-10 cursor-pointer list-none items-center justify-center rounded-md bg-transparent transition hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+        className="hero-action flex size-[26px] cursor-pointer list-none items-center justify-center transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
         title={t('common.settings')}
       >
-        <MoreVertical className="size-7" />
+        <MoreVertical className="size-4" />
       </summary>
-      <div className="menu-surface absolute top-12 right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 rounded-lg border bg-popover p-3 text-popover-foreground sm:grid-cols-2">
+      <div className="menu-surface absolute top-9 right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-3 text-[var(--crt-ink)] sm:grid-cols-2">
         <div className="px-1 pt-1 sm:col-span-2">
           <p className="font-dot-matrix text-base font-semibold">{t('common.settings')}</p>
           <p className="font-vt323 mt-0.5 text-xs text-muted-foreground">

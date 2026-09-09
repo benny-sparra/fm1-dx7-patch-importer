@@ -4,24 +4,33 @@ import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
 
+/*
+ * Terminal pushbuttons. Every variant is a two-tone bevel — light on the
+ * top-left, `--crt-shadow` on the bottom-right — so the face, not a radius or
+ * a glow, is what marks a control as pressable. `ghost` is the one exception:
+ * it stays flat until hovered, for icon affordances sitting on a hatched
+ * header where a permanent bevel would read as clutter.
+ */
 const buttonVariants = cva(
-  'inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md px-4 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4',
+  'inline-flex h-8 shrink-0 cursor-pointer items-center justify-center gap-2 px-3 text-xs font-semibold tracking-[0.08em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-3.5',
   {
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow-[0_0_14px_hsl(315_100%_60%_/_0.16)] hover:-translate-y-px hover:bg-primary/90 hover:shadow-[0_0_20px_hsl(315_100%_60%_/_0.3)]',
+          'border-t border-r border-b border-l border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-white hover:bg-[var(--crt-acc-dim)]',
         destructive:
-          'bg-destructive text-destructive-foreground shadow-sm hover:-translate-y-px hover:bg-destructive/90',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+          'border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-destructive hover:bg-destructive hover:text-destructive-foreground',
+        secondary:
+          'border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-2)] hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)]',
         outline:
-          'border border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
+          'border-t border-r border-b border-l border-t-[var(--crt-shadow)] border-r-[var(--crt-line-lt2)] border-b-[var(--crt-line-lt2)] border-l-[var(--crt-shadow)] bg-[var(--crt-bg-1)] text-[var(--crt-ink-2)] hover:bg-[var(--crt-bg-head)] hover:text-[var(--crt-acc-lt)]',
+        ghost:
+          'text-[var(--crt-ink-2)] hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)]',
       },
       size: {
-        default: 'h-10 px-4',
-        sm: 'h-8 px-3 text-xs',
-        icon: 'size-10 p-0',
+        default: 'h-8 px-3',
+        sm: 'h-7 px-2 text-[11px]',
+        icon: 'size-8 p-0',
       },
     },
     defaultVariants: {
