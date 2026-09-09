@@ -174,6 +174,7 @@ export default {
       phaser: 'Phaser',
     },
     parameters: {
+      depth: 'Tiefe',
       type: 'Typ',
       cutoff: 'Grenzfrequenz',
       resonance: 'Resonanz',

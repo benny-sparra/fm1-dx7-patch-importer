@@ -174,6 +174,7 @@ export default {
       phaser: 'Phaser',
     },
     parameters: {
+      depth: 'Profondeur',
       type: 'Type',
       cutoff: 'Coupure',
       resonance: 'Résonance',

@@ -148,6 +148,7 @@ export default {
       phaser: '移相器',
     },
     parameters: {
+      depth: '深度',
       type: '类型',
       cutoff: '截止频率',
       resonance: '共振',
