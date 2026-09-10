@@ -3,7 +3,14 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogCloseButton, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogCloseButton,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 
 const HELP_SEEN_KEY = 'fm1-librarian-help-seen'
@@ -79,37 +86,40 @@ export function HelpDialog() {
         size="3xl"
       >
         <DialogHeader>
-          <div className="flex gap-3">
-            <CircleHelp className="mt-0.5 size-6 shrink-0 text-primary" />
-            <div>
-              <h2 className="text-lg font-bold" id="help-dialog-title">
-                {t('help.title')}
-              </h2>
-              <p className="mt-1 text-sm leading-5 text-muted-foreground">{t('help.intro')}</p>
-            </div>
-          </div>
+          <DialogTitle id="help-dialog-title">
+            <CircleHelp className="size-4 shrink-0" />
+            {t('help.title')}
+          </DialogTitle>
           <DialogCloseButton label={t('help.close')} onClick={closeDialog} />
         </DialogHeader>
+        <DialogBody>
+          <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">{t('help.intro')}</p>
 
-        <p className="mx-5 mt-5 rounded-lg border border-primary/30 bg-primary/10 p-4 text-sm leading-6">
-          <span className="font-semibold">{t('help.truthTitle')}</span> {t('help.truthBody')}
-        </p>
+          {/*
+            The callout and each step are labelled wells: the label sits
+            astride the top border and breaks it, the way a panel legend does.
+          */}
+          <div className="crt-legend-box mx-4 mt-5 p-3.5">
+            <span className="crt-legend text-[11px] tracking-[0.18em] text-[var(--crt-led)] uppercase">
+              {t('help.truthTitle')}
+            </span>
+            <span className="block pt-1 text-sm leading-6 text-[var(--crt-ink-2)]">
+              {t('help.truthBody')}
+            </span>
+          </div>
 
-        <ol className="grid gap-3 p-5 sm:grid-cols-2">
-          {steps.map(({ description, icon: Icon, title }, index) => (
-            <li className="rounded-lg border bg-background p-4" key={title}>
-              <div className="flex items-center gap-2 font-semibold">
-                <span className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">
-                  {index + 1}
+          <ol className="grid gap-x-4 gap-y-5 p-4 pt-6 sm:grid-cols-2">
+            {steps.map(({ description, icon: Icon, title }, index) => (
+              <li className="crt-legend-box p-3.5 pt-3" key={title}>
+                <span className="crt-legend font-dot-matrix flex items-center gap-1.5 text-xs font-bold tracking-[0.12em] text-[var(--crt-acc-lt)] uppercase">
+                  {index + 1}. <Icon aria-hidden="true" className="size-3.5" />
+                  {t(title)}
                 </span>
-                <Icon className="size-4 text-primary" />
-                {t(title)}
-              </div>
-              <p className="mt-2 text-sm leading-5 text-muted-foreground">{t(description)}</p>
-            </li>
-          ))}
-        </ol>
-
+                <p className="text-sm leading-6 text-[var(--crt-ink-2)]">{t(description)}</p>
+              </li>
+            ))}
+          </ol>
+        </DialogBody>
         <DialogFooter>
           <Button className="shrink-0" onClick={closeDialog} type="button">
             {t('help.start')}

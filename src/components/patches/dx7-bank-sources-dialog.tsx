@@ -2,7 +2,13 @@ import { ExternalLink, Library } from 'lucide-react'
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Dialog, DialogCloseButton, DialogHeader } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogCloseButton,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const bankSources = [
   {
@@ -38,43 +44,43 @@ export function Dx7BankSourcesDialog() {
 
       <Dialog aria-labelledby="dx7-bank-sources-title" ref={dialogRef} size="lg">
         <DialogHeader>
-          <div>
-            <h2 className="flex items-center gap-2 text-lg font-bold" id="dx7-bank-sources-title">
-              <Library className="size-5 text-primary" />
-              {t('dialogs.sourcesTitle')}
-            </h2>
-            <p className="mt-1 text-sm leading-5 text-muted-foreground">
-              {t('dialogs.sourcesIntro')}
-            </p>
-          </div>
+          <DialogTitle id="dx7-bank-sources-title">
+            <Library className="size-5 text-primary" />
+            {t('dialogs.sourcesTitle')}
+          </DialogTitle>
           <DialogCloseButton
             label={t('dialogs.sourcesClose')}
             onClick={() => dialogRef.current?.close()}
           />
         </DialogHeader>
+        <DialogBody>
+          <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">
+            {t('dialogs.sourcesIntro')}
+          </p>
 
-        <ul className="grid gap-3 p-5">
-          {bankSources.map((source) => (
-            <li key={source.url}>
-              <a
-                className="group flex items-start justify-between gap-4 rounded-md border bg-background p-4 transition-colors hover:border-primary/50 hover:bg-accent"
-                href={source.url}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <span>
-                  <span className="block font-semibold text-foreground group-hover:text-primary">
-                    {source.name}
+          <ul className="grid gap-3 p-5">
+            {bankSources.map((source) => (
+              <li key={source.url}>
+                <a
+                  className="group flex items-start justify-between gap-4 rounded-md border bg-background p-4 transition-colors hover:border-primary/50 hover:bg-accent"
+                  href={source.url}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <span>
+                    <span className="block font-semibold text-foreground group-hover:text-primary">
+                      {source.name}
+                    </span>
+                    <span className="mt-1 block text-sm leading-5 text-muted-foreground">
+                      {source.description}
+                    </span>
                   </span>
-                  <span className="mt-1 block text-sm leading-5 text-muted-foreground">
-                    {source.description}
-                  </span>
-                </span>
-                <ExternalLink className="mt-0.5 size-4 shrink-0 text-muted-foreground group-hover:text-primary" />
-              </a>
-            </li>
-          ))}
-        </ul>
+                  <ExternalLink className="mt-0.5 size-4 shrink-0 text-muted-foreground group-hover:text-primary" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </DialogBody>
       </Dialog>
     </>
   )

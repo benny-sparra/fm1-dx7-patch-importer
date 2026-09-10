@@ -383,6 +383,50 @@
     }
   }
 
+  /*
+   * Dialog title bar. Two hairlines run the full width of the bar and the
+   * title and close button sit on top of them painted in the dialog's own
+   * background, knocking a gap out of the rules rather than interrupting
+   * them — the window chrome of a terminal UI. The rules are drawn as
+   * backgrounds rather than borders so the knock-out works with no extra
+   * elements.
+   */
+  .crt-titlebar {
+    background-image:
+      linear-gradient(var(--crt-acc-lt), var(--crt-acc-lt)),
+      linear-gradient(var(--crt-acc-lt), var(--crt-acc-lt));
+    background-repeat: no-repeat;
+    background-position:
+      0 9px,
+      0 13px;
+    background-size:
+      100% 1px,
+      100% 1px;
+    color: var(--crt-acc-lt);
+  }
+
+  .crt-titlebar > * {
+    background: var(--crt-bg-panel2);
+  }
+
+  /*
+   * A labelled well. The legend sits astride the top border, as on a
+   * fieldset, and the label paints over the rule to break it.
+   */
+  .crt-legend-box {
+    position: relative;
+    border: 1px solid var(--crt-line-lt);
+  }
+
+  .crt-legend-box > legend,
+  .crt-legend-box > .crt-legend {
+    position: absolute;
+    top: -9px;
+    left: 11px;
+    padding: 0 7px;
+    background: var(--crt-bg-1);
+  }
+
   .settings-option {
     background-color: var(--crt-btn-face);
   }

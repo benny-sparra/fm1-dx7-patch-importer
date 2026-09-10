@@ -3,7 +3,14 @@ import { type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogCloseButton, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogCloseButton,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 type DeleteWorkspaceBankDialogProps = {
   bankName: string
@@ -27,23 +34,20 @@ export function DeleteWorkspaceBankDialog({
       size="sm"
     >
       <DialogHeader>
-        <div className="flex gap-3">
-          <Trash2 className="mt-0.5 size-6 shrink-0 text-destructive" />
-          <div>
-            <h2 className="text-lg font-bold" id="delete-workspace-bank-title">
-              {t('banks.deleteBank')}
-            </h2>
-            <p
-              className="mt-1 text-sm leading-5 text-muted-foreground"
-              id="delete-workspace-bank-description"
-            >
-              {t('banks.deleteBankConfirm', { name: bankName })}
-            </p>
-          </div>
-        </div>
+        <DialogTitle id="delete-workspace-bank-title">
+          <Trash2 className="size-4 shrink-0" />
+          {t('banks.deleteBank')}
+        </DialogTitle>
         <DialogCloseButton label={t('common.close')} onClick={closeDialog} />
       </DialogHeader>
-
+      <DialogBody>
+        <p
+          className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]"
+          id="delete-workspace-bank-description"
+        >
+          {t('banks.deleteBankConfirm', { name: bankName })}
+        </p>
+      </DialogBody>
       <DialogFooter>
         <Button
           className="bg-destructive text-white shadow-none hover:bg-destructive/90 hover:shadow-none"
