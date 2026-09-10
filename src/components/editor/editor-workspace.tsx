@@ -15,6 +15,7 @@ import {
   FM1_OPERATOR_COUNT,
   getOperatorParameterDefinition,
   resolveOperatorParameterIndex,
+  storedToDisplayValue,
 } from '@/lib/fm1-parameters'
 import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { rangeStyle } from '@/lib/range-style'
@@ -347,6 +348,29 @@ export function OperatorRack({
         const summaryId = `operator-${operator}-summary`
         const detailId = `operator-${operator}-detail`
 
+        /*
+          The artboard's collapsed row also reports the envelope's rate and
+          level pairs and a short parameter strip. They are readouts, not
+          controls — the controls live in the panel this row opens — and they
+          are dropped below xl, where the row has no width to spare.
+        */
+        const envelopeCells = rates.map((rate, point) => ({
+          level: levels[point],
+          point: point + 1,
+          rate,
+        }))
+        const readValue = (id: Parameters<typeof getOperatorParameterDefinition>[0]) =>
+          storedToDisplayValue(
+            getOperatorParameterDefinition(id),
+            parameters[resolveOperatorParameterIndex(operator, id)],
+          )
+        const summaryCells = [
+          { label: 'DTUNE', value: readValue('operator.detune') },
+          { label: 'VEL', value: readValue('operator.velocitySensitivity') },
+          { label: 'A.MOD', value: readValue('operator.ampModSensitivity') },
+          { label: 'SCALE', value: readValue('operator.keyboard.rateScaling') },
+        ]
+
         return (
           <div
             className={cn(
@@ -407,12 +431,46 @@ export function OperatorRack({
                   />
                 </svg>
 
+                <span aria-hidden="true" className="hidden shrink-0 gap-px xl:flex">
+                  {envelopeCells.map(({ level, point, rate }) => (
+                    <span className="flex flex-col" key={point}>
+                      <span className="flex gap-px">
+                        <span className="w-7 bg-[var(--crt-bg-well)] px-1 text-[8px] tracking-[0.08em] text-[var(--crt-ink-4)]">
+                          R{point}
+                        </span>
+                        <span className="w-7 bg-[var(--crt-bg-well)] px-1 text-[8px] tracking-[0.08em] text-[var(--crt-ink-4)]">
+                          L{point}
+                        </span>
+                      </span>
+                      <span className="font-vt323 flex gap-px">
+                        <span className="w-7 bg-[var(--crt-bg-1)] px-1 text-xs text-[var(--crt-ink-2)]">
+                          {rate}
+                        </span>
+                        <span className="w-7 bg-[var(--crt-bg-1)] px-1 text-xs text-[var(--crt-ink-2)]">
+                          {level}
+                        </span>
+                      </span>
+                    </span>
+                  ))}
+                </span>
+
                 <span
                   aria-label={frequencyDescription}
                   className="operator-frequency font-vt323 shrink-0 border border-[var(--crt-line)] bg-[var(--crt-bg-well)] px-1.5 text-sm text-[var(--crt-acc-lt)]"
                   title={frequencyDescription}
                 >
                   {frequencyLabel}
+                </span>
+
+                <span aria-hidden="true" className="hidden shrink-0 items-center gap-2 xl:flex">
+                  {summaryCells.map(({ label, value }) => (
+                    <span className="flex flex-col leading-none" key={label}>
+                      <span className="text-[8px] tracking-[0.08em] text-[var(--crt-ink-4)]">
+                        {label}
+                      </span>
+                      <span className="font-vt323 text-xs text-[var(--crt-ink-2)]">{value}</span>
+                    </span>
+                  ))}
                 </span>
                 <span className="flex shrink-0 items-baseline gap-1 text-[9px] font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase">
                   {t('editor.output')}

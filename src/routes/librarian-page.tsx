@@ -2,6 +2,7 @@ import {
   Archive,
   Download,
   EllipsisVertical,
+  Music,
   Plus,
   RotateCcw,
   Send,
@@ -80,6 +81,17 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
     name: string
   } | null>(null)
   const allBanksMenuRef = useDismissableDetails()
+  /*
+    The artboard's AUDITION control. A slot here opens the editor on click
+    rather than selecting in place, so there is no "selected but unopened"
+    sound to audition; this re-sends the one already lit on the FM1, which is
+    what the LED in the grid is marking.
+  */
+  const auditionedPatch = patches.find((patch) => patch.id === activePatchId)
+  const auditionSelectedPatch = () => {
+    if (!auditionedPatch) return
+    midi.sendProgramChange(auditionedPatch.program)
+  }
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
   const bankDisplayName = useWorkspaceBankLabel(library)
   const saveBlob = (blob: Blob, filename: string) => {
@@ -291,6 +303,22 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
               <Download aria-hidden="true" className="size-3.5" />
               {t('banks.export')}
             </button>
+            <button
+              className="crt-raised-thin inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 bg-[var(--crt-btn-face)] px-3 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
+              disabled={!auditionedPatch || !midi.hasMidiOutput}
+              onClick={auditionSelectedPatch}
+              title={
+                !midi.hasMidiOutput
+                  ? t('midi.connectFirst')
+                  : auditionedPatch
+                    ? t('banks.auditionTitle', { name: auditionedPatch.name })
+                    : t('banks.auditionNone')
+              }
+              type="button"
+            >
+              <Music aria-hidden="true" className="size-3.5" />
+              {t('banks.audition')}
+            </button>
           </>
         }
         headerActions={
@@ -346,8 +374,12 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
         toolbar={
           <>
             <div className="flex h-full w-16 flex-col border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] sm:w-[226px]">
-              <p className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5 text-[11px] leading-tight tracking-[0.18em] text-[var(--crt-acc-lt)] uppercase">
-                {t('banks.destination')}
+              {/*
+                A short visible heading, as on the artboard. The list itself
+                keeps the longer descriptive string as its accessible name.
+              */}
+              <p className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5 text-[11px] tracking-[0.22em] text-[var(--crt-acc-lt)] uppercase">
+                {t('banks.listHeading')}
               </p>
               <WorkspaceBankSelector
                 banks={banks.map((bank) => {

@@ -1,8 +1,6 @@
-import { AudioWaveform, SlidersHorizontal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { AlgorithmPanel } from '@/components/editor/editor-workspace'
-import { EffectsUnit } from '@/components/editor/effects-unit'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import {
   LfoWaveControl,
@@ -11,22 +9,17 @@ import {
 } from '@/components/editor/parameter-controls'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
-import { getFm1EffectParameters } from '@/lib/fm1-effects'
 import {
   displayToStoredValue,
   getGlobalParameterDefinition,
   storedToDisplayValue,
   type GlobalParameterId,
 } from '@/lib/fm1-parameters'
-import { cn } from '@/lib/utils'
 
 type GlobalConfigurationPanelProps = {
   beginGesture: () => void
   endGesture: () => void
-  leftPanelTab: 'effects' | 'global'
-  onTabChange: (tab: 'effects' | 'global') => void
   parameters: Uint8Array
-  setEffectParameter: (controller: number, value: number) => void
   setParameter: (parameter: number, value: number, maximum: number) => void
 }
 
@@ -38,66 +31,13 @@ const transposeParameter = getGlobalParameterDefinition('global.transpose')
 export function GlobalConfigurationPanel({
   beginGesture,
   endGesture,
-  leftPanelTab,
-  onTabChange,
   parameters,
-  setEffectParameter,
   setParameter,
 }: GlobalConfigurationPanelProps) {
   const { t } = useTranslation()
   return (
     <aside aria-label={t('editor.configuration')} className="grid min-w-0 gap-4">
-      <div
-        aria-label={t('editor.sections')}
-        className="relative grid grid-cols-2 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-1)] p-1"
-        role="tablist"
-      >
-        <span
-          aria-hidden="true"
-          className={cn(
-            'pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] bg-[var(--crt-sel-bg)] transition-transform duration-200 ease-out motion-reduce:transition-none',
-            leftPanelTab === 'effects' && 'translate-x-full',
-          )}
-        />
-        <button
-          aria-controls="global-configuration-panel"
-          aria-selected={leftPanelTab === 'global'}
-          className={cn(
-            'font-dot-matrix relative z-10 flex h-8 cursor-pointer items-center justify-center gap-2 px-3 text-xs font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
-            leftPanelTab === 'global' && 'text-[var(--crt-acc-lt)]',
-          )}
-          id="global-configuration-tab"
-          onClick={() => onTabChange('global')}
-          role="tab"
-          type="button"
-        >
-          <SlidersHorizontal className="size-4" />
-          {t('editor.global')}
-        </button>
-        <button
-          aria-controls="effects-configuration-panel"
-          aria-selected={leftPanelTab === 'effects'}
-          className={cn(
-            'font-dot-matrix relative z-10 flex h-8 cursor-pointer items-center justify-center gap-2 px-3 text-xs font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
-            leftPanelTab === 'effects' && 'text-[var(--crt-acc-lt)]',
-          )}
-          id="effects-configuration-tab"
-          onClick={() => onTabChange('effects')}
-          role="tab"
-          type="button"
-        >
-          <AudioWaveform className="size-4" />
-          {t('editor.effects')}
-        </button>
-      </div>
-
-      <div
-        aria-labelledby="global-configuration-tab"
-        className="grid min-w-0 gap-4"
-        hidden={leftPanelTab !== 'global'}
-        id="global-configuration-panel"
-        role="tabpanel"
-      >
+      <div className="grid min-w-0 gap-4" id="global-configuration-panel">
         <AlgorithmPanel
           algorithm={parameters[algorithmParameter.voiceIndex]}
           feedback={parameters[feedbackParameter.voiceIndex]}
@@ -240,21 +180,6 @@ export function GlobalConfigurationPanel({
             />
           </CardContent>
         </Card>
-      </div>
-
-      <div
-        aria-labelledby="effects-configuration-tab"
-        hidden={leftPanelTab !== 'effects'}
-        id="effects-configuration-panel"
-        role="tabpanel"
-      >
-        <EffectsUnit
-          layout="sidebar"
-          onChange={setEffectParameter}
-          onGestureEnd={endGesture}
-          onGestureStart={beginGesture}
-          values={getFm1EffectParameters(parameters)}
-        />
       </div>
     </aside>
   )

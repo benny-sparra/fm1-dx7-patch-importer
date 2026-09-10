@@ -105,7 +105,7 @@ describe('PatchEditorPage MIDI paths', () => {
     const user = userEvent.setup()
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
-    await user.click(screen.getByRole('tab', { name: 'Effects' }))
+    // The effects are their own always-visible section now, not a tab to open.
     await user.click(screen.getByRole('button', { name: 'Enable Filter' }))
     expect(midi.sendEffectParameter).toHaveBeenCalledWith(0, 1)
     expect(midi.sendParameter).not.toHaveBeenCalled()

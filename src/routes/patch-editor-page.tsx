@@ -1,7 +1,10 @@
+import { Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { OperatorsTitle, OperatorRack } from '@/components/editor/editor-workspace'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
+import { EffectsUnit } from '@/components/editor/effects-unit'
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
@@ -63,6 +66,7 @@ export function PatchEditorPage({
   patch,
   voice,
 }: PatchEditorPageProps) {
+  const { t } = useTranslation()
   // Only read while mounting: App remounts this editor for each patch, keyed by patch id.
   const makeInitialParameters = () => makeFm1EditorParameters(unpackDx7Voice(voice), effects)
   const [history, setHistory] = useState(() => makeEditorHistory(makeInitialParameters()))
@@ -70,7 +74,6 @@ export function PatchEditorPage({
   const [selectedOperator, setSelectedOperator] = useState(1)
   const [mutedOperators, setMutedOperators] = useState<ReadonlySet<number>>(() => new Set())
   const [soloOperator, setSoloOperator] = useState<number | null>(null)
-  const [leftPanelTab, setLeftPanelTab] = useState<'effects' | 'global'>('global')
   const [syncState, setSyncState] = useState<PatchSyncState>('sending')
   const [isNavigationPending, setIsNavigationPending] = useState(false)
   const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
@@ -478,13 +481,35 @@ export function PatchEditorPage({
         <GlobalConfigurationPanel
           beginGesture={beginGesture}
           endGesture={endGesture}
-          leftPanelTab={leftPanelTab}
-          onTabChange={setLeftPanelTab}
           parameters={parameters}
-          setEffectParameter={setEffectParameter}
           setParameter={setParameter}
         />
       </div>
+
+      {/*
+        The artboard gives the effects a full-width section of their own
+        beneath the operators rather than a tab sharing the right column, so
+        all six units are visible at once. EffectsUnit already had this
+        layout; it was only ever rendered in its narrow sidebar form.
+      */}
+      <section aria-labelledby="effects-heading" className="synthwave-panel min-w-0">
+        <div className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
+          <h2
+            className="font-dot-matrix flex items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase"
+            id="effects-heading"
+          >
+            <Sparkles aria-hidden="true" className="size-4 shrink-0" />
+            {t('editor.effects')}
+          </h2>
+        </div>
+        <EffectsUnit
+          layout="workspace"
+          onChange={setEffectParameter}
+          onGestureEnd={endGesture}
+          onGestureStart={beginGesture}
+          values={getFm1EffectParameters(parameters)}
+        />
+      </section>
 
       <UnsavedEditorDialog
         dialogRef={unsavedDialogRef}
