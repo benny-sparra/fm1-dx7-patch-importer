@@ -289,7 +289,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
               type="button"
             >
               <Download aria-hidden="true" className="size-3.5" />
-              {t('banks.download')}
+              {t('banks.export')}
             </button>
           </>
         }

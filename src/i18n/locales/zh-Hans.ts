@@ -412,6 +412,7 @@ export default {
     bankInformation: '音色库信息',
     bankInformationHelp: '编辑此工作区音色库的标题和可选说明。',
     download: '下载此音色库',
+    export: '导出',
     downloadAll: '下载所有音色库 (.zip)',
     restoreFactory: '恢复原厂音色库',
     restoreAll: '恢复所有音色库',

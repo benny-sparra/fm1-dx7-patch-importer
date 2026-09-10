@@ -449,6 +449,7 @@ export default {
     bankInformation: 'Información del banco',
     bankInformationHelp: 'Edita el título y la descripción opcional de este banco de trabajo.',
     download: 'Descargar este banco',
+    export: 'Exportar',
     downloadAll: 'Descargar todos los bancos (.zip)',
     restoreFactory: 'Restaurar bancos de fábrica',
     restoreAll: 'Restaurar todos los bancos',

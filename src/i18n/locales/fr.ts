@@ -443,6 +443,7 @@ export default {
     bankInformationHelp:
       'Modifiez le titre et la description facultative de cette banque de travail.',
     download: 'Télécharger cette banque',
+    export: 'Exporter',
     downloadAll: 'Télécharger toutes les banques (.zip)',
     restoreFactory: 'Restaurer les banques d’usine',
     restoreAll: 'Restaurer toutes les banques',

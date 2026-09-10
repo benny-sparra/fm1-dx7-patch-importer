@@ -437,6 +437,7 @@ export default {
     bankInformation: 'Bank information',
     bankInformationHelp: 'Edit the title and optional description for this workspace bank.',
     download: 'Download this bank',
+    export: 'Export',
     downloadAll: 'Download all banks (.zip)',
     restoreFactory: 'Restore factory banks',
     restoreAll: 'Restore all banks',

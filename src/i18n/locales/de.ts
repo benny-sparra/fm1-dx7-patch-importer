@@ -453,6 +453,7 @@ export default {
     bankInformation: 'Bankinformationen',
     bankInformationHelp: 'Bearbeite den Titel und die optionale Beschreibung dieser Arbeitsbank.',
     download: 'Diese Bank herunterladen',
+    export: 'Exportieren',
     downloadAll: 'Alle Bänke herunterladen (.zip)',
     restoreFactory: 'Werksbänke wiederherstellen',
     restoreAll: 'Alle Bänke wiederherstellen',
