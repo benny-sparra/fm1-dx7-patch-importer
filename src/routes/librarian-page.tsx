@@ -303,12 +303,20 @@ export function LibrarianPage({
               <Pencil aria-hidden="true" className="size-3.5" />
               {t('banks.editSelected')}
               {auditionedPatch && ' '}
-              {auditionedPatch && (
-                <span className="font-dot-matrix text-[13px] font-bold tracking-[0.1em]">
-                  {auditionedPatch.bank}
-                  {auditionedPatch.number.toString().padStart(2, '0')}
-                </span>
-              )}
+              {/* The slot code keeps its width while nothing is lit, so selecting a
+                  slot cannot rewrap the toolbar and move the grid under the pointer
+                  between the two clicks of a double click. */}
+              <span
+                aria-hidden={auditionedPatch ? undefined : true}
+                className={cn(
+                  'font-dot-matrix text-[13px] font-bold tracking-[0.1em]',
+                  !auditionedPatch && 'invisible',
+                )}
+              >
+                {auditionedPatch
+                  ? `${auditionedPatch.bank}${auditionedPatch.number.toString().padStart(2, '0')}`
+                  : 'A00'}
+              </span>
             </button>
           </>
         }

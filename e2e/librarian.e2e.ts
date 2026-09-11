@@ -9,7 +9,18 @@ async function openLibrarian(page: Page) {
   if (await helpDialog.isVisible())
     await helpDialog.getByRole('button', { name: 'Close help' }).click()
   await expect(page.getByRole('heading', { name: 'Patch banks' })).toBeVisible()
-  await expect(page.getByRole('button', { name: /^Edit / }).first()).toBeVisible()
+  await expect(slotButtons(page).first()).toBeVisible()
+}
+
+/** The slot buttons, named "Send … to FM1"; the toolbar's bank-wide "Send to FM1" is excluded. */
+function slotButtons(page: Page) {
+  return page.getByRole('button', { name: /^Send .+ to FM1$/ })
+}
+
+function slotNames(page: Page) {
+  return slotButtons(page).evaluateAll((buttons) =>
+    buttons.map((button) => button.getAttribute('aria-label')),
+  )
 }
 
 async function openFirstBankMenu(page: Page) {
@@ -118,10 +129,7 @@ test('downloads a complete DX7 bank file', async ({ page }) => {
 
 test('reorders patches with the keyboard drag control', async ({ page }) => {
   await openLibrarian(page)
-  const editButtons = page.getByRole('button', { name: /^Edit / })
-  const namesBefore = await editButtons.evaluateAll((buttons) =>
-    buttons.map((button) => button.getAttribute('aria-label')),
-  )
+  const namesBefore = await slotNames(page)
 
   const reorderFirstPatch = page.getByRole('button', { name: /^Reorder / }).first()
   await reorderFirstPatch.press('Space')
@@ -129,11 +137,7 @@ test('reorders patches with the keyboard drag control', async ({ page }) => {
   await reorderFirstPatch.press('Space')
 
   await expect
-    .poll(() =>
-      editButtons.evaluateAll((buttons) =>
-        buttons.map((button) => button.getAttribute('aria-label')),
-      ),
-    )
+    .poll(() => slotNames(page))
     .toEqual([namesBefore[1], namesBefore[0], ...namesBefore.slice(2)])
 })
 

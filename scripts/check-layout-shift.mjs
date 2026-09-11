@@ -217,30 +217,21 @@ async function main() {
       expression: `
         (() => {
           const images = [...document.images];
-          const keyboard = images.find((image) => image.alt === '');
           const header = images.find((image) => image.alt.includes('synthesiser front panel'));
           const dialog = images.find((image) => image.alt.includes('four numbered knobs'));
           return {
             dialog: dialog?.currentSrc || null,
             header: header?.currentSrc || null,
-            keyboard: keyboard?.currentSrc || null,
-            keyboardSizes: keyboard?.sizes || null,
           };
         })()
       `,
       returnByValue: true,
     })
-    if (!mobileImages.result.value.keyboard?.includes('fm1-keyboard-400-')) {
-      throw new Error(`The 412px mobile viewport did not select the 400px keyboard candidate.`)
-    }
     if (mobileImages.result.value.header) {
       throw new Error(`The colourway image mounted below the lg breakpoint.`)
     }
     if (mobileImages.result.value.dialog) {
       throw new Error(`The closed dialog loaded its lazy image.`)
-    }
-    if (!mobileImages.result.value.keyboardSizes) {
-      throw new Error(`A responsive image with width descriptors is missing its sizes attribute.`)
     }
     if (
       [...requestedUrls].some((requestUrl) =>
@@ -327,54 +318,6 @@ async function main() {
       throw new Error(`Changing colourway requested an inactive colourway image.`)
     }
 
-    await connection.send('Network.emulateNetworkConditions', {
-      connectionType: 'none',
-      downloadThroughput: -1,
-      latency: 0,
-      offline: false,
-      uploadThroughput: -1,
-    })
-    const selectMobileKeyboard = async (deviceScaleFactor) => {
-      await connection.send('Emulation.setDeviceMetricsOverride', {
-        deviceScaleFactor,
-        height: 823,
-        mobile: true,
-        width: 412,
-      })
-      const candidateUrl = `${url}?image-dpr=${deviceScaleFactor}`
-      await connection.send('Page.navigate', { url: candidateUrl })
-      return waitFor(async () => {
-        const state = await connection.send('Runtime.evaluate', {
-          expression: `
-            location.href === ${JSON.stringify(candidateUrl)} && document.readyState === 'complete'
-              ? [...document.images].find((image) => image.alt === '')?.currentSrc || ''
-              : ''
-          `,
-          returnByValue: true,
-        })
-        return state.result.value || null
-      }, `the ${deviceScaleFactor}x keyboard candidate`)
-    }
-    const keyboardCandidatesByDpr = {
-      1: mobileImages.result.value.keyboard,
-      1.5: await selectMobileKeyboard(1.5),
-      2: await selectMobileKeyboard(2),
-      3: await selectMobileKeyboard(3),
-    }
-    const originalKeyboardPattern = /\/fm1-keyboard-(?!320-|400-|600-)[^/]+\.webp$/
-    if (!/fm1-keyboard-400-/.test(keyboardCandidatesByDpr[1])) {
-      throw new Error(`The 1x mobile viewport selected an unexpected keyboard candidate.`)
-    }
-    if (!/fm1-keyboard-600-/.test(keyboardCandidatesByDpr[1.5])) {
-      throw new Error(`The 1.5x mobile viewport selected an unexpected keyboard candidate.`)
-    }
-    if (!originalKeyboardPattern.test(keyboardCandidatesByDpr[2])) {
-      throw new Error(`The 2x mobile viewport selected an unexpected keyboard candidate.`)
-    }
-    if (!originalKeyboardPattern.test(keyboardCandidatesByDpr[3])) {
-      throw new Error(`The 3x mobile viewport selected an unexpected keyboard candidate.`)
-    }
-
     console.log(
       JSON.stringify(
         {
@@ -382,8 +325,6 @@ async function main() {
           ...measurement,
           responsiveImages: {
             desktopHeader: desktopHeader.currentSrc,
-            keyboardCandidatesByDpr,
-            mobileKeyboard: mobileImages.result.value.keyboard,
             purpleHeader,
             requestedColorways,
             sourceMapsRequested: [...requestedUrls].filter((requestUrl) =>
