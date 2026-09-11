@@ -138,7 +138,7 @@ async function openLibrarian(page: Page, locale: string) {
     page.getByRole('heading', { level: 2, name: translate(locale, 'banks.gridTitle') }).first(),
   ).toBeVisible({ timeout: 15_000 })
   await expect(
-    page.getByRole('button', { name: interpolatedPattern(locale, 'banks.edit') }).first(),
+    page.getByRole('button', { name: interpolatedPattern(locale, 'banks.sendPatch') }).first(),
   ).toBeVisible({ timeout: 15_000 })
 }
 
@@ -168,9 +168,9 @@ for (const locale of testedLocales) {
       await openLibrarian(page, locale)
 
       await page
-        .getByRole('button', { name: interpolatedPattern(locale, 'banks.edit') })
+        .getByRole('button', { name: interpolatedPattern(locale, 'banks.sendPatch') })
         .first()
-        .click()
+        .dblclick()
       await expect(
         page.getByRole('button', { name: translate(locale, 'editor.back') }),
       ).toBeVisible()

@@ -2,7 +2,7 @@ import {
   Archive,
   Download,
   EllipsisVertical,
-  Music,
+  Pencil,
   Plus,
   RotateCcw,
   Send,
@@ -46,9 +46,16 @@ type LibrarianPageProps = {
   library: PatchLibrary
   midi: MidiController
   onEditPatch: (patch: Patch) => void
+  onSelectPatch: (patch: Patch) => void
 }
 
-export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: LibrarianPageProps) {
+export function LibrarianPage({
+  activePatchId,
+  library,
+  midi,
+  onEditPatch,
+  onSelectPatch,
+}: LibrarianPageProps) {
   const { t } = useTranslation()
   const toast = useToast()
   const { patches } = library
@@ -81,17 +88,8 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
     name: string
   } | null>(null)
   const allBanksMenuRef = useDismissableDetails()
-  /*
-    The artboard's AUDITION control. A slot here opens the editor on click
-    rather than selecting in place, so there is no "selected but unopened"
-    sound to audition; this re-sends the one already lit on the FM1, which is
-    what the LED in the grid is marking.
-  */
+  // EDIT acts on the slot lit in the grid, which a click has already played on the FM1.
   const auditionedPatch = patches.find((patch) => patch.id === activePatchId)
-  const auditionSelectedPatch = () => {
-    if (!auditionedPatch) return
-    midi.sendProgramChange(auditionedPatch.program)
-  }
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
   const bankDisplayName = useWorkspaceBankLabel(library)
   const saveBlob = (blob: Blob, filename: string) => {
@@ -274,7 +272,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
               </span>
             </span>
             <button
-              className="crt-raised-lit inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] text-white transition-colors hover:bg-[var(--crt-acc-dim)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
+              className="crt-raised-lit inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
               disabled={isSending || !isDestinationBankLoaded}
               onClick={sendSelectedBank}
               title={
@@ -289,35 +287,28 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
               <Send aria-hidden="true" className="size-3.5" />
               {isSending ? t('banks.sending') : t('banks.send')}
             </button>
+            {/* EDIT burns in the slot LED's amber and names the lit slot, so it reads
+                as acting on that sound rather than on the bank like its neighbours. */}
             <button
-              className="crt-raised-thin inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 bg-[var(--crt-btn-face)] px-3 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
-              disabled={!isDestinationBankLoaded}
-              onClick={() => downloadBank(destinationBank)}
+              className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-3 text-xs font-semibold tracking-[0.08em] text-[var(--crt-led)] shadow-[0_0_8px_var(--crt-led-glow)] transition-colors hover:bg-[var(--crt-led)] hover:text-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:border-[var(--crt-line-lt2)] disabled:text-[var(--crt-ink-2)] disabled:opacity-50 disabled:shadow-none"
+              disabled={!auditionedPatch}
+              onClick={() => auditionedPatch && onEditPatch(auditionedPatch)}
               title={
-                isDestinationBankLoaded
-                  ? t('banks.downloadTitle', { bank: bankDisplayName(destinationBank) })
-                  : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+                auditionedPatch
+                  ? t('banks.openEditor', { name: auditionedPatch.name })
+                  : t('banks.editNone')
               }
               type="button"
             >
-              <Download aria-hidden="true" className="size-3.5" />
-              {t('banks.export')}
-            </button>
-            <button
-              className="crt-raised-thin inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 bg-[var(--crt-btn-face)] px-3 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
-              disabled={!auditionedPatch || !midi.hasMidiOutput}
-              onClick={auditionSelectedPatch}
-              title={
-                !midi.hasMidiOutput
-                  ? t('midi.connectFirst')
-                  : auditionedPatch
-                    ? t('banks.auditionTitle', { name: auditionedPatch.name })
-                    : t('banks.auditionNone')
-              }
-              type="button"
-            >
-              <Music aria-hidden="true" className="size-3.5" />
-              {t('banks.audition')}
+              <Pencil aria-hidden="true" className="size-3.5" />
+              {t('banks.editSelected')}
+              {auditionedPatch && ' '}
+              {auditionedPatch && (
+                <span className="font-dot-matrix text-[13px] font-bold tracking-[0.1em]">
+                  {auditionedPatch.bank}
+                  {auditionedPatch.number.toString().padStart(2, '0')}
+                </span>
+              )}
             </button>
           </>
         }
@@ -366,6 +357,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
           toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
         }}
         onPatchEdit={onEditPatch}
+        onPatchSelect={onSelectPatch}
         onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
         patches={visiblePatches}
         search={search}
@@ -436,7 +428,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
                       </button>
                       {banks.length > 1 ? (
                         <button
-                          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent"
+                          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
                           onClick={() => {
                             closeMenu()
                             const name = bankDisplayName(bank)
@@ -463,7 +455,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
               {nextBank ? (
                 <button
                   aria-label={t('banks.addBank')}
-                  className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-xs font-bold tracking-[0.08em] text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] sm:justify-start"
+                  className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] sm:justify-start"
                   onClick={() => addWorkspaceBankDialogRef.current?.showModal()}
                   title={t('banks.addBank')}
                   type="button"
@@ -491,7 +483,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
           aria-live="polite"
           className={cn(
             'text-sm',
-            transferStatus.kind === 'success' && 'text-emerald-700',
+            transferStatus.kind === 'success' && 'text-emerald-400',
             transferStatus.kind === 'error' && 'text-destructive',
             transferStatus.kind === 'idle' && 'text-muted-foreground',
           )}

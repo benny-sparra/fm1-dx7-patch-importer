@@ -38,11 +38,16 @@ function App() {
   const [auditionedPatchId, setAuditionedPatchId] = useState('')
   const selectedPatch = library.patches.find((patch) => patch.id === selectedPatchId)
   const selectedVoice = selectedPatch ? library.voices[selectedPatch.id] : undefined
-  const editPatch = (patchId: string) => {
+  const selectPatch = (patchId: string) => {
     const patch = library.patches.find((candidate) => candidate.id === patchId)
     if (!patch) return
     midi.sendProgramChange(patch.program)
     setAuditionedPatchId(patch.id)
+    return patch
+  }
+  const editPatch = (patchId: string) => {
+    const patch = selectPatch(patchId)
+    if (!patch) return
     beginDynamicImportRecovery(patch.id)
     setSelectedPatchId(patch.id)
     trackAnalyticsEvent({ name: 'editor_opened' })
@@ -60,7 +65,7 @@ function App() {
       <div className="flex flex-col items-center gap-3 rounded-md bg-card px-6 py-5">
         <LoaderCircle
           aria-hidden="true"
-          className="size-7 animate-spin text-primary motion-reduce:animate-none"
+          className="size-7 animate-spin text-[var(--crt-acc-lt)] motion-reduce:animate-none"
         />
         {label}
       </div>
@@ -98,6 +103,7 @@ function App() {
               library={library}
               midi={midi}
               onEditPatch={(patch) => editPatch(patch.id)}
+              onSelectPatch={(patch) => selectPatch(patch.id)}
             />
           )}
         </>

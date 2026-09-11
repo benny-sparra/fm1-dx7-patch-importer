@@ -31,10 +31,16 @@
   --color-muted-foreground: var(--crt-ink-3);
   --color-accent: var(--crt-sel-bg);
   --color-accent-foreground: var(--crt-acc-lt);
-  --color-destructive: hsl(348 82% 62%);
-  --color-destructive-foreground: hsl(0 0% 100%);
+  /*
+   * Light enough to hold 4.5:1 as text on every raised surface in all six
+   * colourways, which in turn means a filled destructive control takes dark
+   * ink rather than white.
+   */
+  --color-destructive: hsl(350 100% 74%);
+  --color-destructive-foreground: var(--crt-bg-0);
   --color-border: var(--crt-line);
-  --color-input: var(--crt-line);
+  /* Field outlines must reach 3:1 against both the dialog and the well. */
+  --color-input: var(--crt-acc-dim);
   --color-ring: var(--crt-led);
 
   /* The shell is bevelled, not rounded. Radius tokens collapse to square. */
@@ -74,6 +80,8 @@
     /* Controls. */
     --crt-btn-face: hsl(var(--crt-h) var(--crt-s-bg) 14%);
     --crt-btn: hsl(var(--crt-h) var(--crt-s-acc) 30%);
+    /* Hover presses the face darker; lighter would drop white text below 4.5:1. */
+    --crt-btn-hover: hsl(var(--crt-h) var(--crt-s-acc) 24%);
     --crt-sel-bg: hsl(var(--crt-h) var(--crt-s-acc) 20%);
 
     /* Bevel highlights: always lighter than the face they border. */
@@ -496,9 +504,11 @@
     flex-wrap: wrap;
     font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
     font-weight: 900;
+    line-height: 1.1;
     letter-spacing: 0.03em;
+    text-transform: uppercase;
     color: var(--crt-acc-br);
-    text-shadow: 0 0 10px var(--crt-led-glow);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--crt-acc) 35%, transparent);
   }
 
   .synthwave-title[data-layout='compact'] {
@@ -523,9 +533,16 @@
     display: flex;
     flex-basis: 100%;
     font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
+    font-size: 0.8125rem;
     font-weight: 700;
+    line-height: 1.2;
     letter-spacing: 0.12em;
     color: var(--crt-acc-lt);
+    text-shadow: none;
+  }
+
+  .synthwave-title[data-layout='compact'] .synthwave-brand-row {
+    font-size: 0.6875rem;
   }
 
   .hero-supporting-text {
@@ -747,8 +764,56 @@
     }
   }
 
+  /*
+   * Selecting a slot. The cell takes a brief phosphor flash that settles
+   * into the selection colour, and its LED strikes on with a short flicker
+   * like a lamp warming up. Both run once, and only after a click: the cell
+   * raises `data-flash` itself, so a slot that mounts already selected (on
+   * load, or on returning to its bank) appears without the effect.
+   */
+  .patch-cell[data-active='true'][data-flash='true'] {
+    animation: patch-cell-select 360ms ease-out;
+  }
+
+  .patch-cell[data-active='true'][data-flash='true'] .crt-led {
+    animation: patch-led-strike 300ms steps(1, end);
+  }
+
+  @keyframes patch-cell-select {
+    from {
+      box-shadow: inset 0 0 14px var(--crt-led-glow);
+      filter: brightness(1.18);
+    }
+
+    to {
+      box-shadow: inset 0 0 0 transparent;
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes patch-led-strike {
+    0% {
+      opacity: 0.25;
+    }
+
+    25% {
+      opacity: 1;
+    }
+
+    45% {
+      opacity: 0.5;
+    }
+
+    65%,
+    100% {
+      opacity: 1;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .patch-edge-gradient::before {
+    .patch-edge-gradient::before,
+    .patch-cell[data-flash='true'],
+    .patch-cell[data-flash='true'] .crt-led {
       animation: none;
     }
   }
@@ -760,25 +825,35 @@
     box-shadow: none;
   }
 
+  /*
+   * The track is a segmented LED meter: a striped fill between the range's
+   * start and end, masked back to the well on either side.
+   */
   input[type='range']::-webkit-slider-runnable-track {
-    height: 0.5rem;
+    height: 0.625rem;
     border-top: 1px solid var(--crt-shadow);
     border-left: 1px solid var(--crt-shadow);
     border-right: 1px solid var(--crt-line-lt2);
     border-bottom: 1px solid var(--crt-line-lt2);
-    background: linear-gradient(
-      to right,
-      var(--crt-bg-well) 0 var(--range-start),
-      var(--range-color, var(--crt-acc)) var(--range-start) var(--range-end),
-      var(--crt-bg-well) var(--range-end) 100%
-    );
+    background:
+      linear-gradient(
+        to right,
+        var(--crt-bg-well) 0 var(--range-start),
+        transparent var(--range-start) var(--range-end),
+        var(--crt-bg-well) var(--range-end) 100%
+      ),
+      repeating-linear-gradient(
+        90deg,
+        var(--range-color, var(--crt-acc)) 0 3px,
+        var(--crt-bg-1) 3px 5px
+      );
   }
 
   input[type='range']::-webkit-slider-thumb {
     width: 0.75rem;
     height: 1rem;
     appearance: none;
-    margin-top: -0.3125rem;
+    margin-top: -0.25rem;
     border-top: 1px solid var(--crt-bevel-lt);
     border-left: 1px solid var(--crt-bevel-lt);
     border-right: 1px solid var(--crt-shadow);
@@ -787,9 +862,20 @@
   }
 
   input[type='range']::-moz-range-track {
-    height: 0.5rem;
+    height: 0.625rem;
     border: 1px solid var(--crt-line);
-    background: var(--crt-bg-well);
+    background:
+      linear-gradient(
+        to right,
+        var(--crt-bg-well) 0 var(--range-start),
+        transparent var(--range-start) var(--range-end),
+        var(--crt-bg-well) var(--range-end) 100%
+      ),
+      repeating-linear-gradient(
+        90deg,
+        var(--range-color, var(--crt-acc)) 0 3px,
+        var(--crt-bg-1) 3px 5px
+      );
   }
 
   input[type='range']::-moz-range-thumb {

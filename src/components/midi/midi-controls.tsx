@@ -36,7 +36,7 @@ export function MidiConnectActions({ midi }: MidiControlsProps) {
       />
       <span
         aria-hidden="true"
-        className="relative h-4 w-7 shrink-0 border border-[var(--crt-shadow)] bg-[var(--crt-bg-well)] transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--crt-led)] after:absolute after:top-[2px] after:left-[2px] after:size-2.5 after:bg-[var(--crt-line-dk)] after:transition-[transform,background-color,box-shadow] peer-checked:after:translate-x-3 peer-checked:after:bg-[var(--crt-acc)] peer-checked:after:shadow-[0_0_7px_var(--crt-acc)]"
+        className="relative h-4 w-7 shrink-0 border border-[var(--crt-shadow)] bg-[var(--crt-bg-well)] transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--crt-led)] after:absolute after:top-[2px] after:left-[2px] after:size-2.5 after:bg-[var(--crt-acc-dim)] after:transition-[transform,background-color,box-shadow] peer-checked:after:translate-x-3 peer-checked:after:bg-[var(--crt-acc)] peer-checked:after:shadow-[0_0_7px_var(--crt-acc)]"
       />
       <span>{t('midi.online')}</span>
     </label>
@@ -69,12 +69,10 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
       <div className="menu-surface absolute top-9 right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-3 text-[var(--crt-ink)] sm:grid-cols-2">
         <div className="px-1 pt-1 sm:col-span-2">
           <p className="font-dot-matrix text-base font-semibold">{t('common.settings')}</p>
-          <p className="font-vt323 mt-0.5 text-xs text-muted-foreground">
-            {t('settings.description')}
-          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{t('settings.description')}</p>
         </div>
         <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3 sm:col-span-2">
-          <span className="font-vt323 flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase">
+          <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <Languages className="size-3.5" />
             {t('language')}
           </span>
@@ -105,7 +103,7 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
           value={midi.selectedInputId}
         />
         <label className="settings-option flex min-h-16 flex-col justify-start gap-2 rounded-lg border px-4 py-3">
-          <span className="font-vt323 flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase">
+          <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <SlidersHorizontal className="size-3.5" />
             {t('settings.noteChannel')}
           </span>
@@ -122,7 +120,7 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
           </select>
         </label>
         <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3">
-          <span className="font-vt323 flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase">
+          <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <SlidersHorizontal className="size-3.5" />
             {t('settings.fxChannel')}
           </span>
@@ -137,9 +135,7 @@ export function MidiSettingsMenu({ midi }: MidiControlsProps) {
               </option>
             ))}
           </select>
-          <span className="font-vt323 text-[11px] text-muted-foreground">
-            {t('settings.defaultChannel')}
-          </span>
+          <span className="text-[11px] text-muted-foreground">{t('settings.defaultChannel')}</span>
         </label>
       </div>
     </details>

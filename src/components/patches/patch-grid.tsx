@@ -31,6 +31,7 @@ type PatchGridProps = {
   isPatchDisabled?: (patch: Patch) => boolean
   onPatchMove: (patch: Patch, target: Patch) => void
   onPatchEdit?: (patch: Patch) => void
+  onPatchSelect?: (patch: Patch) => void
   onImportEmptyBank?: () => void
   onLoadDemoBank?: () => void
   patches: Patch[]
@@ -61,6 +62,7 @@ export function PatchGrid({
   isPatchDisabled = () => false,
   onPatchMove,
   onPatchEdit,
+  onPatchSelect,
   onImportEmptyBank,
   onLoadDemoBank,
   patches,
@@ -145,6 +147,7 @@ export function PatchGrid({
                             disabled={isPatchDisabled(patch)}
                             disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
                             onEdit={onPatchEdit}
+                            onSelect={onPatchSelect}
                             patch={patch}
                             isActive={patch.id === activePatchId}
                           />
@@ -188,17 +191,6 @@ export function PatchGrid({
               )}
             </div>
           </CardContent>
-          {/*
-            The artboard's footer hint reads "double-click to edit"; a slot
-            here opens on a single click, so this reuses the existing
-            reorder-title string, which already describes both the drag and
-            the keyboard path and is translated in every locale.
-          */}
-          {patches.length > 0 ? (
-            <p className="mt-auto border-t border-[var(--crt-line-dk)] bg-[var(--crt-bg-panel)] px-[9px] py-2 text-[11px] tracking-[0.1em] text-[var(--crt-ink-3)] uppercase">
-              {t('banks.reorderTitle')}
-            </p>
-          ) : null}
         </div>
       </div>
     </Card>

@@ -66,7 +66,7 @@ export function HelpDialog() {
     <>
       <Button
         aria-label={t('help.open')}
-        className="hero-action cursor-pointer bg-transparent hover:bg-transparent hover:text-[var(--hero-action-hover-foreground)]"
+        className="hero-action font-dot-matrix size-[26px] cursor-pointer rounded-none p-0 text-base leading-none font-bold text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
         onClick={() => {
           trackAnalyticsEvent({ data: { surface: 'guide' }, name: 'help_opened' })
           dialogRef.current?.showModal()
@@ -76,7 +76,7 @@ export function HelpDialog() {
         type="button"
         variant="ghost"
       >
-        <CircleHelp className="!size-7" />
+        <span aria-hidden="true">?</span>
       </Button>
 
       <Dialog

@@ -9,6 +9,16 @@ import { cn } from '@/lib/utils'
 
 const lfoWaves = ['Triangle', 'Saw down', 'Saw up', 'Square', 'Sine', 'Sample & hold']
 
+/** The rack's control caption: small, tracked-out capitals in the dim ink. */
+const captionClass = 'text-[11px] font-normal tracking-[0.1em] text-[var(--crt-ink-3)] uppercase'
+
+/** An LED readout: the amber VT323 figures every value on the rack uses. */
+const ledClass = 'font-vt323 leading-none text-[var(--crt-led)]'
+
+/** A sunken field — selects, number entry and the wave picker's trigger. */
+const fieldClass =
+  'crt-inset h-8 min-w-0 rounded-none bg-[var(--crt-bg-1)] px-2 text-xs text-[var(--crt-ink)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
+
 type ParameterControlProps = {
   helpText?: string
   label: string
@@ -64,6 +74,7 @@ export function RotaryParameterControl({
   valueLabel = String,
 }: RotaryParameterControlProps) {
   const drag = useRef<{ pointerId: number; startValue: number; startY: number } | null>(null)
+  const faceId = `knob-face-${useId().replace(/:/g, '')}`
   const displayValue = valueLabel(value)
   const fraction = (value - min) / (max - min)
   const angle = -135 + fraction * 270
@@ -92,7 +103,7 @@ export function RotaryParameterControl({
   }
 
   return (
-    <div className="grid min-w-0 justify-items-center gap-1 text-xs font-semibold text-muted-foreground">
+    <div className={cn('grid min-w-0 justify-items-center gap-1', captionClass)}>
       <span className="flex max-w-full min-w-0 items-center gap-1">
         <span className="truncate" title={label}>
           {label}
@@ -105,7 +116,7 @@ export function RotaryParameterControl({
         aria-valuemin={min}
         aria-valuenow={value}
         aria-valuetext={displayValue}
-        className="group relative size-[4.75rem] cursor-ns-resize touch-none rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="group relative size-[3.6rem] cursor-ns-resize touch-none rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
         onBlur={onGestureEnd}
         onKeyDown={handleKeyDown}
         onKeyUp={(event) => {
@@ -138,47 +149,72 @@ export function RotaryParameterControl({
         tabIndex={0}
         title={`${label}: ${displayValue}. Drag up or down to adjust.`}
       >
+        {/*
+          A bevelled knob: a domed face lit from the top left, an arc of
+          ticks that fills with the value, and a glowing pointer.
+        */}
         <svg aria-hidden="true" className="size-full overflow-visible" viewBox="0 0 76 76">
+          <defs>
+            <radialGradient cx="35%" cy="28%" id={faceId} r="75%">
+              <stop offset="0%" style={{ stopColor: 'var(--crt-hatch-a)' }} />
+              <stop offset="70%" style={{ stopColor: 'var(--crt-bg-1)' }} />
+            </radialGradient>
+          </defs>
           {Array.from({ length: 11 }, (_, index) => {
             const tickAngle = -135 + index * 27
             return (
               <line
                 className={
-                  index / 10 <= fraction ? 'stroke-[var(--operator-color)]' : 'stroke-border'
+                  index / 10 <= fraction
+                    ? 'stroke-[var(--operator-color,var(--crt-acc))]'
+                    : 'stroke-[var(--crt-line)]'
                 }
                 key={index}
-                strokeLinecap="round"
                 strokeWidth="2"
                 transform={`rotate(${tickAngle} 38 38)`}
                 x1="38"
                 x2="38"
-                y1="4"
-                y2={index % 5 === 0 ? '10' : '8'}
+                y1="2"
+                y2={index % 5 === 0 ? '9' : '7'}
               />
             )
           })}
+          <circle cx="38" cy="38" fill={`url(#${faceId})`} r="25" />
           <circle
-            className="fill-[color-mix(in_srgb,var(--fm1-finish-tint)_24%,white)] stroke-[color-mix(in_srgb,var(--fm1-finish-tint)_55%,var(--color-border))] transition group-hover:stroke-[var(--operator-color)]"
+            className="stroke-[var(--crt-shadow)]"
             cx="38"
             cy="38"
-            r="24"
-            strokeWidth="2"
+            fill="none"
+            r="25"
+            strokeWidth="2.5"
           />
-          <circle cx="38" cy="38" fill="none" r="20.5" stroke="white" strokeOpacity="0.45" />
+          <circle
+            className="stroke-[var(--crt-bevel)] transition group-hover:stroke-[var(--crt-bevel-lt)]"
+            cx="38"
+            cy="38"
+            fill="none"
+            r="25"
+            strokeDasharray="78.5 78.5"
+            strokeWidth="2.5"
+            transform="rotate(135 38 38)"
+          />
           <line
-            className="stroke-[var(--operator-color)]"
-            strokeLinecap="round"
-            strokeWidth="3"
+            className="stroke-[var(--operator-color,var(--crt-acc))] [filter:drop-shadow(0_0_3px_var(--operator-color,var(--crt-acc)))]"
+            strokeWidth="2.5"
             transform={`rotate(${angle} 38 38)`}
             x1="38"
             x2="38"
-            y1="17"
-            y2="29"
+            y1="16"
+            y2="34"
           />
-          <circle className="fill-[var(--operator-color)]" cx="38" cy="38" r="2.5" />
         </svg>
       </div>
-      <output className="font-vt323 min-w-9 rounded border border-border/70 bg-background/80 px-1.5 py-0.5 text-center text-sm text-foreground">
+      <output
+        className={cn(
+          ledClass,
+          'min-w-11 border border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-1.5 py-0.5 text-center text-[19px]',
+        )}
+      >
         {displayValue}
       </output>
     </div>
@@ -198,50 +234,37 @@ export function SliderParameterControl({
   valueLabel = String,
 }: SliderParameterControlProps) {
   return (
-    <label className="grid min-w-0 gap-2 text-xs font-semibold text-muted-foreground">
-      <span className="flex min-w-0 items-center gap-2">
-        <span className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
-          <span className="min-w-0 flex-1 truncate" title={label}>
-            {label}
-          </span>
-          {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+    <label className={cn('grid min-w-0 gap-1', captionClass)}>
+      <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+        <span className="min-w-0 truncate" title={label}>
+          {label}
         </span>
-        <output className="font-vt323 shrink-0 rounded border border-border/70 bg-background/70 px-1.5 py-0.5 text-xs text-foreground">
+        {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+      </span>
+      <span className="flex min-h-6 min-w-0 items-center gap-2">
+        <input
+          aria-label={label}
+          className="min-w-0 flex-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+          max={max}
+          min={min}
+          onBlur={onGestureEnd}
+          onChange={(event) => onChange(Number(event.target.value))}
+          onKeyDown={(event) => {
+            if (rotaryControlKeys.includes(event.key)) onGestureStart()
+          }}
+          onKeyUp={onGestureEnd}
+          onPointerCancel={onGestureEnd}
+          onPointerDown={onGestureStart}
+          onPointerUp={onGestureEnd}
+          step={1}
+          style={rangeStyle(value, min, max, 'var(--crt-acc)', origin)}
+          type="range"
+          value={value}
+        />
+        <output className={cn(ledClass, 'min-w-7 shrink-0 text-right text-lg')}>
           {valueLabel(value)}
         </output>
       </span>
-      <input
-        aria-label={label}
-        className="h-2 w-full cursor-pointer accent-primary"
-        max={max}
-        min={min}
-        onBlur={onGestureEnd}
-        onChange={(event) => onChange(Number(event.target.value))}
-        onKeyDown={(event) => {
-          if (
-            [
-              'ArrowDown',
-              'ArrowLeft',
-              'ArrowRight',
-              'ArrowUp',
-              'End',
-              'Home',
-              'PageDown',
-              'PageUp',
-            ].includes(event.key)
-          ) {
-            onGestureStart()
-          }
-        }}
-        onKeyUp={onGestureEnd}
-        onPointerCancel={onGestureEnd}
-        onPointerDown={onGestureStart}
-        onPointerUp={onGestureEnd}
-        step={1}
-        style={rangeStyle(value, min, max, undefined, origin)}
-        type="range"
-        value={value}
-      />
     </label>
   )
 }
@@ -257,14 +280,14 @@ export function SwitchParameterControl({
   const inputId = useId()
 
   return (
-    <div className="grid min-w-0 gap-1 text-xs font-semibold text-muted-foreground">
+    <div className={cn('grid min-w-0 content-start gap-1', captionClass)}>
       <span className="flex min-w-0 items-center gap-1">
         <span className="truncate" title={label}>
           {label}
         </span>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
       </span>
-      <label className="flex h-9 cursor-pointer items-center gap-2" htmlFor={inputId}>
+      <label className="flex cursor-pointer" htmlFor={inputId}>
         <input
           aria-checked={checked}
           aria-label={label}
@@ -275,11 +298,16 @@ export function SwitchParameterControl({
           role="switch"
           type="checkbox"
         />
+        {/* A latching panel button: lit and raised-bright while on. */}
         <span
-          aria-hidden="true"
-          className="relative h-6 w-11 shrink-0 rounded-full border border-border bg-muted transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring after:absolute after:top-0.5 after:left-0.5 after:size-[1.125rem] after:rounded-full after:bg-background after:shadow-sm after:transition-transform peer-checked:after:translate-x-5"
-        />
-        <span className="text-sm font-bold text-foreground">
+          className={cn(
+            'flex items-center gap-1.5 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-3 py-[3px] text-[11px] tracking-[0.1em] uppercase peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--crt-led)]',
+            checked
+              ? 'border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
+              : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
+          )}
+        >
+          <span aria-hidden="true" className="crt-led" data-state={checked ? 'on' : 'off'} />
           {checked ? t('editor.on') : t('editor.off')}
         </span>
       </label>
@@ -293,6 +321,7 @@ export function RadioParameterControl({
   name,
   onChange,
   options,
+  showLabel = true,
   value,
 }: {
   helpText?: string
@@ -300,22 +329,34 @@ export function RadioParameterControl({
   name: string
   onChange: (value: number) => void
   options: string[]
+  /** Hide the caption where a panel heading already names the choice. */
+  showLabel?: boolean
   value: number
 }) {
   return (
-    <div className="grid min-w-0 gap-1.5 text-xs font-semibold text-muted-foreground">
-      <span className="flex items-center gap-1">
-        {label}
-        {helpText ? <HelpPopover label={label} text={helpText} /> : null}
-      </span>
-      <div aria-label={label} className="grid grid-cols-2 gap-1" role="radiogroup">
+    <div
+      className={cn(
+        'min-w-0',
+        captionClass,
+        showLabel ? 'grid gap-1' : 'flex items-center gap-1.5',
+      )}
+    >
+      {showLabel ? (
+        <span className="flex items-center gap-1">
+          {label}
+          {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+        </span>
+      ) : helpText ? (
+        <HelpPopover label={label} text={helpText} />
+      ) : null}
+      <div aria-label={label} className="flex" role="radiogroup">
         {options.map((option, index) => (
           <label
             className={cn(
-              'flex h-9 cursor-pointer items-center justify-center rounded-md border px-2 text-sm transition-colors focus-within:ring-2 focus-within:ring-ring',
+              'flex flex-1 cursor-pointer items-center justify-center border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2.5 py-[3px] text-[11px] tracking-[0.1em] uppercase transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--crt-led)]',
               value === index
-                ? 'border-[var(--operator-color)] bg-[color-mix(in_srgb,var(--operator-color)_14%,transparent)] font-bold text-foreground'
-                : 'border-border bg-background/70 text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                ? 'border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
+                : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
             )}
             key={option}
           >
@@ -345,7 +386,7 @@ export function ParameterControl({
   value,
 }: ParameterControlProps) {
   return (
-    <label className="grid min-w-0 gap-1 text-xs font-semibold text-muted-foreground">
+    <label className={cn('grid min-w-0 gap-1', captionClass)}>
       <span className="flex min-w-0 items-center gap-1">
         <span className="truncate" title={label}>
           {label}
@@ -354,7 +395,7 @@ export function ParameterControl({
       </span>
       {options ? (
         <select
-          className="h-9 min-w-0 rounded-md border bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(fieldClass, 'normal-case')}
           onChange={(event) => onChange(Number(event.target.value))}
           value={value}
         >
@@ -366,7 +407,7 @@ export function ParameterControl({
         </select>
       ) : (
         <input
-          className="font-vt323 h-9 min-w-0 rounded-md border bg-background px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(fieldClass, 'font-vt323 text-base text-[var(--crt-led)]')}
           max={max}
           min={min}
           onChange={(event) => {
@@ -421,7 +462,7 @@ export function LfoWaveControl({
   }
 
   return (
-    <div className="grid min-w-0 gap-1 text-xs font-semibold text-muted-foreground">
+    <div className={cn('grid min-w-0 content-start gap-1', captionClass)}>
       <span className="flex items-center gap-1">
         {t('ui.lfoWave')}
         <HelpPopover label={t('ui.lfoWave')} text={t('controlHelp.lfoWave')} />
@@ -429,7 +470,10 @@ export function LfoWaveControl({
       <details className="group relative min-w-0" ref={dropdownRef}>
         <summary
           aria-label={`${t('ui.lfoWave')}: ${selectedWave}`}
-          className="flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-md border bg-background px-2 text-sm text-foreground transition-colors outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+          className={cn(
+            fieldClass,
+            'flex cursor-pointer list-none items-center gap-1.5 normal-case transition-colors hover:bg-[var(--crt-bg-head)] [&::-webkit-details-marker]:hidden',
+          )}
         >
           <WaveShapeIcon wave={value} />
           <span className="min-w-0 flex-1 truncate">{selectedWave}</span>
@@ -437,15 +481,15 @@ export function LfoWaveControl({
         </summary>
         <div
           aria-label={t('editor.lfoWave')}
-          className="menu-surface absolute top-[calc(100%+0.25rem)] left-0 z-30 grid w-full min-w-48 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground"
+          className="menu-surface crt-raised absolute top-[calc(100%+0.25rem)] left-0 z-30 grid w-full min-w-48 overflow-hidden bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)] normal-case"
           role="radiogroup"
         >
           {lfoWaves.map((wave, index) => (
             <button
               aria-checked={value === index}
               className={cn(
-                'flex h-9 w-full items-center gap-2 rounded px-2 text-left text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset',
-                value === index && 'bg-accent text-accent-foreground',
+                'flex h-8 w-full items-center gap-2 px-2 text-left text-xs tracking-normal transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+                value === index && 'bg-[var(--crt-sel-bg)] text-[var(--crt-led)]',
               )}
               key={wave}
               onClick={() => selectWave(index)}

@@ -64,17 +64,17 @@ function WorkspaceBankRow({
       >
         <span
           className={cn(
-            'font-dot-matrix grid h-6 w-[26px] shrink-0 place-items-center border bg-[var(--crt-bg-1)] text-sm font-bold',
+            'font-vt323 grid w-[26px] shrink-0 place-items-center border bg-[var(--crt-bg-well)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none',
             selected
               ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
-              : 'border-[var(--crt-line)] text-[var(--crt-ink-3)]',
+              : 'border-[var(--crt-line)] text-[var(--crt-acc-lt)]',
           )}
         >
           {bank.id}
         </span>
         <span
           className={cn(
-            'font-dot-matrix hidden min-w-0 flex-1 truncate text-left text-xs font-bold tracking-[0.06em] sm:block',
+            'font-dot-matrix hidden min-w-0 flex-1 truncate text-left text-[14px] font-bold sm:block',
             selected ? 'text-[var(--crt-led)]' : 'text-[var(--crt-ink-2)]',
           )}
         >
@@ -105,10 +105,10 @@ function WorkspaceBankRow({
           <EllipsisVertical className="size-3.5" />
         </summary>
         {/*
-          The menu drops below the row where the sidebar is wide enough to
-          hold it, and swings out to the side on the narrow icon-only rail.
+          The menu swings out to the right of the row, clear of the tab's
+          edge, so it never covers the neighbouring banks.
         */}
-        <div className="menu-surface absolute top-0 left-full z-40 min-w-56 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)] sm:top-[calc(100%-4px)] sm:right-[-6px] sm:left-auto sm:w-[214px]">
+        <div className="menu-surface absolute top-0 left-[calc(100%+10px)] z-40 min-w-56 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)] sm:w-[214px]">
           {renderActions(bank, closeActions)}
         </div>
       </details>

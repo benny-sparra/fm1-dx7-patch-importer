@@ -45,7 +45,7 @@ export function Dx7BankSourcesDialog() {
       <Dialog aria-labelledby="dx7-bank-sources-title" ref={dialogRef} size="lg">
         <DialogHeader>
           <DialogTitle id="dx7-bank-sources-title">
-            <Library className="size-5 text-primary" />
+            <Library className="size-5 text-[var(--crt-acc-lt)]" />
             {t('dialogs.sourcesTitle')}
           </DialogTitle>
           <DialogCloseButton
@@ -62,20 +62,20 @@ export function Dx7BankSourcesDialog() {
             {bankSources.map((source) => (
               <li key={source.url}>
                 <a
-                  className="group flex items-start justify-between gap-4 rounded-md border bg-background p-4 transition-colors hover:border-primary/50 hover:bg-accent"
+                  className="group flex items-start justify-between gap-4 border border-[var(--crt-line-lt)] p-3.5 transition-colors hover:border-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-acc-lt)]"
                   href={source.url}
                   rel="noreferrer"
                   target="_blank"
                 >
                   <span>
-                    <span className="block font-semibold text-foreground group-hover:text-primary">
+                    <span className="font-dot-matrix block text-xs font-bold tracking-[0.12em] text-[var(--crt-acc-lt)] uppercase">
                       {source.name}
                     </span>
-                    <span className="mt-1 block text-sm leading-5 text-muted-foreground">
+                    <span className="mt-1 block text-sm leading-6 text-[var(--crt-ink-2)]">
                       {source.description}
                     </span>
                   </span>
-                  <ExternalLink className="mt-0.5 size-4 shrink-0 text-muted-foreground group-hover:text-primary" />
+                  <ExternalLink className="mt-0.5 size-4 shrink-0 text-[var(--crt-ink-3)] group-hover:text-[var(--crt-acc-lt)]" />
                 </a>
               </li>
             ))}

@@ -1,8 +1,8 @@
-import { Sparkles } from 'lucide-react'
+import { AudioWaveform, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { OperatorsTitle, OperatorRack } from '@/components/editor/editor-workspace'
+import { OperatorRack, RackPanelTitle } from '@/components/editor/editor-workspace'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
 import { EffectsUnit } from '@/components/editor/effects-unit'
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
@@ -23,7 +23,9 @@ import {
   FM1_VOICE_NAME_START,
   fm1EffectParameters,
   getGlobalParameterDefinition,
+  getOperatorParameterDefinition,
   resolveEffectEditorIndex,
+  resolveOperatorParameterIndex,
 } from '@/lib/fm1-parameters'
 import {
   editParameters,
@@ -53,6 +55,7 @@ type PatchEditorPageProps = {
 }
 
 const algorithmParameter = getGlobalParameterDefinition('global.algorithm')
+const outputParameter = getOperatorParameterDefinition('operator.outputLevel')
 
 function parametersMatch(left: Uint8Array, right: Uint8Array) {
   return left.length === right.length && left.every((value, index) => value === right[index])
@@ -427,7 +430,7 @@ export function PatchEditorPage({
   }
 
   return (
-    <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-4 px-3 py-4 sm:px-5 lg:px-8">
+    <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-2.5 px-3 py-4 sm:px-5 lg:px-8">
       <PatchEditorHeader
         canSync={canSync}
         canRedo={history.future.length > 0}
@@ -452,12 +455,30 @@ export function PatchEditorPage({
 
       {midi.midiAccess && !midi.sysexAvailable ? <MidiSysexWarning /> : null}
 
-      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(14rem,1fr)] lg:items-start">
-        <div className="synthwave-panel min-w-0 overflow-hidden">
-          <OperatorsTitle />
+      {/*
+        The artboard's rack, top to bottom: the six operator columns, then a
+        row of algorithm, pitch envelope and LFO, then the effects chain.
+      */}
+      <div className="grid min-w-0 gap-2.5">
+        <section aria-labelledby="operators-heading" className="synthwave-panel min-w-0">
+          <RackPanelTitle
+            help={{ label: t('editor.fmOperators'), text: t('controlHelp.operator') }}
+            icon={AudioWaveform}
+            id="operators-heading"
+            title={t('editor.operators')}
+          />
           <OperatorRack
             algorithm={parameters[algorithmParameter.voiceIndex]}
             mutedOperators={mutedOperators}
+            onGestureEnd={endGesture}
+            onGestureStart={beginGesture}
+            onOutputChange={(operator, value) =>
+              setParameter(
+                resolveOperatorParameterIndex(operator, 'operator.outputLevel'),
+                value,
+                outputParameter.max,
+              )
+            }
             onSelect={setSelectedOperator}
             onToggleMute={toggleOperatorMute}
             onToggleSolo={toggleOperatorSolo}
@@ -476,7 +497,7 @@ export function PatchEditorPage({
             syncState={syncState}
             soloOperator={soloOperator}
           />
-        </div>
+        </section>
 
         <GlobalConfigurationPanel
           beginGesture={beginGesture}
@@ -484,32 +505,17 @@ export function PatchEditorPage({
           parameters={parameters}
           setParameter={setParameter}
         />
-      </div>
 
-      {/*
-        The artboard gives the effects a full-width section of their own
-        beneath the operators rather than a tab sharing the right column, so
-        all six units are visible at once. EffectsUnit already had this
-        layout; it was only ever rendered in its narrow sidebar form.
-      */}
-      <section aria-labelledby="effects-heading" className="synthwave-panel min-w-0">
-        <div className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
-          <h2
-            className="font-dot-matrix flex items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase"
-            id="effects-heading"
-          >
-            <Sparkles aria-hidden="true" className="size-4 shrink-0" />
-            {t('editor.effects')}
-          </h2>
-        </div>
-        <EffectsUnit
-          layout="workspace"
-          onChange={setEffectParameter}
-          onGestureEnd={endGesture}
-          onGestureStart={beginGesture}
-          values={getFm1EffectParameters(parameters)}
-        />
-      </section>
+        <section aria-labelledby="effects-heading" className="synthwave-panel min-w-0">
+          <RackPanelTitle icon={Sparkles} id="effects-heading" title={t('editor.effects')} />
+          <EffectsUnit
+            onChange={setEffectParameter}
+            onGestureEnd={endGesture}
+            onGestureStart={beginGesture}
+            values={getFm1EffectParameters(parameters)}
+          />
+        </section>
+      </div>
 
       <UnsavedEditorDialog
         dialogRef={unsavedDialogRef}

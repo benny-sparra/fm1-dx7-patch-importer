@@ -68,22 +68,71 @@ describe('LibrarianPage bank selection', () => {
     const user = userEvent.setup()
     render(
       <ToastProvider>
-        <LibrarianPage activePatchId="" library={library} midi={midi} onEditPatch={vi.fn()} />
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={midi}
+          onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
+        />
       </ToastProvider>,
     )
 
     expect(screen.getByText('A01')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Edit Alpha Piano' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Edit Beta Bass' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Send Beta Bass to FM1' })).toBeNull()
 
     await user.click(screen.getByRole('button', { name: 'B — Electric Keys' }))
 
     expect(screen.getByText('B01')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Edit Beta Bass' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Edit Alpha Piano' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
 
     await user.type(screen.getByPlaceholderText('Search by name'), 'no match')
     expect(screen.getByText('No patches match this search')).toBeTruthy()
+  })
+})
+
+describe('LibrarianPage slot actions', () => {
+  it('plays a slot on click, opens it on double click, and edits the lit slot', async () => {
+    const user = userEvent.setup()
+    const onEditPatch = vi.fn()
+    const onSelectPatch = vi.fn()
+    const { rerender } = render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={midi}
+          onEditPatch={onEditPatch}
+          onSelectPatch={onSelectPatch}
+        />
+      </ToastProvider>,
+    )
+
+    expect(screen.getByRole('button', { name: 'Edit' }).hasAttribute('disabled')).toBe(true)
+
+    await user.click(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }))
+    expect(onSelectPatch).toHaveBeenCalledWith(library.patches[0])
+    expect(onEditPatch).not.toHaveBeenCalled()
+
+    await user.dblClick(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }))
+    expect(onEditPatch).toHaveBeenCalledWith(library.patches[0])
+
+    onEditPatch.mockClear()
+    rerender(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId="bank-A-1"
+          library={library}
+          midi={midi}
+          onEditPatch={onEditPatch}
+          onSelectPatch={onSelectPatch}
+        />
+      </ToastProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: 'Edit A01' }))
+    expect(onEditPatch).toHaveBeenCalledWith(library.patches[0])
   })
 })
 
@@ -103,6 +152,7 @@ describe('LibrarianPage transfer analytics', () => {
           library={library}
           midi={connectedMidi}
           onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
         />
       </ToastProvider>,
     )
@@ -135,6 +185,7 @@ describe('LibrarianPage transfer analytics', () => {
           library={library}
           midi={connectedMidi}
           onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
         />
       </ToastProvider>,
     )
@@ -165,6 +216,7 @@ describe('LibrarianPage transfer analytics', () => {
           library={library}
           midi={connectedMidi}
           onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
         />
       </ToastProvider>,
     )
@@ -195,6 +247,7 @@ describe('LibrarianPage transfer analytics', () => {
           library={library}
           midi={connectedMidi}
           onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
         />
       </ToastProvider>,
     )
@@ -230,6 +283,7 @@ describe('LibrarianPage transfer analytics', () => {
           library={library}
           midi={blockedMidi}
           onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
         />
       </ToastProvider>,
     )
@@ -251,6 +305,7 @@ describe('LibrarianPage transfer analytics', () => {
           library={library}
           midi={{ ...blockedMidi, sysexAvailable: true }}
           onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
         />
       </ToastProvider>,
     )

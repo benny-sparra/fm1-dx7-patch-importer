@@ -1,6 +1,7 @@
 import { useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { type Patch } from '@/data/patches'
@@ -11,6 +12,7 @@ type PatchButtonProps = {
   disabledTitle?: string
   isActive?: boolean
   onEdit?: (patch: Patch) => void
+  onSelect?: (patch: Patch) => void
   patch: Patch
 }
 
@@ -21,9 +23,13 @@ export function PatchButton({
   disabledTitle,
   isActive = false,
   onEdit,
+  onSelect,
   patch,
 }: PatchButtonProps) {
   const { t } = useTranslation()
+  // Set by a click and cleared when the selection animation finishes, so the
+  // animation plays only in response to the user and never on mount.
+  const [flash, setFlash] = useState(false)
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
     id: patch.id,
@@ -33,7 +39,7 @@ export function PatchButton({
   return (
     <div
       className={cn(
-        'patch-edge-gradient group relative flex h-full min-h-9 touch-none items-center gap-2 px-2 py-[7px] transition-colors duration-150',
+        'patch-cell patch-edge-gradient group relative flex h-full min-h-12 touch-none items-center gap-2 px-2 py-2 transition-colors duration-150',
         'border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
         'data-[disabled=true]:opacity-50',
         isActive
@@ -42,6 +48,10 @@ export function PatchButton({
       )}
       data-active={isActive}
       data-disabled={disabled}
+      data-flash={flash}
+      onAnimationEnd={(event) => {
+        if (event.animationName === 'patch-cell-select') setFlash(false)
+      }}
       ref={sortable.setNodeRef}
       style={{
         opacity: sortable.isDragging ? 0.55 : 1,
@@ -51,13 +61,22 @@ export function PatchButton({
       }}
       title={disabled ? disabledTitle : undefined}
     >
-      {!disabled && onEdit ? (
+      {/*
+        A single click plays the slot on the FM1; a double click opens it in
+        the editor. Keyboard users reach the editor through the toolbar's
+        Edit button once a slot is selected.
+      */}
+      {!disabled && (onSelect || onEdit) ? (
         <button
           aria-current={isActive ? 'true' : undefined}
-          aria-label={t('banks.edit', { name: patch.name })}
+          aria-label={t('banks.sendPatch', { name: patch.name })}
           className="absolute inset-0 z-0 cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-          onClick={() => onEdit(patch)}
-          title={t('banks.openEditor', { name: patch.name })}
+          onClick={() => {
+            setFlash(true)
+            onSelect?.(patch)
+          }}
+          onDoubleClick={() => onEdit?.(patch)}
+          title={t('banks.slotTitle', { name: patch.name })}
           type="button"
         />
       ) : null}
@@ -79,7 +98,7 @@ export function PatchButton({
       )}
       <span
         className={cn(
-          'patch-slot font-vt323 pointer-events-none shrink-0 border px-1.5 pt-0.5 text-[18px] leading-none',
+          'patch-slot font-vt323 pointer-events-none shrink-0 border px-1.5 pt-1.5 pb-1 text-[18px] leading-none',
           'bg-[var(--crt-bg-well)]',
           isActive
             ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
@@ -91,7 +110,7 @@ export function PatchButton({
       </span>
       <span
         className={cn(
-          'patch-name font-dot-matrix pointer-events-none min-w-0 flex-1 truncate text-[11px] font-bold whitespace-pre',
+          'patch-name font-dot-matrix pointer-events-none min-w-0 flex-1 truncate text-[14px] font-bold whitespace-pre',
           isActive ? 'text-white' : 'text-[var(--crt-ink)]',
         )}
       >

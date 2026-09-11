@@ -18,9 +18,9 @@ async function openFirstBankMenu(page: Page) {
 
 async function openFirstPatch(page: Page) {
   await page
-    .getByRole('button', { name: /^Edit / })
+    .getByRole('button', { name: /^Send .+ to FM1$/ })
     .first()
-    .click()
+    .dblclick()
   await expect(page.getByRole('button', { name: 'Back to patch banks' })).toBeVisible()
 }
 
@@ -68,7 +68,7 @@ test('persists a saved patch name across a browser reload', async ({ page }) => 
 
   await page.reload()
 
-  await expect(page.getByRole('button', { name: 'Edit E2E SAVE' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Send E2E SAVE to FM1' })).toBeVisible()
 })
 
 test('imports a valid DX7 SysEx bank into a populated workspace bank', async ({ page }) => {

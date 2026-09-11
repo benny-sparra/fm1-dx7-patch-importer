@@ -116,7 +116,7 @@ export function AddWorkspaceBankDialog({
     >
       <DialogHeader>
         <DialogTitle id="add-workspace-bank-title">
-          <Plus className="size-5 text-primary" />
+          <Plus className="size-5 text-[var(--crt-acc-lt)]" />
           {t('banks.addBankTitle', { bank })}
         </DialogTitle>
         <DialogCloseButton

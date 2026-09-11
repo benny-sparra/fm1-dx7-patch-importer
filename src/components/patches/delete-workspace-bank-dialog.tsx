@@ -50,7 +50,7 @@ export function DeleteWorkspaceBankDialog({
       </DialogBody>
       <DialogFooter>
         <Button
-          className="bg-destructive text-white shadow-none hover:bg-destructive/90 hover:shadow-none"
+          className="bg-destructive text-destructive-foreground shadow-none hover:bg-destructive/90 hover:shadow-none"
           onClick={() => {
             onDelete()
             closeDialog()

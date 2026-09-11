@@ -79,13 +79,14 @@ export function DialogTitle({ children, className, ...props }: ComponentPropsWit
 /**
  * The recessed well the dialog's content sits in. It carries the inset
  * border and ground only — its children bring their own padding, so it can
- * wrap existing dialog bodies without doubling their spacing.
+ * wrap existing dialog bodies without doubling their spacing. Without a
+ * footer below it, it keeps the same margin from the frame as at its sides.
  */
 export function DialogBody({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div
       className={cn(
-        'mx-2.5 mt-2 border-t border-r border-b border-l border-t-[var(--crt-shadow)] border-r-[var(--crt-line)] border-b-[var(--crt-line)] border-l-[var(--crt-shadow)] bg-[var(--crt-bg-1)] text-[var(--crt-ink)]',
+        'mx-2.5 mt-2 border-t border-r border-b border-l border-t-[var(--crt-shadow)] border-r-[var(--crt-line)] border-b-[var(--crt-line)] border-l-[var(--crt-shadow)] bg-[var(--crt-bg-1)] text-[var(--crt-ink)] last:mb-2.5',
         className,
       )}
       {...props}

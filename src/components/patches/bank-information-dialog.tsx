@@ -72,7 +72,7 @@ export function BankInformationDialog({
       >
         <DialogHeader>
           <DialogTitle id="bank-information-title">
-            <Info className="size-5 text-primary" />
+            <Info className="size-5 text-[var(--crt-acc-lt)]" />
             {t('banks.bankInformation')}
           </DialogTitle>
           <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />

@@ -3,8 +3,13 @@ import { useRef, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { MidiLogCard } from '@/components/midi/midi-log-card'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogCloseButton } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogCloseButton,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { type MidiLogStore } from '@/lib/midi-log-store'
 
 type MidiLogDialogProps = {
@@ -23,26 +28,30 @@ export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
 
   return (
     <>
-      <Button
-        className="font-vt323"
+      <button
+        className="inline-flex items-center gap-1.5 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
         disabled={!hasMidiActivity}
         onClick={() => dialogRef.current?.showModal()}
         type="button"
-        variant="secondary"
       >
-        <ListMusic className="size-4" />
+        <ListMusic aria-hidden="true" className="size-3.5" />
         {t('midi.log')}
-      </Button>
+      </button>
 
-      <Dialog aria-label={t('midi.log')} ref={dialogRef} size="4xl">
-        <div className="relative">
+      <Dialog aria-labelledby="midi-log-title" ref={dialogRef} size="4xl">
+        <DialogHeader>
+          <DialogTitle id="midi-log-title">
+            <ListMusic className="size-4 shrink-0" />
+            {t('midi.log')}
+          </DialogTitle>
           <DialogCloseButton
-            className="absolute top-4 right-4 z-10"
             label={t('midi.closeLog')}
             onClick={() => dialogRef.current?.close()}
           />
+        </DialogHeader>
+        <DialogBody>
           <MidiLogCard log={log} />
-        </div>
+        </DialogBody>
       </Dialog>
     </>
   )

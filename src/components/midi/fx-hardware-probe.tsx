@@ -2,7 +2,13 @@ import { FlaskConical } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogCloseButton } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogCloseButton,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { fm1EffectParameters } from '@/lib/fm1-parameters'
 
 type FxHardwareProbeProps = {
@@ -30,71 +36,71 @@ export function FxHardwareProbe({ send }: FxHardwareProbeProps) {
 
   return (
     <>
-      <Button
-        className="font-vt323"
+      <button
+        className="inline-flex shrink-0 items-center gap-1.5 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         onClick={() => dialog?.showModal()}
         type="button"
-        variant="outline"
       >
-        <FlaskConical className="size-4" />
+        <FlaskConical aria-hidden="true" className="size-3.5" />
         FX probe (dev)
-      </Button>
-      <Dialog aria-label="FM1 effects hardware probe" ref={setDialog} size="md">
-        <div className="space-y-4 p-5">
-          <DialogCloseButton
-            className="absolute top-4 right-4"
-            label="Close FX probe"
-            onClick={() => dialog?.close()}
-          />
-          <div className="pr-8">
-            <h2 className="font-dot-matrix text-lg font-semibold">FM1 effects hardware probe</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Development only. Sends one known FX CC on the selected FX channel; each send is
-              recorded in the local MIDI log. This does not save to the FM1.
-            </p>
-          </div>
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Controller
-            <select
-              className="h-10 rounded-md border bg-background px-2"
-              onChange={(event) => setController(Number(event.target.value))}
-              value={controller}
-            >
-              {fm1EffectParameters.map((parameter) => (
-                <option key={parameter.controller} value={parameter.controller}>
-                  CC {parameter.controller}: {parameter.id} (editor max {parameter.max})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Raw MIDI value (0–127)
-            <input
-              className="h-10 rounded-md border bg-background px-2"
-              inputMode="numeric"
-              max="127"
-              min="0"
-              onChange={(event) => setValue(event.target.value)}
-              type="number"
-              value={value}
-            />
-          </label>
-          <div aria-label="Suggested probe values" className="flex flex-wrap gap-2">
-            {probeValues.map((probeValue) => (
-              <Button
-                key={probeValue}
-                onClick={() => sendValue(probeValue)}
-                type="button"
-                variant="secondary"
+      </button>
+      <Dialog aria-labelledby="fx-hardware-probe-title" ref={setDialog} size="md">
+        <DialogHeader>
+          <DialogTitle id="fx-hardware-probe-title">
+            <FlaskConical className="size-4 shrink-0" />
+            FM1 effects hardware probe
+          </DialogTitle>
+          <DialogCloseButton label="Close FX probe" onClick={() => dialog?.close()} />
+        </DialogHeader>
+        <DialogBody>
+          <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">
+            Development only. Sends one known FX CC on the selected FX channel; each send is
+            recorded in the local MIDI log. This does not save to the FM1.
+          </p>
+          <div className="space-y-4 p-4">
+            <label className="flex flex-col gap-1 text-sm font-medium">
+              Controller
+              <select
+                className="h-10 rounded-md border bg-background px-2"
+                onChange={(event) => setController(Number(event.target.value))}
+                value={controller}
               >
-                Send {probeValue}
-              </Button>
-            ))}
+                {fm1EffectParameters.map((parameter) => (
+                  <option key={parameter.controller} value={parameter.controller}>
+                    CC {parameter.controller}: {parameter.id} (editor max {parameter.max})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium">
+              Raw MIDI value (0–127)
+              <input
+                className="h-10 rounded-md border bg-background px-2"
+                inputMode="numeric"
+                max="127"
+                min="0"
+                onChange={(event) => setValue(event.target.value)}
+                type="number"
+                value={value}
+              />
+            </label>
+            <div aria-label="Suggested probe values" className="flex flex-wrap gap-2">
+              {probeValues.map((probeValue) => (
+                <Button
+                  key={probeValue}
+                  onClick={() => sendValue(probeValue)}
+                  type="button"
+                  variant="secondary"
+                >
+                  Send {probeValue}
+                </Button>
+              ))}
+            </div>
+            <Button disabled={!canSend} onClick={() => sendValue(requestedValue)} type="button">
+              Send raw value
+            </Button>
           </div>
-          <Button disabled={!canSend} onClick={() => sendValue(requestedValue)} type="button">
-            Send raw value
-          </Button>
-        </div>
+        </DialogBody>
       </Dialog>
     </>
   )

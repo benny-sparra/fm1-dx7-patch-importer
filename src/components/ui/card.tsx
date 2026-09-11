@@ -26,12 +26,8 @@ function CardTitle({ children, className, ...props }: React.HTMLAttributes<HTMLH
   )
 }
 
-function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn('text-sm text-muted-foreground', className)} {...props} />
-}
-
 function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn('p-5 pt-0', className)} {...props} />
 }
 
-export { Card, CardContent, CardDescription, CardHeader, CardTitle }
+export { Card, CardContent, CardHeader, CardTitle }

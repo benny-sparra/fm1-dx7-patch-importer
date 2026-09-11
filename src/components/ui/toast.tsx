@@ -31,10 +31,10 @@ function ToastItem({ dismiss, toast }: { dismiss: (id: number) => void; toast: T
 
   return (
     <div
-      className="toast-surface pointer-events-auto flex w-full items-start gap-3 rounded-lg border border-emerald-700/25 bg-card px-4 py-3 text-foreground"
+      className="toast-surface pointer-events-auto flex w-full items-start gap-3 rounded-lg border border-emerald-400/25 bg-card px-4 py-3 text-foreground"
       role="status"
     >
-      <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-emerald-700" />
+      <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-emerald-400" />
       <p className="min-w-0 flex-1 text-sm leading-5 font-semibold">{toast.message}</p>
       <button
         aria-label={t('toasts.dismiss')}

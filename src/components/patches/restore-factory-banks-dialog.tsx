@@ -71,7 +71,7 @@ export function RestoreFactoryBanksDialog({
         </p>
 
         <div className="p-5">
-          <p className="rounded-lg border border-primary/30 bg-primary/10 p-4 text-sm leading-6">
+          <p className="border border-[var(--crt-line-lt)] p-3.5 text-sm leading-6 text-[var(--crt-ink-2)]">
             {t('dialogs.restoreDetails')}
           </p>
           {error ? (

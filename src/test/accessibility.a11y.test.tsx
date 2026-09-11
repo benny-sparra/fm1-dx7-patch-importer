@@ -100,6 +100,7 @@ function renderLibrarian() {
         library={library}
         midi={disconnectedMidi}
         onEditPatch={vi.fn()}
+        onSelectPatch={vi.fn()}
       />
     </ToastProvider>,
   )
@@ -152,6 +153,7 @@ describe('rendered accessibility', () => {
           library={library}
           midi={connectedWithoutSysexMidi}
           onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
         />
       </ToastProvider>,
     )

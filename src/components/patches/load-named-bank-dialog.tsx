@@ -326,7 +326,7 @@ export function LoadNamedBankDialog({
                 {error || library.namedBanksError}
               </p>
             ) : status ? (
-              <p aria-live="polite" className="text-sm text-emerald-700" role="status">
+              <p aria-live="polite" className="text-sm text-emerald-400" role="status">
                 {status}
               </p>
             ) : null}

@@ -81,7 +81,7 @@ export function Fm1BankSelectionDialog({
                 <span>{t('dialogs.bankStep2')}</span>
               </li>
               <li className="flex gap-3">
-                <CircleCheck className="size-6 shrink-0 text-primary" />
+                <CircleCheck className="size-6 shrink-0 text-[var(--crt-acc-lt)]" />
                 <span>{t('dialogs.bankStep3')}</span>
               </li>
             </ol>
