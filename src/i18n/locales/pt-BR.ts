@@ -296,6 +296,16 @@ export default {
     truthBody:
       'O FM1 aceita vozes e bancos, mas não consegue enviar de volta seus bancos armazenados. Importe ou restaure sons aqui, edite-os e depois transfira-os para o FM1.',
     start: 'Começar a editar',
+    stepsTitle: 'Primeiros passos',
+    sections: 'Seções do guia',
+    shortcutsTitle: 'Atalhos de teclado',
+    shortcuts: {
+      banks: 'Bancos de sons',
+      editor: 'Editor de vozes',
+      search: 'Ir para a busca',
+      clearSearch: 'Limpar a busca',
+      openSlot: 'Abrir o slot aceso',
+    },
     steps: {
       libraryTitle: 'Monte sua biblioteca',
       libraryBody:

@@ -82,9 +82,9 @@ If the saved workspace cannot be opened, the app leaves its browser record untou
 
 ### Keyboard shortcuts
 
-Each view binds the actions that also appear in its toolbar. `Ctrl` stands in for `Cmd` on Windows
-and Linux, and the matching button or field shows the shortcut in its tooltip for the current
-platform.
+The **?** guide lists these on its own tab. Each view binds the actions that also appear in its
+toolbar. `Ctrl` stands in for `Cmd` on Windows and Linux, and the matching button or field shows the
+shortcut in its tooltip for the current platform.
 
 In the patch banks:
 

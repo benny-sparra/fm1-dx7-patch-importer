@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { type Patch } from '@/data/patches'
+import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
 import { cn } from '@/lib/utils'
 
 type PatchButtonProps = {
@@ -78,7 +79,8 @@ export function PatchButton({
           }}
           onDoubleClick={() => onEdit?.(patch)}
           onKeyDown={(event) => {
-            if (event.key !== 'Enter' || !isActive || !onEdit) return
+            if (!matchesShortcut(event, librarianShortcuts.openSlot)) return
+            if (!isActive || !onEdit) return
             // Claim the key so it does not also fire the button's own click.
             event.preventDefault()
             onEdit(patch)

@@ -296,6 +296,8 @@ export default {
     truthBody:
       'The FM1 accepts voices and banks but cannot send its stored banks back. Import or restore sounds here, edit them, then transfer them to the FM1.',
     start: 'Start editing',
+    stepsTitle: 'Getting started',
+    sections: 'Guide sections',
     shortcutsTitle: 'Keyboard shortcuts',
     shortcuts: {
       banks: 'Patch banks',

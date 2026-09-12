@@ -300,6 +300,16 @@ export default {
     truthBody:
       'Der FM1 kann Voices und Bänke empfangen, seine gespeicherten Bänke aber nicht zurücksenden. Importiere oder stelle Sounds hier wieder her, bearbeite sie und übertrage sie dann zum FM1.',
     start: 'Bearbeitung starten',
+    stepsTitle: 'Erste Schritte',
+    sections: 'Abschnitte der Anleitung',
+    shortcutsTitle: 'Tastaturkürzel',
+    shortcuts: {
+      banks: 'Sound-Bänke',
+      editor: 'Voice-Editor',
+      search: 'Zur Suche springen',
+      clearSearch: 'Suche löschen',
+      openSlot: 'Leuchtenden Slot öffnen',
+    },
     steps: {
       libraryTitle: 'Bibliothek aufbauen',
       libraryBody:

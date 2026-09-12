@@ -267,6 +267,16 @@ export default {
     truthBody:
       'FM1 可以接收音色和音色库，但无法将其中已保存的音色库传回。请在此导入或恢复音色、进行编辑，然后传输到 FM1。',
     start: '开始编辑',
+    stepsTitle: '快速上手',
+    sections: '指南分区',
+    shortcutsTitle: '键盘快捷键',
+    shortcuts: {
+      banks: '音色库',
+      editor: '音色编辑器',
+      search: '跳到搜索框',
+      clearSearch: '清除搜索',
+      openSlot: '打开点亮的槽位',
+    },
     steps: {
       libraryTitle: '建立音色库',
       libraryBody: '从四个经典 Yamaha DX7 原厂音色库开始，然后导入、编辑或重新排列其中的音色。',

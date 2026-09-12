@@ -36,7 +36,13 @@ export function isTypingTarget(target: EventTarget | null) {
   return typingElements.includes(target.localName)
 }
 
-export function matchesShortcut(event: KeyboardEvent, shortcut: KeyboardShortcut) {
+/** The modifier state of a key press, from either a DOM or a React event. */
+export type ShortcutKeyEvent = Pick<
+  KeyboardEvent,
+  'altKey' | 'ctrlKey' | 'key' | 'metaKey' | 'shiftKey'
+>
+
+export function matchesShortcut(event: ShortcutKeyEvent, shortcut: KeyboardShortcut) {
   if (event.altKey) return false
   if (event.key.toLowerCase() !== shortcut.key.toLowerCase()) return false
   if (event.shiftKey !== Boolean(shortcut.shift)) return false
@@ -70,6 +76,7 @@ export function shouldRunShortcut(
 }
 
 const keyLabels: Record<string, string> = {
+  enter: 'Enter',
   escape: 'Esc',
 }
 
@@ -102,5 +109,8 @@ export const librarianShortcuts = {
   // Both reach the search field: the slash is the cheap one, and taking the
   // browser's find shortcut is worth it in a view whose only text is a name.
   find: { key: 'f', mod: true },
+  // Handled by the slot itself rather than the page, so it can act on the
+  // slot the user is actually on. Defined here so the help dialog agrees.
+  openSlot: { key: 'Enter' },
   search: { key: '/' },
 } as const satisfies Record<string, KeyboardShortcut>
