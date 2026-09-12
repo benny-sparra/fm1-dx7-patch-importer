@@ -349,6 +349,8 @@ export default {
     operator: '操作器 {{number}}',
     operators: '操作器',
     fmOperators: 'FM 操作器',
+    minimisePanel: '最小化{{panel}}',
+    expandPanel: '展开{{panel}}',
     outputLevel: '输出电平',
     amplitudeEnvelope: '振幅包络',
     algorithm: '算法',

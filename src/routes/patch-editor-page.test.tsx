@@ -72,6 +72,62 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(panel.queryByRole('button', { name: 'Collapse Pitch envelope' })).toBeNull()
   })
 
+  it('minimises and restores the effects unit from the panel title', async () => {
+    setup()
+    const user = userEvent.setup()
+
+    expect(screen.getByRole('slider', { name: 'Reverb Decay' })).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Minimise Effects' }))
+    expect(screen.queryByRole('slider', { name: 'Reverb Decay' })).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Expand Effects' }))
+    expect(screen.getByRole('slider', { name: 'Reverb Decay' })).toBeTruthy()
+  })
+
+  it('folds each rack panel independently and keeps the toggles labelled for assistive tech', async () => {
+    setup()
+    const user = userEvent.setup()
+
+    const minimiseOperators = screen.getByRole('button', { name: 'Minimise Operators' })
+    expect(minimiseOperators.getAttribute('aria-expanded')).toBe('true')
+    expect(minimiseOperators.getAttribute('aria-controls')).toBe('operator-rack')
+
+    await user.click(minimiseOperators)
+
+    // The fold animation keys off data-collapsed, so the attribute is part of
+    // the contract rather than an implementation detail of the stylesheet.
+    expect(document.getElementById('operator-rack')?.dataset.collapsed).toBe('true')
+    expect(document.getElementById('effects-unit')?.dataset.collapsed).toBe('false')
+
+    const expandOperators = screen.getByRole('button', { name: 'Expand Operators' })
+    expect(expandOperators.getAttribute('aria-expanded')).toBe('false')
+
+    // Minimising the operators leaves the effects unit open, and vice versa.
+    expect(screen.getByRole('slider', { name: 'Reverb Decay' })).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Minimise Effects' }))
+    expect(document.getElementById('operator-rack')?.dataset.collapsed).toBe('true')
+    expect(document.getElementById('effects-unit')?.dataset.collapsed).toBe('true')
+  })
+
+  it('keeps edits made before a fold when the panel comes back', async () => {
+    const { midi } = setup()
+    const user = userEvent.setup()
+
+    await waitFor(() => expect(midi.sendVoice).toHaveBeenCalled())
+
+    const output = screen.getByRole('slider', { name: 'Operator 1 output level' })
+    fireEvent.change(output, { target: { value: '42' } })
+
+    await user.click(screen.getByRole('button', { name: 'Minimise Operators' }))
+    await user.click(screen.getByRole('button', { name: 'Expand Operators' }))
+
+    expect(
+      screen.getByRole('slider', { name: 'Operator 1 output level' }).getAttribute('value'),
+    ).toBe('42')
+  })
+
   it('stays local and explains the unavailable SysEx connection without attempting initial sync', async () => {
     const { midi } = setup({ sysexAvailable: false })
 

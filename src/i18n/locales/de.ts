@@ -386,6 +386,8 @@ export default {
     operator: 'Operator {{number}}',
     operators: 'Operatoren',
     fmOperators: 'FM-Operatoren',
+    minimisePanel: '{{panel}} minimieren',
+    expandPanel: '{{panel}} ausklappen',
     outputLevel: 'Ausgangspegel',
     amplitudeEnvelope: 'Amplituden-Hüllkurve',
     algorithm: 'Algorithmus',

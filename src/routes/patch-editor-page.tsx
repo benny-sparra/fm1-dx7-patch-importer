@@ -2,7 +2,12 @@ import { AudioWaveform, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { OperatorRack, RackPanelTitle } from '@/components/editor/editor-workspace'
+import {
+  OperatorRack,
+  RackPanelCollapseToggle,
+  RackPanelCollapsibleBody,
+  RackPanelTitle,
+} from '@/components/editor/editor-workspace'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
 import { EffectsUnit } from '@/components/editor/effects-unit'
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
@@ -86,6 +91,8 @@ export function PatchEditorPage({
   // typing a two-word name.
   const [nameDraft, setNameDraft] = useState<string | null>(null)
   const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
+  const [isOperatorRackCollapsed, setIsOperatorRackCollapsed] = useState(false)
+  const [isEffectsCollapsed, setIsEffectsCollapsed] = useState(false)
   const historyRef = useRef(history)
   const historyRevisionRef = useRef(0)
   const syncStateRef = useRef<PatchSyncState>('sending')
@@ -493,41 +500,51 @@ export function PatchEditorPage({
       <div className="grid min-w-0 gap-2.5">
         <section aria-labelledby="operators-heading" className="synthwave-panel min-w-0">
           <RackPanelTitle
+            action={
+              <RackPanelCollapseToggle
+                collapsed={isOperatorRackCollapsed}
+                controls="operator-rack"
+                onToggle={() => setIsOperatorRackCollapsed((collapsed) => !collapsed)}
+                panel={t('editor.operators')}
+              />
+            }
             help={{ label: t('editor.fmOperators'), text: t('controlHelp.operator') }}
             icon={AudioWaveform}
             id="operators-heading"
             title={t('editor.operators')}
           />
-          <OperatorRack
-            algorithm={parameters[algorithmParameter.voiceIndex]}
-            mutedOperators={mutedOperators}
-            onGestureEnd={endGesture}
-            onGestureStart={beginGesture}
-            onOutputChange={(operator, value) =>
-              setParameter(
-                resolveOperatorParameterIndex(operator, 'operator.outputLevel'),
-                value,
-                outputParameter.max,
-              )
-            }
-            onSelect={setSelectedOperator}
-            onToggleMute={toggleOperatorMute}
-            onToggleSolo={toggleOperatorSolo}
-            parameters={parameters}
-            renderOperatorDetail={(operator) => (
-              <FocusedOperatorPanel
-                applyEdits={applyEdits}
-                beginGesture={beginGesture}
-                endGesture={endGesture}
-                parameters={parameters}
-                selectedOperator={operator}
-                setParameter={setParameter}
-              />
-            )}
-            selectedOperator={selectedOperator}
-            syncState={syncState}
-            soloOperator={soloOperator}
-          />
+          <RackPanelCollapsibleBody collapsed={isOperatorRackCollapsed} id="operator-rack">
+            <OperatorRack
+              algorithm={parameters[algorithmParameter.voiceIndex]}
+              mutedOperators={mutedOperators}
+              onGestureEnd={endGesture}
+              onGestureStart={beginGesture}
+              onOutputChange={(operator, value) =>
+                setParameter(
+                  resolveOperatorParameterIndex(operator, 'operator.outputLevel'),
+                  value,
+                  outputParameter.max,
+                )
+              }
+              onSelect={setSelectedOperator}
+              onToggleMute={toggleOperatorMute}
+              onToggleSolo={toggleOperatorSolo}
+              parameters={parameters}
+              renderOperatorDetail={(operator) => (
+                <FocusedOperatorPanel
+                  applyEdits={applyEdits}
+                  beginGesture={beginGesture}
+                  endGesture={endGesture}
+                  parameters={parameters}
+                  selectedOperator={operator}
+                  setParameter={setParameter}
+                />
+              )}
+              selectedOperator={selectedOperator}
+              syncState={syncState}
+              soloOperator={soloOperator}
+            />
+          </RackPanelCollapsibleBody>
         </section>
 
         <GlobalConfigurationPanel
@@ -538,13 +555,27 @@ export function PatchEditorPage({
         />
 
         <section aria-labelledby="effects-heading" className="synthwave-panel min-w-0">
-          <RackPanelTitle icon={Sparkles} id="effects-heading" title={t('editor.effects')} />
-          <EffectsUnit
-            onChange={setEffectParameter}
-            onGestureEnd={endGesture}
-            onGestureStart={beginGesture}
-            values={getFm1EffectParameters(parameters)}
+          <RackPanelTitle
+            action={
+              <RackPanelCollapseToggle
+                collapsed={isEffectsCollapsed}
+                controls="effects-unit"
+                onToggle={() => setIsEffectsCollapsed((collapsed) => !collapsed)}
+                panel={t('editor.effects')}
+              />
+            }
+            icon={Sparkles}
+            id="effects-heading"
+            title={t('editor.effects')}
           />
+          <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="effects-unit">
+            <EffectsUnit
+              onChange={setEffectParameter}
+              onGestureEnd={endGesture}
+              onGestureStart={beginGesture}
+              values={getFm1EffectParameters(parameters)}
+            />
+          </RackPanelCollapsibleBody>
         </section>
       </div>
 

@@ -382,6 +382,8 @@ export default {
     operator: 'Operador {{number}}',
     operators: 'Operadores',
     fmOperators: 'Operadores FM',
+    minimisePanel: 'Minimizar {{panel}}',
+    expandPanel: 'Expandir {{panel}}',
     outputLevel: 'Nível de saída',
     amplitudeEnvelope: 'Envelope de amplitude',
     algorithm: 'Algoritmo',

@@ -699,6 +699,34 @@
     border-bottom: 2px solid var(--crt-shadow);
   }
 
+  /*
+    A rack panel's body folds away behind its title strip. `interpolate-size`
+    lets the fold animate to and from the body's natural height; browsers
+    without it simply snap. Visibility flips only once the fold has finished,
+    so the controls leave the accessibility tree without vanishing mid-fold.
+  */
+  .rack-collapsible {
+    interpolate-size: allow-keywords;
+    height: auto;
+    overflow: hidden;
+    transition: height 160ms ease;
+  }
+
+  .rack-collapsible[data-collapsed='true'] {
+    height: 0;
+  }
+
+  .rack-collapsible[data-collapsed='true'] > * {
+    transition: visibility 0s 160ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rack-collapsible,
+    .rack-collapsible[data-collapsed='true'] > * {
+      transition: none;
+    }
+  }
+
   /* The editor field is a plotted grid on a dark well. */
   .editor-console {
     background-color: var(--crt-bg-1);

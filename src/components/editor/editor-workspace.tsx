@@ -1,4 +1,4 @@
-import { ChevronDown, type LucideIcon, RadioTower, Route } from 'lucide-react'
+import { ChevronDown, ChevronUp, type LucideIcon, RadioTower, Route } from 'lucide-react'
 import { type ReactNode, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -216,6 +216,63 @@ export function RackPanelTitle({
         ) : null}
       </h2>
       {action}
+    </div>
+  )
+}
+
+/**
+ * The minimise control a rack panel wears at the right of its title strip.
+ * Collapsing keeps the title visible so the rack still reads as a stack.
+ */
+export function RackPanelCollapseToggle({
+  collapsed,
+  controls,
+  onToggle,
+  panel,
+}: {
+  collapsed: boolean
+  controls: string
+  onToggle: () => void
+  panel: string
+}) {
+  const { t } = useTranslation()
+  const label = collapsed
+    ? t('editor.expandPanel', { panel })
+    : t('editor.minimisePanel', { panel })
+  const Icon = collapsed ? ChevronDown : ChevronUp
+
+  return (
+    <button
+      aria-controls={controls}
+      aria-expanded={!collapsed}
+      className="flex size-6 shrink-0 cursor-pointer items-center justify-center text-[var(--crt-ink-3)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-acc-lt)]"
+      onClick={onToggle}
+      title={label}
+      type="button"
+    >
+      <span className="sr-only">{label}</span>
+      <Icon aria-hidden="true" className="size-4" />
+    </button>
+  )
+}
+
+/**
+ * A rack panel's body, folded away by its title strip's minimise control.
+ * Visibility is set inline so the collapsed controls leave the accessibility
+ * tree; the stylesheet delays that flip until the fold animation has run.
+ */
+export function RackPanelCollapsibleBody({
+  children,
+  collapsed,
+  id,
+}: {
+  children: ReactNode
+  collapsed: boolean
+  id: string
+}) {
+  return (
+    <div className="rack-collapsible" data-collapsed={collapsed} id={id}>
+      <div style={{ visibility: collapsed ? 'hidden' : undefined }}>{children}</div>
     </div>
   )
 }
