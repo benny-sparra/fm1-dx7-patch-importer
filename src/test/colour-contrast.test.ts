@@ -58,6 +58,16 @@ const surfaces = [
   '--crt-btn-face',
 ]
 
+/*
+ * The colours a caller passes `rangeStyle` for the lit track, minus the
+ * `--crt-line` a disabled effects slider uses: 1.4.11 exempts inactive
+ * components, and that track is only ever lit while the control is disabled.
+ */
+const litTrackColors = ['--crt-acc', '--crt-acc-dim']
+
+/** The track's own fill, and the gaps between the lit stripes. */
+const unlitTrackColors = ['--crt-bg-well', '--crt-bg-1']
+
 /** The envelope editor paints its own dark gradient; this is its lighter stop. */
 const envelopePlot = 'hsl(255 48% 9%)'
 
@@ -141,6 +151,32 @@ const pairings: Pairing[] = [
     minimum: NON_TEXT,
     where: 'empty bank icon',
   },
+  {
+    foreground: '--crt-acc',
+    background: '--crt-bg-well',
+    minimum: NON_TEXT,
+    where: 'MIDI switch knob, on',
+  },
+
+  /*
+   * The slider thumb is a two-layer cap, and each layer carries the boundary
+   * over one half of the segmented track: the dark ring reads against the lit
+   * stripes, the lighter face against the well and the gaps between stripes.
+   */
+  ...litTrackColors.map((background) => ({
+    foreground: '--crt-bg-0',
+    background,
+    minimum: NON_TEXT,
+    where: `slider thumb ring on a track lit with ${background}`,
+  })),
+  ...unlitTrackColors.flatMap((background) =>
+    ['--crt-acc-mid', '--crt-acc'].map((foreground) => ({
+      foreground,
+      background,
+      minimum: NON_TEXT,
+      where: `slider thumb face${foreground === '--crt-acc' ? ', hovered,' : ''} on ${background}`,
+    })),
+  ),
 
   // Translucent ink.
   { foreground: '#fff@0.5', background: envelopePlot, minimum: TEXT, where: 'envelope labels' },
