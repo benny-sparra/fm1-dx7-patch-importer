@@ -13,7 +13,7 @@ import {
 import { type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { type Patch } from '@/data/patches'
 import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { soundPresets, type SoundPresetId } from '@/lib/sound-presets'
@@ -78,9 +78,11 @@ export function PatchEditorHeader({
           <ArrowLeft />
         </Button>
         <div className="min-w-0">
-          <p className="font-vt323 text-sm leading-none text-[var(--crt-led)]">
-            {patch.bank}
-            {String(patch.number).padStart(2, '0')}
+          <p className="mb-1 flex">
+            <span className="patch-slot font-vt323 border border-[var(--crt-line)] bg-[var(--crt-bg-well)] px-1.5 pt-1 pb-0.5 text-sm leading-none text-[var(--crt-acc-lt)]">
+              {patch.bank}
+              {String(patch.number).padStart(2, '0')}
+            </span>
           </p>
           <div className="flex items-center gap-2">
             <label className="min-w-0" title={t('editor.editName')}>
@@ -137,14 +139,17 @@ export function PatchEditorHeader({
           <details className="group static sm:relative" ref={presetsMenuRef}>
             <summary
               aria-label={t('editor.presets')}
-              className="flex h-10 cursor-pointer list-none items-center justify-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-bold transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'font-vt323 list-none [&::-webkit-details-marker]:hidden',
+              )}
               title={t('editor.presets')}
             >
-              <WandSparkles className="size-4" />
+              <WandSparkles />
               <span className="hidden xl:inline">{t('editor.presetsShort')}</span>
-              <ChevronDown className="hidden size-3.5 transition-transform group-open:rotate-180 xl:block" />
+              <ChevronDown className="hidden transition-transform group-open:rotate-180 xl:block" />
             </summary>
-            <div className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 left-0 z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground sm:top-12 sm:left-auto sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
+            <div className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 left-0 z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground sm:left-auto sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
               <div className="px-2 pt-1 pb-2">
                 <p className="text-sm font-bold">{t('editor.presets')}</p>
                 <p className="mt-0.5 text-xs leading-4 text-muted-foreground">
@@ -183,7 +188,7 @@ export function PatchEditorHeader({
           </Button>
           <div className="flex items-center">
             <Button
-              className="font-vt323 rounded-r-none pr-3"
+              className="font-vt323"
               disabled={!isDirty}
               onClick={onSave}
               type="button"
@@ -195,13 +200,16 @@ export function PatchEditorHeader({
               <summary
                 aria-haspopup="menu"
                 aria-label={t('editor.moreSave')}
-                className="flex h-10 w-9 cursor-pointer list-none items-center justify-center rounded-r-md border-l border-primary-foreground/25 bg-primary text-primary-foreground shadow-[0_0_14px_hsl(315_100%_60%_/_0.16)] transition-all hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+                className={cn(
+                  buttonVariants({ size: 'icon' }),
+                  'list-none border-l-[var(--crt-bevel-lt)] [&::-webkit-details-marker]:hidden',
+                )}
                 title={t('editor.moreSave')}
               >
-                <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+                <ChevronDown className="transition-transform group-open:rotate-180" />
               </summary>
               <div
-                className="editor-menu-surface absolute top-12 right-0 z-40 grid w-64 gap-1 rounded-lg border bg-popover p-2 text-popover-foreground"
+                className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 z-40 grid w-64 gap-1 rounded-lg border bg-popover p-2 text-popover-foreground"
                 role="menu"
               >
                 <button
