@@ -290,12 +290,20 @@ export default {
     open: 'How to use the FM1 editor and librarian',
     title: 'Welcome to the FM1 editor & librarian',
     intro:
-      'Manage your sound library, shape voices in the editor, and transfer them to your M-VAVE FM1—all from the browser.',
+      'Manage your sound library, shape voices in the editor, and transfer them to your M-VAVE FM1, all from the browser.',
     close: 'Close help',
     truthTitle: 'Browser banks are the source of truth',
     truthBody:
       'The FM1 accepts voices and banks but cannot send its stored banks back. Import or restore sounds here, edit them, then transfer them to the FM1.',
     start: 'Start editing',
+    shortcutsTitle: 'Keyboard shortcuts',
+    shortcuts: {
+      banks: 'Patch banks',
+      editor: 'Voice editor',
+      search: 'Jump to search',
+      clearSearch: 'Clear the search',
+      openSlot: 'Open the lit slot',
+    },
     steps: {
       libraryTitle: 'Build your library',
       libraryBody:
