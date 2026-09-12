@@ -185,12 +185,7 @@ export function PatchEditorHeader({
             <span className="hidden xl:inline">{t('editor.randomise')}</span>
           </Button>
           <div className="flex items-center">
-            <Button
-              className="font-vt323"
-              disabled={!isDirty}
-              onClick={onSave}
-              type="button"
-            >
+            <Button className="font-vt323" disabled={!isDirty} onClick={onSave} type="button">
               <Save />
               <span className="hidden sm:inline">{t('editor.save')}</span>
             </Button>
