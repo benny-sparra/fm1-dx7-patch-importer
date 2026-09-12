@@ -408,6 +408,7 @@ export default {
   },
   midi: {
     online: 'MIDI en ligne',
+    offline: 'MIDI hors ligne',
     connectFirst: 'Connectez d’abord une sortie MIDI',
     closeSysexWarning: 'Fermer l’avertissement SysEx',
     connecting: 'Connexion…',

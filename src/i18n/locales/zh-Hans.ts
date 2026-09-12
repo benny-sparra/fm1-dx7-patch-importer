@@ -370,6 +370,7 @@ export default {
   },
   midi: {
     online: 'MIDI 在线',
+    offline: 'MIDI 离线',
     connectFirst: '请先连接 MIDI 输出',
     closeSysexWarning: '关闭 SysEx 警告',
     connecting: '正在连接…',

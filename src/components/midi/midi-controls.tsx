@@ -14,6 +14,7 @@ type MidiControlsProps = {
 
 export function MidiConnectActions({ midi }: MidiControlsProps) {
   const { t } = useTranslation()
+  const isOnline = Boolean(midi.midiAccess)
   const handleChange = () => {
     if (midi.midiAccess) {
       void midi.disconnectMidi()
@@ -23,22 +24,21 @@ export function MidiConnectActions({ midi }: MidiControlsProps) {
   }
 
   return (
-    <label className="crt-inset inline-flex min-h-8 cursor-pointer items-center gap-2 bg-[var(--crt-bg-2)] px-2.5 text-xs tracking-[0.1em] text-[var(--crt-acc-lt)] uppercase transition-colors hover:bg-[var(--crt-bg-head)]">
+    <label className="midi-switch inline-flex min-h-8 items-center gap-2 px-2.5 text-xs tracking-[0.1em] uppercase transition-colors">
       <input
-        aria-label={t('midi.online')}
-        aria-checked={Boolean(midi.midiAccess)}
-        checked={Boolean(midi.midiAccess)}
+        aria-checked={isOnline}
+        checked={isOnline}
         className="peer sr-only"
         disabled={midi.isConnecting}
         onChange={handleChange}
         role="switch"
         type="checkbox"
       />
-      <span
-        aria-hidden="true"
-        className="relative h-4 w-7 shrink-0 border border-[var(--crt-shadow)] bg-[var(--crt-bg-well)] transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--crt-led)] after:absolute after:top-[2px] after:left-[2px] after:size-2.5 after:bg-[var(--crt-acc-dim)] after:transition-[transform,background-color,box-shadow] peer-checked:after:translate-x-3 peer-checked:after:bg-[var(--crt-acc)] peer-checked:after:shadow-[0_0_7px_var(--crt-acc)]"
-      />
-      <span>{t('midi.online')}</span>
+      <span aria-hidden="true" className="midi-switch-track" />
+      {/* The word carries the state, so the switch names what it currently is. */}
+      <span>
+        {midi.isConnecting ? t('midi.connecting') : isOnline ? t('midi.online') : t('midi.offline')}
+      </span>
     </label>
   )
 }

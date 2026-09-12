@@ -570,6 +570,115 @@
     background: var(--crt-sel-bg);
   }
 
+  /*
+   * The MIDI power switch. It sat in a recessed well, which read as a status
+   * readout rather than something to press, so it now wears the same raised
+   * button face as the actions beside it, and the handle travels in a well.
+   */
+  .midi-switch {
+    cursor: pointer;
+    color: var(--crt-ink-2);
+    background: var(--crt-btn-face);
+    border-top: 1px solid var(--crt-bevel);
+    border-left: 1px solid var(--crt-bevel);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+  }
+
+  .midi-switch:hover {
+    color: var(--crt-acc-lt);
+    background: var(--crt-sel-bg);
+  }
+
+  .midi-switch:active {
+    border-top-color: var(--crt-shadow);
+    border-left-color: var(--crt-shadow);
+    border-right-color: var(--crt-bevel);
+    border-bottom-color: var(--crt-bevel);
+  }
+
+  .midi-switch:has(:checked) {
+    color: var(--crt-acc-lt);
+  }
+
+  /* The travel slot: a dark well the handle rides in. */
+  .midi-switch-track {
+    position: relative;
+    flex: none;
+    width: 2.25rem;
+    height: 1.125rem;
+    background-color: var(--crt-bg-well);
+    border-top: 1px solid var(--crt-shadow);
+    border-left: 1px solid var(--crt-shadow);
+    border-right: 1px solid var(--crt-line-lt2);
+    border-bottom: 1px solid var(--crt-line-lt2);
+  }
+
+  /* The handle itself, bevelled so it reads as a physical part. */
+  .midi-switch-track::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: calc(50% - 1px);
+    height: calc(100% - 2px);
+    background-color: var(--crt-acc-dim);
+    border-top: 1px solid var(--crt-bevel-lt);
+    border-left: 1px solid var(--crt-bevel-lt);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+    transition:
+      transform 120ms ease-out,
+      background-color 120ms ease-out,
+      box-shadow 120ms ease-out;
+  }
+
+  .peer:checked ~ .midi-switch-track::after {
+    transform: translateX(100%);
+    background-color: var(--crt-acc);
+    box-shadow: 0 0 7px var(--crt-acc);
+  }
+
+  .peer:focus-visible ~ .midi-switch-track {
+    outline: 2px solid var(--crt-led);
+    outline-offset: 2px;
+  }
+
+  /*
+   * Connecting. The handle stays in the off position but blinks, so the wait
+   * looks like the switch working rather than the switch ignoring the press.
+   */
+  .midi-switch:has(:disabled) {
+    cursor: progress;
+  }
+
+  .midi-switch:has(:disabled):hover {
+    color: var(--crt-ink-2);
+    background: var(--crt-btn-face);
+  }
+
+  .peer:disabled ~ .midi-switch-track::after {
+    animation: midi-switch-wait 900ms steps(1, end) infinite;
+  }
+
+  @keyframes midi-switch-wait {
+    0%,
+    50% {
+      background-color: var(--crt-acc);
+    }
+
+    50.01%,
+    100% {
+      background-color: var(--crt-acc-dim);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .peer:disabled ~ .midi-switch-track::after {
+      animation: none;
+    }
+  }
+
   .synthwave-hero-accent {
     color: var(--hero-accent);
   }
