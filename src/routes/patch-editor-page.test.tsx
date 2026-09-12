@@ -72,6 +72,8 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(midi.sendVoice).not.toHaveBeenCalled()
   })
 
+  // Two userEvent clicks over the full editor leave this a hair under the
+  // default 5s timeout when the whole suite runs in parallel, so it gets its own.
   it('keeps full-sync editor actions local until SysEx becomes available', async () => {
     const user = userEvent.setup()
     const { midi, rerenderMidi } = setup({ sysexAvailable: false })
@@ -90,7 +92,7 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(screen.getByRole('menuitem', { name: /Resend to FM1/ }).hasAttribute('disabled')).toBe(
       false,
     )
-  })
+  }, 15_000)
 
   it('synchronizes once, then sends a global edit through the voice parameter path', async () => {
     const { midi } = setup()
