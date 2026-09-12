@@ -849,16 +849,42 @@
       );
   }
 
+  /*
+   * The thumb is a light metal cap with a grip line, ringed in the darkest
+   * shade so it stays legible over both the lit and unlit halves of the track.
+   */
   input[type='range']::-webkit-slider-thumb {
-    width: 0.75rem;
-    height: 1rem;
+    width: 0.875rem;
+    height: 1.25rem;
     appearance: none;
-    margin-top: -0.25rem;
-    border-top: 1px solid var(--crt-bevel-lt);
-    border-left: 1px solid var(--crt-bevel-lt);
+    margin-top: -0.3125rem;
+    border-top: 1px solid var(--crt-ink);
+    border-left: 1px solid var(--crt-ink);
     border-right: 1px solid var(--crt-shadow);
     border-bottom: 1px solid var(--crt-shadow);
-    background: var(--crt-btn-face);
+    background:
+      linear-gradient(
+        to bottom,
+        transparent 0 45%,
+        var(--crt-shadow) 45% 55%,
+        transparent 55% 100%
+      ),
+      linear-gradient(to bottom, var(--crt-ink-2) 0%, var(--crt-acc-mid) 100%);
+    box-shadow:
+      0 0 0 1px var(--crt-bg-0),
+      0 1px 2px hsl(0 0% 0% / 55%);
+  }
+
+  input[type='range']:hover::-webkit-slider-thumb,
+  input[type='range']:focus-visible::-webkit-slider-thumb {
+    background:
+      linear-gradient(
+        to bottom,
+        transparent 0 45%,
+        var(--crt-shadow) 45% 55%,
+        transparent 55% 100%
+      ),
+      linear-gradient(to bottom, var(--crt-ink) 0%, var(--crt-acc) 100%);
   }
 
   input[type='range']::-moz-range-track {
@@ -879,10 +905,35 @@
   }
 
   input[type='range']::-moz-range-thumb {
-    width: 0.75rem;
-    height: 1rem;
-    border: 1px solid var(--crt-bevel-lt);
+    width: 0.875rem;
+    height: 1.25rem;
+    border-top: 1px solid var(--crt-ink);
+    border-left: 1px solid var(--crt-ink);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
     border-radius: 0;
-    background: var(--crt-btn-face);
+    background:
+      linear-gradient(
+        to bottom,
+        transparent 0 45%,
+        var(--crt-shadow) 45% 55%,
+        transparent 55% 100%
+      ),
+      linear-gradient(to bottom, var(--crt-ink-2) 0%, var(--crt-acc-mid) 100%);
+    box-shadow:
+      0 0 0 1px var(--crt-bg-0),
+      0 1px 2px hsl(0 0% 0% / 55%);
+  }
+
+  input[type='range']:hover::-moz-range-thumb,
+  input[type='range']:focus-visible::-moz-range-thumb {
+    background:
+      linear-gradient(
+        to bottom,
+        transparent 0 45%,
+        var(--crt-shadow) 45% 55%,
+        transparent 55% 100%
+      ),
+      linear-gradient(to bottom, var(--crt-ink) 0%, var(--crt-acc) 100%);
   }
 }

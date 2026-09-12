@@ -607,7 +607,7 @@ export function OperatorRack({
             ) : null}
 
             <div className="mt-auto flex flex-col gap-[5px] border-t border-[var(--crt-line-dk)] p-[7px]">
-              <div className="flex items-center justify-between gap-2 text-[11px] tracking-[0.14em] text-[var(--crt-ink-3)] uppercase">
+              <div className="flex items-center justify-between gap-2 py-[3px] text-[11px] tracking-[0.14em] text-[var(--crt-ink-3)] uppercase">
                 <span className="flex min-w-0 items-center gap-1">
                   <span className="truncate">{t('editor.output')}</span>
                   {isSelected ? (
@@ -618,7 +618,7 @@ export function OperatorRack({
                     />
                   ) : null}
                 </span>
-                <output className="font-vt323 text-[22px] leading-none text-[var(--crt-led)] [text-shadow:0_0_8px_var(--crt-led-glow)]">
+                <output className="font-vt323 text-[22px] leading-[1.2] text-[var(--crt-led)] [text-shadow:0_0_8px_var(--crt-led-glow)]">
                   {output}
                 </output>
               </div>
