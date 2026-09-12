@@ -927,6 +927,104 @@
     }
   }
 
+  /*
+   * Boot panel. While the workspace or the editor chunk loads, the page reads
+   * as a terminal waiting on the machine rather than as a spinner: the status
+   * label is set in the dot-matrix face behind a prompt caret, a block cursor
+   * blinks after it, and a row of segments runs left to right like a
+   * cassette-era loader. The segments and the cursor are decoration — the
+   * label alone carries the status for assistive technology.
+   */
+  .crt-boot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    width: min(22rem, 100%);
+    padding: 1.25rem 1.5rem;
+  }
+
+  .crt-boot-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--crt-acc-lt);
+    text-shadow: 0 0 9px color-mix(in srgb, var(--crt-acc) 35%, transparent);
+  }
+
+  .crt-boot-prompt {
+    color: var(--crt-acc);
+  }
+
+  .crt-boot-cursor {
+    flex: none;
+    width: 0.5rem;
+    height: 0.9rem;
+    background-color: var(--crt-acc-lt);
+    animation: crt-boot-blink 1s steps(1, end) infinite;
+  }
+
+  .crt-boot-bar {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+  }
+
+  .crt-boot-segment {
+    flex: 1 1 0;
+    height: 0.5rem;
+    background-color: var(--crt-acc-dim);
+    opacity: 0.22;
+    animation: crt-boot-run 1.4s ease-in-out infinite;
+    animation-delay: calc(var(--crt-boot-index) * 90ms);
+  }
+
+  @keyframes crt-boot-blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+
+    50.01%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes crt-boot-run {
+    0%,
+    100% {
+      opacity: 0.22;
+      background-color: var(--crt-acc-dim);
+    }
+
+    12% {
+      opacity: 1;
+      background-color: var(--crt-led);
+    }
+
+    40% {
+      opacity: 0.45;
+      background-color: var(--crt-acc-dim);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .crt-boot-cursor,
+    .crt-boot-segment {
+      animation: none;
+    }
+
+    .crt-boot-segment {
+      opacity: 0.5;
+    }
+  }
+
   input[type='range'] {
     appearance: none;
     border: 0;

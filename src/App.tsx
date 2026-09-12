@@ -1,6 +1,5 @@
-import { lazy, Suspense, type ComponentProps, useEffect, useState } from 'react'
+import { lazy, Suspense, type ComponentProps, type CSSProperties, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LoaderCircle } from 'lucide-react'
 
 import { useMidi } from '@/hooks/use-midi'
 import { usePatchLibrary } from '@/hooks/use-patch-library'
@@ -59,15 +58,26 @@ function App() {
   const loadingSection = (label: string) => (
     <section
       aria-live="polite"
-      className="mx-auto flex min-h-svh max-w-[90rem] items-center justify-center px-4 py-8 text-sm font-semibold text-muted-foreground"
+      className="mx-auto flex min-h-[60svh] max-w-[90rem] items-center justify-center px-4 py-8"
       role="status"
     >
-      <div className="flex flex-col items-center gap-3 rounded-md bg-card px-6 py-5">
-        <LoaderCircle
-          aria-hidden="true"
-          className="size-7 animate-spin text-[var(--crt-acc-lt)] motion-reduce:animate-none"
-        />
-        {label}
+      <div className="crt-boot crt-raised bg-card">
+        <p className="crt-boot-line">
+          <span aria-hidden="true" className="crt-boot-prompt">
+            &gt;
+          </span>
+          {label}
+          <span aria-hidden="true" className="crt-boot-cursor" />
+        </p>
+        <div aria-hidden="true" className="crt-boot-bar crt-well">
+          {Array.from({ length: 12 }, (_, index) => (
+            <span
+              className="crt-boot-segment"
+              key={index}
+              style={{ '--crt-boot-index': index } as CSSProperties}
+            />
+          ))}
+        </div>
       </div>
     </section>
   )
