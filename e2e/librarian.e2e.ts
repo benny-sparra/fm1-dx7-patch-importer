@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { unzipSync } from 'fflate'
 import { readFile } from 'node:fs/promises'
 
 const factoryBank = 'public/dx7-banks/factory/rom1a.syx'
@@ -125,6 +126,27 @@ test('downloads a complete DX7 bank file', async ({ page }) => {
 
   expect(download.suggestedFilename()).toBe('fm1-bank-a.syx')
   expect((await readFile(await download.path())).byteLength).toBe(4104)
+})
+
+// Bulk export loads fflate on demand, so this also covers that import resolving in a build.
+test('downloads every loaded bank as one zip archive', async ({ page }) => {
+  await openLibrarian(page)
+  await page.getByLabel('More bank file actions').click()
+
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download all banks (.zip)' }).click()
+  const download = await downloadPromise
+
+  expect(download.suggestedFilename()).toBe('fm1-browser-banks.zip')
+  const archive = unzipSync(await readFile(await download.path()))
+  expect(Object.keys(archive).sort()).toEqual([
+    'fm1-bank-a.syx',
+    'fm1-bank-b.syx',
+    'fm1-bank-c.syx',
+    'fm1-bank-d.syx',
+  ])
+  for (const [name, bank] of Object.entries(archive))
+    expect(bank.byteLength, `${name} is not a 32-voice DX7 bank`).toBe(4104)
 })
 
 test('reorders patches with the keyboard drag control', async ({ page }) => {
