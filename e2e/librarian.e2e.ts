@@ -141,6 +141,48 @@ test('reorders patches with the keyboard drag control', async ({ page }) => {
     .toEqual([namesBefore[1], namesBefore[0], ...namesBefore.slice(2)])
 })
 
+test('plays a slot on a single click and stays in the library', async ({ page }) => {
+  await openLibrarian(page)
+  await expect(page.getByRole('button', { exact: true, name: 'Edit' })).toBeDisabled()
+
+  const slot = slotButtons(page).first()
+  await slot.click()
+
+  await expect(slot).toHaveAttribute('aria-current', 'true')
+  await expect(page.getByRole('button', { name: 'Edit A01' })).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Back to patch banks' })).toHaveCount(0)
+})
+
+test('reaches the editor from the keyboard through the toolbar Edit button', async ({ page }) => {
+  await openLibrarian(page)
+
+  await slotButtons(page).first().press('Enter')
+  await page.getByRole('button', { name: 'Edit A01' }).press('Enter')
+
+  await expect(page.getByRole('button', { name: 'Back to patch banks' })).toBeVisible()
+})
+
+test('switches the favicon to the chosen colourway and keeps it after a reload', async ({
+  page,
+}) => {
+  await openLibrarian(page)
+  const favicon = page.locator('link[rel="icon"]')
+  await expect(favicon).toHaveAttribute('href', '/favicon-black.svg')
+
+  // The other finishes slide out from the lit swatch on hover.
+  await page.getByTitle('Black', { exact: true }).hover()
+  await page.getByTitle('Orange', { exact: true }).click()
+
+  await expect(page.getByRole('radio', { name: 'Orange FM1 finish' })).toBeChecked()
+  await expect(favicon).toHaveAttribute('href', '/favicon-orange.svg')
+  const icon = await page.request.get('/favicon-orange.svg')
+  expect(icon.ok()).toBe(true)
+  expect(icon.headers()['content-type']).toContain('image/svg+xml')
+
+  await page.reload()
+  await expect(favicon).toHaveAttribute('href', '/favicon-orange.svg')
+})
+
 test('keeps the librarian controls usable on a narrow viewport', async ({ page }) => {
   await page.setViewportSize({ height: 900, width: 412 })
   await openLibrarian(page)

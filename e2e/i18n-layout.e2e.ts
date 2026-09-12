@@ -163,6 +163,24 @@ for (const locale of testedLocales) {
       await expectNoClippedLayout(page, testInfo, `settings-${locale}-${viewport.name}`)
     })
 
+    // A slot that moves between the two clicks of a double click never opens.
+    test(`keeps the ${locale} slot grid still when a slot lights on ${viewport.name}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ height: viewport.height, width: viewport.width })
+      await openLibrarian(page, locale)
+
+      const slot = page
+        .getByRole('button', { name: interpolatedPattern(locale, 'banks.sendPatch') })
+        .first()
+      const before = await slot.boundingBox()
+      await slot.click()
+      await expect(slot).toHaveAttribute('aria-current', 'true')
+      await expect(slot.locator('xpath=..')).toHaveAttribute('data-flash', 'false')
+
+      expect(await slot.boundingBox()).toEqual(before)
+    })
+
     test(`fits ${locale} text in the editor on ${viewport.name}`, async ({ page }, testInfo) => {
       await page.setViewportSize({ height: viewport.height, width: viewport.width })
       await openLibrarian(page, locale)
