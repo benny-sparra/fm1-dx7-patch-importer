@@ -2,7 +2,7 @@
 
 A browser-based voice editor and patch librarian for the [M-VAVE FM1](https://www.mvave.com/).
 
-The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, audition sounds on the FM1, and transfer individual voices or complete banks over MIDI SysEx. Four classic Yamaha DX7 factory banks are loaded initially. New workspace banks can use any of 35 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
+The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, and transfer individual voices or complete banks over MIDI SysEx. Four classic Yamaha DX7 factory banks are loaded initially. New workspace banks can use any of 35 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
 
 ![M-VAVE FM1 synthesiser](src/assets/fm1-header.png)
 

@@ -219,7 +219,7 @@ export default {
   },
   meta: {
     title: 'M-VAVE FM1 音色编辑器与音色库',
-    description: '为 M-VAVE FM1 合成器编辑、整理、试听和传输音色，并可导入 DX7 SysEx 音色库。',
+    description: '为 M-VAVE FM1 合成器编辑、整理和传输音色，并可导入 DX7 SysEx 音色库。',
   },
   language: '语言',
   common: {
@@ -236,7 +236,7 @@ export default {
   },
   root: {
     subtitle: '音色编辑器与音色库',
-    intro: '编辑、整理、试听和传输 FM1 音色，或导入 DX7 SysEx 音色库。',
+    intro: '编辑、整理和传输 FM1 音色，或导入 DX7 SysEx 音色库。',
     synthAlt: 'M-VAVE FM1 合成器前面板',
     unsupportedTitle: '不支持的浏览器。',
     unsupportedBody:
@@ -261,7 +261,7 @@ export default {
   help: {
     open: 'FM1 编辑器与音色库使用说明',
     title: '欢迎使用 FM1 音色编辑器与音色库',
-    intro: '直接在浏览器中管理音色库、编辑音色，并在 M-VAVE FM1 上试听或传输。',
+    intro: '直接在浏览器中管理音色库、编辑音色，并传输到 M-VAVE FM1。',
     close: '关闭帮助',
     truthTitle: '以浏览器音色库为准。',
     truthBody:

@@ -245,7 +245,7 @@ export default {
   meta: {
     title: 'M-VAVE FM1 Editor & Librarian',
     description:
-      'Edit, organise, audition, and transfer sounds for the M-VAVE FM1 synthesiser, with DX7 SysEx bank import.',
+      'Edit, organise, and transfer sounds for the M-VAVE FM1 synthesiser, with DX7 SysEx bank import.',
   },
   language: 'Language',
   common: {
@@ -263,7 +263,7 @@ export default {
   },
   root: {
     subtitle: 'editor & librarian',
-    intro: 'Edit, organise, audition and transfer FM1 sounds, or import DX7 SysEx banks.',
+    intro: 'Edit, organise and transfer FM1 sounds, or import DX7 SysEx banks.',
     synthAlt: 'M-VAVE FM1 synthesiser front panel',
     unsupportedTitle: 'Unsupported browser.',
     unsupportedBody:
@@ -290,7 +290,7 @@ export default {
     open: 'How to use the FM1 editor and librarian',
     title: 'Welcome to the FM1 editor & librarian',
     intro:
-      'Manage your sound library, shape voices in the editor, and audition or transfer them on your M-VAVE FM1—all from the browser.',
+      'Manage your sound library, shape voices in the editor, and transfer them to your M-VAVE FM1—all from the browser.',
     close: 'Close help',
     truthTitle: 'Browser banks are the source of truth',
     truthBody:

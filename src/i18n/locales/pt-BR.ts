@@ -245,7 +245,7 @@ export default {
   meta: {
     title: 'Editor e bibliotecário M-VAVE FM1',
     description:
-      'Edite, organize, teste e transfira sons para o sintetizador M-VAVE FM1, com importação de bancos SysEx do DX7.',
+      'Edite, organize e transfira sons para o sintetizador M-VAVE FM1, com importação de bancos SysEx do DX7.',
   },
   language: 'Idioma',
   common: {
@@ -263,7 +263,7 @@ export default {
   },
   root: {
     subtitle: 'editor e bibliotecário',
-    intro: 'Edite, organize, teste e transfira sons do FM1 ou importe bancos SysEx do DX7.',
+    intro: 'Edite, organize e transfira sons do FM1 ou importe bancos SysEx do DX7.',
     synthAlt: 'Painel frontal do sintetizador M-VAVE FM1',
     unsupportedTitle: 'Navegador não compatível.',
     unsupportedBody:
@@ -290,7 +290,7 @@ export default {
     open: 'Como usar o editor e bibliotecário FM1',
     title: 'Boas-vindas ao editor e bibliotecário FM1',
     intro:
-      'Gerencie sua biblioteca, modele vozes no editor e teste ou transfira-as para o M-VAVE FM1, tudo pelo navegador.',
+      'Gerencie sua biblioteca, modele vozes no editor e transfira-as para o M-VAVE FM1, tudo pelo navegador.',
     close: 'Fechar ajuda',
     truthTitle: 'Os bancos do navegador são a referência.',
     truthBody:
