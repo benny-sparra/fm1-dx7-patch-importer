@@ -79,6 +79,10 @@ export function PatchEditorPage({
   const [soloOperator, setSoloOperator] = useState<number | null>(null)
   const [syncState, setSyncState] = useState<PatchSyncState>('sending')
   const [isNavigationPending, setIsNavigationPending] = useState(false)
+  // Holds exactly what the user has typed into the name field, including the
+  // trailing spaces the stored name trims away, so the space bar works while
+  // typing a two-word name.
+  const [nameDraft, setNameDraft] = useState<string | null>(null)
   const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
   const historyRef = useRef(history)
   const historyRevisionRef = useRef(0)
@@ -163,7 +167,7 @@ export function PatchEditorPage({
     return () => window.removeEventListener('beforeunload', warnBeforeUnload)
   }, [isDirty])
 
-  const liveName = useMemo(
+  const storedName = useMemo(
     () =>
       String.fromCharCode(
         ...parameters.slice(FM1_VOICE_NAME_START, FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH),
@@ -172,6 +176,7 @@ export function PatchEditorPage({
         .trimEnd(),
     [parameters],
   )
+  const liveName = nameDraft ?? storedName
 
   const sendOperatorAuditionParameters = useCallback(
     (
@@ -277,6 +282,7 @@ export function PatchEditorPage({
   }, [canSync, patch.id])
 
   const updateName = (name: string) => {
+    setNameDraft(name)
     const edits = makeDx7VoiceNameEdits(historyRef.current.present, name).map(
       ([parameter, value]) => [parameter, value] as ParameterEdit,
     )
@@ -293,6 +299,11 @@ export function PatchEditorPage({
         sentName.current[parameter - FM1_VOICE_NAME_START] = value
       }
     })
+  }
+
+  const commitName = () => {
+    setNameDraft(null)
+    sendNameToFm1()
   }
 
   const restoreHistory = (direction: 'undo' | 'redo') => {
@@ -438,7 +449,7 @@ export function PatchEditorPage({
         isDirty={isDirty}
         liveName={liveName}
         onBack={requestNavigation}
-        onNameBlur={sendNameToFm1}
+        onNameBlur={commitName}
         onNameChange={updateName}
         onPreset={selectPreset}
         onRandomise={randomise}
