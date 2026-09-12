@@ -77,8 +77,8 @@ export function PatchEditorHeader({
         >
           <ArrowLeft />
         </Button>
-        <div className="flex min-w-0 items-stretch gap-2">
-          <span className="patch-slot font-vt323 flex shrink-0 items-center border border-[var(--crt-line)] bg-[var(--crt-bg-well)] px-2 text-sm leading-none text-[var(--crt-led)]">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="patch-slot crt-inset font-vt323 flex h-8 shrink-0 items-center border bg-[var(--crt-bg-well)] px-2 text-sm leading-none text-[var(--crt-led)]">
             {patch.bank}
             {String(patch.number).padStart(2, '0')}
           </span>
@@ -88,7 +88,7 @@ export function PatchEditorHeader({
               <span className="flex items-center gap-1">
                 <input
                   aria-label={t('editor.patchName')}
-                  className="font-dot-matrix crt-inset w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+                  className="font-dot-matrix crt-inset h-8 w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
                   maxLength={10}
                   onBlur={onNameBlur}
                   onChange={(event) => onNameChange(event.target.value.toUpperCase())}
