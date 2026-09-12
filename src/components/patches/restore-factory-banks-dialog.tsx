@@ -52,10 +52,7 @@ export function RestoreFactoryBanksDialog({
       size="md"
     >
       <DialogHeader>
-        <DialogTitle id="restore-factory-banks-title">
-          <RotateCcw className="size-4 shrink-0" />
-          {t('dialogs.restoreTitle')}
-        </DialogTitle>
+        <DialogTitle id="restore-factory-banks-title">{t('dialogs.restoreTitle')}</DialogTitle>
         <DialogCloseButton
           disabled={working}
           label={t('dialogs.restoreClose')}

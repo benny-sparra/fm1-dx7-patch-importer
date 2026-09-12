@@ -34,10 +34,7 @@ export function DeleteWorkspaceBankDialog({
       size="sm"
     >
       <DialogHeader>
-        <DialogTitle id="delete-workspace-bank-title">
-          <Trash2 className="size-4 shrink-0" />
-          {t('banks.deleteBank')}
-        </DialogTitle>
+        <DialogTitle id="delete-workspace-bank-title">{t('banks.deleteBank')}</DialogTitle>
         <DialogCloseButton label={t('common.close')} onClick={closeDialog} />
       </DialogHeader>
       <DialogBody>

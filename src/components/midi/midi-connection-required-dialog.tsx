@@ -1,4 +1,3 @@
-import { Cable } from 'lucide-react'
 import { type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -23,10 +22,7 @@ export function MidiConnectionRequiredDialog({ dialogRef }: MidiConnectionRequir
   return (
     <Dialog aria-labelledby="midi-connection-required-title" ref={dialogRef} size="sm">
       <DialogHeader>
-        <DialogTitle id="midi-connection-required-title">
-          <Cable className="size-4 shrink-0" />
-          {t('dialogs.midiTitle')}
-        </DialogTitle>
+        <DialogTitle id="midi-connection-required-title">{t('dialogs.midiTitle')}</DialogTitle>
         <DialogCloseButton label={t('dialogs.midiClose')} onClick={closeDialog} />
       </DialogHeader>
       <DialogBody>

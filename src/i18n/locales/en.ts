@@ -292,7 +292,7 @@ export default {
     intro:
       'Manage your sound library, shape voices in the editor, and audition or transfer them on your M-VAVE FM1—all from the browser.',
     close: 'Close help',
-    truthTitle: 'Browser banks are the source of truth.',
+    truthTitle: 'Browser banks are the source of truth',
     truthBody:
       'The FM1 accepts voices and banks but cannot send its stored banks back. Import or restore sounds here, edit them, then transfer them to the FM1.',
     start: 'Start editing',

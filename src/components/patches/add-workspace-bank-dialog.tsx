@@ -115,10 +115,7 @@ export function AddWorkspaceBankDialog({
       size="xl"
     >
       <DialogHeader>
-        <DialogTitle id="add-workspace-bank-title">
-          <Plus className="size-5 text-[var(--crt-acc-lt)]" />
-          {t('banks.addBankTitle', { bank })}
-        </DialogTitle>
+        <DialogTitle id="add-workspace-bank-title">{t('banks.addBankTitle', { bank })}</DialogTitle>
         <DialogCloseButton
           disabled={working}
           label={t('common.close')}

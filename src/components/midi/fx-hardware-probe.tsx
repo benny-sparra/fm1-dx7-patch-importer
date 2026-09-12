@@ -46,10 +46,7 @@ export function FxHardwareProbe({ send }: FxHardwareProbeProps) {
       </button>
       <Dialog aria-labelledby="fx-hardware-probe-title" ref={setDialog} size="md">
         <DialogHeader>
-          <DialogTitle id="fx-hardware-probe-title">
-            <FlaskConical className="size-4 shrink-0" />
-            FM1 effects hardware probe
-          </DialogTitle>
+          <DialogTitle id="fx-hardware-probe-title">FM1 effects hardware probe</DialogTitle>
           <DialogCloseButton label="Close FX probe" onClick={() => dialog?.close()} />
         </DialogHeader>
         <DialogBody>

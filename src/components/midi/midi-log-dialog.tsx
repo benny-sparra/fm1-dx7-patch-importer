@@ -40,10 +40,7 @@ export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
 
       <Dialog aria-labelledby="midi-log-title" ref={dialogRef} size="4xl">
         <DialogHeader>
-          <DialogTitle id="midi-log-title">
-            <ListMusic className="size-4 shrink-0" />
-            {t('midi.log')}
-          </DialogTitle>
+          <DialogTitle id="midi-log-title">{t('midi.log')}</DialogTitle>
           <DialogCloseButton
             label={t('midi.closeLog')}
             onClick={() => dialogRef.current?.close()}

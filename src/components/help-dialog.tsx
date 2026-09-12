@@ -1,4 +1,4 @@
-import { CircleHelp, Library, PlugZap, Send, SlidersHorizontal } from 'lucide-react'
+import { Library, PlugZap, Send, SlidersHorizontal } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -86,10 +86,7 @@ export function HelpDialog() {
         size="3xl"
       >
         <DialogHeader>
-          <DialogTitle id="help-dialog-title">
-            <CircleHelp className="size-4 shrink-0" />
-            {t('help.title')}
-          </DialogTitle>
+          <DialogTitle id="help-dialog-title">{t('help.title')}</DialogTitle>
           <DialogCloseButton label={t('help.close')} onClick={closeDialog} />
         </DialogHeader>
         <DialogBody>

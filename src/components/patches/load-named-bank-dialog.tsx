@@ -113,10 +113,7 @@ export function LoadNamedBankDialog({
         size="3xl"
       >
         <DialogHeader className="sticky top-0 z-10 bg-[var(--crt-bg-panel2)]">
-          <DialogTitle id="named-bank-library-title">
-            <Database className="size-4 shrink-0" />
-            {t('namedBanks.title')}
-          </DialogTitle>
+          <DialogTitle id="named-bank-library-title">{t('namedBanks.title')}</DialogTitle>
           <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />
         </DialogHeader>
         <DialogBody>

@@ -77,7 +77,6 @@ export function ImportDx7BankDialog({
     >
       <DialogHeader>
         <DialogTitle id="import-dx7-bank-title">
-          <Upload className="size-5 text-[var(--crt-acc-lt)]" />
           {t('overwriteImport.title', { bank: bankName })}
         </DialogTitle>
         <DialogCloseButton

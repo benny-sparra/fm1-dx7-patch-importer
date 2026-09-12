@@ -88,7 +88,6 @@ export function SaveNamedBankDialog({
       >
         <DialogHeader>
           <DialogTitle id="save-named-bank-title">
-            <Save className="size-5 text-[var(--crt-acc-lt)]" />
             {t('namedBanks.saveCurrent', { bank: bankLabel(destinationBank) })}
           </DialogTitle>
           <DialogCloseButton

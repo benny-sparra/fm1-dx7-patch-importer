@@ -1,4 +1,4 @@
-import { ExternalLink, Library } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -44,10 +44,7 @@ export function Dx7BankSourcesDialog() {
 
       <Dialog aria-labelledby="dx7-bank-sources-title" ref={dialogRef} size="lg">
         <DialogHeader>
-          <DialogTitle id="dx7-bank-sources-title">
-            <Library className="size-5 text-[var(--crt-acc-lt)]" />
-            {t('dialogs.sourcesTitle')}
-          </DialogTitle>
+          <DialogTitle id="dx7-bank-sources-title">{t('dialogs.sourcesTitle')}</DialogTitle>
           <DialogCloseButton
             label={t('dialogs.sourcesClose')}
             onClick={() => dialogRef.current?.close()}
