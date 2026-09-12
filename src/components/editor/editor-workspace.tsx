@@ -653,7 +653,7 @@ export function OperatorRack({
               */}
               <div
                 aria-label={t('ui.auditionGroup', { number: operator })}
-                className="flex gap-[5px]"
+                className="mt-[4px] flex gap-[5px]"
                 role="group"
               >
                 <button
