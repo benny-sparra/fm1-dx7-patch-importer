@@ -31,6 +31,8 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Undo and redo edits within the voice editor
 - Save edits to the browser library, resend them, or revert both the editor and FM1 to the last saved version
 - Warn before leaving an unsaved editing session, with save, discard, and keep-editing choices
+- Undo, redo, save, and leave the voice editor from the keyboard
+- Jump to patch search, clear it, and open the lit slot from the keyboard
 - Send individual sounds to the edit buffer or a complete 32-patch bank over Web MIDI
 - Select matching FM1 slots with MIDI Program Change and track whether a bank is local, transferred, or changed since transfer
 - Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
@@ -77,6 +79,48 @@ The interface follows the browser language on first use when it is supported. Ch
 Workspace-bank titles, descriptions, imported sounds, voice ordering, saved editor changes, and FM1 effect settings are saved automatically in the browser.
 
 If the saved workspace cannot be opened, the app leaves its browser record untouched and offers **Retry** or **Continue without saving**. The latter creates an explicit session-only workspace whose changes are lost when the page closes. If a later save fails, the latest changes remain available in memory and can be saved again with **Retry saving**.
+
+### Keyboard shortcuts
+
+Each view binds the actions that also appear in its toolbar. `Ctrl` stands in for `Cmd` on Windows
+and Linux, and the matching button or field shows the shortcut in its tooltip for the current
+platform.
+
+In the patch banks:
+
+| Shortcut           | Action                                                      |
+| ------------------ | ----------------------------------------------------------- |
+| `/`                | Jump to the search field                                    |
+| `Cmd`/`Ctrl` + `F` | Jump to the search field, selecting whatever it holds       |
+| `Esc`              | Clear the search                                            |
+| `Enter`            | Play the focused slot, then open the lit slot in the editor |
+
+In the voice editor:
+
+| Shortcut                     | Action                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `Cmd`/`Ctrl` + `Z`           | Undo the last edit                                                      |
+| `Cmd`/`Ctrl` + `Shift` + `Z` | Redo the undone edit                                                    |
+| `Cmd`/`Ctrl` + `S`           | Save to Library                                                         |
+| `Esc`                        | Return to the patch banks, prompting first if there are unsaved changes |
+
+These act on the view as a whole and stay out of the way of everything else: they are ignored while
+a dialog is open, `Esc` closes an open menu before the view reacts to it, and a shortcut that takes
+a modifier still works while a text field has focus, so `Cmd`/`Ctrl` + `S` saves without leaving the
+patch-name field. Bare keys are left to whatever is being typed into, so `/` and `Esc` behave
+normally inside the search field, where `Esc` clears it.
+
+`Enter` gives the keyboard the route the mouse already had through double-click: it plays an unlit
+slot as a click would, and opens the slot that is already lit. The toolbar's **Edit** button
+remains the signposted way in.
+
+Individual controls keep their own keyboard behaviour. Rotary controls and envelope points respond
+to the arrow keys, `Home`, `End`, `Page Up`, and `Page Down`; the bank tabs and the patch grid
+support arrow-key navigation and keyboard drag-and-drop.
+
+The on-screen piano plays from the computer keyboard while it is open, using the usual two-row
+layout: `A`, `W`, `S`, `E`, `D`, `F`, `T`, `G`, `Y`, `H`, `U`, `J`, `K` from the root note upwards,
+with `Z` and `X` shifting the octave down and up.
 
 ## Anonymous usage analytics
 

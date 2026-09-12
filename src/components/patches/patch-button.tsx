@@ -63,8 +63,9 @@ export function PatchButton({
     >
       {/*
         A single click plays the slot on the FM1; a double click opens it in
-        the editor. Keyboard users reach the editor through the toolbar's
-        Edit button once a slot is selected.
+        the editor. Enter matches that from the keyboard: it plays an unlit
+        slot, then opens the lit one. The toolbar's Edit button remains the
+        signposted route.
       */}
       {!disabled && (onSelect || onEdit) ? (
         <button
@@ -76,7 +77,17 @@ export function PatchButton({
             onSelect?.(patch)
           }}
           onDoubleClick={() => onEdit?.(patch)}
-          title={t('banks.slotTitle', { name: patch.name })}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' || !isActive || !onEdit) return
+            // Claim the key so it does not also fire the button's own click.
+            event.preventDefault()
+            onEdit(patch)
+          }}
+          title={
+            isActive
+              ? t('banks.slotEditTitle', { name: patch.name })
+              : t('banks.slotTitle', { name: patch.name })
+          }
           type="button"
         />
       ) : null}

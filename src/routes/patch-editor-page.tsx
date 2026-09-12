@@ -11,6 +11,7 @@ import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
 import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
 import { type Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { type MidiController } from '@/hooks/use-midi'
 import { makeDx7VoiceNameEdits, packDx7Voice, unpackDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import {
@@ -40,6 +41,7 @@ import {
   type PatchSyncCoordinator,
   type PatchSyncState,
 } from '@/lib/patch-sync-coordinator'
+import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { auditionedParameterValue, makeOperatorAuditionEdits } from '@/lib/operator-audition'
 import { applySoundPreset, type SoundPresetId } from '@/lib/sound-presets'
 import { randomizeSound } from '@/lib/sound-randomizer'
@@ -439,6 +441,24 @@ export function PatchEditorPage({
     commitHistory(next)
     void sendToFm1()
   }
+
+  useKeyboardShortcuts([
+    { ...editorShortcuts.redo, onTrigger: () => restoreHistory('redo') },
+    { ...editorShortcuts.undo, onTrigger: () => restoreHistory('undo') },
+    // Bound whether or not the patch is dirty, so a browser "save page" dialog
+    // never appears in an editor that looks like it owns the shortcut.
+    {
+      ...editorShortcuts.save,
+      onTrigger: () => {
+        if (isDirty) saveToLibrary()
+      },
+    },
+    {
+      ...editorShortcuts.back,
+      enabled: syncState !== 'sending',
+      onTrigger: requestNavigation,
+    },
+  ])
 
   return (
     <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-2.5 px-3 py-4 sm:px-5 lg:px-8">

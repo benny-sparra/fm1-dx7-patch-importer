@@ -318,3 +318,103 @@ describe('LibrarianPage transfer analytics', () => {
     expect(blockedMidi.sendBank).toHaveBeenCalledOnce()
   })
 })
+
+describe('LibrarianPage keyboard shortcuts', () => {
+  function renderLibrarian(overrides: { activePatchId?: string; onEditPatch?: () => void } = {}) {
+    const onEditPatch = overrides.onEditPatch ?? vi.fn()
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId={overrides.activePatchId ?? ''}
+          library={library}
+          midi={midi}
+          onEditPatch={onEditPatch}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    return { onEditPatch, search: screen.getByPlaceholderText('Search by name') }
+  }
+
+  it('focuses the search field on the slash shortcut', async () => {
+    const user = userEvent.setup()
+    const { search } = renderLibrarian()
+
+    await user.keyboard('/')
+
+    expect(document.activeElement).toBe(search)
+    expect((search as HTMLInputElement).value).toBe('')
+  })
+
+  it('focuses the search field on the find shortcut', async () => {
+    const user = userEvent.setup()
+    const { search } = renderLibrarian()
+
+    await user.keyboard('{Meta>}f{/Meta}')
+
+    expect(document.activeElement).toBe(search)
+  })
+
+  it('selects the existing query so the find shortcut can retype it', async () => {
+    const user = userEvent.setup()
+    const { search } = renderLibrarian()
+
+    await user.type(search, 'Alpha')
+    await user.keyboard('{Meta>}f{/Meta}')
+    await user.keyboard('Beta')
+
+    expect((search as HTMLInputElement).value).toBe('Beta')
+  })
+
+  it('types a slash into the search field instead of refocusing it', async () => {
+    const user = userEvent.setup()
+    const { search } = renderLibrarian()
+
+    await user.type(search, 'a/b')
+
+    expect((search as HTMLInputElement).value).toBe('a/b')
+  })
+
+  it('clears the search from the field itself on Escape', async () => {
+    const user = userEvent.setup()
+    const { search } = renderLibrarian()
+
+    await user.type(search, 'Alpha')
+    await user.keyboard('{Escape}')
+
+    expect((search as HTMLInputElement).value).toBe('')
+    expect(document.activeElement).toBe(search)
+  })
+
+  it('clears the search from elsewhere on the page on Escape', async () => {
+    const user = userEvent.setup()
+    const { search } = renderLibrarian()
+
+    await user.type(search, 'Alpha')
+    await user.click(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }))
+    await user.keyboard('{Escape}')
+
+    expect((search as HTMLInputElement).value).toBe('')
+  })
+
+  it('opens the lit slot on Enter', async () => {
+    const user = userEvent.setup()
+    const { onEditPatch } = renderLibrarian({ activePatchId: 'bank-A-1' })
+
+    screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }).focus()
+    await user.keyboard('{Enter}')
+
+    expect(onEditPatch).toHaveBeenCalledWith(library.patches[0])
+  })
+
+  it('plays an unlit slot on Enter rather than opening it', async () => {
+    const user = userEvent.setup()
+    const { onEditPatch } = renderLibrarian()
+
+    screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }).focus()
+    await user.keyboard('{Enter}')
+
+    expect(onEditPatch).not.toHaveBeenCalled()
+  })
+})

@@ -29,11 +29,13 @@ import { SentryVerificationButton } from '@/components/sentry-verification-butto
 import { makeDx7BankFile } from '@/lib/dx7'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import { getNextWorkspaceBank } from '@/lib/patch-library'
+import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { cn } from '@/lib/utils'
 import { type MidiController } from '@/hooks/use-midi'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { type Patch } from '@/data/patches'
 import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
 import { useToast } from '@/components/ui/toast'
@@ -71,6 +73,7 @@ export function LibrarianPage({
     message: '',
   })
   const importInputRef = useRef<HTMLInputElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
   const importTargetRef = useRef(createBankFileSelectionTarget())
   const addWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
   const importDx7BankDialogRef = useRef<HTMLDialogElement>(null)
@@ -255,6 +258,23 @@ export function LibrarianPage({
     if (!banks.includes(destinationBank)) setDestinationBank(banks[0] ?? 'A')
   }, [banks, destinationBank])
 
+  const focusSearch = () => {
+    searchRef.current?.focus()
+    searchRef.current?.select()
+  }
+
+  useKeyboardShortcuts([
+    // Both are disabled with the field itself, so the browser keeps its own
+    // find shortcut in a bank that has nothing to search.
+    { ...librarianShortcuts.search, enabled: isDestinationBankLoaded, onTrigger: focusSearch },
+    { ...librarianShortcuts.find, enabled: isDestinationBankLoaded, onTrigger: focusSearch },
+    {
+      ...librarianShortcuts.clearSearch,
+      enabled: search !== '',
+      onTrigger: () => setSearch(''),
+    },
+  ])
+
   return (
     <section className="mx-auto grid max-w-7xl min-w-0 gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
       <SentryVerificationButton />
@@ -263,7 +283,7 @@ export function LibrarianPage({
         actions={
           <>
             {/* The selected bank reads back as a lit slot, as on the panel. */}
-            <span className="flex shrink-0 items-center gap-[9px]">
+            <span className="mr-1.5 flex shrink-0 items-center gap-[9px]">
               <span className="font-dot-matrix grid h-6 w-[26px] place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] text-sm font-bold text-[var(--crt-led)]">
                 {destinationBank}
               </span>
@@ -370,17 +390,11 @@ export function LibrarianPage({
         patches={visiblePatches}
         search={search}
         searchDisabled={!isDestinationBankLoaded}
+        searchRef={searchRef}
         setSearch={setSearch}
         toolbar={
           <>
             <div className="flex h-full w-16 flex-col border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] sm:w-[226px]">
-              {/*
-                A short visible heading, as on the artboard. The list itself
-                keeps the longer descriptive string as its accessible name.
-              */}
-              <p className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5 text-[11px] tracking-[0.22em] text-[var(--crt-acc-lt)] uppercase">
-                {t('banks.listHeading')}
-              </p>
               <WorkspaceBankSelector
                 banks={banks.map((bank) => {
                   const name = bankDisplayName(bank)

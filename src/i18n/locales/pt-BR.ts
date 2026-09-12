@@ -491,6 +491,7 @@ export default {
     editSelected: 'Editar',
     editNone: 'Escolha um som primeiro para editá-lo',
     slotTitle: 'Clique para tocar {{name}} no FM1; clique duas vezes para editar',
+    slotEditTitle: 'Clique duas vezes ou pressione Enter para editar {{name}}',
     openEditor: 'Abrir {{name}} no editor',
     sendPatch: 'Enviar {{name}} ao FM1',
     sendPatchTitle: 'Enviar este som ao buffer de edição do FM1',

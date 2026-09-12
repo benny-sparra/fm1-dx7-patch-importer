@@ -10,11 +10,17 @@ import {
   Undo2,
   WandSparkles,
 } from 'lucide-react'
-import { type RefObject } from 'react'
+import { useMemo, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import { type Patch } from '@/data/patches'
+import {
+  editorShortcuts,
+  formatShortcut,
+  isApplePlatform,
+  type KeyboardShortcut,
+} from '@/lib/keyboard-shortcuts'
 import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { soundPresets, type SoundPresetId } from '@/lib/sound-presets'
 import { cn } from '@/lib/utils'
@@ -63,6 +69,11 @@ export function PatchEditorHeader({
   syncState,
 }: PatchEditorHeaderProps) {
   const { t } = useTranslation()
+  const onApplePlatform = useMemo(() => isApplePlatform(), [])
+  // The accessible name stays plain; the hint only rides along in the tooltip.
+  const withShortcut = (label: string, shortcut: KeyboardShortcut) =>
+    `${label} (${formatShortcut(shortcut, onApplePlatform)})`
+
   return (
     <header className="crt-hatch sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b-2 border-[var(--crt-shadow)] py-1.5 shadow-sm">
       <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-3 sm:px-5 lg:px-8">
@@ -72,6 +83,7 @@ export function PatchEditorHeader({
           disabled={syncState === 'sending'}
           onClick={onBack}
           size="icon"
+          title={withShortcut(t('editor.back'), editorShortcuts.back)}
           type="button"
           variant="outline"
         >
@@ -117,7 +129,7 @@ export function PatchEditorHeader({
             disabled={!canUndo}
             onClick={onUndo}
             size="icon"
-            title={t('editor.undo')}
+            title={withShortcut(t('editor.undo'), editorShortcuts.undo)}
             type="button"
             variant="outline"
           >
@@ -128,7 +140,7 @@ export function PatchEditorHeader({
             disabled={!canRedo}
             onClick={onRedo}
             size="icon"
-            title={t('editor.redo')}
+            title={withShortcut(t('editor.redo'), editorShortcuts.redo)}
             type="button"
             variant="outline"
           >
@@ -185,7 +197,13 @@ export function PatchEditorHeader({
             <span className="hidden xl:inline">{t('editor.randomise')}</span>
           </Button>
           <div className="flex items-center">
-            <Button className="font-vt323" disabled={!isDirty} onClick={onSave} type="button">
+            <Button
+              className="font-vt323"
+              disabled={!isDirty}
+              onClick={onSave}
+              title={withShortcut(t('editor.save'), editorShortcuts.save)}
+              type="button"
+            >
               <Save />
               <span className="hidden sm:inline">{t('editor.save')}</span>
             </Button>

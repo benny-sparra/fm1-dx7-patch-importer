@@ -490,6 +490,7 @@ export default {
     editSelected: 'Edit',
     editNone: 'Choose a sound first to edit it',
     slotTitle: 'Click to play {{name}} on the FM1; double-click to edit',
+    slotEditTitle: 'Double-click or press Enter to edit {{name}}',
     openEditor: 'Open {{name}} in the voice editor',
     sendPatch: 'Send {{name}} to FM1',
     sendPatchTitle: 'Send this patch to the FM1 edit buffer',

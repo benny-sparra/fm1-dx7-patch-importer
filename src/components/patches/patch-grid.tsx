@@ -13,12 +13,13 @@ import {
   SortableContext,
 } from '@dnd-kit/sortable'
 import { FileMusic, Search } from 'lucide-react'
-import { type ReactNode, type SVGProps } from 'react'
+import { useMemo, type ReactNode, type RefObject, type SVGProps } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
+import { formatShortcut, isApplePlatform, librarianShortcuts } from '@/lib/keyboard-shortcuts'
 
 import { PatchButton } from './patch-button'
 
@@ -37,6 +38,7 @@ type PatchGridProps = {
   patches: Patch[]
   search: string
   searchDisabled?: boolean
+  searchRef?: RefObject<HTMLInputElement | null>
   setSearch: (search: string) => void
   toolbar?: ReactNode
 }
@@ -68,10 +70,12 @@ export function PatchGrid({
   patches,
   search,
   searchDisabled = false,
+  searchRef,
   setSearch,
   toolbar,
 }: PatchGridProps) {
   const { t } = useTranslation()
+  const searchHint = useMemo(() => formatShortcut(librarianShortcuts.search, isApplePlatform()), [])
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -116,7 +120,16 @@ export function PatchGrid({
                 className="patch-search-input crt-inset h-8 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={searchDisabled}
                 onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  // The page-level Escape stays out of text fields, so the
+                  // field clears itself where the user is most likely to press it.
+                  if (event.key !== 'Escape' || !search) return
+                  event.preventDefault()
+                  setSearch('')
+                }}
                 placeholder={t('banks.search')}
+                ref={searchRef}
+                title={`${t('banks.search')} (${searchHint})`}
                 type="search"
                 value={search}
               />

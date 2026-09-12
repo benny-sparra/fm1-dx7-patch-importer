@@ -10,6 +10,12 @@ import { PatchEditorPage } from '@/routes/patch-editor-page'
 
 beforeAll(() => {
   window.scrollTo = vi.fn()
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.open = true
+  }
+  HTMLDialogElement.prototype.close = function close() {
+    this.open = false
+  }
 })
 
 afterEach(() => {
@@ -28,12 +34,13 @@ function setup(overrides: Partial<MidiController> = {}) {
     sysexAvailable: true,
     ...overrides,
   } as unknown as MidiController
+  const onBack = vi.fn()
   const onSave = vi.fn()
   const view = render(
     <PatchEditorPage
       effects={new Uint8Array(24)}
       midi={midi}
-      onBack={vi.fn()}
+      onBack={onBack}
       onSave={onSave}
       patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
       voice={{ data: new Uint8Array(128), name: 'INIT' }}
@@ -44,13 +51,13 @@ function setup(overrides: Partial<MidiController> = {}) {
       <PatchEditorPage
         effects={new Uint8Array(24)}
         midi={nextMidi}
-        onBack={vi.fn()}
+        onBack={onBack}
         onSave={onSave}
         patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
         voice={{ data: new Uint8Array(128), name: 'INIT' }}
       />,
     )
-  return { midi, onSave, rerenderMidi }
+  return { midi, onBack, onSave, rerenderMidi }
 }
 
 describe('PatchEditorPage MIDI paths', () => {
@@ -154,5 +161,94 @@ describe('PatchEditorPage analytics', () => {
     await user.click(screen.getByRole('button', { name: 'Save to Library' }))
 
     expect(track).toHaveBeenNthCalledWith(2, 'patch_saved', undefined)
+  })
+})
+
+describe('PatchEditorPage keyboard shortcuts', () => {
+  async function setupEdited() {
+    const context = setup()
+    await waitFor(() => expect(context.midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    fireEvent.change(screen.getByRole('slider', { name: 'Feedback' }), { target: { value: '6' } })
+
+    return context
+  }
+
+  it('undoes the last edit on the undo shortcut', async () => {
+    const user = userEvent.setup()
+    await setupEdited()
+    expect(screen.getByRole('slider', { name: 'Feedback' }).getAttribute('value')).toBe('6')
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(screen.getByRole('slider', { name: 'Feedback' }).getAttribute('value')).toBe('0')
+  })
+
+  it('redoes an undone edit on the shifted undo shortcut', async () => {
+    const user = userEvent.setup()
+    await setupEdited()
+
+    await user.keyboard('{Meta>}z{/Meta}')
+    await user.keyboard('{Meta>}{Shift>}z{/Shift}{/Meta}')
+
+    expect(screen.getByRole('slider', { name: 'Feedback' }).getAttribute('value')).toBe('6')
+  })
+
+  it('saves the edited patch on the save shortcut', async () => {
+    const user = userEvent.setup()
+    const { onSave } = await setupEdited()
+
+    await user.keyboard('{Meta>}s{/Meta}')
+
+    expect(onSave).toHaveBeenCalledTimes(1)
+  })
+
+  it('saves without leaving the patch name field, where the space bar still types', async () => {
+    const user = userEvent.setup()
+    const { onSave } = await setupEdited()
+
+    await user.click(screen.getByRole('textbox', { name: 'Patch name' }))
+    await user.keyboard('{Meta>}s{/Meta}')
+
+    expect(onSave).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not save an unedited patch, so the shortcut never reaches the browser', async () => {
+    const user = userEvent.setup()
+    const { midi, onSave } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+
+    await user.keyboard('{Meta>}s{/Meta}')
+
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
+  it('leaves an unedited editor on Escape', async () => {
+    const user = userEvent.setup()
+    const { midi, onBack } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+
+    await user.keyboard('{Escape}')
+
+    expect(onBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks about unsaved changes on Escape rather than discarding them', async () => {
+    const user = userEvent.setup()
+    const { onBack } = await setupEdited()
+
+    await user.keyboard('{Escape}')
+
+    expect(onBack).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Discard changes' })).toBeTruthy()
+  })
+
+  it('leaves Escape to the unsaved-changes dialog once it is open', async () => {
+    const user = userEvent.setup()
+    const { onBack } = await setupEdited()
+
+    await user.keyboard('{Escape}')
+    await user.keyboard('{Escape}')
+
+    expect(onBack).not.toHaveBeenCalled()
   })
 })
