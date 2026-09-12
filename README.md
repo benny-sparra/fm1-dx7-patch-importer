@@ -248,12 +248,20 @@ editor its own window, launcher entry, and name. It adds no service worker, so t
 requires a network connection to load and works offline no further than before.
 
 The PNGs it references are committed build inputs rendered from `public/favicon.svg` by
-`npm run icons:generate`, so the tab icon and the launcher icon cannot drift apart. The maskable
-icon is inset onto an opaque plate because a platform may crop it to any shape inside 80% of its
-width. `npm run icons:check` verifies every icon the manifest declares exists, is a square PNG of
-the declared size, and is fully opaque when it is maskable. Like the responsive image check, it does
-not byte-compare a fresh render, because native PNG output can vary by platform. Do not edit
-`public/icon-*.png` manually.
+`npm run icons:generate`, so the launcher icon and the icon the page starts with cannot drift apart.
+The maskable icon is inset onto an opaque plate because a platform may crop it to any shape inside
+80% of its width. `npm run icons:check` verifies every icon the manifest declares exists, is a
+square PNG of the declared size, and is fully opaque when it is maskable. Like the responsive image
+check, it does not byte-compare a fresh render, because native PNG output can vary by platform. Do
+not edit `public/icon-*.png` manually.
+
+`public/favicon.svg` is the icon the document loads with. Once the app has booted it swaps the tab
+icon for `public/favicon-<colourway>.svg`, so the tab follows the selected FM1 finish. These are
+served as files rather than generated data URLs because the production security policy only admits
+images from the app's own origin, and `src/lib/fm1-favicon.test.ts` keeps each one's surface and
+accent colours in step with the colourway tokens in `src/index.css`. The lettering is converted to
+outlines so a favicon never waits on a webfont. The launcher icons stay on the black default,
+because an installed app cannot repaint its icon per session.
 
 ### Production source maps
 
