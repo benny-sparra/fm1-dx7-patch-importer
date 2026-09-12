@@ -64,8 +64,8 @@ export function PatchEditorHeader({
 }: PatchEditorHeaderProps) {
   const { t } = useTranslation()
   return (
-    <header className="crt-hatch sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b-2 border-[var(--crt-shadow)] py-2 shadow-sm">
-      <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-end gap-3 px-3 sm:px-5 lg:px-8">
+    <header className="crt-hatch sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b-2 border-[var(--crt-shadow)] py-1.5 shadow-sm">
+      <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-3 sm:px-5 lg:px-8">
         <Button
           aria-label={t('editor.back')}
           className="text-[var(--crt-ink-2)]"
@@ -77,20 +77,18 @@ export function PatchEditorHeader({
         >
           <ArrowLeft />
         </Button>
-        <div className="min-w-0">
-          <p className="mb-1 flex">
-            <span className="patch-slot font-vt323 border border-[var(--crt-line)] bg-[var(--crt-bg-well)] px-1.5 pt-1 pb-0.5 text-sm leading-none text-[var(--crt-acc-lt)]">
-              {patch.bank}
-              {String(patch.number).padStart(2, '0')}
-            </span>
-          </p>
-          <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-stretch gap-2">
+          <span className="patch-slot font-vt323 flex shrink-0 items-center border border-[var(--crt-line)] bg-[var(--crt-bg-well)] px-2 text-sm leading-none text-[var(--crt-led)]">
+            {patch.bank}
+            {String(patch.number).padStart(2, '0')}
+          </span>
+          <div className="flex min-w-0 items-center gap-2">
             <label className="min-w-0" title={t('editor.editName')}>
               <span className="sr-only">{t('editor.patchName')}</span>
               <span className="flex items-center gap-1">
                 <input
                   aria-label={t('editor.patchName')}
-                  className="font-dot-matrix crt-inset -ml-1 w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+                  className="font-dot-matrix crt-inset w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
                   maxLength={10}
                   onBlur={onNameBlur}
                   onChange={(event) => onNameChange(event.target.value.toUpperCase())}
