@@ -11,6 +11,19 @@ import { applyFm1Favicon } from './fm1-favicon'
 // jsdom's import.meta.url is not a file: URL, so these resolve from the repository root.
 const stylesheet = readFileSync(path.resolve('src/index.css'), 'utf8')
 
+// Every icon file, including the default the document loads with.
+const faviconFiles = ['favicon.svg', ...fm1Colorways.map(({ value }) => `favicon-${value}.svg`)]
+
+function polylineLength(d: string) {
+  const points = [...d.matchAll(/[ML]([\d.]+) ([\d.]+)/g)].map(([, x, y]) => [+x, +y])
+  return points
+    .slice(1)
+    .reduce(
+      (total, [x, y], index) => total + Math.hypot(x - points[index][0], y - points[index][1]),
+      0,
+    )
+}
+
 function declarations(selector: string) {
   const start = stylesheet.indexOf(selector)
   if (start === -1) throw new Error(`index.css has no ${selector} block`)
@@ -71,4 +84,27 @@ describe('applyFm1Favicon', () => {
       expect(svg).toContain(`stroke="${tokenHex(tokens, '--crt-bg-0')}"`)
     },
   )
+})
+
+describe('favicon trace redraw', () => {
+  it.each(faviconFiles)('%s rests on the whole trace between redraws', (file) => {
+    const svg = readFileSync(path.resolve(`public/${file}`), 'utf8')
+    const dash = Number(svg.match(/stroke-dasharray: ([\d.]+)/)?.[1])
+    const length = polylineLength(svg.match(/<path d="([^"]+)"/)?.[1] ?? '')
+
+    // Browsers that never animate a favicon rasterise the first keyframe, so it must show it all.
+    expect(length).toBeGreaterThan(0)
+    expect(dash).toBeGreaterThanOrEqual(length)
+    expect(svg).toContain('animation: redraw 10s linear infinite;')
+    expect(svg).toMatch(/^\s*0% \{ stroke-dashoffset: 0;/m)
+    expect(svg).toMatch(/10%, 100% \{ stroke-dashoffset: 0; \}/)
+  })
+
+  it.each(faviconFiles)('%s holds still for reduced motion', (file) => {
+    const svg = readFileSync(path.resolve(`public/${file}`), 'utf8')
+
+    expect(svg).toMatch(
+      /@media \(prefers-reduced-motion: reduce\) \{\s*path \{ animation: none; \}\s*\}/,
+    )
+  })
 })

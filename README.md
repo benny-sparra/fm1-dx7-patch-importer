@@ -326,7 +326,9 @@ images from the app's own origin, and `src/lib/fm1-favicon.test.ts` keeps each o
 wave colours in step with the colourway tokens in `src/index.css`. Each tile is flooded with the
 finish's accent and carries an oscilloscope trace in the darkest surface colour, so the finish is
 legible at tab size. The mark is drawn as a path rather than set in type, so a favicon never waits
-on a webfont. The launcher icons stay on the plain default,
+on a webfont. Every 10 seconds the trace wipes and redraws like a scope beam, taking about a
+second; Firefox animates tab icons, while Chromium and Safari show the resting whole trace, and
+`prefers-reduced-motion: reduce` holds it still. The launcher icons stay on the plain default,
 because an installed app cannot repaint its icon per session.
 
 ### Production source maps
