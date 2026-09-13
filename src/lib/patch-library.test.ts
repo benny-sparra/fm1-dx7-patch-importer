@@ -300,6 +300,21 @@ describe('patch library operations', () => {
     expect(result.voices[voiceId('A', 3)].name).toBe(firstName)
   })
 
+  it('moves an empty slot as empty instead of storing undefined entries', () => {
+    const initial = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const voices = { ...initial.voices }
+    const effects = { ...initial.effects }
+    delete voices[voiceId('A', 2)]
+    delete effects[voiceId('A', 2)]
+
+    const result = moveVoice({ ...initial, effects, voices }, 'A', 1, 3)
+
+    expect(voiceId('A', 1) in result.voices).toBe(false)
+    expect(voiceId('A', 1) in result.effects).toBe(false)
+    expect(Object.values(result.voices)).not.toContain(undefined)
+    expect(result.voices[voiceId('A', 3)]).toBe(initial.voices[voiceId('A', 1)])
+  })
+
   it('normalizes unsupported rename characters for DX7 storage', () => {
     const initial = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
     const result = renameVoice(initial, voiceId('A', 1), 'BASS 🎹')

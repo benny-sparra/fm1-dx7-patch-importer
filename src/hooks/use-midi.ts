@@ -326,9 +326,8 @@ export function useMidi() {
       return transferQueue
         .enqueue(() => sendDx7Bank(selectedOutput, channel, voices))
         .then(() => {
-          appendLog(
-            makeLogEntry('out', `Sent bank ${bank}. Choose its destination on the FM1.`, message),
-          )
+          // The "Sending" entry already holds the full message, so this one does not repeat it.
+          appendLog(makeLogEntry('out', `Sent bank ${bank}. Choose its destination on the FM1.`))
           return { ok: true } as const
         })
         .catch((caughtError) => {

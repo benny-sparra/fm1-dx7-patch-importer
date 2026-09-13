@@ -222,8 +222,15 @@ export function moveVoice(
   for (let slot = from; slot !== to; slot += direction) {
     const targetId = voiceId(bank, slot)
     const sourceId = voiceId(bank, slot + direction)
-    voices[targetId] = snapshot.voices[sourceId]
-    effects[targetId] = normalizeFm1Effects(snapshot.effects[sourceId])
+    const source = snapshot.voices[sourceId]
+    if (source) {
+      voices[targetId] = source
+      effects[targetId] = normalizeFm1Effects(snapshot.effects[sourceId])
+    } else {
+      // An empty slot moves as empty, rather than as a stored entry holding undefined.
+      delete voices[targetId]
+      delete effects[targetId]
+    }
   }
   const targetId = voiceId(bank, to)
   voices[targetId] = moved
