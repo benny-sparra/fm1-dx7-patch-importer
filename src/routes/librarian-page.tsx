@@ -13,7 +13,10 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PatchGrid } from '@/components/patches/patch-grid'
-import { WorkspaceBankSelector } from '@/components/patches/workspace-bank-selector'
+import {
+  WorkspaceBankSelector,
+  type WorkspaceBankSelectorBank,
+} from '@/components/patches/workspace-bank-selector'
 import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
 import {
   defaultWorkspaceBankTitle,
@@ -91,6 +94,7 @@ export function LibrarianPage({
     name: string
   } | null>(null)
   const allBanksMenuRef = useDismissableDetails()
+  const bankMenuRef = useDismissableDetails()
   // EDIT acts on the slot lit in the grid, which a click has already played on the FM1.
   const auditionedPatch = patches.find((patch) => patch.id === activePatchId)
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
@@ -275,6 +279,75 @@ export function LibrarianPage({
     },
   ])
 
+  const renderBankActions = (
+    selectedBank: Pick<WorkspaceBankSelectorBank, 'id'>,
+    closeMenu: () => void,
+  ) => {
+    const bank = selectedBank.id
+    const index = banks.indexOf(bank)
+    return (
+      <>
+        <BankInformationDialog
+          bank={bank}
+          defaultTitle={defaultWorkspaceBankTitle(t, index + 1)}
+          library={library}
+          onClose={closeMenu}
+        />
+        <div className="my-1 border-t" />
+        <button
+          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+          disabled={isImporting}
+          onClick={() => {
+            closeMenu()
+            beginImport(bank)
+          }}
+          type="button"
+        >
+          <Upload className="size-4" />
+          {isImporting ? t('banks.importing') : t('banks.import')}
+        </button>
+        <button
+          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+          disabled={!library.loadedBanks.includes(bank)}
+          onClick={() => {
+            closeMenu()
+            downloadBank(bank)
+          }}
+          title={
+            library.loadedBanks.includes(bank)
+              ? t('banks.downloadTitle', { bank: bankDisplayName(bank) })
+              : t('banks.importFirst', { bank: bankDisplayName(bank) })
+          }
+          type="button"
+        >
+          <Download className="size-4" />
+          {t('banks.download')}
+        </button>
+        {banks.length > 1 ? (
+          <button
+            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
+            onClick={() => {
+              closeMenu()
+              const name = bankDisplayName(bank)
+              const replacementBank = banks[index + 1] ?? banks[index - 1]
+              if (!replacementBank) return
+              setBankPendingDeletion({
+                bank,
+                name,
+                nextBank: replacementBank,
+              })
+              deleteWorkspaceBankDialogRef.current?.showModal()
+            }}
+            type="button"
+          >
+            <Trash2 className="size-4" />
+            {t('banks.deleteBank')}
+          </button>
+        ) : null}
+      </>
+    )
+  }
+
   return (
     <section className="mx-auto grid max-w-7xl min-w-0 gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
       <SentryVerificationButton />
@@ -283,13 +356,29 @@ export function LibrarianPage({
         actions={
           <>
             {/* The selected bank reads back as a lit slot, as on the panel. */}
-            <span className="mr-1.5 flex shrink-0 items-center gap-[9px]">
+            {/* The rail drops bank names on narrow screens, so here the name takes
+                its own line above the buttons rather than disappearing too. */}
+            <span className="flex w-full min-w-0 items-center gap-[9px] xl:mr-1.5 xl:w-auto xl:shrink-0">
               <span className="font-vt323 grid w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
                 {destinationBank}
               </span>
-              <span className="font-dot-matrix hidden max-w-40 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)] sm:block">
+              <span className="font-dot-matrix block min-w-0 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)] xl:max-w-40">
                 {bankDisplayName(destinationBank)}
               </span>
+              <details className="group relative ml-auto shrink-0 md:hidden" ref={bankMenuRef}>
+                <summary
+                  aria-label={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
+                  className="grid h-6 w-5 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] text-[var(--crt-led)] transition-colors group-open:bg-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
+                  title={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
+                >
+                  <EllipsisVertical className="size-3.5" />
+                </summary>
+                <div className="menu-surface absolute top-full right-0 z-40 mt-1 min-w-56 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
+                  {renderBankActions({ id: destinationBank }, () =>
+                    bankMenuRef.current?.removeAttribute('open'),
+                  )}
+                </div>
+              </details>
             </span>
             <button
               className="crt-raised-lit inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
@@ -394,7 +483,7 @@ export function LibrarianPage({
         setSearch={setSearch}
         toolbar={
           <>
-            <div className="flex h-full w-16 flex-col border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] sm:w-[226px]">
+            <div className="flex h-full w-16 flex-col border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px]">
               <WorkspaceBankSelector
                 banks={banks.map((bank) => {
                   const name = bankDisplayName(bank)
@@ -407,83 +496,19 @@ export function LibrarianPage({
                 })}
                 label={t('banks.destination')}
                 onSelect={setDestinationBank}
-                renderActions={(selectedBank, closeMenu) => {
-                  const bank = selectedBank.id
-                  const index = banks.indexOf(bank)
-                  return (
-                    <>
-                      <BankInformationDialog
-                        bank={bank}
-                        defaultTitle={defaultWorkspaceBankTitle(t, index + 1)}
-                        library={library}
-                        onClose={closeMenu}
-                      />
-                      <div className="my-1 border-t" />
-                      <button
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                        disabled={isImporting}
-                        onClick={() => {
-                          closeMenu()
-                          beginImport(bank)
-                        }}
-                        type="button"
-                      >
-                        <Upload className="size-4" />
-                        {isImporting ? t('banks.importing') : t('banks.import')}
-                      </button>
-                      <button
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                        disabled={!library.loadedBanks.includes(bank)}
-                        onClick={() => {
-                          closeMenu()
-                          downloadBank(bank)
-                        }}
-                        title={
-                          library.loadedBanks.includes(bank)
-                            ? t('banks.downloadTitle', { bank: bankDisplayName(bank) })
-                            : t('banks.importFirst', { bank: bankDisplayName(bank) })
-                        }
-                        type="button"
-                      >
-                        <Download className="size-4" />
-                        {t('banks.download')}
-                      </button>
-                      {banks.length > 1 ? (
-                        <button
-                          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
-                          onClick={() => {
-                            closeMenu()
-                            const name = bankDisplayName(bank)
-                            const replacementBank = banks[index + 1] ?? banks[index - 1]
-                            if (!replacementBank) return
-                            setBankPendingDeletion({
-                              bank,
-                              name,
-                              nextBank: replacementBank,
-                            })
-                            deleteWorkspaceBankDialogRef.current?.showModal()
-                          }}
-                          type="button"
-                        >
-                          <Trash2 className="size-4" />
-                          {t('banks.deleteBank')}
-                        </button>
-                      ) : null}
-                    </>
-                  )
-                }}
+                renderActions={renderBankActions}
                 selectedBank={destinationBank}
               />
               {nextBank ? (
                 <button
                   aria-label={t('banks.addBank')}
-                  className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] sm:justify-start"
+                  className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] md:justify-start"
                   onClick={() => addWorkspaceBankDialogRef.current?.showModal()}
                   title={t('banks.addBank')}
                   type="button"
                 >
                   <Plus className="size-4 shrink-0" />
-                  <span className="hidden sm:inline">{t('banks.addBank')}</span>
+                  <span className="hidden md:inline">{t('banks.addBank')}</span>
                 </button>
               ) : null}
             </div>

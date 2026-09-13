@@ -43,7 +43,9 @@ function WorkspaceBankRow({
   return (
     <li
       className={cn(
-        'relative flex w-full items-center gap-[9px] border-t border-r border-b border-l px-2 py-[7px] whitespace-nowrap transition-colors',
+        // The narrow rail only has room for the slot badge and the menu button,
+        // so the gutters tighten until the name has space to show.
+        'relative flex w-full items-center gap-1 border-t border-r border-b border-l px-1.5 py-[7px] whitespace-nowrap transition-colors md:gap-[9px] md:px-2',
         'border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
         selected
           ? 'bank-tab-active z-10 border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
@@ -74,7 +76,7 @@ function WorkspaceBankRow({
         </span>
         <span
           className={cn(
-            'font-dot-matrix hidden min-w-0 flex-1 truncate text-left text-[14px] font-bold sm:block',
+            'font-dot-matrix hidden min-w-0 flex-1 truncate text-left text-[14px] font-bold md:block',
             selected ? 'text-[var(--crt-led)]' : 'text-[var(--crt-ink-2)]',
           )}
         >
@@ -86,7 +88,9 @@ function WorkspaceBankRow({
           {bank.description}
         </span>
       ) : null}
-      <details className="group relative shrink-0" ref={detailsRef}>
+      {/* The narrow rail has no room beside the badge, so there the menu lives
+          next to the bank name above the grid instead. */}
+      <details className="group relative hidden shrink-0 md:block" ref={detailsRef}>
         <summary
           aria-label={bank.actionsLabel ?? `Actions for ${bank.name}`}
           className={cn(

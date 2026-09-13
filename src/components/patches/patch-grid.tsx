@@ -155,11 +155,11 @@ export function PatchGrid({
         <div className="min-w-0 flex-1">
           <div className="crt-hatch flex flex-col gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px] md:flex-row md:items-center">
             {actions ? (
-              <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-auto">
+              <div className="flex w-full min-w-0 flex-wrap items-center gap-2 md:w-[calc(50%-0.25rem)] md:flex-none xl:w-auto">
                 {actions}
               </div>
             ) : null}
-            <label className="relative block w-full sm:ml-auto sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-[calc(25%-0.375rem)]">
+            <label className="relative block w-full md:ml-auto md:w-[calc(50%-0.25rem)] md:flex-none xl:w-[calc(25%-0.375rem)]">
               <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
               <input
                 aria-label={t('banks.search')}
