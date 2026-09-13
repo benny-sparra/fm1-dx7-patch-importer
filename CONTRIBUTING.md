@@ -8,7 +8,7 @@ source is organised. Repository conventions and behavioural constraints are reco
 ## Local development
 
 Use Node.js 24.18.0 and npm 11.16.0, as pinned by `.node-version` and
-`package.json`, then run:
+`package.json`; npm warns about a different version when installing. Then run:
 
 ```bash
 npm install
@@ -53,6 +53,10 @@ viewport controls. Install its Chromium runtime once locally, then run it with:
 npx playwright install chromium
 npm run test:e2e
 ```
+
+The run builds the app and starts its own preview on port 4173. If something is already serving that
+port, the run stops rather than testing an older build: stop the other server, or set
+`PLAYWRIGHT_REUSE_SERVER=true` to test against it deliberately.
 
 Add or update automated tests whenever functionality or a regression path changes. Use focused
 Vitest coverage for domain, component, and mocked browser behaviour; add a Playwright journey when
