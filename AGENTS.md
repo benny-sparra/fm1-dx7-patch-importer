@@ -121,6 +121,20 @@ files when that is clearer.
   image checks and `npm run test:cls` for image, font, initial-render, or loading-layout changes.
 - `public/icon-*.png` are rendered from `public/favicon.svg`. Do not hand-edit them; run
   `npm run icons:generate` after changing the favicon or the manifest icon list.
+- `public/favicon-<colourway>.svg` are hand-authored, one per finish. Keep them in step with the
+  default `public/favicon.svg` mark and with the colourway tokens; `src/lib/fm1-favicon.test.ts`
+  enforces the colours. Launcher icons stay on the default finish because an installed app cannot
+  repaint its icon per session.
+
+### Theme and finishes
+
+- The shell is a CRT terminal theme. Colour lives in tokens in `src/index.css`: the `--crt-*`
+  palette, the `--fm1-*` aliases that UI code consumes, and one `:root[data-fm1-colorway='…']`
+  block per finish. Style components from the aliases rather than hard-coded colours.
+- `src/lib/fm1-colorway.ts` is the list of finishes. Adding or renaming one means updating its token
+  block, its favicon, its colourway images, and the tests that pair them.
+- Panels, dialogs, racks, and slots share the bevelled terminal chrome already in `src/index.css`.
+  Reuse those classes instead of introducing a parallel surface style.
 
 ### UI and accessibility
 
@@ -132,6 +146,20 @@ files when that is clearer.
   requested feature; repeated activation must not duplicate imports or dialogs.
 - Use focused `Suspense` or loading states that do not replace the whole librarian page.
 - Treat loading, failure, disabled, empty, and narrow-viewport states as first-class behavior.
+
+### Keyboard and motion
+
+- View-level shortcuts are declared in `src/lib/keyboard-shortcuts.ts` and bound through
+  `useKeyboardShortcuts`. Widget keyboard behaviour (rotary controls, envelope points, the piano
+  keyboard, the bank list) stays with the widget that owns it.
+- A shortcut must yield to whatever already owns the keyboard: an open native dialog, a text field
+  for bare keys, and an open menu for Escape. Modified shortcuts still run while typing.
+- Shortcut definitions are the single source: button tooltips and the help dialog read them, so they
+  cannot drift. When a shortcut is added, changed, or removed, update the help dialog listing, the
+  locale keys, and the README keyboard shortcut list in the same change.
+- Match the short easing durations already used in `src/index.css` and always provide the
+  `prefers-reduced-motion: reduce` snap. Animated disclosure must not leave controls half-hidden in
+  the accessibility tree: flip visibility once the transition has finished.
 
 ## Tests
 
