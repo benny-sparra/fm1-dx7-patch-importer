@@ -106,7 +106,7 @@ export function EnvelopeEditor({
       style={{ '--operator-color': color } as React.CSSProperties}
     >
       <div className="crt-well relative min-h-0 p-[3px]">
-        <div className="absolute top-1.5 right-2 flex items-center gap-1 text-[11px] tracking-[0.12em] text-[var(--crt-acc-mid)] uppercase">
+        <div className="flex items-center justify-end gap-1 px-[5px] pt-[3px] pb-2 text-[11px] tracking-[0.12em] text-[var(--crt-acc-mid)] uppercase">
           {showTitle ? (
             <>
               {title}

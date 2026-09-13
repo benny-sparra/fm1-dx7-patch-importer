@@ -284,7 +284,7 @@ export function LibrarianPage({
           <>
             {/* The selected bank reads back as a lit slot, as on the panel. */}
             <span className="mr-1.5 flex shrink-0 items-center gap-[9px]">
-              <span className="font-dot-matrix grid h-6 w-[26px] place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] text-sm font-bold text-[var(--crt-led)]">
+              <span className="font-vt323 grid w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
                 {destinationBank}
               </span>
               <span className="font-dot-matrix hidden max-w-40 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)] sm:block">
