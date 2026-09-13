@@ -507,6 +507,38 @@ Only expose settings with a clearly understood runtime path.
 
 ---
 
+# Parked — Slot-addressed voice-bank write
+
+## Status
+
+Parked research. Nothing here is scheduled, and no production code may send these messages.
+
+## Why it is listed
+
+A third-party capture of M-VAVE's updater preset restore
+([research notes 6.3](fm1-research.md#63-updater-preset-restore-over-manufacturer-id-00-32)) shows a
+host sending 128 voices in 16 acknowledged `00 32` blocks, each with an explicit target slot. If safe,
+that would let the editor write a bank to a chosen FM1 bank and confirm delivery, rather than rely on
+a standard DX7 bank dump that the user places on the hardware.
+
+## Blocking evidence
+
+- The four setup messages are unpublished and unclassified.
+- The traffic comes from an updater build that downgrades firmware, so it is Dangerous / excluded
+  until shown to be separate from the update, loader, OTA and flash-erase paths.
+- Persistence, checksum, interruption and error behaviour are unknown.
+- There is no committed fixture and no repeat on stock v15 hardware.
+
+## Unblock order
+
+1. Obtain a complete, redacted capture as a fixture, with firmware version recorded before and after.
+2. Classify every message against research sections 6 and 9.
+3. Add a fixture-based decoder test for the payload only. It must not include a transmitter.
+4. Get project approval before any hardware experiment. Stock DX7 bank dumps remain the supported write
+   path until then.
+
+---
+
 # Definition of done for protocol features
 
 A protocol-backed feature is not done until:

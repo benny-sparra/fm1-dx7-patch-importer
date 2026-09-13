@@ -1,7 +1,7 @@
 # FM1 Editor Research Notes
 
 > Status: working engineering reference
-> Last reviewed: 2026-08-31
+> Last reviewed: 2026-09-13
 > Scope: M-VAVE FM1 editor/librarian, stock FM1 firmware behaviour, and possible editor enhancements.
 
 ## Purpose
@@ -489,6 +489,102 @@ Before implementation, build a command catalogue:
 | TBD     | TBD     | TBD       | TBD        | TBD           | TBD                 |
 
 Do not send unknown command IDs experimentally without understanding their destination.
+
+---
+
+## 6.3 Updater preset restore over manufacturer ID `00 32`
+
+**Status: Needs hardware test. Treated as Dangerous / excluded.**
+
+> Recorded 2026-09-13 from a third-party capture reported in
+> [issue #19](https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/19) and documented in
+> [KingParamount/fm1-factory-presets `docs/protocol-and-provenance.md`](https://github.com/KingParamount/fm1-factory-presets/blob/ac24c864876ef1be3396f6a1a7f7d95fb4358fcd/docs/protocol-and-provenance.md)
+> at commit `ac24c864876ef1be3396f6a1a7f7d95fb4358fcd`. This project has not reproduced the capture,
+> has no fixture of it, and has not observed it through the editor.
+
+### Source of the observation
+
+The traffic was captured host-to-device with MIDI Monitor's output spy while the Chinese-language
+M-VAVE Windows updater ran its preset-restore function over USB. The same updater build is reported
+to downgrade firmware to v14. The capture is therefore **update-tool traffic**, not traffic from a
+stock front-panel operation, and it has not been separated from the tool's update or loader session.
+
+### Reported exchange
+
+The contributor reports 46 SysEx messages in about 200 ms:
+
+| Step | Direction      | Reported bytes                                                      | Notes                                                                                    |
+| ---- | -------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 1    | Host → FM1     | `F0 00 32 45 00 00 00 40 7F F7`                                     | Described as identify.                                                                   |
+| 2    | FM1 → host     | `F0 00 32 45 58 01 00 00 23 4D 5A 44 79 05 26 4C 1A 00 … 20 06 F7`  | Contains ASCII `#MZD`, then bytes that may be a version or serial. Full reply not given. |
+| 3    | Both           | Four setup messages, each acknowledged                              | **Bytes not published.** Purpose unknown.                                                |
+| 4    | Host → FM1 ×16 | `F0 00 32 09 41 40 00 40 02 00 SS 00 00 00 00 01 ‖ payload ‖ CK F7` | 1,190 bytes each. `SS` runs `00 08 10 … 78`.                                             |
+| 5    | FM1 → host ×16 | `F0 00 32 01 08 00 00 00 00 7F 01 F7`                               | Acknowledgement; each is received before the next block is sent.                         |
+
+Reported payload encoding: a continuous 7-bit bitstream, least-significant bit first both within
+each septet and within each reassembled byte. 1,171 septets unpack to 1,024 bytes (8,192 bits),
+which are eight 128-byte packed DX7 voices. The contributor checked algorithm, feedback, transpose
+and name offsets for plausibility; 16 blocks give 128 voices in the order of the four stock banks.
+
+### What is corroborated here
+
+The four `FM-1_factory_bank1-4.syx` files rebuilt from that decode each pass this editor's
+`parseDx7Bank` rules when checked on 2026-09-13: 4,104 bytes, `F0 43 00 09 20 00` header, 7-bit voice
+data, a valid DX7 checksum, and a trailing `F7`. The decoded names include device quirks that would be
+unlikely to survive a wrong decode (`Organ 2`, `PIANO3`, `BI   BEN`, and `SAW EM UP`/`2`/`3` holding
+one voice). This supports the payload decode only. It says nothing about the framing, setup
+messages, checksum, persistence, or safety of sending the exchange.
+
+### Relationship to known vendor paths
+
+The `00 32` frames are not the `F0 35 59 … F7` marker in 6.1, and no link to the staged
+vendor/syscmd dispatcher in 6.2 or to the OTA path in section 9 has been established. The third byte
+changes between messages (`45`, `09`, `01`). In standard MIDI a three-byte manufacturer ID is `00`
+plus two bytes, so either the ID is `00 32` followed by a command byte, which is non-standard, or
+each message uses a different ID. Neither is confirmed.
+
+### Contradiction with earlier assumptions
+
+Earlier notes say the FM1 sends nothing back: SEQ-001A saw no device-to-host packet during stock
+sequencer operations, and the README says no voice or bank transmission is documented. The
+contributor's own summary repeats that the FM1 "never sends" SysEx. This capture shows **solicited**
+replies: an identity reply and per-block acknowledgements. That does not contradict the absence of
+unprompted traffic or of voice readback, since no reply carries voice data. It does mean "the FM1
+transmits nothing" is too strong. Use "no unsolicited traffic and no known voice readback"
+instead.
+
+### Editor rule
+
+- Production code must not send, construct, or expose any `00 32` message: not identify, not setup,
+  not bank blocks, and not a generic transmitter.
+- Do not replay the capture, or any part of it, to hardware from editor or test code.
+- Standard Yamaha 32-voice bank dumps (1.2) remain the only bank-write path.
+- If a capture is committed as a fixture, redact the identity reply's version/serial bytes. Never
+  send them to analytics or monitoring.
+- A slot-addressed bank write stays a parked research item in the roadmap until the open questions
+  below are answered by stock-safe evidence.
+
+### Open questions
+
+1. What are the four setup messages, and do any enter the updater, loader, OTA, or flash-erase path
+   described in section 9?
+2. Is a preset restore possible without the updater's firmware downgrade, or is the restore part of
+   the same session?
+3. Does a block write go to RAM, to flash immediately, or only after a later setup/commit message?
+   What happens if the sequence is interrupted?
+4. How is `CK` calculated, and what does the device do with a wrong checksum?
+5. What do the fixed header bytes (`41 40 00 40 02 00` and `00 00 00 00 01`) mean? Is `SS` the index
+   of the first voice in the block, and is a block count other than eight allowed?
+6. The arithmetic is off by one byte: `F0`, 15 header bytes, 1,171 payload septets, `CK` and `F7`
+   total 1,189 bytes, not 1,190. Is the header 16 bytes after `F0`, or is the payload length
+   different?
+7. The listed exchange accounts for 42 messages (1 + 1 + 4 + 4 + 16 + 16), not 46. What are the
+   other four?
+8. Is `00 32` M-VAVE's registered ID, or is the third byte part of the ID? Is the identity reply
+   stable across firmware v13, v14 and v15, and is part of it a unique serial?
+9. Does the acknowledgement ever differ, for example on error, and is a reply expected on
+   Bluetooth MIDI as well as USB?
+10. Does the same `00 32` family offer a read or bulk-dump request, or is it host-to-device only?
 
 ---
 
