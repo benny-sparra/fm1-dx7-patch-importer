@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { AlgorithmPanel, RackPanelTitle } from '@/components/editor/editor-workspace'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
+import { LfoScope } from '@/components/editor/lfo-scope'
 import {
   LfoWaveControl,
   RotaryParameterControl,
@@ -119,6 +120,14 @@ export function GlobalConfigurationPanel({
       >
         <RackPanelTitle icon={Waves} id="lfo-heading" title={t('editor.lfoGlobal')} />
         <div className="grid grid-cols-2 content-start gap-x-3 gap-y-2.5 p-[9px] @sm:grid-cols-3">
+          <div className="col-span-full">
+            <LfoScope
+              ampModDepth={parameters[globalIndex('global.lfoAmpModDepth')]}
+              pitchModDepth={parameters[globalIndex('global.lfoPitchModDepth')]}
+              speed={parameters[globalIndex('global.lfoSpeed')]}
+              wave={parameters[globalIndex('global.lfoWave')]}
+            />
+          </div>
           <LfoWaveControl
             onChange={(value) => setParameter(globalIndex('global.lfoWave'), value, 5)}
             value={parameters[globalIndex('global.lfoWave')]}
