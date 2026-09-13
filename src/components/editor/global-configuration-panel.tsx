@@ -137,7 +137,9 @@ export function GlobalConfigurationPanel({
                 text={t('controlHelp.pitchEnvelopePresets')}
               />
             </span>
+            {/* The help button shares the label, so name the select directly. */}
             <select
+              aria-label={t('editor.pitchEnvelopePresets')}
               className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
               onChange={(event) => {
                 applyPitchEnvelopePreset(event.target.value as PitchEnvelopePresetId)
