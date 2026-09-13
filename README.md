@@ -19,13 +19,17 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Search and reorder patches with pointer or keyboard drag-and-drop
 - Export one browser bank as `.syx` or all loaded banks as a `.zip`
 - Edit all standard DX7 voice parameters with live MIDI updates
+- Work on the six operators as a rack: five sit as compact readouts while the selected one opens in place with its full controls
+- Mute or solo any operator straight from its rack column, without opening it first
+- Fold the operators and effects panels away to focus the editor on the sections in use
 - Visualise all 32 DX7 algorithms, including carrier and modulator roles
 - Edit four-stage amplitude and pitch envelopes graphically or with precise numeric controls
+- Start the pitch envelope from Flat, Attack blip up, Attack drop, Scoop, or Release fall shapes as a single undo step
+- Watch the LFO on a scrolling scope that follows the selected wave and LFO Speed
 - Edit the FM1's filter, reverb, delay, distortion, chorus, and phaser within their documented ranges
-- See compact signal previews for each FM1 effect while adjusting the effects chain
+- See a live animated scope for every FM1 effect, drawn from its parameters: filter response, delay taps, chorus drift, reverb tail, distortion clipping, and phaser sweep
 - Apply six sound-shaping presets as undoable starting points
 - Randomise a sound as an undoable starting point
-- Mute or solo operators temporarily while designing a sound
 - Open contextual help for voice, envelope, algorithm, and effect controls
 - Rename patches using DX7-compatible 10-character names
 - Undo and redo edits within the voice editor
@@ -39,7 +43,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard
 - Use the interface in English, French, Spanish, German, Brazilian Portuguese, or Simplified Chinese
-- Match the interface accent and product image to any of the six FM1 colour finishes
+- Use a dark CRT-terminal interface whose accent, product image, and tab icon follow any of the six FM1 colour finishes, with contrast checked to WCAG 2.2 AA in each
 - Install the editor as a standalone desktop app in browsers that support installation
 
 ## Requirements
@@ -58,7 +62,7 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 2. Switch **MIDI online** on and grant MIDI/SysEx permission.
 3. Open **Settings** to select the FM1 MIDI output and, if needed, the note/program and effects channels.
 4. Select DX7 Bank 1, 2, 3, or 4. On first use these contain DX7 factory ROM 1A, ROM 1B, ROM 2A, and ROM 2B respectively. Use **Add new bank** to name and describe an additional workspace bank while populating it from the bundled [Yamaha Black Boxes DX7 catalog](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) or your own standard 32-voice DX7 SysEx file.
-5. Click a patch to select the matching FM1 slot, load it into the edit buffer, and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
+5. Click a patch to select the matching FM1 slot and play it. Double-click it, or choose **Edit** in the toolbar, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
 6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
 7. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank.
 8. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay.
@@ -79,6 +83,16 @@ The interface follows the browser language on first use when it is supported. Ch
 Workspace-bank titles, descriptions, imported sounds, voice ordering, saved editor changes, and FM1 effect settings are saved automatically in the browser.
 
 If the saved workspace cannot be opened, the app leaves its browser record untouched and offers **Retry** or **Continue without saving**. The latter creates an explicit session-only workspace whose changes are lost when the page closes. If a later save fails, the latest changes remain available in memory and can be saved again with **Retry saving**.
+
+### The voice editor
+
+The editor is laid out as a rack. The six operators stand side by side as columns: five show a compact readout, and the selected operator grows in place to carry its full controls. On narrower screens the open operator drops onto a row of its own. Each column has its own mute and solo buttons, so an operator can be silenced without opening it.
+
+Click anywhere on the title strip of the operators or effects panel to fold it away, and click again to bring it back. Each panel folds on its own and keeps its title visible, so a long editor can be trimmed to the sections you are working on.
+
+The pitch envelope has a presets menu of starting shapes: **Flat**, **Attack blip up**, **Attack drop**, **Scoop**, and **Release fall**. Each one is applied as a single undo step.
+
+The LFO and every FM1 effect open with a small animated scope drawn from their current settings. The LFO scrolls its selected wave at a rate set by LFO Speed. The filter shows its response curve, delay its echo taps, chorus its drifting copies, reverb its tail, distortion its clipped wave, and phaser its sweeping notches. A scope dims when its effect is bypassed or when the LFO has no modulation depth. With reduced motion enabled, each scope shows a still frame instead.
 
 ### Keyboard shortcuts
 
