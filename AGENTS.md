@@ -64,6 +64,35 @@ files when that is clearer.
 - Cancellation, retry, disposal, and completions arriving after unmount are normal cases and require
   deterministic handling and tests.
 
+### Legacy stored data compatibility
+
+Users keep their only copy of their voices in browser storage, so every release must be able to
+open everything an earlier release could have saved.
+
+- Treat every persisted shape as a public format: the IndexedDB database name, schema version,
+  object store names, key paths, and record keys in `src/lib/patch-library-storage.ts`; the
+  versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; and
+  `localStorage` keys such as `fm1-language`, `fm1-colourway`, and the MIDI port and help-dialog
+  keys. Do not rename, remove, or repurpose any of them.
+- Changing a stored shape means bumping its record `version` and adding an upgrade path that reads
+  every earlier version. Never drop support for an old version, and never reuse a version number for
+  a different shape.
+- Upgrade on read, in memory. Write back only in the newest format through the normal save path,
+  and never delete or overwrite the legacy record before the upgraded data has been saved
+  successfully.
+- Only bump the IndexedDB schema version for additive changes. `onupgradeneeded` may create stores
+  and indexes but must not delete stores, clear records, or reshape existing data.
+- New fields must be optional when read, with safe defaults for records that predate them. Unknown
+  or out-of-range values from old records are normalised, not treated as a reason to discard the
+  workspace; genuinely unreadable data surfaces the `incompatible` error rather than being replaced.
+- Stored preference values (locale, colourway, port names) that no longer match a supported option
+  fall back to a default without throwing or erasing other storage.
+- Every stored version needs a fixture-based test in the co-located storage test that loads a record
+  as that version wrote it and asserts the upgraded result. Add the fixture for the current version
+  in the same change that introduces it, so it becomes the legacy fixture for the next one.
+- A change that cannot preserve legacy data needs explicit approval and a user-visible migration or
+  export path; call it out in the handoff.
+
 ### MIDI
 
 - WebMidi must remain dynamically imported. Do not require hardware or browser permission in tests.
