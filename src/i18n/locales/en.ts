@@ -276,7 +276,7 @@ export default {
     reportIssue: 'Report an issue',
     version: 'Version {{version}}',
     disclaimer:
-      'Independent open-source project. Not affiliated with or endorsed by M-VAVE or Yamaha.',
+      'Independent, open-source project. Not affiliated with or endorsed by M-VAVE or Yamaha.',
   },
   settings: {
     description: 'Choose the interface language, MIDI ports, and channels.',
