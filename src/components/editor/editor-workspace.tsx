@@ -165,13 +165,18 @@ function AlgorithmDiagram({
               x={nodeX(operator) - 6.5}
               y={nodeY(operator) - 5.5}
             />
+            {/*
+              VT323's ascent and descent are uneven, so a central baseline
+              drops the digits low in the box. Its digits are 0.77em tall on
+              the alphabetic baseline with no descent, so sitting that
+              baseline 0.385em below the box centre centres the ink.
+            */}
             <text
               className="font-vt323 text-[9px]"
-              dominantBaseline="central"
               fill={tone}
               textAnchor="middle"
               x={nodeX(operator)}
-              y={nodeY(operator) + 0.5}
+              y={nodeY(operator) + 3.5}
             >
               {operator.id}
             </text>
