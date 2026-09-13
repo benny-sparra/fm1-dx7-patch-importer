@@ -1,6 +1,5 @@
-import { lazy, Suspense, type ComponentProps, useEffect, useState } from 'react'
+import { lazy, Suspense, type ComponentProps, type CSSProperties, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LoaderCircle } from 'lucide-react'
 
 import { useMidi } from '@/hooks/use-midi'
 import { usePatchLibrary } from '@/hooks/use-patch-library'
@@ -38,11 +37,16 @@ function App() {
   const [auditionedPatchId, setAuditionedPatchId] = useState('')
   const selectedPatch = library.patches.find((patch) => patch.id === selectedPatchId)
   const selectedVoice = selectedPatch ? library.voices[selectedPatch.id] : undefined
-  const editPatch = (patchId: string) => {
+  const selectPatch = (patchId: string) => {
     const patch = library.patches.find((candidate) => candidate.id === patchId)
     if (!patch) return
     midi.sendProgramChange(patch.program)
     setAuditionedPatchId(patch.id)
+    return patch
+  }
+  const editPatch = (patchId: string) => {
+    const patch = selectPatch(patchId)
+    if (!patch) return
     beginDynamicImportRecovery(patch.id)
     setSelectedPatchId(patch.id)
     trackAnalyticsEvent({ name: 'editor_opened' })
@@ -54,15 +58,26 @@ function App() {
   const loadingSection = (label: string) => (
     <section
       aria-live="polite"
-      className="mx-auto flex min-h-svh max-w-[90rem] items-center justify-center px-4 py-8 text-sm font-semibold text-muted-foreground"
+      className="mx-auto flex min-h-[60svh] max-w-[90rem] items-center justify-center px-4 py-8"
       role="status"
     >
-      <div className="flex flex-col items-center gap-3 rounded-md bg-white px-6 py-5">
-        <LoaderCircle
-          aria-hidden="true"
-          className="size-7 animate-spin text-primary motion-reduce:animate-none"
-        />
-        {label}
+      <div className="crt-boot crt-raised bg-card">
+        <p className="crt-boot-line">
+          <span aria-hidden="true" className="crt-boot-prompt">
+            &gt;
+          </span>
+          {label}
+          <span aria-hidden="true" className="crt-boot-cursor" />
+        </p>
+        <div aria-hidden="true" className="crt-boot-bar crt-well">
+          {Array.from({ length: 12 }, (_, index) => (
+            <span
+              className="crt-boot-segment"
+              key={index}
+              style={{ '--crt-boot-index': index } as CSSProperties}
+            />
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -98,6 +113,7 @@ function App() {
               library={library}
               midi={midi}
               onEditPatch={(patch) => editPatch(patch.id)}
+              onSelectPatch={(patch) => selectPatch(patch.id)}
             />
           )}
         </>

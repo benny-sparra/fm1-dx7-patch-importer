@@ -1,4 +1,5 @@
-import { defineConfig, loadEnv } from 'vite'
+import { loadEnv } from 'vite'
+import { defineConfig } from 'vitest/config'
 import { sentryVitePlugin, type SentryVitePluginOptions } from '@sentry/vite-plugin'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -83,6 +84,10 @@ export default defineConfig(({ command, mode }) => {
       alias: {
         '@': path.resolve(__dirname, './src'),
       },
+    },
+    test: {
+      // Repairs the Node 26 / jsdom Web Storage collision. See the setup file.
+      setupFiles: ['./src/test/web-storage.ts'],
     },
   }
 })

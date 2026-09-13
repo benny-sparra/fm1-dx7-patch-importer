@@ -2,6 +2,7 @@ import {
   Archive,
   Download,
   EllipsisVertical,
+  Pencil,
   Plus,
   RotateCcw,
   Send,
@@ -12,7 +13,10 @@ import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { PatchGrid } from '@/components/patches/patch-grid'
-import { WorkspaceBankSelector } from '@/components/patches/workspace-bank-selector'
+import {
+  WorkspaceBankSelector,
+  type WorkspaceBankSelectorBank,
+} from '@/components/patches/workspace-bank-selector'
 import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
 import {
   defaultWorkspaceBankTitle,
@@ -28,11 +32,13 @@ import { SentryVerificationButton } from '@/components/sentry-verification-butto
 import { makeDx7BankFile } from '@/lib/dx7'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import { getNextWorkspaceBank } from '@/lib/patch-library'
+import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { cn } from '@/lib/utils'
 import { type MidiController } from '@/hooks/use-midi'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { type Patch } from '@/data/patches'
 import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
 import { useToast } from '@/components/ui/toast'
@@ -45,9 +51,16 @@ type LibrarianPageProps = {
   library: PatchLibrary
   midi: MidiController
   onEditPatch: (patch: Patch) => void
+  onSelectPatch: (patch: Patch) => void
 }
 
-export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: LibrarianPageProps) {
+export function LibrarianPage({
+  activePatchId,
+  library,
+  midi,
+  onEditPatch,
+  onSelectPatch,
+}: LibrarianPageProps) {
   const { t } = useTranslation()
   const toast = useToast()
   const { patches } = library
@@ -63,6 +76,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
     message: '',
   })
   const importInputRef = useRef<HTMLInputElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
   const importTargetRef = useRef(createBankFileSelectionTarget())
   const addWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
   const importDx7BankDialogRef = useRef<HTMLDialogElement>(null)
@@ -80,6 +94,9 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
     name: string
   } | null>(null)
   const allBanksMenuRef = useDismissableDetails()
+  const bankMenuRef = useDismissableDetails()
+  // EDIT acts on the slot lit in the grid, which a click has already played on the FM1.
+  const auditionedPatch = patches.find((patch) => patch.id === activePatchId)
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
   const bankDisplayName = useWorkspaceBankLabel(library)
   const saveBlob = (blob: Blob, filename: string) => {
@@ -245,39 +262,183 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
     if (!banks.includes(destinationBank)) setDestinationBank(banks[0] ?? 'A')
   }, [banks, destinationBank])
 
+  const focusSearch = () => {
+    searchRef.current?.focus()
+    searchRef.current?.select()
+  }
+
+  useKeyboardShortcuts([
+    // Both are disabled with the field itself, so the browser keeps its own
+    // find shortcut in a bank that has nothing to search.
+    { ...librarianShortcuts.search, enabled: isDestinationBankLoaded, onTrigger: focusSearch },
+    { ...librarianShortcuts.find, enabled: isDestinationBankLoaded, onTrigger: focusSearch },
+    {
+      ...librarianShortcuts.clearSearch,
+      enabled: search !== '',
+      onTrigger: () => setSearch(''),
+    },
+  ])
+
+  const renderBankActions = (
+    selectedBank: Pick<WorkspaceBankSelectorBank, 'id'>,
+    closeMenu: () => void,
+  ) => {
+    const bank = selectedBank.id
+    const index = banks.indexOf(bank)
+    return (
+      <>
+        <BankInformationDialog
+          bank={bank}
+          defaultTitle={defaultWorkspaceBankTitle(t, index + 1)}
+          library={library}
+          onClose={closeMenu}
+        />
+        <div className="my-1 border-t" />
+        <button
+          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+          disabled={isImporting}
+          onClick={() => {
+            closeMenu()
+            beginImport(bank)
+          }}
+          type="button"
+        >
+          <Upload className="size-4" />
+          {isImporting ? t('banks.importing') : t('banks.import')}
+        </button>
+        <button
+          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+          disabled={!library.loadedBanks.includes(bank)}
+          onClick={() => {
+            closeMenu()
+            downloadBank(bank)
+          }}
+          title={
+            library.loadedBanks.includes(bank)
+              ? t('banks.downloadTitle', { bank: bankDisplayName(bank) })
+              : t('banks.importFirst', { bank: bankDisplayName(bank) })
+          }
+          type="button"
+        >
+          <Download className="size-4" />
+          {t('banks.download')}
+        </button>
+        {banks.length > 1 ? (
+          <button
+            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
+            onClick={() => {
+              closeMenu()
+              const name = bankDisplayName(bank)
+              const replacementBank = banks[index + 1] ?? banks[index - 1]
+              if (!replacementBank) return
+              setBankPendingDeletion({
+                bank,
+                name,
+                nextBank: replacementBank,
+              })
+              deleteWorkspaceBankDialogRef.current?.showModal()
+            }}
+            type="button"
+          >
+            <Trash2 className="size-4" />
+            {t('banks.deleteBank')}
+          </button>
+        ) : null}
+      </>
+    )
+  }
+
   return (
     <section className="mx-auto grid max-w-7xl min-w-0 gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
       <SentryVerificationButton />
       <PatchGrid
         activePatchId={activePatchId}
         actions={
-          <button
-            className="inline-flex h-10 w-full shrink-0 cursor-pointer items-center justify-start gap-2 rounded-md border border-black bg-white px-4 text-left text-sm font-medium text-black transition-colors hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-            disabled={isSending || !isDestinationBankLoaded}
-            onClick={sendSelectedBank}
-            title={
-              !midi.hasMidiOutput
-                ? t('midi.connectFirst')
-                : isDestinationBankLoaded
-                  ? t('banks.sendTitle')
-                  : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
-            }
-            type="button"
-          >
-            <Send className="size-4" />
-            {isSending ? t('banks.sending') : t('banks.send')}
-          </button>
+          <>
+            {/* The selected bank reads back as a lit slot, as on the panel. */}
+            {/* The rail drops bank names on narrow screens, so here the name takes
+                its own line above the buttons rather than disappearing too. */}
+            <span className="flex w-full min-w-0 items-center gap-[9px] md:mr-1.5 md:w-auto md:shrink-0">
+              <span className="font-vt323 grid w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
+                {destinationBank}
+              </span>
+              <span className="font-dot-matrix block min-w-0 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)] md:max-w-40">
+                {bankDisplayName(destinationBank)}
+              </span>
+              <details className="group relative ml-auto shrink-0 md:hidden" ref={bankMenuRef}>
+                <summary
+                  aria-label={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
+                  className="grid h-6 w-5 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] text-[var(--crt-led)] transition-colors group-open:bg-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
+                  title={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
+                >
+                  <EllipsisVertical className="size-3.5" />
+                </summary>
+                <div className="menu-surface absolute top-full right-0 z-40 mt-1 min-w-56 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
+                  {renderBankActions({ id: destinationBank }, () =>
+                    bankMenuRef.current?.removeAttribute('open'),
+                  )}
+                </div>
+              </details>
+            </span>
+            <button
+              className="crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50 md:flex-none"
+              disabled={isSending || !isDestinationBankLoaded}
+              onClick={sendSelectedBank}
+              title={
+                !midi.hasMidiOutput
+                  ? t('midi.connectFirst')
+                  : isDestinationBankLoaded
+                    ? t('banks.sendTitle')
+                    : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+              }
+              type="button"
+            >
+              <Send aria-hidden="true" className="size-3.5" />
+              {isSending ? t('banks.sending') : t('banks.send')}
+            </button>
+            {/* EDIT burns in the slot LED's amber and names the lit slot, so it reads
+                as acting on that sound rather than on the bank like its neighbours. */}
+            <button
+              className="inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-[var(--crt-led)] shadow-[0_0_8px_var(--crt-led-glow)] transition-colors hover:bg-[var(--crt-led)] hover:text-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:border-[var(--crt-line-lt2)] disabled:text-[var(--crt-ink-2)] disabled:opacity-50 disabled:shadow-none md:flex-none"
+              disabled={!auditionedPatch}
+              onClick={() => auditionedPatch && onEditPatch(auditionedPatch)}
+              title={
+                auditionedPatch
+                  ? t('banks.openEditor', { name: auditionedPatch.name })
+                  : t('banks.editNone')
+              }
+              type="button"
+            >
+              <Pencil aria-hidden="true" className="size-3.5" />
+              {t('banks.editSelected')}
+              {auditionedPatch && ' '}
+              {/* The slot code keeps its width while nothing is lit, so selecting a
+                  slot cannot rewrap the toolbar and move the grid under the pointer
+                  between the two clicks of a double click. */}
+              <span
+                aria-hidden={auditionedPatch ? undefined : true}
+                className={cn(
+                  'font-dot-matrix text-[13px] font-bold tracking-[0.1em]',
+                  !auditionedPatch && 'invisible',
+                )}
+              >
+                {auditionedPatch
+                  ? `${auditionedPatch.bank}${auditionedPatch.number.toString().padStart(2, '0')}`
+                  : 'A00'}
+              </span>
+            </button>
+          </>
         }
         headerActions={
           <details className="group relative" ref={allBanksMenuRef}>
             <summary
               aria-label={t('banks.moreActions')}
-              className="grid size-9 cursor-pointer list-none place-items-center rounded text-black/75 transition-colors hover:bg-black/10 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black [&::-webkit-details-marker]:hidden"
+              className="grid size-6 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] transition-colors hover:bg-[var(--crt-sel-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
               title={t('banks.moreActions')}
             >
-              <EllipsisVertical className="size-5" />
+              <EllipsisVertical className="size-3.5" />
             </summary>
-            <div className="menu-surface font-vt323 absolute top-full right-0 z-50 mt-1 min-w-60 rounded-md border bg-popover p-1 text-popover-foreground">
+            <div className="menu-surface absolute top-full right-0 z-50 mt-1 min-w-60 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
               <button
                 className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                 disabled={library.loadedBanks.length === 0}
@@ -313,14 +474,16 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
           toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
         }}
         onPatchEdit={onEditPatch}
+        onPatchSelect={onSelectPatch}
         onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
         patches={visiblePatches}
         search={search}
         searchDisabled={!isDestinationBankLoaded}
+        searchRef={searchRef}
         setSearch={setSearch}
         toolbar={
           <>
-            <div className="flex h-full w-16 flex-col bg-muted/30 sm:w-72">
+            <div className="flex h-full w-16 flex-col border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px]">
               <WorkspaceBankSelector
                 banks={banks.map((bank) => {
                   const name = bankDisplayName(bank)
@@ -333,83 +496,19 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
                 })}
                 label={t('banks.destination')}
                 onSelect={setDestinationBank}
-                renderActions={(selectedBank, closeMenu) => {
-                  const bank = selectedBank.id
-                  const index = banks.indexOf(bank)
-                  return (
-                    <>
-                      <BankInformationDialog
-                        bank={bank}
-                        defaultTitle={defaultWorkspaceBankTitle(t, index + 1)}
-                        library={library}
-                        onClose={closeMenu}
-                      />
-                      <div className="my-1 border-t" />
-                      <button
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                        disabled={isImporting}
-                        onClick={() => {
-                          closeMenu()
-                          beginImport(bank)
-                        }}
-                        type="button"
-                      >
-                        <Upload className="size-4" />
-                        {isImporting ? t('banks.importing') : t('banks.import')}
-                      </button>
-                      <button
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                        disabled={!library.loadedBanks.includes(bank)}
-                        onClick={() => {
-                          closeMenu()
-                          downloadBank(bank)
-                        }}
-                        title={
-                          library.loadedBanks.includes(bank)
-                            ? t('banks.downloadTitle', { bank: bankDisplayName(bank) })
-                            : t('banks.importFirst', { bank: bankDisplayName(bank) })
-                        }
-                        type="button"
-                      >
-                        <Download className="size-4" />
-                        {t('banks.download')}
-                      </button>
-                      {banks.length > 1 ? (
-                        <button
-                          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-accent"
-                          onClick={() => {
-                            closeMenu()
-                            const name = bankDisplayName(bank)
-                            const replacementBank = banks[index + 1] ?? banks[index - 1]
-                            if (!replacementBank) return
-                            setBankPendingDeletion({
-                              bank,
-                              name,
-                              nextBank: replacementBank,
-                            })
-                            deleteWorkspaceBankDialogRef.current?.showModal()
-                          }}
-                          type="button"
-                        >
-                          <Trash2 className="size-4" />
-                          {t('banks.deleteBank')}
-                        </button>
-                      ) : null}
-                    </>
-                  )
-                }}
+                renderActions={renderBankActions}
                 selectedBank={destinationBank}
               />
               {nextBank ? (
                 <button
                   aria-label={t('banks.addBank')}
-                  className="font-vt323 flex w-full cursor-pointer items-center justify-center gap-2 border-t border-dashed px-2 py-3 text-base text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:justify-start sm:px-4"
+                  className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] md:justify-start"
                   onClick={() => addWorkspaceBankDialogRef.current?.showModal()}
                   title={t('banks.addBank')}
                   type="button"
                 >
                   <Plus className="size-4 shrink-0" />
-                  <span className="hidden sm:inline">{t('banks.addBank')}</span>
+                  <span className="hidden md:inline">{t('banks.addBank')}</span>
                 </button>
               ) : null}
             </div>
@@ -431,7 +530,7 @@ export function LibrarianPage({ activePatchId, library, midi, onEditPatch }: Lib
           aria-live="polite"
           className={cn(
             'text-sm',
-            transferStatus.kind === 'success' && 'text-emerald-700',
+            transferStatus.kind === 'success' && 'text-emerald-400',
             transferStatus.kind === 'error' && 'text-destructive',
             transferStatus.kind === 'idle' && 'text-muted-foreground',
           )}

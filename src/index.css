@@ -1,138 +1,208 @@
 @import 'tailwindcss';
 
+/*
+ * CRT terminal shell.
+ *
+ * The ramp below is declared once and parameterised by four knobs per
+ * colourway: a hue plus three saturation tiers. Each FM1 finish keeps its own
+ * real hardware-derived hue (the same ones the finish accents have always
+ * used) and only overrides those knobs, so the six finishes stay
+ * recognisably themselves while sharing one set of surface relationships.
+ *
+ * Lightness steps are fixed across every colourway. That is what holds the
+ * bevelled panel look together: `--crt-bevel` is always lighter than the face
+ * it sits on and `--crt-shadow` always darker, so a border pairing
+ * bevel/bevel on the top-left with shadow/shadow on the bottom-right reads as
+ * raised in all six, without per-finish tuning.
+ */
+
 @theme {
-  --color-background: hsl(260 56% 96%);
-  --color-foreground: hsl(247 34% 15%);
-  --color-card: hsl(270 50% 99%);
-  --color-card-foreground: hsl(247 34% 15%);
-  --color-popover: hsl(270 50% 99%);
-  --color-popover-foreground: hsl(247 34% 15%);
-  --color-primary: hsl(315 82% 42%);
+  --color-background: var(--crt-bg-0);
+  --color-foreground: var(--crt-ink);
+  --color-card: var(--crt-bg-panel);
+  --color-card-foreground: var(--crt-ink);
+  --color-popover: var(--crt-bg-panel2);
+  --color-popover-foreground: var(--crt-ink);
+  --color-primary: var(--crt-btn);
   --color-primary-foreground: hsl(0 0% 100%);
-  --color-secondary: hsl(187 68% 88%);
-  --color-secondary-foreground: hsl(220 24% 16%);
-  --color-muted: hsl(260 38% 91%);
-  --color-muted-foreground: hsl(255 18% 39%);
-  --color-accent: hsl(185 78% 86%);
-  --color-accent-foreground: hsl(220 24% 14%);
-  --color-destructive: hsl(0 72% 44%);
-  --color-destructive-foreground: hsl(0 0% 100%);
-  --color-border: hsl(267 28% 76%);
-  --color-input: hsl(267 28% 76%);
-  --color-ring: hsl(315 82% 47%);
-  --radius-lg: 0.65rem;
-  --radius-xl: 0.75rem;
-  --radius-md: 0.45rem;
-  --radius-sm: 0.3rem;
+  --color-secondary: var(--crt-btn-face);
+  --color-secondary-foreground: var(--crt-ink-2);
+  --color-muted: var(--crt-bg-2);
+  --color-muted-foreground: var(--crt-ink-3);
+  --color-accent: var(--crt-sel-bg);
+  --color-accent-foreground: var(--crt-acc-lt);
+  /*
+   * Light enough to hold 4.5:1 as text on every raised surface in all six
+   * colourways, which in turn means a filled destructive control takes dark
+   * ink rather than white.
+   */
+  --color-destructive: hsl(350 100% 74%);
+  --color-destructive-foreground: var(--crt-bg-0);
+  --color-border: var(--crt-line);
+  /* Field outlines must reach 3:1 against both the dialog and the well. */
+  --color-input: var(--crt-acc-dim);
+  --color-ring: var(--crt-led);
+
+  /* The shell is bevelled, not rounded. Radius tokens collapse to square. */
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-md: 0;
+  --radius-sm: 0;
 }
 
 @layer base {
   :root {
-    color-scheme: light;
-    --fm1-accent: hsl(190 60% 50%);
-    --fm1-accent-secondary: hsl(216 12% 42%);
-    --hero-accent: hsl(190 80% 76%);
-    --fm1-case: hsl(210 7% 16%);
-    --fm1-case-foreground: hsl(0 0% 100%);
-    --fm1-finish-tint: hsl(210 7% 16%);
-    --fm1-finish-foreground: hsl(0 0% 100%);
-    --fm1-keys: hsl(210 6% 24%);
-    --fm1-keys-foreground: hsl(0 0% 100%);
-    --hero-supporting-foreground: hsl(0 0% 100% / 65%);
-    --hero-footer-foreground: hsl(0 0% 100% / 65%);
-    --hero-action-foreground: hsl(0 0% 100% / 70%);
-    --hero-action-hover-foreground: hsl(0 0% 100%);
-    --shadow-raised-surface: 0 10px 15px -3px hsl(0 0% 0% / 10%), 0 4px 6px -4px hsl(0 0% 0% / 10%);
-    --shadow-menu: 0 10px 15px -3px hsl(0 0% 0% / 10%), 0 4px 6px -4px hsl(0 0% 0% / 10%);
-    --shadow-editor-menu: 0 20px 25px -5px hsl(0 0% 0% / 10%), 0 8px 10px -6px hsl(0 0% 0% / 10%);
-    --shadow-editor-overlay: 0 25px 50px -12px hsl(0 0% 0% / 25%);
-    --shadow-popover: 0 25px 50px -12px hsl(0 0% 0% / 25%);
-    --shadow-modal: 0 25px 50px -12px hsl(0 0% 0% / 25%);
-    --shadow-toast: 0 20px 25px -5px hsl(0 0% 0% / 10%), 0 8px 10px -6px hsl(0 0% 0% / 10%);
+    color-scheme: dark;
+
+    /* Colourway knobs. Overridden per finish below; these are `black`. */
+    --crt-h: 190;
+    --crt-s-bg: 30%;
+    --crt-s-bevel: 23%;
+    --crt-s-acc: 67%;
+    --crt-s-ink: 25%;
+
+    /* Surfaces, darkest to lightest. */
+    --crt-shadow: hsl(var(--crt-h) var(--crt-s-bg) 3%);
+    --crt-bg-0: hsl(var(--crt-h) var(--crt-s-bg) 4%);
+    --crt-bg-well: hsl(var(--crt-h) var(--crt-s-bg) 5%);
+    --crt-bg-1: hsl(var(--crt-h) var(--crt-s-bg) 6%);
+    --crt-bg-2: hsl(var(--crt-h) var(--crt-s-bg) 8%);
+    --crt-bg-3: hsl(var(--crt-h) var(--crt-s-bg) 8.5%);
+    --crt-bg-panel: hsl(var(--crt-h) var(--crt-s-bg) 9%);
+    --crt-bg-panel2: hsl(var(--crt-h) var(--crt-s-bg) 10%);
+    --crt-bg-panel3: hsl(var(--crt-h) var(--crt-s-bg) 10.5%);
+    --crt-bg-head: hsl(var(--crt-h) var(--crt-s-bg) 12%);
+
+    /* Hatched header fill, drawn as a 2px repeating gradient. */
+    --crt-hatch-a: hsl(var(--crt-h) var(--crt-s-bg) 15%);
+    --crt-hatch-b: hsl(var(--crt-h) var(--crt-s-bg) 11%);
+
+    /* Controls. */
+    --crt-btn-face: hsl(var(--crt-h) var(--crt-s-bg) 14%);
+    --crt-btn: hsl(var(--crt-h) var(--crt-s-acc) 30%);
+    /* Hover presses the face darker; lighter would drop white text below 4.5:1. */
+    --crt-btn-hover: hsl(var(--crt-h) var(--crt-s-acc) 24%);
+    --crt-sel-bg: hsl(var(--crt-h) var(--crt-s-acc) 20%);
+
+    /* Bevel highlights: always lighter than the face they border. */
+    --crt-bevel: hsl(var(--crt-h) var(--crt-s-bevel) 40%);
+    --crt-bevel-lt: hsl(var(--crt-h) var(--crt-s-acc) 59%);
+
+    /* Rules and separators. */
+    --crt-line-dk: hsl(var(--crt-h) var(--crt-s-bg) 16%);
+    --crt-line: hsl(var(--crt-h) var(--crt-s-bg) 23%);
+    --crt-line-lt: hsl(var(--crt-h) var(--crt-s-bg) 27%);
+    --crt-line-lt2: hsl(var(--crt-h) var(--crt-s-bevel) 33%);
+    --crt-grid: hsl(var(--crt-h) var(--crt-s-bg) 14%);
+
+    /* Accent tiers. */
+    --crt-acc: hsl(var(--crt-h) var(--crt-s-acc) 63%);
+    --crt-acc-br: hsl(var(--crt-h) var(--crt-s-acc) 72%);
+    --crt-acc-lt: hsl(var(--crt-h) var(--crt-s-acc) 79%);
+    --crt-acc-mid: hsl(var(--crt-h) var(--crt-s-bevel) 56%);
+    --crt-acc-dim: hsl(var(--crt-h) var(--crt-s-bevel) 49%);
+
+    /* Text tiers. */
+    --crt-ink: hsl(var(--crt-h) var(--crt-s-ink) 92%);
+    --crt-ink-2: hsl(var(--crt-h) var(--crt-s-ink) 82%);
+    --crt-ink-3: hsl(var(--crt-h) var(--crt-s-ink) 72%);
+    --crt-ink-4: hsl(var(--crt-h) var(--crt-s-ink) 68%);
+
+    /* The panel LED is amber on real hardware regardless of finish. */
+    --crt-led: hsl(41 82% 67%);
+    --crt-led-glow: hsl(41 82% 67% / 30%);
+
+    /* Scanline overlay strength; zeroed by the reduced-transparency guard. */
+    --crt-scanline-opacity: 0.28;
+
+    /* Retained for components that tint against the physical finish. */
+    --fm1-accent: var(--crt-acc);
+    --fm1-accent-secondary: var(--crt-acc-dim);
+    --fm1-finish-tint: var(--crt-sel-bg);
+    --fm1-finish-foreground: var(--crt-ink);
+
+    /* Masthead tiers, still referenced from the header components. */
+    --hero-accent: var(--crt-acc-br);
+    --hero-supporting-foreground: var(--crt-ink-3);
+    --hero-footer-foreground: var(--crt-ink-3);
+    --hero-action-foreground: var(--crt-ink-2);
+    --hero-action-hover-foreground: var(--crt-acc-lt);
+
+    --shadow-raised-surface: 3px 3px 0 hsl(0 0% 0% / 45%);
+    --shadow-menu: 0 12px 26px hsl(0 0% 0% / 55%);
+    --shadow-editor-menu: 0 12px 26px hsl(0 0% 0% / 55%);
+    --shadow-editor-overlay: 12px 12px 0 hsl(0 0% 0% / 70%);
+    --shadow-popover: 0 12px 26px hsl(0 0% 0% / 55%);
+    --shadow-modal: 12px 12px 0 hsl(0 0% 0% / 70%);
+    --shadow-toast: 0 12px 26px hsl(0 0% 0% / 55%);
   }
 
+  /* Cyan phosphor. The default finish and the app's canonical look. */
   :root[data-fm1-colorway='black'] {
-    --color-primary: hsl(190 62% 36%);
-    --color-ring: hsl(190 72% 42%);
-    --fm1-accent: hsl(190 67% 50%);
-    --fm1-accent-secondary: hsl(215 11% 44%);
-    --hero-accent: hsl(190 80% 76%);
-    --fm1-case: hsl(210 7% 16%);
-    --fm1-case-foreground: hsl(0 0% 100%);
-    --fm1-finish-tint: hsl(210 7% 16%);
-    --fm1-finish-foreground: hsl(0 0% 100%);
-    --fm1-keys: hsl(210 6% 24%);
-    --fm1-keys-foreground: hsl(0 0% 100%);
+    --crt-h: 190;
+    --crt-s-bg: 30%;
+    --crt-s-bevel: 23%;
+    --crt-s-acc: 67%;
+    --crt-s-ink: 25%;
   }
 
-  :root[data-fm1-colorway='purple'] {
-    --color-primary: hsl(282 47% 44%);
-    --color-ring: hsl(282 60% 51%);
-    --fm1-accent: hsl(284 54% 68%);
-    --fm1-accent-secondary: hsl(252 46% 60%);
-    --hero-accent: hsl(285 70% 82%);
-    --fm1-case: hsl(285 43% 65%);
-    --fm1-case-foreground: hsl(270 42% 14%);
-    --fm1-finish-tint: hsl(285 43% 65%);
-    --fm1-finish-foreground: hsl(270 42% 14%);
-    --fm1-keys: hsl(251 43% 59%);
-    --fm1-keys-foreground: hsl(0 0% 4%);
-  }
-
-  :root[data-fm1-colorway='orange'] {
-    --color-primary: hsl(17 64% 39%);
-    --color-ring: hsl(17 72% 47%);
-    --fm1-accent: hsl(18 63% 57%);
-    --fm1-accent-secondary: hsl(8 32% 48%);
-    --hero-accent: hsl(24 100% 80%);
-    --fm1-case: hsl(17 53% 55%);
-    --fm1-case-foreground: hsl(12 48% 12%);
-    --fm1-finish-tint: hsl(17 53% 55%);
-    --fm1-finish-foreground: hsl(12 48% 12%);
-    --fm1-keys: hsl(9 31% 47%);
-    --fm1-keys-foreground: hsl(0 0% 4%);
-  }
-
+  /* Teal phosphor, tracking the black-green finish accent. */
   :root[data-fm1-colorway='black-green'] {
-    --color-primary: hsl(169 58% 32%);
-    --color-ring: hsl(169 66% 40%);
-    --fm1-accent: hsl(170 54% 64%);
-    --fm1-accent-secondary: hsl(177 11% 25%);
-    --hero-accent: hsl(170 65% 75%);
-    --fm1-case: hsl(190 7% 16%);
-    --fm1-case-foreground: hsl(0 0% 100%);
-    --fm1-finish-tint: hsl(170 53% 63%);
-    --fm1-finish-foreground: hsl(174 38% 11%);
-    --fm1-keys: hsl(170 53% 63%);
-    --fm1-keys-foreground: hsl(174 38% 11%);
+    --crt-h: 170;
+    --crt-s-bg: 30%;
+    --crt-s-bevel: 23%;
+    --crt-s-acc: 54%;
+    --crt-s-ink: 25%;
   }
 
-  :root[data-fm1-colorway='cool-gray'] {
-    --color-primary: hsl(207 20% 38%);
-    --color-ring: hsl(207 27% 46%);
-    --fm1-accent: hsl(35 15% 81%);
-    --fm1-accent-secondary: hsl(207 8% 35%);
-    --hero-accent: hsl(197 38% 89%);
-    --fm1-case: hsl(35 17% 82%);
-    --fm1-case-foreground: hsl(207 14% 16%);
-    --fm1-finish-tint: hsl(35 17% 72%);
-    --fm1-finish-foreground: hsl(207 14% 16%);
-    --fm1-keys: hsl(207 8% 31%);
-    --fm1-keys-foreground: hsl(0 0% 100%);
+  /* Violet phosphor. */
+  :root[data-fm1-colorway='purple'] {
+    --crt-h: 284;
+    --crt-s-bg: 26%;
+    --crt-s-bevel: 22%;
+    --crt-s-acc: 54%;
+    --crt-s-ink: 22%;
   }
 
+  /* Amber phosphor, the classic monochrome terminal. */
+  :root[data-fm1-colorway='orange'] {
+    --crt-h: 18;
+    --crt-s-bg: 28%;
+    --crt-s-bevel: 24%;
+    --crt-s-acc: 63%;
+    --crt-s-ink: 24%;
+  }
+
+  /* Blue phosphor. */
   :root[data-fm1-colorway='white-blue'] {
-    --color-primary: hsl(209 48% 39%);
-    --color-ring: hsl(209 57% 47%);
-    --fm1-accent: hsl(209 42% 60%);
-    --fm1-accent-secondary: hsl(39 20% 88%);
-    --hero-accent: hsl(209 65% 82%);
-    --fm1-case: hsl(39 20% 90%);
-    --fm1-case-foreground: hsl(209 28% 16%);
-    --fm1-finish-tint: hsl(209 42% 60%);
-    --fm1-finish-foreground: hsl(210 42% 12%);
-    --fm1-keys: hsl(209 34% 56%);
-    --fm1-keys-foreground: hsl(210 42% 12%);
+    --crt-h: 209;
+    --crt-s-bg: 26%;
+    --crt-s-bevel: 22%;
+    --crt-s-acc: 52%;
+    --crt-s-ink: 22%;
+  }
+
+  /*
+   * Warm sand. The finish is a near-neutral, so the saturation tiers drop
+   * well below the others rather than reading as a washed-out amber.
+   */
+  :root[data-fm1-colorway='cool-gray'] {
+    --crt-h: 35;
+    --crt-s-bg: 9%;
+    --crt-s-bevel: 8%;
+    --crt-s-acc: 22%;
+    --crt-s-ink: 10%;
+  }
+
+  /*
+   * Users who ask for less transparency get a flat shell: the scanline
+   * overlay is the one purely decorative layer here, and it sits over
+   * everything.
+   */
+  @media (prefers-reduced-transparency: reduce) {
+    :root {
+      --crt-scanline-opacity: 0;
+    }
   }
 
   * {
@@ -161,28 +231,9 @@
     min-width: 320px;
     line-height: 1.5;
     font-family:
-      'Space Grotesk Variable',
-      'Space Grotesk',
-      ui-sans-serif,
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      'Segoe UI',
-      sans-serif;
-    background:
-      radial-gradient(
-        ellipse at 50% 28%,
-        color-mix(in srgb, var(--fm1-accent) 24%, transparent),
-        transparent 32rem
-      ),
-      radial-gradient(
-        circle at 88% 4%,
-        color-mix(in srgb, var(--fm1-keys) 20%, transparent),
-        transparent 26rem
-      ),
-      radial-gradient(circle at 8% 30%, hsl(190 100% 60% / 12%), transparent 24rem),
-      linear-gradient(180deg, hsl(251 62% 94%), var(--color-background) 45%, hsl(302 62% 94%));
-    background-attachment: fixed;
+      'IBM Plex Mono', 'IBM Plex Mono Metrics Fallback', ui-monospace, SFMono-Regular, Menlo,
+      monospace;
+    background: var(--crt-bg-0);
   }
 
   button,
@@ -191,9 +242,14 @@
     font: inherit;
   }
 
+  /*
+   * The backdrop is a dithered 50% checker rather than a blur: it reads as a
+   * CRT screen door and keeps the shell behind it legible as structure.
+   */
   dialog::backdrop {
-    background: hsl(240 56% 16% / 55%);
-    backdrop-filter: blur(4px);
+    background-color: hsl(var(--crt-h) var(--crt-s-bg) 3% / 72%);
+    background-image: repeating-conic-gradient(hsl(0 0% 0% / 85%) 0% 25%, hsl(0 0% 0% / 0%) 0% 50%);
+    background-size: 4px 4px;
   }
 }
 
@@ -212,11 +268,11 @@
     )
   ),
 .modal-surface textarea {
-  background-color: color-mix(in srgb, var(--fm1-finish-tint) 20%, white);
+  background-color: var(--crt-bg-well);
 }
 
 .modal-surface .modal-input-surface {
-  background-color: color-mix(in srgb, var(--fm1-finish-tint) 20%, white);
+  background-color: var(--crt-bg-well);
 }
 
 @layer components {
@@ -232,12 +288,159 @@
     font-family: 'VT323', 'VT323 Metrics Fallback', ui-monospace, monospace;
   }
 
+  /*
+   * Bevel primitives.
+   *
+   * The whole shell is built from two-tone borders rather than radii or
+   * blurs: light on the top-left, dark on the bottom-right reads as raised,
+   * and the reverse reads as a recessed well. Because the lightness steps in
+   * the ramp are fixed across colourways, these work unchanged in all six.
+   */
+  .crt-raised {
+    border-top: 2px solid var(--crt-bevel);
+    border-left: 2px solid var(--crt-bevel);
+    border-right: 2px solid var(--crt-shadow);
+    border-bottom: 2px solid var(--crt-shadow);
+  }
+
+  .crt-raised-thin {
+    border-top: 1px solid var(--crt-bevel);
+    border-left: 1px solid var(--crt-bevel);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+  }
+
+  .crt-raised-lit {
+    border-top: 1px solid var(--crt-bevel-lt);
+    border-left: 1px solid var(--crt-bevel-lt);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+  }
+
+  .crt-inset {
+    border-top: 1px solid var(--crt-shadow);
+    border-left: 1px solid var(--crt-shadow);
+    border-right: 1px solid var(--crt-line-lt2);
+    border-bottom: 1px solid var(--crt-line-lt2);
+  }
+
+  .crt-hatch {
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--crt-hatch-a) 0 2px,
+      var(--crt-hatch-b) 2px 4px
+    );
+  }
+
+  .crt-well {
+    background-color: var(--crt-bg-well);
+    border-top: 1px solid var(--crt-shadow);
+    border-left: 1px solid var(--crt-shadow);
+    border-right: 1px solid var(--crt-line-lt);
+    border-bottom: 1px solid var(--crt-line-lt);
+  }
+
+  .crt-led {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--crt-acc);
+    box-shadow: 0 0 7px var(--crt-acc);
+  }
+
+  .crt-led[data-state='off'] {
+    background: var(--crt-line-dk);
+    box-shadow: none;
+  }
+
+  /*
+   * The scanline veil. Fixed to the viewport and above the page so it reads
+   * as the glass rather than as texture on any one panel, but never
+   * interactive. `--crt-scanline-opacity` drops to zero under
+   * prefers-reduced-transparency.
+   */
+  .crt-scanlines::after {
+    position: fixed;
+    z-index: 50;
+    inset: 0;
+    content: '';
+    opacity: var(--crt-scanline-opacity);
+    background: repeating-linear-gradient(
+      to bottom,
+      hsl(0 0% 0% / 26%) 0 1px,
+      hsl(0 0% 0% / 0%) 1px 3px
+    );
+    animation: crt-flicker 6s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes crt-flicker {
+    0%,
+    100% {
+      opacity: var(--crt-scanline-opacity);
+    }
+
+    50% {
+      opacity: calc(var(--crt-scanline-opacity) * 0.86);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .crt-scanlines::after {
+      animation: none;
+    }
+  }
+
+  /*
+   * Dialog title bar. Two hairlines run the full width of the bar and the
+   * title and close button sit on top of them painted in the dialog's own
+   * background, knocking a gap out of the rules rather than interrupting
+   * them — the window chrome of a terminal UI. The rules are drawn as
+   * backgrounds rather than borders so the knock-out works with no extra
+   * elements.
+   */
+  .crt-titlebar {
+    background-image:
+      linear-gradient(var(--crt-acc-lt), var(--crt-acc-lt)),
+      linear-gradient(var(--crt-acc-lt), var(--crt-acc-lt));
+    background-repeat: no-repeat;
+    background-position:
+      0 9px,
+      0 13px;
+    background-size:
+      100% 1px,
+      100% 1px;
+    color: var(--crt-acc-lt);
+  }
+
+  .crt-titlebar > * {
+    background: var(--crt-bg-panel2);
+  }
+
+  /*
+   * A labelled well. The legend sits astride the top border, as on a
+   * fieldset, and the label paints over the rule to break it.
+   */
+  .crt-legend-box {
+    position: relative;
+    border: 1px solid var(--crt-line-lt);
+  }
+
+  .crt-legend-box > legend,
+  .crt-legend-box > .crt-legend {
+    position: absolute;
+    top: -9px;
+    left: 11px;
+    padding: 0 7px;
+    background: var(--crt-bg-1);
+  }
+
   .settings-option {
-    background-color: color-mix(in srgb, var(--fm1-finish-tint) 30%, var(--color-card));
+    background-color: var(--crt-btn-face);
   }
 
   .settings-option-select {
-    background-color: color-mix(in srgb, var(--fm1-finish-tint) 38%, var(--color-background));
+    background-color: var(--crt-bg-well);
   }
 
   .raised-surface {
@@ -272,82 +475,40 @@
     position: relative;
     isolation: isolate;
     overflow-x: clip;
+    background: var(--crt-bg-0);
   }
 
-  .synthwave-shell::before {
-    position: fixed;
-    z-index: -1;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: 38vh;
-    content: '';
-    opacity: 0.13;
-    background-image:
-      linear-gradient(color-mix(in srgb, var(--fm1-accent) 58%, transparent) 1px, transparent 1px),
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--fm1-keys) 50%, transparent) 1px,
-        transparent 1px
-      );
-    background-size: 44px 28px;
-    animation: synthwave-grid-drift 14s linear infinite;
-    mask-image: linear-gradient(to bottom, transparent, black 28%);
-    transform: perspective(420px) rotateX(55deg) scale(1.35);
-    transform-origin: bottom;
-    pointer-events: none;
-  }
-
-  @keyframes synthwave-grid-drift {
-    to {
-      background-position: 0 28px;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .synthwave-shell::before {
-      animation: none;
-    }
-  }
-
+  /*
+   * Masthead. The old build used a perspective grid and neon bloom; the
+   * terminal equivalent is a flat hatched plate with a hard bevel, so the
+   * gradients collapse to the hatch pattern.
+   */
   .synthwave-hero {
     position: relative;
-    background:
-      radial-gradient(
-        ellipse at 78% 115%,
-        color-mix(in srgb, var(--fm1-accent) 40%, transparent),
-        transparent 17rem
-      ),
-      radial-gradient(
-        ellipse at 66% 112%,
-        color-mix(in srgb, var(--fm1-keys) 36%, transparent),
-        transparent 34rem
-      ),
-      radial-gradient(
-        circle at 24% -25%,
-        color-mix(in srgb, var(--fm1-accent-secondary) 42%, transparent),
-        transparent 25rem
-      ),
-      linear-gradient(
-        118deg,
-        color-mix(in srgb, var(--fm1-case) 40%, black),
-        color-mix(in srgb, var(--fm1-case) 44%, hsl(260 45% 12%)) 57%,
-        color-mix(in srgb, var(--fm1-keys) 35%, black)
-      );
-    color: hsl(184 52% 94%);
-    box-shadow:
-      inset 0 -1px color-mix(in srgb, var(--fm1-accent) 62%, transparent),
-      0 10px 35px hsl(270 80% 8% / 18%);
+    background-color: var(--crt-bg-3);
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--crt-hatch-a) 0 2px,
+      var(--crt-hatch-b) 2px 4px
+    );
+    border-bottom: 2px solid var(--crt-shadow);
+    color: var(--crt-ink);
+  }
+
+  .synthwave-header {
+    background-color: var(--crt-bg-3);
   }
 
   .synthwave-title {
     display: flex;
     flex-wrap: wrap;
-    color: white;
-    text-shadow:
-      0 0 2px hsl(315 100% 76% / 42%),
-      0 0 9px hsl(315 100% 62% / 22%),
-      0 0 18px hsl(315 100% 62% / 12%);
+    font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--crt-acc-br);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--crt-acc) 35%, transparent);
   }
 
   .synthwave-title[data-layout='compact'] {
@@ -358,34 +519,163 @@
     font-size: 2.25rem;
   }
 
-  .synthwave-brand-row {
-    display: flex;
-    flex-basis: 100%;
-  }
-
-  .hero-supporting-text {
-    color: var(--hero-supporting-foreground);
-  }
-
-  .hero-footer-text {
-    color: var(--hero-footer-foreground);
-  }
-
-  .hero-action {
-    color: var(--hero-action-foreground);
-  }
-
-  .hero-action:hover {
-    color: var(--hero-action-hover-foreground);
-  }
-
   @media (width >= 40rem) {
     .synthwave-title[data-layout='compact'] {
       font-size: 1.5rem;
     }
 
     .synthwave-title[data-layout='full'] {
-      font-size: 3rem;
+      font-size: 2.125rem;
+    }
+  }
+
+  .synthwave-brand-row {
+    display: flex;
+    flex-basis: 100%;
+    font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.12em;
+    color: var(--crt-acc-lt);
+    text-shadow: none;
+  }
+
+  .synthwave-title[data-layout='compact'] .synthwave-brand-row {
+    font-size: 0.6875rem;
+  }
+
+  .hero-supporting-text {
+    color: var(--hero-supporting-foreground);
+    letter-spacing: 0.06em;
+  }
+
+  .hero-footer-text {
+    color: var(--hero-footer-foreground);
+    letter-spacing: 0.08em;
+  }
+
+  .hero-action {
+    color: var(--hero-action-foreground);
+    background: var(--crt-btn-face);
+    border-top: 1px solid var(--crt-bevel);
+    border-left: 1px solid var(--crt-bevel);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+    letter-spacing: 0.08em;
+  }
+
+  .hero-action:hover {
+    color: var(--hero-action-hover-foreground);
+    background: var(--crt-sel-bg);
+  }
+
+  /*
+   * The MIDI power switch. It sat in a recessed well, which read as a status
+   * readout rather than something to press, so it now wears the same raised
+   * button face as the actions beside it, and the handle travels in a well.
+   */
+  .midi-switch {
+    cursor: pointer;
+    color: var(--crt-ink-2);
+    background: var(--crt-btn-face);
+    border-top: 1px solid var(--crt-bevel);
+    border-left: 1px solid var(--crt-bevel);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+  }
+
+  .midi-switch:hover {
+    color: var(--crt-acc-lt);
+    background: var(--crt-sel-bg);
+  }
+
+  .midi-switch:active {
+    border-top-color: var(--crt-shadow);
+    border-left-color: var(--crt-shadow);
+    border-right-color: var(--crt-bevel);
+    border-bottom-color: var(--crt-bevel);
+  }
+
+  .midi-switch:has(:checked) {
+    color: var(--crt-acc-lt);
+  }
+
+  /* The travel slot: a dark well the handle rides in. */
+  .midi-switch-track {
+    position: relative;
+    flex: none;
+    width: 2.25rem;
+    height: 1.125rem;
+    background-color: var(--crt-bg-well);
+    border-top: 1px solid var(--crt-shadow);
+    border-left: 1px solid var(--crt-shadow);
+    border-right: 1px solid var(--crt-line-lt2);
+    border-bottom: 1px solid var(--crt-line-lt2);
+  }
+
+  /* The handle itself, bevelled so it reads as a physical part. */
+  .midi-switch-track::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: calc(50% - 1px);
+    height: calc(100% - 2px);
+    background-color: var(--crt-acc-dim);
+    border-top: 1px solid var(--crt-bevel-lt);
+    border-left: 1px solid var(--crt-bevel-lt);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+    transition:
+      transform 120ms ease-out,
+      background-color 120ms ease-out,
+      box-shadow 120ms ease-out;
+  }
+
+  .peer:checked ~ .midi-switch-track::after {
+    transform: translateX(100%);
+    background-color: var(--crt-acc);
+    box-shadow: 0 0 7px var(--crt-acc);
+  }
+
+  .peer:focus-visible ~ .midi-switch-track {
+    outline: 2px solid var(--crt-led);
+    outline-offset: 2px;
+  }
+
+  /*
+   * Connecting. The handle stays in the off position but blinks, so the wait
+   * looks like the switch working rather than the switch ignoring the press.
+   */
+  .midi-switch:has(:disabled) {
+    cursor: progress;
+  }
+
+  .midi-switch:has(:disabled):hover {
+    color: var(--crt-ink-2);
+    background: var(--crt-btn-face);
+  }
+
+  .peer:disabled ~ .midi-switch-track::after {
+    animation: midi-switch-wait 900ms steps(1, end) infinite;
+  }
+
+  @keyframes midi-switch-wait {
+    0%,
+    50% {
+      background-color: var(--crt-acc);
+    }
+
+    50.01%,
+    100% {
+      background-color: var(--crt-acc-dim);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .peer:disabled ~ .midi-switch-track::after {
+      animation: none;
     }
   }
 
@@ -394,649 +684,470 @@
   }
 
   .synthwave-kicker {
-    color: hsl(185 100% 72%);
+    color: var(--crt-acc-lt);
     font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.24em;
+    font-weight: 700;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
   }
 
   .synthwave-panel {
-    box-shadow:
-      0 18px 45px hsl(264 70% 8% / 14%),
-      0 0 0 1px hsl(315 100% 60% / 8%);
+    background: var(--crt-bg-panel);
+    border-top: 2px solid var(--crt-bevel);
+    border-left: 2px solid var(--crt-bevel);
+    border-right: 2px solid var(--crt-shadow);
+    border-bottom: 2px solid var(--crt-shadow);
   }
 
+  /*
+    A rack panel's body folds away behind its title strip. `interpolate-size`
+    lets the fold animate to and from the body's natural height; browsers
+    without it simply snap. Visibility flips only once the fold has finished,
+    so the controls leave the accessibility tree without vanishing mid-fold.
+  */
+  .rack-collapsible {
+    interpolate-size: allow-keywords;
+    height: auto;
+    overflow: hidden;
+    transition: height 160ms ease;
+  }
+
+  .rack-collapsible[data-collapsed='true'] {
+    height: 0;
+  }
+
+  .rack-collapsible[data-collapsed='true'] > * {
+    transition: visibility 0s 160ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rack-collapsible,
+    .rack-collapsible[data-collapsed='true'] > * {
+      transition: none;
+    }
+  }
+
+  /* The editor field is a plotted grid on a dark well. */
   .editor-console {
-    background:
-      radial-gradient(
-        circle at 84% 12%,
-        color-mix(in srgb, var(--fm1-accent) 26%, transparent),
-        transparent 9rem
-      ),
-      linear-gradient(hsl(185 100% 55% / 6%) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(315 100% 60% / 6%) 1px, transparent 1px),
-      linear-gradient(
-        145deg,
-        color-mix(in srgb, var(--fm1-case) 48%, hsl(257 52% 13%)),
-        color-mix(in srgb, var(--fm1-keys) 24%, hsl(249 58% 7%))
-      );
+    background-color: var(--crt-bg-1);
+    background-image:
+      linear-gradient(var(--crt-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--crt-grid) 1px, transparent 1px);
     background-size:
-      auto,
       22px 22px,
-      22px 22px,
-      auto;
-    box-shadow:
-      inset 0 0 0 1px hsl(185 100% 55% / 8%),
-      0 18px 45px hsl(260 80% 4% / 30%);
+      22px 22px;
+    border-top: 1px solid var(--crt-shadow);
+    border-left: 1px solid var(--crt-shadow);
+    border-right: 1px solid var(--crt-line-lt2);
+    border-bottom: 1px solid var(--crt-line-lt2);
   }
 
   .editor-operator-header {
-    background: var(--color-primary);
-    color: var(--color-primary-foreground);
+    background: var(--crt-sel-bg);
+    color: var(--crt-acc-lt);
   }
 
   .synthwave-keyboard {
-    border: 1px solid color-mix(in srgb, var(--fm1-accent) 72%, black);
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--fm1-case) 94%, white),
-      var(--fm1-case)
-    );
-    box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--fm1-accent) 22%, transparent),
-      0 0 0 1px color-mix(in srgb, var(--fm1-case) 24%, transparent),
-      0 0 30px color-mix(in srgb, var(--fm1-accent) 24%, transparent),
-      0 24px 70px hsl(220 35% 4% / 58%);
+    background: var(--crt-bg-panel);
+    border-top: 2px solid var(--crt-bevel);
+    border-left: 2px solid var(--crt-bevel);
+    border-right: 2px solid var(--crt-shadow);
+    border-bottom: 2px solid var(--crt-shadow);
   }
 
   .synthwave-keyboard-header {
-    border-bottom: 1px solid color-mix(in srgb, var(--fm1-case-foreground) 24%, transparent);
-    background:
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--fm1-accent) 18%, transparent),
-        transparent 40%,
-        color-mix(in srgb, var(--fm1-keys) 18%, transparent)
-      ),
-      linear-gradient(180deg, color-mix(in srgb, var(--fm1-case) 88%, white), var(--fm1-case));
-    box-shadow: inset 0 -1px color-mix(in srgb, var(--fm1-accent) 36%, transparent);
-    color: var(--fm1-case-foreground);
+    background-color: var(--crt-bg-3);
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--crt-hatch-a) 0 2px,
+      var(--crt-hatch-b) 2px 4px
+    );
+    border-bottom: 1px solid var(--crt-shadow);
+    color: var(--crt-acc-lt);
   }
 
   .synthwave-keyboard-stage {
-    background:
-      linear-gradient(
-        color-mix(in srgb, var(--fm1-case-foreground) 7%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--fm1-case-foreground) 7%, transparent) 1px,
-        transparent 1px
-      ),
-      radial-gradient(
-        ellipse at 50% 115%,
-        color-mix(in srgb, var(--fm1-accent) 28%, transparent),
-        transparent 55%
-      ),
-      linear-gradient(180deg, color-mix(in srgb, var(--fm1-case) 94%, black), var(--fm1-case));
+    background-color: var(--crt-bg-well);
+    background-image:
+      linear-gradient(var(--crt-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--crt-grid) 1px, transparent 1px);
     background-size:
       28px 20px,
-      28px 20px,
-      auto,
-      auto;
+      28px 20px;
   }
 
   .synthwave-keybed {
-    border: 1px solid color-mix(in srgb, var(--fm1-accent) 58%, black);
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--fm1-keys) 20%, black),
-      color-mix(in srgb, var(--fm1-case) 18%, black)
-    );
-    box-shadow:
-      inset 0 0 22px hsl(220 40% 2% / 88%),
-      0 0 0 1px color-mix(in srgb, var(--fm1-case-foreground) 12%, transparent),
-      0 0 18px color-mix(in srgb, var(--fm1-accent) 18%, transparent);
+    background: var(--crt-bg-well);
+    border-top: 1px solid var(--crt-shadow);
+    border-left: 1px solid var(--crt-shadow);
+    border-right: 1px solid var(--crt-line-lt2);
+    border-bottom: 1px solid var(--crt-line-lt2);
   }
 
   .synthwave-octave-button {
-    border: 1px solid color-mix(in srgb, var(--fm1-keys-foreground) 28%, var(--fm1-keys));
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--fm1-keys) 88%, white),
-      var(--fm1-keys)
-    );
-    box-shadow:
-      inset 0 0 18px color-mix(in srgb, var(--fm1-keys-foreground) 8%, transparent),
-      0 0 14px color-mix(in srgb, var(--fm1-accent) 16%, transparent);
-    color: var(--fm1-keys-foreground);
+    background: var(--crt-btn-face);
+    border-top: 1px solid var(--crt-bevel);
+    border-left: 1px solid var(--crt-bevel);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+    color: var(--crt-ink-2);
   }
 
   .synthwave-octave-button:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--fm1-accent) 76%, var(--fm1-keys));
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--fm1-keys) 78%, white),
-      color-mix(in srgb, var(--fm1-keys) 88%, black)
-    );
-    box-shadow:
-      inset 0 0 20px color-mix(in srgb, var(--fm1-accent) 14%, transparent),
-      0 0 16px color-mix(in srgb, var(--fm1-accent) 28%, transparent);
+    background: var(--crt-sel-bg);
+    color: var(--crt-acc-lt);
   }
 
   .synthwave-key-hint {
-    border: 1px solid color-mix(in srgb, var(--fm1-keys-foreground) 30%, transparent);
-    background: color-mix(in srgb, white 12%, transparent);
-    color: var(--fm1-keys-foreground);
-    box-shadow: 0 0 8px color-mix(in srgb, var(--fm1-accent) 20%, transparent);
+    border: 1px solid var(--crt-line);
+    background: var(--crt-bg-1);
+    color: var(--crt-ink-4);
   }
 
+  /*
+   * The keybed inverts the shell's logic: white keys are the one genuinely
+   * light surface in the app, because a monochrome keyboard would lose the
+   * black/white reading that makes it legible as a keyboard at a glance.
+   */
   .synthwave-piano-key-white {
-    border-color: hsl(257 28% 65%);
-    background: linear-gradient(180deg, hsl(191 65% 98%), hsl(268 55% 97%) 62%, hsl(263 40% 83%));
-    box-shadow:
-      inset 0 -14px 20px hsl(260 45% 35% / 13%),
-      inset 0 1px hsl(185 100% 80% / 85%);
+    border-color: var(--crt-shadow);
+    background: linear-gradient(
+      180deg,
+      var(--crt-ink) 0%,
+      color-mix(in srgb, var(--crt-ink) 88%, var(--crt-acc-mid)) 62%,
+      color-mix(in srgb, var(--crt-ink) 62%, var(--crt-acc-mid))
+    );
+    box-shadow: inset 0 -14px 20px hsl(0 0% 0% / 12%);
   }
 
   .synthwave-piano-key-white:hover {
     background: linear-gradient(
       180deg,
-      white,
-      color-mix(in srgb, var(--fm1-accent) 10%, white) 62%,
-      color-mix(in srgb, var(--fm1-finish-tint) 32%, hsl(260 22% 86%))
+      hsl(0 0% 100%),
+      color-mix(in srgb, var(--crt-acc-lt) 42%, var(--crt-ink)) 62%,
+      var(--crt-acc-mid)
     );
-    box-shadow:
-      inset 0 -14px 20px color-mix(in srgb, var(--fm1-finish-tint) 18%, transparent),
-      0 0 12px color-mix(in srgb, var(--fm1-accent) 28%, transparent);
   }
 
   .synthwave-piano-key-black {
-    border-color: hsl(290 64% 7%);
-    background: linear-gradient(180deg, hsl(272 45% 24%), hsl(257 52% 10%) 62%, hsl(247 65% 4%));
+    border-color: var(--crt-shadow);
+    background: linear-gradient(180deg, var(--crt-bg-head), var(--crt-bg-0) 62%, var(--crt-shadow));
     box-shadow:
-      inset 0 -8px 12px hsl(185 100% 60% / 8%),
-      inset 0 1px hsl(315 100% 75% / 24%),
-      0 6px 10px hsl(260 80% 3% / 62%);
+      inset 0 1px var(--crt-line),
+      0 6px 10px hsl(0 0% 0% / 62%);
   }
 
   .synthwave-piano-key-black:hover {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--fm1-finish-tint) 42%, hsl(250 22% 16%)),
-      color-mix(in srgb, var(--fm1-keys) 24%, hsl(250 28% 8%)) 62%,
-      hsl(240 28% 4%)
-    );
-    box-shadow:
-      inset 0 -8px 12px color-mix(in srgb, var(--fm1-accent) 16%, transparent),
-      0 0 12px color-mix(in srgb, var(--fm1-accent) 38%, transparent),
-      0 6px 10px hsl(260 80% 3% / 62%);
+    background: linear-gradient(180deg, var(--crt-sel-bg), var(--crt-bg-1) 62%, var(--crt-shadow));
   }
 
   .synthwave-piano-key-white-active {
-    color: hsl(260 55% 11%);
+    color: var(--crt-bg-0);
     transform: translateY(2px);
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--fm1-accent) 24%, white),
-      color-mix(in srgb, var(--fm1-finish-tint) 42%, white) 68%,
-      var(--fm1-accent)
-    );
-    box-shadow:
-      inset 0 -10px 18px color-mix(in srgb, var(--fm1-finish-tint) 42%, transparent),
-      0 0 18px color-mix(in srgb, var(--fm1-accent) 68%, transparent);
+    background: linear-gradient(180deg, var(--crt-acc-lt), var(--crt-acc) 68%, var(--crt-acc-dim));
+    box-shadow: 0 0 18px var(--crt-acc);
   }
 
   .synthwave-piano-key-black-active {
     transform: translateY(2px);
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--fm1-accent) 88%, white),
-      var(--fm1-accent) 58%,
-      color-mix(in srgb, var(--fm1-keys) 62%, black)
-    );
-    box-shadow:
-      inset 0 -8px 12px color-mix(in srgb, var(--fm1-case-foreground) 20%, transparent),
-      0 0 18px color-mix(in srgb, var(--fm1-accent) 78%, transparent);
+    background: linear-gradient(180deg, var(--crt-acc), var(--crt-acc-dim) 58%, var(--crt-btn));
+    box-shadow: 0 0 18px var(--crt-acc);
   }
 
   .patch-area-surface {
-    background-color: white;
+    background-color: var(--crt-bg-panel);
   }
 
+  .patch-area-image {
+    background-color: var(--crt-bg-2);
+  }
+
+  .bank-tab-active {
+    background: var(--crt-sel-bg);
+    color: var(--crt-led);
+  }
+
+  .patch-search-input {
+    background: var(--crt-bg-1);
+    color: var(--crt-ink);
+  }
+
+  .patch-search-input::placeholder {
+    color: var(--crt-ink-4);
+  }
+
+  .operator-tab[aria-selected='true'] {
+    background: var(--crt-sel-bg);
+    color: var(--crt-acc-lt);
+  }
+
+  /*
+   * The selected-slot edge marker. A steady amber LED bar replaces the old
+   * drifting neon gradient; the animation is retained only as a slow pulse.
+   */
   .patch-edge-gradient::before {
     content: '';
-    background: linear-gradient(
-      to bottom,
-      var(--color-primary),
-      hsl(188 100% 58%),
-      var(--color-primary)
-    );
-    background-size: 100% 200%;
+    background: var(--crt-led);
     animation: patch-edge-drift 5s ease-in-out infinite alternate;
   }
 
   @keyframes patch-edge-drift {
     from {
-      background-position: 0 0;
+      opacity: 0.72;
     }
 
     to {
-      background-position: 0 100%;
+      opacity: 1;
+    }
+  }
+
+  /*
+   * Selecting a slot. The cell takes a brief phosphor flash that settles
+   * into the selection colour, and its LED strikes on with a short flicker
+   * like a lamp warming up. Both run once, and only after a click: the cell
+   * raises `data-flash` itself, so a slot that mounts already selected (on
+   * load, or on returning to its bank) appears without the effect.
+   */
+  .patch-cell[data-active='true'][data-flash='true'] {
+    animation: patch-cell-select 360ms ease-out;
+  }
+
+  .patch-cell[data-active='true'][data-flash='true'] .crt-led {
+    animation: patch-led-strike 300ms steps(1, end);
+  }
+
+  @keyframes patch-cell-select {
+    from {
+      box-shadow: inset 0 0 14px var(--crt-led-glow);
+      filter: brightness(1.18);
+    }
+
+    to {
+      box-shadow: inset 0 0 0 transparent;
+      filter: brightness(1);
+    }
+  }
+
+  @keyframes patch-led-strike {
+    0% {
+      opacity: 0.25;
+    }
+
+    25% {
+      opacity: 1;
+    }
+
+    45% {
+      opacity: 0.5;
+    }
+
+    65%,
+    100% {
+      opacity: 1;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .patch-edge-gradient::before {
+    .patch-edge-gradient::before,
+    .patch-cell[data-flash='true'],
+    .patch-cell[data-flash='true'] .crt-led {
       animation: none;
     }
   }
-}
 
-/* Default 1983 hardware-terminal appearance. */
-@layer base {
-  :root[data-theme='dx7'] {
-    color-scheme: light;
-    --color-background: hsl(132 3% 72%);
-    --color-foreground: hsl(0 0% 0%);
-    --color-card: hsl(120 3% 86%);
-    --color-card-foreground: hsl(0 0% 0%);
-    --color-popover: hsl(120 3% 91%);
-    --color-popover-foreground: hsl(0 0% 0%);
-    --color-secondary: color-mix(in srgb, var(--fm1-accent) 42%, hsl(126 3% 72%));
-    --color-secondary-foreground: hsl(0 0% 0%);
-    --color-muted: hsl(126 3% 69%);
-    --color-muted-foreground: hsl(0 0% 0%);
-    --color-accent: hsl(126 3% 82%);
-    --color-accent-foreground: hsl(0 0% 0%);
-    --color-destructive: hsl(3 69% 35%);
-    --color-destructive-foreground: hsl(0 0% 96%);
-    --color-border: hsl(150 10% 14%);
-    --color-input: hsl(150 10% 16%);
-    --color-ring: hsl(190 100% 22%);
-    --radius-lg: 0.125rem;
-    --radius-xl: 0.125rem;
-    --radius-md: 0.0625rem;
-    --radius-sm: 0;
-    --dx7-ink: hsl(0 0% 0%);
-    --dx7-panel: hsl(120 3% 86%);
-    --dx7-panel-muted: hsl(126 3% 72%);
-    --dx7-accent-ink: color-mix(in srgb, var(--fm1-accent) 70%, black);
-    --dx7-highlight: var(--fm1-accent);
-    --dx7-highlight-text: var(--hero-accent);
-    --dx7-pattern-color: var(--fm1-finish-tint);
-    --hero-supporting-foreground: color-mix(in srgb, var(--dx7-highlight) 46%, hsl(0 0% 82%));
-    --hero-footer-foreground: color-mix(in srgb, var(--dx7-highlight) 46%, hsl(0 0% 82%));
-    --hero-action-foreground: color-mix(in srgb, var(--dx7-highlight) 46%, hsl(0 0% 82%));
-    --shadow-raised-surface: 5px 5px 0 hsl(150 12% 12% / 55%);
-    --shadow-menu: 5px 5px 0 hsl(150 12% 12% / 55%);
-    --shadow-editor-menu: 5px 5px 0 hsl(150 12% 12% / 55%);
-    --shadow-editor-overlay: 5px 5px 0 hsl(150 12% 12% / 55%);
-    --shadow-popover: 5px 5px 0 hsl(150 12% 12% / 55%);
-    --shadow-modal: 5px 5px 0 hsl(150 12% 12% / 55%);
-    --shadow-toast: 5px 5px 0 hsl(150 12% 12% / 55%);
+  /*
+   * Boot panel. While the workspace or the editor chunk loads, the page reads
+   * as a terminal waiting on the machine rather than as a spinner: the status
+   * label is set in the dot-matrix face behind a prompt caret, a block cursor
+   * blinks after it, and a row of segments runs left to right like a
+   * cassette-era loader. The segments and the cursor are decoration — the
+   * label alone carries the status for assistive technology.
+   */
+  .crt-boot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    width: min(22rem, 100%);
+    padding: 1.25rem 1.5rem;
   }
 
-  :root[data-theme='dx7'][data-fm1-colorway='black'] {
-    --dx7-pattern-color: hsl(0 0% 100%);
-  }
-
-  :root[data-theme='dx7'] body {
+  .crt-boot-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
-    font-weight: 550;
-    letter-spacing: 0.015em;
-    background-color: hsl(0 0% 19%);
-    background-image: none;
-  }
-
-  :root[data-theme='dx7'] body::before {
-    position: fixed;
-    z-index: 0;
-    inset: 0;
-    background-color: var(--dx7-pattern-color);
-    content: '';
-    mask-image: url('/dx7-algorithm-blueprint.svg');
-    mask-position: 0 0;
-    mask-repeat: repeat;
-    mask-size: 420px 280px;
-    opacity: 0.22;
-    pointer-events: none;
-  }
-
-  :root[data-theme='dx7'] #root {
-    position: relative;
-    z-index: 1;
-  }
-
-  :root[data-theme='dx7'] button,
-  :root[data-theme='dx7'] input,
-  :root[data-theme='dx7'] select,
-  :root[data-theme='dx7'] summary {
-    letter-spacing: 0.025em;
-  }
-
-  :root[data-theme='dx7'] dialog::backdrop {
-    background: hsl(150 18% 4% / 78%);
-    backdrop-filter: none;
-  }
-
-  :root[data-theme='dx7'] svg {
-    shape-rendering: crispEdges;
-    stroke-linecap: square;
-    stroke-linejoin: miter;
-  }
-}
-
-@layer components {
-  :root[data-theme='dx7'] .synthwave-shell::before {
-    inset: 0;
-    height: auto;
-    opacity: 0.055;
-    background-image: radial-gradient(circle, hsl(150 18% 5%) 0 1px, transparent 1px);
-    background-size: 4px 4px;
-    animation: none;
-    mask-image: none;
-    transform: none;
-  }
-
-  :root[data-theme='dx7'] .synthwave-hero {
-    border-color: color-mix(in srgb, var(--dx7-highlight) 65%, transparent);
-    color: var(--dx7-highlight-text);
-    background:
-      repeating-linear-gradient(
-        0deg,
-        transparent 0 3px,
-        color-mix(in srgb, var(--dx7-highlight) 4%, transparent) 3px 4px
-      ),
-      hsl(150 14% 7%);
-    box-shadow:
-      inset 0 -1px color-mix(in srgb, var(--dx7-highlight) 65%, transparent),
-      inset 0 0 40px color-mix(in srgb, var(--dx7-highlight) 4%, transparent),
-      0 4px 0 hsl(150 12% 23%);
-  }
-
-  :root[data-theme='dx7'] .synthwave-header {
-    background:
-      repeating-linear-gradient(
-        0deg,
-        transparent 0 3px,
-        color-mix(in srgb, var(--dx7-highlight) 4%, transparent) 3px 4px
-      ),
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--fm1-finish-tint) 40%, hsl(150 14% 9%)),
-        color-mix(in srgb, var(--fm1-finish-tint) 5%, hsl(150 14% 6%))
-      );
-  }
-
-  :root[data-theme='dx7'] .synthwave-title {
-    color: var(--dx7-highlight);
+    font-size: 0.9375rem;
     font-weight: 700;
-    letter-spacing: -0.055em;
-    text-shadow:
-      0 0 2px color-mix(in srgb, var(--dx7-highlight) 46%, transparent),
-      0 0 8px color-mix(in srgb, var(--dx7-highlight) 24%, transparent),
-      0 0 16px color-mix(in srgb, var(--dx7-highlight) 12%, transparent);
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--crt-acc-lt);
+    text-shadow: 0 0 9px color-mix(in srgb, var(--crt-acc) 35%, transparent);
   }
 
-  :root[data-theme='dx7'] .synthwave-title[data-layout='full'] {
-    display: grid;
-    grid-template-columns: max-content minmax(0, 1fr);
-    column-gap: 0.75rem;
-    align-items: baseline;
-    font-size: clamp(1.4rem, 3vw, 2.5rem);
+  .crt-boot-prompt {
+    color: var(--crt-acc);
   }
 
-  :root[data-theme='dx7'] .synthwave-title[data-layout='full'] .synthwave-brand-row {
-    grid-column: 1 / -1;
+  .crt-boot-cursor {
+    flex: none;
+    width: 0.5rem;
+    height: 0.9rem;
+    background-color: var(--crt-acc-lt);
+    animation: crt-boot-blink 1s steps(1, end) infinite;
   }
 
-  :root[data-theme='dx7'] .synthwave-title[data-layout='full'] .synthwave-hero-accent {
-    min-width: 0;
-    overflow-wrap: anywhere;
+  .crt-boot-bar {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
   }
 
-  :root[data-theme='dx7'] .synthwave-hero-accent,
-  :root[data-theme='dx7'] .synthwave-kicker {
-    color: var(--dx7-highlight-text);
+  .crt-boot-segment {
+    flex: 1 1 0;
+    height: 0.5rem;
+    background-color: var(--crt-acc-dim);
+    opacity: 0.22;
+    animation: crt-boot-run 1.4s ease-in-out infinite;
+    animation-delay: calc(var(--crt-boot-index) * 90ms);
   }
 
-  :root[data-theme='dx7'] .synthwave-hero img {
-    filter: saturate(0.78) contrast(1.08) brightness(0.92);
-    image-rendering: pixelated;
+  @keyframes crt-boot-blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+
+    50.01%,
+    100% {
+      opacity: 0;
+    }
   }
 
-  :root[data-theme='dx7'] .synthwave-hero figure {
-    border: 2px solid color-mix(in srgb, var(--dx7-highlight) 72%, transparent);
-    border-radius: 0;
-    box-shadow: 4px 4px 0 color-mix(in srgb, var(--dx7-highlight) 14%, transparent);
+  @keyframes crt-boot-run {
+    0%,
+    100% {
+      opacity: 0.22;
+      background-color: var(--crt-acc-dim);
+    }
+
+    12% {
+      opacity: 1;
+      background-color: var(--crt-led);
+    }
+
+    40% {
+      opacity: 0.45;
+      background-color: var(--crt-acc-dim);
+    }
   }
 
-  :root[data-theme='dx7'] .synthwave-panel {
-    border: 2px solid hsl(150 8% 26%);
-    border-radius: 2px;
-    background: hsl(0 0% 100%);
-    box-shadow:
-      5px 5px 0 hsl(150 10% 18% / 45%),
-      inset 1px 1px hsl(0 0% 100% / 38%),
-      inset -1px -1px hsl(150 10% 18% / 22%);
-    backdrop-filter: none;
+  @media (prefers-reduced-motion: reduce) {
+    .crt-boot-cursor,
+    .crt-boot-segment {
+      animation: none;
+    }
+
+    .crt-boot-segment {
+      opacity: 0.5;
+    }
   }
 
-  :root[data-theme='dx7'] .patch-area-surface {
-    background-color: hsl(0 0% 100%);
-  }
-
-  :root[data-theme='dx7'] .bank-tab-active {
-    color: var(--color-primary-foreground);
-  }
-
-  :root[data-theme='dx7'] .patch-area-image {
-    filter: grayscale(1) contrast(1.3);
-    mix-blend-mode: multiply;
-    opacity: 0.11;
-    image-rendering: pixelated;
-  }
-
-  :root[data-theme='dx7'] .patch-edge-gradient {
-    border: 1px solid color-mix(in srgb, var(--dx7-highlight) 72%, transparent);
-    border-radius: 0;
-    color: var(--dx7-highlight-text);
-    background-color: hsl(150 14% 8%) !important;
-    background-image:
-      repeating-linear-gradient(
-        0deg,
-        transparent 0 3px,
-        color-mix(in srgb, var(--dx7-highlight) 3%, transparent) 3px 4px
-      ),
-      linear-gradient(hsl(150 14% 8%), hsl(150 14% 8%));
-    box-shadow: inset 0 0 16px color-mix(in srgb, var(--dx7-highlight) 5%, transparent);
-    backdrop-filter: none;
-  }
-
-  :root[data-theme='dx7'] .patch-edge-gradient:hover {
-    border-color: var(--dx7-highlight);
-    color: var(--dx7-highlight);
-    background-color: hsl(150 13% 16%) !important;
-    background-image:
-      repeating-linear-gradient(
-        0deg,
-        transparent 0 3px,
-        color-mix(in srgb, var(--dx7-highlight) 4%, transparent) 3px 4px
-      ),
-      linear-gradient(hsl(150 13% 16%), hsl(150 13% 16%));
-    box-shadow: inset 0 0 18px color-mix(in srgb, var(--dx7-highlight) 10%, transparent);
-  }
-
-  :root[data-theme='dx7'] .patch-edge-gradient::before {
-    background: var(--dx7-highlight);
-    animation: none;
-  }
-
-  :root[data-theme='dx7'] .patch-edge-gradient .patch-slot {
-    border: 1px solid color-mix(in srgb, var(--dx7-highlight) 55%, transparent);
-    border-radius: 0;
-    color: var(--dx7-highlight-text);
-    background-color: hsl(150 13% 11%) !important;
-    box-shadow: none;
-  }
-
-  :root[data-theme='dx7'] .patch-edge-gradient:hover .patch-slot {
-    background-color: color-mix(in srgb, var(--dx7-highlight) 28%, black) !important;
-  }
-
-  :root[data-theme='dx7'] .patch-edge-gradient .patch-name {
-    color: hsl(0 0% 100%);
-  }
-
-  :root[data-theme='dx7'] .patch-edge-gradient button {
-    border-radius: 0;
-  }
-
-  :root[data-theme='dx7'] :is(button, summary, input, select) {
-    border-radius: 0;
-  }
-
-  :root[data-theme='dx7'] input,
-  :root[data-theme='dx7'] select {
-    border-width: 1px;
-    background: hsl(125 4% 79%);
-    box-shadow: inset 2px 2px 0 hsl(150 10% 18% / 18%);
-  }
-
-  :root[data-theme='dx7'] input.patch-search-input {
-    background: hsl(0 0% 100%);
-  }
-
-  :root[data-theme='dx7'] .settings-option-select {
-    background: color-mix(in srgb, var(--fm1-finish-tint) 38%, hsl(125 4% 79%));
-  }
-
-  :root[data-theme='dx7'] input[type='range'] {
+  input[type='range'] {
     appearance: none;
     border: 0;
     background: transparent;
     box-shadow: none;
   }
 
-  :root[data-theme='dx7'] input[type='range']::-webkit-slider-runnable-track {
-    height: 0.5rem;
-    border: 1px solid hsl(150 10% 28%);
-    border-radius: 0;
-    background: linear-gradient(
-      to right,
-      hsl(120 3% 93%) 0 var(--range-start),
-      var(--range-color) var(--range-start) var(--range-end),
-      hsl(120 3% 93%) var(--range-end) 100%
-    );
-    box-shadow: inset 1px 1px 0 hsl(150 10% 12% / 18%);
+  /* The meter stays slim, but a fingertip gets a taller strip to land on. */
+  @media (pointer: coarse) {
+    input[type='range'] {
+      min-height: 1.5rem;
+    }
   }
 
-  :root[data-theme='dx7'] input[type='range']::-webkit-slider-thumb {
-    width: 1rem;
-    height: 1rem;
+  /*
+   * The track is a segmented LED meter: a striped fill between the range's
+   * start and end, masked back to the well on either side.
+   */
+  input[type='range']::-webkit-slider-runnable-track {
+    height: 0.625rem;
+    border-top: 1px solid var(--crt-shadow);
+    border-left: 1px solid var(--crt-shadow);
+    border-right: 1px solid var(--crt-line-lt2);
+    border-bottom: 1px solid var(--crt-line-lt2);
+    background:
+      linear-gradient(
+        to right,
+        var(--crt-bg-well) 0 var(--range-start),
+        transparent var(--range-start) var(--range-end),
+        var(--crt-bg-well) var(--range-end) 100%
+      ),
+      repeating-linear-gradient(
+        90deg,
+        var(--range-color, var(--crt-acc)) 0 3px,
+        var(--crt-bg-1) 3px 5px
+      );
+  }
+
+  /*
+   * The thumb is a light metal cap, ringed in the darkest
+   * shade so it stays legible over both the lit and unlit halves of the track.
+   */
+  input[type='range']::-webkit-slider-thumb {
+    width: 0.875rem;
+    height: 1.25rem;
     appearance: none;
     margin-top: -0.3125rem;
-    border: 1px solid hsl(150 10% 18%);
-    border-radius: 0;
-    background: var(--range-color);
-  }
-
-  :root[data-theme='dx7'] input[type='range']::-moz-range-track {
-    height: 0.375rem;
-    border: 1px solid hsl(150 10% 28%);
-    border-radius: 0;
-    background: linear-gradient(
-      to right,
-      hsl(120 3% 93%) 0 var(--range-start),
-      var(--range-color) var(--range-start) var(--range-end),
-      hsl(120 3% 93%) var(--range-end) 100%
-    );
-    box-shadow: inset 1px 1px 0 hsl(150 10% 12% / 18%);
-  }
-
-  :root[data-theme='dx7'] input[type='range']::-moz-range-thumb {
-    width: 1rem;
-    height: 1rem;
-    border: 1px solid hsl(150 10% 18%);
-    border-radius: 0;
-    background: var(--range-color);
-  }
-
-  :root[data-theme='dx7'] .editor-console {
-    border-radius: 2px;
-    background:
-      repeating-linear-gradient(
-        0deg,
-        transparent 0 3px,
-        color-mix(in srgb, var(--dx7-highlight) 3%, transparent) 3px 4px
-      ),
-      hsl(150 14% 7%);
+    border-top: 1px solid var(--crt-ink);
+    border-left: 1px solid var(--crt-ink);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+    background: linear-gradient(to bottom, var(--crt-ink-2) 0%, var(--crt-acc-mid) 100%);
     box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--dx7-highlight) 45%, transparent),
-      5px 5px 0 hsl(150 12% 18% / 55%);
+      0 0 0 1px var(--crt-bg-0),
+      0 1px 2px hsl(0 0% 0% / 55%);
   }
 
-  :root[data-theme='dx7'] .editor-operator-header {
-    background: var(--color-primary) !important;
-    color: var(--color-primary-foreground) !important;
+  input[type='range']:hover::-webkit-slider-thumb,
+  input[type='range']:focus-visible::-webkit-slider-thumb {
+    background: linear-gradient(to bottom, var(--crt-ink) 0%, var(--crt-acc) 100%);
   }
 
-  :root[data-theme='dx7'] .operator-tab {
-    --operator-color: var(--dx7-accent-ink) !important;
-    border-color: var(--dx7-ink) !important;
-    border-left-color: transparent !important;
-    background: #e7e8e7 !important;
-    color: var(--dx7-ink) !important;
-    opacity: 1 !important;
-    box-shadow: inset 0 1px hsl(0 0% 100% / 32%) !important;
+  input[type='range']::-moz-range-track {
+    height: 0.625rem;
+    border: 1px solid var(--crt-line);
+    background:
+      linear-gradient(
+        to right,
+        var(--crt-bg-well) 0 var(--range-start),
+        transparent var(--range-start) var(--range-end),
+        var(--crt-bg-well) var(--range-end) 100%
+      ),
+      repeating-linear-gradient(
+        90deg,
+        var(--range-color, var(--crt-acc)) 0 3px,
+        var(--crt-bg-1) 3px 5px
+      );
   }
 
-  :root[data-theme='dx7'] .operator-tab:hover {
-    border-left-color: var(--color-border) !important;
-    background-color: color-mix(in srgb, var(--color-muted) 60%, transparent) !important;
-    color: var(--color-foreground) !important;
+  input[type='range']::-moz-range-thumb {
+    width: 0.875rem;
+    height: 1.25rem;
+    border-top: 1px solid var(--crt-ink);
+    border-left: 1px solid var(--crt-ink);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+    border-radius: 0;
+    background: linear-gradient(to bottom, var(--crt-ink-2) 0%, var(--crt-acc-mid) 100%);
+    box-shadow:
+      0 0 0 1px var(--crt-bg-0),
+      0 1px 2px hsl(0 0% 0% / 55%);
   }
 
-  :root[data-theme='dx7'] .operator-tab[aria-selected='true'] {
-    border-width: 0 !important;
-    border-color: var(--color-primary) !important;
-    background: var(--color-primary) !important;
-    color: var(--color-primary-foreground) !important;
-    box-shadow: none !important;
-  }
-
-  :root[data-theme='dx7'] .operator-role-badge {
-    border-color: currentColor !important;
-    background: transparent !important;
-  }
-
-  :root[data-theme='dx7'] .operator-frequency {
-    background: var(--dx7-ink) !important;
-    color: hsl(120 3% 91%) !important;
-  }
-
-  :root[data-theme='dx7'] .operator-tab[aria-selected='true'] .operator-frequency {
-    color: var(--color-primary-foreground) !important;
-  }
-
-  :root[data-theme='dx7'] .operator-audition-badge {
-    border-color: var(--dx7-ink) !important;
-    background: var(--dx7-ink) !important;
-    color: hsl(120 3% 91%) !important;
-  }
-
-  :root[data-theme='dx7'] #focused-operator-panel {
-    --operator-color: var(--dx7-highlight) !important;
-    border-color: var(--dx7-ink) !important;
-    background: #e7e8e7 !important;
-  }
-
-  :root[data-theme='dx7'] .editor-operator-header [aria-pressed='true'] {
-    border-color: var(--dx7-highlight) !important;
-    background: var(--dx7-highlight) !important;
-    color: var(--dx7-ink) !important;
+  input[type='range']:hover::-moz-range-thumb,
+  input[type='range']:focus-visible::-moz-range-thumb {
+    background: linear-gradient(to bottom, var(--crt-ink) 0%, var(--crt-acc) 100%);
   }
 }

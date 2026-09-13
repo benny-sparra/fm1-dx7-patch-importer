@@ -19,10 +19,19 @@ type PianoKeyboardDialogProps = {
 
 function PianoKeysIcon() {
   return (
-    <svg aria-hidden="true" className="!h-4 !w-6" fill="none" viewBox="0 0 30 20">
-      <rect fill="white" height="18" rx="1.5" stroke="currentColor" width="28" x="1" y="1" />
-      <path d="M10.3 1v18M19.7 1v18" stroke="currentColor" />
-      <path d="M7.8 1h5v10h-5zM17.2 1h5v10h-5z" fill="currentColor" />
+    <svg
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <rect height="16" rx="2" width="18" x="3" y="4" />
+      <path d="M9 13v7M15 13v7" />
+      <rect fill="currentColor" height="9" rx="1" stroke="none" width="4" x="7" y="4" />
+      <rect fill="currentColor" height="9" rx="1" stroke="none" width="4" x="13" y="4" />
     </svg>
   )
 }
@@ -262,7 +271,13 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
         className="font-vt323 ml-auto"
         disabled={!midi.hasMidiOutput}
         onClick={openDialog}
-        title={!midi.hasMidiOutput ? t('midi.connectFirst') : undefined}
+        title={
+          !midi.midiAccess
+            ? t('midi.switchOnFirst')
+            : !midi.hasMidiOutput
+              ? t('midi.chooseOutput')
+              : undefined
+        }
         type="button"
         variant="secondary"
       >
@@ -272,7 +287,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
 
       <dialog
         aria-label={t('ui.pianoKeyboard')}
-        className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1010px,calc(100vw-1rem))] overflow-auto rounded-xl bg-white p-0 whitespace-normal text-card-foreground"
+        className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1010px,calc(100vw-1rem))] overflow-auto rounded-xl bg-card p-0 whitespace-normal text-card-foreground"
         onCancel={releaseAllNotes}
         onClose={releaseAllNotes}
         ref={dialogRef}

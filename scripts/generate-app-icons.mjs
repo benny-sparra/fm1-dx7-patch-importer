@@ -12,7 +12,7 @@ const outputDirectory = path.resolve('public')
 // A maskable icon may be cropped to a circle whose diameter is 80% of the icon. `favicon.svg` fills
 // its own canvas, so it is inset onto an opaque square to keep the mark inside that safe zone.
 const maskableInsetSize = 390
-const maskableBackground = '#000'
+const maskableBackground = '#fff'
 
 const checkOnly = process.argv.includes('--check')
 

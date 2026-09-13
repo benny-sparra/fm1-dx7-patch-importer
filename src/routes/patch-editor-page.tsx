@@ -1,13 +1,22 @@
+import { AudioWaveform, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
-import { OperatorsTitle, OperatorStrip } from '@/components/editor/editor-workspace'
+import {
+  OperatorRack,
+  RackPanelCollapseToggle,
+  RackPanelCollapsibleBody,
+  RackPanelTitle,
+} from '@/components/editor/editor-workspace'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
+import { EffectsUnit } from '@/components/editor/effects-unit'
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
 import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
 import { type Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { type MidiController } from '@/hooks/use-midi'
 import { makeDx7VoiceNameEdits, packDx7Voice, unpackDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import {
@@ -20,7 +29,9 @@ import {
   FM1_VOICE_NAME_START,
   fm1EffectParameters,
   getGlobalParameterDefinition,
+  getOperatorParameterDefinition,
   resolveEffectEditorIndex,
+  resolveOperatorParameterIndex,
 } from '@/lib/fm1-parameters'
 import {
   editParameters,
@@ -35,6 +46,7 @@ import {
   type PatchSyncCoordinator,
   type PatchSyncState,
 } from '@/lib/patch-sync-coordinator'
+import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { auditionedParameterValue, makeOperatorAuditionEdits } from '@/lib/operator-audition'
 import { applySoundPreset, type SoundPresetId } from '@/lib/sound-presets'
 import { randomizeSound } from '@/lib/sound-randomizer'
@@ -50,6 +62,7 @@ type PatchEditorPageProps = {
 }
 
 const algorithmParameter = getGlobalParameterDefinition('global.algorithm')
+const outputParameter = getOperatorParameterDefinition('operator.outputLevel')
 
 function parametersMatch(left: Uint8Array, right: Uint8Array) {
   return left.length === right.length && left.every((value, index) => value === right[index])
@@ -63,6 +76,7 @@ export function PatchEditorPage({
   patch,
   voice,
 }: PatchEditorPageProps) {
+  const { t } = useTranslation()
   // Only read while mounting: App remounts this editor for each patch, keyed by patch id.
   const makeInitialParameters = () => makeFm1EditorParameters(unpackDx7Voice(voice), effects)
   const [history, setHistory] = useState(() => makeEditorHistory(makeInitialParameters()))
@@ -70,10 +84,15 @@ export function PatchEditorPage({
   const [selectedOperator, setSelectedOperator] = useState(1)
   const [mutedOperators, setMutedOperators] = useState<ReadonlySet<number>>(() => new Set())
   const [soloOperator, setSoloOperator] = useState<number | null>(null)
-  const [leftPanelTab, setLeftPanelTab] = useState<'effects' | 'global'>('global')
   const [syncState, setSyncState] = useState<PatchSyncState>('sending')
   const [isNavigationPending, setIsNavigationPending] = useState(false)
+  // Holds exactly what the user has typed into the name field, including the
+  // trailing spaces the stored name trims away, so the space bar works while
+  // typing a two-word name.
+  const [nameDraft, setNameDraft] = useState<string | null>(null)
   const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
+  const [isOperatorRackCollapsed, setIsOperatorRackCollapsed] = useState(false)
+  const [isEffectsCollapsed, setIsEffectsCollapsed] = useState(false)
   const historyRef = useRef(history)
   const historyRevisionRef = useRef(0)
   const syncStateRef = useRef<PatchSyncState>('sending')
@@ -157,7 +176,7 @@ export function PatchEditorPage({
     return () => window.removeEventListener('beforeunload', warnBeforeUnload)
   }, [isDirty])
 
-  const liveName = useMemo(
+  const storedName = useMemo(
     () =>
       String.fromCharCode(
         ...parameters.slice(FM1_VOICE_NAME_START, FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH),
@@ -166,6 +185,7 @@ export function PatchEditorPage({
         .trimEnd(),
     [parameters],
   )
+  const liveName = nameDraft ?? storedName
 
   const sendOperatorAuditionParameters = useCallback(
     (
@@ -271,6 +291,7 @@ export function PatchEditorPage({
   }, [canSync, patch.id])
 
   const updateName = (name: string) => {
+    setNameDraft(name)
     const edits = makeDx7VoiceNameEdits(historyRef.current.present, name).map(
       ([parameter, value]) => [parameter, value] as ParameterEdit,
     )
@@ -287,6 +308,11 @@ export function PatchEditorPage({
         sentName.current[parameter - FM1_VOICE_NAME_START] = value
       }
     })
+  }
+
+  const commitName = () => {
+    setNameDraft(null)
+    sendNameToFm1()
   }
 
   const restoreHistory = (direction: 'undo' | 'redo') => {
@@ -423,11 +449,26 @@ export function PatchEditorPage({
     void sendToFm1()
   }
 
-  const selectedOperatorIsMuted = mutedOperators.has(selectedOperator)
-  const selectedOperatorIsSoloed = soloOperator === selectedOperator
+  useKeyboardShortcuts([
+    { ...editorShortcuts.redo, onTrigger: () => restoreHistory('redo') },
+    { ...editorShortcuts.undo, onTrigger: () => restoreHistory('undo') },
+    // Bound whether or not the patch is dirty, so a browser "save page" dialog
+    // never appears in an editor that looks like it owns the shortcut.
+    {
+      ...editorShortcuts.save,
+      onTrigger: () => {
+        if (isDirty) saveToLibrary()
+      },
+    },
+    {
+      ...editorShortcuts.back,
+      enabled: syncState !== 'sending',
+      onTrigger: requestNavigation,
+    },
+  ])
 
   return (
-    <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-4 px-3 py-4 sm:px-5 lg:px-8">
+    <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-2.5 px-3 py-4 sm:px-5 lg:px-8">
       <PatchEditorHeader
         canSync={canSync}
         canRedo={history.future.length > 0}
@@ -435,7 +476,7 @@ export function PatchEditorPage({
         isDirty={isDirty}
         liveName={liveName}
         onBack={requestNavigation}
-        onNameBlur={sendNameToFm1}
+        onNameBlur={commitName}
         onNameChange={updateName}
         onPreset={selectPreset}
         onRandomise={randomise}
@@ -452,44 +493,90 @@ export function PatchEditorPage({
 
       {midi.midiAccess && !midi.sysexAvailable ? <MidiSysexWarning /> : null}
 
-      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(14rem,1fr)] lg:items-start">
-        <div className="grid min-w-0 gap-0 border border-white xl:grid-cols-[minmax(12.5rem,0.72fr)_minmax(0,3fr)] xl:items-stretch xl:bg-[#E7E8E7]">
-          <div className="xl:col-span-2">
-            <OperatorsTitle />
-          </div>
-          <OperatorStrip
-            algorithm={parameters[algorithmParameter.voiceIndex]}
-            mutedOperators={mutedOperators}
-            onSelect={setSelectedOperator}
-            parameters={parameters}
-            selectedOperator={selectedOperator}
-            soloOperator={soloOperator}
+      {/*
+        The artboard's rack, top to bottom: the six operator columns, then a
+        row of algorithm, pitch envelope and LFO, then the effects chain.
+      */}
+      <div className="grid min-w-0 gap-2.5">
+        <section aria-labelledby="operators-heading" className="synthwave-panel min-w-0">
+          <RackPanelTitle
+            action={
+              <RackPanelCollapseToggle
+                collapsed={isOperatorRackCollapsed}
+                controls="operator-rack"
+                onToggle={() => setIsOperatorRackCollapsed((collapsed) => !collapsed)}
+                panel={t('editor.operators')}
+              />
+            }
+            help={{ label: t('editor.fmOperators'), text: t('controlHelp.operator') }}
+            icon={AudioWaveform}
+            id="operators-heading"
+            title={t('editor.operators')}
           />
-
-          <FocusedOperatorPanel
-            applyEdits={applyEdits}
-            beginGesture={beginGesture}
-            endGesture={endGesture}
-            onToggleMute={() => toggleOperatorMute(selectedOperator)}
-            onToggleSolo={() => toggleOperatorSolo(selectedOperator)}
-            parameters={parameters}
-            selectedOperator={selectedOperator}
-            selectedOperatorIsMuted={selectedOperatorIsMuted}
-            selectedOperatorIsSoloed={selectedOperatorIsSoloed}
-            setParameter={setParameter}
-            syncState={syncState}
-          />
-        </div>
+          <RackPanelCollapsibleBody collapsed={isOperatorRackCollapsed} id="operator-rack">
+            <OperatorRack
+              algorithm={parameters[algorithmParameter.voiceIndex]}
+              mutedOperators={mutedOperators}
+              onGestureEnd={endGesture}
+              onGestureStart={beginGesture}
+              onOutputChange={(operator, value) =>
+                setParameter(
+                  resolveOperatorParameterIndex(operator, 'operator.outputLevel'),
+                  value,
+                  outputParameter.max,
+                )
+              }
+              onSelect={setSelectedOperator}
+              onToggleMute={toggleOperatorMute}
+              onToggleSolo={toggleOperatorSolo}
+              parameters={parameters}
+              renderOperatorDetail={(operator) => (
+                <FocusedOperatorPanel
+                  applyEdits={applyEdits}
+                  beginGesture={beginGesture}
+                  endGesture={endGesture}
+                  parameters={parameters}
+                  selectedOperator={operator}
+                  setParameter={setParameter}
+                />
+              )}
+              selectedOperator={selectedOperator}
+              syncState={syncState}
+              soloOperator={soloOperator}
+            />
+          </RackPanelCollapsibleBody>
+        </section>
 
         <GlobalConfigurationPanel
           beginGesture={beginGesture}
           endGesture={endGesture}
-          leftPanelTab={leftPanelTab}
-          onTabChange={setLeftPanelTab}
           parameters={parameters}
-          setEffectParameter={setEffectParameter}
           setParameter={setParameter}
         />
+
+        <section aria-labelledby="effects-heading" className="synthwave-panel min-w-0">
+          <RackPanelTitle
+            action={
+              <RackPanelCollapseToggle
+                collapsed={isEffectsCollapsed}
+                controls="effects-unit"
+                onToggle={() => setIsEffectsCollapsed((collapsed) => !collapsed)}
+                panel={t('editor.effects')}
+              />
+            }
+            icon={Sparkles}
+            id="effects-heading"
+            title={t('editor.effects')}
+          />
+          <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="effects-unit">
+            <EffectsUnit
+              onChange={setEffectParameter}
+              onGestureEnd={endGesture}
+              onGestureStart={beginGesture}
+              values={getFm1EffectParameters(parameters)}
+            />
+          </RackPanelCollapsibleBody>
+        </section>
       </div>
 
       <UnsavedEditorDialog

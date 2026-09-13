@@ -2,7 +2,7 @@
 
 A browser-based voice editor and patch librarian for the [M-VAVE FM1](https://www.mvave.com/).
 
-The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, audition sounds on the FM1, and transfer individual voices or complete banks over MIDI SysEx. Four classic Yamaha DX7 factory banks are loaded initially. New workspace banks can use any of 35 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
+The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, and transfer individual voices or complete banks over MIDI SysEx. Four classic Yamaha DX7 factory banks are loaded initially. New workspace banks can use any of 35 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
 
 ![M-VAVE FM1 synthesiser](src/assets/fm1-header.png)
 
@@ -19,25 +19,31 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Search and reorder patches with pointer or keyboard drag-and-drop
 - Export one browser bank as `.syx` or all loaded banks as a `.zip`
 - Edit all standard DX7 voice parameters with live MIDI updates
+- Work on the six operators as a rack: five sit as compact readouts while the selected one opens in place with its full controls
+- Mute or solo any operator straight from its rack column, without opening it first
+- Fold the operators and effects panels away to focus the editor on the sections in use
 - Visualise all 32 DX7 algorithms, including carrier and modulator roles
 - Edit four-stage amplitude and pitch envelopes graphically or with precise numeric controls
+- Start the pitch envelope from Flat, Attack blip up, Attack drop, Scoop, or Release fall shapes as a single undo step
+- Watch the LFO on a scrolling scope that follows the selected wave and LFO Speed
 - Edit the FM1's filter, reverb, delay, distortion, chorus, and phaser within their documented ranges
-- See compact signal previews for each FM1 effect while adjusting the effects chain
+- See a live animated scope for every FM1 effect, drawn from its parameters: filter response, delay taps, chorus drift, reverb tail, distortion clipping, and phaser sweep
 - Apply six sound-shaping presets as undoable starting points
 - Randomise a sound as an undoable starting point
-- Mute or solo operators temporarily while designing a sound
 - Open contextual help for voice, envelope, algorithm, and effect controls
 - Rename patches using DX7-compatible 10-character names
 - Undo and redo edits within the voice editor
 - Save edits to the browser library, resend them, or revert both the editor and FM1 to the last saved version
 - Warn before leaving an unsaved editing session, with save, discard, and keep-editing choices
+- Undo, redo, save, and leave the voice editor from the keyboard
+- Jump to patch search, clear it, and open the lit slot from the keyboard
 - Send individual sounds to the edit buffer or a complete 32-patch bank over Web MIDI
 - Select matching FM1 slots with MIDI Program Change and track whether a bank is local, transferred, or changed since transfer
 - Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard
 - Use the interface in English, French, Spanish, German, Brazilian Portuguese, or Simplified Chinese
-- Match the interface accent and product image to any of the six FM1 colour finishes
+- Use a dark CRT-terminal interface whose accent, product image, and tab icon follow any of the six FM1 colour finishes, with contrast checked to WCAG 2.2 AA in each
 - Install the editor as a standalone desktop app in browsers that support installation
 
 ## Requirements
@@ -56,7 +62,7 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 2. Switch **MIDI online** on and grant MIDI/SysEx permission.
 3. Open **Settings** to select the FM1 MIDI output and, if needed, the note/program and effects channels.
 4. Select DX7 Bank 1, 2, 3, or 4. On first use these contain DX7 factory ROM 1A, ROM 1B, ROM 2A, and ROM 2B respectively. Use **Add new bank** to name and describe an additional workspace bank while populating it from the bundled [Yamaha Black Boxes DX7 catalog](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) or your own standard 32-voice DX7 SysEx file.
-5. Click a patch to select the matching FM1 slot, load it into the edit buffer, and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
+5. Click a patch to select the matching FM1 slot and play it. Double-click it, or choose **Edit** in the toolbar, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
 6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
 7. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank.
 8. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay.
@@ -78,6 +84,63 @@ Workspace-bank titles, descriptions, imported sounds, voice ordering, saved edit
 
 If the saved workspace cannot be opened, the app leaves its browser record untouched and offers **Retry** or **Continue without saving**. The latter creates an explicit session-only workspace whose changes are lost when the page closes. If a later save fails, the latest changes remain available in memory and can be saved again with **Retry saving**.
 
+### The voice editor
+
+The editor is laid out as a rack. The six operators stand side by side as columns: five show a compact readout, and the selected operator grows in place to carry its full controls. On narrower screens the open operator drops onto a row of its own. Each column has its own mute and solo buttons, so an operator can be silenced without opening it.
+
+Click anywhere on the title strip of the operators or effects panel to fold it away, and click again to bring it back. Each panel folds on its own and keeps its title visible, so a long editor can be trimmed to the sections you are working on.
+
+The pitch envelope has a presets menu of starting shapes: **Flat**, **Attack blip up**, **Attack drop**, **Scoop**, and **Release fall**. Each one is applied as a single undo step.
+
+The LFO and every FM1 effect open with a small animated scope drawn from their current settings. The LFO scrolls its selected wave at a rate set by LFO Speed. The filter shows its response curve, delay its echo taps, chorus its drifting copies, reverb its tail, distortion its clipped wave, and phaser its sweeping notches. A scope dims when its effect is bypassed or when the LFO has no modulation depth. With reduced motion enabled, each scope shows a still frame instead.
+
+### Keyboard shortcuts
+
+The **?** guide lists these on its own tab. Each view binds the actions that also appear in its
+toolbar. `Ctrl` stands in for `Cmd` on Windows and Linux, and the matching button or field shows the
+shortcut in its tooltip for the current platform.
+
+In the patch banks:
+
+| Shortcut           | Action                                                      |
+| ------------------ | ----------------------------------------------------------- |
+| `/`                | Jump to the search field                                    |
+| `Cmd`/`Ctrl` + `F` | Jump to the search field, selecting whatever it holds       |
+| `Esc`              | Clear the search                                            |
+| `Enter`            | Play the focused slot, then open the lit slot in the editor |
+
+In the voice editor:
+
+| Shortcut                     | Action                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `Cmd`/`Ctrl` + `Z`           | Undo the last edit                                                      |
+| `Cmd`/`Ctrl` + `Shift` + `Z` | Redo the undone edit                                                    |
+| `Cmd`/`Ctrl` + `S`           | Save to Library                                                         |
+| `Esc`                        | Return to the patch banks, prompting first if there are unsaved changes |
+
+These act on the view as a whole and stay out of the way of everything else: they are ignored while
+a dialog is open, `Esc` closes an open menu before the view reacts to it, and a shortcut that takes
+a modifier still works while a text field has focus, so `Cmd`/`Ctrl` + `S` saves without leaving the
+patch-name field. Bare keys are left to whatever is being typed into, so `/` and `Esc` behave
+normally inside the search field, where `Esc` clears it.
+
+`Enter` gives the keyboard the route the mouse already had through double-click: it plays an unlit
+slot as a click would, and opens the slot that is already lit. The toolbar's **Edit** button
+remains the signposted way in.
+
+Individual controls keep their own keyboard behaviour. Rotary controls and envelope points respond
+to the arrow keys, `Home`, `End`, `Page Up`, and `Page Down`, and the bank tabs move with the arrow
+keys.
+
+The patch grid is a single tab stop. The arrow keys move between slots, following the rows as the
+grid reflows, and `Home` and `End` jump to the first and last slot. Moving only changes which slot
+has focus: because selecting one sends a Program Change and plays it on the FM1, that waits for
+`Enter`. Each slot's grip handle stays separately reachable for keyboard reordering.
+
+The on-screen piano plays from the computer keyboard while it is open, using the usual two-row
+layout: `A`, `W`, `S`, `E`, `D`, `F`, `T`, `G`, `Y`, `H`, `U`, `J`, `K` from the root note upwards,
+with `Z` and `X` shifting the octave down and up.
+
 ## Anonymous usage analytics
 
 The deployed site uses cookie-free [Umami](https://umami.is/) analytics to understand aggregate
@@ -89,7 +152,8 @@ sent. The interface links to [Umami's privacy policy](https://umami.is/privacy).
 
 ## Error monitoring
 
-Production builds load the official Sentry React SDK in a recoverable dynamic chunk and report
+Production builds load the official Sentry React SDK in a recoverable dynamic chunk once the page
+has finished loading and the browser is idle, keeping it off the critical rendering path, and report
 unhandled browser and React errors to the project's EU Sentry endpoint. Sentry structured logging is
 enabled for future fixed, non-user-authored diagnostic messages. Performance tracing, application
 metrics, and session replay are disabled.
@@ -248,12 +312,24 @@ editor its own window, launcher entry, and name. It adds no service worker, so t
 requires a network connection to load and works offline no further than before.
 
 The PNGs it references are committed build inputs rendered from `public/favicon.svg` by
-`npm run icons:generate`, so the tab icon and the launcher icon cannot drift apart. The maskable
-icon is inset onto an opaque plate because a platform may crop it to any shape inside 80% of its
-width. `npm run icons:check` verifies every icon the manifest declares exists, is a square PNG of
-the declared size, and is fully opaque when it is maskable. Like the responsive image check, it does
-not byte-compare a fresh render, because native PNG output can vary by platform. Do not edit
-`public/icon-*.png` manually.
+`npm run icons:generate`, so the launcher icon and the icon the page starts with cannot drift apart.
+The maskable icon is inset onto an opaque white plate, matching the default tile, because a platform
+may crop it to any shape inside 80% of its width. `npm run icons:check` verifies every icon the manifest declares exists, is a
+square PNG of the declared size, and is fully opaque when it is maskable. Like the responsive image
+check, it does not byte-compare a fresh render, because native PNG output can vary by platform. Do
+not edit `public/icon-*.png` manually.
+
+`public/favicon.svg` is the icon the document loads with. Once the app has booted it swaps the tab
+icon for `public/favicon-<colourway>.svg`, so the tab follows the selected FM1 finish. These are
+served as files rather than generated data URLs because the production security policy only admits
+images from the app's own origin, and `src/lib/fm1-favicon.test.ts` keeps each one's tile and
+wave colours in step with the colourway tokens in `src/index.css`. Each tile is flooded with the
+finish's accent and carries an oscilloscope trace in the darkest surface colour, so the finish is
+legible at tab size. The mark is drawn as a path rather than set in type, so a favicon never waits
+on a webfont. Every 10 seconds the trace wipes and redraws like a scope beam, taking about a
+second; Firefox animates tab icons, while Chromium and Safari show the resting whole trace, and
+`prefers-reduced-motion: reduce` holds it still. The launcher icons stay on the plain default,
+because an installed app cannot repaint its icon per session.
 
 ### Production source maps
 

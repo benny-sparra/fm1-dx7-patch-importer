@@ -13,13 +13,26 @@ import {
   SortableContext,
 } from '@dnd-kit/sortable'
 import { FileMusic, Search } from 'lucide-react'
-import { type ReactNode, type SVGProps } from 'react'
+import {
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+  type RefObject,
+  type SVGProps,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
-import { fm1KeyboardImage } from '@/lib/fm1-responsive-images'
+import { formatShortcut, isApplePlatform, librarianShortcuts } from '@/lib/keyboard-shortcuts'
+import {
+  countGridColumns,
+  isGridNavigationKey,
+  resolveGridNavigation,
+} from '@/lib/patch-grid-navigation'
 
 import { PatchButton } from './patch-button'
 
@@ -32,11 +45,13 @@ type PatchGridProps = {
   isPatchDisabled?: (patch: Patch) => boolean
   onPatchMove: (patch: Patch, target: Patch) => void
   onPatchEdit?: (patch: Patch) => void
+  onPatchSelect?: (patch: Patch) => void
   onImportEmptyBank?: () => void
   onLoadDemoBank?: () => void
   patches: Patch[]
   search: string
   searchDisabled?: boolean
+  searchRef?: RefObject<HTMLInputElement | null>
   setSearch: (search: string) => void
   toolbar?: ReactNode
 }
@@ -62,15 +77,51 @@ export function PatchGrid({
   isPatchDisabled = () => false,
   onPatchMove,
   onPatchEdit,
+  onPatchSelect,
   onImportEmptyBank,
   onLoadDemoBank,
   patches,
   search,
   searchDisabled = false,
+  searchRef,
   setSearch,
   toolbar,
 }: PatchGridProps) {
   const { t } = useTranslation()
+  const searchHint = useMemo(() => formatShortcut(librarianShortcuts.search, isApplePlatform()), [])
+  const slotRefs = useRef(new Map<string, HTMLButtonElement>())
+  const [focusedPatchId, setFocusedPatchId] = useState('')
+  // The grid is a single tab stop. It opens on the lit slot so Tab lands where
+  // the user last was, and follows the arrows from there.
+  const rovingPatchId = [focusedPatchId, activePatchId].find((candidate) =>
+    patches.some((patch) => patch.id === candidate),
+  )
+  const rovingSlot = rovingPatchId ?? patches[0]?.id
+
+  const registerSlot = (patchId: string, button: HTMLButtonElement | null) => {
+    if (button) slotRefs.current.set(patchId, button)
+    else slotRefs.current.delete(patchId)
+  }
+
+  const navigateSlots = (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => {
+    if (!isGridNavigationKey(event.key)) return
+    // A disabled slot renders no button, so the order comes from what is there.
+    const slotIds = patches.map(({ id }) => id).filter((id) => slotRefs.current.has(id))
+    const index = slotIds.indexOf(patch.id)
+    if (index === -1) return
+
+    // Claimed even when the edge stops the move, so the panel does not scroll.
+    event.preventDefault()
+    const columns = countGridColumns(
+      slotIds.map((id) => slotRefs.current.get(id)?.getBoundingClientRect().top ?? 0),
+    )
+    const nextId = slotIds[resolveGridNavigation(event.key, index, slotIds.length, columns)]
+    if (nextId === patch.id) return
+
+    setFocusedPatchId(nextId)
+    slotRefs.current.get(nextId)?.focus()
+  }
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -84,14 +135,14 @@ export function PatchGrid({
   }
 
   return (
-    <Card className="synthwave-panel overflow-hidden border-primary/25 bg-card/95 backdrop-blur-sm">
-      <CardHeader className="patch-area-surface px-5 py-3">
+    <Card className="synthwave-panel overflow-hidden">
+      <CardHeader className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="flex items-center gap-2 text-2xl font-bold tracking-wide text-black">
-            <PixelBankIcon aria-hidden="true" className="size-5 shrink-0 text-black" />
+          <CardTitle className="font-dot-matrix flex items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase">
+            <PixelBankIcon aria-hidden="true" className="size-4 shrink-0" />
             {t('banks.gridTitle')}
             <HelpPopover
-              className="text-black/70 hover:text-black"
+              className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
               label={t('banks.gridTitle')}
               text={t('banks.gridDescription')}
             />
@@ -102,36 +153,41 @@ export function PatchGrid({
       <div className="patch-area-surface flex min-w-0 items-stretch">
         {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
         <div className="min-w-0 flex-1">
-          <div className="font-vt323 flex flex-col gap-2 bg-primary p-3 sm:p-4 md:flex-row md:items-center">
+          <div className="crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]">
             {actions ? (
-              <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-[calc(25%-0.375rem)]">
+              <div className="flex w-full max-w-full min-w-0 flex-wrap items-center gap-2 md:w-auto">
                 {actions}
               </div>
             ) : null}
-            <label className="relative block w-full sm:ml-auto sm:w-[calc(50%-0.25rem)] sm:flex-none xl:w-[calc(25%-0.375rem)]">
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <label className="relative block w-full md:ml-auto md:w-auto md:min-w-48 md:flex-auto xl:max-w-[calc(25%-0.375rem)]">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
               <input
                 aria-label={t('banks.search')}
-                className="patch-search-input h-10 w-full rounded-md border bg-white pr-3 pl-9 text-sm text-secondary-foreground ring-ring transition outline-none placeholder:text-secondary-foreground/60 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="patch-search-input crt-inset h-8 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={searchDisabled}
                 onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  // The page-level Escape stays out of text fields, so the
+                  // field clears itself where the user is most likely to press it.
+                  if (event.key !== 'Escape' || !search) return
+                  event.preventDefault()
+                  setSearch('')
+                }}
                 placeholder={t('banks.search')}
+                ref={searchRef}
+                title={`${t('banks.search')} (${searchHint})`}
                 type="search"
                 value={search}
               />
             </label>
           </div>
-          <CardContent className="relative isolate space-y-4 overflow-hidden bg-primary px-3 pt-0 pb-3 sm:px-4 sm:pb-4">
-            <img
-              alt=""
-              aria-hidden="true"
-              className="patch-area-image pointer-events-none absolute inset-0 z-0 size-full object-contain object-center opacity-50"
-              height={fm1KeyboardImage.height}
-              sizes="(min-width: 1280px) 928px, (min-width: 1024px) calc(100vw - 352px), (min-width: 640px) calc(100vw - 328px), calc(100vw - 88px)"
-              src={fm1KeyboardImage.src}
-              srcSet={fm1KeyboardImage.srcSet}
-              width={fm1KeyboardImage.width}
-            />
+          {/*
+            The hardware photo used to sit behind the grid as a half-opacity
+            watermark. Against the terminal's near-black panel it washed the
+            slots out rather than receding, and the masthead already carries
+            the same photo, so the grid is now a plain well.
+          */}
+          <CardContent className="relative isolate space-y-4 overflow-hidden bg-[var(--crt-bg-panel)] p-[9px]">
             <div className="relative z-10">
               {patches.length > 0 ? (
                 <DndContext
@@ -143,15 +199,19 @@ export function PatchGrid({
                     items={patches.map((patch) => patch.id)}
                     strategy={rectSortingStrategy}
                   >
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
                       {patches.map((patch) => (
                         <div className="h-full w-full" key={patch.id}>
                           <PatchButton
                             disabled={isPatchDisabled(patch)}
                             disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
                             onEdit={onPatchEdit}
+                            onNavigate={navigateSlots}
+                            onSelect={onPatchSelect}
                             patch={patch}
                             isActive={patch.id === activePatchId}
+                            registerButton={registerSlot}
+                            tabIndex={patch.id === rovingSlot ? 0 : -1}
                           />
                         </div>
                       ))}
@@ -159,27 +219,27 @@ export function PatchGrid({
                   </SortableContext>
                 </DndContext>
               ) : (
-                <div className="grid min-h-72 place-items-center rounded-lg border border-dashed bg-background/70 p-6 text-center">
+                <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
                   <div className="max-w-md">
-                    <FileMusic className="mx-auto size-10 text-primary" />
-                    <h3 className="mt-3 text-lg font-bold text-foreground">
+                    <FileMusic className="mx-auto size-10 text-[var(--crt-acc-dim)]" />
+                    <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
                       {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
                     </h3>
                     {!isBankLoaded ? (
                       <>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
                           {t('banks.emptyHelp')}
                         </p>
                         <div className="mt-4 flex flex-wrap justify-center gap-2">
                           <button
-                            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                            className="crt-raised-lit cursor-pointer bg-[var(--crt-btn)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-white"
                             onClick={onImportEmptyBank}
                             type="button"
                           >
                             {t('banks.import')}
                           </button>
                           <button
-                            className="rounded-md border bg-background px-4 py-2 text-sm font-semibold text-foreground"
+                            className="crt-raised-thin cursor-pointer bg-[var(--crt-btn-face)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)]"
                             onClick={onLoadDemoBank}
                             type="button"
                           >

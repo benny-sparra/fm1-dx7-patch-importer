@@ -16,7 +16,7 @@ export function DeviceSelect({ devices, icon, label, onChange, value }: DeviceSe
   const { t } = useTranslation()
   return (
     <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3">
-      <span className="font-vt323 flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase">
+      <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
         <span className="[&_svg]:size-3.5">{icon}</span>
         {label}
       </span>

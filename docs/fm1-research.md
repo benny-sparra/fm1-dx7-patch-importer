@@ -55,7 +55,6 @@ At the time of this review the editor already supports:
 - live DX7 parameter updates
 - algorithm and envelope visualisation
 - FM1 filter, reverb, delay, distortion, chorus and phaser editing
-- Web MIDI auditioning
 - voice and 32-voice bank transfers
 - program changes
 - separate note/program and effect MIDI channels

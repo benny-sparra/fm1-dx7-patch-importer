@@ -138,7 +138,7 @@ async function openLibrarian(page: Page, locale: string) {
     page.getByRole('heading', { level: 2, name: translate(locale, 'banks.gridTitle') }).first(),
   ).toBeVisible({ timeout: 15_000 })
   await expect(
-    page.getByRole('button', { name: interpolatedPattern(locale, 'banks.edit') }).first(),
+    page.getByRole('button', { name: interpolatedPattern(locale, 'banks.sendPatch') }).first(),
   ).toBeVisible({ timeout: 15_000 })
 }
 
@@ -163,14 +163,32 @@ for (const locale of testedLocales) {
       await expectNoClippedLayout(page, testInfo, `settings-${locale}-${viewport.name}`)
     })
 
+    // A slot that moves between the two clicks of a double click never opens.
+    test(`keeps the ${locale} slot grid still when a slot lights on ${viewport.name}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ height: viewport.height, width: viewport.width })
+      await openLibrarian(page, locale)
+
+      const slot = page
+        .getByRole('button', { name: interpolatedPattern(locale, 'banks.sendPatch') })
+        .first()
+      const before = await slot.boundingBox()
+      await slot.click()
+      await expect(slot).toHaveAttribute('aria-current', 'true')
+      await expect(slot.locator('xpath=..')).toHaveAttribute('data-flash', 'false')
+
+      expect(await slot.boundingBox()).toEqual(before)
+    })
+
     test(`fits ${locale} text in the editor on ${viewport.name}`, async ({ page }, testInfo) => {
       await page.setViewportSize({ height: viewport.height, width: viewport.width })
       await openLibrarian(page, locale)
 
       await page
-        .getByRole('button', { name: interpolatedPattern(locale, 'banks.edit') })
+        .getByRole('button', { name: interpolatedPattern(locale, 'banks.sendPatch') })
         .first()
-        .click()
+        .dblclick()
       await expect(
         page.getByRole('button', { name: translate(locale, 'editor.back') }),
       ).toBeVisible()

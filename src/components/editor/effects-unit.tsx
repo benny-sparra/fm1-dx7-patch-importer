@@ -1,14 +1,20 @@
-import { ArrowRight, Power } from 'lucide-react'
+import { Power } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import {
+  ChorusScope,
+  DelayScope,
+  DistortionScope,
+  FilterScope,
+  PhaserScope,
+  ReverbScope,
+} from '@/components/editor/effect-scopes'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { OnOffLabel } from '@/components/ui/on-off-label'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 type EffectsUnitProps = {
-  layout?: 'sidebar' | 'workspace'
   onChange: (controller: number, value: number) => void
   onGestureEnd: () => void
   onGestureStart: () => void
@@ -24,7 +30,6 @@ type EffectParameter = {
 type EffectName = 'Filter' | 'Reverb' | 'Delay' | 'Distortion' | 'Chorus' | 'Phaser'
 
 type EffectDefinition = {
-  color: string
   name: EffectName
   parameters: EffectParameter[]
   switchId: EffectParameterId
@@ -32,7 +37,6 @@ type EffectDefinition = {
 
 const effects: EffectDefinition[] = [
   {
-    color: 'var(--fm1-accent)',
     name: 'Filter',
     parameters: [
       { id: 'effect.filter.type', label: 'Type' },
@@ -42,7 +46,6 @@ const effects: EffectDefinition[] = [
     switchId: 'effect.filter.enabled',
   },
   {
-    color: '#a78bfa',
     name: 'Reverb',
     parameters: [
       { id: 'effect.reverb.space', label: 'Space' },
@@ -52,7 +55,6 @@ const effects: EffectDefinition[] = [
     switchId: 'effect.reverb.enabled',
   },
   {
-    color: '#fb7185',
     name: 'Delay',
     parameters: [
       { id: 'effect.delay.decay', label: 'Decay', suffix: '%' },
@@ -62,7 +64,6 @@ const effects: EffectDefinition[] = [
     switchId: 'effect.delay.enabled',
   },
   {
-    color: '#f97316',
     name: 'Distortion',
     parameters: [
       { id: 'effect.distortion.gain', label: 'Gain', suffix: '%' },
@@ -72,7 +73,6 @@ const effects: EffectDefinition[] = [
     switchId: 'effect.distortion.enabled',
   },
   {
-    color: '#2dd4bf',
     name: 'Chorus',
     parameters: [
       { id: 'effect.chorus.frequency', label: 'Frequency', suffix: '%' },
@@ -82,7 +82,6 @@ const effects: EffectDefinition[] = [
     switchId: 'effect.chorus.enabled',
   },
   {
-    color: '#facc15',
     name: 'Phaser',
     parameters: [
       { id: 'effect.phaser.frequency', label: 'Frequency', suffix: '%' },
@@ -106,10 +105,82 @@ function lowerFirst(value: string) {
   return value.charAt(0).toLowerCase() + value.slice(1)
 }
 
+/** The live picture shown above an effect's controls. */
+function EffectScope({
+  enabled,
+  name,
+  values,
+}: {
+  enabled: boolean
+  name: EffectName
+  values: Uint8Array
+}) {
+  const value = (id: EffectParameterId) => values[getEffectParameterDefinition(id).controller]
+  switch (name) {
+    case 'Filter':
+      return (
+        <FilterScope
+          cutoff={value('effect.filter.cutoff')}
+          enabled={enabled}
+          resonance={value('effect.filter.resonance')}
+          type={value('effect.filter.type')}
+        />
+      )
+    case 'Delay':
+      return (
+        <DelayScope
+          decay={value('effect.delay.decay')}
+          enabled={enabled}
+          mix={value('effect.delay.mix')}
+          rate={value('effect.delay.rate')}
+        />
+      )
+    case 'Chorus':
+      return (
+        <ChorusScope
+          depth={value('effect.chorus.depth')}
+          enabled={enabled}
+          frequency={value('effect.chorus.frequency')}
+          mix={value('effect.chorus.mix')}
+        />
+      )
+    case 'Reverb':
+      return (
+        <ReverbScope
+          decay={value('effect.reverb.decay')}
+          enabled={enabled}
+          mix={value('effect.reverb.mix')}
+          space={value('effect.reverb.space')}
+        />
+      )
+    case 'Distortion':
+      return (
+        <DistortionScope
+          enabled={enabled}
+          gain={value('effect.distortion.gain')}
+          level={value('effect.distortion.level')}
+          tone={value('effect.distortion.tone')}
+        />
+      )
+    case 'Phaser':
+      return (
+        <PhaserScope
+          depth={value('effect.phaser.depth')}
+          enabled={enabled}
+          frequency={value('effect.phaser.frequency')}
+          mix={value('effect.phaser.mix')}
+        />
+      )
+  }
+}
+
+/*
+  Each parameter is one rack row: caption, striped meter, LED value. The
+  enumerated ones (filter type, reverb space) are a sunken select instead.
+*/
 function EffectControl({
   disabled,
   effectName,
-  placement = 'body',
   onChange,
   onGestureEnd,
   onGestureStart,
@@ -118,7 +189,6 @@ function EffectControl({
 }: {
   disabled: boolean
   effectName: string
-  placement?: 'body' | 'header'
   onChange: (controller: number, value: number) => void
   onGestureEnd: () => void
   onGestureStart: () => void
@@ -130,23 +200,24 @@ function EffectControl({
   const helpText = t(`effectParameterHelp.${effectName} ${parameter.label}`)
   const translatedEffect = t(`ui.effects.${effectName.toLowerCase()}`)
   const translatedParameter = t(`ui.parameters.${lowerFirst(parameter.label)}`)
+  const caption = (
+    <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+      <span className="min-w-0 truncate" title={translatedParameter}>
+        {translatedParameter}
+      </span>
+      {helpText ? (
+        <HelpPopover label={`${translatedEffect} ${translatedParameter}`} text={helpText} />
+      ) : null}
+    </span>
+  )
 
   if (definition.optionIds) {
     return (
-      <label className="grid min-w-0 gap-1.5 text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
-        <span className="flex min-w-0 items-center gap-1 overflow-hidden">
-          <span className="min-w-0 flex-1 truncate" title={translatedParameter}>
-            {translatedParameter}
-          </span>
-          {helpText ? (
-            <HelpPopover label={`${translatedEffect} ${translatedParameter}`} text={helpText} />
-          ) : null}
-        </span>
+      <label className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+        {caption}
         <select
-          className={cn(
-            'h-9 w-full min-w-0 rounded-md border bg-background px-2 text-sm font-semibold text-foreground normal-case disabled:opacity-50',
-            !disabled && 'border-[var(--effect-color)] bg-[var(--effect-color)] text-slate-950',
-          )}
+          aria-label={`${translatedEffect} ${translatedParameter}`}
+          className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
           disabled={disabled}
           onChange={(event) => onChange(definition.controller, Number(event.target.value))}
           value={value}
@@ -161,58 +232,12 @@ function EffectControl({
     )
   }
 
-  if (placement === 'header') {
-    return (
-      <label className="ml-auto flex w-1/2 min-w-0 items-center gap-2 text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
-        <span className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
-          <span className="min-w-0 flex-1 truncate" title={translatedParameter}>
-            {translatedParameter}
-          </span>
-          {helpText ? (
-            <HelpPopover label={`${translatedEffect} ${translatedParameter}`} text={helpText} />
-          ) : null}
-        </span>
-        <input
-          aria-label={`${translatedEffect} ${translatedParameter}`}
-          className="h-2 min-w-0 flex-1 cursor-pointer accent-[var(--effect-color)] disabled:cursor-not-allowed disabled:opacity-40"
-          disabled={disabled}
-          max={definition.max}
-          min={0}
-          onChange={(event) => onChange(definition.controller, Number(event.target.value))}
-          onPointerCancel={onGestureEnd}
-          onPointerDown={onGestureStart}
-          onPointerUp={onGestureEnd}
-          style={rangeStyle(value, 0, definition.max, 'var(--effect-color)')}
-          type="range"
-          value={value}
-        />
-        <output className="font-vt323 w-8 shrink-0 text-right text-xs text-foreground">
-          {value}
-          {parameter.suffix}
-        </output>
-      </label>
-    )
-  }
-
   return (
-    <label className="grid min-w-0 gap-1.5 text-[11px] font-bold tracking-wide text-muted-foreground uppercase">
-      <span className="flex min-w-0 items-center gap-2">
-        <span className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
-          <span className="min-w-0 flex-1 truncate" title={translatedParameter}>
-            {translatedParameter}
-          </span>
-          {helpText ? (
-            <HelpPopover label={`${translatedEffect} ${translatedParameter}`} text={helpText} />
-          ) : null}
-        </span>
-        <output className="font-vt323 shrink-0 text-xs text-foreground">
-          {value}
-          {parameter.suffix}
-        </output>
-      </span>
+    <label className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)_2.5rem] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+      {caption}
       <input
-        aria-label={translatedParameter}
-        className="h-2 w-full cursor-pointer accent-[var(--effect-color)] disabled:cursor-not-allowed disabled:opacity-40"
+        aria-label={`${translatedEffect} ${translatedParameter}`}
+        className="min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-40"
         disabled={disabled}
         max={definition.max}
         min={0}
@@ -220,131 +245,94 @@ function EffectControl({
         onPointerCancel={onGestureEnd}
         onPointerDown={onGestureStart}
         onPointerUp={onGestureEnd}
-        style={rangeStyle(value, 0, definition.max, 'var(--effect-color)')}
+        style={rangeStyle(
+          value,
+          0,
+          definition.max,
+          disabled ? 'var(--crt-line)' : 'var(--crt-acc)',
+        )}
         type="range"
         value={value}
       />
+      <output
+        className={cn(
+          'font-vt323 text-right text-lg leading-none',
+          disabled ? 'text-[var(--crt-ink-4)]' : 'text-[var(--crt-led)]',
+        )}
+      >
+        {value}
+        {parameter.suffix}
+      </output>
     </label>
   )
 }
 
-export function EffectsUnit({
-  layout = 'workspace',
-  onChange,
-  onGestureEnd,
-  onGestureStart,
-  values,
-}: EffectsUnitProps) {
+export function EffectsUnit({ onChange, onGestureEnd, onGestureStart, values }: EffectsUnitProps) {
   const { t } = useTranslation()
-  const isSidebar = layout === 'sidebar'
 
   return (
-    <Card
-      className={cn(
-        'overflow-hidden border-primary/25 bg-card/95',
-        isSidebar && 'border-0 bg-transparent shadow-none',
-      )}
-    >
-      <CardContent className={cn(isSidebar ? 'p-0' : 'p-4 sm:p-5')}>
-        <div className={cn('grid gap-3', !isSidebar && 'md:grid-cols-2 2xl:grid-cols-6')}>
-          {effects.map((effect, index) => {
-            const switchController = getEffectParameterDefinition(effect.switchId).controller
-            const enabled = values[switchController] > 0
-            const translatedEffect = t(`ui.effects.${effect.name.toLowerCase()}`)
-            const headerMixParameter = isSidebar
-              ? undefined
-              : effect.parameters.find((parameter) => parameter.label === 'Mix')
-            const bodyParameters = effect.parameters.filter(
-              (parameter) => parameter !== headerMixParameter,
-            )
-            return (
-              <div className="relative flex min-w-0" key={effect.name}>
-                <section
-                  className="grid w-full content-start overflow-hidden rounded-lg border border-primary/20 bg-card/95"
-                  style={{ '--effect-color': effect.color } as React.CSSProperties}
-                >
-                  <div className="flex flex-wrap items-center gap-2 border-b bg-white px-4 py-3">
-                    <Button
-                      aria-label={t(enabled ? 'ui.bypassEffect' : 'ui.enableEffect', {
-                        effect: translatedEffect,
-                      })}
-                      aria-pressed={enabled}
-                      className={cn(
-                        'size-8 rounded-full border p-0',
-                        enabled
-                          ? 'border-[var(--effect-color)] bg-[var(--effect-color)] text-slate-950 hover:bg-[var(--effect-color)]'
-                          : 'bg-background text-muted-foreground',
-                      )}
-                      onClick={() => onChange(switchController, enabled ? 0 : 1)}
-                      size="icon"
-                      title={t('ui.effectState', {
-                        effect: translatedEffect,
-                        state: t(enabled ? 'editor.on' : 'ui.bypassed'),
-                      })}
-                      type="button"
-                      variant="outline"
-                    >
-                      <Power className="size-3.5" />
-                    </Button>
-                    <h3
-                      className={cn(
-                        'flex min-w-0 items-center gap-1 font-black',
-                        enabled && 'text-[var(--effect-color)]',
-                      )}
-                    >
-                      {translatedEffect}
-                      <HelpPopover label={translatedEffect} text={t(`effectHelp.${effect.name}`)} />
-                    </h3>
-                    {headerMixParameter ? (
-                      <EffectControl
-                        disabled={!enabled}
-                        effectName={effect.name}
-                        onChange={onChange}
-                        onGestureEnd={onGestureEnd}
-                        onGestureStart={onGestureStart}
-                        parameter={headerMixParameter}
-                        placement="header"
-                        value={
-                          values[getEffectParameterDefinition(headerMixParameter.id).controller]
-                        }
-                      />
-                    ) : null}
-                  </div>
-                  <div
-                    className={cn(
-                      'grid min-w-0 items-start gap-3 p-4',
-                      isSidebar
-                        ? 'grid-cols-2 [&>*:first-child]:col-span-2'
-                        : bodyParameters.length === 2
-                          ? 'grid-cols-2'
-                          : 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.1fr)]',
-                    )}
-                  >
-                    {bodyParameters.map((parameter) => (
-                      <EffectControl
-                        disabled={!enabled}
-                        effectName={effect.name}
-                        key={parameter.id}
-                        onChange={onChange}
-                        onGestureEnd={onGestureEnd}
-                        onGestureStart={onGestureStart}
-                        parameter={parameter}
-                        value={values[getEffectParameterDefinition(parameter.id).controller]}
-                      />
-                    ))}
-                  </div>
-                </section>
-                {!isSidebar && index < effects.length - 1 ? (
-                  <ArrowRight
-                    aria-hidden="true"
-                    className="absolute top-1/2 -right-2 z-10 hidden size-4 -translate-y-1/2 rounded-full bg-background text-primary 2xl:block"
-                  />
-                ) : null}
-              </div>
-            )
-          })}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="grid gap-2 p-[9px] md:grid-cols-2 xl:grid-cols-3">
+      {effects.map((effect) => {
+        const switchController = getEffectParameterDefinition(effect.switchId).controller
+        const enabled = values[switchController] > 0
+        const translatedEffect = t(`ui.effects.${effect.name.toLowerCase()}`)
+        return (
+          <section
+            aria-label={translatedEffect}
+            className="crt-raised-thin flex min-w-0 flex-col bg-[var(--crt-bg-1)]"
+            key={effect.name}
+          >
+            <div className="flex min-w-0 items-center gap-2 border-b border-[var(--crt-line-dk)] px-[7px] py-[5px]">
+              <span aria-hidden="true" className="crt-led" data-state={enabled ? 'on' : 'off'} />
+              <h3
+                className={cn(
+                  'flex min-w-0 items-center gap-1 text-[11px] font-normal tracking-[0.18em] uppercase',
+                  enabled ? 'text-[var(--crt-acc-lt)]' : 'text-[var(--crt-ink-4)]',
+                )}
+              >
+                <span className="truncate">{translatedEffect}</span>
+                <HelpPopover label={translatedEffect} text={t(`effectHelp.${effect.name}`)} />
+              </h3>
+              <button
+                aria-label={t(enabled ? 'ui.bypassEffect' : 'ui.enableEffect', {
+                  effect: translatedEffect,
+                })}
+                aria-pressed={enabled}
+                className={cn(
+                  'ml-auto flex shrink-0 cursor-pointer items-center gap-1 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 py-0.5 text-[11px] tracking-[0.1em] uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+                  enabled
+                    ? 'border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
+                    : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
+                )}
+                onClick={() => onChange(switchController, enabled ? 0 : 1)}
+                title={t('ui.effectState', {
+                  effect: translatedEffect,
+                  state: t(enabled ? 'editor.on' : 'ui.bypassed'),
+                })}
+                type="button"
+              >
+                <Power aria-hidden="true" className="size-3" />
+                <OnOffLabel on={enabled} />
+              </button>
+            </div>
+            <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
+              <EffectScope enabled={enabled} name={effect.name} values={values} />
+              {effect.parameters.map((parameter) => (
+                <EffectControl
+                  disabled={!enabled}
+                  effectName={effect.name}
+                  key={parameter.id}
+                  onChange={onChange}
+                  onGestureEnd={onGestureEnd}
+                  onGestureStart={onGestureStart}
+                  parameter={parameter}
+                  value={values[getEffectParameterDefinition(parameter.id).controller]}
+                />
+              ))}
+            </div>
+          </section>
+        )
+      })}
+    </div>
   )
 }

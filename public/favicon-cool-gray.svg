@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FM1">
+  <style>
+    path {
+      stroke-dasharray: 180 190;
+      animation: redraw 10s linear infinite;
+    }
+    @keyframes redraw {
+      0% { stroke-dashoffset: 0; animation-timing-function: ease-in; }
+      3% { stroke-dashoffset: -184; animation-timing-function: step-end; }
+      3.1% { stroke-dashoffset: 184; animation-timing-function: ease-out; }
+      10%, 100% { stroke-dashoffset: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      path { animation: none; }
+    }
+  </style>
+  <rect width="64" height="64" rx="13" fill="#c7baa8"/>
+  <path d="M6 32L12 32L16 20L20 32L24 52L28 32L32 8L36 32L40 48L44 32L48 23L52 32L58 32" fill="none" stroke="#0b0a09" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,9 +1,15 @@
-import { Cable } from 'lucide-react'
 import { type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogCloseButton, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogCloseButton,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 type MidiConnectionRequiredDialogProps = {
   dialogRef: RefObject<HTMLDialogElement | null>
@@ -16,22 +22,18 @@ export function MidiConnectionRequiredDialog({ dialogRef }: MidiConnectionRequir
   return (
     <Dialog aria-labelledby="midi-connection-required-title" ref={dialogRef} size="sm">
       <DialogHeader>
-        <div className="flex gap-3">
-          <Cable className="mt-0.5 size-6 shrink-0 text-primary" />
-          <div>
-            <h2 className="text-lg font-bold" id="midi-connection-required-title">
-              {t('dialogs.midiTitle')}
-            </h2>
-            <p className="mt-1 text-sm leading-5 text-muted-foreground">{t('dialogs.midiIntro')}</p>
-          </div>
-        </div>
+        <DialogTitle id="midi-connection-required-title">{t('dialogs.midiTitle')}</DialogTitle>
         <DialogCloseButton label={t('dialogs.midiClose')} onClick={closeDialog} />
       </DialogHeader>
+      <DialogBody>
+        <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">
+          {t('dialogs.midiIntro')}
+        </p>
 
-      <div className="grid gap-3 px-5 py-4 text-sm leading-5">
-        <p>{t('dialogs.midiSteps')}</p>
-      </div>
-
+        <div className="grid gap-3 px-5 py-4 text-sm leading-5">
+          <p>{t('dialogs.midiSteps')}</p>
+        </div>
+      </DialogBody>
       <DialogFooter>
         <Button autoFocus onClick={closeDialog} type="button">
           {t('common.close')}

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { unzipSync } from 'fflate'
 import { readFile } from 'node:fs/promises'
 
 const factoryBank = 'public/dx7-banks/factory/rom1a.syx'
@@ -9,18 +10,30 @@ async function openLibrarian(page: Page) {
   if (await helpDialog.isVisible())
     await helpDialog.getByRole('button', { name: 'Close help' }).click()
   await expect(page.getByRole('heading', { name: 'Patch banks' })).toBeVisible()
-  await expect(page.getByRole('button', { name: /^Edit / }).first()).toBeVisible()
+  await expect(slotButtons(page).first()).toBeVisible()
 }
 
+/** The slot buttons, named "Send … to FM1"; the toolbar's bank-wide "Send to FM1" is excluded. */
+function slotButtons(page: Page) {
+  return page.getByRole('button', { name: /^Send .+ to FM1$/ })
+}
+
+function slotNames(page: Page) {
+  return slotButtons(page).evaluateAll((buttons) =>
+    buttons.map((button) => button.getAttribute('aria-label')),
+  )
+}
+
+/** The rail holds the bank menu from md up; below that it sits beside the bank name instead. */
 async function openFirstBankMenu(page: Page) {
-  await page.getByLabel('Actions for DX7 Bank 1').click()
+  await page.getByLabel('Actions for DX7 Bank 1').locator('visible=true').click()
 }
 
 async function openFirstPatch(page: Page) {
   await page
-    .getByRole('button', { name: /^Edit / })
+    .getByRole('button', { name: /^Send .+ to FM1$/ })
     .first()
-    .click()
+    .dblclick()
   await expect(page.getByRole('button', { name: 'Back to patch banks' })).toBeVisible()
 }
 
@@ -68,7 +81,7 @@ test('persists a saved patch name across a browser reload', async ({ page }) => 
 
   await page.reload()
 
-  await expect(page.getByRole('button', { name: 'Edit E2E SAVE' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Send E2E SAVE to FM1' })).toBeVisible()
 })
 
 test('imports a valid DX7 SysEx bank into a populated workspace bank', async ({ page }) => {
@@ -116,12 +129,30 @@ test('downloads a complete DX7 bank file', async ({ page }) => {
   expect((await readFile(await download.path())).byteLength).toBe(4104)
 })
 
+// Bulk export loads fflate on demand, so this also covers that import resolving in a build.
+test('downloads every loaded bank as one zip archive', async ({ page }) => {
+  await openLibrarian(page)
+  await page.getByLabel('More bank file actions').click()
+
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download all banks (.zip)' }).click()
+  const download = await downloadPromise
+
+  expect(download.suggestedFilename()).toBe('fm1-browser-banks.zip')
+  const archive = unzipSync(await readFile(await download.path()))
+  expect(Object.keys(archive).sort()).toEqual([
+    'fm1-bank-a.syx',
+    'fm1-bank-b.syx',
+    'fm1-bank-c.syx',
+    'fm1-bank-d.syx',
+  ])
+  for (const [name, bank] of Object.entries(archive))
+    expect(bank.byteLength, `${name} is not a 32-voice DX7 bank`).toBe(4104)
+})
+
 test('reorders patches with the keyboard drag control', async ({ page }) => {
   await openLibrarian(page)
-  const editButtons = page.getByRole('button', { name: /^Edit / })
-  const namesBefore = await editButtons.evaluateAll((buttons) =>
-    buttons.map((button) => button.getAttribute('aria-label')),
-  )
+  const namesBefore = await slotNames(page)
 
   const reorderFirstPatch = page.getByRole('button', { name: /^Reorder / }).first()
   await reorderFirstPatch.press('Space')
@@ -129,12 +160,50 @@ test('reorders patches with the keyboard drag control', async ({ page }) => {
   await reorderFirstPatch.press('Space')
 
   await expect
-    .poll(() =>
-      editButtons.evaluateAll((buttons) =>
-        buttons.map((button) => button.getAttribute('aria-label')),
-      ),
-    )
+    .poll(() => slotNames(page))
     .toEqual([namesBefore[1], namesBefore[0], ...namesBefore.slice(2)])
+})
+
+test('plays a slot on a single click and stays in the library', async ({ page }) => {
+  await openLibrarian(page)
+  await expect(page.getByRole('button', { exact: true, name: 'Edit' })).toBeDisabled()
+
+  const slot = slotButtons(page).first()
+  await slot.click()
+
+  await expect(slot).toHaveAttribute('aria-current', 'true')
+  await expect(page.getByRole('button', { name: 'Edit A01' })).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Back to patch banks' })).toHaveCount(0)
+})
+
+test('reaches the editor from the keyboard through the toolbar Edit button', async ({ page }) => {
+  await openLibrarian(page)
+
+  await slotButtons(page).first().press('Enter')
+  await page.getByRole('button', { name: 'Edit A01' }).press('Enter')
+
+  await expect(page.getByRole('button', { name: 'Back to patch banks' })).toBeVisible()
+})
+
+test('switches the favicon to the chosen colourway and keeps it after a reload', async ({
+  page,
+}) => {
+  await openLibrarian(page)
+  const favicon = page.locator('link[rel="icon"]')
+  await expect(favicon).toHaveAttribute('href', '/favicon-black.svg')
+
+  // The other finishes slide out from the lit swatch on hover.
+  await page.getByTitle('Black', { exact: true }).hover()
+  await page.getByTitle('Orange', { exact: true }).click()
+
+  await expect(page.getByRole('radio', { name: 'Orange FM1 finish' })).toBeChecked()
+  await expect(favicon).toHaveAttribute('href', '/favicon-orange.svg')
+  const icon = await page.request.get('/favicon-orange.svg')
+  expect(icon.ok()).toBe(true)
+  expect(icon.headers()['content-type']).toContain('image/svg+xml')
+
+  await page.reload()
+  await expect(favicon).toHaveAttribute('href', '/favicon-orange.svg')
 })
 
 test('keeps the librarian controls usable on a narrow viewport', async ({ page }) => {

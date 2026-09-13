@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent, type PointerEvent } from 'react'
+import { useId, useRef, type KeyboardEvent, type PointerEvent } from 'react'
 
 import { HelpPopover } from '@/components/ui/help-popover'
 import {
@@ -43,6 +43,8 @@ export function EnvelopeEditor({
 }: EnvelopeEditorProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const activePointer = useRef<number | null>(null)
+  // Two envelopes share the page, so the fill gradient needs its own id.
+  const fillId = `envelope-fill-${useId().replace(/:/g, '')}`
 
   const updateFromPointer = (event: PointerEvent<SVGRectElement>, point: number) => {
     const bounds = svgRef.current?.getBoundingClientRect()
@@ -79,6 +81,28 @@ export function EnvelopeEditor({
     onChange(nextRate, nextLevel, point)
   }
 
+  const pointerHandlers = (point: number) => ({
+    onPointerCancel: () => {
+      activePointer.current = null
+      onGestureEnd()
+    },
+    onPointerDown: (event: PointerEvent<SVGRectElement>) => {
+      activePointer.current = event.pointerId
+      event.currentTarget.setPointerCapture(event.pointerId)
+      onGestureStart()
+      updateFromPointer(event, point)
+    },
+    onPointerMove: (event: PointerEvent<SVGRectElement>) => {
+      if (activePointer.current === event.pointerId) updateFromPointer(event, point)
+    },
+    onPointerUp: (event: PointerEvent<SVGRectElement>) => {
+      if (activePointer.current !== event.pointerId) return
+      activePointer.current = null
+      event.currentTarget.releasePointerCapture(event.pointerId)
+      onGestureEnd()
+    },
+  })
+
   const pointPosition = variant === 'pitch' ? pitchEnvelopePointPosition : envelopePointPosition
   const fillBaseline = variant === 'pitch' ? pitchEnvelopePointPosition(0, 50, 0).y : plotBottom
   const points = rates.map((rate, index) => pointPosition(rate, levels[index], index))
@@ -95,149 +119,135 @@ export function EnvelopeEditor({
     )
   }
 
+  const inputClass =
+    'font-vt323 h-6 w-full min-w-0 bg-transparent text-center text-[17px] leading-none text-[var(--crt-led)] outline-none [appearance:textfield] focus:bg-[var(--crt-sel-bg)] focus-visible:outline-1 focus-visible:outline-[var(--crt-led)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
+
   return (
     <div
-      className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border bg-[linear-gradient(180deg,hsl(255_48%_9%),hsl(253_52%_6%))] p-3 shadow-inner"
+      className="@container flex min-h-0 min-w-0 flex-col gap-[7px]"
       style={{ '--operator-color': color } as React.CSSProperties}
     >
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <div>
+      <div className="crt-well relative min-h-0 p-[3px]">
+        <div className="flex items-center justify-end gap-1 px-[5px] pt-[3px] pb-2 text-[11px] tracking-[0.12em] text-[var(--crt-acc-mid)] uppercase">
           {showTitle ? (
-            <p className="flex items-center gap-1 text-xs font-black tracking-[0.18em] text-white/85 uppercase">
+            <>
               {title}
               <HelpPopover
-                className="text-white/60 hover:bg-white/10 hover:text-white"
+                className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
                 label={title}
                 text={helpText}
               />
-            </p>
-          ) : null}
+            </>
+          ) : (
+            <span aria-hidden="true">R / L</span>
+          )}
         </div>
-        <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-white/50 uppercase">
-          <span className="size-2 rounded-full bg-[var(--operator-color)] shadow-[0_0_10px_var(--operator-color)]" />
-          R / L
-        </div>
-      </div>
-      <svg
-        aria-label={title}
-        className={cn(
-          'block min-h-0 w-full flex-1 touch-none',
-          variant === 'amplitude' && 'max-h-60',
-        )}
-        ref={svgRef}
-        role="group"
-        viewBox={`0 0 ${width} ${height}`}
-      >
-        <defs>
-          <linearGradient id="envelope-fill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.32" />
-            <stop offset="100%" stopColor={color} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[0, 1, 2, 3, 4].map((line) => (
-          <line
-            key={`h-${line}`}
-            stroke={
-              variant === 'pitch' && line === 2 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.08)'
-            }
-            x1="8"
-            x2="392"
-            y1={plotTop + line * 34}
-            y2={plotTop + line * 34}
-          />
-        ))}
-        {[0, 1, 2, 3, 4].map((line) => (
-          <line
-            key={`v-${line}`}
-            stroke="rgba(255,255,255,.06)"
-            x1={8 + line * 96}
-            x2={8 + line * 96}
-            y1={plotTop}
-            y2={plotBottom}
-          />
-        ))}
-        <path
-          d={`${envelopePath(rates, levels, pointPosition)} L ${points.at(-1)?.x ?? 360} ${fillBaseline} L 8 ${fillBaseline} Z`}
-          fill="url(#envelope-fill)"
-        />
-        <path
-          d={envelopePath(rates, levels, pointPosition)}
-          fill="none"
-          stroke={color}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="3"
-        />
-        {points.map((point, index) => (
-          <g key={index}>
-            <text
-              fill="rgba(255,255,255,.48)"
-              fontSize="10"
-              fontWeight="800"
-              textAnchor="middle"
-              x={point.x}
-              y="174"
-            >
-              {index + 1}
-            </text>
-            <rect
-              aria-label={`${title} point ${index + 1}`}
-              aria-valuemax={99}
-              aria-valuemin={0}
-              aria-valuenow={levels[index]}
-              aria-valuetext={`Rate ${rates[index]}, level ${levels[index]}`}
-              className={cn(
-                'cursor-grab outline-none focus-visible:[filter:drop-shadow(0_0_5px_var(--operator-color))] active:cursor-grabbing',
-              )}
-              fill="hsl(253 52% 8%)"
-              height="14"
-              onKeyDown={(event) => handleKeyDown(event, index)}
-              onPointerCancel={() => {
-                activePointer.current = null
-                onGestureEnd()
-              }}
-              onPointerDown={(event) => {
-                activePointer.current = event.pointerId
-                event.currentTarget.setPointerCapture(event.pointerId)
-                onGestureStart()
-                updateFromPointer(event, index)
-              }}
-              onPointerMove={(event) => {
-                if (activePointer.current === event.pointerId) updateFromPointer(event, index)
-              }}
-              onPointerUp={(event) => {
-                if (activePointer.current !== event.pointerId) return
-                activePointer.current = null
-                event.currentTarget.releasePointerCapture(event.pointerId)
-                onGestureEnd()
-              }}
-              role="slider"
-              stroke={color}
-              strokeWidth="3"
-              tabIndex={0}
-              width="14"
-              x={point.x - 7}
-              y={point.y - 7}
+        <svg
+          aria-label={title}
+          className={cn(
+            'block min-h-0 w-full flex-1 touch-none',
+            variant === 'amplitude' && 'max-h-60',
+          )}
+          ref={svgRef}
+          role="group"
+          viewBox={`0 0 ${width} ${height}`}
+        >
+          <defs>
+            <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+              <stop offset="100%" stopColor={color} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[0, 1, 2, 3, 4].map((line) => (
+            <line
+              key={`h-${line}`}
+              stroke={variant === 'pitch' && line === 2 ? 'var(--crt-line)' : 'var(--crt-grid)'}
+              x1="8"
+              x2="392"
+              y1={plotTop + line * 34}
+              y2={plotTop + line * 34}
             />
-          </g>
-        ))}
-      </svg>
-      <div
-        className={cn(
-          'mt-3 grid gap-2 border-t border-white/10 pt-3',
-          variant === 'pitch' ? 'grid-cols-2' : 'grid-cols-4',
-        )}
-      >
+          ))}
+          {[0, 1, 2, 3, 4].map((line) => (
+            <line
+              key={`v-${line}`}
+              stroke="var(--crt-grid)"
+              x1={8 + line * 96}
+              x2={8 + line * 96}
+              y1={plotTop}
+              y2={plotBottom}
+            />
+          ))}
+          <path
+            d={`${envelopePath(rates, levels, pointPosition)} L ${points.at(-1)?.x ?? 360} ${fillBaseline} L 8 ${fillBaseline} Z`}
+            fill={`url(#${fillId})`}
+          />
+          <path
+            d={envelopePath(rates, levels, pointPosition)}
+            fill="none"
+            stroke={color}
+            strokeLinejoin="round"
+            strokeWidth="2.4"
+          />
+          {points.map((point, index) => (
+            <g key={index}>
+              <text
+                className="font-vt323"
+                fill="var(--crt-ink-4)"
+                fontSize="14"
+                textAnchor="middle"
+                x={point.x}
+                y="176"
+              >
+                {index + 1}
+              </text>
+              {/* The drawn square is small once the plot scales down, so an
+                  invisible square around it takes the grab as well. */}
+              <rect
+                aria-hidden="true"
+                className="cursor-grab active:cursor-grabbing"
+                fill="transparent"
+                height="36"
+                width="36"
+                x={point.x - 18}
+                y={point.y - 18}
+                {...pointerHandlers(index)}
+              />
+              <rect
+                aria-label={`${title} point ${index + 1}`}
+                aria-valuemax={99}
+                aria-valuemin={0}
+                aria-valuenow={levels[index]}
+                aria-valuetext={`Rate ${rates[index]}, level ${levels[index]}`}
+                className="cursor-grab outline-none focus-visible:stroke-[var(--crt-led)] focus-visible:[filter:drop-shadow(0_0_5px_var(--crt-led))] active:cursor-grabbing"
+                fill="var(--crt-bg-well)"
+                height="12"
+                onKeyDown={(event) => handleKeyDown(event, index)}
+                {...pointerHandlers(index)}
+                role="slider"
+                stroke={color}
+                strokeWidth="2"
+                tabIndex={0}
+                width="12"
+                x={point.x - 6}
+                y={point.y - 6}
+              />
+            </g>
+          ))}
+        </svg>
+      </div>
+      {/* Rate/level pairs, one bevelled readout per stage, editable in place. */}
+      <div className="grid grid-cols-2 gap-1 @[17rem]:grid-cols-4">
         {rates.map((rate, index) => (
           <div
-            className="grid min-w-0 grid-cols-2 gap-1 rounded-md border border-white/10 bg-black/20 p-1.5"
+            className="crt-inset grid min-w-0 grid-cols-2 gap-px bg-[var(--crt-bg-1)] px-0.5 pt-0.5"
             key={index}
           >
-            <label className="grid min-w-0 gap-1 text-center text-[9px] font-black tracking-wide text-white/50 uppercase">
+            <label className="grid min-w-0 text-center text-[10px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase">
               R{index + 1}
               <input
                 aria-label={`${title} rate ${index + 1}`}
-                className="font-vt323 h-9 w-full min-w-0 rounded border border-white/15 bg-white/[0.06] px-1 text-center text-xs font-bold text-white transition outline-none focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
+                className={inputClass}
                 inputMode="numeric"
                 max={99}
                 min={0}
@@ -257,11 +267,11 @@ export function EnvelopeEditor({
                 value={rate}
               />
             </label>
-            <label className="grid min-w-0 gap-1 text-center text-[9px] font-black tracking-wide text-white/50 uppercase">
+            <label className="grid min-w-0 text-center text-[10px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase">
               L{index + 1}
               <input
                 aria-label={`${title} level ${index + 1}`}
-                className="font-vt323 h-9 w-full min-w-0 rounded border border-white/15 bg-white/[0.06] px-1 text-center text-xs font-bold text-white transition outline-none focus:border-[var(--operator-color)] focus:ring-1 focus:ring-[var(--operator-color)]"
+                className={inputClass}
                 inputMode="numeric"
                 max={99}
                 min={0}

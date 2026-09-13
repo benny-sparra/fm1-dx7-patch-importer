@@ -1,11 +1,5 @@
-import {
-  type ComponentPropsWithoutRef,
-  type MouseEventHandler,
-  type SVGProps,
-  forwardRef,
-} from 'react'
+import { type ComponentPropsWithoutRef, type MouseEventHandler, forwardRef } from 'react'
 
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const dialogWidths = {
@@ -33,7 +27,7 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
     // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog
       className={cn(
-        'modal-surface fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] overflow-x-hidden overflow-y-auto rounded-lg border border-primary/30 bg-white p-0 whitespace-normal text-card-foreground',
+        'modal-surface fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] overflow-x-hidden overflow-y-auto border-2 border-[var(--crt-acc-lt)] bg-[var(--crt-bg-panel2)] p-0 whitespace-normal text-[var(--crt-ink)]',
         dialogWidths[size],
         className,
       )}
@@ -54,11 +48,45 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
   )
 })
 
+/**
+ * The dialog's title bar. Holds the title and the close control only — the
+ * hairlines running through it leave no room for supporting copy, which
+ * belongs in `DialogBody`.
+ */
 export function DialogHeader({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div
+      className={cn('crt-titlebar flex items-center gap-2 px-2.5 pt-[7px]', className)}
+      {...props}
+    />
+  )
+}
+
+export function DialogTitle({ children, className, ...props }: ComponentPropsWithoutRef<'h2'>) {
+  return (
+    <h2
       className={cn(
-        'flex items-start justify-between gap-4 border-b bg-white px-5 py-4 [&>*:first-child]:min-w-0 [&>*:first-child]:break-words',
+        'font-dot-matrix mx-1 flex min-w-0 items-center gap-2 truncate px-2.5 text-sm font-black tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </h2>
+  )
+}
+
+/**
+ * The recessed well the dialog's content sits in. It carries the inset
+ * border and ground only — its children bring their own padding, so it can
+ * wrap existing dialog bodies without doubling their spacing. Without a
+ * footer below it, it keeps the same margin from the frame as at its sides.
+ */
+export function DialogBody({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
+  return (
+    <div
+      className={cn(
+        'mx-2.5 mt-2 border-t border-r border-b border-l border-t-[var(--crt-shadow)] border-r-[var(--crt-line)] border-b-[var(--crt-line)] border-l-[var(--crt-shadow)] bg-[var(--crt-bg-1)] text-[var(--crt-ink)] last:mb-2.5',
         className,
       )}
       {...props}
@@ -69,41 +97,36 @@ export function DialogHeader({ className, ...props }: ComponentPropsWithoutRef<'
 export function DialogFooter({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div
-      className={cn('flex justify-end gap-2 border-t bg-white px-5 py-4', className)}
+      className={cn(
+        'mt-3 flex justify-end gap-2 border-t border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-3 py-2.5',
+        className,
+      )}
       {...props}
     />
   )
 }
 
-function PixelCloseIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg aria-hidden="true" fill="none" viewBox="0 0 18 18" {...props}>
-      <path
-        d="M2 2h4v4h2v2h2V6h2V2h4v4h-2v2h-2v2h2v2h2v4h-4v-4h-2v-2H8v2H6v4H2v-4h2v-2h2V8H4V6H2V2Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-type DialogCloseButtonProps = Omit<
-  ComponentPropsWithoutRef<typeof Button>,
-  'aria-label' | 'size' | 'variant'
-> & {
+type DialogCloseButtonProps = Omit<ComponentPropsWithoutRef<'button'>, 'aria-label' | 'type'> & {
   label: string
 }
 
 export function DialogCloseButton({ className, label, ...props }: DialogCloseButtonProps) {
   return (
-    <Button
+    /*
+      The close control is the terminal's own bracketed glyph rather than an
+      icon: it has to paint over the title bar's hairlines to break them, so
+      it needs a text-sized box on the dialog background.
+    */
+    <button
       aria-label={label}
-      className={cn('shrink-0', className)}
-      size="icon"
+      className={cn(
+        'ml-auto shrink-0 cursor-pointer px-1.5 text-xs leading-4 tracking-[0.08em] text-[var(--crt-acc-lt)] transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-acc-lt)]',
+        className,
+      )}
       type="button"
-      variant="ghost"
       {...props}
     >
-      <PixelCloseIcon className="!size-5" />
-    </Button>
+      <span aria-hidden="true">[╳]</span>
+    </button>
   )
 }

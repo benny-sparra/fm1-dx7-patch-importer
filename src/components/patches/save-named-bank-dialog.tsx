@@ -3,7 +3,13 @@ import { type FormEvent, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogCloseButton, DialogHeader } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogCloseButton,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { type NamedBankLibraryDialogProps } from '@/components/patches/named-bank-dialog-types'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
 
@@ -81,64 +87,63 @@ export function SaveNamedBankDialog({
         size="xl"
       >
         <DialogHeader>
-          <div>
-            <h2 className="flex items-center gap-2 text-lg font-bold" id="save-named-bank-title">
-              <Save className="size-5 text-primary" />
-              {t('namedBanks.saveCurrent', { bank: bankLabel(destinationBank) })}
-            </h2>
-            <p
-              className="font-vt323 mt-1 text-lg text-muted-foreground"
-              id="save-named-bank-description"
-            >
-              {t('namedBanks.snapshotHelp')}
-            </p>
-          </div>
+          <DialogTitle id="save-named-bank-title">
+            {t('namedBanks.saveCurrent', { bank: bankLabel(destinationBank) })}
+          </DialogTitle>
           <DialogCloseButton
             disabled={working}
             label={t('common.close')}
             onClick={() => dialogRef.current?.close()}
           />
         </DialogHeader>
+        <DialogBody>
+          <p
+            className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]"
+            id="save-named-bank-description"
+          >
+            {t('namedBanks.snapshotHelp')}
+          </p>
 
-        <form className="grid gap-4 p-5" onSubmit={(event) => void submit(event)}>
-          <label className="grid gap-1 text-sm font-semibold">
-            {t('namedBanks.name')}
-            <input
-              autoComplete="off"
-              className="h-10 rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              maxLength={80}
-              onChange={(event) => setName(event.target.value)}
-              placeholder={t('namedBanks.namePlaceholder')}
-              ref={nameInputRef}
-              required
-              value={name}
-            />
-          </label>
-          <label className="grid gap-1 text-sm font-semibold">
-            {t('namedBanks.description')}
-            <textarea
-              className="min-h-24 resize-y rounded-md border border-input bg-background px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              maxLength={500}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder={t('namedBanks.descriptionPlaceholder')}
-              value={description}
-            />
-          </label>
-          {error ? (
-            <p
-              className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-              role="alert"
-            >
-              {error}
-            </p>
-          ) : null}
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button disabled={working} type="submit">
-              <Save />
-              {t('namedBanks.save')}
-            </Button>
-          </div>
-        </form>
+          <form className="grid gap-4 p-5" onSubmit={(event) => void submit(event)}>
+            <label className="grid gap-1 text-sm font-semibold">
+              {t('namedBanks.name')}
+              <input
+                autoComplete="off"
+                className="h-10 rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                maxLength={80}
+                onChange={(event) => setName(event.target.value)}
+                placeholder={t('namedBanks.namePlaceholder')}
+                ref={nameInputRef}
+                required
+                value={name}
+              />
+            </label>
+            <label className="grid gap-1 text-sm font-semibold">
+              {t('namedBanks.description')}
+              <textarea
+                className="min-h-24 resize-y rounded-md border border-input bg-background px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                maxLength={500}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder={t('namedBanks.descriptionPlaceholder')}
+                value={description}
+              />
+            </label>
+            {error ? (
+              <p
+                className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                role="alert"
+              >
+                {error}
+              </p>
+            ) : null}
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button disabled={working} type="submit">
+                <Save />
+                {t('namedBanks.save')}
+              </Button>
+            </div>
+          </form>
+        </DialogBody>
       </Dialog>
     </>
   )

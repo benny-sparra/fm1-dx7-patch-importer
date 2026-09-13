@@ -33,6 +33,8 @@ export default {
       'Feeds part of one operator back into itself. Higher values add brighter, rougher harmonics and can become noisy.',
     pitchEnvelope:
       'Changes the pitch over the life of each note. The four rates control how quickly each stage moves; the four levels set the pitch reached at each stage.',
+    pitchEnvelopePresets:
+      'Sustituye las ocho velocidades y niveles por una forma inicial. Plana elimina cualquier movimiento de tono; las demás añaden un pico breve, un ataque que cae, una subida o una caída al soltar. Deshacer recupera la envolvente anterior.',
     pitchEnvelopeRate:
       'Controls how quickly the pitch moves to this stage. Higher values make the move faster.',
     pitchEnvelopeLevel:
@@ -172,6 +174,7 @@ export default {
       phaser: 'Fáser',
     },
     parameters: {
+      depth: 'Profundidad',
       type: 'Tipo',
       cutoff: 'Corte',
       resonance: 'Resonancia',
@@ -245,7 +248,7 @@ export default {
   meta: {
     title: 'Editor y bibliotecario M-VAVE FM1',
     description:
-      'Edita, organiza, prueba y transfiere sonidos para el sintetizador M-VAVE FM1, con importación de bancos SysEx DX7.',
+      'Edita, organiza y transfiere sonidos para el sintetizador M-VAVE FM1, con importación de bancos SysEx DX7.',
   },
   language: 'Idioma',
   common: {
@@ -263,14 +266,13 @@ export default {
   },
   root: {
     subtitle: 'editor y bibliotecario',
-    intro: 'Edita, organiza, prueba y transfiere sonidos del FM1, o importa bancos SysEx DX7.',
+    intro: 'Edita, organiza y transfiere sonidos del FM1, o importa bancos SysEx DX7.',
     synthAlt: 'Panel frontal del sintetizador M-VAVE FM1',
     unsupportedTitle: 'Navegador no compatible.',
     unsupportedBody:
       'Este bibliotecario necesita un navegador basado en Chromium, como Chrome, Edge u Opera, para usar Web MIDI y SysEx.',
     localOnly: 'Tus sonidos permanecen en este navegador',
-    analytics: 'Análisis de uso anónimo',
-    requires: 'Requiere Chromium y Web MIDI',
+    requires: 'Requiere Chrome/Edge y Web MIDI',
     projectLinks: 'Enlaces del proyecto',
     reportIssue: 'Informar de un problema',
     version: 'Versión {{version}}',
@@ -290,12 +292,22 @@ export default {
     open: 'Cómo usar el editor y bibliotecario FM1',
     title: 'Te damos la bienvenida al editor y bibliotecario FM1',
     intro:
-      'Gestiona tu biblioteca, moldea voces en el editor y pruébalas o transfiérelas a tu M-VAVE FM1 desde el navegador.',
+      'Gestiona tu biblioteca, moldea voces en el editor y transfiérelas a tu M-VAVE FM1 desde el navegador.',
     close: 'Cerrar la ayuda',
     truthTitle: 'Los bancos del navegador son la referencia.',
     truthBody:
       'El FM1 acepta voces y bancos, pero no puede devolver sus bancos guardados. Importa o restaura los sonidos aquí, edítalos y transfiérelos al FM1.',
     start: 'Empezar a editar',
+    stepsTitle: 'Primeros pasos',
+    sections: 'Secciones de la guía',
+    shortcutsTitle: 'Atajos de teclado',
+    shortcuts: {
+      banks: 'Bancos de sonidos',
+      editor: 'Editor de voces',
+      search: 'Ir a la búsqueda',
+      clearSearch: 'Borrar la búsqueda',
+      openSlot: 'Abrir la ranura encendida',
+    },
     steps: {
       libraryTitle: 'Crea tu biblioteca',
       libraryBody:
@@ -312,7 +324,6 @@ export default {
     },
   },
   colorway: {
-    finish: 'Acabado del FM1',
     legend: 'Acabado de color del FM1',
     option: 'Acabado {{colour}} del FM1',
     black: 'Negro',
@@ -370,6 +381,15 @@ export default {
     global: 'Global',
     effects: 'Efectos',
     pitchEnvelope: 'Envolvente de tono',
+    pitchEnvelopePresets: 'Presets',
+    pitchEnvelopePresetPlaceholder: 'Elegir…',
+    pitchEnvelopePresetOptions: {
+      flat: 'Plana',
+      blipUp: 'Pico de ataque',
+      attackDrop: 'Caída de ataque',
+      scoop: 'Subida',
+      releaseFall: 'Caída al soltar',
+    },
     lfoGlobal: 'LFO y global',
     oscillatorSync: 'Sincronización del oscilador',
     lfoSync: 'Sincronización LFO',
@@ -383,12 +403,16 @@ export default {
     operator: 'Operador {{number}}',
     operators: 'Operadores',
     fmOperators: 'Operadores FM',
+    minimisePanel: 'Minimizar {{panel}}',
+    expandPanel: 'Expandir {{panel}}',
     outputLevel: 'Nivel de salida',
     amplitudeEnvelope: 'Envolvente de amplitud',
     algorithm: 'Algoritmo',
     feedback: 'Realimentación',
     carrier: 'Portador',
+    carrierShort: 'Por',
     modulator: 'Modulador',
+    modulatorShort: 'Mod',
     muted: 'Silenciado',
     solo: 'Solo',
     output: 'Salida',
@@ -404,7 +428,10 @@ export default {
   },
   midi: {
     online: 'MIDI en línea',
+    offline: 'MIDI sin conexión',
     connectFirst: 'Conecta primero una salida MIDI',
+    chooseOutput: 'Elige una salida MIDI',
+    switchOnFirst: 'Activa primero el MIDI',
     closeSysexWarning: 'Cerrar advertencia de SysEx',
     connecting: 'Conectando…',
     reconnectForSysex: 'Reconectar MIDI con SysEx',
@@ -415,7 +442,6 @@ export default {
       'No se pueden enviar bancos ni patches. Desconecta MIDI, vuelve a conectarlo y permite el acceso SysEx cuando se solicite.',
     log: 'Registro MIDI',
     closeLog: 'Cerrar el registro MIDI',
-    recent: 'Actividad MIDI reciente del navegador.',
     entries: 'Entradas recientes del registro MIDI',
     hideData: 'Ocultar datos',
     viewData: 'Ver datos',
@@ -464,6 +490,7 @@ export default {
     addBankFailed: 'No se pudo crear el banco.',
     bankLimit: 'Máximo de 10 bancos alcanzado',
     destination: 'Banco de destino del navegador',
+    listHeading: 'Bancos',
     importFile: 'Importar archivo de banco DX7',
     downloadTitle: 'Descargar el banco {{bank}} como SysEx',
     importFirst: 'Importa primero el banco {{bank}}',
@@ -488,7 +515,10 @@ export default {
     emptyHelp:
       'Carga el banco de demostración o importa tu propio banco SysEx DX7 estándar de 32 voces.',
     loadDemo: 'Cargar banco de demostración',
-    edit: 'Editar {{name}}',
+    editSelected: 'Editar',
+    editNone: 'Elige primero un sonido para editarlo',
+    slotTitle: 'Haz clic para tocar {{name}} en el FM1; doble clic para editarlo',
+    slotEditTitle: 'Haz doble clic o pulsa Intro para editar {{name}}',
     openEditor: 'Abrir {{name}} en el editor',
     sendPatch: 'Enviar {{name}} al FM1',
     sendPatchTitle: 'Enviar este sonido al búfer de edición del FM1',

@@ -2,7 +2,6 @@ import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import mVaveLogo from '@/assets/m-vave-logo.svg?no-inline'
 import { HelpDialog } from '@/components/help-dialog'
 import {
   MidiConnectActions,
@@ -40,83 +39,64 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           className={
             compact
               ? 'mx-auto flex max-w-[90rem] flex-col gap-3 px-4 py-3 sm:px-5 lg:px-8'
-              : 'mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-5 lg:px-8'
+              : 'mx-auto flex max-w-7xl flex-col gap-4 px-4 pt-4 pb-3.5 sm:px-5 lg:px-8'
           }
         >
-          <div className="grid gap-3 lg:grid-cols-3 lg:items-stretch lg:gap-x-4">
-            <div
-              className={
-                compact ? 'flex flex-col lg:col-span-3' : 'flex flex-col lg:col-span-2 lg:pt-2'
-              }
-            >
-              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                <h1
-                  data-layout={compact ? 'compact' : 'full'}
-                  className={
-                    compact
-                      ? 'synthwave-title min-w-0 items-baseline gap-x-2 leading-tight font-bold tracking-tight'
-                      : 'synthwave-title min-w-0 items-baseline gap-x-3 leading-tight font-bold tracking-tight'
-                  }
-                >
-                  <span className="synthwave-brand-row">
-                    <img
-                      alt="M-VAVE"
-                      className={
-                        compact
-                          ? 'h-2.5 w-auto shrink-0 mix-blend-screen sm:h-3.5'
-                          : 'h-4 w-auto shrink-0 mix-blend-screen sm:h-[1.125rem]'
-                      }
-                      height="124"
-                      src={mVaveLogo}
-                      width="405"
-                    />
-                  </span>
-                  <span>FM1</span>
-                  <span className="synthwave-hero-accent">{t('root.subtitle')}</span>
-                </h1>
-                <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
-                  <Fm1ColorwayPicker onChange={setColorway} value={colorway} />
-                  <HelpDialog />
-                  <MidiSettingsMenu midi={midi} />
-                </div>
-              </div>
+          {/*
+           * Masthead grid. The title block and the header controls share the
+           * first row; the MIDI actions run underneath both, so the right-hand
+           * action lines up with the kebab above it. The hardware bay spans
+           * both rows and the spare height falls to the action row, pinning it
+           * to the bottom of the bay.
+           */}
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] grid-rows-[auto_1fr] gap-x-3 gap-y-2 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+            <div className="flex min-w-0 flex-col gap-[7px]">
+              <h1
+                data-layout={compact ? 'compact' : 'full'}
+                className="synthwave-title min-w-0 items-baseline gap-x-[0.3em] gap-y-[7px]"
+              >
+                <span className="synthwave-brand-row">M-VAVE</span>
+                <span>FM1</span>
+                <span className="synthwave-hero-accent">{t('root.subtitle')}</span>
+              </h1>
               {!compact ? (
-                <div className="hero-supporting-text font-vt323 mt-3 text-lg leading-6">
+                <div className="hero-supporting-text text-xs leading-5">
                   {t('root.intro')} <Dx7BankSourcesDialog />
                 </div>
               ) : null}
+            </div>
 
-              <div
-                className={
-                  compact
-                    ? 'mt-2 flex flex-wrap items-center gap-2'
-                    : 'mt-auto flex flex-wrap items-center gap-3 pt-5'
-                }
-              >
-                <MidiConnectActions midi={midi} />
-                <PianoKeyboardDialog midi={midi} />
-                <MidiLogDialog logStore={midi.logStore} />
-                {import.meta.env.DEV ? (
-                  <FxHardwareProbe send={midi.sendEffectDiagnosticControl} />
-                ) : null}
-              </div>
+            <div className="flex shrink-0 items-center gap-2 self-start">
+              <Fm1ColorwayPicker onChange={setColorway} value={colorway} />
+              <HelpDialog />
+              <MidiSettingsMenu midi={midi} />
+            </div>
+
+            <div
+              className={
+                compact
+                  ? 'col-span-2 flex flex-wrap items-center gap-2'
+                  : 'col-span-2 flex flex-wrap items-center gap-2.5 self-end pt-2'
+              }
+            >
+              <MidiConnectActions midi={midi} />
+              <PianoKeyboardDialog midi={midi} />
             </div>
 
             {!compact && showColorwayImage ? (
-              <div className="hidden flex-col gap-3 lg:col-start-3 lg:flex">
-                <figure className="overflow-hidden rounded-[1.5rem] shadow-[0_10px_28px_hsl(260_70%_5%_/_0.35),0_0_22px_hsl(315_100%_60%_/_0.12)]">
-                  <img
-                    alt={t('root.synthAlt')}
-                    className="aspect-video h-full w-full object-cover"
-                    decoding="async"
-                    height={colorwayImage.height}
-                    sizes="(min-width: 1280px) 395px, calc((100vw - 96px) / 3)"
-                    src={colorwayImage.src}
-                    srcSet={colorwayImage.srcSet}
-                    width={colorwayImage.width}
-                  />
-                </figure>
-              </div>
+              // The hardware photo sits in a recessed bay, not a rounded card.
+              <figure className="crt-inset col-start-3 row-span-2 row-start-1 hidden w-[250px] self-start bg-[var(--crt-bg-2)] p-1 lg:block">
+                <img
+                  alt={t('root.synthAlt')}
+                  className="aspect-[242/146] h-auto w-full object-contain"
+                  decoding="async"
+                  height={colorwayImage.height}
+                  sizes="242px"
+                  src={colorwayImage.src}
+                  srcSet={colorwayImage.srcSet}
+                  width={colorwayImage.width}
+                />
+              </figure>
             ) : null}
           </div>
 
@@ -147,47 +127,42 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 •
               </span>
               <span>{t('root.requires')}</span>
-              <span aria-hidden="true" className="text-white/25">
-                •
-              </span>
-              <a
-                className="transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                href="https://umami.is/privacy"
-                rel="noreferrer"
-                target="_blank"
-              >
-                {t('root.analytics')}
-              </a>
             </div>
 
-            <nav
-              aria-label={t('root.projectLinks')}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2"
-            >
-              <a
-                className="inline-flex items-center gap-1.5 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                href="https://github.com/benny-sparra/fm1-dx7-patch-importer"
-                rel="noreferrer"
-                target="_blank"
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <MidiLogDialog logStore={midi.logStore} />
+              <nav
+                aria-label={t('root.projectLinks')}
+                className="flex flex-wrap items-center gap-x-4 gap-y-2"
               >
-                <CodeXml aria-hidden="true" className="size-3.5" />
-                GitHub
-              </a>
-              <a
-                className="inline-flex items-center gap-1.5 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                href="https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new"
-                rel="noreferrer"
-                target="_blank"
-              >
-                <MessageCircleWarning aria-hidden="true" className="size-3.5" />
-                {t('root.reportIssue')}
-              </a>
-            </nav>
+                <a
+                  className="inline-flex items-center gap-1.5 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  href="https://github.com/benny-sparra/fm1-dx7-patch-importer"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <CodeXml aria-hidden="true" className="size-3.5" />
+                  GitHub
+                </a>
+                <a
+                  className="inline-flex items-center gap-1.5 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  href="https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <MessageCircleWarning aria-hidden="true" className="size-3.5" />
+                  {t('root.reportIssue')}
+                </a>
+              </nav>
+            </div>
           </div>
 
-          <p className="border-t border-white/10 pt-3 text-[0.6875rem] leading-relaxed">
-            {t('root.disclaimer')}
-          </p>
+          <div className="flex flex-col gap-2 border-t border-white/10 pt-3 text-[0.6875rem] leading-relaxed sm:flex-row sm:items-center sm:justify-between">
+            <p>{t('root.disclaimer')}</p>
+            {import.meta.env.DEV ? (
+              <FxHardwareProbe send={midi.sendEffectDiagnosticControl} />
+            ) : null}
+          </div>
         </div>
       </footer>
     </main>

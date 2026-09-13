@@ -10,11 +10,17 @@ import {
   Undo2,
   WandSparkles,
 } from 'lucide-react'
-import { type RefObject } from 'react'
+import { useMemo, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { type Patch } from '@/data/patches'
+import {
+  editorShortcuts,
+  formatShortcut,
+  isApplePlatform,
+  type KeyboardShortcut,
+} from '@/lib/keyboard-shortcuts'
 import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { soundPresets, type SoundPresetId } from '@/lib/sound-presets'
 import { cn } from '@/lib/utils'
@@ -63,32 +69,38 @@ export function PatchEditorHeader({
   syncState,
 }: PatchEditorHeaderProps) {
   const { t } = useTranslation()
+  const onApplePlatform = useMemo(() => isApplePlatform(), [])
+  // The accessible name stays plain; the hint only rides along in the tooltip.
+  const withShortcut = (label: string, shortcut: KeyboardShortcut) =>
+    `${label} (${formatShortcut(shortcut, onApplePlatform)})`
+
   return (
-    <header className="sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b border-primary/15 bg-white py-3 shadow-sm">
-      <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-end gap-3 px-3 sm:px-5 lg:px-8">
+    <header className="crt-hatch sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b-2 border-[var(--crt-shadow)] py-1.5 shadow-sm">
+      <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-3 sm:px-5 lg:px-8">
         <Button
           aria-label={t('editor.back')}
-          className="border-[color-mix(in_srgb,var(--fm1-finish-tint)_72%,var(--color-border))] bg-[color-mix(in_srgb,var(--fm1-finish-tint)_38%,white)] text-foreground hover:border-[var(--fm1-finish-tint)] hover:bg-[var(--fm1-finish-tint)] hover:text-[var(--fm1-finish-foreground)]"
+          className="text-[var(--crt-ink-2)]"
           disabled={syncState === 'sending'}
           onClick={onBack}
           size="icon"
+          title={withShortcut(t('editor.back'), editorShortcuts.back)}
           type="button"
           variant="outline"
         >
           <ArrowLeft />
         </Button>
-        <div className="min-w-0">
-          <p className="text-[10px] font-black tracking-[0.2em] text-primary uppercase">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="patch-slot crt-inset font-vt323 flex h-8 shrink-0 items-center border bg-[var(--crt-bg-well)] px-2 text-[18px] leading-none text-[var(--crt-led)]">
             {patch.bank}
             {String(patch.number).padStart(2, '0')}
-          </p>
-          <div className="flex items-center gap-2">
+          </span>
+          <div className="flex min-w-0 items-center gap-2">
             <label className="min-w-0" title={t('editor.editName')}>
               <span className="sr-only">{t('editor.patchName')}</span>
               <span className="flex items-center gap-1">
                 <input
                   aria-label={t('editor.patchName')}
-                  className="font-dot-matrix -ml-1 w-[12ch] max-w-[42vw] border border-input bg-transparent px-1 text-xl font-black text-foreground uppercase transition outline-none hover:bg-card/60 focus:border-ring focus:bg-card focus:ring-2 focus:ring-ring/30"
+                  className="font-dot-matrix crt-inset h-8 w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
                   maxLength={10}
                   onBlur={onNameBlur}
                   onChange={(event) => onNameChange(event.target.value.toUpperCase())}
@@ -104,7 +116,7 @@ export function PatchEditorHeader({
             {isDirty ? (
               <span
                 aria-label={t('editor.unsaved')}
-                className="size-2 rounded-full bg-amber-500"
+                className="size-2 rounded-full bg-[var(--crt-led)]"
                 title={t('editor.unsaved')}
               />
             ) : null}
@@ -117,7 +129,7 @@ export function PatchEditorHeader({
             disabled={!canUndo}
             onClick={onUndo}
             size="icon"
-            title={t('editor.undo')}
+            title={withShortcut(t('editor.undo'), editorShortcuts.undo)}
             type="button"
             variant="outline"
           >
@@ -128,7 +140,7 @@ export function PatchEditorHeader({
             disabled={!canRedo}
             onClick={onRedo}
             size="icon"
-            title={t('editor.redo')}
+            title={withShortcut(t('editor.redo'), editorShortcuts.redo)}
             type="button"
             variant="outline"
           >
@@ -137,14 +149,17 @@ export function PatchEditorHeader({
           <details className="group static sm:relative" ref={presetsMenuRef}>
             <summary
               aria-label={t('editor.presets')}
-              className="flex h-10 cursor-pointer list-none items-center justify-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-bold transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'font-vt323 list-none [&::-webkit-details-marker]:hidden',
+              )}
               title={t('editor.presets')}
             >
-              <WandSparkles className="size-4" />
+              <WandSparkles />
               <span className="hidden xl:inline">{t('editor.presetsShort')}</span>
-              <ChevronDown className="hidden size-3.5 transition-transform group-open:rotate-180 xl:block" />
+              <ChevronDown className="hidden transition-transform group-open:rotate-180 xl:block" />
             </summary>
-            <div className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 left-0 z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground sm:top-12 sm:left-auto sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
+            <div className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 left-0 z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground sm:left-auto sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
               <div className="px-2 pt-1 pb-2">
                 <p className="text-sm font-bold">{t('editor.presets')}</p>
                 <p className="mt-0.5 text-xs leading-4 text-muted-foreground">
@@ -183,9 +198,10 @@ export function PatchEditorHeader({
           </Button>
           <div className="flex items-center">
             <Button
-              className="font-vt323 rounded-r-none pr-3"
+              className="font-vt323"
               disabled={!isDirty}
               onClick={onSave}
+              title={withShortcut(t('editor.save'), editorShortcuts.save)}
               type="button"
             >
               <Save />
@@ -195,13 +211,16 @@ export function PatchEditorHeader({
               <summary
                 aria-haspopup="menu"
                 aria-label={t('editor.moreSave')}
-                className="flex h-10 w-9 cursor-pointer list-none items-center justify-center rounded-r-md border-l border-primary-foreground/25 bg-primary text-primary-foreground shadow-[0_0_14px_hsl(315_100%_60%_/_0.16)] transition-all hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none [&::-webkit-details-marker]:hidden"
+                className={cn(
+                  buttonVariants({ size: 'icon' }),
+                  'list-none border-l-[var(--crt-bevel-lt)] [&::-webkit-details-marker]:hidden',
+                )}
                 title={t('editor.moreSave')}
               >
-                <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+                <ChevronDown className="transition-transform group-open:rotate-180" />
               </summary>
               <div
-                className="editor-menu-surface absolute top-12 right-0 z-40 grid w-64 gap-1 rounded-lg border bg-popover p-2 text-popover-foreground"
+                className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 z-40 grid w-64 gap-1 rounded-lg border bg-popover p-2 text-popover-foreground"
                 role="menu"
               >
                 <button

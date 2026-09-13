@@ -2,7 +2,7 @@ import { type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { Dialog, DialogFooter, DialogBody, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 type UnsavedEditorDialogProps = {
   dialogRef: RefObject<HTMLDialogElement | null>
@@ -28,12 +28,12 @@ export function UnsavedEditorDialog({
       ref={dialogRef}
       size="2xl"
     >
-      <DialogHeader className="block">
-        <h2 className="text-lg font-bold" id="unsaved-editor-title">
-          {t('editor.unsavedTitle')}
-        </h2>
-        <p className="mt-1 text-sm leading-5 text-muted-foreground">{t('ui.unsavedBody')}</p>
+      <DialogHeader>
+        <DialogTitle id="unsaved-editor-title">{t('editor.unsavedTitle')}</DialogTitle>
       </DialogHeader>
+      <DialogBody>
+        <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">{t('ui.unsavedBody')}</p>
+      </DialogBody>
       <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end">
         <Button
           className="sm:h-auto sm:min-h-10 sm:min-w-0 sm:flex-1 sm:shrink sm:whitespace-normal"

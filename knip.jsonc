@@ -15,6 +15,7 @@
     // These packages are referenced from CSS, which Knip does not follow in this TypeScript project.
     "@fontsource-variable/doto",
     "@fontsource-variable/space-grotesk",
+    "@fontsource/ibm-plex-mono",
     "@fontsource/vt323",
     "tailwindcss",
   ],

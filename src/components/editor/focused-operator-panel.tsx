@@ -1,4 +1,5 @@
-import { AudioWaveform, SlidersHorizontal } from 'lucide-react'
+import { AudioWaveform, type LucideIcon, SlidersHorizontal } from 'lucide-react'
+import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
@@ -6,11 +7,8 @@ import {
   ParameterControl,
   RadioParameterControl,
   RotaryParameterControl,
+  SliderParameterControl,
 } from '@/components/editor/parameter-controls'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { HelpPopover } from '@/components/ui/help-popover'
-import { operatorColors } from '@/lib/editor-visuals'
 import {
   displayToStoredValue,
   getOperatorParameterDefinition,
@@ -19,9 +17,6 @@ import {
   type OperatorParameterId,
 } from '@/lib/fm1-parameters'
 import { type ParameterEdit } from '@/lib/patch-editor'
-import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
-import { rangeStyle } from '@/lib/range-style'
-import { cn } from '@/lib/utils'
 
 const curves = ['− Linear', '− Exponential', '+ Exponential', '+ Linear']
 const oscillatorModes = ['Ratio', 'Fixed']
@@ -30,35 +25,23 @@ type FocusedOperatorPanelProps = {
   applyEdits: (edits: ParameterEdit[]) => void
   beginGesture: () => void
   endGesture: () => void
-  onToggleMute: () => void
-  onToggleSolo: () => void
   parameters: Uint8Array
   selectedOperator: number
-  selectedOperatorIsMuted: boolean
-  selectedOperatorIsSoloed: boolean
   setParameter: (index: number, value: number, max?: number, min?: number, send?: boolean) => void
-  syncState: PatchSyncState
 }
 
 export function FocusedOperatorPanel({
   applyEdits,
   beginGesture,
   endGesture,
-  onToggleMute,
-  onToggleSolo,
   parameters,
   selectedOperator,
-  selectedOperatorIsMuted,
-  selectedOperatorIsSoloed,
   setParameter,
-  syncState,
 }: FocusedOperatorPanelProps) {
   const { t } = useTranslation()
   const operatorBase = resolveOperatorParameterIndex(selectedOperator, 'operator.envelope.rate1')
   const operatorIndex = (id: OperatorParameterId) =>
     resolveOperatorParameterIndex(selectedOperator, id)
-  const operatorColor = operatorColors[selectedOperator - 1]
-  const outputParameter = getOperatorParameterDefinition('operator.outputLevel')
   const oscillatorModeParameter = getOperatorParameterDefinition('operator.oscillatorMode')
   const coarseParameter = getOperatorParameterDefinition('operator.frequency.coarse')
   const fineParameter = getOperatorParameterDefinition('operator.frequency.fine')
@@ -99,340 +82,209 @@ export function FocusedOperatorPanel({
       />
     )
   }
+  const sliderControl = (label: string, id: OperatorParameterId, helpText?: string) => {
+    const definition = getOperatorParameterDefinition(id)
+    const index = operatorIndex(id)
+    return (
+      <SliderParameterControl
+        helpText={helpText}
+        key={`${selectedOperator}-${id}`}
+        label={label}
+        max={definition.max}
+        onChange={(value) => setParameter(index, value, definition.max)}
+        onGestureEnd={endGesture}
+        onGestureStart={beginGesture}
+        value={parameters[index]}
+      />
+    )
+  }
+  /*
+    The artboard's open operator column: the envelope on top, then the
+    oscillator and keyboard-scaling sections under hatched sub-headings.
+    Identity, output level, mute and solo live on the column itself.
+  */
   return (
-    <Card
-      className="@container -mt-px min-w-0 rounded-t-none border-l-0 border-[var(--operator-color)] bg-[#E7E8E7] xl:mt-0 xl:rounded-t-none xl:rounded-bl-none"
+    <div
+      className="@container grid min-w-0 gap-[9px]"
       id="focused-operator-panel"
-      role="tabpanel"
-      style={{ '--operator-color': operatorColor } as React.CSSProperties}
+      style={{ '--operator-color': 'var(--crt-acc)' } as React.CSSProperties}
     >
-      <CardHeader className="editor-operator-header px-4 py-3 sm:px-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle>
-            <span className="flex items-center gap-3">
-              <span className="font-vt323 grid size-9 place-items-center rounded border border-primary-foreground/70 bg-primary-foreground/10 text-lg font-bold text-primary-foreground">
-                {selectedOperator}
-              </span>
-              <span className="flex items-center gap-1 text-lg text-primary-foreground">
-                {t('editor.operator', { number: selectedOperator })}
-                <HelpPopover
-                  className="text-primary-foreground/80 hover:bg-primary-foreground/15 hover:text-primary-foreground"
-                  label={t('editor.fmOperators')}
-                  text={t('controlHelp.operator')}
-                />
-              </span>
-            </span>
-          </CardTitle>
-          <div className="flex flex-wrap items-center gap-2">
-            <div
-              aria-label={t('ui.auditionGroup', { number: selectedOperator })}
-              className="flex items-center gap-1"
-              role="group"
-            >
-              <Button
-                aria-label={t('ui.auditionAction', {
-                  action: t(selectedOperatorIsMuted ? 'ui.unmute' : 'ui.mute'),
-                  number: selectedOperator,
-                })}
-                aria-pressed={selectedOperatorIsMuted}
-                className={cn(
-                  'font-vt323 h-8 w-[4.25rem] border-border bg-background px-3 text-xs font-black text-muted-foreground hover:bg-accent hover:text-foreground',
-                  selectedOperatorIsMuted &&
-                    'border-rose-400 bg-rose-400/20 text-rose-700 hover:bg-rose-400/25 hover:text-rose-800',
-                )}
-                disabled={syncState === 'sending'}
-                onClick={() => onToggleMute()}
-                size="sm"
-                title={
-                  syncState === 'local'
-                    ? t('ui.auditionConnect', {
-                        action: t(selectedOperatorIsMuted ? 'ui.unmute' : 'ui.mute'),
-                        number: selectedOperator,
-                      })
-                    : t('ui.auditionTemporary', {
-                        action: t(selectedOperatorIsMuted ? 'ui.unmute' : 'ui.mute'),
-                        number: selectedOperator,
-                      })
-                }
-                type="button"
-                variant="outline"
-              >
-                {t('ui.mute')}
-              </Button>
-              <Button
-                aria-label={t('ui.auditionAction', {
-                  action: t(selectedOperatorIsSoloed ? 'ui.unsolo' : 'ui.solo'),
-                  number: selectedOperator,
-                })}
-                aria-pressed={selectedOperatorIsSoloed}
-                className={cn(
-                  'font-vt323 h-8 w-[4.25rem] border-border bg-background px-3 text-xs font-black text-muted-foreground hover:bg-accent hover:text-foreground',
-                  selectedOperatorIsSoloed &&
-                    'border-amber-300 bg-amber-300/20 text-amber-800 hover:bg-amber-300/25 hover:text-amber-950',
-                )}
-                disabled={syncState === 'sending'}
-                onClick={() => onToggleSolo()}
-                size="sm"
-                title={
-                  syncState === 'local'
-                    ? t('ui.auditionConnect', {
-                        action: t(selectedOperatorIsSoloed ? 'ui.unsolo' : 'ui.solo'),
-                        number: selectedOperator,
-                      })
-                    : t('ui.auditionTemporary', {
-                        action: t(selectedOperatorIsSoloed ? 'ui.unsolo' : 'ui.solo'),
-                        number: selectedOperator,
-                      })
-                }
-                type="button"
-                variant="outline"
-              >
-                {t('ui.solo')}
-              </Button>
-            </div>
-            <label className="flex h-8 min-w-[10rem] flex-1 items-center gap-2 rounded-md border border-border bg-background px-3 text-xs text-muted-foreground sm:min-w-[13rem]">
-              <span className="font-vt323 flex items-center gap-1 font-black tracking-wide uppercase">
-                {t('editor.output')}
-                <HelpPopover
-                  className="text-muted-foreground hover:bg-accent hover:text-foreground"
-                  label={t('editor.outputLevel')}
-                  text={t('controlHelp.outputLevel')}
-                />
-              </span>
-              <input
-                aria-label={t('ui.operatorOutput', { number: selectedOperator })}
-                className="h-2 min-w-0 flex-1 cursor-pointer accent-[var(--operator-color)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                max={99}
-                min={0}
-                onBlur={endGesture}
-                onChange={(event) =>
-                  setParameter(
-                    operatorIndex('operator.outputLevel'),
-                    Number(event.target.value),
-                    outputParameter.max,
-                  )
-                }
-                onKeyDown={(event) => {
-                  if (
-                    [
-                      'ArrowDown',
-                      'ArrowLeft',
-                      'ArrowRight',
-                      'ArrowUp',
-                      'End',
-                      'Home',
-                      'PageDown',
-                      'PageUp',
-                    ].includes(event.key)
-                  ) {
-                    beginGesture()
-                  }
-                }}
-                onKeyUp={endGesture}
-                onPointerCancel={endGesture}
-                onPointerDown={beginGesture}
-                onPointerUp={endGesture}
-                step={1}
-                style={rangeStyle(
-                  parameters[operatorIndex('operator.outputLevel')],
-                  0,
-                  99,
-                  'var(--operator-color)',
-                )}
-                type="range"
-                value={parameters[operatorIndex('operator.outputLevel')]}
-              />
-              <output className="font-vt323 w-6 text-right font-black text-foreground">
-                {parameters[operatorIndex('operator.outputLevel')]}
-              </output>
-            </label>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="grid min-w-0 gap-5 bg-primary p-4 pt-2 sm:p-5 sm:pt-2">
-        <EnvelopeEditor
-          color="var(--fm1-accent)"
-          helpText={t('controlHelp.amplitudeEnvelope')}
-          levels={Array.from(parameters.slice(operatorBase + 4, operatorBase + 8))}
-          onChange={(rate, level, point) => {
-            applyEdits([
-              [operatorBase + point, rate, 0, 99],
-              [operatorBase + 4 + point, level, 0, 99],
-            ])
-          }}
-          onGestureEnd={endGesture}
-          onGestureStart={beginGesture}
-          rates={Array.from(parameters.slice(operatorBase, operatorBase + 4))}
-          title={t('editor.amplitudeEnvelope')}
+      <EnvelopeEditor
+        color="var(--crt-acc)"
+        helpText={t('controlHelp.amplitudeEnvelope')}
+        levels={Array.from(parameters.slice(operatorBase + 4, operatorBase + 8))}
+        onChange={(rate, level, point) => {
+          applyEdits([
+            [operatorBase + point, rate, 0, 99],
+            [operatorBase + 4 + point, level, 0, 99],
+          ])
+        }}
+        onGestureEnd={endGesture}
+        onGestureStart={beginGesture}
+        rates={Array.from(parameters.slice(operatorBase, operatorBase + 4))}
+        title={t('editor.amplitudeEnvelope')}
+      />
+
+      <section
+        aria-labelledby="operator-oscillator-heading"
+        className="grid min-w-0 gap-[9px]"
+        id="operator-oscillator-panel"
+      >
+        <RackSubheading
+          action={
+            <RadioParameterControl
+              helpText={t('controlHelp.oscillatorMode')}
+              label={t('ui.mode')}
+              name={`oscillator-mode-${selectedOperator}`}
+              onChange={(value) =>
+                setParameter(
+                  operatorIndex('operator.oscillatorMode'),
+                  value,
+                  oscillatorModeParameter.max,
+                )
+              }
+              options={oscillatorModes}
+              showLabel={false}
+              value={parameters[operatorIndex('operator.oscillatorMode')]}
+            />
+          }
+          icon={AudioWaveform}
+          id="operator-oscillator-heading"
+          title={t('ui.oscillator')}
         />
-
-        <div className="grid min-w-0 content-start gap-5 @2xl:grid-cols-2">
-          <section
-            aria-labelledby="operator-oscillator-heading"
-            className="min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-white p-4"
-            id="operator-oscillator-panel"
-          >
-            <div className="grid gap-4">
-              <h3
-                className="flex items-center gap-2 text-sm font-bold text-foreground"
-                id="operator-oscillator-heading"
-              >
-                <AudioWaveform className="size-4 text-[var(--operator-color)]" />
-                {t('ui.oscillator')}
-              </h3>
-              <RadioParameterControl
-                helpText={t('controlHelp.oscillatorMode')}
-                label={t('ui.mode')}
-                name={`oscillator-mode-${selectedOperator}`}
-                onChange={(value) =>
-                  setParameter(
-                    operatorIndex('operator.oscillatorMode'),
-                    value,
-                    oscillatorModeParameter.max,
-                  )
-                }
-                options={oscillatorModes}
-                value={parameters[operatorIndex('operator.oscillatorMode')]}
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <RotaryParameterControl
-                  helpText={t('controlHelp.coarse')}
-                  key={`${selectedOperator}-18`}
-                  label={t('ui.coarse')}
-                  max={31}
-                  onChange={(value) =>
-                    setParameter(
-                      operatorIndex('operator.frequency.coarse'),
-                      value,
-                      coarseParameter.max,
-                    )
-                  }
-                  onGestureEnd={endGesture}
-                  onGestureStart={beginGesture}
-                  value={parameters[operatorIndex('operator.frequency.coarse')]}
-                />
-                <RotaryParameterControl
-                  helpText={t('controlHelp.fine')}
-                  key={`${selectedOperator}-19`}
-                  label={t('ui.fine')}
-                  max={99}
-                  onChange={(value) =>
-                    setParameter(operatorIndex('operator.frequency.fine'), value, fineParameter.max)
-                  }
-                  onGestureEnd={endGesture}
-                  onGestureStart={beginGesture}
-                  value={parameters[operatorIndex('operator.frequency.fine')]}
-                />
-                <div className="col-span-2">
-                  <RotaryParameterControl
-                    helpText={t('controlHelp.detune')}
-                    key={`${selectedOperator}-20`}
-                    label={t('ui.detune')}
-                    max={7}
-                    min={-7}
-                    onChange={(value) =>
-                      setParameter(
-                        operatorIndex('operator.detune'),
-                        displayToStoredValue(detuneParameter, value),
-                        detuneParameter.max,
-                      )
-                    }
-                    onGestureEnd={endGesture}
-                    onGestureStart={beginGesture}
-                    value={storedToDisplayValue(
-                      detuneParameter,
-                      parameters[operatorIndex('operator.detune')],
-                    )}
-                    valueLabel={(value) => (value > 0 ? `+${value}` : String(value))}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section
-            aria-labelledby="operator-scaling-heading"
-            className="@container min-w-0 rounded-xl border border-[color-mix(in_srgb,var(--fm1-finish-tint)_30%,var(--color-border))] bg-white p-4"
-            id="operator-scaling-panel"
-          >
-            <div className="grid gap-y-4">
-              <h3
-                className="flex items-center gap-2 text-sm font-bold text-foreground"
-                id="operator-scaling-heading"
-              >
-                <SlidersHorizontal className="size-4 text-[var(--operator-color)]" />
-                {t('ui.keyboardScaling')}
-              </h3>
-              <div className="grid grid-cols-2 gap-2 @xl:grid-cols-3">
-                {rotaryControl(
-                  t('ui.breakpoint'),
-                  'operator.keyboard.breakpoint',
-                  t('controlHelp.breakpoint'),
-                )}
-                {rotaryControl(
-                  t('ui.rateScaling'),
-                  'operator.keyboard.rateScaling',
-                  t('controlHelp.rateScaling'),
-                )}
-                <div className="hidden @xl:block">
-                  {rotaryControl(
-                    t('ui.velocity'),
-                    'operator.velocitySensitivity',
-                    t('controlHelp.velocity'),
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2 @xl:grid-cols-3">
-                <div className="col-span-2 grid grid-cols-2 gap-2">
-                  {rotaryControl(
-                    t('ui.leftDepth'),
-                    'operator.keyboard.leftDepth',
-                    t('controlHelp.leftDepth'),
-                  )}
-                  {rotaryControl(
-                    t('ui.rightDepth'),
-                    'operator.keyboard.rightDepth',
-                    t('controlHelp.rightDepth'),
-                  )}
-                </div>
-                <div className="hidden @xl:block">
-                  {rotaryControl(
-                    t('ui.ampModSensitivity'),
-                    'operator.ampModSensitivity',
-                    t('controlHelp.ampModSensitivity'),
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                {control(
-                  t('ui.leftCurve'),
-                  'operator.keyboard.leftCurve',
-                  curves,
-                  t('controlHelp.curve'),
-                )}
-                {control(
-                  t('ui.rightCurve'),
-                  'operator.keyboard.rightCurve',
-                  curves,
-                  t('controlHelp.curve'),
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-2 @xl:hidden">
-                {rotaryControl(
-                  t('ui.velocity'),
-                  'operator.velocitySensitivity',
-                  t('controlHelp.velocity'),
-                )}
-                {rotaryControl(
-                  t('ui.ampModSensitivity'),
-                  'operator.ampModSensitivity',
-                  t('controlHelp.ampModSensitivity'),
-                )}
-              </div>
-            </div>
-          </section>
+        <div className="grid grid-cols-3 gap-2">
+          <RotaryParameterControl
+            helpText={t('controlHelp.coarse')}
+            key={`${selectedOperator}-18`}
+            label={t('ui.coarse')}
+            max={31}
+            onChange={(value) =>
+              setParameter(operatorIndex('operator.frequency.coarse'), value, coarseParameter.max)
+            }
+            onGestureEnd={endGesture}
+            onGestureStart={beginGesture}
+            value={parameters[operatorIndex('operator.frequency.coarse')]}
+          />
+          <RotaryParameterControl
+            helpText={t('controlHelp.fine')}
+            key={`${selectedOperator}-19`}
+            label={t('ui.fine')}
+            max={99}
+            onChange={(value) =>
+              setParameter(operatorIndex('operator.frequency.fine'), value, fineParameter.max)
+            }
+            onGestureEnd={endGesture}
+            onGestureStart={beginGesture}
+            value={parameters[operatorIndex('operator.frequency.fine')]}
+          />
+          <RotaryParameterControl
+            helpText={t('controlHelp.detune')}
+            key={`${selectedOperator}-20`}
+            label={t('ui.detune')}
+            max={7}
+            min={-7}
+            onChange={(value) =>
+              setParameter(
+                operatorIndex('operator.detune'),
+                displayToStoredValue(detuneParameter, value),
+                detuneParameter.max,
+              )
+            }
+            onGestureEnd={endGesture}
+            onGestureStart={beginGesture}
+            value={storedToDisplayValue(
+              detuneParameter,
+              parameters[operatorIndex('operator.detune')],
+            )}
+            valueLabel={(value) => (value > 0 ? `+${value}` : String(value))}
+          />
         </div>
-      </CardContent>
-    </Card>
+      </section>
+
+      <section
+        aria-labelledby="operator-scaling-heading"
+        className="grid min-w-0 gap-[9px]"
+        id="operator-scaling-panel"
+      >
+        <RackSubheading
+          icon={SlidersHorizontal}
+          id="operator-scaling-heading"
+          title={t('ui.keyboardScaling')}
+        />
+        {/* Four across only once each knob has room for its caption. */}
+        <div className="grid grid-cols-2 gap-2 @lg:grid-cols-4">
+          {rotaryControl(
+            t('ui.breakpoint'),
+            'operator.keyboard.breakpoint',
+            t('controlHelp.breakpoint'),
+          )}
+          {rotaryControl(
+            t('ui.rateScaling'),
+            'operator.keyboard.rateScaling',
+            t('controlHelp.rateScaling'),
+          )}
+          {rotaryControl(
+            t('ui.leftDepth'),
+            'operator.keyboard.leftDepth',
+            t('controlHelp.leftDepth'),
+          )}
+          {rotaryControl(
+            t('ui.rightDepth'),
+            'operator.keyboard.rightDepth',
+            t('controlHelp.rightDepth'),
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+          {control(
+            t('ui.leftCurve'),
+            'operator.keyboard.leftCurve',
+            curves,
+            t('controlHelp.curve'),
+          )}
+          {control(
+            t('ui.rightCurve'),
+            'operator.keyboard.rightCurve',
+            curves,
+            t('controlHelp.curve'),
+          )}
+          {sliderControl(
+            t('ui.velocity'),
+            'operator.velocitySensitivity',
+            t('controlHelp.velocity'),
+          )}
+          {sliderControl(
+            t('ui.ampModSensitivity'),
+            'operator.ampModSensitivity',
+            t('controlHelp.ampModSensitivity'),
+          )}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+/** A hatched sub-heading inside the open operator column. */
+function RackSubheading({
+  action,
+  icon: Icon,
+  id,
+  title,
+}: {
+  action?: ReactNode
+  icon: LucideIcon
+  id: string
+  title: string
+}) {
+  return (
+    <div className="crt-hatch crt-raised-thin flex min-h-7 min-w-0 items-center gap-2 px-1.5 py-1">
+      <h3
+        className="flex min-w-0 items-center gap-1.5 text-[11px] font-normal tracking-[0.22em] text-[var(--crt-acc-lt)] uppercase"
+        id={id}
+      >
+        <Icon aria-hidden="true" className="size-3.5 shrink-0" />
+        <span className="truncate">{title}</span>
+      </h3>
+      {action ? <div className="ml-auto shrink-0">{action}</div> : null}
+    </div>
   )
 }

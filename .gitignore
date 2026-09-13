@@ -27,3 +27,6 @@ test-results
 *.njsproj
 *.sln
 *.sw?
+
+# Local Claude Code scratch (dev server config, session data)
+.claude/

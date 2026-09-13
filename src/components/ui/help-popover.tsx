@@ -127,7 +127,8 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
         aria-expanded={open}
         aria-label={`Help: ${label}`}
         className={cn(
-          'inline-grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground/75 transition-colors hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+          // A fingertip gets a wider target than the glyph shows.
+          'relative inline-grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground/75 transition-colors hover:bg-primary/10 hover:text-[var(--crt-acc-lt)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none pointer-coarse:after:absolute pointer-coarse:after:-inset-2 pointer-coarse:after:content-[""]',
           className,
         )}
         onClick={(event) => {
@@ -157,7 +158,9 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
             role="note"
             style={position}
           >
-            <p className="text-xs font-black tracking-[0.12em] text-primary uppercase">{label}</p>
+            <p className="text-xs font-black tracking-[0.12em] text-[var(--crt-acc-lt)] uppercase">
+              {label}
+            </p>
             <p className="mt-1 text-sm leading-5 font-normal tracking-normal text-popover-foreground/85 normal-case">
               {text}
             </p>

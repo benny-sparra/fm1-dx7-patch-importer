@@ -5,7 +5,10 @@ import { cn } from '@/lib/utils'
 function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
+      className={cn(
+        'border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-card text-card-foreground',
+        className,
+      )}
       {...props}
     />
   )
@@ -23,12 +26,8 @@ function CardTitle({ children, className, ...props }: React.HTMLAttributes<HTMLH
   )
 }
 
-function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn('text-sm text-muted-foreground', className)} {...props} />
-}
-
 function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn('p-5 pt-0', className)} {...props} />
 }
 
-export { Card, CardContent, CardDescription, CardHeader, CardTitle }
+export { Card, CardContent, CardHeader, CardTitle }

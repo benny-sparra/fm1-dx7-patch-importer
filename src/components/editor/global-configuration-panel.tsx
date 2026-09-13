@@ -1,32 +1,28 @@
-import { AudioWaveform, SlidersHorizontal } from 'lucide-react'
+import { Activity, Waves } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { AlgorithmPanel } from '@/components/editor/editor-workspace'
-import { EffectsUnit } from '@/components/editor/effects-unit'
+import { AlgorithmPanel, RackPanelTitle } from '@/components/editor/editor-workspace'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
+import { LfoScope } from '@/components/editor/lfo-scope'
 import {
   LfoWaveControl,
+  RotaryParameterControl,
   SliderParameterControl,
   SwitchParameterControl,
 } from '@/components/editor/parameter-controls'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
-import { getFm1EffectParameters } from '@/lib/fm1-effects'
 import {
   displayToStoredValue,
   getGlobalParameterDefinition,
   storedToDisplayValue,
   type GlobalParameterId,
 } from '@/lib/fm1-parameters'
-import { cn } from '@/lib/utils'
+import { pitchEnvelopePresets, type PitchEnvelopePresetId } from '@/lib/pitch-envelope-presets'
 
 type GlobalConfigurationPanelProps = {
   beginGesture: () => void
   endGesture: () => void
-  leftPanelTab: 'effects' | 'global'
-  onTabChange: (tab: 'effects' | 'global') => void
   parameters: Uint8Array
-  setEffectParameter: (controller: number, value: number) => void
   setParameter: (parameter: number, value: number, maximum: number) => void
 }
 
@@ -38,68 +34,50 @@ const transposeParameter = getGlobalParameterDefinition('global.transpose')
 export function GlobalConfigurationPanel({
   beginGesture,
   endGesture,
-  leftPanelTab,
-  onTabChange,
   parameters,
-  setEffectParameter,
   setParameter,
 }: GlobalConfigurationPanelProps) {
   const { t } = useTranslation()
-  return (
-    <aside aria-label={t('editor.configuration')} className="grid min-w-0 gap-4">
-      <div
-        aria-label={t('editor.sections')}
-        className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-white p-1 shadow-sm"
-        role="tablist"
-      >
-        <span
-          aria-hidden="true"
-          className={cn(
-            'pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-md bg-primary shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none',
-            leftPanelTab === 'effects' && 'translate-x-full',
-          )}
-        />
-        <button
-          aria-controls="global-configuration-panel"
-          aria-selected={leftPanelTab === 'global'}
-          className={cn(
-            'relative z-10 flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-            leftPanelTab === 'global' &&
-              'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
-          )}
-          id="global-configuration-tab"
-          onClick={() => onTabChange('global')}
-          role="tab"
-          type="button"
-        >
-          <SlidersHorizontal className="size-4" />
-          {t('editor.global')}
-        </button>
-        <button
-          aria-controls="effects-configuration-panel"
-          aria-selected={leftPanelTab === 'effects'}
-          className={cn(
-            'relative z-10 flex h-10 items-center justify-center gap-2 rounded-md px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-            leftPanelTab === 'effects' &&
-              'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
-          )}
-          id="effects-configuration-tab"
-          onClick={() => onTabChange('effects')}
-          role="tab"
-          type="button"
-        >
-          <AudioWaveform className="size-4" />
-          {t('editor.effects')}
-        </button>
-      </div>
+  const slider = (label: string, id: GlobalParameterId, max: number, helpText: string) => (
+    <SliderParameterControl
+      helpText={helpText}
+      label={label}
+      max={max}
+      onChange={(value) => setParameter(globalIndex(id), value, max)}
+      onGestureEnd={endGesture}
+      onGestureStart={beginGesture}
+      value={parameters[globalIndex(id)]}
+    />
+  )
 
-      <div
-        aria-labelledby="global-configuration-tab"
-        className="grid min-w-0 gap-4"
-        hidden={leftPanelTab !== 'global'}
-        id="global-configuration-panel"
-        role="tabpanel"
-      >
+  // A preset is one edit: grouping the eight writes in a gesture keeps it to a
+  // single undo step.
+  const applyPitchEnvelopePreset = (id: PitchEnvelopePresetId) => {
+    const preset = pitchEnvelopePresets.find((candidate) => candidate.id === id)
+    if (!preset) return
+    beginGesture()
+    preset.rates.forEach((rate, point) =>
+      setParameter(globalIndex('global.pitchEnvelope.rate1') + point, rate, 99),
+    )
+    preset.levels.forEach((level, point) =>
+      setParameter(globalIndex('global.pitchEnvelope.level1') + point, level, 99),
+    )
+    endGesture()
+  }
+
+  /*
+    The artboard's second rack row: algorithm, pitch envelope and the LFO
+    side by side beneath the operators, wrapping to a stack when narrow.
+    Below xl the LFO takes a row of its own, since a third of the width
+    leaves its labels no room.
+  */
+  return (
+    <aside
+      aria-label={t('editor.configuration')}
+      className="flex min-w-0 flex-wrap items-stretch gap-1.5"
+      id="global-configuration-panel"
+    >
+      <div className="flex min-w-[15rem] flex-[1.15_1_0%] [&>section]:flex-1">
         <AlgorithmPanel
           algorithm={parameters[algorithmParameter.voiceIndex]}
           feedback={parameters[feedbackParameter.voiceIndex]}
@@ -112,76 +90,115 @@ export function GlobalConfigurationPanel({
           onFeedbackGestureEnd={endGesture}
           onFeedbackGestureStart={beginGesture}
         />
+      </div>
 
-        <Card className="min-w-0 border-primary/20 bg-card/95">
-          <CardHeader className="flex-row items-center justify-between gap-2 border-b bg-white px-4 py-3">
-            <CardTitle className="text-base text-black">{t('editor.lfoGlobal')}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-x-3 gap-y-4 p-4">
-            <SwitchParameterControl
-              helpText={t('controlHelp.oscillatorSync')}
-              label={t('editor.oscillatorSync')}
-              onChange={(value) => setParameter(globalIndex('global.oscillatorSync'), value, 1)}
-              value={parameters[globalIndex('global.oscillatorSync')]}
+      <section
+        aria-labelledby="pitch-envelope-heading"
+        className="synthwave-panel flex min-w-[14rem] flex-[1_1_0%] flex-col"
+      >
+        <RackPanelTitle
+          help={{ label: t('editor.pitchEnvelope'), text: t('controlHelp.pitchEnvelope') }}
+          icon={Activity}
+          id="pitch-envelope-heading"
+          title={t('editor.pitchEnvelope')}
+        />
+        <div className="flex flex-1 flex-col p-[9px]">
+          <EnvelopeEditor
+            color="var(--crt-acc)"
+            helpText={t('controlHelp.pitchEnvelope')}
+            levels={Array.from(
+              parameters.slice(
+                globalIndex('global.pitchEnvelope.level1'),
+                globalIndex('global.pitchEnvelope.level1') + 4,
+              ),
+            )}
+            onChange={(rate, level, point) => {
+              setParameter(globalIndex('global.pitchEnvelope.rate1') + point, rate, 99)
+              setParameter(globalIndex('global.pitchEnvelope.level1') + point, level, 99)
+            }}
+            onGestureEnd={endGesture}
+            onGestureStart={beginGesture}
+            rates={Array.from(
+              parameters.slice(
+                globalIndex('global.pitchEnvelope.rate1'),
+                globalIndex('global.pitchEnvelope.rate1') + 4,
+              ),
+            )}
+            showTitle={false}
+            title={t('editor.pitchEnvelope')}
+            variant="pitch"
+          />
+          {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
+          <label className="mt-2 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+            <span className="flex items-center gap-1">
+              {t('editor.pitchEnvelopePresets')}
+              <HelpPopover
+                label={t('editor.pitchEnvelopePresets')}
+                text={t('controlHelp.pitchEnvelopePresets')}
+              />
+            </span>
+            {/* The help button shares the label, so name the select directly. */}
+            <select
+              aria-label={t('editor.pitchEnvelopePresets')}
+              className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+              onChange={(event) => {
+                applyPitchEnvelopePreset(event.target.value as PitchEnvelopePresetId)
+              }}
+              value=""
+            >
+              <option disabled value="">
+                {t('editor.pitchEnvelopePresetPlaceholder')}
+              </option>
+              {pitchEnvelopePresets.map(({ id }) => (
+                <option key={id} value={id}>
+                  {t(`editor.pitchEnvelopePresetOptions.${id}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section
+        aria-labelledby="lfo-heading"
+        className="synthwave-panel @container flex min-w-[15rem] flex-[1.25_1_100%] flex-col xl:flex-[1.25_1_0%]"
+      >
+        <RackPanelTitle icon={Waves} id="lfo-heading" title={t('editor.lfoGlobal')} />
+        <div className="grid grid-cols-2 content-start gap-x-3 gap-y-2.5 p-[9px] @sm:grid-cols-3">
+          <div className="col-span-full">
+            <LfoScope
+              ampModDepth={parameters[globalIndex('global.lfoAmpModDepth')]}
+              pitchModDepth={parameters[globalIndex('global.lfoPitchModDepth')]}
+              speed={parameters[globalIndex('global.lfoSpeed')]}
+              wave={parameters[globalIndex('global.lfoWave')]}
             />
-            <SwitchParameterControl
-              helpText={t('controlHelp.lfoSync')}
-              label={t('editor.lfoSync')}
-              onChange={(value) => setParameter(globalIndex('global.lfoKeySync'), value, 1)}
-              value={parameters[globalIndex('global.lfoKeySync')]}
-            />
-            <LfoWaveControl
-              onChange={(value) => setParameter(globalIndex('global.lfoWave'), value, 5)}
-              value={parameters[globalIndex('global.lfoWave')]}
-            />
-            <SliderParameterControl
-              helpText={t('controlHelp.lfoSpeed')}
-              label={t('editor.lfoSpeed')}
-              max={99}
-              onChange={(value) => setParameter(globalIndex('global.lfoSpeed'), value, 99)}
-              onGestureEnd={endGesture}
-              onGestureStart={beginGesture}
-              value={parameters[globalIndex('global.lfoSpeed')]}
-            />
-            <SliderParameterControl
-              helpText={t('controlHelp.lfoDelay')}
-              label={t('editor.lfoDelay')}
-              max={99}
-              onChange={(value) => setParameter(globalIndex('global.lfoDelay'), value, 99)}
-              onGestureEnd={endGesture}
-              onGestureStart={beginGesture}
-              value={parameters[globalIndex('global.lfoDelay')]}
-            />
-            <SliderParameterControl
-              helpText={t('controlHelp.pitchModDepth')}
-              label={t('editor.pitchModDepth')}
-              max={99}
-              onChange={(value) => setParameter(globalIndex('global.lfoPitchModDepth'), value, 99)}
-              onGestureEnd={endGesture}
-              onGestureStart={beginGesture}
-              value={parameters[globalIndex('global.lfoPitchModDepth')]}
-            />
-            <SliderParameterControl
-              helpText={t('controlHelp.ampModDepth')}
-              label={t('editor.ampModDepth')}
-              max={99}
-              onChange={(value) => setParameter(globalIndex('global.lfoAmpModDepth'), value, 99)}
-              onGestureEnd={endGesture}
-              onGestureStart={beginGesture}
-              value={parameters[globalIndex('global.lfoAmpModDepth')]}
-            />
-            <SliderParameterControl
-              helpText={t('controlHelp.pitchModSensitivity')}
-              label={t('editor.pitchModSensitivity')}
-              max={7}
-              onChange={(value) =>
-                setParameter(globalIndex('global.pitchModSensitivity'), value, 7)
-              }
-              onGestureEnd={endGesture}
-              onGestureStart={beginGesture}
-              value={parameters[globalIndex('global.pitchModSensitivity')]}
-            />
-            <SliderParameterControl
+          </div>
+          <LfoWaveControl
+            onChange={(value) => setParameter(globalIndex('global.lfoWave'), value, 5)}
+            value={parameters[globalIndex('global.lfoWave')]}
+          />
+          {slider(t('editor.lfoSpeed'), 'global.lfoSpeed', 99, t('controlHelp.lfoSpeed'))}
+          {slider(t('editor.lfoDelay'), 'global.lfoDelay', 99, t('controlHelp.lfoDelay'))}
+          {slider(
+            t('editor.pitchModDepth'),
+            'global.lfoPitchModDepth',
+            99,
+            t('controlHelp.pitchModDepth'),
+          )}
+          {slider(
+            t('editor.ampModDepth'),
+            'global.lfoAmpModDepth',
+            99,
+            t('controlHelp.ampModDepth'),
+          )}
+          {slider(
+            t('editor.pitchModSensitivity'),
+            'global.pitchModSensitivity',
+            7,
+            t('controlHelp.pitchModSensitivity'),
+          )}
+          <div className="col-span-full grid grid-cols-3 items-start gap-3 border-t border-[var(--crt-line-dk)] pt-2">
+            <RotaryParameterControl
               helpText={t('controlHelp.transpose')}
               label={t('editor.transpose')}
               max={24}
@@ -201,63 +218,21 @@ export function GlobalConfigurationPanel({
               )}
               valueLabel={(value) => (value > 0 ? `+${value}` : String(value))}
             />
-          </CardContent>
-        </Card>
-
-        <Card className="min-w-0 border-primary/20 bg-card/95">
-          <CardHeader className="flex-row items-center justify-between gap-2 border-b bg-white px-4 py-3">
-            <CardTitle className="flex min-w-0 items-center gap-1 text-base text-black">
-              {t('editor.pitchEnvelope')}
-              <HelpPopover
-                label={t('editor.pitchEnvelope')}
-                text={t('controlHelp.pitchEnvelope')}
-              />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-2">
-            <EnvelopeEditor
-              color="var(--fm1-accent)"
-              helpText={t('controlHelp.pitchEnvelope')}
-              levels={Array.from(
-                parameters.slice(
-                  globalIndex('global.pitchEnvelope.level1'),
-                  globalIndex('global.pitchEnvelope.level1') + 4,
-                ),
-              )}
-              onChange={(rate, level, point) => {
-                setParameter(globalIndex('global.pitchEnvelope.rate1') + point, rate, 99)
-                setParameter(globalIndex('global.pitchEnvelope.level1') + point, level, 99)
-              }}
-              onGestureEnd={endGesture}
-              onGestureStart={beginGesture}
-              rates={Array.from(
-                parameters.slice(
-                  globalIndex('global.pitchEnvelope.rate1'),
-                  globalIndex('global.pitchEnvelope.rate1') + 4,
-                ),
-              )}
-              showTitle={false}
-              title={t('editor.pitchEnvelope')}
-              variant="pitch"
+            <SwitchParameterControl
+              helpText={t('controlHelp.lfoSync')}
+              label={t('editor.lfoSync')}
+              onChange={(value) => setParameter(globalIndex('global.lfoKeySync'), value, 1)}
+              value={parameters[globalIndex('global.lfoKeySync')]}
             />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div
-        aria-labelledby="effects-configuration-tab"
-        hidden={leftPanelTab !== 'effects'}
-        id="effects-configuration-panel"
-        role="tabpanel"
-      >
-        <EffectsUnit
-          layout="sidebar"
-          onChange={setEffectParameter}
-          onGestureEnd={endGesture}
-          onGestureStart={beginGesture}
-          values={getFm1EffectParameters(parameters)}
-        />
-      </div>
+            <SwitchParameterControl
+              helpText={t('controlHelp.oscillatorSync')}
+              label={t('editor.oscillatorSync')}
+              onChange={(value) => setParameter(globalIndex('global.oscillatorSync'), value, 1)}
+              value={parameters[globalIndex('global.oscillatorSync')]}
+            />
+          </div>
+        </div>
+      </section>
     </aside>
   )
 }
