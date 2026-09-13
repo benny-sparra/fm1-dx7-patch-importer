@@ -271,7 +271,13 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
         className="font-vt323 ml-auto"
         disabled={!midi.hasMidiOutput}
         onClick={openDialog}
-        title={!midi.hasMidiOutput ? t('midi.connectFirst') : undefined}
+        title={
+          !midi.midiAccess
+            ? t('midi.switchOnFirst')
+            : !midi.hasMidiOutput
+              ? t('midi.chooseOutput')
+              : undefined
+        }
         type="button"
         variant="secondary"
       >

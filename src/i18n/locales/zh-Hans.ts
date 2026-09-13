@@ -383,6 +383,8 @@ export default {
     online: 'MIDI 在线',
     offline: 'MIDI 离线',
     connectFirst: '请先连接 MIDI 输出',
+    chooseOutput: '请选择 MIDI 输出',
+    switchOnFirst: '请先开启 MIDI',
     closeSysexWarning: '关闭 SysEx 警告',
     connecting: '正在连接…',
     reconnectForSysex: '使用 SysEx 重新连接 MIDI',

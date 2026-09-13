@@ -30,6 +30,31 @@ function setup() {
   return { midi, ...view }
 }
 
+describe('PianoKeyboardDialog trigger', () => {
+  function trigger(midi: Partial<MidiController>) {
+    render(<PianoKeyboardDialog midi={midi as MidiController} />)
+    return screen.getByRole('button', { name: 'Keyboard' }) as HTMLButtonElement
+  }
+
+  it('asks for MIDI to be switched on while offline', () => {
+    const button = trigger({ hasMidiOutput: false, midiAccess: null })
+    expect(button.disabled).toBe(true)
+    expect(button.title).toBe('Switch MIDI on first')
+  })
+
+  it('asks for an output while online without one', () => {
+    const button = trigger({ hasMidiOutput: false, midiAccess: {} as MidiController['midiAccess'] })
+    expect(button.disabled).toBe(true)
+    expect(button.title).toBe('Choose a MIDI output')
+  })
+
+  it('opens once an output is selected', () => {
+    const button = trigger({ hasMidiOutput: true, midiAccess: {} as MidiController['midiAccess'] })
+    expect(button.disabled).toBe(false)
+    expect(button.title).toBe('')
+  })
+})
+
 describe('PianoKeyboardDialog note lifecycle', () => {
   it('balances computer-key note on and note off', async () => {
     const user = userEvent.setup()

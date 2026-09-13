@@ -416,6 +416,8 @@ export default {
     online: 'MIDI online',
     offline: 'MIDI offline',
     connectFirst: 'Connect a MIDI output first',
+    chooseOutput: 'Choose a MIDI output',
+    switchOnFirst: 'Switch MIDI on first',
     closeSysexWarning: 'Close SysEx warning',
     connecting: 'Connecting…',
     reconnectForSysex: 'Reconnect MIDI with SysEx',
