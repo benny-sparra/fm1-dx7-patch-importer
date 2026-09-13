@@ -185,7 +185,7 @@ open everything an earlier release could have saved.
   for bare keys, and an open menu for Escape. Modified shortcuts still run while typing.
 - Shortcut definitions are the single source: button tooltips and the help dialog read them, so they
   cannot drift. When a shortcut is added, changed, or removed, update the help dialog listing, the
-  locale keys, and the README keyboard shortcut list in the same change.
+  locale keys, and the keyboard shortcut list in `docs/user-guide.md` in the same change.
 - Match the short easing durations already used in `src/index.css` and always provide the
   `prefers-reduced-motion: reduce` snap. Animated disclosure must not leave controls half-hidden in
   the accessibility tree: flip visibility once the transition has finished.
@@ -272,7 +272,8 @@ When dependencies change, run `npm run lockfile:refresh` with the pinned npm rel
 - When removing a user flow, remove its now-dead state, props, component exports, and locale keys;
   verify the cleanup with `npm run deps:check`.
 - Keep user data safety, initial librarian usability, accessibility, and bundle behavior intact.
-- Update README documentation when commands, setup, supported behavior, or user workflows change.
+- Update the README and its linked documentation (`CONTRIBUTING.md`, `PRIVACY.md`,
+  `docs/user-guide.md`, `docs/maintaining.md`) when commands, setup, supported behavior, or user workflows change.
 - Before handoff, run `git diff --check`, report validation performed, and call out any check that
   could not run.
 
