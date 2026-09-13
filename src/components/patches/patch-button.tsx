@@ -118,7 +118,10 @@ export function PatchButton({
           <GripVertical aria-hidden="true" className="size-3.5" />
         </button>
       ) : (
-        <span aria-hidden="true" className="-my-1 -mr-2 -ml-1 grid size-6 shrink-0 place-items-center text-[var(--crt-line-dk)]">
+        <span
+          aria-hidden="true"
+          className="-my-1 -mr-2 -ml-1 grid size-6 shrink-0 place-items-center text-[var(--crt-line-dk)]"
+        >
           <GripVertical className="size-3.5" />
         </span>
       )}

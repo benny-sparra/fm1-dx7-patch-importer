@@ -77,10 +77,7 @@ export function BankInformationDialog({
           <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />
         </DialogHeader>
         <DialogBody>
-          <p
-            className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]"
-            id={descriptionId}
-          >
+          <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]" id={descriptionId}>
             {t('banks.bankInformationHelp')}
           </p>
 

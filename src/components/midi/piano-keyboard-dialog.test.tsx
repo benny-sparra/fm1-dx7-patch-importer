@@ -37,19 +37,19 @@ describe('PianoKeyboardDialog trigger', () => {
   }
 
   it('asks for MIDI to be switched on while offline', () => {
-    const button = trigger({ hasMidiOutput: false, midiAccess: null })
+    const button = trigger({ hasMidiOutput: false, midiAccess: false })
     expect(button.disabled).toBe(true)
     expect(button.title).toBe('Switch MIDI on first')
   })
 
   it('asks for an output while online without one', () => {
-    const button = trigger({ hasMidiOutput: false, midiAccess: {} as MidiController['midiAccess'] })
+    const button = trigger({ hasMidiOutput: false, midiAccess: true })
     expect(button.disabled).toBe(true)
     expect(button.title).toBe('Choose a MIDI output')
   })
 
   it('opens once an output is selected', () => {
-    const button = trigger({ hasMidiOutput: true, midiAccess: {} as MidiController['midiAccess'] })
+    const button = trigger({ hasMidiOutput: true, midiAccess: true })
     expect(button.disabled).toBe(false)
     expect(button.title).toBe('')
   })
