@@ -39,7 +39,10 @@ const midi = {
 } as unknown as MidiController
 
 beforeEach(() => localStorage.setItem('fm1-librarian-help-seen', 'true'))
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+})
 
 describe('RootLayout title layout', () => {
   it('exposes the full title and brand layout explicitly', () => {
@@ -64,5 +67,37 @@ describe('RootLayout title layout', () => {
     const title = screen.getByRole('heading', { level: 1 })
     expect(title.getAttribute('data-layout')).toBe('compact')
     expect(title.querySelector('.synthwave-brand-row')).toBeTruthy()
+  })
+})
+
+describe('RootLayout unsupported banner', () => {
+  function renderWithUserAgent(userAgent: string) {
+    vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(userAgent)
+
+    render(
+      <RootLayout midi={midi}>
+        <div>Library</div>
+      </RootLayout>,
+    )
+
+    return screen.getByRole('alert')
+  }
+
+  it('titles the banner for mobile devices on an Android phone', () => {
+    const banner = renderWithUserAgent(
+      'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36',
+    )
+
+    expect(banner.textContent).toContain('Mobile devices are not supported.')
+    expect(banner.textContent).not.toContain('Unsupported browser.')
+  })
+
+  it('titles the banner as an unsupported browser on a desktop browser without Web MIDI', () => {
+    const banner = renderWithUserAgent(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
+    )
+
+    expect(banner.textContent).toContain('Unsupported browser.')
+    expect(banner.textContent).not.toContain('Mobile devices are not supported.')
   })
 })
