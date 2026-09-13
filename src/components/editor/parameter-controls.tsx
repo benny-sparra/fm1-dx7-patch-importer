@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
+import { rotaryControlAngle } from '@/lib/editor-visuals'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
@@ -86,7 +87,7 @@ export function RotaryParameterControl({
   const faceId = `knob-face-${useId().replace(/:/g, '')}`
   const displayValue = valueLabel(value)
   const fraction = (value - min) / (max - min)
-  const angle = -135 + fraction * 270
+  const angle = rotaryControlAngle(value, min, max)
   const clamp = (nextValue: number) => Math.max(min, Math.min(max, Math.round(nextValue)))
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {

@@ -26,6 +26,11 @@ export default {
     sourcesTitle: 'DX7-Sound-Bänke finden',
     sourcesIntro:
       'Lade eine DX7-SysEx-Bank mit 32 Voices (.syx) herunter, kehre zurück und wähle DX7-Bank importieren.',
+    sourceDescriptions: {
+      yamahaBlackBoxes: 'DX7-Werkscartridges und SysEx-Bänke.',
+      bobbyBlues: 'Langjährige Sammlung von DX7-Sounds und -Bänken.',
+      soundarchive: 'Kuratierte SysEx-Bänke für DX7, TX816 und TX802.',
+    },
     sourcesClose: 'Bankquellen schließen',
   },
   controlHelp: {

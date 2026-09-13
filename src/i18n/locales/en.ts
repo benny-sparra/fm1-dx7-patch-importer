@@ -24,6 +24,11 @@ export default {
     sourcesTitle: 'Find DX7 patch banks',
     sourcesIntro:
       'Download a 32-voice DX7 SysEx bank (.syx), then return here and choose Import DX7 bank.',
+    sourceDescriptions: {
+      yamahaBlackBoxes: 'Factory DX7 cartridges and SysEx banks.',
+      bobbyBlues: 'Long-running DX7 patch and bank collection.',
+      soundarchive: 'Curated DX7, TX816 and TX802 SysEx banks.',
+    },
     sourcesClose: 'Close patch bank sources',
   },
   controlHelp: {

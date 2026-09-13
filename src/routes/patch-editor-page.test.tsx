@@ -199,6 +199,24 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(decay.disabled).toBe(false)
   }, 15_000)
 
+  it('undoes a held arrow key on an envelope point as a single step', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const point = screen.getByRole('slider', { name: 'Pitch envelope point 1' })
+    const level = () => (screen.getByLabelText('Pitch envelope level 1') as HTMLInputElement).value
+
+    fireEvent.keyDown(point, { key: 'ArrowUp' })
+    fireEvent.keyDown(point, { key: 'ArrowUp', repeat: true })
+    fireEvent.keyDown(point, { key: 'ArrowUp', repeat: true })
+    fireEvent.keyUp(point, { key: 'ArrowUp' })
+    expect(level()).toBe('3')
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(level()).toBe('0')
+  }, 15_000)
+
   it('stays local and explains the unavailable SysEx connection without attempting initial sync', async () => {
     const { midi } = setup({ sysexAvailable: false })
 

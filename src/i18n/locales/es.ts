@@ -24,6 +24,11 @@ export default {
     sourcesTitle: 'Buscar bancos DX7',
     sourcesIntro:
       'Descarga un banco SysEx DX7 de 32 voces (.syx), vuelve aquí y elige Importar banco DX7.',
+    sourceDescriptions: {
+      yamahaBlackBoxes: 'Cartuchos DX7 de fábrica y bancos SysEx.',
+      bobbyBlues: 'Colección veterana de sonidos y bancos DX7.',
+      soundarchive: 'Selección de bancos SysEx de DX7, TX816 y TX802.',
+    },
     sourcesClose: 'Cerrar fuentes de bancos',
   },
   controlHelp: {

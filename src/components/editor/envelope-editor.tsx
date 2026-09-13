@@ -80,6 +80,7 @@ export function EnvelopeEditor({
 
     if (!event.key.startsWith('Arrow')) return
     event.preventDefault()
+    onGestureStart()
     onChange(nextRate, nextLevel, point)
   }
 
@@ -227,7 +228,11 @@ export function EnvelopeEditor({
                 className="cursor-grab outline-none focus-visible:stroke-[var(--crt-led)] focus-visible:[filter:drop-shadow(0_0_5px_var(--crt-led))] active:cursor-grabbing"
                 fill="var(--crt-bg-well)"
                 height="12"
+                onBlur={onGestureEnd}
                 onKeyDown={(event) => handleKeyDown(event, index)}
+                onKeyUp={(event) => {
+                  if (event.key.startsWith('Arrow')) onGestureEnd()
+                }}
                 {...pointerHandlers(index)}
                 role="slider"
                 stroke={color}

@@ -20,6 +20,11 @@ export default {
     sourcesOpen: '查找可下载的音色库。',
     sourcesTitle: '查找 DX7 音色库',
     sourcesIntro: '下载 32 音色 DX7 SysEx 音色库 (.syx)，返回此处并选择“导入 DX7 音色库”。',
+    sourceDescriptions: {
+      yamahaBlackBoxes: 'DX7 出厂卡带与 SysEx 音色库。',
+      bobbyBlues: '历史悠久的 DX7 音色与音色库合集。',
+      soundarchive: '精选的 DX7、TX816 和 TX802 SysEx 音色库。',
+    },
     sourcesClose: '关闭音色库来源',
   },
   controlHelp: {
