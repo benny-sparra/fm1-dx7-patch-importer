@@ -153,6 +153,30 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(envelopeValues()).toEqual(before)
   }, 15_000)
 
+  it('applies a randomised sound as a single undo step', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const outputLevels = () =>
+      [1, 6].map(
+        (operator) =>
+          (
+            screen.getByRole('slider', {
+              name: `Operator ${operator} output level`,
+            }) as HTMLInputElement
+          ).value,
+      )
+
+    await user.click(screen.getByRole('button', { name: 'Randomise' }))
+
+    // Every operator's output level is raised to at least 36, so both edits are visible.
+    expect(outputLevels().every((level) => Number(level) >= 36)).toBe(true)
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(outputLevels()).toEqual(['0', '0'])
+  }, 15_000)
+
   it('stays local and explains the unavailable SysEx connection without attempting initial sync', async () => {
     const { midi } = setup({ sysexAvailable: false })
 

@@ -29,7 +29,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Edit the FM1's filter, reverb, delay, distortion, chorus, and phaser within their documented ranges
 - See a live animated scope for every FM1 effect, drawn from its parameters: filter response, delay taps, chorus drift, reverb tail, distortion clipping, and phaser sweep
 - Apply six sound-shaping presets as undoable starting points
-- Randomise a sound as an undoable starting point
+- Generate a musically constrained random DX7 voice as an undoable starting point
 - Open contextual help for voice, envelope, algorithm, and effect controls
 - Rename patches using DX7-compatible 10-character names
 - Undo and redo edits within the voice editor
@@ -90,6 +90,8 @@ If the saved workspace cannot be opened, the app leaves its browser record untou
 The editor is laid out as a rack. The six operators stand side by side as columns: five show a compact readout, and the selected operator grows in place to carry its full controls. On narrower screens the open operator drops onto a row of its own. Each column has its own mute and solo buttons, so an operator can be silenced without opening it.
 
 Click anywhere on the title strip of the operators or effects panel to fold it away, and click again to bring it back. Each panel folds on its own and keeps its title visible, so a long editor can be trimmed to the sections you are working on.
+
+**Randomise** generates a new DX7 voice with the DX Android "Android-1" approach rather than fully random values: carriers stay near the fundamental and loud, envelopes always peak, and keyboard scaling, velocity sensitivity and detune are left neutral. The patch name and FM1 effect settings are kept, and the new voice is a single undo step.
 
 The pitch envelope has a presets menu of starting shapes: **Flat**, **Attack blip up**, **Attack drop**, **Scoop**, and **Release fall**. Each one is applied as a single undo step.
 
@@ -437,5 +439,7 @@ src/
 ```
 
 ## Acknowledgements
+
+The randomiser is an independent implementation of the voice generator from Tom Bajoras's DX Android, following [the algorithm documented by Christian Zietz (czietz) at CHZ-Soft](https://www.chzsoft.de/site/hardware/dx-android-an-intelligent-random-dx7-voice-generator/dx-android-algorithm/).
 
 The interface links to independent DX7 patch archives to help users find compatible banks. Those downloads are provided by their respective sites; only import files you trust.
