@@ -242,7 +242,7 @@ export default {
     synthAlt: 'M-VAVE FM1 合成器前面板',
     unsupportedTitle: '不支持的浏览器。',
     unsupportedBody:
-      '此音色库工具需要使用 Chrome、Edge 或 Opera 等基于 Chromium 的浏览器，才能支持 Web MIDI 和 SysEx。',
+      '此音色库工具需要使用 Chrome、Edge 或 Opera 等基于 Chromium 的浏览器，并在桌面电脑上运行，才能支持 Web MIDI 和 SysEx。不支持手机和平板电脑。',
     localOnly: '您的音色仅保存在此浏览器中',
     requires: '需要 Chrome/Edge 和 Web MIDI',
     projectLinks: '项目链接',

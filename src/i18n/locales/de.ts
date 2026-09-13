@@ -273,7 +273,7 @@ export default {
     synthAlt: 'Vorderseite des M-VAVE FM1 Synthesizers',
     unsupportedTitle: 'Nicht unterstützter Browser.',
     unsupportedBody:
-      'Dieser Librarian benötigt für Web MIDI und SysEx einen Chromium-basierten Browser wie Chrome, Edge oder Opera.',
+      'Dieser Librarian benötigt für Web MIDI und SysEx einen Chromium-basierten Browser wie Chrome, Edge oder Opera auf einem Desktop-Computer. Smartphones und Tablets werden nicht unterstützt.',
     localOnly: 'Deine Sounds bleiben in diesem Browser',
     requires: 'Erfordert Chrome/Edge und Web MIDI',
     projectLinks: 'Projektlinks',

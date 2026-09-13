@@ -270,7 +270,7 @@ export default {
     synthAlt: 'Panel frontal del sintetizador M-VAVE FM1',
     unsupportedTitle: 'Navegador no compatible.',
     unsupportedBody:
-      'Este bibliotecario necesita un navegador basado en Chromium, como Chrome, Edge u Opera, para usar Web MIDI y SysEx.',
+      'Este bibliotecario necesita un navegador basado en Chromium, como Chrome, Edge u Opera, en un ordenador de escritorio para usar Web MIDI y SysEx. Los teléfonos y las tabletas no son compatibles.',
     localOnly: 'Tus sonidos permanecen en este navegador',
     requires: 'Requiere Chrome/Edge y Web MIDI',
     projectLinks: 'Enlaces del proyecto',
