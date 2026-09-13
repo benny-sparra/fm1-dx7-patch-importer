@@ -358,11 +358,11 @@ export function LibrarianPage({
             {/* The selected bank reads back as a lit slot, as on the panel. */}
             {/* The rail drops bank names on narrow screens, so here the name takes
                 its own line above the buttons rather than disappearing too. */}
-            <span className="flex w-full min-w-0 items-center gap-[9px] xl:mr-1.5 xl:w-auto xl:shrink-0">
+            <span className="flex w-full min-w-0 items-center gap-[9px] md:mr-1.5 md:w-auto md:shrink-0">
               <span className="font-vt323 grid w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
                 {destinationBank}
               </span>
-              <span className="font-dot-matrix block min-w-0 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)] xl:max-w-40">
+              <span className="font-dot-matrix block min-w-0 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)] md:max-w-40">
                 {bankDisplayName(destinationBank)}
               </span>
               <details className="group relative ml-auto shrink-0 md:hidden" ref={bankMenuRef}>
@@ -381,7 +381,7 @@ export function LibrarianPage({
               </details>
             </span>
             <button
-              className="crt-raised-lit inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
+              className="crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50 md:flex-none"
               disabled={isSending || !isDestinationBankLoaded}
               onClick={sendSelectedBank}
               title={
@@ -399,7 +399,7 @@ export function LibrarianPage({
             {/* EDIT burns in the slot LED's amber and names the lit slot, so it reads
                 as acting on that sound rather than on the bank like its neighbours. */}
             <button
-              className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-3 text-xs font-semibold tracking-[0.08em] text-[var(--crt-led)] shadow-[0_0_8px_var(--crt-led-glow)] transition-colors hover:bg-[var(--crt-led)] hover:text-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:border-[var(--crt-line-lt2)] disabled:text-[var(--crt-ink-2)] disabled:opacity-50 disabled:shadow-none"
+              className="inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-[var(--crt-led)] shadow-[0_0_8px_var(--crt-led-glow)] transition-colors hover:bg-[var(--crt-led)] hover:text-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:border-[var(--crt-line-lt2)] disabled:text-[var(--crt-ink-2)] disabled:opacity-50 disabled:shadow-none md:flex-none"
               disabled={!auditionedPatch}
               onClick={() => auditionedPatch && onEditPatch(auditionedPatch)}
               title={
