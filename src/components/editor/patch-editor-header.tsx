@@ -233,7 +233,7 @@ export function PatchEditorHeader({
                   <RefreshCw
                     className={cn(
                       'mt-0.5 size-4 shrink-0',
-                      syncState === 'sending' && 'animate-spin',
+                      syncState === 'sending' && 'motion-safe:animate-spin',
                     )}
                   />
                   <span>

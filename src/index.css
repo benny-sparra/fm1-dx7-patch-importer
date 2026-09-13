@@ -674,6 +674,10 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .midi-switch-track::after {
+      transition: none;
+    }
+
     .peer:disabled ~ .midi-switch-track::after {
       animation: none;
     }
