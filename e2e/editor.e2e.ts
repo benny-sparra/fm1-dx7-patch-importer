@@ -68,21 +68,21 @@ test.describe('operator rack', () => {
     for (const top of tops) expect(Math.abs(top - tops[0])).toBeLessThanOrEqual(1)
   })
 
-  test('drops the open column to a full-width row of its own below xl', async ({ page }) => {
+  test('leads the rack with the open column on a full-width row below xl', async ({ page }) => {
     await page.setViewportSize({ height: 900, width: 1024 })
     await openEditor(page)
 
     const rack = await page.getByRole('group', { name: 'Operators' }).boundingBox()
     const open = await page.locator('.operator-column[data-selected="true"]').boundingBox()
-    const collapsedBottom = await page
+    const collapsedTop = await page
       .locator('.operator-column[data-selected="false"]')
       .evaluateAll((columns) =>
-        Math.max(...columns.map((column) => column.getBoundingClientRect().bottom)),
+        Math.min(...columns.map((column) => column.getBoundingClientRect().top)),
       )
 
     expect(rack).not.toBeNull()
     expect(open).not.toBeNull()
-    expect(open!.y).toBeGreaterThanOrEqual(collapsedBottom)
+    expect(open!.y + open!.height).toBeLessThanOrEqual(collapsedTop)
     expect(open!.width).toBeGreaterThan(rack!.width * 0.9)
   })
 })
@@ -108,9 +108,13 @@ test.describe('rack panel title strip', () => {
     const help = await page.getByRole('button', { name: 'Help: FM operators' }).boundingBox()
     expect(help).not.toBeNull()
 
-    await page.mouse.click(help!.x + help!.width / 2, help!.y + help!.height / 2)
-
+    // Hover opens the help, so reaching it proves the button sits above the
+    // overlay; a click then toggles it, so the fold state is what to check.
+    await page.mouse.move(help!.x + help!.width / 2, help!.y + help!.height / 2)
     await expect(page.getByRole('note')).toBeVisible()
+    await page.mouse.down()
+    await page.mouse.up()
+
     await expect(page.getByRole('button', { name: 'Minimise Operators' })).toHaveAttribute(
       'aria-expanded',
       'true',

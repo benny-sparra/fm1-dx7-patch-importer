@@ -24,8 +24,9 @@ function slotNames(page: Page) {
   )
 }
 
+/** The rail holds the bank menu from md up; below that it sits beside the bank name instead. */
 async function openFirstBankMenu(page: Page) {
-  await page.getByLabel('Actions for DX7 Bank 1').click()
+  await page.getByLabel('Actions for DX7 Bank 1').locator('visible=true').click()
 }
 
 async function openFirstPatch(page: Page) {
