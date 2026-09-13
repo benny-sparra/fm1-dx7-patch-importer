@@ -66,9 +66,9 @@ describe('applyFm1Favicon', () => {
       const svg = readFileSync(path.resolve(`public/favicon-${colorway}.svg`), 'utf8')
 
       expect(svg).toContain(
-        `<rect width="64" height="64" rx="13" fill="${tokenHex(tokens, '--crt-bg-0')}"/>`,
+        `<rect width="64" height="64" rx="13" fill="${tokenHex(tokens, '--crt-acc-br')}"/>`,
       )
-      expect(svg).toContain(`<path fill="${tokenHex(tokens, '--crt-acc-br')}"`)
+      expect(svg).toContain(`stroke="${tokenHex(tokens, '--crt-bg-0')}"`)
     },
   )
 })
