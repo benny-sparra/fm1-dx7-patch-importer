@@ -211,7 +211,8 @@ export function FocusedOperatorPanel({
           id="operator-scaling-heading"
           title={t('ui.keyboardScaling')}
         />
-        <div className="grid grid-cols-2 gap-2 @sm:grid-cols-4">
+        {/* Four across only once each knob has room for its caption. */}
+        <div className="grid grid-cols-2 gap-2 @lg:grid-cols-4">
           {rotaryControl(
             t('ui.breakpoint'),
             'operator.keyboard.breakpoint',

@@ -50,6 +50,8 @@ export function GlobalConfigurationPanel({
   /*
     The artboard's second rack row: algorithm, pitch envelope and the LFO
     side by side beneath the operators, wrapping to a stack when narrow.
+    Below xl the LFO takes a row of its own, since a third of the width
+    leaves its labels no room.
   */
   return (
     <aside
@@ -113,7 +115,7 @@ export function GlobalConfigurationPanel({
 
       <section
         aria-labelledby="lfo-heading"
-        className="synthwave-panel @container flex min-w-[15rem] flex-[1.25_1_0%] flex-col"
+        className="synthwave-panel @container flex min-w-[15rem] flex-[1.25_1_100%] flex-col xl:flex-[1.25_1_0%]"
       >
         <RackPanelTitle icon={Waves} id="lfo-heading" title={t('editor.lfoGlobal')} />
         <div className="grid grid-cols-2 content-start gap-x-3 gap-y-2.5 p-[9px] @sm:grid-cols-3">

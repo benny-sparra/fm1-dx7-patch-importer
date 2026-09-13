@@ -504,6 +504,8 @@ export function OperatorRack({
         const algorithmOperator = dx7Algorithms[algorithm].find(({ id }) => id === operator)
         const role = algorithmOperator ? getDx7OperatorRole(algorithmOperator) : 'modulator'
         const roleLabel = role === 'carrier' ? t('editor.carrier') : t('editor.modulator')
+        const roleShortLabel =
+          role === 'carrier' ? t('editor.carrierShort') : t('editor.modulatorShort')
         const auditionStatus = getOperatorAuditionStatus(operator, mutedOperators, soloOperator)
         const auditionLabel = [
           auditionStatus.muted ? 'muted' : null,
@@ -530,8 +532,10 @@ export function OperatorRack({
           <div
             className={cn(
               'operator-column flex min-w-0 flex-col border-t-2 border-r-2 border-b-2 border-l-2 border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] transition-[flex-grow] duration-200 ease-out motion-reduce:transition-none xl:basis-0',
+              // Until the rack fits on one line, the open operator leads it, so
+              // the columns below still read in number order.
               isSelected
-                ? 'order-last basis-full border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] xl:order-none'
+                ? '-order-1 basis-full border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] xl:order-none'
                 : 'basis-[calc((100%-0.75rem)/3)] border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] sm:basis-[calc((100%-1.5rem)/5)]',
             )}
             data-selected={isSelected}
@@ -552,7 +556,7 @@ export function OperatorRack({
             >
               <span
                 className={cn(
-                  'flex min-w-0 items-center gap-1.5 border-b border-[var(--crt-shadow)] px-[7px] py-1.5',
+                  '@container/operator-head flex min-w-0 items-center gap-1.5 border-b border-[var(--crt-shadow)] px-[7px] py-1.5',
                   isSelected ? 'bg-[var(--crt-sel-bg)]' : 'bg-[var(--crt-bg-head)]',
                 )}
               >
@@ -572,7 +576,13 @@ export function OperatorRack({
                         : 'border-[var(--crt-line)] text-[var(--crt-ink-3)]',
                   )}
                 >
-                  {roleLabel}
+                  {/* Narrow columns shorten the role rather than clip it. */}
+                  <span aria-hidden="true" className="@[7.5rem]/operator-head:hidden">
+                    {roleShortLabel}
+                  </span>
+                  <span aria-hidden="true" className="hidden @[7.5rem]/operator-head:inline">
+                    {roleLabel}
+                  </span>
                 </span>
               </span>
 

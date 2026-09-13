@@ -1060,6 +1060,13 @@
     box-shadow: none;
   }
 
+  /* The meter stays slim, but a fingertip gets a taller strip to land on. */
+  @media (pointer: coarse) {
+    input[type='range'] {
+      min-height: 1.5rem;
+    }
+  }
+
   /*
    * The track is a segmented LED meter: a striped fill between the range's
    * start and end, masked back to the well on either side.

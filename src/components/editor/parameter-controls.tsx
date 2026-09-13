@@ -105,7 +105,7 @@ export function RotaryParameterControl({
   return (
     <div className={cn('grid min-w-0 justify-items-center gap-1', captionClass)}>
       <span className="flex max-w-full min-w-0 items-center gap-1">
-        <span className="truncate" title={label}>
+        <span className="min-w-0 text-balance break-words" title={label}>
           {label}
         </span>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
@@ -236,7 +236,7 @@ export function SliderParameterControl({
   return (
     <label className={cn('grid min-w-0 gap-1', captionClass)}>
       <span className="flex min-w-0 items-center gap-1 overflow-hidden">
-        <span className="min-w-0 truncate" title={label}>
+        <span className="min-w-0 text-balance break-words" title={label}>
           {label}
         </span>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
@@ -282,7 +282,7 @@ export function SwitchParameterControl({
   return (
     <div className={cn('grid min-w-0 content-start gap-1', captionClass)}>
       <span className="flex min-w-0 items-center gap-1">
-        <span className="truncate" title={label}>
+        <span className="min-w-0 text-balance break-words" title={label}>
           {label}
         </span>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
@@ -388,7 +388,7 @@ export function ParameterControl({
   return (
     <label className={cn('grid min-w-0 gap-1', captionClass)}>
       <span className="flex min-w-0 items-center gap-1">
-        <span className="truncate" title={label}>
+        <span className="min-w-0 text-balance break-words" title={label}>
           {label}
         </span>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}

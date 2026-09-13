@@ -81,6 +81,28 @@ export function EnvelopeEditor({
     onChange(nextRate, nextLevel, point)
   }
 
+  const pointerHandlers = (point: number) => ({
+    onPointerCancel: () => {
+      activePointer.current = null
+      onGestureEnd()
+    },
+    onPointerDown: (event: PointerEvent<SVGRectElement>) => {
+      activePointer.current = event.pointerId
+      event.currentTarget.setPointerCapture(event.pointerId)
+      onGestureStart()
+      updateFromPointer(event, point)
+    },
+    onPointerMove: (event: PointerEvent<SVGRectElement>) => {
+      if (activePointer.current === event.pointerId) updateFromPointer(event, point)
+    },
+    onPointerUp: (event: PointerEvent<SVGRectElement>) => {
+      if (activePointer.current !== event.pointerId) return
+      activePointer.current = null
+      event.currentTarget.releasePointerCapture(event.pointerId)
+      onGestureEnd()
+    },
+  })
+
   const pointPosition = variant === 'pitch' ? pitchEnvelopePointPosition : envelopePointPosition
   const fillBaseline = variant === 'pitch' ? pitchEnvelopePointPosition(0, 50, 0).y : plotBottom
   const points = rates.map((rate, index) => pointPosition(rate, levels[index], index))
@@ -179,6 +201,18 @@ export function EnvelopeEditor({
               >
                 {index + 1}
               </text>
+              {/* The drawn square is small once the plot scales down, so an
+                  invisible square around it takes the grab as well. */}
+              <rect
+                aria-hidden="true"
+                className="cursor-grab active:cursor-grabbing"
+                fill="transparent"
+                height="36"
+                width="36"
+                x={point.x - 18}
+                y={point.y - 18}
+                {...pointerHandlers(index)}
+              />
               <rect
                 aria-label={`${title} point ${index + 1}`}
                 aria-valuemax={99}
@@ -189,25 +223,7 @@ export function EnvelopeEditor({
                 fill="var(--crt-bg-well)"
                 height="12"
                 onKeyDown={(event) => handleKeyDown(event, index)}
-                onPointerCancel={() => {
-                  activePointer.current = null
-                  onGestureEnd()
-                }}
-                onPointerDown={(event) => {
-                  activePointer.current = event.pointerId
-                  event.currentTarget.setPointerCapture(event.pointerId)
-                  onGestureStart()
-                  updateFromPointer(event, index)
-                }}
-                onPointerMove={(event) => {
-                  if (activePointer.current === event.pointerId) updateFromPointer(event, index)
-                }}
-                onPointerUp={(event) => {
-                  if (activePointer.current !== event.pointerId) return
-                  activePointer.current = null
-                  event.currentTarget.releasePointerCapture(event.pointerId)
-                  onGestureEnd()
-                }}
+                {...pointerHandlers(index)}
                 role="slider"
                 stroke={color}
                 strokeWidth="2"
