@@ -189,7 +189,9 @@ open everything an earlier release could have saved.
   `useKeyboardShortcuts`. Widget keyboard behaviour (rotary controls, envelope points, the piano
   keyboard, the bank list) stays with the widget that owns it.
 - A shortcut must yield to whatever already owns the keyboard: an open native dialog, a text field
-  for bare keys, and an open menu for Escape. Modified shortcuts still run while typing.
+  for bare keys, and an open menu for Escape. Modified shortcuts still run while typing, and while
+  only a dialog marked `data-plain-keys-only` (the floating piano keyboard) is open. A widget that
+  claims plain keys must ignore Ctrl, Command, and Alt presses and close on Escape.
 - Shortcut definitions are the single source: button tooltips and the help dialog read them, so they
   cannot drift. When a shortcut is added, changed, or removed, update the help dialog listing, the
   locale keys, and the README keyboard shortcut list in the same change.

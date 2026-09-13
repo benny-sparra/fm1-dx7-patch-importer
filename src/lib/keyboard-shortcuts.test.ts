@@ -101,6 +101,24 @@ describe('shouldRunShortcut', () => {
     )
   })
 
+  it('lets modified shortcuts through a dialog that only claims plain keys', () => {
+    appendElement('<dialog open data-plain-keys-only></dialog>')
+
+    expect(shouldRunShortcut(keyEvent({ key: 's', metaKey: true }), editorShortcuts.save)).toBe(
+      true,
+    )
+    expect(shouldRunShortcut(keyEvent({ key: 'Escape' }), editorShortcuts.back)).toBe(false)
+  })
+
+  it('yields a modified shortcut when an ordinary dialog is also open', () => {
+    appendElement('<dialog open data-plain-keys-only></dialog>')
+    appendElement('<dialog open></dialog>')
+
+    expect(shouldRunShortcut(keyEvent({ key: 's', metaKey: true }), editorShortcuts.save)).toBe(
+      false,
+    )
+  })
+
   it('still saves while the patch name field has focus', () => {
     const nameField = appendElement('<input />')
 

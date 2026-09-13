@@ -40,6 +40,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
   const { t } = useTranslation()
   const { startNote: sendMidiNoteOn, stopNote: sendMidiNoteOff } = midi
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
   const dragOffsetRef = useRef<{ x: number; y: number } | null>(null)
   const activeNotesRef = useRef<Set<number>>(new Set())
   const activeComputerKeysRef = useRef<Map<string, number>>(new Map())
@@ -64,11 +65,6 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
       setDialogPosition(null)
       dialog.show()
     }
-  }
-
-  function closeDialog() {
-    releaseAllNotes()
-    dialogRef.current?.close()
   }
 
   const playNote = useCallback(
@@ -104,6 +100,12 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
     setActiveNotes(new Set())
   }, [sendMidiNoteOff])
 
+  const closeKeyboard = useCallback(() => {
+    releaseAllNotes()
+    dialogRef.current?.close()
+    triggerRef.current?.focus()
+  }, [releaseAllNotes])
+
   const shiftOctave = useCallback(
     (direction: -1 | 1) => {
       releaseAllNotes()
@@ -129,8 +131,38 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
       return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'))
     }
 
+    // A dialog opened over the keyboard owns key presses until it closes.
+    function isCoveredByAnotherDialog() {
+      return Array.from(document.querySelectorAll('dialog[open]')).some(
+        (dialog) => dialog !== dialogRef.current,
+      )
+    }
+
+    function releaseComputerKeyNotes() {
+      activeComputerKeysRef.current.forEach((note) => releaseNote(note))
+      activeComputerKeysRef.current = new Map()
+    }
+
     function handleKeyDown(event: KeyboardEvent) {
-      if (!dialogRef.current?.open || isEditableTarget(event.target)) {
+      if (
+        !dialogRef.current?.open ||
+        isEditableTarget(event.target) ||
+        isCoveredByAnotherDialog()
+      ) {
+        return
+      }
+
+      // Modified presses belong to the browser and the view's shortcuts. macOS
+      // also drops the key-up of a letter released while Command is held, so a
+      // held note is released here rather than left sounding.
+      if (event.ctrlKey || event.metaKey || event.altKey) {
+        releaseComputerKeyNotes()
+        return
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeKeyboard()
         return
       }
 
@@ -183,7 +215,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
     }
-  }, [computerKeys, playNote, releaseNote, shiftOctave])
+  }, [closeKeyboard, computerKeys, playNote, releaseNote, shiftOctave])
 
   function startDrag(event: React.PointerEvent<HTMLDivElement>) {
     const dialog = dialogRef.current
@@ -271,6 +303,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
         className="font-vt323 ml-auto"
         disabled={!midi.hasMidiOutput}
         onClick={openDialog}
+        ref={triggerRef}
         title={
           !midi.midiAccess
             ? t('midi.switchOnFirst')
@@ -288,6 +321,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
       <dialog
         aria-label={t('ui.pianoKeyboard')}
         className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1010px,calc(100vw-1rem))] overflow-auto rounded-xl bg-card p-0 whitespace-normal text-card-foreground"
+        data-plain-keys-only
         onCancel={releaseAllNotes}
         onClose={releaseAllNotes}
         ref={dialogRef}
@@ -325,7 +359,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
           <Button
             aria-label={t('ui.closeKeyboard')}
             autoFocus
-            onClick={closeDialog}
+            onClick={closeKeyboard}
             onMouseDown={(event) => event.stopPropagation()}
             onPointerDown={(event) => event.stopPropagation()}
             size="icon"
