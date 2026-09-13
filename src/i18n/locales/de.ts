@@ -272,6 +272,7 @@ export default {
     intro: 'FM1-Sounds bearbeiten, organisieren und übertragen oder DX7-SysEx-Bänke importieren.',
     synthAlt: 'Vorderseite des M-VAVE FM1 Synthesizers',
     unsupportedTitle: 'Nicht unterstützter Browser.',
+    unsupportedMobileTitle: 'Mobilgeräte werden nicht unterstützt.',
     unsupportedBody:
       'Dieser Librarian benötigt für Web MIDI und SysEx einen Chromium-basierten Browser wie Chrome, Edge oder Opera auf einem Desktop-Computer. Smartphones und Tablets werden nicht unterstützt.',
     localOnly: 'Deine Sounds bleiben in diesem Browser',

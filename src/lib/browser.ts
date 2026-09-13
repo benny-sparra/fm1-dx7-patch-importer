@@ -30,16 +30,22 @@ export function isMobileDevice(navigatorObject: Navigator = navigator) {
   return mobileUserAgentPattern.test(navigatorObject.userAgent)
 }
 
+export type UnsupportedBrowserReason = 'mobile' | 'browser'
+
 // Phones and tablets are unsupported even where they expose Web MIDI, as Chrome on Android does.
 // An insecure page hides Web MIDI even in a capable browser; that case has its own message, so only
 // a secure page without Web MIDI counts against the browser.
-export function isUnsupportedMidiBrowser(
+export function getUnsupportedBrowserReason(
   navigatorObject: Navigator = navigator,
   isSecureContext: boolean = window.isSecureContext,
-) {
-  if (isMobileDevice(navigatorObject) || !isChromiumBrowser(navigatorObject)) {
-    return true
+): UnsupportedBrowserReason | undefined {
+  if (isMobileDevice(navigatorObject)) {
+    return 'mobile'
   }
 
-  return isSecureContext && !('requestMIDIAccess' in navigatorObject)
+  if (!isChromiumBrowser(navigatorObject)) {
+    return 'browser'
+  }
+
+  return isSecureContext && !('requestMIDIAccess' in navigatorObject) ? 'browser' : undefined
 }

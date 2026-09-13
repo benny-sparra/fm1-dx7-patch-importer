@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { isChromiumBrowser, isMobileDevice, isUnsupportedMidiBrowser } from './browser'
+import { getUnsupportedBrowserReason, isChromiumBrowser, isMobileDevice } from './browser'
 
 const userAgents = {
   androidChrome:
@@ -9,6 +9,8 @@ const userAgents = {
     'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
   desktopChrome:
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+  desktopSafari:
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
   desktopEdge:
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0',
   iosChrome:
@@ -65,30 +67,40 @@ describe('isMobileDevice', () => {
   })
 })
 
-describe('isUnsupportedMidiBrowser', () => {
-  it('flags Android Chrome as unsupported even though it exposes Web MIDI', () => {
-    expect(isUnsupportedMidiBrowser(fakeNavigator(userAgents.androidChrome), true)).toBe(true)
-  })
-
-  it('accepts a Chromium browser that exposes Web MIDI', () => {
-    expect(isUnsupportedMidiBrowser(fakeNavigator(userAgents.desktopChrome), true)).toBe(false)
-  })
-
-  it('flags iOS Chrome as unsupported', () => {
+describe('getUnsupportedBrowserReason', () => {
+  it('accepts a desktop Chromium browser that exposes Web MIDI', () => {
     expect(
-      isUnsupportedMidiBrowser(fakeNavigator(userAgents.iosChrome, { midi: false }), true),
-    ).toBe(true)
+      getUnsupportedBrowserReason(fakeNavigator(userAgents.desktopChrome), true),
+    ).toBeUndefined()
   })
 
-  it('flags a Chromium-branded browser without Web MIDI on a secure page', () => {
+  it('reports Android Chrome as a mobile device even though it exposes Web MIDI', () => {
+    expect(getUnsupportedBrowserReason(fakeNavigator(userAgents.androidChrome), true)).toBe(
+      'mobile',
+    )
+  })
+
+  it('reports iOS Chrome as a mobile device', () => {
     expect(
-      isUnsupportedMidiBrowser(fakeNavigator(userAgents.desktopChrome, { midi: false }), true),
-    ).toBe(true)
+      getUnsupportedBrowserReason(fakeNavigator(userAgents.iosChrome, { midi: false }), true),
+    ).toBe('mobile')
+  })
+
+  it('reports a desktop browser that is not Chromium as an unsupported browser', () => {
+    expect(
+      getUnsupportedBrowserReason(fakeNavigator(userAgents.desktopSafari, { midi: false }), true),
+    ).toBe('browser')
+  })
+
+  it('reports a Chromium-branded browser without Web MIDI on a secure page as unsupported', () => {
+    expect(
+      getUnsupportedBrowserReason(fakeNavigator(userAgents.desktopChrome, { midi: false }), true),
+    ).toBe('browser')
   })
 
   it('leaves an insecure Chromium page to the insecure-context message', () => {
     expect(
-      isUnsupportedMidiBrowser(fakeNavigator(userAgents.desktopChrome, { midi: false }), false),
-    ).toBe(false)
+      getUnsupportedBrowserReason(fakeNavigator(userAgents.desktopChrome, { midi: false }), false),
+    ).toBeUndefined()
   })
 })

@@ -268,6 +268,7 @@ export default {
     intro: 'Edite, organize e transfira sons do FM1 ou importe bancos SysEx do DX7.',
     synthAlt: 'Painel frontal do sintetizador M-VAVE FM1',
     unsupportedTitle: 'Navegador não compatível.',
+    unsupportedMobileTitle: 'Dispositivos móveis não são compatíveis.',
     unsupportedBody:
       'Este bibliotecário precisa de um navegador baseado em Chromium, como Chrome, Edge ou Opera, em um computador desktop para oferecer suporte a Web MIDI e SysEx. Celulares e tablets não são compatíveis.',
     localOnly: 'Seus sons ficam neste navegador',

@@ -241,6 +241,7 @@ export default {
     intro: '编辑、整理和传输 FM1 音色，或导入 DX7 SysEx 音色库。',
     synthAlt: 'M-VAVE FM1 合成器前面板',
     unsupportedTitle: '不支持的浏览器。',
+    unsupportedMobileTitle: '不支持移动设备。',
     unsupportedBody:
       '此音色库工具需要使用 Chrome、Edge 或 Opera 等基于 Chromium 的浏览器，并在桌面电脑上运行，才能支持 Web MIDI 和 SysEx。不支持手机和平板电脑。',
     localOnly: '您的音色仅保存在此浏览器中',

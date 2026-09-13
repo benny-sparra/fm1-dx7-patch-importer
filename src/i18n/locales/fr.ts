@@ -271,6 +271,7 @@ export default {
     intro: 'Modifiez, organisez et transférez les sons du FM1, ou importez des banques SysEx DX7.',
     synthAlt: 'Panneau avant du synthétiseur M-VAVE FM1',
     unsupportedTitle: 'Navigateur non pris en charge.',
+    unsupportedMobileTitle: 'Les appareils mobiles ne sont pas pris en charge.',
     unsupportedBody:
       'Ce bibliothécaire nécessite un navigateur basé sur Chromium, comme Chrome, Edge ou Opera, sur un ordinateur de bureau pour la prise en charge de Web MIDI et SysEx. Les téléphones et tablettes ne sont pas pris en charge.',
     localOnly: 'Vos sons restent dans ce navigateur',
