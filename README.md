@@ -115,8 +115,13 @@ slot as a click would, and opens the slot that is already lit. The toolbar's **E
 remains the signposted way in.
 
 Individual controls keep their own keyboard behaviour. Rotary controls and envelope points respond
-to the arrow keys, `Home`, `End`, `Page Up`, and `Page Down`; the bank tabs and the patch grid
-support arrow-key navigation and keyboard drag-and-drop.
+to the arrow keys, `Home`, `End`, `Page Up`, and `Page Down`, and the bank tabs move with the arrow
+keys.
+
+The patch grid is a single tab stop. The arrow keys move between slots, following the rows as the
+grid reflows, and `Home` and `End` jump to the first and last slot. Moving only changes which slot
+has focus: because selecting one sends a Program Change and plays it on the FM1, that waits for
+`Enter`. Each slot's grip handle stays separately reachable for keyboard reordering.
 
 The on-screen piano plays from the computer keyboard while it is open, using the usual two-row
 layout: `A`, `W`, `S`, `E`, `D`, `F`, `T`, `G`, `Y`, `H`, `U`, `J`, `K` from the root note upwards,

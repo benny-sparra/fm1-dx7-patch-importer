@@ -418,3 +418,157 @@ describe('LibrarianPage keyboard shortcuts', () => {
     expect(onEditPatch).not.toHaveBeenCalled()
   })
 })
+
+describe('LibrarianPage grid navigation', () => {
+  // layOutInColumns patches a prototype, which would otherwise outlive its test.
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  const gridPatches = Array.from({ length: 6 }, (_, index) => ({
+    bank: 'A',
+    family: 'Keys',
+    id: `bank-A-${index + 1}`,
+    name: `Slot ${index + 1}`,
+    number: index + 1,
+    program: index,
+  }))
+
+  const gridLibrary = {
+    ...library,
+    patches: gridPatches,
+  } as unknown as PatchLibrary
+
+  function renderGrid(activePatchId = '') {
+    const onSelectPatch = vi.fn()
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId={activePatchId}
+          library={gridLibrary}
+          midi={midi}
+          onEditPatch={vi.fn()}
+          onSelectPatch={onSelectPatch}
+        />
+      </ToastProvider>,
+    )
+
+    return { onSelectPatch, user: userEvent.setup() }
+  }
+
+  const slot = (number: number) =>
+    screen.getByRole('button', { name: `Send Slot ${number} to FM1` })
+
+  /** jsdom does no layout, so the row geometry has to be supplied. */
+  function layOutInColumns(columns: number) {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const match = this.getAttribute('aria-label')?.match(/Send Slot (\d+) to FM1/)
+      const row = match ? Math.floor((Number(match[1]) - 1) / columns) : 0
+
+      return { top: row * 40 } as DOMRect
+    })
+  }
+
+  it('makes the grid a single tab stop', () => {
+    renderGrid()
+
+    expect(slot(1).getAttribute('tabindex')).toBe('0')
+    expect(slot(2).getAttribute('tabindex')).toBe('-1')
+    expect(slot(6).getAttribute('tabindex')).toBe('-1')
+  })
+
+  it('opens the tab stop on the lit slot', () => {
+    renderGrid('bank-A-4')
+
+    expect(slot(4).getAttribute('tabindex')).toBe('0')
+    expect(slot(1).getAttribute('tabindex')).toBe('-1')
+  })
+
+  it('steps along the row with the arrow keys', async () => {
+    const { user } = renderGrid()
+
+    slot(1).focus()
+    await user.keyboard('{ArrowRight}')
+    expect(document.activeElement).toBe(slot(2))
+
+    await user.keyboard('{ArrowLeft}')
+    expect(document.activeElement).toBe(slot(1))
+  })
+
+  it('moves the tab stop to the slot the arrows reached', async () => {
+    const { user } = renderGrid()
+
+    slot(1).focus()
+    await user.keyboard('{ArrowRight}')
+
+    expect(slot(2).getAttribute('tabindex')).toBe('0')
+    expect(slot(1).getAttribute('tabindex')).toBe('-1')
+  })
+
+  it('does not play a slot the arrows move onto', async () => {
+    const { onSelectPatch, user } = renderGrid()
+
+    slot(1).focus()
+    await user.keyboard('{ArrowRight}{ArrowRight}{End}')
+
+    expect(onSelectPatch).not.toHaveBeenCalled()
+  })
+
+  it('stops at the ends of the grid rather than wrapping', async () => {
+    const { user } = renderGrid()
+
+    slot(1).focus()
+    await user.keyboard('{ArrowLeft}')
+    expect(document.activeElement).toBe(slot(1))
+
+    slot(6).focus()
+    await user.keyboard('{ArrowRight}')
+    expect(document.activeElement).toBe(slot(6))
+  })
+
+  it('jumps to the first and last slot', async () => {
+    const { user } = renderGrid()
+
+    slot(3).focus()
+    await user.keyboard('{End}')
+    expect(document.activeElement).toBe(slot(6))
+
+    await user.keyboard('{Home}')
+    expect(document.activeElement).toBe(slot(1))
+  })
+
+  it('steps a whole row at a time from the rendered layout', async () => {
+    layOutInColumns(3)
+    const { user } = renderGrid()
+
+    slot(2).focus()
+    await user.keyboard('{ArrowDown}')
+    expect(document.activeElement).toBe(slot(5))
+
+    await user.keyboard('{ArrowUp}')
+    expect(document.activeElement).toBe(slot(2))
+  })
+
+  it('still opens the lit slot on Enter after arrowing to it', async () => {
+    const onEditPatch = vi.fn()
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId="bank-A-2"
+          library={gridLibrary}
+          midi={midi}
+          onEditPatch={onEditPatch}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+    const user = userEvent.setup()
+
+    slot(1).focus()
+    await user.keyboard('{ArrowRight}{Enter}')
+
+    expect(onEditPatch).toHaveBeenCalledWith(gridPatches[1])
+  })
+})

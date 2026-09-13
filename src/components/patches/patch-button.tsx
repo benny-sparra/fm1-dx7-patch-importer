@@ -1,7 +1,7 @@
 import { useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { type Patch } from '@/data/patches'
@@ -13,8 +13,13 @@ type PatchButtonProps = {
   disabledTitle?: string
   isActive?: boolean
   onEdit?: (patch: Patch) => void
+  /** Arrow-key navigation across the grid, owned by the grid itself. */
+  onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
   onSelect?: (patch: Patch) => void
   patch: Patch
+  registerButton?: (patchId: string, button: HTMLButtonElement | null) => void
+  /** The grid is one tab stop: only its roving slot is reachable with Tab. */
+  tabIndex?: number
 }
 
 const animateWhileSorting: AnimateLayoutChanges = ({ isSorting }) => isSorting
@@ -24,8 +29,11 @@ export function PatchButton({
   disabledTitle,
   isActive = false,
   onEdit,
+  onNavigate,
   onSelect,
   patch,
+  registerButton,
+  tabIndex,
 }: PatchButtonProps) {
   const { t } = useTranslation()
   // Set by a click and cleared when the selection animation finishes, so the
@@ -79,12 +87,17 @@ export function PatchButton({
           }}
           onDoubleClick={() => onEdit?.(patch)}
           onKeyDown={(event) => {
-            if (!matchesShortcut(event, librarianShortcuts.openSlot)) return
-            if (!isActive || !onEdit) return
-            // Claim the key so it does not also fire the button's own click.
-            event.preventDefault()
-            onEdit(patch)
+            if (matchesShortcut(event, librarianShortcuts.openSlot)) {
+              if (!isActive || !onEdit) return
+              // Claim the key so it does not also fire the button's own click.
+              event.preventDefault()
+              onEdit(patch)
+              return
+            }
+            onNavigate?.(event, patch)
           }}
+          ref={(button) => registerButton?.(patch.id, button)}
+          tabIndex={tabIndex}
           title={
             isActive
               ? t('banks.slotEditTitle', { name: patch.name })

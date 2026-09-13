@@ -13,13 +13,26 @@ import {
   SortableContext,
 } from '@dnd-kit/sortable'
 import { FileMusic, Search } from 'lucide-react'
-import { useMemo, type ReactNode, type RefObject, type SVGProps } from 'react'
+import {
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+  type RefObject,
+  type SVGProps,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
 import { formatShortcut, isApplePlatform, librarianShortcuts } from '@/lib/keyboard-shortcuts'
+import {
+  countGridColumns,
+  isGridNavigationKey,
+  resolveGridNavigation,
+} from '@/lib/patch-grid-navigation'
 
 import { PatchButton } from './patch-button'
 
@@ -76,6 +89,39 @@ export function PatchGrid({
 }: PatchGridProps) {
   const { t } = useTranslation()
   const searchHint = useMemo(() => formatShortcut(librarianShortcuts.search, isApplePlatform()), [])
+  const slotRefs = useRef(new Map<string, HTMLButtonElement>())
+  const [focusedPatchId, setFocusedPatchId] = useState('')
+  // The grid is a single tab stop. It opens on the lit slot so Tab lands where
+  // the user last was, and follows the arrows from there.
+  const rovingPatchId = [focusedPatchId, activePatchId].find((candidate) =>
+    patches.some((patch) => patch.id === candidate),
+  )
+  const rovingSlot = rovingPatchId ?? patches[0]?.id
+
+  const registerSlot = (patchId: string, button: HTMLButtonElement | null) => {
+    if (button) slotRefs.current.set(patchId, button)
+    else slotRefs.current.delete(patchId)
+  }
+
+  const navigateSlots = (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => {
+    if (!isGridNavigationKey(event.key)) return
+    // A disabled slot renders no button, so the order comes from what is there.
+    const slotIds = patches.map(({ id }) => id).filter((id) => slotRefs.current.has(id))
+    const index = slotIds.indexOf(patch.id)
+    if (index === -1) return
+
+    // Claimed even when the edge stops the move, so the panel does not scroll.
+    event.preventDefault()
+    const columns = countGridColumns(
+      slotIds.map((id) => slotRefs.current.get(id)?.getBoundingClientRect().top ?? 0),
+    )
+    const nextId = slotIds[resolveGridNavigation(event.key, index, slotIds.length, columns)]
+    if (nextId === patch.id) return
+
+    setFocusedPatchId(nextId)
+    slotRefs.current.get(nextId)?.focus()
+  }
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -160,9 +206,12 @@ export function PatchGrid({
                             disabled={isPatchDisabled(patch)}
                             disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
                             onEdit={onPatchEdit}
+                            onNavigate={navigateSlots}
                             onSelect={onPatchSelect}
                             patch={patch}
                             isActive={patch.id === activePatchId}
+                            registerButton={registerSlot}
+                            tabIndex={patch.id === rovingSlot ? 0 : -1}
                           />
                         </div>
                       ))}
