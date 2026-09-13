@@ -175,6 +175,19 @@ files when that is clearer.
 - Add or update the smallest appropriate automated coverage whenever new functionality, behaviour,
   regression path, or browser integration is introduced. Use Playwright for browser-only journeys
   that cannot be faithfully covered by Vitest; keep hardware MIDI validation fixture-based.
+- Treat tests as part of the feature, not a follow-up: a commit that adds a module, component, or
+  interaction adds its coverage in the same change. In particular:
+  - Data tables such as presets get a `src/lib/` test for their invariants: unique ids, parameter
+    ranges, and any rule their comments promise.
+  - An edit that writes several parameters at once needs a rendered test that it lands and reverses
+    as a single undo step.
+  - A new scope, meter, or other decorative visual gets a rendered test alongside its siblings (see
+    `effect-scopes.test.tsx` and `lfo-scope.test.tsx`): it redraws when its inputs change, dims when
+    inactive, and stays `aria-hidden`. Shared animation helpers keep their reduced-motion test.
+  - A label that keeps its width by hiding alternate text needs a test that the accessible name
+    reads only the current state.
+  - Hit areas, overlays, and stacking done in CSS cannot be checked in jsdom; cover the click
+    behaviour, including anything that must stay clickable above the overlay, in Playwright.
 - Run a focused test while developing, then run the complete validation before handoff.
 
 ## Validation

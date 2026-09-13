@@ -11,6 +11,7 @@ import {
   DistortionScope,
   FilterScope,
   phaserPath,
+  PhaserScope,
   reverbEnvelope,
   ReverbScope,
 } from '@/components/editor/effect-scopes'
@@ -81,5 +82,16 @@ describe('effect scopes', () => {
     expect(
       screen.getByTestId('reverb-scope').querySelector('g[opacity]')?.getAttribute('opacity'),
     ).toBe('0.4')
+  })
+
+  it('draws the phaser response and dims it while bypassed', () => {
+    const { rerender } = render(<PhaserScope depth={50} enabled={false} frequency={50} mix={0} />)
+    const scope = screen.getByTestId('phaser-scope')
+    const shallow = screen.getByTestId('phaser-trace').getAttribute('d')
+    expect(scope.querySelector('g[opacity]')?.getAttribute('opacity')).toBe('0.4')
+
+    rerender(<PhaserScope depth={50} enabled frequency={50} mix={100} />)
+    expect(scope.querySelector('g[opacity]')?.getAttribute('opacity')).toBe('1')
+    expect(screen.getByTestId('phaser-trace').getAttribute('d')).not.toBe(shallow)
   })
 })

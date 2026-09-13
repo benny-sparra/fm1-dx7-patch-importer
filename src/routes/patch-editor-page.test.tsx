@@ -128,6 +128,31 @@ describe('PatchEditorPage MIDI paths', () => {
     ).toBe('42')
   })
 
+  // Selecting an option and undoing over the full editor runs past the default
+  // 5s timeout when the whole suite runs in parallel, so it gets its own.
+  it('applies a pitch envelope preset as a single undo step', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const presets = screen.getByRole('combobox', { name: 'Presets' })
+    const envelopeValues = () =>
+      [1, 2, 3, 4].flatMap((point) => [
+        (screen.getByLabelText(`Pitch envelope rate ${point}`) as HTMLInputElement).value,
+        (screen.getByLabelText(`Pitch envelope level ${point}`) as HTMLInputElement).value,
+      ])
+    const before = envelopeValues()
+
+    await user.selectOptions(presets, 'Attack drop')
+
+    expect(envelopeValues()).toEqual(['99', '74', '55', '50', '99', '50', '99', '50'])
+    // The dropdown is a starting point rather than a mode, so it resets.
+    expect((presets as HTMLSelectElement).value).toBe('')
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(envelopeValues()).toEqual(before)
+  }, 15_000)
+
   it('stays local and explains the unavailable SysEx connection without attempting initial sync', async () => {
     const { midi } = setup({ sysexAvailable: false })
 

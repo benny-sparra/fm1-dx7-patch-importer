@@ -87,6 +87,37 @@ test.describe('operator rack', () => {
   })
 })
 
+test.describe('rack panel title strip', () => {
+  // The collapse toggle's hit area is a CSS overlay across the strip, which
+  // only a real browser lays out, so these clicks land by position.
+  test('folds the panel from anywhere on its title', async ({ page }) => {
+    await openEditor(page)
+    const title = await page.locator('#operators-heading').boundingBox()
+    expect(title).not.toBeNull()
+
+    await page.mouse.click(title!.x + title!.width / 2, title!.y + title!.height / 2)
+
+    await expect(page.getByRole('button', { name: 'Expand Operators' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+  })
+
+  test('opens the title help without folding the panel', async ({ page }) => {
+    await openEditor(page)
+    const help = await page.getByRole('button', { name: 'Help: FM operators' }).boundingBox()
+    expect(help).not.toBeNull()
+
+    await page.mouse.click(help!.x + help!.width / 2, help!.y + help!.height / 2)
+
+    await expect(page.getByRole('note')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Minimise Operators' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+  })
+})
+
 test.describe('algorithm picker', () => {
   test('chooses an algorithm and closes', async ({ page }) => {
     await openEditor(page)
