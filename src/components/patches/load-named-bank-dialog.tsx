@@ -235,8 +235,16 @@ export function LoadNamedBankDialog({
                           <Button
                             disabled={workingId !== ''}
                             onClick={() => {
-                              library.loadSavedBank(bank, destinationBank)
-                              dialogRef.current?.close()
+                              try {
+                                library.loadSavedBank(bank, destinationBank)
+                                dialogRef.current?.close()
+                              } catch (cause) {
+                                setError(
+                                  cause instanceof Error
+                                    ? cause.message
+                                    : t('namedBanks.operationFailed'),
+                                )
+                              }
                             }}
                             size="sm"
                             type="button"

@@ -51,6 +51,13 @@ export function usePatchLibrary() {
     past: [],
     present: emptyPatchLibrary(),
   })
+  // Mirrors the latest history ahead of React's render, so each change is worked out where its
+  // caller can catch a failure, and back-to-back changes in one event build on each other.
+  const historyRef = useRef(history)
+  const replaceHistory = useCallback((next: History) => {
+    historyRef.current = next
+    setHistory(next)
+  }, [])
   const [namedBanks, setNamedBanks] = useState<NamedBank[]>([])
   const [hasDamagedNamedBanks, setHasDamagedNamedBanks] = useState(false)
   const [namedBanksError, setNamedBanksError] = useState('')
@@ -84,11 +91,9 @@ export function usePatchLibrary() {
           : null
       },
       onWorkspaceLoaded: (workspace) => {
-        setHistory({
-          future: [],
-          past: [],
-          present: workspace,
-        })
+        const loaded = { future: [], past: [], present: workspace }
+        historyRef.current = loaded
+        setHistory(loaded)
       },
       save: saveStoredPatchLibrary,
     })
@@ -162,17 +167,19 @@ export function usePatchLibrary() {
     persistenceController.current?.retrySaving()
   }, [])
 
-  const commit = useCallback((update: (current: PatchLibrarySnapshot) => PatchLibrarySnapshot) => {
-    setHistory((current) => {
+  const commit = useCallback(
+    (update: (current: PatchLibrarySnapshot) => PatchLibrarySnapshot) => {
+      const current = historyRef.current
       const next = update(current.present)
-      if (next === current.present) return current
-      return {
+      if (next === current.present) return
+      replaceHistory({
         future: [],
         past: [...current.past, current.present].slice(-historyLimit),
         present: next,
-      }
-    })
-  }, [])
+      })
+    },
+    [replaceHistory],
+  )
 
   const importBank = useCallback(
     async (bank: string, file: File) => {
@@ -316,28 +323,26 @@ export function usePatchLibrary() {
   }, [])
 
   const undo = useCallback(() => {
-    setHistory((current) => {
-      const previous = current.past.at(-1)
-      if (!previous) return current
-      return {
-        future: [current.present, ...current.future],
-        past: current.past.slice(0, -1),
-        present: previous,
-      }
+    const current = historyRef.current
+    const previous = current.past.at(-1)
+    if (!previous) return
+    replaceHistory({
+      future: [current.present, ...current.future],
+      past: current.past.slice(0, -1),
+      present: previous,
     })
-  }, [])
+  }, [replaceHistory])
 
   const redo = useCallback(() => {
-    setHistory((current) => {
-      const next = current.future[0]
-      if (!next) return current
-      return {
-        future: current.future.slice(1),
-        past: [...current.past, current.present].slice(-historyLimit),
-        present: next,
-      }
+    const current = historyRef.current
+    const next = current.future[0]
+    if (!next) return
+    replaceHistory({
+      future: current.future.slice(1),
+      past: [...current.past, current.present].slice(-historyLimit),
+      present: next,
     })
-  }, [])
+  }, [replaceHistory])
 
   const patches = useMemo(() => makePatches(history.present), [history.present])
   const getBankVoices = useCallback(

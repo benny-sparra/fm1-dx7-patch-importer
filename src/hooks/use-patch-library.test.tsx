@@ -109,3 +109,50 @@ describe('usePatchLibrary saved banks', () => {
     expect(hook.result.current.namedBanksError).toBe('')
   })
 })
+
+describe('usePatchLibrary changes', () => {
+  it('lets the caller catch a change that fails and leaves the workspace unchanged', async () => {
+    const hook = await renderLoadedLibrary()
+    const banksBefore = hook.result.current.workspaceBanks
+    let caught: unknown
+
+    act(() => {
+      try {
+        hook.result.current.addBank('Z', 'Stage', '', makeDemoVoices())
+      } catch (error) {
+        caught = error
+      }
+    })
+
+    expect(caught).toBeInstanceOf(Error)
+    expect((caught as Error).message).toContain('no longer available')
+    expect(hook.result.current.workspaceBanks).toEqual(banksBefore)
+    expect(hook.result.current.canUndo).toBe(false)
+  })
+
+  it('builds back-to-back changes in one event on top of each other', async () => {
+    const hook = await renderLoadedLibrary()
+
+    act(() => {
+      hook.result.current.renameBank('A', 'Stage')
+      hook.result.current.renameBank('B', 'Studio')
+    })
+
+    expect(hook.result.current.bankNames).toEqual({ A: 'Stage', B: 'Studio' })
+  })
+
+  it('undoes and redoes back-to-back steps in order', async () => {
+    const hook = await renderLoadedLibrary()
+    act(() => hook.result.current.renameBank('A', 'Stage'))
+    act(() => hook.result.current.renameBank('B', 'Studio'))
+
+    act(() => {
+      hook.result.current.undo()
+      hook.result.current.undo()
+    })
+    expect(hook.result.current.bankNames).toEqual({})
+
+    act(() => hook.result.current.redo())
+    expect(hook.result.current.bankNames).toEqual({ A: 'Stage' })
+  })
+})
