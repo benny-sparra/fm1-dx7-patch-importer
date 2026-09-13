@@ -458,10 +458,117 @@ describe('WorkspacePersistenceController', () => {
   })
 })
 
+describe('WorkspacePersistenceController.flushPendingSave', () => {
+  it('writes an edit waiting for autosave immediately', async () => {
+    vi.useFakeTimers()
+    const initial = makeFactoryPatchLibrary()
+    const edit = importVoices(initial, 'A', makeDemoVoices())
+    const save = vi.fn(async () => {})
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => initial,
+      save,
+    })
+
+    controller.start()
+    await flushPromises()
+    controller.updateWorkspace(edit)
+    controller.flushPendingSave()
+
+    expect(save).toHaveBeenCalledExactlyOnceWith(edit)
+    await flushPromises()
+    await vi.runAllTimersAsync()
+    expect(save).toHaveBeenCalledOnce()
+    expect(controller.getState()).toMatchObject({ hasUnsavedChanges: false, status: 'ready' })
+  })
+
+  it('does not write when no edit is waiting', async () => {
+    const save = vi.fn(async () => {})
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => makeFactoryPatchLibrary(),
+      save,
+    })
+
+    controller.start()
+    await flushPromises()
+    controller.flushPendingSave()
+
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('leaves a failed save for an explicit retry', async () => {
+    vi.useFakeTimers()
+    const initial = makeFactoryPatchLibrary()
+    const save = vi.fn().mockRejectedValue(new Error('Quota exceeded'))
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => initial,
+      save,
+    })
+
+    controller.start()
+    await flushPromises()
+    controller.updateWorkspace(importVoices(initial, 'A', makeDemoVoices()))
+    await vi.advanceTimersByTimeAsync(350)
+    await flushPromises()
+    controller.updateWorkspace(importVoices(initial, 'B', makeDemoVoices()))
+    controller.flushPendingSave()
+
+    expect(save).toHaveBeenCalledOnce()
+    expect(controller.getState().status).toBe('save-error')
+  })
+
+  it('never writes a session-only workspace', async () => {
+    const save = vi.fn(async () => {})
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => {
+        throw new Error('Storage unavailable')
+      },
+      save,
+    })
+
+    controller.start()
+    await flushPromises()
+    controller.continueWithoutSaving()
+    await flushPromises()
+    const workspace = controller.getState().workspace!
+    controller.updateWorkspace(importVoices(workspace, 'A', makeDemoVoices()))
+    controller.flushPendingSave()
+
+    expect(controller.getState().status).toBe('session-only')
+    expect(save).not.toHaveBeenCalled()
+  })
+})
+
 describe('shouldWarnBeforeUnload', () => {
-  it('warns only while a save failure still leaves changes unpersisted', () => {
-    expect(shouldWarnBeforeUnload({ hasSaveFailure: true, hasUnsavedChanges: true })).toBe(true)
-    expect(shouldWarnBeforeUnload({ hasSaveFailure: true, hasUnsavedChanges: false })).toBe(false)
-    expect(shouldWarnBeforeUnload({ hasSaveFailure: false, hasUnsavedChanges: true })).toBe(false)
+  it('warns while a failed save leaves changes unpersisted', () => {
+    expect(
+      shouldWarnBeforeUnload({
+        hasSaveFailure: true,
+        hasUnsavedChanges: true,
+        status: 'save-error',
+      }),
+    ).toBe(true)
+  })
+
+  it('warns while an edit is waiting for its save to commit', () => {
+    expect(
+      shouldWarnBeforeUnload({ hasSaveFailure: false, hasUnsavedChanges: true, status: 'saving' }),
+    ).toBe(true)
+  })
+
+  it('does not warn once changes are saved or when the workspace is session-only', () => {
+    expect(
+      shouldWarnBeforeUnload({ hasSaveFailure: false, hasUnsavedChanges: false, status: 'ready' }),
+    ).toBe(false)
+    expect(
+      shouldWarnBeforeUnload({
+        hasSaveFailure: false,
+        hasUnsavedChanges: true,
+        status: 'session-only',
+      }),
+    ).toBe(false)
   })
 })

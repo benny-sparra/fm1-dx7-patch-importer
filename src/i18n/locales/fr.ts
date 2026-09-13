@@ -565,6 +565,8 @@ export default {
     deleteAction: 'Supprimer la banque',
     deleteConfirm: 'Supprimer définitivement « {{name}} » de ce navigateur ?',
     operationFailed: 'L’opération sur la banque enregistrée a échoué.',
+    damagedBanks:
+      'Certaines banques enregistrées sont illisibles et ont été masquées. Elles restent intactes dans le stockage du navigateur.',
     saved: '« {{name}} » enregistrée.',
     updated: '« {{name}} » mise à jour.',
     downloaded: '« {{name}} » téléchargée.',

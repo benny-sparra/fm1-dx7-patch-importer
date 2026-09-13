@@ -52,6 +52,7 @@ export function usePatchLibrary() {
     present: emptyPatchLibrary(),
   })
   const [namedBanks, setNamedBanks] = useState<NamedBank[]>([])
+  const [hasDamagedNamedBanks, setHasDamagedNamedBanks] = useState(false)
   const [namedBanksError, setNamedBanksError] = useState('')
   const [namedBanksLoading, setNamedBanksLoading] = useState(true)
   const [persistence, setPersistence] = useState<WorkspacePersistenceState>({
@@ -104,8 +105,10 @@ export function usePatchLibrary() {
   useEffect(() => {
     let cancelled = false
     void listStoredNamedBanks()
-      .then((banks) => {
-        if (!cancelled) setNamedBanks(banks)
+      .then(({ banks, damagedCount }) => {
+        if (cancelled) return
+        setNamedBanks(banks)
+        setHasDamagedNamedBanks(damagedCount > 0)
       })
       .catch((error) => {
         if (!cancelled)
@@ -132,6 +135,20 @@ export function usePatchLibrary() {
     window.addEventListener('beforeunload', warnBeforeUnload)
     return () => window.removeEventListener('beforeunload', warnBeforeUnload)
   }, [persistence])
+
+  useEffect(() => {
+    // Autosave waits for edits to settle, so write straight away when the page may be closing.
+    const flushPendingSave = () => persistenceController.current?.flushPendingSave()
+    const flushWhenHidden = () => {
+      if (document.visibilityState === 'hidden') flushPendingSave()
+    }
+    window.addEventListener('pagehide', flushPendingSave)
+    document.addEventListener('visibilitychange', flushWhenHidden)
+    return () => {
+      window.removeEventListener('pagehide', flushPendingSave)
+      document.removeEventListener('visibilitychange', flushWhenHidden)
+    }
+  }, [])
 
   const retryWorkspaceLoading = useCallback(() => {
     persistenceController.current?.retryLoading()
@@ -337,6 +354,7 @@ export function usePatchLibrary() {
     deleteNamedBank,
     deleteBank,
     getBankVoices,
+    hasDamagedNamedBanks,
     importBank,
     loadDemoBank,
     loadSavedBank,

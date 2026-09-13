@@ -1,4 +1,4 @@
-import { type Dx7Voice } from '@/lib/dx7'
+import { normalizeStoredDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { type NamedBank, validateNamedBank } from '@/lib/named-bank'
 import {
@@ -134,6 +134,21 @@ async function runTransaction<T>(
   })
 }
 
+function normalizeStoredVoices(voices: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(voices).map(([id, value]) => {
+      const voice = normalizeStoredDx7Voice(value)
+      if (!voice) {
+        throw new PatchLibraryStorageError(
+          'incompatible',
+          'The saved patch library contains an unreadable voice.',
+        )
+      }
+      return [id, voice]
+    }),
+  )
+}
+
 export async function loadStoredPatchLibrary() {
   let stored:
     | StoredPatchLibrary
@@ -212,14 +227,16 @@ export async function loadStoredPatchLibrary() {
           .map(([bank, name]) => [bank, name.trim().slice(0, workspaceBankTitleLength).trimEnd()])
           .filter(([, name]) => Boolean(name)),
       ),
-      effects: Object.fromEntries(
-        Object.keys(stored.voices).map((id) => [id, normalizeFm1Effects(storedEffects[id])]),
-      ),
+      effects: storedEffects,
       loadedBanks: stored.loadedBanks.filter((bank) => workspaceBanks.includes(bank)),
       voices: stored.voices,
       workspaceBanks,
     })
-    return { ...compacted, savedAt: stored.savedAt, version: 5 as const }
+    const voices = normalizeStoredVoices(compacted.voices)
+    const effects = Object.fromEntries(
+      Object.keys(voices).map((id) => [id, normalizeFm1Effects(compacted.effects[id])]),
+    )
+    return { ...compacted, effects, savedAt: stored.savedAt, version: 5 as const, voices }
   } catch (error) {
     throw asStorageError(
       error,
@@ -248,22 +265,32 @@ export async function saveStoredPatchLibrary(
   }
 }
 
+/**
+ * Lists every readable saved bank. A damaged record is counted rather than failing the whole list,
+ * and it stays in storage unchanged so a later release can still recover it.
+ */
 export async function listStoredNamedBanks() {
-  let banks: NamedBank[]
+  let records: unknown[]
   try {
-    banks = await runTransaction<NamedBank[]>(namedBankStoreName, 'readonly', (store) =>
+    records = await runTransaction<unknown[]>(namedBankStoreName, 'readonly', (store) =>
       store.getAll(),
     )
   } catch (error) {
     throw asStorageError(error, 'read-failed', 'The saved banks could not be read.')
   }
 
-  try {
-    banks.forEach(validateNamedBank)
-  } catch (error) {
-    throw asStorageError(error, 'incompatible', 'A saved bank is incompatible or damaged.')
+  const banks: NamedBank[] = []
+  let damagedCount = 0
+  for (const record of records) {
+    try {
+      validateNamedBank(record)
+      banks.push(record)
+    } catch {
+      damagedCount += 1
+    }
   }
-  return banks.sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+  banks.sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+  return { banks, damagedCount }
 }
 
 export async function saveStoredNamedBank(bank: NamedBank) {

@@ -557,6 +557,8 @@ export default {
     deleteAction: 'Delete bank',
     deleteConfirm: 'Permanently delete “{{name}}” from this browser?',
     operationFailed: 'The saved-bank operation failed.',
+    damagedBanks:
+      'Some saved banks could not be read, so they are hidden. They remain unchanged in browser storage.',
     saved: 'Saved “{{name}}”.',
     updated: 'Updated “{{name}}”.',
     downloaded: 'Downloaded “{{name}}”.',

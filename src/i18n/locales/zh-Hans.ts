@@ -519,6 +519,7 @@ export default {
     deleteAction: '删除音色库',
     deleteConfirm: '要从此浏览器永久删除“{{name}}”吗？',
     operationFailed: '已保存音色库的操作失败。',
+    damagedBanks: '部分已保存的音色库无法读取，已被隐藏。它们仍原样保存在浏览器存储中。',
     saved: '已保存“{{name}}”。',
     updated: '已更新“{{name}}”。',
     downloaded: '已下载“{{name}}”。',

@@ -54,4 +54,20 @@ describe('NamedBankLibraryDialog boundaries', () => {
     expect(document.activeElement).toBe(search)
     expect(screen.getByRole('heading', { name: 'My saved banks' })).toBeTruthy()
   })
+
+  it('tells the user when damaged saved banks are hidden from the list', async () => {
+    const user = userEvent.setup()
+    render(
+      <NamedBankLibraryDialog
+        destinationBank="A"
+        library={{ ...library, hasDamagedNamedBanks: true }}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Load bank' }))
+    expect(
+      screen.getByText(
+        'Some saved banks could not be read, so they are hidden. They remain unchanged in browser storage.',
+      ),
+    ).toBeTruthy()
+  })
 })

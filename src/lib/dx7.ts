@@ -29,6 +29,34 @@ function dx7Checksum(bytes: Uint8Array) {
   return (128 - (bytes.reduce((sum, byte) => sum + byte, 0) & 0x7f)) & 0x7f
 }
 
+function isSevenBitData(bytes: Uint8Array) {
+  return bytes.every((byte) => byte <= 0x7f)
+}
+
+function assertPackedVoice(voice: Dx7Voice) {
+  if (voice.data.length !== dx7PackedVoiceSize) {
+    throw new Error(
+      `Expected a ${dx7PackedVoiceSize}-byte packed DX7 voice; received ${voice.data.length} bytes.`,
+    )
+  }
+  if (!isSevenBitData(voice.data)) {
+    throw new Error('Packed DX7 voice data must contain only 7-bit values.')
+  }
+}
+
+/**
+ * Reads a voice as an earlier release saved it in browser storage. Bytes above seven bits are
+ * masked to the range a DX7 voice can carry; anything that is not a packed voice returns null.
+ */
+export function normalizeStoredDx7Voice(value: unknown): Dx7Voice | null {
+  if (!value || typeof value !== 'object') return null
+  const { data, name } = value as Partial<Dx7Voice>
+  if (!(data instanceof Uint8Array) || data.length !== dx7PackedVoiceSize) return null
+
+  const normalized = isSevenBitData(data) ? data : data.map((byte) => byte & 0x7f)
+  return { data: normalized, name: typeof name === 'string' ? name : decodeVoiceName(normalized) }
+}
+
 export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
   const bytes = new Uint8Array(file)
   if (bytes.length !== dx7BankFileSize) {
@@ -45,6 +73,9 @@ export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
     throw new Error('This is not a Yamaha DX7 32-voice bulk SysEx bank.')
   }
   const voiceData = bytes.slice(6, 6 + dx7BankDataSize)
+  if (!isSevenBitData(voiceData)) {
+    throw new Error('The DX7 bank contains data bytes outside the 7-bit MIDI range.')
+  }
   const checksum = dx7Checksum(voiceData)
   if (checksum !== bytes.at(-2)) throw new Error('The DX7 bank checksum is invalid.')
 
@@ -152,11 +183,7 @@ export function packDx7Voice(unpacked: Uint8Array): Dx7Voice {
 
 /** Yamaha DX7 single-voice bulk dump, excluding the F0/43 manufacturer prefix and F7 terminator. */
 export function makeDx7SingleVoicePayload(voice: Dx7Voice, channel = 1) {
-  if (voice.data.length !== dx7PackedVoiceSize) {
-    throw new Error(
-      `Expected a ${dx7PackedVoiceSize}-byte packed DX7 voice; received ${voice.data.length} bytes.`,
-    )
-  }
+  assertPackedVoice(voice)
   const data = unpackDx7Voice(voice)
   const checksum = dx7Checksum(data)
 
@@ -168,6 +195,7 @@ export function makeDx7BankPayload(voices: Dx7Voice[], channel = 1) {
   if (voices.length !== dx7BankVoiceCount) {
     throw new Error(`A DX7 bank must contain exactly ${dx7BankVoiceCount} voices.`)
   }
+  voices.forEach(assertPackedVoice)
 
   const data = Uint8Array.from(voices.flatMap((voice) => Array.from(voice.data)))
   const checksum = dx7Checksum(data)

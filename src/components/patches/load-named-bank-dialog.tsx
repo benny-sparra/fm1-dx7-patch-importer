@@ -199,6 +199,12 @@ export function LoadNamedBankDialog({
                 />
               </div>
 
+              {library.hasDamagedNamedBanks ? (
+                <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                  {t('namedBanks.damagedBanks')}
+                </p>
+              ) : null}
+
               {library.namedBanksLoading ? (
                 <p className="rounded-md border p-4 text-sm text-muted-foreground">
                   {t('namedBanks.loading')}

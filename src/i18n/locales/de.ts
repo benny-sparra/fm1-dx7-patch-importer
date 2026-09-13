@@ -564,6 +564,8 @@ export default {
     deleteAction: 'Bank löschen',
     deleteConfirm: '„{{name}}“ dauerhaft aus diesem Browser löschen?',
     operationFailed: 'Der Vorgang für die gespeicherte Bank ist fehlgeschlagen.',
+    damagedBanks:
+      'Einige gespeicherte Bänke konnten nicht gelesen werden und sind ausgeblendet. Sie bleiben unverändert im Browserspeicher.',
     saved: '„{{name}}“ gespeichert.',
     updated: '„{{name}}“ aktualisiert.',
     downloaded: '„{{name}}“ heruntergeladen.',

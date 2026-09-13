@@ -558,6 +558,8 @@ export default {
     deleteAction: 'Excluir banco',
     deleteConfirm: 'Excluir “{{name}}” permanentemente deste navegador?',
     operationFailed: 'A operação do banco salvo falhou.',
+    damagedBanks:
+      'Alguns bancos salvos não puderam ser lidos e foram ocultados. Eles permanecem intactos no armazenamento do navegador.',
     saved: '“{{name}}” salvo.',
     updated: '“{{name}}” atualizado.',
     downloaded: '“{{name}}” baixado.',

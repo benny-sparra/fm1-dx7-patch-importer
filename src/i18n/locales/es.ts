@@ -559,6 +559,8 @@ export default {
     deleteAction: 'Eliminar banco',
     deleteConfirm: '¿Eliminar permanentemente “{{name}}” de este navegador?',
     operationFailed: 'La operación del banco guardado ha fallado.',
+    damagedBanks:
+      'Algunos bancos guardados no se pudieron leer y se han ocultado. Siguen intactos en el almacenamiento del navegador.',
     saved: '“{{name}}” guardado.',
     updated: '“{{name}}” actualizado.',
     downloaded: '“{{name}}” descargado.',
