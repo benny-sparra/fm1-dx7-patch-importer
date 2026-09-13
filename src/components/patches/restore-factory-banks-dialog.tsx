@@ -81,7 +81,7 @@ export function RestoreFactoryBanksDialog({
       <DialogFooter>
         <Button disabled={working} onClick={() => void restore()} type="button">
           <RotateCcw />
-          {working ? t('banks.importing') : t('dialogs.restoreAction')}
+          {working ? t('banks.restoring') : t('dialogs.restoreAction')}
         </Button>
       </DialogFooter>
     </Dialog>

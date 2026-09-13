@@ -497,6 +497,8 @@ export default {
     transferred: 'Transferred',
     changed: 'Changed',
     importing: 'Importing…',
+    restoring: 'Restoring…',
+    catalogFactory: 'Factory',
     import: 'Import DX7 bank',
     moreActions: 'More bank file actions',
     bankMenu: 'Actions for {{bank}}',

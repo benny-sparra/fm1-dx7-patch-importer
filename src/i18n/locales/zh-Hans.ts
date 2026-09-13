@@ -470,6 +470,8 @@ export default {
     transferred: '已传输',
     changed: '已更改',
     importing: '正在导入…',
+    restoring: '正在恢复…',
+    catalogFactory: '出厂音色',
     import: '导入 DX7 音色库',
     moreActions: '更多音色库操作',
     bankMenu: '{{bank}} 操作',

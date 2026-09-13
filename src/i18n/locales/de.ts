@@ -513,6 +513,8 @@ export default {
     transferred: 'Übertragen',
     changed: 'Geändert',
     importing: 'Importieren…',
+    restoring: 'Wird wiederhergestellt…',
+    catalogFactory: 'Werkssounds',
     import: 'DX7-Bank importieren',
     moreActions: 'Weitere Bankdatei-Aktionen',
     bankMenu: 'Aktionen für {{bank}}',

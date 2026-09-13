@@ -58,7 +58,7 @@ describe('RestoreFactoryBanksDialog', () => {
     dialogRef.current?.showModal()
 
     await user.click(screen.getByRole('button', { name: 'Restore four banks' }))
-    expect(screen.getByRole('button', { name: 'Importing…' })).toHaveProperty('disabled', true)
+    expect(screen.getByRole('button', { name: 'Restoring…' })).toHaveProperty('disabled', true)
     expect(onRestore).toHaveBeenCalledOnce()
 
     finishRestore()

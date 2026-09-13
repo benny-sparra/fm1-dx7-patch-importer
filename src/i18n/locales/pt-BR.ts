@@ -509,6 +509,8 @@ export default {
     transferred: 'Transferido',
     changed: 'Alterado',
     importing: 'Importando…',
+    restoring: 'Restaurando…',
+    catalogFactory: 'Sons de fábrica',
     import: 'Importar banco DX7',
     moreActions: 'Mais ações de banco',
     bankMenu: 'Ações para {{bank}}',

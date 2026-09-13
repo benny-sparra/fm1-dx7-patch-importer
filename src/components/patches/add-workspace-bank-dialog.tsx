@@ -227,7 +227,10 @@ export function AddWorkspaceBankDialog({
                 >
                   <option value="">{t('banks.chooseCatalogBank')}</option>
                   {(['Factory', 'VRC Voice ROMs', 'Grey Matter E!'] as const).map((category) => (
-                    <optgroup key={category} label={category}>
+                    <optgroup
+                      key={category}
+                      label={category === 'Factory' ? t('banks.catalogFactory') : category}
+                    >
                       {dx7BankCatalog
                         .filter((catalogBank) => catalogBank.category === category)
                         .map((catalogBank) => (
