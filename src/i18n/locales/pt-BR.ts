@@ -270,7 +270,7 @@ export default {
     unsupportedTitle: 'Navegador não compatível.',
     unsupportedMobileTitle: 'Dispositivos móveis não são compatíveis.',
     unsupportedBody:
-      'Este bibliotecário precisa de um navegador baseado em Chromium, como Chrome, Edge ou Opera, em um computador desktop para oferecer suporte a Web MIDI e SysEx. Celulares e tablets não são compatíveis.',
+      'Este bibliotecário precisa de um navegador baseado em Chromium, como Chrome, Edge ou Opera, em um computador desktop para usar Web MIDI e SysEx. Celulares e tablets não são compatíveis.',
     localOnly: 'Seus sons ficam neste navegador',
     requires: 'Requer Chrome/Edge e Web MIDI',
     projectLinks: 'Links do projeto',

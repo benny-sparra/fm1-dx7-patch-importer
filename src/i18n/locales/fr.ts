@@ -273,7 +273,7 @@ export default {
     unsupportedTitle: 'Navigateur non pris en charge.',
     unsupportedMobileTitle: 'Les appareils mobiles ne sont pas pris en charge.',
     unsupportedBody:
-      'Ce bibliothécaire nécessite un navigateur basé sur Chromium, comme Chrome, Edge ou Opera, sur un ordinateur de bureau pour la prise en charge de Web MIDI et SysEx. Les téléphones et tablettes ne sont pas pris en charge.',
+      'Ce bibliothécaire nécessite un navigateur basé sur Chromium, comme Chrome, Edge ou Opera, sur un ordinateur de bureau pour utiliser Web MIDI et SysEx. Les téléphones et les tablettes ne sont pas pris en charge.',
     localOnly: 'Vos sons restent dans ce navigateur',
     requires: 'Nécessite Chrome/Edge et Web MIDI',
     projectLinks: 'Liens du projet',
