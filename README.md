@@ -138,7 +138,8 @@ sent. The interface links to [Umami's privacy policy](https://umami.is/privacy).
 
 ## Error monitoring
 
-Production builds load the official Sentry React SDK in a recoverable dynamic chunk and report
+Production builds load the official Sentry React SDK in a recoverable dynamic chunk once the page
+has finished loading and the browser is idle, keeping it off the critical rendering path, and report
 unhandled browser and React errors to the project's EU Sentry endpoint. Sentry structured logging is
 enabled for future fixed, non-user-authored diagnostic messages. Performance tracing, application
 metrics, and session replay are disabled.

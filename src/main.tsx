@@ -7,6 +7,7 @@ import { i18nReady } from './i18n'
 import App from './App.tsx'
 import { ToastProvider } from './components/ui/toast.tsx'
 import { initializeMonitoring, type MonitoringRootOptions } from './lib/monitoring.ts'
+import { runWhenIdle } from './lib/run-when-idle.ts'
 
 void i18nReady.then(() => {
   let monitoringRootOptions: MonitoringRootOptions = {}
@@ -28,7 +29,10 @@ void i18nReady.then(() => {
     </StrictMode>,
   )
 
-  void initializeMonitoring().then((options) => {
-    monitoringRootOptions = options
+  // The Sentry SDK is optional, so download it only once the page has loaded and gone idle.
+  runWhenIdle(() => {
+    void initializeMonitoring().then((options) => {
+      monitoringRootOptions = options
+    })
   })
 })
