@@ -269,7 +269,6 @@ export default {
     unsupportedBody:
       'This librarian needs a Chromium-based browser such as Chrome, Edge, or Opera for Web MIDI and SysEx support.',
     localOnly: 'Your patches stay in this browser',
-    analytics: 'Anonymous usage analytics',
     requires: 'Requires Chrome/Edge and Web MIDI',
     projectLinks: 'Project links',
     reportIssue: 'Report an issue',

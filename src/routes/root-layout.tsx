@@ -127,17 +127,6 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 •
               </span>
               <span>{t('root.requires')}</span>
-              <span aria-hidden="true" className="text-white/25">
-                •
-              </span>
-              <a
-                className="transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                href="https://umami.is/privacy"
-                rel="noreferrer"
-                target="_blank"
-              >
-                {t('root.analytics')}
-              </a>
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
