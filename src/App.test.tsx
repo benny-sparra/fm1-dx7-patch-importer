@@ -140,3 +140,45 @@ describe('App slot audition', () => {
     expect(sendVoice).not.toHaveBeenCalled()
   })
 })
+
+describe('App added bank audition repeats', () => {
+  function renderApp() {
+    render(
+      <ToastProvider>
+        <App />
+      </ToastProvider>,
+    )
+    return userEvent.setup()
+  }
+
+  it('does not resend an unchanged added bank sound when its slot is clicked again', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Pad' }))
+    await user.click(screen.getByRole('button', { name: 'Play Pad' }))
+
+    expect(sendVoice).toHaveBeenCalledOnce()
+  })
+
+  it('sends the added bank sound again after another slot replaced the edit buffer', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Pad' }))
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+    await user.click(screen.getByRole('button', { name: 'Play Pad' }))
+
+    expect(sendVoice).toHaveBeenCalledTimes(2)
+  })
+
+  it('tries again when an added bank sound did not reach the FM1', async () => {
+    sendVoice.mockResolvedValueOnce(false)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Pad' }))
+    await waitFor(() => expect(sendVoice).toHaveBeenCalledOnce())
+    await user.click(screen.getByRole('button', { name: 'Play Pad' }))
+
+    expect(sendVoice).toHaveBeenCalledTimes(2)
+    expect(sendEffectSettings).toHaveBeenCalledOnce()
+  })
+})

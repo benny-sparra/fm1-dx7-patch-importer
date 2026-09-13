@@ -1,4 +1,12 @@
-import { lazy, Suspense, type ComponentProps, type CSSProperties, useEffect, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  type ComponentProps,
+  type CSSProperties,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useMidi } from '@/hooks/use-midi'
@@ -6,6 +14,7 @@ import { usePatchLibrary } from '@/hooks/use-patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { RootLayout } from '@/routes/root-layout'
 import { type Patch } from '@/data/patches'
+import { type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import {
@@ -36,6 +45,14 @@ function App() {
     return recoveryPatchId
   })
   const [auditionedPatchId, setAuditionedPatchId] = useState('')
+  // What the last added-bank audition put in the FM1 edit buffer, so clicking the same unchanged
+  // sound again, as a double-click does, does not send it twice. Anything else that replaces the
+  // edit buffer clears it.
+  const editBufferAudition = useRef<{
+    effects: Uint8Array | undefined
+    outputId: string
+    voice: Dx7Voice
+  } | null>(null)
   const selectedPatch = library.patches.find((patch) => patch.id === selectedPatchId)
   const selectedVoice = selectedPatch ? library.voices[selectedPatch.id] : undefined
   const findPatch = (patchId: string) =>
@@ -44,14 +61,30 @@ function App() {
   // auditioned through the edit buffer instead, with its effects, just as the editor sends it.
   const auditionPatch = (patch: Patch) => {
     if (patch.program !== undefined) {
+      editBufferAudition.current = null
       midi.sendProgramChange(patch.program)
       return
     }
     const voice = library.voices[patch.id]
     if (!voice) return
-    const effects = normalizeFm1Effects(library.effects[patch.id])
+    const storedEffects = library.effects[patch.id]
+    const previous = editBufferAudition.current
+    if (
+      previous?.voice === voice &&
+      previous.effects === storedEffects &&
+      previous.outputId === midi.selectedOutputId
+    ) {
+      return
+    }
+    const audition = { effects: storedEffects, outputId: midi.selectedOutputId, voice }
+    editBufferAudition.current = audition
     void midi.sendVoice(voice).then((sent) => {
-      if (sent) void midi.sendEffectSettings(effects)
+      if (!sent) {
+        // Let the next click try again rather than assume the sound arrived.
+        if (editBufferAudition.current === audition) editBufferAudition.current = null
+        return
+      }
+      void midi.sendEffectSettings(normalizeFm1Effects(storedEffects))
     })
   }
   const selectPatch = (patchId: string) => {
@@ -65,6 +98,7 @@ function App() {
     if (!patch) return
     // The editor sends an added bank's sound itself as it opens, so only a slot in banks A–D is
     // selected on the way in.
+    editBufferAudition.current = null
     if (patch.program !== undefined) midi.sendProgramChange(patch.program)
     setAuditionedPatchId(patch.id)
     beginDynamicImportRecovery(patch.id)

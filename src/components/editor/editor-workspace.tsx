@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp, type LucideIcon, RadioTower, Route } from 'luci
 import { type ReactNode, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { dx7Algorithms, getDx7OperatorRole, type Dx7AlgorithmOperator } from '@/lib/dx7-algorithms'
 import {
@@ -405,7 +406,7 @@ export function AlgorithmPanel({
           onBlur={onFeedbackGestureEnd}
           onChange={(event) => onFeedbackChange(Number(event.target.value))}
           onKeyDown={(event) => {
-            if (rangeKeys.includes(event.key)) onFeedbackGestureStart()
+            if (rangeControlKeys.includes(event.key)) onFeedbackGestureStart()
           }}
           onKeyUp={onFeedbackGestureEnd}
           onPointerCancel={onFeedbackGestureEnd}
@@ -423,17 +424,6 @@ export function AlgorithmPanel({
     </section>
   )
 }
-
-const rangeKeys = [
-  'ArrowDown',
-  'ArrowLeft',
-  'ArrowRight',
-  'ArrowUp',
-  'End',
-  'Home',
-  'PageDown',
-  'PageUp',
-]
 
 type OperatorRackProps = {
   algorithm: number
@@ -711,7 +701,7 @@ export function OperatorRack({
                 onBlur={onGestureEnd}
                 onChange={(event) => onOutputChange(operator, Number(event.target.value))}
                 onKeyDown={(event) => {
-                  if (rangeKeys.includes(event.key)) onGestureStart()
+                  if (rangeControlKeys.includes(event.key)) onGestureStart()
                 }}
                 onKeyUp={onGestureEnd}
                 onPointerCancel={onGestureEnd}
