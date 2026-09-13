@@ -111,14 +111,14 @@ export function PatchButton({
           {...sortable.attributes}
           {...sortable.listeners}
           aria-label={t('banks.reorder', { name: patch.name })}
-          className="z-[1] -mr-1 shrink-0 cursor-grab text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] active:cursor-grabbing"
+          className="z-[1] -my-1 -mr-2 -ml-1 grid size-6 shrink-0 cursor-grab place-items-center text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] active:cursor-grabbing"
           title={t('banks.reorderTitle')}
           type="button"
         >
           <GripVertical aria-hidden="true" className="size-3.5" />
         </button>
       ) : (
-        <span aria-hidden="true" className="-mr-1 shrink-0 text-[var(--crt-line-dk)]">
+        <span aria-hidden="true" className="-my-1 -mr-2 -ml-1 grid size-6 shrink-0 place-items-center text-[var(--crt-line-dk)]">
           <GripVertical className="size-3.5" />
         </span>
       )}

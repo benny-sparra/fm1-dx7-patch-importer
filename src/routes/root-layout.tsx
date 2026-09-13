@@ -60,9 +60,9 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 <span className="synthwave-hero-accent">{t('root.subtitle')}</span>
               </h1>
               {!compact ? (
-                <p className="hero-supporting-text text-xs leading-5">
+                <div className="hero-supporting-text text-xs leading-5">
                   {t('root.intro')} <Dx7BankSourcesDialog />
-                </p>
+                </div>
               ) : null}
             </div>
 

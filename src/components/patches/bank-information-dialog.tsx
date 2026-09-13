@@ -1,5 +1,5 @@
 import { Info } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,8 @@ export function BankInformationDialog({
 }: BankInformationDialogProps) {
   const { t } = useTranslation()
   const toast = useToast()
+  const titleId = useId()
+  const descriptionId = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const [description, setDescription] = useState('')
@@ -61,8 +63,8 @@ export function BankInformationDialog({
       </button>
 
       <Dialog
-        aria-describedby="bank-information-description"
-        aria-labelledby="bank-information-title"
+        aria-describedby={descriptionId}
+        aria-labelledby={titleId}
         onClose={() => {
           reset()
           onClose()
@@ -71,13 +73,13 @@ export function BankInformationDialog({
         size="xl"
       >
         <DialogHeader>
-          <DialogTitle id="bank-information-title">{t('banks.bankInformation')}</DialogTitle>
+          <DialogTitle id={titleId}>{t('banks.bankInformation')}</DialogTitle>
           <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />
         </DialogHeader>
         <DialogBody>
           <p
             className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]"
-            id="bank-information-description"
+            id={descriptionId}
           >
             {t('banks.bankInformationHelp')}
           </p>
