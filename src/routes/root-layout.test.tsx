@@ -21,7 +21,7 @@ const midi = {
   connectMidi: vi.fn(),
   disconnectMidi: vi.fn(),
   effectChannel: 2,
-  error: '',
+  error: null,
   inputs: [],
   isConnecting: false,
   logStore: {

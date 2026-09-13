@@ -434,6 +434,16 @@ export default {
     switchOnFirst: 'Switch MIDI on first',
     closeSysexWarning: 'Close SysEx warning',
     connecting: 'Connecting…',
+    errors: {
+      insecureContext:
+        'Web MIDI needs a secure connection. Open the editor over HTTPS or localhost.',
+      unsupportedBrowser:
+        'This browser does not support Web MIDI. Use a desktop Chromium browser such as Chrome or Edge.',
+      permissionDenied:
+        'MIDI access was blocked. Allow MIDI and SysEx access for this site, then connect again.',
+      enableFailed: 'MIDI could not be started. Check the device connection, then try again.',
+      disconnectFailed: 'MIDI could not be disconnected. Try again.',
+    },
     reconnectForSysex: 'Reconnect MIDI with SysEx',
     sysexRecovery:
       'No bank data has been sent. Reconnect MIDI and approve SysEx access before trying again.',
@@ -503,6 +513,16 @@ export default {
       '{{name}} is in the FM1 edit buffer. Hold SAVE on the FM1 to store it in the current slot.',
     soundNotSent: 'The sound was not sent. Connect a SysEx-capable MIDI output and retry.',
     importFailed: 'Import failed.',
+    restoreFailed: 'The factory banks could not be restored. Try again.',
+    bankUnavailable: 'That workspace bank is no longer available. Close this dialog and try again.',
+    catalogUnavailable:
+      'That sound bank could not be downloaded. Check your connection, then try again.',
+    fileErrors: {
+      size: 'This file is {{bytes}} bytes. A DX7 bank file must be exactly 4,104 bytes.',
+      format: 'This file is not a Yamaha DX7 32-voice bank.',
+      highBitData: 'This file contains values a DX7 bank cannot hold, so it may be damaged.',
+      checksum: 'This bank failed its checksum, so it may be damaged or incomplete.',
+    },
     exportFailed: 'Export failed.',
     bulkExportFailed: 'Bulk export failed.',
     gridTitle: 'Patch banks',
@@ -557,6 +577,7 @@ export default {
     deleteAction: 'Delete bank',
     deleteConfirm: 'Permanently delete “{{name}}” from this browser?',
     operationFailed: 'The saved-bank operation failed.',
+    loadFailed: 'Saved banks could not be loaded from browser storage.',
     damagedBanks:
       'Some saved banks could not be read, so they are hidden. They remain unchanged in browser storage.',
     saved: 'Saved “{{name}}”.',

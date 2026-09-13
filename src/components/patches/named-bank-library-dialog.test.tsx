@@ -8,7 +8,12 @@ import '@/i18n'
 import { NamedBankLibraryDialog } from '@/components/patches/named-bank-library-dialog'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { createNamedBank } from '@/lib/named-bank'
-import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
+import {
+  emptyPatchLibrary,
+  importVoices,
+  makeDemoVoices,
+  WorkspaceBankUnavailableError,
+} from '@/lib/patch-library'
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
@@ -30,7 +35,7 @@ const library = {
   bankNames: { A: 'Current Bank' },
   loadedBanks: ['A'],
   namedBanks: [],
-  namedBanksError: '',
+  namedBanksLoadFailed: false,
   namedBanksLoading: false,
   saveNamedBank: vi.fn(async () => undefined),
 } as unknown as PatchLibrary
@@ -66,7 +71,7 @@ describe('NamedBankLibraryDialog boundaries', () => {
       now: '2026-09-13T12:00:00.000Z',
     })
     const loadSavedBank = vi.fn(() => {
-      throw new Error('A browser bank requires exactly 32 DX7 voices.')
+      throw new WorkspaceBankUnavailableError()
     })
     render(
       <NamedBankLibraryDialog
@@ -79,7 +84,9 @@ describe('NamedBankLibraryDialog boundaries', () => {
     await user.click(screen.getByRole('button', { name: 'Load' }))
 
     const alert = screen.getByRole('alert')
-    expect(alert.textContent).toBe('A browser bank requires exactly 32 DX7 voices.')
+    expect(alert.textContent).toBe(
+      'That workspace bank is no longer available. Close this dialog and try again.',
+    )
     expect(alert.closest('dialog')?.open).toBe(true)
   })
 
@@ -97,5 +104,19 @@ describe('NamedBankLibraryDialog boundaries', () => {
         'Some saved banks could not be read, so they are hidden. They remain unchanged in browser storage.',
       ),
     ).toBeTruthy()
+  })
+
+  it('explains in the interface language when saved banks cannot be loaded', async () => {
+    const user = userEvent.setup()
+    render(
+      <NamedBankLibraryDialog
+        destinationBank="A"
+        library={{ ...library, namedBanksLoadFailed: true }}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Load bank' }))
+    expect(screen.getByRole('alert').textContent).toBe(
+      'Saved banks could not be loaded from browser storage.',
+    )
   })
 })

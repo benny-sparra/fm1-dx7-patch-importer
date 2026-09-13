@@ -33,7 +33,9 @@ describe('RestoreFactoryBanksDialog', () => {
 
     await user.click(screen.getByRole('button', { name: 'Restore four banks' }))
 
-    expect(screen.getByRole('alert').textContent).toBe('Factory data could not be loaded.')
+    expect(screen.getByRole('alert').textContent).toBe(
+      'The factory banks could not be restored. Try again.',
+    )
     expect(dialogRef.current?.open).toBe(true)
 
     await user.click(screen.getByRole('button', { name: 'Restore four banks' }))

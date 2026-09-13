@@ -86,6 +86,7 @@ describe('useMidi connection analytics', () => {
       method: 'manual',
       reason: 'permission_denied',
     })
+    expect(result.current.error).toBe('permission_denied')
   })
 
   it('attempts and reports automatic reconnection only once in Strict Mode', async () => {

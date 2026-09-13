@@ -434,6 +434,17 @@ export default {
     switchOnFirst: 'Ative o MIDI primeiro',
     closeSysexWarning: 'Fechar aviso de SysEx',
     connecting: 'Conectando…',
+    errors: {
+      insecureContext:
+        'O Web MIDI precisa de uma conexão segura. Abra o editor por HTTPS ou localhost.',
+      unsupportedBrowser:
+        'Este navegador não é compatível com Web MIDI. Use um navegador Chromium para desktop, como Chrome ou Edge.',
+      permissionDenied:
+        'O acesso MIDI foi bloqueado. Permita o acesso MIDI e SysEx para este site e conecte novamente.',
+      enableFailed:
+        'Não foi possível iniciar o MIDI. Verifique a conexão do dispositivo e tente novamente.',
+      disconnectFailed: 'Não foi possível desconectar o MIDI. Tente novamente.',
+    },
     reconnectForSysex: 'Reconectar MIDI com SysEx',
     sysexRecovery:
       'Nenhum dado do banco foi enviado. Reconecte o MIDI e permita o acesso SysEx antes de tentar novamente.',
@@ -505,6 +516,19 @@ export default {
     soundNotSent:
       'O som não foi enviado. Conecte uma saída MIDI compatível com SysEx e tente novamente.',
     importFailed: 'Falha na importação.',
+    restoreFailed: 'Não foi possível restaurar os bancos de fábrica. Tente novamente.',
+    bankUnavailable:
+      'Esse banco de trabalho não está mais disponível. Feche esta caixa de diálogo e tente novamente.',
+    catalogUnavailable:
+      'Não foi possível baixar esse banco de sons. Verifique sua conexão e tente novamente.',
+    fileErrors: {
+      size: 'Este arquivo tem {{bytes}} bytes. Um arquivo de banco DX7 deve ter exatamente 4.104 bytes.',
+      format: 'Este arquivo não é um banco Yamaha DX7 de 32 vozes.',
+      highBitData:
+        'Este arquivo contém valores que um banco DX7 não comporta e pode estar danificado.',
+      checksum:
+        'A soma de verificação deste banco é inválida; ele pode estar danificado ou incompleto.',
+    },
     exportFailed: 'Falha na exportação.',
     bulkExportFailed: 'Falha na exportação em massa.',
     gridTitle: 'Bancos de sons',
@@ -558,6 +582,7 @@ export default {
     deleteAction: 'Excluir banco',
     deleteConfirm: 'Excluir “{{name}}” permanentemente deste navegador?',
     operationFailed: 'A operação do banco salvo falhou.',
+    loadFailed: 'Não foi possível carregar os bancos salvos do armazenamento do navegador.',
     damagedBanks:
       'Alguns bancos salvos não puderam ser lidos e foram ocultados. Eles permanecem intactos no armazenamento do navegador.',
     saved: '“{{name}}” salvo.',

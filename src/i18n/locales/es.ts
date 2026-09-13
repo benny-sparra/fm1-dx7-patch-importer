@@ -435,6 +435,17 @@ export default {
     switchOnFirst: 'Activa primero el MIDI',
     closeSysexWarning: 'Cerrar advertencia de SysEx',
     connecting: 'Conectando…',
+    errors: {
+      insecureContext:
+        'Web MIDI necesita una conexión segura. Abre el editor mediante HTTPS o localhost.',
+      unsupportedBrowser:
+        'Este navegador no es compatible con Web MIDI. Usa un navegador Chromium de escritorio, como Chrome o Edge.',
+      permissionDenied:
+        'Se bloqueó el acceso MIDI. Permite el acceso MIDI y SysEx para este sitio y vuelve a conectar.',
+      enableFailed:
+        'No se pudo iniciar MIDI. Comprueba la conexión del dispositivo y vuelve a intentarlo.',
+      disconnectFailed: 'No se pudo desconectar MIDI. Vuelve a intentarlo.',
+    },
     reconnectForSysex: 'Reconectar MIDI con SysEx',
     sysexRecovery:
       'No se ha enviado ningún dato del banco. Vuelve a conectar MIDI y permite el acceso SysEx antes de intentarlo de nuevo.',
@@ -506,6 +517,19 @@ export default {
     soundNotSent:
       'No se envió el sonido. Conecta una salida MIDI compatible con SysEx y vuelve a intentarlo.',
     importFailed: 'Error de importación.',
+    restoreFailed: 'No se pudieron restaurar los bancos de fábrica. Vuelve a intentarlo.',
+    bankUnavailable:
+      'Ese banco de trabajo ya no está disponible. Cierra este diálogo y vuelve a intentarlo.',
+    catalogUnavailable:
+      'No se pudo descargar ese banco de sonidos. Comprueba tu conexión y vuelve a intentarlo.',
+    fileErrors: {
+      size: 'Este archivo tiene {{bytes}} bytes. Un archivo de banco DX7 debe tener exactamente 4104 bytes.',
+      format: 'Este archivo no es un banco Yamaha DX7 de 32 voces.',
+      highBitData:
+        'Este archivo contiene valores que un banco DX7 no admite, por lo que puede estar dañado.',
+      checksum:
+        'La suma de verificación de este banco no es válida, por lo que puede estar dañado o incompleto.',
+    },
     exportFailed: 'Error de exportación.',
     bulkExportFailed: 'Error de exportación masiva.',
     gridTitle: 'Bancos de sonidos',
@@ -559,6 +583,7 @@ export default {
     deleteAction: 'Eliminar banco',
     deleteConfirm: '¿Eliminar permanentemente “{{name}}” de este navegador?',
     operationFailed: 'La operación del banco guardado ha fallado.',
+    loadFailed: 'No se pudieron cargar los bancos guardados del almacenamiento del navegador.',
     damagedBanks:
       'Algunos bancos guardados no se pudieron leer y se han ocultado. Siguen intactos en el almacenamiento del navegador.',
     saved: '“{{name}}” guardado.',

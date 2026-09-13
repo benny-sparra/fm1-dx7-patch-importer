@@ -6,6 +6,14 @@ export const browserBanks = ['A', 'B', 'C', 'D'] as const
 export const maximumWorkspaceBanks = 10
 export const workspaceBankTitleLength = 10
 
+/** The workspace bank a change targeted was removed or renumbered after it was chosen. */
+export class WorkspaceBankUnavailableError extends Error {
+  constructor() {
+    super('That workspace bank is no longer available.')
+    this.name = 'WorkspaceBankUnavailableError'
+  }
+}
+
 export type PatchLibrarySnapshot = {
   bankDescriptions: Record<string, string>
   bankNames: Record<string, string>
@@ -91,7 +99,7 @@ export function createWorkspaceBank(
   const normalizedName = normalizeWorkspaceBankNameForSave(name)
   if (!normalizedName) throw new Error('A workspace bank needs a name.')
   if (bank !== getNextWorkspaceBank(snapshot.workspaceBanks)) {
-    throw new Error('That workspace bank is no longer available.')
+    throw new WorkspaceBankUnavailableError()
   }
   if (!imported) throw new Error('A workspace bank needs sound data.')
 
@@ -123,7 +131,8 @@ export function importVoices(
   bank: string,
   imported: Dx7Voice[],
 ): PatchLibrarySnapshot {
-  if (!snapshot.workspaceBanks.includes(bank) || imported.length !== dx7BankVoiceCount) {
+  if (!snapshot.workspaceBanks.includes(bank)) throw new WorkspaceBankUnavailableError()
+  if (imported.length !== dx7BankVoiceCount) {
     throw new Error(`A browser bank requires exactly ${dx7BankVoiceCount} DX7 voices.`)
   }
 

@@ -2,6 +2,7 @@ import { Library, Plus, Upload } from 'lucide-react'
 import { type FormEvent, type RefObject, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -88,7 +89,7 @@ export function AddWorkspaceBankDialog({
       toast.success(t('toasts.bankCreated', { bank: normalizedName }))
       dialogRef.current?.close()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t('banks.addBankFailed'))
+      setError(bankErrorMessage(t, cause, t('banks.addBankFailed')))
     } finally {
       setWorking(false)
     }

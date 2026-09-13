@@ -57,10 +57,29 @@ export function normalizeStoredDx7Voice(value: unknown): Dx7Voice | null {
   return { data: normalized, name: typeof name === 'string' ? name : decodeVoiceName(normalized) }
 }
 
+type Dx7BankFileProblem = 'checksum' | 'format' | 'high-bit-data' | 'size'
+
+/** A bank file that cannot be imported, with a problem code the UI can explain in any language. */
+export class Dx7BankFileError extends Error {
+  readonly problem: Dx7BankFileProblem
+  readonly receivedBytes: number
+
+  constructor(problem: Dx7BankFileProblem, message: string, receivedBytes: number) {
+    super(message)
+    this.name = 'Dx7BankFileError'
+    this.problem = problem
+    this.receivedBytes = receivedBytes
+  }
+}
+
 export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
   const bytes = new Uint8Array(file)
   if (bytes.length !== dx7BankFileSize) {
-    throw new Error(`Expected a 4104-byte DX7 bank; received ${bytes.length} bytes.`)
+    throw new Dx7BankFileError(
+      'size',
+      `Expected a 4104-byte DX7 bank; received ${bytes.length} bytes.`,
+      bytes.length,
+    )
   }
   if (
     bytes[0] !== 0xf0 ||
@@ -70,14 +89,24 @@ export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
     bytes[5] !== 0x00 ||
     bytes.at(-1) !== 0xf7
   ) {
-    throw new Error('This is not a Yamaha DX7 32-voice bulk SysEx bank.')
+    throw new Dx7BankFileError(
+      'format',
+      'This is not a Yamaha DX7 32-voice bulk SysEx bank.',
+      bytes.length,
+    )
   }
   const voiceData = bytes.slice(6, 6 + dx7BankDataSize)
   if (!isSevenBitData(voiceData)) {
-    throw new Error('The DX7 bank contains data bytes outside the 7-bit MIDI range.')
+    throw new Dx7BankFileError(
+      'high-bit-data',
+      'The DX7 bank contains data bytes outside the 7-bit MIDI range.',
+      bytes.length,
+    )
   }
   const checksum = dx7Checksum(voiceData)
-  if (checksum !== bytes.at(-2)) throw new Error('The DX7 bank checksum is invalid.')
+  if (checksum !== bytes.at(-2)) {
+    throw new Dx7BankFileError('checksum', 'The DX7 bank checksum is invalid.', bytes.length)
+  }
 
   return Array.from({ length: dx7BankVoiceCount }, (_, index) => {
     const data = voiceData.slice(index * dx7PackedVoiceSize, (index + 1) * dx7PackedVoiceSize)

@@ -79,7 +79,7 @@ const settingsMidi = {
   connectMidi: vi.fn(),
   disconnectMidi: vi.fn(),
   effectChannel: 2,
-  error: '',
+  error: null,
   inputs: [],
   isConnecting: false,
   midiAccess: false,

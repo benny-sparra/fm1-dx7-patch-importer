@@ -12,6 +12,7 @@ import {
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { PatchGrid } from '@/components/patches/patch-grid'
 import {
   WorkspaceBankSelector,
@@ -132,7 +133,7 @@ export function LibrarianPage({
       trackAnalyticsEvent({ data: { scope: 'single' }, name: 'bank_exported' })
       toast.success(t('toasts.bankDownloadStarted', { bank: bankDisplayName(bank) }))
     } catch (error) {
-      setImportError(error instanceof Error ? error.message : t('banks.exportFailed'))
+      setImportError(bankErrorMessage(t, error, t('banks.exportFailed')))
     }
   }
 
@@ -150,7 +151,7 @@ export function LibrarianPage({
       trackAnalyticsEvent({ data: { scope: 'all' }, name: 'bank_exported' })
       toast.success(t('toasts.banksDownloadStarted'))
     } catch (error) {
-      setImportError(error instanceof Error ? error.message : t('banks.bulkExportFailed'))
+      setImportError(bankErrorMessage(t, error, t('banks.bulkExportFailed')))
     }
   }
 
@@ -193,7 +194,7 @@ export function LibrarianPage({
       trackAnalyticsEvent({ data: { reason: 'transport' }, name: 'bank_transfer_failed' })
       setTransferStatus({
         kind: 'error',
-        message: error instanceof Error ? error.message : t('banks.notSent'),
+        message: bankErrorMessage(t, error, t('banks.notSent')),
       })
     } finally {
       setIsSending(false)
@@ -233,7 +234,7 @@ export function LibrarianPage({
       trackAnalyticsEvent({ data: { source: 'file' }, name: 'bank_imported' })
       toast.success(t('toasts.bankImported', { bank: bankDisplayName(importTarget) }))
     } catch (error) {
-      setImportError(error instanceof Error ? error.message : t('banks.importFailed'))
+      setImportError(bankErrorMessage(t, error, t('banks.importFailed')))
     } finally {
       setIsImporting(false)
       event.target.value = ''

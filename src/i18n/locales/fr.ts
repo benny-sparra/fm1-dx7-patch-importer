@@ -438,6 +438,17 @@ export default {
     switchOnFirst: 'Activez d’abord le MIDI',
     closeSysexWarning: 'Fermer l’avertissement SysEx',
     connecting: 'Connexion…',
+    errors: {
+      insecureContext:
+        'Web MIDI nécessite une connexion sécurisée. Ouvrez l’éditeur en HTTPS ou sur localhost.',
+      unsupportedBrowser:
+        'Ce navigateur ne prend pas en charge Web MIDI. Utilisez un navigateur Chromium de bureau, comme Chrome ou Edge.',
+      permissionDenied:
+        'L’accès MIDI a été bloqué. Autorisez l’accès MIDI et SysEx pour ce site, puis reconnectez-vous.',
+      enableFailed:
+        'Impossible de démarrer le MIDI. Vérifiez la connexion de l’appareil, puis réessayez.',
+      disconnectFailed: 'Impossible de déconnecter le MIDI. Réessayez.',
+    },
     reconnectForSysex: 'Reconnecter le MIDI avec SysEx',
     sysexRecovery:
       'Aucune donnée de banque n’a été envoyée. Reconnectez le MIDI et autorisez l’accès SysEx avant de réessayer.',
@@ -511,6 +522,19 @@ export default {
     soundNotSent:
       'Le son n’a pas été envoyé. Connectez une sortie MIDI compatible SysEx et réessayez.',
     importFailed: 'Échec de l’importation.',
+    restoreFailed: 'Impossible de restaurer les banques d’usine. Réessayez.',
+    bankUnavailable:
+      'Cette banque de travail n’est plus disponible. Fermez cette fenêtre et réessayez.',
+    catalogUnavailable:
+      'Impossible de télécharger cette banque de sons. Vérifiez votre connexion, puis réessayez.',
+    fileErrors: {
+      size: 'Ce fichier fait {{bytes}} octets. Un fichier de banque DX7 doit faire exactement 4 104 octets.',
+      format: 'Ce fichier n’est pas une banque Yamaha DX7 de 32 voix.',
+      highBitData:
+        'Ce fichier contient des valeurs qu’une banque DX7 ne peut pas contenir ; il est peut-être endommagé.',
+      checksum:
+        'La somme de contrôle de cette banque est incorrecte ; elle est peut-être endommagée ou incomplète.',
+    },
     exportFailed: 'Échec de l’exportation.',
     bulkExportFailed: 'Échec de l’exportation groupée.',
     gridTitle: 'Banques de sons',
@@ -565,6 +589,7 @@ export default {
     deleteAction: 'Supprimer la banque',
     deleteConfirm: 'Supprimer définitivement « {{name}} » de ce navigateur ?',
     operationFailed: 'L’opération sur la banque enregistrée a échoué.',
+    loadFailed: 'Impossible de charger les banques enregistrées depuis le stockage du navigateur.',
     damagedBanks:
       'Certaines banques enregistrées sont illisibles et ont été masquées. Elles restent intactes dans le stockage du navigateur.',
     saved: '« {{name}} » enregistrée.',

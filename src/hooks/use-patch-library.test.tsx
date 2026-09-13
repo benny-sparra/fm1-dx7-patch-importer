@@ -4,7 +4,12 @@ import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { createNamedBank } from '@/lib/named-bank'
-import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
+import {
+  emptyPatchLibrary,
+  importVoices,
+  makeDemoVoices,
+  WorkspaceBankUnavailableError,
+} from '@/lib/patch-library'
 
 import { usePatchLibrary } from './use-patch-library'
 
@@ -106,7 +111,7 @@ describe('usePatchLibrary saved banks', () => {
     await waitFor(() => expect(hook.result.current.namedBanksLoading).toBe(false))
     expect(hook.result.current.namedBanks).toEqual([bank])
     expect(hook.result.current.hasDamagedNamedBanks).toBe(true)
-    expect(hook.result.current.namedBanksError).toBe('')
+    expect(hook.result.current.namedBanksLoadFailed).toBe(false)
   })
 })
 
@@ -124,8 +129,7 @@ describe('usePatchLibrary changes', () => {
       }
     })
 
-    expect(caught).toBeInstanceOf(Error)
-    expect((caught as Error).message).toContain('no longer available')
+    expect(caught).toBeInstanceOf(WorkspaceBankUnavailableError)
     expect(hook.result.current.workspaceBanks).toEqual(banksBefore)
     expect(hook.result.current.canUndo).toBe(false)
   })

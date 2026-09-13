@@ -32,8 +32,8 @@ export function RestoreFactoryBanksDialog({
     try {
       await onRestore()
       closeDialog()
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t('banks.importFailed'))
+    } catch {
+      setError(t('banks.restoreFailed'))
     } finally {
       setWorking(false)
     }

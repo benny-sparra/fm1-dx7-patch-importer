@@ -438,6 +438,17 @@ export default {
     switchOnFirst: 'Zuerst MIDI einschalten',
     closeSysexWarning: 'SysEx-Warnung schließen',
     connecting: 'Verbindung wird hergestellt…',
+    errors: {
+      insecureContext:
+        'Web MIDI benötigt eine sichere Verbindung. Öffne den Editor über HTTPS oder localhost.',
+      unsupportedBrowser:
+        'Dieser Browser unterstützt Web MIDI nicht. Verwende einen Chromium-Desktopbrowser wie Chrome oder Edge.',
+      permissionDenied:
+        'Der MIDI-Zugriff wurde blockiert. Erlaube MIDI- und SysEx-Zugriff für diese Website und verbinde dich erneut.',
+      enableFailed:
+        'MIDI konnte nicht gestartet werden. Prüfe die Geräteverbindung und versuche es erneut.',
+      disconnectFailed: 'MIDI konnte nicht getrennt werden. Versuche es erneut.',
+    },
     reconnectForSysex: 'MIDI mit SysEx neu verbinden',
     sysexRecovery:
       'Es wurden keine Bankdaten gesendet. Verbinde MIDI erneut und erlaube den SysEx-Zugriff, bevor du es noch einmal versuchst.',
@@ -510,6 +521,19 @@ export default {
     soundNotSent:
       'Der Sound wurde nicht gesendet. Verbinde einen SysEx-fähigen MIDI-Ausgang und versuche es erneut.',
     importFailed: 'Import fehlgeschlagen.',
+    restoreFailed: 'Die Werksbänke konnten nicht wiederhergestellt werden. Versuche es erneut.',
+    bankUnavailable:
+      'Diese Arbeitsbank ist nicht mehr verfügbar. Schließe diesen Dialog und versuche es erneut.',
+    catalogUnavailable:
+      'Diese Soundbank konnte nicht heruntergeladen werden. Prüfe deine Verbindung und versuche es erneut.',
+    fileErrors: {
+      size: 'Diese Datei ist {{bytes}} Bytes groß. Eine DX7-Bankdatei muss genau 4.104 Bytes groß sein.',
+      format: 'Diese Datei ist keine Yamaha-DX7-Bank mit 32 Stimmen.',
+      highBitData:
+        'Diese Datei enthält Werte, die eine DX7-Bank nicht speichern kann, und ist möglicherweise beschädigt.',
+      checksum:
+        'Die Prüfsumme dieser Bank ist ungültig. Sie ist möglicherweise beschädigt oder unvollständig.',
+    },
     exportFailed: 'Export fehlgeschlagen.',
     bulkExportFailed: 'Sammel-Export fehlgeschlagen.',
     gridTitle: 'Sound-Bänke',
@@ -564,6 +588,7 @@ export default {
     deleteAction: 'Bank löschen',
     deleteConfirm: '„{{name}}“ dauerhaft aus diesem Browser löschen?',
     operationFailed: 'Der Vorgang für die gespeicherte Bank ist fehlgeschlagen.',
+    loadFailed: 'Gespeicherte Bänke konnten nicht aus dem Browserspeicher geladen werden.',
     damagedBanks:
       'Einige gespeicherte Bänke konnten nicht gelesen werden und sind ausgeblendet. Sie bleiben unverändert im Browserspeicher.',
     saved: '„{{name}}“ gespeichert.',

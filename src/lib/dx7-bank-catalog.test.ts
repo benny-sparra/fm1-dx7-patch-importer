@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { dx7BankCatalog, findDx7CatalogBank } from '@/data/dx7-bank-catalog'
 import { makeDx7BankFile, parseDx7Bank } from '@/lib/dx7'
-import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
+import { Dx7CatalogBankUnavailableError, loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
 import { makeDemoVoices } from '@/lib/patch-library'
 
 describe('DX7 bank catalog', () => {
@@ -50,5 +50,24 @@ describe('DX7 bank catalog', () => {
         ok: true,
       })),
     ).rejects.toThrow('4104-byte')
+  })
+})
+
+describe('DX7 catalog bank downloads', () => {
+  it('reports a failed download as an unavailable catalog bank', async () => {
+    await expect(
+      loadDx7CatalogBank('rom1a', async () => ({
+        arrayBuffer: async () => new ArrayBuffer(0),
+        ok: false,
+      })),
+    ).rejects.toBeInstanceOf(Dx7CatalogBankUnavailableError)
+  })
+
+  it('reports a network failure as an unavailable catalog bank', async () => {
+    await expect(
+      loadDx7CatalogBank('rom1a', async () => {
+        throw new TypeError('Failed to fetch')
+      }),
+    ).rejects.toBeInstanceOf(Dx7CatalogBankUnavailableError)
   })
 })

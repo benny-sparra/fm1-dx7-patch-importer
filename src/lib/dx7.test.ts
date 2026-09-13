@@ -6,6 +6,7 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
+  Dx7BankFileError,
   makeDx7BankFile,
   makeDx7BankPayload,
   normalizeStoredDx7Voice,
@@ -157,5 +158,43 @@ describe('normalizeStoredDx7Voice', () => {
     expect(normalizeStoredDx7Voice('E.PIANO')).toBeNull()
     expect(normalizeStoredDx7Voice({ data: new Uint8Array(100), name: 'SHORT' })).toBeNull()
     expect(normalizeStoredDx7Voice({ data: Array(128).fill(0), name: 'ARRAY' })).toBeNull()
+  })
+})
+
+describe('DX7 bank file problems', () => {
+  function importError(bytes: Uint8Array) {
+    try {
+      parseDx7Bank(bytes.buffer as ArrayBuffer)
+    } catch (error) {
+      return error
+    }
+    throw new Error('Expected the bank file to be rejected.')
+  }
+
+  it('reports the size of a bank file with the wrong length', () => {
+    const error = importError(new Uint8Array(3))
+
+    expect(error).toBeInstanceOf(Dx7BankFileError)
+    expect(error).toMatchObject({ problem: 'size', receivedBytes: 3 })
+  })
+
+  it('reports a file that is not a DX7 32-voice bank', () => {
+    const file = makeDx7BankFile(Array.from({ length: 32 }, makeVoice))
+    file[1] = 0x41
+
+    expect(importError(file)).toMatchObject({ problem: 'format' })
+  })
+
+  it('reports a bank with data above seven bits', () => {
+    expect(importError(makeBankFileWithDataByte(20, 0x85))).toMatchObject({
+      problem: 'high-bit-data',
+    })
+  })
+
+  it('reports a bank whose checksum does not match', () => {
+    const file = makeDx7BankFile(Array.from({ length: 32 }, makeVoice))
+    file[file.length - 2] ^= 0x01
+
+    expect(importError(file)).toMatchObject({ problem: 'checksum' })
   })
 })

@@ -2,6 +2,7 @@ import { Copy, Database, Download, FolderOpen, Pencil, Save, Trash2 } from 'luci
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { type NamedBankLibraryDialogProps } from '@/components/patches/named-bank-dialog-types'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
 import { Button } from '@/components/ui/button'
@@ -73,7 +74,7 @@ export function LoadNamedBankDialog({
     try {
       await operation()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t('namedBanks.operationFailed'))
+      setError(bankErrorMessage(t, cause, t('namedBanks.operationFailed')))
     } finally {
       setWorkingId('')
     }
@@ -240,9 +241,7 @@ export function LoadNamedBankDialog({
                                 dialogRef.current?.close()
                               } catch (cause) {
                                 setError(
-                                  cause instanceof Error
-                                    ? cause.message
-                                    : t('namedBanks.operationFailed'),
+                                  bankErrorMessage(t, cause, t('namedBanks.operationFailed')),
                                 )
                               }
                             }}
@@ -329,12 +328,12 @@ export function LoadNamedBankDialog({
               )}
             </div>
 
-            {error || library.namedBanksError ? (
+            {error || library.namedBanksLoadFailed ? (
               <p
                 className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
                 role="alert"
               >
-                {error || library.namedBanksError}
+                {error || t('namedBanks.loadFailed')}
               </p>
             ) : status ? (
               <p aria-live="polite" className="text-sm text-emerald-400" role="status">

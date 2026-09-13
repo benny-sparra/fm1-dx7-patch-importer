@@ -60,7 +60,7 @@ export function usePatchLibrary() {
   }, [])
   const [namedBanks, setNamedBanks] = useState<NamedBank[]>([])
   const [hasDamagedNamedBanks, setHasDamagedNamedBanks] = useState(false)
-  const [namedBanksError, setNamedBanksError] = useState('')
+  const [namedBanksLoadFailed, setNamedBanksLoadFailed] = useState(false)
   const [namedBanksLoading, setNamedBanksLoading] = useState(true)
   const [persistence, setPersistence] = useState<WorkspacePersistenceState>({
     error: null,
@@ -115,9 +115,8 @@ export function usePatchLibrary() {
         setNamedBanks(banks)
         setHasDamagedNamedBanks(damagedCount > 0)
       })
-      .catch((error) => {
-        if (!cancelled)
-          setNamedBanksError(error instanceof Error ? error.message : 'Could not load saved banks.')
+      .catch(() => {
+        if (!cancelled) setNamedBanksLoadFailed(true)
       })
       .finally(() => {
         if (!cancelled) setNamedBanksLoading(false)
@@ -280,7 +279,6 @@ export function usePatchLibrary() {
       })
       await saveStoredNamedBank(bank)
       setNamedBanks((current) => [bank, ...current])
-      setNamedBanksError('')
       return bank
     },
     [history.present],
@@ -302,7 +300,6 @@ export function usePatchLibrary() {
           .map((candidate) => (candidate.id === updated.id ? updated : candidate))
           .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)),
       )
-      setNamedBanksError('')
       return updated
     },
     [],
@@ -312,14 +309,12 @@ export function usePatchLibrary() {
     const duplicate = duplicateNamedBank(bank, createId(), new Date().toISOString())
     await saveStoredNamedBank(duplicate)
     setNamedBanks((current) => [duplicate, ...current])
-    setNamedBanksError('')
     return duplicate
   }, [])
 
   const deleteNamedBank = useCallback(async (id: string) => {
     await deleteStoredNamedBank(id)
     setNamedBanks((current) => current.filter((bank) => bank.id !== id))
-    setNamedBanksError('')
   }, [])
 
   const undo = useCallback(() => {
@@ -368,7 +363,7 @@ export function usePatchLibrary() {
     loadedBanks: history.present.loadedBanks,
     moveVoice,
     namedBanks,
-    namedBanksError,
+    namedBanksLoadFailed,
     namedBanksLoading,
     patches,
     persistenceError: persistence.error,
