@@ -212,11 +212,35 @@ describe('WorkspacePersistenceController', () => {
     await vi.runAllTimersAsync()
 
     expect(controller.getState()).toMatchObject({
-      hasUnsavedChanges: true,
+      hasUnsavedChanges: false,
       status: 'session-only',
     })
     expect(controller.getState().workspace).not.toBeNull()
     expect(save).not.toHaveBeenCalled()
+  })
+
+  it('marks a session-only workspace unsaved once it is edited', async () => {
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => {
+        throw new Error('Storage unavailable')
+      },
+      save: async () => {},
+    })
+
+    controller.start()
+    await flushPromises()
+    controller.continueWithoutSaving()
+    await flushPromises()
+    controller.updateWorkspace(
+      importVoices(controller.getState().workspace!, 'A', makeDemoVoices()),
+    )
+
+    expect(controller.getState()).toMatchObject({
+      hasUnsavedChanges: true,
+      status: 'session-only',
+    })
+    expect(shouldWarnBeforeUnload(controller.getState())).toBe(true)
   })
 
   it('does not retry loading over a modified session-only workspace', async () => {
@@ -559,14 +583,24 @@ describe('shouldWarnBeforeUnload', () => {
     ).toBe(true)
   })
 
-  it('does not warn once changes are saved or when the workspace is session-only', () => {
+  it('warns after edits to a workspace kept only for this session', () => {
+    expect(
+      shouldWarnBeforeUnload({
+        hasSaveFailure: false,
+        hasUnsavedChanges: true,
+        status: 'session-only',
+      }),
+    ).toBe(true)
+  })
+
+  it('does not warn once changes are saved or before a session-only workspace is edited', () => {
     expect(
       shouldWarnBeforeUnload({ hasSaveFailure: false, hasUnsavedChanges: false, status: 'ready' }),
     ).toBe(false)
     expect(
       shouldWarnBeforeUnload({
         hasSaveFailure: false,
-        hasUnsavedChanges: true,
+        hasUnsavedChanges: false,
         status: 'session-only',
       }),
     ).toBe(false)

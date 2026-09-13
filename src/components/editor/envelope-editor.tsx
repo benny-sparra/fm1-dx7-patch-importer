@@ -1,4 +1,5 @@
 import { useId, useRef, type KeyboardEvent, type PointerEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { HelpPopover } from '@/components/ui/help-popover'
 import {
@@ -41,6 +42,7 @@ export function EnvelopeEditor({
   title,
   variant = 'amplitude',
 }: EnvelopeEditorProps) {
+  const { t } = useTranslation()
   const svgRef = useRef<SVGSVGElement>(null)
   const activePointer = useRef<number | null>(null)
   // Two envelopes share the page, so the fill gradient needs its own id.
@@ -214,11 +216,14 @@ export function EnvelopeEditor({
                 {...pointerHandlers(index)}
               />
               <rect
-                aria-label={`${title} point ${index + 1}`}
+                aria-label={t('ui.envelopePoint', { point: index + 1, title })}
                 aria-valuemax={99}
                 aria-valuemin={0}
                 aria-valuenow={levels[index]}
-                aria-valuetext={`Rate ${rates[index]}, level ${levels[index]}`}
+                aria-valuetext={t('ui.envelopePointValue', {
+                  level: levels[index],
+                  rate: rates[index],
+                })}
                 className="cursor-grab outline-none focus-visible:stroke-[var(--crt-led)] focus-visible:[filter:drop-shadow(0_0_5px_var(--crt-led))] active:cursor-grabbing"
                 fill="var(--crt-bg-well)"
                 height="12"
@@ -246,7 +251,7 @@ export function EnvelopeEditor({
             <label className="grid min-w-0 text-center text-[10px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase">
               R{index + 1}
               <input
-                aria-label={`${title} rate ${index + 1}`}
+                aria-label={t('ui.envelopeRate', { point: index + 1, title })}
                 className={inputClass}
                 inputMode="numeric"
                 max={99}
@@ -270,7 +275,7 @@ export function EnvelopeEditor({
             <label className="grid min-w-0 text-center text-[10px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase">
               L{index + 1}
               <input
-                aria-label={`${title} level ${index + 1}`}
+                aria-label={t('ui.envelopeLevel', { point: index + 1, title })}
                 className={inputClass}
                 inputMode="numeric"
                 max={99}

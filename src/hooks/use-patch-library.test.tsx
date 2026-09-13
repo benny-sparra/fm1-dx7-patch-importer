@@ -94,6 +94,23 @@ describe('usePatchLibrary page lifecycle', () => {
 
     expect(leaving.defaultPrevented).toBe(true)
   })
+
+  it('asks before leaving once a session-only workspace has been edited', async () => {
+    storage.loadStoredPatchLibrary.mockRejectedValue(new Error('Storage unavailable'))
+    const hook = renderHook(() => usePatchLibrary())
+    await waitFor(() => expect(hook.result.current.persistenceStatus).toBe('load-error'))
+    act(() => hook.result.current.continueWithoutWorkspaceSaving())
+    await waitFor(() => expect(hook.result.current.persistenceStatus).toBe('session-only'))
+
+    const untouched = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(untouched)
+    expect(untouched.defaultPrevented).toBe(false)
+
+    act(() => hook.result.current.renameBank('A', 'Stage'))
+    const leaving = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(leaving)
+    expect(leaving.defaultPrevented).toBe(true)
+  })
 })
 
 describe('usePatchLibrary saved banks', () => {

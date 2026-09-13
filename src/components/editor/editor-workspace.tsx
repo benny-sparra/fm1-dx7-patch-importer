@@ -325,7 +325,7 @@ export function AlgorithmPanel({
         {/* The number is the picker's trigger, as on the artboard. */}
         <details className="group relative self-start" ref={dropdownRef}>
           <summary
-            aria-label={`Algorithm ${algorithm + 1}. Choose algorithm`}
+            aria-label={t('ui.chooseAlgorithm', { number: algorithm + 1 })}
             className="crt-inset flex cursor-pointer list-none items-center gap-2 bg-[var(--crt-bg-1)] py-0.5 pr-2 pl-3 transition-colors hover:bg-[var(--crt-bg-head)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
           >
             <span className="font-vt323 text-[30px] leading-none text-[var(--crt-led)] [text-shadow:0_0_10px_var(--crt-led-glow)]">
@@ -342,7 +342,7 @@ export function AlgorithmPanel({
             {dx7Algorithms.map((operators, index) => (
               <button
                 aria-checked={algorithm === index}
-                aria-label={`Algorithm ${index + 1}`}
+                aria-label={t('ui.algorithmNumber', { number: index + 1 })}
                 className={cn(
                   'font-vt323 relative min-w-0 cursor-pointer border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 pt-2 pb-1 transition-colors hover:bg-[var(--crt-bg-head)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
                   algorithm === index
@@ -515,8 +515,8 @@ export function OperatorRack({
           role === 'carrier' ? t('editor.carrierShort') : t('editor.modulatorShort')
         const auditionStatus = getOperatorAuditionStatus(operator, mutedOperators, soloOperator)
         const auditionLabel = [
-          auditionStatus.muted ? 'muted' : null,
-          auditionStatus.soloed ? 'soloed' : null,
+          auditionStatus.muted ? t('ui.operatorMuted') : null,
+          auditionStatus.soloed ? t('ui.operatorSoloed') : null,
         ]
           .filter(Boolean)
           .join(', ')
@@ -552,7 +552,14 @@ export function OperatorRack({
             <button
               aria-controls={isSelected ? detailId : undefined}
               aria-expanded={isSelected}
-              aria-label={`Operator ${operator}, ${roleLabel}${auditionLabel ? `, ${auditionLabel}` : ''}`}
+              aria-label={t(
+                auditionLabel ? 'ui.operatorSummaryWithAudition' : 'ui.operatorSummary',
+                {
+                  audition: auditionLabel,
+                  number: operator,
+                  role: roleLabel,
+                },
+              )}
               className={cn(
                 'flex min-w-0 flex-col text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
                 isSelected ? 'cursor-default' : 'flex-1 cursor-pointer',

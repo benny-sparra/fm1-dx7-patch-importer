@@ -8,7 +8,14 @@ import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
-const lfoWaves = ['Triangle', 'Saw down', 'Saw up', 'Square', 'Sine', 'Sample & hold']
+const lfoWaveKeys = [
+  'ui.lfoWaves.triangle',
+  'ui.lfoWaves.sawDown',
+  'ui.lfoWaves.sawUp',
+  'ui.lfoWaves.square',
+  'ui.lfoWaves.sine',
+  'ui.lfoWaves.sampleAndHold',
+] as const
 
 /** The rack's control caption: small, tracked-out capitals in the dim ink. */
 const captionClass = 'text-[11px] font-normal tracking-[0.1em] text-[var(--crt-ink-3)] uppercase'
@@ -74,6 +81,7 @@ export function RotaryParameterControl({
   value,
   valueLabel = String,
 }: RotaryParameterControlProps) {
+  const { t } = useTranslation()
   const drag = useRef<{ pointerId: number; startValue: number; startY: number } | null>(null)
   const faceId = `knob-face-${useId().replace(/:/g, '')}`
   const displayValue = valueLabel(value)
@@ -148,7 +156,7 @@ export function RotaryParameterControl({
         }}
         role="slider"
         tabIndex={0}
-        title={`${label}: ${displayValue}. Drag up or down to adjust.`}
+        title={t('ui.rotaryTitle', { label, value: displayValue })}
       >
         {/*
           A bevelled knob: a domed face lit from the top left, an arc of
@@ -454,6 +462,7 @@ export function LfoWaveControl({
 }) {
   const { t } = useTranslation()
   const dropdownRef = useDismissableDetails()
+  const lfoWaves = lfoWaveKeys.map((key) => t(key))
   const selectedWave = lfoWaves[value] ?? lfoWaves[0]
 
   const selectWave = (wave: number) => {

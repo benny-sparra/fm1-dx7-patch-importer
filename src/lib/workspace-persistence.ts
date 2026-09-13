@@ -33,9 +33,15 @@ type BeforeUnloadState = Pick<
   'hasSaveFailure' | 'hasUnsavedChanges' | 'status'
 >
 
-/** Leaving would lose changes that a save has not committed, whether it failed or is pending. */
+/**
+ * Leaving would lose changes no save has committed: a failed or pending save, or edits to a
+ * workspace that is kept only for this session.
+ */
 export function shouldWarnBeforeUnload(state: BeforeUnloadState) {
-  return state.hasUnsavedChanges && (state.hasSaveFailure || state.status === 'saving')
+  return (
+    state.hasUnsavedChanges &&
+    (state.hasSaveFailure || state.status === 'saving' || state.status === 'session-only')
+  )
 }
 
 function persistenceError(
@@ -132,7 +138,8 @@ export class WorkspacePersistenceController {
         this.setState({
           error: null,
           hasSaveFailure: false,
-          hasUnsavedChanges: true,
+          // Factory data is not the user's work; the first edit marks the workspace unsaved.
+          hasUnsavedChanges: false,
           status: 'session-only',
           workspace,
         })
