@@ -1,4 +1,13 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+
+import {
+  ScopeFrame,
+  ScopeGrid,
+  ScopeTrace,
+  scopeViewHeight,
+  scopeViewWidth,
+  useAnimationLoop,
+} from '@/components/editor/scope-frame'
 
 type LfoScopeProps = {
   /** 0–99, how far the LFO bends pitch; with amp depth, sets how bright the trace is. */
@@ -10,8 +19,8 @@ type LfoScopeProps = {
   wave: number
 }
 
-const viewWidth = 300
-const viewHeight = 48
+const viewWidth = scopeViewWidth
+const viewHeight = scopeViewHeight
 const visibleCycles = 3
 const cycleWidth = viewWidth / visibleCycles
 const amplitude = viewHeight / 2 - 7
@@ -85,10 +94,6 @@ function wavePath(wave: number) {
   return `M${commands.join(' L')}`
 }
 
-const prefersReducedMotion = () =>
-  typeof window.matchMedia === 'function' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
 /**
  * A small oscilloscope for the LFO: the selected wave scrolls past at a rate
  * set by LFO Speed, with a dot riding it where the current value would be.
@@ -99,94 +104,44 @@ export function LfoScope({ ampModDepth, pitchModDepth, speed, wave }: LfoScopePr
   const traceRef = useRef<SVGGElement>(null)
   const dotRef = useRef<HTMLSpanElement>(null)
   const phaseRef = useRef(0)
-  const speedRef = useRef(speed)
-  speedRef.current = speed
 
-  useEffect(() => {
-    const draw = () => {
-      const period = patternCycles(wave)
-      const phase = phaseRef.current
-      const offset = ((phase % period) + period) % period
-      traceRef.current?.setAttribute(
-        'transform',
-        `translate(${(-offset * cycleWidth).toFixed(2)} 0)`,
-      )
-      const value = sampleWave(wave, phase + playheadX * visibleCycles)
-      if (dotRef.current) dotRef.current.style.top = `${(toY(value) / viewHeight) * 100}%`
-    }
-
-    draw()
-    if (typeof window.requestAnimationFrame !== 'function' || prefersReducedMotion()) return
-
-    let frame = 0
-    let last: number | undefined
-    const tick = (now: number) => {
-      // Cap the step so a tab returning from the background doesn't lurch.
-      const elapsed = last === undefined ? 0 : Math.min(0.1, (now - last) / 1000)
-      last = now
-      phaseRef.current += elapsed * cyclesPerSecond(speedRef.current)
-      draw()
-      frame = window.requestAnimationFrame(tick)
-    }
-    frame = window.requestAnimationFrame(tick)
-    return () => window.cancelAnimationFrame(frame)
-  }, [wave])
+  useAnimationLoop((elapsed) => {
+    phaseRef.current += elapsed * cyclesPerSecond(speed)
+    const period = patternCycles(wave)
+    const phase = phaseRef.current
+    const offset = ((phase % period) + period) % period
+    traceRef.current?.setAttribute('transform', `translate(${(-offset * cycleWidth).toFixed(2)} 0)`)
+    const value = sampleWave(wave, phase + playheadX * visibleCycles)
+    if (dotRef.current) dotRef.current.style.top = `${(toY(value) / viewHeight) * 100}%`
+  })
 
   const active = pitchModDepth > 0 || ampModDepth > 0
 
   return (
-    <div
-      aria-hidden="true"
-      className="crt-inset relative h-12 min-w-0 overflow-hidden bg-[var(--crt-bg-well)]"
-      data-testid="lfo-scope"
+    <ScopeFrame
+      overlay={
+        <span
+          className="absolute size-1.5 -translate-1/2 rounded-full bg-[var(--crt-led)] shadow-[0_0_6px_var(--crt-led)] transition-opacity duration-300"
+          ref={dotRef}
+          style={{ left: `${playheadX * 100}%`, opacity: active ? 1 : 0.4, top: '50%' }}
+        />
+      }
+      testId="lfo-scope"
     >
-      <svg
-        className="absolute inset-0 size-full"
-        preserveAspectRatio="none"
-        viewBox={`0 0 ${viewWidth} ${viewHeight}`}
-      >
-        <g stroke="var(--crt-line-dk)" strokeWidth="1" vectorEffect="non-scaling-stroke">
-          {Array.from({ length: visibleCycles * 2 - 1 }, (_, index) => (
-            <line
-              key={index}
-              vectorEffect="non-scaling-stroke"
-              x1={((index + 1) * cycleWidth) / 2}
-              x2={((index + 1) * cycleWidth) / 2}
-              y1="0"
-              y2={viewHeight}
-            />
-          ))}
-          <line
+      <ScopeGrid columns={visibleCycles * 2} rowY={viewHeight / 2} />
+      <ScopeTrace active={active}>
+        <g ref={traceRef}>
+          <path
+            d={wavePath(wave)}
+            fill="none"
+            stroke="var(--crt-acc)"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.75"
             vectorEffect="non-scaling-stroke"
-            x1="0"
-            x2={viewWidth}
-            y1={viewHeight / 2}
-            y2={viewHeight / 2}
           />
         </g>
-        <g
-          className="transition-opacity duration-300"
-          opacity={active ? 1 : 0.4}
-          style={{ filter: 'drop-shadow(0 0 3px var(--crt-acc))' }}
-        >
-          <g ref={traceRef}>
-            <path
-              d={wavePath(wave)}
-              fill="none"
-              stroke="var(--crt-acc)"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.75"
-              vectorEffect="non-scaling-stroke"
-            />
-          </g>
-        </g>
-      </svg>
-      <span
-        className="absolute size-1.5 -translate-1/2 rounded-full bg-[var(--crt-led)] shadow-[0_0_6px_var(--crt-led)] transition-opacity duration-300"
-        ref={dotRef}
-        style={{ left: `${playheadX * 100}%`, opacity: active ? 1 : 0.4, top: '50%' }}
-      />
-    </div>
+      </ScopeTrace>
+    </ScopeFrame>
   )
 }

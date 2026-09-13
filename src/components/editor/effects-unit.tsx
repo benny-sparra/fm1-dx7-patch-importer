@@ -1,6 +1,14 @@
 import { Power } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import {
+  ChorusScope,
+  DelayScope,
+  DistortionScope,
+  FilterScope,
+  PhaserScope,
+  ReverbScope,
+} from '@/components/editor/effect-scopes'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
@@ -95,6 +103,75 @@ const optionKeys: Record<string, string> = {
 
 function lowerFirst(value: string) {
   return value.charAt(0).toLowerCase() + value.slice(1)
+}
+
+/** The live picture shown above an effect's controls. */
+function EffectScope({
+  enabled,
+  name,
+  values,
+}: {
+  enabled: boolean
+  name: EffectName
+  values: Uint8Array
+}) {
+  const value = (id: EffectParameterId) => values[getEffectParameterDefinition(id).controller]
+  switch (name) {
+    case 'Filter':
+      return (
+        <FilterScope
+          cutoff={value('effect.filter.cutoff')}
+          enabled={enabled}
+          resonance={value('effect.filter.resonance')}
+          type={value('effect.filter.type')}
+        />
+      )
+    case 'Delay':
+      return (
+        <DelayScope
+          decay={value('effect.delay.decay')}
+          enabled={enabled}
+          mix={value('effect.delay.mix')}
+          rate={value('effect.delay.rate')}
+        />
+      )
+    case 'Chorus':
+      return (
+        <ChorusScope
+          depth={value('effect.chorus.depth')}
+          enabled={enabled}
+          frequency={value('effect.chorus.frequency')}
+          mix={value('effect.chorus.mix')}
+        />
+      )
+    case 'Reverb':
+      return (
+        <ReverbScope
+          decay={value('effect.reverb.decay')}
+          enabled={enabled}
+          mix={value('effect.reverb.mix')}
+          space={value('effect.reverb.space')}
+        />
+      )
+    case 'Distortion':
+      return (
+        <DistortionScope
+          enabled={enabled}
+          gain={value('effect.distortion.gain')}
+          level={value('effect.distortion.level')}
+          tone={value('effect.distortion.tone')}
+        />
+      )
+    case 'Phaser':
+      return (
+        <PhaserScope
+          depth={value('effect.phaser.depth')}
+          enabled={enabled}
+          frequency={value('effect.phaser.frequency')}
+          mix={value('effect.phaser.mix')}
+        />
+      )
+  }
 }
 
 /*
@@ -239,6 +316,7 @@ export function EffectsUnit({ onChange, onGestureEnd, onGestureStart, values }: 
               </button>
             </div>
             <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
+              <EffectScope enabled={enabled} name={effect.name} values={values} />
               {effect.parameters.map((parameter) => (
                 <EffectControl
                   disabled={!enabled}
