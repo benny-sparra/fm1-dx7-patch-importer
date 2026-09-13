@@ -1,0 +1,19 @@
+# M-VAVE FM1 Editor & Librarian
+
+> A browser-based voice editor and patch librarian for the M-VAVE FM1 synthesiser. It edits DX7 voices and the FM1 effects chain, organises up to 10 local patch banks, imports standard Yamaha DX7 32-voice SysEx banks, and transfers voices or whole banks to the FM1 over Web MIDI.
+
+The app runs entirely in the browser and keeps patches in local browser storage; there is no account or server-side library. It needs a Chromium-based browser (Chrome, Edge, or Opera) with Web MIDI and SysEx permission, and a MIDI connection to an FM1.
+
+## App
+
+- [FM1 Editor & Librarian](https://fm1-editor.com/): Open the editor and librarian
+
+## Source and support
+
+- [Source code and documentation](https://github.com/benny-sparra/fm1-dx7-patch-importer): README with features, requirements, usage, keyboard shortcuts, and privacy details
+- [Report an issue](https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new): Bug reports and feature requests
+
+## Optional
+
+- [M-VAVE](https://www.mvave.com/): Manufacturer of the FM1 synthesiser
+- [Yamaha Black Boxes DX7 patch collection](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/): Source of the bundled DX7 bank catalog
