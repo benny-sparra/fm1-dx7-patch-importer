@@ -59,7 +59,7 @@ type SliderParameterControlProps = {
 
 type RotaryParameterControlProps = Omit<SliderParameterControlProps, 'origin'>
 
-const rotaryControlKeys = [
+export const rangeControlKeys = [
   'ArrowDown',
   'ArrowLeft',
   'ArrowRight',
@@ -90,7 +90,7 @@ export function RotaryParameterControl({
   const clamp = (nextValue: number) => Math.max(min, Math.min(max, Math.round(nextValue)))
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!rotaryControlKeys.includes(event.key)) return
+    if (!rangeControlKeys.includes(event.key)) return
     event.preventDefault()
     if (!event.repeat) onGestureStart()
 
@@ -129,7 +129,7 @@ export function RotaryParameterControl({
         onBlur={onGestureEnd}
         onKeyDown={handleKeyDown}
         onKeyUp={(event) => {
-          if (rotaryControlKeys.includes(event.key)) onGestureEnd()
+          if (rangeControlKeys.includes(event.key)) onGestureEnd()
         }}
         onPointerCancel={() => {
           drag.current = null
@@ -259,7 +259,7 @@ export function SliderParameterControl({
           onBlur={onGestureEnd}
           onChange={(event) => onChange(Number(event.target.value))}
           onKeyDown={(event) => {
-            if (rotaryControlKeys.includes(event.key)) onGestureStart()
+            if (rangeControlKeys.includes(event.key)) onGestureStart()
           }}
           onKeyUp={onGestureEnd}
           onPointerCancel={onGestureEnd}

@@ -130,6 +130,22 @@ describe('usePatchLibrary saved banks', () => {
     expect(hook.result.current.hasDamagedNamedBanks).toBe(true)
     expect(hook.result.current.namedBanksLoadFailed).toBe(false)
   })
+
+  it('saves a named bank from a change made earlier in the same event', async () => {
+    storage.saveStoredNamedBank.mockResolvedValue('bank-1')
+    const hook = await renderLoadedLibrary()
+    let saving: Promise<unknown> | undefined
+
+    act(() => {
+      hook.result.current.loadDemoBank('A')
+      saving = hook.result.current.saveNamedBank('A', 'Demo bank', '')
+    })
+
+    await act(async () => {
+      await expect(saving).resolves.toMatchObject({ name: 'Demo bank' })
+    })
+    expect(storage.saveStoredNamedBank).toHaveBeenCalledOnce()
+  })
 })
 
 describe('usePatchLibrary changes', () => {

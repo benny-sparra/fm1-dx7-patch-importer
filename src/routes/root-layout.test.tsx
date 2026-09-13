@@ -26,6 +26,7 @@ const midi = {
   isConnecting: false,
   logStore: {
     getSnapshot: vi.fn(() => midiLogSnapshot),
+    hasActivity: vi.fn(() => true),
     subscribe: vi.fn(() => vi.fn()),
   },
   midiAccess: false,

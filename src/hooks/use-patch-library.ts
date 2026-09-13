@@ -271,7 +271,7 @@ export function usePatchLibrary() {
   const saveNamedBank = useCallback(
     async (sourceBank: string, name: string, description: string) => {
       const now = new Date().toISOString()
-      const bank = createNamedBank(history.present, sourceBank, {
+      const bank = createNamedBank(historyRef.current.present, sourceBank, {
         description,
         id: createId(),
         name,
@@ -281,7 +281,7 @@ export function usePatchLibrary() {
       setNamedBanks((current) => [bank, ...current])
       return bank
     },
-    [history.present],
+    [],
   )
 
   const loadSavedBank = useCallback(

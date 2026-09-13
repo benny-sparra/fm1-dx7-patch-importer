@@ -20,11 +20,8 @@ export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const log = useSyncExternalStore(logStore.subscribe, logStore.getSnapshot, logStore.getSnapshot)
-  const hasMidiActivity = !(
-    log.length === 1 &&
-    log[0].direction === 'system' &&
-    log[0].message === 'Ready. Connect a Chromium browser to begin.'
-  )
+  // Every append publishes a new snapshot, so this re-renders whenever activity starts.
+  const hasMidiActivity = logStore.hasActivity()
 
   return (
     <>

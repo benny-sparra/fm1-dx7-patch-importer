@@ -1,5 +1,4 @@
 import { ChevronLeft, ChevronRight, GripHorizontal, X } from 'lucide-react'
-import { type MouseEvent as ReactMouseEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -233,48 +232,6 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
-  function startMouseDrag(event: ReactMouseEvent<HTMLDivElement>) {
-    if (event.button !== 0 || dragOffsetRef.current) {
-      return
-    }
-
-    const dialog = dialogRef.current
-
-    if (!dialog) {
-      return
-    }
-
-    const rect = dialog.getBoundingClientRect()
-    const offset = {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    }
-
-    setDialogPosition({ left: rect.left, top: rect.top })
-
-    const moveDialogWithMouse = (moveEvent: MouseEvent) => {
-      const currentRect = dialog.getBoundingClientRect()
-      const left = Math.min(
-        window.innerWidth - currentRect.width - 8,
-        Math.max(8, moveEvent.clientX - offset.x),
-      )
-      const top = Math.min(
-        window.innerHeight - currentRect.height - 8,
-        Math.max(8, moveEvent.clientY - offset.y),
-      )
-
-      setDialogPosition({ left, top })
-    }
-
-    const stopMouseDrag = () => {
-      window.removeEventListener('mousemove', moveDialogWithMouse)
-      window.removeEventListener('mouseup', stopMouseDrag)
-    }
-
-    window.addEventListener('mousemove', moveDialogWithMouse)
-    window.addEventListener('mouseup', stopMouseDrag)
-  }
-
   function moveDialog(event: React.PointerEvent<HTMLDivElement>) {
     const offset = dragOffsetRef.current
     const dialog = dialogRef.current
@@ -343,7 +300,6 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
           onPointerDown={startDrag}
           onPointerMove={moveDialog}
           onPointerUp={stopDrag}
-          onMouseDown={startMouseDrag}
         >
           <div className="flex items-center gap-3">
             <GripHorizontal className="size-5 opacity-60" />
@@ -360,7 +316,6 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
             aria-label={t('ui.closeKeyboard')}
             autoFocus
             onClick={closeKeyboard}
-            onMouseDown={(event) => event.stopPropagation()}
             onPointerDown={(event) => event.stopPropagation()}
             size="icon"
             type="button"

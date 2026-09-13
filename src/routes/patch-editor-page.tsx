@@ -35,6 +35,7 @@ import {
 } from '@/lib/fm1-parameters'
 import {
   editParameters,
+  finishParameterGesture,
   makeEditorHistory,
   redoParameters,
   undoParameters,
@@ -261,10 +262,7 @@ export function PatchEditorPage({
 
     const current = historyRef.current
     if (parametersMatch(start.present, current.present)) return
-    commitHistory({
-      ...current,
-      past: [...start.past, start.present].slice(-100),
-    })
+    commitHistory(finishParameterGesture(start, current))
   }, [commitHistory])
 
   const sendToFm1 = useCallback(
