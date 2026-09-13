@@ -10,12 +10,14 @@ import {
   SliderParameterControl,
   SwitchParameterControl,
 } from '@/components/editor/parameter-controls'
+import { HelpPopover } from '@/components/ui/help-popover'
 import {
   displayToStoredValue,
   getGlobalParameterDefinition,
   storedToDisplayValue,
   type GlobalParameterId,
 } from '@/lib/fm1-parameters'
+import { pitchEnvelopePresets, type PitchEnvelopePresetId } from '@/lib/pitch-envelope-presets'
 
 type GlobalConfigurationPanelProps = {
   beginGesture: () => void
@@ -47,6 +49,21 @@ export function GlobalConfigurationPanel({
       value={parameters[globalIndex(id)]}
     />
   )
+
+  // A preset is one edit: grouping the eight writes in a gesture keeps it to a
+  // single undo step.
+  const applyPitchEnvelopePreset = (id: PitchEnvelopePresetId) => {
+    const preset = pitchEnvelopePresets.find((candidate) => candidate.id === id)
+    if (!preset) return
+    beginGesture()
+    preset.rates.forEach((rate, point) =>
+      setParameter(globalIndex('global.pitchEnvelope.rate1') + point, rate, 99),
+    )
+    preset.levels.forEach((level, point) =>
+      setParameter(globalIndex('global.pitchEnvelope.level1') + point, level, 99),
+    )
+    endGesture()
+  }
 
   /*
     The artboard's second rack row: algorithm, pitch envelope and the LFO
@@ -111,6 +128,32 @@ export function GlobalConfigurationPanel({
             title={t('editor.pitchEnvelope')}
             variant="pitch"
           />
+          {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
+          <label className="mt-2 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+            <span className="flex items-center gap-1">
+              {t('editor.pitchEnvelopePresets')}
+              <HelpPopover
+                label={t('editor.pitchEnvelopePresets')}
+                text={t('controlHelp.pitchEnvelopePresets')}
+              />
+            </span>
+            <select
+              className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+              onChange={(event) => {
+                applyPitchEnvelopePreset(event.target.value as PitchEnvelopePresetId)
+              }}
+              value=""
+            >
+              <option disabled value="">
+                {t('editor.pitchEnvelopePresetPlaceholder')}
+              </option>
+              {pitchEnvelopePresets.map(({ id }) => (
+                <option key={id} value={id}>
+                  {t(`editor.pitchEnvelopePresetOptions.${id}`)}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </section>
 

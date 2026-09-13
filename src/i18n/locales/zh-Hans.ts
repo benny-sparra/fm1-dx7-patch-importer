@@ -29,6 +29,8 @@ export default {
       '将一个操作器的部分信号反馈到自身。数值越高，产生的谐波越明亮、粗糙，并可能出现噪声。',
     pitchEnvelope:
       '控制每个音符发声过程中的音高变化。四个速率决定各阶段的变化速度，四个电平决定各阶段到达的音高。',
+    pitchEnvelopePresets:
+      '用一个起始形状替换全部八个速率和电平。“平直”会去除所有音高变化；其他预设会加入短暂上冲、下落的起音、上滑的滑入或释放时的下落。撤销可恢复之前的包络。',
     pitchEnvelopeRate: '控制音高移动到此阶段的速度。数值越高，移动越快。',
     pitchEnvelopeLevel:
       '设置此阶段的音高。数值约为 50 时接近演奏音高；高于或低于 50 会使音高向上或向下弯曲。',
@@ -345,6 +347,15 @@ export default {
     global: '全局',
     effects: '效果',
     pitchEnvelope: '音高包络',
+    pitchEnvelopePresets: '预设',
+    pitchEnvelopePresetPlaceholder: '选择…',
+    pitchEnvelopePresetOptions: {
+      flat: '平直',
+      blipUp: '起音上冲',
+      attackDrop: '起音下落',
+      scoop: '滑入',
+      releaseFall: '释放下落',
+    },
     lfoGlobal: 'LFO 与全局',
     oscillatorSync: '振荡器同步',
     lfoSync: 'LFO 同步',

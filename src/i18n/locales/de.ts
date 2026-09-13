@@ -35,6 +35,8 @@ export default {
       'Feeds part of one operator back into itself. Higher values add brighter, rougher harmonics and can become noisy.',
     pitchEnvelope:
       'Changes the pitch over the life of each note. The four rates control how quickly each stage moves; the four levels set the pitch reached at each stage.',
+    pitchEnvelopePresets:
+      'Ersetzt alle acht Raten und Pegel durch eine Ausgangsform. „Flach“ entfernt jede Tonhöhenbewegung; die anderen fügen einen kurzen Blip, einen fallenden Anschlag, ein ansteigendes Anschleifen oder ein Absinken beim Loslassen hinzu. Rückgängig stellt die vorherige Hüllkurve wieder her.',
     pitchEnvelopeRate:
       'Controls how quickly the pitch moves to this stage. Higher values make the move faster.',
     pitchEnvelopeLevel:
@@ -382,6 +384,15 @@ export default {
     global: 'Global',
     effects: 'Effekte',
     pitchEnvelope: 'Tonhöhen-Hüllkurve',
+    pitchEnvelopePresets: 'Presets',
+    pitchEnvelopePresetPlaceholder: 'Auswählen…',
+    pitchEnvelopePresetOptions: {
+      flat: 'Flach',
+      blipUp: 'Anschlag-Blip nach oben',
+      attackDrop: 'Anschlag-Abfall',
+      scoop: 'Anschleifen',
+      releaseFall: 'Abfall beim Loslassen',
+    },
     lfoGlobal: 'LFO und Global',
     oscillatorSync: 'Oszillator-Sync',
     lfoSync: 'LFO-Sync',

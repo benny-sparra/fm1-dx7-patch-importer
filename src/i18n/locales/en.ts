@@ -33,6 +33,8 @@ export default {
       'Feeds part of one operator back into itself. Higher values add brighter, rougher harmonics and can become noisy.',
     pitchEnvelope:
       'Changes the pitch over the life of each note. The four rates control how quickly each stage moves; the four levels set the pitch reached at each stage.',
+    pitchEnvelopePresets:
+      'Replaces all eight rates and levels with a starting shape. Flat removes any pitch movement; the others add a quick blip, a falling attack, a rising scoop or a droop on release. Undo restores the previous envelope.',
     pitchEnvelopeRate:
       'Controls how quickly the pitch moves to this stage. Higher values make the move faster.',
     pitchEnvelopeLevel:
@@ -378,6 +380,15 @@ export default {
     global: 'Global',
     effects: 'Effects',
     pitchEnvelope: 'Pitch envelope',
+    pitchEnvelopePresets: 'Presets',
+    pitchEnvelopePresetPlaceholder: 'Choose…',
+    pitchEnvelopePresetOptions: {
+      flat: 'Flat',
+      blipUp: 'Attack blip up',
+      attackDrop: 'Attack drop',
+      scoop: 'Scoop',
+      releaseFall: 'Release fall',
+    },
     lfoGlobal: 'LFO & global',
     oscillatorSync: 'Oscillator sync',
     lfoSync: 'LFO sync',
