@@ -52,6 +52,9 @@ files when that is clearer.
 - Use Lucide icons and the existing components in `src/components/ui/` before adding new UI
   primitives.
 - Do not use dangerous lint autofixes. `npm run lint:fix` is the supported autofix command.
+- Do not throw from React state updater functions. React runs them during render, so the caller's
+  `try/catch` never sees the error. Work out the next state where the caller can catch a failure,
+  then set it.
 
 ## Behavioral constraints
 
@@ -63,6 +66,8 @@ files when that is clearer.
   serialize saves so an older snapshot cannot become final storage.
 - Cancellation, retry, disposal, and completions arriving after unmount are normal cases and require
   deterministic handling and tests.
+- Debounced saves must not lose recent edits: write any pending save immediately when the page is
+  hidden or closed, and warn before leaving while a save has not committed.
 
 ### Legacy stored data compatibility
 
@@ -85,6 +90,8 @@ open everything an earlier release could have saved.
 - New fields must be optional when read, with safe defaults for records that predate them. Unknown
   or out-of-range values from old records are normalised, not treated as a reason to discard the
   workspace; genuinely unreadable data surfaces the `incompatible` error rather than being replaced.
+- In a store that holds many independent records, such as saved banks, a damaged record is skipped,
+  left in storage unchanged, and reported to the user. It must not hide the readable records.
 - Stored preference values (locale, colourway, port names) that no longer match a supported option
   fall back to a default without throwing or erasing other storage.
 - Every stored version needs a fixture-based test in the co-located storage test that loads a record
