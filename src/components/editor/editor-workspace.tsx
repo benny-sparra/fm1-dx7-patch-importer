@@ -205,7 +205,7 @@ export function RackPanelTitle({
   title: string
 }) {
   return (
-    <div className="crt-hatch flex min-h-8 items-center justify-between gap-3 border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
+    <div className="crt-hatch relative flex min-h-8 items-center justify-between gap-3 border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
       <h2
         className="font-dot-matrix flex min-w-0 items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase"
         id={id}
@@ -214,7 +214,7 @@ export function RackPanelTitle({
         <span className="truncate">{title}</span>
         {help ? (
           <HelpPopover
-            className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
+            className="relative z-10 text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
             label={help.label}
             text={help.text}
           />
@@ -227,6 +227,8 @@ export function RackPanelTitle({
 
 /**
  * The minimise control a rack panel wears at the right of its title strip.
+ * Its hit area stretches over the whole strip, so clicking anywhere on the
+ * title folds the panel; the help button sits above that overlay.
  * Collapsing keeps the title visible so the rack still reads as a stack.
  */
 export function RackPanelCollapseToggle({
@@ -250,7 +252,7 @@ export function RackPanelCollapseToggle({
     <button
       aria-controls={controls}
       aria-expanded={!collapsed}
-      className="flex size-6 shrink-0 cursor-pointer items-center justify-center text-[var(--crt-ink-3)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-acc-lt)]"
+      className="flex size-6 shrink-0 cursor-pointer items-center justify-center text-[var(--crt-ink-3)] transition-colors outline-none after:absolute after:inset-0 after:content-[''] hover:text-[var(--crt-acc-lt)] focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-[var(--crt-acc-lt)]"
       onClick={onToggle}
       title={label}
       type="button"
