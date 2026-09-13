@@ -3,6 +3,7 @@ import { useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpPopover } from '@/components/ui/help-popover'
+import { OnOffLabel } from '@/components/ui/on-off-label'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
@@ -275,7 +276,6 @@ export function SwitchParameterControl({
   onChange,
   value,
 }: SwitchParameterControlProps) {
-  const { t } = useTranslation()
   const checked = value > 0
   const inputId = useId()
 
@@ -308,7 +308,7 @@ export function SwitchParameterControl({
           )}
         >
           <span aria-hidden="true" className="crt-led" data-state={checked ? 'on' : 'off'} />
-          {checked ? t('editor.on') : t('editor.off')}
+          <OnOffLabel on={checked} />
         </span>
       </label>
     </div>

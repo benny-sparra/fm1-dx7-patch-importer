@@ -2,6 +2,7 @@ import { Power } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpPopover } from '@/components/ui/help-popover'
+import { OnOffLabel } from '@/components/ui/on-off-label'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
@@ -234,7 +235,7 @@ export function EffectsUnit({ onChange, onGestureEnd, onGestureStart, values }: 
                 type="button"
               >
                 <Power aria-hidden="true" className="size-3" />
-                {t(enabled ? 'editor.on' : 'editor.off')}
+                <OnOffLabel on={enabled} />
               </button>
             </div>
             <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
