@@ -146,13 +146,16 @@ describe('patch library operations', () => {
     expect(getNextWorkspaceBank(withGapBelowLimit.workspaceBanks)).toBe('I')
   })
 
-  it('creates patch slots for added banks without invalid MIDI programs', () => {
+  it('gives slots in banks A to D their FM1 program and slots in added banks none', () => {
     const added = addWorkspaceBank(emptyPatchLibrary(), 'E')
-    const patches = makePatches(added).filter((patch) => patch.bank === 'E')
+    const patches = makePatches(added)
+    const addedBank = patches.filter((patch) => patch.bank === 'E')
 
-    expect(patches).toHaveLength(32)
-    expect(patches[0]).toMatchObject({ bank: 'E', number: 1, program: 0 })
-    expect(patches[31]).toMatchObject({ bank: 'E', number: 32, program: 31 })
+    expect(patches.find((patch) => patch.id === voiceId('A', 1))?.program).toBe(0)
+    expect(patches.find((patch) => patch.id === voiceId('D', 32))?.program).toBe(127)
+    expect(addedBank).toHaveLength(32)
+    expect(addedBank[0]).toMatchObject({ bank: 'E', number: 1 })
+    expect(addedBank.every((patch) => patch.program === undefined)).toBe(true)
   })
 
   it('imports voices into a newly added workspace bank', () => {

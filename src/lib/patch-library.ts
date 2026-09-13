@@ -120,7 +120,10 @@ export function makePatches(snapshot: PatchLibrarySnapshot): Patch[] {
         id,
         name: voice?.name ?? 'Empty',
         number,
-        program: (bankIndex % browserBanks.length) * dx7BankVoiceCount + slotIndex,
+        // The FM1 has four banks, so only the first four workspace banks have a program to select.
+        ...(bankIndex < browserBanks.length
+          ? { program: bankIndex * dx7BankVoiceCount + slotIndex }
+          : {}),
       }
     }),
   )

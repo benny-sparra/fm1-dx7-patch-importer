@@ -526,6 +526,7 @@ export default {
     editSelected: '编辑',
     editNone: '请先选择一个音色以进行编辑',
     slotTitle: '单击可在 FM1 上演奏 {{name}}；双击可编辑',
+    slotEditBufferTitle: '单击通过 FM1 编辑缓冲区试听 {{name}}；双击进行编辑',
     slotEditTitle: '双击或按 Enter 键编辑 {{name}}',
     openEditor: '在音色编辑器中打开 {{name}}',
     sendPatch: '将 {{name}} 发送到 FM1',

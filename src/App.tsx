@@ -5,6 +5,7 @@ import { useMidi } from '@/hooks/use-midi'
 import { usePatchLibrary } from '@/hooks/use-patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { RootLayout } from '@/routes/root-layout'
+import { type Patch } from '@/data/patches'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import {
@@ -37,16 +38,35 @@ function App() {
   const [auditionedPatchId, setAuditionedPatchId] = useState('')
   const selectedPatch = library.patches.find((patch) => patch.id === selectedPatchId)
   const selectedVoice = selectedPatch ? library.voices[selectedPatch.id] : undefined
+  const findPatch = (patchId: string) =>
+    library.patches.find((candidate) => candidate.id === patchId)
+  // A slot in banks A–D selects its FM1 program. An added bank has no FM1 slot, so its sound is
+  // auditioned through the edit buffer instead, with its effects, just as the editor sends it.
+  const auditionPatch = (patch: Patch) => {
+    if (patch.program !== undefined) {
+      midi.sendProgramChange(patch.program)
+      return
+    }
+    const voice = library.voices[patch.id]
+    if (!voice) return
+    const effects = normalizeFm1Effects(library.effects[patch.id])
+    void midi.sendVoice(voice).then((sent) => {
+      if (sent) void midi.sendEffectSettings(effects)
+    })
+  }
   const selectPatch = (patchId: string) => {
-    const patch = library.patches.find((candidate) => candidate.id === patchId)
+    const patch = findPatch(patchId)
     if (!patch) return
-    midi.sendProgramChange(patch.program)
+    auditionPatch(patch)
     setAuditionedPatchId(patch.id)
-    return patch
   }
   const editPatch = (patchId: string) => {
-    const patch = selectPatch(patchId)
+    const patch = findPatch(patchId)
     if (!patch) return
+    // The editor sends an added bank's sound itself as it opens, so only a slot in banks A–D is
+    // selected on the way in.
+    if (patch.program !== undefined) midi.sendProgramChange(patch.program)
+    setAuditionedPatchId(patch.id)
     beginDynamicImportRecovery(patch.id)
     setSelectedPatchId(patch.id)
     trackAnalyticsEvent({ name: 'editor_opened' })

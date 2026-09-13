@@ -572,3 +572,33 @@ describe('LibrarianPage grid navigation', () => {
     expect(onEditPatch).toHaveBeenCalledWith(gridPatches[1])
   })
 })
+
+describe('LibrarianPage slot tooltips', () => {
+  it('explains that a slot with no FM1 program plays through the edit buffer', () => {
+    const slotLibrary = {
+      ...library,
+      patches: [
+        { bank: 'A', family: 'DX7', id: 'bank-A-1', name: 'Hardware Keys', number: 1, program: 0 },
+        { bank: 'A', family: 'DX7', id: 'bank-A-2', name: 'Added Pad', number: 2 },
+      ],
+    } as unknown as PatchLibrary
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={slotLibrary}
+          midi={midi}
+          onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    expect(
+      screen.getByRole('button', { name: 'Send Hardware Keys to FM1' }).getAttribute('title'),
+    ).toBe('Click to play Hardware Keys on the FM1; double-click to edit')
+    expect(
+      screen.getByRole('button', { name: 'Send Added Pad to FM1' }).getAttribute('title'),
+    ).toBe('Click to play Added Pad through the FM1 edit buffer; double-click to edit')
+  })
+})

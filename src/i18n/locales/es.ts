@@ -573,6 +573,8 @@ export default {
     editSelected: 'Editar',
     editNone: 'Elige primero un sonido para editarlo',
     slotTitle: 'Haz clic para tocar {{name}} en el FM1; doble clic para editarlo',
+    slotEditBufferTitle:
+      'Haz clic para escuchar {{name}} a través del búfer de edición del FM1; doble clic para editar',
     slotEditTitle: 'Haz doble clic o pulsa Intro para editar {{name}}',
     openEditor: 'Abrir {{name}} en el editor',
     sendPatch: 'Enviar {{name}} al FM1',

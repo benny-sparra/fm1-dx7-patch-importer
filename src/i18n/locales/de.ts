@@ -578,6 +578,8 @@ export default {
     editSelected: 'Bearbeiten',
     editNone: 'Wähle zuerst einen Sound, um ihn zu bearbeiten',
     slotTitle: 'Klicken, um {{name}} auf dem FM1 zu spielen; Doppelklick zum Bearbeiten',
+    slotEditBufferTitle:
+      'Klicken, um {{name}} über den Bearbeitungspuffer des FM1 zu spielen; Doppelklick zum Bearbeiten',
     slotEditTitle: 'Doppelklicken oder Eingabetaste drücken, um {{name}} zu bearbeiten',
     openEditor: '{{name}} im Voice-Editor öffnen',
     sendPatch: '{{name}} an FM1 senden',

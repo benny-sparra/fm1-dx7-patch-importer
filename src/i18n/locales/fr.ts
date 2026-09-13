@@ -579,6 +579,8 @@ export default {
     editSelected: 'Modifier',
     editNone: 'Choisis d’abord un son pour le modifier',
     slotTitle: 'Cliquer pour jouer {{name}} sur le FM1 ; double-cliquer pour le modifier',
+    slotEditBufferTitle:
+      'Cliquez pour écouter {{name}} via le tampon d’édition du FM1 ; double-cliquez pour le modifier',
     slotEditTitle: 'Double-cliquer ou appuyer sur Entrée pour modifier {{name}}',
     openEditor: 'Ouvrir {{name}} dans l’éditeur',
     sendPatch: 'Envoyer {{name}} au FM1',
