@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, type Ref, useEffect, useRef } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -15,10 +15,16 @@ const prefersReducedMotion = () =>
  * reduced motion (or no requestAnimationFrame) only the render redraws happen,
  * leaving a still frame. The latest `step` is always used, so callers can
  * close over props without restarting the loop.
+ *
+ * Attach the returned ref to the scope's `ScopeFrame`: frames are only
+ * requested while it shows on screen, so a scope scrolled away or inside a
+ * folded rack panel (clipped to zero height) stops repainting. Without
+ * IntersectionObserver the loop always runs.
  */
 export function useAnimationLoop(step: (elapsed: number) => void) {
   const stepRef = useRef(step)
   stepRef.current = step
+  const frameRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     stepRef.current(0)
@@ -27,7 +33,7 @@ export function useAnimationLoop(step: (elapsed: number) => void) {
   useEffect(() => {
     if (typeof window.requestAnimationFrame !== 'function' || prefersReducedMotion()) return
 
-    let frame = 0
+    let frame: number | undefined
     let last: number | undefined
     const tick = (now: number) => {
       // Cap the step so a tab returning from the background doesn't lurch.
@@ -36,9 +42,43 @@ export function useAnimationLoop(step: (elapsed: number) => void) {
       stepRef.current(elapsed)
       frame = window.requestAnimationFrame(tick)
     }
-    frame = window.requestAnimationFrame(tick)
-    return () => window.cancelAnimationFrame(frame)
+    const start = () => {
+      if (frame !== undefined) return
+      // Resume from where the scope paused rather than jumping ahead.
+      last = undefined
+      frame = window.requestAnimationFrame(tick)
+    }
+    const stop = () => {
+      if (frame === undefined) return
+      window.cancelAnimationFrame(frame)
+      frame = undefined
+    }
+
+    const target = frameRef.current
+    if (!target || typeof window.IntersectionObserver !== 'function') {
+      start()
+      return stop
+    }
+
+    // A clipped scope touching its clip edge still counts as intersecting
+    // with no area, so only a visible area resumes the loop.
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        const entry = entries.at(-1)
+        if (!entry) return
+        if (entry.isIntersecting && entry.intersectionRatio > 0) start()
+        else stop()
+      },
+      { threshold: [0, 0.01] },
+    )
+    observer.observe(target)
+    return () => {
+      observer.disconnect()
+      stop()
+    }
   }, [])
+
+  return frameRef
 }
 
 /** Faint graticule lines: evenly spaced verticals plus a horizontal at `rowY`. */
@@ -82,11 +122,13 @@ export function ScopeFrame({
   children,
   className,
   overlay,
+  ref,
   testId,
 }: {
   children: ReactNode
   className?: string
   overlay?: ReactNode
+  ref?: Ref<HTMLDivElement>
   testId: string
 }) {
   return (
@@ -97,6 +139,7 @@ export function ScopeFrame({
         className,
       )}
       data-testid={testId}
+      ref={ref}
     >
       <svg
         className="absolute inset-0 size-full"

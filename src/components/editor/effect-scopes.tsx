@@ -55,7 +55,7 @@ export function FilterScope({ cutoff, enabled, resonance, type }: FilterScopePro
 
   const barWidth = viewWidth / spectrumBars
 
-  useAnimationLoop((elapsed) => {
+  const frameRef = useAnimationLoop((elapsed) => {
     sinceBarsRef.current += elapsed
     // Render redraws (elapsed 0) always refresh so the bars follow the knobs.
     if (elapsed > 0 && sinceBarsRef.current < 1 / spectrumFps) return
@@ -74,6 +74,7 @@ export function FilterScope({ cutoff, enabled, resonance, type }: FilterScopePro
 
   return (
     <ScopeFrame
+      ref={frameRef}
       overlay={
         <ScopeDot
           active={enabled}
@@ -154,7 +155,7 @@ export function DelayScope({ decay, enabled, mix, rate }: DelayScopeProps) {
   const taps = useMemo(() => delayTaps(decay, rate), [decay, rate])
   const wetOpacity = 0.2 + 0.8 * clamp01(mix / 100)
 
-  useAnimationLoop((elapsed) => {
+  const frameRef = useAnimationLoop((elapsed) => {
     headRef.current = (headRef.current + elapsed * delayTravelSpeed) % (viewWidth + delayRest)
     const head = headRef.current
     tapRefs.current.forEach((tap, index) => {
@@ -170,7 +171,7 @@ export function DelayScope({ decay, enabled, mix, rate }: DelayScopeProps) {
   })
 
   return (
-    <ScopeFrame testId="delay-scope">
+    <ScopeFrame ref={frameRef} testId="delay-scope">
       <ScopeGrid columns={6} rowY={delayBaseline} />
       <ScopeTrace active={enabled}>
         {taps.map((tap, index) => (
@@ -231,7 +232,7 @@ export function ChorusScope({ depth, enabled, frequency, mix }: ChorusScopeProps
   const scrollRef = useRef(0)
   const driftRef = useRef(0)
 
-  useAnimationLoop((elapsed) => {
+  const frameRef = useAnimationLoop((elapsed) => {
     scrollRef.current = (scrollRef.current + elapsed * chorusScrollRate) % 1
     driftRef.current = (driftRef.current + elapsed * chorusRate(frequency)) % 1
     const translate = (cycles: number) =>
@@ -247,7 +248,7 @@ export function ChorusScope({ depth, enabled, frequency, mix }: ChorusScopeProps
   const wetOpacity = 0.15 + 0.6 * clamp01(mix / 100)
 
   return (
-    <ScopeFrame testId="chorus-scope">
+    <ScopeFrame ref={frameRef} testId="chorus-scope">
       <ScopeGrid columns={chorusCycles * 2} rowY={viewHeight / 2} />
       <ScopeTrace active={enabled}>
         {chorusVoicePhases.map((_, index) => (
@@ -331,7 +332,7 @@ export function ReverbScope({ decay, enabled, mix, space }: ReverbScopeProps) {
   const reflections = (reverbSpaces[space] ?? reverbSpaces[0]).reflections
   const wetOpacity = 0.25 + 0.75 * clamp01(mix / 100)
 
-  useAnimationLoop((elapsed) => {
+  const frameRef = useAnimationLoop((elapsed) => {
     const period = drawTime + reverbHold
     clockRef.current += elapsed
     if (clockRef.current >= period) {
@@ -354,7 +355,7 @@ export function ReverbScope({ decay, enabled, mix, space }: ReverbScopeProps) {
   })
 
   return (
-    <ScopeFrame testId="reverb-scope">
+    <ScopeFrame ref={frameRef} testId="reverb-scope">
       <ScopeGrid columns={6} rowY={viewHeight / 2} />
       <ScopeTrace active={enabled}>
         <g ref={groupRef}>
@@ -454,7 +455,7 @@ export function DistortionScope({ enabled, gain, level, tone }: DistortionScopeP
     [gain, level, tone],
   )
 
-  useAnimationLoop((elapsed) => {
+  const frameRef = useAnimationLoop((elapsed) => {
     scrollRef.current = (scrollRef.current + elapsed * distortionScrollRate) % 1
     traceRef.current?.setAttribute(
       'transform',
@@ -463,7 +464,7 @@ export function DistortionScope({ enabled, gain, level, tone }: DistortionScopeP
   })
 
   return (
-    <ScopeFrame testId="distortion-scope">
+    <ScopeFrame ref={frameRef} testId="distortion-scope">
       <ScopeGrid columns={distortionCycles * 2} rowY={viewHeight / 2} />
       <ScopeTrace active={enabled}>
         <g ref={traceRef}>
@@ -529,7 +530,7 @@ export function PhaserScope({ depth, enabled, frequency, mix }: PhaserScopeProps
   const fillRef = useRef<SVGPathElement>(null)
   const phaseRef = useRef(0)
 
-  useAnimationLoop((elapsed) => {
+  const frameRef = useAnimationLoop((elapsed) => {
     phaseRef.current = (phaseRef.current + elapsed * phaserRate(frequency)) % 1
     const notchX =
       phaserCentre +
@@ -542,7 +543,7 @@ export function PhaserScope({ depth, enabled, frequency, mix }: PhaserScopeProps
   const initial = phaserPath(phaserCentre, mix)
 
   return (
-    <ScopeFrame testId="phaser-scope">
+    <ScopeFrame ref={frameRef} testId="phaser-scope">
       <ScopeGrid columns={6} rowY={phaserDbToY(0)} />
       <ScopeTrace active={enabled}>
         <path

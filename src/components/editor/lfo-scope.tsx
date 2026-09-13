@@ -105,7 +105,7 @@ export function LfoScope({ ampModDepth, pitchModDepth, speed, wave }: LfoScopePr
   const dotRef = useRef<HTMLSpanElement>(null)
   const phaseRef = useRef(0)
 
-  useAnimationLoop((elapsed) => {
+  const frameRef = useAnimationLoop((elapsed) => {
     phaseRef.current += elapsed * cyclesPerSecond(speed)
     const period = patternCycles(wave)
     const phase = phaseRef.current
@@ -119,6 +119,7 @@ export function LfoScope({ ampModDepth, pitchModDepth, speed, wave }: LfoScopePr
 
   return (
     <ScopeFrame
+      ref={frameRef}
       overlay={
         <span
           className="absolute size-1.5 -translate-1/2 rounded-full bg-[var(--crt-led)] shadow-[0_0_6px_var(--crt-led)] transition-opacity duration-300"
