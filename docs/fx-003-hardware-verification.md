@@ -158,19 +158,36 @@ out-of-range probe value for a save test.
   switches the configured filter path off at 0 and on at 1. This does not establish filter type
   order, cutoff scaling/range, Q behaviour, persistence, or any other effect-control mapping.
 
-| Claim group                                      | Current classification         | Evidence / result                                                                                                                                                         |
-| ------------------------------------------------ | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Raw CC 0–23 on independently selected FX channel | Strongly supported             | Firmware analysis and M-VAVE's published V14 guide corroborate the complete envelope; the V15 run confirms CC 0/2 only.                                                   |
-| Filter Switch (`B1 00 vv`)                       | Confirmed by hardware          | With type 0, Q 5, and cutoff 0, `vv=0` restored normal output and `vv=1` made output dramatically quieter in two controlled cycles.                                       |
-| All 24 controller-to-effect/parameter meanings   | Strongly supported             | M-VAVE's published V14 guide matches the editor's controller group/order and names closely; V15 runtime compatibility is directly tested only for Filter Switch/Cutoff.   |
-| Filter cutoff maximum 107                        | Strongly supported             | The guide lists 0–107. V15 Cutoff 0 was dramatically quieter and 107 restored normal brightness; 108 and the high sweep did not establish clamp/wrap behaviour.           |
-| Filter resonance maximum 10                      | Strongly supported             | The guide lists Filter Q 0–10; the editor's “Resonance” is a descriptive label for that documented field.                                                                 |
-| Repeated 100 maxima                              | Strongly supported             | The guide lists 0–100 for the corresponding continuous controls; no V15 above-range acceptance/persistence claim follows.                                                 |
-| Percentage terminology / direct raw values       | Needs further hardware testing | The guide gives raw 0–100 ranges but no percentage units, scaling curve, or display unit. The editor's `%` suffixes remain a UI convention, not a documented device unit. |
-| Delay “Decay” / “Rate” terminology               | Strongly supported             | The guide uses the same two parameter names, but does not define their physical units or scaling.                                                                         |
-| Enable polarity and binary behaviour             | Strongly supported             | The guide documents every switch as 0=off / ≥1=on. Filter has the stronger repeated V15 confirmation above; other blocks still lack direct V15 observation.               |
-| Enum ordering (Filter Type / Reverb Space)       | Strongly supported             | The guide specifies Filter LPF/BPF/HPF and Reverb Room/Hall/Plate in the current editor order; direct V15 screen/audio confirmation remains incomplete.                   |
-| Effect persistence and interaction               | Needs further hardware testing | No patch-change, power-cycle, stock-save, or interaction pass has run.                                                                                                    |
+### 2026-09-14 — Browser slot selection and effect retention, informal run
+
+- **Setup:** FM1 connected to the operator's Mac over Web MIDI; firmware version not recorded. A
+  patch in workspace banks A–D was given effects in the editor and saved to the browser library.
+  The operator then clicked another A–D slot on the library page and clicked the edited slot again.
+  Each click sent a Program Change on the note/program channel. No SysEx, vendor, loader, OTA,
+  flash, or FM1 **SAVE** traffic was involved.
+- **Before the editor change:** the library page sent only the Program Change. When the edited slot
+  was selected again, its effects were no longer audible.
+- **After the editor change:** the library page sends the patch's saved 24 effect CCs after the
+  Program Change. When the edited slot was selected again, its effects were retained.
+- **Classification:** **Likely** for the limited claim that an edit-buffer effect state sent over
+  CC does not follow its program across a Program Change, so the browser must resend saved effects
+  when it selects a slot. It was one uncontrolled run: it does not establish whether effects reset
+  to defaults, load from the selected program, or depend on firmware version, and it is not the
+  front-panel patch-change, power-cycle, or stock-save pass in §4.
+
+| Claim group                                      | Current classification         | Evidence / result                                                                                                                                                                                     |
+| ------------------------------------------------ | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Raw CC 0–23 on independently selected FX channel | Strongly supported             | Firmware analysis and M-VAVE's published V14 guide corroborate the complete envelope; the V15 run confirms CC 0/2 only.                                                                               |
+| Filter Switch (`B1 00 vv`)                       | Confirmed by hardware          | With type 0, Q 5, and cutoff 0, `vv=0` restored normal output and `vv=1` made output dramatically quieter in two controlled cycles.                                                                   |
+| All 24 controller-to-effect/parameter meanings   | Strongly supported             | M-VAVE's published V14 guide matches the editor's controller group/order and names closely; V15 runtime compatibility is directly tested only for Filter Switch/Cutoff.                               |
+| Filter cutoff maximum 107                        | Strongly supported             | The guide lists 0–107. V15 Cutoff 0 was dramatically quieter and 107 restored normal brightness; 108 and the high sweep did not establish clamp/wrap behaviour.                                       |
+| Filter resonance maximum 10                      | Strongly supported             | The guide lists Filter Q 0–10; the editor's “Resonance” is a descriptive label for that documented field.                                                                                             |
+| Repeated 100 maxima                              | Strongly supported             | The guide lists 0–100 for the corresponding continuous controls; no V15 above-range acceptance/persistence claim follows.                                                                             |
+| Percentage terminology / direct raw values       | Needs further hardware testing | The guide gives raw 0–100 ranges but no percentage units, scaling curve, or display unit. The editor's `%` suffixes remain a UI convention, not a documented device unit.                             |
+| Delay “Decay” / “Rate” terminology               | Strongly supported             | The guide uses the same two parameter names, but does not define their physical units or scaling.                                                                                                     |
+| Enable polarity and binary behaviour             | Strongly supported             | The guide documents every switch as 0=off / ≥1=on. Filter has the stronger repeated V15 confirmation above; other blocks still lack direct V15 observation.                                           |
+| Enum ordering (Filter Type / Reverb Space)       | Strongly supported             | The guide specifies Filter LPF/BPF/HPF and Reverb Room/Hall/Plate in the current editor order; direct V15 screen/audio confirmation remains incomplete.                                               |
+| Effect persistence and interaction               | Needs further hardware testing | One informal 2026-09-14 run: effects sent over CC were not retained across a browser Program Change unless resent. No front-panel patch-change, power-cycle, stock-save, or interaction pass has run. |
 
 ### Editor assumptions confirmed or disproved
 
