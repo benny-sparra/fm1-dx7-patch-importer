@@ -212,6 +212,9 @@ open everything an earlier release could have saved.
   close action. Lint allows it inside a `<dialog>` element written in the same JSX; a dialog built on
   another component needs its file in the `jsx-a11y/no-autofocus` exception in `.oxlintrc.json`.
   Anywhere else, move focus with a ref in an effect when content appears.
+- Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
+  slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
+  cleared.
 - Continuous input is one undo step. Start a gesture on pointer down or key down and end it on
   pointer up, key up, and blur, as the sliders, knobs, and envelope points do. A preset or randomise
   that writes many parameters is also one step.

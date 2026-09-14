@@ -269,6 +269,31 @@ export function deleteWorkspaceBank(snapshot: PatchLibrarySnapshot, bank: string
   })
 }
 
+/**
+ * The bank to show after deleting one. Later banks move up a letter, so the next bank takes the
+ * deleted bank's letter; when the last bank goes, the one before it is shown.
+ */
+export function workspaceBankAfterDeletion(workspaceBanks: readonly string[], deletedBank: string) {
+  const index = workspaceBanks.indexOf(deletedBank)
+  if (index === -1 || workspaceBanks.length <= 1) return null
+  return String.fromCharCode(65 + Math.min(index, workspaceBanks.length - 2))
+}
+
+/** Whether deleting a bank removes `bank` or moves it to another letter, so its slot ids change. */
+export function isRenumberedByBankDeletion(
+  workspaceBanks: readonly string[],
+  deletedBank: string,
+  bank: string,
+) {
+  const deletedIndex = workspaceBanks.indexOf(deletedBank)
+  return deletedIndex !== -1 && workspaceBanks.indexOf(bank) >= deletedIndex
+}
+
+/** The code a slot shows, such as A01. */
+export function patchSlotCode({ bank, number }: Pick<Patch, 'bank' | 'number'>) {
+  return `${bank}${String(number).padStart(2, '0')}`
+}
+
 export function getBankVoices(snapshot: PatchLibrarySnapshot, bank: string) {
   return Array.from(
     { length: dx7BankVoiceCount },

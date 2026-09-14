@@ -30,6 +30,7 @@ vi.mock('@/hooks/use-patch-library', () => ({
     persistenceStatus: 'ready',
     updatePatch: vi.fn(),
     voices: { 'patch-1': {}, 'patch-e1': addedVoice },
+    workspaceBanks: ['A', 'E'],
     workspaceLoading: false,
   }),
 }))
@@ -40,13 +41,18 @@ vi.mock('@/routes/root-layout', () => ({
 
 vi.mock('@/routes/librarian-page', () => ({
   LibrarianPage: ({
+    activePatchId,
+    onBankDeleted,
     onEditPatch,
     onSelectPatch,
   }: {
+    activePatchId: string
+    onBankDeleted: (bank: string) => void
     onEditPatch: (patch: { id: string }) => void
     onSelectPatch: (patch: { id: string }) => void
   }) => (
     <>
+      <p>Lit slot: {activePatchId || 'none'}</p>
       <button onClick={() => onEditPatch({ id: 'patch-1' })} type="button">
         Edit Piano
       </button>
@@ -58,6 +64,12 @@ vi.mock('@/routes/librarian-page', () => ({
       </button>
       <button onClick={() => onEditPatch({ id: 'patch-e1' })} type="button">
         Edit Pad
+      </button>
+      <button onClick={() => onBankDeleted('A')} type="button">
+        Delete bank A
+      </button>
+      <button onClick={() => onBankDeleted('E')} type="button">
+        Delete bank E
       </button>
     </>
   ),
@@ -180,5 +192,43 @@ describe('App added bank audition repeats', () => {
 
     expect(sendVoice).toHaveBeenCalledTimes(2)
     expect(sendEffectSettings).toHaveBeenCalledOnce()
+  })
+})
+
+describe('App lit slot after deleting a bank', () => {
+  function renderApp() {
+    render(
+      <ToastProvider>
+        <App />
+      </ToastProvider>,
+    )
+    return userEvent.setup()
+  }
+
+  it('turns off the lit slot when its bank is deleted', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+    await user.click(screen.getByRole('button', { name: 'Delete bank A' }))
+
+    expect(screen.getByText('Lit slot: none')).toBeTruthy()
+  })
+
+  it('turns off the lit slot when an earlier bank is deleted', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Pad' }))
+    await user.click(screen.getByRole('button', { name: 'Delete bank A' }))
+
+    expect(screen.getByText('Lit slot: none')).toBeTruthy()
+  })
+
+  it('keeps the lit slot when a later bank is deleted', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+    await user.click(screen.getByRole('button', { name: 'Delete bank E' }))
+
+    expect(screen.getByText('Lit slot: patch-1')).toBeTruthy()
   })
 })

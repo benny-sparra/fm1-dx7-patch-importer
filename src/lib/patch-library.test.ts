@@ -9,15 +9,18 @@ import {
   getNextWorkspaceBank,
   getBankVoices,
   importVoices,
+  isRenumberedByBankDeletion,
   makeBankFingerprint,
   makeDemoVoices,
   makePatches,
   moveVoice,
   normalizeWorkspaceBankNameForSave,
+  patchSlotCode,
   renameBank,
   renameVoice,
   updateBankInformation,
   voiceId,
+  workspaceBankAfterDeletion,
 } from '@/lib/patch-library'
 import {
   initializePatchLibrary,
@@ -323,5 +326,45 @@ describe('patch library operations', () => {
     const result = renameVoice(initial, voiceId('A', 1), 'BASS 🎹')
 
     expect(result.voices[voiceId('A', 1)].name).toBe('BASS')
+  })
+})
+
+describe('bank deletion', () => {
+  const banks = ['A', 'B', 'C', 'D']
+
+  it('shows the next bank under the letter it takes after a deletion', () => {
+    const library = banks.reduce(
+      (current, bank) => importVoices(current, bank, makeDemoVoices()),
+      emptyPatchLibrary(banks),
+    )
+
+    expect(workspaceBankAfterDeletion(banks, 'B')).toBe('B')
+    expect(deleteWorkspaceBank(library, 'B').voices[voiceId('B', 1)]).toBe(
+      library.voices[voiceId('C', 1)],
+    )
+  })
+
+  it('shows the bank before when the last bank is deleted', () => {
+    expect(workspaceBankAfterDeletion(banks, 'D')).toBe('C')
+  })
+
+  it('shows no other bank when the only bank cannot be deleted', () => {
+    expect(workspaceBankAfterDeletion(['A'], 'A')).toBeNull()
+  })
+
+  it('treats the deleted bank and every later bank as renumbered', () => {
+    expect(banks.map((bank) => isRenumberedByBankDeletion(banks, 'B', bank))).toEqual([
+      false,
+      true,
+      true,
+      true,
+    ])
+  })
+})
+
+describe('patchSlotCode', () => {
+  it('pads the slot number to two digits', () => {
+    expect(patchSlotCode({ bank: 'E', number: 3 })).toBe('E03')
+    expect(patchSlotCode({ bank: 'A', number: 32 })).toBe('A32')
   })
 })

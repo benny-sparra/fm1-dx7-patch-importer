@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 
 import { type Patch } from '@/data/patches'
 import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
+import { patchSlotCode } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
 
 type PatchButtonProps = {
@@ -48,7 +49,7 @@ export function PatchButton({
   return (
     <div
       className={cn(
-        'patch-cell patch-edge-gradient group relative flex h-full min-h-12 touch-none items-center gap-2 px-2 py-2 transition-colors duration-150',
+        'patch-cell patch-edge-gradient group relative flex h-full min-h-12 items-center gap-2 px-2 py-2 transition-colors duration-150',
         'border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
         'data-[disabled=true]:opacity-50',
         isActive
@@ -108,12 +109,13 @@ export function PatchButton({
           type="button"
         />
       ) : null}
+      {/* Only the grip starts a drag, so only the grip stops touch scrolling. */}
       {patch.family === 'DX7' ? (
         <button
           {...sortable.attributes}
           {...sortable.listeners}
           aria-label={t('banks.reorder', { name: patch.name })}
-          className="z-[1] -my-1 -mr-2 -ml-1 grid size-6 shrink-0 cursor-grab place-items-center text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] active:cursor-grabbing"
+          className="z-[1] -my-1 -mr-2 -ml-1 grid size-6 shrink-0 cursor-grab touch-none place-items-center text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] active:cursor-grabbing"
           title={t('banks.reorderTitle')}
           type="button"
         >
@@ -136,8 +138,7 @@ export function PatchButton({
             : 'border-[var(--crt-line)] text-[var(--crt-acc-lt)]',
         )}
       >
-        {patch.bank}
-        {patch.number.toString().padStart(2, '0')}
+        {patchSlotCode(patch)}
       </span>
       <span
         className={cn(

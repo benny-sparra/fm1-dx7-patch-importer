@@ -32,7 +32,11 @@ import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-
 import { SentryVerificationButton } from '@/components/sentry-verification-button'
 import { makeDx7BankFile } from '@/lib/dx7'
 import { reportBankTransferFailure } from '@/lib/monitoring'
-import { getNextWorkspaceBank } from '@/lib/patch-library'
+import {
+  getNextWorkspaceBank,
+  patchSlotCode,
+  workspaceBankAfterDeletion,
+} from '@/lib/patch-library'
 import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { cn } from '@/lib/utils'
@@ -51,6 +55,8 @@ type LibrarianPageProps = {
   activePatchId: string
   library: PatchLibrary
   midi: MidiController
+  /** Called as a bank is deleted, before later banks move up a letter. */
+  onBankDeleted: (bank: string) => void
   onEditPatch: (patch: Patch) => void
   onSelectPatch: (patch: Patch) => void
 }
@@ -59,6 +65,7 @@ export function LibrarianPage({
   activePatchId,
   library,
   midi,
+  onBankDeleted,
   onEditPatch,
   onSelectPatch,
 }: LibrarianPageProps) {
@@ -88,7 +95,6 @@ export function LibrarianPage({
   const [bankPendingDeletion, setBankPendingDeletion] = useState<{
     bank: string
     name: string
-    nextBank: string
   } | null>(null)
   const [bankPendingImport, setBankPendingImport] = useState<{
     bank: string
@@ -249,7 +255,8 @@ export function LibrarianPage({
       (patch) =>
         patch.bank === destinationBank &&
         (!query ||
-          `${patch.bank}${patch.number} ${patch.name} ${patch.family}`
+          // Both A1 and the A01 a slot shows find the first slot.
+          `${patch.bank}${patch.number} ${patchSlotCode(patch)} ${patch.name} ${patch.family}`
             .toLowerCase()
             .includes(query)),
     )
@@ -329,14 +336,7 @@ export function LibrarianPage({
             className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
             onClick={() => {
               closeMenu()
-              const name = bankDisplayName(bank)
-              const replacementBank = banks[index + 1] ?? banks[index - 1]
-              if (!replacementBank) return
-              setBankPendingDeletion({
-                bank,
-                name,
-                nextBank: replacementBank,
-              })
+              setBankPendingDeletion({ bank, name: bankDisplayName(bank) })
               deleteWorkspaceBankDialogRef.current?.showModal()
             }}
             type="button"
@@ -423,9 +423,7 @@ export function LibrarianPage({
                   !auditionedPatch && 'invisible',
                 )}
               >
-                {auditionedPatch
-                  ? `${auditionedPatch.bank}${auditionedPatch.number.toString().padStart(2, '0')}`
-                  : 'A00'}
+                {auditionedPatch ? patchSlotCode(auditionedPatch) : 'A00'}
               </span>
             </button>
           </>
@@ -572,8 +570,11 @@ export function LibrarianPage({
         dialogRef={deleteWorkspaceBankDialogRef}
         onDelete={() => {
           if (!bankPendingDeletion) return
-          setDestinationBank(bankPendingDeletion.nextBank)
-          library.deleteBank(bankPendingDeletion.bank)
+          const { bank } = bankPendingDeletion
+          const replacement = workspaceBankAfterDeletion(banks, bank)
+          onBankDeleted(bank)
+          library.deleteBank(bank)
+          if (replacement) setDestinationBank(replacement)
           toast.success(t('toasts.bankDeleted', { bank: bankPendingDeletion.name }))
           setBankPendingDeletion(null)
         }}

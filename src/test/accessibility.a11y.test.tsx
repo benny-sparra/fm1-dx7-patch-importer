@@ -99,6 +99,7 @@ function renderLibrarian() {
         activePatchId=""
         library={library}
         midi={disconnectedMidi}
+        onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
         onSelectPatch={vi.fn()}
       />
@@ -152,6 +153,7 @@ describe('rendered accessibility', () => {
           activePatchId=""
           library={library}
           midi={connectedWithoutSysexMidi}
+          onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onSelectPatch={vi.fn()}
         />

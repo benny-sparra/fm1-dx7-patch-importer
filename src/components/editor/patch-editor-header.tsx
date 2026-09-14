@@ -24,6 +24,7 @@ import {
 import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { soundPresets, type SoundPresetId } from '@/lib/sound-presets'
 import { cn } from '@/lib/utils'
+import { patchSlotCode } from '@/lib/patch-library'
 
 type PatchEditorHeaderProps = {
   canSync: boolean
@@ -91,8 +92,7 @@ export function PatchEditorHeader({
         </Button>
         <div className="flex min-w-0 items-center gap-2">
           <span className="patch-slot crt-inset font-vt323 flex h-8 shrink-0 items-center border bg-[var(--crt-bg-well)] px-2 text-[18px] leading-none text-[var(--crt-led)]">
-            {patch.bank}
-            {String(patch.number).padStart(2, '0')}
+            {patchSlotCode(patch)}
           </span>
           <div className="flex min-w-0 items-center gap-2">
             <label className="min-w-0" title={t('editor.editName')}>

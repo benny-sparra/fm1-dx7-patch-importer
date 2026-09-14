@@ -16,6 +16,7 @@ import { RootLayout } from '@/routes/root-layout'
 import { type Patch } from '@/data/patches'
 import { type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
+import { isRenumberedByBankDeletion } from '@/lib/patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import {
   beginDynamicImportRecovery,
@@ -109,6 +110,14 @@ function App() {
     cancelDynamicImportRecovery()
     setSelectedPatchId('')
   }
+  // Deleting a bank moves later banks up a letter, so a lit slot in or after it would name another
+  // sound, one the FM1 never received.
+  const forgetRenumberedAudition = (deletedBank: string) => {
+    const patch = findPatch(auditionedPatchId)
+    if (patch && isRenumberedByBankDeletion(library.workspaceBanks, deletedBank, patch.bank)) {
+      setAuditionedPatchId('')
+    }
+  }
   const loadingSection = (label: string) => (
     <section
       aria-live="polite"
@@ -166,6 +175,7 @@ function App() {
               activePatchId={auditionedPatchId}
               library={library}
               midi={midi}
+              onBankDeleted={forgetRenumberedAudition}
               onEditPatch={(patch) => editPatch(patch.id)}
               onSelectPatch={(patch) => selectPatch(patch.id)}
             />
