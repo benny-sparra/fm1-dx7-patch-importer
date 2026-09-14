@@ -228,6 +228,8 @@ open everything an earlier release could have saved.
   for bare keys, and an open menu for Escape. Modified shortcuts still run while typing, and while
   only a dialog marked `data-plain-keys-only` (the floating piano keyboard) is open. A widget that
   claims plain keys must ignore Ctrl, Command, and Alt presses and close on Escape.
+- Closing a menu with Escape claims the key, so no view shortcut also runs, and moves focus back to
+  the menu's toggle when focus was inside it.
 - Shortcut definitions are the single source: button tooltips and the help dialog read them, so they
   cannot drift. When a shortcut is added, changed, or removed, update the help dialog listing, the
   locale keys, and the keyboard shortcut list in `docs/user-guide.md` in the same change.

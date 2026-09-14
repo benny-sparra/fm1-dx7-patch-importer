@@ -368,3 +368,20 @@ describe('patchSlotCode', () => {
     expect(patchSlotCode({ bank: 'A', number: 32 })).toBe('A32')
   })
 })
+
+describe('restoring factory banks', () => {
+  it('clears the titles and descriptions of the four restored banks only', () => {
+    const withAddedBank = addWorkspaceBank(makeFactoryPatchLibrary(), 'E')
+    const named = updateBankInformation(
+      updateBankInformation(withAddedBank, 'A', 'Pads', 'My soft pads'),
+      'E',
+      'Leads',
+      'My leads',
+    )
+
+    const restored = restoreFactoryPatchLibrary(named)
+
+    expect(restored.bankNames).toEqual({ E: 'Leads' })
+    expect(restored.bankDescriptions).toEqual({ E: 'My leads' })
+  })
+})
