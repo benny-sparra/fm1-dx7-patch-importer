@@ -157,7 +157,7 @@ export function PatchEditorHeader({
             >
               <WandSparkles />
               <span className="hidden xl:inline">{t('editor.presetsShort')}</span>
-              <ChevronDown className="hidden transition-transform group-open:rotate-180 xl:block" />
+              <ChevronDown className="hidden transition-transform group-open:rotate-180 motion-reduce:transition-none xl:block" />
             </summary>
             <div className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 left-0 z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground sm:left-auto sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
               <div className="px-2 pt-1 pb-2">
@@ -217,7 +217,7 @@ export function PatchEditorHeader({
                 )}
                 title={t('editor.moreSave')}
               >
-                <ChevronDown className="transition-transform group-open:rotate-180" />
+                <ChevronDown className="transition-transform group-open:rotate-180 motion-reduce:transition-none" />
               </summary>
               <div
                 className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 z-40 grid w-64 gap-1 rounded-lg border bg-popover p-2 text-popover-foreground"

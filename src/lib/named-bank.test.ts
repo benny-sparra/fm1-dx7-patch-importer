@@ -118,7 +118,7 @@ describe('named bank operations', () => {
     expect(exported[31].data).toEqual(bank.slots[31].voice.data)
   })
 
-  it('uses a safe .sysex filename derived from the saved bank name', () => {
+  it('uses a safe .syx filename derived from the saved bank name', () => {
     const bank = createNamedBank(makeLoadedLibrary(), 'A', {
       description: '',
       id: 'bank-1',
@@ -126,7 +126,7 @@ describe('named bank operations', () => {
       now: createdAt,
     })
 
-    expect(makeNamedBankSysexFilename(bank)).toBe('fm1-Gig-Friday.sysex')
+    expect(makeNamedBankSysexFilename(bank)).toBe('fm1-Gig-Friday.syx')
   })
 
   it('rejects exporting a malformed saved bank', () => {

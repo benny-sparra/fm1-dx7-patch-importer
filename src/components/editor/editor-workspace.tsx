@@ -332,7 +332,7 @@ export function AlgorithmPanel({
             <span className="font-vt323 text-[30px] leading-none text-[var(--crt-led)] [text-shadow:0_0_10px_var(--crt-led-glow)]">
               {String(algorithm + 1).padStart(2, '0')}
             </span>
-            <ChevronDown className="size-4 shrink-0 text-[var(--crt-acc-lt)] transition-transform group-open:rotate-180" />
+            <ChevronDown className="size-4 shrink-0 text-[var(--crt-acc-lt)] transition-transform group-open:rotate-180 motion-reduce:transition-none" />
           </summary>
 
           <div

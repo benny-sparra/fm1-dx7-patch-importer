@@ -72,15 +72,17 @@ export class Dx7BankFileError extends Error {
   }
 }
 
+function bankSizeError(receivedBytes: number) {
+  return new Dx7BankFileError(
+    'size',
+    `Expected a ${dx7BankFileSize}-byte DX7 bank; received ${receivedBytes} bytes.`,
+    receivedBytes,
+  )
+}
+
 export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
   const bytes = new Uint8Array(file)
-  if (bytes.length !== dx7BankFileSize) {
-    throw new Dx7BankFileError(
-      'size',
-      `Expected a 4104-byte DX7 bank; received ${bytes.length} bytes.`,
-      bytes.length,
-    )
-  }
+  if (bytes.length !== dx7BankFileSize) throw bankSizeError(bytes.length)
   if (
     bytes[0] !== 0xf0 ||
     bytes[1] !== 0x43 ||
@@ -112,6 +114,15 @@ export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
     const data = voiceData.slice(index * dx7PackedVoiceSize, (index + 1) * dx7PackedVoiceSize)
     return { data, name: decodeVoiceName(data) }
   })
+}
+
+/**
+ * Reads a bank file the user chose. A file of the wrong size is rejected before it is loaded, so
+ * picking a large file by mistake does not read all of it into memory.
+ */
+export async function readDx7BankFile(file: Blob) {
+  if (file.size !== dx7BankFileSize) throw bankSizeError(file.size)
+  return parseDx7Bank(await file.arrayBuffer())
 }
 
 export function updateDx7VoiceName(voice: Dx7Voice, name: string): Dx7Voice {

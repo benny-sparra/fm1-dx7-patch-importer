@@ -487,7 +487,7 @@ export function LfoWaveControl({
         >
           <WaveShapeIcon wave={value} />
           <span className="min-w-0 flex-1 truncate">{selectedWave}</span>
-          <ChevronDown className="size-3.5 shrink-0 transition-transform group-open:rotate-180" />
+          <ChevronDown className="size-3.5 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
         </summary>
         <div
           aria-label={t('editor.lfoWave')}

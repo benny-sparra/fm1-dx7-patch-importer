@@ -137,7 +137,9 @@ open everything an earlier release could have saved.
   product and site names, DX7 cartridge titles, and the technical MIDI log stay untranslated.
 - Never render `error.message` or browser error text. Give an error the user can act on a typed error
   or code in `src/lib/` and translate it, as `bankErrorMessage` does; show a translated fallback for
-  anything else.
+  anything else. Technical error text may appear only in a collapsed, labelled technical-details
+  disclosure below that translated explanation, as the workspace storage error does, to help with
+  bug reports.
 - Write every new string in every locale in the same change, including help text. A non-English
   locale must not copy an English sentence; `src/i18n/resources.test.ts` rejects that.
 - Format dates and numbers with the interface language (`i18n.resolvedLanguage`), not the browser
@@ -206,7 +208,10 @@ open everything an earlier release could have saved.
 - Do not use `window.alert`, `window.confirm`, or `window.prompt`; some embedded browsers block them
   silently. Confirm destructive actions in the app’s own UI, move focus into the confirmation, and
   return it to the triggering control on cancel.
-- Do not use `autoFocus`; lint rejects it. Move focus with a ref in an effect when content appears.
+- Use `autoFocus` only for the control a native dialog should focus as it opens, such as its safe
+  close action. Lint allows it inside a `<dialog>` element written in the same JSX; a dialog built on
+  another component needs its file in the `jsx-a11y/no-autofocus` exception in `.oxlintrc.json`.
+  Anywhere else, move focus with a ref in an effect when content appears.
 - Continuous input is one undo step. Start a gesture on pointer down or key down and end it on
   pointer up, key up, and blur, as the sliders, knobs, and envelope points do. A preset or randomise
   that writes many parameters is also one step.
