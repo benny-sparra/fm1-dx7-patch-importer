@@ -697,6 +697,7 @@ describe('LibrarianPage undo', () => {
     await user.keyboard('{Meta>}z{/Meta}')
 
     expect(library.undo).toHaveBeenCalledOnce()
+    expect(screen.getByText('Undid the last change.')).toBeTruthy()
   })
 
   it('leaves the undo shortcut to the search field while typing', async () => {

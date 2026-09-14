@@ -32,7 +32,10 @@ import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog
 import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
-import { SentryVerificationButton } from '@/components/sentry-verification-button'
+import {
+  SentryVerificationButton,
+  sentryVerificationEnabled,
+} from '@/components/sentry-verification-button'
 import { makeDx7BankFile } from '@/lib/dx7'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
@@ -282,8 +285,23 @@ export function LibrarianPage({
   }
 
   useKeyboardShortcuts([
-    { ...librarianShortcuts.redo, enabled: library.canRedo, onTrigger: library.redo },
-    { ...librarianShortcuts.undo, enabled: library.canUndo, onTrigger: library.undo },
+    // The change undone may be out of sight, such as a patch saved in the editor, so say so.
+    {
+      ...librarianShortcuts.redo,
+      enabled: library.canRedo,
+      onTrigger: () => {
+        library.redo()
+        toast.success(t('toasts.redone'))
+      },
+    },
+    {
+      ...librarianShortcuts.undo,
+      enabled: library.canUndo,
+      onTrigger: () => {
+        library.undo()
+        toast.success(t('toasts.undone'))
+      },
+    },
     // Both are disabled with the field itself, so the browser keeps its own
     // find shortcut in a bank that has nothing to search.
     { ...librarianShortcuts.search, enabled: isDestinationBankLoaded, onTrigger: focusSearch },
@@ -381,7 +399,7 @@ export function LibrarianPage({
 
   return (
     <section className="mx-auto grid max-w-7xl min-w-0 gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
-      <SentryVerificationButton />
+      {sentryVerificationEnabled ? <SentryVerificationButton /> : null}
       <PatchGrid
         activePatchId={activePatchId}
         actions={

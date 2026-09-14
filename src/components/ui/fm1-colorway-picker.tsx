@@ -2,6 +2,10 @@ import { useTranslation } from 'react-i18next'
 
 import { fm1Colorways, type Fm1Colorway } from '@/lib/fm1-colorway'
 
+/** The locale key naming a colourway, such as `colorway.blackGreen` for `black-green`. */
+const colorwayLabelKey = (value: Fm1Colorway) =>
+  `colorway.${value.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())}`
+
 type Fm1ColorwayPickerProps = {
   onChange: (colorway: Fm1Colorway) => void
   value: Fm1Colorway
@@ -32,15 +36,11 @@ export function Fm1ColorwayPicker({ onChange, value }: Fm1ColorwayPickerProps) {
                   : 'crt-raised-thin pointer-events-none invisible h-[26px] w-0 border-x-0 bg-[var(--crt-btn-face)] opacity-0 group-focus-within:pointer-events-auto group-focus-within:visible group-focus-within:w-[26px] group-focus-within:border-x group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:visible group-hover:w-[26px] group-hover:border-x group-hover:opacity-100 hover:bg-[var(--crt-sel-bg)]'
               }`}
               key={colorway.value}
-              title={t(
-                `colorway.${colorway.value.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())}`,
-              )}
+              title={t(colorwayLabelKey(colorway.value))}
             >
               <input
                 aria-label={t('colorway.option', {
-                  colour: t(
-                    `colorway.${colorway.value.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())}`,
-                  ),
+                  colour: t(colorwayLabelKey(colorway.value)),
                 })}
                 checked={isSelected}
                 className="sr-only"

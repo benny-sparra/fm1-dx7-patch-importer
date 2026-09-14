@@ -14,6 +14,8 @@ import { useTranslation } from 'react-i18next'
 import { appendToast, removeToast, type ToastAction, type ToastMessage } from '@/lib/toast'
 
 const toastDuration = 4_500
+/** Long enough to read what happened and reach its action, such as Undo, from the keyboard. */
+const actionToastDuration = 10_000
 
 type ToastContextValue = {
   success: (message: string, options?: { action?: ToastAction }) => void
@@ -54,9 +56,10 @@ function ToastItem({ dismiss, toast }: { dismiss: (id: number) => void; toast: T
 
   useEffect(() => {
     if (paused) return
-    const timeout = window.setTimeout(() => dismiss(toast.id), toastDuration)
+    const duration = toast.action ? actionToastDuration : toastDuration
+    const timeout = window.setTimeout(() => dismiss(toast.id), duration)
     return () => window.clearTimeout(timeout)
-  }, [dismiss, paused, toast.id])
+  }, [dismiss, paused, toast.action, toast.id])
 
   return (
     <div

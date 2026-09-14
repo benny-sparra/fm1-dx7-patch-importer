@@ -7,9 +7,12 @@ type WorkspaceBankNames = {
   workspaceBanks: string[]
 }
 
-/** The default title for the workspace bank in a given position, used until a user names it. */
+/**
+ * The default title for the workspace bank in a given position, used until a user names it. It
+ * names no synth or format, since the first four hold FM-1 sounds and added banks hold anything.
+ */
 export function defaultWorkspaceBankTitle(t: Translate, bankNumber: number) {
-  return t(bankNumber < 10 ? 'banks.bank' : 'banks.bankShort', { bank: bankNumber })
+  return t('banks.bank', { bank: bankNumber })
 }
 
 /**

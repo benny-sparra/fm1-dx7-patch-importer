@@ -8,10 +8,15 @@ type SentryVerificationButtonProps = {
   onVerify?: () => void
 }
 
-const verificationEnabled = import.meta.env.PROD && import.meta.env.VITE_SENTRY_VERIFY === 'true'
+/**
+ * Whether this build shows the Sentry test control. Check it where the control is rendered, so a
+ * normal production build leaves the control's code out entirely.
+ */
+export const sentryVerificationEnabled =
+  import.meta.env.PROD && import.meta.env.VITE_SENTRY_VERIFY === 'true'
 
 export function SentryVerificationButton({
-  enabled = verificationEnabled,
+  enabled = sentryVerificationEnabled,
   onVerify = triggerSentryVerification,
 }: SentryVerificationButtonProps) {
   if (!enabled) return null
