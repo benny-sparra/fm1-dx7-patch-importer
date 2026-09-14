@@ -17,3 +17,7 @@ package-lock.json
 *.woff
 *.woff2
 *.syx
+
+# Locally installed agent skills
+.agents
+skills-lock.json

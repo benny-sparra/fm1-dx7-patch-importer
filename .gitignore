@@ -30,3 +30,7 @@ test-results
 
 # Local Claude Code scratch (dev server config, session data)
 .claude/
+
+# Locally installed agent skills
+.agents/
+skills-lock.json
