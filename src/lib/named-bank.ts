@@ -179,5 +179,5 @@ export function makeNamedBankSysexFilename(bank: NamedBank) {
     .replace(/-+/g, '-')
     .replace(/^[.-]+|[.-]+$/g, '')
 
-  return `fm1-${stem || 'bank'}.sysex`
+  return `fm1-${stem || 'bank'}.syx`
 }

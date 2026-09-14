@@ -203,7 +203,10 @@ open everything an earlier release could have saved.
 - Do not use `window.alert`, `window.confirm`, or `window.prompt`; some embedded browsers block them
   silently. Confirm destructive actions in the app’s own UI, move focus into the confirmation, and
   return it to the triggering control on cancel.
-- Do not use `autoFocus`; lint rejects it. Move focus with a ref in an effect when content appears.
+- Use `autoFocus` only for the control a native dialog should focus as it opens, such as its safe
+  close action. Lint allows it inside a `<dialog>` element written in the same JSX; a dialog built on
+  another component needs its file in the `jsx-a11y/no-autofocus` exception in `.oxlintrc.json`.
+  Anywhere else, move focus with a ref in an effect when content appears.
 - Continuous input is one undo step. Start a gesture on pointer down or key down and end it on
   pointer up, key up, and blur, as the sliders, knobs, and envelope points do. A preset or randomise
   that writes many parameters is also one step.

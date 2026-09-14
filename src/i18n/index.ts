@@ -1,7 +1,12 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
-import { LANGUAGE_STORAGE_KEY, resolveLocale, type SupportedLocale } from './locale'
+import {
+  LANGUAGE_STORAGE_KEY,
+  resolveLocale,
+  supportedLocales,
+  type SupportedLocale,
+} from './locale'
 import english from './locales/en'
 
 type TranslationResource = Record<string, unknown>
@@ -124,7 +129,7 @@ export function createLocaleController(
       lng: initialLocale,
       resources,
       returnEmptyString: false,
-      supportedLngs: ['en', 'fr', 'es', 'de', 'pt-BR', 'zh-Hans'],
+      supportedLngs: [...supportedLocales],
     })
     return initialLocale
   }
