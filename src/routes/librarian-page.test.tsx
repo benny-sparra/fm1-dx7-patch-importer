@@ -72,6 +72,7 @@ describe('LibrarianPage bank selection', () => {
           activePatchId=""
           library={library}
           midi={midi}
+          onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onSelectPatch={vi.fn()}
         />
@@ -104,6 +105,7 @@ describe('LibrarianPage slot actions', () => {
           activePatchId=""
           library={library}
           midi={midi}
+          onBankDeleted={vi.fn()}
           onEditPatch={onEditPatch}
           onSelectPatch={onSelectPatch}
         />
@@ -126,6 +128,7 @@ describe('LibrarianPage slot actions', () => {
           activePatchId="bank-A-1"
           library={library}
           midi={midi}
+          onBankDeleted={vi.fn()}
           onEditPatch={onEditPatch}
           onSelectPatch={onSelectPatch}
         />
@@ -151,6 +154,7 @@ describe('LibrarianPage transfer analytics', () => {
           activePatchId=""
           library={library}
           midi={connectedMidi}
+          onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onSelectPatch={vi.fn()}
         />
@@ -184,6 +188,7 @@ describe('LibrarianPage transfer analytics', () => {
           activePatchId=""
           library={library}
           midi={connectedMidi}
+          onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onSelectPatch={vi.fn()}
         />
@@ -215,6 +220,7 @@ describe('LibrarianPage transfer analytics', () => {
           activePatchId=""
           library={library}
           midi={connectedMidi}
+          onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onSelectPatch={vi.fn()}
         />
@@ -246,6 +252,7 @@ describe('LibrarianPage transfer analytics', () => {
           activePatchId=""
           library={library}
           midi={connectedMidi}
+          onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onSelectPatch={vi.fn()}
         />
@@ -282,6 +289,7 @@ describe('LibrarianPage transfer analytics', () => {
           activePatchId=""
           library={library}
           midi={blockedMidi}
+          onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onSelectPatch={vi.fn()}
         />
@@ -304,6 +312,7 @@ describe('LibrarianPage transfer analytics', () => {
           activePatchId=""
           library={library}
           midi={{ ...blockedMidi, sysexAvailable: true }}
+          onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onSelectPatch={vi.fn()}
         />
@@ -328,6 +337,7 @@ describe('LibrarianPage keyboard shortcuts', () => {
           activePatchId={overrides.activePatchId ?? ''}
           library={library}
           midi={midi}
+          onBankDeleted={vi.fn()}
           onEditPatch={onEditPatch}
           onSelectPatch={vi.fn()}
         />
@@ -447,6 +457,7 @@ describe('LibrarianPage grid navigation', () => {
           activePatchId={activePatchId}
           library={gridLibrary}
           midi={midi}
+          onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onSelectPatch={onSelectPatch}
         />
@@ -559,6 +570,7 @@ describe('LibrarianPage grid navigation', () => {
           activePatchId="bank-A-2"
           library={gridLibrary}
           midi={midi}
+          onBankDeleted={vi.fn()}
           onEditPatch={onEditPatch}
           onSelectPatch={vi.fn()}
         />
@@ -588,6 +600,7 @@ describe('LibrarianPage slot tooltips', () => {
           activePatchId=""
           library={slotLibrary}
           midi={midi}
+          onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onSelectPatch={vi.fn()}
         />
@@ -600,5 +613,57 @@ describe('LibrarianPage slot tooltips', () => {
     expect(
       screen.getByRole('button', { name: 'Send Added Pad to FM1' }).getAttribute('title'),
     ).toBe('Click to play Added Pad through the FM1 edit buffer; double-click to edit')
+  })
+})
+
+describe('LibrarianPage search', () => {
+  it('finds a slot by the code shown on it', async () => {
+    const user = userEvent.setup()
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={midi}
+          onBankDeleted={vi.fn()}
+          onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    await user.type(screen.getByPlaceholderText('Search by name'), 'a01')
+
+    expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
+  })
+})
+
+describe('LibrarianPage bank deletion', () => {
+  it('shows the bank that moves into the deleted bank’s letter', async () => {
+    const user = userEvent.setup()
+    const onBankDeleted = vi.fn()
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={midi}
+          onBankDeleted={onBankDeleted}
+          onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
+    await user.click(screen.getAllByRole('button', { name: 'Delete bank' })[0])
+    const dialog = screen.getByRole('dialog', { name: 'Delete bank' })
+    await user.click(within(dialog).getByRole('button', { name: 'Delete bank' }))
+
+    expect(onBankDeleted).toHaveBeenCalledExactlyOnceWith('A')
+    expect(library.deleteBank).toHaveBeenCalledExactlyOnceWith('A')
+    expect(
+      screen.getByRole('button', { name: 'A — Studio Favourites' }).getAttribute('aria-pressed'),
+    ).toBe('true')
   })
 })
