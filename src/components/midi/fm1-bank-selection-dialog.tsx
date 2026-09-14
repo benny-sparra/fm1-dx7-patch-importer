@@ -128,14 +128,9 @@ export function Fm1BankSelectionDialog({
             />
             {t('dialogs.dontShow')}
           </label>
-          <div className="flex items-center gap-2">
-            <Button onClick={closeDialog} type="button" variant="outline">
-              {t('common.close')}
-            </Button>
-            <Button autoFocus disabled={isSending} onClick={onSend} type="button">
-              {t(isSending ? 'banks.sending' : 'banks.send')}
-            </Button>
-          </div>
+          <Button autoFocus disabled={isSending} onClick={onSend} type="button">
+            {t(isSending ? 'banks.sending' : 'banks.send')}
+          </Button>
         </DialogFooter>
       )}
     </Dialog>

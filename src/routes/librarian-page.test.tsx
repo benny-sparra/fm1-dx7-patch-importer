@@ -167,6 +167,7 @@ describe('LibrarianPage transfer analytics', () => {
     })
 
     expect(connectedMidi.sendBank).not.toHaveBeenCalled()
+    expect(within(dialog).queryByRole('button', { name: 'Close' })).toBeNull()
 
     await user.click(within(dialog).getByRole('button', { name: 'Send to FM1' }))
 
