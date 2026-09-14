@@ -294,6 +294,7 @@ export default {
     fxChannel: '效果通道',
     defaultChannel: 'FM1 默认值：通道 2',
     noDevice: '未找到设备',
+    noDeviceSelected: '未选择设备',
   },
   help: {
     open: 'FM1 编辑器与音色库使用说明',

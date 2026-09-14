@@ -29,11 +29,18 @@ export function DeviceSelect({ devices, icon, label, onChange, value }: DeviceSe
           {devices.length === 0 ? (
             <option value="">{t('settings.noDevice')}</option>
           ) : (
-            devices.map((device) => (
-              <option key={device.id} value={device.id}>
-                {device.name}
-              </option>
-            ))
+            <>
+              {/* A selected port that disconnected is not replaced by another device, so say that
+                  nothing is selected rather than let the first device look chosen. */}
+              {devices.some((device) => device.id === value) ? null : (
+                <option value="">{t('settings.noDeviceSelected')}</option>
+              )}
+              {devices.map((device) => (
+                <option key={device.id} value={device.id}>
+                  {device.name}
+                </option>
+              ))}
+            </>
           )}
         </select>
         <ChevronDown className="pointer-events-none absolute top-1/2 right-2 size-4 -translate-y-1/2 text-muted-foreground" />

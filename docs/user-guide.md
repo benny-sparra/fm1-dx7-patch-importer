@@ -5,7 +5,7 @@ see the [README](../README.md).
 
 ## Banks, transfers, and settings
 
-After the first successful connection, the app remembers the selected MIDI ports and both channels and reconnects automatically on future visits. Switch **MIDI online** off to disable automatic connection.
+After the first successful connection, the app remembers the selected MIDI ports and both channels and reconnects automatically on future visits. Switch **MIDI online** off to disable automatic connection. If the selected output disconnects, the app does not switch to another device: nothing is selected until the output is reconnected or you choose another in **Settings**, and messages still waiting to be sent are dropped.
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 

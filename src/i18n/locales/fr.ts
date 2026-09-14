@@ -333,6 +333,7 @@ export default {
     fxChannel: 'Canal des effets',
     defaultChannel: 'Valeur FM1 par défaut : canal 2',
     noDevice: 'Aucun périphérique détecté',
+    noDeviceSelected: 'Aucun périphérique sélectionné',
   },
   help: {
     open: 'Comment utiliser l’éditeur et le bibliothécaire FM1',
