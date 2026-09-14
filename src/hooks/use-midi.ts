@@ -20,6 +20,7 @@ import {
   makeFm1ProgramChangeMessage,
   makeLogEntry,
   portsToDevices,
+  resolveMidiPortSelection,
   sendFm1Parameter,
   sendFm1ProgramChange,
   sendFm1EffectControl,
@@ -31,7 +32,7 @@ import {
   type MidiDevice,
   type MidiLogEntry,
 } from '@/lib/midi'
-import { MidiTransferQueue } from '@/lib/midi-transfer-queue'
+import { MidiTransferCancelledError, MidiTransferQueue } from '@/lib/midi-transfer-queue'
 import { MidiLogStore } from '@/lib/midi-log-store'
 
 type WebMidiApi = (typeof import('webmidi'))['WebMidi']
@@ -59,6 +60,8 @@ const midiStorageKeys = {
   inputId: 'fm1-midi-input-id',
   outputId: 'fm1-midi-output-id',
 } as const
+
+const outputChangedMessage = 'Queued MIDI messages were dropped because the MIDI output changed.'
 
 function readStoredValue(key: string) {
   try {
@@ -151,28 +154,44 @@ export function useMidi() {
     return webMidiLoader.current
   }, [])
 
-  const refreshDevices = useCallback(() => {
-    const activeWebMidi = webMidi.current
-    if (!activeWebMidi) return
+  const refreshDevices = useCallback(
+    (reason: 'changed' | 'connected') => {
+      const activeWebMidi = webMidi.current
+      if (!activeWebMidi) return
 
-    const nextOutputs = portsToDevices(activeWebMidi.outputs)
-    const nextInputs = portsToDevices(activeWebMidi.inputs)
+      const nextOutputs = portsToDevices(activeWebMidi.outputs)
+      const nextInputs = portsToDevices(activeWebMidi.inputs)
+      const chosenOutputId = preferredOutputId.current
+      const outputId = resolveMidiPortSelection(
+        nextOutputs.map((device) => device.id),
+        chosenOutputId,
+        reason,
+      )
+      const inputId = resolveMidiPortSelection(
+        nextInputs.map((device) => device.id),
+        preferredInputId.current,
+        reason,
+      )
+      // The port in use is the one to wait for if it disconnects. A port missing when MIDI connects
+      // is forgotten for this session, so the device picked in its place is kept from then on.
+      if (reason === 'connected' || outputId) preferredOutputId.current = outputId
+      if (reason === 'connected' || inputId) preferredInputId.current = inputId
 
-    setOutputs(nextOutputs)
-    setInputs(nextInputs)
-    setSelectedOutputId((current) => {
-      const preferred = preferredOutputId.current
-      if (nextOutputs.some((device) => device.id === preferred)) return preferred
-      if (nextOutputs.some((device) => device.id === current)) return current
-      return nextOutputs[0]?.id ?? ''
-    })
-    setSelectedInputId((current) => {
-      const preferred = preferredInputId.current
-      if (nextInputs.some((device) => device.id === preferred)) return preferred
-      if (nextInputs.some((device) => device.id === current)) return current
-      return nextInputs[0]?.id ?? ''
-    })
-  }, [])
+      setOutputs(nextOutputs)
+      setInputs(nextInputs)
+      setSelectedOutputId(outputId)
+      setSelectedInputId(inputId)
+      if (reason === 'changed' && chosenOutputId && !outputId) {
+        appendLog(
+          makeLogEntry(
+            'system',
+            'The selected MIDI output disconnected. Reconnect it or choose another output.',
+          ),
+        )
+      }
+    },
+    [appendLog],
+  )
 
   const enableMidi = useCallback(
     async (remember: boolean) => {
@@ -192,7 +211,7 @@ export function useMidi() {
         await activeWebMidi.enable({ sysex: true })
         setMidiAccess(true)
         if (remember) storeValue(midiStorageKeys.autoConnect, 'true')
-        refreshDevices()
+        refreshDevices('connected')
         appendLog(
           makeLogEntry(
             'system',
@@ -224,6 +243,7 @@ export function useMidi() {
   const connectMidi = useCallback(() => enableMidi(true), [enableMidi])
 
   const disconnectMidi = useCallback(async () => {
+    transferQueue.clear('Queued MIDI messages were dropped because MIDI was switched off.')
     setIsConnecting(true)
     setError(null)
 
@@ -241,7 +261,7 @@ export function useMidi() {
     } finally {
       setIsConnecting(false)
     }
-  }, [appendLog])
+  }, [appendLog, transferQueue])
 
   useEffect(() => {
     if (
@@ -256,10 +276,12 @@ export function useMidi() {
   }, [enableMidi])
 
   useEffect(() => {
-    // Drop queued writes on teardown. `clear` rather than `cancel` keeps the queue usable, so a
-    // Strict Mode remount does not leave the hook holding a permanently cancelled queue.
-    return () => transferQueue.clear('MIDI transfers stopped.')
-  }, [transferQueue])
+    // Each queued message was meant for the output selected when it was queued. Drop the rest when
+    // that output changes or disconnects, or on teardown, so they never reach another device or a
+    // closed port. `clear` rather than `cancel` keeps the queue usable, so a Strict Mode remount
+    // does not leave the hook holding a permanently cancelled queue.
+    return () => transferQueue.clear(outputChangedMessage)
+  }, [selectedOutput, transferQueue])
 
   const selectOutput = useCallback((id: string) => {
     preferredOutputId.current = id
@@ -291,7 +313,7 @@ export function useMidi() {
     }
 
     const listener = webMidi.current?.addListener('portschanged', () => {
-      refreshDevices()
+      refreshDevices('changed')
       appendLog(makeLogEntry('system', 'MIDI device list changed.'))
     })
 
@@ -331,6 +353,12 @@ export function useMidi() {
           return { ok: true } as const
         })
         .catch((caughtError) => {
+          if (caughtError instanceof MidiTransferCancelledError) {
+            // Switching MIDI off or changing output dropped the bank before it was sent. That is
+            // not a transport failure, so it stays out of monitoring.
+            appendLog(makeLogEntry('system', `Bank ${bank} was not sent. ${caughtError.message}`))
+            return { ok: false, reason: 'no_output' } as const
+          }
           reportBankTransferFailure({
             channel,
             stage: 'controller',

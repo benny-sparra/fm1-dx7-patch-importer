@@ -11,6 +11,14 @@ export type MidiTransferQueueOptions = {
   minimumIntervalMs?: number
 }
 
+/** A transfer that was dropped before it ran, as opposed to one the MIDI port rejected. */
+export class MidiTransferCancelledError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'MidiTransferCancelledError'
+  }
+}
+
 /**
  * Serialises MIDI writes and optionally coalesces pending parameter edits.
  * Bulk-transfer tasks should be enqueued without a key so every chunk is sent.
@@ -29,7 +37,9 @@ export class MidiTransferQueue {
 
   enqueue(run: MidiTransferTask, key?: string) {
     if (this.cancelled) {
-      return Promise.reject(new Error('MIDI transfer queue has been cancelled.'))
+      return Promise.reject(
+        new MidiTransferCancelledError('MIDI transfer queue has been cancelled.'),
+      )
     }
 
     return new Promise<void>((resolve, reject) => {
@@ -50,7 +60,7 @@ export class MidiTransferQueue {
   }
 
   clear(reason = 'MIDI transfer queue was cleared.') {
-    const error = new Error(reason)
+    const error = new MidiTransferCancelledError(reason)
     this.queue.splice(0).forEach((task) => task.reject(error))
   }
 

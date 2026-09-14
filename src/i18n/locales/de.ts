@@ -332,6 +332,7 @@ export default {
     fxChannel: 'Effektkanal',
     defaultChannel: 'FM1-Standard: Kanal 2',
     noDevice: 'Kein Gerät gefunden',
+    noDeviceSelected: 'Kein Gerät ausgewählt',
   },
   help: {
     open: 'FM1 Editor und Librarian verwenden',

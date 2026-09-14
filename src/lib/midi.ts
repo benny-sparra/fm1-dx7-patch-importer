@@ -45,6 +45,22 @@ export function portsToDevices<TPort extends MidiPort>(ports: TPort[]) {
   }))
 }
 
+/**
+ * Picks the port to use after the device list is read. When MIDI connects, a remembered port that
+ * is missing gives way to the first one available. Once a port is in use it is never swapped for
+ * another device when it disappears, because notes, sounds, and banks meant for the FM1 could then
+ * reach a different instrument; nothing is selected until that port returns or another is chosen.
+ */
+export function resolveMidiPortSelection(
+  portIds: readonly string[],
+  chosenId: string,
+  reason: 'changed' | 'connected',
+) {
+  if (portIds.includes(chosenId)) return chosenId
+  if (reason === 'changed' && chosenId) return ''
+  return portIds[0] ?? ''
+}
+
 export function sendDx7Voice(output: Output, channel: number, voice: Dx7Voice) {
   output.sendSysex(0x43, makeDx7SingleVoicePayload(voice, channel))
 }

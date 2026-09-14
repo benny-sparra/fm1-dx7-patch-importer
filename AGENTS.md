@@ -114,6 +114,9 @@ open everything an earlier release could have saved.
 - Web MIDI requires a secure context; local HTTPS setup is provided by `npm run setup:https`.
 - Check DX7 voice data at every boundary: reject bytes above 7-bit in imported files and SysEx
   payload builders, and normalise stored voices on read.
+- Never move MIDI traffic to a different device on its own. When the selected port disconnects, select
+  nothing until it returns or the user chooses another, and drop queued messages when the output
+  changes or MIDI is switched off. A dropped transfer is not a transport failure for monitoring.
 - Do not resend unchanged data to the FM1 on repeated interaction, such as a double-click. Forget
   what was sent as soon as anything else replaces that device state, and after a failed send.
 

@@ -7,6 +7,7 @@ import {
   makeFm1EffectControlMessage,
   makeFm1ParameterPayload,
   makeFm1ProgramChangeMessage,
+  resolveMidiPortSelection,
   sendFm1EffectControl,
   sendFm1EffectDiagnosticControl,
   sendFm1Parameter,
@@ -211,5 +212,23 @@ describe('isHighRateMidiMessage', () => {
 
   it('keeps an empty message', () => {
     expect(isHighRateMidiMessage(new Uint8Array())).toBe(false)
+  })
+})
+
+describe('resolveMidiPortSelection', () => {
+  it('keeps the chosen port while it is available', () => {
+    expect(resolveMidiPortSelection(['other', 'fm1'], 'fm1', 'changed')).toBe('fm1')
+  })
+
+  it('uses the first port when the remembered one is missing as MIDI connects', () => {
+    expect(resolveMidiPortSelection(['other', 'fm1'], 'old-port', 'connected')).toBe('other')
+  })
+
+  it('selects nothing rather than another device when the chosen port disconnects', () => {
+    expect(resolveMidiPortSelection(['other'], 'fm1', 'changed')).toBe('')
+  })
+
+  it('uses the first port that appears when none was chosen', () => {
+    expect(resolveMidiPortSelection(['fm1'], '', 'changed')).toBe('fm1')
   })
 })

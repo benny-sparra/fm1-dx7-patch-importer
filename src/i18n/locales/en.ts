@@ -322,6 +322,7 @@ export default {
     fxChannel: 'FX channel',
     defaultChannel: 'FM1 default: channel 2',
     noDevice: 'No device found',
+    noDeviceSelected: 'No device selected',
   },
   help: {
     open: 'How to use the FM1 editor and librarian',
