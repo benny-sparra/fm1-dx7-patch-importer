@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   Dx7BankFileError,
@@ -14,6 +14,7 @@ import {
   makeDx7SingleVoicePayload,
   packDx7Voice,
   parseDx7Bank,
+  readDx7BankFile,
   unpackDx7Voice,
   updateDx7VoiceName,
   type Dx7Voice,
@@ -196,5 +197,28 @@ describe('DX7 bank file problems', () => {
     file[file.length - 2] ^= 0x01
 
     expect(importError(file)).toMatchObject({ problem: 'checksum' })
+  })
+})
+
+describe('readDx7BankFile', () => {
+  it('rejects a file of the wrong size without reading it', async () => {
+    const arrayBuffer = vi.fn()
+    const file = { arrayBuffer, size: 50_000_000 } as unknown as Blob
+
+    await expect(readDx7BankFile(file)).rejects.toMatchObject({
+      problem: 'size',
+      receivedBytes: 50_000_000,
+    })
+    expect(arrayBuffer).not.toHaveBeenCalled()
+  })
+
+  it('reads the voices from a bank file of the right size', async () => {
+    const voices = Array.from({ length: 32 }, makeVoice)
+    const file = new Blob([makeDx7BankFile(voices)])
+
+    const imported = await readDx7BankFile(file)
+
+    expect(imported).toHaveLength(32)
+    expect(imported[0]?.data).toEqual(voices[0]?.data)
   })
 })

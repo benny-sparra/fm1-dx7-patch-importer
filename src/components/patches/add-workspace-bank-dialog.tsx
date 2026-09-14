@@ -14,7 +14,7 @@ import {
 import { useToast } from '@/components/ui/toast'
 import { dx7BankCatalog } from '@/data/dx7-bank-catalog'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
-import { parseDx7Bank } from '@/lib/dx7'
+import { readDx7BankFile } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
 import { normalizeWorkspaceBankNameForSave, workspaceBankTitleLength } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
@@ -79,7 +79,7 @@ export function AddWorkspaceBankDialog({
       const imported =
         source === 'catalog'
           ? await loadDx7CatalogBank(catalogBankId)
-          : parseDx7Bank(await file!.arrayBuffer())
+          : await readDx7BankFile(file!)
       library.addBank(bank, normalizedName, description, imported)
       trackAnalyticsEvent({
         data: { source: source === 'catalog' ? 'catalog' : 'file' },

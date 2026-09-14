@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { parseDx7Bank, type Dx7Voice } from '@/lib/dx7'
+import { readDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { createId } from '@/lib/id'
 import {
@@ -182,7 +182,7 @@ export function usePatchLibrary() {
 
   const importBank = useCallback(
     async (bank: string, file: File) => {
-      const imported = parseDx7Bank(await file.arrayBuffer())
+      const imported = await readDx7BankFile(file)
       commit((current) => importVoices(current, bank, imported))
     },
     [commit],

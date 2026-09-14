@@ -134,7 +134,9 @@ open everything an earlier release could have saved.
   product and site names, DX7 cartridge titles, and the technical MIDI log stay untranslated.
 - Never render `error.message` or browser error text. Give an error the user can act on a typed error
   or code in `src/lib/` and translate it, as `bankErrorMessage` does; show a translated fallback for
-  anything else.
+  anything else. Technical error text may appear only in a collapsed, labelled technical-details
+  disclosure below that translated explanation, as the workspace storage error does, to help with
+  bug reports.
 - Write every new string in every locale in the same change, including help text. A non-English
   locale must not copy an English sentence; `src/i18n/resources.test.ts` rejects that.
 - Format dates and numbers with the interface language (`i18n.resolvedLanguage`), not the browser
