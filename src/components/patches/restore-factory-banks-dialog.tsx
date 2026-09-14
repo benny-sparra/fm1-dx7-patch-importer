@@ -32,8 +32,8 @@ export function RestoreFactoryBanksDialog({
     try {
       await onRestore()
       closeDialog()
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t('banks.importFailed'))
+    } catch {
+      setError(t('banks.restoreFailed'))
     } finally {
       setWorking(false)
     }
@@ -81,7 +81,7 @@ export function RestoreFactoryBanksDialog({
       <DialogFooter>
         <Button disabled={working} onClick={() => void restore()} type="button">
           <RotateCcw />
-          {working ? t('banks.importing') : t('dialogs.restoreAction')}
+          {working ? t('banks.restoring') : t('dialogs.restoreAction')}
         </Button>
       </DialogFooter>
     </Dialog>

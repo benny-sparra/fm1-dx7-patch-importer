@@ -18,8 +18,13 @@ import {
 } from '@/lib/fm1-parameters'
 import { type ParameterEdit } from '@/lib/patch-editor'
 
-const curves = ['− Linear', '− Exponential', '+ Exponential', '+ Linear']
-const oscillatorModes = ['Ratio', 'Fixed']
+const curveKeys = [
+  'ui.curves.negativeLinear',
+  'ui.curves.negativeExponential',
+  'ui.curves.positiveExponential',
+  'ui.curves.positiveLinear',
+] as const
+const oscillatorModeKeys = ['ui.oscillatorModes.ratio', 'ui.oscillatorModes.fixed'] as const
 
 type FocusedOperatorPanelProps = {
   applyEdits: (edits: ParameterEdit[]) => void
@@ -143,7 +148,7 @@ export function FocusedOperatorPanel({
                   oscillatorModeParameter.max,
                 )
               }
-              options={oscillatorModes}
+              options={oscillatorModeKeys.map((key) => t(key))}
               showLabel={false}
               value={parameters[operatorIndex('operator.oscillatorMode')]}
             />
@@ -238,13 +243,13 @@ export function FocusedOperatorPanel({
           {control(
             t('ui.leftCurve'),
             'operator.keyboard.leftCurve',
-            curves,
+            curveKeys.map((key) => t(key)),
             t('controlHelp.curve'),
           )}
           {control(
             t('ui.rightCurve'),
             'operator.keyboard.rightCurve',
-            curves,
+            curveKeys.map((key) => t(key)),
             t('controlHelp.curve'),
           )}
           {sliderControl(

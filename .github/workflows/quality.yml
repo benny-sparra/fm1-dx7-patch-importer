@@ -41,6 +41,8 @@ jobs:
         run: npm test
       - name: Check responsive image assets
         run: npm run images:check
+      - name: Check installed-app icons
+        run: npm run icons:check
       - name: Build production bundle
         run: npm run build
       - name: Check responsive production assets

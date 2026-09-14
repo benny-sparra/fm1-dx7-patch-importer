@@ -25,99 +25,112 @@ export default {
     sourcesTitle: 'Trouver des banques DX7',
     sourcesIntro:
       'Téléchargez une banque SysEx DX7 de 32 voix (.syx), puis revenez ici et choisissez Importer une banque DX7.',
+    sourceDescriptions: {
+      yamahaBlackBoxes: 'Cartouches DX7 d’usine et banques SysEx.',
+      bobbyBlues: 'Collection de longue date de sons et de banques DX7.',
+      soundarchive: 'Sélection de banques SysEx DX7, TX816 et TX802.',
+    },
     sourcesClose: 'Fermer les sources de banques',
   },
   controlHelp: {
     algorithm:
-      'Chooses how the six operators are connected. Operators at the bottom are carriers you hear directly; operators above them change the tone of the operators below.',
+      'Choisit comment les six opérateurs sont reliés. Les opérateurs du bas sont des porteuses que vous entendez directement ; ceux du dessus modifient le timbre des opérateurs situés en dessous.',
     feedback:
-      'Feeds part of one operator back into itself. Higher values add brighter, rougher harmonics and can become noisy.',
+      'Réinjecte une partie d’un opérateur dans lui-même. Des valeurs élevées ajoutent des harmoniques plus brillantes et plus rugueuses, jusqu’à devenir bruitées.',
     pitchEnvelope:
-      'Changes the pitch over the life of each note. The four rates control how quickly each stage moves; the four levels set the pitch reached at each stage.',
+      'Fait évoluer la hauteur pendant toute la durée de chaque note. Les quatre vitesses règlent la rapidité de chaque étape ; les quatre niveaux fixent la hauteur atteinte à chaque étape.',
     pitchEnvelopePresets:
       'Remplace les huit vitesses et niveaux par une forme de départ. Plate supprime tout mouvement de hauteur ; les autres ajoutent une brève pointe, une attaque qui chute, un glissé montant ou une chute au relâchement. Annuler rétablit l’enveloppe précédente.',
     pitchEnvelopeRate:
-      'Controls how quickly the pitch moves to this stage. Higher values make the move faster.',
+      'Règle la rapidité avec laquelle la hauteur rejoint cette étape. Plus la valeur est élevée, plus le mouvement est rapide.',
     pitchEnvelopeLevel:
-      'Sets the pitch at this stage. A value around 50 is close to the played note; values above or below bend it up or down.',
+      'Fixe la hauteur à cette étape. Une valeur proche de 50 correspond à la note jouée ; au-dessus ou en dessous, la hauteur monte ou descend.',
     oscillatorSync:
-      'Restarts every operator at the same waveform position for each note. On gives a more consistent attack; off can sound more organic.',
+      'Redémarre chaque opérateur à la même position de forme d’onde à chaque note. Activé, l’attaque est plus régulière ; désactivé, le son peut paraître plus organique.',
     lfoSync:
-      'Restarts the LFO for each new note. On makes modulation repeat consistently; off lets every note join the continuously running LFO.',
+      'Redémarre le LFO à chaque nouvelle note. Activé, la modulation se répète à l’identique ; désactivé, chaque note rejoint le LFO qui tourne en continu.',
     lfoWave:
-      'Chooses the repeating shape used for vibrato and tremolo. Sine is smooth, square jumps between two values, and sample & hold is random.',
-    lfoSpeed: 'Sets how quickly the LFO cycles. Raise it for faster vibrato or tremolo.',
+      'Choisit la forme répétée utilisée pour le vibrato et le trémolo. La sinusoïde est douce, le carré alterne entre deux valeurs et l’échantillonneur-bloqueur est aléatoire.',
+    lfoSpeed:
+      'Règle la vitesse de cycle du LFO. Augmentez-la pour un vibrato ou un trémolo plus rapide.',
     lfoDelay:
-      'Delays the LFO after a note begins, so vibrato or tremolo fades in instead of starting immediately.',
+      'Retarde le LFO après le début d’une note, pour que le vibrato ou le trémolo arrive progressivement au lieu de démarrer aussitôt.',
     pitchModDepth:
-      'Sets the maximum amount of LFO pitch movement. Pitch Mod Sensitivity on each voice determines how much of it is heard.',
+      'Fixe l’amplitude maximale du mouvement de hauteur du LFO. La sensibilité de modulation de hauteur de chaque son détermine la part réellement entendue.',
     ampModDepth:
-      'Sets the maximum amount of LFO volume movement. Each operator’s Amp Mod Sensitivity determines how much it responds.',
+      'Fixe l’amplitude maximale du mouvement de volume du LFO. La sensibilité de modulation d’amplitude de chaque opérateur détermine sa réaction.',
     pitchModSensitivity:
-      'Controls how strongly the whole voice responds to LFO pitch modulation. Higher values create wider vibrato.',
-    transpose: 'Moves the entire patch up or down in semitones without changing the keys you play.',
+      'Règle la force avec laquelle tout le son réagit à la modulation de hauteur du LFO. Des valeurs élevées donnent un vibrato plus large.',
+    transpose:
+      'Décale tout le son vers le haut ou le bas par demi-tons, sans changer les touches que vous jouez.',
     operator:
-      'An operator is an oscillator with its own envelope. Carriers produce audible sound; modulators reshape another operator to create harmonics.',
+      'Un opérateur est un oscillateur doté de sa propre enveloppe. Les porteuses produisent le son audible ; les modulateurs transforment un autre opérateur pour créer des harmoniques.',
     outputLevel:
-      'Sets this operator’s strength. For a carrier it mainly changes volume; for a modulator it changes brightness and harmonic complexity.',
+      'Règle la force de cet opérateur. Pour une porteuse, il agit surtout sur le volume ; pour un modulateur, sur la brillance et la richesse harmonique.',
     amplitudeEnvelope:
-      'Shapes this operator over time. Drag left/right to change how quickly a stage is reached, and up/down to change its level. For modulators, this shapes brightness rather than volume.',
+      'Façonne cet opérateur dans le temps. Faites glisser horizontalement pour changer la rapidité d’une étape, et verticalement pour changer son niveau. Pour un modulateur, elle façonne la brillance plutôt que le volume.',
     oscillatorMode:
-      'Ratio tracks the keyboard and is best for pitched harmonics. Fixed uses a constant frequency, useful for metallic, noisy, or percussive sounds.',
+      'Ratio suit le clavier et convient aux harmoniques accordées. Fixe utilise une fréquence constante, utile pour des sons métalliques, bruités ou percussifs.',
     coarse:
-      'Sets the main frequency ratio in Ratio mode, or the broad frequency range in Fixed mode. Whole-number ratios usually sound harmonic.',
-    fine: 'Fine-tunes the operator frequency between Coarse settings. Small changes can add new harmonics or beating.',
+      'Règle le rapport de fréquence principal en mode Ratio, ou la plage de fréquence générale en mode Fixe. Les rapports entiers sonnent généralement harmoniques.',
+    fine: 'Affine la fréquence de l’opérateur entre deux réglages grossiers. De petits changements peuvent ajouter de nouvelles harmoniques ou des battements.',
     detune:
-      'Offsets this operator slightly from exact tuning. Use small amounts to thicken the sound; larger differences create beating or dissonance.',
+      'Décale légèrement cet opérateur de l’accord exact. De faibles valeurs épaississent le son ; des écarts plus grands créent des battements ou de la dissonance.',
     breakpoint:
-      'Chooses the keyboard note where left and right level scaling meet. Scaling changes this operator’s level across the keyboard.',
-    leftDepth: 'Sets how much this operator’s level changes on notes below the breakpoint.',
-    rightDepth: 'Sets how much this operator’s level changes on notes above the breakpoint.',
+      'Choisit la note du clavier où se rejoignent les échelles de niveau gauche et droite. L’échelle modifie le niveau de cet opérateur selon la zone du clavier.',
+    leftDepth:
+      'Règle l’ampleur du changement de niveau de cet opérateur sur les notes situées sous le point de coupure.',
+    rightDepth:
+      'Règle l’ampleur du changement de niveau de cet opérateur sur les notes situées au-dessus du point de coupure.',
     curve:
-      'Chooses the direction and shape of the level change away from the breakpoint. Linear changes steadily; exponential changes more strongly near one end.',
+      'Choisit le sens et la forme du changement de niveau en s’éloignant du point de coupure. Linéaire change régulièrement ; exponentielle change plus fortement vers une extrémité.',
     rateScaling:
-      'Makes this operator’s envelope run faster on higher notes, similar to the shorter decay of many acoustic instruments.',
+      'Fait avancer l’enveloppe de cet opérateur plus vite sur les notes aiguës, comme la décroissance plus courte de nombreux instruments acoustiques.',
     velocity:
-      'Sets how strongly key velocity changes this operator’s level. On carriers it affects loudness; on modulators it affects brightness.',
+      'Règle l’influence de la vélocité sur le niveau de cet opérateur. Sur une porteuse, elle agit sur le volume ; sur un modulateur, sur la brillance.',
     ampModSensitivity:
-      'Sets how strongly this operator responds to LFO amplitude modulation. On a carrier this creates tremolo; on a modulator it animates the tone.',
+      'Règle la réaction de cet opérateur à la modulation d’amplitude du LFO. Sur une porteuse, cela crée un trémolo ; sur un modulateur, cela anime le timbre.',
   },
   effectHelp: {
     Filter:
-      'Removes parts of the frequency spectrum. Use it to darken, thin, or reshape the finished FM sound.',
-    Reverb: 'Adds simulated room reflections, giving the sound a sense of space and distance.',
+      'Retire une partie du spectre de fréquences. Utilisez-le pour assombrir, amincir ou remodeler le son FM final.',
+    Reverb:
+      'Ajoute des réflexions de pièce simulées, pour donner au son une sensation d’espace et de distance.',
     Delay:
-      'Repeats the sound after a short time. Feedback-like decay controls how long the echoes continue.',
+      'Répète le son après un court instant. Le déclin, proche d’un retour de signal, règle la durée des échos.',
     Distortion:
-      'Adds saturation and extra harmonics. It can make quiet sounds denser or aggressive sounds more intense.',
-    Chorus: 'Adds slightly shifted copies of the sound for width and movement.',
-    Phaser: 'Sweeps a series of notches through the sound, creating a hollow, moving character.',
+      'Ajoute de la saturation et des harmoniques supplémentaires. Elle peut rendre les sons doux plus denses ou les sons agressifs plus intenses.',
+    Chorus: 'Ajoute des copies légèrement décalées du son pour plus de largeur et de mouvement.',
+    Phaser: 'Fait balayer une série d’encoches dans le son, pour un caractère creux et mouvant.',
   },
   effectParameterHelp: {
     'Filter Type':
-      'Chooses what the filter keeps: low pass keeps lows, high pass keeps highs, and band pass keeps a middle band.',
+      'Choisit ce que le filtre conserve : le passe-bas garde les graves, le passe-haut les aigus et le passe-bande une bande médiane.',
     'Filter Cutoff':
-      'Sets the frequency where filtering begins. Its audible direction depends on the selected filter type.',
+      'Fixe la fréquence à partir de laquelle le filtre agit. Son effet audible dépend du type de filtre choisi.',
     'Filter Resonance':
-      'Emphasizes frequencies around the cutoff. Higher values sound sharper and more pronounced.',
-    'Reverb Space': 'Chooses the character of the simulated space: room, hall, or bright plate.',
-    'Reverb Decay': 'Sets how long the reverb tail lasts.',
-    'Reverb Mix': 'Balances dry sound with reverb. At 0% you hear only the original sound.',
-    'Delay Decay': 'Sets how long the echo repeats continue before fading away.',
-    'Delay Rate': 'Sets the time between echoes. Higher values change the repeat spacing.',
-    'Delay Mix': 'Balances dry sound with echoes. At 0% you hear only the original sound.',
+      'Accentue les fréquences autour de la coupure. Des valeurs élevées donnent un son plus pointu et plus marqué.',
+    'Reverb Space': 'Choisit le caractère de l’espace simulé : pièce, salle ou plaque brillante.',
+    'Reverb Decay': 'Règle la durée de la queue de réverbération.',
+    'Reverb Mix':
+      'Équilibre le son sec et la réverbération. À 0 %, vous n’entendez que le son d’origine.',
+    'Delay Decay':
+      'Règle combien de temps les répétitions de l’écho continuent avant de s’éteindre.',
+    'Delay Rate':
+      'Règle le temps entre les échos. Des valeurs plus élevées modifient l’espacement des répétitions.',
+    'Delay Mix': 'Équilibre le son sec et les échos. À 0 %, vous n’entendez que le son d’origine.',
     'Distortion Gain':
-      'Controls how hard the signal drives the distortion. Higher values add more saturation and harmonics.',
-    'Distortion Tone': 'Adjusts the brightness of the distorted sound.',
+      'Règle la force avec laquelle le signal attaque la distorsion. Des valeurs élevées ajoutent plus de saturation et d’harmoniques.',
+    'Distortion Tone': 'Ajuste la brillance du son distordu.',
     'Distortion Level':
-      'Sets the output volume after distortion, useful for matching the bypassed loudness.',
-    'Chorus Frequency': 'Sets how quickly the chorus movement cycles.',
+      'Règle le volume de sortie après la distorsion, utile pour retrouver le niveau sans effet.',
+    'Chorus Frequency': 'Règle la vitesse de cycle du mouvement du chorus.',
     'Chorus Depth':
-      'Sets how far the chorus pitch movement travels. Higher values sound wider and more obvious.',
-    'Chorus Mix': 'Balances dry sound with the chorused signal.',
-    'Phaser Frequency': 'Sets how quickly the phaser sweep cycles.',
-    'Phaser Depth': 'Sets the range and intensity of the phaser sweep.',
-    'Phaser Mix': 'Balances dry sound with the phased signal.',
+      'Règle l’amplitude du mouvement de hauteur du chorus. Des valeurs élevées sonnent plus larges et plus marquées.',
+    'Chorus Mix': 'Équilibre le son sec et le signal traité par le chorus.',
+    'Phaser Frequency': 'Règle la vitesse de cycle du balayage du phaser.',
+    'Phaser Depth': 'Règle l’étendue et l’intensité du balayage du phaser.',
+    'Phaser Mix': 'Équilibre le son sec et le signal traité par le phaser.',
   },
   ui: {
     auditionGroup: 'Écoute de l’opérateur {{number}}',
@@ -160,6 +173,36 @@ export default {
     closeKeyboard: 'Fermer le clavier',
     shiftOctave: 'Décaler l’octave vers le {{direction}}',
     playNote: 'Jouer {{note}}',
+    helpFor: 'Aide : {{label}}',
+    rotaryTitle: '{{label}} : {{value}}. Faites glisser vers le haut ou le bas pour régler.',
+    envelopePoint: '{{title}}, point {{point}}',
+    envelopePointValue: 'Vitesse {{rate}}, niveau {{level}}',
+    envelopeRate: '{{title}}, vitesse {{point}}',
+    envelopeLevel: '{{title}}, niveau {{point}}',
+    chooseAlgorithm: 'Algorithme {{number}}. Choisir l’algorithme',
+    algorithmNumber: 'Algorithme {{number}}',
+    operatorSummary: 'Opérateur {{number}}, {{role}}',
+    operatorSummaryWithAudition: 'Opérateur {{number}}, {{role}}, {{audition}}',
+    operatorMuted: 'coupé',
+    operatorSoloed: 'en solo',
+    lfoWaves: {
+      triangle: 'Triangle',
+      sawDown: 'Dent de scie descendante',
+      sawUp: 'Dent de scie montante',
+      square: 'Carré',
+      sine: 'Sinus',
+      sampleAndHold: 'Échantillonneur-bloqueur',
+    },
+    oscillatorModes: {
+      ratio: 'Ratio',
+      fixed: 'Fixe',
+    },
+    curves: {
+      negativeLinear: '− Linéaire',
+      negativeExponential: '− Exponentielle',
+      positiveExponential: '+ Exponentielle',
+      positiveLinear: '+ Linéaire',
+    },
     performance: 'PERFORMANCE',
     directionDown: 'bas',
     directionUp: 'haut',
@@ -438,6 +481,17 @@ export default {
     switchOnFirst: 'Activez d’abord le MIDI',
     closeSysexWarning: 'Fermer l’avertissement SysEx',
     connecting: 'Connexion…',
+    errors: {
+      insecureContext:
+        'Web MIDI nécessite une connexion sécurisée. Ouvrez l’éditeur en HTTPS ou sur localhost.',
+      unsupportedBrowser:
+        'Ce navigateur ne prend pas en charge Web MIDI. Utilisez un navigateur Chromium de bureau, comme Chrome ou Edge.',
+      permissionDenied:
+        'L’accès MIDI a été bloqué. Autorisez l’accès MIDI et SysEx pour ce site, puis reconnectez-vous.',
+      enableFailed:
+        'Impossible de démarrer le MIDI. Vérifiez la connexion de l’appareil, puis réessayez.',
+      disconnectFailed: 'Impossible de déconnecter le MIDI. Réessayez.',
+    },
     reconnectForSysex: 'Reconnecter le MIDI avec SysEx',
     sysexRecovery:
       'Aucune donnée de banque n’a été envoyée. Reconnectez le MIDI et autorisez l’accès SysEx avant de réessayer.',
@@ -461,6 +515,8 @@ export default {
     transferred: 'Transférée',
     changed: 'Modifiée',
     importing: 'Importation…',
+    restoring: 'Restauration…',
+    catalogFactory: 'Sons d’usine',
     import: 'Importer une banque DX7',
     moreActions: 'Autres actions sur les banques',
     bankMenu: 'Actions pour {{bank}}',
@@ -511,6 +567,19 @@ export default {
     soundNotSent:
       'Le son n’a pas été envoyé. Connectez une sortie MIDI compatible SysEx et réessayez.',
     importFailed: 'Échec de l’importation.',
+    restoreFailed: 'Impossible de restaurer les banques d’usine. Réessayez.',
+    bankUnavailable:
+      'Cette banque de travail n’est plus disponible. Fermez cette fenêtre et réessayez.',
+    catalogUnavailable:
+      'Impossible de télécharger cette banque de sons. Vérifiez votre connexion, puis réessayez.',
+    fileErrors: {
+      size: 'Ce fichier fait {{bytes}} octets. Un fichier de banque DX7 doit faire exactement 4 104 octets.',
+      format: 'Ce fichier n’est pas une banque Yamaha DX7 de 32 voix.',
+      highBitData:
+        'Ce fichier contient des valeurs qu’une banque DX7 ne peut pas contenir ; il est peut-être endommagé.',
+      checksum:
+        'La somme de contrôle de cette banque est incorrecte ; elle est peut-être endommagée ou incomplète.',
+    },
     exportFailed: 'Échec de l’exportation.',
     bulkExportFailed: 'Échec de l’exportation groupée.',
     gridTitle: 'Banques de sons',
@@ -525,6 +594,8 @@ export default {
     editSelected: 'Modifier',
     editNone: 'Choisis d’abord un son pour le modifier',
     slotTitle: 'Cliquer pour jouer {{name}} sur le FM1 ; double-cliquer pour le modifier',
+    slotEditBufferTitle:
+      'Cliquez pour écouter {{name}} via le tampon d’édition du FM1 ; double-cliquez pour le modifier',
     slotEditTitle: 'Double-cliquer ou appuyer sur Entrée pour modifier {{name}}',
     openEditor: 'Ouvrir {{name}} dans l’éditeur',
     sendPatch: 'Envoyer {{name}} au FM1',
@@ -565,6 +636,9 @@ export default {
     deleteAction: 'Supprimer la banque',
     deleteConfirm: 'Supprimer définitivement « {{name}} » de ce navigateur ?',
     operationFailed: 'L’opération sur la banque enregistrée a échoué.',
+    loadFailed: 'Impossible de charger les banques enregistrées depuis le stockage du navigateur.',
+    damagedBanks:
+      'Certaines banques enregistrées sont illisibles et ont été masquées. Elles restent intactes dans le stockage du navigateur.',
     saved: '« {{name}} » enregistrée.',
     updated: '« {{name}} » mise à jour.',
     downloaded: '« {{name}} » téléchargée.',

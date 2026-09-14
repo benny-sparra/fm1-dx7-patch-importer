@@ -67,3 +67,17 @@ export function redoParameters(history: EditorHistory): EditorHistory {
     present: next,
   }
 }
+
+/**
+ * Folds a continuous gesture, such as a drag or a held arrow key, into one undo step: the history
+ * from before the gesture gains a single entry, and the gesture's result becomes the present.
+ */
+export function finishParameterGesture(
+  start: EditorHistory,
+  current: EditorHistory,
+): EditorHistory {
+  return {
+    ...current,
+    past: [...start.past, start.present].slice(-historyLimit),
+  }
+}

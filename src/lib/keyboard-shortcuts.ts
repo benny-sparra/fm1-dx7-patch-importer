@@ -17,6 +17,12 @@ export type KeyboardShortcut = {
 
 const typingElements = ['input', 'select', 'textarea']
 
+/**
+ * Marks an open dialog that claims only plain keys, such as the floating piano
+ * keyboard, so modified shortcuts still reach the view behind it.
+ */
+const plainKeysOnlyDialogAttribute = 'data-plain-keys-only'
+
 const applePlatformPattern = /mac|iphone|ipad|ipod/i
 
 type NavigatorWithPlatformData = Navigator & {
@@ -63,8 +69,12 @@ export function shouldRunShortcut(
   if (!matchesShortcut(event, shortcut)) return false
 
   // An open native dialog owns the keyboard: the unsaved-changes prompt needs
-  // Escape, and the piano keyboard plays plain letter keys as notes.
-  if (ownerDocument.querySelector('dialog[open]')) return false
+  // Escape. A dialog that only claims plain keys, like the floating piano
+  // keyboard, marks itself so save and undo still reach the view behind it.
+  const dialogOwnsKey = Array.from(ownerDocument.querySelectorAll('dialog[open]')).some(
+    (dialog) => !(shortcut.mod && dialog.hasAttribute(plainKeysOnlyDialogAttribute)),
+  )
+  if (dialogOwnsKey) return false
 
   // A modified shortcut is unambiguous, so it still works while typing a name.
   if (shortcut.mod) return true

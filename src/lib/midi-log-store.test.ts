@@ -36,6 +36,16 @@ describe('MidiLogStore', () => {
     ])
   })
 
+  it('reports activity only once an entry has been appended', () => {
+    const store = new MidiLogStore([entry('initial')])
+
+    expect(store.hasActivity()).toBe(false)
+
+    store.append(entry('1'))
+
+    expect(store.hasActivity()).toBe(true)
+  })
+
   it('stops publishing to an unsubscribed listener', () => {
     const store = new MidiLogStore([entry('initial')])
     const listener = vi.fn()

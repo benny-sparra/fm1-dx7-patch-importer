@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   editParameters,
+  finishParameterGesture,
   makeEditorHistory,
   redoParameters,
   undoParameters,
@@ -145,5 +146,27 @@ describe('sound starters', () => {
 
   it('rejects incomplete editor data', () => {
     expect(() => applySoundPreset(new Uint8Array(155), 'soft-pad')).toThrow('179')
+  })
+})
+
+describe('finishParameterGesture', () => {
+  it('folds a gesture of several edits into one undo step', () => {
+    const start = makeEditorHistory(new Uint8Array(4))
+    const dragged = editParameters(editParameters(start, [[0, 10]]), [[0, 20]])
+
+    const finished = finishParameterGesture(start, dragged)
+
+    expect(finished.present[0]).toBe(20)
+    expect(undoParameters(finished).present).toEqual(start.present)
+    expect(undoParameters(finished).past).toHaveLength(0)
+  })
+
+  it('keeps the undo history within its limit', () => {
+    let history = makeEditorHistory(new Uint8Array(1))
+    for (let value = 1; value <= 100; value += 1) history = editParameters(history, [[0, value]])
+
+    const finished = finishParameterGesture(history, editParameters(history, [[0, 101]]))
+
+    expect(finished.past).toHaveLength(100)
   })
 })

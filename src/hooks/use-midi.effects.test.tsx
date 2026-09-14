@@ -101,3 +101,17 @@ describe('useMidi FM1 effect transport', () => {
     expect(result.current.logStore.getSnapshot()[0]?.data).toEqual(Uint8Array.from([0xb1, 3, 127]))
   })
 })
+
+describe('useMidi channel settings', () => {
+  it('ignores a note channel outside 1 to 16 and keeps the stored channel', () => {
+    const { result } = renderHook(() => useMidi())
+    act(() => result.current.setChannel(3))
+
+    for (const invalidChannel of [0, 17, 2.5, Number.NaN]) {
+      act(() => result.current.setChannel(invalidChannel))
+    }
+
+    expect(result.current.channel).toBe(3)
+    expect(localStorage.getItem('fm1-midi-channel')).toBe('3')
+  })
+})

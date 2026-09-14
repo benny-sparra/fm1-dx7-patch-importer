@@ -45,6 +45,13 @@ export type BankTransferResult =
 
 export const midiChannels = Array.from({ length: 16 }, (_, index) => index + 1)
 
+type MidiConnectionErrorCode =
+  | 'disconnect_failed'
+  | 'enable_failed'
+  | 'insecure_context'
+  | 'permission_denied'
+  | 'unsupported_browser'
+
 const midiStorageKeys = {
   autoConnect: 'fm1-midi-auto-connect',
   channel: 'fm1-midi-channel',
@@ -95,7 +102,7 @@ export function useMidi() {
   const [channel, setChannelState] = useState(readStoredChannel)
   const [effectChannel, setEffectChannelState] = useState(readStoredEffectChannel)
   const [isConnecting, setIsConnecting] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState<MidiConnectionErrorCode | null>(null)
   const [logStore] = useState(
     () => new MidiLogStore([makeLogEntry('system', 'Ready. Connect a Chromium browser to begin.')]),
   )
@@ -171,23 +178,14 @@ export function useMidi() {
     async (remember: boolean) => {
       const method = remember ? ('manual' as const) : ('automatic' as const)
       if (midiSupport !== 'supported') {
-        setError(
-          midiSupport === 'insecure'
-            ? 'Web MIDI needs HTTPS or localhost.'
-            : 'This browser does not expose Web MIDI.',
-        )
-        trackAnalyticsEvent({
-          data: {
-            method,
-            reason: midiSupport === 'insecure' ? 'insecure_context' : 'unsupported_browser',
-          },
-          name: 'midi_connection_failed',
-        })
+        const reason = midiSupport === 'insecure' ? 'insecure_context' : 'unsupported_browser'
+        setError(reason)
+        trackAnalyticsEvent({ data: { method, reason }, name: 'midi_connection_failed' })
         return
       }
 
       setIsConnecting(true)
-      setError('')
+      setError(null)
 
       try {
         const activeWebMidi = await loadWebMidi()
@@ -210,9 +208,10 @@ export function useMidi() {
           name: 'midi_connected',
         })
       } catch (caughtError) {
-        setError(caughtError instanceof Error ? caughtError.message : 'MIDI permission was denied.')
+        const reason = midiConnectionFailureReason(caughtError)
+        setError(reason)
         trackAnalyticsEvent({
-          data: { method, reason: midiConnectionFailureReason(caughtError) },
+          data: { method, reason },
           name: 'midi_connection_failed',
         })
       } finally {
@@ -226,7 +225,7 @@ export function useMidi() {
 
   const disconnectMidi = useCallback(async () => {
     setIsConnecting(true)
-    setError('')
+    setError(null)
 
     try {
       await webMidi.current?.disable()
@@ -237,10 +236,8 @@ export function useMidi() {
       setSelectedOutputId('')
       setSelectedInputId('')
       appendLog(makeLogEntry('system', 'MIDI disconnected.'))
-    } catch (caughtError) {
-      setError(
-        caughtError instanceof Error ? caughtError.message : 'MIDI could not be disconnected.',
-      )
+    } catch {
+      setError('disconnect_failed')
     } finally {
       setIsConnecting(false)
     }
@@ -277,6 +274,7 @@ export function useMidi() {
   }, [])
 
   const setChannel = useCallback((nextChannel: number) => {
+    if (!midiChannels.includes(nextChannel)) return
     setChannelState(nextChannel)
     storeValue(midiStorageKeys.channel, String(nextChannel))
   }, [])
@@ -328,9 +326,8 @@ export function useMidi() {
       return transferQueue
         .enqueue(() => sendDx7Bank(selectedOutput, channel, voices))
         .then(() => {
-          appendLog(
-            makeLogEntry('out', `Sent bank ${bank}. Choose its destination on the FM1.`, message),
-          )
+          // The "Sending" entry already holds the full message, so this one does not repeat it.
+          appendLog(makeLogEntry('out', `Sent bank ${bank}. Choose its destination on the FM1.`))
           return { ok: true } as const
         })
         .catch((caughtError) => {

@@ -5,12 +5,16 @@ const logLimit = 8
 export class MidiLogStore {
   private listeners = new Set<() => void>()
   private snapshot: MidiLogEntry[]
+  private appended = false
 
   constructor(initialEntries: MidiLogEntry[]) {
     this.snapshot = initialEntries.slice(0, logLimit)
   }
 
   readonly getSnapshot = () => this.snapshot
+
+  /** Whether anything has been logged since the store was created with its start-up entries. */
+  readonly hasActivity = () => this.appended
 
   readonly subscribe = (listener: () => void) => {
     this.listeners.add(listener)
@@ -20,6 +24,7 @@ export class MidiLogStore {
   }
 
   append(entry: MidiLogEntry) {
+    this.appended = true
     this.snapshot = [entry, ...this.snapshot].slice(0, logLimit)
     this.listeners.forEach((listener) => listener())
   }

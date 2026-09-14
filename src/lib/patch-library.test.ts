@@ -146,13 +146,16 @@ describe('patch library operations', () => {
     expect(getNextWorkspaceBank(withGapBelowLimit.workspaceBanks)).toBe('I')
   })
 
-  it('creates patch slots for added banks without invalid MIDI programs', () => {
+  it('gives slots in banks A to D their FM1 program and slots in added banks none', () => {
     const added = addWorkspaceBank(emptyPatchLibrary(), 'E')
-    const patches = makePatches(added).filter((patch) => patch.bank === 'E')
+    const patches = makePatches(added)
+    const addedBank = patches.filter((patch) => patch.bank === 'E')
 
-    expect(patches).toHaveLength(32)
-    expect(patches[0]).toMatchObject({ bank: 'E', number: 1, program: 0 })
-    expect(patches[31]).toMatchObject({ bank: 'E', number: 32, program: 31 })
+    expect(patches.find((patch) => patch.id === voiceId('A', 1))?.program).toBe(0)
+    expect(patches.find((patch) => patch.id === voiceId('D', 32))?.program).toBe(127)
+    expect(addedBank).toHaveLength(32)
+    expect(addedBank[0]).toMatchObject({ bank: 'E', number: 1 })
+    expect(addedBank.every((patch) => patch.program === undefined)).toBe(true)
   })
 
   it('imports voices into a newly added workspace bank', () => {
@@ -298,6 +301,21 @@ describe('patch library operations', () => {
 
     expect(result.voices[voiceId('A', 1)].name).toBe(secondName)
     expect(result.voices[voiceId('A', 3)].name).toBe(firstName)
+  })
+
+  it('moves an empty slot as empty instead of storing undefined entries', () => {
+    const initial = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const voices = { ...initial.voices }
+    const effects = { ...initial.effects }
+    delete voices[voiceId('A', 2)]
+    delete effects[voiceId('A', 2)]
+
+    const result = moveVoice({ ...initial, effects, voices }, 'A', 1, 3)
+
+    expect(voiceId('A', 1) in result.voices).toBe(false)
+    expect(voiceId('A', 1) in result.effects).toBe(false)
+    expect(Object.values(result.voices)).not.toContain(undefined)
+    expect(result.voices[voiceId('A', 3)]).toBe(initial.voices[voiceId('A', 1)])
   })
 
   it('normalizes unsupported rename characters for DX7 storage', () => {

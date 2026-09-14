@@ -4,6 +4,7 @@ import { createNamedBank } from '@/lib/named-bank'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import {
+  listStoredNamedBanks,
   loadStoredPatchLibrary,
   saveStoredNamedBank,
   saveStoredPatchLibrary,
@@ -29,7 +30,7 @@ function installIndexedDb(readResult?: unknown) {
     onabort: null as (() => void) | null,
     oncomplete: null as (() => void) | null,
     onerror: null as (() => void) | null,
-    objectStore: () => ({ get: () => readRequest, put }),
+    objectStore: () => ({ get: () => readRequest, getAll: () => readRequest, put }),
   }
   const database = {
     close: vi.fn(),
@@ -283,5 +284,87 @@ describe('saveStoredPatchLibrary', () => {
     await expect(saving).resolves.toBe('current')
     expect(fake.database.transaction).toHaveBeenCalledWith('named-banks', 'readwrite')
     expect(fake.put).toHaveBeenCalledWith(bank)
+  })
+})
+
+describe('loadStoredPatchLibrary voice data', () => {
+  function version5Record(voices: Record<string, unknown>) {
+    return {
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {},
+      loadedBanks: ['A'],
+      savedAt: '2026-09-13T12:00:00.000Z',
+      version: 5,
+      voices,
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    }
+  }
+
+  async function loadRecord(record: unknown) {
+    const fake = installIndexedDb(record)
+    const loading = loadStoredPatchLibrary()
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+    return { fake, loading }
+  }
+
+  it('treats undefined voice slots left by earlier moves as empty', async () => {
+    const [voice] = makeDemoVoices()
+    const { loading } = await loadRecord(
+      version5Record({ 'bank-A-1': voice, 'bank-A-2': undefined }),
+    )
+
+    const loaded = await loading
+    expect(loaded?.voices).toEqual({ 'bank-A-1': voice })
+    expect(Object.keys(loaded?.effects ?? {})).toEqual(['bank-A-1'])
+  })
+
+  it('masks stored voice bytes above seven bits', async () => {
+    const [voice] = makeDemoVoices()
+    const data = voice.data.slice()
+    data[0] |= 0x80
+    const { loading } = await loadRecord(version5Record({ 'bank-A-1': { data, name: voice.name } }))
+
+    const loaded = await loading
+    expect(loaded?.voices['bank-A-1']).toEqual(voice)
+  })
+
+  it('classifies an unreadable voice as incompatible without changing the record', async () => {
+    const { fake, loading } = await loadRecord(
+      version5Record({ 'bank-A-1': { data: new Uint8Array(100), name: 'SHORT' } }),
+    )
+
+    await expect(loading).rejects.toMatchObject({ code: 'incompatible' })
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+})
+
+describe('listStoredNamedBanks', () => {
+  it('lists readable saved banks newest first and counts damaged ones without changing them', async () => {
+    const snapshot = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const older = createNamedBank(snapshot, 'A', {
+      description: '',
+      id: 'older',
+      name: 'Older',
+      now: '2026-08-01T12:00:00.000Z',
+    })
+    const newer = createNamedBank(snapshot, 'A', {
+      description: '',
+      id: 'newer',
+      name: 'Newer',
+      now: '2026-09-01T12:00:00.000Z',
+    })
+    const damaged = { ...older, id: 'damaged', slots: older.slots.slice(1) }
+    const fake = installIndexedDb([older, damaged, newer])
+    const listing = listStoredNamedBanks()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(listing).resolves.toEqual({ banks: [newer, older], damagedCount: 1 })
+    expect(fake.put).not.toHaveBeenCalled()
   })
 })

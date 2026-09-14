@@ -18,7 +18,8 @@ export default defineConfig({
   },
   webServer: {
     command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
-    reuseExistingServer: !process.env.CI,
+    // Reusing whatever already serves the port could test an older build, so it is opt-in.
+    reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === 'true',
     url: 'http://127.0.0.1:4173',
   },
 })

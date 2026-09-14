@@ -6,7 +6,10 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
+  Dx7BankFileError,
   makeDx7BankFile,
+  makeDx7BankPayload,
+  normalizeStoredDx7Voice,
   makeDx7VoiceNameEdits,
   makeDx7SingleVoicePayload,
   packDx7Voice,
@@ -93,5 +96,105 @@ describe('DX7 live voice-name edits', () => {
       [152, 0x20],
       [153, 0x20],
     ])
+  })
+})
+
+function makeBankFileWithDataByte(offset: number, value: number) {
+  const file = makeDx7BankFile(Array.from({ length: 32 }, makeVoice))
+  file[6 + offset] = value
+  const sum = file.slice(6, -2).reduce((total, byte) => total + byte, 0)
+  file[file.length - 2] = (128 - (sum & 0x7f)) & 0x7f
+  return file
+}
+
+describe('DX7 7-bit data boundaries', () => {
+  it('rejects an imported bank with a high-bit data byte even when its checksum matches', () => {
+    const file = makeBankFileWithDataByte(20, 0x85)
+
+    expect(() => parseDx7Bank(file.buffer as ArrayBuffer)).toThrow('7-bit')
+  })
+
+  it('refuses to build a single-voice dump from voice data above seven bits', () => {
+    const voice = makeVoice()
+    voice.data[3] = 0x80
+
+    expect(() => makeDx7SingleVoicePayload(voice)).toThrow('7-bit')
+  })
+
+  it('refuses to build a bank dump containing voice data above seven bits', () => {
+    const voices = Array.from({ length: 32 }, makeVoice)
+    voices[31].data[0] = 0xff
+
+    expect(() => makeDx7BankPayload(voices)).toThrow('7-bit')
+  })
+})
+
+describe('normalizeStoredDx7Voice', () => {
+  it('keeps a valid stored voice unchanged', () => {
+    const voice = makeVoice()
+
+    expect(normalizeStoredDx7Voice(voice)).toEqual(voice)
+  })
+
+  it('masks stored bytes above seven bits without changing the stored copy', () => {
+    const voice = makeVoice()
+    voice.data[0] = 0x85
+
+    const normalized = normalizeStoredDx7Voice(voice)
+
+    expect(normalized?.data[0]).toBe(0x05)
+    expect(normalized?.name).toBe('ROUNDTRIP')
+    expect(voice.data[0]).toBe(0x85)
+  })
+
+  it('names a stored voice from its data when the name is missing', () => {
+    const { data } = makeVoice()
+
+    expect(normalizeStoredDx7Voice({ data })?.name).toBe('ROUNDTRIP')
+  })
+
+  it('rejects stored values that are not packed voices', () => {
+    expect(normalizeStoredDx7Voice(null)).toBeNull()
+    expect(normalizeStoredDx7Voice('E.PIANO')).toBeNull()
+    expect(normalizeStoredDx7Voice({ data: new Uint8Array(100), name: 'SHORT' })).toBeNull()
+    expect(normalizeStoredDx7Voice({ data: Array(128).fill(0), name: 'ARRAY' })).toBeNull()
+  })
+})
+
+describe('DX7 bank file problems', () => {
+  function importError(bytes: Uint8Array) {
+    try {
+      parseDx7Bank(bytes.buffer as ArrayBuffer)
+    } catch (error) {
+      return error
+    }
+    throw new Error('Expected the bank file to be rejected.')
+  }
+
+  it('reports the size of a bank file with the wrong length', () => {
+    const error = importError(new Uint8Array(3))
+
+    expect(error).toBeInstanceOf(Dx7BankFileError)
+    expect(error).toMatchObject({ problem: 'size', receivedBytes: 3 })
+  })
+
+  it('reports a file that is not a DX7 32-voice bank', () => {
+    const file = makeDx7BankFile(Array.from({ length: 32 }, makeVoice))
+    file[1] = 0x41
+
+    expect(importError(file)).toMatchObject({ problem: 'format' })
+  })
+
+  it('reports a bank with data above seven bits', () => {
+    expect(importError(makeBankFileWithDataByte(20, 0x85))).toMatchObject({
+      problem: 'high-bit-data',
+    })
+  })
+
+  it('reports a bank whose checksum does not match', () => {
+    const file = makeDx7BankFile(Array.from({ length: 32 }, makeVoice))
+    file[file.length - 2] ^= 0x01
+
+    expect(importError(file)).toMatchObject({ problem: 'checksum' })
   })
 })

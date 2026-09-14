@@ -177,6 +177,46 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(outputLevels()).toEqual(['0', '0'])
   }, 15_000)
 
+  it('undoes a held arrow key on an effect slider as a single step', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const reverb = within(screen.getByRole('region', { name: 'Reverb' }))
+    await user.click(reverb.getByRole('button', { pressed: false }))
+    const decay = screen.getByRole('slider', { name: 'Reverb Decay' }) as HTMLInputElement
+
+    fireEvent.keyDown(decay, { key: 'ArrowRight' })
+    fireEvent.change(decay, { target: { value: '1' } })
+    fireEvent.keyDown(decay, { key: 'ArrowRight', repeat: true })
+    fireEvent.change(decay, { target: { value: '2' } })
+    fireEvent.change(decay, { target: { value: '3' } })
+    fireEvent.keyUp(decay, { key: 'ArrowRight' })
+    expect(decay.value).toBe('3')
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(decay.value).toBe('0')
+    expect(decay.disabled).toBe(false)
+  }, 15_000)
+
+  it('undoes a held arrow key on an envelope point as a single step', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const point = screen.getByRole('slider', { name: 'Pitch envelope point 1' })
+    const level = () => (screen.getByLabelText('Pitch envelope level 1') as HTMLInputElement).value
+
+    fireEvent.keyDown(point, { key: 'ArrowUp' })
+    fireEvent.keyDown(point, { key: 'ArrowUp', repeat: true })
+    fireEvent.keyDown(point, { key: 'ArrowUp', repeat: true })
+    fireEvent.keyUp(point, { key: 'ArrowUp' })
+    expect(level()).toBe('3')
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(level()).toBe('0')
+  }, 15_000)
+
   it('stays local and explains the unavailable SysEx connection without attempting initial sync', async () => {
     const { midi } = setup({ sysexAvailable: false })
 

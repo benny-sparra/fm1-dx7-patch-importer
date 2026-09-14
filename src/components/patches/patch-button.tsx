@@ -101,7 +101,9 @@ export function PatchButton({
           title={
             isActive
               ? t('banks.slotEditTitle', { name: patch.name })
-              : t('banks.slotTitle', { name: patch.name })
+              : patch.program === undefined
+                ? t('banks.slotEditBufferTitle', { name: patch.name })
+                : t('banks.slotTitle', { name: patch.name })
           }
           type="button"
         />

@@ -52,6 +52,11 @@ files when that is clearer.
 - Use Lucide icons and the existing components in `src/components/ui/` before adding new UI
   primitives.
 - Do not use dangerous lint autofixes. `npm run lint:fix` is the supported autofix command.
+- Do not throw from React state updater functions. React runs them during render, so the caller's
+  `try/catch` never sees the error. Work out the next state where the caller can catch a failure,
+  then set it.
+- Keep one source for shared constants and helpers such as key lists, limits, and value formatting.
+  Reuse or export the existing one rather than copying it into another module.
 
 ## Behavioral constraints
 
@@ -63,6 +68,10 @@ files when that is clearer.
   serialize saves so an older snapshot cannot become final storage.
 - Cancellation, retry, disposal, and completions arriving after unmount are normal cases and require
   deterministic handling and tests.
+- Debounced saves must not lose recent edits: write any pending save immediately when the page is
+  hidden or closed, and warn before leaving while a save has not committed.
+- Read and write `localStorage` and `sessionStorage` only inside `try/catch`. Blocked or throwing
+  storage must leave the feature working with a safe default, never break the action that uses it.
 
 ### Legacy stored data compatibility
 
@@ -85,6 +94,8 @@ open everything an earlier release could have saved.
 - New fields must be optional when read, with safe defaults for records that predate them. Unknown
   or out-of-range values from old records are normalised, not treated as a reason to discard the
   workspace; genuinely unreadable data surfaces the `incompatible` error rather than being replaced.
+- In a store that holds many independent records, such as saved banks, a damaged record is skipped,
+  left in storage unchanged, and reported to the user. It must not hide the readable records.
 - Stored preference values (locale, colourway, port names) that no longer match a supported option
   fall back to a default without throwing or erasing other storage.
 - Every stored version needs a fixture-based test in the co-located storage test that loads a record
@@ -101,6 +112,10 @@ open everything an earlier release could have saved.
 - Preserve transfer ordering, cancellation, port reconnection, and the separation between note and
   effect channels.
 - Web MIDI requires a secure context; local HTTPS setup is provided by `npm run setup:https`.
+- Check DX7 voice data at every boundary: reject bytes above 7-bit in imported files and SysEx
+  payload builders, and normalise stored voices on read.
+- Do not resend unchanged data to the FM1 on repeated interaction, such as a double-click. Forget
+  what was sent as soon as anything else replaces that device state, and after a failed send.
 
 ### Internationalisation
 
@@ -114,6 +129,16 @@ open everything an earlier release could have saved.
 - Keep `document.documentElement.lang`, the document title, and description metadata synchronized.
 - Every locale must contain the same leaf keys. Update `src/i18n/resources.test.ts` whenever resource
   structure changes.
+- Every user-visible string and accessible name comes from the locale files: labels, `aria-label`,
+  `aria-valuetext`, `title`, option lists, empty states, confirmations, and error messages. Only
+  product and site names, DX7 cartridge titles, and the technical MIDI log stay untranslated.
+- Never render `error.message` or browser error text. Give an error the user can act on a typed error
+  or code in `src/lib/` and translate it, as `bankErrorMessage` does; show a translated fallback for
+  anything else.
+- Write every new string in every locale in the same change, including help text. A non-English
+  locale must not copy an English sentence; `src/i18n/resources.test.ts` rejects that.
+- Format dates and numbers with the interface language (`i18n.resolvedLanguage`), not the browser
+  default.
 
 ### Bundle boundaries
 
@@ -175,6 +200,13 @@ open everything an earlier release could have saved.
   requested feature; repeated activation must not duplicate imports or dialogs.
 - Use focused `Suspense` or loading states that do not replace the whole librarian page.
 - Treat loading, failure, disabled, empty, and narrow-viewport states as first-class behavior.
+- Do not use `window.alert`, `window.confirm`, or `window.prompt`; some embedded browsers block them
+  silently. Confirm destructive actions in the app’s own UI, move focus into the confirmation, and
+  return it to the triggering control on cancel.
+- Do not use `autoFocus`; lint rejects it. Move focus with a ref in an effect when content appears.
+- Continuous input is one undo step. Start a gesture on pointer down or key down and end it on
+  pointer up, key up, and blur, as the sliders, knobs, and envelope points do. A preset or randomise
+  that writes many parameters is also one step.
 
 ### Keyboard and motion
 
@@ -182,13 +214,19 @@ open everything an earlier release could have saved.
   `useKeyboardShortcuts`. Widget keyboard behaviour (rotary controls, envelope points, the piano
   keyboard, the bank list) stays with the widget that owns it.
 - A shortcut must yield to whatever already owns the keyboard: an open native dialog, a text field
-  for bare keys, and an open menu for Escape. Modified shortcuts still run while typing.
+  for bare keys, and an open menu for Escape. Modified shortcuts still run while typing, and while
+  only a dialog marked `data-plain-keys-only` (the floating piano keyboard) is open. A widget that
+  claims plain keys must ignore Ctrl, Command, and Alt presses and close on Escape.
 - Shortcut definitions are the single source: button tooltips and the help dialog read them, so they
   cannot drift. When a shortcut is added, changed, or removed, update the help dialog listing, the
   locale keys, and the keyboard shortcut list in `docs/user-guide.md` in the same change.
 - Match the short easing durations already used in `src/index.css` and always provide the
   `prefers-reduced-motion: reduce` snap. Animated disclosure must not leave controls half-hidden in
   the accessibility tree: flip visibility once the transition has finished.
+- The reduced-motion snap applies to Tailwind utilities too: a transition that moves, resizes, or
+  slides needs `motion-reduce:transition-none`, and a looping animation such as `animate-spin` needs
+  `motion-safe:`. Keyframe animations and transitions in `src/index.css` need a
+  `prefers-reduced-motion: reduce` override.
 
 ## Tests
 
@@ -217,6 +255,14 @@ open everything an earlier release could have saved.
     reads only the current state.
   - Hit areas, overlays, and stacking done in CSS cannot be checked in jsdom; cover the click
     behaviour, including anything that must stay clickable above the overlay, in Playwright.
+  - Continuous input grouped into one undo step gets a rendered test that a held key or drag
+    reverses in a single undo.
+  - A new string assembled from interpolated parts, or a new locale-formatted value, gets a rendered
+    test in at least one non-English locale.
+  - A new motion’s reduced-motion snap is checked in `src/test/reduced-motion.test.tsx`, because
+    jsdom cannot evaluate the media query.
+  - A new error a user can hit gets a test that it reaches the UI as translated text, not a raw
+    message.
 - Run a focused test while developing, then run the complete validation before handoff.
 
 ## Validation
@@ -255,6 +301,12 @@ Run `npm run build` before `npm run bundle:check`. Use `npm run test:cls` for ch
 initial render, fonts, images, loading states, or layout. The CLS check starts a local server and may
 need permission in a restricted environment.
 
+Run the checks with the Node.js and npm versions pinned in `.node-version` and `package.json`;
+`engines` makes npm warn about others, and CI always uses the pinned versions. When a step is added
+to `npm run check`, add the same step to the quality job in `.github/workflows/quality.yml` so local
+and CI checks stay equal. `npm run test:e2e` starts its own preview server; set
+`PLAYWRIGHT_REUSE_SERVER=true` only to test an already running build on purpose.
+
 Dependency audits require registry access and are separate from the deterministic suite:
 
 ```bash
@@ -276,6 +328,8 @@ When dependencies change, run `npm run lockfile:refresh` with the pinned npm rel
   `docs/user-guide.md`, `docs/maintaining.md`) when commands, setup, supported behavior, or user workflows change.
 - Before handoff, run `git diff --check`, report validation performed, and call out any check that
   could not run.
+- When a review or bug fix settles how something should be done, record the rule in this file in the
+  same change, so later work follows it without repeating the review.
 
 ## FM1 protocol research
 

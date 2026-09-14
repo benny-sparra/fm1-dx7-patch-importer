@@ -51,8 +51,16 @@ export function usePatchLibrary() {
     past: [],
     present: emptyPatchLibrary(),
   })
+  // Mirrors the latest history ahead of React's render, so each change is worked out where its
+  // caller can catch a failure, and back-to-back changes in one event build on each other.
+  const historyRef = useRef(history)
+  const replaceHistory = useCallback((next: History) => {
+    historyRef.current = next
+    setHistory(next)
+  }, [])
   const [namedBanks, setNamedBanks] = useState<NamedBank[]>([])
-  const [namedBanksError, setNamedBanksError] = useState('')
+  const [hasDamagedNamedBanks, setHasDamagedNamedBanks] = useState(false)
+  const [namedBanksLoadFailed, setNamedBanksLoadFailed] = useState(false)
   const [namedBanksLoading, setNamedBanksLoading] = useState(true)
   const [persistence, setPersistence] = useState<WorkspacePersistenceState>({
     error: null,
@@ -83,11 +91,9 @@ export function usePatchLibrary() {
           : null
       },
       onWorkspaceLoaded: (workspace) => {
-        setHistory({
-          future: [],
-          past: [],
-          present: workspace,
-        })
+        const loaded = { future: [], past: [], present: workspace }
+        historyRef.current = loaded
+        setHistory(loaded)
       },
       save: saveStoredPatchLibrary,
     })
@@ -104,12 +110,13 @@ export function usePatchLibrary() {
   useEffect(() => {
     let cancelled = false
     void listStoredNamedBanks()
-      .then((banks) => {
-        if (!cancelled) setNamedBanks(banks)
+      .then(({ banks, damagedCount }) => {
+        if (cancelled) return
+        setNamedBanks(banks)
+        setHasDamagedNamedBanks(damagedCount > 0)
       })
-      .catch((error) => {
-        if (!cancelled)
-          setNamedBanksError(error instanceof Error ? error.message : 'Could not load saved banks.')
+      .catch(() => {
+        if (!cancelled) setNamedBanksLoadFailed(true)
       })
       .finally(() => {
         if (!cancelled) setNamedBanksLoading(false)
@@ -133,6 +140,20 @@ export function usePatchLibrary() {
     return () => window.removeEventListener('beforeunload', warnBeforeUnload)
   }, [persistence])
 
+  useEffect(() => {
+    // Autosave waits for edits to settle, so write straight away when the page may be closing.
+    const flushPendingSave = () => persistenceController.current?.flushPendingSave()
+    const flushWhenHidden = () => {
+      if (document.visibilityState === 'hidden') flushPendingSave()
+    }
+    window.addEventListener('pagehide', flushPendingSave)
+    document.addEventListener('visibilitychange', flushWhenHidden)
+    return () => {
+      window.removeEventListener('pagehide', flushPendingSave)
+      document.removeEventListener('visibilitychange', flushWhenHidden)
+    }
+  }, [])
+
   const retryWorkspaceLoading = useCallback(() => {
     persistenceController.current?.retryLoading()
   }, [])
@@ -145,17 +166,19 @@ export function usePatchLibrary() {
     persistenceController.current?.retrySaving()
   }, [])
 
-  const commit = useCallback((update: (current: PatchLibrarySnapshot) => PatchLibrarySnapshot) => {
-    setHistory((current) => {
+  const commit = useCallback(
+    (update: (current: PatchLibrarySnapshot) => PatchLibrarySnapshot) => {
+      const current = historyRef.current
       const next = update(current.present)
-      if (next === current.present) return current
-      return {
+      if (next === current.present) return
+      replaceHistory({
         future: [],
         past: [...current.past, current.present].slice(-historyLimit),
         present: next,
-      }
-    })
-  }, [])
+      })
+    },
+    [replaceHistory],
+  )
 
   const importBank = useCallback(
     async (bank: string, file: File) => {
@@ -248,7 +271,7 @@ export function usePatchLibrary() {
   const saveNamedBank = useCallback(
     async (sourceBank: string, name: string, description: string) => {
       const now = new Date().toISOString()
-      const bank = createNamedBank(history.present, sourceBank, {
+      const bank = createNamedBank(historyRef.current.present, sourceBank, {
         description,
         id: createId(),
         name,
@@ -256,10 +279,9 @@ export function usePatchLibrary() {
       })
       await saveStoredNamedBank(bank)
       setNamedBanks((current) => [bank, ...current])
-      setNamedBanksError('')
       return bank
     },
-    [history.present],
+    [],
   )
 
   const loadSavedBank = useCallback(
@@ -278,7 +300,6 @@ export function usePatchLibrary() {
           .map((candidate) => (candidate.id === updated.id ? updated : candidate))
           .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)),
       )
-      setNamedBanksError('')
       return updated
     },
     [],
@@ -288,39 +309,35 @@ export function usePatchLibrary() {
     const duplicate = duplicateNamedBank(bank, createId(), new Date().toISOString())
     await saveStoredNamedBank(duplicate)
     setNamedBanks((current) => [duplicate, ...current])
-    setNamedBanksError('')
     return duplicate
   }, [])
 
   const deleteNamedBank = useCallback(async (id: string) => {
     await deleteStoredNamedBank(id)
     setNamedBanks((current) => current.filter((bank) => bank.id !== id))
-    setNamedBanksError('')
   }, [])
 
   const undo = useCallback(() => {
-    setHistory((current) => {
-      const previous = current.past.at(-1)
-      if (!previous) return current
-      return {
-        future: [current.present, ...current.future],
-        past: current.past.slice(0, -1),
-        present: previous,
-      }
+    const current = historyRef.current
+    const previous = current.past.at(-1)
+    if (!previous) return
+    replaceHistory({
+      future: [current.present, ...current.future],
+      past: current.past.slice(0, -1),
+      present: previous,
     })
-  }, [])
+  }, [replaceHistory])
 
   const redo = useCallback(() => {
-    setHistory((current) => {
-      const next = current.future[0]
-      if (!next) return current
-      return {
-        future: current.future.slice(1),
-        past: [...current.past, current.present].slice(-historyLimit),
-        present: next,
-      }
+    const current = historyRef.current
+    const next = current.future[0]
+    if (!next) return
+    replaceHistory({
+      future: current.future.slice(1),
+      past: [...current.past, current.present].slice(-historyLimit),
+      present: next,
     })
-  }, [])
+  }, [replaceHistory])
 
   const patches = useMemo(() => makePatches(history.present), [history.present])
   const getBankVoices = useCallback(
@@ -337,6 +354,7 @@ export function usePatchLibrary() {
     deleteNamedBank,
     deleteBank,
     getBankVoices,
+    hasDamagedNamedBanks,
     importBank,
     loadDemoBank,
     loadSavedBank,
@@ -345,7 +363,7 @@ export function usePatchLibrary() {
     loadedBanks: history.present.loadedBanks,
     moveVoice,
     namedBanks,
-    namedBanksError,
+    namedBanksLoadFailed,
     namedBanksLoading,
     patches,
     persistenceError: persistence.error,

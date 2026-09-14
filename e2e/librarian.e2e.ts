@@ -112,7 +112,7 @@ test('rejects an invalid DX7 SysEx bank without closing the replacement dialog',
   await dialog.getByRole('button', { name: 'Replace bank contents' }).click()
 
   await expect(dialog.getByRole('alert')).toHaveText(
-    'Expected a 4104-byte DX7 bank; received 3 bytes.',
+    'This file is 3 bytes. A DX7 bank file must be exactly 4,104 bytes.',
   )
   await expect(dialog).toBeVisible()
 })

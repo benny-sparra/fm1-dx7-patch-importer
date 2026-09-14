@@ -9,6 +9,7 @@ import {
   PhaserScope,
   ReverbScope,
 } from '@/components/editor/effect-scopes'
+import { rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
@@ -241,7 +242,12 @@ function EffectControl({
         disabled={disabled}
         max={definition.max}
         min={0}
+        onBlur={onGestureEnd}
         onChange={(event) => onChange(definition.controller, Number(event.target.value))}
+        onKeyDown={(event) => {
+          if (rangeControlKeys.includes(event.key)) onGestureStart()
+        }}
+        onKeyUp={onGestureEnd}
         onPointerCancel={onGestureEnd}
         onPointerDown={onGestureStart}
         onPointerUp={onGestureEnd}

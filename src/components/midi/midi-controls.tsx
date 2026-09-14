@@ -43,12 +43,21 @@ export function MidiConnectActions({ midi }: MidiControlsProps) {
   )
 }
 
+const midiConnectionErrorKeys = {
+  disconnect_failed: 'midi.errors.disconnectFailed',
+  enable_failed: 'midi.errors.enableFailed',
+  insecure_context: 'midi.errors.insecureContext',
+  permission_denied: 'midi.errors.permissionDenied',
+  unsupported_browser: 'midi.errors.unsupportedBrowser',
+} as const satisfies Record<NonNullable<MidiController['error']>, string>
+
 export function MidiConnectionError({ midi }: MidiControlsProps) {
+  const { t } = useTranslation()
   if (!midi.error) return null
 
   return (
     <div className="crt-inset bg-[var(--crt-bg-2)] px-4 py-3 text-sm text-[var(--crt-ink-2)]">
-      {midi.error}
+      {t(midiConnectionErrorKeys[midi.error])}
     </div>
   )
 }

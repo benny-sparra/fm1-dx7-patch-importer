@@ -2,6 +2,7 @@ import { Save } from 'lucide-react'
 import { type FormEvent, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -42,7 +43,7 @@ export function SaveNamedBankDialog({
       await library.saveNamedBank(destinationBank, name, description)
       dialogRef.current?.close()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t('namedBanks.operationFailed'))
+      setError(bankErrorMessage(t, cause, t('namedBanks.operationFailed')))
     } finally {
       setWorking(false)
     }

@@ -23,7 +23,38 @@ function flattenKeys(value: object, prefix = ''): string[] {
   })
 }
 
+function flattenStrings(value: object, prefix = ''): [string, string][] {
+  return Object.entries(value).flatMap(([key, child]): [string, string][] => {
+    const path = prefix ? `${prefix}.${key}` : key
+    if (typeof child === 'string') return [[path, child]]
+    return typeof child === 'object' && child !== null ? flattenStrings(child, path) : []
+  })
+}
+
+const wordCount = (text: string) =>
+  text
+    .replace(/\{\{\w+\}\}/g, '')
+    .trim()
+    .split(/\s+/).length
+
 describe('translation resources', () => {
+  // Short labels such as "Chorus" or "Solo" can be the same word in another language, but a
+  // sentence copied from English means the text was never translated.
+  it('does not reuse English sentences in other locales', () => {
+    const english = flattenStrings(resources.en.translation).filter(
+      ([, text]) => wordCount(text) >= 5,
+    )
+
+    for (const locale of ['de', 'es', 'fr', 'pt-BR', 'zh-Hans'] as const) {
+      const localized = new Map(flattenStrings(resources[locale].translation))
+      const copied = english
+        .filter(([key, text]) => localized.get(key) === text)
+        .map(([key]) => key)
+
+      expect(copied, `${locale} copies English text`).toEqual([])
+    }
+  })
+
   it('provides every English key in every supported locale', () => {
     const englishKeys = flattenKeys(resources.en.translation).sort()
 

@@ -1,7 +1,8 @@
 import { Copy, Database, Download, FolderOpen, Pencil, Save, Trash2 } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { type NamedBankLibraryDialogProps } from '@/components/patches/named-bank-dialog-types'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
 import { Button } from '@/components/ui/button'
@@ -32,7 +33,7 @@ export function LoadNamedBankDialog({
   library,
   onClose,
 }: NamedBankLibraryDialogProps) {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
   const bankLabel = useWorkspaceBankLabel(library)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const editNameRef = useRef<HTMLInputElement>(null)
@@ -44,6 +45,14 @@ export function LoadNamedBankDialog({
   const [query, setQuery] = useState('')
   const [workingId, setWorkingId] = useState('')
   const [status, setStatus] = useState('')
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState('')
+  const deleteButtonRefs = useRef(new Map<string, HTMLButtonElement>())
+  const confirmDeleteRef = useRef<HTMLButtonElement>(null)
+
+  // Move focus onto the confirmation as it opens, so the keyboard lands on the choice it asks for.
+  useEffect(() => {
+    if (confirmingDeleteId) confirmDeleteRef.current?.focus()
+  }, [confirmingDeleteId])
 
   const visibleBanks = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -61,6 +70,7 @@ export function LoadNamedBankDialog({
 
   const reset = () => {
     clearForm()
+    setConfirmingDeleteId('')
     setError('')
     setQuery('')
     setStatus('')
@@ -73,7 +83,7 @@ export function LoadNamedBankDialog({
     try {
       await operation()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t('namedBanks.operationFailed'))
+      setError(bankErrorMessage(t, cause, t('namedBanks.operationFailed')))
     } finally {
       setWorkingId('')
     }
@@ -199,6 +209,12 @@ export function LoadNamedBankDialog({
                 />
               </div>
 
+              {library.hasDamagedNamedBanks ? (
+                <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                  {t('namedBanks.damagedBanks')}
+                </p>
+              ) : null}
+
               {library.namedBanksLoading ? (
                 <p className="rounded-md border p-4 text-sm text-muted-foreground">
                   {t('namedBanks.loading')}
@@ -221,7 +237,9 @@ export function LoadNamedBankDialog({
                           ) : null}
                           <p className="mt-1 text-xs text-muted-foreground">
                             {t('namedBanks.updatedAt', {
-                              date: new Date(bank.updatedAt).toLocaleDateString(),
+                              date: new Date(bank.updatedAt).toLocaleDateString(
+                                i18n.resolvedLanguage,
+                              ),
                             })}
                           </p>
                         </div>
@@ -229,8 +247,14 @@ export function LoadNamedBankDialog({
                           <Button
                             disabled={workingId !== ''}
                             onClick={() => {
-                              library.loadSavedBank(bank, destinationBank)
-                              dialogRef.current?.close()
+                              try {
+                                library.loadSavedBank(bank, destinationBank)
+                                dialogRef.current?.close()
+                              } catch (cause) {
+                                setError(
+                                  bankErrorMessage(t, cause, t('namedBanks.operationFailed')),
+                                )
+                              }
                             }}
                             size="sm"
                             type="button"
@@ -286,19 +310,18 @@ export function LoadNamedBankDialog({
                             <Copy />
                           </Button>
                           <Button
+                            aria-expanded={confirmingDeleteId === bank.id}
                             aria-label={t('namedBanks.delete', { name: bank.name })}
                             className="text-destructive"
                             disabled={workingId !== ''}
                             onClick={() => {
-                              if (
-                                !window.confirm(t('namedBanks.deleteConfirm', { name: bank.name }))
-                              )
-                                return
-                              void run(bank.id, async () => {
-                                await library.deleteNamedBank(bank.id)
-                                if (editingId === bank.id) clearForm()
-                                setStatus(t('namedBanks.deleted', { name: bank.name }))
-                              })
+                              setError('')
+                              setStatus('')
+                              setConfirmingDeleteId(bank.id)
+                            }}
+                            ref={(button) => {
+                              if (button) deleteButtonRefs.current.set(bank.id, button)
+                              else deleteButtonRefs.current.delete(bank.id)
                             }}
                             size="icon"
                             title={t('namedBanks.deleteAction')}
@@ -309,18 +332,62 @@ export function LoadNamedBankDialog({
                           </Button>
                         </div>
                       </div>
+                      {/* Confirmed in place: a browser prompt can be blocked, which would silently
+                          cancel the deletion, and a second modal cannot open over this one. */}
+                      {confirmingDeleteId === bank.id ? (
+                        <div
+                          aria-label={t('namedBanks.deleteAction')}
+                          className="mt-3 flex flex-col gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                          role="group"
+                        >
+                          <p className="text-sm text-destructive">
+                            {t('namedBanks.deleteConfirm', { name: bank.name })}
+                          </p>
+                          <div className="flex shrink-0 gap-2">
+                            <Button
+                              onClick={() => {
+                                setConfirmingDeleteId('')
+                                deleteButtonRefs.current.get(bank.id)?.focus()
+                              }}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              {t('common.cancel')}
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setConfirmingDeleteId('')
+                                void run(bank.id, async () => {
+                                  await library.deleteNamedBank(bank.id)
+                                  if (editingId === bank.id) clearForm()
+                                  setStatus(t('namedBanks.deleted', { name: bank.name }))
+                                  searchRef.current?.focus()
+                                })
+                              }}
+                              ref={confirmDeleteRef}
+                              size="sm"
+                              type="button"
+                              variant="destructive"
+                            >
+                              <Trash2 />
+                              {t('namedBanks.deleteAction')}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
               )}
             </div>
 
-            {error || library.namedBanksError ? (
+            {error || library.namedBanksLoadFailed ? (
               <p
                 className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
                 role="alert"
               >
-                {error || library.namedBanksError}
+                {error || t('namedBanks.loadFailed')}
               </p>
             ) : status ? (
               <p aria-live="polite" className="text-sm text-emerald-400" role="status">

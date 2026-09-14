@@ -4,9 +4,16 @@ import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import '@/i18n'
+import { setLocale } from '@/i18n'
 import { NamedBankLibraryDialog } from '@/components/patches/named-bank-library-dialog'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
+import { createNamedBank } from '@/lib/named-bank'
+import {
+  emptyPatchLibrary,
+  importVoices,
+  makeDemoVoices,
+  WorkspaceBankUnavailableError,
+} from '@/lib/patch-library'
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
@@ -28,7 +35,7 @@ const library = {
   bankNames: { A: 'Current Bank' },
   loadedBanks: ['A'],
   namedBanks: [],
-  namedBanksError: '',
+  namedBanksLoadFailed: false,
   namedBanksLoading: false,
   saveNamedBank: vi.fn(async () => undefined),
 } as unknown as PatchLibrary
@@ -53,5 +60,136 @@ describe('NamedBankLibraryDialog boundaries', () => {
     const search = screen.getByRole('searchbox', { name: 'Search saved banks' })
     expect(document.activeElement).toBe(search)
     expect(screen.getByRole('heading', { name: 'My saved banks' })).toBeTruthy()
+  })
+
+  it('keeps the load dialog open and explains when a saved bank cannot be loaded', async () => {
+    const user = userEvent.setup()
+    const bank = createNamedBank(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), 'A', {
+      description: '',
+      id: 'bank-1',
+      name: 'Stage',
+      now: '2026-09-13T12:00:00.000Z',
+    })
+    const loadSavedBank = vi.fn(() => {
+      throw new WorkspaceBankUnavailableError()
+    })
+    render(
+      <NamedBankLibraryDialog
+        destinationBank="A"
+        library={{ ...library, loadSavedBank, namedBanks: [bank] }}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Load bank' }))
+    await user.click(screen.getByRole('button', { name: 'Load' }))
+
+    const alert = screen.getByRole('alert')
+    expect(alert.textContent).toBe(
+      'That workspace bank is no longer available. Close this dialog and try again.',
+    )
+    expect(alert.closest('dialog')?.open).toBe(true)
+  })
+
+  it('tells the user when damaged saved banks are hidden from the list', async () => {
+    const user = userEvent.setup()
+    render(
+      <NamedBankLibraryDialog
+        destinationBank="A"
+        library={{ ...library, hasDamagedNamedBanks: true }}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Load bank' }))
+    expect(
+      screen.getByText(
+        'Some saved banks could not be read, so they are hidden. They remain unchanged in browser storage.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('explains in the interface language when saved banks cannot be loaded', async () => {
+    const user = userEvent.setup()
+    render(
+      <NamedBankLibraryDialog
+        destinationBank="A"
+        library={{ ...library, namedBanksLoadFailed: true }}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Load bank' }))
+    expect(screen.getByRole('alert').textContent).toBe(
+      'Saved banks could not be loaded from browser storage.',
+    )
+  })
+})
+
+describe('NamedBankLibraryDialog saved bank actions', () => {
+  function makeSavedBank(updatedAt = '2026-09-13T12:00:00.000Z') {
+    return createNamedBank(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), 'A', {
+      description: '',
+      id: 'bank-1',
+      name: 'Stage',
+      now: updatedAt,
+    })
+  }
+
+  afterEach(async () => {
+    vi.restoreAllMocks()
+    await setLocale('en')
+  })
+
+  it('asks inside the dialog before deleting, and keeps the bank when cancelled', async () => {
+    const user = userEvent.setup()
+    const confirm = vi.spyOn(window, 'confirm')
+    const deleteNamedBank = vi.fn(async () => undefined)
+    render(
+      <NamedBankLibraryDialog
+        destinationBank="A"
+        library={{ ...library, deleteNamedBank, namedBanks: [makeSavedBank()] }}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Load bank' }))
+    const deleteButton = screen.getByRole('button', { name: 'Delete Stage' })
+
+    await user.click(deleteButton)
+    expect(screen.getByText('Permanently delete “Stage” from this browser?')).toBeTruthy()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Delete bank' }))
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByText('Permanently delete “Stage” from this browser?')).toBeNull()
+    expect(deleteNamedBank).not.toHaveBeenCalled()
+    expect(confirm).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(deleteButton)
+  })
+
+  it('deletes a saved bank once the in-dialog confirmation is accepted', async () => {
+    const user = userEvent.setup()
+    const deleteNamedBank = vi.fn(async () => undefined)
+    render(
+      <NamedBankLibraryDialog
+        destinationBank="A"
+        library={{ ...library, deleteNamedBank, namedBanks: [makeSavedBank()] }}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Load bank' }))
+
+    await user.click(screen.getByRole('button', { name: 'Delete Stage' }))
+    await user.click(screen.getByRole('button', { name: 'Delete bank' }))
+
+    expect(deleteNamedBank).toHaveBeenCalledExactlyOnceWith('bank-1')
+  })
+
+  it('shows saved bank dates in the interface language', async () => {
+    const updatedAt = '2026-08-25T12:00:00.000Z'
+    await setLocale('fr')
+    render(
+      <NamedBankLibraryDialog
+        destinationBank="A"
+        library={{ ...library, namedBanks: [makeSavedBank(updatedAt)] }}
+      />,
+    )
+
+    expect(
+      screen.getByText(new Date(updatedAt).toLocaleDateString('fr'), { exact: false }),
+    ).toBeTruthy()
   })
 })

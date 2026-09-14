@@ -12,17 +12,17 @@ import {
 
 const bankSources = [
   {
-    description: 'Factory DX7 cartridges and SysEx banks.',
+    descriptionKey: 'dialogs.sourceDescriptions.yamahaBlackBoxes',
     name: 'Yamaha Black Boxes',
     url: 'https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/',
   },
   {
-    description: 'Long-running DX7 patch and bank collection.',
+    descriptionKey: 'dialogs.sourceDescriptions.bobbyBlues',
     name: 'Bobby Blues DX7 archive',
     url: 'https://bobbyblues.recup.ch/yamaha_dx7/dx7_patches.html',
   },
   {
-    description: 'Curated DX7, TX816 and TX802 SysEx banks.',
+    descriptionKey: 'dialogs.sourceDescriptions.soundarchive',
     name: 'Soundarchive',
     url: 'https://www.soundarchive.co/yamaha-dx7',
   },
@@ -69,7 +69,7 @@ export function Dx7BankSourcesDialog() {
                       {source.name}
                     </span>
                     <span className="mt-1 block text-sm leading-6 text-[var(--crt-ink-2)]">
-                      {source.description}
+                      {t(source.descriptionKey)}
                     </span>
                   </span>
                   <ExternalLink className="mt-0.5 size-4 shrink-0 text-[var(--crt-ink-3)] group-hover:text-[var(--crt-acc-lt)]" />

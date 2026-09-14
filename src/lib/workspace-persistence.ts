@@ -28,10 +28,20 @@ type WorkspacePersistenceDependencies = {
   save: (workspace: PatchLibrarySnapshot) => Promise<unknown>
 }
 
-type BeforeUnloadState = Pick<WorkspacePersistenceState, 'hasSaveFailure' | 'hasUnsavedChanges'>
+type BeforeUnloadState = Pick<
+  WorkspacePersistenceState,
+  'hasSaveFailure' | 'hasUnsavedChanges' | 'status'
+>
 
+/**
+ * Leaving would lose changes no save has committed: a failed or pending save, or edits to a
+ * workspace that is kept only for this session.
+ */
 export function shouldWarnBeforeUnload(state: BeforeUnloadState) {
-  return state.hasSaveFailure && state.hasUnsavedChanges
+  return (
+    state.hasUnsavedChanges &&
+    (state.hasSaveFailure || state.status === 'saving' || state.status === 'session-only')
+  )
 }
 
 function persistenceError(
@@ -128,7 +138,8 @@ export class WorkspacePersistenceController {
         this.setState({
           error: null,
           hasSaveFailure: false,
-          hasUnsavedChanges: true,
+          // Factory data is not the user's work; the first edit marks the workspace unsaved.
+          hasUnsavedChanges: false,
           status: 'session-only',
           workspace,
         })
@@ -167,6 +178,12 @@ export class WorkspacePersistenceController {
 
   retrySaving() {
     if (this.disposed || this.state.status !== 'save-error' || this.mode !== 'persistent') return
+    this.flushSave()
+  }
+
+  /** Writes an edit still waiting for autosave now, because the page may be about to close. */
+  flushPendingSave() {
+    if (this.disposed || this.timer === null) return
     this.flushSave()
   }
 

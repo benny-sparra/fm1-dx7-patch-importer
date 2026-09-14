@@ -38,7 +38,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Undo, redo, save, and leave the voice editor from the keyboard
 - Jump to patch search, clear it, and open the lit slot from the keyboard
 - Send individual sounds to the edit buffer or a complete 32-patch bank over Web MIDI
-- Select matching FM1 slots with MIDI Program Change and track whether a bank is local, transferred, or changed since transfer
+- Select matching FM1 slots in banks A–D with MIDI Program Change, audition sounds from added banks through the edit buffer, and track whether a bank is local, transferred, or changed since transfer
 - Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard
@@ -63,7 +63,7 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 2. Switch **MIDI online** on and grant MIDI/SysEx permission.
 3. Open **Settings** to select the FM1 MIDI output and, if needed, the note/program and effects channels.
 4. Select DX7 Bank 1, 2, 3, or 4. On first use these contain DX7 factory ROM 1A, ROM 1B, ROM 2A, and ROM 2B respectively. Use **Add new bank** to name and describe an additional workspace bank while populating it from the bundled [Yamaha Black Boxes DX7 catalog](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) or your own standard 32-voice DX7 SysEx file.
-5. Click a patch to select the matching FM1 slot and play it. Double-click it, or choose **Edit** in the toolbar, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
+5. Click a patch to select the matching FM1 slot and play it. The FM1 has four banks, so a patch in an added bank is sent with its effects to the edit buffer to play it instead. Double-click it, or choose **Edit** in the toolbar, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
 6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
 7. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank.
 8. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay.

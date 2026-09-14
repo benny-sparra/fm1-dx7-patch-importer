@@ -86,6 +86,7 @@ describe('useMidi connection analytics', () => {
       method: 'manual',
       reason: 'permission_denied',
     })
+    expect(result.current.error).toBe('permission_denied')
   })
 
   it('attempts and reports automatic reconnection only once in Strict Mode', async () => {
@@ -146,6 +147,30 @@ describe('useMidi transfer monitoring', () => {
       sysexAvailable: true,
       voiceCount: 32,
     })
+  })
+
+  it('logs the bank SysEx message once for a successful transfer', async () => {
+    webMidi.outputs = [
+      {
+        id: 'fm1-output',
+        manufacturer: 'M-VAVE',
+        name: 'FM1',
+        sendSysex: vi.fn(),
+        state: 'connected',
+      },
+    ]
+    const { result } = renderHook(() => useMidi())
+
+    await act(() => result.current.connectMidi())
+    await waitFor(() => expect(result.current.hasMidiOutput).toBe(true))
+
+    await expect(result.current.sendBank('A', makeDemoVoices())).resolves.toEqual({ ok: true })
+
+    const [sent, sending] = result.current.logStore.getSnapshot()
+    expect(sent.message).toBe('Sent bank A. Choose its destination on the FM1.')
+    expect(sent.data).toBeUndefined()
+    expect(sending.message).toBe('Sending DX7 bank A (32 voices)…')
+    expect(sending.data).toHaveLength(4104)
   })
 })
 

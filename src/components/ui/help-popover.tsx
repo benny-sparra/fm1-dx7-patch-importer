@@ -1,6 +1,7 @@
 import { CircleHelp } from 'lucide-react'
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 
 import { positionHelpPopover, type HelpPopoverPosition } from '@/lib/help-popover'
 import { trackAnalyticsEvent } from '@/lib/analytics'
@@ -15,6 +16,7 @@ type HelpPopoverProps = {
 }
 
 export function HelpPopover({ className, label, text }: HelpPopoverProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [position, setPosition] = useState<HelpPopoverPosition>({ left: 12, top: 12 })
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -125,7 +127,7 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
       <button
         aria-controls={popoverId}
         aria-expanded={open}
-        aria-label={`Help: ${label}`}
+        aria-label={t('ui.helpFor', { label })}
         className={cn(
           // A fingertip gets a wider target than the glyph shows.
           'relative inline-grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground/75 transition-colors hover:bg-primary/10 hover:text-[var(--crt-acc-lt)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none pointer-coarse:after:absolute pointer-coarse:after:-inset-2 pointer-coarse:after:content-[""]',

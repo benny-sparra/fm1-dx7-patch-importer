@@ -5,10 +5,18 @@ import { useTranslation } from 'react-i18next'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
+import { rotaryControlAngle } from '@/lib/editor-visuals'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
-const lfoWaves = ['Triangle', 'Saw down', 'Saw up', 'Square', 'Sine', 'Sample & hold']
+const lfoWaveKeys = [
+  'ui.lfoWaves.triangle',
+  'ui.lfoWaves.sawDown',
+  'ui.lfoWaves.sawUp',
+  'ui.lfoWaves.square',
+  'ui.lfoWaves.sine',
+  'ui.lfoWaves.sampleAndHold',
+] as const
 
 /** The rack's control caption: small, tracked-out capitals in the dim ink. */
 const captionClass = 'text-[11px] font-normal tracking-[0.1em] text-[var(--crt-ink-3)] uppercase'
@@ -52,7 +60,7 @@ type SliderParameterControlProps = {
 
 type RotaryParameterControlProps = Omit<SliderParameterControlProps, 'origin'>
 
-const rotaryControlKeys = [
+export const rangeControlKeys = [
   'ArrowDown',
   'ArrowLeft',
   'ArrowRight',
@@ -74,15 +82,16 @@ export function RotaryParameterControl({
   value,
   valueLabel = String,
 }: RotaryParameterControlProps) {
+  const { t } = useTranslation()
   const drag = useRef<{ pointerId: number; startValue: number; startY: number } | null>(null)
   const faceId = `knob-face-${useId().replace(/:/g, '')}`
   const displayValue = valueLabel(value)
   const fraction = (value - min) / (max - min)
-  const angle = -135 + fraction * 270
+  const angle = rotaryControlAngle(value, min, max)
   const clamp = (nextValue: number) => Math.max(min, Math.min(max, Math.round(nextValue)))
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!rotaryControlKeys.includes(event.key)) return
+    if (!rangeControlKeys.includes(event.key)) return
     event.preventDefault()
     if (!event.repeat) onGestureStart()
 
@@ -121,7 +130,7 @@ export function RotaryParameterControl({
         onBlur={onGestureEnd}
         onKeyDown={handleKeyDown}
         onKeyUp={(event) => {
-          if (rotaryControlKeys.includes(event.key)) onGestureEnd()
+          if (rangeControlKeys.includes(event.key)) onGestureEnd()
         }}
         onPointerCancel={() => {
           drag.current = null
@@ -148,7 +157,7 @@ export function RotaryParameterControl({
         }}
         role="slider"
         tabIndex={0}
-        title={`${label}: ${displayValue}. Drag up or down to adjust.`}
+        title={t('ui.rotaryTitle', { label, value: displayValue })}
       >
         {/*
           A bevelled knob: a domed face lit from the top left, an arc of
@@ -251,7 +260,7 @@ export function SliderParameterControl({
           onBlur={onGestureEnd}
           onChange={(event) => onChange(Number(event.target.value))}
           onKeyDown={(event) => {
-            if (rotaryControlKeys.includes(event.key)) onGestureStart()
+            if (rangeControlKeys.includes(event.key)) onGestureStart()
           }}
           onKeyUp={onGestureEnd}
           onPointerCancel={onGestureEnd}
@@ -454,6 +463,7 @@ export function LfoWaveControl({
 }) {
   const { t } = useTranslation()
   const dropdownRef = useDismissableDetails()
+  const lfoWaves = lfoWaveKeys.map((key) => t(key))
   const selectedWave = lfoWaves[value] ?? lfoWaves[0]
 
   const selectWave = (wave: number) => {
