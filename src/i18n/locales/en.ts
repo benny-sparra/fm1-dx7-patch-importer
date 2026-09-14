@@ -28,6 +28,8 @@ export default {
       yamahaBlackBoxes: 'Factory DX7 cartridges and SysEx banks.',
       bobbyBlues: 'Long-running DX7 patch and bank collection.',
       soundarchive: 'Curated DX7, TX816 and TX802 SysEx banks.',
+      fm1FactoryPresets:
+        'The FM-1 stock presets, recovered from the M-VAVE restore tool. Also in the bank catalog.',
     },
     sourcesClose: 'Close patch bank sources',
   },
@@ -505,6 +507,7 @@ export default {
     importing: 'Importing…',
     restoring: 'Restoring…',
     catalogFactory: 'Factory',
+    catalogFm1Factory: 'FM-1 factory presets',
     import: 'Import DX7 bank',
     moreActions: 'More bank file actions',
     bankMenu: 'Actions for {{bank}}',

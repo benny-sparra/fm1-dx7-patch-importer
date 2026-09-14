@@ -12,7 +12,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/toast'
-import { dx7BankCatalog } from '@/data/dx7-bank-catalog'
+import {
+  dx7BankCatalog,
+  dx7BankCatalogCategories,
+  dx7BankCatalogCategoryLabelKey,
+} from '@/data/dx7-bank-catalog'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { readDx7BankFile } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
@@ -226,20 +230,20 @@ export function AddWorkspaceBankDialog({
                   value={catalogBankId}
                 >
                   <option value="">{t('banks.chooseCatalogBank')}</option>
-                  {(['Factory', 'VRC Voice ROMs', 'Grey Matter E!'] as const).map((category) => (
-                    <optgroup
-                      key={category}
-                      label={category === 'Factory' ? t('banks.catalogFactory') : category}
-                    >
-                      {dx7BankCatalog
-                        .filter((catalogBank) => catalogBank.category === category)
-                        .map((catalogBank) => (
-                          <option key={catalogBank.id} value={catalogBank.id}>
-                            {catalogBank.name} — {catalogBank.description}
-                          </option>
-                        ))}
-                    </optgroup>
-                  ))}
+                  {dx7BankCatalogCategories.map((category) => {
+                    const labelKey = dx7BankCatalogCategoryLabelKey(category)
+                    return (
+                      <optgroup key={category} label={labelKey ? t(labelKey) : category}>
+                        {dx7BankCatalog
+                          .filter((catalogBank) => catalogBank.category === category)
+                          .map((catalogBank) => (
+                            <option key={catalogBank.id} value={catalogBank.id}>
+                              {catalogBank.name} — {catalogBank.description}
+                            </option>
+                          ))}
+                      </optgroup>
+                    )
+                  })}
                 </select>
               ) : (
                 <label className="flex min-h-10 cursor-pointer items-center rounded-md border border-dashed border-input bg-background px-3 text-sm transition-colors hover:bg-muted/50">

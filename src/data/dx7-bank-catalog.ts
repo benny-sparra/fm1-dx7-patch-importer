@@ -1,5 +1,13 @@
+/** Catalog groups in the order the bank picker lists them. */
+export const dx7BankCatalogCategories = [
+  'Factory',
+  'FM-1 Factory',
+  'VRC Voice ROMs',
+  'Grey Matter E!',
+] as const
+
 type Dx7BankCatalogEntry = {
-  category: 'Factory' | 'Grey Matter E!' | 'VRC Voice ROMs'
+  category: (typeof dx7BankCatalogCategories)[number]
   description: string
   file: string
   id: string
@@ -21,6 +29,24 @@ const factoryBanks: Dx7BankCatalogEntry[] = [
   file: `/dx7-banks/factory/${id}.syx`,
   id,
   name,
+}))
+
+// The M-VAVE FM-1's own stock presets, recovered from M-VAVE's preset-restore tool by
+// KingParamount and released under CC0: https://github.com/KingParamount/fm1-factory-presets
+// (commit 18ea89eab2b27c4c2c51c095ab063253ae658b88). The files are unchanged, including the
+// device's naming quirks. The voices trace to Yamaha ROM/VRC cartridges and the Dexed_cart 1.0
+// collection, as selected and renamed by M-VAVE. Descriptions use the FM-1's category names.
+const fm1FactoryBanks: Dx7BankCatalogEntry[] = [
+  'PIANO, ORGAN, SYN LEAD, SYN PAD',
+  'GUITAR, DS GUITAR, BASS, SYN BASS',
+  'BRASS, WOODWIND, STRING, VOICE',
+  'Percussion & effects',
+].map((description, index) => ({
+  category: 'FM-1 Factory',
+  description,
+  file: `/dx7-banks/fm1/bank${index + 1}.syx`,
+  id: `fm1-bank${index + 1}`,
+  name: `FM-1 Bank ${index + 1}`,
 }))
 
 const vrcDescriptions = [
@@ -60,8 +86,18 @@ const greyMatterBanks: Dx7BankCatalogEntry[] = [2, 5, 7].map((number) => ({
   name: `E! Card Disk #${number}`,
 }))
 
-/** Banks mirrored from Yamaha Black Boxes so imports work without a third-party request. */
-export const dx7BankCatalog = [...factoryBanks, ...vrcBanks, ...greyMatterBanks]
+/** Banks bundled locally so imports work without a third-party request. */
+export const dx7BankCatalog = [...factoryBanks, ...fm1FactoryBanks, ...vrcBanks, ...greyMatterBanks]
+
+const catalogCategoryLabelKeys: Partial<Record<Dx7BankCatalogEntry['category'], string>> = {
+  Factory: 'banks.catalogFactory',
+  'FM-1 Factory': 'banks.catalogFm1Factory',
+}
+
+/** The locale key for a translated group name; product names have none and stay as written. */
+export function dx7BankCatalogCategoryLabelKey(category: Dx7BankCatalogEntry['category']) {
+  return catalogCategoryLabelKeys[category]
+}
 
 export function findDx7CatalogBank(id: string) {
   return dx7BankCatalog.find((bank) => bank.id === id)

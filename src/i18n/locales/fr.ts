@@ -29,6 +29,8 @@ export default {
       yamahaBlackBoxes: 'Cartouches DX7 d’usine et banques SysEx.',
       bobbyBlues: 'Collection de longue date de sons et de banques DX7.',
       soundarchive: 'Sélection de banques SysEx DX7, TX816 et TX802.',
+      fm1FactoryPresets:
+        'Les préréglages d’origine du FM-1, récupérés depuis l’outil de restauration M-VAVE. Aussi dans le catalogue de banques.',
     },
     sourcesClose: 'Fermer les sources de banques',
   },
@@ -518,6 +520,7 @@ export default {
     importing: 'Importation…',
     restoring: 'Restauration…',
     catalogFactory: 'Sons d’usine',
+    catalogFm1Factory: 'Préréglages d’usine FM-1',
     import: 'Importer une banque DX7',
     moreActions: 'Autres actions sur les banques',
     bankMenu: 'Actions pour {{bank}}',

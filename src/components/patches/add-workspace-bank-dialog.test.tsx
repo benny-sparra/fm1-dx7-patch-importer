@@ -31,15 +31,21 @@ function renderCatalogGroups() {
 }
 
 describe('AddWorkspaceBankDialog catalog groups', () => {
-  it('names the factory group in English and keeps the product names', () => {
-    expect(renderCatalogGroups()).toEqual(['Factory', 'VRC Voice ROMs', 'Grey Matter E!'])
+  it('names the factory groups in English and keeps the product names', () => {
+    expect(renderCatalogGroups()).toEqual([
+      'Factory',
+      'FM-1 factory presets',
+      'VRC Voice ROMs',
+      'Grey Matter E!',
+    ])
   })
 
-  it('names the factory group in the interface language', async () => {
+  it('names the factory groups in the interface language', async () => {
     await setLocale('fr')
 
     expect(renderCatalogGroups()).toEqual([
       french.banks.catalogFactory,
+      french.banks.catalogFm1Factory,
       'VRC Voice ROMs',
       'Grey Matter E!',
     ])

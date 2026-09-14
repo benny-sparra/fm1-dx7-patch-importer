@@ -12,10 +12,46 @@ import { makeDemoVoices } from '@/lib/patch-library'
 
 describe('DX7 bank catalog', () => {
   it('lists every bank published in the source catalog with unique local files', () => {
-    expect(dx7BankCatalog).toHaveLength(35)
-    expect(new Set(dx7BankCatalog.map(({ id }) => id)).size).toBe(35)
-    expect(new Set(dx7BankCatalog.map(({ file }) => file)).size).toBe(35)
+    expect(dx7BankCatalog).toHaveLength(39)
+    expect(new Set(dx7BankCatalog.map(({ id }) => id)).size).toBe(39)
+    expect(new Set(dx7BankCatalog.map(({ file }) => file)).size).toBe(39)
     expect(findDx7CatalogBank('vrc112b')?.name).toBe('VRC112B')
+  })
+
+  it('lists the four FM-1 factory banks as their own group', () => {
+    expect(
+      dx7BankCatalog.filter(({ category }) => category === 'FM-1 Factory').map(({ id }) => id),
+    ).toEqual(['fm1-bank1', 'fm1-bank2', 'fm1-bank3', 'fm1-bank4'])
+  })
+
+  it('keeps the recovered FM-1 voice names byte for byte, device quirks included', () => {
+    const names = (file: string) =>
+      parseDx7Bank(Uint8Array.from(readFileSync(resolve('public', file.slice(1)))).buffer).map(
+        ({ name }) => name,
+      )
+
+    expect(names('/dx7-banks/fm1/bank1.syx').slice(0, 9)).toEqual([
+      'PIANO 1',
+      'ORGAN 1',
+      'SYN LEAD 1',
+      'SYN PAD 1',
+      'PIANO 2',
+      'Organ 2',
+      'SYN LEAD 2',
+      'SYN PAD 2',
+      'PIANO3',
+    ])
+    expect(names('/dx7-banks/fm1/bank4.syx').slice(19, 28)).toEqual([
+      'SAW EM UP',
+      'BI   BEN',
+      'KALIMBA',
+      'GAMALONG',
+      'SAW EM UP2',
+      'TUB BELLS',
+      'BRUSHES',
+      'TOM TOMS',
+      'SAW EM UP3',
+    ])
   })
 
   it('loads and validates a selected catalog bank', async () => {
