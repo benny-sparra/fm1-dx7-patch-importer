@@ -29,8 +29,18 @@ beforeAll(() => {
 afterEach(cleanup)
 
 const banks: WorkspaceBankSelectorBank[] = [
-  { description: 'Warm performance sounds', id: 'A', name: 'Studio Favourites' },
-  { description: 'Classic electric pianos', id: 'B', name: 'Electric Keys' },
+  {
+    actionsLabel: 'Actions for Studio Favourites',
+    description: 'Warm performance sounds',
+    id: 'A',
+    name: 'Studio Favourites',
+  },
+  {
+    actionsLabel: 'Actions for Electric Keys',
+    description: 'Classic electric pianos',
+    id: 'B',
+    name: 'Electric Keys',
+  },
 ]
 
 const library = {

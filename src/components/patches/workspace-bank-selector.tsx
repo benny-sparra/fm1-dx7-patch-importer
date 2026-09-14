@@ -5,7 +5,8 @@ import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { cn } from '@/lib/utils'
 
 export type WorkspaceBankSelectorBank = {
-  actionsLabel?: string
+  /** The translated name of the bank's actions menu. */
+  actionsLabel: string
   description?: string
   id: string
   name: string
@@ -92,7 +93,7 @@ function WorkspaceBankRow({
           next to the bank name above the grid instead. */}
       <details className="group relative hidden shrink-0 md:block" ref={detailsRef}>
         <summary
-          aria-label={bank.actionsLabel ?? `Actions for ${bank.name}`}
+          aria-label={bank.actionsLabel}
           className={cn(
             'grid h-6 w-5 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden',
             selected
@@ -104,7 +105,7 @@ function WorkspaceBankRow({
             event.preventDefault()
             detailsRef.current?.toggleAttribute('open')
           }}
-          title={bank.actionsLabel ?? `Actions for ${bank.name}`}
+          title={bank.actionsLabel}
         >
           <EllipsisVertical className="size-3.5" />
         </summary>

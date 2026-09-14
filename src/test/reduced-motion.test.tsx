@@ -3,7 +3,8 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { cleanup, render } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -11,6 +12,10 @@ import '@/i18n'
 import { AlgorithmPanel } from '@/components/editor/editor-workspace'
 import { LfoWaveControl } from '@/components/editor/parameter-controls'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
+import { LoadNamedBankDialog } from '@/components/patches/load-named-bank-dialog'
+import { type PatchLibrary } from '@/hooks/use-patch-library'
+import { createNamedBank } from '@/lib/named-bank'
+import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
 afterEach(cleanup)
@@ -120,5 +125,47 @@ describe('reduced motion', () => {
     for (const swatch of container.querySelectorAll('label')) {
       expect(classTokens(swatch)).toContain('motion-reduce:transition-none')
     }
+  })
+
+  it('scrolls to the saved-bank form smoothly only when motion is allowed', async () => {
+    const scrollTo = vi.fn()
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: scrollTo,
+    })
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+      configurable: true,
+      value(this: HTMLDialogElement) {
+        this.open = true
+      },
+    })
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(0)
+      return 1
+    })
+    const bank = createNamedBank(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), 'A', {
+      description: '',
+      id: 'bank-1',
+      name: 'Stage',
+      now: '2026-09-14T00:00:00.000Z',
+    })
+    const library = {
+      bankNames: {},
+      hasDamagedNamedBanks: false,
+      loadedBanks: ['A'],
+      namedBanks: [bank],
+      namedBanksLoadFailed: false,
+      namedBanksLoading: false,
+      workspaceBanks: ['A'],
+    } as unknown as PatchLibrary
+    const user = userEvent.setup()
+    render(<LoadNamedBankDialog destinationBank="A" library={library} />)
+
+    await user.click(screen.getByRole('button', { name: 'Edit Stage' }))
+
+    expect(classTokens(screen.getByRole('dialog'))).toContain('motion-safe:scroll-smooth')
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0 })
+    vi.unstubAllGlobals()
+    Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo')
   })
 })

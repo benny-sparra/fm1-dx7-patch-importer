@@ -4,13 +4,21 @@ import { PIANO_KEY_WIDTH, type PianoKey } from '@/lib/piano-keyboard'
 import { cn } from '@/lib/utils'
 
 type PianoKeyButtonProps = {
+  /** The letter the user's keyboard types on the key that plays this note. */
+  computerKeyLabel?: string
   isActive: boolean
   noteKey: PianoKey
   onStart: (key: PianoKey) => void
   onStop: (note: number) => void
 }
 
-export function PianoKeyButton({ isActive, noteKey, onStart, onStop }: PianoKeyButtonProps) {
+export function PianoKeyButton({
+  computerKeyLabel,
+  isActive,
+  noteKey,
+  onStart,
+  onStop,
+}: PianoKeyButtonProps) {
   const { t } = useTranslation()
   const isBlack = noteKey.kind === 'black'
 
@@ -46,14 +54,14 @@ export function PianoKeyButton({ isActive, noteKey, onStart, onStop }: PianoKeyB
       type="button"
     >
       <span className="flex flex-col items-center gap-1">
-        {noteKey.computerKey ? (
+        {computerKeyLabel ? (
           <span
             className={cn(
               'rounded px-1.5 py-0.5 text-[0.65rem] uppercase',
               isBlack ? 'bg-white/15 text-white' : 'bg-violet-950/10 text-violet-950/80',
             )}
           >
-            {noteKey.computerKey}
+            {computerKeyLabel}
           </span>
         ) : null}
         <span>{noteKey.label}</span>

@@ -7,18 +7,18 @@ export default {
     bankStep2: 'Turn Knob 1, 2, 3 or 4 to choose destination bank A, B, C or D.',
     bankStep3: 'The FM1 saves the 32 patches automatically after a brief delay.',
     bankImage: 'M-VAVE FM1 front panel showing the display and four numbered knobs',
-    dontShow: 'Don’t show me again',
+    dontShow: 'Don’t show me again this session',
     midiTitle: 'Connect MIDI to send this bank',
     midiIntro: 'The FM1 must be connected as a MIDI output before a bank of sounds can be sent.',
     midiClose: 'Close MIDI connection message',
     midiSteps:
       'Switch MIDI online on at the top of the page, allow MIDI access, then select the FM1 MIDI output in Settings.',
-    restoreTitle: 'Restore Yamaha DX7 factory banks?',
+    restoreTitle: 'Restore FM-1 factory banks?',
     restoreIntro:
       'This replaces all four local browser banks. You can undo the restore immediately afterwards.',
     restoreClose: 'Close factory bank restore',
     restoreDetails:
-      'Banks A, B, C, and D will be restored to Yamaha DX7 ROM 1A, ROM 1B, ROM 2A, and ROM 2B respectively.',
+      'Banks A, B, C, and D will be restored to FM-1 Banks 1, 2, 3, and 4, the sounds the FM1 ships with.',
     restoreAction: 'Restore four banks',
     sourcesOpen: 'Find voice banks to download here.',
     sourcesTitle: 'Find DX7 patch banks',
@@ -271,6 +271,7 @@ export default {
   toasts: {
     notifications: 'Completed actions',
     dismiss: 'Dismiss notification',
+    undo: 'Undo',
     bankImported: 'Imported sounds into “{{bank}}”.',
     bankCreated: 'Created “{{bank}}”.',
     bankDeleted: 'Deleted “{{bank}}”.',
@@ -349,7 +350,7 @@ export default {
     steps: {
       libraryTitle: 'Build your library',
       libraryBody:
-        'Start with four classic Yamaha DX7 factory banks, then import, edit, or rearrange their sounds.',
+        'Start with the FM1’s four factory banks, then import, edit, or rearrange their sounds.',
       editTitle: 'Edit and organise',
       editBody:
         'Open any sound in the voice editor. Save it to the browser library, or revert and restore the saved version on the FM1.',
@@ -618,7 +619,10 @@ export default {
     delete: 'Delete {{name}}',
     deleteAction: 'Delete bank',
     deleteConfirm: 'Permanently delete “{{name}}” from this browser?',
+    loadConfirm: 'Replace the 32 sounds in “{{bank}}” with “{{name}}”?',
+    replaceAction: 'Replace sounds',
     operationFailed: 'The saved-bank operation failed.',
+    openFailed: 'Saved banks could not be opened. Reload the page and try again.',
     loadFailed: 'Saved banks could not be loaded from browser storage.',
     damagedBanks:
       'Some saved banks could not be read, so they are hidden. They remain unchanged in browser storage.',

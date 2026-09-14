@@ -212,3 +212,28 @@ describe('isApplePlatform', () => {
     expect(isApplePlatform({ userAgent: 'Mozilla/5.0 (Windows NT 10.0)' } as Navigator)).toBe(false)
   })
 })
+
+describe('library undo shortcuts', () => {
+  it('leaves undo to the text field being typed into', () => {
+    const search = appendElement('<input type="search" />')
+
+    expect(
+      shouldRunShortcut(
+        keyEvent({ key: 'z', metaKey: true, target: search }),
+        librarianShortcuts.undo,
+      ),
+    ).toBe(false)
+  })
+
+  it('undoes the library from anywhere else on the page', () => {
+    expect(shouldRunShortcut(keyEvent({ key: 'z', metaKey: true }), librarianShortcuts.undo)).toBe(
+      true,
+    )
+    expect(
+      shouldRunShortcut(
+        keyEvent({ key: 'z', metaKey: true, shiftKey: true }),
+        librarianShortcuts.redo,
+      ),
+    ).toBe(true)
+  })
+})

@@ -166,16 +166,18 @@ export function usePatchLibrary() {
     persistenceController.current?.retrySaving()
   }, [])
 
+  /** Applies a change and returns the workspace it produced, or null when nothing changed. */
   const commit = useCallback(
     (update: (current: PatchLibrarySnapshot) => PatchLibrarySnapshot) => {
       const current = historyRef.current
       const next = update(current.present)
-      if (next === current.present) return
+      if (next === current.present) return null
       replaceHistory({
         future: [],
         past: [...current.past, current.present].slice(-historyLimit),
         present: next,
       })
+      return next
     },
     [replaceHistory],
   )
@@ -183,7 +185,7 @@ export function usePatchLibrary() {
   const importBank = useCallback(
     async (bank: string, file: File) => {
       const imported = await readDx7BankFile(file)
-      commit((current) => importVoices(current, bank, imported))
+      return commit((current) => importVoices(current, bank, imported))
     },
     [commit],
   )
@@ -250,9 +252,7 @@ export function usePatchLibrary() {
   )
 
   const deleteBank = useCallback(
-    (bank: string) => {
-      commit((current) => deleteWorkspaceBank(current, bank))
-    },
+    (bank: string) => commit((current) => deleteWorkspaceBank(current, bank)),
     [commit],
   )
 
@@ -265,7 +265,7 @@ export function usePatchLibrary() {
 
   const resetFactoryBanks = useCallback(async () => {
     const { restoreFactoryPatchLibrary } = await import('@/lib/factory-patch-library')
-    commit((current) => restoreFactoryPatchLibrary(current))
+    return commit((current) => restoreFactoryPatchLibrary(current))
   }, [commit])
 
   const saveNamedBank = useCallback(
@@ -285,9 +285,8 @@ export function usePatchLibrary() {
   )
 
   const loadSavedBank = useCallback(
-    (bank: NamedBank, destinationBank: string) => {
-      commit((current) => loadNamedBank(current, destinationBank, bank))
-    },
+    (bank: NamedBank, destinationBank: string) =>
+      commit((current) => loadNamedBank(current, destinationBank, bank)),
     [commit],
   )
 
@@ -339,6 +338,19 @@ export function usePatchLibrary() {
     })
   }, [replaceHistory])
 
+  /**
+   * Undoes one change, but only while it is still the latest, so an Undo offered in a notification
+   * cannot reverse something done afterwards.
+   */
+  const undoChange = useCallback(
+    (changed: PatchLibrarySnapshot) => {
+      if (historyRef.current.present !== changed) return false
+      undo()
+      return true
+    },
+    [undo],
+  )
+
   const patches = useMemo(() => makePatches(history.present), [history.present])
   const getBankVoices = useCallback(
     (bank: string) => selectBankVoices(history.present, bank),
@@ -376,6 +388,7 @@ export function usePatchLibrary() {
     resetFactoryBanks,
     saveNamedBank,
     undo,
+    undoChange,
     updatePatch,
     updateBankInformation,
     updateNamedBankDetails,

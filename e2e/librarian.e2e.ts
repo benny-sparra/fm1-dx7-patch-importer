@@ -76,7 +76,7 @@ test('persists a saved patch name across a browser reload', async ({ page }) => 
 
   await page.getByRole('textbox', { name: 'Patch name' }).fill('E2E SAVE')
   await page.getByRole('button', { name: 'Save to Library' }).click()
-  await expect(page.getByText('Saved “BRASS 1” to the library.')).toBeVisible()
+  await expect(page.getByText('Saved “PIANO 1” to the library.')).toBeVisible()
   await expect.poll(() => storedFirstPatchName(page)).toBe('E2E SAVE')
 
   await page.reload()

@@ -1,5 +1,5 @@
 import { Save } from 'lucide-react'
-import { type FormEvent, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
@@ -20,14 +20,26 @@ export function SaveNamedBankDialog({
   onClose,
 }: NamedBankLibraryDialogProps) {
   const { t } = useTranslation()
+  const titleId = useId()
+  const descriptionId = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
   const [description, setDescription] = useState('')
   const [error, setError] = useState('')
-  const [name, setName] = useState('')
+  const [name, setName] = useState(() => library.bankNames[destinationBank] ?? '')
   const [working, setWorking] = useState(false)
-  const currentBankLoaded = library.loadedBanks.includes(destinationBank)
   const bankLabel = useWorkspaceBankLabel(library)
+
+  // The dialog opens as soon as the page shows it, with the bank name ready to type over.
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog || dialog.open) return
+    dialog.showModal()
+    window.requestAnimationFrame(() => {
+      nameInputRef.current?.focus()
+      nameInputRef.current?.select()
+    })
+  }, [])
 
   const reset = () => {
     setDescription('')
@@ -51,31 +63,9 @@ export function SaveNamedBankDialog({
 
   return (
     <>
-      <button
-        className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-        disabled={!currentBankLoaded}
-        onClick={() => {
-          setName(library.bankNames[destinationBank] ?? '')
-          dialogRef.current?.showModal()
-          window.requestAnimationFrame(() => {
-            nameInputRef.current?.focus()
-            nameInputRef.current?.select()
-          })
-        }}
-        title={
-          currentBankLoaded
-            ? undefined
-            : t('banks.importFirst', { bank: bankLabel(destinationBank) })
-        }
-        type="button"
-      >
-        <Save className="size-4" />
-        {t('namedBanks.save')}
-      </button>
-
       <Dialog
-        aria-describedby="save-named-bank-description"
-        aria-labelledby="save-named-bank-title"
+        aria-describedby={descriptionId}
+        aria-labelledby={titleId}
         closeOnBackdrop={!working}
         onCancel={(event) => {
           if (working) event.preventDefault()
@@ -88,7 +78,7 @@ export function SaveNamedBankDialog({
         size="xl"
       >
         <DialogHeader>
-          <DialogTitle id="save-named-bank-title">
+          <DialogTitle id={titleId}>
             {t('namedBanks.saveCurrent', { bank: bankLabel(destinationBank) })}
           </DialogTitle>
           <DialogCloseButton
@@ -98,10 +88,7 @@ export function SaveNamedBankDialog({
           />
         </DialogHeader>
         <DialogBody>
-          <p
-            className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]"
-            id="save-named-bank-description"
-          >
+          <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]" id={descriptionId}>
             {t('namedBanks.snapshotHelp')}
           </p>
 

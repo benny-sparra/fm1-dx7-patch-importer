@@ -40,6 +40,8 @@ afterEach(() => {
 
 const library = {
   addBank: vi.fn(),
+  canRedo: false,
+  canUndo: true,
   bankDescriptions: {},
   bankNames: { A: 'Studio Favourites', B: 'Electric Keys' },
   deleteBank: vi.fn(),
@@ -53,7 +55,10 @@ const library = {
     { bank: 'A', family: 'Keys', id: 'bank-A-1', name: 'Alpha Piano', number: 1, program: 0 },
     { bank: 'B', family: 'Bass', id: 'bank-B-1', name: 'Beta Bass', number: 1, program: 32 },
   ],
+  redo: vi.fn(),
   resetFactoryBanks: vi.fn(),
+  undo: vi.fn(),
+  undoChange: vi.fn(),
   updateBankInformation: vi.fn(),
   workspaceBanks: ['A', 'B'],
 } as unknown as PatchLibrary
@@ -666,5 +671,78 @@ describe('LibrarianPage bank deletion', () => {
     expect(
       screen.getByRole('button', { name: 'A — Studio Favourites' }).getAttribute('aria-pressed'),
     ).toBe('true')
+  })
+})
+
+describe('LibrarianPage undo', () => {
+  function renderLibrarian() {
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={midi}
+          onBankDeleted={vi.fn()}
+          onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+    return userEvent.setup()
+  }
+
+  it('undoes the last library change with the undo shortcut', async () => {
+    const user = renderLibrarian()
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(library.undo).toHaveBeenCalledOnce()
+  })
+
+  it('leaves the undo shortcut to the search field while typing', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search by name'), 'Alp')
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(library.undo).not.toHaveBeenCalled()
+  })
+
+  it('offers to undo a deleted bank from its notification', async () => {
+    const deleted = { workspaceBanks: ['A'] }
+    vi.mocked(library.deleteBank).mockReturnValueOnce(deleted as never)
+    const user = renderLibrarian()
+
+    await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
+    await user.click(screen.getAllByRole('button', { name: 'Delete bank' })[0])
+    const dialog = screen.getByRole('dialog', { name: 'Delete bank' })
+    await user.click(within(dialog).getByRole('button', { name: 'Delete bank' }))
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+
+    expect(library.undoChange).toHaveBeenCalledExactlyOnceWith(deleted)
+  })
+})
+
+describe('LibrarianPage saved banks', () => {
+  it('offers to save and load saved banks from a bank’s menu', async () => {
+    const user = userEvent.setup()
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={midi}
+          onBankDeleted={vi.fn()}
+          onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+
+    await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
+    await user.click(screen.getAllByRole('button', { name: 'Load bank' })[0])
+
+    expect(await screen.findByRole('heading', { name: 'My saved banks' })).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: 'Save bank' }).length).toBeGreaterThan(0)
   })
 })

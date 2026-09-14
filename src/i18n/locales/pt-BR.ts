@@ -8,17 +8,17 @@ export default {
     bankStep2: 'Gire o botão 1, 2, 3 ou 4 para escolher o banco A, B, C ou D.',
     bankStep3: 'O FM1 salva automaticamente os 32 sons após uma breve espera.',
     bankImage: 'Painel frontal do M-VAVE FM1 com tela e quatro botões numerados',
-    dontShow: 'Não mostrar novamente',
+    dontShow: 'Não mostrar novamente nesta sessão',
     midiTitle: 'Conecte o MIDI para enviar este banco',
     midiIntro: 'O FM1 deve estar conectado como saída MIDI antes que um banco seja enviado.',
     midiClose: 'Fechar mensagem de conexão MIDI',
     midiSteps:
       'Ative MIDI online, permita o acesso MIDI e selecione a saída MIDI do FM1 em Configurações.',
-    restoreTitle: 'Restaurar os bancos de fábrica do Yamaha DX7?',
+    restoreTitle: 'Restaurar os bancos de fábrica do FM-1?',
     restoreIntro: 'Isso substitui os quatro bancos locais. Você pode desfazer logo depois.',
     restoreClose: 'Fechar restauração',
     restoreDetails:
-      'Os bancos A, B, C e D serão restaurados respectivamente com Yamaha DX7 ROM 1A, ROM 1B, ROM 2A e ROM 2B.',
+      'Os bancos A, B, C e D serão restaurados respectivamente com os bancos 1, 2, 3 e 4 do FM-1, os sons que vêm de fábrica no FM1.',
     restoreAction: 'Restaurar quatro bancos',
     sourcesOpen: 'Encontre bancos de sons para baixar.',
     sourcesTitle: 'Encontrar bancos DX7',
@@ -274,6 +274,7 @@ export default {
   toasts: {
     notifications: 'Ações concluídas',
     dismiss: 'Fechar notificação',
+    undo: 'Desfazer',
     bankImported: 'Sons importados para “{{bank}}”.',
     bankCreated: '“{{bank}}” foi criado.',
     bankDeleted: '“{{bank}}” foi excluído.',
@@ -352,7 +353,7 @@ export default {
     steps: {
       libraryTitle: 'Monte sua biblioteca',
       libraryBody:
-        'Comece com quatro bancos de fábrica clássicos do Yamaha DX7 e depois importe, edite ou reorganize seus sons.',
+        'Comece com os quatro bancos de fábrica do FM1 e depois importe, edite ou reorganize seus sons.',
       editTitle: 'Edite e organize',
       editBody:
         'Abra qualquer som no editor de vozes. Salve-o na biblioteca do navegador ou reverta e restaure a versão salva no FM1.',
@@ -627,7 +628,10 @@ export default {
     delete: 'Excluir {{name}}',
     deleteAction: 'Excluir banco',
     deleteConfirm: 'Excluir “{{name}}” permanentemente deste navegador?',
+    loadConfirm: 'Substituir os 32 sons de “{{bank}}” por “{{name}}”?',
+    replaceAction: 'Substituir sons',
     operationFailed: 'A operação do banco salvo falhou.',
+    openFailed: 'Não foi possível abrir os bancos salvos. Recarregue a página e tente novamente.',
     loadFailed: 'Não foi possível carregar os bancos salvos do armazenamento do navegador.',
     damagedBanks:
       'Alguns bancos salvos não puderam ser lidos e foram ocultados. Eles permanecem intactos no armazenamento do navegador.',

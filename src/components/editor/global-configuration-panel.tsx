@@ -30,6 +30,7 @@ const globalIndex = (id: GlobalParameterId) => getGlobalParameterDefinition(id).
 const algorithmParameter = getGlobalParameterDefinition('global.algorithm')
 const feedbackParameter = getGlobalParameterDefinition('global.feedback')
 const transposeParameter = getGlobalParameterDefinition('global.transpose')
+const pitchEnvelopeMax = getGlobalParameterDefinition('global.pitchEnvelope.rate1').max
 
 export function GlobalConfigurationPanel({
   beginGesture,
@@ -38,12 +39,16 @@ export function GlobalConfigurationPanel({
   setParameter,
 }: GlobalConfigurationPanelProps) {
   const { t } = useTranslation()
-  const slider = (label: string, id: GlobalParameterId, max: number, helpText: string) => (
+  const setGlobal = (id: GlobalParameterId, value: number) => {
+    const definition = getGlobalParameterDefinition(id)
+    setParameter(definition.voiceIndex, value, definition.max)
+  }
+  const slider = (label: string, id: GlobalParameterId, helpText: string) => (
     <SliderParameterControl
       helpText={helpText}
       label={label}
-      max={max}
-      onChange={(value) => setParameter(globalIndex(id), value, max)}
+      max={getGlobalParameterDefinition(id).max}
+      onChange={(value) => setGlobal(id, value)}
       onGestureEnd={endGesture}
       onGestureStart={beginGesture}
       value={parameters[globalIndex(id)]}
@@ -57,10 +62,10 @@ export function GlobalConfigurationPanel({
     if (!preset) return
     beginGesture()
     preset.rates.forEach((rate, point) =>
-      setParameter(globalIndex('global.pitchEnvelope.rate1') + point, rate, 99),
+      setParameter(globalIndex('global.pitchEnvelope.rate1') + point, rate, pitchEnvelopeMax),
     )
     preset.levels.forEach((level, point) =>
-      setParameter(globalIndex('global.pitchEnvelope.level1') + point, level, 99),
+      setParameter(globalIndex('global.pitchEnvelope.level1') + point, level, pitchEnvelopeMax),
     )
     endGesture()
   }
@@ -113,8 +118,16 @@ export function GlobalConfigurationPanel({
               ),
             )}
             onChange={(rate, level, point) => {
-              setParameter(globalIndex('global.pitchEnvelope.rate1') + point, rate, 99)
-              setParameter(globalIndex('global.pitchEnvelope.level1') + point, level, 99)
+              setParameter(
+                globalIndex('global.pitchEnvelope.rate1') + point,
+                rate,
+                pitchEnvelopeMax,
+              )
+              setParameter(
+                globalIndex('global.pitchEnvelope.level1') + point,
+                level,
+                pitchEnvelopeMax,
+              )
             }}
             onGestureEnd={endGesture}
             onGestureStart={beginGesture}
@@ -174,35 +187,28 @@ export function GlobalConfigurationPanel({
             />
           </div>
           <LfoWaveControl
-            onChange={(value) => setParameter(globalIndex('global.lfoWave'), value, 5)}
+            onChange={(value) => setGlobal('global.lfoWave', value)}
             value={parameters[globalIndex('global.lfoWave')]}
           />
-          {slider(t('editor.lfoSpeed'), 'global.lfoSpeed', 99, t('controlHelp.lfoSpeed'))}
-          {slider(t('editor.lfoDelay'), 'global.lfoDelay', 99, t('controlHelp.lfoDelay'))}
+          {slider(t('editor.lfoSpeed'), 'global.lfoSpeed', t('controlHelp.lfoSpeed'))}
+          {slider(t('editor.lfoDelay'), 'global.lfoDelay', t('controlHelp.lfoDelay'))}
           {slider(
             t('editor.pitchModDepth'),
             'global.lfoPitchModDepth',
-            99,
             t('controlHelp.pitchModDepth'),
           )}
-          {slider(
-            t('editor.ampModDepth'),
-            'global.lfoAmpModDepth',
-            99,
-            t('controlHelp.ampModDepth'),
-          )}
+          {slider(t('editor.ampModDepth'), 'global.lfoAmpModDepth', t('controlHelp.ampModDepth'))}
           {slider(
             t('editor.pitchModSensitivity'),
             'global.pitchModSensitivity',
-            7,
             t('controlHelp.pitchModSensitivity'),
           )}
           <div className="col-span-full grid grid-cols-3 items-start gap-3 border-t border-[var(--crt-line-dk)] pt-2">
             <RotaryParameterControl
               helpText={t('controlHelp.transpose')}
               label={t('editor.transpose')}
-              max={24}
-              min={-24}
+              max={storedToDisplayValue(transposeParameter, transposeParameter.max)}
+              min={storedToDisplayValue(transposeParameter, transposeParameter.min)}
               onChange={(value) =>
                 setParameter(
                   transposeParameter.voiceIndex,
@@ -221,13 +227,13 @@ export function GlobalConfigurationPanel({
             <SwitchParameterControl
               helpText={t('controlHelp.lfoSync')}
               label={t('editor.lfoSync')}
-              onChange={(value) => setParameter(globalIndex('global.lfoKeySync'), value, 1)}
+              onChange={(value) => setGlobal('global.lfoKeySync', value)}
               value={parameters[globalIndex('global.lfoKeySync')]}
             />
             <SwitchParameterControl
               helpText={t('controlHelp.oscillatorSync')}
               label={t('editor.oscillatorSync')}
-              onChange={(value) => setParameter(globalIndex('global.oscillatorSync'), value, 1)}
+              onChange={(value) => setGlobal('global.oscillatorSync', value)}
               value={parameters[globalIndex('global.oscillatorSync')]}
             />
           </div>

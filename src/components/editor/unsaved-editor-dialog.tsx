@@ -24,6 +24,10 @@ export function UnsavedEditorDialog({
     <Dialog
       aria-labelledby="unsaved-editor-title"
       closeOnBackdrop={false}
+      onCancel={(event) => {
+        // Discarding resends the saved sound and then leaves, so Escape cannot cancel it midway.
+        if (isResolving) event.preventDefault()
+      }}
       onClose={onClose}
       ref={dialogRef}
       size="2xl"

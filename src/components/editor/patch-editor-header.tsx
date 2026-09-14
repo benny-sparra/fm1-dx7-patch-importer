@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import { type Patch } from '@/data/patches'
+import { FM1_VOICE_NAME_LENGTH } from '@/lib/fm1-parameters'
 import {
   editorShortcuts,
   formatShortcut,
@@ -101,7 +102,7 @@ export function PatchEditorHeader({
                 <input
                   aria-label={t('editor.patchName')}
                   className="font-dot-matrix crt-inset h-8 w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-                  maxLength={10}
+                  maxLength={FM1_VOICE_NAME_LENGTH}
                   onBlur={onNameBlur}
                   onChange={(event) => onNameChange(event.target.value.toUpperCase())}
                   onKeyDown={(event) => {

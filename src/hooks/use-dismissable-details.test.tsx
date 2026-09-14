@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -69,5 +69,33 @@ describe('useDismissableDetails', () => {
 
     await user.keyboard('{Escape}')
     expect(onEscape).toHaveBeenCalledOnce()
+  })
+})
+
+function MenuWithDialog() {
+  const menuRef = useDismissableDetails()
+
+  return (
+    <details ref={menuRef}>
+      <summary>Bank actions</summary>
+      <dialog open>
+        <button type="button">Close information</button>
+      </dialog>
+    </details>
+  )
+}
+
+describe('useDismissableDetails with a dialog', () => {
+  it('leaves Escape to a dialog opened from the menu', () => {
+    render(<MenuWithDialog />)
+    const details = screen.getByText('Bank actions').closest('details')!
+    details.open = true
+    const button = screen.getByRole('button', { name: 'Close information' })
+    button.focus()
+
+    const notPrevented = fireEvent.keyDown(button, { key: 'Escape' })
+
+    expect(notPrevented).toBe(true)
+    expect(details.open).toBe(true)
   })
 })

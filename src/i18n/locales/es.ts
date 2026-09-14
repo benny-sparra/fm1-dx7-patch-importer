@@ -8,17 +8,17 @@ export default {
     bankStep2: 'Gira el mando 1, 2, 3 o 4 para elegir el banco A, B, C o D.',
     bankStep3: 'El FM1 guarda automáticamente los 32 sonidos tras una breve espera.',
     bankImage: 'Panel frontal del M-VAVE FM1 con pantalla y cuatro mandos numerados',
-    dontShow: 'No volver a mostrar',
+    dontShow: 'No volver a mostrar en esta sesión',
     midiTitle: 'Conecta MIDI para enviar este banco',
     midiIntro: 'El FM1 debe estar conectado como salida MIDI antes de enviar un banco.',
     midiClose: 'Cerrar el mensaje de conexión MIDI',
     midiSteps:
       'Activa MIDI en línea, permite el acceso MIDI y selecciona la salida MIDI del FM1 en Ajustes.',
-    restoreTitle: '¿Restaurar los bancos de fábrica del Yamaha DX7?',
+    restoreTitle: '¿Restaurar los bancos de fábrica del FM-1?',
     restoreIntro: 'Esto sustituye los cuatro bancos locales. Puedes deshacerlo inmediatamente.',
     restoreClose: 'Cerrar la restauración',
     restoreDetails:
-      'Los bancos A, B, C y D se restaurarán respectivamente con Yamaha DX7 ROM 1A, ROM 1B, ROM 2A y ROM 2B.',
+      'Los bancos A, B, C y D se restaurarán respectivamente con los bancos 1, 2, 3 y 4 del FM-1, los sonidos que trae el FM1 de fábrica.',
     restoreAction: 'Restaurar cuatro bancos',
     sourcesOpen: 'Encuentra bancos de sonidos para descargar.',
     sourcesTitle: 'Buscar bancos DX7',
@@ -277,6 +277,7 @@ export default {
   toasts: {
     notifications: 'Acciones completadas',
     dismiss: 'Cerrar notificación',
+    undo: 'Deshacer',
     bankImported: 'Sonidos importados en «{{bank}}».',
     bankCreated: 'Se creó «{{bank}}».',
     bankDeleted: 'Se eliminó «{{bank}}».',
@@ -355,7 +356,7 @@ export default {
     steps: {
       libraryTitle: 'Crea tu biblioteca',
       libraryBody:
-        'Empieza con cuatro bancos de fábrica clásicos del Yamaha DX7 y después importa, edita o reorganiza sus sonidos.',
+        'Empieza con los cuatro bancos de fábrica del FM1 y después importa, edita o reorganiza sus sonidos.',
       editTitle: 'Edita y organiza',
       editBody:
         'Abre cualquier sonido en el editor de voces. Guárdalo en la biblioteca del navegador o restaura en el FM1 la versión guardada.',
@@ -630,7 +631,11 @@ export default {
     delete: 'Eliminar {{name}}',
     deleteAction: 'Eliminar banco',
     deleteConfirm: '¿Eliminar permanentemente “{{name}}” de este navegador?',
+    loadConfirm: '¿Sustituir los 32 sonidos de “{{bank}}” por “{{name}}”?',
+    replaceAction: 'Sustituir sonidos',
     operationFailed: 'La operación del banco guardado ha fallado.',
+    openFailed:
+      'No se pudieron abrir los bancos guardados. Recarga la página e inténtalo de nuevo.',
     loadFailed: 'No se pudieron cargar los bancos guardados del almacenamiento del navegador.',
     damagedBanks:
       'Algunos bancos guardados no se pudieron leer y se han ocultado. Siguen intactos en el almacenamiento del navegador.',

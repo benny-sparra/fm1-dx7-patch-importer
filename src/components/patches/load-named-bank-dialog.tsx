@@ -1,5 +1,5 @@
-import { Copy, Database, Download, FolderOpen, Pencil, Save, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Copy, Download, FolderOpen, Pencil, Save, Trash2 } from 'lucide-react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
@@ -13,27 +13,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { downloadFile } from '@/lib/download-file'
 import {
   makeNamedBankSysexFile,
   makeNamedBankSysexFilename,
   type NamedBank,
 } from '@/lib/named-bank'
 
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  link.click()
-  window.setTimeout(() => URL.revokeObjectURL(url), 1_000)
-}
-
 export function LoadNamedBankDialog({
   destinationBank,
   library,
   onClose,
+  onLoaded,
 }: NamedBankLibraryDialogProps) {
   const { i18n, t } = useTranslation()
+  const titleId = useId()
   const bankLabel = useWorkspaceBankLabel(library)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const editNameRef = useRef<HTMLInputElement>(null)
@@ -46,13 +40,29 @@ export function LoadNamedBankDialog({
   const [workingId, setWorkingId] = useState('')
   const [status, setStatus] = useState('')
   const [confirmingDeleteId, setConfirmingDeleteId] = useState('')
+  const [confirmingLoadId, setConfirmingLoadId] = useState('')
   const deleteButtonRefs = useRef(new Map<string, HTMLButtonElement>())
+  const loadButtonRefs = useRef(new Map<string, HTMLButtonElement>())
   const confirmDeleteRef = useRef<HTMLButtonElement>(null)
+  const confirmLoadRef = useRef<HTMLButtonElement>(null)
+  const destinationLoaded = library.loadedBanks.includes(destinationBank)
+
+  // The dialog opens as soon as the page shows it, with the keyboard in the search field.
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog || dialog.open) return
+    dialog.showModal()
+    window.requestAnimationFrame(() => searchRef.current?.focus())
+  }, [])
 
   // Move focus onto the confirmation as it opens, so the keyboard lands on the choice it asks for.
   useEffect(() => {
     if (confirmingDeleteId) confirmDeleteRef.current?.focus()
   }, [confirmingDeleteId])
+
+  useEffect(() => {
+    if (confirmingLoadId) confirmLoadRef.current?.focus()
+  }, [confirmingLoadId])
 
   const visibleBanks = useMemo(() => {
     const normalized = query.trim().toLowerCase()
@@ -71,6 +81,7 @@ export function LoadNamedBankDialog({
   const reset = () => {
     clearForm()
     setConfirmingDeleteId('')
+    setConfirmingLoadId('')
     setError('')
     setQuery('')
     setStatus('')
@@ -89,32 +100,33 @@ export function LoadNamedBankDialog({
     }
   }
 
+  const loadBank = (bank: NamedBank) => {
+    try {
+      const changed = library.loadSavedBank(bank, destinationBank)
+      dialogRef.current?.close()
+      onLoaded?.(bank, changed)
+    } catch (cause) {
+      setConfirmingLoadId('')
+      setError(bankErrorMessage(t, cause, t('namedBanks.operationFailed')))
+    }
+  }
+
   const beginEditing = (bank: NamedBank) => {
     setEditingId(bank.id)
     setName(bank.name)
     setDescription(bank.description)
     setError('')
     setStatus('')
-    dialogRef.current?.scrollTo({ behavior: 'smooth', top: 0 })
+    // The dialog scrolls smoothly only when motion is allowed (its motion-safe:scroll-smooth class).
+    dialogRef.current?.scrollTo({ top: 0 })
     window.requestAnimationFrame(() => editNameRef.current?.focus())
   }
 
   return (
     <>
-      <button
-        className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-        onClick={() => {
-          dialogRef.current?.showModal()
-          window.requestAnimationFrame(() => searchRef.current?.focus())
-        }}
-        type="button"
-      >
-        <Database className="size-4" />
-        {t('namedBanks.loadBank')}
-      </button>
-
       <Dialog
-        aria-labelledby="named-bank-library-title"
+        aria-labelledby={titleId}
+        className="motion-safe:scroll-smooth"
         onClose={() => {
           reset()
           onClose?.()
@@ -123,7 +135,7 @@ export function LoadNamedBankDialog({
         size="3xl"
       >
         <DialogHeader className="sticky top-0 z-10 bg-[var(--crt-bg-panel2)]">
-          <DialogTitle id="named-bank-library-title">{t('namedBanks.title')}</DialogTitle>
+          <DialogTitle id={titleId}>{t('namedBanks.title')}</DialogTitle>
           <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />
         </DialogHeader>
         <DialogBody>
@@ -245,16 +257,24 @@ export function LoadNamedBankDialog({
                         </div>
                         <div className="flex shrink-0 flex-wrap gap-1">
                           <Button
+                            aria-expanded={
+                              destinationLoaded ? confirmingLoadId === bank.id : undefined
+                            }
                             disabled={workingId !== ''}
                             onClick={() => {
-                              try {
-                                library.loadSavedBank(bank, destinationBank)
-                                dialogRef.current?.close()
-                              } catch (cause) {
-                                setError(
-                                  bankErrorMessage(t, cause, t('namedBanks.operationFailed')),
-                                )
+                              setError('')
+                              setStatus('')
+                              // A bank that already has sounds is replaced only once the user agrees.
+                              if (destinationLoaded) {
+                                setConfirmingDeleteId('')
+                                setConfirmingLoadId(bank.id)
+                                return
                               }
+                              loadBank(bank)
+                            }}
+                            ref={(button) => {
+                              if (button) loadButtonRefs.current.set(bank.id, button)
+                              else loadButtonRefs.current.delete(bank.id)
                             }}
                             size="sm"
                             type="button"
@@ -279,7 +299,7 @@ export function LoadNamedBankDialog({
                             onClick={() =>
                               void run(bank.id, async () => {
                                 const bytes = makeNamedBankSysexFile(bank)
-                                downloadBlob(
+                                downloadFile(
                                   new Blob([bytes], { type: 'application/octet-stream' }),
                                   makeNamedBankSysexFilename(bank),
                                 )
@@ -317,6 +337,7 @@ export function LoadNamedBankDialog({
                             onClick={() => {
                               setError('')
                               setStatus('')
+                              setConfirmingLoadId('')
                               setConfirmingDeleteId(bank.id)
                             }}
                             ref={(button) => {
@@ -332,6 +353,43 @@ export function LoadNamedBankDialog({
                           </Button>
                         </div>
                       </div>
+                      {confirmingLoadId === bank.id ? (
+                        <div
+                          aria-label={t('namedBanks.replaceAction')}
+                          className="mt-3 flex flex-col gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                          role="group"
+                        >
+                          <p className="text-sm text-destructive">
+                            {t('namedBanks.loadConfirm', {
+                              bank: bankLabel(destinationBank),
+                              name: bank.name,
+                            })}
+                          </p>
+                          <div className="flex shrink-0 gap-2">
+                            <Button
+                              onClick={() => {
+                                setConfirmingLoadId('')
+                                loadButtonRefs.current.get(bank.id)?.focus()
+                              }}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              {t('common.cancel')}
+                            </Button>
+                            <Button
+                              onClick={() => loadBank(bank)}
+                              ref={confirmLoadRef}
+                              size="sm"
+                              type="button"
+                              variant="destructive"
+                            >
+                              <FolderOpen />
+                              {t('namedBanks.replaceAction')}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
                       {/* Confirmed in place: a browser prompt can be blocked, which would silently
                           cancel the deletion, and a second modal cannot open over this one. */}
                       {confirmingDeleteId === bank.id ? (

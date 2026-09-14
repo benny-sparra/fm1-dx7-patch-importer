@@ -3,6 +3,7 @@ import { type FormEvent, type RefObject, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
+import { undoToastOptions } from '@/components/patches/undo-toast'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -49,9 +50,12 @@ export function ImportDx7BankDialog({
     setWorking(true)
     setError('')
     try {
-      await library.importBank(bank, file)
+      const changed = await library.importBank(bank, file)
       trackAnalyticsEvent({ data: { source: 'file' }, name: 'bank_imported' })
-      toast.success(t('toasts.bankImported', { bank: bankName }))
+      toast.success(
+        t('toasts.bankImported', { bank: bankName }),
+        undoToastOptions(t, library, changed),
+      )
       dialogRef.current?.close()
     } catch (cause) {
       setError(bankErrorMessage(t, cause, t('banks.importFailed')))

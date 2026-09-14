@@ -1,25 +1,9 @@
 import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { Component, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-
-type ErrorBoundaryProps = {
-  children: ReactNode
-  fallback: ReactNode
-}
-
-class ErrorBoundary extends Component<ErrorBoundaryProps, { failed: boolean }> {
-  state = { failed: false }
-
-  static getDerivedStateFromError() {
-    return { failed: true }
-  }
-
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children
-  }
-}
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 
 type PatchEditorErrorBoundaryProps = {
   children: ReactNode

@@ -11,29 +11,15 @@ const entry = (id: string): MidiLogEntry => ({
 })
 
 describe('MidiLogStore', () => {
-  it('retains only the eight newest entries', () => {
+  it('retains only the fifty newest entries', () => {
     const store = new MidiLogStore([entry('initial')])
 
-    store.append(entry('1'))
-    store.append(entry('2'))
-    store.append(entry('3'))
-    store.append(entry('4'))
-    store.append(entry('5'))
-    store.append(entry('6'))
-    store.append(entry('7'))
-    store.append(entry('8'))
-    store.append(entry('9'))
+    for (let index = 1; index <= 55; index += 1) store.append(entry(String(index)))
 
-    expect(store.getSnapshot().map(({ id }) => id)).toEqual([
-      '9',
-      '8',
-      '7',
-      '6',
-      '5',
-      '4',
-      '3',
-      '2',
-    ])
+    const ids = store.getSnapshot().map(({ id }) => id)
+    expect(ids).toHaveLength(50)
+    expect(ids[0]).toBe('55')
+    expect(ids.at(-1)).toBe('6')
   })
 
   it('reports activity only once an entry has been appended', () => {

@@ -8,18 +8,18 @@ export default {
     bankStep2: 'Tournez le bouton 1, 2, 3 ou 4 pour choisir la banque A, B, C ou D.',
     bankStep3: 'Le FM1 enregistre automatiquement les 32 sons après un court délai.',
     bankImage: 'Panneau avant du M-VAVE FM1 avec écran et quatre boutons numérotés',
-    dontShow: 'Ne plus afficher',
+    dontShow: 'Ne plus afficher pendant cette session',
     midiTitle: 'Connectez le MIDI pour envoyer cette banque',
     midiIntro: 'Le FM1 doit être connecté comme sortie MIDI avant l’envoi d’une banque.',
     midiClose: 'Fermer le message de connexion MIDI',
     midiSteps:
       'Activez MIDI en ligne en haut de la page, autorisez l’accès MIDI, puis sélectionnez la sortie MIDI du FM1 dans les réglages.',
-    restoreTitle: 'Restaurer les banques d’usine Yamaha DX7 ?',
+    restoreTitle: 'Restaurer les banques d’usine du FM-1 ?',
     restoreIntro:
       'Cette opération remplace les quatre banques locales. Vous pourrez l’annuler immédiatement.',
     restoreClose: 'Fermer la restauration',
     restoreDetails:
-      'Les banques A, B, C et D seront respectivement restaurées avec Yamaha DX7 ROM 1A, ROM 1B, ROM 2A et ROM 2B.',
+      'Les banques A, B, C et D seront respectivement restaurées avec les banques 1, 2, 3 et 4 du FM-1, les sons livrés avec le FM1.',
     restoreAction: 'Restaurer quatre banques',
     sourcesOpen: 'Trouver des banques de sons à télécharger.',
     sourcesTitle: 'Trouver des banques DX7',
@@ -282,6 +282,7 @@ export default {
   toasts: {
     notifications: 'Actions terminées',
     dismiss: 'Fermer la notification',
+    undo: 'Annuler',
     bankImported: 'Sons importés dans « {{bank}} ».',
     bankCreated: '« {{bank}} » a été créée.',
     bankDeleted: '« {{bank}} » a été supprimée.',
@@ -360,7 +361,7 @@ export default {
     steps: {
       libraryTitle: 'Créez votre bibliothèque',
       libraryBody:
-        'Commencez avec quatre banques d’usine Yamaha DX7 classiques, puis importez, modifiez ou réorganisez leurs sons.',
+        'Commencez avec les quatre banques d’usine du FM1, puis importez, modifiez ou réorganisez leurs sons.',
       editTitle: 'Modifiez et organisez',
       editBody:
         'Ouvrez un son dans l’éditeur de voix. Enregistrez-le dans la bibliothèque du navigateur ou rétablissez la version enregistrée sur le FM1.',
@@ -639,7 +640,10 @@ export default {
     delete: 'Supprimer {{name}}',
     deleteAction: 'Supprimer la banque',
     deleteConfirm: 'Supprimer définitivement « {{name}} » de ce navigateur ?',
+    loadConfirm: 'Remplacer les 32 sons de « {{bank}} » par « {{name}} » ?',
+    replaceAction: 'Remplacer les sons',
     operationFailed: 'L’opération sur la banque enregistrée a échoué.',
+    openFailed: 'Impossible d’ouvrir les banques enregistrées. Rechargez la page et réessayez.',
     loadFailed: 'Impossible de charger les banques enregistrées depuis le stockage du navigateur.',
     damagedBanks:
       'Certaines banques enregistrées sont illisibles et ont été masquées. Elles restent intactes dans le stockage du navigateur.',

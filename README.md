@@ -2,17 +2,19 @@
 
 A browser-based voice editor and patch librarian for the [M-VAVE FM1](https://www.mvave.com/).
 
-The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, and transfer individual voices or complete banks over MIDI SysEx. Four classic Yamaha DX7 factory banks are loaded initially. New workspace banks can use any of 39 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
+The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, and transfer individual voices or complete banks over MIDI SysEx. The FM-1's own four factory banks are loaded initially. New workspace banks can use any of 39 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
 
 ![M-VAVE FM1 synthesiser](src/assets/fm1-header.png)
 
 ## Features
 
-- Start with Yamaha DX7 ROM 1A, ROM 1B, ROM 2A, and ROM 2B in browser banks A–D
+- Start with the FM-1's four factory banks in browser banks A–D, so slot names match the sounds on a stock FM1
 - Add up to six additional workspace banks from the bundled DX7 bank catalog or your own SysEx file, so every bank starts populated
 - Rename, describe, or delete workspace banks, with descriptions available from their tabs
 - Replace a populated bank only after confirming that its current sounds will be overwritten
 - Restore the four factory banks at any time without removing additional workspace banks
+- Save named copies of a bank in the browser, then load, rename, copy, download, or delete them later
+- Undo deleting, restoring, importing over, or loading into a bank from its notification or with Cmd/Ctrl + Z
 - Restore imported and edited banks automatically from IndexedDB browser storage
 - Retry browser-storage failures or continue explicitly with a session-only workspace without overwriting unreadable saved data
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
@@ -62,7 +64,7 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 1. Open the app in a supported browser.
 2. Switch **MIDI online** on and grant MIDI/SysEx permission.
 3. Open **Settings** to select the FM1 MIDI output and, if needed, the note/program and effects channels.
-4. Select DX7 Bank 1, 2, 3, or 4. On first use these contain DX7 factory ROM 1A, ROM 1B, ROM 2A, and ROM 2B respectively. Use **Add new bank** to name and describe an additional workspace bank while populating it from the bundled [Yamaha Black Boxes DX7 catalog](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) or your own standard 32-voice DX7 SysEx file.
+4. Select DX7 Bank 1, 2, 3, or 4. On first use these contain FM-1 Banks 1, 2, 3, and 4, the sounds the FM1 ships with. Use **Add new bank** to name and describe an additional workspace bank while populating it from the bundled [Yamaha Black Boxes DX7 catalog](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) or your own standard 32-voice DX7 SysEx file.
 5. Click a patch to select the matching FM1 slot and play it. The FM1 has four banks, so a patch in an added bank is sent with its effects to the edit buffer to play it instead. Double-click it, or choose **Edit** in the toolbar, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
 6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
 7. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank.
@@ -113,6 +115,6 @@ its protocol is proven safe, and device readback if M-VAVE documents a compatibl
 
 The randomiser is an independent implementation of the voice generator from Tom Bajoras's DX Android, following [the algorithm documented by Christian Zietz (czietz) at CHZ-Soft](https://www.chzsoft.de/site/hardware/dx-android-an-intelligent-random-dx7-voice-generator/dx-android-algorithm/).
 
-The four FM-1 factory banks in the catalog were recovered from M-VAVE's preset-restore tool by KingParamount and are bundled unchanged under CC0 from [fm1-factory-presets](https://github.com/KingParamount/fm1-factory-presets). The licence covers the capture, decode and rebuilt files, not the voices themselves: those trace to Yamaha ROM and VRC cartridges and the community Dexed_cart 1.0 collection, as selected and renamed by M-VAVE. The repository documents the per-voice provenance.
+The four FM-1 factory banks, loaded into banks A–D on first use and also offered in the catalog, were recovered from M-VAVE's preset-restore tool by KingParamount and are bundled unchanged under CC0 from [fm1-factory-presets](https://github.com/KingParamount/fm1-factory-presets). The licence covers the capture, decode and rebuilt files, not the voices themselves: those trace to Yamaha ROM and VRC cartridges and the community Dexed_cart 1.0 collection, as selected and renamed by M-VAVE. The repository documents the per-voice provenance.
 
 The interface links to independent DX7 patch archives to help users find compatible banks. Those downloads are provided by their respective sites; only import files you trust.

@@ -103,11 +103,11 @@ describe('patch library operations', () => {
 
     expect(deleted.workspaceBanks).toEqual(['A', 'B', 'C'])
     expect(deleted.loadedBanks).toEqual(['A', 'B', 'C'])
-    expect(deleted.voices[voiceId('B', 1)].name).toBe('PICCOLO')
+    expect(deleted.voices[voiceId('B', 1)].name).toBe('BRASS 1')
     expect(deleted.effects[voiceId('B', 1)]).toEqual(effects[voiceId('C', 1)])
     expect(deleted.bankNames.B).toBe('Third bank')
     expect(deleted.bankDescriptions.B).toBe('Moves into B')
-    expect(deleted.voices[voiceId('C', 1)].name).toBe('SYN-LEAD 2')
+    expect(deleted.voices[voiceId('C', 1)].name).toBe('BOWOAN')
     expect(deleted.voices[voiceId('D', 1)]).toBeUndefined()
   })
 
@@ -115,9 +115,9 @@ describe('patch library operations', () => {
     const deleted = deleteWorkspaceBank(makeFactoryPatchLibrary(), 'A')
 
     expect(deleted.workspaceBanks).toEqual(['A', 'B', 'C'])
-    expect(deleted.voices[voiceId('A', 1)].name).toBe('PIANO   4')
-    expect(deleted.voices[voiceId('B', 1)].name).toBe('PICCOLO')
-    expect(deleted.voices[voiceId('C', 1)].name).toBe('SYN-LEAD 2')
+    expect(deleted.voices[voiceId('A', 1)].name).toBe('GUITAR 1')
+    expect(deleted.voices[voiceId('B', 1)].name).toBe('BRASS 1')
+    expect(deleted.voices[voiceId('C', 1)].name).toBe('BOWOAN')
   })
 
   it('keeps the sole remaining workspace bank', () => {
@@ -187,7 +187,7 @@ describe('patch library operations', () => {
     expect(restored.loadedBanks).toEqual(['A', 'B', 'C', 'D'])
   })
 
-  it('maps the first four Yamaha factory ROM banks to browser banks A through D', () => {
+  it('loads the four FM-1 factory banks into browser banks A through D', () => {
     const result = makeFactoryPatchLibrary()
 
     expect(result.loadedBanks).toEqual(['A', 'B', 'C', 'D'])
@@ -201,7 +201,7 @@ describe('patch library operations', () => {
       result.voices[voiceId('B', 1)].name,
       result.voices[voiceId('C', 1)].name,
       result.voices[voiceId('D', 1)].name,
-    ]).toEqual(['BRASS   1', 'E.PIANO 1', 'PIANO   4', 'PICCOLO', 'SYN-LEAD 2'])
+    ]).toEqual(['PIANO 1', 'SYN LEAD 3', 'GUITAR 1', 'BRASS 1', 'BOWOAN'])
   })
 
   it('creates fresh factory voice data for each initialization or reset', () => {
