@@ -158,6 +158,8 @@ open everything an earlier release could have saved.
   into eagerly imported vendor chunks to make the entry filename smaller.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
   bundler-made chunk is expected, and the budget counts it because the entry imports it.
+- Development and verification controls are gated where they are rendered, with a build-time
+  constant such as `sentryVerificationEnabled`, so normal production builds leave them out.
 - A rejected optional chunk must be contained and recoverable; stale deployment chunks must not
   crash the entire application.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
@@ -224,7 +226,8 @@ open everything an earlier release could have saved.
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.
 - A library change that replaces or removes sounds (deleting a bank, restoring factory banks,
-  importing or loading over a bank) offers Undo in its notification through `undoToastOptions`. The
+  importing or loading over a bank) offers Undo in its notification through `undoToastOptions`, and a
+  notification with an action stays up for 10 seconds. The
   undo applies only while that change is still the latest (`undoChange`), and a dialog must not
   promise an undo the app does not offer.
 - Continuous input is one undo step. Start a gesture on pointer down or key down and end it on

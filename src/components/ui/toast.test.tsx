@@ -109,3 +109,24 @@ describe('ToastProvider actions', () => {
     expect(screen.queryByText('Deleted Bank 2.')).toBeNull()
   })
 })
+
+describe('ToastProvider action timing', () => {
+  it('keeps a notification with an action open long enough to reach it', () => {
+    render(
+      <ToastProvider>
+        <NotifyWithUndo onUndo={vi.fn()} />
+      </ToastProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+
+    act(() => {
+      vi.advanceTimersByTime(9_000)
+    })
+    expect(screen.getByText('Deleted Bank 2.')).toBeTruthy()
+
+    act(() => {
+      vi.advanceTimersByTime(1_000)
+    })
+    expect(screen.queryByText('Deleted Bank 2.')).toBeNull()
+  })
+})

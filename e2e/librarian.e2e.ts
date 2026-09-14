@@ -26,7 +26,7 @@ function slotNames(page: Page) {
 
 /** The rail holds the bank menu from md up; below that it sits beside the bank name instead. */
 async function openFirstBankMenu(page: Page) {
-  await page.getByLabel('Actions for DX7 Bank 1').locator('visible=true').click()
+  await page.getByLabel('Actions for Bank 1').locator('visible=true').click()
 }
 
 async function openFirstPatch(page: Page) {
@@ -89,11 +89,11 @@ test('imports a valid DX7 SysEx bank into a populated workspace bank', async ({ 
   await openFirstBankMenu(page)
   await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
 
-  const dialog = page.getByRole('dialog', { name: 'Import over “DX7 Bank 1”?' })
+  const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
   await dialog.getByLabel('Sound data').setInputFiles(factoryBank)
   await dialog.getByRole('button', { name: 'Replace bank contents' }).click()
 
-  await expect(page.getByText('Imported sounds into “DX7 Bank 1”.')).toBeVisible()
+  await expect(page.getByText('Imported sounds into “Bank 1”.')).toBeVisible()
 })
 
 test('rejects an invalid DX7 SysEx bank without closing the replacement dialog', async ({
@@ -103,7 +103,7 @@ test('rejects an invalid DX7 SysEx bank without closing the replacement dialog',
   await openFirstBankMenu(page)
   await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
 
-  const dialog = page.getByRole('dialog', { name: 'Import over “DX7 Bank 1”?' })
+  const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
   await dialog.getByLabel('Sound data').setInputFiles({
     buffer: Buffer.from([0xf0, 0x43, 0xf7]),
     mimeType: 'application/octet-stream',
