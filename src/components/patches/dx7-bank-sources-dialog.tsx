@@ -26,6 +26,11 @@ const bankSources = [
     name: 'Soundarchive',
     url: 'https://www.soundarchive.co/yamaha-dx7',
   },
+  {
+    descriptionKey: 'dialogs.sourceDescriptions.fm1FactoryPresets',
+    name: 'FM-1 factory presets',
+    url: 'https://github.com/KingParamount/fm1-factory-presets',
+  },
 ]
 
 export function Dx7BankSourcesDialog() {

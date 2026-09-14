@@ -17,3 +17,4 @@ The app runs entirely in the browser and keeps patches in local browser storage;
 
 - [M-VAVE](https://www.mvave.com/): Manufacturer of the FM1 synthesiser
 - [Yamaha Black Boxes DX7 patch collection](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/): Source of the bundled DX7 bank catalog
+- [FM-1 factory presets](https://github.com/KingParamount/fm1-factory-presets): Source of the bundled FM-1 factory banks

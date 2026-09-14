@@ -30,6 +30,8 @@ export default {
       yamahaBlackBoxes: 'DX7-Werkscartridges und SysEx-Bänke.',
       bobbyBlues: 'Langjährige Sammlung von DX7-Sounds und -Bänken.',
       soundarchive: 'Kuratierte SysEx-Bänke für DX7, TX816 und TX802.',
+      fm1FactoryPresets:
+        'Die ursprünglichen Vorlagen des FM-1, aus dem Wiederherstellungstool von M-VAVE gewonnen. Auch im Bankkatalog.',
     },
     sourcesClose: 'Bankquellen schließen',
   },
@@ -527,6 +529,7 @@ export default {
     importing: 'Importieren…',
     restoring: 'Wird wiederhergestellt…',
     catalogFactory: 'Werkssounds',
+    catalogFm1Factory: 'FM-1-Werksvorlagen',
     import: 'DX7-Bank importieren',
     moreActions: 'Weitere Bankdatei-Aktionen',
     bankMenu: 'Aktionen für {{bank}}',
