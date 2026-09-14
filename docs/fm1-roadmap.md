@@ -523,7 +523,7 @@ a standard DX7 bank dump that the user places on the hardware.
 
 ## Blocking evidence
 
-- The four setup messages are unpublished and unclassified.
+- The four setup messages are published but unclassified; only the byte that varies between them is identified.
 - The traffic comes from an updater build that downgrades firmware, so it is Dangerous / excluded
   until shown to be separate from the update, loader, OTA and flash-erase paths.
 - Persistence, checksum, interruption and error behaviour are unknown.
