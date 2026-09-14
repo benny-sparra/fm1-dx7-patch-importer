@@ -23,11 +23,23 @@ export function restoreFactoryPatchLibrary(snapshot: PatchLibrarySnapshot): Patc
           ),
         }
   const cleared = browserBanks.reduce((current, bank) => clearLibraryBank(current, bank), prepared)
-  return browserBanks.reduce((current, bank) => {
+  const restored = browserBanks.reduce((current, bank) => {
     const binary = atob(encodedDx7FactoryBanks[bank])
     const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
     return importVoices(current, bank, parseDx7Bank(bytes.buffer))
   }, cleared)
+  // A restored bank holds the factory sounds again, so a title or description written for the
+  // sounds it replaced no longer applies. Added banks keep theirs.
+  return {
+    ...restored,
+    bankDescriptions: withoutFactoryBanks(restored.bankDescriptions),
+    bankNames: withoutFactoryBanks(restored.bankNames),
+  }
+}
+
+function withoutFactoryBanks(values: Record<string, string>) {
+  const factoryBanks: readonly string[] = browserBanks
+  return Object.fromEntries(Object.entries(values).filter(([bank]) => !factoryBanks.includes(bank)))
 }
 
 export function initializePatchLibrary(stored: PatchLibrarySnapshot | null) {
