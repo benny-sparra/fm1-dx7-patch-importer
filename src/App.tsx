@@ -58,12 +58,15 @@ function App() {
   const selectedVoice = selectedPatch ? library.voices[selectedPatch.id] : undefined
   const findPatch = (patchId: string) =>
     library.patches.find((candidate) => candidate.id === patchId)
-  // A slot in banks A–D selects its FM1 program. An added bank has no FM1 slot, so its sound is
-  // auditioned through the edit buffer instead, with its effects, just as the editor sends it.
+  // A slot in banks A–D selects its FM1 program. A DX7 bank carries no effects, so the saved
+  // effects follow the Program Change. An added bank has no FM1 slot, so its sound is auditioned
+  // through the edit buffer instead, with its effects, just as the editor sends it.
   const auditionPatch = (patch: Patch) => {
     if (patch.program !== undefined) {
       editBufferAudition.current = null
-      midi.sendProgramChange(patch.program)
+      if (midi.sendProgramChange(patch.program)) {
+        void midi.sendEffectSettings(normalizeFm1Effects(library.effects[patch.id]))
+      }
       return
     }
     const voice = library.voices[patch.id]

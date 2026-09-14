@@ -9,6 +9,8 @@ After the first successful connection, the app remembers the selected MIDI ports
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 
+Clicking a slot in banks A–D selects that hardware slot and then sends the patch's saved FM1 effects, because a DX7 bank transfer does not carry effects. Clicking a slot in an added bank sends its voice and effects to the edit buffer.
+
 To send one sound instead, open its patch in the editor. For a patch in banks A–D the app first selects the matching hardware slot; it then sends the voice and its FM1 effects to the edit buffer; hold **SAVE** on the FM1 to store it on the hardware.
 
 To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. Replacing a populated bank requires confirmation. The same menu lets you edit the bank title and description, download the bank, or delete it when more than one workspace bank exists. Use the menu in the patch-bank header to download all loaded banks or restore factory banks A–D, which also resets their titles and descriptions. Additional workspace banks are left intact. If a bank is empty, you can load the built-in demo bank instead.
