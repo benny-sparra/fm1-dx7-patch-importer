@@ -1,6 +1,7 @@
 import { type MidiLogEntry } from '@/lib/midi'
 
-const logLimit = 8
+/** Enough to follow a bank transfer and the replies around it without the list growing unbounded. */
+const logLimit = 50
 
 export class MidiLogStore {
   private listeners = new Set<() => void>()

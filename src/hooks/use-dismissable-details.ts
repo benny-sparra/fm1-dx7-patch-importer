@@ -14,6 +14,8 @@ export function useDismissableDetails() {
     const closeMenuFromKeyboard = (event: KeyboardEvent) => {
       const details = detailsRef.current
       if (event.key !== 'Escape' || !details?.open) return
+      // Escape inside an open dialog closes the dialog, even one opened from this menu.
+      if (event.target instanceof Element && event.target.closest('dialog[open]')) return
       // Claim the key, so a view's own Escape shortcut does not also run once the menu has closed.
       event.preventDefault()
       const focusWasInside = details.contains(document.activeElement)

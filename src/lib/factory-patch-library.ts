@@ -1,4 +1,4 @@
-import { encodedDx7FactoryBanks } from '@/data/dx7-factory-banks'
+import { encodedFm1FactoryBanks } from '@/data/fm1-factory-banks'
 import { parseDx7Bank } from '@/lib/dx7'
 import {
   browserBanks,
@@ -24,7 +24,7 @@ export function restoreFactoryPatchLibrary(snapshot: PatchLibrarySnapshot): Patc
         }
   const cleared = browserBanks.reduce((current, bank) => clearLibraryBank(current, bank), prepared)
   const restored = browserBanks.reduce((current, bank) => {
-    const binary = atob(encodedDx7FactoryBanks[bank])
+    const binary = atob(encodedFm1FactoryBanks[bank])
     const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
     return importVoices(current, bank, parseDx7Bank(bytes.buffer))
   }, cleared)

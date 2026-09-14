@@ -14,6 +14,7 @@ import {
 import { getOperatorAuditionStatus } from '@/lib/operator-audition'
 import {
   FM1_OPERATOR_COUNT,
+  getGlobalParameterDefinition,
   getOperatorParameterDefinition,
   resolveOperatorParameterIndex,
   storedToDisplayValue,
@@ -21,6 +22,9 @@ import {
 import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
+
+const feedbackMax = getGlobalParameterDefinition('global.feedback').max
+const outputMax = getOperatorParameterDefinition('operator.outputLevel').max
 
 const nodeX = (operator: Dx7AlgorithmOperator) => operator.x * 18 + 9
 const nodeY = (operator: Dx7AlgorithmOperator) => operator.y * 15 + 8
@@ -401,7 +405,7 @@ export function AlgorithmPanel({
         <input
           aria-label={t('editor.feedback')}
           className="min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-          max={7}
+          max={feedbackMax}
           min={0}
           onBlur={onFeedbackGestureEnd}
           onChange={(event) => onFeedbackChange(Number(event.target.value))}
@@ -413,7 +417,7 @@ export function AlgorithmPanel({
           onPointerDown={onFeedbackGestureStart}
           onPointerUp={onFeedbackGestureEnd}
           step={1}
-          style={rangeStyle(feedback, 0, 7, 'var(--crt-acc)')}
+          style={rangeStyle(feedback, 0, feedbackMax, 'var(--crt-acc)')}
           type="range"
           value={feedback}
         />
@@ -696,7 +700,7 @@ export function OperatorRack({
               <input
                 aria-label={t('ui.operatorOutput', { number: operator })}
                 className="w-full min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-                max={99}
+                max={outputMax}
                 min={0}
                 onBlur={onGestureEnd}
                 onChange={(event) => onOutputChange(operator, Number(event.target.value))}
@@ -711,7 +715,7 @@ export function OperatorRack({
                 style={rangeStyle(
                   output,
                   0,
-                  99,
+                  outputMax,
                   isSelected ? 'var(--crt-acc)' : 'var(--crt-acc-dim)',
                 )}
                 type="range"

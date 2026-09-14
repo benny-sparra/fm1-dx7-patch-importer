@@ -1,18 +1,21 @@
 import {
   Archive,
+  Database,
   Download,
   EllipsisVertical,
   Pencil,
   Plus,
   RotateCcw,
+  Save,
   Send,
   Trash2,
   Upload,
 } from 'lucide-react'
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { type ChangeEvent, lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
+import { undoToastOptions } from '@/components/patches/undo-toast'
 import { PatchGrid } from '@/components/patches/patch-grid'
 import {
   WorkspaceBankSelector,
@@ -46,8 +49,19 @@ import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { type Patch } from '@/data/patches'
 import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
+import { downloadFile } from '@/lib/download-file'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { useToast } from '@/components/ui/toast'
 import { trackAnalyticsEvent } from '@/lib/analytics'
+
+// Saved banks open from a bank menu, so their dialogs load on first use rather than with the page.
+const NamedBankLibraryDialog = lazy(() =>
+  import('@/components/patches/named-bank-library-dialog').then((module) => ({
+    default: module.NamedBankLibraryDialog,
+  })),
+)
+
+type SavedBanksRequest = { bank: string; closeMenu: () => void; mode: 'load' | 'save' }
 
 type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
 
@@ -77,6 +91,7 @@ export function LibrarianPage({
   const [search, setSearch] = useState('')
   const [destinationBank, setDestinationBank] = useState('A')
   const [importError, setImportError] = useState('')
+  const [savedBanksRequest, setSavedBanksRequest] = useState<SavedBanksRequest | null>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [transferStatus, setTransferStatus] = useState<TransferStatus>({
@@ -106,15 +121,6 @@ export function LibrarianPage({
   const auditionedPatch = patches.find((patch) => patch.id === activePatchId)
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
   const bankDisplayName = useWorkspaceBankLabel(library)
-  const saveBlob = (blob: Blob, filename: string) => {
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    link.click()
-    window.setTimeout(() => URL.revokeObjectURL(url), 1_000)
-  }
-
   const beginImport = (bank: string) => {
     if (library.loadedBanks.includes(bank)) {
       setBankPendingImport({
@@ -131,7 +137,7 @@ export function LibrarianPage({
   const downloadBank = (bank: string) => {
     try {
       const bytes = makeDx7BankFile(library.getBankVoices(bank))
-      saveBlob(
+      downloadFile(
         new Blob([bytes], { type: 'application/octet-stream' }),
         `fm1-bank-${bank.toLowerCase()}.syx`,
       )
@@ -152,7 +158,7 @@ export function LibrarianPage({
           makeDx7BankFile(library.getBankVoices(bank)),
         ]),
       )
-      saveBlob(new Blob([zipSync(files)], { type: 'application/zip' }), 'fm1-browser-banks.zip')
+      downloadFile(new Blob([zipSync(files)], { type: 'application/zip' }), 'fm1-browser-banks.zip')
       setImportError('')
       trackAnalyticsEvent({ data: { scope: 'all' }, name: 'bank_exported' })
       toast.success(t('toasts.banksDownloadStarted'))
@@ -276,6 +282,8 @@ export function LibrarianPage({
   }
 
   useKeyboardShortcuts([
+    { ...librarianShortcuts.redo, enabled: library.canRedo, onTrigger: library.redo },
+    { ...librarianShortcuts.undo, enabled: library.canUndo, onTrigger: library.undo },
     // Both are disabled with the field itself, so the browser keeps its own
     // find shortcut in a bank that has nothing to search.
     { ...librarianShortcuts.search, enabled: isDestinationBankLoaded, onTrigger: focusSearch },
@@ -301,6 +309,28 @@ export function LibrarianPage({
           library={library}
           onClose={closeMenu}
         />
+        <button
+          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+          disabled={!library.loadedBanks.includes(bank)}
+          onClick={() => setSavedBanksRequest({ bank, closeMenu, mode: 'save' })}
+          title={
+            library.loadedBanks.includes(bank)
+              ? undefined
+              : t('banks.importFirst', { bank: bankDisplayName(bank) })
+          }
+          type="button"
+        >
+          <Save className="size-4" />
+          {t('namedBanks.save')}
+        </button>
+        <button
+          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+          onClick={() => setSavedBanksRequest({ bank, closeMenu, mode: 'load' })}
+          type="button"
+        >
+          <Database className="size-4" />
+          {t('namedBanks.loadBank')}
+        </button>
         <div className="my-1 border-t" />
         <button
           className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
@@ -573,19 +603,53 @@ export function LibrarianPage({
           const { bank } = bankPendingDeletion
           const replacement = workspaceBankAfterDeletion(banks, bank)
           onBankDeleted(bank)
-          library.deleteBank(bank)
+          const changed = library.deleteBank(bank)
           if (replacement) setDestinationBank(replacement)
-          toast.success(t('toasts.bankDeleted', { bank: bankPendingDeletion.name }))
+          toast.success(
+            t('toasts.bankDeleted', { bank: bankPendingDeletion.name }),
+            undoToastOptions(t, library, changed),
+          )
           setBankPendingDeletion(null)
         }}
       />
       <RestoreFactoryBanksDialog
         dialogRef={restoreFactoryBanksDialogRef}
         onRestore={async () => {
-          await library.resetFactoryBanks()
-          toast.success(t('toasts.banksRestored'))
+          const changed = await library.resetFactoryBanks()
+          toast.success(t('toasts.banksRestored'), undoToastOptions(t, library, changed))
         }}
       />
+      {savedBanksRequest ? (
+        <ErrorBoundary
+          key={`${savedBanksRequest.mode}-${savedBanksRequest.bank}`}
+          onError={() => {
+            savedBanksRequest.closeMenu()
+            setSavedBanksRequest(null)
+            setImportError(t('namedBanks.openFailed'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <NamedBankLibraryDialog
+              destinationBank={savedBanksRequest.bank}
+              library={library}
+              mode={savedBanksRequest.mode}
+              onClose={() => {
+                savedBanksRequest.closeMenu()
+                setSavedBanksRequest(null)
+              }}
+              onLoaded={(savedBank, changed) =>
+                toast.success(
+                  t('namedBanks.loaded', {
+                    bank: bankDisplayName(savedBanksRequest.bank),
+                    name: savedBank.name,
+                  }),
+                  undoToastOptions(t, library, changed),
+                )
+              }
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
     </section>
   )
 }

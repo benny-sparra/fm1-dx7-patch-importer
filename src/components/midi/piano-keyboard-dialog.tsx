@@ -4,10 +4,13 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { PianoKeyButton } from '@/components/midi/piano-key'
+import { useKeyboardKeyLabel } from '@/hooks/use-keyboard-key-label'
 import { type MidiController } from '@/hooks/use-midi'
 import {
   makePianoKeys,
   mapComputerPianoKeys,
+  octaveDownKeyCode,
+  octaveUpKeyCode,
   PIANO_KEY_WIDTH,
   type PianoKey,
 } from '@/lib/piano-keyboard'
@@ -37,6 +40,7 @@ function PianoKeysIcon() {
 
 export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
   const { t } = useTranslation()
+  const keyLabel = useKeyboardKeyLabel()
   const { startNote: sendMidiNoteOn, stopNote: sendMidiNoteOff } = midi
   const dialogRef = useRef<HTMLDialogElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -165,15 +169,16 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
         return
       }
 
-      const key = event.key.toLowerCase()
+      // Matched by position, not by the letter typed, so every layout keeps the two-row piano.
+      const key = event.code
 
-      if (key === 'z') {
+      if (key === octaveDownKeyCode) {
         event.preventDefault()
         shiftOctave(-1)
         return
       }
 
-      if (key === 'x') {
+      if (key === octaveUpKeyCode) {
         event.preventDefault()
         shiftOctave(1)
         return
@@ -195,7 +200,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
     }
 
     function handleKeyUp(event: KeyboardEvent) {
-      const key = event.key.toLowerCase()
+      const key = event.code
       const note = activeComputerKeysRef.current.get(key)
 
       if (!note) {
@@ -337,7 +342,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
             <OctaveButton
               direction="down"
               disabled={baseOctave <= 1}
-              keyboardKey="Z"
+              keyboardKey={keyLabel(octaveDownKeyCode)}
               onClick={() => shiftOctave(-1)}
             />
 
@@ -346,6 +351,9 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
               <div className="grid h-full grid-cols-[repeat(15,56px)]">
                 {whiteKeys.map((key) => (
                   <PianoKeyButton
+                    computerKeyLabel={
+                      key.computerKeyCode ? keyLabel(key.computerKeyCode) : undefined
+                    }
                     isActive={activeNotes.has(key.note)}
                     key={key.note}
                     noteKey={key}
@@ -357,6 +365,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
 
               {blackKeys.map((key) => (
                 <PianoKeyButton
+                  computerKeyLabel={key.computerKeyCode ? keyLabel(key.computerKeyCode) : undefined}
                   isActive={activeNotes.has(key.note)}
                   key={key.note}
                   noteKey={key}
@@ -369,7 +378,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
             <OctaveButton
               direction="up"
               disabled={baseOctave >= 5}
-              keyboardKey="X"
+              keyboardKey={keyLabel(octaveUpKeyCode)}
               onClick={() => shiftOctave(1)}
             />
           </div>

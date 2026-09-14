@@ -134,7 +134,9 @@ open everything an earlier release could have saved.
   structure changes.
 - Every user-visible string and accessible name comes from the locale files: labels, `aria-label`,
   `aria-valuetext`, `title`, option lists, empty states, confirmations, and error messages. Only
-  product and site names, DX7 cartridge titles, and the technical MIDI log stay untranslated.
+  product and site names, DX7 cartridge titles, the technical MIDI log, and the editor's
+  hardware-style panel abbreviations (such as RATIO, DTUNE, VEL, and R1/L1, whose accessible names
+  are translated) stay untranslated.
 - Never render `error.message` or browser error text. Give an error the user can act on a typed error
   or code in `src/lib/` and translate it, as `bankErrorMessage` does; show a translated fallback for
   anything else. Technical error text may appear only in a collapsed, labelled technical-details
@@ -148,12 +150,14 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
 - Prefer source-level `import()` at genuine interaction or data boundaries. Do not move initial code
   into eagerly imported vendor chunks to make the entry filename smaller.
+  Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
+  bundler-made chunk is expected, and the budget counts it because the entry imports it.
 - A rejected optional chunk must be contained and recoverable; stale deployment chunks must not
   crash the entire application.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
@@ -199,6 +203,10 @@ open everything an earlier release could have saved.
 
 - Prefer semantic HTML and native dialog behavior. Preserve Escape-to-close, modal semantics, focus
   placement/restoration, and keyboard activation.
+- While a dialog's action is in progress, keep the dialog open: block Escape with `onCancel` and
+  backdrop clicks, as the add-bank, import, and unsaved-changes dialogs do.
+- A component that can be rendered more than once takes its ARIA ids from `useId` rather than fixed
+  strings.
 - Interactive controls need stable accessible names. Preserve ARIA relationships and avoid nesting
   buttons, links, summaries, inputs, or other interactive elements.
 - If a feature body becomes lazy, keep its trigger eager. One activation must eventually open the
@@ -215,6 +223,10 @@ open everything an earlier release could have saved.
 - Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.
+- A library change that replaces or removes sounds (deleting a bank, restoring factory banks,
+  importing or loading over a bank) offers Undo in its notification through `undoToastOptions`. The
+  undo applies only while that change is still the latest (`undoChange`), and a dialog must not
+  promise an undo the app does not offer.
 - Continuous input is one undo step. Start a gesture on pointer down or key down and end it on
   pointer up, key up, and blur, as the sliders, knobs, and envelope points do. A preset or randomise
   that writes many parameters is also one step.
@@ -230,6 +242,9 @@ open everything an earlier release could have saved.
   claims plain keys must ignore Ctrl, Command, and Alt presses and close on Escape.
 - Closing a menu with Escape claims the key, so no view shortcut also runs, and moves focus back to
   the menu's toggle when focus was inside it.
+- A key chosen for its position, such as the piano's two-row note layout, is matched by
+  `KeyboardEvent.code` and labelled with the user's layout letter (`useKeyboardKeyLabel`). A key
+  chosen for its letter, such as Cmd/Ctrl + Z, is matched by `KeyboardEvent.key`.
 - Shortcut definitions are the single source: button tooltips and the help dialog read them, so they
   cannot drift. When a shortcut is added, changed, or removed, update the help dialog listing, the
   locale keys, and the keyboard shortcut list in `docs/user-guide.md` in the same change.

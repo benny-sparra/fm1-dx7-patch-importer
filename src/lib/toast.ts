@@ -1,6 +1,12 @@
 type ToastKind = 'success'
 
+export type ToastAction = {
+  label: string
+  onAction: () => void
+}
+
 export type ToastMessage = {
+  action?: ToastAction
   id: number
   kind: ToastKind
   message: string

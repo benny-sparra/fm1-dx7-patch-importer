@@ -3,7 +3,9 @@ import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_OPERATOR_COUNT,
   FM1_OPERATOR_PARAMETER_COUNT,
+  getGlobalParameterDefinition,
   getOperatorParameterDefinition,
+  type GlobalParameterId,
   type OperatorParameterId,
 } from '@/lib/fm1-parameters'
 
@@ -15,8 +17,6 @@ import {
 // The original never randomises pitch-modulation sensitivity because of a control-flow bug; this
 // implementation follows the documented intent instead.
 
-const PITCH_ENVELOPE_START = 126
-const ALGORITHM_INDEX = 134
 const NEUTRAL_PITCH_ENVELOPE = [99, 99, 99, 99, 50, 50, 50, 50] as const
 const TRANSPOSE_C3 = 24
 const DETUNE_CENTRE = 7
@@ -25,6 +25,14 @@ type Random = () => number
 
 function randomInteger(minimum: number, maximum: number, random: Random) {
   return minimum + Math.floor(random() * (maximum - minimum + 1))
+}
+
+const globalIndex = (id: GlobalParameterId) => getGlobalParameterDefinition(id).voiceIndex
+
+/** Any legal value of a global parameter, from its minimum to its maximum. */
+function randomGlobal(id: GlobalParameterId, random: Random) {
+  const { max, min } = getGlobalParameterDefinition(id)
+  return randomInteger(min, max, random)
 }
 
 /** True with probability 1 / `outcomes`. */
@@ -92,7 +100,7 @@ export function randomizeSound(parameters: Uint8Array, random: Random = Math.ran
   }
 
   const next = parameters.slice()
-  const algorithm = randomInteger(0, 31, random)
+  const algorithm = randomGlobal('global.algorithm', random)
   const carriers = carrierOperatorIds(algorithm)
 
   // DX7 voice data stores operator 6 first.
@@ -109,19 +117,21 @@ export function randomizeSound(parameters: Uint8Array, random: Random = Math.ran
   const pitchEnvelope = oneIn(8, random)
     ? Array.from({ length: 8 }, () => randomInteger(0, 99, random))
     : NEUTRAL_PITCH_ENVELOPE
-  next.set(pitchEnvelope, PITCH_ENVELOPE_START)
+  next.set(pitchEnvelope, globalIndex('global.pitchEnvelope.rate1'))
 
-  next[ALGORITHM_INDEX] = algorithm
-  next[135] = randomInteger(0, 7, random) // feedback
-  next[136] = randomInteger(0, 1, random) // oscillator sync
-  next[137] = randomInteger(0, 99, random) // LFO speed
-  next[138] = 0 // LFO delay
-  next[139] = randomInteger(0, 99, random) // LFO pitch-modulation depth
-  next[140] = randomInteger(0, 99, random) // LFO amplitude-modulation depth
-  next[141] = randomInteger(0, 1, random) // LFO key sync
-  next[142] = randomInteger(0, 5, random) // LFO wave
-  next[143] = oneIn(4, random) ? randomInteger(0, 7, random) : 0 // pitch-modulation sensitivity
-  next[144] = TRANSPOSE_C3
+  next[globalIndex('global.algorithm')] = algorithm
+  next[globalIndex('global.feedback')] = randomGlobal('global.feedback', random)
+  next[globalIndex('global.oscillatorSync')] = randomGlobal('global.oscillatorSync', random)
+  next[globalIndex('global.lfoSpeed')] = randomGlobal('global.lfoSpeed', random)
+  next[globalIndex('global.lfoDelay')] = 0
+  next[globalIndex('global.lfoPitchModDepth')] = randomGlobal('global.lfoPitchModDepth', random)
+  next[globalIndex('global.lfoAmpModDepth')] = randomGlobal('global.lfoAmpModDepth', random)
+  next[globalIndex('global.lfoKeySync')] = randomGlobal('global.lfoKeySync', random)
+  next[globalIndex('global.lfoWave')] = randomGlobal('global.lfoWave', random)
+  next[globalIndex('global.pitchModSensitivity')] = oneIn(4, random)
+    ? randomGlobal('global.pitchModSensitivity', random)
+    : 0
+  next[globalIndex('global.transpose')] = TRANSPOSE_C3
 
   return next
 }

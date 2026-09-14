@@ -1,13 +1,10 @@
 import { type ReactNode, type Ref, useEffect, useRef } from 'react'
 
+import { prefersReducedMotion } from '@/lib/reduced-motion'
 import { cn } from '@/lib/utils'
 
 export const scopeViewWidth = 300
 export const scopeViewHeight = 48
-
-const prefersReducedMotion = () =>
-  typeof window.matchMedia === 'function' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /**
  * Runs `step` every animation frame with the seconds since the last one, and

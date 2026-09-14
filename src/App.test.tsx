@@ -8,10 +8,11 @@ import '@/i18n'
 import App from '@/App'
 import { ToastProvider } from '@/components/ui/toast'
 
-const sendProgramChange = vi.hoisted(() => vi.fn())
+const sendProgramChange = vi.hoisted(() => vi.fn(() => true))
 const sendVoice = vi.hoisted(() => vi.fn(async () => true))
 const sendEffectSettings = vi.hoisted(() => vi.fn(async () => true))
 const addedVoice = vi.hoisted(() => ({ data: new Uint8Array(128), name: 'PAD' }))
+const pianoEffects = vi.hoisted(() => Uint8Array.from({ length: 24 }, (_, index) => index % 2))
 const loadPatchEditorPage = vi.hoisted(() =>
   vi.fn(() => Promise.reject(new TypeError('Failed to fetch dynamically imported module'))),
 )
@@ -22,7 +23,7 @@ vi.mock('@/hooks/use-midi', () => ({
 
 vi.mock('@/hooks/use-patch-library', () => ({
   usePatchLibrary: () => ({
-    effects: {},
+    effects: { 'patch-1': pianoEffects },
     patches: [
       { bank: 'A', family: 'Keys', id: 'patch-1', name: 'Piano', number: 1, program: 0 },
       { bank: 'E', family: 'DX7', id: 'patch-e1', name: 'Pad', number: 1 },
@@ -127,6 +128,26 @@ describe('App slot audition', () => {
 
     expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(0)
     expect(sendVoice).not.toHaveBeenCalled()
+  })
+
+  it('restores the saved effects of a slot in banks A to D after selecting its program', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    expect(sendEffectSettings).toHaveBeenCalledExactlyOnceWith(pianoEffects)
+    expect(sendProgramChange.mock.invocationCallOrder[0]).toBeLessThan(
+      sendEffectSettings.mock.invocationCallOrder[0],
+    )
+  })
+
+  it('does not send effects when the program of a slot in banks A to D was not selected', async () => {
+    sendProgramChange.mockReturnValueOnce(false)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    expect(sendEffectSettings).not.toHaveBeenCalled()
   })
 
   it('auditions an added bank slot through the FM1 edit buffer with its effects', async () => {

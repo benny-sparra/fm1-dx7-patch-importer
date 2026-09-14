@@ -59,6 +59,8 @@ const shortcutGroups = [
       },
       { action: 'help.shortcuts.clearSearch', shortcuts: [librarianShortcuts.clearSearch] },
       { action: 'help.shortcuts.openSlot', shortcuts: [librarianShortcuts.openSlot] },
+      { action: 'editor.undo', shortcuts: [librarianShortcuts.undo] },
+      { action: 'editor.redo', shortcuts: [librarianShortcuts.redo] },
     ],
   },
   {

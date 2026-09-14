@@ -135,7 +135,7 @@ clean result. Both commands block on high or critical advisories.
 ```text
 src/
 ├── components/       UI, MIDI controls, and patch-bank components
-├── data/             Patch metadata and bundled DX7 factory banks
+├── data/             Patch metadata and bundled FM-1 factory banks
 ├── hooks/            Patch-library, MIDI, and FM1 colourway state
 ├── i18n/             Localisation setup and translated interface/help text
 ├── lib/              DX7 SysEx parsing, MIDI transfer, and utilities

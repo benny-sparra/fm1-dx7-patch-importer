@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -61,8 +61,8 @@ describe('PianoKeyboardDialog note lifecycle', () => {
     const user = userEvent.setup()
     const { midi } = setup()
     await user.click(screen.getByRole('button', { name: 'Keyboard' }))
-    fireEvent.keyDown(window, { key: 'a' })
-    fireEvent.keyUp(window, { key: 'a' })
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
+    fireEvent.keyUp(window, { code: 'KeyA', key: 'a' })
     expect(midi.startNote).toHaveBeenCalledWith(48, 'C3')
     expect(midi.stopNote).toHaveBeenCalledWith(48)
   })
@@ -71,13 +71,13 @@ describe('PianoKeyboardDialog note lifecycle', () => {
     const user = userEvent.setup()
     const { midi, unmount } = setup()
     await user.click(screen.getByRole('button', { name: 'Keyboard' }))
-    fireEvent.keyDown(window, { key: 'a' })
-    fireEvent.keyDown(window, { key: 's' })
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
+    fireEvent.keyDown(window, { code: 'KeyS', key: 's' })
     fireEvent.blur(window)
     expect(midi.stopNote).toHaveBeenCalledWith(48)
     expect(midi.stopNote).toHaveBeenCalledWith(50)
 
-    fireEvent.keyDown(window, { key: 'd' })
+    fireEvent.keyDown(window, { code: 'KeyD', key: 'd' })
     unmount()
     expect(midi.stopNote).toHaveBeenCalledWith(52)
   })
@@ -93,7 +93,7 @@ describe('PianoKeyboardDialog keyboard ownership', () => {
 
   it('closes on Escape, releases held notes, and returns focus to its trigger', async () => {
     const { midi } = await openKeyboard()
-    fireEvent.keyDown(window, { key: 'a' })
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
 
     fireEvent.keyDown(window, { key: 'Escape' })
 
@@ -117,13 +117,13 @@ describe('PianoKeyboardDialog keyboard ownership', () => {
       }),
     ).toBe(true)
 
-    fireEvent.keyDown(window, { key: 'a' })
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
     expect(midi.startNote).toHaveBeenCalledWith(48, 'C3')
   })
 
   it('releases a held note when a modifier is pressed, so a missed key-up cannot leave it on', async () => {
     const { midi } = await openKeyboard()
-    fireEvent.keyDown(window, { key: 'a' })
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
 
     fireEvent.keyDown(window, { key: 'Meta', metaKey: true })
 
@@ -136,9 +136,66 @@ describe('PianoKeyboardDialog keyboard ownership', () => {
     otherDialog.setAttribute('open', '')
     document.body.append(otherDialog)
 
-    fireEvent.keyDown(window, { key: 'a' })
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
 
     expect(midi.startNote).not.toHaveBeenCalled()
     otherDialog.remove()
+  })
+})
+
+describe('PianoKeyboardDialog keyboard layouts', () => {
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'keyboard')
+  })
+
+  async function openKeyboard() {
+    const user = userEvent.setup()
+    const view = setup()
+    await user.click(screen.getByRole('button', { name: 'Keyboard' }))
+    return view
+  }
+
+  it('plays by key position, so an AZERTY keyboard keeps the two-row piano', async () => {
+    const { midi } = await openKeyboard()
+
+    // On AZERTY the key where QWERTY has W types z, and the key where QWERTY has Z types w.
+    fireEvent.keyDown(window, { code: 'KeyW', key: 'z' })
+    expect(midi.startNote).toHaveBeenCalledWith(49, 'C#3')
+    fireEvent.keyUp(window, { code: 'KeyW', key: 'z' })
+
+    fireEvent.keyDown(window, { code: 'KeyZ', key: 'w' })
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'q' })
+    expect(midi.startNote).toHaveBeenLastCalledWith(36, 'C2')
+  })
+
+  it('labels the keys with the letters of the user’s keyboard layout', async () => {
+    Object.defineProperty(navigator, 'keyboard', {
+      configurable: true,
+      value: {
+        getLayoutMap: vi.fn(
+          async () =>
+            new Map([
+              ['KeyA', 'q'],
+              ['KeyW', 'z'],
+              ['KeyZ', 'w'],
+            ]),
+        ),
+      },
+    })
+    await openKeyboard()
+
+    const octaveDown = screen.getByRole('button', { name: 'Shift octave down' })
+    expect(await within(octaveDown).findByText('W')).toBeTruthy()
+    expect(within(screen.getByRole('button', { name: 'Play C#3' })).getByText('Z')).toBeTruthy()
+    expect(within(screen.getByRole('button', { name: 'Play C3' })).getByText('Q')).toBeTruthy()
+  })
+
+  it('labels the keys with QWERTY letters when the layout is unknown', async () => {
+    await openKeyboard()
+
+    expect(
+      within(screen.getByRole('button', { name: 'Shift octave down' })).getByText('Z'),
+    ).toBeTruthy()
+    expect(within(screen.getByRole('button', { name: 'Play C#3' })).getByText('W')).toBeTruthy()
   })
 })

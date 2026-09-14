@@ -13,6 +13,11 @@ export type KeyboardShortcut = {
   /** Command on Apple platforms, Control elsewhere; either is accepted. */
   mod?: boolean
   shift?: boolean
+  /**
+   * A modified shortcut normally still runs while typing. Set this when a text field's own use of
+   * the key comes first, as undo does.
+   */
+  yieldsToTyping?: boolean
 }
 
 const typingElements = ['input', 'select', 'textarea']
@@ -77,9 +82,10 @@ export function shouldRunShortcut(
   if (dialogOwnsKey) return false
 
   // A modified shortcut is unambiguous, so it still works while typing a name.
-  if (shortcut.mod) return true
+  if (shortcut.mod && !shortcut.yieldsToTyping) return true
 
   if (isTypingTarget(event.target)) return false
+  if (shortcut.mod) return true
 
   // Escape closes an open header menu first.
   return !ownerDocument.querySelector('details[open]')
@@ -122,5 +128,8 @@ export const librarianShortcuts = {
   // Handled by the slot itself rather than the page, so it can act on the
   // slot the user is actually on. Defined here so the help dialog agrees.
   openSlot: { key: 'Enter' },
+  // Undo and redo the last library change. A text field keeps them for its own typing.
+  redo: { key: 'z', mod: true, shift: true, yieldsToTyping: true },
   search: { key: '/' },
+  undo: { key: 'z', mod: true, yieldsToTyping: true },
 } as const satisfies Record<string, KeyboardShortcut>

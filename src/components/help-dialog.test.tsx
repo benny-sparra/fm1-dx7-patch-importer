@@ -109,8 +109,9 @@ describe('HelpDialog shortcuts', () => {
 
     const panel = within(visiblePanel())
     expect(panel.getByText('⌘F')).toBeTruthy()
-    expect(panel.getByText('⌘Z')).toBeTruthy()
-    expect(panel.getByText('⌘⇧Z')).toBeTruthy()
+    // Undo and redo are listed for both the banks and the editor.
+    expect(panel.getAllByText('⌘Z')).toHaveLength(2)
+    expect(panel.getAllByText('⌘⇧Z')).toHaveLength(2)
     expect(panel.getByText('Enter')).toBeTruthy()
     // Escape clears the search in the banks and leaves the editor.
     expect(panel.getAllByText('Esc')).toHaveLength(2)
@@ -124,14 +125,14 @@ describe('HelpDialog shortcuts', () => {
     const panel = within(visiblePanel())
     expect(panel.getByText('Ctrl+F')).toBeTruthy()
     expect(panel.getByText('Ctrl+S')).toBeTruthy()
-    expect(panel.getByText('Ctrl+Shift+Z')).toBeTruthy()
+    expect(panel.getAllByText('Ctrl+Shift+Z')).toHaveLength(2)
   })
 
   it('pairs every listed key with the action it performs', async () => {
     const user = await openHelp()
     await openShortcuts(user)
 
-    expect(within(visiblePanel()).getAllByRole('term')).toHaveLength(7)
-    expect(within(visiblePanel()).getAllByRole('definition')).toHaveLength(7)
+    expect(within(visiblePanel()).getAllByRole('term')).toHaveLength(9)
+    expect(within(visiblePanel()).getAllByRole('definition')).toHaveLength(9)
   })
 })

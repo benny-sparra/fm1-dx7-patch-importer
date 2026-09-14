@@ -1,5 +1,6 @@
 export type PianoKey = {
-  computerKey?: string
+  /** The physical key that plays this note, as `KeyboardEvent.code`. */
+  computerKeyCode?: string
   label: string
   note: number
   kind: 'white' | 'black'
@@ -17,21 +18,33 @@ const blackKeyMap = [
   { name: 'G#', step: 8, position: 4 },
   { name: 'A#', step: 10, position: 5 },
 ]
+/*
+  The note keys are chosen for where they sit, two rows like a piano, so they are matched by
+  `KeyboardEvent.code` and keep their places on AZERTY, QWERTZ and other layouts.
+*/
 const computerKeyMap = [
-  { key: 'a', step: 0 },
-  { key: 'w', step: 1 },
-  { key: 's', step: 2 },
-  { key: 'e', step: 3 },
-  { key: 'd', step: 4 },
-  { key: 'f', step: 5 },
-  { key: 't', step: 6 },
-  { key: 'g', step: 7 },
-  { key: 'y', step: 8 },
-  { key: 'h', step: 9 },
-  { key: 'u', step: 10 },
-  { key: 'j', step: 11 },
-  { key: 'k', step: 12 },
+  { code: 'KeyA', step: 0 },
+  { code: 'KeyW', step: 1 },
+  { code: 'KeyS', step: 2 },
+  { code: 'KeyE', step: 3 },
+  { code: 'KeyD', step: 4 },
+  { code: 'KeyF', step: 5 },
+  { code: 'KeyT', step: 6 },
+  { code: 'KeyG', step: 7 },
+  { code: 'KeyY', step: 8 },
+  { code: 'KeyH', step: 9 },
+  { code: 'KeyU', step: 10 },
+  { code: 'KeyJ', step: 11 },
+  { code: 'KeyK', step: 12 },
 ]
+
+export const octaveDownKeyCode = 'KeyZ'
+export const octaveUpKeyCode = 'KeyX'
+
+/** The letter a physical key carries on a QWERTY keyboard, such as `A` for `KeyA`. */
+export function qwertyKeyLabel(code: string) {
+  return code.replace(/^Key/, '')
+}
 
 export function makePianoKeys(baseOctave: number) {
   const baseNote = (baseOctave + 1) * 12
@@ -42,7 +55,7 @@ export function makePianoKeys(baseOctave: number) {
     const note = (octave + 1) * 12 + whiteKeySteps[noteIndex]
 
     return {
-      computerKey: computerKeyMap.find((mapping) => mapping.step === note - baseNote)?.key,
+      computerKeyCode: computerKeyMap.find((mapping) => mapping.step === note - baseNote)?.code,
       kind: 'white',
       label: `${whiteKeyNames[noteIndex]}${octave}`,
       note,
@@ -52,9 +65,9 @@ export function makePianoKeys(baseOctave: number) {
   const blackKeys = [0, 1].flatMap((octaveOffset) => {
     const octave = baseOctave + octaveOffset
     return blackKeyMap.map((key): PianoKey => ({
-      computerKey: computerKeyMap.find(
+      computerKeyCode: computerKeyMap.find(
         (mapping) => mapping.step === (octave + 1) * 12 + key.step - baseNote,
-      )?.key,
+      )?.code,
       kind: 'black',
       label: `${key.name}${octave}`,
       note: (octave + 1) * 12 + key.step,
@@ -67,7 +80,7 @@ export function makePianoKeys(baseOctave: number) {
 
 export function mapComputerPianoKeys(keys: readonly PianoKey[]) {
   return keys.reduce((mapping, key) => {
-    if (key.computerKey) mapping.set(key.computerKey, key)
+    if (key.computerKeyCode) mapping.set(key.computerKeyCode, key)
     return mapping
   }, new Map<string, PianoKey>())
 }

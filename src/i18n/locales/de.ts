@@ -8,19 +8,19 @@ export default {
     bankStep2: 'Wähle mit Regler 1, 2, 3 oder 4 die Zielbank A, B, C oder D.',
     bankStep3: 'Der FM1 speichert die 32 Sounds nach kurzer Wartezeit automatisch.',
     bankImage: 'Vorderseite des M-VAVE FM1 mit Display und vier nummerierten Reglern',
-    dontShow: 'Nicht erneut anzeigen',
+    dontShow: 'In dieser Sitzung nicht erneut anzeigen',
     midiTitle: 'MIDI verbinden, um diese Bank zu senden',
     midiIntro:
       'Der FM1 muss als MIDI-Ausgang verbunden sein, bevor eine Bank gesendet werden kann.',
     midiClose: 'MIDI-Verbindungshinweis schließen',
     midiSteps:
       'Aktiviere MIDI online, erlaube den MIDI-Zugriff und wähle den FM1-MIDI-Ausgang in den Einstellungen.',
-    restoreTitle: 'Yamaha-DX7-Werksbänke wiederherstellen?',
+    restoreTitle: 'FM-1-Werksbänke wiederherstellen?',
     restoreIntro:
       'Dadurch werden alle vier lokalen Bänke ersetzt. Die Wiederherstellung kann sofort rückgängig gemacht werden.',
     restoreClose: 'Wiederherstellung schließen',
     restoreDetails:
-      'Bank A, B, C und D werden mit Yamaha DX7 ROM 1A, ROM 1B, ROM 2A bzw. ROM 2B wiederhergestellt.',
+      'Bank A, B, C und D werden mit den FM-1-Bänken 1, 2, 3 bzw. 4 wiederhergestellt, den Sounds, mit denen der FM1 ausgeliefert wird.',
     restoreAction: 'Vier Bänke wiederherstellen',
     sourcesOpen: 'Sound-Bänke zum Herunterladen finden.',
     sourcesTitle: 'DX7-Sound-Bänke finden',
@@ -281,6 +281,7 @@ export default {
   toasts: {
     notifications: 'Abgeschlossene Aktionen',
     dismiss: 'Benachrichtigung schließen',
+    undo: 'Rückgängig',
     bankImported: 'Sounds in „{{bank}}“ importiert.',
     bankCreated: '„{{bank}}“ wurde erstellt.',
     bankDeleted: '„{{bank}}“ wurde gelöscht.',
@@ -359,7 +360,7 @@ export default {
     steps: {
       libraryTitle: 'Bibliothek aufbauen',
       libraryBody:
-        'Beginne mit vier klassischen Yamaha-DX7-Werksbänken und importiere, bearbeite oder sortiere ihre Sounds.',
+        'Beginne mit den vier Werksbänken des FM1 und importiere, bearbeite oder sortiere ihre Sounds.',
       editTitle: 'Bearbeiten und organisieren',
       editBody:
         'Öffne einen Sound im Voice-Editor. Speichere ihn in der Browser-Bibliothek oder stelle die gespeicherte Version auf dem FM1 wieder her.',
@@ -636,7 +637,11 @@ export default {
     delete: '{{name}} löschen',
     deleteAction: 'Bank löschen',
     deleteConfirm: '„{{name}}“ dauerhaft aus diesem Browser löschen?',
+    loadConfirm: 'Die 32 Sounds in „{{bank}}“ durch „{{name}}“ ersetzen?',
+    replaceAction: 'Sounds ersetzen',
     operationFailed: 'Der Vorgang für die gespeicherte Bank ist fehlgeschlagen.',
+    openFailed:
+      'Die gespeicherten Bänke konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     loadFailed: 'Gespeicherte Bänke konnten nicht aus dem Browserspeicher geladen werden.',
     damagedBanks:
       'Einige gespeicherte Bänke konnten nicht gelesen werden und sind ausgeblendet. Sie bleiben unverändert im Browserspeicher.',

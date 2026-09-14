@@ -193,3 +193,54 @@ describe('usePatchLibrary changes', () => {
     expect(hook.result.current.bankNames).toEqual({ A: 'Stage' })
   })
 })
+
+describe('usePatchLibrary undo from a notification', () => {
+  it('undoes a change while it is still the latest', async () => {
+    const hook = await renderLoadedLibrary()
+    let changed: ReturnType<typeof hook.result.current.deleteBank> = null
+    act(() => {
+      changed = hook.result.current.deleteBank('B')
+    })
+    if (!changed) throw new Error('Expected the bank to be deleted.')
+    const deleted = changed
+
+    let undone = false
+    act(() => {
+      undone = hook.result.current.undoChange(deleted)
+    })
+
+    expect(undone).toBe(true)
+    expect(hook.result.current.workspaceBanks).toEqual(['A', 'B', 'C', 'D'])
+  })
+
+  it('leaves a later change alone when an older notification’s Undo is chosen', async () => {
+    const hook = await renderLoadedLibrary()
+    let changed: ReturnType<typeof hook.result.current.deleteBank> = null
+    act(() => {
+      changed = hook.result.current.deleteBank('B')
+    })
+    if (!changed) throw new Error('Expected the bank to be deleted.')
+    const deleted = changed
+    act(() => hook.result.current.renameBank('A', 'Stage'))
+
+    let undone = true
+    act(() => {
+      undone = hook.result.current.undoChange(deleted)
+    })
+
+    expect(undone).toBe(false)
+    expect(hook.result.current.bankNames).toEqual({ A: 'Stage' })
+    expect(hook.result.current.workspaceBanks).toEqual(['A', 'B', 'C'])
+  })
+
+  it('reports no change when a deletion does not happen', async () => {
+    const hook = await renderLoadedLibrary()
+    let changed: ReturnType<typeof hook.result.current.deleteBank> = null
+
+    act(() => {
+      changed = hook.result.current.deleteBank('Z')
+    })
+
+    expect(changed).toBeNull()
+  })
+})

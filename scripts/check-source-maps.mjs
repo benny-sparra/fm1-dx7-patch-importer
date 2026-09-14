@@ -125,11 +125,16 @@ for (const mapFile of mapFiles) {
     }
   }
 
-  const resolvedMapping = new SourceMap(sourceMap).findEntry(0, Number.MAX_SAFE_INTEGER)
-  if (
-    !resolvedMapping.originalSource ||
-    !sourceMap.sources.includes(resolvedMapping.originalSource)
-  ) {
+  // Vite can open a chunk with a generated line of its own, such as the __vite__mapDeps preload
+  // list, that has no original source. So at least one generated line must resolve to a listed
+  // source, rather than specifically the first.
+  const consumer = new SourceMap(sourceMap)
+  const generatedLineCount =
+    typeof sourceMap.mappings === 'string' ? sourceMap.mappings.split(';').length : 0
+  const resolvesGeneratedCode = Array.from({ length: generatedLineCount }, (_, line) =>
+    consumer.findEntry(line, Number.MAX_SAFE_INTEGER),
+  ).some((entry) => entry.originalSource && sourceMap.sources.includes(entry.originalSource))
+  if (!resolvesGeneratedCode) {
     throw new Error(`${path.relative(outputDirectory, mapFile)} does not resolve generated code.`)
   }
 }

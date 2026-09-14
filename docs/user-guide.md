@@ -9,9 +9,13 @@ After the first successful connection, the app remembers the selected MIDI ports
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 
+Clicking a slot in banks A–D selects that hardware slot and then sends the patch's saved FM1 effects, because a DX7 bank transfer does not carry effects. Clicking a slot in an added bank sends its voice and effects to the edit buffer.
+
 To send one sound instead, open its patch in the editor. For a patch in banks A–D the app first selects the matching hardware slot; it then sends the voice and its FM1 effects to the edit buffer; hold **SAVE** on the FM1 to store it on the hardware.
 
-To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. Replacing a populated bank requires confirmation. The same menu lets you edit the bank title and description, download the bank, or delete it when more than one workspace bank exists. Use the menu in the patch-bank header to download all loaded banks or restore factory banks A–D, which also resets their titles and descriptions. Additional workspace banks are left intact. If a bank is empty, you can load the built-in demo bank instead.
+To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. Replacing a populated bank requires confirmation. The same menu lets you edit the bank title and description, download the bank, or delete it when more than one workspace bank exists. Use the menu in the patch-bank header to download all loaded banks or restore the FM-1 factory banks into A–D, which also resets their titles and descriptions. Additional workspace banks are left intact. Deleting a bank, restoring the factory banks, importing over a bank, or loading a saved bank can be undone from its notification or with `Cmd`/`Ctrl` + `Z`.
+
+Each bank's menu also offers **Save bank**, which keeps a named copy of its 32 sounds and their FM1 effects in this browser, and **Load bank**, which lists your saved banks. From that list you can load one into the bank, edit its name and description, make a copy, download it as a `.syx` file, or delete it. Loading into a bank that already has sounds asks first. If a bank is empty, you can load the built-in demo bank instead.
 
 The interface follows the browser language on first use when it is supported. Change it later in **Settings**; the selection is remembered. Settings also provides separate channels for notes/program changes and effects because the FM1 defaults its effects controls to MIDI channel 2.
 
@@ -35,12 +39,14 @@ shortcut in its tooltip for the current platform.
 
 In the patch banks:
 
-| Shortcut           | Action                                                      |
-| ------------------ | ----------------------------------------------------------- |
-| `/`                | Jump to the search field                                    |
-| `Cmd`/`Ctrl` + `F` | Jump to the search field, selecting whatever it holds       |
-| `Esc`              | Clear the search                                            |
-| `Enter`            | Play the focused slot, then open the lit slot in the editor |
+| Shortcut                     | Action                                                      |
+| ---------------------------- | ----------------------------------------------------------- |
+| `/`                          | Jump to the search field                                    |
+| `Cmd`/`Ctrl` + `F`           | Jump to the search field, selecting whatever it holds       |
+| `Esc`                        | Clear the search                                            |
+| `Enter`                      | Play the focused slot, then open the lit slot in the editor |
+| `Cmd`/`Ctrl` + `Z`           | Undo the last change to the patch banks                     |
+| `Cmd`/`Ctrl` + `Shift` + `Z` | Redo the undone change                                      |
 
 In the voice editor:
 
@@ -55,7 +61,8 @@ These act on the view as a whole and stay out of the way of everything else: the
 a dialog is open (shortcuts that take a modifier still work while only the floating piano keyboard
 is open), `Esc` closes an open menu before the view reacts to it, and a shortcut that takes
 a modifier still works while a text field has focus, so `Cmd`/`Ctrl` + `S` saves without leaving the
-patch-name field. Bare keys are left to whatever is being typed into, so `/` and `Esc` behave
+patch-name field. Undo and redo in the patch banks are the exception: in a text field they undo your
+typing instead. Bare keys are left to whatever is being typed into, so `/` and `Esc` behave
 normally inside the search field, where `Esc` clears it.
 
 `Enter` gives the keyboard the route the mouse already had through double-click: it plays an unlit
@@ -72,8 +79,10 @@ has focus: because selecting one plays it on the FM1, that waits for
 `Enter`. Each slot's grip handle stays separately reachable for keyboard reordering.
 
 The on-screen piano plays from the computer keyboard while it is open, using the usual two-row
-layout: `A`, `W`, `S`, `E`, `D`, `F`, `T`, `G`, `Y`, `H`, `U`, `J`, `K` from the root note upwards,
-with `Z` and `X` shifting the octave down and up. `Esc` closes it. Keys pressed with `Cmd`/`Ctrl`
+layout: on a QWERTY keyboard `A`, `W`, `S`, `E`, `D`, `F`, `T`, `G`, `Y`, `H`, `U`, `J`, `K` from the
+root note upwards, with `Z` and `X` shifting the octave down and up. The keys keep those positions
+on other layouts, such as AZERTY or QWERTZ, and the on-screen keys show the letters your keyboard
+types. `Esc` closes it. Keys pressed with `Cmd`/`Ctrl`
 or `Alt` are left to the browser and the view, so undo and save still work while it is open, and
 pressing one releases any note held from the computer keyboard.
 

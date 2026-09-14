@@ -51,6 +51,7 @@ export function FocusedOperatorPanel({
   const coarseParameter = getOperatorParameterDefinition('operator.frequency.coarse')
   const fineParameter = getOperatorParameterDefinition('operator.frequency.fine')
   const detuneParameter = getOperatorParameterDefinition('operator.detune')
+  const envelopeMax = getOperatorParameterDefinition('operator.envelope.rate1').max
   const control = (
     label: string,
     id: OperatorParameterId,
@@ -120,8 +121,8 @@ export function FocusedOperatorPanel({
         levels={Array.from(parameters.slice(operatorBase + 4, operatorBase + 8))}
         onChange={(rate, level, point) => {
           applyEdits([
-            [operatorBase + point, rate, 0, 99],
-            [operatorBase + 4 + point, level, 0, 99],
+            [operatorBase + point, rate, 0, envelopeMax],
+            [operatorBase + 4 + point, level, 0, envelopeMax],
           ])
         }}
         onGestureEnd={endGesture}
@@ -162,7 +163,7 @@ export function FocusedOperatorPanel({
             helpText={t('controlHelp.coarse')}
             key={`${selectedOperator}-18`}
             label={t('ui.coarse')}
-            max={31}
+            max={coarseParameter.max}
             onChange={(value) =>
               setParameter(operatorIndex('operator.frequency.coarse'), value, coarseParameter.max)
             }
@@ -174,7 +175,7 @@ export function FocusedOperatorPanel({
             helpText={t('controlHelp.fine')}
             key={`${selectedOperator}-19`}
             label={t('ui.fine')}
-            max={99}
+            max={fineParameter.max}
             onChange={(value) =>
               setParameter(operatorIndex('operator.frequency.fine'), value, fineParameter.max)
             }
@@ -186,8 +187,8 @@ export function FocusedOperatorPanel({
             helpText={t('controlHelp.detune')}
             key={`${selectedOperator}-20`}
             label={t('ui.detune')}
-            max={7}
-            min={-7}
+            max={storedToDisplayValue(detuneParameter, detuneParameter.max)}
+            min={storedToDisplayValue(detuneParameter, detuneParameter.min)}
             onChange={(value) =>
               setParameter(
                 operatorIndex('operator.detune'),

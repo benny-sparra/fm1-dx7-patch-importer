@@ -8,9 +8,19 @@ import { useState } from 'react'
 import { WorkspaceBankSelector, type WorkspaceBankSelectorBank } from './workspace-bank-selector'
 
 const banks: WorkspaceBankSelectorBank[] = [
-  { description: 'Warm performance sounds', id: 'A', name: 'Studio Favourites' },
-  { description: 'Classic electric pianos', id: 'B', name: 'Electric Keys' },
-  { id: 'C', name: 'Digital Textures' },
+  {
+    actionsLabel: 'Actions for Studio Favourites',
+    description: 'Warm performance sounds',
+    id: 'A',
+    name: 'Studio Favourites',
+  },
+  {
+    actionsLabel: 'Actions for Electric Keys',
+    description: 'Classic electric pianos',
+    id: 'B',
+    name: 'Electric Keys',
+  },
+  { actionsLabel: 'Actions for Digital Textures', id: 'C', name: 'Digital Textures' },
 ]
 
 afterEach(cleanup)
@@ -44,7 +54,10 @@ function SelectorHarness({ initialBanks = banks }: { initialBanks?: WorkspaceBan
       <output aria-label="Displayed bank">{selectedBank}</output>
       <button
         onClick={() =>
-          setAvailableBanks((current) => [...current, { id: 'D', name: 'New Arrivals' }])
+          setAvailableBanks((current) => [
+            ...current,
+            { actionsLabel: 'Actions for New Arrivals', id: 'D', name: 'New Arrivals' },
+          ])
         }
         type="button"
       >
