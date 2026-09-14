@@ -815,6 +815,16 @@ is justified: the published map agrees with the implementation. The remaining V1
 persistence, interaction/routing, scaling/display units, and above-range behaviour; they do not
 authorize a correction without further targeted evidence.
 
+On 2026-09-14, an informal run on a connected FM1 (firmware version not recorded) found that
+effects sent to the edit buffer over CC were no longer audible after the library page selected
+another A–D slot and then the edited slot again with Program Changes. Once the library page sent
+the patch's saved effects after each Program Change, they were retained. This is **Likely**
+evidence that effect state does not follow a program across a Program Change, so the browser
+library resends saved effects when it selects a slot. It does not settle whether effects reset,
+load from the program, or persist through a front-panel patch change, power cycle, or stock
+**SAVE**; see the 2026-09-14 entry in
+[`docs/fx-003-hardware-verification.md`](fx-003-hardware-verification.md).
+
 ---
 
 # 8. Storage
