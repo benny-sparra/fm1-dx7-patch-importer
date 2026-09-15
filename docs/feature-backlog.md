@@ -76,6 +76,27 @@ bringing it back, find out why it was removed. Without device readback it can on
 browser last sent, never what is on the FM1, so its wording must not suggest the two are in sync.
 A full sync workflow with confirmation prompts was judged too complex for what it can promise.
 
+### Effect routing order
+
+The FM1 is believed to let the order of the effects chain (filter, reverb, delay, distortion,
+chorus, phaser) be changed, for example putting distortion before or after the filter. An editor
+control for this, such as a reorderable list on the effects panel, would make that easy to try.
+
+This is not yet non-protocol work. The published CC map covers only CC 0–23 (the per-effect
+switches and parameters), and `docs/fm1-research.md` lists interaction/routing as unconfirmed on
+V15. Before it can be built:
+
+- Find how routing order is set: a documented CC, an FM1 menu setting, or vendor traffic. Follow
+  the hardware research discipline in `AGENTS.md` and record the result in `docs/fm1-research.md`.
+  Do not send guessed CCs or vendor command IDs.
+- Confirm by listening that order actually changes the sound, using the cross-block order test in
+  `docs/fx-003-hardware-verification.md`, and find whether the order is per patch or global, and
+  whether it persists.
+- Once known, move the item to [the roadmap](fm1-roadmap.md) or into [Worth doing](#worth-doing).
+  If order is per patch, storing it is a new field in the saved effect state, which must follow the
+  legacy-data rules (optional on read, default to the stock order).
+- It pairs with [Effect presets](#worth-doing): a preset could set the order as well as the values.
+
 ## Decided against
 
 - **Tags, ratings, and favourites.** New stored fields to support forever, for little benefit with
