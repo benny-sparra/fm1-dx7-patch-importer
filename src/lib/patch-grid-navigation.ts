@@ -57,3 +57,13 @@ export function resolveGridNavigation(
       return last
   }
 }
+
+/**
+ * Where a key moves focus in a grid, or null when it is not a movement key or nothing in the grid
+ * has focus. The row layout is read only once the key is known to move.
+ */
+export function resolveGridKey(key: string, index: number, readTops: () => readonly number[]) {
+  if (!isGridNavigationKey(key) || index < 0) return null
+  const tops = readTops()
+  return resolveGridNavigation(key, index, tops.length, countGridColumns(tops))
+}

@@ -11,6 +11,7 @@ import {
   type NamedBank,
 } from '@/lib/named-bank'
 import {
+  copyVoice as copyLibraryVoice,
   createWorkspaceBank,
   deleteWorkspaceBank,
   emptyPatchLibrary,
@@ -251,6 +252,12 @@ export function usePatchLibrary() {
     [commit],
   )
 
+  const copyVoice = useCallback(
+    (sourceId: string, bank: string, slot: number) =>
+      commit((current) => copyLibraryVoice(current, sourceId, bank, slot)),
+    [commit],
+  )
+
   const deleteBank = useCallback(
     (bank: string) => commit((current) => deleteWorkspaceBank(current, bank)),
     [commit],
@@ -362,6 +369,7 @@ export function usePatchLibrary() {
     canRedo: history.future.length > 0,
     canUndo: history.past.length > 0,
     copyNamedBank,
+    copyVoice,
     continueWithoutWorkspaceSaving,
     deleteNamedBank,
     deleteBank,

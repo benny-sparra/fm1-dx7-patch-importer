@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addWorkspaceBank,
   clearLibraryBank,
+  copyVoice,
   createWorkspaceBank,
   deleteWorkspaceBank,
   emptyPatchLibrary,
@@ -20,6 +21,7 @@ import {
   renameVoice,
   updateBankInformation,
   voiceId,
+  WorkspaceBankUnavailableError,
   workspaceBankAfterDeletion,
 } from '@/lib/patch-library'
 import {
@@ -383,5 +385,72 @@ describe('restoring factory banks', () => {
 
     expect(restored.bankNames).toEqual({ E: 'Leads' })
     expect(restored.bankDescriptions).toEqual({ E: 'My leads' })
+  })
+})
+
+describe('copying a voice', () => {
+  function libraryWithBanks() {
+    const voices = makeDemoVoices()
+    const loaded = importVoices(importVoices(emptyPatchLibrary(), 'A', voices), 'B', voices)
+    const effects = makeDefaultFm1Effects()
+    effects[0] = 1
+    return { ...loaded, effects: { ...loaded.effects, [voiceId('A', 1)]: effects } }
+  }
+
+  it('replaces the target slot with the source voice and its effects', () => {
+    const library = libraryWithBanks()
+
+    const copied = copyVoice(library, voiceId('A', 1), 'B', 5)
+
+    expect(copied.voices[voiceId('B', 5)].data).toEqual(library.voices[voiceId('A', 1)].data)
+    expect(copied.voices[voiceId('B', 5)].name).toBe(library.voices[voiceId('A', 1)].name)
+    expect(copied.effects[voiceId('B', 5)]).toEqual(library.effects[voiceId('A', 1)])
+  })
+
+  it('leaves the source and every other slot unchanged', () => {
+    const library = libraryWithBanks()
+
+    const copied = copyVoice(library, voiceId('A', 1), 'B', 5)
+
+    expect(copied.voices[voiceId('A', 1)]).toBe(library.voices[voiceId('A', 1)])
+    expect(copied.voices[voiceId('B', 4)]).toBe(library.voices[voiceId('B', 4)])
+    expect(library.voices[voiceId('B', 5)].name).not.toBe(copied.voices[voiceId('B', 5)].name)
+  })
+
+  it('gives the copy its own voice and effect data', () => {
+    const library = libraryWithBanks()
+
+    const copied = copyVoice(library, voiceId('A', 1), 'A', 2)
+
+    expect(copied.voices[voiceId('A', 2)]).not.toBe(library.voices[voiceId('A', 1)])
+    expect(copied.voices[voiceId('A', 2)].data).not.toBe(library.voices[voiceId('A', 1)].data)
+    expect(copied.effects[voiceId('A', 2)]).not.toBe(library.effects[voiceId('A', 1)])
+  })
+
+  it('reports no change when a voice is copied onto its own slot', () => {
+    const library = libraryWithBanks()
+
+    expect(copyVoice(library, voiceId('A', 1), 'A', 1)).toBe(library)
+  })
+
+  it('reports no change when the source slot is empty', () => {
+    const library = importVoices(emptyPatchLibrary(), 'B', makeDemoVoices())
+
+    expect(copyVoice(library, voiceId('A', 1), 'B', 1)).toBe(library)
+  })
+
+  it('rejects a target bank that is missing or has no sounds', () => {
+    const library = libraryWithBanks()
+
+    expect(() => copyVoice(library, voiceId('A', 1), 'C', 1)).toThrow(WorkspaceBankUnavailableError)
+    expect(() => copyVoice(library, voiceId('A', 1), 'Z', 1)).toThrow(WorkspaceBankUnavailableError)
+  })
+
+  it('rejects a slot outside the bank', () => {
+    const library = libraryWithBanks()
+
+    for (const slot of [0, 33, 1.5]) {
+      expect(() => copyVoice(library, voiceId('A', 1), 'B', slot)).toThrow(RangeError)
+    }
   })
 })

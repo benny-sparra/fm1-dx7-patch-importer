@@ -4,7 +4,7 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import '@/i18n'
+import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { type MidiController } from '@/hooks/use-midi'
@@ -42,6 +42,7 @@ const library = {
   addBank: vi.fn(),
   canRedo: false,
   canUndo: true,
+  copyVoice: vi.fn(),
   bankDescriptions: {},
   bankNames: { A: 'Studio Favourites', B: 'Electric Keys' },
   deleteBank: vi.fn(),
@@ -100,11 +101,11 @@ describe('LibrarianPage bank selection', () => {
 })
 
 describe('LibrarianPage slot actions', () => {
-  it('plays a slot on click, opens it on double click, and edits the lit slot', async () => {
+  it('plays a slot on click, opens it on double click, and edits it from its menu', async () => {
     const user = userEvent.setup()
     const onEditPatch = vi.fn()
     const onSelectPatch = vi.fn()
-    const { rerender } = render(
+    render(
       <ToastProvider>
         <LibrarianPage
           activePatchId=""
@@ -117,8 +118,6 @@ describe('LibrarianPage slot actions', () => {
       </ToastProvider>,
     )
 
-    expect(screen.getByRole('button', { name: 'Edit' }).hasAttribute('disabled')).toBe(true)
-
     await user.click(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }))
     expect(onSelectPatch).toHaveBeenCalledWith(library.patches[0])
     expect(onEditPatch).not.toHaveBeenCalled()
@@ -127,20 +126,11 @@ describe('LibrarianPage slot actions', () => {
     expect(onEditPatch).toHaveBeenCalledWith(library.patches[0])
 
     onEditPatch.mockClear()
-    rerender(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId="bank-A-1"
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={onEditPatch}
-          onSelectPatch={onSelectPatch}
-        />
-      </ToastProvider>,
-    )
-    await user.click(screen.getByRole('button', { name: 'Edit A01' }))
-    expect(onEditPatch).toHaveBeenCalledWith(library.patches[0])
+    onSelectPatch.mockClear()
+    await user.click(screen.getByRole('button', { name: 'Actions for Alpha Piano' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Edit' }))
+    expect(onEditPatch).toHaveBeenCalledExactlyOnceWith(library.patches[0])
+    expect(onSelectPatch).not.toHaveBeenCalled()
   })
 })
 
@@ -745,5 +735,57 @@ describe('LibrarianPage saved banks', () => {
 
     expect(await screen.findByRole('heading', { name: 'My saved banks' })).toBeTruthy()
     expect(screen.getAllByRole('button', { name: 'Save bank' }).length).toBeGreaterThan(0)
+  })
+})
+
+describe('LibrarianPage copying a sound', () => {
+  afterEach(async () => {
+    await setLocale('en')
+  })
+
+  function renderLibrarian(activePatchId: string) {
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId={activePatchId}
+          library={library}
+          midi={midi}
+          onBankDeleted={vi.fn()}
+          onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+    return userEvent.setup()
+  }
+
+  it('copies a slot from its menu and offers to undo it from the notification', async () => {
+    const changed = { workspaceBanks: ['A', 'B'] }
+    vi.mocked(library.copyVoice).mockReturnValueOnce(changed as never)
+    const user = renderLibrarian('')
+
+    await user.click(screen.getByRole('button', { name: 'Actions for Alpha Piano' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Copy to…' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Copy Alpha Piano' })
+    await user.click(within(dialog).getByRole('button', { name: 'Replace B01' }))
+
+    expect(library.copyVoice).toHaveBeenCalledExactlyOnceWith('bank-A-1', 'B', 1)
+    expect(screen.getByText('Copied “Alpha Piano” to B01 in “Electric Keys”.')).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(library.undoChange).toHaveBeenCalledExactlyOnceWith(changed)
+  })
+
+  it('reports the copy in the interface language', async () => {
+    vi.mocked(library.copyVoice).mockReturnValueOnce({} as never)
+    await setLocale('de')
+    const user = renderLibrarian('bank-A-1')
+
+    await user.click(screen.getByRole('button', { name: 'Aktionen für Alpha Piano' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Kopieren nach…' }))
+    await user.click(await screen.findByRole('button', { name: 'B01 ersetzen' }))
+
+    expect(
+      screen.getByText('„Alpha Piano“ wurde nach B01 in „Electric Keys“ kopiert.'),
+    ).toBeTruthy()
   })
 })

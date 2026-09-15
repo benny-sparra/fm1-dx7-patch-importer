@@ -9,10 +9,13 @@ import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
 import { patchSlotCode } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
 
+import { PatchSlotMenu } from './patch-slot-menu'
+
 type PatchButtonProps = {
   disabled?: boolean
   disabledTitle?: string
   isActive?: boolean
+  onCopy?: (patch: Patch) => void
   onEdit?: (patch: Patch) => void
   /** Arrow-key navigation across the grid, owned by the grid itself. */
   onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
@@ -29,6 +32,7 @@ export function PatchButton({
   disabled = false,
   disabledTitle,
   isActive = false,
+  onCopy,
   onEdit,
   onNavigate,
   onSelect,
@@ -115,7 +119,7 @@ export function PatchButton({
           {...sortable.attributes}
           {...sortable.listeners}
           aria-label={t('banks.reorder', { name: patch.name })}
-          className="z-[1] -my-1 -mr-2 -ml-1 grid size-6 shrink-0 cursor-grab touch-none place-items-center text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] active:cursor-grabbing"
+          className="z-[1] -my-1 -mr-2 -ml-4 grid size-6 shrink-0 cursor-grab touch-none place-items-center text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] active:cursor-grabbing"
           title={t('banks.reorderTitle')}
           type="button"
         >
@@ -124,7 +128,7 @@ export function PatchButton({
       ) : (
         <span
           aria-hidden="true"
-          className="-my-1 -mr-2 -ml-1 grid size-6 shrink-0 place-items-center text-[var(--crt-line-dk)]"
+          className="-my-1 -mr-2 -ml-4 grid size-6 shrink-0 place-items-center text-[var(--crt-line-dk)]"
         >
           <GripVertical className="size-3.5" />
         </span>
@@ -148,14 +152,14 @@ export function PatchButton({
       >
         {patch.name}
       </span>
-      <span
-        aria-hidden="true"
-        className="crt-led pointer-events-none shrink-0"
-        data-state={isActive ? 'on' : 'off'}
-        style={
-          isActive ? { background: 'var(--crt-led)', boxShadow: '0 0 8px var(--crt-led)' } : {}
-        }
-      />
+      {/* Above the slot's own button, like the grip, so opening it does not also play the slot. */}
+      {!disabled && (onEdit || onCopy) ? (
+        <PatchSlotMenu
+          name={patch.name}
+          onCopy={onCopy && (() => onCopy(patch))}
+          onEdit={onEdit && (() => onEdit(patch))}
+        />
+      ) : null}
       {isActive ? <span className="sr-only">{t('banks.auditioning')}</span> : null}
     </div>
   )

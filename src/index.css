@@ -907,17 +907,12 @@
 
   /*
    * Selecting a slot. The cell takes a brief phosphor flash that settles
-   * into the selection colour, and its LED strikes on with a short flicker
-   * like a lamp warming up. Both run once, and only after a click: the cell
+   * into the selection colour. It runs once, and only after a click: the cell
    * raises `data-flash` itself, so a slot that mounts already selected (on
    * load, or on returning to its bank) appears without the effect.
    */
   .patch-cell[data-active='true'][data-flash='true'] {
     animation: patch-cell-select 360ms ease-out;
-  }
-
-  .patch-cell[data-active='true'][data-flash='true'] .crt-led {
-    animation: patch-led-strike 300ms steps(1, end);
   }
 
   @keyframes patch-cell-select {
@@ -932,29 +927,43 @@
     }
   }
 
-  @keyframes patch-led-strike {
+  @media (prefers-reduced-motion: reduce) {
+    .patch-edge-gradient::before,
+    .patch-cell[data-flash='true'] {
+      animation: none;
+    }
+  }
+
+  /*
+   * The copy dialog's readout. It strikes on like a hardware display each
+   * time the chosen slot changes: the line is keyed on the choice, so it
+   * remounts and the animation runs again.
+   */
+  .copy-readout {
+    animation: copy-readout-strike 240ms steps(1, end);
+  }
+
+  @keyframes copy-readout-strike {
     0% {
-      opacity: 0.25;
+      opacity: 0.2;
     }
 
-    25% {
+    30% {
       opacity: 1;
     }
 
-    45% {
-      opacity: 0.5;
+    55% {
+      opacity: 0.55;
     }
 
-    65%,
+    80%,
     100% {
       opacity: 1;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .patch-edge-gradient::before,
-    .patch-cell[data-flash='true'],
-    .patch-cell[data-flash='true'] .crt-led {
+    .copy-readout {
       animation: none;
     }
   }

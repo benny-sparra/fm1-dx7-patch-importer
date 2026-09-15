@@ -44,10 +44,6 @@ export default {
       'Verändert die Tonhöhe über die Dauer jeder Note. Die vier Raten bestimmen, wie schnell jede Stufe erreicht wird; die vier Pegel legen die Tonhöhe jeder Stufe fest.',
     pitchEnvelopePresets:
       'Ersetzt alle acht Raten und Pegel durch eine Ausgangsform. „Flach“ entfernt jede Tonhöhenbewegung; die anderen fügen einen kurzen Blip, einen fallenden Anschlag, ein ansteigendes Anschleifen oder ein Absinken beim Loslassen hinzu. Rückgängig stellt die vorherige Hüllkurve wieder her.',
-    pitchEnvelopeRate:
-      'Bestimmt, wie schnell sich die Tonhöhe zu dieser Stufe bewegt. Höhere Werte machen die Bewegung schneller.',
-    pitchEnvelopeLevel:
-      'Legt die Tonhöhe dieser Stufe fest. Ein Wert um 50 entspricht etwa der gespielten Note; höhere oder niedrigere Werte ziehen sie nach oben oder unten.',
     oscillatorSync:
       'Startet jeden Operator bei jeder Note an derselben Stelle der Wellenform neu. Ein sorgt für einen gleichmäßigeren Anschlag; Aus kann organischer klingen.',
     lfoSync:
@@ -150,7 +146,6 @@ export default {
     detune: 'Verstimmung',
     keyboardScaling: 'Tastaturskalierung',
     breakpoint: 'Trennpunkt',
-    depth: 'Tiefe',
     left: 'Links',
     right: 'Rechts',
     leftDepth: 'Linke Tiefe',
@@ -160,7 +155,6 @@ export default {
     rightCurve: 'Rechte Kurve',
     velocity: 'Anschlagstärke',
     ampModSensitivity: 'Empf. Amplitudenmod.',
-    editableEnvelope: 'Editierbare vierstufige Amplitudenhüllkurve',
     lfoWave: 'LFO-Wellenform',
     dx7Algorithm: 'DX7-Algorithmus',
     unsavedBody:
@@ -293,6 +287,7 @@ export default {
     bankUpdated: '„{{bank}}“ wurde aktualisiert.',
     demoLoaded: 'Demo-Sounds in „{{bank}}“ geladen.',
     patchSaved: '„{{patch}}“ wurde in der Bibliothek gespeichert.',
+    patchCopied: '„{{patch}}“ wurde nach {{slot}} in „{{bank}}“ kopiert.',
   },
   meta: {
     title: 'M-VAVE FM1 Editor und Librarian',
@@ -428,7 +423,6 @@ export default {
     revert: 'Gespeicherten Stand laden',
     revertHelp: 'Änderungen verwerfen und den gespeicherten Sound wiederherstellen.',
     configuration: 'Sound-Konfiguration',
-    sections: 'Konfigurationsbereiche',
     global: 'Global',
     effects: 'Effekte',
     pitchEnvelope: 'Tonhöhen-Hüllkurve',
@@ -464,8 +458,6 @@ export default {
     carrierShort: 'Car',
     modulator: 'Modulator',
     modulatorShort: 'Mod',
-    muted: 'Stumm',
-    solo: 'Solo',
     output: 'Ausgang',
     on: 'Ein',
     off: 'Aus',
@@ -526,9 +518,6 @@ export default {
     soundSourceRequired: 'Wähle eine Katalogbank oder lade deine eigene DX7-SysEx-Datei hoch.',
     uploadSource: 'Eigene Bank hochladen',
     empty: 'Leer',
-    localOnly: 'Nur lokal',
-    transferred: 'Übertragen',
-    changed: 'Geändert',
     importing: 'Importieren…',
     restoring: 'Wird wiederhergestellt…',
     catalogFactory: 'Werkssounds',
@@ -540,7 +529,6 @@ export default {
     bankInformationHelp: 'Bearbeite den Titel und die optionale Beschreibung dieser Arbeitsbank.',
     download: 'Diese Bank herunterladen',
     downloadAll: 'Alle Bänke herunterladen (.zip)',
-    restoreFactory: 'Werksbänke wiederherstellen',
     restoreAll: 'Alle Bänke wiederherstellen',
     sending: 'Senden…',
     send: 'An FM1 senden',
@@ -552,9 +540,7 @@ export default {
     chooseSysexFile: 'DX7-SysEx-Datei auswählen',
     createBank: 'Bank erstellen',
     addBankFailed: 'Die Bank konnte nicht erstellt werden.',
-    bankLimit: 'Maximum von 10 Bänken erreicht',
     destination: 'Zielbank im Browser',
-    listHeading: 'Bänke',
     importFile: 'DX7-Bankdatei importieren',
     downloadTitle: 'Browser-Bank {{bank}} als SysEx herunterladen',
     importFirst: 'Zuerst Bank {{bank}} importieren',
@@ -565,10 +551,6 @@ export default {
     sendingStatus: '32 Sounds werden an den FM1 gesendet…',
     sentStatus: 'Browser-Bank {{bank}} wurde gesendet. Wähle ihr Ziel am FM1.',
     notSent: 'Die Bank wurde nicht gesendet. Öffne das MIDI-Protokoll und versuche es erneut.',
-    soundSent:
-      '{{name}} befindet sich im Edit-Puffer des FM1. Halte SAVE am FM1 gedrückt, um den Sound zu speichern.',
-    soundNotSent:
-      'Der Sound wurde nicht gesendet. Verbinde einen SysEx-fähigen MIDI-Ausgang und versuche es erneut.',
     importFailed: 'Import fehlgeschlagen.',
     restoreFailed: 'Die Werksbänke konnten nicht wiederhergestellt werden. Versuche es erneut.',
     bankUnavailable:
@@ -595,17 +577,24 @@ export default {
       'Lade die Demo-Bank oder importiere eine eigene Standard-DX7-SysEx-Bank mit 32 Voices.',
     loadDemo: 'Demo-Bank laden',
     editSelected: 'Bearbeiten',
-    editNone: 'Wähle zuerst einen Sound, um ihn zu bearbeiten',
     slotTitle: 'Klicken, um {{name}} auf dem FM1 zu spielen; Doppelklick zum Bearbeiten',
     slotEditBufferTitle:
       'Klicken, um {{name}} über den Bearbeitungspuffer des FM1 zu spielen; Doppelklick zum Bearbeiten',
     slotEditTitle: 'Doppelklicken oder Eingabetaste drücken, um {{name}} zu bearbeiten',
-    openEditor: '{{name}} im Voice-Editor öffnen',
     sendPatch: '{{name}} an FM1 senden',
-    sendPatchTitle: 'Diesen Sound an den Edit-Puffer des FM1 senden',
     auditioning: 'Vorhören',
     reorder: '{{name}} verschieben',
     reorderTitle: 'Zum Sortieren ziehen; bei Fokus Pfeiltasten verwenden',
+    copySelected: 'Kopieren nach…',
+    copyDialogTitle: '{{name}} kopieren',
+    copyTargetBank: 'Bank',
+    copyTargetSlot: 'Slot',
+    copyReplaces:
+      'Dadurch wird „{{name}}“ in {{slot}} ersetzt. Du kannst diese Aktion rückgängig machen.',
+    copyAction: '{{slot}} ersetzen',
+    copyFailed: 'Der Sound konnte nicht kopiert werden.',
+    copyOpenFailed:
+      'Die Kopieroptionen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
   },
   namedBanks: {
     open: 'Bankbibliothek',
@@ -652,8 +641,5 @@ export default {
     copied: '„{{name}}“ erstellt.',
     deleted: '„{{name}}“ gelöscht.',
     loaded: '„{{name}}“ in „{{bank}}“ geladen.',
-    untitled: 'Ohne Titel',
-    workspaceName: 'Name der Arbeitsbank {{bank}}',
-    editWorkspaceName: 'Bank umbenennen',
   },
 } as const

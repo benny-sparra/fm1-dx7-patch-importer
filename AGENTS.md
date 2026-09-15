@@ -119,6 +119,8 @@ open everything an earlier release could have saved.
   changes or MIDI is switched off. A dropped transfer is not a transport failure for monitoring.
 - Do not resend unchanged data to the FM1 on repeated interaction, such as a double-click. Forget
   what was sent as soon as anything else replaces that device state, and after a failed send.
+  The edit-buffer audition compares voice objects by identity, so a library change that puts a
+  sound in a slot, such as copying, gives it new voice and effect objects.
 
 ### Internationalisation
 
@@ -150,7 +152,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -226,7 +228,7 @@ open everything an earlier release could have saved.
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.
 - A library change that replaces or removes sounds (deleting a bank, restoring factory banks,
-  importing or loading over a bank) offers Undo in its notification through `undoToastOptions`, and a
+  importing or loading over a bank, copying a sound over a slot) offers Undo in its notification through `undoToastOptions`, and a
   notification with an action stays up for 10 seconds. The
   undo applies only while that change is still the latest (`undoChange`), and a dialog must not
   promise an undo the app does not offer.
@@ -245,6 +247,8 @@ open everything an earlier release could have saved.
   claims plain keys must ignore Ctrl, Command, and Alt presses and close on Escape.
 - Closing a menu with Escape claims the key, so no view shortcut also runs, and moves focus back to
   the menu's toggle when focus was inside it.
+- A menu inside the patch grid, such as a slot's ⋮ menu, opens in a portal because the grid clips
+  its overflow. It is not a `<details>` menu, so it claims Escape with `preventDefault`.
 - A key chosen for its position, such as the piano's two-row note layout, is matched by
   `KeyboardEvent.code` and labelled with the user's layout letter (`useKeyboardKeyLabel`). A key
   chosen for its letter, such as Cmd/Ctrl + Z, is matched by `KeyboardEvent.key`.

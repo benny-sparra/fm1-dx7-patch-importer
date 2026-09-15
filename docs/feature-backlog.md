@@ -11,7 +11,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Housekeeping
 
-- [ ] **Fix the stale bank transfer status claim.** The README still lists "track whether a bank is
+- [x] **Fix the stale bank transfer status claim.** The README still lists "track whether a bank is
       local, transferred, or changed since transfer", but that status was removed in `14d3618`. The
       locale keys `banks.localOnly`, `banks.transferred`, and `banks.changed` are now unused in every
       locale. Either remove the README line and the keys, or restore the feature on purpose (see
@@ -45,8 +45,8 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     or disable the controls.
   - Do not resend when the selected version has not changed.
 
-- [ ] **Copy patches between banks.** "Copy to bank…" on a patch, and possibly dragging onto a bank
-      tab.
+- [x] **Copy patches between banks.** "Copy to…" in a slot's menu copies it over a chosen slot in
+      any bank that has sounds. Dragging onto a bank tab is not built yet.
   - Choose the target slot, and confirm before overwriting a populated slot.
   - Copies the patch's FM1 effects with the voice.
   - Offer Undo in the notification through `undoToastOptions`.
@@ -57,6 +57,22 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     errors.
   - Importing into a slot replaces a sound, so confirm first and offer Undo.
   - Export contains voice data only, as bank export does.
+
+- [ ] **Firefox support.** Let desktop Firefox users connect to the FM1, not just Chrome, Edge, and
+      Opera users.
+  - Firefox has Web MIDI, but grants it through its own site permission prompt rather than
+    Chromium's. Confirm on current desktop Firefox that `requestMIDIAccess({ sysex: true })` works
+    through that flow and that bank transfers and live edits reach the FM1 on hardware.
+  - `src/lib/browser.ts` blocks every non-Chromium browser. Base the check on Web MIDI itself
+    rather than the browser name, keeping the mobile and insecure-page rules, and update
+    `browser.test.ts`.
+  - The unsupported-browser and connection messages (`unsupportedBody`, `requires`,
+    `unsupportedBrowser`) name Chromium browsers. Reword them in every locale, and explain a denied
+    or dismissed Firefox permission prompt with a translated message.
+  - Add a Firefox project to the Playwright journeys, and update the README requirements,
+    `docs/user-guide.md`, and `CONTRIBUTING.md`.
+  - Check Firefox-only differences in layout, fonts, native dialogs, drag-and-drop reordering, and
+    app installation, which Firefox does not offer.
 
 ## Nice to have
 
