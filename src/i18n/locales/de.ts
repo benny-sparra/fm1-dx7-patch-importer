@@ -587,8 +587,8 @@ export default {
     reorderTitle: 'Zum Sortieren ziehen; bei Fokus Pfeiltasten verwenden',
     copySelected: 'Kopieren nach…',
     copyDialogTitle: '{{name}} kopieren',
-    copyTargetBank: 'Zielbank',
-    copyTargetSlot: 'Zielslot',
+    copyTargetBank: 'Bank',
+    copyTargetSlot: 'Slot',
     copyReplaces:
       'Dadurch wird „{{name}}“ in {{slot}} ersetzt. Du kannst diese Aktion rückgängig machen.',
     copyAction: '{{slot}} ersetzen',

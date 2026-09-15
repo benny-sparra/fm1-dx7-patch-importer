@@ -28,11 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
 import { formatShortcut, isApplePlatform, librarianShortcuts } from '@/lib/keyboard-shortcuts'
-import {
-  countGridColumns,
-  isGridNavigationKey,
-  resolveGridNavigation,
-} from '@/lib/patch-grid-navigation'
+import { resolveGridKey } from '@/lib/patch-grid-navigation'
 
 import { PatchButton } from './patch-button'
 
@@ -106,18 +102,16 @@ export function PatchGrid({
   }
 
   const navigateSlots = (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => {
-    if (!isGridNavigationKey(event.key)) return
     // A disabled slot renders no button, so the order comes from what is there.
     const slotIds = patches.map(({ id }) => id).filter((id) => slotRefs.current.has(id))
-    const index = slotIds.indexOf(patch.id)
-    if (index === -1) return
+    const next = resolveGridKey(event.key, slotIds.indexOf(patch.id), () =>
+      slotIds.map((id) => slotRefs.current.get(id)?.getBoundingClientRect().top ?? 0),
+    )
+    if (next === null) return
 
     // Claimed even when the edge stops the move, so the panel does not scroll.
     event.preventDefault()
-    const columns = countGridColumns(
-      slotIds.map((id) => slotRefs.current.get(id)?.getBoundingClientRect().top ?? 0),
-    )
-    const nextId = slotIds[resolveGridNavigation(event.key, index, slotIds.length, columns)]
+    const nextId = slotIds[next]
     if (nextId === patch.id) return
 
     setFocusedPatchId(nextId)

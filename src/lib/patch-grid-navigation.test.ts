@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   countGridColumns,
   isGridNavigationKey,
+  resolveGridKey,
   resolveGridNavigation,
 } from '@/lib/patch-grid-navigation'
 
@@ -79,5 +80,24 @@ describe('resolveGridNavigation', () => {
 
   it('leaves the index alone in an empty grid', () => {
     expect(resolveGridNavigation('End', 0, 0, columns)).toBe(0)
+  })
+})
+
+describe('resolveGridKey', () => {
+  const twoRows = () => [0, 0, 0, 40, 40, 40]
+
+  it('moves down a row using the measured layout', () => {
+    expect(resolveGridKey('ArrowDown', 1, twoRows)).toBe(4)
+  })
+
+  it('ignores a key that does not move', () => {
+    const readTops = vi.fn(twoRows)
+
+    expect(resolveGridKey('Enter', 1, readTops)).toBeNull()
+    expect(readTops).not.toHaveBeenCalled()
+  })
+
+  it('ignores a key when nothing in the grid has focus', () => {
+    expect(resolveGridKey('ArrowRight', -1, twoRows)).toBeNull()
   })
 })

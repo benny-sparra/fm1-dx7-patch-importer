@@ -192,6 +192,23 @@ test('reaches the editor from the keyboard through a slot menu', async ({ page }
   await expect(page.getByRole('button', { name: 'Back to patch banks' })).toBeVisible()
 })
 
+test('copies a slot from the keyboard through its menu and the slot grid', async ({ page }) => {
+  await openLibrarian(page)
+  const { button, name } = await slotMenuButton(page, 0)
+
+  await button.first().press('Enter')
+  await page.keyboard.press('ArrowDown')
+  await expect(page.getByRole('menuitem', { name: 'Copy to…' })).toBeFocused()
+  await page.keyboard.press('Enter')
+
+  const dialog = page.getByRole('dialog', { name: `Copy ${name}` })
+  await expect(dialog).toBeVisible()
+  const chosen = dialog.getByRole('group', { name: 'Slot' }).getByRole('button', { pressed: true })
+  await expect(chosen).toBeFocused()
+  await page.keyboard.press('ArrowRight')
+  await expect(dialog.getByRole('button', { name: /^Replace B02$/ })).toBeVisible()
+})
+
 test('opens a slot menu on the last row above the grid without playing the slot', async ({
   page,
 }) => {

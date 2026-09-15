@@ -935,6 +935,40 @@
   }
 
   /*
+   * The copy dialog's readout. It strikes on like a hardware display each
+   * time the chosen slot changes: the line is keyed on the choice, so it
+   * remounts and the animation runs again.
+   */
+  .copy-readout {
+    animation: copy-readout-strike 240ms steps(1, end);
+  }
+
+  @keyframes copy-readout-strike {
+    0% {
+      opacity: 0.2;
+    }
+
+    30% {
+      opacity: 1;
+    }
+
+    55% {
+      opacity: 0.55;
+    }
+
+    80%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .copy-readout {
+      animation: none;
+    }
+  }
+
+  /*
    * Boot panel. While the workspace or the editor chunk loads, the page reads
    * as a terminal waiting on the machine rather than as a spinner: the status
    * label is set in the dot-matrix face behind a prompt caret, a block cursor
