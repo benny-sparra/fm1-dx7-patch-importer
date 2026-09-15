@@ -241,6 +241,34 @@ export function moveVoice(
   return { ...snapshot, effects, voices }
 }
 
+/**
+ * Copies a voice and its FM1 effects over one slot of a loaded workspace bank. The copy gets its
+ * own voice and effect objects, so nothing that remembers what a slot last sent mistakes it for the
+ * sound it replaced.
+ */
+export function copyVoice(
+  snapshot: PatchLibrarySnapshot,
+  sourceId: string,
+  bank: string,
+  slot: number,
+): PatchLibrarySnapshot {
+  if (!snapshot.workspaceBanks.includes(bank) || !snapshot.loadedBanks.includes(bank)) {
+    throw new WorkspaceBankUnavailableError()
+  }
+  if (!Number.isInteger(slot) || slot < 1 || slot > dx7BankVoiceCount) {
+    throw new RangeError('Slot out of range.')
+  }
+  const voice = snapshot.voices[sourceId]
+  const targetId = voiceId(bank, slot)
+  if (!voice || targetId === sourceId) return snapshot
+
+  return {
+    ...snapshot,
+    effects: { ...snapshot.effects, [targetId]: normalizeFm1Effects(snapshot.effects[sourceId]) },
+    voices: { ...snapshot.voices, [targetId]: { ...voice, data: voice.data.slice() } },
+  }
+}
+
 export function clearLibraryBank(snapshot: PatchLibrarySnapshot, bank: string) {
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }

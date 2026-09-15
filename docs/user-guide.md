@@ -13,7 +13,9 @@ Clicking a slot in banks A–D selects that hardware slot and then sends the pat
 
 To send one sound instead, open its patch in the editor. For a patch in banks A–D the app first selects the matching hardware slot; it then sends the voice and its FM1 effects to the edit buffer; hold **SAVE** on the FM1 to store it on the hardware.
 
-To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. Replacing a populated bank requires confirmation. The same menu lets you edit the bank title and description, download the bank, or delete it when more than one workspace bank exists. Use the menu in the patch-bank header to download all loaded banks or restore the FM-1 factory banks into A–D, which also resets their titles and descriptions. Additional workspace banks are left intact. Deleting a bank, restoring the factory banks, importing over a bank, or loading a saved bank can be undone from its notification or with `Cmd`/`Ctrl` + `Z`.
+To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. Replacing a populated bank requires confirmation. The same menu lets you edit the bank title and description, download the bank, or delete it when more than one workspace bank exists. Use the menu in the patch-bank header to download all loaded banks or restore the FM-1 factory banks into A–D, which also resets their titles and descriptions. Additional workspace banks are left intact. Deleting a bank, restoring the factory banks, importing over a bank, loading a saved bank, or copying a sound over a slot can be undone from its notification or with `Cmd`/`Ctrl` + `Z`.
+
+To copy a sound into another slot, open the slot's **⋮** menu and choose **Copy to…**. Pick a bank that has sounds and a slot in it; the dialog names the sound that will be replaced. The copy brings the sound's FM1 effects with it and changes only the browser library, so send the bank to the FM1 to put it on the hardware.
 
 Each bank's menu also offers **Save bank**, which keeps a named copy of its 32 sounds and their FM1 effects in this browser, and **Load bank**, which lists your saved banks. From that list you can load one into the bank, edit its name and description, make a copy, download it as a `.syx` file, or delete it. Loading into a bank that already has sounds asks first. If a bank is empty, you can load the built-in demo bank instead.
 
@@ -66,8 +68,8 @@ typing instead. Bare keys are left to whatever is being typed into, so `/` and `
 normally inside the search field, where `Esc` clears it.
 
 `Enter` gives the keyboard the route the mouse already had through double-click: it plays an unlit
-slot as a click would, and opens the slot that is already lit. The toolbar's **Edit** button
-remains the signposted way in.
+slot as a click would, and opens the slot that is already lit. Each slot's **⋮** menu also
+offers **Edit** and **Copy to…**; it opens with `Enter` and moves between its items with the arrow keys.
 
 Individual controls keep their own keyboard behaviour. Rotary controls and envelope points respond
 to the arrow keys, `Home`, `End`, `Page Up`, and `Page Down`, and the bank tabs move with the arrow

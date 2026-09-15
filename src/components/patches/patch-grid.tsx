@@ -43,6 +43,7 @@ type PatchGridProps = {
   headerActions?: ReactNode
   isBankLoaded?: boolean
   isPatchDisabled?: (patch: Patch) => boolean
+  onPatchCopy?: (patch: Patch) => void
   onPatchMove: (patch: Patch, target: Patch) => void
   onPatchEdit?: (patch: Patch) => void
   onPatchSelect?: (patch: Patch) => void
@@ -75,6 +76,7 @@ export function PatchGrid({
   headerActions,
   isBankLoaded = true,
   isPatchDisabled = () => false,
+  onPatchCopy,
   onPatchMove,
   onPatchEdit,
   onPatchSelect,
@@ -205,6 +207,7 @@ export function PatchGrid({
                           <PatchButton
                             disabled={isPatchDisabled(patch)}
                             disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
+                            onCopy={onPatchCopy}
                             onEdit={onPatchEdit}
                             onNavigate={navigateSlots}
                             onSelect={onPatchSelect}

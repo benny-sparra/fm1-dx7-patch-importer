@@ -166,23 +166,45 @@ test('reorders patches with the keyboard drag control', async ({ page }) => {
 
 test('plays a slot on a single click and stays in the library', async ({ page }) => {
   await openLibrarian(page)
-  await expect(page.getByRole('button', { exact: true, name: 'Edit' })).toBeDisabled()
 
   const slot = slotButtons(page).first()
   await slot.click()
 
   await expect(slot).toHaveAttribute('aria-current', 'true')
-  await expect(page.getByRole('button', { name: 'Edit A01' })).toBeEnabled()
   await expect(page.getByRole('button', { name: 'Back to patch banks' })).toHaveCount(0)
 })
 
-test('reaches the editor from the keyboard through the toolbar Edit button', async ({ page }) => {
-  await openLibrarian(page)
+/** The ⋮ button on a slot, named after its sound; the bank menus share the "Actions for" wording. */
+async function slotMenuButton(page: Page, index: number) {
+  const label = (await slotNames(page)).at(index) ?? ''
+  const name = label.replace(/^Send (.+) to FM1$/, '$1')
+  return { button: page.getByRole('button', { exact: true, name: `Actions for ${name}` }), name }
+}
 
-  await slotButtons(page).first().press('Enter')
-  await page.getByRole('button', { name: 'Edit A01' }).press('Enter')
+test('reaches the editor from the keyboard through a slot menu', async ({ page }) => {
+  await openLibrarian(page)
+  const { button } = await slotMenuButton(page, 0)
+
+  await button.first().press('Enter')
+  await expect(page.getByRole('menuitem', { name: 'Edit' })).toBeFocused()
+  await page.keyboard.press('Enter')
 
   await expect(page.getByRole('button', { name: 'Back to patch banks' })).toBeVisible()
+})
+
+test('opens a slot menu on the last row above the grid without playing the slot', async ({
+  page,
+}) => {
+  await openLibrarian(page)
+  const { button, name } = await slotMenuButton(page, -1)
+
+  // The menu closes when the page scrolls, and a click scrolls its target into view first.
+  await button.last().scrollIntoViewIfNeeded()
+  await button.last().click()
+  await expect(slotButtons(page).last()).not.toHaveAttribute('aria-current', 'true')
+  await page.getByRole('menuitem', { name: 'Copy to…' }).click()
+
+  await expect(page.getByRole('dialog', { name: `Copy ${name}` })).toBeVisible()
 })
 
 test('switches the favicon to the chosen colourway and keeps it after a reload', async ({

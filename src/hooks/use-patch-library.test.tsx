@@ -244,3 +244,28 @@ describe('usePatchLibrary undo from a notification', () => {
     expect(changed).toBeNull()
   })
 })
+
+describe('usePatchLibrary copying a voice', () => {
+  it('copies a voice into another bank and reverses it in one undo', async () => {
+    const voices = makeDemoVoices()
+    storage.loadStoredPatchLibrary.mockResolvedValue({
+      ...importVoices(importVoices(emptyPatchLibrary(), 'A', voices), 'B', voices.toReversed()),
+      savedAt: '2026-09-13T12:00:00.000Z',
+      version: 5,
+    })
+    const hook = await renderLoadedLibrary()
+    const original = hook.result.current.voices['bank-B-3']
+
+    let changed: ReturnType<typeof hook.result.current.copyVoice> = null
+    act(() => {
+      changed = hook.result.current.copyVoice('bank-A-1', 'B', 3)
+    })
+    expect(changed).not.toBeNull()
+    expect(hook.result.current.voices['bank-B-3'].name).toBe(voices[0].name)
+
+    act(() => hook.result.current.undo())
+
+    expect(hook.result.current.voices['bank-B-3']).toBe(original)
+    expect(hook.result.current.canUndo).toBe(false)
+  })
+})

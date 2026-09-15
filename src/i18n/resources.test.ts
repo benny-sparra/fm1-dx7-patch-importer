@@ -68,8 +68,8 @@ describe('translation resources', () => {
   it('provides Simplified Chinese text for editor help tooltips', () => {
     const chinese = resources['zh-Hans'].translation
 
-    expect(chinese.controlHelp.pitchEnvelopeRate).toBe(
-      '控制音高移动到此阶段的速度。数值越高，移动越快。',
+    expect(chinese.controlHelp.pitchEnvelope).toBe(
+      '控制每个音符发声过程中的音高变化。四个速率决定各阶段的变化速度，四个电平决定各阶段到达的音高。',
     )
     expect(chinese.effectHelp.Reverb).toBe('加入模拟空间反射，让声音具有空间感和距离感。')
     expect(chinese.effectParameterHelp['Filter Cutoff']).toBe(

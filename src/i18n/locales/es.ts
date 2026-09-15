@@ -42,10 +42,6 @@ export default {
       'Cambia el tono a lo largo de cada nota. Las cuatro velocidades controlan lo rápido que avanza cada etapa; los cuatro niveles fijan el tono alcanzado en cada etapa.',
     pitchEnvelopePresets:
       'Sustituye las ocho velocidades y niveles por una forma inicial. Plana elimina cualquier movimiento de tono; las demás añaden un pico breve, un ataque que cae, una subida o una caída al soltar. Deshacer recupera la envolvente anterior.',
-    pitchEnvelopeRate:
-      'Controla lo rápido que el tono llega a esta etapa. Los valores altos hacen el movimiento más rápido.',
-    pitchEnvelopeLevel:
-      'Fija el tono en esta etapa. Un valor cercano a 50 corresponde a la nota tocada; por encima o por debajo lo desplaza hacia arriba o hacia abajo.',
     oscillatorSync:
       'Reinicia cada operador en la misma posición de la forma de onda con cada nota. Activado da un ataque más uniforme; desactivado puede sonar más orgánico.',
     lfoSync:
@@ -147,7 +143,6 @@ export default {
     detune: 'Desafinación',
     keyboardScaling: 'Escalado de teclado',
     breakpoint: 'Punto de división',
-    depth: 'Profundidad',
     left: 'Izquierda',
     right: 'Derecha',
     leftDepth: 'Profundidad izquierda',
@@ -157,7 +152,6 @@ export default {
     rightCurve: 'Curva derecha',
     velocity: 'Velocidad',
     ampModSensitivity: 'Sens. mod. amplitud',
-    editableEnvelope: 'Envolvente de amplitud editable de cuatro etapas',
     lfoWave: 'Forma de onda LFO',
     dx7Algorithm: 'Algoritmo DX7',
     unsavedBody:
@@ -289,6 +283,7 @@ export default {
     bankUpdated: 'Se actualizó «{{bank}}».',
     demoLoaded: 'Sonidos de demostración cargados en «{{bank}}».',
     patchSaved: 'Se guardó «{{patch}}» en la biblioteca.',
+    patchCopied: 'Se copió «{{patch}}» a {{slot}} en «{{bank}}».',
   },
   meta: {
     title: 'Editor y bibliotecario M-VAVE FM1',
@@ -424,7 +419,6 @@ export default {
     revert: 'Restaurar lo guardado',
     revertHelp: 'Descartar los cambios y restaurar el sonido guardado.',
     configuration: 'Configuración del sonido',
-    sections: 'Secciones de configuración',
     global: 'Global',
     effects: 'Efectos',
     pitchEnvelope: 'Envolvente de tono',
@@ -460,8 +454,6 @@ export default {
     carrierShort: 'Por',
     modulator: 'Modulador',
     modulatorShort: 'Mod',
-    muted: 'Silenciado',
-    solo: 'Solo',
     output: 'Salida',
     on: 'Activado',
     off: 'Desactivado',
@@ -522,9 +514,6 @@ export default {
     soundSourceRequired: 'Elige un banco del catálogo o sube tu propio archivo SysEx DX7.',
     uploadSource: 'Subir tu propio banco',
     empty: 'Vacío',
-    localOnly: 'Solo local',
-    transferred: 'Transferido',
-    changed: 'Modificado',
     importing: 'Importando…',
     restoring: 'Restaurando…',
     catalogFactory: 'Sonidos de fábrica',
@@ -536,7 +525,6 @@ export default {
     bankInformationHelp: 'Edita el título y la descripción opcional de este banco de trabajo.',
     download: 'Descargar este banco',
     downloadAll: 'Descargar todos los bancos (.zip)',
-    restoreFactory: 'Restaurar bancos de fábrica',
     restoreAll: 'Restaurar todos los bancos',
     sending: 'Enviando…',
     send: 'Enviar al FM1',
@@ -548,9 +536,7 @@ export default {
     chooseSysexFile: 'Elegir un archivo SysEx DX7',
     createBank: 'Crear banco',
     addBankFailed: 'No se pudo crear el banco.',
-    bankLimit: 'Máximo de 10 bancos alcanzado',
     destination: 'Banco de destino del navegador',
-    listHeading: 'Bancos',
     importFile: 'Importar archivo de banco DX7',
     downloadTitle: 'Descargar el banco {{bank}} como SysEx',
     importFirst: 'Importa primero el banco {{bank}}',
@@ -560,10 +546,6 @@ export default {
     sendingStatus: 'Enviando 32 sonidos al FM1…',
     sentStatus: 'Se envió el banco {{bank}}. Elige su destino en el FM1.',
     notSent: 'No se envió el banco. Abre el registro MIDI y vuelve a intentarlo.',
-    soundSent:
-      '{{name}} está en el búfer de edición del FM1. Mantén pulsado SAVE en el FM1 para guardarlo.',
-    soundNotSent:
-      'No se envió el sonido. Conecta una salida MIDI compatible con SysEx y vuelve a intentarlo.',
     importFailed: 'Error de importación.',
     restoreFailed: 'No se pudieron restaurar los bancos de fábrica. Vuelve a intentarlo.',
     bankUnavailable:
@@ -589,17 +571,23 @@ export default {
       'Carga el banco de demostración o importa tu propio banco SysEx DX7 estándar de 32 voces.',
     loadDemo: 'Cargar banco de demostración',
     editSelected: 'Editar',
-    editNone: 'Elige primero un sonido para editarlo',
     slotTitle: 'Haz clic para tocar {{name}} en el FM1; doble clic para editarlo',
     slotEditBufferTitle:
       'Haz clic para escuchar {{name}} a través del búfer de edición del FM1; doble clic para editar',
     slotEditTitle: 'Haz doble clic o pulsa Intro para editar {{name}}',
-    openEditor: 'Abrir {{name}} en el editor',
     sendPatch: 'Enviar {{name}} al FM1',
-    sendPatchTitle: 'Enviar este sonido al búfer de edición del FM1',
     auditioning: 'Probando',
     reorder: 'Reordenar {{name}}',
     reorderTitle: 'Arrastra para reordenar; usa las flechas con el control enfocado',
+    copySelected: 'Copiar a…',
+    copyDialogTitle: 'Copiar {{name}}',
+    copyTargetBank: 'Banco de destino',
+    copyTargetSlot: 'Ranura de destino',
+    copyReplaces: 'Esto reemplaza «{{name}}» en {{slot}}. Puedes deshacer esta acción.',
+    copyAction: 'Reemplazar {{slot}}',
+    copyFailed: 'No se pudo copiar el sonido.',
+    copyOpenFailed:
+      'No se pudieron abrir las opciones de copia. Recarga la página e inténtalo de nuevo.',
   },
   namedBanks: {
     open: 'Biblioteca de bancos',
@@ -646,8 +634,5 @@ export default {
     copied: '“{{name}}” creado.',
     deleted: '“{{name}}” eliminado.',
     loaded: '“{{name}}” cargado en “{{bank}}”.',
-    untitled: 'Sin título',
-    workspaceName: 'Nombre del banco de trabajo {{bank}}',
-    editWorkspaceName: 'Renombrar banco',
   },
 } as const

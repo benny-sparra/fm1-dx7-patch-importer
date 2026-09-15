@@ -3,7 +3,6 @@ import {
   Database,
   Download,
   EllipsisVertical,
-  Pencil,
   Plus,
   RotateCcw,
   Save,
@@ -64,6 +63,13 @@ const NamedBankLibraryDialog = lazy(() =>
   })),
 )
 
+// Copying opens from a slot's menu, so its dialog also loads on first use.
+const CopyPatchDialog = lazy(() =>
+  import('@/components/patches/copy-patch-dialog').then((module) => ({
+    default: module.CopyPatchDialog,
+  })),
+)
+
 type SavedBanksRequest = { bank: string; closeMenu: () => void; mode: 'load' | 'save' }
 
 type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
@@ -95,6 +101,8 @@ export function LibrarianPage({
   const [destinationBank, setDestinationBank] = useState('A')
   const [importError, setImportError] = useState('')
   const [savedBanksRequest, setSavedBanksRequest] = useState<SavedBanksRequest | null>(null)
+  // The sound whose menu chose Copy, kept while its dialog is open.
+  const [copySource, setCopySource] = useState<Patch | null>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [transferStatus, setTransferStatus] = useState<TransferStatus>({
@@ -120,8 +128,6 @@ export function LibrarianPage({
   } | null>(null)
   const allBanksMenuRef = useDismissableDetails()
   const bankMenuRef = useDismissableDetails()
-  // EDIT acts on the slot lit in the grid, which a click has already played on the FM1.
-  const auditionedPatch = patches.find((patch) => patch.id === activePatchId)
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
   const bankDisplayName = useWorkspaceBankLabel(library)
   const beginImport = (bank: string) => {
@@ -445,35 +451,6 @@ export function LibrarianPage({
               <Send aria-hidden="true" className="size-3.5" />
               {isSending ? t('banks.sending') : t('banks.send')}
             </button>
-            {/* EDIT burns in the slot LED's amber and names the lit slot, so it reads
-                as acting on that sound rather than on the bank like its neighbours. */}
-            <button
-              className="inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-[var(--crt-led)] shadow-[0_0_8px_var(--crt-led-glow)] transition-colors hover:bg-[var(--crt-led)] hover:text-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:border-[var(--crt-line-lt2)] disabled:text-[var(--crt-ink-2)] disabled:opacity-50 disabled:shadow-none md:flex-none"
-              disabled={!auditionedPatch}
-              onClick={() => auditionedPatch && onEditPatch(auditionedPatch)}
-              title={
-                auditionedPatch
-                  ? t('banks.openEditor', { name: auditionedPatch.name })
-                  : t('banks.editNone')
-              }
-              type="button"
-            >
-              <Pencil aria-hidden="true" className="size-3.5" />
-              {t('banks.editSelected')}
-              {auditionedPatch && ' '}
-              {/* The slot code keeps its width while nothing is lit, so selecting a
-                  slot cannot rewrap the toolbar and move the grid under the pointer
-                  between the two clicks of a double click. */}
-              <span
-                aria-hidden={auditionedPatch ? undefined : true}
-                className={cn(
-                  'font-dot-matrix text-[13px] font-bold tracking-[0.1em]',
-                  !auditionedPatch && 'invisible',
-                )}
-              >
-                {auditionedPatch ? patchSlotCode(auditionedPatch) : 'A00'}
-              </span>
-            </button>
           </>
         }
         headerActions={
@@ -520,6 +497,7 @@ export function LibrarianPage({
           library.loadDemoBank(destinationBank)
           toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
         }}
+        onPatchCopy={setCopySource}
         onPatchEdit={onEditPatch}
         onPatchSelect={onSelectPatch}
         onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
@@ -637,6 +615,33 @@ export function LibrarianPage({
           toast.success(t('toasts.banksRestored'), undoToastOptions(t, library, changed))
         }}
       />
+      {copySource ? (
+        <ErrorBoundary
+          key={copySource.id}
+          onError={() => {
+            setCopySource(null)
+            setImportError(t('banks.copyOpenFailed'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <CopyPatchDialog
+              library={library}
+              onClose={() => setCopySource(null)}
+              onCopied={(target, changed) =>
+                toast.success(
+                  t('toasts.patchCopied', {
+                    bank: bankDisplayName(target.bank),
+                    patch: copySource.name,
+                    slot: patchSlotCode(target),
+                  }),
+                  undoToastOptions(t, library, changed),
+                )
+              }
+              source={copySource}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
       {savedBanksRequest ? (
         <ErrorBoundary
           key={`${savedBanksRequest.mode}-${savedBanksRequest.bank}`}
