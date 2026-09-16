@@ -223,7 +223,9 @@ Future work is limited to questions the guide does not answer:
 2. Test any apparent V15 divergence from the published table with exact bytes and a repeatable
    device/front-panel observation before proposing a correction.
 3. Measure a curve or high-range behaviour only when a concrete UI/product decision depends on it.
-4. Listen to each effect preset before its phase ships (see "Effect presets" in
+4. Check which way each continuous effect control moves the sound (§9), before presets for that
+   effect are built. Delay Rate turned out reversed from the editor's assumption.
+5. Listen to each effect preset before its phase ships (see "Effect presets" in
    [the feature backlog](feature-backlog.md)). A preset names a character, so the check is whether
    it sounds like its name, not a measurement. The values are in `src/lib/effect-presets.ts`.
 
@@ -261,3 +263,39 @@ levels in `docs/fm1-research.md` §7 are unchanged.
 | 1     | Quick delay   | Not recorded     | Rate mirrored from 25 to 75.                         |
 | 1     | Quick repeats | Not recorded     | Rate mirrored from 25 to 75.                         |
 | 1     | Echo          | Not recorded     | Rate mirrored from 55 to 45; earlier result is void. |
+
+## 9. Control direction check
+
+The published guide gives each control's CC number and range but not which way it moves the sound.
+The editor's scopes, help text, and presets each assume a direction, and delay Rate was found to be
+the reverse of its assumption (§8). This check confirms or corrects the rest by ear.
+
+Use the setup in §1 and a plain sustained patch such as **Init voice**. For each row, switch only
+that effect on, set its other controls to about the middle, then move the control from low (about 10) to high (about 90) and back. Record what the rise sounds like, and whether it matches the
+editor's assumption. Change nothing in the editor from one listen: repeat a reversed or unclear
+result after reconnecting, as §1 asks, before correcting a scope, help text, or preset.
+
+Check chorus and phaser before their presets are built (phase 2), and filter and distortion before
+phase 3. The rows most likely to be wrong are marked **Doubtful**.
+
+| Control          | The editor assumes that raising it…                                      | Listen for                           | Result                  | Notes                                                                                           |
+| ---------------- | ------------------------------------------------------------------------ | ------------------------------------ | ----------------------- | ----------------------------------------------------------------------------------------------- |
+| Filter Cutoff    | moves the cutoff frequency up                                            | Low pass gets brighter               | Not recorded            |                                                                                                 |
+| Filter Resonance | sharpens the peak at the cutoff                                          | More ring or whistle near the cutoff | Not recorded            |                                                                                                 |
+| Reverb Decay     | lengthens the tail                                                       | Longer tail after release            | Not recorded            |                                                                                                 |
+| Reverb Mix       | adds more reverb                                                         | 0 is fully dry                       | Not recorded            |                                                                                                 |
+| Delay Decay      | gives more repeats before they fade                                      | More repeats                         | Not recorded            | **Doubtful:** §2 questions whether it is decay, feedback, or something else.                    |
+| Delay Rate       | repeats faster, closer together                                          | Shorter gap between repeats          | Heard once (2026-09-16) | Originally assumed the reverse; the editor was corrected after this informal listen. Repeat it. |
+| Delay Mix        | makes the echoes louder                                                  | 0 is fully dry                       | Not recorded            |                                                                                                 |
+| Distortion Gain  | drives the distortion harder                                             | Dirtier, more saturated              | Not recorded            |                                                                                                 |
+| Distortion Tone  | brightens the sound (help text); the scope draws harder clipping instead | Brighter, or harsher clipping?       | Not recorded            | **Doubtful:** the help text and scope already disagree.                                         |
+| Distortion Level | raises the output volume                                                 | Louder                               | Not recorded            |                                                                                                 |
+| Chorus Frequency | speeds up the movement                                                   | Faster wobble                        | Not recorded            | **Doubtful:** could be a time, like delay Rate.                                                 |
+| Chorus Depth     | widens the pitch movement                                                | Wider, more obvious wobble           | Not recorded            |                                                                                                 |
+| Chorus Mix       | adds more chorus                                                         | 0 is fully dry                       | Not recorded            |                                                                                                 |
+| Phaser Frequency | speeds up the sweep                                                      | Faster sweep                         | Not recorded            | **Doubtful:** could be a time, like delay Rate.                                                 |
+| Phaser Depth     | widens the sweep                                                         | Wider, more intense sweep            | Not recorded            |                                                                                                 |
+| Phaser Mix       | adds more phasing                                                        | 0 is fully dry                       | Not recorded            |                                                                                                 |
+
+Enumerated controls and switches are covered elsewhere: Reverb Space order in §8, Filter Type and
+the effect switches in §2, with Filter Switch polarity recorded in the §5 ledger.
