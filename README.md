@@ -30,9 +30,11 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Start the pitch envelope from Flat, Attack blip up, Attack drop, Scoop, or Release fall shapes as a single undo step
 - Watch the LFO on a scrolling scope that follows the selected wave and LFO Speed
 - Edit the FM1's filter, reverb, delay, distortion, chorus, and phaser within their documented ranges
+- Start any FM1 effect from a preset in its box, such as Small room, Slapback, Chorus wash, or Warm drive, as a single undo step
 - See a live animated scope for every FM1 effect, drawn from its parameters: filter response, delay taps, chorus drift, reverb tail, distortion clipping, and phaser sweep
 - Apply six sound-shaping presets as undoable starting points
 - Generate a musically constrained random DX7 voice as an undoable starting point
+- Reset the voice to Yamaha's DX7 INIT VOICE as an undoable starting point
 - Open contextual help for voice, envelope, algorithm, and effect controls
 - Rename patches using DX7-compatible 10-character names
 - Undo and redo edits within the voice editor
