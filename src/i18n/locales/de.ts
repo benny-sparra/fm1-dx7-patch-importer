@@ -45,7 +45,7 @@ export default {
     pitchEnvelopePresets:
       'Ersetzt alle acht Raten und Pegel durch eine Ausgangsform. „Flach“ entfernt jede Tonhöhenbewegung; die anderen fügen einen kurzen Blip, einen fallenden Anschlag, ein ansteigendes Anschleifen oder ein Absinken beim Loslassen hinzu. Rückgängig stellt die vorherige Hüllkurve wieder her.',
     effectPresets:
-      'Stellt die gesamte Effektkette auf einen Ausgangspunkt ein. Jedes Preset schaltet nur die Effekte ein, die es nutzt, und umgeht die übrigen, deren Einstellungen erhalten bleiben. Rückgängig stellt die vorherigen Effekte wieder her.',
+      'Stellt die Regler dieses Effekts auf einen Ausgangspunkt ein und schaltet ihn ein. Andere Effekte bleiben unverändert. Rückgängig stellt die vorherigen Einstellungen wieder her.',
     oscillatorSync:
       'Startet jeden Operator bei jeder Note an derselben Stelle der Wellenform neu. Ein sorgt für einen gleichmäßigeren Anschlag; Aus kann organischer klingen.',
     lfoSync:
@@ -439,10 +439,9 @@ export default {
       scoop: 'Anschleifen',
       releaseFall: 'Abfall beim Loslassen',
     },
-    effectPresets: 'Effekt-Presets',
+    effectPreset: 'Preset',
     effectPresetPlaceholder: 'Auswählen…',
     effectPresetOptions: {
-      dry: 'Trocken',
       smallRoom: 'Kleiner Raum',
       largeHall: 'Große Halle',
       plate: 'Plattenhall',

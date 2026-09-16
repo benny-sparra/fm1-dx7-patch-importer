@@ -19,35 +19,39 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Worth doing
 
-- [ ] **Effect presets.** A presets menu on the effects panel, like the pitch envelope presets, that
-      sets the FM1 effects chain (filter, reverb, delay, distortion, chorus, phaser) without touching the
-      DX7 voice.
+- [ ] **Effect presets.** A presets menu in each effect's box on the effects panel, like the pitch
+      envelope presets, that sets that FM1 effect (filter, reverb, delay, distortion, chorus, phaser)
+      without touching the DX7 voice or the other effects.
   - Keep the table in `src/lib/`, separate from `sound-presets.ts`, which changes the whole voice.
   - Values stay within the documented ranges in `src/lib/fm1-parameters.ts`. Hardware scaling and
     display units are still unconfirmed for most controls (see `docs/fm1-research.md` §7), so name
     presets by character ("Small room", "Slapback", "Warm drive") rather than by claimed values,
     and keep values away from the ends of each range.
-  - A preset sets every effect: the ones it does not use are bypassed, so applying the same preset
-    always gives the same sound. Combine by applying a preset and then adjusting single controls.
-  - Applying a preset is one undo step and sends all 24 effect controls once. Choosing the preset
-    that is already applied sends nothing.
-  - Tests: a `src/lib/` table test (unique ids, values in range), a rendered one-undo test, and the
-    preset names in every locale.
+  - A preset switches its effect on and sets every one of its controls, so applying it always gives
+    the same sound. The menu stays usable while the effect is bypassed. Each box already has an
+    on/off button, so there is no "Dry" preset.
+  - Applying a preset is one undo step and sends that effect's four controls once. Choosing the
+    preset that is already applied sends nothing.
+  - Tests: a `src/lib/` table test (unique ids, values in range, only its own effect), a rendered
+    one-undo test, and the preset names in every locale.
   - Build it in phases, starting with the effects whose result is easiest to recognise by ear. Each
     phase ships only after its presets have been listened to on an FM1, using the matching effect
     block in `docs/fx-003-hardware-verification.md`, with the observations recorded there.
     1. **Space: reverb and delay.** Builds the menu, the table, the send, and the one-undo apply,
-       with _Dry_ (all effects bypassed), _Small room_, _Large hall_, _Plate_, _Slapback_, and
-       _Echo_. Confirm the room/hall/plate order and the delay decay and rate directions on
+       with _Small room_, _Large hall_, and _Plate_ for reverb and _Slapback_ and _Echo_ for
+       delay. Confirm the room/hall/plate order and the delay decay and rate directions on
        hardware before naming presets after them. Built; waiting on the listening check in
        `docs/fx-003-hardware-verification.md` §8.
-    2. **Movement: chorus and phaser.** Adds presets such as _Chorus wash_, _Ensemble_, and _Phased
-       pad_, alone or over a small reverb.
-    3. **Tone: filter and distortion.** Adds presets such as _Warm drive_, _Crunch_, _Muffled_,
-       and _Telephone_. Last, because distortion gain and filter resonance can jump sharply in
-       level, so check the loudest preset at a safe listening volume.
-  - Later, once [effect routing order](#effect-routing-order) is known, a preset could set the
-    order as well as the values.
+    2. **Movement: chorus and phaser.** Adds presets such as _Chorus wash_ and _Ensemble_ for
+       chorus and _Slow sweep_ for phaser.
+    3. **Tone: filter and distortion.** Adds presets such as _Muffled_ and _Telephone_ for the
+       filter and _Warm drive_ and _Crunch_ for distortion. Last, because distortion gain and
+       filter resonance can jump sharply in level, so check the loudest preset at a safe listening
+       volume.
+  - Presets that combine effects, such as a phaser over a small reverb, are not planned: set one
+    effect's preset, then another's.
+  - Later, once [effect routing order](#effect-routing-order) is known, the routing could have
+    presets of its own.
 
 - [ ] **Copy and paste operators.** Copy one operator's settings (frequency, envelope, output level,
       keyboard scaling, sensitivity) to another operator, or to an operator in another voice.
@@ -125,7 +129,7 @@ V15. Before it can be built:
 - Once known, move the item to [the roadmap](fm1-roadmap.md) or into [Worth doing](#worth-doing).
   If order is per patch, storing it is a new field in the saved effect state, which must follow the
   legacy-data rules (optional on read, default to the stock order).
-- It pairs with [Effect presets](#worth-doing): a preset could set the order as well as the values.
+- It pairs with [Effect presets](#worth-doing): the routing could have presets of its own.
 
 ## Decided against
 

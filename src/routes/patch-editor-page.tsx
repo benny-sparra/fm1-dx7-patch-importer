@@ -450,13 +450,15 @@ export function PatchEditorPage({
     void sendToFm1()
   }
 
-  /** Sets the whole effects chain as a single undo step and sends all of it to the FM1. */
+  /** Sets one effect's controls as a single undo step and sends that effect to the FM1. */
   const selectEffectPreset = (presetId: EffectPresetId) => {
     const current = historyRef.current
-    const settings = applyEffectPreset(getFm1EffectParameters(current.present), presetId)
-    const edits = Array.from(
-      settings,
-      (value, controller) => [resolveEffectEditorIndex(controller), value] as ParameterEdit,
+    const { controllers, settings } = applyEffectPreset(
+      getFm1EffectParameters(current.present),
+      presetId,
+    )
+    const edits = controllers.map(
+      (controller) => [resolveEffectEditorIndex(controller), settings[controller]] as ParameterEdit,
     )
     const next = editParameters(current, edits)
 
@@ -464,7 +466,11 @@ export function PatchEditorPage({
 
     gestureStart.current = null
     commitHistory(next)
-    if (canSync && syncStateRef.current === 'live') void midi.sendEffectSettings(settings)
+    if (canSync && syncStateRef.current === 'live') {
+      controllers.forEach((controller) =>
+        midi.sendEffectParameter(controller, settings[controller]),
+      )
+    }
   }
 
   useKeyboardShortcuts([

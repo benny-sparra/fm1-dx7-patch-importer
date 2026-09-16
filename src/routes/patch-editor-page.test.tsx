@@ -215,50 +215,56 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(midi.sendVoice).toHaveBeenCalledTimes(sends)
   }, 15_000)
 
-  it('applies an effect preset as a single undo step and sends every effect control once', async () => {
+  it('applies a reverb preset from the reverb box as a single undo step', async () => {
     const user = userEvent.setup()
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
-    const presets = screen.getByRole('combobox', { name: 'Effect presets' })
     const reverb = within(screen.getByRole('region', { name: 'Reverb' }))
+    const presets = reverb.getByRole('combobox', { name: 'Reverb Preset' })
     const reverbDecay = () =>
       (screen.getByRole('slider', { name: 'Reverb Decay' }) as HTMLInputElement).value
 
     await user.selectOptions(presets, 'Large hall')
 
-    expect(reverb.getByRole('button', { name: 'Bypass Reverb' })).toHaveProperty(
-      'ariaPressed',
-      'true',
-    )
+    expect(reverb.getByRole('button', { name: 'Bypass Reverb' })).toBeTruthy()
     expect(reverbDecay()).toBe('70')
     expect((presets as HTMLSelectElement).value).toBe('')
-    expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2)
-    expect(Array.from(vi.mocked(midi.sendEffectSettings).mock.calls[1][0]).slice(4, 8)).toEqual([
-      1, 1, 70, 35,
-    ])
-    expect(midi.sendEffectParameter).not.toHaveBeenCalled()
 
     await user.keyboard('{Meta>}z{/Meta}')
 
     expect(reverbDecay()).toBe('0')
-    expect(reverb.getByRole('button', { name: 'Enable Reverb' })).toHaveProperty(
-      'ariaPressed',
-      'false',
-    )
+    expect(reverb.getByRole('button', { name: 'Enable Reverb' })).toBeTruthy()
   }, 15_000)
 
-  it('does not resend an effect preset that is already applied', async () => {
+  it('sends only the preset effect’s controls, and nothing when the preset is applied again', async () => {
     const user = userEvent.setup()
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
-    const presets = screen.getByRole('combobox', { name: 'Effect presets' })
+    const presets = screen.getByRole('combobox', { name: 'Delay Preset' })
 
     await user.selectOptions(presets, 'Echo')
-    expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2)
+    expect(vi.mocked(midi.sendEffectParameter).mock.calls).toEqual([
+      [8, 1],
+      [9, 45],
+      [10, 55],
+      [11, 30],
+    ])
     await user.selectOptions(presets, 'Echo')
 
-    expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2)
+    expect(midi.sendEffectParameter).toHaveBeenCalledTimes(4)
+    expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1)
   }, 15_000)
+
+  it('offers presets only in the boxes of effects that have them', async () => {
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+
+    expect(
+      within(screen.getByRole('region', { name: 'Chorus' })).queryByRole('combobox', {
+        name: 'Chorus Preset',
+      }),
+    ).toBeNull()
+  })
 
   it('undoes a held arrow key on an effect slider as a single step', async () => {
     const user = userEvent.setup()

@@ -33,7 +33,7 @@ Click anywhere on the title strip of the operators or effects panel to fold it a
 
 The pitch envelope has a presets menu of starting shapes: **Flat**, **Attack blip up**, **Attack drop**, **Scoop**, and **Release fall**. Each one is applied as a single undo step.
 
-The effects panel has a presets menu too: **Dry**, **Small room**, **Large hall**, **Plate**, **Slapback**, and **Echo**. A preset switches on only the effects it uses and bypasses the rest, which keep their settings, so you can switch one back on. It sends the whole effects chain to the FM1 and is a single undo step.
+The Reverb and Delay boxes on the effects panel each have a **Preset** menu: **Small room**, **Large hall**, and **Plate** for reverb, and **Slapback** and **Echo** for delay. A preset switches its effect on and sets its controls, leaving the other effects as they are. It sends that effect to the FM1 and is a single undo step.
 
 The LFO and every FM1 effect open with a small animated scope drawn from their current settings. The LFO scrolls its selected wave at a rate set by LFO Speed. The filter shows its response curve, delay its echo taps, chorus its drifting copies, reverb its tail, distortion its clipped wave, and phaser its sweeping notches. A scope dims when its effect is bypassed or when the LFO has no modulation depth. With reduced motion enabled, each scope shows a still frame instead.
 

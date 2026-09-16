@@ -12,7 +12,7 @@ import {
 import { rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
-import { effectPresets, type EffectPresetId } from '@/lib/effect-presets'
+import { effectPresetsFor, type EffectPresetId } from '@/lib/effect-presets'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
@@ -179,6 +179,52 @@ function EffectScope({
 }
 
 /*
+  A starting point for one effect, in the same row layout as its enumerated
+  controls. It stays usable while the effect is bypassed, because applying a
+  preset switches the effect on.
+*/
+function EffectPresetControl({
+  effectName,
+  onApplyPreset,
+}: {
+  effectName: EffectName
+  onApplyPreset: (id: EffectPresetId) => void
+}) {
+  const { t } = useTranslation()
+  const presets = effectPresetsFor(effectName.toLowerCase())
+  if (presets.length === 0) return null
+
+  const translatedEffect = t(`ui.effects.${effectName.toLowerCase()}`)
+  const label = t('editor.effectPreset')
+  return (
+    <label className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+      <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+        <span className="min-w-0 truncate" title={label}>
+          {label}
+        </span>
+        <HelpPopover label={`${translatedEffect} ${label}`} text={t('controlHelp.effectPresets')} />
+      </span>
+      {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
+      <select
+        aria-label={`${translatedEffect} ${label}`}
+        className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+        onChange={(event) => onApplyPreset(event.target.value as EffectPresetId)}
+        value=""
+      >
+        <option disabled value="">
+          {t('editor.effectPresetPlaceholder')}
+        </option>
+        {presets.map(({ id }) => (
+          <option key={id} value={id}>
+            {t(`editor.effectPresetOptions.${id}`)}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
+/*
   Each parameter is one rack row: caption, striped meter, LED value. The
   enumerated ones (filter type, reverb space) are a sunken select instead.
 */
@@ -287,29 +333,6 @@ export function EffectsUnit({
 
   return (
     <div className="grid gap-2 p-[9px] md:grid-cols-2 xl:grid-cols-3">
-      {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
-      <label className="col-span-full grid max-w-sm min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
-        <span className="flex items-center gap-1">
-          {t('editor.effectPresets')}
-          <HelpPopover label={t('editor.effectPresets')} text={t('controlHelp.effectPresets')} />
-        </span>
-        {/* The help button shares the label, so name the select directly. */}
-        <select
-          aria-label={t('editor.effectPresets')}
-          className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-          onChange={(event) => onApplyPreset(event.target.value as EffectPresetId)}
-          value=""
-        >
-          <option disabled value="">
-            {t('editor.effectPresetPlaceholder')}
-          </option>
-          {effectPresets.map(({ id }) => (
-            <option key={id} value={id}>
-              {t(`editor.effectPresetOptions.${id}`)}
-            </option>
-          ))}
-        </select>
-      </label>
       {effects.map((effect) => {
         const switchController = getEffectParameterDefinition(effect.switchId).controller
         const enabled = values[switchController] > 0
@@ -355,6 +378,7 @@ export function EffectsUnit({
             </div>
             <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
               <EffectScope enabled={enabled} name={effect.name} values={values} />
+              <EffectPresetControl effectName={effect.name} onApplyPreset={onApplyPreset} />
               {effect.parameters.map((parameter) => (
                 <EffectControl
                   disabled={!enabled}

@@ -1,21 +1,24 @@
 import { fm1EffectParameters, type EffectParameterId } from '@/lib/fm1-parameters'
 
 /*
-  Starting points for the FM1 effects chain. The device's value scaling and
-  units are unconfirmed (docs/fm1-research.md §7), so presets are named by
-  character and keep their values away from the ends of each range.
+  Starting points for single FM1 effects, offered in that effect's box. The
+  device's value scaling and units are unconfirmed (docs/fm1-research.md §7),
+  so presets are named by character and keep their values away from the ends
+  of each range.
 
-  A preset turns on only the effects it lists, and sets every control of
-  each, so applying it always gives the same sound. The other effects are
-  bypassed but keep their settings.
+  A preset switches its effect on and sets every one of its controls, so
+  applying it always gives the same sound. Other effects are left alone.
 
   Delay rate is assumed to lengthen the gap between repeats as it rises, as
   the delay scope draws it. Slapback and Echo depend on that direction, which
   still needs confirming on hardware.
 */
-export type EffectPresetId = 'dry' | 'smallRoom' | 'largeHall' | 'plate' | 'slapback' | 'echo'
+type PresetEffect = 'reverb' | 'delay'
+
+export type EffectPresetId = 'smallRoom' | 'largeHall' | 'plate' | 'slapback' | 'echo'
 
 type EffectPreset = {
+  effect: PresetEffect
   id: EffectPresetId
   values: Partial<Record<EffectParameterId, number>>
 }
@@ -25,8 +28,8 @@ const reverbHall = 1
 const reverbPlate = 2
 
 export const effectPresets: EffectPreset[] = [
-  { id: 'dry', values: {} },
   {
+    effect: 'reverb',
     id: 'smallRoom',
     values: {
       'effect.reverb.enabled': 1,
@@ -36,6 +39,7 @@ export const effectPresets: EffectPreset[] = [
     },
   },
   {
+    effect: 'reverb',
     id: 'largeHall',
     values: {
       'effect.reverb.enabled': 1,
@@ -45,6 +49,7 @@ export const effectPresets: EffectPreset[] = [
     },
   },
   {
+    effect: 'reverb',
     id: 'plate',
     values: {
       'effect.reverb.enabled': 1,
@@ -54,6 +59,7 @@ export const effectPresets: EffectPreset[] = [
     },
   },
   {
+    effect: 'delay',
     id: 'slapback',
     values: {
       'effect.delay.enabled': 1,
@@ -63,6 +69,7 @@ export const effectPresets: EffectPreset[] = [
     },
   },
   {
+    effect: 'delay',
     id: 'echo',
     values: {
       'effect.delay.enabled': 1,
@@ -73,16 +80,30 @@ export const effectPresets: EffectPreset[] = [
   },
 ]
 
-/** Returns the effect settings with the preset applied, leaving `settings` unchanged. */
+/** The effect a parameter belongs to, such as `reverb` for `effect.reverb.decay`. */
+export function effectOfParameter(id: EffectParameterId) {
+  return id.split('.')[1]
+}
+
+export function effectPresetsFor(effect: string) {
+  return effectPresets.filter((preset) => preset.effect === effect)
+}
+
+/**
+ * Returns the effect settings with the preset applied, leaving `settings` unchanged, and the
+ * controllers of the preset's effect.
+ */
 export function applyEffectPreset(settings: Uint8Array, id: EffectPresetId) {
   const preset = effectPresets.find((candidate) => candidate.id === id)
   if (!preset) throw new RangeError(`Unknown effect preset: ${id}`)
 
   const next = settings.slice()
-  for (const { controller, id: parameterId, kind } of fm1EffectParameters) {
-    if (kind === 'switch') next[controller] = 0
+  const controllers: number[] = []
+  for (const { controller, id: parameterId } of fm1EffectParameters) {
     const value = preset.values[parameterId]
-    if (value !== undefined) next[controller] = value
+    if (value === undefined) continue
+    next[controller] = value
+    controllers.push(controller)
   }
-  return next
+  return { controllers, settings: next }
 }

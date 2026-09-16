@@ -43,7 +43,7 @@ export default {
     pitchEnvelopePresets:
       'Substitui as oito taxas e níveis por uma forma inicial. Plana remove qualquer movimento de afinação; as outras adicionam um pico rápido, um ataque que cai, uma subida ou uma queda ao soltar. Desfazer restaura o envelope anterior.',
     effectPresets:
-      'Ajusta toda a cadeia de efeitos a partir de um ponto de partida. Cada preset liga apenas os efeitos que usa e ignora os demais, que mantêm suas configurações. Desfazer restaura os efeitos anteriores.',
+      'Ajusta os controles deste efeito a um ponto de partida e o liga. Os outros efeitos não mudam. Desfazer restaura as configurações anteriores.',
     oscillatorSync:
       'Reinicia todos os operadores na mesma posição da forma de onda a cada nota. Ligado, o ataque fica mais consistente; desligado, o som pode ficar mais orgânico.',
     lfoSync:
@@ -431,10 +431,9 @@ export default {
       scoop: 'Subida',
       releaseFall: 'Queda ao soltar',
     },
-    effectPresets: 'Presets de efeitos',
+    effectPreset: 'Preset',
     effectPresetPlaceholder: 'Escolher…',
     effectPresetOptions: {
-      dry: 'Seco',
       smallRoom: 'Sala pequena',
       largeHall: 'Salão grande',
       plate: 'Placa',

@@ -44,7 +44,7 @@ export default {
     pitchEnvelopePresets:
       'Remplace les huit vitesses et niveaux par une forme de départ. Plate supprime tout mouvement de hauteur ; les autres ajoutent une brève pointe, une attaque qui chute, un glissé montant ou une chute au relâchement. Annuler rétablit l’enveloppe précédente.',
     effectPresets:
-      'Règle toute la chaîne d’effets à partir d’un point de départ. Chaque préréglage n’active que les effets qu’il utilise et contourne les autres, qui gardent leurs réglages. Annuler rétablit les effets précédents.',
+      'Règle les commandes de cet effet sur un point de départ et l’active. Les autres effets ne changent pas. Annuler rétablit les réglages précédents.',
     oscillatorSync:
       'Redémarre chaque opérateur à la même position de forme d’onde à chaque note. Activé, l’attaque est plus régulière ; désactivé, le son peut paraître plus organique.',
     lfoSync:
@@ -440,10 +440,9 @@ export default {
       scoop: 'Glissé montant',
       releaseFall: 'Chute au relâchement',
     },
-    effectPresets: 'Préréglages d’effets',
+    effectPreset: 'Préréglage',
     effectPresetPlaceholder: 'Choisir…',
     effectPresetOptions: {
-      dry: 'Sec',
       smallRoom: 'Petite pièce',
       largeHall: 'Grande salle',
       plate: 'Plaque',

@@ -230,8 +230,8 @@ Future work is limited to questions the guide does not answer:
 ## 8. Effect preset listening check
 
 Use the setup in §1 with a plain sustained patch such as **Init voice**, and a short staccato phrase
-as well as a held note. Apply each preset from the **Effect presets** menu, starting from **Dry**,
-and record whether it matches its name. A preset that does not is retuned in the table, or renamed,
+as well as a held note. Apply each preset from the **Preset** menu in its effect's box, with the other effects
+switched off, and record whether it matches its name. A preset that does not is retuned in the table, or renamed,
 and listened to again. Record the firmware label and date.
 
 Phase 1 also settles two assumptions the presets depend on:
@@ -244,7 +244,6 @@ Phase 1 also settles two assumptions the presets depend on:
 
 | Phase | Preset     | Matches its name | Notes |
 | ----- | ---------- | ---------------- | ----- |
-| 1     | Dry        | Not recorded     |       |
 | 1     | Small room | Not recorded     |       |
 | 1     | Large hall | Not recorded     |       |
 | 1     | Plate      | Not recorded     |       |
