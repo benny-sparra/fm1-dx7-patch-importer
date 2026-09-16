@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
-import { PianoKeyboardDialog } from '@/components/midi/piano-keyboard-dialog'
+import { PianoKeyboard } from '@/components/midi/piano-keyboard'
 import { type MidiController } from '@/hooks/use-midi'
 import { editorShortcuts, shouldRunShortcut } from '@/lib/keyboard-shortcuts'
 
@@ -21,19 +21,26 @@ beforeAll(() => {
 
 afterEach(cleanup)
 
+const keyboardDialog = () => document.querySelector('dialog')
+
+async function clickKeyboard(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'Keyboard' }))
+  await waitFor(() => expect(keyboardDialog()?.open).toBe(true))
+}
+
 function setup() {
   const midi = {
     hasMidiOutput: true,
     startNote: vi.fn(),
     stopNote: vi.fn(),
   } as unknown as MidiController
-  const view = render(<PianoKeyboardDialog midi={midi} />)
+  const view = render(<PianoKeyboard midi={midi} />)
   return { midi, ...view }
 }
 
-describe('PianoKeyboardDialog trigger', () => {
+describe('PianoKeyboard trigger', () => {
   function trigger(midi: Partial<MidiController>) {
-    render(<PianoKeyboardDialog midi={midi as MidiController} />)
+    render(<PianoKeyboard midi={midi as MidiController} />)
     return screen.getByRole('button', { name: 'Keyboard' }) as HTMLButtonElement
   }
 
@@ -56,11 +63,11 @@ describe('PianoKeyboardDialog trigger', () => {
   })
 })
 
-describe('PianoKeyboardDialog note lifecycle', () => {
+describe('PianoKeyboard note lifecycle', () => {
   it('balances computer-key note on and note off', async () => {
     const user = userEvent.setup()
     const { midi } = setup()
-    await user.click(screen.getByRole('button', { name: 'Keyboard' }))
+    await clickKeyboard(user)
     fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
     fireEvent.keyUp(window, { code: 'KeyA', key: 'a' })
     expect(midi.startNote).toHaveBeenCalledWith(48, 'C3')
@@ -70,7 +77,7 @@ describe('PianoKeyboardDialog note lifecycle', () => {
   it('releases active notes on window blur and unmount', async () => {
     const user = userEvent.setup()
     const { midi, unmount } = setup()
-    await user.click(screen.getByRole('button', { name: 'Keyboard' }))
+    await clickKeyboard(user)
     fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
     fireEvent.keyDown(window, { code: 'KeyS', key: 's' })
     fireEvent.blur(window)
@@ -83,11 +90,11 @@ describe('PianoKeyboardDialog note lifecycle', () => {
   })
 })
 
-describe('PianoKeyboardDialog keyboard ownership', () => {
+describe('PianoKeyboard keyboard ownership', () => {
   async function openKeyboard() {
     const user = userEvent.setup()
     const view = setup()
-    await user.click(screen.getByRole('button', { name: 'Keyboard' }))
+    await clickKeyboard(user)
     return view
   }
 
@@ -97,7 +104,7 @@ describe('PianoKeyboardDialog keyboard ownership', () => {
 
     fireEvent.keyDown(window, { key: 'Escape' })
 
-    expect(document.querySelector('dialog')?.open).toBe(false)
+    expect(keyboardDialog()?.open).toBe(false)
     expect(midi.stopNote).toHaveBeenCalledWith(48)
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Keyboard' }))
   })
@@ -143,7 +150,59 @@ describe('PianoKeyboardDialog keyboard ownership', () => {
   })
 })
 
-describe('PianoKeyboardDialog keyboard layouts', () => {
+describe('PianoKeyboard loading', () => {
+  it('keeps the chosen octave when the keyboard is closed and opened again', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await clickKeyboard(user)
+    await user.click(screen.getByRole('button', { name: 'Shift octave up' }))
+    fireEvent.keyDown(window, { key: 'Escape' })
+
+    await clickKeyboard(user)
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
+
+    expect(midi.startNote).toHaveBeenCalledWith(60, 'C4')
+  })
+
+  it('opens a single keyboard when the trigger is activated repeatedly', async () => {
+    const user = userEvent.setup()
+    setup()
+    const trigger = screen.getByRole('button', { name: 'Keyboard' })
+
+    await user.click(trigger)
+    await user.click(trigger)
+    await waitFor(() => expect(keyboardDialog()?.open).toBe(true))
+
+    expect(document.querySelectorAll('dialog')).toHaveLength(1)
+  })
+
+  it('explains in translated text when the keyboard cannot be loaded', async () => {
+    vi.resetModules()
+    vi.doMock('@/components/midi/piano-keyboard-dialog', () => {
+      throw new Error('chunk failed')
+    })
+    const { PianoKeyboard: KeyboardWithFailingChunk } =
+      await import('@/components/midi/piano-keyboard')
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const user = userEvent.setup()
+    render(
+      <KeyboardWithFailingChunk
+        midi={{ hasMidiOutput: true, startNote: vi.fn(), stopNote: vi.fn() } as never}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Keyboard' }))
+
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'The keyboard could not be opened. Reload the page and try again.',
+    )
+    expect(keyboardDialog()).toBeNull()
+    consoleError.mockRestore()
+    vi.doUnmock('@/components/midi/piano-keyboard-dialog')
+  })
+})
+
+describe('PianoKeyboard keyboard layouts', () => {
   afterEach(() => {
     Reflect.deleteProperty(navigator, 'keyboard')
   })
@@ -151,7 +210,7 @@ describe('PianoKeyboardDialog keyboard layouts', () => {
   async function openKeyboard() {
     const user = userEvent.setup()
     const view = setup()
-    await user.click(screen.getByRole('button', { name: 'Keyboard' }))
+    await clickKeyboard(user)
     return view
   }
 

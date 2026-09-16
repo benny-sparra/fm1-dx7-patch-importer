@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, GripHorizontal, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -17,33 +17,16 @@ import {
 
 type PianoKeyboardDialogProps = {
   midi: MidiController
+  onClose: () => void
+  open: boolean
+  triggerRef: RefObject<HTMLButtonElement | null>
 }
 
-function PianoKeysIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
-      <rect height="16" rx="2" width="18" x="3" y="4" />
-      <path d="M9 13v7M15 13v7" />
-      <rect fill="currentColor" height="9" rx="1" stroke="none" width="4" x="7" y="4" />
-      <rect fill="currentColor" height="9" rx="1" stroke="none" width="4" x="13" y="4" />
-    </svg>
-  )
-}
-
-export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
+export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKeyboardDialogProps) {
   const { t } = useTranslation()
   const keyLabel = useKeyboardKeyLabel()
   const { startNote: sendMidiNoteOn, stopNote: sendMidiNoteOff } = midi
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
   const dragOffsetRef = useRef<{ x: number; y: number } | null>(null)
   const activeNotesRef = useRef<Set<number>>(new Set())
   const activeComputerKeysRef = useRef<Map<string, number>>(new Map())
@@ -61,14 +44,14 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
     [blackKeys, whiteKeys],
   )
 
-  function openDialog() {
+  useEffect(() => {
     const dialog = dialogRef.current
 
-    if (dialog && !dialog.open) {
+    if (open && dialog && !dialog.open) {
       setDialogPosition(null)
       dialog.show()
     }
-  }
+  }, [open])
 
   const playNote = useCallback(
     (key: PianoKey) => {
@@ -107,7 +90,7 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
     releaseAllNotes()
     dialogRef.current?.close()
     triggerRef.current?.focus()
-  }, [releaseAllNotes])
+  }, [releaseAllNotes, triggerRef])
 
   const shiftOctave = useCallback(
     (direction: -1 | 1) => {
@@ -260,110 +243,77 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
   }
 
   return (
-    <>
-      <Button
-        className="font-vt323 ml-auto"
-        disabled={!midi.hasMidiOutput}
-        onClick={openDialog}
-        ref={triggerRef}
-        title={
-          !midi.midiAccess
-            ? t('midi.switchOnFirst')
-            : !midi.hasMidiOutput
-              ? t('midi.chooseOutput')
-              : undefined
-        }
-        type="button"
-        variant="secondary"
+    <dialog
+      aria-label={t('ui.pianoKeyboard')}
+      className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1010px,calc(100vw-1rem))] overflow-auto rounded-xl bg-card p-0 whitespace-normal text-card-foreground"
+      data-plain-keys-only
+      onCancel={releaseAllNotes}
+      onClose={() => {
+        releaseAllNotes()
+        onClose()
+      }}
+      ref={dialogRef}
+      style={
+        dialogPosition
+          ? {
+              inset: 'auto',
+              left: `${dialogPosition.left}px`,
+              margin: 0,
+              top: `${dialogPosition.top}px`,
+            }
+          : undefined
+      }
+    >
+      <div
+        aria-label={t('ui.dragKeyboard')}
+        className="synthwave-keyboard-header flex h-12 cursor-move touch-none items-center justify-between px-4"
+        onPointerCancel={stopDrag}
+        onPointerDown={startDrag}
+        onPointerMove={moveDialog}
+        onPointerUp={stopDrag}
       >
-        <PianoKeysIcon />
-        {t('ui.keyboard')}
-      </Button>
-
-      <dialog
-        aria-label={t('ui.pianoKeyboard')}
-        className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1010px,calc(100vw-1rem))] overflow-auto rounded-xl bg-card p-0 whitespace-normal text-card-foreground"
-        data-plain-keys-only
-        onCancel={releaseAllNotes}
-        onClose={releaseAllNotes}
-        ref={dialogRef}
-        style={
-          dialogPosition
-            ? {
-                inset: 'auto',
-                left: `${dialogPosition.left}px`,
-                margin: 0,
-                top: `${dialogPosition.top}px`,
-              }
-            : undefined
-        }
-      >
-        <div
-          aria-label={t('ui.dragKeyboard')}
-          className="synthwave-keyboard-header flex h-12 cursor-move touch-none items-center justify-between px-4"
-          onPointerCancel={stopDrag}
-          onPointerDown={startDrag}
-          onPointerMove={moveDialog}
-          onPointerUp={stopDrag}
-        >
-          <div className="flex items-center gap-3">
-            <GripHorizontal className="size-5 opacity-60" />
-            <div className="flex items-baseline gap-2.5">
-              <span className="text-xs font-extrabold tracking-[0.24em]">
-                {t('ui.performance')}
-              </span>
-              <span className="text-[0.62rem] font-bold tracking-[0.2em] opacity-70">
-                {t('ui.keyboard').toUpperCase()}
-              </span>
-            </div>
+        <div className="flex items-center gap-3">
+          <GripHorizontal className="size-5 opacity-60" />
+          <div className="flex items-baseline gap-2.5">
+            <span className="text-xs font-extrabold tracking-[0.24em]">{t('ui.performance')}</span>
+            <span className="text-[0.62rem] font-bold tracking-[0.2em] opacity-70">
+              {t('ui.keyboard').toUpperCase()}
+            </span>
           </div>
-          <Button
-            aria-label={t('ui.closeKeyboard')}
-            autoFocus
-            onClick={closeKeyboard}
-            onPointerDown={(event) => event.stopPropagation()}
-            size="icon"
-            type="button"
-            variant="ghost"
-            className="text-current hover:bg-black/10 hover:text-current"
-          >
-            <X />
-          </Button>
         </div>
+        <Button
+          aria-label={t('ui.closeKeyboard')}
+          autoFocus
+          onClick={closeKeyboard}
+          onPointerDown={(event) => event.stopPropagation()}
+          size="icon"
+          type="button"
+          variant="ghost"
+          className="text-current hover:bg-black/10 hover:text-current"
+        >
+          <X />
+        </Button>
+      </div>
 
-        <div className="synthwave-keyboard-stage overflow-x-auto p-4">
-          <div
-            className="grid items-stretch gap-3"
-            style={{
-              gridTemplateColumns: `56px ${whiteKeys.length * PIANO_KEY_WIDTH}px 56px`,
-              width: `${whiteKeys.length * PIANO_KEY_WIDTH + 136}px`,
-            }}
-          >
-            <OctaveButton
-              direction="down"
-              disabled={baseOctave <= 1}
-              keyboardKey={keyLabel(octaveDownKeyCode)}
-              onClick={() => shiftOctave(-1)}
-            />
+      <div className="synthwave-keyboard-stage overflow-x-auto p-4">
+        <div
+          className="grid items-stretch gap-3"
+          style={{
+            gridTemplateColumns: `56px ${whiteKeys.length * PIANO_KEY_WIDTH}px 56px`,
+            width: `${whiteKeys.length * PIANO_KEY_WIDTH + 136}px`,
+          }}
+        >
+          <OctaveButton
+            direction="down"
+            disabled={baseOctave <= 1}
+            keyboardKey={keyLabel(octaveDownKeyCode)}
+            onClick={() => shiftOctave(-1)}
+          />
 
-            <div className="synthwave-keybed relative h-56 overflow-hidden rounded-lg px-2 pt-2 pb-3">
-              <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-[color-mix(in_srgb,var(--fm1-accent)_20%,transparent)] to-transparent" />
-              <div className="grid h-full grid-cols-[repeat(15,56px)]">
-                {whiteKeys.map((key) => (
-                  <PianoKeyButton
-                    computerKeyLabel={
-                      key.computerKeyCode ? keyLabel(key.computerKeyCode) : undefined
-                    }
-                    isActive={activeNotes.has(key.note)}
-                    key={key.note}
-                    noteKey={key}
-                    onStart={playNote}
-                    onStop={releaseNote}
-                  />
-                ))}
-              </div>
-
-              {blackKeys.map((key) => (
+          <div className="synthwave-keybed relative h-56 overflow-hidden rounded-lg px-2 pt-2 pb-3">
+            <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-[color-mix(in_srgb,var(--fm1-accent)_20%,transparent)] to-transparent" />
+            <div className="grid h-full grid-cols-[repeat(15,56px)]">
+              {whiteKeys.map((key) => (
                 <PianoKeyButton
                   computerKeyLabel={key.computerKeyCode ? keyLabel(key.computerKeyCode) : undefined}
                   isActive={activeNotes.has(key.note)}
@@ -375,16 +325,27 @@ export function PianoKeyboardDialog({ midi }: PianoKeyboardDialogProps) {
               ))}
             </div>
 
-            <OctaveButton
-              direction="up"
-              disabled={baseOctave >= 5}
-              keyboardKey={keyLabel(octaveUpKeyCode)}
-              onClick={() => shiftOctave(1)}
-            />
+            {blackKeys.map((key) => (
+              <PianoKeyButton
+                computerKeyLabel={key.computerKeyCode ? keyLabel(key.computerKeyCode) : undefined}
+                isActive={activeNotes.has(key.note)}
+                key={key.note}
+                noteKey={key}
+                onStart={playNote}
+                onStop={releaseNote}
+              />
+            ))}
           </div>
+
+          <OctaveButton
+            direction="up"
+            disabled={baseOctave >= 5}
+            keyboardKey={keyLabel(octaveUpKeyCode)}
+            onClick={() => shiftOctave(1)}
+          />
         </div>
-      </dialog>
-    </>
+      </div>
+    </dialog>
   )
 }
 

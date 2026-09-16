@@ -159,6 +159,7 @@ export default {
     pianoKeyboard: 'Teclado de piano',
     dragKeyboard: 'Mover o teclado',
     closeKeyboard: 'Fechar o teclado',
+    keyboardOpenFailed: 'Não foi possível abrir o teclado. Recarregue a página e tente novamente.',
     shiftOctave: 'Deslocar oitava para {{direction}}',
     playNote: 'Tocar {{note}}',
     helpFor: 'Ajuda: {{label}}',
