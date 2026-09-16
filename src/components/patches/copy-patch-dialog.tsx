@@ -229,7 +229,7 @@ export function CopyPatchDialog({ library, onClose, onCopied, source }: CopyPatc
           <div className="flex justify-end">
             <Button disabled={!target} type="submit">
               <Copy />
-              {t('banks.copyAction', { slot: target ? patchSlotCode(target) : '' })}
+              <span>{t('banks.copyAction', { slot: target ? patchSlotCode(target) : '' })}</span>
             </Button>
           </div>
         </form>
