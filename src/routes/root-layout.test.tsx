@@ -11,7 +11,7 @@ import { RootLayout } from './root-layout'
 const midiLogSnapshot = [
   {
     direction: 'system',
-    message: 'Ready. Connect a Chromium browser to begin.',
+    message: 'Ready. Connect MIDI to begin.',
     timestamp: 0,
   },
 ]
@@ -43,6 +43,7 @@ beforeEach(() => localStorage.setItem('fm1-librarian-help-seen', 'true'))
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 describe('RootLayout title layout', () => {
@@ -93,7 +94,8 @@ describe('RootLayout unsupported banner', () => {
     expect(banner.textContent).not.toContain('Unsupported browser.')
   })
 
-  it('titles the banner as an unsupported browser on a desktop browser without Web MIDI', () => {
+  it('titles the banner as an unsupported browser on a secure page without Web MIDI', () => {
+    vi.stubGlobal('isSecureContext', true)
     const banner = renderWithUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
     )

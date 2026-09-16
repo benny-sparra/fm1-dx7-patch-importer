@@ -107,7 +107,7 @@ export function useMidi() {
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<MidiConnectionErrorCode | null>(null)
   const [logStore] = useState(
-    () => new MidiLogStore([makeLogEntry('system', 'Ready. Connect a Chromium browser to begin.')]),
+    () => new MidiLogStore([makeLogEntry('system', 'Ready. Connect MIDI to begin.')]),
   )
   const [transferQueue] = useState(() => new MidiTransferQueue({ minimumIntervalMs: 35 }))
   const webMidi = useRef<WebMidiApi | null>(null)

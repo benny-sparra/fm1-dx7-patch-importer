@@ -5,6 +5,8 @@ see the [README](../README.md).
 
 ## Banks, transfers, and settings
 
+The editor works in desktop browsers with Web MIDI and SysEx, such as Chrome, Edge, Opera, and Firefox. The first time you connect, the browser asks to allow MIDI and SysEx access for the site. Firefox asks you to install a small site permission add-on instead of showing a plain permission prompt; accept it to connect.
+
 After the first successful connection, the app remembers the selected MIDI ports and both channels and reconnects automatically on future visits. Switch **MIDI online** off to disable automatic connection. If the selected output disconnects, the app does not switch to another device: nothing is selected until the output is reconnected or you choose another in **Settings**, and messages still waiting to be sent are dropped.
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
