@@ -134,7 +134,7 @@ export function ImportDx7BankDialog({
           <div className="flex flex-wrap justify-end gap-2">
             <Button disabled={working || !bank || !file} type="submit" variant="destructive">
               <Upload />
-              {working ? t('banks.importing') : t('overwriteImport.action')}
+              <span>{working ? t('banks.importing') : t('overwriteImport.action')}</span>
             </Button>
           </div>
         </form>

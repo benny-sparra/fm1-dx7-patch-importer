@@ -111,11 +111,15 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
                       ) : (
                         <Clipboard className="size-4" />
                       )}
-                      {copyStatus === 'copied'
-                        ? t('midi.copied')
-                        : copyStatus === 'unavailable'
-                          ? t('midi.copyUnavailable')
-                          : t('midi.copyHex')}
+                      {/* A page translator replaces bare text nodes, so the label keeps its own
+                          element for the icon swap to be inserted before. */}
+                      <span>
+                        {copyStatus === 'copied'
+                          ? t('midi.copied')
+                          : copyStatus === 'unavailable'
+                            ? t('midi.copyUnavailable')
+                            : t('midi.copyHex')}
+                      </span>
                     </Button>
                   </div>
                   <pre className="font-vt323 max-h-[40vh] overflow-auto border border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-3 text-base leading-5 whitespace-pre text-[var(--crt-ink-2)]">

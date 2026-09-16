@@ -211,6 +211,13 @@ open everything an earlier release could have saved.
   backdrop clicks, as the add-bank, import, and unsaved-changes dialogs do.
 - A component that can be rendered more than once takes its ARIA ids from `useId` rather than fixed
   strings.
+- Browser page translators replace text nodes with `<font>` elements, and React then crashes when it
+  removes a text node it rendered next to other children, or inserts a node before one; a label
+  that changes beside an icon keeps showing its old text. Give text that sits beside a conditional
+  element, or changes beside other children, its own `<span>`, as the MIDI log's copy button and
+  the working labels on bank buttons do, and key the branches of a conditional that swaps layouts
+  built from the same element type, as `Fm1BankSelectionDialog` does. Cover it with
+  `translatePageText` from `src/test/page-translator.ts`.
 - Interactive controls need stable accessible names. Preserve ARIA relationships and avoid nesting
   buttons, links, summaries, inputs, or other interactive elements.
 - If a feature body becomes lazy, keep its trigger eager. One activation must eventually open the

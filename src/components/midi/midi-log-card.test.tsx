@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { MidiLogCard } from '@/components/midi/midi-log-card'
+import { translatePageText } from '@/test/page-translator'
 
 const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
 
@@ -51,5 +52,18 @@ describe('MidiLogCard clipboard boundaries', () => {
     await user.click(screen.getByRole('button', { name: 'Copy hex' }))
 
     expect(screen.getByRole('button', { name: 'Copy unavailable' })).toBeTruthy()
+  })
+
+  it('confirms a copy after a page translator replaces the button text', async () => {
+    const writeText = vi.fn(async () => undefined)
+    const user = userEvent.setup()
+    setClipboard({ writeText } as unknown as Clipboard)
+    const { container } = render(<MidiLogCard log={log} />)
+
+    await user.click(screen.getByRole('button', { name: 'View data' }))
+    translatePageText(container)
+    await user.click(screen.getByRole('button', { name: 'Copy hex' }))
+
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeTruthy()
   })
 })

@@ -278,7 +278,7 @@ export function AddWorkspaceBankDialog({
               type="submit"
             >
               <Plus />
-              {working ? t('banks.creatingBank') : t('banks.createBank')}
+              <span>{working ? t('banks.creatingBank') : t('banks.createBank')}</span>
             </Button>
           </div>
         </form>
