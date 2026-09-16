@@ -163,7 +163,9 @@ open everything an earlier release could have saved.
 - Development and verification controls are gated where they are rendered, with a build-time
   constant such as `sentryVerificationEnabled`, so normal production builds leave them out.
 - A rejected optional chunk must be contained and recoverable; stale deployment chunks must not
-  crash the entire application.
+  crash the entire application. Every deploy renames every chunk, so a tab left open across a
+  deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
+  it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
   Dynamic imports are excluded. Do not weaken or bypass the 148 KiB gzip budget.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.

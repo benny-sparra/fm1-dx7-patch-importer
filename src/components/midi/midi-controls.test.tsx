@@ -15,7 +15,7 @@ describe('MidiConnectionError', () => {
 
     expect(
       screen.getByText(
-        'MIDI access was blocked. Allow MIDI and SysEx access for this site, then connect again.',
+        'MIDI access was blocked. Allow MIDI and SysEx access for this site, then connect again. In Firefox, accept the site permission add-on when it is offered.',
       ),
     ).toBeTruthy()
   })

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -8,6 +8,7 @@ import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { type MidiController } from '@/hooks/use-midi'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
+import { reloadPage } from '@/lib/reload-page'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -18,6 +19,8 @@ vi.mock('@/components/patches/copy-patch-dialog', () => ({
   },
 }))
 
+vi.mock('@/lib/reload-page', () => ({ reloadPage: vi.fn() }))
+
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
     this.open = true
@@ -27,6 +30,7 @@ beforeAll(() => {
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
+  vi.mocked(reloadPage).mockClear()
 })
 
 const library = {
@@ -41,25 +45,30 @@ const library = {
   workspaceBanks: ['A'],
 } as unknown as PatchLibrary
 
+async function openFailingCopyDialog() {
+  vi.spyOn(console, 'error').mockImplementation(() => undefined)
+  const user = userEvent.setup()
+  render(
+    <ToastProvider>
+      <LibrarianPage
+        activePatchId="bank-A-1"
+        library={library}
+        midi={{ hasMidiOutput: false } as unknown as MidiController}
+        onBankDeleted={vi.fn()}
+        onEditPatch={vi.fn()}
+        onSelectPatch={vi.fn()}
+      />
+    </ToastProvider>,
+  )
+
+  await user.click(screen.getByRole('button', { name: 'Actions for Alpha Piano' }))
+  await user.click(screen.getByRole('menuitem', { name: 'Copy to…' }))
+  return user
+}
+
 describe('LibrarianPage copy dialog that fails to load', () => {
   it('explains the failure and keeps the librarian working', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => undefined)
-    const user = userEvent.setup()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId="bank-A-1"
-          library={library}
-          midi={{ hasMidiOutput: false } as unknown as MidiController}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
-
-    await user.click(screen.getByRole('button', { name: 'Actions for Alpha Piano' }))
-    await user.click(screen.getByRole('menuitem', { name: 'Copy to…' }))
+    await openFailingCopyDialog()
 
     expect(
       await screen.findByText(
@@ -68,5 +77,14 @@ describe('LibrarianPage copy dialog that fails to load', () => {
     ).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Actions for Alpha Piano' })).toBeTruthy()
+  })
+
+  it('reloads the app when the failure notice offers it', async () => {
+    const user = await openFailingCopyDialog()
+
+    const alert = await screen.findByRole('alert')
+    await user.click(within(alert).getByRole('button', { name: 'Reload app' }))
+
+    expect(reloadPage).toHaveBeenCalledTimes(1)
   })
 })
