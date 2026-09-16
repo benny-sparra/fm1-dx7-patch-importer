@@ -19,7 +19,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Worth doing
 
-- [ ] **Effect presets.** A presets menu in each effect's box on the effects panel, like the pitch
+- [x] **Effect presets.** A presets menu in each effect's box on the effects panel, like the pitch
       envelope presets, that sets that FM1 effect (filter, reverb, delay, distortion, chorus, phaser)
       without touching the DX7 voice or the other effects.
   - Keep the table in `src/lib/`, separate from `sound-presets.ts`, which changes the whole voice.
@@ -135,6 +135,22 @@ V15. Before it can be built:
   If order is per patch, storing it is a new field in the saved effect state, which must follow the
   legacy-data rules (optional on read, default to the stock order).
 - It pairs with [Effect presets](#worth-doing): the routing could have presets of its own.
+
+**Parked 2026-09-16.** What a first look found:
+
+- M-VAVE's [FM-1 MIDI Control guide](https://www.m-vave.com/download) documents only FX CC 0–23,
+  the note-channel messages, System Real-Time, and the Yamaha single-parameter SysEx. It has no
+  effect-order CC or SysEx.
+- [FM-1-RE](https://github.com/AL-255/FM-1-RE/blob/main/docs/io/05-midi.md#7-cc-map-6-slots)
+  shows six FX slots processed by `fx_chain_process`, each holding an effect group at
+  `ENG+5791+i*3`, and the CC handler finds an effect's slot by searching that table (medium
+  confidence). That indirection suggests order is stored device state rather than a CC, and that
+  CC 0–23 would still reach the same effect after a reorder. Nothing found writes the table.
+- The FM1's own menus do not appear to offer effect ordering, so there is no stock operation to
+  capture. The only remaining route would be an unidentified `F0 35 59` vendor command, which stays
+  Dangerous / excluded.
+
+Reopen only if a stock control or an official M-VAVE app is found that changes the order.
 
 ## Decided against
 
