@@ -12,10 +12,13 @@ import {
 import { rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
+import { effectPresetsFor, type EffectPresetId } from '@/lib/effect-presets'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
+
 type EffectsUnitProps = {
+  onApplyPreset: (id: EffectPresetId) => void
   onChange: (controller: number, value: number) => void
   onGestureEnd: () => void
   onGestureStart: () => void
@@ -176,6 +179,54 @@ function EffectScope({
 }
 
 /*
+  A starting point for one effect, in the same row layout as its enumerated
+  controls, and disabled with them while the effect is bypassed. A rule sets
+  it apart from the controls below, which change one value each.
+*/
+function EffectPresetControl({
+  disabled,
+  effectName,
+  onApplyPreset,
+}: {
+  disabled: boolean
+  effectName: EffectName
+  onApplyPreset: (id: EffectPresetId) => void
+}) {
+  const { t } = useTranslation()
+  const presets = effectPresetsFor(effectName.toLowerCase())
+
+  const translatedEffect = t(`ui.effects.${effectName.toLowerCase()}`)
+  const label = t('editor.effectPreset')
+  return (
+    <label className="mb-1 grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 border-b border-[var(--crt-bevel)] pb-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+      <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+        <span className="min-w-0 truncate" title={label}>
+          {label}
+        </span>
+        <HelpPopover label={`${translatedEffect} ${label}`} text={t('controlHelp.effectPresets')} />
+      </span>
+      {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
+      <select
+        aria-label={`${translatedEffect} ${label}`}
+        className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
+        disabled={disabled}
+        onChange={(event) => onApplyPreset(event.target.value as EffectPresetId)}
+        value=""
+      >
+        <option disabled value="">
+          {t('editor.effectPresetPlaceholder')}
+        </option>
+        {presets.map(({ id }) => (
+          <option key={id} value={id}>
+            {t(`editor.effectPresetOptions.${id}`)}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
+/*
   Each parameter is one rack row: caption, striped meter, LED value. The
   enumerated ones (filter type, reverb space) are a sunken select instead.
 */
@@ -273,7 +324,13 @@ function EffectControl({
   )
 }
 
-export function EffectsUnit({ onChange, onGestureEnd, onGestureStart, values }: EffectsUnitProps) {
+export function EffectsUnit({
+  onApplyPreset,
+  onChange,
+  onGestureEnd,
+  onGestureStart,
+  values,
+}: EffectsUnitProps) {
   const { t } = useTranslation()
 
   return (
@@ -323,6 +380,11 @@ export function EffectsUnit({ onChange, onGestureEnd, onGestureStart, values }: 
             </div>
             <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
               <EffectScope enabled={enabled} name={effect.name} values={values} />
+              <EffectPresetControl
+                disabled={!enabled}
+                effectName={effect.name}
+                onApplyPreset={onApplyPreset}
+              />
               {effect.parameters.map((parameter) => (
                 <EffectControl
                   disabled={!enabled}

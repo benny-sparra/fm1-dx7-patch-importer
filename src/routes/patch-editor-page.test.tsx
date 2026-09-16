@@ -215,6 +215,99 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(midi.sendVoice).toHaveBeenCalledTimes(sends)
   }, 15_000)
 
+  it('disables an effect’s preset menu while the effect is bypassed', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const reverb = within(screen.getByRole('region', { name: 'Reverb' }))
+    const presets = reverb.getByRole('combobox', { name: 'Reverb Preset' }) as HTMLSelectElement
+
+    expect(presets.disabled).toBe(true)
+
+    await user.click(reverb.getByRole('button', { name: 'Enable Reverb' }))
+
+    expect(presets.disabled).toBe(false)
+  })
+
+  it('applies a reverb preset from the reverb box as a single undo step', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const reverb = within(screen.getByRole('region', { name: 'Reverb' }))
+    const presets = reverb.getByRole('combobox', { name: 'Reverb Preset' })
+    const reverbSettings = () =>
+      ['Reverb Space', 'Reverb Decay', 'Reverb Mix'].map(
+        (name) => (reverb.getByLabelText(name) as HTMLInputElement | HTMLSelectElement).value,
+      )
+    await user.click(reverb.getByRole('button', { name: 'Enable Reverb' }))
+
+    await user.selectOptions(presets, 'Large hall')
+
+    expect(reverbSettings()).toEqual(['1', '70', '35'])
+    expect((presets as HTMLSelectElement).value).toBe('')
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(reverbSettings()).toEqual(['0', '0', '0'])
+    expect(reverb.getByRole('button', { name: 'Bypass Reverb' })).toBeTruthy()
+  }, 15_000)
+
+  it('sends only the preset effect’s controls, and nothing when the preset is applied again', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const delay = within(screen.getByRole('region', { name: 'Delay' }))
+    const presets = delay.getByRole('combobox', { name: 'Delay Preset' })
+    await user.click(delay.getByRole('button', { name: 'Enable Delay' }))
+    vi.mocked(midi.sendEffectParameter).mockClear()
+
+    await user.selectOptions(presets, 'Echo')
+    expect(vi.mocked(midi.sendEffectParameter).mock.calls).toEqual([
+      [8, 1],
+      [9, 45],
+      [10, 45],
+      [11, 30],
+    ])
+    await user.selectOptions(presets, 'Echo')
+
+    expect(midi.sendEffectParameter).toHaveBeenCalledTimes(4)
+    expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1)
+  }, 15_000)
+
+  it('applies a phaser preset without changing the chorus', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const phaser = within(screen.getByRole('region', { name: 'Phaser' }))
+    const chorusDepth = screen.getByRole('slider', { name: 'Chorus Depth' }) as HTMLInputElement
+    await user.click(phaser.getByRole('button', { name: 'Enable Phaser' }))
+
+    await user.selectOptions(phaser.getByRole('combobox', { name: 'Phaser Preset' }), 'Slow sweep')
+
+    expect(
+      ['Phaser Frequency', 'Phaser Depth', 'Phaser Mix'].map(
+        (name) => (phaser.getByRole('slider', { name }) as HTMLInputElement).value,
+      ),
+    ).toEqual(['10', '60', '45'])
+    expect(chorusDepth.value).toBe('0')
+  }, 15_000)
+
+  it('sets the filter type along with its other controls from a filter preset', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const filter = within(screen.getByRole('region', { name: 'Filter' }))
+    await user.click(filter.getByRole('button', { name: 'Enable Filter' }))
+
+    await user.selectOptions(filter.getByRole('combobox', { name: 'Filter Preset' }), 'Telephone')
+
+    const type = filter.getByRole('combobox', { name: 'Filter Type' }) as HTMLSelectElement
+    expect(type.selectedOptions[0].textContent).toBe('Band pass')
+    expect((filter.getByRole('slider', { name: 'Filter Cutoff' }) as HTMLInputElement).value).toBe(
+      '60',
+    )
+  }, 15_000)
+
   it('undoes a held arrow key on an effect slider as a single step', async () => {
     const user = userEvent.setup()
     const { midi } = setup()

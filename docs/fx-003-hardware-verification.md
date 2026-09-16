@@ -223,3 +223,101 @@ Future work is limited to questions the guide does not answer:
 2. Test any apparent V15 divergence from the published table with exact bytes and a repeatable
    device/front-panel observation before proposing a correction.
 3. Measure a curve or high-range behaviour only when a concrete UI/product decision depends on it.
+4. Check which way each continuous effect control moves the sound (§9), before presets for that
+   effect are built. Delay Rate turned out reversed from the editor's assumption.
+5. Listen to each effect preset before its phase ships (see "Effect presets" in
+   [the feature backlog](feature-backlog.md)). A preset names a character, so the check is whether
+   it sounds like its name, not a measurement. The values are in `src/lib/effect-presets.ts`.
+
+## 8. Effect preset listening check
+
+Use the setup in §1 with a plain sustained patch such as **Init voice**, and a short staccato phrase
+as well as a held note. Apply each preset from the **Preset** menu in its effect's box, with the other effects
+switched off, and record whether it matches its name. A preset that does not is retuned in the table, or renamed,
+and listened to again. Record the firmware label and date.
+
+Phase 1 also settles two assumptions the presets depend on:
+
+- **Reverb space order.** Whether values 0, 1 and 2 sound like room, hall and plate. If not, the
+  reverb presets are misnamed as well as the Space labels.
+- **Delay rate direction.** Whether a higher Rate means faster repeats or a longer gap between them.
+  The delay presets and the delay scope both depend on it.
+
+On 2026-09-16 the first five phase 1 presets were heard on an FM1 and each was reported to match its
+name, which matched the reverb space order. A later listen the same day found the delay rate
+direction the other way round from the editor's original assumption: a higher Rate gives faster
+repeats, closer together. The earlier Slapback and Echo results were heard with their rates
+reversed, so they are void. The delay scope now draws taps closer as Rate rises, and every delay
+preset rate was mirrored (`100 - rate`), keeping the intended spacing. These are informal listening
+results: the firmware label was not recorded and neither run has been repeated, so the confidence
+levels in `docs/fm1-research.md` §7 are unchanged.
+
+Later on 2026-09-16, after the control direction check in §9, every preset in all three phases was
+heard on an FM1 and reported to sound like its name.
+
+| Phase | Preset        | Matches its name | Notes                                                |
+| ----- | ------------- | ---------------- | ---------------------------------------------------- |
+| 1     | Small room    | Yes (2026-09-16) | Firmware label not recorded.                         |
+| 1     | Large room    | Yes (2026-09-16) | Heard in a later session the same day.               |
+| 1     | Small hall    | Yes (2026-09-16) | Heard in a later session the same day.               |
+| 1     | Large hall    | Yes (2026-09-16) | Firmware label not recorded.                         |
+| 1     | Plate         | Yes (2026-09-16) | Firmware label not recorded.                         |
+| 1     | Slapback      | Yes (2026-09-16) | Rate mirrored from 15 to 85; heard after the change. |
+| 1     | Quick delay   | Yes (2026-09-16) | Rate mirrored from 25 to 75; heard after the change. |
+| 1     | Quick repeats | Yes (2026-09-16) | Rate mirrored from 25 to 75; heard after the change. |
+| 1     | Echo          | Yes (2026-09-16) | Rate mirrored from 55 to 45; heard after the change. |
+| 2     | Subtle chorus | Yes (2026-09-16) |                                                      |
+| 2     | Ensemble      | Yes (2026-09-16) |                                                      |
+| 2     | Chorus wash   | Yes (2026-09-16) |                                                      |
+| 2     | Shimmer       | Yes (2026-09-16) |                                                      |
+| 2     | Gentle phase  | Yes (2026-09-16) |                                                      |
+| 2     | Slow sweep    | Yes (2026-09-16) |                                                      |
+| 2     | Deep phase    | Yes (2026-09-16) |                                                      |
+| 2     | Fast swirl    | Yes (2026-09-16) |                                                      |
+| 3     | Warm          | Yes (2026-09-16) |                                                      |
+| 3     | Muffled       | Yes (2026-09-16) |                                                      |
+| 3     | Telephone     | Yes (2026-09-16) | Band pass; the Filter Type order was heard in §9.    |
+| 3     | Thin          | Yes (2026-09-16) | High pass; the Filter Type order was heard in §9.    |
+| 3     | Resonant      | Yes (2026-09-16) | Resonance 7; start at a low volume.                  |
+| 3     | Light drive   | Yes (2026-09-16) |                                                      |
+| 3     | Warm drive    | Yes (2026-09-16) |                                                      |
+| 3     | Crunch        | Yes (2026-09-16) | Start at a low volume.                               |
+| 3     | Fuzz          | Yes (2026-09-16) | Gain 85; start at a low volume.                      |
+
+## 9. Control direction check
+
+The published guide gives each control's CC number and range but not which way it moves the sound.
+The editor's scopes, help text, and presets each assume a direction, and delay Rate was found to be
+the reverse of its assumption (§8). This check confirms or corrects the rest by ear.
+
+Use the setup in §1 and a plain sustained patch such as **Init voice**. For each row, switch only
+that effect on, set its other controls to about the middle, then move the control from low (about 10) to high (about 90) and back. Record what the rise sounds like, and whether it matches the
+editor's assumption. Change nothing in the editor from one listen: repeat a reversed or unclear
+result after reconnecting, as §1 asks, before correcting a scope, help text, or preset.
+
+Check chorus and phaser before their presets are built (phase 2), and filter and distortion before
+phase 3. The rows most likely to be wrong are marked **Doubtful**.
+
+| Control          | The editor assumes that raising it…                                      | Listen for                           | Result                                        | Notes                                                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------ | ------------------------------------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Filter Cutoff    | moves the cutoff frequency up                                            | Low pass gets brighter               | Brighter, heard once (2026-09-16)             | Matches the scope, which moves the cutoff right as it rises. Filter type not noted; assumed low pass. Repeat it.                                     |
+| Filter Resonance | sharpens the peak at the cutoff                                          | More ring or whistle near the cutoff | Sharper, heard once (2026-09-16)              | Matches the help text and the scope's taller peak. Repeat it.                                                                                        |
+| Reverb Decay     | lengthens the tail                                                       | Longer tail after release            | Longer tail, heard once (2026-09-16)          | Matches the help text and the scope. Repeat it.                                                                                                      |
+| Reverb Mix       | adds more reverb                                                         | 0 is fully dry                       | More reverb, and dry at 0; heard 2026-09-16   | Direction matches, and 0 is fully dry, as the help text says. An earlier report of reverb remaining at 0 was a misstatement, corrected the same day. |
+| Delay Decay      | gives more repeats before they fade                                      | More repeats                         | More repeats, heard once (2026-09-16)         | Matches the help text and the scope. Behaves like feedback; whether the stock name is decay or feedback is still open (§2). Repeat it.               |
+| Delay Rate       | repeats faster, closer together                                          | Shorter gap between repeats          | Heard once (2026-09-16)                       | Originally assumed the reverse; the editor was corrected after this informal listen. Repeat it.                                                      |
+| Delay Mix        | makes the echoes louder                                                  | 0 is fully dry                       | Louder, and dry at 0; heard once (2026-09-16) | Direction matches, and 0 is fully dry, as the help text says. Repeat it.                                                                             |
+| Distortion Gain  | drives the distortion harder                                             | Dirtier, more saturated              | Dirtier, heard once (2026-09-16)              | Matches the help text and the scope's harder clipping. Repeat it.                                                                                    |
+| Distortion Tone  | brightens the sound (help text); the scope draws harder clipping instead | Brighter, or harsher clipping?       | Brighter, heard once (2026-09-16)             | Matches the help text. The scope's harder clipping stands in for the added brightness, so nothing changes. Repeat it.                                |
+| Distortion Level | raises the output volume                                                 | Louder                               | Louder, heard once (2026-09-16)               | Matches the help text. The distortion presets rely on it, lowering Level as Gain rises. Repeat it.                                                   |
+| Chorus Frequency | speeds up the movement                                                   | Faster wobble                        | Faster, heard once (2026-09-16)               | Matches the help text and the scope. Repeat it.                                                                                                      |
+| Chorus Depth     | widens the pitch movement                                                | Wider, more obvious wobble           | Wider, heard once (2026-09-16)                | Matches the help text and the scope. Repeat it.                                                                                                      |
+| Chorus Mix       | adds more chorus                                                         | 0 is fully dry                       | Stronger, heard once (2026-09-16)             | Direction matches. Whether 0 is fully dry was not noted. Repeat it.                                                                                  |
+| Phaser Frequency | speeds up the sweep                                                      | Faster sweep                         | Faster, heard once (2026-09-16)               | Matches the help text and the scope. Repeat it.                                                                                                      |
+| Phaser Depth     | widens the sweep                                                         | Wider, more intense sweep            | Wider, heard once (2026-09-16)                | Matches the help text and the scope. Repeat it.                                                                                                      |
+| Phaser Mix       | adds more phasing                                                        | 0 is fully dry                       | Reported as matching (2026-09-16)             | Covered by a general report that the remaining sliders behave as expected; no specific observation. Whether 0 is fully dry was not noted. Repeat it. |
+
+Enumerated controls and switches are covered elsewhere: Reverb Space order in §8, Filter Type and
+the effect switches in §2, with Filter Switch polarity recorded in the §5 ledger. On 2026-09-16 the
+Filter Type options were also heard in the editor's order, low pass, band pass, high pass, which
+the Telephone and Thin presets depend on. That listen, like the rows above, has not been repeated.

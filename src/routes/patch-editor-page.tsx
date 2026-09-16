@@ -19,6 +19,7 @@ import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { type MidiController } from '@/hooks/use-midi'
 import { makeDx7VoiceNameEdits, packDx7Voice, unpackDx7Voice, type Dx7Voice } from '@/lib/dx7'
+import { applyEffectPreset, type EffectPresetId } from '@/lib/effect-presets'
 import {
   getFm1EffectParameters,
   getFm1VoiceParameters,
@@ -449,6 +450,29 @@ export function PatchEditorPage({
     void sendToFm1()
   }
 
+  /** Sets one effect's controls as a single undo step and sends that effect to the FM1. */
+  const selectEffectPreset = (presetId: EffectPresetId) => {
+    const current = historyRef.current
+    const { controllers, settings } = applyEffectPreset(
+      getFm1EffectParameters(current.present),
+      presetId,
+    )
+    const edits = controllers.map(
+      (controller) => [resolveEffectEditorIndex(controller), settings[controller]] as ParameterEdit,
+    )
+    const next = editParameters(current, edits)
+
+    if (next === current) return
+
+    gestureStart.current = null
+    commitHistory(next)
+    if (canSync && syncStateRef.current === 'live') {
+      controllers.forEach((controller) =>
+        midi.sendEffectParameter(controller, settings[controller]),
+      )
+    }
+  }
+
   useKeyboardShortcuts([
     { ...editorShortcuts.redo, onTrigger: () => restoreHistory('redo') },
     { ...editorShortcuts.undo, onTrigger: () => restoreHistory('undo') },
@@ -571,6 +595,7 @@ export function PatchEditorPage({
           />
           <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="effects-unit">
             <EffectsUnit
+              onApplyPreset={selectEffectPreset}
               onChange={setEffectParameter}
               onGestureEnd={endGesture}
               onGestureStart={beginGesture}

@@ -33,9 +33,10 @@ describe('effect scopes', () => {
     expect(new Set([lowCutoff, highCutoff, resonant, curvePath()]).size).toBe(4)
   })
 
-  it('spaces delay taps by rate and lets decay set how many echoes remain', () => {
+  it('draws delay taps closer as rate rises and lets decay set how many echoes remain', () => {
     expect(delayTaps(0, 50)).toHaveLength(1)
-    expect(delayTaps(90, 100).length).toBeLessThan(delayTaps(90, 0).length)
+    expect(delayTaps(90, 100)[1].x).toBeLessThan(delayTaps(90, 0)[1].x)
+    expect(delayTaps(90, 0).length).toBeLessThan(delayTaps(90, 100).length)
     const taps = delayTaps(80, 30)
     expect(taps[1].level).toBeLessThan(taps[0].level)
     expect(taps[2].x - taps[1].x).toBeCloseTo(taps[1].x - taps[0].x)

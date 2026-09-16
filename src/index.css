@@ -348,9 +348,13 @@
     box-shadow: 0 0 7px var(--crt-acc);
   }
 
+  /*
+   * An unlit LED keeps a keyline so its socket still reads, and the label
+   * beside it does not look pushed off-centre by an invisible gap.
+   */
   .crt-led[data-state='off'] {
     background: var(--crt-line-dk);
-    box-shadow: none;
+    box-shadow: inset 0 0 0 1px var(--crt-bevel);
   }
 
   /*

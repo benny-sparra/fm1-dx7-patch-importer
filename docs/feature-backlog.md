@@ -19,24 +19,50 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Worth doing
 
+- [ ] **Effect presets.** A presets menu in each effect's box on the effects panel, like the pitch
+      envelope presets, that sets that FM1 effect (filter, reverb, delay, distortion, chorus, phaser)
+      without touching the DX7 voice or the other effects.
+  - Keep the table in `src/lib/`, separate from `sound-presets.ts`, which changes the whole voice.
+  - Values stay within the documented ranges in `src/lib/fm1-parameters.ts`. Hardware scaling and
+    display units are still unconfirmed for most controls (see `docs/fm1-research.md` §7), so name
+    presets by character ("Small room", "Slapback", "Warm drive") rather than by claimed values,
+    and keep values away from the ends of each range.
+  - A preset sets every one of its effect's controls, so applying it always gives the same sound.
+    The menu is disabled while the effect is bypassed, like the effect's other controls. Each box
+    already has an on/off button, so there is no "Dry" preset.
+  - Applying a preset is one undo step and sends that effect's four controls once. Choosing the
+    preset that is already applied sends nothing.
+  - Tests: a `src/lib/` table test (unique ids, values in range, only its own effect), a rendered
+    one-undo test, and the preset names in every locale.
+  - Build it in phases, starting with the effects whose result is easiest to recognise by ear. Each
+    phase ships only after its presets have been listened to on an FM1, using the matching effect
+    block in `docs/fx-003-hardware-verification.md`, with the observations recorded there.
+    1. **Space: reverb and delay.** Builds the menu, the table, the send, and the one-undo apply,
+       with _Small room_, _Large room_, _Small hall_, _Large hall_, and _Plate_ for reverb and
+       _Slapback_, _Quick delay_, _Quick repeats_, and _Echo_ for delay. Small room, Large hall, and
+       Plate were heard on an FM1 on 2026-09-16 and matched their names and the room/hall/plate
+       order. Listening also found that a higher delay Rate repeats faster, the reverse of the
+       editor's assumption, so the delay scope and every delay preset rate were flipped. Every preset
+       was then heard on an FM1 on 2026-09-16 (`docs/fx-003-hardware-verification.md` §8).
+    2. **Movement: chorus and phaser.** _Subtle chorus_, _Ensemble_, _Chorus wash_, and _Shimmer_
+       for chorus and _Gentle phase_, _Slow sweep_, _Deep phase_, and _Fast swirl_ for phaser.
+       Chorus and phaser Frequency were heard to speed up as they rise before these were built.
+       Built, and every preset heard on an FM1 on 2026-09-16 (`docs/fx-003-hardware-verification.md` §8).
+    3. **Tone: filter and distortion.** _Warm_, _Muffled_, _Telephone_, _Thin_, and _Resonant_
+       for the filter and _Light drive_, _Warm drive_, _Crunch_, and _Fuzz_ for distortion. Filter
+       Cutoff, Resonance, and distortion Tone were heard to go the editor's way before these were
+       built. Distortion gain and filter resonance can jump sharply in level, so check the loudest
+       preset at a safe listening volume. Built, and every preset heard on an FM1 on 2026-09-16 (`docs/fx-003-hardware-verification.md` §8).
+  - Presets that combine effects, such as a phaser over a small reverb, are not planned: set one
+    effect's preset, then another's.
+  - Later, once [effect routing order](#effect-routing-order) is known, the routing could have
+    presets of its own.
+
 - [ ] **Copy and paste operators.** Copy one operator's settings (frequency, envelope, output level,
       keyboard scaling, sensitivity) to another operator, or to an operator in another voice.
   - Paste is one undo step and sends the changed parameters live.
   - Decide whether the clipboard survives leaving the editor. Keep it in memory, not storage.
   - Tests: a rendered paste that reverses in one undo, and pasting into another voice.
-
-- [ ] **Effect presets.** A presets menu on the effects panel, like the pitch envelope presets, that
-      sets the FM1 effects chain (filter, reverb, delay, distortion, chorus, phaser) without touching the
-      DX7 voice.
-  - Keep the table in `src/lib/`, separate from `sound-presets.ts`, which changes the whole voice.
-  - Values stay within the documented ranges in `src/lib/fm1-parameters.ts`. Hardware scaling and
-    display units are still unconfirmed for some controls (see `docs/fm1-research.md`), so name
-    presets by character ("Small room", "Slapback", "Warm drive") rather than by claimed values.
-  - Decide per preset whether effects it does not use are bypassed or left alone.
-  - Applying a preset is one undo step and sends all effect controls once, not one message per
-    repeated click.
-  - Tests: a `src/lib/` table test (unique ids, values in range), a rendered one-undo test, and the
-    preset names in every locale.
 
 - [ ] **Compare with saved.** A button in the editor that switches between the working copy and the
       saved version, sending each to the FM1 so the difference can be heard.
@@ -108,7 +134,7 @@ V15. Before it can be built:
 - Once known, move the item to [the roadmap](fm1-roadmap.md) or into [Worth doing](#worth-doing).
   If order is per patch, storing it is a new field in the saved effect state, which must follow the
   legacy-data rules (optional on read, default to the stock order).
-- It pairs with [Effect presets](#worth-doing): a preset could set the order as well as the values.
+- It pairs with [Effect presets](#worth-doing): the routing could have presets of its own.
 
 ## Decided against
 
