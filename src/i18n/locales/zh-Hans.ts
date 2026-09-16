@@ -283,7 +283,6 @@ export default {
     unsupportedBody:
       '此音色库工具需要在桌面电脑上使用支持 Web MIDI 和 SysEx 的浏览器，例如 Chrome、Edge、Firefox 或 Opera。不支持手机和平板电脑。',
     localOnly: '您的音色仅保存在此浏览器中',
-    requires: '需要支持 Web MIDI 的 Chrome、Edge 或 Firefox',
     projectLinks: '项目链接',
     reportIssue: '报告问题',
     version: '版本 {{version}}',

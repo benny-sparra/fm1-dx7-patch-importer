@@ -127,10 +127,6 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <span>{t('root.localOnly')}</span>
-              <span aria-hidden="true" className="text-white/25">
-                •
-              </span>
-              <span>{t('root.requires')}</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

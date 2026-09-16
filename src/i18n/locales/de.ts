@@ -321,7 +321,6 @@ export default {
     unsupportedBody:
       'Dieser Librarian benötigt einen Desktop-Browser mit Web-MIDI- und SysEx-Unterstützung, etwa Chrome, Edge, Firefox oder Opera. Smartphones und Tablets werden nicht unterstützt.',
     localOnly: 'Deine Sounds bleiben in diesem Browser',
-    requires: 'Erfordert Chrome, Edge oder Firefox mit Web MIDI',
     projectLinks: 'Projektlinks',
     reportIssue: 'Problem melden',
     version: 'Version {{version}}',

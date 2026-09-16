@@ -316,7 +316,6 @@ export default {
     unsupportedBody:
       'Este bibliotecario necesita un navegador de escritorio compatible con Web MIDI y SysEx, como Chrome, Edge, Firefox u Opera. Los teléfonos y las tabletas no son compatibles.',
     localOnly: 'Tus sonidos permanecen en este navegador',
-    requires: 'Requiere Chrome, Edge o Firefox con Web MIDI',
     projectLinks: 'Enlaces del proyecto',
     reportIssue: 'Informar de un problema',
     version: 'Versión {{version}}',

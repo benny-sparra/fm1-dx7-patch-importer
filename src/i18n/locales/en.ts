@@ -310,7 +310,6 @@ export default {
     unsupportedBody:
       'This librarian needs a desktop browser that supports Web MIDI and SysEx, such as Chrome, Edge, Firefox, or Opera. Phones and tablets are not supported.',
     localOnly: 'Your patches stay in this browser',
-    requires: 'Requires Chrome, Edge, or Firefox with Web MIDI',
     projectLinks: 'Project links',
     reportIssue: 'Report an issue',
     version: 'Version {{version}}',
