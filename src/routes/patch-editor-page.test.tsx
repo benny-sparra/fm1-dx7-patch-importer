@@ -215,6 +215,51 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(midi.sendVoice).toHaveBeenCalledTimes(sends)
   }, 15_000)
 
+  it('applies an effect preset as a single undo step and sends every effect control once', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const presets = screen.getByRole('combobox', { name: 'Effect presets' })
+    const reverb = within(screen.getByRole('region', { name: 'Reverb' }))
+    const reverbDecay = () =>
+      (screen.getByRole('slider', { name: 'Reverb Decay' }) as HTMLInputElement).value
+
+    await user.selectOptions(presets, 'Large hall')
+
+    expect(reverb.getByRole('button', { name: 'Bypass Reverb' })).toHaveProperty(
+      'ariaPressed',
+      'true',
+    )
+    expect(reverbDecay()).toBe('70')
+    expect((presets as HTMLSelectElement).value).toBe('')
+    expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2)
+    expect(Array.from(vi.mocked(midi.sendEffectSettings).mock.calls[1][0]).slice(4, 8)).toEqual([
+      1, 1, 70, 35,
+    ])
+    expect(midi.sendEffectParameter).not.toHaveBeenCalled()
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(reverbDecay()).toBe('0')
+    expect(reverb.getByRole('button', { name: 'Enable Reverb' })).toHaveProperty(
+      'ariaPressed',
+      'false',
+    )
+  }, 15_000)
+
+  it('does not resend an effect preset that is already applied', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const presets = screen.getByRole('combobox', { name: 'Effect presets' })
+
+    await user.selectOptions(presets, 'Echo')
+    expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2)
+    await user.selectOptions(presets, 'Echo')
+
+    expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2)
+  }, 15_000)
+
   it('undoes a held arrow key on an effect slider as a single step', async () => {
     const user = userEvent.setup()
     const { midi } = setup()

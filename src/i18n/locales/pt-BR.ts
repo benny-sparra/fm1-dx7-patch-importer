@@ -42,6 +42,8 @@ export default {
       'Muda a afinação ao longo de cada nota. As quatro taxas controlam a rapidez de cada etapa; os quatro níveis definem a afinação alcançada em cada etapa.',
     pitchEnvelopePresets:
       'Substitui as oito taxas e níveis por uma forma inicial. Plana remove qualquer movimento de afinação; as outras adicionam um pico rápido, um ataque que cai, uma subida ou uma queda ao soltar. Desfazer restaura o envelope anterior.',
+    effectPresets:
+      'Ajusta toda a cadeia de efeitos a partir de um ponto de partida. Cada preset liga apenas os efeitos que usa e ignora os demais, que mantêm suas configurações. Desfazer restaura os efeitos anteriores.',
     oscillatorSync:
       'Reinicia todos os operadores na mesma posição da forma de onda a cada nota. Ligado, o ataque fica mais consistente; desligado, o som pode ficar mais orgânico.',
     lfoSync:
@@ -428,6 +430,16 @@ export default {
       attackDrop: 'Queda no ataque',
       scoop: 'Subida',
       releaseFall: 'Queda ao soltar',
+    },
+    effectPresets: 'Presets de efeitos',
+    effectPresetPlaceholder: 'Escolher…',
+    effectPresetOptions: {
+      dry: 'Seco',
+      smallRoom: 'Sala pequena',
+      largeHall: 'Salão grande',
+      plate: 'Placa',
+      slapback: 'Slapback',
+      echo: 'Eco',
     },
     lfoGlobal: 'LFO e global',
     oscillatorSync: 'Sincronização do oscilador',

@@ -12,10 +12,13 @@ import {
 import { rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
+import { effectPresets, type EffectPresetId } from '@/lib/effect-presets'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
+
 type EffectsUnitProps = {
+  onApplyPreset: (id: EffectPresetId) => void
   onChange: (controller: number, value: number) => void
   onGestureEnd: () => void
   onGestureStart: () => void
@@ -273,11 +276,40 @@ function EffectControl({
   )
 }
 
-export function EffectsUnit({ onChange, onGestureEnd, onGestureStart, values }: EffectsUnitProps) {
+export function EffectsUnit({
+  onApplyPreset,
+  onChange,
+  onGestureEnd,
+  onGestureStart,
+  values,
+}: EffectsUnitProps) {
   const { t } = useTranslation()
 
   return (
     <div className="grid gap-2 p-[9px] md:grid-cols-2 xl:grid-cols-3">
+      {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
+      <label className="col-span-full grid max-w-sm min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+        <span className="flex items-center gap-1">
+          {t('editor.effectPresets')}
+          <HelpPopover label={t('editor.effectPresets')} text={t('controlHelp.effectPresets')} />
+        </span>
+        {/* The help button shares the label, so name the select directly. */}
+        <select
+          aria-label={t('editor.effectPresets')}
+          className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+          onChange={(event) => onApplyPreset(event.target.value as EffectPresetId)}
+          value=""
+        >
+          <option disabled value="">
+            {t('editor.effectPresetPlaceholder')}
+          </option>
+          {effectPresets.map(({ id }) => (
+            <option key={id} value={id}>
+              {t(`editor.effectPresetOptions.${id}`)}
+            </option>
+          ))}
+        </select>
+      </label>
       {effects.map((effect) => {
         const switchController = getEffectParameterDefinition(effect.switchId).controller
         const enabled = values[switchController] > 0

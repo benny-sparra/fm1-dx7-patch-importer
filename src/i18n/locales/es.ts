@@ -42,6 +42,8 @@ export default {
       'Cambia el tono a lo largo de cada nota. Las cuatro velocidades controlan lo rápido que avanza cada etapa; los cuatro niveles fijan el tono alcanzado en cada etapa.',
     pitchEnvelopePresets:
       'Sustituye las ocho velocidades y niveles por una forma inicial. Plana elimina cualquier movimiento de tono; las demás añaden un pico breve, un ataque que cae, una subida o una caída al soltar. Deshacer recupera la envolvente anterior.',
+    effectPresets:
+      'Ajusta toda la cadena de efectos a partir de un punto de inicio. Cada preset activa solo los efectos que usa y omite los demás, que conservan sus ajustes. Deshacer recupera los efectos anteriores.',
     oscillatorSync:
       'Reinicia cada operador en la misma posición de la forma de onda con cada nota. Activado da un ataque más uniforme; desactivado puede sonar más orgánico.',
     lfoSync:
@@ -431,6 +433,16 @@ export default {
       attackDrop: 'Caída de ataque',
       scoop: 'Subida',
       releaseFall: 'Caída al soltar',
+    },
+    effectPresets: 'Presets de efectos',
+    effectPresetPlaceholder: 'Elegir…',
+    effectPresetOptions: {
+      dry: 'Seco',
+      smallRoom: 'Sala pequeña',
+      largeHall: 'Gran salón',
+      plate: 'Placa',
+      slapback: 'Slapback',
+      echo: 'Eco',
     },
     lfoGlobal: 'LFO y global',
     oscillatorSync: 'Sincronización del oscilador',

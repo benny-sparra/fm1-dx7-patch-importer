@@ -223,3 +223,30 @@ Future work is limited to questions the guide does not answer:
 2. Test any apparent V15 divergence from the published table with exact bytes and a repeatable
    device/front-panel observation before proposing a correction.
 3. Measure a curve or high-range behaviour only when a concrete UI/product decision depends on it.
+4. Listen to each effect preset before its phase ships (see "Effect presets" in
+   [the feature backlog](feature-backlog.md)). A preset names a character, so the check is whether
+   it sounds like its name, not a measurement. The values are in `src/lib/effect-presets.ts`.
+
+## 8. Effect preset listening check
+
+Use the setup in §1 with a plain sustained patch such as **Init voice**, and a short staccato phrase
+as well as a held note. Apply each preset from the **Effect presets** menu, starting from **Dry**,
+and record whether it matches its name. A preset that does not is retuned in the table, or renamed,
+and listened to again. Record the firmware label and date.
+
+Phase 1 also settles two assumptions the presets depend on:
+
+- **Reverb space order.** Whether values 0, 1 and 2 sound like room, hall and plate. If not,
+  _Small room_, _Large hall_ and _Plate_ are wrong as well as the Space labels.
+- **Delay rate direction.** The presets assume a higher Rate means a longer gap between repeats,
+  as the delay scope draws it. _Slapback_ (rate 15) must give one quick repeat and _Echo_ (rate 55)
+  clearly spaced repeats. If the direction is reversed, swap their rates.
+
+| Phase | Preset     | Matches its name | Notes |
+| ----- | ---------- | ---------------- | ----- |
+| 1     | Dry        | Not recorded     |       |
+| 1     | Small room | Not recorded     |       |
+| 1     | Large hall | Not recorded     |       |
+| 1     | Plate      | Not recorded     |       |
+| 1     | Slapback   | Not recorded     |       |
+| 1     | Echo       | Not recorded     |       |

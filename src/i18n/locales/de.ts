@@ -44,6 +44,8 @@ export default {
       'Verändert die Tonhöhe über die Dauer jeder Note. Die vier Raten bestimmen, wie schnell jede Stufe erreicht wird; die vier Pegel legen die Tonhöhe jeder Stufe fest.',
     pitchEnvelopePresets:
       'Ersetzt alle acht Raten und Pegel durch eine Ausgangsform. „Flach“ entfernt jede Tonhöhenbewegung; die anderen fügen einen kurzen Blip, einen fallenden Anschlag, ein ansteigendes Anschleifen oder ein Absinken beim Loslassen hinzu. Rückgängig stellt die vorherige Hüllkurve wieder her.',
+    effectPresets:
+      'Stellt die gesamte Effektkette auf einen Ausgangspunkt ein. Jedes Preset schaltet nur die Effekte ein, die es nutzt, und umgeht die übrigen, deren Einstellungen erhalten bleiben. Rückgängig stellt die vorherigen Effekte wieder her.',
     oscillatorSync:
       'Startet jeden Operator bei jeder Note an derselben Stelle der Wellenform neu. Ein sorgt für einen gleichmäßigeren Anschlag; Aus kann organischer klingen.',
     lfoSync:
@@ -436,6 +438,16 @@ export default {
       attackDrop: 'Anschlag-Abfall',
       scoop: 'Anschleifen',
       releaseFall: 'Abfall beim Loslassen',
+    },
+    effectPresets: 'Effekt-Presets',
+    effectPresetPlaceholder: 'Auswählen…',
+    effectPresetOptions: {
+      dry: 'Trocken',
+      smallRoom: 'Kleiner Raum',
+      largeHall: 'Große Halle',
+      plate: 'Plattenhall',
+      slapback: 'Slapback-Echo',
+      echo: 'Echo',
     },
     lfoGlobal: 'LFO und Global',
     oscillatorSync: 'Oszillator-Sync',

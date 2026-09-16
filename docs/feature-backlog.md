@@ -19,24 +19,41 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Worth doing
 
-- [ ] **Copy and paste operators.** Copy one operator's settings (frequency, envelope, output level,
-      keyboard scaling, sensitivity) to another operator, or to an operator in another voice.
-  - Paste is one undo step and sends the changed parameters live.
-  - Decide whether the clipboard survives leaving the editor. Keep it in memory, not storage.
-  - Tests: a rendered paste that reverses in one undo, and pasting into another voice.
-
 - [ ] **Effect presets.** A presets menu on the effects panel, like the pitch envelope presets, that
       sets the FM1 effects chain (filter, reverb, delay, distortion, chorus, phaser) without touching the
       DX7 voice.
   - Keep the table in `src/lib/`, separate from `sound-presets.ts`, which changes the whole voice.
   - Values stay within the documented ranges in `src/lib/fm1-parameters.ts`. Hardware scaling and
-    display units are still unconfirmed for some controls (see `docs/fm1-research.md`), so name
-    presets by character ("Small room", "Slapback", "Warm drive") rather than by claimed values.
-  - Decide per preset whether effects it does not use are bypassed or left alone.
-  - Applying a preset is one undo step and sends all effect controls once, not one message per
-    repeated click.
+    display units are still unconfirmed for most controls (see `docs/fm1-research.md` §7), so name
+    presets by character ("Small room", "Slapback", "Warm drive") rather than by claimed values,
+    and keep values away from the ends of each range.
+  - A preset sets every effect: the ones it does not use are bypassed, so applying the same preset
+    always gives the same sound. Combine by applying a preset and then adjusting single controls.
+  - Applying a preset is one undo step and sends all 24 effect controls once. Choosing the preset
+    that is already applied sends nothing.
   - Tests: a `src/lib/` table test (unique ids, values in range), a rendered one-undo test, and the
     preset names in every locale.
+  - Build it in phases, starting with the effects whose result is easiest to recognise by ear. Each
+    phase ships only after its presets have been listened to on an FM1, using the matching effect
+    block in `docs/fx-003-hardware-verification.md`, with the observations recorded there.
+    1. **Space: reverb and delay.** Builds the menu, the table, the send, and the one-undo apply,
+       with _Dry_ (all effects bypassed), _Small room_, _Large hall_, _Plate_, _Slapback_, and
+       _Echo_. Confirm the room/hall/plate order and the delay decay and rate directions on
+       hardware before naming presets after them. Built; waiting on the listening check in
+       `docs/fx-003-hardware-verification.md` §8.
+    2. **Movement: chorus and phaser.** Adds presets such as _Chorus wash_, _Ensemble_, and _Phased
+       pad_, alone or over a small reverb.
+    3. **Tone: filter and distortion.** Adds presets such as _Warm drive_, _Crunch_, _Muffled_,
+       and _Telephone_. Last, because distortion gain and filter resonance can jump sharply in
+       level, so check the loudest preset at a safe listening volume.
+  - Later, once [effect routing order](#effect-routing-order) is known, a preset could set the
+    order as well as the values.
+
+- [ ] **Copy and paste operators.** Copy one operator's settings (frequency, envelope, output level,
+      keyboard scaling, sensitivity) to another operator, or to an operator in another voice.
+  - Paste is one undo step and sends the changed parameters live.
+  - Decide whether the clipboard survives leaving the editor. Keep it in memory, not storage.
+  - Tests: a rendered paste that reverses in one undo, and pasting into another voice.
 
 - [ ] **Compare with saved.** A button in the editor that switches between the working copy and the
       saved version, sending each to the FM1 so the difference can be heard.
