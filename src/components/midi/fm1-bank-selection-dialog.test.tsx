@@ -24,19 +24,21 @@ function renderDialog(sysexAvailable: boolean) {
 
 // Page translators such as Google Translate treat buttons as inline text and may wrap them in
 // <font> elements, so React can no longer remove a button from the footer directly.
-function wrapInTranslatorFont(element: Element) {
-  const font = document.createElement('font')
-  element.replaceWith(font)
-  font.append(element)
+function translateText(root: Element) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+  const texts: Text[] = []
+  while (walker.nextNode()) texts.push(walker.currentNode as Text)
+  for (const text of texts) {
+    const font = document.createElement('font')
+    font.textContent = text.data
+    text.replaceWith(font)
+  }
 }
 
 describe('Fm1BankSelectionDialog', () => {
   it('switches from the SysEx warning to bank selection after a translator wraps its buttons', () => {
     const view = render(renderDialog(false))
-    wrapInTranslatorFont(screen.getByRole('button', { hidden: true, name: 'Close' }))
-    wrapInTranslatorFont(
-      screen.getByRole('button', { hidden: true, name: 'Reconnect MIDI with SysEx' }),
-    )
+    translateText(document.querySelector('dialog')!)
 
     view.rerender(renderDialog(true))
 
