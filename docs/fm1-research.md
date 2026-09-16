@@ -1,7 +1,7 @@
 # FM1 Editor Research Notes
 
 > Status: working engineering reference
-> Last reviewed: 2026-09-13
+> Last reviewed: 2026-09-16
 > Scope: M-VAVE FM1 editor/librarian, stock FM1 firmware behaviour, and possible editor enhancements.
 
 ## Purpose
@@ -252,39 +252,103 @@ Do not implement a write control merely because the RAM field has been identifie
 
 # 4. Arpeggiator
 
+> **Arpeggiator audit (2026-09-16).** This section summarises the upstream FM-1-RE analysis at commit
+> [`ec832f281ca165a7d5e0722985f3acb1465046d5`](https://github.com/AL-255/FM-1-RE/tree/ec832f281ca165a7d5e0722985f3acb1465046d5):
+> principally [MIDI §5–§7](https://github.com/AL-255/FM-1-RE/blob/ec832f281ca165a7d5e0722985f3acb1465046d5/docs/io/05-midi.md#6-arpeggiator--sequencer),
+> the [syscmd core](https://github.com/AL-255/FM-1-RE/blob/ec832f281ca165a7d5e0722985f3acb1465046d5/docs/io/11-ota-protocol.md#syscmd-core-normal-mode-device-control-cmd-ids-1748),
+> and the V13 and V14 string dumps. The commits after `95eca84`, which the sequencer audit in §5
+> used, change only OTA and reflash material. Offsets are V13 engine-state offsets (`ENG`, base
+> `0x01C0E670`) and must not be projected onto V14 or V15 without testing.
+
 ## 4.1 Modes
 
 **Status: Confirmed**
 
-Firmware analysis identifies arpeggiator pattern modes:
+`arp_seq_mode_control` (`0x020201DC`) stores `0 = off`, `1 = arpeggiator`, `2 = sequencer` at
+`ENG+40`. Leaving arp or sequencer mode sends note-off for every sounding note.
 
-1. Up
-2. Down
-3. Up/Down
-4. Down/Up
-5. Random
-6. Played Order
-7. Off
+`arp_pattern_build` (`0x02020724`) switches on the pattern mode at `ENG+4786`:
 
-Random mode uses a shuffle. Played Order tracks note press timestamps.
+| Value | Pattern      | Notes                                                                     |
+| ----- | ------------ | ------------------------------------------------------------------------- |
+| `0`   | Up           |                                                                           |
+| `1`   | Down         |                                                                           |
+| `2`   | Up/Down      | Mirrored append.                                                          |
+| `3`   | Down/Up      |                                                                           |
+| `4`   | Random       | Fisher–Yates shuffle seeded from the hardware random-number register.     |
+| `5`   | Played Order | Quicksort over per-note press timestamps written by `arp_seq_note_input`. |
+| `6`   | Off          | No rebuild.                                                               |
 
-## 4.2 Octave expansion
+The mapping from these values to the stock menu labels (V14 strings include `Random`, `Order`, and
+`Repeat`) is **Needs hardware test**.
 
-**Status: Confirmed**
-
-The firmware supports octave expansion/repetition.
-
-## 4.3 Timing
+## 4.2 Held notes, latch, and note range
 
 **Status: Confirmed internally**
 
-The arp/sequencer timing engine uses parameterised step lengths and gate percentages.
+- The arpeggiator holds at most 27 notes. Each note has a held flag and a velocity byte whose bit 7
+  marks it as latched, so the stock firmware has a hold/latch behaviour. The V13 and V14 strings
+  include `Latch`.
+- Held notes are normalised into a 27-semitone window:
+  `idx = note - 53 - semitoneShift - 12 * octaveShift`, using the user octave and semitone shifts at
+  `ENG+4779` and `ENG+4780` (the shared transpose state described in §3).
+- The first note after the arpeggiator has been idle clears the held-note tables and flushes
+  sounding notes.
+
+How latch is switched on, and whether it survives a mode change, is **Needs hardware test**.
+
+## 4.3 Octave expansion
+
+**Status: Confirmed internally**
+
+`ENG+4787` sets how many octaves the pattern repeats across, adding ±12 semitones per octave. Its
+range and menu label are **Needs hardware test**.
+
+## 4.4 Timing
+
+**Status: Confirmed internally; units Needs hardware test**
+
+- The arpeggiator and sequencer share one tick engine and scheduler. The minimum step is 30 ms.
+- Step length comes from the four bytes at `ENG+4788..4791`, scaled by a gate percentage
+  (`x * param / 100`). Which of these bytes is rate and which is gate is not established; see the
+  per-bank gate, tempo, swing, and rate candidates in §5.4.
+- Patterns are held as note/velocity pairs in a 432-byte buffer at `ENG+6808`, rebuilt when the
+  dirty flag at `ENG+15` is set.
+- The V14 strings near the arpeggiator labels include `Rate`, `Gate`, `Sync`, `Tempo`, and `Swing`,
+  and the menu is split into `1/2 Arpeggio` and `2/2 Arpeggio` pages. `Sync` next to `Rate` and
+  `Gate` appears in the V14 dump but not in V13; V13 has `Rate` and `Gate` without it. What `Sync`
+  controls is **Unknown**.
+
+## 4.5 External control
+
+**Status: No runtime control path identified**
+
+| Path                                   | Evidence                                                                                                                                                                                                               | Arpeggiator relationship                                                       |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Control Change                         | Accepted only on the CC channel and only for `cc ≤ 23`, grouped into the six effect slots (§7).                                                                                                                        | Confirmed non-path. Every accepted CC number is already an effect control.     |
+| DX7 parameter change / voice dumps     | Writes the voice edit buffer or voice storage (§1).                                                                                                                                                                    | Confirmed non-path.                                                            |
+| MIDI realtime (`F8`, `FA`, `FB`, `FC`) | The byte-stream parser consumes `0xF8..0xFF` one byte at a time. No clock-follow or Start/Stop handler is identified; arp mode start calls the OS tick update.                                                         | Unknown. Whether the V14 `Sync` option follows MIDI clock needs hardware test. |
+| M-VAVE syscmd (`F0 35 59`)             | Commands 17–48 are decoded: 17 and 18 return fixed records, 21 drains a ring buffer, 33–36 call one of eight callback objects with no recovered stock object, 48 completes an armed transfer, and the rest are no-ops. | No arpeggiator command identified. 33–36 and 48 stay Dangerous / excluded.     |
+
+Treat the arpeggiator as front-panel-only until a capture shows otherwise. Do not send guessed
+syscmd requests to find one.
+
+## 4.6 Hardware tests
+
+Follow the one-change capture discipline in `AGENTS.md`, recording firmware version and transport:
+
+1. With a MIDI clock source running, switch the V14/V15 `Sync` option and check whether the arp
+   follows the external tempo and responds to Start/Stop. A positive result would give a
+   plain-MIDI tempo path with no vendor protocol.
+2. Change each arpeggiator menu value on the device (pattern, octave, rate, gate, latch, tempo, swing)
+   with the MIDI monitor open, and record whether the FM1 sends anything.
+3. Map each stock menu label and value range to the offsets above where captures allow.
 
 ### Editor opportunity
 
-An Arpeggiator panel may be a worthwhile future enhancement if safe runtime read/write commands are identified.
-
-This should come after protocol research and after the sequencer data model is understood.
+An Arpeggiator panel remains a future enhancement that depends on a safe runtime read/write path.
+ARP-001 may model the confirmed modes and parameters without MIDI. Anything that sends data comes
+after the tests above and after the sequencer data model is understood.
 
 ---
 
