@@ -252,34 +252,37 @@ preset rate was mirrored (`100 - rate`), keeping the intended spacing. These are
 results: the firmware label was not recorded and neither run has been repeated, so the confidence
 levels in `docs/fm1-research.md` §7 are unchanged.
 
+Later on 2026-09-16, after the control direction check in §9, every preset in all three phases was
+heard on an FM1 and reported to sound like its name.
+
 | Phase | Preset        | Matches its name | Notes                                                |
 | ----- | ------------- | ---------------- | ---------------------------------------------------- |
 | 1     | Small room    | Yes (2026-09-16) | Firmware label not recorded.                         |
-| 1     | Large room    | Not recorded     | Added after the first listening.                     |
-| 1     | Small hall    | Not recorded     | Added after the first listening.                     |
+| 1     | Large room    | Yes (2026-09-16) | Heard in a later session the same day.               |
+| 1     | Small hall    | Yes (2026-09-16) | Heard in a later session the same day.               |
 | 1     | Large hall    | Yes (2026-09-16) | Firmware label not recorded.                         |
 | 1     | Plate         | Yes (2026-09-16) | Firmware label not recorded.                         |
-| 1     | Slapback      | Not recorded     | Rate mirrored from 15 to 85; earlier result is void. |
-| 1     | Quick delay   | Not recorded     | Rate mirrored from 25 to 75.                         |
-| 1     | Quick repeats | Not recorded     | Rate mirrored from 25 to 75.                         |
-| 1     | Echo          | Not recorded     | Rate mirrored from 55 to 45; earlier result is void. |
-| 2     | Subtle chorus | Not recorded     |                                                      |
-| 2     | Ensemble      | Not recorded     |                                                      |
-| 2     | Chorus wash   | Not recorded     |                                                      |
-| 2     | Shimmer       | Not recorded     |                                                      |
-| 2     | Gentle phase  | Not recorded     |                                                      |
-| 2     | Slow sweep    | Not recorded     |                                                      |
-| 2     | Deep phase    | Not recorded     |                                                      |
-| 2     | Fast swirl    | Not recorded     |                                                      |
-| 3     | Warm          | Not recorded     |                                                      |
-| 3     | Muffled       | Not recorded     |                                                      |
-| 3     | Telephone     | Not recorded     | Band pass: depends on the Filter Type order in §2.   |
-| 3     | Thin          | Not recorded     | High pass: depends on the Filter Type order in §2.   |
-| 3     | Resonant      | Not recorded     | Resonance 7; start at a low volume.                  |
-| 3     | Light drive   | Not recorded     |                                                      |
-| 3     | Warm drive    | Not recorded     |                                                      |
-| 3     | Crunch        | Not recorded     | Start at a low volume.                               |
-| 3     | Fuzz          | Not recorded     | Gain 85; start at a low volume.                      |
+| 1     | Slapback      | Yes (2026-09-16) | Rate mirrored from 15 to 85; heard after the change. |
+| 1     | Quick delay   | Yes (2026-09-16) | Rate mirrored from 25 to 75; heard after the change. |
+| 1     | Quick repeats | Yes (2026-09-16) | Rate mirrored from 25 to 75; heard after the change. |
+| 1     | Echo          | Yes (2026-09-16) | Rate mirrored from 55 to 45; heard after the change. |
+| 2     | Subtle chorus | Yes (2026-09-16) |                                                      |
+| 2     | Ensemble      | Yes (2026-09-16) |                                                      |
+| 2     | Chorus wash   | Yes (2026-09-16) |                                                      |
+| 2     | Shimmer       | Yes (2026-09-16) |                                                      |
+| 2     | Gentle phase  | Yes (2026-09-16) |                                                      |
+| 2     | Slow sweep    | Yes (2026-09-16) |                                                      |
+| 2     | Deep phase    | Yes (2026-09-16) |                                                      |
+| 2     | Fast swirl    | Yes (2026-09-16) |                                                      |
+| 3     | Warm          | Yes (2026-09-16) |                                                      |
+| 3     | Muffled       | Yes (2026-09-16) |                                                      |
+| 3     | Telephone     | Yes (2026-09-16) | Band pass; the Filter Type order was heard in §9.    |
+| 3     | Thin          | Yes (2026-09-16) | High pass; the Filter Type order was heard in §9.    |
+| 3     | Resonant      | Yes (2026-09-16) | Resonance 7; start at a low volume.                  |
+| 3     | Light drive   | Yes (2026-09-16) |                                                      |
+| 3     | Warm drive    | Yes (2026-09-16) |                                                      |
+| 3     | Crunch        | Yes (2026-09-16) | Start at a low volume.                               |
+| 3     | Fuzz          | Yes (2026-09-16) | Gain 85; start at a low volume.                      |
 
 ## 9. Control direction check
 
