@@ -29,6 +29,8 @@ Click anywhere on the title strip of the operators or effects panel to fold it a
 
 **Randomise** generates a new DX7 voice with the DX Android "Android-1" approach rather than fully random values: carriers stay near the fundamental and loud, envelopes always peak, and keyboard scaling, velocity sensitivity and detune are left neutral. The patch name and FM1 effect settings are kept, and the new voice is a single undo step.
 
+**Init voice** replaces the voice with Yamaha's DX7 INIT VOICE, a plain sine wave to build a sound from: algorithm 1 with no feedback, operator 1 at full output and the others silent, every operator at ratio 1 with no detune, full-rate envelopes with levels 99, 99, 99 and 0, and a flat pitch envelope. The patch name and FM1 effect settings are kept, and the change is a single undo step.
+
 The pitch envelope has a presets menu of starting shapes: **Flat**, **Attack blip up**, **Attack drop**, **Scoop**, and **Release fall**. Each one is applied as a single undo step.
 
 The LFO and every FM1 effect open with a small animated scope drawn from their current settings. The LFO scrolls its selected wave at a rate set by LFO Speed. The filter shows its response curve, delay its echo taps, chorus its drifting copies, reverb its tail, distortion its clipped wave, and phaser its sweeping notches. A scope dims when its effect is bypassed or when the LFO has no modulation depth. With reduced motion enabled, each scope shows a still frame instead.

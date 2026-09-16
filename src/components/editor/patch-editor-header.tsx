@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   ChevronDown,
   Dices,
+  Eraser,
   Pencil,
   Redo2,
   RefreshCw,
@@ -37,6 +38,7 @@ type PatchEditorHeaderProps = {
   onNameBlur: () => void
   onNameChange: (name: string) => void
   onPreset: (id: SoundPresetId) => void
+  onInitVoice: () => void
   onRandomise: () => void
   onRedo: () => void
   onResend: () => void
@@ -59,6 +61,7 @@ export function PatchEditorHeader({
   onNameBlur,
   onNameChange,
   onPreset,
+  onInitVoice,
   onRandomise,
   onRedo,
   onResend,
@@ -185,6 +188,18 @@ export function PatchEditorHeader({
               ))}
             </div>
           </details>
+          <Button
+            aria-label={t('editor.initVoice')}
+            className="font-vt323"
+            disabled={syncState === 'sending'}
+            onClick={onInitVoice}
+            title={t('editor.initVoice')}
+            type="button"
+            variant="outline"
+          >
+            <Eraser />
+            <span className="hidden xl:inline">{t('editor.initVoice')}</span>
+          </Button>
           <Button
             aria-label={t('editor.randomise')}
             className="font-vt323"

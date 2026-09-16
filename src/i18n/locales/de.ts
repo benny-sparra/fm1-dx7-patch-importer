@@ -165,6 +165,8 @@ export default {
     pianoKeyboard: 'Klaviatur',
     dragKeyboard: 'Klaviatur verschieben',
     closeKeyboard: 'Klaviatur schließen',
+    keyboardOpenFailed:
+      'Die Tastatur konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     shiftOctave: 'Oktave nach {{direction}} verschieben',
     playNote: '{{note}} spielen',
     helpFor: 'Hilfe: {{label}}',
@@ -467,6 +469,7 @@ export default {
     keepEditing: 'Weiter bearbeiten',
     discard: 'Änderungen verwerfen',
     saveAndReturn: 'Speichern und zurück',
+    initVoice: 'Initialisieren',
     randomise: 'Zufällig',
   },
   midi: {

@@ -162,6 +162,7 @@ export default {
     pianoKeyboard: 'Teclado de piano',
     dragKeyboard: 'Mover el teclado',
     closeKeyboard: 'Cerrar el teclado',
+    keyboardOpenFailed: 'No se pudo abrir el teclado. Recarga la página e inténtalo de nuevo.',
     shiftOctave: 'Desplazar octava hacia {{direction}}',
     playNote: 'Tocar {{note}}',
     helpFor: 'Ayuda: {{label}}',
@@ -463,6 +464,7 @@ export default {
     keepEditing: 'Seguir editando',
     discard: 'Descartar cambios',
     saveAndReturn: 'Guardar y volver',
+    initVoice: 'Inicializar',
     randomise: 'Aleatorizar',
   },
   midi: {
