@@ -194,7 +194,6 @@ function EffectPresetControl({
 }) {
   const { t } = useTranslation()
   const presets = effectPresetsFor(effectName.toLowerCase())
-  if (presets.length === 0) return null
 
   const translatedEffect = t(`ui.effects.${effectName.toLowerCase()}`)
   const label = t('editor.effectPreset')

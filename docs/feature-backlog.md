@@ -49,10 +49,12 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        for chorus and _Gentle phase_, _Slow sweep_, _Deep phase_, and _Fast swirl_ for phaser.
        Chorus and phaser Frequency were heard to speed up as they rise before these were built.
        Built; waiting on the listening check in `docs/fx-003-hardware-verification.md` §8.
-    3. **Tone: filter and distortion.** Adds presets such as _Muffled_ and _Telephone_ for the
-       filter and _Warm drive_ and _Crunch_ for distortion. Last, because distortion gain and
-       filter resonance can jump sharply in level, so check the loudest preset at a safe listening
-       volume.
+    3. **Tone: filter and distortion.** _Warm_, _Muffled_, _Telephone_, _Thin_, and _Resonant_
+       for the filter and _Light drive_, _Warm drive_, _Crunch_, and _Fuzz_ for distortion. Filter
+       Cutoff, Resonance, and distortion Tone were heard to go the editor's way before these were
+       built. Distortion gain and filter resonance can jump sharply in level, so check the loudest
+       preset at a safe listening volume. Built; waiting on the listening check in
+       `docs/fx-003-hardware-verification.md` §8.
   - Presets that combine effects, such as a phaser over a small reverb, are not planned: set one
     effect's preset, then another's.
   - Later, once [effect routing order](#effect-routing-order) is known, the routing could have

@@ -271,6 +271,15 @@ levels in `docs/fm1-research.md` §7 are unchanged.
 | 2     | Slow sweep    | Not recorded     |                                                      |
 | 2     | Deep phase    | Not recorded     |                                                      |
 | 2     | Fast swirl    | Not recorded     |                                                      |
+| 3     | Warm          | Not recorded     |                                                      |
+| 3     | Muffled       | Not recorded     |                                                      |
+| 3     | Telephone     | Not recorded     | Band pass: depends on the Filter Type order in §2.   |
+| 3     | Thin          | Not recorded     | High pass: depends on the Filter Type order in §2.   |
+| 3     | Resonant      | Not recorded     | Resonance 7; start at a low volume.                  |
+| 3     | Light drive   | Not recorded     |                                                      |
+| 3     | Warm drive    | Not recorded     |                                                      |
+| 3     | Crunch        | Not recorded     | Start at a low volume.                               |
+| 3     | Fuzz          | Not recorded     | Gain 85; start at a low volume.                      |
 
 ## 9. Control direction check
 

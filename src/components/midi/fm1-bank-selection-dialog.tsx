@@ -109,8 +109,8 @@ export function Fm1BankSelectionDialog({
           </div>
         )}
       </DialogBody>
-      {/* Keys replace the whole footer: page translators may wrap its buttons in <font> elements,
-          so React cannot remove one button from it on its own. */}
+      {/* Keys replace the whole footer: a page translator replaces bare text nodes, so React
+          cannot remove the reconnect button's label on its own. */}
       {sysexUnavailable ? (
         <DialogFooter key="sysex-warning">
           <Button onClick={closeDialog} type="button" variant="outline">

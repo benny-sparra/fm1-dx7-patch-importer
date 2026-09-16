@@ -292,16 +292,21 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(chorusDepth.value).toBe('0')
   }, 15_000)
 
-  it('offers presets only in the boxes of effects that have them', async () => {
+  it('sets the filter type along with its other controls from a filter preset', async () => {
+    const user = userEvent.setup()
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const filter = within(screen.getByRole('region', { name: 'Filter' }))
+    await user.click(filter.getByRole('button', { name: 'Enable Filter' }))
 
-    expect(
-      within(screen.getByRole('region', { name: 'Filter' })).queryByRole('combobox', {
-        name: 'Filter Preset',
-      }),
-    ).toBeNull()
-  })
+    await user.selectOptions(filter.getByRole('combobox', { name: 'Filter Preset' }), 'Telephone')
+
+    const type = filter.getByRole('combobox', { name: 'Filter Type' }) as HTMLSelectElement
+    expect(type.selectedOptions[0].textContent).toBe('Band pass')
+    expect((filter.getByRole('slider', { name: 'Filter Cutoff' }) as HTMLInputElement).value).toBe(
+      '60',
+    )
+  }, 15_000)
 
   it('undoes a held arrow key on an effect slider as a single step', async () => {
     const user = userEvent.setup()

@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import '@/i18n'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { type MidiController } from '@/hooks/use-midi'
+import { translatePageText } from '@/test/page-translator'
 
 afterEach(cleanup)
 
@@ -22,23 +23,10 @@ function renderDialog(sysexAvailable: boolean) {
   )
 }
 
-// Page translators such as Google Translate treat buttons as inline text and may wrap them in
-// <font> elements, so React can no longer remove a button from the footer directly.
-function translateText(root: Element) {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
-  const texts: Text[] = []
-  while (walker.nextNode()) texts.push(walker.currentNode as Text)
-  for (const text of texts) {
-    const font = document.createElement('font')
-    font.textContent = text.data
-    text.replaceWith(font)
-  }
-}
-
 describe('Fm1BankSelectionDialog', () => {
-  it('switches from the SysEx warning to bank selection after a translator wraps its buttons', () => {
+  it('switches from the SysEx warning to bank selection after a page translator replaces its text', () => {
     const view = render(renderDialog(false))
-    translateText(document.querySelector('dialog')!)
+    translatePageText(view.container)
 
     view.rerender(renderDialog(true))
 
