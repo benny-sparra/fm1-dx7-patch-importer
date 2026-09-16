@@ -188,3 +188,36 @@ test('asks before leaving unsaved changes, then keeps, discards or saves them', 
   await openFirstPatch(page)
   await expect(output).toHaveValue(edited)
 })
+
+test('applies effect presets one after another and undoes each as one step', async ({ page }) => {
+  await openEditor(page)
+  const reverb = page.getByRole('region', { name: 'Reverb' })
+  const presets = reverb.getByRole('combobox', { name: 'Reverb Preset' })
+  const settings = [
+    reverb.getByRole('combobox', { name: 'Reverb Space' }),
+    reverb.getByRole('slider', { name: 'Reverb Decay' }),
+    reverb.getByRole('slider', { name: 'Reverb Mix' }),
+  ]
+  const expectSettings = async (values: string[]) => {
+    for (const [index, setting] of settings.entries())
+      await expect(setting).toHaveValue(values[index])
+  }
+  const enable = reverb.getByRole('button', { name: 'Enable Reverb' })
+  if (await enable.isVisible()) await enable.click()
+  await expect(presets).toBeEnabled()
+  const before = await Promise.all(settings.map((setting) => setting.inputValue()))
+
+  await presets.selectOption({ label: 'Large room' })
+  await expectSettings(['0', '55', '30'])
+  // The menu returns to its placeholder, so the next choice is a fresh change.
+  await expect(presets).toHaveValue('')
+
+  await presets.selectOption({ label: 'Large hall' })
+  await expectSettings(['1', '70', '35'])
+  await expect(presets).toHaveValue('')
+
+  await page.keyboard.press('ControlOrMeta+z')
+  await expectSettings(['0', '55', '30'])
+  await page.keyboard.press('ControlOrMeta+z')
+  await expectSettings(before)
+})
