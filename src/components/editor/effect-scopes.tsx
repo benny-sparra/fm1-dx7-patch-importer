@@ -138,7 +138,8 @@ const delayRest = 120
 const delayRestingOpacity = 0.55
 
 export function delayTaps(decay: number, rate: number) {
-  const gap = 12 + clamp01(rate / 100) * 48
+  // A higher rate repeats faster on the FM1, so the taps draw closer together.
+  const gap = 12 + (1 - clamp01(rate / 100)) * 48
   const feedback = clamp01(decay / 100) * 0.92
   const taps: { level: number; x: number }[] = []
   for (let index = 0; delayFirstTapX + index * gap <= viewWidth - 6; index += 1) {

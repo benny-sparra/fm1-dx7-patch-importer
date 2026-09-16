@@ -11,9 +11,9 @@ import { fm1EffectParameters, type EffectParameterId } from '@/lib/fm1-parameter
   still sets the switch on, so applying one can never leave its effect silent.
   Other effects are left alone.
 
-  Listening on an FM1 matched the reverb Space order (room, hall, plate) and
-  a delay Rate that lengthens the gap between repeats as it rises, which the
-  names here depend on (docs/fx-003-hardware-verification.md §8).
+  Listening on an FM1 matched the reverb Space order (room, hall, plate), and
+  found that a higher delay Rate repeats faster, so the shortest delays have
+  the highest rates (docs/fx-003-hardware-verification.md §8).
 */
 type PresetEffect = 'reverb' | 'delay'
 
@@ -95,7 +95,7 @@ export const effectPresets: EffectPreset[] = [
     values: {
       'effect.delay.enabled': 1,
       'effect.delay.decay': 10,
-      'effect.delay.rate': 15,
+      'effect.delay.rate': 85,
       'effect.delay.mix': 30,
     },
   },
@@ -105,7 +105,7 @@ export const effectPresets: EffectPreset[] = [
     values: {
       'effect.delay.enabled': 1,
       'effect.delay.decay': 20,
-      'effect.delay.rate': 25,
+      'effect.delay.rate': 75,
       'effect.delay.mix': 30,
     },
   },
@@ -115,7 +115,7 @@ export const effectPresets: EffectPreset[] = [
     values: {
       'effect.delay.enabled': 1,
       'effect.delay.decay': 60,
-      'effect.delay.rate': 25,
+      'effect.delay.rate': 75,
       'effect.delay.mix': 25,
     },
   },
@@ -125,7 +125,7 @@ export const effectPresets: EffectPreset[] = [
     values: {
       'effect.delay.enabled': 1,
       'effect.delay.decay': 45,
-      'effect.delay.rate': 55,
+      'effect.delay.rate': 45,
       'effect.delay.mix': 30,
     },
   },

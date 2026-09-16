@@ -234,27 +234,30 @@ as well as a held note. Apply each preset from the **Preset** menu in its effect
 switched off, and record whether it matches its name. A preset that does not is retuned in the table, or renamed,
 and listened to again. Record the firmware label and date.
 
-Phase 1 also settled two assumptions the presets depend on:
+Phase 1 also settles two assumptions the presets depend on:
 
 - **Reverb space order.** Whether values 0, 1 and 2 sound like room, hall and plate. If not, the
   reverb presets are misnamed as well as the Space labels.
-- **Delay rate direction.** The presets assume a higher Rate means a longer gap between repeats,
-  as the delay scope draws it. _Slapback_ (rate 15) must give one quick repeat and _Echo_ (rate 55)
-  clearly spaced repeats. If the direction is reversed, the delay rates need reversing.
+- **Delay rate direction.** Whether a higher Rate means faster repeats or a longer gap between them.
+  The delay presets and the delay scope both depend on it.
 
-On 2026-09-16 the first five phase 1 presets were heard on an FM1 and each matched its name, so both
-assumptions held in that run. This is an informal listening result: the firmware label was not
-recorded and the run has not been repeated, so the confidence levels in `docs/fm1-research.md` §7
-are unchanged.
+On 2026-09-16 the first five phase 1 presets were heard on an FM1 and each was reported to match its
+name, which matched the reverb space order. A later listen the same day found the delay rate
+direction the other way round from the editor's original assumption: a higher Rate gives faster
+repeats, closer together. The earlier Slapback and Echo results were heard with their rates
+reversed, so they are void. The delay scope now draws taps closer as Rate rises, and every delay
+preset rate was mirrored (`100 - rate`), keeping the intended spacing. These are informal listening
+results: the firmware label was not recorded and neither run has been repeated, so the confidence
+levels in `docs/fm1-research.md` §7 are unchanged.
 
-| Phase | Preset        | Matches its name | Notes                            |
-| ----- | ------------- | ---------------- | -------------------------------- |
-| 1     | Small room    | Yes (2026-09-16) | Firmware label not recorded.     |
-| 1     | Large room    | Not recorded     | Added after the first listening. |
-| 1     | Small hall    | Not recorded     | Added after the first listening. |
-| 1     | Large hall    | Yes (2026-09-16) | Firmware label not recorded.     |
-| 1     | Plate         | Yes (2026-09-16) | Firmware label not recorded.     |
-| 1     | Slapback      | Yes (2026-09-16) | Firmware label not recorded.     |
-| 1     | Quick delay   | Not recorded     | Added after the first listening. |
-| 1     | Quick repeats | Not recorded     | Added after the first listening. |
-| 1     | Echo          | Yes (2026-09-16) | Firmware label not recorded.     |
+| Phase | Preset        | Matches its name | Notes                                                |
+| ----- | ------------- | ---------------- | ---------------------------------------------------- |
+| 1     | Small room    | Yes (2026-09-16) | Firmware label not recorded.                         |
+| 1     | Large room    | Not recorded     | Added after the first listening.                     |
+| 1     | Small hall    | Not recorded     | Added after the first listening.                     |
+| 1     | Large hall    | Yes (2026-09-16) | Firmware label not recorded.                         |
+| 1     | Plate         | Yes (2026-09-16) | Firmware label not recorded.                         |
+| 1     | Slapback      | Not recorded     | Rate mirrored from 15 to 85; earlier result is void. |
+| 1     | Quick delay   | Not recorded     | Rate mirrored from 25 to 75.                         |
+| 1     | Quick repeats | Not recorded     | Rate mirrored from 25 to 75.                         |
+| 1     | Echo          | Not recorded     | Rate mirrored from 55 to 45; earlier result is void. |

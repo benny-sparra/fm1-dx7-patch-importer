@@ -39,9 +39,11 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     block in `docs/fx-003-hardware-verification.md`, with the observations recorded there.
     1. **Space: reverb and delay.** Builds the menu, the table, the send, and the one-undo apply,
        with _Small room_, _Large room_, _Small hall_, _Large hall_, and _Plate_ for reverb and
-       _Slapback_, _Quick delay_, _Quick repeats_, and _Echo_ for delay. The first five were heard
-       on an FM1 on 2026-09-16 and matched their names, which also matched the room/hall/plate order
-       and the delay rate direction. The other four still need the listening check in
+       _Slapback_, _Quick delay_, _Quick repeats_, and _Echo_ for delay. Small room, Large hall, and
+       Plate were heard on an FM1 on 2026-09-16 and matched their names and the room/hall/plate
+       order. Listening also found that a higher delay Rate repeats faster, the reverse of the
+       editor's assumption, so the delay scope and every delay preset rate were flipped. The delay
+       presets, Large room, and Small hall still need the listening check in
        `docs/fx-003-hardware-verification.md` §8.
     2. **Movement: chorus and phaser.** Adds presets such as _Chorus wash_ and _Ensemble_ for
        chorus and _Slow sweep_ for phaser.

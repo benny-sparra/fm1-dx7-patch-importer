@@ -265,7 +265,7 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(vi.mocked(midi.sendEffectParameter).mock.calls).toEqual([
       [8, 1],
       [9, 45],
-      [10, 55],
+      [10, 45],
       [11, 30],
     ])
     await user.selectOptions(presets, 'Echo')
