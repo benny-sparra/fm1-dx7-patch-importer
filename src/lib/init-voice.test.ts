@@ -4,6 +4,8 @@ import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_EFFECT_PARAMETER_START,
   FM1_VOICE_NAME_START,
+  FM1_VOICE_PARAMETER_COUNT,
+  fm1EffectParameters,
 } from '@/lib/fm1-parameters'
 import { initializeVoice } from '@/lib/init-voice'
 
@@ -38,9 +40,28 @@ describe('voice initialisation', () => {
     )
   })
 
-  it('preserves the patch name and FM1 effect settings', () => {
-    expect(Array.from(initializeVoice(makeParameters()).slice(FM1_VOICE_NAME_START))).toEqual(
-      Array.from(makeParameters().slice(FM1_VOICE_NAME_START)),
+  it('preserves the patch name', () => {
+    expect(
+      Array.from(
+        initializeVoice(makeParameters()).slice(FM1_VOICE_NAME_START, FM1_VOICE_PARAMETER_COUNT),
+      ),
+    ).toEqual(Array.from(makeParameters().slice(FM1_VOICE_NAME_START, FM1_VOICE_PARAMETER_COUNT)))
+  })
+
+  it('switches every FM1 effect off', () => {
+    const initialised = initializeVoice(makeParameters())
+    const switches = fm1EffectParameters.filter(({ kind }) => kind === 'switch')
+
+    expect(switches.map(({ editorIndex }) => initialised[editorIndex])).toEqual([0, 0, 0, 0, 0, 0])
+  })
+
+  it('keeps every FM1 effect setting other than its switch', () => {
+    const parameters = makeParameters()
+    const initialised = initializeVoice(parameters)
+    const settings = fm1EffectParameters.filter(({ kind }) => kind !== 'switch')
+
+    expect(settings.map(({ editorIndex }) => initialised[editorIndex])).toEqual(
+      settings.map(({ editorIndex }) => parameters[editorIndex]),
     )
   })
 

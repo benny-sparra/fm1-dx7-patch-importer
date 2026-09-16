@@ -1,6 +1,7 @@
 import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_OPERATOR_COUNT,
+  fm1EffectParameters,
   getGlobalParameterDefinition,
   resolveOperatorParameterIndex,
   type GlobalParameterId,
@@ -49,7 +50,8 @@ const initOperator: Readonly<Record<Exclude<OperatorParameterId, 'operator.outpu
 const globalIndex = (id: GlobalParameterId) => getGlobalParameterDefinition(id).voiceIndex
 
 /**
- * Replaces the DX7 voice with the INIT VOICE, keeping the patch name and FM1 effect settings.
+ * Replaces the DX7 voice with the INIT VOICE and switches every FM1 effect off, so the plain sine
+ * is heard dry. The patch name and each effect's settings are kept, ready to switch back on.
  */
 export function initializeVoice(parameters: Uint8Array) {
   if (parameters.length !== FM1_EDITOR_PARAMETER_COUNT) {
@@ -79,6 +81,10 @@ export function initializeVoice(parameters: Uint8Array) {
   next[globalIndex('global.lfoWave')] = 0
   next[globalIndex('global.pitchModSensitivity')] = PITCH_MOD_SENSITIVITY
   next[globalIndex('global.transpose')] = DX7_TRANSPOSE_C3
+
+  for (const { editorIndex, kind } of fm1EffectParameters) {
+    if (kind === 'switch') next[editorIndex] = 0
+  }
 
   return next
 }
