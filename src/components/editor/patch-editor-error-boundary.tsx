@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { reloadPage } from '@/lib/reload-page'
 
 type PatchEditorErrorBoundaryProps = {
   children: ReactNode
@@ -28,7 +29,7 @@ export function PatchEditorErrorBoundary({ children, onBack }: PatchEditorErrorB
           </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Button onClick={() => window.location.reload()} type="button">
+          <Button onClick={reloadPage} type="button">
             <RefreshCw aria-hidden="true" />
             {t('common.reloadApp')}
           </Button>

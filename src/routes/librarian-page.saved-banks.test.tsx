@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -61,9 +61,11 @@ describe('LibrarianPage saved banks that fail to load', () => {
     await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
     await user.click(screen.getAllByRole('button', { name: 'Load bank' })[0])
 
+    const alert = await screen.findByRole('alert')
     expect(
-      await screen.findByText('Saved banks could not be opened. Reload the page and try again.'),
+      within(alert).getByText('Saved banks could not be opened. Reload the page and try again.'),
     ).toBeTruthy()
+    expect(within(alert).getByRole('button', { name: 'Reload app' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
   })
 })
