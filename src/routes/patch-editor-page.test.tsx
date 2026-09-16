@@ -200,6 +200,31 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(outputLevels()).toEqual(['0', '0'])
   }, 15_000)
 
+  it('switches effects off with the init voice, keeping their settings, in one undo step', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const reverb = within(screen.getByRole('region', { name: 'Reverb' }))
+    const reverbSettings = () =>
+      ['Reverb Space', 'Reverb Decay', 'Reverb Mix'].map(
+        (name) => (reverb.getByLabelText(name) as HTMLInputElement | HTMLSelectElement).value,
+      )
+    const operatorOneLevel = () =>
+      (screen.getByRole('slider', { name: 'Operator 1 output level' }) as HTMLInputElement).value
+    await user.click(reverb.getByRole('button', { name: 'Enable Reverb' }))
+    await user.selectOptions(reverb.getByRole('combobox', { name: 'Reverb Preset' }), 'Large hall')
+
+    await user.click(screen.getByRole('button', { name: 'Init voice' }))
+
+    expect(reverb.getByRole('button', { name: 'Enable Reverb' })).toBeTruthy()
+    expect(reverbSettings()).toEqual(['1', '70', '35'])
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(reverb.getByRole('button', { name: 'Bypass Reverb' })).toBeTruthy()
+    expect(operatorOneLevel()).toBe('0')
+  }, 15_000)
+
   it('does not resend the init voice when it is applied again unchanged', async () => {
     const user = userEvent.setup()
     const { midi } = setup()

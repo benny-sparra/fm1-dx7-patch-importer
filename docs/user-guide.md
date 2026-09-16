@@ -31,7 +31,7 @@ Click anywhere on the title strip of the operators or effects panel to fold it a
 
 **Randomise** generates a new DX7 voice with the DX Android "Android-1" approach rather than fully random values: carriers stay near the fundamental and loud, envelopes always peak, and keyboard scaling, velocity sensitivity and detune are left neutral. The patch name and FM1 effect settings are kept, and the new voice is a single undo step.
 
-**Init voice** replaces the voice with Yamaha's DX7 INIT VOICE, a plain sine wave to build a sound from: algorithm 1 with no feedback, operator 1 at full output and the others silent, every operator at ratio 1 with no detune, full-rate envelopes with levels 99, 99, 99 and 0, and a flat pitch envelope. The patch name and FM1 effect settings are kept, and the change is a single undo step.
+**Init voice** replaces the voice with Yamaha's DX7 INIT VOICE, a plain sine wave to build a sound from: algorithm 1 with no feedback, operator 1 at full output and the others silent, every operator at ratio 1 with no detune, full-rate envelopes with levels 99, 99, 99 and 0, and a flat pitch envelope. Every FM1 effect is switched off so the sine is heard dry, but each effect keeps its settings for when you switch it back on. The patch name is kept, and the change is a single undo step.
 
 The pitch envelope has a presets menu of starting shapes: **Flat**, **Attack blip up**, **Attack drop**, **Scoop**, and **Release fall**. Each one is applied as a single undo step.
 
