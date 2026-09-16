@@ -6,6 +6,7 @@ import { createRef } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
+import { translatePageText } from '@/test/page-translator'
 import { RestoreFactoryBanksDialog } from './restore-factory-banks-dialog'
 
 beforeAll(() => {
@@ -63,5 +64,20 @@ describe('RestoreFactoryBanksDialog', () => {
 
     finishRestore()
     await vi.waitFor(() => expect(dialogRef.current?.open).toBe(false))
+  })
+
+  it('shows the restoring label after a page translator replaces the button text', async () => {
+    const user = userEvent.setup()
+    const onRestore = vi.fn(() => new Promise<void>(() => {}))
+    const dialogRef = createRef<HTMLDialogElement>()
+    const { container } = render(
+      <RestoreFactoryBanksDialog dialogRef={dialogRef} onRestore={onRestore} />,
+    )
+    dialogRef.current?.showModal()
+    translatePageText(container)
+
+    await user.click(screen.getByRole('button', { name: 'Restore four banks' }))
+
+    expect(screen.getByRole('button', { name: 'Restoring…' })).toBeTruthy()
   })
 })

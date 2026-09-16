@@ -123,7 +123,7 @@ export function Fm1BankSelectionDialog({
             type="button"
           >
             <Cable />
-            {t(midi.isConnecting ? 'midi.connecting' : 'midi.reconnectForSysex')}
+            <span>{t(midi.isConnecting ? 'midi.connecting' : 'midi.reconnectForSysex')}</span>
           </Button>
         </DialogFooter>
       ) : (

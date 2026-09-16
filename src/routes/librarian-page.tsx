@@ -366,7 +366,7 @@ export function LibrarianPage({
           type="button"
         >
           <Upload className="size-4" />
-          {isImporting ? t('banks.importing') : t('banks.import')}
+          <span>{isImporting ? t('banks.importing') : t('banks.import')}</span>
         </button>
         <button
           className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
@@ -449,7 +449,7 @@ export function LibrarianPage({
               type="button"
             >
               <Send aria-hidden="true" className="size-3.5" />
-              {isSending ? t('banks.sending') : t('banks.send')}
+              <span>{isSending ? t('banks.sending') : t('banks.send')}</span>
             </button>
           </>
         }
