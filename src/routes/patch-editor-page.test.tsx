@@ -274,13 +274,31 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1)
   }, 15_000)
 
+  it('applies a phaser preset without changing the chorus', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const phaser = within(screen.getByRole('region', { name: 'Phaser' }))
+    const chorusDepth = screen.getByRole('slider', { name: 'Chorus Depth' }) as HTMLInputElement
+    await user.click(phaser.getByRole('button', { name: 'Enable Phaser' }))
+
+    await user.selectOptions(phaser.getByRole('combobox', { name: 'Phaser Preset' }), 'Slow sweep')
+
+    expect(
+      ['Phaser Frequency', 'Phaser Depth', 'Phaser Mix'].map(
+        (name) => (phaser.getByRole('slider', { name }) as HTMLInputElement).value,
+      ),
+    ).toEqual(['10', '60', '45'])
+    expect(chorusDepth.value).toBe('0')
+  }, 15_000)
+
   it('offers presets only in the boxes of effects that have them', async () => {
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
 
     expect(
-      within(screen.getByRole('region', { name: 'Chorus' })).queryByRole('combobox', {
-        name: 'Chorus Preset',
+      within(screen.getByRole('region', { name: 'Filter' })).queryByRole('combobox', {
+        name: 'Filter Preset',
       }),
     ).toBeNull()
   })

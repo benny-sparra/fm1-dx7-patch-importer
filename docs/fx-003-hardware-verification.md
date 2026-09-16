@@ -263,6 +263,14 @@ levels in `docs/fm1-research.md` §7 are unchanged.
 | 1     | Quick delay   | Not recorded     | Rate mirrored from 25 to 75.                         |
 | 1     | Quick repeats | Not recorded     | Rate mirrored from 25 to 75.                         |
 | 1     | Echo          | Not recorded     | Rate mirrored from 55 to 45; earlier result is void. |
+| 2     | Subtle chorus | Not recorded     |                                                      |
+| 2     | Ensemble      | Not recorded     |                                                      |
+| 2     | Chorus wash   | Not recorded     |                                                      |
+| 2     | Shimmer       | Not recorded     |                                                      |
+| 2     | Gentle phase  | Not recorded     |                                                      |
+| 2     | Slow sweep    | Not recorded     |                                                      |
+| 2     | Deep phase    | Not recorded     |                                                      |
+| 2     | Fast swirl    | Not recorded     |                                                      |
 
 ## 9. Control direction check
 

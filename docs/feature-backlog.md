@@ -45,8 +45,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        editor's assumption, so the delay scope and every delay preset rate were flipped. The delay
        presets, Large room, and Small hall still need the listening check in
        `docs/fx-003-hardware-verification.md` §8.
-    2. **Movement: chorus and phaser.** Adds presets such as _Chorus wash_ and _Ensemble_ for
-       chorus and _Slow sweep_ for phaser.
+    2. **Movement: chorus and phaser.** _Subtle chorus_, _Ensemble_, _Chorus wash_, and _Shimmer_
+       for chorus and _Gentle phase_, _Slow sweep_, _Deep phase_, and _Fast swirl_ for phaser.
+       Chorus and phaser Frequency were heard to speed up as they rise before these were built.
+       Built; waiting on the listening check in `docs/fx-003-hardware-verification.md` §8.
     3. **Tone: filter and distortion.** Adds presets such as _Muffled_ and _Telephone_ for the
        filter and _Warm drive_ and _Crunch_ for distortion. Last, because distortion gain and
        filter resonance can jump sharply in level, so check the loudest preset at a safe listening

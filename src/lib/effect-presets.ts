@@ -13,9 +13,10 @@ import { fm1EffectParameters, type EffectParameterId } from '@/lib/fm1-parameter
 
   Listening on an FM1 matched the reverb Space order (room, hall, plate), and
   found that a higher delay Rate repeats faster, so the shortest delays have
-  the highest rates (docs/fx-003-hardware-verification.md §8).
+  the highest rates. Chorus and phaser Frequency were heard to speed up as
+  they rise (docs/fx-003-hardware-verification.md §8 and §9).
 */
-type PresetEffect = 'reverb' | 'delay'
+type PresetEffect = 'reverb' | 'delay' | 'chorus' | 'phaser'
 
 export type EffectPresetId =
   | 'smallRoom'
@@ -27,6 +28,14 @@ export type EffectPresetId =
   | 'quickDelay'
   | 'quickRepeats'
   | 'echo'
+  | 'subtleChorus'
+  | 'ensemble'
+  | 'chorusWash'
+  | 'shimmer'
+  | 'gentlePhase'
+  | 'slowSweep'
+  | 'deepPhase'
+  | 'fastSwirl'
 
 type EffectPreset = {
   effect: PresetEffect
@@ -127,6 +136,86 @@ export const effectPresets: EffectPreset[] = [
       'effect.delay.decay': 45,
       'effect.delay.rate': 45,
       'effect.delay.mix': 30,
+    },
+  },
+  {
+    effect: 'chorus',
+    id: 'subtleChorus',
+    values: {
+      'effect.chorus.enabled': 1,
+      'effect.chorus.frequency': 20,
+      'effect.chorus.depth': 25,
+      'effect.chorus.mix': 25,
+    },
+  },
+  {
+    effect: 'chorus',
+    id: 'ensemble',
+    values: {
+      'effect.chorus.enabled': 1,
+      'effect.chorus.frequency': 35,
+      'effect.chorus.depth': 45,
+      'effect.chorus.mix': 40,
+    },
+  },
+  {
+    effect: 'chorus',
+    id: 'chorusWash',
+    values: {
+      'effect.chorus.enabled': 1,
+      'effect.chorus.frequency': 25,
+      'effect.chorus.depth': 70,
+      'effect.chorus.mix': 55,
+    },
+  },
+  {
+    effect: 'chorus',
+    id: 'shimmer',
+    values: {
+      'effect.chorus.enabled': 1,
+      'effect.chorus.frequency': 70,
+      'effect.chorus.depth': 30,
+      'effect.chorus.mix': 35,
+    },
+  },
+  {
+    effect: 'phaser',
+    id: 'gentlePhase',
+    values: {
+      'effect.phaser.enabled': 1,
+      'effect.phaser.frequency': 25,
+      'effect.phaser.depth': 35,
+      'effect.phaser.mix': 30,
+    },
+  },
+  {
+    effect: 'phaser',
+    id: 'slowSweep',
+    values: {
+      'effect.phaser.enabled': 1,
+      'effect.phaser.frequency': 10,
+      'effect.phaser.depth': 60,
+      'effect.phaser.mix': 45,
+    },
+  },
+  {
+    effect: 'phaser',
+    id: 'deepPhase',
+    values: {
+      'effect.phaser.enabled': 1,
+      'effect.phaser.frequency': 20,
+      'effect.phaser.depth': 85,
+      'effect.phaser.mix': 60,
+    },
+  },
+  {
+    effect: 'phaser',
+    id: 'fastSwirl',
+    values: {
+      'effect.phaser.enabled': 1,
+      'effect.phaser.frequency': 70,
+      'effect.phaser.depth': 50,
+      'effect.phaser.mix': 45,
     },
   },
 ]
