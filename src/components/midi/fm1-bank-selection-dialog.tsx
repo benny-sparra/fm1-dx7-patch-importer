@@ -61,12 +61,19 @@ export function Fm1BankSelectionDialog({
         </p>
 
         {sysexUnavailable ? (
-          <div className="flex items-start gap-3 p-5 text-sm leading-5" role="alert">
+          <div
+            className="flex items-start gap-3 p-5 text-sm leading-5"
+            key="sysex-warning"
+            role="alert"
+          >
             <TriangleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-amber-600" />
             <p>{t('midi.sysexRecovery')}</p>
           </div>
         ) : (
-          <div className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-center">
+          <div
+            className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-center"
+            key="bank-selection"
+          >
             <ol className="grid gap-4 text-sm leading-5">
               <li className="flex gap-3">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
@@ -102,8 +109,10 @@ export function Fm1BankSelectionDialog({
           </div>
         )}
       </DialogBody>
+      {/* Keys replace the whole footer: page translators may wrap its buttons in <font> elements,
+          so React cannot remove one button from it on its own. */}
       {sysexUnavailable ? (
-        <DialogFooter>
+        <DialogFooter key="sysex-warning">
           <Button onClick={closeDialog} type="button" variant="outline">
             {t('common.close')}
           </Button>
@@ -118,7 +127,7 @@ export function Fm1BankSelectionDialog({
           </Button>
         </DialogFooter>
       ) : (
-        <DialogFooter className="items-center justify-between gap-4">
+        <DialogFooter className="items-center justify-between gap-4" key="bank-selection">
           <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
             <input
               checked={dontShowAgain}

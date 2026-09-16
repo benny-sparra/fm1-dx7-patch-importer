@@ -211,6 +211,10 @@ open everything an earlier release could have saved.
   backdrop clicks, as the add-bank, import, and unsaved-changes dialogs do.
 - A component that can be rendered more than once takes its ARIA ids from `useId` rather than fixed
   strings.
+- Browser page translators wrap inline content, including buttons, in `<font>` elements, and React
+  then crashes removing a node that has moved. When a conditional swaps one layout for another of
+  the same element type, give each branch a `key` so React replaces the whole block, as
+  `Fm1BankSelectionDialog` does.
 - Interactive controls need stable accessible names. Preserve ARIA relationships and avoid nesting
   buttons, links, summaries, inputs, or other interactive elements.
 - If a feature body becomes lazy, keep its trigger eager. One activation must eventually open the
