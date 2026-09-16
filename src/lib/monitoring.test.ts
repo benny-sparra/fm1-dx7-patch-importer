@@ -185,11 +185,47 @@ describe('Sentry monitoring', () => {
       loadSdk: async () => sdk,
     })
 
-    await expect(initialize()).resolves.toEqual({
-      onCaughtError: handler,
-      onRecoverableError: handler,
-      onUncaughtError: handler,
+    const options = await initialize()
+    const error = new Error('render failed')
+    const errorInfo = { componentStack: '' }
+    options.onCaughtError?.(error, errorInfo)
+
+    expect(handler).toHaveBeenCalledWith(error, errorInfo)
+    expect(options).toMatchObject({ onRecoverableError: handler, onUncaughtError: handler })
+  })
+
+  it.each([
+    'Failed to fetch dynamically imported module: https://fm1-editor.com/assets/dialog-old.js',
+    'error loading dynamically imported module: https://fm1-editor.com/assets/dialog-old.js',
+    'Importing a module script failed.',
+    'Unable to preload CSS for /assets/dialog-old.css',
+  ])('does not report a lazy chunk failure an error boundary caught: %s', async (message) => {
+    const { handler, sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
     })
+
+    const options = await initialize()
+    options.onCaughtError?.(new TypeError(message), { componentStack: '' })
+
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('still reports a lazy chunk failure that no error boundary caught', async () => {
+    const { handler, sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    const options = await initialize()
+    const error = new TypeError('Failed to fetch dynamically imported module')
+    options.onUncaughtError?.(error, { componentStack: '' })
+
+    expect(handler).toHaveBeenCalledWith(error, { componentStack: '' })
   })
 
   it('initializes the SDK only once when startup is repeated', async () => {

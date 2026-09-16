@@ -30,6 +30,25 @@ function removeUrlDetails(value: string) {
   return value.replace(/[?#].*$/u, '')
 }
 
+// Each browser words a failed lazy-chunk request differently; Vite adds its own for stylesheets.
+const dynamicImportFailureMessages = [
+  /^Failed to fetch dynamically imported module\b/u,
+  /^error loading dynamically imported module\b/u,
+  /^Importing a module script failed\b/u,
+  /^Unable to preload CSS for\b/u,
+]
+
+/**
+ * A lazy chunk fails to load when a tab outlives a deployment. An error boundary that caught it
+ * has already told the user to reload, so reporting it would only add noise after every deploy.
+ */
+function isContainedDynamicImportFailure(error: unknown) {
+  return (
+    error instanceof Error &&
+    dynamicImportFailureMessages.some((pattern) => pattern.test(error.message))
+  )
+}
+
 function isAndroidNavigationLoggerError(event: {
   exception?: {
     values?: { stacktrace?: { frames?: { filename?: string }[] } }[]
@@ -116,7 +135,10 @@ export function createMonitoringInitializer({
         const reactErrorHandler = sentry.reactErrorHandler()
         onInitialized?.(sentry)
         return {
-          onCaughtError: reactErrorHandler,
+          onCaughtError(error: unknown, errorInfo: ErrorInfo) {
+            if (isContainedDynamicImportFailure(error)) return
+            reactErrorHandler(error, errorInfo)
+          },
           onRecoverableError: reactErrorHandler,
           onUncaughtError: reactErrorHandler,
         }

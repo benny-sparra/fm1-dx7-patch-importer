@@ -179,6 +179,9 @@ open everything an earlier release could have saved.
   out of events.
 - Monitoring must remain disabled in development and tests, and a failed optional monitoring import
   must never prevent the app from rendering.
+- A lazy chunk that fails to load after a deployment, and that an error boundary contains, is expected
+  and is not reported to Sentry; `onCaughtError` drops it in `src/lib/monitoring.ts`. The same
+  failure outside any boundary is still reported.
 - Keep `public/_headers`, the origins used by browser code, and `scripts/check-security-headers.mjs`
   aligned. Any new remote resource or endpoint needs an explicit privacy and CSP review.
 
