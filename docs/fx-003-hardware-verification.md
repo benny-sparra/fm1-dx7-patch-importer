@@ -234,18 +234,27 @@ as well as a held note. Apply each preset from the **Preset** menu in its effect
 switched off, and record whether it matches its name. A preset that does not is retuned in the table, or renamed,
 and listened to again. Record the firmware label and date.
 
-Phase 1 also settles two assumptions the presets depend on:
+Phase 1 also settled two assumptions the presets depend on:
 
-- **Reverb space order.** Whether values 0, 1 and 2 sound like room, hall and plate. If not,
-  _Small room_, _Large hall_ and _Plate_ are wrong as well as the Space labels.
+- **Reverb space order.** Whether values 0, 1 and 2 sound like room, hall and plate. If not, the
+  reverb presets are misnamed as well as the Space labels.
 - **Delay rate direction.** The presets assume a higher Rate means a longer gap between repeats,
   as the delay scope draws it. _Slapback_ (rate 15) must give one quick repeat and _Echo_ (rate 55)
-  clearly spaced repeats. If the direction is reversed, swap their rates.
+  clearly spaced repeats. If the direction is reversed, the delay rates need reversing.
 
-| Phase | Preset     | Matches its name | Notes |
-| ----- | ---------- | ---------------- | ----- |
-| 1     | Small room | Not recorded     |       |
-| 1     | Large hall | Not recorded     |       |
-| 1     | Plate      | Not recorded     |       |
-| 1     | Slapback   | Not recorded     |       |
-| 1     | Echo       | Not recorded     |       |
+On 2026-09-16 the first five phase 1 presets were heard on an FM1 and each matched its name, so both
+assumptions held in that run. This is an informal listening result: the firmware label was not
+recorded and the run has not been repeated, so the confidence levels in `docs/fm1-research.md` §7
+are unchanged.
+
+| Phase | Preset        | Matches its name | Notes                            |
+| ----- | ------------- | ---------------- | -------------------------------- |
+| 1     | Small room    | Yes (2026-09-16) | Firmware label not recorded.     |
+| 1     | Large room    | Not recorded     | Added after the first listening. |
+| 1     | Small hall    | Not recorded     | Added after the first listening. |
+| 1     | Large hall    | Yes (2026-09-16) | Firmware label not recorded.     |
+| 1     | Plate         | Yes (2026-09-16) | Firmware label not recorded.     |
+| 1     | Slapback      | Yes (2026-09-16) | Firmware label not recorded.     |
+| 1     | Quick delay   | Not recorded     | Added after the first listening. |
+| 1     | Quick repeats | Not recorded     | Added after the first listening. |
+| 1     | Echo          | Yes (2026-09-16) | Firmware label not recorded.     |

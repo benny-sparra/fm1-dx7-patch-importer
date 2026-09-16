@@ -180,13 +180,14 @@ function EffectScope({
 
 /*
   A starting point for one effect, in the same row layout as its enumerated
-  controls. It stays usable while the effect is bypassed, because applying a
-  preset switches the effect on.
+  controls, and disabled with them while the effect is bypassed.
 */
 function EffectPresetControl({
+  disabled,
   effectName,
   onApplyPreset,
 }: {
+  disabled: boolean
   effectName: EffectName
   onApplyPreset: (id: EffectPresetId) => void
 }) {
@@ -207,7 +208,8 @@ function EffectPresetControl({
       {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
       <select
         aria-label={`${translatedEffect} ${label}`}
-        className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+        className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
+        disabled={disabled}
         onChange={(event) => onApplyPreset(event.target.value as EffectPresetId)}
         value=""
       >
@@ -378,7 +380,11 @@ export function EffectsUnit({
             </div>
             <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
               <EffectScope enabled={enabled} name={effect.name} values={values} />
-              <EffectPresetControl effectName={effect.name} onApplyPreset={onApplyPreset} />
+              <EffectPresetControl
+                disabled={!enabled}
+                effectName={effect.name}
+                onApplyPreset={onApplyPreset}
+              />
               {effect.parameters.map((parameter) => (
                 <EffectControl
                   disabled={!enabled}

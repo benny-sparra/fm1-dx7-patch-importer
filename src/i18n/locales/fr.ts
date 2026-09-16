@@ -44,7 +44,7 @@ export default {
     pitchEnvelopePresets:
       'Remplace les huit vitesses et niveaux par une forme de départ. Plate supprime tout mouvement de hauteur ; les autres ajoutent une brève pointe, une attaque qui chute, un glissé montant ou une chute au relâchement. Annuler rétablit l’enveloppe précédente.',
     effectPresets:
-      'Règle les commandes de cet effet sur un point de départ et l’active. Les autres effets ne changent pas. Annuler rétablit les réglages précédents.',
+      'Règle les commandes de cet effet sur un point de départ. Activez l’effet pour en choisir un. Les autres effets ne changent pas, et Annuler rétablit les réglages précédents.',
     oscillatorSync:
       'Redémarre chaque opérateur à la même position de forme d’onde à chaque note. Activé, l’attaque est plus régulière ; désactivé, le son peut paraître plus organique.',
     lfoSync:
@@ -444,9 +444,13 @@ export default {
     effectPresetPlaceholder: 'Choisir…',
     effectPresetOptions: {
       smallRoom: 'Petite pièce',
+      largeRoom: 'Grande pièce',
+      smallHall: 'Petite salle',
       largeHall: 'Grande salle',
       plate: 'Plaque',
       slapback: 'Slapback',
+      quickDelay: 'Délai court',
+      quickRepeats: 'Répétitions rapides',
       echo: 'Écho',
     },
     lfoGlobal: 'LFO et paramètres globaux',

@@ -215,32 +215,51 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(midi.sendVoice).toHaveBeenCalledTimes(sends)
   }, 15_000)
 
+  it('disables an effect’s preset menu while the effect is bypassed', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const reverb = within(screen.getByRole('region', { name: 'Reverb' }))
+    const presets = reverb.getByRole('combobox', { name: 'Reverb Preset' }) as HTMLSelectElement
+
+    expect(presets.disabled).toBe(true)
+
+    await user.click(reverb.getByRole('button', { name: 'Enable Reverb' }))
+
+    expect(presets.disabled).toBe(false)
+  })
+
   it('applies a reverb preset from the reverb box as a single undo step', async () => {
     const user = userEvent.setup()
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
     const reverb = within(screen.getByRole('region', { name: 'Reverb' }))
     const presets = reverb.getByRole('combobox', { name: 'Reverb Preset' })
-    const reverbDecay = () =>
-      (screen.getByRole('slider', { name: 'Reverb Decay' }) as HTMLInputElement).value
+    const reverbSettings = () =>
+      ['Reverb Space', 'Reverb Decay', 'Reverb Mix'].map(
+        (name) => (reverb.getByLabelText(name) as HTMLInputElement | HTMLSelectElement).value,
+      )
+    await user.click(reverb.getByRole('button', { name: 'Enable Reverb' }))
 
     await user.selectOptions(presets, 'Large hall')
 
-    expect(reverb.getByRole('button', { name: 'Bypass Reverb' })).toBeTruthy()
-    expect(reverbDecay()).toBe('70')
+    expect(reverbSettings()).toEqual(['1', '70', '35'])
     expect((presets as HTMLSelectElement).value).toBe('')
 
     await user.keyboard('{Meta>}z{/Meta}')
 
-    expect(reverbDecay()).toBe('0')
-    expect(reverb.getByRole('button', { name: 'Enable Reverb' })).toBeTruthy()
+    expect(reverbSettings()).toEqual(['0', '0', '0'])
+    expect(reverb.getByRole('button', { name: 'Bypass Reverb' })).toBeTruthy()
   }, 15_000)
 
   it('sends only the preset effect’s controls, and nothing when the preset is applied again', async () => {
     const user = userEvent.setup()
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
-    const presets = screen.getByRole('combobox', { name: 'Delay Preset' })
+    const delay = within(screen.getByRole('region', { name: 'Delay' }))
+    const presets = delay.getByRole('combobox', { name: 'Delay Preset' })
+    await user.click(delay.getByRole('button', { name: 'Enable Delay' }))
+    vi.mocked(midi.sendEffectParameter).mockClear()
 
     await user.selectOptions(presets, 'Echo')
     expect(vi.mocked(midi.sendEffectParameter).mock.calls).toEqual([

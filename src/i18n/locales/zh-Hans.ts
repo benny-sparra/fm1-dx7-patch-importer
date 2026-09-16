@@ -37,7 +37,8 @@ export default {
       '控制每个音符发声过程中的音高变化。四个速率决定各阶段的变化速度，四个电平决定各阶段到达的音高。',
     pitchEnvelopePresets:
       '用一个起始形状替换全部八个速率和电平。“平直”会去除所有音高变化；其他预设会加入短暂上冲、下落的起音、上滑的滑入或释放时的下落。撤销可恢复之前的包络。',
-    effectPresets: '将此效果的控制设为一个起点并将其打开。其他效果保持不变。撤销可恢复之前的设置。',
+    effectPresets:
+      '将此效果的控制设为一个起点。先打开该效果才能选择预设。其他效果保持不变，撤销可恢复之前的设置。',
     oscillatorSync:
       '每次触发音符时，让所有操作器从波形的同一位置重新开始。开启时起音更一致；关闭时听感更自然。',
     lfoSync:
@@ -398,9 +399,13 @@ export default {
     effectPresetPlaceholder: '选择…',
     effectPresetOptions: {
       smallRoom: '小房间',
+      largeRoom: '大房间',
+      smallHall: '小厅',
       largeHall: '大厅',
       plate: '板式',
       slapback: '拍击回声',
+      quickDelay: '短延迟',
+      quickRepeats: '快速重复',
       echo: '回声',
     },
     lfoGlobal: 'LFO 与全局',

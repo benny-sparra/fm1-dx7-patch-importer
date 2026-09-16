@@ -43,7 +43,7 @@ export default {
     pitchEnvelopePresets:
       'Replaces all eight rates and levels with a starting shape. Flat removes any pitch movement; the others add a quick blip, a falling attack, a rising scoop or a droop on release. Undo restores the previous envelope.',
     effectPresets:
-      'Sets this effect’s controls to a starting point and switches it on. Other effects are left as they are. Undo restores the previous settings.',
+      'Sets this effect’s controls to a starting point. Switch the effect on to choose one. Other effects are left as they are, and Undo restores the previous settings.',
     oscillatorSync:
       'Restarts every operator at the same waveform position for each note. On gives a more consistent attack; off can sound more organic.',
     lfoSync:
@@ -432,9 +432,13 @@ export default {
     effectPresetPlaceholder: 'Choose…',
     effectPresetOptions: {
       smallRoom: 'Small room',
+      largeRoom: 'Large room',
+      smallHall: 'Small hall',
       largeHall: 'Large hall',
       plate: 'Plate',
       slapback: 'Slapback',
+      quickDelay: 'Quick delay',
+      quickRepeats: 'Quick repeats',
       echo: 'Echo',
     },
     lfoGlobal: 'LFO & global',

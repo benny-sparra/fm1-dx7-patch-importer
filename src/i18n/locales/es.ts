@@ -43,7 +43,7 @@ export default {
     pitchEnvelopePresets:
       'Sustituye las ocho velocidades y niveles por una forma inicial. Plana elimina cualquier movimiento de tono; las demás añaden un pico breve, un ataque que cae, una subida o una caída al soltar. Deshacer recupera la envolvente anterior.',
     effectPresets:
-      'Ajusta los controles de este efecto a un punto de inicio y lo activa. Los demás efectos no cambian. Deshacer recupera los ajustes anteriores.',
+      'Ajusta los controles de este efecto a un punto de inicio. Activa el efecto para elegir uno. Los demás efectos no cambian, y Deshacer recupera los ajustes anteriores.',
     oscillatorSync:
       'Reinicia cada operador en la misma posición de la forma de onda con cada nota. Activado da un ataque más uniforme; desactivado puede sonar más orgánico.',
     lfoSync:
@@ -438,9 +438,13 @@ export default {
     effectPresetPlaceholder: 'Elegir…',
     effectPresetOptions: {
       smallRoom: 'Sala pequeña',
+      largeRoom: 'Sala grande',
+      smallHall: 'Salón pequeño',
       largeHall: 'Gran salón',
       plate: 'Placa',
       slapback: 'Slapback',
+      quickDelay: 'Retardo corto',
+      quickRepeats: 'Repeticiones rápidas',
       echo: 'Eco',
     },
     lfoGlobal: 'LFO y global',

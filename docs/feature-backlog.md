@@ -27,9 +27,9 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     display units are still unconfirmed for most controls (see `docs/fm1-research.md` §7), so name
     presets by character ("Small room", "Slapback", "Warm drive") rather than by claimed values,
     and keep values away from the ends of each range.
-  - A preset switches its effect on and sets every one of its controls, so applying it always gives
-    the same sound. The menu stays usable while the effect is bypassed. Each box already has an
-    on/off button, so there is no "Dry" preset.
+  - A preset sets every one of its effect's controls, so applying it always gives the same sound.
+    The menu is disabled while the effect is bypassed, like the effect's other controls. Each box
+    already has an on/off button, so there is no "Dry" preset.
   - Applying a preset is one undo step and sends that effect's four controls once. Choosing the
     preset that is already applied sends nothing.
   - Tests: a `src/lib/` table test (unique ids, values in range, only its own effect), a rendered
@@ -38,9 +38,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     phase ships only after its presets have been listened to on an FM1, using the matching effect
     block in `docs/fx-003-hardware-verification.md`, with the observations recorded there.
     1. **Space: reverb and delay.** Builds the menu, the table, the send, and the one-undo apply,
-       with _Small room_, _Large hall_, and _Plate_ for reverb and _Slapback_ and _Echo_ for
-       delay. Confirm the room/hall/plate order and the delay decay and rate directions on
-       hardware before naming presets after them. Built; waiting on the listening check in
+       with _Small room_, _Large room_, _Small hall_, _Large hall_, and _Plate_ for reverb and
+       _Slapback_, _Quick delay_, _Quick repeats_, and _Echo_ for delay. The first five were heard
+       on an FM1 on 2026-09-16 and matched their names, which also matched the room/hall/plate order
+       and the delay rate direction. The other four still need the listening check in
        `docs/fx-003-hardware-verification.md` §8.
     2. **Movement: chorus and phaser.** Adds presets such as _Chorus wash_ and _Ensemble_ for
        chorus and _Slow sweep_ for phaser.

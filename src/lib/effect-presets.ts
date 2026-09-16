@@ -6,16 +6,27 @@ import { fm1EffectParameters, type EffectParameterId } from '@/lib/fm1-parameter
   so presets are named by character and keep their values away from the ends
   of each range.
 
-  A preset switches its effect on and sets every one of its controls, so
-  applying it always gives the same sound. Other effects are left alone.
+  A preset sets every control of its effect, so applying it always gives the
+  same sound. Its menu is disabled while the effect is bypassed, but a preset
+  still sets the switch on, so applying one can never leave its effect silent.
+  Other effects are left alone.
 
-  Delay rate is assumed to lengthen the gap between repeats as it rises, as
-  the delay scope draws it. Slapback and Echo depend on that direction, which
-  still needs confirming on hardware.
+  Listening on an FM1 matched the reverb Space order (room, hall, plate) and
+  a delay Rate that lengthens the gap between repeats as it rises, which the
+  names here depend on (docs/fx-003-hardware-verification.md §8).
 */
 type PresetEffect = 'reverb' | 'delay'
 
-export type EffectPresetId = 'smallRoom' | 'largeHall' | 'plate' | 'slapback' | 'echo'
+export type EffectPresetId =
+  | 'smallRoom'
+  | 'largeRoom'
+  | 'smallHall'
+  | 'largeHall'
+  | 'plate'
+  | 'slapback'
+  | 'quickDelay'
+  | 'quickRepeats'
+  | 'echo'
 
 type EffectPreset = {
   effect: PresetEffect
@@ -36,6 +47,26 @@ export const effectPresets: EffectPreset[] = [
       'effect.reverb.space': reverbRoom,
       'effect.reverb.decay': 30,
       'effect.reverb.mix': 25,
+    },
+  },
+  {
+    effect: 'reverb',
+    id: 'largeRoom',
+    values: {
+      'effect.reverb.enabled': 1,
+      'effect.reverb.space': reverbRoom,
+      'effect.reverb.decay': 55,
+      'effect.reverb.mix': 30,
+    },
+  },
+  {
+    effect: 'reverb',
+    id: 'smallHall',
+    values: {
+      'effect.reverb.enabled': 1,
+      'effect.reverb.space': reverbHall,
+      'effect.reverb.decay': 45,
+      'effect.reverb.mix': 30,
     },
   },
   {
@@ -66,6 +97,26 @@ export const effectPresets: EffectPreset[] = [
       'effect.delay.decay': 10,
       'effect.delay.rate': 15,
       'effect.delay.mix': 30,
+    },
+  },
+  {
+    effect: 'delay',
+    id: 'quickDelay',
+    values: {
+      'effect.delay.enabled': 1,
+      'effect.delay.decay': 20,
+      'effect.delay.rate': 25,
+      'effect.delay.mix': 30,
+    },
+  },
+  {
+    effect: 'delay',
+    id: 'quickRepeats',
+    values: {
+      'effect.delay.enabled': 1,
+      'effect.delay.decay': 60,
+      'effect.delay.rate': 25,
+      'effect.delay.mix': 25,
     },
   },
   {
