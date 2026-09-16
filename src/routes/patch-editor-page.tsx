@@ -47,6 +47,7 @@ import {
   type PatchSyncCoordinator,
   type PatchSyncState,
 } from '@/lib/patch-sync-coordinator'
+import { initializeVoice } from '@/lib/init-voice'
 import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { auditionedParameterValue, makeOperatorAuditionEdits } from '@/lib/operator-audition'
 import { applySoundPreset, type SoundPresetId } from '@/lib/sound-presets'
@@ -432,10 +433,11 @@ export function PatchEditorPage({
     void sendToFm1()
   }
 
-  const randomise = () => {
+  /** Replaces the whole voice as a single undo step and sends it to the FM1. */
+  const replaceVoice = (replace: (parameters: Uint8Array) => Uint8Array) => {
     const current = historyRef.current
-    const randomParameters = randomizeSound(current.present)
-    const edits = Array.from(randomParameters.entries())
+    const replacement = replace(current.present)
+    const edits = Array.from(replacement.entries())
       .filter(([index, value]) => current.present[index] !== value)
       .map(([index, value]) => [index, value] as ParameterEdit)
     const next = editParameters(current, edits)
@@ -477,7 +479,8 @@ export function PatchEditorPage({
         onNameBlur={commitName}
         onNameChange={updateName}
         onPreset={selectPreset}
-        onRandomise={randomise}
+        onInitVoice={() => replaceVoice(initializeVoice)}
+        onRandomise={() => replaceVoice(randomizeSound)}
         onRedo={() => restoreHistory('redo')}
         onResend={resendToFm1}
         onRevert={() => void revertToSaved()}

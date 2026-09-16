@@ -80,11 +80,6 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       bank, and bundled catalog bank, then audition it or copy it in. Pairs with copying patches
       between banks.
 
-- [ ] **Init voice.** A clean starting voice next to Randomise, applied as one undo step and keeping
-      the patch name.
-  - Requested in [#38](https://github.com/benny-sparra/fm1-editor-librarian/issues/38), which
-    lists the FM1 firmware's init values.
-
 ## Open questions
 
 ### Bank transfer status

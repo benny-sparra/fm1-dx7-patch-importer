@@ -177,6 +177,44 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(outputLevels()).toEqual(['0', '0'])
   }, 15_000)
 
+  it('applies the init voice as a single undo step', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const outputLevels = () =>
+      [1, 2].map(
+        (operator) =>
+          (
+            screen.getByRole('slider', {
+              name: `Operator ${operator} output level`,
+            }) as HTMLInputElement
+          ).value,
+      )
+
+    await user.click(screen.getByRole('button', { name: 'Init voice' }))
+
+    expect(outputLevels()).toEqual(['99', '0'])
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(outputLevels()).toEqual(['0', '0'])
+  }, 15_000)
+
+  it('does not resend the init voice when it is applied again unchanged', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const initVoice = screen.getByRole('button', { name: 'Init voice' })
+
+    await user.click(initVoice)
+    await waitFor(() => expect(initVoice).toHaveProperty('disabled', false))
+    await waitFor(() => expect(midi.sendVoice).toHaveBeenCalled())
+    const sends = vi.mocked(midi.sendVoice).mock.calls.length
+    await user.click(initVoice)
+
+    expect(midi.sendVoice).toHaveBeenCalledTimes(sends)
+  }, 15_000)
+
   it('undoes a held arrow key on an effect slider as a single step', async () => {
     const user = userEvent.setup()
     const { midi } = setup()

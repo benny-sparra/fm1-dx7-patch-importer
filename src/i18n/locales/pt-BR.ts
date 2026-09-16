@@ -461,6 +461,7 @@ export default {
     keepEditing: 'Continuar editando',
     discard: 'Descartar alterações',
     saveAndReturn: 'Salvar e voltar',
+    initVoice: 'Inicializar',
     randomise: 'Aleatorizar',
   },
   midi: {

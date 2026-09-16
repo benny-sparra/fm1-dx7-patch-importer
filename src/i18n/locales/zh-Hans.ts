@@ -425,6 +425,7 @@ export default {
     keepEditing: '继续编辑',
     discard: '放弃更改',
     saveAndReturn: '保存并返回',
+    initVoice: '初始化音色',
     randomise: '随机化',
   },
   midi: {

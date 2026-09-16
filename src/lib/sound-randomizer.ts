@@ -8,6 +8,7 @@ import {
   type GlobalParameterId,
   type OperatorParameterId,
 } from '@/lib/fm1-parameters'
+import { DX7_DETUNE_CENTRE, DX7_NEUTRAL_PITCH_ENVELOPE, DX7_TRANSPOSE_C3 } from '@/lib/init-voice'
 
 // An independent implementation of the "Android-1" voice generator from Tom Bajoras's DX Android,
 // following the algorithm as reverse engineered and documented by Christian Zietz (czietz):
@@ -16,10 +17,6 @@ import {
 // Only DX7 voice bytes 0–144 are generated. The patch name and FM1 effect settings are kept.
 // The original never randomises pitch-modulation sensitivity because of a control-flow bug; this
 // implementation follows the documented intent instead.
-
-const NEUTRAL_PITCH_ENVELOPE = [99, 99, 99, 99, 50, 50, 50, 50] as const
-const TRANSPOSE_C3 = 24
-const DETUNE_CENTRE = 7
 
 type Random = () => number
 
@@ -73,7 +70,7 @@ function generateOperator(isCarrier: boolean, random: Random) {
   set('operator.keyboard.rateScaling', 0)
   set('operator.ampModSensitivity', oneIn(2, random) ? 0 : randomInteger(0, 3, random))
   set('operator.velocitySensitivity', 0)
-  set('operator.detune', DETUNE_CENTRE)
+  set('operator.detune', DX7_DETUNE_CENTRE)
 
   set('operator.outputLevel', randomInteger(isCarrier ? 68 : 36, 99, random))
 
@@ -116,7 +113,7 @@ export function randomizeSound(parameters: Uint8Array, random: Random = Math.ran
 
   const pitchEnvelope = oneIn(8, random)
     ? Array.from({ length: 8 }, () => randomInteger(0, 99, random))
-    : NEUTRAL_PITCH_ENVELOPE
+    : DX7_NEUTRAL_PITCH_ENVELOPE
   next.set(pitchEnvelope, globalIndex('global.pitchEnvelope.rate1'))
 
   next[globalIndex('global.algorithm')] = algorithm
@@ -131,7 +128,7 @@ export function randomizeSound(parameters: Uint8Array, random: Random = Math.ran
   next[globalIndex('global.pitchModSensitivity')] = oneIn(4, random)
     ? randomGlobal('global.pitchModSensitivity', random)
     : 0
-  next[globalIndex('global.transpose')] = TRANSPOSE_C3
+  next[globalIndex('global.transpose')] = DX7_TRANSPOSE_C3
 
   return next
 }
