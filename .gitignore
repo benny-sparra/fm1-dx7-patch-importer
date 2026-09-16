@@ -34,3 +34,6 @@ test-results
 # Locally installed agent skills
 .agents/
 skills-lock.json
+
+# Local video script
+/FM1 Editor YouTube Video Script.docx
