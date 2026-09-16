@@ -311,9 +311,9 @@ export default {
     unsupportedTitle: 'Navegador não compatível.',
     unsupportedMobileTitle: 'Dispositivos móveis não são compatíveis.',
     unsupportedBody:
-      'Este bibliotecário precisa de um navegador baseado em Chromium, como Chrome, Edge ou Opera, em um computador desktop para usar Web MIDI e SysEx. Celulares e tablets não são compatíveis.',
+      'Este bibliotecário precisa de um navegador para desktop compatível com Web MIDI e SysEx, como Chrome, Edge, Firefox ou Opera. Celulares e tablets não são compatíveis.',
     localOnly: 'Seus sons ficam neste navegador',
-    requires: 'Requer Chrome/Edge e Web MIDI',
+    requires: 'Requer Chrome, Edge ou Firefox com Web MIDI',
     projectLinks: 'Links do projeto',
     reportIssue: 'Relatar um problema',
     version: 'Versão {{version}}',
@@ -508,9 +508,9 @@ export default {
       insecureContext:
         'O Web MIDI precisa de uma conexão segura. Abra o editor por HTTPS ou localhost.',
       unsupportedBrowser:
-        'Este navegador não é compatível com Web MIDI. Use um navegador Chromium para desktop, como Chrome ou Edge.',
+        'Este navegador não é compatível com Web MIDI. Use um navegador para desktop, como Chrome, Edge ou Firefox.',
       permissionDenied:
-        'O acesso MIDI foi bloqueado. Permita o acesso MIDI e SysEx para este site e conecte novamente.',
+        'O acesso MIDI foi bloqueado. Permita o acesso MIDI e SysEx para este site e conecte novamente. No Firefox, aceite o complemento de permissão do site quando ele for oferecido.',
       enableFailed:
         'Não foi possível iniciar o MIDI. Verifique a conexão do dispositivo e tente novamente.',
       disconnectFailed: 'Não foi possível desconectar o MIDI. Tente novamente.',

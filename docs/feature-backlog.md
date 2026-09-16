@@ -84,11 +84,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Importing into a slot replaces a sound, so confirm first and offer Undo.
   - Export contains voice data only, as bank export does.
 
-- [ ] **Firefox support.** Let desktop Firefox users connect to the FM1, not just Chrome, Edge, and
+- [x] **Firefox support.** Let desktop Firefox users connect to the FM1, not just Chrome, Edge, and
       Opera users.
   - Firefox has Web MIDI, but grants it through its own site permission prompt rather than
     Chromium's. Confirm on current desktop Firefox that `requestMIDIAccess({ sysex: true })` works
-    through that flow and that bank transfers and live edits reach the FM1 on hardware.
+    through that flow and that bank transfers and live edits reach the FM1 on hardware. Firefox 156
+    on macOS connected with SysEx enabled on 2026-09-16, and slot sends, live voice and effect
+    edits, and a full bank transfer all reached the FM1.
   - `src/lib/browser.ts` blocks every non-Chromium browser. Base the check on Web MIDI itself
     rather than the browser name, keeping the mobile and insecure-page rules, and update
     `browser.test.ts`.

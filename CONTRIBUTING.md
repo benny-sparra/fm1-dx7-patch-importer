@@ -47,10 +47,11 @@ pushes to `main` and on pull requests.
 
 The separate browser-journey job uses Playwright and a production preview to cover IndexedDB
 persistence, editor loading, DX7 import validation, downloads, keyboard reordering, and narrow
-viewport controls. Install its Chromium runtime once locally, then run it with:
+viewport controls. Every journey runs in both Chromium and Firefox. Install their runtimes once
+locally, then run it with:
 
 ```bash
-npx playwright install chromium
+npx playwright install chromium firefox
 npm run test:e2e
 ```
 
@@ -105,7 +106,7 @@ clean result. Both commands block on high or critical advisories.
 | `npm run deps:audit`        | Audit the full dependency tree (requires registry access)           |
 | `npm test`                  | Run all unit and rendered accessibility tests                       |
 | `npm run test:a11y`         | Run the focused rendered Axe accessibility suite                    |
-| `npm run test:e2e`          | Build and run Chromium browser journeys with Playwright             |
+| `npm run test:e2e`          | Build and run Chromium and Firefox browser journeys with Playwright |
 | `npm run test:cls`          | Check layout stability across representative responsive viewports   |
 | `npm run build`             | Create a production Vite build in `dist/`                           |
 | `npm run bundle:check`      | Enforce the transitive initial JavaScript gzip budget               |

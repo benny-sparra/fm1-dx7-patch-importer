@@ -319,9 +319,9 @@ export default {
     unsupportedTitle: 'Nicht unterstützter Browser.',
     unsupportedMobileTitle: 'Mobilgeräte werden nicht unterstützt.',
     unsupportedBody:
-      'Dieser Librarian benötigt einen Desktop-Computer mit einem Chromium-basierten Browser wie Chrome, Edge oder Opera, um Web MIDI und SysEx zu nutzen. Smartphones und Tablets werden nicht unterstützt.',
+      'Dieser Librarian benötigt einen Desktop-Browser mit Web-MIDI- und SysEx-Unterstützung, etwa Chrome, Edge, Firefox oder Opera. Smartphones und Tablets werden nicht unterstützt.',
     localOnly: 'Deine Sounds bleiben in diesem Browser',
-    requires: 'Erfordert Chrome/Edge und Web MIDI',
+    requires: 'Erfordert Chrome, Edge oder Firefox mit Web MIDI',
     projectLinks: 'Projektlinks',
     reportIssue: 'Problem melden',
     version: 'Version {{version}}',
@@ -516,9 +516,9 @@ export default {
       insecureContext:
         'Web MIDI benötigt eine sichere Verbindung. Öffne den Editor über HTTPS oder localhost.',
       unsupportedBrowser:
-        'Dieser Browser unterstützt Web MIDI nicht. Verwende einen Chromium-Desktopbrowser wie Chrome oder Edge.',
+        'Dieser Browser unterstützt Web MIDI nicht. Verwende einen Desktop-Browser wie Chrome, Edge oder Firefox.',
       permissionDenied:
-        'Der MIDI-Zugriff wurde blockiert. Erlaube MIDI- und SysEx-Zugriff für diese Website und verbinde dich erneut.',
+        'Der MIDI-Zugriff wurde blockiert. Erlaube MIDI- und SysEx-Zugriff für diese Website und verbinde dich erneut. Akzeptiere in Firefox das angebotene Website-Berechtigungs-Add-on.',
       enableFailed:
         'MIDI konnte nicht gestartet werden. Prüfe die Geräteverbindung und versuche es erneut.',
       disconnectFailed: 'MIDI konnte nicht getrennt werden. Versuche es erneut.',

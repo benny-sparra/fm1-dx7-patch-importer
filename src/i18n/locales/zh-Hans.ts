@@ -281,9 +281,9 @@ export default {
     unsupportedTitle: '不支持的浏览器。',
     unsupportedMobileTitle: '不支持移动设备。',
     unsupportedBody:
-      '此音色库工具需要使用 Chrome、Edge 或 Opera 等基于 Chromium 的浏览器，并在桌面电脑上运行，才能支持 Web MIDI 和 SysEx。不支持手机和平板电脑。',
+      '此音色库工具需要在桌面电脑上使用支持 Web MIDI 和 SysEx 的浏览器，例如 Chrome、Edge、Firefox 或 Opera。不支持手机和平板电脑。',
     localOnly: '您的音色仅保存在此浏览器中',
-    requires: '需要 Chrome/Edge 和 Web MIDI',
+    requires: '需要支持 Web MIDI 的 Chrome、Edge 或 Firefox',
     projectLinks: '项目链接',
     reportIssue: '报告问题',
     version: '版本 {{version}}',
@@ -470,9 +470,9 @@ export default {
     connecting: '正在连接…',
     errors: {
       insecureContext: 'Web MIDI 需要安全连接。请通过 HTTPS 或 localhost 打开编辑器。',
-      unsupportedBrowser:
-        '此浏览器不支持 Web MIDI。请使用 Chrome 或 Edge 等桌面版 Chromium 浏览器。',
-      permissionDenied: 'MIDI 访问已被阻止。请允许此网站访问 MIDI 和 SysEx，然后重新连接。',
+      unsupportedBrowser: '此浏览器不支持 Web MIDI。请使用 Chrome、Edge 或 Firefox 等桌面浏览器。',
+      permissionDenied:
+        'MIDI 访问已被阻止。请允许此网站访问 MIDI 和 SysEx，然后重新连接。在 Firefox 中，请在出现提示时接受网站权限附加组件。',
       enableFailed: '无法启动 MIDI。请检查设备连接后重试。',
       disconnectFailed: '无法断开 MIDI。请重试。',
     },
