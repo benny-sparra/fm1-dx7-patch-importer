@@ -199,7 +199,7 @@ function EffectPresetControl({
   const translatedEffect = t(`ui.effects.${effectName.toLowerCase()}`)
   const label = t('editor.effectPreset')
   return (
-    <label className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 border-b border-[var(--crt-line-dk)] pb-[5px] text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+    <label className="mb-1 grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 border-b border-[var(--crt-line-dk)] pb-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
       <span className="flex min-w-0 items-center gap-1 overflow-hidden">
         <span className="min-w-0 truncate" title={label}>
           {label}
