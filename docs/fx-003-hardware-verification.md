@@ -315,4 +315,6 @@ phase 3. The rows most likely to be wrong are marked **Doubtful**.
 | Phaser Mix       | adds more phasing                                                        | 0 is fully dry                       | Reported as matching (2026-09-16)                      | Covered by a general report that the remaining sliders behave as expected; no specific observation. Whether 0 is fully dry was not noted. Repeat it.                                               |
 
 Enumerated controls and switches are covered elsewhere: Reverb Space order in §8, Filter Type and
-the effect switches in §2, with Filter Switch polarity recorded in the §5 ledger.
+the effect switches in §2, with Filter Switch polarity recorded in the §5 ledger. On 2026-09-16 the
+Filter Type options were also heard in the editor's order, low pass, band pass, high pass, which
+the Telephone and Thin presets depend on. That listen, like the rows above, has not been repeated.
