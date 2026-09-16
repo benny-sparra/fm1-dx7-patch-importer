@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { type MidiController } from '@/hooks/use-midi'
 
 // The keyboard body loads when it is first opened; the trigger stays in the initial bundle.
@@ -67,11 +68,7 @@ export function PianoKeyboard({ midi }: PianoKeyboardProps) {
         <PianoKeysIcon />
         {t('ui.keyboard')}
       </Button>
-      {loadFailed ? (
-        <p className="text-sm text-destructive" role="alert">
-          {t('ui.keyboardOpenFailed')}
-        </p>
-      ) : null}
+      {loadFailed ? <LoadFailedNotice message={t('ui.keyboardOpenFailed')} /> : null}
       {requested ? (
         <ErrorBoundary
           onError={() => {

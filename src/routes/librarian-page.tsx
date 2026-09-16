@@ -53,6 +53,7 @@ import { type Patch } from '@/data/patches'
 import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
 import { downloadFile } from '@/lib/download-file'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { useToast } from '@/components/ui/toast'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 
@@ -100,6 +101,8 @@ export function LibrarianPage({
   const [search, setSearch] = useState('')
   const [destinationBank, setDestinationBank] = useState('A')
   const [importError, setImportError] = useState('')
+  // Explains a dialog whose chunk did not arrive, such as after a newer deployment replaced it.
+  const [dialogLoadError, setDialogLoadError] = useState('')
   const [savedBanksRequest, setSavedBanksRequest] = useState<SavedBanksRequest | null>(null)
   // The sound whose menu chose Copy, kept while its dialog is open.
   const [copySource, setCopySource] = useState<Patch | null>(null)
@@ -130,6 +133,14 @@ export function LibrarianPage({
   const bankMenuRef = useDismissableDetails()
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
   const bankDisplayName = useWorkspaceBankLabel(library)
+  const requestSavedBanks = (request: SavedBanksRequest) => {
+    setDialogLoadError('')
+    setSavedBanksRequest(request)
+  }
+  const requestCopy = (patch: Patch) => {
+    setDialogLoadError('')
+    setCopySource(patch)
+  }
   const beginImport = (bank: string) => {
     if (library.loadedBanks.includes(bank)) {
       setBankPendingImport({
@@ -336,7 +347,7 @@ export function LibrarianPage({
         <button
           className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
           disabled={!library.loadedBanks.includes(bank)}
-          onClick={() => setSavedBanksRequest({ bank, closeMenu, mode: 'save' })}
+          onClick={() => requestSavedBanks({ bank, closeMenu, mode: 'save' })}
           title={
             library.loadedBanks.includes(bank)
               ? undefined
@@ -349,7 +360,7 @@ export function LibrarianPage({
         </button>
         <button
           className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-          onClick={() => setSavedBanksRequest({ bank, closeMenu, mode: 'load' })}
+          onClick={() => requestSavedBanks({ bank, closeMenu, mode: 'load' })}
           type="button"
         >
           <Database className="size-4" />
@@ -497,7 +508,7 @@ export function LibrarianPage({
           library.loadDemoBank(destinationBank)
           toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
         }}
-        onPatchCopy={setCopySource}
+        onPatchCopy={requestCopy}
         onPatchEdit={onEditPatch}
         onPatchSelect={onSelectPatch}
         onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
@@ -565,6 +576,13 @@ export function LibrarianPage({
         </p>
       ) : null}
 
+      {dialogLoadError ? (
+        <LoadFailedNotice
+          className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3"
+          message={dialogLoadError}
+        />
+      ) : null}
+
       {importError ? (
         <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {importError}
@@ -620,7 +638,7 @@ export function LibrarianPage({
           key={copySource.id}
           onError={() => {
             setCopySource(null)
-            setImportError(t('banks.copyOpenFailed'))
+            setDialogLoadError(t('banks.copyOpenFailed'))
           }}
         >
           <Suspense fallback={null}>
@@ -648,7 +666,7 @@ export function LibrarianPage({
           onError={() => {
             savedBanksRequest.closeMenu()
             setSavedBanksRequest(null)
-            setImportError(t('namedBanks.openFailed'))
+            setDialogLoadError(t('namedBanks.openFailed'))
           }}
         >
           <Suspense fallback={null}>

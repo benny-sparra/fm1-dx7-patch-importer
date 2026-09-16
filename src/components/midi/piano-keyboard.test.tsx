@@ -193,9 +193,11 @@ describe('PianoKeyboard loading', () => {
 
     await user.click(screen.getByRole('button', { name: 'Keyboard' }))
 
-    expect((await screen.findByRole('alert')).textContent).toBe(
-      'The keyboard could not be opened. Reload the page and try again.',
-    )
+    const alert = await screen.findByRole('alert')
+    expect(
+      within(alert).getByText('The keyboard could not be opened. Reload the page and try again.'),
+    ).toBeTruthy()
+    expect(within(alert).getByRole('button', { name: 'Reload app' })).toBeTruthy()
     expect(keyboardDialog()).toBeNull()
     consoleError.mockRestore()
     vi.doUnmock('@/components/midi/piano-keyboard-dialog')
