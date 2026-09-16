@@ -67,6 +67,10 @@ type PatchEditorPageProps = {
 const algorithmParameter = getGlobalParameterDefinition('global.algorithm')
 const outputParameter = getOperatorParameterDefinition('operator.outputLevel')
 
+function voiceNameParameters(parameters: Uint8Array) {
+  return parameters.slice(FM1_VOICE_NAME_START, FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH)
+}
+
 function parametersMatch(left: Uint8Array, right: Uint8Array) {
   return left.length === right.length && left.every((value, index) => value === right[index])
 }
@@ -108,9 +112,7 @@ export function PatchEditorPage({
   const presetsMenuRef = useDismissableDetails()
   const saveMenuRef = useDismissableDetails()
   const gestureStart = useRef<EditorHistory | null>(null)
-  const sentName = useRef(
-    history.present.slice(FM1_VOICE_NAME_START, FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH),
-  )
+  const sentName = useRef<Uint8Array | null>(null)
   const patchSyncRef = useRef<PatchSyncCoordinator | null>(null)
   const parameters = history.present
   const isDirty = !parametersMatch(parameters, savedParameters)
@@ -118,6 +120,7 @@ export function PatchEditorPage({
   const initializedPatchRef = useRef('')
 
   midiRef.current = midi
+  sentName.current ??= voiceNameParameters(history.present)
 
   if (!patchSyncRef.current) {
     patchSyncRef.current = createPatchSyncCoordinator({
@@ -131,10 +134,7 @@ export function PatchEditorPage({
         setSyncState(state)
       },
       onSynchronized: (sentParameters) => {
-        sentName.current = sentParameters.slice(
-          FM1_VOICE_NAME_START,
-          FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH,
-        )
+        sentName.current = voiceNameParameters(sentParameters)
         if (mutedOperatorsRef.current.size > 0 || soloOperatorRef.current !== null) {
           makeOperatorAuditionEdits(
             sentParameters,
@@ -300,12 +300,13 @@ export function PatchEditorPage({
 
   const sendNameToFm1 = () => {
     if (!canSync || syncStateRef.current !== 'live') return
+    const lastSentName = sentName.current!
     const lastSentParameters = parameters.slice()
-    lastSentParameters.set(sentName.current, FM1_VOICE_NAME_START)
+    lastSentParameters.set(lastSentName, FM1_VOICE_NAME_START)
     const edits = makeDx7VoiceNameEdits(lastSentParameters, liveName)
     edits.forEach(([parameter, value]) => {
       if (midi.sendParameter(parameter, value)) {
-        sentName.current[parameter - FM1_VOICE_NAME_START] = value
+        lastSentName[parameter - FM1_VOICE_NAME_START] = value
       }
     })
   }
