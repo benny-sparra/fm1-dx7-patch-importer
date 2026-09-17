@@ -769,7 +769,9 @@ Pure unit tests against the committed V15 fixtures. No MIDI.
 
 ## SEQ-OBS-002 — Reconstruct a pattern from observed playback
 
-**Status:** after SEQ-OBS-001
+**Status:** reconstructor complete (2026-09-17) in
+[`src/lib/fm1-sequence-observer.ts`](../src/lib/fm1-sequence-observer.ts), covered by the committed
+NDJSON captures. Not yet wired to the `use-midi.ts` input listener, and no UI presents it.
 
 ### Goal
 

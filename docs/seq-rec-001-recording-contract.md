@@ -262,8 +262,14 @@ Two implementation details that the byte-level contract makes non-negotiable:
   all-or-nothing before the first message; a pass reports `sent`, `cancelled`, or `interrupted`
   with the step reached, and never retries.
 
+- [`src/lib/fm1-sequence-observer.ts`](../src/lib/fm1-sequence-observer.ts) — the read side
+  (SEQ-OBS-002). It declares a pattern only when two complete passes agree, reports anything less
+  as incomplete rather than filling gaps, and compares a transmitted pattern with what was heard
+  through `fm1PatternRotationsMatch`, because playback cannot reveal which step is step 1.
+
 The UI layer — the pre-flight naming the pattern and Step length, transmit progress, cancel, the
-unsaved/`SAVE` notice, and the SEQ-OBS-002 confirmation pairing — is not built yet.
+unsaved/`SAVE` notice, and wiring the observer to the `use-midi.ts` input listener — is not built
+yet.
 
 ## 9. Still required before SEQ-REC-002 ships
 

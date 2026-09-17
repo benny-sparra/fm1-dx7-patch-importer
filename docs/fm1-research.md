@@ -562,9 +562,16 @@ Three points from it govern any later work in this track:
 - Arming, pattern selection, Step length, and the stock `SAVE` remain manual, and a failed pass is
   never retried automatically.
 
-The model and the transmit operation now exist as [`src/lib/fm1-sequence.ts`](../src/lib/fm1-sequence.ts)
-and [`src/lib/fm1-sequence-transmit.ts`](../src/lib/fm1-sequence-transmit.ts). They are covered by
-unit tests only; no hardware pass has been performed, and no UI exposes them.
+The model, the transmit operation, and the playback reconstructor now exist as
+[`src/lib/fm1-sequence.ts`](../src/lib/fm1-sequence.ts),
+[`src/lib/fm1-sequence-transmit.ts`](../src/lib/fm1-sequence-transmit.ts), and
+[`src/lib/fm1-sequence-observer.ts`](../src/lib/fm1-sequence-observer.ts). They are covered by unit
+tests and by the committed NDJSON captures; no hardware pass has been performed, and no UI exposes
+them.
+
+Observation adds one limit of its own, which any UI must keep visible: a loop has no audible step 1,
+so a reconstruction is a rotation of the device's pattern. A transmitted pattern is therefore
+compared with what was heard back allowing for rotation, never index by index.
 
 Three items remain **Needs hardware test** before SEQ-REC-002 can claim verification: an
 editor-transmitted pattern with rests at the 100 ms step period, a committed fixture for sending
