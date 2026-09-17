@@ -189,9 +189,11 @@ describe('Sentry monitoring', () => {
     const error = new Error('render failed')
     const errorInfo = { componentStack: '' }
     options.onCaughtError?.(error, errorInfo)
+    options.onRecoverableError?.(error, errorInfo)
 
+    expect(handler).toHaveBeenCalledTimes(2)
     expect(handler).toHaveBeenCalledWith(error, errorInfo)
-    expect(options).toMatchObject({ onRecoverableError: handler, onUncaughtError: handler })
+    expect(options).toMatchObject({ onUncaughtError: handler })
   })
 
   it.each([
@@ -209,6 +211,22 @@ describe('Sentry monitoring', () => {
 
     const options = await initialize()
     options.onCaughtError?.(new TypeError(message), { componentStack: '' })
+
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('does not report a lazy chunk failure React recovered from', async () => {
+    const { handler, sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    const options = await initialize()
+    const message =
+      'Failed to fetch dynamically imported module: https://fm1-editor.com/assets/dialog-old.js'
+    options.onRecoverableError?.(new TypeError(message), { componentStack: '' })
 
     expect(handler).not.toHaveBeenCalled()
   })
