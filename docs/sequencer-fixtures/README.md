@@ -5,10 +5,13 @@ sequencer research. It is not a source of generated records, assumed SysEx, repl
 production test data. A fixture may be committed only after the corresponding stock-device
 experiment in [`../seq-001a-capture-plan.md`](../seq-001a-capture-plan.md) has been performed.
 
-No completed core hardware fixture has been collected in this repository yet. The V13 directory is
-deliberately empty of fixtures; the V13 record layout remains firmware evidence, not hardware
-corroboration. The V15 directory contains one explicitly incomplete receive-only keypress attempt;
-it is preserved as raw evidence but cannot support protocol conclusions.
+The V13 directory is deliberately empty of fixtures; the V13 record layout remains firmware
+evidence, not hardware corroboration. The V15 directory holds the 2026-08-31 receive-only
+observations, which are explicitly incomplete and cannot support protocol conclusions, and the six
+completed SEQ-001B captures of 2026-09-17, which controlled both directions and establish observable
+recording behaviour only. No fixture in this repository contains raw record bytes, a persistence
+operation, or any vendor traffic, so none supports a claim about the internal record layout or a
+host command.
 
 ## Layout
 

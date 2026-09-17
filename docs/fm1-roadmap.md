@@ -231,9 +231,11 @@ step length, gate, rate, tempo, swing, or transpose, triggering the stock `SAVE`
 of raw record state. All of these remain stock-UI-only operations. The editor must not claim to
 perform them and must not present the V13 32-byte record layout as V15 truth.
 
-Two behaviours are Unknown and gate the fallback's design rather than its safety; see SEQ-001B:
-whether a host can advance a step without sounding a note (rests), and whether two identical
-successive notes create two distinct steps.
+The two behaviours that gated the fallback's design were resolved by SEQ-001B on 2026-09-17: a host
+can insert rests by sending a Note On with velocity 0, and two identical successive notes occupy two
+distinct steps. Recording also always starts at step 1 and overwrites forward, leaving later steps
+intact. A host-authored pattern can therefore express pitch, velocity, rests, repeats, and position.
+See §5.8 of [`fm1-research.md`](fm1-research.md).
 
 ### Consequences for later phases
 
