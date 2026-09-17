@@ -184,6 +184,10 @@ open everything an earlier release could have saved.
 - Analytics events must use fixed event names and coarse, bounded properties. Sentry reports must
   keep query strings, fragments, console breadcrumbs, UI breadcrumbs, request data, and user details
   out of events.
+- Removing request data also removes the user agent Sentry derives the operating system from, so a
+  report that a platform explains must carry that fact itself. `resolveCoarsePlatform` is the one
+  source: it answers with an operating-system family from a fixed list and `other` for anything it
+  does not recognise. Do not widen it to a version, an engine, or a device.
 - Monitoring must remain disabled in development and tests, and a failed optional monitoring import
   must never prevent the app from rendering.
 - A lazy chunk that fails to load after a deployment, and that an error boundary contains, is expected

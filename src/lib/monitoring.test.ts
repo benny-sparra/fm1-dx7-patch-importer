@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   captureBankTransferFailure,
   createMonitoringInitializer,
+  resolveCoarsePlatform,
   runSentryVerification,
 } from './monitoring'
 
@@ -268,12 +269,16 @@ describe('Sentry monitoring', () => {
   it('reports a bank transport stack with fixed privacy-safe diagnostics', () => {
     const { sdk } = createSdk()
 
-    captureBankTransferFailure(sdk, {
-      channel: 4,
-      stage: 'controller',
-      sysexAvailable: true,
-      voiceCount: 32,
-    })
+    captureBankTransferFailure(
+      sdk,
+      {
+        channel: 4,
+        stage: 'controller',
+        sysexAvailable: true,
+        voiceCount: 32,
+      },
+      'linux',
+    )
 
     const [reportedError, captureContext] = sdk.captureException.mock.calls[0]
     expect(reportedError).toBeInstanceOf(Error)
@@ -283,6 +288,7 @@ describe('Sentry monitoring', () => {
       contexts: {
         midi_transfer: {
           channel: 4,
+          platform: 'linux',
           stage: 'controller',
           sysex_available: true,
           voice_count: 32,
@@ -293,6 +299,30 @@ describe('Sentry monitoring', () => {
         failure_reason: 'transport',
       },
     })
+  })
+
+  it.each([
+    [
+      'Android names Linux, so the phone wins',
+      { userAgent: 'Mozilla/5.0 (Linux; Android 14)' },
+      'android',
+    ],
+    [
+      'iPadOS names Macintosh, so the tablet wins',
+      { userAgent: 'Mozilla/5.0 (iPad; CPU OS 17_0)' },
+      'ios',
+    ],
+    ['a desktop Linux browser', { userAgent: 'Mozilla/5.0 (X11; Linux x86_64)' }, 'linux'],
+    ['a Mac browser', { userAgentData: { platform: 'macOS' } }, 'macos'],
+    ['a Windows browser', { userAgentData: { platform: 'Windows' } }, 'windows'],
+    ['an unrecognised platform', { userAgent: 'Mozilla/5.0 (Fictional 1.0)' }, 'other'],
+  ])('resolves the platform family for %s', (_description, source, expected) => {
+    expect(resolveCoarsePlatform(source)).toBe(expected)
+  })
+
+  it('leaves the platform unknown when the browser reports nothing about itself', () => {
+    expect(resolveCoarsePlatform(undefined)).toBe('other')
+    expect(resolveCoarsePlatform({})).toBe('other')
   })
 
   it('keeps a Sentry reporting failure from interrupting MIDI recovery', () => {
