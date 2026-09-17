@@ -8,6 +8,7 @@ import {
   RackPanelCollapsibleBody,
   RackPanelTitle,
 } from '@/components/editor/editor-workspace'
+import { CompareOverlay } from '@/components/editor/compare-overlay'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
 import { EffectsUnit } from '@/components/editor/effects-unit'
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
@@ -55,6 +56,7 @@ import { copyOperator, makeOperatorPasteEdits, type CopiedOperator } from '@/lib
 import { applySoundPreset, type SoundPresetId } from '@/lib/sound-presets'
 import { randomizeSound } from '@/lib/sound-randomizer'
 import { trackAnalyticsEvent } from '@/lib/analytics'
+import { cn } from '@/lib/utils'
 
 type PatchEditorPageProps = {
   /** The operator last copied in any editor this session, kept by the app while it runs. */
@@ -94,6 +96,9 @@ export function PatchEditorPage({
   const makeInitialParameters = () => makeFm1EditorParameters(unpackDx7Voice(voice), effects)
   const [history, setHistory] = useState(() => makeEditorHistory(makeInitialParameters()))
   const [savedParameters, setSavedParameters] = useState(makeInitialParameters)
+  // While comparing, the editor shows and plays the saved version, and editing is paused so the
+  // working copy and its undo history stay exactly as they were.
+  const [isComparing, setIsComparing] = useState(false)
   const [selectedOperator, setSelectedOperator] = useState(1)
   const [mutedOperators, setMutedOperators] = useState<ReadonlySet<number>>(() => new Set())
   const [soloOperator, setSoloOperator] = useState<number | null>(null)
@@ -107,6 +112,8 @@ export function PatchEditorPage({
   const [isOperatorRackCollapsed, setIsOperatorRackCollapsed] = useState(false)
   const [isEffectsCollapsed, setIsEffectsCollapsed] = useState(false)
   const historyRef = useRef(history)
+  const savedParametersRef = useRef(savedParameters)
+  const isComparingRef = useRef(false)
   const historyRevisionRef = useRef(0)
   const syncStateRef = useRef<PatchSyncState>('sending')
   const midiRef = useRef(midi)
@@ -120,8 +127,8 @@ export function PatchEditorPage({
   const gestureStart = useRef<EditorHistory | null>(null)
   const sentName = useRef<Uint8Array | null>(null)
   const patchSyncRef = useRef<PatchSyncCoordinator | null>(null)
-  const parameters = history.present
-  const isDirty = !parametersMatch(parameters, savedParameters)
+  const parameters = isComparing ? savedParameters : history.present
+  const isDirty = !parametersMatch(history.present, savedParameters)
   const canSync = midi.hasMidiOutput && midi.sysexAvailable
   const initializedPatchRef = useRef('')
 
@@ -131,7 +138,9 @@ export function PatchEditorPage({
   if (!patchSyncRef.current) {
     patchSyncRef.current = createPatchSyncCoordinator({
       getLatestSnapshot: () => ({
-        parameters: historyRef.current.present,
+        parameters: isComparingRef.current
+          ? savedParametersRef.current
+          : historyRef.current.present,
         revision: historyRevisionRef.current,
       }),
       isCurrent: () => editorActiveRef.current,
@@ -228,6 +237,7 @@ export function PatchEditorPage({
 
   const applyEdits = useCallback(
     (edits: ParameterEdit[], send = true) => {
+      if (isComparingRef.current) return
       const activeGesture = gestureStart.current
       const current = historyRef.current
       const edited = editParameters(current, edits)
@@ -297,6 +307,7 @@ export function PatchEditorPage({
   }, [canSync, patch.id])
 
   const updateName = (name: string) => {
+    if (isComparingRef.current) return
     setNameDraft(name)
     const edits = makeDx7VoiceNameEdits(historyRef.current.present, name).map(
       ([parameter, value]) => [parameter, value] as ParameterEdit,
@@ -323,6 +334,7 @@ export function PatchEditorPage({
   }
 
   const restoreHistory = (direction: 'undo' | 'redo') => {
+    if (isComparingRef.current) return
     const current = historyRef.current
     const next = direction === 'undo' ? undoParameters(current) : redoParameters(current)
     if (!commitHistory(next)) return
@@ -332,7 +344,7 @@ export function PatchEditorPage({
   const setEffectParameter = useCallback(
     (controller: number, value: number) => {
       const definition = fm1EffectParameters[controller]
-      if (!definition) return
+      if (!definition || isComparingRef.current) return
       applyEdits(
         [[resolveEffectEditorIndex(controller), value, definition.min, definition.max]],
         false,
@@ -378,13 +390,17 @@ export function PatchEditorPage({
   }
 
   const saveToLibrary = () => {
+    if (isComparingRef.current) return
     const current = historyRef.current.present
     onSave(packDx7Voice(getFm1VoiceParameters(current)), getFm1EffectParameters(current))
-    setSavedParameters(current.slice())
+    const saved = current.slice()
+    savedParametersRef.current = saved
+    setSavedParameters(saved)
     trackAnalyticsEvent({ name: 'patch_saved' })
   }
 
   const requestNavigation = () => {
+    if (isComparingRef.current) return
     if (!isDirty) {
       clearOperatorAudition()
       onBack()
@@ -415,9 +431,31 @@ export function PatchEditorPage({
 
   const revertToSaved = async () => {
     saveMenuRef.current?.removeAttribute('open')
+    if (isComparingRef.current) return
     const restored = makeEditorHistory(savedParameters)
     commitHistory(restored)
     await sendToFm1()
+  }
+
+  /**
+   * Switches between the working copy and the saved version, sending the one now shown to the FM1.
+   * Neither the working copy nor its undo history changes.
+   */
+  const toggleCompare = () => {
+    const comparing = !isComparingRef.current
+    if (comparing && !isDirty) return
+    presetsMenuRef.current?.removeAttribute('open')
+    saveMenuRef.current?.removeAttribute('open')
+    gestureStart.current = null
+    isComparingRef.current = comparing
+    // A new revision makes a send already in flight follow up with the version now shown.
+    historyRevisionRef.current += 1
+    setIsComparing(comparing)
+    void sendToFm1()
+  }
+
+  const stopComparing = () => {
+    if (isComparingRef.current) toggleCompare()
   }
 
   const resendToFm1 = () => {
@@ -426,6 +464,7 @@ export function PatchEditorPage({
   }
 
   const selectPreset = (presetId: SoundPresetId) => {
+    if (isComparingRef.current) return
     const current = historyRef.current
     const presetParameters = applySoundPreset(current.present, presetId)
     const edits = Array.from(presetParameters.entries())
@@ -443,6 +482,7 @@ export function PatchEditorPage({
 
   /** Replaces the whole voice as a single undo step and sends it to the FM1. */
   const replaceVoice = (replace: (parameters: Uint8Array) => Uint8Array) => {
+    if (isComparingRef.current) return
     const current = historyRef.current
     const replacement = replace(current.present)
     const edits = Array.from(replacement.entries())
@@ -459,6 +499,7 @@ export function PatchEditorPage({
 
   /** Sets one effect's controls as a single undo step and sends that effect to the FM1. */
   const selectEffectPreset = (presetId: EffectPresetId) => {
+    if (isComparingRef.current) return
     const current = historyRef.current
     const { controllers, settings } = applyEffectPreset(
       getFm1EffectParameters(current.present),
@@ -500,22 +541,26 @@ export function PatchEditorPage({
         if (isDirty) saveToLibrary()
       },
     },
+    { ...editorShortcuts.stopComparing, enabled: isComparing, onTrigger: stopComparing },
     {
       ...editorShortcuts.back,
-      enabled: syncState !== 'sending',
+      enabled: syncState !== 'sending' && !isComparing,
       onTrigger: requestNavigation,
     },
   ])
 
   return (
-    <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-2.5 px-3 py-4 sm:px-5 lg:px-8">
+    <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-2.5 px-3 pt-2.5 pb-4 sm:px-5 lg:px-8">
       <PatchEditorHeader
         canSync={canSync}
         canRedo={history.future.length > 0}
         canUndo={history.past.length > 0}
+        isComparing={isComparing}
         isDirty={isDirty}
         liveName={liveName}
         onBack={requestNavigation}
+        onCompare={toggleCompare}
+        onStopCompare={stopComparing}
         onNameBlur={commitName}
         onNameChange={updateName}
         onPreset={selectPreset}
@@ -523,7 +568,10 @@ export function PatchEditorPage({
           presetsMenuRef.current?.removeAttribute('open')
           replaceVoice(initializeVoice)
         }}
-        onRandomise={() => replaceVoice(randomizeSound)}
+        onRandomise={() => {
+          presetsMenuRef.current?.removeAttribute('open')
+          replaceVoice(randomizeSound)
+        }}
         onRedo={() => restoreHistory('redo')}
         onResend={resendToFm1}
         onRevert={() => void revertToSaved()}
@@ -541,97 +589,104 @@ export function PatchEditorPage({
         The artboard's rack, top to bottom: the six operator columns, then a
         row of algorithm, pitch envelope and LFO, then the effects chain.
       */}
-      <div className="grid min-w-0 gap-2.5">
-        <section aria-labelledby="operators-heading" className="synthwave-panel min-w-0">
-          <RackPanelTitle
-            action={
-              <RackPanelCollapseToggle
-                collapsed={isOperatorRackCollapsed}
-                controls="operator-rack"
-                onToggle={() => setIsOperatorRackCollapsed((collapsed) => !collapsed)}
-                panel={t('editor.operators')}
-              />
-            }
-            help={{ label: t('editor.fmOperators'), text: t('controlHelp.operator') }}
-            icon={AudioWaveform}
-            id="operators-heading"
-            title={t('editor.operators')}
-          />
-          <RackPanelCollapsibleBody collapsed={isOperatorRackCollapsed} id="operator-rack">
-            <OperatorRack
-              algorithm={parameters[algorithmParameter.voiceIndex]}
-              mutedOperators={mutedOperators}
-              onCopyOperator={(operator) =>
-                onCopyOperator(copyOperator(historyRef.current.present, operator, patch))
-              }
-              onGestureEnd={endGesture}
-              onGestureStart={beginGesture}
-              onOutputChange={(operator, value) =>
-                setParameter(
-                  resolveOperatorParameterIndex(operator, 'operator.outputLevel'),
-                  value,
-                  outputParameter.max,
-                )
-              }
-              onPasteOperator={pasteOperator}
-              onSelect={setSelectedOperator}
-              onToggleMute={toggleOperatorMute}
-              onToggleSolo={toggleOperatorSolo}
-              parameters={parameters}
-              pasteSource={
-                copiedOperator && {
-                  operator: copiedOperator.operator,
-                  patchName: copiedOperator.patchId === patch.id ? null : copiedOperator.patchName,
-                }
-              }
-              renderOperatorDetail={(operator) => (
-                <FocusedOperatorPanel
-                  applyEdits={applyEdits}
-                  beginGesture={beginGesture}
-                  endGesture={endGesture}
-                  parameters={parameters}
-                  selectedOperator={operator}
-                  setParameter={setParameter}
+      <div className="relative min-w-0">
+        <div
+          className={cn('grid min-w-0 gap-2.5', isComparing && 'opacity-60')}
+          inert={isComparing}
+        >
+          <section aria-labelledby="operators-heading" className="synthwave-panel min-w-0">
+            <RackPanelTitle
+              action={
+                <RackPanelCollapseToggle
+                  collapsed={isOperatorRackCollapsed}
+                  controls="operator-rack"
+                  onToggle={() => setIsOperatorRackCollapsed((collapsed) => !collapsed)}
+                  panel={t('editor.operators')}
                 />
-              )}
-              selectedOperator={selectedOperator}
-              syncState={syncState}
-              soloOperator={soloOperator}
+              }
+              help={{ label: t('editor.fmOperators'), text: t('controlHelp.operator') }}
+              icon={AudioWaveform}
+              id="operators-heading"
+              title={t('editor.operators')}
             />
-          </RackPanelCollapsibleBody>
-        </section>
-
-        <GlobalConfigurationPanel
-          beginGesture={beginGesture}
-          endGesture={endGesture}
-          parameters={parameters}
-          setParameter={setParameter}
-        />
-
-        <section aria-labelledby="effects-heading" className="synthwave-panel min-w-0">
-          <RackPanelTitle
-            action={
-              <RackPanelCollapseToggle
-                collapsed={isEffectsCollapsed}
-                controls="effects-unit"
-                onToggle={() => setIsEffectsCollapsed((collapsed) => !collapsed)}
-                panel={t('editor.effects')}
+            <RackPanelCollapsibleBody collapsed={isOperatorRackCollapsed} id="operator-rack">
+              <OperatorRack
+                algorithm={parameters[algorithmParameter.voiceIndex]}
+                mutedOperators={mutedOperators}
+                onCopyOperator={(operator) =>
+                  onCopyOperator(copyOperator(historyRef.current.present, operator, patch))
+                }
+                onGestureEnd={endGesture}
+                onGestureStart={beginGesture}
+                onOutputChange={(operator, value) =>
+                  setParameter(
+                    resolveOperatorParameterIndex(operator, 'operator.outputLevel'),
+                    value,
+                    outputParameter.max,
+                  )
+                }
+                onPasteOperator={pasteOperator}
+                onSelect={setSelectedOperator}
+                onToggleMute={toggleOperatorMute}
+                onToggleSolo={toggleOperatorSolo}
+                parameters={parameters}
+                pasteSource={
+                  copiedOperator && {
+                    operator: copiedOperator.operator,
+                    patchName:
+                      copiedOperator.patchId === patch.id ? null : copiedOperator.patchName,
+                  }
+                }
+                renderOperatorDetail={(operator) => (
+                  <FocusedOperatorPanel
+                    applyEdits={applyEdits}
+                    beginGesture={beginGesture}
+                    endGesture={endGesture}
+                    parameters={parameters}
+                    selectedOperator={operator}
+                    setParameter={setParameter}
+                  />
+                )}
+                selectedOperator={selectedOperator}
+                syncState={syncState}
+                soloOperator={soloOperator}
               />
-            }
-            icon={Sparkles}
-            id="effects-heading"
-            title={t('editor.effects')}
+            </RackPanelCollapsibleBody>
+          </section>
+
+          <GlobalConfigurationPanel
+            beginGesture={beginGesture}
+            endGesture={endGesture}
+            parameters={parameters}
+            setParameter={setParameter}
           />
-          <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="effects-unit">
-            <EffectsUnit
-              onApplyPreset={selectEffectPreset}
-              onChange={setEffectParameter}
-              onGestureEnd={endGesture}
-              onGestureStart={beginGesture}
-              values={getFm1EffectParameters(parameters)}
+
+          <section aria-labelledby="effects-heading" className="synthwave-panel min-w-0">
+            <RackPanelTitle
+              action={
+                <RackPanelCollapseToggle
+                  collapsed={isEffectsCollapsed}
+                  controls="effects-unit"
+                  onToggle={() => setIsEffectsCollapsed((collapsed) => !collapsed)}
+                  panel={t('editor.effects')}
+                />
+              }
+              icon={Sparkles}
+              id="effects-heading"
+              title={t('editor.effects')}
             />
-          </RackPanelCollapsibleBody>
-        </section>
+            <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="effects-unit">
+              <EffectsUnit
+                onApplyPreset={selectEffectPreset}
+                onChange={setEffectParameter}
+                onGestureEnd={endGesture}
+                onGestureStart={beginGesture}
+                values={getFm1EffectParameters(parameters)}
+              />
+            </RackPanelCollapsibleBody>
+          </section>
+        </div>
+        <CompareOverlay isComparing={isComparing} />
       </div>
 
       <UnsavedEditorDialog

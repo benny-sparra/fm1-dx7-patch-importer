@@ -939,6 +939,40 @@
   }
 
   /*
+   * The compare notice switches on like a terminal window: it opens from a
+   * bright line into its frame.
+   */
+  .compare-notice {
+    transform-origin: top;
+    animation: compare-notice-on 220ms ease-out;
+  }
+
+  @keyframes compare-notice-on {
+    0% {
+      opacity: 0;
+      transform: scaleY(0.04);
+      filter: brightness(2);
+    }
+
+    60% {
+      opacity: 1;
+      transform: scaleY(1);
+      filter: brightness(1.4);
+    }
+
+    100% {
+      transform: scaleY(1);
+      filter: brightness(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .compare-notice {
+      animation: none;
+    }
+  }
+
+  /*
    * The copy dialog's readout. It strikes on like a hardware display each
    * time the chosen slot changes: the line is keyed on the choice, so it
    * remounts and the animation runs again.

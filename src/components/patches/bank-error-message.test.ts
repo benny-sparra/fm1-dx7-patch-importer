@@ -42,7 +42,7 @@ describe('bankErrorMessage', () => {
     const t = i18n.getFixedT('en')
 
     expect(bankErrorMessage(t, new Dx7CatalogBankUnavailableError('ROM1A'), 'Failed.')).toBe(
-      'That sound bank could not be downloaded. Check your connection, then try again.',
+      'That patch bank could not be downloaded. Check your connection, then try again.',
     )
     expect(bankErrorMessage(t, new WorkspaceBankUnavailableError(), 'Failed.')).toBe(
       'That workspace bank is no longer available. Close this dialog and try again.',

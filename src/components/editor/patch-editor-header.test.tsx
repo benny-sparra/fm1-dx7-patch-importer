@@ -18,9 +18,12 @@ function renderHeader() {
       canSync
       canRedo={false}
       canUndo={false}
+      isComparing={false}
       isDirty={false}
       liveName="INIT"
       onBack={noop}
+      onCompare={noop}
+      onStopCompare={noop}
       onNameBlur={noop}
       onNameChange={noop}
       onPreset={noop}
@@ -40,13 +43,7 @@ function renderHeader() {
 }
 
 describe('PatchEditorHeader', () => {
-  it('gives the randomise action its translated accessible name', () => {
-    renderHeader()
-
-    expect(screen.getByRole('button', { name: 'Randomise' })).toBeTruthy()
-  })
-
-  it('lists init voice first in the voice presets menu', async () => {
+  it('lists init voice then randomise first in the voice presets menu', async () => {
     renderHeader()
 
     await userEvent.setup().click(screen.getByLabelText('Voice presets'))
@@ -55,6 +52,6 @@ describe('PatchEditorHeader', () => {
       .filter((button) => button.closest('details'))
       .map((button) => button.querySelector('span')?.textContent)
 
-    expect(items.slice(0, 2)).toEqual(['Init voice', 'Soft pad'])
+    expect(items.slice(0, 3)).toEqual(['Init voice', 'Randomise', 'Soft pad'])
   })
 })

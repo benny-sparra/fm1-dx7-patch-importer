@@ -137,6 +137,9 @@ open everything an earlier release could have saved.
 - Keep `document.documentElement.lang`, the document title, and description metadata synchronized.
 - Every locale must contain the same leaf keys. Update `src/i18n/resources.test.ts` whenever resource
   structure changes.
+- Call a library item a patch, and say sound only for what you hear. Voice means the DX7 voice data,
+  as in the voice editor and Init voice. German uses Sound for a patch and Klang for what you hear;
+  Simplified Chinese uses 音色 and 声音.
 - Every user-visible string and accessible name comes from the locale files: labels, `aria-label`,
   `aria-valuetext`, `title`, option lists, empty states, confirmations, and error messages. Only
   product and site names, DX7 cartridge titles, the technical MIDI log, and the editor's

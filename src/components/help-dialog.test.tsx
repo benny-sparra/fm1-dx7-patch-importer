@@ -45,7 +45,7 @@ describe('HelpDialog sections', () => {
     )
     // The step titles carry their number and icon in the same element.
     expect(within(visiblePanel()).getByText(/Build your library/)).toBeTruthy()
-    expect(within(visiblePanel()).getByText(/Transfer the sounds/)).toBeTruthy()
+    expect(within(visiblePanel()).getByText(/Transfer the patches/)).toBeTruthy()
   })
 
   it('swaps the walkthrough for the shortcuts when that tab is chosen', async () => {
@@ -100,6 +100,7 @@ describe('HelpDialog shortcuts', () => {
     expect(panel.getByText('Voice editor')).toBeTruthy()
     expect(panel.getByText('Open the lit slot')).toBeTruthy()
     expect(panel.getByText('Back to patch banks')).toBeTruthy()
+    expect(panel.getByText('Stop comparing and return to your edits')).toBeTruthy()
   })
 
   it('writes the keys with Apple symbols on an Apple platform', async () => {
@@ -113,8 +114,8 @@ describe('HelpDialog shortcuts', () => {
     expect(panel.getAllByText('⌘Z')).toHaveLength(2)
     expect(panel.getAllByText('⌘⇧Z')).toHaveLength(2)
     expect(panel.getByText('Enter')).toBeTruthy()
-    // Escape clears the search in the banks and leaves the editor.
-    expect(panel.getAllByText('Esc')).toHaveLength(2)
+    // Escape clears the search in the banks, leaves the editor, and stops comparing.
+    expect(panel.getAllByText('Esc')).toHaveLength(3)
   })
 
   it('spells the modifiers out on other platforms', async () => {
@@ -132,7 +133,7 @@ describe('HelpDialog shortcuts', () => {
     const user = await openHelp()
     await openShortcuts(user)
 
-    expect(within(visiblePanel()).getAllByRole('term')).toHaveLength(9)
-    expect(within(visiblePanel()).getAllByRole('definition')).toHaveLength(9)
+    expect(within(visiblePanel()).getAllByRole('term')).toHaveLength(10)
+    expect(within(visiblePanel()).getAllByRole('definition')).toHaveLength(10)
   })
 })

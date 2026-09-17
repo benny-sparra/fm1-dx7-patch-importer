@@ -8,14 +8,14 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 
 ## Features
 
-- Start with the FM-1's four factory banks in browser banks A–D, so slot names match the sounds on a stock FM1
+- Start with the FM-1's four factory banks in browser banks A–D, so slot names match the patches on a stock FM1
 - Add up to six additional workspace banks from the bundled DX7 bank catalog or your own SysEx file, so every bank starts populated
 - Rename, describe, or delete workspace banks, with descriptions available from their tabs
-- Replace a populated bank only after confirming that its current sounds will be overwritten
+- Replace a populated bank only after confirming that its current patches will be overwritten
 - Restore the four factory banks at any time without removing additional workspace banks
 - Save named copies of a bank in the browser, then load, rename, copy, download, or delete them later
-- Copy a sound and its FM1 effects over any slot in a bank that has sounds
-- Undo deleting, restoring, importing over, or loading into a bank, or copying a sound over a slot, from its notification or with Cmd/Ctrl + Z
+- Copy a patch and its FM1 effects over any slot in a bank that has patches
+- Undo deleting, restoring, importing over, or loading into a bank, or copying a patch over a slot, from its notification or with Cmd/Ctrl + Z
 - Restore imported and edited banks automatically from IndexedDB browser storage
 - Retry browser-storage failures or continue explicitly with a session-only workspace without overwriting unreadable saved data
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
@@ -24,7 +24,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Edit all standard DX7 voice parameters with live MIDI updates
 - Work on the six operators as a rack: five sit as compact readouts while the selected one opens in place with its full controls
 - Mute or solo any operator straight from its rack column, without opening it first
-- Copy an operator's settings and paste them onto another operator, in the same sound or a different one
+- Copy an operator's settings and paste them onto another operator, in the same patch or a different one
 - Fold the operators and effects panels away to focus the editor on the sections in use
 - Visualise all 32 DX7 algorithms, including carrier and modulator roles
 - Edit four-stage amplitude and pitch envelopes graphically or with precise numeric controls
@@ -33,18 +33,17 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Edit the FM1's filter, reverb, delay, distortion, chorus, and phaser within their documented ranges
 - Start any FM1 effect from a preset in its box, such as Small room, Slapback, Chorus wash, or Warm drive, as a single undo step
 - See a live animated scope for every FM1 effect, drawn from its parameters: filter response, delay taps, chorus drift, reverb tail, distortion clipping, and phaser sweep
-- Apply six sound-shaping presets as undoable starting points
-- Generate a musically constrained random DX7 voice as an undoable starting point
-- Reset the voice to Yamaha's DX7 INIT VOICE as an undoable starting point
+- Start from the Presets menu: Yamaha's DX7 INIT VOICE, a musically constrained random DX7 voice, or six sound-shaping presets, each as a single undo step
 - Open contextual help for voice, envelope, algorithm, and effect controls
 - Rename patches using DX7-compatible 10-character names
 - Undo and redo edits within the voice editor
+- Compare edits with the saved sound, switching the FM1 between the two while editing pauses, without losing the edits or their undo history
 - Save edits to the browser library, resend them, or revert both the editor and FM1 to the last saved version
 - Warn before leaving an unsaved editing session, with save, discard, and keep-editing choices
 - Undo, redo, save, and leave the voice editor from the keyboard
 - Jump to patch search, clear it, and open the lit slot from the keyboard
-- Send individual sounds to the edit buffer or a complete 32-patch bank over Web MIDI in Chrome, Edge, Opera, or Firefox
-- Select matching FM1 slots in banks A–D with MIDI Program Change, and audition sounds from added banks through the edit buffer
+- Send individual patches to the edit buffer or a complete 32-patch bank over Web MIDI in Chrome, Edge, Opera, or Firefox
+- Select matching FM1 slots in banks A–D with MIDI Program Change, and audition patches from added banks through the edit buffer
 - Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard
@@ -59,7 +58,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - A desktop computer with a browser that supports Web MIDI and SysEx, such as Chrome, Edge, Opera,
   or Firefox. Phones and tablets are not supported.
 
-A standard 4,104-byte Yamaha DX7 32-voice bulk bank (`.syx`) is optional if you want to import additional sounds.
+A standard 4,104-byte Yamaha DX7 32-voice bulk bank (`.syx`) is optional if you want to import additional patches.
 
 Web MIDI requires a secure context. The local development server uses HTTPS by default.
 
@@ -68,7 +67,7 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 1. Open the app in a supported browser.
 2. Switch **MIDI online** on and grant MIDI/SysEx permission. Firefox asks you to install a small site permission add-on instead; accept it.
 3. Open **Settings** to select the FM1 MIDI output and, if needed, the note/program and effects channels.
-4. Select Bank 1, 2, 3, or 4. On first use these contain FM-1 Banks 1, 2, 3, and 4, the sounds the FM1 ships with. Use **Add new bank** to name and describe an additional workspace bank while populating it from the bundled [Yamaha Black Boxes DX7 catalog](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) or your own standard 32-voice DX7 SysEx file.
+4. Select Bank 1, 2, 3, or 4. On first use these contain FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with. Use **Add new bank** to name and describe an additional workspace bank while populating it from the bundled [Yamaha Black Boxes DX7 catalog](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) or your own standard 32-voice DX7 SysEx file.
 5. Click a patch to select the matching FM1 slot and play it. The FM1 has four banks, so a patch in an added bank is sent with its effects to the edit buffer to play it instead. Double-click it, or choose **Edit** from its **⋮** menu, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
 6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
 7. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank.
@@ -82,7 +81,7 @@ shortcuts, and SysEx compatibility.
 > [!IMPORTANT]
 > Imported voices, edits, and FM1 effect settings are saved in this browser and restored after a page reload. Download important banks as `.syx` files as an additional backup, especially before clearing browser data. DX7 `.syx` export contains voice data only; the FM1-specific effect settings remain in the browser library.
 
-Workspace-bank titles, descriptions, imported sounds, voice ordering, saved editor changes, and FM1 effect settings are saved automatically in the browser.
+Workspace-bank titles, descriptions, imported patches, patch ordering, saved editor changes, and FM1 effect settings are saved automatically in the browser.
 
 If the saved workspace cannot be opened, the app leaves its browser record untouched and offers **Retry** or **Continue without saving**. The latter creates an explicit session-only workspace whose changes are lost when the page closes. If a later save fails, the latest changes remain available in memory and can be saved again with **Retry saving**.
 

@@ -395,33 +395,30 @@ export default {
     unsaved: 'Modifications non enregistrées',
     presets: 'Préréglages de voix',
     presetsShort: 'Préréglages',
-    presetsHelp:
-      'Essayez une direction, puis façonnez-la avec les commandes. Une annulation suffit pour revenir au son actuel.',
     presetOptions: {
       'soft-pad': {
         name: 'Nappe douce',
-        description: 'Enveloppes lentes, chorus délicat et douce réverbération de type hall.',
+        description: 'Enveloppes lentes, chorus et hall.',
       },
       'bright-pluck': {
         name: 'Son pincé brillant',
-        description: 'Une décroissance nette avec une petite pièce et un léger écho.',
+        description: 'Décroissance nette, pièce et écho.',
       },
       'steady-organ': {
         name: 'Orgue stable',
-        description: 'Sustain uniforme avec de subtils mouvements de chorus et de phaser.',
+        description: 'Sustain uniforme, chorus et phaser.',
       },
       'gentle-motion': {
         name: 'Mouvement doux',
-        description: 'Un LFO sinusoïdal retardé, un léger chorus et une douce ambiance de hall.',
+        description: 'LFO retardé, chorus et hall doux.',
       },
       'warm-filter': {
         name: 'Filtre chaleureux',
-        description: 'Un filtre passe-bas et une petite pièce adoucissent les contours.',
+        description: 'Filtre passe-bas et petite pièce.',
       },
       'wide-space': {
         name: 'Vaste espace',
-        description:
-          'Le chorus et la réverbération de type hall créent une vaste couche d’ambiance.',
+        description: 'Chorus ample et réverbe de hall.',
       },
     },
     undo: 'Annuler',
@@ -432,6 +429,12 @@ export default {
     resendHelp: 'Renvoyer les réglages actuels de l’éditeur.',
     revert: 'Rétablir la version enregistrée',
     revertHelp: 'Abandonner les modifications et restaurer le son enregistré.',
+    compare: 'Comparer avec la version enregistrée',
+    compareShort: 'Comparer',
+    stopComparing: 'Arrêter la comparaison et revenir à vos modifications',
+    comparingTitle: 'Lecture du son enregistré',
+    comparingBody:
+      'L’édition est en pause. Appuyez sur Esc ou sur Comparer pour revenir à vos modifications.',
     configuration: 'Configuration du son',
     global: 'Global',
     effects: 'Effets',
@@ -508,9 +511,9 @@ export default {
     discard: 'Abandonner',
     saveAndReturn: 'Enregistrer et revenir',
     initVoice: 'Initialiser',
-    initVoiceHelp:
-      'Une simple onde sinusoïdale pour partir de zéro. Les effets sont coupés mais gardent leurs réglages.',
+    initVoiceHelp: 'Simple onde sinusoïdale. Effets coupés.',
     randomise: 'Aléatoriser',
+    randomiseHelp: 'Nouvelle voix. Nom et effets gardés.',
   },
   midi: {
     online: 'MIDI en ligne',
