@@ -253,7 +253,19 @@ Two implementation details that the byte-level contract makes non-negotiable:
 - The operation belongs in a bounded domain function that takes a pattern and emits this exact
   stream. No raw note API beyond it may be exposed to the UI.
 
-## 8. Still required before SEQ-REC-002 ships
+## 8. What implements this
+
+- [`src/lib/fm1-sequence.ts`](../src/lib/fm1-sequence.ts) — the behavioural pattern model
+  (SEQ-OBS-001), with per-field provenance naming the fixtures behind it.
+- [`src/lib/fm1-sequence-transmit.ts`](../src/lib/fm1-sequence-transmit.ts) — `makeFm1PatternTransmission`
+  builds the exact byte stream, and `transmitFm1Pattern` performs the bounded pass. Validation is
+  all-or-nothing before the first message; a pass reports `sent`, `cancelled`, or `interrupted`
+  with the step reached, and never retries.
+
+The UI layer — the pre-flight naming the pattern and Step length, transmit progress, cancel, the
+unsaved/`SAVE` notice, and the SEQ-OBS-002 confirmation pairing — is not built yet.
+
+## 9. Still required before SEQ-REC-002 ships
 
 - Hardware verification of a complete editor-transmitted pattern, including rests, at the 100 ms
   step period (§4).

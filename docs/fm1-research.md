@@ -562,6 +562,10 @@ Three points from it govern any later work in this track:
 - Arming, pattern selection, Step length, and the stock `SAVE` remain manual, and a failed pass is
   never retried automatically.
 
+The model and the transmit operation now exist as [`src/lib/fm1-sequence.ts`](../src/lib/fm1-sequence.ts)
+and [`src/lib/fm1-sequence-transmit.ts`](../src/lib/fm1-sequence-transmit.ts). They are covered by
+unit tests only; no hardware pass has been performed, and no UI exposes them.
+
 Three items remain **Needs hardware test** before SEQ-REC-002 can claim verification: an
 editor-transmitted pattern with rests at the 100 ms step period, a committed fixture for sending
 more steps than the loop length, and pitch behaviour at a non-zero device Transpose.

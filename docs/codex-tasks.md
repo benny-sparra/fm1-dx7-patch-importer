@@ -738,7 +738,9 @@ Shared boundary for the whole section:
 
 ## SEQ-OBS-001 — Model the observed sequence behaviourally
 
-**Status:** ready; depends on the Phase 3 closure only
+**Status:** complete (2026-09-17). The model is [`src/lib/fm1-sequence.ts`](../src/lib/fm1-sequence.ts),
+with provenance per field in `fm1SequenceProvenance` and fixture-existence coverage in its
+co-located test.
 
 ### Goal
 
@@ -826,9 +828,12 @@ No implementation in this task.
 
 ## SEQ-REC-002 — Implement bounded pattern transmit into record mode
 
-**Status:** unblocked by SEQ-REC-001; implement only what
-[`docs/seq-rec-001-recording-contract.md`](seq-rec-001-recording-contract.md) documents, and do not
-claim verification for the three items its §8 still lists as needing hardware.
+**Status:** domain and transmit layer complete (2026-09-17) in
+[`src/lib/fm1-sequence-transmit.ts`](../src/lib/fm1-sequence-transmit.ts); **not yet verified on
+hardware**, and no UI yet. It implements only what
+[`docs/seq-rec-001-recording-contract.md`](seq-rec-001-recording-contract.md) documents. The three
+items in its §8 remain unverified, and the pre-flight, progress, cancel and unsaved-state UI, plus
+the SEQ-OBS-002 confirmation pairing, are still outstanding.
 
 ### Goal
 
