@@ -24,6 +24,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Edit all standard DX7 voice parameters with live MIDI updates
 - Work on the six operators as a rack: five sit as compact readouts while the selected one opens in place with its full controls
 - Mute or solo any operator straight from its rack column, without opening it first
+- Copy an operator's settings and paste them onto another operator, in the same sound or a different one
 - Fold the operators and effects panels away to focus the editor on the sections in use
 - Visualise all 32 DX7 algorithms, including carrier and modulator roles
 - Edit four-stage amplitude and pitch envelopes graphically or with precise numeric controls

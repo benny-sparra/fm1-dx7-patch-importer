@@ -51,14 +51,18 @@ import {
 import { initializeVoice } from '@/lib/init-voice'
 import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { auditionedParameterValue, makeOperatorAuditionEdits } from '@/lib/operator-audition'
+import { copyOperator, makeOperatorPasteEdits, type CopiedOperator } from '@/lib/operator-clipboard'
 import { applySoundPreset, type SoundPresetId } from '@/lib/sound-presets'
 import { randomizeSound } from '@/lib/sound-randomizer'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 
 type PatchEditorPageProps = {
+  /** The operator last copied in any editor this session, kept by the app while it runs. */
+  copiedOperator: CopiedOperator | null
   effects: Uint8Array
   midi: MidiController
   onBack: () => void
+  onCopyOperator: (copied: CopiedOperator) => void
   onSave: (voice: Dx7Voice, effects: Uint8Array) => void
   patch: Patch
   voice: Dx7Voice
@@ -76,9 +80,11 @@ function parametersMatch(left: Uint8Array, right: Uint8Array) {
 }
 
 export function PatchEditorPage({
+  copiedOperator,
   effects,
   midi,
   onBack,
+  onCopyOperator,
   onSave,
   patch,
   voice,
@@ -474,6 +480,15 @@ export function PatchEditorPage({
     }
   }
 
+  /** Gives one operator the copied operator's settings as a single undo step, sent live. */
+  const pasteOperator = (operator: number) => {
+    if (!copiedOperator) return
+    const edits = makeOperatorPasteEdits(historyRef.current.present, operator, copiedOperator)
+    if (edits.length === 0) return
+    gestureStart.current = null
+    applyEdits(edits)
+  }
+
   useKeyboardShortcuts([
     { ...editorShortcuts.redo, onTrigger: () => restoreHistory('redo') },
     { ...editorShortcuts.undo, onTrigger: () => restoreHistory('undo') },
@@ -543,6 +558,9 @@ export function PatchEditorPage({
             <OperatorRack
               algorithm={parameters[algorithmParameter.voiceIndex]}
               mutedOperators={mutedOperators}
+              onCopyOperator={(operator) =>
+                onCopyOperator(copyOperator(historyRef.current.present, operator, patch))
+              }
               onGestureEnd={endGesture}
               onGestureStart={beginGesture}
               onOutputChange={(operator, value) =>
@@ -552,10 +570,17 @@ export function PatchEditorPage({
                   outputParameter.max,
                 )
               }
+              onPasteOperator={pasteOperator}
               onSelect={setSelectedOperator}
               onToggleMute={toggleOperatorMute}
               onToggleSolo={toggleOperatorSolo}
               parameters={parameters}
+              pasteSource={
+                copiedOperator && {
+                  operator: copiedOperator.operator,
+                  patchName: copiedOperator.patchId === patch.id ? null : copiedOperator.patchName,
+                }
+              }
               renderOperatorDetail={(operator) => (
                 <FocusedOperatorPanel
                   applyEdits={applyEdits}

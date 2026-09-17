@@ -15,6 +15,7 @@ import { LibrarianPage } from '@/routes/librarian-page'
 import { RootLayout } from '@/routes/root-layout'
 import { type Patch } from '@/data/patches'
 import { type Dx7Voice } from '@/lib/dx7'
+import { type CopiedOperator } from '@/lib/operator-clipboard'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { isRenumberedByBankDeletion } from '@/lib/patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
@@ -46,6 +47,9 @@ function App() {
     return recoveryPatchId
   })
   const [auditionedPatchId, setAuditionedPatchId] = useState('')
+  // Held here rather than in the editor, which remounts for each sound, so an operator copied in
+  // one sound can be pasted into another. It is never stored.
+  const [copiedOperator, setCopiedOperator] = useState<CopiedOperator | null>(null)
   // What the last added-bank audition put in the FM1 edit buffer, so clicking the same unchanged
   // sound again, as a double-click does, does not send it twice. Anything else that replaces the
   // edit buffer clears it.
@@ -161,8 +165,13 @@ function App() {
             <PatchEditorErrorBoundary key={selectedPatch.id} onBack={closeEditor}>
               <Suspense fallback={loadingSection(t('common.loading'))}>
                 <LoadedPatchEditorPage
+                  copiedOperator={copiedOperator}
                   midi={midi}
                   onBack={closeEditor}
+                  onCopyOperator={(copied) => {
+                    setCopiedOperator(copied)
+                    toast.success(t('toasts.operatorCopied', { number: copied.operator }))
+                  }}
                   effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
                   onSave={(voice, effects) => {
                     library.updatePatch(selectedPatch.id, voice, effects)

@@ -184,6 +184,11 @@ export default {
     operatorSummaryWithAudition: 'Opérateur {{number}}, {{role}}, {{audition}}',
     operatorMuted: 'coupé',
     operatorSoloed: 'en solo',
+    operatorMenu: 'Actions de l’opérateur {{number}}',
+    copyOperatorAction: 'Copier l’opérateur {{number}}',
+    pasteOperatorAction: 'Coller l’opérateur {{source}}',
+    pasteOperatorFromPatchAction: 'Coller l’opérateur {{source}} de « {{patch}} »',
+    pasteOperatorEmpty: 'Coller (copiez d’abord un opérateur)',
     lfoWaves: {
       triangle: 'Triangle',
       sawDown: 'Dent de scie descendante',
@@ -292,6 +297,7 @@ export default {
     demoLoaded: 'Sons de démonstration chargés dans « {{bank}} ».',
     patchSaved: '« {{patch}} » a été enregistré dans la bibliothèque.',
     patchCopied: '« {{patch}} » a été copié en {{slot}} dans « {{bank}} ».',
+    operatorCopied: 'L’opérateur {{number}} a été copié.',
   },
   meta: {
     title: 'Éditeur et bibliothécaire M-VAVE FM1',

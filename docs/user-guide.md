@@ -29,6 +29,8 @@ The interface follows the browser language on first use when it is supported. Ch
 
 The editor is laid out as a rack. The six operators stand side by side as columns: five show a compact readout, and the selected operator grows in place to carry its full controls. On narrower screens the open operator drops onto a row of its own. Each column has its own mute and solo buttons, so an operator can be silenced without opening it.
 
+The open operator has a **⋮** menu beside its number with **Copy operator** and **Paste operator**. Copy takes all of that operator's settings: frequency, envelope, output level, keyboard scaling, and sensitivities. Open another operator and choose Paste from its menu to give it those settings. The copy lasts until you close or reload the tab, so you can also paste it into an operator in a different sound. Paste sends the changed settings to the FM1 and is a single undo step. The copy is kept only in memory and never saved to the library.
+
 Click anywhere on the title strip of the operators or effects panel to fold it away, and click again to bring it back. Each panel folds on its own and keeps its title visible, so a long editor can be trimmed to the sections you are working on.
 
 **Randomise** generates a new DX7 voice with the DX Android "Android-1" approach rather than fully random values: carriers stay near the fundamental and loud, envelopes always peak, and keyboard scaling, velocity sensitivity and detune are left neutral. The patch name and FM1 effect settings are kept, and the new voice is a single undo step.

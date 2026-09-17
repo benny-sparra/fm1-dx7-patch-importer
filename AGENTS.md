@@ -262,8 +262,10 @@ open everything an earlier release could have saved.
   claims plain keys must ignore Ctrl, Command, and Alt presses and close on Escape.
 - Closing a menu with Escape claims the key, so no view shortcut also runs, and moves focus back to
   the menu's toggle when focus was inside it.
-- A menu inside the patch grid, such as a slot's ⋮ menu, opens in a portal because the grid clips
-  its overflow. It is not a `<details>` menu, so it claims Escape with `preventDefault`.
+- A menu inside a container that clips its overflow, such as a slot's ⋮ menu in the patch grid or
+  the open operator's ⋮ menu in the rack, opens in a portal. Build it with `PortalMenu` from
+  `src/components/ui/portal-menu.tsx` rather than another copy. It is not a `<details>` menu, so it
+  claims Escape with `preventDefault`.
 - A key chosen for its position, such as the piano's two-row note layout, is matched by
   `KeyboardEvent.code` and labelled with the user's layout letter (`useKeyboardKeyLabel`). A key
   chosen for its letter, such as Cmd/Ctrl + Z, is matched by `KeyboardEvent.key`.
