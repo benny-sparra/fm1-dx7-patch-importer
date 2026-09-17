@@ -631,6 +631,8 @@ export default {
     copyReplaces: 'Esto reemplaza «{{name}}» en {{slot}}. Puedes deshacer esta acción.',
     copyAction: 'Reemplazar {{slot}}',
     copyFailed: 'No se pudo copiar el sonido.',
+    addBankOpenFailed:
+      'No se pudieron abrir las opciones del nuevo banco. Recarga la página e inténtalo de nuevo.',
     copyOpenFailed:
       'No se pudieron abrir las opciones de copia. Recarga la página e inténtalo de nuevo.',
   },

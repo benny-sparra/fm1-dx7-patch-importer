@@ -620,6 +620,7 @@ export default {
     copyReplaces: 'This replaces “{{name}}” in {{slot}}. You can undo this action.',
     copyAction: 'Replace {{slot}}',
     copyFailed: 'The patch could not be copied.',
+    addBankOpenFailed: 'The new bank options could not be opened. Reload the page and try again.',
     copyOpenFailed: 'The copy options could not be opened. Reload the page and try again.',
   },
   namedBanks: {

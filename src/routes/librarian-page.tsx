@@ -20,7 +20,6 @@ import {
   WorkspaceBankSelector,
   type WorkspaceBankSelectorBank,
 } from '@/components/patches/workspace-bank-selector'
-import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
 import {
   defaultWorkspaceBankTitle,
   useWorkspaceBankLabel,
@@ -56,6 +55,14 @@ import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { useToast } from '@/components/ui/toast'
 import { trackAnalyticsEvent } from '@/lib/analytics'
+
+// Adding a bank opens from the bank rack, so its dialog and the sound catalogue it lists load on
+// first use rather than with the page.
+const AddWorkspaceBankDialog = lazy(() =>
+  import('@/components/patches/add-workspace-bank-dialog').then((module) => ({
+    default: module.AddWorkspaceBankDialog,
+  })),
+)
 
 // Saved banks open from a bank menu, so their dialogs load on first use rather than with the page.
 const NamedBankLibraryDialog = lazy(() =>
@@ -115,7 +122,8 @@ export function LibrarianPage({
   const importInputRef = useRef<HTMLInputElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const importTargetRef = useRef(createBankFileSelectionTarget())
-  const addWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
+  const addBankButtonRef = useRef<HTMLButtonElement>(null)
+  const [isAddingBank, setIsAddingBank] = useState(false)
   const importDx7BankDialogRef = useRef<HTMLDialogElement>(null)
   const bankSelectionDialogRef = useRef<HTMLDialogElement>(null)
   const deleteWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
@@ -539,7 +547,8 @@ export function LibrarianPage({
                 <button
                   aria-label={t('banks.addBank')}
                   className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] md:justify-start"
-                  onClick={() => addWorkspaceBankDialogRef.current?.showModal()}
+                  onClick={() => setIsAddingBank(true)}
+                  ref={addBankButtonRef}
                   title={t('banks.addBank')}
                   type="button"
                 >
@@ -595,13 +604,27 @@ export function LibrarianPage({
         midi={midi}
         onSend={() => void transferSelectedBank()}
       />
-      <AddWorkspaceBankDialog
-        bank={nextBank}
-        dialogRef={addWorkspaceBankDialogRef}
-        library={library}
-        onCreated={setDestinationBank}
-        suggestedName={defaultWorkspaceBankTitle(t, banks.length + 1)}
-      />
+      {isAddingBank ? (
+        <ErrorBoundary
+          onError={() => {
+            setIsAddingBank(false)
+            setDialogLoadError(t('banks.addBankOpenFailed'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <AddWorkspaceBankDialog
+              bank={nextBank}
+              library={library}
+              onClose={() => {
+                setIsAddingBank(false)
+                addBankButtonRef.current?.focus()
+              }}
+              onCreated={setDestinationBank}
+              suggestedName={defaultWorkspaceBankTitle(t, banks.length + 1)}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
       <ImportDx7BankDialog
         bank={bankPendingImport?.bank ?? null}
         bankName={bankPendingImport?.name ?? ''}

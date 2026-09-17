@@ -24,6 +24,8 @@ beforeAll(() => {
   }
   HTMLDialogElement.prototype.close = function close() {
     this.open = false
+    // A real dialog fires this as it closes, and dialogs the librarian mounts on demand rely on it.
+    this.dispatchEvent(new Event('close'))
   }
 })
 
@@ -787,5 +789,47 @@ describe('LibrarianPage copying a sound', () => {
     expect(
       screen.getByText('„Alpha Piano“ wurde nach B01 in „Electric Keys“ kopiert.'),
     ).toBeTruthy()
+  })
+})
+
+describe('LibrarianPage add bank dialog', () => {
+  function renderLibrarian() {
+    render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={library}
+          midi={midi}
+          onBankDeleted={vi.fn()}
+          onEditPatch={vi.fn()}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+    return userEvent.setup()
+  }
+
+  it('opens the lazily loaded dialog once however often its trigger is activated', async () => {
+    const user = renderLibrarian()
+
+    // The trigger stays eager, so it is there before the dialog's chunk has been asked for.
+    const addBank = screen.getByRole('button', { name: 'Add new bank' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+
+    await user.click(addBank)
+    await user.click(addBank)
+
+    expect(await screen.findAllByRole('dialog')).toHaveLength(1)
+  })
+
+  it('returns focus to the trigger when the dialog is closed', async () => {
+    const user = renderLibrarian()
+    const addBank = screen.getByRole('button', { name: 'Add new bank' })
+
+    await user.click(addBank)
+    await screen.findByRole('dialog')
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+
+    expect(document.activeElement).toBe(addBank)
   })
 })

@@ -640,6 +640,8 @@ export default {
     copyReplaces: 'Cela remplace « {{name}} » en {{slot}}. Tu peux annuler cette action.',
     copyAction: 'Remplacer {{slot}}',
     copyFailed: 'Le son n’a pas pu être copié.',
+    addBankOpenFailed:
+      'Impossible d’ouvrir les options de nouvelle banque. Rechargez la page et réessayez.',
     copyOpenFailed: 'Impossible d’ouvrir les options de copie. Rechargez la page et réessayez.',
   },
   namedBanks: {

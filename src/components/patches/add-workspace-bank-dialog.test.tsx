@@ -1,14 +1,23 @@
 // @vitest-environment jsdom
 
 import { cleanup, render } from '@testing-library/react'
-import { createRef } from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
 import { ToastProvider } from '@/components/ui/toast'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { setLocale } from '@/i18n'
 import french from '@/i18n/locales/fr'
+
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.open = true
+  }
+  HTMLDialogElement.prototype.close = function close() {
+    this.open = false
+    this.dispatchEvent(new Event('close'))
+  }
+})
 
 afterEach(async () => {
   cleanup()
@@ -20,7 +29,7 @@ function renderCatalogGroups() {
     <ToastProvider>
       <AddWorkspaceBankDialog
         bank="E"
-        dialogRef={createRef()}
+        onClose={() => {}}
         library={{} as PatchLibrary}
         onCreated={() => {}}
         suggestedName="Bank 5"
