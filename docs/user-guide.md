@@ -11,6 +11,19 @@ After the first successful connection, the app remembers the selected MIDI ports
 
 On Linux the FM1 appears as **FM-1 MIDI 1**, and on macOS as **USB Composite Device**. When no port has been chosen yet, the app picks a port named for the FM-1 if there is one, and otherwise the first MIDI device it finds, skipping ports built into the operating system such as **Midi Through** on Linux and **Microsoft GS Wavetable Synth** on Windows. If notes do not reach the FM1, open **Settings** and check that the output is the FM1.
 
+On Linux, sending a whole bank often fails while notes, effects, single patches, and individual
+parameter edits work. Browsers send MIDI through the ALSA sequencer, which drops data when its
+output buffer, usually about 4 KB, fills up rather than waiting for the device. A 32-voice bank is
+4,104 bytes, so it only arrives when the buffer happens to drain in time. Chrome and Firefox are
+both affected, and the page cannot work around it because Web MIDI sends a SysEx message whole.
+`dmesg` reports `ALSA: seq_midi: MIDI output buffer overrun` when this happens. To transfer a bank,
+open its menu and choose **Download this bank**, switch **MIDI online** off so the device is free,
+then send the file with `amidi`, using the port that `amidi -l` lists for the FM1:
+
+```bash
+amidi -p hw:2,0,0 -s bank.syx
+```
+
 The **MIDI log** in the footer lists recent messages the app sent and received. **Download log** saves it as a text file, with the full data of each message and your browser version, to attach to a bug report. The file stays on your computer until you share it.
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
