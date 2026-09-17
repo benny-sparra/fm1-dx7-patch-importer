@@ -71,6 +71,7 @@ const shortcutGroups = [
       { action: 'editor.redo', shortcuts: [editorShortcuts.redo] },
       { action: 'editor.save', shortcuts: [editorShortcuts.save] },
       { action: 'editor.back', shortcuts: [editorShortcuts.back] },
+      { action: 'editor.stopComparing', shortcuts: [editorShortcuts.stopComparing] },
     ],
   },
 ] satisfies Array<{

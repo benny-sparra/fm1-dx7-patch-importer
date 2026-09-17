@@ -221,3 +221,57 @@ test('applies effect presets one after another and undoes each as one step', asy
   await page.keyboard.press('ControlOrMeta+z')
   await expectSettings(before)
 })
+
+test('locks the editing controls while comparing with the saved sound', async ({ page }) => {
+  await openEditor(page)
+  const output = page.getByRole('slider', { name: 'Operator 2 output level' })
+  const saved = await output.inputValue()
+  const edited = await nudge(page, 'Operator 2 output level')
+  const compare = page.getByRole('button', { name: 'Compare with saved' })
+
+  const rackTop = async () =>
+    (await page.getByRole('region', { name: 'Operators' }).boundingBox())?.y
+  const before = await rackTop()
+
+  await compare.click()
+  await expect(compare).toHaveAttribute('aria-pressed', 'true')
+  await expect(
+    page.getByRole('button', { name: 'Stop comparing and return to your edits' }),
+  ).toBeFocused()
+  await expect(output).toHaveValue(saved)
+  // The notice floats over the rack instead of pushing it down.
+  expect(await rackTop()).toBe(before)
+  // The rack is inert, so neither a click nor a key reaches the control underneath.
+  await output.click({ force: true })
+  await page.keyboard.press('ArrowRight')
+  await expect(output).toHaveValue(saved)
+
+  // The notice closes like a dialog, back to the edits.
+  await page.keyboard.press('Escape')
+  await expect(compare).toHaveAttribute('aria-pressed', 'false')
+  await expect(output).toHaveValue(edited)
+  await compare.click()
+  await expect(compare).toHaveAttribute('aria-pressed', 'true')
+
+  // The toolbar stays above the overlay, so Compare can end the comparison from further down.
+  await page.getByRole('slider', { name: 'Reverb Decay' }).scrollIntoViewIfNeeded()
+  await compare.click()
+  await expect(compare).toHaveAttribute('aria-pressed', 'false')
+  await expect(output).toHaveValue(edited)
+})
+
+test('keeps each English voice preset description to one line', async ({ page }) => {
+  await page.setViewportSize({ height: 900, width: 1440 })
+  await openEditor(page)
+  await page.getByLabel('Voice presets').click()
+  const descriptions = page.locator('details[open] button > span:nth-child(2)')
+
+  await expect(descriptions).toHaveCount(8)
+  for (const description of await descriptions.all()) {
+    const lines = await description.evaluate(
+      (element) =>
+        element.getBoundingClientRect().height / parseFloat(getComputedStyle(element).lineHeight),
+    )
+    expect(Math.round(lines), await description.textContent()).toBe(1)
+  }
+})

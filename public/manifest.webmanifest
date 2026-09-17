@@ -2,7 +2,7 @@
   "id": "/",
   "name": "M-VAVE FM1 Editor & Librarian",
   "short_name": "FM1 Editor",
-  "description": "Edit, organise, and transfer sounds for the M-VAVE FM1 synthesiser, with DX7 SysEx bank import.",
+  "description": "Edit, organise, and transfer patches for the M-VAVE FM1 synthesiser, with DX7 SysEx bank import.",
   "lang": "en",
   "dir": "ltr",
   "start_url": "/",

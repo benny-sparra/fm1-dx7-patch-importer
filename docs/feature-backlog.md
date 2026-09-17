@@ -67,11 +67,12 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     level.
   - Tests: a rendered paste that reverses in one undo, and pasting into another voice.
 
-- [ ] **Compare with saved.** A button in the editor that switches between the working copy and the
+- [x] **Compare with saved.** A button in the editor that switches between the working copy and the
       saved version, sending each to the FM1 so the difference can be heard.
   - Comparing never changes the working copy or the undo history.
   - Editing while showing the saved version needs a clear rule: return to the working copy first,
-    or disable the controls.
+    or disable the controls. Decided: while the saved version shows, the controls, presets, undo,
+    save, and back are disabled, and a notice says why. Compare is offered only with unsaved edits.
   - Do not resend when the selected version has not changed.
 
 - [x] **Copy patches between banks.** "Copy to…" in a slot's menu copies it over a chosen slot in

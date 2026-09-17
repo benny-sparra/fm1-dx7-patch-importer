@@ -1,4 +1,9 @@
-import { type ComponentPropsWithoutRef, type MouseEventHandler, forwardRef } from 'react'
+import {
+  type ComponentProps,
+  type ComponentPropsWithoutRef,
+  type MouseEventHandler,
+  forwardRef,
+} from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -106,7 +111,7 @@ export function DialogFooter({ className, ...props }: ComponentPropsWithoutRef<'
   )
 }
 
-type DialogCloseButtonProps = Omit<ComponentPropsWithoutRef<'button'>, 'aria-label' | 'type'> & {
+type DialogCloseButtonProps = Omit<ComponentProps<'button'>, 'aria-label' | 'type'> & {
   label: string
 }
 

@@ -113,6 +113,8 @@ export const editorShortcuts = {
   back: { key: 'Escape' },
   redo: { key: 'z', mod: true, shift: true },
   save: { key: 's', mod: true },
+  // Bound only while comparing, when it takes Escape from back.
+  stopComparing: { key: 'Escape' },
   undo: { key: 'z', mod: true },
 } as const satisfies Record<string, KeyboardShortcut>
 

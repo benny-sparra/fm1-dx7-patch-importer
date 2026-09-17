@@ -78,7 +78,7 @@ describe('NamedBankLibraryDialog boundaries', () => {
     )
 
     await user.click(screen.getByRole('button', { name: 'Load' }))
-    await user.click(screen.getByRole('button', { name: 'Replace sounds' }))
+    await user.click(screen.getByRole('button', { name: 'Replace patches' }))
 
     const alert = screen.getByRole('alert')
     expect(alert.textContent).toBe(
@@ -213,8 +213,8 @@ describe('NamedBankLibraryDialog loading', () => {
     const loadButton = screen.getByRole('button', { name: 'Load' })
 
     await user.click(loadButton)
-    expect(screen.getByText('Replace the 32 sounds in “Current Bank” with “Stage”?')).toBeTruthy()
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Replace sounds' }))
+    expect(screen.getByText('Replace the 32 patches in “Current Bank” with “Stage”?')).toBeTruthy()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Replace patches' }))
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
@@ -238,7 +238,7 @@ describe('NamedBankLibraryDialog loading', () => {
     )
 
     await user.click(screen.getByRole('button', { name: 'Load' }))
-    await user.click(screen.getByRole('button', { name: 'Replace sounds' }))
+    await user.click(screen.getByRole('button', { name: 'Replace patches' }))
 
     expect(loadSavedBank).toHaveBeenCalledExactlyOnceWith(bank, 'A')
     expect(onLoaded).toHaveBeenCalledExactlyOnceWith(bank, changed)
@@ -262,6 +262,6 @@ describe('NamedBankLibraryDialog loading', () => {
     await user.click(screen.getByRole('button', { name: 'Load' }))
 
     expect(loadSavedBank).toHaveBeenCalledExactlyOnceWith(bank, 'A')
-    expect(screen.queryByText(/Replace the 32 sounds/)).toBeNull()
+    expect(screen.queryByText(/Replace the 32 patches/)).toBeNull()
   })
 })

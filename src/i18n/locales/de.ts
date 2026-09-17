@@ -160,9 +160,9 @@ export default {
     lfoWave: 'LFO-Wellenform',
     dx7Algorithm: 'DX7-Algorithmus',
     unsavedBody:
-      'Diese Arbeitskopie in der Browser-Bibliothek speichern oder verwerfen und den gespeicherten Klang auf dem FM1 wiederherstellen.',
+      'Diese Arbeitskopie in der Browser-Bibliothek speichern oder verwerfen und den gespeicherten Sound auf dem FM1 wiederherstellen.',
     revertTitle:
-      'Alle Änderungen seit dem letzten Speichern verwerfen und den Klang auf dem FM1 wiederherstellen',
+      'Alle Änderungen seit dem letzten Speichern verwerfen und den Sound auf dem FM1 wiederherstellen',
     keyboard: 'Tastatur',
     pianoKeyboard: 'Klaviatur',
     dragKeyboard: 'Klaviatur verschieben',
@@ -347,11 +347,11 @@ export default {
     open: 'FM1 Editor und Librarian verwenden',
     title: 'Willkommen beim FM1 Editor und Librarian',
     intro:
-      'Verwalte deine Sound-Bibliothek, forme Voices im Editor und übertrage sie auf deinen M-VAVE FM1 – direkt im Browser.',
+      'Verwalte deine Sound-Bibliothek, forme Sounds im Voice-Editor und übertrage sie auf deinen M-VAVE FM1 – direkt im Browser.',
     close: 'Hilfe schließen',
     truthTitle: 'Die Browser-Bänke sind die maßgebliche Quelle.',
     truthBody:
-      'Der FM1 kann Voices und Bänke empfangen, seine gespeicherten Bänke aber nicht zurücksenden. Importiere oder stelle Sounds hier wieder her, bearbeite sie und übertrage sie dann zum FM1.',
+      'Der FM1 kann Sounds und Bänke empfangen, seine gespeicherten Bänke aber nicht zurücksenden. Importiere oder stelle Sounds hier wieder her, bearbeite sie und übertrage sie dann zum FM1.',
     start: 'Bearbeitung starten',
     stepsTitle: 'Erste Schritte',
     sections: 'Abschnitte der Anleitung',
@@ -395,32 +395,30 @@ export default {
     unsaved: 'Ungespeicherte Änderungen',
     presets: 'Stimmen-Vorlagen',
     presetsShort: 'Vorlagen',
-    presetsHelp:
-      'Probiere eine Richtung aus und forme sie mit den Reglern. Mit einmal Rückgängig kehrst du zum aktuellen Sound zurück.',
     presetOptions: {
       'soft-pad': {
         name: 'Sanftes Pad',
-        description: 'Langsame Hüllkurven, sanfter Chorus und ein weicher Hall.',
+        description: 'Langsame Hüllkurven, Chorus und Hall.',
       },
       'bright-pluck': {
         name: 'Heller Pluck',
-        description: 'Ein klarer Ausklang mit kurzem Raum und leichtem Echo.',
+        description: 'Klarer Ausklang, kleiner Raum, Echo.',
       },
       'steady-organ': {
         name: 'Stabile Orgel',
-        description: 'Gleichmäßiges Sustain mit dezenter Chorus- und Phaser-Bewegung.',
+        description: 'Gleichmäßiges Sustain, Chorus, Phaser.',
       },
       'gentle-motion': {
         name: 'Sanfte Bewegung',
-        description: 'Ein verzögerter Sinus-LFO, leichter Chorus und eine weiche Hall-Atmosphäre.',
+        description: 'Verzögerter LFO, Chorus, weicher Hall.',
       },
       'warm-filter': {
         name: 'Warmer Filter',
-        description: 'Tiefpassfilterung und ein kleiner Raum mildern die Kanten.',
+        description: 'Tiefpassfilter und kleiner Raum.',
       },
       'wide-space': {
         name: 'Weiter Raum',
-        description: 'Chorus und Hall erzeugen eine breite atmosphärische Ebene.',
+        description: 'Breiter Chorus und Hall.',
       },
     },
     undo: 'Rückgängig',
@@ -431,6 +429,12 @@ export default {
     resendHelp: 'Aktuelle Editor-Einstellungen erneut senden.',
     revert: 'Gespeicherten Stand laden',
     revertHelp: 'Änderungen verwerfen und den gespeicherten Sound wiederherstellen.',
+    compare: 'Mit gespeichertem Stand vergleichen',
+    compareShort: 'Vergleichen',
+    stopComparing: 'Vergleich beenden und zu deinen Änderungen zurückkehren',
+    comparingTitle: 'Gespeicherter Klang läuft',
+    comparingBody:
+      'Die Bearbeitung ist pausiert. Drücke Esc oder „Vergleichen“, um zu deinen Änderungen zurückzukehren.',
     configuration: 'Sound-Konfiguration',
     global: 'Global',
     effects: 'Effekte',
@@ -507,9 +511,9 @@ export default {
     discard: 'Änderungen verwerfen',
     saveAndReturn: 'Speichern und zurück',
     initVoice: 'Initialisieren',
-    initVoiceHelp:
-      'Eine einfache Sinuswelle als Ausgangspunkt. Effekte werden ausgeschaltet, behalten aber ihre Einstellungen.',
+    initVoiceHelp: 'Einfache Sinuswelle. Effekte aus.',
     randomise: 'Zufällig',
+    randomiseHelp: 'Neue Stimme. Name und Effekte bleiben.',
   },
   midi: {
     online: 'MIDI online',
@@ -589,7 +593,7 @@ export default {
     deleteBank: 'Bank löschen',
     deleteBankConfirm:
       '„{{name}}“ und alle enthaltenen Sounds löschen? Diese Aktion kann rückgängig gemacht werden.',
-    sendTitle: 'Alle 32 Voices senden und Zielbank am FM1 wählen',
+    sendTitle: 'Alle 32 Sounds senden und Zielbank am FM1 wählen',
     sendingStatus: '32 Sounds werden an den FM1 gesendet…',
     sentStatus: 'Browser-Bank {{bank}} wurde gesendet. Wähle ihr Ziel am FM1.',
     notSent: 'Die Bank wurde nicht gesendet. Öffne das MIDI-Protokoll und versuche es erneut.',

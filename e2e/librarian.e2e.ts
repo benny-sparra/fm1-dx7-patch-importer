@@ -90,10 +90,10 @@ test('imports a valid DX7 SysEx bank into a populated workspace bank', async ({ 
   await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
-  await dialog.getByLabel('Sound data').setInputFiles(factoryBank)
+  await dialog.getByLabel('Patch data').setInputFiles(factoryBank)
   await dialog.getByRole('button', { name: 'Replace bank contents' }).click()
 
-  await expect(page.getByText('Imported sounds into “Bank 1”.')).toBeVisible()
+  await expect(page.getByText('Imported patches into “Bank 1”.')).toBeVisible()
 })
 
 test('rejects an invalid DX7 SysEx bank without closing the replacement dialog', async ({
@@ -104,7 +104,7 @@ test('rejects an invalid DX7 SysEx bank without closing the replacement dialog',
   await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
-  await dialog.getByLabel('Sound data').setInputFiles({
+  await dialog.getByLabel('Patch data').setInputFiles({
     buffer: Buffer.from([0xf0, 0x43, 0xf7]),
     mimeType: 'application/octet-stream',
     name: 'invalid.syx',

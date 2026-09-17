@@ -53,6 +53,18 @@ describe('reduced motion', () => {
     ).toBe(true)
   })
 
+  it('stops the compare notice switching on when reduced motion is requested', async () => {
+    const css = await readFile(path.resolve('src/index.css'), 'utf8')
+    const reducedMotionBlocks = css
+      .split('@media (prefers-reduced-motion: reduce)')
+      .slice(1)
+      .map((block) => block.slice(0, block.indexOf('\n  }\n')))
+
+    expect(
+      reducedMotionBlocks.some((block) => /\.compare-notice\s*\{\s*animation:\s*none;/.test(block)),
+    ).toBe(true)
+  })
+
   it('spins the resend icon only when motion is allowed', () => {
     const noop = vi.fn()
     const { container } = render(
@@ -60,9 +72,12 @@ describe('reduced motion', () => {
         canSync
         canRedo={false}
         canUndo={false}
+        isComparing={false}
         isDirty
         liveName="INIT"
         onBack={noop}
+        onCompare={noop}
+        onStopCompare={noop}
         onNameBlur={noop}
         onNameChange={noop}
         onPreset={noop}
@@ -93,9 +108,12 @@ describe('reduced motion', () => {
           canSync
           canRedo={false}
           canUndo={false}
+          isComparing={false}
           isDirty
           liveName="INIT"
           onBack={noop}
+          onCompare={noop}
+          onStopCompare={noop}
           onNameBlur={noop}
           onNameChange={noop}
           onPreset={noop}

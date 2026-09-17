@@ -387,32 +387,30 @@ export default {
     unsaved: 'Alterações não salvas',
     presets: 'Predefinições de voz',
     presetsShort: 'Predefinições',
-    presetsHelp:
-      'Experimente uma direção e modele-a com os controles. Basta desfazer uma vez para voltar ao som atual.',
     presetOptions: {
       'soft-pad': {
         name: 'Pad suave',
-        description: 'Envelopes lentos, chorus suave e uma delicada reverberação de salão.',
+        description: 'Envelopes lentos, chorus e salão.',
       },
       'bright-pluck': {
         name: 'Dedilhado brilhante',
-        description: 'Um decaimento nítido com sala curta e eco leve.',
+        description: 'Decaimento nítido, sala curta e eco.',
       },
       'steady-organ': {
         name: 'Órgão estável',
-        description: 'Sustentação uniforme com movimentos sutis de chorus e phaser.',
+        description: 'Sustentação uniforme, chorus e phaser.',
       },
       'gentle-motion': {
         name: 'Movimento suave',
-        description: 'Um LFO senoidal atrasado, chorus leve e uma suave ambiência de salão.',
+        description: 'LFO atrasado, chorus e salão suave.',
       },
       'warm-filter': {
         name: 'Filtro quente',
-        description: 'A filtragem passa-baixas e uma sala pequena suavizam as bordas.',
+        description: 'Filtro passa-baixas e sala pequena.',
       },
       'wide-space': {
         name: 'Espaço amplo',
-        description: 'O chorus e a reverberação de salão criam uma ampla camada ambiente.',
+        description: 'Chorus amplo e reverberação de salão.',
       },
     },
     undo: 'Desfazer',
@@ -423,6 +421,11 @@ export default {
     resendHelp: 'Enviar novamente as configurações atuais do editor.',
     revert: 'Reverter ao salvo',
     revertHelp: 'Descartar edições e restaurar o som salvo.',
+    compare: 'Comparar com o salvo',
+    compareShort: 'Comparar',
+    stopComparing: 'Parar de comparar e voltar às suas edições',
+    comparingTitle: 'Tocando o som salvo',
+    comparingBody: 'A edição está pausada. Pressione Esc ou Comparar para voltar às suas edições.',
     configuration: 'Configuração do som',
     global: 'Global',
     effects: 'Efeitos',
@@ -499,9 +502,9 @@ export default {
     discard: 'Descartar alterações',
     saveAndReturn: 'Salvar e voltar',
     initVoice: 'Inicializar',
-    initVoiceHelp:
-      'Uma onda senoidal simples para começar. Os efeitos são desligados, mas mantêm seus ajustes.',
+    initVoiceHelp: 'Onda senoidal simples. Efeitos desligados.',
     randomise: 'Aleatorizar',
+    randomiseHelp: 'Nova voz. Mantém nome e efeitos.',
   },
   midi: {
     online: 'MIDI online',

@@ -390,32 +390,30 @@ export default {
     unsaved: 'Cambios sin guardar',
     presets: 'Preajustes de voz',
     presetsShort: 'Preajustes',
-    presetsHelp:
-      'Prueba una dirección y después modifícala con los controles. Puedes volver al sonido actual con una sola acción de deshacer.',
     presetOptions: {
       'soft-pad': {
         name: 'Pad suave',
-        description: 'Envolventes lentas, chorus suave y una delicada reverberación de sala.',
+        description: 'Envolventes lentas, chorus y sala.',
       },
       'bright-pluck': {
         name: 'Punteo brillante',
-        description: 'Un decaimiento nítido con una sala corta y un eco ligero.',
+        description: 'Decaimiento nítido, sala corta y eco.',
       },
       'steady-organ': {
         name: 'Órgano estable',
-        description: 'Sustain uniforme con sutiles movimientos de chorus y phaser.',
+        description: 'Sustain uniforme con chorus y phaser.',
       },
       'gentle-motion': {
         name: 'Movimiento suave',
-        description: 'Un LFO sinusoidal retardado, chorus ligero y un suave ambiente de sala.',
+        description: 'LFO retardado, chorus y sala suave.',
       },
       'warm-filter': {
         name: 'Filtro cálido',
-        description: 'El filtrado de paso bajo y una sala pequeña suavizan los bordes.',
+        description: 'Filtro paso bajo y sala pequeña.',
       },
       'wide-space': {
         name: 'Espacio amplio',
-        description: 'El chorus y la reverberación de sala crean una amplia capa ambiental.',
+        description: 'Chorus amplio y reverberación de sala.',
       },
     },
     undo: 'Deshacer',
@@ -426,6 +424,11 @@ export default {
     resendHelp: 'Volver a enviar los ajustes actuales del editor.',
     revert: 'Restaurar lo guardado',
     revertHelp: 'Descartar los cambios y restaurar el sonido guardado.',
+    compare: 'Comparar con lo guardado',
+    compareShort: 'Comparar',
+    stopComparing: 'Dejar de comparar y volver a tus cambios',
+    comparingTitle: 'Sonando el sonido guardado',
+    comparingBody: 'La edición está en pausa. Pulsa Esc o Comparar para volver a tus cambios.',
     configuration: 'Configuración del sonido',
     global: 'Global',
     effects: 'Efectos',
@@ -502,9 +505,9 @@ export default {
     discard: 'Descartar cambios',
     saveAndReturn: 'Guardar y volver',
     initVoice: 'Inicializar',
-    initVoiceHelp:
-      'Una onda senoidal simple para empezar. Los efectos se apagan, pero conservan sus ajustes.',
+    initVoiceHelp: 'Onda senoidal simple. Efectos apagados.',
     randomise: 'Aleatorizar',
+    randomiseHelp: 'Voz nueva. Conserva nombre y efectos.',
   },
   midi: {
     online: 'MIDI en línea',

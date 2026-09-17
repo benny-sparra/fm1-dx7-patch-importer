@@ -34,6 +34,13 @@ async function chooseInitVoice(user: ReturnType<typeof userEvent.setup>) {
   expect(screen.getByLabelText('Voice presets').closest('details')?.open).toBe(false)
 }
 
+/** Opens the voice presets menu and chooses Randomise, which closes the menu again. */
+async function chooseRandomise(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByLabelText('Voice presets'))
+  await user.click(screen.getByRole('button', { name: /^Randomise/ }))
+  expect(screen.getByLabelText('Voice presets').closest('details')?.open).toBe(false)
+}
+
 function setup(overrides: Partial<MidiController> = {}) {
   const midi = {
     hasMidiOutput: true,
@@ -182,7 +189,7 @@ describe('PatchEditorPage MIDI paths', () => {
           ).value,
       )
 
-    await user.click(screen.getByRole('button', { name: 'Randomise' }))
+    await chooseRandomise(user)
 
     // Every operator's output level is raised to at least 36, so both edits are visible.
     expect(outputLevels().every((level) => Number(level) >= 36)).toBe(true)
@@ -401,7 +408,7 @@ describe('PatchEditorPage MIDI paths', () => {
     const user = userEvent.setup()
     const { midi, rerenderMidi } = setup({ sysexAvailable: false })
 
-    await user.click(screen.getByRole('button', { name: 'Randomise' }))
+    await chooseRandomise(user)
     await user.click(screen.getByLabelText('More save options'))
 
     expect(screen.getByRole('menuitem', { name: /Resend to FM1/ }).hasAttribute('disabled')).toBe(
@@ -746,4 +753,173 @@ describe('PatchEditorPage operator copy and paste', () => {
       screen.getByRole('menuitem', { name: 'Operator 1 aus „Glass Keys“ einfügen' }),
     ).toBeTruthy()
   }, 15_000)
+})
+
+describe('PatchEditorPage compare with saved', () => {
+  const feedbackValue = () => screen.getByRole('slider', { name: 'Feedback' }).getAttribute('value')
+  const compareButton = () => screen.getByRole('button', { name: 'Compare with saved' })
+  const sentVoiceData = (midi: MidiController, call: number) =>
+    vi.mocked(midi.sendVoice).mock.calls[call][0].data
+
+  async function setupEdited() {
+    const context = setup()
+    await waitFor(() => expect(context.midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    fireEvent.change(screen.getByRole('slider', { name: 'Feedback' }), { target: { value: '6' } })
+    return context
+  }
+
+  it('offers compare only once the sound has unsaved edits', async () => {
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    expect((compareButton() as HTMLButtonElement).disabled).toBe(true)
+
+    fireEvent.change(screen.getByRole('slider', { name: 'Feedback' }), { target: { value: '6' } })
+
+    expect((compareButton() as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('shows and sends the saved version, then the edits, when compare is toggled', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupEdited()
+
+    await user.click(compareButton())
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2))
+
+    expect(compareButton().getAttribute('aria-pressed')).toBe('true')
+    expect(feedbackValue()).toBe('0')
+    expect(sentVoiceData(midi, 1)).toEqual(sentVoiceData(midi, 0))
+
+    await user.click(compareButton())
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(3))
+
+    expect(compareButton().getAttribute('aria-pressed')).toBe('false')
+    expect(feedbackValue()).toBe('6')
+    expect(sentVoiceData(midi, 2)).not.toEqual(sentVoiceData(midi, 0))
+  })
+
+  it('keeps the edits and their undo history after comparing', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupEdited()
+
+    await user.click(compareButton())
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2))
+    await user.click(compareButton())
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(3))
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(feedbackValue()).toBe('0')
+    await user.click(screen.getByRole('button', { name: 'Redo' }))
+    expect(feedbackValue()).toBe('6')
+  })
+
+  it('pauses the editing controls and says why while comparing', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupEdited()
+
+    await user.click(compareButton())
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2))
+
+    expect(
+      screen
+        .getAllByRole('status')
+        .some((status) => status.textContent?.includes('Playing the saved sound')),
+    ).toBe(true)
+    expect(screen.getByRole('slider', { name: 'Feedback' }).closest('[inert]')).not.toBeNull()
+    expect(screen.getByLabelText('Voice presets').closest('[inert]')).not.toBeNull()
+    expect(screen.getByLabelText('More save options').closest('[inert]')).not.toBeNull()
+    for (const name of ['Undo', 'Back to patch banks', 'Save to Library']) {
+      expect((screen.getByRole('button', { name }) as HTMLButtonElement).disabled).toBe(true)
+    }
+    expect((screen.getByRole('textbox', { name: 'Patch name' }) as HTMLInputElement).disabled).toBe(
+      true,
+    )
+  })
+
+  it('ignores edits and the undo and save shortcuts while comparing', async () => {
+    const user = userEvent.setup()
+    const { midi, onSave } = await setupEdited()
+    await user.click(compareButton())
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2))
+
+    fireEvent.change(screen.getByRole('slider', { name: 'Feedback' }), { target: { value: '3' } })
+    await user.keyboard('{Meta>}z{/Meta}')
+    await user.keyboard('{Meta>}s{/Meta}')
+
+    expect(onSave).not.toHaveBeenCalled()
+    await user.click(compareButton())
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(3))
+    expect(feedbackValue()).toBe('6')
+  })
+
+  it('moves focus to the notice’s close control when comparing starts', async () => {
+    const user = userEvent.setup()
+    await setupEdited()
+
+    await user.click(compareButton())
+
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Stop comparing and return to your edits' }),
+    )
+  })
+
+  it('returns to the edits and the Compare button when the notice is closed', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupEdited()
+    await user.click(compareButton())
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2))
+
+    await user.click(
+      screen.getByRole('button', { name: 'Stop comparing and return to your edits' }),
+    )
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(3))
+
+    expect(compareButton().getAttribute('aria-pressed')).toBe('false')
+    expect(feedbackValue()).toBe('6')
+    expect(sentVoiceData(midi, 2)).not.toEqual(sentVoiceData(midi, 0))
+    await waitFor(() => expect(document.activeElement).toBe(compareButton()))
+  })
+
+  it('returns to the edits on Escape while comparing, without leaving the editor', async () => {
+    const user = userEvent.setup()
+    const { midi, onBack } = await setupEdited()
+    await user.click(compareButton())
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2))
+
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(3))
+
+    expect(compareButton().getAttribute('aria-pressed')).toBe('false')
+    expect(feedbackValue()).toBe('6')
+    expect(onBack).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: 'Discard changes' })).toBeNull()
+  })
+
+  it('sends the saved version once when compare is double-clicked', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupEdited()
+    let finishSend = (_sent: boolean) => {}
+    vi.mocked(midi.sendVoice).mockImplementationOnce(
+      () => new Promise<boolean>((resolve) => (finishSend = resolve)),
+    )
+
+    await user.dblClick(compareButton())
+    finishSend(true)
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2))
+
+    expect(midi.sendVoice).toHaveBeenCalledTimes(2)
+    expect(compareButton().getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('compares on screen without a MIDI connection', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup({ hasMidiOutput: false })
+    fireEvent.change(screen.getByRole('slider', { name: 'Feedback' }), {
+      target: { value: '6' },
+    })
+
+    await user.click(compareButton())
+
+    expect(feedbackValue()).toBe('0')
+    expect(midi.sendVoice).not.toHaveBeenCalled()
+  })
 })
