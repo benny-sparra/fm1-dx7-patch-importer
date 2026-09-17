@@ -176,6 +176,11 @@ export default {
     operatorSummaryWithAudition: 'Operador {{number}}, {{role}}, {{audition}}',
     operatorMuted: 'silenciado',
     operatorSoloed: 'em solo',
+    operatorMenu: 'Ações do operador {{number}}',
+    copyOperatorAction: 'Copiar o operador {{number}}',
+    pasteOperatorAction: 'Colar o operador {{source}}',
+    pasteOperatorFromPatchAction: 'Colar o operador {{source}} de “{{patch}}”',
+    pasteOperatorEmpty: 'Colar (copie um operador primeiro)',
     lfoWaves: {
       triangle: 'Triângulo',
       sawDown: 'Dente de serra descendente',
@@ -284,6 +289,7 @@ export default {
     demoLoaded: 'Sons de demonstração carregados em “{{bank}}”.',
     patchSaved: '“{{patch}}” foi salvo na biblioteca.',
     patchCopied: '“{{patch}}” foi copiado para {{slot}} em “{{bank}}”.',
+    operatorCopied: 'O operador {{number}} foi copiado.',
   },
   meta: {
     title: 'Editor e bibliotecário M-VAVE FM1',
@@ -379,7 +385,7 @@ export default {
     editName: 'Editar nome do som',
     patchName: 'Nome do som',
     unsaved: 'Alterações não salvas',
-    presets: 'Predefinições de som',
+    presets: 'Predefinições de voz',
     presetsShort: 'Predefinições',
     presetsHelp:
       'Experimente uma direção e modele-a com os controles. Basta desfazer uma vez para voltar ao som atual.',
@@ -493,6 +499,8 @@ export default {
     discard: 'Descartar alterações',
     saveAndReturn: 'Salvar e voltar',
     initVoice: 'Inicializar',
+    initVoiceHelp:
+      'Uma onda senoidal simples para começar. Os efeitos são desligados, mas mantêm seus ajustes.',
     randomise: 'Aleatorizar',
   },
   midi: {

@@ -183,6 +183,11 @@ export default {
     operatorSummaryWithAudition: 'Operator {{number}}, {{role}}, {{audition}}',
     operatorMuted: 'stummgeschaltet',
     operatorSoloed: 'solo',
+    operatorMenu: 'Aktionen für Operator {{number}}',
+    copyOperatorAction: 'Operator {{number}} kopieren',
+    pasteOperatorAction: 'Operator {{source}} einfügen',
+    pasteOperatorFromPatchAction: 'Operator {{source}} aus „{{patch}}“ einfügen',
+    pasteOperatorEmpty: 'Einfügen (zuerst einen Operator kopieren)',
     lfoWaves: {
       triangle: 'Dreieck',
       sawDown: 'Sägezahn fallend',
@@ -292,6 +297,7 @@ export default {
     demoLoaded: 'Demo-Sounds in „{{bank}}“ geladen.',
     patchSaved: '„{{patch}}“ wurde in der Bibliothek gespeichert.',
     patchCopied: '„{{patch}}“ wurde nach {{slot}} in „{{bank}}“ kopiert.',
+    operatorCopied: 'Operator {{number}} wurde kopiert.',
   },
   meta: {
     title: 'M-VAVE FM1 Editor und Librarian',
@@ -387,7 +393,7 @@ export default {
     editName: 'Soundnamen bearbeiten',
     patchName: 'Soundname',
     unsaved: 'Ungespeicherte Änderungen',
-    presets: 'Sound-Vorlagen',
+    presets: 'Stimmen-Vorlagen',
     presetsShort: 'Vorlagen',
     presetsHelp:
       'Probiere eine Richtung aus und forme sie mit den Reglern. Mit einmal Rückgängig kehrst du zum aktuellen Sound zurück.',
@@ -501,6 +507,8 @@ export default {
     discard: 'Änderungen verwerfen',
     saveAndReturn: 'Speichern und zurück',
     initVoice: 'Initialisieren',
+    initVoiceHelp:
+      'Eine einfache Sinuswelle als Ausgangspunkt. Effekte werden ausgeschaltet, behalten aber ihre Einstellungen.',
     randomise: 'Zufällig',
   },
   midi: {

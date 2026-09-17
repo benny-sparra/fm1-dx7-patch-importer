@@ -1,9 +1,18 @@
-import { ChevronDown, ChevronUp, type LucideIcon, RadioTower, Route } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronUp,
+  ClipboardPaste,
+  Copy,
+  type LucideIcon,
+  RadioTower,
+  Route,
+} from 'lucide-react'
 import { type ReactNode, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { PortalMenu } from '@/components/ui/portal-menu'
 import { dx7Algorithms, getDx7OperatorRole, type Dx7AlgorithmOperator } from '@/lib/dx7-algorithms'
 import {
   envelopePath,
@@ -429,16 +438,28 @@ export function AlgorithmPanel({
   )
 }
 
+/**
+ * The operator that Paste would apply. `patchName` is null when it was copied
+ * from the sound open in the editor.
+ */
+type OperatorPasteSource = {
+  operator: number
+  patchName: string | null
+}
+
 type OperatorRackProps = {
   algorithm: number
   mutedOperators: ReadonlySet<number>
+  onCopyOperator: (operator: number) => void
   onGestureEnd: () => void
   onGestureStart: () => void
   onOutputChange: (operator: number, value: number) => void
+  onPasteOperator: (operator: number) => void
   onSelect: (operator: number) => void
   onToggleMute: (operator: number) => void
   onToggleSolo: (operator: number) => void
   parameters: Uint8Array
+  pasteSource: OperatorPasteSource | null
   renderOperatorDetail: (operator: number) => ReactNode
   selectedOperator: number
   soloOperator: number | null
@@ -466,13 +487,16 @@ const SELECTED_COLUMN_GROW = 2.9
 export function OperatorRack({
   algorithm,
   mutedOperators,
+  onCopyOperator,
   onGestureEnd,
   onGestureStart,
   onOutputChange,
+  onPasteOperator,
   onSelect,
   onToggleMute,
   onToggleSolo,
   parameters,
+  pasteSource,
   renderOperatorDetail,
   selectedOperator,
   soloOperator,
@@ -543,132 +567,148 @@ export function OperatorRack({
             key={operator}
             style={{ flexGrow: isSelected ? SELECTED_COLUMN_GROW : 1 }}
           >
-            <button
-              aria-controls={isSelected ? detailId : undefined}
-              aria-expanded={isSelected}
-              aria-label={t(
-                auditionLabel ? 'ui.operatorSummaryWithAudition' : 'ui.operatorSummary',
-                {
-                  audition: auditionLabel,
-                  number: operator,
-                  role: roleLabel,
-                },
-              )}
-              className={cn(
-                'flex min-w-0 flex-col text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
-                isSelected ? 'cursor-default' : 'flex-1 cursor-pointer',
-              )}
-              id={summaryId}
-              onClick={() => onSelect(operator)}
-              type="button"
-            >
-              <span
-                className={cn(
-                  '@container/operator-head flex min-w-0 items-center gap-1.5 border-b border-[var(--crt-shadow)] px-[7px] py-1.5',
-                  isSelected ? 'bg-[var(--crt-sel-bg)]' : 'bg-[var(--crt-bg-head)]',
+            {/*
+              The expand button and the open column's copy and paste actions
+              share one row that is always rendered, so opening a column keeps
+              focus on its button.
+            */}
+            <div className={cn('flex min-w-0', isSelected ? null : 'flex-1')}>
+              <button
+                aria-controls={isSelected ? detailId : undefined}
+                aria-expanded={isSelected}
+                aria-label={t(
+                  auditionLabel ? 'ui.operatorSummaryWithAudition' : 'ui.operatorSummary',
+                  {
+                    audition: auditionLabel,
+                    number: operator,
+                    role: roleLabel,
+                  },
                 )}
+                className={cn(
+                  'flex min-w-0 flex-1 flex-col text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+                  isSelected ? 'cursor-default' : 'cursor-pointer',
+                )}
+                id={summaryId}
+                onClick={() => onSelect(operator)}
+                type="button"
               >
                 <span
-                  className="font-vt323 w-4 shrink-0 text-center text-[22px] leading-none"
-                  style={{ color: isSelected ? 'var(--crt-ink)' : operatorColors[index] }}
-                >
-                  {operator}
-                </span>
-                <span
                   className={cn(
-                    'operator-role-badge inline-flex h-[17px] min-w-0 items-center truncate border bg-[var(--crt-bg-1)] px-1.5 text-[10px] leading-none tracking-[0.14em] uppercase',
-                    isSelected
-                      ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
-                      : role === 'carrier'
-                        ? 'border-[var(--crt-line)] text-[var(--crt-led)]'
-                        : 'border-[var(--crt-line)] text-[var(--crt-ink-3)]',
+                    '@container/operator-head flex min-w-0 items-center gap-1.5 border-b border-[var(--crt-shadow)] px-[7px] py-1.5',
+                    isSelected ? 'bg-[var(--crt-sel-bg)]' : 'bg-[var(--crt-bg-head)]',
                   )}
                 >
-                  {/* Narrow columns shorten the role rather than clip it. */}
-                  <span aria-hidden="true" className="@[7.5rem]/operator-head:hidden">
-                    {roleShortLabel}
+                  <span
+                    className="font-vt323 w-4 shrink-0 text-center text-[22px] leading-none"
+                    style={{ color: isSelected ? 'var(--crt-ink)' : operatorColors[index] }}
+                  >
+                    {operator}
                   </span>
-                  <span aria-hidden="true" className="hidden @[7.5rem]/operator-head:inline">
-                    {roleLabel}
-                  </span>
-                </span>
-              </span>
-
-              {isSelected ? null : (
-                <span className="@container flex min-w-0 flex-1 flex-col gap-[7px] p-[7px]">
-                  {/* A plotted trace of the amplitude envelope, as on the panel. */}
-                  <span className="crt-well relative block p-[3px]">
-                    <svg
-                      aria-hidden="true"
-                      className="block h-24 w-full"
-                      preserveAspectRatio="none"
-                      viewBox="0 0 400 180"
-                    >
-                      <g stroke="var(--crt-grid)" strokeWidth="1">
-                        {[100, 200, 300].map((x) => (
-                          <line
-                            key={x}
-                            vectorEffect="non-scaling-stroke"
-                            x1={x}
-                            x2={x}
-                            y1="4"
-                            y2="176"
-                          />
-                        ))}
-                        {[60, 120].map((y) => (
-                          <line
-                            key={y}
-                            vectorEffect="non-scaling-stroke"
-                            x1="4"
-                            x2="396"
-                            y1={y}
-                            y2={y}
-                          />
-                        ))}
-                      </g>
-                      <path
-                        d={envelopePath(rates, levels)}
-                        fill="none"
-                        stroke="var(--crt-acc-dim)"
-                        strokeLinejoin="round"
-                        strokeWidth="1.6"
-                        vectorEffect="non-scaling-stroke"
-                      />
-                    </svg>
-                  </span>
-
-                  <span aria-hidden="true" className="grid grid-cols-1 gap-1 @[8rem]:grid-cols-2">
-                    {rates.map((rate, point) => (
-                      <span
-                        className="crt-inset min-w-0 bg-[var(--crt-bg-1)] px-1 py-0.5 text-center"
-                        key={point}
-                      >
-                        <span className="block truncate text-[10px] tracking-[0.1em] text-[var(--crt-ink-4)]">
-                          R{point + 1}/L{point + 1}
-                        </span>
-                        <span className="font-vt323 block text-[17px] leading-tight text-[var(--crt-led)]">
-                          {rate}/{levels[point]}
-                        </span>
-                      </span>
-                    ))}
-                  </span>
-
-                  <span aria-hidden="true" className="flex flex-1 flex-col gap-1">
-                    {summaryCells.map(({ label, value }) => (
-                      <span
-                        className="flex max-h-[4.5rem] min-h-9 flex-1 flex-col items-center justify-center gap-0.5 border border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-1 py-1 text-center text-[10px] tracking-[0.08em] text-[var(--crt-ink-3)]"
-                        key={label}
-                      >
-                        <span>{label}</span>
-                        <span className="font-vt323 max-w-full truncate text-[15px] leading-none text-[var(--crt-ink)]">
-                          {value}
-                        </span>
-                      </span>
-                    ))}
+                  <span
+                    className={cn(
+                      'operator-role-badge inline-flex h-[17px] min-w-0 items-center truncate border bg-[var(--crt-bg-1)] px-1.5 text-[10px] leading-none tracking-[0.14em] uppercase',
+                      isSelected
+                        ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
+                        : role === 'carrier'
+                          ? 'border-[var(--crt-line)] text-[var(--crt-led)]'
+                          : 'border-[var(--crt-line)] text-[var(--crt-ink-3)]',
+                    )}
+                  >
+                    {/* Narrow columns shorten the role rather than clip it. */}
+                    <span aria-hidden="true" className="@[7.5rem]/operator-head:hidden">
+                      {roleShortLabel}
+                    </span>
+                    <span aria-hidden="true" className="hidden @[7.5rem]/operator-head:inline">
+                      {roleLabel}
+                    </span>
                   </span>
                 </span>
-              )}
-            </button>
+
+                {isSelected ? null : (
+                  <span className="@container flex min-w-0 flex-1 flex-col gap-[7px] p-[7px]">
+                    {/* A plotted trace of the amplitude envelope, as on the panel. */}
+                    <span className="crt-well relative block p-[3px]">
+                      <svg
+                        aria-hidden="true"
+                        className="block h-24 w-full"
+                        preserveAspectRatio="none"
+                        viewBox="0 0 400 180"
+                      >
+                        <g stroke="var(--crt-grid)" strokeWidth="1">
+                          {[100, 200, 300].map((x) => (
+                            <line
+                              key={x}
+                              vectorEffect="non-scaling-stroke"
+                              x1={x}
+                              x2={x}
+                              y1="4"
+                              y2="176"
+                            />
+                          ))}
+                          {[60, 120].map((y) => (
+                            <line
+                              key={y}
+                              vectorEffect="non-scaling-stroke"
+                              x1="4"
+                              x2="396"
+                              y1={y}
+                              y2={y}
+                            />
+                          ))}
+                        </g>
+                        <path
+                          d={envelopePath(rates, levels)}
+                          fill="none"
+                          stroke="var(--crt-acc-dim)"
+                          strokeLinejoin="round"
+                          strokeWidth="1.6"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      </svg>
+                    </span>
+
+                    <span aria-hidden="true" className="grid grid-cols-1 gap-1 @[8rem]:grid-cols-2">
+                      {rates.map((rate, point) => (
+                        <span
+                          className="crt-inset min-w-0 bg-[var(--crt-bg-1)] px-1 py-0.5 text-center"
+                          key={point}
+                        >
+                          <span className="block truncate text-[10px] tracking-[0.1em] text-[var(--crt-ink-4)]">
+                            R{point + 1}/L{point + 1}
+                          </span>
+                          <span className="font-vt323 block text-[17px] leading-tight text-[var(--crt-led)]">
+                            {rate}/{levels[point]}
+                          </span>
+                        </span>
+                      ))}
+                    </span>
+
+                    <span aria-hidden="true" className="flex flex-1 flex-col gap-1">
+                      {summaryCells.map(({ label, value }) => (
+                        <span
+                          className="flex max-h-[4.5rem] min-h-9 flex-1 flex-col items-center justify-center gap-0.5 border border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-1 py-1 text-center text-[10px] tracking-[0.08em] text-[var(--crt-ink-3)]"
+                          key={label}
+                        >
+                          <span>{label}</span>
+                          <span className="font-vt323 max-w-full truncate text-[15px] leading-none text-[var(--crt-ink)]">
+                            {value}
+                          </span>
+                        </span>
+                      ))}
+                    </span>
+                  </span>
+                )}
+              </button>
+              {isSelected ? (
+                <OperatorMenu
+                  disabled={syncState === 'sending'}
+                  onCopy={() => onCopyOperator(operator)}
+                  onPaste={() => onPasteOperator(operator)}
+                  operator={operator}
+                  pasteSource={pasteSource}
+                />
+              ) : null}
+            </div>
 
             {isSelected ? (
               <div
@@ -780,6 +820,49 @@ export function OperatorRack({
           </div>
         )
       })}
+    </div>
+  )
+}
+
+/** Copy and Paste for the open operator, in a ⋮ menu beside its header. */
+function OperatorMenu({
+  disabled,
+  onCopy,
+  onPaste,
+  operator,
+  pasteSource,
+}: {
+  disabled: boolean
+  onCopy: () => void
+  onPaste: () => void
+  operator: number
+  pasteSource: OperatorPasteSource | null
+}) {
+  const { t } = useTranslation()
+  const pasteLabel = !pasteSource
+    ? t('ui.pasteOperatorEmpty')
+    : pasteSource.patchName === null
+      ? t('ui.pasteOperatorAction', { source: pasteSource.operator })
+      : t('ui.pasteOperatorFromPatchAction', {
+          patch: pasteSource.patchName,
+          source: pasteSource.operator,
+        })
+
+  return (
+    <div className="flex shrink-0 items-center border-b border-[var(--crt-shadow)] bg-[var(--crt-sel-bg)] px-[5px]">
+      <PortalMenu
+        items={[
+          { Icon: Copy, label: t('ui.copyOperatorAction', { number: operator }), onSelect: onCopy },
+          {
+            disabled: disabled || !pasteSource,
+            Icon: ClipboardPaste,
+            label: pasteLabel,
+            onSelect: onPaste,
+          },
+        ]}
+        menuLabel={t('editor.operator', { number: operator })}
+        triggerLabel={t('ui.operatorMenu', { number: operator })}
+      />
     </div>
   )
 }

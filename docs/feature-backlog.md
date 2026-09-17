@@ -58,10 +58,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Later, once [effect routing order](#effect-routing-order) is known, the routing could have
     presets of its own.
 
-- [ ] **Copy and paste operators.** Copy one operator's settings (frequency, envelope, output level,
+- [x] **Copy and paste operators.** Copy one operator's settings (frequency, envelope, output level,
       keyboard scaling, sensitivity) to another operator, or to an operator in another voice.
   - Paste is one undo step and sends the changed parameters live.
   - Decide whether the clipboard survives leaving the editor. Keep it in memory, not storage.
+    Decided: the app keeps the copied operator in memory until the tab closes, so it can be pasted
+    into another voice. Copy and Paste sit in a ⋮ menu in the open operator's header, and paste includes output
+    level.
   - Tests: a rendered paste that reverses in one undo, and pasting into another voice.
 
 - [ ] **Compare with saved.** A button in the editor that switches between the working copy and the

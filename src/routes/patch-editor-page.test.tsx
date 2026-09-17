@@ -2,10 +2,14 @@
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import '@/i18n'
+import { setLocale } from '@/i18n'
 import { type MidiController } from '@/hooks/use-midi'
+import { type Patch } from '@/data/patches'
+import { resolveOperatorParameterIndex } from '@/lib/fm1-parameters'
+import { type CopiedOperator } from '@/lib/operator-clipboard'
 import { PatchEditorPage } from '@/routes/patch-editor-page'
 
 beforeAll(() => {
@@ -23,6 +27,13 @@ afterEach(() => {
   delete window.umami
 })
 
+/** Opens the voice presets menu and chooses Init voice, which closes the menu again. */
+async function chooseInitVoice(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByLabelText('Voice presets'))
+  await user.click(screen.getByRole('button', { name: /^Init voice/ }))
+  expect(screen.getByLabelText('Voice presets').closest('details')?.open).toBe(false)
+}
+
 function setup(overrides: Partial<MidiController> = {}) {
   const midi = {
     hasMidiOutput: true,
@@ -38,9 +49,11 @@ function setup(overrides: Partial<MidiController> = {}) {
   const onSave = vi.fn()
   const view = render(
     <PatchEditorPage
+      copiedOperator={null}
       effects={new Uint8Array(24)}
       midi={midi}
       onBack={onBack}
+      onCopyOperator={vi.fn()}
       onSave={onSave}
       patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
       voice={{ data: new Uint8Array(128), name: 'INIT' }}
@@ -49,9 +62,11 @@ function setup(overrides: Partial<MidiController> = {}) {
   const rerenderMidi = (nextMidi: MidiController) =>
     view.rerender(
       <PatchEditorPage
+        copiedOperator={null}
         effects={new Uint8Array(24)}
         midi={nextMidi}
         onBack={onBack}
+        onCopyOperator={vi.fn()}
         onSave={onSave}
         patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
         voice={{ data: new Uint8Array(128), name: 'INIT' }}
@@ -191,7 +206,7 @@ describe('PatchEditorPage MIDI paths', () => {
           ).value,
       )
 
-    await user.click(screen.getByRole('button', { name: 'Init voice' }))
+    await chooseInitVoice(user)
 
     expect(outputLevels()).toEqual(['99', '0'])
 
@@ -214,7 +229,7 @@ describe('PatchEditorPage MIDI paths', () => {
     await user.click(reverb.getByRole('button', { name: 'Enable Reverb' }))
     await user.selectOptions(reverb.getByRole('combobox', { name: 'Reverb Preset' }), 'Large hall')
 
-    await user.click(screen.getByRole('button', { name: 'Init voice' }))
+    await chooseInitVoice(user)
 
     expect(reverb.getByRole('button', { name: 'Enable Reverb' })).toBeTruthy()
     expect(reverbSettings()).toEqual(['1', '70', '35'])
@@ -229,13 +244,13 @@ describe('PatchEditorPage MIDI paths', () => {
     const user = userEvent.setup()
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
-    const initVoice = screen.getByRole('button', { name: 'Init voice' })
+    const initVoice = screen.getByRole('button', { name: /^Init voice/ })
 
-    await user.click(initVoice)
+    await chooseInitVoice(user)
     await waitFor(() => expect(initVoice).toHaveProperty('disabled', false))
     await waitFor(() => expect(midi.sendVoice).toHaveBeenCalled())
     const sends = vi.mocked(midi.sendVoice).mock.calls.length
-    await user.click(initVoice)
+    await chooseInitVoice(user)
 
     expect(midi.sendVoice).toHaveBeenCalledTimes(sends)
   }, 15_000)
@@ -552,4 +567,183 @@ describe('PatchEditorPage keyboard shortcuts', () => {
 
     expect(onBack).not.toHaveBeenCalled()
   })
+})
+
+const firstPatch: Patch = {
+  bank: 'A',
+  family: 'Keys',
+  id: 'a-1',
+  name: 'Glass Keys',
+  number: 1,
+  program: 0,
+}
+const secondPatch: Patch = { ...firstPatch, id: 'a-2', name: 'Soft Bass', number: 2, program: 1 }
+
+/** Keeps the copied operator above the editor, as the app does, across a change of sound. */
+function ClipboardHarness({ midi, patch }: { midi: MidiController; patch: Patch }) {
+  const [copiedOperator, setCopiedOperator] = useState<CopiedOperator | null>(null)
+  return (
+    <PatchEditorPage
+      copiedOperator={copiedOperator}
+      effects={new Uint8Array(24)}
+      key={patch.id}
+      midi={midi}
+      onBack={vi.fn()}
+      onCopyOperator={setCopiedOperator}
+      onSave={vi.fn()}
+      patch={patch}
+      voice={{ data: new Uint8Array(128), name: patch.name }}
+    />
+  )
+}
+
+describe('PatchEditorPage operator copy and paste', () => {
+  const setupClipboard = async () => {
+    const midi = {
+      hasMidiOutput: true,
+      midiAccess: true,
+      sendEffectParameter: vi.fn(() => true),
+      sendEffectSettings: vi.fn(async () => true),
+      sendParameter: vi.fn(() => true),
+      sendVoice: vi.fn(async () => true),
+      sysexAvailable: true,
+    } as unknown as MidiController
+    const view = render(<ClipboardHarness midi={midi} patch={firstPatch} />)
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    return { midi, view }
+  }
+  const outputLevel = (operator: number) =>
+    screen.getByRole('slider', { name: `Operator ${operator} output level` }).getAttribute('value')
+  const openOperator = (user: ReturnType<typeof userEvent.setup>, operator: number) =>
+    user.click(screen.getByRole('button', { name: new RegExp(`^Operator ${operator}, `) }))
+  const chooseFromOperatorMenu = async (
+    user: ReturnType<typeof userEvent.setup>,
+    operator: number,
+    item: string,
+    trigger = `Operator ${operator} actions`,
+  ) => {
+    await user.click(screen.getByRole('button', { name: trigger }))
+    await user.click(screen.getByRole('menuitem', { name: item }))
+  }
+
+  afterEach(async () => {
+    await setLocale('en')
+  })
+
+  it('offers Paste only once an operator has been copied', async () => {
+    const user = userEvent.setup()
+    await setupClipboard()
+
+    await user.click(screen.getByRole('button', { name: 'Operator 1 actions' }))
+    const paste = screen.getByRole('menuitem', {
+      name: 'Paste (copy an operator first)',
+    }) as HTMLButtonElement
+
+    expect(paste.disabled).toBe(true)
+    expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Copy operator 1' }))
+  })
+
+  it('pastes a copied operator onto another as a single undo step', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupClipboard()
+    fireEvent.change(screen.getByRole('slider', { name: 'Operator 2 output level' }), {
+      target: { value: '77' },
+    })
+    await openOperator(user, 2)
+    await chooseFromOperatorMenu(user, 2, 'Copy operator 2')
+    await openOperator(user, 5)
+    vi.mocked(midi.sendParameter).mockClear()
+
+    await chooseFromOperatorMenu(user, 5, 'Paste operator 2')
+
+    expect(screen.queryByRole('menu', { name: 'Operator 5' })).toBeNull()
+    expect(outputLevel(5)).toBe('77')
+    expect(midi.sendParameter).toHaveBeenCalledExactlyOnceWith(
+      resolveOperatorParameterIndex(5, 'operator.outputLevel'),
+      77,
+    )
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(outputLevel(5)).toBe('0')
+    expect(outputLevel(2)).toBe('77')
+  }, 15_000)
+
+  it('sends nothing when the operator already has the copied settings', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupClipboard()
+    await chooseFromOperatorMenu(user, 1, 'Copy operator 1')
+    vi.mocked(midi.sendParameter).mockClear()
+
+    await chooseFromOperatorMenu(user, 1, 'Paste operator 1')
+
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+    expect((screen.getByRole('button', { name: 'Undo' }) as HTMLButtonElement).disabled).toBe(true)
+  }, 15_000)
+
+  it('pastes an operator copied from another sound', async () => {
+    const user = userEvent.setup()
+    const { midi, view } = await setupClipboard()
+    fireEvent.change(screen.getByRole('slider', { name: 'Operator 1 output level' }), {
+      target: { value: '64' },
+    })
+    await chooseFromOperatorMenu(user, 1, 'Copy operator 1')
+
+    view.rerender(<ClipboardHarness midi={midi} patch={secondPatch} />)
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(2))
+    expect(outputLevel(1)).toBe('0')
+    await openOperator(user, 3)
+    await chooseFromOperatorMenu(user, 3, 'Paste operator 1 from “Glass Keys”')
+
+    expect(outputLevel(3)).toBe('64')
+  }, 15_000)
+
+  it('closes the operator menu on Escape without leaving the editor', async () => {
+    const user = userEvent.setup()
+    const midi = {
+      hasMidiOutput: true,
+      midiAccess: true,
+      sendEffectParameter: vi.fn(() => true),
+      sendEffectSettings: vi.fn(async () => true),
+      sendParameter: vi.fn(() => true),
+      sendVoice: vi.fn(async () => true),
+      sysexAvailable: true,
+    } as unknown as MidiController
+    const onBack = vi.fn()
+    render(
+      <PatchEditorPage
+        copiedOperator={null}
+        effects={new Uint8Array(24)}
+        midi={midi}
+        onBack={onBack}
+        onCopyOperator={vi.fn()}
+        onSave={vi.fn()}
+        patch={firstPatch}
+        voice={{ data: new Uint8Array(128), name: firstPatch.name }}
+      />,
+    )
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const trigger = screen.getByRole('button', { name: 'Operator 1 actions' })
+
+    await user.click(trigger)
+    await user.keyboard('{Escape}')
+
+    expect(screen.queryByRole('menu', { name: 'Operator 1' })).toBeNull()
+    expect(document.activeElement).toBe(trigger)
+    expect(onBack).not.toHaveBeenCalled()
+  })
+
+  it('names the copied operator’s sound in the interface language', async () => {
+    await setLocale('de')
+    const user = userEvent.setup()
+    const { midi, view } = await setupClipboard()
+    await chooseFromOperatorMenu(user, 1, 'Operator 1 kopieren', 'Aktionen für Operator 1')
+
+    view.rerender(<ClipboardHarness midi={midi} patch={secondPatch} />)
+    await user.click(await screen.findByRole('button', { name: 'Aktionen für Operator 1' }))
+
+    expect(
+      screen.getByRole('menuitem', { name: 'Operator 1 aus „Glass Keys“ einfügen' }),
+    ).toBeTruthy()
+  }, 15_000)
 })

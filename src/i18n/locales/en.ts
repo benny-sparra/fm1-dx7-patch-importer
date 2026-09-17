@@ -173,6 +173,11 @@ export default {
     operatorSummaryWithAudition: 'Operator {{number}}, {{role}}, {{audition}}',
     operatorMuted: 'muted',
     operatorSoloed: 'soloed',
+    operatorMenu: 'Operator {{number}} actions',
+    copyOperatorAction: 'Copy operator {{number}}',
+    pasteOperatorAction: 'Paste operator {{source}}',
+    pasteOperatorFromPatchAction: 'Paste operator {{source}} from “{{patch}}”',
+    pasteOperatorEmpty: 'Paste (copy an operator first)',
     lfoWaves: {
       triangle: 'Triangle',
       sawDown: 'Saw down',
@@ -281,6 +286,7 @@ export default {
     demoLoaded: 'Loaded the demo sounds into “{{bank}}”.',
     patchSaved: 'Saved “{{patch}}” to the library.',
     patchCopied: 'Copied “{{patch}}” to {{slot}} in “{{bank}}”.',
+    operatorCopied: 'Copied operator {{number}}.',
   },
   meta: {
     title: 'M-VAVE FM1 Editor & Librarian',
@@ -376,7 +382,7 @@ export default {
     editName: 'Edit patch name',
     patchName: 'Patch name',
     unsaved: 'Unsaved changes',
-    presets: 'Sound presets',
+    presets: 'Voice presets',
     presetsShort: 'Presets',
     presetsHelp:
       'Try a direction, then shape it with the controls. Your current sound is one undo away.',
@@ -490,6 +496,7 @@ export default {
     discard: 'Discard changes',
     saveAndReturn: 'Save and return',
     initVoice: 'Init voice',
+    initVoiceHelp: 'A plain sine wave to build from. Effects switch off but keep their settings.',
     randomise: 'Randomise',
   },
   midi: {

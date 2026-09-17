@@ -51,6 +51,14 @@ type PatchEditorHeaderProps = {
   syncState: PatchSyncState
 }
 
+const presetItemClass =
+  'grid w-full gap-0.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50'
+
+/** Separates the toolbar's history, voice, and save groups. */
+function ToolbarDivider() {
+  return <span aria-hidden="true" className="mx-1 h-7 w-px shrink-0 bg-[var(--crt-bevel)]" />
+}
+
 export function PatchEditorHeader({
   canSync,
   canRedo,
@@ -150,6 +158,7 @@ export function PatchEditorHeader({
           >
             <Redo2 />
           </Button>
+          <ToolbarDivider />
           <details className="group static sm:relative" ref={presetsMenuRef}>
             <summary
               aria-label={t('editor.presets')}
@@ -170,9 +179,24 @@ export function PatchEditorHeader({
                   {t('editor.presetsHelp')}
                 </p>
               </div>
+              {/* Init voice leads the list as the blank starting point. */}
+              <button
+                className={presetItemClass}
+                disabled={syncState === 'sending'}
+                onClick={onInitVoice}
+                type="button"
+              >
+                <span className="flex items-center gap-1.5 text-sm font-bold">
+                  <Eraser aria-hidden="true" className="size-3.5 shrink-0" />
+                  <span>{t('editor.initVoice')}</span>
+                </span>
+                <span className="text-xs leading-4 text-muted-foreground">
+                  {t('editor.initVoiceHelp')}
+                </span>
+              </button>
               {soundPresets.map((preset) => (
                 <button
-                  className="grid w-full gap-0.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50"
+                  className={presetItemClass}
                   disabled={syncState === 'sending'}
                   key={preset.id}
                   onClick={() => onPreset(preset.id)}
@@ -188,30 +212,19 @@ export function PatchEditorHeader({
               ))}
             </div>
           </details>
-          <Button
-            aria-label={t('editor.initVoice')}
-            className="font-vt323"
-            disabled={syncState === 'sending'}
-            onClick={onInitVoice}
-            title={t('editor.initVoice')}
-            type="button"
-            variant="outline"
-          >
-            <Eraser />
-            <span className="hidden xl:inline">{t('editor.initVoice')}</span>
-          </Button>
+          {/* Randomise stays one click outside the menu, because it is rolled again and again. */}
           <Button
             aria-label={t('editor.randomise')}
-            className="font-vt323"
             disabled={syncState === 'sending'}
             onClick={onRandomise}
+            size="icon"
             title={t('editor.randomise')}
             type="button"
             variant="outline"
           >
             <Dices />
-            <span className="hidden xl:inline">{t('editor.randomise')}</span>
           </Button>
+          <ToolbarDivider />
           <div className="flex items-center">
             <Button
               className="font-vt323"

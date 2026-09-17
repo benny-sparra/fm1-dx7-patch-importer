@@ -150,6 +150,11 @@ export default {
     operatorSummaryWithAudition: '操作器 {{number}}，{{role}}，{{audition}}',
     operatorMuted: '已静音',
     operatorSoloed: '独奏',
+    operatorMenu: '操作器 {{number}} 操作',
+    copyOperatorAction: '复制操作器 {{number}}',
+    pasteOperatorAction: '粘贴操作器 {{source}}',
+    pasteOperatorFromPatchAction: '粘贴“{{patch}}”的操作器 {{source}}',
+    pasteOperatorEmpty: '粘贴（请先复制一个操作器）',
     lfoWaves: {
       triangle: '三角波',
       sawDown: '下降锯齿波',
@@ -256,6 +261,7 @@ export default {
     demoLoaded: '已将演示声音载入“{{bank}}”。',
     patchSaved: '已将“{{patch}}”保存到音色库。',
     patchCopied: '已将“{{patch}}”复制到“{{bank}}”的 {{slot}}。',
+    operatorCopied: '已复制操作器 {{number}}。',
   },
   meta: {
     title: 'M-VAVE FM1 音色编辑器与音色库',
@@ -457,6 +463,7 @@ export default {
     discard: '放弃更改',
     saveAndReturn: '保存并返回',
     initVoice: '初始化音色',
+    initVoiceHelp: '从简单的正弦波开始构建。效果会关闭，但保留其设置。',
     randomise: '随机化',
   },
   midi: {
