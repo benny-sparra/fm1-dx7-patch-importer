@@ -134,12 +134,18 @@ export function createMonitoringInitializer({
 
         const reactErrorHandler = sentry.reactErrorHandler()
         onInitialized?.(sentry)
+        const reportUnlessContainedDynamicImportFailure = (
+          error: unknown,
+          errorInfo: ErrorInfo,
+        ) => {
+          if (isContainedDynamicImportFailure(error)) return
+          reactErrorHandler(error, errorInfo)
+        }
+
         return {
-          onCaughtError(error: unknown, errorInfo: ErrorInfo) {
-            if (isContainedDynamicImportFailure(error)) return
-            reactErrorHandler(error, errorInfo)
-          },
-          onRecoverableError: reactErrorHandler,
+          onCaughtError: reportUnlessContainedDynamicImportFailure,
+          // React reports a failed lazy chunk here as well as to the boundary that caught it.
+          onRecoverableError: reportUnlessContainedDynamicImportFailure,
           onUncaughtError: reactErrorHandler,
         }
       })
