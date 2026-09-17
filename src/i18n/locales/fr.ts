@@ -550,6 +550,7 @@ export default {
     copied: 'Copié',
     copyHex: 'Copier en hexadécimal',
     copyUnavailable: 'Copie indisponible',
+    downloadLog: 'Télécharger le journal',
   },
   banks: {
     empty: 'Vide',

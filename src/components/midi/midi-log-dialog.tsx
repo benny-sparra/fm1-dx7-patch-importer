@@ -1,15 +1,19 @@
-import { ListMusic } from 'lucide-react'
+import { Download, ListMusic } from 'lucide-react'
 import { useRef, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { MidiLogCard } from '@/components/midi/midi-log-card'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogBody,
   DialogCloseButton,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { downloadFile } from '@/lib/download-file'
+import { makeMidiLogFile } from '@/lib/midi-log-file'
 import { type MidiLogStore } from '@/lib/midi-log-store'
 
 type MidiLogDialogProps = {
@@ -22,6 +26,14 @@ export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
   const log = useSyncExternalStore(logStore.subscribe, logStore.getSnapshot, logStore.getSnapshot)
   // Every append publishes a new snapshot, so this re-renders whenever activity starts.
   const hasMidiActivity = logStore.hasActivity()
+
+  function downloadLog() {
+    const { filename, text } = makeMidiLogFile(log, {
+      exportedAt: new Date(),
+      userAgent: navigator.userAgent,
+    })
+    downloadFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), filename)
+  }
 
   return (
     <>
@@ -46,6 +58,12 @@ export function MidiLogDialog({ logStore }: MidiLogDialogProps) {
         <DialogBody>
           <MidiLogCard log={log} />
         </DialogBody>
+        <DialogFooter>
+          <Button onClick={downloadLog} size="sm" type="button" variant="outline">
+            <Download aria-hidden="true" className="size-4" />
+            {t('midi.downloadLog')}
+          </Button>
+        </DialogFooter>
       </Dialog>
     </>
   )

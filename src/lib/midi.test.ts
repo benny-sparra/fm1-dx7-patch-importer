@@ -223,9 +223,9 @@ describe('resolveMidiPortSelection', () => {
   })
 
   it('uses the first port when the remembered one is missing as MIDI connects', () => {
-    expect(resolveMidiPortSelection([port('other'), port('fm1')], 'old-port', 'connected')).toBe(
-      'other',
-    )
+    const ports = [port('first', 'USB MIDI Interface'), port('second', 'Keyboard')]
+
+    expect(resolveMidiPortSelection(ports, 'old-port', 'connected')).toBe('first')
   })
 
   it('selects nothing rather than another device when the chosen port disconnects', () => {
@@ -252,6 +252,26 @@ describe('resolveMidiPortSelection', () => {
     expect(resolveMidiPortSelection([port('14:0', 'Midi Through Port-0')], '', 'connected')).toBe(
       '14:0',
     )
+  })
+
+  it('prefers a port named for the FM1 over other devices when choosing automatically', () => {
+    const ports = [
+      port('14:0', 'Midi Through Port-0'),
+      port('20:0', 'USB MIDI Interface'),
+      port('24:0', 'FM-1 MIDI 1'),
+    ]
+
+    expect(resolveMidiPortSelection(ports, '', 'connected')).toBe('24:0')
+  })
+
+  it('keeps a remembered port rather than switching to one named for the FM1', () => {
+    const ports = [port('20:0', 'USB MIDI Interface'), port('24:0', 'FM-1 MIDI 1')]
+
+    expect(resolveMidiPortSelection(ports, '20:0', 'connected')).toBe('20:0')
+  })
+
+  it('does not move to a port named for the FM1 when the chosen port disconnects', () => {
+    expect(resolveMidiPortSelection([port('24:0', 'FM-1 MIDI 1')], '20:0', 'changed')).toBe('')
   })
 
   it('keeps a built-in port the user chose', () => {

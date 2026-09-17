@@ -537,6 +537,7 @@ export default {
     copied: 'Copied',
     copyHex: 'Copy hex',
     copyUnavailable: 'Copy unavailable',
+    downloadLog: 'Download log',
   },
   banks: {
     empty: 'Empty',

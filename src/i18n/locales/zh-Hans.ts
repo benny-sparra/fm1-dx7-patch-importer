@@ -501,6 +501,7 @@ export default {
     copied: '已复制',
     copyHex: '复制十六进制数据',
     copyUnavailable: '无法复制',
+    downloadLog: '下载日志',
   },
   banks: {
     addBankHelp: '为音色库命名，并可选择导入声音数据。',
