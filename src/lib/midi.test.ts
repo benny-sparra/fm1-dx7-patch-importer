@@ -216,19 +216,47 @@ describe('isHighRateMidiMessage', () => {
 })
 
 describe('resolveMidiPortSelection', () => {
+  const port = (id: string, name = id) => ({ id, name })
+
   it('keeps the chosen port while it is available', () => {
-    expect(resolveMidiPortSelection(['other', 'fm1'], 'fm1', 'changed')).toBe('fm1')
+    expect(resolveMidiPortSelection([port('other'), port('fm1')], 'fm1', 'changed')).toBe('fm1')
   })
 
   it('uses the first port when the remembered one is missing as MIDI connects', () => {
-    expect(resolveMidiPortSelection(['other', 'fm1'], 'old-port', 'connected')).toBe('other')
+    expect(resolveMidiPortSelection([port('other'), port('fm1')], 'old-port', 'connected')).toBe(
+      'other',
+    )
   })
 
   it('selects nothing rather than another device when the chosen port disconnects', () => {
-    expect(resolveMidiPortSelection(['other'], 'fm1', 'changed')).toBe('')
+    expect(resolveMidiPortSelection([port('other')], 'fm1', 'changed')).toBe('')
   })
 
   it('uses the first port that appears when none was chosen', () => {
-    expect(resolveMidiPortSelection(['fm1'], '', 'changed')).toBe('fm1')
+    expect(resolveMidiPortSelection([port('fm1')], '', 'changed')).toBe('fm1')
+  })
+
+  it('passes over the Linux MIDI Through loopback when choosing a port automatically', () => {
+    const ports = [port('14:0', 'Midi Through Port-0'), port('20:0', 'USB Composite Device')]
+
+    expect(resolveMidiPortSelection(ports, '', 'connected')).toBe('20:0')
+  })
+
+  it('passes over the Windows software synth when choosing a port automatically', () => {
+    const ports = [port('gs', 'Microsoft GS Wavetable Synth'), port('fm1', 'USB Composite Device')]
+
+    expect(resolveMidiPortSelection(ports, '', 'connected')).toBe('fm1')
+  })
+
+  it('uses a built-in port when it is the only one available', () => {
+    expect(resolveMidiPortSelection([port('14:0', 'Midi Through Port-0')], '', 'connected')).toBe(
+      '14:0',
+    )
+  })
+
+  it('keeps a built-in port the user chose', () => {
+    const ports = [port('14:0', 'Midi Through Port-0'), port('fm1', 'USB Composite Device')]
+
+    expect(resolveMidiPortSelection(ports, '14:0', 'connected')).toBe('14:0')
   })
 })

@@ -9,6 +9,8 @@ The editor works in desktop browsers with Web MIDI and SysEx, such as Chrome, Ed
 
 After the first successful connection, the app remembers the selected MIDI ports and both channels and reconnects automatically on future visits. Switch **MIDI online** off to disable automatic connection. If the selected output disconnects, the app does not switch to another device: nothing is selected until the output is reconnected or you choose another in **Settings**, and messages still waiting to be sent are dropped.
 
+On macOS the FM1 appears as **USB Composite Device**; other systems may name it differently. When no port has been chosen yet, the app picks the first MIDI device it finds and skips ports built into the operating system, such as **Midi Through** on Linux and **Microsoft GS Wavetable Synth** on Windows. If notes do not reach the FM1, open **Settings** and check that the output is the FM1.
+
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 
 Clicking a slot in banks A–D selects that hardware slot and then sends the patch's saved FM1 effects, because a DX7 bank transfer does not carry effects. Clicking a slot in an added bank sends its voice and effects to the edit buffer.

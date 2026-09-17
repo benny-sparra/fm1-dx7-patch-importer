@@ -162,16 +162,8 @@ export function useMidi() {
       const nextOutputs = portsToDevices(activeWebMidi.outputs)
       const nextInputs = portsToDevices(activeWebMidi.inputs)
       const chosenOutputId = preferredOutputId.current
-      const outputId = resolveMidiPortSelection(
-        nextOutputs.map((device) => device.id),
-        chosenOutputId,
-        reason,
-      )
-      const inputId = resolveMidiPortSelection(
-        nextInputs.map((device) => device.id),
-        preferredInputId.current,
-        reason,
-      )
+      const outputId = resolveMidiPortSelection(nextOutputs, chosenOutputId, reason)
+      const inputId = resolveMidiPortSelection(nextInputs, preferredInputId.current, reason)
       // The port in use is the one to wait for if it disconnects. A port missing when MIDI connects
       // is forgotten for this session, so the device picked in its place is kept from then on.
       if (reason === 'connected' || outputId) preferredOutputId.current = outputId
