@@ -169,12 +169,51 @@ type BankTransferFailureContext = {
 
 type BankTransferCaptureSdk = Pick<SentrySdk, 'captureException'>
 
+/**
+ * Which operating-system family the browser runs on, as one of a fixed set. Linux browsers send
+ * MIDI through the ALSA sequencer, which drops a bank that overruns its output buffer, so a
+ * transfer failure there is a known environment limit rather than a fault to investigate. Nothing
+ * finer than the family is reported, and an unrecognised platform stays `other`.
+ */
+export type CoarsePlatform = 'android' | 'ios' | 'linux' | 'macos' | 'other' | 'windows'
+
+type CoarsePlatformSource = {
+  platform?: string
+  userAgent?: string
+  userAgentData?: { platform?: string }
+}
+
+export function resolveCoarsePlatform(source: CoarsePlatformSource | undefined): CoarsePlatform {
+  const hint =
+    `${source?.userAgentData?.platform ?? ''} ${source?.platform ?? ''} ${source?.userAgent ?? ''}`.toLowerCase()
+  const names = (...values: string[]) => values.some((value) => hint.includes(value))
+
+  // Android names Linux and iPadOS names Macintosh, so the more specific family is matched first.
+  if (names('android')) return 'android'
+  if (names('iphone', 'ipad', 'ipod')) return 'ios'
+  if (names('mac')) return 'macos'
+  if (names('win')) return 'windows'
+  if (names('linux', 'x11')) return 'linux'
+  return 'other'
+}
+
+function currentCoarsePlatform(): CoarsePlatform {
+  try {
+    return resolveCoarsePlatform(globalThis.navigator as CoarsePlatformSource | undefined)
+  } catch {
+    // A blocked or absent navigator leaves the platform unknown rather than losing the report.
+    return 'other'
+  }
+}
+
 export function captureBankTransferFailure(
   sentry: BankTransferCaptureSdk,
   context: BankTransferFailureContext,
+  platform: CoarsePlatform = currentCoarsePlatform(),
 ) {
   const midiTransferContext: Record<string, boolean | number | string> = {
     channel: context.channel,
+    platform,
     stage: context.stage,
     sysex_available: context.sysexAvailable,
   }
