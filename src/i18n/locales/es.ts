@@ -544,6 +544,7 @@ export default {
     copied: 'Copiado',
     copyHex: 'Copiar hexadecimal',
     copyUnavailable: 'Copia no disponible',
+    downloadLog: 'Descargar registro',
   },
   banks: {
     addBankHelp: 'Asigna un nombre al banco e importa sus datos de sonido si quieres.',

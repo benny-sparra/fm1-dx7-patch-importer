@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { type MidiLogEntry } from '@/lib/midi'
+import { formatMidiHexRows } from '@/lib/midi-log-file'
 import { cn } from '@/lib/utils'
 
 type MidiLogCardProps = {
@@ -24,17 +25,10 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
   const { t } = useTranslation()
   const [selectedEntry, setSelectedEntry] = useState<MidiLogEntry | null>(null)
   const [copyStatus, setCopyStatus] = useState<'copied' | 'idle' | 'unavailable'>('idle')
-  const formattedData = useMemo(() => {
-    if (!selectedEntry?.data) return ''
-
-    const bytes = Array.from(selectedEntry.data)
-    return Array.from({ length: Math.ceil(bytes.length / 16) }, (_, row) =>
-      bytes
-        .slice(row * 16, row * 16 + 16)
-        .map((byte) => byte.toString(16).padStart(2, '0').toUpperCase())
-        .join(' '),
-    ).join('\n')
-  }, [selectedEntry])
+  const formattedData = useMemo(
+    () => (selectedEntry?.data ? formatMidiHexRows(selectedEntry.data) : ''),
+    [selectedEntry],
+  )
 
   function viewData(entry: MidiLogEntry) {
     setSelectedEntry((current) => (current?.id === entry.id ? null : entry))

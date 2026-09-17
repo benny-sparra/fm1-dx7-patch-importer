@@ -550,6 +550,7 @@ export default {
     copied: 'Kopiert',
     copyHex: 'Hex-Daten kopieren',
     copyUnavailable: 'Kopieren nicht verfügbar',
+    downloadLog: 'Protokoll herunterladen',
   },
   banks: {
     addBankHelp: 'Gib der Bank einen Namen und importiere optional ihre Sounddaten.',

@@ -56,14 +56,21 @@ function isBuiltInMidiPort(name: string) {
   return builtInMidiPortNames.some((pattern) => pattern.test(name.trim()))
 }
 
+/**
+ * The FM1 names its port after itself on Linux (`FM-1 MIDI 1`). macOS lists it as the generic
+ * `USB Composite Device`, so a name match is a preference, never a requirement.
+ */
+const fm1PortName = /\bfm-?1\b/i
+
 type MidiPortChoice = { id: string; name: string }
 
 /**
  * Picks the port to use after the device list is read. When MIDI connects, a remembered port that
- * is missing gives way to the first one available, preferring a real device over a built-in
- * loopback or software synth. Once a port is in use it is never swapped for another device when
- * it disappears, because notes, sounds, and banks meant for the FM1 could then reach a different
- * instrument; nothing is selected until that port returns or another is chosen.
+ * is missing gives way to the first one available, preferring a port named for the FM1, then any
+ * real device over a built-in loopback or software synth. Once a port is in use it is never
+ * swapped for another device when it disappears, because notes, sounds, and banks meant for the
+ * FM1 could then reach a different instrument; nothing is selected until that port returns or
+ * another is chosen.
  */
 export function resolveMidiPortSelection(
   ports: readonly MidiPortChoice[],
@@ -72,7 +79,11 @@ export function resolveMidiPortSelection(
 ) {
   if (ports.some((port) => port.id === chosenId)) return chosenId
   if (reason === 'changed' && chosenId) return ''
-  return (ports.find((port) => !isBuiltInMidiPort(port.name)) ?? ports[0])?.id ?? ''
+  const automaticChoice =
+    ports.find((port) => fm1PortName.test(port.name)) ??
+    ports.find((port) => !isBuiltInMidiPort(port.name)) ??
+    ports[0]
+  return automaticChoice?.id ?? ''
 }
 
 export function sendDx7Voice(output: Output, channel: number, voice: Dx7Voice) {
