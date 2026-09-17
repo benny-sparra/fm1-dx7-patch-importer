@@ -20,6 +20,7 @@ type MonitoringConfiguration = {
   environment: string
   loadSdk: () => Promise<SentrySdk>
   onInitialized?: (sentry: SentrySdk) => void
+  release?: string
 }
 
 const sentryDsn =
@@ -72,6 +73,7 @@ export function createMonitoringInitializer({
   environment,
   loadSdk,
   onInitialized,
+  release,
 }: MonitoringConfiguration) {
   let initialization: Promise<MonitoringRootOptions> | undefined
 
@@ -127,6 +129,7 @@ export function createMonitoringInitializer({
           enableLogs: true,
           enableMetrics: enableVerificationMetrics,
           environment,
+          release,
           replaysOnErrorSampleRate: 0,
           replaysSessionSampleRate: 0,
           tracesSampleRate: 0,
@@ -211,6 +214,9 @@ export const initializeMonitoring = createMonitoringInitializer({
   enableVerificationMetrics: import.meta.env.VITE_SENTRY_VERIFY === 'true',
   environment: import.meta.env.MODE,
   loadSdk: () => import('./sentry-sdk'),
+  // A build served without one, such as a local production build, reports no release at all rather
+  // than filing its events under a name that matches no deployment.
+  release: import.meta.env.VITE_SENTRY_RELEASE || undefined,
   onInitialized(sentry) {
     initializedSentry = sentry
   },

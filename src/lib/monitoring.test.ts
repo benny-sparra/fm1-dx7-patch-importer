@@ -64,6 +64,33 @@ describe('Sentry monitoring', () => {
     )
   })
 
+  it('names the deployment a production event came from', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+      release: '0c23a69',
+    })
+
+    await initialize()
+
+    expect(sdk.init).toHaveBeenCalledWith(expect.objectContaining({ release: '0c23a69' }))
+  })
+
+  it('leaves the release unset for a build that was served without one', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+
+    expect(sdk.init).toHaveBeenCalledWith(expect.objectContaining({ release: undefined }))
+  })
+
   it('enables metrics only for an explicitly configured verification build', async () => {
     const { sdk } = createSdk()
     const initialize = createMonitoringInitializer({
