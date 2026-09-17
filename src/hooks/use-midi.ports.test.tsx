@@ -22,11 +22,11 @@ const webMidi = vi.hoisted(() => ({
 vi.mock('webmidi', () => ({ WebMidi: webMidi }))
 vi.mock('@/lib/monitoring', () => ({ reportBankTransferFailure }))
 
-function makeOutput(id: string) {
+function makeOutput(id: string, name = id) {
   return {
     id,
     manufacturer: 'Maker',
-    name: id,
+    name,
     sendControlChange: vi.fn(),
     sendNoteOn: vi.fn(),
     sendSysex: vi.fn(),
@@ -60,6 +60,19 @@ function changePorts(outputs: unknown[]) {
 }
 
 describe('useMidi port changes', () => {
+  it('sends notes to the instrument rather than the Linux MIDI Through port on first connection', async () => {
+    const through = makeOutput('14:0', 'Midi Through Port-0')
+    const fm1 = makeOutput('20:0', 'USB Composite Device')
+    webMidi.outputs = [through, fm1]
+    const { result } = await connect()
+
+    act(() => result.current.startNote(60, 'C4'))
+
+    expect(result.current.selectedOutputId).toBe('20:0')
+    expect(fm1.sendNoteOn).toHaveBeenCalled()
+    expect(through.sendNoteOn).not.toHaveBeenCalled()
+  })
+
   it('does not move notes to another output when the selected output disconnects', async () => {
     const fm1 = makeOutput('fm1')
     const other = makeOutput('other')

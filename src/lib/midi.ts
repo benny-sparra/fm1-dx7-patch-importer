@@ -46,19 +46,33 @@ export function portsToDevices<TPort extends MidiPort>(ports: TPort[]) {
 }
 
 /**
+ * Ports every system of that kind lists whether or not an instrument is attached: Linux's ALSA
+ * loopback, which Chrome usually lists first, and the Windows built-in software synth. Choosing
+ * one automatically sends everything meant for the FM1 nowhere, with no error to explain why.
+ */
+const builtInMidiPortNames = [/^midi through\b/i, /^microsoft gs wavetable synth\b/i]
+
+function isBuiltInMidiPort(name: string) {
+  return builtInMidiPortNames.some((pattern) => pattern.test(name.trim()))
+}
+
+type MidiPortChoice = { id: string; name: string }
+
+/**
  * Picks the port to use after the device list is read. When MIDI connects, a remembered port that
- * is missing gives way to the first one available. Once a port is in use it is never swapped for
- * another device when it disappears, because notes, sounds, and banks meant for the FM1 could then
- * reach a different instrument; nothing is selected until that port returns or another is chosen.
+ * is missing gives way to the first one available, preferring a real device over a built-in
+ * loopback or software synth. Once a port is in use it is never swapped for another device when
+ * it disappears, because notes, sounds, and banks meant for the FM1 could then reach a different
+ * instrument; nothing is selected until that port returns or another is chosen.
  */
 export function resolveMidiPortSelection(
-  portIds: readonly string[],
+  ports: readonly MidiPortChoice[],
   chosenId: string,
   reason: 'changed' | 'connected',
 ) {
-  if (portIds.includes(chosenId)) return chosenId
+  if (ports.some((port) => port.id === chosenId)) return chosenId
   if (reason === 'changed' && chosenId) return ''
-  return portIds[0] ?? ''
+  return (ports.find((port) => !isBuiltInMidiPort(port.name)) ?? ports[0])?.id ?? ''
 }
 
 export function sendDx7Voice(output: Output, channel: number, voice: Dx7Voice) {

@@ -114,6 +114,9 @@ open everything an earlier release could have saved.
 - Web MIDI requires a secure context; local HTTPS setup is provided by `npm run setup:https`.
 - Check DX7 voice data at every boundary: reject bytes above 7-bit in imported files and SysEx
   payload builders, and normalise stored voices on read.
+- When MIDI chooses a port automatically, skip ports every system lists without an instrument, such
+  as ALSA's Midi Through on Linux, unless nothing else is available. Match them by name in
+  `resolveMidiPortSelection`; a port the user chose is kept.
 - Never move MIDI traffic to a different device on its own. When the selected port disconnects, select
   nothing until it returns or the user chooses another, and drop queued messages when the output
   changes or MIDI is switched off. A dropped transfer is not a transport failure for monitoring.
