@@ -41,6 +41,9 @@ type SequencerPageProps = {
  */
 export function SequencerPage({ midi, onBack }: SequencerPageProps) {
   const { t } = useTranslation(sequencerNamespace)
+  // The shell's MIDI hints live in the eager namespace, so a disabled control can explain itself
+  // without waiting for anything.
+  const { t: tShell } = useTranslation()
   const headingId = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const sendButtonRef = useRef<HTMLButtonElement>(null)
@@ -205,6 +208,13 @@ export function SequencerPage({ midi, onBack }: SequencerPageProps) {
               dialogRef.current?.showModal()
             }}
             ref={sendButtonRef}
+            title={
+              !midi.midiAccess
+                ? tShell('midi.switchOnFirst')
+                : !midi.hasMidiOutput
+                  ? tShell('midi.chooseOutput')
+                  : undefined
+            }
             type="button"
           >
             <Send aria-hidden="true" />
@@ -242,6 +252,13 @@ export function SequencerPage({ midi, onBack }: SequencerPageProps) {
               setObservation(null)
               setListening((current) => !current)
             }}
+            title={
+              !midi.midiAccess
+                ? tShell('midi.switchOnFirst')
+                : !midi.hasMidiInput
+                  ? tShell('midi.chooseInput')
+                  : undefined
+            }
             type="button"
             variant={listening ? 'default' : 'secondary'}
           >

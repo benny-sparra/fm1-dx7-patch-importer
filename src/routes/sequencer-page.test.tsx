@@ -40,6 +40,7 @@ function setup(overrides: Partial<MidiController> = {}) {
     channel: 1,
     hasMidiInput: true,
     hasMidiOutput: true,
+    midiAccess: true,
     selectedOutput: output,
     subscribeToInput: (listener: MidiInputListener) => {
       listeners.add(listener)
@@ -198,11 +199,19 @@ describe('SequencerPage sending', () => {
     )
   })
 
-  it('cannot be sent without a MIDI output selected at all', () => {
-    setup({ hasMidiOutput: false })
+  it('cannot be sent without a MIDI output selected at all, and says why', () => {
+    setup({ hasMidiOutput: false, midiAccess: true })
 
-    expect(screen.getByRole('button', { name: 'Send to the FM1' }).hasAttribute('disabled')).toBe(
-      true,
+    const send = screen.getByRole('button', { name: 'Send to the FM1' })
+    expect(send.hasAttribute('disabled')).toBe(true)
+    expect(send.getAttribute('title')).toBe('Choose a MIDI output')
+  })
+
+  it('says to switch MIDI on when it is off altogether', () => {
+    setup({ hasMidiOutput: false, midiAccess: false })
+
+    expect(screen.getByRole('button', { name: 'Send to the FM1' }).getAttribute('title')).toBe(
+      'Switch MIDI on first',
     )
   })
 })
@@ -268,12 +277,12 @@ describe('SequencerPage listening', () => {
     expect(screen.getByRole('button', { name: 'Make step 1 a rest' })).toBeTruthy()
   })
 
-  it('cannot listen without a MIDI input', () => {
-    setup({ hasMidiInput: false })
+  it('cannot listen without a MIDI input, and says why', () => {
+    setup({ hasMidiInput: false, midiAccess: true })
 
-    expect(screen.getByRole('button', { name: 'Listen to the FM1' }).hasAttribute('disabled')).toBe(
-      true,
-    )
+    const trigger = screen.getByRole('button', { name: 'Listen to the FM1' })
+    expect(trigger.hasAttribute('disabled')).toBe(true)
+    expect(trigger.getAttribute('title')).toBe('Choose a MIDI input')
   })
 
   it('stops reading the port when listening is switched off', async () => {

@@ -176,7 +176,7 @@ function App() {
             <ErrorBoundary
               fallback={<LoadFailedNotice className="p-4" message={t('ui.sequencerOpenFailed')} />}
             >
-              <Suspense fallback={loadingSection(t('common.loading'))}>
+              <Suspense fallback={loadingSection(t('common.loadingSequencer'))}>
                 <SequencerPage midi={midi} onBack={() => setSequencerOpen(false)} />
               </Suspense>
             </ErrorBoundary>

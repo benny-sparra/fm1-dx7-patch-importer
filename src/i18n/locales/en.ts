@@ -213,6 +213,7 @@ export default {
     channel: 'Channel {{number}}',
     loading: 'Loading editor…',
     loadingLibrary: 'Loading library',
+    loadingSequencer: 'Loading sequencer…',
     editorLoadErrorTitle: 'The editor could not be loaded.',
     editorLoadErrorBody:
       'The app may have been updated or the connection was interrupted. Reload to use the latest version, or return to the library.',
@@ -419,6 +420,7 @@ export default {
     online: 'MIDI online',
     offline: 'MIDI offline',
     connectFirst: 'Connect a MIDI output first',
+    chooseInput: 'Choose a MIDI input',
     chooseOutput: 'Choose a MIDI output',
     switchOnFirst: 'Switch MIDI on first',
     closeSysexWarning: 'Close SysEx warning',

@@ -215,6 +215,7 @@ export default {
     channel: 'Canal {{number}}',
     loading: 'Cargando el editor…',
     loadingLibrary: 'Cargando la biblioteca',
+    loadingSequencer: 'Cargando el secuenciador…',
     editorLoadErrorTitle: 'No se pudo cargar el editor.',
     editorLoadErrorBody:
       'Es posible que la aplicación se haya actualizado o que se haya interrumpido la conexión. Recarga para usar la última versión o vuelve a la biblioteca.',
@@ -421,6 +422,7 @@ export default {
     online: 'MIDI en línea',
     offline: 'MIDI sin conexión',
     connectFirst: 'Conecta primero una salida MIDI',
+    chooseInput: 'Elige una entrada MIDI',
     chooseOutput: 'Elige una salida MIDI',
     switchOnFirst: 'Activa primero el MIDI',
     closeSysexWarning: 'Cerrar advertencia de SysEx',
