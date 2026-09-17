@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -45,9 +46,15 @@ describe('PatchEditorHeader', () => {
     expect(screen.getByRole('button', { name: 'Randomise' })).toBeTruthy()
   })
 
-  it('gives the init voice action its translated accessible name', () => {
+  it('lists init voice first in the voice presets menu', async () => {
     renderHeader()
 
-    expect(screen.getByRole('button', { name: 'Init voice' })).toBeTruthy()
+    await userEvent.setup().click(screen.getByLabelText('Voice presets'))
+    const items = screen
+      .getAllByRole('button')
+      .filter((button) => button.closest('details'))
+      .map((button) => button.querySelector('span')?.textContent)
+
+    expect(items.slice(0, 2)).toEqual(['Init voice', 'Soft pad'])
   })
 })

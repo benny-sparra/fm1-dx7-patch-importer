@@ -393,7 +393,7 @@ export default {
     editName: 'Modifier le nom du son',
     patchName: 'Nom du son',
     unsaved: 'Modifications non enregistrées',
-    presets: 'Préréglages sonores',
+    presets: 'Préréglages de voix',
     presetsShort: 'Préréglages',
     presetsHelp:
       'Essayez une direction, puis façonnez-la avec les commandes. Une annulation suffit pour revenir au son actuel.',
@@ -508,6 +508,8 @@ export default {
     discard: 'Abandonner',
     saveAndReturn: 'Enregistrer et revenir',
     initVoice: 'Initialiser',
+    initVoiceHelp:
+      'Une simple onde sinusoïdale pour partir de zéro. Les effets sont coupés mais gardent leurs réglages.',
     randomise: 'Aléatoriser',
   },
   midi: {

@@ -519,7 +519,10 @@ export function PatchEditorPage({
         onNameBlur={commitName}
         onNameChange={updateName}
         onPreset={selectPreset}
-        onInitVoice={() => replaceVoice(initializeVoice)}
+        onInitVoice={() => {
+          presetsMenuRef.current?.removeAttribute('open')
+          replaceVoice(initializeVoice)
+        }}
         onRandomise={() => replaceVoice(randomizeSound)}
         onRedo={() => restoreHistory('redo')}
         onResend={resendToFm1}

@@ -388,7 +388,7 @@ export default {
     editName: 'Editar nombre del sonido',
     patchName: 'Nombre del sonido',
     unsaved: 'Cambios sin guardar',
-    presets: 'Preajustes de sonido',
+    presets: 'Preajustes de voz',
     presetsShort: 'Preajustes',
     presetsHelp:
       'Prueba una dirección y después modifícala con los controles. Puedes volver al sonido actual con una sola acción de deshacer.',
@@ -502,6 +502,8 @@ export default {
     discard: 'Descartar cambios',
     saveAndReturn: 'Guardar y volver',
     initVoice: 'Inicializar',
+    initVoiceHelp:
+      'Una onda senoidal simple para empezar. Los efectos se apagan, pero conservan sus ajustes.',
     randomise: 'Aleatorizar',
   },
   midi: {

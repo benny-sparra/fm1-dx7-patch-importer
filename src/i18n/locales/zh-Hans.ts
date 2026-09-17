@@ -463,6 +463,7 @@ export default {
     discard: '放弃更改',
     saveAndReturn: '保存并返回',
     initVoice: '初始化音色',
+    initVoiceHelp: '从简单的正弦波开始构建。效果会关闭，但保留其设置。',
     randomise: '随机化',
   },
   midi: {

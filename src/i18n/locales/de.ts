@@ -393,7 +393,7 @@ export default {
     editName: 'Soundnamen bearbeiten',
     patchName: 'Soundname',
     unsaved: 'Ungespeicherte Änderungen',
-    presets: 'Sound-Vorlagen',
+    presets: 'Stimmen-Vorlagen',
     presetsShort: 'Vorlagen',
     presetsHelp:
       'Probiere eine Richtung aus und forme sie mit den Reglern. Mit einmal Rückgängig kehrst du zum aktuellen Sound zurück.',
@@ -507,6 +507,8 @@ export default {
     discard: 'Änderungen verwerfen',
     saveAndReturn: 'Speichern und zurück',
     initVoice: 'Initialisieren',
+    initVoiceHelp:
+      'Eine einfache Sinuswelle als Ausgangspunkt. Effekte werden ausgeschaltet, behalten aber ihre Einstellungen.',
     randomise: 'Zufällig',
   },
   midi: {

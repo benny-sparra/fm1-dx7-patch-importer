@@ -385,7 +385,7 @@ export default {
     editName: 'Editar nome do som',
     patchName: 'Nome do som',
     unsaved: 'Alterações não salvas',
-    presets: 'Predefinições de som',
+    presets: 'Predefinições de voz',
     presetsShort: 'Predefinições',
     presetsHelp:
       'Experimente uma direção e modele-a com os controles. Basta desfazer uma vez para voltar ao som atual.',
@@ -499,6 +499,8 @@ export default {
     discard: 'Descartar alterações',
     saveAndReturn: 'Salvar e voltar',
     initVoice: 'Inicializar',
+    initVoiceHelp:
+      'Uma onda senoidal simples para começar. Os efeitos são desligados, mas mantêm seus ajustes.',
     randomise: 'Aleatorizar',
   },
   midi: {

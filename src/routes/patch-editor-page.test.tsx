@@ -27,6 +27,13 @@ afterEach(() => {
   delete window.umami
 })
 
+/** Opens the voice presets menu and chooses Init voice, which closes the menu again. */
+async function chooseInitVoice(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByLabelText('Voice presets'))
+  await user.click(screen.getByRole('button', { name: /^Init voice/ }))
+  expect(screen.getByLabelText('Voice presets').closest('details')?.open).toBe(false)
+}
+
 function setup(overrides: Partial<MidiController> = {}) {
   const midi = {
     hasMidiOutput: true,
@@ -199,7 +206,7 @@ describe('PatchEditorPage MIDI paths', () => {
           ).value,
       )
 
-    await user.click(screen.getByRole('button', { name: 'Init voice' }))
+    await chooseInitVoice(user)
 
     expect(outputLevels()).toEqual(['99', '0'])
 
@@ -222,7 +229,7 @@ describe('PatchEditorPage MIDI paths', () => {
     await user.click(reverb.getByRole('button', { name: 'Enable Reverb' }))
     await user.selectOptions(reverb.getByRole('combobox', { name: 'Reverb Preset' }), 'Large hall')
 
-    await user.click(screen.getByRole('button', { name: 'Init voice' }))
+    await chooseInitVoice(user)
 
     expect(reverb.getByRole('button', { name: 'Enable Reverb' })).toBeTruthy()
     expect(reverbSettings()).toEqual(['1', '70', '35'])
@@ -237,13 +244,13 @@ describe('PatchEditorPage MIDI paths', () => {
     const user = userEvent.setup()
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
-    const initVoice = screen.getByRole('button', { name: 'Init voice' })
+    const initVoice = screen.getByRole('button', { name: /^Init voice/ })
 
-    await user.click(initVoice)
+    await chooseInitVoice(user)
     await waitFor(() => expect(initVoice).toHaveProperty('disabled', false))
     await waitFor(() => expect(midi.sendVoice).toHaveBeenCalled())
     const sends = vi.mocked(midi.sendVoice).mock.calls.length
-    await user.click(initVoice)
+    await chooseInitVoice(user)
 
     expect(midi.sendVoice).toHaveBeenCalledTimes(sends)
   }, 15_000)
