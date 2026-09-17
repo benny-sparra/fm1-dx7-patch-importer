@@ -542,6 +542,32 @@ must send a full loop's worth of steps or state plainly that it does not.
 
 ---
 
+## 5.9 SEQ-REC-001 — the stock recording input contract
+
+**Status: documentation complete (2026-09-17). Standard channel MIDI only; no implementation yet.**
+
+[SEQ-REC-001 recording contract](seq-rec-001-recording-contract.md) states what the editor may
+transmit to record a pattern through the stock recording path: the manual arming sequence, the exact
+per-step bytes (`9n nn vv` / `8n nn 00` for a sounding step, `9n 3C 00` alone for a rest), the
+captured spacing floor of an 80 ms hold and a 100 ms step period, the validation bounds, and the
+failure and recovery story.
+
+Three points from it govern any later work in this track:
+
+- The operation replaces the whole recorded sequence. A pass always starts at step 1 and overwrites
+  forward, so the editor transmits exactly a loop's worth of steps, padding silence with rests, and
+  can never update one step in place.
+- The device acknowledges nothing, so a completed pass is reported as sent, not as recorded.
+  Confirmation comes only from observing a later playback pass (SEQ-OBS-002).
+- Arming, pattern selection, Step length, and the stock `SAVE` remain manual, and a failed pass is
+  never retried automatically.
+
+Three items remain **Needs hardware test** before SEQ-REC-002 can claim verification: an
+editor-transmitted pattern with rests at the 100 ms step period, a committed fixture for sending
+more steps than the loop length, and pitch behaviour at a non-zero device Transpose.
+
+---
+
 # 6. Vendor-specific FM1 protocol
 
 ## 6.1 Vendor SysEx marker

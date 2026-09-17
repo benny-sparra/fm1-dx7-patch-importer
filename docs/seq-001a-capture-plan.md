@@ -109,6 +109,12 @@ identical successive notes occupy two steps rather than merging; and arming reco
 step 1, overwriting forward while leaving later steps intact. The FM1 transmitted nothing while
 recording in any of those runs. See §5.8 of [`fm1-research.md`](fm1-research.md).
 
+SEQ-REC-001 turns those results into the transmit contract in
+[`seq-rec-001-recording-contract.md`](seq-rec-001-recording-contract.md). Its §8 names the three
+captures still required before SEQ-REC-002 may claim hardware verification: an editor-transmitted
+pattern with rests at a 100 ms step period, an over-length pass that exceeds the loop length, and a
+pitch recorded at a non-zero device Transpose.
+
 | Question                                                | Current evidence                                                                                                                                                                      | Classification                                                                          | What would confirm or disprove it                                                                     |
 | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | Which bytes encode pitch?                               | V13 firmware says record offsets `0..9`; no hardware record capture.                                                                                                                  | Strongly inferred for V13 hardware; not confirmed by fixture.                           | Two repeated pitch-only pairs with lawful record/state evidence.                                      |

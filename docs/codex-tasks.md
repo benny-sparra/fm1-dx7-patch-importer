@@ -799,7 +799,9 @@ assert the resulting pattern. No hardware in tests.
 
 ## SEQ-REC-001 — Document the stock recording input contract
 
-**Status:** ready. SEQ-001B resolved on 2026-09-17.
+**Status:** complete (2026-09-17). The contract is
+[`docs/seq-rec-001-recording-contract.md`](seq-rec-001-recording-contract.md), summarised in §5.9 of
+[`fm1-research.md`](fm1-research.md).
 
 ### Goal
 
@@ -824,7 +826,9 @@ No implementation in this task.
 
 ## SEQ-REC-002 — Implement bounded pattern transmit into record mode
 
-**Status:** after SEQ-REC-001 and explicit hardware verification
+**Status:** unblocked by SEQ-REC-001; implement only what
+[`docs/seq-rec-001-recording-contract.md`](seq-rec-001-recording-contract.md) documents, and do not
+claim verification for the three items its §8 still lists as needing hardware.
 
 ### Goal
 

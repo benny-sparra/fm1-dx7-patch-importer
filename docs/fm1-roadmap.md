@@ -245,7 +245,8 @@ See §5.8 of [`fm1-research.md`](fm1-research.md).
 - Phase 6 gains a parallel read track: reconstruct the pattern from observed playback rather than
   from a request/reply. See SEQ-OBS-001 and SEQ-OBS-002.
 - Phase 7 gains a parallel write track: transmit a pattern as recorded input while the user has
-  armed the device by hand. See SEQ-REC-001 and SEQ-REC-002.
+  armed the device by hand. SEQ-REC-001 documented that contract on 2026-09-17; see
+  [`seq-rec-001-recording-contract.md`](seq-rec-001-recording-contract.md) and SEQ-REC-002.
 
 Direct-transport work is not abandoned, only unfunded by evidence. If a future firmware or a lawful
 capture of the vendor BLE application produces a repeatable request/reply, Phase 3 reopens and the
@@ -410,8 +411,9 @@ Safely edit the FM1's internal sequence.
 
 > **Phase 3 closure applies.** The write operations below have no evidenced transport and are
 > blocked. The available write track is controlled stock recording input: the user arms record mode
-> by hand, and the editor transmits a pattern as ordinary Note On/Off. See SEQ-REC-001 and
-> SEQ-REC-002. That track cannot update one note in place, cannot select a pattern, and cannot save;
+> by hand, and the editor transmits a pattern as ordinary Note On/Off. The contract is
+> [`seq-rec-001-recording-contract.md`](seq-rec-001-recording-contract.md); SEQ-REC-002 implements
+> it and nothing beyond it. That track cannot update one note in place, cannot select a pattern, and cannot save;
 > it replaces the whole recorded sequence, so 7.3 persistence semantics matter more, not less.
 
 ## Staged progression
