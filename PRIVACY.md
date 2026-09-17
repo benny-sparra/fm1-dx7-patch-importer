@@ -37,3 +37,7 @@ The Sentry DSN is a public routing identifier embedded in the production client,
 authentication secret. Production deployments with the three server-side Sentry build variables
 described in [the maintainer notes](docs/maintaining.md#production-source-maps) also inject debug
 IDs and upload source maps so Sentry can reliably resolve minified stack traces.
+
+A production event also carries the release it came from, which is the deployment's commit
+identifier. It describes the build rather than the person using it, and is the same identifier
+already published in this repository's history.

@@ -197,6 +197,10 @@ open everything an earlier release could have saved.
   outside any boundary is still reported.
 - Keep `public/_headers`, the origins used by browser code, and `scripts/check-security-headers.mjs`
   aligned. Any new remote resource or endpoint needs an explicit privacy and CSP review.
+- A production build names its release from the deploying platform's commit, resolved once in
+  `resolveSentryRelease`. The client and the uploaded source maps must take the name from that same
+  helper, or a resolved stack trace is filed where the event that needs it will not look. A build
+  without one reports no release rather than a name matching no deployment.
 
 ### Images and generated assets
 

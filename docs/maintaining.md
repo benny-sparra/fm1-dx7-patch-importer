@@ -74,6 +74,17 @@ For a one-off local upload, put the same variables in the already-ignored
 `@sentry/cli` install script is explicitly approved because the plugin needs its platform uploader;
 other dependency install scripts remain unapproved.
 
+## Release names
+
+A production build names the deployment it came from, so an event points at an exact revision
+instead of one guessed from its date. The name is taken from the first of `SENTRY_RELEASE`,
+`CF_PAGES_COMMIT_SHA` and `GITHUB_SHA` that is set, so a Cloudflare Pages deployment needs no
+configuration; set `SENTRY_RELEASE` only for a build made somewhere that supplies neither commit.
+
+The same name is given to the client and to the uploaded source maps, so a resolved stack trace is
+filed where the event that needs it will look. A build served without any of the variables, such as
+a local `npm run build`, reports no release rather than one matching no deployment.
+
 To complete Sentry's onboarding verification, temporarily add `VITE_SENTRY_VERIFY=true` to the
 Cloudflare Pages production environment and deploy. A clearly labelled verification strip appears
 above the librarian patch grid. Clicking **Send Sentry test error** emits Sentry's fixed onboarding
