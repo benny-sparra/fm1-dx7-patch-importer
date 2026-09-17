@@ -862,6 +862,30 @@
     box-shadow: 0 0 18px var(--crt-acc);
   }
 
+  /*
+   * The sequencer grid's keyboard rail. Same keybed reading as the played keyboard above, turned on
+   * its side: the light falls from the playing edge, which is the left here rather than the top.
+   * The rail is a label, not a control, so it has no hover or active state.
+   */
+  .synthwave-piano-rail-white {
+    border-color: var(--crt-shadow);
+    background: linear-gradient(
+      90deg,
+      var(--crt-ink) 0%,
+      color-mix(in srgb, var(--crt-ink) 88%, var(--crt-acc-mid)) 62%,
+      color-mix(in srgb, var(--crt-ink) 62%, var(--crt-acc-mid))
+    );
+    box-shadow: inset -10px 0 16px hsl(0 0% 0% / 12%);
+  }
+
+  .synthwave-piano-rail-black {
+    border-color: var(--crt-shadow);
+    background: linear-gradient(90deg, var(--crt-bg-head), var(--crt-bg-0) 62%, var(--crt-shadow));
+    box-shadow:
+      inset 1px 0 var(--crt-line),
+      6px 0 10px hsl(0 0% 0% / 62%);
+  }
+
   .patch-area-surface {
     background-color: var(--crt-bg-panel);
   }

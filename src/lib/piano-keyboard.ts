@@ -41,6 +41,11 @@ const computerKeyMap = [
 export const octaveDownKeyCode = 'KeyZ'
 export const octaveUpKeyCode = 'KeyX'
 
+/** Whether a MIDI note falls on a black key, so a keyboard or a grid can draw it as one. */
+export function isBlackKey(note: number) {
+  return blackKeyMap.some((key) => key.step === ((note % 12) + 12) % 12)
+}
+
 /** The letter a physical key carries on a QWERTY keyboard, such as `A` for `KeyA`. */
 export function qwertyKeyLabel(code: string) {
   return code.replace(/^Key/, '')

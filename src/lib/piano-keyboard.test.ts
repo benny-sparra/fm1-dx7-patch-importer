@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { makePianoKeys, mapComputerPianoKeys, qwertyKeyLabel } from '@/lib/piano-keyboard'
+import {
+  isBlackKey,
+  makePianoKeys,
+  mapComputerPianoKeys,
+  qwertyKeyLabel,
+} from '@/lib/piano-keyboard'
 
 describe('piano keyboard mapping', () => {
   it('maps the two-octave surface to MIDI notes and labels', () => {
@@ -45,5 +50,18 @@ describe('qwertyKeyLabel', () => {
   it('names a physical key by its QWERTY letter', () => {
     expect(qwertyKeyLabel('KeyA')).toBe('A')
     expect(qwertyKeyLabel('KeyZ')).toBe('Z')
+  })
+})
+
+describe('isBlackKey', () => {
+  it('marks the five black keys of an octave', () => {
+    expect([60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71].filter(isBlackKey)).toEqual([
+      61, 63, 66, 68, 70,
+    ])
+  })
+
+  it('answers the same way in every octave', () => {
+    expect([0, 12, 24, 127].map(isBlackKey)).toEqual([false, false, false, false])
+    expect([1, 13, 25, 126].map(isBlackKey)).toEqual([true, true, true, true])
   })
 })

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -63,68 +63,143 @@ async function setStepLength(user: ReturnType<typeof userEvent.setup>, steps: st
   await user.selectOptions(screen.getByLabelText('Step length'), steps)
 }
 
-describe('SequencerPage pattern editing', () => {
-  it('starts with a loop of rests, so no step is left undefined', () => {
+describe('SequencerPage pattern grid', () => {
+  it('shows one column per step and two octaves of pitches', () => {
     setup()
 
-    expect(screen.getAllByRole('button', { name: /Make step \d+ a note/ })).toHaveLength(8)
+    expect(screen.getAllByRole('columnheader')).toHaveLength(9)
+    expect(screen.getAllByRole('rowheader')).toHaveLength(24)
   })
 
-  it('shortens the loop when the step length is reduced', async () => {
+  it('follows the step length', async () => {
     const user = userEvent.setup()
     setup()
 
-    await setStepLength(user, '2')
+    await setStepLength(user, '4')
 
-    expect(screen.getAllByRole('button', { name: /Make step \d+ a note/ })).toHaveLength(2)
+    expect(screen.getAllByRole('columnheader')).toHaveLength(5)
   })
 
-  it('pads a longer loop with rests rather than leaving steps undefined', async () => {
+  it('puts a note in the pattern when a cell is pressed', async () => {
     const user = userEvent.setup()
     setup()
 
-    await setStepLength(user, '12')
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
 
-    expect(screen.getAllByRole('button', { name: /Make step \d+ a note/ })).toHaveLength(12)
+    expect(screen.getByRole('button', { name: 'Step 1, C4' }).getAttribute('aria-pressed')).toBe(
+      'true',
+    )
   })
 
-  it('turns a step into a note and shows the note it will play', async () => {
+  it('clears the step when its own cell is pressed again', async () => {
     const user = userEvent.setup()
     setup()
 
-    await user.click(screen.getByRole('button', { name: 'Make step 1 a note' }))
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
 
-    expect(screen.getByText('C4')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Make step 1 a rest' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Step 1, C4' }).getAttribute('aria-pressed')).toBe(
+      'false',
+    )
   })
 
-  it('names the pitch as the user changes it', async () => {
+  it('keeps one note per step, because a recorded step holds one', async () => {
     const user = userEvent.setup()
     setup()
 
-    await user.click(screen.getByRole('button', { name: 'Make step 1 a note' }))
-    const pitch = screen.getByLabelText('Pitch')
-    await user.clear(pitch)
-    await user.type(pitch, '65')
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
+    await user.click(screen.getByRole('button', { name: 'Step 1, E4' }))
 
-    expect(screen.getByText('F4')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Step 1, C4' }).getAttribute('aria-pressed')).toBe(
+      'false',
+    )
+    expect(screen.getByRole('button', { name: 'Step 1, E4' }).getAttribute('aria-pressed')).toBe(
+      'true',
+    )
+  })
+
+  it('names the note a step plays in its column header', async () => {
+    const user = userEvent.setup()
+    setup()
+
+    await user.click(screen.getByRole('button', { name: 'Step 2, G4' }))
+
+    expect(screen.getByTitle('Step 2 plays G4')).toBeTruthy()
+    expect(screen.getByTitle('Step 1 is a rest')).toBeTruthy()
+  })
+
+  it('shows another octave without changing the pattern', async () => {
+    const user = userEvent.setup()
+    setup()
+
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
+    await user.click(screen.getByRole('button', { name: 'Show the octave above' }))
+
+    expect(screen.queryByRole('button', { name: 'Step 1, C4' })).toBeNull()
+    expect(screen.getByTitle('Step 1 plays C4')).toBeTruthy()
+  })
+
+  it('moves between cells with the arrow keys', async () => {
+    const user = userEvent.setup()
+    setup()
+
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
+    await user.keyboard('{ArrowRight}{ArrowUp}')
+    await user.keyboard('{Enter}')
+
+    expect(screen.getByTitle('Step 2 plays C#4')).toBeTruthy()
+  })
+
+  it('does not move past the edge of the grid', async () => {
+    const user = userEvent.setup()
+    setup()
+
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
+    await user.keyboard('{ArrowLeft}{ArrowLeft}{Enter}')
+
+    expect(screen.getByTitle('Step 1 is a rest')).toBeTruthy()
+  })
+
+  it('offers a velocity only for a step that sounds', async () => {
+    const user = userEvent.setup()
+    setup()
+
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
+
+    expect(screen.getByLabelText('Velocity for step 1').hasAttribute('disabled')).toBe(false)
+    expect(screen.getByLabelText('Velocity for step 2').hasAttribute('disabled')).toBe(true)
+  })
+
+  it('sends the velocity the lane was set to', async () => {
+    const user = userEvent.setup()
+    const { sent } = setup()
+
+    await setStepLength(user, '1')
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
+    fireEvent.change(screen.getByLabelText('Velocity for step 1'), { target: { value: '40' } })
+    await user.click(screen.getByRole('button', { name: 'Send to the FM1' }))
+    await user.click(
+      within(dialog()!).getByRole('button', { name: 'The FM1 is recording; send it' }),
+    )
+
+    await waitFor(() => expect(sent).toEqual(['90 3C 28', '80 3C 00']))
   })
 
   it('returns the whole loop to rests when it is cleared', async () => {
     const user = userEvent.setup()
     setup()
 
-    await user.click(screen.getByRole('button', { name: 'Make step 1 a note' }))
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
     await user.click(screen.getByRole('button', { name: 'Clear the pattern' }))
 
-    expect(screen.getByRole('button', { name: 'Make step 1 a note' })).toBeTruthy()
+    expect(screen.getByTitle('Step 1 is a rest')).toBeTruthy()
   })
 })
 
 describe('SequencerPage sending', () => {
   async function sendOneNote(user: ReturnType<typeof userEvent.setup>) {
     await setStepLength(user, '1')
-    await user.click(screen.getByRole('button', { name: 'Make step 1 a note' }))
+    await user.click(screen.getByRole('button', { name: 'Step 1, C4' }))
     await user.click(screen.getByRole('button', { name: 'Send to the FM1' }))
     await waitFor(() => expect(dialog()?.open).toBe(true))
   }
@@ -273,8 +348,10 @@ describe('SequencerPage listening', () => {
     await waitFor(() => expect(screen.getByText(/Heard a loop of 9 steps/)).toBeTruthy())
     await user.click(screen.getByRole('button', { name: 'Put what was heard in the editor' }))
 
-    expect(screen.getAllByText('C4')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Make step 1 a rest' })).toBeTruthy()
+    // The loop has no audible step 1, so the notes land at whatever rotation was heard.
+    expect(screen.getByTitle(/plays C4$/)).toBeTruthy()
+    expect(screen.getByTitle(/plays F4$/)).toBeTruthy()
+    expect(screen.getAllByTitle(/is a rest$/)).toHaveLength(7)
   })
 
   it('cannot listen without a MIDI input, and says why', () => {

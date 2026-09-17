@@ -3,7 +3,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SequencerSendDialog } from '@/components/sequencer/sequencer-send-dialog'
-import { SequencerStepRow } from '@/components/sequencer/sequencer-step-row'
+import { SequencerGrid } from '@/components/sequencer/sequencer-grid'
 import { Button } from '@/components/ui/button'
 import { sequencerNamespace } from '@/i18n/sequencer'
 import { type MidiController } from '@/hooks/use-midi'
@@ -181,16 +181,12 @@ export function SequencerPage({ midi, onBack }: SequencerPageProps) {
           <span className="text-xs text-[var(--crt-ink-3)]">{t('pattern.stepLengthHint')}</span>
         </div>
 
-        <ol className="grid gap-2">
-          {pattern.steps.map((step, index) => (
-            <SequencerStepRow
-              index={index}
-              key={index}
-              onChange={(next) => setPattern((current) => setFm1PatternStep(current, index, next))}
-              step={step}
-            />
-          ))}
-        </ol>
+        <SequencerGrid
+          onChangeStep={(index, step) =>
+            setPattern((current) => setFm1PatternStep(current, index, step))
+          }
+          pattern={pattern}
+        />
 
         <div className="flex flex-wrap gap-2">
           <Button

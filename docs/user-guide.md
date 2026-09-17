@@ -68,8 +68,13 @@ the device while you have put the device into recording, and it reads a pattern 
 device play.
 
 Build the pattern first. **Step length** must match the Step value shown on the FM1's sequencer page,
-because the editor cannot read it or set it. Each step is either a rest or a note with its own pitch
-and velocity.
+because the editor cannot read it or set it. The pattern is a grid: one column per step, one row per
+pitch, with a keyboard down the left to place the rows. Press a cell to put a note there, and press
+it again to clear the step back to a rest. A column holds one note, because a recorded step holds
+one, and a column with nothing in it is a rest. Every step lasts one step and the FM1's own Gate
+decides how long it sounds, so there is nothing to drag out. The faders under the grid set each
+step's velocity, and the arrows above it show a different two octaves; the column header always names
+the note a step plays, even when that note is outside the octaves on screen.
 
 **Send to the FM1** explains what to do on the device before anything is sent: choose the pattern to
 replace, set Step length, set Transpose to 0, and press REC. Sending replaces the whole of that
