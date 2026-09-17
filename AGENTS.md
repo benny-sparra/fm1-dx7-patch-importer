@@ -138,6 +138,13 @@ open everything an earlier release could have saved.
 - Keep `document.documentElement.lang`, the document title, and description metadata synchronized.
 - Every locale must contain the same leaf keys. Update `src/i18n/resources.test.ts` whenever resource
   structure changes.
+- Almost every string belongs in the eager `translation` namespace. A lazily loaded view whose text
+  is large enough to matter in the initial-JavaScript budget may keep it in its own namespace built
+  with `createLazyNamespace` in `src/i18n/lazy-namespace.ts`, loaded with that view, as the patch
+  editor's help text and the sequencer do. English loads alongside the chosen language so a gap
+  falls back to English rather than to a raw key, `setLocale` brings an open view's namespace to the
+  new language, and anything that explains a failure to open the view stays eager. Such a namespace
+  carries the same obligations as the eager one, enforced by `src/i18n/resources.test.ts`.
 - Call a library item a patch, and say sound only for what you hear. Voice means the DX7 voice data,
   as in the voice editor and Init voice. German uses Sound for a patch and Klang for what you hear;
   Simplified Chinese uses 音色 and 声音.
@@ -158,7 +165,8 @@ open everything an earlier release could have saved.
 
 ### Bundle boundaries
 
-- Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
+- Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, the Sequencer view via
+  `React.lazy`, WebMidi on connection,
   `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the piano keyboard dialog when **Keyboard** opens it, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence

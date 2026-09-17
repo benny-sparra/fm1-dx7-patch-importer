@@ -267,9 +267,11 @@ Two implementation details that the byte-level contract makes non-negotiable:
   as incomplete rather than filling gaps, and compares a transmitted pattern with what was heard
   through `fm1PatternRotationsMatch`, because playback cannot reveal which step is step 1.
 
-The UI layer — the pre-flight naming the pattern and Step length, transmit progress, cancel, the
-unsaved/`SAVE` notice, and wiring the observer to the `use-midi.ts` input listener — is not built
-yet.
+- [`src/routes/sequencer-page.tsx`](../src/routes/sequencer-page.tsx) and
+  [`src/components/sequencer/`](../src/components/sequencer/) — the view: the pattern editor, the
+  pre-flight naming the Step length and the manual arming steps, transmit progress and cancel, the
+  unsaved/`SAVE` notice, and the listen panel that confirms the result by observation. It is loaded
+  lazily, with its own translation namespace.
 
 ## 9. Still required before SEQ-REC-002 ships
 

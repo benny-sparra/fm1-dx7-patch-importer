@@ -1,6 +1,7 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
+import { loadActiveNamespaces } from './lazy-namespace'
 import {
   LANGUAGE_STORAGE_KEY,
   resolveLocale,
@@ -124,6 +125,9 @@ export function createLocaleController(
     )
     await instance.use(initReactI18next).init({
       fallbackLng: 'en',
+      // Keys a lazily loaded feature brings with it keep the names they have in the eager
+      // namespace, so its components ask for them exactly as every other component does.
+      fallbackNS: ['editorHelp'],
       initAsync: false,
       interpolation: { escapeValue: false },
       lng: initialLocale,
@@ -139,6 +143,9 @@ export function createLocaleController(
     const previousLocale = (instance.resolvedLanguage ?? 'en') as SupportedLocale
     try {
       await loadLocale(locale)
+      // A feature that is open keeps its own language too; a failure there leaves it in English
+      // rather than blocking the language change for the rest of the interface.
+      await loadActiveNamespaces(locale).catch(() => undefined)
       const applied = await queueLanguageChange(request, locale)
       if (!applied) return false
       try {

@@ -17,15 +17,18 @@ import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { getUnsupportedBrowserReason } from '@/lib/browser'
 import { fm1ColorwayImages } from '@/lib/fm1-colorway-images'
+import { Button } from '@/components/ui/button'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
 type RootLayoutProps = {
   children: ReactNode
   compact?: boolean
   midi: MidiController
+  /** Absent while a view that is not the librarian is open, so the trigger cannot reopen it. */
+  onOpenSequencer?: () => void
 }
 
-export function RootLayout({ children, compact = false, midi }: RootLayoutProps) {
+export function RootLayout({ children, compact = false, midi, onOpenSequencer }: RootLayoutProps) {
   const { t } = useTranslation()
   const unsupportedBrowserReason = getUnsupportedBrowserReason()
   const { colorway, setColorway } = useFm1Colorway()
@@ -81,6 +84,20 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             >
               <MidiConnectActions midi={midi} />
               <PianoKeyboard midi={midi} />
+              {/*
+               * The sequencer's trigger is written here rather than in its own component so the
+               * initial bundle carries only a button: the view and its translations load on press.
+               */}
+              {onOpenSequencer ? (
+                <Button
+                  className="font-vt323"
+                  onClick={onOpenSequencer}
+                  type="button"
+                  variant="secondary"
+                >
+                  {t('ui.sequencer')}
+                </Button>
+              ) : null}
             </div>
 
             {!compact && showColorwayImage ? (

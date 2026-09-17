@@ -96,6 +96,8 @@ function midiConnectionFailureReason(error: unknown) {
     : ('enable_failed' as const)
 }
 
+export type MidiInputListener = (data: Uint8Array, atMs: number) => void
+
 export function useMidi() {
   const [midiAccess, setMidiAccess] = useState(false)
   const [outputs, setOutputs] = useState<MidiDevice<Output>[]>([])
@@ -115,6 +117,7 @@ export function useMidi() {
   const preferredOutputId = useRef(readStoredValue(midiStorageKeys.outputId))
   const preferredInputId = useRef(readStoredValue(midiStorageKeys.inputId))
   const startupConnectionAttempted = useRef(false)
+  const inputListeners = useRef(new Set<MidiInputListener>())
 
   const midiSupport = getMidiSupport()
 
@@ -279,6 +282,17 @@ export function useMidi() {
     preferredOutputId.current = id
     storeValue(midiStorageKeys.outputId, id)
     setSelectedOutputId(id)
+  }, [])
+
+  /**
+   * Listens to inbound MIDI on the selected port. The subscription outlives a port change, so a
+   * listener does not have to re-register when the user picks another input.
+   */
+  const subscribeToInput = useCallback((listener: MidiInputListener) => {
+    inputListeners.current.add(listener)
+    return () => {
+      inputListeners.current.delete(listener)
+    }
   }, [])
 
   const selectInput = useCallback((id: string) => {
@@ -647,6 +661,9 @@ export function useMidi() {
     }
 
     const handleMidiMessage = (event: MessageEvent) => {
+      // Listeners see every inbound message, including the high-rate ones the log leaves out, so a
+      // feature reading the device's own playback is not tied to what the log happens to keep.
+      inputListeners.current.forEach((listener) => listener(event.data, event.timestamp))
       if (isHighRateMidiMessage(event.data)) return
       appendLog(makeLogEntry('in', formatMidiBytes(event.data), event.data))
     }
@@ -659,6 +676,9 @@ export function useMidi() {
   return {
     channel,
     connectMidi,
+    /** The chosen output port, for a bounded operation that builds its own messages. */
+    selectedOutput,
+    subscribeToInput,
     disconnectMidi,
     error,
     effectChannel,

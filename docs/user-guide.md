@@ -60,6 +60,31 @@ Every effect box on the effects panel has a **Preset** menu: **Warm**, **Muffled
 
 The LFO and every FM1 effect open with a small animated scope drawn from their current settings. The LFO scrolls its selected wave at a rate set by LFO Speed. The filter shows its response curve, delay its echo taps, chorus its drifting copies, reverb its tail, distortion its clipped wave, and phaser its sweeping notches. A scope dims when its effect is bypassed or when the LFO has no modulation depth. With reduced motion enabled, each scope shows a still frame instead.
 
+## The sequencer
+
+**Sequencer**, in the header beside **Keyboard**, opens a view for the FM1's own internal sequencer.
+The FM1 offers no command for it, so the editor works the way a player does: it plays a pattern into
+the device while you have put the device into recording, and it reads a pattern by listening to the
+device play.
+
+Build the pattern first. **Step length** must match the Step value shown on the FM1's sequencer page,
+because the editor cannot read it or set it. Each step is either a rest or a note with its own pitch
+and velocity.
+
+**Send to the FM1** explains what to do on the device before anything is sent: choose the pattern to
+replace, set Step length, set Transpose to 0, and press REC. Sending replaces the whole of that
+pattern, from step 1 to the end of the loop, and it cannot be undone from the editor. Do not play the
+FM1's keys until it has finished. The FM1 acknowledges nothing while it records, so the editor says
+only that the pattern was sent. The result also stays in the device's memory until you use SAVE on
+the FM1 itself.
+
+**Listen to the FM1** reads back what the device plays. Start playback on the FM1; a pattern appears
+once two complete passes agree. Until then, and whenever the passes disagree or several step lengths
+would fit, the view says what is missing rather than showing a half-read pattern. Playback cannot
+reveal which step the FM1 counts as step 1, so what you hear back may start at a different step than
+the pattern you sent; the editor compares the two allowing for that. **Put what was heard in the
+editor** copies it into the pattern above.
+
 ## Keyboard shortcuts
 
 The **?** guide lists these on its own tab. Each view binds the actions that also appear in its

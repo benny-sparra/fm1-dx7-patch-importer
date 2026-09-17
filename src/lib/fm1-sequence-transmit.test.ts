@@ -186,6 +186,35 @@ describe('transmitFm1Pattern', () => {
     ])
   })
 
+  it('reports each step as it completes, so a caller can show progress', async () => {
+    const progress: string[] = []
+
+    await transmitFm1Pattern(
+      fakeOutput().output,
+      pattern([fm1NoteStep(60, 90), fm1RestStep(), fm1NoteStep(62, 90)]),
+      { channel: 1 },
+      {
+        onStepSent: (stepsSent, stepCount) => progress.push(`${stepsSent}/${stepCount}`),
+        wait: fakeClock().wait,
+      },
+    )
+
+    expect(progress).toEqual(['1/3', '2/3', '3/3'])
+  })
+
+  it('does not report a step it could not send', async () => {
+    const progress: number[] = []
+
+    await transmitFm1Pattern(
+      fakeOutput(3).output,
+      pattern([fm1NoteStep(60, 90), fm1NoteStep(62, 90)]),
+      { channel: 1 },
+      { onStepSent: (stepsSent) => progress.push(stepsSent), wait: fakeClock().wait },
+    )
+
+    expect(progress).toEqual([1])
+  })
+
   it('does not wait after the final step', async () => {
     const clock = fakeClock()
 

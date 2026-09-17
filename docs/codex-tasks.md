@@ -769,9 +769,10 @@ Pure unit tests against the committed V15 fixtures. No MIDI.
 
 ## SEQ-OBS-002 — Reconstruct a pattern from observed playback
 
-**Status:** reconstructor complete (2026-09-17) in
+**Status:** complete (2026-09-17). The reconstructor is
 [`src/lib/fm1-sequence-observer.ts`](../src/lib/fm1-sequence-observer.ts), covered by the committed
-NDJSON captures. Not yet wired to the `use-midi.ts` input listener, and no UI presents it.
+NDJSON captures, and the sequencer view reads it through `subscribeToInput` on the existing
+`use-midi.ts` input listener.
 
 ### Goal
 
@@ -830,12 +831,12 @@ No implementation in this task.
 
 ## SEQ-REC-002 — Implement bounded pattern transmit into record mode
 
-**Status:** domain and transmit layer complete (2026-09-17) in
-[`src/lib/fm1-sequence-transmit.ts`](../src/lib/fm1-sequence-transmit.ts); **not yet verified on
-hardware**, and no UI yet. It implements only what
-[`docs/seq-rec-001-recording-contract.md`](seq-rec-001-recording-contract.md) documents. The three
-items in its §8 remain unverified, and the pre-flight, progress, cancel and unsaved-state UI, plus
-the SEQ-OBS-002 confirmation pairing, are still outstanding.
+**Status:** complete in software (2026-09-17), **not yet verified on hardware**. The transmit
+operation is [`src/lib/fm1-sequence-transmit.ts`](../src/lib/fm1-sequence-transmit.ts) and the view
+is [`src/routes/sequencer-page.tsx`](../src/routes/sequencer-page.tsx), with the pre-flight, progress,
+cancel, unsaved-state notice and the SEQ-OBS-002 confirmation pairing. It implements only what
+[`docs/seq-rec-001-recording-contract.md`](seq-rec-001-recording-contract.md) documents; the three
+items in its §9 remain unverified on hardware.
 
 ### Goal
 

@@ -216,6 +216,11 @@ export function sendNoteOff(output: Output, channel: number, note: number, veloc
 
 const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
+/** The note's name and octave, as the MIDI log and the sequencer both show it. */
+export function midiNoteName(note: number) {
+  return `${noteNames[note % 12]}${Math.floor(note / 12) - 1}`
+}
+
 const midiTimingClockStatus = 0xf8
 const midiActiveSensingStatus = 0xfe
 
@@ -242,7 +247,7 @@ export function formatMidiBytes(data: Uint8Array | number[]) {
     (messageType === 0x80 || messageType === 0x90)
   ) {
     const channel = (status & 0x0f) + 1
-    const noteName = `${noteNames[note % 12]}${Math.floor(note / 12) - 1}`
+    const noteName = midiNoteName(note)
     const isNoteOff = messageType === 0x80 || velocity === 0
 
     return `Ch ${channel} Note ${isNoteOff ? 'Off' : 'On'}: ${noteName} (velocity ${velocity})`

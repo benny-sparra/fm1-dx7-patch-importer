@@ -131,6 +131,8 @@ export type Fm1PatternTransmitResult = {
 
 export type Fm1PatternTransmitRuntime = {
   signal?: AbortSignal
+  /** Reports each completed step, so a caller can show progress without timing it separately. */
+  onStepSent?: (stepsSent: number, stepCount: number) => void
   /** Injected so tests are deterministic. Late is safe; early is not, so never shorten a wait. */
   wait?: (ms: number) => Promise<void>
 }
@@ -151,7 +153,7 @@ export async function transmitFm1Pattern(
   output: Output,
   pattern: Fm1Pattern,
   options: Fm1PatternTransmitOptions,
-  { signal, wait = defaultWait }: Fm1PatternTransmitRuntime = {},
+  { onStepSent, signal, wait = defaultWait }: Fm1PatternTransmitRuntime = {},
 ): Promise<Fm1PatternTransmitResult> {
   const { holdMs, stepPeriodMs, restPeriodMs } = assertTransmittable(pattern, options)
   const messages = makeFm1PatternTransmission(pattern, options)
@@ -195,6 +197,7 @@ export async function transmitFm1Pattern(
     // A cancellation seen mid-step still completes that step's note off above, so the boundary is
     // always clean: the device holds whole steps, never a note without its release.
     stepsSent = index + 1
+    onStepSent?.(stepsSent, stepCount)
   }
 
   return result('sent', stepsSent)

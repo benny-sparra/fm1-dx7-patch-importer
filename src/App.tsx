@@ -28,8 +28,12 @@ import { useToast } from '@/components/ui/toast'
 import { PatchEditorErrorBoundary } from '@/components/editor/patch-editor-error-boundary'
 import { WorkspacePersistenceStatus } from '@/components/workspace-persistence-status'
 import { loadPatchEditorPage } from '@/routes/load-patch-editor-page'
+import { loadSequencerPage } from '@/routes/load-sequencer-page'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 
 const PatchEditorPage = lazy(loadPatchEditorPage)
+const SequencerPage = lazy(loadSequencerPage)
 
 function LoadedPatchEditorPage(props: ComponentProps<typeof PatchEditorPage>) {
   useEffect(() => cancelDynamicImportRecovery(), [])
@@ -47,6 +51,7 @@ function App() {
     return recoveryPatchId
   })
   const [auditionedPatchId, setAuditionedPatchId] = useState('')
+  const [sequencerOpen, setSequencerOpen] = useState(false)
   // Held here rather than in the editor, which remounts for each sound, so an operator copied in
   // one sound can be pasted into another. It is never stored.
   const [copiedOperator, setCopiedOperator] = useState<CopiedOperator | null>(null)
@@ -153,7 +158,11 @@ function App() {
   )
 
   return (
-    <RootLayout compact={Boolean(selectedPatch && selectedVoice)} midi={midi}>
+    <RootLayout
+      compact={Boolean(selectedPatch && selectedVoice)}
+      midi={midi}
+      onOpenSequencer={selectedPatch && selectedVoice ? undefined : () => setSequencerOpen(true)}
+    >
       {library.workspaceLoading ? (
         loadingSection(t('common.loadingLibrary'))
       ) : library.persistenceStatus === 'load-error' ? (
@@ -161,7 +170,17 @@ function App() {
       ) : (
         <>
           <WorkspacePersistenceStatus library={library} />
-          {selectedPatch && selectedVoice ? (
+          {sequencerOpen ? (
+            // A chunk from a replaced deployment cannot load; the notice offers the reload that
+            // fetches the current one, and the librarian behind it keeps working either way.
+            <ErrorBoundary
+              fallback={<LoadFailedNotice className="p-4" message={t('ui.sequencerOpenFailed')} />}
+            >
+              <Suspense fallback={loadingSection(t('common.loading'))}>
+                <SequencerPage midi={midi} onBack={() => setSequencerOpen(false)} />
+              </Suspense>
+            </ErrorBoundary>
+          ) : selectedPatch && selectedVoice ? (
             <PatchEditorErrorBoundary key={selectedPatch.id} onBack={closeEditor}>
               <Suspense fallback={loadingSection(t('common.loading'))}>
                 <LoadedPatchEditorPage

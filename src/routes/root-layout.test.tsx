@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
@@ -102,5 +103,31 @@ describe('RootLayout unsupported banner', () => {
 
     expect(banner.textContent).toContain('Unsupported browser.')
     expect(banner.textContent).not.toContain('Mobile devices are not supported.')
+  })
+})
+
+describe('RootLayout sequencer trigger', () => {
+  it('opens the sequencer when the trigger is pressed', async () => {
+    const user = userEvent.setup()
+    const onOpenSequencer = vi.fn()
+    render(
+      <RootLayout midi={midi} onOpenSequencer={onOpenSequencer}>
+        <p>Library</p>
+      </RootLayout>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Sequencer' }))
+
+    expect(onOpenSequencer).toHaveBeenCalledTimes(1)
+  })
+
+  it('leaves the trigger out while another view owns the page', () => {
+    render(
+      <RootLayout midi={midi}>
+        <p>Editor</p>
+      </RootLayout>,
+    )
+
+    expect(screen.queryByRole('button', { name: 'Sequencer' })).toBeNull()
   })
 })

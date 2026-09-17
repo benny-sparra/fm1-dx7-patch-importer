@@ -566,8 +566,8 @@ The model, the transmit operation, and the playback reconstructor now exist as
 [`src/lib/fm1-sequence.ts`](../src/lib/fm1-sequence.ts),
 [`src/lib/fm1-sequence-transmit.ts`](../src/lib/fm1-sequence-transmit.ts), and
 [`src/lib/fm1-sequence-observer.ts`](../src/lib/fm1-sequence-observer.ts). They are covered by unit
-tests and by the committed NDJSON captures; no hardware pass has been performed, and no UI exposes
-them.
+tests and by the committed NDJSON captures, and the lazily loaded Sequencer view exposes them. No
+hardware pass has been performed.
 
 Observation adds one limit of its own, which any UI must keep visible: a loop has no audible step 1,
 so a reconstruction is a rotation of the device's pattern. A transmitted pattern is therefore
