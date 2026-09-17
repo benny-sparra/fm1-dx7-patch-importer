@@ -495,6 +495,51 @@ The minimum useful editor-facing feature set remains blocked on verified raw V13
 read path. Do not infer a V15 codec from its 16 observable steps, or add generic transport, tracks,
 piano-roll/DAW features, guessed metadata, or arbitrary vendor-command transmission.
 
+## 5.8 SEQ-001B — host recording semantics
+
+**Status: Confirmed observable V15 behaviour (2026-09-17). Standard channel MIDI only; no SysEx or
+vendor frame was sent or observed in either direction.**
+
+Six fixtures in [`sequencer-fixtures/V15/`](sequencer-fixtures/V15/) resolve the three behaviours
+that decide whether a host can author a pattern rather than only load a run of notes. Each was run
+twice. The device baseline throughout was Pattern 1, Chain 1, Step 9, Voice 1, Rate `1/8T`,
+Tempo 120, Gate 80%, Swing 50%, Sync `OFF`, Transpose 0, giving a 166.7 ms step and a 1,500 ms loop.
+
+| Question                                                     | Result                                                                                                                                   | Fixtures                                                                   |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Can a host advance the step cursor without sounding a note?  | **Yes.** A Note On with velocity 0 (`90 nn 00`) sent on its own advances the cursor one step and records a silent step.                  | `seq-V15-pattern-01-host-rest-single`, `-host-rest-double`                 |
+| Do two identical successive notes create two distinct steps? | **Yes.** Two host note 60 recordings occupied steps 1 and 2 and played back twice per loop, 166 ms apart. Repeated pitches do not merge. | `seq-V15-pattern-01-repeated-note-60-run-1`, `-run-2`                      |
+| Does recording start at step 1 or at the selected step?      | **Step 1, always.** Arming record places the cursor at step 1; a pass overwrites forward from there and leaves later steps intact.       | `seq-V15-pattern-01-record-start-position-g4`, `-record-start-position-a4` |
+
+The rest result is a clean differential ladder on one variable, the number of velocity-0 messages
+sent between two recorded notes. The interval between those notes on playback was 166 ms with no
+rest (the 2026-08-31 two-step fixture), 333 ms with one, and 500 ms with two. Consecutive rests
+therefore accumulate one step each.
+
+A further observation, repeated across all six captures: **the FM1 transmits nothing while it is
+recording.** It does not echo host-sent notes. Every captured device message was a later playback
+pass. An editor that transmits a pattern therefore cannot contaminate its own observed read, though
+a user playing the device's keys still can.
+
+### What this does not establish
+
+- Nothing about the internal record layout. No raw V15 record bytes were captured, and the V13
+  `FF` rest hypothesis in §5.3 remains firmware evidence that these captures neither confirm nor
+  refute. A silent step observed on playback is not evidence of any stored byte value.
+- Nothing about persistence. No `SAVE` was performed, so all six patterns were volatile.
+- Nothing about arming, pattern selection, chain, or any page-2/3 control. All remain stock-UI-only,
+  as §5.7 states.
+- Whether velocity 0 is the only step-advance encoding. A bare Note Off was not tested.
+
+### Consequences
+
+A host-authored pattern can express pitch, attack velocity, rests, repeated pitches, and position
+within the loop. That is the whole of the observable V15 model in §5.7 except the pattern-global
+controls, so SEQ-OBS-001 may model rests as `transmittable: true`, and SEQ-REC-001 is unblocked.
+Because a recording pass overwrites forward from step 1 and leaves later steps, a transmit that
+sends fewer steps than the pattern already holds leaves a tail of old steps behind; the operation
+must send a full loop's worth of steps or state plainly that it does not.
+
 ---
 
 # 6. Vendor-specific FM1 protocol

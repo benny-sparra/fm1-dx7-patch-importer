@@ -475,7 +475,18 @@ production until repeatable evidence proves both its semantics and normal-runtim
 
 ## SEQ-001B — Capture host-recorded step advance, rests, and repeats
 
-**Status:** open; highest-value next hardware test. Blocks the design of SEQ-REC-001.
+**Status:** resolved on 2026-09-17. All three questions answered, each from two runs, by the six
+`2026-09-17` fixtures in [`sequencer-fixtures/V15/`](sequencer-fixtures/V15/). Results and their
+boundary are in §5.8 of [`fm1-research.md`](fm1-research.md).
+
+| Question                  | Answer                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Host step advance / rests | Yes. A lone Note On with velocity 0 records a silent step; consecutive ones accumulate a step each.    |
+| Repeated identical notes  | Two distinct steps. Repeated pitches do not merge.                                                     |
+| Recording start position  | Always step 1. A pass overwrites forward and leaves later steps intact; it neither appends nor clears. |
+
+A bare Note Off was not tested as an alternative step-advance encoding, and nothing here establishes
+V15 record bytes, persistence, or any host command.
 
 ### Goal
 
@@ -739,7 +750,8 @@ device transport and no byte-level record assumption.
 - ordered steps, each carrying pitch and attack velocity
 - loop length `1..16`, modelled as loop length rather than a position selector
 - gate modelled as one pattern-global value, not per step
-- rests representable in the model but flagged as `transmittable: false` until SEQ-001B resolves them
+- rests representable and transmittable, as SEQ-001B confirmed on 2026-09-17: a host Note On with
+  velocity 0 records one silent step, and consecutive ones accumulate
 - every field carries provenance: which fixture confirmed it, at what confidence
 
 ### Do not
@@ -787,7 +799,7 @@ assert the resulting pattern. No hardware in tests.
 
 ## SEQ-REC-001 — Document the stock recording input contract
 
-**Status:** blocked on SEQ-001B
+**Status:** ready. SEQ-001B resolved on 2026-09-17.
 
 ### Goal
 

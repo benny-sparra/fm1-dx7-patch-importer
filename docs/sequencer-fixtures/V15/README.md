@@ -91,3 +91,43 @@ It must not be used to infer V15 record bytes, sequencer command semantics, or a
 The second fixture confirms the user-visible K4 operation and empty-pattern playback result. Its
 receive-only transport cannot establish that no traffic was sent _to_ the FM1 and does not provide a
 record dump; it is therefore not a completed core traffic fixture.
+
+## SEQ-001B captures (2026-09-17)
+
+These six fixtures have `capture_status: "captured"`. Both directions were controlled: the host sent
+every outbound message through `scripts/send-standard-midi-note.c` and
+`scripts/send-standard-midi-note-message.c`, and `scripts/capture-midi.swift` recorded every inbound
+message. Only standard channel MIDI was sent or received. Step positions are operator-reported stock
+step lights; all timings are captured MIDI.
+
+The device baseline for all six was Pattern 1, Chain 1, Step 9, Voice 1, Rate `1/8T`, Tempo 120,
+Gate 80%, Swing 50%, Sync `OFF`, Transpose 0: a 166.7 ms step and a 1,500 ms nine-step loop.
+
+| Fixture ID                                               | Controlled difference                                             | Evidence conclusion                                                                          |
+| -------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `seq-V15-pattern-01-repeated-note-60-run-1-2026-09-17`   | Host note 60 recorded twice in succession.                        | Two lit steps, cursor on step 3; playback gave note 60 twice per loop, 166 ms apart.         |
+| `seq-V15-pattern-01-repeated-note-60-run-2-2026-09-17`   | Repeat run, no intended change.                                   | Identical result.                                                                            |
+| `seq-V15-pattern-01-host-rest-single-2026-09-17`         | One host `90 3C 00` between recorded notes 60 and 65.             | Cursor advanced without sounding; playback spaced the notes 333 ms apart with a silent step. |
+| `seq-V15-pattern-01-host-rest-double-2026-09-17`         | Two consecutive `90 3C 00` messages instead of one.               | Two silent steps; playback spacing 500 ms.                                                   |
+| `seq-V15-pattern-01-record-start-position-g4-2026-09-17` | One host note recorded into a nonempty pattern, without clearing. | Cursor armed at step 1; note 67 replaced step 1 and steps 2-4 survived unchanged.            |
+| `seq-V15-pattern-01-record-start-position-a4-2026-09-17` | Repeat with pitch 69.                                             | Identical result.                                                                            |
+
+### Differential observation
+
+Holding every other control constant and changing only the number of velocity-0 Note On messages
+sent between recorded notes 60 and 65, the playback interval between those notes was 166 ms with
+none (the 2026-08-31 two-step fixture), 333 ms with one, and 500 ms with two. This is **Confirmed
+observable V15 rest behaviour**: a host can insert rests, and consecutive rests accumulate one step
+each.
+
+Two identical successive host notes produced two separate steps in both runs, so repeated pitches do
+not merge. Arming record placed the cursor at step 1 in both runs of the start-position test, and
+the recorded note replaced step 1 while later steps survived, so a pass overwrites forward rather
+than appending or clearing.
+
+Across all six captures the FM1 transmitted **nothing** while recording. It does not echo host-sent
+notes; every device message captured was a later playback pass.
+
+None of these fixtures contains V15 record bytes, a save operation, or any vendor traffic. They
+support claims about observable recording and playback behaviour only, and must not be used to infer
+the internal record layout, a persistence rule, or a host command.
