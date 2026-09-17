@@ -159,10 +159,14 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the piano keyboard dialog when **Keyboard** opens it, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the add-bank dialog when **Add new bank** opens it, the piano keyboard dialog when **Keyboard** opens it, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
+- A dialog the librarian mounts on demand opens itself from an effect and takes an `onClose`, rather
+  than being rendered always and opened through a `dialogRef`. Unmounting it discards its state, so
+  it needs no reset, and `onClose` returns focus to the control that opened it. The remaining eager
+  dialogs are the same shape and are the cheapest headroom left if the budget gets tight.
 - Prefer source-level `import()` at genuine interaction or data boundaries. Do not move initial code
   into eagerly imported vendor chunks to make the entry filename smaller.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that

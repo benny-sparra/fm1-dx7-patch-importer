@@ -1,5 +1,5 @@
 import { Library, Plus, Upload } from 'lucide-react'
-import { type FormEvent, type RefObject, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
@@ -26,21 +26,22 @@ import { trackAnalyticsEvent } from '@/lib/analytics'
 
 type AddWorkspaceBankDialogProps = {
   bank: string | null
-  dialogRef: RefObject<HTMLDialogElement | null>
   library: PatchLibrary
+  onClose: () => void
   onCreated: (bank: string) => void
   suggestedName: string
 }
 
 export function AddWorkspaceBankDialog({
   bank,
-  dialogRef,
   library,
+  onClose,
   onCreated,
   suggestedName,
 }: AddWorkspaceBankDialogProps) {
   const { t } = useTranslation()
   const toast = useToast()
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
   const [description, setDescription] = useState('')
   const [catalogBankId, setCatalogBankId] = useState('')
@@ -50,15 +51,11 @@ export function AddWorkspaceBankDialog({
   const [source, setSource] = useState<'catalog' | 'upload'>('catalog')
   const [working, setWorking] = useState(false)
 
-  const reset = () => {
-    setCatalogBankId('')
-    setDescription('')
-    setError('')
-    setFile(null)
-    setName('')
-    setSource('catalog')
-    setWorking(false)
-  }
+  // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
+  // its state is discarded with it rather than being reset by hand.
+  useEffect(() => {
+    dialogRef.current?.showModal()
+  }, [])
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -107,7 +104,7 @@ export function AddWorkspaceBankDialog({
       onCancel={(event) => {
         if (working) event.preventDefault()
       }}
-      onClose={reset}
+      onClose={onClose}
       onToggle={(event) => {
         if (!event.currentTarget.open) return
         setName(suggestedName)

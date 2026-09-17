@@ -581,6 +581,7 @@ export default {
     copyReplaces: '这将替换 {{slot}} 中的“{{name}}”。此操作可以撤销。',
     copyAction: '替换 {{slot}}',
     copyFailed: '无法复制该音色。',
+    addBankOpenFailed: '无法打开新音色库选项。请重新加载页面后重试。',
     copyOpenFailed: '无法打开复制选项。请重新加载页面后重试。',
   },
   namedBanks: {

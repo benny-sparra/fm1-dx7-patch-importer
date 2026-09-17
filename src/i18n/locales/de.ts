@@ -640,6 +640,8 @@ export default {
       'Dadurch wird „{{name}}“ in {{slot}} ersetzt. Du kannst diese Aktion rückgängig machen.',
     copyAction: '{{slot}} ersetzen',
     copyFailed: 'Der Sound konnte nicht kopiert werden.',
+    addBankOpenFailed:
+      'Die Optionen für eine neue Bank konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     copyOpenFailed:
       'Die Kopieroptionen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
   },
