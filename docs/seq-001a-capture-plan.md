@@ -255,6 +255,23 @@ The observer already refuses two onsets at the same step as `off-grid`, so a cho
 is reported as unreadable rather than misread. That refusal must be revisited, not relied on, if
 chords turn out to record.
 
+### Part D — timing for the preview
+
+The pattern preview (SEQ-PREVIEW-001) plays a pattern the way the FM1's sequencer would, so it needs
+the device's timing, not a guess at it. Only one data point is captured so far: Rate `1/8T` at Tempo
+120 gives a 166.7 ms step. The V13 rate table cannot stand in, because its declared address does not
+match the bytes in the image (§5.4 of [`fm1-research.md`](fm1-research.md)).
+
+| Fixture ID suffix | Sole intended difference                                                                                         | Required observation                                                                                               |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `rate-options`    | Step through every value the stock Rate control offers. No MIDI required.                                        | The exact labels, in order. These become the stored `rate` values.                                                 |
+| `rate-durations`  | Play the baseline pattern at Tempo 120 once at every Rate value.                                                 | The step duration at each, measured from playback onsets over at least two loops.                                  |
+| `tempo-scaling`   | Play the baseline pattern at Rate `1/8T` at Tempo 60, 120 and 240, and at the lowest and highest values offered. | Whether step duration scales inversely with tempo, and the tempo range.                                            |
+| `swing-timing`    | Play a four-step all-note pattern at Swing 50, 60 and 75, and at the extremes offered.                           | Which steps move and by how much, from onset times. Nothing about swing is modelled until this is captured.        |
+| `gate-extremes`   | Play the baseline pattern at the lowest and highest Gate the stock UI offers.                                    | Note length at each. The 50% and 80% captures already show gate as a percentage of the step; this checks the ends. |
+
+These are playback observations only. No run records anything, and none needs a host sender.
+
 ## SEQ-002 decision
 
 **SEQ-002 remains blocked.** The V15 label is strongly evidenced by the user-installed Glide update

@@ -532,11 +532,12 @@ the design are in the SEQ-001C section of
 
 Settle the two questions the sequencer view's integration with the librarian depends on:
 
-| Question                                                                         | Why it matters                                                                                                                  |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Does a playing pattern follow the sound the editor selects?                      | Decides whether a user can audition patches, or edit a voice, against a looping pattern. The deciding run is the Voice setting. |
-| Can the editor read the patterns already on the device, and tell which is which? | Decides whether a pattern library can be filled from the FM1, and whether a read can be anchored at step 1.                     |
-| Does the FM1 record a chord into one step?                                       | Decides whether a step holds one note or several, which reshapes the model, the grid, the transmit contract and MIDI import.    |
+| Question                                                                           | Why it matters                                                                                                                  |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Does a playing pattern follow the sound the editor selects?                        | Decides whether a user can audition patches, or edit a voice, against a looping pattern. The deciding run is the Voice setting. |
+| Can the editor read the patterns already on the device, and tell which is which?   | Decides whether a pattern library can be filled from the FM1, and whether a read can be anchored at step 1.                     |
+| Does the FM1 record a chord into one step?                                         | Decides whether a step holds one note or several, which reshapes the model, the grid, the transmit contract and MIDI import.    |
+| What are the device's step durations for each Rate, and how does Swing move steps? | Lets the pattern preview play a pattern the way the FM1's sequencer would, rather than approximately.                           |
 
 ### Prerequisite
 
@@ -892,7 +893,7 @@ second unattended pass could record into whatever the device is now showing.
 
 # Pattern library
 
-## SEQ-LIB-001 — Keep patterns in a library, alongside patches
+## SEQ-LIB-001 — Keep patterns in a library, in a drawer beside patches
 
 **Status:** ready. Depends only on the SEQ-REC-002 view, which becomes the pattern editor. It does
 not wait on SEQ-001C: the stored shape below is chosen so that neither answer to Part C needs a new
@@ -900,36 +901,40 @@ record version.
 
 ### Goal
 
-Give patterns the same shape of workflow as patches: a library you browse, an editor you open one
-pattern in, and a deliberate save. The browser keeps the patterns, as it keeps patches, and sending
-one to the FM1 stays a separate, deliberate act through SEQ-REC-002.
+Give patterns the same shape of workflow as patches, a library to browse, an editor to open one
+pattern in, and a deliberate save, while keeping them beside the sounds rather than in place of
+them. The browser keeps the patterns, as it keeps patches. Sending one into the FM1's own sequencer
+stays a separate, deliberate act through SEQ-REC-002.
 
 ### Where it lives
 
-- The librarian gains a **Patches | Patterns** switch. The library stays the home screen, and the
-  header's Sequencer button goes away once the switch exists.
-- The Patterns side is a flat list of named patterns. Load it behind the switch, as the saved-bank
-  dialogs load behind their menu, so it costs the initial bundle nothing; only the switch is eager.
-- Opening a pattern opens the current sequencer view, which becomes its editor: the grid, the
-  keyboard rail, the velocity lane, send, and listen. It stays a lazy route with its own translation
-  namespace.
+- A **pull-out drawer**, opened from the header and available over both the librarian and the voice
+  editor, so a pattern can keep playing while the user chooses or edits sounds. It replaces the
+  header's Sequencer button. Only its trigger is eager; the drawer loads when first opened.
+- The drawer lists saved patterns by name. Each can be previewed through the FM1 (SEQ-PREVIEW-001),
+  one at a time, and opened in the editor.
+- Opening a pattern opens the current sequencer view as its editor: the grid, the keyboard rail, the
+  velocity lane, send, and listen. It stays a lazy route with its own translation namespace, and the
+  drawer stays available from it.
+- Listening to the device, the read side of SEQ-OBS-002, moves into the drawer too, so the drawer
+  shows both what the user keeps and what the FM1 is playing. Listening and previewing never run at
+  the same time.
 
 ### What the library is not
 
 It does not mirror the device. Banks A–D mirror FM1 programs because Program Change addresses them;
 nothing addresses a pattern slot, and the device's pattern count is unknown. So a library entry is
-never "the FM1's Pattern 2", no entry claims to be on the device, and there is no bulk send. Sending
-records into whichever pattern the user has armed, as SEQ-REC-002 already says.
+never "the FM1's Pattern 2", no entry claims to be on the device, and there is no bulk send.
 
 ### Editing
 
 - **Save to library**, an unsaved-changes guard on leaving, and **Compare with saved**, reusing the
   voice editor's components and conventions rather than copies of them.
-- Undo and redo. Pressing a cell, clearing the pattern, changing the step length, and taking a
-  captured pattern are one step each. A velocity fader drag is one step, started on pointer down or
-  key down and ended on pointer up, key up, and blur, as the voice editor's sliders are.
-- New, rename, duplicate, and delete in the library. Deleting offers Undo in its notification
-  through `undoToastOptions`, as the patch library's destructive changes do.
+- Undo and redo. Pressing a cell, clearing the pattern, changing the step length, tempo or rate, and
+  taking a captured pattern are one step each. A velocity fader drag is one step, started on pointer
+  down or key down and ended on pointer up, key up, and blur, as the voice editor's sliders are.
+- New, rename, duplicate, and delete. Deleting offers Undo in its notification through
+  `undoToastOptions`, as the patch library's destructive changes do.
 
 ### Capture from the FM1
 
@@ -945,26 +950,24 @@ workspace record:
 
 - A new object store `patterns`, key path `id`, created by an additive bump of the `fm1-librarian`
   database from schema version 2 to 3. `onupgradeneeded` only creates it.
-- A versioned record, `version: 1`: `id`, `name`, `loopLength`, `steps`, `gatePercent`, `savedAt`.
+- A versioned record, `version: 1`: `id`, `name`, `loopLength`, `steps`, `gatePercent`, `tempo`,
+  `rate`, `savedAt`.
 - **Each step stores a list of notes**, each a pitch and a velocity. An empty list is a rest. Version
   1 validation accepts at most one note per step. If SEQ-001C shows the FM1 records chords, raising
-  that limit is a validation change, not a new shape; if it shows one note per step, nothing
-  changes. A single-note-per-step record would need a version bump the day chords arrive.
-- Normalise on read: clamp or drop out-of-range pitches and velocities, and pad or trim steps to the
-  loop length. A record that cannot be read is skipped, left in storage unchanged, and reported, and
-  it does not hide the readable ones.
+  that limit is a validation change, not a new shape. A single-note-per-step record would need a
+  version bump the day chords arrive.
+- `tempo` and `rate` are the pattern's timing, which the preview plays at and the send pre-flight
+  shows as values to set on the device. The editor cannot set them on the FM1. `rate` is stored as
+  the device's own label, and the list of labels comes from SEQ-001C Part D, not from the V13 rate
+  table. Swing is not stored until Part D shows how the device applies it.
+- Normalise on read: clamp or drop out-of-range values, pad or trim steps to the loop length, and
+  fall back to the default for a rate label the current release does not know. A record that cannot
+  be read is skipped, left in storage unchanged, and reported, and it does not hide the readable
+  ones.
 - Pattern names are user-authored text and stay out of analytics and error monitoring.
 
 The record is a public format from the first release. Settle its fields in review before any code
 depends on it.
-
-### Open decision
-
-Whether a pattern also keeps the device settings the user wants to dial in by hand, Rate, Tempo,
-Swing, and Transpose, shown on the send pre-flight as a checklist. They would be optional fields and
-labelled as reminders, never as something the editor sets. The V13 analysis puts tempo and rate per
-bank rather than per pattern, so they may not belong to a pattern at all. Decide before the record
-shape is settled, since adding them later is a new version.
 
 ### Persistence behaviour
 
@@ -975,8 +978,6 @@ never as a reason to start an empty library over the user's patterns.
 
 ### Out of scope
 
-- The shell-level "now playing" panel for listening while choosing sounds. It waits on SEQ-001C
-  Part A and is a separate task.
 - Guided sync of the device's patterns. It waits on SEQ-001C Part B.
 - MIDI file import, which is SEQ-IMPORT-001 and builds on this library.
 - Backing up or exporting the pattern library. The library is the user's only copy, so a backup
@@ -991,8 +992,63 @@ never as a reason to start an empty library over the user's patterns.
 - Each editing action, and a whole fader drag, reverses in a single undo.
 - Leaving with unsaved changes asks first; deleting offers Undo.
 - Capture creates an unsaved pattern and does not touch the library until it is saved.
-- The library list at narrow width, and the grid's hit areas in Playwright, since jsdom cannot
-  check them.
+- The drawer opens over the librarian and the voice editor, keeps focus inside it while open, closes
+  on Escape, and returns focus to its trigger.
+- The drawer at narrow width, and the grid's hit areas in Playwright, since jsdom cannot check them.
+
+---
+
+## SEQ-PREVIEW-001 — Hear a pattern through the FM1
+
+**Status:** approved in scope on 2026-09-18 (see Sequencer scope in `AGENTS.md`). The library and
+drawer come first (SEQ-LIB-001). Timing accuracy waits on SEQ-001C Part D.
+
+### Goal
+
+Let the user hear a saved pattern straight away, with whatever sound is selected, by playing its
+notes live through the FM1 as the device's own sequencer would: the same steps, rate, tempo and
+gate, looping. It brings the device's playback into the browser so patterns can be browsed and
+compared one by one without recording each into the device first.
+
+### Behaviour
+
+- Play and stop, one pattern at a time. Starting another pattern stops the current one at once.
+- Notes go out as ordinary Note On and Note Off on the user's note channel, as the on-screen
+  keyboard sends them. They reach the FM1's sound engine directly, not its sequencer, so the preview
+  is independent of the sequencer's Voice setting.
+- Timing follows the FM1's model: step duration from tempo and rate, note length from the pattern's
+  gate as a percentage of the step, rests silent. Schedule notes ahead against the Web MIDI clock
+  with timestamped sends rather than timers, so browser jitter does not reach the device.
+- It keeps playing while the user moves between the librarian and the voice editor, and while they
+  choose or edit sounds. That is the point of it.
+- Stop, and release every note it started, when: the user stops it, another pattern starts, a send
+  to the FM1 begins, listening starts, the output changes or disconnects, MIDI is switched off, or
+  the page is hidden or closed. Drop anything still scheduled; never let a stopped preview leave a
+  note hanging.
+
+### Honesty
+
+- It is a preview, not the device. Until SEQ-001C Part D confirms the device's rate durations and
+  swing, it may not match the FM1's own playback exactly, and it says so.
+- If the FM1 is recording, the preview's notes are recorded, exactly as the on-screen keyboard's
+  would be. The editor cannot see the armed state, so the drawer warns about it, and a send never
+  runs while a preview plays.
+
+### Do not
+
+Play more than one pattern at once, chain patterns, send MIDI clock or Start, sync to an external
+clock, record the preview anywhere, or add transport controls beyond play and stop. It reproduces
+one device feature; it is not a sequencer of its own.
+
+### Tests
+
+- The exact note stream a pattern produces, with timestamps, against a deterministic clock: step
+  duration from tempo and rate, note length from gate, rests silent, and the loop wrapping without a
+  gap.
+- Every stop condition above releases every sounding note and sends nothing further.
+- Starting a second pattern stops the first before the second's first note.
+- A send refuses to start while a preview plays, and a preview stops when listening starts.
+- Moving between views keeps it playing; unmounting the drawer does not orphan a note.
 
 ---
 

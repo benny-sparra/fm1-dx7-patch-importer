@@ -468,6 +468,12 @@ Importing a Standard MIDI File into a single pattern is approved (SEQ-IMPORT-001
 fills one FM1 pattern the way a DX7 bank file fills patches, and it stays that narrow: writing or
 exporting MIDI files, tempo maps, controllers, merged tracks, and arrangements remain excluded.
 
+Previewing a pattern through the FM1 is approved (SEQ-PREVIEW-001, 2026-09-18). The test for it is
+that it brings the FM1's own sequencer playback into the browser rather than adding a sequencer of
+its own: one pattern at a time, looping, at the device's step, rate, tempo, and gate, played as
+ordinary notes on the note channel, with play and stop and nothing more. Several patterns at once,
+chaining, MIDI clock or Start, external sync, and wider transport controls remain excluded.
+
 Prefer a small UI tailored to the stock FM1 sequence representation.
 
 Build in this order:
