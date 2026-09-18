@@ -611,6 +611,8 @@ export default {
     gridDescription: 'Importa, edita y organiza cada banco local antes de transferirlo al FM1.',
     search: 'Buscar en todos los bancos',
     noMatches: 'Ningún sonido coincide con la búsqueda',
+    searchResults: 'Resultados de búsqueda',
+    sendFromSearch: 'Elige un banco para enviarlo al FM1',
     bankEmpty: 'Este banco del navegador está vacío',
     emptyHelp:
       'Carga el banco de demostración o importa tu propio banco SysEx DX7 estándar de 32 voces.',

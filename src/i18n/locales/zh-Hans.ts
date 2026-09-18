@@ -563,6 +563,8 @@ export default {
     gridDescription: '先在浏览器中导入、编辑和排列每个本地音色库，再传输到 FM1。',
     search: '搜索所有音色库',
     noMatches: '没有符合搜索条件的音色',
+    searchResults: '搜索结果',
+    sendFromSearch: '请选择一个音色库以发送到 FM1',
     bankEmpty: '此浏览器音色库为空',
     emptyHelp: '加载演示音色库来体验编辑器，或导入您自己的标准 32 音色 DX7 SysEx 音色库。',
     loadDemo: '加载演示音色库',

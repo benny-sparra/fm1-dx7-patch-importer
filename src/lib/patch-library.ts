@@ -322,6 +322,21 @@ export function patchSlotCode({ bank, number }: Pick<Patch, 'bank' | 'number'>) 
   return `${bank}${String(number).padStart(2, '0')}`
 }
 
+// A letter then a slot number, with or without the zero a slot shows: B7 and B07 name the same slot.
+const slotCodeQuery = /^([a-z])0?(\d{1,2})$/
+
+/**
+ * Matches a patch by name, or by its slot code when the whole query is one. A lone letter is part of
+ * a name rather than a bank, so it does not list every patch in that bank.
+ */
+export function patchMatchesSearch(patch: Pick<Patch, 'bank' | 'name' | 'number'>, search: string) {
+  const query = search.trim().toLowerCase()
+  if (!query) return true
+  const code = slotCodeQuery.exec(query)
+  if (code && code[1] === patch.bank.toLowerCase() && Number(code[2]) === patch.number) return true
+  return patch.name.toLowerCase().includes(query)
+}
+
 export function getBankVoices(snapshot: PatchLibrarySnapshot, bank: string) {
   return Array.from(
     { length: dx7BankVoiceCount },

@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useLibrarianView } from '@/hooks/use-librarian-view'
 import { useMidi } from '@/hooks/use-midi'
 import { usePatchLibrary } from '@/hooks/use-patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
@@ -47,6 +48,7 @@ function App() {
     return recoveryPatchId
   })
   const [auditionedPatchId, setAuditionedPatchId] = useState('')
+  const librarianView = useLibrarianView()
   // Held here rather than in the editor, which remounts for each sound, so an operator copied in
   // one sound can be pasted into another. It is never stored.
   const [copiedOperator, setCopiedOperator] = useState<CopiedOperator | null>(null)
@@ -190,6 +192,7 @@ function App() {
               onBankDeleted={forgetRenumberedAudition}
               onEditPatch={(patch) => editPatch(patch.id)}
               onSelectPatch={(patch) => selectPatch(patch.id)}
+              view={librarianView}
             />
           )}
         </>

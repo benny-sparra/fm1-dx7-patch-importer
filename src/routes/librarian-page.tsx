@@ -38,6 +38,7 @@ import { makeDx7BankFile } from '@/lib/dx7'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   getNextWorkspaceBank,
+  patchMatchesSearch,
   patchSlotCode,
   workspaceBankAfterDeletion,
 } from '@/lib/patch-library'
@@ -48,6 +49,7 @@ import { type MidiController } from '@/hooks/use-midi'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
+import { type LibrarianView, useLibrarianView } from '@/hooks/use-librarian-view'
 import { type Patch } from '@/data/patches'
 import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
 import { downloadFile } from '@/lib/download-file'
@@ -90,6 +92,8 @@ type LibrarianPageProps = {
   onBankDeleted: (bank: string) => void
   onEditPatch: (patch: Patch) => void
   onSelectPatch: (patch: Patch) => void
+  /** Held by the app so the bank and search survive the editor; the page keeps its own without it. */
+  view?: LibrarianView
 }
 
 export function LibrarianPage({
@@ -99,14 +103,15 @@ export function LibrarianPage({
   onBankDeleted,
   onEditPatch,
   onSelectPatch,
+  view,
 }: LibrarianPageProps) {
   const { t } = useTranslation()
   const toast = useToast()
   const { patches } = library
   const banks = library.workspaceBanks
   const nextBank = getNextWorkspaceBank(banks)
-  const [search, setSearch] = useState('')
-  const [destinationBank, setDestinationBank] = useState('A')
+  const ownView = useLibrarianView()
+  const { bank: destinationBank, search, setBank: setDestinationBank, setSearch } = view ?? ownView
   const [importError, setImportError] = useState('')
   // Explains a dialog whose chunk did not arrive, such as after a newer deployment replaced it.
   const [dialogLoadError, setDialogLoadError] = useState('')
@@ -285,26 +290,23 @@ export function LibrarianPage({
   const isSearching = search.trim() !== ''
 
   const visiblePatches = useMemo(() => {
-    const query = search.trim().toLowerCase()
-
     // A search looks through every loaded bank, so a result keeps showing while another is played.
-    if (query) {
+    if (isSearching) {
       return patches.filter(
-        (patch) =>
-          library.loadedBanks.includes(patch.bank) &&
-          // Both A1 and the A01 a slot shows find the first slot.
-          `${patch.bank}${patch.number} ${patchSlotCode(patch)} ${patch.name} ${patch.family}`
-            .toLowerCase()
-            .includes(query),
+        (patch) => library.loadedBanks.includes(patch.bank) && patchMatchesSearch(patch, search),
       )
     }
     if (!isDestinationBankLoaded) return []
     return patches.filter((patch) => patch.bank === destinationBank)
-  }, [destinationBank, isDestinationBankLoaded, library.loadedBanks, patches, search])
+  }, [destinationBank, isDestinationBankLoaded, isSearching, library.loadedBanks, patches, search])
 
   useEffect(() => {
     if (!hasLoadedBank) setSearch('')
-  }, [hasLoadedBank])
+  }, [hasLoadedBank, setSearch])
+
+  // No bank shows as selected during a search, so the played result's bank is the one that
+  // clearing the search returns to.
+  const followPlayedPatch = (patch: Patch) => setDestinationBank(patch.bank)
 
   // Choosing a bank asks to see that bank, so it leaves the results.
   const selectDestinationBank = (bank: string) => {
@@ -314,7 +316,7 @@ export function LibrarianPage({
 
   useEffect(() => {
     if (!banks.includes(destinationBank)) setDestinationBank(banks[0] ?? 'A')
-  }, [banks, destinationBank])
+  }, [banks, destinationBank, setDestinationBank])
 
   const focusSearch = () => {
     searchRef.current?.focus()
@@ -445,13 +447,19 @@ export function LibrarianPage({
             {/* The rail drops bank names on narrow screens, so here the name takes
                 its own line above the buttons rather than disappearing too. */}
             <span className="flex w-full min-w-0 items-center gap-[9px] md:mr-1.5 md:w-auto md:shrink-0">
-              <span className="font-vt323 grid w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
-                {destinationBank}
-              </span>
+              {/* Results come from every bank, so no bank's letter, name, or menu shows. */}
+              {isSearching ? null : (
+                <span className="font-vt323 grid w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
+                  {destinationBank}
+                </span>
+              )}
               <span className="font-dot-matrix block min-w-0 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)] md:max-w-40">
-                {bankDisplayName(destinationBank)}
+                {isSearching ? t('banks.searchResults') : bankDisplayName(destinationBank)}
               </span>
-              <details className="group relative ml-auto shrink-0 md:hidden" ref={bankMenuRef}>
+              <details
+                className={cn('group relative ml-auto shrink-0 md:hidden', isSearching && 'hidden')}
+                ref={bankMenuRef}
+              >
                 <summary
                   aria-label={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
                   className="grid h-6 w-5 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] text-[var(--crt-led)] transition-colors group-open:bg-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
@@ -467,15 +475,17 @@ export function LibrarianPage({
               </details>
             </span>
             <button
-              className="crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50 md:flex-none"
-              disabled={isSending || !isDestinationBankLoaded}
+              className="crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50 md:ml-auto md:flex-none"
+              disabled={isSending || isSearching || !isDestinationBankLoaded}
               onClick={sendSelectedBank}
               title={
-                !midi.hasMidiOutput
-                  ? t('midi.connectFirst')
-                  : isDestinationBankLoaded
-                    ? t('banks.sendTitle')
-                    : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+                isSearching
+                  ? t('banks.sendFromSearch')
+                  : !midi.hasMidiOutput
+                    ? t('midi.connectFirst')
+                    : isDestinationBankLoaded
+                      ? t('banks.sendTitle')
+                      : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
               }
               type="button"
             >
@@ -529,10 +539,17 @@ export function LibrarianPage({
           toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
         }}
         onPatchCopy={requestCopy}
-        onPatchEdit={onEditPatch}
-        onPatchSelect={onSelectPatch}
+        onPatchEdit={(patch) => {
+          followPlayedPatch(patch)
+          onEditPatch(patch)
+        }}
+        onPatchSelect={(patch) => {
+          followPlayedPatch(patch)
+          onSelectPatch(patch)
+        }}
         onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
         patches={visiblePatches}
+        reorderable={!isSearching}
         search={search}
         searchDisabled={!hasLoadedBank}
         searchRef={searchRef}
@@ -554,6 +571,7 @@ export function LibrarianPage({
                 onSelect={selectDestinationBank}
                 renderActions={renderBankActions}
                 selectedBank={destinationBank}
+                showsSelection={!isSearching}
               />
               {nextBank ? (
                 <button

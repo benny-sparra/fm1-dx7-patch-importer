@@ -16,6 +16,7 @@ import {
   makePatches,
   moveVoice,
   normalizeWorkspaceBankNameForSave,
+  patchMatchesSearch,
   patchSlotCode,
   renameBank,
   renameVoice,
@@ -368,6 +369,42 @@ describe('patchSlotCode', () => {
   it('pads the slot number to two digits', () => {
     expect(patchSlotCode({ bank: 'E', number: 3 })).toBe('E03')
     expect(patchSlotCode({ bank: 'A', number: 32 })).toBe('A32')
+  })
+})
+
+describe('patchMatchesSearch', () => {
+  const brass = { bank: 'B', name: 'BRASS   7', number: 7 }
+
+  it('finds a patch by part of its name, ignoring case', () => {
+    expect(patchMatchesSearch(brass, 'ass')).toBe(true)
+  })
+
+  it('finds a patch by the slot code it shows', () => {
+    expect(patchMatchesSearch(brass, 'B07')).toBe(true)
+  })
+
+  it('finds a patch by its slot code without the padding zero', () => {
+    expect(patchMatchesSearch(brass, 'b7')).toBe(true)
+  })
+
+  it('ignores spaces around the search', () => {
+    expect(patchMatchesSearch(brass, '  b07 ')).toBe(true)
+  })
+
+  it('does not match another slot in the same bank', () => {
+    expect(patchMatchesSearch(brass, 'b17')).toBe(false)
+  })
+
+  it('does not list a whole bank for its letter alone', () => {
+    expect(patchMatchesSearch({ bank: 'B', name: 'PIANO 1', number: 1 }, 'b')).toBe(false)
+  })
+
+  it('does not match the voice format every patch shares', () => {
+    expect(patchMatchesSearch(brass, 'dx7')).toBe(false)
+  })
+
+  it('still finds a name that looks like a slot code', () => {
+    expect(patchMatchesSearch({ bank: 'A', name: 'JUNO A1', number: 5 }, 'a1')).toBe(true)
   })
 })
 

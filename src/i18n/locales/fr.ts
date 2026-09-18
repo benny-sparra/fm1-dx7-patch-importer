@@ -620,6 +620,8 @@ export default {
       'Importez, modifiez et organisez chaque banque locale avant de la transférer vers le FM1.',
     search: 'Rechercher dans toutes les banques',
     noMatches: 'Aucun son ne correspond à cette recherche',
+    searchResults: 'Résultats de recherche',
+    sendFromSearch: 'Choisissez une banque pour l’envoyer au FM1',
     bankEmpty: 'Cette banque du navigateur est vide',
     emptyHelp:
       'Chargez la banque de démonstration ou importez votre propre banque SysEx DX7 standard de 32 voix.',

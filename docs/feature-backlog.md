@@ -113,7 +113,8 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       workspace bank, and clicking a result plays it while the results stay up.
   - Decided: saved banks and the bundled catalog are left out. Searching them would need results
     that are not slots, and loading the catalog would weigh on the initial bundle. Choosing a bank
-    clears the search.
+    clears the search; clearing it returns to the bank of the last result played. A lone letter
+    matches names only, and a slot code matches only as the whole query.
 
 ## Open questions
 

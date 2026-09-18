@@ -46,6 +46,8 @@ type PatchGridProps = {
   onImportEmptyBank?: () => void
   onLoadDemoBank?: () => void
   patches: Patch[]
+  /** Off while the grid shows slots from several banks, which cannot be reordered together. */
+  reorderable?: boolean
   search: string
   searchDisabled?: boolean
   searchRef?: RefObject<HTMLInputElement | null>
@@ -79,6 +81,7 @@ export function PatchGrid({
   onImportEmptyBank,
   onLoadDemoBank,
   patches,
+  reorderable = true,
   search,
   searchDisabled = false,
   searchRef,
@@ -133,7 +136,8 @@ export function PatchGrid({
   return (
     <Card className="synthwave-panel overflow-hidden">
       <CardHeader className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
-        <div className="flex items-center justify-between gap-3">
+        {/* Search covers every bank, so it sits above the bank rail rather than beside one bank. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
           <CardTitle className="font-dot-matrix flex items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase">
             <PixelBankIcon aria-hidden="true" className="size-4 shrink-0" />
             {t('banks.gridTitle')}
@@ -143,6 +147,27 @@ export function PatchGrid({
               text={t('banks.gridDescription')}
             />
           </CardTitle>
+          <label className="relative order-last block w-full sm:order-none sm:ml-auto sm:w-64">
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
+            <input
+              aria-label={t('banks.search')}
+              className="patch-search-input crt-inset h-7 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={searchDisabled}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => {
+                // The page-level Escape stays out of text fields, so the
+                // field clears itself where the user is most likely to press it.
+                if (event.key !== 'Escape' || !search) return
+                event.preventDefault()
+                setSearch('')
+              }}
+              placeholder={t('banks.search')}
+              ref={searchRef}
+              title={`${t('banks.search')} (${searchHint})`}
+              type="search"
+              value={search}
+            />
+          </label>
           {headerActions ? <div className="shrink-0">{headerActions}</div> : null}
         </div>
       </CardHeader>
@@ -151,31 +176,10 @@ export function PatchGrid({
         <div className="min-w-0 flex-1">
           <div className="crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]">
             {actions ? (
-              <div className="flex w-full max-w-full min-w-0 flex-wrap items-center gap-2 md:w-auto">
+              <div className="flex w-full max-w-full min-w-0 flex-wrap items-center gap-2">
                 {actions}
               </div>
             ) : null}
-            <label className="relative block w-full md:ml-auto md:w-auto md:min-w-48 md:flex-auto xl:max-w-[calc(25%-0.375rem)]">
-              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
-              <input
-                aria-label={t('banks.search')}
-                className="patch-search-input crt-inset h-8 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={searchDisabled}
-                onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={(event) => {
-                  // The page-level Escape stays out of text fields, so the
-                  // field clears itself where the user is most likely to press it.
-                  if (event.key !== 'Escape' || !search) return
-                  event.preventDefault()
-                  setSearch('')
-                }}
-                placeholder={t('banks.search')}
-                ref={searchRef}
-                title={`${t('banks.search')} (${searchHint})`}
-                type="search"
-                value={search}
-              />
-            </label>
           </div>
           {/*
             The hardware photo used to sit behind the grid as a half-opacity
@@ -206,6 +210,7 @@ export function PatchGrid({
                             onNavigate={navigateSlots}
                             onSelect={onPatchSelect}
                             patch={patch}
+                            reorderable={reorderable}
                             isActive={patch.id === activePatchId}
                             registerButton={registerSlot}
                             tabIndex={patch.id === rovingSlot ? 0 : -1}
