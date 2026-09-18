@@ -890,12 +890,118 @@ second unattended pass could record into whatever the device is now showing.
 
 ---
 
+# Pattern library
+
+## SEQ-LIB-001 — Keep patterns in a library, alongside patches
+
+**Status:** ready. Depends only on the SEQ-REC-002 view, which becomes the pattern editor. It does
+not wait on SEQ-001C: the stored shape below is chosen so that neither answer to Part C needs a new
+record version.
+
+### Goal
+
+Give patterns the same shape of workflow as patches: a library you browse, an editor you open one
+pattern in, and a deliberate save. The browser keeps the patterns, as it keeps patches, and sending
+one to the FM1 stays a separate, deliberate act through SEQ-REC-002.
+
+### Where it lives
+
+- The librarian gains a **Patches | Patterns** switch. The library stays the home screen, and the
+  header's Sequencer button goes away once the switch exists.
+- The Patterns side is a flat list of named patterns. Load it behind the switch, as the saved-bank
+  dialogs load behind their menu, so it costs the initial bundle nothing; only the switch is eager.
+- Opening a pattern opens the current sequencer view, which becomes its editor: the grid, the
+  keyboard rail, the velocity lane, send, and listen. It stays a lazy route with its own translation
+  namespace.
+
+### What the library is not
+
+It does not mirror the device. Banks A–D mirror FM1 programs because Program Change addresses them;
+nothing addresses a pattern slot, and the device's pattern count is unknown. So a library entry is
+never "the FM1's Pattern 2", no entry claims to be on the device, and there is no bulk send. Sending
+records into whichever pattern the user has armed, as SEQ-REC-002 already says.
+
+### Editing
+
+- **Save to library**, an unsaved-changes guard on leaving, and **Compare with saved**, reusing the
+  voice editor's components and conventions rather than copies of them.
+- Undo and redo. Pressing a cell, clearing the pattern, changing the step length, and taking a
+  captured pattern are one step each. A velocity fader drag is one step, started on pointer down or
+  key down and ended on pointer up, key up, and blur, as the voice editor's sliders are.
+- New, rename, duplicate, and delete in the library. Deleting offers Undo in its notification
+  through `undoToastOptions`, as the patch library's destructive changes do.
+
+### Capture from the FM1
+
+Listening can create a new, unsaved pattern from what the device plays, the patterns counterpart of
+importing a bank. It opens in the editor for the user to name and save. After a send, listening
+compares what the device plays with the saved pattern, allowing for rotation as the observer
+requires, until SEQ-001C shows whether a read can be anchored at step 1.
+
+### Stored shape
+
+Patterns are independent records, like saved banks, so follow `NamedBank` rather than the single
+workspace record:
+
+- A new object store `patterns`, key path `id`, created by an additive bump of the `fm1-librarian`
+  database from schema version 2 to 3. `onupgradeneeded` only creates it.
+- A versioned record, `version: 1`: `id`, `name`, `loopLength`, `steps`, `gatePercent`, `savedAt`.
+- **Each step stores a list of notes**, each a pitch and a velocity. An empty list is a rest. Version
+  1 validation accepts at most one note per step. If SEQ-001C shows the FM1 records chords, raising
+  that limit is a validation change, not a new shape; if it shows one note per step, nothing
+  changes. A single-note-per-step record would need a version bump the day chords arrive.
+- Normalise on read: clamp or drop out-of-range pitches and velocities, and pad or trim steps to the
+  loop length. A record that cannot be read is skipped, left in storage unchanged, and reported, and
+  it does not hide the readable ones.
+- Pattern names are user-authored text and stay out of analytics and error monitoring.
+
+The record is a public format from the first release. Settle its fields in review before any code
+depends on it.
+
+### Open decision
+
+Whether a pattern also keeps the device settings the user wants to dial in by hand, Rate, Tempo,
+Swing, and Transpose, shown on the send pre-flight as a checklist. They would be optional fields and
+labelled as reminders, never as something the editor sets. The V13 analysis puts tempo and rate per
+bank rather than per pattern, so they may not belong to a pattern at all. Decide before the record
+shape is settled, since adding them later is a new version.
+
+### Persistence behaviour
+
+The workspace's rules apply unchanged: serialise saves so an older snapshot cannot win, keep unsaved
+work in memory after a write failure and say so, write a pending save when the page is hidden, warn
+before leaving while a save is uncommitted, and treat a storage read failure as an error to report,
+never as a reason to start an empty library over the user's patterns.
+
+### Out of scope
+
+- The shell-level "now playing" panel for listening while choosing sounds. It waits on SEQ-001C
+  Part A and is a separate task.
+- Guided sync of the device's patterns. It waits on SEQ-001C Part B.
+- MIDI file import, which is SEQ-IMPORT-001 and builds on this library.
+- Backing up or exporting the pattern library. The library is the user's only copy, so a backup
+  matters, but it is its own task and its own format.
+
+### Tests
+
+- A storage fixture for the version 1 record as written, and one per later version as it arrives.
+- A damaged record is skipped and reported while the others load.
+- A write failure keeps the edit in memory and reports it; an older save cannot overwrite a newer
+  one; a save completing after unmount is harmless.
+- Each editing action, and a whole fader drag, reverses in a single undo.
+- Leaving with unsaved changes asks first; deleting offers Undo.
+- Capture creates an unsaved pattern and does not touch the library until it is saved.
+- The library list at narrow width, and the grid's hit areas in Playwright, since jsdom cannot
+  check them.
+
+---
+
 # Pattern import
 
 ## SEQ-IMPORT-001 — Import a Standard MIDI File into one pattern
 
-**Status:** approved in scope on 2026-09-18 (see Sequencer scope in `AGENTS.md`). Waits on a
-pattern library to import into, which is not yet a task. The chord rule waits on SEQ-001C Part C.
+**Status:** approved in scope on 2026-09-18 (see Sequencer scope in `AGENTS.md`). Waits on the
+pattern library in SEQ-LIB-001 to import into. The chord rule waits on SEQ-001C Part C.
 
 ### Goal
 
