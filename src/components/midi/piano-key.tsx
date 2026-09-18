@@ -29,7 +29,7 @@ export function PianoKeyButton({
         'touch-none border font-semibold transition-[background,box-shadow,transform,color] duration-100 select-none focus-visible:ring-2 focus-visible:ring-[var(--fm1-accent)] focus-visible:outline-none',
         isBlack
           ? 'synthwave-piano-key-black absolute top-2 z-10 flex h-32 w-9 items-end justify-center rounded-b-[0.45rem] pb-3 text-[0.7rem] text-white'
-          : 'synthwave-piano-key-white relative flex h-52 items-end justify-center rounded-b-[0.5rem] pb-4 text-xs text-[#25213c]',
+          : 'synthwave-piano-key-white relative flex h-52 items-end justify-center rounded-b-[0.5rem] pb-4 text-xs',
         isActive &&
           (isBlack ? 'synthwave-piano-key-black-active' : 'synthwave-piano-key-white-active'),
       )}

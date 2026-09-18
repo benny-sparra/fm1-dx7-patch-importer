@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { ErrorNotice } from '@/components/ui/error-notice'
 import { type Patch } from '@/data/patches'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { dx7BankVoiceCount } from '@/lib/dx7'
@@ -217,14 +218,7 @@ export function CopyPatchDialog({ library, onClose, onCopied, source }: CopyPatc
             </p>
           ) : null}
 
-          {error ? (
-            <p
-              className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-              role="alert"
-            >
-              {error}
-            </p>
-          ) : null}
+          {error ? <ErrorNotice>{error}</ErrorNotice> : null}
 
           <div className="flex justify-end">
             <Button disabled={!target} type="submit">

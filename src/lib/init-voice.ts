@@ -1,5 +1,6 @@
 import {
   FM1_EDITOR_PARAMETER_COUNT,
+  DX7_TRANSPOSE_C3,
   FM1_OPERATOR_COUNT,
   fm1EffectParameters,
   getGlobalParameterDefinition,
@@ -13,8 +14,6 @@ import {
 
 /** Stored operator detune for no detune; the editor displays it as 0. */
 export const DX7_DETUNE_CENTRE = 7
-/** Stored transpose for middle C at C3; the editor displays it as 0. */
-export const DX7_TRANSPOSE_C3 = 24
 /** Pitch envelope rates 1–4 then levels 1–4 that leave the pitch unchanged. */
 export const DX7_NEUTRAL_PITCH_ENVELOPE = [99, 99, 99, 99, 50, 50, 50, 50] as const
 

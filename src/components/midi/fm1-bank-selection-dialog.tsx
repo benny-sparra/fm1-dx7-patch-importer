@@ -93,7 +93,7 @@ export function Fm1BankSelectionDialog({
               </li>
             </ol>
 
-            <figure className="rounded-lg border bg-[#22242a] p-3 shadow-inner">
+            <figure className="rounded-lg border bg-[var(--fm1-photo-backdrop)] p-3 shadow-inner">
               <img
                 alt={t('dialogs.bankImage')}
                 className="mx-auto h-auto w-full"

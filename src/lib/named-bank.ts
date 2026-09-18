@@ -1,7 +1,14 @@
-import { makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
-import { sysexFilenameStem } from '@/lib/sysex-filename'
-import { normalizeFm1Effects } from '@/lib/fm1-effects'
-import { importVoices, voiceId, type PatchLibrarySnapshot } from '@/lib/patch-library'
+import { dx7PackedVoiceSize, makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
+import { sysexFilenameStem } from '@/lib/sysex-file'
+import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
+import {
+  bankDescriptionLength,
+  importVoices,
+  voiceId,
+  type PatchLibrarySnapshot,
+} from '@/lib/patch-library'
+
+export const savedBankNameLength = 80
 
 type NamedBankSlot = {
   effects: Uint8Array
@@ -29,14 +36,17 @@ type CreateNamedBankOptions = {
 function normalizeName(name: string) {
   const normalized = name.trim()
   if (!normalized) throw new Error('A saved bank needs a name.')
-  if (normalized.length > 80) throw new Error('A saved bank name cannot exceed 80 characters.')
+  if (normalized.length > savedBankNameLength) {
+    throw new Error(`A saved bank name cannot exceed ${savedBankNameLength} characters.`)
+  }
   return normalized
 }
 
 function normalizeDescription(description: string) {
   const normalized = description.trim()
-  if (normalized.length > 500)
-    throw new Error('A saved bank description cannot exceed 500 characters.')
+  if (normalized.length > bankDescriptionLength) {
+    throw new Error(`A saved bank description cannot exceed ${bankDescriptionLength} characters.`)
+  }
   return normalized
 }
 
@@ -72,10 +82,10 @@ export function validateNamedBank(value: unknown): asserts value is NamedBank {
       !slot ||
       slot.slot !== index + 1 ||
       !(slot.voice?.data instanceof Uint8Array) ||
-      slot.voice.data.length !== 128 ||
+      slot.voice.data.length !== dx7PackedVoiceSize ||
       typeof slot.voice.name !== 'string' ||
       !(slot.effects instanceof Uint8Array) ||
-      slot.effects.length !== 24
+      slot.effects.length !== fm1EffectParameterCount
     ) {
       throw new Error('A saved bank must contain 32 valid sound slots.')
     }

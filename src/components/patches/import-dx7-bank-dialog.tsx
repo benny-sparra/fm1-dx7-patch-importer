@@ -13,8 +13,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/toast'
+import { ErrorNotice } from '@/components/ui/error-notice'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
+import { sysexFileAccept } from '@/lib/sysex-file'
 
 type ImportDx7BankDialogProps = {
   bank: string | null
@@ -109,7 +111,7 @@ export function ImportDx7BankDialog({
             <span className="modal-input-surface flex min-h-11 cursor-pointer items-center rounded-md border border-dashed border-input px-3 font-normal transition-colors hover:bg-muted/50">
               <span className="min-w-0 truncate">{file?.name ?? t('banks.chooseSysexFile')}</span>
               <input
-                accept=".syx,application/octet-stream"
+                accept={sysexFileAccept}
                 className="sr-only"
                 disabled={working}
                 onChange={(event) => {
@@ -122,14 +124,7 @@ export function ImportDx7BankDialog({
             </span>
           </label>
 
-          {error ? (
-            <p
-              className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-              role="alert"
-            >
-              {error}
-            </p>
-          ) : null}
+          {error ? <ErrorNotice>{error}</ErrorNotice> : null}
 
           <div className="flex flex-wrap justify-end gap-2">
             <Button disabled={working || !bank || !file} type="submit" variant="destructive">

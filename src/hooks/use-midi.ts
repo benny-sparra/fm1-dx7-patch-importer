@@ -6,6 +6,7 @@ import {
   dx7BankVoiceCount,
   makeDx7BankPayload,
   makeDx7SingleVoicePayload,
+  makeYamahaSysexMessage,
   type Dx7Voice,
 } from '@/lib/dx7'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
@@ -332,7 +333,7 @@ export function useMidi() {
       }
 
       const payload = makeDx7BankPayload(voices, channel)
-      const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
+      const message = makeYamahaSysexMessage(payload)
 
       appendLog(
         makeLogEntry('out', `Sending DX7 bank ${bank} (${dx7BankVoiceCount} voices)…`, message),
@@ -381,7 +382,7 @@ export function useMidi() {
       }
 
       const payload = makeDx7SingleVoicePayload(voice, channel)
-      const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
+      const message = makeYamahaSysexMessage(payload)
       appendLog(makeLogEntry('out', `Sending ${voice.name} to the FM1 edit buffer…`, message))
 
       return transferQueue
@@ -447,7 +448,7 @@ export function useMidi() {
 
       try {
         const payload = makeFm1ParameterPayload(parameter, value)
-        const message = Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
+        const message = makeYamahaSysexMessage(payload)
         void transferQueue
           .enqueue(() => {
             sendFm1Parameter(selectedOutput, parameter, value)

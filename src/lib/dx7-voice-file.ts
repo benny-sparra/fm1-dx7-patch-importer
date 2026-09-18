@@ -3,12 +3,13 @@ import {
   dx7Checksum,
   isSevenBitData,
   makeDx7SingleVoicePayload,
+  makeYamahaSysexMessage,
   packDx7Voice,
   type Dx7Voice,
 } from '@/lib/dx7'
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
 import { patchSlotCode } from '@/lib/patch-library'
-import { sysexFilenameStem } from '@/lib/sysex-filename'
+import { sysexFilenameStem } from '@/lib/sysex-file'
 
 // F0 43 0n 00 01 1B, the 155 edit-buffer bytes, the checksum, and F7.
 const dx7VoiceFileSize = FM1_VOICE_PARAMETER_COUNT + 8
@@ -82,7 +83,7 @@ export async function readDx7VoiceFile(file: Blob) {
 
 /** A complete Yamaha DX7 single-voice SysEx file, ready to save as a .syx file. */
 export function makeDx7VoiceFile(voice: Dx7Voice) {
-  return Uint8Array.from([0xf0, 0x43, ...makeDx7SingleVoicePayload(voice), 0xf7])
+  return makeYamahaSysexMessage(makeDx7SingleVoicePayload(voice))
 }
 
 /** Names a downloaded voice after its slot and patch name, such as fm1-A05-PIANO-2.syx. */

@@ -1,5 +1,6 @@
 import { dx7Algorithms, getDx7OperatorRole } from '@/lib/dx7-algorithms'
 import {
+  DX7_TRANSPOSE_C3,
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_OPERATOR_COUNT,
   FM1_OPERATOR_PARAMETER_COUNT,
@@ -8,7 +9,7 @@ import {
   type GlobalParameterId,
   type OperatorParameterId,
 } from '@/lib/fm1-parameters'
-import { DX7_DETUNE_CENTRE, DX7_NEUTRAL_PITCH_ENVELOPE, DX7_TRANSPOSE_C3 } from '@/lib/init-voice'
+import { DX7_DETUNE_CENTRE, DX7_NEUTRAL_PITCH_ENVELOPE } from '@/lib/init-voice'
 
 // An independent implementation of the "Android-1" voice generator from Tom Bajoras's DX Android,
 // following the algorithm as reverse engineered and documented by Christian Zietz (czietz):

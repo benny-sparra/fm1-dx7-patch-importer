@@ -112,6 +112,10 @@
     --crt-led: hsl(41 82% 67%);
     --crt-led-glow: hsl(41 82% 67% / 30%);
 
+    /* The dark backdrop the FM1 hardware photo was taken against, so it frames the photo in
+       every finish. */
+    --fm1-photo-backdrop: #22242a;
+
     /* Scanline overlay strength; zeroed by the reduced-transparency guard. */
     --crt-scanline-opacity: 0.28;
 
@@ -819,6 +823,7 @@
    */
   .synthwave-piano-key-white {
     border-color: var(--crt-shadow);
+    color: var(--crt-bg-0);
     background: linear-gradient(
       180deg,
       var(--crt-ink) 0%,

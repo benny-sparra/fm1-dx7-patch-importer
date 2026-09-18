@@ -17,10 +17,16 @@ import {
   dx7BankCatalogCategories,
   dx7BankCatalogCategoryLabelKey,
 } from '@/data/dx7-bank-catalog'
+import { ErrorNotice } from '@/components/ui/error-notice'
 import { type PatchLibrary } from '@/hooks/use-patch-library'
 import { readDx7BankFile } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
-import { normalizeWorkspaceBankNameForSave, workspaceBankTitleLength } from '@/lib/patch-library'
+import {
+  bankDescriptionLength,
+  normalizeWorkspaceBankNameForSave,
+  workspaceBankTitleLength,
+} from '@/lib/patch-library'
+import { sysexFileAccept } from '@/lib/sysex-file'
 import { cn } from '@/lib/utils'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 
@@ -151,7 +157,7 @@ export function AddWorkspaceBankDialog({
             {t('namedBanks.description')}
             <textarea
               className="min-h-24 resize-y rounded-md border border-input bg-background px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              maxLength={500}
+              maxLength={bankDescriptionLength}
               onChange={(event) => setDescription(event.target.value)}
               placeholder={t('namedBanks.descriptionPlaceholder')}
               value={description}
@@ -248,7 +254,7 @@ export function AddWorkspaceBankDialog({
                     {file?.name ?? t('banks.chooseSysexFile')}
                   </span>
                   <input
-                    accept=".syx,application/octet-stream"
+                    accept={sysexFileAccept}
                     className="sr-only"
                     disabled={working}
                     onChange={(event) => setFile(event.target.files?.[0] ?? null)}
@@ -260,14 +266,7 @@ export function AddWorkspaceBankDialog({
             <span className="text-sm text-muted-foreground">{t('banks.soundDataHelp')}</span>
           </fieldset>
 
-          {error ? (
-            <p
-              className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-              role="alert"
-            >
-              {error}
-            </p>
-          ) : null}
+          {error ? <ErrorNotice>{error}</ErrorNotice> : null}
 
           <div className="flex flex-wrap justify-end gap-2">
             <Button
