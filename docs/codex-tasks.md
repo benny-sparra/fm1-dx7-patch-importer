@@ -536,6 +536,7 @@ Settle the two questions the sequencer view's integration with the librarian dep
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Does a playing pattern follow the sound the editor selects?                      | Decides whether a user can audition patches, or edit a voice, against a looping pattern. The deciding run is the Voice setting. |
 | Can the editor read the patterns already on the device, and tell which is which? | Decides whether a pattern library can be filled from the FM1, and whether a read can be anchored at step 1.                     |
+| Does the FM1 record a chord into one step?                                       | Decides whether a step holds one note or several, which reshapes the model, the grid, the transmit contract and MIDI import.    |
 
 ### Prerequisite
 
@@ -886,6 +887,52 @@ Implement only the operation documented in SEQ-REC-001.
 
 Automate arming, saving, or pattern selection. Retry automatically after a failed transmission; a
 second unattended pass could record into whatever the device is now showing.
+
+---
+
+# Pattern import
+
+## SEQ-IMPORT-001 — Import a Standard MIDI File into one pattern
+
+**Status:** approved in scope on 2026-09-18 (see Sequencer scope in `AGENTS.md`). Waits on a
+pattern library to import into, which is not yet a task. The chord rule waits on SEQ-001C Part C.
+
+### Goal
+
+Let a user fill one FM1 pattern from notes in a MIDI file, the way a DX7 bank file fills patches.
+The result is a pattern in the library, previewed in the grid before it is saved, and sent through
+the existing SEQ-REC-002 path like any other pattern. Nothing here talks to the device.
+
+### Scope
+
+- Parse Standard MIDI Files, formats 0 and 1, in a `src/lib/` module with no new dependency. The
+  file is untrusted binary input: bound the file size, check every chunk length against the bytes
+  present, bound variable-length quantities, handle running status, and reject anything malformed
+  with a typed error that reaches the UI as translated text.
+- Let the user choose one track, a starting bar, and a step grid. The step grid is a reminder of the
+  Rate to set on the device; the editor cannot set it.
+- Snap each note's start to the nearest step. A step with no note is a rest. Take at most 16 steps.
+- Keep attack velocity. Drop note length: every step is one step long and the device's global Gate
+  decides how long it sounds, so a long note becomes one step and rests, because there are no ties.
+- Notes that start on the same step: keep up to the per-step limit SEQ-001C Part C establishes. If
+  it shows one note per step, reduce each chord to one note by a single documented rule, chosen then.
+- Before saving, show the result in the grid with a translated summary of what the conversion lost:
+  chord notes reduced, notes moved to the grid, notes past step 16 dropped, other tracks ignored.
+- Load the parser only when the user chooses to import, as `fflate` loads on export, so it costs the
+  initial bundle nothing.
+
+### Do not
+
+Write or export MIDI files, keep tempo maps, controllers, pitch bend or program changes, merge
+tracks, or turn the import into an arrangement. Anything beyond one pattern's notes and velocities
+is out of scope.
+
+### Tests
+
+Fixture `.mid` files covering format 0 and 1, running status, a chord, a long note, off-grid notes,
+more than 16 steps, an empty track, and malformed input: a truncated chunk, an overlong length, and
+a bad variable-length quantity. Each malformed file reaches the UI as translated text, not a raw
+message.
 
 ---
 

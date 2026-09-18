@@ -472,6 +472,12 @@ plus 24 effect bytes; it has no sequence data boundary.
 - Internal flash read/write calls do not establish a browser-accessible upload/download command or
   automatic persistence. No such transport is known.
 - V13 addresses and ranges must not be projected onto V14 without testing.
+- The ten note positions per record were read as ten steps. The recorder evidence also fits another
+  reading: `note_on_route` appends each note to the current record, and `note_off_route` closes it
+  and advances the slot only when the final held note is released, so a record may be one step
+  holding a chord of up to ten notes, and the sixteen slots may be the sixteen steps V15 shows.
+  Neither reading is established on V15. SEQ-001C Part C in
+  [`seq-001a-capture-plan.md`](seq-001a-capture-plan.md) tests it.
 
 ## 5.7 Hardware tests and implementation boundary
 

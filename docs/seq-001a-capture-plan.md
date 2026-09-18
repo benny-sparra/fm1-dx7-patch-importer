@@ -216,6 +216,45 @@ Whatever the outcomes, playback can only ever reach patterns the user selects an
 time. There is no silent bulk read, and nothing here changes the write side: sending still records
 into whichever pattern the user has armed.
 
+### Part C — more than one note per step
+
+Every host recording so far released each note before the next one started, so each note became its
+own step. Whether the FM1 records a chord into one step has never been captured, and the answer
+decides the shape of the pattern model, the grid, the transmit contract, the observer, and MIDI
+import.
+
+The V13 evidence suggests it might. `note_on_route` appends each note to the current record, and
+`note_off_route` closes the record and advances the slot cursor only when the **final held** note is
+released. A record holds up to ten notes, and the slot runs `0..15`: sixteen slots, which is the V15
+Step range. Read that way, a slot is a step and a record is a chord of up to ten notes. The earlier
+audit read the ten positions as ten steps instead (see §5.6 of [`fm1-research.md`](fm1-research.md)).
+It is V13 firmware evidence either way and must not be applied to V15 until these runs settle it.
+
+Run each from a freshly cleared Pattern 1 at the baseline, recording armed, host notes on channel 1.
+Every run needs two repeats.
+
+| Fixture ID suffix         | Sole intended difference                                                       | Required observation                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `chord-two`               | Send `90 3C 5A` then `90 40 5A` while both are held, then release both.        | Step lights: did the cursor advance by one step or two? Playback: two simultaneous Note Ons at one step, or two steps? |
+| `chord-three`             | As above with notes 60, 64 and 67.                                             | The same, for three notes.                                                                                             |
+| `chord-velocities`        | Two held notes at velocities 40 and 110.                                       | Whether each note keeps its own velocity on playback.                                                                  |
+| `chord-staggered-release` | Hold 60, add 64, release 60 while 64 is still held, then release 64.           | Whether releasing the first note advances the cursor, or only the last. This tests the final-held-note rule directly.  |
+| `chord-overlap-then-new`  | Hold 60, add 64, release 60, add 67 while 64 is still held, then release both. | Whether a note added after a partial release joins the same step or starts a new one.                                  |
+| `chord-eleven`            | Hold eleven distinct notes, then release them all.                             | The per-step limit, and what happens to notes beyond it: dropped, spilled to the next step, or anything else.          |
+| `chord-physical`          | The operator plays a three-note chord on the FM1's own keys while recording.   | The device's own behaviour, as the reference for the host runs.                                                        |
+
+What each outcome means:
+
+| Outcome                                                   | Consequence                                                                                                                                                                                                                                    |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A chord records into one step                             | A step holds up to the captured limit of notes. The model, the grid (several cells per column), the transmit contract (notes held together, then released), the observer (simultaneous onsets at one step) and MIDI import all widen to match. |
+| Each held note takes its own step                         | One note per step stays the rule, and SEQ-REC-001's no-overlap rule stands. MIDI import reduces chords.                                                                                                                                        |
+| Only a subset of held notes records, or the result varies | Treat chords as unsupported and keep one note per step. Record exactly what happened, so the rule can be revisited on a later firmware.                                                                                                        |
+
+The observer already refuses two onsets at the same step as `off-grid`, so a chord played back today
+is reported as unreadable rather than misread. That refusal must be revisited, not relied on, if
+chords turn out to record.
+
 ## SEQ-002 decision
 
 **SEQ-002 remains blocked.** The V15 label is strongly evidenced by the user-installed Glide update

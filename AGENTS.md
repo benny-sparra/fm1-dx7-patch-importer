@@ -464,6 +464,10 @@ Unless explicitly approved by a future task, do not add:
 - a mixer
 - generic DAW transport architecture
 
+Importing a Standard MIDI File into a single pattern is approved (SEQ-IMPORT-001, 2026-09-18). It
+fills one FM1 pattern the way a DX7 bank file fills patches, and it stays that narrow: writing or
+exporting MIDI files, tempo maps, controllers, merged tracks, and arrangements remain excluded.
+
 Prefer a small UI tailored to the stock FM1 sequence representation.
 
 Build in this order:
