@@ -108,7 +108,62 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Check Firefox-only differences in layout, fonts, native dialogs, drag-and-drop reordering, and
     app installation, which Firefox does not offer.
 
+- [ ] **Workspace backup and restore.** Download one file holding the workspace banks, each patch's
+      FM1 effects, and the saved banks, and restore from it. Every download today (patch, bank, and
+      the all-banks `.zip`) is DX7 voice data only, so FM1 effects and saved banks exist nowhere
+      but browser storage, and clearing site data loses them.
+  - The file is a new public format from its first release: a versioned record with an upgrade
+    path on read, and a fixture test for version 1 in the same change, under the legacy-data rules
+    in `AGENTS.md`.
+  - Check voice data at the same boundary as `.syx` import (reject bytes above 7-bit, normalise on
+    read) and give every failure a translated error.
+  - Restoring replaces the workspace, so confirm first and offer Undo through `undoToastOptions`.
+    Decide whether saved banks in the file are merged with or replace the saved banks already here.
+  - Load the backup code when a backup or restore starts, like `fflate` for bulk export.
+  - Tests: a round trip, a legacy-version fixture, a damaged file reaching the UI as translated
+    text, and a rendered restore that reverses in one undo.
+
+- [ ] **Multi-bank `.syx` import.** DX7 archive collections often join several 32-voice dumps in
+      one file, which bank import refuses today. Split the file into its banks, show each with its
+      first few patch names, and import the one chosen.
+  - Each bank passes the existing checks: header, length, 7-bit data, and checksum.
+  - A file with some damaged banks lists the readable ones and reports the rest, as saved banks
+    do, rather than rejecting the whole file.
+  - Importing over a populated bank keeps its confirmation and Undo. Update the SysEx
+    compatibility section of `docs/user-guide.md`.
+
+- [ ] **Drag a patch onto a bank tab.** Finishes [Copy patches between banks](#worth-doing):
+      dropping a patch on a bank tab opens **Copy to…** with that bank chosen, so the overwrite
+      confirmation and Undo stay in one place.
+  - The ⋮ menu stays the keyboard route. Dropping on the patch's own bank is ignored or picks a slot
+    as the dialog does today.
+  - Cover the drop in Playwright; jsdom cannot check dragging onto another element.
+
 ## Nice to have
+
+- [ ] **Receive a DX7 voice over MIDI.** Offer to place a standard DX7 single-voice dump arriving at
+      the MIDI input, from Dexed, a DX7, or another editor, into a chosen slot, with the same checks
+      and confirmation as **Import patch…**.
+  - This is standard Yamaha SysEx, not FM1 readback, which stays unsupported. Nothing is taken
+    without the user asking: listen only while a receive dialog is open, and ignore everything
+    else arriving at the input.
+  - Validate length, header, 7-bit data, and checksum at the boundary, and drop the listener when
+    the dialog closes, MIDI goes offline, or the input changes.
+  - Tests use captured fixtures and a fake input; no hardware or permission.
+
+- [ ] **Find duplicate patches.** List patches in loaded workspace banks whose voice data is
+      identical, with a way to jump to each copy, so imported archives can be tidied.
+  - Read-only: it never deletes or changes a slot. Compare packed voice bytes; say in the UI
+    whether names and FM1 effects are part of the match.
+
+- [ ] **Download a bank's patch list.** Save a bank's slot codes and patch names as plain text or
+      CSV to print or keep beside the FM1.
+  - Reuse `src/lib/sysex-file.ts` naming and the download helper. Column headers are translated;
+    patch and bank names are written exactly as stored, with CSV quoting.
+
+- [ ] **Paste part of an operator.** Add **Paste envelope** and **Paste frequency** beside
+      **Paste operator**, using the same in-memory copy.
+  - Each is one undo step and sends only the changed parameters. Build only if asked for.
 
 - [x] **Search across all banks.** The librarian's search box finds a patch in every loaded
       workspace bank, and clicking a result plays it while the results stay up.
@@ -167,6 +222,8 @@ Reopen only if a stock control or an official M-VAVE app is found that changes t
 
 - **Tags, ratings, and favourites.** New stored fields to support forever, for little benefit with
   32-slot banks.
+- **Vary the current voice.** Small random changes around the current sound, beside Randomise.
+  Too close to voice morphing, and Randomise plus undo already covers exploring.
 - **Online sharing or accounts.** Needs a server and conflicts with the client-only design and the
   privacy rules.
 - **Voice morphing, and sequencer features beyond the FM1's own model.** Out of scope; the sequencer
