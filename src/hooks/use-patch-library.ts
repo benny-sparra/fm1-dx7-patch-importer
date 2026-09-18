@@ -22,6 +22,7 @@ import {
   moveVoice as moveLibraryVoice,
   renameBank as renameLibraryBank,
   renameVoice as renameLibraryVoice,
+  replaceVoice as replaceLibraryVoice,
   updateBankInformation as updateLibraryBankInformation,
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
@@ -258,6 +259,12 @@ export function usePatchLibrary() {
     [commit],
   )
 
+  const replaceVoice = useCallback(
+    (bank: string, slot: number, voice: Dx7Voice) =>
+      commit((current) => replaceLibraryVoice(current, bank, slot, voice)),
+    [commit],
+  )
+
   const deleteBank = useCallback(
     (bank: string) => commit((current) => deleteWorkspaceBank(current, bank)),
     [commit],
@@ -391,6 +398,7 @@ export function usePatchLibrary() {
     redo,
     renameBank,
     renameVoice,
+    replaceVoice,
     retryWorkspaceLoading,
     retryWorkspaceSaving,
     resetFactoryBanks,

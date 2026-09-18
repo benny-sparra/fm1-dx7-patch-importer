@@ -20,6 +20,7 @@ import {
   patchSlotCode,
   renameBank,
   renameVoice,
+  replaceVoice,
   updateBankInformation,
   voiceId,
   WorkspaceBankUnavailableError,
@@ -30,6 +31,7 @@ import {
   makeFactoryPatchLibrary,
   restoreFactoryPatchLibrary,
 } from '@/lib/factory-patch-library'
+import { updateDx7VoiceName } from '@/lib/dx7'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 
 describe('patch library operations', () => {
@@ -422,6 +424,47 @@ describe('restoring factory banks', () => {
 
     expect(restored.bankNames).toEqual({ E: 'Leads' })
     expect(restored.bankDescriptions).toEqual({ E: 'My leads' })
+  })
+})
+
+describe('replacing a voice from a file', () => {
+  function libraryWithBank() {
+    const loaded = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const effects = makeDefaultFm1Effects()
+    effects[0] = 1
+    return { ...loaded, effects: { ...loaded.effects, [voiceId('A', 5)]: effects } }
+  }
+  const imported = updateDx7VoiceName(makeDemoVoices()[0], 'FROM FILE')
+
+  it('puts the voice in the slot', () => {
+    const replaced = replaceVoice(libraryWithBank(), 'A', 5, imported)
+
+    expect(replaced.voices[voiceId('A', 5)]).toBe(imported)
+  })
+
+  it('returns the slot’s effects to their defaults', () => {
+    const replaced = replaceVoice(libraryWithBank(), 'A', 5, imported)
+
+    expect(replaced.effects[voiceId('A', 5)]).toEqual(makeDefaultFm1Effects())
+  })
+
+  it('leaves every other slot unchanged', () => {
+    const library = libraryWithBank()
+
+    const replaced = replaceVoice(library, 'A', 5, imported)
+
+    expect(replaced.voices[voiceId('A', 4)]).toBe(library.voices[voiceId('A', 4)])
+  })
+
+  it('refuses a bank that holds no sounds', () => {
+    // Bank B exists in the workspace but nothing has been loaded into it.
+    expect(() => replaceVoice(libraryWithBank(), 'B', 1, imported)).toThrow(
+      WorkspaceBankUnavailableError,
+    )
+  })
+
+  it('refuses a slot outside the bank', () => {
+    expect(() => replaceVoice(libraryWithBank(), 'A', 33, imported)).toThrow(RangeError)
   })
 })
 

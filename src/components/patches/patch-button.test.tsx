@@ -43,14 +43,18 @@ describe('PatchButton touch scrolling', () => {
 describe('PatchButton slot menu', () => {
   function renderSlot(props: { disabled?: boolean } = {}) {
     const onCopy = vi.fn<(patch: Patch) => void>()
+    const onDownload = vi.fn<(patch: Patch) => void>()
     const onEdit = vi.fn<(patch: Patch) => void>()
+    const onReplace = vi.fn<(patch: Patch) => void>()
     const onSelect = vi.fn<(patch: Patch) => void>()
     render(
       <DndContext>
         <SortableContext items={[patch.id]}>
           <PatchButton
             onCopy={onCopy}
+            onDownload={onDownload}
             onEdit={onEdit}
+            onReplace={onReplace}
             onSelect={onSelect}
             patch={patch}
             {...props}
@@ -58,12 +62,12 @@ describe('PatchButton slot menu', () => {
         </SortableContext>
       </DndContext>,
     )
-    return { onCopy, onEdit, onSelect, user: userEvent.setup() }
+    return { onCopy, onDownload, onEdit, onReplace, onSelect, user: userEvent.setup() }
   }
 
   const trigger = () => screen.getByRole('button', { name: 'Actions for Alpha Piano' })
 
-  it('offers Edit and Copy to… without playing the slot', async () => {
+  it('offers its actions without playing the slot', async () => {
     const { onSelect, user } = renderSlot()
 
     await user.click(trigger())
@@ -71,6 +75,8 @@ describe('PatchButton slot menu', () => {
     expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
       'Edit',
       'Copy to…',
+      'Import patch…',
+      'Download patch',
     ])
     expect(trigger().getAttribute('aria-expanded')).toBe('true')
     expect(onSelect).not.toHaveBeenCalled()
@@ -93,6 +99,24 @@ describe('PatchButton slot menu', () => {
     await user.click(screen.getByRole('menuitem', { name: 'Copy to…' }))
 
     expect(onCopy).toHaveBeenCalledExactlyOnceWith(patch)
+  })
+
+  it('replaces the slot from a file from its menu', async () => {
+    const { onReplace, user } = renderSlot()
+
+    await user.click(trigger())
+    await user.click(screen.getByRole('menuitem', { name: 'Import patch…' }))
+
+    expect(onReplace).toHaveBeenCalledExactlyOnceWith(patch)
+  })
+
+  it('downloads the slot from its menu', async () => {
+    const { onDownload, user } = renderSlot()
+
+    await user.click(trigger())
+    await user.click(screen.getByRole('menuitem', { name: 'Download patch' }))
+
+    expect(onDownload).toHaveBeenCalledExactlyOnceWith(patch)
   })
 
   it('closes on Escape, returns focus to its button, and keeps the key from view shortcuts', async () => {
@@ -119,6 +143,8 @@ describe('PatchButton slot menu', () => {
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Edit' }))
     await user.keyboard('{ArrowDown}')
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Copy to…' }))
+    await user.keyboard('{ArrowUp}{ArrowUp}')
+    expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Download patch' }))
     await user.keyboard('{ArrowDown}')
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Edit' }))
   })

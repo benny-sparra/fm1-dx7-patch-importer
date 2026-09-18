@@ -80,6 +80,13 @@ const CopyPatchDialog = lazy(() =>
   })),
 )
 
+// Replacing a slot from a file opens from its menu, with the file reader, on first use.
+const ReplacePatchDialog = lazy(() =>
+  import('@/components/patches/replace-patch-dialog').then((module) => ({
+    default: module.ReplacePatchDialog,
+  })),
+)
+
 type SavedBanksRequest = { bank: string; closeMenu: () => void; mode: 'load' | 'save' }
 
 type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
@@ -118,6 +125,8 @@ export function LibrarianPage({
   const [savedBanksRequest, setSavedBanksRequest] = useState<SavedBanksRequest | null>(null)
   // The sound whose menu chose Copy, kept while its dialog is open.
   const [copySource, setCopySource] = useState<Patch | null>(null)
+  // The slot whose menu chose to replace it from a file, kept while its dialog is open.
+  const [replaceTarget, setReplaceTarget] = useState<Patch | null>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [transferStatus, setTransferStatus] = useState<TransferStatus>({
@@ -153,6 +162,27 @@ export function LibrarianPage({
   const requestCopy = (patch: Patch) => {
     setDialogLoadError('')
     setCopySource(patch)
+  }
+  const requestReplace = (patch: Patch) => {
+    setDialogLoadError('')
+    setReplaceTarget(patch)
+  }
+  // The single-voice file format loads with the first download rather than with the page.
+  const downloadPatch = async (patch: Patch) => {
+    const voice = library.voices[patch.id]
+    if (!voice) return
+    let voiceFile: typeof import('@/lib/dx7-voice-file')
+    try {
+      voiceFile = await import('@/lib/dx7-voice-file')
+    } catch {
+      setDialogLoadError(t('banks.patchFileUnavailable'))
+      return
+    }
+    downloadFile(
+      new Blob([voiceFile.makeDx7VoiceFile(voice)], { type: 'application/octet-stream' }),
+      voiceFile.makeDx7VoiceFilename(patch),
+    )
+    toast.success(t('toasts.bankDownloadStarted', { bank: patch.name }))
   }
   const beginImport = (bank: string) => {
     if (library.loadedBanks.includes(bank)) {
@@ -539,6 +569,8 @@ export function LibrarianPage({
           toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
         }}
         onPatchCopy={requestCopy}
+        onPatchDownload={(patch) => void downloadPatch(patch)}
+        onPatchReplace={requestReplace}
         onPatchEdit={(patch) => {
           followPlayedPatch(patch)
           onEditPatch(patch)
@@ -709,6 +741,32 @@ export function LibrarianPage({
                 )
               }
               source={copySource}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
+      {replaceTarget ? (
+        <ErrorBoundary
+          key={replaceTarget.id}
+          onError={() => {
+            setReplaceTarget(null)
+            setDialogLoadError(t('banks.patchFileUnavailable'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <ReplacePatchDialog
+              library={library}
+              onClose={() => setReplaceTarget(null)}
+              onReplaced={(voice, changed) =>
+                toast.success(
+                  t('toasts.patchReplaced', {
+                    patch: voice.name,
+                    slot: patchSlotCode(replaceTarget),
+                  }),
+                  undoToastOptions(t, library, changed),
+                )
+              }
+              patch={replaceTarget}
             />
           </Suspense>
         </ErrorBoundary>

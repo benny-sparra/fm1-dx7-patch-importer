@@ -237,6 +237,12 @@ export default {
       plate: 'Placa',
     },
   },
+  replacePatch: {
+    action: 'Substituir som',
+    title: 'Substituir {{slot}} “{{patch}}”?',
+    warning:
+      'O som deste slot será substituído pelo do arquivo, e seus efeitos FM1 voltarão aos valores padrão.',
+  },
   overwriteImport: {
     action: 'Substituir conteúdo',
     help: 'Escolha um arquivo de banco SysEx DX7 padrão com 32 vozes.',
@@ -289,6 +295,7 @@ export default {
     demoLoaded: 'Sons de demonstração carregados em “{{bank}}”.',
     patchSaved: '“{{patch}}” foi salvo na biblioteca.',
     patchCopied: '“{{patch}}” foi copiado para {{slot}} em “{{bank}}”.',
+    patchReplaced: '{{slot}} foi substituído por “{{patch}}”.',
     operatorCopied: 'O operador {{number}} foi copiado.',
   },
   meta: {
@@ -597,10 +604,11 @@ export default {
     fileErrors: {
       size: 'Este arquivo tem {{bytes}} bytes. Um arquivo de banco DX7 deve ter exatamente 4.104 bytes.',
       format: 'Este arquivo não é um banco Yamaha DX7 de 32 vozes.',
-      highBitData:
-        'Este arquivo contém valores que um banco DX7 não comporta e pode estar danificado.',
-      checksum:
-        'A soma de verificação deste banco é inválida; ele pode estar danificado ou incompleto.',
+      damaged: 'Este arquivo parece estar danificado. Tente baixá-lo novamente.',
+      voiceFormat:
+        'Este arquivo não é um som DX7. Escolha um arquivo .syx que contenha um único som.',
+      voiceGotBank:
+        'Este arquivo é um banco DX7 de 32 vozes. Para carregá-lo, escolha “Importar banco DX7” no menu do banco.',
     },
     exportFailed: 'Falha na exportação.',
     bulkExportFailed: 'Falha na exportação em massa.',
@@ -634,6 +642,10 @@ export default {
       'Não foi possível abrir as opções do novo banco. Recarregue a página e tente novamente.',
     copyOpenFailed:
       'Não foi possível abrir as opções de cópia. Recarregue a página e tente novamente.',
+    importPatchFile: 'Importar som…',
+    downloadPatchFile: 'Baixar som',
+    patchFileUnavailable:
+      'Não foi possível abrir os arquivos de som. Recarregue a página e tente novamente.',
   },
   namedBanks: {
     open: 'Biblioteca de bancos',

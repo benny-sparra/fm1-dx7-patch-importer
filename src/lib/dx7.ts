@@ -11,7 +11,7 @@ import {
 export const dx7BankVoiceCount = 32
 const dx7PackedVoiceSize = 128
 const dx7BankDataSize = dx7BankVoiceCount * dx7PackedVoiceSize
-const dx7BankFileSize = dx7BankDataSize + 8
+export const dx7BankFileSize = dx7BankDataSize + 8
 const feedbackIndex = getGlobalParameterDefinition('global.feedback').voiceIndex
 const oscillatorSyncIndex = getGlobalParameterDefinition('global.oscillatorSync').voiceIndex
 const lfoSpeedIndex = getGlobalParameterDefinition('global.lfoSpeed').voiceIndex
@@ -25,11 +25,11 @@ const transposeIndex = getGlobalParameterDefinition('global.transpose').voiceInd
 export type Dx7Voice = { data: Uint8Array; name: string }
 
 /** Yamaha's bulk-dump checksum: the two's complement of the data sum, in seven bits. */
-function dx7Checksum(bytes: Uint8Array) {
+export function dx7Checksum(bytes: Uint8Array) {
   return (128 - (bytes.reduce((sum, byte) => sum + byte, 0) & 0x7f)) & 0x7f
 }
 
-function isSevenBitData(bytes: Uint8Array) {
+export function isSevenBitData(bytes: Uint8Array) {
   return bytes.every((byte) => byte <= 0x7f)
 }
 

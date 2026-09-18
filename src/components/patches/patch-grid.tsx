@@ -40,6 +40,8 @@ type PatchGridProps = {
   isBankLoaded?: boolean
   isPatchDisabled?: (patch: Patch) => boolean
   onPatchCopy?: (patch: Patch) => void
+  onPatchDownload?: (patch: Patch) => void
+  onPatchReplace?: (patch: Patch) => void
   onPatchMove: (patch: Patch, target: Patch) => void
   onPatchEdit?: (patch: Patch) => void
   onPatchSelect?: (patch: Patch) => void
@@ -75,6 +77,8 @@ export function PatchGrid({
   isBankLoaded = true,
   isPatchDisabled = () => false,
   onPatchCopy,
+  onPatchDownload,
+  onPatchReplace,
   onPatchMove,
   onPatchEdit,
   onPatchSelect,
@@ -206,6 +210,8 @@ export function PatchGrid({
                             disabled={isPatchDisabled(patch)}
                             disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
                             onCopy={onPatchCopy}
+                            onDownload={onPatchDownload}
+                            onReplace={onPatchReplace}
                             onEdit={onPatchEdit}
                             onNavigate={navigateSlots}
                             onSelect={onPatchSelect}

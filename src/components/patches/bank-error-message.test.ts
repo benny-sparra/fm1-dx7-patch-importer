@@ -4,9 +4,9 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { i18nReady } from '@/i18n'
 import french from '@/i18n/locales/fr'
-import { parseDx7Bank } from '@/lib/dx7'
+import { makeDx7BankFile, parseDx7Bank } from '@/lib/dx7'
 import { Dx7CatalogBankUnavailableError } from '@/lib/dx7-bank-catalog'
-import { WorkspaceBankUnavailableError } from '@/lib/patch-library'
+import { makeDemoVoices, WorkspaceBankUnavailableError } from '@/lib/patch-library'
 
 function importError(bytes: Uint8Array) {
   try {
@@ -28,6 +28,26 @@ describe('bankErrorMessage', () => {
 
     expect(bankErrorMessage(t, importError(new Uint8Array(3)), 'Import failed.')).toBe(
       'This file is 3 bytes. A DX7 bank file must be exactly 4,104 bytes.',
+    )
+  })
+
+  it('explains a bank file that fails its checksum as damaged', () => {
+    const t = i18n.getFixedT('en')
+    const bank = makeDx7BankFile(makeDemoVoices())
+    bank[10] = (bank[10] + 1) & 0x7f
+
+    expect(bankErrorMessage(t, importError(bank), 'Import failed.')).toBe(
+      'This file looks damaged. Try downloading it again.',
+    )
+  })
+
+  it('explains a bank file with data above seven bits as damaged', () => {
+    const t = i18n.getFixedT('en')
+    const bank = makeDx7BankFile(makeDemoVoices())
+    bank[10] = 0x80
+
+    expect(bankErrorMessage(t, importError(bank), 'Import failed.')).toBe(
+      'This file looks damaged. Try downloading it again.',
     )
   })
 

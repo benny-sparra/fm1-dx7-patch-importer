@@ -11,12 +11,12 @@ import { WorkspaceBankUnavailableError } from '@/lib/patch-library'
 export function bankErrorMessage(t: TFunction, error: unknown, fallback: string) {
   if (error instanceof Dx7BankFileError) {
     switch (error.problem) {
+      // Either way the file was spoiled somewhere, and fetching it again is the remedy.
       case 'checksum':
-        return t('banks.fileErrors.checksum')
+      case 'high-bit-data':
+        return t('banks.fileErrors.damaged')
       case 'format':
         return t('banks.fileErrors.format')
-      case 'high-bit-data':
-        return t('banks.fileErrors.highBitData')
       case 'size':
         return t('banks.fileErrors.size', { bytes: error.receivedBytes })
     }

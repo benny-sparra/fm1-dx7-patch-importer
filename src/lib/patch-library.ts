@@ -246,18 +246,23 @@ export function moveVoice(
  * own voice and effect objects, so nothing that remembers what a slot last sent mistakes it for the
  * sound it replaced.
  */
-export function copyVoice(
-  snapshot: PatchLibrarySnapshot,
-  sourceId: string,
-  bank: string,
-  slot: number,
-): PatchLibrarySnapshot {
+/** A slot a sound can replace: one in a workspace bank that holds sounds. */
+function assertReplaceableSlot(snapshot: PatchLibrarySnapshot, bank: string, slot: number) {
   if (!snapshot.workspaceBanks.includes(bank) || !snapshot.loadedBanks.includes(bank)) {
     throw new WorkspaceBankUnavailableError()
   }
   if (!Number.isInteger(slot) || slot < 1 || slot > dx7BankVoiceCount) {
     throw new RangeError('Slot out of range.')
   }
+}
+
+export function copyVoice(
+  snapshot: PatchLibrarySnapshot,
+  sourceId: string,
+  bank: string,
+  slot: number,
+): PatchLibrarySnapshot {
+  assertReplaceableSlot(snapshot, bank, slot)
   const voice = snapshot.voices[sourceId]
   const targetId = voiceId(bank, slot)
   if (!voice || targetId === sourceId) return snapshot
@@ -266,6 +271,25 @@ export function copyVoice(
     ...snapshot,
     effects: { ...snapshot.effects, [targetId]: normalizeFm1Effects(snapshot.effects[sourceId]) },
     voices: { ...snapshot.voices, [targetId]: { ...voice, data: voice.data.slice() } },
+  }
+}
+
+/**
+ * Puts a voice read from a file over a slot. A DX7 voice file carries no FM1 effects, so the slot's
+ * effects return to their defaults, as they do when a bank is imported.
+ */
+export function replaceVoice(
+  snapshot: PatchLibrarySnapshot,
+  bank: string,
+  slot: number,
+  voice: Dx7Voice,
+): PatchLibrarySnapshot {
+  assertReplaceableSlot(snapshot, bank, slot)
+  const id = voiceId(bank, slot)
+  return {
+    ...snapshot,
+    effects: { ...snapshot.effects, [id]: makeDefaultFm1Effects() },
+    voices: { ...snapshot.voices, [id]: voice },
   }
 }
 

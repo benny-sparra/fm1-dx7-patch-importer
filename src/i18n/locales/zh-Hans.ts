@@ -211,6 +211,11 @@ export default {
       plate: '板式',
     },
   },
+  replacePatch: {
+    action: '替换音色',
+    title: '替换 {{slot}}“{{patch}}”吗？',
+    warning: '此位置的音色将被文件中的音色替换，其 FM1 效果将恢复为默认值。',
+  },
   overwriteImport: {
     action: '替换音色库内容',
     help: '请选择标准的 32 音色 DX7 SysEx 音色库文件。',
@@ -261,6 +266,7 @@ export default {
     demoLoaded: '已将演示音色载入“{{bank}}”。',
     patchSaved: '已将“{{patch}}”保存到音色库。',
     patchCopied: '已将“{{patch}}”复制到“{{bank}}”的 {{slot}}。',
+    patchReplaced: '已将 {{slot}} 替换为“{{patch}}”。',
     operatorCopied: '已复制操作器 {{number}}。',
   },
   meta: {
@@ -554,8 +560,10 @@ export default {
     fileErrors: {
       size: '此文件大小为 {{bytes}} 字节。DX7 音色库文件必须正好为 4,104 字节。',
       format: '此文件不是 Yamaha DX7 32 音色库。',
-      highBitData: '此文件包含 DX7 音色库无法保存的数值，可能已损坏。',
-      checksum: '此音色库的校验和无效，可能已损坏或不完整。',
+      damaged: '此文件似乎已损坏。请尝试重新下载。',
+      voiceFormat: '此文件不是 DX7 音色。请选择只包含一个音色的 .syx 文件。',
+      voiceGotBank:
+        '此文件是 32 音色的 DX7 音色库。要载入它，请在音色库菜单中选择“导入 DX7 音色库”。',
     },
     exportFailed: '导出失败。',
     bulkExportFailed: '批量导出失败。',
@@ -585,6 +593,9 @@ export default {
     copyFailed: '无法复制该音色。',
     addBankOpenFailed: '无法打开新音色库选项。请重新加载页面后重试。',
     copyOpenFailed: '无法打开复制选项。请重新加载页面后重试。',
+    importPatchFile: '导入音色…',
+    downloadPatchFile: '下载音色',
+    patchFileUnavailable: '无法打开音色文件。请重新加载页面后重试。',
   },
   namedBanks: {
     open: '音色库',
