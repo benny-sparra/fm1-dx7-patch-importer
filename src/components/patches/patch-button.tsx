@@ -16,9 +16,11 @@ type PatchButtonProps = {
   disabledTitle?: string
   isActive?: boolean
   onCopy?: (patch: Patch) => void
+  onDownload?: (patch: Patch) => void
   onEdit?: (patch: Patch) => void
   /** Arrow-key navigation across the grid, owned by the grid itself. */
   onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
+  onReplace?: (patch: Patch) => void
   onSelect?: (patch: Patch) => void
   patch: Patch
   /** False while the slot is shown away from its bank, such as in search results. */
@@ -35,8 +37,10 @@ export function PatchButton({
   disabledTitle,
   isActive = false,
   onCopy,
+  onDownload,
   onEdit,
   onNavigate,
+  onReplace,
   onSelect,
   patch,
   reorderable = true,
@@ -164,7 +168,9 @@ export function PatchButton({
         <PatchSlotMenu
           name={patch.name}
           onCopy={onCopy && (() => onCopy(patch))}
+          onDownload={onDownload && (() => onDownload(patch))}
           onEdit={onEdit && (() => onEdit(patch))}
+          onReplace={onReplace && (() => onReplace(patch))}
         />
       ) : null}
       {isActive ? <span className="sr-only">{t('banks.auditioning')}</span> : null}

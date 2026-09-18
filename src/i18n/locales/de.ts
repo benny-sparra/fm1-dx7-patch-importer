@@ -244,6 +244,12 @@ export default {
       plate: 'Platte',
     },
   },
+  replacePatch: {
+    action: 'Sound ersetzen',
+    title: '{{slot}} „{{patch}}“ ersetzen?',
+    warning:
+      'Der Sound in diesem Slot wird durch den Sound aus der Datei ersetzt, und seine FM1-Effekte werden auf die Standardwerte zurückgesetzt.',
+  },
   overwriteImport: {
     action: 'Bankinhalt ersetzen',
     help: 'Wähle eine Standard-DX7-SysEx-Bankdatei mit 32 Voices.',
@@ -297,6 +303,7 @@ export default {
     demoLoaded: 'Demo-Sounds in „{{bank}}“ geladen.',
     patchSaved: '„{{patch}}“ wurde in der Bibliothek gespeichert.',
     patchCopied: '„{{patch}}“ wurde nach {{slot}} in „{{bank}}“ kopiert.',
+    patchReplaced: '{{slot}} wurde durch „{{patch}}“ ersetzt.',
     operatorCopied: 'Operator {{number}} wurde kopiert.',
   },
   meta: {
@@ -607,10 +614,11 @@ export default {
     fileErrors: {
       size: 'Diese Datei ist {{bytes}} Bytes groß. Eine DX7-Bankdatei muss genau 4.104 Bytes groß sein.',
       format: 'Diese Datei ist keine Yamaha-DX7-Bank mit 32 Stimmen.',
-      highBitData:
-        'Diese Datei enthält Werte, die eine DX7-Bank nicht speichern kann, und ist möglicherweise beschädigt.',
-      checksum:
-        'Die Prüfsumme dieser Bank ist ungültig. Sie ist möglicherweise beschädigt oder unvollständig.',
+      damaged: 'Diese Datei scheint beschädigt zu sein. Lade sie erneut herunter.',
+      voiceFormat:
+        'Diese Datei ist kein DX7-Sound. Wähle eine .syx-Datei, die genau einen Sound enthält.',
+      voiceGotBank:
+        'Diese Datei ist eine DX7-Bank mit 32 Voices. Um sie zu laden, wähle „DX7-Bank importieren“ im Menü der Bank.',
     },
     exportFailed: 'Export fehlgeschlagen.',
     bulkExportFailed: 'Sammel-Export fehlgeschlagen.',
@@ -646,6 +654,10 @@ export default {
       'Die Optionen für eine neue Bank konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     copyOpenFailed:
       'Die Kopieroptionen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+    importPatchFile: 'Sound importieren…',
+    downloadPatchFile: 'Sound herunterladen',
+    patchFileUnavailable:
+      'Sounddateien konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
   },
   namedBanks: {
     open: 'Bankbibliothek',

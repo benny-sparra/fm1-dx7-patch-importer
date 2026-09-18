@@ -240,6 +240,12 @@ export default {
       plate: 'Placa',
     },
   },
+  replacePatch: {
+    action: 'Reemplazar sonido',
+    title: '¿Reemplazar {{slot}} «{{patch}}»?',
+    warning:
+      'El sonido de esta ranura se sustituirá por el del archivo y sus efectos FM1 volverán a los valores predeterminados.',
+  },
   overwriteImport: {
     action: 'Reemplazar contenido',
     help: 'Elige un archivo de banco SysEx DX7 estándar de 32 voces.',
@@ -292,6 +298,7 @@ export default {
     demoLoaded: 'Sonidos de demostración cargados en «{{bank}}».',
     patchSaved: 'Se guardó «{{patch}}» en la biblioteca.',
     patchCopied: 'Se copió «{{patch}}» a {{slot}} en «{{bank}}».',
+    patchReplaced: 'Se reemplazó {{slot}} por «{{patch}}».',
     operatorCopied: 'Se copió el operador {{number}}.',
   },
   meta: {
@@ -600,10 +607,11 @@ export default {
     fileErrors: {
       size: 'Este archivo tiene {{bytes}} bytes. Un archivo de banco DX7 debe tener exactamente 4104 bytes.',
       format: 'Este archivo no es un banco Yamaha DX7 de 32 voces.',
-      highBitData:
-        'Este archivo contiene valores que un banco DX7 no admite, por lo que puede estar dañado.',
-      checksum:
-        'La suma de verificación de este banco no es válida, por lo que puede estar dañado o incompleto.',
+      damaged: 'Este archivo parece dañado. Intenta descargarlo de nuevo.',
+      voiceFormat:
+        'Este archivo no es un sonido DX7. Elige un archivo .syx que contenga un solo sonido.',
+      voiceGotBank:
+        'Este archivo es un banco DX7 de 32 voces. Para cargarlo, elige «Importar banco DX7» en el menú del banco.',
     },
     exportFailed: 'Error de exportación.',
     bulkExportFailed: 'Error de exportación masiva.',
@@ -637,6 +645,10 @@ export default {
       'No se pudieron abrir las opciones del nuevo banco. Recarga la página e inténtalo de nuevo.',
     copyOpenFailed:
       'No se pudieron abrir las opciones de copia. Recarga la página e inténtalo de nuevo.',
+    importPatchFile: 'Importar sonido…',
+    downloadPatchFile: 'Descargar sonido',
+    patchFileUnavailable:
+      'No se pudieron abrir los archivos de sonido. Recarga la página e inténtalo de nuevo.',
   },
   namedBanks: {
     open: 'Biblioteca de bancos',

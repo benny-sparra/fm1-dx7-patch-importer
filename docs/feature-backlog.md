@@ -81,8 +81,9 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Copies the patch's FM1 effects with the voice.
   - Offer Undo in the notification through `undoToastOptions`.
 
-- [ ] **Single-voice `.syx` import and export.** Load and download one DX7 voice (the 163-byte
-      single-voice dump) as well as 32-voice banks.
+- [x] **Single-voice `.syx` import and export.** Load and download one DX7 voice (the 163-byte
+      single-voice dump) as well as 32-voice banks. Built as **Import patch…** and
+      **Download patch** in a slot's ⋮ menu; a replaced slot's FM1 effects return to their defaults.
   - Apply the same rules as bank import: header, length, 7-bit data, and checksum, with translated
     errors.
   - Importing into a slot replaces a sound, so confirm first and offer Undo.

@@ -38,6 +38,8 @@ To import another bank, open that workspace bank's menu, choose **Import DX7 ban
 
 To copy a patch into another slot, open the slot's **⋮** menu and choose **Copy to…**. Pick a bank from its tabs and a slot from the grid, where the arrow keys also move the choice; only banks that have patches are offered, and the patch's own slot is skipped. The dialog names the patch that will be replaced. The copy brings the patch's FM1 effects with it and changes only the browser library, so send the bank to the FM1 to put it on the hardware.
 
+A slot's **⋮** menu also works with single patches as files. **Download patch** saves the patch as a standard 163-byte DX7 single-voice SysEx file, named after its slot and patch, such as `fm1-A05-PIANO-2.syx`. It holds the DX7 voice only, as a bank download does, so the FM1 effects are not included. **Import patch…** asks before it replaces the slot, then reads a DX7 single-voice file into it. A file that is not a single DX7 patch, or that looks damaged, is refused with an explanation and leaves the slot as it was. A whole 32-voice bank is recognised and pointed to **Import DX7 bank** in the bank's menu. The file carries no FM1 effects, so the slot's effects return to their defaults. The notification offers **Undo**.
+
 Each bank's menu also offers **Save bank**, which keeps a named copy of its 32 patches and their FM1 effects in this browser, and **Load bank**, which lists your saved banks. From that list you can load one into the bank, edit its name and description, make a copy, download it as a `.syx` file, or delete it. Loading into a bank that already has patches asks first. If a bank is empty, you can load the built-in demo bank instead.
 
 The interface follows the browser language on first use when it is supported. Change it later in **Settings**; the selection is remembered. Settings also provides separate channels for notes/program changes and effects because the FM1 defaults its effects controls to MIDI channel 2.
@@ -99,7 +101,7 @@ normally inside the search field, where `Esc` clears it.
 
 `Enter` gives the keyboard the route the mouse already had through double-click: it plays an unlit
 slot as a click would, and opens the slot that is already lit. Each slot's **⋮** menu also
-offers **Edit** and **Copy to…**; it opens with `Enter` and moves between its items with the arrow keys.
+offers **Edit**, **Copy to…**, **Import patch…**, and **Download patch**; it opens with `Enter` and moves between its items with the arrow keys.
 
 Individual controls keep their own keyboard behaviour. Rotary controls and envelope points respond
 to the arrow keys, `Home`, `End`, `Page Up`, and `Page Down`, and the bank tabs move with the arrow

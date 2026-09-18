@@ -245,6 +245,12 @@ export default {
       plate: 'Plaque',
     },
   },
+  replacePatch: {
+    action: 'Remplacer le son',
+    title: 'Remplacer {{slot}} « {{patch}} » ?',
+    warning:
+      'Le son de cet emplacement sera remplacé par celui du fichier, et ses effets FM1 reviendront à leurs valeurs par défaut.',
+  },
   overwriteImport: {
     action: 'Remplacer le contenu',
     help: 'Choisissez un fichier de banque SysEx DX7 standard de 32 voix.',
@@ -297,6 +303,7 @@ export default {
     demoLoaded: 'Sons de démonstration chargés dans « {{bank}} ».',
     patchSaved: '« {{patch}} » a été enregistré dans la bibliothèque.',
     patchCopied: '« {{patch}} » a été copié en {{slot}} dans « {{bank}} ».',
+    patchReplaced: '{{slot}} a été remplacé par « {{patch}} ».',
     operatorCopied: 'L’opérateur {{number}} a été copié.',
   },
   meta: {
@@ -608,10 +615,11 @@ export default {
     fileErrors: {
       size: 'Ce fichier fait {{bytes}} octets. Un fichier de banque DX7 doit faire exactement 4 104 octets.',
       format: 'Ce fichier n’est pas une banque Yamaha DX7 de 32 voix.',
-      highBitData:
-        'Ce fichier contient des valeurs qu’une banque DX7 ne peut pas contenir ; il est peut-être endommagé.',
-      checksum:
-        'La somme de contrôle de cette banque est incorrecte ; elle est peut-être endommagée ou incomplète.',
+      damaged: 'Ce fichier semble endommagé. Essayez de le télécharger à nouveau.',
+      voiceFormat:
+        'Ce fichier n’est pas un son DX7. Choisissez un fichier .syx qui contient un seul son.',
+      voiceGotBank:
+        'Ce fichier est une banque DX7 de 32 voix. Pour la charger, choisissez « Importer une banque DX7 » dans le menu de la banque.',
     },
     exportFailed: 'Échec de l’exportation.',
     bulkExportFailed: 'Échec de l’exportation groupée.',
@@ -645,6 +653,10 @@ export default {
     addBankOpenFailed:
       'Impossible d’ouvrir les options de nouvelle banque. Rechargez la page et réessayez.',
     copyOpenFailed: 'Impossible d’ouvrir les options de copie. Rechargez la page et réessayez.',
+    importPatchFile: 'Importer un son…',
+    downloadPatchFile: 'Télécharger le son',
+    patchFileUnavailable:
+      'Impossible d’ouvrir les fichiers de son. Rechargez la page et réessayez.',
   },
   namedBanks: {
     open: 'Bibliothèque de banques',

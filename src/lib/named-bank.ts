@@ -1,4 +1,5 @@
 import { makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
+import { sysexFilenameStem } from '@/lib/sysex-filename'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { importVoices, voiceId, type PatchLibrarySnapshot } from '@/lib/patch-library'
 
@@ -172,12 +173,7 @@ export function makeNamedBankSysexFile(bank: NamedBank) {
 
 export function makeNamedBankSysexFilename(bank: NamedBank) {
   validateNamedBank(bank)
-  const stem = bank.name
-    .normalize('NFKC')
-    .replace(/[\p{Cc}<>:"/\\|?*]+/gu, '-')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^[.-]+|[.-]+$/g, '')
+  const stem = sysexFilenameStem(bank.name)
 
   return `fm1-${stem || 'bank'}.syx`
 }

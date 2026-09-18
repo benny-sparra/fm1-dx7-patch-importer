@@ -234,6 +234,12 @@ export default {
       plate: 'Plate',
     },
   },
+  replacePatch: {
+    action: 'Replace patch',
+    title: 'Replace {{slot}} “{{patch}}”?',
+    warning:
+      'The patch in this slot will be replaced by the one in the file, and its FM1 effects reset to their defaults.',
+  },
   overwriteImport: {
     action: 'Replace bank contents',
     help: 'Choose a standard 32-voice DX7 SysEx bank file.',
@@ -286,6 +292,7 @@ export default {
     demoLoaded: 'Loaded the demo patches into “{{bank}}”.',
     patchSaved: 'Saved “{{patch}}” to the library.',
     patchCopied: 'Copied “{{patch}}” to {{slot}} in “{{bank}}”.',
+    patchReplaced: 'Replaced {{slot}} with “{{patch}}”.',
     operatorCopied: 'Copied operator {{number}}.',
   },
   meta: {
@@ -591,8 +598,10 @@ export default {
     fileErrors: {
       size: 'This file is {{bytes}} bytes. A DX7 bank file must be exactly 4,104 bytes.',
       format: 'This file is not a Yamaha DX7 32-voice bank.',
-      highBitData: 'This file contains values a DX7 bank cannot hold, so it may be damaged.',
-      checksum: 'This bank failed its checksum, so it may be damaged or incomplete.',
+      damaged: 'This file looks damaged. Try downloading it again.',
+      voiceFormat: 'This file isn’t a DX7 patch. Choose a .syx file that holds a single patch.',
+      voiceGotBank:
+        'This file is a 32-voice DX7 bank. To load it, choose “Import DX7 bank” from the bank’s menu.',
     },
     exportFailed: 'Export failed.',
     bulkExportFailed: 'Bulk export failed.',
@@ -624,6 +633,9 @@ export default {
     copyFailed: 'The patch could not be copied.',
     addBankOpenFailed: 'The new bank options could not be opened. Reload the page and try again.',
     copyOpenFailed: 'The copy options could not be opened. Reload the page and try again.',
+    importPatchFile: 'Import patch…',
+    downloadPatchFile: 'Download patch',
+    patchFileUnavailable: 'Patch files could not be opened. Reload the page and try again.',
   },
   namedBanks: {
     open: 'Bank library',
