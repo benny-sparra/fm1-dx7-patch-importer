@@ -561,7 +561,7 @@ export default {
     bulkExportFailed: '批量导出失败。',
     gridTitle: '音色库',
     gridDescription: '先在浏览器中导入、编辑和排列每个本地音色库，再传输到 FM1。',
-    search: '按音色名称搜索',
+    search: '搜索所有音色库',
     noMatches: '没有符合搜索条件的音色',
     bankEmpty: '此浏览器音色库为空',
     emptyHelp: '加载演示音色库来体验编辑器，或导入您自己的标准 32 音色 DX7 SysEx 音色库。',

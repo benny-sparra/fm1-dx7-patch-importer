@@ -599,7 +599,7 @@ export default {
     gridTitle: 'Patch banks',
     gridDescription:
       'Import, edit, and arrange each local browser bank before transferring it to the FM1.',
-    search: 'Search by name',
+    search: 'Search all banks',
     noMatches: 'No patches match this search',
     bankEmpty: 'This browser bank is empty',
     emptyHelp:

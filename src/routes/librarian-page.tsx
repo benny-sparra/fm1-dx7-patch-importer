@@ -281,24 +281,36 @@ export function LibrarianPage({
     }
   }
 
+  const hasLoadedBank = library.loadedBanks.length > 0
+  const isSearching = search.trim() !== ''
+
   const visiblePatches = useMemo(() => {
     const query = search.trim().toLowerCase()
 
-    if (!isDestinationBankLoaded) return []
-    return patches.filter(
-      (patch) =>
-        patch.bank === destinationBank &&
-        (!query ||
+    // A search looks through every loaded bank, so a result keeps showing while another is played.
+    if (query) {
+      return patches.filter(
+        (patch) =>
+          library.loadedBanks.includes(patch.bank) &&
           // Both A1 and the A01 a slot shows find the first slot.
           `${patch.bank}${patch.number} ${patchSlotCode(patch)} ${patch.name} ${patch.family}`
             .toLowerCase()
-            .includes(query)),
-    )
-  }, [destinationBank, isDestinationBankLoaded, patches, search])
+            .includes(query),
+      )
+    }
+    if (!isDestinationBankLoaded) return []
+    return patches.filter((patch) => patch.bank === destinationBank)
+  }, [destinationBank, isDestinationBankLoaded, library.loadedBanks, patches, search])
 
   useEffect(() => {
-    if (!isDestinationBankLoaded) setSearch('')
-  }, [isDestinationBankLoaded])
+    if (!hasLoadedBank) setSearch('')
+  }, [hasLoadedBank])
+
+  // Choosing a bank asks to see that bank, so it leaves the results.
+  const selectDestinationBank = (bank: string) => {
+    setSearch('')
+    setDestinationBank(bank)
+  }
 
   useEffect(() => {
     if (!banks.includes(destinationBank)) setDestinationBank(banks[0] ?? 'A')
@@ -329,8 +341,8 @@ export function LibrarianPage({
     },
     // Both are disabled with the field itself, so the browser keeps its own
     // find shortcut in a bank that has nothing to search.
-    { ...librarianShortcuts.search, enabled: isDestinationBankLoaded, onTrigger: focusSearch },
-    { ...librarianShortcuts.find, enabled: isDestinationBankLoaded, onTrigger: focusSearch },
+    { ...librarianShortcuts.search, enabled: hasLoadedBank, onTrigger: focusSearch },
+    { ...librarianShortcuts.find, enabled: hasLoadedBank, onTrigger: focusSearch },
     {
       ...librarianShortcuts.clearSearch,
       enabled: search !== '',
@@ -509,7 +521,7 @@ export function LibrarianPage({
           </details>
         }
         bankLabel={bankDisplayName}
-        isBankLoaded={isDestinationBankLoaded}
+        isBankLoaded={isDestinationBankLoaded || isSearching}
         isPatchDisabled={(patch) => !library.loadedBanks.includes(patch.bank)}
         onImportEmptyBank={() => beginImport(destinationBank)}
         onLoadDemoBank={() => {
@@ -522,7 +534,7 @@ export function LibrarianPage({
         onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
         patches={visiblePatches}
         search={search}
-        searchDisabled={!isDestinationBankLoaded}
+        searchDisabled={!hasLoadedBank}
         searchRef={searchRef}
         setSearch={setSearch}
         toolbar={
@@ -539,7 +551,7 @@ export function LibrarianPage({
                   }
                 })}
                 label={t('banks.destination')}
-                onSelect={setDestinationBank}
+                onSelect={selectDestinationBank}
                 renderActions={renderBankActions}
                 selectedBank={destinationBank}
               />
@@ -619,7 +631,7 @@ export function LibrarianPage({
                 setIsAddingBank(false)
                 addBankButtonRef.current?.focus()
               }}
-              onCreated={setDestinationBank}
+              onCreated={selectDestinationBank}
               suggestedName={defaultWorkspaceBankTitle(t, banks.length + 1)}
             />
           </Suspense>

@@ -617,7 +617,7 @@ export default {
     gridTitle: 'Sound-Bänke',
     gridDescription:
       'Importiere, bearbeite und sortiere jede lokale Browser-Bank vor der Übertragung zum FM1.',
-    search: 'Nach Soundnamen suchen',
+    search: 'Alle Bänke durchsuchen',
     noMatches: 'Keine Sounds entsprechen der Suche',
     bankEmpty: 'Diese Browser-Bank ist leer',
     emptyHelp:

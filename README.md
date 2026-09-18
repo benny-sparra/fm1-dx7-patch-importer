@@ -19,7 +19,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Restore imported and edited banks automatically from IndexedDB browser storage
 - Retry browser-storage failures or continue explicitly with a session-only workspace without overwriting unreadable saved data
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
-- Search and reorder patches with pointer or keyboard drag-and-drop
+- Search every bank at once, and reorder patches with pointer or keyboard drag-and-drop
 - Export one browser bank as `.syx` or all loaded banks as a `.zip`
 - Edit all standard DX7 voice parameters with live MIDI updates
 - Work on the six operators as a rack: five sit as compact readouts while the selected one opens in place with its full controls

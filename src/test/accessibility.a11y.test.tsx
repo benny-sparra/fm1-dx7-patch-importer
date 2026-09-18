@@ -140,7 +140,7 @@ describe('rendered accessibility', () => {
     const { container } = renderLibrarian()
 
     expect(screen.getByRole('button', { name: 'Send to FM1' })).toBeTruthy()
-    expect(screen.getByRole('searchbox', { name: 'Search by name' })).toBeTruthy()
+    expect(screen.getByRole('searchbox', { name: 'Search all banks' })).toBeTruthy()
     await expectNoAxeViolations(container)
   })
 

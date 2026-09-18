@@ -609,7 +609,7 @@ export default {
     bulkExportFailed: 'Error de exportación masiva.',
     gridTitle: 'Bancos de sonidos',
     gridDescription: 'Importa, edita y organiza cada banco local antes de transferirlo al FM1.',
-    search: 'Buscar por nombre',
+    search: 'Buscar en todos los bancos',
     noMatches: 'Ningún sonido coincide con la búsqueda',
     bankEmpty: 'Este banco del navegador está vacío',
     emptyHelp:
