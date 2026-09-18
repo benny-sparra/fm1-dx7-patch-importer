@@ -20,6 +20,8 @@ type WorkspaceBankRowProps = {
   registerButton: (bank: string, button: HTMLButtonElement | null) => void
   renderActions: (bank: WorkspaceBankSelectorBank, closeActions: () => void) => ReactNode
   selected: boolean
+  /** Keeps the row in the Tab order while no bank shows as selected. */
+  tabStop: boolean
 }
 
 function WorkspaceBankRow({
@@ -30,6 +32,7 @@ function WorkspaceBankRow({
   registerButton,
   renderActions,
   selected,
+  tabStop,
 }: WorkspaceBankRowProps) {
   const detailsRef = useDismissableDetails()
   const descriptionId = useId()
@@ -61,7 +64,7 @@ function WorkspaceBankRow({
         onClick={onSelect}
         onKeyDown={(event) => onKeyDown(event, index)}
         ref={(button) => registerButton(bank.id, button)}
-        tabIndex={selected ? 0 : -1}
+        tabIndex={tabStop ? 0 : -1}
         title={bank.description || bank.name}
         type="button"
       >
@@ -127,6 +130,8 @@ type WorkspaceBankSelectorProps = {
   onSelect: (bank: string) => void
   renderActions: (bank: WorkspaceBankSelectorBank, closeActions: () => void) => ReactNode
   selectedBank: string
+  /** False while the grid shows something other than a bank, such as search results. */
+  showsSelection?: boolean
 }
 
 /**
@@ -139,6 +144,7 @@ export function WorkspaceBankSelector({
   onSelect,
   renderActions,
   selectedBank,
+  showsSelection = true,
 }: WorkspaceBankSelectorProps) {
   const buttonRefs = useRef(new Map<string, HTMLButtonElement>())
   const previousBanksRef = useRef(banks.map((bank) => bank.id))
@@ -196,7 +202,8 @@ export function WorkspaceBankSelector({
           onSelect={() => onSelect(bank.id)}
           registerButton={registerButton}
           renderActions={renderActions}
-          selected={effectiveSelectedBank === bank.id}
+          selected={showsSelection && effectiveSelectedBank === bank.id}
+          tabStop={effectiveSelectedBank === bank.id}
         />
       ))}
     </ul>

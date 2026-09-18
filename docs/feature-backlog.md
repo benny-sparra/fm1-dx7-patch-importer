@@ -109,9 +109,12 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Nice to have
 
-- [ ] **Search across all banks and the catalog.** Find a patch name in every workspace bank, saved
-      bank, and bundled catalog bank, then audition it or copy it in. Pairs with copying patches
-      between banks.
+- [x] **Search across all banks.** The librarian's search box finds a patch in every loaded
+      workspace bank, and clicking a result plays it while the results stay up.
+  - Decided: saved banks and the bundled catalog are left out. Searching them would need results
+    that are not slots, and loading the catalog would weigh on the initial bundle. Choosing a bank
+    clears the search; clearing it returns to the bank of the last result played. A lone letter
+    matches names only, and a slot code matches only as the whole query.
 
 ## Open questions
 

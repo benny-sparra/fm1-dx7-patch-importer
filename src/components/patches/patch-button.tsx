@@ -21,6 +21,8 @@ type PatchButtonProps = {
   onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
   onSelect?: (patch: Patch) => void
   patch: Patch
+  /** False while the slot is shown away from its bank, such as in search results. */
+  reorderable?: boolean
   registerButton?: (patchId: string, button: HTMLButtonElement | null) => void
   /** The grid is one tab stop: only its roving slot is reachable with Tab. */
   tabIndex?: number
@@ -37,6 +39,7 @@ export function PatchButton({
   onNavigate,
   onSelect,
   patch,
+  reorderable = true,
   registerButton,
   tabIndex,
 }: PatchButtonProps) {
@@ -44,10 +47,11 @@ export function PatchButton({
   // Set by a click and cleared when the selection animation finishes, so the
   // animation plays only in response to the user and never on mount.
   const [flash, setFlash] = useState(false)
+  const canReorder = reorderable && patch.family === 'DX7'
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
     id: patch.id,
-    disabled: disabled || patch.family !== 'DX7',
+    disabled: disabled || !canReorder,
   })
 
   return (
@@ -114,7 +118,10 @@ export function PatchButton({
         />
       ) : null}
       {/* Only the grip starts a drag, so only the grip stops touch scrolling. */}
-      {patch.family === 'DX7' ? (
+      {!reorderable ? (
+        // Keeps the slot code where it sits in a bank, without a grip that cannot move anything.
+        <span aria-hidden="true" className="-my-1 -mr-2 -ml-4 size-6 shrink-0" />
+      ) : canReorder ? (
         <button
           {...sortable.attributes}
           {...sortable.listeners}

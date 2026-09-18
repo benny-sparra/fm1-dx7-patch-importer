@@ -617,8 +617,10 @@ export default {
     gridTitle: 'Sound-Bänke',
     gridDescription:
       'Importiere, bearbeite und sortiere jede lokale Browser-Bank vor der Übertragung zum FM1.',
-    search: 'Nach Soundnamen suchen',
+    search: 'Alle Bänke durchsuchen',
     noMatches: 'Keine Sounds entsprechen der Suche',
+    searchResults: 'Suchergebnisse',
+    sendFromSearch: 'Wählen Sie eine Bank, um sie an den FM1 zu senden',
     bankEmpty: 'Diese Browser-Bank ist leer',
     emptyHelp:
       'Lade die Demo-Bank oder importiere eine eigene Standard-DX7-SysEx-Bank mit 32 Voices.',

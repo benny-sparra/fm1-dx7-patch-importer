@@ -599,8 +599,10 @@ export default {
     gridTitle: 'Patch banks',
     gridDescription:
       'Import, edit, and arrange each local browser bank before transferring it to the FM1.',
-    search: 'Search by name',
+    search: 'Search all banks',
     noMatches: 'No patches match this search',
+    searchResults: 'Search results',
+    sendFromSearch: 'Choose a bank to send it to the FM1',
     bankEmpty: 'This browser bank is empty',
     emptyHelp:
       'Load the demo bank to explore the editor, or import a standard 32-voice DX7 SysEx bank of your own.',
