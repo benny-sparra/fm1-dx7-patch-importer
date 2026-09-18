@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useState } from 'react'
+import { type ComponentProps, useState } from 'react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
@@ -74,21 +74,27 @@ const midi = {
   sendBank: vi.fn(),
 } as unknown as MidiController
 
+/** Renders the page with the shared library and MIDI stand-ins, and whatever a test changes. */
+function renderLibrarianPage(props: Partial<ComponentProps<typeof LibrarianPage>> = {}) {
+  return render(
+    <ToastProvider>
+      <LibrarianPage
+        activePatchId=""
+        library={library}
+        midi={midi}
+        onBankDeleted={vi.fn()}
+        onEditPatch={vi.fn()}
+        onSelectPatch={vi.fn()}
+        {...props}
+      />
+    </ToastProvider>,
+  )
+}
+
 describe('LibrarianPage bank selection', () => {
   it('updates the patch grid when a bank is selected without breaking search', async () => {
     const user = userEvent.setup()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage()
 
     expect(screen.getByText('A01')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
@@ -110,18 +116,7 @@ describe('LibrarianPage slot actions', () => {
     const user = userEvent.setup()
     const onEditPatch = vi.fn()
     const onSelectPatch = vi.fn()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={onEditPatch}
-          onSelectPatch={onSelectPatch}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ onEditPatch, onSelectPatch })
 
     await user.click(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }))
     expect(onSelectPatch).toHaveBeenCalledWith(library.patches[0])
@@ -148,18 +143,7 @@ describe('LibrarianPage transfer analytics', () => {
       sendBank: vi.fn(async () => ({ ok: true }) as const),
       sysexAvailable: true,
     } as unknown as MidiController
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={connectedMidi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
     const dialog = screen.getByRole('dialog', {
@@ -183,18 +167,7 @@ describe('LibrarianPage transfer analytics', () => {
       sendBank: vi.fn(async () => ({ ok: true }) as const),
       sysexAvailable: true,
     } as unknown as MidiController
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={connectedMidi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
 
@@ -215,18 +188,7 @@ describe('LibrarianPage transfer analytics', () => {
       sendBank: vi.fn(async () => ({ ok: true }) as const),
       sysexAvailable: false,
     } as unknown as MidiController
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={connectedMidi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
 
@@ -247,18 +209,7 @@ describe('LibrarianPage transfer analytics', () => {
       sendBank: vi.fn(async () => Promise.reject(transportError)),
       sysexAvailable: true,
     } as unknown as MidiController
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={connectedMidi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
 
@@ -284,18 +235,7 @@ describe('LibrarianPage transfer analytics', () => {
       sendBank: vi.fn(),
       sysexAvailable: false,
     } as unknown as MidiController
-    const view = render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={blockedMidi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    const view = renderLibrarianPage({ midi: blockedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
     await user.click(screen.getByRole('button', { name: 'Reconnect MIDI with SysEx' }))
@@ -332,18 +272,7 @@ describe('LibrarianPage transfer analytics', () => {
 describe('LibrarianPage keyboard shortcuts', () => {
   function renderLibrarian(overrides: { activePatchId?: string; onEditPatch?: () => void } = {}) {
     const onEditPatch = overrides.onEditPatch ?? vi.fn()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId={overrides.activePatchId ?? ''}
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={onEditPatch}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ activePatchId: overrides.activePatchId ?? '', onEditPatch })
 
     return { onEditPatch, search: screen.getByPlaceholderText('Search all banks') }
   }
@@ -452,18 +381,7 @@ describe('LibrarianPage grid navigation', () => {
 
   function renderGrid(activePatchId = '') {
     const onSelectPatch = vi.fn()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId={activePatchId}
-          library={gridLibrary}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={onSelectPatch}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ activePatchId, library: gridLibrary, onSelectPatch })
 
     return { onSelectPatch, user: userEvent.setup() }
   }
@@ -565,18 +483,7 @@ describe('LibrarianPage grid navigation', () => {
 
   it('still opens the lit slot on Enter after arrowing to it', async () => {
     const onEditPatch = vi.fn()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId="bank-A-2"
-          library={gridLibrary}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={onEditPatch}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ activePatchId: 'bank-A-2', library: gridLibrary, onEditPatch })
     const user = userEvent.setup()
 
     slot(1).focus()
@@ -595,18 +502,7 @@ describe('LibrarianPage slot tooltips', () => {
         { bank: 'A', family: 'DX7', id: 'bank-A-2', name: 'Added Pad', number: 2 },
       ],
     } as unknown as PatchLibrary
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={slotLibrary}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ library: slotLibrary })
 
     expect(
       screen.getByRole('button', { name: 'Send Hardware Keys to FM1' }).getAttribute('title'),
@@ -620,18 +516,7 @@ describe('LibrarianPage slot tooltips', () => {
 describe('LibrarianPage search', () => {
   it('finds a slot by the code shown on it', async () => {
     const user = userEvent.setup()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage()
 
     await user.type(screen.getByPlaceholderText('Search all banks'), 'a01')
 
@@ -639,18 +524,10 @@ describe('LibrarianPage search', () => {
   })
 
   function renderLibrarian(props: { library?: PatchLibrary; onSelectPatch?: () => void } = {}) {
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={props.library ?? library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={props.onSelectPatch ?? vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({
+      library: props.library ?? library,
+      onSelectPatch: props.onSelectPatch ?? vi.fn(),
+    })
     return userEvent.setup()
   }
 
@@ -879,18 +756,7 @@ describe('LibrarianPage bank deletion', () => {
   it('shows the bank that moves into the deleted bank’s letter', async () => {
     const user = userEvent.setup()
     const onBankDeleted = vi.fn()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={onBankDeleted}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ onBankDeleted })
 
     await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
     await user.click(screen.getAllByRole('button', { name: 'Delete bank' })[0])
@@ -907,18 +773,7 @@ describe('LibrarianPage bank deletion', () => {
 
 describe('LibrarianPage undo', () => {
   function renderLibrarian() {
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage()
     return userEvent.setup()
   }
 
@@ -958,18 +813,7 @@ describe('LibrarianPage undo', () => {
 describe('LibrarianPage saved banks', () => {
   it('offers to save and load saved banks from a bank’s menu', async () => {
     const user = userEvent.setup()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage()
 
     await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
     await user.click(screen.getAllByRole('button', { name: 'Load bank' })[0])
@@ -985,18 +829,7 @@ describe('LibrarianPage copying a sound', () => {
   })
 
   function renderLibrarian(activePatchId: string) {
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId={activePatchId}
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ activePatchId })
     return userEvent.setup()
   }
 
@@ -1033,18 +866,7 @@ describe('LibrarianPage copying a sound', () => {
 
 describe('LibrarianPage add bank dialog', () => {
   function renderLibrarian() {
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage()
     return userEvent.setup()
   }
 

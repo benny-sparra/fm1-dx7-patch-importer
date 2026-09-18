@@ -1,10 +1,13 @@
 import { type Patch } from '@/data/patches'
-import { dx7BankVoiceCount, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
+import { dx7BankVoiceCount, dx7PackedVoiceSize, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
 import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
+import { DX7_TRANSPOSE_C3 } from '@/lib/fm1-parameters'
 
 export const browserBanks = ['A', 'B', 'C', 'D'] as const
 export const maximumWorkspaceBanks = 10
 export const workspaceBankTitleLength = 10
+/** The longest description a workspace bank or a saved bank keeps. */
+export const bankDescriptionLength = 500
 
 /** The workspace bank a change targeted was removed or renumbered after it was chosen. */
 export class WorkspaceBankUnavailableError extends Error {
@@ -178,7 +181,7 @@ export function updateBankInformation(
   if (!snapshot.workspaceBanks.includes(bank)) return snapshot
   const normalizedTitle = normalizeWorkspaceBankNameForSave(title)
   if (!normalizedTitle) throw new Error('A workspace bank needs a title.')
-  const normalizedDescription = description.trim().slice(0, 500).trimEnd()
+  const normalizedDescription = description.trim().slice(0, bankDescriptionLength).trimEnd()
   const bankDescriptions = { ...snapshot.bankDescriptions }
   if (normalizedDescription) bankDescriptions[bank] = normalizedDescription
   else delete bankDescriptions[bank]
@@ -384,7 +387,7 @@ export function makeDemoVoices(): Dx7Voice[] {
   const names = ['E.PIANO', 'GLASSBELL', 'FM BASS', 'BRASS', 'WARM PAD', 'PLUCK', 'ORGAN', 'MALLET']
 
   return Array.from({ length: dx7BankVoiceCount }, (_, index) => {
-    const data = new Uint8Array(128)
+    const data = new Uint8Array(dx7PackedVoiceSize)
     for (let operator = 0; operator < 6; operator += 1) {
       const offset = operator * 17
       data.set([99, 99, 99, 99, 99, 80, 60, 0], offset)
@@ -392,7 +395,7 @@ export function makeDemoVoices(): Dx7Voice[] {
       data[offset + 15] = 2
     }
     data[110] = 31
-    data[117] = 24
+    data[117] = DX7_TRANSPOSE_C3
     return updateDx7VoiceName(
       { data, name: '' },
       `${names[index % names.length]}${Math.floor(index / names.length) + 1}`,

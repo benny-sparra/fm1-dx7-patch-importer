@@ -34,6 +34,7 @@ import {
   SentryVerificationButton,
   sentryVerificationEnabled,
 } from '@/components/sentry-verification-button'
+import { ErrorNotice } from '@/components/ui/error-notice'
 import { makeDx7BankFile } from '@/lib/dx7'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
@@ -53,6 +54,7 @@ import { type LibrarianView, useLibrarianView } from '@/hooks/use-librarian-view
 import { type Patch } from '@/data/patches'
 import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
 import { downloadFile } from '@/lib/download-file'
+import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { useToast } from '@/components/ui/toast'
@@ -178,10 +180,7 @@ export function LibrarianPage({
       setDialogLoadError(t('banks.patchFileUnavailable'))
       return
     }
-    downloadFile(
-      new Blob([voiceFile.makeDx7VoiceFile(voice)], { type: 'application/octet-stream' }),
-      voiceFile.makeDx7VoiceFilename(patch),
-    )
+    downloadSysexFile(voiceFile.makeDx7VoiceFile(voice), voiceFile.makeDx7VoiceFilename(patch))
     toast.success(t('toasts.bankDownloadStarted', { bank: patch.name }))
   }
   const beginImport = (bank: string) => {
@@ -199,9 +198,8 @@ export function LibrarianPage({
 
   const downloadBank = (bank: string) => {
     try {
-      const bytes = makeDx7BankFile(library.getBankVoices(bank))
-      downloadFile(
-        new Blob([bytes], { type: 'application/octet-stream' }),
+      downloadSysexFile(
+        makeDx7BankFile(library.getBankVoices(bank)),
         `fm1-bank-${bank.toLowerCase()}.syx`,
       )
       setImportError('')
@@ -620,7 +618,7 @@ export function LibrarianPage({
               ) : null}
             </div>
             <input
-              accept=".syx,application/octet-stream"
+              accept={sysexFileAccept}
               aria-label={t('banks.importFile')}
               className="sr-only"
               disabled={isImporting}
@@ -654,11 +652,7 @@ export function LibrarianPage({
         />
       ) : null}
 
-      {importError ? (
-        <p className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {importError}
-        </p>
-      ) : null}
+      {importError ? <ErrorNotice>{importError}</ErrorNotice> : null}
 
       <Fm1BankSelectionDialog
         dialogRef={bankSelectionDialogRef}

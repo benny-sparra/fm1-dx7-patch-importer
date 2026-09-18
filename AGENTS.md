@@ -56,7 +56,9 @@ files when that is clearer.
   `try/catch` never sees the error. Work out the next state where the caller can catch a failure,
   then set it.
 - Keep one source for shared constants and helpers such as key lists, limits, and value formatting.
-  Reuse or export the existing one rather than copying it into another module.
+  Reuse or export the existing one rather than copying it into another module: for example
+  `makeYamahaSysexMessage` for Yamaha SysEx framing, `src/lib/sysex-file.ts` for `.syx` file
+  choosers, filenames, and downloads, and `bankDescriptionLength` for text limits.
 
 ## Behavioral constraints
 
@@ -244,6 +246,9 @@ open everything an earlier release could have saved.
   the working labels on bank buttons do, and key the branches of a conditional that swaps layouts
   built from the same element type, as `Fm1BankSelectionDialog` does. Cover it with
   `translatePageText` from `src/test/page-translator.ts`.
+- Show an error in a dialog or on the page with `ErrorNotice` from
+  `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
+  restyling another paragraph.
 - Interactive controls need stable accessible names. Preserve ARIA relationships and avoid nesting
   buttons, links, summaries, inputs, or other interactive elements.
 - If a feature body becomes lazy, keep its trigger eager. One activation must eventually open the

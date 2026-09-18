@@ -2,6 +2,7 @@ import { normalizeStoredDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { type NamedBank, validateNamedBank } from '@/lib/named-bank'
 import {
+  bankDescriptionLength,
   browserBanks,
   compactWorkspaceBanks,
   isWorkspaceBankId,
@@ -218,7 +219,10 @@ export async function loadStoredPatchLibrary() {
             ([bank, description]) =>
               workspaceBanks.includes(bank) && typeof description === 'string',
           )
-          .map(([bank, description]) => [bank, description.trim().slice(0, 500).trimEnd()])
+          .map(([bank, description]) => [
+            bank,
+            description.trim().slice(0, bankDescriptionLength).trimEnd(),
+          ])
           .filter(([, description]) => Boolean(description)),
       ),
       bankNames: Object.fromEntries(

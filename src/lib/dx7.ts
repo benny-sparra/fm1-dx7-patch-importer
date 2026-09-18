@@ -9,7 +9,7 @@ import {
 } from '@/lib/fm1-parameters'
 
 export const dx7BankVoiceCount = 32
-const dx7PackedVoiceSize = 128
+export const dx7PackedVoiceSize = 128
 const dx7BankDataSize = dx7BankVoiceCount * dx7PackedVoiceSize
 export const dx7BankFileSize = dx7BankDataSize + 8
 const feedbackIndex = getGlobalParameterDefinition('global.feedback').voiceIndex
@@ -196,7 +196,7 @@ export function packDx7Voice(unpacked: Uint8Array): Dx7Voice {
     throw new Error('DX7 edit-buffer data must contain only 7-bit values.')
   }
 
-  const packed = new Uint8Array(128)
+  const packed = new Uint8Array(dx7PackedVoiceSize)
   for (let operator = 0; operator < FM1_OPERATOR_COUNT; operator += 1) {
     const source = operator * FM1_OPERATOR_PARAMETER_COUNT
     const target = operator * 17
@@ -243,10 +243,17 @@ export function makeDx7BankPayload(voices: Dx7Voice[], channel = 1) {
   return Uint8Array.from([(channel - 1) & 0x0f, 0x09, 0x20, 0x00, ...data, checksum])
 }
 
+/** Yamaha's MIDI manufacturer ID, which follows F0 in every Yamaha SysEx message. */
+export const yamahaManufacturerId = 0x43
+
+/** A whole SysEx message from a Yamaha payload: F0, the manufacturer ID, the payload, and F7. */
+export function makeYamahaSysexMessage(payload: Uint8Array) {
+  return Uint8Array.from([0xf0, yamahaManufacturerId, ...payload, 0xf7])
+}
+
 /** Complete Yamaha DX7 32-voice SysEx file, ready to save as a .syx file. */
 export function makeDx7BankFile(voices: Dx7Voice[], channel = 1) {
-  const payload = makeDx7BankPayload(voices, channel)
-  return Uint8Array.from([0xf0, 0x43, ...payload, 0xf7])
+  return makeYamahaSysexMessage(makeDx7BankPayload(voices, channel))
 }
 
 function decodeVoiceName(data: Uint8Array) {
