@@ -126,6 +126,96 @@ pitch recorded at a non-zero device Transpose.
 | Is the record persistent / are there multiple patterns? | V15 Pattern 1/2 separation and save/power outcomes captured.                                                                                                                          | Confirmed observable V15 behaviour; raw persistence format Unknown.                     | Lawful V15 state/readback evidence.                                                                   |
 | Is a host read/write command available?                 | No captured response or safe command.                                                                                                                                                 | Unknown; excluded.                                                                      | Passive capture of a repeatable stock operation with an independently verified request/reply meaning. |
 
+## SEQ-001C — playback while choosing sounds, and reading the device's patterns
+
+**Status:** planned for the next hardware session. Standard channel and real-time MIDI only; no
+SysEx beyond the editor's existing DX7 voice path, and no vendor frame.
+
+Two design questions for the sequencer view depend on behaviour nobody has captured:
+
+- **Listening while choosing sounds.** The FM1 plays a pattern by itself once PLAY is pressed, so a
+  user could loop a pattern and audition patches in the librarian, or edit a voice, against it. The
+  editor would show the looping pattern in a read-only panel across views. That only works if the
+  loop plays with the sound the editor selects, and if selecting it does not interrupt playback.
+- **Syncing with the device's patterns.** A library of patterns is far more useful if it can be
+  filled from what is already on the FM1. No request/reply for sequence state is known (§5.2 of
+  [`fm1-research.md`](fm1-research.md)), so any read goes through playback. The question is how
+  much of the device's contents playback can reach, and whether the editor can tell which pattern it
+  is hearing and where its step 1 falls.
+
+### Baseline for every run
+
+The SEQ-001B baseline: Sequencer mode, Pattern 1, Chain 1, Step 9, Voice 1, Rate `1/8T`, Tempo 120,
+Gate 80%, Swing 50%, Sync `OFF`, Transpose 0. Record into Pattern 1 a distinctive two-note pattern,
+note 60 then note 65, adjacent steps, velocity 90, and verify it on playback before each run. Record
+**nothing** into Pattern 2 unless a run names it.
+
+For the sound questions, choose two A–D programs whose sounds are unmistakably different, such as a
+piano and a pad, and note them in the fixture. Sound changes are not visible in MIDI, so they are
+operator-reported; everything else is captured. Recording must **not** be armed for any run in part
+A unless the run says so.
+
+Where the editor sends the message under test, record its commit and the exact action, as the
+contract requires. Everything else uses the stock controls or the bounded senders in `scripts/`.
+
+### Part A — listening while choosing sounds
+
+Each run starts with the baseline pattern playing and changes exactly one thing. The host captures
+the FM1's playback notes throughout, so an interruption shows up objectively as a gap or a timing
+shift in the note stream around the message under test; compare onsets with the 166.7 ms step grid.
+
+| Fixture ID suffix            | Sole intended difference while the pattern plays                                                      | Required observation                                                                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `playback-front-panel-patch` | Change the patch on the front panel.                                                                  | Whether the loop's sound follows it; playback continuity; any traffic. This is the device's own behaviour, the reference for the rest. |
+| `playback-voice-setting`     | Change only the sequencer page 2/3 **Voice** value.                                                   | What Voice selects, and whether the loop's sound follows it. The run that decides the question below.                                  |
+| `playback-program-change`    | Host sends one Program Change to the contrasting A–D program, from the librarian.                     | Whether the loop's sound follows it; playback continuity; any device traffic in reply.                                                 |
+| `playback-voice-sysex`       | Host sends one single-voice SysEx to the edit buffer, as auditioning an added-bank patch does.        | Whether the loop's sound follows it; whether the dump interrupts or delays playback, measured on the note stream.                      |
+| `playback-parameter-edit`    | Host sends one audible DX7 parameter change, such as an operator output level, from the voice editor. | Whether a live edit changes the playing loop.                                                                                          |
+| `playback-effect-cc`         | Host sends one effect CC on the effect channel.                                                       | Whether effects apply to the playing loop.                                                                                             |
+| `armed-program-change`       | **Recording armed, not playing.** Host sends one Program Change, then the operator leaves REC.        | Whether a non-note message records or advances a step. Check with playback and the step lights.                                        |
+| `armed-voice-sysex`          | **Recording armed, not playing.** Host sends one single-voice SysEx, then the operator leaves REC.    | As above, for a voice dump.                                                                                                            |
+
+The key question is **whether the loop plays with the current sound or with the sequencer's own
+Voice setting.** What each outcome means:
+
+| Outcome                                                      | Consequence for the design                                                                                                                                     |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The loop follows Program Change and the edit buffer          | Auditioning against a playing pattern works as proposed. Live voice edits over a loop become the feature's strongest use.                                      |
+| The loop is pinned to the Voice setting                      | Choosing patches in the editor will not change the loop. The panel must say so, and the workflow moves to the Voice setting, which only the device can change. |
+| A Program Change or voice dump interrupts or shifts playback | The panel must warn before auditioning while a pattern plays, and the MIDI log must not mistake the gap for a device fault.                                    |
+| A non-note message records a step while armed                | Auditioning must be discouraged whenever recording might be armed. The editor cannot see the armed state, so this can only be a warning.                       |
+
+### Part B — reading the device's patterns
+
+| Fixture ID suffix          | Sole intended difference                                                                                 | Required observation                                                                                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pattern-count`            | Step through every value the stock Pattern control offers. No MIDI required.                             | How many patterns exist, and whether the range depends on anything else. The V13 analysis suggests 16 slots per bank; V15 has only shown Pattern 1 and 2. |
+| `pattern-select`           | Already in the core matrix. While stopped, select Pattern 2 and back.                                    | Whether selecting a pattern transmits anything. Any message here would let the editor label which pattern it is hearing.                                  |
+| `pattern-select-playing`   | While Pattern 1 plays, select Pattern 2.                                                                 | Whether the switch happens at once or at the loop boundary, and what the note stream shows at the changeover.                                             |
+| `play-stop-sync-off`       | With Sync `OFF`, press PLAY/STOP to start, wait two loops, press it to stop.                             | Whether the FM1 transmits Start `FA`, Stop `FC`, Continue `FB`, or clock `F8`. A transmitted Start marks step 1 and would remove the rotation ambiguity.  |
+| `play-stop-sync-on`        | As above, with Sync `ON`.                                                                                | The same, and whether Sync changes what is transmitted or makes the device wait for external clock.                                                       |
+| `external-start-sync-on`   | With Sync `ON`, the host sends Start `FA`, a steady clock `F8` at 120 BPM, then Stop `FC`.               | Whether the FM1 starts, follows, and stops. If it does, the editor could start playback itself to read a pattern, using standard real-time MIDI only.     |
+| `program-change-sequencer` | While stopped in Sequencer mode, host sends one Program Change.                                          | Whether a Program Change selects a pattern in this mode. §5.2 lists it as Needs hardware test.                                                            |
+| `chain-playback`           | Set Chain to play Pattern 1 then Pattern 2, with a different distinctive pattern in Pattern 2, and play. | What the note stream looks like across the chain. The observer must refuse it or report it as a chain, never as one long pattern.                         |
+
+`external-start-sync-on` needs a bounded real-time sender that does not exist yet: `scripts/` has note
+and CC senders only. Add one that emits exactly `FA`, `F8` and `FC`, and review it before the
+session, as the existing senders were. It must accept nothing else.
+
+What each outcome means for syncing:
+
+| Outcome                                              | Consequence                                                                                                                                  |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Selecting a pattern transmits nothing                | Sync is a guided walk: the user selects each pattern and presses PLAY, the editor captures it, and the user tells it which pattern it heard. |
+| Selecting a pattern transmits an identifying message | The editor can label each capture itself, which makes a reliable walk through every pattern possible.                                        |
+| The FM1 transmits Start on PLAY                      | Captures are anchored at step 1, so a read pattern is exact rather than a rotation, and a sent pattern can be compared index by index.       |
+| The FM1 follows external Start and clock             | The editor could start playback for a read without the user pressing PLAY. It still cannot select the pattern, so the walk stays guided.     |
+| None of the above                                    | Sync stays manual and rotation-ambiguous: one pattern at a time, with the user naming it, and comparison allowing for rotation, as today.    |
+
+Whatever the outcomes, playback can only ever reach patterns the user selects and plays, one at a
+time. There is no silent bulk read, and nothing here changes the write side: sending still records
+into whichever pattern the user has armed.
+
 ## SEQ-002 decision
 
 **SEQ-002 remains blocked.** The V15 label is strongly evidenced by the user-installed Glide update

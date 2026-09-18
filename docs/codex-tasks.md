@@ -522,6 +522,34 @@ hypothesis. `FF` is V13 firmware evidence and must not be applied to V15 hardwar
 
 ---
 
+## SEQ-001C — Capture playback while choosing sounds, and reading the device's patterns
+
+**Status:** planned for the next hardware session. The fixture list and what each outcome means for
+the design are in the SEQ-001C section of
+[`seq-001a-capture-plan.md`](seq-001a-capture-plan.md).
+
+### Goal
+
+Settle the two questions the sequencer view's integration with the librarian depends on:
+
+| Question                                                                         | Why it matters                                                                                                                  |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Does a playing pattern follow the sound the editor selects?                      | Decides whether a user can audition patches, or edit a voice, against a looping pattern. The deciding run is the Voice setting. |
+| Can the editor read the patterns already on the device, and tell which is which? | Decides whether a pattern library can be filled from the FM1, and whether a read can be anchored at step 1.                     |
+
+### Prerequisite
+
+A bounded real-time sender in `scripts/` that emits exactly Start `FA`, clock `F8` and Stop `FC`,
+reviewed before the session, for `external-start-sync-on`.
+
+### Do not
+
+Send any vendor frame, or any real-time message beyond `FA`, `F8` and `FC`. Treat any traffic the
+device transmits on pattern selection as `unknown` until two controlled runs support the narrower
+label, and never replay it.
+
+---
+
 ## SEQ-003 — Implement pattern encoder and round-trip tests
 
 **Status:** after SEQ-002
