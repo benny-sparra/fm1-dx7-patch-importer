@@ -633,7 +633,8 @@ export default {
     sendPatch: 'Enviar {{name}} al FM1',
     auditioning: 'Probando',
     reorder: 'Reordenar {{name}}',
-    reorderTitle: 'Arrastra para reordenar; usa las flechas con el control enfocado',
+    reorderTitle:
+      'Arrastra para reordenar, o sobre un banco para copiar el sonido allí; usa las flechas para reordenar con el control enfocado',
     copySelected: 'Copiar a…',
     copyDialogTitle: 'Copiar {{name}}',
     copyTargetBank: 'Banco',

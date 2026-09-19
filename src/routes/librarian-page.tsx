@@ -125,8 +125,9 @@ export function LibrarianPage({
   // Explains a dialog whose chunk did not arrive, such as after a newer deployment replaced it.
   const [dialogLoadError, setDialogLoadError] = useState('')
   const [savedBanksRequest, setSavedBanksRequest] = useState<SavedBanksRequest | null>(null)
-  // The sound whose menu chose Copy, kept while its dialog is open.
-  const [copySource, setCopySource] = useState<Patch | null>(null)
+  // The sound whose menu chose Copy, or that was dropped on a bank's tab, kept while its dialog is
+  // open with the bank it was dropped on.
+  const [copyRequest, setCopyRequest] = useState<{ bank?: string; patch: Patch } | null>(null)
   // The slot whose menu chose to replace it from a file, kept while its dialog is open.
   const [replaceTarget, setReplaceTarget] = useState<Patch | null>(null)
   const [isImporting, setIsImporting] = useState(false)
@@ -161,9 +162,9 @@ export function LibrarianPage({
     setDialogLoadError('')
     setSavedBanksRequest(request)
   }
-  const requestCopy = (patch: Patch) => {
+  const requestCopy = (patch: Patch, bank?: string) => {
     setDialogLoadError('')
-    setCopySource(patch)
+    setCopyRequest({ bank, patch })
   }
   const requestReplace = (patch: Patch) => {
     setDialogLoadError('')
@@ -567,6 +568,7 @@ export function LibrarianPage({
           toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
         }}
         onPatchCopy={requestCopy}
+        onPatchDropOnBank={requestCopy}
         onPatchDownload={(patch) => void downloadPatch(patch)}
         onPatchReplace={requestReplace}
         onPatchEdit={(patch) => {
@@ -588,6 +590,7 @@ export function LibrarianPage({
           <>
             <div className="flex h-full w-16 flex-col border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px]">
               <WorkspaceBankSelector
+                acceptsDrop={(bank) => library.loadedBanks.includes(bank)}
                 banks={banks.map((bank) => {
                   const name = bankDisplayName(bank)
                   return {
@@ -712,29 +715,30 @@ export function LibrarianPage({
           toast.success(t('toasts.banksRestored'), undoToastOptions(t, library, changed))
         }}
       />
-      {copySource ? (
+      {copyRequest ? (
         <ErrorBoundary
-          key={copySource.id}
+          key={copyRequest.patch.id}
           onError={() => {
-            setCopySource(null)
+            setCopyRequest(null)
             setDialogLoadError(t('banks.copyOpenFailed'))
           }}
         >
           <Suspense fallback={null}>
             <CopyPatchDialog
+              initialBank={copyRequest.bank}
               library={library}
-              onClose={() => setCopySource(null)}
+              onClose={() => setCopyRequest(null)}
               onCopied={(target, changed) =>
                 toast.success(
                   t('toasts.patchCopied', {
                     bank: bankDisplayName(target.bank),
-                    patch: copySource.name,
+                    patch: copyRequest.patch.name,
                     slot: patchSlotCode(target),
                   }),
                   undoToastOptions(t, library, changed),
                 )
               }
-              source={copySource}
+              source={copyRequest.patch}
             />
           </Suspense>
         </ErrorBoundary>
