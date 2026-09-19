@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { unzipSync } from 'fflate'
 import { readFile } from 'node:fs/promises'
 
@@ -207,6 +207,46 @@ test('copies a slot from the keyboard through its menu and the slot grid', async
   await expect(chosen).toBeFocused()
   await page.keyboard.press('ArrowRight')
   await expect(dialog.getByRole('button', { name: /^Replace B02$/ })).toBeVisible()
+})
+
+/** Drags a slot's grip with the pointer in steps, as dnd-kit needs moves to follow it. */
+async function dragGrip(page: Page, slotName: string, target: Locator) {
+  const grip = await page
+    .getByRole('button', { exact: true, name: `Reorder ${slotName}` })
+    .boundingBox()
+  const drop = await target.boundingBox()
+  if (!grip || !drop) throw new Error('The grip or its drop target is not on screen.')
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(drop.x + drop.width / 2, drop.y + drop.height / 2, { steps: 12 })
+  await page.mouse.up()
+}
+
+test('copies a slot by dropping it on another bank tab', async ({ page }) => {
+  await openLibrarian(page)
+  const { name } = await slotMenuButton(page, 0)
+
+  await dragGrip(page, name, page.getByRole('button', { name: /^B — / }))
+
+  const dialog = page.getByRole('dialog', { name: `Copy ${name}` })
+  await expect(dialog.getByRole('button', { name: /^B — /, pressed: true })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Replace B01' }).click()
+
+  await expect(dialog).toBeHidden()
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible()
+})
+
+test('reorders when a slot is dropped in the grid beside the bank rail', async ({ page }) => {
+  await openLibrarian(page)
+  const namesBefore = await slotNames(page)
+  const { name } = await slotMenuButton(page, 1)
+
+  await dragGrip(page, name, slotButtons(page).first())
+
+  await expect
+    .poll(() => slotNames(page))
+    .toEqual([namesBefore[1], namesBefore[0], ...namesBefore.slice(2)])
+  await expect(page.getByRole('dialog')).toHaveCount(0)
 })
 
 test('opens a slot menu on the last row above the grid without playing the slot', async ({

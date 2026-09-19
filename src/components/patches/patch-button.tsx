@@ -1,5 +1,6 @@
+import { useDndMonitor } from '@dnd-kit/core'
 import { useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+import { CSS, type Transform } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import { useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -9,6 +10,7 @@ import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
 import { patchSlotCode } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
 
+import { droppedBank } from './bank-drop'
 import { PatchSlotMenu } from './patch-slot-menu'
 
 type PatchButtonProps = {
@@ -54,8 +56,23 @@ export function PatchButton({
   const canReorder = reorderable && patch.family === 'DX7'
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
+    // A bank tab reads this to leave a slot's own bank unlit as a drop target.
+    data: { bank: patch.bank },
     id: patch.id,
     disabled: disabled || !canReorder,
+  })
+  // Sorting moves the dragged slot only while it is over another slot, so over a bank tab the slot
+  // follows the pointer here instead.
+  const [bankDragOffset, setBankDragOffset] = useState<Transform | null>(null)
+  useDndMonitor({
+    onDragCancel: () => setBankDragOffset(null),
+    onDragEnd: () => setBankDragOffset(null),
+    onDragMove: ({ active, delta, over }) => {
+      if (active.id !== patch.id) return
+      setBankDragOffset(
+        droppedBank(over?.id) === undefined ? null : { ...delta, scaleX: 1, scaleY: 1 },
+      )
+    },
   })
 
   return (
@@ -77,8 +94,8 @@ export function PatchButton({
       ref={sortable.setNodeRef}
       style={{
         opacity: sortable.isDragging ? 0.55 : 1,
-        transform: CSS.Transform.toString(sortable.transform),
-        transition: sortable.transition,
+        transform: CSS.Transform.toString(bankDragOffset ?? sortable.transform),
+        transition: bankDragOffset ? undefined : sortable.transition,
         zIndex: sortable.isDragging ? 10 : undefined,
       }}
       title={disabled ? disabledTitle : undefined}

@@ -623,7 +623,8 @@ export default {
     sendPatch: 'Send {{name}} to FM1',
     auditioning: 'Auditioning',
     reorder: 'Reorder {{name}}',
-    reorderTitle: 'Drag to reorder; use arrow keys when focused',
+    reorderTitle:
+      'Drag to reorder, or onto a bank to copy the patch there; use arrow keys to reorder when focused',
     copySelected: 'Copy to…',
     copyDialogTitle: 'Copy {{name}}',
     copyTargetBank: 'Bank',

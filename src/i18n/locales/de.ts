@@ -641,7 +641,8 @@ export default {
     sendPatch: '{{name}} an FM1 senden',
     auditioning: 'Vorhören',
     reorder: '{{name}} verschieben',
-    reorderTitle: 'Zum Sortieren ziehen; bei Fokus Pfeiltasten verwenden',
+    reorderTitle:
+      'Zum Sortieren ziehen, oder auf eine Bank, um den Sound dorthin zu kopieren; bei Fokus mit Pfeiltasten sortieren',
     copySelected: 'Kopieren nach…',
     copyDialogTitle: '{{name}} kopieren',
     copyTargetBank: 'Bank',

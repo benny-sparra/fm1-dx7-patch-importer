@@ -41,9 +41,11 @@ const patches = [
 
 function renderDialog({
   copyVoice = vi.fn<PatchLibrary['copyVoice']>(() => null),
+  initialBank,
   loadedBanks = ['A', 'B'],
 }: {
   copyVoice?: PatchLibrary['copyVoice']
+  initialBank?: string
   loadedBanks?: string[]
 } = {}) {
   const onClose = vi.fn()
@@ -55,7 +57,15 @@ function renderDialog({
     patches,
     workspaceBanks: ['A', 'B', 'C'],
   } as unknown as PatchLibrary
-  render(<CopyPatchDialog library={library} onClose={onClose} onCopied={onCopied} source={alpha} />)
+  render(
+    <CopyPatchDialog
+      initialBank={initialBank}
+      library={library}
+      onClose={onClose}
+      onCopied={onCopied}
+      source={alpha}
+    />,
+  )
   return {
     copyVoice,
     dialog: screen.getByRole('dialog'),
@@ -88,6 +98,14 @@ describe('CopyPatchDialog', () => {
         description: 'This replaces “Beta Bass” in B01. You can undo this action.',
       }),
     ).toBeTruthy()
+  })
+
+  it('opens on the bank it is given, such as a tab the sound was dropped on', () => {
+    renderDialog({ initialBank: 'A' })
+
+    expect(pressed('A — Bank 1')).toBe(true)
+    // The sound's own slot cannot take the copy, so the choice steps past it.
+    expect(screen.getByRole('button', { name: 'Replace A02' })).toBeTruthy()
   })
 
   it('shows the choice and both bank names on a readout hidden from assistive technology', async () => {

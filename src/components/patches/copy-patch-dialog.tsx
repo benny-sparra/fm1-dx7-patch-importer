@@ -21,6 +21,8 @@ import { resolveGridKey } from '@/lib/patch-grid-navigation'
 import { cn } from '@/lib/utils'
 
 type CopyPatchDialogProps = {
+  /** The bank to open on, such as the tab a slot was dropped on. */
+  initialBank?: string
   library: Pick<
     PatchLibrary,
     'bankNames' | 'copyVoice' | 'loadedBanks' | 'patches' | 'workspaceBanks'
@@ -49,7 +51,13 @@ function avoidSlot(next: number, previous: number, avoided: number) {
  * tabs and slot grid move the choice, which an FM1-style readout shows.
  * It opens as soon as it is rendered and reports closing, so the page can drop it.
  */
-export function CopyPatchDialog({ library, onClose, onCopied, source }: CopyPatchDialogProps) {
+export function CopyPatchDialog({
+  initialBank,
+  library,
+  onClose,
+  onCopied,
+  source,
+}: CopyPatchDialogProps) {
   const { t } = useTranslation()
   const titleId = useId()
   const replacesId = useId()
@@ -57,7 +65,9 @@ export function CopyPatchDialog({ library, onClose, onCopied, source }: CopyPatc
   const cellRefs = useRef(new Map<number, HTMLButtonElement>())
   const focusChosenCell = useRef(false)
   const bankLabel = useWorkspaceBankLabel(library)
-  const [choice, setChoice] = useState<Choice | null>(null)
+  const [choice, setChoice] = useState<Choice | null>(
+    initialBank ? { bank: initialBank, slot: source.number } : null,
+  )
   const [error, setError] = useState('')
   // Copying is offered only into banks that already hold sounds, so every slot has one to replace.
   const targetBanks = library.workspaceBanks.filter((candidate) =>

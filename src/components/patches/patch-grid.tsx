@@ -1,11 +1,11 @@
 import {
-  closestCenter,
   DndContext,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type UniqueIdentifier,
 } from '@dnd-kit/core'
 import {
   rectSortingStrategy,
@@ -29,7 +29,9 @@ import { HelpPopover } from '@/components/ui/help-popover'
 import { type Patch } from '@/data/patches'
 import { formatShortcut, isApplePlatform, librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { resolveGridKey } from '@/lib/patch-grid-navigation'
+import { cn } from '@/lib/utils'
 
+import { droppedBank, patchDragCollision } from './bank-drop'
 import { PatchButton } from './patch-button'
 
 type PatchGridProps = {
@@ -43,6 +45,8 @@ type PatchGridProps = {
   onPatchDownload?: (patch: Patch) => void
   onPatchReplace?: (patch: Patch) => void
   onPatchMove: (patch: Patch, target: Patch) => void
+  /** A slot dragged onto a bank tab in the `toolbar`, other than its own bank's. */
+  onPatchDropOnBank?: (patch: Patch, bank: string) => void
   onPatchEdit?: (patch: Patch) => void
   onPatchSelect?: (patch: Patch) => void
   onImportEmptyBank?: () => void
@@ -80,6 +84,7 @@ export function PatchGrid({
   onPatchDownload,
   onPatchReplace,
   onPatchMove,
+  onPatchDropOnBank,
   onPatchEdit,
   onPatchSelect,
   onImportEmptyBank,
@@ -96,6 +101,7 @@ export function PatchGrid({
   const searchHint = useMemo(() => formatShortcut(librarianShortcuts.search, isApplePlatform()), [])
   const slotRefs = useRef(new Map<string, HTMLButtonElement>())
   const [focusedPatchId, setFocusedPatchId] = useState('')
+  const [draggedId, setDraggedId] = useState<UniqueIdentifier | null>(null)
   // The grid is a single tab stop. It opens on the lit slot so Tab lands where
   // the user last was, and follows the arrows from there.
   const rovingPatchId = [focusedPatchId, activePatchId].find((candidate) =>
@@ -130,9 +136,15 @@ export function PatchGrid({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
-  const finishReorder = ({ active, over }: DragEndEvent) => {
+  const finishDrag = ({ active, over }: DragEndEvent) => {
+    setDraggedId(null)
     if (!over || active.id === over.id) return
     const source = patches.find((patch) => patch.id === active.id)
+    const bank = droppedBank(over.id)
+    if (bank !== undefined) {
+      if (source && bank !== source.bank) onPatchDropOnBank?.(source, bank)
+      return
+    }
     const target = patches.find((patch) => patch.id === over.id)
     if (source && target && source.bank === target.bank) onPatchMove(source, target)
   }
@@ -175,30 +187,39 @@ export function PatchGrid({
           {headerActions ? <div className="shrink-0">{headerActions}</div> : null}
         </div>
       </CardHeader>
-      <div className="patch-area-surface flex min-w-0 items-stretch">
-        {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
-        <div className="min-w-0 flex-1">
-          <div className="crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]">
-            {actions ? (
-              <div className="flex w-full max-w-full min-w-0 flex-wrap items-center gap-2">
-                {actions}
-              </div>
-            ) : null}
-          </div>
-          {/*
+      {/* The bank rail shares the grid's drag context, so a slot can be dropped on a bank's tab. */}
+      <DndContext
+        collisionDetection={patchDragCollision}
+        onDragCancel={() => setDraggedId(null)}
+        onDragEnd={finishDrag}
+        onDragStart={({ active }) => setDraggedId(active.id)}
+        sensors={sensors}
+      >
+        <div className="patch-area-surface flex min-w-0 items-stretch">
+          {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
+          <div className="min-w-0 flex-1">
+            <div className="crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]">
+              {actions ? (
+                <div className="flex w-full max-w-full min-w-0 flex-wrap items-center gap-2">
+                  {actions}
+                </div>
+              ) : null}
+            </div>
+            {/*
             The hardware photo used to sit behind the grid as a half-opacity
             watermark. Against the terminal's near-black panel it washed the
             slots out rather than receding, and the masthead already carries
             the same photo, so the grid is now a plain well.
           */}
-          <CardContent className="relative isolate space-y-4 overflow-hidden bg-[var(--crt-bg-panel)] p-[9px]">
-            <div className="relative z-10">
-              {patches.length > 0 ? (
-                <DndContext
-                  collisionDetection={closestCenter}
-                  onDragEnd={finishReorder}
-                  sensors={sensors}
-                >
+            {/* A dragged slot has to reach the bank tabs, so the grid stops clipping and rises above the rail. */}
+            <CardContent
+              className={cn(
+                'relative isolate space-y-4 bg-[var(--crt-bg-panel)] p-[9px]',
+                draggedId === null ? 'overflow-hidden' : 'z-20',
+              )}
+            >
+              <div className="relative z-10">
+                {patches.length > 0 ? (
                   <SortableContext
                     items={patches.map((patch) => patch.id)}
                     strategy={rectSortingStrategy}
@@ -225,44 +246,44 @@ export function PatchGrid({
                       ))}
                     </div>
                   </SortableContext>
-                </DndContext>
-              ) : (
-                <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
-                  <div className="max-w-md">
-                    <FileMusic className="mx-auto size-10 text-[var(--crt-acc-dim)]" />
-                    <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
-                      {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
-                    </h3>
-                    {!isBankLoaded ? (
-                      <>
-                        <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
-                          {t('banks.emptyHelp')}
-                        </p>
-                        <div className="mt-4 flex flex-wrap justify-center gap-2">
-                          <button
-                            className="crt-raised-lit cursor-pointer bg-[var(--crt-btn)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-white"
-                            onClick={onImportEmptyBank}
-                            type="button"
-                          >
-                            {t('banks.import')}
-                          </button>
-                          <button
-                            className="crt-raised-thin cursor-pointer bg-[var(--crt-btn-face)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)]"
-                            onClick={onLoadDemoBank}
-                            type="button"
-                          >
-                            {t('banks.loadDemo')}
-                          </button>
-                        </div>
-                      </>
-                    ) : null}
+                ) : (
+                  <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
+                    <div className="max-w-md">
+                      <FileMusic className="mx-auto size-10 text-[var(--crt-acc-dim)]" />
+                      <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
+                        {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
+                      </h3>
+                      {!isBankLoaded ? (
+                        <>
+                          <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
+                            {t('banks.emptyHelp')}
+                          </p>
+                          <div className="mt-4 flex flex-wrap justify-center gap-2">
+                            <button
+                              className="crt-raised-lit cursor-pointer bg-[var(--crt-btn)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-white"
+                              onClick={onImportEmptyBank}
+                              type="button"
+                            >
+                              {t('banks.import')}
+                            </button>
+                            <button
+                              className="crt-raised-thin cursor-pointer bg-[var(--crt-btn-face)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)]"
+                              onClick={onLoadDemoBank}
+                              type="button"
+                            >
+                              {t('banks.loadDemo')}
+                            </button>
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
+                )}
+              </div>
+            </CardContent>
+          </div>
         </div>
-      </div>
+      </DndContext>
     </Card>
   )
 }

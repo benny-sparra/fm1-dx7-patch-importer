@@ -76,7 +76,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Do not resend when the selected version has not changed.
 
 - [x] **Copy patches between banks.** "Copy to…" in a slot's menu copies it over a chosen slot in
-      any bank that has sounds. Dragging onto a bank tab is not built yet.
+      any bank that has sounds, or dragging it onto a bank tab.
   - Choose the target slot, and confirm before overwriting a populated slot.
   - Copies the patch's FM1 effects with the voice.
   - Offer Undo in the notification through `undoToastOptions`.
@@ -132,11 +132,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Importing over a populated bank keeps its confirmation and Undo. Update the SysEx
     compatibility section of `docs/user-guide.md`.
 
-- [ ] **Drag a patch onto a bank tab.** Finishes [Copy patches between banks](#worth-doing):
+- [x] **Drag a patch onto a bank tab.** Finishes [Copy patches between banks](#worth-doing):
       dropping a patch on a bank tab opens **Copy to…** with that bank chosen, so the overwrite
       confirmation and Undo stay in one place.
   - The ⋮ menu stays the keyboard route. Dropping on the patch's own bank is ignored or picks a slot
-    as the dialog does today.
+    as the dialog does today. Decided: it is ignored, and a keyboard drag never reaches the tabs,
+    so the arrow keys keep reordering within the bank. Only banks with sounds take a drop, matching
+    the dialog's bank tabs.
   - Cover the drop in Playwright; jsdom cannot check dragging onto another element.
 
 ## Nice to have

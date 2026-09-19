@@ -14,7 +14,8 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Replace a populated bank only after confirming that its current patches will be overwritten
 - Restore the four factory banks at any time without removing additional workspace banks
 - Save named copies of a bank in the browser, then load, rename, copy, download, or delete them later
-- Copy a patch and its FM1 effects over any slot in a bank that has patches
+- Copy a patch and its FM1 effects over any slot in a bank that has patches, from its **⋮** menu or
+  by dragging it onto a bank
 - Undo deleting, restoring, importing over, or loading into a bank, or copying a patch over a slot, from its notification or with Cmd/Ctrl + Z
 - Restore imported and edited banks automatically from IndexedDB browser storage
 - Retry browser-storage failures or continue explicitly with a session-only workspace without overwriting unreadable saved data

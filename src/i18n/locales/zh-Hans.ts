@@ -583,7 +583,8 @@ export default {
     sendPatch: '将 {{name}} 发送到 FM1',
     auditioning: '试听中',
     reorder: '重新排列 {{name}}',
-    reorderTitle: '拖动以重新排列；获得焦点时可使用方向键',
+    reorderTitle:
+      '拖动以重新排列，或拖到某个音色库上将音色复制到该库；获得焦点时可使用方向键重新排列',
     copySelected: '复制到…',
     copyDialogTitle: '复制 {{name}}',
     copyTargetBank: '音色库',

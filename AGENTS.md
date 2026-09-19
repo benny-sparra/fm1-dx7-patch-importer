@@ -167,8 +167,10 @@ open everything an earlier release could have saved.
   status, and essential MIDI controls eager.
 - A dialog the librarian mounts on demand opens itself from an effect and takes an `onClose`, rather
   than being rendered always and opened through a `dialogRef`. Unmounting it discards its state, so
-  it needs no reset, and `onClose` returns focus to the control that opened it. The remaining eager
-  dialogs are the same shape and are the cheapest headroom left if the budget gets tight.
+  it needs no reset, and `onClose` returns focus to the control that opened it. Making another eager
+  dialog lazy no longer frees headroom: Rolldown moves the code it shares with the entry into new
+  shared chunks, which the entry still loads, and compressing them separately costs as much as the
+  dialog saved. Measure with `npm run bundle:check` before and after any such move.
 - Prefer source-level `import()` at genuine interaction or data boundaries. Do not move initial code
   into eagerly imported vendor chunks to make the entry filename smaller.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
@@ -180,7 +182,8 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 148 KiB gzip budget.
+  Dynamic imports are excluded. Do not weaken or bypass the 149 KiB gzip budget; raising it needs
+  explicit approval, as the drag-to-bank copy's raise from 148 KiB had.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
 
 ### Privacy, monitoring, and deployment security
