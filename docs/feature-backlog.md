@@ -117,11 +117,56 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     in `AGENTS.md`.
   - Check voice data at the same boundary as `.syx` import (reject bytes above 7-bit, normalise on
     read) and give every failure a translated error.
-  - Restoring replaces the workspace, so confirm first and offer Undo through `undoToastOptions`.
-    Decide whether saved banks in the file are merged with or replace the saved banks already here.
   - Load the backup code when a backup or restore starts, like `fflate` for bulk export.
-  - Tests: a round trip, a legacy-version fixture, a damaged file reaching the UI as translated
-    text, and a rendered restore that reverses in one undo.
+
+  **File format.** JSON with base64 voice and effect bytes, not a zip. A full workspace is ten
+  banks of thirty-two 128-byte voices plus their effects, so even a heavy backup is a few hundred
+  kilobytes and base64's third again on top does not justify a container. Plain JSON stays
+  inspectable and recoverable by hand, which matters for what may be the user's only copy.
+
+  ```
+  { "format": "fm1-librarian-backup", "version": 1, "savedAt": "<ISO>",
+    "workspace": { "workspaceBanks", "loadedBanks", "bankNames", "bankDescriptions",
+                   "slots": [{ "id": "A01", "voice": "<base64>", "effects": "<base64>" }] },
+    "savedBanks": [{ "id", "name", "description", "createdAt", "updatedAt",
+                     "slots": [{ "slot": 1, "voice": "<base64>", "effects": "<base64>" }] }] }
+  ```
+
+  Version the file independently of `StoredPatchLibrary.version` and `NamedBank.version`. They
+  change for different reasons, and coupling them forces a file-format bump whenever the IndexedDB
+  record shifts.
+
+  **The two halves restore differently, because undo cannot cover both.** `undoChange` works on the
+  library snapshot history in `src/hooks/use-patch-library.ts`; saved banks are separate IndexedDB
+  records written through `saveStoredNamedBank` and are not in that history. One Undo therefore
+  cannot reverse a saved-bank write, and `AGENTS.md` forbids promising an undo the app does not
+  offer. So:
+  - The workspace is **replaced**, through the normal snapshot path, and Undo reverses it with
+    `undoToastOptions` exactly as importing over a bank does.
+  - Saved banks are **merged and additive**: a bank whose `id` is not already present is added, an
+    id already present is skipped and counted in the result. Nothing is overwritten, so nothing
+    needs undoing. This also settles the earlier merge-or-replace question in the direction that
+    cannot lose data.
+  - The confirmation dialog states what happens to each half, so the asymmetry is visible before
+    the user commits.
+
+  **Validation** reuses the existing boundaries rather than adding new checks:
+  `normalizeStoredDx7Voice` for voices, which enforces the 128-byte length and 7-bit data;
+  `normalizeFm1Effects` for effects; `validateNamedBank` for each saved bank; and
+  `isWorkspaceBankId`, `maximumWorkspaceBanks`, `workspaceBankTitleLength`, and
+  `bankDescriptionLength` for the bank metadata. Failures carry a typed `problem` code like
+  `Dx7BankFileError` and are translated. Check the file size before reading it, as
+  `readDx7BankFile` does. A damaged saved bank inside an otherwise good file is skipped and
+  reported, matching `listStoredNamedBanks`.
+
+  **UI.** Backup is workspace-wide, so it belongs in the header ⋮ menu beside **Download all banks
+  (.zip)** rather than a bank or slot menu — but that menu is where the wording gets dangerous, and
+  the naming has to be settled before this is built. See
+  [Separating patch files from backups](#separating-patch-files-from-backups).
+
+  - Tests: a round trip, a version 1 fixture, a damaged file reaching the UI as translated text, a
+    rendered restore that reverses in one undo, a voice with a byte above 7 bits rejected, and a
+    file with one damaged saved bank importing the rest.
 
 - [ ] **Multi-bank `.syx` import.** DX7 archive collections often join several 32-voice dumps in
       one file, which bank import refuses today. Split the file into its banks, show each with its
@@ -158,15 +203,6 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Read-only: it never deletes or changes a slot. Compare packed voice bytes; say in the UI
     whether names and FM1 effects are part of the match.
 
-- [ ] **Download a bank's patch list.** Save a bank's slot codes and patch names as plain text or
-      CSV to print or keep beside the FM1.
-  - Reuse `src/lib/sysex-file.ts` naming and the download helper. Column headers are translated;
-    patch and bank names are written exactly as stored, with CSV quoting.
-
-- [ ] **Paste part of an operator.** Add **Paste envelope** and **Paste frequency** beside
-      **Paste operator**, using the same in-memory copy.
-  - Each is one undo step and sends only the changed parameters. Build only if asked for.
-
 - [x] **Search across all banks.** The librarian's search box finds a patch in every loaded
       workspace bank, and clicking a result plays it while the results stay up.
   - Decided: saved banks and the bundled catalog are left out. Searching them would need results
@@ -176,12 +212,85 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Open questions
 
+### Syncing patches with the FM1
+
+Keeping the browser library and the hardware in step — showing what differs, and reconciling it —
+is the feature this librarian would most like to offer. It is blocked, and the blocker is one
+direction of traffic rather than any amount of UI work.
+
+Checked again on 2026-09-20 against both upstream sources:
+
+- [AL-255/FM-1-RE](https://github.com/AL-255/FM-1-RE) `docs/io/05-midi.md` documents inbound paths
+  only: UART RX DMA, USB EP4 OUT, and BLE-MIDI feeding parse and dispatch. Its MIDI output section
+  covers note events, not patch data. The repository's subject is architecture, boot chain, and the
+  OTA update protocol, all host to device.
+- [KingParamount/fm1-factory-presets](https://github.com/KingParamount/fm1-factory-presets) states
+  the FM-1 receives SysEx but never sends it, and the only device-to-host messages in its capture
+  are identity replies and acknowledgements.
+
+Both match [research 6.3](fm1-research.md#63-updater-preset-restore-over-manufacturer-id-00-32),
+whose open question 9 — whether the `00 32` family offers a read or bulk-dump request at all — is
+still unanswered. The research has not moved on readback; it never had it.
+
+Only one direction exists:
+
+- **Browser to FM1** works today through standard DX7 bank dumps, and the `00 32` capture suggests a
+  better path in [slot-addressed voice-bank write](fm1-roadmap.md), parked as Dangerous / excluded
+  because the capture came from an updater build that downgrades firmware.
+- **FM1 to browser** has no known mechanism. It is absent from every capture taken, not merely
+  undocumented.
+
+Without readback there is nothing to diff, no drift to detect, no merge to perform, and no way to
+confirm the device holds what was sent. A one-way push with delivery confirmation is the most that
+the known protocol could ever support, and that is parked. This is the same limitation that
+[Bank transfer status](#bank-transfer-status) runs into: anything claiming to describe the hardware's
+contents can only report what this browser last sent.
+
+It also sets the terms for [Workspace backup and restore](#worth-doing). Because the FM1 can never be
+read back, the browser is the only copy of a patch that exists, which makes the backup file the sole
+protection against losing everything rather than a convenience.
+
+Reopen only if a stock-safe read or bulk-dump request is identified and recorded in
+`docs/fm1-research.md`. Do not probe for one by sending unknown command IDs.
+
 ### Bank transfer status
 
 A per-bank "Local only / Transferred / Changed" marker existed and was removed in `14d3618`. Before
 bringing it back, find out why it was removed. Without device readback it can only report what this
 browser last sent, never what is on the FM1, so its wording must not suggest the two are in sync.
 A full sync workflow with confirmation prompts was judged too complex for what it can promise.
+
+### Separating patch files from backups
+
+[Workspace backup and restore](#worth-doing) adds a second kind of file, and the header ⋮ menu is
+already the wrong shape for it. Today that menu holds **Download all banks (.zip)** and **Restore
+all banks**, and adding "back up everything" and "restore from backup" beside them creates two
+collisions:
+
+- **Two downloads that both sound like everything.** "Download all banks" and a backup both promise
+  the user's whole library, but one is DX7 voice data other tools can read and the other is this
+  app's own format holding FM1 effects and saved banks as well.
+- **Two restores, one of which destroys data.** **Restore all banks** means "replace my work with
+  the factory patches". A **Restore from backup** beside it uses the same verb for the opposite
+  intent, and picking the wrong one loses the workspace. This is the more serious of the two.
+
+The distinction to put in front of the user is not how much data a file holds but what the file is
+for: _a file other DX7 gear and editors can read_ against _a file only this app can read, which is
+the only way to keep FM1 effects and saved banks_.
+
+Proposed wording, to settle before building:
+
+- Reserve **backup** for the app's own format, and never call it export or download.
+- Keep **SysEx**, **.syx**, patch, and bank for the DX7 side.
+- Rename **Restore all banks** to a reset ("Reset to factory patches"), freeing _restore_ for
+  backups alone. A copy change in every locale, and it also describes what that action does more
+  honestly than "restore" does.
+- Group the menu under headings, so the two kinds never read as one list.
+
+Still open: whether backup and restore belong in that menu at all, or beside the persistence status,
+where the workspace storage they protect is already described. The menu is more discoverable; the
+storage area explains better why the feature exists, since a backup answers the risk that clearing
+site data loses everything.
 
 ### Effect routing order
 
@@ -230,3 +339,9 @@ Reopen only if a stock control or an official M-VAVE app is found that changes t
   privacy rules.
 - **Voice morphing, and sequencer features beyond the FM1's own model.** Out of scope; the sequencer
   follows [the roadmap](fm1-roadmap.md).
+- **Download a bank's patch list.** A printed slot list only helps at the FM1 without the browser,
+  where the device already shows patch names; with the browser open, the patch grid and
+  [Search across all banks](#nice-to-have) find a patch faster. Not worth a permanent bank-menu
+  entry, strings in every locale, and CSV quoting to keep correct.
+- **Paste part of an operator.** **Paste operator** already covers the case that came up, and
+  pasting only an envelope or only a frequency was never asked for. Add it if someone asks.
