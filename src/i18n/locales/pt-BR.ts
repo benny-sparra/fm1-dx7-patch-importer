@@ -322,9 +322,8 @@ export default {
     intro: 'Edite, organize e transfira sons do FM1 ou importe bancos SysEx do DX7.',
     synthAlt: 'Painel frontal do sintetizador M-VAVE FM1',
     unsupportedTitle: 'Navegador não compatível.',
-    unsupportedMobileTitle: 'Dispositivos móveis não são compatíveis.',
     unsupportedBody:
-      'Este bibliotecário precisa de um navegador para desktop compatível com Web MIDI e SysEx, como Chrome, Edge, Firefox ou Opera. Celulares e tablets não são compatíveis.',
+      'Este bibliotecário precisa de um navegador compatível com Web MIDI e SysEx, como Chrome, Edge, Firefox ou Opera. O Chrome no Android também funciona.',
     localOnly: 'Seus sons ficam neste navegador',
     projectLinks: 'Links do projeto',
     reportIssue: 'Relatar um problema',
@@ -525,7 +524,7 @@ export default {
       insecureContext:
         'O Web MIDI precisa de uma conexão segura. Abra o editor por HTTPS ou localhost.',
       unsupportedBrowser:
-        'Este navegador não é compatível com Web MIDI. Use um navegador para desktop, como Chrome, Edge ou Firefox.',
+        'Este navegador não é compatível com Web MIDI. Use um navegador como Chrome, Edge ou Firefox.',
       permissionDenied:
         'O acesso MIDI foi bloqueado. Permita o acesso MIDI e SysEx para este site e conecte novamente. No Firefox, aceite o complemento de permissão do site quando ele for oferecido.',
       enableFailed:

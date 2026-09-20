@@ -291,9 +291,8 @@ export default {
     intro: '编辑、整理和传输 FM1 音色，或导入 DX7 SysEx 音色库。',
     synthAlt: 'M-VAVE FM1 合成器前面板',
     unsupportedTitle: '不支持的浏览器。',
-    unsupportedMobileTitle: '不支持移动设备。',
     unsupportedBody:
-      '此音色库工具需要在桌面电脑上使用支持 Web MIDI 和 SysEx 的浏览器，例如 Chrome、Edge、Firefox 或 Opera。不支持手机和平板电脑。',
+      '此音色库工具需要支持 Web MIDI 和 SysEx 的浏览器，例如 Chrome、Edge、Firefox 或 Opera。Android 上的 Chrome 同样可用。',
     localOnly: '您的音色仅保存在此浏览器中',
     projectLinks: '项目链接',
     reportIssue: '报告问题',
@@ -487,7 +486,7 @@ export default {
     connecting: '正在连接…',
     errors: {
       insecureContext: 'Web MIDI 需要安全连接。请通过 HTTPS 或 localhost 打开编辑器。',
-      unsupportedBrowser: '此浏览器不支持 Web MIDI。请使用 Chrome、Edge 或 Firefox 等桌面浏览器。',
+      unsupportedBrowser: '此浏览器不支持 Web MIDI。请使用 Chrome、Edge 或 Firefox 等浏览器。',
       permissionDenied:
         'MIDI 访问已被阻止。请允许此网站访问 MIDI 和 SysEx，然后重新连接。在 Firefox 中，请在出现提示时接受网站权限附加组件。',
       enableFailed: '无法启动 MIDI。请检查设备连接后重试。',
