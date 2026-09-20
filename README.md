@@ -56,9 +56,9 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 ## Requirements
 
 - An M-VAVE FM1
-- A MIDI connection between the computer and FM1
-- A desktop computer with a browser that supports Web MIDI and SysEx, such as Chrome, Edge, Opera,
-  or Firefox. Phones and tablets are not supported.
+- A MIDI connection between the device and FM1
+- A browser that supports Web MIDI and SysEx, such as Chrome, Edge, Opera, or Firefox. Chrome on
+  Android works as well; Safari and Firefox on mobile do not expose Web MIDI.
 
 A standard 4,104-byte Yamaha DX7 32-voice bulk bank (`.syx`) is optional if you want to import additional patches.
 

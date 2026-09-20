@@ -15,7 +15,7 @@ import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dial
 import { type MidiController } from '@/hooks/use-midi'
 import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { useMediaQuery } from '@/hooks/use-media-query'
-import { getUnsupportedBrowserReason } from '@/lib/browser'
+import { isUnsupportedBrowser } from '@/lib/browser'
 import { fm1ColorwayImages } from '@/lib/fm1-colorway-images'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
@@ -27,7 +27,7 @@ type RootLayoutProps = {
 
 export function RootLayout({ children, compact = false, midi }: RootLayoutProps) {
   const { t } = useTranslation()
-  const unsupportedBrowserReason = getUnsupportedBrowserReason()
+  const unsupportedBrowser = isUnsupportedBrowser()
   const { colorway, setColorway } = useFm1Colorway()
   const showColorwayImage = useMediaQuery('(min-width: 1024px)')
   const colorwayImage = fm1ColorwayImages[colorway]
@@ -101,18 +101,14 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           </div>
 
           <MidiConnectionError midi={midi} />
-          {unsupportedBrowserReason ? (
+          {unsupportedBrowser ? (
             <div
               className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
               role="alert"
             >
               <TriangleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
               <p>
-                <span className="font-semibold">
-                  {unsupportedBrowserReason === 'mobile'
-                    ? t('root.unsupportedMobileTitle')
-                    : t('root.unsupportedTitle')}
-                </span>{' '}
+                <span className="font-semibold">{t('root.unsupportedTitle')}</span>{' '}
                 {t('root.unsupportedBody')}
               </p>
             </div>
