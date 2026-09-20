@@ -16,9 +16,26 @@ parameter edits work. Browsers send MIDI through the ALSA sequencer, which drops
 output buffer, usually about 4 KB, fills up rather than waiting for the device. A 32-voice bank is
 4,104 bytes, so it only arrives when the buffer happens to drain in time. Chrome and Firefox are
 both affected, and the page cannot work around it because Web MIDI sends a SysEx message whole.
-`dmesg` reports `ALSA: seq_midi: MIDI output buffer overrun` when this happens. To transfer a bank,
-open its menu and choose **Download this bank**, switch **MIDI online** off so the device is free,
-then send the file with `amidi`, using the port that `amidi -l` lists for the FM1:
+`dmesg` reports `ALSA: seq_midi: MIDI output buffer overrun` when this happens.
+
+Enlarging that buffer fixes bank sends in both browsers. Check the current size first, which is
+usually 4096:
+
+```bash
+cat /sys/module/snd_seq_midi/parameters/output_buffer_size
+```
+
+Then set a larger size. 131072 (128 KB) leaves ample room for a bank:
+
+```bash
+sudo bash -c 'echo "options snd_seq_midi output_buffer_size=131072" > /etc/modprobe.d/snd-seq-midi-buffer-size.conf'
+```
+
+Reboot afterwards, because the module reads the option when it loads.
+
+If you would rather not change a system setting, send the bank outside the browser instead: open
+its menu and choose **Download this bank**, switch **MIDI online** off so the device is free, then
+send the file with `amidi`, using the port that `amidi -l` lists for the FM1:
 
 ```bash
 amidi -p hw:2,0,0 -s bank.syx
