@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  formatMidiBytes,
   getMidiSupport,
   isHighRateMidiMessage,
   makeFm1EffectDiagnosticControlMessage,
@@ -212,6 +213,31 @@ describe('isHighRateMidiMessage', () => {
 
   it('keeps an empty message', () => {
     expect(isHighRateMidiMessage(new Uint8Array())).toBe(false)
+  })
+})
+
+describe('formatMidiBytes', () => {
+  it('names a note on with its channel, note and velocity', () => {
+    expect(formatMidiBytes(Uint8Array.from([0x92, 60, 100]))).toBe(
+      'Ch 3 Note On: C4 (velocity 100)',
+    )
+  })
+
+  it('names a note off', () => {
+    expect(formatMidiBytes(Uint8Array.from([0x80, 69, 64]))).toBe('Ch 1 Note Off: A4 (velocity 64)')
+  })
+
+  it('treats a note on with no velocity as a note off', () => {
+    expect(formatMidiBytes(Uint8Array.from([0x9f, 0, 0]))).toBe('Ch 16 Note Off: C-1 (velocity 0)')
+  })
+
+  it('shows any other message as upper-case hex bytes', () => {
+    expect(formatMidiBytes(Uint8Array.from([0xf0, 0x43, 0x10, 0x0a, 0xf7]))).toBe('F0 43 10 0A F7')
+    expect(formatMidiBytes([0xb1, 12, 64])).toBe('B1 0C 40')
+  })
+
+  it('shows a truncated note message as bytes rather than a note', () => {
+    expect(formatMidiBytes(Uint8Array.from([0x90, 60]))).toBe('90 3C')
   })
 })
 

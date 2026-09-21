@@ -1,5 +1,5 @@
 import { loadEnv } from 'vite'
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 import { sentryVitePlugin, type SentryVitePluginOptions } from '@sentry/vite-plugin'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -104,6 +104,8 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     test: {
+      // Agent worktrees under .claude/ hold other branches' tests, which must not run here.
+      exclude: [...configDefaults.exclude, '.claude/**'],
       // Repairs the Node 26 / jsdom Web Storage collision. See the setup file.
       setupFiles: ['./src/test/web-storage.ts'],
     },

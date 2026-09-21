@@ -92,6 +92,57 @@ describe('saveStoredPatchLibrary', () => {
     })
   })
 
+  it('loads version 1 workspaces, which stored no effects, with default effects', async () => {
+    const [voice] = makeDemoVoices()
+    const fake = installIndexedDb({
+      loadedBanks: ['A'],
+      savedAt: '2026-07-01T12:00:00.000Z',
+      version: 1,
+      voices: { 'bank-A-1': voice },
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).resolves.toEqual({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: { 'bank-A-1': makeDefaultFm1Effects() },
+      loadedBanks: ['A'],
+      savedAt: '2026-07-01T12:00:00.000Z',
+      version: 5,
+      voices: { 'bank-A-1': voice },
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+
+  it('keeps bank names from version 3 workspaces and gives them the four standard banks', async () => {
+    const fake = installIndexedDb({
+      bankNames: { A: '  Pianos  ', B: 'Leads' },
+      effects: {},
+      loadedBanks: ['A', 'B'],
+      savedAt: '2026-08-14T12:00:00.000Z',
+      version: 3,
+      voices: {},
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).resolves.toMatchObject({
+      bankDescriptions: {},
+      bankNames: { A: 'Pianos', B: 'Leads' },
+      loadedBanks: ['A', 'B'],
+      version: 5,
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+  })
+
   it('restores added empty workspace banks from version 4 storage', async () => {
     const fake = installIndexedDb({
       bankNames: {},
