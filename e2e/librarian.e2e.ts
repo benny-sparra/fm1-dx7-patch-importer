@@ -135,7 +135,7 @@ test('downloads every loaded bank as one zip archive', async ({ page }) => {
   await page.getByLabel('More bank file actions').click()
 
   const downloadPromise = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Download all banks (.zip)' }).click()
+  await page.getByRole('button', { name: 'Download SysEx banks (.zip)' }).click()
   const download = await downloadPromise
 
   expect(download.suggestedFilename()).toBe('fm1-browser-banks.zip')
@@ -293,4 +293,41 @@ test('keeps the librarian controls usable on a narrow viewport', async ({ page }
 
   await expect(page.getByLabel('Search', { exact: true })).toBeVisible()
   await expect(page.getByAltText('M-VAVE FM1 synthesiser front panel')).toHaveCount(0)
+})
+
+// Restoring writes saved banks to real IndexedDB, where one already stored must never be replaced.
+test('restores a downloaded backup over a factory reset', async ({ page }) => {
+  await openLibrarian(page)
+  await openFirstPatch(page)
+  await page.getByRole('textbox', { name: 'Patch name' }).fill('E2E BACKUP')
+  await page.getByRole('button', { name: 'Save to Library' }).click()
+  await page.getByRole('button', { name: 'Back to patch banks' }).click()
+  await openFirstBankMenu(page)
+  await page.getByRole('button', { name: 'Save bank' }).click()
+  const saveDialog = page.getByRole('dialog')
+  await saveDialog.getByLabel('Bank name').fill('Kept bank')
+  await saveDialog.getByRole('button', { name: 'Save bank' }).click()
+  await expect(saveDialog).toBeHidden()
+
+  await page.getByLabel('More bank file actions').click()
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download backup' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toMatch(/^fm1-backup-\d{4}-\d{2}-\d{2}\.json$/)
+
+  await page.getByLabel('More bank file actions').click()
+  await page.getByRole('button', { name: 'Reset to factory patches…' }).click()
+  await page.getByRole('button', { name: 'Reset four banks' }).click()
+  await expect(page.getByRole('button', { name: 'Send PIANO 1 to FM1' })).toBeVisible()
+
+  await page.getByLabel('More bank file actions').click()
+  await page.getByRole('button', { name: 'Restore from backup…' }).click()
+  const restoreDialog = page.getByRole('dialog', { name: 'Restore from backup' })
+  await restoreDialog.getByLabel('Choose a backup file').setInputFiles(await download.path())
+  await expect(restoreDialog.getByText('Already here, kept')).toBeVisible()
+  await restoreDialog.getByRole('button', { name: 'Restore backup' }).click()
+
+  await expect(page.getByText(/^Restored the backup from /)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Send E2E BACKUP to FM1' })).toBeVisible()
+  await expect.poll(() => storedFirstPatchName(page)).toBe('E2E BACKUP')
 })

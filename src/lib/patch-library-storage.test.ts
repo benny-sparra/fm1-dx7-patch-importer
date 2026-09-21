@@ -4,6 +4,7 @@ import { createNamedBank } from '@/lib/named-bank'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import {
+  addStoredNamedBank,
   listStoredNamedBanks,
   loadStoredPatchLibrary,
   saveStoredNamedBank,
@@ -25,12 +26,13 @@ function installIndexedDb(readResult?: unknown) {
   const writeRequest = makeRequest<IDBValidKey>('current')
   const readRequest = makeRequest(readResult)
   const put = vi.fn(() => writeRequest)
+  const add = vi.fn(() => writeRequest)
   const transaction = {
     error: null as DOMException | null,
     onabort: null as (() => void) | null,
     oncomplete: null as (() => void) | null,
     onerror: null as (() => void) | null,
-    objectStore: () => ({ get: () => readRequest, getAll: () => readRequest, put }),
+    objectStore: () => ({ add, get: () => readRequest, getAll: () => readRequest, put }),
   }
   const database = {
     close: vi.fn(),
@@ -46,7 +48,7 @@ function installIndexedDb(readResult?: unknown) {
   const open = vi.fn(() => openRequest)
   vi.stubGlobal('indexedDB', { open })
 
-  return { database, open, openRequest, put, readRequest, transaction, writeRequest }
+  return { add, database, open, openRequest, put, readRequest, transaction, writeRequest }
 }
 
 async function openDatabase(openRequest: FakeRequest<unknown>) {
@@ -389,6 +391,54 @@ describe('loadStoredPatchLibrary voice data', () => {
 
     await expect(loading).rejects.toMatchObject({ code: 'incompatible' })
     expect(fake.put).not.toHaveBeenCalled()
+  })
+})
+
+describe('addStoredNamedBank', () => {
+  function makeBank() {
+    const snapshot = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    return createNamedBank(snapshot, 'A', {
+      description: '',
+      id: 'bank-1',
+      name: 'Backed up',
+      now: '2026-09-21T12:00:00.000Z',
+    })
+  }
+
+  it('adds a saved bank without replacing a record', async () => {
+    const fake = installIndexedDb()
+    const bank = makeBank()
+    const adding = addStoredNamedBank(bank)
+
+    await openDatabase(fake.openRequest)
+    fake.writeRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(adding).resolves.toBe(true)
+    expect(fake.add).toHaveBeenCalledWith(bank)
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+
+  it('reports a saved bank whose id is already stored as not added', async () => {
+    const fake = installIndexedDb()
+    const adding = addStoredNamedBank(makeBank())
+
+    await openDatabase(fake.openRequest)
+    fake.writeRequest.error = new DOMException('Key already exists.', 'ConstraintError')
+    fake.writeRequest.onerror?.()
+
+    await expect(adding).resolves.toBe(false)
+  })
+
+  it('reports any other failure as a write failure', async () => {
+    const fake = installIndexedDb()
+    const adding = addStoredNamedBank(makeBank())
+
+    await openDatabase(fake.openRequest)
+    fake.writeRequest.error = new DOMException('Quota exceeded.', 'QuotaExceededError')
+    fake.writeRequest.onerror?.()
+
+    await expect(adding).rejects.toMatchObject({ code: 'write-failed' })
   })
 })
 

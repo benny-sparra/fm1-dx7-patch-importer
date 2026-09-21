@@ -4,7 +4,7 @@ import { MidiLogStore } from '@/lib/midi-log-store'
 import type { MidiLogEntry } from '@/lib/midi'
 
 const entry = (id: string): MidiLogEntry => ({
-  createdAt: '12:00:00',
+  createdAt: 0,
   direction: 'out',
   id,
   message: `Message ${id}`,

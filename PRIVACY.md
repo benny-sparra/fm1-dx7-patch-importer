@@ -1,7 +1,7 @@
 # Privacy
 
 The M-VAVE FM1 Editor & Librarian runs entirely in the browser. Voices, banks, and settings stay in
-browser storage. This page describes the limited analytics and error monitoring used by the deployed
+browser storage. A backup file is written and read in the browser; it is never uploaded. This page describes the limited analytics and error monitoring used by the deployed
 site.
 
 ## Anonymous usage analytics

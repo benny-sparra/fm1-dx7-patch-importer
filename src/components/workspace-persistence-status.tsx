@@ -1,21 +1,27 @@
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, HardDriveDownload } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { ErrorNotice } from '@/components/ui/error-notice'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
+import { type BackupLibrary, useDownloadWorkspaceBackup } from '@/hooks/use-workspace-backup'
 
-type PersistenceLibrary = Pick<
-  PatchLibrary,
-  | 'continueWithoutWorkspaceSaving'
-  | 'persistenceError'
-  | 'persistenceStatus'
-  | 'retryWorkspaceLoading'
-  | 'retryWorkspaceSaving'
->
+type PersistenceLibrary = BackupLibrary &
+  Pick<
+    PatchLibrary,
+    | 'continueWithoutWorkspaceSaving'
+    | 'persistenceError'
+    | 'persistenceStatus'
+    | 'retryWorkspaceLoading'
+    | 'retryWorkspaceSaving'
+  >
 
 export function WorkspacePersistenceStatus({ library }: { library: PersistenceLibrary }) {
   const { t } = useTranslation()
   const { persistenceError, persistenceStatus } = library
+  const downloadBackup = useDownloadWorkspaceBackup(library)
+  const [backupUnavailable, setBackupUnavailable] = useState(false)
 
   if (
     persistenceStatus === 'loading' ||
@@ -94,18 +100,36 @@ export function WorkspacePersistenceStatus({ library }: { library: PersistenceLi
             {technicalDetails}
           </div>
         </div>
-        {persistenceStatus === 'save-error' ? (
+        {/* Browser storage is not keeping this work, so a backup file is the way to keep it. */}
+        <div className="flex shrink-0 flex-wrap gap-2 self-start">
           <Button
-            className="self-start"
-            onClick={library.retryWorkspaceSaving}
+            disabled={library.namedBanksLoading}
+            onClick={() =>
+              void downloadBackup().then((downloaded) => setBackupUnavailable(!downloaded))
+            }
             size="sm"
             type="button"
             variant="outline"
           >
-            {t('persistence.retrySaving')}
+            <HardDriveDownload />
+            <span>{t('backup.download')}</span>
           </Button>
-        ) : null}
+          {persistenceStatus === 'save-error' ? (
+            <Button
+              onClick={library.retryWorkspaceSaving}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              {t('persistence.retrySaving')}
+            </Button>
+          ) : null}
+        </div>
       </div>
+      {/* A reload would lose the unsaved work, so unlike elsewhere no reload is offered. */}
+      {backupUnavailable ? (
+        <ErrorNotice className="mt-2">{t('backup.unavailableUnsaved')}</ErrorNotice>
+      ) : null}
     </section>
   )
 }

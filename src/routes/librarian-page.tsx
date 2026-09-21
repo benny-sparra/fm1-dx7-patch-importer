@@ -1,8 +1,10 @@
 import {
-  Archive,
   Database,
   Download,
   EllipsisVertical,
+  FileMusic,
+  HardDriveDownload,
+  HardDriveUpload,
   Plus,
   RotateCcw,
   Save,
@@ -16,6 +18,7 @@ import {
   lazy,
   Suspense,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -60,6 +63,7 @@ import type { MidiController } from '@/hooks/use-midi'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
+import { useDownloadWorkspaceBackup, useLastBackupTime } from '@/hooks/use-workspace-backup'
 import { type LibrarianView, useLibrarianView } from '@/hooks/use-librarian-view'
 import type { Patch } from '@/data/patches'
 import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
@@ -107,6 +111,18 @@ const ReplacePatchDialog = lazy(() =>
   })),
 )
 
+// Restoring a backup opens from the header menu, with the backup format, on first use.
+const RestoreBackupDialog = lazy(() =>
+  import('@/components/patches/restore-backup-dialog').then((module) => ({
+    default: module.RestoreBackupDialog,
+  })),
+)
+
+const menuItemClassName =
+  'flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50'
+const menuHeadingClassName =
+  'font-dot-matrix px-3 pt-1.5 pb-0.5 text-[11px] font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase'
+
 type SavedBanksRequest = { bank: string; closeMenu: () => void; mode: 'load' | 'save' }
 
 /** A copy waiting for its dialog: what is copied, how, and the bank to open on. */
@@ -148,7 +164,7 @@ export function LibrarianPage({
   onSelectPatch,
   view,
 }: LibrarianPageProps) {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
   const toast = useToast()
   const { patches } = library
   const banks = library.workspaceBanks
@@ -175,6 +191,14 @@ export function LibrarianPage({
   const importTargetRef = useRef(createBankFileSelectionTarget())
   const addBankButtonRef = useRef<HTMLButtonElement>(null)
   const [isAddingBank, setIsAddingBank] = useState(false)
+  const [isRestoringBackup, setIsRestoringBackup] = useState(false)
+  const downloadBackup = useDownloadWorkspaceBackup(library)
+  const lastBackupTime = useLastBackupTime()
+  const sysexMenuHeadingId = useId()
+  const backupMenuHeadingId = useId()
+  const lastBackupId = useId()
+  const backupContentsId = useId()
+  const sysexContentsId = useId()
   const importDx7BankDialogRef = useRef<HTMLDialogElement>(null)
   const bankSelectionDialogRef = useRef<HTMLDialogElement>(null)
   const deleteWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
@@ -587,21 +611,83 @@ export function LibrarianPage({
             >
               <EllipsisVertical className="size-3.5" />
             </summary>
-            <div className="menu-surface absolute top-full right-0 z-50 mt-1 min-w-60 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
+            <div className="menu-surface absolute top-full right-0 z-50 mt-1 w-80 max-w-[calc(100vw-2rem)] border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
+              {/* The backup comes first: it is the only copy of FM1 effects and saved banks. */}
+              <div aria-labelledby={backupMenuHeadingId} role="group">
+                <p className={menuHeadingClassName} id={backupMenuHeadingId}>
+                  {t('backup.menuHeading')}
+                </p>
+                <button
+                  aria-describedby={
+                    lastBackupTime ? `${backupContentsId} ${lastBackupId}` : backupContentsId
+                  }
+                  aria-label={t('backup.download')}
+                  className={menuItemClassName}
+                  // Saved banks are read as the page opens; a backup waits for them.
+                  disabled={library.namedBanksLoading}
+                  onClick={() => {
+                    allBanksMenuRef.current?.removeAttribute('open')
+                    void downloadBackup().then((downloaded) => {
+                      if (!downloaded) setDialogLoadError(t('backup.unavailable'))
+                    })
+                  }}
+                  type="button"
+                >
+                  <HardDriveDownload className="size-4 shrink-0" />
+                  <span className="grid">
+                    <span>{t('backup.download')}</span>
+                    <span className="text-xs text-[var(--crt-ink-3)]" id={backupContentsId}>
+                      {t('backup.backupContents')}
+                    </span>
+                    {lastBackupTime ? (
+                      <span className="text-xs text-[var(--crt-ink-3)]" id={lastBackupId}>
+                        {t('backup.lastBackup', {
+                          date: new Date(lastBackupTime).toLocaleDateString(i18n.resolvedLanguage),
+                        })}
+                      </span>
+                    ) : null}
+                  </span>
+                </button>
+                <button
+                  className={menuItemClassName}
+                  onClick={() => {
+                    allBanksMenuRef.current?.removeAttribute('open')
+                    setDialogLoadError('')
+                    setIsRestoringBackup(true)
+                  }}
+                  type="button"
+                >
+                  <HardDriveUpload className="size-4" />
+                  {t('backup.restore')}
+                </button>
+              </div>
+              <div aria-labelledby={sysexMenuHeadingId} className="mt-1" role="group">
+                <p className={menuHeadingClassName} id={sysexMenuHeadingId}>
+                  {t('backup.menuSysex')}
+                </p>
+                <button
+                  aria-describedby={sysexContentsId}
+                  aria-label={t('banks.downloadAll')}
+                  className={menuItemClassName}
+                  disabled={library.loadedBanks.length === 0}
+                  onClick={() => {
+                    allBanksMenuRef.current?.removeAttribute('open')
+                    void downloadAllBanks()
+                  }}
+                  type="button"
+                >
+                  <FileMusic className="size-4 shrink-0" />
+                  <span className="grid">
+                    <span>{t('banks.downloadAll')}</span>
+                    <span className="text-xs text-[var(--crt-ink-3)]" id={sysexContentsId}>
+                      {t('backup.sysexContents')}
+                    </span>
+                  </span>
+                </button>
+              </div>
+              <div className="my-1 border-t" />
               <button
-                className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                disabled={library.loadedBanks.length === 0}
-                onClick={() => {
-                  allBanksMenuRef.current?.removeAttribute('open')
-                  void downloadAllBanks()
-                }}
-                type="button"
-              >
-                <Archive className="size-4" />
-                {t('banks.downloadAll')}
-              </button>
-              <button
-                className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                className={menuItemClassName}
                 onClick={() => {
                   allBanksMenuRef.current?.removeAttribute('open')
                   restoreFactoryBanksDialogRef.current?.showModal()
@@ -757,6 +843,36 @@ export function LibrarianPage({
               }}
               onCreated={selectDestinationBank}
               suggestedName={defaultWorkspaceBankTitle(t, banks.length + 1)}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
+      {isRestoringBackup ? (
+        <ErrorBoundary
+          onError={() => {
+            setIsRestoringBackup(false)
+            setDialogLoadError(t('backup.unavailable'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <RestoreBackupDialog
+              library={library}
+              onClose={() => {
+                setIsRestoringBackup(false)
+                allBanksMenuRef.current?.querySelector('summary')?.focus()
+              }}
+              onRestored={(savedAt, changed) => {
+                trackAnalyticsEvent({ name: 'backup_restored' })
+                toast.success(
+                  t('backup.restored', {
+                    date: new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    }).format(new Date(savedAt)),
+                  }),
+                  undoToastOptions(t, library, changed),
+                )
+              }}
             />
           </Suspense>
         </ErrorBoundary>

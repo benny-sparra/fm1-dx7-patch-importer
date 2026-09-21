@@ -15,13 +15,13 @@ export default {
     midiClose: 'MIDI-Verbindungshinweis schließen',
     midiSteps:
       'Aktiviere MIDI online, erlaube den MIDI-Zugriff und wähle den FM1-MIDI-Ausgang in den Einstellungen.',
-    restoreTitle: 'FM-1-Werksbänke wiederherstellen?',
+    restoreTitle: 'Auf die Werks-Sounds zurücksetzen?',
     restoreIntro:
-      'Dadurch werden alle vier lokalen Bänke ersetzt. Die Wiederherstellung kann sofort rückgängig gemacht werden.',
-    restoreClose: 'Wiederherstellung schließen',
+      'Dadurch werden alle vier lokalen Bänke ersetzt. Das Zurücksetzen kann sofort rückgängig gemacht werden.',
+    restoreClose: 'Zurücksetzen schließen',
     restoreDetails:
-      'Bank A, B, C und D werden mit den FM-1-Bänken 1, 2, 3 bzw. 4 wiederhergestellt, den Sounds, mit denen der FM1 ausgeliefert wird.',
-    restoreAction: 'Vier Bänke wiederherstellen',
+      'Bank A, B, C und D werden auf die FM-1-Bänke 1, 2, 3 bzw. 4 zurückgesetzt, die Sounds, mit denen der FM1 ausgeliefert wird.',
+    restoreAction: 'Vier Bänke zurücksetzen',
     sourcesOpen: 'Sound-Bänke zum Herunterladen finden.',
     sourcesTitle: 'DX7-Sound-Bänke finden',
     sourcesIntro:
@@ -298,7 +298,7 @@ export default {
     bankImported: 'Sounds in „{{bank}}“ importiert.',
     bankCreated: '„{{bank}}“ wurde erstellt.',
     bankDeleted: '„{{bank}}“ wurde gelöscht.',
-    banksRestored: 'Die vier Werksbänke wurden wiederhergestellt.',
+    banksRestored: 'Die vier Bänke wurden auf die Werks-Sounds zurückgesetzt.',
     bankDownloadStarted: '„{{bank}}“ wird heruntergeladen.',
     banksDownloadStarted: 'Alle Bänke werden heruntergeladen.',
     bankUpdated: '„{{bank}}“ wurde aktualisiert.',
@@ -553,7 +553,7 @@ export default {
     entries: 'Letzte MIDI-Protokolleinträge',
     hideData: 'Daten ausblenden',
     viewData: 'Daten anzeigen',
-    bytes: '{{count}} Bytes',
+    bytes: '{{count, number}} Bytes',
     completeSysex: 'Vollständige SysEx-Nachricht',
     copied: 'Kopiert',
     copyHex: 'Hex-Daten kopieren',
@@ -574,7 +574,7 @@ export default {
     uploadSource: 'Eigene Bank hochladen',
     empty: 'Leer',
     importing: 'Importieren…',
-    restoring: 'Wird wiederhergestellt…',
+    restoring: 'Wird zurückgesetzt…',
     catalogFactory: 'Werkssounds',
     catalogFm1Factory: 'FM-1-Werksvorlagen',
     import: 'DX7-Bank importieren',
@@ -583,8 +583,8 @@ export default {
     bankInformation: 'Bankinformationen',
     bankInformationHelp: 'Bearbeite den Titel und die optionale Beschreibung dieser Arbeitsbank.',
     download: 'Diese Bank herunterladen',
-    downloadAll: 'Alle Bänke herunterladen (.zip)',
-    restoreAll: 'Alle Bänke wiederherstellen',
+    downloadAll: 'SysEx-Bänke herunterladen (.zip)',
+    restoreAll: 'Auf Werks-Sounds zurücksetzen…',
     sending: 'Senden…',
     send: 'An FM1 senden',
     bank: 'Bank {{bank}}',
@@ -607,13 +607,14 @@ export default {
     sentStatus: 'Browser-Bank {{bank}} wurde gesendet. Wähle ihr Ziel am FM1.',
     notSent: 'Die Bank wurde nicht gesendet. Öffne das MIDI-Protokoll und versuche es erneut.',
     importFailed: 'Import fehlgeschlagen.',
-    restoreFailed: 'Die Werksbänke konnten nicht wiederhergestellt werden. Versuche es erneut.',
+    restoreFailed:
+      'Die Bänke konnten nicht auf die Werks-Sounds zurückgesetzt werden. Versuche es erneut.',
     bankUnavailable:
       'Diese Arbeitsbank ist nicht mehr verfügbar. Schließe diesen Dialog und versuche es erneut.',
     catalogUnavailable:
       'Diese Soundbank konnte nicht heruntergeladen werden. Prüfe deine Verbindung und versuche es erneut.',
     fileErrors: {
-      size: 'Diese Datei ist {{bytes}} Bytes groß. Eine DX7-Bankdatei muss genau 4.104 Bytes groß sein.',
+      size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine DX7-Bankdatei muss genau {{expected, number}} Bytes groß sein.',
       format: 'Diese Datei ist keine Yamaha-DX7-Bank mit 32 Stimmen.',
       damaged: 'Diese Datei scheint beschädigt zu sein. Lade sie erneut herunter.',
       voiceFormat:
@@ -693,8 +694,8 @@ export default {
     editDetails: 'Bankdetails bearbeiten',
     update: 'Details aktualisieren',
     savedBanks: 'Gespeicherte Bänke',
-    count: '{{count}} gespeicherte Bank',
-    count_other: '{{count}} gespeicherte Bänke',
+    count: '{{count, number}} gespeicherte Bank',
+    count_other: '{{count, number}} gespeicherte Bänke',
     search: 'Gespeicherte Bänke durchsuchen',
     loading: 'Gespeicherte Bänke werden geladen…',
     empty: 'Noch keine benannten Bänke. Speichere die ausgewählte Arbeitsbank, um eine anzulegen.',
@@ -723,5 +724,54 @@ export default {
     copied: '„{{name}}“ erstellt.',
     deleted: '„{{name}}“ gelöscht.',
     loaded: '„{{name}}“ in „{{bank}}“ geladen.',
+  },
+  backup: {
+    menuSysex: 'Für andere DX7-Programme',
+    sysexContents: 'Nur DX7-Daten, keine FM1-Effekte',
+    menuHeading: 'Vollständige Sicherung',
+    download: 'Sicherung herunterladen',
+    restore: 'Aus Sicherung wiederherstellen…',
+    backupContents: 'Mit FM1-Effekten',
+    lastBackup: 'Zuletzt gesichert: {{date}}',
+    downloaded: 'Eine Sicherung deiner Arbeitsbänke und gespeicherten Bänke wird heruntergeladen.',
+    downloadedWithoutSavedBanks:
+      'Eine Sicherung deiner Arbeitsbänke wird heruntergeladen. Die gespeicherten Bänke konnten nicht gelesen werden und fehlen darin.',
+    downloadedWithoutDamaged:
+      'Eine Sicherung wird heruntergeladen. Einige gespeicherte Bänke konnten nicht gelesen werden und fehlen darin.',
+    unavailable:
+      'Sicherungen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+    unavailableUnsaved:
+      'Die Sicherung konnte nicht erstellt werden. Lass diesen Tab geöffnet, denn deine letzten Änderungen sind nicht gespeichert, und versuche es erneut.',
+    restoreTitle: 'Aus Sicherung wiederherstellen',
+    restoreIntro:
+      'Wähle eine Datei, die mit „Sicherung herunterladen“ erstellt wurde. Nichts ändert sich, bevor du bestätigst.',
+    chooseFile: 'Sicherungsdatei auswählen',
+    reading: 'Sicherung wird gelesen…',
+    backedUpAt: 'Gesichert',
+    workspaceBanks: 'Arbeitsbänke',
+    patches: 'Sounds',
+    savedBanks: 'Gespeicherte Bänke',
+    toAdd: 'Werden hinzugefügt',
+    alreadyHere: 'Schon vorhanden, bleiben',
+    unreadable: 'Nicht lesbar',
+    workspaceEffect:
+      'Deine Arbeitsbänke und alle ihre Sounds werden durch die aus der Sicherung ersetzt. Mit „Rückgängig“ in der Benachrichtigung danach holst du sie zurück.',
+    savedBanksEffect:
+      'Gespeicherte Bänke werden nur hinzugefügt. Eine Bank, die schon in diesem Browser liegt, bleibt unverändert, und „Rückgängig“ entfernt die hinzugefügten nicht.',
+    restoreAction: 'Sicherung wiederherstellen',
+    restoring: 'Wird wiederhergestellt…',
+    restored: 'Die Sicherung vom {{date}} wurde wiederhergestellt.',
+    errors: {
+      format:
+        'Diese Datei ist keine Sicherung aus dieser App. Wähle eine .json-Datei, die mit „Sicherung herunterladen“ erstellt wurde.',
+      newer:
+        'Diese Sicherung stammt aus einer neueren Version der App. Lade die Seite neu, um sie zu aktualisieren, und versuche es erneut.',
+      damaged:
+        'Diese Sicherung ist beschädigt und kann nicht wiederhergestellt werden. Versuche eine andere Sicherungsdatei.',
+      size: 'Diese Datei ist zu groß für eine Sicherung aus dieser App.',
+      read: 'Die Datei konnte nicht gelesen werden. Wähle sie erneut aus.',
+      savedBanksFailed:
+        'Der Browserspeicher konnte die gespeicherten Bänke aus dieser Sicherung nicht aufnehmen, deshalb wurden deine Arbeitsbänke nicht geändert. Versuche es erneut.',
+    },
   },
 } as const

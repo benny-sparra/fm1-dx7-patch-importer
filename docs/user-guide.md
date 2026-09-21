@@ -53,7 +53,7 @@ The search box above the patch grid looks through every bank that has patches in
 
 The search also looks through your saved banks and the bundled DX7 patch banks that **Add new bank** offers. Matches in your own banks come first, under **Your patch banks**; the rest follow under **Saved banks** and **Other DX7 patch banks**, each labelled with its bank and slot, and a long list shows its first 60 matches per group until you type more. Click one of those to hear it through the FM1 edit buffer: a saved-bank patch plays with its saved FM1 effects, and a bundled DX7 patch with the default effects, since those banks hold no effects of their own. They are not in one of your banks, so they cannot be edited or reordered where they are. Use the copy button on one to put it in a slot of your own, through the same **Copy to…** dialog, overwrite confirmation, and Undo as copying between banks. Double-click one, or press Enter on the one you just played, to do the same and then open the copy in the editor. The bundled banks' patch names load the first time you search.
 
-To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. Replacing a populated bank requires confirmation. The same menu lets you edit the bank title and description, download the bank, or delete it when more than one workspace bank exists. Use the menu in the patch-bank header to download all loaded banks or restore the FM-1 factory banks into A–D, which also resets their titles and descriptions. Additional workspace banks are left intact. Deleting a bank, restoring the factory banks, importing over a bank, loading a saved bank, or copying a patch over a slot can be undone from its notification or with `Cmd`/`Ctrl` + `Z`.
+To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. Replacing a populated bank requires confirmation. The same menu lets you edit the bank title and description, download the bank, or delete it when more than one workspace bank exists. Use the menu in the patch-bank header to back up your library (see [Backing up your library](#backing-up-your-library)), choose **Download SysEx banks (.zip)** to get every loaded bank as a `.syx` file for other DX7 tools, or choose **Reset to factory patches…** to put the FM-1 factory banks back into A–D, which also resets their titles and descriptions. Additional workspace banks are left intact. Deleting a bank, resetting to the factory patches, restoring a backup, importing over a bank, loading a saved bank, or copying a patch over a slot can be undone from its notification or with `Cmd`/`Ctrl` + `Z`.
 
 To copy a patch into another slot, open the slot's **⋮** menu and choose **Copy to…**. Pick a bank from its tabs and a slot from the grid, where the arrow keys also move the choice; only banks that have patches are offered, and the patch's own slot is skipped. The dialog names the patch that will be replaced. The copy brings the patch's FM1 effects with it and changes only the browser library, so send the bank to the FM1 to put it on the hardware. You can also drag a patch by its grip onto another bank on the left: the bank lights up while the patch is over it, and dropping opens the same dialog with that bank chosen. Only banks that have patches take a drop, and dropping on the patch's own bank does nothing.
 
@@ -139,6 +139,21 @@ types. `Esc` closes it. Keys pressed with `Cmd`/`Ctrl`
 or `Alt` are left to the browser and the view, so undo and save still work while it is open, and
 pressing one releases any note held from the computer keyboard.
 
+## Backing up your library
+
+Your patches, their FM1 effects, and your saved banks exist only in this browser. Clearing site data, or a browser that removes storage, loses them. The FM1 cannot send its banks back, so nothing else holds a copy.
+
+Open the menu in the patch-bank header and choose **Download backup**, under **Full backup** at the top, to save everything in one `.json` file: every workspace bank with its title and description, each patch's FM1 effects, and every saved bank. The menu shows when you last made one. If the browser cannot save your work, the warning at the top of the page offers the same download.
+
+A backup file can only be read by this app. To use patches in Dexed, a DX7, or another editor, choose **Download SysEx banks (.zip)** under **For other DX7 tools** instead: a `.syx` file holds DX7 voice data only, without FM1 effects or saved banks.
+
+To restore, choose **Restore from backup…** and pick the file. The dialog shows what it holds before anything changes. Restoring:
+
+- replaces your workspace banks and their patches with the ones in the backup. **Undo** in the notification, or `Cmd`/`Ctrl` + `Z`, puts your previous workspace back.
+- adds the backup's saved banks. A saved bank already in this browser is kept as it is and never overwritten. Undo does not remove saved banks that were added.
+
+A backup made by a newer version of the app cannot be restored until the page is reloaded to update it.
+
 ## SysEx compatibility
 
 The DX7 import feature intentionally validates bank files before loading them. A compatible file must:
@@ -151,4 +166,4 @@ The DX7 import feature intentionally validates bank files before loading them. A
 
 Single-voice dumps, larger archive files, and banks using another SysEx format are not accepted.
 
-The browser library is the source of truth. The current FM1 firmware does not document transmission of stored voices or banks over MIDI, so the librarian cannot import a bank directly from the hardware. Keep `.syx` source files or download browser banks as backups. If M-VAVE adds bulk-dump output in a future firmware release, device-to-browser bank import can be added without changing the saved library format.
+The browser library is the source of truth. The current FM1 firmware does not document transmission of stored voices or banks over MIDI, so the librarian cannot import a bank directly from the hardware. Download a backup regularly (see [Backing up your library](#backing-up-your-library)). If M-VAVE adds bulk-dump output in a future firmware release, device-to-browser bank import can be added without changing the saved library format.

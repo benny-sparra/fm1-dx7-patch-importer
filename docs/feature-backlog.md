@@ -108,7 +108,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Check Firefox-only differences in layout, fonts, native dialogs, drag-and-drop reordering, and
     app installation, which Firefox does not offer.
 
-- [ ] **Workspace backup and restore.** Download one file holding the workspace banks, each patch's
+- [x] **Workspace backup and restore.** Download one file holding the workspace banks, each patch's
       FM1 effects, and the saved banks, and restore from it. Every download today (patch, bank, and
       the all-banks `.zip`) is DX7 voice data only, so FM1 effects and saved banks exist nowhere
       but browser storage, and clearing site data loses them.
@@ -309,35 +309,21 @@ A full sync workflow with confirmation prompts was judged too complex for what i
 
 ### Separating patch files from backups
 
-[Workspace backup and restore](#worth-doing) adds a second kind of file, and the header ⋮ menu is
-already the wrong shape for it. Today that menu holds **Download all banks (.zip)** and **Restore
-all banks**, and adding "back up everything" and "restore from backup" beside them creates two
-collisions:
+**Settled 2026-09-21** with [Workspace backup and restore](#worth-doing):
 
-- **Two downloads that both sound like everything.** "Download all banks" and a backup both promise
-  the user's whole library, but one is DX7 voice data other tools can read and the other is this
-  app's own format holding FM1 effects and saved banks as well.
-- **Two restores, one of which destroys data.** **Restore all banks** means "replace my work with
-  the factory patches". A **Restore from backup** beside it uses the same verb for the opposite
-  intent, and picking the wrong one loses the workspace. This is the more serious of the two.
-
-The distinction to put in front of the user is not how much data a file holds but what the file is
-for: _a file other DX7 gear and editors can read_ against _a file only this app can read, which is
-the only way to keep FM1 effects and saved banks_.
-
-Proposed wording, to settle before building:
-
-- Reserve **backup** for the app's own format, and never call it export or download.
-- Keep **SysEx**, **.syx**, patch, and bank for the DX7 side.
-- Rename **Restore all banks** to a reset ("Reset to factory patches"), freeing _restore_ for
-  backups alone. A copy change in every locale, and it also describes what that action does more
-  honestly than "restore" does.
-- Group the menu under headings, so the two kinds never read as one list.
-
-Still open: whether backup and restore belong in that menu at all, or beside the persistence status,
-where the workspace storage they protect is already described. The menu is more discoverable; the
-storage area explains better why the feature exists, since a backup answers the risk that clearing
-site data loses everything.
+- **Backup** names only the app's own file, never export or download; **SysEx**, `.syx`, patch, and
+  bank stay on the DX7 side.
+- **Restore all banks** became **Reset to factory patches…**, so _restore_ means a backup alone.
+- The header ⋮ menu names each group for who the file is for, not its format. **Full backup** comes
+  first, because the backup is the only copy of FM1 effects and saved banks: **Download backup**,
+  with a line saying it includes FM1 effects and when this browser last made one (the
+  `fm1-last-backup` key), then **Restore from backup…**. **For other DX7 tools** follows, with
+  **Download SysEx banks (.zip)** and a line saying it holds DX7 data only, no FM1 effects.
+  The factory reset sits below a divider. A backup dialog with a tab for the DX7 export was
+  considered and rejected: tabs hide the comparison the menu needs to show, and add a click to the
+  action people should take most.
+- The persistence warning also offers **Download backup** while browser storage is not keeping the
+  workspace, which is when a backup matters most. There is no permanent storage area to put it in.
 
 ### Audio preview in the browser
 
@@ -363,7 +349,7 @@ Before deciding, settle:
   preview beside a connected FM1 invites confusion.
 - **Licensing.** Dexed is GPL-3 and its original engine (MSFA) Apache-2.0, as understood; check
   both. The repository has no LICENSE file yet, so its own licence decides what can be embedded.
-- **Cost.** Load the engine only when preview is first used, to stay inside the 149 KiB budget. The
+- **Cost.** Load the engine only when preview is first used, to stay inside the 151 KiB budget. The
   CSP in `public/_headers` would need `wasm-unsafe-eval`, with `scripts/check-security-headers.mjs`
   updated and a security review. Audio needs a user gesture to start.
 
