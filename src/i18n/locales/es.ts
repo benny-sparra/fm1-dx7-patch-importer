@@ -653,6 +653,7 @@ export default {
       'No se pudieron abrir las opciones de copia. Recarga la página e inténtalo de nuevo.',
     importPatchFile: 'Importar sonido…',
     downloadPatchFile: 'Descargar sonido',
+    copyShareLink: 'Copiar enlace para compartir',
     patchFileUnavailable:
       'No se pudieron abrir los archivos de sonido. Recarga la página e inténtalo de nuevo.',
     everywhere: {
@@ -763,6 +764,24 @@ export default {
       read: 'No se pudo leer el archivo. Vuelve a elegirlo.',
       savedBanksFailed:
         'El almacenamiento del navegador no pudo guardar los bancos de esta copia, así que tus bancos de trabajo no cambiaron. Vuelve a intentarlo.',
+    },
+  },
+  share: {
+    copied:
+      'Se copió un enlace a «{{patch}}». Quien lo abra podrá añadir el sonido a sus propios bancos.',
+    origin: 'Enlace compartido',
+    openHint:
+      'Alguien compartió este sonido contigo. Elige una ranura para él en uno de tus bancos.',
+    errors: {
+      damaged: 'Este enlace está incompleto o dañado. Pide el enlace de nuevo y cópialo entero.',
+      version:
+        'Este enlace se creó con una versión más reciente de esta aplicación. Recarga la página y vuelve a abrir el enlace.',
+      noBank:
+        'Para añadir un sonido compartido, primero carga o importa un banco y luego vuelve a abrir el enlace.',
+      unavailable:
+        'No se pudieron abrir los enlaces compartidos. Recarga la página y vuelve a abrir el enlace.',
+      copyFailed:
+        'No se pudo copiar el enlace porque el navegador no permitió acceder al portapapeles. Inténtalo de nuevo.',
     },
   },
 } as const

@@ -144,6 +144,27 @@ describe('Sentry monitoring', () => {
     })
   })
 
+  it('keeps a shared patch in the address out of reports and navigation breadcrumbs', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+    // A share link's fragment holds the patch, including its user-authored name.
+    const shareLink = 'https://fm1-editor.com/#patch=1.AAECAwQFBgcICQoLDA0ODxAR'
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+
+    expect(options.beforeSend?.({ request: { url: shareLink } })).toEqual({
+      request: { url: 'https://fm1-editor.com/' },
+    })
+    expect(
+      options.beforeBreadcrumb?.({ category: 'navigation', data: { from: shareLink, to: '/' } }),
+    ).toEqual({ category: 'navigation', data: { from: 'https://fm1-editor.com/', to: '/' } })
+  })
+
   it('drops errors raised entirely by the Android in-app navigation logger', async () => {
     const { sdk } = createSdk()
     const initialize = createMonitoringInitializer({

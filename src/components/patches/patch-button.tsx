@@ -26,6 +26,7 @@ type PatchButtonProps = {
   onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
   onReplace?: (patch: Patch) => void
   onSelect?: (patch: Patch) => void
+  onShare?: (patch: Patch) => void
   patch: Patch
   /** False while the slot is shown away from its bank, such as in search results. */
   reorderable?: boolean
@@ -47,6 +48,7 @@ export function PatchButton({
   onNavigate,
   onReplace,
   onSelect,
+  onShare,
   patch,
   reorderable = true,
   registerButton,
@@ -197,6 +199,7 @@ export function PatchButton({
           onDownload={onDownload && (() => onDownload(patch))}
           onEdit={onEdit && (() => onEdit(patch))}
           onReplace={onReplace && (() => onReplace(patch))}
+          onShare={onShare && (() => onShare(patch))}
         />
       ) : null}
       {isActive ? <span className="sr-only">{t('banks.auditioning')}</span> : null}

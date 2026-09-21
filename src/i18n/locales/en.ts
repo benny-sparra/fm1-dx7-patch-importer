@@ -639,6 +639,7 @@ export default {
     copyOpenFailed: 'The copy options could not be opened. Reload the page and try again.',
     importPatchFile: 'Import patch…',
     downloadPatchFile: 'Download patch',
+    copyShareLink: 'Copy share link',
     patchFileUnavailable: 'Patch files could not be opened. Reload the page and try again.',
     everywhere: {
       workspace: 'Your patch banks',
@@ -746,6 +747,22 @@ export default {
       read: 'The file could not be read. Choose it again.',
       savedBanksFailed:
         'Browser storage could not keep the saved banks from this backup, so your workspace was not changed. Try again.',
+    },
+  },
+  share: {
+    copied:
+      'Copied a link to “{{patch}}”. Anyone who opens it can add the patch to their own banks.',
+    origin: 'Shared link',
+    openHint: 'Someone shared this patch with you. Choose a slot for it in one of your banks.',
+    errors: {
+      damaged:
+        'This share link is incomplete or damaged. Ask for the link again, and copy all of it.',
+      version:
+        'This share link was made by a newer version of this app. Reload the page, then open the link again.',
+      noBank: 'To add a shared patch, first load or import a bank, then open the link again.',
+      unavailable: 'Share links could not be opened. Reload the page, then open the link again.',
+      copyFailed:
+        'The link could not be copied, because the browser did not allow access to the clipboard. Try again.',
     },
   },
 } as const

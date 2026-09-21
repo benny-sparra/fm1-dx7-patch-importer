@@ -225,7 +225,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     the dialog closes, MIDI goes offline, or the input changes.
   - Tests use captured fixtures and a fake input; no hardware or permission.
 
-- [ ] **Share a patch as a link.** **Copy share link** in a slot's ⋮ menu copies a URL that carries
+- [x] **Share a patch as a link.** **Copy share link** in a slot's ⋮ menu copies a URL that carries
       the patch in its fragment (the part after `#`), so someone else can open it in their own
       library. The fragment never reaches a server, so this needs none: it is not the rejected
       [Online sharing or accounts](#decided-against).
@@ -244,6 +244,16 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     and keeps the fragment.
   - Tests: a round trip, the version 1 fixture, a malformed link reaching the UI translated, a byte
     above 7 bits rejected, nothing written without confirmation, and one-step Undo.
+  - Built in `src/lib/patch-share-link.ts` as `#patch=1.<data>`: the 128-byte voice then the 24 FM1
+    effect bytes, unpadded base64url, about 210 characters. A voice byte above 7 bits or an effect
+    beyond its range rejects the link rather than being masked. A link from a newer release has its
+    own message asking for a reload. The reader, `patch-share-link-reader.ts`, loads only when the
+    address holds a link; the encoder stays in the initial bundle so **Copy share link** writes to
+    the clipboard straight from the click, as browsers that need a user gesture require.
+  - Decided: a link opens **Copy to…** rather than **Import patch…**, since that dialog already
+    chooses a slot in any bank, names what it replaces, and offers Undo, as search results do. A
+    link pasted into a tab that is already open arrives as a `hashchange` and opens the same way.
+    With no bank holding patches, the page asks for one first.
 
 - [ ] **Find duplicate patches.** List patches in loaded workspace banks whose voice data is
       identical, with a way to jump to each copy, so imported archives can be tidied.
@@ -349,7 +359,7 @@ Before deciding, settle:
   preview beside a connected FM1 invites confusion.
 - **Licensing.** Dexed is GPL-3 and its original engine (MSFA) Apache-2.0, as understood; check
   both. The repository has no LICENSE file yet, so its own licence decides what can be embedded.
-- **Cost.** Load the engine only when preview is first used, to stay inside the 151 KiB budget. The
+- **Cost.** Load the engine only when preview is first used, to stay inside the 152 KiB budget. The
   CSP in `public/_headers` would need `wasm-unsafe-eval`, with `scripts/check-security-headers.mjs`
   updated and a security review. Audio needs a user gesture to start.
 

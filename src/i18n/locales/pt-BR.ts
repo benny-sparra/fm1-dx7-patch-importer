@@ -649,6 +649,7 @@ export default {
       'Não foi possível abrir as opções de cópia. Recarregue a página e tente novamente.',
     importPatchFile: 'Importar som…',
     downloadPatchFile: 'Baixar som',
+    copyShareLink: 'Copiar link de compartilhamento',
     patchFileUnavailable:
       'Não foi possível abrir os arquivos de som. Recarregue a página e tente novamente.',
     everywhere: {
@@ -757,6 +758,25 @@ export default {
       read: 'Não foi possível ler o arquivo. Escolha-o de novo.',
       savedBanksFailed:
         'O armazenamento do navegador não conseguiu guardar os bancos salvos deste backup, então seus bancos de trabalho não mudaram. Tente novamente.',
+    },
+  },
+  share: {
+    copied:
+      'Link para “{{patch}}” copiado. Quem abrir o link pode adicionar o som aos próprios bancos.',
+    origin: 'Link compartilhado',
+    openHint:
+      'Alguém compartilhou este som com você. Escolha um slot para ele em um dos seus bancos.',
+    errors: {
+      damaged:
+        'Este link está incompleto ou danificado. Peça o link de novo e copie-o por inteiro.',
+      version:
+        'Este link foi criado por uma versão mais recente deste app. Recarregue a página e abra o link de novo.',
+      noBank:
+        'Para adicionar um som compartilhado, primeiro carregue ou importe um banco e depois abra o link de novo.',
+      unavailable:
+        'Não foi possível abrir links compartilhados. Recarregue a página e abra o link de novo.',
+      copyFailed:
+        'Não foi possível copiar o link, porque o navegador não permitiu acesso à área de transferência. Tente de novo.',
     },
   },
 } as const

@@ -599,6 +599,7 @@ export default {
     copyOpenFailed: '无法打开复制选项。请重新加载页面后重试。',
     importPatchFile: '导入音色…',
     downloadPatchFile: '下载音色',
+    copyShareLink: '复制分享链接',
     patchFileUnavailable: '无法打开音色文件。请重新加载页面后重试。',
     everywhere: {
       workspace: '你的音色库',
@@ -695,6 +696,18 @@ export default {
       size: '此文件过大，不可能是本应用的备份。',
       read: '无法读取该文件。请重新选择。',
       savedBanksFailed: '浏览器存储无法保存此备份中的音色库，因此工作区未作更改。请重试。',
+    },
+  },
+  share: {
+    copied: '已复制“{{patch}}”的链接。任何打开它的人都可以把这个音色添加到自己的音色库。',
+    origin: '分享链接',
+    openHint: '有人与你分享了这个音色。请在你的某个音色库中为它选择一个音色位。',
+    errors: {
+      damaged: '此分享链接不完整或已损坏。请重新索取链接，并完整复制。',
+      version: '此分享链接由更新版本的应用创建。请重新加载页面，然后再次打开该链接。',
+      noBank: '要添加分享的音色，请先载入或导入一个音色库，然后再次打开该链接。',
+      unavailable: '无法打开分享链接。请重新加载页面，然后再次打开该链接。',
+      copyFailed: '无法复制链接，因为浏览器不允许访问剪贴板。请重试。',
     },
   },
 } as const

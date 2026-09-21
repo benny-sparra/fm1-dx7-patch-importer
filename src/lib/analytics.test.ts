@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { trackAnalyticsEvent } from './analytics'
@@ -52,5 +55,17 @@ describe('trackAnalyticsEvent', () => {
     }
 
     expect(() => trackAnalyticsEvent({ name: 'patch_saved' })).not.toThrow()
+  })
+})
+
+describe('Umami page views', () => {
+  // A share link's fragment holds a patch, including its user-authored name, and the query is
+  // never needed.
+  it('leave the fragment and query out of the page address they record', () => {
+    const html = readFileSync(resolve('index.html'), 'utf8')
+    const script = html.match(/<script[^>]*cloud\.umami\.is[^>]*>/u)?.[0] ?? ''
+
+    expect(script).toContain('data-exclude-hash="true"')
+    expect(script).toContain('data-exclude-search="true"')
   })
 })

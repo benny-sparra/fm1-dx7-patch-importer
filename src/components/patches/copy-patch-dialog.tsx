@@ -30,6 +30,8 @@ export type ExternalCopySource = {
 }
 
 type CopyPatchDialogProps = {
+  /** Explains where the sound comes from, such as a link someone shared. */
+  description?: string
   /** The bank to open on, such as the tab a slot was dropped on. */
   initialBank?: string
   library: Pick<PatchLibrary, 'bankNames' | 'loadedBanks' | 'patches' | 'workspaceBanks'>
@@ -62,6 +64,7 @@ function avoidSlot(next: number, previous: number, avoided: number) {
  * It opens as soon as it is rendered and reports closing, so the page can drop it.
  */
 export function CopyPatchDialog({
+  description,
   initialBank,
   library,
   onClose,
@@ -73,7 +76,7 @@ export function CopyPatchDialog({
   const { t } = useTranslation()
   const titleId = useId()
   const replacesId = useId()
-  const editHintId = useId()
+  const hintId = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const cellRefs = useRef(new Map<number, HTMLButtonElement>())
   const focusChosenCell = useRef(false)
@@ -82,6 +85,7 @@ export function CopyPatchDialog({
     initialBank ? { bank: initialBank, slot: source.number } : null,
   )
   const [error, setError] = useState('')
+  const hint = opensEditor ? t('banks.copyToEditHint') : description
   // Copying is offered only into banks that already hold sounds, so every slot has one to replace.
   const targetBanks = library.workspaceBanks.filter((candidate) =>
     library.loadedBanks.includes(candidate),
@@ -153,7 +157,7 @@ export function CopyPatchDialog({
 
   return (
     <Dialog
-      aria-describedby={opensEditor ? `${editHintId} ${replacesId}` : replacesId}
+      aria-describedby={hint ? `${hintId} ${replacesId}` : replacesId}
       aria-labelledby={titleId}
       onClose={onClose}
       ref={dialogRef}
@@ -237,9 +241,9 @@ export function CopyPatchDialog({
             })}
           </div>
 
-          {opensEditor ? (
-            <p className="text-sm leading-6 text-[var(--crt-ink-2)]" id={editHintId}>
-              {t('banks.copyToEditHint')}
+          {hint ? (
+            <p className="text-sm leading-6 text-[var(--crt-ink-2)]" id={hintId}>
+              {hint}
             </p>
           ) : null}
           {target ? (

@@ -47,6 +47,7 @@ describe('PatchButton slot menu', () => {
     const onEdit = vi.fn<(patch: Patch) => void>()
     const onReplace = vi.fn<(patch: Patch) => void>()
     const onSelect = vi.fn<(patch: Patch) => void>()
+    const onShare = vi.fn<(patch: Patch) => void>()
     render(
       <DndContext>
         <SortableContext items={[patch.id]}>
@@ -56,13 +57,14 @@ describe('PatchButton slot menu', () => {
             onEdit={onEdit}
             onReplace={onReplace}
             onSelect={onSelect}
+            onShare={onShare}
             patch={patch}
             {...props}
           />
         </SortableContext>
       </DndContext>,
     )
-    return { onCopy, onDownload, onEdit, onReplace, onSelect, user: userEvent.setup() }
+    return { onCopy, onDownload, onEdit, onReplace, onSelect, onShare, user: userEvent.setup() }
   }
 
   const trigger = () => screen.getByRole('button', { name: 'Actions for Alpha Piano' })
@@ -77,6 +79,7 @@ describe('PatchButton slot menu', () => {
       'Copy to…',
       'Import patch…',
       'Download patch',
+      'Copy share link',
     ])
     expect(trigger().getAttribute('aria-expanded')).toBe('true')
     expect(onSelect).not.toHaveBeenCalled()
@@ -119,6 +122,15 @@ describe('PatchButton slot menu', () => {
     expect(onDownload).toHaveBeenCalledExactlyOnceWith(patch)
   })
 
+  it('copies a link to the slot from its menu', async () => {
+    const { onShare, user } = renderSlot()
+
+    await user.click(trigger())
+    await user.click(screen.getByRole('menuitem', { name: 'Copy share link' }))
+
+    expect(onShare).toHaveBeenCalledExactlyOnceWith(patch)
+  })
+
   it('closes on Escape, returns focus to its button, and keeps the key from view shortcuts', async () => {
     const { user } = renderSlot()
     const escapes: boolean[] = []
@@ -144,7 +156,7 @@ describe('PatchButton slot menu', () => {
     await user.keyboard('{ArrowDown}')
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Copy to…' }))
     await user.keyboard('{ArrowUp}{ArrowUp}')
-    expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Download patch' }))
+    expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Copy share link' }))
     await user.keyboard('{ArrowDown}')
     expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Edit' }))
   })

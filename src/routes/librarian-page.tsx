@@ -57,12 +57,14 @@ import {
   workspaceBankAfterDeletion,
 } from '@/lib/patch-library'
 import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
+import { makePatchShareUrl } from '@/lib/patch-share-link'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { cn } from '@/lib/utils'
 import type { MidiController } from '@/hooks/use-midi'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
+import { useSharedPatchLink } from '@/hooks/use-shared-patch-link'
 import { useDownloadWorkspaceBackup, useLastBackupTime } from '@/hooks/use-workspace-backup'
 import { type LibrarianView, useLibrarianView } from '@/hooks/use-librarian-view'
 import type { Patch } from '@/data/patches'
@@ -129,6 +131,8 @@ type SavedBanksRequest = { bank: string; closeMenu: () => void; mode: 'load' | '
 type CopyRequest = {
   bank?: string
   copy: ComponentProps<typeof CopyPatchDialog>['onCopy']
+  /** Explains where a sound from outside the workspace comes from. */
+  description?: string
   /** Opens the editor on the copy, for a search result someone asked to edit. */
   edit?: boolean
   key: string
@@ -237,6 +241,47 @@ export function LibrarianPage({
       key: sound.origin,
       source: { name: sound.name, number: sound.slot, origin: sound.origin },
     })
+  }
+  // Each opened link gets its own dialog, even when the same link is opened twice.
+  const sharedLinkCount = useRef(0)
+  useSharedPatchLink({
+    onError: (problem) => {
+      setCopyRequest(null)
+      if (problem === 'unavailable') setDialogLoadError(t('share.errors.unavailable'))
+      else setImportError(t(`share.errors.${problem}`))
+    },
+    onOpen: ({ effects, voice }) => {
+      trackAnalyticsEvent({ name: 'patch_link_opened' })
+      setDialogLoadError('')
+      if (library.loadedBanks.length === 0) {
+        setImportError(t('share.errors.noBank'))
+        return
+      }
+      setImportError('')
+      sharedLinkCount.current += 1
+      setCopyRequest({
+        copy: (bank, slot) => library.replaceVoice(bank, slot, voice, effects),
+        description: t('share.openHint'),
+        key: `shared-link-${sharedLinkCount.current}`,
+        source: { name: voice.name, number: 1, origin: t('share.origin') },
+      })
+    },
+  })
+  const copyShareLink = async (patch: Patch) => {
+    const voice = library.voices[patch.id]
+    if (!voice) return
+    try {
+      if (typeof navigator.clipboard?.writeText !== 'function') {
+        throw new Error('The Clipboard API is unavailable.')
+      }
+      await navigator.clipboard.writeText(makePatchShareUrl(voice, library.effects[patch.id]))
+    } catch {
+      setImportError(t('share.errors.copyFailed'))
+      return
+    }
+    setImportError('')
+    trackAnalyticsEvent({ name: 'patch_link_copied' })
+    toast.success(t('share.copied', { patch: patch.name }))
   }
   const requestReplace = (patch: Patch) => {
     setDialogLoadError('')
@@ -712,6 +757,7 @@ export function LibrarianPage({
         onPatchDropOnBank={requestCopy}
         onPatchDownload={(patch) => void downloadPatch(patch)}
         onPatchReplace={requestReplace}
+        onPatchShare={(patch) => void copyShareLink(patch)}
         onPatchEdit={(patch) => {
           followPlayedPatch(patch)
           onEditPatch(patch)
@@ -918,6 +964,7 @@ export function LibrarianPage({
         >
           <Suspense fallback={null}>
             <CopyPatchDialog
+              description={copyRequest.description}
               initialBank={copyRequest.bank}
               library={library}
               onClose={() => setCopyRequest(null)}

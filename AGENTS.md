@@ -84,7 +84,8 @@ open everything an earlier release could have saved.
   object store names, key paths, and record keys in `src/lib/patch-library-storage.ts`; the
   versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
-  versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
+  versioned separately from the storage records; the `#patch=<version>.<data>` share link in
+  `src/lib/patch-share-link.ts`, which lives on in messages people have sent; and `localStorage` keys such as `fm1-language`,
   `fm1-colourway`, `fm1-last-backup`, and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them.
 - Changing a stored shape means bumping its record `version` and adding an upgrade path that reads
@@ -163,7 +164,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the piano keyboard dialog when **Keyboard** opens it, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the piano keyboard dialog when **Keyboard** opens it, the share-link reader when the page opens with a share link, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -194,9 +195,9 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 151 KiB gzip budget; raising it needs
-  explicit approval, as the drag-to-bank copy's raise from 148 KiB and workspace backup's raise
-  from 149 KiB had.
+  Dynamic imports are excluded. Do not weaken or bypass the 152 KiB gzip budget; raising it needs
+  explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise
+  from 149 KiB, and share links' raise from 151 KiB had.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
 
 ### Privacy, monitoring, and deployment security
@@ -210,6 +211,9 @@ open everything an earlier release could have saved.
   report that a platform explains must carry that fact itself. `resolveCoarsePlatform` is the one
   source: it answers with an operating-system family from a fixed list and `other` for anything it
   does not recognise. Do not widen it to a version, an engine, or a device.
+- A share link carries its patch, including the user-authored name, in the URL fragment. Keep it
+  there, never in the query, and remove it from the address as it is read. Opening a link never
+  writes by itself: it goes through **Copy to…**, with its confirmation and Undo.
 - Monitoring must remain disabled in development and tests, and a failed optional monitoring import
   must never prevent the app from rendering.
 - A lazy chunk that fails to load after a deployment, and that an error boundary contains, is expected

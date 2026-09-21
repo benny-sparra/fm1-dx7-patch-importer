@@ -17,11 +17,12 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Save named copies of a bank in the browser, then load, rename, copy, download, or delete them later
 - Copy a patch and its FM1 effects over any slot in a bank that has patches, from its **⋮** menu or
   by dragging it onto a bank
-- Undo deleting a bank, resetting to the factory patches, restoring a backup, importing over or loading into a bank, or copying a patch over a slot, from its notification or with Cmd/Ctrl + Z
+- Undo deleting a bank, resetting to the factory patches, restoring a backup, importing over or loading into a bank, or copying or adding a shared patch over a slot, from its notification or with Cmd/Ctrl + Z
 - Keep imported and edited banks across page reloads in IndexedDB browser storage
 - Retry browser-storage failures or continue explicitly with a session-only workspace without overwriting unreadable saved data
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
 - Download a single patch as a DX7 `.syx` file, or import one over a slot, from the slot's **⋮** menu (**Download patch** and **Import patch…**)
+- Share a patch and its FM1 effects as a link (**Copy share link**); the patch travels in the link itself, so nothing is uploaded, and opening the link asks which slot to put it in
 - Search every bank at once, and reorder patches with pointer or keyboard drag-and-drop
 - Search your saved banks and the 39 bundled DX7 catalog banks at the same time, play any match through the FM1 edit buffer, and copy it into a slot of your own, or double-click it to copy it and open it in the editor
 - Export one browser bank as `.syx`, or every loaded bank as a `.zip` of SysEx files for Dexed, a DX7, or other DX7 tools (DX7 data only, without FM1 effects)

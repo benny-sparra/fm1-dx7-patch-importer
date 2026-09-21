@@ -4,6 +4,8 @@ type AnalyticsEvent =
   | { name: 'bank_transfer_completed' }
   | { name: 'editor_opened' }
   | { name: 'patch_edit_started' }
+  | { name: 'patch_link_copied' }
+  | { name: 'patch_link_opened' }
   | { name: 'patch_saved' }
   | {
       data: { scope: 'all' | 'single' }

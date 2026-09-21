@@ -661,6 +661,7 @@ export default {
       'Die Kopieroptionen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     importPatchFile: 'Sound importieren…',
     downloadPatchFile: 'Sound herunterladen',
+    copyShareLink: 'Link zum Teilen kopieren',
     patchFileUnavailable:
       'Sounddateien konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     everywhere: {
@@ -772,6 +773,24 @@ export default {
       read: 'Die Datei konnte nicht gelesen werden. Wähle sie erneut aus.',
       savedBanksFailed:
         'Der Browserspeicher konnte die gespeicherten Bänke aus dieser Sicherung nicht aufnehmen, deshalb wurden deine Arbeitsbänke nicht geändert. Versuche es erneut.',
+    },
+  },
+  share: {
+    copied:
+      'Link zu „{{patch}}“ kopiert. Wer ihn öffnet, kann den Sound in die eigenen Bänke übernehmen.',
+    origin: 'Geteilter Link',
+    openHint: 'Jemand hat diesen Sound mit dir geteilt. Wähle einen Slot in einer deiner Bänke.',
+    errors: {
+      damaged:
+        'Dieser Link ist unvollständig oder beschädigt. Lass ihn dir noch einmal schicken und kopiere ihn ganz.',
+      version:
+        'Dieser Link stammt aus einer neueren Version dieser App. Lade die Seite neu und öffne den Link noch einmal.',
+      noBank:
+        'Um einen geteilten Sound zu übernehmen, lade oder importiere zuerst eine Bank und öffne den Link dann noch einmal.',
+      unavailable:
+        'Geteilte Links konnten nicht geöffnet werden. Lade die Seite neu und öffne den Link noch einmal.',
+      copyFailed:
+        'Der Link konnte nicht kopiert werden, weil der Browser keinen Zugriff auf die Zwischenablage erlaubt hat. Versuche es noch einmal.',
     },
   },
 } as const

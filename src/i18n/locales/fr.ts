@@ -659,6 +659,7 @@ export default {
     copyOpenFailed: 'Impossible d’ouvrir les options de copie. Rechargez la page et réessayez.',
     importPatchFile: 'Importer un son…',
     downloadPatchFile: 'Télécharger le son',
+    copyShareLink: 'Copier le lien de partage',
     patchFileUnavailable:
       'Impossible d’ouvrir les fichiers de son. Rechargez la page et réessayez.',
     everywhere: {
@@ -769,6 +770,25 @@ export default {
       read: 'Impossible de lire le fichier. Choisissez-le de nouveau.',
       savedBanksFailed:
         'Le stockage du navigateur n’a pas pu conserver les banques enregistrées de cette sauvegarde, vos banques de travail n’ont donc pas changé. Réessayez.',
+    },
+  },
+  share: {
+    copied:
+      'Lien vers « {{patch}} » copié. Toute personne qui l’ouvre peut ajouter le son à ses propres banques.',
+    origin: 'Lien partagé',
+    openHint:
+      'Quelqu’un a partagé ce son avec vous. Choisissez-lui un emplacement dans l’une de vos banques.',
+    errors: {
+      damaged:
+        'Ce lien de partage est incomplet ou endommagé. Redemandez le lien et copiez-le en entier.',
+      version:
+        'Ce lien a été créé par une version plus récente de cette application. Rechargez la page, puis rouvrez le lien.',
+      noBank:
+        'Pour ajouter un son partagé, chargez ou importez d’abord une banque, puis rouvrez le lien.',
+      unavailable:
+        'Les liens de partage n’ont pas pu être ouverts. Rechargez la page, puis rouvrez le lien.',
+      copyFailed:
+        'Le lien n’a pas pu être copié, car le navigateur n’a pas autorisé l’accès au presse-papiers. Réessayez.',
     },
   },
 } as const
