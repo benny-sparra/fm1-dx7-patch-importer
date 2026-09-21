@@ -32,10 +32,12 @@ function removeUrlDetails(value: string) {
 }
 
 // Each browser words a failed lazy-chunk request differently; Vite adds its own for stylesheets.
+// Pages answers a removed chunk with the app's HTML, which Safari reports as a MIME type error.
 const dynamicImportFailureMessages = [
   /^Failed to fetch dynamically imported module\b/u,
   /^error loading dynamically imported module\b/u,
   /^Importing a module script failed\b/u,
+  /^'text\/html' is not a valid JavaScript MIME type\b/u,
   /^Unable to preload CSS for\b/u,
 ]
 
