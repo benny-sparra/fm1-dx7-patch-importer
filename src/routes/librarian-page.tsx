@@ -538,7 +538,7 @@ export function LibrarianPage({
   }
 
   return (
-    <section className="mx-auto grid max-w-7xl min-w-0 gap-5 px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
+    <section className="mx-auto grid max-w-7xl min-w-0 gap-5 px-3 pt-2.5 pb-4 sm:px-5 sm:pb-6 lg:px-8">
       {sentryVerificationEnabled ? <SentryVerificationButton /> : null}
       <PatchGrid
         activePatchId={activePatchId}
