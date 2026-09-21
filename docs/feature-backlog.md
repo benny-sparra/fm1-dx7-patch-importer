@@ -244,8 +244,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     and keeps the fragment.
   - Tests: a round trip, the version 1 fixture, a malformed link reaching the UI translated, a byte
     above 7 bits rejected, nothing written without confirmation, and one-step Undo.
-  - Built in `src/lib/patch-share-link.ts` as `#patch=1.<data>`: the 128-byte voice then the 24 FM1
-    effect bytes, unpadded base64url, about 210 characters. A voice byte above 7 bits or an effect
+  - Built in `src/lib/patch-share-link.ts` as `#patch=1.<name>.<data>`: the patch name in letters,
+    digits, and dashes, so links can be told apart (never read back, since the data holds the name),
+    then the 128-byte voice and the 24 FM1 effect bytes in unpadded base64url, about 215 characters.
+    Effects that are all off are left out, saving about 30. A voice byte above 7 bits or an effect
     beyond its range rejects the link rather than being masked. A link from a newer release has its
     own message asking for a reload. The reader, `patch-share-link-reader.ts`, loads only when the
     address holds a link; the encoder stays in the initial bundle so **Copy share link** writes to

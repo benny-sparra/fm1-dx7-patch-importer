@@ -4,7 +4,7 @@ import {
   dx7PackedVoiceSize,
   type Dx7Voice,
 } from '@/lib/dx7'
-import { fm1EffectParameterMaximums } from '@/lib/fm1-effects'
+import { fm1EffectParameterMaximums, makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import {
   isPatchShareFragment,
   patchShareFragmentKey,
@@ -49,19 +49,30 @@ function damaged(message: string): never {
  */
 export function readPatchShareFragment(hash: string): SharedPatch | null {
   if (!isPatchShareFragment(hash)) return null
-  const value = hash.replace(/^#/u, '').slice(patchShareFragmentKey.length + 1)
-  const separator = value.indexOf('.')
-  const version = separator > 0 ? value.slice(0, separator) : ''
+  // The version, the readable name, which is not read back, and the data.
+  const [version = '', , encoded, ...rest] = hash
+    .replace(/^#/u, '')
+    .slice(patchShareFragmentKey.length + 1)
+    .split('.')
   if (!/^[1-9]\d*$/u.test(version)) damaged('The share link has no version.')
   if (Number(version) > patchShareLinkVersion) {
     throw new PatchShareLinkError('version', `Share link version ${version} is not supported.`)
   }
+  if (encoded === undefined || rest.length > 0) damaged('The share link is not in three parts.')
 
-  const payload = decodeBase64Url(value.slice(separator + 1))
-  if (!payload || payload.length !== patchSharePayloadSize)
+  // Effects that are all off are left out of the link.
+  const payload = decodeBase64Url(encoded)
+  if (
+    !payload ||
+    (payload.length !== dx7PackedVoiceSize && payload.length !== patchSharePayloadSize)
+  ) {
     damaged('The share link data is incomplete.')
+  }
   const data = payload.slice(0, dx7PackedVoiceSize)
-  const effects = payload.slice(dx7PackedVoiceSize)
+  const effects =
+    payload.length === dx7PackedVoiceSize
+      ? makeDefaultFm1Effects()
+      : payload.slice(dx7PackedVoiceSize)
   if (!isSevenBitData(data)) damaged('The shared voice contains bytes outside the 7-bit range.')
   if (effects.some((parameter, index) => parameter > fm1EffectParameterMaximums[index])) {
     damaged('The shared FM1 effects are out of range.')

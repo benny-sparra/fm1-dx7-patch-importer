@@ -84,7 +84,7 @@ open everything an earlier release could have saved.
   object store names, key paths, and record keys in `src/lib/patch-library-storage.ts`; the
   versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
-  versioned separately from the storage records; the `#patch=<version>.<data>` share link in
+  versioned separately from the storage records; the `#patch=<version>.<name>.<data>` share link in
   `src/lib/patch-share-link.ts`, which lives on in messages people have sent; and `localStorage` keys such as `fm1-language`,
   `fm1-colourway`, `fm1-last-backup`, and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them.

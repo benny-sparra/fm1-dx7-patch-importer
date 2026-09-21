@@ -10,7 +10,11 @@ import { PatchShareLinkError, readPatchShareFragment } from './patch-share-link-
 // round again, its name is "SHARED 1", and its effects start 1 1 64 5 1 1 30 20. The data holds a
 // `-`, so it also checks the base64url alphabet.
 const versionOneFragment =
-  '#patch=1.AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0-P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiYwABAgMEBQYHCAkKCwwNDg8QEVNIQVJFRCAxICABAUAFAQEeFAAAAAAAAAAAAAAAAAAAAAA'
+  '#patch=1.SHARED-1.AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0-P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiYwABAgMEBQYHCAkKCwwNDg8QEVNIQVJFRCAxICABAUAFAQEeFAAAAAAAAAAAAAAAAAAAAAA'
+// The same voice as version 1 wrote it with every FM1 effect off, which leaves the effects out.
+const versionOneFragmentWithoutEffects =
+  '#patch=1.SHARED-1.AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0-P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiYwABAgMEBQYHCAkKCwwNDg8QEVNIQVJFRCAxICA'
+const versionOnePrefix = '#patch=1.SHARED-1.'
 
 function fixtureVoiceBytes() {
   const data = new Uint8Array(dx7PackedVoiceSize)
@@ -38,7 +42,9 @@ function problemOf(hash: string) {
 /** The version 1 fragment with one payload byte changed. */
 function fragmentWithByte(index: number, value: number) {
   const payload = Uint8Array.from(
-    atob(versionOneFragment.slice('#patch=1.'.length).replaceAll('-', '+').replaceAll('_', '/')),
+    atob(
+      versionOneFragment.slice(versionOnePrefix.length).replaceAll('-', '+').replaceAll('_', '/'),
+    ),
     (character) => character.charCodeAt(0),
   )
   payload[index] = value
@@ -50,7 +56,7 @@ function makeFragmentFromPayload(payload: Uint8Array) {
     .replaceAll('+', '-')
     .replaceAll('/', '_')
     .replace(/=+$/u, '')
-  return `#patch=1.${data}`
+  return `${versionOnePrefix}${data}`
 }
 
 describe('patch share links', () => {
@@ -60,6 +66,34 @@ describe('patch share links', () => {
     expect(shared?.voice.name).toBe('SHARED 1')
     expect(shared?.voice.data).toEqual(fixtureVoiceBytes())
     expect(shared?.effects).toEqual(fixtureEffects())
+  })
+
+  it('reads a version 1 link without effects as every effect off', () => {
+    const shared = readPatchShareFragment(versionOneFragmentWithoutEffects)
+
+    expect(shared?.voice.data).toEqual(fixtureVoiceBytes())
+    expect(shared?.effects).toEqual(makeDefaultFm1Effects())
+  })
+
+  it('leaves effects that are all off out of the link', () => {
+    const voice = { data: fixtureVoiceBytes(), name: 'SHARED 1' }
+
+    expect(`#${makePatchShareFragment(voice, makeDefaultFm1Effects())}`).toBe(
+      versionOneFragmentWithoutEffects,
+    )
+  })
+
+  it('names the patch in the link in letters, digits, and dashes', () => {
+    const voice = updateDx7VoiceName({ data: fixtureVoiceBytes(), name: '' }, ' E.PIANO/1 ')
+
+    expect(makePatchShareFragment(voice, undefined)).toMatch(/^patch=1\.E-PIANO-1\./u)
+  })
+
+  it('reads a link whose name was left empty or changed, since the data holds the name', () => {
+    const data = versionOneFragment.slice(versionOnePrefix.length)
+
+    expect(readPatchShareFragment(`#patch=1..${data}`)?.voice.name).toBe('SHARED 1')
+    expect(readPatchShareFragment(`#patch=1.anything-else.${data}`)?.voice.name).toBe('SHARED 1')
   })
 
   it('writes the current version in the version 1 shape', () => {
@@ -114,16 +148,22 @@ describe('patch share links', () => {
 
   it('rejects a link with no version as damaged', () => {
     expect(problemOf('#patch=AAEC')).toBe('damaged')
+    expect(problemOf(versionOneFragment.replace('patch=1.', 'patch='))).toBe('damaged')
     expect(problemOf(versionOneFragment.replace('patch=1.', 'patch=0.'))).toBe('damaged')
   })
 
   it('rejects a truncated link as damaged', () => {
     expect(problemOf(versionOneFragment.slice(0, -10))).toBe('damaged')
+    expect(problemOf(versionOnePrefix)).toBe('damaged')
+  })
+
+  it('rejects a link with more parts than version 1 has as damaged', () => {
+    expect(problemOf(`${versionOneFragment}.AAEC`)).toBe('damaged')
   })
 
   it('rejects a link whose data is not base64url as damaged', () => {
     expect(problemOf(versionOneFragment.replace('AAEC', 'AA+C'))).toBe('damaged')
-    expect(problemOf('#patch=1.A')).toBe('damaged')
+    expect(problemOf(`${versionOnePrefix}A`)).toBe('damaged')
   })
 
   it('rejects a voice byte above seven bits rather than masking it', () => {
