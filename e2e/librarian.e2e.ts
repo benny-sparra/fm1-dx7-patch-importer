@@ -271,8 +271,10 @@ test('switches the favicon to the chosen colourway and keeps it after a reload',
   const favicon = page.locator('link[rel="icon"]')
   await expect(favicon).toHaveAttribute('href', '/favicon-black.svg')
 
-  // The other finishes slide out from the lit swatch on hover.
-  await page.getByTitle('Black', { exact: true }).hover()
+  // The other finishes slide out from the lit swatch on hover or focus. Focus keeps them out
+  // wherever the pointer lands; a layout shift after a hover can leave it off the picker, so
+  // the swatches collapse again before the click.
+  await page.getByRole('radio', { name: 'Black FM1 finish' }).focus()
   await page.getByTitle('Orange', { exact: true }).click()
 
   await expect(page.getByRole('radio', { name: 'Orange FM1 finish' })).toBeChecked()
