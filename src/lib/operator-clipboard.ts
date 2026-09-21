@@ -3,7 +3,7 @@ import {
   fm1OperatorParameters,
   resolveOperatorParameterIndex,
 } from '@/lib/fm1-parameters'
-import { type ParameterEdit } from '@/lib/patch-editor'
+import type { ParameterEdit } from '@/lib/patch-editor'
 
 /**
  * One operator's settings as copied in the editor: every DX7 operator

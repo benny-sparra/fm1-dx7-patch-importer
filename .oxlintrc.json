@@ -71,6 +71,8 @@
     // React effects legitimately return either cleanup functions or undefined.
     "typescript/consistent-return": "off",
     "typescript/no-floating-promises": "error",
+    // Under verbatimModuleSyntax, `import { type A }` keeps a side-effect import of the module.
+    "typescript/no-import-type-side-effects": "error",
     "typescript/no-misused-promises": "error",
     // Runtime-validated browser boundaries require intentional narrowing assertions.
     "typescript/no-unsafe-type-assertion": "off",

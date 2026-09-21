@@ -6,8 +6,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { CopyPatchDialog } from '@/components/patches/copy-patch-dialog'
-import { type Patch } from '@/data/patches'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { Patch } from '@/data/patches'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { type PatchLibrarySnapshot, WorkspaceBankUnavailableError } from '@/lib/patch-library'
 
 beforeAll(() => {

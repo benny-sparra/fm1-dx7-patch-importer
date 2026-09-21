@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import '@/i18n'
 import { MidiConnectionError } from '@/components/midi/midi-controls'
-import { type MidiController } from '@/hooks/use-midi'
+import type { MidiController } from '@/hooks/use-midi'
 
 afterEach(cleanup)
 

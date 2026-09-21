@@ -11,8 +11,8 @@ import purple460 from '@/assets/generated/fm1-purple-460.webp'
 import whiteBlueImage from '@/assets/fm1-white-blue.webp'
 import whiteBlue460 from '@/assets/generated/fm1-white-blue-460.webp'
 
-import { type Fm1Colorway } from './fm1-colorway'
-import { type ResponsiveImage } from './responsive-image'
+import type { Fm1Colorway } from './fm1-colorway'
+import type { ResponsiveImage } from './responsive-image'
 
 function colorwayImage(src: string, candidate460: string): ResponsiveImage {
   return {

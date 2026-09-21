@@ -3,7 +3,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
-import { type NamedBankLibraryDialogProps } from '@/components/patches/named-bank-dialog-types'
+import type { NamedBankLibraryDialogProps } from '@/components/patches/named-bank-dialog-types'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
 import { Button } from '@/components/ui/button'
 import {

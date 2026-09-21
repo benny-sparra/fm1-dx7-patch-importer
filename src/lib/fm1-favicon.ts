@@ -1,4 +1,4 @@
-import { type Fm1Colorway } from './fm1-colorway'
+import type { Fm1Colorway } from './fm1-colorway'
 
 /*
  * The static favicon is a white tile carrying a black waveform trace. Once

@@ -18,7 +18,7 @@ import {
   dx7BankCatalogCategoryLabelKey,
 } from '@/data/dx7-bank-catalog'
 import { ErrorNotice } from '@/components/ui/error-notice'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { readDx7BankFile } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
 import {

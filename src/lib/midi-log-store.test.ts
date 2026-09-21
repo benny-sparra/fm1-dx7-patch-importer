@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { MidiLogStore } from '@/lib/midi-log-store'
-import { type MidiLogEntry } from '@/lib/midi'
+import type { MidiLogEntry } from '@/lib/midi'
 
 const entry = (id: string): MidiLogEntry => ({
   createdAt: '12:00:00',

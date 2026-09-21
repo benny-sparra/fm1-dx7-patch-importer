@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { type MidiController } from '@/hooks/use-midi'
+import type { MidiController } from '@/hooks/use-midi'
 import { fm1SynthImage } from '@/lib/fm1-responsive-images'
 import { dismissFm1BankSelectionDialogForSession } from '@/lib/session'
 

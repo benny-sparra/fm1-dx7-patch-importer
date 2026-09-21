@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/toast'
 import { ErrorNotice } from '@/components/ui/error-notice'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import {
   bankDescriptionLength,
   normalizeWorkspaceBankNameForSave,

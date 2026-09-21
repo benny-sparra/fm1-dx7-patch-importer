@@ -7,8 +7,8 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 
 import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
-import { type MidiController } from '@/hooks/use-midi'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
+import type { MidiController } from '@/hooks/use-midi'
 import { useLibrarianView } from '@/hooks/use-librarian-view'
 import { translatePageText } from '@/test/page-translator'
 

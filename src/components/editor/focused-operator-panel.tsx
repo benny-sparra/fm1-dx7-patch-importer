@@ -1,5 +1,5 @@
 import { AudioWaveform, type LucideIcon, SlidersHorizontal } from 'lucide-react'
-import { type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
@@ -16,7 +16,7 @@ import {
   storedToDisplayValue,
   type OperatorParameterId,
 } from '@/lib/fm1-parameters'
-import { type ParameterEdit } from '@/lib/patch-editor'
+import type { ParameterEdit } from '@/lib/patch-editor'
 
 const curveKeys = [
   'ui.curves.negativeLinear',

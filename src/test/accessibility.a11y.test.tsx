@@ -12,8 +12,8 @@ import {
   type WorkspaceBankSelectorBank,
 } from '@/components/patches/workspace-bank-selector'
 import { ToastProvider } from '@/components/ui/toast'
-import { type MidiController } from '@/hooks/use-midi'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { MidiController } from '@/hooks/use-midi'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { expectNoAxeViolations } from '@/test/accessibility'
 

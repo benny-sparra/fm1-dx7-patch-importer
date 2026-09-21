@@ -6,7 +6,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
-import { type MidiController } from '@/hooks/use-midi'
+import type { MidiController } from '@/hooks/use-midi'
 import { editorShortcuts, shouldRunShortcut } from '@/lib/keyboard-shortcuts'
 
 beforeAll(() => {

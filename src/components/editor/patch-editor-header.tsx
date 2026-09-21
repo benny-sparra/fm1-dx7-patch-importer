@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next'
 
 import { CompareNotice } from '@/components/editor/compare-overlay'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { type Patch } from '@/data/patches'
+import type { Patch } from '@/data/patches'
 import { FM1_VOICE_NAME_LENGTH } from '@/lib/fm1-parameters'
 import {
   editorShortcuts,
@@ -25,7 +25,7 @@ import {
   isApplePlatform,
   type KeyboardShortcut,
 } from '@/lib/keyboard-shortcuts'
-import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
+import type { PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { soundPresets, type SoundPresetId } from '@/lib/sound-presets'
 import { cn } from '@/lib/utils'
 import { patchSlotCode } from '@/lib/patch-library'

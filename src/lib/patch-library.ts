@@ -1,4 +1,4 @@
-import { type Patch } from '@/data/patches'
+import type { Patch } from '@/data/patches'
 import { dx7BankVoiceCount, dx7PackedVoiceSize, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
 import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
 import { DX7_TRANSPOSE_C3 } from '@/lib/fm1-parameters'
