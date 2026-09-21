@@ -271,8 +271,7 @@ export function useMidi() {
   useEffect(() => {
     // Each queued message was meant for the output selected when it was queued. Drop the rest when
     // that output changes or disconnects, or on teardown, so they never reach another device or a
-    // closed port. `clear` rather than `cancel` keeps the queue usable, so a Strict Mode remount
-    // does not leave the hook holding a permanently cancelled queue.
+    // closed port. The queue stays usable after `clear`, so a Strict Mode remount keeps working.
     return () => transferQueue.clear(outputChangedMessage)
   }, [selectedOutput, transferQueue])
 

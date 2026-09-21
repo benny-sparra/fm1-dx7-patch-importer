@@ -28,7 +28,6 @@ export class MidiTransferQueue {
   private readonly minimumIntervalMs: number
   private queue: QueuedTask[] = []
   private running = false
-  private cancelled = false
   private lastRunAt = 0
 
   constructor({ minimumIntervalMs = 0 }: MidiTransferQueueOptions = {}) {
@@ -36,12 +35,6 @@ export class MidiTransferQueue {
   }
 
   enqueue(run: MidiTransferTask, key?: string) {
-    if (this.cancelled) {
-      return Promise.reject(
-        new MidiTransferCancelledError('MIDI transfer queue has been cancelled.'),
-      )
-    }
-
     return new Promise<void>((resolve, reject) => {
       if (key) {
         const pendingIndex = this.queue.findIndex((task) => task.key === key)
@@ -64,19 +57,14 @@ export class MidiTransferQueue {
     this.queue.splice(0).forEach((task) => task.reject(error))
   }
 
-  cancel() {
-    this.cancelled = true
-    this.clear('MIDI transfer queue was cancelled.')
-  }
-
   private async drain() {
-    if (this.running || this.cancelled) {
+    if (this.running) {
       return
     }
 
     this.running = true
 
-    while (this.queue.length > 0 && !this.cancelled) {
+    while (this.queue.length > 0) {
       const elapsed = performance.now() - this.lastRunAt
       const delay = this.minimumIntervalMs - elapsed
 
