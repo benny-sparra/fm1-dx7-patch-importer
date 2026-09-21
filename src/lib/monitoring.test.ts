@@ -228,6 +228,7 @@ describe('Sentry monitoring', () => {
     'Failed to fetch dynamically imported module: https://fm1-editor.com/assets/dialog-old.js',
     'error loading dynamically imported module: https://fm1-editor.com/assets/dialog-old.js',
     'Importing a module script failed.',
+    "'text/html' is not a valid JavaScript MIME type for module script 'https://fm1-editor.com/assets/dialog-old.js'.",
     'Unable to preload CSS for /assets/dialog-old.css',
   ])('does not report a lazy chunk failure an error boundary caught: %s', async (message) => {
     const { handler, sdk } = createSdk()
