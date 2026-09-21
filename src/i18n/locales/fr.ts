@@ -625,9 +625,9 @@ export default {
     gridTitle: 'Banques de sons',
     gridDescription:
       'Importez, modifiez et organisez chaque banque locale avant de la transférer vers le FM1.',
-    search: 'Rechercher dans toutes les banques',
+    search: 'Rechercher',
     noMatches: 'Aucun son ne correspond à cette recherche',
-    searchResults: 'Résultats de recherche',
+    searchResults: 'Résultats de recherche : « {{search}} »',
     sendFromSearch: 'Choisissez une banque pour l’envoyer au FM1',
     bankEmpty: 'Cette banque du navigateur est vide',
     emptyHelp:
@@ -649,6 +649,8 @@ export default {
     copyTargetSlot: 'Emplacement',
     copyReplaces: 'Cela remplace « {{name}} » en {{slot}}. Tu peux annuler cette action.',
     copyAction: 'Remplacer {{slot}}',
+    copyAndEditAction: 'Remplacer {{slot}} et modifier',
+    copyToEditHint: 'Pour modifier ce son, copiez-le dans l’une de vos banques.',
     copyFailed: 'Le son n’a pas pu être copié.',
     addBankOpenFailed:
       'Impossible d’ouvrir les options de nouvelle banque. Rechargez la page et réessayez.',
@@ -657,6 +659,21 @@ export default {
     downloadPatchFile: 'Télécharger le son',
     patchFileUnavailable:
       'Impossible d’ouvrir les fichiers de son. Rechargez la page et réessayez.',
+    everywhere: {
+      workspace: 'Vos banques de sons',
+      savedBanks: 'Banques enregistrées',
+      catalog: 'Autres banques de sons DX7',
+      play: 'Écouter {{name}} de {{origin}}',
+      playTitle:
+        'Cliquez pour écouter {{name}} via le tampon d’édition du FM1 ; double-cliquez pour le copier et le modifier',
+      copy: 'Copier {{name}} dans une banque de l’espace de travail',
+      truncated:
+        'Affichage des {{shown}} premiers résultats sur {{total}}. Précisez la recherche pour en réduire le nombre.',
+      loading: 'Recherche dans les autres banques de sons DX7…',
+      loadFailed:
+        'Impossible de rechercher dans les banques enregistrées et les autres banques de sons DX7. Rechargez la page et réessayez.',
+      playFailed: 'Le son n’a pas pu être joué.',
+    },
   },
   namedBanks: {
     open: 'Bibliothèque de banques',

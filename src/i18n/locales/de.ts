@@ -624,9 +624,9 @@ export default {
     gridTitle: 'Sound-Bänke',
     gridDescription:
       'Importiere, bearbeite und sortiere jede lokale Browser-Bank vor der Übertragung zum FM1.',
-    search: 'Alle Bänke durchsuchen',
+    search: 'Suchen',
     noMatches: 'Keine Sounds entsprechen der Suche',
-    searchResults: 'Suchergebnisse',
+    searchResults: 'Suchergebnisse: „{{search}}“',
     sendFromSearch: 'Wählen Sie eine Bank, um sie an den FM1 zu senden',
     bankEmpty: 'Diese Browser-Bank ist leer',
     emptyHelp:
@@ -649,6 +649,8 @@ export default {
     copyReplaces:
       'Dadurch wird „{{name}}“ in {{slot}} ersetzt. Du kannst diese Aktion rückgängig machen.',
     copyAction: '{{slot}} ersetzen',
+    copyAndEditAction: '{{slot}} ersetzen und bearbeiten',
+    copyToEditHint: 'Um diesen Sound zu bearbeiten, kopiere ihn in eine deiner Bänke.',
     copyFailed: 'Der Sound konnte nicht kopiert werden.',
     addBankOpenFailed:
       'Die Optionen für eine neue Bank konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
@@ -658,6 +660,21 @@ export default {
     downloadPatchFile: 'Sound herunterladen',
     patchFileUnavailable:
       'Sounddateien konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+    everywhere: {
+      workspace: 'Deine Sound-Bänke',
+      savedBanks: 'Gespeicherte Bänke',
+      catalog: 'Weitere DX7-Sound-Bänke',
+      play: '{{name}} aus {{origin}} spielen',
+      playTitle:
+        'Klicken, um {{name}} über den Bearbeitungspuffer des FM1 zu spielen; Doppelklick zum Kopieren und Bearbeiten',
+      copy: '{{name}} in eine Bank des Arbeitsbereichs kopieren',
+      truncated:
+        'Die ersten {{shown}} von {{total}} Treffern werden angezeigt. Gib mehr ein, um die Suche einzugrenzen.',
+      loading: 'Weitere DX7-Sound-Bänke werden durchsucht…',
+      loadFailed:
+        'Gespeicherte Bänke und weitere DX7-Sound-Bänke konnten nicht durchsucht werden. Lade die Seite neu und versuche es erneut.',
+      playFailed: 'Der Sound konnte nicht gespielt werden.',
+    },
   },
   namedBanks: {
     open: 'Bankbibliothek',

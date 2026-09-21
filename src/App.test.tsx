@@ -13,6 +13,11 @@ const sendVoice = vi.hoisted(() => vi.fn(async () => true))
 const sendEffectSettings = vi.hoisted(() => vi.fn(async () => true))
 const addedVoice = vi.hoisted(() => ({ data: new Uint8Array(128), name: 'PAD' }))
 const pianoEffects = vi.hoisted(() => Uint8Array.from({ length: 24 }, (_, index) => index % 2))
+const catalogVoice = vi.hoisted(() => ({ data: new Uint8Array(128), name: 'BRASS 1' }))
+const savedVoice = vi.hoisted(() => ({ data: new Uint8Array(128), name: 'SOLO' }))
+const savedEffects = vi.hoisted(() =>
+  Uint8Array.from({ length: 24 }, (_, index) => (index + 1) % 2),
+)
 const loadPatchEditorPage = vi.hoisted(() =>
   vi.fn(() => Promise.reject(new TypeError('Failed to fetch dynamically imported module'))),
 )
@@ -45,11 +50,13 @@ vi.mock('@/routes/librarian-page', () => ({
     activePatchId,
     onBankDeleted,
     onEditPatch,
+    onPlaySearchResult,
     onSelectPatch,
   }: {
     activePatchId: string
     onBankDeleted: (bank: string) => void
     onEditPatch: (patch: { id: string }) => void
+    onPlaySearchResult: (voice: unknown, effects: Uint8Array | undefined) => void
     onSelectPatch: (patch: { id: string }) => void
   }) => (
     <>
@@ -65,6 +72,12 @@ vi.mock('@/routes/librarian-page', () => ({
       </button>
       <button onClick={() => onEditPatch({ id: 'patch-e1' })} type="button">
         Edit Pad
+      </button>
+      <button onClick={() => onPlaySearchResult(catalogVoice, undefined)} type="button">
+        Play catalog result
+      </button>
+      <button onClick={() => onPlaySearchResult(savedVoice, savedEffects)} type="button">
+        Play saved result
       </button>
       <button onClick={() => onBankDeleted('A')} type="button">
         Delete bank A
@@ -213,6 +226,54 @@ describe('App added bank audition repeats', () => {
 
     expect(sendVoice).toHaveBeenCalledTimes(2)
     expect(sendEffectSettings).toHaveBeenCalledOnce()
+  })
+})
+
+describe('App search result audition', () => {
+  function renderApp() {
+    render(
+      <ToastProvider>
+        <App />
+      </ToastProvider>,
+    )
+    return userEvent.setup()
+  }
+
+  it('plays a catalog result through the FM1 edit buffer with the default effects', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play catalog result' }))
+
+    expect(sendVoice).toHaveBeenCalledExactlyOnceWith(catalogVoice)
+    await waitFor(() =>
+      expect(sendEffectSettings).toHaveBeenCalledExactlyOnceWith(new Uint8Array(24)),
+    )
+  })
+
+  it('plays a saved-bank result with its own effects', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play saved result' }))
+
+    await waitFor(() => expect(sendEffectSettings).toHaveBeenCalledExactlyOnceWith(savedEffects))
+  })
+
+  it('does not resend an unchanged search result when it is played again', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play catalog result' }))
+    await user.click(screen.getByRole('button', { name: 'Play catalog result' }))
+
+    expect(sendVoice).toHaveBeenCalledOnce()
+  })
+
+  it('turns off the lit slot when a search result replaces the edit buffer', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+    await user.click(screen.getByRole('button', { name: 'Play catalog result' }))
+
+    expect(screen.getByText('Lit slot: none')).toBeTruthy()
   })
 })
 
