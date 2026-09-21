@@ -186,6 +186,35 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     the dialog's bank tabs.
   - Cover the drop in Playwright; jsdom cannot check dragging onto another element.
 
+- [ ] **Search everywhere.** Extend the librarian search beyond loaded workspace banks to saved banks
+      and the bundled catalog, and play a result through the FM1 edit buffer. This reverses the
+      decision recorded under [Search across all banks](#nice-to-have): results that are not slots
+      get their own grouping and actions, and the catalog is searched through a small generated
+      index loaded on demand, so the initial bundle is unaffected.
+  - A **Workspace / Everywhere** switch keeps today's slot-only search as the default. Results are
+    grouped by source (workspace, saved banks, catalog); a non-workspace result shows its bank and
+    slot, such as "ROM1A · 07".
+  - Playing a non-workspace result sends it to the edit buffer through the same path and
+    duplicate-send guard as an added-bank slot (`auditionPatch` in `src/App.tsx`). A saved-bank
+    patch takes its stored FM1 effects; a catalog patch takes the default effects, so it does not
+    play through whatever the last patch left.
+  - A non-workspace result cannot be edited. **Copy to…**, and dropping it on a bank tab, put it in a
+    workspace slot with the existing confirmation and Undo; the editor only edits slots.
+  - Saved banks are read from IndexedDB when the search widens; a damaged one is skipped and
+    reported, as `listStoredNamedBanks` does.
+  - **Catalog index.** A generator script writes the patch names of every bank in
+    `public/dx7-banks/`, by catalog id and slot, with a `--check` mode added to `npm run check` and
+    the CI quality job, like `images:check`. It decodes names with the app's own voice-name
+    decoding, so results match the grid. Load it with `import()` on the first widened search: about
+    6 KB gzipped, against 73 KB for fetching all 39 bank files. Playing a result fetches only its
+    bank. In the same change, update the catalog rule in `AGENTS.md` to name the script.
+  - Open: whether to list identical voices once with their sources. A short voice hash in the index
+    (about 12 KB uncompressed) would allow it without fetching every bank, and overlaps with
+    [Find duplicate patches](#nice-to-have).
+  - Tests: the index check failing on a stale index, a widened search finding a catalog and a saved
+    patch, a catalog result sent with default effects, a damaged saved bank reported without hiding
+    the rest, a failed index load reaching the UI translated, and the switch's accessible name.
+
 ## Nice to have
 
 - [ ] **Receive a DX7 voice over MIDI.** Offer to place a standard DX7 single-voice dump arriving at
@@ -197,6 +226,26 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Validate length, header, 7-bit data, and checksum at the boundary, and drop the listener when
     the dialog closes, MIDI goes offline, or the input changes.
   - Tests use captured fixtures and a fake input; no hardware or permission.
+
+- [ ] **Share a patch as a link.** **Copy share link** in a slot's ⋮ menu copies a URL that carries
+      the patch in its fragment (the part after `#`), so someone else can open it in their own
+      library. The fragment never reaches a server, so this needs none: it is not the rejected
+      [Online sharing or accounts](#decided-against).
+  - The link carries the 128-byte packed voice, which includes the name, and the patch's FM1
+    effects, base64url encoded: a couple of hundred characters. Tag it with a format version, such
+    as `#patch=1.<data>`. Links outlive releases, so from its first release this is a public format
+    under the legacy-data rules in `AGENTS.md`, with a fixture test for version 1.
+  - Opening a link never writes anything by itself. It opens the **Import patch…** flow with the
+    patch shown, the user picks a slot, and overwriting keeps its confirmation and Undo. Clear the
+    fragment with `history.replaceState` once it is read, so a reload does not ask again.
+  - Validate at the same boundary as `.syx` import: length, 7-bit data, and effect ranges. A bad
+    or truncated link reaches the UI as a translated error, not a raw message.
+  - The fragment holds a user-authored patch name. Confirm that Umami and Sentry drop fragments,
+    which `AGENTS.md` already requires, and add a test that a shared link is not reported.
+  - Links name the deployed domain, so moving the site breaks them unless the old domain redirects
+    and keeps the fragment.
+  - Tests: a round trip, the version 1 fixture, a malformed link reaching the UI translated, a byte
+    above 7 bits rejected, nothing written without confirmation, and one-step Undo.
 
 - [ ] **Find duplicate patches.** List patches in loaded workspace banks whose voice data is
       identical, with a way to jump to each copy, so imported archives can be tidied.
@@ -291,6 +340,37 @@ Still open: whether backup and restore belong in that menu at all, or beside the
 where the workspace storage they protect is already described. The menu is more discoverable; the
 storage area explains better why the feature exists, since a backup answers the risk that clearing
 site data loses everything.
+
+### Audio preview in the browser
+
+A DX7 engine running in the browser, such as the Dexed engine that WebDX7 builds to WebAssembly,
+would let a patch be heard without the FM1: auditioning an imported or catalog bank before sending
+it, using the librarian with no device connected, and in Safari, which has no Web MIDI. Other DX7
+tools offer this, and a DX7-profile offshoot of this editor would need it to compete with Dexed.
+
+**Doubtful for the FM1 app**, for two reasons:
+
+- It cannot play the FM1's effects. Most FM1 patches rely on them, so the preview would sound drier
+  and plainer than the device. Rebuilding them in Web Audio would only be a guess, because their
+  hardware scaling is still unconfirmed (see `docs/fm1-research.md` §7).
+- The FM1's engine may not render a voice the way a DX7 emulation does, and nothing yet measures the
+  difference. A preview that sounds unlike the device misleads the person choosing a patch.
+
+Before deciding, settle:
+
+- **Fidelity.** Record a spread of patches from the FM1 with effects bypassed, and compare them
+  with the same voices in the candidate engine. If they differ audibly, drop the idea for the FM1
+  app.
+- **Labelling.** Whether a "DX7 preview, without FM1 effects" label is honest enough, or whether any
+  preview beside a connected FM1 invites confusion.
+- **Licensing.** Dexed is GPL-3 and its original engine (MSFA) Apache-2.0, as understood; check
+  both. The repository has no LICENSE file yet, so its own licence decides what can be embedded.
+- **Cost.** Load the engine only when preview is first used, to stay inside the 149 KiB budget. The
+  CSP in `public/_headers` would need `wasm-unsafe-eval`, with `scripts/check-security-headers.mjs`
+  updated and a security review. Audio needs a user gesture to start.
+
+If it goes ahead, the natural entry is the piano keyboard: with MIDI offline, its notes play the
+preview.
 
 ### Effect routing order
 

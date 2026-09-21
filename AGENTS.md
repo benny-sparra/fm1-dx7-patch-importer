@@ -224,6 +224,16 @@ open everything an earlier release could have saved.
   enforces the colours. Launcher icons stay on the default finish because an installed app cannot
   repaint its icon per session.
 
+### Bundled bank catalog
+
+- `src/data/dx7-bank-catalog.ts` lists the bank files in `public/dx7-banks/`. Adding, removing, or
+  replacing a bank changes both in the same change, together with the bank count and sources in the
+  README.
+- Catalog search is planned to read a generated patch-name index rather than the bank files (see
+  **Search everywhere** in `docs/feature-backlog.md`). Once it exists, regenerate the index whenever
+  a bank is added, removed, or replaced; its check in `npm run check` fails when it is stale. Until
+  then there is no index to update.
+
 ### Theme and finishes
 
 - The shell is a CRT terminal theme. Colour lives in tokens in `src/index.css`: the `--crt-*`
