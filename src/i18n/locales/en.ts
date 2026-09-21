@@ -32,6 +32,8 @@ export default {
         'The FM-1 stock presets, recovered from the M-VAVE restore tool. Also in the bank catalog.',
     },
     sourcesClose: 'Close patch bank sources',
+    sourcesSubmit: 'Programmed a DX7 bank of your own?',
+    sourcesSubmitLink: 'Offer it for the bank catalog',
   },
   controlHelp: {
     algorithm:

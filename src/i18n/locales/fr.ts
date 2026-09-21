@@ -33,6 +33,8 @@ export default {
         'Les préréglages d’origine du FM-1, récupérés depuis l’outil de restauration M-VAVE. Aussi dans le catalogue de banques.',
     },
     sourcesClose: 'Fermer les sources de banques',
+    sourcesSubmit: 'Vous avez programmé votre propre banque DX7 ?',
+    sourcesSubmitLink: 'Proposez-la pour le catalogue de banques',
   },
   controlHelp: {
     algorithm:

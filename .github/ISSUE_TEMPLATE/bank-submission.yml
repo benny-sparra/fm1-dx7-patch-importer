@@ -1,0 +1,74 @@
+name: Offer a patch bank
+description: Offer a DX7 bank you programmed yourself for the bundled catalog.
+title: 'Bank submission: '
+labels: ['bank submission']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for offering your patches. The catalog only includes banks whose author can
+        license them freely, so please read the requirements in
+        [CONTRIBUTING.md](https://github.com/benny-sparra/fm1-dx7-patch-importer/blob/main/CONTRIBUTING.md#contributing-a-patch-bank)
+        first. Every submission is listened to before it is accepted, and not every bank will be
+        included.
+  - type: input
+    id: bank-name
+    attributes:
+      label: Bank name
+      description: The name to show in the catalog.
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A short description of the sounds, for example "Electric pianos and pads".
+    validations:
+      required: true
+  - type: input
+    id: credit
+    attributes:
+      label: Credit
+      description: How you would like to be credited. A name or a handle is fine.
+    validations:
+      required: true
+  - type: dropdown
+    id: licence
+    attributes:
+      label: Licence
+      description: The licence you release the bank under.
+      options:
+        - CC0 1.0 (no credit required)
+        - CC BY 4.0 (credit required)
+    validations:
+      required: true
+  - type: textarea
+    id: bank-file
+    attributes:
+      label: Bank file
+      description: >-
+        Attach one standard 32-voice DX7 SysEx bank (a 4104-byte .syx file). GitHub does not accept
+        .syx attachments, so zip it first.
+      placeholder: Drag the .zip file here.
+    validations:
+      required: true
+  - type: input
+    id: demo
+    attributes:
+      label: Audio demo (optional)
+      description: A link to a recording of the patches, if you have one.
+  - type: checkboxes
+    id: declarations
+    attributes:
+      label: Declarations
+      options:
+        - label: I programmed every voice in this bank myself.
+          required: true
+        - label: >-
+            None of the voices are copies or edits of factory, cartridge, commercial, or other
+            people's patches.
+          required: true
+        - label: I have the right to release the bank under the licence chosen above.
+          required: true
+        - label: All 32 voices are finished patches, with no placeholders or empty slots.
+          required: true

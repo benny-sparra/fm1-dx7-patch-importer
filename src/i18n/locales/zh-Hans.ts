@@ -27,6 +27,8 @@ export default {
       fm1FactoryPresets: '从 M-VAVE 恢复工具中还原的 FM-1 原厂预设，也已收录在音色库目录中。',
     },
     sourcesClose: '关闭音色库来源',
+    sourcesSubmit: '自己编写过 DX7 音色库？',
+    sourcesSubmitLink: '提交到音色库目录',
   },
   controlHelp: {
     algorithm:
