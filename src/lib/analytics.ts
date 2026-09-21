@@ -1,4 +1,6 @@
 type AnalyticsEvent =
+  | { name: 'backup_downloaded' }
+  | { name: 'backup_restored' }
   | { name: 'bank_transfer_completed' }
   | { name: 'editor_opened' }
   | { name: 'patch_edit_started' }

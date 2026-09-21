@@ -3,7 +3,8 @@
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createNamedBank } from '@/lib/named-bank'
+import { createNamedBank, type NamedBank } from '@/lib/named-bank'
+import type { WorkspaceBackup } from '@/lib/workspace-backup'
 import {
   emptyPatchLibrary,
   importVoices,
@@ -14,6 +15,7 @@ import {
 import { usePatchLibrary } from './use-patch-library'
 
 const storage = vi.hoisted(() => ({
+  addStoredNamedBank: vi.fn(),
   deleteStoredNamedBank: vi.fn(),
   listStoredNamedBanks: vi.fn(),
   loadStoredPatchLibrary: vi.fn(),
@@ -266,6 +268,82 @@ describe('usePatchLibrary copying a voice', () => {
     act(() => hook.result.current.undo())
 
     expect(hook.result.current.voices['bank-B-3']).toBe(original)
+    expect(hook.result.current.canUndo).toBe(false)
+  })
+})
+
+describe('usePatchLibrary restoring a backup', () => {
+  function makeSavedBank(id: string): NamedBank {
+    return createNamedBank(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), 'A', {
+      description: '',
+      id,
+      name: `Saved ${id}`,
+      now: '2026-09-01T12:00:00.000Z',
+    })
+  }
+
+  function makeBackup(savedBanks: NamedBank[]): WorkspaceBackup {
+    return {
+      damagedSavedBankCount: 0,
+      savedAt: '2026-09-21T13:03:00.000Z',
+      savedBanks,
+      workspace: {
+        ...importVoices(emptyPatchLibrary(['A', 'B']), 'B', makeDemoVoices()),
+        bankNames: { B: 'Restored' },
+      },
+    }
+  }
+
+  it('replaces the workspace and reverses it in one undo', async () => {
+    const hook = await renderLoadedLibrary()
+    const before = hook.result.current.workspaceBanks
+
+    await act(() => hook.result.current.restoreBackup(makeBackup([])))
+    expect(hook.result.current.workspaceBanks).toEqual(['A', 'B'])
+    expect(hook.result.current.bankNames).toEqual({ B: 'Restored' })
+
+    act(() => hook.result.current.undo())
+
+    expect(hook.result.current.workspaceBanks).toEqual(before)
+    expect(hook.result.current.bankNames).toEqual({})
+  })
+
+  it('adds saved banks it does not have and keeps the ones already stored', async () => {
+    const stored = makeSavedBank('stored')
+    storage.listStoredNamedBanks.mockResolvedValue({ banks: [stored], damagedCount: 0 })
+    storage.addStoredNamedBank.mockImplementation((bank: NamedBank) =>
+      Promise.resolve(bank.id !== 'stored'),
+    )
+    const hook = await renderLoadedLibrary()
+    await waitFor(() => expect(hook.result.current.namedBanks).toEqual([stored]))
+
+    let result: Awaited<ReturnType<typeof hook.result.current.restoreBackup>> | undefined
+    await act(async () => {
+      result = await hook.result.current.restoreBackup(
+        makeBackup([{ ...stored, name: 'Changed' }, makeSavedBank('new')]),
+      )
+    })
+
+    expect(result).toMatchObject({ added: 1, kept: 1 })
+    expect(storage.saveStoredNamedBank).not.toHaveBeenCalled()
+    expect(hook.result.current.namedBanks.map(({ id, name }) => [id, name])).toEqual([
+      ['new', 'Saved new'],
+      ['stored', 'Saved stored'],
+    ])
+  })
+
+  it('leaves the workspace unchanged when a saved bank cannot be stored', async () => {
+    storage.addStoredNamedBank.mockRejectedValue(new Error('Quota exceeded.'))
+    const hook = await renderLoadedLibrary()
+    const before = hook.result.current.workspaceBanks
+
+    await act(async () => {
+      await expect(
+        hook.result.current.restoreBackup(makeBackup([makeSavedBank('new')])),
+      ).rejects.toThrow('Quota exceeded.')
+    })
+
+    expect(hook.result.current.workspaceBanks).toEqual(before)
     expect(hook.result.current.canUndo).toBe(false)
   })
 })

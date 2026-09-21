@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next'
 
-import { Dx7BankFileError } from '@/lib/dx7'
+import { Dx7BankFileError, dx7BankFileSize } from '@/lib/dx7'
 import { Dx7CatalogBankUnavailableError } from '@/lib/dx7-bank-catalog'
 import { WorkspaceBankUnavailableError } from '@/lib/patch-library'
 
@@ -18,7 +18,10 @@ export function bankErrorMessage(t: TFunction, error: unknown, fallback: string)
       case 'format':
         return t('banks.fileErrors.format')
       case 'size':
-        return t('banks.fileErrors.size', { bytes: error.receivedBytes })
+        return t('banks.fileErrors.size', {
+          bytes: error.receivedBytes,
+          expected: dx7BankFileSize,
+        })
     }
   }
   if (error instanceof Dx7CatalogBankUnavailableError) return t('banks.catalogUnavailable')

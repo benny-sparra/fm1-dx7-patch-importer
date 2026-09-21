@@ -4,6 +4,7 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 
@@ -16,16 +17,31 @@ function makeLibrary(
   persistenceError: PatchLibrary['persistenceError'] = null,
 ) {
   return {
+    bankDescriptions: {},
+    bankNames: {},
     continueWithoutWorkspaceSaving: vi.fn(),
+    effects: {},
+    hasDamagedNamedBanks: false,
+    loadedBanks: [],
+    namedBanks: [],
+    namedBanksLoadFailed: false,
+    namedBanksLoading: false,
     persistenceError,
     persistenceStatus,
     retryWorkspaceLoading: vi.fn(),
     retryWorkspaceSaving: vi.fn(),
+    voices: {},
+    workspaceBanks: ['A'],
   }
+}
+
+function renderStatus(library: ReturnType<typeof makeLibrary>) {
+  return render(<WorkspacePersistenceStatus library={library} />, { wrapper: ToastProvider })
 }
 
 afterEach(async () => {
   cleanup()
+  vi.restoreAllMocks()
   await setLocale('en')
 })
 
@@ -33,18 +49,14 @@ describe('WorkspacePersistenceStatus', () => {
   it.each<Status>(['loading', 'ready', 'saving'])(
     'shows nothing while the workspace is %s',
     (status) => {
-      const { container } = render(<WorkspacePersistenceStatus library={makeLibrary(status)} />)
+      const { container } = renderStatus(makeLibrary(status))
 
-      expect(container.childElementCount).toBe(0)
+      expect(within(container).queryByRole('alert')).toBeNull()
     },
   )
 
   it('explains an incompatible workspace and leaves its data untouched', () => {
-    render(
-      <WorkspacePersistenceStatus
-        library={makeLibrary('load-error', { code: 'incompatible', detail: '' })}
-      />,
-    )
+    renderStatus(makeLibrary('load-error', { code: 'incompatible', detail: '' }))
 
     const alert = screen.getByRole('alert')
     expect(
@@ -56,7 +68,7 @@ describe('WorkspacePersistenceStatus', () => {
   })
 
   it('treats a load failure without a code as a read failure', () => {
-    render(<WorkspacePersistenceStatus library={makeLibrary('load-error')} />)
+    renderStatus(makeLibrary('load-error'))
 
     expect(
       screen.getByRole('heading', { name: 'The saved workspace could not be read' }),
@@ -66,7 +78,7 @@ describe('WorkspacePersistenceStatus', () => {
   it('retries loading from the load error', async () => {
     const user = userEvent.setup()
     const library = makeLibrary('load-error', { code: 'read-failed', detail: '' })
-    render(<WorkspacePersistenceStatus library={library} />)
+    renderStatus(library)
 
     await user.click(screen.getByRole('button', { name: 'Retry' }))
 
@@ -77,7 +89,7 @@ describe('WorkspacePersistenceStatus', () => {
   it('continues for the session only from the load error', async () => {
     const user = userEvent.setup()
     const library = makeLibrary('load-error', { code: 'unavailable', detail: '' })
-    render(<WorkspacePersistenceStatus library={library} />)
+    renderStatus(library)
 
     await user.click(screen.getByRole('button', { name: 'Continue without saving' }))
 
@@ -86,13 +98,11 @@ describe('WorkspacePersistenceStatus', () => {
   })
 
   it('keeps the browser error text in a collapsed technical details disclosure', () => {
-    render(
-      <WorkspacePersistenceStatus
-        library={makeLibrary('load-error', {
-          code: 'read-failed',
-          detail: 'UnknownError: Internal error opening backing store',
-        })}
-      />,
+    renderStatus(
+      makeLibrary('load-error', {
+        code: 'read-failed',
+        detail: 'UnknownError: Internal error opening backing store',
+      }),
     )
 
     const details = screen.getByText('Technical details').closest('details')!
@@ -101,11 +111,7 @@ describe('WorkspacePersistenceStatus', () => {
   })
 
   it('leaves out the technical details when there are none', () => {
-    render(
-      <WorkspacePersistenceStatus
-        library={makeLibrary('save-error', { code: 'write-failed', detail: '' })}
-      />,
-    )
+    renderStatus(makeLibrary('save-error', { code: 'write-failed', detail: '' }))
 
     expect(screen.queryByText('Technical details')).toBeNull()
   })
@@ -113,7 +119,7 @@ describe('WorkspacePersistenceStatus', () => {
   it('warns that changes are not stored and retries saving', async () => {
     const user = userEvent.setup()
     const library = makeLibrary('save-error', { code: 'write-failed', detail: '' })
-    render(<WorkspacePersistenceStatus library={library} />)
+    renderStatus(library)
 
     const alert = screen.getByRole('alert')
     expect(within(alert).getByText('Workspace changes are not safely stored')).toBeTruthy()
@@ -123,20 +129,36 @@ describe('WorkspacePersistenceStatus', () => {
   })
 
   it('warns that a session-only workspace is lost on close, with no retry', () => {
-    render(<WorkspacePersistenceStatus library={makeLibrary('session-only')} />)
+    renderStatus(makeLibrary('session-only'))
 
     const alert = screen.getByRole('alert')
     expect(within(alert).getByText('Session-only workspace')).toBeTruthy()
-    expect(within(alert).queryByRole('button')).toBeNull()
+    expect(within(alert).queryByRole('button', { name: 'Retry saving' })).toBeNull()
   })
+
+  it.each<Status>(['save-error', 'session-only'])(
+    'offers a backup download while the workspace is %s',
+    async (status) => {
+      const user = userEvent.setup()
+      const createObjectURL = vi.fn((_blob: Blob) => 'blob:backup')
+      Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() })
+      const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+      renderStatus(makeLibrary(status, { code: 'write-failed', detail: '' }))
+
+      await user.click(screen.getByRole('button', { name: 'Download backup' }))
+
+      expect(
+        await screen.findByText('Downloading a backup of your workspace banks and saved banks.'),
+      ).toBeTruthy()
+      expect(click).toHaveBeenCalledOnce()
+      const file = createObjectURL.mock.calls[0][0]
+      expect(JSON.parse(await file.text())).toMatchObject({ format: 'fm1-librarian-backup' })
+    },
+  )
 
   it('explains a load error in the interface language', async () => {
     await setLocale('de')
-    render(
-      <WorkspacePersistenceStatus
-        library={makeLibrary('load-error', { code: 'read-failed', detail: '' })}
-      />,
-    )
+    renderStatus(makeLibrary('load-error', { code: 'read-failed', detail: '' }))
 
     expect(screen.getByRole('button', { name: 'Erneut versuchen' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Ohne Speichern fortfahren' })).toBeTruthy()

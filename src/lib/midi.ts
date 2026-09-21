@@ -24,7 +24,8 @@ export type MidiLogEntry = {
   id: string
   direction: 'in' | 'out' | 'system'
   message: string
-  createdAt: string
+  /** When the entry was logged, in milliseconds since the epoch; shown in the interface language. */
+  createdAt: number
   data?: Uint8Array
 }
 
@@ -256,12 +257,6 @@ export function formatMidiBytes(data: Uint8Array | number[]) {
   return bytes.map((byte) => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ')
 }
 
-const logTimeFormat = new Intl.DateTimeFormat(undefined, {
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-})
-
 export function makeLogEntry(
   direction: MidiLogEntry['direction'],
   message: string,
@@ -272,6 +267,6 @@ export function makeLogEntry(
     direction,
     message,
     data: data ? Uint8Array.from(data) : undefined,
-    createdAt: logTimeFormat.format(new Date()),
+    createdAt: Date.now(),
   }
 }

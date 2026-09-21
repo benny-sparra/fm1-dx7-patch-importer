@@ -27,6 +27,7 @@ import {
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
 import {
+  addStoredNamedBank,
   deleteStoredNamedBank,
   listStoredNamedBanks,
   loadStoredPatchLibrary,
@@ -38,6 +39,7 @@ import {
   WorkspacePersistenceController,
   type WorkspacePersistenceState,
 } from '@/lib/workspace-persistence'
+import type { WorkspaceBackup } from '@/lib/workspace-backup'
 
 type History = {
   future: PatchLibrarySnapshot[]
@@ -330,6 +332,36 @@ export function usePatchLibrary() {
     setNamedBanks((current) => current.filter((bank) => bank.id !== id))
   }, [])
 
+  /**
+   * Restores a backup. Its saved banks are added first, and one whose id is already stored is kept
+   * as it is, so nothing stored is overwritten and a retry after a failure is safe. The workspace is
+   * replaced only once every saved bank is stored, as one change that Undo reverses; Undo does not
+   * remove the added saved banks.
+   */
+  const restoreBackup = useCallback(
+    async (backup: WorkspaceBackup) => {
+      const added: NamedBank[] = []
+      let kept = 0
+      try {
+        for (const bank of backup.savedBanks) {
+          if (await addStoredNamedBank(bank)) added.push(bank)
+          else kept += 1
+        }
+      } finally {
+        if (added.length > 0) {
+          setNamedBanks((current) =>
+            [...added, ...current].sort((left, right) =>
+              right.updatedAt.localeCompare(left.updatedAt),
+            ),
+          )
+        }
+      }
+      const changed = commit(() => backup.workspace)
+      return { added: added.length, changed, kept }
+    },
+    [commit],
+  )
+
   const undo = useCallback(() => {
     const current = historyRef.current
     const previous = current.past.at(-1)
@@ -402,6 +434,7 @@ export function usePatchLibrary() {
     retryWorkspaceLoading,
     retryWorkspaceSaving,
     resetFactoryBanks,
+    restoreBackup,
     saveNamedBank,
     undo,
     undoChange,

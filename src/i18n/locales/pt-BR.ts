@@ -14,12 +14,13 @@ export default {
     midiClose: 'Fechar mensagem de conexão MIDI',
     midiSteps:
       'Ative MIDI online, permita o acesso MIDI e selecione a saída MIDI do FM1 em Configurações.',
-    restoreTitle: 'Restaurar os bancos de fábrica do FM-1?',
-    restoreIntro: 'Isso substitui os quatro bancos locais. Você pode desfazer logo depois.',
-    restoreClose: 'Fechar restauração',
+    restoreTitle: 'Redefinir para os sons de fábrica?',
+    restoreIntro:
+      'Isso substitui os quatro bancos locais. Você pode desfazer a redefinição logo depois.',
+    restoreClose: 'Fechar redefinição',
     restoreDetails:
-      'Os bancos A, B, C e D serão restaurados respectivamente com os bancos 1, 2, 3 e 4 do FM-1, os sons que vêm de fábrica no FM1.',
-    restoreAction: 'Restaurar quatro bancos',
+      'Os bancos A, B, C e D serão redefinidos respectivamente com os bancos 1, 2, 3 e 4 do FM-1, os sons que vêm de fábrica no FM1.',
+    restoreAction: 'Redefinir quatro bancos',
     sourcesOpen: 'Encontre bancos de sons para baixar.',
     sourcesTitle: 'Encontrar bancos DX7',
     sourcesIntro:
@@ -290,7 +291,7 @@ export default {
     bankImported: 'Sons importados para “{{bank}}”.',
     bankCreated: '“{{bank}}” foi criado.',
     bankDeleted: '“{{bank}}” foi excluído.',
-    banksRestored: 'Os quatro bancos de fábrica foram restaurados.',
+    banksRestored: 'Os quatro bancos foram redefinidos com os sons de fábrica.',
     bankDownloadStarted: 'Baixando “{{bank}}”.',
     banksDownloadStarted: 'Baixando todos os bancos.',
     bankUpdated: '“{{bank}}” foi atualizado.',
@@ -544,7 +545,7 @@ export default {
     entries: 'Entradas recentes do registro MIDI',
     hideData: 'Ocultar dados',
     viewData: 'Ver dados',
-    bytes: '{{count}} bytes',
+    bytes: '{{count, number}} bytes',
     completeSysex: 'Mensagem SysEx completa',
     copied: 'Copiado',
     copyHex: 'Copiar hexadecimal',
@@ -565,7 +566,7 @@ export default {
     uploadSource: 'Enviar seu próprio banco',
     empty: 'Vazio',
     importing: 'Importando…',
-    restoring: 'Restaurando…',
+    restoring: 'Redefinindo…',
     catalogFactory: 'Sons de fábrica',
     catalogFm1Factory: 'Predefinições de fábrica do FM-1',
     import: 'Importar banco DX7',
@@ -574,8 +575,8 @@ export default {
     bankInformation: 'Informações do banco',
     bankInformationHelp: 'Edite o título e a descrição opcional deste banco de trabalho.',
     download: 'Baixar este banco',
-    downloadAll: 'Baixar todos os bancos (.zip)',
-    restoreAll: 'Restaurar todos os bancos',
+    downloadAll: 'Baixar bancos SysEx (.zip)',
+    restoreAll: 'Redefinir para sons de fábrica…',
     sending: 'Enviando…',
     send: 'Enviar ao FM1',
     bank: 'Banco {{bank}}',
@@ -597,13 +598,13 @@ export default {
     sentStatus: 'O banco {{bank}} foi enviado. Escolha o destino no FM1.',
     notSent: 'O banco não foi enviado. Abra o registro MIDI e tente novamente.',
     importFailed: 'Falha na importação.',
-    restoreFailed: 'Não foi possível restaurar os bancos de fábrica. Tente novamente.',
+    restoreFailed: 'Não foi possível redefinir os bancos com os sons de fábrica. Tente novamente.',
     bankUnavailable:
       'Esse banco de trabalho não está mais disponível. Feche esta caixa de diálogo e tente novamente.',
     catalogUnavailable:
       'Não foi possível baixar esse banco de sons. Verifique sua conexão e tente novamente.',
     fileErrors: {
-      size: 'Este arquivo tem {{bytes}} bytes. Um arquivo de banco DX7 deve ter exatamente 4.104 bytes.',
+      size: 'Este arquivo tem {{bytes, number}} bytes. Um arquivo de banco DX7 deve ter exatamente {{expected, number}} bytes.',
       format: 'Este arquivo não é um banco Yamaha DX7 de 32 vozes.',
       damaged: 'Este arquivo parece estar danificado. Tente baixá-lo novamente.',
       voiceFormat:
@@ -681,8 +682,8 @@ export default {
     editDetails: 'Editar detalhes',
     update: 'Atualizar detalhes',
     savedBanks: 'Bancos salvos',
-    count: '{{count}} banco salvo',
-    count_other: '{{count}} bancos salvos',
+    count: '{{count, number}} banco salvo',
+    count_other: '{{count, number}} bancos salvos',
     search: 'Pesquisar bancos salvos',
     loading: 'Carregando bancos salvos…',
     empty: 'Ainda não há bancos com nome. Salve o banco de trabalho selecionado para criar um.',
@@ -710,5 +711,52 @@ export default {
     copied: '“{{name}}” criado.',
     deleted: '“{{name}}” excluído.',
     loaded: '“{{name}}” carregado em “{{bank}}”.',
+  },
+  backup: {
+    menuSysex: 'Para outras ferramentas DX7',
+    sysexContents: 'Só dados DX7, sem efeitos FM1',
+    menuHeading: 'Backup completo',
+    download: 'Baixar backup',
+    restore: 'Restaurar de um backup…',
+    backupContents: 'Inclui efeitos FM1',
+    lastBackup: 'Último backup: {{date}}',
+    downloaded: 'Baixando um backup dos seus bancos de trabalho e bancos salvos.',
+    downloadedWithoutSavedBanks:
+      'Baixando um backup dos seus bancos de trabalho. Não foi possível ler os bancos salvos, então eles não estão incluídos.',
+    downloadedWithoutDamaged:
+      'Baixando um backup. Alguns bancos salvos não puderam ser lidos, então não estão incluídos.',
+    unavailable: 'Não foi possível abrir os backups. Recarregue a página e tente novamente.',
+    unavailableUnsaved:
+      'Não foi possível preparar o backup. Mantenha esta aba aberta, porque suas últimas alterações não estão salvas, e tente novamente.',
+    restoreTitle: 'Restaurar de um backup',
+    restoreIntro: 'Escolha um arquivo criado com Baixar backup. Nada muda até você confirmar.',
+    chooseFile: 'Escolher um arquivo de backup',
+    reading: 'Lendo o backup…',
+    backedUpAt: 'Data do backup',
+    workspaceBanks: 'Bancos de trabalho',
+    patches: 'Sons',
+    savedBanks: 'Bancos salvos',
+    toAdd: 'Serão adicionados',
+    alreadyHere: 'Já existem, mantidos',
+    unreadable: 'Ilegíveis',
+    workspaceEffect:
+      'Seus bancos de trabalho e todos os seus sons são substituídos pelos do backup. Desfazer na notificação seguinte os traz de volta.',
+    savedBanksEffect:
+      'Os bancos salvos só são adicionados. Um que já esteja neste navegador fica como está, e Desfazer não remove os adicionados.',
+    restoreAction: 'Restaurar backup',
+    restoring: 'Restaurando…',
+    restored: 'O backup de {{date}} foi restaurado.',
+    errors: {
+      format:
+        'Este arquivo não é um backup deste app. Escolha um arquivo .json criado com Baixar backup.',
+      newer:
+        'Este backup foi criado por uma versão mais nova do app. Recarregue a página para atualizá-lo e tente novamente.',
+      damaged:
+        'Este backup está danificado e não pode ser restaurado. Tente outro arquivo de backup.',
+      size: 'Este arquivo é grande demais para ser um backup deste app.',
+      read: 'Não foi possível ler o arquivo. Escolha-o de novo.',
+      savedBanksFailed:
+        'O armazenamento do navegador não conseguiu guardar os bancos salvos deste backup, então seus bancos de trabalho não mudaram. Tente novamente.',
+    },
   },
 } as const

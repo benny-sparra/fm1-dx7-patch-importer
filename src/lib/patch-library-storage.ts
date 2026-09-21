@@ -308,6 +308,21 @@ export async function saveStoredNamedBank(bank: NamedBank) {
   }
 }
 
+/**
+ * Adds a saved bank only when no record has its id, so it can never overwrite one, including a
+ * damaged record the saved-bank list hides. Returns whether it was added.
+ */
+export async function addStoredNamedBank(bank: NamedBank) {
+  validateNamedBank(bank)
+  try {
+    await runTransaction<IDBValidKey>(namedBankStoreName, 'readwrite', (store) => store.add(bank))
+    return true
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'ConstraintError') return false
+    throw asStorageError(error, 'write-failed', 'The bank could not be saved.')
+  }
+}
+
 export async function deleteStoredNamedBank(id: string) {
   if (!id) throw new Error('A saved bank ID is required.')
   try {

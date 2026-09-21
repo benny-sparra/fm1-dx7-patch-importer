@@ -32,14 +32,14 @@ describe('RestoreFactoryBanksDialog', () => {
     render(<RestoreFactoryBanksDialog dialogRef={dialogRef} onRestore={onRestore} />)
     dialogRef.current?.showModal()
 
-    await user.click(screen.getByRole('button', { name: 'Restore four banks' }))
+    await user.click(screen.getByRole('button', { name: 'Reset four banks' }))
 
     expect(screen.getByRole('alert').textContent).toBe(
-      'The factory banks could not be restored. Try again.',
+      'The banks could not be reset to the factory patches. Try again.',
     )
     expect(dialogRef.current?.open).toBe(true)
 
-    await user.click(screen.getByRole('button', { name: 'Restore four banks' }))
+    await user.click(screen.getByRole('button', { name: 'Reset four banks' }))
 
     expect(onRestore).toHaveBeenCalledTimes(2)
     expect(dialogRef.current?.open).toBe(false)
@@ -58,8 +58,8 @@ describe('RestoreFactoryBanksDialog', () => {
     render(<RestoreFactoryBanksDialog dialogRef={dialogRef} onRestore={onRestore} />)
     dialogRef.current?.showModal()
 
-    await user.click(screen.getByRole('button', { name: 'Restore four banks' }))
-    expect(screen.getByRole('button', { name: 'Restoring…' })).toHaveProperty('disabled', true)
+    await user.click(screen.getByRole('button', { name: 'Reset four banks' }))
+    expect(screen.getByRole('button', { name: 'Resetting…' })).toHaveProperty('disabled', true)
     expect(onRestore).toHaveBeenCalledOnce()
 
     finishRestore()
@@ -76,8 +76,8 @@ describe('RestoreFactoryBanksDialog', () => {
     dialogRef.current?.showModal()
     translatePageText(container)
 
-    await user.click(screen.getByRole('button', { name: 'Restore four banks' }))
+    await user.click(screen.getByRole('button', { name: 'Reset four banks' }))
 
-    expect(screen.getByRole('button', { name: 'Restoring…' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Resetting…' })).toBeTruthy()
   })
 })

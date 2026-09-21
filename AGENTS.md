@@ -82,9 +82,11 @@ open everything an earlier release could have saved.
 
 - Treat every persisted shape as a public format: the IndexedDB database name, schema version,
   object store names, key paths, and record keys in `src/lib/patch-library-storage.ts`; the
-  versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; and
-  `localStorage` keys such as `fm1-language`, `fm1-colourway`, and the MIDI port and help-dialog
-  keys. Do not rename, remove, or repurpose any of them.
+  versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
+  backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
+  versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
+  `fm1-colourway`, `fm1-last-backup`, and the MIDI port and help-dialog keys. Do not rename,
+  remove, or repurpose any of them.
 - Changing a stored shape means bumping its record `version` and adding an upgrade path that reads
   every earlier version. Never drop support for an old version, and never reuse a version number for
   a different shape.
@@ -161,7 +163,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the piano keyboard dialog when **Keyboard** opens it, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the piano keyboard dialog when **Keyboard** opens it, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -192,8 +194,9 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 149 KiB gzip budget; raising it needs
-  explicit approval, as the drag-to-bank copy's raise from 148 KiB had.
+  Dynamic imports are excluded. Do not weaken or bypass the 151 KiB gzip budget; raising it needs
+  explicit approval, as the drag-to-bank copy's raise from 148 KiB and workspace backup's raise
+  from 149 KiB had.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
 
 ### Privacy, monitoring, and deployment security
@@ -287,8 +290,13 @@ open everything an earlier release could have saved.
 - Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.
-- A library change that replaces or removes sounds (deleting a bank, restoring factory banks,
-  importing or loading over a bank, copying a sound over a slot) offers Undo in its notification through `undoToastOptions`, and a
+- **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
+  `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
+  and nothing else, which is why putting the factory banks back is **Reset to factory patches**.
+  Restoring replaces the workspace, which Undo reverses, and only adds saved banks, never
+  overwriting a stored one (`addStoredNamedBank`), because Undo cannot reach saved banks.
+- A library change that replaces or removes sounds (deleting a bank, resetting to factory banks,
+  restoring a backup, importing or loading over a bank, copying a sound over a slot) offers Undo in its notification through `undoToastOptions`, and a
   notification with an action stays up for 10 seconds. The
   undo applies only while that change is still the latest (`undoChange`), and a dialog must not
   promise an undo the app does not offer. The editor reads its voice only as it opens, so when a
