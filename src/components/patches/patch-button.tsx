@@ -5,7 +5,7 @@ import { GripVertical } from 'lucide-react'
 import { useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { type Patch } from '@/data/patches'
+import type { Patch } from '@/data/patches'
 import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
 import { patchSlotCode } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'

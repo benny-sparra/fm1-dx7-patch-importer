@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { DeviceSelect } from '@/components/midi/device-select'
-import { type MidiDevice, type MidiPort } from '@/lib/midi'
+import type { MidiDevice, MidiPort } from '@/lib/midi'
 
 afterEach(cleanup)
 

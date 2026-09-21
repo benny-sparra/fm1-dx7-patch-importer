@@ -180,6 +180,11 @@ open everything an earlier release could have saved.
   into eagerly imported vendor chunks to make the entry filename smaller.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
   bundler-made chunk is expected, and the budget counts it because the entry imports it.
+- When every name taken from a module is a type, write `import type { A, B }`, not
+  `import { type A, type B }`. Under `verbatimModuleSyntax` the second form still emits
+  `import '…'`, which keeps the module in the chunk graph and can make Rolldown split shared code
+  out of the entry. `typescript/no-import-type-side-effects` enforces this; mixed value and type
+  imports keep their inline `type` specifiers.
 - Development and verification controls are gated where they are rendered, with a build-time
   constant such as `sentryVerificationEnabled`, so normal production builds leave them out.
 - A rejected optional chunk must be contained and recoverable; stale deployment chunks must not

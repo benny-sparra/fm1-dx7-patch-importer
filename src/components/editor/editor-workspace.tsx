@@ -28,7 +28,7 @@ import {
   resolveOperatorParameterIndex,
   storedToDisplayValue,
 } from '@/lib/fm1-parameters'
-import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
+import type { PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 

@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { PatchButton } from '@/components/patches/patch-button'
-import { type Patch } from '@/data/patches'
+import type { Patch } from '@/data/patches'
 
 afterEach(cleanup)
 

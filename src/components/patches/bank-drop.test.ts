@@ -1,4 +1,4 @@
-import { type ClientRect, type CollisionDetection, type DroppableContainer } from '@dnd-kit/core'
+import type { ClientRect, CollisionDetection, DroppableContainer } from '@dnd-kit/core'
 import { describe, expect, it } from 'vitest'
 
 import { bankDropId, droppedBank, patchDragCollision } from './bank-drop'

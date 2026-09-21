@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { type MidiLogEntry } from '@/lib/midi'
+import type { MidiLogEntry } from '@/lib/midi'
 import { formatMidiHexRows, makeMidiLogFile } from '@/lib/midi-log-file'
 
 function entry(

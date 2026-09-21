@@ -13,9 +13,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
-import { type Patch } from '@/data/patches'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
-import { type Dx7Voice } from '@/lib/dx7'
+import type { Patch } from '@/data/patches'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
+import type { Dx7Voice } from '@/lib/dx7'
 import { Dx7VoiceFileError, readDx7VoiceFile } from '@/lib/dx7-voice-file'
 import { patchSlotCode, type PatchLibrarySnapshot } from '@/lib/patch-library'
 import { sysexFileAccept } from '@/lib/sysex-file'

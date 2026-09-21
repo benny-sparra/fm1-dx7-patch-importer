@@ -1,6 +1,6 @@
-import { type PatchLibrary } from '@/hooks/use-patch-library'
-import { type NamedBank } from '@/lib/named-bank'
-import { type PatchLibrarySnapshot } from '@/lib/patch-library'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
+import type { NamedBank } from '@/lib/named-bank'
+import type { PatchLibrarySnapshot } from '@/lib/patch-library'
 
 export type NamedBankLibraryDialogProps = {
   destinationBank: string

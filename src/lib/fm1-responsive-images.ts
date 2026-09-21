@@ -2,7 +2,7 @@ import synth240 from '@/assets/generated/fm1-synth-240.webp'
 import synth360 from '@/assets/generated/fm1-synth-360.webp'
 import synth500 from '@/assets/fm1-synth.webp'
 
-import { type ResponsiveImage } from './responsive-image'
+import type { ResponsiveImage } from './responsive-image'
 
 export const fm1SynthImage = {
   height: 477,

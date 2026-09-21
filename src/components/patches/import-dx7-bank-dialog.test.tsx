@@ -6,11 +6,11 @@ import { createRef } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { ToastProvider } from '@/components/ui/toast'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { setLocale } from '@/i18n'
 import german from '@/i18n/locales/de'
 import { Dx7BankFileError } from '@/lib/dx7'
-import { type PatchLibrarySnapshot } from '@/lib/patch-library'
+import type { PatchLibrarySnapshot } from '@/lib/patch-library'
 
 import { ImportDx7BankDialog } from './import-dx7-bank-dialog'
 

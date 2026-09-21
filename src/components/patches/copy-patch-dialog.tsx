@@ -13,8 +13,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
-import { type Patch } from '@/data/patches'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { Patch } from '@/data/patches'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { dx7BankVoiceCount } from '@/lib/dx7'
 import { patchSlotCode, type PatchLibrarySnapshot } from '@/lib/patch-library'
 import { resolveGridKey } from '@/lib/patch-grid-navigation'

@@ -2,7 +2,7 @@ import { AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 
 type PersistenceLibrary = Pick<
   PatchLibrary,

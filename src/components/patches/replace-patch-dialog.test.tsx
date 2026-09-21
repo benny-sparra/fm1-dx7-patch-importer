@@ -4,7 +4,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { type Patch } from '@/data/patches'
+import type { Patch } from '@/data/patches'
 import { setLocale } from '@/i18n'
 import { makeDx7VoiceFile } from '@/lib/dx7-voice-file'
 import { makeDemoVoices } from '@/lib/patch-library'

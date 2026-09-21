@@ -1,4 +1,4 @@
-import { type MidiLogEntry } from '@/lib/midi'
+import type { MidiLogEntry } from '@/lib/midi'
 
 const hexBytesPerRow = 16
 

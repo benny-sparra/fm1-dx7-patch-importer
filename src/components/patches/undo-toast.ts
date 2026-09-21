@@ -1,7 +1,7 @@
 import type { TFunction } from 'i18next'
 
-import { type PatchLibrary } from '@/hooks/use-patch-library'
-import { type PatchLibrarySnapshot } from '@/lib/patch-library'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
+import type { PatchLibrarySnapshot } from '@/lib/patch-library'
 
 /**
  * The Undo button for the notification after a library change that replaced or removed sounds.

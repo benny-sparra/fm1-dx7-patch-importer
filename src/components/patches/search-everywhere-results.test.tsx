@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { type ComponentProps } from 'react'
+import type { ComponentProps } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'

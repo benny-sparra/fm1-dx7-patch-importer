@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
-import { type MidiController } from '@/hooks/use-midi'
+import type { MidiController } from '@/hooks/use-midi'
 import { translatePageText } from '@/test/page-translator'
 
 afterEach(cleanup)

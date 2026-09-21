@@ -1,4 +1,4 @@
-import { type PatchLibrarySnapshot } from '@/lib/patch-library'
+import type { PatchLibrarySnapshot } from '@/lib/patch-library'
 import {
   PatchLibraryStorageError,
   type PatchLibraryStorageErrorCode,

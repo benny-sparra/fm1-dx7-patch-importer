@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 
 import { WorkspacePersistenceStatus } from './workspace-persistence-status'
 

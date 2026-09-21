@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { ToastProvider } from '@/components/ui/toast'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { setLocale } from '@/i18n'
 import german from '@/i18n/locales/de'
 

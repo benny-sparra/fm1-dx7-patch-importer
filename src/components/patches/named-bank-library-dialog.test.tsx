@@ -6,7 +6,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import { NamedBankLibraryDialog } from '@/components/patches/named-bank-library-dialog'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { downloadFile } from '@/lib/download-file'
 import { createNamedBank } from '@/lib/named-bank'
 import {

@@ -6,8 +6,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import { type MidiController } from '@/hooks/use-midi'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { MidiController } from '@/hooks/use-midi'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { reloadPage } from '@/lib/reload-page'
 
 import { LibrarianPage } from './librarian-page'

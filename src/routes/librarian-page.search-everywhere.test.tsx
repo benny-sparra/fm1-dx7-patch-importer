@@ -6,9 +6,9 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import { type MidiController } from '@/hooks/use-midi'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
-import { type Dx7Voice } from '@/lib/dx7'
+import type { MidiController } from '@/hooks/use-midi'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
+import type { Dx7Voice } from '@/lib/dx7'
 import { makeDemoVoices, type PatchLibrarySnapshot } from '@/lib/patch-library'
 
 import { LibrarianPage } from './librarian-page'

@@ -26,7 +26,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
-import { type Patch } from '@/data/patches'
+import type { Patch } from '@/data/patches'
 import { formatShortcut, isApplePlatform, librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { resolveGridKey } from '@/lib/patch-grid-navigation'
 import { cn } from '@/lib/utils'
