@@ -56,6 +56,7 @@ async function openFailingCopyDialog() {
         midi={{ hasMidiOutput: false } as unknown as MidiController}
         onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
+        onPlaySearchResult={vi.fn()}
         onSelectPatch={vi.fn()}
       />
     </ToastProvider>,

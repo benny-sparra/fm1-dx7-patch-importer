@@ -616,9 +616,9 @@ export default {
     bulkExportFailed: 'Error de exportación masiva.',
     gridTitle: 'Bancos de sonidos',
     gridDescription: 'Importa, edita y organiza cada banco local antes de transferirlo al FM1.',
-    search: 'Buscar en todos los bancos',
+    search: 'Buscar',
     noMatches: 'Ningún sonido coincide con la búsqueda',
-    searchResults: 'Resultados de búsqueda',
+    searchResults: 'Resultados de búsqueda: «{{search}}»',
     sendFromSearch: 'Elige un banco para enviarlo al FM1',
     bankEmpty: 'Este banco del navegador está vacío',
     emptyHelp:
@@ -640,6 +640,8 @@ export default {
     copyTargetSlot: 'Ranura',
     copyReplaces: 'Esto reemplaza «{{name}}» en {{slot}}. Puedes deshacer esta acción.',
     copyAction: 'Reemplazar {{slot}}',
+    copyAndEditAction: 'Reemplazar {{slot}} y editar',
+    copyToEditHint: 'Para editar este sonido, cópialo en uno de tus bancos.',
     copyFailed: 'No se pudo copiar el sonido.',
     addBankOpenFailed:
       'No se pudieron abrir las opciones del nuevo banco. Recarga la página e inténtalo de nuevo.',
@@ -649,6 +651,21 @@ export default {
     downloadPatchFile: 'Descargar sonido',
     patchFileUnavailable:
       'No se pudieron abrir los archivos de sonido. Recarga la página e inténtalo de nuevo.',
+    everywhere: {
+      workspace: 'Tus bancos de sonidos',
+      savedBanks: 'Bancos guardados',
+      catalog: 'Otros bancos de sonidos DX7',
+      play: 'Escuchar {{name}} de {{origin}}',
+      playTitle:
+        'Haz clic para escuchar {{name}} a través del búfer de edición del FM1; doble clic para copiarlo y editarlo',
+      copy: 'Copiar {{name}} a un banco del espacio de trabajo',
+      truncated:
+        'Se muestran los primeros {{shown}} de {{total}} resultados. Escribe más para acotar la búsqueda.',
+      loading: 'Buscando en otros bancos de sonidos DX7…',
+      loadFailed:
+        'No se pudo buscar en los bancos guardados ni en otros bancos de sonidos DX7. Recarga la página e inténtalo de nuevo.',
+      playFailed: 'No se pudo reproducir el sonido.',
+    },
   },
   namedBanks: {
     open: 'Biblioteca de bancos',
