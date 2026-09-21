@@ -356,6 +356,12 @@ open everything an earlier release could have saved.
     jsdom cannot evaluate the media query.
   - A new error a user can hit gets a test that it reaches the UI as translated text, not a raw
     message.
+  - A browser journey that needs MIDI installs the fake FM-1 from `e2e/fake-midi.ts` before the page
+    loads and asserts the bytes it recorded. Wait for the editor to be live (its back button is
+    enabled) before editing, or the edit resends the whole voice rather than one parameter.
+  - A dialog that opens itself and focuses a field in an animation frame makes that frame run at
+    once in its test, as `named-bank-library-dialog.test.tsx` does, so the focus cannot select the
+    field part-way through typing.
 - Run a focused test while developing, then run the complete validation before handoff.
 
 ## Validation

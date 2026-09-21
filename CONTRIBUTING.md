@@ -46,8 +46,10 @@ JavaScript budget. It does not contact the npm registry. GitHub Actions runs the
 pushes to `main` and on pull requests.
 
 The separate browser-journey job uses Playwright and a production preview to cover IndexedDB
-persistence, editor loading, DX7 import validation, downloads, keyboard reordering, and narrow
-viewport controls. Every journey runs in both Chromium and Firefox. Install their runtimes once
+persistence, editor loading, DX7 import validation, downloads, keyboard reordering, pointer drags,
+MIDI transfers, and narrow viewport controls. Journeys that send MIDI use `installFakeMidi` from
+`e2e/fake-midi.ts`, a stand-in FM-1 that records the bytes it receives, so they need no hardware or
+permission prompt. Every journey runs in both Chromium and Firefox. Install their runtimes once
 locally, then run it with:
 
 ```bash
