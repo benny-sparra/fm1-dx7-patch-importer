@@ -52,9 +52,9 @@ function App() {
   // Held here rather than in the editor, which remounts for each sound, so an operator copied in
   // one sound can be pasted into another. It is never stored.
   const [copiedOperator, setCopiedOperator] = useState<CopiedOperator | null>(null)
-  // What the last added-bank audition put in the FM1 edit buffer, so clicking the same unchanged
-  // sound again, as a double-click does, does not send it twice. Anything else that replaces the
-  // edit buffer clears it.
+  // What the last edit-buffer audition put in the FM1, from an added bank or a search result, so
+  // clicking the same unchanged sound again, as a double-click does, does not send it twice.
+  // Anything else that replaces the edit buffer clears it.
   const editBufferAudition = useRef<{
     effects: Uint8Array | undefined
     outputId: string
@@ -76,8 +76,11 @@ function App() {
       return
     }
     const voice = library.voices[patch.id]
-    if (!voice) return
-    const storedEffects = library.effects[patch.id]
+    if (voice) auditionInEditBuffer(voice, library.effects[patch.id])
+  }
+  // Sends a sound to the FM1 edit buffer with its effects. A sound without effects, such as one
+  // from the catalog, gets the defaults, so it does not play through the previous sound's effects.
+  const auditionInEditBuffer = (voice: Dx7Voice, storedEffects: Uint8Array | undefined) => {
     const previous = editBufferAudition.current
     if (
       previous?.voice === voice &&
@@ -102,6 +105,11 @@ function App() {
     if (!patch) return
     auditionPatch(patch)
     setAuditionedPatchId(patch.id)
+  }
+  // A search result from outside the workspace has no slot, so no slot stays lit for it.
+  const playSearchResult = (voice: Dx7Voice, effects: Uint8Array | undefined) => {
+    auditionInEditBuffer(voice, effects)
+    setAuditionedPatchId('')
   }
   const editPatch = (patchId: string) => {
     const patch = findPatch(patchId)
@@ -190,7 +198,9 @@ function App() {
               library={library}
               midi={midi}
               onBankDeleted={forgetRenumberedAudition}
+              onCloseEditor={closeEditor}
               onEditPatch={(patch) => editPatch(patch.id)}
+              onPlaySearchResult={playSearchResult}
               onSelectPatch={(patch) => selectPatch(patch.id)}
               view={librarianView}
             />

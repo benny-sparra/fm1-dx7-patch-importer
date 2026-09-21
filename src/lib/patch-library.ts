@@ -278,21 +278,24 @@ export function copyVoice(
 }
 
 /**
- * Puts a voice read from a file over a slot. A DX7 voice file carries no FM1 effects, so the slot's
- * effects return to their defaults, as they do when a bank is imported.
+ * Puts a voice from outside the workspace over a slot: one read from a file, or found in a saved
+ * bank or the catalog. The slot gets its own copy of the voice and effects. A DX7 voice file
+ * carries no FM1 effects, so without `effects` the slot's effects return to their defaults, as they
+ * do when a bank is imported.
  */
 export function replaceVoice(
   snapshot: PatchLibrarySnapshot,
   bank: string,
   slot: number,
   voice: Dx7Voice,
+  effects?: Uint8Array,
 ): PatchLibrarySnapshot {
   assertReplaceableSlot(snapshot, bank, slot)
   const id = voiceId(bank, slot)
   return {
     ...snapshot,
-    effects: { ...snapshot.effects, [id]: makeDefaultFm1Effects() },
-    voices: { ...snapshot.voices, [id]: voice },
+    effects: { ...snapshot.effects, [id]: normalizeFm1Effects(effects) },
+    voices: { ...snapshot.voices, [id]: { ...voice, data: voice.data.slice() } },
   }
 }
 
@@ -356,12 +359,17 @@ const slotCodeQuery = /^([a-z])0?(\d{1,2})$/
  * Matches a patch by name, or by its slot code when the whole query is one. A lone letter is part of
  * a name rather than a bank, so it does not list every patch in that bank.
  */
+/** Whether a patch name contains the search, ignoring case and surrounding spaces. */
+export function patchNameMatchesSearch(name: string, search: string) {
+  return name.toLowerCase().includes(search.trim().toLowerCase())
+}
+
 export function patchMatchesSearch(patch: Pick<Patch, 'bank' | 'name' | 'number'>, search: string) {
   const query = search.trim().toLowerCase()
   if (!query) return true
   const code = slotCodeQuery.exec(query)
   if (code && code[1] === patch.bank.toLowerCase() && Number(code[2]) === patch.number) return true
-  return patch.name.toLowerCase().includes(query)
+  return patchNameMatchesSearch(patch.name, query)
 }
 
 export function getBankVoices(snapshot: PatchLibrarySnapshot, bank: string) {

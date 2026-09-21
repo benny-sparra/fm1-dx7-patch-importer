@@ -38,6 +38,11 @@ type PatchGridProps = {
   activePatchId?: string
   actions?: ReactNode
   bankLabel?: (bank: string) => string
+  /**
+   * Results from outside the workspace, shown below its slots. While there are any, the workspace
+   * slots take `resultsHeading` and an empty workspace shows nothing rather than "no matches".
+   */
+  extraResults?: ReactNode
   headerActions?: ReactNode
   isBankLoaded?: boolean
   isPatchDisabled?: (patch: Patch) => boolean
@@ -54,6 +59,7 @@ type PatchGridProps = {
   patches: Patch[]
   /** Off while the grid shows slots from several banks, which cannot be reordered together. */
   reorderable?: boolean
+  resultsHeading?: string
   search: string
   searchDisabled?: boolean
   searchRef?: RefObject<HTMLInputElement | null>
@@ -77,6 +83,7 @@ export function PatchGrid({
   activePatchId = '',
   actions,
   bankLabel = (bank) => bank,
+  extraResults,
   headerActions,
   isBankLoaded = true,
   isPatchDisabled = () => false,
@@ -91,6 +98,7 @@ export function PatchGrid({
   onLoadDemoBank,
   patches,
   reorderable = true,
+  resultsHeading,
   search,
   searchDisabled = false,
   searchRef,
@@ -219,6 +227,11 @@ export function PatchGrid({
               )}
             >
               <div className="relative z-10">
+                {patches.length > 0 && resultsHeading ? (
+                  <h3 className="font-dot-matrix mb-2 text-[13px] font-bold tracking-[0.1em] text-[var(--crt-acc-lt)] uppercase">
+                    {resultsHeading}
+                  </h3>
+                ) : null}
                 {patches.length > 0 ? (
                   <SortableContext
                     items={patches.map((patch) => patch.id)}
@@ -228,6 +241,7 @@ export function PatchGrid({
                       {patches.map((patch) => (
                         <div className="h-full w-full" key={patch.id}>
                           <PatchButton
+                            bankName={reorderable ? undefined : bankLabel(patch.bank)}
                             disabled={isPatchDisabled(patch)}
                             disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
                             onCopy={onPatchCopy}
@@ -246,7 +260,7 @@ export function PatchGrid({
                       ))}
                     </div>
                   </SortableContext>
-                ) : (
+                ) : extraResults ? null : (
                   <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
                     <div className="max-w-md">
                       <FileMusic className="mx-auto size-10 text-[var(--crt-acc-dim)]" />
@@ -279,6 +293,7 @@ export function PatchGrid({
                     </div>
                   </div>
                 )}
+                {extraResults}
               </div>
             </CardContent>
           </div>

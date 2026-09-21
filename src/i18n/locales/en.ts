@@ -607,9 +607,9 @@ export default {
     gridTitle: 'Patch banks',
     gridDescription:
       'Import, edit, and arrange each local browser bank before transferring it to the FM1.',
-    search: 'Search all banks',
+    search: 'Search',
     noMatches: 'No patches match this search',
-    searchResults: 'Search results',
+    searchResults: 'Search results: “{{search}}”',
     sendFromSearch: 'Choose a bank to send it to the FM1',
     bankEmpty: 'This browser bank is empty',
     emptyHelp:
@@ -630,12 +630,29 @@ export default {
     copyTargetSlot: 'Slot',
     copyReplaces: 'This replaces “{{name}}” in {{slot}}. You can undo this action.',
     copyAction: 'Replace {{slot}}',
+    copyAndEditAction: 'Replace {{slot}} and edit',
+    copyToEditHint: 'To edit this patch, copy it into one of your banks.',
     copyFailed: 'The patch could not be copied.',
     addBankOpenFailed: 'The new bank options could not be opened. Reload the page and try again.',
     copyOpenFailed: 'The copy options could not be opened. Reload the page and try again.',
     importPatchFile: 'Import patch…',
     downloadPatchFile: 'Download patch',
     patchFileUnavailable: 'Patch files could not be opened. Reload the page and try again.',
+    everywhere: {
+      workspace: 'Your patch banks',
+      savedBanks: 'Saved banks',
+      catalog: 'Other DX7 patch banks',
+      play: 'Play {{name}} from {{origin}}',
+      playTitle:
+        'Click to play {{name}} through the FM1 edit buffer; double-click to copy and edit',
+      copy: 'Copy {{name}} to a workspace bank',
+      truncated:
+        'Showing the first {{shown}} of {{total}} matches. Type more to narrow the search.',
+      loading: 'Searching other DX7 patch banks…',
+      loadFailed:
+        'Saved banks and other DX7 patch banks could not be searched. Reload the page and try again.',
+      playFailed: 'The patch could not be played.',
+    },
   },
   namedBanks: {
     open: 'Bank library',

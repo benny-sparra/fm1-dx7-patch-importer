@@ -161,7 +161,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the piano keyboard dialog when **Keyboard** opens it, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the piano keyboard dialog when **Keyboard** opens it, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -171,6 +171,11 @@ open everything an earlier release could have saved.
   dialog lazy no longer frees headroom: Rolldown moves the code it shares with the entry into new
   shared chunks, which the entry still loads, and compressing them separately costs as much as the
   dialog saved. Measure with `npm run bundle:check` before and after any such move.
+- When every name taken from a module is a type, write `import type { … }`, not `import { type … }`,
+  in lazily loaded code and in eager code that names a lazy module. Under `verbatimModuleSyntax` the
+  second form still imports the module for its side effects: eager code pulls the lazy module into
+  the entry, and a lazy chunk that pulls in modules the entry shares can make Rolldown split them
+  out of the entry. The saved-bank and catalog search once cost 1.5 KiB of the budget this way.
 - Prefer source-level `import()` at genuine interaction or data boundaries. Do not move initial code
   into eagerly imported vendor chunks to make the entry filename smaller.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
@@ -234,10 +239,9 @@ open everything an earlier release could have saved.
 - `src/data/dx7-bank-catalog.ts` lists the bank files in `public/dx7-banks/`. Adding, removing, or
   replacing a bank changes both in the same change, together with the bank count and sources in the
   README.
-- Catalog search is planned to read a generated patch-name index rather than the bank files (see
-  **Search everywhere** in `docs/feature-backlog.md`). Once it exists, regenerate the index whenever
-  a bank is added, removed, or replaced; its check in `npm run check` fails when it is stale. Until
-  then there is no index to update.
+- Catalog search reads the patch names from `src/data/dx7-catalog-index.json` rather than the bank
+  files. Run `npm run catalog:index` whenever a bank is added, removed, or replaced;
+  `src/data/dx7-catalog-index.test.ts` fails in `npm test` while the index is stale.
 
 ### Theme and finishes
 
@@ -287,7 +291,9 @@ open everything an earlier release could have saved.
   importing or loading over a bank, copying a sound over a slot) offers Undo in its notification through `undoToastOptions`, and a
   notification with an action stays up for 10 seconds. The
   undo applies only while that change is still the latest (`undoChange`), and a dialog must not
-  promise an undo the app does not offer.
+  promise an undo the app does not offer. The editor reads its voice only as it opens, so when a
+  change opens the editor on the slot it replaced, as copying a search result to edit it does, its
+  Undo closes the editor before reverting (the `beforeUndo` of `undoToastOptions`).
 - Continuous input is one undo step. Start a gesture on pointer down or key down and end it on
   pointer up, key up, and blur, as the sliders, knobs, and envelope points do. A preset or randomise
   that writes many parameters is also one step.

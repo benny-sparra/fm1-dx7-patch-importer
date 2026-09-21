@@ -84,6 +84,7 @@ function renderLibrarianPage(props: Partial<ComponentProps<typeof LibrarianPage>
         midi={midi}
         onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
+        onPlaySearchResult={vi.fn()}
         onSelectPatch={vi.fn()}
         {...props}
       />
@@ -106,7 +107,7 @@ describe('LibrarianPage bank selection', () => {
     expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'no match')
+    await user.type(screen.getByPlaceholderText('Search'), 'no match')
     expect(screen.getByText('No patches match this search')).toBeTruthy()
   })
 })
@@ -255,6 +256,7 @@ describe('LibrarianPage transfer analytics', () => {
           midi={{ ...blockedMidi, sysexAvailable: true }}
           onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
+          onPlaySearchResult={vi.fn()}
           onSelectPatch={vi.fn()}
         />
       </ToastProvider>,
@@ -274,7 +276,7 @@ describe('LibrarianPage keyboard shortcuts', () => {
     const onEditPatch = overrides.onEditPatch ?? vi.fn()
     renderLibrarianPage({ activePatchId: overrides.activePatchId ?? '', onEditPatch })
 
-    return { onEditPatch, search: screen.getByPlaceholderText('Search all banks') }
+    return { onEditPatch, search: screen.getByPlaceholderText('Search') }
   }
 
   it('focuses the search field on the slash shortcut', async () => {
@@ -518,7 +520,7 @@ describe('LibrarianPage search', () => {
     const user = userEvent.setup()
     renderLibrarianPage()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'a01')
+    await user.type(screen.getByPlaceholderText('Search'), 'a01')
 
     expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
   })
@@ -537,7 +539,7 @@ describe('LibrarianPage search', () => {
   it('finds a patch in a bank other than the one shown', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
 
     expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
@@ -546,7 +548,7 @@ describe('LibrarianPage search', () => {
   it('lists matches from every bank in bank order', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'a')
+    await user.type(screen.getByPlaceholderText('Search'), 'a')
 
     const results = screen.getAllByRole('button', { name: /^Send .* to FM1$/ })
     expect(results.map((button) => button.getAttribute('aria-label'))).toEqual([
@@ -559,27 +561,27 @@ describe('LibrarianPage search', () => {
     const onSelectPatch = vi.fn()
     const user = renderLibrarian({ onSelectPatch })
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
     await user.click(screen.getByRole('button', { name: 'Send Beta Bass to FM1' }))
 
     expect(onSelectPatch).toHaveBeenCalledExactlyOnceWith(library.patches[1])
-    expect((screen.getByPlaceholderText('Search all banks') as HTMLInputElement).value).toBe('bass')
+    expect((screen.getByPlaceholderText('Search') as HTMLInputElement).value).toBe('bass')
     expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
   })
 
   it('leaves out banks that have nothing loaded', async () => {
     const user = renderLibrarian({ library: { ...library, loadedBanks: ['A'] } as PatchLibrary })
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
+    await user.type(screen.getByPlaceholderText('Search'), 'beta')
 
     expect(screen.queryByRole('button', { name: 'Send Beta Bass to FM1' })).toBeNull()
-    expect(screen.getByText('No patches match this search')).toBeTruthy()
+    expect(await screen.findByText('No patches match this search')).toBeTruthy()
   })
 
   it('searches from a bank that has nothing loaded', async () => {
     const user = renderLibrarian({ library: { ...library, loadedBanks: ['B'] } as PatchLibrary })
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
 
     expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
   })
@@ -587,43 +589,92 @@ describe('LibrarianPage search', () => {
   it('disables the search when no bank has anything loaded', () => {
     renderLibrarian({ library: { ...library, loadedBanks: [] } as unknown as PatchLibrary })
 
-    expect(screen.getByPlaceholderText('Search all banks').hasAttribute('disabled')).toBe(true)
+    expect(screen.getByPlaceholderText('Search').hasAttribute('disabled')).toBe(true)
   })
 
   it('names the grid as search results in place of the bank while searching', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
 
-    expect(screen.getByText('Search results')).toBeTruthy()
+    expect(screen.getByText('Search results: “bass”')).toBeTruthy()
     expect(isBankTitled('Studio Favourites')).toBe(false)
+  })
+
+  it('names the bank each result comes from', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'beta')
+
+    const slot = screen.getByRole('button', { name: 'Send Beta Bass to FM1' }).parentElement
+    expect(slot?.textContent).toContain('Electric Keys')
+  })
+
+  it('leaves the bank name off slots once the search is cleared', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'alpha')
+    await user.clear(screen.getByPlaceholderText('Search'))
+
+    const slot = screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }).parentElement
+    expect(slot?.textContent).not.toContain('Studio Favourites')
+  })
+
+  it('clears a result’s bank name after a page translator rewrites the text', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'alpha')
+    translatePageText(document.body)
+    await user.clear(screen.getByPlaceholderText('Search'))
+
+    const slot = screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }).parentElement
+    expect(slot?.textContent).toContain('Alpha Piano')
+    expect(slot?.textContent).not.toContain('Studio Favourites')
+  })
+
+  it('quotes the search without the spaces around it', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), '  bass ')
+
+    expect(screen.getByText('Search results: “bass”')).toBeTruthy()
+  })
+
+  it('quotes the search in the interface language', async () => {
+    await setLocale('de')
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Suchen'), 'bass')
+
+    expect(screen.getByText('Suchergebnisse: „bass“')).toBeTruthy()
+    await setLocale('en')
   })
 
   it('shows the bank again once the search is cleared', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
-    await user.clear(screen.getByPlaceholderText('Search all banks'))
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    await user.clear(screen.getByPlaceholderText('Search'))
 
-    expect(screen.queryByText('Search results')).toBeNull()
+    expect(screen.queryByText(/^Search results/)).toBeNull()
     expect(isBankTitled('Studio Favourites')).toBe(true)
   })
 
   it('keeps the bank name current after a page translator rewrites the text', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
     translatePageText(document.body)
-    await user.clear(screen.getByPlaceholderText('Search all banks'))
+    await user.clear(screen.getByPlaceholderText('Search'))
 
-    expect(screen.queryByText('Search results')).toBeNull()
+    expect(screen.queryByText(/^Search results/)).toBeNull()
     expect(isBankTitled('Studio Favourites')).toBe(true)
   })
 
   it('disables sending a bank while showing search results', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
 
     const send = screen.getByRole('button', { name: 'Send to FM1' })
     expect(send.hasAttribute('disabled')).toBe(true)
@@ -633,8 +684,8 @@ describe('LibrarianPage search', () => {
   it('enables sending again once the search is cleared', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
-    await user.clear(screen.getByPlaceholderText('Search all banks'))
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    await user.clear(screen.getByPlaceholderText('Search'))
 
     expect(screen.getByRole('button', { name: 'Send to FM1' }).hasAttribute('disabled')).toBe(false)
   })
@@ -642,7 +693,7 @@ describe('LibrarianPage search', () => {
   it('shows no bank as selected while showing search results', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
 
     expect(
       screen.getByRole('button', { name: 'A — Studio Favourites' }).getAttribute('aria-pressed'),
@@ -655,8 +706,8 @@ describe('LibrarianPage search', () => {
   it('selects the bank again once the search is cleared', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
-    await user.clear(screen.getByPlaceholderText('Search all banks'))
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    await user.clear(screen.getByPlaceholderText('Search'))
 
     expect(
       screen.getByRole('button', { name: 'A — Studio Favourites' }).getAttribute('aria-pressed'),
@@ -666,9 +717,9 @@ describe('LibrarianPage search', () => {
   it('returns to the bank of the last result played when the search is cleared', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
     await user.click(screen.getByRole('button', { name: 'Send Beta Bass to FM1' }))
-    await user.clear(screen.getByPlaceholderText('Search all banks'))
+    await user.clear(screen.getByPlaceholderText('Search'))
 
     expect(
       screen.getByRole('button', { name: 'B — Electric Keys' }).getAttribute('aria-pressed'),
@@ -686,7 +737,7 @@ describe('LibrarianPage search', () => {
     const user = renderLibrarian({ library: voicedLibrary })
 
     expect(screen.getByRole('button', { name: 'Reorder Alpha Piano' })).toBeTruthy()
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'a')
+    await user.type(screen.getByPlaceholderText('Search'), 'a')
 
     expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Reorder / })).toBeNull()
@@ -695,8 +746,8 @@ describe('LibrarianPage search', () => {
   it('offers reordering again once the search is cleared', async () => {
     const user = renderLibrarian({ library: voicedLibrary })
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'alpha')
-    await user.clear(screen.getByPlaceholderText('Search all banks'))
+    await user.type(screen.getByPlaceholderText('Search'), 'alpha')
+    await user.clear(screen.getByPlaceholderText('Search'))
 
     expect(screen.getByRole('button', { name: 'Reorder Alpha Piano' })).toBeTruthy()
   })
@@ -717,6 +768,7 @@ describe('LibrarianPage search', () => {
               midi={midi}
               onBankDeleted={vi.fn()}
               onEditPatch={vi.fn()}
+              onPlaySearchResult={vi.fn()}
               onSelectPatch={vi.fn()}
               view={view}
             />
@@ -727,21 +779,21 @@ describe('LibrarianPage search', () => {
     render(<EditorRoundTrip />)
     const user = userEvent.setup()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'bass')
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
     await user.click(screen.getByRole('button', { name: 'Toggle editor' }))
     await user.click(screen.getByRole('button', { name: 'Toggle editor' }))
 
-    expect((screen.getByPlaceholderText('Search all banks') as HTMLInputElement).value).toBe('bass')
+    expect((screen.getByPlaceholderText('Search') as HTMLInputElement).value).toBe('bass')
     expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
   })
 
   it('clears the search when a bank is chosen', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'alpha')
+    await user.type(screen.getByPlaceholderText('Search'), 'alpha')
     await user.click(screen.getByRole('button', { name: 'B — Electric Keys' }))
 
-    expect((screen.getByPlaceholderText('Search all banks') as HTMLInputElement).value).toBe('')
+    expect((screen.getByPlaceholderText('Search') as HTMLInputElement).value).toBe('')
     expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
     expect(
@@ -789,7 +841,7 @@ describe('LibrarianPage undo', () => {
   it('leaves the undo shortcut to the search field while typing', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search all banks'), 'Alp')
+    await user.type(screen.getByPlaceholderText('Search'), 'Alp')
     await user.keyboard('{Meta>}z{/Meta}')
 
     expect(library.undo).not.toHaveBeenCalled()

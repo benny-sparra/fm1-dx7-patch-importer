@@ -186,34 +186,32 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     the dialog's bank tabs.
   - Cover the drop in Playwright; jsdom cannot check dragging onto another element.
 
-- [ ] **Search everywhere.** Extend the librarian search beyond loaded workspace banks to saved banks
+- [x] **Search everywhere.** Extend the librarian search beyond loaded workspace banks to saved banks
       and the bundled catalog, and play a result through the FM1 edit buffer. This reverses the
       decision recorded under [Search across all banks](#nice-to-have): results that are not slots
       get their own grouping and actions, and the catalog is searched through a small generated
       index loaded on demand, so the initial bundle is unaffected.
-  - A **Workspace / Everywhere** switch keeps today's slot-only search as the default. Results are
-    grouped by source (workspace, saved banks, catalog); a non-workspace result shows its bank and
-    slot, such as "ROM1A · 07".
-  - Playing a non-workspace result sends it to the edit buffer through the same path and
-    duplicate-send guard as an added-bank slot (`auditionPatch` in `src/App.tsx`). A saved-bank
-    patch takes its stored FM1 effects; a catalog patch takes the default effects, so it does not
-    play through whatever the last patch left.
-  - A non-workspace result cannot be edited. **Copy to…**, and dropping it on a bank tab, put it in a
-    workspace slot with the existing confirmation and Undo; the editor only edits slots.
-  - Saved banks are read from IndexedDB when the search widens; a damaged one is skipped and
-    reported, as `listStoredNamedBanks` does.
-  - **Catalog index.** A generator script writes the patch names of every bank in
-    `public/dx7-banks/`, by catalog id and slot, with a `--check` mode added to `npm run check` and
-    the CI quality job, like `images:check`. It decodes names with the app's own voice-name
-    decoding, so results match the grid. Load it with `import()` on the first widened search: about
-    6 KB gzipped, against 73 KB for fetching all 39 bank files. Playing a result fetches only its
-    bank. In the same change, update the catalog rule in `AGENTS.md` to name the script.
-  - Open: whether to list identical voices once with their sources. A short voice hash in the index
-    (about 12 KB uncompressed) would allow it without fetching every bank, and overlaps with
-    [Find duplicate patches](#nice-to-have).
-  - Tests: the index check failing on a stale index, a widened search finding a catalog and a saved
-    patch, a catalog result sent with default effects, a damaged saved bank reported without hiding
-    the rest, a failed index load reaching the UI translated, and the switch's accessible name.
+  - Decided: every search looks everywhere; a toggle to widen it was built and dropped as
+    unnecessary. Matches in the user's own banks keep their slots under **Your patch banks**;
+    saved-bank and catalog matches follow under **Saved banks** and **Other DX7 patch banks**, 60 per
+    group until the search narrows. The search field is labelled just **Search**.
+  - A saved-bank result plays with its stored FM1 effects and a catalog result with the defaults,
+    through `auditionInEditBuffer` in `src/App.tsx` and its duplicate-send guard. Each search
+    caches the catalog banks it fetches, so a result played twice is the same voice object.
+  - **Copy to…** puts a result in a workspace slot through `replaceVoice`, with the existing
+    confirmation and Undo. Double-clicking a result, or Enter on the one just played, opens the
+    same dialog as **Replace … and edit** and then the editor on the copy, since a result has no slot
+    to edit. Dragging a result onto a bank tab is not built; add it if asked.
+  - The index is `src/data/dx7-catalog-index.json`, written by `npm run catalog:index`. Its check is
+    `src/data/dx7-catalog-index.test.ts`, a Vitest file snapshot that fails in `npm test` while the
+    index is stale, rather than a separate `--check` script. The results component, the search code,
+    and the index load on first use; the props and strings cost well under 1 KiB of the initial bundle.
+  - Still open: duplicates. A saved-bank or catalog result can be byte-for-byte the same voice as a
+    patch already in the user's banks, and the catalog repeats voices across banks. The proposal is
+    to hide exact copies (identical 128-byte voice data, not just the name), keep the first of
+    several catalog copies, keep same-name patches whose data differs, and say under the group how
+    many were not shown. The catalog index would carry a 53-bit voice fingerprint for this. Build it
+    together with [Find duplicate patches](#nice-to-have), which needs the same fingerprint.
 
 ## Nice to have
 

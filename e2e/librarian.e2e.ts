@@ -291,6 +291,6 @@ test('keeps the librarian controls usable on a narrow viewport', async ({ page }
   await page.setViewportSize({ height: 900, width: 412 })
   await openLibrarian(page)
 
-  await expect(page.getByLabel('Search all banks')).toBeVisible()
+  await expect(page.getByLabel('Search', { exact: true })).toBeVisible()
   await expect(page.getByAltText('M-VAVE FM1 synthesiser front panel')).toHaveCount(0)
 })

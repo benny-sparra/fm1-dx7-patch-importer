@@ -10,12 +10,22 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
-import { type ChangeEvent, lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  type ChangeEvent,
+  type ComponentProps,
+  lazy,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { undoToastOptions } from '@/components/patches/undo-toast'
 import { PatchGrid } from '@/components/patches/patch-grid'
+import type { SearchResultSound } from '@/components/patches/search-everywhere-results'
 import {
   WorkspaceBankSelector,
   type WorkspaceBankSelectorBank,
@@ -35,7 +45,7 @@ import {
   sentryVerificationEnabled,
 } from '@/components/sentry-verification-button'
 import { ErrorNotice } from '@/components/ui/error-notice'
-import { makeDx7BankFile } from '@/lib/dx7'
+import { makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   getNextWorkspaceBank,
@@ -82,6 +92,14 @@ const CopyPatchDialog = lazy(() =>
   })),
 )
 
+// Results from saved banks and the catalog load, with the catalog's patch names, once the search is
+// widened.
+const SearchEverywhereResults = lazy(() =>
+  import('@/components/patches/search-everywhere-results').then((module) => ({
+    default: module.SearchEverywhereResults,
+  })),
+)
+
 // Replacing a slot from a file opens from its menu, with the file reader, on first use.
 const ReplacePatchDialog = lazy(() =>
   import('@/components/patches/replace-patch-dialog').then((module) => ({
@@ -91,6 +109,16 @@ const ReplacePatchDialog = lazy(() =>
 
 type SavedBanksRequest = { bank: string; closeMenu: () => void; mode: 'load' | 'save' }
 
+/** A copy waiting for its dialog: what is copied, how, and the bank to open on. */
+type CopyRequest = {
+  bank?: string
+  copy: ComponentProps<typeof CopyPatchDialog>['onCopy']
+  /** Opens the editor on the copy, for a search result someone asked to edit. */
+  edit?: boolean
+  key: string
+  source: ComponentProps<typeof CopyPatchDialog>['source']
+}
+
 type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
 
 type LibrarianPageProps = {
@@ -99,7 +127,11 @@ type LibrarianPageProps = {
   midi: MidiController
   /** Called as a bank is deleted, before later banks move up a letter. */
   onBankDeleted: (bank: string) => void
+  /** Closes the editor, for an undo that removes the sound it was opened on. */
+  onCloseEditor?: () => void
   onEditPatch: (patch: Patch) => void
+  /** Plays a search result from a saved bank or the catalog through the FM1 edit buffer. */
+  onPlaySearchResult: (voice: Dx7Voice, effects: Uint8Array | undefined) => void
   onSelectPatch: (patch: Patch) => void
   /** Held by the app so the bank and search survive the editor; the page keeps its own without it. */
   view?: LibrarianView
@@ -110,7 +142,9 @@ export function LibrarianPage({
   library,
   midi,
   onBankDeleted,
+  onCloseEditor,
   onEditPatch,
+  onPlaySearchResult,
   onSelectPatch,
   view,
 }: LibrarianPageProps) {
@@ -125,9 +159,9 @@ export function LibrarianPage({
   // Explains a dialog whose chunk did not arrive, such as after a newer deployment replaced it.
   const [dialogLoadError, setDialogLoadError] = useState('')
   const [savedBanksRequest, setSavedBanksRequest] = useState<SavedBanksRequest | null>(null)
-  // The sound whose menu chose Copy, or that was dropped on a bank's tab, kept while its dialog is
-  // open with the bank it was dropped on.
-  const [copyRequest, setCopyRequest] = useState<{ bank?: string; patch: Patch } | null>(null)
+  // The sound whose menu chose Copy, or that was dropped on a bank's tab, or a search result from
+  // outside the workspace, kept while its dialog is open with the bank it was dropped on.
+  const [copyRequest, setCopyRequest] = useState<CopyRequest | null>(null)
   // The slot whose menu chose to replace it from a file, kept while its dialog is open.
   const [replaceTarget, setReplaceTarget] = useState<Patch | null>(null)
   const [isImporting, setIsImporting] = useState(false)
@@ -164,7 +198,21 @@ export function LibrarianPage({
   }
   const requestCopy = (patch: Patch, bank?: string) => {
     setDialogLoadError('')
-    setCopyRequest({ bank, patch })
+    setCopyRequest({
+      bank,
+      copy: (targetBank, slot) => library.copyVoice(patch.id, targetBank, slot),
+      key: patch.id,
+      source: patch,
+    })
+  }
+  const requestResultCopy = (sound: SearchResultSound, edit: boolean) => {
+    setDialogLoadError('')
+    setCopyRequest({
+      copy: (bank, slot) => library.replaceVoice(bank, slot, sound.voice, sound.effects),
+      edit,
+      key: sound.origin,
+      source: { name: sound.name, number: sound.slot, origin: sound.origin },
+    })
   }
   const requestReplace = (patch: Patch) => {
     setDialogLoadError('')
@@ -482,8 +530,15 @@ export function LibrarianPage({
                   {destinationBank}
                 </span>
               )}
-              <span className="font-dot-matrix block min-w-0 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)] md:max-w-40">
-                {isSearching ? t('banks.searchResults') : bankDisplayName(destinationBank)}
+              <span
+                className={cn(
+                  'font-dot-matrix block min-w-0 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)]',
+                  !isSearching && 'md:max-w-40',
+                )}
+              >
+                {isSearching
+                  ? t('banks.searchResults', { search: search.trim() })
+                  : bankDisplayName(destinationBank)}
               </span>
               <details
                 className={cn('group relative ml-auto shrink-0 md:hidden', isSearching && 'hidden')}
@@ -582,6 +637,28 @@ export function LibrarianPage({
         onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
         patches={visiblePatches}
         reorderable={!isSearching}
+        extraResults={
+          isSearching ? (
+            <ErrorBoundary
+              fallback={<LoadFailedNotice message={t('banks.everywhere.loadFailed')} />}
+            >
+              {/* The results show their own loading line while the search code arrives. */}
+              <Suspense fallback={null}>
+                <SearchEverywhereResults
+                  activePatchId={activePatchId}
+                  hasDamagedNamedBanks={library.hasDamagedNamedBanks}
+                  namedBanks={library.namedBanks}
+                  namedBanksLoadFailed={library.namedBanksLoadFailed}
+                  onCopy={requestResultCopy}
+                  onPlay={onPlaySearchResult}
+                  search={search}
+                  workspaceMatchCount={visiblePatches.length}
+                />
+              </Suspense>
+            </ErrorBoundary>
+          ) : undefined
+        }
+        resultsHeading={isSearching ? t('banks.everywhere.workspace') : undefined}
         search={search}
         searchDisabled={!hasLoadedBank}
         searchRef={searchRef}
@@ -717,7 +794,7 @@ export function LibrarianPage({
       />
       {copyRequest ? (
         <ErrorBoundary
-          key={copyRequest.patch.id}
+          key={copyRequest.key}
           onError={() => {
             setCopyRequest(null)
             setDialogLoadError(t('banks.copyOpenFailed'))
@@ -728,17 +805,30 @@ export function LibrarianPage({
               initialBank={copyRequest.bank}
               library={library}
               onClose={() => setCopyRequest(null)}
-              onCopied={(target, changed) =>
+              onCopy={copyRequest.copy}
+              opensEditor={copyRequest.edit}
+              onCopied={(target, changed) => {
                 toast.success(
                   t('toasts.patchCopied', {
                     bank: bankDisplayName(target.bank),
-                    patch: copyRequest.patch.name,
+                    patch: copyRequest.source.name,
                     slot: patchSlotCode(target),
                   }),
-                  undoToastOptions(t, library, changed),
+                  // Undoing a copy that is open in the editor would leave the editor on a sound
+                  // the slot no longer holds, so the undo closes it first.
+                  undoToastOptions(
+                    t,
+                    library,
+                    changed,
+                    copyRequest.edit ? onCloseEditor : undefined,
+                  ),
                 )
-              }
-              source={copyRequest.patch}
+                if (copyRequest.edit) {
+                  followPlayedPatch(target)
+                  onEditPatch(target)
+                }
+              }}
+              source={copyRequest.source}
             />
           </Suspense>
         </ErrorBoundary>

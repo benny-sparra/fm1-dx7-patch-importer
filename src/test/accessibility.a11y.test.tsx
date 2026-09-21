@@ -111,6 +111,7 @@ function renderLibrarian() {
         midi={disconnectedMidi}
         onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
+        onPlaySearchResult={vi.fn()}
         onSelectPatch={vi.fn()}
       />
     </ToastProvider>,
@@ -140,7 +141,17 @@ describe('rendered accessibility', () => {
     const { container } = renderLibrarian()
 
     expect(screen.getByRole('button', { name: 'Send to FM1' })).toBeTruthy()
-    expect(screen.getByRole('searchbox', { name: 'Search all banks' })).toBeTruthy()
+    expect(screen.getByRole('searchbox', { name: 'Search' })).toBeTruthy()
+    await expectNoAxeViolations(container)
+  })
+
+  it('keeps search results from the workspace and the catalog free of violations', async () => {
+    const { container } = renderLibrarian()
+    const user = userEvent.setup()
+
+    await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'piano')
+
+    expect(await screen.findByRole('region', { name: 'Other DX7 patch banks' })).toBeTruthy()
     await expectNoAxeViolations(container)
   })
 
@@ -165,6 +176,7 @@ describe('rendered accessibility', () => {
           midi={connectedWithoutSysexMidi}
           onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
+          onPlaySearchResult={vi.fn()}
           onSelectPatch={vi.fn()}
         />
       </ToastProvider>,

@@ -260,8 +260,8 @@ export function usePatchLibrary() {
   )
 
   const replaceVoice = useCallback(
-    (bank: string, slot: number, voice: Dx7Voice) =>
-      commit((current) => replaceLibraryVoice(current, bank, slot, voice)),
+    (bank: string, slot: number, voice: Dx7Voice, effects?: Uint8Array) =>
+      commit((current) => replaceLibraryVoice(current, bank, slot, voice, effects)),
     [commit],
   )
 

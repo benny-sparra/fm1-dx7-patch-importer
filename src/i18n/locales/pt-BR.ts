@@ -613,9 +613,9 @@ export default {
     bulkExportFailed: 'Falha na exportação em massa.',
     gridTitle: 'Bancos de sons',
     gridDescription: 'Importe, edite e organize cada banco local antes de transferi-lo ao FM1.',
-    search: 'Buscar em todos os bancos',
+    search: 'Buscar',
     noMatches: 'Nenhum som corresponde à busca',
-    searchResults: 'Resultados da busca',
+    searchResults: 'Resultados da busca: “{{search}}”',
     sendFromSearch: 'Escolha um banco para enviá-lo ao FM1',
     bankEmpty: 'Este banco do navegador está vazio',
     emptyHelp:
@@ -637,6 +637,8 @@ export default {
     copyTargetSlot: 'Slot',
     copyReplaces: 'Isso substitui “{{name}}” em {{slot}}. Você pode desfazer esta ação.',
     copyAction: 'Substituir {{slot}}',
+    copyAndEditAction: 'Substituir {{slot}} e editar',
+    copyToEditHint: 'Para editar este som, copie-o para um dos seus bancos.',
     copyFailed: 'Não foi possível copiar o som.',
     addBankOpenFailed:
       'Não foi possível abrir as opções do novo banco. Recarregue a página e tente novamente.',
@@ -646,6 +648,21 @@ export default {
     downloadPatchFile: 'Baixar som',
     patchFileUnavailable:
       'Não foi possível abrir os arquivos de som. Recarregue a página e tente novamente.',
+    everywhere: {
+      workspace: 'Seus bancos de sons',
+      savedBanks: 'Bancos salvos',
+      catalog: 'Outros bancos de sons DX7',
+      play: 'Tocar {{name}} de {{origin}}',
+      playTitle:
+        'Clique para tocar {{name}} pelo buffer de edição do FM1; clique duas vezes para copiar e editar',
+      copy: 'Copiar {{name}} para um banco do espaço de trabalho',
+      truncated:
+        'Mostrando os primeiros {{shown}} de {{total}} resultados. Digite mais para refinar a busca.',
+      loading: 'Buscando em outros bancos de sons DX7…',
+      loadFailed:
+        'Não foi possível buscar nos bancos salvos e em outros bancos de sons DX7. Recarregue a página e tente novamente.',
+      playFailed: 'Não foi possível tocar o som.',
+    },
   },
   namedBanks: {
     open: 'Biblioteca de bancos',

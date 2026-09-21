@@ -14,6 +14,8 @@ import { droppedBank } from './bank-drop'
 import { PatchSlotMenu } from './patch-slot-menu'
 
 type PatchButtonProps = {
+  /** The bank's name, shown under the patch name where the slot appears away from its bank. */
+  bankName?: string
   disabled?: boolean
   disabledTitle?: string
   isActive?: boolean
@@ -35,6 +37,7 @@ type PatchButtonProps = {
 const animateWhileSorting: AnimateLayoutChanges = ({ isSorting }) => isSorting
 
 export function PatchButton({
+  bankName,
   disabled = false,
   disabledTitle,
   isActive = false,
@@ -172,13 +175,19 @@ export function PatchButton({
       >
         {patchSlotCode(patch)}
       </span>
-      <span
-        className={cn(
-          'patch-name font-dot-matrix pointer-events-none min-w-0 flex-1 truncate text-[14px] font-bold whitespace-pre',
-          isActive ? 'text-white' : 'text-[var(--crt-ink)]',
-        )}
-      >
-        {patch.name}
+      {/* The bank line is added after the name, so the name keeps its own element either way. */}
+      <span className="pointer-events-none min-w-0 flex-1">
+        <span
+          className={cn(
+            'patch-name font-dot-matrix block truncate text-[14px] font-bold whitespace-pre',
+            isActive ? 'text-white' : 'text-[var(--crt-ink)]',
+          )}
+        >
+          {patch.name}
+        </span>
+        {bankName ? (
+          <span className="block truncate text-[11px] text-[var(--crt-ink-3)]">{bankName}</span>
+        ) : null}
       </span>
       {/* Above the slot's own button, like the grip, so opening it does not also play the slot. */}
       {!disabled && (onEdit || onCopy) ? (

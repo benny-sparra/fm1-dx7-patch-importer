@@ -427,7 +427,7 @@ describe('restoring factory banks', () => {
   })
 })
 
-describe('replacing a voice from a file', () => {
+describe('replacing a voice from outside the workspace', () => {
   function libraryWithBank() {
     const loaded = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
     const effects = makeDefaultFm1Effects()
@@ -439,10 +439,25 @@ describe('replacing a voice from a file', () => {
   it('puts the voice in the slot', () => {
     const replaced = replaceVoice(libraryWithBank(), 'A', 5, imported)
 
-    expect(replaced.voices[voiceId('A', 5)]).toBe(imported)
+    expect(replaced.voices[voiceId('A', 5)]).toEqual(imported)
   })
 
-  it('returns the slot’s effects to their defaults', () => {
+  it('gives the slot its own copy of the voice', () => {
+    const replaced = replaceVoice(libraryWithBank(), 'A', 5, imported)
+
+    expect(replaced.voices[voiceId('A', 5)]?.data).not.toBe(imported.data)
+  })
+
+  it('keeps the effects that came with the voice', () => {
+    const effects = makeDefaultFm1Effects()
+    effects[2] = 1
+
+    const replaced = replaceVoice(libraryWithBank(), 'A', 5, imported, effects)
+
+    expect(replaced.effects[voiceId('A', 5)]).toEqual(effects)
+  })
+
+  it('returns the slot’s effects to their defaults when none came with the voice', () => {
     const replaced = replaceVoice(libraryWithBank(), 'A', 5, imported)
 
     expect(replaced.effects[voiceId('A', 5)]).toEqual(makeDefaultFm1Effects())

@@ -20,16 +20,26 @@ import { patchSlotCode, type PatchLibrarySnapshot } from '@/lib/patch-library'
 import { resolveGridKey } from '@/lib/patch-grid-navigation'
 import { cn } from '@/lib/utils'
 
+/** A sound from outside the workspace, such as a search result from a saved bank or the catalog. */
+export type ExternalCopySource = {
+  name: string
+  /** The slot it holds where it comes from, which the dialog chooses first. */
+  number: number
+  /** Where it comes from, as the readout shows it. */
+  origin: string
+}
+
 type CopyPatchDialogProps = {
   /** The bank to open on, such as the tab a slot was dropped on. */
   initialBank?: string
-  library: Pick<
-    PatchLibrary,
-    'bankNames' | 'copyVoice' | 'loadedBanks' | 'patches' | 'workspaceBanks'
-  >
+  library: Pick<PatchLibrary, 'bankNames' | 'loadedBanks' | 'patches' | 'workspaceBanks'>
   onClose: () => void
+  /** Puts the sound in the chosen slot, returning the change to undo. */
+  onCopy: (bank: string, slot: number) => PatchLibrarySnapshot | null
   onCopied: (target: Patch, changed: PatchLibrarySnapshot | null) => void
-  source: Patch
+  /** Explains that copying comes before editing, for a sound that has no slot of its own yet. */
+  opensEditor?: boolean
+  source: Patch | ExternalCopySource
 }
 
 type Choice = { bank: string; slot: number }
@@ -55,12 +65,15 @@ export function CopyPatchDialog({
   initialBank,
   library,
   onClose,
+  onCopy,
   onCopied,
+  opensEditor = false,
   source,
 }: CopyPatchDialogProps) {
   const { t } = useTranslation()
   const titleId = useId()
   const replacesId = useId()
+  const editHintId = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const cellRefs = useRef(new Map<number, HTMLButtonElement>())
   const focusChosenCell = useRef(false)
@@ -73,18 +86,24 @@ export function CopyPatchDialog({
   const targetBanks = library.workspaceBanks.filter((candidate) =>
     library.loadedBanks.includes(candidate),
   )
+  // A workspace slot cannot be copied over itself. A sound from elsewhere can go anywhere.
+  const sourceSlot = 'origin' in source ? undefined : source
   // Another bank's matching slot is the likeliest target. A choice whose bank has since gone falls
   // back to that default rather than naming a missing bank.
-  const otherBank = targetBanks.find((candidate) => candidate !== source.bank)
+  const otherBank = targetBanks.find((candidate) => candidate !== sourceSlot?.bank)
   const chosen =
     choice && targetBanks.includes(choice.bank)
       ? choice
-      : { bank: otherBank ?? source.bank, slot: source.number }
+      : { bank: otherBank ?? sourceSlot?.bank ?? '', slot: source.number }
   const { bank } = chosen
-  const avoidedSlot = (candidate: string) => (candidate === source.bank ? source.number : 0)
+  const sourceOrigin =
+    'origin' in source
+      ? source.origin
+      : `${patchSlotCode(source)} ${source.name} · ${bankLabel(source.bank)}`
+  const avoidedSlot = (candidate: string) => (candidate === sourceSlot?.bank ? source.number : 0)
   const slot = avoidSlot(chosen.slot, chosen.slot, avoidedSlot(bank))
   const targetPatches = library.patches.filter((patch) => patch.bank === bank)
-  const target = targetPatches.find((patch) => patch.number === slot && patch.id !== source.id)
+  const target = targetPatches.find((patch) => patch.number === slot && patch.id !== sourceSlot?.id)
 
   useEffect(() => {
     const dialog = dialogRef.current
@@ -124,7 +143,7 @@ export function CopyPatchDialog({
     event.preventDefault()
     if (!target) return
     try {
-      const changed = library.copyVoice(source.id, bank, slot)
+      const changed = onCopy(bank, slot)
       dialogRef.current?.close()
       onCopied(target, changed)
     } catch (cause) {
@@ -134,7 +153,7 @@ export function CopyPatchDialog({
 
   return (
     <Dialog
-      aria-describedby={replacesId}
+      aria-describedby={opensEditor ? `${editHintId} ${replacesId}` : replacesId}
       aria-labelledby={titleId}
       onClose={onClose}
       ref={dialogRef}
@@ -158,7 +177,7 @@ export function CopyPatchDialog({
               {target ? `${patchSlotCode(target)} ${target.name}` : '---'}
             </p>
             <p className="font-vt323 mt-0.5 truncate pb-0.5 text-lg leading-[1.2] text-[var(--crt-ink-3)]">
-              ◂ {patchSlotCode(source)} {source.name} · {bankLabel(source.bank)}
+              {`◂ ${sourceOrigin}`}
             </p>
           </div>
 
@@ -200,7 +219,7 @@ export function CopyPatchDialog({
                       ? 'border-[var(--crt-led)] bg-[var(--crt-bg-1)] text-[var(--crt-led)] shadow-[0_0_8px_var(--crt-led-glow)]'
                       : 'border-[var(--crt-line)] bg-[var(--crt-bg-well)] text-[var(--crt-acc-lt)] hover:bg-[var(--crt-bg-head)]',
                   )}
-                  disabled={patch.id === source.id}
+                  disabled={patch.id === sourceSlot?.id}
                   key={patch.id}
                   onClick={() => choose(bank, patch.number)}
                   onKeyDown={moveInGrid}
@@ -218,6 +237,11 @@ export function CopyPatchDialog({
             })}
           </div>
 
+          {opensEditor ? (
+            <p className="text-sm leading-6 text-[var(--crt-ink-2)]" id={editHintId}>
+              {t('banks.copyToEditHint')}
+            </p>
+          ) : null}
           {target ? (
             <p
               aria-live="polite"
@@ -233,7 +257,11 @@ export function CopyPatchDialog({
           <div className="flex justify-end">
             <Button disabled={!target} type="submit">
               <Copy />
-              <span>{t('banks.copyAction', { slot: target ? patchSlotCode(target) : '' })}</span>
+              <span>
+                {t(opensEditor ? 'banks.copyAndEditAction' : 'banks.copyAction', {
+                  slot: target ? patchSlotCode(target) : '',
+                })}
+              </span>
             </Button>
           </div>
         </form>
