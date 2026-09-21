@@ -21,6 +21,15 @@ describe('Dx7BankSourcesDialog', () => {
     expect(screen.getByText('Curated DX7, TX816 and TX802 SysEx banks.')).toBeTruthy()
   })
 
+  it('links to the bank submission form', () => {
+    render(<Dx7BankSourcesDialog />)
+
+    const link = screen.getByRole('link', { hidden: true, name: 'Offer it for the bank catalog' })
+    expect(link.getAttribute('href')).toBe(
+      'https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new?template=bank-submission.yml',
+    )
+  })
+
   it('describes each bank source in the interface language', async () => {
     await setLocale('fr')
     render(<Dx7BankSourcesDialog />)

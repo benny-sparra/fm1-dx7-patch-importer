@@ -84,6 +84,23 @@ Accessibility is checked in three complementary ways:
 The audit commands below require npm registry access. A registry failure is a failed audit, not a
 clean result. Both commands block on high or critical advisories.
 
+## Contributing a patch bank
+
+The bundled catalog welcomes DX7 banks that you programmed yourself. To offer one, open a
+[bank submission](https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new?template=bank-submission.yml)
+issue. A bank is considered when:
+
+- it is one standard 32-voice DX7 bulk SysEx file of 4,104 bytes, with 32 finished patches and no
+  placeholders or empty slots;
+- you programmed every voice, and none are copies or edits of factory, cartridge, commercial, or
+  other people's patches;
+- you release it under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) or
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+GitHub does not accept `.syx` attachments, so zip the file before attaching it. Each submission is
+listened to before it is accepted, and not every bank will be included. An included bank is credited
+in the README under the name you give.
+
 ## Available scripts
 
 | Command                     | Description                                                         |

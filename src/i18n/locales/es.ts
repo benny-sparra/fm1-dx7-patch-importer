@@ -32,6 +32,8 @@ export default {
         'Los preajustes originales del FM-1, recuperados de la herramienta de restauración de M-VAVE. También en el catálogo de bancos.',
     },
     sourcesClose: 'Cerrar fuentes de bancos',
+    sourcesSubmit: '¿Has programado tu propio banco DX7?',
+    sourcesSubmitLink: 'Ofrécelo para el catálogo de bancos',
   },
   controlHelp: {
     algorithm:

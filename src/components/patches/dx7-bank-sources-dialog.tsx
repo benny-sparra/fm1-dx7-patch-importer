@@ -33,6 +33,10 @@ const bankSources = [
   },
 ]
 
+// The issue form in .github/ISSUE_TEMPLATE/bank-submission.yml asks for the licence and declarations.
+const bankSubmissionUrl =
+  'https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new?template=bank-submission.yml'
+
 export function Dx7BankSourcesDialog() {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -82,6 +86,18 @@ export function Dx7BankSourcesDialog() {
               </li>
             ))}
           </ul>
+
+          <p className="border-t border-[var(--crt-line-lt)] px-5 py-4 text-sm leading-6 text-[var(--crt-ink-2)]">
+            <span>{t('dialogs.sourcesSubmit')}</span>{' '}
+            <a
+              className="text-[var(--crt-acc-lt)] underline decoration-current/40 underline-offset-4 transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-acc-lt)]"
+              href={bankSubmissionUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {t('dialogs.sourcesSubmitLink')}
+            </a>
+          </p>
         </DialogBody>
       </Dialog>
     </>

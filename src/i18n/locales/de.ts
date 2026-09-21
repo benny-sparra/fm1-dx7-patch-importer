@@ -34,6 +34,8 @@ export default {
         'Die ursprünglichen Vorlagen des FM-1, aus dem Wiederherstellungstool von M-VAVE gewonnen. Auch im Bankkatalog.',
     },
     sourcesClose: 'Bankquellen schließen',
+    sourcesSubmit: 'Du hast selbst eine DX7-Bank programmiert?',
+    sourcesSubmitLink: 'Biete sie für den Bankkatalog an',
   },
   controlHelp: {
     algorithm:

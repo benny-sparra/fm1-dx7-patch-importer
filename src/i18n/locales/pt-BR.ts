@@ -32,6 +32,8 @@ export default {
         'As predefinições originais do FM-1, recuperadas da ferramenta de restauração da M-VAVE. Também no catálogo de bancos.',
     },
     sourcesClose: 'Fechar fontes de bancos',
+    sourcesSubmit: 'Programou seu próprio banco DX7?',
+    sourcesSubmitLink: 'Ofereça-o para o catálogo de bancos',
   },
   controlHelp: {
     algorithm:
