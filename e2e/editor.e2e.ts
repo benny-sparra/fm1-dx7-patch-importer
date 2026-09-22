@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
 async function openEditor(page: Page) {
   await page.addInitScript(() => localStorage.setItem('fm1-librarian-help-seen', 'true'))
@@ -258,6 +258,52 @@ test('locks the editing controls while comparing with the saved sound', async ({
   await compare.click()
   await expect(compare).toHaveAttribute('aria-pressed', 'false')
   await expect(output).toHaveValue(edited)
+})
+
+/** Drags from the middle of a control by the given offset, in several pointer moves. */
+async function drag(page: Page, control: Locator, dx: number, dy: number) {
+  await control.scrollIntoViewIfNeeded()
+  const box = (await control.boundingBox())!
+  const x = box.x + box.width / 2
+  const y = box.y + box.height / 2
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  await page.mouse.move(x + dx, y + dy, { steps: 8 })
+  await page.mouse.up()
+}
+
+test.describe('pointer drags', () => {
+  test('undoes a whole knob drag in one step', async ({ page }) => {
+    await openEditor(page)
+    const knob = page
+      .getByRole('region', { name: /^Operator 1, / })
+      .getByRole('slider', { exact: true, name: 'Breakpoint' })
+    const before = await knob.getAttribute('aria-valuenow')
+
+    await drag(page, knob, 0, -40)
+    const dragged = Number(await knob.getAttribute('aria-valuenow'))
+    // Several pointer moves each change the value, so one undo must reverse all of them.
+    expect(dragged - Number(before)).toBeGreaterThan(1)
+    await page.keyboard.press('ControlOrMeta+z')
+
+    await expect(knob).toHaveAttribute('aria-valuenow', before!)
+  })
+
+  test('undoes a whole envelope point drag in one step', async ({ page }) => {
+    await openEditor(page)
+    const point = page
+      .getByRole('region', { name: /^Operator 1, / })
+      .getByRole('slider', { name: 'Amplitude envelope point 2' })
+    const before = await point.getAttribute('aria-valuetext')
+    const level = Number(await point.getAttribute('aria-valuenow'))
+
+    await drag(page, point, -12, 24)
+    const draggedLevel = Number(await point.getAttribute('aria-valuenow'))
+    expect(level - draggedLevel).toBeGreaterThan(1)
+    await page.keyboard.press('ControlOrMeta+z')
+
+    await expect(point).toHaveAttribute('aria-valuetext', before!)
+  })
 })
 
 test('keeps each English voice preset description to one line', async ({ page }) => {

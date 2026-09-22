@@ -112,6 +112,10 @@
     --crt-led: hsl(41 82% 67%);
     --crt-led-glow: hsl(41 82% 67% / 30%);
 
+    /* The dark backdrop the FM1 hardware photo was taken against, so it frames the photo in
+       every finish. */
+    --fm1-photo-backdrop: #22242a;
+
     /* Scanline overlay strength; zeroed by the reduced-transparency guard. */
     --crt-scanline-opacity: 0.28;
 
@@ -819,6 +823,7 @@
    */
   .synthwave-piano-key-white {
     border-color: var(--crt-shadow);
+    color: var(--crt-bg-0);
     background: linear-gradient(
       180deg,
       var(--crt-ink) 0%,
@@ -897,6 +902,13 @@
   .bank-tab-active {
     background: var(--crt-sel-bg);
     color: var(--crt-led);
+  }
+
+  /* A bank tab under a slot dragged from the grid, which dropping copies the slot to. */
+  .bank-tab[data-drop-target] {
+    box-shadow: inset 0 0 12px var(--crt-led-glow);
+    outline: 2px solid var(--crt-led);
+    outline-offset: -2px;
   }
 
   .patch-search-input {

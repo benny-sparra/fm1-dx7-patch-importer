@@ -1,5 +1,5 @@
 import { Library, Plus, Upload } from 'lucide-react'
-import { type FormEvent, type RefObject, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
@@ -17,30 +17,37 @@ import {
   dx7BankCatalogCategories,
   dx7BankCatalogCategoryLabelKey,
 } from '@/data/dx7-bank-catalog'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import { ErrorNotice } from '@/components/ui/error-notice'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { readDx7BankFile } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
-import { normalizeWorkspaceBankNameForSave, workspaceBankTitleLength } from '@/lib/patch-library'
+import {
+  bankDescriptionLength,
+  normalizeWorkspaceBankNameForSave,
+  workspaceBankTitleLength,
+} from '@/lib/patch-library'
+import { sysexFileAccept } from '@/lib/sysex-file'
 import { cn } from '@/lib/utils'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 
 type AddWorkspaceBankDialogProps = {
   bank: string | null
-  dialogRef: RefObject<HTMLDialogElement | null>
   library: PatchLibrary
+  onClose: () => void
   onCreated: (bank: string) => void
   suggestedName: string
 }
 
 export function AddWorkspaceBankDialog({
   bank,
-  dialogRef,
   library,
+  onClose,
   onCreated,
   suggestedName,
 }: AddWorkspaceBankDialogProps) {
   const { t } = useTranslation()
   const toast = useToast()
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
   const [description, setDescription] = useState('')
   const [catalogBankId, setCatalogBankId] = useState('')
@@ -50,15 +57,11 @@ export function AddWorkspaceBankDialog({
   const [source, setSource] = useState<'catalog' | 'upload'>('catalog')
   const [working, setWorking] = useState(false)
 
-  const reset = () => {
-    setCatalogBankId('')
-    setDescription('')
-    setError('')
-    setFile(null)
-    setName('')
-    setSource('catalog')
-    setWorking(false)
-  }
+  // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
+  // its state is discarded with it rather than being reset by hand.
+  useEffect(() => {
+    dialogRef.current?.showModal()
+  }, [])
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -107,7 +110,7 @@ export function AddWorkspaceBankDialog({
       onCancel={(event) => {
         if (working) event.preventDefault()
       }}
-      onClose={reset}
+      onClose={onClose}
       onToggle={(event) => {
         if (!event.currentTarget.open) return
         setName(suggestedName)
@@ -154,7 +157,7 @@ export function AddWorkspaceBankDialog({
             {t('namedBanks.description')}
             <textarea
               className="min-h-24 resize-y rounded-md border border-input bg-background px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              maxLength={500}
+              maxLength={bankDescriptionLength}
               onChange={(event) => setDescription(event.target.value)}
               placeholder={t('namedBanks.descriptionPlaceholder')}
               value={description}
@@ -251,7 +254,7 @@ export function AddWorkspaceBankDialog({
                     {file?.name ?? t('banks.chooseSysexFile')}
                   </span>
                   <input
-                    accept=".syx,application/octet-stream"
+                    accept={sysexFileAccept}
                     className="sr-only"
                     disabled={working}
                     onChange={(event) => setFile(event.target.files?.[0] ?? null)}
@@ -263,14 +266,7 @@ export function AddWorkspaceBankDialog({
             <span className="text-sm text-muted-foreground">{t('banks.soundDataHelp')}</span>
           </fieldset>
 
-          {error ? (
-            <p
-              className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-              role="alert"
-            >
-              {error}
-            </p>
-          ) : null}
+          {error ? <ErrorNotice>{error}</ErrorNotice> : null}
 
           <div className="flex flex-wrap justify-end gap-2">
             <Button

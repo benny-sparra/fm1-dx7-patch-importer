@@ -1,4 +1,4 @@
-import { type MidiLogEntry } from '@/lib/midi'
+import type { MidiLogEntry } from '@/lib/midi'
 
 const hexBytesPerRow = 16
 
@@ -16,7 +16,9 @@ type MidiLogFileContext = {
 }
 
 function formatLogEntry(entry: MidiLogEntry) {
-  const lines = [`${entry.createdAt}  ${entry.direction.toUpperCase()}  ${entry.message}`]
+  // Times are ISO, like the export time, so a report reads the same in any language.
+  const time = new Date(entry.createdAt).toISOString()
+  const lines = [`${time}  ${entry.direction.toUpperCase()}  ${entry.message}`]
   if (entry.data) {
     lines.push(`  ${entry.data.length} bytes`)
     lines.push(

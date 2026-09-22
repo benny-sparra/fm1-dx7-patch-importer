@@ -56,7 +56,9 @@ files when that is clearer.
   `try/catch` never sees the error. Work out the next state where the caller can catch a failure,
   then set it.
 - Keep one source for shared constants and helpers such as key lists, limits, and value formatting.
-  Reuse or export the existing one rather than copying it into another module.
+  Reuse or export the existing one rather than copying it into another module: for example
+  `makeYamahaSysexMessage` for Yamaha SysEx framing, `src/lib/sysex-file.ts` for `.syx` file
+  choosers, filenames, and downloads, and `bankDescriptionLength` for text limits.
 
 ## Behavioral constraints
 
@@ -80,9 +82,11 @@ open everything an earlier release could have saved.
 
 - Treat every persisted shape as a public format: the IndexedDB database name, schema version,
   object store names, key paths, and record keys in `src/lib/patch-library-storage.ts`; the
-  versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; and
-  `localStorage` keys such as `fm1-language`, `fm1-colourway`, and the MIDI port and help-dialog
-  keys. Do not rename, remove, or repurpose any of them.
+  versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
+  backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
+  versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
+  `fm1-colourway`, `fm1-last-backup`, and the MIDI port and help-dialog keys. Do not rename,
+  remove, or repurpose any of them.
 - Changing a stored shape means bumping its record `version` and adding an upgrade path that reads
   every earlier version. Never drop support for an old version, and never reuse a version number for
   a different shape.
@@ -167,14 +171,30 @@ open everything an earlier release could have saved.
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, the Sequencer view via
   `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the piano keyboard dialog when **Keyboard** opens it, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the piano keyboard dialog when **Keyboard** opens it, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
+- A dialog the librarian mounts on demand opens itself from an effect and takes an `onClose`, rather
+  than being rendered always and opened through a `dialogRef`. Unmounting it discards its state, so
+  it needs no reset, and `onClose` returns focus to the control that opened it. Making another eager
+  dialog lazy no longer frees headroom: Rolldown moves the code it shares with the entry into new
+  shared chunks, which the entry still loads, and compressing them separately costs as much as the
+  dialog saved. Measure with `npm run bundle:check` before and after any such move.
+- When every name taken from a module is a type, write `import type { … }`, not `import { type … }`,
+  in lazily loaded code and in eager code that names a lazy module. Under `verbatimModuleSyntax` the
+  second form still imports the module for its side effects: eager code pulls the lazy module into
+  the entry, and a lazy chunk that pulls in modules the entry shares can make Rolldown split them
+  out of the entry. The saved-bank and catalog search once cost 1.5 KiB of the budget this way.
 - Prefer source-level `import()` at genuine interaction or data boundaries. Do not move initial code
   into eagerly imported vendor chunks to make the entry filename smaller.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
   bundler-made chunk is expected, and the budget counts it because the entry imports it.
+- When every name taken from a module is a type, write `import type { A, B }`, not
+  `import { type A, type B }`. Under `verbatimModuleSyntax` the second form still emits
+  `import '…'`, which keeps the module in the chunk graph and can make Rolldown split shared code
+  out of the entry. `typescript/no-import-type-side-effects` enforces this; mixed value and type
+  imports keep their inline `type` specifiers.
 - Development and verification controls are gated where they are rendered, with a build-time
   constant such as `sentryVerificationEnabled`, so normal production builds leave them out.
 - A rejected optional chunk must be contained and recoverable; stale deployment chunks must not
@@ -182,7 +202,9 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 148 KiB gzip budget.
+  Dynamic imports are excluded. Do not weaken or bypass the 151 KiB gzip budget; raising it needs
+  explicit approval, as the drag-to-bank copy's raise from 148 KiB and workspace backup's raise
+  from 149 KiB had.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
 
 ### Privacy, monitoring, and deployment security
@@ -192,13 +214,23 @@ open everything an earlier release could have saved.
 - Analytics events must use fixed event names and coarse, bounded properties. Sentry reports must
   keep query strings, fragments, console breadcrumbs, UI breadcrumbs, request data, and user details
   out of events.
+- Removing request data also removes the user agent Sentry derives the operating system from, so a
+  report that a platform explains must carry that fact itself. `resolveCoarsePlatform` is the one
+  source: it answers with an operating-system family from a fixed list and `other` for anything it
+  does not recognise. Do not widen it to a version, an engine, or a device.
 - Monitoring must remain disabled in development and tests, and a failed optional monitoring import
   must never prevent the app from rendering.
 - A lazy chunk that fails to load after a deployment, and that an error boundary contains, is expected
-  and is not reported to Sentry; `onCaughtError` drops it in `src/lib/monitoring.ts`. The same
-  failure outside any boundary is still reported.
+  and is not reported to Sentry. React reports such a failure to `onRecoverableError` as well as to
+  `onCaughtError`, so both drop it in `src/lib/monitoring.ts`; filtering only `onCaughtError` still
+  lets one event per failure through. `onUncaughtError` stays unfiltered, so the same failure
+  outside any boundary is still reported.
 - Keep `public/_headers`, the origins used by browser code, and `scripts/check-security-headers.mjs`
   aligned. Any new remote resource or endpoint needs an explicit privacy and CSP review.
+- A production build names its release from the deploying platform's commit, resolved once in
+  `resolveSentryRelease`. The client and the uploaded source maps must take the name from that same
+  helper, or a resolved stack trace is filed where the event that needs it will not look. A build
+  without one reports no release rather than a name matching no deployment.
 
 ### Images and generated assets
 
@@ -212,6 +244,15 @@ open everything an earlier release could have saved.
   default `public/favicon.svg` mark and with the colourway tokens; `src/lib/fm1-favicon.test.ts`
   enforces the colours. Launcher icons stay on the default finish because an installed app cannot
   repaint its icon per session.
+
+### Bundled bank catalog
+
+- `src/data/dx7-bank-catalog.ts` lists the bank files in `public/dx7-banks/`. Adding, removing, or
+  replacing a bank changes both in the same change, together with the bank count and sources in the
+  README.
+- Catalog search reads the patch names from `src/data/dx7-catalog-index.json` rather than the bank
+  files. Run `npm run catalog:index` whenever a bank is added, removed, or replaced;
+  `src/data/dx7-catalog-index.test.ts` fails in `npm test` while the index is stale.
 
 ### Theme and finishes
 
@@ -238,6 +279,9 @@ open everything an earlier release could have saved.
   the working labels on bank buttons do, and key the branches of a conditional that swaps layouts
   built from the same element type, as `Fm1BankSelectionDialog` does. Cover it with
   `translatePageText` from `src/test/page-translator.ts`.
+- Show an error in a dialog or on the page with `ErrorNotice` from
+  `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
+  restyling another paragraph.
 - Interactive controls need stable accessible names. Preserve ARIA relationships and avoid nesting
   buttons, links, summaries, inputs, or other interactive elements.
 - If a feature body becomes lazy, keep its trigger eager. One activation must eventually open the
@@ -254,11 +298,18 @@ open everything an earlier release could have saved.
 - Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.
-- A library change that replaces or removes sounds (deleting a bank, restoring factory banks,
-  importing or loading over a bank, copying a sound over a slot) offers Undo in its notification through `undoToastOptions`, and a
+- **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
+  `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
+  and nothing else, which is why putting the factory banks back is **Reset to factory patches**.
+  Restoring replaces the workspace, which Undo reverses, and only adds saved banks, never
+  overwriting a stored one (`addStoredNamedBank`), because Undo cannot reach saved banks.
+- A library change that replaces or removes sounds (deleting a bank, resetting to factory banks,
+  restoring a backup, importing or loading over a bank, copying a sound over a slot) offers Undo in its notification through `undoToastOptions`, and a
   notification with an action stays up for 10 seconds. The
   undo applies only while that change is still the latest (`undoChange`), and a dialog must not
-  promise an undo the app does not offer.
+  promise an undo the app does not offer. The editor reads its voice only as it opens, so when a
+  change opens the editor on the slot it replaced, as copying a search result to edit it does, its
+  Undo closes the editor before reverting (the `beforeUndo` of `undoToastOptions`).
 - Continuous input is one undo step. Start a gesture on pointer down or key down and end it on
   pointer up, key up, and blur, as the sliders, knobs, and envelope points do. A preset or randomise
   that writes many parameters is also one step.
@@ -327,6 +378,12 @@ open everything an earlier release could have saved.
     jsdom cannot evaluate the media query.
   - A new error a user can hit gets a test that it reaches the UI as translated text, not a raw
     message.
+  - A browser journey that needs MIDI installs the fake FM-1 from `e2e/fake-midi.ts` before the page
+    loads and asserts the bytes it recorded. Wait for the editor to be live (its back button is
+    enabled) before editing, or the edit resends the whole voice rather than one parameter.
+  - A dialog that opens itself and focuses a field in an animation frame makes that frame run at
+    once in its test, as `named-bank-library-dialog.test.tsx` does, so the focus cannot select the
+    field part-way through typing.
 - Run a focused test while developing, then run the complete validation before handoff.
 
 ## Validation

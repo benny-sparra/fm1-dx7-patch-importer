@@ -1,10 +1,13 @@
-import { type Patch } from '@/data/patches'
-import { dx7BankVoiceCount, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
+import type { Patch } from '@/data/patches'
+import { dx7BankVoiceCount, dx7PackedVoiceSize, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
 import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
+import { DX7_TRANSPOSE_C3 } from '@/lib/fm1-parameters'
 
 export const browserBanks = ['A', 'B', 'C', 'D'] as const
 export const maximumWorkspaceBanks = 10
 export const workspaceBankTitleLength = 10
+/** The longest description a workspace bank or a saved bank keeps. */
+export const bankDescriptionLength = 500
 
 /** The workspace bank a change targeted was removed or renumbered after it was chosen. */
 export class WorkspaceBankUnavailableError extends Error {
@@ -178,7 +181,7 @@ export function updateBankInformation(
   if (!snapshot.workspaceBanks.includes(bank)) return snapshot
   const normalizedTitle = normalizeWorkspaceBankNameForSave(title)
   if (!normalizedTitle) throw new Error('A workspace bank needs a title.')
-  const normalizedDescription = description.trim().slice(0, 500).trimEnd()
+  const normalizedDescription = description.trim().slice(0, bankDescriptionLength).trimEnd()
   const bankDescriptions = { ...snapshot.bankDescriptions }
   if (normalizedDescription) bankDescriptions[bank] = normalizedDescription
   else delete bankDescriptions[bank]
@@ -246,18 +249,23 @@ export function moveVoice(
  * own voice and effect objects, so nothing that remembers what a slot last sent mistakes it for the
  * sound it replaced.
  */
-export function copyVoice(
-  snapshot: PatchLibrarySnapshot,
-  sourceId: string,
-  bank: string,
-  slot: number,
-): PatchLibrarySnapshot {
+/** A slot a sound can replace: one in a workspace bank that holds sounds. */
+function assertReplaceableSlot(snapshot: PatchLibrarySnapshot, bank: string, slot: number) {
   if (!snapshot.workspaceBanks.includes(bank) || !snapshot.loadedBanks.includes(bank)) {
     throw new WorkspaceBankUnavailableError()
   }
   if (!Number.isInteger(slot) || slot < 1 || slot > dx7BankVoiceCount) {
     throw new RangeError('Slot out of range.')
   }
+}
+
+export function copyVoice(
+  snapshot: PatchLibrarySnapshot,
+  sourceId: string,
+  bank: string,
+  slot: number,
+): PatchLibrarySnapshot {
+  assertReplaceableSlot(snapshot, bank, slot)
   const voice = snapshot.voices[sourceId]
   const targetId = voiceId(bank, slot)
   if (!voice || targetId === sourceId) return snapshot
@@ -266,6 +274,28 @@ export function copyVoice(
     ...snapshot,
     effects: { ...snapshot.effects, [targetId]: normalizeFm1Effects(snapshot.effects[sourceId]) },
     voices: { ...snapshot.voices, [targetId]: { ...voice, data: voice.data.slice() } },
+  }
+}
+
+/**
+ * Puts a voice from outside the workspace over a slot: one read from a file, or found in a saved
+ * bank or the catalog. The slot gets its own copy of the voice and effects. A DX7 voice file
+ * carries no FM1 effects, so without `effects` the slot's effects return to their defaults, as they
+ * do when a bank is imported.
+ */
+export function replaceVoice(
+  snapshot: PatchLibrarySnapshot,
+  bank: string,
+  slot: number,
+  voice: Dx7Voice,
+  effects?: Uint8Array,
+): PatchLibrarySnapshot {
+  assertReplaceableSlot(snapshot, bank, slot)
+  const id = voiceId(bank, slot)
+  return {
+    ...snapshot,
+    effects: { ...snapshot.effects, [id]: normalizeFm1Effects(effects) },
+    voices: { ...snapshot.voices, [id]: { ...voice, data: voice.data.slice() } },
   }
 }
 
@@ -322,6 +352,26 @@ export function patchSlotCode({ bank, number }: Pick<Patch, 'bank' | 'number'>) 
   return `${bank}${String(number).padStart(2, '0')}`
 }
 
+// A letter then a slot number, with or without the zero a slot shows: B7 and B07 name the same slot.
+const slotCodeQuery = /^([a-z])0?(\d{1,2})$/
+
+/**
+ * Matches a patch by name, or by its slot code when the whole query is one. A lone letter is part of
+ * a name rather than a bank, so it does not list every patch in that bank.
+ */
+/** Whether a patch name contains the search, ignoring case and surrounding spaces. */
+export function patchNameMatchesSearch(name: string, search: string) {
+  return name.toLowerCase().includes(search.trim().toLowerCase())
+}
+
+export function patchMatchesSearch(patch: Pick<Patch, 'bank' | 'name' | 'number'>, search: string) {
+  const query = search.trim().toLowerCase()
+  if (!query) return true
+  const code = slotCodeQuery.exec(query)
+  if (code && code[1] === patch.bank.toLowerCase() && Number(code[2]) === patch.number) return true
+  return patchNameMatchesSearch(patch.name, query)
+}
+
 export function getBankVoices(snapshot: PatchLibrarySnapshot, bank: string) {
   return Array.from(
     { length: dx7BankVoiceCount },
@@ -345,7 +395,7 @@ export function makeDemoVoices(): Dx7Voice[] {
   const names = ['E.PIANO', 'GLASSBELL', 'FM BASS', 'BRASS', 'WARM PAD', 'PLUCK', 'ORGAN', 'MALLET']
 
   return Array.from({ length: dx7BankVoiceCount }, (_, index) => {
-    const data = new Uint8Array(128)
+    const data = new Uint8Array(dx7PackedVoiceSize)
     for (let operator = 0; operator < 6; operator += 1) {
       const offset = operator * 17
       data.set([99, 99, 99, 99, 99, 80, 60, 0], offset)
@@ -353,7 +403,7 @@ export function makeDemoVoices(): Dx7Voice[] {
       data[offset + 15] = 2
     }
     data[110] = 31
-    data[117] = 24
+    data[117] = DX7_TRANSPOSE_C3
     return updateDx7VoiceName(
       { data, name: '' },
       `${names[index % names.length]}${Math.floor(index / names.length) + 1}`,

@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next'
 
 import { CompareNotice } from '@/components/editor/compare-overlay'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { type Patch } from '@/data/patches'
+import type { Patch } from '@/data/patches'
 import { FM1_VOICE_NAME_LENGTH } from '@/lib/fm1-parameters'
 import {
   editorShortcuts,
@@ -25,7 +25,7 @@ import {
   isApplePlatform,
   type KeyboardShortcut,
 } from '@/lib/keyboard-shortcuts'
-import { type PatchSyncState } from '@/lib/patch-sync-coordinator'
+import type { PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { soundPresets, type SoundPresetId } from '@/lib/sound-presets'
 import { cn } from '@/lib/utils'
 import { patchSlotCode } from '@/lib/patch-library'
@@ -129,7 +129,8 @@ export function PatchEditorHeader({
           <ArrowLeft />
         </Button>
         <div className="flex min-w-0 items-center gap-2">
-          <span className="patch-slot crt-inset font-vt323 flex h-8 shrink-0 items-center border bg-[var(--crt-bg-well)] px-2 text-[18px] leading-none text-[var(--crt-led)]">
+          {/* The library grid's slot shape, in the header's LED colour beside the patch name. */}
+          <span className="patch-slot crt-inset font-vt323 flex h-8 shrink-0 items-center border bg-[var(--crt-bg-well)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
             {patchSlotCode(patch)}
           </span>
           <div className="flex min-w-0 items-center gap-2">

@@ -8,7 +8,7 @@ import i18n from 'i18next'
 
 import '@/i18n'
 import { loadSequencerNamespace } from '@/i18n/sequencer'
-import { type MidiController, type MidiInputListener } from '@/hooks/use-midi'
+import type { MidiController, MidiInputListener } from '@/hooks/use-midi'
 import { SequencerPage } from '@/routes/sequencer-page'
 
 beforeAll(async () => {

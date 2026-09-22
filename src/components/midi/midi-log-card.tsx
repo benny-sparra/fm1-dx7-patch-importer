@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
-import { type MidiLogEntry } from '@/lib/midi'
+import type { MidiLogEntry } from '@/lib/midi'
 import { formatMidiHexRows } from '@/lib/midi-log-file'
 import { cn } from '@/lib/utils'
 
@@ -22,7 +22,16 @@ const directionTagStyles = {
  * labelled well like the help guide's steps.
  */
 export function MidiLogCard({ log }: MidiLogCardProps) {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
+  const timeFormat = useMemo(
+    () =>
+      new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
+    [i18n.resolvedLanguage],
+  )
   const [selectedEntry, setSelectedEntry] = useState<MidiLogEntry | null>(null)
   const [copyStatus, setCopyStatus] = useState<'copied' | 'idle' | 'unavailable'>('idle')
   const formattedData = useMemo(
@@ -64,7 +73,9 @@ export function MidiLogCard({ log }: MidiLogCardProps) {
               className="grid grid-cols-[auto_1fr] gap-x-3 py-2 text-sm leading-6 text-[var(--crt-ink-2)]"
               key={entry.id}
             >
-              <span className="font-vt323 text-base text-[var(--crt-led)]">{entry.createdAt}</span>
+              <span className="font-vt323 text-base text-[var(--crt-led)]">
+                {timeFormat.format(entry.createdAt)}
+              </span>
               <span className="min-w-0 break-words">
                 <span
                   className={cn(

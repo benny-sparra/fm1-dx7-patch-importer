@@ -1,7 +1,7 @@
 # Privacy
 
 The M-VAVE FM1 Editor & Librarian runs entirely in the browser. Voices, banks, and settings stay in
-browser storage. This page describes the limited analytics and error monitoring used by the deployed
+browser storage. A backup file is written and read in the browser; it is never uploaded. This page describes the limited analytics and error monitoring used by the deployed
 site.
 
 ## Anonymous usage analytics
@@ -28,8 +28,11 @@ and fragments again immediately before an event is sent. Development and test bu
 Sentry or send events.
 
 Genuine MIDI bank transport exceptions are reported with a fixed error message, source-mappable
-stack frames, and safe operational context: MIDI channel, SysEx availability, voice count, and the
-failure stage. Raw browser error text, MIDI port identities, bank and patch names, voice contents,
+stack frames, and safe operational context: MIDI channel, SysEx availability, voice count, the
+failure stage, and the operating-system family the browser runs on. That family is one of a fixed
+short list, because a Linux browser drops an oversized bank through ALSA and the report is otherwise
+indistinguishable from a fault. Nothing finer is derived, and an unrecognised platform is reported
+as `other`. Raw browser error text, MIDI port identities, bank and patch names, voice contents,
 and SysEx bytes are excluded. Expected states such as a missing output or unavailable SysEx remain
 anonymous analytics events rather than Sentry issues.
 
@@ -37,3 +40,7 @@ The Sentry DSN is a public routing identifier embedded in the production client,
 authentication secret. Production deployments with the three server-side Sentry build variables
 described in [the maintainer notes](docs/maintaining.md#production-source-maps) also inject debug
 IDs and upload source maps so Sentry can reliably resolve minified stack traces.
+
+A production event also carries the release it came from, which is the deployment's commit
+identifier. It describes the build rather than the person using it, and is the same identifier
+already published in this repository's history.

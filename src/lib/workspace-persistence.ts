@@ -1,4 +1,4 @@
-import { type PatchLibrarySnapshot } from '@/lib/patch-library'
+import type { PatchLibrarySnapshot } from '@/lib/patch-library'
 import {
   PatchLibraryStorageError,
   type PatchLibraryStorageErrorCode,
@@ -119,19 +119,11 @@ export class WorkspacePersistenceController {
 
   continueWithoutSaving() {
     if (this.disposed || this.state.status !== 'load-error') return
-    const attempt = ++this.loadAttempt
-    this.mode = 'loading'
-    this.setState({
-      error: null,
-      hasSaveFailure: false,
-      hasUnsavedChanges: false,
-      status: 'loading',
-      workspace: null,
-    })
+    const attempt = this.beginLoad()
     void Promise.resolve()
       .then(() => this.createFactory())
       .then((workspace) => {
-        if (this.disposed || attempt !== this.loadAttempt) return
+        if (this.isStaleLoad(attempt)) return
         this.mode = 'session-only'
         this.currentRevision = 1
         this.savedRevision = 0
@@ -146,14 +138,8 @@ export class WorkspacePersistenceController {
         this.onWorkspaceLoaded?.(workspace)
       })
       .catch((error: unknown) => {
-        if (this.disposed || attempt !== this.loadAttempt) return
-        this.setState({
-          error: persistenceError(error, 'read-failed'),
-          hasSaveFailure: false,
-          hasUnsavedChanges: false,
-          status: 'load-error',
-          workspace: null,
-        })
+        if (this.isStaleLoad(attempt)) return
+        this.failLoad(error)
       })
   }
 
@@ -196,7 +182,8 @@ export class WorkspacePersistenceController {
     this.listeners.clear()
   }
 
-  private attemptLoad() {
+  /** Starts a load, which makes any earlier load's late result stale. */
+  private beginLoad() {
     const attempt = ++this.loadAttempt
     this.mode = 'loading'
     this.setState({
@@ -206,12 +193,32 @@ export class WorkspacePersistenceController {
       status: 'loading',
       workspace: null,
     })
+    return attempt
+  }
+
+  /** True once the controller is disposed or a newer load has started. */
+  private isStaleLoad(attempt: number) {
+    return this.disposed || attempt !== this.loadAttempt
+  }
+
+  private failLoad(error: unknown) {
+    this.setState({
+      error: persistenceError(error, 'read-failed'),
+      hasSaveFailure: false,
+      hasUnsavedChanges: false,
+      status: 'load-error',
+      workspace: null,
+    })
+  }
+
+  private attemptLoad() {
+    const attempt = this.beginLoad()
 
     void this.load()
       .then(async (stored) => {
-        if (this.disposed || attempt !== this.loadAttempt) return
+        if (this.isStaleLoad(attempt)) return
         const workspace = stored ?? (await this.createFactory())
-        if (this.disposed || attempt !== this.loadAttempt) return
+        if (this.isStaleLoad(attempt)) return
         this.mode = 'persistent'
         this.currentRevision = stored ? 0 : 1
         this.savedRevision = 0
@@ -226,14 +233,8 @@ export class WorkspacePersistenceController {
         if (!stored) this.scheduleSave()
       })
       .catch((error: unknown) => {
-        if (this.disposed || attempt !== this.loadAttempt) return
-        this.setState({
-          error: persistenceError(error, 'read-failed'),
-          hasSaveFailure: false,
-          hasUnsavedChanges: false,
-          status: 'load-error',
-          workspace: null,
-        })
+        if (this.isStaleLoad(attempt)) return
+        this.failLoad(error)
       })
   }
 

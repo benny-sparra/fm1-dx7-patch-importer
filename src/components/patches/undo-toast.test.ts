@@ -17,6 +17,17 @@ describe('undoToastOptions', () => {
     expect(library.undoChange).toHaveBeenCalledExactlyOnceWith(changed)
   })
 
+  it('runs what must come first before reversing the change', () => {
+    const order: string[] = []
+    const library = { undoChange: vi.fn(() => order.push('undo') > 0) }
+
+    undoToastOptions(t, library, emptyPatchLibrary(), () =>
+      order.push('close editor'),
+    )?.action.onAction()
+
+    expect(order).toEqual(['close editor', 'undo'])
+  })
+
   it('offers nothing when the change did not happen', () => {
     expect(undoToastOptions(t, { undoChange: vi.fn() }, null)).toBeUndefined()
   })

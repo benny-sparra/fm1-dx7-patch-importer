@@ -1,5 +1,5 @@
 import { loadEnv } from 'vite'
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 import { sentryVitePlugin, type SentryVitePluginOptions } from '@sentry/vite-plugin'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -7,6 +7,16 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 type SourceMapMode = 'hidden' | 'none' | 'public'
+
+/**
+ * The build this bundle came from, so a Sentry event names an exact deployment rather than leaving
+ * the revision to be guessed from the date. Cloudflare Pages and GitHub Actions each supply the
+ * commit themselves; SENTRY_RELEASE overrides both for a build made anywhere else.
+ */
+export function resolveSentryRelease(env: Record<string, string | undefined>) {
+  const candidates = [env.SENTRY_RELEASE, env.CF_PAGES_COMMIT_SHA, env.GITHUB_SHA]
+  return candidates.map((value) => value?.trim()).find((value) => value) || undefined
+}
 
 export function resolveSentrySourceMapUpload(
   env: Record<string, string | undefined>,
@@ -30,10 +40,15 @@ export function resolveSentrySourceMapUpload(
     throw new Error('Sentry source-map upload requires SOURCE_MAPS to be public or hidden.')
   }
 
+  // Uploaded maps must be filed under the same release the client reports, or a resolved stack
+  // trace will not be found for the event that needs it.
+  const release = resolveSentryRelease(env)
+
   return {
     authToken: values.SENTRY_AUTH_TOKEN,
     org: values.SENTRY_ORG,
     project: values.SENTRY_PROJECT,
+    ...(release ? { release: { name: release } } : {}),
     sourcemaps: {
       assets: './dist/assets/**',
     },
@@ -68,6 +83,9 @@ export default defineConfig(({ command, mode }) => {
       manifest: true,
       sourcemap: sourceMapModes[sourceMapMode as keyof typeof sourceMapModes],
     },
+    define: {
+      'import.meta.env.VITE_SENTRY_RELEASE': JSON.stringify(resolveSentryRelease(env) ?? ''),
+    },
     plugins: [
       react(),
       tailwindcss(),
@@ -86,6 +104,8 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     test: {
+      // Agent worktrees under .claude/ hold other branches' tests, which must not run here.
+      exclude: [...configDefaults.exclude, '.claude/**'],
       // Repairs the Node 26 / jsdom Web Storage collision. See the setup file.
       setupFiles: ['./src/test/web-storage.ts'],
     },

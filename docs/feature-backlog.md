@@ -76,13 +76,14 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Do not resend when the selected version has not changed.
 
 - [x] **Copy patches between banks.** "Copy to…" in a slot's menu copies it over a chosen slot in
-      any bank that has sounds. Dragging onto a bank tab is not built yet.
+      any bank that has sounds, or dragging it onto a bank tab.
   - Choose the target slot, and confirm before overwriting a populated slot.
   - Copies the patch's FM1 effects with the voice.
   - Offer Undo in the notification through `undoToastOptions`.
 
-- [ ] **Single-voice `.syx` import and export.** Load and download one DX7 voice (the 163-byte
-      single-voice dump) as well as 32-voice banks.
+- [x] **Single-voice `.syx` import and export.** Load and download one DX7 voice (the 163-byte
+      single-voice dump) as well as 32-voice banks. Built as **Import patch…** and
+      **Download patch** in a slot's ⋮ menu; a replaced slot's FM1 effects return to their defaults.
   - Apply the same rules as bank import: header, length, 7-bit data, and checksum, with translated
     errors.
   - Importing into a slot replaces a sound, so confirm first and offer Undo.
@@ -107,13 +108,197 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Check Firefox-only differences in layout, fonts, native dialogs, drag-and-drop reordering, and
     app installation, which Firefox does not offer.
 
+- [x] **Workspace backup and restore.** Download one file holding the workspace banks, each patch's
+      FM1 effects, and the saved banks, and restore from it. Every download today (patch, bank, and
+      the all-banks `.zip`) is DX7 voice data only, so FM1 effects and saved banks exist nowhere
+      but browser storage, and clearing site data loses them.
+  - The file is a new public format from its first release: a versioned record with an upgrade
+    path on read, and a fixture test for version 1 in the same change, under the legacy-data rules
+    in `AGENTS.md`.
+  - Check voice data at the same boundary as `.syx` import (reject bytes above 7-bit, normalise on
+    read) and give every failure a translated error.
+  - Load the backup code when a backup or restore starts, like `fflate` for bulk export.
+
+  **File format.** JSON with base64 voice and effect bytes, not a zip. A full workspace is ten
+  banks of thirty-two 128-byte voices plus their effects, so even a heavy backup is a few hundred
+  kilobytes and base64's third again on top does not justify a container. Plain JSON stays
+  inspectable and recoverable by hand, which matters for what may be the user's only copy.
+
+  ```
+  { "format": "fm1-librarian-backup", "version": 1, "savedAt": "<ISO>",
+    "workspace": { "workspaceBanks", "loadedBanks", "bankNames", "bankDescriptions",
+                   "slots": [{ "id": "A01", "voice": "<base64>", "effects": "<base64>" }] },
+    "savedBanks": [{ "id", "name", "description", "createdAt", "updatedAt",
+                     "slots": [{ "slot": 1, "voice": "<base64>", "effects": "<base64>" }] }] }
+  ```
+
+  Version the file independently of `StoredPatchLibrary.version` and `NamedBank.version`. They
+  change for different reasons, and coupling them forces a file-format bump whenever the IndexedDB
+  record shifts.
+
+  **The two halves restore differently, because undo cannot cover both.** `undoChange` works on the
+  library snapshot history in `src/hooks/use-patch-library.ts`; saved banks are separate IndexedDB
+  records written through `saveStoredNamedBank` and are not in that history. One Undo therefore
+  cannot reverse a saved-bank write, and `AGENTS.md` forbids promising an undo the app does not
+  offer. So:
+  - The workspace is **replaced**, through the normal snapshot path, and Undo reverses it with
+    `undoToastOptions` exactly as importing over a bank does.
+  - Saved banks are **merged and additive**: a bank whose `id` is not already present is added, an
+    id already present is skipped and counted in the result. Nothing is overwritten, so nothing
+    needs undoing. This also settles the earlier merge-or-replace question in the direction that
+    cannot lose data.
+  - The confirmation dialog states what happens to each half, so the asymmetry is visible before
+    the user commits.
+
+  **Validation** reuses the existing boundaries rather than adding new checks:
+  `normalizeStoredDx7Voice` for voices, which enforces the 128-byte length and 7-bit data;
+  `normalizeFm1Effects` for effects; `validateNamedBank` for each saved bank; and
+  `isWorkspaceBankId`, `maximumWorkspaceBanks`, `workspaceBankTitleLength`, and
+  `bankDescriptionLength` for the bank metadata. Failures carry a typed `problem` code like
+  `Dx7BankFileError` and are translated. Check the file size before reading it, as
+  `readDx7BankFile` does. A damaged saved bank inside an otherwise good file is skipped and
+  reported, matching `listStoredNamedBanks`.
+
+  **UI.** Backup is workspace-wide, so it belongs in the header ⋮ menu beside **Download all banks
+  (.zip)** rather than a bank or slot menu — but that menu is where the wording gets dangerous, and
+  the naming has to be settled before this is built. See
+  [Separating patch files from backups](#separating-patch-files-from-backups).
+
+  - Tests: a round trip, a version 1 fixture, a damaged file reaching the UI as translated text, a
+    rendered restore that reverses in one undo, a voice with a byte above 7 bits rejected, and a
+    file with one damaged saved bank importing the rest.
+
+- [ ] **Multi-bank `.syx` import.** DX7 archive collections often join several 32-voice dumps in
+      one file, which bank import refuses today. Split the file into its banks, show each with its
+      first few patch names, and import the one chosen.
+  - Each bank passes the existing checks: header, length, 7-bit data, and checksum.
+  - A file with some damaged banks lists the readable ones and reports the rest, as saved banks
+    do, rather than rejecting the whole file.
+  - Importing over a populated bank keeps its confirmation and Undo. Update the SysEx
+    compatibility section of `docs/user-guide.md`.
+
+- [x] **Drag a patch onto a bank tab.** Finishes [Copy patches between banks](#worth-doing):
+      dropping a patch on a bank tab opens **Copy to…** with that bank chosen, so the overwrite
+      confirmation and Undo stay in one place.
+  - The ⋮ menu stays the keyboard route. Dropping on the patch's own bank is ignored or picks a slot
+    as the dialog does today. Decided: it is ignored, and a keyboard drag never reaches the tabs,
+    so the arrow keys keep reordering within the bank. Only banks with sounds take a drop, matching
+    the dialog's bank tabs.
+  - Cover the drop in Playwright; jsdom cannot check dragging onto another element.
+
+- [x] **Search everywhere.** Extend the librarian search beyond loaded workspace banks to saved banks
+      and the bundled catalog, and play a result through the FM1 edit buffer. This reverses the
+      decision recorded under [Search across all banks](#nice-to-have): results that are not slots
+      get their own grouping and actions, and the catalog is searched through a small generated
+      index loaded on demand, so the initial bundle is unaffected.
+  - Decided: every search looks everywhere; a toggle to widen it was built and dropped as
+    unnecessary. Matches in the user's own banks keep their slots under **Your patch banks**;
+    saved-bank and catalog matches follow under **Saved banks** and **Other DX7 patch banks**, 60 per
+    group until the search narrows. The search field is labelled just **Search**.
+  - A saved-bank result plays with its stored FM1 effects and a catalog result with the defaults,
+    through `auditionInEditBuffer` in `src/App.tsx` and its duplicate-send guard. Each search
+    caches the catalog banks it fetches, so a result played twice is the same voice object.
+  - **Copy to…** puts a result in a workspace slot through `replaceVoice`, with the existing
+    confirmation and Undo. Double-clicking a result, or Enter on the one just played, opens the
+    same dialog as **Replace … and edit** and then the editor on the copy, since a result has no slot
+    to edit. Dragging a result onto a bank tab is not built; add it if asked.
+  - The index is `src/data/dx7-catalog-index.json`, written by `npm run catalog:index`. Its check is
+    `src/data/dx7-catalog-index.test.ts`, a Vitest file snapshot that fails in `npm test` while the
+    index is stale, rather than a separate `--check` script. The results component, the search code,
+    and the index load on first use; the props and strings cost well under 1 KiB of the initial bundle.
+  - Still open: duplicates. A saved-bank or catalog result can be byte-for-byte the same voice as a
+    patch already in the user's banks, and the catalog repeats voices across banks. The proposal is
+    to hide exact copies (identical 128-byte voice data, not just the name), keep the first of
+    several catalog copies, keep same-name patches whose data differs, and say under the group how
+    many were not shown. The catalog index would carry a 53-bit voice fingerprint for this. Build it
+    together with [Find duplicate patches](#nice-to-have), which needs the same fingerprint.
+
 ## Nice to have
 
-- [ ] **Search across all banks and the catalog.** Find a patch name in every workspace bank, saved
-      bank, and bundled catalog bank, then audition it or copy it in. Pairs with copying patches
-      between banks.
+- [ ] **Receive a DX7 voice over MIDI.** Offer to place a standard DX7 single-voice dump arriving at
+      the MIDI input, from Dexed, a DX7, or another editor, into a chosen slot, with the same checks
+      and confirmation as **Import patch…**.
+  - This is standard Yamaha SysEx, not FM1 readback, which stays unsupported. Nothing is taken
+    without the user asking: listen only while a receive dialog is open, and ignore everything
+    else arriving at the input.
+  - Validate length, header, 7-bit data, and checksum at the boundary, and drop the listener when
+    the dialog closes, MIDI goes offline, or the input changes.
+  - Tests use captured fixtures and a fake input; no hardware or permission.
+
+- [ ] **Share a patch as a link.** **Copy share link** in a slot's ⋮ menu copies a URL that carries
+      the patch in its fragment (the part after `#`), so someone else can open it in their own
+      library. The fragment never reaches a server, so this needs none: it is not the rejected
+      [Online sharing or accounts](#decided-against).
+  - The link carries the 128-byte packed voice, which includes the name, and the patch's FM1
+    effects, base64url encoded: a couple of hundred characters. Tag it with a format version, such
+    as `#patch=1.<data>`. Links outlive releases, so from its first release this is a public format
+    under the legacy-data rules in `AGENTS.md`, with a fixture test for version 1.
+  - Opening a link never writes anything by itself. It opens the **Import patch…** flow with the
+    patch shown, the user picks a slot, and overwriting keeps its confirmation and Undo. Clear the
+    fragment with `history.replaceState` once it is read, so a reload does not ask again.
+  - Validate at the same boundary as `.syx` import: length, 7-bit data, and effect ranges. A bad
+    or truncated link reaches the UI as a translated error, not a raw message.
+  - The fragment holds a user-authored patch name. Confirm that Umami and Sentry drop fragments,
+    which `AGENTS.md` already requires, and add a test that a shared link is not reported.
+  - Links name the deployed domain, so moving the site breaks them unless the old domain redirects
+    and keeps the fragment.
+  - Tests: a round trip, the version 1 fixture, a malformed link reaching the UI translated, a byte
+    above 7 bits rejected, nothing written without confirmation, and one-step Undo.
+
+- [ ] **Find duplicate patches.** List patches in loaded workspace banks whose voice data is
+      identical, with a way to jump to each copy, so imported archives can be tidied.
+  - Read-only: it never deletes or changes a slot. Compare packed voice bytes; say in the UI
+    whether names and FM1 effects are part of the match.
+
+- [x] **Search across all banks.** The librarian's search box finds a patch in every loaded
+      workspace bank, and clicking a result plays it while the results stay up.
+  - Decided: saved banks and the bundled catalog are left out. Searching them would need results
+    that are not slots, and loading the catalog would weigh on the initial bundle. Choosing a bank
+    clears the search; clearing it returns to the bank of the last result played. A lone letter
+    matches names only, and a slot code matches only as the whole query.
 
 ## Open questions
+
+### Syncing patches with the FM1
+
+Keeping the browser library and the hardware in step — showing what differs, and reconciling it —
+is the feature this librarian would most like to offer. It is blocked, and the blocker is one
+direction of traffic rather than any amount of UI work.
+
+Checked again on 2026-09-20 against both upstream sources:
+
+- [AL-255/FM-1-RE](https://github.com/AL-255/FM-1-RE) `docs/io/05-midi.md` documents inbound paths
+  only: UART RX DMA, USB EP4 OUT, and BLE-MIDI feeding parse and dispatch. Its MIDI output section
+  covers note events, not patch data. The repository's subject is architecture, boot chain, and the
+  OTA update protocol, all host to device.
+- [KingParamount/fm1-factory-presets](https://github.com/KingParamount/fm1-factory-presets) states
+  the FM-1 receives SysEx but never sends it, and the only device-to-host messages in its capture
+  are identity replies and acknowledgements.
+
+Both match [research 6.3](fm1-research.md#63-updater-preset-restore-over-manufacturer-id-00-32),
+whose open question 9 — whether the `00 32` family offers a read or bulk-dump request at all — is
+still unanswered. The research has not moved on readback; it never had it.
+
+Only one direction exists:
+
+- **Browser to FM1** works today through standard DX7 bank dumps, and the `00 32` capture suggests a
+  better path in [slot-addressed voice-bank write](fm1-roadmap.md), parked as Dangerous / excluded
+  because the capture came from an updater build that downgrades firmware.
+- **FM1 to browser** has no known mechanism. It is absent from every capture taken, not merely
+  undocumented.
+
+Without readback there is nothing to diff, no drift to detect, no merge to perform, and no way to
+confirm the device holds what was sent. A one-way push with delivery confirmation is the most that
+the known protocol could ever support, and that is parked. This is the same limitation that
+[Bank transfer status](#bank-transfer-status) runs into: anything claiming to describe the hardware's
+contents can only report what this browser last sent.
+
+It also sets the terms for [Workspace backup and restore](#worth-doing). Because the FM1 can never be
+read back, the browser is the only copy of a patch that exists, which makes the backup file the sole
+protection against losing everything rather than a convenience.
+
+Reopen only if a stock-safe read or bulk-dump request is identified and recorded in
+`docs/fm1-research.md`. Do not probe for one by sending unknown command IDs.
 
 ### Bank transfer status
 
@@ -121,6 +306,55 @@ A per-bank "Local only / Transferred / Changed" marker existed and was removed i
 bringing it back, find out why it was removed. Without device readback it can only report what this
 browser last sent, never what is on the FM1, so its wording must not suggest the two are in sync.
 A full sync workflow with confirmation prompts was judged too complex for what it can promise.
+
+### Separating patch files from backups
+
+**Settled 2026-09-21** with [Workspace backup and restore](#worth-doing):
+
+- **Backup** names only the app's own file, never export or download; **SysEx**, `.syx`, patch, and
+  bank stay on the DX7 side.
+- **Restore all banks** became **Reset to factory patches…**, so _restore_ means a backup alone.
+- The header ⋮ menu names each group for who the file is for, not its format. **Full backup** comes
+  first, because the backup is the only copy of FM1 effects and saved banks: **Download backup**,
+  with a line saying it includes FM1 effects and when this browser last made one (the
+  `fm1-last-backup` key), then **Restore from backup…**. **For other DX7 tools** follows, with
+  **Download SysEx banks (.zip)** and a line saying it holds DX7 data only, no FM1 effects.
+  The factory reset sits below a divider. A backup dialog with a tab for the DX7 export was
+  considered and rejected: tabs hide the comparison the menu needs to show, and add a click to the
+  action people should take most.
+- The persistence warning also offers **Download backup** while browser storage is not keeping the
+  workspace, which is when a backup matters most. There is no permanent storage area to put it in.
+
+### Audio preview in the browser
+
+A DX7 engine running in the browser, such as the Dexed engine that WebDX7 builds to WebAssembly,
+would let a patch be heard without the FM1: auditioning an imported or catalog bank before sending
+it, using the librarian with no device connected, and in Safari, which has no Web MIDI. Other DX7
+tools offer this, and a DX7-profile offshoot of this editor would need it to compete with Dexed.
+
+**Doubtful for the FM1 app**, for two reasons:
+
+- It cannot play the FM1's effects. Most FM1 patches rely on them, so the preview would sound drier
+  and plainer than the device. Rebuilding them in Web Audio would only be a guess, because their
+  hardware scaling is still unconfirmed (see `docs/fm1-research.md` §7).
+- The FM1's engine may not render a voice the way a DX7 emulation does, and nothing yet measures the
+  difference. A preview that sounds unlike the device misleads the person choosing a patch.
+
+Before deciding, settle:
+
+- **Fidelity.** Record a spread of patches from the FM1 with effects bypassed, and compare them
+  with the same voices in the candidate engine. If they differ audibly, drop the idea for the FM1
+  app.
+- **Labelling.** Whether a "DX7 preview, without FM1 effects" label is honest enough, or whether any
+  preview beside a connected FM1 invites confusion.
+- **Licensing.** Dexed is GPL-3 and its original engine (MSFA) Apache-2.0, as understood; check
+  both. The repository has no LICENSE file yet, so its own licence decides what can be embedded.
+- **Cost.** Load the engine only when preview is first used, to stay inside the 151 KiB budget. The
+  CSP in `public/_headers` would need `wasm-unsafe-eval`, with `scripts/check-security-headers.mjs`
+  updated and a security review. Audio needs a user gesture to start.
+
+If it goes ahead, the natural entry is the piano keyboard: with MIDI offline, its notes play the
+preview.
 
 ### Effect routing order
 
@@ -163,7 +397,15 @@ Reopen only if a stock control or an official M-VAVE app is found that changes t
 
 - **Tags, ratings, and favourites.** New stored fields to support forever, for little benefit with
   32-slot banks.
+- **Vary the current voice.** Small random changes around the current sound, beside Randomise.
+  Too close to voice morphing, and Randomise plus undo already covers exploring.
 - **Online sharing or accounts.** Needs a server and conflicts with the client-only design and the
   privacy rules.
 - **Voice morphing, and sequencer features beyond the FM1's own model.** Out of scope; the sequencer
   follows [the roadmap](fm1-roadmap.md).
+- **Download a bank's patch list.** A printed slot list only helps at the FM1 without the browser,
+  where the device already shows patch names; with the browser open, the patch grid and
+  [Search across all banks](#nice-to-have) find a patch faster. Not worth a permanent bank-menu
+  entry, strings in every locale, and CSV quoting to keep correct.
+- **Paste part of an operator.** **Paste operator** already covers the case that came up, and
+  pasting only an envelope or only a frequency was never asked for. Add it if someone asks.

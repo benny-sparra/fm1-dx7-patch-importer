@@ -223,4 +223,21 @@ describe('WorkspaceBankSelector', () => {
       document.activeElement,
     )
   })
+
+  it('shows no bank as selected while keeping the chosen bank in the Tab order', () => {
+    render(
+      <WorkspaceBankSelector
+        banks={banks}
+        label="Destination browser bank"
+        onSelect={() => {}}
+        renderActions={() => null}
+        selectedBank="B"
+        showsSelection={false}
+      />,
+    )
+
+    expect(screen.queryByRole('button', { pressed: true })).toBeNull()
+    expect(screen.getByRole('button', { name: 'B — Electric Keys' }).tabIndex).toBe(0)
+    expect(screen.getByRole('button', { name: 'A — Studio Favourites' }).tabIndex).toBe(-1)
+  })
 })

@@ -6,10 +6,10 @@ import { useState } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
-import { type MidiController } from '@/hooks/use-midi'
-import { type Patch } from '@/data/patches'
+import type { MidiController } from '@/hooks/use-midi'
+import type { Patch } from '@/data/patches'
 import { resolveOperatorParameterIndex } from '@/lib/fm1-parameters'
-import { type CopiedOperator } from '@/lib/operator-clipboard'
+import type { CopiedOperator } from '@/lib/operator-clipboard'
 import { PatchEditorPage } from '@/routes/patch-editor-page'
 
 beforeAll(() => {

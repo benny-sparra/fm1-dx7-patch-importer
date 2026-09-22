@@ -11,8 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { type NamedBankLibraryDialogProps } from '@/components/patches/named-bank-dialog-types'
+import type { NamedBankLibraryDialogProps } from '@/components/patches/named-bank-dialog-types'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
+import { ErrorNotice } from '@/components/ui/error-notice'
+import { savedBankNameLength } from '@/lib/named-bank'
+import { bankDescriptionLength } from '@/lib/patch-library'
 
 export function SaveNamedBankDialog({
   destinationBank,
@@ -98,7 +101,7 @@ export function SaveNamedBankDialog({
               <input
                 autoComplete="off"
                 className="h-10 rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                maxLength={80}
+                maxLength={savedBankNameLength}
                 onChange={(event) => setName(event.target.value)}
                 placeholder={t('namedBanks.namePlaceholder')}
                 ref={nameInputRef}
@@ -110,20 +113,13 @@ export function SaveNamedBankDialog({
               {t('namedBanks.description')}
               <textarea
                 className="min-h-24 resize-y rounded-md border border-input bg-background px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                maxLength={500}
+                maxLength={bankDescriptionLength}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder={t('namedBanks.descriptionPlaceholder')}
                 value={description}
               />
             </label>
-            {error ? (
-              <p
-                className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-                role="alert"
-              >
-                {error}
-              </p>
-            ) : null}
+            {error ? <ErrorNotice>{error}</ErrorNotice> : null}
             <div className="flex flex-wrap justify-end gap-2">
               <Button disabled={working} type="submit">
                 <Save />

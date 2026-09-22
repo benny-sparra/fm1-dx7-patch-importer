@@ -11,8 +11,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/toast'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
-import { normalizeWorkspaceBankNameForSave, workspaceBankTitleLength } from '@/lib/patch-library'
+import { ErrorNotice } from '@/components/ui/error-notice'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
+import {
+  bankDescriptionLength,
+  normalizeWorkspaceBankNameForSave,
+  workspaceBankTitleLength,
+} from '@/lib/patch-library'
 
 type BankInformationDialogProps = {
   bank: string
@@ -111,20 +116,13 @@ export function BankInformationDialog({
               {t('namedBanks.description')}
               <textarea
                 className="min-h-28 resize-y rounded-md border border-input bg-background px-3 py-2 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                maxLength={500}
+                maxLength={bankDescriptionLength}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder={t('namedBanks.descriptionPlaceholder')}
                 value={description}
               />
             </label>
-            {error ? (
-              <p
-                className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-                role="alert"
-              >
-                {error}
-              </p>
-            ) : null}
+            {error ? <ErrorNotice>{error}</ErrorNotice> : null}
             <div className="flex justify-end">
               <Button type="submit">{t('namedBanks.update')}</Button>
             </div>

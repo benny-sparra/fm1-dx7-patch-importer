@@ -13,13 +13,13 @@ export default {
     midiClose: 'Close MIDI connection message',
     midiSteps:
       'Switch MIDI online on at the top of the page, allow MIDI access, then select the FM1 MIDI output in Settings.',
-    restoreTitle: 'Restore FM-1 factory banks?',
+    restoreTitle: 'Reset to the factory patches?',
     restoreIntro:
-      'This replaces all four local browser banks. You can undo the restore immediately afterwards.',
-    restoreClose: 'Close factory bank restore',
+      'This replaces all four local browser banks. You can undo the reset immediately afterwards.',
+    restoreClose: 'Close factory reset',
     restoreDetails:
-      'Banks A, B, C, and D will be restored to FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with.',
-    restoreAction: 'Restore four banks',
+      'Banks A, B, C, and D will be reset to FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with.',
+    restoreAction: 'Reset four banks',
     sourcesOpen: 'Find patch banks to download here.',
     sourcesTitle: 'Find DX7 patch banks',
     sourcesIntro:
@@ -32,6 +32,8 @@ export default {
         'The FM-1 stock presets, recovered from the M-VAVE restore tool. Also in the bank catalog.',
     },
     sourcesClose: 'Close patch bank sources',
+    sourcesSubmit: 'Programmed a DX7 bank of your own?',
+    sourcesSubmitLink: 'Offer it for the bank catalog',
   },
   ui: {
     auditionGroup: 'Operator {{number}} audition',
@@ -146,6 +148,12 @@ export default {
       plate: 'Plate',
     },
   },
+  replacePatch: {
+    action: 'Replace patch',
+    title: 'Replace {{slot}} “{{patch}}”?',
+    warning:
+      'The patch in this slot will be replaced by the one in the file, and its FM1 effects reset to their defaults.',
+  },
   overwriteImport: {
     action: 'Replace bank contents',
     help: 'Choose a standard 32-voice DX7 SysEx bank file.',
@@ -191,13 +199,14 @@ export default {
     bankImported: 'Imported patches into “{{bank}}”.',
     bankCreated: 'Created “{{bank}}”.',
     bankDeleted: 'Deleted “{{bank}}”.',
-    banksRestored: 'Restored the four factory banks.',
+    banksRestored: 'Reset the four banks to the factory patches.',
     bankDownloadStarted: 'Downloading “{{bank}}”.',
     banksDownloadStarted: 'Downloading all banks.',
     bankUpdated: 'Updated “{{bank}}”.',
     demoLoaded: 'Loaded the demo patches into “{{bank}}”.',
     patchSaved: 'Saved “{{patch}}” to the library.',
     patchCopied: 'Copied “{{patch}}” to {{slot}} in “{{bank}}”.',
+    patchReplaced: 'Replaced {{slot}} with “{{patch}}”.',
     operatorCopied: 'Copied operator {{number}}.',
   },
   meta: {
@@ -225,9 +234,8 @@ export default {
     intro: 'Edit, organise and transfer FM1 patches, or import DX7 SysEx banks.',
     synthAlt: 'M-VAVE FM1 synthesiser front panel',
     unsupportedTitle: 'Unsupported browser.',
-    unsupportedMobileTitle: 'Mobile devices are not supported.',
     unsupportedBody:
-      'This librarian needs a desktop browser that supports Web MIDI and SysEx, such as Chrome, Edge, Firefox, or Opera. Phones and tablets are not supported.',
+      'This librarian needs a browser that supports Web MIDI and SysEx, such as Chrome, Edge, Firefox, or Opera. Chrome on Android works too.',
     localOnly: 'Your patches stay in this browser',
     projectLinks: 'Project links',
     reportIssue: 'Report an issue',
@@ -429,7 +437,7 @@ export default {
       insecureContext:
         'Web MIDI needs a secure connection. Open the editor over HTTPS or localhost.',
       unsupportedBrowser:
-        'This browser does not support Web MIDI. Use a desktop browser such as Chrome, Edge, or Firefox.',
+        'This browser does not support Web MIDI. Use a browser such as Chrome, Edge, or Firefox.',
       permissionDenied:
         'MIDI access was blocked. Allow MIDI and SysEx access for this site, then connect again. In Firefox, accept the site permission add-on when it is offered.',
       enableFailed: 'MIDI could not be started. Check the device connection, then try again.',
@@ -446,7 +454,7 @@ export default {
     entries: 'Recent MIDI log entries',
     hideData: 'Hide data',
     viewData: 'View data',
-    bytes: '{{count}} bytes',
+    bytes: '{{count, number}} bytes',
     completeSysex: 'Complete SysEx message',
     copied: 'Copied',
     copyHex: 'Copy hex',
@@ -456,7 +464,7 @@ export default {
   banks: {
     empty: 'Empty',
     importing: 'Importing…',
-    restoring: 'Restoring…',
+    restoring: 'Resetting…',
     catalogFactory: 'Factory',
     catalogFm1Factory: 'FM-1 factory presets',
     import: 'Import DX7 bank',
@@ -465,8 +473,8 @@ export default {
     bankInformation: 'Bank information',
     bankInformationHelp: 'Edit the title and optional description for this workspace bank.',
     download: 'Download this bank',
-    downloadAll: 'Download all banks (.zip)',
-    restoreAll: 'Restore all banks',
+    downloadAll: 'Download SysEx banks (.zip)',
+    restoreAll: 'Reset to factory patches…',
     sending: 'Sending…',
     send: 'Send to FM1',
     bank: 'Bank {{bank}}',
@@ -498,23 +506,27 @@ export default {
     sentStatus: 'Browser bank {{bank}} was sent. Choose its destination on the FM1.',
     notSent: 'The bank was not sent. Open the MIDI log for details, then retry.',
     importFailed: 'Import failed.',
-    restoreFailed: 'The factory banks could not be restored. Try again.',
+    restoreFailed: 'The banks could not be reset to the factory patches. Try again.',
     bankUnavailable: 'That workspace bank is no longer available. Close this dialog and try again.',
     catalogUnavailable:
       'That patch bank could not be downloaded. Check your connection, then try again.',
     fileErrors: {
-      size: 'This file is {{bytes}} bytes. A DX7 bank file must be exactly 4,104 bytes.',
+      size: 'This file is {{bytes, number}} bytes. A DX7 bank file must be exactly {{expected, number}} bytes.',
       format: 'This file is not a Yamaha DX7 32-voice bank.',
-      highBitData: 'This file contains values a DX7 bank cannot hold, so it may be damaged.',
-      checksum: 'This bank failed its checksum, so it may be damaged or incomplete.',
+      damaged: 'This file looks damaged. Try downloading it again.',
+      voiceFormat: 'This file isn’t a DX7 patch. Choose a .syx file that holds a single patch.',
+      voiceGotBank:
+        'This file is a 32-voice DX7 bank. To load it, choose “Import DX7 bank” from the bank’s menu.',
     },
     exportFailed: 'Export failed.',
     bulkExportFailed: 'Bulk export failed.',
     gridTitle: 'Patch banks',
     gridDescription:
       'Import, edit, and arrange each local browser bank before transferring it to the FM1.',
-    search: 'Search by name',
+    search: 'Search',
     noMatches: 'No patches match this search',
+    searchResults: 'Search results: “{{search}}”',
+    sendFromSearch: 'Choose a bank to send it to the FM1',
     bankEmpty: 'This browser bank is empty',
     emptyHelp:
       'Load the demo bank to explore the editor, or import a standard 32-voice DX7 SysEx bank of your own.',
@@ -526,15 +538,37 @@ export default {
     sendPatch: 'Send {{name}} to FM1',
     auditioning: 'Auditioning',
     reorder: 'Reorder {{name}}',
-    reorderTitle: 'Drag to reorder; use arrow keys when focused',
+    reorderTitle:
+      'Drag to reorder, or onto a bank to copy the patch there; use arrow keys to reorder when focused',
     copySelected: 'Copy to…',
     copyDialogTitle: 'Copy {{name}}',
     copyTargetBank: 'Bank',
     copyTargetSlot: 'Slot',
     copyReplaces: 'This replaces “{{name}}” in {{slot}}. You can undo this action.',
     copyAction: 'Replace {{slot}}',
+    copyAndEditAction: 'Replace {{slot}} and edit',
+    copyToEditHint: 'To edit this patch, copy it into one of your banks.',
     copyFailed: 'The patch could not be copied.',
+    addBankOpenFailed: 'The new bank options could not be opened. Reload the page and try again.',
     copyOpenFailed: 'The copy options could not be opened. Reload the page and try again.',
+    importPatchFile: 'Import patch…',
+    downloadPatchFile: 'Download patch',
+    patchFileUnavailable: 'Patch files could not be opened. Reload the page and try again.',
+    everywhere: {
+      workspace: 'Your patch banks',
+      savedBanks: 'Saved banks',
+      catalog: 'Other DX7 patch banks',
+      play: 'Play {{name}} from {{origin}}',
+      playTitle:
+        'Click to play {{name}} through the FM1 edit buffer; double-click to copy and edit',
+      copy: 'Copy {{name}} to a workspace bank',
+      truncated:
+        'Showing the first {{shown}} of {{total}} matches. Type more to narrow the search.',
+      loading: 'Searching other DX7 patch banks…',
+      loadFailed:
+        'Saved banks and other DX7 patch banks could not be searched. Reload the page and try again.',
+      playFailed: 'The patch could not be played.',
+    },
   },
   namedBanks: {
     open: 'Bank library',
@@ -551,8 +585,8 @@ export default {
     editDetails: 'Edit bank details',
     update: 'Update details',
     savedBanks: 'Saved banks',
-    count: '{{count}} saved bank',
-    count_other: '{{count}} saved banks',
+    count: '{{count, number}} saved bank',
+    count_other: '{{count, number}} saved banks',
     search: 'Search saved banks',
     loading: 'Loading saved banks…',
     empty: 'No named banks yet. Save the selected workspace bank to create one.',
@@ -580,5 +614,52 @@ export default {
     copied: 'Created “{{name}}”.',
     deleted: 'Deleted “{{name}}”.',
     loaded: 'Loaded “{{name}}” into “{{bank}}”.',
+  },
+  backup: {
+    menuSysex: 'For other DX7 tools',
+    sysexContents: 'DX7 data only, no FM1 effects',
+    menuHeading: 'Full backup',
+    download: 'Download backup',
+    restore: 'Restore from backup…',
+    backupContents: 'Includes FM1 effects',
+    lastBackup: 'Last backed up: {{date}}',
+    downloaded: 'Downloading a backup of your workspace banks and saved banks.',
+    downloadedWithoutSavedBanks:
+      'Downloading a backup of your workspace banks. Saved banks could not be read, so they are not in it.',
+    downloadedWithoutDamaged:
+      'Downloading a backup. Some saved banks could not be read, so they are not in it.',
+    unavailable: 'Backups could not be opened. Reload the page and try again.',
+    unavailableUnsaved:
+      'The backup could not be prepared. Keep this tab open, because your latest changes are not saved, and try again.',
+    restoreTitle: 'Restore from backup',
+    restoreIntro:
+      'Choose a backup file made with Download backup. Nothing changes until you confirm.',
+    chooseFile: 'Choose a backup file',
+    reading: 'Reading the backup…',
+    backedUpAt: 'Backed up',
+    workspaceBanks: 'Workspace banks',
+    patches: 'Patches',
+    savedBanks: 'Saved banks',
+    toAdd: 'To add',
+    alreadyHere: 'Already here, kept',
+    unreadable: 'Could not be read',
+    workspaceEffect:
+      'Your workspace banks and all their patches are replaced by the ones in the backup. Undo in the notification afterwards puts them back.',
+    savedBanksEffect:
+      'Saved banks are only added. One already in this browser is kept as it is, and Undo does not remove the ones added.',
+    restoreAction: 'Restore backup',
+    restoring: 'Restoring…',
+    restored: 'Restored the backup from {{date}}.',
+    errors: {
+      format:
+        'This file is not a backup from this app. Choose a .json file made with Download backup.',
+      newer:
+        'This backup was made by a newer version of this app. Reload the page to update it, then try again.',
+      damaged: 'This backup is damaged and cannot be restored. Try another backup file.',
+      size: 'This file is too large to be a backup from this app.',
+      read: 'The file could not be read. Choose it again.',
+      savedBanksFailed:
+        'Browser storage could not keep the saved banks from this backup, so your workspace was not changed. Try again.',
+    },
   },
 } as const

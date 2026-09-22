@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { type MidiLogEntry } from '@/lib/midi'
+import type { MidiLogEntry } from '@/lib/midi'
 import { formatMidiHexRows, makeMidiLogFile } from '@/lib/midi-log-file'
 
 function entry(
@@ -10,7 +10,7 @@ function entry(
   data?: number[],
 ): MidiLogEntry {
   return {
-    createdAt: `08:54:${id.padStart(2, '0')}`,
+    createdAt: Date.parse(`2026-09-17T08:54:${id.padStart(2, '0')}.000Z`),
     data: data ? Uint8Array.from(data) : undefined,
     direction,
     id,
@@ -44,8 +44,8 @@ describe('makeMidiLogFile', () => {
         'Exported: 2026-09-17T08:55:10.123Z',
         'Browser: Mozilla/5.0 (X11; Linux x86_64) Chrome/140.0.0.0',
         '',
-        '08:54:01  SYSTEM  MIDI connected with SysEx enabled.',
-        '08:54:02  OUT  Sent FM1 parameter 123 = 14.',
+        '2026-09-17T08:54:01.000Z  SYSTEM  MIDI connected with SysEx enabled.',
+        '2026-09-17T08:54:02.000Z  OUT  Sent FM1 parameter 123 = 14.',
         '',
       ].join('\n'),
     )
@@ -57,7 +57,7 @@ describe('makeMidiLogFile', () => {
     ]
 
     expect(makeMidiLogFile(log, context).text).toContain(
-      '08:54:03  OUT  Sent FM1 parameter 123 = 14.\n  7 bytes\n  F0 43 10 00 7B 0E F7\n',
+      '2026-09-17T08:54:03.000Z  OUT  Sent FM1 parameter 123 = 14.\n  7 bytes\n  F0 43 10 00 7B 0E F7\n',
     )
   })
 

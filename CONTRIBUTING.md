@@ -46,8 +46,10 @@ JavaScript budget. It does not contact the npm registry. GitHub Actions runs the
 pushes to `main` and on pull requests.
 
 The separate browser-journey job uses Playwright and a production preview to cover IndexedDB
-persistence, editor loading, DX7 import validation, downloads, keyboard reordering, and narrow
-viewport controls. Every journey runs in both Chromium and Firefox. Install their runtimes once
+persistence, editor loading, DX7 import validation, downloads, keyboard reordering, pointer drags,
+MIDI transfers, and narrow viewport controls. Journeys that send MIDI use `installFakeMidi` from
+`e2e/fake-midi.ts`, a stand-in FM-1 that records the bytes it receives, so they need no hardware or
+permission prompt. Every journey runs in both Chromium and Firefox. Install their runtimes once
 locally, then run it with:
 
 ```bash
@@ -82,6 +84,23 @@ Accessibility is checked in three complementary ways:
 The audit commands below require npm registry access. A registry failure is a failed audit, not a
 clean result. Both commands block on high or critical advisories.
 
+## Contributing a patch bank
+
+The bundled catalog welcomes DX7 banks that you programmed yourself. To offer one, open a
+[bank submission](https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new?template=bank-submission.yml)
+issue. A bank is considered when:
+
+- it is one standard 32-voice DX7 bulk SysEx file of 4,104 bytes, with 32 finished patches and no
+  placeholders or empty slots;
+- you programmed every voice, and none are copies or edits of factory, cartridge, commercial, or
+  other people's patches;
+- you release it under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) or
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+GitHub does not accept `.syx` attachments, so zip the file before attaching it. Each submission is
+listened to before it is accepted, and not every bank will be included. An included bank is credited
+in the README under the name you give.
+
 ## Available scripts
 
 | Command                     | Description                                                         |
@@ -94,6 +113,7 @@ clean result. Both commands block on high or critical advisories.
 | `npm run images:check:dist` | Verify hashed responsive candidates in the production output        |
 | `npm run icons:generate`    | Regenerate the committed installed-app icons with Sharp             |
 | `npm run icons:check`       | Verify the manifest icons are present, square, and correctly typed  |
+| `npm run catalog:index`     | Regenerate the catalog patch-name index from the bank files         |
 | `npm run lint`              | Run Oxlint and Stylelint; warnings fail the command                 |
 | `npm run lint:code`         | Run type-aware TypeScript, React, import, promise, and test linting |
 | `npm run lint:css`          | Check CSS with Stylelint                                            |

@@ -20,6 +20,7 @@ type MonitoringConfiguration = {
   environment: string
   loadSdk: () => Promise<SentrySdk>
   onInitialized?: (sentry: SentrySdk) => void
+  release?: string
 }
 
 const sentryDsn =
@@ -31,10 +32,12 @@ function removeUrlDetails(value: string) {
 }
 
 // Each browser words a failed lazy-chunk request differently; Vite adds its own for stylesheets.
+// Pages answers a removed chunk with the app's HTML, which Safari reports as a MIME type error.
 const dynamicImportFailureMessages = [
   /^Failed to fetch dynamically imported module\b/u,
   /^error loading dynamically imported module\b/u,
   /^Importing a module script failed\b/u,
+  /^'text\/html' is not a valid JavaScript MIME type\b/u,
   /^Unable to preload CSS for\b/u,
 ]
 
@@ -72,6 +75,7 @@ export function createMonitoringInitializer({
   environment,
   loadSdk,
   onInitialized,
+  release,
 }: MonitoringConfiguration) {
   let initialization: Promise<MonitoringRootOptions> | undefined
 
@@ -127,6 +131,7 @@ export function createMonitoringInitializer({
           enableLogs: true,
           enableMetrics: enableVerificationMetrics,
           environment,
+          release,
           replaysOnErrorSampleRate: 0,
           replaysSessionSampleRate: 0,
           tracesSampleRate: 0,
@@ -134,12 +139,18 @@ export function createMonitoringInitializer({
 
         const reactErrorHandler = sentry.reactErrorHandler()
         onInitialized?.(sentry)
+        const reportUnlessContainedDynamicImportFailure = (
+          error: unknown,
+          errorInfo: ErrorInfo,
+        ) => {
+          if (isContainedDynamicImportFailure(error)) return
+          reactErrorHandler(error, errorInfo)
+        }
+
         return {
-          onCaughtError(error: unknown, errorInfo: ErrorInfo) {
-            if (isContainedDynamicImportFailure(error)) return
-            reactErrorHandler(error, errorInfo)
-          },
-          onRecoverableError: reactErrorHandler,
+          onCaughtError: reportUnlessContainedDynamicImportFailure,
+          // React reports a failed lazy chunk here as well as to the boundary that caught it.
+          onRecoverableError: reportUnlessContainedDynamicImportFailure,
           onUncaughtError: reactErrorHandler,
         }
       })
@@ -160,12 +171,51 @@ type BankTransferFailureContext = {
 
 type BankTransferCaptureSdk = Pick<SentrySdk, 'captureException'>
 
+/**
+ * Which operating-system family the browser runs on, as one of a fixed set. Linux browsers send
+ * MIDI through the ALSA sequencer, which drops a bank that overruns its output buffer, so a
+ * transfer failure there is a known environment limit rather than a fault to investigate. Nothing
+ * finer than the family is reported, and an unrecognised platform stays `other`.
+ */
+export type CoarsePlatform = 'android' | 'ios' | 'linux' | 'macos' | 'other' | 'windows'
+
+type CoarsePlatformSource = {
+  platform?: string
+  userAgent?: string
+  userAgentData?: { platform?: string }
+}
+
+export function resolveCoarsePlatform(source: CoarsePlatformSource | undefined): CoarsePlatform {
+  const hint =
+    `${source?.userAgentData?.platform ?? ''} ${source?.platform ?? ''} ${source?.userAgent ?? ''}`.toLowerCase()
+  const names = (...values: string[]) => values.some((value) => hint.includes(value))
+
+  // Android names Linux and iPadOS names Macintosh, so the more specific family is matched first.
+  if (names('android')) return 'android'
+  if (names('iphone', 'ipad', 'ipod')) return 'ios'
+  if (names('mac')) return 'macos'
+  if (names('win')) return 'windows'
+  if (names('linux', 'x11')) return 'linux'
+  return 'other'
+}
+
+function currentCoarsePlatform(): CoarsePlatform {
+  try {
+    return resolveCoarsePlatform(globalThis.navigator as CoarsePlatformSource | undefined)
+  } catch {
+    // A blocked or absent navigator leaves the platform unknown rather than losing the report.
+    return 'other'
+  }
+}
+
 export function captureBankTransferFailure(
   sentry: BankTransferCaptureSdk,
   context: BankTransferFailureContext,
+  platform: CoarsePlatform = currentCoarsePlatform(),
 ) {
   const midiTransferContext: Record<string, boolean | number | string> = {
     channel: context.channel,
+    platform,
     stage: context.stage,
     sysex_available: context.sysexAvailable,
   }
@@ -211,6 +261,9 @@ export const initializeMonitoring = createMonitoringInitializer({
   enableVerificationMetrics: import.meta.env.VITE_SENTRY_VERIFY === 'true',
   environment: import.meta.env.MODE,
   loadSdk: () => import('./sentry-sdk'),
+  // A build served without one, such as a local production build, reports no release at all rather
+  // than filing its events under a name that matches no deployment.
+  release: import.meta.env.VITE_SENTRY_RELEASE || undefined,
   onInitialized(sentry) {
     initializedSentry = sentry
   },

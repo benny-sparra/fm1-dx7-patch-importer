@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
-import { type MidiController } from '@/hooks/use-midi'
+import type { MidiController } from '@/hooks/use-midi'
 
 import { RootLayout } from './root-layout'
 
@@ -74,35 +74,55 @@ describe('RootLayout title layout', () => {
 })
 
 describe('RootLayout unsupported banner', () => {
-  function renderWithUserAgent(userAgent: string) {
+  afterEach(() => {
+    delete (window.navigator as unknown as { requestMIDIAccess?: unknown }).requestMIDIAccess
+  })
+
+  function renderWithBrowser(userAgent: string, { midiAccess = false } = {}) {
     vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(userAgent)
+    vi.stubGlobal('isSecureContext', true)
+
+    if (midiAccess) {
+      Object.defineProperty(window.navigator, 'requestMIDIAccess', {
+        configurable: true,
+        value: () => Promise.resolve(),
+      })
+    }
 
     render(
       <RootLayout midi={midi}>
         <div>Library</div>
       </RootLayout>,
     )
-
-    return screen.getByRole('alert')
   }
 
-  it('titles the banner for mobile devices on an Android phone', () => {
-    const banner = renderWithUserAgent(
+  function unsupportedBanner() {
+    return screen
+      .queryAllByRole('alert')
+      .find((alert) => alert.textContent?.includes('Unsupported browser.'))
+  }
+
+  it('does not warn on an Android phone whose browser exposes Web MIDI', () => {
+    renderWithBrowser(
       'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36',
+      { midiAccess: true },
     )
 
-    expect(banner.textContent).toContain('Mobile devices are not supported.')
-    expect(banner.textContent).not.toContain('Unsupported browser.')
+    expect(unsupportedBanner()).toBeUndefined()
   })
 
-  it('titles the banner as an unsupported browser on a secure page without Web MIDI', () => {
-    vi.stubGlobal('isSecureContext', true)
-    const banner = renderWithUserAgent(
+  it('warns on an Android phone whose browser has no Web MIDI', () => {
+    renderWithBrowser('Mozilla/5.0 (Android 15; Mobile; rv:156.0) Gecko/156.0 Firefox/156.0')
+
+    expect(unsupportedBanner()).toBeTruthy()
+  })
+
+  it('warns on a secure desktop page without Web MIDI', () => {
+    renderWithBrowser(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15',
     )
 
-    expect(banner.textContent).toContain('Unsupported browser.')
-    expect(banner.textContent).not.toContain('Mobile devices are not supported.')
+    expect(unsupportedBanner()).toBeTruthy()
   })
 })
 

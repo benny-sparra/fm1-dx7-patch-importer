@@ -12,15 +12,19 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Add up to six additional workspace banks from the bundled DX7 bank catalog or your own SysEx file, so every bank starts populated
 - Rename, describe, or delete workspace banks, with descriptions available from their tabs
 - Replace a populated bank only after confirming that its current patches will be overwritten
-- Restore the four factory banks at any time without removing additional workspace banks
+- Reset banks A–D to the four factory banks at any time without removing additional workspace banks
+- Download a backup of every workspace bank, FM1 effect setting, and saved bank in one file, and restore it later
 - Save named copies of a bank in the browser, then load, rename, copy, download, or delete them later
-- Copy a patch and its FM1 effects over any slot in a bank that has patches
-- Undo deleting, restoring, importing over, or loading into a bank, or copying a patch over a slot, from its notification or with Cmd/Ctrl + Z
-- Restore imported and edited banks automatically from IndexedDB browser storage
+- Copy a patch and its FM1 effects over any slot in a bank that has patches, from its **⋮** menu or
+  by dragging it onto a bank
+- Undo deleting a bank, resetting to the factory patches, restoring a backup, importing over or loading into a bank, or copying a patch over a slot, from its notification or with Cmd/Ctrl + Z
+- Keep imported and edited banks across page reloads in IndexedDB browser storage
 - Retry browser-storage failures or continue explicitly with a session-only workspace without overwriting unreadable saved data
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
-- Search and reorder patches with pointer or keyboard drag-and-drop
-- Export one browser bank as `.syx` or all loaded banks as a `.zip`
+- Download a single patch as a DX7 `.syx` file, or import one over a slot, from the slot's **⋮** menu (**Download patch** and **Import patch…**)
+- Search every bank at once, and reorder patches with pointer or keyboard drag-and-drop
+- Search your saved banks and the 39 bundled DX7 catalog banks at the same time, play any match through the FM1 edit buffer, and copy it into a slot of your own, or double-click it to copy it and open it in the editor
+- Export one browser bank as `.syx`, or every loaded bank as a `.zip` of SysEx files for Dexed, a DX7, or other DX7 tools (DX7 data only, without FM1 effects)
 - Edit all standard DX7 voice parameters with live MIDI updates
 - Work on the six operators as a rack: five sit as compact readouts while the selected one opens in place with its full controls
 - Mute or solo any operator straight from its rack column, without opening it first
@@ -54,9 +58,9 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 ## Requirements
 
 - An M-VAVE FM1
-- A MIDI connection between the computer and FM1
-- A desktop computer with a browser that supports Web MIDI and SysEx, such as Chrome, Edge, Opera,
-  or Firefox. Phones and tablets are not supported.
+- A MIDI connection between the device and FM1
+- A browser that supports Web MIDI and SysEx, such as Chrome, Edge, Opera, or Firefox. Chrome on
+  Android works as well; Safari and Firefox on mobile do not expose Web MIDI.
 
 A standard 4,104-byte Yamaha DX7 32-voice bulk bank (`.syx`) is optional if you want to import additional patches.
 
@@ -79,7 +83,7 @@ shortcuts, and SysEx compatibility.
 ### Your data
 
 > [!IMPORTANT]
-> Imported voices, edits, and FM1 effect settings are saved in this browser and restored after a page reload. Download important banks as `.syx` files as an additional backup, especially before clearing browser data. DX7 `.syx` export contains voice data only; the FM1-specific effect settings remain in the browser library.
+> Imported voices, edits, and FM1 effect settings are saved in this browser and kept after a page reload. Use **Download backup**, under **Full backup** in the patch-bank ⋮ menu, to keep a copy, especially before clearing browser data: the backup file holds the workspace banks, their FM1 effects, and saved banks, and only this app can restore it. DX7 `.syx` export contains voice data only, for use in other DX7 tools.
 
 Workspace-bank titles, descriptions, imported patches, patch ordering, saved editor changes, and FM1 effect settings are saved automatically in the browser.
 
@@ -121,3 +125,5 @@ The randomiser is an independent implementation of the voice generator from Tom 
 The four FM-1 factory banks, loaded into banks A–D on first use and also offered in the catalog, were recovered from M-VAVE's preset-restore tool by KingParamount and are bundled unchanged under CC0 from [fm1-factory-presets](https://github.com/KingParamount/fm1-factory-presets). The licence covers the capture, decode and rebuilt files, not the voices themselves: those trace to Yamaha ROM and VRC cartridges and the community Dexed_cart 1.0 collection, as selected and renamed by M-VAVE. The repository documents the per-voice provenance.
 
 The interface links to independent DX7 patch archives to help users find compatible banks. Those downloads are provided by their respective sites; only import files you trust.
+
+If you have programmed a DX7 bank of your own, you can offer it for the bundled catalog: see [Contributing a patch bank](CONTRIBUTING.md#contributing-a-patch-bank).

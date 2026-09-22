@@ -6,6 +6,8 @@ export const FM1_VOICE_NAME_LENGTH = 10
 export const FM1_VOICE_PARAMETER_COUNT = FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH
 export const FM1_EFFECT_PARAMETER_START = FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH
 export const FM1_EFFECT_PARAMETER_COUNT = 24
+/** Stored transpose for middle C at C3; the editor displays it as 0. */
+export const DX7_TRANSPOSE_C3 = 24
 export const FM1_EDITOR_PARAMETER_COUNT = FM1_EFFECT_PARAMETER_START + FM1_EFFECT_PARAMETER_COUNT
 
 type ValueKind = 'continuous' | 'enumerated' | 'switch'

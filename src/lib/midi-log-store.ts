@@ -1,4 +1,4 @@
-import { type MidiLogEntry } from '@/lib/midi'
+import type { MidiLogEntry } from '@/lib/midi'
 
 /** Enough to follow a bank transfer and the replies around it without the list growing unbounded. */
 const logLimit = 50

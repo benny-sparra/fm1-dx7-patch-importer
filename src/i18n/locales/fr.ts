@@ -14,13 +14,13 @@ export default {
     midiClose: 'Fermer le message de connexion MIDI',
     midiSteps:
       'Activez MIDI en ligne en haut de la page, autorisez l’accès MIDI, puis sélectionnez la sortie MIDI du FM1 dans les réglages.',
-    restoreTitle: 'Restaurer les banques d’usine du FM-1 ?',
+    restoreTitle: 'Rétablir les sons d’usine ?',
     restoreIntro:
-      'Cette opération remplace les quatre banques locales. Vous pourrez l’annuler immédiatement.',
-    restoreClose: 'Fermer la restauration',
+      'Cette opération remplace les quatre banques locales. Vous pourrez annuler le rétablissement immédiatement.',
+    restoreClose: 'Fermer le rétablissement',
     restoreDetails:
-      'Les banques A, B, C et D seront respectivement restaurées avec les banques 1, 2, 3 et 4 du FM-1, les sons livrés avec le FM1.',
-    restoreAction: 'Restaurer quatre banques',
+      'Les banques A, B, C et D seront respectivement rétablies avec les banques 1, 2, 3 et 4 du FM-1, les sons livrés avec le FM1.',
+    restoreAction: 'Rétablir quatre banques',
     sourcesOpen: 'Trouver des banques de sons à télécharger.',
     sourcesTitle: 'Trouver des banques DX7',
     sourcesIntro:
@@ -33,6 +33,8 @@ export default {
         'Les préréglages d’origine du FM-1, récupérés depuis l’outil de restauration M-VAVE. Aussi dans le catalogue de banques.',
     },
     sourcesClose: 'Fermer les sources de banques',
+    sourcesSubmit: 'Vous avez programmé votre propre banque DX7 ?',
+    sourcesSubmitLink: 'Proposez-la pour le catalogue de banques',
   },
   ui: {
     auditionGroup: 'Écoute de l’opérateur {{number}}',
@@ -149,6 +151,12 @@ export default {
       plate: 'Plaque',
     },
   },
+  replacePatch: {
+    action: 'Remplacer le son',
+    title: 'Remplacer {{slot}} « {{patch}} » ?',
+    warning:
+      'Le son de cet emplacement sera remplacé par celui du fichier, et ses effets FM1 reviendront à leurs valeurs par défaut.',
+  },
   overwriteImport: {
     action: 'Remplacer le contenu',
     help: 'Choisissez un fichier de banque SysEx DX7 standard de 32 voix.',
@@ -194,13 +202,14 @@ export default {
     bankImported: 'Sons importés dans « {{bank}} ».',
     bankCreated: '« {{bank}} » a été créée.',
     bankDeleted: '« {{bank}} » a été supprimée.',
-    banksRestored: 'Les quatre banques d’usine ont été restaurées.',
+    banksRestored: 'Les quatre banques ont été rétablies avec les sons d’usine.',
     bankDownloadStarted: 'Téléchargement de « {{bank}} ».',
     banksDownloadStarted: 'Téléchargement de toutes les banques.',
     bankUpdated: '« {{bank}} » a été mise à jour.',
     demoLoaded: 'Sons de démonstration chargés dans « {{bank}} ».',
     patchSaved: '« {{patch}} » a été enregistré dans la bibliothèque.',
     patchCopied: '« {{patch}} » a été copié en {{slot}} dans « {{bank}} ».',
+    patchReplaced: '{{slot}} a été remplacé par « {{patch}} ».',
     operatorCopied: 'L’opérateur {{number}} a été copié.',
   },
   meta: {
@@ -228,9 +237,8 @@ export default {
     intro: 'Modifiez, organisez et transférez les sons du FM1, ou importez des banques SysEx DX7.',
     synthAlt: 'Panneau avant du synthétiseur M-VAVE FM1',
     unsupportedTitle: 'Navigateur non pris en charge.',
-    unsupportedMobileTitle: 'Les appareils mobiles ne sont pas pris en charge.',
     unsupportedBody:
-      'Ce bibliothécaire nécessite un navigateur de bureau compatible avec Web MIDI et SysEx, comme Chrome, Edge, Firefox ou Opera. Les téléphones et les tablettes ne sont pas pris en charge.',
+      'Ce bibliothécaire nécessite un navigateur compatible avec Web MIDI et SysEx, comme Chrome, Edge, Firefox ou Opera. Chrome sur Android fonctionne aussi.',
     localOnly: 'Vos sons restent dans ce navigateur',
     projectLinks: 'Liens du projet',
     reportIssue: 'Signaler un problème',
@@ -433,7 +441,7 @@ export default {
       insecureContext:
         'Web MIDI nécessite une connexion sécurisée. Ouvrez l’éditeur en HTTPS ou sur localhost.',
       unsupportedBrowser:
-        'Ce navigateur ne prend pas en charge Web MIDI. Utilisez un navigateur de bureau, comme Chrome, Edge ou Firefox.',
+        'Ce navigateur ne prend pas en charge Web MIDI. Utilisez un navigateur comme Chrome, Edge ou Firefox.',
       permissionDenied:
         'L’accès MIDI a été bloqué. Autorisez l’accès MIDI et SysEx pour ce site, puis reconnectez-vous. Dans Firefox, acceptez le module complémentaire d’autorisation du site lorsqu’il est proposé.',
       enableFailed:
@@ -451,7 +459,7 @@ export default {
     entries: 'Entrées récentes du journal MIDI',
     hideData: 'Masquer les données',
     viewData: 'Voir les données',
-    bytes: '{{count}} octets',
+    bytes: '{{count, number}} octets',
     completeSysex: 'Message SysEx complet',
     copied: 'Copié',
     copyHex: 'Copier en hexadécimal',
@@ -461,7 +469,7 @@ export default {
   banks: {
     empty: 'Vide',
     importing: 'Importation…',
-    restoring: 'Restauration…',
+    restoring: 'Rétablissement…',
     catalogFactory: 'Sons d’usine',
     catalogFm1Factory: 'Préréglages d’usine FM-1',
     import: 'Importer une banque DX7',
@@ -471,8 +479,8 @@ export default {
     bankInformationHelp:
       'Modifiez le titre et la description facultative de cette banque de travail.',
     download: 'Télécharger cette banque',
-    downloadAll: 'Télécharger toutes les banques (.zip)',
-    restoreAll: 'Restaurer toutes les banques',
+    downloadAll: 'Télécharger les banques SysEx (.zip)',
+    restoreAll: 'Rétablir les sons d’usine…',
     sending: 'Envoi…',
     send: 'Envoyer au FM1',
     bank: 'Banque {{bank}}',
@@ -506,26 +514,29 @@ export default {
     sentStatus: 'La banque {{bank}} a été envoyée. Choisissez sa destination sur le FM1.',
     notSent: 'La banque n’a pas été envoyée. Consultez le journal MIDI, puis réessayez.',
     importFailed: 'Échec de l’importation.',
-    restoreFailed: 'Impossible de restaurer les banques d’usine. Réessayez.',
+    restoreFailed: 'Impossible de rétablir les sons d’usine dans les banques. Réessayez.',
     bankUnavailable:
       'Cette banque de travail n’est plus disponible. Fermez cette fenêtre et réessayez.',
     catalogUnavailable:
       'Impossible de télécharger cette banque de sons. Vérifiez votre connexion, puis réessayez.',
     fileErrors: {
-      size: 'Ce fichier fait {{bytes}} octets. Un fichier de banque DX7 doit faire exactement 4 104 octets.',
+      size: 'Ce fichier fait {{bytes, number}} octets. Un fichier de banque DX7 doit faire exactement {{expected, number}} octets.',
       format: 'Ce fichier n’est pas une banque Yamaha DX7 de 32 voix.',
-      highBitData:
-        'Ce fichier contient des valeurs qu’une banque DX7 ne peut pas contenir ; il est peut-être endommagé.',
-      checksum:
-        'La somme de contrôle de cette banque est incorrecte ; elle est peut-être endommagée ou incomplète.',
+      damaged: 'Ce fichier semble endommagé. Essayez de le télécharger à nouveau.',
+      voiceFormat:
+        'Ce fichier n’est pas un son DX7. Choisissez un fichier .syx qui contient un seul son.',
+      voiceGotBank:
+        'Ce fichier est une banque DX7 de 32 voix. Pour la charger, choisissez « Importer une banque DX7 » dans le menu de la banque.',
     },
     exportFailed: 'Échec de l’exportation.',
     bulkExportFailed: 'Échec de l’exportation groupée.',
     gridTitle: 'Banques de sons',
     gridDescription:
       'Importez, modifiez et organisez chaque banque locale avant de la transférer vers le FM1.',
-    search: 'Rechercher un son',
+    search: 'Rechercher',
     noMatches: 'Aucun son ne correspond à cette recherche',
+    searchResults: 'Résultats de recherche : « {{search}} »',
+    sendFromSearch: 'Choisissez une banque pour l’envoyer au FM1',
     bankEmpty: 'Cette banque du navigateur est vide',
     emptyHelp:
       'Chargez la banque de démonstration ou importez votre propre banque SysEx DX7 standard de 32 voix.',
@@ -538,15 +549,39 @@ export default {
     sendPatch: 'Envoyer {{name}} au FM1',
     auditioning: 'Écoute',
     reorder: 'Réorganiser {{name}}',
-    reorderTitle: 'Faites glisser pour réorganiser ; utilisez les flèches au clavier',
+    reorderTitle:
+      'Faites glisser pour réorganiser, ou sur une banque pour y copier le son ; utilisez les flèches au clavier pour réorganiser',
     copySelected: 'Copier vers…',
     copyDialogTitle: 'Copier {{name}}',
     copyTargetBank: 'Banque',
     copyTargetSlot: 'Emplacement',
     copyReplaces: 'Cela remplace « {{name}} » en {{slot}}. Tu peux annuler cette action.',
     copyAction: 'Remplacer {{slot}}',
+    copyAndEditAction: 'Remplacer {{slot}} et modifier',
+    copyToEditHint: 'Pour modifier ce son, copiez-le dans l’une de vos banques.',
     copyFailed: 'Le son n’a pas pu être copié.',
+    addBankOpenFailed:
+      'Impossible d’ouvrir les options de nouvelle banque. Rechargez la page et réessayez.',
     copyOpenFailed: 'Impossible d’ouvrir les options de copie. Rechargez la page et réessayez.',
+    importPatchFile: 'Importer un son…',
+    downloadPatchFile: 'Télécharger le son',
+    patchFileUnavailable:
+      'Impossible d’ouvrir les fichiers de son. Rechargez la page et réessayez.',
+    everywhere: {
+      workspace: 'Vos banques de sons',
+      savedBanks: 'Banques enregistrées',
+      catalog: 'Autres banques de sons DX7',
+      play: 'Écouter {{name}} de {{origin}}',
+      playTitle:
+        'Cliquez pour écouter {{name}} via le tampon d’édition du FM1 ; double-cliquez pour le copier et le modifier',
+      copy: 'Copier {{name}} dans une banque de l’espace de travail',
+      truncated:
+        'Affichage des {{shown}} premiers résultats sur {{total}}. Précisez la recherche pour en réduire le nombre.',
+      loading: 'Recherche dans les autres banques de sons DX7…',
+      loadFailed:
+        'Impossible de rechercher dans les banques enregistrées et les autres banques de sons DX7. Rechargez la page et réessayez.',
+      playFailed: 'Le son n’a pas pu être joué.',
+    },
   },
   namedBanks: {
     open: 'Bibliothèque de banques',
@@ -563,8 +598,8 @@ export default {
     editDetails: 'Modifier les détails',
     update: 'Mettre à jour',
     savedBanks: 'Banques enregistrées',
-    count: '{{count}} banque enregistrée',
-    count_other: '{{count}} banques enregistrées',
+    count: '{{count, number}} banque enregistrée',
+    count_other: '{{count, number}} banques enregistrées',
     search: 'Rechercher des banques',
     loading: 'Chargement des banques…',
     empty: 'Aucune banque nommée. Enregistrez la banque de travail sélectionnée pour en créer une.',
@@ -592,5 +627,54 @@ export default {
     copied: '« {{name}} » créée.',
     deleted: '« {{name}} » supprimée.',
     loaded: '« {{name}} » chargée dans « {{bank}} ».',
+  },
+  backup: {
+    menuSysex: 'Pour d’autres outils DX7',
+    sysexContents: 'Données DX7 seules, sans effets FM1',
+    menuHeading: 'Sauvegarde complète',
+    download: 'Télécharger une sauvegarde',
+    restore: 'Restaurer une sauvegarde…',
+    backupContents: 'Avec les effets FM1',
+    lastBackup: 'Dernière sauvegarde : {{date}}',
+    downloaded:
+      'Téléchargement d’une sauvegarde de vos banques de travail et banques enregistrées.',
+    downloadedWithoutSavedBanks:
+      'Téléchargement d’une sauvegarde de vos banques de travail. Les banques enregistrées sont illisibles et n’y figurent pas.',
+    downloadedWithoutDamaged:
+      'Téléchargement d’une sauvegarde. Certaines banques enregistrées sont illisibles et n’y figurent pas.',
+    unavailable: 'Les sauvegardes n’ont pas pu s’ouvrir. Rechargez la page et réessayez.',
+    unavailableUnsaved:
+      'La sauvegarde n’a pas pu être préparée. Gardez cet onglet ouvert, car vos dernières modifications ne sont pas enregistrées, puis réessayez.',
+    restoreTitle: 'Restaurer une sauvegarde',
+    restoreIntro:
+      'Choisissez un fichier créé avec Télécharger une sauvegarde. Rien ne change avant votre confirmation.',
+    chooseFile: 'Choisir un fichier de sauvegarde',
+    reading: 'Lecture de la sauvegarde…',
+    backedUpAt: 'Sauvegardé le',
+    workspaceBanks: 'Banques de travail',
+    patches: 'Sons',
+    savedBanks: 'Banques enregistrées',
+    toAdd: 'À ajouter',
+    alreadyHere: 'Déjà présentes, conservées',
+    unreadable: 'Illisibles',
+    workspaceEffect:
+      'Vos banques de travail et tous leurs sons sont remplacés par ceux de la sauvegarde. Annuler dans la notification qui suit les rétablit.',
+    savedBanksEffect:
+      'Les banques enregistrées sont seulement ajoutées. Une banque déjà présente dans ce navigateur reste telle quelle, et Annuler ne retire pas celles ajoutées.',
+    restoreAction: 'Restaurer la sauvegarde',
+    restoring: 'Restauration…',
+    restored: 'Sauvegarde du {{date}} restaurée.',
+    errors: {
+      format:
+        'Ce fichier n’est pas une sauvegarde de cette application. Choisissez un fichier .json créé avec Télécharger une sauvegarde.',
+      newer:
+        'Cette sauvegarde provient d’une version plus récente de l’application. Rechargez la page pour la mettre à jour, puis réessayez.',
+      damaged:
+        'Cette sauvegarde est endommagée et ne peut pas être restaurée. Essayez un autre fichier de sauvegarde.',
+      size: 'Ce fichier est trop volumineux pour être une sauvegarde de cette application.',
+      read: 'Impossible de lire le fichier. Choisissez-le de nouveau.',
+      savedBanksFailed:
+        'Le stockage du navigateur n’a pas pu conserver les banques enregistrées de cette sauvegarde, vos banques de travail n’ont donc pas changé. Réessayez.',
+    },
   },
 } as const

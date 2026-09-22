@@ -1,11 +1,11 @@
 import {
-  closestCenter,
   DndContext,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type UniqueIdentifier,
 } from '@dnd-kit/core'
 import {
   rectSortingStrategy,
@@ -26,26 +26,40 @@ import { useTranslation } from 'react-i18next'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
-import { type Patch } from '@/data/patches'
+import type { Patch } from '@/data/patches'
 import { formatShortcut, isApplePlatform, librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { resolveGridKey } from '@/lib/patch-grid-navigation'
+import { cn } from '@/lib/utils'
 
+import { droppedBank, patchDragCollision } from './bank-drop'
 import { PatchButton } from './patch-button'
 
 type PatchGridProps = {
   activePatchId?: string
   actions?: ReactNode
   bankLabel?: (bank: string) => string
+  /**
+   * Results from outside the workspace, shown below its slots. While there are any, the workspace
+   * slots take `resultsHeading` and an empty workspace shows nothing rather than "no matches".
+   */
+  extraResults?: ReactNode
   headerActions?: ReactNode
   isBankLoaded?: boolean
   isPatchDisabled?: (patch: Patch) => boolean
   onPatchCopy?: (patch: Patch) => void
+  onPatchDownload?: (patch: Patch) => void
+  onPatchReplace?: (patch: Patch) => void
   onPatchMove: (patch: Patch, target: Patch) => void
+  /** A slot dragged onto a bank tab in the `toolbar`, other than its own bank's. */
+  onPatchDropOnBank?: (patch: Patch, bank: string) => void
   onPatchEdit?: (patch: Patch) => void
   onPatchSelect?: (patch: Patch) => void
   onImportEmptyBank?: () => void
   onLoadDemoBank?: () => void
   patches: Patch[]
+  /** Off while the grid shows slots from several banks, which cannot be reordered together. */
+  reorderable?: boolean
+  resultsHeading?: string
   search: string
   searchDisabled?: boolean
   searchRef?: RefObject<HTMLInputElement | null>
@@ -69,16 +83,22 @@ export function PatchGrid({
   activePatchId = '',
   actions,
   bankLabel = (bank) => bank,
+  extraResults,
   headerActions,
   isBankLoaded = true,
   isPatchDisabled = () => false,
   onPatchCopy,
+  onPatchDownload,
+  onPatchReplace,
   onPatchMove,
+  onPatchDropOnBank,
   onPatchEdit,
   onPatchSelect,
   onImportEmptyBank,
   onLoadDemoBank,
   patches,
+  reorderable = true,
+  resultsHeading,
   search,
   searchDisabled = false,
   searchRef,
@@ -89,6 +109,7 @@ export function PatchGrid({
   const searchHint = useMemo(() => formatShortcut(librarianShortcuts.search, isApplePlatform()), [])
   const slotRefs = useRef(new Map<string, HTMLButtonElement>())
   const [focusedPatchId, setFocusedPatchId] = useState('')
+  const [draggedId, setDraggedId] = useState<UniqueIdentifier | null>(null)
   // The grid is a single tab stop. It opens on the lit slot so Tab lands where
   // the user last was, and follows the arrows from there.
   const rovingPatchId = [focusedPatchId, activePatchId].find((candidate) =>
@@ -123,9 +144,15 @@ export function PatchGrid({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
-  const finishReorder = ({ active, over }: DragEndEvent) => {
+  const finishDrag = ({ active, over }: DragEndEvent) => {
+    setDraggedId(null)
     if (!over || active.id === over.id) return
     const source = patches.find((patch) => patch.id === active.id)
+    const bank = droppedBank(over.id)
+    if (bank !== undefined) {
+      if (source && bank !== source.bank) onPatchDropOnBank?.(source, bank)
+      return
+    }
     const target = patches.find((patch) => patch.id === over.id)
     if (source && target && source.bank === target.bank) onPatchMove(source, target)
   }
@@ -133,7 +160,8 @@ export function PatchGrid({
   return (
     <Card className="synthwave-panel overflow-hidden">
       <CardHeader className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
-        <div className="flex items-center justify-between gap-3">
+        {/* Search covers every bank, so it sits above the bank rail rather than beside one bank. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
           <CardTitle className="font-dot-matrix flex items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase">
             <PixelBankIcon aria-hidden="true" className="size-4 shrink-0" />
             {t('banks.gridTitle')}
@@ -143,54 +171,68 @@ export function PatchGrid({
               text={t('banks.gridDescription')}
             />
           </CardTitle>
+          <label className="relative order-last block w-full sm:order-none sm:ml-auto sm:w-64">
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
+            <input
+              aria-label={t('banks.search')}
+              className="patch-search-input crt-inset h-7 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={searchDisabled}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => {
+                // The page-level Escape stays out of text fields, so the
+                // field clears itself where the user is most likely to press it.
+                if (event.key !== 'Escape' || !search) return
+                event.preventDefault()
+                setSearch('')
+              }}
+              placeholder={t('banks.search')}
+              ref={searchRef}
+              title={`${t('banks.search')} (${searchHint})`}
+              type="search"
+              value={search}
+            />
+          </label>
           {headerActions ? <div className="shrink-0">{headerActions}</div> : null}
         </div>
       </CardHeader>
-      <div className="patch-area-surface flex min-w-0 items-stretch">
-        {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
-        <div className="min-w-0 flex-1">
-          <div className="crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]">
-            {actions ? (
-              <div className="flex w-full max-w-full min-w-0 flex-wrap items-center gap-2 md:w-auto">
-                {actions}
-              </div>
-            ) : null}
-            <label className="relative block w-full md:ml-auto md:w-auto md:min-w-48 md:flex-auto xl:max-w-[calc(25%-0.375rem)]">
-              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
-              <input
-                aria-label={t('banks.search')}
-                className="patch-search-input crt-inset h-8 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={searchDisabled}
-                onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={(event) => {
-                  // The page-level Escape stays out of text fields, so the
-                  // field clears itself where the user is most likely to press it.
-                  if (event.key !== 'Escape' || !search) return
-                  event.preventDefault()
-                  setSearch('')
-                }}
-                placeholder={t('banks.search')}
-                ref={searchRef}
-                title={`${t('banks.search')} (${searchHint})`}
-                type="search"
-                value={search}
-              />
-            </label>
-          </div>
-          {/*
+      {/* The bank rail shares the grid's drag context, so a slot can be dropped on a bank's tab. */}
+      <DndContext
+        collisionDetection={patchDragCollision}
+        onDragCancel={() => setDraggedId(null)}
+        onDragEnd={finishDrag}
+        onDragStart={({ active }) => setDraggedId(active.id)}
+        sensors={sensors}
+      >
+        <div className="patch-area-surface flex min-w-0 items-stretch">
+          {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
+          <div className="min-w-0 flex-1">
+            <div className="crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]">
+              {actions ? (
+                <div className="flex w-full max-w-full min-w-0 flex-wrap items-center gap-2">
+                  {actions}
+                </div>
+              ) : null}
+            </div>
+            {/*
             The hardware photo used to sit behind the grid as a half-opacity
             watermark. Against the terminal's near-black panel it washed the
             slots out rather than receding, and the masthead already carries
             the same photo, so the grid is now a plain well.
           */}
-          <CardContent className="relative isolate space-y-4 overflow-hidden bg-[var(--crt-bg-panel)] p-[9px]">
-            <div className="relative z-10">
-              {patches.length > 0 ? (
-                <DndContext
-                  collisionDetection={closestCenter}
-                  onDragEnd={finishReorder}
-                  sensors={sensors}
-                >
+            {/* A dragged slot has to reach the bank tabs, so the grid stops clipping and rises above the rail. */}
+            <CardContent
+              className={cn(
+                'relative isolate space-y-4 bg-[var(--crt-bg-panel)] p-[9px]',
+                draggedId === null ? 'overflow-hidden' : 'z-20',
+              )}
+            >
+              <div className="relative z-10">
+                {patches.length > 0 && resultsHeading ? (
+                  <h3 className="font-dot-matrix mb-2 text-[13px] font-bold tracking-[0.1em] text-[var(--crt-acc-lt)] uppercase">
+                    {resultsHeading}
+                  </h3>
+                ) : null}
+                {patches.length > 0 ? (
                   <SortableContext
                     items={patches.map((patch) => patch.id)}
                     strategy={rectSortingStrategy}
@@ -199,13 +241,17 @@ export function PatchGrid({
                       {patches.map((patch) => (
                         <div className="h-full w-full" key={patch.id}>
                           <PatchButton
+                            bankName={reorderable ? undefined : bankLabel(patch.bank)}
                             disabled={isPatchDisabled(patch)}
                             disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
                             onCopy={onPatchCopy}
+                            onDownload={onPatchDownload}
+                            onReplace={onPatchReplace}
                             onEdit={onPatchEdit}
                             onNavigate={navigateSlots}
                             onSelect={onPatchSelect}
                             patch={patch}
+                            reorderable={reorderable}
                             isActive={patch.id === activePatchId}
                             registerButton={registerSlot}
                             tabIndex={patch.id === rovingSlot ? 0 : -1}
@@ -214,44 +260,45 @@ export function PatchGrid({
                       ))}
                     </div>
                   </SortableContext>
-                </DndContext>
-              ) : (
-                <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
-                  <div className="max-w-md">
-                    <FileMusic className="mx-auto size-10 text-[var(--crt-acc-dim)]" />
-                    <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
-                      {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
-                    </h3>
-                    {!isBankLoaded ? (
-                      <>
-                        <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
-                          {t('banks.emptyHelp')}
-                        </p>
-                        <div className="mt-4 flex flex-wrap justify-center gap-2">
-                          <button
-                            className="crt-raised-lit cursor-pointer bg-[var(--crt-btn)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-white"
-                            onClick={onImportEmptyBank}
-                            type="button"
-                          >
-                            {t('banks.import')}
-                          </button>
-                          <button
-                            className="crt-raised-thin cursor-pointer bg-[var(--crt-btn-face)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)]"
-                            onClick={onLoadDemoBank}
-                            type="button"
-                          >
-                            {t('banks.loadDemo')}
-                          </button>
-                        </div>
-                      </>
-                    ) : null}
+                ) : extraResults ? null : (
+                  <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
+                    <div className="max-w-md">
+                      <FileMusic className="mx-auto size-10 text-[var(--crt-acc-dim)]" />
+                      <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
+                        {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
+                      </h3>
+                      {!isBankLoaded ? (
+                        <>
+                          <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
+                            {t('banks.emptyHelp')}
+                          </p>
+                          <div className="mt-4 flex flex-wrap justify-center gap-2">
+                            <button
+                              className="crt-raised-lit cursor-pointer bg-[var(--crt-btn)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-white"
+                              onClick={onImportEmptyBank}
+                              type="button"
+                            >
+                              {t('banks.import')}
+                            </button>
+                            <button
+                              className="crt-raised-thin cursor-pointer bg-[var(--crt-btn-face)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)]"
+                              onClick={onLoadDemoBank}
+                              type="button"
+                            >
+                              {t('banks.loadDemo')}
+                            </button>
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
+                )}
+                {extraResults}
+              </div>
+            </CardContent>
+          </div>
         </div>
-      </div>
+      </DndContext>
     </Card>
   )
 }

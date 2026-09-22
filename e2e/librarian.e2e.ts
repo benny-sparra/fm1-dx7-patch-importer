@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { unzipSync } from 'fflate'
 import { readFile } from 'node:fs/promises'
 
@@ -135,7 +135,7 @@ test('downloads every loaded bank as one zip archive', async ({ page }) => {
   await page.getByLabel('More bank file actions').click()
 
   const downloadPromise = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Download all banks (.zip)' }).click()
+  await page.getByRole('button', { name: 'Download SysEx banks (.zip)' }).click()
   const download = await downloadPromise
 
   expect(download.suggestedFilename()).toBe('fm1-browser-banks.zip')
@@ -209,6 +209,46 @@ test('copies a slot from the keyboard through its menu and the slot grid', async
   await expect(dialog.getByRole('button', { name: /^Replace B02$/ })).toBeVisible()
 })
 
+/** Drags a slot's grip with the pointer in steps, as dnd-kit needs moves to follow it. */
+async function dragGrip(page: Page, slotName: string, target: Locator) {
+  const grip = await page
+    .getByRole('button', { exact: true, name: `Reorder ${slotName}` })
+    .boundingBox()
+  const drop = await target.boundingBox()
+  if (!grip || !drop) throw new Error('The grip or its drop target is not on screen.')
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(drop.x + drop.width / 2, drop.y + drop.height / 2, { steps: 12 })
+  await page.mouse.up()
+}
+
+test('copies a slot by dropping it on another bank tab', async ({ page }) => {
+  await openLibrarian(page)
+  const { name } = await slotMenuButton(page, 0)
+
+  await dragGrip(page, name, page.getByRole('button', { name: /^B — / }))
+
+  const dialog = page.getByRole('dialog', { name: `Copy ${name}` })
+  await expect(dialog.getByRole('button', { name: /^B — /, pressed: true })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Replace B01' }).click()
+
+  await expect(dialog).toBeHidden()
+  await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible()
+})
+
+test('reorders when a slot is dropped in the grid beside the bank rail', async ({ page }) => {
+  await openLibrarian(page)
+  const namesBefore = await slotNames(page)
+  const { name } = await slotMenuButton(page, 1)
+
+  await dragGrip(page, name, slotButtons(page).first())
+
+  await expect
+    .poll(() => slotNames(page))
+    .toEqual([namesBefore[1], namesBefore[0], ...namesBefore.slice(2)])
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+})
+
 test('opens a slot menu on the last row above the grid without playing the slot', async ({
   page,
 }) => {
@@ -231,8 +271,10 @@ test('switches the favicon to the chosen colourway and keeps it after a reload',
   const favicon = page.locator('link[rel="icon"]')
   await expect(favicon).toHaveAttribute('href', '/favicon-black.svg')
 
-  // The other finishes slide out from the lit swatch on hover.
-  await page.getByTitle('Black', { exact: true }).hover()
+  // The other finishes slide out from the lit swatch on hover or focus. Focus keeps them out
+  // wherever the pointer lands; a layout shift after a hover can leave it off the picker, so
+  // the swatches collapse again before the click.
+  await page.getByRole('radio', { name: 'Black FM1 finish' }).focus()
   await page.getByTitle('Orange', { exact: true }).click()
 
   await expect(page.getByRole('radio', { name: 'Orange FM1 finish' })).toBeChecked()
@@ -249,6 +291,43 @@ test('keeps the librarian controls usable on a narrow viewport', async ({ page }
   await page.setViewportSize({ height: 900, width: 412 })
   await openLibrarian(page)
 
-  await expect(page.getByLabel('Search by name')).toBeVisible()
+  await expect(page.getByLabel('Search', { exact: true })).toBeVisible()
   await expect(page.getByAltText('M-VAVE FM1 synthesiser front panel')).toHaveCount(0)
+})
+
+// Restoring writes saved banks to real IndexedDB, where one already stored must never be replaced.
+test('restores a downloaded backup over a factory reset', async ({ page }) => {
+  await openLibrarian(page)
+  await openFirstPatch(page)
+  await page.getByRole('textbox', { name: 'Patch name' }).fill('E2E BACKUP')
+  await page.getByRole('button', { name: 'Save to Library' }).click()
+  await page.getByRole('button', { name: 'Back to patch banks' }).click()
+  await openFirstBankMenu(page)
+  await page.getByRole('button', { name: 'Save bank' }).click()
+  const saveDialog = page.getByRole('dialog')
+  await saveDialog.getByLabel('Bank name').fill('Kept bank')
+  await saveDialog.getByRole('button', { name: 'Save bank' }).click()
+  await expect(saveDialog).toBeHidden()
+
+  await page.getByLabel('More bank file actions').click()
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download backup' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toMatch(/^fm1-backup-\d{4}-\d{2}-\d{2}\.json$/)
+
+  await page.getByLabel('More bank file actions').click()
+  await page.getByRole('button', { name: 'Reset to factory patches…' }).click()
+  await page.getByRole('button', { name: 'Reset four banks' }).click()
+  await expect(page.getByRole('button', { name: 'Send PIANO 1 to FM1' })).toBeVisible()
+
+  await page.getByLabel('More bank file actions').click()
+  await page.getByRole('button', { name: 'Restore from backup…' }).click()
+  const restoreDialog = page.getByRole('dialog', { name: 'Restore from backup' })
+  await restoreDialog.getByLabel('Choose a backup file').setInputFiles(await download.path())
+  await expect(restoreDialog.getByText('Already here, kept')).toBeVisible()
+  await restoreDialog.getByRole('button', { name: 'Restore backup' }).click()
+
+  await expect(page.getByText(/^Restored the backup from /)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Send E2E BACKUP to FM1' })).toBeVisible()
+  await expect.poll(() => storedFirstPatchName(page)).toBe('E2E BACKUP')
 })

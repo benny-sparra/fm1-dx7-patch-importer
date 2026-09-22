@@ -15,10 +15,10 @@ import { GlobalConfigurationPanel } from '@/components/editor/global-configurati
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
 import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
-import { type Patch } from '@/data/patches'
+import type { Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
-import { type MidiController } from '@/hooks/use-midi'
+import type { MidiController } from '@/hooks/use-midi'
 import { makeDx7VoiceNameEdits, packDx7Voice, unpackDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { applyEffectPreset, type EffectPresetId } from '@/lib/effect-presets'
 import {

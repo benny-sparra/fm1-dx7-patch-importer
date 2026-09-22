@@ -16,9 +16,11 @@ import {
   makePatches,
   moveVoice,
   normalizeWorkspaceBankNameForSave,
+  patchMatchesSearch,
   patchSlotCode,
   renameBank,
   renameVoice,
+  replaceVoice,
   updateBankInformation,
   voiceId,
   WorkspaceBankUnavailableError,
@@ -29,6 +31,7 @@ import {
   makeFactoryPatchLibrary,
   restoreFactoryPatchLibrary,
 } from '@/lib/factory-patch-library'
+import { updateDx7VoiceName } from '@/lib/dx7'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 
 describe('patch library operations', () => {
@@ -371,6 +374,42 @@ describe('patchSlotCode', () => {
   })
 })
 
+describe('patchMatchesSearch', () => {
+  const brass = { bank: 'B', name: 'BRASS   7', number: 7 }
+
+  it('finds a patch by part of its name, ignoring case', () => {
+    expect(patchMatchesSearch(brass, 'ass')).toBe(true)
+  })
+
+  it('finds a patch by the slot code it shows', () => {
+    expect(patchMatchesSearch(brass, 'B07')).toBe(true)
+  })
+
+  it('finds a patch by its slot code without the padding zero', () => {
+    expect(patchMatchesSearch(brass, 'b7')).toBe(true)
+  })
+
+  it('ignores spaces around the search', () => {
+    expect(patchMatchesSearch(brass, '  b07 ')).toBe(true)
+  })
+
+  it('does not match another slot in the same bank', () => {
+    expect(patchMatchesSearch(brass, 'b17')).toBe(false)
+  })
+
+  it('does not list a whole bank for its letter alone', () => {
+    expect(patchMatchesSearch({ bank: 'B', name: 'PIANO 1', number: 1 }, 'b')).toBe(false)
+  })
+
+  it('does not match the voice format every patch shares', () => {
+    expect(patchMatchesSearch(brass, 'dx7')).toBe(false)
+  })
+
+  it('still finds a name that looks like a slot code', () => {
+    expect(patchMatchesSearch({ bank: 'A', name: 'JUNO A1', number: 5 }, 'a1')).toBe(true)
+  })
+})
+
 describe('restoring factory banks', () => {
   it('clears the titles and descriptions of the four restored banks only', () => {
     const withAddedBank = addWorkspaceBank(makeFactoryPatchLibrary(), 'E')
@@ -385,6 +424,62 @@ describe('restoring factory banks', () => {
 
     expect(restored.bankNames).toEqual({ E: 'Leads' })
     expect(restored.bankDescriptions).toEqual({ E: 'My leads' })
+  })
+})
+
+describe('replacing a voice from outside the workspace', () => {
+  function libraryWithBank() {
+    const loaded = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const effects = makeDefaultFm1Effects()
+    effects[0] = 1
+    return { ...loaded, effects: { ...loaded.effects, [voiceId('A', 5)]: effects } }
+  }
+  const imported = updateDx7VoiceName(makeDemoVoices()[0], 'FROM FILE')
+
+  it('puts the voice in the slot', () => {
+    const replaced = replaceVoice(libraryWithBank(), 'A', 5, imported)
+
+    expect(replaced.voices[voiceId('A', 5)]).toEqual(imported)
+  })
+
+  it('gives the slot its own copy of the voice', () => {
+    const replaced = replaceVoice(libraryWithBank(), 'A', 5, imported)
+
+    expect(replaced.voices[voiceId('A', 5)]?.data).not.toBe(imported.data)
+  })
+
+  it('keeps the effects that came with the voice', () => {
+    const effects = makeDefaultFm1Effects()
+    effects[2] = 1
+
+    const replaced = replaceVoice(libraryWithBank(), 'A', 5, imported, effects)
+
+    expect(replaced.effects[voiceId('A', 5)]).toEqual(effects)
+  })
+
+  it('returns the slot’s effects to their defaults when none came with the voice', () => {
+    const replaced = replaceVoice(libraryWithBank(), 'A', 5, imported)
+
+    expect(replaced.effects[voiceId('A', 5)]).toEqual(makeDefaultFm1Effects())
+  })
+
+  it('leaves every other slot unchanged', () => {
+    const library = libraryWithBank()
+
+    const replaced = replaceVoice(library, 'A', 5, imported)
+
+    expect(replaced.voices[voiceId('A', 4)]).toBe(library.voices[voiceId('A', 4)])
+  })
+
+  it('refuses a bank that holds no sounds', () => {
+    // Bank B exists in the workspace but nothing has been loaded into it.
+    expect(() => replaceVoice(libraryWithBank(), 'B', 1, imported)).toThrow(
+      WorkspaceBankUnavailableError,
+    )
+  })
+
+  it('refuses a slot outside the bank', () => {
+    expect(() => replaceVoice(libraryWithBank(), 'A', 33, imported)).toThrow(RangeError)
   })
 })
 

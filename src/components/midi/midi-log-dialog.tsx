@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { downloadFile } from '@/lib/download-file'
 import { makeMidiLogFile } from '@/lib/midi-log-file'
-import { type MidiLogStore } from '@/lib/midi-log-store'
+import type { MidiLogStore } from '@/lib/midi-log-store'
 
 type MidiLogDialogProps = {
   logStore: MidiLogStore

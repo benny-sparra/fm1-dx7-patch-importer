@@ -1,8 +1,8 @@
 import { ChevronDown } from 'lucide-react'
-import { type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { type MidiDevice, type MidiPort } from '@/lib/midi'
+import type { MidiDevice, MidiPort } from '@/lib/midi'
 
 type DeviceSelectProps = {
   devices: Array<MidiDevice<MidiPort>>

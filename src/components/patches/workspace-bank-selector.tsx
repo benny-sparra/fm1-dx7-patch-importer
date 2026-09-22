@@ -1,8 +1,11 @@
+import { useDndContext, useDroppable } from '@dnd-kit/core'
 import { EllipsisVertical } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useEffect, useId, useMemo, useRef } from 'react'
 
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { cn } from '@/lib/utils'
+
+import { bankDropId } from './bank-drop'
 
 export type WorkspaceBankSelectorBank = {
   /** The translated name of the bank's actions menu. */
@@ -13,6 +16,7 @@ export type WorkspaceBankSelectorBank = {
 }
 
 type WorkspaceBankRowProps = {
+  acceptsDrop: boolean
   bank: WorkspaceBankSelectorBank
   index: number
   onKeyDown: (event: KeyboardEvent<HTMLButtonElement>, index: number) => void
@@ -20,9 +24,12 @@ type WorkspaceBankRowProps = {
   registerButton: (bank: string, button: HTMLButtonElement | null) => void
   renderActions: (bank: WorkspaceBankSelectorBank, closeActions: () => void) => ReactNode
   selected: boolean
+  /** Keeps the row in the Tab order while no bank shows as selected. */
+  tabStop: boolean
 }
 
 function WorkspaceBankRow({
+  acceptsDrop,
   bank,
   index,
   onKeyDown,
@@ -30,11 +37,20 @@ function WorkspaceBankRow({
   registerButton,
   renderActions,
   selected,
+  tabStop,
 }: WorkspaceBankRowProps) {
   const detailsRef = useDismissableDetails()
   const descriptionId = useId()
   const closeActions = () => detailsRef.current?.removeAttribute('open')
   const selectionLabel = `${bank.id} — ${bank.name}`
+  // A keyboard drag stays in the grid, where the arrow keys reorder; the slot menu's Copy to… is
+  // the keyboard route to another bank.
+  const { activatorEvent } = useDndContext()
+  const droppable = useDroppable({
+    disabled: !acceptsDrop || activatorEvent instanceof KeyboardEvent,
+    id: bankDropId(bank.id),
+  })
+  const isDropTarget = droppable.isOver && droppable.active?.data.current?.bank !== bank.id
 
   useEffect(() => {
     const details = detailsRef.current
@@ -46,12 +62,14 @@ function WorkspaceBankRow({
       className={cn(
         // The narrow rail only has room for the slot badge and the menu button,
         // so the gutters tighten until the name has space to show.
-        'relative flex w-full items-center gap-1 border-t border-r border-b border-l px-1.5 py-[7px] whitespace-nowrap transition-colors md:gap-[9px] md:px-2',
+        'bank-tab relative flex w-full items-center gap-1 border-t border-r border-b border-l px-1.5 py-[7px] whitespace-nowrap transition-colors md:gap-[9px] md:px-2',
         'border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
         selected
           ? 'bank-tab-active z-10 border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
           : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] hover:bg-[var(--crt-bg-head)]',
       )}
+      data-drop-target={isDropTarget || undefined}
+      ref={droppable.setNodeRef}
     >
       <button
         aria-describedby={bank.description ? descriptionId : undefined}
@@ -61,7 +79,7 @@ function WorkspaceBankRow({
         onClick={onSelect}
         onKeyDown={(event) => onKeyDown(event, index)}
         ref={(button) => registerButton(bank.id, button)}
-        tabIndex={selected ? 0 : -1}
+        tabIndex={tabStop ? 0 : -1}
         title={bank.description || bank.name}
         type="button"
       >
@@ -122,11 +140,15 @@ function WorkspaceBankRow({
 }
 
 type WorkspaceBankSelectorProps = {
+  /** Banks whose tab takes a slot dragged from the grid. It must render inside the grid's `DndContext`. */
+  acceptsDrop?: (bank: string) => boolean
   banks: WorkspaceBankSelectorBank[]
   label: string
   onSelect: (bank: string) => void
   renderActions: (bank: WorkspaceBankSelectorBank, closeActions: () => void) => ReactNode
   selectedBank: string
+  /** False while the grid shows something other than a bank, such as search results. */
+  showsSelection?: boolean
 }
 
 /**
@@ -134,11 +156,13 @@ type WorkspaceBankSelectorProps = {
  * Up/Down wrap through the list, while Home/End jump to its bounds.
  */
 export function WorkspaceBankSelector({
+  acceptsDrop = () => false,
   banks,
   label,
   onSelect,
   renderActions,
   selectedBank,
+  showsSelection = true,
 }: WorkspaceBankSelectorProps) {
   const buttonRefs = useRef(new Map<string, HTMLButtonElement>())
   const previousBanksRef = useRef(banks.map((bank) => bank.id))
@@ -189,6 +213,7 @@ export function WorkspaceBankSelector({
     <ul aria-label={label} className="flex list-none flex-col gap-1.5 p-2">
       {banks.map((bank, index) => (
         <WorkspaceBankRow
+          acceptsDrop={acceptsDrop(bank.id)}
           bank={bank}
           index={index}
           key={bank.id}
@@ -196,7 +221,8 @@ export function WorkspaceBankSelector({
           onSelect={() => onSelect(bank.id)}
           registerButton={registerButton}
           renderActions={renderActions}
-          selected={effectiveSelectedBank === bank.id}
+          selected={showsSelection && effectiveSelectedBank === bank.id}
+          tabStop={effectiveSelectedBank === bank.id}
         />
       ))}
     </ul>

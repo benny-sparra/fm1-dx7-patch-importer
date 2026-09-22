@@ -6,7 +6,7 @@ import { SequencerSendDialog } from '@/components/sequencer/sequencer-send-dialo
 import { SequencerGrid } from '@/components/sequencer/sequencer-grid'
 import { Button } from '@/components/ui/button'
 import { sequencerNamespace } from '@/i18n/sequencer'
-import { type MidiController } from '@/hooks/use-midi'
+import type { MidiController } from '@/hooks/use-midi'
 import {
   createFm1Pattern,
   fm1SequenceMaxLoopLength,

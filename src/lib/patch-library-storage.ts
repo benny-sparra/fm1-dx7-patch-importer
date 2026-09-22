@@ -2,6 +2,7 @@ import { normalizeStoredDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { type NamedBank, validateNamedBank } from '@/lib/named-bank'
 import {
+  bankDescriptionLength,
   browserBanks,
   compactWorkspaceBanks,
   isWorkspaceBankId,
@@ -218,7 +219,10 @@ export async function loadStoredPatchLibrary() {
             ([bank, description]) =>
               workspaceBanks.includes(bank) && typeof description === 'string',
           )
-          .map(([bank, description]) => [bank, description.trim().slice(0, 500).trimEnd()])
+          .map(([bank, description]) => [
+            bank,
+            description.trim().slice(0, bankDescriptionLength).trimEnd(),
+          ])
           .filter(([, description]) => Boolean(description)),
       ),
       bankNames: Object.fromEntries(
@@ -300,6 +304,21 @@ export async function saveStoredNamedBank(bank: NamedBank) {
       store.put(bank),
     )
   } catch (error) {
+    throw asStorageError(error, 'write-failed', 'The bank could not be saved.')
+  }
+}
+
+/**
+ * Adds a saved bank only when no record has its id, so it can never overwrite one, including a
+ * damaged record the saved-bank list hides. Returns whether it was added.
+ */
+export async function addStoredNamedBank(bank: NamedBank) {
+  validateNamedBank(bank)
+  try {
+    await runTransaction<IDBValidKey>(namedBankStoreName, 'readwrite', (store) => store.add(bank))
+    return true
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'ConstraintError') return false
     throw asStorageError(error, 'write-failed', 'The bank could not be saved.')
   }
 }

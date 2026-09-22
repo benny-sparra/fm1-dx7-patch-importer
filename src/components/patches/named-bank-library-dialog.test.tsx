@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import { NamedBankLibraryDialog } from '@/components/patches/named-bank-library-dialog'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
+import { downloadFile } from '@/lib/download-file'
 import { createNamedBank } from '@/lib/named-bank'
 import {
   emptyPatchLibrary,
@@ -14,6 +15,8 @@ import {
   makeDemoVoices,
   WorkspaceBankUnavailableError,
 } from '@/lib/patch-library'
+
+vi.mock('@/lib/download-file', () => ({ downloadFile: vi.fn() }))
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
@@ -23,6 +26,8 @@ beforeAll(() => {
     this.open = false
     this.dispatchEvent(new Event('close'))
   }
+  // jsdom lays nothing out, so it has no element scrolling.
+  HTMLElement.prototype.scrollTo = () => {}
   window.requestAnimationFrame = (callback) => {
     callback(0)
     return 1
@@ -263,5 +268,119 @@ describe('NamedBankLibraryDialog loading', () => {
 
     expect(loadSavedBank).toHaveBeenCalledExactlyOnceWith(bank, 'A')
     expect(screen.queryByText(/Replace the 32 patches/)).toBeNull()
+  })
+})
+
+describe('NamedBankLibraryDialog managing saved banks', () => {
+  function makeSavedBank(id: string, name: string, description = '') {
+    return createNamedBank(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), 'A', {
+      description,
+      id,
+      name,
+      now: '2026-09-13T12:00:00.000Z',
+    })
+  }
+
+  const stage = makeSavedBank('bank-1', 'Stage', 'Saturday gig')
+  const studio = makeSavedBank('bank-2', 'Studio', 'Pads for mixing')
+
+  afterEach(() => {
+    vi.mocked(downloadFile).mockClear()
+  })
+
+  function renderLoadDialog(overrides: Partial<PatchLibrary> = {}) {
+    render(
+      <NamedBankLibraryDialog
+        destinationBank="A"
+        mode="load"
+        library={{ ...library, namedBanks: [stage, studio], ...overrides }}
+      />,
+    )
+    return userEvent.setup()
+  }
+
+  it('finds saved banks by name or description', async () => {
+    const user = renderLoadDialog()
+
+    await user.type(screen.getByRole('searchbox', { name: 'Search saved banks' }), 'mixing')
+
+    expect(screen.queryByRole('button', { name: 'Edit Stage' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Edit Studio' })).toBeTruthy()
+  })
+
+  it('says when no saved bank matches the search', async () => {
+    const user = renderLoadDialog()
+
+    await user.type(screen.getByRole('searchbox', { name: 'Search saved banks' }), 'zzz')
+
+    expect(screen.getByText('No saved banks match this search.')).toBeTruthy()
+  })
+
+  it('edits a saved bank’s name and description', async () => {
+    const updateNamedBankDetails = vi.fn(async () => stage)
+    const user = renderLoadDialog({ updateNamedBankDetails })
+    // The edit form renders before the frame that focuses it, as in a browser.
+    const frame = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback) => window.setTimeout(() => callback(0)))
+
+    await user.click(screen.getByRole('button', { name: 'Edit Stage' }))
+    const name = screen.getByRole<HTMLInputElement>('textbox', { name: 'Bank name' })
+    expect(name.value).toBe('Stage')
+    await waitFor(() => expect(document.activeElement).toBe(name))
+    frame.mockRestore()
+    await user.clear(name)
+    await user.type(name, 'Stage 2')
+    await user.click(screen.getByRole('button', { name: 'Update details' }))
+
+    expect(updateNamedBankDetails).toHaveBeenCalledExactlyOnceWith(stage, 'Stage 2', 'Saturday gig')
+    expect(screen.getByText('Updated “Stage 2”.')).toBeTruthy()
+    expect(screen.queryByRole('textbox', { name: 'Bank name' })).toBeNull()
+  })
+
+  it('explains a failed edit without showing the browser error', async () => {
+    const updateNamedBankDetails = vi.fn(async () => {
+      throw new Error('QuotaExceededError')
+    })
+    const user = renderLoadDialog({ updateNamedBankDetails })
+
+    await user.click(screen.getByRole('button', { name: 'Edit Stage' }))
+    await user.click(screen.getByRole('button', { name: 'Update details' }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain('The saved-bank operation failed.')
+    expect(alert.textContent).not.toContain('QuotaExceededError')
+  })
+
+  it('downloads a saved bank as a DX7 SysEx file', async () => {
+    const user = renderLoadDialog()
+
+    await user.click(screen.getByRole('button', { name: 'Download Stage as SysEx' }))
+
+    expect(downloadFile).toHaveBeenCalledExactlyOnceWith(expect.any(Blob), 'fm1-Stage.syx')
+    expect(vi.mocked(downloadFile).mock.calls[0][0].size).toBe(4104)
+    expect(screen.getByText('Downloaded “Stage”.')).toBeTruthy()
+  })
+
+  it('duplicates a saved bank and reports the copy', async () => {
+    const copyNamedBank = vi.fn(async () => makeSavedBank('bank-3', 'Stage copy'))
+    const user = renderLoadDialog({ copyNamedBank })
+
+    await user.click(screen.getByRole('button', { name: 'Duplicate Stage' }))
+
+    expect(copyNamedBank).toHaveBeenCalledExactlyOnceWith(stage)
+    expect(await screen.findByText('Created “Stage copy”.')).toBeTruthy()
+  })
+
+  it('locks the other saved-bank actions while one is working', async () => {
+    const copyNamedBank = vi.fn(() => new Promise<never>(() => {}))
+    const user = renderLoadDialog({ copyNamedBank })
+
+    await user.click(screen.getByRole('button', { name: 'Duplicate Stage' }))
+
+    expect(screen.getByRole('button', { name: 'Duplicate Studio' }).hasAttribute('disabled')).toBe(
+      true,
+    )
+    expect(screen.getByRole('button', { name: 'Delete Stage' }).hasAttribute('disabled')).toBe(true)
   })
 })

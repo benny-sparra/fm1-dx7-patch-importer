@@ -1,26 +1,34 @@
+import { useDndMonitor } from '@dnd-kit/core'
 import { useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+import { CSS, type Transform } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import { useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { type Patch } from '@/data/patches'
+import type { Patch } from '@/data/patches'
 import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
 import { patchSlotCode } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
 
+import { droppedBank } from './bank-drop'
 import { PatchSlotMenu } from './patch-slot-menu'
 
 type PatchButtonProps = {
+  /** The bank's name, shown under the patch name where the slot appears away from its bank. */
+  bankName?: string
   disabled?: boolean
   disabledTitle?: string
   isActive?: boolean
   onCopy?: (patch: Patch) => void
+  onDownload?: (patch: Patch) => void
   onEdit?: (patch: Patch) => void
   /** Arrow-key navigation across the grid, owned by the grid itself. */
   onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
+  onReplace?: (patch: Patch) => void
   onSelect?: (patch: Patch) => void
   patch: Patch
+  /** False while the slot is shown away from its bank, such as in search results. */
+  reorderable?: boolean
   registerButton?: (patchId: string, button: HTMLButtonElement | null) => void
   /** The grid is one tab stop: only its roving slot is reachable with Tab. */
   tabIndex?: number
@@ -29,14 +37,18 @@ type PatchButtonProps = {
 const animateWhileSorting: AnimateLayoutChanges = ({ isSorting }) => isSorting
 
 export function PatchButton({
+  bankName,
   disabled = false,
   disabledTitle,
   isActive = false,
   onCopy,
+  onDownload,
   onEdit,
   onNavigate,
+  onReplace,
   onSelect,
   patch,
+  reorderable = true,
   registerButton,
   tabIndex,
 }: PatchButtonProps) {
@@ -44,10 +56,26 @@ export function PatchButton({
   // Set by a click and cleared when the selection animation finishes, so the
   // animation plays only in response to the user and never on mount.
   const [flash, setFlash] = useState(false)
+  const canReorder = reorderable && patch.family === 'DX7'
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
+    // A bank tab reads this to leave a slot's own bank unlit as a drop target.
+    data: { bank: patch.bank },
     id: patch.id,
-    disabled: disabled || patch.family !== 'DX7',
+    disabled: disabled || !canReorder,
+  })
+  // Sorting moves the dragged slot only while it is over another slot, so over a bank tab the slot
+  // follows the pointer here instead.
+  const [bankDragOffset, setBankDragOffset] = useState<Transform | null>(null)
+  useDndMonitor({
+    onDragCancel: () => setBankDragOffset(null),
+    onDragEnd: () => setBankDragOffset(null),
+    onDragMove: ({ active, delta, over }) => {
+      if (active.id !== patch.id) return
+      setBankDragOffset(
+        droppedBank(over?.id) === undefined ? null : { ...delta, scaleX: 1, scaleY: 1 },
+      )
+    },
   })
 
   return (
@@ -69,8 +97,8 @@ export function PatchButton({
       ref={sortable.setNodeRef}
       style={{
         opacity: sortable.isDragging ? 0.55 : 1,
-        transform: CSS.Transform.toString(sortable.transform),
-        transition: sortable.transition,
+        transform: CSS.Transform.toString(bankDragOffset ?? sortable.transform),
+        transition: bankDragOffset ? undefined : sortable.transition,
         zIndex: sortable.isDragging ? 10 : undefined,
       }}
       title={disabled ? disabledTitle : undefined}
@@ -114,7 +142,10 @@ export function PatchButton({
         />
       ) : null}
       {/* Only the grip starts a drag, so only the grip stops touch scrolling. */}
-      {patch.family === 'DX7' ? (
+      {!reorderable ? (
+        // Keeps the slot code where it sits in a bank, without a grip that cannot move anything.
+        <span aria-hidden="true" className="-my-1 -mr-2 -ml-4 size-6 shrink-0" />
+      ) : canReorder ? (
         <button
           {...sortable.attributes}
           {...sortable.listeners}
@@ -144,20 +175,28 @@ export function PatchButton({
       >
         {patchSlotCode(patch)}
       </span>
-      <span
-        className={cn(
-          'patch-name font-dot-matrix pointer-events-none min-w-0 flex-1 truncate text-[14px] font-bold whitespace-pre',
-          isActive ? 'text-white' : 'text-[var(--crt-ink)]',
-        )}
-      >
-        {patch.name}
+      {/* The bank line is added after the name, so the name keeps its own element either way. */}
+      <span className="pointer-events-none min-w-0 flex-1">
+        <span
+          className={cn(
+            'patch-name font-dot-matrix block truncate text-[14px] font-bold whitespace-pre',
+            isActive ? 'text-white' : 'text-[var(--crt-ink)]',
+          )}
+        >
+          {patch.name}
+        </span>
+        {bankName ? (
+          <span className="block truncate text-[11px] text-[var(--crt-ink-3)]">{bankName}</span>
+        ) : null}
       </span>
       {/* Above the slot's own button, like the grip, so opening it does not also play the slot. */}
       {!disabled && (onEdit || onCopy) ? (
         <PatchSlotMenu
           name={patch.name}
           onCopy={onCopy && (() => onCopy(patch))}
+          onDownload={onDownload && (() => onDownload(patch))}
           onEdit={onEdit && (() => onEdit(patch))}
+          onReplace={onReplace && (() => onReplace(patch))}
         />
       ) : null}
       {isActive ? <span className="sr-only">{t('banks.auditioning')}</span> : null}

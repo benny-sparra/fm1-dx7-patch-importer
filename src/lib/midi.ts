@@ -1,6 +1,11 @@
 import type { Input, Output } from 'webmidi'
 
-import { makeDx7BankPayload, makeDx7SingleVoicePayload, type Dx7Voice } from '@/lib/dx7'
+import {
+  makeDx7BankPayload,
+  makeDx7SingleVoicePayload,
+  yamahaManufacturerId,
+  type Dx7Voice,
+} from '@/lib/dx7'
 import { fm1EffectParameterMaximums, fm1EffectParameterCount } from '@/lib/fm1-effects'
 import { fm1VoiceParameterMaximums } from '@/lib/fm1-parameters'
 import { createId } from '@/lib/id'
@@ -19,7 +24,8 @@ export type MidiLogEntry = {
   id: string
   direction: 'in' | 'out' | 'system'
   message: string
-  createdAt: string
+  /** When the entry was logged, in milliseconds since the epoch; shown in the interface language. */
+  createdAt: number
   data?: Uint8Array
 }
 
@@ -87,11 +93,11 @@ export function resolveMidiPortSelection(
 }
 
 export function sendDx7Voice(output: Output, channel: number, voice: Dx7Voice) {
-  output.sendSysex(0x43, makeDx7SingleVoicePayload(voice, channel))
+  output.sendSysex(yamahaManufacturerId, makeDx7SingleVoicePayload(voice, channel))
 }
 
 export function sendDx7Bank(output: Output, channel: number, voices: Dx7Voice[]) {
-  output.sendSysex(0x43, makeDx7BankPayload(voices, channel))
+  output.sendSysex(yamahaManufacturerId, makeDx7BankPayload(voices, channel))
 }
 
 function assertMidiChannel(channel: number) {
@@ -140,7 +146,7 @@ export function makeFm1ParameterPayload(parameter: number, value: number) {
 }
 
 export function sendFm1Parameter(output: Output, parameter: number, value: number) {
-  output.sendSysex(0x43, makeFm1ParameterPayload(parameter, value))
+  output.sendSysex(yamahaManufacturerId, makeFm1ParameterPayload(parameter, value))
 }
 
 function assertFm1EffectControl(controller: number, value: number, channel: number) {
@@ -256,12 +262,6 @@ export function formatMidiBytes(data: Uint8Array | number[]) {
   return bytes.map((byte) => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ')
 }
 
-const logTimeFormat = new Intl.DateTimeFormat(undefined, {
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-})
-
 export function makeLogEntry(
   direction: MidiLogEntry['direction'],
   message: string,
@@ -272,6 +272,6 @@ export function makeLogEntry(
     direction,
     message,
     data: data ? Uint8Array.from(data) : undefined,
-    createdAt: logTimeFormat.format(new Date()),
+    createdAt: Date.now(),
   }
 }

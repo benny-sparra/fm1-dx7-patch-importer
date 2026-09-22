@@ -6,8 +6,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { CopyPatchDialog } from '@/components/patches/copy-patch-dialog'
-import { type Patch } from '@/data/patches'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
+import type { Patch } from '@/data/patches'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { type PatchLibrarySnapshot, WorkspaceBankUnavailableError } from '@/lib/patch-library'
 
 beforeAll(() => {
@@ -41,21 +41,31 @@ const patches = [
 
 function renderDialog({
   copyVoice = vi.fn<PatchLibrary['copyVoice']>(() => null),
+  initialBank,
   loadedBanks = ['A', 'B'],
 }: {
   copyVoice?: PatchLibrary['copyVoice']
+  initialBank?: string
   loadedBanks?: string[]
 } = {}) {
   const onClose = vi.fn()
   const onCopied = vi.fn<Parameters<typeof CopyPatchDialog>[0]['onCopied']>()
   const library = {
     bankNames: { B: 'Keys' },
-    copyVoice,
     loadedBanks,
     patches,
     workspaceBanks: ['A', 'B', 'C'],
   } as unknown as PatchLibrary
-  render(<CopyPatchDialog library={library} onClose={onClose} onCopied={onCopied} source={alpha} />)
+  render(
+    <CopyPatchDialog
+      initialBank={initialBank}
+      library={library}
+      onClose={onClose}
+      onCopy={(bank, number) => copyVoice(alpha.id, bank, number)}
+      onCopied={onCopied}
+      source={alpha}
+    />,
+  )
   return {
     copyVoice,
     dialog: screen.getByRole('dialog'),
@@ -88,6 +98,14 @@ describe('CopyPatchDialog', () => {
         description: 'This replaces “Beta Bass” in B01. You can undo this action.',
       }),
     ).toBeTruthy()
+  })
+
+  it('opens on the bank it is given, such as a tab the sound was dropped on', () => {
+    renderDialog({ initialBank: 'A' })
+
+    expect(pressed('A — Bank 1')).toBe(true)
+    // The sound's own slot cannot take the copy, so the choice steps past it.
+    expect(screen.getByRole('button', { name: 'Replace A02' })).toBeTruthy()
   })
 
   it('shows the choice and both bank names on a readout hidden from assistive technology', async () => {
@@ -176,5 +194,66 @@ describe('CopyPatchDialog', () => {
     )
     expect((dialog as HTMLDialogElement).open).toBe(true)
     expect(onCopied).not.toHaveBeenCalled()
+  })
+})
+
+describe('CopyPatchDialog with a sound from outside the workspace', () => {
+  const external = { name: 'BRASS 1', number: 1, origin: '01 BRASS 1 · ROM1A Master' }
+
+  function renderExternal({ opensEditor = false } = {}) {
+    const onCopy = vi.fn(() => null)
+    render(
+      <CopyPatchDialog
+        library={
+          {
+            bankNames: { B: 'Keys' },
+            loadedBanks: ['A', 'B'],
+            patches,
+            workspaceBanks: ['A', 'B', 'C'],
+          } as unknown as PatchLibrary
+        }
+        onClose={vi.fn()}
+        onCopy={onCopy}
+        onCopied={vi.fn()}
+        opensEditor={opensEditor}
+        source={external}
+      />,
+    )
+    return { onCopy, user: userEvent.setup() }
+  }
+
+  it('starts on its own slot number in the first bank that holds sounds', () => {
+    renderExternal()
+
+    expect(pressed('A — Bank 1')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Replace A01' })).toBeTruthy()
+  })
+
+  it('shows where the sound comes from on the readout', () => {
+    renderExternal()
+
+    expect(
+      screen.getByText('A01 Alpha Piano', { selector: '.copy-readout' }).parentElement?.textContent,
+    ).toContain('◂ 01 BRASS 1 · ROM1A Master')
+  })
+
+  it('explains that editing needs a copy when it will open the editor', () => {
+    renderExternal({ opensEditor: true })
+
+    expect(
+      screen.getByRole('dialog', {
+        description:
+          'To edit this patch, copy it into one of your banks. This replaces “Alpha Piano” in A01. You can undo this action.',
+      }),
+    ).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Replace A01 and edit' })).toBeTruthy()
+  })
+
+  it('copies over the chosen slot through the action it was given', async () => {
+    const { onCopy, user } = renderExternal()
+
+    await user.click(screen.getByRole('button', { name: 'Replace A01' }))
+
+    expect(onCopy).toHaveBeenCalledExactlyOnceWith('A', 1)
   })
 })

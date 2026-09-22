@@ -2,12 +2,15 @@
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { type ComponentProps, useState } from 'react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import { type PatchLibrary } from '@/hooks/use-patch-library'
-import { type MidiController } from '@/hooks/use-midi'
+import type { PatchLibrary } from '@/hooks/use-patch-library'
+import type { MidiController } from '@/hooks/use-midi'
+import { useLibrarianView } from '@/hooks/use-librarian-view'
+import { translatePageText } from '@/test/page-translator'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -24,6 +27,8 @@ beforeAll(() => {
   }
   HTMLDialogElement.prototype.close = function close() {
     this.open = false
+    // A real dialog fires this as it closes, and dialogs the librarian mounts on demand rely on it.
+    this.dispatchEvent(new Event('close'))
   }
 })
 
@@ -69,21 +74,28 @@ const midi = {
   sendBank: vi.fn(),
 } as unknown as MidiController
 
+/** Renders the page with the shared library and MIDI stand-ins, and whatever a test changes. */
+function renderLibrarianPage(props: Partial<ComponentProps<typeof LibrarianPage>> = {}) {
+  return render(
+    <ToastProvider>
+      <LibrarianPage
+        activePatchId=""
+        library={library}
+        midi={midi}
+        onBankDeleted={vi.fn()}
+        onEditPatch={vi.fn()}
+        onPlaySearchResult={vi.fn()}
+        onSelectPatch={vi.fn()}
+        {...props}
+      />
+    </ToastProvider>,
+  )
+}
+
 describe('LibrarianPage bank selection', () => {
   it('updates the patch grid when a bank is selected without breaking search', async () => {
     const user = userEvent.setup()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage()
 
     expect(screen.getByText('A01')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
@@ -95,7 +107,7 @@ describe('LibrarianPage bank selection', () => {
     expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
 
-    await user.type(screen.getByPlaceholderText('Search by name'), 'no match')
+    await user.type(screen.getByPlaceholderText('Search'), 'no match')
     expect(screen.getByText('No patches match this search')).toBeTruthy()
   })
 })
@@ -105,18 +117,7 @@ describe('LibrarianPage slot actions', () => {
     const user = userEvent.setup()
     const onEditPatch = vi.fn()
     const onSelectPatch = vi.fn()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={onEditPatch}
-          onSelectPatch={onSelectPatch}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ onEditPatch, onSelectPatch })
 
     await user.click(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }))
     expect(onSelectPatch).toHaveBeenCalledWith(library.patches[0])
@@ -143,18 +144,7 @@ describe('LibrarianPage transfer analytics', () => {
       sendBank: vi.fn(async () => ({ ok: true }) as const),
       sysexAvailable: true,
     } as unknown as MidiController
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={connectedMidi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
     const dialog = screen.getByRole('dialog', {
@@ -178,18 +168,7 @@ describe('LibrarianPage transfer analytics', () => {
       sendBank: vi.fn(async () => ({ ok: true }) as const),
       sysexAvailable: true,
     } as unknown as MidiController
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={connectedMidi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
 
@@ -210,18 +189,7 @@ describe('LibrarianPage transfer analytics', () => {
       sendBank: vi.fn(async () => ({ ok: true }) as const),
       sysexAvailable: false,
     } as unknown as MidiController
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={connectedMidi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
 
@@ -242,18 +210,7 @@ describe('LibrarianPage transfer analytics', () => {
       sendBank: vi.fn(async () => Promise.reject(transportError)),
       sysexAvailable: true,
     } as unknown as MidiController
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={connectedMidi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
 
@@ -279,18 +236,7 @@ describe('LibrarianPage transfer analytics', () => {
       sendBank: vi.fn(),
       sysexAvailable: false,
     } as unknown as MidiController
-    const view = render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={blockedMidi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    const view = renderLibrarianPage({ midi: blockedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
     await user.click(screen.getByRole('button', { name: 'Reconnect MIDI with SysEx' }))
@@ -310,6 +256,7 @@ describe('LibrarianPage transfer analytics', () => {
           midi={{ ...blockedMidi, sysexAvailable: true }}
           onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
+          onPlaySearchResult={vi.fn()}
           onSelectPatch={vi.fn()}
         />
       </ToastProvider>,
@@ -327,20 +274,9 @@ describe('LibrarianPage transfer analytics', () => {
 describe('LibrarianPage keyboard shortcuts', () => {
   function renderLibrarian(overrides: { activePatchId?: string; onEditPatch?: () => void } = {}) {
     const onEditPatch = overrides.onEditPatch ?? vi.fn()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId={overrides.activePatchId ?? ''}
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={onEditPatch}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ activePatchId: overrides.activePatchId ?? '', onEditPatch })
 
-    return { onEditPatch, search: screen.getByPlaceholderText('Search by name') }
+    return { onEditPatch, search: screen.getByPlaceholderText('Search') }
   }
 
   it('focuses the search field on the slash shortcut', async () => {
@@ -447,18 +383,7 @@ describe('LibrarianPage grid navigation', () => {
 
   function renderGrid(activePatchId = '') {
     const onSelectPatch = vi.fn()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId={activePatchId}
-          library={gridLibrary}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={onSelectPatch}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ activePatchId, library: gridLibrary, onSelectPatch })
 
     return { onSelectPatch, user: userEvent.setup() }
   }
@@ -560,18 +485,7 @@ describe('LibrarianPage grid navigation', () => {
 
   it('still opens the lit slot on Enter after arrowing to it', async () => {
     const onEditPatch = vi.fn()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId="bank-A-2"
-          library={gridLibrary}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={onEditPatch}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ activePatchId: 'bank-A-2', library: gridLibrary, onEditPatch })
     const user = userEvent.setup()
 
     slot(1).focus()
@@ -590,18 +504,7 @@ describe('LibrarianPage slot tooltips', () => {
         { bank: 'A', family: 'DX7', id: 'bank-A-2', name: 'Added Pad', number: 2 },
       ],
     } as unknown as PatchLibrary
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={slotLibrary}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ library: slotLibrary })
 
     expect(
       screen.getByRole('button', { name: 'Send Hardware Keys to FM1' }).getAttribute('title'),
@@ -615,22 +518,289 @@ describe('LibrarianPage slot tooltips', () => {
 describe('LibrarianPage search', () => {
   it('finds a slot by the code shown on it', async () => {
     const user = userEvent.setup()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage()
 
-    await user.type(screen.getByPlaceholderText('Search by name'), 'a01')
+    await user.type(screen.getByPlaceholderText('Search'), 'a01')
 
     expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
+  })
+
+  function renderLibrarian(props: { library?: PatchLibrary; onSelectPatch?: () => void } = {}) {
+    renderLibrarianPage({
+      library: props.library ?? library,
+      onSelectPatch: props.onSelectPatch ?? vi.fn(),
+    })
+    return userEvent.setup()
+  }
+
+  // A bank's name shows in the rail and, while the grid shows that bank, above the grid too.
+  const isBankTitled = (name: string) => screen.getAllByText(name).length === 2
+
+  it('finds a patch in a bank other than the one shown', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+
+    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
+  })
+
+  it('lists matches from every bank in bank order', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'a')
+
+    const results = screen.getAllByRole('button', { name: /^Send .* to FM1$/ })
+    expect(results.map((button) => button.getAttribute('aria-label'))).toEqual([
+      'Send Alpha Piano to FM1',
+      'Send Beta Bass to FM1',
+    ])
+  })
+
+  it('plays a result without leaving the results', async () => {
+    const onSelectPatch = vi.fn()
+    const user = renderLibrarian({ onSelectPatch })
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    await user.click(screen.getByRole('button', { name: 'Send Beta Bass to FM1' }))
+
+    expect(onSelectPatch).toHaveBeenCalledExactlyOnceWith(library.patches[1])
+    expect((screen.getByPlaceholderText('Search') as HTMLInputElement).value).toBe('bass')
+    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+  })
+
+  it('leaves out banks that have nothing loaded', async () => {
+    const user = renderLibrarian({ library: { ...library, loadedBanks: ['A'] } as PatchLibrary })
+
+    await user.type(screen.getByPlaceholderText('Search'), 'beta')
+
+    expect(screen.queryByRole('button', { name: 'Send Beta Bass to FM1' })).toBeNull()
+    expect(await screen.findByText('No patches match this search')).toBeTruthy()
+  })
+
+  it('searches from a bank that has nothing loaded', async () => {
+    const user = renderLibrarian({ library: { ...library, loadedBanks: ['B'] } as PatchLibrary })
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+
+    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+  })
+
+  it('disables the search when no bank has anything loaded', () => {
+    renderLibrarian({ library: { ...library, loadedBanks: [] } as unknown as PatchLibrary })
+
+    expect(screen.getByPlaceholderText('Search').hasAttribute('disabled')).toBe(true)
+  })
+
+  it('names the grid as search results in place of the bank while searching', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+
+    expect(screen.getByText('Search results: “bass”')).toBeTruthy()
+    expect(isBankTitled('Studio Favourites')).toBe(false)
+  })
+
+  it('names the bank each result comes from', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'beta')
+
+    const slot = screen.getByRole('button', { name: 'Send Beta Bass to FM1' }).parentElement
+    expect(slot?.textContent).toContain('Electric Keys')
+  })
+
+  it('leaves the bank name off slots once the search is cleared', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'alpha')
+    await user.clear(screen.getByPlaceholderText('Search'))
+
+    const slot = screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }).parentElement
+    expect(slot?.textContent).not.toContain('Studio Favourites')
+  })
+
+  it('clears a result’s bank name after a page translator rewrites the text', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'alpha')
+    translatePageText(document.body)
+    await user.clear(screen.getByPlaceholderText('Search'))
+
+    const slot = screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }).parentElement
+    expect(slot?.textContent).toContain('Alpha Piano')
+    expect(slot?.textContent).not.toContain('Studio Favourites')
+  })
+
+  it('quotes the search without the spaces around it', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), '  bass ')
+
+    expect(screen.getByText('Search results: “bass”')).toBeTruthy()
+  })
+
+  it('quotes the search in the interface language', async () => {
+    await setLocale('de')
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Suchen'), 'bass')
+
+    expect(screen.getByText('Suchergebnisse: „bass“')).toBeTruthy()
+    await setLocale('en')
+  })
+
+  it('shows the bank again once the search is cleared', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    await user.clear(screen.getByPlaceholderText('Search'))
+
+    expect(screen.queryByText(/^Search results/)).toBeNull()
+    expect(isBankTitled('Studio Favourites')).toBe(true)
+  })
+
+  it('keeps the bank name current after a page translator rewrites the text', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    translatePageText(document.body)
+    await user.clear(screen.getByPlaceholderText('Search'))
+
+    expect(screen.queryByText(/^Search results/)).toBeNull()
+    expect(isBankTitled('Studio Favourites')).toBe(true)
+  })
+
+  it('disables sending a bank while showing search results', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+
+    const send = screen.getByRole('button', { name: 'Send to FM1' })
+    expect(send.hasAttribute('disabled')).toBe(true)
+    expect(send.getAttribute('title')).toBe('Choose a bank to send it to the FM1')
+  })
+
+  it('enables sending again once the search is cleared', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    await user.clear(screen.getByPlaceholderText('Search'))
+
+    expect(screen.getByRole('button', { name: 'Send to FM1' }).hasAttribute('disabled')).toBe(false)
+  })
+
+  it('shows no bank as selected while showing search results', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+
+    expect(
+      screen.getByRole('button', { name: 'A — Studio Favourites' }).getAttribute('aria-pressed'),
+    ).toBe('false')
+    expect(
+      screen.getByRole('button', { name: 'B — Electric Keys' }).getAttribute('aria-pressed'),
+    ).toBe('false')
+  })
+
+  it('selects the bank again once the search is cleared', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    await user.clear(screen.getByPlaceholderText('Search'))
+
+    expect(
+      screen.getByRole('button', { name: 'A — Studio Favourites' }).getAttribute('aria-pressed'),
+    ).toBe('true')
+  })
+
+  it('returns to the bank of the last result played when the search is cleared', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    await user.click(screen.getByRole('button', { name: 'Send Beta Bass to FM1' }))
+    await user.clear(screen.getByPlaceholderText('Search'))
+
+    expect(
+      screen.getByRole('button', { name: 'B — Electric Keys' }).getAttribute('aria-pressed'),
+    ).toBe('true')
+    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+  })
+
+  // Only a slot holding a DX7 voice has a grip to drag.
+  const voicedLibrary = {
+    ...library,
+    patches: library.patches.map((patch) => ({ ...patch, family: 'DX7' })),
+  } as PatchLibrary
+
+  it('offers no reordering while showing search results', async () => {
+    const user = renderLibrarian({ library: voicedLibrary })
+
+    expect(screen.getByRole('button', { name: 'Reorder Alpha Piano' })).toBeTruthy()
+    await user.type(screen.getByPlaceholderText('Search'), 'a')
+
+    expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Reorder / })).toBeNull()
+  })
+
+  it('offers reordering again once the search is cleared', async () => {
+    const user = renderLibrarian({ library: voicedLibrary })
+
+    await user.type(screen.getByPlaceholderText('Search'), 'alpha')
+    await user.clear(screen.getByPlaceholderText('Search'))
+
+    expect(screen.getByRole('button', { name: 'Reorder Alpha Piano' })).toBeTruthy()
+  })
+
+  it('keeps the search results after the page is replaced and shown again', async () => {
+    function EditorRoundTrip() {
+      const view = useLibrarianView()
+      const [isEditing, setIsEditing] = useState(false)
+      return (
+        <ToastProvider>
+          <button onClick={() => setIsEditing((current) => !current)} type="button">
+            Toggle editor
+          </button>
+          {isEditing ? null : (
+            <LibrarianPage
+              activePatchId=""
+              library={library}
+              midi={midi}
+              onBankDeleted={vi.fn()}
+              onEditPatch={vi.fn()}
+              onPlaySearchResult={vi.fn()}
+              onSelectPatch={vi.fn()}
+              view={view}
+            />
+          )}
+        </ToastProvider>
+      )
+    }
+    render(<EditorRoundTrip />)
+    const user = userEvent.setup()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    await user.click(screen.getByRole('button', { name: 'Toggle editor' }))
+    await user.click(screen.getByRole('button', { name: 'Toggle editor' }))
+
+    expect((screen.getByPlaceholderText('Search') as HTMLInputElement).value).toBe('bass')
+    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+  })
+
+  it('clears the search when a bank is chosen', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'alpha')
+    await user.click(screen.getByRole('button', { name: 'B — Electric Keys' }))
+
+    expect((screen.getByPlaceholderText('Search') as HTMLInputElement).value).toBe('')
+    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
+    expect(
+      screen.getByRole('button', { name: 'B — Electric Keys' }).getAttribute('aria-pressed'),
+    ).toBe('true')
+    expect(isBankTitled('Electric Keys')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Send to FM1' }).hasAttribute('disabled')).toBe(false)
   })
 })
 
@@ -638,18 +808,7 @@ describe('LibrarianPage bank deletion', () => {
   it('shows the bank that moves into the deleted bank’s letter', async () => {
     const user = userEvent.setup()
     const onBankDeleted = vi.fn()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={onBankDeleted}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ onBankDeleted })
 
     await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
     await user.click(screen.getAllByRole('button', { name: 'Delete bank' })[0])
@@ -666,18 +825,7 @@ describe('LibrarianPage bank deletion', () => {
 
 describe('LibrarianPage undo', () => {
   function renderLibrarian() {
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage()
     return userEvent.setup()
   }
 
@@ -693,7 +841,7 @@ describe('LibrarianPage undo', () => {
   it('leaves the undo shortcut to the search field while typing', async () => {
     const user = renderLibrarian()
 
-    await user.type(screen.getByPlaceholderText('Search by name'), 'Alp')
+    await user.type(screen.getByPlaceholderText('Search'), 'Alp')
     await user.keyboard('{Meta>}z{/Meta}')
 
     expect(library.undo).not.toHaveBeenCalled()
@@ -717,18 +865,7 @@ describe('LibrarianPage undo', () => {
 describe('LibrarianPage saved banks', () => {
   it('offers to save and load saved banks from a bank’s menu', async () => {
     const user = userEvent.setup()
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId=""
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage()
 
     await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
     await user.click(screen.getAllByRole('button', { name: 'Load bank' })[0])
@@ -744,18 +881,7 @@ describe('LibrarianPage copying a sound', () => {
   })
 
   function renderLibrarian(activePatchId: string) {
-    render(
-      <ToastProvider>
-        <LibrarianPage
-          activePatchId={activePatchId}
-          library={library}
-          midi={midi}
-          onBankDeleted={vi.fn()}
-          onEditPatch={vi.fn()}
-          onSelectPatch={vi.fn()}
-        />
-      </ToastProvider>,
-    )
+    renderLibrarianPage({ activePatchId })
     return userEvent.setup()
   }
 
@@ -787,5 +913,36 @@ describe('LibrarianPage copying a sound', () => {
     expect(
       screen.getByText('„Alpha Piano“ wurde nach B01 in „Electric Keys“ kopiert.'),
     ).toBeTruthy()
+  })
+})
+
+describe('LibrarianPage add bank dialog', () => {
+  function renderLibrarian() {
+    renderLibrarianPage()
+    return userEvent.setup()
+  }
+
+  it('opens the lazily loaded dialog once however often its trigger is activated', async () => {
+    const user = renderLibrarian()
+
+    // The trigger stays eager, so it is there before the dialog's chunk has been asked for.
+    const addBank = screen.getByRole('button', { name: 'Add new bank' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+
+    await user.click(addBank)
+    await user.click(addBank)
+
+    expect(await screen.findAllByRole('dialog')).toHaveLength(1)
+  })
+
+  it('returns focus to the trigger when the dialog is closed', async () => {
+    const user = renderLibrarian()
+    const addBank = screen.getByRole('button', { name: 'Add new bank' })
+
+    await user.click(addBank)
+    await screen.findByRole('dialog')
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+
+    expect(document.activeElement).toBe(addBank)
   })
 })

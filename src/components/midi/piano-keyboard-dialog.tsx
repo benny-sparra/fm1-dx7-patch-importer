@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { PianoKeyButton } from '@/components/midi/piano-key'
 import { useKeyboardKeyLabel } from '@/hooks/use-keyboard-key-label'
-import { type MidiController } from '@/hooks/use-midi'
+import type { MidiController } from '@/hooks/use-midi'
 import {
   makePianoKeys,
   mapComputerPianoKeys,
