@@ -778,6 +778,7 @@ instead.
    version number. This still does not test the `05`/`09`/`01` setup, voice-block, and
    acknowledgement messages, so `SS`/`CK` and the rest of the restore exchange remain open here, and
    this reading has not been reproduced by this project.
+
 7. Why does the updater identify the device twice before the restore?
 8. Does the acknowledgement ever differ, for example on error, and is a reply expected on
    Bluetooth MIDI as well as USB?
