@@ -1,7 +1,7 @@
 # FM1 Editor Research Notes
 
 > Status: working engineering reference
-> Last reviewed: 2026-09-16
+> Last reviewed: 2026-09-22
 > Scope: M-VAVE FM1 editor/librarian, stock FM1 firmware behaviour, and possible editor enhancements.
 
 ## Purpose
@@ -41,6 +41,24 @@ Important references:
   - https://github.com/AL-255/FM-1-RE/blob/main/docs/io/11-ota-protocol.md
 - Safety/open questions:
   - https://github.com/AL-255/FM-1-RE/blob/main/TODO_aug2.md
+
+### Open firmware feasibility research
+
+Repository:
+
+- https://github.com/ip2k/mvave-fm1-open-firmware
+
+This is a from-scratch open-firmware feasibility project for the FM1's JieLi AC791N SoC, not an
+editor codebase. It sits entirely in the OTA/update/loader/recovery space that this project treats
+as **Dangerous / excluded**; nothing from it should be implemented in production editor code. It is
+cited here only where it corroborates or sharpens existing findings:
+
+- Update protocol summary, with a hardware-verified (2026-09-06, device `FM-1_015`) byte-exact
+  decode of the `F0 00 32 45 …` identity query/reply already captured in §6.3:
+  https://github.com/ip2k/mvave-fm1-open-firmware/blob/main/docs/03-update-protocol.md
+- Stock firmware analysis, independently confirming the msfa/Dexed engine identity from §1.3
+  (byte-for-byte FM algorithm table match at a specific firmware offset):
+  https://github.com/ip2k/mvave-fm1-open-firmware/blob/main/docs/02-stock-firmware.md
 
 ### FM1 Editor
 
@@ -601,6 +619,13 @@ Bluetooth:
 - uses a related framed command path
 - converges on the same dispatcher
 
+[ip2k/mvave-fm1-open-firmware `docs/03-update-protocol.md` §4](https://github.com/ip2k/mvave-fm1-open-firmware/blob/main/docs/03-update-protocol.md#4-the-syscmd-device-control-family-normal-mode-separate-from-ota)
+independently documents this same family (framing `[00 59][cmd:1][len:3 LE][payload][~sum(payload)]`,
+a 32-entry dispatch table) and sharpens why commands 33–36 and 48 stay excluded: 33–36 call methods
+on one of eight callback objects whose population is unknown, and 48 "completes an armed transfer"
+by copying memory after a token/length match. This does not change this project's existing rule
+below; it corroborates it.
+
 ### Why this matters
 
 This may be the route used for runtime FM1-specific configuration beyond ordinary Yamaha DX7 SysEx.
@@ -742,6 +767,17 @@ instead.
 6. Is `00 32` M-VAVE's registered ID with a command byte after it, or is the third byte part of the
    ID? Is the identity reply stable across firmware v13, v14 and v15, and is part of it a unique
    serial?
+
+   **Partially resolved 2026-09-22** by
+   [ip2k/mvave-fm1-open-firmware `docs/03-update-protocol.md`](https://github.com/ip2k/mvave-fm1-open-firmware/blob/main/docs/03-update-protocol.md),
+   citing a hardware-verified capture (2026-09-06, device `FM-1_015`) and AL-255's disassembly of
+   the on-device loader: the identical `F0 00 32 45 00 00 00 40 7F F7` query and 41-byte reply this
+   document already recorded are a 7-bit LSB-first packing of a 34-byte JieLi ID block
+   `00 59 11 | len 27 | "FM-1_015" + zero padding | checksum`, where `checksum = ~sum(body) & 0xFF`.
+   The plain field carries the device's whole `MODEL_NNN` identity string, not a separate firmware
+   version number. This still does not test the `05`/`09`/`01` setup, voice-block, and
+   acknowledgement messages, so `SS`/`CK` and the rest of the restore exchange remain open here, and
+   this reading has not been reproduced by this project.
 7. Why does the updater identify the device twice before the restore?
 8. Does the acknowledgement ever differ, for example on error, and is a reply expected on
    Bluetooth MIDI as well as USB?
