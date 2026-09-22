@@ -1,5 +1,5 @@
 import { AudioWaveform, Sparkles } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -59,6 +59,8 @@ import { trackAnalyticsEvent } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 
 type PatchEditorPageProps = {
+  /** Set to the editor's back action while it is open, for the browser's Back button to use. */
+  browserBackRef?: RefObject<(() => void) | null>
   /** The operator last copied in any editor this session, kept by the app while it runs. */
   copiedOperator: CopiedOperator | null
   effects: Uint8Array
@@ -82,6 +84,7 @@ function parametersMatch(left: Uint8Array, right: Uint8Array) {
 }
 
 export function PatchEditorPage({
+  browserBackRef,
   copiedOperator,
   effects,
   midi,
@@ -400,7 +403,7 @@ export function PatchEditorPage({
   }
 
   const requestNavigation = () => {
-    if (isComparingRef.current) return
+    if (isComparingRef.current || isNavigationPending) return
     if (!isDirty) {
       clearOperatorAudition()
       onBack()
@@ -428,6 +431,14 @@ export function PatchEditorPage({
     setIsNavigationPending(false)
     onBack()
   }
+
+  useEffect(() => {
+    if (!browserBackRef) return
+    browserBackRef.current = requestNavigation
+    return () => {
+      browserBackRef.current = null
+    }
+  })
 
   const revertToSaved = async () => {
     saveMenuRef.current?.removeAttribute('open')

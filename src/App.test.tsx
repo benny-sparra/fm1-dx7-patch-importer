@@ -122,6 +122,40 @@ describe('App patch editor loading', () => {
     expect(screen.getByRole('button', { name: 'Edit Piano' })).toBeTruthy()
     expect(consoleError).toHaveBeenCalled()
   })
+
+  it('returns to the librarian on browser Back when the editor could not load', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const user = userEvent.setup()
+    render(
+      <ToastProvider>
+        <App />
+      </ToastProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: 'Edit Piano' }))
+    await screen.findByRole('alert')
+
+    window.history.back()
+
+    expect(await screen.findByRole('button', { name: 'Edit Piano' })).toBeTruthy()
+  })
+
+  it('opens the editor again on browser Forward', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const user = userEvent.setup()
+    render(
+      <ToastProvider>
+        <App />
+      </ToastProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: 'Edit Piano' }))
+    await screen.findByRole('alert')
+    window.history.back()
+    await screen.findByRole('button', { name: 'Edit Piano' })
+
+    window.history.forward()
+
+    expect(await screen.findByRole('alert')).toBeTruthy()
+  })
 })
 
 describe('App slot audition', () => {

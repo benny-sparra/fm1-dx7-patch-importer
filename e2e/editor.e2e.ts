@@ -189,6 +189,35 @@ test('asks before leaving unsaved changes, then keeps, discards or saves them', 
   await expect(output).toHaveValue(edited)
 })
 
+test('returns to the patch banks on browser Back, and to the same patch on Forward', async ({
+  page,
+}) => {
+  await openEditor(page)
+  const dialog = page.getByRole('dialog', { name: 'Unsaved patch changes' })
+  const library = page.getByRole('heading', { name: 'Patch banks' })
+
+  await page.goBack()
+  await expect(library).toBeVisible()
+  expect(page.url()).toMatch(/\/$/)
+
+  await page.goForward()
+  await expect(page.getByRole('button', { name: 'Back to patch banks' })).toBeVisible()
+
+  const edited = await nudge(page, 'Operator 1 output level')
+  await page.goBack()
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Keep editing' }).click()
+  await expect(page.getByRole('slider', { name: 'Operator 1 output level' })).toHaveValue(edited)
+
+  await page.goBack()
+  await dialog.getByRole('button', { name: 'Discard changes' }).click()
+  await expect(library).toBeVisible()
+
+  // Every way out of the editor takes its history step with it, so Back now leaves the app.
+  await page.goBack()
+  await expect(page).toHaveURL('about:blank')
+})
+
 test('applies effect presets one after another and undoes each as one step', async ({ page }) => {
   await openEditor(page)
   const reverb = page.getByRole('region', { name: 'Reverb' })

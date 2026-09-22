@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useEditorHistoryEntry } from '@/hooks/use-editor-history-entry'
 import { useLibrarianView } from '@/hooks/use-librarian-view'
 import { useMidi } from '@/hooks/use-midi'
 import { usePatchLibrary } from '@/hooks/use-patch-library'
@@ -62,6 +63,10 @@ function App() {
   } | null>(null)
   const selectedPatch = library.patches.find((patch) => patch.id === selectedPatchId)
   const selectedVoice = selectedPatch ? library.voices[selectedPatch.id] : undefined
+  const isEditorOpen = Boolean(selectedPatch && selectedVoice)
+  // The loaded editor leaves through its own back action, which asks about unsaved changes. Until
+  // it has loaded, or after it failed to, browser Back simply closes it.
+  const editorBrowserBack = useRef<(() => void) | null>(null)
   const findPatch = (patchId: string) =>
     library.patches.find((candidate) => candidate.id === patchId)
   // A slot in banks A–D selects its FM1 program. A DX7 bank carries no effects, so the saved
@@ -127,6 +132,11 @@ function App() {
     cancelDynamicImportRecovery()
     setSelectedPatchId('')
   }
+  useEditorHistoryEntry(
+    isEditorOpen ? selectedPatchId : '',
+    () => (editorBrowserBack.current ?? closeEditor)(),
+    editPatch,
+  )
   // Deleting a bank moves later banks up a letter, so a lit slot in or after it would name another
   // sound, one the FM1 never received.
   const forgetRenumberedAudition = (deletedBank: string) => {
@@ -163,7 +173,7 @@ function App() {
   )
 
   return (
-    <RootLayout compact={Boolean(selectedPatch && selectedVoice)} midi={midi}>
+    <RootLayout compact={isEditorOpen} midi={midi}>
       {library.workspaceLoading ? (
         loadingSection(t('common.loadingLibrary'))
       ) : library.persistenceStatus === 'load-error' ? (
@@ -175,6 +185,7 @@ function App() {
             <PatchEditorErrorBoundary key={selectedPatch.id} onBack={closeEditor}>
               <Suspense fallback={loadingSection(t('common.loading'))}>
                 <LoadedPatchEditorPage
+                  browserBackRef={editorBrowserBack}
                   copiedOperator={copiedOperator}
                   midi={midi}
                   onBack={closeEditor}

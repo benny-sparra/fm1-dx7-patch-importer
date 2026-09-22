@@ -289,6 +289,12 @@ open everything an earlier release could have saved.
   close action. Lint allows it inside a `<dialog>` element written in the same JSX; a dialog built on
   another component needs its file in the `jsx-a11y/no-autofocus` exception in `.oxlintrc.json`.
   Anywhere else, move focus with a ref in an effect when content appears.
+- The open editor owns one browser history entry (`useEditorHistoryEntry`), naming the patch it was
+  opened on, so browser Back leaves it through the same path as its back button, unsaved-changes
+  prompt included, and Forward opens that patch again, sending it to the FM1 as opening it does.
+  A patch that is gone by then leaves the patch banks showing. Every way of closing the editor
+  removes the entry. Other view state, such as the selected bank, stays out of history
+  and the URL: bank letters move when a bank is deleted and the library exists only in this browser.
 - Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.
