@@ -381,6 +381,10 @@ open everything an earlier release could have saved.
   - A browser journey that needs MIDI installs the fake FM-1 from `e2e/fake-midi.ts` before the page
     loads and asserts the bytes it recorded. Wait for the editor to be live (its back button is
     enabled) before editing, or the edit resends the whole voice rather than one parameter.
+  - A dialog that opens itself on a first visit, such as the help guide, arrives with its own chunk,
+    so a browser journey waits for it and confirms it closed rather than probing its visibility
+    once. A single check can run before it opens, leaving it to intercept the journey's first
+    clicks, which reads as unrelated flakiness.
   - A dialog that opens itself and focuses a field in an animation frame makes that frame run at
     once in its test, as `named-bank-library-dialog.test.tsx` does, so the focus cannot select the
     field part-way through typing.
