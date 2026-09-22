@@ -137,6 +137,7 @@ export default {
     pianoKeyboard: '钢琴键盘',
     dragKeyboard: '移动键盘',
     closeKeyboard: '关闭键盘',
+    helpOpenFailed: '无法打开指南。请重新加载页面后重试。',
     keyboardOpenFailed: '无法打开键盘。请重新加载页面后重试。',
     shiftOctave: '将八度向{{direction}}移动',
     playNote: '演奏 {{note}}',

@@ -22,11 +22,10 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+// The guide is mounted only once it has been asked for, so rendering it opens it.
 async function openHelp() {
-  localStorage.setItem('fm1-librarian-help-seen', 'true')
   const user = userEvent.setup()
-  render(<HelpDialog />)
-  await user.click(screen.getByRole('button', { name: 'How to use the FM1 editor and librarian' }))
+  render(<HelpDialog onClose={vi.fn()} />)
 
   return user
 }

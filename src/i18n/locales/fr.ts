@@ -171,6 +171,7 @@ export default {
     pianoKeyboard: 'Clavier piano',
     dragKeyboard: 'Déplacer le clavier',
     closeKeyboard: 'Fermer le clavier',
+    helpOpenFailed: 'Impossible d’ouvrir le guide. Rechargez la page et réessayez.',
     keyboardOpenFailed: 'Impossible d’ouvrir le clavier. Rechargez la page et réessayez.',
     shiftOctave: 'Décaler l’octave vers le {{direction}}',
     playNote: 'Jouer {{note}}',

@@ -3,6 +3,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } fr
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { rememberHelpWasSeen } from '@/lib/help-seen'
 import {
   Dialog,
   DialogBody,
@@ -11,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { trackAnalyticsEvent } from '@/lib/analytics'
 import {
   editorShortcuts,
   formatShortcut,
@@ -20,8 +20,6 @@ import {
   type KeyboardShortcut,
 } from '@/lib/keyboard-shortcuts'
 import { cn } from '@/lib/utils'
-
-const HELP_SEEN_KEY = 'fm1-librarian-help-seen'
 
 const steps = [
   {
@@ -85,7 +83,11 @@ const helpTabs = [
   { icon: Keyboard, id: 'shortcuts', label: 'help.shortcutsTitle' },
 ]
 
-export function HelpDialog() {
+type HelpDialogProps = {
+  onClose: () => void
+}
+
+export function HelpDialog({ onClose }: HelpDialogProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const onApplePlatform = useMemo(() => isApplePlatform(), [])
@@ -112,164 +114,137 @@ export function HelpDialog() {
     tabRefs.current.get(nextTab)?.focus()
   }
 
+  // The guide is mounted only once it has been asked for, so it opens as it arrives.
   useEffect(() => {
-    try {
-      if (localStorage.getItem(HELP_SEEN_KEY) !== 'true') {
-        dialogRef.current?.showModal()
-      }
-    } catch {
-      dialogRef.current?.showModal()
-    }
+    dialogRef.current?.showModal()
   }, [])
 
   const closeDialog = () => dialogRef.current?.close()
 
-  const rememberHelpWasSeen = () => {
-    try {
-      localStorage.setItem(HELP_SEEN_KEY, 'true')
-    } catch {
-      // The help button remains available when storage is unavailable.
-    }
-  }
-
   return (
-    <>
-      <Button
-        aria-label={t('help.open')}
-        className="hero-action font-dot-matrix size-[26px] cursor-pointer rounded-none p-0 text-base leading-none font-bold text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-        onClick={() => {
-          trackAnalyticsEvent({ data: { surface: 'guide' }, name: 'help_opened' })
-          dialogRef.current?.showModal()
-        }}
-        size="icon"
-        title={t('help.open')}
-        type="button"
-        variant="ghost"
-      >
-        <span aria-hidden="true">?</span>
-      </Button>
+    <Dialog
+      aria-labelledby="help-dialog-title"
+      onClose={() => {
+        rememberHelpWasSeen()
+        onClose()
+      }}
+      ref={dialogRef}
+      size="3xl"
+    >
+      <DialogHeader>
+        <DialogTitle id="help-dialog-title">{t('help.title')}</DialogTitle>
+        <DialogCloseButton label={t('help.close')} onClick={closeDialog} />
+      </DialogHeader>
+      <DialogBody>
+        <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">{t('help.intro')}</p>
 
-      <Dialog
-        aria-labelledby="help-dialog-title"
-        onClose={rememberHelpWasSeen}
-        ref={dialogRef}
-        size="3xl"
-      >
-        <DialogHeader>
-          <DialogTitle id="help-dialog-title">{t('help.title')}</DialogTitle>
-          <DialogCloseButton label={t('help.close')} onClick={closeDialog} />
-        </DialogHeader>
-        <DialogBody>
-          <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">{t('help.intro')}</p>
-
-          {/*
+        {/*
             The callout and each step are labelled wells: the label sits
             astride the top border and breaks it, the way a panel legend does.
           */}
-          <div className="crt-legend-box mx-4 mt-5 p-3.5">
-            <span className="crt-legend text-[11px] tracking-[0.18em] text-[var(--crt-led)] uppercase">
-              {t('help.truthTitle')}
-            </span>
-            <span className="block pt-1 text-sm leading-6 text-[var(--crt-ink-2)]">
-              {t('help.truthBody')}
-            </span>
-          </div>
+        <div className="crt-legend-box mx-4 mt-5 p-3.5">
+          <span className="crt-legend text-[11px] tracking-[0.18em] text-[var(--crt-led)] uppercase">
+            {t('help.truthTitle')}
+          </span>
+          <span className="block pt-1 text-sm leading-6 text-[var(--crt-ink-2)]">
+            {t('help.truthBody')}
+          </span>
+        </div>
 
-          <div
-            aria-label={t('help.sections')}
-            className="mt-5 flex gap-1.5 border-b-2 border-[var(--crt-shadow)] px-4"
-            role="tablist"
-          >
-            {helpTabs.map(({ icon: Icon, id, label }, index) => {
-              const selected = id === selectedTab
-              return (
-                <button
-                  aria-controls={`help-panel-${id}`}
-                  aria-selected={selected}
-                  className={cn(
-                    'font-dot-matrix -mb-0.5 flex cursor-pointer items-center gap-1.5 border-2 border-b-0 px-3 py-1.5 text-[11px] tracking-[0.14em] uppercase transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
-                    selected
-                      ? 'border-[var(--crt-shadow)] bg-[var(--crt-bg-panel2)] text-[var(--crt-led)]'
-                      : 'border-transparent text-[var(--crt-ink-3)] hover:text-[var(--crt-ink-2)]',
-                  )}
-                  id={`help-tab-${id}`}
-                  key={id}
-                  onClick={() => setSelectedTab(id)}
-                  onKeyDown={(event) => selectTabFromKeyboard(event, index)}
-                  ref={(button) => {
-                    if (button) tabRefs.current.set(id, button)
-                    else tabRefs.current.delete(id)
-                  }}
-                  role="tab"
-                  tabIndex={selected ? 0 : -1}
-                  type="button"
-                >
-                  <Icon aria-hidden="true" className="size-3.5" />
+        <div
+          aria-label={t('help.sections')}
+          className="mt-5 flex gap-1.5 border-b-2 border-[var(--crt-shadow)] px-4"
+          role="tablist"
+        >
+          {helpTabs.map(({ icon: Icon, id, label }, index) => {
+            const selected = id === selectedTab
+            return (
+              <button
+                aria-controls={`help-panel-${id}`}
+                aria-selected={selected}
+                className={cn(
+                  'font-dot-matrix -mb-0.5 flex cursor-pointer items-center gap-1.5 border-2 border-b-0 px-3 py-1.5 text-[11px] tracking-[0.14em] uppercase transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+                  selected
+                    ? 'border-[var(--crt-shadow)] bg-[var(--crt-bg-panel2)] text-[var(--crt-led)]'
+                    : 'border-transparent text-[var(--crt-ink-3)] hover:text-[var(--crt-ink-2)]',
+                )}
+                id={`help-tab-${id}`}
+                key={id}
+                onClick={() => setSelectedTab(id)}
+                onKeyDown={(event) => selectTabFromKeyboard(event, index)}
+                ref={(button) => {
+                  if (button) tabRefs.current.set(id, button)
+                  else tabRefs.current.delete(id)
+                }}
+                role="tab"
+                tabIndex={selected ? 0 : -1}
+                type="button"
+              >
+                <Icon aria-hidden="true" className="size-3.5" />
+                {t(label)}
+              </button>
+            )
+          })}
+        </div>
+
+        <div
+          aria-labelledby="help-tab-steps"
+          hidden={selectedTab !== 'steps'}
+          id="help-panel-steps"
+          role="tabpanel"
+        >
+          <ol className="grid gap-x-4 gap-y-5 p-4 pt-5 sm:grid-cols-2">
+            {steps.map(({ description, icon: Icon, title }, index) => (
+              <li className="crt-legend-box p-3.5 pt-3" key={title}>
+                <span className="crt-legend font-dot-matrix flex items-center gap-1.5 text-xs font-bold tracking-[0.12em] text-[var(--crt-acc-lt)] uppercase">
+                  {index + 1}. <Icon aria-hidden="true" className="size-3.5" />
+                  {t(title)}
+                </span>
+                <p className="text-sm leading-6 text-[var(--crt-ink-2)]">{t(description)}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div
+          aria-labelledby="help-tab-shortcuts"
+          hidden={selectedTab !== 'shortcuts'}
+          id="help-panel-shortcuts"
+          role="tabpanel"
+        >
+          <div className="grid gap-x-4 gap-y-5 p-4 pt-5 sm:grid-cols-2">
+            {shortcutGroups.map(({ id, label, rows }) => (
+              <div className="crt-legend-box p-3.5 pt-3" key={id}>
+                <span className="crt-legend font-dot-matrix text-xs font-bold tracking-[0.12em] text-[var(--crt-acc-lt)] uppercase">
                   {t(label)}
-                </button>
-              )
-            })}
+                </span>
+                <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5">
+                  {rows.map(({ action, shortcuts }) => (
+                    <Fragment key={`${id}-${action}`}>
+                      <dt className="flex flex-wrap items-baseline gap-1">
+                        {shortcuts.map((shortcut) => (
+                          <kbd
+                            className="crt-inset font-vt323 inline-block min-w-8 bg-[var(--crt-bg-well)] px-1.5 text-center text-[15px] leading-5 text-[var(--crt-led)]"
+                            key={formatShortcut(shortcut, onApplePlatform)}
+                          >
+                            {formatShortcut(shortcut, onApplePlatform)}
+                          </kbd>
+                        ))}
+                      </dt>
+                      <dd className="text-sm leading-5 text-[var(--crt-ink-2)]">{t(action)}</dd>
+                    </Fragment>
+                  ))}
+                </dl>
+              </div>
+            ))}
           </div>
-
-          <div
-            aria-labelledby="help-tab-steps"
-            hidden={selectedTab !== 'steps'}
-            id="help-panel-steps"
-            role="tabpanel"
-          >
-            <ol className="grid gap-x-4 gap-y-5 p-4 pt-5 sm:grid-cols-2">
-              {steps.map(({ description, icon: Icon, title }, index) => (
-                <li className="crt-legend-box p-3.5 pt-3" key={title}>
-                  <span className="crt-legend font-dot-matrix flex items-center gap-1.5 text-xs font-bold tracking-[0.12em] text-[var(--crt-acc-lt)] uppercase">
-                    {index + 1}. <Icon aria-hidden="true" className="size-3.5" />
-                    {t(title)}
-                  </span>
-                  <p className="text-sm leading-6 text-[var(--crt-ink-2)]">{t(description)}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <div
-            aria-labelledby="help-tab-shortcuts"
-            hidden={selectedTab !== 'shortcuts'}
-            id="help-panel-shortcuts"
-            role="tabpanel"
-          >
-            <div className="grid gap-x-4 gap-y-5 p-4 pt-5 sm:grid-cols-2">
-              {shortcutGroups.map(({ id, label, rows }) => (
-                <div className="crt-legend-box p-3.5 pt-3" key={id}>
-                  <span className="crt-legend font-dot-matrix text-xs font-bold tracking-[0.12em] text-[var(--crt-acc-lt)] uppercase">
-                    {t(label)}
-                  </span>
-                  <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5">
-                    {rows.map(({ action, shortcuts }) => (
-                      <Fragment key={`${id}-${action}`}>
-                        <dt className="flex flex-wrap items-baseline gap-1">
-                          {shortcuts.map((shortcut) => (
-                            <kbd
-                              className="crt-inset font-vt323 inline-block min-w-8 bg-[var(--crt-bg-well)] px-1.5 text-center text-[15px] leading-5 text-[var(--crt-led)]"
-                              key={formatShortcut(shortcut, onApplePlatform)}
-                            >
-                              {formatShortcut(shortcut, onApplePlatform)}
-                            </kbd>
-                          ))}
-                        </dt>
-                        <dd className="text-sm leading-5 text-[var(--crt-ink-2)]">{t(action)}</dd>
-                      </Fragment>
-                    ))}
-                  </dl>
-                </div>
-              ))}
-            </div>
-          </div>
-        </DialogBody>
-        <DialogFooter>
-          <Button className="shrink-0" onClick={closeDialog} type="button">
-            {t('help.start')}
-          </Button>
-        </DialogFooter>
-      </Dialog>
-    </>
+        </div>
+      </DialogBody>
+      <DialogFooter>
+        <Button className="shrink-0" onClick={closeDialog} type="button">
+          {t('help.start')}
+        </Button>
+      </DialogFooter>
+    </Dialog>
   )
 }

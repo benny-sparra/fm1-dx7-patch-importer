@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -54,8 +54,10 @@ function setup(overrides: Partial<MidiController> = {}) {
   } as unknown as MidiController
   const onBack = vi.fn()
   const onSave = vi.fn()
+  const browserBackRef: { current: (() => void) | null } = { current: null }
   const view = render(
     <PatchEditorPage
+      browserBackRef={browserBackRef}
       copiedOperator={null}
       effects={new Uint8Array(24)}
       midi={midi}
@@ -69,6 +71,7 @@ function setup(overrides: Partial<MidiController> = {}) {
   const rerenderMidi = (nextMidi: MidiController) =>
     view.rerender(
       <PatchEditorPage
+        browserBackRef={browserBackRef}
         copiedOperator={null}
         effects={new Uint8Array(24)}
         midi={nextMidi}
@@ -79,7 +82,7 @@ function setup(overrides: Partial<MidiController> = {}) {
         voice={{ data: new Uint8Array(128), name: 'INIT' }}
       />,
     )
-  return { midi, onBack, onSave, rerenderMidi }
+  return { browserBackRef, midi, onBack, onSave, rerenderMidi }
 }
 
 describe('PatchEditorPage MIDI paths', () => {
@@ -563,6 +566,32 @@ describe('PatchEditorPage keyboard shortcuts', () => {
 
     expect(onBack).not.toHaveBeenCalled()
     expect(screen.getByRole('button', { name: 'Discard changes' })).toBeTruthy()
+  })
+
+  it('leaves an unedited editor on browser Back', async () => {
+    const { browserBackRef, midi, onBack } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+
+    act(() => browserBackRef.current?.())
+
+    expect(onBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks about unsaved changes on browser Back rather than discarding them', async () => {
+    const { browserBackRef, onBack } = await setupEdited()
+
+    act(() => browserBackRef.current?.())
+
+    expect(onBack).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Discard changes' })).toBeTruthy()
+  })
+
+  it('stops offering browser Back once the editor has closed', () => {
+    const { browserBackRef } = setup()
+
+    cleanup()
+
+    expect(browserBackRef.current).toBeNull()
   })
 
   it('leaves Escape to the unsaved-changes dialog once it is open', async () => {

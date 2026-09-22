@@ -169,6 +169,8 @@ export default {
     pianoKeyboard: 'Klaviatur',
     dragKeyboard: 'Klaviatur verschieben',
     closeKeyboard: 'Klaviatur schließen',
+    helpOpenFailed:
+      'Die Anleitung konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     keyboardOpenFailed:
       'Die Tastatur konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     shiftOctave: 'Oktave nach {{direction}} verschieben',
