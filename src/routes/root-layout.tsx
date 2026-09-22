@@ -2,7 +2,7 @@ import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { HelpDialog } from '@/components/help-dialog'
+import { HelpButton } from '@/components/help-button'
 import {
   MidiConnectActions,
   MidiConnectionError,
@@ -68,7 +68,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
 
             <div className="flex shrink-0 items-center gap-2 self-start">
               <Fm1ColorwayPicker onChange={setColorway} value={colorway} />
-              <HelpDialog />
+              <HelpButton />
               <MidiSettingsMenu midi={midi} />
             </div>
 

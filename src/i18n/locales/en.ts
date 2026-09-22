@@ -160,6 +160,7 @@ export default {
     pianoKeyboard: 'Piano keyboard',
     dragKeyboard: 'Drag keyboard',
     closeKeyboard: 'Close keyboard',
+    helpOpenFailed: 'The guide could not be opened. Reload the page and try again.',
     keyboardOpenFailed: 'The keyboard could not be opened. Reload the page and try again.',
     shiftOctave: 'Shift octave {{direction}}',
     playNote: 'Play {{note}}',
