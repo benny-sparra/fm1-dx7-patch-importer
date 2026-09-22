@@ -72,6 +72,9 @@ files when that is clearer.
   deterministic handling and tests.
 - Debounced saves must not lose recent edits: write any pending save immediately when the page is
   hidden or closed, and warn before leaving while a save has not committed.
+- Storage and backups keep a workspace bank title to `workspaceBankTitleLength`, so every path that
+  sets one, loading a saved bank included, goes through `normalizeWorkspaceBankNameForSave`. A
+  title longer in memory than in storage changes when the page reloads.
 - Read and write `localStorage` and `sessionStorage` only inside `try/catch`. Blocked or throwing
   storage must leave the feature working with a safe default, never break the action that uses it.
 
