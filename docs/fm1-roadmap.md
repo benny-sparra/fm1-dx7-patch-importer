@@ -252,6 +252,18 @@ Direct-transport work is not abandoned, only unfunded by evidence. If a future f
 capture of the vendor BLE application produces a repeatable request/reply, Phase 3 reopens and the
 SEQ-READ / SEQ-WRITE tasks resume ahead of the fallback.
 
+### Sequencer parked — 2026-09-22
+
+The sequencer work stays on `feature/seq-rec-002-pattern-transmit` and does not merge. The
+record-mode fallback works only if the user does eight of the nine steps in the recording contract
+by hand on the FM1 for every pattern: choosing the pattern, setting Step length, arming and disarming
+REC, and saving. Several mistakes fail silently or cannot be undone. That workflow is too clumsy to
+justify the feature's maintenance cost. `scripts/send-standard-midi-pattern.c` is a macOS CoreMIDI
+tool on the branch for the SEQ-REC-002 hardware pass, which has not been run.
+
+Resume only when a direct sequence read or write is found, most likely from a lawful capture of the
+vendor BLE application, which would reopen Phase 3.
+
 ---
 
 # Phase 4 — Sequencer domain model and codec
