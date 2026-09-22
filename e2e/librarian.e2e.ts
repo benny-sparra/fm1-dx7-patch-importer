@@ -6,9 +6,12 @@ const factoryBank = 'public/dx7-banks/factory/rom1a.syx'
 
 async function openLibrarian(page: Page) {
   await page.goto('/')
+  // A first visit always meets the guide, which arrives with its own chunk, so waiting for it
+  // keeps it from opening over the first clicks of the journey.
   const helpDialog = page.getByRole('dialog', { name: 'Welcome to the FM1 editor & librarian' })
-  if (await helpDialog.isVisible())
-    await helpDialog.getByRole('button', { name: 'Close help' }).click()
+  await expect(helpDialog).toBeVisible()
+  await helpDialog.getByRole('button', { name: 'Close help' }).click()
+  await expect(helpDialog).toBeHidden()
   await expect(page.getByRole('heading', { name: 'Patch banks' })).toBeVisible()
   await expect(slotButtons(page).first()).toBeVisible()
 }

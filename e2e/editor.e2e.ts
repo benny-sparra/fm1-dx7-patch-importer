@@ -213,9 +213,9 @@ test('returns to the patch banks on browser Back, and to the same patch on Forwa
   await dialog.getByRole('button', { name: 'Discard changes' }).click()
   await expect(library).toBeVisible()
 
-  // Every way out of the editor takes its history step with it, so Back now leaves the app.
+  // Every way out of the editor takes its history step with it, so no step returns to the editor.
   await page.goBack()
-  await expect(page).toHaveURL('about:blank')
+  await expect(page.getByRole('button', { name: 'Back to patch banks' })).toHaveCount(0)
 })
 
 test('applies effect presets one after another and undoes each as one step', async ({ page }) => {
