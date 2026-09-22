@@ -55,7 +55,9 @@ function renderResults(props: Partial<ComponentProps<typeof SearchEverywhereResu
       onCopy={onCopy}
       onPlay={onPlay}
       search="brass   1"
-      workspaceMatchCount={0}
+      workspaceEffects={{}}
+      workspaceMatches={[]}
+      workspaceVoices={{}}
       {...props}
     />,
   )
@@ -132,7 +134,9 @@ describe('search everywhere results', () => {
         onCopy={onCopy}
         onPlay={onPlay}
         search="brass   1"
-        workspaceMatchCount={0}
+        workspaceEffects={{}}
+        workspaceMatches={[]}
+        workspaceVoices={{}}
       />,
     )
 
@@ -255,8 +259,54 @@ describe('search everywhere results', () => {
     ).toBeTruthy()
   })
 
+  it('leaves out a saved patch that sounds exactly like a workspace match, and says so', async () => {
+    const bank = savedBank('SOLO LEAD')
+    renderResults({
+      namedBanks: [bank],
+      search: 'solo',
+      workspaceEffects: { 'bank-A-1': savedEffects },
+      workspaceMatches: [{ id: 'bank-A-1' }],
+      workspaceVoices: { 'bank-A-1': bank.slots[0].voice },
+    })
+
+    const saved = await screen.findByRole('region', { name: 'Saved banks' })
+
+    expect(within(saved).queryByRole('button', { name: /^Play SOLO LEAD/ })).toBeNull()
+    expect(within(saved).getByText('Duplicate patches aren’t shown.')).toBeTruthy()
+  })
+
+  it('keeps a saved patch whose FM1 effects differ from the workspace copy', async () => {
+    const bank = savedBank('SOLO LEAD')
+    renderResults({
+      namedBanks: [bank],
+      search: 'solo',
+      workspaceMatches: [{ id: 'bank-A-1' }],
+      workspaceVoices: { 'bank-A-1': bank.slots[0].voice },
+    })
+
+    expect(await screen.findByRole('button', { name: 'Play SOLO LEAD from Leads 01' })).toBeTruthy()
+  })
+
+  it('lists a catalog patch that several banks repeat once', async () => {
+    renderResults({ search: 'pipes   1' })
+
+    const catalog = await screen.findByRole('region', { name: 'Other DX7 patch banks' })
+
+    expect(within(catalog).getAllByRole('button', { name: /^Play PIPES 1/ })).toHaveLength(1)
+  })
+
+  it('says it leaves out copies, in German', async () => {
+    await setLocale('de')
+    renderResults({ search: 'pipes   1' })
+
+    expect(await screen.findByText('Doppelte Sounds werden nicht angezeigt.')).toBeTruthy()
+  })
+
   it('does not say nothing matches while the workspace has matches', async () => {
-    renderResults({ search: 'zzzzzz', workspaceMatchCount: 2 })
+    renderResults({
+      search: 'zzzzzz',
+      workspaceMatches: [{ id: 'bank-A-1' }],
+    })
     await vi.waitFor(() => expect(screen.queryByRole('status')).toBeNull())
 
     expect(screen.queryByRole('heading', { name: /No patches match/ })).toBeNull()

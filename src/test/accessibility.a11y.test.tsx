@@ -48,6 +48,7 @@ const library = {
   bankDescriptions: {},
   bankNames: { A: 'Studio Favourites', B: 'Electric Keys' },
   deleteBank: vi.fn(),
+  effects: {},
   getBankVoices: vi.fn(() => []),
   importBank: vi.fn(),
   loadDemoBank: vi.fn(),
@@ -66,6 +67,7 @@ const library = {
   ],
   resetFactoryBanks: vi.fn(),
   updateBankInformation: vi.fn(),
+  voices: {},
   workspaceBanks: ['A', 'B'],
 } as unknown as PatchLibrary
 

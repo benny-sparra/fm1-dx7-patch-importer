@@ -206,12 +206,12 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     `src/data/dx7-catalog-index.test.ts`, a Vitest file snapshot that fails in `npm test` while the
     index is stale, rather than a separate `--check` script. The results component, the search code,
     and the index load on first use; the props and strings cost well under 1 KiB of the initial bundle.
-  - Still open: duplicates. A saved-bank or catalog result can be byte-for-byte the same voice as a
-    patch already in the user's banks, and the catalog repeats voices across banks. The proposal is
-    to hide exact copies (identical 128-byte voice data, not just the name), keep the first of
-    several catalog copies, keep same-name patches whose data differs, and say under the group how
-    many were not shown. The catalog index would carry a 53-bit voice fingerprint for this. Build it
-    together with [Find duplicate patches](#nice-to-have), which needs the same fingerprint.
+  - Decided: duplicates are hidden. A saved-bank or catalog result that plays exactly like one
+    listed above it (the same 128-byte voice data, name included, and the same FM1 effects, with a
+    catalog patch taking the defaults) is left out, and a line under the group says duplicates aren’t shown.
+    The first of several catalog copies stays, and same-name patches whose data differs all show.
+    The catalog index carries each voice's 53-bit fingerprint (`voiceFingerprint`), ready for
+    [Find duplicate patches](#nice-to-have).
 
 ## Nice to have
 

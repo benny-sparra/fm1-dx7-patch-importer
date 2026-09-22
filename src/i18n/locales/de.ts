@@ -677,6 +677,7 @@ export default {
       loadFailed:
         'Gespeicherte Bänke und weitere DX7-Sound-Bänke konnten nicht durchsucht werden. Lade die Seite neu und versuche es erneut.',
       playFailed: 'Der Sound konnte nicht gespielt werden.',
+      copiesHidden: 'Doppelte Sounds werden nicht angezeigt.',
     },
   },
   namedBanks: {

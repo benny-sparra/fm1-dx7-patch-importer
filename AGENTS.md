@@ -242,9 +242,11 @@ open everything an earlier release could have saved.
 - `src/data/dx7-bank-catalog.ts` lists the bank files in `public/dx7-banks/`. Adding, removing, or
   replacing a bank changes both in the same change, together with the bank count and sources in the
   README.
-- Catalog search reads the patch names from `src/data/dx7-catalog-index.json` rather than the bank
-  files. Run `npm run catalog:index` whenever a bank is added, removed, or replaced;
-  `src/data/dx7-catalog-index.test.ts` fails in `npm test` while the index is stale.
+- Catalog search reads the patch names and voice fingerprints from
+  `src/data/dx7-catalog-index.json` rather than the bank files. Run `npm run catalog:index`
+  whenever a bank is added, removed, or replaced; `src/data/dx7-catalog-index.test.ts` fails in
+  `npm test` while the index is stale. The index stores `voiceFingerprint` values, so changing that
+  function means regenerating the index in the same change.
 
 ### Theme and finishes
 

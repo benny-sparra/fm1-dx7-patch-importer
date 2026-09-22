@@ -9,6 +9,8 @@ import {
   findCatalogMatches,
   findSavedBankMatches,
   dx7CatalogIndex,
+  hideCopies,
+  soundKey,
 } from '@/lib/search-everywhere'
 
 function savedBank(id: string, name: string, firstVoiceName: string) {
@@ -31,6 +33,7 @@ describe('catalog search', () => {
       bankName: 'ROM1A Master',
       name: 'BRASS   1',
       slot: 1,
+      soundKey: expect.any(String),
     })
   })
 
@@ -65,6 +68,7 @@ describe('saved bank search', () => {
       effects: makeDefaultFm1Effects(),
       name: 'SOLO LEAD',
       slot: 1,
+      soundKey: soundKey(bank.slots[0].voice, makeDefaultFm1Effects()),
       voice: bank.slots[0].voice,
     })
   })
@@ -79,6 +83,67 @@ describe('saved bank search', () => {
       'Leads:ZAP ONE',
       'Pads:ZAP TWO',
     ])
+  })
+})
+
+describe('hiding copies', () => {
+  const [voice] = makeDemoVoices()
+  const effects = makeDefaultFm1Effects()
+  const match = (label: string, key: string) => ({ label, soundKey: key })
+
+  it('hides a result that sounds exactly like a workspace match', () => {
+    const [saved] = hideCopies(
+      [soundKey(voice, effects)],
+      [[match('saved', soundKey({ ...voice, data: Uint8Array.from(voice.data) }, effects))]],
+    )
+
+    expect(saved).toEqual({ hidden: 1, matches: [] })
+  })
+
+  it('keeps the first of several copies and hides the later ones, across groups', () => {
+    const key = soundKey(voice, effects)
+
+    const groups = hideCopies(
+      [],
+      [[match('first', key)], [match('second', key), match('third', key)]],
+    )
+
+    expect(groups).toEqual([
+      { hidden: 0, matches: [match('first', key)] },
+      { hidden: 2, matches: [] },
+    ])
+  })
+
+  it('keeps the same voice with different FM1 effects', () => {
+    const changed = makeDefaultFm1Effects()
+    changed[0] = 1
+
+    const [group] = hideCopies(
+      [soundKey(voice, effects)],
+      [[match('saved', soundKey(voice, changed))]],
+    )
+
+    expect(group.hidden).toBe(0)
+  })
+
+  it('keeps a patch with the same name but different voice data', () => {
+    const data = Uint8Array.from(voice.data)
+    data[0] ^= 1
+    const sameName = { ...voice, data }
+
+    const [group] = hideCopies(
+      [soundKey(voice, effects)],
+      [[match('saved', soundKey(sameName, effects))]],
+    )
+
+    expect(group.hidden).toBe(0)
+  })
+
+  it('hides a catalog patch that repeats one from an earlier catalog bank', () => {
+    const [group] = hideCopies([], [findCatalogMatches(dx7CatalogIndex, 'pipes   1')])
+
+    expect(group.matches.map(({ bankId, slot }) => `${bankId}:${slot}`)).toEqual(['rom1a:18'])
+    expect(group.hidden).toBe(1)
   })
 })
 

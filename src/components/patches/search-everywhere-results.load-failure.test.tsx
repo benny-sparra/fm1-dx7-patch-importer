@@ -25,7 +25,9 @@ it('explains a search that could not load and offers a reload', async () => {
       onCopy={vi.fn()}
       onPlay={vi.fn()}
       search="brass"
-      workspaceMatchCount={0}
+      workspaceEffects={{}}
+      workspaceMatches={[]}
+      workspaceVoices={{}}
     />,
   )
 

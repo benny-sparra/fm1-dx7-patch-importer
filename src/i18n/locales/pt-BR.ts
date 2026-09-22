@@ -665,6 +665,7 @@ export default {
       loadFailed:
         'Não foi possível buscar nos bancos salvos e em outros bancos de sons DX7. Recarregue a página e tente novamente.',
       playFailed: 'Não foi possível tocar o som.',
+      copiesHidden: 'Sons duplicados não são mostrados.',
     },
   },
   namedBanks: {

@@ -738,7 +738,9 @@ export function LibrarianPage({
                   onCopy={requestResultCopy}
                   onPlay={onPlaySearchResult}
                   search={search}
-                  workspaceMatchCount={visiblePatches.length}
+                  workspaceEffects={library.effects}
+                  workspaceMatches={visiblePatches}
+                  workspaceVoices={library.voices}
                 />
               </Suspense>
             </ErrorBoundary>
