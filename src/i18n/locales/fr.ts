@@ -675,6 +675,7 @@ export default {
       loadFailed:
         'Impossible de rechercher dans les banques enregistrées et les autres banques de sons DX7. Rechargez la page et réessayez.',
       playFailed: 'Le son n’a pas pu être joué.',
+      copiesHidden: 'Les sons en double ne sont pas affichés.',
     },
   },
   namedBanks: {

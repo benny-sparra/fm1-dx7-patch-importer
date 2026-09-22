@@ -1,4 +1,8 @@
 // @vitest-environment jsdom
+/// <reference types="node" />
+
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -8,7 +12,7 @@ import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import type { MidiController } from '@/hooks/use-midi'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
-import type { Dx7Voice } from '@/lib/dx7'
+import { type Dx7Voice, parseDx7Bank } from '@/lib/dx7'
 import { makeDemoVoices, type PatchLibrarySnapshot } from '@/lib/patch-library'
 
 import { LibrarianPage } from './librarian-page'
@@ -37,10 +41,11 @@ afterEach(() => {
 
 const changed = { workspaceBanks: ['A'] } as unknown as PatchLibrarySnapshot
 
-function renderPage() {
+function renderPage(voices: Record<string, Dx7Voice> = {}) {
   const library = {
     bankDescriptions: {},
     bankNames: { A: 'Studio Favourites' },
+    effects: {},
     getBankVoices: vi.fn(() => []),
     hasDamagedNamedBanks: false,
     loadedBanks: ['A'],
@@ -51,6 +56,7 @@ function renderPage() {
     ],
     replaceVoice: vi.fn(() => changed),
     undoChange: vi.fn(),
+    voices,
     workspaceBanks: ['A'],
   } as unknown as PatchLibrary
   const onCloseEditor = vi.fn()
@@ -86,6 +92,20 @@ describe('LibrarianPage search beyond the workspace', () => {
     const catalog = await screen.findByRole('region', { name: 'Other DX7 patch banks' })
     expect(
       within(catalog).getByRole('button', { name: 'Play BRASS 1 from ROM1A Master 01' }),
+    ).toBeTruthy()
+  })
+
+  it('leaves out a catalog patch that a workspace slot already holds', async () => {
+    const file = readFileSync(resolve('public/dx7-banks/factory/rom1a.syx'))
+    const [brass1] = parseDx7Bank(Uint8Array.from(file).buffer)
+    const { user } = renderPage({ 'bank-A-1': brass1 })
+
+    await search(user, 'brass')
+
+    const catalog = await screen.findByRole('region', { name: 'Other DX7 patch banks' })
+    expect(within(catalog).queryByRole('button', { name: /^Play BRASS 1 from ROM1A/ })).toBeNull()
+    expect(
+      within(catalog).getByRole('button', { name: 'Play BRASS 2 from ROM1A Master 02' }),
     ).toBeTruthy()
   })
 

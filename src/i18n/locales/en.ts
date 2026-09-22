@@ -654,6 +654,7 @@ export default {
       loadFailed:
         'Saved banks and other DX7 patch banks could not be searched. Reload the page and try again.',
       playFailed: 'The patch could not be played.',
+      copiesHidden: 'Duplicate patches aren’t shown.',
     },
   },
   namedBanks: {

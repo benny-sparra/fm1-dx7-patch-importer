@@ -669,6 +669,7 @@ export default {
       loadFailed:
         'No se pudo buscar en los bancos guardados ni en otros bancos de sonidos DX7. Recarga la página e inténtalo de nuevo.',
       playFailed: 'No se pudo reproducir el sonido.',
+      copiesHidden: 'No se muestran los sonidos duplicados.',
     },
   },
   namedBanks: {

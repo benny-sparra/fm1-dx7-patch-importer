@@ -611,6 +611,7 @@ export default {
       loading: '正在搜索其他 DX7 音色库…',
       loadFailed: '无法搜索已保存的音色库和其他 DX7 音色库。请重新加载页面后重试。',
       playFailed: '无法播放该音色。',
+      copiesHidden: '重复的音色不予显示。',
     },
   },
   namedBanks: {
