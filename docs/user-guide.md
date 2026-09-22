@@ -85,6 +85,23 @@ Every effect box on the effects panel has a **Preset** menu: **Warm**, **Muffled
 
 The LFO and every FM1 effect open with a small animated scope drawn from their current settings. The LFO scrolls its selected wave at a rate set by LFO Speed. The filter shows its response curve, delay its echo taps, chorus its drifting copies, reverb its tail, distortion its clipped wave, and phaser its sweeping notches. A scope dims when its effect is bypassed or when the LFO has no modulation depth. With reduced motion enabled, each scope shows a still frame instead.
 
+## Playing along while you edit
+
+The **Keyboard** button opens the on-screen piano. It floats above the librarian and the editor, and you can drag it by its header, so you can go on editing while it is open.
+
+Above the keys is a small transport for auditioning a patch without playing it yourself. Choose one of six short phrases, press **Play**, and it loops until you press **Stop**, lighting the keys as it goes. The phrases are two bars each and are chosen for what they tell you about a sound rather than for the tune:
+
+- **Pad** holds four-note chords, so you hear the slow attack, the release and anything the effects add to a held sound.
+- **Electric piano** comps chords off the beat at changing velocities, which is the quickest way to hear how the patch responds to how hard it is played.
+- **Bass** plays short, hard notes low down, for the attack and the low end.
+- **Lead** plays a single line that ends on a long held note, giving vibrato and the LFO delay time to arrive.
+- **Arpeggio** runs even sixteenths across two octaves, for the attack, the decay and the tuning.
+- **Velocity ramp** plays one note eight times, from very soft to very hard.
+
+Each phrase is written for its own tempo, which the **Tempo** slider takes up when you choose it. Moving the slider while a phrase is playing takes effect when the loop comes round, so the phrase neither jumps nor retriggers as you drag. Playing the keys yourself while a phrase loops works normally.
+
+A phrase is sent live over MIDI and is never stored on the FM1: it has nothing to do with the unit's own sequencer. It stops when you close the keyboard, when the MIDI output disconnects, and when you change the note channel in **Settings**. Its notes are kept out of the MIDI log, which records only that a phrase started and stopped.
+
 ## Keyboard shortcuts
 
 The **?** guide lists these on its own tab. Each view binds the actions that also appear in its

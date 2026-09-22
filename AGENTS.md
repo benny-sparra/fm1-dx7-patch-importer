@@ -125,6 +125,10 @@ open everything an earlier release could have saved.
 - Never move MIDI traffic to a different device on its own. When the selected port disconnects, select
   nothing until it returns or the user chooses another, and drop queued messages when the output
   changes or MIDI is switched off. A dropped transfer is not a transport failure for monitoring.
+- A looping audition phrase is live MIDI and nothing else: it is never written to the device, and it
+  stops rather than moves when the selected output goes away or the note channel changes. Its notes
+  are sent quietly (`StartNoteOptions`), because logging them several times a second would bury
+  everything else in the MIDI log; the log records the phrase starting and stopping instead.
 - Do not resend unchanged data to the FM1 on repeated interaction, such as a double-click. Forget
   what was sent as soon as anything else replaces that device state, and after a failed send.
   The edit-buffer audition compares voice objects by identity, so a library change that puts a
@@ -163,7 +167,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the piano keyboard dialog when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -526,6 +530,11 @@ Unless explicitly approved by a future task, do not add:
 - generic DAW transport architecture
 
 Prefer a small UI tailored to the stock FM1 sequence representation.
+
+The audition phrases behind the on-screen keyboard's **Play** are not part of this feature and must
+not grow into it. They are a fixed, bundled table in `src/lib/audition-phrases.ts`, played live by
+`src/lib/phrase-player.ts` while a patch is edited. They stay unwritable and unrecordable: no
+editing, no saving, no transfer to the device, and no phrase that quotes an existing recording.
 
 Build in this order:
 

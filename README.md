@@ -50,7 +50,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Select matching FM1 slots in banks A–D with MIDI Program Change, and audition patches from added banks through the edit buffer
 - Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
-- Play notes on the FM1 from an on-screen keyboard
+- Play notes on the FM1 from an on-screen keyboard, or loop one of six short phrases to audition a patch hands-free
 - Use the interface in English, French, Spanish, German, Brazilian Portuguese, or Simplified Chinese
 - Use a dark CRT-terminal interface whose accent, product image, and tab icon follow any of the six FM1 colour finishes, with contrast checked to WCAG 2.2 AA in each
 - Install the editor as a standalone desktop app in browsers that support installation

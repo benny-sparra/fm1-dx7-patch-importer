@@ -212,11 +212,30 @@ export function sendFm1EffectDiagnosticControl(
   output.sendControlChange(controller, value, { channels: channel })
 }
 
-export function sendNoteOn(output: Output, channel: number, note: number, velocity = 96) {
+export const defaultNoteVelocity = 96
+
+function assertMidiNote(note: number, velocity: number, channel: number) {
+  if (!Number.isInteger(note) || note < 0 || note > 127) {
+    throw new RangeError('MIDI note must be an integer from 0 to 127.')
+  }
+  if (!Number.isInteger(velocity) || velocity < 0 || velocity > 127) {
+    throw new RangeError('MIDI velocity must be an integer from 0 to 127.')
+  }
+  assertMidiChannel(channel)
+}
+
+export function sendNoteOn(
+  output: Output,
+  channel: number,
+  note: number,
+  velocity = defaultNoteVelocity,
+) {
+  assertMidiNote(note, velocity, channel)
   output.sendNoteOn(note, { channels: channel, rawAttack: velocity })
 }
 
 export function sendNoteOff(output: Output, channel: number, note: number, velocity = 0) {
+  assertMidiNote(note, velocity, channel)
   output.sendNoteOff(note, { channels: channel, rawRelease: velocity })
 }
 

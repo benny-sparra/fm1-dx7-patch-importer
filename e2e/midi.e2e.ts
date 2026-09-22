@@ -118,6 +118,26 @@ test.describe('with an FM-1 connected', () => {
     const log = page.getByRole('dialog', { name: 'MIDI log' })
     await expect(log.getByText('Ch 1 Note On: C4 (velocity 100)')).toBeVisible()
   })
+
+  test('loops an audition phrase from the keyboard and silences it on stop', async ({ page }) => {
+    await page.getByRole('button', { name: 'Keyboard' }).first().click()
+    const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
+    await expect(keyboard).toBeVisible()
+
+    await keyboard.getByRole('button', { name: 'Play the phrase' }).click()
+
+    // The pad phrase opens on F3, A3, C4 and E4 at velocity 72.
+    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 53, 72])
+    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 64, 72])
+
+    await keyboard.getByRole('button', { name: 'Stop the phrase' }).click()
+
+    await expect.poll(() => sentMidi(page).then((messages) => messages.at(-1)?.[0])).toBe(0x80)
+    const afterStop = (await sentMidi(page)).length
+    await page.waitForTimeout(1500)
+    expect((await sentMidi(page)).length).toBe(afterStop)
+    await expect(keyboard.getByRole('button', { name: 'Play the phrase' })).toBeVisible()
+  })
 })
 
 test('offers to reconnect instead of sending a bank when SysEx access was declined', async ({

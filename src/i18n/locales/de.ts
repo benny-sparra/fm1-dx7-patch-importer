@@ -169,6 +169,21 @@ export default {
     pianoKeyboard: 'Klaviatur',
     dragKeyboard: 'Klaviatur verschieben',
     closeKeyboard: 'Klaviatur schließen',
+    phrase: 'Phrase',
+    play: 'Start',
+    stop: 'Stopp',
+    playPhrase: 'Phrase abspielen',
+    stopPhrase: 'Phrase anhalten',
+    tempo: 'Tempo',
+    tempoValue: '{{tempo}} BPM',
+    phrases: {
+      pad: 'Fläche',
+      electricPiano: 'E-Piano',
+      bass: 'Bass',
+      lead: 'Melodie',
+      arpeggio: 'Arpeggio',
+      velocityRamp: 'Anschlagstärke',
+    },
     helpOpenFailed:
       'Die Anleitung konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     keyboardOpenFailed:

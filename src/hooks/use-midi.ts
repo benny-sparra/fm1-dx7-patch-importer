@@ -28,6 +28,7 @@ import {
   sendFm1EffectDiagnosticControl,
   sendNoteOff,
   sendNoteOn,
+  defaultNoteVelocity,
   sendDx7Bank,
   sendDx7Voice,
   type MidiDevice,
@@ -37,6 +38,12 @@ import { MidiTransferCancelledError, MidiTransferQueue } from '@/lib/midi-transf
 import { MidiLogStore } from '@/lib/midi-log-store'
 
 type WebMidiApi = (typeof import('webmidi'))['WebMidi']
+
+export type StartNoteOptions = {
+  /** Keeps the note out of the MIDI log, for notes a loop repeats several times a second. */
+  quiet?: boolean
+  velocity?: number
+}
 
 export type BankTransferResult =
   | { ok: true }
@@ -596,21 +603,29 @@ export function useMidi() {
   )
 
   const startNote = useCallback(
-    (note: number, label: string) => {
+    (note: number, label: string, options?: StartNoteOptions) => {
+      const velocity = options?.velocity ?? defaultNoteVelocity
+
       if (!selectedOutput) {
-        appendLog(makeLogEntry('system', `Pressed ${label}; no output yet.`))
+        if (!options?.quiet) {
+          appendLog(makeLogEntry('system', `Pressed ${label}; no output yet.`))
+        }
         return
       }
 
       try {
-        sendNoteOn(selectedOutput, channel, note)
-        appendLog(
-          makeLogEntry('out', `Ch ${channel} Note On: ${label}`, [
-            0x90 | ((channel - 1) & 0x0f),
-            note,
-            96,
-          ]),
-        )
+        sendNoteOn(selectedOutput, channel, note, velocity)
+        // A looping phrase sends notes several times a second, which would bury the log it
+        // shares with everything else the editor sends, so it logs itself starting instead.
+        if (!options?.quiet) {
+          appendLog(
+            makeLogEntry('out', `Ch ${channel} Note On: ${label}`, [
+              0x90 | ((channel - 1) & 0x0f),
+              note,
+              velocity,
+            ]),
+          )
+        }
       } catch (caughtError) {
         appendLog(
           makeLogEntry(
@@ -621,6 +636,19 @@ export function useMidi() {
       }
     },
     [appendLog, channel, selectedOutput],
+  )
+
+  /**
+   * A looping audition phrase sends its notes quietly, so the log says when a phrase starts and
+   * stops instead of filling with the notes between.
+   */
+  const logAuditionPhrase = useCallback(
+    (phraseId: string, state: 'started' | 'stopped') => {
+      appendLog(
+        makeLogEntry('system', `Audition phrase “${phraseId}” ${state} on channel ${channel}.`),
+      )
+    },
+    [appendLog, channel],
   )
 
   const stopNote = useCallback(
@@ -666,6 +694,7 @@ export function useMidi() {
     hasMidiInput,
     inputs,
     isConnecting,
+    logAuditionPhrase,
     logStore,
     midiAccess,
     outputs,
