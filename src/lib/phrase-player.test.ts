@@ -19,25 +19,32 @@ function makeTestClock() {
   let nextHandle = 1
   const timers = new Map<number, { at: number; callback: () => void }>()
 
-  return {
-    advanceTo(time: number) {
-      // Fire timers in due order, letting each one schedule the next.
-      for (;;) {
-        const due = [...timers.entries()]
-          .filter(([, timer]) => timer.at <= time)
-          .sort((first, second) => first[1].at - second[1].at)[0]
+  function advanceTo(time: number) {
+    // Fire timers in due order, letting each one schedule the next.
+    for (;;) {
+      const due = [...timers.entries()]
+        .filter(([, timer]) => timer.at <= time)
+        .sort((first, second) => first[1].at - second[1].at)[0]
 
-        if (!due) {
-          break
-        }
-
-        const [handle, timer] = due
-        timers.delete(handle)
-        currentTime = Math.max(currentTime, timer.at)
-        timer.callback()
+      if (!due) {
+        break
       }
 
+      const [handle, timer] = due
+      timers.delete(handle)
+      currentTime = Math.max(currentTime, timer.at)
+      timer.callback()
+    }
+
+    currentTime = time
+  }
+
+  return {
+    advanceTo,
+    /** Holds every timer back until `time`, as a browser does in a hidden tab, then fires it. */
+    stallUntil(time: number) {
       currentTime = time
+      advanceTo(time)
     },
     clearTimer(handle: number) {
       timers.delete(handle)
@@ -150,6 +157,64 @@ describe('createPhrasePlayer', () => {
     clock.advanceTo(4000)
 
     expect(sent.slice(beforeLoop)).toEqual(['on 60 100'])
+  })
+
+  it('still plays a note whose timer fires a little late', () => {
+    const { clock, player, sent } = makeTestPlayer()
+
+    player.play(twoNotePhrase, 120)
+    clock.advanceTo(300)
+    // Its timer fires 200 ms after the note was due.
+    clock.stallUntil(700)
+
+    expect(sent).toEqual(['on 60 100', 'off 60', 'on 64 80'])
+  })
+
+  it('drops the notes a stalled timer missed rather than sending them all at once', () => {
+    const { clock, player, sent } = makeTestPlayer()
+
+    player.play(twoNotePhrase, 120)
+    // A hidden tab can hold a timer back for a minute: sixty loops of this phrase.
+    clock.stallUntil(60_100)
+
+    expect(sent).toEqual(['on 60 100', 'off 60'])
+  })
+
+  it('picks the loop up where it would be by the end of a stall', () => {
+    const { clock, player, sent } = makeTestPlayer()
+
+    player.play(twoNotePhrase, 120)
+    clock.stallUntil(60_100)
+    const afterStall = sent.length
+    clock.advanceTo(61_000)
+
+    expect(sent.slice(afterStall)).toEqual(['on 64 80', 'off 64', 'on 60 100'])
+  })
+
+  it('waits for the next loop when a stall ends after the last note of a loop', () => {
+    const { clock, player, sent } = makeTestPlayer()
+
+    player.play(twoNotePhrase, 120)
+    clock.stallUntil(60_900)
+    const afterStall = sent.length
+    clock.advanceTo(60_999)
+    expect(sent).toHaveLength(afterStall)
+
+    clock.advanceTo(61_000)
+    expect(sent.slice(afterStall)).toEqual(['on 60 100'])
+  })
+
+  it('keeps a tempo chosen before a stall', () => {
+    const { clock, player, sent } = makeTestPlayer()
+
+    player.play(twoNotePhrase, 120)
+    player.setTempo(60)
+    clock.stallUntil(10_100)
+    const afterStall = sent.length
+    clock.advanceTo(12_000)
+
+    // At 60 BPM the two-second loops start on odd seconds, with the second note a second in.
+    expect(sent.slice(afterStall)).toEqual(['on 60 100', 'off 60', 'on 64 80'])
   })
 
   it('silences a sounding note when it is stopped', () => {

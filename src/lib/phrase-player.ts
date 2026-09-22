@@ -9,6 +9,13 @@ import type { AuditionPhrase } from '@/lib/audition-phrases'
  * cannot push the rest of the phrase along with it.
  */
 
+/**
+ * How late a timer may fire before the notes it missed are dropped rather than sent. Browsers
+ * hold back timers in a hidden tab, by up to a minute, and sending everything due since then at
+ * once would flood the FM1 with hundreds of notes.
+ */
+const phraseLatenessLimitMs = 250
+
 export type PhraseEvent = {
   /** When the event happens, in milliseconds from the start of the loop. */
   at: number
@@ -154,9 +161,37 @@ export function createPhrasePlayer(
     handle = setTimer(fireDueEvents, Math.max(0, cycleStart + event.at - now()))
   }
 
+  /**
+   * Silences the phrase and drops every event due before `time`, picking the loop up where it
+   * would be by now. A tempo chosen meanwhile starts at the first loop boundary skipped.
+   */
+  function skipTo(time: number) {
+    releaseAllNotes()
+
+    if (time >= cycleStart + cycleLength) {
+      cycleStart += cycleLength
+      startNextCycle()
+      cycleStart += Math.floor((time - cycleStart) / cycleLength) * cycleLength
+    }
+
+    index = events.findIndex((event) => cycleStart + event.at >= time)
+
+    if (index === -1) {
+      index = 0
+      cycleStart += cycleLength
+      startNextCycle()
+    }
+  }
+
   function fireDueEvents() {
     handle = null
     const current = now()
+    const next = events[index]
+
+    if (next && current - (cycleStart + next.at) > phraseLatenessLimitMs) {
+      skipTo(current)
+    }
+
     let changed = false
 
     while (events.length > 0) {

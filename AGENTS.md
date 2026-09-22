@@ -129,9 +129,15 @@ open everything an earlier release could have saved.
   nothing until it returns or the user chooses another, and drop queued messages when the output
   changes or MIDI is switched off. A dropped transfer is not a transport failure for monitoring.
 - A looping audition phrase is live MIDI and nothing else: it is never written to the device, and it
-  stops rather than moves when the selected output goes away or the note channel changes. Its notes
-  are sent quietly (`StartNoteOptions`), because logging them several times a second would bury
-  everything else in the MIDI log; the log records the phrase starting and stopping instead.
+  stops rather than moves when the selected output goes away or changes, or the note channel
+  changes. It releases its notes through the output and channel it struck them on, before the new
+  route takes over. Its notes are sent quietly (`StartNoteOptions`), because logging them several
+  times a second would bury everything else in the MIDI log; the log records the phrase starting
+  and stopping instead.
+- A phrase timer that fires a little late still sends what it missed. Beyond
+  `phraseLatenessLimitMs` the phrase player drops the missed notes and rejoins the loop where it
+  should be, because a hidden tab holds timers back for up to a minute and the backlog would reach
+  the FM1 as hundreds of notes at once.
 - Do not resend unchanged data to the FM1 on repeated interaction, such as a double-click. Forget
   what was sent as soon as anything else replaces that device state, and after a failed send.
   The edit-buffer audition compares voice objects by identity, so a library change that puts a

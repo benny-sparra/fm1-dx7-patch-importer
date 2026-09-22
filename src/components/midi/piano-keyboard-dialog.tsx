@@ -37,6 +37,7 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
     channel,
     hasMidiOutput,
     logAuditionPhrase,
+    selectedOutputId,
     startNote: sendMidiNoteOn,
     stopNote: sendMidiNoteOff,
   } = midi
@@ -112,24 +113,27 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
     setActiveNotes(new Set())
   }, [sendMidiNoteOff])
 
-  // The player sends through whichever note functions the controller holds now, so a change of
-  // MIDI output or channel never needs it to be rebuilt mid-phrase.
-  const noteSendersRef = useRef({ sendMidiNoteOff, sendMidiNoteOn })
+  // The route the phrase is playing on: the output and channel, and the controller's note
+  // functions that reach them. The player always sends through this route's functions, so its
+  // notes are released where they were struck.
+  const noteRouteRef = useRef({
+    channel,
+    hasMidiOutput,
+    outputId: selectedOutputId,
+    sendMidiNoteOff,
+    sendMidiNoteOn,
+  })
   const playingPhraseRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    noteSendersRef.current = { sendMidiNoteOff, sendMidiNoteOn }
-  }, [sendMidiNoteOff, sendMidiNoteOn])
 
   const [player] = useState(() =>
     createPhrasePlayer({
       onActiveNotesChange: setPhraseNotes,
       startNote: (note, velocity) =>
-        noteSendersRef.current.sendMidiNoteOn(note, `phrase note ${note}`, {
+        noteRouteRef.current.sendMidiNoteOn(note, `phrase note ${note}`, {
           quiet: true,
           velocity,
         }),
-      stopNote: (note) => noteSendersRef.current.sendMidiNoteOff(note),
+      stopNote: (note) => noteRouteRef.current.sendMidiNoteOff(note),
     }),
   )
 
@@ -152,9 +156,14 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
         return
       }
 
+      const replaced = playingPhraseRef.current
       player.play(phrase, nextTempo)
       playingPhraseRef.current = phrase.id
       setPlayingPhraseId(phrase.id)
+
+      if (replaced) {
+        logAuditionPhrase(replaced, 'stopped')
+      }
       logAuditionPhrase(phrase.id, 'started')
     },
     [logAuditionPhrase, player],
@@ -201,19 +210,33 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
     [player],
   )
 
-  // A phrase must never keep sending to an output that is gone, or on a channel it did not start
-  // on, so a change of either stops it rather than moving it.
-  const noteRouteRef = useRef({ channel, hasMidiOutput })
-
+  // A phrase never moves to another output or channel, so a change of either stops it. While the
+  // old output is still there, its notes are released through the old route before the new one
+  // takes over; an output that has gone has nowhere to release them.
   useEffect(() => {
     const route = noteRouteRef.current
-    const routeChanged = route.channel !== channel || (route.hasMidiOutput && !hasMidiOutput)
-    noteRouteRef.current = { channel, hasMidiOutput }
+    const nextRoute = {
+      channel,
+      hasMidiOutput,
+      outputId: selectedOutputId,
+      sendMidiNoteOff,
+      sendMidiNoteOn,
+    }
+    const routeChanged =
+      route.channel !== channel ||
+      route.outputId !== selectedOutputId ||
+      (route.hasMidiOutput && !hasMidiOutput)
 
-    if (routeChanged) {
+    if (routeChanged && hasMidiOutput) {
       stopPhrase()
     }
-  }, [channel, hasMidiOutput, stopPhrase])
+
+    noteRouteRef.current = nextRoute
+
+    if (routeChanged && !hasMidiOutput) {
+      stopPhrase()
+    }
+  }, [channel, hasMidiOutput, selectedOutputId, sendMidiNoteOff, sendMidiNoteOn, stopPhrase])
 
   useEffect(() => () => player.stop(), [player])
 
