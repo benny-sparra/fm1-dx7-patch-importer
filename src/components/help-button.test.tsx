@@ -8,7 +8,11 @@ import '@/i18n'
 import { HelpButton } from '@/components/help-button'
 
 beforeAll(() => {
+  // Browsers refuse to show a modal that is not in a document, so the fake does too.
   HTMLDialogElement.prototype.showModal = function showModal() {
+    if (!this.isConnected) {
+      throw new DOMException('The element is not in a Document.', 'InvalidStateError')
+    }
     this.open = true
   }
   HTMLDialogElement.prototype.close = function close() {
@@ -90,6 +94,19 @@ describe('HelpButton', () => {
     await screen.findByRole('tab', { name: 'Getting started' })
 
     expect(document.querySelectorAll('dialog')).toHaveLength(1)
+  })
+
+  it('leaves the guide closed, without a failure notice, on a page outside the document', async () => {
+    const detachedPage = document.createElement('div')
+    render(<HelpButton />, { baseElement: detachedPage, container: detachedPage })
+
+    const dialog = await waitFor(() => {
+      const mounted = detachedPage.querySelector('dialog')
+      expect(mounted).not.toBeNull()
+      return mounted!
+    })
+    expect(dialog.open).toBe(false)
+    expect(within(detachedPage).queryByRole('alert')).toBeNull()
   })
 
   it('explains in translated text when the guide cannot be loaded', async () => {
