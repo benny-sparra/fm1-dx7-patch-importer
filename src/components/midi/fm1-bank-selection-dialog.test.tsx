@@ -1,19 +1,23 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
-import { createRef } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { translatePageText } from '@/test/page-translator'
+
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.open = true
+  }
+})
 
 afterEach(cleanup)
 
 function renderDialog(sysexAvailable: boolean) {
   return (
     <Fm1BankSelectionDialog
-      dialogRef={createRef<HTMLDialogElement>()}
       isSending={false}
       midi={{
         connectMidi: vi.fn(),
@@ -22,6 +26,7 @@ function renderDialog(sysexAvailable: boolean) {
         midiAccess: true,
         sysexAvailable,
       }}
+      onClose={vi.fn()}
       onSend={vi.fn()}
     />
   )

@@ -1,5 +1,5 @@
 import { Trash2 } from 'lucide-react'
-import type { RefObject } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -14,22 +14,30 @@ import {
 
 type DeleteWorkspaceBankDialogProps = {
   bankName: string
-  dialogRef: RefObject<HTMLDialogElement | null>
+  onClose: () => void
   onDelete: () => void
 }
 
 export function DeleteWorkspaceBankDialog({
   bankName,
-  dialogRef,
+  onClose,
   onDelete,
 }: DeleteWorkspaceBankDialogProps) {
   const { t } = useTranslation()
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const closeDialog = () => dialogRef.current?.close()
+
+  // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
+  // its state is discarded with it rather than being reset by hand.
+  useEffect(() => {
+    dialogRef.current?.showModal()
+  }, [])
 
   return (
     <Dialog
       aria-describedby="delete-workspace-bank-description"
       aria-labelledby="delete-workspace-bank-title"
+      onClose={onClose}
       ref={dialogRef}
       size="sm"
     >

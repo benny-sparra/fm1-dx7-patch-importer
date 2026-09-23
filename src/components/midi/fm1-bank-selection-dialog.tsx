@@ -1,5 +1,5 @@
 import { Cable, CircleCheck, TriangleAlert } from 'lucide-react'
-import { type RefObject, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -16,25 +16,32 @@ import { fm1SynthImage } from '@/lib/fm1-responsive-images'
 import { dismissFm1BankSelectionDialogForSession } from '@/lib/session'
 
 type Fm1BankSelectionDialogProps = {
-  dialogRef: RefObject<HTMLDialogElement | null>
   isSending: boolean
   midi: Pick<
     MidiController,
     'connectMidi' | 'disconnectMidi' | 'isConnecting' | 'midiAccess' | 'sysexAvailable'
   >
+  onClose: () => void
   onSend: () => void
 }
 
 export function Fm1BankSelectionDialog({
-  dialogRef,
   isSending,
   midi,
+  onClose,
   onSend,
 }: Fm1BankSelectionDialogProps) {
   const { t } = useTranslation()
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const sysexUnavailable = !midi.sysexAvailable
   const closeDialog = () => dialogRef.current?.close()
+
+  // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
+  // its state is discarded with it rather than being reset by hand.
+  useEffect(() => {
+    dialogRef.current?.showModal()
+  }, [])
   const reconnectWithSysex = async () => {
     if (midi.midiAccess) await midi.disconnectMidi()
     await midi.connectMidi()
@@ -45,6 +52,7 @@ export function Fm1BankSelectionDialog({
       aria-labelledby="fm1-bank-selection-title"
       onClose={() => {
         if (!sysexUnavailable && dontShowAgain) dismissFm1BankSelectionDialogForSession()
+        onClose()
       }}
       ref={dialogRef}
       size="xl"

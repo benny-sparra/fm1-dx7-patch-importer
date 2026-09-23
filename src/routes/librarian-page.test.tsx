@@ -829,6 +829,75 @@ describe('LibrarianPage bank deletion', () => {
   })
 })
 
+describe('LibrarianPage bank menu dialogs', () => {
+  function syxFile() {
+    return new File([new Uint8Array(4104)], 'bank.syx', { type: 'application/octet-stream' })
+  }
+
+  it('returns focus to the bank menu when deleting a bank is cancelled', async () => {
+    const user = userEvent.setup()
+    renderLibrarianPage()
+    const bankMenu = screen.getAllByTitle('Actions for Studio Favourites')[0]
+
+    await user.click(bankMenu)
+    await user.click(screen.getAllByRole('button', { name: 'Delete bank' })[0])
+    const dialog = screen.getByRole('dialog', { name: 'Delete bank' })
+    await user.click(within(dialog).getByRole('button', { name: 'Close' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(library.deleteBank).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(bankMenu)
+  })
+
+  it('forgets the chosen file when importing over a bank is closed and opened again', async () => {
+    const user = userEvent.setup()
+    renderLibrarianPage()
+    const openImport = async () => {
+      await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
+      await user.click(screen.getAllByRole('button', { name: 'Import DX7 bank' })[0])
+      return screen.getByRole('dialog', { name: 'Import over “Studio Favourites”?' })
+    }
+
+    const dialog = await openImport()
+    await user.upload(within(dialog).getByLabelText(/Choose a DX7 SysEx file/), syxFile())
+    await user.click(within(dialog).getByRole('button', { name: 'Close' }))
+    const reopened = await openImport()
+
+    expect(within(reopened).getByText('Choose a DX7 SysEx file')).toBeTruthy()
+    expect(
+      within(reopened)
+        .getByRole('button', { name: 'Replace bank contents' })
+        .hasAttribute('disabled'),
+    ).toBe(true)
+  })
+
+  it('returns focus to the bank file menu when the factory reset is closed', async () => {
+    const user = userEvent.setup()
+    renderLibrarianPage()
+    const fileMenu = screen.getByTitle('More bank file actions')
+
+    await user.click(fileMenu)
+    await user.click(screen.getByRole('button', { name: 'Reset to factory patches…' }))
+    await user.click(screen.getByRole('button', { name: 'Close factory reset' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(fileMenu)
+  })
+
+  it('returns focus to Send to FM1 when the MIDI connection message is closed', async () => {
+    const user = userEvent.setup()
+    renderLibrarianPage()
+    const send = screen.getByRole('button', { name: 'Send to FM1' })
+
+    await user.click(send)
+    const dialog = screen.getByRole('dialog', { name: 'Connect MIDI to send this bank' })
+    await user.click(within(dialog).getByRole('button', { name: 'Close MIDI connection message' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(send)
+  })
+})
+
 describe('LibrarianPage undo', () => {
   function renderLibrarian() {
     renderLibrarianPage()
