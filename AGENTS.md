@@ -280,6 +280,9 @@ open everything an earlier release could have saved.
 
 - Prefer semantic HTML and native dialog behavior. Preserve Escape-to-close, modal semantics, focus
   placement/restoration, and keyboard activation.
+- A dialog that opens without a click, as the help guide does on a first visit, checks that it is
+  connected and not already open before `showModal()`. Crawlers and extensions can take the page
+  out of the document, where `showModal()` throws and the guide would report a failed load.
 - While a dialog's action is in progress, keep the dialog open: block Escape with `onCancel` and
   backdrop clicks, as the add-bank, import, and unsaved-changes dialogs do.
 - A component that can be rendered more than once takes its ARIA ids from `useId` rather than fixed

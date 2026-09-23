@@ -114,9 +114,13 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
     tabRefs.current.get(nextTab)?.focus()
   }
 
-  // The guide is mounted only once it has been asked for, so it opens as it arrives.
+  // The guide is mounted only once it has been asked for, so it opens as it arrives. A first visit
+  // opens it unasked, even on a page something has taken out of the document, where a browser
+  // refuses to show a modal; nobody can see that page, so the guide stays closed there.
   useEffect(() => {
-    dialogRef.current?.showModal()
+    const dialog = dialogRef.current
+    if (!dialog?.isConnected || dialog.open) return
+    dialog.showModal()
   }, [])
 
   const closeDialog = () => dialogRef.current?.close()
