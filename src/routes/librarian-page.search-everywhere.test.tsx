@@ -10,10 +10,9 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import type { MidiController } from '@/hooks/use-midi'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { type Dx7Voice, parseDx7Bank } from '@/lib/dx7'
 import { makeDemoVoices, type PatchLibrarySnapshot } from '@/lib/patch-library'
+import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -42,7 +41,7 @@ afterEach(() => {
 const changed = { workspaceBanks: ['A'] } as unknown as PatchLibrarySnapshot
 
 function renderPage(voices: Record<string, Dx7Voice> = {}) {
-  const library = {
+  const library = makeLibrarianLibrary({
     bankDescriptions: {},
     bankNames: { A: 'Studio Favourites' },
     effects: {},
@@ -58,7 +57,7 @@ function renderPage(voices: Record<string, Dx7Voice> = {}) {
     undoChange: vi.fn(),
     voices,
     workspaceBanks: ['A'],
-  } as unknown as PatchLibrary
+  })
   const onCloseEditor = vi.fn()
   const onEditPatch = vi.fn()
   render(
@@ -66,7 +65,7 @@ function renderPage(voices: Record<string, Dx7Voice> = {}) {
       <LibrarianPage
         activePatchId=""
         library={library}
-        midi={{ hasMidiOutput: false } as unknown as MidiController}
+        midi={makeLibrarianMidi()}
         onBankDeleted={vi.fn()}
         onCloseEditor={onCloseEditor}
         onEditPatch={onEditPatch}

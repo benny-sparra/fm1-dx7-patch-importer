@@ -6,12 +6,11 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 
 import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import type { MidiController } from '@/hooks/use-midi'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { resetLastBackupTimeForTests } from '@/lib/last-backup'
 import { emptyPatchLibrary, importVoices, makeDemoVoices, voiceId } from '@/lib/patch-library'
 import { makeWorkspaceBackup } from '@/lib/workspace-backup'
 import { translatePageText } from '@/test/page-translator'
+import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -48,7 +47,7 @@ afterEach(async () => {
 function makeLibrary() {
   const workspace = importVoices(emptyPatchLibrary(['A']), 'A', makeDemoVoices())
   const voices = makeDemoVoices()
-  return {
+  return makeLibrarianLibrary({
     ...workspace,
     getBankVoices: vi.fn(() => voices),
     hasDamagedNamedBanks: false,
@@ -67,7 +66,7 @@ function makeLibrary() {
     ],
     restoreBackup: vi.fn(async () => ({ added: 0, changed: emptyPatchLibrary(), kept: 0 })),
     undoChange: vi.fn(() => true),
-  } as unknown as PatchLibrary
+  })
 }
 
 function renderPage(library = makeLibrary()) {
@@ -76,7 +75,7 @@ function renderPage(library = makeLibrary()) {
       <LibrarianPage
         activePatchId=""
         library={library}
-        midi={{ hasMidiOutput: false } as unknown as MidiController}
+        midi={makeLibrarianMidi()}
         onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
         onPlaySearchResult={vi.fn()}
@@ -184,7 +183,7 @@ describe('LibrarianPage backup', () => {
 
   it('waits for saved banks to load before backing up', async () => {
     const user = userEvent.setup()
-    renderPage({ ...makeLibrary(), namedBanksLoading: true } as PatchLibrary)
+    renderPage({ ...makeLibrary(), namedBanksLoading: true })
     await openMenu(user)
 
     expect(screen.getByRole('button', { name: 'Download backup' })).toHaveProperty('disabled', true)

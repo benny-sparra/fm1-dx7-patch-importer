@@ -6,8 +6,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import type { MidiController } from '@/hooks/use-midi'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
+import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -29,7 +28,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-const library = {
+const library = makeLibrarianLibrary({
   bankDescriptions: {},
   bankNames: { A: 'Studio Favourites' },
   getBankVoices: vi.fn(() => []),
@@ -39,7 +38,7 @@ const library = {
     { bank: 'A', family: 'Keys', id: 'bank-A-1', name: 'Alpha Piano', number: 1, program: 0 },
   ],
   workspaceBanks: ['A'],
-} as unknown as PatchLibrary
+})
 
 describe('LibrarianPage saved banks that fail to load', () => {
   it('explains the failure and keeps the librarian working', async () => {
@@ -50,7 +49,7 @@ describe('LibrarianPage saved banks that fail to load', () => {
         <LibrarianPage
           activePatchId=""
           library={library}
-          midi={{ hasMidiOutput: false } as unknown as MidiController}
+          midi={makeLibrarianMidi()}
           onBankDeleted={vi.fn()}
           onEditPatch={vi.fn()}
           onPlaySearchResult={vi.fn()}

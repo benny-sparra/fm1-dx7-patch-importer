@@ -63,7 +63,11 @@ import type { MidiController } from '@/hooks/use-midi'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
-import { useDownloadWorkspaceBackup, useLastBackupTime } from '@/hooks/use-workspace-backup'
+import {
+  type BackupLibrary,
+  useDownloadWorkspaceBackup,
+  useLastBackupTime,
+} from '@/hooks/use-workspace-backup'
 import { type LibrarianView, useLibrarianView } from '@/hooks/use-librarian-view'
 import type { Patch } from '@/data/patches'
 import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
@@ -137,10 +141,48 @@ type CopyRequest = {
 
 type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
 
+type LibrarianLibrary = BackupLibrary &
+  ComponentProps<typeof AddWorkspaceBankDialog>['library'] &
+  ComponentProps<typeof BankInformationDialog>['library'] &
+  ComponentProps<typeof CopyPatchDialog>['library'] &
+  ComponentProps<typeof ImportDx7BankDialog>['library'] &
+  ComponentProps<typeof NamedBankLibraryDialog>['library'] &
+  ComponentProps<typeof ReplacePatchDialog>['library'] &
+  ComponentProps<typeof RestoreBackupDialog>['library'] &
+  Pick<
+    PatchLibrary,
+    | 'bankDescriptions'
+    | 'canRedo'
+    | 'canUndo'
+    | 'copyVoice'
+    | 'deleteBank'
+    | 'effects'
+    | 'getBankVoices'
+    | 'hasDamagedNamedBanks'
+    | 'importBank'
+    | 'loadDemoBank'
+    | 'loadedBanks'
+    | 'moveVoice'
+    | 'namedBanks'
+    | 'namedBanksLoadFailed'
+    | 'namedBanksLoading'
+    | 'patches'
+    | 'redo'
+    | 'replaceVoice'
+    | 'resetFactoryBanks'
+    | 'undo'
+    | 'undoChange'
+    | 'voices'
+    | 'workspaceBanks'
+  >
+
+type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
+  Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
+
 type LibrarianPageProps = {
   activePatchId: string
-  library: PatchLibrary
-  midi: MidiController
+  library: LibrarianLibrary
+  midi: LibrarianMidi
   /** Called as a bank is deleted, before later banks move up a letter. */
   onBankDeleted: (bank: string) => void
   /** Closes the editor, for an undo that removes the sound it was opened on. */

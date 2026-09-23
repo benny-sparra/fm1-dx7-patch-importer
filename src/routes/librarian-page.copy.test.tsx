@@ -6,9 +6,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import type { MidiController } from '@/hooks/use-midi'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { reloadPage } from '@/lib/reload-page'
+import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -33,7 +32,7 @@ afterEach(() => {
   vi.mocked(reloadPage).mockClear()
 })
 
-const library = {
+const library = makeLibrarianLibrary({
   bankDescriptions: {},
   bankNames: { A: 'Studio Favourites' },
   getBankVoices: vi.fn(() => []),
@@ -43,7 +42,7 @@ const library = {
     { bank: 'A', family: 'Keys', id: 'bank-A-1', name: 'Alpha Piano', number: 1, program: 0 },
   ],
   workspaceBanks: ['A'],
-} as unknown as PatchLibrary
+})
 
 async function openFailingCopyDialog() {
   vi.spyOn(console, 'error').mockImplementation(() => undefined)
@@ -53,7 +52,7 @@ async function openFailingCopyDialog() {
       <LibrarianPage
         activePatchId="bank-A-1"
         library={library}
-        midi={{ hasMidiOutput: false } as unknown as MidiController}
+        midi={makeLibrarianMidi()}
         onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
         onPlaySearchResult={vi.fn()}

@@ -7,9 +7,8 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 
 import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
-import type { MidiController } from '@/hooks/use-midi'
 import { useLibrarianView } from '@/hooks/use-librarian-view'
+import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 import { translatePageText } from '@/test/page-translator'
 
 import { LibrarianPage } from './librarian-page'
@@ -43,7 +42,7 @@ afterEach(() => {
   delete window.umami
 })
 
-const library = {
+const library = makeLibrarianLibrary({
   addBank: vi.fn(),
   canRedo: false,
   canUndo: true,
@@ -69,12 +68,12 @@ const library = {
   updateBankInformation: vi.fn(),
   voices: {},
   workspaceBanks: ['A', 'B'],
-} as unknown as PatchLibrary
+})
 
-const midi = {
+const midi = makeLibrarianMidi({
   hasMidiOutput: false,
   sendBank: vi.fn(),
-} as unknown as MidiController
+})
 
 /** Renders the page with the shared library and MIDI stand-ins, and whatever a test changes. */
 function renderLibrarianPage(props: Partial<ComponentProps<typeof LibrarianPage>> = {}) {
@@ -141,11 +140,11 @@ describe('LibrarianPage transfer analytics', () => {
   it('waits for confirmation in the bank guide before starting its first transfer', async () => {
     sessionStorage.removeItem('fm1-bank-selection-dialog-dismissed')
     const user = userEvent.setup()
-    const connectedMidi = {
+    const connectedMidi = makeLibrarianMidi({
       hasMidiOutput: true,
       sendBank: vi.fn(async () => ({ ok: true }) as const),
       sysexAvailable: true,
-    } as unknown as MidiController
+    })
     renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
@@ -165,11 +164,11 @@ describe('LibrarianPage transfer analytics', () => {
     const user = userEvent.setup()
     const track = vi.fn()
     window.umami = { track }
-    const connectedMidi = {
+    const connectedMidi = makeLibrarianMidi({
       hasMidiOutput: true,
       sendBank: vi.fn(async () => ({ ok: true }) as const),
       sysexAvailable: true,
-    } as unknown as MidiController
+    })
     renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
@@ -182,7 +181,7 @@ describe('LibrarianPage transfer analytics', () => {
     const user = userEvent.setup()
     const track = vi.fn()
     window.umami = { track }
-    const connectedMidi = {
+    const connectedMidi = makeLibrarianMidi({
       connectMidi: vi.fn(async () => undefined),
       disconnectMidi: vi.fn(async () => undefined),
       hasMidiOutput: true,
@@ -190,7 +189,7 @@ describe('LibrarianPage transfer analytics', () => {
       midiAccess: true,
       sendBank: vi.fn(async () => ({ ok: true }) as const),
       sysexAvailable: false,
-    } as unknown as MidiController
+    })
     renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
@@ -206,12 +205,12 @@ describe('LibrarianPage transfer analytics', () => {
   it('reports an unexpected bank transfer rejection with safe operational context', async () => {
     const user = userEvent.setup()
     const transportError = new Error('Private browser transport failure')
-    const connectedMidi = {
+    const connectedMidi = makeLibrarianMidi({
       channel: 6,
       hasMidiOutput: true,
       sendBank: vi.fn(async () => Promise.reject(transportError)),
       sysexAvailable: true,
-    } as unknown as MidiController
+    })
     renderLibrarianPage({ midi: connectedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
@@ -229,7 +228,7 @@ describe('LibrarianPage transfer analytics', () => {
     const user = userEvent.setup()
     const disconnectMidi = vi.fn(async () => undefined)
     const connectMidi = vi.fn(async () => undefined)
-    const blockedMidi = {
+    const blockedMidi = makeLibrarianMidi({
       connectMidi,
       disconnectMidi,
       hasMidiOutput: true,
@@ -237,7 +236,7 @@ describe('LibrarianPage transfer analytics', () => {
       midiAccess: true,
       sendBank: vi.fn(),
       sysexAvailable: false,
-    } as unknown as MidiController
+    })
     const view = renderLibrarianPage({ midi: blockedMidi })
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
@@ -381,7 +380,7 @@ describe('LibrarianPage grid navigation', () => {
   const gridLibrary = {
     ...library,
     patches: gridPatches,
-  } as unknown as PatchLibrary
+  }
 
   function renderGrid(activePatchId = '') {
     const onSelectPatch = vi.fn()
@@ -505,7 +504,7 @@ describe('LibrarianPage slot tooltips', () => {
         { bank: 'A', family: 'DX7', id: 'bank-A-1', name: 'Hardware Keys', number: 1, program: 0 },
         { bank: 'A', family: 'DX7', id: 'bank-A-2', name: 'Added Pad', number: 2 },
       ],
-    } as unknown as PatchLibrary
+    }
     renderLibrarianPage({ library: slotLibrary })
 
     expect(
@@ -527,7 +526,12 @@ describe('LibrarianPage search', () => {
     expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
   })
 
-  function renderLibrarian(props: { library?: PatchLibrary; onSelectPatch?: () => void } = {}) {
+  function renderLibrarian(
+    props: {
+      library?: ComponentProps<typeof LibrarianPage>['library']
+      onSelectPatch?: () => void
+    } = {},
+  ) {
     renderLibrarianPage({
       library: props.library ?? library,
       onSelectPatch: props.onSelectPatch ?? vi.fn(),
@@ -572,7 +576,7 @@ describe('LibrarianPage search', () => {
   })
 
   it('leaves out banks that have nothing loaded', async () => {
-    const user = renderLibrarian({ library: { ...library, loadedBanks: ['A'] } as PatchLibrary })
+    const user = renderLibrarian({ library: { ...library, loadedBanks: ['A'] } })
 
     await user.type(screen.getByPlaceholderText('Search'), 'beta')
 
@@ -581,7 +585,7 @@ describe('LibrarianPage search', () => {
   })
 
   it('searches from a bank that has nothing loaded', async () => {
-    const user = renderLibrarian({ library: { ...library, loadedBanks: ['B'] } as PatchLibrary })
+    const user = renderLibrarian({ library: { ...library, loadedBanks: ['B'] } })
 
     await user.type(screen.getByPlaceholderText('Search'), 'bass')
 
@@ -589,7 +593,7 @@ describe('LibrarianPage search', () => {
   })
 
   it('disables the search when no bank has anything loaded', () => {
-    renderLibrarian({ library: { ...library, loadedBanks: [] } as unknown as PatchLibrary })
+    renderLibrarian({ library: { ...library, loadedBanks: [] } })
 
     expect(screen.getByPlaceholderText('Search').hasAttribute('disabled')).toBe(true)
   })
@@ -733,7 +737,7 @@ describe('LibrarianPage search', () => {
   const voicedLibrary = {
     ...library,
     patches: library.patches.map((patch) => ({ ...patch, family: 'DX7' })),
-  } as PatchLibrary
+  }
 
   it('offers no reordering while showing search results', async () => {
     const user = renderLibrarian({ library: voicedLibrary })
