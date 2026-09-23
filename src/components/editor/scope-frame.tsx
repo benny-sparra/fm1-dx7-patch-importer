@@ -1,4 +1,4 @@
-import { type ReactNode, type Ref, useEffect, useRef } from 'react'
+import { type ReactNode, type Ref, useEffect, useEffectEvent, useRef } from 'react'
 
 import { prefersReducedMotion } from '@/lib/reduced-motion'
 import { cn } from '@/lib/utils'
@@ -19,12 +19,11 @@ export const scopeViewHeight = 48
  * IntersectionObserver the loop always runs.
  */
 export function useAnimationLoop(step: (elapsed: number) => void) {
-  const stepRef = useRef(step)
-  stepRef.current = step
+  const runStep = useEffectEvent(step)
   const frameRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    stepRef.current(0)
+    runStep(0)
   })
 
   useEffect(() => {
@@ -36,7 +35,7 @@ export function useAnimationLoop(step: (elapsed: number) => void) {
       // Cap the step so a tab returning from the background doesn't lurch.
       const elapsed = last === undefined ? 0 : Math.min(0.1, (now - last) / 1000)
       last = now
-      stepRef.current(elapsed)
+      runStep(elapsed)
       frame = window.requestAnimationFrame(tick)
     }
     const start = () => {

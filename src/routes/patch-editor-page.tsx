@@ -1,5 +1,13 @@
 import { AudioWaveform, Sparkles } from 'lucide-react'
-import { type RefObject, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import {
+  type RefObject,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -102,17 +110,19 @@ export function PatchEditorPage({
   const isDirty = hasUnsavedEdits(state)
   const canSync = midi.hasMidiOutput && midi.sysexAvailable
 
-  midiRef.current = midi
+  // The session's sends, some of them async, read MIDI through this ref. It
+  // follows committed renders only, and a layout effect updates it before the
+  // passive effects below or any later event can send through it.
+  useLayoutEffect(() => {
+    midiRef.current = midi
+  }, [midi])
 
   useEffect(() => editor.activate(), [editor])
 
-  useEffect(() => {
-    editor.clearOperatorAudition(false)
-  }, [editor, patch.id])
-
+  // Runs once per patch, because App remounts the editor for each one.
   useEffect(() => {
     window.scrollTo({ top: 0 })
-  }, [patch.id])
+  }, [])
 
   useEffect(() => {
     if (!isDirty) return
