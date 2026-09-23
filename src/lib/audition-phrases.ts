@@ -180,7 +180,7 @@ export const auditionPhrases: AuditionPhrase[] = [
   velocityRamp,
 ]
 
-export const defaultAuditionPhraseId = pad.id
+export const defaultAuditionPhraseId = arpeggio.id
 
 export function findAuditionPhrase(id: string) {
   return auditionPhrases.find((phrase) => phrase.id === id)

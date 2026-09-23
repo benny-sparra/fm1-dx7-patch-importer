@@ -126,9 +126,9 @@ test.describe('with an FM-1 connected', () => {
 
     await keyboard.getByRole('button', { name: 'Play the phrase' }).click()
 
-    // The pad phrase opens on F3, A3, C4 and E4 at velocity 72.
-    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 53, 72])
-    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 64, 72])
+    // The arpeggio opens on C3 at velocity 96, then G3 at 92.
+    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 48, 96])
+    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 55, 92])
 
     await keyboard.getByRole('button', { name: 'Stop the phrase' }).click()
 

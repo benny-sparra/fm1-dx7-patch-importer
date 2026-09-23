@@ -89,7 +89,7 @@ The LFO and every FM1 effect open with a small animated scope drawn from their c
 
 The **Keyboard** button opens the on-screen piano. It floats above the librarian and the editor, and you can drag it by its header, so you can go on editing while it is open.
 
-Above the keys is a small transport for auditioning a patch without playing it yourself. Choose one of six short phrases, press **Play**, and it loops until you press **Stop**, lighting the keys as it goes. The phrases are two bars each and are chosen for what they tell you about a sound rather than for the tune:
+The keyboard's header carries a small transport for auditioning a patch without playing it yourself. Choose one of six short phrases, or keep **Arpeggio**, which is chosen when the keyboard opens, then press **Play**. It loops until you press **Stop**, lighting the keys as it goes. The phrases are two bars each and are chosen for what they tell you about a sound rather than for the tune:
 
 - **Pad** holds four-note chords, so you hear the slow attack, the release and anything the effects add to a held sound.
 - **Electric piano** comps chords off the beat at changing velocities, which is the quickest way to hear how the patch responds to how hard it is played.

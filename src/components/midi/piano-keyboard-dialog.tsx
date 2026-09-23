@@ -425,13 +425,13 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
     >
       <div
         aria-label={t('ui.dragKeyboard')}
-        className="synthwave-keyboard-header flex h-12 cursor-move touch-none items-center justify-between px-4"
+        className="synthwave-keyboard-header flex min-h-12 cursor-move touch-none flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-1.5"
         onPointerCancel={stopDrag}
         onPointerDown={startDrag}
         onPointerMove={moveDialog}
         onPointerUp={stopDrag}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <GripHorizontal className="size-5 opacity-60" />
           <div className="flex items-baseline gap-2.5">
             <span className="text-xs font-extrabold tracking-[0.24em]">{t('ui.performance')}</span>
@@ -439,6 +439,21 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
               {t('ui.keyboard').toUpperCase()}
             </span>
           </div>
+        </div>
+        {/* The transport shares the drag handle, so using it must not start a drag. Where the
+            header is too narrow for it, it takes a row of its own below the title. */}
+        <div
+          className="order-last flex basis-full cursor-auto justify-end lg:order-none lg:flex-1 lg:basis-auto"
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <PhraseTransport
+            onPhraseChange={choosePhrase}
+            onTempoChange={changeTempo}
+            onToggle={togglePhrase}
+            phraseId={phraseId}
+            playing={playingPhraseId !== null}
+            tempo={tempo}
+          />
         </div>
         <Button
           aria-label={t('ui.closeKeyboard')}
@@ -448,20 +463,11 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
           size="icon"
           type="button"
           variant="ghost"
-          className="text-current hover:bg-black/10 hover:text-current"
+          className="ml-auto text-current hover:bg-black/10 hover:text-current lg:ml-0"
         >
           <X />
         </Button>
       </div>
-
-      <PhraseTransport
-        onPhraseChange={choosePhrase}
-        onTempoChange={changeTempo}
-        onToggle={togglePhrase}
-        phraseId={phraseId}
-        playing={playingPhraseId !== null}
-        tempo={tempo}
-      />
 
       <div className="synthwave-keyboard-stage overflow-x-auto p-4">
         <div

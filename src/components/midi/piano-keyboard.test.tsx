@@ -264,6 +264,42 @@ describe('PianoKeyboard keyboard layouts', () => {
   })
 })
 
+describe('PianoKeyboard dragging', () => {
+  beforeAll(() => {
+    // jsdom has no pointer capture, which the drag takes as it starts.
+    Object.defineProperty(Element.prototype, 'setPointerCapture', {
+      configurable: true,
+      value() {},
+    })
+  })
+
+  async function openKeyboard() {
+    const user = userEvent.setup()
+    setup()
+    await clickKeyboard(user)
+  }
+
+  it('moves the keyboard when its header is dragged', async () => {
+    await openKeyboard()
+
+    fireEvent.pointerDown(screen.getByLabelText('Drag keyboard'), { clientX: 20, clientY: 20 })
+    fireEvent.pointerMove(screen.getByLabelText('Drag keyboard'), { clientX: 60, clientY: 90 })
+
+    expect(keyboardDialog()?.style.inset).toBe('auto')
+  })
+
+  it('leaves the keyboard in place when a phrase control in its header is used', async () => {
+    await openKeyboard()
+
+    fireEvent.pointerDown(screen.getByRole('slider', { name: 'Tempo' }), {
+      clientX: 20,
+      clientY: 20,
+    })
+
+    expect(keyboardDialog()?.style.inset).toBe('')
+  })
+})
+
 describe('PianoKeyboard audition phrases', () => {
   afterEach(() => {
     vi.useRealTimers()
@@ -289,13 +325,13 @@ describe('PianoKeyboard audition phrases', () => {
 
     fireEvent.click(playButton())
 
-    // The pad phrase opens on a four-note chord.
-    expect(midi.startNote).toHaveBeenCalledTimes(4)
-    expect(midi.startNote).toHaveBeenCalledWith(53, expect.any(String), {
+    // The arpeggio opens on C3 alone.
+    expect(midi.startNote).toHaveBeenCalledTimes(1)
+    expect(midi.startNote).toHaveBeenCalledWith(48, expect.any(String), {
       quiet: true,
-      velocity: 72,
+      velocity: 96,
     })
-    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('pad', 'started')
+    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('arpeggio', 'started')
   })
 
   it('keeps looping as time passes', async () => {
@@ -314,8 +350,8 @@ describe('PianoKeyboard audition phrases', () => {
     fireEvent.click(playButton())
     fireEvent.click(stopButton())
 
-    expect(midi.stopNote).toHaveBeenCalledWith(53)
-    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('pad', 'stopped')
+    expect(midi.stopNote).toHaveBeenCalledWith(48)
+    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('arpeggio', 'stopped')
 
     const sentBefore = vi.mocked(midi.startNote).mock.calls.length
     vi.advanceTimersByTime(10_000)
@@ -329,7 +365,7 @@ describe('PianoKeyboard audition phrases', () => {
 
     fireEvent.keyDown(window, { key: 'Escape' })
 
-    expect(midi.stopNote).toHaveBeenCalledWith(53)
+    expect(midi.stopNote).toHaveBeenCalledWith(48)
     const sentBefore = vi.mocked(midi.startNote).mock.calls.length
     vi.advanceTimersByTime(10_000)
     expect(vi.mocked(midi.startNote).mock.calls.length).toBe(sentBefore)
@@ -341,7 +377,7 @@ describe('PianoKeyboard audition phrases', () => {
 
     rerender(<PianoKeyboard midi={{ ...midi, hasMidiOutput: false } as MidiController} />)
 
-    expect(midi.stopNote).toHaveBeenCalledWith(53)
+    expect(midi.stopNote).toHaveBeenCalledWith(48)
     const sentBefore = vi.mocked(midi.startNote).mock.calls.length
     vi.advanceTimersByTime(10_000)
     expect(vi.mocked(midi.startNote).mock.calls.length).toBe(sentBefore)
@@ -371,7 +407,7 @@ describe('PianoKeyboard audition phrases', () => {
     vi.advanceTimersByTime(10_000)
 
     expect(sent.filter((message) => message.includes('ch4'))).toEqual([])
-    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('pad', 'stopped')
+    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('arpeggio', 'stopped')
   })
 
   it('releases the phrase on the channel it was playing on when the channel changes', async () => {
@@ -382,16 +418,7 @@ describe('PianoKeyboard audition phrases', () => {
 
     rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'fm1', 4)} />)
 
-    expect(sent).toEqual([
-      'fm1 ch1 on 53',
-      'fm1 ch1 on 57',
-      'fm1 ch1 on 60',
-      'fm1 ch1 on 64',
-      'fm1 ch1 off 53',
-      'fm1 ch1 off 57',
-      'fm1 ch1 off 60',
-      'fm1 ch1 off 64',
-    ])
+    expect(sent).toEqual(['fm1 ch1 on 48', 'fm1 ch1 off 48'])
   })
 
   it('stops the phrase rather than moving it when another output is chosen', async () => {
@@ -404,7 +431,7 @@ describe('PianoKeyboard audition phrases', () => {
     vi.advanceTimersByTime(10_000)
 
     expect(sent.filter((message) => message.startsWith('other'))).toEqual([])
-    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('pad', 'stopped')
+    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('arpeggio', 'stopped')
   })
 
   it('releases the phrase on the output it was playing on when another is chosen', async () => {
@@ -415,12 +442,7 @@ describe('PianoKeyboard audition phrases', () => {
 
     rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'other', 1)} />)
 
-    expect(sent.filter((message) => message.includes('off'))).toEqual([
-      'fm1 ch1 off 53',
-      'fm1 ch1 off 57',
-      'fm1 ch1 off 60',
-      'fm1 ch1 off 64',
-    ])
+    expect(sent.filter((message) => message.includes('off'))).toEqual(['fm1 ch1 off 48'])
   })
 
   it('logs the playing phrase stopping when another phrase is chosen', async () => {
@@ -428,13 +450,13 @@ describe('PianoKeyboard audition phrases', () => {
     fireEvent.click(playButton())
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Phrase' }), {
-      target: { value: 'arpeggio' },
+      target: { value: 'pad' },
     })
 
     expect(vi.mocked(midi.logAuditionPhrase).mock.calls).toEqual([
-      ['pad', 'started'],
-      ['pad', 'stopped'],
       ['arpeggio', 'started'],
+      ['arpeggio', 'stopped'],
+      ['pad', 'started'],
     ])
   })
 
@@ -443,8 +465,20 @@ describe('PianoKeyboard audition phrases', () => {
 
     fireEvent.click(playButton())
 
-    expect(screen.getByRole('button', { name: 'Play C4' }).className).toContain(
+    expect(screen.getByRole('button', { name: 'Play C3' }).className).toContain(
       'synthwave-piano-key-white-active',
+    )
+  })
+
+  it('starts on the arpeggio at the tempo it is written for', async () => {
+    await openWithPhrase()
+
+    expect(
+      (screen.getByRole('combobox', { name: 'Phrase' }) as HTMLSelectElement).selectedOptions[0]
+        ?.textContent,
+    ).toBe('Arpeggio')
+    expect(screen.getByRole('slider', { name: 'Tempo' }).getAttribute('aria-valuetext')).toBe(
+      '120 BPM',
     )
   })
 
@@ -452,11 +486,11 @@ describe('PianoKeyboard audition phrases', () => {
     await openWithPhrase()
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Phrase' }), {
-      target: { value: 'arpeggio' },
+      target: { value: 'pad' },
     })
 
     expect(screen.getByRole('slider', { name: 'Tempo' }).getAttribute('aria-valuetext')).toBe(
-      '120 BPM',
+      '76 BPM',
     )
   })
 
@@ -466,6 +500,6 @@ describe('PianoKeyboard audition phrases', () => {
 
     unmount()
 
-    expect(midi.stopNote).toHaveBeenCalledWith(53)
+    expect(midi.stopNote).toHaveBeenCalledWith(48)
   })
 })
