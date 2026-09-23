@@ -1,5 +1,5 @@
 import { RotateCcw } from 'lucide-react'
-import { type RefObject, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -13,18 +13,22 @@ import {
 } from '@/components/ui/dialog'
 
 type RestoreFactoryBanksDialogProps = {
-  dialogRef: RefObject<HTMLDialogElement | null>
+  onClose: () => void
   onRestore: () => Promise<void>
 }
 
-export function RestoreFactoryBanksDialog({
-  dialogRef,
-  onRestore,
-}: RestoreFactoryBanksDialogProps) {
+export function RestoreFactoryBanksDialog({ onClose, onRestore }: RestoreFactoryBanksDialogProps) {
   const { t } = useTranslation()
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const [error, setError] = useState('')
   const [working, setWorking] = useState(false)
   const closeDialog = () => dialogRef.current?.close()
+
+  // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
+  // its state is discarded with it rather than being reset by hand.
+  useEffect(() => {
+    dialogRef.current?.showModal()
+  }, [])
 
   const restore = async () => {
     setError('')
@@ -47,7 +51,7 @@ export function RestoreFactoryBanksDialog({
       onCancel={(event) => {
         if (working) event.preventDefault()
       }}
-      onClose={() => setError('')}
+      onClose={onClose}
       ref={dialogRef}
       size="md"
     >

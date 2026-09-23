@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createRef } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { ToastProvider } from '@/components/ui/toast'
@@ -41,20 +40,20 @@ function syxFile(name = 'bank.syx') {
 }
 
 function renderDialog(importBank: PatchLibrary['importBank']) {
-  const dialogRef = createRef<HTMLDialogElement>()
+  const onClose = vi.fn()
   const undoChange = vi.fn()
   render(
     <ToastProvider>
       <ImportDx7BankDialog
         bank="B"
         bankName="Leads"
-        dialogRef={dialogRef}
         library={{ importBank, undoChange }}
+        onClose={onClose}
       />
     </ToastProvider>,
   )
-  act(() => dialogRef.current!.showModal())
-  return { dialog: dialogRef.current!, undoChange, user: userEvent.setup() }
+  const dialog = screen.getByRole<HTMLDialogElement>('dialog')
+  return { dialog, onClose, undoChange, user: userEvent.setup() }
 }
 
 async function chooseAndImport(user: ReturnType<typeof userEvent.setup>, file = syxFile()) {
@@ -74,13 +73,14 @@ describe('ImportDx7BankDialog', () => {
 
   it('imports the chosen file into its bank and offers to undo it', async () => {
     const importBank = vi.fn(async () => changed)
-    const { dialog, undoChange, user } = renderDialog(importBank)
+    const { dialog, onClose, undoChange, user } = renderDialog(importBank)
     const file = syxFile()
 
     await chooseAndImport(user, file)
 
     expect(importBank).toHaveBeenCalledWith('B', file)
     expect(dialog.open).toBe(false)
+    expect(onClose).toHaveBeenCalledOnce()
     expect(await screen.findByText('Imported patches into “Leads”.')).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Undo' }))
     expect(undoChange).toHaveBeenCalledWith(changed)
@@ -152,16 +152,13 @@ describe('ImportDx7BankDialog', () => {
     expect(screen.getByRole('button', { name: 'Importing…' })).toBeTruthy()
   })
 
-  it('forgets the chosen file when it is closed and opened again', async () => {
-    const { dialog, user } = renderDialog(vi.fn())
+  it('tells the librarian it closed, so the chosen file goes with it', async () => {
+    const { dialog, onClose, user } = renderDialog(vi.fn())
 
     await user.upload(screen.getByLabelText(/Choose a DX7 SysEx file/), syxFile())
-    act(() => dialog.close())
-    act(() => dialog.showModal())
+    await user.click(screen.getByRole('button', { name: 'Close' }))
 
-    expect(screen.getByText('Choose a DX7 SysEx file')).toBeTruthy()
-    expect(
-      screen.getByRole('button', { name: 'Replace bank contents' }).hasAttribute('disabled'),
-    ).toBe(true)
+    expect(dialog.open).toBe(false)
+    expect(onClose).toHaveBeenCalledOnce()
   })
 })

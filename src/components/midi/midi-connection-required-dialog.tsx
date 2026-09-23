@@ -1,4 +1,4 @@
-import type { RefObject } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -12,15 +12,27 @@ import {
 } from '@/components/ui/dialog'
 
 type MidiConnectionRequiredDialogProps = {
-  dialogRef: RefObject<HTMLDialogElement | null>
+  onClose: () => void
 }
 
-export function MidiConnectionRequiredDialog({ dialogRef }: MidiConnectionRequiredDialogProps) {
+export function MidiConnectionRequiredDialog({ onClose }: MidiConnectionRequiredDialogProps) {
   const { t } = useTranslation()
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const closeDialog = () => dialogRef.current?.close()
 
+  // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
+  // its state is discarded with it rather than being reset by hand.
+  useEffect(() => {
+    dialogRef.current?.showModal()
+  }, [])
+
   return (
-    <Dialog aria-labelledby="midi-connection-required-title" ref={dialogRef} size="sm">
+    <Dialog
+      aria-labelledby="midi-connection-required-title"
+      onClose={onClose}
+      ref={dialogRef}
+      size="sm"
+    >
       <DialogHeader>
         <DialogTitle id="midi-connection-required-title">{t('dialogs.midiTitle')}</DialogTitle>
         <DialogCloseButton label={t('dialogs.midiClose')} onClick={closeDialog} />

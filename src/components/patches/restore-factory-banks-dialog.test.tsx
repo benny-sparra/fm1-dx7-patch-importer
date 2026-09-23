@@ -2,7 +2,6 @@
 
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { createRef } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
@@ -28,21 +27,23 @@ describe('RestoreFactoryBanksDialog', () => {
       .fn<() => Promise<void>>()
       .mockRejectedValueOnce(new Error('Factory data could not be loaded.'))
       .mockResolvedValueOnce()
-    const dialogRef = createRef<HTMLDialogElement>()
-    render(<RestoreFactoryBanksDialog dialogRef={dialogRef} onRestore={onRestore} />)
-    dialogRef.current?.showModal()
+    const onClose = vi.fn()
+    render(<RestoreFactoryBanksDialog onClose={onClose} onRestore={onRestore} />)
+    const dialog = screen.getByRole<HTMLDialogElement>('dialog')
 
     await user.click(screen.getByRole('button', { name: 'Reset four banks' }))
 
     expect(screen.getByRole('alert').textContent).toBe(
       'The banks could not be reset to the factory patches. Try again.',
     )
-    expect(dialogRef.current?.open).toBe(true)
+    expect(dialog.open).toBe(true)
+    expect(onClose).not.toHaveBeenCalled()
 
     await user.click(screen.getByRole('button', { name: 'Reset four banks' }))
 
     expect(onRestore).toHaveBeenCalledTimes(2)
-    expect(dialogRef.current?.open).toBe(false)
+    expect(dialog.open).toBe(false)
+    expect(onClose).toHaveBeenCalledOnce()
   })
 
   it('does not start duplicate restores while factory data is loading', async () => {
@@ -54,26 +55,25 @@ describe('RestoreFactoryBanksDialog', () => {
           finishRestore = resolve
         }),
     )
-    const dialogRef = createRef<HTMLDialogElement>()
-    render(<RestoreFactoryBanksDialog dialogRef={dialogRef} onRestore={onRestore} />)
-    dialogRef.current?.showModal()
+    const onClose = vi.fn()
+    render(<RestoreFactoryBanksDialog onClose={onClose} onRestore={onRestore} />)
+    const dialog = screen.getByRole<HTMLDialogElement>('dialog')
 
     await user.click(screen.getByRole('button', { name: 'Reset four banks' }))
     expect(screen.getByRole('button', { name: 'Resetting…' })).toHaveProperty('disabled', true)
     expect(onRestore).toHaveBeenCalledOnce()
 
     finishRestore()
-    await vi.waitFor(() => expect(dialogRef.current?.open).toBe(false))
+    await vi.waitFor(() => expect(dialog.open).toBe(false))
+    expect(onClose).toHaveBeenCalledOnce()
   })
 
   it('shows the restoring label after a page translator replaces the button text', async () => {
     const user = userEvent.setup()
     const onRestore = vi.fn(() => new Promise<void>(() => {}))
-    const dialogRef = createRef<HTMLDialogElement>()
     const { container } = render(
-      <RestoreFactoryBanksDialog dialogRef={dialogRef} onRestore={onRestore} />,
+      <RestoreFactoryBanksDialog onClose={vi.fn()} onRestore={onRestore} />,
     )
-    dialogRef.current?.showModal()
     translatePageText(container)
 
     await user.click(screen.getByRole('button', { name: 'Reset four banks' }))

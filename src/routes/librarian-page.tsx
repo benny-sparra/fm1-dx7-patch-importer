@@ -127,6 +127,14 @@ const menuItemClassName =
 const menuHeadingClassName =
   'font-dot-matrix px-3 pt-1.5 pb-0.5 text-[11px] font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase'
 
+/** A bank menu's request, with the menu toggle that focus returns to when its dialog closes. */
+type BankMenuRequest = { bank: string; name: string; opener: HTMLElement | null }
+
+/** The toggle of the menu holding `item`, which stays in view once the menu closes. */
+function menuToggleOf(item: HTMLElement | undefined) {
+  return item?.closest('details')?.querySelector('summary') ?? null
+}
+
 type SavedBanksRequest = { bank: string; closeMenu: () => void; mode: 'load' | 'save' }
 
 /** A copy waiting for its dialog: what is copied, how, and the bank to open on. */
@@ -241,19 +249,14 @@ export function LibrarianPage({
   const lastBackupId = useId()
   const backupContentsId = useId()
   const sysexContentsId = useId()
-  const importDx7BankDialogRef = useRef<HTMLDialogElement>(null)
-  const bankSelectionDialogRef = useRef<HTMLDialogElement>(null)
-  const deleteWorkspaceBankDialogRef = useRef<HTMLDialogElement>(null)
-  const midiConnectionRequiredDialogRef = useRef<HTMLDialogElement>(null)
-  const restoreFactoryBanksDialogRef = useRef<HTMLDialogElement>(null)
-  const [bankPendingDeletion, setBankPendingDeletion] = useState<{
-    bank: string
-    name: string
-  } | null>(null)
-  const [bankPendingImport, setBankPendingImport] = useState<{
-    bank: string
-    name: string
-  } | null>(null)
+  const sendButtonRef = useRef<HTMLButtonElement>(null)
+  // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
+  // menu toggle that focus returns to.
+  const [bankPendingDeletion, setBankPendingDeletion] = useState<BankMenuRequest | null>(null)
+  const [bankPendingImport, setBankPendingImport] = useState<BankMenuRequest | null>(null)
+  const [isRestoringFactoryBanks, setIsRestoringFactoryBanks] = useState(false)
+  // Sending a bank first explains what it needs: a MIDI output, or the destination on the FM1.
+  const [sendGuide, setSendGuide] = useState<'bank-selection' | 'midi-required' | null>(null)
   const allBanksMenuRef = useDismissableDetails()
   const bankMenuRef = useDismissableDetails()
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
@@ -298,13 +301,13 @@ export function LibrarianPage({
     downloadSysexFile(voiceFile.makeDx7VoiceFile(voice), voiceFile.makeDx7VoiceFilename(patch))
     toast.success(t('toasts.bankDownloadStarted', { bank: patch.name }))
   }
-  const beginImport = (bank: string) => {
+  const beginImport = (bank: string, opener?: HTMLElement) => {
     if (library.loadedBanks.includes(bank)) {
       setBankPendingImport({
         bank,
         name: bankDisplayName(bank),
+        opener: menuToggleOf(opener),
       })
-      importDx7BankDialogRef.current?.showModal()
       return
     }
     importTargetRef.current.begin(bank)
@@ -389,22 +392,27 @@ export function LibrarianPage({
     }
   }
 
+  const closeSendGuide = () => {
+    setSendGuide(null)
+    sendButtonRef.current?.focus()
+  }
+
   const sendSelectedBank = () => {
     if (!midi.hasMidiOutput) {
       trackAnalyticsEvent({
         data: { reason: 'no_output' },
         name: 'bank_transfer_failed',
       })
-      midiConnectionRequiredDialogRef.current?.showModal()
+      setSendGuide('midi-required')
       return
     }
     if (!midi.sysexAvailable) {
       trackAnalyticsEvent({ data: { reason: 'sysex_unavailable' }, name: 'bank_transfer_failed' })
-      bankSelectionDialogRef.current?.showModal()
+      setSendGuide('bank-selection')
       return
     }
     if (shouldShowFm1BankSelectionDialog()) {
-      bankSelectionDialogRef.current?.showModal()
+      setSendGuide('bank-selection')
       return
     }
     void transferSelectedBank()
@@ -535,9 +543,9 @@ export function LibrarianPage({
         <button
           className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
           disabled={isImporting}
-          onClick={() => {
+          onClick={(event) => {
             closeMenu()
-            beginImport(bank)
+            beginImport(bank, event.currentTarget)
           }}
           type="button"
         >
@@ -564,10 +572,13 @@ export function LibrarianPage({
         {banks.length > 1 ? (
           <button
             className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
-            onClick={() => {
+            onClick={(event) => {
               closeMenu()
-              setBankPendingDeletion({ bank, name: bankDisplayName(bank) })
-              deleteWorkspaceBankDialogRef.current?.showModal()
+              setBankPendingDeletion({
+                bank,
+                name: bankDisplayName(bank),
+                opener: menuToggleOf(event.currentTarget),
+              })
             }}
             type="button"
           >
@@ -628,6 +639,7 @@ export function LibrarianPage({
               className="crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50 md:ml-auto md:flex-none"
               disabled={isSending || isSearching || !isDestinationBankLoaded}
               onClick={sendSelectedBank}
+              ref={sendButtonRef}
               title={
                 isSearching
                   ? t('banks.sendFromSearch')
@@ -732,7 +744,7 @@ export function LibrarianPage({
                 className={menuItemClassName}
                 onClick={() => {
                   allBanksMenuRef.current?.removeAttribute('open')
-                  restoreFactoryBanksDialogRef.current?.showModal()
+                  setIsRestoringFactoryBanks(true)
                 }}
                 type="button"
               >
@@ -864,12 +876,17 @@ export function LibrarianPage({
 
       {importError ? <ErrorNotice>{importError}</ErrorNotice> : null}
 
-      <Fm1BankSelectionDialog
-        dialogRef={bankSelectionDialogRef}
-        isSending={isSending}
-        midi={midi}
-        onSend={() => void transferSelectedBank()}
-      />
+      {sendGuide === 'bank-selection' ? (
+        <Fm1BankSelectionDialog
+          isSending={isSending}
+          midi={midi}
+          onClose={closeSendGuide}
+          onSend={() => void transferSelectedBank()}
+        />
+      ) : null}
+      {sendGuide === 'midi-required' ? (
+        <MidiConnectionRequiredDialog onClose={closeSendGuide} />
+      ) : null}
       {isAddingBank ? (
         <ErrorBoundary
           onError={() => {
@@ -921,37 +938,49 @@ export function LibrarianPage({
           </Suspense>
         </ErrorBoundary>
       ) : null}
-      <ImportDx7BankDialog
-        bank={bankPendingImport?.bank ?? null}
-        bankName={bankPendingImport?.name ?? ''}
-        dialogRef={importDx7BankDialogRef}
-        library={library}
-      />
-      <MidiConnectionRequiredDialog dialogRef={midiConnectionRequiredDialogRef} />
-      <DeleteWorkspaceBankDialog
-        bankName={bankPendingDeletion?.name ?? ''}
-        dialogRef={deleteWorkspaceBankDialogRef}
-        onDelete={() => {
-          if (!bankPendingDeletion) return
-          const { bank } = bankPendingDeletion
-          const replacement = workspaceBankAfterDeletion(banks, bank)
-          onBankDeleted(bank)
-          const changed = library.deleteBank(bank)
-          if (replacement) setDestinationBank(replacement)
-          toast.success(
-            t('toasts.bankDeleted', { bank: bankPendingDeletion.name }),
-            undoToastOptions(t, library, changed),
-          )
-          setBankPendingDeletion(null)
-        }}
-      />
-      <RestoreFactoryBanksDialog
-        dialogRef={restoreFactoryBanksDialogRef}
-        onRestore={async () => {
-          const changed = await library.resetFactoryBanks()
-          toast.success(t('toasts.banksRestored'), undoToastOptions(t, library, changed))
-        }}
-      />
+      {bankPendingImport ? (
+        <ImportDx7BankDialog
+          bank={bankPendingImport.bank}
+          bankName={bankPendingImport.name}
+          library={library}
+          onClose={() => {
+            setBankPendingImport(null)
+            bankPendingImport.opener?.focus()
+          }}
+        />
+      ) : null}
+      {bankPendingDeletion ? (
+        <DeleteWorkspaceBankDialog
+          bankName={bankPendingDeletion.name}
+          onClose={() => {
+            setBankPendingDeletion(null)
+            bankPendingDeletion.opener?.focus()
+          }}
+          onDelete={() => {
+            const { bank } = bankPendingDeletion
+            const replacement = workspaceBankAfterDeletion(banks, bank)
+            onBankDeleted(bank)
+            const changed = library.deleteBank(bank)
+            if (replacement) setDestinationBank(replacement)
+            toast.success(
+              t('toasts.bankDeleted', { bank: bankPendingDeletion.name }),
+              undoToastOptions(t, library, changed),
+            )
+          }}
+        />
+      ) : null}
+      {isRestoringFactoryBanks ? (
+        <RestoreFactoryBanksDialog
+          onClose={() => {
+            setIsRestoringFactoryBanks(false)
+            allBanksMenuRef.current?.querySelector('summary')?.focus()
+          }}
+          onRestore={async () => {
+            const changed = await library.resetFactoryBanks()
+            toast.success(t('toasts.banksRestored'), undoToastOptions(t, library, changed))
+          }}
+        />
+      ) : null}
       {copyRequest ? (
         <ErrorBoundary
           key={copyRequest.key}
