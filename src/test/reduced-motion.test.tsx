@@ -13,7 +13,6 @@ import { AlgorithmPanel } from '@/components/editor/editor-workspace'
 import { LfoWaveControl } from '@/components/editor/parameter-controls'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { LoadNamedBankDialog } from '@/components/patches/load-named-bank-dialog'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { createNamedBank } from '@/lib/named-bank'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
@@ -181,17 +180,25 @@ describe('reduced motion', () => {
       name: 'Stage',
       now: '2026-09-14T00:00:00.000Z',
     })
-    const library = {
-      bankNames: {},
-      hasDamagedNamedBanks: false,
-      loadedBanks: ['A'],
-      namedBanks: [bank],
-      namedBanksLoadFailed: false,
-      namedBanksLoading: false,
-      workspaceBanks: ['A'],
-    } as unknown as PatchLibrary
     const user = userEvent.setup()
-    render(<LoadNamedBankDialog destinationBank="A" library={library} />)
+    render(
+      <LoadNamedBankDialog
+        destinationBank="A"
+        library={{
+          bankNames: {},
+          copyNamedBank: vi.fn(),
+          deleteNamedBank: vi.fn(),
+          hasDamagedNamedBanks: false,
+          loadSavedBank: vi.fn(),
+          loadedBanks: ['A'],
+          namedBanks: [bank],
+          namedBanksLoadFailed: false,
+          namedBanksLoading: false,
+          updateNamedBankDetails: vi.fn(),
+          workspaceBanks: ['A'],
+        }}
+      />,
+    )
 
     await user.click(screen.getByRole('button', { name: 'Edit Stage' }))
 

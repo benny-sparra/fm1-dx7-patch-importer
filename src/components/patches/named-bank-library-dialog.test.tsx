@@ -2,11 +2,11 @@
 
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import { NamedBankLibraryDialog } from '@/components/patches/named-bank-library-dialog'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { downloadFile } from '@/lib/download-file'
 import { createNamedBank } from '@/lib/named-bank'
 import {
@@ -36,14 +36,22 @@ beforeAll(() => {
 
 afterEach(cleanup)
 
-const library = {
+type DialogLibrary = ComponentProps<typeof NamedBankLibraryDialog>['library']
+
+const library: DialogLibrary = {
   bankNames: { A: 'Current Bank' },
+  copyNamedBank: vi.fn(),
+  deleteNamedBank: vi.fn(),
+  hasDamagedNamedBanks: false,
+  loadSavedBank: vi.fn(),
   loadedBanks: ['A'],
   namedBanks: [],
   namedBanksLoadFailed: false,
   namedBanksLoading: false,
-  saveNamedBank: vi.fn(async () => undefined),
-} as unknown as PatchLibrary
+  saveNamedBank: vi.fn(),
+  updateNamedBankDetails: vi.fn(),
+  workspaceBanks: ['A'],
+}
 
 describe('NamedBankLibraryDialog boundaries', () => {
   it('opens the save flow with focused, labelled validation fields', () => {
@@ -288,7 +296,7 @@ describe('NamedBankLibraryDialog managing saved banks', () => {
     vi.mocked(downloadFile).mockClear()
   })
 
-  function renderLoadDialog(overrides: Partial<PatchLibrary> = {}) {
+  function renderLoadDialog(overrides: Partial<DialogLibrary> = {}) {
     render(
       <NamedBankLibraryDialog
         destinationBank="A"

@@ -42,7 +42,7 @@ function renderDialog({
       <BankInformationDialog
         bank="B"
         defaultTitle="Bank 2"
-        library={{ bankDescriptions, bankNames, updateBankInformation } as unknown as PatchLibrary}
+        library={{ bankDescriptions, bankNames, updateBankInformation }}
         onClose={onClose}
       />
     </ToastProvider>,

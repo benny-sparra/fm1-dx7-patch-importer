@@ -22,7 +22,7 @@ import {
 type BankInformationDialogProps = {
   bank: string
   defaultTitle: string
-  library: PatchLibrary
+  library: Pick<PatchLibrary, 'bankDescriptions' | 'bankNames' | 'updateBankInformation'>
   onClose: () => void
 }
 

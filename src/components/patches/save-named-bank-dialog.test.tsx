@@ -36,13 +36,11 @@ function renderDialog(
   render(
     <SaveNamedBankDialog
       destinationBank="B"
-      library={
-        {
-          bankNames: { B: 'Leads' },
-          saveNamedBank,
-          workspaceBanks: ['A', 'B', 'C', 'D'],
-        } as unknown as PatchLibrary
-      }
+      library={{
+        bankNames: { B: 'Leads' },
+        saveNamedBank,
+        workspaceBanks: ['A', 'B', 'C', 'D'],
+      }}
       onClose={onClose}
     />,
   )

@@ -22,7 +22,7 @@ type ImportDx7BankDialogProps = {
   bank: string | null
   bankName: string
   dialogRef: RefObject<HTMLDialogElement | null>
-  library: PatchLibrary
+  library: Pick<PatchLibrary, 'importBank' | 'undoChange'>
 }
 
 export function ImportDx7BankDialog({
