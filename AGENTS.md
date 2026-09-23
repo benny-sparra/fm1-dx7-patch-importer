@@ -47,6 +47,10 @@ files when that is clearer.
 - Let `prettier-plugin-tailwindcss` order utility classes. Add conditional class names through
   `cn(...)`; review formatting changes to conditional strings carefully.
 - Prefer small named functions and explicit domain types. Keep state near the behavior that owns it.
+- A component takes only the members of `MidiController` or `PatchLibrary` it reads, as a `Pick`,
+  as `MidiPanicButton` does. A parent that passes the controller on takes the intersection of its
+  children's slices through `ComponentProps<typeof Child>['midi']`, so a child that starts reading
+  another member widens every parent with it.
 - Keep TypeScript compatible with `verbatimModuleSyntax` and `erasableSyntaxOnly`; use type-only
   imports where required and avoid runtime TypeScript-only constructs.
 - Use Lucide icons and the existing components in `src/components/ui/` before adding new UI
@@ -371,6 +375,10 @@ open everything an earlier release could have saved.
 - Add `// @vitest-environment jsdom` to rendered DOM tests.
 - Use Testing Library queries by role/name and `userEvent` for user interactions. Assert observable
   outcomes rather than implementation details such as hook calls or the presence of `React.lazy`.
+- Type a MIDI or library fake as the slice the component takes, without `as` or `as unknown as`,
+  so a member the component starts reading fails to compile rather than arriving as `undefined`.
+  Librarian page tests build theirs with `makeLibrarianLibrary` and `makeLibrarianMidi` from
+  `src/test/librarian-fakes.ts`.
 - Use deterministic fakes/deferred promises for storage, MIDI, time, imports, and races. Do not use
   real sleeps, network calls, hardware, or test-order-dependent state.
 - Give each test one behavioral claim with a descriptive name. Cover success, failure, retry,
