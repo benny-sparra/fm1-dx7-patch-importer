@@ -26,6 +26,8 @@ import {
   sendFm1ProgramChange,
   sendFm1EffectControl,
   sendFm1EffectDiagnosticControl,
+  midiNoteCount,
+  sendEveryNoteOff,
   sendNoteOff,
   sendNoteOn,
   defaultNoteVelocity,
@@ -114,6 +116,8 @@ export function useMidi() {
   const [effectChannel, setEffectChannelState] = useState(readStoredEffectChannel)
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<MidiConnectionErrorCode | null>(null)
+  // Counts MIDI panics, so a player can stop rather than strike the released notes again.
+  const [midiPanicCount, setMidiPanicCount] = useState(0)
   const [logStore] = useState(
     () => new MidiLogStore([makeLogEntry('system', 'Ready. Connect MIDI to begin.')]),
   )
@@ -669,6 +673,35 @@ export function useMidi() {
     [appendLog, channel, selectedOutput],
   )
 
+  /** A MIDI panic: releases every note on the note channel, for notes left hanging on the FM1. */
+  const sendMidiPanic = useCallback(() => {
+    if (!selectedOutput) {
+      appendLog(makeLogEntry('system', 'Could not send a MIDI panic; no MIDI output selected.'))
+      return false
+    }
+
+    try {
+      sendEveryNoteOff(selectedOutput, channel)
+    } catch (caughtError) {
+      appendLog(
+        makeLogEntry(
+          'system',
+          caughtError instanceof Error ? caughtError.message : 'MIDI panic failed.',
+        ),
+      )
+      return false
+    }
+
+    appendLog(
+      makeLogEntry(
+        'out',
+        `MIDI panic: sent Note Off for all ${midiNoteCount} notes on channel ${channel}.`,
+      ),
+    )
+    setMidiPanicCount((count) => count + 1)
+    return true
+  }, [appendLog, channel, selectedOutput])
+
   useEffect(() => {
     if (!selectedInput) {
       return
@@ -685,6 +718,7 @@ export function useMidi() {
   }, [appendLog, selectedInput])
 
   return {
+    midiPanicCount,
     channel,
     connectMidi,
     disconnectMidi,
@@ -711,6 +745,7 @@ export function useMidi() {
     setEffectChannel,
     setSelectedInputId: selectInput,
     setSelectedOutputId: selectOutput,
+    sendMidiPanic,
     startNote,
     stopNote,
     sysexAvailable,

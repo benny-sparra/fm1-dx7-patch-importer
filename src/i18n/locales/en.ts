@@ -295,6 +295,7 @@ export default {
     },
   },
   toasts: {
+    midiPanicSent: 'MIDI panic sent. Every note on the note channel was released.',
     notifications: 'Completed actions',
     dismiss: 'Dismiss notification',
     undo: 'Undo',
@@ -528,6 +529,10 @@ export default {
     randomiseHelp: 'A new voice. Keeps the name and effects.',
   },
   midi: {
+    panic: 'MIDI panic',
+    panicHelp:
+      'MIDI panic: send a note-off for every note on the note channel, to stop hanging notes',
+    panicUnavailable: 'MIDI panic: {{reason}}',
     online: 'MIDI online',
     offline: 'MIDI offline',
     connectFirst: 'Connect a MIDI output first',

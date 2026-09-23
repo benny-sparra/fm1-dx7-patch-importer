@@ -460,6 +460,18 @@ describe('PianoKeyboard audition phrases', () => {
     ])
   })
 
+  it('stops the phrase on a MIDI panic', async () => {
+    const { midi, rerender } = await openWithPhrase({ midiPanicCount: 0 })
+    fireEvent.click(playButton())
+
+    rerender(<PianoKeyboard midi={{ ...midi, midiPanicCount: 1 } as MidiController} />)
+    const sentBefore = vi.mocked(midi.startNote).mock.calls.length
+    vi.advanceTimersByTime(10_000)
+
+    expect(vi.mocked(midi.startNote).mock.calls.length).toBe(sentBefore)
+    expect(playButton()).toBeTruthy()
+  })
+
   it('lights the keys the phrase is playing', async () => {
     await openWithPhrase()
 

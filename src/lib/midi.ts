@@ -239,6 +239,20 @@ export function sendNoteOff(output: Output, channel: number, note: number, veloc
   output.sendNoteOff(note, { channels: channel, rawRelease: velocity })
 }
 
+export const midiNoteCount = 128
+
+/**
+ * Releases every note on `channel` with a Note Off for each of the 128 notes. The FM1 takes Control
+ * Change only for its effect controllers, 0 to 23 on the effect channel, so the standard All Notes
+ * Off (CC 123) and All Sound Off (CC 120) never reach its voices.
+ */
+export function sendEveryNoteOff(output: Output, channel: number) {
+  assertMidiChannel(channel)
+  for (let note = 0; note < midiNoteCount; note += 1) {
+    output.sendNoteOff(note, { channels: channel, rawRelease: 0 })
+  }
+}
+
 const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 const midiTimingClockStatus = 0xf8

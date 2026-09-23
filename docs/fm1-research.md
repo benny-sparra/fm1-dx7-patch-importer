@@ -233,6 +233,21 @@ The synth dispatch path explicitly handles:
 
 Controller changes flow through the synth's modulation-update path.
 
+### MIDI panic
+
+**Status: Likely** (from the controller filter in §4.5; not yet checked on hardware through the
+editor)
+
+The standard MIDI panic messages are Control Changes: All Notes Off (CC 123) and All Sound Off
+(CC 120). The stock firmware accepts Control Change only on the CC channel and only for `cc ≤ 23`
+(§4.5), so neither reaches the voices. The editor's **MIDI panic** button therefore sends an
+ordinary Note Off, `8n kk 00`, for each of the 128 notes on the note channel
+(`sendEveryNoteOff`). Note Off is handled above, so this should release a hanging note.
+
+Hardware test still required: hold a note, send a **MIDI panic**, and confirm it releases, and
+that 128 back-to-back Note Off messages over USB and Bluetooth MIDI are all taken without loss.
+No persisted state, vendor command, or OTA/loader path is involved.
+
 ### Possible editor enhancements
 
 Consider a small diagnostic/controller section rather than a large new feature:

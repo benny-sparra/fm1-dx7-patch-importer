@@ -269,6 +269,7 @@ export default {
     },
   },
   toasts: {
+    midiPanicSent: '已发送 MIDI 紧急停止，音符通道上的所有音符均已释放。',
     notifications: '已完成的操作',
     dismiss: '关闭通知',
     undo: '撤销',
@@ -495,6 +496,9 @@ export default {
     randomiseHelp: '生成新音色，保留名称和效果。',
   },
   midi: {
+    panic: 'MIDI 紧急停止',
+    panicHelp: 'MIDI 紧急停止：在音符通道上为每个音符发送音符关闭消息，以停止悬挂的音符',
+    panicUnavailable: 'MIDI 紧急停止：{{reason}}',
     online: 'MIDI 在线',
     offline: 'MIDI 离线',
     connectFirst: '请先连接 MIDI 输出',

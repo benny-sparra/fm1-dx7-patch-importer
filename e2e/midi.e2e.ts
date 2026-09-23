@@ -119,6 +119,19 @@ test.describe('with an FM-1 connected', () => {
     await expect(log.getByText('Ch 1 Note On: C4 (velocity 100)')).toBeVisible()
   })
 
+  test('sends a MIDI panic as a Note Off for every note on the note channel', async ({ page }) => {
+    await page.getByRole('button', { name: 'MIDI panic' }).click()
+
+    const noteOffs = () =>
+      sentMidi(page).then((messages) =>
+        messages.filter(([status]) => status === 0x80).map(([, note]) => note),
+      )
+    await expect.poll(noteOffs).toEqual(Array.from({ length: 128 }, (_, note) => note))
+    await expect(
+      page.getByText('MIDI panic sent. Every note on the note channel was released.'),
+    ).toBeVisible()
+  })
+
   test('loops an audition phrase from the keyboard and silences it on stop', async ({ page }) => {
     await page.getByRole('button', { name: 'Keyboard' }).first().click()
     const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })

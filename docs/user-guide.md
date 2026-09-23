@@ -102,6 +102,8 @@ Each phrase is written for its own tempo, which the **Tempo** slider takes up wh
 
 A phrase is sent live over MIDI and is never stored on the FM1: it has nothing to do with the unit's own sequencer. It stops when you close the keyboard, when the MIDI output disconnects or you choose another, and when you change the note channel in **Settings**. Browsers slow down a hidden tab, so a phrase left playing in one skips the notes it would play late rather than sending them all at once. Its notes are kept out of the MIDI log, which records only that a phrase started and stopped.
 
+If a note keeps sounding on the FM1 after you let go of it, press the **MIDI panic** button, the octagon with an exclamation mark next to **Keyboard**. It sends a note-off for every note on the note channel set in **Settings**, and stops a phrase that is playing. A notification confirms it was sent.
+
 ## Keyboard shortcuts
 
 The **?** guide lists these on its own tab. Each view binds the actions that also appear in its

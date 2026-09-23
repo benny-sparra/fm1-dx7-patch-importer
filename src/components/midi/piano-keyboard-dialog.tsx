@@ -34,6 +34,7 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
   const { t } = useTranslation()
   const keyLabel = useKeyboardKeyLabel()
   const {
+    midiPanicCount,
     channel,
     hasMidiOutput,
     logAuditionPhrase,
@@ -237,6 +238,20 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
       stopPhrase()
     }
   }, [channel, hasMidiOutput, selectedOutputId, sendMidiNoteOff, sendMidiNoteOn, stopPhrase])
+
+  // After a MIDI panic, the phrase must not strike the released notes again, and no key may stay
+  // lit for a note the FM1 has already released.
+  const midiPanicRef = useRef(midiPanicCount)
+
+  useEffect(() => {
+    if (midiPanicRef.current === midiPanicCount) {
+      return
+    }
+
+    midiPanicRef.current = midiPanicCount
+    releaseAllNotes()
+    stopPhrase()
+  }, [midiPanicCount, releaseAllNotes, stopPhrase])
 
   useEffect(() => () => player.stop(), [player])
 

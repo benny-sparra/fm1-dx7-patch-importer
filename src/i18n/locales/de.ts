@@ -307,6 +307,7 @@ export default {
     },
   },
   toasts: {
+    midiPanicSent: 'MIDI-Panik gesendet. Alle Noten auf dem Notenkanal wurden beendet.',
     notifications: 'Abgeschlossene Aktionen',
     dismiss: 'Benachrichtigung schließen',
     undo: 'Rückgängig',
@@ -541,6 +542,10 @@ export default {
     randomiseHelp: 'Neue Stimme. Name und Effekte bleiben.',
   },
   midi: {
+    panic: 'MIDI-Panik',
+    panicHelp:
+      'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',
+    panicUnavailable: 'MIDI-Panik: {{reason}}',
     online: 'MIDI online',
     offline: 'MIDI offline',
     connectFirst: 'Zuerst einen MIDI-Ausgang verbinden',

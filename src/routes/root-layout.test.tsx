@@ -4,6 +4,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
+import { ToastProvider } from '@/components/ui/toast'
 import type { MidiController } from '@/hooks/use-midi'
 
 import { RootLayout } from './root-layout'
@@ -52,6 +53,7 @@ describe('RootLayout title layout', () => {
       <RootLayout midi={midi}>
         <div>Library</div>
       </RootLayout>,
+      { wrapper: ToastProvider },
     )
 
     const title = screen.getByRole('heading', { level: 1 })
@@ -64,6 +66,7 @@ describe('RootLayout title layout', () => {
       <RootLayout compact midi={midi}>
         <div>Editor</div>
       </RootLayout>,
+      { wrapper: ToastProvider },
     )
 
     const title = screen.getByRole('heading', { level: 1 })
@@ -92,6 +95,7 @@ describe('RootLayout unsupported banner', () => {
       <RootLayout midi={midi}>
         <div>Library</div>
       </RootLayout>,
+      { wrapper: ToastProvider },
     )
   }
 

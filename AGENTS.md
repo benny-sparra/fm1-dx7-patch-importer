@@ -138,6 +138,11 @@ open everything an earlier release could have saved.
   `phraseLatenessLimitMs` the phrase player drops the missed notes and rejoins the loop where it
   should be, because a hidden tab holds timers back for up to a minute and the backlog would reach
   the FM1 as hundreds of notes at once.
+- **MIDI panic** sends a Note Off for each of the 128 notes on the note channel
+  (`sendEveryNoteOff`), because the FM1 takes Control Change only for its effect controllers, so
+  All Notes Off (CC 123) never reaches its voices. Do not call the button All notes off, which
+  names that message. Anything that plays notes by itself, such as the audition phrase, stops when
+  `midiPanicCount` changes rather than striking them again.
 - Do not resend unchanged data to the FM1 on repeated interaction, such as a double-click. Forget
   what was sent as soon as anything else replaces that device state, and after a failed send.
   The edit-buffer audition compares voice objects by identity, so a library change that puts a
