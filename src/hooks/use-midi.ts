@@ -444,6 +444,11 @@ export function useMidi() {
           return true
         })
         .catch((caughtError) => {
+          if (caughtError instanceof MidiTransferCancelledError) {
+            // Switching MIDI off or changing output dropped the patch before it was sent.
+            appendLog(makeLogEntry('system', `${voice.name} was not sent. ${caughtError.message}`))
+            return false
+          }
           appendLog(failureEntry(caughtError, 'Patch transfer failed.'))
           return false
         })
