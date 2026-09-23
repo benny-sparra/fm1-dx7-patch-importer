@@ -106,6 +106,28 @@ function midiConnectionFailureReason(error: unknown) {
     : ('enable_failed' as const)
 }
 
+/** A failed send's log entry: the error's message, or `fallback` when it is not an `Error`. */
+function failureEntry(caughtError: unknown, fallback: string) {
+  return makeLogEntry('system', caughtError instanceof Error ? caughtError.message : fallback)
+}
+
+function noOutputEntry(action: string) {
+  return makeLogEntry('system', `Could not ${action}; no MIDI output selected.`)
+}
+
+type LoggedLiveEdit = {
+  /** Coalesces edits: a newer one with the same key replaces one still waiting in the queue. */
+  key: string
+  /** Builds the bytes to log, validating the edit before it is queued. */
+  makeMessage: () => Uint8Array
+  send: () => void
+  sent: string
+  /** Logged when the queued send fails or is dropped. */
+  failure: string
+  /** Logged when the message cannot be built; `failure` unless given. */
+  buildFailure?: string
+}
+
 export function useMidi() {
   const [midiAccess, setMidiAccess] = useState(false)
   const [outputs, setOutputs] = useState<MidiDevice<Output>[]>([])
@@ -149,6 +171,29 @@ export function useMidi() {
       logStore.append(entry)
     },
     [logStore],
+  )
+
+  /**
+   * Queues one live edit and logs it with its bytes once sent. Returns whether it was queued; one
+   * that cannot be built is logged and not queued.
+   */
+  const enqueueLogged = useCallback(
+    ({ key, makeMessage, send, sent, failure, buildFailure = failure }: LoggedLiveEdit) => {
+      try {
+        const message = makeMessage()
+        void transferQueue
+          .enqueue(() => {
+            send()
+            appendLog(makeLogEntry('out', sent, message))
+          }, key)
+          .catch((caughtError) => appendLog(failureEntry(caughtError, failure)))
+        return true
+      } catch (caughtError) {
+        appendLog(failureEntry(caughtError, buildFailure))
+        return false
+      }
+    },
+    [appendLog, transferQueue],
   )
 
   const loadWebMidi = useCallback(() => {
@@ -326,7 +371,7 @@ export function useMidi() {
   const sendBank = useCallback(
     (bank: string, voices: Dx7Voice[]) => {
       if (!selectedOutput) {
-        appendLog(makeLogEntry('system', `Could not send bank ${bank}; no MIDI output selected.`))
+        appendLog(noOutputEntry(`send bank ${bank}`))
         return Promise.resolve<BankTransferResult>({ ok: false, reason: 'no_output' })
       }
 
@@ -368,12 +413,7 @@ export function useMidi() {
             sysexAvailable: Boolean(webMidi.current?.sysexEnabled),
             voiceCount: voices.length,
           })
-          appendLog(
-            makeLogEntry(
-              'system',
-              caughtError instanceof Error ? caughtError.message : 'Bank transfer failed.',
-            ),
-          )
+          appendLog(failureEntry(caughtError, 'Bank transfer failed.'))
           return { ok: false, reason: 'transport' } as const
         })
     },
@@ -383,7 +423,7 @@ export function useMidi() {
   const sendVoice = useCallback(
     (voice: Dx7Voice) => {
       if (!selectedOutput) {
-        appendLog(makeLogEntry('system', `Could not send ${voice.name}; no MIDI output selected.`))
+        appendLog(noOutputEntry(`send ${voice.name}`))
         return Promise.resolve(false)
       }
       if (!webMidi.current?.sysexEnabled) {
@@ -404,12 +444,7 @@ export function useMidi() {
           return true
         })
         .catch((caughtError) => {
-          appendLog(
-            makeLogEntry(
-              'system',
-              caughtError instanceof Error ? caughtError.message : 'Patch transfer failed.',
-            ),
-          )
+          appendLog(failureEntry(caughtError, 'Patch transfer failed.'))
           return false
         })
     },
@@ -419,9 +454,7 @@ export function useMidi() {
   const sendProgramChange = useCallback(
     (program: number) => {
       if (!selectedOutput) {
-        appendLog(
-          makeLogEntry('system', 'Could not select an FM1 program; no MIDI output selected.'),
-        )
+        appendLog(noOutputEntry('select an FM1 program'))
         return false
       }
 
@@ -433,12 +466,7 @@ export function useMidi() {
         )
         return true
       } catch (caughtError) {
-        appendLog(
-          makeLogEntry(
-            'system',
-            caughtError instanceof Error ? caughtError.message : 'FM1 program selection failed.',
-          ),
-        )
+        appendLog(failureEntry(caughtError, 'FM1 program selection failed.'))
         return false
       }
     },
@@ -448,7 +476,7 @@ export function useMidi() {
   const sendParameter = useCallback(
     (parameter: number, value: number) => {
       if (!selectedOutput) {
-        appendLog(makeLogEntry('system', 'Could not send FM1 parameter; no MIDI output selected.'))
+        appendLog(noOutputEntry('send FM1 parameter'))
         return false
       }
       if (!webMidi.current?.sysexEnabled) {
@@ -456,76 +484,34 @@ export function useMidi() {
         return false
       }
 
-      try {
-        const payload = makeFm1ParameterPayload(parameter, value)
-        const message = makeYamahaSysexMessage(payload)
-        void transferQueue
-          .enqueue(() => {
-            sendFm1Parameter(selectedOutput, parameter, value)
-            appendLog(makeLogEntry('out', `Sent FM1 parameter ${parameter} = ${value}.`, message))
-          }, `parameter-${parameter}`)
-          .catch((caughtError) => {
-            appendLog(
-              makeLogEntry(
-                'system',
-                caughtError instanceof Error ? caughtError.message : 'FM1 parameter write failed.',
-              ),
-            )
-          })
-        return true
-      } catch (caughtError) {
-        appendLog(
-          makeLogEntry(
-            'system',
-            caughtError instanceof Error ? caughtError.message : 'FM1 parameter test failed.',
-          ),
-        )
-        return false
-      }
+      return enqueueLogged({
+        key: `parameter-${parameter}`,
+        makeMessage: () => makeYamahaSysexMessage(makeFm1ParameterPayload(parameter, value)),
+        send: () => sendFm1Parameter(selectedOutput, parameter, value),
+        sent: `Sent FM1 parameter ${parameter} = ${value}.`,
+        failure: 'FM1 parameter write failed.',
+        buildFailure: 'FM1 parameter test failed.',
+      })
     },
-    [appendLog, selectedOutput, transferQueue],
+    [appendLog, enqueueLogged, selectedOutput],
   )
 
   const sendEffectParameter = useCallback(
     (controller: number, value: number) => {
       if (!selectedOutput) {
-        appendLog(makeLogEntry('system', 'Could not send FM1 effect; no MIDI output selected.'))
+        appendLog(noOutputEntry('send FM1 effect'))
         return false
       }
 
-      try {
-        const message = makeFm1EffectControlMessage(controller, value, effectChannel)
-        void transferQueue
-          .enqueue(() => {
-            sendFm1EffectControl(selectedOutput, effectChannel, controller, value)
-            appendLog(
-              makeLogEntry(
-                'out',
-                `Sent FM1 effect CC ${controller} = ${value} on channel ${effectChannel}.`,
-                message,
-              ),
-            )
-          }, `effect-${controller}`)
-          .catch((caughtError) => {
-            appendLog(
-              makeLogEntry(
-                'system',
-                caughtError instanceof Error ? caughtError.message : 'FM1 effect write failed.',
-              ),
-            )
-          })
-        return true
-      } catch (caughtError) {
-        appendLog(
-          makeLogEntry(
-            'system',
-            caughtError instanceof Error ? caughtError.message : 'FM1 effect write failed.',
-          ),
-        )
-        return false
-      }
+      return enqueueLogged({
+        key: `effect-${controller}`,
+        makeMessage: () => makeFm1EffectControlMessage(controller, value, effectChannel),
+        send: () => sendFm1EffectControl(selectedOutput, effectChannel, controller, value),
+        sent: `Sent FM1 effect CC ${controller} = ${value} on channel ${effectChannel}.`,
+        failure: 'FM1 effect write failed.',
+      })
     },
-    [appendLog, effectChannel, selectedOutput, transferQueue],
+    [appendLog, effectChannel, enqueueLogged, selectedOutput],
   )
 
   const sendEffectDiagnosticControl = useCallback(
@@ -533,52 +519,27 @@ export function useMidi() {
       if (!import.meta.env.DEV) return false
 
       if (!selectedOutput) {
-        appendLog(
-          makeLogEntry('system', 'Could not send development FX probe; no MIDI output selected.'),
-        )
+        appendLog(noOutputEntry('send development FX probe'))
         return false
       }
 
-      try {
-        const message = makeFm1EffectDiagnosticControlMessage(controller, value, effectChannel)
-        void transferQueue
-          .enqueue(() => {
-            sendFm1EffectDiagnosticControl(selectedOutput, effectChannel, controller, value)
-            appendLog(
-              makeLogEntry(
-                'out',
-                `Sent development FX probe CC ${controller} = ${value} on channel ${effectChannel}.`,
-                message,
-              ),
-            )
-          }, `effect-diagnostic-${controller}`)
-          .catch((caughtError) => {
-            appendLog(
-              makeLogEntry(
-                'system',
-                caughtError instanceof Error ? caughtError.message : 'Development FX probe failed.',
-              ),
-            )
-          })
-        return true
-      } catch (caughtError) {
-        appendLog(
-          makeLogEntry(
-            'system',
-            caughtError instanceof Error ? caughtError.message : 'Development FX probe failed.',
-          ),
-        )
-        return false
-      }
+      return enqueueLogged({
+        key: `effect-diagnostic-${controller}`,
+        makeMessage: () => makeFm1EffectDiagnosticControlMessage(controller, value, effectChannel),
+        send: () =>
+          sendFm1EffectDiagnosticControl(selectedOutput, effectChannel, controller, value),
+        sent: `Sent development FX probe CC ${controller} = ${value} on channel ${effectChannel}.`,
+        failure: 'Development FX probe failed.',
+      })
     },
-    [appendLog, effectChannel, selectedOutput, transferQueue],
+    [appendLog, effectChannel, enqueueLogged, selectedOutput],
   )
 
   const sendEffectSettings = useCallback(
     (settings: Uint8Array) => {
       const normalized = normalizeFm1Effects(settings)
       if (!selectedOutput) {
-        appendLog(makeLogEntry('system', 'Could not send FM1 effects; no MIDI output selected.'))
+        appendLog(noOutputEntry('send FM1 effects'))
         return Promise.resolve(false)
       }
 
@@ -594,12 +555,7 @@ export function useMidi() {
       return Promise.all(transfers)
         .then(() => true)
         .catch((caughtError) => {
-          appendLog(
-            makeLogEntry(
-              'system',
-              caughtError instanceof Error ? caughtError.message : 'FM1 effect transfer failed.',
-            ),
-          )
+          appendLog(failureEntry(caughtError, 'FM1 effect transfer failed.'))
           return false
         })
     },
@@ -631,12 +587,7 @@ export function useMidi() {
           )
         }
       } catch (caughtError) {
-        appendLog(
-          makeLogEntry(
-            'system',
-            caughtError instanceof Error ? caughtError.message : 'MIDI note-on failed.',
-          ),
-        )
+        appendLog(failureEntry(caughtError, 'MIDI note-on failed.'))
       }
     },
     [appendLog, channel, selectedOutput],
@@ -661,12 +612,7 @@ export function useMidi() {
         try {
           sendNoteOff(selectedOutput, channel, note)
         } catch (caughtError) {
-          appendLog(
-            makeLogEntry(
-              'system',
-              caughtError instanceof Error ? caughtError.message : 'MIDI note-off failed.',
-            ),
-          )
+          appendLog(failureEntry(caughtError, 'MIDI note-off failed.'))
         }
       }
     },
@@ -676,19 +622,14 @@ export function useMidi() {
   /** A MIDI panic: releases every note on the note channel, for notes left hanging on the FM1. */
   const sendMidiPanic = useCallback(() => {
     if (!selectedOutput) {
-      appendLog(makeLogEntry('system', 'Could not send a MIDI panic; no MIDI output selected.'))
+      appendLog(noOutputEntry('send a MIDI panic'))
       return false
     }
 
     try {
       sendEveryNoteOff(selectedOutput, channel)
     } catch (caughtError) {
-      appendLog(
-        makeLogEntry(
-          'system',
-          caughtError instanceof Error ? caughtError.message : 'MIDI panic failed.',
-        ),
-      )
+      appendLog(failureEntry(caughtError, 'MIDI panic failed.'))
       return false
     }
 
