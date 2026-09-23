@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState } from 'react'
+import { type ComponentProps, lazy, Suspense, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -33,7 +33,8 @@ function PianoKeysIcon() {
 }
 
 type PianoKeyboardProps = {
-  midi: MidiController
+  midi: ComponentProps<typeof PianoKeyboardDialog>['midi'] &
+    Pick<MidiController, 'hasMidiOutput' | 'midiAccess'>
 }
 
 export function PianoKeyboard({ midi }: PianoKeyboardProps) {

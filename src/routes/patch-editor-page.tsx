@@ -64,7 +64,16 @@ type PatchEditorPageProps = {
   /** The operator last copied in any editor this session, kept by the app while it runs. */
   copiedOperator: CopiedOperator | null
   effects: Uint8Array
-  midi: MidiController
+  midi: Pick<
+    MidiController,
+    | 'hasMidiOutput'
+    | 'midiAccess'
+    | 'sendEffectParameter'
+    | 'sendEffectSettings'
+    | 'sendParameter'
+    | 'sendVoice'
+    | 'sysexAvailable'
+  >
   onBack: () => void
   onCopyOperator: (copied: CopiedOperator) => void
   onSave: (voice: Dx7Voice, effects: Uint8Array) => void

@@ -2,15 +2,16 @@
 
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useState } from 'react'
+import { type ComponentProps, useState } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
-import type { MidiController } from '@/hooks/use-midi'
 import type { Patch } from '@/data/patches'
 import { resolveOperatorParameterIndex } from '@/lib/fm1-parameters'
 import type { CopiedOperator } from '@/lib/operator-clipboard'
 import { PatchEditorPage } from '@/routes/patch-editor-page'
+
+type EditorMidi = ComponentProps<typeof PatchEditorPage>['midi']
 
 beforeAll(() => {
   window.scrollTo = vi.fn()
@@ -41,8 +42,8 @@ async function chooseRandomise(user: ReturnType<typeof userEvent.setup>) {
   expect(screen.getByLabelText('Voice presets').closest('details')?.open).toBe(false)
 }
 
-function setup(overrides: Partial<MidiController> = {}) {
-  const midi = {
+function setup(overrides: Partial<EditorMidi> = {}) {
+  const midi: EditorMidi = {
     hasMidiOutput: true,
     midiAccess: true,
     sendEffectParameter: vi.fn(() => true),
@@ -51,7 +52,7 @@ function setup(overrides: Partial<MidiController> = {}) {
     sendVoice: vi.fn(async () => true),
     sysexAvailable: true,
     ...overrides,
-  } as unknown as MidiController
+  }
   const onBack = vi.fn()
   const onSave = vi.fn()
   const browserBackRef: { current: (() => void) | null } = { current: null }
@@ -68,7 +69,7 @@ function setup(overrides: Partial<MidiController> = {}) {
       voice={{ data: new Uint8Array(128), name: 'INIT' }}
     />,
   )
-  const rerenderMidi = (nextMidi: MidiController) =>
+  const rerenderMidi = (nextMidi: EditorMidi) =>
     view.rerender(
       <PatchEditorPage
         browserBackRef={browserBackRef}
@@ -616,7 +617,7 @@ const firstPatch: Patch = {
 const secondPatch: Patch = { ...firstPatch, id: 'a-2', name: 'Soft Bass', number: 2, program: 1 }
 
 /** Keeps the copied operator above the editor, as the app does, across a change of sound. */
-function ClipboardHarness({ midi, patch }: { midi: MidiController; patch: Patch }) {
+function ClipboardHarness({ midi, patch }: { midi: EditorMidi; patch: Patch }) {
   const [copiedOperator, setCopiedOperator] = useState<CopiedOperator | null>(null)
   return (
     <PatchEditorPage
@@ -635,7 +636,7 @@ function ClipboardHarness({ midi, patch }: { midi: MidiController; patch: Patch 
 
 describe('PatchEditorPage operator copy and paste', () => {
   const setupClipboard = async () => {
-    const midi = {
+    const midi: EditorMidi = {
       hasMidiOutput: true,
       midiAccess: true,
       sendEffectParameter: vi.fn(() => true),
@@ -643,7 +644,7 @@ describe('PatchEditorPage operator copy and paste', () => {
       sendParameter: vi.fn(() => true),
       sendVoice: vi.fn(async () => true),
       sysexAvailable: true,
-    } as unknown as MidiController
+    }
     const view = render(<ClipboardHarness midi={midi} patch={firstPatch} />)
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
     return { midi, view }
@@ -736,7 +737,7 @@ describe('PatchEditorPage operator copy and paste', () => {
 
   it('closes the operator menu on Escape without leaving the editor', async () => {
     const user = userEvent.setup()
-    const midi = {
+    const midi: EditorMidi = {
       hasMidiOutput: true,
       midiAccess: true,
       sendEffectParameter: vi.fn(() => true),
@@ -744,7 +745,7 @@ describe('PatchEditorPage operator copy and paste', () => {
       sendParameter: vi.fn(() => true),
       sendVoice: vi.fn(async () => true),
       sysexAvailable: true,
-    } as unknown as MidiController
+    }
     const onBack = vi.fn()
     render(
       <PatchEditorPage
@@ -787,7 +788,7 @@ describe('PatchEditorPage operator copy and paste', () => {
 describe('PatchEditorPage compare with saved', () => {
   const feedbackValue = () => screen.getByRole('slider', { name: 'Feedback' }).getAttribute('value')
   const compareButton = () => screen.getByRole('button', { name: 'Compare with saved' })
-  const sentVoiceData = (midi: MidiController, call: number) =>
+  const sentVoiceData = (midi: EditorMidi, call: number) =>
     vi.mocked(midi.sendVoice).mock.calls[call][0].data
 
   async function setupEdited() {

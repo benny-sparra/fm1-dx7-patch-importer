@@ -18,7 +18,10 @@ import { dismissFm1BankSelectionDialogForSession } from '@/lib/session'
 type Fm1BankSelectionDialogProps = {
   dialogRef: RefObject<HTMLDialogElement | null>
   isSending: boolean
-  midi: MidiController
+  midi: Pick<
+    MidiController,
+    'connectMidi' | 'disconnectMidi' | 'isConnecting' | 'midiAccess' | 'sysexAvailable'
+  >
   onSend: () => void
 }
 

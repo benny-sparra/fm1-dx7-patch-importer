@@ -8,11 +8,11 @@ import { setLocale } from '@/i18n'
 
 import { DeviceSelect } from './device-select'
 
-type MidiControlsProps = {
-  midi: MidiController
+type MidiConnectActionsProps = {
+  midi: Pick<MidiController, 'connectMidi' | 'disconnectMidi' | 'isConnecting' | 'midiAccess'>
 }
 
-export function MidiConnectActions({ midi }: MidiControlsProps) {
+export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
   const { t } = useTranslation()
   const isOnline = Boolean(midi.midiAccess)
   const handleChange = () => {
@@ -51,7 +51,7 @@ const midiConnectionErrorKeys = {
   unsupported_browser: 'midi.errors.unsupportedBrowser',
 } as const satisfies Record<NonNullable<MidiController['error']>, string>
 
-export function MidiConnectionError({ midi }: MidiControlsProps) {
+export function MidiConnectionError({ midi }: { midi: Pick<MidiController, 'error'> }) {
   const { t } = useTranslation()
   if (!midi.error) return null
 
@@ -62,7 +62,23 @@ export function MidiConnectionError({ midi }: MidiControlsProps) {
   )
 }
 
-export function MidiSettingsMenu({ midi }: MidiControlsProps) {
+type MidiSettingsMenuProps = {
+  midi: Pick<
+    MidiController,
+    | 'channel'
+    | 'effectChannel'
+    | 'inputs'
+    | 'outputs'
+    | 'selectedInputId'
+    | 'selectedOutputId'
+    | 'setChannel'
+    | 'setEffectChannel'
+    | 'setSelectedInputId'
+    | 'setSelectedOutputId'
+  >
+}
+
+export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
   const menuRef = useDismissableDetails()
   const { i18n, t } = useTranslation()
 

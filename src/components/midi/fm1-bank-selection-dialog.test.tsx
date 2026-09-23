@@ -6,18 +6,22 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
-import type { MidiController } from '@/hooks/use-midi'
 import { translatePageText } from '@/test/page-translator'
 
 afterEach(cleanup)
 
 function renderDialog(sysexAvailable: boolean) {
-  const midi = { isConnecting: false, midiAccess: true, sysexAvailable } as MidiController
   return (
     <Fm1BankSelectionDialog
       dialogRef={createRef<HTMLDialogElement>()}
       isSending={false}
-      midi={midi}
+      midi={{
+        connectMidi: vi.fn(),
+        disconnectMidi: vi.fn(),
+        isConnecting: false,
+        midiAccess: true,
+        sysexAvailable,
+      }}
       onSend={vi.fn()}
     />
   )

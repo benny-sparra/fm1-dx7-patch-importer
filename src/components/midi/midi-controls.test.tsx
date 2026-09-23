@@ -5,13 +5,12 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import '@/i18n'
 import { MidiConnectionError } from '@/components/midi/midi-controls'
-import type { MidiController } from '@/hooks/use-midi'
 
 afterEach(cleanup)
 
 describe('MidiConnectionError', () => {
   it('explains a blocked MIDI permission in the interface language', () => {
-    render(<MidiConnectionError midi={{ error: 'permission_denied' } as MidiController} />)
+    render(<MidiConnectionError midi={{ error: 'permission_denied' }} />)
 
     expect(
       screen.getByText(
@@ -21,7 +20,7 @@ describe('MidiConnectionError', () => {
   })
 
   it('renders nothing while MIDI has no connection error', () => {
-    const { container } = render(<MidiConnectionError midi={{ error: null } as MidiController} />)
+    const { container } = render(<MidiConnectionError midi={{ error: null }} />)
 
     expect(container.textContent).toBe('')
   })

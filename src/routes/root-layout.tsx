@@ -1,5 +1,5 @@
 import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpButton } from '@/components/help-button'
@@ -23,7 +23,12 @@ import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 type RootLayoutProps = {
   children: ReactNode
   compact?: boolean
-  midi: MidiController
+  midi: ComponentProps<typeof MidiConnectActions>['midi'] &
+    ComponentProps<typeof MidiConnectionError>['midi'] &
+    ComponentProps<typeof MidiPanicButton>['midi'] &
+    ComponentProps<typeof MidiSettingsMenu>['midi'] &
+    ComponentProps<typeof PianoKeyboard>['midi'] &
+    Pick<MidiController, 'logStore' | 'sendEffectDiagnosticControl'>
 }
 
 export function RootLayout({ children, compact = false, midi }: RootLayoutProps) {
