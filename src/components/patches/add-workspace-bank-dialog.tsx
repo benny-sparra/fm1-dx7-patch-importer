@@ -32,7 +32,7 @@ import { trackAnalyticsEvent } from '@/lib/analytics'
 
 type AddWorkspaceBankDialogProps = {
   bank: string | null
-  library: PatchLibrary
+  library: Pick<PatchLibrary, 'addBank'>
   onClose: () => void
   onCreated: (bank: string) => void
   suggestedName: string

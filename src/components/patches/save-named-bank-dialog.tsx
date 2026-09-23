@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import type { NamedBankLibraryDialogProps } from '@/components/patches/named-bank-dialog-types'
+import type { SaveNamedBankDialogProps } from '@/components/patches/named-bank-dialog-types'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { savedBankNameLength } from '@/lib/named-bank'
@@ -21,7 +21,7 @@ export function SaveNamedBankDialog({
   destinationBank,
   library,
   onClose,
-}: NamedBankLibraryDialogProps) {
+}: SaveNamedBankDialogProps) {
   const { t } = useTranslation()
   const titleId = useId()
   const descriptionId = useId()

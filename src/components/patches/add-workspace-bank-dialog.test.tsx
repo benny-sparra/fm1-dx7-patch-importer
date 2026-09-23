@@ -6,7 +6,6 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
 import { ToastProvider } from '@/components/ui/toast'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { setLocale } from '@/i18n'
 import english from '@/i18n/locales/en'
 import french from '@/i18n/locales/fr'
@@ -58,7 +57,7 @@ function renderDialog(bank: string | null = 'E') {
     <ToastProvider>
       <AddWorkspaceBankDialog
         bank={bank}
-        library={{ addBank } as unknown as PatchLibrary}
+        library={{ addBank }}
         onClose={onClose}
         onCreated={onCreated}
         suggestedName="Bank 5"

@@ -2,6 +2,7 @@
 
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
@@ -12,10 +13,9 @@ import {
   type WorkspaceBankSelectorBank,
 } from '@/components/patches/workspace-bank-selector'
 import { ToastProvider } from '@/components/ui/toast'
-import type { MidiController } from '@/hooks/use-midi'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { expectNoAxeViolations } from '@/test/accessibility'
+import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
@@ -43,7 +43,7 @@ const banks: WorkspaceBankSelectorBank[] = [
   },
 ]
 
-const library = {
+const library = makeLibrarianLibrary({
   addBank: vi.fn(),
   bankDescriptions: {},
   bankNames: { A: 'Studio Favourites', B: 'Electric Keys' },
@@ -69,14 +69,14 @@ const library = {
   updateBankInformation: vi.fn(),
   voices: {},
   workspaceBanks: ['A', 'B'],
-} as unknown as PatchLibrary
+})
 
-const disconnectedMidi = {
+const disconnectedMidi = makeLibrarianMidi({
   hasMidiOutput: false,
   sendBank: vi.fn(),
-} as unknown as MidiController
+})
 
-const connectedWithoutSysexMidi = {
+const connectedWithoutSysexMidi = makeLibrarianMidi({
   connectMidi: vi.fn(),
   disconnectMidi: vi.fn(),
   hasMidiOutput: true,
@@ -84,17 +84,12 @@ const connectedWithoutSysexMidi = {
   midiAccess: true,
   sendBank: vi.fn(),
   sysexAvailable: false,
-} as unknown as MidiController
+})
 
-const settingsMidi = {
+const settingsMidi: ComponentProps<typeof MidiSettingsMenu>['midi'] = {
   channel: 1,
-  connectMidi: vi.fn(),
-  disconnectMidi: vi.fn(),
   effectChannel: 2,
-  error: null,
   inputs: [],
-  isConnecting: false,
-  midiAccess: false,
   outputs: [],
   selectedInputId: '',
   selectedOutputId: '',
@@ -102,7 +97,7 @@ const settingsMidi = {
   setEffectChannel: vi.fn(),
   setSelectedInputId: vi.fn(),
   setSelectedOutputId: vi.fn(),
-} as unknown as MidiController
+}
 
 function renderLibrarian() {
   return render(

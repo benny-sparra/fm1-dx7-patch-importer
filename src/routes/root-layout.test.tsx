@@ -1,44 +1,45 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
+import type { ComponentProps } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import type { MidiController } from '@/hooks/use-midi'
+import { makeLogEntry } from '@/lib/midi'
+import { MidiLogStore } from '@/lib/midi-log-store'
 
 import { RootLayout } from './root-layout'
 
-const midiLogSnapshot = [
-  {
-    direction: 'system',
-    message: 'Ready. Connect MIDI to begin.',
-    timestamp: 0,
-  },
-]
+// A log with activity, as the MIDI log dialog shows it once anything has been sent.
+const logStore = new MidiLogStore([])
+logStore.append(makeLogEntry('system', 'Ready. Connect MIDI to begin.'))
 
-const midi = {
+const midi: ComponentProps<typeof RootLayout>['midi'] = {
   channel: 1,
   connectMidi: vi.fn(),
   disconnectMidi: vi.fn(),
   effectChannel: 2,
   error: null,
+  hasMidiOutput: false,
   inputs: [],
   isConnecting: false,
-  logStore: {
-    getSnapshot: vi.fn(() => midiLogSnapshot),
-    hasActivity: vi.fn(() => true),
-    subscribe: vi.fn(() => vi.fn()),
-  },
+  logAuditionPhrase: vi.fn(),
+  logStore,
   midiAccess: false,
+  midiPanicCount: 0,
   outputs: [],
   selectedInputId: '',
   selectedOutputId: '',
+  sendEffectDiagnosticControl: vi.fn(),
+  sendMidiPanic: vi.fn(),
   setChannel: vi.fn(),
   setEffectChannel: vi.fn(),
   setSelectedInputId: vi.fn(),
   setSelectedOutputId: vi.fn(),
-} as unknown as MidiController
+  startNote: vi.fn(),
+  stopNote: vi.fn(),
+}
 
 beforeEach(() => localStorage.setItem('fm1-librarian-help-seen', 'true'))
 afterEach(() => {

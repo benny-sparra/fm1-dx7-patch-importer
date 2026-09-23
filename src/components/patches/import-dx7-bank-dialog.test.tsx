@@ -49,7 +49,7 @@ function renderDialog(importBank: PatchLibrary['importBank']) {
         bank="B"
         bankName="Leads"
         dialogRef={dialogRef}
-        library={{ importBank, undoChange } as unknown as PatchLibrary}
+        library={{ importBank, undoChange }}
       />
     </ToastProvider>,
   )

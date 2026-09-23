@@ -55,7 +55,7 @@ function renderDialog({
     loadedBanks,
     patches,
     workspaceBanks: ['A', 'B', 'C'],
-  } as unknown as PatchLibrary
+  }
   render(
     <CopyPatchDialog
       initialBank={initialBank}
@@ -204,14 +204,12 @@ describe('CopyPatchDialog with a sound from outside the workspace', () => {
     const onCopy = vi.fn(() => null)
     render(
       <CopyPatchDialog
-        library={
-          {
-            bankNames: { B: 'Keys' },
-            loadedBanks: ['A', 'B'],
-            patches,
-            workspaceBanks: ['A', 'B', 'C'],
-          } as unknown as PatchLibrary
-        }
+        library={{
+          bankNames: { B: 'Keys' },
+          loadedBanks: ['A', 'B'],
+          patches,
+          workspaceBanks: ['A', 'B', 'C'],
+        }}
         onClose={vi.fn()}
         onCopy={onCopy}
         onCopied={vi.fn()}

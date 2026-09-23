@@ -6,8 +6,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import type { MidiController } from '@/hooks/use-midi'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
+import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -32,7 +31,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-const library = {
+const library = makeLibrarianLibrary({
   bankDescriptions: {},
   bankNames: {},
   effects: {},
@@ -45,7 +44,7 @@ const library = {
   patches: [],
   voices: {},
   workspaceBanks: ['A'],
-} as unknown as PatchLibrary
+})
 
 async function chooseFromMenu(item: string) {
   vi.spyOn(console, 'error').mockImplementation(() => undefined)
@@ -55,7 +54,7 @@ async function chooseFromMenu(item: string) {
       <LibrarianPage
         activePatchId=""
         library={library}
-        midi={{ hasMidiOutput: false } as unknown as MidiController}
+        midi={makeLibrarianMidi()}
         onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
         onPlaySearchResult={vi.fn()}

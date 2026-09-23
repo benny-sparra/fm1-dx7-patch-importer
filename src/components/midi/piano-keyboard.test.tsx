@@ -2,11 +2,11 @@
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
-import type { MidiController } from '@/hooks/use-midi'
 import { editorShortcuts, shouldRunShortcut } from '@/lib/keyboard-shortcuts'
 
 beforeAll(() => {
@@ -28,22 +28,27 @@ async function clickKeyboard(user: ReturnType<typeof userEvent.setup>) {
   await waitFor(() => expect(keyboardDialog()?.open).toBe(true))
 }
 
-function setup(overrides: Partial<MidiController> = {}) {
-  const midi = {
+type KeyboardMidi = ComponentProps<typeof PianoKeyboard>['midi']
+
+function setup(overrides: Partial<KeyboardMidi> = {}) {
+  const midi: KeyboardMidi = {
     channel: 1,
     hasMidiOutput: true,
     logAuditionPhrase: vi.fn(),
+    midiAccess: true,
+    midiPanicCount: 0,
+    selectedOutputId: '',
     startNote: vi.fn(),
     stopNote: vi.fn(),
     ...overrides,
-  } as unknown as MidiController
+  }
   const view = render(<PianoKeyboard midi={midi} />)
   return { midi, ...view }
 }
 
 describe('PianoKeyboard trigger', () => {
-  function trigger(midi: Partial<MidiController>) {
-    render(<PianoKeyboard midi={midi as MidiController} />)
+  function trigger(overrides: Partial<KeyboardMidi>) {
+    setup(overrides)
     return screen.getByRole('button', { name: 'Keyboard' }) as HTMLButtonElement
   }
 
@@ -309,7 +314,7 @@ describe('PianoKeyboard audition phrases', () => {
    * The keyboard is opened on real timers, because its chunk loads in a promise, and the phrase
    * is then played on fake ones so no test waits for a loop to come round.
    */
-  async function openWithPhrase(overrides: Partial<MidiController> = {}) {
+  async function openWithPhrase(overrides: Partial<KeyboardMidi> = {}) {
     const user = userEvent.setup()
     const view = setup(overrides)
     await clickKeyboard(user)
@@ -375,7 +380,7 @@ describe('PianoKeyboard audition phrases', () => {
     const { midi, rerender } = await openWithPhrase()
     fireEvent.click(playButton())
 
-    rerender(<PianoKeyboard midi={{ ...midi, hasMidiOutput: false } as MidiController} />)
+    rerender(<PianoKeyboard midi={{ ...midi, hasMidiOutput: false }} />)
 
     expect(midi.stopNote).toHaveBeenCalledWith(48)
     const sentBefore = vi.mocked(midi.startNote).mock.calls.length
@@ -387,14 +392,14 @@ describe('PianoKeyboard audition phrases', () => {
    * Like `useMidi`, each render's note functions reach only the output and channel that render
    * had, so a test can see where every note went.
    */
-  function routedMidi(midi: MidiController, sent: string[], output: string, channel: number) {
+  function routedMidi(midi: KeyboardMidi, sent: string[], output: string, channel: number) {
     return {
       ...midi,
       channel,
       selectedOutputId: output,
       startNote: (note: number) => sent.push(`${output} ch${channel} on ${note}`),
       stopNote: (note: number) => sent.push(`${output} ch${channel} off ${note}`),
-    } as MidiController
+    }
   }
 
   it('stops the phrase rather than moving it when the note channel changes', async () => {
@@ -464,7 +469,7 @@ describe('PianoKeyboard audition phrases', () => {
     const { midi, rerender } = await openWithPhrase({ midiPanicCount: 0 })
     fireEvent.click(playButton())
 
-    rerender(<PianoKeyboard midi={{ ...midi, midiPanicCount: 1 } as MidiController} />)
+    rerender(<PianoKeyboard midi={{ ...midi, midiPanicCount: 1 }} />)
     const sentBefore = vi.mocked(midi.startNote).mock.calls.length
     vi.advanceTimersByTime(10_000)
 

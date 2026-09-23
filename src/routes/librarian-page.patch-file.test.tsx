@@ -6,12 +6,11 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import type { MidiController } from '@/hooks/use-midi'
-import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { updateDx7VoiceName } from '@/lib/dx7'
 import { makeDx7VoiceFile, parseDx7VoiceFile } from '@/lib/dx7-voice-file'
 import { downloadFile } from '@/lib/download-file'
-import { makeDemoVoices } from '@/lib/patch-library'
+import { emptyPatchLibrary, makeDemoVoices } from '@/lib/patch-library'
+import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -34,10 +33,10 @@ afterEach(() => {
 
 const slotVoice = updateDx7VoiceName(makeDemoVoices()[0], 'ALPHA')
 const fileVoice = updateDx7VoiceName(makeDemoVoices()[1], 'FROM FILE')
-const changed = { changed: true }
+const changed = emptyPatchLibrary()
 
 function makeLibrary() {
-  return {
+  return makeLibrarianLibrary({
     bankDescriptions: {},
     bankNames: { A: 'Studio Favourites' },
     getBankVoices: vi.fn(() => []),
@@ -48,7 +47,7 @@ function makeLibrary() {
     undoChange: vi.fn(),
     voices: { 'bank-A-1': slotVoice },
     workspaceBanks: ['A'],
-  } as unknown as PatchLibrary
+  })
 }
 
 async function openSlotMenu(library = makeLibrary()) {
@@ -58,7 +57,7 @@ async function openSlotMenu(library = makeLibrary()) {
       <LibrarianPage
         activePatchId=""
         library={library}
-        midi={{ hasMidiOutput: false } as unknown as MidiController}
+        midi={makeLibrarianMidi()}
         onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
         onPlaySearchResult={vi.fn()}

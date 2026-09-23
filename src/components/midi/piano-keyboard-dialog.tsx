@@ -24,7 +24,16 @@ import {
 } from '@/lib/piano-keyboard'
 
 type PianoKeyboardDialogProps = {
-  midi: MidiController
+  midi: Pick<
+    MidiController,
+    | 'channel'
+    | 'hasMidiOutput'
+    | 'logAuditionPhrase'
+    | 'midiPanicCount'
+    | 'selectedOutputId'
+    | 'startNote'
+    | 'stopNote'
+  >
   onClose: () => void
   open: boolean
   triggerRef: RefObject<HTMLButtonElement | null>
