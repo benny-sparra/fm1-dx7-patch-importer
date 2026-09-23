@@ -10,6 +10,7 @@ import {
 } from '@/components/midi/midi-controls'
 import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
+import { MidiPanicButton } from '@/components/midi/midi-panic-button'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
 import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dialog'
 import type { MidiController } from '@/hooks/use-midi'
@@ -81,6 +82,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             >
               <MidiConnectActions midi={midi} />
               <PianoKeyboard midi={midi} />
+              <MidiPanicButton midi={midi} />
             </div>
 
             {!compact && showColorwayImage ? (

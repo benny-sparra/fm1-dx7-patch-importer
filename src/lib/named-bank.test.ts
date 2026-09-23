@@ -84,6 +84,19 @@ describe('named bank operations', () => {
     expect(loaded.effects[voiceId('C', 2)]).toEqual(makeDefaultFm1Effects())
   })
 
+  it('titles the workspace bank with as much of a long saved-bank name as a title holds', () => {
+    const bank = createNamedBank(makeLoadedLibrary(), 'A', {
+      description: '',
+      id: 'bank-1',
+      name: 'Electric Pianos',
+      now: createdAt,
+    })
+
+    const loaded = loadNamedBank(emptyPatchLibrary(), 'C', bank)
+
+    expect(loaded.bankNames.C).toBe('Electric P')
+  })
+
   it('renames and duplicates without mutating the source bank', () => {
     const bank = createNamedBank(makeLoadedLibrary(), 'A', {
       description: '',

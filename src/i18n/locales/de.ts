@@ -169,6 +169,21 @@ export default {
     pianoKeyboard: 'Klaviatur',
     dragKeyboard: 'Klaviatur verschieben',
     closeKeyboard: 'Klaviatur schließen',
+    phrase: 'Phrase',
+    play: 'Start',
+    stop: 'Stopp',
+    playPhrase: 'Phrase abspielen',
+    stopPhrase: 'Phrase anhalten',
+    tempo: 'Tempo',
+    tempoValue: '{{tempo}} BPM',
+    phrases: {
+      pad: 'Fläche',
+      electricPiano: 'E-Piano',
+      bass: 'Bass',
+      lead: 'Melodie',
+      arpeggio: 'Arpeggio',
+      velocityRamp: 'Anschlagstärke',
+    },
     helpOpenFailed:
       'Die Anleitung konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     keyboardOpenFailed:
@@ -292,6 +307,7 @@ export default {
     },
   },
   toasts: {
+    midiPanicSent: 'MIDI-Panik gesendet. Alle Noten auf dem Notenkanal wurden beendet.',
     notifications: 'Abgeschlossene Aktionen',
     dismiss: 'Benachrichtigung schließen',
     undo: 'Rückgängig',
@@ -526,6 +542,10 @@ export default {
     randomiseHelp: 'Neue Stimme. Name und Effekte bleiben.',
   },
   midi: {
+    panic: 'MIDI-Panik',
+    panicHelp:
+      'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',
+    panicUnavailable: 'MIDI-Panik: {{reason}}',
     online: 'MIDI online',
     offline: 'MIDI offline',
     connectFirst: 'Zuerst einen MIDI-Ausgang verbinden',

@@ -28,11 +28,14 @@ async function clickKeyboard(user: ReturnType<typeof userEvent.setup>) {
   await waitFor(() => expect(keyboardDialog()?.open).toBe(true))
 }
 
-function setup() {
+function setup(overrides: Partial<MidiController> = {}) {
   const midi = {
+    channel: 1,
     hasMidiOutput: true,
+    logAuditionPhrase: vi.fn(),
     startNote: vi.fn(),
     stopNote: vi.fn(),
+    ...overrides,
   } as unknown as MidiController
   const view = render(<PianoKeyboard midi={midi} />)
   return { midi, ...view }
@@ -258,5 +261,257 @@ describe('PianoKeyboard keyboard layouts', () => {
       within(screen.getByRole('button', { name: 'Shift octave down' })).getByText('Z'),
     ).toBeTruthy()
     expect(within(screen.getByRole('button', { name: 'Play C#3' })).getByText('W')).toBeTruthy()
+  })
+})
+
+describe('PianoKeyboard dragging', () => {
+  beforeAll(() => {
+    // jsdom has no pointer capture, which the drag takes as it starts.
+    Object.defineProperty(Element.prototype, 'setPointerCapture', {
+      configurable: true,
+      value() {},
+    })
+  })
+
+  async function openKeyboard() {
+    const user = userEvent.setup()
+    setup()
+    await clickKeyboard(user)
+  }
+
+  it('moves the keyboard when its header is dragged', async () => {
+    await openKeyboard()
+
+    fireEvent.pointerDown(screen.getByLabelText('Drag keyboard'), { clientX: 20, clientY: 20 })
+    fireEvent.pointerMove(screen.getByLabelText('Drag keyboard'), { clientX: 60, clientY: 90 })
+
+    expect(keyboardDialog()?.style.inset).toBe('auto')
+  })
+
+  it('leaves the keyboard in place when a phrase control in its header is used', async () => {
+    await openKeyboard()
+
+    fireEvent.pointerDown(screen.getByRole('slider', { name: 'Tempo' }), {
+      clientX: 20,
+      clientY: 20,
+    })
+
+    expect(keyboardDialog()?.style.inset).toBe('')
+  })
+})
+
+describe('PianoKeyboard audition phrases', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  /**
+   * The keyboard is opened on real timers, because its chunk loads in a promise, and the phrase
+   * is then played on fake ones so no test waits for a loop to come round.
+   */
+  async function openWithPhrase(overrides: Partial<MidiController> = {}) {
+    const user = userEvent.setup()
+    const view = setup(overrides)
+    await clickKeyboard(user)
+    vi.useFakeTimers()
+    return { ...view, user }
+  }
+
+  const playButton = () => screen.getByRole('button', { name: 'Play the phrase' })
+  const stopButton = () => screen.getByRole('button', { name: 'Stop the phrase' })
+
+  it('sends the phrase quietly, with the velocity it is written for', async () => {
+    const { midi } = await openWithPhrase()
+
+    fireEvent.click(playButton())
+
+    // The arpeggio opens on C3 alone.
+    expect(midi.startNote).toHaveBeenCalledTimes(1)
+    expect(midi.startNote).toHaveBeenCalledWith(48, expect.any(String), {
+      quiet: true,
+      velocity: 96,
+    })
+    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('arpeggio', 'started')
+  })
+
+  it('keeps looping as time passes', async () => {
+    const { midi } = await openWithPhrase()
+
+    fireEvent.click(playButton())
+    const firstChord = vi.mocked(midi.startNote).mock.calls.length
+    vi.advanceTimersByTime(10_000)
+
+    expect(vi.mocked(midi.startNote).mock.calls.length).toBeGreaterThan(firstChord)
+  })
+
+  it('silences the sounding notes when it is stopped, and sends nothing more', async () => {
+    const { midi } = await openWithPhrase()
+
+    fireEvent.click(playButton())
+    fireEvent.click(stopButton())
+
+    expect(midi.stopNote).toHaveBeenCalledWith(48)
+    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('arpeggio', 'stopped')
+
+    const sentBefore = vi.mocked(midi.startNote).mock.calls.length
+    vi.advanceTimersByTime(10_000)
+    expect(vi.mocked(midi.startNote).mock.calls.length).toBe(sentBefore)
+    expect(playButton()).toBeTruthy()
+  })
+
+  it('stops the phrase when the keyboard is closed', async () => {
+    const { midi } = await openWithPhrase()
+    fireEvent.click(playButton())
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+
+    expect(midi.stopNote).toHaveBeenCalledWith(48)
+    const sentBefore = vi.mocked(midi.startNote).mock.calls.length
+    vi.advanceTimersByTime(10_000)
+    expect(vi.mocked(midi.startNote).mock.calls.length).toBe(sentBefore)
+  })
+
+  it('stops the phrase when the MIDI output goes away', async () => {
+    const { midi, rerender } = await openWithPhrase()
+    fireEvent.click(playButton())
+
+    rerender(<PianoKeyboard midi={{ ...midi, hasMidiOutput: false } as MidiController} />)
+
+    expect(midi.stopNote).toHaveBeenCalledWith(48)
+    const sentBefore = vi.mocked(midi.startNote).mock.calls.length
+    vi.advanceTimersByTime(10_000)
+    expect(vi.mocked(midi.startNote).mock.calls.length).toBe(sentBefore)
+  })
+
+  /**
+   * Like `useMidi`, each render's note functions reach only the output and channel that render
+   * had, so a test can see where every note went.
+   */
+  function routedMidi(midi: MidiController, sent: string[], output: string, channel: number) {
+    return {
+      ...midi,
+      channel,
+      selectedOutputId: output,
+      startNote: (note: number) => sent.push(`${output} ch${channel} on ${note}`),
+      stopNote: (note: number) => sent.push(`${output} ch${channel} off ${note}`),
+    } as MidiController
+  }
+
+  it('stops the phrase rather than moving it when the note channel changes', async () => {
+    const sent: string[] = []
+    const { midi, rerender } = await openWithPhrase()
+    rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'fm1', 1)} />)
+    fireEvent.click(playButton())
+
+    rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'fm1', 4)} />)
+    vi.advanceTimersByTime(10_000)
+
+    expect(sent.filter((message) => message.includes('ch4'))).toEqual([])
+    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('arpeggio', 'stopped')
+  })
+
+  it('releases the phrase on the channel it was playing on when the channel changes', async () => {
+    const sent: string[] = []
+    const { midi, rerender } = await openWithPhrase()
+    rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'fm1', 1)} />)
+    fireEvent.click(playButton())
+
+    rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'fm1', 4)} />)
+
+    expect(sent).toEqual(['fm1 ch1 on 48', 'fm1 ch1 off 48'])
+  })
+
+  it('stops the phrase rather than moving it when another output is chosen', async () => {
+    const sent: string[] = []
+    const { midi, rerender } = await openWithPhrase()
+    rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'fm1', 1)} />)
+    fireEvent.click(playButton())
+
+    rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'other', 1)} />)
+    vi.advanceTimersByTime(10_000)
+
+    expect(sent.filter((message) => message.startsWith('other'))).toEqual([])
+    expect(midi.logAuditionPhrase).toHaveBeenCalledWith('arpeggio', 'stopped')
+  })
+
+  it('releases the phrase on the output it was playing on when another is chosen', async () => {
+    const sent: string[] = []
+    const { midi, rerender } = await openWithPhrase()
+    rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'fm1', 1)} />)
+    fireEvent.click(playButton())
+
+    rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'other', 1)} />)
+
+    expect(sent.filter((message) => message.includes('off'))).toEqual(['fm1 ch1 off 48'])
+  })
+
+  it('logs the playing phrase stopping when another phrase is chosen', async () => {
+    const { midi } = await openWithPhrase()
+    fireEvent.click(playButton())
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Phrase' }), {
+      target: { value: 'pad' },
+    })
+
+    expect(vi.mocked(midi.logAuditionPhrase).mock.calls).toEqual([
+      ['arpeggio', 'started'],
+      ['arpeggio', 'stopped'],
+      ['pad', 'started'],
+    ])
+  })
+
+  it('stops the phrase on a MIDI panic', async () => {
+    const { midi, rerender } = await openWithPhrase({ midiPanicCount: 0 })
+    fireEvent.click(playButton())
+
+    rerender(<PianoKeyboard midi={{ ...midi, midiPanicCount: 1 } as MidiController} />)
+    const sentBefore = vi.mocked(midi.startNote).mock.calls.length
+    vi.advanceTimersByTime(10_000)
+
+    expect(vi.mocked(midi.startNote).mock.calls.length).toBe(sentBefore)
+    expect(playButton()).toBeTruthy()
+  })
+
+  it('lights the keys the phrase is playing', async () => {
+    await openWithPhrase()
+
+    fireEvent.click(playButton())
+
+    expect(screen.getByRole('button', { name: 'Play C3' }).className).toContain(
+      'synthwave-piano-key-white-active',
+    )
+  })
+
+  it('starts on the arpeggio at the tempo it is written for', async () => {
+    await openWithPhrase()
+
+    expect(
+      (screen.getByRole('combobox', { name: 'Phrase' }) as HTMLSelectElement).selectedOptions[0]
+        ?.textContent,
+    ).toBe('Arpeggio')
+    expect(screen.getByRole('slider', { name: 'Tempo' }).getAttribute('aria-valuetext')).toBe(
+      '120 BPM',
+    )
+  })
+
+  it('takes up the tempo of the phrase that is chosen', async () => {
+    await openWithPhrase()
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Phrase' }), {
+      target: { value: 'pad' },
+    })
+
+    expect(screen.getByRole('slider', { name: 'Tempo' }).getAttribute('aria-valuetext')).toBe(
+      '76 BPM',
+    )
+  })
+
+  it('stops the phrase when the keyboard unmounts', async () => {
+    const { midi, unmount } = await openWithPhrase()
+    fireEvent.click(playButton())
+
+    unmount()
+
+    expect(midi.stopNote).toHaveBeenCalledWith(48)
   })
 })

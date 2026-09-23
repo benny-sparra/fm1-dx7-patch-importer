@@ -9,6 +9,7 @@ import {
   makeFm1ParameterPayload,
   makeFm1ProgramChangeMessage,
   resolveMidiPortSelection,
+  sendEveryNoteOff,
   sendFm1EffectControl,
   sendFm1EffectDiagnosticControl,
   sendFm1Parameter,
@@ -168,6 +169,29 @@ describe('makeFm1EffectDiagnosticControlMessage', () => {
     expect(() => makeFm1EffectDiagnosticControlMessage(controller, value, channel)).toThrow(
       RangeError,
     )
+  })
+})
+
+describe('sendEveryNoteOff', () => {
+  it('sends a Note Off for every note on the channel, lowest first', () => {
+    const output = { sendNoteOff: vi.fn() }
+
+    sendEveryNoteOff(output as never, 3)
+
+    expect(output.sendNoteOff.mock.calls).toEqual(
+      Array.from({ length: 128 }, (_, note) => [note, { channels: 3, rawRelease: 0 }]),
+    )
+  })
+
+  it.each([
+    ['below one', 0],
+    ['above sixteen', 17],
+    ['fractional', 1.5],
+  ])('refuses a channel %s and sends nothing', (_name, channel) => {
+    const output = { sendNoteOff: vi.fn() }
+
+    expect(() => sendEveryNoteOff(output as never, channel)).toThrow(RangeError)
+    expect(output.sendNoteOff).not.toHaveBeenCalled()
   })
 })
 

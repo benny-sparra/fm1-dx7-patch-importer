@@ -118,6 +118,39 @@ test.describe('with an FM-1 connected', () => {
     const log = page.getByRole('dialog', { name: 'MIDI log' })
     await expect(log.getByText('Ch 1 Note On: C4 (velocity 100)')).toBeVisible()
   })
+
+  test('sends a MIDI panic as a Note Off for every note on the note channel', async ({ page }) => {
+    await page.getByRole('button', { name: 'MIDI panic' }).click()
+
+    const noteOffs = () =>
+      sentMidi(page).then((messages) =>
+        messages.filter(([status]) => status === 0x80).map(([, note]) => note),
+      )
+    await expect.poll(noteOffs).toEqual(Array.from({ length: 128 }, (_, note) => note))
+    await expect(
+      page.getByText('MIDI panic sent. Every note on the note channel was released.'),
+    ).toBeVisible()
+  })
+
+  test('loops an audition phrase from the keyboard and silences it on stop', async ({ page }) => {
+    await page.getByRole('button', { name: 'Keyboard' }).first().click()
+    const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
+    await expect(keyboard).toBeVisible()
+
+    await keyboard.getByRole('button', { name: 'Play the phrase' }).click()
+
+    // The arpeggio opens on C3 at velocity 96, then G3 at 92.
+    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 48, 96])
+    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 55, 92])
+
+    await keyboard.getByRole('button', { name: 'Stop the phrase' }).click()
+
+    await expect.poll(() => sentMidi(page).then((messages) => messages.at(-1)?.[0])).toBe(0x80)
+    const afterStop = (await sentMidi(page)).length
+    await page.waitForTimeout(1500)
+    expect((await sentMidi(page)).length).toBe(afterStop)
+    await expect(keyboard.getByRole('button', { name: 'Play the phrase' })).toBeVisible()
+  })
 })
 
 test('offers to reconnect instead of sending a bank when SysEx access was declined', async ({

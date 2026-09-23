@@ -3,9 +3,17 @@ import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { PhraseTransport } from '@/components/midi/phrase-transport'
 import { PianoKeyButton } from '@/components/midi/piano-key'
 import { useKeyboardKeyLabel } from '@/hooks/use-keyboard-key-label'
 import type { MidiController } from '@/hooks/use-midi'
+import {
+  defaultAuditionPhraseId,
+  findAuditionPhrase,
+  maxPhraseTempo,
+  minPhraseTempo,
+} from '@/lib/audition-phrases'
+import { createPhrasePlayer } from '@/lib/phrase-player'
 import {
   makePianoKeys,
   mapComputerPianoKeys,
@@ -25,13 +33,27 @@ type PianoKeyboardDialogProps = {
 export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKeyboardDialogProps) {
   const { t } = useTranslation()
   const keyLabel = useKeyboardKeyLabel()
-  const { startNote: sendMidiNoteOn, stopNote: sendMidiNoteOff } = midi
+  const {
+    midiPanicCount,
+    channel,
+    hasMidiOutput,
+    logAuditionPhrase,
+    selectedOutputId,
+    startNote: sendMidiNoteOn,
+    stopNote: sendMidiNoteOff,
+  } = midi
   const dialogRef = useRef<HTMLDialogElement>(null)
   const dragOffsetRef = useRef<{ x: number; y: number } | null>(null)
   const activeNotesRef = useRef<Set<number>>(new Set())
   const activeComputerKeysRef = useRef<Map<string, number>>(new Map())
   const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set())
   const [baseOctave, setBaseOctave] = useState(3)
+  const [phraseId, setPhraseId] = useState(defaultAuditionPhraseId)
+  const [tempo, setTempo] = useState(
+    () => findAuditionPhrase(defaultAuditionPhraseId)?.tempo ?? minPhraseTempo,
+  )
+  const [playingPhraseId, setPlayingPhraseId] = useState<string | null>(null)
+  const [phraseNotes, setPhraseNotes] = useState<ReadonlySet<number>>(() => new Set())
   const [dialogPosition, setDialogPosition] = useState<{
     left: number
     top: number
@@ -42,6 +64,12 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
   const computerKeys = useMemo(
     () => mapComputerPianoKeys([...whiteKeys, ...blackKeys]),
     [blackKeys, whiteKeys],
+  )
+
+  /** A key lights whether the phrase is playing it or the player is. */
+  const soundingNotes = useMemo(
+    () => new Set([...activeNotes, ...phraseNotes]),
+    [activeNotes, phraseNotes],
   )
 
   useEffect(() => {
@@ -86,11 +114,153 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
     setActiveNotes(new Set())
   }, [sendMidiNoteOff])
 
+  // The route the phrase is playing on: the output and channel, and the controller's note
+  // functions that reach them. The player always sends through this route's functions, so its
+  // notes are released where they were struck.
+  const noteRouteRef = useRef({
+    channel,
+    hasMidiOutput,
+    outputId: selectedOutputId,
+    sendMidiNoteOff,
+    sendMidiNoteOn,
+  })
+  const playingPhraseRef = useRef<string | null>(null)
+
+  const [player] = useState(() =>
+    createPhrasePlayer({
+      onActiveNotesChange: setPhraseNotes,
+      startNote: (note, velocity) =>
+        noteRouteRef.current.sendMidiNoteOn(note, `phrase note ${note}`, {
+          quiet: true,
+          velocity,
+        }),
+      stopNote: (note) => noteRouteRef.current.sendMidiNoteOff(note),
+    }),
+  )
+
+  const stopPhrase = useCallback(() => {
+    const playing = playingPhraseRef.current
+    player.stop()
+    playingPhraseRef.current = null
+    setPlayingPhraseId(null)
+
+    if (playing) {
+      logAuditionPhrase(playing, 'stopped')
+    }
+  }, [logAuditionPhrase, player])
+
+  const startPhrase = useCallback(
+    (nextPhraseId: string, nextTempo: number) => {
+      const phrase = findAuditionPhrase(nextPhraseId)
+
+      if (!phrase) {
+        return
+      }
+
+      const replaced = playingPhraseRef.current
+      player.play(phrase, nextTempo)
+      playingPhraseRef.current = phrase.id
+      setPlayingPhraseId(phrase.id)
+
+      if (replaced) {
+        logAuditionPhrase(replaced, 'stopped')
+      }
+      logAuditionPhrase(phrase.id, 'started')
+    },
+    [logAuditionPhrase, player],
+  )
+
+  const togglePhrase = useCallback(() => {
+    if (playingPhraseRef.current) {
+      stopPhrase()
+      return
+    }
+
+    startPhrase(phraseId, tempo)
+  }, [phraseId, startPhrase, stopPhrase, tempo])
+
+  /** Each phrase is written for its own tempo, so choosing one takes that tempo up with it. */
+  const choosePhrase = useCallback(
+    (nextPhraseId: string) => {
+      const phrase = findAuditionPhrase(nextPhraseId)
+
+      if (!phrase) {
+        return
+      }
+
+      setPhraseId(phrase.id)
+      setTempo(phrase.tempo)
+
+      if (playingPhraseRef.current) {
+        startPhrase(phrase.id, phrase.tempo)
+      }
+    },
+    [startPhrase],
+  )
+
+  const changeTempo = useCallback(
+    (nextTempo: number) => {
+      if (!Number.isFinite(nextTempo)) {
+        return
+      }
+
+      const bounded = Math.min(maxPhraseTempo, Math.max(minPhraseTempo, Math.round(nextTempo)))
+      setTempo(bounded)
+      player.setTempo(bounded)
+    },
+    [player],
+  )
+
+  // A phrase never moves to another output or channel, so a change of either stops it. While the
+  // old output is still there, its notes are released through the old route before the new one
+  // takes over; an output that has gone has nowhere to release them.
+  useEffect(() => {
+    const route = noteRouteRef.current
+    const nextRoute = {
+      channel,
+      hasMidiOutput,
+      outputId: selectedOutputId,
+      sendMidiNoteOff,
+      sendMidiNoteOn,
+    }
+    const routeChanged =
+      route.channel !== channel ||
+      route.outputId !== selectedOutputId ||
+      (route.hasMidiOutput && !hasMidiOutput)
+
+    if (routeChanged && hasMidiOutput) {
+      stopPhrase()
+    }
+
+    noteRouteRef.current = nextRoute
+
+    if (routeChanged && !hasMidiOutput) {
+      stopPhrase()
+    }
+  }, [channel, hasMidiOutput, selectedOutputId, sendMidiNoteOff, sendMidiNoteOn, stopPhrase])
+
+  // After a MIDI panic, the phrase must not strike the released notes again, and no key may stay
+  // lit for a note the FM1 has already released.
+  const midiPanicRef = useRef(midiPanicCount)
+
+  useEffect(() => {
+    if (midiPanicRef.current === midiPanicCount) {
+      return
+    }
+
+    midiPanicRef.current = midiPanicCount
+    releaseAllNotes()
+    stopPhrase()
+  }, [midiPanicCount, releaseAllNotes, stopPhrase])
+
+  useEffect(() => () => player.stop(), [player])
+
   const closeKeyboard = useCallback(() => {
     releaseAllNotes()
+    stopPhrase()
     dialogRef.current?.close()
     triggerRef.current?.focus()
-  }, [releaseAllNotes, triggerRef])
+  }, [releaseAllNotes, stopPhrase, triggerRef])
 
   const shiftOctave = useCallback(
     (direction: -1 | 1) => {
@@ -247,9 +417,13 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
       aria-label={t('ui.pianoKeyboard')}
       className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1010px,calc(100vw-1rem))] overflow-auto rounded-xl bg-card p-0 whitespace-normal text-card-foreground"
       data-plain-keys-only
-      onCancel={releaseAllNotes}
+      onCancel={() => {
+        releaseAllNotes()
+        stopPhrase()
+      }}
       onClose={() => {
         releaseAllNotes()
+        stopPhrase()
         onClose()
       }}
       ref={dialogRef}
@@ -266,13 +440,13 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
     >
       <div
         aria-label={t('ui.dragKeyboard')}
-        className="synthwave-keyboard-header flex h-12 cursor-move touch-none items-center justify-between px-4"
+        className="synthwave-keyboard-header flex min-h-12 cursor-move touch-none flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-1.5"
         onPointerCancel={stopDrag}
         onPointerDown={startDrag}
         onPointerMove={moveDialog}
         onPointerUp={stopDrag}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <GripHorizontal className="size-5 opacity-60" />
           <div className="flex items-baseline gap-2.5">
             <span className="text-xs font-extrabold tracking-[0.24em]">{t('ui.performance')}</span>
@@ -280,6 +454,21 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
               {t('ui.keyboard').toUpperCase()}
             </span>
           </div>
+        </div>
+        {/* The transport shares the drag handle, so using it must not start a drag. Where the
+            header is too narrow for it, it takes a row of its own below the title. */}
+        <div
+          className="order-last flex basis-full cursor-auto justify-end lg:order-none lg:flex-1 lg:basis-auto"
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <PhraseTransport
+            onPhraseChange={choosePhrase}
+            onTempoChange={changeTempo}
+            onToggle={togglePhrase}
+            phraseId={phraseId}
+            playing={playingPhraseId !== null}
+            tempo={tempo}
+          />
         </div>
         <Button
           aria-label={t('ui.closeKeyboard')}
@@ -289,7 +478,7 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
           size="icon"
           type="button"
           variant="ghost"
-          className="text-current hover:bg-black/10 hover:text-current"
+          className="ml-auto text-current hover:bg-black/10 hover:text-current lg:ml-0"
         >
           <X />
         </Button>
@@ -316,7 +505,7 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
               {whiteKeys.map((key) => (
                 <PianoKeyButton
                   computerKeyLabel={key.computerKeyCode ? keyLabel(key.computerKeyCode) : undefined}
-                  isActive={activeNotes.has(key.note)}
+                  isActive={soundingNotes.has(key.note)}
                   key={key.note}
                   noteKey={key}
                   onStart={playNote}
@@ -328,7 +517,7 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
             {blackKeys.map((key) => (
               <PianoKeyButton
                 computerKeyLabel={key.computerKeyCode ? keyLabel(key.computerKeyCode) : undefined}
-                isActive={activeNotes.has(key.note)}
+                isActive={soundingNotes.has(key.note)}
                 key={key.note}
                 noteKey={key}
                 onStart={playNote}

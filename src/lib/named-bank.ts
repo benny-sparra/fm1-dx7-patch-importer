@@ -4,6 +4,7 @@ import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
 import {
   bankDescriptionLength,
   importVoices,
+  normalizeWorkspaceBankNameForSave,
   voiceId,
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
@@ -139,13 +140,15 @@ export function loadNamedBank(
   bank.slots.forEach((slot) => {
     effects[voiceId(destinationBank, slot.slot)] = normalizeFm1Effects(slot.effects)
   })
+  // A saved bank's name may be longer than a workspace bank title, which storage keeps short.
+  const title = normalizeWorkspaceBankNameForSave(bank.name)
   return {
     ...loaded,
     bankDescriptions: {
       ...loaded.bankDescriptions,
       ...(bank.description ? { [destinationBank]: bank.description } : {}),
     },
-    bankNames: { ...loaded.bankNames, [destinationBank]: bank.name },
+    bankNames: { ...loaded.bankNames, ...(title ? { [destinationBank]: title } : {}) },
     effects,
   }
 }
