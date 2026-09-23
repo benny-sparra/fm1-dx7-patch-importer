@@ -139,4 +139,21 @@ describe('useMidi queued messages', () => {
     expect(fm1.sendSysex).not.toHaveBeenCalled()
     expect(reportBankTransferFailure).not.toHaveBeenCalled()
   })
+
+  it('logs a patch dropped by switching MIDI off as not sent', async () => {
+    const fm1 = makeOutput('fm1')
+    webMidi.outputs = [fm1]
+    const { result } = await connect()
+    const [voice] = makeDemoVoices()
+
+    void result.current.sendEffectSettings(new Uint8Array(fm1EffectParameterCount))
+    const sent = result.current.sendVoice(voice)
+    await act(() => result.current.disconnectMidi())
+
+    await expect(sent).resolves.toBe(false)
+    expect(fm1.sendSysex).not.toHaveBeenCalled()
+    expect(result.current.logStore.getSnapshot().map(({ message }) => message)).toContain(
+      `${voice.name} was not sent. Queued MIDI messages were dropped because MIDI was switched off.`,
+    )
+  })
 })
