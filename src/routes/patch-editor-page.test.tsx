@@ -437,6 +437,18 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(midi.sendEffectParameter).not.toHaveBeenCalled()
   })
 
+  it('sends an edit through the MIDI controller from the latest render', async () => {
+    const { midi, rerenderMidi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const nextMidi: EditorMidi = { ...midi, sendParameter: vi.fn(() => true) }
+
+    rerenderMidi(nextMidi)
+    fireEvent.change(screen.getByRole('slider', { name: 'Feedback' }), { target: { value: '6' } })
+
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+    expect(nextMidi.sendParameter).toHaveBeenLastCalledWith(135, 6)
+  })
+
   it('sends effect edits through the dedicated controller path', async () => {
     const user = userEvent.setup()
     const { midi } = setup()

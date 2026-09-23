@@ -62,6 +62,11 @@ files when that is clearer.
 - State that async callbacks must read synchronously has one owner outside React, subscribed with
   `useSyncExternalStore`, as `PatchEditorSession` is for the open editor, rather than each
   `useState` mirrored into a ref by hand.
+- Never write a ref during render to keep the latest prop or callback: a render React discards
+  still leaves the ref pointing at values that never took effect. Read the latest value from an
+  effect or event handler through `useEffectEvent`, as `useKeyboardShortcuts` does. When code
+  outside the component reads it, such as a session's async sends, update the ref in a layout
+  effect, as `PatchEditorPage` does for its MIDI controller.
 - Keep one source for shared constants and helpers such as key lists, limits, and value formatting.
   Reuse or export the existing one rather than copying it into another module: for example
   `makeYamahaSysexMessage` for Yamaha SysEx framing, `src/lib/sysex-file.ts` for `.syx` file

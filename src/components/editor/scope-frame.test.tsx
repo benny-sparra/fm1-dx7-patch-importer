@@ -102,6 +102,22 @@ describe('useAnimationLoop', () => {
     expect(step).toHaveBeenNthCalledWith(2, 0)
   })
 
+  it('steps the running loop with the step from the latest render', () => {
+    const { runFrame } = stubMotion(false)
+    const first = vi.fn()
+    const second = vi.fn()
+    const { rerender } = render(<Loop step={first} />)
+    runFrame(1000)
+
+    rerender(<Loop step={second} />)
+    first.mockClear()
+    second.mockClear()
+    runFrame(1020)
+
+    expect(first).not.toHaveBeenCalled()
+    expect(second).toHaveBeenCalledExactlyOnceWith(0.02)
+  })
+
   it('observes the scope frame it is attached to', () => {
     stubMotion(false)
     const { observers } = stubIntersectionObserver()
