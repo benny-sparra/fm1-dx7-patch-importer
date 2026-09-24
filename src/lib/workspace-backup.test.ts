@@ -186,6 +186,78 @@ describe('workspace backup', () => {
     expect(problemOf(() => parseWorkspaceBackup(JSON.stringify(fixture)))).toBe('damaged')
   })
 
+  it('refuses a workspace voice that is not base64', () => {
+    const fixture = versionOneFixture()
+    fixture.workspace.slots[0].voice = 'not base64!'
+
+    expect(problemOf(() => parseWorkspaceBackup(JSON.stringify(fixture)))).toBe('damaged')
+  })
+
+  it('refuses a workspace voice that is not text', () => {
+    const workspace = versionOneFixture().workspace
+    const slots = [{ ...workspace.slots[0], voice: [0, 1, 2] }]
+
+    expect(
+      problemOf(() =>
+        parseWorkspaceBackup(
+          JSON.stringify(versionOneFixture({ workspace: { ...workspace, slots } })),
+        ),
+      ),
+    ).toBe('damaged')
+  })
+
+  it('refuses workspace effects that are not base64', () => {
+    const fixture = versionOneFixture()
+    fixture.workspace.slots[0].effects = 'not base64!'
+
+    expect(problemOf(() => parseWorkspaceBackup(JSON.stringify(fixture)))).toBe('damaged')
+  })
+
+  it('refuses a backup with no workspace', () => {
+    const { workspace: _workspace, ...fixture } = versionOneFixture()
+
+    expect(problemOf(() => parseWorkspaceBackup(JSON.stringify(fixture)))).toBe('damaged')
+  })
+
+  it('refuses a workspace with no slot list', () => {
+    const { slots: _slots, ...workspace } = versionOneFixture().workspace
+
+    expect(
+      problemOf(() => parseWorkspaceBackup(JSON.stringify(versionOneFixture({ workspace })))),
+    ).toBe('damaged')
+  })
+
+  it('refuses a workspace patch that is not an object', () => {
+    const workspace = { ...versionOneFixture().workspace, slots: ['A1'] }
+
+    expect(
+      problemOf(() => parseWorkspaceBackup(JSON.stringify(versionOneFixture({ workspace })))),
+    ).toBe('damaged')
+  })
+
+  it('refuses a workspace that lists the same slot twice', () => {
+    const fixture = versionOneFixture()
+    fixture.workspace.slots.push({ ...fixture.workspace.slots[0] })
+
+    expect(problemOf(() => parseWorkspaceBackup(JSON.stringify(fixture)))).toBe('damaged')
+  })
+
+  it('refuses a backup whose version is not a whole number from 1', () => {
+    for (const version of ['1', 1.5, 0, undefined]) {
+      expect(
+        problemOf(() => parseWorkspaceBackup(JSON.stringify(versionOneFixture({ version })))),
+      ).toBe('damaged')
+    }
+  })
+
+  it('refuses a backup with no readable date', () => {
+    for (const savedAt of ['yesterday', 1_758_459_780_000, undefined]) {
+      expect(
+        problemOf(() => parseWorkspaceBackup(JSON.stringify(versionOneFixture({ savedAt })))),
+      ).toBe('damaged')
+    }
+  })
+
   it('leaves out a damaged saved bank and restores the rest', () => {
     const backup = parseWorkspaceBackup(
       JSON.stringify(
