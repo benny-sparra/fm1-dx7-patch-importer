@@ -126,6 +126,7 @@ in the README under the name you give.
 | `npm run deps:audit`        | Audit the full dependency tree (requires registry access)           |
 | `npm test`                  | Run all unit and rendered accessibility tests                       |
 | `npm run test:a11y`         | Run the focused rendered Axe accessibility suite                    |
+| `npm run test:coverage`     | Run all tests and write a V8 coverage report to `coverage/`         |
 | `npm run test:e2e`          | Build and run Chromium and Firefox browser journeys with Playwright |
 | `npm run test:cls`          | Check layout stability across representative responsive viewports   |
 | `npm run build`             | Create a production Vite build in `dist/`                           |

@@ -444,6 +444,7 @@ npm run lint
 npm run typecheck
 npm run deps:check
 npm test
+npm run test:coverage
 npm run test:a11y
 npm run test:e2e
 npm run images:check
