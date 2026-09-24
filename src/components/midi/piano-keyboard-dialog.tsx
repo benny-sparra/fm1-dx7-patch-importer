@@ -449,7 +449,7 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
     >
       <div
         aria-label={t('ui.dragKeyboard')}
-        className="synthwave-keyboard-header flex min-h-12 cursor-move touch-none flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-1.5"
+        className="synthwave-keyboard-header flex min-h-12 cursor-move touch-none flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-1.5 select-none"
         onPointerCancel={stopDrag}
         onPointerDown={startDrag}
         onPointerMove={moveDialog}
