@@ -5,6 +5,10 @@ source is organised. Repository conventions and behavioural constraints are reco
 [AGENTS.md](AGENTS.md). Deployment, generated-asset, and source-map details are in
 [the maintainer notes](docs/maintaining.md).
 
+Code and documentation contributions are accepted under the project's [MIT License](LICENSE).
+Patch banks for the catalog have their own terms, described under
+[Contributing a patch bank](#contributing-a-patch-bank).
+
 ## Local development
 
 Use Node.js 24.18.0 and npm 11.16.0, as pinned by `.node-version` and

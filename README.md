@@ -128,3 +128,20 @@ The four FM-1 factory banks, loaded into banks A–D on first use and also offer
 The interface links to independent DX7 patch archives to help users find compatible banks. Those downloads are provided by their respective sites; only import files you trust.
 
 If you have programmed a DX7 bank of your own, you can offer it for the bundled catalog: see [Contributing a patch bank](CONTRIBUTING.md#contributing-a-patch-bank).
+
+## Licence
+
+The editor's source code, documentation, and artwork are released under the [MIT License](LICENSE).
+This does not cover third-party material bundled with it, which keeps its own terms:
+
+- **FM1 product images and the M-VAVE logo**: `src/assets/fm1-*.webp`, `src/assets/fm1-header.png`,
+  `src/assets/m-vave-logo.png`, `src/assets/m-vave-logo.svg`, their resized copies in
+  `src/assets/generated/`, and `public/fm1-preview.png`. These are not the project's own; they stay
+  with their owners and are used only to show which device the editor is for. The M-VAVE name and
+  logo belong to M-VAVE, and this project is independent: it is not affiliated with or endorsed by
+  M-VAVE.
+- **Patch banks**: the files in `public/dx7-banks/` keep the terms described under
+  [Acknowledgements](#acknowledgements), and banks contributed to the catalog keep the licence their
+  author chose.
+- **Fonts**: Doto, Space Grotesk, IBM Plex Mono, and VT323 are installed from npm under the SIL Open
+  Font License 1.1.

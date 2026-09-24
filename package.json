@@ -1,6 +1,7 @@
 {
   "name": "fm1-editor-librarian",
   "private": true,
+  "license": "MIT",
   "version": "0.0.0",
   "type": "module",
   "packageManager": "npm@11.16.0",
