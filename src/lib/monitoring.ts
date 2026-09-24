@@ -69,6 +69,26 @@ function isAndroidNavigationLoggerError(event: {
   )
 }
 
+// iOS apps that add Web MIDI to a WKWebView (WebMIDIAPIShimForiOS and its forks) call these globals
+// from native code, but the shim defines them only once the page requests MIDI access. Input that
+// arrives before then, such as after a reload, raises a ReferenceError the app never caused.
+const iosWebMidiShimCallbackError =
+  /^Can't find variable: _callback_(?:addDestination|addSource|onNotReady|onReady|receiveMIDIMessage|removeDestination|removeSource)$/u
+
+function isIosWebMidiShimCallbackError(event: {
+  exception?: { values?: { type?: string; value?: string }[] }
+}) {
+  const exceptions = event.exception?.values ?? []
+  return (
+    exceptions.length > 0 &&
+    exceptions.every(
+      (exception) =>
+        exception.type === 'ReferenceError' &&
+        iosWebMidiShimCallbackError.test(exception.value ?? ''),
+    )
+  )
+}
+
 export function createMonitoringInitializer({
   dsn,
   enableVerificationMetrics = false,
@@ -104,7 +124,9 @@ export function createMonitoringInitializer({
             }
           },
           beforeSend(event) {
-            if (isAndroidNavigationLoggerError(event)) return null
+            if (isAndroidNavigationLoggerError(event) || isIosWebMidiShimCallbackError(event)) {
+              return null
+            }
 
             delete event.user
             if (event.request) {

@@ -244,6 +244,10 @@ open everything an earlier release could have saved.
   `onCaughtError`, so both drop it in `src/lib/monitoring.ts`; filtering only `onCaughtError` still
   lets one event per failure through. `onUncaughtError` stays unfiltered, so the same failure
   outside any boundary is still reported.
+- Errors raised by code a host app injects, such as the Android in-app browser's navigation logger
+  or an iOS Web MIDI shim's native callbacks, are dropped in `beforeSend`. Match them narrowly, by
+  the injected script's URL or the exact names it uses, so an error in the app's own code that
+  merely resembles one is still reported.
 - Keep `public/_headers`, the origins used by browser code, and `scripts/check-security-headers.mjs`
   aligned. Any new remote resource or endpoint needs an explicit privacy and CSP review.
 - A production build names its release from the deploying platform's commit, resolved once in
