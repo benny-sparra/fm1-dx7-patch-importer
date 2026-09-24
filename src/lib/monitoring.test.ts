@@ -205,6 +205,56 @@ describe('Sentry monitoring', () => {
     expect(options.beforeSend?.(event)).toBe(event)
   })
 
+  it('drops an iOS Web MIDI app calling its shim before the page has asked for MIDI', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const event = {
+      exception: {
+        values: [
+          {
+            type: 'ReferenceError',
+            value: "Can't find variable: _callback_receiveMIDIMessage",
+            stacktrace: { frames: [{ filename: 'https://fm1-editor.com/' }] },
+          },
+        ],
+      },
+    }
+
+    expect(options.beforeSend?.(event)).toBeNull()
+  })
+
+  it('keeps reference errors that name any other variable', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const event = {
+      exception: {
+        values: [
+          {
+            type: 'ReferenceError',
+            value: "Can't find variable: _callback_receiveMIDIMessages",
+            stacktrace: { frames: [{ filename: 'https://fm1-editor.com/assets/index.js' }] },
+          },
+        ],
+      },
+    }
+
+    expect(options.beforeSend?.(event)).toBe(event)
+  })
+
   it('provides Sentry handlers for React root errors', async () => {
     const { handler, sdk } = createSdk()
     const initialize = createMonitoringInitializer({
