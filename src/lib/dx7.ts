@@ -33,12 +33,16 @@ export function isSevenBitData(bytes: Uint8Array) {
   return bytes.every((byte) => byte <= 0x7f)
 }
 
-function assertPackedVoice(voice: Dx7Voice) {
+function assertPackedVoiceLength(voice: Dx7Voice) {
   if (voice.data.length !== dx7PackedVoiceSize) {
     throw new Error(
       `Expected a ${dx7PackedVoiceSize}-byte packed DX7 voice; received ${voice.data.length} bytes.`,
     )
   }
+}
+
+function assertPackedVoice(voice: Dx7Voice) {
+  assertPackedVoiceLength(voice)
   if (!isSevenBitData(voice.data)) {
     throw new Error('Packed DX7 voice data must contain only 7-bit values.')
   }
@@ -150,6 +154,8 @@ export function makeDx7VoiceNameEdits(
 
 /** Converts a packed 128-byte bank voice to the DX7's 155-byte edit-buffer format. */
 export function unpackDx7Voice(voice: Dx7Voice) {
+  // A short voice would otherwise read its missing bytes as zeros and unpack too few parameters.
+  assertPackedVoiceLength(voice)
   const packed = voice.data
   const unpacked: number[] = []
 

@@ -71,6 +71,23 @@ describe('DX7 edit-buffer conversion', () => {
     expect(unpackDx7Voice(voice)[134]).toBe(5)
   })
 
+  it('refuses to unpack a voice that is not 128 bytes', () => {
+    expect(() => unpackDx7Voice({ data: new Uint8Array(127), name: 'TOO SHORT' })).toThrow('128')
+    expect(() => unpackDx7Voice({ data: new Uint8Array(129), name: 'TOO LONG' })).toThrow('128')
+  })
+
+  it('refuses to pack edit-buffer data that is not 155 bytes', () => {
+    const parameters = unpackDx7Voice(makeVoice())
+
+    expect(() => packDx7Voice(parameters.slice(0, 154))).toThrow('155')
+    expect(() => packDx7Voice(Uint8Array.from([...parameters, 0]))).toThrow('155')
+  })
+
+  it('refuses to build a bank dump from any number of voices but 32', () => {
+    expect(() => makeDx7BankPayload(Array.from({ length: 31 }, makeVoice))).toThrow('32')
+    expect(() => makeDx7BankPayload(Array.from({ length: 33 }, makeVoice))).toThrow('32')
+  })
+
   it('rejects a malformed packed voice before creating a single-voice dump', () => {
     expect(() =>
       makeDx7SingleVoicePayload({
@@ -120,6 +137,13 @@ describe('DX7 7-bit data boundaries', () => {
     voice.data[3] = 0x80
 
     expect(() => makeDx7SingleVoicePayload(voice)).toThrow('7-bit')
+  })
+
+  it('refuses to pack edit-buffer data above seven bits', () => {
+    const parameters = unpackDx7Voice(makeVoice())
+    parameters[0] = 0x80
+
+    expect(() => packDx7Voice(parameters)).toThrow('7-bit')
   })
 
   it('refuses to build a bank dump containing voice data above seven bits', () => {

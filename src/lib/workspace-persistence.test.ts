@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { makeFactoryPatchLibrary } from '@/lib/factory-patch-library'
-import { importVoices, makeDemoVoices } from '@/lib/patch-library'
+import { importVoices, makeDemoVoices, type PatchLibrarySnapshot } from '@/lib/patch-library'
+import { PatchLibraryStorageError } from '@/lib/patch-library-storage'
 import { shouldWarnBeforeUnload, WorkspacePersistenceController } from '@/lib/workspace-persistence'
 
 function deferred<T = void>() {
@@ -478,6 +479,266 @@ describe('WorkspacePersistenceController', () => {
     await flushPromises()
 
     expect(onWorkspaceLoaded).not.toHaveBeenCalled()
+    expect(listener).toHaveBeenCalledTimes(callsBeforeDisposal)
+  })
+})
+
+describe('WorkspacePersistenceController continuing without saving', () => {
+  function failedLoadController(
+    createFactory: () => Promise<PatchLibrarySnapshot>,
+    onWorkspaceLoaded = vi.fn(),
+  ) {
+    return new WorkspacePersistenceController({
+      createFactory,
+      load: async () => {
+        throw new Error('Storage unavailable')
+      },
+      onWorkspaceLoaded,
+      save: async () => {},
+    })
+  }
+
+  it('returns to the load error when the factory patches cannot load, and can try again', async () => {
+    const workspace = makeFactoryPatchLibrary()
+    const createFactory = vi
+      .fn<() => Promise<PatchLibrarySnapshot>>()
+      .mockRejectedValueOnce(new Error('Factory chunk unavailable'))
+      .mockResolvedValueOnce(workspace)
+    const controller = failedLoadController(createFactory)
+    controller.start()
+    await flushPromises()
+
+    controller.continueWithoutSaving()
+    await flushPromises()
+
+    expect(controller.getState()).toMatchObject({
+      error: { code: 'read-failed', detail: 'Factory chunk unavailable' },
+      status: 'load-error',
+      workspace: null,
+    })
+
+    controller.continueWithoutSaving()
+    await flushPromises()
+
+    expect(controller.getState()).toMatchObject({ status: 'session-only', workspace })
+  })
+
+  it('never replaces a loaded workspace with factory patches', async () => {
+    const stored = importVoices(makeFactoryPatchLibrary(), 'A', makeDemoVoices())
+    const createFactory = vi.fn(makeFactoryPatchLibrary)
+    const controller = new WorkspacePersistenceController({
+      createFactory,
+      load: async () => stored,
+      save: async () => {},
+    })
+    controller.start()
+    await flushPromises()
+
+    controller.continueWithoutSaving()
+    await flushPromises()
+
+    expect(createFactory).not.toHaveBeenCalled()
+    expect(controller.getState()).toMatchObject({ status: 'ready', workspace: stored })
+  })
+
+  it('ignores factory patches that finish loading after disposal', async () => {
+    const factory = deferred<PatchLibrarySnapshot>()
+    const onWorkspaceLoaded = vi.fn()
+    const controller = failedLoadController(() => factory.promise, onWorkspaceLoaded)
+    const listener = vi.fn()
+    controller.subscribe(listener)
+    controller.start()
+    await flushPromises()
+    controller.continueWithoutSaving()
+    await flushPromises()
+    const callsBeforeDisposal = listener.mock.calls.length
+
+    controller.dispose()
+    factory.resolve(makeFactoryPatchLibrary())
+    await flushPromises()
+
+    expect(onWorkspaceLoaded).not.toHaveBeenCalled()
+    expect(listener).toHaveBeenCalledTimes(callsBeforeDisposal)
+  })
+
+  it('ignores factory patches that fail to load after disposal', async () => {
+    const factory = deferred<PatchLibrarySnapshot>()
+    const controller = failedLoadController(() => factory.promise)
+    const listener = vi.fn()
+    controller.subscribe(listener)
+    controller.start()
+    await flushPromises()
+    controller.continueWithoutSaving()
+    await flushPromises()
+    const callsBeforeDisposal = listener.mock.calls.length
+
+    controller.dispose()
+    factory.reject(new Error('Factory chunk unavailable'))
+    await flushPromises()
+
+    expect(listener).toHaveBeenCalledTimes(callsBeforeDisposal)
+  })
+})
+
+describe('WorkspacePersistenceController save failures', () => {
+  it('leaves an edit to its autosave when a retry is asked for before any save failed', async () => {
+    vi.useFakeTimers()
+    const initial = makeFactoryPatchLibrary()
+    const edited = importVoices(initial, 'A', makeDemoVoices())
+    const save = vi.fn(async () => {})
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => initial,
+      save,
+    })
+    controller.start()
+    await flushPromises()
+    controller.updateWorkspace(edited)
+
+    controller.retrySaving()
+    expect(save).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(350)
+    expect(save).toHaveBeenCalledExactlyOnceWith(edited)
+  })
+
+  it('drops an autosave scheduled behind a save that then fails, rather than retrying it', async () => {
+    vi.useFakeTimers()
+    const initial = makeFactoryPatchLibrary()
+    const firstEdit = importVoices(initial, 'A', makeDemoVoices())
+    const latestEdit = importVoices(firstEdit, 'B', makeDemoVoices())
+    const firstSave = deferred()
+    const save = vi.fn(() => firstSave.promise)
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => initial,
+      save,
+    })
+    controller.start()
+    await flushPromises()
+    controller.updateWorkspace(firstEdit)
+    await vi.advanceTimersByTimeAsync(350)
+    controller.updateWorkspace(latestEdit)
+
+    firstSave.reject(new Error('Quota exceeded'))
+    await flushPromises()
+    await vi.runAllTimersAsync()
+
+    expect(save).toHaveBeenCalledOnce()
+    expect(controller.getState()).toMatchObject({
+      hasUnsavedChanges: true,
+      status: 'save-error',
+      workspace: latestEdit,
+    })
+  })
+
+  it('ignores a save that fails after disposal', async () => {
+    vi.useFakeTimers()
+    const initial = makeFactoryPatchLibrary()
+    const pendingSave = deferred()
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => initial,
+      save: () => pendingSave.promise,
+    })
+    const listener = vi.fn()
+    controller.subscribe(listener)
+    controller.start()
+    await flushPromises()
+    controller.updateWorkspace(importVoices(initial, 'A', makeDemoVoices()))
+    await vi.advanceTimersByTimeAsync(350)
+    const callsBeforeDisposal = listener.mock.calls.length
+
+    controller.dispose()
+    pendingSave.reject(new Error('Quota exceeded'))
+    await flushPromises()
+
+    expect(listener).toHaveBeenCalledTimes(callsBeforeDisposal)
+  })
+
+  it('keeps the code and technical detail of a storage error', async () => {
+    vi.useFakeTimers()
+    const initial = makeFactoryPatchLibrary()
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => initial,
+      save: async () => {
+        throw new PatchLibraryStorageError(
+          'unavailable',
+          'Browser storage is blocked by another open tab.',
+        )
+      },
+    })
+    controller.start()
+    await flushPromises()
+    controller.updateWorkspace(importVoices(initial, 'A', makeDemoVoices()))
+    await vi.advanceTimersByTimeAsync(350)
+    await flushPromises()
+
+    expect(controller.getState().error).toEqual({
+      code: 'unavailable',
+      detail: 'Browser storage is blocked by another open tab.',
+    })
+  })
+})
+
+describe('WorkspacePersistenceController load failures', () => {
+  it('reports an incompatible workspace as incompatible, not as a failed read', async () => {
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: async () => {
+        throw new PatchLibraryStorageError(
+          'incompatible',
+          'The saved patch library is not compatible with this version.',
+        )
+      },
+      save: async () => {},
+    })
+
+    controller.start()
+    await flushPromises()
+
+    expect(controller.getState()).toMatchObject({
+      error: {
+        code: 'incompatible',
+        detail: 'The saved patch library is not compatible with this version.',
+      },
+      status: 'load-error',
+      workspace: null,
+    })
+  })
+
+  it('describes a failure that is not an Error by its text', async () => {
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      // Storage code can be handed anything a browser API rejects with, not only an Error.
+      // oxlint-disable-next-line typescript/prefer-promise-reject-errors
+      load: () => Promise.reject('Storage blocked'),
+      save: async () => {},
+    })
+
+    controller.start()
+    await flushPromises()
+
+    expect(controller.getState().error).toEqual({ code: 'read-failed', detail: 'Storage blocked' })
+  })
+
+  it('ignores a load that fails after disposal', async () => {
+    const pendingLoad = deferred<PatchLibrarySnapshot | null>()
+    const controller = new WorkspacePersistenceController({
+      createFactory: makeFactoryPatchLibrary,
+      load: () => pendingLoad.promise,
+      save: async () => {},
+    })
+    const listener = vi.fn()
+    controller.subscribe(listener)
+    controller.start()
+    const callsBeforeDisposal = listener.mock.calls.length
+
+    controller.dispose()
+    pendingLoad.reject(new Error('Storage unavailable'))
+    await flushPromises()
+
     expect(listener).toHaveBeenCalledTimes(callsBeforeDisposal)
   })
 })

@@ -28,6 +28,7 @@ function makeOutput() {
     id: 'fm1-out',
     manufacturer: 'M-VAVE',
     name: 'FM-1 MIDI 1',
+    sendControlChange: vi.fn(),
     sendProgramChange: vi.fn(),
     sendSysex: vi.fn(),
     state: 'connected',
@@ -58,7 +59,10 @@ beforeEach(() => {
   webMidi.sysexEnabled = true
 })
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.unstubAllEnvs()
+})
 
 async function connect() {
   const hook = renderHook(() => useMidi())
@@ -182,6 +186,71 @@ describe('useMidi live parameter writes', () => {
     await waitFor(() =>
       expect(logMessages(result)).toContainEqual(['system', 'The port is closed.']),
     )
+  })
+})
+
+describe('useMidi sends before an output is chosen', () => {
+  type Midi = ReturnType<typeof useMidi>
+  it.each<[string, (midi: Midi) => boolean | Promise<boolean>, string]>([
+    ['a program change', (midi) => midi.sendProgramChange(37), 'select an FM1 program'],
+    ['a voice parameter', (midi) => midi.sendParameter(144, 36), 'send FM1 parameter'],
+    ['an effect control', (midi) => midi.sendEffectParameter(3, 64), 'send FM1 effect'],
+    ['the effect unit', (midi) => midi.sendEffectSettings(new Uint8Array(24)), 'send FM1 effects'],
+    [
+      'a development FX probe',
+      (midi) => midi.sendEffectDiagnosticControl(3, 127),
+      'send development FX probe',
+    ],
+  ])('sends %s nowhere and logs that no output is selected', async (_, send, action) => {
+    const { result } = await connect()
+
+    expect(await send(result.current)).toBe(false)
+
+    expect(logMessages(result)).toContainEqual([
+      'system',
+      `Could not ${action}; no MIDI output selected.`,
+    ])
+  })
+})
+
+describe('useMidi bank transfer guards', () => {
+  it('does not send a bank without SysEx access', async () => {
+    const { output, result } = await connectOutput()
+    webMidi.sysexEnabled = false
+
+    await expect(result.current.sendBank('A', makeDemoVoices())).resolves.toEqual({
+      ok: false,
+      reason: 'sysex_unavailable',
+    })
+
+    expect(output.sendSysex).not.toHaveBeenCalled()
+    expect(logMessages(result)).toContainEqual([
+      'system',
+      'Enable SysEx before connecting MIDI to send a bank.',
+    ])
+  })
+
+  it('does not send a bank that does not hold 32 voices', async () => {
+    const { output, result } = await connectOutput()
+
+    await expect(result.current.sendBank('A', makeDemoVoices().slice(1))).resolves.toEqual({
+      ok: false,
+      reason: 'invalid_bank',
+    })
+
+    expect(output.sendSysex).not.toHaveBeenCalled()
+    expect(logMessages(result)).toContainEqual(['system', 'Bank A is not loaded with 32 voices.'])
+  })
+})
+
+describe('useMidi development FX probe', () => {
+  it('sends no probe in a production build', async () => {
+    vi.stubEnv('DEV', false)
+    const { output, result } = await connectOutput()
+
+    expect(result.current.sendEffectDiagnosticControl(3, 127)).toBe(false)
+
+    expect(output.sendControlChange).not.toHaveBeenCalled()
   })
 })
 

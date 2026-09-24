@@ -42,6 +42,7 @@ function installIndexedDb(readResult?: unknown) {
   }
   const openRequest = {
     ...makeRequest(database),
+    onblocked: null as (() => void) | null,
     onupgradeneeded: null as (() => void) | null,
   }
 
@@ -467,5 +468,183 @@ describe('listStoredNamedBanks', () => {
 
     await expect(listing).resolves.toEqual({ banks: [newer, older], damagedCount: 1 })
     expect(fake.put).not.toHaveBeenCalled()
+  })
+})
+
+// A workspace that cannot be opened must reject rather than resolve as missing: a missing workspace
+// is replaced with factory patches and saved, which would overwrite the user's own.
+describe('opening browser storage', () => {
+  it('reports storage as unavailable when the browser has no IndexedDB', async () => {
+    expect('indexedDB' in globalThis).toBe(false)
+
+    await expect(loadStoredPatchLibrary()).rejects.toMatchObject({
+      code: 'unavailable',
+      technicalMessage: 'Browser storage is unavailable.',
+    })
+  })
+
+  it('reports storage as unavailable when opening it throws', async () => {
+    vi.stubGlobal('indexedDB', {
+      open: () => {
+        throw new DOMException('Storage is disabled.', 'SecurityError')
+      },
+    })
+
+    await expect(loadStoredPatchLibrary()).rejects.toMatchObject({
+      code: 'unavailable',
+      technicalMessage: 'SecurityError: Storage is disabled.',
+    })
+  })
+
+  it('reports storage as unavailable when the open request fails', async () => {
+    const fake = installIndexedDb()
+    const loading = loadStoredPatchLibrary()
+
+    fake.openRequest.error = new DOMException('The database is damaged.', 'UnknownError')
+    fake.openRequest.onerror?.()
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'unavailable',
+      technicalMessage: 'UnknownError: The database is damaged.',
+    })
+    expect(fake.database.transaction).not.toHaveBeenCalled()
+  })
+
+  it('reports storage as unavailable while another tab blocks the upgrade', async () => {
+    const fake = installIndexedDb()
+    const loading = loadStoredPatchLibrary()
+
+    fake.openRequest.onblocked?.()
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'unavailable',
+      technicalMessage: 'Browser storage is blocked by another open tab.',
+    })
+  })
+
+  it('closes a database that opens after it was reported blocked, without reading it', async () => {
+    const fake = installIndexedDb({ version: 5 })
+    const loading = loadStoredPatchLibrary()
+
+    fake.openRequest.onblocked?.()
+    await openDatabase(fake.openRequest)
+
+    await expect(loading).rejects.toMatchObject({ code: 'unavailable' })
+    expect(fake.database.close).toHaveBeenCalledOnce()
+    expect(fake.database.transaction).not.toHaveBeenCalled()
+  })
+
+  it('reports a save as unavailable, not as a failed write, when storage cannot be opened', async () => {
+    const fake = installIndexedDb()
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+
+    fake.openRequest.onblocked?.()
+
+    await expect(saving).rejects.toMatchObject({ code: 'unavailable' })
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+
+  it('closes the database and reports a read failure when a read cannot start', async () => {
+    const fake = installIndexedDb()
+    fake.database.transaction.mockImplementation(() => {
+      throw new DOMException('The store is missing.', 'NotFoundError')
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'read-failed',
+      technicalMessage: 'NotFoundError: The store is missing.',
+    })
+    expect(fake.database.close).toHaveBeenCalledOnce()
+  })
+
+  it('closes the database and reports a write failure when a write cannot start', async () => {
+    const fake = installIndexedDb()
+    fake.database.transaction.mockImplementation(() => {
+      throw new DOMException('The store is missing.', 'NotFoundError')
+    })
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+
+    await openDatabase(fake.openRequest)
+
+    await expect(saving).rejects.toMatchObject({ code: 'write-failed' })
+    expect(fake.database.close).toHaveBeenCalledOnce()
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+})
+
+describe('loadStoredPatchLibrary workspace bank list', () => {
+  /** A saved workspace holding one of the user's own patches, with the bank list given. */
+  function workspaceRecord(version: 4 | 5, workspaceBanks: unknown[]) {
+    return {
+      bankNames: {},
+      effects: {},
+      loadedBanks: ['A'],
+      savedAt: '2026-08-17T08:00:00.000Z',
+      version,
+      voices: { 'bank-A-1': { data: new Uint8Array(128), name: 'MINE' } },
+      workspaceBanks,
+      ...(version === 5 ? { bankDescriptions: {} } : {}),
+    }
+  }
+
+  async function loadRecord(record: unknown) {
+    const fake = installIndexedDb(record)
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    return { fake, loading }
+  }
+
+  it('classifies a workspace with no banks as incompatible without changing it', async () => {
+    for (const version of [4, 5] as const) {
+      const { fake, loading } = await loadRecord(workspaceRecord(version, []))
+
+      await expect(loading).rejects.toMatchObject({
+        code: 'incompatible',
+        technicalMessage: 'The saved patch library has an invalid workspace bank list.',
+      })
+      expect(fake.put).not.toHaveBeenCalled()
+    }
+  })
+
+  it('classifies a workspace whose bank ids are all unreadable as incompatible', async () => {
+    const { fake, loading } = await loadRecord(workspaceRecord(5, ['a', '?', 'AB', 7, null]))
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'incompatible',
+      technicalMessage: 'The saved patch library has an invalid workspace bank list.',
+    })
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+
+  it('classifies a workspace with more banks than the library holds as incompatible', async () => {
+    const { fake, loading } = await loadRecord(workspaceRecord(5, 'ABCDEFGHIJK'.split('')))
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'incompatible',
+      technicalMessage: 'The saved patch library has an invalid workspace bank list.',
+    })
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+
+  it('loads a full workspace whose bank list repeats a bank, counting the bank once', async () => {
+    const { loading } = await loadRecord(workspaceRecord(5, [...'ABCDEFGHIJ'.split(''), 'A']))
+
+    await expect(loading).resolves.toMatchObject({ workspaceBanks: 'ABCDEFGHIJ'.split('') })
+  })
+
+  it('keeps the readable banks when only some of the ids are unreadable or repeated', async () => {
+    const { loading } = await loadRecord(workspaceRecord(5, ['A', '?', 'A', 'B']))
+
+    await expect(loading).resolves.toMatchObject({
+      voices: { 'bank-A-1': { name: 'MINE' } },
+      workspaceBanks: ['A', 'B'],
+    })
   })
 })

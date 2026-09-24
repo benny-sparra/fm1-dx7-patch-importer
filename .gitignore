@@ -37,3 +37,6 @@ skills-lock.json
 
 # Local video script
 /FM1 Editor YouTube Video Script.docx
+
+# Coverage reports from npm run test:coverage
+coverage

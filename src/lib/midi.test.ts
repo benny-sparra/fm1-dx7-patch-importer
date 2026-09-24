@@ -13,6 +13,8 @@ import {
   sendFm1EffectControl,
   sendFm1EffectDiagnosticControl,
   sendFm1Parameter,
+  sendNoteOff,
+  sendNoteOn,
 } from '@/lib/midi'
 import { fm1EffectMappingFixture } from '@/test/fm1-effect-mapping.fixture'
 
@@ -169,6 +171,56 @@ describe('makeFm1EffectDiagnosticControlMessage', () => {
     expect(() => makeFm1EffectDiagnosticControlMessage(controller, value, channel)).toThrow(
       RangeError,
     )
+  })
+})
+
+describe('sendNoteOn and sendNoteOff', () => {
+  function makeOutput() {
+    return { sendNoteOff: vi.fn(), sendNoteOn: vi.fn() }
+  }
+
+  it('sends the lowest and highest notes and velocities as given', () => {
+    const output = makeOutput()
+
+    sendNoteOn(output as never, 2, 0, 0)
+    sendNoteOn(output as never, 2, 127, 127)
+    sendNoteOff(output as never, 2, 0, 0)
+    sendNoteOff(output as never, 2, 127, 127)
+
+    expect(output.sendNoteOn.mock.calls).toEqual([
+      [0, { channels: 2, rawAttack: 0 }],
+      [127, { channels: 2, rawAttack: 127 }],
+    ])
+    expect(output.sendNoteOff.mock.calls).toEqual([
+      [0, { channels: 2, rawRelease: 0 }],
+      [127, { channels: 2, rawRelease: 127 }],
+    ])
+  })
+
+  it.each([
+    ['below zero', -1],
+    ['above 127', 128],
+    ['fractional', 64.5],
+  ])('refuses a velocity %s and sends nothing', (_name, velocity) => {
+    const output = makeOutput()
+
+    expect(() => sendNoteOn(output as never, 1, 60, velocity)).toThrow('MIDI velocity')
+    expect(() => sendNoteOff(output as never, 1, 60, velocity)).toThrow('MIDI velocity')
+    expect(output.sendNoteOn).not.toHaveBeenCalled()
+    expect(output.sendNoteOff).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['below zero', -1],
+    ['above 127', 128],
+    ['fractional', 60.5],
+  ])('refuses a note %s and sends nothing', (_name, note) => {
+    const output = makeOutput()
+
+    expect(() => sendNoteOn(output as never, 1, note)).toThrow('MIDI note')
+    expect(() => sendNoteOff(output as never, 1, note)).toThrow('MIDI note')
+    expect(output.sendNoteOn).not.toHaveBeenCalled()
+    expect(output.sendNoteOff).not.toHaveBeenCalled()
   })
 })
 

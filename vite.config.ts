@@ -108,6 +108,13 @@ export default defineConfig(({ command, mode }) => {
       exclude: [...configDefaults.exclude, '.claude/**'],
       // Repairs the Node 26 / jsdom Web Storage collision. See the setup file.
       setupFiles: ['./src/test/web-storage.ts'],
+      // Only `npm run test:coverage` collects coverage. It sets no thresholds yet.
+      coverage: {
+        provider: 'v8',
+        include: ['src/**/*.{ts,tsx}'],
+        exclude: ['src/**/*.test.{ts,tsx}', 'src/test/**', 'src/**/*.d.ts'],
+        reporter: ['text-summary', 'html', 'json-summary'],
+      },
     },
   }
 })
