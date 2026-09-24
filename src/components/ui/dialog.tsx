@@ -1,9 +1,4 @@
-import {
-  type ComponentProps,
-  type ComponentPropsWithoutRef,
-  type MouseEventHandler,
-  forwardRef,
-} from 'react'
+import type { ComponentProps, ComponentPropsWithoutRef, MouseEventHandler, Ref } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -20,13 +15,18 @@ const dialogWidths = {
 type DialogProps = Omit<ComponentPropsWithoutRef<'dialog'>, 'onClick'> & {
   closeOnBackdrop?: boolean
   onClick?: MouseEventHandler<HTMLDialogElement>
+  ref?: Ref<HTMLDialogElement>
   size?: keyof typeof dialogWidths
 }
 
-export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog(
-  { className, closeOnBackdrop = true, onClick, size = 'lg', ...props },
+export function Dialog({
+  className,
+  closeOnBackdrop = true,
+  onClick,
   ref,
-) {
+  size = 'lg',
+  ...props
+}: DialogProps) {
   return (
     // Native dialog handles Escape; this click handler only detects pointer activation on its backdrop.
     // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
@@ -51,7 +51,7 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(function Dialog
       {...props}
     />
   )
-})
+}
 
 /**
  * The dialog's title bar. Holds the title and the close control only — the
