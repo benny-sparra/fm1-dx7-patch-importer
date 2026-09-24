@@ -132,6 +132,24 @@ test.describe('with an FM-1 connected', () => {
     ).toBeVisible()
   })
 
+  test('moves the keyboard by its header without selecting the header text', async ({ page }) => {
+    await page.getByRole('button', { name: 'Keyboard' }).first().click()
+    const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
+    await expect(keyboard).toBeVisible()
+    const title = keyboard.getByText('PERFORMANCE', { exact: true })
+    const start = await title.boundingBox()
+    if (!start) throw new Error('The keyboard title has no position.')
+    const before = await keyboard.boundingBox()
+
+    await page.mouse.move(start.x + 4, start.y + start.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(start.x + 80, start.y + 60, { steps: 8 })
+    await page.mouse.up()
+
+    expect((await keyboard.boundingBox())?.y).not.toBe(before?.y)
+    expect(await page.evaluate(() => window.getSelection()?.toString() ?? '')).toBe('')
+  })
+
   test('loops an audition phrase from the keyboard and silences it on stop', async ({ page }) => {
     await page.getByRole('button', { name: 'Keyboard' }).first().click()
     const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
