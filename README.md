@@ -90,6 +90,10 @@ Workspace-bank titles, descriptions, imported patches, patch ordering, saved edi
 
 If the saved workspace cannot be opened, the app leaves its browser record untouched and offers **Retry** or **Continue without saving**. The latter creates an explicit session-only workspace whose changes are lost when the page closes. If a later save fails, the latest changes remain available in memory and can be saved again with **Retry saving**.
 
+## Translations
+
+The librarian is available in multiple languages. If you notice an inaccurate, unclear, or unusual translation, please [get in touch by opening an issue](https://github.com/benny-sparra/fm1-dx7-patch-importer/issues) so it can be corrected.
+
 ## Privacy
 
 The deployed site uses cookie-free, aggregate usage analytics and error monitoring. Patch and bank
