@@ -203,20 +203,17 @@ open everything an earlier release could have saved.
   dialog lazy no longer frees headroom: Rolldown moves the code it shares with the entry into new
   shared chunks, which the entry still loads, and compressing them separately costs as much as the
   dialog saved. Measure with `npm run bundle:check` before and after any such move.
-- When every name taken from a module is a type, write `import type { … }`, not `import { type … }`,
-  in lazily loaded code and in eager code that names a lazy module. Under `verbatimModuleSyntax` the
-  second form still imports the module for its side effects: eager code pulls the lazy module into
-  the entry, and a lazy chunk that pulls in modules the entry shares can make Rolldown split them
-  out of the entry. The saved-bank and catalog search once cost 1.5 KiB of the budget this way.
+- When every name taken from a module is a type, write `import type { A, B }`, not
+  `import { type A, type B }`. Under `verbatimModuleSyntax` the second form still emits
+  `import '…'`, which keeps the module in the chunk graph: eager code that names a lazy module pulls
+  it into the entry, and a lazy chunk that pulls in modules the entry shares can make Rolldown split
+  them out of the entry. The saved-bank and catalog search once cost 1.5 KiB of the budget this way.
+  `typescript/no-import-type-side-effects` enforces this; mixed value and type imports keep their
+  inline `type` specifiers.
 - Prefer source-level `import()` at genuine interaction or data boundaries. Do not move initial code
   into eagerly imported vendor chunks to make the entry filename smaller.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
   bundler-made chunk is expected, and the budget counts it because the entry imports it.
-- When every name taken from a module is a type, write `import type { A, B }`, not
-  `import { type A, type B }`. Under `verbatimModuleSyntax` the second form still emits
-  `import '…'`, which keeps the module in the chunk graph and can make Rolldown split shared code
-  out of the entry. `typescript/no-import-type-side-effects` enforces this; mixed value and type
-  imports keep their inline `type` specifiers.
 - Development and verification controls are gated where they are rendered, with a build-time
   constant such as `sentryVerificationEnabled`, so normal production builds leave them out.
 - A rejected optional chunk must be contained and recoverable; stale deployment chunks must not
