@@ -107,6 +107,73 @@ describe('useMidi connection analytics', () => {
   })
 })
 
+describe('useMidi connection in a browser that cannot use MIDI', () => {
+  const unusableBrowsers = [
+    [
+      'outside a secure context',
+      'insecure_context',
+      () => Object.defineProperty(window, 'isSecureContext', { configurable: true, value: false }),
+    ],
+    [
+      'in a browser without Web MIDI',
+      'unsupported_browser',
+      () =>
+        Object.defineProperty(navigator, 'requestMIDIAccess', {
+          configurable: true,
+          value: undefined,
+        }),
+    ],
+  ] as const
+
+  it.each(unusableBrowsers)(
+    'refuses to connect %s without asking for MIDI access',
+    async (_name, reason, makeBrowserUnusable) => {
+      makeBrowserUnusable()
+      const { result } = renderHook(() => useMidi())
+
+      await act(() => result.current.connectMidi())
+
+      expect(result.current.error).toBe(reason)
+      expect(result.current.midiAccess).toBe(false)
+      expect(result.current.isConnecting).toBe(false)
+      expect(webMidi.enable).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each(unusableBrowsers)(
+    'reports a connection refused %s as a fixed category',
+    async (_name, reason, makeBrowserUnusable) => {
+      makeBrowserUnusable()
+      const track = vi.fn()
+      window.umami = { track }
+      const { result } = renderHook(() => useMidi())
+
+      await act(() => result.current.connectMidi())
+
+      expect(track).toHaveBeenCalledExactlyOnceWith('midi_connection_failed', {
+        method: 'manual',
+        reason,
+      })
+    },
+  )
+
+  it('reports an automatic reconnection refused outside a secure context as automatic', async () => {
+    unusableBrowsers[0][2]()
+    localStorage.setItem('fm1-midi-auto-connect', 'true')
+    const track = vi.fn()
+    window.umami = { track }
+
+    const { result } = renderHook(() => useMidi())
+
+    await waitFor(() => expect(result.current.error).toBe('insecure_context'))
+    expect(track).toHaveBeenCalledExactlyOnceWith('midi_connection_failed', {
+      method: 'automatic',
+      reason: 'insecure_context',
+    })
+    expect(webMidi.enable).not.toHaveBeenCalled()
+  })
+})
+
 describe('useMidi transfer monitoring', () => {
   it('keeps an expected missing-output failure out of Sentry', async () => {
     const { result } = renderHook(() => useMidi())
