@@ -574,3 +574,77 @@ describe('opening browser storage', () => {
     expect(fake.put).not.toHaveBeenCalled()
   })
 })
+
+describe('loadStoredPatchLibrary workspace bank list', () => {
+  /** A saved workspace holding one of the user's own patches, with the bank list given. */
+  function workspaceRecord(version: 4 | 5, workspaceBanks: unknown[]) {
+    return {
+      bankNames: {},
+      effects: {},
+      loadedBanks: ['A'],
+      savedAt: '2026-08-17T08:00:00.000Z',
+      version,
+      voices: { 'bank-A-1': { data: new Uint8Array(128), name: 'MINE' } },
+      workspaceBanks,
+      ...(version === 5 ? { bankDescriptions: {} } : {}),
+    }
+  }
+
+  async function loadRecord(record: unknown) {
+    const fake = installIndexedDb(record)
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    return { fake, loading }
+  }
+
+  it('classifies a workspace with no banks as incompatible without changing it', async () => {
+    for (const version of [4, 5] as const) {
+      const { fake, loading } = await loadRecord(workspaceRecord(version, []))
+
+      await expect(loading).rejects.toMatchObject({
+        code: 'incompatible',
+        technicalMessage: 'The saved patch library has an invalid workspace bank list.',
+      })
+      expect(fake.put).not.toHaveBeenCalled()
+    }
+  })
+
+  it('classifies a workspace whose bank ids are all unreadable as incompatible', async () => {
+    const { fake, loading } = await loadRecord(workspaceRecord(5, ['a', '?', 'AB', 7, null]))
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'incompatible',
+      technicalMessage: 'The saved patch library has an invalid workspace bank list.',
+    })
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+
+  it('classifies a workspace with more banks than the library holds as incompatible', async () => {
+    const { fake, loading } = await loadRecord(workspaceRecord(5, 'ABCDEFGHIJK'.split('')))
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'incompatible',
+      technicalMessage: 'The saved patch library has an invalid workspace bank list.',
+    })
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+
+  it('loads a full workspace whose bank list repeats a bank, counting the bank once', async () => {
+    const { loading } = await loadRecord(workspaceRecord(5, [...'ABCDEFGHIJ'.split(''), 'A']))
+
+    await expect(loading).resolves.toMatchObject({ workspaceBanks: 'ABCDEFGHIJ'.split('') })
+  })
+
+  it('keeps the readable banks when only some of the ids are unreadable or repeated', async () => {
+    const { loading } = await loadRecord(workspaceRecord(5, ['A', '?', 'A', 'B']))
+
+    await expect(loading).resolves.toMatchObject({
+      voices: { 'bank-A-1': { name: 'MINE' } },
+      workspaceBanks: ['A', 'B'],
+    })
+  })
+})
