@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { FM1_EDITOR_PARAMETER_COUNT } from '@/lib/fm1-parameters'
+import { FM1_EDITOR_PARAMETER_COUNT, FM1_VOICE_NAME_START } from '@/lib/fm1-parameters'
 import { operatorOutputParameter } from '@/lib/operator-audition'
 import {
   displayedParameters,
@@ -130,5 +130,97 @@ describe('PatchEditorSession', () => {
 
     expect(store).toHaveBeenCalledTimes(1)
     expect(hasUnsavedEdits(session.getState())).toBe(false)
+  })
+})
+
+/** Opens a live session on a patch named `PIANO`, with the opening voice send already made. */
+async function openLiveNamedSession(midi = makeMidi()) {
+  const parameters = new Uint8Array(FM1_EDITOR_PARAMETER_COUNT)
+  parameters.set(new TextEncoder().encode('PIANO     '), FM1_VOICE_NAME_START)
+  const session = new PatchEditorSession(parameters, () => midi)
+  session.synchronize('a-1')
+  await vi.waitFor(() => expect(session.getState().syncState).toBe('live'))
+  vi.mocked(midi.sendParameter).mockClear()
+  return { midi, session }
+}
+
+/** The name character a parameter send carries, as [position in the name, character]. */
+function sentCharacters(midi: PatchEditorMidi) {
+  return vi
+    .mocked(midi.sendParameter)
+    .mock.calls.map(([parameter, value]) => [
+      parameter - FM1_VOICE_NAME_START,
+      String.fromCharCode(value),
+    ])
+}
+
+describe('PatchEditorSession voice name', () => {
+  it('sends only the characters that differ from the name the FM1 has', async () => {
+    const { midi, session } = await openLiveNamedSession()
+
+    session.sendName('PIANA')
+
+    expect(sentCharacters(midi)).toEqual([[4, 'A']])
+  })
+
+  it('sends nothing when the same name is committed again', async () => {
+    const { midi, session } = await openLiveNamedSession()
+    session.sendName('PIANA')
+    vi.mocked(midi.sendParameter).mockClear()
+
+    session.sendName('PIANA')
+
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+  })
+
+  it('does not send a name while it is being typed', async () => {
+    const { midi, session } = await openLiveNamedSession()
+
+    session.editName('PIANA')
+
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+    expect(session.getState().history.present[FM1_VOICE_NAME_START + 4]).toBe(0x41)
+  })
+
+  it('sends a typed name by comparing it with the name the FM1 has, not the working copy', async () => {
+    const { midi, session } = await openLiveNamedSession()
+    session.editName('PIANA')
+
+    session.sendName('PIANA')
+
+    expect(sentCharacters(midi)).toEqual([[4, 'A']])
+  })
+
+  it('sends a character again when its earlier send failed', async () => {
+    const { midi, session } = await openLiveNamedSession()
+    vi.mocked(midi.sendParameter).mockReturnValueOnce(false)
+    session.sendName('PIANA')
+    vi.mocked(midi.sendParameter).mockClear()
+
+    session.sendName('PIANA')
+
+    expect(sentCharacters(midi)).toEqual([[4, 'A']])
+  })
+
+  it('takes the name a full voice send carried as the name the FM1 has', async () => {
+    const { midi, session } = await openLiveNamedSession()
+    session.editName('PIANA')
+    await session.requestSync()
+    vi.mocked(midi.sendParameter).mockClear()
+
+    session.sendName('PIANA')
+
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+  })
+
+  it('sends no name while the editor is not live', async () => {
+    const midi = makeMidi({ sysexAvailable: false })
+    const session = new PatchEditorSession(new Uint8Array(FM1_EDITOR_PARAMETER_COUNT), () => midi)
+    session.synchronize('a-1')
+
+    session.sendName('PIANA')
+
+    expect(session.getState().syncState).toBe('local')
+    expect(midi.sendParameter).not.toHaveBeenCalled()
   })
 })
