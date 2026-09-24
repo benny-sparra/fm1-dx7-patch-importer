@@ -386,6 +386,10 @@ open everything an earlier release could have saved.
   `src/test/librarian-fakes.ts`.
 - Use deterministic fakes/deferred promises for storage, MIDI, time, imports, and races. Do not use
   real sleeps, network calls, hardware, or test-order-dependent state.
+- A test that runs the real storage module, such as a hook test that follows a saved bank into
+  IndexedDB, installs the in-memory database with `installFakeIndexedDb` from
+  `src/test/fake-indexed-db.ts`, not `fake-indexeddb` directly. Under jsdom the fake's copies are
+  made in another realm and fail `instanceof Uint8Array`, so every stored voice reads as damaged.
 - Give each test one behavioral claim with a descriptive name. Cover success, failure, retry,
   duplicate activation, out-of-order completion, cancellation, and unmount where applicable.
 - Add or update the smallest appropriate automated coverage whenever new functionality, behaviour,
