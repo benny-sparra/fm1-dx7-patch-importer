@@ -42,6 +42,7 @@ function installIndexedDb(readResult?: unknown) {
   }
   const openRequest = {
     ...makeRequest(database),
+    onblocked: null as (() => void) | null,
     onupgradeneeded: null as (() => void) | null,
   }
 
@@ -466,6 +467,110 @@ describe('listStoredNamedBanks', () => {
     fake.transaction.oncomplete?.()
 
     await expect(listing).resolves.toEqual({ banks: [newer, older], damagedCount: 1 })
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+})
+
+// A workspace that cannot be opened must reject rather than resolve as missing: a missing workspace
+// is replaced with factory patches and saved, which would overwrite the user's own.
+describe('opening browser storage', () => {
+  it('reports storage as unavailable when the browser has no IndexedDB', async () => {
+    expect('indexedDB' in globalThis).toBe(false)
+
+    await expect(loadStoredPatchLibrary()).rejects.toMatchObject({
+      code: 'unavailable',
+      technicalMessage: 'Browser storage is unavailable.',
+    })
+  })
+
+  it('reports storage as unavailable when opening it throws', async () => {
+    vi.stubGlobal('indexedDB', {
+      open: () => {
+        throw new DOMException('Storage is disabled.', 'SecurityError')
+      },
+    })
+
+    await expect(loadStoredPatchLibrary()).rejects.toMatchObject({
+      code: 'unavailable',
+      technicalMessage: 'SecurityError: Storage is disabled.',
+    })
+  })
+
+  it('reports storage as unavailable when the open request fails', async () => {
+    const fake = installIndexedDb()
+    const loading = loadStoredPatchLibrary()
+
+    fake.openRequest.error = new DOMException('The database is damaged.', 'UnknownError')
+    fake.openRequest.onerror?.()
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'unavailable',
+      technicalMessage: 'UnknownError: The database is damaged.',
+    })
+    expect(fake.database.transaction).not.toHaveBeenCalled()
+  })
+
+  it('reports storage as unavailable while another tab blocks the upgrade', async () => {
+    const fake = installIndexedDb()
+    const loading = loadStoredPatchLibrary()
+
+    fake.openRequest.onblocked?.()
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'unavailable',
+      technicalMessage: 'Browser storage is blocked by another open tab.',
+    })
+  })
+
+  it('closes a database that opens after it was reported blocked, without reading it', async () => {
+    const fake = installIndexedDb({ version: 5 })
+    const loading = loadStoredPatchLibrary()
+
+    fake.openRequest.onblocked?.()
+    await openDatabase(fake.openRequest)
+
+    await expect(loading).rejects.toMatchObject({ code: 'unavailable' })
+    expect(fake.database.close).toHaveBeenCalledOnce()
+    expect(fake.database.transaction).not.toHaveBeenCalled()
+  })
+
+  it('reports a save as unavailable, not as a failed write, when storage cannot be opened', async () => {
+    const fake = installIndexedDb()
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+
+    fake.openRequest.onblocked?.()
+
+    await expect(saving).rejects.toMatchObject({ code: 'unavailable' })
+    expect(fake.put).not.toHaveBeenCalled()
+  })
+
+  it('closes the database and reports a read failure when a read cannot start', async () => {
+    const fake = installIndexedDb()
+    fake.database.transaction.mockImplementation(() => {
+      throw new DOMException('The store is missing.', 'NotFoundError')
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'read-failed',
+      technicalMessage: 'NotFoundError: The store is missing.',
+    })
+    expect(fake.database.close).toHaveBeenCalledOnce()
+  })
+
+  it('closes the database and reports a write failure when a write cannot start', async () => {
+    const fake = installIndexedDb()
+    fake.database.transaction.mockImplementation(() => {
+      throw new DOMException('The store is missing.', 'NotFoundError')
+    })
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+
+    await openDatabase(fake.openRequest)
+
+    await expect(saving).rejects.toMatchObject({ code: 'write-failed' })
+    expect(fake.database.close).toHaveBeenCalledOnce()
     expect(fake.put).not.toHaveBeenCalled()
   })
 })
