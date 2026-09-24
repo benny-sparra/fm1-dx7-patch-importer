@@ -71,6 +71,11 @@ describe('DX7 edit-buffer conversion', () => {
     expect(unpackDx7Voice(voice)[134]).toBe(5)
   })
 
+  it('refuses to unpack a voice that is not 128 bytes', () => {
+    expect(() => unpackDx7Voice({ data: new Uint8Array(127), name: 'TOO SHORT' })).toThrow('128')
+    expect(() => unpackDx7Voice({ data: new Uint8Array(129), name: 'TOO LONG' })).toThrow('128')
+  })
+
   it('rejects a malformed packed voice before creating a single-voice dump', () => {
     expect(() =>
       makeDx7SingleVoicePayload({
