@@ -133,6 +133,17 @@ describe('usePatchLibrary saved banks', () => {
     expect(hook.result.current.namedBanksLoadFailed).toBe(false)
   })
 
+  it('reports saved banks it could not read, and still opens the workspace', async () => {
+    storage.listStoredNamedBanks.mockRejectedValue(new Error('Saved banks could not be read.'))
+
+    const hook = renderHook(() => usePatchLibrary())
+
+    await waitFor(() => expect(hook.result.current.namedBanksLoading).toBe(false))
+    expect(hook.result.current.namedBanksLoadFailed).toBe(true)
+    expect(hook.result.current.namedBanks).toEqual([])
+    await waitFor(() => expect(hook.result.current.persistenceStatus).toBe('ready'))
+  })
+
   it('saves a named bank from a change made earlier in the same event', async () => {
     storage.saveStoredNamedBank.mockResolvedValue('bank-1')
     const hook = await renderLoadedLibrary()

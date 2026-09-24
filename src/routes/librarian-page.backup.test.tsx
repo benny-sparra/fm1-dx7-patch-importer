@@ -124,6 +124,34 @@ describe('LibrarianPage backup', () => {
     expect(backup.workspace.slots).toHaveLength(32)
   })
 
+  it('says a backup leaves out saved banks when they could not be read', async () => {
+    const user = userEvent.setup()
+    renderPage({ ...makeLibrary(), namedBanksLoadFailed: true })
+    await openMenu(user)
+
+    await user.click(screen.getByRole('button', { name: 'Download backup' }))
+
+    expect(
+      await screen.findByText(
+        'Downloading a backup of your workspace banks. Saved banks could not be read, so they are not in it.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('says a backup leaves out saved banks that are damaged', async () => {
+    const user = userEvent.setup()
+    renderPage({ ...makeLibrary(), hasDamagedNamedBanks: true })
+    await openMenu(user)
+
+    await user.click(screen.getByRole('button', { name: 'Download backup' }))
+
+    expect(
+      await screen.findByText(
+        'Downloading a backup. Some saved banks could not be read, so they are not in it.',
+      ),
+    ).toBeTruthy()
+  })
+
   it('says a backup includes FM1 effects and shows no date before the first one', async () => {
     const user = userEvent.setup()
     renderPage()
