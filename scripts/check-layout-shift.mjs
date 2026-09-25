@@ -103,6 +103,16 @@ class CdpConnection {
   }
 }
 
+/** Stops Chrome and waits up to five seconds for it to exit, so its profile is no longer in use. */
+async function stopChrome(chrome) {
+  if (!chrome || chrome.exitCode !== null) return
+  const exited = new Promise((resolve) => chrome.once('exit', resolve))
+  chrome.kill('SIGTERM')
+  let timeout
+  await Promise.race([exited, new Promise((resolve) => (timeout = setTimeout(resolve, 5000)))])
+  clearTimeout(timeout)
+}
+
 async function main() {
   const chromePath = findChrome()
   const profileDirectory = await mkdtemp(path.join(tmpdir(), 'fm1-cls-'))
@@ -290,22 +300,6 @@ async function main() {
       return state.result.value
     }, 'the colourway image to unmount on mobile')
 
-    await connection.send('Runtime.evaluate', {
-      expression: `document.querySelector('dialog[aria-labelledby="fm1-bank-selection-title"]')?.showModal()`,
-    })
-    await waitFor(async () => {
-      const state = await connection.send('Runtime.evaluate', {
-        expression: `
-          Boolean(
-            document.querySelector('dialog[aria-labelledby="fm1-bank-selection-title"]')?.open &&
-              document.querySelector('dialog[aria-labelledby="fm1-bank-selection-title"] [role="alert"]'),
-          )
-        `,
-        returnByValue: true,
-      })
-      return state.result.value
-    }, 'the SysEx warning dialog')
-
     const requestedColorways = [...requestedUrls].filter((requestUrl) =>
       /fm1-(?:black|black-green|cool-gray|orange|purple|white-blue)-/.test(requestUrl),
     )
@@ -338,9 +332,16 @@ async function main() {
     )
   } finally {
     connection?.close()
-    chrome?.kill('SIGTERM')
     preview.kill('SIGTERM')
-    await rm(profileDirectory, { force: true, recursive: true })
+    await stopChrome(chrome)
+    // Chrome can still be writing its profile as it exits. A cleanup failure is only a warning, so
+    // it can never replace the error that ended the check.
+    await rm(profileDirectory, {
+      force: true,
+      maxRetries: 5,
+      recursive: true,
+      retryDelay: 200,
+    }).catch((error) => console.warn(`Could not remove ${profileDirectory}: ${error.code}`))
   }
 }
 

@@ -469,7 +469,9 @@ npm run test:cls
 
 Run `npm run build` before `npm run bundle:check`. Use `npm run test:cls` for changes affecting the
 initial render, fonts, images, loading states, or layout. The CLS check starts a local server and may
-need permission in a restricted environment.
+need permission in a restricted environment. It drives the production page directly and is not part
+of `npm run check`, so a change to anything it reads, such as a dialog that now mounts on demand,
+updates `scripts/check-layout-shift.mjs` in the same change.
 
 Run the checks with the Node.js and npm versions pinned in `.node-version` and `package.json`;
 `engines` makes npm warn about others, and CI always uses the pinned versions. When a step is added
