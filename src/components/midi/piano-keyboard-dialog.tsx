@@ -13,7 +13,7 @@ import {
   maxPhraseTempo,
   minPhraseTempo,
 } from '@/lib/audition-phrases'
-import { defaultNoteVelocity, maxNoteVelocity, minNoteVelocity } from '@/lib/midi'
+import { defaultNoteVelocity, maxNoteVelocity, minNoteVelocity } from '@/lib/note-velocity'
 import { createPhrasePlayer } from '@/lib/phrase-player'
 import { rangeStyle } from '@/lib/range-style'
 import {
