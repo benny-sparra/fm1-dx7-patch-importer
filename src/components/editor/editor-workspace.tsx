@@ -140,7 +140,7 @@ function AlgorithmDiagram({
   return (
     <svg
       aria-hidden="true"
-      className={cn('h-16 w-full overflow-visible', className)}
+      className={cn('overflow-visible', className ?? 'h-16 w-full')}
       viewBox={featured ? featuredViewBox(operators) : '0 -3 110 68'}
     >
       <g

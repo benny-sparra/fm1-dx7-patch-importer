@@ -22,11 +22,12 @@ const lfoWaveKeys = [
 const captionClass = 'text-[11px] font-normal tracking-[0.1em] text-[var(--crt-ink-3)] uppercase'
 
 /** An LED readout: the amber VT323 figures every value on the rack uses. */
-const ledClass = 'font-vt323 leading-none text-[var(--crt-led)]'
+const ledClass = 'font-vt323 text-[var(--crt-led)]'
 
 /** A sunken field — selects, number entry and the wave picker's trigger. */
-const fieldClass =
-  'crt-inset h-8 min-w-0 rounded-none bg-[var(--crt-bg-1)] px-2 text-xs text-[var(--crt-ink)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
+const fieldFrameClass =
+  'crt-inset h-8 min-w-0 rounded-none bg-[var(--crt-bg-1)] px-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
+const fieldClass = `${fieldFrameClass} text-xs text-[var(--crt-ink)]`
 
 type ParameterControlProps = {
   helpText?: string
@@ -416,7 +417,7 @@ export function ParameterControl({
         </select>
       ) : (
         <input
-          className={cn(fieldClass, 'font-vt323 text-base text-[var(--crt-led)]')}
+          className={cn(fieldFrameClass, 'font-vt323 text-base text-[var(--crt-led)]')}
           max={max}
           min={min}
           onChange={(event) => {

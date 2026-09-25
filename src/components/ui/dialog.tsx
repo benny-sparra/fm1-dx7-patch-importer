@@ -103,8 +103,9 @@ export function DialogFooter({ className, ...props }: ComponentPropsWithoutRef<'
   return (
     <div
       className={cn(
-        'mt-3 flex justify-end gap-2 border-t border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-3 py-2.5',
-        className,
+        'mt-3 flex border-t border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-3 py-2.5',
+        // A className replaces the default alignment, since cn does not merge conflicting classes.
+        className ?? 'justify-end gap-2',
       )}
       {...props}
     />

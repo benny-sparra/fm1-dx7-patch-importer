@@ -330,7 +330,6 @@ export function LoadNamedBankDialog({
                           <Button
                             aria-expanded={confirmingDeleteId === bank.id}
                             aria-label={t('namedBanks.delete', { name: bank.name })}
-                            className="text-destructive"
                             disabled={workingId !== ''}
                             onClick={() => {
                               setError('')
@@ -345,7 +344,7 @@ export function LoadNamedBankDialog({
                             size="icon"
                             title={t('namedBanks.deleteAction')}
                             type="button"
-                            variant="ghost"
+                            variant="ghostDanger"
                           >
                             <Trash2 />
                           </Button>
