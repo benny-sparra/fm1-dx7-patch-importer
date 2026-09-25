@@ -177,6 +177,36 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Importing over a populated bank keeps its confirmation and Undo. Update the SysEx
     compatibility section of `docs/user-guide.md`.
 
+- [ ] **Hear a `.syx` file before importing it.** Choosing a bank or patch file lists its patches,
+      and clicking one plays it through the FM1 edit buffer, as a search result does, before
+      anything in the library changes. Today **Import bank** asks only which bank to replace, so
+      the only way to hear an archive bank is to import it over one of yours and undo.
+      [FM-1 Utility](https://fm1-utility.pages.dev/) offers this as a cartridge browser, with an
+      option to play each patch as it is selected.
+  - Playing a patch never writes to the library or to FM1 storage; the FM1 effects are the
+    defaults, as for a catalog result. Reuse `auditionInEditBuffer` and its duplicate-send guard,
+    so each parsed voice keeps one object while the dialog is open.
+  - The listing is the natural home for [Multi-bank `.syx` import](#worth-doing): a file holding
+    several banks shows each with its patches. Build them together, or leave room for it.
+  - Keep the existing file checks, confirmation, and Undo for the import itself. Check whether the
+    dialog stays a lazy chunk and measure with `npm run bundle:check`.
+  - Tests: playing a patch sends it to the edit buffer and leaves the library unchanged, playing
+    the same patch twice sends once, and closing without importing changes nothing.
+
+- [ ] **Velocity on the on-screen keyboard.** The keyboard always strikes at velocity 96
+      (`defaultNoteVelocity` in `src/lib/midi.ts`), so an operator's velocity sensitivity, which
+      the editor explains, cannot be heard without a hardware keyboard. Add a velocity control to
+      the keyboard dialog, as [FM-1 Utility](https://fm1-utility.pages.dev/) has.
+  - Validate 1–127 at the MIDI boundary; `sendNoteOn` already takes a velocity. Played notes use
+    it; the audition phrases keep the velocities they are written with.
+  - Decide whether the setting survives closing the dialog. Remembering it across visits means a
+    new `localStorage` key, which becomes a public format under the legacy-data rules; keeping it
+    in memory for the tab needs none.
+  - Its accessible name and value text come from the locale files, and a keyboard change to it
+    must not play notes: the dialog claims plain keys for the piano.
+  - Tests: a note played after changing velocity sends that velocity, and the phrase velocities
+    are unchanged.
+
 - [x] **Drag a patch onto a bank tab.** Finishes [Copy patches between banks](#worth-doing):
       dropping a patch on a bank tab opens **Copy to…** with that bank chosen, so the overwrite
       confirmation and Undo stay in one place.
@@ -392,6 +422,33 @@ V15. Before it can be built:
   Dangerous / excluded.
 
 Reopen only if a stock control or an official M-VAVE app is found that changes the order.
+
+### MIDI clock and transport
+
+A tempo control with Start and Stop, sending MIDI clock (`F8`) at a chosen BPM with Start (`FA`),
+Continue (`FB`), and Stop (`FC`), would let the editor run the FM1's arpeggiator or sequencer from
+the browser. This is standard System Real-Time MIDI, not vendor protocol, and M-VAVE's MIDI Control
+guide lists System Real-Time among what the FM1 receives.
+
+[FM-1 Utility](https://fm1-utility.pages.dev/) ships this (seen 2026-09-25), telling the user to
+choose arp or sequencer mode on the FM1 itself. It sends Stop five times over half a second (at 0,
+50, 125, 250, and 500 ms), which suggests its author saw the FM1 miss a single Stop. It cites no
+evidence that the FM1 follows the clock.
+
+Whether it does is unknown: [research §4.5](fm1-research.md#45-external-control) finds no
+clock-follow or Start/Stop handler in the firmware, and §4.6 lists the hardware test. Before this
+can be built:
+
+- Run §4.6 test 1 with Sync on and off: does the arp, and the sequencer, follow external tempo, and
+  do Start, Continue, and Stop start, resume, and stop it? Check whether one Stop is reliable, or
+  whether a repeated Stop is needed and harmless. Record the result in `docs/fm1-research.md`.
+- If the FM1 follows the clock, move this into [Worth doing](#worth-doing). Browser timers drift,
+  and a hidden tab holds them back, so the clock needs the same lateness handling as the audition
+  phrase player (`phraseLatenessLimitMs`), and it must stop when the output changes or MIDI is
+  switched off, as the MIDI rules in `AGENTS.md` require. MIDI panic stops it.
+- If it does not, record that here and move this to [Decided against](#decided-against).
+
+It does not reopen the parked sequencer: starting the FM1's own pattern is not writing one.
 
 ## Decided against
 
