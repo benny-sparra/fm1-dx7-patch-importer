@@ -164,6 +164,7 @@ export default {
     pianoKeyboard: 'Teclado de piano',
     dragKeyboard: 'Mover o teclado',
     closeKeyboard: 'Fechar o teclado',
+    keyVelocity: 'Velocidade das teclas',
     phrase: 'Frase',
     play: 'Tocar',
     stop: 'Parar',

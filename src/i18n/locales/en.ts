@@ -160,6 +160,7 @@ export default {
     pianoKeyboard: 'Piano keyboard',
     dragKeyboard: 'Drag keyboard',
     closeKeyboard: 'Close keyboard',
+    keyVelocity: 'Key velocity',
     phrase: 'Phrase',
     play: 'Play',
     stop: 'Stop',

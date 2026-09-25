@@ -213,6 +213,9 @@ export function sendFm1EffectDiagnosticControl(
 }
 
 export const defaultNoteVelocity = 96
+/** The softest and hardest strike a played note can ask for; a Note On at 0 releases the note. */
+export const minNoteVelocity = 1
+export const maxNoteVelocity = 127
 
 function assertMidiNote(note: number, velocity: number, channel: number) {
   if (!Number.isInteger(note) || note < 0 || note > 127) {

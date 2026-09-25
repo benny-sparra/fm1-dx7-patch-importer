@@ -169,6 +169,7 @@ export default {
     pianoKeyboard: 'Klaviatur',
     dragKeyboard: 'Klaviatur verschieben',
     closeKeyboard: 'Klaviatur schließen',
+    keyVelocity: 'Anschlagstärke der Tasten',
     phrase: 'Phrase',
     play: 'Start',
     stop: 'Stopp',
@@ -182,7 +183,7 @@ export default {
       bass: 'Bass',
       lead: 'Melodie',
       arpeggio: 'Arpeggio',
-      velocityRamp: 'Anschlagstärke',
+      velocityRamp: 'Anschlagsrampe',
     },
     helpOpenFailed:
       'Die Anleitung konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',

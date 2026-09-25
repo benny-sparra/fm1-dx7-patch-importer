@@ -5,7 +5,8 @@ import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import '@/i18n'
+import { setLocale } from '@/i18n'
+import german from '@/i18n/locales/de'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
 import { editorShortcuts, shouldRunShortcut } from '@/lib/keyboard-shortcuts'
 
@@ -78,7 +79,7 @@ describe('PianoKeyboard note lifecycle', () => {
     await clickKeyboard(user)
     fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
     fireEvent.keyUp(window, { code: 'KeyA', key: 'a' })
-    expect(midi.startNote).toHaveBeenCalledWith(48, 'C3')
+    expect(midi.startNote).toHaveBeenCalledWith(48, 'C3', { velocity: 96 })
     expect(midi.stopNote).toHaveBeenCalledWith(48)
   })
 
@@ -133,7 +134,7 @@ describe('PianoKeyboard keyboard ownership', () => {
     ).toBe(true)
 
     fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
-    expect(midi.startNote).toHaveBeenCalledWith(48, 'C3')
+    expect(midi.startNote).toHaveBeenCalledWith(48, 'C3', { velocity: 96 })
   })
 
   it('releases a held note when a modifier is pressed, so a missed key-up cannot leave it on', async () => {
@@ -169,7 +170,7 @@ describe('PianoKeyboard loading', () => {
     await clickKeyboard(user)
     fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
 
-    expect(midi.startNote).toHaveBeenCalledWith(60, 'C4')
+    expect(midi.startNote).toHaveBeenCalledWith(60, 'C4', { velocity: 96 })
   })
 
   it('opens a single keyboard when the trigger is activated repeatedly', async () => {
@@ -229,12 +230,12 @@ describe('PianoKeyboard keyboard layouts', () => {
 
     // On AZERTY the key where QWERTY has W types z, and the key where QWERTY has Z types w.
     fireEvent.keyDown(window, { code: 'KeyW', key: 'z' })
-    expect(midi.startNote).toHaveBeenCalledWith(49, 'C#3')
+    expect(midi.startNote).toHaveBeenCalledWith(49, 'C#3', { velocity: 96 })
     fireEvent.keyUp(window, { code: 'KeyW', key: 'z' })
 
     fireEvent.keyDown(window, { code: 'KeyZ', key: 'w' })
     fireEvent.keyDown(window, { code: 'KeyA', key: 'q' })
-    expect(midi.startNote).toHaveBeenLastCalledWith(36, 'C2')
+    expect(midi.startNote).toHaveBeenLastCalledWith(36, 'C2', { velocity: 96 })
   })
 
   it('labels the keys with the letters of the user’s keyboard layout', async () => {
@@ -302,6 +303,93 @@ describe('PianoKeyboard dragging', () => {
     })
 
     expect(keyboardDialog()?.style.inset).toBe('')
+  })
+})
+
+describe('PianoKeyboard velocity', () => {
+  afterEach(async () => {
+    vi.useRealTimers()
+    await setLocale('en')
+  })
+
+  async function openKeyboard() {
+    const user = userEvent.setup()
+    const view = setup()
+    await clickKeyboard(user)
+    return { ...view, user }
+  }
+
+  const velocitySlider = () => screen.getByRole('slider', { name: 'Key velocity' })
+
+  it('strikes the keys at the velocity chosen', async () => {
+    const { midi } = await openKeyboard()
+
+    fireEvent.change(velocitySlider(), { target: { value: '40' } })
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
+
+    expect(midi.startNote).toHaveBeenCalledWith(48, 'C3', { velocity: 40 })
+  })
+
+  it('shows the velocity the keys will strike at', async () => {
+    await openKeyboard()
+
+    fireEvent.change(velocitySlider(), { target: { value: '112' } })
+
+    expect(velocitySlider().getAttribute('aria-valuetext')).toBe('112')
+    expect(within(keyboardDialog()!).getByText('112').tagName).toBe('OUTPUT')
+  })
+
+  it('leaves the phrase at the velocities it is written with', async () => {
+    const { midi } = await openKeyboard()
+
+    fireEvent.change(velocitySlider(), { target: { value: '40' } })
+    vi.useFakeTimers()
+    fireEvent.click(screen.getByRole('button', { name: 'Play the phrase' }))
+
+    expect(midi.startNote).toHaveBeenCalledWith(48, expect.any(String), {
+      quiet: true,
+      velocity: 96,
+    })
+  })
+
+  it('keeps the chosen velocity when the keyboard is closed and opened again', async () => {
+    const { midi, user } = await openKeyboard()
+
+    fireEvent.change(velocitySlider(), { target: { value: '40' } })
+    await user.click(screen.getByRole('button', { name: 'Close keyboard' }))
+    await clickKeyboard(user)
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
+
+    expect(midi.startNote).toHaveBeenCalledWith(48, 'C3', { velocity: 40 })
+  })
+
+  it('plays no note for a key pressed while the velocity slider has focus', async () => {
+    const { midi } = await openKeyboard()
+
+    velocitySlider().focus()
+    fireEvent.keyDown(velocitySlider(), { code: 'KeyA', key: 'a' })
+
+    expect(midi.startNote).not.toHaveBeenCalled()
+  })
+
+  it('leaves the keyboard in place when the velocity slider is used', async () => {
+    await openKeyboard()
+
+    fireEvent.pointerDown(velocitySlider(), { clientX: 20, clientY: 20 })
+
+    expect(keyboardDialog()?.style.inset).toBe('')
+  })
+
+  it('names the velocity in the interface language', async () => {
+    await setLocale('de')
+    setup()
+    await userEvent.setup().click(screen.getByRole('button', { name: german.ui.keyboard }))
+    await waitFor(() => expect(keyboardDialog()?.open).toBe(true))
+
+    const slider = screen.getByRole('slider', { name: german.ui.keyVelocity })
+
+    expect(slider.getAttribute('aria-valuetext')).toBe('96')
+    expect(within(keyboardDialog()!).getByText(german.ui.velocity)).toBeTruthy()
   })
 })
 

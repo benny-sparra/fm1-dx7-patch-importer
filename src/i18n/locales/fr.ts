@@ -171,6 +171,7 @@ export default {
     pianoKeyboard: 'Clavier piano',
     dragKeyboard: 'Déplacer le clavier',
     closeKeyboard: 'Fermer le clavier',
+    keyVelocity: 'Vélocité des touches',
     phrase: 'Phrase',
     play: 'Lecture',
     stop: 'Arrêt',

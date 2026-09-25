@@ -150,6 +150,19 @@ test.describe('with an FM-1 connected', () => {
     expect(await page.evaluate(() => window.getSelection()?.toString() ?? '')).toBe('')
   })
 
+  test('strikes the keyboard at the velocity chosen in its header', async ({ page }) => {
+    await page.getByRole('button', { name: 'Keyboard' }).first().click()
+    const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
+    await expect(keyboard).toBeVisible()
+
+    await keyboard.getByRole('slider', { name: 'Key velocity' }).fill('40')
+    await keyboard.getByRole('button', { name: 'Close keyboard' }).focus()
+    await page.keyboard.down('a')
+    await page.keyboard.up('a')
+
+    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 48, 40])
+  })
+
   test('loops an audition phrase from the keyboard and silences it on stop', async ({ page }) => {
     await page.getByRole('button', { name: 'Keyboard' }).first().click()
     const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })

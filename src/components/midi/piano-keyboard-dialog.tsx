@@ -13,7 +13,9 @@ import {
   maxPhraseTempo,
   minPhraseTempo,
 } from '@/lib/audition-phrases'
+import { defaultNoteVelocity, maxNoteVelocity, minNoteVelocity } from '@/lib/midi'
 import { createPhrasePlayer } from '@/lib/phrase-player'
+import { rangeStyle } from '@/lib/range-style'
 import {
   makePianoKeys,
   mapComputerPianoKeys,
@@ -57,6 +59,7 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
   const activeComputerKeysRef = useRef<Map<string, number>>(new Map())
   const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set())
   const [baseOctave, setBaseOctave] = useState(3)
+  const [keyVelocity, setKeyVelocity] = useState(defaultNoteVelocity)
   const [phraseId, setPhraseId] = useState(defaultAuditionPhraseId)
   const [tempo, setTempo] = useState(
     () => findAuditionPhrase(defaultAuditionPhraseId)?.tempo ?? minPhraseTempo,
@@ -98,10 +101,18 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
 
       activeNotesRef.current.add(key.note)
       setActiveNotes(new Set(activeNotesRef.current))
-      sendMidiNoteOn(key.note, key.label)
+      sendMidiNoteOn(key.note, key.label, { velocity: keyVelocity })
     },
-    [sendMidiNoteOn],
+    [keyVelocity, sendMidiNoteOn],
   )
+
+  const changeVelocity = useCallback((nextVelocity: number) => {
+    if (!Number.isFinite(nextVelocity)) {
+      return
+    }
+
+    setKeyVelocity(Math.min(maxNoteVelocity, Math.max(minNoteVelocity, Math.round(nextVelocity))))
+  }, [])
 
   const releaseNote = useCallback(
     (note: number) => {
@@ -467,9 +478,10 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
         {/* The transport shares the drag handle, so using it must not start a drag. Where the
             header is too narrow for it, it takes a row of its own below the title. */}
         <div
-          className="order-last flex basis-full cursor-auto justify-end lg:order-none lg:flex-1 lg:basis-auto"
+          className="order-last flex basis-full cursor-auto flex-wrap items-center justify-end gap-x-3 gap-y-1.5 lg:order-none lg:flex-1 lg:basis-auto"
           onPointerDown={(event) => event.stopPropagation()}
         >
+          <KeyVelocity onChange={changeVelocity} velocity={keyVelocity} />
           <PhraseTransport
             onPhraseChange={choosePhrase}
             onTempoChange={changeTempo}
@@ -544,6 +556,40 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
         </div>
       </div>
     </dialog>
+  )
+}
+
+type KeyVelocityProps = {
+  onChange: (velocity: number) => void
+  velocity: number
+}
+
+/** How hard the keys strike. The phrases keep the velocities they are written with. */
+function KeyVelocity({ onChange, velocity }: KeyVelocityProps) {
+  const { i18n, t } = useTranslation()
+  const velocityNumber = new Intl.NumberFormat(i18n.resolvedLanguage).format(velocity)
+
+  return (
+    <label className="flex items-center gap-2">
+      <span className="text-[11px] tracking-[0.14em] text-[var(--crt-ink-3)] uppercase">
+        {t('ui.velocity')}
+      </span>
+      <input
+        aria-label={t('ui.keyVelocity')}
+        aria-valuetext={velocityNumber}
+        className="w-24 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+        max={maxNoteVelocity}
+        min={minNoteVelocity}
+        onChange={(event) => onChange(Number(event.target.value))}
+        step={1}
+        style={rangeStyle(velocity, minNoteVelocity, maxNoteVelocity, 'var(--crt-acc)')}
+        type="range"
+        value={velocity}
+      />
+      <output className="font-vt323 w-8 text-right text-base leading-none text-[var(--crt-led)]">
+        {velocityNumber}
+      </output>
+    </label>
   )
 }
 
