@@ -56,6 +56,13 @@
     "promise/valid-params": "error",
     "react/button-has-type": "error",
     "react/exhaustive-deps": "error",
+    // oxlint 1.85 adds the React Compiler's checks to the correctness category. They flag existing
+    // code (refs read during render, setState in an effect, Math.random in render, effect
+    // dependencies) that needs its own review, so they stay off until that change adopts them.
+    "react/exhaustive-effect-dependencies": "off",
+    "react/purity": "off",
+    "react/refs": "off",
+    "react/set-state-in-effect": "off",
     "react/jsx-key": "error",
     "react/jsx-no-duplicate-props": "error",
     "react/jsx-no-script-url": "error",
