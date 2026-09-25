@@ -348,8 +348,8 @@ Before deciding, settle:
 - **Labelling.** Whether a "DX7 preview, without FM1 effects" label is honest enough, or whether any
   preview beside a connected FM1 invites confusion.
 - **Licensing.** Dexed is GPL-3 and its original engine (MSFA) Apache-2.0, as understood; check
-  both. The repository has no LICENSE file yet, so its own licence decides what can be embedded.
-- **Cost.** Load the engine only when preview is first used, to stay inside the 151 KiB budget. The
+  both. The repository is MIT-licensed (see `LICENSE`), which decides what can be embedded.
+- **Cost.** Load the engine only when preview is first used, to stay inside the 162 KiB budget. The
   CSP in `public/_headers` would need `wasm-unsafe-eval`, with `scripts/check-security-headers.mjs`
   updated and a security review. Audio needs a user gesture to start.
 

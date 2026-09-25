@@ -221,9 +221,11 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 151 KiB gzip budget; raising it needs
-  explicit approval, as the drag-to-bank copy's raise from 148 KiB and workspace backup's raise
-  from 149 KiB had.
+  Dynamic imports are excluded. Do not weaken or bypass the 162 KiB gzip budget; raising it needs
+  explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
+  149 KiB, and React 19.3's raise from 151 KiB had. React DOM ships prebuilt with its features
+  switched on, so 19.3's stable View Transitions, Fragment refs, and SuspenseList cost about
+  8.4 KiB whether or not the app uses them; a React upgrade is measured like any other change.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
 
 ### Privacy, monitoring, and deployment security

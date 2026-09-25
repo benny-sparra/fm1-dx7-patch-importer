@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { gzipSync } from 'node:zlib'
 
-const initialJavaScriptBudget = 151 * 1024
+const initialJavaScriptBudget = 162 * 1024
 const outputDirectory = path.resolve('dist')
 const manifestPath = path.join(outputDirectory, '.vite', 'manifest.json')
 

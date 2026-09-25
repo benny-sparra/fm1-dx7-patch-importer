@@ -80,6 +80,10 @@ export default defineConfig(({ command, mode }) => {
 
   return {
     build: {
+      // The initial-JavaScript gzip budget in scripts/check-bundle-size.mjs is the enforced limit;
+      // this only keeps Vite's raw-size warning, which the entry chunk now exceeds, from repeating
+      // on every build.
+      chunkSizeWarningLimit: 600,
       manifest: true,
       sourcemap: sourceMapModes[sourceMapMode as keyof typeof sourceMapModes],
     },
