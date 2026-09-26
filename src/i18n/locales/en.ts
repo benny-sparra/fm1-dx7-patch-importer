@@ -215,7 +215,6 @@ export default {
       positiveExponential: '+ Exponential',
       positiveLinear: '+ Linear',
     },
-    performance: 'PERFORMANCE',
     directionDown: 'down',
     directionUp: 'up',
     enableEffect: 'Enable {{effect}}',

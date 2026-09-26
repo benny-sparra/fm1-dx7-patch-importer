@@ -192,7 +192,6 @@ export default {
       positiveExponential: '+ 指数',
       positiveLinear: '+ 线性',
     },
-    performance: '演奏',
     directionDown: '下',
     directionUp: '上',
     enableEffect: '启用{{effect}}',

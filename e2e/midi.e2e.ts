@@ -136,7 +136,7 @@ test.describe('with an FM-1 connected', () => {
     await page.getByRole('button', { name: 'Keyboard' }).first().click()
     const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
     await expect(keyboard).toBeVisible()
-    const title = keyboard.getByText('PERFORMANCE', { exact: true })
+    const title = keyboard.getByText('Keyboard', { exact: true })
     const start = await title.boundingBox()
     if (!start) throw new Error('The keyboard title has no position.')
     const before = await keyboard.boundingBox()

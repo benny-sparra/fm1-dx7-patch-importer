@@ -468,20 +468,22 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
       >
         <div className="flex shrink-0 items-center gap-3">
           <GripHorizontal className="size-5 opacity-60" />
-          <div className="flex items-baseline gap-2.5">
-            <span className="text-xs font-extrabold tracking-[0.24em]">{t('ui.performance')}</span>
-            <span className="text-[0.62rem] font-bold tracking-[0.2em] opacity-70">
-              {t('ui.keyboard').toUpperCase()}
-            </span>
-          </div>
+          <span className="text-xs font-extrabold tracking-[0.24em] uppercase">
+            {t('ui.keyboard')}
+          </span>
         </div>
-        {/* The transport shares the drag handle, so using it must not start a drag. Where the
-            header is too narrow for it, it takes a row of its own below the title. */}
+        {/* The controls share the drag handle, so using them must not start a drag. Where the
+            header is too narrow for them, they take rows of their own below the title. */}
         <div
-          className="order-last flex basis-full cursor-auto flex-wrap items-center justify-end gap-x-3 gap-y-1.5 lg:order-none lg:flex-1 lg:basis-auto"
+          className="order-last flex basis-full cursor-auto items-center lg:order-none lg:basis-auto"
           onPointerDown={(event) => event.stopPropagation()}
         >
           <KeyVelocity onChange={changeVelocity} velocity={keyVelocity} />
+        </div>
+        <div
+          className="order-last flex basis-full cursor-auto justify-end lg:order-none lg:flex-1 lg:basis-auto"
+          onPointerDown={(event) => event.stopPropagation()}
+        >
           <PhraseTransport
             onPhraseChange={choosePhrase}
             onTempoChange={changeTempo}
@@ -566,8 +568,7 @@ type KeyVelocityProps = {
 
 /** How hard the keys strike. The phrases keep the velocities they are written with. */
 function KeyVelocity({ onChange, velocity }: KeyVelocityProps) {
-  const { i18n, t } = useTranslation()
-  const velocityNumber = new Intl.NumberFormat(i18n.resolvedLanguage).format(velocity)
+  const { t } = useTranslation()
 
   return (
     <label className="flex items-center gap-2">
@@ -576,7 +577,6 @@ function KeyVelocity({ onChange, velocity }: KeyVelocityProps) {
       </span>
       <input
         aria-label={t('ui.keyVelocity')}
-        aria-valuetext={velocityNumber}
         className="w-24 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
         max={maxNoteVelocity}
         min={minNoteVelocity}
@@ -586,9 +586,6 @@ function KeyVelocity({ onChange, velocity }: KeyVelocityProps) {
         type="range"
         value={velocity}
       />
-      <output className="font-vt323 w-8 text-right text-base leading-none text-[var(--crt-led)]">
-        {velocityNumber}
-      </output>
     </label>
   )
 }

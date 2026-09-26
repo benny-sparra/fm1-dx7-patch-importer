@@ -219,7 +219,6 @@ export default {
       positiveExponential: '+ Exponencial',
       positiveLinear: '+ Linear',
     },
-    performance: 'PERFORMANCE',
     directionDown: 'baixo',
     directionUp: 'cima',
     enableEffect: 'Ativar {{effect}}',

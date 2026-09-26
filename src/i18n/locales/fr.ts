@@ -226,7 +226,6 @@ export default {
       positiveExponential: '+ Exponentielle',
       positiveLinear: '+ Linéaire',
     },
-    performance: 'PERFORMANCE',
     directionDown: 'bas',
     directionUp: 'haut',
     enableEffect: 'Activer {{effect}}',

@@ -294,6 +294,15 @@ describe('PianoKeyboard dragging', () => {
     expect(keyboardDialog()?.style.inset).toBe('auto')
   })
 
+  it('titles itself with the keyboard name alone', async () => {
+    await openKeyboard()
+
+    const header = screen.getByLabelText('Drag keyboard')
+
+    expect(within(header).getByText('Keyboard', { exact: true })).toBeTruthy()
+    expect(within(header).queryByText(/performance/i)).toBeNull()
+  })
+
   it('leaves the keyboard in place when a phrase control in its header is used', async () => {
     await openKeyboard()
 
@@ -330,13 +339,10 @@ describe('PianoKeyboard velocity', () => {
     expect(midi.startNote).toHaveBeenCalledWith(48, 'C3', { velocity: 40 })
   })
 
-  it('shows the velocity the keys will strike at', async () => {
+  it('starts at the velocity the keys struck at before the control existed', async () => {
     await openKeyboard()
 
-    fireEvent.change(velocitySlider(), { target: { value: '112' } })
-
-    expect(velocitySlider().getAttribute('aria-valuetext')).toBe('112')
-    expect(within(keyboardDialog()!).getByText('112').tagName).toBe('OUTPUT')
+    expect(velocitySlider()).toHaveProperty('value', '96')
   })
 
   it('leaves the phrase at the velocities it is written with', async () => {
@@ -388,7 +394,7 @@ describe('PianoKeyboard velocity', () => {
 
     const slider = screen.getByRole('slider', { name: german.ui.keyVelocity })
 
-    expect(slider.getAttribute('aria-valuetext')).toBe('96')
+    expect(slider).toBeTruthy()
     expect(within(keyboardDialog()!).getByText(german.ui.velocity)).toBeTruthy()
   })
 })
