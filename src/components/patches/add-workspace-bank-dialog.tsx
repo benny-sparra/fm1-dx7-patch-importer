@@ -189,9 +189,10 @@ export function AddWorkspaceBankDialog({
                 />
                 <span
                   className={cn(
-                    'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold text-muted-foreground transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50 hover:bg-accent hover:text-accent-foreground',
-                    source === 'catalog' &&
-                      'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
+                    'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+                    source === 'catalog'
+                      ? 'text-primary-foreground hover:bg-transparent hover:text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                   )}
                 >
                   <Library className="size-4 shrink-0" />
@@ -212,9 +213,10 @@ export function AddWorkspaceBankDialog({
                 />
                 <span
                   className={cn(
-                    'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold text-muted-foreground transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50 hover:bg-accent hover:text-accent-foreground',
-                    source === 'upload' &&
-                      'text-primary-foreground hover:bg-transparent hover:text-primary-foreground',
+                    'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+                    source === 'upload'
+                      ? 'text-primary-foreground hover:bg-transparent hover:text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                   )}
                 >
                   <Upload className="size-4 shrink-0" />

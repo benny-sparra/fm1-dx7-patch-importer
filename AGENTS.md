@@ -46,6 +46,15 @@ files when that is clearer.
   100-column width, and LF endings.
 - Let `prettier-plugin-tailwindcss` order utility classes. Add conditional class names through
   `cn(...)`; review formatting changes to conditional strings carefully.
+- `cn` only joins class names; `tailwind-merge` was removed to save 8.4 KiB of the initial bundle.
+  Two utilities for the same property both stay, and Tailwind's stylesheet order, not their order
+  in the call, decides which applies. Give each element one utility per property: choose between
+  alternatives with a ternary or a variant, never a base class plus a conditional override. A
+  shared component applies its default only when no `className` is passed, as
+  `className ?? default`, as `DialogFooter` and `HelpPopover` do. `Button` sets its colours in its
+  variant and its dimensions in its size, so a caller picks a variant such as `danger`,
+  `ghostDanger`, or `pressed`, or `bare` to style itself, rather than overriding either through
+  `className`.
 - Prefer small named functions and explicit domain types. Keep state near the behavior that owns it.
 - A component takes only the members of `MidiController` or `PatchLibrary` it reads, as a `Pick`,
   as `MidiPanicButton` does. A parent that passes the controller on takes the intersection of its

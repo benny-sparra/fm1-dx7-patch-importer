@@ -486,7 +486,7 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
           onPointerDown={(event) => event.stopPropagation()}
           size="icon"
           type="button"
-          variant="ghost"
+          variant="bare"
           className="ml-auto text-current hover:bg-black/10 hover:text-current lg:ml-0"
         >
           <X />
