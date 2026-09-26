@@ -197,7 +197,8 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       (`defaultNoteVelocity` in `src/lib/midi.ts`), so an operator's velocity sensitivity, which
       the editor explains, cannot be heard without a hardware keyboard. Add a velocity control to
       the keyboard dialog, as [FM-1 Utility](https://fm1-utility.pages.dev/) has. Built as a
-      **Velocity** slider in the keyboard's header, beside the phrase transport.
+      **Dynamics** slider beside the keyboard's title. The label avoids the technical word; the
+      operator's own setting keeps the name **Velocity**.
   - Keep the control to 1–127; `sendNoteOn` already takes a velocity. Played notes use it; the
     audition phrases keep the velocities they are written with. Decided: the limits are
     `minNoteVelocity` and `maxNoteVelocity`, with `defaultNoteVelocity` in

@@ -573,10 +573,10 @@ function KeyVelocity({ onChange, velocity }: KeyVelocityProps) {
   return (
     <label className="flex items-center gap-2">
       <span className="text-[11px] tracking-[0.14em] text-[var(--crt-ink-3)] uppercase">
-        {t('ui.velocity')}
+        {t('ui.dynamics')}
       </span>
       <input
-        aria-label={t('ui.keyVelocity')}
+        aria-label={t('ui.dynamics')}
         className="w-24 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
         max={maxNoteVelocity}
         min={minNoteVelocity}
