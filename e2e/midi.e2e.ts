@@ -150,6 +150,24 @@ test.describe('with an FM-1 connected', () => {
     expect(await page.evaluate(() => window.getSelection()?.toString() ?? '')).toBe('')
   })
 
+  test('plays a patch from a bank file before importing it, leaving the bank unchanged', async ({
+    page,
+  }) => {
+    const slotsBefore = await slotButtons(page).allTextContents()
+    await page.getByLabel('Actions for Bank 1').locator('visible=true').click()
+    await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
+    await dialog.getByLabel('Patch data').setInputFiles('public/dx7-banks/factory/rom1a.syx')
+
+    await dialog.getByRole('button', { name: /^Play .+, patch 5$/ }).click()
+
+    await expect
+      .poll(async () => (await sentSysex(page)).at(-1)?.length)
+      .toBe(singleVoiceDumpLength)
+    await dialog.getByRole('button', { name: 'Close' }).click()
+    expect(await slotButtons(page).allTextContents()).toEqual(slotsBefore)
+  })
+
   test('strikes the keyboard at the velocity chosen in its header', async ({ page }) => {
     await page.getByRole('button', { name: 'Keyboard' }).first().click()
     const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })

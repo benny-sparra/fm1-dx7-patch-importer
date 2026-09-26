@@ -112,11 +112,12 @@ test('rejects an invalid DX7 SysEx bank without closing the replacement dialog',
     mimeType: 'application/octet-stream',
     name: 'invalid.syx',
   })
-  await dialog.getByRole('button', { name: 'Replace bank contents' }).click()
 
+  // The file is read as it is chosen, so the problem shows before anything can be replaced.
   await expect(dialog.getByRole('alert')).toHaveText(
     'This file is 3 bytes. A DX7 bank file must be exactly 4,104 bytes.',
   )
+  await expect(dialog.getByRole('button', { name: 'Replace bank contents' })).toBeDisabled()
   await expect(dialog).toBeVisible()
 })
 

@@ -272,6 +272,10 @@ export default {
   overwriteImport: {
     action: 'Bankinhalt ersetzen',
     help: 'Wähle eine Standard-DX7-SysEx-Bankdatei mit 32 Voices.',
+    play: '{{name}} spielen, Sound {{number}}',
+    previewHelp:
+      'Klicke auf einen Sound, um ihn am FM1 zu hören. Deine Bank bleibt unverändert, bis du sie ersetzt.',
+    previewTitle: 'Sounds in dieser Datei',
     title: '„{{bank}}“ überschreiben?',
     warning:
       'Der aktuelle Inhalt der Bank wird gelöscht und durch die importierten Sounds ersetzt.',

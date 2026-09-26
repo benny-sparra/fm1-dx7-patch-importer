@@ -947,6 +947,8 @@ export function LibrarianPage({
             setBankPendingImport(null)
             bankPendingImport.opener?.focus()
           }}
+          // A file's patch has no FM1 effects, so it plays with the defaults, as a catalog result does.
+          onPlay={(voice) => onPlaySearchResult(voice, undefined)}
         />
       ) : null}
       {bankPendingDeletion ? (
