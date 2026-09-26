@@ -237,6 +237,9 @@ export default {
   overwriteImport: {
     action: '替换音色库内容',
     help: '请选择标准的 32 音色 DX7 SysEx 音色库文件。',
+    play: '试听 {{name}}（第 {{number}} 个音色）',
+    previewHelp: '单击音色即可在 FM1 上试听。在你替换之前，音色库保持不变。',
+    previewTitle: '此文件中的音色',
     title: '覆盖“{{bank}}”吗？',
     warning: '此音色库的现有内容将被清除，并替换为导入的音色。',
   },

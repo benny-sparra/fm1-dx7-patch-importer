@@ -177,7 +177,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Importing over a populated bank keeps its confirmation and Undo. Update the SysEx
     compatibility section of `docs/user-guide.md`.
 
-- [ ] **Hear a `.syx` file before importing it.** Choosing a bank or patch file lists its patches,
+- [x] **Hear a `.syx` file before importing it.** Choosing a bank or patch file lists its patches,
       and clicking one plays it through the FM1 edit buffer, as a search result does, before
       anything in the library changes. Today **Import bank** asks only which bank to replace, so
       the only way to hear an archive bank is to import it over one of yours and undo.
@@ -192,6 +192,14 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     dialog stays a lazy chunk and measure with `npm run bundle:check`.
   - Tests: playing a patch sends it to the edit buffer and leaves the library unchanged, playing
     the same patch twice sends once, and closing without importing changes nothing.
+  - Decided: built into the **Import over “…”?** dialog, which reads the file as it is chosen,
+    lists its 32 patches, and plays one on click through the search results' `onPlaySearchResult`
+    path with default effects. A file it cannot read is explained at once and **Replace bank
+    contents** stays disabled. Importing into an empty bank still goes straight from the file
+    picker, since nothing is replaced and its slots can be played afterwards; **Add new bank** and
+    **Import patch…** are unchanged. The list shows one bank, so [Multi-bank `.syx`
+    import](#worth-doing) would add a bank choice above it. The dialog is eager and the preview
+    costs about 450 B of the initial bundle.
 
 - [x] **Velocity on the on-screen keyboard.** The keyboard always strikes at velocity 96
       (`defaultNoteVelocity` in `src/lib/midi.ts`), so an operator's velocity sensitivity, which

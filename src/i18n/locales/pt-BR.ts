@@ -265,6 +265,10 @@ export default {
   overwriteImport: {
     action: 'Substituir conteúdo',
     help: 'Escolha um arquivo de banco SysEx DX7 padrão com 32 vozes.',
+    play: 'Tocar {{name}}, som {{number}}',
+    previewHelp:
+      'Clique em um som para ouvi-lo no FM1. Seu banco continua igual até você substituí-lo.',
+    previewTitle: 'Sons deste arquivo',
     title: 'Importar sobre “{{bank}}”?',
     warning: 'O conteúdo atual do banco será apagado e substituído pelos sons importados.',
   },
