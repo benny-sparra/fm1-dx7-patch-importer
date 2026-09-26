@@ -255,17 +255,13 @@ export function PatchEditorHeader({
           <Button
             aria-label={t('editor.compare')}
             aria-pressed={isComparing}
-            className={cn(
-              'font-vt323',
-              isComparing &&
-                'bg-[var(--crt-led)] text-[var(--crt-bg-0)] hover:bg-[var(--crt-led)] hover:text-[var(--crt-bg-0)]',
-            )}
+            className="font-vt323"
             disabled={compareDisabled}
             onClick={onCompare}
             ref={compareButtonRef}
             title={t('editor.compare')}
             type="button"
-            variant="outline"
+            variant={isComparing ? 'pressed' : 'outline'}
           >
             <GitCompareArrows />
             <span className="hidden xl:inline">{t('editor.compareShort')}</span>

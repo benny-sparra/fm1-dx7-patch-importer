@@ -20,14 +20,14 @@ function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement
 
 function CardTitle({ children, className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h2 className={cn('text-base leading-none font-semibold', className)} {...props}>
+    <h2 className={className ?? 'text-base leading-none font-semibold'} {...props}>
       {children}
     </h2>
   )
 }
 
 function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('p-5 pt-0', className)} {...props} />
+  return <div className={className ?? 'p-5 pt-0'} {...props} />
 }
 
 export { Card, CardContent, CardHeader, CardTitle }

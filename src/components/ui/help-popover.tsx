@@ -130,8 +130,9 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
         aria-label={t('ui.helpFor', { label })}
         className={cn(
           // A fingertip gets a wider target than the glyph shows.
-          'relative inline-grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground/75 transition-colors hover:bg-primary/10 hover:text-[var(--crt-acc-lt)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none pointer-coarse:after:absolute pointer-coarse:after:-inset-2 pointer-coarse:after:content-[""]',
-          className,
+          'relative inline-grid size-5 shrink-0 place-items-center rounded-full transition-colors hover:bg-primary/10 hover:text-[var(--crt-acc-lt)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none pointer-coarse:after:absolute pointer-coarse:after:-inset-2 pointer-coarse:after:content-[""]',
+          // A className replaces the default colour, since cn does not merge conflicting classes.
+          className ?? 'text-muted-foreground/75',
         )}
         onClick={(event) => {
           event.preventDefault()
