@@ -1,4 +1,5 @@
-import { Play, Square } from 'lucide-react'
+import { ChevronDown, Play, Square } from 'lucide-react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -28,6 +29,13 @@ export function PhraseTransport({
 }: PhraseTransportProps) {
   const { i18n, t } = useTranslation()
   const tempoNumber = new Intl.NumberFormat(i18n.resolvedLanguage).format(tempo)
+  // Listed alphabetically in the interface language, so the order follows the names people read.
+  const phraseOptions = useMemo(() => {
+    const collator = new Intl.Collator(i18n.resolvedLanguage)
+    return auditionPhrases
+      .map((phrase) => ({ id: phrase.id, name: t(`ui.phrases.${phrase.id}`) }))
+      .sort((a, b) => collator.compare(a.name, b.name))
+  }, [i18n.resolvedLanguage, t])
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1.5">
@@ -43,18 +51,21 @@ export function PhraseTransport({
         <span>{playing ? t('ui.stop') : t('ui.play')}</span>
       </Button>
 
-      <select
-        aria-label={t('ui.phrase')}
-        className="settings-option-select h-7 rounded-md border px-2 text-xs"
-        onChange={(event) => onPhraseChange(event.target.value)}
-        value={phraseId}
-      >
-        {auditionPhrases.map((phrase) => (
-          <option key={phrase.id} value={phrase.id}>
-            {t(`ui.phrases.${phrase.id}`)}
-          </option>
-        ))}
-      </select>
+      <span className="relative">
+        <select
+          aria-label={t('ui.phrase')}
+          className="settings-option-select h-7 appearance-none rounded-md border py-0 pr-7 pl-2 text-xs"
+          onChange={(event) => onPhraseChange(event.target.value)}
+          value={phraseId}
+        >
+          {phraseOptions.map((phrase) => (
+            <option key={phrase.id} value={phrase.id}>
+              {phrase.name}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+      </span>
 
       <label className="flex items-center gap-2">
         <span className="text-[11px] tracking-[0.14em] text-[var(--crt-ink-3)] uppercase">

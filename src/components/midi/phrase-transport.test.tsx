@@ -38,6 +38,33 @@ describe('PhraseTransport', () => {
     expect(options).toContain('Electric piano')
   })
 
+  it('lists the phrases alphabetically', () => {
+    renderTransport()
+
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+      'Arpeggio',
+      'Bass',
+      'Electric piano',
+      'Lead',
+      'Pad',
+      'Velocity ramp',
+    ])
+  })
+
+  it('lists the phrases alphabetically in the interface language', async () => {
+    await setLocale('de')
+    renderTransport()
+
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+      german.ui.phrases.velocityRamp,
+      german.ui.phrases.arpeggio,
+      german.ui.phrases.bass,
+      german.ui.phrases.electricPiano,
+      german.ui.phrases.pad,
+      german.ui.phrases.lead,
+    ])
+  })
+
   it('reads as Play while stopped and Stop while playing', () => {
     const { rerender, props } = renderTransport()
 
