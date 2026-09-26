@@ -295,6 +295,34 @@ describe('createPhrasePlayer', () => {
     ])
   })
 
+  it('plays the notes after a level change at that level', () => {
+    const { clock, player, sent } = makeTestPlayer()
+
+    player.play(twoNotePhrase, 120)
+    player.setLevel(48)
+    clock.advanceTo(800)
+
+    expect(sent).toEqual(['on 60 100', 'off 60', 'on 64 40', 'off 64'])
+  })
+
+  it('keeps its level for the next phrase it plays', () => {
+    const { player, sent } = makeTestPlayer()
+
+    player.setLevel(48)
+    player.play(twoNotePhrase, 120)
+
+    expect(sent).toEqual(['on 60 50'])
+  })
+
+  it('ignores a level that is not a number', () => {
+    const { player, sent } = makeTestPlayer()
+
+    player.setLevel(Number.NaN)
+    player.play(twoNotePhrase, 120)
+
+    expect(sent).toEqual(['on 60 100'])
+  })
+
   it('ignores a tempo change while nothing is playing', () => {
     const { clock, player, sent } = makeTestPlayer()
 

@@ -345,17 +345,35 @@ describe('PianoKeyboard velocity', () => {
     expect(velocitySlider()).toHaveProperty('value', '96')
   })
 
-  it('leaves the phrase at the velocities it is written with', async () => {
+  it('plays the phrase at the level chosen', async () => {
     const { midi } = await openKeyboard()
 
-    fireEvent.change(velocitySlider(), { target: { value: '40' } })
+    fireEvent.change(velocitySlider(), { target: { value: '48' } })
     vi.useFakeTimers()
     fireEvent.click(screen.getByRole('button', { name: 'Play the phrase' }))
 
+    // The arpeggio's first note is written at 96, the default level, so it plays at half.
     expect(midi.startNote).toHaveBeenCalledWith(48, expect.any(String), {
       quiet: true,
-      velocity: 96,
+      velocity: 48,
     })
+  })
+
+  it('plays a phrase already looping at a new level from its next note', async () => {
+    const { midi } = await openKeyboard()
+
+    vi.useFakeTimers()
+    fireEvent.click(screen.getByRole('button', { name: 'Play the phrase' }))
+    fireEvent.change(velocitySlider(), { target: { value: '48' } })
+    vi.advanceTimersByTime(10_000)
+
+    const velocities = vi
+      .mocked(midi.startNote)
+      .mock.calls.map(([, , options]) => options?.velocity)
+    expect(velocities[0]).toBe(96)
+    expect(velocities.slice(1).every((velocity) => velocity !== undefined && velocity <= 64)).toBe(
+      true,
+    )
   })
 
   it('keeps the chosen velocity when the keyboard is closed and opened again', async () => {

@@ -202,7 +202,9 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Keep the control to 1–127; `sendNoteOn` already takes a velocity. Played notes use it; the
     audition phrases keep the velocities they are written with. Decided: the limits are
     `minNoteVelocity` and `maxNoteVelocity`, with `defaultNoteVelocity` in
-    `src/lib/note-velocity.ts`, and `sendNoteOn` keeps accepting 0, as its tests expect.
+    `src/lib/note-velocity.ts`, and `sendNoteOn` keeps accepting 0, as its tests expect. Changed
+    after trying it: the phrases follow the Level too, scaled in proportion by
+    `scaleNoteVelocity`, so the default level plays them as written and keeps their accents.
   - Decide whether the setting survives closing the dialog. Remembering it across visits means a
     new `localStorage` key, which becomes a public format under the legacy-data rules; keeping it
     in memory for the tab needs none. Decided: in memory. The dialog stays mounted once first

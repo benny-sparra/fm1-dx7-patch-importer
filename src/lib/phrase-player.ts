@@ -1,4 +1,5 @@
 import type { AuditionPhrase } from '@/lib/audition-phrases'
+import { defaultNoteVelocity, scaleNoteVelocity } from '@/lib/note-velocity'
 
 /**
  * A small loop player for the audition phrases.
@@ -44,6 +45,11 @@ export type PhrasePlayer = {
    * tempo slider neither restarts the phrase nor retriggers a note for every step of the drag.
    */
   setTempo: (tempo: number) => void
+  /**
+   * Plays every note from the next one on at `level`, the keyboard's Level, scaling the phrase's
+   * written velocities. It lasts across phrases until changed.
+   */
+  setLevel: (level: number) => void
   /** Silences every sounding note and stops the loop. */
   stop: () => void
 }
@@ -97,6 +103,7 @@ export function createPhrasePlayer(
   let phrase: AuditionPhrase | null = null
   let tempo = 0
   let pendingTempo: number | null = null
+  let level = defaultNoteVelocity
   let cycleLength = 0
   let cycleStart = 0
   let index = 0
@@ -130,7 +137,7 @@ export function createPhrasePlayer(
       }
 
       activeNotes.add(event.note)
-      handlers.startNote(event.note, event.velocity)
+      handlers.startNote(event.note, scaleNoteVelocity(event.velocity, level))
       return
     }
 
@@ -246,6 +253,11 @@ export function createPhrasePlayer(
       }
 
       pendingTempo = nextTempo === tempo ? null : nextTempo
+    },
+    setLevel(nextLevel) {
+      if (Number.isFinite(nextLevel)) {
+        level = nextLevel
+      }
     },
     stop() {
       cancelTimer()

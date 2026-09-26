@@ -106,14 +106,6 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
     [keyVelocity, sendMidiNoteOn],
   )
 
-  const changeVelocity = useCallback((nextVelocity: number) => {
-    if (!Number.isFinite(nextVelocity)) {
-      return
-    }
-
-    setKeyVelocity(Math.min(maxNoteVelocity, Math.max(minNoteVelocity, Math.round(nextVelocity))))
-  }, [])
-
   const releaseNote = useCallback(
     (note: number) => {
       if (!activeNotesRef.current.has(note)) {
@@ -227,6 +219,20 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
       const bounded = Math.min(maxPhraseTempo, Math.max(minPhraseTempo, Math.round(nextTempo)))
       setTempo(bounded)
       player.setTempo(bounded)
+    },
+    [player],
+  )
+
+  /** The keys and a playing phrase both take a new Level from their next note. */
+  const changeVelocity = useCallback(
+    (nextVelocity: number) => {
+      if (!Number.isFinite(nextVelocity)) {
+        return
+      }
+
+      const bounded = Math.min(maxNoteVelocity, Math.max(minNoteVelocity, Math.round(nextVelocity)))
+      setKeyVelocity(bounded)
+      player.setLevel(bounded)
     },
     [player],
   )
@@ -566,7 +572,7 @@ type KeyVelocityProps = {
   velocity: number
 }
 
-/** How hard the keys strike. The phrases keep the velocities they are written with. */
+/** How hard the keys strike, and how hard a phrase plays its written velocities. */
 function KeyVelocity({ onChange, velocity }: KeyVelocityProps) {
   const { t } = useTranslation()
 

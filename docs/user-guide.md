@@ -89,7 +89,7 @@ The LFO and every FM1 effect open with a small animated scope drawn from their c
 
 The **Keyboard** button opens the on-screen piano. It floats above the librarian and the editor, and you can drag it by its header, so you can go on editing while it is open.
 
-**Level**, beside the keyboard's title, sets how hard the keys strike: softest at the left, hardest at the right. It starts about three-quarters of the way up. Lower it and raise it while you play to hear how much an operator's **Velocity** sensitivity changes the sound. The setting lasts until you close or reload the tab, and it does not change the phrases below, which keep the velocities they are written with.
+**Level**, beside the keyboard's title, sets how hard the keys strike: softest at the left, hardest at the right. It starts about three-quarters of the way up. Lower it and raise it while you play to hear how much an operator's **Velocity** sensitivity changes the sound. The setting lasts until you close or reload the tab. It also sets how hard the phrases below play, from their next note: they keep their own accents, played softer or harder in proportion.
 
 The keyboard's header carries a small transport for auditioning a patch without playing it yourself. Choose one of six short phrases, or keep **Arpeggio**, which is chosen when the keyboard opens, then press **Play**. It loops until you press **Stop**, lighting the keys as it goes. The phrases are two bars each and are chosen for what they tell you about a sound rather than for the tune:
 
