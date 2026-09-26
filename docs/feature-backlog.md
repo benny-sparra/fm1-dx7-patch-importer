@@ -193,15 +193,22 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Tests: playing a patch sends it to the edit buffer and leaves the library unchanged, playing
     the same patch twice sends once, and closing without importing changes nothing.
 
-- [ ] **Velocity on the on-screen keyboard.** The keyboard always strikes at velocity 96
+- [x] **Velocity on the on-screen keyboard.** The keyboard always strikes at velocity 96
       (`defaultNoteVelocity` in `src/lib/midi.ts`), so an operator's velocity sensitivity, which
       the editor explains, cannot be heard without a hardware keyboard. Add a velocity control to
-      the keyboard dialog, as [FM-1 Utility](https://fm1-utility.pages.dev/) has.
-  - Validate 1–127 at the MIDI boundary; `sendNoteOn` already takes a velocity. Played notes use
-    it; the audition phrases keep the velocities they are written with.
+      the keyboard dialog, as [FM-1 Utility](https://fm1-utility.pages.dev/) has. Built as a
+      **Level** slider beside the keyboard's title. The label avoids the technical word; the
+      operator's own setting keeps the name **Velocity**.
+  - Keep the control to 1–127; `sendNoteOn` already takes a velocity. Played notes use it; the
+    audition phrases keep the velocities they are written with. Decided: the limits are
+    `minNoteVelocity` and `maxNoteVelocity`, with `defaultNoteVelocity` in
+    `src/lib/note-velocity.ts`, and `sendNoteOn` keeps accepting 0, as its tests expect. Changed
+    after trying it: the phrases follow the Level too, scaled in proportion by
+    `scaleNoteVelocity`, so the default level plays them as written and keeps their accents.
   - Decide whether the setting survives closing the dialog. Remembering it across visits means a
     new `localStorage` key, which becomes a public format under the legacy-data rules; keeping it
-    in memory for the tab needs none.
+    in memory for the tab needs none. Decided: in memory. The dialog stays mounted once first
+    opened, so the setting lasts until the tab closes with no stored key.
   - Its accessible name and value text come from the locale files, and a keyboard change to it
     must not play notes: the dialog claims plain keys for the piano.
   - Tests: a note played after changing velocity sends that velocity, and the phrase velocities

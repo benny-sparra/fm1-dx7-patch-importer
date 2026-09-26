@@ -136,7 +136,7 @@ test.describe('with an FM-1 connected', () => {
     await page.getByRole('button', { name: 'Keyboard' }).first().click()
     const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
     await expect(keyboard).toBeVisible()
-    const title = keyboard.getByText('PERFORMANCE', { exact: true })
+    const title = keyboard.getByText('Keyboard', { exact: true })
     const start = await title.boundingBox()
     if (!start) throw new Error('The keyboard title has no position.')
     const before = await keyboard.boundingBox()
@@ -148,6 +148,33 @@ test.describe('with an FM-1 connected', () => {
 
     expect((await keyboard.boundingBox())?.y).not.toBe(before?.y)
     expect(await page.evaluate(() => window.getSelection()?.toString() ?? '')).toBe('')
+  })
+
+  test('strikes the keyboard at the velocity chosen in its header', async ({ page }) => {
+    await page.getByRole('button', { name: 'Keyboard' }).first().click()
+    const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
+    await expect(keyboard).toBeVisible()
+
+    await keyboard.getByRole('slider', { name: 'Level' }).fill('40')
+    await keyboard.getByRole('button', { name: 'Close keyboard' }).focus()
+    await page.keyboard.down('a')
+    await page.keyboard.up('a')
+
+    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 48, 40])
+  })
+
+  test('plays an audition phrase at the level chosen in the keyboard header', async ({ page }) => {
+    await page.getByRole('button', { name: 'Keyboard' }).first().click()
+    const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
+    await expect(keyboard).toBeVisible()
+
+    await keyboard.getByRole('slider', { name: 'Level' }).fill('48')
+    await keyboard.getByRole('button', { name: 'Play the phrase' }).click()
+
+    // The arpeggio's C3 and G3 are written at 96 and 92, so half the default level halves them.
+    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 48, 48])
+    await expect.poll(() => sentMidi(page)).toContainEqual([0x90, 55, 46])
+    await keyboard.getByRole('button', { name: 'Stop the phrase' }).click()
   })
 
   test('loops an audition phrase from the keyboard and silences it on stop', async ({ page }) => {

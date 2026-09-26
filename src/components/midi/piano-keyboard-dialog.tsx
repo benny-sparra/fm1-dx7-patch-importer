@@ -13,7 +13,9 @@ import {
   maxPhraseTempo,
   minPhraseTempo,
 } from '@/lib/audition-phrases'
+import { defaultNoteVelocity, maxNoteVelocity, minNoteVelocity } from '@/lib/note-velocity'
 import { createPhrasePlayer } from '@/lib/phrase-player'
+import { rangeStyle } from '@/lib/range-style'
 import {
   makePianoKeys,
   mapComputerPianoKeys,
@@ -57,6 +59,7 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
   const activeComputerKeysRef = useRef<Map<string, number>>(new Map())
   const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set())
   const [baseOctave, setBaseOctave] = useState(3)
+  const [keyVelocity, setKeyVelocity] = useState(defaultNoteVelocity)
   const [phraseId, setPhraseId] = useState(defaultAuditionPhraseId)
   const [tempo, setTempo] = useState(
     () => findAuditionPhrase(defaultAuditionPhraseId)?.tempo ?? minPhraseTempo,
@@ -98,9 +101,9 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
 
       activeNotesRef.current.add(key.note)
       setActiveNotes(new Set(activeNotesRef.current))
-      sendMidiNoteOn(key.note, key.label)
+      sendMidiNoteOn(key.note, key.label, { velocity: keyVelocity })
     },
-    [sendMidiNoteOn],
+    [keyVelocity, sendMidiNoteOn],
   )
 
   const releaseNote = useCallback(
@@ -216,6 +219,20 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
       const bounded = Math.min(maxPhraseTempo, Math.max(minPhraseTempo, Math.round(nextTempo)))
       setTempo(bounded)
       player.setTempo(bounded)
+    },
+    [player],
+  )
+
+  /** The keys and a playing phrase both take a new Level from their next note. */
+  const changeVelocity = useCallback(
+    (nextVelocity: number) => {
+      if (!Number.isFinite(nextVelocity)) {
+        return
+      }
+
+      const bounded = Math.min(maxNoteVelocity, Math.max(minNoteVelocity, Math.round(nextVelocity)))
+      setKeyVelocity(bounded)
+      player.setLevel(bounded)
     },
     [player],
   )
@@ -457,15 +474,18 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
       >
         <div className="flex shrink-0 items-center gap-3">
           <GripHorizontal className="size-5 opacity-60" />
-          <div className="flex items-baseline gap-2.5">
-            <span className="text-xs font-extrabold tracking-[0.24em]">{t('ui.performance')}</span>
-            <span className="text-[0.62rem] font-bold tracking-[0.2em] opacity-70">
-              {t('ui.keyboard').toUpperCase()}
-            </span>
-          </div>
+          <span className="text-xs font-extrabold tracking-[0.24em] uppercase">
+            {t('ui.keyboard')}
+          </span>
         </div>
-        {/* The transport shares the drag handle, so using it must not start a drag. Where the
-            header is too narrow for it, it takes a row of its own below the title. */}
+        {/* The controls share the drag handle, so using them must not start a drag. Where the
+            header is too narrow for them, they take rows of their own below the title. */}
+        <div
+          className="order-last flex basis-full cursor-auto items-center lg:order-none lg:basis-auto"
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <KeyVelocity onChange={changeVelocity} velocity={keyVelocity} />
+        </div>
         <div
           className="order-last flex basis-full cursor-auto justify-end lg:order-none lg:flex-1 lg:basis-auto"
           onPointerDown={(event) => event.stopPropagation()}
@@ -544,6 +564,35 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
         </div>
       </div>
     </dialog>
+  )
+}
+
+type KeyVelocityProps = {
+  onChange: (velocity: number) => void
+  velocity: number
+}
+
+/** How hard the keys strike, and how hard a phrase plays its written velocities. */
+function KeyVelocity({ onChange, velocity }: KeyVelocityProps) {
+  const { t } = useTranslation()
+
+  return (
+    <label className="flex items-center gap-2">
+      <span className="text-[11px] tracking-[0.14em] text-[var(--crt-ink-3)] uppercase">
+        {t('ui.keyLevel')}
+      </span>
+      <input
+        aria-label={t('ui.keyLevel')}
+        className="w-24 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+        max={maxNoteVelocity}
+        min={minNoteVelocity}
+        onChange={(event) => onChange(Number(event.target.value))}
+        step={1}
+        style={rangeStyle(velocity, minNoteVelocity, maxNoteVelocity, 'var(--crt-acc)')}
+        type="range"
+        value={velocity}
+      />
+    </label>
   )
 }
 

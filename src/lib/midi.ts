@@ -9,6 +9,7 @@ import {
 import { fm1EffectParameterMaximums, fm1EffectParameterCount } from '@/lib/fm1-effects'
 import { fm1VoiceParameterMaximums } from '@/lib/fm1-parameters'
 import { createId } from '@/lib/id'
+import { defaultNoteVelocity } from '@/lib/note-velocity'
 
 export type MidiPort = Input | Output
 
@@ -211,8 +212,6 @@ export function sendFm1EffectDiagnosticControl(
   assertFm1EffectDiagnosticControl(controller, value, channel)
   output.sendControlChange(controller, value, { channels: channel })
 }
-
-export const defaultNoteVelocity = 96
 
 function assertMidiNote(note: number, velocity: number, channel: number) {
   if (!Number.isInteger(note) || note < 0 || note > 127) {

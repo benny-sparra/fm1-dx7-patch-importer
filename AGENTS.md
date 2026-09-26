@@ -219,6 +219,10 @@ open everything an earlier release could have saved.
   them out of the entry. The saved-bank and catalog search once cost 1.5 KiB of the budget this way.
   `typescript/no-import-type-side-effects` enforces this; mixed value and type imports keep their
   inline `type` specifiers.
+- The same holds for values. A lazy chunk that needs a small constant from a large module the entry
+  uses takes it from a leaf module both import, as the piano keyboard takes its velocity limits
+  from `src/lib/note-velocity.ts` rather than `src/lib/midi.ts`. Importing `midi.ts` itself made
+  Rolldown split `fm1-effects` out of the entry and cost 412 B.
 - Prefer source-level `import()` at genuine interaction or data boundaries. Do not move initial code
   into eagerly imported vendor chunks to make the entry filename smaller.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that

@@ -89,6 +89,8 @@ The LFO and every FM1 effect open with a small animated scope drawn from their c
 
 The **Keyboard** button opens the on-screen piano. It floats above the librarian and the editor, and you can drag it by its header, so you can go on editing while it is open.
 
+**Level**, beside the keyboard's title, sets how hard the keys strike: softest at the left, hardest at the right. It starts about three-quarters of the way up. Lower it and raise it while you play to hear how much an operator's **Velocity** sensitivity changes the sound. The setting lasts until you close or reload the tab. It also sets how hard the phrases below play, from their next note: they keep their own accents, played softer or harder in proportion.
+
 The keyboard's header carries a small transport for auditioning a patch without playing it yourself. Choose one of six short phrases, or keep **Arpeggio**, which is chosen when the keyboard opens, then press **Play**. It loops until you press **Stop**, lighting the keys as it goes. The phrases are two bars each and are chosen for what they tell you about a sound rather than for the tune:
 
 - **Pad** holds four-note chords, so you hear the slow attack, the release and anything the effects add to a held sound.
@@ -98,7 +100,7 @@ The keyboard's header carries a small transport for auditioning a patch without 
 - **Arpeggio** runs even sixteenths across two octaves, for the attack, the decay and the tuning.
 - **Velocity ramp** plays one note eight times, from very soft to very hard.
 
-Each phrase is written for its own tempo, which the **Tempo** slider takes up when you choose it. Moving the slider while a phrase is playing takes effect when the loop comes round, so the phrase neither jumps nor retriggers as you drag. Playing the keys yourself while a phrase loops works normally.
+Each phrase is written for its own tempo, which the **Tempo** slider takes up when you choose it. Moving the slider while a phrase is playing takes effect straight away, carrying on from where the phrase has got to, so it neither restarts nor retriggers notes as you drag. Playing the keys yourself while a phrase loops works normally.
 
 A phrase is sent live over MIDI and is never stored on the FM1: it has nothing to do with the unit's own sequencer. It stops when you close the keyboard, when the MIDI output disconnects or you choose another, and when you change the note channel in **Settings**. Browsers slow down a hidden tab, so a phrase left playing in one skips the notes it would play late rather than sending them all at once. Its notes are kept out of the MIDI log, which records only that a phrase started and stopped.
 

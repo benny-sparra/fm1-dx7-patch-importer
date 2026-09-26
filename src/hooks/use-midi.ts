@@ -30,7 +30,6 @@ import {
   sendEveryNoteOff,
   sendNoteOff,
   sendNoteOn,
-  defaultNoteVelocity,
   sendDx7Bank,
   sendDx7Voice,
   type MidiDevice,
@@ -38,6 +37,7 @@ import {
 } from '@/lib/midi'
 import { MidiTransferCancelledError, MidiTransferQueue } from '@/lib/midi-transfer-queue'
 import { MidiLogStore } from '@/lib/midi-log-store'
+import { defaultNoteVelocity } from '@/lib/note-velocity'
 
 type WebMidiApi = (typeof import('webmidi'))['WebMidi']
 

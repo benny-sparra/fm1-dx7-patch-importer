@@ -213,8 +213,9 @@ describe('createPhrasePlayer', () => {
     const afterStall = sent.length
     clock.advanceTo(12_000)
 
-    // At 60 BPM the two-second loops start on odd seconds, with the second note a second in.
-    expect(sent.slice(afterStall)).toEqual(['on 60 100', 'off 60', 'on 64 80'])
+    // The tempo took effect at once, so the two-second loops start on even seconds: the stall
+    // ends a tenth of a second into one, and its second note comes a second in.
+    expect(sent.slice(afterStall)).toEqual(['on 64 80', 'off 64', 'on 60 100'])
   })
 
   it('silences a sounding note when it is stopped', () => {
@@ -269,30 +270,76 @@ describe('createPhrasePlayer', () => {
     expect(activeNotes).toEqual([[60], [], [64], []])
   })
 
-  it('takes up a new tempo at the next loop rather than restarting the phrase', () => {
+  it('takes up a new tempo at once, from where the phrase has got to', () => {
     const { clock, player, sent } = makeTestPlayer()
 
     player.play(twoNotePhrase, 120)
-    clock.advanceTo(100)
+    // Half a beat in, as the first note is released.
+    clock.advanceTo(250)
     player.setTempo(60)
-    // The rest of this loop keeps its original timing.
-    clock.advanceTo(999)
+
+    // The second note, a beat into the loop, is now half a beat away at a second a beat.
+    clock.advanceTo(749)
+    expect(sent).toEqual(['on 60 100', 'off 60'])
+    clock.advanceTo(750)
+    expect(sent).toEqual(['on 60 100', 'off 60', 'on 64 80'])
+  })
+
+  it('carries on the loop at the new tempo rather than restarting the phrase', () => {
+    const { clock, player, sent } = makeTestPlayer()
+
+    player.play(twoNotePhrase, 120)
+    clock.advanceTo(250)
+    player.setTempo(60)
+
+    // The loop that started at 0 now ends two beats in, at 1750, and the next starts there.
+    clock.advanceTo(1749)
     expect(sent).toEqual(['on 60 100', 'off 60', 'on 64 80', 'off 64'])
+    clock.advanceTo(1750)
+    expect(sent).toEqual(['on 60 100', 'off 60', 'on 64 80', 'off 64', 'on 60 100'])
+  })
 
-    // The second loop runs at half speed, so its second note arrives at 1000 + 1000ms.
-    clock.advanceTo(1500)
-    expect(sent).toEqual(['on 60 100', 'off 60', 'on 64 80', 'off 64', 'on 60 100', 'off 60'])
+  it('keeps a note sounding across a tempo change', () => {
+    const { clock, player, sent } = makeTestPlayer()
 
-    clock.advanceTo(2100)
-    expect(sent).toEqual([
-      'on 60 100',
-      'off 60',
-      'on 64 80',
-      'off 64',
-      'on 60 100',
-      'off 60',
-      'on 64 80',
-    ])
+    player.play(twoNotePhrase, 120)
+    // A tenth of a beat into the first note, which lasts half a beat.
+    clock.advanceTo(50)
+    player.setTempo(60)
+
+    // Its release, four tenths of a beat away, now comes 400ms later rather than 200ms.
+    clock.advanceTo(449)
+    expect(sent).toEqual(['on 60 100'])
+    clock.advanceTo(450)
+    expect(sent).toEqual(['on 60 100', 'off 60'])
+  })
+
+  it('plays the notes after a level change at that level', () => {
+    const { clock, player, sent } = makeTestPlayer()
+
+    player.play(twoNotePhrase, 120)
+    player.setLevel(48)
+    clock.advanceTo(800)
+
+    expect(sent).toEqual(['on 60 100', 'off 60', 'on 64 40', 'off 64'])
+  })
+
+  it('keeps its level for the next phrase it plays', () => {
+    const { player, sent } = makeTestPlayer()
+
+    player.setLevel(48)
+    player.play(twoNotePhrase, 120)
+
+    expect(sent).toEqual(['on 60 50'])
+  })
+
+  it('ignores a level that is not a number', () => {
+    const { player, sent } = makeTestPlayer()
+
+    player.setLevel(Number.NaN)
+    player.play(twoNotePhrase, 120)
+
+    expect(sent).toEqual(['on 60 100'])
   })
 
   it('ignores a tempo change while nothing is playing', () => {
