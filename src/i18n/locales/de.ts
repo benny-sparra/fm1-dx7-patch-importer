@@ -169,7 +169,7 @@ export default {
     pianoKeyboard: 'Klaviatur',
     dragKeyboard: 'Klaviatur verschieben',
     closeKeyboard: 'Klaviatur schließen',
-    dynamics: 'Dynamik',
+    keyLevel: 'Stärke',
     phrase: 'Phrase',
     play: 'Start',
     stop: 'Stopp',

@@ -167,7 +167,7 @@ export default {
     pianoKeyboard: 'Teclado de piano',
     dragKeyboard: 'Mover el teclado',
     closeKeyboard: 'Cerrar el teclado',
-    dynamics: 'Dinámica',
+    keyLevel: 'Nivel',
     phrase: 'Frase',
     play: 'Tocar',
     stop: 'Parar',

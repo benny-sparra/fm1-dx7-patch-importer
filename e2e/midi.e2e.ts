@@ -155,7 +155,7 @@ test.describe('with an FM-1 connected', () => {
     const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
     await expect(keyboard).toBeVisible()
 
-    await keyboard.getByRole('slider', { name: 'Dynamics' }).fill('40')
+    await keyboard.getByRole('slider', { name: 'Level' }).fill('40')
     await keyboard.getByRole('button', { name: 'Close keyboard' }).focus()
     await page.keyboard.down('a')
     await page.keyboard.up('a')

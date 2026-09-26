@@ -137,7 +137,7 @@ export default {
     pianoKeyboard: '钢琴键盘',
     dragKeyboard: '移动键盘',
     closeKeyboard: '关闭键盘',
-    dynamics: '强弱',
+    keyLevel: '强度',
     phrase: '乐句',
     play: '播放',
     stop: '停止',

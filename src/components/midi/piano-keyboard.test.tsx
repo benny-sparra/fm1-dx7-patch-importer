@@ -328,7 +328,7 @@ describe('PianoKeyboard velocity', () => {
     return { ...view, user }
   }
 
-  const velocitySlider = () => screen.getByRole('slider', { name: 'Dynamics' })
+  const velocitySlider = () => screen.getByRole('slider', { name: 'Level' })
 
   it('strikes the keys at the velocity chosen', async () => {
     const { midi } = await openKeyboard()
@@ -386,14 +386,14 @@ describe('PianoKeyboard velocity', () => {
     expect(keyboardDialog()?.style.inset).toBe('')
   })
 
-  it('names the dynamics control in the interface language', async () => {
+  it('names the level control in the interface language', async () => {
     await setLocale('de')
     setup()
     await userEvent.setup().click(screen.getByRole('button', { name: german.ui.keyboard }))
     await waitFor(() => expect(keyboardDialog()?.open).toBe(true))
 
-    expect(screen.getByRole('slider', { name: german.ui.dynamics })).toBeTruthy()
-    expect(within(keyboardDialog()!).getByText(german.ui.dynamics)).toBeTruthy()
+    expect(screen.getByRole('slider', { name: german.ui.keyLevel })).toBeTruthy()
+    expect(within(keyboardDialog()!).getByText(german.ui.keyLevel)).toBeTruthy()
   })
 })
 
