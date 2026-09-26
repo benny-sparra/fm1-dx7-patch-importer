@@ -41,8 +41,9 @@ export type PhrasePlayer = {
   /** Starts `phrase` looping at `tempo`, replacing anything already playing. */
   play: (phrase: AuditionPhrase, tempo: number) => void
   /**
-   * Plays the rest of this loop at the current tempo and the next one at `tempo`, so dragging the
-   * tempo slider neither restarts the phrase nor retriggers a note for every step of the drag.
+   * Plays on at `tempo` from where the phrase has got to, re-timing the notes still to come, so
+   * dragging the tempo slider is heard at once but neither restarts the phrase nor retriggers a
+   * note for every step of the drag.
    */
   setTempo: (tempo: number) => void
   /**
@@ -102,7 +103,6 @@ export function createPhrasePlayer(
   let events: PhraseEvent[] = []
   let phrase: AuditionPhrase | null = null
   let tempo = 0
-  let pendingTempo: number | null = null
   let level = defaultNoteVelocity
   let cycleLength = 0
   let cycleStart = 0
@@ -146,18 +146,6 @@ export function createPhrasePlayer(
     }
   }
 
-  /** Takes up a tempo chosen during the last loop, so the change lands on a loop boundary. */
-  function startNextCycle() {
-    if (pendingTempo === null || !phrase) {
-      return
-    }
-
-    tempo = pendingTempo
-    pendingTempo = null
-    cycleLength = phraseCycleLength(phrase, tempo)
-    events = makePhraseEvents(phrase, tempo)
-  }
-
   function scheduleNextEvent() {
     const event = events[index]
 
@@ -170,14 +158,12 @@ export function createPhrasePlayer(
 
   /**
    * Silences the phrase and drops every event due before `time`, picking the loop up where it
-   * would be by now. A tempo chosen meanwhile starts at the first loop boundary skipped.
+   * would be by now.
    */
   function skipTo(time: number) {
     releaseAllNotes()
 
     if (time >= cycleStart + cycleLength) {
-      cycleStart += cycleLength
-      startNextCycle()
       cycleStart += Math.floor((time - cycleStart) / cycleLength) * cycleLength
     }
 
@@ -186,7 +172,6 @@ export function createPhrasePlayer(
     if (index === -1) {
       index = 0
       cycleStart += cycleLength
-      startNextCycle()
     }
   }
 
@@ -215,7 +200,6 @@ export function createPhrasePlayer(
       if (index >= events.length) {
         index = 0
         cycleStart += cycleLength
-        startNextCycle()
       }
     }
 
@@ -234,7 +218,6 @@ export function createPhrasePlayer(
       cycleLength = phraseCycleLength(nextPhrase, nextTempo)
       const playable = Number.isFinite(cycleLength) && cycleLength > 0
       events = playable ? makePhraseEvents(nextPhrase, nextTempo) : []
-      pendingTempo = null
 
       if (events.length === 0) {
         phrase = null
@@ -248,11 +231,21 @@ export function createPhrasePlayer(
       fireDueEvents()
     },
     setTempo(nextTempo) {
-      if (!phrase || !Number.isFinite(nextTempo) || nextTempo <= 0) {
+      if (!phrase || !Number.isFinite(nextTempo) || nextTempo <= 0 || nextTempo === tempo) {
         return
       }
 
-      pendingTempo = nextTempo === tempo ? null : nextTempo
+      // Scaling every event by the same factor keeps their order, so the next event to send is
+      // still `index`; only when it is due changes. The loop start moves so the beat the phrase
+      // has reached lands on the present moment at the new tempo.
+      const current = now()
+      const beatsIn = ((current - cycleStart) * tempo) / 60_000
+      tempo = nextTempo
+      cycleLength = phraseCycleLength(phrase, tempo)
+      events = makePhraseEvents(phrase, tempo)
+      cycleStart = current - (beatsIn * 60_000) / tempo
+      cancelTimer()
+      scheduleNextEvent()
     },
     setLevel(nextLevel) {
       if (Number.isFinite(nextLevel)) {
@@ -264,7 +257,6 @@ export function createPhrasePlayer(
       releaseAllNotes()
       events = []
       phrase = null
-      pendingTempo = null
       index = 0
     },
   }

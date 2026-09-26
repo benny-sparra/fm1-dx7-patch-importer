@@ -100,7 +100,7 @@ The keyboard's header carries a small transport for auditioning a patch without 
 - **Arpeggio** runs even sixteenths across two octaves, for the attack, the decay and the tuning.
 - **Velocity ramp** plays one note eight times, from very soft to very hard.
 
-Each phrase is written for its own tempo, which the **Tempo** slider takes up when you choose it. Moving the slider while a phrase is playing takes effect when the loop comes round, so the phrase neither jumps nor retriggers as you drag. Playing the keys yourself while a phrase loops works normally.
+Each phrase is written for its own tempo, which the **Tempo** slider takes up when you choose it. Moving the slider while a phrase is playing takes effect straight away, carrying on from where the phrase has got to, so it neither restarts nor retriggers notes as you drag. Playing the keys yourself while a phrase loops works normally.
 
 A phrase is sent live over MIDI and is never stored on the FM1: it has nothing to do with the unit's own sequencer. It stops when you close the keyboard, when the MIDI output disconnects or you choose another, and when you change the note channel in **Settings**. Browsers slow down a hidden tab, so a phrase left playing in one skips the notes it would play late rather than sending them all at once. Its notes are kept out of the MIDI log, which records only that a phrase started and stopped.
 
