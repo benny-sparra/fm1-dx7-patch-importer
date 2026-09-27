@@ -7,6 +7,7 @@ import {
   normalizeStoredDx7Voice,
   type Dx7Voice,
 } from '@/lib/dx7'
+import { type Favourite, type FavouriteOrigin, readFavourites } from '@/lib/favourites'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
 import { recordBackupTime } from '@/lib/last-backup'
 import { type NamedBank, validateNamedBank } from '@/lib/named-bank'
@@ -26,7 +27,7 @@ import {
  * change for different reasons.
  */
 export const workspaceBackupFormat = 'fm1-librarian-backup'
-export const workspaceBackupVersion = 1
+export const workspaceBackupVersion = 2
 export const workspaceBackupFileAccept = '.json,application/json'
 
 /**
@@ -56,6 +57,14 @@ type BackupFileV1 = {
     slots: (BackupSlotV1 & { bank: string })[]
     workspaceBanks: string[]
   }
+}
+
+type BackupFavouriteV2 = { effects: string; id: string; origin: FavouriteOrigin; voice: string }
+
+/** Version 2 adds the favourites to the workspace. Everything else is as version 1 wrote it. */
+type BackupFileV2 = Omit<BackupFileV1, 'version' | 'workspace'> & {
+  version: 2
+  workspace: BackupFileV1['workspace'] & { favourites: BackupFavouriteV2[] }
 }
 
 // 'format' is not a backup at all, 'newer' was written by a later release, and 'damaged' is a
@@ -102,7 +111,7 @@ function encodeSlot(voice: Dx7Voice, effects: Uint8Array | undefined, slot: numb
   }
 }
 
-/** Writes the workspace and the saved banks as a version 1 backup file. */
+/** Writes the workspace, with its favourites, and the saved banks as a version 2 backup file. */
 export function makeWorkspaceBackup(
   snapshot: PatchLibrarySnapshot,
   savedBanks: readonly NamedBank[],
@@ -115,7 +124,7 @@ export function makeWorkspaceBackup(
       return voice ? [{ bank, ...encodeSlot(voice, snapshot.effects[id], slot) }] : []
     }),
   )
-  const file: BackupFileV1 = {
+  const file: BackupFileV2 = {
     format: workspaceBackupFormat,
     savedAt,
     savedBanks: savedBanks.map((bank) => ({
@@ -130,6 +139,12 @@ export function makeWorkspaceBackup(
     workspace: {
       bankDescriptions: snapshot.bankDescriptions,
       bankNames: snapshot.bankNames,
+      favourites: snapshot.favourites.map(({ effects, id, origin, voice }) => ({
+        effects: encodeBase64(normalizeFm1Effects(effects)),
+        id,
+        origin,
+        voice: encodeBase64(voice.data),
+      })),
       loadedBanks: snapshot.loadedBanks,
       slots,
       workspaceBanks: snapshot.workspaceBanks,
@@ -178,8 +193,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * Reads one voice and its effects. Voice data is checked as strictly as a `.syx` import: a byte
  * above seven bits means the file was spoiled, so it is refused rather than masked.
  */
-function readSlot(value: unknown) {
-  if (!isRecord(value)) return null
+function readSound(value: Record<string, unknown>) {
   const data = decodeBase64(value.voice)
   const effects = decodeBase64(value.effects)
   if (
@@ -187,15 +201,37 @@ function readSlot(value: unknown) {
     data.length !== dx7PackedVoiceSize ||
     !isSevenBitData(data) ||
     !effects ||
-    effects.length !== fm1EffectParameterCount ||
+    effects.length !== fm1EffectParameterCount
+  ) {
+    return null
+  }
+  const voice = normalizeStoredDx7Voice({ data })
+  return voice ? { effects: normalizeFm1Effects(effects), voice } : null
+}
+
+function readSlot(value: unknown) {
+  if (
+    !isRecord(value) ||
     !Number.isInteger(value.slot) ||
     (value.slot as number) < 1 ||
     (value.slot as number) > dx7BankVoiceCount
   ) {
     return null
   }
-  const voice = normalizeStoredDx7Voice({ data })
-  return voice ? { effects: normalizeFm1Effects(effects), slot: value.slot as number, voice } : null
+  const sound = readSound(value)
+  return sound ? { ...sound, slot: value.slot as number } : null
+}
+
+/** Reads the favourites a version 2 backup holds. An unreadable one makes the workspace damaged. */
+function readBackupFavourites(value: unknown): Favourite[] {
+  if (!Array.isArray(value)) damaged('The backup has no readable favourites.')
+  const decoded = value.map((entry) => {
+    const sound = isRecord(entry) ? readSound(entry) : null
+    return sound && isRecord(entry) ? { ...entry, ...sound } : null
+  })
+  const favourites = readFavourites(decoded, (voice) => (voice ? (voice as Dx7Voice) : null))
+  if (!favourites) damaged('The backup contains an unreadable favourite.')
+  return favourites
 }
 
 function readBankText(value: unknown, length: number, workspaceBanks: readonly string[]) {
@@ -211,7 +247,7 @@ function readBankText(value: unknown, length: number, workspaceBanks: readonly s
   )
 }
 
-function readWorkspace(value: unknown): PatchLibrarySnapshot {
+function readWorkspace(value: unknown, version: number): PatchLibrarySnapshot {
   if (!isRecord(value) || !Array.isArray(value.workspaceBanks) || !Array.isArray(value.slots)) {
     damaged('The backup has no readable workspace.')
   }
@@ -248,6 +284,8 @@ function readWorkspace(value: unknown): PatchLibrarySnapshot {
     bankDescriptions: readBankText(value.bankDescriptions, bankDescriptionLength, banks),
     bankNames: readBankText(value.bankNames, workspaceBankTitleLength, banks),
     effects,
+    // Favourites arrived in version 2; a version 1 backup has none.
+    favourites: version >= 2 ? readBackupFavourites(value.favourites) : [],
     loadedBanks,
     voices,
     workspaceBanks: banks,
@@ -301,7 +339,7 @@ export function parseWorkspaceBackup(text: string): WorkspaceBackup {
     damaged('The backup has no readable date.')
   }
 
-  const workspace = readWorkspace(file.workspace)
+  const workspace = readWorkspace(file.workspace, file.version)
   const savedBanks: NamedBank[] = []
   let damagedSavedBankCount = 0
   for (const entry of Array.isArray(file.savedBanks) ? file.savedBanks : []) {

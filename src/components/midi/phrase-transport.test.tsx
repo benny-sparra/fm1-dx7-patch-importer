@@ -11,7 +11,7 @@ import { auditionPhrases, defaultAuditionPhraseId } from '@/lib/audition-phrases
 
 afterEach(async () => {
   cleanup()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 function renderTransport(overrides: Partial<Parameters<typeof PhraseTransport>[0]> = {}) {

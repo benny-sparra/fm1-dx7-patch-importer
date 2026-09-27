@@ -21,6 +21,7 @@ import {
   renameBank,
   renameVoice,
   replaceVoice,
+  saveSound,
   updateBankInformation,
   voiceId,
   WorkspaceBankUnavailableError,
@@ -32,6 +33,7 @@ import {
   restoreFactoryPatchLibrary,
 } from '@/lib/factory-patch-library'
 import { updateDx7VoiceName } from '@/lib/dx7'
+import { favouritePatchId, toggleFavourite } from '@/lib/favourites'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 
 describe('patch library operations', () => {
@@ -371,6 +373,87 @@ describe('patchSlotCode', () => {
   it('pads the slot number to two digits', () => {
     expect(patchSlotCode({ bank: 'E', number: 3 })).toBe('E03')
     expect(patchSlotCode({ bank: 'A', number: 32 })).toBe('A32')
+  })
+
+  it('shows only a favourite’s place in Favourites', () => {
+    expect(patchSlotCode({ bank: 'favourites', number: 7 })).toBe('07')
+  })
+})
+
+describe('favourites in the workspace', () => {
+  const voices = makeDemoVoices()
+  const edited = updateDx7VoiceName(voices[0], 'EDITED')
+  const editedEffects = makeDefaultFm1Effects()
+  editedEffects[0] = 1
+
+  /** Bank A holds the demo voices, and Favourites holds A1's sound. */
+  function withFavouriteA1() {
+    const loaded = importVoices(emptyPatchLibrary(), 'A', voices)
+    return toggleFavourite(loaded, { voice: voices[0] }, { bankNumber: 1 }, 'f1').snapshot
+  }
+
+  it('updates the favourite of a slot saved in the editor, as its own copy', () => {
+    const { linked, snapshot } = saveSound(
+      withFavouriteA1(),
+      voiceId('A', 1),
+      edited,
+      editedEffects,
+    )
+
+    expect(linked).toBe(1)
+    expect(snapshot.voices[voiceId('A', 1)]).toBe(edited)
+    expect(snapshot.favourites[0]).toMatchObject({
+      effects: editedEffects,
+      id: 'f1',
+      voice: edited,
+    })
+    expect(snapshot.favourites[0].voice).not.toBe(edited)
+  })
+
+  it('updates every bank slot that held a favourite saved in the editor', () => {
+    const withCopy = copyVoice(withFavouriteA1(), voiceId('A', 1), 'A', 9)
+
+    const { linked, snapshot } = saveSound(withCopy, favouritePatchId('f1'), edited, editedEffects)
+
+    expect(linked).toBe(2)
+    expect(snapshot.favourites[0].voice).toBe(edited)
+    expect(snapshot.voices[voiceId('A', 1)]).toEqual(edited)
+    expect(snapshot.voices[voiceId('A', 9)]).toEqual(edited)
+    expect(snapshot.effects[voiceId('A', 9)]).toEqual(editedEffects)
+    expect(snapshot.voices[voiceId('A', 2)]).toBe(voices[1])
+  })
+
+  it('leaves Favourites alone when a slot it does not hold is saved', () => {
+    const before = withFavouriteA1()
+
+    const { linked, snapshot } = saveSound(before, voiceId('A', 2), edited, editedEffects)
+
+    expect(linked).toBe(0)
+    expect(snapshot.favourites).toBe(before.favourites)
+  })
+
+  it('leaves the library unchanged when the saved sound is gone', () => {
+    const before = withFavouriteA1()
+
+    expect(saveSound(before, favouritePatchId('gone'), edited, editedEffects)).toEqual({
+      linked: 0,
+      snapshot: before,
+    })
+  })
+
+  it('copies a favourite into a bank slot', () => {
+    const copied = copyVoice(withFavouriteA1(), favouritePatchId('f1'), 'A', 5)
+
+    expect(copied.voices[voiceId('A', 5)]).toEqual(voices[0])
+  })
+
+  it('keeps favourites when a bank is deleted, imported over, or reset to the factory patches', () => {
+    const before = addWorkspaceBank(withFavouriteA1(), 'E')
+
+    expect(deleteWorkspaceBank(before, 'A').favourites).toBe(before.favourites)
+    expect(importVoices(before, 'A', makeDemoVoices()).favourites).toBe(before.favourites)
+    expect(clearLibraryBank(before, 'A').favourites).toBe(before.favourites)
+    expect(restoreFactoryPatchLibrary(before).favourites).toBe(before.favourites)
   })
 })
 

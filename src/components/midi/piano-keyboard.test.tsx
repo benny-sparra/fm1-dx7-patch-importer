@@ -318,7 +318,7 @@ describe('PianoKeyboard dragging', () => {
 describe('PianoKeyboard velocity', () => {
   afterEach(async () => {
     vi.useRealTimers()
-    await setLocale('en')
+    await setLocale('en-GB')
   })
 
   async function openKeyboard() {

@@ -1,7 +1,7 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test'
 
 import de from '../src/i18n/locales/de'
-import en from '../src/i18n/locales/en'
+import en from '../src/i18n/locales/en-GB'
 import es from '../src/i18n/locales/es'
 import fr from '../src/i18n/locales/fr'
 import ptBR from '../src/i18n/locales/pt-BR'

@@ -30,7 +30,7 @@ beforeEach(() => {
   storage.loadStoredPatchLibrary.mockResolvedValue({
     ...emptyPatchLibrary(),
     savedAt: '2026-09-13T12:00:00.000Z',
-    version: 5,
+    version: 6,
   })
   storage.listStoredNamedBanks.mockResolvedValue({ banks: [], damagedCount: 0 })
   storage.saveStoredPatchLibrary.mockResolvedValue('current')
@@ -264,7 +264,7 @@ describe('usePatchLibrary copying a voice', () => {
     storage.loadStoredPatchLibrary.mockResolvedValue({
       ...importVoices(importVoices(emptyPatchLibrary(), 'A', voices), 'B', voices.toReversed()),
       savedAt: '2026-09-13T12:00:00.000Z',
-      version: 5,
+      version: 6,
     })
     const hook = await renderLoadedLibrary()
     const original = hook.result.current.voices['bank-B-3']
@@ -280,6 +280,103 @@ describe('usePatchLibrary copying a voice', () => {
 
     expect(hook.result.current.voices['bank-B-3']).toBe(original)
     expect(hook.result.current.canUndo).toBe(false)
+  })
+})
+
+describe('usePatchLibrary favourites', () => {
+  const voices = makeDemoVoices()
+
+  async function renderWithBankA(bankNames: Record<string, string> = {}) {
+    storage.loadStoredPatchLibrary.mockResolvedValue({
+      ...importVoices(emptyPatchLibrary(), 'A', voices),
+      bankNames,
+      savedAt: '2026-09-27T12:00:00.000Z',
+      version: 6,
+    })
+    return renderLoadedLibrary()
+  }
+
+  it('adds a slot’s sound under its bank’s title and lists it as a patch that plays and edits', async () => {
+    const hook = await renderWithBankA({ A: 'Keys' })
+
+    act(() => {
+      hook.result.current.toggleFavourite('bank-A-2')
+    })
+
+    const [favourite] = hook.result.current.favourites
+    expect(favourite.origin).toEqual({ bankName: 'Keys' })
+    const patch = hook.result.current.patches.find(({ bank }) => bank === 'favourites')
+    expect(patch).toMatchObject({ name: voices[1].name, number: 1 })
+    expect(hook.result.current.voices[patch?.id ?? '']).toBe(favourite.voice)
+    expect(hook.result.current.favouriteKeys.size).toBe(1)
+  })
+
+  it('names an untitled bank by its position, for the interface to show in its own language', async () => {
+    const hook = await renderWithBankA()
+
+    act(() => {
+      hook.result.current.toggleFavourite('bank-A-2')
+    })
+
+    expect(hook.result.current.favourites[0].origin).toEqual({ bankNumber: 1 })
+  })
+
+  it('takes a favourite out with its heart and puts it back in one undo', async () => {
+    const hook = await renderWithBankA()
+    act(() => {
+      hook.result.current.toggleFavourite('bank-A-2')
+    })
+
+    let removed: ReturnType<typeof hook.result.current.toggleFavourite> | undefined
+    act(() => {
+      removed = hook.result.current.toggleFavourite('bank-A-2')
+    })
+    expect(removed?.added).toBe(false)
+    expect(hook.result.current.favourites).toEqual([])
+
+    act(() => hook.result.current.undo())
+
+    expect(hook.result.current.favourites).toHaveLength(1)
+  })
+
+  it('saves an edited favourite to the bank slot it came from, and undoes both in one step', async () => {
+    const hook = await renderWithBankA()
+    act(() => {
+      hook.result.current.toggleFavourite('bank-A-2')
+    })
+    const favouriteId = hook.result.current.patches.find(({ bank }) => bank === 'favourites')?.id
+    const edited = { ...voices[1], data: voices[1].data.slice(), name: 'EDITED' }
+    edited.data[0] = 1
+
+    let linked = 0
+    act(() => {
+      linked = hook.result.current.updatePatch(favouriteId ?? '', edited, new Uint8Array(24))
+    })
+
+    expect(linked).toBe(1)
+    expect(hook.result.current.voices['bank-A-2'].data[0]).toBe(1)
+    act(() => hook.result.current.undo())
+    expect(hook.result.current.voices['bank-A-2']).toBe(voices[1])
+    expect(hook.result.current.favourites[0].voice).toEqual(voices[1])
+  })
+
+  it('stores favourites with the workspace', async () => {
+    const hook = await renderWithBankA()
+    act(() => {
+      hook.result.current.toggleFavourite('bank-A-2')
+    })
+
+    act(() => {
+      window.dispatchEvent(new Event('pagehide'))
+    })
+
+    expect(storage.saveStoredPatchLibrary).toHaveBeenCalledWith(
+      expect.objectContaining({
+        favourites: [
+          expect.objectContaining({ voice: expect.objectContaining({ name: voices[1].name }) }),
+        ],
+      }),
+    )
   })
 })
 

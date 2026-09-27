@@ -7,7 +7,7 @@ import {
   maxPhraseTempo,
   minPhraseTempo,
 } from '@/lib/audition-phrases'
-import en from '@/i18n/locales/en'
+import en from '@/i18n/locales/en-GB'
 
 describe('audition phrases', () => {
   it('gives every phrase a unique id', () => {

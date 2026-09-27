@@ -28,6 +28,7 @@ describe('WorkspacePersistenceStatus backup that fails to load', () => {
           bankNames: {},
           continueWithoutWorkspaceSaving: vi.fn(),
           effects: {},
+          favourites: [],
           hasDamagedNamedBanks: false,
           loadedBanks: [],
           namedBanks: [],

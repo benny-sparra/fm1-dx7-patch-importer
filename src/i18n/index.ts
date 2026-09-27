@@ -7,13 +7,21 @@ import {
   supportedLocales,
   type SupportedLocale,
 } from './locale'
-import english from './locales/en'
+import english from './locales/en-GB'
+import americanEnglish from './locales/en-US'
 
 type TranslationResource = Record<string, unknown>
 type LocaleModule = { default: TranslationResource }
 type LocaleImporter = () => Promise<LocaleModule>
 
-const localeImporters: Record<Exclude<SupportedLocale, 'en'>, LocaleImporter> = {
+/**
+ * American English holds only the strings British English spells differently and falls back to
+ * British English for the rest, so both load with the page, where most visitors read one of them.
+ */
+type EagerLocale = 'en-GB' | 'en-US'
+type LazyLocale = Exclude<SupportedLocale, EagerLocale>
+
+const localeImporters: Record<LazyLocale, LocaleImporter> = {
   de: () => import('./locales/de'),
   es: () => import('./locales/es'),
   fr: () => import('./locales/fr'),
@@ -48,7 +56,7 @@ function applyDocumentLanguage(locale: string) {
 
 type LocaleControllerOptions = {
   browserLocales?: readonly string[]
-  importers?: Partial<Record<Exclude<SupportedLocale, 'en'>, LocaleImporter>>
+  importers?: Partial<Record<LazyLocale, LocaleImporter>>
   storage?: Pick<Storage, 'getItem' | 'setItem'>
 }
 
@@ -60,7 +68,10 @@ export function createLocaleController(
     storage = getBrowserStorage(),
   }: LocaleControllerOptions = {},
 ) {
-  const loaded = new Map<SupportedLocale, TranslationResource>([['en', english]])
+  const loaded = new Map<SupportedLocale, TranslationResource>([
+    ['en-GB', english],
+    ['en-US', americanEnglish],
+  ])
   const pending = new Map<SupportedLocale, Promise<TranslationResource>>()
   let latestRequest = 0
   let applyQueue = Promise.resolve()
@@ -72,7 +83,7 @@ export function createLocaleController(
     const inFlight = pending.get(locale)
     if (inFlight) return inFlight
 
-    const importer = locale === 'en' ? undefined : importers[locale]
+    const importer = locale === 'en-GB' || locale === 'en-US' ? undefined : importers[locale]
     if (!importer) return Promise.reject(new Error(`No resources are available for ${locale}.`))
 
     const loading = importer()
@@ -111,11 +122,11 @@ export function createLocaleController(
   const initialize = async () => {
     const requestedLocale = resolveLocale(readStoredLocale(storage), browserLocales)
     let initialLocale = requestedLocale
-    if (requestedLocale !== 'en') {
+    if (!loaded.has(requestedLocale)) {
       try {
         await loadLocale(requestedLocale)
       } catch {
-        initialLocale = 'en'
+        initialLocale = 'en-GB'
       }
     }
 
@@ -123,7 +134,8 @@ export function createLocaleController(
       [...loaded].map(([locale, translation]) => [locale, { translation }]),
     )
     await instance.use(initReactI18next).init({
-      fallbackLng: 'en',
+      // British English is complete, so every locale, American English included, falls back to it.
+      fallbackLng: 'en-GB',
       initAsync: false,
       interpolation: { escapeValue: false },
       lng: initialLocale,
@@ -136,7 +148,7 @@ export function createLocaleController(
 
   const setLocale = async (locale: SupportedLocale) => {
     const request = ++latestRequest
-    const previousLocale = (instance.resolvedLanguage ?? 'en') as SupportedLocale
+    const previousLocale = (instance.resolvedLanguage ?? 'en-GB') as SupportedLocale
     try {
       await loadLocale(locale)
       const applied = await queueLanguageChange(request, locale)

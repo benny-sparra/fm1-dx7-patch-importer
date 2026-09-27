@@ -39,7 +39,7 @@ beforeAll(() => {
 afterEach(async () => {
   cleanup()
   heldRead.promise = null
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 const patch: Patch = { bank: 'A', family: 'DX7', id: 'bank-A-5', name: 'PIANO 2', number: 5 }

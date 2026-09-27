@@ -46,13 +46,14 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Warn before leaving an unsaved editing session, with save, discard, and keep-editing choices
 - Undo, redo, save, and leave the voice editor from the keyboard
 - Jump to patch search, clear it, and open the lit slot from the keyboard
+- Heart patches from any bank or search result into Favourites, reorder and edit them, and send them to the FM1 as a bank
 - Send individual patches to the edit buffer or a complete 32-patch bank over Web MIDI in Chrome, Edge, Opera, or Firefox
 - Select matching FM1 slots in banks A–D with MIDI Program Change, and audition patches from added banks through the edit buffer
 - Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard, or loop one of six short phrases to audition a patch hands-free
 - Release hanging notes on the FM1 with a MIDI panic button
-- Use the interface in English, French, Spanish, German, Brazilian Portuguese, or Simplified Chinese
+- Use the interface in British or American English, French, Spanish, German, Brazilian Portuguese, or Simplified Chinese
 - Use a dark CRT-terminal interface whose accent, product image, and tab icon follow any of the six FM1 colour finishes, with contrast checked to WCAG 2.2 AA in each
 - Install the editor as a standalone desktop app in browsers that support installation
 

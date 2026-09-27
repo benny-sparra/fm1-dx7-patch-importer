@@ -89,6 +89,41 @@ test.describe('with an FM-1 connected', () => {
     expect(dumps[0].slice(0, 6)).toEqual([0xf0, 0x43, 0x00, 0x09, 0x20, 0x00])
   })
 
+  test('sends Favourites as a bank, with INIT VOICE in the slots after it', async ({ page }) => {
+    const heart = page.getByRole('button', { name: /^Favourite / }).first()
+    const name = (await heart.getAttribute('aria-label'))?.replace(/^Favourite /, '') ?? ''
+    await heart.click()
+    await expect(heart).toHaveAttribute('aria-pressed', 'true')
+    await page.getByRole('button', { exact: true, name: 'Favourites' }).click()
+
+    await page.getByRole('button', { exact: true, name: 'Send to FM1' }).first().click()
+    const instructions = page.getByRole('dialog', {
+      name: 'Choose the destination bank on your FM1',
+    })
+    await expect(
+      instructions.getByText(
+        'A bank holds 32 patches, so sending Favourites fills the last 31 slots with INIT VOICE.',
+      ),
+    ).toBeVisible()
+    await instructions.getByRole('button', { name: 'Send to FM1' }).click()
+
+    await expect(
+      page
+        .getByText(
+          'Favourites was sent, with INIT VOICE in the last 31 slots. Choose its destination on the FM1.',
+        )
+        .first(),
+    ).toBeVisible()
+    const [dump] = await sentSysex(page)
+    expect(dump).toHaveLength(bankDumpLength)
+    // Each packed voice is 128 bytes after the six-byte header, with its name in the last ten.
+    const voiceName = (slot: number) =>
+      String.fromCharCode(...dump.slice(6 + slot * 128 + 118, 6 + slot * 128 + 128)).trimEnd()
+    expect(voiceName(0)).toBe(name.trimEnd())
+    expect(voiceName(1)).toBe('INIT VOICE')
+    expect(voiceName(31)).toBe('INIT VOICE')
+  })
+
   test('sends each voice edit to the FM1 as a parameter change', async ({ page }) => {
     await slotButtons(page).first().dblclick()
     // The editor puts its voice in the FM1 edit buffer before it sends single edits, and holds the

@@ -271,6 +271,38 @@ export default {
       },
     },
   },
+  favourites: {
+    title: '收藏',
+    tabTitle: '显示你收藏的音色',
+    toggle: '收藏 {{name}}',
+    addTitle: '加入收藏',
+    removeTitle: '取消收藏',
+    added: '已将“{{patch}}”加入收藏。',
+    removed: '已将“{{patch}}”移出收藏。',
+    alreadyAdded: '“{{patch}}”已在收藏中。',
+    addFailed: '无法将该音色加入收藏。',
+    empty: '还没有收藏',
+    emptyHelp:
+      '点选任一音色上的爱心，或把音色拖到“收藏”上，即可保存在这里。收藏可以作为一个音色库发送到 FM1。',
+    sendTitle: '将前 32 个收藏作为音色库发送，并在 FM1 上选择目标音色库',
+    addFirst: '请先添加收藏，再发送收藏',
+    initNote: '一个音色库可容纳 32 个音色，因此发送收藏时，最后 1 个位置会填入 INIT VOICE。',
+    initNote_other:
+      '一个音色库可容纳 32 个音色，因此发送收藏时，最后 {{count, number}} 个位置会填入 INIT VOICE。',
+    leftOutNote: '一个音色库可容纳 32 个音色，因此只会发送前 32 个收藏，最后 1 个仍保留在这里。',
+    leftOutNote_other:
+      '一个音色库可容纳 32 个音色，因此只会发送前 32 个收藏，最后 {{count, number}} 个仍保留在这里。',
+    sent: '已发送收藏。请在 FM1 上选择目标位置。',
+    sentWithInit: '已发送收藏，最后 1 个位置为 INIT VOICE。请在 FM1 上选择目标位置。',
+    sentWithInit_other:
+      '已发送收藏，最后 {{count, number}} 个位置为 INIT VOICE。请在 FM1 上选择目标位置。',
+    sentLeftOut: '已发送前 32 个收藏，最后 1 个未发送。请在 FM1 上选择目标位置。',
+    sentLeftOut_other:
+      '已发送前 32 个收藏，最后 {{count, number}} 个未发送。请在 FM1 上选择目标位置。',
+    sendUnavailable: '无法准备发送收藏。请重新加载页面后重试。',
+    savedWithFavourites: '已将“{{patch}}”保存到音色库，并同步到收藏中的副本。',
+    savedWithBanks: '已将“{{patch}}”保存到收藏，并同步到包含它的音色库位置。',
+  },
   toasts: {
     midiPanicSent: '已发送 MIDI 紧急停止，音符通道上的所有音符均已释放。',
     notifications: '已完成的操作',

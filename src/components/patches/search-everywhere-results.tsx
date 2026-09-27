@@ -3,6 +3,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
+import { FavouriteButton } from '@/components/patches/favourite-button'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import type { Patch } from '@/data/patches'
@@ -11,6 +12,7 @@ import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import type { NamedBank } from '@/lib/named-bank'
 import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
 import type { Dx7CatalogIndex } from '@/lib/search-everywhere'
+import { soundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
 
 type SearchModule = typeof import('@/lib/search-everywhere')
@@ -53,17 +55,25 @@ type Result = {
   load: () => Promise<{ effects?: Uint8Array; voice: Dx7Voice }>
   name: string
   slot: number
+  soundKey: string
 }
 
 type SearchEverywhereResultsProps = {
   /** The lit workspace slot. While one is lit, no result here is. */
   activePatchId: string
+  /** The sound keys of the favourites, which light a result's heart. */
+  favouriteKeys: ReadonlySet<string>
   hasDamagedNamedBanks: boolean
   namedBanks: NamedBank[]
   namedBanksLoadFailed: boolean
   /** `edit` asks for the editor to open on the copy, as double-clicking a result does. */
   onCopy: (sound: SearchResultSound, edit: boolean) => void
   onPlay: (voice: Dx7Voice, effects: Uint8Array | undefined) => void
+  /** A result's heart: adds the sound to Favourites, or takes it out, naming the bank it is in. */
+  onToggleFavourite: (
+    sound: { effects: Uint8Array | undefined; voice: Dx7Voice },
+    bankName: string,
+  ) => void
   search: string
   workspaceEffects: Record<string, Uint8Array>
   /** The workspace results above. A result that sounds exactly like one of them is left out. */
@@ -82,11 +92,13 @@ const slotNumber = (slot: number) => String(slot).padStart(2, '0')
  */
 export function SearchEverywhereResults({
   activePatchId,
+  favouriteKeys,
   hasDamagedNamedBanks,
   namedBanks,
   namedBanksLoadFailed,
   onCopy,
   onPlay,
+  onToggleFavourite,
   search,
   workspaceEffects,
   workspaceMatches,
@@ -124,7 +136,7 @@ export function SearchEverywhereResults({
 
   const [savedResults, catalogResults] = useMemo((): ResultGroupContent[] => {
     if (!searcher) return [emptyGroup, emptyGroup]
-    const { findCatalogMatches, findSavedBankMatches, hideCopies, soundKey } = searcher.module
+    const { findCatalogMatches, findSavedBankMatches, hideCopies } = searcher.module
     const shown = workspaceMatches.flatMap(({ id }) => {
       const voice = workspaceVoices[id]
       return voice ? [soundKey(voice, workspaceEffects[id] ?? makeDefaultFm1Effects())] : []
@@ -137,6 +149,7 @@ export function SearchEverywhereResults({
           load: () => Promise.resolve({ effects: match.effects, voice: match.voice }),
           name: match.name,
           slot: match.slot,
+          soundKey: match.soundKey,
         },
         soundKey: match.soundKey,
       })),
@@ -147,6 +160,7 @@ export function SearchEverywhereResults({
           load: async () => ({ voice: await searcher.loadVoice(match.bankId, match.slot) }),
           name: match.name,
           slot: match.slot,
+          soundKey: match.soundKey,
         },
         soundKey: match.soundKey,
       })),
@@ -159,7 +173,7 @@ export function SearchEverywhereResults({
 
   const formatCount = (count: number) => new Intl.NumberFormat(i18n.resolvedLanguage).format(count)
 
-  const run = async (result: Result, action: 'copy' | 'edit' | 'play') => {
+  const run = async (result: Result, action: 'copy' | 'edit' | 'favourite' | 'play') => {
     latestRequest.current += 1
     const request = latestRequest.current
     setError('')
@@ -169,6 +183,10 @@ export function SearchEverywhereResults({
       if (action === 'play') {
         onPlay(voice, effects)
         setPlayedKey(result.key)
+        return
+      }
+      if (action === 'favourite') {
+        onToggleFavourite({ effects, voice }, result.bankName)
         return
       }
       onCopy(
@@ -183,7 +201,12 @@ export function SearchEverywhereResults({
       )
     } catch (cause) {
       if (request !== latestRequest.current) return
-      const fallback = action === 'play' ? t('banks.everywhere.playFailed') : t('banks.copyFailed')
+      const fallback =
+        action === 'play'
+          ? t('banks.everywhere.playFailed')
+          : action === 'favourite'
+            ? t('favourites.addFailed')
+            : t('banks.copyFailed')
       setError(bankErrorMessage(t, cause, fallback))
     }
   }
@@ -208,19 +231,23 @@ export function SearchEverywhereResults({
       )}
       <ResultGroup
         activeKey={activePatchId ? '' : playedKey}
+        favouriteKeys={favouriteKeys}
         formatCount={formatCount}
         onCopy={(result) => void run(result, 'copy')}
         onEdit={(result) => void run(result, 'edit')}
         onPlay={(result) => void run(result, 'play')}
+        onToggleFavourite={(result) => void run(result, 'favourite')}
         {...savedResults}
         title={t('banks.everywhere.savedBanks')}
       />
       <ResultGroup
         activeKey={activePatchId ? '' : playedKey}
+        favouriteKeys={favouriteKeys}
         formatCount={formatCount}
         onCopy={(result) => void run(result, 'copy')}
         onEdit={(result) => void run(result, 'edit')}
         onPlay={(result) => void run(result, 'play')}
+        onToggleFavourite={(result) => void run(result, 'favourite')}
         {...catalogResults}
         title={t('banks.everywhere.catalog')}
       />
@@ -240,20 +267,24 @@ export function SearchEverywhereResults({
 
 type ResultGroupProps = ResultGroupContent & {
   activeKey: string
+  favouriteKeys: ReadonlySet<string>
   formatCount: (count: number) => string
   onCopy: (result: Result) => void
   onEdit: (result: Result) => void
   onPlay: (result: Result) => void
+  onToggleFavourite: (result: Result) => void
   title: string
 }
 
 function ResultGroup({
   activeKey,
+  favouriteKeys,
   formatCount,
   hidden,
   onCopy,
   onEdit,
   onPlay,
+  onToggleFavourite,
   results,
   title,
 }: ResultGroupProps) {
@@ -278,7 +309,7 @@ function ResultGroup({
             return (
               <li
                 className={cn(
-                  'patch-cell patch-edge-gradient relative flex min-h-12 items-center gap-2 px-2 py-2 transition-colors duration-150',
+                  'patch-cell patch-edge-gradient relative flex min-h-12 items-center gap-1.5 px-2 py-2 transition-colors duration-150',
                   'border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
                   isActive
                     ? 'border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
@@ -325,16 +356,24 @@ function ResultGroup({
                     {result.bankName}
                   </span>
                 </span>
-                {/* Above the result's own button, so copying does not also play it. */}
-                <button
-                  aria-label={t('banks.everywhere.copy', { name: result.name })}
-                  className="z-[1] grid size-6 shrink-0 cursor-pointer place-items-center text-[var(--crt-ink-3)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)]"
-                  onClick={() => onCopy(result)}
-                  title={t('banks.copySelected')}
-                  type="button"
-                >
-                  <Copy aria-hidden="true" className="size-3.5" />
-                </button>
+                {/* As on a slot, the heart and copy button share one gap to leave the name room. */}
+                <span className="flex shrink-0 items-center">
+                  <FavouriteButton
+                    isFavourite={favouriteKeys.has(result.soundKey)}
+                    name={result.name}
+                    onToggle={() => onToggleFavourite(result)}
+                  />
+                  {/* Above the result's own button, so copying does not also play it. */}
+                  <button
+                    aria-label={t('banks.everywhere.copy', { name: result.name })}
+                    className="z-[1] grid size-6 shrink-0 cursor-pointer place-items-center text-[var(--crt-ink-3)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)]"
+                    onClick={() => onCopy(result)}
+                    title={t('banks.copySelected')}
+                    type="button"
+                  >
+                    <Copy aria-hidden="true" className="size-3.5" />
+                  </button>
+                </span>
                 {isActive ? <span className="sr-only">{t('banks.auditioning')}</span> : null}
               </li>
             )

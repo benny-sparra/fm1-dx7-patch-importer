@@ -141,7 +141,7 @@ describe('NamedBankLibraryDialog saved bank actions', () => {
 
   afterEach(async () => {
     vi.restoreAllMocks()
-    await setLocale('en')
+    await setLocale('en-GB')
   })
 
   it('asks inside the dialog before deleting, and keeps the bank when cancelled', async () => {

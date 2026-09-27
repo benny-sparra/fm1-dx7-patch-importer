@@ -305,6 +305,44 @@ export default {
       },
     },
   },
+  favourites: {
+    title: 'Favoritos',
+    tabTitle: 'Mostrar tus sonidos favoritos',
+    toggle: 'Favorito: {{name}}',
+    addTitle: 'Añadir a Favoritos',
+    removeTitle: 'Quitar de Favoritos',
+    added: 'Se añadió «{{patch}}» a Favoritos.',
+    removed: 'Se quitó «{{patch}}» de Favoritos.',
+    alreadyAdded: '«{{patch}}» ya está en Favoritos.',
+    addFailed: 'No se pudo añadir el sonido a Favoritos.',
+    empty: 'Aún no hay favoritos',
+    emptyHelp:
+      'Selecciona el corazón de un sonido, o arrastra un sonido a Favoritos, para guardarlo aquí. Puedes enviar Favoritos al FM1 como un banco.',
+    sendTitle: 'Enviar los primeros 32 favoritos como banco y elegir el banco de destino en el FM1',
+    addFirst: 'Añade un favorito antes de enviar Favoritos',
+    initNote:
+      'Un banco contiene 32 sonidos, así que al enviar Favoritos la última posición se llena con INIT VOICE.',
+    initNote_other:
+      'Un banco contiene 32 sonidos, así que al enviar Favoritos las últimas {{count, number}} posiciones se llenan con INIT VOICE.',
+    leftOutNote:
+      'Un banco contiene 32 sonidos, así que solo se envían los primeros 32 favoritos. El último se queda aquí.',
+    leftOutNote_other:
+      'Un banco contiene 32 sonidos, así que solo se envían los primeros 32 favoritos. Los últimos {{count, number}} se quedan aquí.',
+    sent: 'Se envió Favoritos. Elige su destino en el FM1.',
+    sentWithInit:
+      'Se envió Favoritos, con INIT VOICE en la última posición. Elige su destino en el FM1.',
+    sentWithInit_other:
+      'Se envió Favoritos, con INIT VOICE en las últimas {{count, number}} posiciones. Elige su destino en el FM1.',
+    sentLeftOut:
+      'Se enviaron los primeros 32 favoritos; el último quedó fuera. Elige su destino en el FM1.',
+    sentLeftOut_other:
+      'Se enviaron los primeros 32 favoritos; los últimos {{count, number}} quedaron fuera. Elige su destino en el FM1.',
+    sendUnavailable:
+      'No se pudo preparar el envío de Favoritos. Recarga la página e inténtalo de nuevo.',
+    savedWithFavourites: 'Se guardó «{{patch}}» en la biblioteca y en su copia de Favoritos.',
+    savedWithBanks:
+      'Se guardó «{{patch}}» en Favoritos y en las posiciones de banco que lo contenían.',
+  },
   toasts: {
     midiPanicSent: 'Pánico MIDI enviado. Se liberaron todas las notas del canal de notas.',
     notifications: 'Acciones completadas',

@@ -7,7 +7,8 @@ import {
   FM1_VOICE_PARAMETER_COUNT,
   fm1EffectParameters,
 } from '@/lib/fm1-parameters'
-import { initializeVoice } from '@/lib/init-voice'
+import { unpackDx7Voice } from '@/lib/dx7'
+import { initializeVoice, makeInitDx7Voice } from '@/lib/init-voice'
 
 // Yamaha's DX7 INIT VOICE as single-voice (VCED) bytes 0–144, operator 6 first.
 // prettier-ignore
@@ -76,5 +77,14 @@ describe('voice initialisation', () => {
     expect(() => initializeVoice(new Uint8Array(FM1_EDITOR_PARAMETER_COUNT - 1))).toThrow(
       RangeError,
     )
+  })
+})
+
+describe('makeInitDx7Voice', () => {
+  it('packs the DX7 INIT VOICE as a bank voice named INIT VOICE', () => {
+    const voice = makeInitDx7Voice()
+
+    expect(voice.name).toBe('INIT VOICE')
+    expect(Array.from(unpackDx7Voice(voice).slice(0, FM1_VOICE_NAME_START))).toEqual(DX7_INIT_VOICE)
   })
 })

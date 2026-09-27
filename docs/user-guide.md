@@ -61,7 +61,19 @@ A slot's **⋮** menu also works with single patches as files. **Download patch*
 
 Each bank's menu also offers **Save bank**, which keeps a named copy of its 32 patches and their FM1 effects in this browser, and **Load bank**, which lists your saved banks. From that list you can load one into the bank, edit its name and description, make a copy, download it as a `.syx` file, or delete it. Loading into a bank that already has patches asks first. If a bank is empty, you can load the built-in demo bank instead.
 
-The interface follows the browser language on first use when it is supported. Change it later in **Settings**; the selection is remembered. Settings also provides separate channels for notes/program changes and effects because the FM1 defaults its effects controls to MIDI channel 2.
+### Favourites
+
+Every patch has a heart beside its **⋮** menu. Select it to keep the patch in **Favourites**, the last entry in the bank list on the left; select it again to take the patch out, which the notification can undo. You can also drag a patch by its grip onto **Favourites**. Search results from saved banks and the bundled DX7 banks have hearts too.
+
+A favourite is its own copy of the patch, with its FM1 effects, so it stays when the bank it came from is deleted or imported over. Each one shows the bank it came from under its name, and a number for its place in the list. Hearts go by what a patch plays, as the search does: every slot holding exactly the same voice data, name, and FM1 effects shows a lit heart, and Favourites keeps one copy of it.
+
+Favourites and the patches they came from stay together when you edit either. Saving a patch in the editor also updates its copy in Favourites, and saving a favourite also updates every bank slot that held the same patch before the edit. The notification says when this happens, and one Undo reverses all of it.
+
+Open **Favourites** to play, edit, reorder, copy, or download its patches as in any bank. Importing a file over a favourite is not offered. **Send to FM1** sends Favourites as a 32-patch bank, choosing its destination on the FM1 as for any bank. A list shorter than 32 is sent with **INIT VOICE**, Yamaha's plain starting voice, in the slots after it; from a longer list only the first 32 are sent. The instructions for choosing the destination bank say which before you send, and the message after sending repeats it. Favourites are part of your workspace, so backups and Undo include them.
+
+### Language and channels
+
+The interface follows the browser language on first use when it is supported. English comes in two spellings: **English (US)** for a browser set to American English, and **English (UK)** for other English. Change it later in **Settings**; the selection is remembered. Settings also provides separate channels for notes/program changes and effects because the FM1 defaults its effects controls to MIDI channel 2.
 
 ## The voice editor
 
@@ -166,13 +178,13 @@ pressing one releases any note held from the computer keyboard.
 
 Your patches, their FM1 effects, and your saved banks exist only in this browser. Clearing site data, or a browser that removes storage, loses them. The FM1 cannot send its banks back, so nothing else holds a copy.
 
-Open the menu in the patch-bank header and choose **Download backup**, under **Full backup** at the top, to save everything in one `.json` file: every workspace bank with its title and description, each patch's FM1 effects, and every saved bank. The menu shows when you last made one. If the browser cannot save your work, the warning at the top of the page offers the same download.
+Open the menu in the patch-bank header and choose **Download backup**, under **Full backup** at the top, to save everything in one `.json` file: every workspace bank with its title and description, each patch's FM1 effects, your Favourites, and every saved bank. The menu shows when you last made one. If the browser cannot save your work, the warning at the top of the page offers the same download.
 
 A backup file can only be read by this app. To use patches in Dexed, a DX7, or another editor, choose **Download SysEx banks (.zip)** under **For other DX7 tools** instead: a `.syx` file holds DX7 voice data only, without FM1 effects or saved banks.
 
 To restore, choose **Restore from backup…** and pick the file. The dialog shows what it holds before anything changes. Restoring:
 
-- replaces your workspace banks and their patches with the ones in the backup. **Undo** in the notification, or `Cmd`/`Ctrl` + `Z`, puts your previous workspace back.
+- replaces your workspace banks and their patches, and your Favourites, with the ones in the backup. A backup made before Favourites existed restores an empty Favourites. **Undo** in the notification, or `Cmd`/`Ctrl` + `Z`, puts your previous workspace back.
 - adds the backup's saved banks. A saved bank already in this browser is kept as it is and never overwritten. Undo does not remove saved banks that were added.
 
 A backup made by a newer version of the app cannot be restored until the page is reloaded to update it.

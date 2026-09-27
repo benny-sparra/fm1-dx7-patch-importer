@@ -18,6 +18,7 @@ import { RootLayout } from '@/routes/root-layout'
 import type { Patch } from '@/data/patches'
 import type { Dx7Voice } from '@/lib/dx7'
 import type { CopiedOperator } from '@/lib/operator-clipboard'
+import { favouritesBank } from '@/lib/favourites'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { isRenumberedByBankDeletion } from '@/lib/patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
@@ -195,8 +196,16 @@ function App() {
                   }}
                   effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
                   onSave={(voice, effects) => {
-                    library.updatePatch(selectedPatch.id, voice, effects)
-                    toast.success(t('toasts.patchSaved', { patch: selectedPatch.name }))
+                    const linked = library.updatePatch(selectedPatch.id, voice, effects)
+                    const patch = selectedPatch.name
+                    // A favourite and the slot it came from are one sound, so say where else it went.
+                    toast.success(
+                      linked === 0
+                        ? t('toasts.patchSaved', { patch })
+                        : selectedPatch.bank === favouritesBank
+                          ? t('favourites.savedWithBanks', { patch })
+                          : t('favourites.savedWithFavourites', { patch }),
+                    )
                   }}
                   patch={selectedPatch}
                   voice={selectedVoice}

@@ -13,6 +13,9 @@ import {
   type WorkspaceBankSelectorBank,
 } from '@/components/patches/workspace-bank-selector'
 import { ToastProvider } from '@/components/ui/toast'
+import { favouriteSoundKeys, makeFavouritePatches } from '@/lib/favourites'
+import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
+import { makeDemoVoices } from '@/lib/patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { expectNoAxeViolations } from '@/test/accessibility'
 import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
@@ -149,6 +152,48 @@ describe('rendered accessibility', () => {
     await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'piano')
 
     expect(await screen.findByRole('region', { name: 'Other DX7 patch banks' })).toBeTruthy()
+    await expectNoAxeViolations(container)
+  })
+
+  it('keeps hearts and the Favourites view free of violations', async () => {
+    const [voice] = makeDemoVoices()
+    const favourite = {
+      effects: makeDefaultFm1Effects(),
+      id: 'f1',
+      origin: { bankName: 'Studio Favourites' },
+      voice,
+    }
+    const user = userEvent.setup()
+    const { container } = render(
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={makeLibrarianLibrary({
+            ...library,
+            favouriteKeys: favouriteSoundKeys([favourite]),
+            favourites: [favourite],
+            patches: [
+              { bank: 'A', family: 'DX7', id: 'bank-A-1', name: voice.name, number: 1, program: 0 },
+              ...makeFavouritePatches([favourite]),
+            ],
+            voices: { 'bank-A-1': voice, 'favourite-f1': voice },
+          })}
+          midi={disconnectedMidi}
+          onBankDeleted={vi.fn()}
+          onEditPatch={vi.fn()}
+          onPlaySearchResult={vi.fn()}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>,
+    )
+    expect(
+      screen.getByRole('button', { name: `Favourite ${voice.name}`, pressed: true }),
+    ).toBeTruthy()
+    await expectNoAxeViolations(container)
+
+    await user.click(screen.getByRole('button', { name: 'Favourites', pressed: false }))
+
+    expect(screen.getByRole('button', { name: 'Favourites', pressed: true })).toBeTruthy()
     await expectNoAxeViolations(container)
   })
 

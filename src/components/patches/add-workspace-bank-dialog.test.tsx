@@ -7,7 +7,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
 import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
-import english from '@/i18n/locales/en'
+import english from '@/i18n/locales/en-GB'
 import french from '@/i18n/locales/fr'
 import { makeDx7BankFile, updateDx7VoiceName } from '@/lib/dx7'
 import { Dx7CatalogBankUnavailableError, loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
@@ -37,7 +37,7 @@ beforeAll(() => {
 afterEach(async () => {
   cleanup()
   vi.mocked(loadDx7CatalogBank).mockReset()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 const catalogVoices = makeDemoVoices()

@@ -310,6 +310,45 @@ export default {
       },
     },
   },
+  favourites: {
+    title: 'Favoriten',
+    tabTitle: 'Deine Lieblingssounds anzeigen',
+    toggle: 'Favorit: {{name}}',
+    addTitle: 'Zu Favoriten hinzufügen',
+    removeTitle: 'Aus Favoriten entfernen',
+    added: '„{{patch}}“ wurde zu den Favoriten hinzugefügt.',
+    removed: '„{{patch}}“ wurde aus den Favoriten entfernt.',
+    alreadyAdded: '„{{patch}}“ ist schon in den Favoriten.',
+    addFailed: 'Der Sound konnte nicht zu den Favoriten hinzugefügt werden.',
+    empty: 'Noch keine Favoriten',
+    emptyHelp:
+      'Wähle das Herz an einem Sound oder ziehe einen Sound auf Favoriten, um ihn hier zu behalten. Favoriten lassen sich als Bank an den FM1 senden.',
+    sendTitle: 'Die ersten 32 Favoriten als Bank senden und Zielbank am FM1 wählen',
+    addFirst: 'Füge einen Favoriten hinzu, bevor du Favoriten sendest',
+    initNote:
+      'Eine Bank fasst 32 Sounds, darum füllt das Senden der Favoriten den letzten Platz mit INIT VOICE.',
+    initNote_other:
+      'Eine Bank fasst 32 Sounds, darum füllt das Senden der Favoriten die letzten {{count, number}} Plätze mit INIT VOICE.',
+    leftOutNote:
+      'Eine Bank fasst 32 Sounds, darum werden nur die ersten 32 Favoriten gesendet. Der letzte bleibt hier.',
+    leftOutNote_other:
+      'Eine Bank fasst 32 Sounds, darum werden nur die ersten 32 Favoriten gesendet. Die letzten {{count, number}} bleiben hier.',
+    sent: 'Die Favoriten wurden gesendet. Wähle ihr Ziel am FM1.',
+    sentWithInit:
+      'Die Favoriten wurden gesendet, mit INIT VOICE auf dem letzten Platz. Wähle ihr Ziel am FM1.',
+    sentWithInit_other:
+      'Die Favoriten wurden gesendet, mit INIT VOICE auf den letzten {{count, number}} Plätzen. Wähle ihr Ziel am FM1.',
+    sentLeftOut:
+      'Die ersten 32 Favoriten wurden gesendet, der letzte nicht. Wähle ihr Ziel am FM1.',
+    sentLeftOut_other:
+      'Die ersten 32 Favoriten wurden gesendet, die letzten {{count, number}} nicht. Wähle ihr Ziel am FM1.',
+    sendUnavailable:
+      'Die Favoriten konnten nicht zum Senden vorbereitet werden. Lade die Seite neu und versuche es erneut.',
+    savedWithFavourites:
+      '„{{patch}}“ wurde in der Bibliothek und in seiner Kopie in den Favoriten gespeichert.',
+    savedWithBanks:
+      '„{{patch}}“ wurde in den Favoriten und auf den Bankplätzen gespeichert, die ihn enthielten.',
+  },
   toasts: {
     midiPanicSent: 'MIDI-Panik gesendet. Alle Noten auf dem Notenkanal wurden beendet.',
     notifications: 'Abgeschlossene Aktionen',

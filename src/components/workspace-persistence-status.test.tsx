@@ -21,6 +21,7 @@ function makeLibrary(
     bankNames: {},
     continueWithoutWorkspaceSaving: vi.fn(),
     effects: {},
+    favourites: [],
     hasDamagedNamedBanks: false,
     loadedBanks: [],
     namedBanks: [],
@@ -42,7 +43,7 @@ function renderStatus(library: ReturnType<typeof makeLibrary>) {
 afterEach(async () => {
   cleanup()
   vi.restoreAllMocks()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 describe('WorkspacePersistenceStatus', () => {

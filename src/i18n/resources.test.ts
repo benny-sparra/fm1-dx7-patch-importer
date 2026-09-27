@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import de from './locales/de'
-import en from './locales/en'
+import en from './locales/en-GB'
+import enUS from './locales/en-US'
 import es from './locales/es'
 import fr from './locales/fr'
 import ptBR from './locales/pt-BR'
@@ -10,6 +11,7 @@ import zhHans from './locales/zh-Hans'
 const resources = {
   de: { translation: de },
   en: { translation: en },
+  'en-US': { translation: enUS },
   es: { translation: es },
   fr: { translation: fr },
   'pt-BR': { translation: ptBR },
@@ -63,6 +65,32 @@ describe('translation resources', () => {
     expect(flattenKeys(resources.de.translation).sort()).toEqual(englishKeys)
     expect(flattenKeys(resources['pt-BR'].translation).sort()).toEqual(englishKeys)
     expect(flattenKeys(resources['zh-Hans'].translation).sort()).toEqual(englishKeys)
+  })
+
+  // American English holds only overrides; i18next reads everything else from British English.
+  it('overrides only strings British English has, each with different text', () => {
+    const british = new Map(flattenStrings(resources.en.translation))
+    const american = flattenStrings(resources['en-US'].translation)
+
+    expect(american.filter(([key]) => !british.has(key)).map(([key]) => key)).toEqual([])
+    expect(american.filter(([key, text]) => british.get(key) === text).map(([key]) => key)).toEqual(
+      [],
+    )
+  })
+
+  it('gives American English its own spelling of every British English word', () => {
+    const british =
+      /(favourit|colour|organis|synthesiser|minimis|maximis|randomis|behaviour|centre|catalogue|analys(e|ed|ing)\b|recognis|normalis|initialis|customis|optimis|visualis|licence|grey|travell|cancell|labell|modell|programme\b)/i
+    const american = new Map(flattenStrings(resources['en-US'].translation))
+    // Interpolation names such as {{colour}} are code, not text a reader sees.
+    const spelling = (text: string) => text.replace(/\{\{[^}]*\}\}/g, '')
+
+    const unchanged = flattenStrings(resources.en.translation)
+      .map(([key, text]): [string, string] => [key, american.get(key) ?? text])
+      .filter(([, text]) => british.test(spelling(text)))
+      .map(([key]) => key)
+
+    expect(unchanged).toEqual([])
   })
 
   it('provides Simplified Chinese text for editor help tooltips', () => {

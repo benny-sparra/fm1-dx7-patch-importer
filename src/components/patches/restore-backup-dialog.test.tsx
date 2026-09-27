@@ -7,6 +7,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { setLocale } from '@/i18n'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import type { NamedBank } from '@/lib/named-bank'
+import { toggleFavourite } from '@/lib/favourites'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import { makeWorkspaceBackup, type WorkspaceBackup } from '@/lib/workspace-backup'
 
@@ -29,7 +30,7 @@ beforeAll(() => {
 
 afterEach(async () => {
   cleanup()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 function makeSavedBank(id: string): NamedBank {
@@ -49,7 +50,9 @@ function makeSavedBank(id: string): NamedBank {
 }
 
 function makeBackupFile(name = 'fm1-backup-2026-09-21.json') {
-  const workspace = importVoices(emptyPatchLibrary(['A', 'B', 'C']), 'A', makeDemoVoices())
+  const voices = makeDemoVoices()
+  const loaded = importVoices(emptyPatchLibrary(['A', 'B', 'C']), 'A', voices)
+  const workspace = toggleFavourite(loaded, { voice: voices[0] }, { bankNumber: 1 }, 'f1').snapshot
   const text = makeWorkspaceBackup(
     workspace,
     [makeSavedBank('one'), makeSavedBank('two')],
@@ -91,6 +94,7 @@ describe('RestoreBackupDialog', () => {
     expect(await screen.findByText('Workspace banks')).toBeTruthy()
     expect(summaryValue('Workspace banks')).toBe('3')
     expect(summaryValue('Patches')).toBe('32')
+    expect(summaryValue('Favourites')).toBe('1')
     expect(summaryValue('Saved banks')).toBe('2')
     expect(summaryValue('To add')).toBe('1')
     expect(summaryValue('Already here, kept')).toBe('1')

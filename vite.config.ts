@@ -111,7 +111,7 @@ export default defineConfig(({ command, mode }) => {
       // Agent worktrees under .claude/ hold other branches' tests, which must not run here.
       exclude: [...configDefaults.exclude, '.claude/**'],
       // Repairs the Node 26 / jsdom Web Storage collision. See the setup file.
-      setupFiles: ['./src/test/web-storage.ts'],
+      setupFiles: ['./src/test/web-storage.ts', './src/test/test-locale.ts'],
       // Only `npm run test:coverage` collects coverage. It sets no thresholds yet.
       coverage: {
         provider: 'v8',

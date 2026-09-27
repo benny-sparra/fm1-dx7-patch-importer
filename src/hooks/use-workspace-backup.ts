@@ -10,6 +10,7 @@ export type BackupLibrary = Pick<
   | 'bankDescriptions'
   | 'bankNames'
   | 'effects'
+  | 'favourites'
   | 'hasDamagedNamedBanks'
   | 'loadedBanks'
   | 'namedBanks'
@@ -47,6 +48,7 @@ export function useDownloadWorkspaceBackup(library: BackupLibrary) {
         bankDescriptions: library.bankDescriptions,
         bankNames: library.bankNames,
         effects: library.effects,
+        favourites: library.favourites,
         loadedBanks: library.loadedBanks,
         voices: library.voices,
         workspaceBanks: library.workspaceBanks,

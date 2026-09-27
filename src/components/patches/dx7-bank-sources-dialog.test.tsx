@@ -9,7 +9,7 @@ import french from '@/i18n/locales/fr'
 
 afterEach(async () => {
   cleanup()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 describe('Dx7BankSourcesDialog', () => {

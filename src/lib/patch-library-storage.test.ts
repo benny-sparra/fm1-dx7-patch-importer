@@ -90,7 +90,8 @@ describe('saveStoredPatchLibrary', () => {
     await expect(loading).resolves.toMatchObject({
       bankDescriptions: {},
       bankNames: {},
-      version: 5,
+      favourites: [],
+      version: 6,
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
   })
@@ -113,9 +114,10 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: {},
       bankNames: {},
       effects: { 'bank-A-1': makeDefaultFm1Effects() },
+      favourites: [],
       loadedBanks: ['A'],
       savedAt: '2026-07-01T12:00:00.000Z',
-      version: 5,
+      version: 6,
       voices: { 'bank-A-1': voice },
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
@@ -141,7 +143,7 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: {},
       bankNames: { A: 'Pianos', B: 'Leads' },
       loadedBanks: ['A', 'B'],
-      version: 5,
+      version: 6,
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
   })
@@ -165,7 +167,7 @@ describe('saveStoredPatchLibrary', () => {
     await expect(loading).resolves.toMatchObject({
       bankDescriptions: {},
       loadedBanks: [],
-      version: 5,
+      version: 6,
       workspaceBanks: ['A', 'B', 'C', 'D', 'E'],
     })
   })
@@ -190,8 +192,69 @@ describe('saveStoredPatchLibrary', () => {
     await expect(loading).resolves.toMatchObject({
       bankDescriptions: { A: 'Friday performance' },
       bankNames: { A: 'Studio Fav' },
-      version: 5,
+      favourites: [],
+      version: 6,
     })
+  })
+
+  it('restores favourites from version 6 storage, with their origins and effects', async () => {
+    const [voice, other] = makeDemoVoices()
+    const effects = makeDefaultFm1Effects()
+    effects[0] = 1
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {},
+      favourites: [
+        { effects, id: 'favourite-1', origin: { bankName: 'Pianos' }, voice },
+        { effects: undefined, id: 'favourite-2', origin: { bankNumber: 3 }, voice: other },
+      ],
+      loadedBanks: [],
+      savedAt: '2026-09-27T08:00:00.000Z',
+      version: 6,
+      voices: {},
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).resolves.toMatchObject({
+      favourites: [
+        { effects, id: 'favourite-1', origin: { bankName: 'Pianos' }, voice },
+        {
+          effects: makeDefaultFm1Effects(),
+          id: 'favourite-2',
+          origin: { bankNumber: 3 },
+          voice: other,
+        },
+      ],
+      version: 6,
+    })
+  })
+
+  it('classifies a workspace with an unreadable favourite as incompatible without changing it', async () => {
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {},
+      favourites: [{ id: 'favourite-1', origin: { bankNumber: 1 }, voice: { data: 'bad' } }],
+      loadedBanks: [],
+      savedAt: '2026-09-27T08:00:00.000Z',
+      version: 6,
+      voices: {},
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).rejects.toMatchObject({ code: 'incompatible' })
+    expect(fake.put).not.toHaveBeenCalled()
   })
 
   it('classifies a malformed saved record as incompatible without changing it', async () => {
@@ -286,7 +349,8 @@ describe('saveStoredPatchLibrary', () => {
       expect.objectContaining({
         bankDescriptions: {},
         bankNames: {},
-        version: 5,
+        favourites: [],
+        version: 6,
         workspaceBanks: ['A', 'B', 'C', 'D'],
       }),
       'current',

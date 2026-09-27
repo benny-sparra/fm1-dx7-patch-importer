@@ -19,11 +19,13 @@ it('explains a search that could not load and offers a reload', async () => {
   render(
     <SearchEverywhereResults
       activePatchId=""
+      favouriteKeys={new Set()}
       hasDamagedNamedBanks={false}
       namedBanks={[]}
       namedBanksLoadFailed={false}
       onCopy={vi.fn()}
       onPlay={vi.fn()}
+      onToggleFavourite={vi.fn()}
       search="brass"
       workspaceEffects={{}}
       workspaceMatches={[]}

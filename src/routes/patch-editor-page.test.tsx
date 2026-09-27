@@ -676,7 +676,7 @@ describe('PatchEditorPage operator copy and paste', () => {
   }
 
   afterEach(async () => {
-    await setLocale('en')
+    await setLocale('en-GB')
   })
 
   it('offers Paste only once an operator has been copied', async () => {

@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { readDx7BankFile, type Dx7Voice } from '@/lib/dx7'
-import { normalizeFm1Effects } from '@/lib/fm1-effects'
+import {
+  favouriteSoundKeys,
+  type FavouriteOrigin,
+  makeFavouritePatches,
+  moveFavourite as moveLibraryFavourite,
+  toggleFavourite as toggleLibraryFavourite,
+  favouritePatchId,
+} from '@/lib/favourites'
 import { createId } from '@/lib/id'
 import {
   createNamedBank,
@@ -11,10 +18,12 @@ import {
   type NamedBank,
 } from '@/lib/named-bank'
 import {
+  bankOfVoiceId,
   copyVoice as copyLibraryVoice,
   createWorkspaceBank,
   deleteWorkspaceBank,
   emptyPatchLibrary,
+  findLibrarySound,
   getBankVoices as selectBankVoices,
   importVoices,
   makeDemoVoices,
@@ -23,6 +32,7 @@ import {
   renameBank as renameLibraryBank,
   renameVoice as renameLibraryVoice,
   replaceVoice as replaceLibraryVoice,
+  saveSound,
   updateBankInformation as updateLibraryBankInformation,
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
@@ -88,6 +98,7 @@ export function usePatchLibrary() {
               bankDescriptions: stored.bankDescriptions,
               bankNames: stored.bankNames,
               effects: stored.effects,
+              favourites: stored.favourites,
               loadedBanks: stored.loadedBanks,
               voices: stored.voices,
               workspaceBanks: stored.workspaceBanks,
@@ -212,17 +223,64 @@ export function usePatchLibrary() {
     [commit],
   )
 
+  /**
+   * Saves a sound from the editor, in a slot or in Favourites, with the other copies that sounded
+   * the same (`saveSound`). Returns how many other copies it updated.
+   */
   const updatePatch = useCallback(
     (id: string, voice: Dx7Voice, effects: Uint8Array) => {
-      commit((current) =>
-        current.voices[id]
-          ? {
-              ...current,
-              effects: { ...current.effects, [id]: normalizeFm1Effects(effects) },
-              voices: { ...current.voices, [id]: voice },
-            }
-          : current,
-      )
+      let linked = 0
+      commit((current) => {
+        const saved = saveSound(current, id, voice, effects)
+        linked = saved.linked
+        return saved.snapshot
+      })
+      return linked
+    },
+    [commit],
+  )
+
+  /**
+   * Adds a slot's sound to Favourites, or takes it out when it is there already, as its heart does.
+   * A favourite's own heart takes it out. Returns whether it was added, and the change to undo.
+   */
+  const toggleFavourite = useCallback(
+    (patchId: string) => {
+      let added = false
+      const changed = commit((current) => {
+        const sound = findLibrarySound(current, patchId)
+        if (!sound) return current
+        const bank = bankOfVoiceId(patchId)
+        const origin: FavouriteOrigin =
+          bank && current.bankNames[bank]
+            ? { bankName: current.bankNames[bank] }
+            : { bankNumber: current.workspaceBanks.indexOf(bank ?? '') + 1 }
+        const toggled = toggleLibraryFavourite(current, sound, origin, createId())
+        added = toggled.added
+        return toggled.snapshot
+      })
+      return { added, changed }
+    },
+    [commit],
+  )
+
+  /** Adds or removes a sound from outside the workspace, such as a search result. */
+  const toggleFavouriteSound = useCallback(
+    (sound: { effects?: Uint8Array; voice: Dx7Voice }, origin: FavouriteOrigin) => {
+      let added = false
+      const changed = commit((current) => {
+        const toggled = toggleLibraryFavourite(current, sound, origin, createId())
+        added = toggled.added
+        return toggled.snapshot
+      })
+      return { added, changed }
+    },
+    [commit],
+  )
+
+  const moveFavourite = useCallback(
+    (from: number, to: number) => {
+      commit((current) => moveLibraryFavourite(current, from, to))
     },
     [commit],
   )
@@ -397,7 +455,32 @@ export function usePatchLibrary() {
     [undo],
   )
 
-  const patches = useMemo(() => makePatches(history.present), [history.present])
+  const { favourites } = history.present
+  const patches = useMemo(
+    () => [...makePatches(history.present), ...makeFavouritePatches(history.present.favourites)],
+    [history.present],
+  )
+  // Every sound by patch id, the favourites with the workspace slots, so playing, editing, and
+  // copying find a favourite as they find a slot.
+  const voices = useMemo(
+    () => ({
+      ...history.present.voices,
+      ...Object.fromEntries(
+        favourites.map((favourite) => [favouritePatchId(favourite.id), favourite.voice]),
+      ),
+    }),
+    [favourites, history.present.voices],
+  )
+  const effects = useMemo(
+    () => ({
+      ...history.present.effects,
+      ...Object.fromEntries(
+        favourites.map((favourite) => [favouritePatchId(favourite.id), favourite.effects]),
+      ),
+    }),
+    [favourites, history.present.effects],
+  )
+  const favouriteKeys = useMemo(() => favouriteSoundKeys(favourites), [favourites])
   const getBankVoices = useCallback(
     (bank: string) => selectBankVoices(history.present, bank),
     [history.present],
@@ -412,6 +495,8 @@ export function usePatchLibrary() {
     continueWithoutWorkspaceSaving,
     deleteNamedBank,
     deleteBank,
+    favouriteKeys,
+    favourites,
     getBankVoices,
     hasDamagedNamedBanks,
     importBank,
@@ -420,6 +505,7 @@ export function usePatchLibrary() {
     bankDescriptions: history.present.bankDescriptions,
     bankNames: history.present.bankNames,
     loadedBanks: history.present.loadedBanks,
+    moveFavourite,
     moveVoice,
     namedBanks,
     namedBanksLoadFailed,
@@ -436,14 +522,16 @@ export function usePatchLibrary() {
     resetFactoryBanks,
     restoreBackup,
     saveNamedBank,
+    toggleFavourite,
+    toggleFavouriteSound,
     undo,
     undoChange,
     updatePatch,
     updateBankInformation,
     updateNamedBankDetails,
     updateVoice,
-    effects: history.present.effects,
-    voices: history.present.voices,
+    effects,
+    voices,
     workspaceBanks: history.present.workspaceBanks,
     workspaceHasUnsavedChanges: persistence.hasUnsavedChanges,
     workspaceLoading: persistence.status === 'loading',

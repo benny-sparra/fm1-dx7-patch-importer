@@ -12,6 +12,7 @@ import { Dx7CatalogBankUnavailableError } from '@/lib/dx7-bank-catalog'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { createNamedBank } from '@/lib/named-bank'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
+import { soundKey } from '@/lib/sound-key'
 import { translatePageText } from '@/test/page-translator'
 
 const loadDx7CatalogBank = vi.hoisted(() => vi.fn<(bankId: string) => Promise<Dx7Voice[]>>())
@@ -24,7 +25,7 @@ vi.mock(import('@/lib/dx7-bank-catalog'), async (importOriginal) => ({
 afterEach(async () => {
   cleanup()
   vi.clearAllMocks()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 const savedEffects = makeDefaultFm1Effects()
@@ -46,14 +47,17 @@ function savedBank(firstVoiceName: string) {
 function renderResults(props: Partial<ComponentProps<typeof SearchEverywhereResults>> = {}) {
   const onCopy = vi.fn()
   const onPlay = vi.fn()
+  const onToggleFavourite = vi.fn()
   const view = render(
     <SearchEverywhereResults
       activePatchId=""
+      favouriteKeys={new Set()}
       hasDamagedNamedBanks={false}
       namedBanks={[]}
       namedBanksLoadFailed={false}
       onCopy={onCopy}
       onPlay={onPlay}
+      onToggleFavourite={onToggleFavourite}
       search="brass   1"
       workspaceEffects={{}}
       workspaceMatches={[]}
@@ -61,7 +65,7 @@ function renderResults(props: Partial<ComponentProps<typeof SearchEverywhereResu
       {...props}
     />,
   )
-  return { ...view, onCopy, onPlay, user: userEvent.setup() }
+  return { ...view, onCopy, onPlay, onToggleFavourite, user: userEvent.setup() }
 }
 
 const catalogResult = () =>
@@ -97,6 +101,39 @@ describe('search everywhere results', () => {
     expect(loadDx7CatalogBank).toHaveBeenCalledExactlyOnceWith('rom1a')
   })
 
+  it('lights the heart of a result Favourites holds', async () => {
+    const bank = savedBank('SOLO LEAD')
+    renderResults({
+      favouriteKeys: new Set([soundKey(bank.slots[0].voice, savedEffects)]),
+      namedBanks: [bank],
+      search: 'solo',
+    })
+
+    const heart = await screen.findByRole('button', { name: 'Favourite SOLO LEAD' })
+
+    expect(heart.getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('adds a result to Favourites with its effects and the bank it is in', async () => {
+    const bank = savedBank('SOLO LEAD')
+    const { onPlay, onToggleFavourite, user } = renderResults({
+      namedBanks: [bank],
+      search: 'solo',
+    })
+
+    const heart = await screen.findByRole('button', { name: 'Favourite SOLO LEAD' })
+    expect(heart.getAttribute('aria-pressed')).toBe('false')
+    await user.click(heart)
+
+    await vi.waitFor(() =>
+      expect(onToggleFavourite).toHaveBeenCalledExactlyOnceWith(
+        { effects: savedEffects, voice: bank.slots[0].voice },
+        'Leads',
+      ),
+    )
+    expect(onPlay).not.toHaveBeenCalled()
+  })
+
   it('plays a saved-bank patch with its saved effects', async () => {
     const bank = savedBank('SOLO LEAD')
     const { onPlay, user } = renderResults({ namedBanks: [bank], search: 'solo' })
@@ -128,11 +165,13 @@ describe('search everywhere results', () => {
     rerender(
       <SearchEverywhereResults
         activePatchId="bank-A-1"
+        favouriteKeys={new Set()}
         hasDamagedNamedBanks={false}
         namedBanks={[]}
         namedBanksLoadFailed={false}
         onCopy={onCopy}
         onPlay={onPlay}
+        onToggleFavourite={vi.fn()}
         search="brass   1"
         workspaceEffects={{}}
         workspaceMatches={[]}

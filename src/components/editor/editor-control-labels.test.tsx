@@ -41,7 +41,7 @@ beforeAll(() => i18nReady)
 
 afterEach(async () => {
   cleanup()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 describe('editor control labels', () => {

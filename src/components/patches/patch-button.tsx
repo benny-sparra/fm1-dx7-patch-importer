@@ -11,6 +11,7 @@ import { patchSlotCode } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
 
 import { droppedBank } from './bank-drop'
+import { FavouriteButton } from './favourite-button'
 import { PatchSlotMenu } from './patch-slot-menu'
 
 type PatchButtonProps = {
@@ -19,6 +20,8 @@ type PatchButtonProps = {
   disabled?: boolean
   disabledTitle?: string
   isActive?: boolean
+  /** Whether Favourites holds this sound, which lights the slot's heart. */
+  isFavourite?: boolean
   onCopy?: (patch: Patch) => void
   onDownload?: (patch: Patch) => void
   onEdit?: (patch: Patch) => void
@@ -26,6 +29,8 @@ type PatchButtonProps = {
   onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
   onReplace?: (patch: Patch) => void
   onSelect?: (patch: Patch) => void
+  /** Shows the slot's heart, which adds its sound to Favourites or takes it out. */
+  onToggleFavourite?: (patch: Patch) => void
   patch: Patch
   /** False while the slot is shown away from its bank, such as in search results. */
   reorderable?: boolean
@@ -41,12 +46,14 @@ export function PatchButton({
   disabled = false,
   disabledTitle,
   isActive = false,
+  isFavourite = false,
   onCopy,
   onDownload,
   onEdit,
   onNavigate,
   onReplace,
   onSelect,
+  onToggleFavourite,
   patch,
   reorderable = true,
   registerButton,
@@ -81,7 +88,7 @@ export function PatchButton({
   return (
     <div
       className={cn(
-        'patch-cell patch-edge-gradient group relative flex h-full min-h-12 items-center gap-2 px-2 py-2 transition-colors duration-150',
+        'patch-cell patch-edge-gradient group relative flex h-full min-h-12 items-center gap-1.5 px-2 py-2 transition-colors duration-150',
         'border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
         'data-[disabled=true]:opacity-50',
         isActive
@@ -189,15 +196,27 @@ export function PatchButton({
           <span className="block truncate text-[11px] text-[var(--crt-ink-3)]">{bankName}</span>
         ) : null}
       </span>
-      {/* Above the slot's own button, like the grip, so opening it does not also play the slot. */}
-      {!disabled && (onEdit || onCopy) ? (
-        <PatchSlotMenu
-          name={patch.name}
-          onCopy={onCopy && (() => onCopy(patch))}
-          onDownload={onDownload && (() => onDownload(patch))}
-          onEdit={onEdit && (() => onEdit(patch))}
-          onReplace={onReplace && (() => onReplace(patch))}
-        />
+      {/* The heart and menu share one gap, so a full ten-character name fits beside them. */}
+      {!disabled && (onToggleFavourite || onEdit || onCopy) ? (
+        <span className="flex shrink-0 items-center">
+          {onToggleFavourite && patch.family === 'DX7' ? (
+            <FavouriteButton
+              isFavourite={isFavourite}
+              name={patch.name}
+              onToggle={() => onToggleFavourite(patch)}
+            />
+          ) : null}
+          {/* Above the slot's own button, like the grip, so opening it does not also play the slot. */}
+          {onEdit || onCopy ? (
+            <PatchSlotMenu
+              name={patch.name}
+              onCopy={onCopy && (() => onCopy(patch))}
+              onDownload={onDownload && (() => onDownload(patch))}
+              onEdit={onEdit && (() => onEdit(patch))}
+              onReplace={onReplace && (() => onReplace(patch))}
+            />
+          ) : null}
+        </span>
       ) : null}
       {isActive ? <span className="sr-only">{t('banks.auditioning')}</span> : null}
     </div>

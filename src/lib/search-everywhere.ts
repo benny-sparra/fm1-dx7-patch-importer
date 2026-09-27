@@ -5,7 +5,7 @@ import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import type { NamedBank } from '@/lib/named-bank'
 import { patchNameMatchesSearch } from '@/lib/patch-library'
-import { voiceFingerprint } from '@/lib/voice-fingerprint'
+import { makeSoundKey, soundKey } from '@/lib/sound-key'
 
 /**
  * The patch name and voice fingerprint of every catalog patch, by catalog id, in slot order.
@@ -39,18 +39,6 @@ export type SavedPatchMatch = {
 export const dx7CatalogIndex = catalogIndex as unknown as Dx7CatalogIndex
 
 const defaultEffectsKey = makeDefaultFm1Effects().join(',')
-
-/**
- * What a patch plays: its voice data, which includes its name, and its FM1 effects. Two patches
- * with the same key sound the same, so a search lists only the first.
- */
-function makeSoundKey(fingerprint: number, effectsKey: string) {
-  return `${fingerprint}/${effectsKey}`
-}
-
-export function soundKey(voice: Dx7Voice, effects: Uint8Array) {
-  return makeSoundKey(voiceFingerprint(voice.data), effects.join(','))
-}
 
 /** Catalog patches whose name contains the search, in the order the catalog lists its banks. */
 export function findCatalogMatches(index: Dx7CatalogIndex, search: string): CatalogPatchMatch[] {
