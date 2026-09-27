@@ -38,6 +38,8 @@ type PatchGridProps = {
   activePatchId?: string
   actions?: ReactNode
   bankLabel?: (bank: string) => string
+  /** Shown instead of the empty bank's import prompt when there are no patches to show. */
+  emptyState?: ReactNode
   /**
    * Results from outside the workspace, shown below its slots. While there are any, the workspace
    * slots take `resultsHeading` and an empty workspace shows nothing rather than "no matches".
@@ -45,6 +47,7 @@ type PatchGridProps = {
   extraResults?: ReactNode
   headerActions?: ReactNode
   isBankLoaded?: boolean
+  isFavourite?: (patch: Patch) => boolean
   isPatchDisabled?: (patch: Patch) => boolean
   onPatchCopy?: (patch: Patch) => void
   onPatchDownload?: (patch: Patch) => void
@@ -54,8 +57,11 @@ type PatchGridProps = {
   onPatchDropOnBank?: (patch: Patch, bank: string) => void
   onPatchEdit?: (patch: Patch) => void
   onPatchSelect?: (patch: Patch) => void
+  onPatchToggleFavourite?: (patch: Patch) => void
   onImportEmptyBank?: () => void
   onLoadDemoBank?: () => void
+  /** Where a patch came from, shown under its name, as Favourites shows the bank a sound left. */
+  patchOrigin?: (patch: Patch) => string | undefined
   patches: Patch[]
   /** Off while the grid shows slots from several banks, which cannot be reordered together. */
   reorderable?: boolean
@@ -83,9 +89,11 @@ export function PatchGrid({
   activePatchId = '',
   actions,
   bankLabel = (bank) => bank,
+  emptyState,
   extraResults,
   headerActions,
   isBankLoaded = true,
+  isFavourite = () => false,
   isPatchDisabled = () => false,
   onPatchCopy,
   onPatchDownload,
@@ -94,8 +102,10 @@ export function PatchGrid({
   onPatchDropOnBank,
   onPatchEdit,
   onPatchSelect,
+  onPatchToggleFavourite,
   onImportEmptyBank,
   onLoadDemoBank,
+  patchOrigin,
   patches,
   reorderable = true,
   resultsHeading,
@@ -241,7 +251,10 @@ export function PatchGrid({
                       {patches.map((patch) => (
                         <div className="h-full w-full" key={patch.id}>
                           <PatchButton
-                            bankName={reorderable ? undefined : bankLabel(patch.bank)}
+                            bankName={
+                              patchOrigin?.(patch) ??
+                              (reorderable ? undefined : bankLabel(patch.bank))
+                            }
                             disabled={isPatchDisabled(patch)}
                             disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
                             onCopy={onPatchCopy}
@@ -250,6 +263,8 @@ export function PatchGrid({
                             onEdit={onPatchEdit}
                             onNavigate={navigateSlots}
                             onSelect={onPatchSelect}
+                            onToggleFavourite={onPatchToggleFavourite}
+                            isFavourite={isFavourite(patch)}
                             patch={patch}
                             reorderable={reorderable}
                             isActive={patch.id === activePatchId}
@@ -260,7 +275,9 @@ export function PatchGrid({
                       ))}
                     </div>
                   </SortableContext>
-                ) : extraResults ? null : (
+                ) : extraResults ? null : emptyState ? (
+                  emptyState
+                ) : (
                   <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
                     <div className="max-w-md">
                       <FileMusic className="mx-auto size-10 text-[var(--crt-acc-dim)]" />

@@ -172,6 +172,14 @@ open everything an earlier release could have saved.
 ### Internationalisation
 
 - English is the dependable eager fallback. Other locales must remain separate dynamic imports.
+- English comes in two locales. `en-GB` is complete and every locale falls back to it. `en-US`
+  holds only the strings British English spells differently, and i18next's fallback chain reads the
+  rest from `en-GB`, so it loads eagerly too (about 200 B). Give every `en-GB` string with a British
+  spelling an `en-US` override in the same change; `src/i18n/resources.test.ts` checks. Releases
+  before the split stored `fm1-language` as plain `en`, which `resolveLocale` reads as the
+  browser's own English.
+- Unit tests and Playwright read `en-GB` (`src/test/test-locale.ts`, `playwright.config.ts`), since
+  jsdom and Playwright report American English. A test of the American spelling sets `en-US`.
 - Resolve and load the initial non-English locale before the first React render; do not introduce an
   English-language flash.
 - Load a selected locale before changing language, cache in-flight/completed loads, and prevent an
@@ -179,8 +187,8 @@ open everything an earlier release could have saved.
 - Locale failures must leave a usable current language. Storage access may be absent, invalid, or
   throw.
 - Keep `document.documentElement.lang`, the document title, and description metadata synchronized.
-- Every locale must contain the same leaf keys. Update `src/i18n/resources.test.ts` whenever resource
-  structure changes.
+- Every locale apart from `en-US` must contain the same leaf keys. Update
+  `src/i18n/resources.test.ts` whenever resource structure changes.
 - Call a library item a patch, and say sound only for what you hear. Voice means the DX7 voice data,
   as in the voice editor and Init voice. German uses Sound for a patch and Klang for what you hear;
   Simplified Chinese uses 音色 and 声音.
@@ -344,6 +352,18 @@ open everything an earlier release could have saved.
   A patch that is gone by then leaves the patch banks showing. Every way of closing the editor
   removes the entry. Other view state, such as the selected bank, stays out of history
   and the URL: bank letters move when a bank is deleted and the library exists only in this browser.
+- Favourites are copies of sounds, kept in the workspace record and the backup file, so they
+  outlive the slot they came from. A heart matches by `soundKey` from `src/lib/sound-key.ts`, the
+  one source the search's duplicate hiding also uses, so every slot holding the same voice data and
+  FM1 effects shows it, and Favourites keeps one copy. Saving a sound in the editor goes through
+  `saveSound`, which also updates the copies that sounded the same before the edit: a slot's
+  favourite, or every slot a favourite came from. Keep that one change, so one Undo reverses it.
+- A patch card leaves room for a full ten-character DX7 name beside its heart and menu at every
+  width from 360 px, which `e2e/librarian.e2e.ts` checks. The name font is monospaced, so a name is
+  about 93 px; give a new control on the card the room back by tightening the card, not the name.
+- Favourites are sent to the FM1 as one 32-voice bank: the first 32, and INIT VOICE after a shorter
+  list. Say which before and after sending: in the destination instructions
+  (`Fm1BankSelectionDialog`'s `note`) and in the sent message.
 - Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.

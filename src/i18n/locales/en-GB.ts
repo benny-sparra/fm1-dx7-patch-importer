@@ -298,6 +298,41 @@ export default {
       },
     },
   },
+  favourites: {
+    title: 'Favourites',
+    tabTitle: 'Show your favourite patches',
+    toggle: 'Favourite {{name}}',
+    addTitle: 'Add to Favourites',
+    removeTitle: 'Remove from Favourites',
+    added: 'Added “{{patch}}” to Favourites.',
+    removed: 'Removed “{{patch}}” from Favourites.',
+    alreadyAdded: '“{{patch}}” is already in Favourites.',
+    addFailed: 'The patch could not be added to Favourites.',
+    empty: 'No favourites yet',
+    emptyHelp:
+      'Select the heart on any patch, or drag a patch onto Favourites, to keep it here. Favourites can be sent to the FM1 as a bank.',
+    sendTitle: 'Send the first 32 favourites as a bank; choose the destination bank on the FM1',
+    addFirst: 'Add a favourite before sending Favourites',
+    initNote: 'A bank holds 32 patches, so sending Favourites fills the last slot with INIT VOICE.',
+    initNote_other:
+      'A bank holds 32 patches, so sending Favourites fills the last {{count, number}} slots with INIT VOICE.',
+    leftOutNote:
+      'A bank holds 32 patches, so only the first 32 favourites are sent. The last one stays here.',
+    leftOutNote_other:
+      'A bank holds 32 patches, so only the first 32 favourites are sent. The last {{count, number}} stay here.',
+    sent: 'Favourites was sent. Choose its destination on the FM1.',
+    sentWithInit:
+      'Favourites was sent, with INIT VOICE in the last slot. Choose its destination on the FM1.',
+    sentWithInit_other:
+      'Favourites was sent, with INIT VOICE in the last {{count, number}} slots. Choose its destination on the FM1.',
+    sentLeftOut:
+      'The first 32 favourites were sent; the last one was left out. Choose their destination on the FM1.',
+    sentLeftOut_other:
+      'The first 32 favourites were sent; the last {{count, number}} were left out. Choose their destination on the FM1.',
+    sendUnavailable: 'Favourites could not be prepared for sending. Reload the page and try again.',
+    savedWithFavourites: 'Saved “{{patch}}” to the library, and to its copy in Favourites.',
+    savedWithBanks: 'Saved “{{patch}}” to Favourites, and to the bank slots that held it.',
+  },
   toasts: {
     midiPanicSent: 'MIDI panic sent. Every note on the note channel was released.',
     notifications: 'Completed actions',

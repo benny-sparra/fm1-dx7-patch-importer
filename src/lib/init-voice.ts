@@ -1,5 +1,7 @@
+import { packDx7Voice, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
 import {
   FM1_EDITOR_PARAMETER_COUNT,
+  FM1_VOICE_PARAMETER_COUNT,
   DX7_TRANSPOSE_C3,
   FM1_OPERATOR_COUNT,
   fm1EffectParameters,
@@ -86,4 +88,13 @@ export function initializeVoice(parameters: Uint8Array) {
   }
 
   return next
+}
+
+/** The DX7 INIT VOICE as a bank voice, named INIT VOICE, such as fills unused slots of a bank. */
+export function makeInitDx7Voice(): Dx7Voice {
+  const parameters = initializeVoice(new Uint8Array(FM1_EDITOR_PARAMETER_COUNT))
+  return updateDx7VoiceName(
+    packDx7Voice(parameters.slice(0, FM1_VOICE_PARAMETER_COUNT)),
+    'INIT VOICE',
+  )
 }

@@ -24,7 +24,7 @@ beforeAll(async () => {
 
 describe('bankErrorMessage', () => {
   it('explains a bank file of the wrong size with its byte count', () => {
-    const t = i18n.getFixedT('en')
+    const t = i18n.getFixedT('en-GB')
 
     expect(bankErrorMessage(t, importError(new Uint8Array(3)), 'Import failed.')).toBe(
       'This file is 3 bytes. A DX7 bank file must be exactly 4,104 bytes.',
@@ -32,7 +32,7 @@ describe('bankErrorMessage', () => {
   })
 
   it('groups the digits of a large byte count', () => {
-    const t = i18n.getFixedT('en')
+    const t = i18n.getFixedT('en-GB')
 
     expect(bankErrorMessage(t, importError(new Uint8Array(12_345)), 'Import failed.')).toBe(
       'This file is 12,345 bytes. A DX7 bank file must be exactly 4,104 bytes.',
@@ -49,7 +49,7 @@ describe('bankErrorMessage', () => {
   })
 
   it('explains a bank file that fails its checksum as damaged', () => {
-    const t = i18n.getFixedT('en')
+    const t = i18n.getFixedT('en-GB')
     const bank = makeDx7BankFile(makeDemoVoices())
     bank[10] = (bank[10] + 1) & 0x7f
 
@@ -59,7 +59,7 @@ describe('bankErrorMessage', () => {
   })
 
   it('explains a bank file with data above seven bits as damaged', () => {
-    const t = i18n.getFixedT('en')
+    const t = i18n.getFixedT('en-GB')
     const bank = makeDx7BankFile(makeDemoVoices())
     bank[10] = 0x80
 
@@ -76,7 +76,7 @@ describe('bankErrorMessage', () => {
   })
 
   it('explains an unavailable catalog bank and workspace bank', () => {
-    const t = i18n.getFixedT('en')
+    const t = i18n.getFixedT('en-GB')
 
     expect(bankErrorMessage(t, new Dx7CatalogBankUnavailableError('ROM1A'), 'Failed.')).toBe(
       'That patch bank could not be downloaded. Check your connection, then try again.',
@@ -87,7 +87,7 @@ describe('bankErrorMessage', () => {
   })
 
   it('shows the fallback instead of technical text for any other error', () => {
-    const t = i18n.getFixedT('en')
+    const t = i18n.getFixedT('en-GB')
 
     expect(bankErrorMessage(t, new Error('QuotaExceededError: IndexedDB'), 'Import failed.')).toBe(
       'Import failed.',

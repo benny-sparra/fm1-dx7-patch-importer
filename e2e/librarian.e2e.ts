@@ -79,7 +79,8 @@ test('persists a saved patch name across a browser reload', async ({ page }) => 
 
   await page.getByRole('textbox', { name: 'Patch name' }).fill('E2E SAVE')
   await page.getByRole('button', { name: 'Save to Library' }).click()
-  await expect(page.getByText('Saved “PIANO 1” to the library.')).toBeVisible()
+  // The notification names the patch as saved, under its new name.
+  await expect(page.getByText('Saved “E2E SAVE” to the library.')).toBeVisible()
   await expect.poll(() => storedFirstPatchName(page)).toBe('E2E SAVE')
 
   await page.reload()
@@ -238,6 +239,74 @@ test('copies a slot by dropping it on another bank tab', async ({ page }) => {
 
   await expect(dialog).toBeHidden()
   await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible()
+})
+
+// A DX7 name is ten characters and the name font is monospaced, so every full name is as wide as
+// any other. These are the narrowest cards at each column count, and the smallest common phone. A
+// page with a classic scrollbar is about 15 px narrower than its viewport, which takes about 4 px
+// from each of four cards, so each name keeps that much to spare.
+const scrollbarShare = 4
+
+for (const width of [1280, 768, 360]) {
+  test(`leaves room for a full ten-character patch name beside the heart and menu at ${width} px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ height: 800, width })
+    await openLibrarian(page)
+
+    const cramped = await page.locator('.patch-cell .patch-name').evaluateAll((names, spare) => {
+      const probe = names[0].cloneNode() as HTMLElement
+      probe.style.cssText = 'position: absolute; visibility: hidden; width: auto'
+      probe.textContent = 'WWWWWWWWWW'
+      document.body.append(probe)
+      const fullName = probe.getBoundingClientRect().width
+      probe.remove()
+      return names
+        .filter((name) => name.getBoundingClientRect().width < fullName + spare)
+        .map((name) => name.textContent)
+    }, scrollbarShare)
+
+    expect(cramped).toEqual([])
+  })
+}
+
+test('adds a slot to Favourites from its heart without playing it', async ({ page }) => {
+  await openLibrarian(page)
+  const slot = slotButtons(page).first()
+  const name = (await slot.getAttribute('aria-label'))?.replace(/^Send (.+) to FM1$/, '$1') ?? ''
+
+  // The heart sits above the slot's own button, which plays the slot when it gets the click.
+  const heart = page.getByRole('button', { exact: true, name: `Favourite ${name}` })
+  await heart.click()
+
+  await expect(heart).toHaveAttribute('aria-pressed', 'true')
+  await expect(slot).not.toHaveAttribute('aria-current', 'true')
+})
+
+test('adds a slot to Favourites by dropping it on the Favourites tab', async ({ page }) => {
+  await openLibrarian(page)
+  const { name } = await slotMenuButton(page, 0)
+
+  await dragGrip(page, name, page.getByRole('button', { exact: true, name: 'Favourites' }))
+
+  await expect(page.getByText(`Added “${name}” to Favourites.`)).toBeVisible()
+  await expect(
+    page.getByRole('button', { exact: true, name: `Favourite ${name}` }),
+  ).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+})
+
+test.describe('in a browser set to American English', () => {
+  test.use({ locale: 'en-US' })
+
+  test('spells Favorites the American way and names the page American English', async ({
+    page,
+  }) => {
+    await openLibrarian(page)
+
+    await expect(page.getByRole('button', { exact: true, name: 'Favorites' })).toBeVisible()
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en-US')
+  })
 })
 
 test('reorders when a slot is dropped in the grid beside the bank rail', async ({ page }) => {

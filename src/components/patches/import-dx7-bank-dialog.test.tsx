@@ -30,7 +30,7 @@ beforeAll(() => {
 
 afterEach(async () => {
   cleanup()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 const changed = {} as PatchLibrarySnapshot

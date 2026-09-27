@@ -1,9 +1,10 @@
-export const supportedLocales = ['en', 'fr', 'es', 'de', 'pt-BR', 'zh-Hans'] as const
+export const supportedLocales = ['en-GB', 'en-US', 'fr', 'es', 'de', 'pt-BR', 'zh-Hans'] as const
 
 export type SupportedLocale = (typeof supportedLocales)[number]
 
 export const localeNames: Record<SupportedLocale, string> = {
-  en: 'English',
+  'en-GB': 'English (UK)',
+  'en-US': 'English (US)',
   fr: 'Français',
   es: 'Español',
   de: 'Deutsch',
@@ -15,7 +16,16 @@ export const LANGUAGE_STORAGE_KEY = 'fm1-language'
 
 const normalizedLocales: Record<string, SupportedLocale> = {
   de: 'de',
-  en: 'en',
+  // English in any region spells as British English, apart from the regions listed with en-US.
+  en: 'en-GB',
+  'en-as': 'en-US',
+  'en-gu': 'en-US',
+  'en-mp': 'en-US',
+  'en-ph': 'en-US',
+  'en-pr': 'en-US',
+  'en-um': 'en-US',
+  'en-us': 'en-US',
+  'en-vi': 'en-US',
   es: 'es',
   fr: 'fr',
   pt: 'pt-BR',
@@ -41,17 +51,21 @@ export function normalizeLocale(locale: string | null | undefined): SupportedLoc
   return normalizedLocales[normalized] ?? normalizedLocales[normalized.split('-')[0]] ?? null
 }
 
+/** Whether a locale is one of the English variants. */
+function isEnglishLocale(locale: SupportedLocale) {
+  return locale === 'en-GB' || locale === 'en-US'
+}
+
 export function resolveLocale(
   storedLocale: string | null | undefined,
   browserLocales: readonly string[],
 ): SupportedLocale {
-  const stored = normalizeLocale(storedLocale)
-  if (stored) return stored
+  const browserLocale = browserLocales.map(normalizeLocale).find((locale) => locale !== null)
 
-  for (const locale of browserLocales) {
-    const supported = normalizeLocale(locale)
-    if (supported) return supported
+  // Releases before the two Englishes stored plain 'en' for English, which chose no spelling, so
+  // the browser's own English decides it.
+  if (storedLocale?.trim().toLowerCase() === 'en') {
+    return browserLocale && isEnglishLocale(browserLocale) ? browserLocale : 'en-GB'
   }
-
-  return 'en'
+  return normalizeLocale(storedLocale) ?? browserLocale ?? 'en-GB'
 }

@@ -11,7 +11,10 @@ type PatchSlotMenuProps = {
   onReplace?: () => void
 }
 
-/** A slot's own actions, in a portal menu because the patch grid clips its overflow. */
+/**
+ * A slot's own actions, in a portal menu because the patch grid clips its overflow. An action
+ * without a handler is left out, as importing over a favourite is.
+ */
 export function PatchSlotMenu({ name, onCopy, onDownload, onEdit, onReplace }: PatchSlotMenuProps) {
   const { t } = useTranslation()
 
@@ -22,7 +25,7 @@ export function PatchSlotMenu({ name, onCopy, onDownload, onEdit, onReplace }: P
         { Icon: Copy, label: t('banks.copySelected'), onSelect: onCopy },
         { Icon: Upload, label: t('banks.importPatchFile'), onSelect: onReplace },
         { Icon: Download, label: t('banks.downloadPatchFile'), onSelect: onDownload },
-      ]}
+      ].filter(({ onSelect }) => onSelect)}
       menuLabel={name}
       triggerClassName="z-[1] -my-1 -mr-1"
       triggerLabel={t('banks.bankMenu', { bank: name })}

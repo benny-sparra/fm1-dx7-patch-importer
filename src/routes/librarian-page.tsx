@@ -26,6 +26,8 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
+import { PixelHeartIcon } from '@/components/patches/favourite-button'
+import { FavouritesTab } from '@/components/patches/favourites-tab'
 import { undoToastOptions } from '@/components/patches/undo-toast'
 import { PatchGrid } from '@/components/patches/patch-grid'
 import type { SearchResultSound } from '@/components/patches/search-everywhere-results'
@@ -48,7 +50,13 @@ import {
   sentryVerificationEnabled,
 } from '@/components/sentry-verification-button'
 import { ErrorNotice } from '@/components/ui/error-notice'
-import { makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
+import { dx7BankVoiceCount, makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
+import {
+  favouritesBank,
+  findFavourite,
+  makeFavouritesTransfer,
+  type FavouriteOrigin,
+} from '@/lib/favourites'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   getNextWorkspaceBank,
@@ -58,6 +66,7 @@ import {
 } from '@/lib/patch-library'
 import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
+import { soundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
 import type { MidiController } from '@/hooks/use-midi'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
@@ -165,11 +174,14 @@ type LibrarianLibrary = BackupLibrary &
     | 'copyVoice'
     | 'deleteBank'
     | 'effects'
+    | 'favouriteKeys'
+    | 'favourites'
     | 'getBankVoices'
     | 'hasDamagedNamedBanks'
     | 'importBank'
     | 'loadDemoBank'
     | 'loadedBanks'
+    | 'moveFavourite'
     | 'moveVoice'
     | 'namedBanks'
     | 'namedBanksLoadFailed'
@@ -178,6 +190,8 @@ type LibrarianLibrary = BackupLibrary &
     | 'redo'
     | 'replaceVoice'
     | 'resetFactoryBanks'
+    | 'toggleFavourite'
+    | 'toggleFavouriteSound'
     | 'undo'
     | 'undoChange'
     | 'voices'
@@ -260,7 +274,10 @@ export function LibrarianPage({
   const allBanksMenuRef = useDismissableDetails()
   const bankMenuRef = useDismissableDetails()
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
-  const bankDisplayName = useWorkspaceBankLabel(library)
+  const workspaceBankLabel = useWorkspaceBankLabel(library)
+  // Favourites shows in the bank rail, so its name reads wherever a bank's name would.
+  const bankDisplayName = (bank: string) =>
+    bank === favouritesBank ? t('favourites.title') : workspaceBankLabel(bank)
   const requestSavedBanks = (request: SavedBanksRequest) => {
     setDialogLoadError('')
     setSavedBanksRequest(request)
@@ -360,10 +377,16 @@ export function LibrarianPage({
     setTransferStatus({ kind: 'idle', message: t('banks.sendingStatus') })
     let voiceCount: number | undefined
     try {
-      const voices = library.getBankVoices(destinationBank)
+      let voices = library.getBankVoices(destinationBank)
+      let sentStatus = t('banks.sentStatus', { bank: bankDisplayName(destinationBank) })
+      if (destinationBank === favouritesBank) {
+        const transfer = await prepareFavouritesTransfer()
+        if (!transfer) return
+        voices = transfer.voices
+        sentStatus = favouritesSentStatus(transfer)
+      }
       voiceCount = voices.length
       const result = await midi.sendBank(destinationBank, voices)
-      const sentStatus = t('banks.sentStatus', { bank: bankDisplayName(destinationBank) })
       setTransferStatus(
         result.ok
           ? { kind: 'success', message: sentStatus }
@@ -391,6 +414,28 @@ export function LibrarianPage({
       setIsSending(false)
     }
   }
+
+  // The Init voice that fills a short Favourites comes with the editor's voice code, on first send.
+  const prepareFavouritesTransfer = async () => {
+    try {
+      const { makeInitDx7Voice } = await import('@/lib/init-voice')
+      return makeFavouritesTransfer(library.favourites, makeInitDx7Voice())
+    } catch {
+      setTransferStatus({ kind: 'idle', message: '' })
+      setDialogLoadError(t('favourites.sendUnavailable'))
+      return null
+    }
+  }
+
+  const favouritesSentStatus = ({
+    initCount,
+    leftOutCount,
+  }: ReturnType<typeof makeFavouritesTransfer>) =>
+    initCount > 0
+      ? t('favourites.sentWithInit', { count: initCount })
+      : leftOutCount > 0
+        ? t('favourites.sentLeftOut', { count: leftOutCount })
+        : t('favourites.sent')
 
   const closeSendGuide = () => {
     setSendGuide(null)
@@ -439,6 +484,17 @@ export function LibrarianPage({
 
   const hasLoadedBank = library.loadedBanks.length > 0
   const isSearching = search.trim() !== ''
+  const showsFavourites = !isSearching && destinationBank === favouritesBank
+  const favouriteCount = library.favourites.length
+  const canSendDestination = showsFavourites ? favouriteCount > 0 : isDestinationBankLoaded
+  // A bank holds 32 patches, so the destination instructions say before sending what Favourites
+  // becomes on the FM1.
+  const favouritesTransferNote =
+    !showsFavourites || favouriteCount === 0 || favouriteCount === dx7BankVoiceCount
+      ? undefined
+      : favouriteCount < dx7BankVoiceCount
+        ? t('favourites.initNote', { count: dx7BankVoiceCount - favouriteCount })
+        : t('favourites.leftOutNote', { count: favouriteCount - dx7BankVoiceCount })
 
   const visiblePatches = useMemo(() => {
     // A search looks through every loaded bank, so a result keeps showing while another is played.
@@ -447,9 +503,48 @@ export function LibrarianPage({
         (patch) => library.loadedBanks.includes(patch.bank) && patchMatchesSearch(patch, search),
       )
     }
-    if (!isDestinationBankLoaded) return []
+    if (!isDestinationBankLoaded && destinationBank !== favouritesBank) return []
     return patches.filter((patch) => patch.bank === destinationBank)
   }, [destinationBank, isDestinationBankLoaded, isSearching, library.loadedBanks, patches, search])
+
+  const isFavourite = (patch: Patch) => {
+    const voice = library.voices[patch.id]
+    return voice ? library.favouriteKeys.has(soundKey(voice, library.effects[patch.id])) : false
+  }
+
+  // A lit heart is the confirmation of an addition, so only taking a sound out says so, with Undo,
+  // since the favourite taken out may be an edited copy found nowhere else.
+  const announceFavourite = (
+    name: string,
+    { added, changed }: ReturnType<LibrarianLibrary['toggleFavourite']>,
+  ) => {
+    if (changed && !added) {
+      toast.success(t('favourites.removed', { patch: name }), undoToastOptions(t, library, changed))
+    }
+  }
+
+  const toggleFavourite = (patch: Patch) =>
+    announceFavourite(patch.name, library.toggleFavourite(patch.id))
+
+  // A slot dropped on Favourites is only ever added, and no heart lights where the drop landed, so a
+  // drop always says what it did.
+  const dropOnFavourites = (patch: Patch) => {
+    if (isFavourite(patch)) {
+      toast.success(t('favourites.alreadyAdded', { patch: patch.name }))
+      return
+    }
+    if (library.toggleFavourite(patch.id).added) {
+      toast.success(t('favourites.added', { patch: patch.name }))
+    }
+  }
+
+  const favouriteOrigin = (patch: Patch) => {
+    const origin: FavouriteOrigin | undefined = findFavourite(library.favourites, patch.id)?.origin
+    if (!origin) return undefined
+    return 'bankName' in origin
+      ? origin.bankName || undefined
+      : defaultWorkspaceBankTitle(t, origin.bankNumber)
+  }
 
   useEffect(() => {
     if (!hasLoadedBank) setSearch('')
@@ -466,7 +561,9 @@ export function LibrarianPage({
   }
 
   useEffect(() => {
-    if (!banks.includes(destinationBank)) setDestinationBank(banks[0] ?? 'A')
+    if (!banks.includes(destinationBank) && destinationBank !== favouritesBank) {
+      setDestinationBank(banks[0] ?? 'A')
+    }
   }, [banks, destinationBank, setDestinationBank])
 
   const focusSearch = () => {
@@ -602,7 +699,11 @@ export function LibrarianPage({
                 its own line above the buttons rather than disappearing too. */}
             <span className="flex w-full min-w-0 items-center gap-[9px] md:mr-1.5 md:w-auto md:shrink-0">
               {/* Results come from every bank, so no bank's letter, name, or menu shows. */}
-              {isSearching ? null : (
+              {isSearching ? null : showsFavourites ? (
+                <span className="grid h-[26px] w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] text-[var(--crt-led)]">
+                  <PixelHeartIcon aria-hidden="true" className="size-3.5" filled />
+                </span>
+              ) : (
                 <span className="font-vt323 grid w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
                   {destinationBank}
                 </span>
@@ -617,8 +718,12 @@ export function LibrarianPage({
                   ? t('banks.searchResults', { search: search.trim() })
                   : bankDisplayName(destinationBank)}
               </span>
+              {/* Favourites has no bank actions: it is not a bank a file or saved bank fills. */}
               <details
-                className={cn('group relative ml-auto shrink-0 md:hidden', isSearching && 'hidden')}
+                className={cn(
+                  'group relative ml-auto shrink-0 md:hidden',
+                  (isSearching || showsFavourites) && 'hidden',
+                )}
                 ref={bankMenuRef}
               >
                 <summary
@@ -629,15 +734,17 @@ export function LibrarianPage({
                   <EllipsisVertical className="size-3.5" />
                 </summary>
                 <div className="menu-surface absolute top-full right-0 z-40 mt-1 min-w-56 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
-                  {renderBankActions({ id: destinationBank }, () =>
-                    bankMenuRef.current?.removeAttribute('open'),
-                  )}
+                  {showsFavourites
+                    ? null
+                    : renderBankActions({ id: destinationBank }, () =>
+                        bankMenuRef.current?.removeAttribute('open'),
+                      )}
                 </div>
               </details>
             </span>
             <button
               className="crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50 md:ml-auto md:flex-none"
-              disabled={isSending || isSearching || !isDestinationBankLoaded}
+              disabled={isSending || isSearching || !canSendDestination}
               onClick={sendSelectedBank}
               ref={sendButtonRef}
               title={
@@ -645,9 +752,13 @@ export function LibrarianPage({
                   ? t('banks.sendFromSearch')
                   : !midi.hasMidiOutput
                     ? t('midi.connectFirst')
-                    : isDestinationBankLoaded
-                      ? t('banks.sendTitle')
-                      : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+                    : showsFavourites
+                      ? favouriteCount > 0
+                        ? t('favourites.sendTitle')
+                        : t('favourites.addFirst')
+                      : isDestinationBankLoaded
+                        ? t('banks.sendTitle')
+                        : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
               }
               type="button"
             >
@@ -755,17 +866,41 @@ export function LibrarianPage({
           </details>
         }
         bankLabel={bankDisplayName}
+        emptyState={
+          showsFavourites ? (
+            <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
+              <div className="max-w-md">
+                <PixelHeartIcon
+                  aria-hidden="true"
+                  className="mx-auto size-10 text-[var(--crt-acc-dim)]"
+                />
+                <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
+                  {t('favourites.empty')}
+                </h3>
+                <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
+                  {t('favourites.emptyHelp')}
+                </p>
+              </div>
+            </div>
+          ) : undefined
+        }
         isBankLoaded={isDestinationBankLoaded || isSearching}
-        isPatchDisabled={(patch) => !library.loadedBanks.includes(patch.bank)}
+        isFavourite={isFavourite}
+        isPatchDisabled={(patch) =>
+          patch.bank !== favouritesBank && !library.loadedBanks.includes(patch.bank)
+        }
         onImportEmptyBank={() => beginImport(destinationBank)}
         onLoadDemoBank={() => {
           library.loadDemoBank(destinationBank)
           toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
         }}
         onPatchCopy={requestCopy}
-        onPatchDropOnBank={requestCopy}
+        onPatchDropOnBank={(patch, bank) =>
+          bank === favouritesBank ? dropOnFavourites(patch) : requestCopy(patch, bank)
+        }
         onPatchDownload={(patch) => void downloadPatch(patch)}
-        onPatchReplace={requestReplace}
+        // Importing a file puts it in a bank slot; Favourites takes sounds through their hearts.
+        onPatchReplace={showsFavourites ? undefined : requestReplace}
         onPatchEdit={(patch) => {
           followPlayedPatch(patch)
           onEditPatch(patch)
@@ -774,7 +909,13 @@ export function LibrarianPage({
           followPlayedPatch(patch)
           onSelectPatch(patch)
         }}
-        onPatchMove={(patch, target) => library.moveVoice(patch.bank, patch.number, target.number)}
+        onPatchMove={(patch, target) =>
+          patch.bank === favouritesBank
+            ? library.moveFavourite(patch.number, target.number)
+            : library.moveVoice(patch.bank, patch.number, target.number)
+        }
+        onPatchToggleFavourite={toggleFavourite}
+        patchOrigin={showsFavourites ? favouriteOrigin : undefined}
         patches={visiblePatches}
         reorderable={!isSearching}
         extraResults={
@@ -786,11 +927,18 @@ export function LibrarianPage({
               <Suspense fallback={null}>
                 <SearchEverywhereResults
                   activePatchId={activePatchId}
+                  favouriteKeys={library.favouriteKeys}
                   hasDamagedNamedBanks={library.hasDamagedNamedBanks}
                   namedBanks={library.namedBanks}
                   namedBanksLoadFailed={library.namedBanksLoadFailed}
                   onCopy={requestResultCopy}
                   onPlay={onPlaySearchResult}
+                  onToggleFavourite={(sound, bankName) =>
+                    announceFavourite(
+                      sound.voice.name,
+                      library.toggleFavouriteSound(sound, { bankName }),
+                    )
+                  }
                   search={search}
                   workspaceEffects={library.effects}
                   workspaceMatches={visiblePatches}
@@ -823,7 +971,7 @@ export function LibrarianPage({
                 onSelect={selectDestinationBank}
                 renderActions={renderBankActions}
                 selectedBank={destinationBank}
-                showsSelection={!isSearching}
+                showsSelection={!isSearching && !showsFavourites}
               />
               {nextBank ? (
                 <button
@@ -838,6 +986,11 @@ export function LibrarianPage({
                   <span className="hidden md:inline">{t('banks.addBank')}</span>
                 </button>
               ) : null}
+              <FavouritesTab
+                count={favouriteCount}
+                onSelect={() => selectDestinationBank(favouritesBank)}
+                selected={showsFavourites}
+              />
             </div>
             <input
               accept={sysexFileAccept}
@@ -880,6 +1033,7 @@ export function LibrarianPage({
         <Fm1BankSelectionDialog
           isSending={isSending}
           midi={midi}
+          note={favouritesTransferNote}
           onClose={closeSendGuide}
           onSend={() => void transferSelectedBank()}
         />

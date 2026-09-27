@@ -12,6 +12,9 @@ export default defineConfig({
   workers: process.env.CI ? 2 : 4,
   use: {
     baseURL: 'http://127.0.0.1:4173',
+    // The app picks American or British English from the browser. Journeys read British English,
+    // the complete English resources, unless one sets its own locale to test the choice.
+    locale: 'en-GB',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     video: 'retain-on-failure',

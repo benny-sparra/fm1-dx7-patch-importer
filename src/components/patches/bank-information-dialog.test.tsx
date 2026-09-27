@@ -28,7 +28,7 @@ beforeAll(() => {
 
 afterEach(async () => {
   cleanup()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 function renderDialog({

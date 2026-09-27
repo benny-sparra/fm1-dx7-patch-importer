@@ -1,4 +1,4 @@
-import { Cable, CircleCheck, TriangleAlert } from 'lucide-react'
+import { Cable, CircleCheck, Info, TriangleAlert } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -21,6 +21,8 @@ type Fm1BankSelectionDialogProps = {
     MidiController,
     'connectMidi' | 'disconnectMidi' | 'isConnecting' | 'midiAccess' | 'sysexAvailable'
   >
+  /** What the bank becomes on the FM1 when it is not simply 32 patches, as for Favourites. */
+  note?: string
   onClose: () => void
   onSend: () => void
 }
@@ -28,6 +30,7 @@ type Fm1BankSelectionDialogProps = {
 export function Fm1BankSelectionDialog({
   isSending,
   midi,
+  note,
   onClose,
   onSend,
 }: Fm1BankSelectionDialogProps) {
@@ -85,6 +88,12 @@ export function Fm1BankSelectionDialog({
             className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-center"
             key="bank-selection"
           >
+            {note ? (
+              <p className="flex items-start gap-3 border border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-3 text-sm leading-5 sm:col-span-2">
+                <Info aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-[var(--crt-led)]" />
+                <span>{note}</span>
+              </p>
+            ) : null}
             <ol className="grid gap-4 text-sm leading-5">
               <li className="flex gap-3">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">

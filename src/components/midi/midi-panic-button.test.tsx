@@ -10,7 +10,7 @@ import { setLocale } from '@/i18n'
 
 afterEach(async () => {
   cleanup()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 function renderButton(

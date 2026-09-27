@@ -653,7 +653,7 @@ describe('LibrarianPage search', () => {
     await user.type(screen.getByPlaceholderText('Suchen'), 'bass')
 
     expect(screen.getByText('Suchergebnisse: „bass“')).toBeTruthy()
-    await setLocale('en')
+    await setLocale('en-GB')
   })
 
   it('shows the bank again once the search is cleared', async () => {
@@ -952,7 +952,7 @@ describe('LibrarianPage saved banks', () => {
 
 describe('LibrarianPage copying a sound', () => {
   afterEach(async () => {
-    await setLocale('en')
+    await setLocale('en-GB')
   })
 
   function renderLibrarian(activePatchId: string) {

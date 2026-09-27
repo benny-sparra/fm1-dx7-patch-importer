@@ -1,7 +1,14 @@
 import type { Patch } from '@/data/patches'
 import { dx7BankVoiceCount, dx7PackedVoiceSize, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
+import {
+  type Favourite,
+  favouritePatchId,
+  favouriteSoundKey,
+  findFavourite,
+} from '@/lib/favourites'
 import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
 import { DX7_TRANSPOSE_C3 } from '@/lib/fm1-parameters'
+import { soundKey } from '@/lib/sound-key'
 
 export const browserBanks = ['A', 'B', 'C', 'D'] as const
 export const maximumWorkspaceBanks = 10
@@ -21,6 +28,8 @@ export type PatchLibrarySnapshot = {
   bankDescriptions: Record<string, string>
   bankNames: Record<string, string>
   effects: Record<string, Uint8Array>
+  /** Sounds kept in Favourites, in their order. They are copies, apart from the workspace banks. */
+  favourites: Favourite[]
   loadedBanks: string[]
   voices: Record<string, Dx7Voice>
   workspaceBanks: string[]
@@ -33,6 +42,7 @@ export function emptyPatchLibrary(
     bankDescriptions: {},
     bankNames: {},
     effects: {},
+    favourites: [],
     loadedBanks: [],
     voices: {},
     workspaceBanks: [...workspaceBanks],
@@ -41,6 +51,11 @@ export function emptyPatchLibrary(
 
 export function voiceId(bank: string, number: number) {
   return `bank-${bank}-${number}`
+}
+
+/** The workspace bank a slot's `voiceId` names, or undefined for any other id. */
+export function bankOfVoiceId(id: string) {
+  return /^bank-([A-Z])-\d+$/.exec(id)?.[1]
 }
 
 export function isWorkspaceBankId(bank: string) {
@@ -89,7 +104,15 @@ export function compactWorkspaceBanks(snapshot: PatchLibrarySnapshot): PatchLibr
     }
   })
 
-  return { bankDescriptions, bankNames, effects, loadedBanks, voices, workspaceBanks }
+  return {
+    bankDescriptions,
+    bankNames,
+    effects,
+    favourites: snapshot.favourites,
+    loadedBanks,
+    voices,
+    workspaceBanks,
+  }
 }
 
 export function createWorkspaceBank(
@@ -153,6 +176,7 @@ export function importVoices(
     bankDescriptions: snapshot.bankDescriptions,
     bankNames: snapshot.bankNames,
     effects,
+    favourites: snapshot.favourites,
     loadedBanks: [...new Set([...snapshot.loadedBanks, bank])].sort(),
     voices,
     workspaceBanks: snapshot.workspaceBanks,
@@ -266,14 +290,79 @@ export function copyVoice(
   slot: number,
 ): PatchLibrarySnapshot {
   assertReplaceableSlot(snapshot, bank, slot)
-  const voice = snapshot.voices[sourceId]
+  const source = findLibrarySound(snapshot, sourceId)
   const targetId = voiceId(bank, slot)
-  if (!voice || targetId === sourceId) return snapshot
+  if (!source || targetId === sourceId) return snapshot
 
   return {
     ...snapshot,
-    effects: { ...snapshot.effects, [targetId]: normalizeFm1Effects(snapshot.effects[sourceId]) },
-    voices: { ...snapshot.voices, [targetId]: { ...voice, data: voice.data.slice() } },
+    effects: { ...snapshot.effects, [targetId]: normalizeFm1Effects(source.effects) },
+    voices: {
+      ...snapshot.voices,
+      [targetId]: { ...source.voice, data: source.voice.data.slice() },
+    },
+  }
+}
+
+/** The sound a patch id names, in a workspace slot or in Favourites. */
+export function findLibrarySound(snapshot: PatchLibrarySnapshot, id: string) {
+  const favourite = findFavourite(snapshot.favourites, id)
+  if (favourite) return { effects: favourite.effects, voice: favourite.voice }
+  const voice = snapshot.voices[id]
+  return voice ? { effects: snapshot.effects[id], voice } : undefined
+}
+
+/**
+ * Saves an edited sound, as the editor does. A favourite and the bank slot it came from are one
+ * sound to the user, so saving either updates the other copies that sounded the same before the
+ * edit: saving a slot updates the matching favourites, and saving a favourite updates the matching
+ * slots in every workspace bank. Each copy gets its own voice and effect objects. `linked` counts
+ * the other copies updated.
+ */
+export function saveSound(
+  snapshot: PatchLibrarySnapshot,
+  id: string,
+  voice: Dx7Voice,
+  effects: Uint8Array,
+) {
+  const previous = findLibrarySound(snapshot, id)
+  if (!previous) return { linked: 0, snapshot }
+  const previousKey = soundKey(previous.voice, previous.effects)
+  const savedEffects = normalizeFm1Effects(effects)
+  const voiceCopy = () => ({ ...voice, data: voice.data.slice() })
+  let linked = 0
+
+  if (findFavourite(snapshot.favourites, id)) {
+    const voices = { ...snapshot.voices }
+    const slotEffects = { ...snapshot.effects }
+    for (const [slotId, slotVoice] of Object.entries(snapshot.voices)) {
+      if (soundKey(slotVoice, snapshot.effects[slotId]) !== previousKey) continue
+      voices[slotId] = voiceCopy()
+      slotEffects[slotId] = savedEffects.slice()
+      linked += 1
+    }
+    const favourites = snapshot.favourites.map((favourite) =>
+      favouritePatchId(favourite.id) === id
+        ? { ...favourite, effects: savedEffects, voice }
+        : favourite,
+    )
+    return { linked, snapshot: { ...snapshot, effects: slotEffects, favourites, voices } }
+  }
+
+  const favourites = snapshot.favourites.map((favourite) => {
+    if (favouriteSoundKey(favourite) !== previousKey) return favourite
+    linked += 1
+    return { ...favourite, effects: savedEffects.slice(), voice: voiceCopy() }
+  })
+  return {
+    linked,
+    snapshot: {
+      ...snapshot,
+      effects: { ...snapshot.effects, [id]: savedEffects },
+      // Favourites that did not change stay the same list, so nothing reading them recomputes.
+      favourites: linked > 0 ? favourites : snapshot.favourites,
+      voices: { ...snapshot.voices, [id]: voice },
+    },
   }
 }
 
@@ -311,6 +400,7 @@ export function clearLibraryBank(snapshot: PatchLibrarySnapshot, bank: string) {
     bankDescriptions: snapshot.bankDescriptions,
     bankNames: snapshot.bankNames,
     effects,
+    favourites: snapshot.favourites,
     loadedBanks: snapshot.loadedBanks.filter((loadedBank) => loadedBank !== bank),
     voices,
     workspaceBanks: snapshot.workspaceBanks,
@@ -347,9 +437,10 @@ export function isRenumberedByBankDeletion(
   return deletedIndex !== -1 && workspaceBanks.indexOf(bank) >= deletedIndex
 }
 
-/** The code a slot shows, such as A01. */
+/** The code a slot shows, such as A01. A favourite shows only its place in Favourites, such as 01. */
 export function patchSlotCode({ bank, number }: Pick<Patch, 'bank' | 'number'>) {
-  return `${bank}${String(number).padStart(2, '0')}`
+  const slot = String(number).padStart(2, '0')
+  return isWorkspaceBankId(bank) ? `${bank}${slot}` : slot
 }
 
 // A letter then a slot number, with or without the zero a slot shows: B7 and B07 name the same slot.

@@ -41,7 +41,7 @@ beforeEach(() => {
 afterEach(async () => {
   cleanup()
   vi.restoreAllMocks()
-  await setLocale('en')
+  await setLocale('en-GB')
 })
 
 function makeLibrary() {
@@ -120,7 +120,7 @@ describe('LibrarianPage backup', () => {
       await screen.findByText('Downloading a backup of your workspace banks and saved banks.'),
     ).toBeTruthy()
     const backup = JSON.parse(await createObjectURL.mock.calls[0][0].text())
-    expect(backup).toMatchObject({ format: 'fm1-librarian-backup', version: 1 })
+    expect(backup).toMatchObject({ format: 'fm1-librarian-backup', version: 2 })
     expect(backup.workspace.slots).toHaveLength(32)
   })
 
@@ -171,7 +171,7 @@ describe('LibrarianPage backup', () => {
     await user.click(screen.getByRole('button', { name: 'Download backup' }))
     await screen.findByText('Downloading a backup of your workspace banks and saved banks.')
 
-    const line = screen.getByText(`Last backed up: ${new Date().toLocaleDateString('en')}`)
+    const line = screen.getByText(`Last backed up: ${new Date().toLocaleDateString('en-GB')}`)
     const download = screen.getByRole('button', { name: 'Download backup' })
     expect(download.getAttribute('aria-describedby')).toContain(line.id)
     expect(Date.parse(localStorage.getItem('fm1-last-backup') ?? '')).not.toBeNaN()
@@ -230,9 +230,10 @@ describe('LibrarianPage backup', () => {
     await user.upload(await screen.findByLabelText('Choose a backup file'), file)
     await user.click(await screen.findByRole('button', { name: 'Restore backup' }))
 
-    const date = new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(
-      new Date('2026-09-21T13:03:00.000Z'),
-    )
+    const date = new Intl.DateTimeFormat('en-GB', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date('2026-09-21T13:03:00.000Z'))
     expect(await screen.findByText(`Restored the backup from ${date}.`)).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Undo' }))
     expect(library.undoChange).toHaveBeenCalledOnce()

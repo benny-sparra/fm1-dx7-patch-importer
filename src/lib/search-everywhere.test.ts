@@ -10,8 +10,8 @@ import {
   findSavedBankMatches,
   dx7CatalogIndex,
   hideCopies,
-  soundKey,
 } from '@/lib/search-everywhere'
+import { soundKey } from '@/lib/sound-key'
 
 function savedBank(id: string, name: string, firstVoiceName: string) {
   const voices = makeDemoVoices()

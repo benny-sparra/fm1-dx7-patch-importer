@@ -309,6 +309,45 @@ export default {
       },
     },
   },
+  favourites: {
+    title: 'Favoris',
+    tabTitle: 'Afficher vos sons favoris',
+    toggle: 'Favori : {{name}}',
+    addTitle: 'Ajouter aux favoris',
+    removeTitle: 'Retirer des favoris',
+    added: '« {{patch}} » a été ajouté aux favoris.',
+    removed: '« {{patch}} » a été retiré des favoris.',
+    alreadyAdded: '« {{patch}} » est déjà dans les favoris.',
+    addFailed: 'Le son n’a pas pu être ajouté aux favoris.',
+    empty: 'Aucun favori pour l’instant',
+    emptyHelp:
+      'Sélectionnez le cœur d’un son, ou faites glisser un son sur Favoris, pour le garder ici. Les favoris peuvent être envoyés au FM1 comme une banque.',
+    sendTitle:
+      'Envoyer les 32 premiers favoris comme banque et choisir la banque de destination sur le FM1',
+    addFirst: 'Ajoutez un favori avant d’envoyer les favoris',
+    initNote:
+      'Une banque contient 32 sons : l’envoi des favoris remplit donc le dernier emplacement avec INIT VOICE.',
+    initNote_other:
+      'Une banque contient 32 sons : l’envoi des favoris remplit donc les {{count, number}} derniers emplacements avec INIT VOICE.',
+    leftOutNote:
+      'Une banque contient 32 sons : seuls les 32 premiers favoris sont envoyés. Le dernier reste ici.',
+    leftOutNote_other:
+      'Une banque contient 32 sons : seuls les 32 premiers favoris sont envoyés. Les {{count, number}} derniers restent ici.',
+    sent: 'Les favoris ont été envoyés. Choisissez leur destination sur le FM1.',
+    sentWithInit:
+      'Les favoris ont été envoyés, avec INIT VOICE dans le dernier emplacement. Choisissez leur destination sur le FM1.',
+    sentWithInit_other:
+      'Les favoris ont été envoyés, avec INIT VOICE dans les {{count, number}} derniers emplacements. Choisissez leur destination sur le FM1.',
+    sentLeftOut:
+      'Les 32 premiers favoris ont été envoyés ; le dernier a été laissé de côté. Choisissez leur destination sur le FM1.',
+    sentLeftOut_other:
+      'Les 32 premiers favoris ont été envoyés ; les {{count, number}} derniers ont été laissés de côté. Choisissez leur destination sur le FM1.',
+    sendUnavailable: 'Impossible de préparer l’envoi des favoris. Rechargez la page et réessayez.',
+    savedWithFavourites:
+      '« {{patch}} » a été enregistré dans la bibliothèque et dans sa copie des favoris.',
+    savedWithBanks:
+      '« {{patch}} » a été enregistré dans les favoris et dans les emplacements de banque qui le contenaient.',
+  },
   toasts: {
     midiPanicSent: 'Panique MIDI envoyée. Toutes les notes du canal des notes ont été relâchées.',
     notifications: 'Actions terminées',

@@ -12,7 +12,7 @@ const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard'
 
 afterEach(async () => {
   cleanup()
-  await setLocale('en')
+  await setLocale('en-GB')
   if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard)
   else Reflect.deleteProperty(navigator, 'clipboard')
 })

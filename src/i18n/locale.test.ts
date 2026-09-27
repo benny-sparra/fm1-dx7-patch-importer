@@ -30,7 +30,31 @@ describe('resolveLocale', () => {
     expect(resolveLocale('it', ['ja-JP', 'es-MX', 'en-US'])).toBe('es')
   })
 
-  it('falls back to English when no preference is supported', () => {
-    expect(resolveLocale(null, ['ja-JP', 'ko-KR'])).toBe('en')
+  it('falls back to British English when no preference is supported', () => {
+    expect(resolveLocale(null, ['ja-JP', 'ko-KR'])).toBe('en-GB')
+  })
+
+  it('chooses American English for a browser in the United States', () => {
+    expect(resolveLocale(null, ['en-US'])).toBe('en-US')
+  })
+
+  it('chooses British English for English from other regions', () => {
+    expect(resolveLocale(null, ['en-AU'])).toBe('en-GB')
+    expect(resolveLocale(null, ['en'])).toBe('en-GB')
+  })
+
+  it('keeps a saved choice of either English', () => {
+    expect(resolveLocale('en-US', ['en-GB'])).toBe('en-US')
+    expect(resolveLocale('en-GB', ['en-US'])).toBe('en-GB')
+  })
+
+  // Earlier releases saved plain 'en', which named no spelling.
+  it('reads a saved plain English as the browser’s own English', () => {
+    expect(resolveLocale('en', ['en-US', 'fr-FR'])).toBe('en-US')
+    expect(resolveLocale('en', ['en-IE'])).toBe('en-GB')
+  })
+
+  it('reads a saved plain English as British English when the browser prefers another language', () => {
+    expect(resolveLocale('en', ['fr-FR', 'en-US'])).toBe('en-GB')
   })
 })

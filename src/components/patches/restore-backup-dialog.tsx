@@ -102,6 +102,7 @@ export function RestoreBackupDialog({ library, onClose, onRestored }: RestoreBac
       [t('backup.backedUpAt'), savedAt],
       [t('backup.workspaceBanks'), formatNumber(backup.workspace.workspaceBanks.length)],
       [t('backup.patches'), formatNumber(Object.keys(backup.workspace.voices).length)],
+      [t('favourites.title'), formatNumber(backup.workspace.favourites.length)],
       [t('backup.savedBanks'), formatNumber(backup.savedBanks.length)],
     )
     // Without the stored list, which saved banks are already here is unknown until restoring.

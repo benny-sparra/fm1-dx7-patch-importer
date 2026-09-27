@@ -61,6 +61,33 @@ function versionOneFixture(overrides: Record<string, unknown> = {}) {
   }
 }
 
+// Version 2 adds favourites to the workspace, written as version 2 writes them.
+function versionTwoFixture(overrides: Record<string, unknown> = {}) {
+  const fixture = versionOneFixture()
+  return {
+    ...fixture,
+    version: 2,
+    workspace: {
+      ...fixture.workspace,
+      favourites: [
+        {
+          effects: fixtureEffects,
+          id: 'favourite-1',
+          origin: { bankName: 'Keys' },
+          voice: fixtureVoice,
+        },
+        {
+          effects: fixtureEffects,
+          id: 'favourite-2',
+          origin: { bankNumber: 2 },
+          voice: fixtureVoice,
+        },
+      ],
+    },
+    ...overrides,
+  }
+}
+
 function fixtureVoiceBytes() {
   const data = new Uint8Array(dx7PackedVoiceSize)
   for (let index = 0; index < 118; index += 1) data[index] = index % 100
@@ -77,6 +104,15 @@ function makeWorkspace(): PatchLibrarySnapshot {
     bankDescriptions: { B: 'Demo patches' },
     bankNames: { B: 'Demo' },
     effects: { ...loaded.effects, [voiceId('B', 3)]: effects },
+    favourites: [
+      { effects, id: 'favourite-1', origin: { bankName: 'Demo' }, voice: makeDemoVoices()[4] },
+      {
+        effects: makeDefaultFm1Effects(),
+        id: 'favourite-2',
+        origin: { bankNumber: 1 },
+        voice: makeDemoVoices()[9],
+      },
+    ],
   }
 }
 
@@ -131,6 +167,47 @@ describe('workspace backup', () => {
     })
     expect(backup.savedBanks[0].slots[31].voice.name).toBe('BACKUP 1')
     expect(backup.damagedSavedBankCount).toBe(0)
+    // Favourites arrived in version 2.
+    expect(backup.workspace.favourites).toEqual([])
+  })
+
+  it('reads a version 2 backup, with its favourites, as that version wrote it', () => {
+    const backup = parseWorkspaceBackup(JSON.stringify(versionTwoFixture()))
+    const effects = normalizeFm1Effects(
+      Uint8Array.from(atob(fixtureEffects), (c) => c.charCodeAt(0)),
+    )
+
+    expect(backup.workspace.favourites).toEqual([
+      {
+        effects,
+        id: 'favourite-1',
+        origin: { bankName: 'Keys' },
+        voice: { data: fixtureVoiceBytes(), name: 'BACKUP 1' },
+      },
+      {
+        effects,
+        id: 'favourite-2',
+        origin: { bankNumber: 2 },
+        voice: { data: fixtureVoiceBytes(), name: 'BACKUP 1' },
+      },
+    ])
+    expect(backup.workspace.voices[voiceId('A', 1)]?.name).toBe('BACKUP 1')
+  })
+
+  it('refuses a favourite voice with a byte above seven bits', () => {
+    const fixture = versionTwoFixture()
+    fixture.workspace.favourites[1].voice = highBitVoice
+
+    expect(problemOf(() => parseWorkspaceBackup(JSON.stringify(fixture)))).toBe('damaged')
+  })
+
+  it('refuses a version 2 backup whose favourites are not a list', () => {
+    const fixture = versionTwoFixture()
+    const workspace = { ...fixture.workspace, favourites: 'none' }
+
+    expect(
+      problemOf(() => parseWorkspaceBackup(JSON.stringify(versionTwoFixture({ workspace })))),
+    ).toBe('damaged')
   })
 
   it('restores the workspace and saved banks it backed up', () => {
@@ -161,7 +238,7 @@ describe('workspace backup', () => {
 
   it('refuses a backup made by a newer release', () => {
     expect(
-      problemOf(() => parseWorkspaceBackup(JSON.stringify(versionOneFixture({ version: 2 })))),
+      problemOf(() => parseWorkspaceBackup(JSON.stringify(versionOneFixture({ version: 3 })))),
     ).toBe('newer')
   })
 

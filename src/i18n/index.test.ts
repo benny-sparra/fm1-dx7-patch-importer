@@ -25,7 +25,7 @@ function deferred<T>() {
 }
 
 function makeController({
-  browserLocales = ['en'],
+  browserLocales = ['en-GB'],
   de = async () => ({ default: german }),
   fr = async () => ({ default: french }),
   storedLocale = null,
@@ -56,9 +56,37 @@ describe('locale resource loading', () => {
     await controller.initialize()
 
     expect(instance.t('root.subtitle')).toBe('editor & librarian')
-    expect(instance.hasResourceBundle('en', 'translation')).toBe(true)
+    expect(instance.hasResourceBundle('en-GB', 'translation')).toBe(true)
     expect(instance.hasResourceBundle('fr', 'translation')).toBe(false)
     expect(fr).not.toHaveBeenCalled()
+  })
+
+  it('starts in American English without waiting for a locale chunk', async () => {
+    const { controller, instance } = makeController({ browserLocales: ['en-US'] })
+
+    void controller.initialize()
+
+    expect(instance.resolvedLanguage).toBe('en-US')
+    expect(instance.t('favourites.title')).toBe('Favorites')
+  })
+
+  it('reads American English strings it does not override from British English', async () => {
+    const { controller, instance } = makeController({ browserLocales: ['en-US'] })
+
+    await controller.initialize()
+
+    expect(instance.t('root.subtitle')).toBe('editor & librarian')
+  })
+
+  it('switches between the two Englishes', async () => {
+    const { controller, instance, storage } = makeController()
+    await controller.initialize()
+    expect(instance.t('favourites.title')).toBe('Favourites')
+
+    await expect(controller.setLocale('en-US')).resolves.toBe(true)
+
+    expect(instance.t('favourites.title')).toBe('Favorites')
+    expect(storage.setItem).toHaveBeenCalledWith('fm1-language', 'en-US')
   })
 
   it('loads a resolved non-English locale before initialization completes', async () => {
@@ -84,7 +112,7 @@ describe('locale resource loading', () => {
     await controller.initialize()
 
     const switching = controller.setLocale('fr')
-    expect(instance.resolvedLanguage).toBe('en')
+    expect(instance.resolvedLanguage).toBe('en-GB')
 
     loadingFrench.resolve({ default: french })
     await switching
@@ -103,7 +131,7 @@ describe('locale resource loading', () => {
 
     await expect(controller.setLocale('fr')).resolves.toBe(false)
 
-    expect(instance.resolvedLanguage).toBe('en')
+    expect(instance.resolvedLanguage).toBe('en-GB')
     expect(instance.t('root.subtitle')).toBe('editor & librarian')
     expect(storage.setItem).not.toHaveBeenCalled()
   })
