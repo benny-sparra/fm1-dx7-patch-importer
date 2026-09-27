@@ -76,18 +76,19 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 4. Select Bank 1, 2, 3, or 4. On first use these contain FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with. Use **Add new bank** to name and describe an additional workspace bank while populating it from the bundled [Yamaha Black Boxes DX7 catalog](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) or your own standard 32-voice DX7 SysEx file.
 5. Click a patch to select the matching FM1 slot and play it. The FM1 has four banks, so a patch in an added bank is sent with its effects to the edit buffer to play it instead. Double-click it, or choose **Edit** from its **⋮** menu, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
 6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
-7. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank.
-8. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay.
+7. Select the heart on any patch, or search result, to keep it in **Favourites**, below the banks on the left. Favourites can be played, edited, and reordered like a bank, and editing a favourite or the patch it came from updates both.
+8. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank, or Favourites. Favourites is sent as a 32-patch bank: a shorter list is filled with INIT VOICE, and from a longer one only the first 32 are sent. The instructions before sending say which.
+9. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay.
 
-See the [user guide](docs/user-guide.md) for bank management, the voice editor, keyboard
-shortcuts, and SysEx compatibility.
+See the [user guide](docs/user-guide.md) for bank management, Favourites, the voice editor,
+keyboard shortcuts, and SysEx compatibility.
 
 ### Your data
 
 > [!IMPORTANT]
-> Imported voices, edits, and FM1 effect settings are saved in this browser and kept after a page reload. Use **Download backup**, under **Full backup** in the patch-bank ⋮ menu, to keep a copy, especially before clearing browser data: the backup file holds the workspace banks, their FM1 effects, and saved banks, and only this app can restore it. DX7 `.syx` export contains voice data only, for use in other DX7 tools.
+> Imported voices, edits, and FM1 effect settings are saved in this browser and kept after a page reload. Use **Download backup**, under **Full backup** in the patch-bank ⋮ menu, to keep a copy, especially before clearing browser data: the backup file holds the workspace banks, their FM1 effects, Favourites, and saved banks, and only this app can restore it. DX7 `.syx` export contains voice data only, for use in other DX7 tools.
 
-Workspace-bank titles, descriptions, imported patches, patch ordering, saved editor changes, and FM1 effect settings are saved automatically in the browser.
+Workspace-bank titles, descriptions, imported patches, patch ordering, Favourites, saved editor changes, and FM1 effect settings are saved automatically in the browser.
 
 If the saved workspace cannot be opened, the app leaves its browser record untouched and offers **Retry** or **Continue without saving**. The latter creates an explicit session-only workspace whose changes are lost when the page closes. If a later save fails, the latest changes remain available in memory and can be saved again with **Retry saving**.
 
