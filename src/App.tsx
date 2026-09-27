@@ -197,7 +197,8 @@ function App() {
                   effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
                   onSave={(voice, effects) => {
                     const linked = library.updatePatch(selectedPatch.id, voice, effects)
-                    const patch = selectedPatch.name
+                    // Name the sound as saved: the editor may have renamed it since it opened.
+                    const patch = voice.name
                     // A favourite and the slot it came from are one sound, so say where else it went.
                     toast.success(
                       linked === 0
