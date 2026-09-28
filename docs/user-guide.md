@@ -75,6 +75,8 @@ Open **Favourites** to play, edit, reorder, copy, or download its patches as in 
 
 The interface follows the browser language on first use when it is supported. English comes in two spellings: **English (US)** for a browser set to American English, and **English (UK)** for other English. Change it later in **Settings**; the selection is remembered. Settings also provides separate channels for notes/program changes and effects because the FM1 defaults its effects controls to MIDI channel 2.
 
+If you also play the FM1 from a MIDI keyboard, keep the keyboard off the effects channel. The FM1 reads controllers 0 to 23 on that channel as effect controls, so a keyboard sending there changes effects instead: its mod wheel (CC 1) sets the Filter Type, its volume (CC 7) the Reverb Mix, and its expression pedal (CC 11) the Delay Mix.
+
 ## The voice editor
 
 The editor is laid out as a rack. The six operators stand side by side as columns: five show a compact readout, and the selected operator grows in place to carry its full controls. On narrower screens the open operator drops onto a row of its own. Each column has its own mute and solo buttons, so an operator can be silenced without opening it.

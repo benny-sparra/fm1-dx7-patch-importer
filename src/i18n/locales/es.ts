@@ -107,27 +107,28 @@ export default {
     'Filter Type':
       'Elige qué conserva el filtro: el paso bajo conserva los graves, el paso alto los agudos y el paso banda una banda media.',
     'Filter Cutoff':
-      'Fija la frecuencia a partir de la que actúa el filtro. Su efecto audible depende del tipo de filtro elegido.',
+      'Fija la frecuencia a partir de la que actúa el filtro, desde unos 100 Hz en 0 hasta 20 kHz en 107. Su efecto audible depende del tipo de filtro elegido.',
     'Filter Resonance':
       'Realza las frecuencias cercanas al corte. Los valores altos suenan más agudos y marcados.',
     'Reverb Space': 'Elige el carácter del espacio simulado: sala pequeña, sala o placa brillante.',
     'Reverb Decay': 'Ajusta cuánto dura la cola de la reverberación.',
     'Reverb Mix':
       'Equilibra el sonido seco y la reverberación. Al 0 % solo oyes el sonido original.',
-    'Delay Decay': 'Ajusta cuánto tiempo continúan las repeticiones del eco antes de desvanecerse.',
+    'Delay Decay':
+      'Ajusta cuánto de cada eco se realimenta en el retardo. Los valores más altos dan más repeticiones antes de desvanecerse.',
     'Delay Rate':
-      'Ajusta el tiempo entre ecos. Los valores más altos cambian la separación de las repeticiones.',
+      'Ajusta el tiempo entre ecos. Los valores más altos los acercan, desde unos 0,8 segundos en 0 hasta 0,1 segundos en 100.',
     'Delay Mix': 'Equilibra el sonido seco y los ecos. Al 0 % solo oyes el sonido original.',
     'Distortion Gain':
       'Controla con qué fuerza la señal excita la distorsión. Los valores altos añaden más saturación y armónicos.',
     'Distortion Tone': 'Ajusta el brillo del sonido distorsionado.',
     'Distortion Level':
       'Ajusta el volumen de salida tras la distorsión, útil para igualar el volumen sin el efecto.',
-    'Chorus Frequency': 'Ajusta la velocidad de ciclo del movimiento del coro.',
+    'Chorus Frequency': 'Ajusta la velocidad de ciclo del movimiento del coro, de unos 0,1 a 1 Hz.',
     'Chorus Depth':
       'Ajusta cuánto recorre el movimiento de tono del coro. Los valores altos suenan más amplios y evidentes.',
     'Chorus Mix': 'Equilibra el sonido seco y la señal con coro.',
-    'Phaser Frequency': 'Ajusta la velocidad de ciclo del barrido del fáser.',
+    'Phaser Frequency': 'Ajusta la velocidad de ciclo del barrido del fáser, de unos 0,5 a 6 Hz.',
     'Phaser Depth': 'Ajusta el rango y la intensidad del barrido del fáser.',
     'Phaser Mix': 'Equilibra el sonido seco y la señal con fáser.',
   },

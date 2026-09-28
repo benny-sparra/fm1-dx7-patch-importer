@@ -103,25 +103,27 @@ export default {
     'Filter Type':
       'Chooses what the filter keeps: low pass keeps lows, high pass keeps highs, and band pass keeps a middle band.',
     'Filter Cutoff':
-      'Sets the frequency where filtering begins. Its audible direction depends on the selected filter type.',
+      'Sets the frequency where filtering begins, from about 100 Hz at 0 to 20 kHz at 107. Its audible direction depends on the selected filter type.',
     'Filter Resonance':
       'Emphasizes frequencies around the cutoff. Higher values sound sharper and more pronounced.',
     'Reverb Space': 'Chooses the character of the simulated space: room, hall, or bright plate.',
     'Reverb Decay': 'Sets how long the reverb tail lasts.',
     'Reverb Mix': 'Balances dry sound with reverb. At 0% you hear only the original sound.',
-    'Delay Decay': 'Sets how long the echo repeats continue before fading away.',
-    'Delay Rate': 'Sets the time between echoes. Higher values change the repeat spacing.',
+    'Delay Decay':
+      'Sets how much of each echo is fed back into the delay. Higher values give more repeats before they fade away.',
+    'Delay Rate':
+      'Sets the time between echoes. Higher values bring them closer together, from about 0.8 seconds at 0 to 0.1 seconds at 100.',
     'Delay Mix': 'Balances dry sound with echoes. At 0% you hear only the original sound.',
     'Distortion Gain':
       'Controls how hard the signal drives the distortion. Higher values add more saturation and harmonics.',
     'Distortion Tone': 'Adjusts the brightness of the distorted sound.',
     'Distortion Level':
       'Sets the output volume after distortion, useful for matching the bypassed loudness.',
-    'Chorus Frequency': 'Sets how quickly the chorus movement cycles.',
+    'Chorus Frequency': 'Sets how quickly the chorus movement cycles, from about 0.1 to 1 Hz.',
     'Chorus Depth':
       'Sets how far the chorus pitch movement travels. Higher values sound wider and more obvious.',
     'Chorus Mix': 'Balances dry sound with the chorused signal.',
-    'Phaser Frequency': 'Sets how quickly the phaser sweep cycles.',
+    'Phaser Frequency': 'Sets how quickly the phaser sweep cycles, from about 0.5 to 6 Hz.',
     'Phaser Depth': 'Sets the range and intensity of the phaser sweep.',
     'Phaser Mix': 'Balances dry sound with the phased signal.',
   },

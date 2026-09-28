@@ -109,7 +109,7 @@ export default {
     'Filter Type':
       'Choisit ce que le filtre conserve : le passe-bas garde les graves, le passe-haut les aigus et le passe-bande une bande médiane.',
     'Filter Cutoff':
-      'Fixe la fréquence à partir de laquelle le filtre agit. Son effet audible dépend du type de filtre choisi.',
+      'Fixe la fréquence à partir de laquelle le filtre agit, d’environ 100 Hz à 0 jusqu’à 20 kHz à 107. Son effet audible dépend du type de filtre choisi.',
     'Filter Resonance':
       'Accentue les fréquences autour de la coupure. Des valeurs élevées donnent un son plus pointu et plus marqué.',
     'Reverb Space': 'Choisit le caractère de l’espace simulé : pièce, salle ou plaque brillante.',
@@ -117,20 +117,20 @@ export default {
     'Reverb Mix':
       'Équilibre le son sec et la réverbération. À 0 %, vous n’entendez que le son d’origine.',
     'Delay Decay':
-      'Règle combien de temps les répétitions de l’écho continuent avant de s’éteindre.',
+      'Règle la part de chaque écho réinjectée dans le délai. Des valeurs plus élevées donnent plus de répétitions avant qu’elles ne s’éteignent.',
     'Delay Rate':
-      'Règle le temps entre les échos. Des valeurs plus élevées modifient l’espacement des répétitions.',
+      'Règle le temps entre les échos. Des valeurs plus élevées les rapprochent, d’environ 0,8 seconde à 0 jusqu’à 0,1 seconde à 100.',
     'Delay Mix': 'Équilibre le son sec et les échos. À 0 %, vous n’entendez que le son d’origine.',
     'Distortion Gain':
       'Règle la force avec laquelle le signal attaque la distorsion. Des valeurs élevées ajoutent plus de saturation et d’harmoniques.',
     'Distortion Tone': 'Ajuste la brillance du son distordu.',
     'Distortion Level':
       'Règle le volume de sortie après la distorsion, utile pour retrouver le niveau sans effet.',
-    'Chorus Frequency': 'Règle la vitesse de cycle du mouvement du chorus.',
+    'Chorus Frequency': 'Règle la vitesse de cycle du mouvement du chorus, d’environ 0,1 à 1 Hz.',
     'Chorus Depth':
       'Règle l’amplitude du mouvement de hauteur du chorus. Des valeurs élevées sonnent plus larges et plus marquées.',
     'Chorus Mix': 'Équilibre le son sec et le signal traité par le chorus.',
-    'Phaser Frequency': 'Règle la vitesse de cycle du balayage du phaser.',
+    'Phaser Frequency': 'Règle la vitesse de cycle du balayage du phaser, d’environ 0,5 à 6 Hz.',
     'Phaser Depth': 'Règle l’étendue et l’intensité du balayage du phaser.',
     'Phaser Mix': 'Équilibre le son sec et le signal traité par le phaser.',
   },

@@ -106,26 +106,29 @@ export default {
     'Filter Type':
       'Escolhe o que o filtro mantém: o passa-baixas mantém os graves, o passa-altas os agudos e o passa-faixa uma faixa intermediária.',
     'Filter Cutoff':
-      'Define a frequência a partir da qual o filtro atua. O efeito audível depende do tipo de filtro escolhido.',
+      'Define a frequência a partir da qual o filtro atua, de cerca de 100 Hz em 0 a 20 kHz em 107. O efeito audível depende do tipo de filtro escolhido.',
     'Filter Resonance':
       'Realça as frequências ao redor do corte. Valores mais altos soam mais agudos e marcados.',
     'Reverb Space': 'Escolhe o caráter do espaço simulado: sala, salão ou placa brilhante.',
     'Reverb Decay': 'Define quanto tempo dura a cauda da reverberação.',
     'Reverb Mix': 'Equilibra o som seco e a reverberação. Em 0% você ouve apenas o som original.',
-    'Delay Decay': 'Define quanto tempo as repetições do eco continuam antes de sumir.',
+    'Delay Decay':
+      'Define quanto de cada eco volta para o delay. Valores mais altos dão mais repetições antes de sumirem.',
     'Delay Rate':
-      'Define o tempo entre os ecos. Valores mais altos mudam o espaçamento das repetições.',
+      'Define o tempo entre os ecos. Valores mais altos os aproximam, de cerca de 0,8 segundo em 0 a 0,1 segundo em 100.',
     'Delay Mix': 'Equilibra o som seco e os ecos. Em 0% você ouve apenas o som original.',
     'Distortion Gain':
       'Controla a força com que o sinal alimenta a distorção. Valores mais altos adicionam mais saturação e harmônicos.',
     'Distortion Tone': 'Ajusta o brilho do som distorcido.',
     'Distortion Level':
       'Define o volume de saída depois da distorção, útil para igualar o volume sem o efeito.',
-    'Chorus Frequency': 'Define a velocidade de ciclo do movimento do chorus.',
+    'Chorus Frequency':
+      'Define a velocidade de ciclo do movimento do chorus, de cerca de 0,1 a 1 Hz.',
     'Chorus Depth':
       'Define até onde vai o movimento de afinação do chorus. Valores mais altos soam mais amplos e evidentes.',
     'Chorus Mix': 'Equilibra o som seco e o sinal com chorus.',
-    'Phaser Frequency': 'Define a velocidade de ciclo da varredura do phaser.',
+    'Phaser Frequency':
+      'Define a velocidade de ciclo da varredura do phaser, de cerca de 0,5 a 6 Hz.',
     'Phaser Depth': 'Define a amplitude e a intensidade da varredura do phaser.',
     'Phaser Mix': 'Equilibra o som seco e o sinal com phaser.',
   },

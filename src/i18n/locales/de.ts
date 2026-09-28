@@ -110,26 +110,28 @@ export default {
     'Filter Type':
       'Wählt, was das Filter durchlässt: Tiefpass behält die Tiefen, Hochpass die Höhen und Bandpass einen mittleren Bereich.',
     'Filter Cutoff':
-      'Legt die Frequenz fest, ab der das Filter wirkt. Die hörbare Richtung hängt vom gewählten Filtertyp ab.',
+      'Legt die Frequenz fest, ab der das Filter wirkt, von etwa 100 Hz bei 0 bis 20 kHz bei 107. Die hörbare Richtung hängt vom gewählten Filtertyp ab.',
     'Filter Resonance':
       'Betont Frequenzen um die Grenzfrequenz. Höhere Werte klingen schärfer und ausgeprägter.',
     'Reverb Space': 'Wählt den Charakter des simulierten Raums: Raum, Halle oder helle Platte.',
     'Reverb Decay': 'Legt fest, wie lange die Hallfahne anhält.',
     'Reverb Mix': 'Mischt trockenes Signal und Hall. Bei 0 % hörst du nur den Originalklang.',
-    'Delay Decay': 'Legt fest, wie lange die Echowiederholungen anhalten, bevor sie ausklingen.',
+    'Delay Decay':
+      'Legt fest, wie viel von jedem Echo in das Delay zurückgeführt wird. Höhere Werte ergeben mehr Wiederholungen, bevor sie ausklingen.',
     'Delay Rate':
-      'Legt die Zeit zwischen den Echos fest. Höhere Werte ändern den Abstand der Wiederholungen.',
+      'Legt die Zeit zwischen den Echos fest. Höhere Werte rücken sie näher zusammen, von etwa 0,8 Sekunden bei 0 bis 0,1 Sekunden bei 100.',
     'Delay Mix': 'Mischt trockenes Signal und Echos. Bei 0 % hörst du nur den Originalklang.',
     'Distortion Gain':
       'Bestimmt, wie stark das Signal die Verzerrung antreibt. Höhere Werte fügen mehr Sättigung und Obertöne hinzu.',
     'Distortion Tone': 'Passt die Helligkeit des verzerrten Klangs an.',
     'Distortion Level':
       'Legt die Ausgangslautstärke nach der Verzerrung fest, nützlich zum Angleichen an die Lautstärke ohne Effekt.',
-    'Chorus Frequency': 'Legt fest, wie schnell die Chorus-Bewegung schwingt.',
+    'Chorus Frequency':
+      'Legt fest, wie schnell die Chorus-Bewegung schwingt, von etwa 0,1 bis 1 Hz.',
     'Chorus Depth':
       'Legt fest, wie weit die Tonhöhenbewegung des Chorus reicht. Höhere Werte klingen breiter und deutlicher.',
     'Chorus Mix': 'Mischt trockenes Signal und Chorus-Signal.',
-    'Phaser Frequency': 'Legt fest, wie schnell der Phaser-Sweep schwingt.',
+    'Phaser Frequency': 'Legt fest, wie schnell der Phaser-Sweep schwingt, von etwa 0,5 bis 6 Hz.',
     'Phaser Depth': 'Legt Umfang und Intensität des Phaser-Sweeps fest.',
     'Phaser Mix': 'Mischt trockenes Signal und Phaser-Signal.',
   },
