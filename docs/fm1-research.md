@@ -100,8 +100,36 @@ approved exception for that one query. Until then, stock firmware remains the on
 browser library the only source of truth (§8).
 
 Whether the editor's existing features are safe on FM-1+VA is tested in
-[`docs/fm1-va-compatibility-tests.md`](fm1-va-compatibility-tests.md). Until that has run, treat the
-editor as supporting stock firmware only.
+[`docs/fm1-va-compatibility-tests.md`](fm1-va-compatibility-tests.md). The editor supports stock
+firmware only until the changes below are made.
+
+#### The editor on FM-1+VA (tested 2026-09-29)
+
+One FM1 over USB, with Chrome 154 on macOS; results and bytes are in the test plan's ledger.
+
+- **A DX7 single-voice dump writes the selected preset's stored copy at once. Confirmed** (two
+  runs). The name shows the unsaved-changes dot until the preset is left, then survives a preset
+  change and a power cycle. Every single-patch send in the editor therefore overwrites a stored
+  preset: an audition from an added bank, a saved bank, the bundled banks, or an import preview,
+  and opening the voice editor, which for banks A–D writes the library's voice over that slot.
+  The editor's message after a send, "Hold SAVE on the FM1 to store it", is wrong on FM-1+VA.
+- **A 32-voice bank dump asks _Write the bank?_ starting on Cancel and on bank A**, whatever bank
+  the editor sent; the question names the bank, and ALGORITHM changes it. Write replaces the
+  voices and the bank's stored copy (the one **Reset Patches** returns to) and keeps each preset's
+  settings record: after two bank writes the FM-1+VA backup still matched every preset. HOME
+  cancels without writing. The editor's destination instructions (turn KNOB1–4, saved after a
+  delay) are the stock procedure and do not apply; following them writes bank A.
+- **DX7 parameter changes are unsaved edits.** They show the dot and the FM1's EDIT screen, are
+  heard from the next note only, and a preset change discards them.
+- **Effect CCs are unsaved edits, and selecting a preset loads its stored effects.** The editor's
+  Program Change followed by the slot's saved effects arrives in order: the effects land after the
+  preset change and show the dot.
+- Program Change, the on-screen keyboard, **MIDI panic**, and port reconnection behave as on stock
+  firmware. The port is listed as `USB Composite Device` on macOS.
+
+These were each seen once, apart from the first. Acting on any of them needs the editor to know
+which firmware is connected (see the identity query above). The first change is to stop, or warn
+before, single-patch sends on FM-1+VA; the second is FM-1+VA destination instructions for a bank.
 
 ### FM1 Editor
 
