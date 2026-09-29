@@ -313,7 +313,11 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 [FM-1+VA](https://baudgirl.com/work/FM-1+VA) is Baud Girl's replacement firmware. The editor already
 recognises it and plays patches on it safely (`docs/fm1-research.md`, "The editor on FM-1+VA"). The
 items below would use what it adds. Planned 2026-09-29 from its manual, its published web modules,
-and tests on FM-1_089; none has been built.
+and tests on FM-1_089; none has been built. FM-1_092, released the same day, still works with the
+editor as it is, but changed what some items below would read and write: it saves Envelope On or
+Off with each preset, gives FM presets the Virtual Analog filter, and changes the pattern format.
+The record and patterns can still change between releases, so map them against the release being
+built for, and record which one.
 
 Rules that apply to every item:
 
@@ -365,8 +369,9 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       `readFm1VaPreset(slot)` with typed, translated errors, and capture fixtures from an FM1.
       Then map the record by the research discipline: change one setting on the FM1 (an effect
       switch, a CC value, the effect order, a Virtual Analog setting), press SAVE, read, and diff,
-      recording each byte in `docs/fm1-research.md`. Until a byte is understood, keep it exactly
-      as read. Storing the record with each slot is a new optional field: the workspace record
+      recording each byte in `docs/fm1-research.md`. Include the settings FM-1_092 added to every
+      preset: Envelope On or Off, and the Virtual Analog filter on FM presets. Until a byte is
+      understood, keep it exactly as read. Storing the record with each slot is a new optional field: the workspace record
       moves to version 7 and the backup file to version 3, with fixtures for both and a default
       for patches that never had one.
 - [ ] **3. Import from the FM1.** A **Read from FM1…** action reads all 128 presets, shows which
@@ -404,7 +409,9 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       for FM-1+VA under the sequencer scope in `AGENTS.md`. Reading patterns back uses the
       excluded raw memory read, so it waits for a bounded pattern read (the reply kind `52`
       suggests one may exist; ask the author). Each step's Ratchet, Gate, Chance, Transpose,
-      Accent, and Slide are not in the known write message. Status `3` refuses a write while the
+      Accent, and Slide are not in the known write message, and FM-1_092 changed the pattern
+      format again (held notes and per-note Tie & Slide), so the known message may no longer
+      describe it. Status `3` refuses a write while the
       Sequencer plays.
 - [ ] **8. Performance controls.** Small, and optional: from FM-1_086, CC 85–88 turn KNOB1–4 and
       CC 70–78 set Brightness, Feedback, the envelope, and the LFO on the playing preset. Most of

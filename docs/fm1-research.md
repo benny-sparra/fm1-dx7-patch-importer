@@ -149,7 +149,12 @@ treats it as FM-1+VA, which is safe but slower.
 **Seen once on FM-1_089 (2026-09-29, test 7b):** a patch sent as its 155 parameter changes plays
 as the whole patch, name included, about five seconds after the click, shows the unsaved-changes
 dot from the first change, and is discarded by a preset change, which restores the stored preset.
-Repeat test 7b on each FM-1+VA release whose notes mention MIDI or SysEx handling.
+Rechecked on FM-1_092 (2026-09-29): identification and a patch sent as parameter changes behave
+as on FM-1_089. FM-1_092 also saves Envelope On or Off with each preset, gives FM presets the
+Virtual Analog filter (off until switched on), and changes the Sequencer's pattern format (held
+notes and per-note Tie & Slide; older patterns are converted when first shown). None of those
+change what the editor sends today; they change the preset record and pattern format that the
+planned FM-1+VA features would read and write (`docs/feature-backlog.md`). Repeat test 7b on each FM-1+VA release whose notes mention MIDI or SysEx handling.
 
 ### FM1 Editor
 
