@@ -3,13 +3,19 @@
 Candidate features for the editor and librarian, ranked by value for effort. Tick an item when it
 ships, and move anything rejected to [Decided against](#decided-against) with the reason.
 
-This list is for work that needs no new FM1 protocol. Protocol-backed work, such as the sequencer
-and slot-addressed bank writes, stays in [the roadmap](fm1-roadmap.md).
+This list is for work that needs no new FM1 protocol. Protocol-backed work for M-VAVE's firmware,
+such as the sequencer and slot-addressed bank writes, stays in [the roadmap](fm1-roadmap.md). Work
+for the FM-1+VA replacement firmware, most of which needs that firmware's own commands, is planned
+in [FM-1+VA firmware](#fm-1va-firmware).
 
 Every item follows [`AGENTS.md`](../AGENTS.md): strings in every locale, one undo step for
 multi-parameter edits, tests in the same change, and the legacy-data rules for anything stored.
 
 ## Housekeeping
+
+- [ ] **Stop cutting off port names in Settings.** On macOS the closed **Output** and **Input
+      monitor** lists show "USB Composite Dev", cut without an ellipsis (seen 2026-09-29). Let the
+      name wrap or end in an ellipsis, with the full name in its title, at every width from 360 px.
 
 - [x] **Fix the stale bank transfer status claim.** The README still lists "track whether a bank is
       local, transferred, or changed since transfer", but that status was removed in `14d3618`. The
@@ -302,6 +308,109 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     clears the search; clearing it returns to the bank of the last result played. A lone letter
     matches names only, and a slot code matches only as the whole query.
 
+## FM-1+VA firmware
+
+[FM-1+VA](https://baudgirl.com/work/FM-1+VA) is Baud Girl's replacement firmware. The editor already
+recognises it and plays patches on it safely (`docs/fm1-research.md`, "The editor on FM-1+VA"). The
+items below would use what it adds. Planned 2026-09-29 from its manual, its published web modules,
+and tests on FM-1_089; none has been built.
+
+Rules that apply to every item:
+
+- **Each FM-1+VA command needs its own approval** before production code sends it, recorded in
+  `AGENTS.md` and the research notes as the identity query's was. Until then they stay excluded.
+  Only bounded operations, such as reading preset _n_: never a generic transmitter, and never the
+  raw memory read (below).
+- **Gate on the firmware.** Offer a feature only while `firmware.kind` is `fm1-va` and its version
+  is at least the one that added the command, and hide it otherwise. M-VAVE's firmware and an
+  unidentified FM1 keep today's behaviour.
+- **Protocol discipline.** Follow the roadmap's build order and the hardware research discipline in
+  `AGENTS.md`: capture each reply from an FM1 as a fixture, decode it in `src/lib/`, and test on
+  hardware before shipping. Anything that writes the FM1's memory starts from an FM-1+VA backup.
+- **Reimplement from facts.** FM-1+VA's source is announced under GPL-3.0-or-later; this project
+  is MIT, so no code is copied. A written specification from its author would settle the unknowns
+  below faster than capture and diffing. The author has been contacted (2026-09-29).
+
+What is known, from FM-1+VA's own code and manual:
+
+| Command (`F0 43 00 7D …`) | From     | What it does                                                                                                                                                             |
+| ------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `10 <slot>`               | FM-1_079 | Reads stored preset _slot_ (0–127): its 128-byte packed DX7 voice and 59-byte settings record.                                                                           |
+| `04 <slot> …`             | FM-1_079 | Writes a preset exactly, 231 bytes: the voice as a 155-byte edit buffer, then the record in 8-into-7 groups. Writes memory; FM-1+VA's own tool waits 3 s between writes. |
+| `20 <pattern> <part> …`   | FM-1_042 | Writes eight steps of a Sequencer pattern and the pattern's settings, 177 bytes. Parts 2–7 (steps 17–64) from FM-1_082.                                                  |
+| `11 <address> <length>`   | —        | Reads raw RAM. FM-1+VA reads patterns back this way. **Stays excluded**: it is a generic memory read.                                                                    |
+
+- Every request ends with a checksum: the low seven bits of the sum of each body byte's
+  complement. Replies arrive as `F0 7D …`, a 7-bit LSB-first packed buffer holding `7D`, a kind
+  (`50` preset, `51` memory, `52` pattern), a status (`0` done, `1` value out of range, `2` damaged
+  in transit, `3` Sequencer playing), a 32-bit argument, a 16-bit length, the data, and
+  `~sum & 0xFF`.
+- The 59-byte record holds each preset's effect parameters (bytes 0–17), an engine marker (18:
+  `5A` Virtual Analog, `A5` FM), engine settings (19–22), the Virtual Analog filter (23–26), the
+  effect chain with order, switch, and type per slot (27–44), and Attack, Decay, Sustain, and
+  Release (54–57). Bytes 45–53 and 58 are unexplained. Where a Virtual Analog preset keeps its
+  oscillator settings is not known. How the record's effect bytes relate to CC 0–23 values is not
+  known either.
+
+Suggested order: 1 needs no new command; 2 underpins 3 to 6.
+
+- [ ] **1. Import an FM-1+VA backup file.** Read the `.syx` file FM-1+VA's **Save a backup**
+      writes (128 `04` messages, each naming its slot) into banks A–D, as an ordinary import:
+      a preview of every bank, confirmation, and one Undo. It reads a file and sends nothing, so
+      it needs no approval. Until the record is mapped (2), import the voices only and say that
+      effects are left as they are. A full backup is 29,568 bytes; check the size and each
+      message's checksum before reading, and report a damaged message rather than failing the
+      whole file.
+- [ ] **2. Groundwork: read presets, and map the record.** Approve `10`, build a bounded
+      `readFm1VaPreset(slot)` with typed, translated errors, and capture fixtures from an FM1.
+      Then map the record by the research discipline: change one setting on the FM1 (an effect
+      switch, a CC value, the effect order, a Virtual Analog setting), press SAVE, read, and diff,
+      recording each byte in `docs/fm1-research.md`. Until a byte is understood, keep it exactly
+      as read. Storing the record with each slot is a new optional field: the workspace record
+      moves to version 7 and the backup file to version 3, with fixtures for both and a default
+      for patches that never had one.
+- [ ] **3. Import from the FM1.** A **Read from FM1…** action reads all 128 presets, shows which
+      slots differ from banks A–D, and lets the user take the FM1's version of each bank, with
+      effects and record, as one Undo. This answers [Syncing patches with the FM1](#syncing-patches-with-the-fm1)
+      on FM-1+VA: the browser stops being the only copy, and differences can be shown. Reading
+      is one reply per preset; show progress, allow cancelling between presets, and handle
+      disconnection and completions after unmount.
+- [ ] **4. Write presets exactly.** Approve `04` and send chosen slots, or only the ones that
+      differ from the FM1, straight to their own slots with effects and record, reading each back
+      to confirm it. This replaces the **Write the bank?** prompt on FM-1+VA and carries the
+      effects a DX7 bank loses. Each write stores the preset at once, so the confirmation names
+      every preset it replaces and says an FM-1+VA backup is the way back; there is no Undo on
+      the FM1. Pace writes 3 s apart, never cancel mid-write, and stop at the first preset that
+      does not read back the same.
+- [ ] **5. Effect order and distortion type.** FM-1+VA stores both in the record and has no CC for
+      them. A reorderable effect list and a Soft Clip / Hard Clip / Foldback choice in the effects
+      panel, sent with the preset through 4, so a change is heard once written. This settles
+      [Effect routing order](#effect-routing-order) on FM-1+VA only.
+- [ ] **6. Virtual Analog presets.** Built in steps, each shippable:
+  - **Keep them.** A slot whose record is marked Virtual Analog shows as such, survives import,
+    backup, and copy unchanged, and is left out of DX7 `.syx` export with an explanation,
+    because its voice bytes are not a DX7 voice.
+  - **Play them live.** From FM-1_086, CC 24–31 and 52–57 on the note channel set Waveform,
+    Super, Detune, Drift, Sub, Noise, PWM, Filter Type, and the filter's envelope and modulation,
+    and CC 70–78 the shared Envelope, LFO, Cutoff, and Resonance, as unsaved edits heard at once.
+    A lazy Virtual Analog editor page, like the voice editor, sends these; continuous input is one
+    undo step. Showing the current values needs the record map from 2.
+  - **Save and create them.** Save to the library and write with 4; **New Virtual Analog
+    preset** starts from FM-1+VA's defaults once they are known.
+  - Unknowns: where the oscillator settings are stored, and how each CC value maps to the stored
+    value. A list setting such as Waveform divides the 128 CC values into equal bands.
+- [ ] **7. The Sequencer, on FM-1+VA.** `20` writes a pattern directly, the transfer
+      [the parked sequencer](fm1-roadmap.md) was waiting for, so writing a pattern could reopen it
+      for FM-1+VA under the sequencer scope in `AGENTS.md`. Reading patterns back uses the
+      excluded raw memory read, so it waits for a bounded pattern read (the reply kind `52`
+      suggests one may exist; ask the author). Each step's Ratchet, Gate, Chance, Transpose,
+      Accent, and Slide are not in the known write message. Status `3` refuses a write while the
+      Sequencer plays.
+- [ ] **8. Performance controls.** Small, and optional: from FM-1_086, CC 85–88 turn KNOB1–4 and
+      CC 70–78 set Brightness, Feedback, the envelope, and the LFO on the playing preset. Most of
+      these duplicate the voice editor's own controls; Brightness, which moves every modulator's
+      output level together, is the one the editor lacks. Decide whether it earns a control.
+
 ## Open questions
 
 ### Syncing patches with the FM1
@@ -344,6 +453,9 @@ protection against losing everything rather than a convenience.
 
 Reopen only if a stock-safe read or bulk-dump request is identified and recorded in
 `docs/fm1-research.md`. Do not probe for one by sending unknown command IDs.
+
+On FM-1+VA firmware, which reads its presets back with a command of its own, this is planned in
+[FM-1+VA firmware](#fm-1va-firmware), items 2 and 3. M-VAVE's firmware is unchanged.
 
 ### Bank transfer status
 
@@ -436,7 +548,8 @@ V15. Before it can be built:
   capture. The only remaining route would be an unidentified `F0 35 59` vendor command, which stays
   Dangerous / excluded.
 
-Reopen only if a stock control or an official M-VAVE app is found that changes the order.
+Reopen only if a stock control or an official M-VAVE app is found that changes the order. FM-1+VA
+stores the order in each preset's record; see [FM-1+VA firmware](#fm-1va-firmware), item 5.
 
 ### MIDI clock and transport
 
