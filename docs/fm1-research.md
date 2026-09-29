@@ -144,9 +144,10 @@ treats it as FM-1+VA, which is safe but slower.
   for M-VAVE's firmware, and M-VAVE's steps with a note on FM-1+VA while the firmware is unknown.
 - Settings shows the firmware and what it means for the patches the editor plays.
 
-**Needs hardware test:** that a patch sent as 155 parameter changes on FM-1+VA plays as the whole
-patch and is discarded by a preset change. Test 2 showed single parameter changes behave that way,
-not all 155 in a row. Test it on each FM-1+VA release whose notes mention MIDI or SysEx handling.
+**Seen once on FM-1_089 (2026-09-29, test 7b):** a patch sent as its 155 parameter changes plays
+as the whole patch, name included, about five seconds after the click, shows the unsaved-changes
+dot from the first change, and is discarded by a preset change, which restores the stored preset.
+Repeat test 7b on each FM-1+VA release whose notes mention MIDI or SysEx handling.
 
 ### FM1 Editor
 
