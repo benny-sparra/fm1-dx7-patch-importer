@@ -68,7 +68,7 @@ describe('MidiSettingsMenu firmware', () => {
     expect(screen.getByText('FM-1+VA FM-1_089')).toBeTruthy()
     expect(
       screen.getByText(
-        'Sounds, die du anspielst, werden als Parameteränderungen gesendet. Das dauert einige Sekunden, dafür speichert der FM1 sie nie über das gewählte Preset.',
+        'Sounds, die du anspielst, werden als Parameteränderungen gesendet, damit der FM1 sie nie über das gewählte Preset speichert.',
       ),
     ).toBeTruthy()
   })

@@ -370,7 +370,7 @@ export default {
     firmwareFm1Va: 'FM-1+VA {{identity}}',
     firmwareEditBuffer: '你试听的音色会进入 FM1 的编辑缓冲区。',
     firmwareParameterChanges:
-      '你试听的音色会以参数变化的方式发送，需要几秒钟，但 FM1 绝不会把它们保存到所选预设上。',
+      '你试听的音色会以参数变化的方式发送，因此 FM1 绝不会把它们保存到所选预设上。',
     firmwareNeedsInput: '请把 FM1 选为监听输入，这样编辑器才能询问它运行的固件。',
     noteChannel: '音符通道',
     fxChannel: '效果通道',

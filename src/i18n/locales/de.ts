@@ -422,7 +422,7 @@ export default {
     firmwareFm1Va: 'FM-1+VA {{identity}}',
     firmwareEditBuffer: 'Sounds, die du anspielst, gehen in den Bearbeitungspuffer des FM1.',
     firmwareParameterChanges:
-      'Sounds, die du anspielst, werden als Parameteränderungen gesendet. Das dauert einige Sekunden, dafür speichert der FM1 sie nie über das gewählte Preset.',
+      'Sounds, die du anspielst, werden als Parameteränderungen gesendet, damit der FM1 sie nie über das gewählte Preset speichert.',
     firmwareNeedsInput:
       'Wähle den FM1 als Monitoring-Eingang, damit der Editor fragen kann, welche Firmware er verwendet.',
     noteChannel: 'Notenkanal',

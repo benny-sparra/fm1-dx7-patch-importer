@@ -139,7 +139,9 @@ treats it as FM-1+VA, which is safe but slower.
 
 - Only M-VAVE's firmware gets a single-voice dump. Every other firmware, including one not yet
   identified or not answering (for example with no MIDI input selected), gets the patch as its
-  155 DX7 parameter changes, which take about five seconds through the transfer queue.
+  155 DX7 parameter changes, sent back to back rather than 35 ms apart like live edits, so the
+  patch arrives in well under a second. Test 7c stored one sent that way with SAVE and found it
+  identical to the bundled voice, byte for byte (2026-09-29, FM-1_089, seen once).
 - The bank destination dialog shows the **Write the bank?** steps for FM-1+VA, M-VAVE's knob steps
   for M-VAVE's firmware, and M-VAVE's steps with a note on FM-1+VA while the firmware is unknown.
 - Settings shows the firmware and what it means for the patches the editor plays.

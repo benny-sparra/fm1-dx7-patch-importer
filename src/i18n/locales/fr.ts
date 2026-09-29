@@ -420,7 +420,7 @@ export default {
     firmwareFm1Va: 'FM-1+VA {{identity}}',
     firmwareEditBuffer: 'Les sons que vous jouez vont dans le tampon d’édition du FM1.',
     firmwareParameterChanges:
-      'Les sons que vous jouez sont envoyés sous forme de changements de paramètres. Cela prend quelques secondes, mais le FM1 ne les enregistre jamais sur le preset sélectionné.',
+      'Les sons que vous jouez sont envoyés sous forme de changements de paramètres, pour que le FM1 ne les enregistre jamais sur le preset sélectionné.',
     firmwareNeedsInput:
       'Choisissez le FM1 comme entrée de contrôle pour que l’éditeur puisse lui demander quel firmware il utilise.',
     noteChannel: 'Canal des notes',

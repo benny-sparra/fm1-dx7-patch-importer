@@ -59,8 +59,7 @@ reconnects, the app asks the FM1 which firmware it runs; **Settings** shows the 
 FM-1+VA stores a single patch sent as one SysEx message straight over the selected preset, with no
 **SAVE**. So unless the FM1 has said it runs M-VAVE's firmware, the app sends a patch you play or
 open as its 155 individual parameter changes instead. The FM1 holds those as an unsaved edit of the
-selected preset, which it drops when you change preset. They take a few seconds to arrive, and the
-editor waits for them before it sends your edits. Press **SAVE** on the FM1 to keep the patch there.
+selected preset, which it drops when you change preset. They arrive in well under a second. Press **SAVE** on the FM1 to keep the patch there.
 
 FM-1+VA also chooses a bank's destination differently. When a bank arrives it asks **Write the
 bank?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names

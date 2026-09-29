@@ -416,7 +416,7 @@ export default {
     firmwareFm1Va: 'FM-1+VA {{identity}}',
     firmwareEditBuffer: 'Los sonidos que tocas van al búfer de edición del FM1.',
     firmwareParameterChanges:
-      'Los sonidos que tocas se envían como cambios de parámetros. Tarda unos segundos, pero así el FM1 nunca los guarda sobre el preset seleccionado.',
+      'Los sonidos que tocas se envían como cambios de parámetros, para que el FM1 nunca los guarde sobre el preset seleccionado.',
     firmwareNeedsInput:
       'Elige el FM1 como entrada de monitorización para que el editor pueda preguntarle qué firmware usa.',
     noteChannel: 'Canal de notas',

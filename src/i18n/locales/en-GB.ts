@@ -405,7 +405,7 @@ export default {
     firmwareFm1Va: 'FM-1+VA {{identity}}',
     firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
     firmwareParameterChanges:
-      'Patches you play are sent as parameter changes, which take a few seconds, so the FM1 never stores them over the selected preset.',
+      'Patches you play are sent as parameter changes, so the FM1 never stores them over the selected preset.',
     firmwareNeedsInput:
       'Choose the FM1 as the input monitor so the editor can ask which firmware it runs.',
     noteChannel: 'Note channel',
