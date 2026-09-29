@@ -58,7 +58,7 @@ export function MidiFirmwareBadge({ midi }: { midi: Pick<MidiController, 'firmwa
 
   return (
     <span
-      className="crt-inset inline-flex min-h-8 items-center gap-2 bg-[var(--crt-bg-2)] px-2.5 sm:ml-auto"
+      className="crt-inset inline-flex min-h-8 items-center gap-2 bg-[var(--crt-bg-2)] px-2.5"
       title={t('midi.fm1VaBadgeTitle', { identity })}
     >
       <img

@@ -39,6 +39,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const { colorway, setColorway } = useFm1Colorway()
   const showColorwayImage = useMediaQuery('(min-width: 1024px)')
   const colorwayImage = fm1ColorwayImages[colorway]
+  const showHardwareBay = !compact && showColorwayImage
 
   return (
     <main className="synthwave-shell flex min-h-screen flex-col text-foreground">
@@ -90,12 +91,19 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               <MidiConnectActions midi={midi} />
               <PianoKeyboard midi={midi} />
               <MidiPanicButton midi={midi} />
-              <MidiFirmwareBadge midi={midi} />
             </div>
 
-            {!compact && showColorwayImage ? (
+            {/* Without the hardware photo to sit on, the firmware badge takes a line of its own, so
+                it never moves the MIDI actions above it. */}
+            {!showHardwareBay && midi.firmware.kind === 'fm1-va' ? (
+              <div className="col-span-2 flex justify-end">
+                <MidiFirmwareBadge midi={midi} />
+              </div>
+            ) : null}
+
+            {showHardwareBay ? (
               // The hardware photo sits in a recessed bay, not a rounded card.
-              <figure className="crt-inset col-start-3 row-span-2 row-start-1 hidden w-[250px] self-start bg-[var(--crt-bg-2)] p-1 lg:block">
+              <figure className="crt-inset relative col-start-3 row-span-2 row-start-1 hidden w-[250px] self-start bg-[var(--crt-bg-2)] p-1 lg:block">
                 <img
                   alt={t('root.synthAlt')}
                   className="aspect-[242/146] h-auto w-full object-contain"
@@ -106,6 +114,9 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                   srcSet={colorwayImage.srcSet}
                   width={colorwayImage.width}
                 />
+                <div className="absolute right-2 bottom-2">
+                  <MidiFirmwareBadge midi={midi} />
+                </div>
               </figure>
             ) : null}
           </div>

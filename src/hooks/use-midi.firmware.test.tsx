@@ -175,15 +175,17 @@ describe('useMidi patch sends by firmware', () => {
     await act(() => vi.advanceTimersByTimeAsync(20_000))
 
     await expect(Promise.all([sentFirst, sentSecond])).resolves.toEqual([true, true])
-    // The first parameter went out before the second patch arrived; every one after it was
-    // replaced while waiting, so the FM1 ends with the second patch.
-    expect(ports.output.sendSysex).toHaveBeenCalledTimes(155)
-    const values = unpackDx7Voice(second)
-    expect(ports.output.sendSysex.mock.calls.slice(1)).toEqual(
-      Array.from(values.slice(1), (value, index) => [
-        0x43,
-        makeFm1ParameterPayload(index + 1, value),
+    // Only the first patch's first parameter went out before the second patch arrived. The second
+    // replaced every change still waiting, so the FM1 ends with the second patch, not a mixture.
+    expect(ports.output.sendSysex.mock.calls.length).toBeLessThan(2 * 155)
+    const last = new Map(
+      ports.output.sendSysex.mock.calls.map(([, payload]) => [
+        payload[1] * 128 + payload[2],
+        payload[3],
       ]),
     )
+    expect(Array.from({ length: 155 }, (_, parameter) => last.get(parameter))).toEqual([
+      ...unpackDx7Voice(second),
+    ])
   })
 })

@@ -81,6 +81,12 @@ const midiStorageKeys = {
 
 const outputChangedMessage = 'Queued MIDI messages were dropped because the MIDI output changed.'
 
+/**
+ * The gap between the parameter changes that carry a whole patch. Live edits keep the queue's own
+ * interval; a patch goes as fast as the FM1 takes it (docs/fm1-va-compatibility-tests.md, test 7c).
+ */
+const patchParameterIntervalMs = 0
+
 /** How long to wait for the FM1 to answer the identity query, and how often to ask. */
 const identityReplyTimeoutMs = 1000
 const identityAttempts = 3
@@ -481,6 +487,7 @@ export function useMidi() {
         transferQueue.enqueue(
           () => sendFm1Parameter(output, parameter, value),
           `parameter-${parameter}`,
+          { minimumIntervalMs: patchParameterIntervalMs },
         ),
       )
       return Promise.all(transfers)
