@@ -290,6 +290,16 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
     expect(messages.some((message) => message.length === singleVoiceDumpLength)).toBe(false)
   })
 
+  test('shows the Baud Girl FM-1+VA badge in the header once the FM1 names its firmware', async ({
+    page,
+  }) => {
+    const badge = page.getByTitle(/^The FM1 runs Baud Girl’s FM-1\+VA firmware, FM-1_089\./)
+
+    await expect(badge).toBeVisible()
+    await expect(badge.getByRole('img')).toHaveCount(0)
+    await expect(badge.getByText('FM-1+VA firmware by Baud Girl, FM-1_089')).toBeAttached()
+  })
+
   test('explains the FM-1+VA Write the bank question before sending a bank', async ({ page }) => {
     await page.getByRole('button', { exact: true, name: 'Send to FM1' }).first().click()
     const instructions = page.getByRole('dialog', {

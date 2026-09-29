@@ -54,7 +54,7 @@ To send one patch instead, open it in the editor. For a patch in banks A–D the
 Some FM1 owners replace M-VAVE's firmware with [FM-1+VA](https://baudgirl.com/work/FM-1+VA), a
 replacement firmware that adds a Virtual Analog engine. When MIDI connects, and whenever the FM1
 reconnects, the app asks the FM1 which firmware it runs; **Settings** shows the answer under
-**FM1 firmware**. The app needs the FM1 selected as the **Input monitor** to hear it.
+**FM1 firmware**, and when it is FM-1+VA a Baud Girl FM-1+VA badge appears in the header beside the MIDI controls. The app needs the FM1 selected as the **Input monitor** to hear it.
 
 FM-1+VA stores a single patch sent as one SysEx message straight over the selected preset, with no
 **SAVE**. So unless the FM1 has said it runs M-VAVE's firmware, the app sends a patch you play or

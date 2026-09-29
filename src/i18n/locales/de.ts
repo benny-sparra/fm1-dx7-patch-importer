@@ -604,6 +604,9 @@ export default {
     randomiseHelp: 'Neue Stimme. Name und Effekte bleiben.',
   },
   midi: {
+    fm1VaBadgeLabel: 'Firmware FM-1+VA von Baud Girl, {{identity}}',
+    fm1VaBadgeTitle:
+      'Auf dem FM1 läuft die Firmware FM-1+VA von Baud Girl, {{identity}}. Sounds, die du anspielst, kommen als ungespeicherte Änderungen an und überschreiben nie ein Preset.',
     panic: 'MIDI-Panik',
     panicHelp:
       'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',

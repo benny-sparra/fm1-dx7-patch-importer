@@ -4,7 +4,11 @@ import { cleanup, render, screen } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { MidiConnectionError, MidiSettingsMenu } from '@/components/midi/midi-controls'
+import {
+  MidiConnectionError,
+  MidiFirmwareBadge,
+  MidiSettingsMenu,
+} from '@/components/midi/midi-controls'
 import { setLocale } from '@/i18n'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
 
@@ -85,5 +89,36 @@ describe('MidiSettingsMenu firmware', () => {
 
     expect(screen.getByText('Checking…')).toBeTruthy()
     expect(screen.queryByText(/Choose the FM1 as the input monitor/)).toBeNull()
+  })
+})
+
+describe('MidiFirmwareBadge', () => {
+  it('shows the Baud Girl wordmark and names FM-1+VA with its version', () => {
+    const { container } = render(
+      <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_089', kind: 'fm1-va' } }} />,
+    )
+
+    expect(screen.getByText('FM-1+VA firmware by Baud Girl, FM-1_089')).toBeTruthy()
+    expect(container.querySelector('img')?.getAttribute('src')).toMatch(
+      /baud-girl-wordmark-104\.webp$/,
+    )
+  })
+
+  it('names FM-1+VA with its version in German', async () => {
+    await setLocale('de')
+
+    render(<MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_089', kind: 'fm1-va' } }} />)
+
+    expect(screen.getByText('Firmware FM-1+VA von Baud Girl, FM-1_089')).toBeTruthy()
+  })
+
+  it('shows nothing for M-VAVE firmware or a firmware not yet identified', () => {
+    const { container, rerender } = render(
+      <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_015', kind: 'mvave' } }} />,
+    )
+    expect(container.textContent).toBe('')
+
+    rerender(<MidiFirmwareBadge midi={{ firmware: { kind: 'checking' } }} />)
+    expect(container.textContent).toBe('')
   })
 })

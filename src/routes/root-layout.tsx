@@ -6,6 +6,7 @@ import { HelpButton } from '@/components/help-button'
 import {
   MidiConnectActions,
   MidiConnectionError,
+  MidiFirmwareBadge,
   MidiSettingsMenu,
 } from '@/components/midi/midi-controls'
 import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
@@ -25,6 +26,7 @@ type RootLayoutProps = {
   compact?: boolean
   midi: ComponentProps<typeof MidiConnectActions>['midi'] &
     ComponentProps<typeof MidiConnectionError>['midi'] &
+    ComponentProps<typeof MidiFirmwareBadge>['midi'] &
     ComponentProps<typeof MidiPanicButton>['midi'] &
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
     ComponentProps<typeof PianoKeyboard>['midi'] &
@@ -88,6 +90,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               <MidiConnectActions midi={midi} />
               <PianoKeyboard midi={midi} />
               <MidiPanicButton midi={midi} />
+              <MidiFirmwareBadge midi={midi} />
             </div>
 
             {!compact && showColorwayImage ? (

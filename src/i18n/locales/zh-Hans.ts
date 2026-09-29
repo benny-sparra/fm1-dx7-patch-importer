@@ -546,6 +546,9 @@ export default {
     randomiseHelp: '生成新音色，保留名称和效果。',
   },
   midi: {
+    fm1VaBadgeLabel: 'Baud Girl 的 FM-1+VA 固件，{{identity}}',
+    fm1VaBadgeTitle:
+      'FM1 运行的是 Baud Girl 的 FM-1+VA 固件（{{identity}}）。你试听的音色会作为未保存的编辑发送，绝不会覆盖预设。',
     panic: 'MIDI 紧急停止',
     panicHelp: 'MIDI 紧急停止：在音符通道上为每个音符发送音符关闭消息，以停止悬挂的音符',
     panicUnavailable: 'MIDI 紧急停止：{{reason}}',
