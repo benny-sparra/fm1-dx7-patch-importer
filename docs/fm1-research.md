@@ -105,7 +105,7 @@ firmware only until the changes below are made.
 
 #### The editor on FM-1+VA (tested 2026-09-29)
 
-One FM1 over USB, with Chrome 154 on macOS; results and bytes are in the test plan's ledger.
+One FM1 on FM-1_089 over USB, with Chrome 154 on macOS; results and bytes are in the test plan's ledger.
 
 - **A DX7 single-voice dump writes the selected preset's stored copy at once. Confirmed** (two
   runs). The name shows the unsaved-changes dot until the preset is left, then survives a preset
