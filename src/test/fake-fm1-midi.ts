@@ -8,11 +8,12 @@ export const mvaveIdentityReply = Uint8Array.from([
   0x1a, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
 ])
 
-// The same block naming FM-1_089, built with the packing that reproduces the capture above.
+// Captured from an FM1 on FM-1+VA's FM-1_089, 2026-09-29. It names FM-1_089 but keeps the checksum
+// of M-VAVE's V15 reply above.
 // prettier-ignore
 export const fm1VaIdentityReply = Uint8Array.from([
   0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x06, 0x4e,
-  0x1c, ...Array<number>(21).fill(0), 0x40, 0x03, 0xf7,
+  0x1c, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
 ])
 
 // WebMidi's `midimessage` event carries the bytes as a plain array, not a Uint8Array.

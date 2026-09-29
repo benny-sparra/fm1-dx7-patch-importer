@@ -11,7 +11,8 @@ export const fm1IdentityQuery = Uint8Array.of(
 
 // The reply is F0, 39 bytes packing a 34-byte ID block seven bits at a time, least significant bit
 // first, and F7. The block is 00 59 11, a 3-byte little-endian length of 27, the 27-byte name field
-// (the name, then zeros), and ~sum(name field) & 0xFF.
+// (the name, then zeros), and a checksum byte. The checksum is not checked: FM-1+VA keeps M-VAVE
+// V15's (20 06 on the wire) under its own name, as a capture from FM-1_089 showed on 2026-09-29.
 const identityReplyLength = 41
 const identityBlockLength = 34
 const identityHeader = [0x00, 0x59, 0x11]
@@ -61,8 +62,6 @@ export function parseFm1IdentityReply(message: Uint8Array | readonly number[]) {
   if (declaredLength !== identityNameLength) return null
 
   const field = block.slice(identityNameStart, identityNameStart + identityNameLength)
-  const checksum = ~field.reduce((sum, byte) => sum + byte, 0) & 0xff
-  if (checksum !== block[identityNameStart + identityNameLength]) return null
 
   const end = field.indexOf(0)
   const name = field.slice(0, end < 0 ? field.length : end)

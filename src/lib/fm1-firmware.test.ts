@@ -25,13 +25,13 @@ describe('parseFm1IdentityReply', () => {
     expect(parseFm1IdentityReply([...mvaveIdentityReply])).toBe('FM-1_015')
   })
 
-  it('reads the name from an FM-1+VA reply', () => {
+  it('reads the name from an FM-1+VA reply, which keeps M-VAVE V15’s checksum', () => {
     expect(parseFm1IdentityReply(fm1VaIdentityReply)).toBe('FM-1_089')
   })
 
-  it('rejects a reply whose checksum does not match its name', () => {
+  it('rejects a reply whose block does not declare a 27-byte name field', () => {
     const damaged = Uint8Array.from(mvaveIdentityReply)
-    damaged[39] = 0x07
+    damaged[5] = 0x00
 
     expect(parseFm1IdentityReply(damaged)).toBeNull()
   })
