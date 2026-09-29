@@ -127,9 +127,26 @@ One FM1 on FM-1_089 over USB, with Chrome 154 on macOS; results and bytes are in
 - Program Change, the on-screen keyboard, **MIDI panic**, and port reconnection behave as on stock
   firmware. The port is listed as `USB Composite Device` on macOS.
 
-These were each seen once, apart from the first. Acting on any of them needs the editor to know
-which firmware is connected (see the identity query above). The first change is to stop, or warn
-before, single-patch sends on FM-1+VA; the second is FM-1+VA destination instructions for a bank.
+These were each seen once, apart from the first.
+
+#### What the editor does about it
+
+Since 2026-09-29 the editor asks for the firmware with the identity query whenever the ports in
+use change, and treats it as unknown until the answer for those ports arrives (`useMidi`,
+`src/lib/fm1-firmware.ts`). A name numbered `FM-1_019` or below is M-VAVE's firmware; any other
+FM1 number, past or future, is FM-1+VA. If M-VAVE ever numbers a release 20 or above, the editor
+treats it as FM-1+VA, which is safe but slower.
+
+- Only M-VAVE's firmware gets a single-voice dump. Every other firmware, including one not yet
+  identified or not answering (for example with no MIDI input selected), gets the patch as its
+  155 DX7 parameter changes, which take about five seconds through the transfer queue.
+- The bank destination dialog shows the **Write the bank?** steps for FM-1+VA, M-VAVE's knob steps
+  for M-VAVE's firmware, and M-VAVE's steps with a note on FM-1+VA while the firmware is unknown.
+- Settings shows the firmware and what it means for the patches the editor plays.
+
+**Needs hardware test:** that a patch sent as 155 parameter changes on FM-1+VA plays as the whole
+patch and is discarded by a preset change. Test 2 showed single parameter changes behave that way,
+not all 155 in a row. Test it on each FM-1+VA release whose notes mention MIDI or SysEx handling.
 
 ### FM1 Editor
 
@@ -848,12 +865,16 @@ instead.
 
 ### Editor rule
 
-- Production code must not send, construct, or expose any `00 32` message: not identify, not setup,
-  not bank blocks, and not a generic transmitter.
+- Production code must not send, construct, or expose any `00 32` message: not setup, not bank
+  blocks, and not a generic transmitter. The one exception, approved on 2026-09-29, is the identity
+  query `F0 00 32 45 00 00 00 40 7F F7` (`fm1IdentityQuery` in `src/lib/fm1-firmware.ts`), which
+  reads the firmware name and changes nothing. The editor sends it when the ports in use change,
+  so it can tell M-VAVE's firmware from FM-1+VA (see Primary sources).
 - Do not replay the capture, or any part of it, to hardware from editor or test code.
 - Standard Yamaha 32-voice bank dumps (1.2) remain the only bank-write path.
-- If a capture is committed as a fixture, redact the identity reply's version/serial bytes. Never
-  send them to analytics or monitoring.
+- The identity reply carries only the firmware name, such as `FM-1_015`, and no serial (open
+  question 6), so the committed reply fixtures need no redaction. Never send the name to analytics
+  or monitoring.
 - A slot-addressed bank write stays a parked research item in the roadmap until the open questions
   below are answered by stock-safe evidence.
 

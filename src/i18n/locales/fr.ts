@@ -7,6 +7,14 @@ export default {
     bankStep1: 'Attendez que l’écran de sélection de banque apparaisse sur le FM1.',
     bankStep2: 'Tournez le bouton 1, 2, 3 ou 4 pour choisir la banque A, B, C ou D.',
     bankStep3: 'Le FM1 enregistre automatiquement les 32 sons après un court délai.',
+    bankFm1VaStep1:
+      'Le FM1 demande « Write the bank? » et commence sur la banque A, quelle que soit la banque envoyée.',
+    bankFm1VaStep2:
+      'Tournez ALGORITHM jusqu’à ce que la question indique la banque de destination : A, B, C ou D.',
+    bankFm1VaStep3:
+      'Tournez SELECT jusqu’à Write et appuyez sur SEL pour enregistrer les 32 sons, ou appuyez sur HOME pour annuler.',
+    bankFm1VaNote:
+      'Si votre FM1 utilise le firmware FM-1+VA, il demande plutôt « Write the bank? » et commence sur la banque A. Tournez ALGORITHM jusqu’à la banque de destination, puis SELECT jusqu’à Write, et appuyez sur SEL.',
     bankImage: 'Panneau avant du M-VAVE FM1 avec écran et quatre boutons numérotés',
     dontShow: 'Ne plus afficher pendant cette session',
     midiTitle: 'Connectez le MIDI pour envoyer cette banque',
@@ -405,6 +413,16 @@ export default {
     description: 'Choisissez la langue de l’interface, les ports MIDI et les canaux.',
     output: 'Sortie',
     inputMonitor: 'Entrée de contrôle',
+    firmware: 'Firmware du FM1',
+    firmwareChecking: 'Vérification…',
+    firmwareUnidentified: 'Non identifié',
+    firmwareMvave: 'M-VAVE {{identity}}',
+    firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareEditBuffer: 'Les sons que vous jouez vont dans le tampon d’édition du FM1.',
+    firmwareParameterChanges:
+      'Les sons que vous jouez sont envoyés sous forme de changements de paramètres. Cela prend quelques secondes, mais le FM1 ne les enregistre jamais sur le preset sélectionné.',
+    firmwareNeedsInput:
+      'Choisissez le FM1 comme entrée de contrôle pour que l’éditeur puisse lui demander quel firmware il utilise.',
     noteChannel: 'Canal des notes',
     fxChannel: 'Canal des effets',
     defaultChannel: 'Valeur FM1 par défaut : canal 2',

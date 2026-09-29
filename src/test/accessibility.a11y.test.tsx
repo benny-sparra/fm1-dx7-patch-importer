@@ -92,6 +92,7 @@ const connectedWithoutSysexMidi = makeLibrarianMidi({
 const settingsMidi: ComponentProps<typeof MidiSettingsMenu>['midi'] = {
   channel: 1,
   effectChannel: 2,
+  firmware: { kind: 'unidentified' },
   inputs: [],
   outputs: [],
   selectedInputId: '',

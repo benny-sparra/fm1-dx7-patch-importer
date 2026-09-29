@@ -7,6 +7,13 @@ export default {
     bankStep1: 'Warte, bis die Bankauswahl im Display des FM1 erscheint.',
     bankStep2: 'Wähle mit Regler 1, 2, 3 oder 4 die Zielbank A, B, C oder D.',
     bankStep3: 'Der FM1 speichert die 32 Sounds nach kurzer Wartezeit automatisch.',
+    bankFm1VaStep1:
+      'Der FM1 fragt „Write the bank?“ und beginnt bei Bank A, egal welche Bank du sendest.',
+    bankFm1VaStep2: 'Drehe ALGORITHM, bis die Frage die Zielbank nennt: A, B, C oder D.',
+    bankFm1VaStep3:
+      'Drehe SELECT auf Write und drücke SEL, um die 32 Sounds zu speichern, oder brich mit HOME ab.',
+    bankFm1VaNote:
+      'Läuft auf deinem FM1 die Firmware FM-1+VA, fragt er stattdessen „Write the bank?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Write, und drücke SEL.',
     bankImage: 'Vorderseite des M-VAVE FM1 mit Display und vier nummerierten Reglern',
     dontShow: 'In dieser Sitzung nicht erneut anzeigen',
     midiTitle: 'MIDI verbinden, um diese Bank zu senden',
@@ -408,6 +415,16 @@ export default {
     description: 'Wähle Oberflächensprache, MIDI-Ports und Kanäle.',
     output: 'Ausgang',
     inputMonitor: 'Monitoring-Eingang',
+    firmware: 'FM1-Firmware',
+    firmwareChecking: 'Wird geprüft…',
+    firmwareUnidentified: 'Nicht erkannt',
+    firmwareMvave: 'M-VAVE {{identity}}',
+    firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareEditBuffer: 'Sounds, die du anspielst, gehen in den Bearbeitungspuffer des FM1.',
+    firmwareParameterChanges:
+      'Sounds, die du anspielst, werden als Parameteränderungen gesendet. Das dauert einige Sekunden, dafür speichert der FM1 sie nie über das gewählte Preset.',
+    firmwareNeedsInput:
+      'Wähle den FM1 als Monitoring-Eingang, damit der Editor fragen kann, welche Firmware er verwendet.',
     noteChannel: 'Notenkanal',
     fxChannel: 'Effektkanal',
     defaultChannel: 'FM1-Standard: Kanal 2',

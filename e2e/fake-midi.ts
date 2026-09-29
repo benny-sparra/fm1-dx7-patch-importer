@@ -1,6 +1,22 @@
 import type { Page } from '@playwright/test'
 
+// The FM1's answers to the identity query: captured from M-VAVE's V15 firmware, and the same block
+// naming FM-1+VA's FM-1_089 (see src/test/fake-fm1-midi.ts).
+// prettier-ignore
+const identityReplies = {
+  'fm1-va': [
+    0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x06, 0x4e,
+    0x1c, ...Array<number>(21).fill(0), 0x40, 0x03, 0xf7,
+  ],
+  mvave: [
+    0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x26, 0x4c,
+    0x1a, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
+  ],
+}
+
 type FakeMidiOptions = {
+  /** Which firmware the FM1 names when asked; M-VAVE's unless a journey chooses FM-1+VA. */
+  firmware?: keyof typeof identityReplies
   /** Whether the browser grants SysEx access, as a user can decline it at the permission prompt. */
   sysex?: boolean
 }
@@ -9,9 +25,12 @@ type FakeMidiOptions = {
  * Replaces the browser's Web MIDI API with one FM-1 that records what it is sent, so a journey can
  * connect MIDI and check the bytes without hardware or a permission prompt. Call before `goto`.
  */
-export async function installFakeMidi(page: Page, { sysex = true }: FakeMidiOptions = {}) {
+export async function installFakeMidi(
+  page: Page,
+  { firmware = 'mvave', sysex = true }: FakeMidiOptions = {},
+) {
   await page.addInitScript(
-    ({ sysexGranted }) => {
+    ({ identityReply, sysexGranted }) => {
       const sent: number[][] = []
       const makePort = (type: 'input' | 'output') => ({
         connection: 'closed',
@@ -33,7 +52,17 @@ export async function installFakeMidi(page: Page, { sysex = true }: FakeMidiOpti
         },
         clear() {},
         send(data: Iterable<number>) {
-          sent.push(Array.from(data))
+          const message = Array.from(data)
+          sent.push(message)
+          // The FM1 answers the updater's identity query (F0 00 32 45 …) with its firmware name.
+          if (message[1] === 0x00 && message[2] === 0x32) {
+            setTimeout(() =>
+              input.onmidimessage?.({
+                data: Uint8Array.from(identityReply),
+                timeStamp: performance.now(),
+              }),
+            )
+          }
         },
       })
       const input = makePort('input')
@@ -56,7 +85,7 @@ export async function installFakeMidi(page: Page, { sysex = true }: FakeMidiOpti
         }),
       })
     },
-    { sysexGranted: sysex },
+    { identityReply: identityReplies[firmware], sysexGranted: sysex },
   )
 }
 

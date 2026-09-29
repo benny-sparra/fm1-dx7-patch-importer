@@ -7,6 +7,13 @@ export default {
     bankStep1: 'Aguarde a tela de seleção de banco aparecer no FM1.',
     bankStep2: 'Gire o botão 1, 2, 3 ou 4 para escolher o banco A, B, C ou D.',
     bankStep3: 'O FM1 salva automaticamente os 32 sons após uma breve espera.',
+    bankFm1VaStep1:
+      'O FM1 pergunta “Write the bank?” e começa no banco A, seja qual for o banco enviado.',
+    bankFm1VaStep2: 'Gire ALGORITHM até a pergunta indicar o banco de destino: A, B, C ou D.',
+    bankFm1VaStep3:
+      'Gire SELECT até Write e pressione SEL para salvar os 32 sons, ou pressione HOME para cancelar.',
+    bankFm1VaNote:
+      'Se o seu FM1 usa o firmware FM-1+VA, ele pergunta “Write the bank?” e começa no banco A. Gire ALGORITHM até o banco de destino, depois SELECT até Write, e pressione SEL.',
     bankImage: 'Painel frontal do M-VAVE FM1 com tela e quatro botões numerados',
     dontShow: 'Não mostrar novamente nesta sessão',
     midiTitle: 'Conecte o MIDI para enviar este banco',
@@ -399,6 +406,16 @@ export default {
     description: 'Escolha o idioma da interface, as portas MIDI e os canais.',
     output: 'Saída',
     inputMonitor: 'Entrada de monitoração',
+    firmware: 'Firmware do FM1',
+    firmwareChecking: 'Verificando…',
+    firmwareUnidentified: 'Não identificado',
+    firmwareMvave: 'M-VAVE {{identity}}',
+    firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareEditBuffer: 'Os sons que você toca vão para o buffer de edição do FM1.',
+    firmwareParameterChanges:
+      'Os sons que você toca são enviados como mudanças de parâmetros. Leva alguns segundos, mas assim o FM1 nunca os salva sobre o preset selecionado.',
+    firmwareNeedsInput:
+      'Escolha o FM1 como entrada de monitoração para que o editor possa perguntar qual firmware ele usa.',
     noteChannel: 'Canal de notas',
     fxChannel: 'Canal de efeitos',
     defaultChannel: 'Padrão do FM1: canal 2',

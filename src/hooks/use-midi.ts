@@ -7,9 +7,17 @@ import {
   makeDx7BankPayload,
   makeDx7SingleVoicePayload,
   makeYamahaSysexMessage,
+  unpackDx7Voice,
   type Dx7Voice,
 } from '@/lib/dx7'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
+import {
+  classifyFm1Firmware,
+  fm1IdentityQuery,
+  parseFm1IdentityReply,
+  sendsSingleVoiceDumps,
+  type Fm1Firmware,
+} from '@/lib/fm1-firmware'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   formatMidiBytes,
@@ -72,6 +80,24 @@ const midiStorageKeys = {
 } as const
 
 const outputChangedMessage = 'Queued MIDI messages were dropped because the MIDI output changed.'
+
+/** How long to wait for the FM1 to answer the identity query, and how often to ask. */
+const identityReplyTimeoutMs = 1000
+const identityAttempts = 3
+
+/** The firmware answer for one pair of ports, so an answer never outlives the ports it came from. */
+type FirmwareIdentification = { firmware: Fm1Firmware; input: Input; output: Output }
+
+function firmwareLogMessage(firmware: Fm1Firmware) {
+  switch (firmware.kind) {
+    case 'mvave':
+      return `The FM1 runs M-VAVE firmware ${firmware.identity}. Patches go to its edit buffer.`
+    case 'fm1-va':
+      return `The FM1 runs FM-1+VA firmware ${firmware.identity}, which stores a single-patch dump over the selected preset, so patches are sent as parameter changes instead.`
+    default:
+      return 'The FM1 did not say which firmware it runs, so patches are sent as parameter changes, which it does not store.'
+  }
+}
 
 function readStoredValue(key: string) {
   try {
@@ -138,6 +164,7 @@ export function useMidi() {
   const [effectChannel, setEffectChannelState] = useState(readStoredEffectChannel)
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<MidiConnectionErrorCode | null>(null)
+  const [identification, setIdentification] = useState<FirmwareIdentification | null>(null)
   // Counts MIDI panics, so a player can stop rather than strike the released notes again.
   const [midiPanicCount, setMidiPanicCount] = useState(0)
   const [logStore] = useState(
@@ -165,6 +192,18 @@ export function useMidi() {
   const hasMidiOutput = Boolean(selectedOutput)
   const hasMidiInput = Boolean(selectedInput)
   const sysexAvailable = midiAccess && Boolean(webMidi.current?.sysexEnabled)
+
+  // Asking needs SysEx and both of the FM1's ports. Until the answer for the ports in use arrives,
+  // the firmware is being checked, so nothing is sent as though it were known.
+  const canIdentify = sysexAvailable && Boolean(selectedOutput) && Boolean(selectedInput)
+  const firmware = useMemo<Fm1Firmware>(() => {
+    if (!canIdentify) return { kind: 'unidentified' }
+    const answered =
+      identification !== null &&
+      identification.output === selectedOutput &&
+      identification.input === selectedInput
+    return answered ? identification.firmware : { kind: 'checking' }
+  }, [canIdentify, identification, selectedInput, selectedOutput])
 
   const appendLog = useCallback(
     (entry: MidiLogEntry) => {
@@ -420,6 +459,52 @@ export function useMidi() {
     [appendLog, channel, selectedOutput, transferQueue],
   )
 
+  /**
+   * Sends a patch as one DX7 parameter change for each of its 155 voice parameters. FM-1+VA holds
+   * these as an unsaved edit of the selected preset, where it stores a single-voice dump at once.
+   * Each shares its key with the live edit of the same parameter, so a newer patch or edit replaces
+   * a value still waiting to be sent.
+   */
+  const sendVoiceAsParameters = useCallback(
+    (output: Output, voice: Dx7Voice) => {
+      let values: Uint8Array
+      try {
+        values = unpackDx7Voice(voice)
+        values.forEach((value, parameter) => makeFm1ParameterPayload(parameter, value))
+      } catch (caughtError) {
+        appendLog(failureEntry(caughtError, 'Patch transfer failed.'))
+        return Promise.resolve(false)
+      }
+
+      appendLog(makeLogEntry('out', `Sending ${voice.name} as ${values.length} parameter changes…`))
+      const transfers = Array.from(values, (value, parameter) =>
+        transferQueue.enqueue(
+          () => sendFm1Parameter(output, parameter, value),
+          `parameter-${parameter}`,
+        ),
+      )
+      return Promise.all(transfers)
+        .then(() => {
+          appendLog(
+            makeLogEntry(
+              'out',
+              `Sent ${voice.name} as parameter changes, an unsaved edit of the selected preset. Save on the FM1 to store it.`,
+            ),
+          )
+          return true
+        })
+        .catch((caughtError) => {
+          if (caughtError instanceof MidiTransferCancelledError) {
+            appendLog(makeLogEntry('system', `${voice.name} was not sent. ${caughtError.message}`))
+            return false
+          }
+          appendLog(failureEntry(caughtError, 'Patch transfer failed.'))
+          return false
+        })
+    },
+    [appendLog, transferQueue],
+  )
+
   const sendVoice = useCallback(
     (voice: Dx7Voice) => {
       if (!selectedOutput) {
@@ -430,6 +515,8 @@ export function useMidi() {
         appendLog(makeLogEntry('system', 'Enable SysEx before sending a browser patch.'))
         return Promise.resolve(false)
       }
+
+      if (!sendsSingleVoiceDumps(firmware)) return sendVoiceAsParameters(selectedOutput, voice)
 
       const payload = makeDx7SingleVoicePayload(voice, channel)
       const message = makeYamahaSysexMessage(payload)
@@ -453,7 +540,7 @@ export function useMidi() {
           return false
         })
     },
-    [appendLog, channel, selectedOutput, transferQueue],
+    [appendLog, channel, firmware, selectedOutput, sendVoiceAsParameters, transferQueue],
   )
 
   const sendProgramChange = useCallback(
@@ -648,6 +735,54 @@ export function useMidi() {
     return true
   }, [appendLog, channel, selectedOutput])
 
+  // Asks the FM1 which firmware it runs whenever the ports in use change, as a reconnected FM1 may
+  // have been updated while it was away. The query is the updater's read-only identity question.
+  useEffect(() => {
+    if (!canIdentify || !selectedOutput || !selectedInput) return
+
+    const output = selectedOutput
+    const input = selectedInput
+    let attempts = 0
+    let timer: number | undefined
+    let finished = false
+
+    const finish = (answer: Fm1Firmware) => {
+      finished = true
+      window.clearTimeout(timer)
+      input.removeListener('midimessage', hear)
+      setIdentification({ firmware: answer, input, output })
+      appendLog(makeLogEntry('system', firmwareLogMessage(answer)))
+    }
+    function hear(event: MessageEvent) {
+      const identity = parseFm1IdentityReply(event.data)
+      if (identity) finish(classifyFm1Firmware(identity))
+    }
+    const ask = () => {
+      if (attempts === identityAttempts) {
+        finish({ kind: 'unidentified' })
+        return
+      }
+      attempts += 1
+      try {
+        output.send(fm1IdentityQuery)
+        appendLog(makeLogEntry('out', 'Asked the FM1 which firmware it runs.', fm1IdentityQuery))
+      } catch {
+        finish({ kind: 'unidentified' })
+        return
+      }
+      timer = window.setTimeout(ask, identityReplyTimeoutMs)
+    }
+
+    input.addListener('midimessage', hear)
+    ask()
+
+    return () => {
+      if (finished) return
+      window.clearTimeout(timer)
+      input.removeListener('midimessage', hear)
+    }
+  }, [appendLog, canIdentify, selectedInput, selectedOutput])
+
   useEffect(() => {
     if (!selectedInput) {
       return
@@ -670,6 +805,7 @@ export function useMidi() {
     disconnectMidi,
     error,
     effectChannel,
+    firmware,
     hasMidiOutput,
     hasMidiInput,
     inputs,

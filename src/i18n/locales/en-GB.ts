@@ -6,6 +6,12 @@ export default {
     bankStep1: 'Wait for the bank selection screen to appear on the FM1 display.',
     bankStep2: 'Turn Knob 1, 2, 3 or 4 to choose destination bank A, B, C or D.',
     bankStep3: 'The FM1 saves the 32 patches automatically after a brief delay.',
+    bankFm1VaStep1: 'The FM1 asks “Write the bank?” and starts on bank A, whichever bank you send.',
+    bankFm1VaStep2: 'Turn ALGORITHM until the question names the destination bank: A, B, C or D.',
+    bankFm1VaStep3:
+      'Turn SELECT to Write and press SEL to store the 32 patches, or press HOME to cancel.',
+    bankFm1VaNote:
+      'If your FM1 runs FM-1+VA firmware, it asks “Write the bank?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Write and press SEL.',
     bankImage: 'M-VAVE FM1 front panel showing the display and four numbered knobs',
     dontShow: 'Don’t show me again this session',
     midiTitle: 'Connect MIDI to send this bank',
@@ -392,6 +398,16 @@ export default {
     description: 'Choose the interface language, MIDI ports, and channels.',
     output: 'Output',
     inputMonitor: 'Input monitor',
+    firmware: 'FM1 firmware',
+    firmwareChecking: 'Checking…',
+    firmwareUnidentified: 'Not identified',
+    firmwareMvave: 'M-VAVE {{identity}}',
+    firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
+    firmwareParameterChanges:
+      'Patches you play are sent as parameter changes, which take a few seconds, so the FM1 never stores them over the selected preset.',
+    firmwareNeedsInput:
+      'Choose the FM1 as the input monitor so the editor can ask which firmware it runs.',
     noteChannel: 'Note channel',
     fxChannel: 'FX channel',
     defaultChannel: 'FM1 default: channel 2',
