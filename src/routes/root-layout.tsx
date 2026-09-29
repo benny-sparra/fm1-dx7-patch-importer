@@ -114,7 +114,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                   srcSet={colorwayImage.srcSet}
                   width={colorwayImage.width}
                 />
-                <div className="absolute right-2 bottom-2">
+                <div className="absolute right-1 bottom-1">
                   <MidiFirmwareBadge midi={midi} />
                 </div>
               </figure>
