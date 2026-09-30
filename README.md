@@ -154,9 +154,6 @@ This does not cover third-party material bundled with it, which keeps its own te
   with their owners and are used only to show which device the editor is for. The M-VAVE name and
   logo belong to M-VAVE, and this project is independent: it is not affiliated with or endorsed by
   M-VAVE.
-- **Baud Girl wordmark**: `public/baud-girl-wordmark-*.webp`, shown when the FM1 runs FM-1+VA. It
-  belongs to Baud Girl and is used only to show which firmware the editor has found; this project is
-  independent of, and not endorsed by, Baud Girl.
 - **Patch banks**: the files in `public/dx7-banks/` keep the terms described under
   [Acknowledgements](#acknowledgements), and banks contributed to the catalog keep the licence their
   author chose.

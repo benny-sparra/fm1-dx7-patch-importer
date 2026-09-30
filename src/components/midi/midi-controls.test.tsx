@@ -93,15 +93,14 @@ describe('MidiSettingsMenu firmware', () => {
 })
 
 describe('MidiFirmwareBadge', () => {
-  it('shows the Baud Girl wordmark and names FM-1+VA with its version', () => {
+  it('names Baud Girl and FM-1+VA with its version', () => {
     const { container } = render(
       <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_089', kind: 'fm1-va' } }} />,
     )
 
     expect(screen.getByText('FM-1+VA firmware by Baud Girl, FM-1_089')).toBeTruthy()
-    expect(container.querySelector('img')?.getAttribute('src')).toMatch(
-      /baud-girl-wordmark-104\.webp$/,
-    )
+    expect(container.textContent).toContain('BAUD GIRL')
+    expect(container.querySelector('img')).toBeNull()
   })
 
   it('names FM-1+VA with its version in German', async () => {

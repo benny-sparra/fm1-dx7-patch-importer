@@ -44,9 +44,6 @@ export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
   )
 }
 
-const baudGirlWordmark = (width: number) =>
-  `${import.meta.env.BASE_URL}baud-girl-wordmark-${width}.webp`
-
 /**
  * Shows that the FM1 runs Baud Girl's FM-1+VA firmware once it has said so, and that the editor
  * plays patches on it as unsaved edits. It is a status readout, not a control.
@@ -61,16 +58,9 @@ export function MidiFirmwareBadge({ midi }: { midi: Pick<MidiController, 'firmwa
       className="crt-inset inline-flex min-h-8 items-center gap-2 bg-[var(--crt-bg-2)] px-2.5"
       title={t('midi.fm1VaBadgeTitle', { identity })}
     >
-      <img
-        alt=""
-        className="h-3.5 w-auto"
-        decoding="async"
-        height={14}
-        sizes="104px"
-        src={baudGirlWordmark(104)}
-        srcSet={`${baudGirlWordmark(104)} 104w, ${baudGirlWordmark(208)} 208w, ${baudGirlWordmark(312)} 312w`}
-        width={104}
-      />
+      <span aria-hidden="true" className="text-xs font-bold tracking-[0.1em] text-[var(--crt-ink)]">
+        BAUD GIRL
+      </span>
       <span aria-hidden="true" className="text-xs tracking-[0.1em] text-[var(--crt-ink-2)]">
         FM-1+VA
       </span>
