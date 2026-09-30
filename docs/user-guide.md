@@ -49,6 +49,23 @@ Clicking a slot in banks A–D selects that hardware slot and then sends the pat
 
 To send one patch instead, open it in the editor. For a patch in banks A–D the app first selects the matching hardware slot; it then sends the voice and its FM1 effects to the edit buffer; hold **SAVE** on the FM1 to store it on the hardware.
 
+### M-VAVE firmware and FM-1+VA
+
+Some FM1 owners replace M-VAVE's firmware with [FM-1+VA](https://baudgirl.com/work/FM-1+VA), a
+replacement firmware that adds a Virtual Analog engine. When MIDI connects, and whenever the FM1
+reconnects, the app asks the FM1 which firmware it runs; **Settings** shows the answer under
+**FM1 firmware**, and when it is FM-1+VA a Baud Girl FM-1+VA badge appears in the header, on the FM1 picture or, on narrower screens, under the MIDI controls. The app needs the FM1 selected as the **Input monitor** to hear it.
+
+FM-1+VA stores a single patch sent as one SysEx message straight over the selected preset, with no
+**SAVE**. So unless the FM1 has said it runs M-VAVE's firmware, the app sends a patch you play or
+open as its 155 individual parameter changes instead. The FM1 holds those as an unsaved edit of the
+selected preset, which it drops when you change preset. They arrive in well under a second. Press **SAVE** on the FM1 to keep the patch there.
+
+FM-1+VA also chooses a bank's destination differently. When a bank arrives it asks **Write the
+bank?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names
+the bank you want, then turn **SELECT** to **Write** and press **SEL**, or press **HOME** to
+cancel. The destination instructions shown before sending follow the firmware the FM1 named.
+
 The search box above the patch grid looks through every bank that has patches in it, not only the one shown. It matches part of a patch's name, or a whole slot code such as `B07` or `b7`, and lists the matches in bank order, each labelled with its slot. While results show, the grid is titled **Search results**, no bank is selected, **Send to FM1** is unavailable because a bank transfer needs one bank, and patches cannot be dragged to reorder them. Click a result to play it as you would in its bank; the results stay up so you can try the next one, and they are still there when you come back from editing one. Clearing the search returns to the bank of the last result you played, or to the bank you were in if you played none. Choosing a bank on the left clears the search and shows that bank.
 
 The search also looks through your saved banks and the bundled DX7 patch banks that **Add new bank** offers. Matches in your own banks come first, under **Your patch banks**; the rest follow under **Saved banks** and **Other DX7 patch banks**, each labelled with its bank and slot, and a long list shows its first 60 matches per group until you type more. Click one of those to hear it through the FM1 edit buffer: a saved-bank patch plays with its saved FM1 effects, and a bundled DX7 patch with the default effects, since those banks hold no effects of their own. They are not in one of your banks, so they cannot be edited or reordered where they are. Use the copy button on one to put it in a slot of your own, through the same **Copy to…** dialog, overwrite confirmation, and Undo as copying between banks. Double-click one, or press Enter on the one you just played, to do the same and then open the copy in the editor. A saved-bank or bundled patch that is an exact copy of one listed above it, with the same voice data, name, and FM1 effects, is left out, and a line under its group says duplicates aren’t shown. Patches that share a name but differ in their data all show. The bundled banks' patch names load the first time you search.
@@ -74,6 +91,8 @@ Open **Favourites** to play, edit, reorder, copy, or download its patches as in 
 ### Language and channels
 
 The interface follows the browser language on first use when it is supported. English comes in two spellings: **English (US)** for a browser set to American English, and **English (UK)** for other English. Change it later in **Settings**; the selection is remembered. Settings also provides separate channels for notes/program changes and effects because the FM1 defaults its effects controls to MIDI channel 2.
+
+If you also play the FM1 from a MIDI keyboard, keep the keyboard off the effects channel. The FM1 reads controllers 0 to 23 on that channel as effect controls, so a keyboard sending there changes effects instead: its mod wheel (CC 1) sets the Filter Type, its volume (CC 7) the Reverb Mix, and its expression pedal (CC 11) the Delay Mix.
 
 ## The voice editor
 

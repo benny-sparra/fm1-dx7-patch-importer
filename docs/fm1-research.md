@@ -1,7 +1,7 @@
 # FM1 Editor Research Notes
 
 > Status: working engineering reference
-> Last reviewed: 2026-09-22
+> Last reviewed: 2026-09-28
 > Scope: M-VAVE FM1 editor/librarian, stock FM1 firmware behaviour, and possible editor enhancements.
 
 ## Purpose
@@ -59,6 +59,102 @@ cited here only where it corroborates or sharpens existing findings:
 - Stock firmware analysis, independently confirming the msfa/Dexed engine identity from §1.3
   (byte-for-byte FM algorithm table match at a specific firmware offset):
   https://github.com/ip2k/mvave-fm1-open-firmware/blob/main/docs/02-stock-firmware.md
+
+### FM-1+VA replacement firmware
+
+Site and manual:
+
+- https://baudgirl.com/work/FM-1+VA
+- https://baudgirl.com/work/FM-1+VA/manual
+
+FM-1+VA is Madeline Hoyle's (Baud Girl) replacement firmware for the FM1, installed through the
+updater, reviewed here on 2026-09-28 at release `FM-1_089`. It keeps M-VAVE's Dexed engine and
+effects, fixes four engine bugs (§1.3), and adds a Virtual Analog engine, a 64-step sequencer, and
+MIDI commands of its own. Its source, decompilation, and emulator are announced under
+GPL-3.0-or-later but were not published at the time of review; the browser modules its Install and
+Presets pages load were read for this note.
+
+How this project uses it:
+
+- Its manual describes its own firmware. Where it describes behaviour it says it kept from M-VAVE's,
+  such as the effect controllers, it is corroborating evidence about stock firmware, at most
+  **Likely**, never **Confirmed**, because it is a derivative that has changed other behaviour.
+- Its own commands (below) do not exist on stock firmware. On stock firmware they are unknown
+  vendor messages and stay **Dangerous / excluded**. Production code must not send them.
+- This project is MIT-licensed. Reimplement any fact recorded here from this document; do not copy
+  its code.
+
+Commands of its own, all under the Yamaha ID with a sub-ID it assigns (`F0 43 00 7D …`, checksum
+`ysum` = the low seven bits of the sum of each byte's complement), from `FM-1_079` on:
+
+| Message                         | Purpose                                                                                                                                                                                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `7D 10 <slot> <sum>`            | Reads stored preset `slot` (0–127). The reply carries the 128-byte packed DX7 voice and a 59-byte settings record holding that preset's effects, effect order, and engine choice.                                                              |
+| `7D 04 <slot> <155> <68> <sum>` | Writes a preset exactly: the voice as a 155-byte edit buffer, then the 59-byte record in 8-into-7 groups. 231 bytes. Its Presets page reads each back to check it and waits 3 s between writes, because closer writes were heard as crackling. |
+| `7D 20 <pattern> <part> …`      | Writes eight steps of a sequencer pattern and its settings (177 bytes); a separate memory-read request reads patterns back.                                                                                                                    |
+
+Its pages identify the firmware before sending any of these, with the updater's `F0 00 32 45 …`
+identity query (§6.3), which stock firmware also answers. §6.3 bars production code from sending
+any `00 32` message, so supporting FM-1+VA as an optional target would first need an explicit,
+approved exception for that one query. Until then, stock firmware remains the only target and the
+browser library the only source of truth (§8).
+
+Whether the editor's existing features are safe on FM-1+VA is tested in
+[`docs/fm1-va-compatibility-tests.md`](fm1-va-compatibility-tests.md). The editor supports stock
+firmware only until the changes below are made.
+
+#### The editor on FM-1+VA (tested 2026-09-29)
+
+One FM1 on FM-1_089 over USB, with Chrome 154 on macOS; results and bytes are in the test plan's ledger.
+
+- **A DX7 single-voice dump writes the selected preset's stored copy at once. Confirmed** (two
+  runs). The name shows the unsaved-changes dot until the preset is left, then survives a preset
+  change and a power cycle. Every single-patch send in the editor therefore overwrites a stored
+  preset: an audition from an added bank, a saved bank, the bundled banks, or an import preview,
+  and opening the voice editor, which for banks A–D writes the library's voice over that slot.
+  The editor's message after a send, "Hold SAVE on the FM1 to store it", is wrong on FM-1+VA.
+- **A 32-voice bank dump asks _Write the bank?_ starting on Cancel and on bank A**, whatever bank
+  the editor sent; the question names the bank, and ALGORITHM changes it. Write replaces the
+  voices and the bank's stored copy (the one **Reset Patches** returns to) and keeps each preset's
+  settings record: after two bank writes the FM-1+VA backup still matched every preset. HOME
+  cancels without writing. The editor's destination instructions (turn KNOB1–4, saved after a
+  delay) are the stock procedure and do not apply; following them writes bank A.
+- **DX7 parameter changes are unsaved edits.** They show the dot and the FM1's EDIT screen, are
+  heard from the next note only, and a preset change discards them.
+- **Effect CCs are unsaved edits, and selecting a preset loads its stored effects.** The editor's
+  Program Change followed by the slot's saved effects arrives in order: the effects land after the
+  preset change and show the dot.
+- Program Change, the on-screen keyboard, **MIDI panic**, and port reconnection behave as on stock
+  firmware. The port is listed as `USB Composite Device` on macOS.
+
+These were each seen once, apart from the first.
+
+#### What the editor does about it
+
+Since 2026-09-29 the editor asks for the firmware with the identity query whenever the ports in
+use change, and treats it as unknown until the answer for those ports arrives (`useMidi`,
+`src/lib/fm1-firmware.ts`). A name numbered `FM-1_019` or below is M-VAVE's firmware; any other
+FM1 number, past or future, is FM-1+VA. If M-VAVE ever numbers a release 20 or above, the editor
+treats it as FM-1+VA, which is safe but slower.
+
+- Only M-VAVE's firmware gets a single-voice dump. Every other firmware, including one not yet
+  identified or not answering (for example with no MIDI input selected), gets the patch as its
+  155 DX7 parameter changes, sent back to back rather than 35 ms apart like live edits, so the
+  patch arrives in well under a second. Test 7c stored one sent that way with SAVE and found it
+  identical to the bundled voice, byte for byte (2026-09-29, FM-1_089, seen once).
+- The bank destination dialog shows the **Write the bank?** steps for FM-1+VA, M-VAVE's knob steps
+  for M-VAVE's firmware, and M-VAVE's steps with a note on FM-1+VA while the firmware is unknown.
+- Settings shows the firmware and what it means for the patches the editor plays.
+
+**Seen once on FM-1_089 (2026-09-29, test 7b):** a patch sent as its 155 parameter changes plays
+as the whole patch, name included, about five seconds after the click, shows the unsaved-changes
+dot from the first change, and is discarded by a preset change, which restores the stored preset.
+Rechecked on FM-1_092 (2026-09-29): identification and a patch sent as parameter changes behave
+as on FM-1_089. FM-1_092 also saves Envelope On or Off with each preset, gives FM presets the
+Virtual Analog filter (off until switched on), and changes the Sequencer's pattern format (held
+notes and per-note Tie & Slide; older patterns are converted when first shown). None of those
+change what the editor sends today; they change the preset record and pattern format that the
+planned FM-1+VA features would read and write (`docs/feature-backlog.md`). Repeat test 7b on each FM-1+VA release whose notes mention MIDI or SysEx handling.
 
 ### FM1 Editor
 
@@ -184,6 +280,24 @@ Do not redefine an FM1 sequence as part of a DX7 voice.
 **Status: Confirmed at firmware-analysis level**
 
 The FM1 firmware has a Dexed/msfa-derived six-operator FM synthesis engine. Reverse engineering has identified familiar msfa/Dexed tables and behaviour for operator pitch, velocity, envelopes and related DX7 calculations.
+
+### Known differences from a DX7
+
+**Status: Likely** (FM-1+VA documentation, 2026-09-28; not reproduced by this project)
+
+The FM-1+VA manual (see Primary sources) names four ways M-VAVE's engine plays DX7 patches
+differently from the original, all of which its firmware corrects:
+
+1. Operator detune is too wide.
+2. Fast LFOs run slow.
+3. Algorithms 4 and 6 stay altered after any patch that uses feedback.
+4. A note ended with a Note On of velocity 0 keeps sounding.
+
+The editor sends Note Off (`8n`) messages for its keyboard, its audition phrases, and **MIDI panic**
+(`sendNoteOff` and `sendEveryNoteOff` in `src/lib/midi.ts`), so the fourth does not affect it. Keep
+it that way: never end a note with `9n kk 00`. The first three change how a patch sounds on the FM1
+compared with Dexed or a DX7, not what the editor sends; they could inform help text once reproduced
+on a stock FM1.
 
 ### Possible editor enhancements
 
@@ -759,12 +873,20 @@ instead.
 
 ### Editor rule
 
-- Production code must not send, construct, or expose any `00 32` message: not identify, not setup,
-  not bank blocks, and not a generic transmitter.
+- Production code must not send, construct, or expose any `00 32` message: not setup, not bank
+  blocks, and not a generic transmitter. The one exception, approved on 2026-09-29, is the identity
+  query `F0 00 32 45 00 00 00 40 7F F7` (`fm1IdentityQuery` in `src/lib/fm1-firmware.ts`), which
+  reads the firmware name and changes nothing. The editor sends it when the ports in use change,
+  so it can tell M-VAVE's firmware from FM-1+VA (see Primary sources).
 - Do not replay the capture, or any part of it, to hardware from editor or test code.
 - Standard Yamaha 32-voice bank dumps (1.2) remain the only bank-write path.
-- If a capture is committed as a fixture, redact the identity reply's version/serial bytes. Never
-  send them to analytics or monitoring.
+- The identity reply carries only the firmware name, such as `FM-1_015`, and no serial (open
+  question 6), so the committed reply fixtures need no redaction. Never send the name to analytics
+  or monitoring.
+- Do not require the reply's checksum. FM-1_089 answers
+  `F0 00 32 45 58 01 00 00 23 4D 5A 44 79 05 06 4E 1C 00×21 20 06 F7` (captured 2026-09-29): its
+  name with M-VAVE V15's checksum byte, which does not match it. The editor first rejected this
+  reply and fell back, safely, to treating the firmware as unidentified.
 - A slot-addressed bank write stays a parked research item in the roadmap until the open questions
   below are answered by stock-safe evidence.
 
@@ -1013,6 +1135,43 @@ load from the program, or persist through a front-panel patch change, power cycl
 **SAVE**; see the 2026-09-14 entry in
 [`docs/fx-003-hardware-verification.md`](fx-003-hardware-verification.md).
 
+## 7.8 FM-1+VA manual: scaling and stored effects
+
+**Status: Likely** (FM-1+VA documentation, 2026-09-28; see Primary sources)
+
+The FM-1+VA manual's effect-controller table has the same CC numbers, groups, maxima, switch rule,
+and option orders as M-VAVE's guide and §7.4. The only effect change it names as its own is two
+extra Distortion types (Hard Clip and Foldback), which no CC reaches; it calls Soft Clip "M-VAVE's
+original distortion". It adds what M-VAVE's guide leaves out:
+
+| Control              |  CC | FM-1+VA manual                                                                             |
+| -------------------- | --: | ------------------------------------------------------------------------------------------ |
+| Filter Cutoff        |   2 | 0–107 runs from 100 Hz to 20 kHz. The curve between is not given.                          |
+| Filter Resonance     |   3 | 0–10, shown on its screen as 0–100.                                                        |
+| Delay Decay          |   9 | Named Feedback: how much of each echo is fed back into the delay.                          |
+| Delay Rate           |  10 | A higher Rate gives a shorter echo, from 0.8 s down to 0.1 s.                              |
+| Chorus Frequency     |  17 | Named Rate: 0.1 to 1 Hz.                                                                   |
+| Phaser Frequency     |  21 | Named Rate: 0.5 to 6 Hz.                                                                   |
+| Every continuous one |   — | A value above the maximum acts as the maximum. A CC above 23 on the FX channel is ignored. |
+
+This agrees with the direction heard in FX-003 §9: Delay Rate shortens the gap as it rises, and
+Delay Decay behaves like feedback. M-VAVE's own guide names CC 9 **Decay**, so the editor keeps that
+name and says in its help what it does. The editor's help text gives these ranges as approximate
+values. The `%` suffixes and the displayed raw values are unchanged, because the manual gives only
+end points and no curve.
+
+One consequence follows from M-VAVE's published map alone, whatever FM-1+VA says: a MIDI keyboard
+that sends CC 1 (mod wheel), CC 7 (volume), or CC 11 (expression) on the FX channel sets Filter
+Type, Reverb Mix, or Delay Mix instead. `docs/user-guide.md` tells users to keep a
+keyboard off the FX channel.
+
+**Stored effects (lead).** FM-1+VA's preset read returns, with each voice, a 59-byte settings
+record holding that preset's six effects and their order, and its manual says **Reset Patches**
+turns every effect off. If stock firmware stores effects per preset the same way, a Program Change
+loads the stored preset's effects over whatever CC set, which would explain the 2026-09-14
+observation in §7.7. This is a hypothesis about stock storage, not a finding; test it with FX-003
+§7 item 1 before relying on it.
+
 ---
 
 # 8. Storage
@@ -1024,6 +1183,9 @@ The reverse-engineering project maps FM1 flash/storage operations and patch-rela
 ### Editor rule
 
 The browser editor should continue treating browser IndexedDB as its own workspace source of truth unless a safe, normal, readback mechanism is explicitly verified.
+
+FM-1+VA firmware has a preset read (Primary sources), but stock firmware has none, and this project
+does not send FM-1+VA's commands. Stock firmware remains without a known readback.
 
 Do not add direct flash reads/writes to ordinary editor functionality.
 

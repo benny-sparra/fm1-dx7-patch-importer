@@ -6,6 +6,12 @@ export default {
     bankStep1: 'Wait for the bank selection screen to appear on the FM1 display.',
     bankStep2: 'Turn Knob 1, 2, 3 or 4 to choose destination bank A, B, C or D.',
     bankStep3: 'The FM1 saves the 32 patches automatically after a brief delay.',
+    bankFm1VaStep1: 'The FM1 asks “Write the bank?” and starts on bank A, whichever bank you send.',
+    bankFm1VaStep2: 'Turn ALGORITHM until the question names the destination bank: A, B, C or D.',
+    bankFm1VaStep3:
+      'Turn SELECT to Write and press SEL to store the 32 patches, or press HOME to cancel.',
+    bankFm1VaNote:
+      'If your FM1 runs FM-1+VA firmware, it asks “Write the bank?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Write and press SEL.',
     bankImage: 'M-VAVE FM1 front panel showing the display and four numbered knobs',
     dontShow: 'Don’t show me again this session',
     midiTitle: 'Connect MIDI to send this bank',
@@ -103,25 +109,27 @@ export default {
     'Filter Type':
       'Chooses what the filter keeps: low pass keeps lows, high pass keeps highs, and band pass keeps a middle band.',
     'Filter Cutoff':
-      'Sets the frequency where filtering begins. Its audible direction depends on the selected filter type.',
+      'Sets the frequency where filtering begins, from about 100 Hz at 0 to 20 kHz at 107. Its audible direction depends on the selected filter type.',
     'Filter Resonance':
       'Emphasizes frequencies around the cutoff. Higher values sound sharper and more pronounced.',
     'Reverb Space': 'Chooses the character of the simulated space: room, hall, or bright plate.',
     'Reverb Decay': 'Sets how long the reverb tail lasts.',
     'Reverb Mix': 'Balances dry sound with reverb. At 0% you hear only the original sound.',
-    'Delay Decay': 'Sets how long the echo repeats continue before fading away.',
-    'Delay Rate': 'Sets the time between echoes. Higher values change the repeat spacing.',
+    'Delay Decay':
+      'Sets how much of each echo is fed back into the delay. Higher values give more repeats before they fade away.',
+    'Delay Rate':
+      'Sets the time between echoes. Higher values bring them closer together, from about 0.8 seconds at 0 to 0.1 seconds at 100.',
     'Delay Mix': 'Balances dry sound with echoes. At 0% you hear only the original sound.',
     'Distortion Gain':
       'Controls how hard the signal drives the distortion. Higher values add more saturation and harmonics.',
     'Distortion Tone': 'Adjusts the brightness of the distorted sound.',
     'Distortion Level':
       'Sets the output volume after distortion, useful for matching the bypassed loudness.',
-    'Chorus Frequency': 'Sets how quickly the chorus movement cycles.',
+    'Chorus Frequency': 'Sets how quickly the chorus movement cycles, from about 0.1 to 1 Hz.',
     'Chorus Depth':
       'Sets how far the chorus pitch movement travels. Higher values sound wider and more obvious.',
     'Chorus Mix': 'Balances dry sound with the chorused signal.',
-    'Phaser Frequency': 'Sets how quickly the phaser sweep cycles.',
+    'Phaser Frequency': 'Sets how quickly the phaser sweep cycles, from about 0.5 to 6 Hz.',
     'Phaser Depth': 'Sets the range and intensity of the phaser sweep.',
     'Phaser Mix': 'Balances dry sound with the phased signal.',
   },
@@ -390,6 +398,16 @@ export default {
     description: 'Choose the interface language, MIDI ports, and channels.',
     output: 'Output',
     inputMonitor: 'Input monitor',
+    firmware: 'FM1 firmware',
+    firmwareChecking: 'Checking…',
+    firmwareUnidentified: 'Not identified',
+    firmwareMvave: 'M-VAVE {{identity}}',
+    firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
+    firmwareParameterChanges:
+      'Patches you play are sent as parameter changes, so the FM1 never stores them over the selected preset.',
+    firmwareNeedsInput:
+      'Choose the FM1 as the input monitor so the editor can ask which firmware it runs.',
     noteChannel: 'Note channel',
     fxChannel: 'FX channel',
     defaultChannel: 'FM1 default: channel 2',
@@ -568,6 +586,9 @@ export default {
     randomiseHelp: 'A new voice. Keeps the name and effects.',
   },
   midi: {
+    fm1VaBadgeLabel: 'FM-1+VA firmware by Baud Girl, {{identity}}',
+    fm1VaBadgeTitle:
+      'The FM1 runs Baud Girl’s FM-1+VA firmware, {{identity}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',
     panic: 'MIDI panic',
     panicHelp:
       'MIDI panic: send a note-off for every note on the note channel, to stop hanging notes',

@@ -7,6 +7,13 @@ export default {
     bankStep1: 'Aguarde a tela de seleção de banco aparecer no FM1.',
     bankStep2: 'Gire o botão 1, 2, 3 ou 4 para escolher o banco A, B, C ou D.',
     bankStep3: 'O FM1 salva automaticamente os 32 sons após uma breve espera.',
+    bankFm1VaStep1:
+      'O FM1 pergunta “Write the bank?” e começa no banco A, seja qual for o banco enviado.',
+    bankFm1VaStep2: 'Gire ALGORITHM até a pergunta indicar o banco de destino: A, B, C ou D.',
+    bankFm1VaStep3:
+      'Gire SELECT até Write e pressione SEL para salvar os 32 sons, ou pressione HOME para cancelar.',
+    bankFm1VaNote:
+      'Se o seu FM1 usa o firmware FM-1+VA, ele pergunta “Write the bank?” e começa no banco A. Gire ALGORITHM até o banco de destino, depois SELECT até Write, e pressione SEL.',
     bankImage: 'Painel frontal do M-VAVE FM1 com tela e quatro botões numerados',
     dontShow: 'Não mostrar novamente nesta sessão',
     midiTitle: 'Conecte o MIDI para enviar este banco',
@@ -106,26 +113,29 @@ export default {
     'Filter Type':
       'Escolhe o que o filtro mantém: o passa-baixas mantém os graves, o passa-altas os agudos e o passa-faixa uma faixa intermediária.',
     'Filter Cutoff':
-      'Define a frequência a partir da qual o filtro atua. O efeito audível depende do tipo de filtro escolhido.',
+      'Define a frequência a partir da qual o filtro atua, de cerca de 100 Hz em 0 a 20 kHz em 107. O efeito audível depende do tipo de filtro escolhido.',
     'Filter Resonance':
       'Realça as frequências ao redor do corte. Valores mais altos soam mais agudos e marcados.',
     'Reverb Space': 'Escolhe o caráter do espaço simulado: sala, salão ou placa brilhante.',
     'Reverb Decay': 'Define quanto tempo dura a cauda da reverberação.',
     'Reverb Mix': 'Equilibra o som seco e a reverberação. Em 0% você ouve apenas o som original.',
-    'Delay Decay': 'Define quanto tempo as repetições do eco continuam antes de sumir.',
+    'Delay Decay':
+      'Define quanto de cada eco volta para o delay. Valores mais altos dão mais repetições antes de sumirem.',
     'Delay Rate':
-      'Define o tempo entre os ecos. Valores mais altos mudam o espaçamento das repetições.',
+      'Define o tempo entre os ecos. Valores mais altos os aproximam, de cerca de 0,8 segundo em 0 a 0,1 segundo em 100.',
     'Delay Mix': 'Equilibra o som seco e os ecos. Em 0% você ouve apenas o som original.',
     'Distortion Gain':
       'Controla a força com que o sinal alimenta a distorção. Valores mais altos adicionam mais saturação e harmônicos.',
     'Distortion Tone': 'Ajusta o brilho do som distorcido.',
     'Distortion Level':
       'Define o volume de saída depois da distorção, útil para igualar o volume sem o efeito.',
-    'Chorus Frequency': 'Define a velocidade de ciclo do movimento do chorus.',
+    'Chorus Frequency':
+      'Define a velocidade de ciclo do movimento do chorus, de cerca de 0,1 a 1 Hz.',
     'Chorus Depth':
       'Define até onde vai o movimento de afinação do chorus. Valores mais altos soam mais amplos e evidentes.',
     'Chorus Mix': 'Equilibra o som seco e o sinal com chorus.',
-    'Phaser Frequency': 'Define a velocidade de ciclo da varredura do phaser.',
+    'Phaser Frequency':
+      'Define a velocidade de ciclo da varredura do phaser, de cerca de 0,5 a 6 Hz.',
     'Phaser Depth': 'Define a amplitude e a intensidade da varredura do phaser.',
     'Phaser Mix': 'Equilibra o som seco e o sinal com phaser.',
   },
@@ -396,6 +406,16 @@ export default {
     description: 'Escolha o idioma da interface, as portas MIDI e os canais.',
     output: 'Saída',
     inputMonitor: 'Entrada de monitoração',
+    firmware: 'Firmware do FM1',
+    firmwareChecking: 'Verificando…',
+    firmwareUnidentified: 'Não identificado',
+    firmwareMvave: 'M-VAVE {{identity}}',
+    firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareEditBuffer: 'Os sons que você toca vão para o buffer de edição do FM1.',
+    firmwareParameterChanges:
+      'Os sons que você toca são enviados como mudanças de parâmetros, para que o FM1 nunca os salve sobre o preset selecionado.',
+    firmwareNeedsInput:
+      'Escolha o FM1 como entrada de monitoração para que o editor possa perguntar qual firmware ele usa.',
     noteChannel: 'Canal de notas',
     fxChannel: 'Canal de efeitos',
     defaultChannel: 'Padrão do FM1: canal 2',
@@ -574,6 +594,9 @@ export default {
     randomiseHelp: 'Nova voz. Mantém nome e efeitos.',
   },
   midi: {
+    fm1VaBadgeLabel: 'Firmware FM-1+VA da Baud Girl, {{identity}}',
+    fm1VaBadgeTitle:
+      'O FM1 usa o firmware FM-1+VA da Baud Girl, {{identity}}. Os sons que você toca chegam como alterações não salvas, então nunca sobrescrevem um preset.',
     panic: 'Pânico MIDI',
     panicHelp:
       'Pânico MIDI: envia um note-off para cada nota do canal de notas e interrompe as notas presas',

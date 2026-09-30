@@ -209,6 +209,13 @@ The Phase 3 exit criteria are therefore **not** met for a direct read or write p
 clause, the fallback is now the live track: controlled stock recording input, plus observation of
 the device's own playback output, is the only evidenced route to sequencer functionality.
 
+**Update 2026-09-28.** The FM-1+VA replacement firmware adds its own direct pattern write and
+memory read (`F0 43 00 7D 20 …`; see research notes, Primary sources). This does not change the
+stock conclusion above: those commands exist only on that firmware, and sending them needs the
+firmware identified first, which §6.3 of the research notes currently forbids. It is the only known
+direct transfer, so reopening the sequencer for FM-1+VA users is a product decision, not a protocol
+question.
+
 ### What the fallback rests on
 
 Each of these is Confirmed observable V15 behaviour in the committed fixture set:

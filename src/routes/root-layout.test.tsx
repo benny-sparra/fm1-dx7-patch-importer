@@ -21,6 +21,7 @@ const midi: ComponentProps<typeof RootLayout>['midi'] = {
   disconnectMidi: vi.fn(),
   effectChannel: 2,
   error: null,
+  firmware: { kind: 'unidentified' },
   hasMidiOutput: false,
   inputs: [],
   isConnecting: false,

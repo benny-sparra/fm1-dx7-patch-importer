@@ -50,6 +50,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Send individual patches to the edit buffer or a complete 32-patch bank over Web MIDI in Chrome, Edge, Opera, or Firefox
 - Select matching FM1 slots in banks A–D with MIDI Program Change, and audition patches from added banks through the edit buffer
 - Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
+- Recognise the FM-1+VA replacement firmware, and send it patches as parameter changes so auditions never overwrite a stored preset
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard, or loop one of six short phrases to audition a patch hands-free
 - Release hanging notes on the FM1 with a MIDI panic button
@@ -72,13 +73,13 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 
 1. Open the app in a supported browser.
 2. Switch **MIDI online** on and grant MIDI/SysEx permission. Firefox asks you to install a small site permission add-on instead; accept it.
-3. Open **Settings** to select the FM1 MIDI output and, if needed, the note/program and effects channels.
+3. Open **Settings** to select the FM1 as the MIDI output and the input monitor and, if needed, the note/program and effects channels. With the input selected, the app asks the FM1 which firmware it runs and shows the answer under **FM1 firmware**.
 4. Select Bank 1, 2, 3, or 4. On first use these contain FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with. Use **Add new bank** to name and describe an additional workspace bank while populating it from the bundled DX7 catalog, which holds banks from the [Yamaha Black Boxes collection](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) and mene311's themed FM-1 banks, or your own standard 32-voice DX7 SysEx file.
-5. Click a patch to select the matching FM1 slot and play it. The FM1 has four banks, so a patch in an added bank is sent with its effects to the edit buffer to play it instead. Double-click it, or choose **Edit** from its **⋮** menu, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1.
+5. Click a patch to select the matching FM1 slot and play it. The FM1 has four banks, so a patch in an added bank is sent with its effects to the edit buffer to play it instead. Double-click it, or choose **Edit** from its **⋮** menu, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1. On the [FM-1+VA](https://baudgirl.com/work/FM-1+VA) replacement firmware, which stores a single-patch transfer over the selected preset, and whenever the firmware is not identified, a patch is sent as parameter changes instead, so it stays an unsaved edit until you press **SAVE** on the FM1.
 6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
 7. Select the heart on any patch, or search result, to keep it in **Favourites**, below the banks on the left. Favourites can be played, edited, and reordered like a bank, and editing a favourite or the patch it came from updates both.
 8. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank, or Favourites. Favourites is sent as a 32-patch bank: a shorter list is filled with INIT VOICE, and from a longer one only the first 32 are sent. The instructions before sending say which.
-9. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay.
+9. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay. FM-1+VA asks **Write the bank?** instead, starting on bank A: turn **ALGORITHM** to the destination bank, then turn **SELECT** to **Write** and press **SEL**. The instructions before sending follow the firmware the FM1 named.
 
 See the [user guide](docs/user-guide.md) for bank management, Favourites, the voice editor,
 keyboard shortcuts, and SysEx compatibility.
@@ -118,12 +119,17 @@ The repository records the evidence behind FM1-specific behaviour in
 [the FM1 research notes](docs/fm1-research.md). The live effect controls use the documented
 24-controller FM1 effects block, with their supported ranges enforced by the editor. The internal
 sequencer is being researched through captured fixtures only; it is not yet exposed in the app and
-the editor does not send sequencer or other unclassified vendor commands.
+the editor does not send sequencer or other unclassified vendor commands. The one updater message it
+sends is the read-only identity query, to tell M-VAVE's firmware from FM-1+VA; the notes record how
+the editor was tested on FM-1+VA and why it sends that firmware patches as parameter changes.
 
 ## Future development
 
 Future development could add grouped modulation workflows, a focused internal-sequencer editor once
 its protocol is proven safe, and device readback if M-VAVE documents a compatible transmit protocol.
+FM-1+VA already offers preset readback, exact preset writes, and direct sequencer pattern transfer
+through commands of its own, which could support importing from the FM1 and Virtual Analog preset
+editing on that firmware once each command is reviewed and approved.
 
 ## Acknowledgements
 
@@ -132,6 +138,8 @@ The randomiser is an independent implementation of the voice generator from Tom 
 The four FM-1 factory banks, loaded into banks A–D on first use and also offered in the catalog, were recovered from M-VAVE's preset-restore tool by KingParamount and are bundled unchanged under CC0 from [fm1-factory-presets](https://github.com/KingParamount/fm1-factory-presets). The licence covers the capture, decode and rebuilt files, not the voices themselves: those trace to Yamaha ROM and VRC cartridges and the community Dexed_cart 1.0 collection, as selected and renamed by M-VAVE. The repository documents the per-voice provenance.
 
 The 26 themed banks in the catalog's **mene311** group are bundled unchanged, with mene311's permission, from [fm1-banks](https://github.com/mene311/fm1-banks). mene311 sorted voices from public DX7 collections, among them Dexed cartridge dumps, Yamaha Black Boxes, and Bobby Blues, into banks of 32 by theme. The voices remain the work of their original programmers, and the repository's `banks/provenance.json` records the collections each one came from.
+
+[FM-1+VA](https://baudgirl.com/work/FM-1+VA) is Madeline Hoyle's (Baud Girl) replacement firmware for the FM1. Its manual and published web modules informed the research notes; no code was copied from it.
 
 The interface links to independent DX7 patch archives to help users find compatible banks. Those downloads are provided by their respective sites; only import files you trust.
 

@@ -1,4 +1,5 @@
-import { KeyboardMusic, Languages, MoreVertical, Radio, SlidersHorizontal } from 'lucide-react'
+import { Cpu, KeyboardMusic, Languages, MoreVertical, Radio, SlidersHorizontal } from 'lucide-react'
+import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 
 import { midiChannels, type MidiController } from '@/hooks/use-midi'
@@ -43,6 +44,31 @@ export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
   )
 }
 
+/**
+ * Shows that the FM1 runs Baud Girl's FM-1+VA firmware once it has said so, and that the editor
+ * plays patches on it as unsaved edits. It is a status readout, not a control.
+ */
+export function MidiFirmwareBadge({ midi }: { midi: Pick<MidiController, 'firmware'> }) {
+  const { t } = useTranslation()
+  if (midi.firmware.kind !== 'fm1-va') return null
+  const { identity } = midi.firmware
+
+  return (
+    <span
+      className="crt-inset inline-flex min-h-8 items-center gap-2 bg-[var(--crt-bg-2)] px-2.5"
+      title={t('midi.fm1VaBadgeTitle', { identity })}
+    >
+      <span aria-hidden="true" className="text-xs font-bold tracking-[0.1em] text-[var(--crt-ink)]">
+        BAUD GIRL
+      </span>
+      <span aria-hidden="true" className="text-xs tracking-[0.1em] text-[var(--crt-ink-2)]">
+        FM-1+VA
+      </span>
+      <span className="sr-only">{t('midi.fm1VaBadgeLabel', { identity })}</span>
+    </span>
+  )
+}
+
 const midiConnectionErrorKeys = {
   disconnect_failed: 'midi.errors.disconnectFailed',
   enable_failed: 'midi.errors.enableFailed',
@@ -67,6 +93,7 @@ type MidiSettingsMenuProps = {
     MidiController,
     | 'channel'
     | 'effectChannel'
+    | 'firmware'
     | 'inputs'
     | 'outputs'
     | 'selectedInputId'
@@ -76,6 +103,47 @@ type MidiSettingsMenuProps = {
     | 'setSelectedInputId'
     | 'setSelectedOutputId'
   >
+}
+
+function firmwareName(firmware: MidiController['firmware'], t: TFunction) {
+  switch (firmware.kind) {
+    case 'mvave':
+      return t('settings.firmwareMvave', { identity: firmware.identity })
+    case 'fm1-va':
+      return t('settings.firmwareFm1Va', { identity: firmware.identity })
+    case 'checking':
+      return t('settings.firmwareChecking')
+    default:
+      return t('settings.firmwareUnidentified')
+  }
+}
+
+/** Which firmware the FM1 runs, and what that means for the patches the editor plays on it. */
+function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'selectedInputId'> }) {
+  const { t } = useTranslation()
+  const needsInput = midi.firmware.kind === 'unidentified' && !midi.selectedInputId
+
+  return (
+    <div className="settings-option flex flex-col gap-2 rounded-lg border px-4 py-3 sm:col-span-2">
+      <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
+        <Cpu className="size-3.5" />
+        <span>{t('settings.firmware')}</span>
+      </span>
+      <span className="text-sm">{firmwareName(midi.firmware, t)}</span>
+      <span className="text-[11px] text-muted-foreground">
+        {t(
+          midi.firmware.kind === 'mvave'
+            ? 'settings.firmwareEditBuffer'
+            : 'settings.firmwareParameterChanges',
+        )}
+      </span>
+      {needsInput ? (
+        <span className="text-[11px] text-muted-foreground">
+          {t('settings.firmwareNeedsInput')}
+        </span>
+      ) : null}
+    </div>
+  )
 }
 
 export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
@@ -127,6 +195,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
           onChange={midi.setSelectedInputId}
           value={midi.selectedInputId}
         />
+        <FirmwareStatus midi={midi} />
         <label className="settings-option flex min-h-16 flex-col justify-start gap-2 rounded-lg border px-4 py-3">
           <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <SlidersHorizontal className="size-3.5" />

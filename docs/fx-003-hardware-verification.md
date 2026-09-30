@@ -26,6 +26,11 @@ row has identical V15 runtime semantics. The controlled V15 Filter Switch/Cutoff
 confirms compatibility for CC 0 and 2 only. Do not use the document alone to infer scaling curves,
 device persistence, interaction/routing, or acceptance behaviour above a documented maximum.
 
+On 2026-09-28 the FM-1+VA replacement firmware's manual added end points for Cutoff, Delay Rate,
+Chorus and Phaser rate, and described Delay Decay as feedback and above-range values as clamped
+(`docs/fm1-research.md` §7.8). It describes a derivative firmware, so it raises none of the rows
+below past **Likely**; the editor's help text quotes its ranges as approximate.
+
 ## 1. Test setup and controls
 
 Use one FM1, one stable audio output path (preferably recorded), headphones/monitors, a Chromium

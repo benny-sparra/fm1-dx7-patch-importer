@@ -63,6 +63,7 @@ export function makeLibrarianMidi(overrides: Partial<Midi> = {}): Midi {
     channel: 1,
     connectMidi: vi.fn<Midi['connectMidi']>(),
     disconnectMidi: vi.fn<Midi['disconnectMidi']>(),
+    firmware: { identity: 'FM-1_015', kind: 'mvave' },
     hasMidiOutput: false,
     isConnecting: false,
     midiAccess: false,
