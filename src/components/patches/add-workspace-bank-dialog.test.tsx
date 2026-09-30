@@ -77,24 +77,36 @@ function createButton() {
 }
 
 describe('AddWorkspaceBankDialog catalog groups', () => {
-  it('names the factory groups in English and keeps the product names', () => {
+  it('lists the groups alphabetically in English and keeps the product and author names', () => {
     expect(renderCatalogGroups()).toEqual([
       'Factory',
       'FM-1 factory presets',
-      'VRC Voice ROMs',
       'Grey Matter E!',
+      'mene311',
+      'VRC Voice ROMs',
     ])
   })
 
-  it('names the factory groups in the interface language', async () => {
+  it('names the factory groups in the interface language and sorts by those names', async () => {
     await setLocale('fr')
 
     expect(renderCatalogGroups()).toEqual([
-      french.banks.catalogFactory,
-      french.banks.catalogFm1Factory,
-      'VRC Voice ROMs',
       'Grey Matter E!',
+      'mene311',
+      french.banks.catalogFm1Factory,
+      french.banks.catalogFactory,
+      'VRC Voice ROMs',
     ])
+  })
+
+  it('credits mene311 on the group holding their banks', () => {
+    renderDialog()
+
+    expect(
+      within(screen.getByRole('group', { name: 'mene311' })).getByRole('option', {
+        name: 'Synthwave Bass',
+      }),
+    ).toBeTruthy()
   })
 })
 

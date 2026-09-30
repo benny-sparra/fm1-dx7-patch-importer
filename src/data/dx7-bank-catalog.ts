@@ -1,14 +1,15 @@
-/** Catalog groups in the order the bank picker lists them. */
+/** Catalog groups. The bank picker lists them alphabetically by the name it shows. */
 export const dx7BankCatalogCategories = [
   'Factory',
   'FM-1 Factory',
   'VRC Voice ROMs',
   'Grey Matter E!',
+  'mene311',
 ] as const
 
 type Dx7BankCatalogEntry = {
   category: (typeof dx7BankCatalogCategories)[number]
-  description: string
+  description?: string
   file: string
   id: string
   name: string
@@ -86,8 +87,52 @@ const greyMatterBanks: Dx7BankCatalogEntry[] = [2, 5, 7].map((number) => ({
   name: `E! Card Disk #${number}`,
 }))
 
+// Themed FM-1 banks compiled by mene311 from public DX7 collections and bundled with their
+// permission: https://github.com/mene311/fm1-banks (commit f47b11b9035be0dfe7f899aec90798dccbcde9ee).
+// The files are unchanged, only renamed. The voices remain the work of their original programmers;
+// the repository's banks/provenance.json records the collections each one came from.
+const mene311Banks: Dx7BankCatalogEntry[] = [
+  ['synthwave-bass', 'Synthwave Bass'],
+  ['synthwave-pad', 'Synthwave Pad'],
+  ['acid-techno', 'Acid / Techno'],
+  ['drums-perc', 'Drums & Percussion'],
+  ['bells-marimba', 'Bells & Mallets'],
+  ['piano-ep', 'Piano & Electric Piano'],
+  ['lead-solo', 'Leads & Solos'],
+  ['organ', 'Organ'],
+  ['ambient-texture', 'Ambient & Texture'],
+  ['bass-funk-slap', 'Funk & Slap Bass'],
+  ['brass-section', 'Brass Section'],
+  ['strings-orchestral', 'Strings & Orchestral'],
+  ['vocal-choir', 'Vocal & Choir'],
+  ['misc-fx', 'Effects & Experimental'],
+  ['guitar', 'Guitar'],
+  ['plucked-world', 'Plucked & World'],
+  ['woodwinds-sax', 'Woodwinds & Sax'],
+  ['percussion-tribal', 'Percussion & Tribal'],
+  ['chiptune', 'Chiptune & Retro Game'],
+  ['scifi-horror', 'Sci-Fi & Horror'],
+  ['industrial', 'Industrial & Metal'],
+  ['orchestral-hits', 'Orchestral Hits & Stabs'],
+  ['clav-funk', 'Clav & Funk Keys'],
+  ['vibes-bells', 'Vibes & Tubular Bells'],
+  ['electronic-bass', 'Electronic Bass'],
+  ['church-organ', 'Church & Cathedral Organ'],
+].map(([id, name]) => ({
+  category: 'mene311',
+  file: `/dx7-banks/mene311/${id}.syx`,
+  id: `mene311-${id}`,
+  name,
+}))
+
 /** Banks bundled locally so imports work without a third-party request. */
-export const dx7BankCatalog = [...factoryBanks, ...fm1FactoryBanks, ...vrcBanks, ...greyMatterBanks]
+export const dx7BankCatalog = [
+  ...factoryBanks,
+  ...fm1FactoryBanks,
+  ...vrcBanks,
+  ...greyMatterBanks,
+  ...mene311Banks,
+]
 
 const catalogCategoryLabelKeys: Partial<Record<Dx7BankCatalogEntry['category'], string>> = {
   Factory: 'banks.catalogFactory',

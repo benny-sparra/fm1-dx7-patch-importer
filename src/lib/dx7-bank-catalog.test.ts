@@ -12,9 +12,9 @@ import { makeDemoVoices } from '@/lib/patch-library'
 
 describe('DX7 bank catalog', () => {
   it('lists every bank published in the source catalog with unique local files', () => {
-    expect(dx7BankCatalog).toHaveLength(39)
-    expect(new Set(dx7BankCatalog.map(({ id }) => id)).size).toBe(39)
-    expect(new Set(dx7BankCatalog.map(({ file }) => file)).size).toBe(39)
+    expect(dx7BankCatalog).toHaveLength(65)
+    expect(new Set(dx7BankCatalog.map(({ id }) => id)).size).toBe(65)
+    expect(new Set(dx7BankCatalog.map(({ file }) => file)).size).toBe(65)
     expect(findDx7CatalogBank('vrc112b')?.name).toBe('VRC112B')
   })
 
@@ -22,6 +22,13 @@ describe('DX7 bank catalog', () => {
     expect(
       dx7BankCatalog.filter(({ category }) => category === 'FM-1 Factory').map(({ id }) => id),
     ).toEqual(['fm1-bank1', 'fm1-bank2', 'fm1-bank3', 'fm1-bank4'])
+  })
+
+  it('lists the 26 mene311 banks as their own group', () => {
+    expect(dx7BankCatalog.filter(({ category }) => category === 'mene311')).toHaveLength(26)
+    expect(findDx7CatalogBank('mene311-synthwave-bass')?.file).toBe(
+      '/dx7-banks/mene311/synthwave-bass.syx',
+    )
   })
 
   it('keeps the recovered FM-1 voice names byte for byte, device quirks included', () => {

@@ -105,6 +105,12 @@ GitHub does not accept `.syx` attachments, so zip the file before attaching it. 
 listened to before it is accepted, and not every bank will be included. An included bank is credited
 in the README under the name you give.
 
+Banks that do not meet these conditions are still welcome news. If you have made FM1 or DX7 sounds
+you are proud of, or gathered and sorted other people's voices into banks, please
+[open an issue](https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new) with a link to
+where they can be found. A curated collection can be bundled with its compiler's permission, as
+mene311's themed banks are.
+
 ## Available scripts
 
 | Command                     | Description                                                         |

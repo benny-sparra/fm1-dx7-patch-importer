@@ -1,5 +1,5 @@
 import { Library, Plus, Upload } from 'lucide-react'
-import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
@@ -45,7 +45,7 @@ export function AddWorkspaceBankDialog({
   onCreated,
   suggestedName,
 }: AddWorkspaceBankDialogProps) {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
   const toast = useToast()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
@@ -56,6 +56,16 @@ export function AddWorkspaceBankDialog({
   const [name, setName] = useState('')
   const [source, setSource] = useState<'catalog' | 'upload'>('catalog')
   const [working, setWorking] = useState(false)
+  // Listed alphabetically in the interface language, so the order follows the names people read.
+  const catalogGroups = useMemo(() => {
+    const collator = new Intl.Collator(i18n.resolvedLanguage)
+    return dx7BankCatalogCategories
+      .map((category) => {
+        const labelKey = dx7BankCatalogCategoryLabelKey(category)
+        return { category, label: labelKey ? t(labelKey) : category }
+      })
+      .sort((a, b) => collator.compare(a.label, b.label))
+  }, [i18n.resolvedLanguage, t])
 
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
   // its state is discarded with it rather than being reset by hand.
@@ -235,20 +245,19 @@ export function AddWorkspaceBankDialog({
                   value={catalogBankId}
                 >
                   <option value="">{t('banks.chooseCatalogBank')}</option>
-                  {dx7BankCatalogCategories.map((category) => {
-                    const labelKey = dx7BankCatalogCategoryLabelKey(category)
-                    return (
-                      <optgroup key={category} label={labelKey ? t(labelKey) : category}>
-                        {dx7BankCatalog
-                          .filter((catalogBank) => catalogBank.category === category)
-                          .map((catalogBank) => (
-                            <option key={catalogBank.id} value={catalogBank.id}>
-                              {catalogBank.name} — {catalogBank.description}
-                            </option>
-                          ))}
-                      </optgroup>
-                    )
-                  })}
+                  {catalogGroups.map(({ category, label }) => (
+                    <optgroup key={category} label={label}>
+                      {dx7BankCatalog
+                        .filter((catalogBank) => catalogBank.category === category)
+                        .map((catalogBank) => (
+                          <option key={catalogBank.id} value={catalogBank.id}>
+                            {catalogBank.description
+                              ? `${catalogBank.name} — ${catalogBank.description}`
+                              : catalogBank.name}
+                          </option>
+                        ))}
+                    </optgroup>
+                  ))}
                 </select>
               ) : (
                 <label className="flex min-h-10 cursor-pointer items-center rounded-md border border-dashed border-input bg-background px-3 text-sm transition-colors hover:bg-muted/50">

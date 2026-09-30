@@ -357,7 +357,7 @@ describe('search everywhere results', () => {
 
     expect(
       await screen.findByText(
-        /^Die ersten 60 von \d+ Treffern werden angezeigt\. Gib mehr ein, um die Suche einzugrenzen\.$/,
+        /^Die ersten 60 von \d{1,3}(?:\.\d{3})* Treffern werden angezeigt\. Gib mehr ein, um die Suche einzugrenzen\.$/,
       ),
     ).toBeTruthy()
   })
