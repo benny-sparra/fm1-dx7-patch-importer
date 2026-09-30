@@ -164,6 +164,16 @@ open everything an earlier release could have saved.
   All Notes Off (CC 123) never reaches its voices. Do not call the button All notes off, which
   names that message. Anything that plays notes by itself, such as the audition phrase, stops when
   `midiPanicCount` changes rather than striking them again.
+- The editor asks which firmware the FM1 runs with the updater's identity query
+  (`fm1IdentityQuery` in `src/lib/fm1-firmware.ts`), whenever the output or input in use changes.
+  It is the one `00 32` message the editor may send: never send another from that family, and
+  never send FM-1+VA's own `F0 43 00 7D` commands. The firmware counts as unknown until the answer
+  for the ports in use arrives, and its name stays out of analytics and monitoring.
+- Send a patch as a DX7 single-voice dump only to firmware identified as M-VAVE's
+  (`sendsSingleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored preset, so
+  every other firmware, including one not yet identified, gets the patch as its 155 parameter
+  changes, which it holds as an unsaved edit. The bank destination instructions follow the firmware
+  too: FM-1+VA asks **Write the bank?** starting on bank A, and chooses the bank with ALGORITHM.
 - Do not resend unchanged data to the FM1 on repeated interaction, such as a double-click. Forget
   what was sent as soon as anything else replaces that device state, and after a failed send.
   The edit-buffer audition compares voice objects by identity, so a library change that puts a

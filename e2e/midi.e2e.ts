@@ -263,3 +263,54 @@ test('offers to reconnect instead of sending a bank when SysEx access was declin
   await expect(page.getByRole('button', { name: 'Reconnect MIDI with SysEx' })).toBeVisible()
   expect(await sentSysex(page)).toEqual([])
 })
+
+test.describe('with an FM-1 on FM-1+VA firmware', () => {
+  test.beforeEach(async ({ page }) => {
+    await installFakeMidi(page, { firmware: 'fm1-va' })
+    await openLibrarian(page)
+    await switchMidiOn(page)
+  })
+
+  test('sends a slot in an added bank as parameter changes, never as a single-voice dump', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: 'Add new bank' }).locator('visible=true').click()
+    const addBank = page.getByRole('dialog', { name: /^Add workspace bank/ })
+    await addBank.getByRole('combobox', { name: 'DX7 catalog bank' }).selectOption('rom1a')
+    await addBank.getByRole('button', { name: 'Create bank' }).click()
+    await expect(addBank).toBeHidden()
+
+    await slotButtons(page).first().click()
+
+    // FM-1+VA stores a single-voice dump over the selected preset, so the patch arrives as its 155
+    // parameter changes, F0 43 10 pp qq vv F7, which it holds as an unsaved edit.
+    await expect.poll(async () => (await sentSysex(page)).length, { timeout: 15_000 }).toBe(155)
+    const messages = await sentSysex(page)
+    expect(messages.every((message) => message.length === 7 && message[2] === 0x10)).toBe(true)
+    expect(messages.some((message) => message.length === singleVoiceDumpLength)).toBe(false)
+  })
+
+  test('shows the Baud Girl FM-1+VA badge in the header once the FM1 names its firmware', async ({
+    page,
+  }) => {
+    const badge = page.getByTitle(/^The FM1 runs Baud Girl’s FM-1\+VA firmware, FM-1_089\./)
+
+    await expect(badge).toBeVisible()
+    await expect(badge.getByRole('img')).toHaveCount(0)
+    await expect(badge.getByText('FM-1+VA firmware by Baud Girl, FM-1_089')).toBeAttached()
+  })
+
+  test('explains the FM-1+VA Write the bank question before sending a bank', async ({ page }) => {
+    await page.getByRole('button', { exact: true, name: 'Send to FM1' }).first().click()
+    const instructions = page.getByRole('dialog', {
+      name: 'Choose the destination bank on your FM1',
+    })
+
+    await expect(
+      instructions.getByText(
+        'Turn ALGORITHM until the question names the destination bank: A, B, C or D.',
+      ),
+    ).toBeVisible()
+    await expect(instructions.getByText(/Turn Knob 1/)).toBeHidden()
+  })
+})

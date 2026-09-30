@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+// @vitest-environment jsdom
+
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { MidiTransferCancelledError, MidiTransferQueue } from '@/lib/midi-transfer-queue'
 
@@ -68,5 +70,47 @@ describe('MidiTransferQueue coalescing', () => {
     await expect(refused).rejects.toThrow('port closed')
     await expect(next).resolves.toBeUndefined()
     expect(sent).toEqual(['next'])
+  })
+})
+
+describe('MidiTransferQueue spacing', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('waits the queue interval between transfers', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'performance'] })
+    const queue = new MidiTransferQueue({ minimumIntervalMs: 1000 })
+    const sent: string[] = []
+
+    void queue.enqueue(() => {
+      sent.push('first')
+    })
+    void queue.enqueue(() => {
+      sent.push('second')
+    })
+    await vi.advanceTimersByTimeAsync(1500)
+
+    expect(sent).toEqual(['first'])
+  })
+
+  it('sends a transfer with its own interval without waiting the queue interval', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'performance'] })
+    const queue = new MidiTransferQueue({ minimumIntervalMs: 1000 })
+    const sent: string[] = []
+
+    const transfers = ['first', 'second', 'third'].map((value) =>
+      queue.enqueue(
+        () => {
+          sent.push(value)
+        },
+        undefined,
+        { minimumIntervalMs: 0 },
+      ),
+    )
+    await vi.advanceTimersByTimeAsync(0)
+
+    await Promise.all(transfers)
+    expect(sent).toEqual(['first', 'second', 'third'])
   })
 })

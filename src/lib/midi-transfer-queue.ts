@@ -2,12 +2,18 @@ export type MidiTransferTask = () => void | Promise<void>
 
 type QueuedTask = {
   key?: string
+  minimumIntervalMs?: number
   run: MidiTransferTask
   resolve: () => void
   reject: (reason: unknown) => void
 }
 
 export type MidiTransferQueueOptions = {
+  minimumIntervalMs?: number
+}
+
+export type MidiTransferOptions = {
+  /** The gap before this transfer, in place of the queue's own minimum interval. */
   minimumIntervalMs?: number
 }
 
@@ -34,20 +40,21 @@ export class MidiTransferQueue {
     this.minimumIntervalMs = Math.max(0, minimumIntervalMs)
   }
 
-  enqueue(run: MidiTransferTask, key?: string) {
+  enqueue(run: MidiTransferTask, key?: string, { minimumIntervalMs }: MidiTransferOptions = {}) {
     return new Promise<void>((resolve, reject) => {
+      const task = { key, minimumIntervalMs, run, resolve, reject }
       if (key) {
-        const pendingIndex = this.queue.findIndex((task) => task.key === key)
+        const pendingIndex = this.queue.findIndex((pending) => pending.key === key)
 
         if (pendingIndex >= 0) {
           const replaced = this.queue[pendingIndex]
           replaced.resolve()
-          this.queue[pendingIndex] = { key, run, resolve, reject }
+          this.queue[pendingIndex] = task
           return
         }
       }
 
-      this.queue.push({ key, run, resolve, reject })
+      this.queue.push(task)
       void this.drain()
     })
   }
@@ -66,7 +73,8 @@ export class MidiTransferQueue {
 
     while (this.queue.length > 0) {
       const elapsed = performance.now() - this.lastRunAt
-      const delay = this.minimumIntervalMs - elapsed
+      const interval = Math.max(0, this.queue[0].minimumIntervalMs ?? this.minimumIntervalMs)
+      const delay = interval - elapsed
 
       if (delay > 0) {
         await new Promise((resolve) => window.setTimeout(resolve, delay))

@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { makeDx7SingleVoicePayload } from '@/lib/dx7'
 import { makeFm1ParameterPayload } from '@/lib/midi'
 import { makeDemoVoices } from '@/lib/patch-library'
+import { makeFakeFm1Ports, mvaveIdentityReply } from '@/test/fake-fm1-midi'
 
 import { useMidi } from './use-midi'
 
@@ -77,13 +78,23 @@ async function connectOutput(output = makeOutput()) {
   return { ...hook, output }
 }
 
+/** An FM1 on M-VAVE firmware, which takes a patch into its edit buffer as one SysEx message. */
+async function connectMvaveFm1() {
+  const { input, output } = makeFakeFm1Ports({ reply: mvaveIdentityReply })
+  webMidi.inputs = [input]
+  webMidi.outputs = [output]
+  const hook = await connect()
+  await waitFor(() => expect(hook.result.current.firmware.kind).toBe('mvave'))
+  return { ...hook, output }
+}
+
 function logMessages(result: { current: ReturnType<typeof useMidi> }) {
   return result.current.logStore.getSnapshot().map(({ direction, message }) => [direction, message])
 }
 
 describe('useMidi edit-buffer voice transfer', () => {
   it('sends a voice to the FM1 edit buffer as single-voice SysEx on the note channel', async () => {
-    const { output, result } = await connectOutput()
+    const { output, result } = await connectMvaveFm1()
     act(() => result.current.setChannel(4))
 
     await expect(result.current.sendVoice(voice)).resolves.toBe(true)
@@ -108,11 +119,10 @@ describe('useMidi edit-buffer voice transfer', () => {
   })
 
   it('reports a voice the port refused as not sent', async () => {
-    const output = makeOutput()
+    const { output, result } = await connectMvaveFm1()
     output.sendSysex.mockImplementation(() => {
       throw new Error('The port is closed.')
     })
-    const { result } = await connectOutput(output)
 
     await expect(result.current.sendVoice(voice)).resolves.toBe(false)
 

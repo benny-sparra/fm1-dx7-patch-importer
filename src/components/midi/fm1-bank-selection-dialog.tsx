@@ -19,7 +19,7 @@ type Fm1BankSelectionDialogProps = {
   isSending: boolean
   midi: Pick<
     MidiController,
-    'connectMidi' | 'disconnectMidi' | 'isConnecting' | 'midiAccess' | 'sysexAvailable'
+    'connectMidi' | 'disconnectMidi' | 'firmware' | 'isConnecting' | 'midiAccess' | 'sysexAvailable'
   >
   /** What the bank becomes on the FM1 when it is not simply 32 patches, as for Favourites. */
   note?: string
@@ -38,6 +38,17 @@ export function Fm1BankSelectionDialog({
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const sysexUnavailable = !midi.sysexAvailable
+  // M-VAVE's firmware and FM-1+VA choose the destination bank differently. Until the editor knows
+  // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs.
+  const firmwareKind = midi.firmware.kind
+  const steps =
+    firmwareKind === 'fm1-va'
+      ? (['dialogs.bankFm1VaStep1', 'dialogs.bankFm1VaStep2', 'dialogs.bankFm1VaStep3'] as const)
+      : (['dialogs.bankStep1', 'dialogs.bankStep2', 'dialogs.bankStep3'] as const)
+  const unidentifiedNote =
+    firmwareKind === 'checking' || firmwareKind === 'unidentified'
+      ? t('dialogs.bankFm1VaNote')
+      : null
   const closeDialog = () => dialogRef.current?.close()
 
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
@@ -88,28 +99,38 @@ export function Fm1BankSelectionDialog({
             className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-center"
             key="bank-selection"
           >
-            {note ? (
-              <p className="flex items-start gap-3 border border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-3 text-sm leading-5 sm:col-span-2">
-                <Info aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-[var(--crt-led)]" />
-                <span>{note}</span>
-              </p>
-            ) : null}
-            <ol className="grid gap-4 text-sm leading-5">
+            {[note, unidentifiedNote].map((text) =>
+              text ? (
+                <p
+                  className="flex items-start gap-3 border border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-3 text-sm leading-5 sm:col-span-2"
+                  key={text}
+                >
+                  <Info
+                    aria-hidden="true"
+                    className="mt-0.5 size-5 shrink-0 text-[var(--crt-led)]"
+                  />
+                  <span>{text}</span>
+                </p>
+              ) : null,
+            )}
+            {/* Keyed by firmware: a page translator's replaced text would otherwise stay behind
+                when the steps change. */}
+            <ol className="grid gap-4 text-sm leading-5" key={steps[0]}>
               <li className="flex gap-3">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                   1
                 </span>
-                <span>{t('dialogs.bankStep1')}</span>
+                <span>{t(steps[0])}</span>
               </li>
               <li className="flex gap-3">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                   2
                 </span>
-                <span>{t('dialogs.bankStep2')}</span>
+                <span>{t(steps[1])}</span>
               </li>
               <li className="flex gap-3">
                 <CircleCheck className="size-6 shrink-0 text-[var(--crt-acc-lt)]" />
-                <span>{t('dialogs.bankStep3')}</span>
+                <span>{t(steps[2])}</span>
               </li>
             </ol>
 

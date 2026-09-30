@@ -7,6 +7,13 @@ export default {
     bankStep1: 'Warte, bis die Bankauswahl im Display des FM1 erscheint.',
     bankStep2: 'Wähle mit Regler 1, 2, 3 oder 4 die Zielbank A, B, C oder D.',
     bankStep3: 'Der FM1 speichert die 32 Sounds nach kurzer Wartezeit automatisch.',
+    bankFm1VaStep1:
+      'Der FM1 fragt „Write the bank?“ und beginnt bei Bank A, egal welche Bank du sendest.',
+    bankFm1VaStep2: 'Drehe ALGORITHM, bis die Frage die Zielbank nennt: A, B, C oder D.',
+    bankFm1VaStep3:
+      'Drehe SELECT auf Write und drücke SEL, um die 32 Sounds zu speichern, oder brich mit HOME ab.',
+    bankFm1VaNote:
+      'Läuft auf deinem FM1 die Firmware FM-1+VA, fragt er stattdessen „Write the bank?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Write, und drücke SEL.',
     bankImage: 'Vorderseite des M-VAVE FM1 mit Display und vier nummerierten Reglern',
     dontShow: 'In dieser Sitzung nicht erneut anzeigen',
     midiTitle: 'MIDI verbinden, um diese Bank zu senden',
@@ -110,26 +117,28 @@ export default {
     'Filter Type':
       'Wählt, was das Filter durchlässt: Tiefpass behält die Tiefen, Hochpass die Höhen und Bandpass einen mittleren Bereich.',
     'Filter Cutoff':
-      'Legt die Frequenz fest, ab der das Filter wirkt. Die hörbare Richtung hängt vom gewählten Filtertyp ab.',
+      'Legt die Frequenz fest, ab der das Filter wirkt, von etwa 100 Hz bei 0 bis 20 kHz bei 107. Die hörbare Richtung hängt vom gewählten Filtertyp ab.',
     'Filter Resonance':
       'Betont Frequenzen um die Grenzfrequenz. Höhere Werte klingen schärfer und ausgeprägter.',
     'Reverb Space': 'Wählt den Charakter des simulierten Raums: Raum, Halle oder helle Platte.',
     'Reverb Decay': 'Legt fest, wie lange die Hallfahne anhält.',
     'Reverb Mix': 'Mischt trockenes Signal und Hall. Bei 0 % hörst du nur den Originalklang.',
-    'Delay Decay': 'Legt fest, wie lange die Echowiederholungen anhalten, bevor sie ausklingen.',
+    'Delay Decay':
+      'Legt fest, wie viel von jedem Echo in das Delay zurückgeführt wird. Höhere Werte ergeben mehr Wiederholungen, bevor sie ausklingen.',
     'Delay Rate':
-      'Legt die Zeit zwischen den Echos fest. Höhere Werte ändern den Abstand der Wiederholungen.',
+      'Legt die Zeit zwischen den Echos fest. Höhere Werte rücken sie näher zusammen, von etwa 0,8 Sekunden bei 0 bis 0,1 Sekunden bei 100.',
     'Delay Mix': 'Mischt trockenes Signal und Echos. Bei 0 % hörst du nur den Originalklang.',
     'Distortion Gain':
       'Bestimmt, wie stark das Signal die Verzerrung antreibt. Höhere Werte fügen mehr Sättigung und Obertöne hinzu.',
     'Distortion Tone': 'Passt die Helligkeit des verzerrten Klangs an.',
     'Distortion Level':
       'Legt die Ausgangslautstärke nach der Verzerrung fest, nützlich zum Angleichen an die Lautstärke ohne Effekt.',
-    'Chorus Frequency': 'Legt fest, wie schnell die Chorus-Bewegung schwingt.',
+    'Chorus Frequency':
+      'Legt fest, wie schnell die Chorus-Bewegung schwingt, von etwa 0,1 bis 1 Hz.',
     'Chorus Depth':
       'Legt fest, wie weit die Tonhöhenbewegung des Chorus reicht. Höhere Werte klingen breiter und deutlicher.',
     'Chorus Mix': 'Mischt trockenes Signal und Chorus-Signal.',
-    'Phaser Frequency': 'Legt fest, wie schnell der Phaser-Sweep schwingt.',
+    'Phaser Frequency': 'Legt fest, wie schnell der Phaser-Sweep schwingt, von etwa 0,5 bis 6 Hz.',
     'Phaser Depth': 'Legt Umfang und Intensität des Phaser-Sweeps fest.',
     'Phaser Mix': 'Mischt trockenes Signal und Phaser-Signal.',
   },
@@ -406,6 +415,16 @@ export default {
     description: 'Wähle Oberflächensprache, MIDI-Ports und Kanäle.',
     output: 'Ausgang',
     inputMonitor: 'Monitoring-Eingang',
+    firmware: 'FM1-Firmware',
+    firmwareChecking: 'Wird geprüft…',
+    firmwareUnidentified: 'Nicht erkannt',
+    firmwareMvave: 'M-VAVE {{identity}}',
+    firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareEditBuffer: 'Sounds, die du anspielst, gehen in den Bearbeitungspuffer des FM1.',
+    firmwareParameterChanges:
+      'Sounds, die du anspielst, werden als Parameteränderungen gesendet, damit der FM1 sie nie über das gewählte Preset speichert.',
+    firmwareNeedsInput:
+      'Wähle den FM1 als Monitoring-Eingang, damit der Editor fragen kann, welche Firmware er verwendet.',
     noteChannel: 'Notenkanal',
     fxChannel: 'Effektkanal',
     defaultChannel: 'FM1-Standard: Kanal 2',
@@ -585,6 +604,9 @@ export default {
     randomiseHelp: 'Neue Stimme. Name und Effekte bleiben.',
   },
   midi: {
+    fm1VaBadgeLabel: 'Firmware FM-1+VA von Baud Girl, {{identity}}',
+    fm1VaBadgeTitle:
+      'Auf dem FM1 läuft die Firmware FM-1+VA von Baud Girl, {{identity}}. Sounds, die du anspielst, kommen als ungespeicherte Änderungen an und überschreiben nie ein Preset.',
     panic: 'MIDI-Panik',
     panicHelp:
       'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',
