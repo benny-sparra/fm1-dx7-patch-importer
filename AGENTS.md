@@ -301,6 +301,10 @@ open everything an earlier release could have saved.
   whenever a bank is added, removed, or replaced; `src/data/dx7-catalog-index.test.ts` fails in
   `npm test` while the index is stale. The index stores `voiceFingerprint` values, so changing that
   function means regenerating the index in the same change.
+- The bank picker lists catalog groups alphabetically by the name it shows, compared in the
+  interface language, so no group is appended at the bottom. A group of banks one person compiled or
+  programmed is named for them, as the `mene311` group is, and like product names it is not
+  translated.
 
 ### Theme and finishes
 
