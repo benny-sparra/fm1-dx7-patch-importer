@@ -143,7 +143,7 @@ The 26 themed banks in the catalog's **mene311** group are bundled unchanged, wi
 
 The interface links to independent DX7 patch archives to help users find compatible banks. Those downloads are provided by their respective sites; only import files you trust.
 
-If you have programmed a DX7 bank of your own, you can offer it for the bundled catalog: see [Contributing a patch bank](CONTRIBUTING.md#contributing-a-patch-bank).
+If you have programmed a DX7 bank of your own, or gathered other people's voices into banks, you can offer it for the bundled catalog: see [Contributing a patch bank](CONTRIBUTING.md#contributing-a-patch-bank).
 
 ## Licence
 
