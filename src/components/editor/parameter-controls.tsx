@@ -379,14 +379,24 @@ export function RadioParameterControl({
       ) : helpText ? (
         <HelpPopover label={label} text={helpText} />
       ) : null}
-      <div aria-label={label} className="flex" role="radiogroup">
+      {/*
+        A segmented control: the options share one sunken track and only the
+        chosen one stands raised out of it, so they read as one choice between
+        them. Focus rings the whole track, where no option can paint over it;
+        the arrow keys move the choice, as in any radio group.
+      */}
+      <div
+        aria-label={label}
+        className="crt-inset flex gap-[2px] bg-[var(--crt-bg-1)] p-[2px] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--crt-led)]"
+        role="radiogroup"
+      >
         {options.map((option, index) => (
           <label
             className={cn(
-              'flex flex-1 cursor-pointer items-center justify-center border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2.5 py-[3px] text-[11px] tracking-[0.1em] uppercase transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--crt-led)]',
+              'flex flex-1 cursor-pointer items-center justify-center border-t border-r border-b border-l px-2.5 py-px text-[11px] leading-4 tracking-[0.1em] uppercase transition-colors',
               value === index
-                ? 'border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
-                : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
+                ? 'border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
+                : 'border-transparent text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
             )}
             key={option}
           >
