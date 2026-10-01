@@ -72,6 +72,20 @@ describe('Fm1BankSelectionDialog', () => {
     expect(screen.queryByText(/Turn Knob 1/)).toBeNull()
   })
 
+  it('shows FM-1+VA firmware its Write the bank screen', () => {
+    render(renderDialog(true, { identity: 'FM-1_089', kind: 'fm1-va' }))
+
+    expect(screen.getByRole('img', { name: /asking “Write the bank\?”/ })).toBeTruthy()
+    expect(screen.queryByRole('img', { name: /32 Voice Save To/ })).toBeNull()
+  })
+
+  it('shows the M-VAVE screen while the firmware is not identified', () => {
+    render(renderDialog(true, { kind: 'checking' }))
+
+    expect(screen.getByRole('img', { name: /32 Voice Save To/ })).toBeTruthy()
+    expect(screen.queryByRole('img', { name: /Write the bank/ })).toBeNull()
+  })
+
   it('says how FM-1+VA differs while the firmware is not identified', () => {
     render(renderDialog(true, { kind: 'unidentified' }))
 

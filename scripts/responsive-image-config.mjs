@@ -6,6 +6,7 @@ export const responsiveImageConfig = [
   { height: 554, source: 'fm1-purple.webp', width: 923, widths: [460] },
   { height: 554, source: 'fm1-white-blue.webp', width: 923, widths: [460] },
   { height: 477, source: 'fm1-synth.webp', width: 500, widths: [240, 360] },
+  { height: 476, source: 'fm1-va-bank-screen.webp', width: 500, widths: [240, 360] },
 ]
 
 export const generatedImageDirectory = 'src/assets/generated'

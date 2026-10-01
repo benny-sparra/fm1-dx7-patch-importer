@@ -183,6 +183,53 @@ export function importVoices(
   }
 }
 
+/** A bank of patches read from the FM1's memory, with null for a slot that keeps its patch. */
+export type FetchedBank = { bank: string; voices: (Dx7Voice | null)[] }
+
+/**
+ * Puts banks read from the FM1 into the workspace banks of the same letters, as one change. A
+ * bank the workspace does not have yet is added, with any banks before it. Each patch arrives
+ * with the default effects, as an imported bank's do; a null slot is left as it is.
+ */
+export function importFetchedBanks(
+  snapshot: PatchLibrarySnapshot,
+  banks: readonly FetchedBank[],
+): PatchLibrarySnapshot {
+  let workspaceBanks = snapshot.workspaceBanks
+  for (const { bank } of banks) {
+    while (!workspaceBanks.includes(bank)) {
+      const next = getNextWorkspaceBank(workspaceBanks)
+      if (!next || next > bank) throw new WorkspaceBankUnavailableError()
+      workspaceBanks = [...workspaceBanks, next]
+    }
+  }
+
+  const voices = { ...snapshot.voices }
+  const effects = { ...snapshot.effects }
+  const loadedBanks = new Set(snapshot.loadedBanks)
+  for (const { bank, voices: fetched } of banks) {
+    if (fetched.length !== dx7BankVoiceCount) {
+      throw new Error(`A browser bank requires exactly ${dx7BankVoiceCount} DX7 voices.`)
+    }
+    fetched.forEach((voice, index) => {
+      if (!voice) return
+      const id = voiceId(bank, index + 1)
+      voices[id] = voice
+      effects[id] = makeDefaultFm1Effects()
+      loadedBanks.add(bank)
+    })
+  }
+  return {
+    bankDescriptions: snapshot.bankDescriptions,
+    bankNames: snapshot.bankNames,
+    effects,
+    favourites: snapshot.favourites,
+    loadedBanks: [...loadedBanks].sort(),
+    voices,
+    workspaceBanks,
+  }
+}
+
 export function renameBank(
   snapshot: PatchLibrarySnapshot,
   bank: string,

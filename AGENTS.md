@@ -174,6 +174,10 @@ open everything an earlier release could have saved.
   every other firmware, including one not yet identified, gets the patch as its 155 parameter
   changes, which it holds as an unsaved edit. The bank destination instructions follow the firmware
   too: FM-1+VA asks **Write the bank?** starting on bank A, and chooses the bank with ALGORITHM.
+- Clicking a slot in banks A–D sends its Program Change, then the library's voice and effects to
+  the edit buffer, because the FM1's stored preset may not match the library and the app cannot
+  read it back. Only without SysEx does the click fall back to the Program Change and effects. The
+  repeat check covers the program too, since resending it alone would bring the stored preset back.
 - Do not resend unchanged data to the FM1 on repeated interaction, such as a double-click. Forget
   what was sent as soon as anything else replaces that device state, and after a failed send.
   The edit-buffer audition compares voice objects by identity, so a library change that puts a
@@ -220,7 +224,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader and its dialog when **Import FM-1+VA presets…** opens it, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -390,8 +394,10 @@ open everything an earlier release could have saved.
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.
   Restoring replaces the workspace, which Undo reverses, and only adds saved banks, never
   overwriting a stored one (`addStoredNamedBank`), because Undo cannot reach saved banks.
+  FM-1+VA's own file is not a backup in this sense: the app calls it the **FM-1+VA presets** file,
+  and names FM-1+VA's button **“Save a backup”** only in quotation marks, as the device's own label.
 - A library change that replaces or removes sounds (deleting a bank, resetting to factory banks,
-  restoring a backup, importing or loading over a bank, copying a sound over a slot) offers Undo in its notification through `undoToastOptions`, and a
+  restoring a backup, importing or loading over a bank, importing FM-1+VA presets, copying a sound over a slot) offers Undo in its notification through `undoToastOptions`, and a
   notification with an action stays up for 10 seconds. The
   undo applies only while that change is still the latest (`undoChange`), and a dialog must not
   promise an undo the app does not offer. The editor reads its voice only as it opens, so when a

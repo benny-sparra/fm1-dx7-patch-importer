@@ -10,7 +10,7 @@ type AnalyticsEvent =
       name: 'bank_exported'
     }
   | {
-      data: { source: 'catalog' | 'file' }
+      data: { source: 'catalog' | 'file' | 'fm1_va_backup' }
       name: 'bank_imported'
     }
   | {

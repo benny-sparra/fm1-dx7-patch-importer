@@ -15,7 +15,9 @@ export default {
       'Tournez SELECT jusqu’à Write et appuyez sur SEL pour enregistrer les 32 sons, ou appuyez sur HOME pour annuler.',
     bankFm1VaNote:
       'Si votre FM1 utilise le firmware FM-1+VA, il demande plutôt « Write the bank? » et commence sur la banque A. Tournez ALGORITHM jusqu’à la banque de destination, puis SELECT jusqu’à Write, et appuyez sur SEL.',
-    bankImage: 'Panneau avant du M-VAVE FM1 avec écran et quatre boutons numérotés',
+    bankFm1VaImage: 'Écran du FM1 sous FM-1+VA demandant « Write the bank? », avec Cancel et Write',
+    bankImage:
+      'Écran du FM1 sous le firmware de M-VAVE affichant « 32 Voice Save To … » au-dessus des banques A, B, C et D',
     dontShow: 'Ne plus afficher pendant cette session',
     midiTitle: 'Connectez le MIDI pour envoyer cette banque',
     midiIntro: 'Le FM1 doit être connecté comme sortie MIDI avant l’envoi d’une banque.',
@@ -297,6 +299,48 @@ export default {
     previewTitle: 'Sons de ce fichier',
     title: 'Importer par-dessus « {{bank}} » ?',
     warning: 'Le contenu actuel de la banque sera effacé et remplacé par les sons importés.',
+  },
+  fm1VaImport: {
+    menuHeading: 'Depuis FM-1+VA',
+    menuItem: 'Importer les presets FM-1+VA…',
+    menuContents: 'Banques A à D du fichier écrit par « Save a backup »',
+    title: 'Importer les presets FM-1+VA',
+    help: 'Choisissez le fichier .syx enregistré par « Save a backup » sur la page Presets de FM-1+VA. Il contient les 128 presets des banques A à D du FM1.',
+    effectsNote:
+      'Seuls les sons sont importés. Le fichier contient aussi les effets de chaque preset, mais l’éditeur ne sait pas encore les lire : chaque son importé commence donc avec ses effets désactivés.',
+    warning:
+      'Chaque banque cochée remplace les sons de la même banque ici. Vous pourrez annuler l’importation ensuite.',
+    file: 'Fichier de presets FM-1+VA',
+    chooseFile: 'Choisir le fichier de « Save a backup »',
+    previewTitle: 'Banques de ce fichier',
+    previewHelp:
+      'Cliquez sur un son pour l’écouter sur le FM1. Décochez une banque pour la laisser telle quelle.',
+    bankHeading: 'Banque {{bank}} du FM1',
+    replaceBank: 'Remplacer « {{name}} »',
+    addBank: 'L’ajouter comme nouvelle banque',
+    damagedPreset: 'Endommagé',
+    damagedPresets:
+      'Un preset de ce fichier est endommagé. Son emplacement garde le son qu’il contient.',
+    damagedPresets_other:
+      '{{count, number}} presets de ce fichier sont endommagés. Leurs emplacements gardent les sons qu’ils contiennent.',
+    action: 'Remplacer une banque',
+    action_other: 'Remplacer {{count, number}} banques',
+    imported: 'Banque {{banks}} importée depuis FM-1+VA.',
+    imported_other: 'Banques {{banks}} importées depuis FM-1+VA.',
+    openFailed: 'Impossible d’ouvrir l’importation FM-1+VA. Rechargez la page et réessayez.',
+    virtualAnalogTag: 'VA',
+    virtualAnalogPreset: 'Preset Virtual Analog, non importé',
+    virtualAnalogPresets:
+      'Un preset de ce fichier est un preset Virtual Analog, marqué VA. L’éditeur ne sait pas encore les conserver : son emplacement garde donc le son qu’il contient.',
+    virtualAnalogPresets_other:
+      '{{count, number}} presets de ce fichier sont des presets Virtual Analog, marqués VA. L’éditeur ne sait pas encore les conserver : leurs emplacements gardent donc les sons qu’ils contiennent.',
+    errors: {
+      size: 'Ce fichier fait {{bytes, number}} octets. Un fichier de « Save a backup » de FM-1+VA fait exactement {{expected, number}} octets.',
+      format: 'Ce fichier n’a pas été enregistré par « Save a backup » de FM-1+VA.',
+      damaged:
+        'Aucun preset de ce fichier n’a pu être lu. Enregistrez une nouvelle sauvegarde sur FM-1+VA et réessayez.',
+      unreadable: 'Le fichier n’a pas pu être lu.',
+    },
   },
   persistence: {
     retryLoading: 'Réessayer',

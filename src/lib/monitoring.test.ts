@@ -55,8 +55,6 @@ describe('Sentry monitoring', () => {
           userInfo: false,
         },
         dsn: 'https://public@example.invalid/123',
-        enableLogs: true,
-        enableMetrics: false,
         environment: 'production',
         replaysOnErrorSampleRate: 0,
         replaysSessionSampleRate: 0,
@@ -90,20 +88,6 @@ describe('Sentry monitoring', () => {
     await initialize()
 
     expect(sdk.init).toHaveBeenCalledWith(expect.objectContaining({ release: undefined }))
-  })
-
-  it('enables metrics only for an explicitly configured verification build', async () => {
-    const { sdk } = createSdk()
-    const initialize = createMonitoringInitializer({
-      dsn: 'https://public@example.invalid/123',
-      enableVerificationMetrics: true,
-      environment: 'production',
-      loadSdk: async () => sdk,
-    })
-
-    await initialize()
-
-    expect(sdk.init).toHaveBeenCalledWith(expect.objectContaining({ enableMetrics: true }))
   })
 
   it('removes potentially identifying breadcrumbs and URL details before sending', async () => {

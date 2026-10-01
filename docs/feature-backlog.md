@@ -327,7 +327,8 @@ Rules that apply to every item:
   raw memory read (below).
 - **Gate on the firmware.** Offer a feature only while `firmware.kind` is `fm1-va` and its version
   is at least the one that added the command, and hide it otherwise. M-VAVE's firmware and an
-  unidentified FM1 keep today's behaviour.
+  unidentified FM1 keep today's behaviour. A feature that only reads a file FM-1+VA wrote, such as item 1, sends
+  no command and is offered whatever the FM1 runs.
 - **Protocol discipline.** Follow the roadmap's build order and the hardware research discipline in
   `AGENTS.md`: capture each reply from an FM1 as a fixture, decode it in `src/lib/`, and test on
   hardware before shipping. Anything that writes the FM1's memory starts from an FM-1+VA backup.
@@ -354,7 +355,9 @@ What is known, from FM-1+VA's own code and manual:
   effect chain with order, switch, and type per slot (27–44), and Attack, Decay, Sustain, and
   Release (54–57). Bytes 45–53 and 58 are unexplained. Where a Virtual Analog preset keeps its
   oscillator settings is not known. How the record's effect bytes relate to CC 0–23 values is not
-  known either.
+  known either. Backups confirm only the marker's place: byte 18 is `5A` in a Virtual Analog preset
+  but `03`, not `A5`, in an FM one, and the rest of this map does not match what they hold
+  (`docs/fm1-research.md`, "Its backup file"), so item 2 maps it afresh.
 
 Suggested order: 1 needs no new command; 2 underpins 3 to 6.
 
@@ -365,6 +368,12 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       effects are left as they are. A full backup is 29,568 bytes; check the size and each
       message's checksum before reading, and report a damaged message rather than failing the
       whole file.
+      _In progress (2026-10-01, `feature/fm1-va-backup-import`):_ **Import FM-1+VA presets…** in
+      the patch-bank header menu reads the file and replaces the banks the user ticks, voices
+      only, with the effects off. It is offered whatever firmware is connected, because it reads a
+      file and sends nothing. A Virtual Analog preset, which record byte 18 marks with `5A`
+      (`docs/fm1-research.md`, "Its backup file"), is shown as VA and left out, so its slot keeps
+      its patch until item 6 can hold one.
 - [ ] **2. Groundwork: read presets, and map the record.** Approve `10`, build a bounded
       `readFm1VaPreset(slot)` with typed, translated errors, and capture fixtures from an FM1.
       Then map the record by the research discipline: change one setting on the FM1 (an effect
@@ -399,9 +408,12 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
     Super, Detune, Drift, Sub, Noise, PWM, Filter Type, and the filter's envelope and modulation,
     and CC 70–78 the shared Envelope, LFO, Cutoff, and Resonance, as unsaved edits heard at once.
     A lazy Virtual Analog editor page, like the voice editor, sends these; continuous input is one
-    undo step. Showing the current values needs the record map from 2.
+    undo step. Showing the current values needs the record map from 2. The CC map is recorded in
+    `docs/fm1-research.md`, "Controllers on the MIDI Channel" (**Likely**), and its hardware
+    tests are planned in [`fm1-va-controller-tests.md`](fm1-va-controller-tests.md); build this
+    step once they pass. It never sends CC 85–119, which press the FM1's own buttons.
   - **Save and create them.** Save to the library and write with 4; **New Virtual Analog
-    preset** starts from FM-1+VA's defaults once they are known.
+    preset** starts from FM-1+VA's defaults, which test V1 records.
   - Unknowns: where the oscillator settings are stored, and how each CC value maps to the stored
     value. A list setting such as Waveform divides the 128 CC values into equal bands.
 - [ ] **7. The Sequencer, on FM-1+VA.** `20` writes a pattern directly, the transfer

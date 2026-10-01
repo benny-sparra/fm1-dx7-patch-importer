@@ -28,6 +28,7 @@ export function makeLibrarianLibrary(overrides: Partial<Library> = {}): Library 
     getBankVoices: vi.fn<Library['getBankVoices']>(() => []),
     hasDamagedNamedBanks: false,
     importBank: vi.fn<Library['importBank']>(),
+    importFetchedBanks: vi.fn<Library['importFetchedBanks']>(),
     loadDemoBank: vi.fn<Library['loadDemoBank']>(),
     loadSavedBank: vi.fn<Library['loadSavedBank']>(),
     loadedBanks: [],
