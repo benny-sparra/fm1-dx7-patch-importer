@@ -18,6 +18,7 @@ import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { makeDemoVoices } from '@/lib/patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { expectNoAxeViolations } from '@/test/accessibility'
+import { makeFm1VaBackupFile } from '@/test/fm1-va-backup-file'
 import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 beforeAll(() => {
@@ -153,6 +154,21 @@ describe('rendered accessibility', () => {
     await user.type(screen.getByRole('searchbox', { name: 'Search' }), 'piano')
 
     expect(await screen.findByRole('region', { name: 'Other DX7 patch banks' })).toBeTruthy()
+    await expectNoAxeViolations(container)
+  })
+
+  it('keeps the FM-1+VA import and its bank preview free of violations', async () => {
+    const { container } = renderLibrarian()
+    const user = userEvent.setup()
+
+    await user.click(screen.getByTitle('More bank file actions'))
+    await user.click(screen.getByRole('button', { name: 'Import FM-1+VA presets…' }))
+    await user.upload(
+      await screen.findByLabelText(/FM-1\+VA presets file/),
+      makeFm1VaBackupFile('FM-1 presets.syx', [5]),
+    )
+
+    expect(await screen.findByRole('region', { name: 'FM1 bank D' })).toBeTruthy()
     await expectNoAxeViolations(container)
   })
 

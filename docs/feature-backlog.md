@@ -327,7 +327,8 @@ Rules that apply to every item:
   raw memory read (below).
 - **Gate on the firmware.** Offer a feature only while `firmware.kind` is `fm1-va` and its version
   is at least the one that added the command, and hide it otherwise. M-VAVE's firmware and an
-  unidentified FM1 keep today's behaviour.
+  unidentified FM1 keep today's behaviour. A feature that only reads a file FM-1+VA wrote, such as item 1, sends
+  no command and is offered whatever the FM1 runs.
 - **Protocol discipline.** Follow the roadmap's build order and the hardware research discipline in
   `AGENTS.md`: capture each reply from an FM1 as a fixture, decode it in `src/lib/`, and test on
   hardware before shipping. Anything that writes the FM1's memory starts from an FM-1+VA backup.
@@ -354,7 +355,9 @@ What is known, from FM-1+VA's own code and manual:
   effect chain with order, switch, and type per slot (27–44), and Attack, Decay, Sustain, and
   Release (54–57). Bytes 45–53 and 58 are unexplained. Where a Virtual Analog preset keeps its
   oscillator settings is not known. How the record's effect bytes relate to CC 0–23 values is not
-  known either.
+  known either. Two `FM-1_089` backups do not match this map: byte 18 is `03` in every preset and
+  no byte has its high bit set (`docs/fm1-research.md`, "Its backup file"), so the whole map needs
+  checking against a backup with a Virtual Analog preset.
 
 Suggested order: 1 needs no new command; 2 underpins 3 to 6.
 
@@ -365,6 +368,12 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       effects are left as they are. A full backup is 29,568 bytes; check the size and each
       message's checksum before reading, and report a damaged message rather than failing the
       whole file.
+      _In progress (2026-10-01, `feature/fm1-va-backup-import`):_ **Import FM-1+VA presets…** in
+      the patch-bank header menu reads the file and replaces the banks the user ticks, voices
+      only, with the effects off. It is offered whatever firmware is connected, because it reads a
+      file and sends nothing. Before it ships, a backup with a Virtual Analog preset must show how
+      the record marks one, so those slots can be left out: the record did not match the map below
+      (`docs/fm1-research.md`, "Its backup file").
 - [ ] **2. Groundwork: read presets, and map the record.** Approve `10`, build a bounded
       `readFm1VaPreset(slot)` with typed, translated errors, and capture fixtures from an FM1.
       Then map the record by the research discipline: change one setting on the FM1 (an effect

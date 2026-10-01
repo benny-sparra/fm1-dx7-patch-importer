@@ -287,6 +287,43 @@ export default {
     title: '¿Importar sobre «{{bank}}»?',
     warning: 'El contenido actual del banco se borrará y se sustituirá por los sonidos importados.',
   },
+  fm1VaImport: {
+    menuHeading: 'Desde FM-1+VA',
+    menuItem: 'Importar presets de FM-1+VA…',
+    menuContents: 'Bancos A a D del archivo que escribe «Save a backup»',
+    title: 'Importar presets de FM-1+VA',
+    help: 'Elige el archivo .syx que guarda «Save a backup» en la página Presets de FM-1+VA. Contiene los 128 presets de los bancos A a D del FM1.',
+    effectsNote:
+      'Solo se importan los sonidos. El archivo también guarda los efectos de cada preset, pero el editor todavía no puede leerlos, así que cada sonido importado empieza con los efectos apagados.',
+    warning:
+      'Cada banco que marques reemplaza los sonidos del mismo banco aquí. Puedes deshacer la importación después.',
+    file: 'Archivo de presets de FM-1+VA',
+    chooseFile: 'Elige el archivo de «Save a backup»',
+    previewTitle: 'Bancos de este archivo',
+    previewHelp:
+      'Haz clic en un sonido para escucharlo en el FM1. Desmarca un banco para dejarlo como está.',
+    bankHeading: 'Banco {{bank}} del FM1',
+    replaceBank: 'Reemplazar «{{name}}»',
+    addBank: 'Añadirlo como banco nuevo',
+    damagedPreset: 'Dañado',
+    damagedPresets:
+      'Un preset de este archivo está dañado. Su posición conserva el sonido que tiene ahora.',
+    damagedPresets_other:
+      '{{count, number}} presets de este archivo están dañados. Sus posiciones conservan los sonidos que tienen ahora.',
+    action: 'Reemplazar un banco',
+    action_other: 'Reemplazar {{count, number}} bancos',
+    imported: 'Banco {{banks}} importado de FM-1+VA.',
+    imported_other: 'Bancos {{banks}} importados de FM-1+VA.',
+    openFailed:
+      'No se pudo abrir la importación de FM-1+VA. Recarga la página e inténtalo de nuevo.',
+    errors: {
+      size: 'Este archivo tiene {{bytes, number}} bytes. Un archivo de «Save a backup» de FM-1+VA tiene exactamente {{expected, number}} bytes.',
+      format: 'Este archivo no se guardó con «Save a backup» de FM-1+VA.',
+      damaged:
+        'No se pudo leer ningún preset de este archivo. Guarda una copia nueva en FM-1+VA e inténtalo de nuevo.',
+      unreadable: 'No se pudo leer el archivo.',
+    },
+  },
   persistence: {
     retryLoading: 'Reintentar',
     continueSessionOnly: 'Continuar sin guardar',

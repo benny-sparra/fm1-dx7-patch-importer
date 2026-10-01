@@ -25,6 +25,7 @@ import {
   emptyPatchLibrary,
   findLibrarySound,
   getBankVoices as selectBankVoices,
+  importFetchedBanks as importLibraryFetchedBanks,
   importVoices,
   makeDemoVoices,
   makePatches,
@@ -34,6 +35,7 @@ import {
   replaceVoice as replaceLibraryVoice,
   saveSound,
   updateBankInformation as updateLibraryBankInformation,
+  type FetchedBank,
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
 import {
@@ -202,6 +204,12 @@ export function usePatchLibrary() {
       const imported = await readDx7BankFile(file)
       return commit((current) => importVoices(current, bank, imported))
     },
+    [commit],
+  )
+
+  const importFetchedBanks = useCallback(
+    (banks: readonly FetchedBank[]) =>
+      commit((current) => importLibraryFetchedBanks(current, banks)),
     [commit],
   )
 
@@ -500,6 +508,7 @@ export function usePatchLibrary() {
     getBankVoices,
     hasDamagedNamedBanks,
     importBank,
+    importFetchedBanks,
     loadDemoBank,
     loadSavedBank,
     bankDescriptions: history.present.bankDescriptions,

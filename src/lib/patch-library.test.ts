@@ -9,6 +9,7 @@ import {
   emptyPatchLibrary,
   getNextWorkspaceBank,
   getBankVoices,
+  importFetchedBanks,
   importVoices,
   isRenumberedByBankDeletion,
   makeBankFingerprint,
@@ -333,6 +334,77 @@ describe('patch library operations', () => {
     const result = renameVoice(initial, voiceId('A', 1), 'BASS 🎹')
 
     expect(result.voices[voiceId('A', 1)].name).toBe('BASS')
+  })
+})
+
+describe('importing banks read from the FM1', () => {
+  const fetched = makeDemoVoices().map((voice) => updateDx7VoiceName(voice, `FM1 ${voice.name}`))
+
+  it('replaces the patches of each bank it is given', () => {
+    const before = importVoices(emptyPatchLibrary(), 'B', makeDemoVoices())
+
+    const result = importFetchedBanks(before, [{ bank: 'B', voices: fetched }])
+
+    expect(getBankVoices(result, 'B')).toEqual(fetched)
+    expect(result.loadedBanks).toEqual(['B'])
+  })
+
+  it('leaves the banks it is not given as they are', () => {
+    const before = importVoices(emptyPatchLibrary(), 'C', makeDemoVoices())
+
+    const result = importFetchedBanks(before, [{ bank: 'A', voices: fetched }])
+
+    expect(getBankVoices(result, 'C')).toEqual(getBankVoices(before, 'C'))
+    expect(result.loadedBanks).toEqual(['A', 'C'])
+  })
+
+  it('keeps the patch in a slot the FM1 could not supply', () => {
+    const before = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const withGap = fetched.map((voice, index) => (index === 4 ? null : voice))
+
+    const result = importFetchedBanks(before, [{ bank: 'A', voices: withGap }])
+
+    expect(result.voices[voiceId('A', 5)]).toBe(before.voices[voiceId('A', 5)])
+    expect(result.effects[voiceId('A', 5)]).toBe(before.effects[voiceId('A', 5)])
+    expect(result.voices[voiceId('A', 6)]).toBe(fetched[5])
+  })
+
+  it('gives each imported patch the default effects', () => {
+    const before = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const reverbOn = {
+      ...before,
+      effects: { ...before.effects, [voiceId('A', 1)]: Uint8Array.of(1) },
+    }
+
+    const result = importFetchedBanks(reverbOn, [{ bank: 'A', voices: fetched }])
+
+    expect(result.effects[voiceId('A', 1)]).toEqual(makeDefaultFm1Effects())
+  })
+
+  it('adds a missing bank and the banks before it', () => {
+    const before = deleteWorkspaceBank(deleteWorkspaceBank(emptyPatchLibrary(), 'D'), 'C')
+
+    const result = importFetchedBanks(before, [{ bank: 'D', voices: fetched }])
+
+    expect(result.workspaceBanks).toEqual(['A', 'B', 'C', 'D'])
+    expect(getBankVoices(result, 'D')).toEqual(fetched)
+    expect(result.voices[voiceId('C', 1)]).toBeUndefined()
+  })
+
+  it('keeps bank titles, descriptions and favourites', () => {
+    const titled = updateBankInformation(emptyPatchLibrary(), 'A', 'Live set', 'For Friday')
+
+    const result = importFetchedBanks(titled, [{ bank: 'A', voices: fetched }])
+
+    expect(result.bankNames).toBe(titled.bankNames)
+    expect(result.bankDescriptions).toBe(titled.bankDescriptions)
+    expect(result.favourites).toBe(titled.favourites)
+  })
+
+  it('rejects a bank that is not 32 patches long', () => {
+    expect(() =>
+      importFetchedBanks(emptyPatchLibrary(), [{ bank: 'A', voices: fetched.slice(1) }]),
+    ).toThrow('A browser bank requires exactly 32 DX7 voices.')
   })
 })
 

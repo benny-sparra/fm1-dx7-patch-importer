@@ -93,6 +93,22 @@ Commands of its own, all under the Yamaha ID with a sub-ID it assigns (`F0 43 00
 | `7D 04 <slot> <155> <68> <sum>` | Writes a preset exactly: the voice as a 155-byte edit buffer, then the 59-byte record in 8-into-7 groups. 231 bytes. Its Presets page reads each back to check it and waits 3 s between writes, because closer writes were heard as crackling. |
 | `7D 20 <pattern> <part> …`      | Writes eight steps of a sequencer pattern and its settings (177 bytes); a separate memory-read request reads patterns back.                                                                                                                    |
 
+**Its backup file. Confirmed** (two files from **Save a backup** on `FM-1_089`, 2026-09-29, 256
+messages). The `.syx` file is 29,568 bytes: 128 preset writes of 231 bytes each, in slot order,
+`F0 43 00 7D 04 <slot> <155-byte voice> <68-byte record> <sum> F7`. The voice is a DX7 edit buffer
+that converts to the library's packed voice like any other. `<sum>` covers only the 223 payload
+bytes after the slot, not the command or the slot: the low seven bits of the sum of each byte's
+seven-bit complement. Every byte between `F0` and `F7` is seven-bit. The editor reads this file in
+**Import FM-1+VA presets…** (`src/lib/fm1-va-preset-file.ts`), voices only.
+
+**The record is not mapped. Needs hardware test.** Read as 8-into-7 groups, each starting with the
+byte that carries its seven high bits, both files give 59-byte records in which every group's high
+byte is `00` and byte 18 is `03` in all 128 presets, and only two distinct records occur. FM-1+VA's
+web modules were read as putting an engine marker at byte 18 (`A5` FM, `5A` Virtual Analog), which
+these files do not show; neither value can appear in a record with no high bits set. These presets
+are all FM, so the marker, the group bit order, and the field offsets wait for a backup holding a
+Virtual Analog preset (`docs/fm1-va-controller-tests.md`, V7, stores one) from `FM-1_092` or later.
+
 Its pages identify the firmware before sending any of these, with the updater's `F0 00 32 45 …`
 identity query (§6.3), which stock firmware also answers. §6.3 bars production code from sending
 any `00 32` message, so supporting FM-1+VA as an optional target would first need an explicit,

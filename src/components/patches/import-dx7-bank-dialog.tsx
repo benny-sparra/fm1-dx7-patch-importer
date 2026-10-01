@@ -3,6 +3,7 @@ import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'r
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
+import { PreviewPatchButton } from '@/components/patches/preview-patch-button'
 import { undoToastOptions } from '@/components/patches/undo-toast'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,7 +19,6 @@ import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { readDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import { sysexFileAccept } from '@/lib/sysex-file'
-import { cn } from '@/lib/utils'
 
 type ImportDx7BankDialogProps = {
   bank: string
@@ -196,56 +196,5 @@ export function ImportDx7BankDialog({
         </form>
       </DialogBody>
     </Dialog>
-  )
-}
-
-type PreviewPatchButtonProps = {
-  isPlaying: boolean
-  label: string
-  name: string
-  number: number
-  onClick: () => void
-  playingLabel: string
-}
-
-function PreviewPatchButton({
-  isPlaying,
-  label,
-  name,
-  number,
-  onClick,
-  playingLabel,
-}: PreviewPatchButtonProps) {
-  return (
-    <button
-      aria-current={isPlaying ? 'true' : undefined}
-      aria-label={label}
-      className={cn(
-        'patch-cell flex min-h-9 w-full cursor-pointer items-center gap-1.5 border px-1.5 py-1 text-left transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
-        isPlaying
-          ? 'border-[var(--crt-acc)] bg-[var(--crt-sel-bg)]'
-          : 'border-[var(--crt-line)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)]',
-      )}
-      onClick={onClick}
-      type="button"
-    >
-      <span
-        className={cn(
-          'font-vt323 shrink-0 text-[16px] leading-none',
-          isPlaying ? 'text-[var(--crt-acc-br)]' : 'text-[var(--crt-acc-lt)]',
-        )}
-      >
-        {String(number).padStart(2, '0')}
-      </span>
-      <span
-        className={cn(
-          'font-dot-matrix min-w-0 truncate text-[13px] font-bold whitespace-pre',
-          isPlaying ? 'text-white' : 'text-[var(--crt-ink)]',
-        )}
-      >
-        {name}
-      </span>
-      {isPlaying ? <span className="sr-only">{playingLabel}</span> : null}
-    </button>
   )
 }
