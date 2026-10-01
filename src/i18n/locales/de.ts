@@ -291,6 +291,49 @@ export default {
     warning:
       'Der aktuelle Inhalt der Bank wird gelöscht und durch die importierten Sounds ersetzt.',
   },
+  fm1VaImport: {
+    menuHeading: 'Von FM-1+VA',
+    menuItem: 'FM-1+VA-Presets importieren…',
+    menuContents: 'Bänke A bis D aus der Datei, die „Save a backup“ schreibt',
+    title: 'FM-1+VA-Presets importieren',
+    help: 'Wähle die .syx-Datei, die „Save a backup“ auf der Presets-Seite von FM-1+VA speichert. Sie enthält die 128 Presets der FM1-Bänke A bis D.',
+    effectsNote:
+      'Übernommen werden nur die Sounds. Die Datei enthält auch die Effekte jedes Presets, doch der Editor kann sie noch nicht lesen. Jeder importierte Sound beginnt deshalb mit ausgeschalteten Effekten.',
+    warning:
+      'Jede angehakte Bank ersetzt die Sounds in der gleichen Bank hier. Du kannst den Import danach rückgängig machen.',
+    file: 'FM-1+VA-Presetdatei',
+    chooseFile: 'Datei aus „Save a backup“ wählen',
+    previewTitle: 'Bänke in dieser Datei',
+    previewHelp:
+      'Klicke auf einen Sound, um ihn am FM1 zu hören. Entferne den Haken bei einer Bank, um sie unverändert zu lassen.',
+    bankHeading: 'FM1-Bank {{bank}}',
+    replaceBank: '„{{name}}“ ersetzen',
+    addBank: 'Als neue Bank hinzufügen',
+    damagedPreset: 'Beschädigt',
+    damagedPresets:
+      'Ein Preset in dieser Datei ist beschädigt. Sein Platz behält den Sound, den er jetzt hat.',
+    damagedPresets_other:
+      '{{count, number}} Presets in dieser Datei sind beschädigt. Ihre Plätze behalten die Sounds, die sie jetzt haben.',
+    action: 'Eine Bank ersetzen',
+    action_other: '{{count, number}} Bänke ersetzen',
+    imported: 'Bank {{banks}} von FM-1+VA importiert.',
+    imported_other: 'Bänke {{banks}} von FM-1+VA importiert.',
+    openFailed:
+      'Der FM-1+VA-Import konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+    virtualAnalogTag: 'VA',
+    virtualAnalogPreset: 'Virtual-Analog-Preset, wird nicht importiert',
+    virtualAnalogPresets:
+      'Ein Preset in dieser Datei ist ein Virtual-Analog-Preset, markiert mit VA. Der Editor kann solche Presets noch nicht aufnehmen, darum behält sein Platz den Sound, den er jetzt hat.',
+    virtualAnalogPresets_other:
+      '{{count, number}} Presets in dieser Datei sind Virtual-Analog-Presets, markiert mit VA. Der Editor kann solche Presets noch nicht aufnehmen, darum behalten ihre Plätze die Sounds, die sie jetzt haben.',
+    errors: {
+      size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine Datei aus „Save a backup“ von FM-1+VA ist genau {{expected, number}} Bytes groß.',
+      format: 'Diese Datei wurde nicht mit „Save a backup“ von FM-1+VA gespeichert.',
+      damaged:
+        'Kein Preset in dieser Datei ist lesbar. Speichere auf FM-1+VA eine neue Sicherung und versuche es erneut.',
+      unreadable: 'Die Datei konnte nicht gelesen werden.',
+    },
+  },
   persistence: {
     retryLoading: 'Erneut versuchen',
     continueSessionOnly: 'Ohne Speichern fortfahren',

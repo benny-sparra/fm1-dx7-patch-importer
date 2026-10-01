@@ -131,6 +131,13 @@ const RestoreBackupDialog = lazy(() =>
   })),
 )
 
+// Importing FM-1+VA's presets opens from the header menu, with the file reader, on first use.
+const ImportFm1VaPresetsDialog = lazy(() =>
+  import('@/components/patches/import-fm1-va-presets-dialog').then((module) => ({
+    default: module.ImportFm1VaPresetsDialog,
+  })),
+)
+
 const menuItemClassName =
   'flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50'
 const menuHeadingClassName =
@@ -161,6 +168,7 @@ type LibrarianLibrary = BackupLibrary &
   ComponentProps<typeof BankInformationDialog>['library'] &
   ComponentProps<typeof CopyPatchDialog>['library'] &
   ComponentProps<typeof ImportDx7BankDialog>['library'] &
+  ComponentProps<typeof ImportFm1VaPresetsDialog>['library'] &
   ComponentProps<typeof NamedBankLibraryDialog>['library'] &
   ComponentProps<typeof ReplacePatchDialog>['library'] &
   ComponentProps<typeof RestoreBackupDialog>['library'] &
@@ -251,6 +259,7 @@ export function LibrarianPage({
   const addBankButtonRef = useRef<HTMLButtonElement>(null)
   const [isAddingBank, setIsAddingBank] = useState(false)
   const [isRestoringBackup, setIsRestoringBackup] = useState(false)
+  const [isImportingFm1VaPresets, setIsImportingFm1VaPresets] = useState(false)
   const downloadBackup = useDownloadWorkspaceBackup(library)
   const lastBackupTime = useLastBackupTime()
   const sysexMenuHeadingId = useId()
@@ -258,6 +267,8 @@ export function LibrarianPage({
   const lastBackupId = useId()
   const backupContentsId = useId()
   const sysexContentsId = useId()
+  const fm1VaMenuHeadingId = useId()
+  const fm1VaContentsId = useId()
   const sendButtonRef = useRef<HTMLButtonElement>(null)
   // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
   // menu toggle that focus returns to.
@@ -837,6 +848,30 @@ export function LibrarianPage({
                   </span>
                 </button>
               </div>
+              <div aria-labelledby={fm1VaMenuHeadingId} className="mt-1" role="group">
+                <p className={menuHeadingClassName} id={fm1VaMenuHeadingId}>
+                  {t('fm1VaImport.menuHeading')}
+                </p>
+                <button
+                  aria-describedby={fm1VaContentsId}
+                  aria-label={t('fm1VaImport.menuItem')}
+                  className={menuItemClassName}
+                  onClick={() => {
+                    allBanksMenuRef.current?.removeAttribute('open')
+                    setDialogLoadError('')
+                    setIsImportingFm1VaPresets(true)
+                  }}
+                  type="button"
+                >
+                  <Upload className="size-4 shrink-0" />
+                  <span className="grid">
+                    <span>{t('fm1VaImport.menuItem')}</span>
+                    <span className="text-xs text-[var(--crt-ink-3)]" id={fm1VaContentsId}>
+                      {t('fm1VaImport.menuContents')}
+                    </span>
+                  </span>
+                </button>
+              </div>
               <div className="my-1 border-t" />
               <button
                 className={menuItemClassName}
@@ -1062,6 +1097,26 @@ export function LibrarianPage({
                   undoToastOptions(t, library, changed),
                 )
               }}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
+      {isImportingFm1VaPresets ? (
+        <ErrorBoundary
+          onError={() => {
+            setIsImportingFm1VaPresets(false)
+            setDialogLoadError(t('fm1VaImport.openFailed'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <ImportFm1VaPresetsDialog
+              library={library}
+              onClose={() => {
+                setIsImportingFm1VaPresets(false)
+                allBanksMenuRef.current?.querySelector('summary')?.focus()
+              }}
+              // The file's effects are not read, so its patches play with the defaults.
+              onPlay={(voice) => onPlaySearchResult(voice, undefined)}
             />
           </Suspense>
         </ErrorBoundary>

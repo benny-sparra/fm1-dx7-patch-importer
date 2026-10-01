@@ -93,6 +93,30 @@ Commands of its own, all under the Yamaha ID with a sub-ID it assigns (`F0 43 00
 | `7D 04 <slot> <155> <68> <sum>` | Writes a preset exactly: the voice as a 155-byte edit buffer, then the 59-byte record in 8-into-7 groups. 231 bytes. Its Presets page reads each back to check it and waits 3 s between writes, because closer writes were heard as crackling. |
 | `7D 20 <pattern> <part> …`      | Writes eight steps of a sequencer pattern and its settings (177 bytes); a separate memory-read request reads patterns back.                                                                                                                    |
 
+**Its backup file. Confirmed** (two files from **Save a backup** on `FM-1_089`, 2026-09-29, 256
+messages). The `.syx` file is 29,568 bytes: 128 preset writes of 231 bytes each, in slot order,
+`F0 43 00 7D 04 <slot> <155-byte voice> <68-byte record> <sum> F7`. The voice is a DX7 edit buffer
+that converts to the library's packed voice like any other. `<sum>` covers only the 223 payload
+bytes after the slot, not the command or the slot: the low seven bits of the sum of each byte's
+seven-bit complement. Every byte between `F0` and `F7` is seven-bit. The editor reads this file in
+**Import FM-1+VA presets…** (`src/lib/fm1-va-preset-file.ts`), voices only.
+
+**The engine marker. Confirmed** (three backups, 2026-09-29 and 2026-10-01, 384 presets). The
+record travels in 8-into-7 groups, each starting with the byte that carries the high bits of the
+seven after it. Record byte 18, the fifth byte of the third group, is `5A` in every Virtual Analog
+preset and `03` in every FM preset. The 2026-10-01 backup held 17 Virtual Analog presets: 097, made
+with **Erase Preset** and stored with SAVE, and the 16 of FM-1+VA's preset pack in 113–128. No
+preset showed the `A5` that FM-1+VA's web modules were read as giving an FM preset. That group's
+high-bit byte is `00` in all 384 presets, so the editor compares only the low seven bits with `5A`
+and does not depend on the bit order, which is not known. The editor reads a preset with any other
+value as FM.
+
+**The rest of the record is not mapped. Needs hardware test.** Only three Virtual Analog records,
+097, 113, and 114, set any high bit, so the group bit order cannot be settled from these files. In
+FM presets, bytes 0–17 are `50` then seventeen `03`, and bytes 27 onwards repeat a pattern of three
+bytes with a count from 0 to 8, which is not the six-slot effect chain the backlog lists. The
+firmware release behind the 2026-10-01 backup was not recorded.
+
 Its pages identify the firmware before sending any of these, with the updater's `F0 00 32 45 …`
 identity query (§6.3), which stock firmware also answers. §6.3 bars production code from sending
 any `00 32` message, so supporting FM-1+VA as an optional target would first need an explicit,
