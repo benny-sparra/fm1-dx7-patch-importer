@@ -682,7 +682,6 @@ export default {
     deleteBank: 'Eliminar banco',
     deleteBankConfirm: '¿Eliminar «{{name}}» y todos sus sonidos? Puedes deshacer esta acción.',
     sendTitle: 'Enviar las 32 voces y elegir el banco de destino en el FM1',
-    sendingStatus: 'Enviando 32 sonidos al FM1…',
     sentStatus: 'Se envió el banco {{bank}}. Elige su destino en el FM1.',
     notSent: 'No se envió el banco. Abre el registro MIDI y vuelve a intentarlo.',
     importFailed: 'Error de importación.',

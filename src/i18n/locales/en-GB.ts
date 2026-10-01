@@ -669,7 +669,6 @@ export default {
     deleteBank: 'Delete bank',
     deleteBankConfirm: 'Delete “{{name}}” and all of its patches? You can undo this action.',
     sendTitle: 'Send all 32 patches; choose the destination bank on the FM1',
-    sendingStatus: 'Sending 32 patches to the FM1…',
     sentStatus: 'Browser bank {{bank}} was sent. Choose its destination on the FM1.',
     notSent: 'The bank was not sent. Open the MIDI log for details, then retry.',
     importFailed: 'Import failed.',
