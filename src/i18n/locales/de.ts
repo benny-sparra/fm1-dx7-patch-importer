@@ -496,10 +496,20 @@ export default {
     truthTitle: 'Die Browser-Bänke sind die maßgebliche Quelle.',
     truthBody:
       'Der FM1 kann Sounds und Bänke empfangen, seine gespeicherten Bänke aber nicht zurücksenden. Importiere oder stelle Sounds hier wieder her, bearbeite sie und übertrage sie dann zum FM1.',
+    firmwareTitle: 'FM-1+VA unterstützt',
+    firmwareBody: 'Funktioniert mit der Firmware von M-VAVE und von Baud Girl.',
     start: 'Bearbeitung starten',
     stepsTitle: 'Erste Schritte',
     sections: 'Abschnitte der Anleitung',
     shortcutsTitle: 'Tastaturkürzel',
+    browsers: {
+      title: 'Browserunterstützung',
+      works: 'Funktioniert',
+      unsupported: 'Nicht unterstützt',
+      yours: 'Dein Browser',
+      desktop: 'Desktop',
+      desktopAndAndroid: 'Desktop und Android',
+    },
     shortcuts: {
       banks: 'Sound-Bänke',
       editor: 'Voice-Editor',
@@ -509,17 +519,14 @@ export default {
     },
     steps: {
       libraryTitle: 'Bibliothek aufbauen',
-      libraryBody:
-        'Beginne mit den vier Werksbänken des FM1 und importiere, bearbeite oder sortiere ihre Sounds.',
+      libraryBody: 'Starte mit den Werksbänken des FM1 oder importiere eigene.',
       editTitle: 'Bearbeiten und organisieren',
-      editBody:
-        'Öffne einen Sound im Voice-Editor. Speichere ihn in der Browser-Bibliothek oder stelle die gespeicherte Version auf dem FM1 wieder her.',
+      editBody: 'Öffne einen Sound zum Bearbeiten und speichere ihn in deiner Bibliothek.',
       connectTitle: 'FM1 verbinden',
-      connectBody:
-        'Verbinde den FM1 über USB oder MIDI, aktiviere MIDI online und wähle Ein- und Ausgang in den Einstellungen.',
+      connectBody: 'Schließe den FM1 an und aktiviere MIDI online.',
       transferTitle: 'Sounds übertragen',
       transferBody:
-        'Höre einzelne Sounds in den passenden FM1-Speicherplätzen vor oder übertrage eine vollständige Bank und wähle ihr Ziel am Synthesizer.',
+        'Klicke auf einen Sound, um ihn zu hören, oder sende eine ganze Bank an den FM1.',
     },
   },
   colorway: {

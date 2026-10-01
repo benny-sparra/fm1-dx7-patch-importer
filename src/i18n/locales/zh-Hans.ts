@@ -435,10 +435,20 @@ export default {
     truthTitle: '以浏览器音色库为准。',
     truthBody:
       'FM1 可以接收音色和音色库，但无法将其中已保存的音色库传回。请在此导入或恢复音色、进行编辑，然后传输到 FM1。',
+    firmwareTitle: '支持 FM-1+VA',
+    firmwareBody: '同时支持 M-VAVE 和 Baud Girl 的固件。',
     start: '开始编辑',
     stepsTitle: '快速上手',
     sections: '指南分区',
     shortcutsTitle: '键盘快捷键',
+    browsers: {
+      title: '浏览器支持',
+      works: '可用',
+      unsupported: '不支持',
+      yours: '你的浏览器',
+      desktop: '桌面版',
+      desktopAndAndroid: '桌面版和 Android',
+    },
     shortcuts: {
       banks: '音色库',
       editor: '音色编辑器',
@@ -448,14 +458,13 @@ export default {
     },
     steps: {
       libraryTitle: '建立音色库',
-      libraryBody: '从 FM1 的四个原厂音色库开始，然后导入、编辑或重新排列其中的音色。',
+      libraryBody: '从 FM1 的原厂音色库开始，或导入你自己的音色库。',
       editTitle: '编辑和整理',
-      editBody:
-        '在音色编辑器中打开任意音色。将其保存到浏览器音色库，或还原并恢复 FM1 上已保存的版本。',
+      editBody: '打开音色进行编辑，然后保存到你的音色库。',
       connectTitle: '连接 FM1',
-      connectBody: '通过 USB 或 MIDI 连接 FM1，开启 MIDI 在线，然后在设置中选择输入和输出。',
+      connectBody: '连接 FM1 并开启 MIDI 在线。',
       transferTitle: '传输音色',
-      transferBody: '在对应的 FM1 音色槽中试听单个音色，或传输完整音色库并在合成器上选择目标位置。',
+      transferBody: '点击音色即可试听，或将整个音色库发送到 FM1。',
     },
   },
   colorway: {
