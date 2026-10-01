@@ -1117,6 +1117,8 @@
   }
 
   input[type='range'] {
+    /* The well over the unlit segments, thin enough that they still glow faintly. */
+    --range-unlit: color-mix(in oklab, var(--crt-bg-well) 78%, transparent);
     appearance: none;
     border: 0;
     background: transparent;
@@ -1132,7 +1134,8 @@
 
   /*
    * The track is a segmented LED meter: a striped fill between the range's
-   * start and end, masked back to the well on either side.
+   * start and end, dimmed almost to the well on either side, so the unlit
+   * segments still show and a slider at zero reads as an empty meter.
    */
   input[type='range']::-webkit-slider-runnable-track {
     height: 0.625rem;
@@ -1143,9 +1146,9 @@
     background:
       linear-gradient(
         to right,
-        var(--crt-bg-well) 0 var(--range-start),
+        var(--range-unlit) 0 var(--range-start),
         transparent var(--range-start) var(--range-end),
-        var(--crt-bg-well) var(--range-end) 100%
+        var(--range-unlit) var(--range-end) 100%
       ),
       repeating-linear-gradient(
         90deg,
@@ -1184,9 +1187,9 @@
     background:
       linear-gradient(
         to right,
-        var(--crt-bg-well) 0 var(--range-start),
+        var(--range-unlit) 0 var(--range-start),
         transparent var(--range-start) var(--range-end),
-        var(--crt-bg-well) var(--range-end) 100%
+        var(--range-unlit) var(--range-end) 100%
       ),
       repeating-linear-gradient(
         90deg,
