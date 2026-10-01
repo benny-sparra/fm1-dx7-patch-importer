@@ -27,6 +27,14 @@ describe('DeviceSelect', () => {
     expect(select.selectedOptions[0]?.textContent).toBe('No device selected')
   })
 
+  it('names the selected device in full in its tooltip', () => {
+    expect(renderSelect('other').title).toBe('Other synth')
+  })
+
+  it('has no tooltip while no device is selected', () => {
+    expect(renderSelect('').hasAttribute('title')).toBe(false)
+  })
+
   it('offers only devices once one is selected', () => {
     const select = renderSelect('other')
 

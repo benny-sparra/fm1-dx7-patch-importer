@@ -17,6 +17,8 @@ const identityReplies = {
 type FakeMidiOptions = {
   /** Which firmware the FM1 names when asked; M-VAVE's unless a journey chooses FM-1+VA. */
   firmware?: keyof typeof identityReplies
+  /** The name the FM1's ports report: Linux lists `FM-1 MIDI 1`, macOS `USB Composite Device`. */
+  portName?: string
   /** Whether the browser grants SysEx access, as a user can decline it at the permission prompt. */
   sysex?: boolean
 }
@@ -27,16 +29,16 @@ type FakeMidiOptions = {
  */
 export async function installFakeMidi(
   page: Page,
-  { firmware = 'mvave', sysex = true }: FakeMidiOptions = {},
+  { firmware = 'mvave', portName = 'FM-1 MIDI 1', sysex = true }: FakeMidiOptions = {},
 ) {
   await page.addInitScript(
-    ({ identityReply, sysexGranted }) => {
+    ({ identityReply, name, sysexGranted }) => {
       const sent: number[][] = []
       const makePort = (type: 'input' | 'output') => ({
         connection: 'closed',
         id: `fm1-${type}`,
         manufacturer: 'M-VAVE',
-        name: 'FM-1 MIDI 1',
+        name,
         onmidimessage: null as ((event: { data: Uint8Array; timeStamp: number }) => void) | null,
         onstatechange: null,
         state: 'connected',
@@ -85,7 +87,7 @@ export async function installFakeMidi(
         }),
       })
     },
-    { identityReply: identityReplies[firmware], sysexGranted: sysex },
+    { identityReply: identityReplies[firmware], name: portName, sysexGranted: sysex },
   )
 }
 

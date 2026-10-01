@@ -13,9 +13,12 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Housekeeping
 
-- [ ] **Stop cutting off port names in Settings.** On macOS the closed **Output** and **Input
+- [x] **Stop cutting off port names in Settings.** On macOS the closed **Output** and **Input
       monitor** lists show "USB Composite Dev", cut without an ellipsis (seen 2026-09-29). Let the
       name wrap or end in an ellipsis, with the full name in its title, at every width from 360 px.
+      _Done:_ the two lists take the panel's full width, a longer name ends in an ellipsis, and the
+      selected port's full name is the list's tooltip; `e2e/midi.e2e.ts` checks the macOS name at
+      1280, 768, and 360 px.
 
 - [x] **Fix the stale bank transfer status claim.** The README still lists "track whether a bank is
       local, transferred, or changed since transfer", but that status was removed in `14d3618`. The
