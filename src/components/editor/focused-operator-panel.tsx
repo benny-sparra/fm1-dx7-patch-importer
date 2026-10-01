@@ -153,7 +153,13 @@ export function FocusedOperatorPanel({
 
       <section
         aria-labelledby="operator-oscillator-heading"
-        className="grid min-w-0 gap-[9px]"
+        // Side by side, the oscillator spreads its rows over the row's height,
+        // so its sliders end level with the envelope readouts and the curves.
+        className={
+          layout === 'wide'
+            ? 'grid min-w-0 content-between gap-[9px] self-stretch'
+            : 'grid min-w-0 gap-[9px]'
+        }
         id="operator-oscillator-panel"
       >
         <RackSubheading
