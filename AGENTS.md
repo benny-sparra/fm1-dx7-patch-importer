@@ -443,6 +443,10 @@ open everything an earlier release could have saved.
   `src/test/librarian-fakes.ts`.
 - Use deterministic fakes/deferred promises for storage, MIDI, time, imports, and races. Do not use
   real sleeps, network calls, hardware, or test-order-dependent state.
+- jsdom has no `matchMedia`, so the editor renders the narrow-window rack and treats motion as
+  reduced. A test that stubs `matchMedia` for a width, as the operator table's page tests do, keeps
+  `prefers-reduced-motion` matching, or the effect scopes animate without end and the worker runs
+  out of memory.
 - A test that runs the real storage module, such as a hook test that follows a saved bank into
   IndexedDB, installs the in-memory database with `installFakeIndexedDb` from
   `src/test/fake-indexed-db.ts`, not `fake-indexeddb` directly. Under jsdom the fake's copies are

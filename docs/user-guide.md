@@ -96,7 +96,7 @@ If you also play the FM1 from a MIDI keyboard, keep the keyboard off the effects
 
 ## The voice editor
 
-The editor is laid out as a rack. The six operators stand side by side as columns: five show a compact readout, and the selected operator grows in place to carry its full controls. On narrower screens the open operator drops onto a row of its own. Each column has its own mute and solo buttons, so an operator can be silenced without opening it.
+The editor is laid out as a rack. On a wide window (1280 pixels or more) the six operators are rows of a table under one set of column headings: ratio, detune, velocity, amp mod, rate scaling, the four envelope rates and levels, and output. Each value sits directly under the same value for the next operator, so you can compare them at a glance. Click a row to open that operator: its full controls grow in beneath its row, which keeps showing its readouts, while the row that was open folds away. On narrower windows the operators are columns instead: five show a compact readout, and the open operator takes a full-width row of its own. Every row or column has its own output slider and mute and solo buttons, so an operator can be trimmed or silenced without opening it.
 
 The open operator's **Ratio** field takes the ratio you want typed in, such as 3.5, so you don't have to work out Coarse and Fine yourself. Press Enter, or leave the field, and Coarse and Fine move to the nearest ratio the FM1 can play; the field then shows that ratio, which may differ slightly from what you typed. In Fixed mode the field is **Frequency (Hz)** and takes hertz, such as 440 or 1.2k. A comma works as the decimal point, Escape puts the current value back, and one Undo reverses the change.
 

@@ -20,12 +20,14 @@ import { CompareOverlay } from '@/components/editor/compare-overlay'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
 import { EffectsUnit } from '@/components/editor/effects-unit'
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
+import { OperatorTable } from '@/components/editor/operator-table'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
 import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
 import type { Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import type { MidiController } from '@/hooks/use-midi'
 import { unpackDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { getFm1EffectParameters, makeFm1EditorParameters } from '@/lib/fm1-effects'
@@ -103,6 +105,9 @@ export function PatchEditorPage({
   const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
   const [isOperatorRackCollapsed, setIsOperatorRackCollapsed] = useState(false)
   const [isEffectsCollapsed, setIsEffectsCollapsed] = useState(false)
+  // From xl the operators fit side by side as table rows; narrower windows keep the rack.
+  const showsOperatorTable = useMediaQuery('(min-width: 80rem)')
+  const OperatorLayout = showsOperatorTable ? OperatorTable : OperatorRack
   const unsavedDialogRef = useRef<HTMLDialogElement>(null)
   const presetsMenuRef = useDismissableDetails()
   const saveMenuRef = useDismissableDetails()
@@ -309,7 +314,7 @@ export function PatchEditorPage({
               title={t('editor.operators')}
             />
             <RackPanelCollapsibleBody collapsed={isOperatorRackCollapsed} id="operator-rack">
-              <OperatorRack
+              <OperatorLayout
                 algorithm={parameters[algorithmParameter.voiceIndex]}
                 mutedOperators={mutedOperators}
                 onCopyOperator={(operator, part) =>
@@ -344,6 +349,7 @@ export function PatchEditorPage({
                     applyEdits={editor.applyEdits}
                     beginGesture={editor.beginGesture}
                     endGesture={editor.endGesture}
+                    layout={showsOperatorTable ? 'wide' : 'stack'}
                     parameters={parameters}
                     selectedOperator={operator}
                     setParameter={editor.setParameter}

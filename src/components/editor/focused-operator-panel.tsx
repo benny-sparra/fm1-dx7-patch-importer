@@ -39,12 +39,18 @@ type FocusedOperatorPanelProps = {
   parameters: Uint8Array
   selectedOperator: number
   setParameter: (index: number, value: number, max?: number, min?: number, send?: boolean) => void
+  /**
+   * `stack` sets the envelope, oscillator and scaling one above another, for a
+   * rack column; `wide` sets them side by side, for an operator table row.
+   */
+  layout?: 'stack' | 'wide'
 }
 
 export function FocusedOperatorPanel({
   applyEdits,
   beginGesture,
   endGesture,
+  layout = 'stack',
   parameters,
   selectedOperator,
   setParameter,
@@ -114,11 +120,15 @@ export function FocusedOperatorPanel({
   /*
     The artboard's open operator column: the envelope on top, then the
     oscillator and keyboard-scaling sections under hatched sub-headings.
-    Identity, output level, mute and solo live on the column itself.
+    Identity, output level, mute and solo live on the column or row itself.
   */
   return (
     <div
-      className="@container grid min-w-0 gap-[9px]"
+      className={
+        layout === 'wide'
+          ? 'grid min-w-0 grid-cols-[1.25fr_1fr_1.25fr] items-start gap-[9px]'
+          : 'grid min-w-0 gap-[9px]'
+      }
       id="focused-operator-panel"
       style={{ '--operator-color': 'var(--crt-acc)' } as React.CSSProperties}
     >
@@ -238,7 +248,7 @@ export function FocusedOperatorPanel({
 
       <section
         aria-labelledby="operator-scaling-heading"
-        className="grid min-w-0 gap-[9px]"
+        className="@container grid min-w-0 gap-[9px]"
         id="operator-scaling-panel"
       >
         <RackSubheading

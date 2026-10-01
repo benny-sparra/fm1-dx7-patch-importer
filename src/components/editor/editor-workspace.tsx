@@ -7,6 +7,7 @@ import {
   RadioTower,
   Route,
 } from 'lucide-react'
+import type { TFunction } from 'i18next'
 import { type ReactNode, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -532,7 +533,8 @@ type OperatorPasteSource = {
   patchName: string | null
 }
 
-type OperatorRackProps = {
+/** What the rack and the table both take: the voice, the open operator, and their actions. */
+export type OperatorLayoutProps = {
   algorithm: number
   mutedOperators: ReadonlySet<number>
   onCopyOperator: (operator: number, part: OperatorClipboardPart) => void
@@ -551,23 +553,268 @@ type OperatorRackProps = {
   syncState: PatchSyncState
 }
 
-/** How much wider the open operator column is than a collapsed one. */
-const SELECTED_COLUMN_GROW = 2.9
+/**
+ * One operator as the rack and the table summarise it: its envelope, output,
+ * role in the algorithm, audition state, and the readouts both lay out under
+ * the panel's hardware-style abbreviations.
+ */
+export function readOperatorSummary(
+  {
+    algorithm,
+    mutedOperators,
+    parameters,
+    soloOperator,
+  }: Pick<OperatorLayoutProps, 'algorithm' | 'mutedOperators' | 'parameters' | 'soloOperator'>,
+  operator: number,
+) {
+  const base = resolveOperatorParameterIndex(operator, 'operator.envelope.rate1')
+  const levelOffset = getOperatorParameterDefinition('operator.envelope.level1').offset
+  const algorithmOperator = dx7Algorithms[algorithm].find(({ id }) => id === operator)
+  const readValue = (id: Parameters<typeof getOperatorParameterDefinition>[0]) =>
+    storedToDisplayValue(
+      getOperatorParameterDefinition(id),
+      parameters[resolveOperatorParameterIndex(operator, id)],
+    )
+
+  return {
+    auditionStatus: getOperatorAuditionStatus(operator, mutedOperators, soloOperator),
+    levels: Array.from(parameters.slice(base + levelOffset, base + levelOffset + 4)),
+    output: parameters[resolveOperatorParameterIndex(operator, 'operator.outputLevel')],
+    rates: Array.from(parameters.slice(base, base + 4)),
+    readouts: [
+      { label: 'RATIO', value: formatOperatorFrequency(parameters, operator) },
+      { label: 'DTUNE', value: readValue('operator.detune') },
+      { label: 'VEL', value: readValue('operator.velocitySensitivity') },
+      { label: 'A.MOD', value: readValue('operator.ampModSensitivity') },
+      { label: 'SCALE', value: readValue('operator.keyboard.rateScaling') },
+    ],
+    role: algorithmOperator ? getDx7OperatorRole(algorithmOperator) : 'modulator',
+  }
+}
+
+type OperatorSummary = ReturnType<typeof readOperatorSummary>
+
+/** The accessible name of an operator's expand button: its number, role and audition state. */
+export function operatorSummaryLabel(
+  t: TFunction,
+  operator: number,
+  { auditionStatus, role }: Pick<OperatorSummary, 'auditionStatus' | 'role'>,
+) {
+  const audition = [
+    auditionStatus.muted ? t('ui.operatorMuted') : null,
+    auditionStatus.soloed ? t('ui.operatorSoloed') : null,
+  ]
+    .filter(Boolean)
+    .join(', ')
+  return t(audition ? 'ui.operatorSummaryWithAudition' : 'ui.operatorSummary', {
+    audition,
+    number: operator,
+    role: role === 'carrier' ? t('editor.carrier') : t('editor.modulator'),
+  })
+}
+
+/** The operator's number in its own colour, beside its carrier or modulator badge. */
+export function OperatorIdentity({
+  isSelected,
+  operator,
+  role,
+}: {
+  isSelected: boolean
+  operator: number
+  role: OperatorSummary['role']
+}) {
+  const { t } = useTranslation()
+  return (
+    <span className="@container/operator-head flex min-w-0 flex-1 items-center gap-1.5">
+      <span
+        className="font-vt323 w-4 shrink-0 text-center text-[22px] leading-none"
+        style={{ color: isSelected ? 'var(--crt-ink)' : operatorColors[operator - 1] }}
+      >
+        {operator}
+      </span>
+      <span
+        className={cn(
+          'operator-role-badge inline-flex h-[17px] min-w-0 items-center truncate border bg-[var(--crt-bg-1)] px-1.5 text-[10px] leading-none tracking-[0.14em] uppercase',
+          isSelected
+            ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
+            : role === 'carrier'
+              ? 'border-[var(--crt-line)] text-[var(--crt-led)]'
+              : 'border-[var(--crt-line)] text-[var(--crt-ink-3)]',
+        )}
+      >
+        {/* Narrow columns shorten the role rather than clip it. */}
+        <span aria-hidden="true" className="@[7.5rem]/operator-head:hidden">
+          {role === 'carrier' ? t('editor.carrierShort') : t('editor.modulatorShort')}
+        </span>
+        <span aria-hidden="true" className="hidden @[7.5rem]/operator-head:inline">
+          {role === 'carrier' ? t('editor.carrier') : t('editor.modulator')}
+        </span>
+      </span>
+    </span>
+  )
+}
+
+/** A plotted trace of the amplitude envelope, as on the panel. */
+export function OperatorEnvelopeTrace({
+  className,
+  levels,
+  rates,
+}: {
+  /** The trace's height; the rack's readout uses the default. */
+  className?: string
+  levels: readonly number[]
+  rates: readonly number[]
+}) {
+  return (
+    <span className="crt-well relative block p-[3px]">
+      <svg
+        aria-hidden="true"
+        className={cn('block w-full', className ?? 'h-24')}
+        preserveAspectRatio="none"
+        viewBox="0 0 400 180"
+      >
+        <g stroke="var(--crt-grid)" strokeWidth="1">
+          {[100, 200, 300].map((x) => (
+            <line key={x} vectorEffect="non-scaling-stroke" x1={x} x2={x} y1="4" y2="176" />
+          ))}
+          {[60, 120].map((y) => (
+            <line key={y} vectorEffect="non-scaling-stroke" x1="4" x2="396" y1={y} y2={y} />
+          ))}
+        </g>
+        <path
+          d={envelopePath([...rates], [...levels])}
+          fill="none"
+          stroke="var(--crt-acc-dim)"
+          strokeLinejoin="round"
+          strokeWidth="1.6"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+    </span>
+  )
+}
+
+/** The operator's output level slider, trimmed as one undo step per drag or held key. */
+export function OperatorOutputSlider({
+  isSelected,
+  onChange,
+  onGestureEnd,
+  onGestureStart,
+  operator,
+  output,
+}: {
+  isSelected: boolean
+  onChange: (value: number) => void
+  onGestureEnd: () => void
+  onGestureStart: () => void
+  operator: number
+  output: number
+}) {
+  const { t } = useTranslation()
+  return (
+    <input
+      aria-label={t('ui.operatorOutput', { number: operator })}
+      className="w-full min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+      max={outputMax}
+      min={0}
+      onBlur={onGestureEnd}
+      onChange={(event) => onChange(Number(event.target.value))}
+      onKeyDown={(event) => {
+        if (rangeControlKeys.includes(event.key)) onGestureStart()
+      }}
+      onKeyUp={onGestureEnd}
+      onPointerCancel={onGestureEnd}
+      onPointerDown={onGestureStart}
+      onPointerUp={onGestureEnd}
+      step={1}
+      style={rangeStyle(output, 0, outputMax, isSelected ? 'var(--crt-acc)' : 'var(--crt-acc-dim)')}
+      type="range"
+      value={output}
+    />
+  )
+}
+
+const auditionButtonClass =
+  'min-w-0 flex-1 cursor-pointer truncate border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-1 py-[3px] text-[11px] tracking-[0.1em] uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50'
+
+/** Mute and solo for one operator, which change only what the FM1 plays, never the voice. */
+export function OperatorAuditionButtons({
+  auditionStatus,
+  className,
+  onToggleMute,
+  onToggleSolo,
+  operator,
+  syncState,
+}: {
+  auditionStatus: OperatorSummary['auditionStatus']
+  className?: string
+  onToggleMute: (operator: number) => void
+  onToggleSolo: (operator: number) => void
+  operator: number
+  syncState: PatchSyncState
+}) {
+  const { t } = useTranslation()
+  const title = (action: string) =>
+    t(syncState === 'local' ? 'ui.auditionConnect' : 'ui.auditionTemporary', {
+      action,
+      number: operator,
+    })
+  const muteAction = t(auditionStatus.muted ? 'ui.unmute' : 'ui.mute')
+  const soloAction = t(auditionStatus.soloed ? 'ui.unsolo' : 'ui.solo')
+
+  return (
+    <div
+      aria-label={t('ui.auditionGroup', { number: operator })}
+      className={className ?? 'mt-[4px] flex gap-[5px]'}
+      role="group"
+    >
+      <button
+        aria-label={t('ui.auditionAction', { action: muteAction, number: operator })}
+        aria-pressed={auditionStatus.muted}
+        className={cn(
+          auditionButtonClass,
+          auditionStatus.muted
+            ? 'operator-audition-badge border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-destructive text-destructive-foreground'
+            : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
+        )}
+        disabled={syncState === 'sending'}
+        onClick={() => onToggleMute(operator)}
+        title={title(muteAction)}
+        type="button"
+      >
+        {t('ui.mute')}
+      </button>
+      <button
+        aria-label={t('ui.auditionAction', { action: soloAction, number: operator })}
+        aria-pressed={auditionStatus.soloed}
+        className={cn(
+          auditionButtonClass,
+          auditionStatus.soloed
+            ? 'operator-audition-badge border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-led)] text-[var(--crt-bg-0)]'
+            : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
+        )}
+        disabled={syncState === 'sending'}
+        onClick={() => onToggleSolo(operator)}
+        title={title(soloAction)}
+        type="button"
+      >
+        {t('ui.solo')}
+      </button>
+    </div>
+  )
+}
 
 /**
- * The six operators as a rack of columns. Five sit collapsed as readouts —
- * envelope trace, rate/level pairs and a short parameter stack — while the
- * selected one grows in place to carry its full controls.
+ * The six operators as a rack of columns, for windows too narrow for the
+ * operator table. Five sit collapsed as readouts — envelope trace, rate/level
+ * pairs and a short parameter stack — while the selected one opens on a
+ * full-width row of its own beneath them to carry its full controls.
  *
  * Each column's header and readouts form one `aria-expanded` button owning a
  * labelled region, so the rack is an accordion with a single open member and
  * the editor keeps its one notion of a "selected operator". The output meter
  * and mute/solo sit outside that button on every column, so a level can be
  * trimmed or an operator silenced without opening it.
- *
- * Below `xl` there is no width for six columns side by side, so the rack
- * wraps: the collapsed columns share the top rows and the open one drops to
- * a full-width row of its own beneath them.
  */
 export function OperatorRack({
   algorithm,
@@ -586,64 +833,38 @@ export function OperatorRack({
   selectedOperator,
   soloOperator,
   syncState,
-}: OperatorRackProps) {
+}: OperatorLayoutProps) {
   const { t } = useTranslation()
 
   return (
     <div
       aria-label={t('editor.operators')}
-      className="flex min-w-0 flex-wrap items-stretch gap-1.5 bg-[var(--crt-bg-2)] p-2.5 xl:flex-nowrap"
+      className="flex min-w-0 flex-wrap items-stretch gap-1.5 bg-[var(--crt-bg-2)] p-2.5"
       role="group"
     >
       {Array.from({ length: FM1_OPERATOR_COUNT }, (_, index) => {
         const operator = index + 1
-        const base = resolveOperatorParameterIndex(operator, 'operator.envelope.rate1')
-        const levelOffset = getOperatorParameterDefinition('operator.envelope.level1').offset
-        const rates = Array.from(parameters.slice(base, base + 4))
-        const levels = Array.from(parameters.slice(base + levelOffset, base + levelOffset + 4))
-        const outputIndex = resolveOperatorParameterIndex(operator, 'operator.outputLevel')
-        const output = parameters[outputIndex]
+        const summary = readOperatorSummary(
+          { algorithm, mutedOperators, parameters, soloOperator },
+          operator,
+        )
+        const { levels, output, rates } = summary
         const isSelected = selectedOperator === operator
-        const algorithmOperator = dx7Algorithms[algorithm].find(({ id }) => id === operator)
-        const role = algorithmOperator ? getDx7OperatorRole(algorithmOperator) : 'modulator'
-        const roleLabel = role === 'carrier' ? t('editor.carrier') : t('editor.modulator')
-        const roleShortLabel =
-          role === 'carrier' ? t('editor.carrierShort') : t('editor.modulatorShort')
-        const auditionStatus = getOperatorAuditionStatus(operator, mutedOperators, soloOperator)
-        const auditionLabel = [
-          auditionStatus.muted ? t('ui.operatorMuted') : null,
-          auditionStatus.soloed ? t('ui.operatorSoloed') : null,
-        ]
-          .filter(Boolean)
-          .join(', ')
         const summaryId = `operator-${operator}-summary`
         const detailId = `operator-${operator}-detail`
-        const readValue = (id: Parameters<typeof getOperatorParameterDefinition>[0]) =>
-          storedToDisplayValue(
-            getOperatorParameterDefinition(id),
-            parameters[resolveOperatorParameterIndex(operator, id)],
-          )
-        const summaryCells = [
-          { label: 'RATIO', value: formatOperatorFrequency(parameters, operator) },
-          { label: 'DTUNE', value: readValue('operator.detune') },
-          { label: 'VEL', value: readValue('operator.velocitySensitivity') },
-          { label: 'A.MOD', value: readValue('operator.ampModSensitivity') },
-          { label: 'SCALE', value: readValue('operator.keyboard.rateScaling') },
-        ]
 
         return (
           <div
             className={cn(
-              'operator-column flex min-w-0 flex-col border-t-2 border-r-2 border-b-2 border-l-2 border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] transition-[flex-grow] duration-200 ease-out motion-reduce:transition-none xl:basis-0',
-              // Until the rack fits on one line, the open operator leads it, so
-              // the columns below still read in number order.
+              'operator-column flex min-w-0 grow flex-col border-t-2 border-r-2 border-b-2 border-l-2 border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] bg-[var(--crt-bg-panel)]',
+              // The open operator leads the rack, so the columns below still
+              // read in number order.
               isSelected
-                ? '-order-1 basis-full border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] xl:order-none'
+                ? '-order-1 basis-full border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)]'
                 : 'basis-[calc((100%-0.75rem)/3)] border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] sm:basis-[calc((100%-1.5rem)/5)]',
             )}
             data-selected={isSelected}
             key={operator}
-            style={{ flexGrow: isSelected ? SELECTED_COLUMN_GROW : 1 }}
           >
             {/*
               The expand button and the open column's copy and paste actions
@@ -654,14 +875,7 @@ export function OperatorRack({
               <button
                 aria-controls={isSelected ? detailId : undefined}
                 aria-expanded={isSelected}
-                aria-label={t(
-                  auditionLabel ? 'ui.operatorSummaryWithAudition' : 'ui.operatorSummary',
-                  {
-                    audition: auditionLabel,
-                    number: operator,
-                    role: roleLabel,
-                  },
-                )}
+                aria-label={operatorSummaryLabel(t, operator, summary)}
                 className={cn(
                   'flex min-w-0 flex-1 flex-col text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
                   isSelected ? 'cursor-default' : 'cursor-pointer',
@@ -672,78 +886,20 @@ export function OperatorRack({
               >
                 <span
                   className={cn(
-                    '@container/operator-head flex min-w-0 items-center gap-1.5 border-b border-[var(--crt-shadow)] px-[7px] py-1.5',
+                    'flex min-w-0 border-b border-[var(--crt-shadow)] px-[7px] py-1.5',
                     isSelected ? 'bg-[var(--crt-sel-bg)]' : 'bg-[var(--crt-bg-head)]',
                   )}
                 >
-                  <span
-                    className="font-vt323 w-4 shrink-0 text-center text-[22px] leading-none"
-                    style={{ color: isSelected ? 'var(--crt-ink)' : operatorColors[index] }}
-                  >
-                    {operator}
-                  </span>
-                  <span
-                    className={cn(
-                      'operator-role-badge inline-flex h-[17px] min-w-0 items-center truncate border bg-[var(--crt-bg-1)] px-1.5 text-[10px] leading-none tracking-[0.14em] uppercase',
-                      isSelected
-                        ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
-                        : role === 'carrier'
-                          ? 'border-[var(--crt-line)] text-[var(--crt-led)]'
-                          : 'border-[var(--crt-line)] text-[var(--crt-ink-3)]',
-                    )}
-                  >
-                    {/* Narrow columns shorten the role rather than clip it. */}
-                    <span aria-hidden="true" className="@[7.5rem]/operator-head:hidden">
-                      {roleShortLabel}
-                    </span>
-                    <span aria-hidden="true" className="hidden @[7.5rem]/operator-head:inline">
-                      {roleLabel}
-                    </span>
-                  </span>
+                  <OperatorIdentity
+                    isSelected={isSelected}
+                    operator={operator}
+                    role={summary.role}
+                  />
                 </span>
 
                 {isSelected ? null : (
                   <span className="@container flex min-w-0 flex-1 flex-col gap-[7px] p-[7px]">
-                    {/* A plotted trace of the amplitude envelope, as on the panel. */}
-                    <span className="crt-well relative block p-[3px]">
-                      <svg
-                        aria-hidden="true"
-                        className="block h-24 w-full"
-                        preserveAspectRatio="none"
-                        viewBox="0 0 400 180"
-                      >
-                        <g stroke="var(--crt-grid)" strokeWidth="1">
-                          {[100, 200, 300].map((x) => (
-                            <line
-                              key={x}
-                              vectorEffect="non-scaling-stroke"
-                              x1={x}
-                              x2={x}
-                              y1="4"
-                              y2="176"
-                            />
-                          ))}
-                          {[60, 120].map((y) => (
-                            <line
-                              key={y}
-                              vectorEffect="non-scaling-stroke"
-                              x1="4"
-                              x2="396"
-                              y1={y}
-                              y2={y}
-                            />
-                          ))}
-                        </g>
-                        <path
-                          d={envelopePath(rates, levels)}
-                          fill="none"
-                          stroke="var(--crt-acc-dim)"
-                          strokeLinejoin="round"
-                          strokeWidth="1.6"
-                          vectorEffect="non-scaling-stroke"
-                        />
-                      </svg>
-                    </span>
+                    <OperatorEnvelopeTrace levels={levels} rates={rates} />
 
                     <span aria-hidden="true" className="grid grid-cols-1 gap-1 @[8rem]:grid-cols-2">
                       {rates.map((rate, point) => (
@@ -762,7 +918,7 @@ export function OperatorRack({
                     </span>
 
                     <span aria-hidden="true" className="flex flex-1 flex-col gap-1">
-                      {summaryCells.map(({ label, value }) => (
+                      {summary.readouts.map(({ label, value }) => (
                         <span
                           className="flex max-h-[4.5rem] min-h-9 flex-1 flex-col items-center justify-center gap-0.5 border border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-1 py-1 text-center text-[10px] tracking-[0.08em] text-[var(--crt-ink-3)]"
                           key={label}
@@ -815,85 +971,21 @@ export function OperatorRack({
                   {output}
                 </output>
               </div>
-              <input
-                aria-label={t('ui.operatorOutput', { number: operator })}
-                className="w-full min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-                max={outputMax}
-                min={0}
-                onBlur={onGestureEnd}
-                onChange={(event) => onOutputChange(operator, Number(event.target.value))}
-                onKeyDown={(event) => {
-                  if (rangeControlKeys.includes(event.key)) onGestureStart()
-                }}
-                onKeyUp={onGestureEnd}
-                onPointerCancel={onGestureEnd}
-                onPointerDown={onGestureStart}
-                onPointerUp={onGestureEnd}
-                step={1}
-                style={rangeStyle(
-                  output,
-                  0,
-                  outputMax,
-                  isSelected ? 'var(--crt-acc)' : 'var(--crt-acc-dim)',
-                )}
-                type="range"
-                value={output}
+              <OperatorOutputSlider
+                isSelected={isSelected}
+                onChange={(value) => onOutputChange(operator, value)}
+                onGestureEnd={onGestureEnd}
+                onGestureStart={onGestureStart}
+                operator={operator}
+                output={output}
               />
-
-              {/*
-                Mute and solo keep the labelling and the send-in-flight guard
-                they had when they lived in the operator panel's header.
-              */}
-              <div
-                aria-label={t('ui.auditionGroup', { number: operator })}
-                className="mt-[4px] flex gap-[5px]"
-                role="group"
-              >
-                <button
-                  aria-label={t('ui.auditionAction', {
-                    action: t(auditionStatus.muted ? 'ui.unmute' : 'ui.mute'),
-                    number: operator,
-                  })}
-                  aria-pressed={auditionStatus.muted}
-                  className={cn(
-                    'min-w-0 flex-1 cursor-pointer truncate border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-1 py-[3px] text-[11px] tracking-[0.1em] uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50',
-                    auditionStatus.muted
-                      ? 'operator-audition-badge border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-destructive text-destructive-foreground'
-                      : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
-                  )}
-                  disabled={syncState === 'sending'}
-                  onClick={() => onToggleMute(operator)}
-                  title={t(syncState === 'local' ? 'ui.auditionConnect' : 'ui.auditionTemporary', {
-                    action: t(auditionStatus.muted ? 'ui.unmute' : 'ui.mute'),
-                    number: operator,
-                  })}
-                  type="button"
-                >
-                  {t('ui.mute')}
-                </button>
-                <button
-                  aria-label={t('ui.auditionAction', {
-                    action: t(auditionStatus.soloed ? 'ui.unsolo' : 'ui.solo'),
-                    number: operator,
-                  })}
-                  aria-pressed={auditionStatus.soloed}
-                  className={cn(
-                    'min-w-0 flex-1 cursor-pointer truncate border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-1 py-[3px] text-[11px] tracking-[0.1em] uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50',
-                    auditionStatus.soloed
-                      ? 'operator-audition-badge border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-led)] text-[var(--crt-bg-0)]'
-                      : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
-                  )}
-                  disabled={syncState === 'sending'}
-                  onClick={() => onToggleSolo(operator)}
-                  title={t(syncState === 'local' ? 'ui.auditionConnect' : 'ui.auditionTemporary', {
-                    action: t(auditionStatus.soloed ? 'ui.unsolo' : 'ui.solo'),
-                    number: operator,
-                  })}
-                  type="button"
-                >
-                  {t('ui.solo')}
-                </button>
-              </div>
+              <OperatorAuditionButtons
+                auditionStatus={summary.auditionStatus}
+                onToggleMute={onToggleMute}
+                onToggleSolo={onToggleSolo}
+                operator={operator}
+                syncState={syncState}
+              />
             </div>
           </div>
         )
@@ -907,13 +999,16 @@ export function OperatorRack({
  * operator and its envelope share one clipboard, so the single Paste names
  * whichever was copied last.
  */
-function OperatorMenu({
+export function OperatorMenu({
+  className,
   disabled,
   onCopy,
   onPaste,
   operator,
   pasteSource,
 }: {
+  /** The menu's frame; the rack's column header uses the default. */
+  className?: string
   disabled: boolean
   onCopy: (part: OperatorClipboardPart) => void
   onPaste: () => void
@@ -935,7 +1030,12 @@ function OperatorMenu({
         )
 
   return (
-    <div className="flex shrink-0 items-center border-b border-[var(--crt-shadow)] bg-[var(--crt-sel-bg)] px-[5px]">
+    <div
+      className={
+        className ??
+        'flex shrink-0 items-center border-b border-[var(--crt-shadow)] bg-[var(--crt-sel-bg)] px-[5px]'
+      }
+    >
       <PortalMenu
         items={[
           {

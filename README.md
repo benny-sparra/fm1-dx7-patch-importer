@@ -26,7 +26,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Search your saved banks and the 65 bundled DX7 catalog banks at the same time, play any match through the FM1 edit buffer, and copy it into a slot of your own, or double-click it to copy it and open it in the editor
 - Export one browser bank as `.syx`, or every loaded bank as a `.zip` of SysEx files for Dexed, a DX7, or other DX7 tools (DX7 data only, without FM1 effects)
 - Edit all standard DX7 voice parameters with live MIDI updates
-- Work on the six operators as a rack: five sit as compact readouts while the selected one opens in place with its full controls
+- Compare the six operators as table rows under shared column headings on a wide window, and open any one in place beneath its row with its full controls; narrower windows show them as a rack of columns
 - Type an operator's ratio, or its fixed frequency in hertz, and Coarse and Fine move to the nearest setting the FM1 can play
 - Mute or solo any operator straight from its rack column, without opening it first
 - Copy an operator's settings, or only its envelope, and paste them onto another operator, in the same patch or a different one

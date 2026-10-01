@@ -859,6 +859,62 @@ describe('PatchEditorPage operator copy and paste', () => {
   }, 15_000)
 })
 
+describe('PatchEditorPage operator layout', () => {
+  // Reduced motion stays on, as it is without matchMedia, so the scopes do not animate.
+  const stubWindowWidth = (wide: boolean) =>
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        addEventListener: vi.fn(),
+        matches: query === '(min-width: 80rem)' ? wide : query.includes('prefers-reduced-motion'),
+        removeEventListener: vi.fn(),
+      })),
+    )
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('lays the operators out as table rows on a wide window', async () => {
+    stubWindowWidth(true)
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+
+    const operators = screen.getByRole('group', { name: 'Operators' })
+    expect(operators.querySelectorAll('.operator-row')).toHaveLength(6)
+    expect(operators.querySelectorAll('.operator-column')).toHaveLength(0)
+  })
+
+  it('keeps the rack of columns on a narrower window', async () => {
+    stubWindowWidth(false)
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+
+    const operators = screen.getByRole('group', { name: 'Operators' })
+    expect(operators.querySelectorAll('.operator-column')).toHaveLength(6)
+    expect(operators.querySelectorAll('.operator-row')).toHaveLength(0)
+  })
+
+  it('edits the open operator from its table row', async () => {
+    stubWindowWidth(true)
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+
+    await user.click(screen.getByRole('button', { name: /^Operator 4, / }))
+    const field = within(screen.getByRole('region', { name: /^Operator 4, / })).getByRole(
+      'textbox',
+      { name: 'Ratio' },
+    )
+    await user.clear(field)
+    await user.type(field, '7{Enter}')
+
+    expect(
+      within(screen.getByRole('button', { name: /^Operator 4, / })).getByText('7.00×'),
+    ).toBeTruthy()
+  }, 15_000)
+})
+
 describe('PatchEditorPage typed frequency', () => {
   const coarseIndex = resolveOperatorParameterIndex(1, 'operator.frequency.coarse')
   const fineIndex = resolveOperatorParameterIndex(1, 'operator.frequency.fine')
