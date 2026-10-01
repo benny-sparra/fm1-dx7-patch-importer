@@ -244,6 +244,22 @@ export function FocusedOperatorPanel({
             valueLabel={(value) => (value > 0 ? `+${value}` : String(value))}
           />
         </div>
+        {/*
+          The two sensitivities sit under the oscillator rather than closing the
+          scaling section, so side by side the columns end at similar heights.
+        */}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+          {sliderControl(
+            t('ui.velocity'),
+            'operator.velocitySensitivity',
+            t('controlHelp.velocity'),
+          )}
+          {sliderControl(
+            t('ui.ampModSensitivity'),
+            'operator.ampModSensitivity',
+            t('controlHelp.ampModSensitivity'),
+          )}
+        </div>
       </section>
 
       <section
@@ -292,16 +308,6 @@ export function FocusedOperatorPanel({
             curveKeys.map((key) => t(key)),
             t('controlHelp.curve'),
           )}
-          {sliderControl(
-            t('ui.velocity'),
-            'operator.velocitySensitivity',
-            t('controlHelp.velocity'),
-          )}
-          {sliderControl(
-            t('ui.ampModSensitivity'),
-            'operator.ampModSensitivity',
-            t('controlHelp.ampModSensitivity'),
-          )}
         </div>
       </section>
     </div>
@@ -321,7 +327,8 @@ function RackSubheading({
   title: string
 }) {
   return (
-    <div className="crt-hatch crt-raised-thin flex min-h-7 min-w-0 items-center gap-2 px-1.5 py-1">
+    // One height whether or not it carries an action, so side-by-side strips line up.
+    <div className="crt-hatch crt-raised-thin flex h-8 min-w-0 items-center gap-2 px-1.5">
       <h3
         className="flex min-w-0 items-center gap-1.5 text-[11px] font-normal tracking-[0.22em] text-[var(--crt-acc-lt)] uppercase"
         id={id}

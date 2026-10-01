@@ -9,7 +9,7 @@ import {
   PhaserScope,
   ReverbScope,
 } from '@/components/editor/effect-scopes'
-import { rangeControlKeys } from '@/components/editor/parameter-controls'
+import { RackSelect, rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
 import { effectPresetsFor, type EffectPresetId } from '@/lib/effect-presets'
@@ -206,9 +206,9 @@ function EffectPresetControl({
         <HelpPopover label={`${translatedEffect} ${label}`} text={t('controlHelp.effectPresets')} />
       </span>
       {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
-      <select
+      <RackSelect
         aria-label={`${translatedEffect} ${label}`}
-        className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
+        className="crt-inset h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
         disabled={disabled}
         onChange={(event) => onApplyPreset(event.target.value as EffectPresetId)}
         value=""
@@ -221,7 +221,7 @@ function EffectPresetControl({
             {t(`editor.effectPresetOptions.${id}`)}
           </option>
         ))}
-      </select>
+      </RackSelect>
     </label>
   )
 }
@@ -267,9 +267,9 @@ function EffectControl({
     return (
       <label className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
         {caption}
-        <select
+        <RackSelect
           aria-label={`${translatedEffect} ${translatedParameter}`}
-          className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
+          className="crt-inset h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
           disabled={disabled}
           onChange={(event) => onChange(definition.controller, Number(event.target.value))}
           value={value}
@@ -279,7 +279,7 @@ function EffectControl({
               {t(`ui.options.${optionKeys[option] ?? option}`)}
             </option>
           ))}
-        </select>
+        </RackSelect>
       </label>
     )
   }

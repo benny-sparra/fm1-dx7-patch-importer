@@ -1,5 +1,5 @@
 import { Check, ChevronDown } from 'lucide-react'
-import { useId, useRef, useState } from 'react'
+import { type ComponentProps, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ErrorNotice } from '@/components/ui/error-notice'
@@ -26,9 +26,28 @@ const captionClass = 'text-[11px] font-normal tracking-[0.1em] text-[var(--crt-i
 const ledClass = 'font-vt323 text-[var(--crt-led)]'
 
 /** A sunken field — selects, number entry and the wave picker's trigger. */
-const fieldFrameClass =
-  'crt-inset h-8 min-w-0 rounded-none bg-[var(--crt-bg-1)] px-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
+const fieldSurfaceClass =
+  'crt-inset h-8 min-w-0 rounded-none bg-[var(--crt-bg-1)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
+const fieldFrameClass = `${fieldSurfaceClass} px-2`
 const fieldClass = `${fieldFrameClass} text-xs text-[var(--crt-ink)]`
+
+/**
+ * A rack dropdown. The browser's own arrow sits hard against the right edge,
+ * so it is hidden and a chevron is drawn inset from the edge instead, as the
+ * wave picker's is. `className` sets the field's surface, size and text; the
+ * horizontal padding is the component's, leaving room for the chevron.
+ */
+export function RackSelect({ className, ...props }: ComponentProps<'select'>) {
+  return (
+    <span className="relative block min-w-0">
+      <select {...props} className={cn('peer w-full appearance-none pr-7 pl-2', className)} />
+      <ChevronDown
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)] peer-disabled:opacity-50"
+      />
+    </span>
+  )
+}
 
 type ParameterControlProps = {
   helpText?: string
@@ -405,8 +424,8 @@ export function ParameterControl({
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
       </span>
       {options ? (
-        <select
-          className={cn(fieldClass, 'normal-case')}
+        <RackSelect
+          className={`${fieldSurfaceClass} text-xs text-[var(--crt-ink)] normal-case`}
           onChange={(event) => onChange(Number(event.target.value))}
           value={value}
         >
@@ -415,7 +434,7 @@ export function ParameterControl({
               {option}
             </option>
           ))}
-        </select>
+        </RackSelect>
       ) : (
         <input
           className={cn(fieldFrameClass, 'font-vt323 text-base text-[var(--crt-led)]')}
