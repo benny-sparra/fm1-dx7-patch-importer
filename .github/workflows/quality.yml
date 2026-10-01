@@ -84,7 +84,38 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Read the Playwright and runner image versions
+        id: versions
+        run: |
+          echo "playwright=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> "$GITHUB_OUTPUT"
+          echo "image-os=${ImageOS}" >> "$GITHUB_OUTPUT"
+          echo "image-version=${ImageVersion}" >> "$GITHUB_OUTPUT"
+      # The browsers' system packages come from the runner's Ubuntu mirror, which has delivered
+      # them at 64 kB/s, taking 15 minutes. Keeping the downloaded packages lets apt install them
+      # without the mirror; it fetches only those the runner image has since updated.
+      - name: Restore browser system packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/playwright-apt/*.deb
+          key: playwright-apt-${{ steps.versions.outputs.image-os }}-${{ steps.versions.outputs.image-version }}-${{ steps.versions.outputs.playwright }}
+          restore-keys: playwright-apt-${{ steps.versions.outputs.image-os }}-
+      - name: Keep downloaded system packages for the cache
+        run: |
+          mkdir -p ~/.cache/playwright-apt/partial
+          printf 'Dir::Cache::Archives "%s";\nAPT::Keep-Downloaded-Packages "true";\n' \
+            ~/.cache/playwright-apt | sudo tee /etc/apt/apt.conf.d/99-playwright-cache
+      - name: Install browser system packages
+        timeout-minutes: 8
+        run: npx playwright install-deps chromium firefox
+      - name: Restore Chromium and Firefox
+        id: browser-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-browsers-${{ runner.os }}-${{ steps.versions.outputs.playwright }}
       - name: Install Chromium and Firefox
-        run: npx playwright install --with-deps chromium firefox
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 5
+        run: npx playwright install chromium firefox
       - name: Run browser journeys
         run: npm run test:e2e
