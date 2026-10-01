@@ -92,18 +92,20 @@ jobs:
           echo "image-version=${ImageVersion}" >> "$GITHUB_OUTPUT"
       # The browsers' system packages come from the runner's Ubuntu mirror, which has delivered
       # them at 64 kB/s, taking 15 minutes. Keeping the downloaded packages lets apt install them
-      # without the mirror; it fetches only those the runner image has since updated.
+      # without the mirror; it fetches only those the runner image has since updated. The directory
+      # sits outside the home directory, which apt's unprivileged download user cannot enter.
+      - name: Keep downloaded system packages for the cache
+        run: |
+          sudo install -d -o "$USER" /var/cache/playwright-apt
+          mkdir /var/cache/playwright-apt/partial
+          printf 'Dir::Cache::Archives "/var/cache/playwright-apt";\nAPT::Keep-Downloaded-Packages "true";\n' |
+            sudo tee /etc/apt/apt.conf.d/99-playwright-cache
       - name: Restore browser system packages
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/.cache/playwright-apt/*.deb
+          path: /var/cache/playwright-apt/*.deb
           key: playwright-apt-${{ steps.versions.outputs.image-os }}-${{ steps.versions.outputs.image-version }}-${{ steps.versions.outputs.playwright }}
           restore-keys: playwright-apt-${{ steps.versions.outputs.image-os }}-
-      - name: Keep downloaded system packages for the cache
-        run: |
-          mkdir -p ~/.cache/playwright-apt/partial
-          printf 'Dir::Cache::Archives "%s";\nAPT::Keep-Downloaded-Packages "true";\n' \
-            ~/.cache/playwright-apt | sudo tee /etc/apt/apt.conf.d/99-playwright-cache
       - name: Install browser system packages
         timeout-minutes: 8
         run: npx playwright install-deps chromium firefox
