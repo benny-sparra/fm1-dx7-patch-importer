@@ -272,6 +272,32 @@ test.describe('with an FM-1 connected', () => {
   })
 })
 
+// macOS names the FM1's ports USB Composite Device, which once showed as "USB Composite Dev", cut
+// off without an ellipsis, beside another select in a two-column Settings panel.
+for (const width of [1280, 768, 360]) {
+  test(`shows the FM1's full macOS port name in Settings at ${width} px`, async ({ page }) => {
+    await page.setViewportSize({ height: 900, width })
+    await installFakeMidi(page, { portName: 'USB Composite Device' })
+    await openLibrarian(page)
+    await switchMidiOn(page)
+
+    await page.getByLabel('Settings', { exact: true }).locator('visible=true').first().click()
+    for (const name of ['Output', 'Input monitor']) {
+      const select = page.getByRole('combobox', { name })
+      await expect(select).toHaveAttribute('title', 'USB Composite Device')
+      const room = await select.evaluate((element) => {
+        const style = getComputedStyle(element)
+        const context = document.createElement('canvas').getContext('2d')!
+        context.font = style.font
+        const available =
+          element.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+        return available - context.measureText('USB Composite Device').width
+      })
+      expect(room, `${name} has room for the whole name`).toBeGreaterThanOrEqual(0)
+    }
+  })
+}
+
 test('offers to reconnect instead of sending a bank when SysEx access was declined', async ({
   page,
 }) => {
