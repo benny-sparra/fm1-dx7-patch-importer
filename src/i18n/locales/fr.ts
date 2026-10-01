@@ -84,6 +84,10 @@ export default {
     coarse:
       'Règle le rapport de fréquence principal en mode Ratio, ou la plage de fréquence générale en mode Fixe. Les rapports entiers sonnent généralement harmoniques.',
     fine: 'Affine la fréquence de l’opérateur entre deux réglages grossiers. De petits changements peuvent ajouter de nouvelles harmoniques ou des battements.',
+    ratioEntry:
+      'Saisissez le rapport souhaité, par exemple 3,5. Grossier et Fin passent au rapport le plus proche que le FM1 peut jouer, et le champ l’affiche.',
+    fixedFrequencyEntry:
+      'Saisissez la fréquence souhaitée en hertz, par exemple 440 ou 1,2k. Grossier et Fin passent à la fréquence la plus proche que le FM1 peut jouer, et le champ l’affiche.',
     detune:
       'Décale légèrement cet opérateur de l’accord exact. De faibles valeurs épaississent le son ; des écarts plus grands créent des battements ou de la dissonance.',
     breakpoint:
@@ -158,6 +162,10 @@ export default {
     coarse: 'Grossier',
     fine: 'Fin',
     detune: 'Désaccord',
+    ratioEntry: 'Ratio',
+    fixedFrequencyEntry: 'Fréquence (Hz)',
+    ratioEntryInvalid: 'Saisissez le rapport sous forme de nombre, par exemple 3,5.',
+    fixedFrequencyEntryInvalid: 'Saisissez la fréquence en hertz, par exemple 440.',
     keyboardScaling: 'Suivi du clavier',
     breakpoint: 'Point de coupure',
     left: 'Gauche',

@@ -797,6 +797,79 @@ describe('PatchEditorPage operator copy and paste', () => {
   }, 15_000)
 })
 
+describe('PatchEditorPage typed frequency', () => {
+  const coarseIndex = resolveOperatorParameterIndex(1, 'operator.frequency.coarse')
+  const fineIndex = resolveOperatorParameterIndex(1, 'operator.frequency.fine')
+  const knob = (name: string) => screen.getByRole('slider', { name }).getAttribute('aria-valuenow')
+
+  async function setupLive() {
+    const context = setup()
+    await waitFor(() => expect(context.midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    return context
+  }
+
+  async function typeFrequency(
+    user: ReturnType<typeof userEvent.setup>,
+    name: string,
+    text: string,
+  ) {
+    const field = screen.getByRole('textbox', { name })
+    await user.clear(field)
+    await user.type(field, `${text}{Enter}`)
+  }
+
+  afterEach(async () => {
+    await setLocale('en-GB')
+  })
+
+  it('sets Coarse and Fine to the nearest ratio and sends both', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupLive()
+    vi.mocked(midi.sendParameter).mockClear()
+
+    await typeFrequency(user, 'Ratio', '3.5')
+
+    expect(knob('Coarse')).toBe('2')
+    expect(knob('Fine')).toBe('75')
+    expect(midi.sendParameter).toHaveBeenCalledWith(coarseIndex, 2)
+    expect(midi.sendParameter).toHaveBeenCalledWith(fineIndex, 75)
+    expect((screen.getByRole('textbox', { name: 'Ratio' }) as HTMLInputElement).value).toBe('3.50')
+  }, 15_000)
+
+  it('undoes a typed ratio as a single step', async () => {
+    const user = userEvent.setup()
+    await setupLive()
+
+    await typeFrequency(user, 'Ratio', '3.5')
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(knob('Coarse')).toBe('0')
+    expect(knob('Fine')).toBe('0')
+    expect((screen.getByRole('textbox', { name: 'Ratio' }) as HTMLInputElement).value).toBe('0.50')
+  }, 15_000)
+
+  it('takes hertz once the operator is in fixed mode', async () => {
+    const user = userEvent.setup()
+    await setupLive()
+
+    await user.click(screen.getByRole('radio', { name: 'Fixed' }))
+    await typeFrequency(user, 'Frequency (Hz)', '100')
+
+    expect(knob('Coarse')).toBe('2')
+    expect(knob('Fine')).toBe('0')
+  }, 15_000)
+
+  it('explains a ratio it cannot read in the interface language', async () => {
+    await setLocale('de')
+    const user = userEvent.setup()
+    await setupLive()
+
+    await typeFrequency(user, 'Ratio', 'laut')
+
+    expect(screen.getByRole('alert').textContent).toBe('Gib das Verhältnis als Zahl ein, etwa 3,5.')
+  }, 15_000)
+})
+
 describe('PatchEditorPage compare with saved', () => {
   const feedbackValue = () => screen.getByRole('slider', { name: 'Feedback' }).getAttribute('value')
   const compareButton = () => screen.getByRole('button', { name: 'Compare with saved' })

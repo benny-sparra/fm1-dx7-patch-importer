@@ -98,6 +98,8 @@ If you also play the FM1 from a MIDI keyboard, keep the keyboard off the effects
 
 The editor is laid out as a rack. The six operators stand side by side as columns: five show a compact readout, and the selected operator grows in place to carry its full controls. On narrower screens the open operator drops onto a row of its own. Each column has its own mute and solo buttons, so an operator can be silenced without opening it.
 
+The open operator's **Ratio** field takes the ratio you want typed in, such as 3.5, so you don't have to work out Coarse and Fine yourself. Press Enter, or leave the field, and Coarse and Fine move to the nearest ratio the FM1 can play; the field then shows that ratio, which may differ slightly from what you typed. In Fixed mode the field is **Frequency (Hz)** and takes hertz, such as 440 or 1.2k. A comma works as the decimal point, Escape puts the current value back, and one Undo reverses the change.
+
 The algorithm diagram below the operators shows each operator's frequency under its number: a ratio such as 14.00, or a fixed frequency in Hz. Carriers are drawn in amber and modulators in the accent colour, so you can see which ratios you hear directly and which ones shape the tone.
 
 The open operator has a **⋮** menu beside its number with **Copy operator** and **Paste operator**. Copy takes all of that operator's settings: frequency, envelope, output level, keyboard scaling, and sensitivities. Open another operator and choose Paste from its menu to give it those settings. The copy lasts until you close or reload the tab, so you can also paste it into an operator in a different patch. Paste sends the changed settings to the FM1 and is a single undo step. The copy is kept only in memory and never saved to the library.

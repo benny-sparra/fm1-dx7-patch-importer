@@ -1,7 +1,8 @@
 import { Check, ChevronDown } from 'lucide-react'
-import { useId, useRef } from 'react'
+import { useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ErrorNotice } from '@/components/ui/error-notice'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
@@ -429,6 +430,96 @@ export function ParameterControl({
         />
       )}
     </label>
+  )
+}
+
+type TypedValueControlProps = {
+  helpText?: string
+  /** The translated message shown when the typed text cannot be used. */
+  invalidMessage: string
+  label: string
+  /** Applies the typed text, returning false when it cannot be used. */
+  onCommit: (text: string) => boolean
+  value: string
+}
+
+/**
+ * A value typed rather than turned, such as an operator's ratio. It shows the
+ * current value until edited, applies the text on Enter or when focus leaves,
+ * and then shows whatever value the text produced. Escape, or leaving text
+ * that cannot be used, puts the current value back.
+ */
+export function TypedValueControl({
+  helpText,
+  invalidMessage,
+  label,
+  onCommit,
+  value,
+}: TypedValueControlProps) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const [invalid, setInvalid] = useState(false)
+  const errorId = useId()
+
+  const discard = () => {
+    setDraft(null)
+    setInvalid(false)
+  }
+  const commit = () => {
+    if (draft === null) return true
+    if (!onCommit(draft)) {
+      setInvalid(true)
+      return false
+    }
+    discard()
+    return true
+  }
+
+  return (
+    <div className="grid min-w-0 gap-1">
+      <label className={cn('grid min-w-0 gap-1', captionClass)}>
+        <span className="flex min-w-0 items-center gap-1">
+          <span className="min-w-0 text-balance break-words" title={label}>
+            {label}
+          </span>
+          {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+        </span>
+        <input
+          aria-describedby={invalid ? errorId : undefined}
+          aria-invalid={invalid || undefined}
+          aria-label={label}
+          autoComplete="off"
+          className={cn(
+            fieldFrameClass,
+            'font-vt323 w-28 justify-self-start text-base text-[var(--crt-led)]',
+          )}
+          inputMode="decimal"
+          onBlur={() => {
+            if (!commit()) discard()
+          }}
+          onChange={(event) => {
+            setDraft(event.target.value)
+            setInvalid(false)
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              commit()
+            } else if (event.key === 'Escape' && draft !== null) {
+              event.preventDefault()
+              discard()
+            }
+          }}
+          spellCheck={false}
+          type="text"
+          value={draft ?? value}
+        />
+      </label>
+      {invalid ? (
+        <div id={errorId}>
+          <ErrorNotice>{invalidMessage}</ErrorNotice>
+        </div>
+      ) : null}
+    </div>
   )
 }
 

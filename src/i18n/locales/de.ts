@@ -84,6 +84,10 @@ export default {
     coarse:
       'Legt im Ratio-Modus das Hauptfrequenzverhältnis fest, im Fest-Modus den groben Frequenzbereich. Ganzzahlige Verhältnisse klingen meist harmonisch.',
     fine: 'Stimmt die Operatorfrequenz zwischen den Grob-Stufen fein. Kleine Änderungen können neue Obertöne oder Schwebungen erzeugen.',
+    ratioEntry:
+      'Gib das gewünschte Verhältnis ein, etwa 3,5. Grob und Fein springen auf das nächste Verhältnis, das der FM1 spielen kann, und das Feld zeigt es an.',
+    fixedFrequencyEntry:
+      'Gib die gewünschte Frequenz in Hertz ein, etwa 440 oder 1,2k. Grob und Fein springen auf die nächste Frequenz, die der FM1 spielen kann, und das Feld zeigt sie an.',
     detune:
       'Verstimmt diesen Operator leicht gegenüber der exakten Stimmung. Wenig davon macht den Klang dicker; größere Abweichungen erzeugen Schwebungen oder Dissonanz.',
     breakpoint:
@@ -157,6 +161,10 @@ export default {
     coarse: 'Grob',
     fine: 'Fein',
     detune: 'Verstimmung',
+    ratioEntry: 'Ratio',
+    fixedFrequencyEntry: 'Frequenz (Hz)',
+    ratioEntryInvalid: 'Gib das Verhältnis als Zahl ein, etwa 3,5.',
+    fixedFrequencyEntryInvalid: 'Gib die Frequenz in Hertz ein, etwa 440.',
     keyboardScaling: 'Tastaturskalierung',
     breakpoint: 'Trennpunkt',
     left: 'Links',

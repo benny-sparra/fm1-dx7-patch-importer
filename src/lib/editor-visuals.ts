@@ -1,4 +1,5 @@
-import { resolveOperatorParameterIndex, type OperatorParameterId } from '@/lib/fm1-parameters'
+import { resolveOperatorParameterIndex } from '@/lib/fm1-parameters'
+import { operatorFixedHertz, operatorOscillatorMode, operatorRatio } from '@/lib/operator-frequency'
 
 export const operatorColors = [
   'hsl(198 100% 58%)',
@@ -25,7 +26,7 @@ export function formatOperatorRatio(ratio: number) {
 }
 
 export function formatOperatorFixedFrequency(coarse: number, fine: number) {
-  const frequency = 10 ** ((coarse & 0b11) + fine / 100)
+  const frequency = operatorFixedHertz(coarse, fine)
 
   if (frequency >= 1000) return `${(frequency / 1000).toFixed(2)} kHz`
   if (frequency >= 10) return `${frequency.toFixed(1)} Hz`
@@ -43,14 +44,13 @@ export function formatOperatorFrequency(
   operator: number,
   { compact = false }: { compact?: boolean } = {},
 ) {
-  const read = (id: OperatorParameterId) => parameters[resolveOperatorParameterIndex(operator, id)]
-  const coarse = read('operator.frequency.coarse')
-  const fine = read('operator.frequency.fine')
-  if (read('operator.oscillatorMode') !== 0) {
+  const coarse = parameters[resolveOperatorParameterIndex(operator, 'operator.frequency.coarse')]
+  const fine = parameters[resolveOperatorParameterIndex(operator, 'operator.frequency.fine')]
+  if (operatorOscillatorMode(parameters, operator) === 'fixed') {
     const frequency = formatOperatorFixedFrequency(coarse, fine)
     return compact ? frequency.replace(' ', '') : frequency
   }
-  const ratio = (coarse === 0 ? 0.5 : coarse) * (1 + fine / 100)
+  const ratio = operatorRatio(coarse, fine)
   return compact ? ratio.toFixed(2) : formatOperatorRatio(ratio)
 }
 

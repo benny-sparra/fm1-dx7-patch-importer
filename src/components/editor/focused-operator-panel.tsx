@@ -8,6 +8,7 @@ import {
   RadioParameterControl,
   RotaryParameterControl,
   SliderParameterControl,
+  TypedValueControl,
 } from '@/components/editor/parameter-controls'
 import {
   displayToStoredValue,
@@ -16,6 +17,11 @@ import {
   storedToDisplayValue,
   type OperatorParameterId,
 } from '@/lib/fm1-parameters'
+import {
+  formatFrequencyEntry,
+  frequencyEntryEdits,
+  operatorOscillatorMode,
+} from '@/lib/operator-frequency'
 import type { ParameterEdit } from '@/lib/patch-editor'
 
 const curveKeys = [
@@ -52,6 +58,7 @@ export function FocusedOperatorPanel({
   const fineParameter = getOperatorParameterDefinition('operator.frequency.fine')
   const detuneParameter = getOperatorParameterDefinition('operator.detune')
   const envelopeMax = getOperatorParameterDefinition('operator.envelope.rate1').max
+  const mode = operatorOscillatorMode(parameters, selectedOperator)
   const control = (
     label: string,
     id: OperatorParameterId,
@@ -157,6 +164,28 @@ export function FocusedOperatorPanel({
           icon={AudioWaveform}
           id="operator-oscillator-heading"
           title={t('ui.oscillator')}
+        />
+        <TypedValueControl
+          helpText={t(
+            mode === 'ratio' ? 'controlHelp.ratioEntry' : 'controlHelp.fixedFrequencyEntry',
+          )}
+          invalidMessage={t(
+            mode === 'ratio' ? 'ui.ratioEntryInvalid' : 'ui.fixedFrequencyEntryInvalid',
+          )}
+          // A new operator or mode starts from its own value, not a half-typed one.
+          key={`${selectedOperator}-frequency-${mode}`}
+          label={t(mode === 'ratio' ? 'ui.ratioEntry' : 'ui.fixedFrequencyEntry')}
+          onCommit={(text) => {
+            const edits = frequencyEntryEdits(parameters, selectedOperator, text)
+            if (!edits) return false
+            applyEdits(edits)
+            return true
+          }}
+          value={formatFrequencyEntry(
+            mode,
+            parameters[operatorIndex('operator.frequency.coarse')],
+            parameters[operatorIndex('operator.frequency.fine')],
+          )}
         />
         <div className="grid grid-cols-3 gap-2">
           <RotaryParameterControl

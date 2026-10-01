@@ -69,6 +69,10 @@ export default {
     coarse:
       '在 Ratio 模式中设置主要频率比，在 Fixed 模式中设置大致频率范围。整数比通常听起来更和谐。',
     fine: '在粗调档位之间微调操作器频率。细微调整可增加新的谐波或拍频。',
+    ratioEntry:
+      '输入所需的比率，例如 3.5。粗调和微调会移到 FM1 能演奏的最接近比率，并在此栏中显示。',
+    fixedFrequencyEntry:
+      '以赫兹为单位输入所需频率，例如 440 或 1.2k。粗调和微调会移到 FM1 能演奏的最接近频率，并在此栏中显示。',
     detune: '让此操作器略微偏离准确音高。小幅度可使声音更厚实；较大差异会产生拍频或不协和感。',
     breakpoint: '选择左右电平缩放的交汇琴键。缩放会改变此操作器在键盘各音区的电平。',
     leftDepth: '设置此操作器在分界点以下音符上的电平变化量。',
@@ -124,6 +128,10 @@ export default {
     coarse: '粗调',
     fine: '微调',
     detune: '失谐',
+    ratioEntry: '比率',
+    fixedFrequencyEntry: '频率 (Hz)',
+    ratioEntryInvalid: '请以数字输入比率，例如 3.5。',
+    fixedFrequencyEntryInvalid: '请以赫兹为单位输入频率，例如 440。',
     keyboardScaling: '键盘缩放',
     breakpoint: '分界点',
     left: '左侧',
