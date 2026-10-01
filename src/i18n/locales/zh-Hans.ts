@@ -11,7 +11,8 @@ export default {
     bankFm1VaStep3: '将 SELECT 转到 Write 并按 SEL 保存这 32 个音色，或按 HOME 取消。',
     bankFm1VaNote:
       '如果你的 FM1 运行 FM-1+VA 固件，它会改为询问“Write the bank?”，并先停在音色库 A。转动 ALGORITHM 选择目标音色库，再将 SELECT 转到 Write 并按 SEL。',
-    bankImage: 'M-VAVE FM1 前面板，显示屏和四个编号旋钮',
+    bankFm1VaImage: '运行 FM-1+VA 的 FM1 显示屏，询问“Write the bank?”，下方有 Cancel 和 Write',
+    bankImage: '运行 M-VAVE 固件的 FM1 显示屏，显示“32 Voice Save To …”，下方是音色库 A、B、C 和 D',
     dontShow: '本次会话中不再显示',
     midiTitle: '连接 MIDI 以发送此音色库',
     midiIntro: '必须先将 FM1 连接为 MIDI 输出，才能发送音色库。',

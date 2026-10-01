@@ -15,7 +15,10 @@ export default {
       'Gira SELECT hasta Write y pulsa SEL para guardar los 32 sonidos, o pulsa HOME para cancelar.',
     bankFm1VaNote:
       'Si tu FM1 usa el firmware FM-1+VA, pregunta en su lugar «Write the bank?» y empieza en el banco A. Gira ALGORITHM hasta el banco de destino, luego SELECT hasta Write, y pulsa SEL.',
-    bankImage: 'Panel frontal del M-VAVE FM1 con pantalla y cuatro mandos numerados',
+    bankFm1VaImage:
+      'Pantalla del FM1 con FM-1+VA que pregunta «Write the bank?», con Cancel y Write',
+    bankImage:
+      'Pantalla del FM1 con el firmware de M-VAVE que muestra «32 Voice Save To …» sobre los bancos A, B, C y D',
     dontShow: 'No volver a mostrar en esta sesión',
     midiTitle: 'Conecta MIDI para enviar este banco',
     midiIntro: 'El FM1 debe estar conectado como salida MIDI antes de enviar un banco.',
