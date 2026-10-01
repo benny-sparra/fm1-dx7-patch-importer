@@ -20,9 +20,11 @@ import { trackAnalyticsEvent } from '@/lib/analytics'
 import type { Dx7Voice } from '@/lib/dx7'
 import {
   Fm1VaPresetFileError,
+  type Fm1VaPreset,
   type Fm1VaPresetBank,
   type Fm1VaPresetFileBank,
   fm1VaPresetFileSize,
+  importableVoices,
   readFm1VaPresetFile,
 } from '@/lib/fm1-va-preset-file'
 import { sysexFileAccept } from '@/lib/sysex-file'
@@ -53,9 +55,15 @@ function presetFileErrorMessage(t: Translate, error: unknown) {
   return t('fm1VaImport.errors.unreadable')
 }
 
-/** The banks a file can fill: those with at least one preset that could be read. */
-function readableBanks(banks: readonly Fm1VaPresetFileBank[]) {
-  return banks.filter(({ voices }) => voices.some(Boolean)).map(({ bank }) => bank)
+/** Whether a bank holds an FM preset the library can take. */
+function hasImportableVoice(bank: Fm1VaPresetFileBank) {
+  return importableVoices(bank).some(Boolean)
+}
+
+function countPresets(banks: readonly Fm1VaPresetFileBank[] | null, kind: Fm1VaPreset['kind']) {
+  return (
+    banks?.flatMap(({ presets }) => presets).filter((preset) => preset.kind === kind).length ?? 0
+  )
 }
 
 export function ImportFm1VaPresetsDialog({
@@ -87,7 +95,8 @@ export function ImportFm1VaPresetsDialog({
   }, [])
 
   const listFormat = new Intl.ListFormat(i18n.resolvedLanguage, { type: 'conjunction' })
-  const damagedCount = banks?.flatMap(({ voices }) => voices).filter((voice) => !voice).length ?? 0
+  const damagedCount = countPresets(banks, 'damaged')
+  const virtualAnalogCount = countPresets(banks, 'virtual-analog')
   const takenBanks = banks?.filter(({ bank }) => chosenBanks.has(bank)) ?? []
 
   const chooseFile = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -104,7 +113,7 @@ export function ImportFm1VaPresetsDialog({
       // A file chosen while this one was being read replaces it.
       if (readingFile.current !== chosen) return
       setBanks(read)
-      setChosenBanks(new Set(readableBanks(read)))
+      setChosenBanks(new Set(read.filter(hasImportableVoice).map(({ bank }) => bank)))
     } catch (cause) {
       if (readingFile.current === chosen) setError(presetFileErrorMessage(t, cause))
     }
@@ -130,7 +139,9 @@ export function ImportFm1VaPresetsDialog({
 
     setError('')
     try {
-      const changed = library.importFetchedBanks(takenBanks)
+      const changed = library.importFetchedBanks(
+        takenBanks.map((taken) => ({ bank: taken.bank, voices: importableVoices(taken) })),
+      )
       trackAnalyticsEvent({ data: { source: 'fm1_va_backup' }, name: 'bank_imported' })
       toast.success(
         t('fm1VaImport.imported', {
@@ -198,23 +209,29 @@ export function ImportFm1VaPresetsDialog({
                 </h3>
                 <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.previewHelp')}</p>
               </div>
+              {virtualAnalogCount > 0 ? (
+                <p className="text-xs text-[var(--crt-ink-3)]">
+                  {t('fm1VaImport.virtualAnalogPresets', { count: virtualAnalogCount })}
+                </p>
+              ) : null}
               {damagedCount > 0 ? (
                 <ErrorNotice>
                   {t('fm1VaImport.damagedPresets', { count: damagedCount })}
                 </ErrorNotice>
               ) : null}
-              {banks.map(({ bank, voices }) => (
+              {banks.map((fileBank) => (
                 <PresetFileBank
-                  bank={bank}
-                  key={bank}
+                  fileBank={fileBank}
+                  key={fileBank.bank}
                   libraryBankName={
-                    library.workspaceBanks.includes(bank) ? workspaceBankLabel(bank) : null
+                    library.workspaceBanks.includes(fileBank.bank)
+                      ? workspaceBankLabel(fileBank.bank)
+                      : null
                   }
                   onPlay={play}
-                  onToggle={(taken) => toggleBank(bank, taken)}
+                  onToggle={(taken) => toggleBank(fileBank.bank, taken)}
                   playing={playing}
-                  taken={chosenBanks.has(bank)}
-                  voices={voices}
+                  taken={chosenBanks.has(fileBank.bank)}
                 />
               ))}
             </section>
@@ -235,29 +252,27 @@ export function ImportFm1VaPresetsDialog({
 }
 
 type PresetFileBankProps = {
-  bank: Fm1VaPresetBank
+  fileBank: Fm1VaPresetFileBank
   /** The name of the workspace bank the FM1 bank replaces, or null when it is added. */
   libraryBankName: string | null
   onPlay: (voice: Dx7Voice) => void
   onToggle: (taken: boolean) => void
   playing: Dx7Voice | null
   taken: boolean
-  voices: (Dx7Voice | null)[]
 }
 
 function PresetFileBank({
-  bank,
+  fileBank,
   libraryBankName,
   onPlay,
   onToggle,
   playing,
   taken,
-  voices,
 }: PresetFileBankProps) {
   const { i18n, t } = useTranslation()
   const headingId = useId()
   const numberFormat = new Intl.NumberFormat(i18n.resolvedLanguage)
-  const readable = voices.some(Boolean)
+  const { bank, presets } = fileBank
 
   return (
     <section aria-labelledby={headingId} className="grid gap-2">
@@ -269,7 +284,7 @@ function PresetFileBank({
           <input
             checked={taken}
             className="size-4 accent-[var(--crt-acc)]"
-            disabled={!readable}
+            disabled={!hasImportableVoice(fileBank)}
             onChange={(event) => onToggle(event.target.checked)}
             type="checkbox"
           />
@@ -281,31 +296,57 @@ function PresetFileBank({
         </label>
       </div>
       <ul className="grid grid-cols-2 gap-1 sm:grid-cols-4">
-        {voices.map((voice, index) => {
-          const number = numberFormat.format(index + 1)
-          return (
-            <li key={index}>
-              {voice ? (
-                <PreviewPatchButton
-                  isPlaying={voice === playing}
-                  label={t('overwriteImport.play', { name: voice.name.trim(), number })}
-                  name={voice.name}
-                  number={index + 1}
-                  onClick={() => onPlay(voice)}
-                  playingLabel={t('banks.auditioning')}
-                />
-              ) : (
-                <span className="patch-cell flex min-h-9 w-full items-center gap-1.5 border border-dashed border-[var(--crt-line)] px-1.5 py-1 text-[var(--crt-ink-3)]">
-                  <span className="font-vt323 shrink-0 text-[16px] leading-none">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <span className="truncate text-xs">{t('fm1VaImport.damagedPreset')}</span>
-                </span>
-              )}
-            </li>
-          )
-        })}
+        {presets.map((preset, index) => (
+          <li key={index}>
+            {preset.kind === 'fm' ? (
+              <PreviewPatchButton
+                isPlaying={preset.voice === playing}
+                label={t('overwriteImport.play', {
+                  name: preset.voice.name.trim(),
+                  number: numberFormat.format(index + 1),
+                })}
+                name={preset.voice.name}
+                number={index + 1}
+                onClick={() => onPlay(preset.voice)}
+                playingLabel={t('banks.auditioning')}
+              />
+            ) : (
+              <KeptPresetCell number={index + 1} preset={preset} />
+            )}
+          </li>
+        ))}
       </ul>
     </section>
+  )
+}
+
+/** A preset the import leaves out, so its slot keeps the patch it has. */
+function KeptPresetCell({
+  number,
+  preset,
+}: {
+  number: number
+  preset: Exclude<Fm1VaPreset, { kind: 'fm' }>
+}) {
+  const { t } = useTranslation()
+  return (
+    <span className="patch-cell flex min-h-9 w-full items-center gap-1.5 border border-dashed border-[var(--crt-line)] px-1.5 py-1 text-[var(--crt-ink-3)]">
+      <span className="font-vt323 shrink-0 text-[16px] leading-none">
+        {String(number).padStart(2, '0')}
+      </span>
+      {preset.kind === 'virtual-analog' ? (
+        <>
+          <span className="font-dot-matrix min-w-0 flex-1 truncate text-[13px] font-bold whitespace-pre">
+            {preset.name}
+          </span>
+          <span aria-hidden="true" className="shrink-0 text-[11px] font-semibold">
+            {t('fm1VaImport.virtualAnalogTag')}
+          </span>
+          <span className="sr-only">{t('fm1VaImport.virtualAnalogPreset')}</span>
+        </>
+      ) : (
+        <span className="truncate text-xs">{t('fm1VaImport.damagedPreset')}</span>
+      )}
+    </span>
   )
 }

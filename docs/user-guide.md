@@ -74,8 +74,9 @@ it as it is, then press **Replace** to put the ticked banks into banks A to D he
 them your library does not have. The file sends nothing to the FM1, so the import works with MIDI
 switched off and whichever firmware the FM1 runs. Only the patches come in: the file holds each
 preset's effects too, but the app cannot read them yet, so every imported patch starts with its
-effects off. A preset that is damaged in the file is marked, and its slot keeps the patch it has
-now. The notification offers **Undo**.
+effects off. A Virtual Analog preset is marked **VA** and left out, since the app cannot hold one
+yet, and a preset that is damaged in the file is marked too; either way that slot keeps the patch
+it has now. The notification offers **Undo**.
 
 The search box above the patch grid looks through every bank that has patches in it, not only the one shown. It matches part of a patch's name, or a whole slot code such as `B07` or `b7`, and lists the matches in bank order, each labelled with its slot. While results show, the grid is titled **Search results**, no bank is selected, **Send to FM1** is unavailable because a bank transfer needs one bank, and patches cannot be dragged to reorder them. Click a result to play it as you would in its bank; the results stay up so you can try the next one, and they are still there when you come back from editing one. Clearing the search returns to the bank of the last result you played, or to the bank you were in if you played none. Choosing a bank on the left clears the search and shows that bank.
 

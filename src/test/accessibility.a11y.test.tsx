@@ -165,7 +165,7 @@ describe('rendered accessibility', () => {
     await user.click(screen.getByRole('button', { name: 'Import FM-1+VA presets…' }))
     await user.upload(
       await screen.findByLabelText(/FM-1\+VA presets file/),
-      makeFm1VaBackupFile('FM-1 presets.syx', [5]),
+      makeFm1VaBackupFile('FM-1 presets.syx', { damagedSlots: [5], virtualAnalogSlots: [112] }),
     )
 
     expect(await screen.findByRole('region', { name: 'FM1 bank D' })).toBeTruthy()

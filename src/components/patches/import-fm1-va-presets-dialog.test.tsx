@@ -177,7 +177,7 @@ describe('ImportFm1VaPresetsDialog', () => {
 
   it('marks a damaged preset and keeps that slot out of the import', async () => {
     const { importFetchedBanks, user } = renderDialog()
-    await chooseFile(user, makeFm1VaBackupFile('damaged.syx', [5]))
+    await chooseFile(user, makeFm1VaBackupFile('damaged.syx', { damagedSlots: [5] }))
 
     expect(within(bankSection('A')).getByText('Damaged')).toBeTruthy()
     expect(
@@ -187,11 +187,35 @@ describe('ImportFm1VaPresetsDialog', () => {
     expect(vi.mocked(importFetchedBanks).mock.calls[0][0][0].voices[5]).toBeNull()
   })
 
+  it('marks a Virtual Analog preset and keeps that slot out of the import', async () => {
+    const { importFetchedBanks, user } = renderDialog()
+    await chooseFile(user, makeFm1VaBackupFile('va.syx', { virtualAnalogSlots: [33] }))
+
+    expect(within(bankSection('B')).getByText('Virtual Analog preset, not imported')).toBeTruthy()
+    expect(within(bankSection('B')).getByText(fm1VaTestPatchName(33))).toBeTruthy()
+    expect(
+      screen.getByText(/^One preset in this file is a Virtual Analog preset, marked VA\./),
+    ).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Replace 4 banks' }))
+    expect(vi.mocked(importFetchedBanks).mock.calls[0][0][1].voices[1]).toBeNull()
+  })
+
+  it('cannot take a bank that holds only Virtual Analog presets', async () => {
+    const { user } = renderDialog()
+    const bankD = Array.from({ length: 32 }, (_, index) => 96 + index)
+
+    await chooseFile(user, makeFm1VaBackupFile('va.syx', { virtualAnalogSlots: bankD }))
+
+    const checkbox = within(bankSection('D')).getByRole<HTMLInputElement>('checkbox')
+    expect(checkbox.checked).toBe(false)
+    expect(checkbox.disabled).toBe(true)
+  })
+
   it('cannot take a bank in which every preset is damaged', async () => {
     const { user } = renderDialog()
     const bankB = Array.from({ length: 32 }, (_, index) => 32 + index)
 
-    await chooseFile(user, makeFm1VaBackupFile('damaged.syx', bankB))
+    await chooseFile(user, makeFm1VaBackupFile('damaged.syx', { damagedSlots: bankB }))
 
     const checkbox = within(bankSection('B')).getByRole<HTMLInputElement>('checkbox')
     expect(checkbox.checked).toBe(false)
@@ -226,7 +250,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     const { user } = renderDialog()
     const everySlot = Array.from({ length: 128 }, (_, slot) => slot)
 
-    await chooseFile(user, makeFm1VaBackupFile('broken.syx', everySlot))
+    await chooseFile(user, makeFm1VaBackupFile('broken.syx', { damagedSlots: everySlot }))
 
     expect(screen.getByRole('alert').textContent).toBe(
       'No preset in this file could be read. Save a new backup on FM-1+VA and try again.',

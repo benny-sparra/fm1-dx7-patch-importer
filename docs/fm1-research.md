@@ -101,13 +101,21 @@ bytes after the slot, not the command or the slot: the low seven bits of the sum
 seven-bit complement. Every byte between `F0` and `F7` is seven-bit. The editor reads this file in
 **Import FM-1+VA presets…** (`src/lib/fm1-va-preset-file.ts`), voices only.
 
-**The record is not mapped. Needs hardware test.** Read as 8-into-7 groups, each starting with the
-byte that carries its seven high bits, both files give 59-byte records in which every group's high
-byte is `00` and byte 18 is `03` in all 128 presets, and only two distinct records occur. FM-1+VA's
-web modules were read as putting an engine marker at byte 18 (`A5` FM, `5A` Virtual Analog), which
-these files do not show; neither value can appear in a record with no high bits set. These presets
-are all FM, so the marker, the group bit order, and the field offsets wait for a backup holding a
-Virtual Analog preset (`docs/fm1-va-controller-tests.md`, V7, stores one) from `FM-1_092` or later.
+**The engine marker. Confirmed** (three backups, 2026-09-29 and 2026-10-01, 384 presets). The
+record travels in 8-into-7 groups, each starting with the byte that carries the high bits of the
+seven after it. Record byte 18, the fifth byte of the third group, is `5A` in every Virtual Analog
+preset and `03` in every FM preset. The 2026-10-01 backup held 17 Virtual Analog presets: 097, made
+with **Erase Preset** and stored with SAVE, and the 16 of FM-1+VA's preset pack in 113–128. No
+preset showed the `A5` that FM-1+VA's web modules were read as giving an FM preset. That group's
+high-bit byte is `00` in all 384 presets, so the editor compares only the low seven bits with `5A`
+and does not depend on the bit order, which is not known. The editor reads a preset with any other
+value as FM.
+
+**The rest of the record is not mapped. Needs hardware test.** Only three Virtual Analog records,
+097, 113, and 114, set any high bit, so the group bit order cannot be settled from these files. In
+FM presets, bytes 0–17 are `50` then seventeen `03`, and bytes 27 onwards repeat a pattern of three
+bytes with a count from 0 to 8, which is not the six-slot effect chain the backlog lists. The
+firmware release behind the 2026-10-01 backup was not recorded.
 
 Its pages identify the firmware before sending any of these, with the updater's `F0 00 32 45 …`
 identity query (§6.3), which stock firmware also answers. §6.3 bars production code from sending

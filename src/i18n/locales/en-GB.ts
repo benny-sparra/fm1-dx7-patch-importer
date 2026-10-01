@@ -304,6 +304,12 @@ export default {
     imported: 'Imported bank {{banks}} from FM-1+VA.',
     imported_other: 'Imported banks {{banks}} from FM-1+VA.',
     openFailed: 'The FM-1+VA import could not be opened. Reload the page and try again.',
+    virtualAnalogTag: 'VA',
+    virtualAnalogPreset: 'Virtual Analog preset, not imported',
+    virtualAnalogPresets:
+      'One preset in this file is a Virtual Analog preset, marked VA. The editor cannot hold those yet, so its slot keeps the patch it has now.',
+    virtualAnalogPresets_other:
+      '{{count, number}} presets in this file are Virtual Analog presets, marked VA. The editor cannot hold those yet, so their slots keep the patches they have now.',
     errors: {
       size: 'This file is {{bytes, number}} bytes. A file from FM-1+VA’s “Save a backup” is exactly {{expected, number}} bytes.',
       format: 'This file was not saved by FM-1+VA’s “Save a backup”.',

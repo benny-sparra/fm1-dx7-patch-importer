@@ -320,6 +320,12 @@ export default {
     imported_other: 'Bänke {{banks}} von FM-1+VA importiert.',
     openFailed:
       'Der FM-1+VA-Import konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+    virtualAnalogTag: 'VA',
+    virtualAnalogPreset: 'Virtual-Analog-Preset, wird nicht importiert',
+    virtualAnalogPresets:
+      'Ein Preset in dieser Datei ist ein Virtual-Analog-Preset, markiert mit VA. Der Editor kann solche Presets noch nicht aufnehmen, darum behält sein Platz den Sound, den er jetzt hat.',
+    virtualAnalogPresets_other:
+      '{{count, number}} Presets in dieser Datei sind Virtual-Analog-Presets, markiert mit VA. Der Editor kann solche Presets noch nicht aufnehmen, darum behalten ihre Plätze die Sounds, die sie jetzt haben.',
     errors: {
       size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine Datei aus „Save a backup“ von FM-1+VA ist genau {{expected, number}} Bytes groß.',
       format: 'Diese Datei wurde nicht mit „Save a backup“ von FM-1+VA gespeichert.',

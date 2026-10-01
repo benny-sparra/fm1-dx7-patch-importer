@@ -274,6 +274,12 @@ export default {
     imported: '已从 FM-1+VA 导入音色库 {{banks}}。',
     imported_other: '已从 FM-1+VA 导入音色库 {{banks}}。',
     openFailed: '无法打开 FM-1+VA 导入。请重新加载页面后重试。',
+    virtualAnalogTag: 'VA',
+    virtualAnalogPreset: 'Virtual Analog 预设，不会导入',
+    virtualAnalogPresets:
+      '此文件中有 1 个 Virtual Analog 预设，标记为 VA。编辑器目前还无法保存此类预设，因此其位置保留现有的音色。',
+    virtualAnalogPresets_other:
+      '此文件中有 {{count, number}} 个 Virtual Analog 预设，标记为 VA。编辑器目前还无法保存此类预设，因此这些位置保留现有的音色。',
     errors: {
       size: '此文件大小为 {{bytes, number}} 字节。FM-1+VA 的“Save a backup”保存的文件正好为 {{expected, number}} 字节。',
       format: '此文件不是由 FM-1+VA 的“Save a backup”保存的。',

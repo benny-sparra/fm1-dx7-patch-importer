@@ -355,9 +355,9 @@ What is known, from FM-1+VA's own code and manual:
   effect chain with order, switch, and type per slot (27–44), and Attack, Decay, Sustain, and
   Release (54–57). Bytes 45–53 and 58 are unexplained. Where a Virtual Analog preset keeps its
   oscillator settings is not known. How the record's effect bytes relate to CC 0–23 values is not
-  known either. Two `FM-1_089` backups do not match this map: byte 18 is `03` in every preset and
-  no byte has its high bit set (`docs/fm1-research.md`, "Its backup file"), so the whole map needs
-  checking against a backup with a Virtual Analog preset.
+  known either. Backups confirm only the marker's place: byte 18 is `5A` in a Virtual Analog preset
+  but `03`, not `A5`, in an FM one, and the rest of this map does not match what they hold
+  (`docs/fm1-research.md`, "Its backup file"), so item 2 maps it afresh.
 
 Suggested order: 1 needs no new command; 2 underpins 3 to 6.
 
@@ -371,9 +371,9 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       _In progress (2026-10-01, `feature/fm1-va-backup-import`):_ **Import FM-1+VA presets…** in
       the patch-bank header menu reads the file and replaces the banks the user ticks, voices
       only, with the effects off. It is offered whatever firmware is connected, because it reads a
-      file and sends nothing. Before it ships, a backup with a Virtual Analog preset must show how
-      the record marks one, so those slots can be left out: the record did not match the map below
-      (`docs/fm1-research.md`, "Its backup file").
+      file and sends nothing. A Virtual Analog preset, which record byte 18 marks with `5A`
+      (`docs/fm1-research.md`, "Its backup file"), is shown as VA and left out, so its slot keeps
+      its patch until item 6 can hold one.
 - [ ] **2. Groundwork: read presets, and map the record.** Approve `10`, build a bounded
       `readFm1VaPreset(slot)` with typed, translated errors, and capture fixtures from an FM1.
       Then map the record by the research discipline: change one setting on the FM1 (an effect
