@@ -5,7 +5,18 @@ see the [README](../README.md).
 
 ## Banks, transfers, and settings
 
-The editor works in browsers with Web MIDI and SysEx, such as Chrome, Edge, Opera, and Firefox on the desktop, and Chrome on Android. Safari, and Firefox on mobile, do not expose Web MIDI. The first time you connect, the browser asks to allow MIDI and SysEx access for the site. Firefox asks you to install a small site permission add-on instead of showing a plain permission prompt; accept it to connect.
+The editor works in browsers with Web MIDI and SysEx. The help guide's **Getting started** tab shows the same table and marks the browser you are using.
+
+| Browser | Drives the FM1 | Where                             |
+| ------- | -------------- | --------------------------------- |
+| Chrome  | Yes            | Desktop and Android               |
+| Edge    | Yes            | Desktop                           |
+| Firefox | Yes            | Desktop                           |
+| Safari  | No             | Nor any browser on iPhone or iPad |
+
+Every browser on iPhone and iPad is built on Safari's engine, so none of them has Web MIDI, whatever its name. Firefox on Android has none either.
+
+The first time you connect, the browser asks to allow MIDI and SysEx access for the site. Firefox asks you to install a small site permission add-on instead of showing a plain permission prompt; accept it to connect.
 
 After the first successful connection, the app remembers the selected MIDI ports and both channels and reconnects automatically on future visits. Switch **MIDI online** off to disable automatic connection. If the selected output disconnects, the app does not switch to another device: nothing is selected until the output is reconnected or you choose another in **Settings**, and messages still waiting to be sent are dropped.
 

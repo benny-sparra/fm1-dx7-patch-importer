@@ -440,10 +440,20 @@ export default {
     truthTitle: 'Les banques du navigateur constituent la référence.',
     truthBody:
       'Le FM1 accepte les voix et les banques, mais ne peut pas renvoyer ses banques mémorisées. Importez ou restaurez les sons ici, modifiez-les, puis transférez-les vers le FM1.',
+    firmwareTitle: 'Compatible FM-1+VA',
+    firmwareBody: 'Fonctionne avec le firmware de M-VAVE comme avec celui de Baud Girl.',
     start: 'Commencer',
     stepsTitle: 'Premiers pas',
     sections: 'Sections du guide',
     shortcutsTitle: 'Raccourcis clavier',
+    browsers: {
+      title: 'Navigateurs compatibles',
+      works: 'Fonctionne',
+      unsupported: 'Non pris en charge',
+      yours: 'Votre navigateur',
+      desktop: 'Ordinateur',
+      desktopAndAndroid: 'Ordinateur et Android',
+    },
     shortcuts: {
       banks: 'Banques de sons',
       editor: 'Éditeur de voix',
@@ -453,17 +463,13 @@ export default {
     },
     steps: {
       libraryTitle: 'Créez votre bibliothèque',
-      libraryBody:
-        'Commencez avec les quatre banques d’usine du FM1, puis importez, modifiez ou réorganisez leurs sons.',
+      libraryBody: 'Partez des banques d’usine du FM1 ou importez les vôtres.',
       editTitle: 'Modifiez et organisez',
-      editBody:
-        'Ouvrez un son dans l’éditeur de voix. Enregistrez-le dans la bibliothèque du navigateur ou rétablissez la version enregistrée sur le FM1.',
+      editBody: 'Ouvrez un son pour le modifier, puis enregistrez-le dans votre bibliothèque.',
       connectTitle: 'Connectez votre FM1',
-      connectBody:
-        'Connectez le FM1 en USB ou MIDI, activez MIDI en ligne, puis sélectionnez ses entrées et sorties dans les réglages.',
+      connectBody: 'Branchez le FM1 et activez MIDI en ligne.',
       transferTitle: 'Transférez les sons',
-      transferBody:
-        'Écoutez chaque son dans l’emplacement FM1 correspondant, ou transférez une banque complète et choisissez sa destination sur le synthétiseur.',
+      transferBody: 'Cliquez sur un son pour l’écouter, ou envoyez une banque complète au FM1.',
     },
   },
   colorway: {

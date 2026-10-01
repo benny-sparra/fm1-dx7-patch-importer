@@ -437,10 +437,20 @@ export default {
     truthTitle: 'Los bancos del navegador son la referencia.',
     truthBody:
       'El FM1 acepta voces y bancos, pero no puede devolver sus bancos guardados. Importa o restaura los sonidos aquí, edítalos y transfiérelos al FM1.',
+    firmwareTitle: 'Compatible con FM-1+VA',
+    firmwareBody: 'Funciona tanto con el firmware de M-VAVE como con el de Baud Girl.',
     start: 'Empezar a editar',
     stepsTitle: 'Primeros pasos',
     sections: 'Secciones de la guía',
     shortcutsTitle: 'Atajos de teclado',
+    browsers: {
+      title: 'Navegadores compatibles',
+      works: 'Funciona',
+      unsupported: 'No compatible',
+      yours: 'Tu navegador',
+      desktop: 'Escritorio',
+      desktopAndAndroid: 'Escritorio y Android',
+    },
     shortcuts: {
       banks: 'Bancos de sonidos',
       editor: 'Editor de voces',
@@ -450,17 +460,13 @@ export default {
     },
     steps: {
       libraryTitle: 'Crea tu biblioteca',
-      libraryBody:
-        'Empieza con los cuatro bancos de fábrica del FM1 y después importa, edita o reorganiza sus sonidos.',
+      libraryBody: 'Empieza con los bancos de fábrica del FM1 o importa los tuyos.',
       editTitle: 'Edita y organiza',
-      editBody:
-        'Abre cualquier sonido en el editor de voces. Guárdalo en la biblioteca del navegador o restaura en el FM1 la versión guardada.',
+      editBody: 'Abre un sonido para editarlo y guárdalo en tu biblioteca.',
       connectTitle: 'Conecta tu FM1',
-      connectBody:
-        'Conecta el FM1 por USB o MIDI, activa MIDI en línea y selecciona su entrada y salida en Ajustes.',
+      connectBody: 'Conecta el FM1 y activa MIDI en línea.',
       transferTitle: 'Transfiere los sonidos',
-      transferBody:
-        'Prueba sonidos individuales en sus ranuras del FM1 o transfiere un banco completo y elige su destino en el sintetizador.',
+      transferBody: 'Haz clic en un sonido para escucharlo o envía un banco completo al FM1.',
     },
   },
   colorway: {

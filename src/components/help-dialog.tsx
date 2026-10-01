@@ -1,8 +1,19 @@
-import { Keyboard, Library, PlugZap, Route, Send, SlidersHorizontal } from 'lucide-react'
-import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import {
+  Check,
+  ExternalLink,
+  Keyboard,
+  Library,
+  PlugZap,
+  Route,
+  Send,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react'
+import { Fragment, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { browserSupport, currentBrowserInTable } from '@/lib/browser-support'
 import { rememberHelpWasSeen } from '@/lib/help-seen'
 import {
   Dialog,
@@ -20,6 +31,9 @@ import {
   type KeyboardShortcut,
 } from '@/lib/keyboard-shortcuts'
 import { cn } from '@/lib/utils'
+
+// Baud Girl's page for FM-1+VA, the replacement firmware the editor recognises.
+const fm1VaUrl = 'https://baudgirl.com/work/FM-1+VA'
 
 const steps = [
   {
@@ -91,6 +105,8 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const onApplePlatform = useMemo(() => isApplePlatform(), [])
+  const currentBrowser = useMemo(() => currentBrowserInTable(), [])
+  const browsersTitleId = useId()
   const [selectedTab, setSelectedTab] = useState(helpTabs[0].id)
   const tabRefs = useRef(new Map<string, HTMLButtonElement>())
 
@@ -140,6 +156,23 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
         <DialogCloseButton label={t('help.close')} onClick={closeDialog} />
       </DialogHeader>
       <DialogBody>
+        <div className="mx-4 mt-4 border border-[var(--crt-led)] bg-[color-mix(in_srgb,var(--crt-led)_12%,transparent)] px-3.5 py-2.5 text-sm leading-6 text-[var(--crt-ink)] shadow-[0_0_8px_var(--crt-led-glow)]">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+            <span className="font-dot-matrix text-xs font-bold tracking-[0.18em] text-[var(--crt-led)] uppercase">
+              {t('help.firmwareTitle')}
+            </span>
+            <a
+              className="inline-flex items-center gap-1 text-xs text-[var(--crt-led)] underline underline-offset-2 hover:text-[var(--crt-ink)] focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              href={fm1VaUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <span>baudgirl.com</span>
+              <ExternalLink aria-hidden="true" className="size-3" />
+            </a>
+          </div>
+          <p>{t('help.firmwareBody')}</p>
+        </div>
         <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">{t('help.intro')}</p>
 
         {/*
@@ -208,6 +241,63 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
               </li>
             ))}
           </ol>
+
+          <div className="crt-legend-box mx-4 mb-4 p-3.5 pt-3">
+            <span
+              className="crt-legend font-dot-matrix text-xs font-bold tracking-[0.12em] text-[var(--crt-acc-lt)] uppercase"
+              id={browsersTitleId}
+            >
+              {t('help.browsers.title')}
+            </span>
+            <ul aria-labelledby={browsersTitleId} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {browserSupport.map((browser) => {
+                const { drivesFm1, id, name } = browser
+                const StatusIcon = drivesFm1 ? Check : X
+                const isCurrent = id === currentBrowser
+                // The browser in use glows rather than carrying a visible label, since people
+                // know their browser's name; a screen reader still hears which one it is.
+                return (
+                  <li
+                    className={cn(
+                      'flex flex-col items-center gap-1 bg-[var(--crt-bg-well)] px-2 py-2.5 text-center',
+                      isCurrent
+                        ? 'border border-[var(--crt-led)] shadow-[0_0_8px_var(--crt-led-glow)]'
+                        : 'crt-inset',
+                    )}
+                    key={id}
+                  >
+                    <span
+                      className={cn(
+                        'font-vt323 text-xl leading-6',
+                        isCurrent
+                          ? 'text-[var(--crt-led)] [text-shadow:0_0_8px_var(--crt-led-glow)]'
+                          : 'text-[var(--crt-ink)]',
+                      )}
+                    >
+                      {name}
+                    </span>
+                    {isCurrent ? <span className="sr-only">{t('help.browsers.yours')}</span> : null}
+                    <span
+                      className={cn(
+                        'font-dot-matrix flex items-center justify-center gap-1 text-[11px] tracking-[0.12em] uppercase',
+                        drivesFm1 ? 'text-[var(--crt-led)]' : 'text-destructive',
+                      )}
+                    >
+                      <StatusIcon aria-hidden="true" className="size-3.5" />
+                      <span>
+                        {t(drivesFm1 ? 'help.browsers.works' : 'help.browsers.unsupported')}
+                      </span>
+                    </span>
+                    {'where' in browser ? (
+                      <span className="text-xs leading-4 text-[var(--crt-ink-3)]">
+                        {t(`help.browsers.${browser.where}`)}
+                      </span>
+                    ) : null}
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
         </div>
 
         <div

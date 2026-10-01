@@ -136,3 +136,50 @@ describe('HelpDialog shortcuts', () => {
     expect(within(visiblePanel()).getAllByRole('definition')).toHaveLength(10)
   })
 })
+
+const safariUserAgent =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15'
+
+const browserTile = (name: string) =>
+  within(screen.getByRole('list', { name: 'Browser support' }))
+    .getByText(name)
+    .closest('li') as HTMLElement
+
+describe('HelpDialog firmware note', () => {
+  it('links to Baud Girl’s FM-1+VA page in a new tab', async () => {
+    await openHelp()
+
+    const link = screen.getByRole('link', { name: 'baudgirl.com' })
+    expect(link.getAttribute('href')).toBe('https://baudgirl.com/work/FM-1+VA')
+    expect(link.getAttribute('target')).toBe('_blank')
+  })
+})
+
+describe('HelpDialog browser support', () => {
+  it('says which browsers can drive the FM1', async () => {
+    await openHelp()
+
+    expect(within(browserTile('Chrome')).getByText('Works')).toBeTruthy()
+    expect(within(browserTile('Firefox')).getByText('Desktop')).toBeTruthy()
+    expect(within(browserTile('Safari')).getByText('Not supported')).toBeTruthy()
+  })
+
+  it('marks Safari as this browser when it has no Web MIDI', async () => {
+    vi.stubGlobal('navigator', { userAgent: safariUserAgent })
+    vi.stubGlobal('isSecureContext', true)
+
+    await openHelp()
+
+    expect(within(browserTile('Safari')).getByText('Your browser')).toBeTruthy()
+    expect(screen.getAllByText('Your browser')).toHaveLength(1)
+  })
+
+  it('marks no browser it cannot name', async () => {
+    vi.stubGlobal('navigator', { userAgent: 'curl/8.7.1' })
+    vi.stubGlobal('isSecureContext', true)
+
+    await openHelp()
+
+    expect(screen.queryByText('Your browser')).toBeNull()
+  })
+})
