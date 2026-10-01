@@ -126,8 +126,8 @@ export function FocusedOperatorPanel({
     <div
       className={
         layout === 'wide'
-          ? // The oscillator carries the most controls in a row, so it takes the most width.
-            'grid min-w-0 grid-cols-[minmax(0,1.2fr)_minmax(0,1.3fr)_minmax(0,1fr)] items-start gap-[9px]'
+          ? // The oscillator and scaling share one width, so their strips match side by side.
+            'grid min-w-0 grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-start gap-[9px]'
           : 'grid min-w-0 gap-[9px]'
       }
       id="focused-operator-panel"
