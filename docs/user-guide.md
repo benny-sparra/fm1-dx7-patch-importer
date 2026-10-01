@@ -45,9 +45,9 @@ The **MIDI log** in the footer lists recent messages the app sent and received. 
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 
-Clicking a slot in banks A–D selects that hardware slot and then sends the patch's saved FM1 effects, because a DX7 bank transfer does not carry effects. Clicking a slot in an added bank sends its voice and effects to the edit buffer.
+Clicking a slot in banks A–D selects that hardware slot, then sends the patch's voice and saved FM1 effects to the edit buffer, so you hear the patch as it is in your library even when you have not sent its bank to the FM1 yet. A DX7 bank transfer does not carry effects, which is why they are always sent. Clicking a slot in an added bank sends its voice and effects to the edit buffer. Clicking the same unchanged slot again sends nothing more. If the browser did not grant SysEx access, a click in banks A–D can only select the hardware slot, which plays what the FM1 has stored there, and send its effects.
 
-To send one patch instead, open it in the editor. For a patch in banks A–D the app first selects the matching hardware slot; it then sends the voice and its FM1 effects to the edit buffer; hold **SAVE** on the FM1 to store it on the hardware.
+A patch played from a click stays an unsaved edit on the FM1. To keep it there, hold **SAVE** on the FM1, or send its whole bank. Opening a patch in the editor sends it the same way before you start editing.
 
 ### M-VAVE firmware and FM-1+VA
 

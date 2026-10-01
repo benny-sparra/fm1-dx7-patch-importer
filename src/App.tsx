@@ -54,12 +54,13 @@ function App() {
   // Held here rather than in the editor, which remounts for each sound, so an operator copied in
   // one sound can be pasted into another. It is never stored.
   const [copiedOperator, setCopiedOperator] = useState<CopiedOperator | null>(null)
-  // What the last edit-buffer audition put in the FM1, from an added bank or a search result, so
+  // What the last edit-buffer audition put in the FM1, and the program it selected first, so
   // clicking the same unchanged sound again, as a double-click does, does not send it twice.
   // Anything else that replaces the edit buffer clears it.
   const editBufferAudition = useRef<{
     effects: Uint8Array | undefined
     outputId: string
+    program: number | undefined
     voice: Dx7Voice
   } | null>(null)
   const selectedPatch = library.patches.find((patch) => patch.id === selectedPatchId)
@@ -70,32 +71,49 @@ function App() {
   const editorBrowserBack = useRef<(() => void) | null>(null)
   const findPatch = (patchId: string) =>
     library.patches.find((candidate) => candidate.id === patchId)
-  // A slot in banks A–D selects its FM1 program. A DX7 bank carries no effects, so the saved
-  // effects follow the Program Change. An added bank has no FM1 slot, so its sound is auditioned
-  // through the edit buffer instead, with its effects, just as the editor sends it.
+  // Clicking a slot in banks A–D selects its FM1 program, so the FM1 shows that slot, then sends the
+  // library's voice and effects to the edit buffer, so the click plays the library's sound even
+  // when the FM1 stores another there. Without SysEx only the program and its saved effects can be
+  // sent. An added bank has no FM1 slot, so only its sound is sent.
   const auditionPatch = (patch: Patch) => {
-    if (patch.program !== undefined) {
-      editBufferAudition.current = null
-      if (midi.sendProgramChange(patch.program)) {
-        void midi.sendEffectSettings(normalizeFm1Effects(library.effects[patch.id]))
-      }
+    const voice = library.voices[patch.id]
+    const effects = library.effects[patch.id]
+    if (patch.program === undefined) {
+      if (voice) auditionInEditBuffer(voice, effects)
       return
     }
-    const voice = library.voices[patch.id]
-    if (voice) auditionInEditBuffer(voice, library.effects[patch.id])
+    if (voice && midi.sysexAvailable) {
+      auditionInEditBuffer(voice, effects, patch.program)
+      return
+    }
+    editBufferAudition.current = null
+    if (midi.sendProgramChange(patch.program)) {
+      void midi.sendEffectSettings(normalizeFm1Effects(effects))
+    }
   }
-  // Sends a sound to the FM1 edit buffer with its effects. A sound without effects, such as one
-  // from the catalog, gets the defaults, so it does not play through the previous sound's effects.
-  const auditionInEditBuffer = (voice: Dx7Voice, storedEffects: Uint8Array | undefined) => {
+  // Sends a sound to the FM1 edit buffer with its effects, after selecting its program when it has
+  // one. A sound without effects, such as one from the catalog, gets the defaults, so it does not
+  // play through the previous sound's effects.
+  const auditionInEditBuffer = (
+    voice: Dx7Voice,
+    storedEffects: Uint8Array | undefined,
+    program?: number,
+  ) => {
     const previous = editBufferAudition.current
     if (
       previous?.voice === voice &&
       previous.effects === storedEffects &&
-      previous.outputId === midi.selectedOutputId
+      previous.outputId === midi.selectedOutputId &&
+      previous.program === program
     ) {
       return
     }
-    const audition = { effects: storedEffects, outputId: midi.selectedOutputId, voice }
+    // The voice follows the Program Change, so it replaces the preset the change selected.
+    if (program !== undefined && !midi.sendProgramChange(program)) {
+      editBufferAudition.current = null
+      return
+    }
+    const audition = { effects: storedEffects, outputId: midi.selectedOutputId, program, voice }
     editBufferAudition.current = audition
     void midi.sendVoice(voice).then((sent) => {
       if (!sent) {

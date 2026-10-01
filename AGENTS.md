@@ -174,6 +174,10 @@ open everything an earlier release could have saved.
   every other firmware, including one not yet identified, gets the patch as its 155 parameter
   changes, which it holds as an unsaved edit. The bank destination instructions follow the firmware
   too: FM-1+VA asks **Write the bank?** starting on bank A, and chooses the bank with ALGORITHM.
+- Clicking a slot in banks A–D sends its Program Change, then the library's voice and effects to
+  the edit buffer, because the FM1's stored preset may not match the library and the app cannot
+  read it back. Only without SysEx does the click fall back to the Program Change and effects. The
+  repeat check covers the program too, since resending it alone would bring the stored preset back.
 - Do not resend unchanged data to the FM1 on repeated interaction, such as a double-click. Forget
   what was sent as soon as anything else replaces that device state, and after a failed send.
   The edit-buffer audition compares voice objects by identity, so a library change that puts a
