@@ -1,3 +1,5 @@
+import { resolveOperatorParameterIndex, type OperatorParameterId } from '@/lib/fm1-parameters'
+
 export const operatorColors = [
   'hsl(198 100% 58%)',
   'hsl(151 78% 49%)',
@@ -28,6 +30,28 @@ export function formatOperatorFixedFrequency(coarse: number, fine: number) {
   if (frequency >= 1000) return `${(frequency / 1000).toFixed(2)} kHz`
   if (frequency >= 10) return `${frequency.toFixed(1)} Hz`
   return `${frequency.toFixed(2)} Hz`
+}
+
+/**
+ * An operator's frequency as the rack and the algorithm diagram show it: a
+ * ratio in ratio mode, where coarse 0 means 0.5, or a fixed frequency.
+ * The compact form, for the diagram's small boxes, drops the ratio's × and
+ * the space before a unit, so a bare number reads as a ratio there.
+ */
+export function formatOperatorFrequency(
+  parameters: Uint8Array,
+  operator: number,
+  { compact = false }: { compact?: boolean } = {},
+) {
+  const read = (id: OperatorParameterId) => parameters[resolveOperatorParameterIndex(operator, id)]
+  const coarse = read('operator.frequency.coarse')
+  const fine = read('operator.frequency.fine')
+  if (read('operator.oscillatorMode') !== 0) {
+    const frequency = formatOperatorFixedFrequency(coarse, fine)
+    return compact ? frequency.replace(' ', '') : frequency
+  }
+  const ratio = (coarse === 0 ? 0.5 : coarse) * (1 + fine / 100)
+  return compact ? ratio.toFixed(2) : formatOperatorRatio(ratio)
 }
 
 const plotTop = 20

@@ -11,8 +11,10 @@ import {
   SwitchParameterControl,
 } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { formatOperatorFrequency } from '@/lib/editor-visuals'
 import {
   displayToStoredValue,
+  FM1_OPERATOR_COUNT,
   getGlobalParameterDefinition,
   storedToDisplayValue,
   type GlobalParameterId,
@@ -94,6 +96,9 @@ export function GlobalConfigurationPanel({
           }
           onFeedbackGestureEnd={endGesture}
           onFeedbackGestureStart={beginGesture}
+          operatorFrequencies={Array.from({ length: FM1_OPERATOR_COUNT }, (_, index) =>
+            formatOperatorFrequency(parameters, index + 1, { compact: true }),
+          )}
         />
       </div>
 

@@ -98,6 +98,8 @@ If you also play the FM1 from a MIDI keyboard, keep the keyboard off the effects
 
 The editor is laid out as a rack. The six operators stand side by side as columns: five show a compact readout, and the selected operator grows in place to carry its full controls. On narrower screens the open operator drops onto a row of its own. Each column has its own mute and solo buttons, so an operator can be silenced without opening it.
 
+The algorithm diagram below the operators shows each operator's frequency under its number: a ratio such as 14.00, or a fixed frequency in Hz. Carriers are drawn in amber and modulators in the accent colour, so you can see which ratios you hear directly and which ones shape the tone.
+
 The open operator has a **⋮** menu beside its number with **Copy operator** and **Paste operator**. Copy takes all of that operator's settings: frequency, envelope, output level, keyboard scaling, and sensitivities. Open another operator and choose Paste from its menu to give it those settings. The copy lasts until you close or reload the tab, so you can also paste it into an operator in a different patch. Paste sends the changed settings to the FM1 and is a single undo step. The copy is kept only in memory and never saved to the library.
 
 The editor's back button returns to the patch banks, and so do the browser's Back button and a phone's back gesture, rather than leaving the app. If the patch has unsaved edits, each of them asks first whether to keep editing, discard the changes, or save them. The browser's Forward button opens that patch in the editor again, which also sends it to the FM1, as opening it yourself does.

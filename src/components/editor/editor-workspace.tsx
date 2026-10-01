@@ -14,12 +14,7 @@ import { rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { PortalMenu } from '@/components/ui/portal-menu'
 import { dx7Algorithms, getDx7OperatorRole, type Dx7AlgorithmOperator } from '@/lib/dx7-algorithms'
-import {
-  envelopePath,
-  formatOperatorFixedFrequency,
-  formatOperatorRatio,
-  operatorColors,
-} from '@/lib/editor-visuals'
+import { envelopePath, formatOperatorFrequency, operatorColors } from '@/lib/editor-visuals'
 import { getOperatorAuditionStatus } from '@/lib/operator-audition'
 import {
   FM1_OPERATOR_COUNT,
@@ -35,46 +30,79 @@ import { cn } from '@/lib/utils'
 const feedbackMax = getGlobalParameterDefinition('global.feedback').max
 const outputMax = getOperatorParameterDefinition('operator.outputLevel').max
 
-const nodeX = (operator: Dx7AlgorithmOperator) => operator.x * 18 + 9
-const nodeY = (operator: Dx7AlgorithmOperator) => operator.y * 15 + 8
+/*
+  The spacing a diagram lays its operators out on. The picker's thumbnails use
+  the compact grid; the featured diagram spreads the same layout wider, so each
+  box can carry its operator's frequency under the number.
+*/
+type DiagramGrid = {
+  column: number
+  halfHeight: number
+  halfWidth: number
+  /** How far a feedback loop reaches out from its operator's centre. */
+  loop: number
+  row: number
+}
 
-const linkPath = (operator: Dx7AlgorithmOperator) => {
-  const x = nodeX(operator)
-  const y = nodeY(operator) + 5
+const thumbnailGrid: DiagramGrid = {
+  column: 18,
+  halfHeight: 5.5,
+  halfWidth: 6.5,
+  loop: 10,
+  row: 15,
+}
+const featuredGrid: DiagramGrid = { column: 28, halfHeight: 9, halfWidth: 12, loop: 14, row: 22 }
+
+const nodeX = (grid: DiagramGrid, operator: Dx7AlgorithmOperator) =>
+  operator.x * grid.column + grid.column / 2
+const nodeY = (grid: DiagramGrid, operator: Dx7AlgorithmOperator) =>
+  operator.y * grid.row + grid.halfHeight + 2.5
+
+const linkPath = (grid: DiagramGrid, operator: Dx7AlgorithmOperator) => {
+  const { column } = grid
+  const x = nodeX(grid, operator)
+  const y = nodeY(grid, operator) + grid.halfHeight - 0.5
+  // The next row's centre, and the bus that joins carriers below their boxes.
+  const next = y + grid.row - grid.halfHeight + 0.5
+  const bus = y + 7
 
   switch (operator.link) {
     case 0:
-      return `M ${x} ${y} V ${y + 10}`
+      return `M ${x} ${y} V ${next}`
     case 1:
-      return `M ${x} ${y} V ${y + 7} H ${x + 18}`
+      return `M ${x} ${y} V ${bus} H ${x + column}`
     case 2:
-      return `M ${x} ${y} V ${y + 8}`
+      return `M ${x} ${y} V ${bus + 1}`
     case 3:
-      return `M ${x} ${y} V ${y + 10} M ${x} ${y + 7} H ${x + 18} V ${y + 10}`
+      return `M ${x} ${y} V ${next} M ${x} ${bus} H ${x + column} V ${next}`
     case 4:
-      return `M ${x} ${y} V ${y + 10} M ${x - 18} ${y + 7} V ${y + 10} H ${x + 18} V ${y + 10}`
+      return `M ${x} ${y} V ${next} M ${x - column} ${bus} V ${next} H ${x + column} V ${next}`
     case 6:
-      return `M ${x} ${y} V ${y + 7} H ${x + 36}`
+      return `M ${x} ${y} V ${bus} H ${x + column * 2}`
     case 7:
-      return `M ${x} ${y} V ${y + 7} H ${x - 18}`
+      return `M ${x} ${y} V ${bus} H ${x - column}`
   }
 }
 
-const feedbackPath = (operator: Dx7AlgorithmOperator) => {
+const feedbackPath = (grid: DiagramGrid, operator: Dx7AlgorithmOperator) => {
   if (operator.feedback === 0) return undefined
-  const x = nodeX(operator)
-  const y = nodeY(operator)
-  if (operator.feedback === 2) return `M ${x} ${y - 5} V ${y - 9} H ${x + 10} V ${y + 38} H ${x}`
-  if (operator.feedback === 3) return `M ${x} ${y - 5} V ${y - 9} H ${x + 10} V ${y + 23} H ${x}`
+  const x = nodeX(grid, operator)
+  const y = nodeY(grid, operator)
+  const top = y - grid.halfHeight + 0.5
+  const rise = y - grid.halfHeight - 3.5
+  // Feedback 2 and 3 return from the operator two rows or one row below.
+  const returnRows = operator.feedback === 2 ? 2 : operator.feedback === 3 ? 1 : 0
+  const back =
+    returnRows === 0 ? y + grid.halfHeight + 1.5 : y + returnRows * grid.row + grid.halfHeight + 2.5
   const direction = operator.feedback === 4 ? -1 : 1
-  return `M ${x} ${y - 5} V ${y - 9} H ${x + 10 * direction} V ${y + 7} H ${x}`
+  return `M ${x} ${top} V ${rise} H ${x + grid.loop * direction} V ${back} H ${x}`
 }
 
 type Bounds = { maxX: number; maxY: number; minX: number; minY: number }
 
 // The extent of everything a diagram draws: operator boxes plus the absolute
 // M/V/H polylines of its links and feedback loops.
-const algorithmBounds = (operators: readonly Dx7AlgorithmOperator[]): Bounds => {
+const algorithmBounds = (grid: DiagramGrid, operators: readonly Dx7AlgorithmOperator[]): Bounds => {
   const bounds = { maxX: -Infinity, maxY: -Infinity, minX: Infinity, minY: Infinity }
   const include = (x: number, y: number) => {
     bounds.minX = Math.min(bounds.minX, x)
@@ -84,10 +112,10 @@ const algorithmBounds = (operators: readonly Dx7AlgorithmOperator[]): Bounds => 
   }
 
   for (const operator of operators) {
-    include(nodeX(operator) - 6.5, nodeY(operator) - 5.5)
-    include(nodeX(operator) + 6.5, nodeY(operator) + 5.5)
+    include(nodeX(grid, operator) - grid.halfWidth, nodeY(grid, operator) - grid.halfHeight)
+    include(nodeX(grid, operator) + grid.halfWidth, nodeY(grid, operator) + grid.halfHeight)
 
-    for (const path of [linkPath(operator), feedbackPath(operator)]) {
+    for (const path of [linkPath(grid, operator), feedbackPath(grid, operator)]) {
       if (!path) continue
       const tokens = path.split(' ')
       let x = 0
@@ -113,30 +141,51 @@ const algorithmBounds = (operators: readonly Dx7AlgorithmOperator[]): Bounds => 
   Algorithms with fewer modulator rows would otherwise sit low in the well.
 */
 const FEATURED_PADDING = 1.5
-const featuredFrame = dx7Algorithms.map(algorithmBounds).reduce(
-  (frame, bounds) => ({
-    height: Math.max(frame.height, bounds.maxY - bounds.minY + FEATURED_PADDING * 2),
-    width: Math.max(frame.width, bounds.maxX - bounds.minX + FEATURED_PADDING * 2),
-  }),
-  { height: 0, width: 0 },
-)
+const featuredFrame = dx7Algorithms
+  .map((operators) => algorithmBounds(featuredGrid, operators))
+  .reduce(
+    (frame, bounds) => ({
+      height: Math.max(frame.height, bounds.maxY - bounds.minY + FEATURED_PADDING * 2),
+      width: Math.max(frame.width, bounds.maxX - bounds.minX + FEATURED_PADDING * 2),
+    }),
+    { height: 0, width: 0 },
+  )
 
 const featuredViewBox = (operators: readonly Dx7AlgorithmOperator[]) => {
-  const bounds = algorithmBounds(operators)
+  const bounds = algorithmBounds(featuredGrid, operators)
   const x = (bounds.minX + bounds.maxX - featuredFrame.width) / 2
   const y = (bounds.minY + bounds.maxY - featuredFrame.height) / 2
   return `${x} ${y} ${featuredFrame.width} ${featuredFrame.height}`
 }
 
+/*
+  VT323 is monospaced, each glyph advancing 0.55em, so a label's width is
+  known without measuring it. Its ascent and descent are uneven, so a central
+  baseline drops digits low in a box: they are 0.77em tall on the alphabetic
+  baseline with no descent, so a lone digit's baseline sits 0.385em below the
+  box centre, and the featured box splits its spare height evenly around the
+  number and the frequency.
+*/
+const VT323_ADVANCE = 0.55
+const FREQUENCY_FONT_SIZE = 7.4
+const frequencyWidth = featuredGrid.halfWidth * 2 - 3
+
 function AlgorithmDiagram({
   className,
-  featured = false,
+  frequencies,
   operators,
 }: {
   className?: string
-  featured?: boolean
+  /**
+   * Each operator's frequency label, by operator number less one. Passing
+   * them draws the featured diagram; the picker's thumbnails leave them out.
+   */
+  frequencies?: readonly string[]
   operators: readonly Dx7AlgorithmOperator[]
 }) {
+  const featured = frequencies !== undefined
+  const grid = featured ? featuredGrid : thumbnailGrid
+
   return (
     <svg
       aria-hidden="true"
@@ -151,10 +200,10 @@ function AlgorithmDiagram({
         strokeWidth={featured ? 1.4 : 1.8}
       >
         {operators.map((operator) => (
-          <path d={linkPath(operator)} key={`link-${operator.id}`} />
+          <path d={linkPath(grid, operator)} key={`link-${operator.id}`} />
         ))}
         {operators.map((operator) => {
-          const path = feedbackPath(operator)
+          const path = feedbackPath(grid, operator)
           return path ? (
             <path className="opacity-65" d={path} key={`feedback-${operator.id}`} />
           ) : null
@@ -168,32 +217,63 @@ function AlgorithmDiagram({
         */
         const isCarrier = getDx7OperatorRole(operator) === 'carrier'
         const tone = featured ? (isCarrier ? 'var(--crt-led)' : 'var(--crt-acc)') : 'currentColor'
+        const x = nodeX(grid, operator)
+        const y = nodeY(grid, operator)
+        const frequency = frequencies?.[operator.id - 1]
         return (
           <g key={operator.id}>
             <rect
               fill="var(--crt-bg-2)"
-              height="11"
+              height={grid.halfHeight * 2}
               stroke={tone}
               strokeWidth={isCarrier ? 1.8 : 1.2}
-              width="13"
-              x={nodeX(operator) - 6.5}
-              y={nodeY(operator) - 5.5}
+              width={grid.halfWidth * 2}
+              x={x - grid.halfWidth}
+              y={y - grid.halfHeight}
             />
-            {/*
-              VT323's ascent and descent are uneven, so a central baseline
-              drops the digits low in the box. Its digits are 0.77em tall on
-              the alphabetic baseline with no descent, so sitting that
-              baseline 0.385em below the box centre centres the ink.
-            */}
-            <text
-              className="font-vt323 text-[9px]"
-              fill={tone}
-              textAnchor="middle"
-              x={nodeX(operator)}
-              y={nodeY(operator) + 3.5}
-            >
-              {operator.id}
-            </text>
+            {featured ? (
+              <>
+                <text
+                  className="font-vt323"
+                  fill={tone}
+                  fontSize={8}
+                  textAnchor="middle"
+                  x={x}
+                  y={y - 0.8}
+                >
+                  {operator.id}
+                </text>
+                {frequency ? (
+                  <text
+                    className="font-vt323"
+                    fill={tone}
+                    fontSize={FREQUENCY_FONT_SIZE}
+                    // A ratio fits at full size; a fixed frequency narrows to fit.
+                    lengthAdjust="spacingAndGlyphs"
+                    textAnchor="middle"
+                    textLength={
+                      frequency.length * VT323_ADVANCE * FREQUENCY_FONT_SIZE > frequencyWidth
+                        ? frequencyWidth
+                        : undefined
+                    }
+                    x={x}
+                    y={y + 6.95}
+                  >
+                    {frequency}
+                  </text>
+                ) : null}
+              </>
+            ) : (
+              <text
+                className="font-vt323 text-[9px]"
+                fill={tone}
+                textAnchor="middle"
+                x={x}
+                y={y + 3.5}
+              >
+                {operator.id}
+              </text>
+            )}
           </g>
         )
       })}
@@ -305,6 +385,8 @@ type AlgorithmPanelProps = {
   onFeedbackChange: (feedback: number) => void
   onFeedbackGestureEnd: () => void
   onFeedbackGestureStart: () => void
+  /** Each operator's frequency label, by operator number less one. */
+  operatorFrequencies: readonly string[]
 }
 
 export function AlgorithmPanel({
@@ -314,6 +396,7 @@ export function AlgorithmPanel({
   onFeedbackChange,
   onFeedbackGestureEnd,
   onFeedbackGestureStart,
+  operatorFrequencies,
 }: AlgorithmPanelProps) {
   const { t } = useTranslation()
   const dropdownRef = useRef<HTMLDetailsElement>(null)
@@ -381,7 +464,7 @@ export function AlgorithmPanel({
         <div className="crt-well relative min-h-36 min-w-0 flex-1">
           <AlgorithmDiagram
             className="absolute top-1.5 left-1.5 h-[calc(100%-0.75rem)] w-[calc(100%-0.75rem)]"
-            featured
+            frequencies={operatorFrequencies}
             operators={dx7Algorithms[algorithm]}
           />
         </div>
@@ -518,13 +601,6 @@ export function OperatorRack({
         const levels = Array.from(parameters.slice(base + levelOffset, base + levelOffset + 4))
         const outputIndex = resolveOperatorParameterIndex(operator, 'operator.outputLevel')
         const output = parameters[outputIndex]
-        const mode = parameters[resolveOperatorParameterIndex(operator, 'operator.oscillatorMode')]
-        const coarse =
-          parameters[resolveOperatorParameterIndex(operator, 'operator.frequency.coarse')]
-        const fine = parameters[resolveOperatorParameterIndex(operator, 'operator.frequency.fine')]
-        const ratio = (coarse === 0 ? 0.5 : coarse) * (1 + fine / 100)
-        const frequencyLabel =
-          mode === 0 ? formatOperatorRatio(ratio) : formatOperatorFixedFrequency(coarse, fine)
         const isSelected = selectedOperator === operator
         const algorithmOperator = dx7Algorithms[algorithm].find(({ id }) => id === operator)
         const role = algorithmOperator ? getDx7OperatorRole(algorithmOperator) : 'modulator'
@@ -546,7 +622,7 @@ export function OperatorRack({
             parameters[resolveOperatorParameterIndex(operator, id)],
           )
         const summaryCells = [
-          { label: 'RATIO', value: frequencyLabel },
+          { label: 'RATIO', value: formatOperatorFrequency(parameters, operator) },
           { label: 'DTUNE', value: readValue('operator.detune') },
           { label: 'VEL', value: readValue('operator.velocitySensitivity') },
           { label: 'A.MOD', value: readValue('operator.ampModSensitivity') },

@@ -30,7 +30,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Mute or solo any operator straight from its rack column, without opening it first
 - Copy an operator's settings and paste them onto another operator, in the same patch or a different one
 - Fold the operators and effects panels away to focus the editor on the sections in use
-- Visualise all 32 DX7 algorithms, including carrier and modulator roles
+- Visualise all 32 DX7 algorithms, including carrier and modulator roles and each operator's frequency
 - Edit four-stage amplitude and pitch envelopes graphically or with precise numeric controls
 - Start the pitch envelope from Flat, Attack blip up, Attack drop, Scoop, or Release fall shapes as a single undo step
 - Watch the LFO on a scrolling scope that follows the selected wave and LFO Speed
