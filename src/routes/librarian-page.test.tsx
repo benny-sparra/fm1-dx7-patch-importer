@@ -177,6 +177,38 @@ describe('LibrarianPage transfer analytics', () => {
     expect(track).toHaveBeenCalledWith('bank_transfer_completed', undefined)
   })
 
+  it('confirms a sent bank in one notification rather than on the page', async () => {
+    const user = userEvent.setup()
+    const connectedMidi = makeLibrarianMidi({
+      hasMidiOutput: true,
+      sendBank: vi.fn(async () => ({ ok: true }) as const),
+      sysexAvailable: true,
+    })
+    renderLibrarianPage({ midi: connectedMidi })
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+
+    expect(
+      await screen.findAllByText(/was sent\. Choose its destination on the FM1\./),
+    ).toHaveLength(1)
+  })
+
+  it('shows a failed bank transfer as an error on the page', async () => {
+    const user = userEvent.setup()
+    const connectedMidi = makeLibrarianMidi({
+      hasMidiOutput: true,
+      sendBank: vi.fn(async () => ({ ok: false, reason: 'no_output' }) as const),
+      sysexAvailable: true,
+    })
+    renderLibrarianPage({ midi: connectedMidi })
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'The bank was not sent. Open the MIDI log for details, then retry.',
+    )
+  })
+
   it('shows recovery without attempting a bank transfer when SysEx is unavailable', async () => {
     const user = userEvent.setup()
     const track = vi.fn()

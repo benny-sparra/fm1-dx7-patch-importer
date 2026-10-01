@@ -347,6 +347,10 @@ open everything an earlier release could have saved.
 - Show an error in a dialog or on the page with `ErrorNotice` from
   `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
   restyling another paragraph.
+- Confirm an action that finished with a notification (`toast.success`), never a status line on the
+  page, as sending a bank to the FM1 does. Show progress on the control that started the action,
+  such as the button's working label, and keep only an error the user must act on on the page, in
+  an `ErrorNotice`. Never show the same message in both places.
 - Interactive controls need stable accessible names. Preserve ARIA relationships and avoid nesting
   buttons, links, summaries, inputs, or other interactive elements.
 - If a feature body becomes lazy, keep its trigger eager. One activation must eventually open the

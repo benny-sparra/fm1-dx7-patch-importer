@@ -624,7 +624,6 @@ export default {
     deleteBank: '删除音色库',
     deleteBankConfirm: '删除“{{name}}”及其中的所有声音？此操作可以撤销。',
     sendTitle: '发送全部 32 个音色，并在 FM1 上选择目标音色库',
-    sendingStatus: '正在向 FM1 发送 32 个音色…',
     sentStatus: '已发送浏览器音色库 {{bank}}。请在 FM1 上选择目标位置。',
     notSent: '未发送音色库。请打开 MIDI 日志查看详情，然后重试。',
     importFailed: '导入失败。',

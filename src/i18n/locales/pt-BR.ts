@@ -679,7 +679,6 @@ export default {
     deleteBank: 'Excluir banco',
     deleteBankConfirm: 'Excluir “{{name}}” e todos os seus sons? Você pode desfazer esta ação.',
     sendTitle: 'Enviar as 32 vozes e escolher o banco de destino no FM1',
-    sendingStatus: 'Enviando 32 sons ao FM1…',
     sentStatus: 'O banco {{bank}} foi enviado. Escolha o destino no FM1.',
     notSent: 'O banco não foi enviado. Abra o registro MIDI e tente novamente.',
     importFailed: 'Falha na importação.',
