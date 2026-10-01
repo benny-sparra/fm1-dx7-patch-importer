@@ -690,7 +690,6 @@ export default {
     deleteBankConfirm:
       '„{{name}}“ und alle enthaltenen Sounds löschen? Diese Aktion kann rückgängig gemacht werden.',
     sendTitle: 'Alle 32 Sounds senden und Zielbank am FM1 wählen',
-    sendingStatus: '32 Sounds werden an den FM1 gesendet…',
     sentStatus: 'Browser-Bank {{bank}} wurde gesendet. Wähle ihr Ziel am FM1.',
     notSent: 'Die Bank wurde nicht gesendet. Öffne das MIDI-Protokoll und versuche es erneut.',
     importFailed: 'Import fehlgeschlagen.',

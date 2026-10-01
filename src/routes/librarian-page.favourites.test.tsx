@@ -194,12 +194,10 @@ describe('LibrarianPage Favourites', () => {
     expect(sent.slice(0, 3)).toEqual(voices.slice(0, 3))
     expect(sent.slice(3).every((voice) => voice.name === 'INIT VOICE')).toBe(true)
     expect(
-      (
-        await screen.findAllByText(
-          'Favourites was sent, with INIT VOICE in the last 29 slots. Choose its destination on the FM1.',
-        )
-      ).length,
-    ).toBeGreaterThan(0)
+      await screen.findByText(
+        'Favourites was sent, with INIT VOICE in the last 29 slots. Choose its destination on the FM1.',
+      ),
+    ).toBeTruthy()
   })
 
   it('says only the first 32 of a longer Favourites are sent', async () => {

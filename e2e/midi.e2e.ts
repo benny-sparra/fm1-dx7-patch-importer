@@ -82,7 +82,7 @@ test.describe('with an FM-1 connected', () => {
     await instructions.getByRole('button', { name: 'Send to FM1' }).click()
 
     await expect(
-      page.getByText('Browser bank Bank 1 was sent. Choose its destination on the FM1.').first(),
+      page.getByText('Browser bank Bank 1 was sent. Choose its destination on the FM1.'),
     ).toBeVisible()
     const dumps = await sentSysex(page)
     expect(dumps.map((dump) => dump.length)).toEqual([bankDumpLength])
@@ -108,11 +108,9 @@ test.describe('with an FM-1 connected', () => {
     await instructions.getByRole('button', { name: 'Send to FM1' }).click()
 
     await expect(
-      page
-        .getByText(
-          'Favourites was sent, with INIT VOICE in the last 31 slots. Choose its destination on the FM1.',
-        )
-        .first(),
+      page.getByText(
+        'Favourites was sent, with INIT VOICE in the last 31 slots. Choose its destination on the FM1.',
+      ),
     ).toBeVisible()
     const [dump] = await sentSysex(page)
     expect(dump).toHaveLength(bankDumpLength)

@@ -156,8 +156,6 @@ type CopyRequest = {
   source: ComponentProps<typeof CopyPatchDialog>['source']
 }
 
-type TransferStatus = { kind: 'error' | 'idle' | 'success'; message: string }
-
 type LibrarianLibrary = BackupLibrary &
   ComponentProps<typeof AddWorkspaceBankDialog>['library'] &
   ComponentProps<typeof BankInformationDialog>['library'] &
@@ -246,10 +244,7 @@ export function LibrarianPage({
   const [replaceTarget, setReplaceTarget] = useState<Patch | null>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [transferStatus, setTransferStatus] = useState<TransferStatus>({
-    kind: 'idle',
-    message: '',
-  })
+  const [transferError, setTransferError] = useState('')
   const importInputRef = useRef<HTMLInputElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const importTargetRef = useRef(createBankFileSelectionTarget())
@@ -374,7 +369,7 @@ export function LibrarianPage({
     }
 
     setIsSending(true)
-    setTransferStatus({ kind: 'idle', message: t('banks.sendingStatus') })
+    setTransferError('')
     let voiceCount: number | undefined
     try {
       let voices = library.getBankVoices(destinationBank)
@@ -387,15 +382,11 @@ export function LibrarianPage({
       }
       voiceCount = voices.length
       const result = await midi.sendBank(destinationBank, voices)
-      setTransferStatus(
-        result.ok
-          ? { kind: 'success', message: sentStatus }
-          : { kind: 'error', message: t('banks.notSent') },
-      )
       if (result.ok) {
         trackAnalyticsEvent({ name: 'bank_transfer_completed' })
         toast.success(sentStatus)
       } else {
+        setTransferError(t('banks.notSent'))
         trackAnalyticsEvent({ data: { reason: result.reason }, name: 'bank_transfer_failed' })
       }
     } catch (error) {
@@ -406,10 +397,7 @@ export function LibrarianPage({
         voiceCount,
       })
       trackAnalyticsEvent({ data: { reason: 'transport' }, name: 'bank_transfer_failed' })
-      setTransferStatus({
-        kind: 'error',
-        message: bankErrorMessage(t, error, t('banks.notSent')),
-      })
+      setTransferError(bankErrorMessage(t, error, t('banks.notSent')))
     } finally {
       setIsSending(false)
     }
@@ -421,7 +409,6 @@ export function LibrarianPage({
       const { makeInitDx7Voice } = await import('@/lib/init-voice')
       return makeFavouritesTransfer(library.favourites, makeInitDx7Voice())
     } catch {
-      setTransferStatus({ kind: 'idle', message: '' })
       setDialogLoadError(t('favourites.sendUnavailable'))
       return null
     }
@@ -1005,20 +992,7 @@ export function LibrarianPage({
         }
       />
 
-      {transferStatus.message ? (
-        <p
-          aria-live="polite"
-          className={cn(
-            'text-sm',
-            transferStatus.kind === 'success' && 'text-emerald-400',
-            transferStatus.kind === 'error' && 'text-destructive',
-            transferStatus.kind === 'idle' && 'text-muted-foreground',
-          )}
-          role="status"
-        >
-          {transferStatus.message}
-        </p>
-      ) : null}
+      {transferError ? <ErrorNotice>{transferError}</ErrorNotice> : null}
 
       {dialogLoadError ? (
         <LoadFailedNotice
