@@ -11,6 +11,8 @@ import { ToastProvider } from '@/components/ui/toast'
 const sendProgramChange = vi.hoisted(() => vi.fn(() => true))
 const sendVoice = vi.hoisted(() => vi.fn(async () => true))
 const sendEffectSettings = vi.hoisted(() => vi.fn(async () => true))
+const midiState = vi.hoisted(() => ({ sysexAvailable: true }))
+const pianoVoice = vi.hoisted(() => ({ data: new Uint8Array(128), name: 'PIANO' }))
 const addedVoice = vi.hoisted(() => ({ data: new Uint8Array(128), name: 'PAD' }))
 const pianoEffects = vi.hoisted(() => Uint8Array.from({ length: 24 }, (_, index) => index % 2))
 const catalogVoice = vi.hoisted(() => ({ data: new Uint8Array(128), name: 'BRASS 1' }))
@@ -23,7 +25,12 @@ const loadPatchEditorPage = vi.hoisted(() =>
 )
 
 vi.mock('@/hooks/use-midi', () => ({
-  useMidi: () => ({ sendEffectSettings, sendProgramChange, sendVoice }),
+  useMidi: () => ({
+    sendEffectSettings,
+    sendProgramChange,
+    sendVoice,
+    sysexAvailable: midiState.sysexAvailable,
+  }),
 }))
 
 vi.mock('@/hooks/use-patch-library', () => ({
@@ -35,7 +42,7 @@ vi.mock('@/hooks/use-patch-library', () => ({
     ],
     persistenceStatus: 'ready',
     updatePatch: vi.fn(),
-    voices: { 'patch-1': {}, 'patch-e1': addedVoice },
+    voices: { 'patch-1': pianoVoice, 'patch-e1': addedVoice },
     workspaceBanks: ['A', 'E'],
     workspaceLoading: false,
   }),
@@ -96,6 +103,7 @@ vi.mock('@/components/workspace-persistence-status', () => ({
 vi.mock('@/routes/load-patch-editor-page', () => ({ loadPatchEditorPage }))
 
 afterEach(() => {
+  midiState.sysexAvailable = true
   cleanup()
   vi.restoreAllMocks()
   vi.clearAllMocks()
@@ -168,33 +176,48 @@ describe('App slot audition', () => {
     return userEvent.setup()
   }
 
-  it('selects a slot in banks A to D on the FM1 with a Program Change', async () => {
+  it('selects a slot in banks A to D on the FM1 and then sends its voice from the library', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(0)
+    expect(sendVoice).toHaveBeenCalledExactlyOnceWith(pianoVoice)
+    expect(sendProgramChange.mock.invocationCallOrder[0]).toBeLessThan(
+      sendVoice.mock.invocationCallOrder[0],
+    )
+  })
+
+  it('sends the saved effects of a slot in banks A to D after its voice', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    await waitFor(() => expect(sendEffectSettings).toHaveBeenCalledExactlyOnceWith(pianoEffects))
+    expect(sendVoice.mock.invocationCallOrder[0]).toBeLessThan(
+      sendEffectSettings.mock.invocationCallOrder[0],
+    )
+  })
+
+  it('sends neither voice nor effects when the program of a slot in banks A to D was not selected', async () => {
+    sendProgramChange.mockReturnValueOnce(false)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    expect(sendVoice).not.toHaveBeenCalled()
+    expect(sendEffectSettings).not.toHaveBeenCalled()
+  })
+
+  it('selects a slot in banks A to D with its saved effects alone when SysEx is unavailable', async () => {
+    midiState.sysexAvailable = false
     const user = renderApp()
 
     await user.click(screen.getByRole('button', { name: 'Play Piano' }))
 
     expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(0)
     expect(sendVoice).not.toHaveBeenCalled()
-  })
-
-  it('restores the saved effects of a slot in banks A to D after selecting its program', async () => {
-    const user = renderApp()
-
-    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
-
     expect(sendEffectSettings).toHaveBeenCalledExactlyOnceWith(pianoEffects)
-    expect(sendProgramChange.mock.invocationCallOrder[0]).toBeLessThan(
-      sendEffectSettings.mock.invocationCallOrder[0],
-    )
-  })
-
-  it('does not send effects when the program of a slot in banks A to D was not selected', async () => {
-    sendProgramChange.mockReturnValueOnce(false)
-    const user = renderApp()
-
-    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
-
-    expect(sendEffectSettings).not.toHaveBeenCalled()
   })
 
   it('auditions an added bank slot through the FM1 edit buffer with its effects', async () => {
@@ -221,7 +244,7 @@ describe('App slot audition', () => {
   })
 })
 
-describe('App added bank audition repeats', () => {
+describe('App audition repeats', () => {
   function renderApp() {
     render(
       <ToastProvider>
@@ -247,7 +270,8 @@ describe('App added bank audition repeats', () => {
     await user.click(screen.getByRole('button', { name: 'Play Piano' }))
     await user.click(screen.getByRole('button', { name: 'Play Pad' }))
 
-    expect(sendVoice).toHaveBeenCalledTimes(2)
+    expect(sendVoice).toHaveBeenCalledTimes(3)
+    expect(sendVoice).toHaveBeenLastCalledWith(addedVoice)
   })
 
   it('tries again when an added bank sound did not reach the FM1', async () => {
@@ -260,6 +284,26 @@ describe('App added bank audition repeats', () => {
 
     expect(sendVoice).toHaveBeenCalledTimes(2)
     expect(sendEffectSettings).toHaveBeenCalledOnce()
+  })
+  it('does not select the program again when an unchanged slot in banks A to D is clicked again', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    expect(sendProgramChange).toHaveBeenCalledOnce()
+    expect(sendVoice).toHaveBeenCalledOnce()
+  })
+
+  it('selects a slot in banks A to D and sends its voice again after another slot played', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+    await user.click(screen.getByRole('button', { name: 'Play Pad' }))
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    expect(sendProgramChange).toHaveBeenCalledTimes(2)
+    expect(sendVoice).toHaveBeenLastCalledWith(pianoVoice)
   })
 })
 

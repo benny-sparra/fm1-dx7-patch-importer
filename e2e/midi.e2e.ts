@@ -37,17 +37,33 @@ test.describe('with an FM-1 connected', () => {
     await switchMidiOn(page)
   })
 
-  test('selects the FM1 program for a slot in a factory bank, then its effects', async ({
+  test('selects the FM1 program for a slot in a factory bank, then sends its voice and effects once', async ({
     page,
   }) => {
-    await slotButtons(page).nth(2).click()
+    // Until the FM1 names its firmware, a patch goes as parameter changes rather than a dump.
+    await expect(
+      page.getByText('Patches you play go to the FM1’s edit buffer.').first(),
+    ).toBeAttached()
+    const slot = slotButtons(page).nth(2)
 
+    await slot.click()
     await expect.poll(() => sentMidi(page)).toContainEqual([0xc0, 2])
+    await expect.poll(async () => (await sentSysex(page)).length).toBe(1)
+    // The effect settings follow on the FX channel (2) as Control Changes.
+    await expect
+      .poll(async () => (await sentMidi(page)).filter(([status]) => status === 0xb1).length)
+      .toBe(24)
+    await slot.click()
+
     const messages = await sentMidi(page)
     const programAt = messages.findIndex(([status]) => status === 0xc0)
-    // The effect settings follow on the FX channel (2) as Control Changes.
-    expect(messages.slice(programAt + 1).every(([status]) => status === 0xb1)).toBe(true)
-    await expect.poll(async () => (await sentMidi(page)).length).toBeGreaterThan(programAt + 1)
+    const dumpAt = messages.findIndex((message) => message.length === singleVoiceDumpLength)
+    const firstEffectAt = messages.findIndex(([status]) => status === 0xb1)
+    expect(programAt).toBeLessThan(dumpAt)
+    expect(dumpAt).toBeLessThan(firstEffectAt)
+    // A repeated click finds the same sound in the edit buffer, so nothing more is sent.
+    await expect.poll(async () => (await sentMidi(page)).length).toBe(messages.length)
+    expect(messages.filter(([status]) => status === 0xc0)).toHaveLength(1)
   })
 
   test('sends a slot in an added bank to the FM1 edit buffer once, however often it is clicked', async ({
@@ -82,7 +98,7 @@ test.describe('with an FM-1 connected', () => {
     await instructions.getByRole('button', { name: 'Send to FM1' }).click()
 
     await expect(
-      page.getByText('Browser bank Bank 1 was sent. Choose its destination on the FM1.').first(),
+      page.getByText('Browser bank Bank 1 was sent. Choose its destination on the FM1.'),
     ).toBeVisible()
     const dumps = await sentSysex(page)
     expect(dumps.map((dump) => dump.length)).toEqual([bankDumpLength])
@@ -108,11 +124,9 @@ test.describe('with an FM-1 connected', () => {
     await instructions.getByRole('button', { name: 'Send to FM1' }).click()
 
     await expect(
-      page
-        .getByText(
-          'Favourites was sent, with INIT VOICE in the last 31 slots. Choose its destination on the FM1.',
-        )
-        .first(),
+      page.getByText(
+        'Favourites was sent, with INIT VOICE in the last 31 slots. Choose its destination on the FM1.',
+      ),
     ).toBeVisible()
     const [dump] = await sentSysex(page)
     expect(dump).toHaveLength(bankDumpLength)
@@ -125,7 +139,14 @@ test.describe('with an FM-1 connected', () => {
   })
 
   test('sends each voice edit to the FM1 as a parameter change', async ({ page }) => {
-    await slotButtons(page).first().dblclick()
+    // Opened from the slot's menu, since a double-click's first click also plays the slot.
+    const label = (await slotButtons(page).first().getAttribute('aria-label')) ?? ''
+    const name = label.replace(/^Send (.+) to FM1$/, '$1')
+    await page
+      .getByRole('button', { exact: true, name: `Actions for ${name}` })
+      .first()
+      .click()
+    await page.getByRole('menuitem', { name: 'Edit' }).click()
     // The editor puts its voice in the FM1 edit buffer before it sends single edits, and holds the
     // way back until it has. An edit made before then resends the whole voice instead.
     await expect(page.getByRole('button', { name: 'Back to patch banks' })).toBeEnabled()
@@ -264,6 +285,22 @@ test('offers to reconnect instead of sending a bank when SysEx access was declin
   expect(await sentSysex(page)).toEqual([])
 })
 
+test('selects the FM1 program for a factory slot with its effects alone when SysEx access was declined', async ({
+  page,
+}) => {
+  await installFakeMidi(page, { sysex: false })
+  await openLibrarian(page)
+  await switchMidiOn(page)
+
+  await slotButtons(page).nth(2).click()
+
+  await expect.poll(() => sentMidi(page)).toContainEqual([0xc0, 2])
+  await expect
+    .poll(async () => (await sentMidi(page)).filter(([status]) => status === 0xb1).length)
+    .toBe(24)
+  expect(await sentSysex(page)).toEqual([])
+})
+
 test.describe('with an FM-1 on FM-1+VA firmware', () => {
   test.beforeEach(async ({ page }) => {
     await installFakeMidi(page, { firmware: 'fm1-va' })
@@ -287,6 +324,25 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
     await expect.poll(async () => (await sentSysex(page)).length, { timeout: 15_000 }).toBe(155)
     const messages = await sentSysex(page)
     expect(messages.every((message) => message.length === 7 && message[2] === 0x10)).toBe(true)
+    expect(messages.some((message) => message.length === singleVoiceDumpLength)).toBe(false)
+  })
+
+  test('selects the FM1 program for a factory slot, then sends its voice as parameter changes', async ({
+    page,
+  }) => {
+    await expect(page.getByTitle(/^The FM1 runs Baud Girl’s FM-1\+VA firmware/)).toBeVisible()
+
+    await slotButtons(page).nth(2).click()
+
+    await expect.poll(async () => (await sentSysex(page)).length, { timeout: 15_000 }).toBe(155)
+    const messages = await sentMidi(page)
+    const programAt = messages.findIndex(([status]) => status === 0xc0)
+    const firstParameterAt = messages.findIndex(
+      ([status, manufacturer, subStatus]) =>
+        status === 0xf0 && manufacturer === 0x43 && subStatus === 0x10,
+    )
+    expect(messages[programAt]).toEqual([0xc0, 2])
+    expect(programAt).toBeLessThan(firstParameterAt)
     expect(messages.some((message) => message.length === singleVoiceDumpLength)).toBe(false)
   })
 
