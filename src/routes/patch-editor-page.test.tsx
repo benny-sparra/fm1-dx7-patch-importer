@@ -685,7 +685,7 @@ describe('PatchEditorPage operator copy and paste', () => {
 
     await user.click(screen.getByRole('button', { name: 'Operator 1 actions' }))
     const paste = screen.getByRole('menuitem', {
-      name: 'Paste (copy an operator first)',
+      name: 'Paste (copy an operator or its envelope first)',
     }) as HTMLButtonElement
 
     expect(paste.disabled).toBe(true)
@@ -716,6 +716,68 @@ describe('PatchEditorPage operator copy and paste', () => {
 
     expect(outputLevel(5)).toBe('0')
     expect(outputLevel(2)).toBe('77')
+  }, 15_000)
+
+  it('pastes only a copied envelope onto another operator as a single undo step', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupClipboard()
+    const rate1 = (operator: number) =>
+      resolveOperatorParameterIndex(operator, 'operator.envelope.rate1')
+    fireEvent.change(screen.getByRole('slider', { name: 'Operator 2 output level' }), {
+      target: { value: '77' },
+    })
+    await openOperator(user, 2)
+    fireEvent.change(screen.getByLabelText('Amplitude envelope rate 1'), {
+      target: { value: '40' },
+    })
+    await chooseFromOperatorMenu(user, 2, 'Copy operator 2 envelope')
+    await openOperator(user, 5)
+    vi.mocked(midi.sendParameter).mockClear()
+
+    await chooseFromOperatorMenu(user, 5, 'Paste operator 2 envelope')
+
+    expect((screen.getByLabelText('Amplitude envelope rate 1') as HTMLInputElement).value).toBe(
+      '40',
+    )
+    expect(outputLevel(5)).toBe('0')
+    expect(midi.sendParameter).toHaveBeenCalledExactlyOnceWith(rate1(5), 40)
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect((screen.getByLabelText('Amplitude envelope rate 1') as HTMLInputElement).value).toBe('0')
+  }, 15_000)
+
+  it('replaces a copied operator with a copied envelope', async () => {
+    const user = userEvent.setup()
+    await setupClipboard()
+    await chooseFromOperatorMenu(user, 1, 'Copy operator 1')
+
+    await chooseFromOperatorMenu(user, 1, 'Copy operator 1 envelope')
+    await user.click(screen.getByRole('button', { name: 'Operator 1 actions' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Paste operator 1 envelope' })).toBeTruthy()
+    expect(screen.queryByRole('menuitem', { name: 'Paste operator 1' })).toBeNull()
+  }, 15_000)
+
+  it('names an envelope copied from another sound in the interface language', async () => {
+    await setLocale('de')
+    const user = userEvent.setup()
+    const { midi, view } = await setupClipboard()
+    await chooseFromOperatorMenu(
+      user,
+      1,
+      'Hüllkurve von Operator 1 kopieren',
+      'Aktionen für Operator 1',
+    )
+
+    view.rerender(<ClipboardHarness midi={midi} patch={secondPatch} />)
+    await user.click(await screen.findByRole('button', { name: 'Aktionen für Operator 1' }))
+
+    expect(
+      screen.getByRole('menuitem', {
+        name: 'Hüllkurve von Operator 1 aus „Glass Keys“ einfügen',
+      }),
+    ).toBeTruthy()
   }, 15_000)
 
   it('sends nothing when the operator already has the copied settings', async () => {
@@ -794,6 +856,135 @@ describe('PatchEditorPage operator copy and paste', () => {
     expect(
       screen.getByRole('menuitem', { name: 'Operator 1 aus „Glass Keys“ einfügen' }),
     ).toBeTruthy()
+  }, 15_000)
+})
+
+describe('PatchEditorPage operator layout', () => {
+  // Reduced motion stays on, as it is without matchMedia, so the scopes do not animate.
+  const stubWindowWidth = (wide: boolean) =>
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        addEventListener: vi.fn(),
+        matches: query === '(min-width: 80rem)' ? wide : query.includes('prefers-reduced-motion'),
+        removeEventListener: vi.fn(),
+      })),
+    )
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('lays the operators out as table rows on a wide window', async () => {
+    stubWindowWidth(true)
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+
+    const operators = screen.getByRole('group', { name: 'Operators' })
+    expect(operators.querySelectorAll('.operator-row')).toHaveLength(6)
+    expect(operators.querySelectorAll('.operator-column')).toHaveLength(0)
+  })
+
+  it('keeps the rack of columns on a narrower window', async () => {
+    stubWindowWidth(false)
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+
+    const operators = screen.getByRole('group', { name: 'Operators' })
+    expect(operators.querySelectorAll('.operator-column')).toHaveLength(6)
+    expect(operators.querySelectorAll('.operator-row')).toHaveLength(0)
+  })
+
+  it('edits the open operator from its table row', async () => {
+    stubWindowWidth(true)
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+
+    await user.click(screen.getByRole('button', { name: /^Operator 4, / }))
+    const field = within(screen.getByRole('region', { name: /^Operator 4, / })).getByRole(
+      'textbox',
+      { name: 'Ratio' },
+    )
+    await user.clear(field)
+    await user.type(field, '7{Enter}')
+
+    expect(
+      within(screen.getByRole('button', { name: /^Operator 4, / })).getByText('7.00×'),
+    ).toBeTruthy()
+  }, 15_000)
+})
+
+describe('PatchEditorPage typed frequency', () => {
+  const coarseIndex = resolveOperatorParameterIndex(1, 'operator.frequency.coarse')
+  const fineIndex = resolveOperatorParameterIndex(1, 'operator.frequency.fine')
+  const knob = (name: string) => screen.getByRole('slider', { name }).getAttribute('aria-valuenow')
+
+  async function setupLive() {
+    const context = setup()
+    await waitFor(() => expect(context.midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    return context
+  }
+
+  async function typeFrequency(
+    user: ReturnType<typeof userEvent.setup>,
+    name: string,
+    text: string,
+  ) {
+    const field = screen.getByRole('textbox', { name })
+    await user.clear(field)
+    await user.type(field, `${text}{Enter}`)
+  }
+
+  afterEach(async () => {
+    await setLocale('en-GB')
+  })
+
+  it('sets Coarse and Fine to the nearest ratio and sends both', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupLive()
+    vi.mocked(midi.sendParameter).mockClear()
+
+    await typeFrequency(user, 'Ratio', '3.5')
+
+    expect(knob('Coarse')).toBe('2')
+    expect(knob('Fine')).toBe('75')
+    expect(midi.sendParameter).toHaveBeenCalledWith(coarseIndex, 2)
+    expect(midi.sendParameter).toHaveBeenCalledWith(fineIndex, 75)
+    expect((screen.getByRole('textbox', { name: 'Ratio' }) as HTMLInputElement).value).toBe('3.50')
+  }, 15_000)
+
+  it('undoes a typed ratio as a single step', async () => {
+    const user = userEvent.setup()
+    await setupLive()
+
+    await typeFrequency(user, 'Ratio', '3.5')
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(knob('Coarse')).toBe('0')
+    expect(knob('Fine')).toBe('0')
+    expect((screen.getByRole('textbox', { name: 'Ratio' }) as HTMLInputElement).value).toBe('0.50')
+  }, 15_000)
+
+  it('takes hertz once the operator is in fixed mode', async () => {
+    const user = userEvent.setup()
+    await setupLive()
+
+    await user.click(screen.getByRole('radio', { name: 'Fixed' }))
+    await typeFrequency(user, 'Frequency (Hz)', '100')
+
+    expect(knob('Coarse')).toBe('2')
+    expect(knob('Fine')).toBe('0')
+  }, 15_000)
+
+  it('explains a ratio it cannot read in the interface language', async () => {
+    await setLocale('de')
+    const user = userEvent.setup()
+    await setupLive()
+
+    await typeFrequency(user, 'Ratio', 'laut')
+
+    expect(screen.getByRole('alert').textContent).toBe('Gib das Verhältnis als Zahl ein, etwa 3,5.')
   }, 15_000)
 })
 

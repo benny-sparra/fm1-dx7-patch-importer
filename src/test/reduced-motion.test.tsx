@@ -135,6 +135,7 @@ describe('reduced motion', () => {
           onFeedbackChange={noop}
           onFeedbackGestureEnd={noop}
           onFeedbackGestureStart={noop}
+          operatorFrequencies={['1.00×', '1.00×', '1.00×', '1.00×', '1.00×', '1.00×']}
         />
         <LfoWaveControl onChange={noop} value={0} />
       </>,

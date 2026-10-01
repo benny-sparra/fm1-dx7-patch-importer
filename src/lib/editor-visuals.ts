@@ -1,3 +1,6 @@
+import { resolveOperatorParameterIndex } from '@/lib/fm1-parameters'
+import { operatorFixedHertz, operatorOscillatorMode, operatorRatio } from '@/lib/operator-frequency'
+
 export const operatorColors = [
   'hsl(198 100% 58%)',
   'hsl(151 78% 49%)',
@@ -23,16 +26,43 @@ export function formatOperatorRatio(ratio: number) {
 }
 
 export function formatOperatorFixedFrequency(coarse: number, fine: number) {
-  const frequency = 10 ** ((coarse & 0b11) + fine / 100)
+  const frequency = operatorFixedHertz(coarse, fine)
 
   if (frequency >= 1000) return `${(frequency / 1000).toFixed(2)} kHz`
   if (frequency >= 10) return `${frequency.toFixed(1)} Hz`
   return `${frequency.toFixed(2)} Hz`
 }
 
-const plotTop = 20
-const plotBottom = 156
-const pitchCenter = 88
+/**
+ * An operator's frequency as the rack and the algorithm diagram show it: a
+ * ratio in ratio mode, where coarse 0 means 0.5, or a fixed frequency.
+ * The compact form, for the diagram's small boxes, drops the ratio's × and
+ * the space before a unit, so a bare number reads as a ratio there.
+ */
+export function formatOperatorFrequency(
+  parameters: Uint8Array,
+  operator: number,
+  { compact = false }: { compact?: boolean } = {},
+) {
+  const coarse = parameters[resolveOperatorParameterIndex(operator, 'operator.frequency.coarse')]
+  const fine = parameters[resolveOperatorParameterIndex(operator, 'operator.frequency.fine')]
+  if (operatorOscillatorMode(parameters, operator) === 'fixed') {
+    const frequency = formatOperatorFixedFrequency(coarse, fine)
+    return compact ? frequency.replace(' ', '') : frequency
+  }
+  const ratio = operatorRatio(coarse, fine)
+  return compact ? ratio.toFixed(2) : formatOperatorRatio(ratio)
+}
+
+/**
+ * The band of an envelope graph the levels span, in its drawing's units. A
+ * graph stretched to fill its column moves the bottom down; the default is
+ * the fixed 400 by 180 drawing.
+ */
+export type EnvelopePlot = { bottom: number; top: number }
+
+export const envelopePlot: EnvelopePlot = { bottom: 156, top: 20 }
+
 const slotWidth = 90
 
 type EnvelopePointPosition = {
@@ -46,19 +76,33 @@ type EnvelopePointPositionFunction = (
   index: number,
 ) => EnvelopePointPosition
 
-export function envelopePointPosition(rate: number, level: number, index: number) {
+export function envelopePointPosition(
+  rate: number,
+  level: number,
+  index: number,
+  plot: EnvelopePlot = envelopePlot,
+) {
   return {
     x: 28 + index * slotWidth + ((99 - rate) / 99) * 58,
-    y: plotBottom - (level / 99) * (plotBottom - plotTop),
+    y: plot.bottom - (level / 99) * (plot.bottom - plot.top),
   }
 }
 
-export function pitchEnvelopePointPosition(rate: number, level: number, index: number) {
+/** The pitch envelope's centre line, where level 50 leaves the pitch unchanged. */
+const pitchCenter = (plot: EnvelopePlot) => (plot.top + plot.bottom) / 2
+
+export function pitchEnvelopePointPosition(
+  rate: number,
+  level: number,
+  index: number,
+  plot: EnvelopePlot = envelopePlot,
+) {
   const clampedLevel = clampEnvelopeValue(level, 50)
+  const center = pitchCenter(plot)
   const y =
     clampedLevel >= 50
-      ? pitchCenter - ((clampedLevel - 50) / 49) * (pitchCenter - plotTop)
-      : pitchCenter + ((50 - clampedLevel) / 50) * (plotBottom - pitchCenter)
+      ? center - ((clampedLevel - 50) / 49) * (center - plot.top)
+      : center + ((50 - clampedLevel) / 50) * (plot.bottom - center)
 
   return {
     x: 28 + index * slotWidth + ((99 - rate) / 99) * 58,
@@ -66,12 +110,13 @@ export function pitchEnvelopePointPosition(rate: number, level: number, index: n
   }
 }
 
-export function pitchEnvelopeLevelFromY(y: number) {
-  const clampedY = Math.min(plotBottom, Math.max(plotTop, y))
+export function pitchEnvelopeLevelFromY(y: number, plot: EnvelopePlot = envelopePlot) {
+  const center = pitchCenter(plot)
+  const clampedY = Math.min(plot.bottom, Math.max(plot.top, y))
   const level =
-    clampedY <= pitchCenter
-      ? 50 + ((pitchCenter - clampedY) / (pitchCenter - plotTop)) * 49
-      : 50 - ((clampedY - pitchCenter) / (plotBottom - pitchCenter)) * 50
+    clampedY <= center
+      ? 50 + ((center - clampedY) / (center - plot.top)) * 49
+      : 50 - ((clampedY - center) / (plot.bottom - center)) * 50
 
   return clampEnvelopeValue(level, 50)
 }

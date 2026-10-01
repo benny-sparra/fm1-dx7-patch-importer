@@ -81,6 +81,10 @@ export default {
     coarse:
       'Sets the main frequency ratio in Ratio mode, or the broad frequency range in Fixed mode. Whole-number ratios usually sound harmonic.',
     fine: 'Fine-tunes the operator frequency between Coarse settings. Small changes can add new harmonics or beating.',
+    ratioEntry:
+      'Type the ratio you want, such as 3.5. Coarse and Fine move to the nearest ratio the FM1 can play, which the field then shows.',
+    fixedFrequencyEntry:
+      'Type the frequency you want in hertz, such as 440 or 1.2k. Coarse and Fine move to the nearest frequency the FM1 can play, which the field then shows.',
     detune:
       'Offsets this operator slightly from exact tuning. Use small amounts to thicken the sound; larger differences create beating or dissonance.',
     breakpoint:
@@ -150,6 +154,10 @@ export default {
     coarse: 'Coarse',
     fine: 'Fine',
     detune: 'Detune',
+    ratioEntry: 'Ratio',
+    fixedFrequencyEntry: 'Frequency (Hz)',
+    ratioEntryInvalid: 'Type the ratio as a number, such as 3.5.',
+    fixedFrequencyEntryInvalid: 'Type the frequency in hertz, such as 440.',
     keyboardScaling: 'Scaling',
     breakpoint: 'Breakpoint',
     left: 'Left',
@@ -206,7 +214,10 @@ export default {
     copyOperatorAction: 'Copy operator {{number}}',
     pasteOperatorAction: 'Paste operator {{source}}',
     pasteOperatorFromPatchAction: 'Paste operator {{source}} from “{{patch}}”',
-    pasteOperatorEmpty: 'Paste (copy an operator first)',
+    pasteOperatorEmpty: 'Paste (copy an operator or its envelope first)',
+    copyEnvelopeAction: 'Copy operator {{number}} envelope',
+    pasteEnvelopeAction: 'Paste operator {{source}} envelope',
+    pasteEnvelopeFromPatchAction: 'Paste operator {{source}} envelope from “{{patch}}”',
     lfoWaves: {
       triangle: 'Triangle',
       sawDown: 'Saw down',

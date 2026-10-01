@@ -85,6 +85,10 @@ export default {
     coarse:
       'Define a relação de frequência principal no modo Ratio, ou a faixa de frequência geral no modo Fixa. Relações inteiras costumam soar harmônicas.',
     fine: 'Ajusta com precisão a frequência do operador entre os valores de ajuste grosso. Pequenas mudanças podem adicionar novos harmônicos ou batimentos.',
+    ratioEntry:
+      'Digite a relação desejada, por exemplo 3,5. Grosso e Fino passam para a relação mais próxima que o FM1 consegue tocar, e o campo a mostra.',
+    fixedFrequencyEntry:
+      'Digite a frequência desejada em hertz, por exemplo 440 ou 1,2k. Grosso e Fino passam para a frequência mais próxima que o FM1 consegue tocar, e o campo a mostra.',
     detune:
       'Desloca levemente este operador da afinação exata. Pouco deixa o som mais encorpado; diferenças maiores criam batimentos ou dissonância.',
     breakpoint:
@@ -156,6 +160,10 @@ export default {
     coarse: 'Grosso',
     fine: 'Fino',
     detune: 'Desafinação',
+    ratioEntry: 'Ratio',
+    fixedFrequencyEntry: 'Frequência (Hz)',
+    ratioEntryInvalid: 'Digite a relação como um número, por exemplo 3,5.',
+    fixedFrequencyEntryInvalid: 'Digite a frequência em hertz, por exemplo 440.',
     keyboardScaling: 'Escalonamento do teclado',
     breakpoint: 'Ponto de divisão',
     left: 'Esquerda',
@@ -212,7 +220,10 @@ export default {
     copyOperatorAction: 'Copiar o operador {{number}}',
     pasteOperatorAction: 'Colar o operador {{source}}',
     pasteOperatorFromPatchAction: 'Colar o operador {{source}} de “{{patch}}”',
-    pasteOperatorEmpty: 'Colar (copie um operador primeiro)',
+    pasteOperatorEmpty: 'Colar (copie um operador ou o envelope dele primeiro)',
+    copyEnvelopeAction: 'Copiar o envelope do operador {{number}}',
+    pasteEnvelopeAction: 'Colar o envelope do operador {{source}}',
+    pasteEnvelopeFromPatchAction: 'Colar o envelope do operador {{source}} de “{{patch}}”',
     lfoWaves: {
       triangle: 'Triângulo',
       sawDown: 'Dente de serra descendente',

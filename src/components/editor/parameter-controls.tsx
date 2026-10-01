@@ -1,7 +1,8 @@
 import { Check, ChevronDown } from 'lucide-react'
-import { useId, useRef } from 'react'
+import { type ComponentProps, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ErrorNotice } from '@/components/ui/error-notice'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
@@ -25,9 +26,28 @@ const captionClass = 'text-[11px] font-normal tracking-[0.1em] text-[var(--crt-i
 const ledClass = 'font-vt323 text-[var(--crt-led)]'
 
 /** A sunken field — selects, number entry and the wave picker's trigger. */
-const fieldFrameClass =
-  'crt-inset h-8 min-w-0 rounded-none bg-[var(--crt-bg-1)] px-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
+const fieldSurfaceClass =
+  'crt-inset h-8 min-w-0 rounded-none bg-[var(--crt-bg-1)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
+const fieldFrameClass = `${fieldSurfaceClass} px-2`
 const fieldClass = `${fieldFrameClass} text-xs text-[var(--crt-ink)]`
+
+/**
+ * A rack dropdown. The browser's own arrow sits hard against the right edge,
+ * so it is hidden and a chevron is drawn inset from the edge instead, as the
+ * wave picker's is. `className` sets the field's surface, size and text; the
+ * horizontal padding is the component's, leaving room for the chevron.
+ */
+export function RackSelect({ className, ...props }: ComponentProps<'select'>) {
+  return (
+    <span className="relative block min-w-0">
+      <select {...props} className={cn('peer w-full appearance-none pr-7 pl-2', className)} />
+      <ChevronDown
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)] peer-disabled:opacity-50"
+      />
+    </span>
+  )
+}
 
 type ParameterControlProps = {
   helpText?: string
@@ -359,14 +379,24 @@ export function RadioParameterControl({
       ) : helpText ? (
         <HelpPopover label={label} text={helpText} />
       ) : null}
-      <div aria-label={label} className="flex" role="radiogroup">
+      {/*
+        A segmented control: the options share one sunken track and only the
+        chosen one stands raised out of it, so they read as one choice between
+        them. Focus rings the whole track, where no option can paint over it;
+        the arrow keys move the choice, as in any radio group.
+      */}
+      <div
+        aria-label={label}
+        className="crt-inset flex gap-[2px] bg-[var(--crt-bg-1)] p-[2px] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--crt-led)]"
+        role="radiogroup"
+      >
         {options.map((option, index) => (
           <label
             className={cn(
-              'flex flex-1 cursor-pointer items-center justify-center border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2.5 py-[3px] text-[11px] tracking-[0.1em] uppercase transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--crt-led)]',
+              'flex flex-1 cursor-pointer items-center justify-center border-t border-r border-b border-l px-2.5 py-px text-[11px] leading-4 tracking-[0.1em] uppercase transition-colors',
               value === index
-                ? 'border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
-                : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
+                ? 'border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
+                : 'border-transparent text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
             )}
             key={option}
           >
@@ -404,8 +434,8 @@ export function ParameterControl({
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
       </span>
       {options ? (
-        <select
-          className={cn(fieldClass, 'normal-case')}
+        <RackSelect
+          className={`${fieldSurfaceClass} text-xs text-[var(--crt-ink)] normal-case`}
           onChange={(event) => onChange(Number(event.target.value))}
           value={value}
         >
@@ -414,7 +444,7 @@ export function ParameterControl({
               {option}
             </option>
           ))}
-        </select>
+        </RackSelect>
       ) : (
         <input
           className={cn(fieldFrameClass, 'font-vt323 text-base text-[var(--crt-led)]')}
@@ -429,6 +459,96 @@ export function ParameterControl({
         />
       )}
     </label>
+  )
+}
+
+type TypedValueControlProps = {
+  helpText?: string
+  /** The translated message shown when the typed text cannot be used. */
+  invalidMessage: string
+  label: string
+  /** Applies the typed text, returning false when it cannot be used. */
+  onCommit: (text: string) => boolean
+  value: string
+}
+
+/**
+ * A value typed rather than turned, such as an operator's ratio. It shows the
+ * current value until edited, applies the text on Enter or when focus leaves,
+ * and then shows whatever value the text produced. Escape, or leaving text
+ * that cannot be used, puts the current value back.
+ */
+export function TypedValueControl({
+  helpText,
+  invalidMessage,
+  label,
+  onCommit,
+  value,
+}: TypedValueControlProps) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const [invalid, setInvalid] = useState(false)
+  const errorId = useId()
+
+  const discard = () => {
+    setDraft(null)
+    setInvalid(false)
+  }
+  const commit = () => {
+    if (draft === null) return true
+    if (!onCommit(draft)) {
+      setInvalid(true)
+      return false
+    }
+    discard()
+    return true
+  }
+
+  return (
+    <div className="grid min-w-0 gap-1">
+      <label className={cn('grid min-w-0 gap-1', captionClass)}>
+        <span className="flex min-w-0 items-center gap-1">
+          <span className="min-w-0 text-balance break-words" title={label}>
+            {label}
+          </span>
+          {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+        </span>
+        <input
+          aria-describedby={invalid ? errorId : undefined}
+          aria-invalid={invalid || undefined}
+          aria-label={label}
+          autoComplete="off"
+          className={cn(
+            fieldFrameClass,
+            'font-vt323 w-28 justify-self-start text-base text-[var(--crt-led)]',
+          )}
+          inputMode="decimal"
+          onBlur={() => {
+            if (!commit()) discard()
+          }}
+          onChange={(event) => {
+            setDraft(event.target.value)
+            setInvalid(false)
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              commit()
+            } else if (event.key === 'Escape' && draft !== null) {
+              event.preventDefault()
+              discard()
+            }
+          }}
+          spellCheck={false}
+          type="text"
+          value={draft ?? value}
+        />
+      </label>
+      {invalid ? (
+        <div id={errorId}>
+          <ErrorNotice>{invalidMessage}</ErrorNotice>
+        </div>
+      ) : null}
+    </div>
   )
 }
 

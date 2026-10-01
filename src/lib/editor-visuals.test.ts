@@ -2,12 +2,15 @@ import { describe, expect, it } from 'vitest'
 
 import {
   clampEnvelopeValue,
+  envelopePointPosition,
   formatOperatorFixedFrequency,
+  formatOperatorFrequency,
   formatOperatorRatio,
   pitchEnvelopeLevelFromY,
   pitchEnvelopePointPosition,
   rotaryControlAngle,
 } from './editor-visuals'
+import { FM1_VOICE_PARAMETER_COUNT, resolveOperatorParameterIndex } from './fm1-parameters'
 
 describe('rotary control angle', () => {
   it('maps the full value range onto the knob sweep', () => {
@@ -55,6 +58,46 @@ describe('operator fixed-frequency labels', () => {
   })
 })
 
+describe('operator frequency labels', () => {
+  const voice = (operator: number, mode: number, coarse: number, fine: number) => {
+    const parameters = new Uint8Array(FM1_VOICE_PARAMETER_COUNT)
+    parameters[resolveOperatorParameterIndex(operator, 'operator.oscillatorMode')] = mode
+    parameters[resolveOperatorParameterIndex(operator, 'operator.frequency.coarse')] = coarse
+    parameters[resolveOperatorParameterIndex(operator, 'operator.frequency.fine')] = fine
+    return parameters
+  }
+
+  it('shows a ratio in ratio mode', () => {
+    expect(formatOperatorFrequency(voice(2, 0, 14, 0), 2)).toBe('14.00×')
+  })
+
+  it('reads coarse 0 as half the note frequency in ratio mode', () => {
+    expect(formatOperatorFrequency(voice(1, 0, 0, 0), 1)).toBe('0.50×')
+  })
+
+  it('applies the fine setting to the ratio', () => {
+    expect(formatOperatorFrequency(voice(6, 0, 2, 50), 6)).toBe('3.00×')
+  })
+
+  it('shows a fixed frequency in fixed mode', () => {
+    expect(formatOperatorFrequency(voice(3, 1, 2, 0), 3)).toBe('100.0 Hz')
+  })
+
+  it('drops the ratio sign in the compact form', () => {
+    expect(formatOperatorFrequency(voice(2, 0, 14, 0), 2, { compact: true })).toBe('14.00')
+  })
+
+  it('drops the space before the unit in the compact form', () => {
+    expect(formatOperatorFrequency(voice(3, 1, 3, 99), 3, { compact: true })).toBe('9.77kHz')
+  })
+
+  it('reads the operator it is asked for', () => {
+    const parameters = voice(4, 0, 3, 0)
+    parameters[resolveOperatorParameterIndex(5, 'operator.frequency.coarse')] = 7
+    expect(formatOperatorFrequency(parameters, 5)).toBe('7.00×')
+  })
+})
+
 describe('envelope numeric values', () => {
   it('keeps values within the DX7 envelope range', () => {
     expect(clampEnvelopeValue(-1, 42)).toBe(0)
@@ -84,5 +127,32 @@ describe('pitch envelope geometry', () => {
     expect(pitchEnvelopeLevelFromY(20)).toBe(99)
     expect(pitchEnvelopeLevelFromY(88)).toBe(50)
     expect(pitchEnvelopeLevelFromY(156)).toBe(0)
+  })
+
+  it('keeps the base-pitch line centred on a stretched graph', () => {
+    const tall = { bottom: 256, top: 20 }
+
+    expect(pitchEnvelopePointPosition(50, 50, 0, tall).y).toBe(138)
+    expect(pitchEnvelopeLevelFromY(138, tall)).toBe(50)
+  })
+})
+
+describe('amplitude envelope geometry', () => {
+  it('spans the levels across the plot band', () => {
+    expect(envelopePointPosition(50, 99, 0).y).toBe(20)
+    expect(envelopePointPosition(50, 0, 0).y).toBe(156)
+  })
+
+  it('spans the levels across a stretched graph’s taller band', () => {
+    const tall = { bottom: 256, top: 20 }
+
+    expect(envelopePointPosition(50, 99, 0, tall).y).toBe(20)
+    expect(envelopePointPosition(50, 0, 0, tall).y).toBe(256)
+  })
+
+  it('keeps each stage’s horizontal place whatever the graph’s height', () => {
+    expect(envelopePointPosition(30, 60, 2, { bottom: 300, top: 20 }).x).toBe(
+      envelopePointPosition(30, 60, 2).x,
+    )
   })
 })

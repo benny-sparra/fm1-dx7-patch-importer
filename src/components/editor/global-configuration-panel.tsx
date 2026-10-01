@@ -6,13 +6,16 @@ import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import { LfoScope } from '@/components/editor/lfo-scope'
 import {
   LfoWaveControl,
+  RackSelect,
   RotaryParameterControl,
   SliderParameterControl,
   SwitchParameterControl,
 } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { formatOperatorFrequency } from '@/lib/editor-visuals'
 import {
   displayToStoredValue,
+  FM1_OPERATOR_COUNT,
   getGlobalParameterDefinition,
   storedToDisplayValue,
   type GlobalParameterId,
@@ -94,6 +97,9 @@ export function GlobalConfigurationPanel({
           }
           onFeedbackGestureEnd={endGesture}
           onFeedbackGestureStart={beginGesture}
+          operatorFrequencies={Array.from({ length: FM1_OPERATOR_COUNT }, (_, index) =>
+            formatOperatorFrequency(parameters, index + 1, { compact: true }),
+          )}
         />
       </div>
 
@@ -151,9 +157,9 @@ export function GlobalConfigurationPanel({
               />
             </span>
             {/* The help button shares the label, so name the select directly. */}
-            <select
+            <RackSelect
               aria-label={t('editor.pitchEnvelopePresets')}
-              className="crt-inset h-7 w-full min-w-0 bg-[var(--crt-bg-well)] px-1.5 text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+              className="crt-inset h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
               onChange={(event) => {
                 applyPitchEnvelopePreset(event.target.value as PitchEnvelopePresetId)
               }}
@@ -167,7 +173,7 @@ export function GlobalConfigurationPanel({
                   {t(`editor.pitchEnvelopePresetOptions.${id}`)}
                 </option>
               ))}
-            </select>
+            </RackSelect>
           </label>
         </div>
       </section>

@@ -85,6 +85,10 @@ export default {
     coarse:
       'Ajusta la relación de frecuencia principal en modo Ratio, o el rango de frecuencia general en modo Fija. Las relaciones enteras suelen sonar armónicas.',
     fine: 'Afina la frecuencia del operador entre los ajustes gruesos. Los cambios pequeños pueden añadir armónicos nuevos o batidos.',
+    ratioEntry:
+      'Escribe la relación que quieras, por ejemplo 3,5. Grueso y Fino pasan a la relación más cercana que puede tocar el FM1, y el campo la muestra.',
+    fixedFrequencyEntry:
+      'Escribe la frecuencia que quieras en hercios, por ejemplo 440 o 1,2k. Grueso y Fino pasan a la frecuencia más cercana que puede tocar el FM1, y el campo la muestra.',
     detune:
       'Separa ligeramente este operador de la afinación exacta. Con poca cantidad engorda el sonido; con diferencias mayores crea batidos o disonancia.',
     breakpoint:
@@ -158,6 +162,10 @@ export default {
     coarse: 'Grueso',
     fine: 'Fino',
     detune: 'Desafinación',
+    ratioEntry: 'Ratio',
+    fixedFrequencyEntry: 'Frecuencia (Hz)',
+    ratioEntryInvalid: 'Escribe la relación como un número, por ejemplo 3,5.',
+    fixedFrequencyEntryInvalid: 'Escribe la frecuencia en hercios, por ejemplo 440.',
     keyboardScaling: 'Escalado de teclado',
     breakpoint: 'Punto de división',
     left: 'Izquierda',
@@ -215,7 +223,10 @@ export default {
     copyOperatorAction: 'Copiar el operador {{number}}',
     pasteOperatorAction: 'Pegar el operador {{source}}',
     pasteOperatorFromPatchAction: 'Pegar el operador {{source}} de «{{patch}}»',
-    pasteOperatorEmpty: 'Pegar (primero copia un operador)',
+    pasteOperatorEmpty: 'Pegar (primero copia un operador o su envolvente)',
+    copyEnvelopeAction: 'Copiar la envolvente del operador {{number}}',
+    pasteEnvelopeAction: 'Pegar la envolvente del operador {{source}}',
+    pasteEnvelopeFromPatchAction: 'Pegar la envolvente del operador {{source}} de «{{patch}}»',
     lfoWaves: {
       triangle: 'Triángulo',
       sawDown: 'Diente de sierra descendente',

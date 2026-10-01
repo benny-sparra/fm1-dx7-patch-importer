@@ -8,6 +8,7 @@ import {
   RadioParameterControl,
   RotaryParameterControl,
   SliderParameterControl,
+  TypedValueControl,
 } from '@/components/editor/parameter-controls'
 import {
   displayToStoredValue,
@@ -16,6 +17,11 @@ import {
   storedToDisplayValue,
   type OperatorParameterId,
 } from '@/lib/fm1-parameters'
+import {
+  formatFrequencyEntry,
+  frequencyEntryEdits,
+  operatorOscillatorMode,
+} from '@/lib/operator-frequency'
 import type { ParameterEdit } from '@/lib/patch-editor'
 
 const curveKeys = [
@@ -33,12 +39,18 @@ type FocusedOperatorPanelProps = {
   parameters: Uint8Array
   selectedOperator: number
   setParameter: (index: number, value: number, max?: number, min?: number, send?: boolean) => void
+  /**
+   * `stack` sets the envelope, oscillator and scaling one above another, for a
+   * rack column; `wide` sets them side by side, for an operator table row.
+   */
+  layout?: 'stack' | 'wide'
 }
 
 export function FocusedOperatorPanel({
   applyEdits,
   beginGesture,
   endGesture,
+  layout = 'stack',
   parameters,
   selectedOperator,
   setParameter,
@@ -52,6 +64,7 @@ export function FocusedOperatorPanel({
   const fineParameter = getOperatorParameterDefinition('operator.frequency.fine')
   const detuneParameter = getOperatorParameterDefinition('operator.detune')
   const envelopeMax = getOperatorParameterDefinition('operator.envelope.rate1').max
+  const mode = operatorOscillatorMode(parameters, selectedOperator)
   const control = (
     label: string,
     id: OperatorParameterId,
@@ -107,16 +120,23 @@ export function FocusedOperatorPanel({
   /*
     The artboard's open operator column: the envelope on top, then the
     oscillator and keyboard-scaling sections under hatched sub-headings.
-    Identity, output level, mute and solo live on the column itself.
+    Identity, output level, mute and solo live on the column or row itself.
   */
   return (
     <div
-      className="@container grid min-w-0 gap-[9px]"
+      className={
+        layout === 'wide'
+          ? // The oscillator and scaling share one width, so their strips match side by side.
+            'grid min-w-0 grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)] items-start gap-[9px]'
+          : 'grid min-w-0 gap-[9px]'
+      }
       id="focused-operator-panel"
       style={{ '--operator-color': 'var(--crt-acc)' } as React.CSSProperties}
     >
       <EnvelopeEditor
         color="var(--crt-acc)"
+        // Side by side, the graph grows to the height of the tallest section.
+        fill={layout === 'wide'}
         helpText={t('controlHelp.amplitudeEnvelope')}
         levels={Array.from(parameters.slice(operatorBase + 4, operatorBase + 8))}
         onChange={(rate, level, point) => {
@@ -133,7 +153,13 @@ export function FocusedOperatorPanel({
 
       <section
         aria-labelledby="operator-oscillator-heading"
-        className="grid min-w-0 gap-[9px]"
+        // Side by side, the oscillator spreads its rows over the row's height,
+        // so its sliders end level with the envelope readouts and the curves.
+        className={
+          layout === 'wide'
+            ? 'grid min-w-0 content-between gap-[9px] self-stretch'
+            : 'grid min-w-0 gap-[9px]'
+        }
         id="operator-oscillator-panel"
       >
         <RackSubheading
@@ -157,6 +183,28 @@ export function FocusedOperatorPanel({
           icon={AudioWaveform}
           id="operator-oscillator-heading"
           title={t('ui.oscillator')}
+        />
+        <TypedValueControl
+          helpText={t(
+            mode === 'ratio' ? 'controlHelp.ratioEntry' : 'controlHelp.fixedFrequencyEntry',
+          )}
+          invalidMessage={t(
+            mode === 'ratio' ? 'ui.ratioEntryInvalid' : 'ui.fixedFrequencyEntryInvalid',
+          )}
+          // A new operator or mode starts from its own value, not a half-typed one.
+          key={`${selectedOperator}-frequency-${mode}`}
+          label={t(mode === 'ratio' ? 'ui.ratioEntry' : 'ui.fixedFrequencyEntry')}
+          onCommit={(text) => {
+            const edits = frequencyEntryEdits(parameters, selectedOperator, text)
+            if (!edits) return false
+            applyEdits(edits)
+            return true
+          }}
+          value={formatFrequencyEntry(
+            mode,
+            parameters[operatorIndex('operator.frequency.coarse')],
+            parameters[operatorIndex('operator.frequency.fine')],
+          )}
         />
         <div className="grid grid-cols-3 gap-2">
           <RotaryParameterControl
@@ -205,11 +253,27 @@ export function FocusedOperatorPanel({
             valueLabel={(value) => (value > 0 ? `+${value}` : String(value))}
           />
         </div>
+        {/*
+          The two sensitivities sit under the oscillator rather than closing the
+          scaling section, so side by side the columns end at similar heights.
+        */}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+          {sliderControl(
+            t('ui.velocity'),
+            'operator.velocitySensitivity',
+            t('controlHelp.velocity'),
+          )}
+          {sliderControl(
+            t('ui.ampModSensitivity'),
+            'operator.ampModSensitivity',
+            t('controlHelp.ampModSensitivity'),
+          )}
+        </div>
       </section>
 
       <section
         aria-labelledby="operator-scaling-heading"
-        className="grid min-w-0 gap-[9px]"
+        className="@container grid min-w-0 gap-[9px]"
         id="operator-scaling-panel"
       >
         <RackSubheading
@@ -253,16 +317,6 @@ export function FocusedOperatorPanel({
             curveKeys.map((key) => t(key)),
             t('controlHelp.curve'),
           )}
-          {sliderControl(
-            t('ui.velocity'),
-            'operator.velocitySensitivity',
-            t('controlHelp.velocity'),
-          )}
-          {sliderControl(
-            t('ui.ampModSensitivity'),
-            'operator.ampModSensitivity',
-            t('controlHelp.ampModSensitivity'),
-          )}
         </div>
       </section>
     </div>
@@ -282,7 +336,8 @@ function RackSubheading({
   title: string
 }) {
   return (
-    <div className="crt-hatch crt-raised-thin flex min-h-7 min-w-0 items-center gap-2 px-1.5 py-1">
+    // One height whether or not it carries an action, so side-by-side strips line up.
+    <div className="crt-hatch crt-raised-thin flex h-8 min-w-0 items-center gap-2 px-1.5">
       <h3
         className="flex min-w-0 items-center gap-1.5 text-[11px] font-normal tracking-[0.22em] text-[var(--crt-acc-lt)] uppercase"
         id={id}

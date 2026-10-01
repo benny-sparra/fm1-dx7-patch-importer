@@ -56,16 +56,39 @@ test.describe('operator rack', () => {
     await expect(operatorButton(page, 1)).toHaveAttribute('aria-expanded', 'true')
   })
 
-  test('sets all six columns side by side at xl', async ({ page }) => {
+  test('lists the six operators as table rows at xl, each value under the last', async ({
+    page,
+  }) => {
     await page.setViewportSize({ height: 900, width: 1440 })
     await openEditor(page)
 
-    const tops = await page
-      .locator('.operator-column')
-      .evaluateAll((columns) => columns.map((column) => column.getBoundingClientRect().top))
+    await expect(page.locator('.operator-row')).toHaveCount(6)
+    await expect(page.locator('.operator-column')).toHaveCount(0)
+    // The ratio readout is each summary's third cell; every row lines it up.
+    const ratioLefts = await page
+      .locator('.operator-row > button')
+      .evaluateAll((buttons) =>
+        buttons.map((button) => button.children[2].getBoundingClientRect().left),
+      )
+    for (const left of ratioLefts) expect(Math.abs(left - ratioLefts[0])).toBeLessThanOrEqual(1)
+  })
 
-    expect(tops).toHaveLength(6)
-    for (const top of tops) expect(Math.abs(top - tops[0])).toBeLessThanOrEqual(1)
+  test('grows the open operator beneath its own row at xl', async ({ page }) => {
+    await page.setViewportSize({ height: 900, width: 1440 })
+    await openEditor(page)
+
+    await operatorButton(page, 3).click()
+
+    const region = page.getByRole('region', { name: /^Operator 3, / })
+    await expect(region).toBeVisible()
+    // The fold has finished once the region's row has stopped growing.
+    await expect.poll(async () => (await region.boundingBox())?.height ?? 0).toBeGreaterThan(200)
+    const summary = await operatorButton(page, 3).boundingBox()
+    const opened = await region.boundingBox()
+    const nextRow = await operatorButton(page, 4).boundingBox()
+    expect(opened!.y).toBeGreaterThanOrEqual(summary!.y + summary!.height - 1)
+    expect(nextRow!.y).toBeGreaterThanOrEqual(opened!.y + opened!.height - 1)
+    await expect(page.getByRole('region', { name: /^Operator 1, / })).toHaveCount(0)
   })
 
   test('leads the rack with the open column on a full-width row below xl', async ({ page }) => {

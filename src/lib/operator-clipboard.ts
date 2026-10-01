@@ -6,11 +6,19 @@ import {
 import type { ParameterEdit } from '@/lib/patch-editor'
 
 /**
+ * What a copy takes from an operator: every setting, or only the four rates
+ * and levels of its amplitude envelope.
+ */
+export type OperatorClipboardPart = 'operator' | 'envelope'
+
+/**
  * One operator's settings as copied in the editor: every DX7 operator
- * parameter, output level included, in voice order. It lives only in memory.
+ * parameter, output level included, in voice order, and which of them Paste
+ * gives another operator. It lives only in memory.
  */
 export type CopiedOperator = {
   operator: number
+  part: OperatorClipboardPart
   patchId: string
   patchName: string
   settings: Uint8Array
@@ -19,14 +27,20 @@ export type CopiedOperator = {
 const operatorBaseIndex = (operator: number) =>
   resolveOperatorParameterIndex(operator, fm1OperatorParameters[0].id)
 
+const envelopeParameters = fm1OperatorParameters.filter(({ id }) =>
+  id.startsWith('operator.envelope.'),
+)
+
 export function copyOperator(
   parameters: Uint8Array,
   operator: number,
   patch: { id: string; name: string },
+  part: OperatorClipboardPart = 'operator',
 ): CopiedOperator {
   const base = operatorBaseIndex(operator)
   return {
     operator,
+    part,
     patchId: patch.id,
     patchName: patch.name,
     settings: parameters.slice(base, base + FM1_OPERATOR_PARAMETER_COUNT),
@@ -45,7 +59,8 @@ export function makeOperatorPasteEdits(
     )
   }
   const base = operatorBaseIndex(operator)
-  return fm1OperatorParameters.flatMap(({ max, min, offset }): ParameterEdit[] => {
+  const pasted = copied.part === 'envelope' ? envelopeParameters : fm1OperatorParameters
+  return pasted.flatMap(({ max, min, offset }): ParameterEdit[] => {
     const index = base + offset
     const value = Math.max(min, Math.min(max, copied.settings[offset]))
     return parameters[index] === value ? [] : [[index, value, min, max]]

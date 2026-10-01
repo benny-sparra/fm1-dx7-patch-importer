@@ -79,11 +79,45 @@ describe('operator clipboard', () => {
   })
 
   it('rejects copied settings of the wrong length', () => {
-    const copied = { operator: 1, patchId: 'a-1', patchName: 'INIT', settings: new Uint8Array(20) }
+    const copied = {
+      operator: 1,
+      part: 'operator' as const,
+      patchId: 'a-1',
+      patchName: 'INIT',
+      settings: new Uint8Array(20),
+    }
 
     expect(() =>
       makeOperatorPasteEdits(new Uint8Array(FM1_EDITOR_PARAMETER_COUNT), 1, copied),
     ).toThrow('21 parameters')
+  })
+
+  it('copies the whole operator unless asked for its envelope', () => {
+    expect(copyOperator(makeParameters(), 1, patch).part).toBe('operator')
+    expect(copyOperator(makeParameters(), 1, patch, 'envelope').part).toBe('envelope')
+  })
+
+  it('pastes a copied envelope’s rates and levels and nothing else', () => {
+    const source = new Uint8Array(FM1_EDITOR_PARAMETER_COUNT)
+    source.fill(50, operatorBase(3), operatorBase(3) + 21)
+    const copied = copyOperator(source, 3, patch, 'envelope')
+
+    const edits = makeOperatorPasteEdits(new Uint8Array(FM1_EDITOR_PARAMETER_COUNT), 5, copied)
+
+    expect(edits).toEqual(
+      (
+        [
+          'operator.envelope.rate1',
+          'operator.envelope.rate2',
+          'operator.envelope.rate3',
+          'operator.envelope.rate4',
+          'operator.envelope.level1',
+          'operator.envelope.level2',
+          'operator.envelope.level3',
+          'operator.envelope.level4',
+        ] as const
+      ).map((id) => [resolveOperatorParameterIndex(5, id), 50, 0, 99]),
+    )
   })
 
   it('rejects operator numbers outside the voice', () => {
