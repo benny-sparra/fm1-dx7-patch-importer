@@ -399,9 +399,12 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
     Super, Detune, Drift, Sub, Noise, PWM, Filter Type, and the filter's envelope and modulation,
     and CC 70–78 the shared Envelope, LFO, Cutoff, and Resonance, as unsaved edits heard at once.
     A lazy Virtual Analog editor page, like the voice editor, sends these; continuous input is one
-    undo step. Showing the current values needs the record map from 2.
+    undo step. Showing the current values needs the record map from 2. The CC map is recorded in
+    `docs/fm1-research.md`, "Controllers on the MIDI Channel" (**Likely**), and its hardware
+    tests are planned in [`fm1-va-controller-tests.md`](fm1-va-controller-tests.md); build this
+    step once they pass. It never sends CC 85–119, which press the FM1's own buttons.
   - **Save and create them.** Save to the library and write with 4; **New Virtual Analog
-    preset** starts from FM-1+VA's defaults once they are known.
+    preset** starts from FM-1+VA's defaults, which test V1 records.
   - Unknowns: where the oscillator settings are stored, and how each CC value maps to the stored
     value. A list setting such as Waveform divides the 128 CC values into equal bands.
 - [ ] **7. The Sequencer, on FM-1+VA.** `20` writes a pattern directly, the transfer
