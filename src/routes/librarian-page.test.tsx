@@ -109,7 +109,7 @@ describe('LibrarianPage bank selection', () => {
     expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
 
     await user.type(screen.getByPlaceholderText('Search'), 'no match')
-    expect(screen.getByText('No patches match this search')).toBeTruthy()
+    expect(await screen.findByText('No patches match this search')).toBeTruthy()
   })
 })
 
