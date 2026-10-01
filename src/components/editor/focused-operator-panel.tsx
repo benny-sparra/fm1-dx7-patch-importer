@@ -135,6 +135,8 @@ export function FocusedOperatorPanel({
     >
       <EnvelopeEditor
         color="var(--crt-acc)"
+        // Side by side, the graph grows to the height of the tallest section.
+        fill={layout === 'wide'}
         helpText={t('controlHelp.amplitudeEnvelope')}
         levels={Array.from(parameters.slice(operatorBase + 4, operatorBase + 8))}
         onChange={(rate, level, point) => {

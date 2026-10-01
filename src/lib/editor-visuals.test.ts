@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   clampEnvelopeValue,
+  envelopePointPosition,
   formatOperatorFixedFrequency,
   formatOperatorFrequency,
   formatOperatorRatio,
@@ -126,5 +127,32 @@ describe('pitch envelope geometry', () => {
     expect(pitchEnvelopeLevelFromY(20)).toBe(99)
     expect(pitchEnvelopeLevelFromY(88)).toBe(50)
     expect(pitchEnvelopeLevelFromY(156)).toBe(0)
+  })
+
+  it('keeps the base-pitch line centred on a stretched graph', () => {
+    const tall = { bottom: 256, top: 20 }
+
+    expect(pitchEnvelopePointPosition(50, 50, 0, tall).y).toBe(138)
+    expect(pitchEnvelopeLevelFromY(138, tall)).toBe(50)
+  })
+})
+
+describe('amplitude envelope geometry', () => {
+  it('spans the levels across the plot band', () => {
+    expect(envelopePointPosition(50, 99, 0).y).toBe(20)
+    expect(envelopePointPosition(50, 0, 0).y).toBe(156)
+  })
+
+  it('spans the levels across a stretched graph’s taller band', () => {
+    const tall = { bottom: 256, top: 20 }
+
+    expect(envelopePointPosition(50, 99, 0, tall).y).toBe(20)
+    expect(envelopePointPosition(50, 0, 0, tall).y).toBe(256)
+  })
+
+  it('keeps each stage’s horizontal place whatever the graph’s height', () => {
+    expect(envelopePointPosition(30, 60, 2, { bottom: 300, top: 20 }).x).toBe(
+      envelopePointPosition(30, 60, 2).x,
+    )
   })
 })

@@ -54,9 +54,15 @@ export function formatOperatorFrequency(
   return compact ? ratio.toFixed(2) : formatOperatorRatio(ratio)
 }
 
-const plotTop = 20
-const plotBottom = 156
-const pitchCenter = 88
+/**
+ * The band of an envelope graph the levels span, in its drawing's units. A
+ * graph stretched to fill its column moves the bottom down; the default is
+ * the fixed 400 by 180 drawing.
+ */
+export type EnvelopePlot = { bottom: number; top: number }
+
+export const envelopePlot: EnvelopePlot = { bottom: 156, top: 20 }
+
 const slotWidth = 90
 
 type EnvelopePointPosition = {
@@ -70,19 +76,33 @@ type EnvelopePointPositionFunction = (
   index: number,
 ) => EnvelopePointPosition
 
-export function envelopePointPosition(rate: number, level: number, index: number) {
+export function envelopePointPosition(
+  rate: number,
+  level: number,
+  index: number,
+  plot: EnvelopePlot = envelopePlot,
+) {
   return {
     x: 28 + index * slotWidth + ((99 - rate) / 99) * 58,
-    y: plotBottom - (level / 99) * (plotBottom - plotTop),
+    y: plot.bottom - (level / 99) * (plot.bottom - plot.top),
   }
 }
 
-export function pitchEnvelopePointPosition(rate: number, level: number, index: number) {
+/** The pitch envelope's centre line, where level 50 leaves the pitch unchanged. */
+const pitchCenter = (plot: EnvelopePlot) => (plot.top + plot.bottom) / 2
+
+export function pitchEnvelopePointPosition(
+  rate: number,
+  level: number,
+  index: number,
+  plot: EnvelopePlot = envelopePlot,
+) {
   const clampedLevel = clampEnvelopeValue(level, 50)
+  const center = pitchCenter(plot)
   const y =
     clampedLevel >= 50
-      ? pitchCenter - ((clampedLevel - 50) / 49) * (pitchCenter - plotTop)
-      : pitchCenter + ((50 - clampedLevel) / 50) * (plotBottom - pitchCenter)
+      ? center - ((clampedLevel - 50) / 49) * (center - plot.top)
+      : center + ((50 - clampedLevel) / 50) * (plot.bottom - center)
 
   return {
     x: 28 + index * slotWidth + ((99 - rate) / 99) * 58,
@@ -90,12 +110,13 @@ export function pitchEnvelopePointPosition(rate: number, level: number, index: n
   }
 }
 
-export function pitchEnvelopeLevelFromY(y: number) {
-  const clampedY = Math.min(plotBottom, Math.max(plotTop, y))
+export function pitchEnvelopeLevelFromY(y: number, plot: EnvelopePlot = envelopePlot) {
+  const center = pitchCenter(plot)
+  const clampedY = Math.min(plot.bottom, Math.max(plot.top, y))
   const level =
-    clampedY <= pitchCenter
-      ? 50 + ((pitchCenter - clampedY) / (pitchCenter - plotTop)) * 49
-      : 50 - ((clampedY - pitchCenter) / (plotBottom - pitchCenter)) * 50
+    clampedY <= center
+      ? 50 + ((center - clampedY) / (center - plot.top)) * 49
+      : 50 - ((clampedY - center) / (plot.bottom - center)) * 50
 
   return clampEnvelopeValue(level, 50)
 }

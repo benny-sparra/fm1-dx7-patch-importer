@@ -1,10 +1,12 @@
-import { useId, useRef, type KeyboardEvent, type PointerEvent } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpPopover } from '@/components/ui/help-popover'
 import {
   clampEnvelopeValue,
   envelopePath,
+  type EnvelopePlot,
+  envelopePlot,
   envelopePointPosition,
   pitchEnvelopeLevelFromY,
   pitchEnvelopePointPosition,
@@ -13,6 +15,12 @@ import { cn } from '@/lib/utils'
 
 type EnvelopeEditorProps = {
   color: string
+  /**
+   * Stretches the graph to whatever height its column gives it, as the open
+   * operator's row in the operator table does, rather than keeping the fixed
+   * drawing's shape.
+   */
+  fill?: boolean
   helpText: string
   levels: number[]
   onChange: (rate: number, level: number, point: number) => void
@@ -25,13 +33,38 @@ type EnvelopeEditorProps = {
 }
 
 const width = 400
-const height = 180
-const plotTop = 20
-const plotBottom = 156
+/** The fixed drawing's height; a filling graph is never shorter. */
+const fixedHeight = 180
+/** Room under the plot for the stage numbers. */
+const labelBand = fixedHeight - envelopePlot.bottom
 const slotWidth = 90
+
+/**
+ * The graph's height in drawing units: the fixed height, or for a filling
+ * graph the height that matches its box's shape, measured as it resizes.
+ */
+function useGraphHeight(fill: boolean) {
+  const graphRef = useRef<HTMLDivElement>(null)
+  const [measuredHeight, setMeasuredHeight] = useState(fixedHeight)
+
+  useEffect(() => {
+    const graph = graphRef.current
+    if (!fill || !graph || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(([entry]) => {
+      const box = entry.contentRect
+      if (box.width <= 0 || box.height <= 0) return
+      setMeasuredHeight(Math.max(fixedHeight, Math.round((box.height / box.width) * width)))
+    })
+    observer.observe(graph)
+    return () => observer.disconnect()
+  }, [fill])
+
+  return { graphRef, height: fill ? measuredHeight : fixedHeight }
+}
 
 export function EnvelopeEditor({
   color,
+  fill = false,
   helpText,
   levels,
   onChange,
@@ -47,6 +80,8 @@ export function EnvelopeEditor({
   const activePointer = useRef<number | null>(null)
   // Two envelopes share the page, so the fill gradient needs its own id.
   const fillId = `envelope-fill-${useId().replace(/:/g, '')}`
+  const { graphRef, height } = useGraphHeight(fill)
+  const plot: EnvelopePlot = { bottom: height - labelBand, top: envelopePlot.top }
 
   const updateFromPointer = (event: PointerEvent<SVGRectElement>, point: number) => {
     const bounds = svgRef.current?.getBoundingClientRect()
@@ -58,8 +93,11 @@ export function EnvelopeEditor({
     const rate = clampEnvelopeValue(99 - ((x - slotStart) / 58) * 99, rates[point] ?? 0)
     const level =
       variant === 'pitch'
-        ? pitchEnvelopeLevelFromY(y)
-        : clampEnvelopeValue(((plotBottom - y) / (plotBottom - plotTop)) * 99, levels[point] ?? 0)
+        ? pitchEnvelopeLevelFromY(y, plot)
+        : clampEnvelopeValue(
+            ((plot.bottom - y) / (plot.bottom - plot.top)) * 99,
+            levels[point] ?? 0,
+          )
     onChange(rate, level, point)
   }
 
@@ -106,8 +144,11 @@ export function EnvelopeEditor({
     },
   })
 
-  const pointPosition = variant === 'pitch' ? pitchEnvelopePointPosition : envelopePointPosition
-  const fillBaseline = variant === 'pitch' ? pitchEnvelopePointPosition(0, 50, 0).y : plotBottom
+  const pointPosition = (rate: number, level: number, index: number) =>
+    variant === 'pitch'
+      ? pitchEnvelopePointPosition(rate, level, index, plot)
+      : envelopePointPosition(rate, level, index, plot)
+  const fillBaseline = variant === 'pitch' ? pointPosition(0, 50, 0).y : plot.bottom
   const points = rates.map((rate, index) => pointPosition(rate, levels[index], index))
 
   const updateNumericValue = (kind: 'level' | 'rate', value: number, point: number) => {
@@ -127,10 +168,15 @@ export function EnvelopeEditor({
 
   return (
     <div
-      className="@container flex min-h-0 min-w-0 flex-col gap-[7px]"
+      className={cn(
+        '@container flex min-h-0 min-w-0 flex-col gap-[7px]',
+        fill ? 'self-stretch' : null,
+      )}
       style={{ '--operator-color': color } as React.CSSProperties}
     >
-      <div className="crt-well relative min-h-0 p-[3px]">
+      <div
+        className={cn('crt-well relative min-h-0 p-[3px]', fill ? 'flex flex-1 flex-col' : null)}
+      >
         <div className="flex items-center justify-end gap-1 px-[5px] pt-[3px] pb-2 text-[11px] tracking-[0.12em] text-[var(--crt-acc-mid)] uppercase">
           {showTitle ? (
             <>
@@ -145,106 +191,114 @@ export function EnvelopeEditor({
             <span aria-hidden="true">R / L</span>
           )}
         </div>
-        <svg
-          aria-label={title}
-          className={cn(
-            'block min-h-0 w-full flex-1 touch-none',
-            variant === 'amplitude' && 'max-h-60',
-          )}
-          ref={svgRef}
-          role="group"
-          viewBox={`0 0 ${width} ${height}`}
-        >
-          <defs>
-            <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity="0.22" />
-              <stop offset="100%" stopColor={color} stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {[0, 1, 2, 3, 4].map((line) => (
-            <line
-              key={`h-${line}`}
-              stroke={variant === 'pitch' && line === 2 ? 'var(--crt-line)' : 'var(--crt-grid)'}
-              x1="8"
-              x2="392"
-              y1={plotTop + line * 34}
-              y2={plotTop + line * 34}
+        {/*
+          A filling graph is measured from this box and drawn over all of it,
+          so the drawing never pushes the box, or its row, any taller.
+        */}
+        <div className={fill ? 'relative min-h-40 flex-1' : undefined} ref={graphRef}>
+          <svg
+            aria-label={title}
+            className={cn(
+              'block touch-none',
+              fill
+                ? 'absolute inset-0 size-full'
+                : cn('min-h-0 w-full flex-1', variant === 'amplitude' && 'max-h-60'),
+            )}
+            ref={svgRef}
+            role="group"
+            viewBox={`0 0 ${width} ${height}`}
+          >
+            <defs>
+              <linearGradient id={fillId} x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+                <stop offset="100%" stopColor={color} stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {[0, 1, 2, 3, 4].map((line) => (
+              <line
+                key={`h-${line}`}
+                stroke={variant === 'pitch' && line === 2 ? 'var(--crt-line)' : 'var(--crt-grid)'}
+                x1="8"
+                x2="392"
+                y1={plot.top + (line * (plot.bottom - plot.top)) / 4}
+                y2={plot.top + (line * (plot.bottom - plot.top)) / 4}
+              />
+            ))}
+            {[0, 1, 2, 3, 4].map((line) => (
+              <line
+                key={`v-${line}`}
+                stroke="var(--crt-grid)"
+                x1={8 + line * 96}
+                x2={8 + line * 96}
+                y1={plot.top}
+                y2={plot.bottom}
+              />
+            ))}
+            <path
+              d={`${envelopePath(rates, levels, pointPosition)} L ${points.at(-1)?.x ?? 360} ${fillBaseline} L 8 ${fillBaseline} Z`}
+              fill={`url(#${fillId})`}
             />
-          ))}
-          {[0, 1, 2, 3, 4].map((line) => (
-            <line
-              key={`v-${line}`}
-              stroke="var(--crt-grid)"
-              x1={8 + line * 96}
-              x2={8 + line * 96}
-              y1={plotTop}
-              y2={plotBottom}
+            <path
+              d={envelopePath(rates, levels, pointPosition)}
+              fill="none"
+              stroke={color}
+              strokeLinejoin="round"
+              strokeWidth="2.4"
             />
-          ))}
-          <path
-            d={`${envelopePath(rates, levels, pointPosition)} L ${points.at(-1)?.x ?? 360} ${fillBaseline} L 8 ${fillBaseline} Z`}
-            fill={`url(#${fillId})`}
-          />
-          <path
-            d={envelopePath(rates, levels, pointPosition)}
-            fill="none"
-            stroke={color}
-            strokeLinejoin="round"
-            strokeWidth="2.4"
-          />
-          {points.map((point, index) => (
-            <g key={index}>
-              <text
-                className="font-vt323"
-                fill="var(--crt-ink-4)"
-                fontSize="14"
-                textAnchor="middle"
-                x={point.x}
-                y="176"
-              >
-                {index + 1}
-              </text>
-              {/* The drawn square is small once the plot scales down, so an
+            {points.map((point, index) => (
+              <g key={index}>
+                <text
+                  className="font-vt323"
+                  fill="var(--crt-ink-4)"
+                  fontSize="14"
+                  textAnchor="middle"
+                  x={point.x}
+                  y={height - 4}
+                >
+                  {index + 1}
+                </text>
+                {/* The drawn square is small once the plot scales down, so an
                   invisible square around it takes the grab as well. */}
-              <rect
-                aria-hidden="true"
-                className="cursor-grab active:cursor-grabbing"
-                fill="transparent"
-                height="36"
-                width="36"
-                x={point.x - 18}
-                y={point.y - 18}
-                {...pointerHandlers(index)}
-              />
-              <rect
-                aria-label={t('ui.envelopePoint', { point: index + 1, title })}
-                aria-valuemax={99}
-                aria-valuemin={0}
-                aria-valuenow={levels[index]}
-                aria-valuetext={t('ui.envelopePointValue', {
-                  level: levels[index],
-                  rate: rates[index],
-                })}
-                className="cursor-grab outline-none focus-visible:stroke-[var(--crt-led)] focus-visible:[filter:drop-shadow(0_0_5px_var(--crt-led))] active:cursor-grabbing"
-                fill="var(--crt-bg-well)"
-                height="12"
-                onBlur={onGestureEnd}
-                onKeyDown={(event) => handleKeyDown(event, index)}
-                onKeyUp={(event) => {
-                  if (event.key.startsWith('Arrow')) onGestureEnd()
-                }}
-                {...pointerHandlers(index)}
-                role="slider"
-                stroke={color}
-                strokeWidth="2"
-                tabIndex={0}
-                width="12"
-                x={point.x - 6}
-                y={point.y - 6}
-              />
-            </g>
-          ))}
-        </svg>
+                <rect
+                  aria-hidden="true"
+                  className="cursor-grab active:cursor-grabbing"
+                  fill="transparent"
+                  height="36"
+                  width="36"
+                  x={point.x - 18}
+                  y={point.y - 18}
+                  {...pointerHandlers(index)}
+                />
+                <rect
+                  aria-label={t('ui.envelopePoint', { point: index + 1, title })}
+                  aria-valuemax={99}
+                  aria-valuemin={0}
+                  aria-valuenow={levels[index]}
+                  aria-valuetext={t('ui.envelopePointValue', {
+                    level: levels[index],
+                    rate: rates[index],
+                  })}
+                  className="cursor-grab outline-none focus-visible:stroke-[var(--crt-led)] focus-visible:[filter:drop-shadow(0_0_5px_var(--crt-led))] active:cursor-grabbing"
+                  fill="var(--crt-bg-well)"
+                  height="12"
+                  onBlur={onGestureEnd}
+                  onKeyDown={(event) => handleKeyDown(event, index)}
+                  onKeyUp={(event) => {
+                    if (event.key.startsWith('Arrow')) onGestureEnd()
+                  }}
+                  {...pointerHandlers(index)}
+                  role="slider"
+                  stroke={color}
+                  strokeWidth="2"
+                  tabIndex={0}
+                  width="12"
+                  x={point.x - 6}
+                  y={point.y - 6}
+                />
+              </g>
+            ))}
+          </svg>
+        </div>
       </div>
       {/* Rate/level pairs, one bevelled readout per stage, editable in place. */}
       <div className="grid grid-cols-2 gap-1 @[17rem]:grid-cols-4">

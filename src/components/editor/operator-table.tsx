@@ -18,9 +18,11 @@ import { cn } from '@/lib/utils'
   Identity, envelope trace, the five readouts, the four rate/level pairs,
   output, then mute, solo and the open operator's menu. Every row is a subgrid
   of these columns, so each value sits under the same value in the next row.
+  The identity column is wide enough for the role badge to spell out Carrier
+  or Modulator rather than shorten it.
 */
 const tableColumns =
-  'grid-cols-[7.5rem_minmax(5.5rem,1fr)_repeat(5,minmax(3.25rem,1fr))_repeat(4,minmax(3.75rem,1fr))_minmax(8.5rem,1.5fr)_auto]'
+  'grid-cols-[9rem_minmax(5.5rem,1fr)_repeat(5,minmax(3.25rem,1fr))_repeat(4,minmax(3.75rem,1fr))_minmax(8.5rem,1.5fr)_auto]'
 /** The columns a row's expand button spans: identity through the last rate/level pair. */
 const summaryColumns = 'col-span-11'
 
