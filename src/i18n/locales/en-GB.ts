@@ -12,7 +12,9 @@ export default {
       'Turn SELECT to Write and press SEL to store the 32 patches, or press HOME to cancel.',
     bankFm1VaNote:
       'If your FM1 runs FM-1+VA firmware, it asks “Write the bank?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Write and press SEL.',
-    bankImage: 'M-VAVE FM1 front panel showing the display and four numbered knobs',
+    bankFm1VaImage: 'FM1 display running FM-1+VA, asking “Write the bank?” with Cancel and Write',
+    bankImage:
+      'FM1 display running M-VAVE’s firmware, showing “32 Voice Save To …” above banks A, B, C and D',
     dontShow: 'Don’t show me again this session',
     midiTitle: 'Connect MIDI to send this bank',
     midiIntro: 'The FM1 must be connected as a MIDI output before a bank of patches can be sent.',
@@ -669,7 +671,6 @@ export default {
     deleteBank: 'Delete bank',
     deleteBankConfirm: 'Delete “{{name}}” and all of its patches? You can undo this action.',
     sendTitle: 'Send all 32 patches; choose the destination bank on the FM1',
-    sendingStatus: 'Sending 32 patches to the FM1…',
     sentStatus: 'Browser bank {{bank}} was sent. Choose its destination on the FM1.',
     notSent: 'The bank was not sent. Open the MIDI log for details, then retry.',
     importFailed: 'Import failed.',

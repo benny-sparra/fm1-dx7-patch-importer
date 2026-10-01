@@ -14,7 +14,9 @@ export default {
       'Drehe SELECT auf Write und drücke SEL, um die 32 Sounds zu speichern, oder brich mit HOME ab.',
     bankFm1VaNote:
       'Läuft auf deinem FM1 die Firmware FM-1+VA, fragt er stattdessen „Write the bank?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Write, und drücke SEL.',
-    bankImage: 'Vorderseite des M-VAVE FM1 mit Display und vier nummerierten Reglern',
+    bankFm1VaImage: 'FM1-Display mit FM-1+VA, das „Write the bank?“ fragt, mit Cancel und Write',
+    bankImage:
+      'FM1-Display mit der M-VAVE-Firmware, das „32 Voice Save To …“ über den Bänken A, B, C und D zeigt',
     dontShow: 'In dieser Sitzung nicht erneut anzeigen',
     midiTitle: 'MIDI verbinden, um diese Bank zu senden',
     midiIntro:
@@ -690,7 +692,6 @@ export default {
     deleteBankConfirm:
       '„{{name}}“ und alle enthaltenen Sounds löschen? Diese Aktion kann rückgängig gemacht werden.',
     sendTitle: 'Alle 32 Sounds senden und Zielbank am FM1 wählen',
-    sendingStatus: '32 Sounds werden an den FM1 gesendet…',
     sentStatus: 'Browser-Bank {{bank}} wurde gesendet. Wähle ihr Ziel am FM1.',
     notSent: 'Die Bank wurde nicht gesendet. Öffne das MIDI-Protokoll und versuche es erneut.',
     importFailed: 'Import fehlgeschlagen.',

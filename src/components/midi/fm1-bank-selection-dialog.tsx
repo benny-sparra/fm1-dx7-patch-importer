@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import type { MidiController } from '@/hooks/use-midi'
-import { fm1SynthImage } from '@/lib/fm1-responsive-images'
+import { fm1SynthImage, fm1VaBankScreenImage } from '@/lib/fm1-responsive-images'
 import { dismissFm1BankSelectionDialogForSession } from '@/lib/session'
 
 type Fm1BankSelectionDialogProps = {
@@ -45,6 +45,11 @@ export function Fm1BankSelectionDialog({
     firmwareKind === 'fm1-va'
       ? (['dialogs.bankFm1VaStep1', 'dialogs.bankFm1VaStep2', 'dialogs.bankFm1VaStep3'] as const)
       : (['dialogs.bankStep1', 'dialogs.bankStep2', 'dialogs.bankStep3'] as const)
+  // The photo shows the screen the steps describe.
+  const photo =
+    firmwareKind === 'fm1-va'
+      ? { alt: t('dialogs.bankFm1VaImage'), image: fm1VaBankScreenImage }
+      : { alt: t('dialogs.bankImage'), image: fm1SynthImage }
   const unidentifiedNote =
     firmwareKind === 'checking' || firmwareKind === 'unidentified'
       ? t('dialogs.bankFm1VaNote')
@@ -136,15 +141,15 @@ export function Fm1BankSelectionDialog({
 
             <figure className="rounded-lg border bg-[var(--fm1-photo-backdrop)] p-3 shadow-inner">
               <img
-                alt={t('dialogs.bankImage')}
+                alt={photo.alt}
                 className="mx-auto h-auto w-full"
                 decoding="async"
-                height={fm1SynthImage.height}
+                height={photo.image.height}
                 loading="lazy"
                 sizes="(min-width: 640px) 194px, calc(100vw - 98px)"
-                src={fm1SynthImage.src}
-                srcSet={fm1SynthImage.srcSet}
-                width={fm1SynthImage.width}
+                src={photo.image.src}
+                srcSet={photo.image.srcSet}
+                width={photo.image.width}
               />
             </figure>
           </div>
