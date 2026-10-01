@@ -16,7 +16,6 @@ type SentrySdk = Pick<SentryModule, 'captureException' | 'init' | 'reactErrorHan
 
 type MonitoringConfiguration = {
   dsn?: string
-  enableVerificationMetrics?: boolean
   environment: string
   loadSdk: () => Promise<SentrySdk>
   onInitialized?: (sentry: SentrySdk) => void
@@ -91,7 +90,6 @@ function isIosWebMidiShimCallbackError(event: {
 
 export function createMonitoringInitializer({
   dsn,
-  enableVerificationMetrics = false,
   environment,
   loadSdk,
   onInitialized,
@@ -150,8 +148,6 @@ export function createMonitoringInitializer({
             userInfo: false,
           },
           dsn,
-          enableLogs: true,
-          enableMetrics: enableVerificationMetrics,
           environment,
           release,
           replaysOnErrorSampleRate: 0,
@@ -280,7 +276,6 @@ export function reportBankTransferFailure(context: BankTransferFailureContext) {
 
 export const initializeMonitoring = createMonitoringInitializer({
   dsn: import.meta.env.PROD ? sentryDsn : undefined,
-  enableVerificationMetrics: import.meta.env.VITE_SENTRY_VERIFY === 'true',
   environment: import.meta.env.MODE,
   loadSdk: () => import('./sentry-sdk'),
   // A build served without one, such as a local production build, reports no release at all rather
