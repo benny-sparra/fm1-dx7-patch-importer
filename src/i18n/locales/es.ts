@@ -220,7 +220,10 @@ export default {
     copyOperatorAction: 'Copiar el operador {{number}}',
     pasteOperatorAction: 'Pegar el operador {{source}}',
     pasteOperatorFromPatchAction: 'Pegar el operador {{source}} de «{{patch}}»',
-    pasteOperatorEmpty: 'Pegar (primero copia un operador)',
+    pasteOperatorEmpty: 'Pegar (primero copia un operador o su envolvente)',
+    copyEnvelopeAction: 'Copiar la envolvente del operador {{number}}',
+    pasteEnvelopeAction: 'Pegar la envolvente del operador {{source}}',
+    pasteEnvelopeFromPatchAction: 'Pegar la envolvente del operador {{source}} de «{{patch}}»',
     lfoWaves: {
       triangle: 'Triángulo',
       sawDown: 'Diente de sierra descendente',

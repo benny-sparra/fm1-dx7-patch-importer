@@ -323,7 +323,10 @@ export class PatchEditorSession {
     }
   }
 
-  /** Gives one operator the copied operator's settings as a single undo step, sent live. */
+  /**
+   * Gives one operator the copied operator's settings, or only its envelope, as a single undo
+   * step, sent live.
+   */
   pasteOperator = (operator: number, copied: CopiedOperator) => {
     const edits = makeOperatorPasteEdits(this.state.history.present, operator, copied)
     if (edits.length === 0) return

@@ -312,8 +312,10 @@ export function PatchEditorPage({
               <OperatorRack
                 algorithm={parameters[algorithmParameter.voiceIndex]}
                 mutedOperators={mutedOperators}
-                onCopyOperator={(operator) =>
-                  onCopyOperator(copyOperator(editor.getState().history.present, operator, patch))
+                onCopyOperator={(operator, part) =>
+                  onCopyOperator(
+                    copyOperator(editor.getState().history.present, operator, patch, part),
+                  )
                 }
                 onGestureEnd={editor.endGesture}
                 onGestureStart={editor.beginGesture}
@@ -332,6 +334,7 @@ export function PatchEditorPage({
                 pasteSource={
                   copiedOperator && {
                     operator: copiedOperator.operator,
+                    part: copiedOperator.part,
                     patchName:
                       copiedOperator.patchId === patch.id ? null : copiedOperator.patchName,
                   }

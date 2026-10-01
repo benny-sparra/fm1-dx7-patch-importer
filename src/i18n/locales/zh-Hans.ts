@@ -187,7 +187,10 @@ export default {
     copyOperatorAction: '复制操作器 {{number}}',
     pasteOperatorAction: '粘贴操作器 {{source}}',
     pasteOperatorFromPatchAction: '粘贴“{{patch}}”的操作器 {{source}}',
-    pasteOperatorEmpty: '粘贴（请先复制一个操作器）',
+    pasteOperatorEmpty: '粘贴（请先复制一个操作器或其包络）',
+    copyEnvelopeAction: '复制操作器 {{number}} 的包络',
+    pasteEnvelopeAction: '粘贴操作器 {{source}} 的包络',
+    pasteEnvelopeFromPatchAction: '粘贴“{{patch}}”中操作器 {{source}} 的包络',
     lfoWaves: {
       triangle: '三角波',
       sawDown: '下降锯齿波',

@@ -212,7 +212,10 @@ export default {
     copyOperatorAction: 'Copy operator {{number}}',
     pasteOperatorAction: 'Paste operator {{source}}',
     pasteOperatorFromPatchAction: 'Paste operator {{source}} from “{{patch}}”',
-    pasteOperatorEmpty: 'Paste (copy an operator first)',
+    pasteOperatorEmpty: 'Paste (copy an operator or its envelope first)',
+    copyEnvelopeAction: 'Copy operator {{number}} envelope',
+    pasteEnvelopeAction: 'Paste operator {{source}} envelope',
+    pasteEnvelopeFromPatchAction: 'Paste operator {{source}} envelope from “{{patch}}”',
     lfoWaves: {
       triangle: 'Triangle',
       sawDown: 'Saw down',

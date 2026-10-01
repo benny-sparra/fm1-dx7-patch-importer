@@ -29,7 +29,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Work on the six operators as a rack: five sit as compact readouts while the selected one opens in place with its full controls
 - Type an operator's ratio, or its fixed frequency in hertz, and Coarse and Fine move to the nearest setting the FM1 can play
 - Mute or solo any operator straight from its rack column, without opening it first
-- Copy an operator's settings and paste them onto another operator, in the same patch or a different one
+- Copy an operator's settings, or only its envelope, and paste them onto another operator, in the same patch or a different one
 - Fold the operators and effects panels away to focus the editor on the sections in use
 - Visualise all 32 DX7 algorithms, including carrier and modulator roles and each operator's frequency
 - Edit four-stage amplitude and pitch envelopes graphically or with precise numeric controls

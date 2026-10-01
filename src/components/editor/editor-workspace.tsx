@@ -16,6 +16,7 @@ import { PortalMenu } from '@/components/ui/portal-menu'
 import { dx7Algorithms, getDx7OperatorRole, type Dx7AlgorithmOperator } from '@/lib/dx7-algorithms'
 import { envelopePath, formatOperatorFrequency, operatorColors } from '@/lib/editor-visuals'
 import { getOperatorAuditionStatus } from '@/lib/operator-audition'
+import type { OperatorClipboardPart } from '@/lib/operator-clipboard'
 import {
   FM1_OPERATOR_COUNT,
   getGlobalParameterDefinition,
@@ -522,18 +523,19 @@ export function AlgorithmPanel({
 }
 
 /**
- * The operator that Paste would apply. `patchName` is null when it was copied
- * from the sound open in the editor.
+ * The operator, or the envelope of one, that Paste would apply. `patchName`
+ * is null when it was copied from the sound open in the editor.
  */
 type OperatorPasteSource = {
   operator: number
+  part: OperatorClipboardPart
   patchName: string | null
 }
 
 type OperatorRackProps = {
   algorithm: number
   mutedOperators: ReadonlySet<number>
-  onCopyOperator: (operator: number) => void
+  onCopyOperator: (operator: number, part: OperatorClipboardPart) => void
   onGestureEnd: () => void
   onGestureStart: () => void
   onOutputChange: (operator: number, value: number) => void
@@ -778,7 +780,7 @@ export function OperatorRack({
               {isSelected ? (
                 <OperatorMenu
                   disabled={syncState === 'sending'}
-                  onCopy={() => onCopyOperator(operator)}
+                  onCopy={(part) => onCopyOperator(operator, part)}
                   onPaste={() => onPasteOperator(operator)}
                   operator={operator}
                   pasteSource={pasteSource}
@@ -900,7 +902,11 @@ export function OperatorRack({
   )
 }
 
-/** Copy and Paste for the open operator, in a ⋮ menu beside its header. */
+/**
+ * Copy and Paste for the open operator, in a ⋮ menu beside its header. The
+ * operator and its envelope share one clipboard, so the single Paste names
+ * whichever was copied last.
+ */
 function OperatorMenu({
   disabled,
   onCopy,
@@ -909,7 +915,7 @@ function OperatorMenu({
   pasteSource,
 }: {
   disabled: boolean
-  onCopy: () => void
+  onCopy: (part: OperatorClipboardPart) => void
   onPaste: () => void
   operator: number
   pasteSource: OperatorPasteSource | null
@@ -918,17 +924,30 @@ function OperatorMenu({
   const pasteLabel = !pasteSource
     ? t('ui.pasteOperatorEmpty')
     : pasteSource.patchName === null
-      ? t('ui.pasteOperatorAction', { source: pasteSource.operator })
-      : t('ui.pasteOperatorFromPatchAction', {
-          patch: pasteSource.patchName,
+      ? t(pasteSource.part === 'envelope' ? 'ui.pasteEnvelopeAction' : 'ui.pasteOperatorAction', {
           source: pasteSource.operator,
         })
+      : t(
+          pasteSource.part === 'envelope'
+            ? 'ui.pasteEnvelopeFromPatchAction'
+            : 'ui.pasteOperatorFromPatchAction',
+          { patch: pasteSource.patchName, source: pasteSource.operator },
+        )
 
   return (
     <div className="flex shrink-0 items-center border-b border-[var(--crt-shadow)] bg-[var(--crt-sel-bg)] px-[5px]">
       <PortalMenu
         items={[
-          { Icon: Copy, label: t('ui.copyOperatorAction', { number: operator }), onSelect: onCopy },
+          {
+            Icon: Copy,
+            label: t('ui.copyOperatorAction', { number: operator }),
+            onSelect: () => onCopy('operator'),
+          },
+          {
+            Icon: Copy,
+            label: t('ui.copyEnvelopeAction', { number: operator }),
+            onSelect: () => onCopy('envelope'),
+          },
           {
             disabled: disabled || !pasteSource,
             Icon: ClipboardPaste,

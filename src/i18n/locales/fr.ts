@@ -223,7 +223,10 @@ export default {
     copyOperatorAction: 'Copier l’opérateur {{number}}',
     pasteOperatorAction: 'Coller l’opérateur {{source}}',
     pasteOperatorFromPatchAction: 'Coller l’opérateur {{source}} de « {{patch}} »',
-    pasteOperatorEmpty: 'Coller (copiez d’abord un opérateur)',
+    pasteOperatorEmpty: 'Coller (copiez d’abord un opérateur ou son enveloppe)',
+    copyEnvelopeAction: 'Copier l’enveloppe de l’opérateur {{number}}',
+    pasteEnvelopeAction: 'Coller l’enveloppe de l’opérateur {{source}}',
+    pasteEnvelopeFromPatchAction: 'Coller l’enveloppe de l’opérateur {{source}} de « {{patch}} »',
     lfoWaves: {
       triangle: 'Triangle',
       sawDown: 'Dent de scie descendante',

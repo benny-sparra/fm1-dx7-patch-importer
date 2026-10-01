@@ -685,7 +685,7 @@ describe('PatchEditorPage operator copy and paste', () => {
 
     await user.click(screen.getByRole('button', { name: 'Operator 1 actions' }))
     const paste = screen.getByRole('menuitem', {
-      name: 'Paste (copy an operator first)',
+      name: 'Paste (copy an operator or its envelope first)',
     }) as HTMLButtonElement
 
     expect(paste.disabled).toBe(true)
@@ -716,6 +716,68 @@ describe('PatchEditorPage operator copy and paste', () => {
 
     expect(outputLevel(5)).toBe('0')
     expect(outputLevel(2)).toBe('77')
+  }, 15_000)
+
+  it('pastes only a copied envelope onto another operator as a single undo step', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupClipboard()
+    const rate1 = (operator: number) =>
+      resolveOperatorParameterIndex(operator, 'operator.envelope.rate1')
+    fireEvent.change(screen.getByRole('slider', { name: 'Operator 2 output level' }), {
+      target: { value: '77' },
+    })
+    await openOperator(user, 2)
+    fireEvent.change(screen.getByLabelText('Amplitude envelope rate 1'), {
+      target: { value: '40' },
+    })
+    await chooseFromOperatorMenu(user, 2, 'Copy operator 2 envelope')
+    await openOperator(user, 5)
+    vi.mocked(midi.sendParameter).mockClear()
+
+    await chooseFromOperatorMenu(user, 5, 'Paste operator 2 envelope')
+
+    expect((screen.getByLabelText('Amplitude envelope rate 1') as HTMLInputElement).value).toBe(
+      '40',
+    )
+    expect(outputLevel(5)).toBe('0')
+    expect(midi.sendParameter).toHaveBeenCalledExactlyOnceWith(rate1(5), 40)
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect((screen.getByLabelText('Amplitude envelope rate 1') as HTMLInputElement).value).toBe('0')
+  }, 15_000)
+
+  it('replaces a copied operator with a copied envelope', async () => {
+    const user = userEvent.setup()
+    await setupClipboard()
+    await chooseFromOperatorMenu(user, 1, 'Copy operator 1')
+
+    await chooseFromOperatorMenu(user, 1, 'Copy operator 1 envelope')
+    await user.click(screen.getByRole('button', { name: 'Operator 1 actions' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Paste operator 1 envelope' })).toBeTruthy()
+    expect(screen.queryByRole('menuitem', { name: 'Paste operator 1' })).toBeNull()
+  }, 15_000)
+
+  it('names an envelope copied from another sound in the interface language', async () => {
+    await setLocale('de')
+    const user = userEvent.setup()
+    const { midi, view } = await setupClipboard()
+    await chooseFromOperatorMenu(
+      user,
+      1,
+      'Hüllkurve von Operator 1 kopieren',
+      'Aktionen für Operator 1',
+    )
+
+    view.rerender(<ClipboardHarness midi={midi} patch={secondPatch} />)
+    await user.click(await screen.findByRole('button', { name: 'Aktionen für Operator 1' }))
+
+    expect(
+      screen.getByRole('menuitem', {
+        name: 'Hüllkurve von Operator 1 aus „Glass Keys“ einfügen',
+      }),
+    ).toBeTruthy()
   }, 15_000)
 
   it('sends nothing when the operator already has the copied settings', async () => {
