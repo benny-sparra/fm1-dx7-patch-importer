@@ -361,16 +361,15 @@ What is known, from FM-1+VA's own code and manual:
 
 Suggested order: 1 needs no new command; 2 underpins 3 to 6.
 
-- [ ] **1. Import an FM-1+VA backup file.** Read the `.syx` file FM-1+VA's **Save a backup**
+- [x] **1. Import an FM-1+VA backup file.** Read the `.syx` file FM-1+VA's **Save a backup**
       writes (128 `04` messages, each naming its slot) into banks A–D, as an ordinary import:
       a preview of every bank, confirmation, and one Undo. It reads a file and sends nothing, so
       it needs no approval. Until the record is mapped (2), import the voices only and say that
       effects are left as they are. A full backup is 29,568 bytes; check the size and each
       message's checksum before reading, and report a damaged message rather than failing the
       whole file.
-      _In progress (2026-10-01, `feature/fm1-va-backup-import`):_ **Import FM-1+VA presets…** in
-      the patch-bank header menu reads the file and replaces the banks the user ticks, voices
-      only, with the effects off. It is offered whatever firmware is connected, because it reads a
+      _Shipped 2026-10-01 (#131):_ **Import FM-1+VA presets…** in the patch-bank header menu
+      reads the file and replaces the banks the user ticks, voices only, with the effects off. It is offered whatever firmware is connected, because it reads a
       file and sends nothing. A Virtual Analog preset, which record byte 18 marks with `5A`
       (`docs/fm1-research.md`, "Its backup file"), is shown as VA and left out, so its slot keeps
       its patch until item 6 can hold one.
@@ -425,10 +424,17 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       format again (held notes and per-note Tie & Slide), so the known message may no longer
       describe it. Status `3` refuses a write while the
       Sequencer plays.
-- [ ] **8. Performance controls.** Small, and optional: from FM-1_086, CC 85–88 turn KNOB1–4 and
-      CC 70–78 set Brightness, Feedback, the envelope, and the LFO on the playing preset. Most of
+- [ ] **8. Performance controls.** Small, and optional: from FM-1_086, CC 70–78 set Brightness,
+      Feedback, the envelope, and the LFO on the playing preset, and CC 58 its Algorithm. Most of
       these duplicate the voice editor's own controls; Brightness, which moves every modulator's
       output level together, is the one the editor lacks. Decide whether it earns a control.
+  - The CCs change the FM1's edit buffer without the editor knowing, so the library's voice and
+    what plays drift apart until the patch is sent again; say so where the control sits.
+  - CC 70, 72, 73, and 75 also switch the preset's Envelope on (`docs/fm1-research.md`,
+    "Controllers on the MIDI Channel").
+  - Not CC 85–88: they turn KNOB1–4, which play whatever parameter each knob is assigned on the
+    FM1, and the research notes exclude CC 85–119 because their effect depends on device state the
+    editor cannot read.
 
 ## Open questions
 
