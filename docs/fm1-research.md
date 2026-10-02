@@ -281,8 +281,8 @@ Felucca is Leo Kuroshita's (Hügelton Instruments) replacement firmware for the 
 0.4-beta on 2026-10-02 under GPL-3.0-only. It replaces M-VAVE's engine with five: virtual analog,
 FM, phase distortion, lo-fi (NES/SID), and a sample player. The repository holds the built package
 (`felucca-0.4-beta.fwsc`) and the installer page; no source, manual, or MIDI implementation was
-published at the time of review. Only the installer page's script was read for this note; the
-firmware itself has not been examined or run by this project.
+published at the time of review. The installer page's script and a static reading of the package
+(below) informed this note; the firmware has not been disassembled or run by this project.
 
 **Identity. Likely** (from the installer, not from a reply heard by this project). Felucca answers
 the identity query (§6.3) with `FM-1_904`: the installer sends `fm1IdentityQuery`'s bytes, parses
@@ -308,12 +308,43 @@ As an unidentified firmware it gets patches as parameter changes, the cautious d
 bank destination instructions for an unknown firmware. Until a Felucca FM1 has been tested, make no
 editor behaviour depend on it.
 
+**What its application holds. Likely** (static reading of `felucca-0.4-beta.fwsc`, SHA-256
+`2b8496bdb76837389ead770a015ba86cf64378f944f7266441b47e148df2ecee`, 2026-10-02: the application
+was extracted with the installer's own package code and searched for strings, descriptors, and
+byte patterns; nothing was disassembled or run).
+
+- **USB identity.** A composite device with vendor ID `1209` (pid.codes) and product ID `0001`,
+  manufacturer "Hügelton Instruments", product "Felucca". Its interfaces are Audio Control, MIDI
+  Streaming, and a CDC serial port. The MIDI port is therefore probably named for Felucca rather
+  than `FM-1` or `USB Composite Device`, so `resolveMidiPortSelection` picks it only as the first
+  port without an instrument name, not by preference.
+- **Identity reply.** The application holds `FM-1_904`, matching what its installer expects, and
+  `ota-FM-1_015` and `FELUCCA-LOADER-1`, which name the update loader it hands over to.
+- **No sign of DX7 voice data.** There is no DX7 single-voice or 32-voice dump header
+  (`43 0n 00 01 1B`, `43 0n 09 20 00`), no FM-1+VA `43 00 7D` command, and no DX7 or Dexed text.
+  Its presets are named for its own engines (ANALOG, DIGITAL, PHASE, LOFI, SAMPLE, and a DRUMS
+  page), such as SAW LEAD, E.PIANO, GLASS, PULSE LD, and HARP. A parser that compares bytes one by
+  one would not leave a header in the data, so this suggests, but does not show, that Felucca
+  ignores the editor's voice SysEx.
+- **A MIDI settings page** with MPE (`MPEN`), note priority (`PRIO`), voice allocation (`ALLOC`),
+  sync, and routing. Which channels, controllers, and Program Changes it reads is not visible
+  without disassembly.
+- **A debug console over the CDC serial port**, not over MIDI: `status`, `dbg`, `crash`,
+  `params`, `memr` (RAM and flash reads), `flr` (flash reads from `0x93000`), and `uboot yes`,
+  which enters the chip's boot loader. The editor uses Web MIDI only and must never use it.
+- **`F0 22 24 35 7D F7`** sits beside the USB descriptors. It differs from the updater's
+  `F0 22 24 35 7F F7` in one byte, and its purpose is unknown. **Dangerous / excluded**: never
+  send it.
+
+What this changes: Felucca stays unidentified with today's cautious behaviour. A Felucca hardware
+test should first check whether a voice SysEx or the 155 parameter changes have any effect at all,
+and whether Program Change selects its presets, before the editor offers anything for it.
+
 Open questions:
 
 1. Does Felucca accept DX7 voice data at all, by dump or parameter change, and does any of it
    overwrite a stored preset?
-2. Does its USB port keep M-VAVE's name? The installer also looks for ports named `felucca`, which
-   `resolveMidiPortSelection` would not prefer.
+2. What does the MIDI port it lists as "Felucca" (above) appear as on each system?
 3. Do later releases keep the `FM-1_9NN` numbering?
 
 ### FM1 Editor
