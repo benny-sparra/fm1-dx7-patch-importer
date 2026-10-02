@@ -346,6 +346,18 @@ export default {
       unreadable: 'Não foi possível ler o arquivo.',
     },
   },
+  duplicates: {
+    menuItem: 'Encontrar sons duplicados…',
+    title: 'Sons duplicados',
+    help: 'Sons cujos ajustes de voz são iguais, mesmo com outro nome. Os efeitos do FM1 não são comparados. Escolha um som para ir até ele e tocá-lo.',
+    group: '{{name}} e uma cópia',
+    group_other: '{{name}} e {{count, number}} cópias',
+    effectsDiffer: 'Os efeitos do FM1 deles são diferentes.',
+    goTo: 'Ir para {{name}}, som {{number}} de {{bank}}',
+    none: 'Nenhum duplicado: cada som dos seus bancos tem ajustes de voz próprios.',
+    openFailed:
+      'Não foi possível mostrar os sons duplicados. Recarregue a página e tente novamente.',
+  },
   persistence: {
     retryLoading: 'Tentar novamente',
     continueSessionOnly: 'Continuar sem salvar',

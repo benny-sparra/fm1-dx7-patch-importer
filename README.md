@@ -23,6 +23,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
 - Download a single patch as a DX7 `.syx` file, or import one over a slot, from the slot's **⋮** menu (**Download patch** and **Import patch…**)
 - Search every bank at once, and reorder patches with pointer or keyboard drag-and-drop
+- Find duplicate patches: the patches in your banks whose voice settings match, renamed copies included, with a way to go to each one
 - Search your saved banks and the 65 bundled DX7 catalog banks at the same time, play any match through the FM1 edit buffer, and copy it into a slot of your own, or double-click it to copy it and open it in the editor
 - Export one browser bank as `.syx`, or every loaded bank as a `.zip` of SysEx files for Dexed, a DX7, or other DX7 tools (DX7 data only, without FM1 effects)
 - Edit all standard DX7 voice parameters with live MIDI updates

@@ -3,6 +3,7 @@ import {
   Download,
   EllipsisVertical,
   FileMusic,
+  Files,
   HardDriveDownload,
   HardDriveUpload,
   Plus,
@@ -145,6 +146,14 @@ const ImportFm1VaPresetsDialog = lazy(() =>
   })),
 )
 
+// Finding duplicate patches opens from the header menu, with the code that compares them, on first
+// use.
+const DuplicatePatchesDialog = lazy(() =>
+  import('@/components/patches/duplicate-patches-dialog').then((module) => ({
+    default: module.DuplicatePatchesDialog,
+  })),
+)
+
 const menuItemClassName =
   'flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50'
 const menuHeadingClassName =
@@ -174,6 +183,7 @@ type LibrarianLibrary = BackupLibrary &
   ComponentProps<typeof AddWorkspaceBankDialog>['library'] &
   ComponentProps<typeof BankInformationDialog>['library'] &
   ComponentProps<typeof CopyPatchDialog>['library'] &
+  ComponentProps<typeof DuplicatePatchesDialog>['library'] &
   ComponentProps<typeof ImportDx7BankDialog>['library'] &
   ComponentProps<typeof ImportFm1VaPresetsDialog>['library'] &
   ComponentProps<typeof NamedBankLibraryDialog>['library'] &
@@ -267,6 +277,9 @@ export function LibrarianPage({
   const [isAddingBank, setIsAddingBank] = useState(false)
   const [isRestoringBackup, setIsRestoringBackup] = useState(false)
   const [isImportingFm1VaPresets, setIsImportingFm1VaPresets] = useState(false)
+  const [isFindingDuplicates, setIsFindingDuplicates] = useState(false)
+  // The slot the grid moves focus to once it shows, such as a patch chosen among the duplicates.
+  const [slotFocusRequest, setSlotFocusRequest] = useState<{ patchId: string } | null>(null)
   const downloadBackup = useDownloadWorkspaceBackup(library)
   const lastBackupTime = useLastBackupTime()
   const sysexMenuHeadingId = useId()
@@ -909,6 +922,19 @@ export function LibrarianPage({
               <div className="my-1 border-t" />
               <button
                 className={menuItemClassName}
+                disabled={library.loadedBanks.length === 0}
+                onClick={() => {
+                  allBanksMenuRef.current?.removeAttribute('open')
+                  setDialogLoadError('')
+                  setIsFindingDuplicates(true)
+                }}
+                type="button"
+              >
+                <Files className="size-4" />
+                {t('duplicates.menuItem')}
+              </button>
+              <button
+                className={menuItemClassName}
                 onClick={() => {
                   allBanksMenuRef.current?.removeAttribute('open')
                   setIsRestoringFactoryBanks(true)
@@ -922,6 +948,7 @@ export function LibrarianPage({
           </details>
         }
         bankLabel={bankDisplayName}
+        focusRequest={slotFocusRequest}
         emptyState={
           showsFavourites ? (
             <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
@@ -1130,6 +1157,31 @@ export function LibrarianPage({
                   }),
                   undoToastOptions(t, library, changed),
                 )
+              }}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
+      {isFindingDuplicates ? (
+        <ErrorBoundary
+          onError={() => {
+            setIsFindingDuplicates(false)
+            setDialogLoadError(t('duplicates.openFailed'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <DuplicatePatchesDialog
+              library={library}
+              onClose={(chosen) => {
+                setIsFindingDuplicates(false)
+                if (!chosen) {
+                  allBanksMenuRef.current?.querySelector('summary')?.focus()
+                  return
+                }
+                // Going to a patch plays it, as clicking its slot does, so it is lit where it is.
+                selectDestinationBank(chosen.bank)
+                onSelectPatch(chosen)
+                setSlotFocusRequest({ patchId: chosen.id })
               }}
             />
           </Suspense>

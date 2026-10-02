@@ -325,6 +325,25 @@ test('copies a slot by dropping it on another bank tab', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible()
 })
 
+test('finds a copied patch among the duplicates and goes to its slot', async ({ page }) => {
+  await openLibrarian(page)
+  const { name } = await slotMenuButton(page, 0)
+  await dragGrip(page, name, page.getByRole('button', { name: /^B — / }))
+  const copy = page.getByRole('dialog', { name: `Copy ${name}` })
+  await copy.getByRole('button', { name: 'Replace B01' }).click()
+  await expect(copy).toBeHidden()
+
+  await page.getByLabel('More bank file actions').click()
+  await page.getByRole('button', { name: 'Find duplicate patches…' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Duplicate patches' })
+  await dialog.getByRole('button', { name: /^Go to .+, patch 1 in Bank 2$/ }).click()
+
+  // The native dialog hands focus back as it closes; the slot must take it after that.
+  await expect(dialog).toBeHidden()
+  await expect(page.getByRole('button', { name: /^B — /, pressed: true })).toBeVisible()
+  await expect(slotButtons(page).first()).toBeFocused()
+})
+
 // A DX7 name is ten characters and the name font is monospaced, so every full name is as wide as
 // any other. These are the narrowest cards at each column count, and the smallest common phone. A
 // page with a classic scrollbar is about 15 px narrower than its viewport, which takes about 4 px

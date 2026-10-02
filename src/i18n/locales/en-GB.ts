@@ -337,6 +337,17 @@ export default {
       unreadable: 'The file could not be read.',
     },
   },
+  duplicates: {
+    menuItem: 'Find duplicate patches…',
+    title: 'Duplicate patches',
+    help: 'Patches whose voice settings match, even under another name. FM1 effects aren’t compared. Choose a patch to go to it and play it.',
+    group: '{{name}} and one copy',
+    group_other: '{{name}} and {{count, number}} copies',
+    effectsDiffer: 'Their FM1 effects differ.',
+    goTo: 'Go to {{name}}, patch {{number}} in {{bank}}',
+    none: 'No duplicates: every patch in your banks has its own voice settings.',
+    openFailed: 'Duplicate patches could not be shown. Reload the page and try again.',
+  },
   persistence: {
     retryLoading: 'Retry',
     continueSessionOnly: 'Continue without saving',
