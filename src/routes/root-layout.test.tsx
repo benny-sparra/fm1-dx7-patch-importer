@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -128,5 +128,67 @@ describe('RootLayout unsupported banner', () => {
     )
 
     expect(unsupportedBanner()).toBeTruthy()
+  })
+})
+
+describe('RootLayout hardware photo', () => {
+  beforeEach(() => {
+    localStorage.setItem('fm1-colourway', 'purple')
+    // A desktop-width window, still asking for reduced motion as the editor's tests do.
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      addEventListener: vi.fn(),
+      matches: query === '(min-width: 1024px)' || query.includes('prefers-reduced-motion'),
+      media: query,
+      removeEventListener: vi.fn(),
+    }))
+  })
+  afterEach(() => localStorage.removeItem('fm1-colourway'))
+
+  function renderWithFirmware(firmware: ComponentProps<typeof RootLayout>['midi']['firmware']) {
+    render(
+      <RootLayout midi={{ ...midi, firmware }}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+    return screen.getByRole('img', { name: 'M-VAVE FM1 synthesiser front panel' })
+  }
+
+  it('shows the chosen finish with the stock screen on M-VAVE firmware', () => {
+    const photo = renderWithFirmware({ identity: 'FM-1_019', kind: 'mvave' })
+
+    expect(photo.getAttribute('src')).toContain('fm1-purple')
+  })
+
+  it('shows the chosen finish with the FM-1+VA screen on Baud Girl firmware', async () => {
+    const photo = renderWithFirmware({ identity: 'FM-1_089', kind: 'fm1-va' })
+
+    await waitFor(() => expect(photo.getAttribute('src')).toContain('fm1-va-purple'))
+    expect(photo.getAttribute('srcset')).toContain('fm1-va-purple-460')
+  })
+
+  it('goes back to the stock screen when the FM1 no longer runs FM-1+VA', async () => {
+    const { rerender } = render(
+      <RootLayout midi={{ ...midi, firmware: { identity: 'FM-1_089', kind: 'fm1-va' } }}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+    const photo = screen.getByRole('img', { name: 'M-VAVE FM1 synthesiser front panel' })
+    await waitFor(() => expect(photo.getAttribute('src')).toContain('fm1-va-purple'))
+
+    rerender(
+      <RootLayout midi={{ ...midi, firmware: { identity: 'FM-1_019', kind: 'mvave' } }}>
+        <div>Library</div>
+      </RootLayout>,
+    )
+
+    expect(photo.getAttribute('src')).not.toContain('fm1-va-')
+  })
+
+  it('keeps the stock screen while the firmware is unidentified', () => {
+    const photo = renderWithFirmware({ identity: 'FM-1_904', kind: 'unidentified' })
+
+    expect(photo.getAttribute('src')).not.toContain('fm1-va-')
   })
 })

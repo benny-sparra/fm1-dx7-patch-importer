@@ -14,7 +14,7 @@ import whiteBlue460 from '@/assets/generated/fm1-white-blue-460.webp'
 import type { Fm1Colorway } from './fm1-colorway'
 import type { ResponsiveImage } from './responsive-image'
 
-function colorwayImage(src: string, candidate460: string): ResponsiveImage {
+export function colorwayImage(src: string, candidate460: string): ResponsiveImage {
   return {
     height: 554,
     src,
@@ -23,6 +23,8 @@ function colorwayImage(src: string, candidate460: string): ResponsiveImage {
   }
 }
 
+export type Fm1ColorwayImages = Record<Fm1Colorway, ResponsiveImage>
+
 export const fm1ColorwayImages = {
   black: colorwayImage(blackImage, black460),
   purple: colorwayImage(purpleImage, purple460),
@@ -30,4 +32,4 @@ export const fm1ColorwayImages = {
   'black-green': colorwayImage(blackGreenImage, blackGreen460),
   'cool-gray': colorwayImage(coolGrayImage, coolGray460),
   'white-blue': colorwayImage(whiteBlueImage, whiteBlue460),
-} satisfies Record<Fm1Colorway, ResponsiveImage>
+} satisfies Fm1ColorwayImages

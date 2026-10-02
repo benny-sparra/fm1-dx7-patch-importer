@@ -1,5 +1,5 @@
 import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
-import type { ComponentProps, ReactNode } from 'react'
+import { useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpButton } from '@/components/help-button'
@@ -18,7 +18,7 @@ import type { MidiController } from '@/hooks/use-midi'
 import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { isUnsupportedBrowser } from '@/lib/browser'
-import { fm1ColorwayImages } from '@/lib/fm1-colorway-images'
+import { fm1ColorwayImages, type Fm1ColorwayImages } from '@/lib/fm1-colorway-images'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
 type RootLayoutProps = {
@@ -38,8 +38,20 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const unsupportedBrowser = isUnsupportedBrowser()
   const { colorway, setColorway } = useFm1Colorway()
   const showColorwayImage = useMediaQuery('(min-width: 1024px)')
-  const colorwayImage = fm1ColorwayImages[colorway]
   const showHardwareBay = !compact && showColorwayImage
+  const showFm1VaImage = showHardwareBay && midi.firmware.kind === 'fm1-va'
+  const [fm1VaColorwayImages, setFm1VaColorwayImages] = useState<Fm1ColorwayImages>()
+  const colorwayImage = ((showFm1VaImage && fm1VaColorwayImages) || fm1ColorwayImages)[colorway]
+
+  // Only an FM1 running FM-1+VA loads its photos. They are decorative, so a chunk that fails to
+  // load leaves the stock photo showing, and the next identification tries again.
+  useEffect(() => {
+    if (showFm1VaImage) {
+      import('@/lib/fm1-va-colorway-images')
+        .then((module) => setFm1VaColorwayImages(module.fm1VaColorwayImages))
+        .catch(() => {})
+    }
+  }, [showFm1VaImage])
 
   return (
     <main className="synthwave-shell flex min-h-screen flex-col text-foreground">

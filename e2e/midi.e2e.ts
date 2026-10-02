@@ -382,6 +382,17 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
     await expect(badge.getByText('FM-1+VA firmware by Baud Girl, FM-1_089')).toBeAttached()
   })
 
+  test('shows FM-1+VA on the screen of the FM1 photo in the chosen finish', async ({ page }) => {
+    // The other finishes slide out from the lit swatch while the picker has focus.
+    await page.getByRole('radio', { name: 'Black FM1 finish' }).focus()
+    await page.getByTitle('Orange', { exact: true }).click()
+
+    const photo = page.getByRole('img', { name: 'M-VAVE FM1 synthesiser front panel' })
+    await expect(photo).toHaveAttribute('src', /fm1-va-orange-/)
+    await expect.poll(() => photo.evaluate((image: HTMLImageElement) => image.complete)).toBe(true)
+    expect(await photo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
+  })
+
   test('explains the FM-1+VA Write the bank question before sending a bank', async ({ page }) => {
     await page.getByRole('button', { exact: true, name: 'Send to FM1' }).first().click()
     const instructions = page.getByRole('dialog', {
