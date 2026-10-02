@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { packDx7Voice } from '@/lib/dx7'
+import { capturedOrgan3, capturedOrgan3Reply } from '@/test/fm1-va-captures'
 import { makeFm1VaPresetReply, makeFm1VaReply, makeStoredPresetData } from '@/test/fm1-va-replies'
 
 import {
@@ -62,7 +64,35 @@ describe('makeFm1VaPresetReadRequest', () => {
   })
 })
 
+/**
+ * The record in a backup's preset message, out of its 8-into-7 groups. Each group's first byte
+ * carries the high bits of the seven after it, bit k for byte k (docs/fm1-research.md).
+ */
+function backupRecord(message: Uint8Array) {
+  const groups = message.subarray(161, 229)
+  return Uint8Array.from({ length: 59 }, (_, index) => {
+    const group = Math.floor(index / 7) * 8
+    const bit = index % 7
+    return groups[group + 1 + bit] | (((groups[group] >> bit) & 1) << 7)
+  })
+}
+
 describe('readFm1VaPreset', () => {
+  it('reads the preset FM-1_093 sent as the backup holds it', async () => {
+    const { link } = makeLink(() => capturedOrgan3Reply)
+
+    const preset = await readFm1VaPreset(link, 0)
+
+    expect(preset.voice).toEqual(packDx7Voice(capturedOrgan3.slice(6, 161)).data)
+    expect(preset.record).toEqual(backupRecord(capturedOrgan3))
+  })
+
+  it('reads record byte 18 of a captured FM preset as 03', async () => {
+    const { link } = makeLink(() => capturedOrgan3Reply)
+
+    expect((await readFm1VaPreset(link, 0)).record[18]).toBe(0x03)
+  })
+
   it('resolves with the voice and record exactly as read', async () => {
     const { link } = makeLink(() => makeFm1VaPresetReply(5))
 

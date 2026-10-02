@@ -29,8 +29,8 @@ type ReplyOptions = {
 }
 
 /**
- * An FM-1+VA reply built from the layout in docs/fm1-research.md, "Reading a stored preset". Not
- * captured from an FM1: replace it with a captured reply once one is recorded.
+ * An FM-1+VA reply built from the layout in docs/fm1-research.md, "Reading a stored preset", for
+ * the statuses, sizes, and damage no capture shows. Captured replies are in `fm1-va-captures.ts`.
  */
 export function makeFm1VaReply({
   argument,

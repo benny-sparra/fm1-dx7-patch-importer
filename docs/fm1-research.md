@@ -199,12 +199,15 @@ planned FM-1+VA features would read and write (`docs/feature-backlog.md`). Repea
 #### Reading a stored preset
 
 **Approved 2026-10-02** as the one FM-1+VA command the editor may send, gated on FM-1+VA from
-`FM-1_079` (`readsFm1VaPresets`). **Status: Likely**: the layout below was read from the modules
-FM-1+VA's Presets page loads (`fm1sound.js`, `fm1seq.js`, and `install/bank.js` under
-`https://baudgirl.com/fm1/app/835478add641fd2b/`, read 2026-10-02) and has not yet been captured
-from an FM1. The editor's codec is `src/lib/fm1-va-sysex.ts` and `src/lib/fm1-va-preset-read.ts`,
-and `useFm1VaPresetReader` sends it through the selected ports. Its tests use replies built from
-this layout until a captured one replaces them.
+`FM-1_079` (`readsFm1VaPresets`). The layout below was first read from the modules FM-1+VA's
+Presets page loads (`fm1sound.js`, `fm1seq.js`, and `install/bank.js` under
+`https://baudgirl.com/fm1/app/835478add641fd2b/`, read 2026-10-02). **Status: Confirmed, seen
+once** (FM-1_093, 2026-10-02): the FM1 answered the request for preset 001 (ORGAN 3) with a reply
+that decodes as below, and its voice and record match the same preset in the 2026-09-29 backup byte
+for byte. The editor's codec is `src/lib/fm1-va-sysex.ts` and `src/lib/fm1-va-preset-read.ts`, and
+`useFm1VaPresetReader` sends it through the selected ports. The capture is the fixture
+`capturedOrgan3Reply` in `src/test/fm1-va-captures.ts`; replies built from this layout cover the
+statuses and damage no capture shows yet.
 
 - **Request:** `F0 43 00 7D 10 <slot> <sum> F7`, with `slot` 0–127 (the FM1 shows 001–128). Unlike
   the preset write, whose checksum covers only its payload, this checksum covers the command and
@@ -221,10 +224,15 @@ this layout until a captured one replaces them.
 - FM-1+VA's own page waits 1.5 s for an answer and asks three times; the editor does the same.
   The editor sends the request again when the reply's status says it arrived damaged, and treats
   a reply of any other size as a layout it does not know rather than asking again.
-- **An open question** for the first capture: FM-1+VA's modules give an FM preset's record byte 18
-  as `A5`, but every FM preset in three backups held `03` at the place the backup's groups put
-  byte 18 (above). Either the backups' FM presets predate the marker or the group order differs;
-  a read of the same preset as a backup settles which.
+- **Record byte 18 of an FM preset is `03`. Confirmed, seen once** (the capture above). FM-1+VA's
+  modules give `A5` for an FM preset, but the read of ORGAN 3 holds `03`, as the backups did, so the
+  backups were read in the right place and the editor's `5A` test stands. Its modules write `A5`
+  only in the record they make for a sound that arrives without one, such as from a DX7 file; a
+  stored preset need not carry it.
+- **The bit order of the backup's 8-into-7 groups is still open.** ORGAN 3's record has no byte
+  above `7F`, so the match above does not show which group bit belongs to which byte. A read of a
+  preset whose record has a high bit set, such as 097, 113, or 114, beside the same preset in a
+  backup, settles it.
 
 **Mapping the record.** A development build (`npm run dev`) has an **FM-1+VA preset probe (dev)**
 in the footer. It reads one preset and shows its record and voice byte by byte, marking each byte

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { capturedOrgan3Reply } from '@/test/fm1-va-captures'
 import { makeFm1VaReply } from '@/test/fm1-va-replies'
 
 import { fm1VaChecksum, parseFm1VaReply } from './fm1-va-sysex'
@@ -13,6 +14,13 @@ describe('fm1VaChecksum', () => {
 })
 
 describe('parseFm1VaReply', () => {
+  it('reads a preset reply captured from FM-1_093', () => {
+    const reply = parseFm1VaReply(capturedOrgan3Reply)
+
+    expect(reply).toMatchObject({ argument: 0, kind: 0x50, status: 0 })
+    expect(reply?.data).toHaveLength(187)
+  })
+
   it('reads the kind, status, argument, and data from a reply', () => {
     const reply = makeFm1VaReply({ argument: 0x01020304, data: [0x00, 0x80, 0xff], status: 1 })
 

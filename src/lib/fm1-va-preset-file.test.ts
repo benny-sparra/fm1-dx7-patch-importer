@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import { parseDx7Bank, unpackDx7Voice } from '@/lib/dx7'
 import { fm1VaChecksum } from '@/lib/fm1-va-sysex'
+import { capturedOrgan3 } from '@/test/fm1-va-captures'
 
 import {
   Fm1VaPresetFileError,
@@ -14,21 +15,6 @@ import {
   readFm1VaPresetFile,
 } from './fm1-va-preset-file'
 
-// Preset 001 (ORGAN 3) from a backup FM-1_089's Save a backup wrote on 2026-09-29: the header and
-// slot, the 155-byte voice, the 68-byte settings record, the checksum, and F7.
-const capturedOrgan3 = Uint8Array.from(
-  `F0 43 00 7D 04 00 63 63 63 63 63 63 63 00 2A 00 20 00 00 00 01 00 48 00 08 00 04 63 63 63 63 63
-   63 63 00 27 00 00 00 00 00 01 00 61 00 01 32 0A 63 47 63 63 63 51 63 00 27 00 00 00 00 00 00 00
-   63 00 00 00 07 63 5A 63 63 63 59 63 00 2A 00 37 00 00 00 01 00 53 00 03 00 0A 63 50 63 63 63 39
-   63 00 27 00 00 00 00 00 01 00 61 00 01 32 03 63 49 63 4E 63 5A 63 00 2C 15 23 00 00 00 02 00 4B
-   00 08 00 0A 63 63 63 63 32 32 32 32 1F 06 01 32 15 05 03 01 04 01 18 4F 52 47 41 4E 20 33 20 20
-   20 00 50 03 03 03 03 03 03 00 03 03 03 03 03 03 03 00 03 03 03 03 03 03 03 00 03 03 03 03 03 03
-   00 00 00 00 01 00 00 02 00 00 00 03 00 00 04 00 00 00 05 00 00 06 00 00 07 00 00 00 08 00 00 00
-   00 00 00 00 00 0C F7`
-    .trim()
-    .split(/\s+/)
-    .map((byte) => Number.parseInt(byte, 16)),
-)
 const capturedRecord = capturedOrgan3.slice(161, 229)
 
 // Preset 097 after Erase Preset made it a Virtual Analog preset and SAVE stored it, from a backup
