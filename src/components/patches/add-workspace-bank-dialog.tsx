@@ -3,6 +3,7 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
+import { FileBankPicker, firstReadableBank } from '@/components/patches/file-bank-picker'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,8 +19,9 @@ import {
   dx7BankCatalogCategoryLabelKey,
 } from '@/data/dx7-bank-catalog'
 import { ErrorNotice } from '@/components/ui/error-notice'
+import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
-import { readDx7BankFile } from '@/lib/dx7'
+import type { Dx7Voice } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
 import {
   bankDescriptionLength,
@@ -53,6 +55,13 @@ export function AddWorkspaceBankDialog({
   const [catalogBankId, setCatalogBankId] = useState('')
   const [error, setError] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  // The chosen file's banks, read as soon as it is chosen so a file joining several can offer a
+  // choice, with null for a damaged one.
+  const [fileBanks, setFileBanks] = useState<(Dx7Voice[] | null)[] | null>(null)
+  const [chosenFileBank, setChosenFileBank] = useState(0)
+  const [readerUnavailable, setReaderUnavailable] = useState(false)
+  const readingFile = useRef<File | null>(null)
+  const fileVoices = fileBanks?.[chosenFileBank] ?? null
   const [name, setName] = useState('')
   const [source, setSource] = useState<'catalog' | 'upload'>('catalog')
   const [working, setWorking] = useState(false)
@@ -73,6 +82,32 @@ export function AddWorkspaceBankDialog({
     dialogRef.current?.showModal()
   }, [])
 
+  const chooseFile = async (chosen: File | null) => {
+    readingFile.current = chosen
+    setFile(chosen)
+    setFileBanks(null)
+    setError('')
+    if (!chosen) return
+
+    let archive: typeof import('@/lib/dx7-bank-archive')
+    try {
+      archive = await import('@/lib/dx7-bank-archive')
+    } catch {
+      if (readingFile.current === chosen) setReaderUnavailable(true)
+      return
+    }
+    try {
+      const read = (await archive.readDx7BankArchive(chosen)).map(({ voices }) => voices)
+      // A file chosen while this one was being read replaces it.
+      if (readingFile.current !== chosen) return
+      setFileBanks(read)
+      setChosenFileBank(firstReadableBank(read))
+    } catch (cause) {
+      if (readingFile.current === chosen)
+        setError(bankErrorMessage(t, cause, t('banks.addBankFailed')))
+    }
+  }
+
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!bank) return
@@ -85,7 +120,7 @@ export function AddWorkspaceBankDialog({
       setError(t('banks.soundSourceRequired'))
       return
     }
-    if (source === 'upload' && !file) {
+    if (source === 'upload' && !fileVoices) {
       setError(t('banks.soundSourceRequired'))
       return
     }
@@ -93,10 +128,7 @@ export function AddWorkspaceBankDialog({
     setWorking(true)
     setError('')
     try {
-      const imported =
-        source === 'catalog'
-          ? await loadDx7CatalogBank(catalogBankId)
-          : await readDx7BankFile(file!)
+      const imported = source === 'catalog' ? await loadDx7CatalogBank(catalogBankId) : fileVoices!
       library.addBank(bank, normalizedName, description, imported)
       trackAnalyticsEvent({
         data: { source: source === 'catalog' ? 'catalog' : 'file' },
@@ -192,7 +224,7 @@ export function AddWorkspaceBankDialog({
                   disabled={working}
                   name="sound-source"
                   onChange={() => {
-                    setFile(null)
+                    void chooseFile(null)
                     setSource('catalog')
                   }}
                   type="radio"
@@ -268,7 +300,7 @@ export function AddWorkspaceBankDialog({
                     accept={sysexFileAccept}
                     className="sr-only"
                     disabled={working}
-                    onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                    onChange={(event) => void chooseFile(event.target.files?.[0] ?? null)}
                     type="file"
                   />
                 </label>
@@ -277,11 +309,21 @@ export function AddWorkspaceBankDialog({
             <span className="text-sm text-muted-foreground">{t('banks.soundDataHelp')}</span>
           </fieldset>
 
+          {source === 'upload' && fileBanks && fileBanks.length > 1 ? (
+            <FileBankPicker
+              banks={fileBanks}
+              chosen={chosenFileBank}
+              disabled={working}
+              onChoose={setChosenFileBank}
+            />
+          ) : null}
+
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
+          {readerUnavailable ? <LoadFailedNotice message={t('banks.bankFileUnavailable')} /> : null}
 
           <div className="flex flex-wrap justify-end gap-2">
             <Button
-              disabled={working || !bank || (source === 'catalog' ? !catalogBankId : !file)}
+              disabled={working || !bank || (source === 'catalog' ? !catalogBankId : !fileVoices)}
               type="submit"
             >
               <Plus />

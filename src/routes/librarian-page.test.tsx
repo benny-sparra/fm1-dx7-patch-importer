@@ -887,7 +887,7 @@ describe('LibrarianPage bank menu dialogs', () => {
     const openImport = async () => {
       await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
       await user.click(screen.getAllByRole('button', { name: 'Import DX7 bank' })[0])
-      return screen.getByRole('dialog', { name: 'Import over “Studio Favourites”?' })
+      return screen.findByRole('dialog', { name: 'Import over “Studio Favourites”?' })
     }
 
     const dialog = await openImport()

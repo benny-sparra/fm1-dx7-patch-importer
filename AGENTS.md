@@ -224,7 +224,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader and its dialog when **Import FM-1+VA presets…** opens it, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader and its dialog when **Import FM-1+VA presets…** opens it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -233,7 +233,9 @@ open everything an earlier release could have saved.
   it needs no reset, and `onClose` returns focus to the control that opened it. Making another eager
   dialog lazy no longer frees headroom: Rolldown moves the code it shares with the entry into new
   shared chunks, which the entry still loads, and compressing them separately costs as much as the
-  dialog saved. Measure with `npm run bundle:check` before and after any such move.
+  dialog saved. Measure with `npm run bundle:check` before and after any such move. A dialog whose
+  own code is large can still pay: the DX7 bank import dialog, once it carried the bank picker,
+  freed 1.4 KiB when it became lazy.
 - When every name taken from a module is a type, write `import type { A, B }`, not
   `import { type A, type B }`. Under `verbatimModuleSyntax` the second form still emits
   `import '…'`, which keeps the module in the chunk graph: eager code that names a lazy module pulls

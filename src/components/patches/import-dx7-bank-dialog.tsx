@@ -1,8 +1,16 @@
 import { TriangleAlert, Upload } from 'lucide-react'
-import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
+import { FileBankPicker, firstReadableBank } from '@/components/patches/file-bank-picker'
 import { PreviewPatchButton } from '@/components/patches/preview-patch-button'
 import { undoToastOptions } from '@/components/patches/undo-toast'
 import { Button } from '@/components/ui/button'
@@ -15,40 +23,49 @@ import {
 } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/toast'
 import { ErrorNotice } from '@/components/ui/error-notice'
+import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
-import { readDx7BankFile, type Dx7Voice } from '@/lib/dx7'
+import type { Dx7Voice } from '@/lib/dx7'
 import { sysexFileAccept } from '@/lib/sysex-file'
 
 type ImportDx7BankDialogProps = {
   bank: string
   bankName: string
+  /** A file already chosen, as when one joining several banks was picked for an empty bank. */
+  initialFile?: File
   library: Pick<PatchLibrary, 'importBank' | 'undoChange'>
   onClose: () => void
   /** Plays a patch through the FM1 edit buffer with the default effects, as a search result is. */
   onPlay: (voice: Dx7Voice) => void
+  /** Whether the bank has patches the import replaces. */
+  replacing: boolean
 }
 
 export function ImportDx7BankDialog({
   bank,
   bankName,
+  initialFile,
   library,
   onClose,
   onPlay,
+  replacing,
 }: ImportDx7BankDialogProps) {
   const { i18n, t } = useTranslation()
   const toast = useToast()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
-  const [file, setFile] = useState<File | null>(null)
-  const [working, setWorking] = useState(false)
-  // The chosen file's patches, read as soon as it is chosen so they can be heard before anything
-  // is replaced. Each voice keeps one object while the dialog is open, so playing a patch twice
-  // sends it once.
-  const [voices, setVoices] = useState<Dx7Voice[] | null>(null)
+  const [readerUnavailable, setReaderUnavailable] = useState(false)
+  const [file, setFile] = useState<File | null>(initialFile ?? null)
+  // The chosen file's banks, read as soon as it is chosen so they can be heard before anything is
+  // replaced, with null for a damaged one. Each voice keeps one object while the dialog is open, so
+  // playing a patch twice sends it once.
+  const [banks, setBanks] = useState<(Dx7Voice[] | null)[] | null>(null)
+  const [chosenBank, setChosenBank] = useState(0)
   const [playingIndex, setPlayingIndex] = useState<number | null>(null)
   const readingFile = useRef<File | null>(null)
+  const voices = banks?.[chosenBank] ?? null
 
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
   // its state is discarded with it rather than being reset by hand.
@@ -56,24 +73,47 @@ export function ImportDx7BankDialog({
     dialogRef.current?.showModal()
   }, [])
 
-  const chooseFile = async (event: ChangeEvent<HTMLInputElement>) => {
-    const chosen = event.target.files?.[0] ?? null
+  const readFile = async (chosen: File | null) => {
     readingFile.current = chosen
     setFile(chosen)
-    setVoices(null)
+    setBanks(null)
     setPlayingIndex(null)
     setError('')
     if (!chosen) return
 
+    let archive: typeof import('@/lib/dx7-bank-archive')
     try {
-      const read = await readDx7BankFile(chosen)
+      archive = await import('@/lib/dx7-bank-archive')
+    } catch {
+      if (readingFile.current === chosen) setReaderUnavailable(true)
+      return
+    }
+    try {
+      const read = (await archive.readDx7BankArchive(chosen)).map((fileBank) => fileBank.voices)
       // A file chosen while this one was being read replaces it.
-      if (readingFile.current === chosen) setVoices(read)
+      if (readingFile.current !== chosen) return
+      setBanks(read)
+      setChosenBank(firstReadableBank(read))
     } catch (cause) {
       if (readingFile.current === chosen) {
         setError(bankErrorMessage(t, cause, t('banks.importFailed')))
       }
     }
+  }
+
+  const readInitialFile = useEffectEvent(() => {
+    if (initialFile) void readFile(initialFile)
+  })
+  useEffect(() => {
+    readInitialFile()
+  }, [])
+
+  const chooseFile = (event: ChangeEvent<HTMLInputElement>) =>
+    void readFile(event.target.files?.[0] ?? null)
+
+  const chooseBank = (index: number) => {
+    setChosenBank(index)
+    setPlayingIndex(null)
   }
 
   const play = (index: number) => {
@@ -83,14 +123,13 @@ export function ImportDx7BankDialog({
     setPlayingIndex(index)
   }
 
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
+  const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!file || !voices) return
+    if (!voices) return
 
-    setWorking(true)
     setError('')
     try {
-      const changed = await library.importBank(bank, file)
+      const changed = library.importBank(bank, voices)
       trackAnalyticsEvent({ data: { source: 'file' }, name: 'bank_imported' })
       toast.success(
         t('toasts.bankImported', { bank: bankName }),
@@ -99,8 +138,6 @@ export function ImportDx7BankDialog({
       dialogRef.current?.close()
     } catch (cause) {
       setError(bankErrorMessage(t, cause, t('banks.importFailed')))
-    } finally {
-      setWorking(false)
     }
   }
 
@@ -108,10 +145,6 @@ export function ImportDx7BankDialog({
     <Dialog
       aria-describedby="import-dx7-bank-description"
       aria-labelledby="import-dx7-bank-title"
-      closeOnBackdrop={!working}
-      onCancel={(event) => {
-        if (working) event.preventDefault()
-      }}
       onClose={onClose}
       onToggle={(event) => {
         if (!event.currentTarget.open) return
@@ -122,13 +155,11 @@ export function ImportDx7BankDialog({
     >
       <DialogHeader>
         <DialogTitle id="import-dx7-bank-title">
-          {t('overwriteImport.title', { bank: bankName })}
+          {replacing
+            ? t('overwriteImport.title', { bank: bankName })
+            : t('overwriteImport.titleEmpty', { bank: bankName })}
         </DialogTitle>
-        <DialogCloseButton
-          disabled={working}
-          label={t('common.close')}
-          onClick={() => dialogRef.current?.close()}
-        />
+        <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />
       </DialogHeader>
       <DialogBody>
         <p
@@ -138,11 +169,13 @@ export function ImportDx7BankDialog({
           {t('overwriteImport.help')}
         </p>
 
-        <form className="grid gap-5 p-5" onSubmit={(event) => void submit(event)}>
-          <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            <TriangleAlert className="mt-0.5 size-5 shrink-0" />
-            <p>{t('overwriteImport.warning')}</p>
-          </div>
+        <form className="grid gap-5 p-5" onSubmit={submit}>
+          {replacing ? (
+            <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              <TriangleAlert className="mt-0.5 size-5 shrink-0" />
+              <p>{t('overwriteImport.warning')}</p>
+            </div>
+          ) : null}
 
           <label className="grid gap-2 text-sm font-semibold">
             {t('banks.soundData')}
@@ -151,13 +184,16 @@ export function ImportDx7BankDialog({
               <input
                 accept={sysexFileAccept}
                 className="sr-only"
-                disabled={working}
-                onChange={(event) => void chooseFile(event)}
+                onChange={chooseFile}
                 ref={fileInputRef}
                 type="file"
               />
             </span>
           </label>
+
+          {banks && banks.length > 1 ? (
+            <FileBankPicker banks={banks} chosen={chosenBank} onChoose={chooseBank} />
+          ) : null}
 
           {voices ? (
             <section aria-labelledby="import-dx7-bank-preview-title" className="grid gap-2">
@@ -186,11 +222,18 @@ export function ImportDx7BankDialog({
           ) : null}
 
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
+          {readerUnavailable ? <LoadFailedNotice message={t('banks.bankFileUnavailable')} /> : null}
 
           <div className="flex flex-wrap justify-end gap-2">
-            <Button disabled={working || !voices} type="submit" variant="destructive">
+            <Button
+              disabled={!voices}
+              type="submit"
+              variant={replacing ? 'destructive' : 'default'}
+            >
               <Upload />
-              <span>{working ? t('banks.importing') : t('overwriteImport.action')}</span>
+              <span>
+                {replacing ? t('overwriteImport.action') : t('overwriteImport.actionEmpty')}
+              </span>
             </Button>
           </div>
         </form>

@@ -290,7 +290,20 @@ export default {
     warning:
       'Le son de cet emplacement sera remplacé par celui du fichier, et ses effets FM1 reviendront à leurs valeurs par défaut.',
   },
+  bankFile: {
+    legend: 'Banques de ce fichier',
+    help: 'Ce fichier contient une banque DX7.',
+    help_other: 'Ce fichier réunit {{count, number}} banques DX7. Choisissez celle à importer.',
+    damagedBanks: 'L’une d’elles est endommagée et ne peut pas être importée.',
+    damagedBanks_other:
+      '{{count, number}} d’entre elles sont endommagées et ne peuvent pas être importées.',
+    bank: 'Banque {{number}}',
+    option: '{{bank}} : {{contents}}',
+    damaged: 'Endommagée',
+  },
   overwriteImport: {
+    titleEmpty: 'Importer dans « {{bank}} »',
+    actionEmpty: 'Importer la banque',
     action: 'Remplacer le contenu',
     help: 'Choisissez un fichier de banque SysEx DX7 standard de 32 voix.',
     play: 'Écouter {{name}}, son {{number}}',
@@ -759,7 +772,9 @@ export default {
     catalogUnavailable:
       'Impossible de télécharger cette banque de sons. Vérifiez votre connexion, puis réessayez.',
     fileErrors: {
-      size: 'Ce fichier fait {{bytes, number}} octets. Un fichier de banque DX7 doit faire exactement {{expected, number}} octets.',
+      size: 'Ce fichier fait {{bytes, number}} octets et ne contient aucune banque DX7 complète. Un fichier de banque fait {{expected, number}} octets, ou un multiple de cette taille s’il réunit plusieurs banques.',
+      tooLarge:
+        'Ce fichier est trop volumineux. Un fichier de banques peut réunir jusqu’à {{count, number}} banques DX7.',
       format: 'Ce fichier n’est pas une banque Yamaha DX7 de 32 voix.',
       damaged: 'Ce fichier semble endommagé. Essayez de le télécharger à nouveau.',
       voiceFormat:
@@ -804,6 +819,8 @@ export default {
     copyOpenFailed: 'Impossible d’ouvrir les options de copie. Rechargez la page et réessayez.',
     importPatchFile: 'Importer un son…',
     downloadPatchFile: 'Télécharger le son',
+    bankFileUnavailable:
+      'Impossible de lire les fichiers de banque. Rechargez la page et réessayez.',
     patchFileUnavailable:
       'Impossible d’ouvrir les fichiers de son. Rechargez la page et réessayez.',
     everywhere: {

@@ -279,7 +279,19 @@ export default {
     warning:
       'The patch in this slot will be replaced by the one in the file, and its FM1 effects reset to their defaults.',
   },
+  bankFile: {
+    legend: 'Banks in this file',
+    help: 'This file holds one DX7 bank.',
+    help_other: 'This file joins {{count, number}} DX7 banks. Choose the one to import.',
+    damagedBanks: 'One of them is damaged and cannot be imported.',
+    damagedBanks_other: '{{count, number}} of them are damaged and cannot be imported.',
+    bank: 'Bank {{number}}',
+    option: '{{bank}}: {{contents}}',
+    damaged: 'Damaged',
+  },
   overwriteImport: {
+    titleEmpty: 'Import into “{{bank}}”',
+    actionEmpty: 'Import bank',
     action: 'Replace bank contents',
     help: 'Choose a standard 32-voice DX7 SysEx bank file.',
     play: 'Play {{name}}, patch {{number}}',
@@ -735,7 +747,8 @@ export default {
     catalogUnavailable:
       'That patch bank could not be downloaded. Check your connection, then try again.',
     fileErrors: {
-      size: 'This file is {{bytes, number}} bytes. A DX7 bank file must be exactly {{expected, number}} bytes.',
+      size: 'This file is {{bytes, number}} bytes and holds no complete DX7 bank. A bank file is {{expected, number}} bytes, or a multiple of that when it joins several banks.',
+      tooLarge: 'This file is too large. A bank file can join up to {{count, number}} DX7 banks.',
       format: 'This file is not a Yamaha DX7 32-voice bank.',
       damaged: 'This file looks damaged. Try downloading it again.',
       voiceFormat: 'This file isn’t a DX7 patch. Choose a .syx file that holds a single patch.',
@@ -777,6 +790,7 @@ export default {
     copyOpenFailed: 'The copy options could not be opened. Reload the page and try again.',
     importPatchFile: 'Import patch…',
     downloadPatchFile: 'Download patch',
+    bankFileUnavailable: 'Bank files could not be read. Reload the page and try again.',
     patchFileUnavailable: 'Patch files could not be opened. Reload the page and try again.',
     everywhere: {
       workspace: 'Your patch banks',

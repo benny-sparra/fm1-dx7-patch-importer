@@ -100,6 +100,29 @@ test('imports a valid DX7 SysEx bank into a populated workspace bank', async ({ 
   await expect(page.getByText('Imported patches into “Bank 1”.')).toBeVisible()
 })
 
+test('imports the bank chosen from a file that joins several', async ({ page }) => {
+  await openLibrarian(page)
+  await openFirstBankMenu(page)
+  await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
+
+  const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
+  const [rom1a, rom1b] = await Promise.all([
+    readFile(factoryBank),
+    readFile('public/dx7-banks/factory/rom1b.syx'),
+  ])
+  await dialog.getByLabel('Patch data').setInputFiles({
+    buffer: Buffer.concat([rom1a, rom1b]),
+    mimeType: 'application/octet-stream',
+    name: 'rom1.syx',
+  })
+  await dialog.getByRole('radio', { name: /^Bank 2: PIANO 4, / }).check()
+  await expect(dialog.getByRole('button', { name: 'Play PIANO 4, patch 1' })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Replace bank contents' }).click()
+
+  await expect(page.getByText('Imported patches into “Bank 1”.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Send PIANO 4 to FM1' })).toBeVisible()
+})
+
 test('rejects an invalid DX7 SysEx bank without closing the replacement dialog', async ({
   page,
 }) => {
@@ -116,7 +139,7 @@ test('rejects an invalid DX7 SysEx bank without closing the replacement dialog',
 
   // The file is read as it is chosen, so the problem shows before anything can be replaced.
   await expect(dialog.getByRole('alert')).toHaveText(
-    'This file is 3 bytes. A DX7 bank file must be exactly 4,104 bytes.',
+    'This file is 3 bytes and holds no complete DX7 bank. A bank file is 4,104 bytes, or a multiple of that when it joins several banks.',
   )
   await expect(dialog.getByRole('button', { name: 'Replace bank contents' })).toBeDisabled()
   await expect(dialog).toBeVisible()

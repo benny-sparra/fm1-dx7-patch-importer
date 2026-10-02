@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -8,8 +8,9 @@ import { ToastProvider } from '@/components/ui/toast'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { setLocale } from '@/i18n'
 import german from '@/i18n/locales/de'
-import { Dx7BankFileError, makeDx7BankFile, updateDx7VoiceName } from '@/lib/dx7'
-import type { PatchLibrarySnapshot } from '@/lib/patch-library'
+import { makeDx7BankFile, updateDx7VoiceName } from '@/lib/dx7'
+import { type PatchLibrarySnapshot, WorkspaceBankUnavailableError } from '@/lib/patch-library'
+import { translatePageText } from '@/test/page-translator'
 
 import { ImportDx7BankDialog } from './import-dx7-bank-dialog'
 
@@ -37,15 +38,32 @@ const changed = {} as PatchLibrarySnapshot
 
 const patchName = (index: number) => `SOUND ${String(index + 1).padStart(2, '0')}`
 
-/** A valid 32-voice bank whose patches are named SOUND 01 to SOUND 32, or `prefix` 01 onwards. */
-function syxFile(name = 'bank.syx', prefix = 'SOUND') {
+/** A valid 32-voice bank dump whose patches are named `prefix` 01 to `prefix` 32. */
+function bankBytes(prefix = 'SOUND') {
   const voices = Array.from({ length: 32 }, (_, index) =>
     updateDx7VoiceName(
       { data: new Uint8Array(128), name: '' },
       patchName(index).replace('SOUND', prefix),
     ),
   )
-  return new File([makeDx7BankFile(voices)], name, { type: 'application/octet-stream' })
+  return makeDx7BankFile(voices)
+}
+
+/** A copy of a bank dump whose checksum no longer matches its data. */
+function damagedBytes(bank: Uint8Array<ArrayBuffer>) {
+  const copy = bank.slice()
+  copy[copy.length - 2] ^= 0x01
+  return copy
+}
+
+/** A valid 32-voice bank whose patches are named SOUND 01 to SOUND 32, or `prefix` 01 onwards. */
+function syxFile(name = 'bank.syx', prefix = 'SOUND') {
+  return new File([bankBytes(prefix)], name, { type: 'application/octet-stream' })
+}
+
+/** A file joining the given bank dumps one after another, as DX7 archive collections do. */
+function archiveFile(banks: Uint8Array<ArrayBuffer>[], name = 'archive.syx') {
+  return new File(banks, name, { type: 'application/octet-stream' })
 }
 
 /** A file whose contents arrive only when the test says, to order two reads by hand. */
@@ -60,7 +78,10 @@ function slowSyxFile(name: string, prefix: string) {
   return { file, release }
 }
 
-function renderDialog(importBank: PatchLibrary['importBank']) {
+function renderDialog(
+  importBank: PatchLibrary['importBank'],
+  { initialFile, replacing = true }: { initialFile?: File; replacing?: boolean } = {},
+) {
   const onClose = vi.fn()
   const onPlay = vi.fn()
   const undoChange = vi.fn()
@@ -69,9 +90,11 @@ function renderDialog(importBank: PatchLibrary['importBank']) {
       <ImportDx7BankDialog
         bank="B"
         bankName="Leads"
+        initialFile={initialFile}
         library={{ importBank, undoChange }}
         onClose={onClose}
         onPlay={onPlay}
+        replacing={replacing}
       />
     </ToastProvider>,
   )
@@ -101,13 +124,16 @@ describe('ImportDx7BankDialog', () => {
   })
 
   it('imports the chosen file into its bank and offers to undo it', async () => {
-    const importBank = vi.fn(async () => changed)
+    const importBank = vi.fn<PatchLibrary['importBank']>(() => changed)
     const { dialog, onClose, undoChange, user } = renderDialog(importBank)
-    const file = syxFile()
 
-    await chooseAndImport(user, file)
+    await chooseAndImport(user)
 
-    expect(importBank).toHaveBeenCalledWith('B', file)
+    expect(importBank).toHaveBeenCalledOnce()
+    expect(importBank.mock.calls[0][0]).toBe('B')
+    expect(importBank.mock.calls[0][1].map((voice) => voice.name)).toEqual(
+      Array.from({ length: 32 }, (_, index) => patchName(index)),
+    )
     expect(dialog.open).toBe(false)
     expect(onClose).toHaveBeenCalledOnce()
     expect(await screen.findByText('Imported patches into “Leads”.')).toBeTruthy()
@@ -116,7 +142,7 @@ describe('ImportDx7BankDialog', () => {
   })
 
   it('offers no undo when the import changed nothing', async () => {
-    const { user } = renderDialog(vi.fn(async () => null))
+    const { user } = renderDialog(vi.fn(() => null))
 
     await chooseAndImport(user)
 
@@ -124,26 +150,25 @@ describe('ImportDx7BankDialog', () => {
     expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull()
   })
 
-  it('explains a damaged file in the interface language and stays open', async () => {
+  it('explains a bank the library can no longer take, in the interface language', async () => {
     await setLocale('de')
     const { dialog, user } = renderDialog(
-      vi.fn(async () => {
-        throw new Dx7BankFileError('checksum', 'Checksum mismatch', 4104)
+      vi.fn(() => {
+        throw new WorkspaceBankUnavailableError()
       }),
     )
 
     await user.upload(screen.getByLabelText(/SysEx/), syxFile())
-    await user.click(screen.getByRole('button', { name: 'Bankinhalt ersetzen' }))
+    await user.click(await screen.findByRole('button', { name: 'Bankinhalt ersetzen' }))
 
     const alert = await screen.findByRole('alert')
-    expect(alert.textContent).toContain(german.banks.fileErrors.damaged)
-    expect(alert.textContent).not.toContain('Checksum mismatch')
+    expect(alert.textContent).toBe(german.banks.bankUnavailable)
     expect(dialog.open).toBe(true)
   })
 
   it('shows the translated fallback rather than an unexpected error message', async () => {
     const { user } = renderDialog(
-      vi.fn(async () => {
+      vi.fn(() => {
         throw new Error('QuotaExceededError')
       }),
     )
@@ -157,7 +182,7 @@ describe('ImportDx7BankDialog', () => {
 
   it('clears the error once another file is chosen', async () => {
     const { user } = renderDialog(
-      vi.fn(async () => {
+      vi.fn(() => {
         throw new Error('failed')
       }),
     )
@@ -169,20 +194,8 @@ describe('ImportDx7BankDialog', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  it('stays open on Escape while the file is importing', async () => {
-    const { dialog, user } = renderDialog(vi.fn(() => new Promise<never>(() => {})))
-
-    await chooseAndImport(user)
-    const cancel = new Event('cancel', { cancelable: true })
-    dialog.dispatchEvent(cancel)
-
-    expect(cancel.defaultPrevented).toBe(true)
-    expect(screen.getByRole('button', { name: 'Close' }).hasAttribute('disabled')).toBe(true)
-    expect(screen.getByRole('button', { name: 'Importing…' })).toBeTruthy()
-  })
-
   it('lists the chosen file’s patches before anything is replaced', async () => {
-    const importBank = vi.fn(async () => changed)
+    const importBank = vi.fn(() => changed)
     const { user } = renderDialog(importBank)
 
     await chooseFile(user)
@@ -194,7 +207,7 @@ describe('ImportDx7BankDialog', () => {
   })
 
   it('plays a patch through the edit buffer and marks it as playing', async () => {
-    const importBank = vi.fn(async () => changed)
+    const importBank = vi.fn(() => changed)
     const { onPlay, user } = renderDialog(importBank)
 
     await chooseFile(user)
@@ -220,7 +233,7 @@ describe('ImportDx7BankDialog', () => {
   })
 
   it('changes nothing when closed after playing a patch', async () => {
-    const importBank = vi.fn(async () => changed)
+    const importBank = vi.fn(() => changed)
     const { onClose, user } = renderDialog(importBank)
 
     await chooseFile(user)
@@ -233,7 +246,7 @@ describe('ImportDx7BankDialog', () => {
 
   it('explains a file it cannot read as soon as it is chosen, and imports nothing', async () => {
     await setLocale('de')
-    const importBank = vi.fn(async () => changed)
+    const importBank = vi.fn(() => changed)
     const { user } = renderDialog(importBank)
     const damaged = new File([new Uint8Array(4104)], 'damaged.syx')
 
@@ -273,6 +286,103 @@ describe('ImportDx7BankDialog', () => {
       await screen.findByRole('heading', { name: german.overwriteImport.previewTitle }),
     ).toBeTruthy()
     expect(screen.getByRole('button', { name: 'SOUND 03 spielen, Sound 3' })).toBeTruthy()
+  })
+
+  it('offers a choice of bank when the file joins several, starting on the first', async () => {
+    const { user } = renderDialog(vi.fn())
+
+    await chooseFile(
+      user,
+      archiveFile([bankBytes('FIRST'), bankBytes('LATER'), bankBytes('THIRD')]),
+    )
+
+    const picker = await screen.findByRole('group', { name: 'Banks in this file' })
+    expect(within(picker).getAllByRole('radio')).toHaveLength(3)
+    expect(within(picker).getByRole('radio', { name: /^Bank 1: FIRST 01, / })).toHaveProperty(
+      'checked',
+      true,
+    )
+    expect(screen.getByRole('button', { name: 'Play FIRST 01, patch 1' })).toBeTruthy()
+  })
+
+  it('previews and imports the bank chosen from the file', async () => {
+    const importBank = vi.fn<PatchLibrary['importBank']>(() => changed)
+    const { user } = renderDialog(importBank)
+    await chooseFile(user, archiveFile([bankBytes('FIRST'), bankBytes('LATER')]))
+
+    await user.click(await screen.findByRole('radio', { name: /^Bank 2: / }))
+    expect(screen.getByRole('button', { name: 'Play LATER 01, patch 1' })).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Replace bank contents' }))
+
+    expect(importBank.mock.calls[0][1][0].name).toBe('LATER 01')
+  })
+
+  it('marks a damaged bank in the file and starts on one it can read', async () => {
+    const { user } = renderDialog(vi.fn())
+
+    await chooseFile(user, archiveFile([damagedBytes(bankBytes('FIRST')), bankBytes('LATER')]))
+
+    const damaged = await screen.findByRole('radio', { name: 'Bank 1: Damaged' })
+    expect(damaged).toHaveProperty('disabled', true)
+    expect(screen.getByRole('radio', { name: /^Bank 2: / })).toHaveProperty('checked', true)
+    expect(screen.getByText(/One of them is damaged and cannot be imported\./)).toBeTruthy()
+  })
+
+  it('updates the bank choice after a page translator rewrites the dialog', async () => {
+    const { user } = renderDialog(vi.fn())
+    await chooseFile(user, archiveFile([bankBytes('FIRST'), bankBytes('LATER')]))
+    await screen.findByRole('group', { name: 'Banks in this file' })
+    translatePageText(screen.getByRole('dialog'))
+
+    await chooseFile(
+      user,
+      archiveFile([damagedBytes(bankBytes('FIRST')), bankBytes('LATER'), bankBytes('THIRD')]),
+    )
+
+    expect(await screen.findByRole('radio', { name: /^Bank 3: THIRD 01, / })).toBeTruthy()
+    expect(screen.getByText('One of them is damaged and cannot be imported.')).toBeTruthy()
+  })
+
+  it('shows no choice for a file holding one bank', async () => {
+    const { user } = renderDialog(vi.fn())
+
+    await chooseFile(user)
+
+    await screen.findByRole('button', { name: 'Play SOUND 01, patch 1' })
+    expect(screen.queryByRole('group', { name: 'Banks in this file' })).toBeNull()
+  })
+
+  it('reads a file chosen before it opened', async () => {
+    renderDialog(vi.fn(), {
+      initialFile: archiveFile([bankBytes('FIRST'), bankBytes('LATER')], 'collection.syx'),
+    })
+
+    expect(await screen.findByRole('group', { name: 'Banks in this file' })).toBeTruthy()
+    expect(screen.getByText('collection.syx')).toBeTruthy()
+  })
+
+  it('imports into an empty bank without warning that it replaces anything', async () => {
+    renderDialog(vi.fn(), { replacing: false })
+
+    expect(screen.getByRole('dialog', { name: 'Import into “Leads”' })).toBeTruthy()
+    expect(screen.queryByText(/will be wiped/)).toBeNull()
+    expect(screen.getByRole('button', { name: 'Import bank' })).toBeTruthy()
+  })
+
+  it('counts the banks in a file in the interface language', async () => {
+    await setLocale('de')
+    const { user } = renderDialog(vi.fn())
+
+    await chooseFile(
+      user,
+      archiveFile([bankBytes('FIRST'), bankBytes('LATER'), bankBytes('THIRD')]),
+    )
+
+    expect(
+      await screen.findByText(
+        'Diese Datei enthält 3 DX7-Bänke. Wähle die Bank, die du importieren möchtest.',
+      ),
+    ).toBeTruthy()
   })
 
   it('tells the librarian it closed, so the chosen file goes with it', async () => {

@@ -169,6 +169,34 @@ describe('AddWorkspaceBankDialog creating a bank', () => {
     expect(onCreated).toHaveBeenCalledWith('E')
   })
 
+  it('creates the bank from the one chosen in a file that joins several', async () => {
+    const { addBank, user } = renderDialog()
+    const otherVoices = makeDemoVoices().map((voice, index) =>
+      index === 0 ? updateDx7VoiceName(voice, 'SECOND') : voice,
+    )
+    const joined = new File([makeDx7BankFile(fileVoices), makeDx7BankFile(otherVoices)], 'set.syx')
+
+    await user.click(screen.getByRole('radio', { name: 'Upload your own bank' }))
+    await user.upload(screen.getByLabelText('Choose a DX7 SysEx file'), joined)
+    await user.click(await screen.findByRole('radio', { name: /^Bank 2: SECOND, / }))
+    await user.click(createButton())
+
+    expect(addBank).toHaveBeenCalledWith('E', 'Bank 5', '', otherVoices)
+  })
+
+  it('shows no bank choice for a file holding one bank', async () => {
+    const { user } = renderDialog()
+
+    await user.click(screen.getByRole('radio', { name: 'Upload your own bank' }))
+    await user.upload(
+      screen.getByLabelText('Choose a DX7 SysEx file'),
+      syxFile(makeDx7BankFile(fileVoices)),
+    )
+
+    await vi.waitFor(() => expect(createButton()).toHaveProperty('disabled', false))
+    expect(screen.queryByRole('group', { name: 'Banks in this file' })).toBeNull()
+  })
+
   it('explains a file of the wrong size in the interface language and stays open', async () => {
     await setLocale('fr')
     const { addBank, onClose, user } = renderDialog()

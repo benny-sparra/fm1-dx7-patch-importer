@@ -288,7 +288,19 @@ export default {
     warning:
       'El sonido de esta ranura se sustituirá por el del archivo y sus efectos FM1 volverán a los valores predeterminados.',
   },
+  bankFile: {
+    legend: 'Bancos de este archivo',
+    help: 'Este archivo contiene un banco DX7.',
+    help_other: 'Este archivo reúne {{count, number}} bancos DX7. Elige el que quieres importar.',
+    damagedBanks: 'Uno de ellos está dañado y no se puede importar.',
+    damagedBanks_other: '{{count, number}} de ellos están dañados y no se pueden importar.',
+    bank: 'Banco {{number}}',
+    option: '{{bank}}: {{contents}}',
+    damaged: 'Dañado',
+  },
   overwriteImport: {
+    titleEmpty: 'Importar en «{{bank}}»',
+    actionEmpty: 'Importar banco',
     action: 'Reemplazar contenido',
     help: 'Elige un archivo de banco SysEx DX7 estándar de 32 voces.',
     play: 'Escuchar {{name}}, sonido {{number}}',
@@ -755,7 +767,9 @@ export default {
     catalogUnavailable:
       'No se pudo descargar ese banco de sonidos. Comprueba tu conexión y vuelve a intentarlo.',
     fileErrors: {
-      size: 'Este archivo tiene {{bytes, number}} bytes. Un archivo de banco DX7 debe tener exactamente {{expected, number}} bytes.',
+      size: 'Este archivo tiene {{bytes, number}} bytes y no contiene ningún banco DX7 completo. Un archivo de banco tiene {{expected, number}} bytes, o un múltiplo de eso si reúne varios bancos.',
+      tooLarge:
+        'Este archivo es demasiado grande. Un archivo de bancos puede reunir hasta {{count, number}} bancos DX7.',
       format: 'Este archivo no es un banco Yamaha DX7 de 32 voces.',
       damaged: 'Este archivo parece dañado. Intenta descargarlo de nuevo.',
       voiceFormat:
@@ -800,6 +814,8 @@ export default {
       'No se pudieron abrir las opciones de copia. Recarga la página e inténtalo de nuevo.',
     importPatchFile: 'Importar sonido…',
     downloadPatchFile: 'Descargar sonido',
+    bankFileUnavailable:
+      'No se pudieron leer los archivos de banco. Recarga la página e inténtalo de nuevo.',
     patchFileUnavailable:
       'No se pudieron abrir los archivos de sonido. Recarga la página e inténtalo de nuevo.',
     everywhere: {

@@ -285,7 +285,19 @@ export default {
     warning:
       'O som deste slot será substituído pelo do arquivo, e seus efeitos FM1 voltarão aos valores padrão.',
   },
+  bankFile: {
+    legend: 'Bancos deste arquivo',
+    help: 'Este arquivo contém um banco DX7.',
+    help_other: 'Este arquivo reúne {{count, number}} bancos DX7. Escolha o que quer importar.',
+    damagedBanks: 'Um deles está danificado e não pode ser importado.',
+    damagedBanks_other: '{{count, number}} deles estão danificados e não podem ser importados.',
+    bank: 'Banco {{number}}',
+    option: '{{bank}}: {{contents}}',
+    damaged: 'Danificado',
+  },
   overwriteImport: {
+    titleEmpty: 'Importar para “{{bank}}”',
+    actionEmpty: 'Importar banco',
     action: 'Substituir conteúdo',
     help: 'Escolha um arquivo de banco SysEx DX7 padrão com 32 vozes.',
     play: 'Tocar {{name}}, som {{number}}',
@@ -750,7 +762,9 @@ export default {
     catalogUnavailable:
       'Não foi possível baixar esse banco de sons. Verifique sua conexão e tente novamente.',
     fileErrors: {
-      size: 'Este arquivo tem {{bytes, number}} bytes. Um arquivo de banco DX7 deve ter exatamente {{expected, number}} bytes.',
+      size: 'Este arquivo tem {{bytes, number}} bytes e não contém nenhum banco DX7 completo. Um arquivo de banco tem {{expected, number}} bytes, ou um múltiplo disso quando reúne vários bancos.',
+      tooLarge:
+        'Este arquivo é grande demais. Um arquivo de bancos pode reunir até {{count, number}} bancos DX7.',
       format: 'Este arquivo não é um banco Yamaha DX7 de 32 vozes.',
       damaged: 'Este arquivo parece estar danificado. Tente baixá-lo novamente.',
       voiceFormat:
@@ -795,6 +809,8 @@ export default {
       'Não foi possível abrir as opções de cópia. Recarregue a página e tente novamente.',
     importPatchFile: 'Importar som…',
     downloadPatchFile: 'Baixar som',
+    bankFileUnavailable:
+      'Não foi possível ler arquivos de banco. Recarregue a página e tente novamente.',
     patchFileUnavailable:
       'Não foi possível abrir os arquivos de som. Recarregue a página e tente novamente.',
     everywhere: {

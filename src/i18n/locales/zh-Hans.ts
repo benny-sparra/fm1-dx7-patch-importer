@@ -252,7 +252,19 @@ export default {
     title: '替换 {{slot}}“{{patch}}”吗？',
     warning: '此位置的音色将被文件中的音色替换，其 FM1 效果将恢复为默认值。',
   },
+  bankFile: {
+    legend: '此文件中的音色库',
+    help: '此文件包含 1 个 DX7 音色库。',
+    help_other: '此文件合并了 {{count, number}} 个 DX7 音色库。请选择要导入的一个。',
+    damagedBanks: '其中 1 个已损坏，无法导入。',
+    damagedBanks_other: '其中 {{count, number}} 个已损坏，无法导入。',
+    bank: '音色库 {{number}}',
+    option: '{{bank}}：{{contents}}',
+    damaged: '已损坏',
+  },
   overwriteImport: {
+    titleEmpty: '导入到“{{bank}}”',
+    actionEmpty: '导入音色库',
     action: '替换音色库内容',
     help: '请选择标准的 32 音色 DX7 SysEx 音色库文件。',
     play: '试听 {{name}}（第 {{number}} 个音色）',
@@ -689,7 +701,8 @@ export default {
     bankUnavailable: '该工作区音色库已不可用。请关闭此对话框后重试。',
     catalogUnavailable: '无法下载该音色库。请检查网络连接后重试。',
     fileErrors: {
-      size: '此文件大小为 {{bytes, number}} 字节。DX7 音色库文件必须正好为 {{expected, number}} 字节。',
+      size: '此文件大小为 {{bytes, number}} 字节，不包含完整的 DX7 音色库。音色库文件为 {{expected, number}} 字节；合并多个音色库时，为其整数倍。',
+      tooLarge: '此文件过大。一个音色库文件最多可合并 {{count, number}} 个 DX7 音色库。',
       format: '此文件不是 Yamaha DX7 32 音色库。',
       damaged: '此文件似乎已损坏。请尝试重新下载。',
       voiceFormat: '此文件不是 DX7 音色。请选择只包含一个音色的 .syx 文件。',
@@ -729,6 +742,7 @@ export default {
     copyOpenFailed: '无法打开复制选项。请重新加载页面后重试。',
     importPatchFile: '导入音色…',
     downloadPatchFile: '下载音色',
+    bankFileUnavailable: '无法读取音色库文件。请重新加载页面后重试。',
     patchFileUnavailable: '无法打开音色文件。请重新加载页面后重试。',
     everywhere: {
       workspace: '你的音色库',

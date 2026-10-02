@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { i18nReady } from '@/i18n'
 import french from '@/i18n/locales/fr'
-import { makeDx7BankFile, parseDx7Bank } from '@/lib/dx7'
+import { Dx7BankFileError, makeDx7BankFile, parseDx7Bank } from '@/lib/dx7'
 import { Dx7CatalogBankUnavailableError } from '@/lib/dx7-bank-catalog'
 import { makeDemoVoices, WorkspaceBankUnavailableError } from '@/lib/patch-library'
 
@@ -27,7 +27,7 @@ describe('bankErrorMessage', () => {
     const t = i18n.getFixedT('en-GB')
 
     expect(bankErrorMessage(t, importError(new Uint8Array(3)), 'Import failed.')).toBe(
-      'This file is 3 bytes. A DX7 bank file must be exactly 4,104 bytes.',
+      'This file is 3 bytes and holds no complete DX7 bank. A bank file is 4,104 bytes, or a multiple of that when it joins several banks.',
     )
   })
 
@@ -35,7 +35,7 @@ describe('bankErrorMessage', () => {
     const t = i18n.getFixedT('en-GB')
 
     expect(bankErrorMessage(t, importError(new Uint8Array(12_345)), 'Import failed.')).toBe(
-      'This file is 12,345 bytes. A DX7 bank file must be exactly 4,104 bytes.',
+      'This file is 12,345 bytes and holds no complete DX7 bank. A bank file is 4,104 bytes, or a multiple of that when it joins several banks.',
     )
   })
 
@@ -44,7 +44,16 @@ describe('bankErrorMessage', () => {
     const format = (value: number) => new Intl.NumberFormat('fr').format(value)
 
     expect(bankErrorMessage(t, importError(new Uint8Array(12_345)), 'Import failed.')).toBe(
-      `Ce fichier fait ${format(12_345)} octets. Un fichier de banque DX7 doit faire exactement ${format(4104)} octets.`,
+      `Ce fichier fait ${format(12_345)} octets et ne contient aucune banque DX7 complète. Un fichier de banque fait ${format(4104)} octets, ou un multiple de cette taille s’il réunit plusieurs banques.`,
+    )
+  })
+
+  it('explains a file larger than the most banks a file may join', () => {
+    const t = i18n.getFixedT('en-GB')
+    const error = new Dx7BankFileError('too-large', 'Too large', 2_000_000)
+
+    expect(bankErrorMessage(t, error, 'Import failed.')).toBe(
+      'This file is too large. A bank file can join up to 256 DX7 banks.',
     )
   })
 

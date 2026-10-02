@@ -291,7 +291,21 @@ export default {
     warning:
       'Der Sound in diesem Slot wird durch den Sound aus der Datei ersetzt, und seine FM1-Effekte werden auf die Standardwerte zurückgesetzt.',
   },
+  bankFile: {
+    legend: 'Bänke in dieser Datei',
+    help: 'Diese Datei enthält eine DX7-Bank.',
+    help_other:
+      'Diese Datei enthält {{count, number}} DX7-Bänke. Wähle die Bank, die du importieren möchtest.',
+    damagedBanks: 'Eine davon ist beschädigt und kann nicht importiert werden.',
+    damagedBanks_other:
+      '{{count, number}} davon sind beschädigt und können nicht importiert werden.',
+    bank: 'Bank {{number}}',
+    option: '{{bank}}: {{contents}}',
+    damaged: 'Beschädigt',
+  },
   overwriteImport: {
+    titleEmpty: 'In „{{bank}}“ importieren',
+    actionEmpty: 'Bank importieren',
     action: 'Bankinhalt ersetzen',
     help: 'Wähle eine Standard-DX7-SysEx-Bankdatei mit 32 Voices.',
     play: '{{name}} spielen, Sound {{number}}',
@@ -763,7 +777,9 @@ export default {
     catalogUnavailable:
       'Diese Soundbank konnte nicht heruntergeladen werden. Prüfe deine Verbindung und versuche es erneut.',
     fileErrors: {
-      size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine DX7-Bankdatei muss genau {{expected, number}} Bytes groß sein.',
+      size: 'Diese Datei ist {{bytes, number}} Bytes groß und enthält keine vollständige DX7-Bank. Eine Bankdatei ist {{expected, number}} Bytes groß oder ein Vielfaches davon, wenn sie mehrere Bänke enthält.',
+      tooLarge:
+        'Diese Datei ist zu groß. Eine Bankdatei kann bis zu {{count, number}} DX7-Bänke enthalten.',
       format: 'Diese Datei ist keine Yamaha-DX7-Bank mit 32 Stimmen.',
       damaged: 'Diese Datei scheint beschädigt zu sein. Lade sie erneut herunter.',
       voiceFormat:
@@ -810,6 +826,8 @@ export default {
       'Die Kopieroptionen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     importPatchFile: 'Sound importieren…',
     downloadPatchFile: 'Sound herunterladen',
+    bankFileUnavailable:
+      'Bankdateien konnten nicht gelesen werden. Lade die Seite neu und versuche es erneut.',
     patchFileUnavailable:
       'Sounddateien konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     everywhere: {
