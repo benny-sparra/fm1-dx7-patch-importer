@@ -416,6 +416,8 @@ open everything an earlier release could have saved.
 - A patch card leaves room for a full ten-character DX7 name beside its heart and menu at every
   width from 360 px, which `e2e/librarian.e2e.ts` checks. The name font is monospaced, so a name is
   about 93 px; give a new control on the card the room back by tightening the card, not the name.
+  Every control on the card is at least 24 px square (WCAG 2.5.8), which the same file checks: the
+  heart sits on the slot's own button, so spacing cannot excuse a smaller target.
 - Favourites are sent to the FM1 as one 32-voice bank: the first 32, and INIT VOICE after a shorter
   list. Say which before and after sending: in the destination instructions
   (`Fm1BankSelectionDialog`'s `note`) and in the sent message.

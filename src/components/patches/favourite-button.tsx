@@ -49,7 +49,7 @@ export function FavouriteButton({ isFavourite, name, onToggle }: FavouriteButton
       aria-label={t('favourites.toggle', { name })}
       aria-pressed={isFavourite}
       className={cn(
-        'z-[1] -my-1 grid h-6 w-5 shrink-0 cursor-pointer place-items-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)]',
+        'z-[1] -my-1 grid size-6 shrink-0 cursor-pointer place-items-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)]',
         isFavourite
           ? 'text-[var(--crt-led)] hover:text-[var(--crt-acc-br)]'
           : 'text-[var(--crt-ink-4)] hover:text-[var(--crt-acc-lt)]',
