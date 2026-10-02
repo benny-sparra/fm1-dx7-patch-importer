@@ -12,6 +12,8 @@ export const dx7BankVoiceCount = 32
 export const dx7PackedVoiceSize = 128
 const dx7BankDataSize = dx7BankVoiceCount * dx7PackedVoiceSize
 export const dx7BankFileSize = dx7BankDataSize + 8
+/** The most banks one file may join, so a large file chosen by mistake is refused unread. */
+export const dx7BankArchiveMaximumBanks = 256
 const feedbackIndex = getGlobalParameterDefinition('global.feedback').voiceIndex
 const oscillatorSyncIndex = getGlobalParameterDefinition('global.oscillatorSync').voiceIndex
 const lfoSpeedIndex = getGlobalParameterDefinition('global.lfoSpeed').voiceIndex
@@ -61,7 +63,8 @@ export function normalizeStoredDx7Voice(value: unknown): Dx7Voice | null {
   return { data: normalized, name: typeof name === 'string' ? name : decodeVoiceName(normalized) }
 }
 
-type Dx7BankFileProblem = 'checksum' | 'format' | 'high-bit-data' | 'size'
+// 'too-large' is a file larger than the most banks a file may join (src/lib/dx7-bank-archive.ts).
+type Dx7BankFileProblem = 'checksum' | 'format' | 'high-bit-data' | 'size' | 'too-large'
 
 /** A bank file that cannot be imported, with a problem code the UI can explain in any language. */
 export class Dx7BankFileError extends Error {
@@ -118,15 +121,6 @@ export function parseDx7Bank(file: ArrayBuffer): Dx7Voice[] {
     const data = voiceData.slice(index * dx7PackedVoiceSize, (index + 1) * dx7PackedVoiceSize)
     return { data, name: decodeVoiceName(data) }
   })
-}
-
-/**
- * Reads a bank file the user chose. A file of the wrong size is rejected before it is loaded, so
- * picking a large file by mistake does not read all of it into memory.
- */
-export async function readDx7BankFile(file: Blob) {
-  if (file.size !== dx7BankFileSize) throw bankSizeError(file.size)
-  return parseDx7Bank(await file.arrayBuffer())
 }
 
 export function updateDx7VoiceName(voice: Dx7Voice, name: string): Dx7Voice {

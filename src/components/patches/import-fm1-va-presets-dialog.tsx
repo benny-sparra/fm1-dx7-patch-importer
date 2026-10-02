@@ -10,10 +10,17 @@ import {
   Dialog,
   DialogBody,
   DialogCloseButton,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
+import {
+  RackPanelCollapseToggle,
+  RackPanelCollapsibleBody,
+  RackPanelTitle,
+} from '@/components/ui/rack-panel'
+import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/toast'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
@@ -72,6 +79,8 @@ export function ImportFm1VaPresetsDialog({
   onPlay,
 }: ImportFm1VaPresetsDialogProps) {
   const { i18n, t } = useTranslation()
+  // The actions sit in the pinned footer, outside the form, and submit it by its id.
+  const formId = useId()
   const toast = useToast()
   const workspaceBankLabel = useWorkspaceBankLabel(library)
   const descriptionId = useId()
@@ -181,7 +190,7 @@ export function ImportFm1VaPresetsDialog({
           <p>{t('fm1VaImport.effectsNote')}</p>
         </div>
 
-        <form className="grid gap-5 p-5" onSubmit={submit}>
+        <form id={formId} className="grid gap-5 p-5" onSubmit={submit}>
           <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <TriangleAlert className="mt-0.5 size-5 shrink-0" />
             <p>{t('fm1VaImport.warning')}</p>
@@ -202,18 +211,18 @@ export function ImportFm1VaPresetsDialog({
           </label>
 
           {banks ? (
-            <section aria-labelledby={`${titleId}-preview`} className="grid gap-4">
+            <section aria-labelledby={`${titleId}-preview`} className="grid gap-3">
               <div className="grid gap-1">
                 <h3 className="text-sm font-semibold" id={`${titleId}-preview`}>
                   {t('fm1VaImport.previewTitle')}
                 </h3>
                 <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.previewHelp')}</p>
+                {virtualAnalogCount > 0 ? (
+                  <p className="text-xs text-[var(--crt-ink-3)]">
+                    {t('fm1VaImport.virtualAnalogPresets', { count: virtualAnalogCount })}
+                  </p>
+                ) : null}
               </div>
-              {virtualAnalogCount > 0 ? (
-                <p className="text-xs text-[var(--crt-ink-3)]">
-                  {t('fm1VaImport.virtualAnalogPresets', { count: virtualAnalogCount })}
-                </p>
-              ) : null}
               {damagedCount > 0 ? (
                 <ErrorNotice>
                   {t('fm1VaImport.damagedPresets', { count: damagedCount })}
@@ -238,15 +247,19 @@ export function ImportFm1VaPresetsDialog({
           ) : null}
 
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
-
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button disabled={takenBanks.length === 0} type="submit" variant="destructive">
-              <Upload />
-              <span>{t('fm1VaImport.action', { count: takenBanks.length })}</span>
-            </Button>
-          </div>
         </form>
       </DialogBody>
+      <DialogFooter>
+        <Button
+          disabled={takenBanks.length === 0}
+          form={formId}
+          type="submit"
+          variant="destructive"
+        >
+          <Upload />
+          <span>{t('fm1VaImport.action', { count: takenBanks.length })}</span>
+        </Button>
+      </DialogFooter>
     </Dialog>
   )
 }
@@ -271,51 +284,68 @@ function PresetFileBank({
 }: PresetFileBankProps) {
   const { i18n, t } = useTranslation()
   const headingId = useId()
+  const bodyId = useId()
+  // Banks start folded, so the four fit without scrolling; one is opened to hear its patches.
+  const [collapsed, setCollapsed] = useState(true)
   const numberFormat = new Intl.NumberFormat(i18n.resolvedLanguage)
   const { bank, presets } = fileBank
+  const title = t('fm1VaImport.bankHeading', { bank })
 
   return (
-    <section aria-labelledby={headingId} className="grid gap-2">
-      <div className="grid gap-0.5">
-        <h4 className="text-sm font-semibold" id={headingId}>
-          {t('fm1VaImport.bankHeading', { bank })}
-        </h4>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            checked={taken}
-            className="size-4 accent-[var(--crt-acc)]"
-            disabled={!hasImportableVoice(fileBank)}
-            onChange={(event) => onToggle(event.target.checked)}
-            type="checkbox"
-          />
-          <span>
-            {libraryBankName === null
-              ? t('fm1VaImport.addBank', { bank })
-              : t('fm1VaImport.replaceBank', { name: libraryBankName })}
+    <section aria-labelledby={headingId} className="synthwave-panel min-w-0">
+      <RackPanelTitle
+        action={
+          <span className="flex shrink-0 items-center gap-2">
+            {/* Above the strip's fold overlay, so switching a bank does not also fold it. */}
+            <Switch
+              checked={taken}
+              className="relative z-10 inline-flex min-h-6 items-center gap-2 px-2 text-[11px] tracking-[0.1em] uppercase transition-colors"
+              disabled={!hasImportableVoice(fileBank)}
+              onChange={onToggle}
+            >
+              <span>
+                {libraryBankName === null
+                  ? t('fm1VaImport.addBank', { bank })
+                  : t('fm1VaImport.replaceBank', { name: libraryBankName })}
+              </span>
+            </Switch>
+            <RackPanelCollapseToggle
+              collapsed={collapsed}
+              controls={bodyId}
+              onToggle={() => setCollapsed((current) => !current)}
+              panel={title}
+            />
           </span>
-        </label>
-      </div>
-      <ul className="grid grid-cols-2 gap-1 sm:grid-cols-4">
-        {presets.map((preset, index) => (
-          <li key={index}>
-            {preset.kind === 'fm' ? (
-              <PreviewPatchButton
-                isPlaying={preset.voice === playing}
-                label={t('overwriteImport.play', {
-                  name: preset.voice.name.trim(),
-                  number: numberFormat.format(index + 1),
-                })}
-                name={preset.voice.name}
-                number={index + 1}
-                onClick={() => onPlay(preset.voice)}
-                playingLabel={t('banks.auditioning')}
-              />
-            ) : (
-              <KeptPresetCell number={index + 1} preset={preset} />
-            )}
-          </li>
-        ))}
-      </ul>
+        }
+        headingLevel={4}
+        id={headingId}
+        title={title}
+      />
+      <RackPanelCollapsibleBody collapsed={collapsed} id={bodyId}>
+        {/* Positioned, so the cells' visually hidden text folds away with the bank rather than
+            stretching the dialog's scrolling body. */}
+        <ul className="relative grid grid-cols-2 gap-1 p-2 sm:grid-cols-4">
+          {presets.map((preset, index) => (
+            <li key={index}>
+              {preset.kind === 'fm' ? (
+                <PreviewPatchButton
+                  isPlaying={preset.voice === playing}
+                  label={t('overwriteImport.play', {
+                    name: preset.voice.name.trim(),
+                    number: numberFormat.format(index + 1),
+                  })}
+                  name={preset.voice.name}
+                  number={index + 1}
+                  onClick={() => onPlay(preset.voice)}
+                  playingLabel={t('banks.auditioning')}
+                />
+              ) : (
+                <KeptPresetCell number={index + 1} preset={preset} />
+              )}
+            </li>
+          ))}
+        </ul>
+      </RackPanelCollapsibleBody>
     </section>
   )
 }

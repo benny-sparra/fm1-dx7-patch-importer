@@ -1,12 +1,4 @@
-import {
-  ChevronDown,
-  ChevronUp,
-  ClipboardPaste,
-  Copy,
-  type LucideIcon,
-  RadioTower,
-  Route,
-} from 'lucide-react'
+import { ChevronDown, ClipboardPaste, Copy, RadioTower, Route } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { type ReactNode, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -14,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { PortalMenu } from '@/components/ui/portal-menu'
+import { RackPanelTitle } from '@/components/ui/rack-panel'
 import { dx7Algorithms, getDx7OperatorRole, type Dx7AlgorithmOperator } from '@/lib/dx7-algorithms'
 import { envelopePath, formatOperatorFrequency, operatorColors } from '@/lib/editor-visuals'
 import { getOperatorAuditionStatus } from '@/lib/operator-audition'
@@ -283,100 +276,14 @@ function AlgorithmDiagram({
   )
 }
 
-/**
- * The title strip every rack panel wears: a hatched bar carrying the panel's
- * name in the dot-matrix face, with room on the right for a panel action.
- */
-export function RackPanelTitle({
-  action,
-  help,
-  icon: Icon,
-  id,
-  title,
-}: {
-  action?: ReactNode
-  help?: { label: string; text: string }
-  icon?: LucideIcon
-  id?: string
-  title: string
-}) {
+/** The help button a rack panel's title strip carries, above the strip's fold overlay. */
+export function RackPanelHelp({ label, text }: { label: string; text: string }) {
   return (
-    <div className="crt-hatch relative flex min-h-8 items-center justify-between gap-3 border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
-      <h2
-        className="font-dot-matrix flex min-w-0 items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase"
-        id={id}
-      >
-        {Icon ? <Icon aria-hidden="true" className="size-4 shrink-0" /> : null}
-        <span className="truncate">{title}</span>
-        {help ? (
-          <HelpPopover
-            className="relative z-10 text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
-            label={help.label}
-            text={help.text}
-          />
-        ) : null}
-      </h2>
-      {action}
-    </div>
-  )
-}
-
-/**
- * The minimise control a rack panel wears at the right of its title strip.
- * Its hit area stretches over the whole strip, so clicking anywhere on the
- * title folds the panel; the help button sits above that overlay.
- * Collapsing keeps the title visible so the rack still reads as a stack.
- */
-export function RackPanelCollapseToggle({
-  collapsed,
-  controls,
-  onToggle,
-  panel,
-}: {
-  collapsed: boolean
-  controls: string
-  onToggle: () => void
-  panel: string
-}) {
-  const { t } = useTranslation()
-  const label = collapsed
-    ? t('editor.expandPanel', { panel })
-    : t('editor.minimisePanel', { panel })
-  const Icon = collapsed ? ChevronDown : ChevronUp
-
-  return (
-    <button
-      aria-controls={controls}
-      aria-expanded={!collapsed}
-      className="flex size-6 shrink-0 cursor-pointer items-center justify-center text-[var(--crt-ink-3)] transition-colors outline-none after:absolute after:inset-0 after:content-[''] hover:text-[var(--crt-acc-lt)] focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-[var(--crt-acc-lt)]"
-      onClick={onToggle}
-      title={label}
-      type="button"
-    >
-      <span className="sr-only">{label}</span>
-      <Icon aria-hidden="true" className="size-4" />
-    </button>
-  )
-}
-
-/**
- * A rack panel's body, folded away by its title strip's minimise control.
- * Visibility is set inline so the collapsed controls leave the accessibility
- * tree; the stylesheet delays that flip until the fold animation has run.
- */
-export function RackPanelCollapsibleBody({
-  children,
-  collapsed,
-  id,
-}: {
-  children: ReactNode
-  collapsed: boolean
-  id: string
-}) {
-  return (
-    <div className="rack-collapsible" data-collapsed={collapsed} id={id}>
-      <div style={{ visibility: collapsed ? 'hidden' : undefined }}>{children}</div>
-    </div>
+    <HelpPopover
+      className="relative z-10 text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
+      label={label}
+      text={text}
+    />
   )
 }
 
@@ -414,7 +321,7 @@ export function AlgorithmPanel({
       className="synthwave-panel relative z-10 flex min-w-0 flex-col text-[var(--crt-ink)]"
     >
       <RackPanelTitle
-        help={{ label: t('editor.algorithm'), text: t('controlHelp.algorithm') }}
+        help={<RackPanelHelp label={t('editor.algorithm')} text={t('controlHelp.algorithm')} />}
         icon={Route}
         id="algorithm-heading"
         title={t('editor.algorithm')}

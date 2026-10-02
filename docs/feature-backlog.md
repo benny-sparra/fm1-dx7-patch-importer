@@ -177,7 +177,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     rendered restore that reverses in one undo, a voice with a byte above 7 bits rejected, and a
     file with one damaged saved bank importing the rest.
 
-- [ ] **Multi-bank `.syx` import.** DX7 archive collections often join several 32-voice dumps in
+- [x] **Multi-bank `.syx` import.** DX7 archive collections often join several 32-voice dumps in
       one file, which bank import refuses today. Split the file into its banks, show each with its
       first few patch names, and import the one chosen.
   - Each bank passes the existing checks: header, length, 7-bit data, and checksum.
@@ -185,6 +185,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     do, rather than rejecting the whole file.
   - Importing over a populated bank keeps its confirmation and Undo. Update the SysEx
     compatibility section of `docs/user-guide.md`.
+  - _Done:_ **Import DX7 bank** and **Add new bank** read up to 256 joined banks through
+    `src/lib/dx7-bank-archive.ts`, which loads when a file is chosen, and list them to choose
+    from. An empty bank still takes a single-bank file at once and opens the dialog only for a
+    file that joins several.
 
 - [x] **Hear a `.syx` file before importing it.** Choosing a bank or patch file lists its patches,
       and clicking one plays it through the FM1 edit buffer, as a search result does, before

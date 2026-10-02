@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { readDx7BankFile, type Dx7Voice } from '@/lib/dx7'
+import type { Dx7Voice } from '@/lib/dx7'
 import {
   favouriteSoundKeys,
   type FavouriteOrigin,
@@ -200,10 +200,8 @@ export function usePatchLibrary() {
   )
 
   const importBank = useCallback(
-    async (bank: string, file: File) => {
-      const imported = await readDx7BankFile(file)
-      return commit((current) => importVoices(current, bank, imported))
-    },
+    (bank: string, imported: Dx7Voice[]) =>
+      commit((current) => importVoices(current, bank, imported)),
     [commit],
   )
 

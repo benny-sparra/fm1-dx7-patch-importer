@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogBody,
   DialogCloseButton,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -23,6 +24,8 @@ export function SaveNamedBankDialog({
   onClose,
 }: SaveNamedBankDialogProps) {
   const { t } = useTranslation()
+  // The actions sit in the pinned footer, outside the form, and submit it by its id.
+  const formId = useId()
   const titleId = useId()
   const descriptionId = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -95,7 +98,7 @@ export function SaveNamedBankDialog({
             {t('namedBanks.snapshotHelp')}
           </p>
 
-          <form className="grid gap-4 p-5" onSubmit={(event) => void submit(event)}>
+          <form id={formId} className="grid gap-4 p-5" onSubmit={(event) => void submit(event)}>
             <label className="grid gap-1 text-sm font-semibold">
               {t('namedBanks.name')}
               <input
@@ -120,14 +123,14 @@ export function SaveNamedBankDialog({
               />
             </label>
             {error ? <ErrorNotice>{error}</ErrorNotice> : null}
-            <div className="flex flex-wrap justify-end gap-2">
-              <Button disabled={working} type="submit">
-                <Save />
-                {t('namedBanks.save')}
-              </Button>
-            </div>
           </form>
         </DialogBody>
+        <DialogFooter>
+          <Button disabled={working} form={formId} type="submit">
+            <Save />
+            {t('namedBanks.save')}
+          </Button>
+        </DialogFooter>
       </Dialog>
     </>
   )

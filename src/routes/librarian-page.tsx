@@ -41,7 +41,6 @@ import {
 } from '@/components/patches/workspace-bank-label'
 import { BankInformationDialog } from '@/components/patches/bank-information-dialog'
 import { DeleteWorkspaceBankDialog } from '@/components/patches/delete-workspace-bank-dialog'
-import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog'
 import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
@@ -128,6 +127,14 @@ const ReplacePatchDialog = lazy(() =>
 const RestoreBackupDialog = lazy(() =>
   import('@/components/patches/restore-backup-dialog').then((module) => ({
     default: module.RestoreBackupDialog,
+  })),
+)
+
+// Importing a DX7 bank opens from a bank's menu, with the bank picker, on first use; the file
+// reader that splits joined banks loads when a file is chosen.
+const ImportDx7BankDialog = lazy(() =>
+  import('@/components/patches/import-dx7-bank-dialog').then((module) => ({
+    default: module.ImportDx7BankDialog,
   })),
 )
 
@@ -273,7 +280,13 @@ export function LibrarianPage({
   // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
   // menu toggle that focus returns to.
   const [bankPendingDeletion, setBankPendingDeletion] = useState<BankMenuRequest | null>(null)
-  const [bankPendingImport, setBankPendingImport] = useState<BankMenuRequest | null>(null)
+  // An import into an empty bank opens the dialog only when its file joins several banks, which
+  // arrives with the file chosen.
+  const [bankPendingImport, setBankPendingImport] = useState<
+    (BankMenuRequest & { file?: File }) | null
+  >(null)
+  // The bank menu toggle an import into an empty bank was started from, for focus to return to.
+  const emptyBankImportOpenerRef = useRef<HTMLElement | null>(null)
   const [isRestoringFactoryBanks, setIsRestoringFactoryBanks] = useState(false)
   // Sending a bank first explains what it needs: a MIDI output, or the destination on the FM1.
   const [sendGuide, setSendGuide] = useState<'bank-selection' | 'midi-required' | null>(null)
@@ -333,6 +346,7 @@ export function LibrarianPage({
       })
       return
     }
+    emptyBankImportOpenerRef.current = menuToggleOf(opener)
     importTargetRef.current.begin(bank)
     importInputRef.current?.click()
   }
@@ -467,9 +481,29 @@ export function LibrarianPage({
     const importTarget = importTargetRef.current.consume()
     if (!importTarget) return
     setIsImporting(true)
+    let archive: typeof import('@/lib/dx7-bank-archive')
     try {
-      await library.importBank(importTarget, file)
+      archive = await import('@/lib/dx7-bank-archive')
+    } catch {
+      setIsImporting(false)
+      event.target.value = ''
+      setDialogLoadError(t('banks.bankFileUnavailable'))
+      return
+    }
+    try {
+      const fileBanks = await archive.readDx7BankArchive(file)
       setImportError('')
+      const [only] = fileBanks
+      if (fileBanks.length > 1 || !only.voices) {
+        setBankPendingImport({
+          bank: importTarget,
+          file,
+          name: bankDisplayName(importTarget),
+          opener: emptyBankImportOpenerRef.current,
+        })
+        return
+      }
+      library.importBank(importTarget, only.voices)
       trackAnalyticsEvent({ data: { source: 'file' }, name: 'bank_imported' })
       toast.success(t('toasts.bankImported', { bank: bankDisplayName(importTarget) }))
     } catch (error) {
@@ -1122,17 +1156,29 @@ export function LibrarianPage({
         </ErrorBoundary>
       ) : null}
       {bankPendingImport ? (
-        <ImportDx7BankDialog
-          bank={bankPendingImport.bank}
-          bankName={bankPendingImport.name}
-          library={library}
-          onClose={() => {
+        <ErrorBoundary
+          onError={() => {
             setBankPendingImport(null)
-            bankPendingImport.opener?.focus()
+            setDialogLoadError(t('banks.bankFileUnavailable'))
           }}
-          // A file's patch has no FM1 effects, so it plays with the defaults, as a catalog result does.
-          onPlay={(voice) => onPlaySearchResult(voice, undefined)}
-        />
+        >
+          <Suspense fallback={null}>
+            <ImportDx7BankDialog
+              bank={bankPendingImport.bank}
+              bankName={bankPendingImport.name}
+              initialFile={bankPendingImport.file}
+              library={library}
+              onClose={() => {
+                setBankPendingImport(null)
+                bankPendingImport.opener?.focus()
+              }}
+              // A file's patch has no FM1 effects, so it plays with the defaults, as a catalog
+              // result does.
+              onPlay={(voice) => onPlaySearchResult(voice, undefined)}
+              replacing={!bankPendingImport.file}
+            />
+          </Suspense>
+        </ErrorBoundary>
       ) : null}
       {bankPendingDeletion ? (
         <DeleteWorkspaceBankDialog

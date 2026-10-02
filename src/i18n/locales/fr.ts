@@ -290,7 +290,20 @@ export default {
     warning:
       'Le son de cet emplacement sera remplacé par celui du fichier, et ses effets FM1 reviendront à leurs valeurs par défaut.',
   },
+  bankFile: {
+    legend: 'Banques de ce fichier',
+    help: 'Ce fichier contient une banque DX7.',
+    help_other: 'Ce fichier réunit {{count, number}} banques DX7. Choisissez celle à importer.',
+    damagedBanks: 'L’une d’elles est endommagée et ne peut pas être importée.',
+    damagedBanks_other:
+      '{{count, number}} d’entre elles sont endommagées et ne peuvent pas être importées.',
+    bank: 'Banque {{number}}',
+    option: '{{bank}} : {{contents}}',
+    damaged: 'Endommagée',
+  },
   overwriteImport: {
+    titleEmpty: 'Importer dans « {{bank}} »',
+    actionEmpty: 'Importer la banque',
     action: 'Remplacer le contenu',
     help: 'Choisissez un fichier de banque SysEx DX7 standard de 32 voix.',
     play: 'Écouter {{name}}, son {{number}}',
@@ -305,24 +318,21 @@ export default {
     menuItem: 'Importer les presets FM-1+VA…',
     menuContents: 'Banques A à D du fichier écrit par « Save a backup »',
     title: 'Importer les presets FM-1+VA',
-    help: 'Choisissez le fichier .syx enregistré par « Save a backup » sur la page Presets de FM-1+VA. Il contient les 128 presets des banques A à D du FM1.',
+    help: 'Choisissez le fichier de « Save a backup » sur la page Presets de FM-1+VA.',
     effectsNote:
-      'Seuls les sons sont importés. Le fichier contient aussi les effets de chaque preset, mais l’éditeur ne sait pas encore les lire : chaque son importé commence donc avec ses effets désactivés.',
-    warning:
-      'Chaque banque cochée remplace les sons de la même banque ici. Vous pourrez annuler l’importation ensuite.',
+      'Les effets ne sont pas encore importés : chaque son arrive avec ses effets désactivés.',
+    warning: 'Chaque banque activée remplace la même banque ici. Vous pourrez l’annuler.',
     file: 'Fichier de presets FM-1+VA',
     chooseFile: 'Choisir le fichier de « Save a backup »',
     previewTitle: 'Banques de ce fichier',
-    previewHelp:
-      'Cliquez sur un son pour l’écouter sur le FM1. Décochez une banque pour la laisser telle quelle.',
+    previewHelp: 'Ouvrez une banque pour écouter ses sons sur le FM1.',
     bankHeading: 'Banque {{bank}} du FM1',
     replaceBank: 'Remplacer « {{name}} »',
     addBank: 'L’ajouter comme nouvelle banque',
     damagedPreset: 'Endommagé',
-    damagedPresets:
-      'Un preset de ce fichier est endommagé. Son emplacement garde le son qu’il contient.',
+    damagedPresets: 'Un preset est endommagé. Son emplacement garde son son.',
     damagedPresets_other:
-      '{{count, number}} presets de ce fichier sont endommagés. Leurs emplacements gardent les sons qu’ils contiennent.',
+      '{{count, number}} presets sont endommagés. Leurs emplacements gardent leurs sons.',
     action: 'Remplacer une banque',
     action_other: 'Remplacer {{count, number}} banques',
     imported: 'Banque {{banks}} importée depuis FM-1+VA.',
@@ -331,9 +341,9 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Preset Virtual Analog, non importé',
     virtualAnalogPresets:
-      'Un preset de ce fichier est un preset Virtual Analog, marqué VA. L’éditeur ne sait pas encore les conserver : son emplacement garde donc le son qu’il contient.',
+      'VA signale un preset Virtual Analog, qui ne peut pas encore être importé. Son emplacement garde son son.',
     virtualAnalogPresets_other:
-      '{{count, number}} presets de ce fichier sont des presets Virtual Analog, marqués VA. L’éditeur ne sait pas encore les conserver : leurs emplacements gardent donc les sons qu’ils contiennent.',
+      'VA signale {{count, number}} presets Virtual Analog, qui ne peuvent pas encore être importés. Leurs emplacements gardent leurs sons.',
     errors: {
       size: 'Ce fichier fait {{bytes, number}} octets. Un fichier de « Save a backup » de FM-1+VA fait exactement {{expected, number}} octets.',
       format: 'Ce fichier n’a pas été enregistré par « Save a backup » de FM-1+VA.',
@@ -759,7 +769,9 @@ export default {
     catalogUnavailable:
       'Impossible de télécharger cette banque de sons. Vérifiez votre connexion, puis réessayez.',
     fileErrors: {
-      size: 'Ce fichier fait {{bytes, number}} octets. Un fichier de banque DX7 doit faire exactement {{expected, number}} octets.',
+      size: 'Ce fichier fait {{bytes, number}} octets et ne contient aucune banque DX7 complète. Un fichier de banque fait {{expected, number}} octets, ou un multiple de cette taille s’il réunit plusieurs banques.',
+      tooLarge:
+        'Ce fichier est trop volumineux. Un fichier de banques peut réunir jusqu’à {{count, number}} banques DX7.',
       format: 'Ce fichier n’est pas une banque Yamaha DX7 de 32 voix.',
       damaged: 'Ce fichier semble endommagé. Essayez de le télécharger à nouveau.',
       voiceFormat:
@@ -804,6 +816,8 @@ export default {
     copyOpenFailed: 'Impossible d’ouvrir les options de copie. Rechargez la page et réessayez.',
     importPatchFile: 'Importer un son…',
     downloadPatchFile: 'Télécharger le son',
+    bankFileUnavailable:
+      'Impossible de lire les fichiers de banque. Rechargez la page et réessayez.',
     patchFileUnavailable:
       'Impossible d’ouvrir les fichiers de son. Rechargez la page et réessayez.',
     everywhere: {

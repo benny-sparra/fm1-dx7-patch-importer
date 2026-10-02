@@ -100,6 +100,29 @@ test('imports a valid DX7 SysEx bank into a populated workspace bank', async ({ 
   await expect(page.getByText('Imported patches into “Bank 1”.')).toBeVisible()
 })
 
+test('imports the bank chosen from a file that joins several', async ({ page }) => {
+  await openLibrarian(page)
+  await openFirstBankMenu(page)
+  await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
+
+  const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
+  const [rom1a, rom1b] = await Promise.all([
+    readFile(factoryBank),
+    readFile('public/dx7-banks/factory/rom1b.syx'),
+  ])
+  await dialog.getByLabel('Patch data').setInputFiles({
+    buffer: Buffer.concat([rom1a, rom1b]),
+    mimeType: 'application/octet-stream',
+    name: 'rom1.syx',
+  })
+  await dialog.getByRole('radio', { name: /^Bank 2: PIANO 4, / }).check()
+  await expect(dialog.getByRole('button', { name: 'Play PIANO 4, patch 1' })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Replace bank contents' }).click()
+
+  await expect(page.getByText('Imported patches into “Bank 1”.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Send PIANO 4 to FM1' })).toBeVisible()
+})
+
 test('rejects an invalid DX7 SysEx bank without closing the replacement dialog', async ({
   page,
 }) => {
@@ -116,10 +139,71 @@ test('rejects an invalid DX7 SysEx bank without closing the replacement dialog',
 
   // The file is read as it is chosen, so the problem shows before anything can be replaced.
   await expect(dialog.getByRole('alert')).toHaveText(
-    'This file is 3 bytes. A DX7 bank file must be exactly 4,104 bytes.',
+    'This file is 3 bytes and holds no complete DX7 bank. A bank file is 4,104 bytes, or a multiple of that when it joins several banks.',
   )
   await expect(dialog.getByRole('button', { name: 'Replace bank contents' })).toBeDisabled()
   await expect(dialog).toBeVisible()
+})
+
+/** A file laid out as FM-1+VA's "Save a backup" writes one: 128 blank FM presets, A01 to D32. */
+function fm1VaPresetsFile() {
+  const messages = Array.from({ length: 128 }, (_, slot) => {
+    const voice = new Uint8Array(155)
+    const name = `${'ABCD'[slot >> 5]}${String((slot % 32) + 1).padStart(2, '0')} FM`.padEnd(10)
+    voice.set(Buffer.from(name, 'ascii'), 145)
+    const record = new Uint8Array(68)
+    // Record byte 18 is the engine marker, 03 for an FM preset (docs/fm1-research.md).
+    record[21] = 0x03
+    const payload = [...voice, ...record]
+    const checksum = payload.reduce((sum, byte) => sum + (~byte & 0x7f), 0) & 0x7f
+    return [0xf0, 0x43, 0x00, 0x7d, 0x04, slot, ...payload, checksum, 0xf7]
+  })
+  return {
+    buffer: Buffer.from(messages.flat()),
+    mimeType: 'application/octet-stream',
+    name: 'FM-1 presets.syx',
+  }
+}
+
+test('switches an FM-1+VA bank on and off without folding it, and folds it from its title', async ({
+  page,
+}) => {
+  await openLibrarian(page)
+  await page.getByLabel('More bank file actions').click()
+  await page.getByRole('button', { name: 'Import FM-1+VA presets…' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Import FM-1+VA presets' })
+  await dialog.getByLabel('FM-1+VA presets file').setInputFiles(fm1VaPresetsFile())
+
+  const bankA = dialog.getByRole('region', { name: 'FM1 bank A' })
+  const firstPatch = bankA.getByRole('button', { name: 'Play A01 FM, patch 1' })
+  const bankSwitch = bankA.getByRole('switch', { name: 'Replace “Bank 1”' })
+  await expect(bankSwitch).toBeChecked()
+  await expect(firstPatch).toBeHidden()
+
+  // The switch's input is hidden under its drawn track, so it is operated through its label, which
+  // sits above the strip's fold overlay: it switches the bank and folds nothing.
+  const switchLabel = bankA.getByText('Replace “Bank 1”', { exact: true })
+  await switchLabel.click()
+  await expect(bankSwitch).not.toBeChecked()
+  await expect(firstPatch).toBeHidden()
+  await expect(dialog.getByRole('button', { name: 'Replace 3 banks' })).toBeVisible()
+
+  // Anywhere else on the strip unfolds the bank: its fold control's hit area is a CSS overlay
+  // across the strip, which only a real browser lays out, so the click lands by position.
+  const title = await bankA.getByRole('heading', { name: 'FM1 bank A' }).boundingBox()
+  expect(title).not.toBeNull()
+  await page.mouse.click(title!.x + title!.width / 2, title!.y + title!.height / 2)
+  await expect(firstPatch).toBeVisible()
+  await switchLabel.click()
+  await expect(bankSwitch).toBeChecked()
+  await expect(firstPatch).toBeVisible()
+
+  // With every bank open the body scrolls, but the title and the action stay pinned in view.
+  for (const bank of ['B', 'C', 'D']) {
+    await dialog.getByRole('button', { name: `Expand FM1 bank ${bank}` }).click()
+  }
+  await expect(dialog.getByRole('button', { name: 'Replace 4 banks' })).toBeInViewport()
+  await expect(dialog.getByRole('heading', { name: 'Import FM-1+VA presets' })).toBeInViewport()
 })
 
 test('downloads a complete DX7 bank file', async ({ page }) => {

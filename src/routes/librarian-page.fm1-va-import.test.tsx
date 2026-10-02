@@ -101,10 +101,9 @@ describe('LibrarianPage FM-1+VA import', () => {
     const { onPlaySearchResult, user } = renderPage()
     await openImport(user)
     await user.upload(screen.getByLabelText(/FM-1\+VA presets file/), makeFm1VaBackupFile())
+    await user.click(await screen.findByRole('button', { name: 'Expand FM1 bank A' }))
 
-    await user.click(
-      await screen.findByRole('button', { name: `Play ${fm1VaTestPatchName(0)}, patch 1` }),
-    )
+    await user.click(screen.getByRole('button', { name: `Play ${fm1VaTestPatchName(0)}, patch 1` }))
 
     expect(onPlaySearchResult).toHaveBeenCalledWith(
       expect.objectContaining({ name: fm1VaTestPatchName(0) }),

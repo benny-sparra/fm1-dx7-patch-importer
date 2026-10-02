@@ -32,7 +32,10 @@ export function Dialog({
     // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog
       className={cn(
-        'modal-surface fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] overflow-x-hidden overflow-y-auto border-2 border-[var(--crt-acc-lt)] bg-[var(--crt-bg-panel2)] p-0 whitespace-normal text-[var(--crt-ink)]',
+        'modal-surface fixed inset-0 z-50 m-auto max-h-[calc(100svh-2rem)] overflow-hidden border-2 border-[var(--crt-acc-lt)] bg-[var(--crt-bg-panel2)] p-0 whitespace-normal text-[var(--crt-ink)]',
+        // Open, it stacks its title bar, body, and footer, and only the body scrolls, so the
+        // scrollbar starts below the title. Closed, the browser's display: none must still apply.
+        'open:flex open:flex-col',
         dialogWidths[size],
         className,
       )}
@@ -61,7 +64,7 @@ export function Dialog({
 export function DialogHeader({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div
-      className={cn('crt-titlebar flex items-center gap-2 px-2.5 pt-[7px]', className)}
+      className={cn('crt-titlebar flex shrink-0 items-center gap-2 px-2.5 pt-[7px]', className)}
       {...props}
     />
   )
@@ -82,16 +85,17 @@ export function DialogTitle({ children, className, ...props }: ComponentPropsWit
 }
 
 /**
- * The recessed well the dialog's content sits in. It carries the inset
- * border and ground only — its children bring their own padding, so it can
- * wrap existing dialog bodies without doubling their spacing. Without a
- * footer below it, it keeps the same margin from the frame as at its sides.
+ * The recessed well the dialog's content sits in, and the part that scrolls when it is taller than
+ * the window. It carries the inset border and ground only — its children bring their own padding,
+ * so it can wrap existing dialog bodies without doubling their spacing. Without a footer below it,
+ * it keeps the same margin from the frame as at its sides. It is positioned, so visually hidden
+ * inputs and text inside stay within the part that scrolls rather than extending the dialog.
  */
-export function DialogBody({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
+export function DialogBody({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       className={cn(
-        'mx-2.5 mt-2 border-t border-r border-b border-l border-t-[var(--crt-shadow)] border-r-[var(--crt-line)] border-b-[var(--crt-line)] border-l-[var(--crt-shadow)] bg-[var(--crt-bg-1)] text-[var(--crt-ink)] last:mb-2.5',
+        'relative mx-2.5 mt-2 min-h-0 overflow-x-hidden overflow-y-auto border-t border-r border-b border-l border-t-[var(--crt-shadow)] border-r-[var(--crt-line)] border-b-[var(--crt-line)] border-l-[var(--crt-shadow)] bg-[var(--crt-bg-1)] text-[var(--crt-ink)] last:mb-2.5',
         className,
       )}
       {...props}
@@ -103,7 +107,7 @@ export function DialogFooter({ className, ...props }: ComponentPropsWithoutRef<'
   return (
     <div
       className={cn(
-        'mt-3 flex border-t border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-3 py-2.5',
+        'mt-3 flex shrink-0 border-t border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-3 py-2.5',
         // A className replaces the default alignment, since cn does not merge conflicting classes.
         className ?? 'justify-end gap-2',
       )}

@@ -288,7 +288,19 @@ export default {
     warning:
       'El sonido de esta ranura se sustituirá por el del archivo y sus efectos FM1 volverán a los valores predeterminados.',
   },
+  bankFile: {
+    legend: 'Bancos de este archivo',
+    help: 'Este archivo contiene un banco DX7.',
+    help_other: 'Este archivo reúne {{count, number}} bancos DX7. Elige el que quieres importar.',
+    damagedBanks: 'Uno de ellos está dañado y no se puede importar.',
+    damagedBanks_other: '{{count, number}} de ellos están dañados y no se pueden importar.',
+    bank: 'Banco {{number}}',
+    option: '{{bank}}: {{contents}}',
+    damaged: 'Dañado',
+  },
   overwriteImport: {
+    titleEmpty: 'Importar en «{{bank}}»',
+    actionEmpty: 'Importar banco',
     action: 'Reemplazar contenido',
     help: 'Elige un archivo de banco SysEx DX7 estándar de 32 voces.',
     play: 'Escuchar {{name}}, sonido {{number}}',
@@ -303,24 +315,20 @@ export default {
     menuItem: 'Importar presets de FM-1+VA…',
     menuContents: 'Bancos A a D del archivo que escribe «Save a backup»',
     title: 'Importar presets de FM-1+VA',
-    help: 'Elige el archivo .syx que guarda «Save a backup» en la página Presets de FM-1+VA. Contiene los 128 presets de los bancos A a D del FM1.',
-    effectsNote:
-      'Solo se importan los sonidos. El archivo también guarda los efectos de cada preset, pero el editor todavía no puede leerlos, así que cada sonido importado empieza con los efectos apagados.',
-    warning:
-      'Cada banco que marques reemplaza los sonidos del mismo banco aquí. Puedes deshacer la importación después.',
+    help: 'Elige el archivo de «Save a backup» en la página Presets de FM-1+VA.',
+    effectsNote: 'Los efectos aún no se importan, así que cada sonido llega con ellos apagados.',
+    warning: 'Cada banco activado reemplaza el mismo banco aquí. Puedes deshacerlo.',
     file: 'Archivo de presets de FM-1+VA',
     chooseFile: 'Elige el archivo de «Save a backup»',
     previewTitle: 'Bancos de este archivo',
-    previewHelp:
-      'Haz clic en un sonido para escucharlo en el FM1. Desmarca un banco para dejarlo como está.',
+    previewHelp: 'Abre un banco para escuchar sus sonidos en el FM1.',
     bankHeading: 'Banco {{bank}} del FM1',
     replaceBank: 'Reemplazar «{{name}}»',
     addBank: 'Añadirlo como banco nuevo',
     damagedPreset: 'Dañado',
-    damagedPresets:
-      'Un preset de este archivo está dañado. Su posición conserva el sonido que tiene ahora.',
+    damagedPresets: 'Un preset está dañado. Su posición conserva su sonido.',
     damagedPresets_other:
-      '{{count, number}} presets de este archivo están dañados. Sus posiciones conservan los sonidos que tienen ahora.',
+      '{{count, number}} presets están dañados. Sus posiciones conservan sus sonidos.',
     action: 'Reemplazar un banco',
     action_other: 'Reemplazar {{count, number}} bancos',
     imported: 'Banco {{banks}} importado de FM-1+VA.',
@@ -330,9 +338,9 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Preset Virtual Analog, no se importa',
     virtualAnalogPresets:
-      'Un preset de este archivo es Virtual Analog, marcado con VA. El editor todavía no puede guardarlos, así que su posición conserva el sonido que tiene ahora.',
+      'VA marca un preset Virtual Analog, que aún no se puede importar. Su posición conserva su sonido.',
     virtualAnalogPresets_other:
-      '{{count, number}} presets de este archivo son Virtual Analog, marcados con VA. El editor todavía no puede guardarlos, así que sus posiciones conservan los sonidos que tienen ahora.',
+      'VA marca {{count, number}} presets Virtual Analog, que aún no se pueden importar. Sus posiciones conservan sus sonidos.',
     errors: {
       size: 'Este archivo tiene {{bytes, number}} bytes. Un archivo de «Save a backup» de FM-1+VA tiene exactamente {{expected, number}} bytes.',
       format: 'Este archivo no se guardó con «Save a backup» de FM-1+VA.',
@@ -755,7 +763,9 @@ export default {
     catalogUnavailable:
       'No se pudo descargar ese banco de sonidos. Comprueba tu conexión y vuelve a intentarlo.',
     fileErrors: {
-      size: 'Este archivo tiene {{bytes, number}} bytes. Un archivo de banco DX7 debe tener exactamente {{expected, number}} bytes.',
+      size: 'Este archivo tiene {{bytes, number}} bytes y no contiene ningún banco DX7 completo. Un archivo de banco tiene {{expected, number}} bytes, o un múltiplo de eso si reúne varios bancos.',
+      tooLarge:
+        'Este archivo es demasiado grande. Un archivo de bancos puede reunir hasta {{count, number}} bancos DX7.',
       format: 'Este archivo no es un banco Yamaha DX7 de 32 voces.',
       damaged: 'Este archivo parece dañado. Intenta descargarlo de nuevo.',
       voiceFormat:
@@ -800,6 +810,8 @@ export default {
       'No se pudieron abrir las opciones de copia. Recarga la página e inténtalo de nuevo.',
     importPatchFile: 'Importar sonido…',
     downloadPatchFile: 'Descargar sonido',
+    bankFileUnavailable:
+      'No se pudieron leer los archivos de banco. Recarga la página e inténtalo de nuevo.',
     patchFileUnavailable:
       'No se pudieron abrir los archivos de sonido. Recarga la página e inténtalo de nuevo.',
     everywhere: {

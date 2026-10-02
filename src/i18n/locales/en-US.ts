@@ -17,11 +17,6 @@ export default {
       editTitle: 'Edit and organize',
     },
   },
-  fm1VaImport: {
-    warning:
-      'Each bank you check replaces the patches in the same bank here. You can undo the import afterwards.',
-    previewHelp: 'Click a patch to hear it on the FM1. Uncheck a bank to leave it as it is.',
-  },
   colorway: {
     legend: 'FM1 color finish',
   },

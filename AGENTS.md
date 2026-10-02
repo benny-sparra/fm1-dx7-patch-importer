@@ -224,7 +224,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader and its dialog when **Import FM-1+VA presets…** opens it, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader and its dialog when **Import FM-1+VA presets…** opens it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -233,7 +233,9 @@ open everything an earlier release could have saved.
   it needs no reset, and `onClose` returns focus to the control that opened it. Making another eager
   dialog lazy no longer frees headroom: Rolldown moves the code it shares with the entry into new
   shared chunks, which the entry still loads, and compressing them separately costs as much as the
-  dialog saved. Measure with `npm run bundle:check` before and after any such move.
+  dialog saved. Measure with `npm run bundle:check` before and after any such move. A dialog whose
+  own code is large can still pay: the DX7 bank import dialog, once it carried the bank picker,
+  freed 1.4 KiB when it became lazy.
 - When every name taken from a module is a type, write `import type { A, B }`, not
   `import { type A, type B }`. Under `verbatimModuleSyntax` the second form still emits
   `import '…'`, which keeps the module in the chunk graph: eager code that names a lazy module pulls
@@ -350,6 +352,20 @@ open everything an earlier release could have saved.
   the working labels on bank buttons do, and key the branches of a conditional that swaps layouts
   built from the same element type, as `Fm1BankSelectionDialog` does. Cover it with
   `translatePageText` from `src/test/page-translator.ts`.
+- An on/off choice uses `Switch` from `src/components/ui/switch.tsx`, the slide switch MIDI online
+  uses, not a bare checkbox. A dialog listing several sections that would make it scroll, such as
+  the FM-1+VA import's banks, folds each with the editor's rack panel pieces in
+  `src/components/ui/rack-panel.tsx`; a control on a title strip sits above its fold overlay.
+  `rack-panel` takes its help button as an element (the editor's `RackPanelHelp`) rather than
+  importing `HelpPopover`: importing it made Rolldown split the help popover and analytics out of
+  the entry and cost 1.35 KiB.
+- A dialog built from `Dialog` scrolls only its `DialogBody`, so the title bar and any
+  `DialogFooter` stay in view; put scrolling content in the body, never beside it. A dialog's
+  actions go in its `DialogFooter`, pinned at the bottom, never at the end of the body: a form's
+  submit button there names the form by its `useId` id (`form={formId}`). A list whose rows carry
+  their own actions, such as the saved banks, keeps them in the body. The body is
+  positioned, so visually hidden text inside stays in it; a folding section inside a dialog wraps
+  its contents in a positioned element too, or hidden text in a folded section stretches the body.
 - Show an error in a dialog or on the page with `ErrorNotice` from
   `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
   restyling another paragraph.

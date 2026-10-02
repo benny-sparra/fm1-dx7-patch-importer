@@ -203,8 +203,11 @@ describe('reduced motion', () => {
 
     await user.click(screen.getByRole('button', { name: 'Edit Stage' }))
 
-    expect(classTokens(screen.getByRole('dialog'))).toContain('motion-safe:scroll-smooth')
+    // The dialog's body is what scrolls, so it is the element that must scroll smoothly.
     expect(scrollTo).toHaveBeenCalledWith({ top: 0 })
+    expect(classTokens(scrollTo.mock.contexts[0] as HTMLElement)).toContain(
+      'motion-safe:scroll-smooth',
+    )
     vi.unstubAllGlobals()
     Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo')
   })

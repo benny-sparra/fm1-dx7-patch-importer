@@ -279,7 +279,19 @@ export default {
     warning:
       'The patch in this slot will be replaced by the one in the file, and its FM1 effects reset to their defaults.',
   },
+  bankFile: {
+    legend: 'Banks in this file',
+    help: 'This file holds one DX7 bank.',
+    help_other: 'This file joins {{count, number}} DX7 banks. Choose the one to import.',
+    damagedBanks: 'One of them is damaged and cannot be imported.',
+    damagedBanks_other: '{{count, number}} of them are damaged and cannot be imported.',
+    bank: 'Bank {{number}}',
+    option: '{{bank}}: {{contents}}',
+    damaged: 'Damaged',
+  },
   overwriteImport: {
+    titleEmpty: 'Import into “{{bank}}”',
+    actionEmpty: 'Import bank',
     action: 'Replace bank contents',
     help: 'Choose a standard 32-voice DX7 SysEx bank file.',
     play: 'Play {{name}}, patch {{number}}',
@@ -294,22 +306,19 @@ export default {
     menuItem: 'Import FM-1+VA presets…',
     menuContents: 'Banks A to D from the file its “Save a backup” writes',
     title: 'Import FM-1+VA presets',
-    help: 'Choose the .syx file that “Save a backup” on FM-1+VA’s Presets page saves. It holds the 128 presets in the FM1’s banks A to D.',
-    effectsNote:
-      'Only the patches come in. The file holds each preset’s effects too, but the editor cannot read them yet, so every imported patch starts with its effects off.',
-    warning:
-      'Each bank you tick replaces the patches in the same bank here. You can undo the import afterwards.',
+    help: 'Choose the file from “Save a backup” on FM-1+VA’s Presets page.',
+    effectsNote: 'Effects aren’t imported yet, so each patch arrives with them off.',
+    warning: 'Each bank switched on replaces the same bank here. You can undo this.',
     file: 'FM-1+VA presets file',
     chooseFile: 'Choose the file from “Save a backup”',
     previewTitle: 'Banks in this file',
-    previewHelp: 'Click a patch to hear it on the FM1. Untick a bank to leave it as it is.',
+    previewHelp: 'Open a bank to hear its patches on the FM1.',
     bankHeading: 'FM1 bank {{bank}}',
     replaceBank: 'Replace “{{name}}”',
     addBank: 'Add it as a new bank',
     damagedPreset: 'Damaged',
-    damagedPresets: 'One preset in this file is damaged. Its slot keeps the patch it has now.',
-    damagedPresets_other:
-      '{{count, number}} presets in this file are damaged. Their slots keep the patches they have now.',
+    damagedPresets: 'One preset is damaged. Its slot keeps its patch.',
+    damagedPresets_other: '{{count, number}} presets are damaged. Their slots keep their patches.',
     action: 'Replace one bank',
     action_other: 'Replace {{count, number}} banks',
     imported: 'Imported bank {{banks}} from FM-1+VA.',
@@ -318,9 +327,9 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Virtual Analog preset, not imported',
     virtualAnalogPresets:
-      'One preset in this file is a Virtual Analog preset, marked VA. The editor cannot hold those yet, so its slot keeps the patch it has now.',
+      'VA marks a Virtual Analog preset, which can’t be imported yet. Its slot keeps its patch.',
     virtualAnalogPresets_other:
-      '{{count, number}} presets in this file are Virtual Analog presets, marked VA. The editor cannot hold those yet, so their slots keep the patches they have now.',
+      'VA marks {{count, number}} Virtual Analog presets, which can’t be imported yet. Their slots keep their patches.',
     errors: {
       size: 'This file is {{bytes, number}} bytes. A file from FM-1+VA’s “Save a backup” is exactly {{expected, number}} bytes.',
       format: 'This file was not saved by FM-1+VA’s “Save a backup”.',
@@ -735,7 +744,8 @@ export default {
     catalogUnavailable:
       'That patch bank could not be downloaded. Check your connection, then try again.',
     fileErrors: {
-      size: 'This file is {{bytes, number}} bytes. A DX7 bank file must be exactly {{expected, number}} bytes.',
+      size: 'This file is {{bytes, number}} bytes and holds no complete DX7 bank. A bank file is {{expected, number}} bytes, or a multiple of that when it joins several banks.',
+      tooLarge: 'This file is too large. A bank file can join up to {{count, number}} DX7 banks.',
       format: 'This file is not a Yamaha DX7 32-voice bank.',
       damaged: 'This file looks damaged. Try downloading it again.',
       voiceFormat: 'This file isn’t a DX7 patch. Choose a .syx file that holds a single patch.',
@@ -777,6 +787,7 @@ export default {
     copyOpenFailed: 'The copy options could not be opened. Reload the page and try again.',
     importPatchFile: 'Import patch…',
     downloadPatchFile: 'Download patch',
+    bankFileUnavailable: 'Bank files could not be read. Reload the page and try again.',
     patchFileUnavailable: 'Patch files could not be opened. Reload the page and try again.',
     everywhere: {
       workspace: 'Your patch banks',

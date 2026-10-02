@@ -33,6 +33,7 @@ export function LoadNamedBankDialog({
   const titleId = useId()
   const bankLabel = useWorkspaceBankLabel(library)
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
   const editNameRef = useRef<HTMLInputElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const [description, setDescription] = useState('')
@@ -120,8 +121,8 @@ export function LoadNamedBankDialog({
     setDescription(bank.description)
     setError('')
     setStatus('')
-    // The dialog scrolls smoothly only when motion is allowed (its motion-safe:scroll-smooth class).
-    dialogRef.current?.scrollTo({ top: 0 })
+    // The body scrolls smoothly only when motion is allowed (its motion-safe:scroll-smooth class).
+    bodyRef.current?.scrollTo({ top: 0 })
     window.requestAnimationFrame(() => editNameRef.current?.focus())
   }
 
@@ -129,7 +130,6 @@ export function LoadNamedBankDialog({
     <>
       <Dialog
         aria-labelledby={titleId}
-        className="motion-safe:scroll-smooth"
         onClose={() => {
           reset()
           onClose?.()
@@ -137,11 +137,11 @@ export function LoadNamedBankDialog({
         ref={dialogRef}
         size="3xl"
       >
-        <DialogHeader className="sticky top-0 z-10 bg-[var(--crt-bg-panel2)]">
+        <DialogHeader>
           <DialogTitle id={titleId}>{t('namedBanks.title')}</DialogTitle>
           <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />
         </DialogHeader>
-        <DialogBody>
+        <DialogBody className="motion-safe:scroll-smooth" ref={bodyRef}>
           <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">
             {t('namedBanks.intro', { bank: bankLabel(destinationBank) })}
           </p>

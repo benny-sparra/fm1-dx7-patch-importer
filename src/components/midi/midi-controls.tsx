@@ -6,6 +6,7 @@ import { midiChannels, type MidiController } from '@/hooks/use-midi'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { localeNames, supportedLocales, type SupportedLocale } from '@/i18n/locale'
 import { setLocale } from '@/i18n'
+import { Switch } from '@/components/ui/switch'
 
 import { DeviceSelect } from './device-select'
 
@@ -25,22 +26,12 @@ export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
   }
 
   return (
-    <label className="midi-switch inline-flex min-h-8 items-center gap-2 px-2.5 text-xs tracking-[0.1em] uppercase transition-colors">
-      <input
-        aria-checked={isOnline}
-        checked={isOnline}
-        className="peer sr-only"
-        disabled={midi.isConnecting}
-        onChange={handleChange}
-        role="switch"
-        type="checkbox"
-      />
-      <span aria-hidden="true" className="midi-switch-track" />
+    <Switch checked={isOnline} disabled={midi.isConnecting} onChange={handleChange}>
       {/* The word carries the state, so the switch names what it currently is. */}
       <span>
         {midi.isConnecting ? t('midi.connecting') : isOnline ? t('midi.online') : t('midi.offline')}
       </span>
-    </label>
+    </Switch>
   )
 }
 

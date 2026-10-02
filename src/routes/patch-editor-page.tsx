@@ -10,12 +10,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import {
-  OperatorRack,
-  RackPanelCollapseToggle,
-  RackPanelCollapsibleBody,
-  RackPanelTitle,
-} from '@/components/editor/editor-workspace'
+import { OperatorRack, RackPanelHelp } from '@/components/editor/editor-workspace'
 import { CompareOverlay } from '@/components/editor/compare-overlay'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
 import { EffectsUnit } from '@/components/editor/effects-unit'
@@ -24,6 +19,11 @@ import { OperatorTable } from '@/components/editor/operator-table'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
 import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
+import {
+  RackPanelCollapseToggle,
+  RackPanelCollapsibleBody,
+  RackPanelTitle,
+} from '@/components/ui/rack-panel'
 import type { Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
@@ -308,7 +308,9 @@ export function PatchEditorPage({
                   panel={t('editor.operators')}
                 />
               }
-              help={{ label: t('editor.fmOperators'), text: t('controlHelp.operator') }}
+              help={
+                <RackPanelHelp label={t('editor.fmOperators')} text={t('controlHelp.operator')} />
+              }
               icon={AudioWaveform}
               id="operators-heading"
               title={t('editor.operators')}
