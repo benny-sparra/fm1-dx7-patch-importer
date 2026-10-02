@@ -415,6 +415,11 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       a DX7 voice allows 99 (`docs/fm1-research.md`, "A Virtual Analog preset's voice bytes are
       not a DX7 voice"), so the normalisation stored DX7 voices get on read would change the
       sound. Only the name bytes, 145–154, are ever edited.
+    - Its patch card carries a small VA tag in the corner, like the import dialog's. While
+      FM-1+VA is identified on the ports in use (`firmware.kind` is `fm1-va`), every other card
+      carries an FM tag, so each slot names its engine. On other firmware, or before the
+      firmware is known, FM cards have no tag, because there every playable patch is FM. The
+      tags fit without taking room from a full ten-character name (`e2e/librarian.e2e.ts`).
     - Clicking the slot sends only its Program Change, never a voice: no message the editor sends
       before 4 can carry a Virtual Analog preset. The bank destination instructions on FM-1+VA
       say that writing a bank turns every Virtual Analog preset in it into an FM preset
