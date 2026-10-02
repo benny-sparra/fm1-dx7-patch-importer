@@ -123,7 +123,7 @@ describe('Sentry monitoring', () => {
       },
       user: { email: 'private@example.com' },
     }
-    expect(options.beforeSend?.(event)).toEqual({
+    expect(options.beforeSend?.(event, {})).toEqual({
       request: { url: 'https://example.com/editor' },
     })
   })
@@ -156,7 +156,7 @@ describe('Sentry monitoring', () => {
       },
     }
 
-    expect(options.beforeSend?.(event)).toBeNull()
+    expect(options.beforeSend?.(event, {})).toBeNull()
   })
 
   it('keeps bridge errors that also contain an application frame', async () => {
@@ -186,7 +186,7 @@ describe('Sentry monitoring', () => {
       },
     }
 
-    expect(options.beforeSend?.(event)).toBe(event)
+    expect(options.beforeSend?.(event, {})).toBe(event)
   })
 
   it('drops an iOS Web MIDI app calling its shim before the page has asked for MIDI', async () => {
@@ -211,7 +211,7 @@ describe('Sentry monitoring', () => {
       },
     }
 
-    expect(options.beforeSend?.(event)).toBeNull()
+    expect(options.beforeSend?.(event, {})).toBeNull()
   })
 
   it('keeps reference errors that name any other variable', async () => {
@@ -236,7 +236,54 @@ describe('Sentry monitoring', () => {
       },
     }
 
-    expect(options.beforeSend?.(event)).toBe(event)
+    expect(options.beforeSend?.(event, {})).toBe(event)
+  })
+
+  it('drops an unhandledrejection event another script dispatched with no rejection in it', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const event = {
+      exception: {
+        values: [
+          {
+            type: 'CustomEvent',
+            value: 'Event `CustomEvent` (type=unhandledrejection) captured as promise rejection',
+          },
+        ],
+      },
+    }
+
+    expect(
+      options.beforeSend?.(event, { originalException: new CustomEvent('unhandledrejection') }),
+    ).toBeNull()
+  })
+
+  it('keeps an unhandled rejection the application raised', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const event = {
+      exception: { values: [{ type: 'TypeError', value: 'Cannot read properties of undefined' }] },
+    }
+
+    expect(
+      options.beforeSend?.(event, {
+        originalException: new TypeError('Cannot read properties of undefined'),
+      }),
+    ).toBe(event)
   })
 
   it('provides Sentry handlers for React root errors', async () => {

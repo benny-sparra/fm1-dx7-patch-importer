@@ -88,6 +88,18 @@ function isIosWebMidiShimCallbackError(event: {
   )
 }
 
+// The browser's own rejection event always carries `reason`, so Sentry reports the event object
+// itself only when another script, such as an extension or a Bluebird-style promise library,
+// dispatches an `unhandledrejection` event of its own with nothing in it the app rejected.
+function isSyntheticUnhandledRejection(originalException: unknown) {
+  return (
+    typeof Event !== 'undefined' &&
+    originalException instanceof Event &&
+    originalException.type === 'unhandledrejection' &&
+    !originalException.isTrusted
+  )
+}
+
 export function createMonitoringInitializer({
   dsn,
   environment,
@@ -121,8 +133,12 @@ export function createMonitoringInitializer({
               ),
             }
           },
-          beforeSend(event) {
-            if (isAndroidNavigationLoggerError(event) || isIosWebMidiShimCallbackError(event)) {
+          beforeSend(event, hint) {
+            if (
+              isAndroidNavigationLoggerError(event) ||
+              isIosWebMidiShimCallbackError(event) ||
+              isSyntheticUnhandledRejection(hint.originalException)
+            ) {
               return null
             }
 
