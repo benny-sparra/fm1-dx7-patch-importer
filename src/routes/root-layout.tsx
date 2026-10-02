@@ -70,7 +70,10 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               </h1>
               {!compact ? (
                 <div className="hero-supporting-text text-xs leading-5">
-                  {t('root.intro')} <Dx7BankSourcesDialog />
+                  {/* An inline-block keeps the link beside the sentence when both fit, and lets a
+                      sentence that must wrap balance its lines rather than strand a word. */}
+                  <span className="inline-block text-balance">{t('root.intro')}</span>{' '}
+                  <Dx7BankSourcesDialog />
                 </div>
               ) : null}
             </div>
@@ -93,9 +96,10 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               <MidiPanicButton midi={midi} />
             </div>
 
-            {/* Without the hardware photo to sit on, the firmware badge takes a line of its own, so
-                it never moves the MIDI actions above it. */}
-            {!showHardwareBay && midi.firmware.kind === 'fm1-va' ? (
+            {/* In the compact editor masthead the firmware badge takes a line of its own, so it never
+                moves the MIDI actions above it. A narrow window, which has no room for the hardware
+                photo, leaves it out: MIDI settings still name the firmware. */}
+            {compact && showColorwayImage && midi.firmware.kind === 'fm1-va' ? (
               <div className="col-span-2 flex justify-end">
                 <MidiFirmwareBadge midi={midi} />
               </div>

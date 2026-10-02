@@ -130,3 +130,48 @@ describe('RootLayout unsupported banner', () => {
     expect(unsupportedBanner()).toBeTruthy()
   })
 })
+
+describe('RootLayout firmware badge', () => {
+  const fm1VaMidi = { ...midi, firmware: { identity: 'FM-1_089', kind: 'fm1-va' } } as const
+  const badgeName = 'FM-1+VA firmware by Baud Girl, FM-1_089'
+
+  // Reduced motion stays on, as it is without matchMedia, so nothing animates.
+  const stubWideWindow = () =>
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({
+        addEventListener: vi.fn(),
+        matches: query === '(min-width: 1024px)' || query.includes('prefers-reduced-motion'),
+        removeEventListener: vi.fn(),
+      })),
+    )
+
+  it.each([
+    ['librarian', false],
+    ['editor', true],
+  ])('leaves the badge out of a narrow %s masthead', (_view, compact) => {
+    render(
+      <RootLayout compact={compact} midi={fm1VaMidi}>
+        <div>Content</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    expect(screen.queryByText(badgeName)).toBeNull()
+  })
+
+  it.each([
+    ['librarian', false],
+    ['editor', true],
+  ])('shows the badge in a wide %s masthead', (_view, compact) => {
+    stubWideWindow()
+    render(
+      <RootLayout compact={compact} midi={fm1VaMidi}>
+        <div>Content</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    expect(screen.getByText(badgeName)).toBeTruthy()
+  })
+})
