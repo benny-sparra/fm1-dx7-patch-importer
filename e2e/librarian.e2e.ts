@@ -373,6 +373,26 @@ for (const width of [1280, 768, 360]) {
   })
 }
 
+// WCAG 2.5.8 asks for 24 px targets. The heart sits on the slot's own button and beside the menu,
+// so the spacing exception cannot excuse a smaller one.
+test('gives every patch card control a 24 px target', async ({ page }) => {
+  await page.setViewportSize({ height: 800, width: 360 })
+  await openLibrarian(page)
+
+  const small = await page
+    .locator('.patch-cell button:not([aria-label^="Send "])')
+    .evaluateAll((buttons) =>
+      buttons
+        .filter((button) => {
+          const { height, width } = button.getBoundingClientRect()
+          return width < 24 || height < 24
+        })
+        .map((button) => button.getAttribute('aria-label')),
+    )
+
+  expect(small).toEqual([])
+})
+
 test('adds a slot to Favourites from its heart without playing it', async ({ page }) => {
   await openLibrarian(page)
   const slot = slotButtons(page).first()
