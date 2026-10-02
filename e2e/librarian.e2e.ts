@@ -169,7 +169,7 @@ test('switches an FM-1+VA bank on and off without folding it, and folds it from 
   page,
 }) => {
   await openLibrarian(page)
-  await page.getByLabel('More bank file actions').click()
+  await page.getByLabel('Library actions').click()
   await page.getByRole('button', { name: 'Import FM-1+VA presets…' }).click()
   const dialog = page.getByRole('dialog', { name: 'Import FM-1+VA presets' })
   await dialog.getByLabel('FM-1+VA presets file').setInputFiles(fm1VaPresetsFile())
@@ -221,7 +221,7 @@ test('downloads a complete DX7 bank file', async ({ page }) => {
 // Bulk export loads fflate on demand, so this also covers that import resolving in a build.
 test('downloads every loaded bank as one zip archive', async ({ page }) => {
   await openLibrarian(page)
-  await page.getByLabel('More bank file actions').click()
+  await page.getByLabel('Library actions').click()
 
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download SysEx banks (.zip)' }).click()
@@ -333,7 +333,7 @@ test('finds a copied patch among the duplicates and goes to its slot', async ({ 
   await copy.getByRole('button', { name: 'Replace B01' }).click()
   await expect(copy).toBeHidden()
 
-  await page.getByLabel('More bank file actions').click()
+  await page.getByLabel('Library actions').click()
   await page.getByRole('button', { name: 'Find duplicate patches…' }).click()
   const dialog = page.getByRole('dialog', { name: 'Duplicate patches' })
   await dialog.getByRole('button', { name: /^Go to .+, patch 1 in Bank 2$/ }).click()
@@ -485,18 +485,18 @@ test('restores a downloaded backup over a factory reset', async ({ page }) => {
   await saveDialog.getByRole('button', { name: 'Save bank' }).click()
   await expect(saveDialog).toBeHidden()
 
-  await page.getByLabel('More bank file actions').click()
+  await page.getByLabel('Library actions').click()
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download backup' }).click()
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/^fm1-backup-\d{4}-\d{2}-\d{2}\.json$/)
 
-  await page.getByLabel('More bank file actions').click()
+  await page.getByLabel('Library actions').click()
   await page.getByRole('button', { name: 'Reset to factory patches…' }).click()
   await page.getByRole('button', { name: 'Reset four banks' }).click()
   await expect(page.getByRole('button', { name: 'Send PIANO 1 to FM1' })).toBeVisible()
 
-  await page.getByLabel('More bank file actions').click()
+  await page.getByLabel('Library actions').click()
   await page.getByRole('button', { name: 'Restore from backup…' }).click()
   const restoreDialog = page.getByRole('dialog', { name: 'Restore from backup' })
   await restoreDialog.getByLabel('Choose a backup file').setInputFiles(await download.path())

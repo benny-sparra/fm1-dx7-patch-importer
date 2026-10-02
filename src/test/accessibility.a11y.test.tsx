@@ -163,7 +163,7 @@ describe('rendered accessibility', () => {
     const { container } = renderLibrarian()
     const user = userEvent.setup()
 
-    await user.click(screen.getByTitle('More bank file actions'))
+    await user.click(screen.getByTitle('Library actions'))
     await user.click(screen.getByRole('button', { name: 'Import FM-1+VA presets…' }))
     await user.upload(
       await screen.findByLabelText(/FM-1\+VA presets file/),

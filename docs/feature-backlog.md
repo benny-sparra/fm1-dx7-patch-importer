@@ -561,6 +561,12 @@ A full sync workflow with confirmation prompts was judged too complex for what i
   The factory reset sits below a divider. A backup dialog with a tab for the DX7 export was
   considered and rejected: tabs hide the comparison the menu needs to show, and add a click to the
   action people should take most.
+- _Revised 2026-10-02_, once the menu had grown to FM-1+VA's import and **Find duplicate
+  patches…**: the toggle is **Library actions**. **Backup** stays first, with its line saying it
+  includes FM1 effects and saved banks. **Other files** holds **Download SysEx banks (.zip)** and
+  **Import FM-1+VA presets…**, whose line names Baud Girl's FM-1+VA firmware so owners of
+  M-VAVE's firmware can pass it by. Below the divider, **Find duplicate patches…** and then
+  **Reset to factory patches…**, in the danger colour. Every line under an item fits one line.
 - The persistence warning also offers **Download backup** while browser storage is not keeping the
   workspace, which is when a backup matters most. There is no permanent storage area to put it in.
 

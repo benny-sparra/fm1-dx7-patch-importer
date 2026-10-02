@@ -906,7 +906,7 @@ describe('LibrarianPage bank menu dialogs', () => {
   it('returns focus to the bank file menu when the factory reset is closed', async () => {
     const user = userEvent.setup()
     renderLibrarianPage()
-    const fileMenu = screen.getByTitle('More bank file actions')
+    const fileMenu = screen.getByTitle('Library actions')
 
     await user.click(fileMenu)
     await user.click(screen.getByRole('button', { name: 'Reset to factory patches…' }))
