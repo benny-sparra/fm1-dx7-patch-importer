@@ -40,6 +40,15 @@ describe('trackAnalyticsEvent', () => {
     })
   })
 
+  it('forwards the firmware family as its only property', () => {
+    const track = vi.fn()
+    window.umami = { track }
+
+    trackAnalyticsEvent({ data: { firmware: 'fm1-va' }, name: 'fm1_identified' })
+
+    expect(track).toHaveBeenCalledExactlyOnceWith('fm1_identified', { firmware: 'fm1-va' })
+  })
+
   it('does nothing when the tracker has not loaded', () => {
     expect(() => trackAnalyticsEvent({ name: 'patch_saved' })).not.toThrow()
   })

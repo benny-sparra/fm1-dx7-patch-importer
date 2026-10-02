@@ -9,9 +9,10 @@ site.
 The deployed site uses cookie-free [Umami](https://umami.is/) analytics to understand aggregate
 feature usage and connection failures. Tracking is restricted to the production domain, respects
 the browser's Do Not Track preference, and excludes URL query strings and fragments. Events contain
-only fixed feature names and coarse diagnostic categories. Patch and bank names, uploaded filenames,
-MIDI port identities, SysEx data, browser error messages, and persistent user identifiers are never
-sent. The interface links to [Umami's privacy policy](https://umami.is/privacy).
+only fixed feature names and coarse diagnostic categories. When the editor asks a connected FM1
+which firmware it runs, the event records only the family: M-VAVE's, FM-1+VA, or unidentified. The
+firmware's name and version stay in the browser. Patch and bank names, uploaded filenames, MIDI port
+identities, SysEx data, browser error messages, and persistent user identifiers are never sent. The interface links to [Umami's privacy policy](https://umami.is/privacy).
 
 ## Error monitoring
 

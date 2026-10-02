@@ -759,6 +759,9 @@ export function useMidi() {
       input.removeListener('midimessage', hear)
       setIdentification({ firmware: answer, input, output })
       appendLog(makeLogEntry('system', firmwareLogMessage(answer)))
+      if (answer.kind !== 'checking') {
+        trackAnalyticsEvent({ data: { firmware: answer.kind }, name: 'fm1_identified' })
+      }
     }
     function hear(event: MessageEvent) {
       const identity = parseFm1IdentityReply(event.data)

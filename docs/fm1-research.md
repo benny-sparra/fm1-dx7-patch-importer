@@ -995,7 +995,7 @@ instead.
 - Standard Yamaha 32-voice bank dumps (1.2) remain the only bank-write path.
 - The identity reply carries only the firmware name, such as `FM-1_015`, and no serial (open
   question 6), so the committed reply fixtures need no redaction. Never send the name to analytics
-  or monitoring.
+  or monitoring; analytics records only the firmware family it was classified as.
 - Do not require the reply's checksum. FM-1_089 answers
   `F0 00 32 45 58 01 00 00 23 4D 5A 44 79 05 06 4E 1C 00×21 20 06 F7` (captured 2026-09-29): its
   name with M-VAVE V15's checksum byte, which does not match it. The editor first rejected this
