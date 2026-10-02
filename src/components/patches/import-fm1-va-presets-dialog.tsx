@@ -315,7 +315,9 @@ function PresetFileBank({
         title={title}
       />
       <RackPanelCollapsibleBody collapsed={collapsed} id={bodyId}>
-        <ul className="grid grid-cols-2 gap-1 p-2 sm:grid-cols-4">
+        {/* Positioned, so the cells' visually hidden text folds away with the bank rather than
+            stretching the dialog's scrolling body. */}
+        <ul className="relative grid grid-cols-2 gap-1 p-2 sm:grid-cols-4">
           {presets.map((preset, index) => (
             <li key={index}>
               {preset.kind === 'fm' ? (
