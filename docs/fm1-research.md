@@ -117,6 +117,21 @@ FM presets, bytes 0–17 are `50` then seventeen `03`, and bytes 27 onwards repe
 bytes with a count from 0 to 8, which is not the six-slot effect chain the backlog lists. The
 firmware release behind the 2026-10-01 backup was not recorded.
 
+**A Virtual Analog preset's voice bytes are not a DX7 voice. Confirmed** for the 2026-10-01 backup
+(one file, read 2026-10-02). Five of the 16 preset-pack voices hold 127 where a DX7 voice allows at
+most 99: edit-buffer byte 137, LFO Speed, in SQR LEAD and GLASS, and byte 103, OP2's Frequency
+Fine, in SINE SUB, SOFT KEYS, and AIR. The other pack voices are within DX7 ranges but far from an
+init voice, and record bytes 19–26 differ between 097, 113, and 114. The Virtual Analog settings
+therefore probably live partly in the voice bytes and partly in the record; which byte holds which
+setting **needs hardware test**. Normalising these bytes as a DX7 voice would clamp the 127s to 99
+and change the preset. The name stays in the voice name bytes, 145–154, as in an FM preset: the
+pack presets carry their own names there.
+
+**Erase Preset to VA, then SAVE. Seen once** (097 in the same backup). The voice is a DX7 init voice
+except that OP6's output level is 99 as well as OP1's, and it is named `VOICE 97`, which suggests
+the erase names a preset by its number. The record's effect bytes, 0–17, are `50` then seventeen
+`03`, as in the FM presets in that backup. Erasing a second slot and diffing it against 097 would show what varies with the slot.
+
 Its pages identify the firmware before sending any of these, with the updater's `F0 00 32 45 …`
 identity query (§6.3), which stock firmware also answers. §6.3 bars production code from sending
 any `00 32` message, so supporting FM-1+VA as an optional target would first need an explicit,
