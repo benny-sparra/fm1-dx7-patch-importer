@@ -35,7 +35,11 @@ export type Fm1Firmware =
   | { identity?: string; kind: 'unidentified' }
   | { identity: string; kind: 'fm1-va' | 'mvave' }
 
-function unpackSevenBitStream(bytes: Uint8Array) {
+/**
+ * Unpacks 8-bit bytes sent seven bits at a time, least significant bit first, as the identity reply
+ * and FM-1+VA's own replies are. Bits left over after the last whole byte are dropped.
+ */
+export function unpackSevenBitStream(bytes: Uint8Array) {
   const unpacked: number[] = []
   let accumulator = 0
   let bitCount = 0

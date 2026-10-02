@@ -4,10 +4,10 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import { parseDx7Bank, unpackDx7Voice } from '@/lib/dx7'
+import { fm1VaChecksum } from '@/lib/fm1-va-sysex'
 
 import {
   Fm1VaPresetFileError,
-  fm1VaChecksum,
   fm1VaPresetFileSize,
   importableVoices,
   parseFm1VaPresetFile,

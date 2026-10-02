@@ -393,6 +393,11 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       understood, keep it exactly as read. Storing the record with each slot is a new optional field: the workspace record
       moves to version 7 and the backup file to version 3, with fixtures for both and a default
       for patches that never had one.
+      _In progress:_ `10` approved 2026-10-02. `readFm1VaPreset(slot)` reads one preset through
+      `useFm1VaPresetReader`, with typed errors that a user-facing action will translate (3), and the
+      development build's **FM-1+VA preset probe (dev)** shows each read byte by byte with the
+      changes since the last. Still to do: capture a reply as a fixture, map the record, and
+      store it.
 - [ ] **3. Import from the FM1.** A **Read from FM1…** action reads all 128 presets, shows which
       slots differ from banks A–D, and lets the user take the FM1's version of each bank, with
       effects and record, as one Undo. This answers [Syncing patches with the FM1](#syncing-patches-with-the-fm1)

@@ -11,6 +11,7 @@ import {
 } from '@/components/midi/midi-controls'
 import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
+import { Fm1VaPresetProbe } from '@/components/midi/fm1-va-preset-probe'
 import { MidiPanicButton } from '@/components/midi/midi-panic-button'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
 import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dialog'
@@ -30,6 +31,7 @@ type RootLayoutProps = {
     ComponentProps<typeof MidiPanicButton>['midi'] &
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
     ComponentProps<typeof PianoKeyboard>['midi'] &
+    ComponentProps<typeof Fm1VaPresetProbe>['midi'] &
     Pick<MidiController, 'logStore' | 'sendEffectDiagnosticControl'>
 }
 
@@ -177,7 +179,10 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           <div className="flex flex-col gap-2 border-t border-white/10 pt-3 text-[0.6875rem] leading-relaxed sm:flex-row sm:items-center sm:justify-between">
             <p>{t('root.disclaimer')}</p>
             {import.meta.env.DEV ? (
-              <FxHardwareProbe send={midi.sendEffectDiagnosticControl} />
+              <span className="flex flex-wrap gap-x-4 gap-y-2">
+                <FxHardwareProbe send={midi.sendEffectDiagnosticControl} />
+                <Fm1VaPresetProbe midi={midi} />
+              </span>
             ) : null}
           </div>
         </div>

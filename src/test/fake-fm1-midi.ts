@@ -1,4 +1,7 @@
 import { vi } from 'vitest'
+import type { Input, Output } from 'webmidi'
+
+import type { MidiDevice, MidiPort } from '@/lib/midi'
 
 // Captured from an FM1 on M-VAVE's V15 firmware, 2026-09-06 (ip2k/mvave-fm1-open-firmware,
 // docs/03-update-protocol.md §2).
@@ -27,11 +30,20 @@ export const feluccaIdentityReply = Uint8Array.from([
 // WebMidi's `midimessage` event carries the bytes as a plain array, not a Uint8Array.
 type MidiListener = (event: { data: number[] }) => void
 
+type FakeFm1Options = {
+  /** Answers FM-1+VA's preset read for a slot; without it the read goes unanswered. */
+  presetReply?: (slot: number) => Uint8Array
+  reply?: Uint8Array
+}
+
+const isPresetRead = (data: Uint8Array) =>
+  data[1] === 0x43 && data[2] === 0x00 && data[3] === 0x7d && data[4] === 0x10
+
 /**
  * The input and output ports of a fake FM1 for `useMidi` tests. It answers the identity query with
  * `reply`, or stays silent without one, as an FM1 on unknown firmware or another device would.
  */
-export function makeFakeFm1Ports({ reply }: { reply?: Uint8Array } = {}) {
+export function makeFakeFm1Ports({ presetReply, reply }: FakeFm1Options = {}) {
   const listeners = new Set<MidiListener>()
   const input = {
     addListener: vi.fn<(event: string, listener: MidiListener) => void>((event, listener) => {
@@ -55,6 +67,7 @@ export function makeFakeFm1Ports({ reply }: { reply?: Uint8Array } = {}) {
     name: 'FM-1 MIDI 1',
     send: vi.fn<(data: Uint8Array) => void>((data) => {
       if (reply && data[1] === 0x00 && data[2] === 0x32) input.receive(reply)
+      if (presetReply && isPresetRead(data)) input.receive(presetReply(data[5]))
     }),
     sendControlChange: vi.fn<(controller: number, value: number, options?: object) => void>(),
     sendProgramChange: vi.fn<(program: number, options?: object) => void>(),
@@ -62,4 +75,25 @@ export function makeFakeFm1Ports({ reply }: { reply?: Uint8Array } = {}) {
     state: 'connected',
   }
   return { input, output }
+}
+
+/**
+ * The fake ports as the device lists `useMidi` returns, selected by their ids. WebMidi's `Input`
+ * and `Output` cannot be built outside a browser, so the fakes stand in for them here alone.
+ */
+export function makeFakeFm1Devices(ports: ReturnType<typeof makeFakeFm1Ports>) {
+  const device = <TPort extends MidiPort>(port: { id: string; name: string }) =>
+    ({
+      id: port.id,
+      manufacturer: 'M-VAVE',
+      name: port.name,
+      port,
+      state: 'connected',
+    }) as unknown as MidiDevice<TPort>
+  return {
+    inputs: [device<Input>(ports.input)],
+    outputs: [device<Output>(ports.output)],
+    selectedInputId: ports.input.id,
+    selectedOutputId: ports.output.id,
+  }
 }

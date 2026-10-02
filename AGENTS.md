@@ -166,13 +166,26 @@ open everything an earlier release could have saved.
   `midiPanicCount` changes rather than striking them again.
 - The editor asks which firmware the FM1 runs with the updater's identity query
   (`fm1IdentityQuery` in `src/lib/fm1-firmware.ts`), whenever the output or input in use changes.
-  It is the one `00 32` message the editor may send: never send another from that family, and
-  never send FM-1+VA's own `F0 43 00 7D` commands. The firmware counts as unknown until the answer
+  It is the one `00 32` message the editor may send: never send another from that family. The
+  firmware counts as unknown until the answer
   for the ports in use arrives. FM-1+VA is `FM-1_020` to `FM-1_899`; any other name, such as
   Felucca's `FM-1_904`, is unidentified, so no firmware's behaviour is assumed for it. Analytics records only the family (`fm1_identified`: `mvave`,
   `fm1-va`, or `unidentified`), once per family per page load so the split counts sessions rather
   than reconnections; the name and version, such as `FM-1_089`, stay out of analytics and
   monitoring, because a release has few enough FM1s on it to single one out.
+- Of FM-1+VA's own `F0 43 00 7D` commands, the editor may send only the preset read,
+  `7D 10 <slot>` (`readFm1VaPreset` in `src/lib/fm1-va-preset-read.ts`, approved 2026-10-02),
+  and only while `readsFm1VaPresets` allows it: FM-1+VA from `FM-1_079`, the release that added
+  it. It reads one stored preset and changes nothing. Every other FM-1+VA command, the preset
+  write `04` and the raw memory read `11` among them, needs its own approval recorded here first.
+  A read belongs to the ports it started on: changing either, or switching MIDI off, cancels it.
+  Keep what it reads exactly as read until each byte is mapped in `docs/fm1-research.md`.
+  Code that reads presets goes through `useFm1VaPresetReader`, which takes the ports from the
+  `useMidi` slice it is given, rather than through `useMidi` itself: `useMidi` is in the initial
+  bundle, and the read's wiring there cost 1.6 KiB. Today only the development probe uses the
+  reader. The reply parser takes `unpackSevenBitStream` from `src/lib/fm1-firmware.ts`, so the
+  first lazy chunk to use it in production makes Rolldown split that module out of the entry
+  (883 B in a trial); measure it with `npm run bundle:check` when that feature lands.
 - Send a patch as a DX7 single-voice dump only to firmware identified as M-VAVE's
   (`sendsSingleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored preset, so
   every other firmware, including one not yet identified, gets the patch as its 155 parameter

@@ -80,7 +80,8 @@ How this project uses it:
   such as the effect controllers, it is corroborating evidence about stock firmware, at most
   **Likely**, never **Confirmed**, because it is a derivative that has changed other behaviour.
 - Its own commands (below) do not exist on stock firmware. On stock firmware they are unknown
-  vendor messages and stay **Dangerous / excluded**. Production code must not send them.
+  vendor messages and stay **Dangerous / excluded**. Production code sends only the preset read
+  (approved 2026-10-02, below), and only to FM-1+VA from `FM-1_079`.
 - This project is MIT-licensed. Reimplement any fact recorded here from this document; do not copy
   its code.
 
@@ -194,6 +195,42 @@ Virtual Analog filter (off until switched on), and changes the Sequencer's patte
 notes and per-note Tie & Slide; older patterns are converted when first shown). None of those
 change what the editor sends today; they change the preset record and pattern format that the
 planned FM-1+VA features would read and write (`docs/feature-backlog.md`). Repeat test 7b on each FM-1+VA release whose notes mention MIDI or SysEx handling.
+
+#### Reading a stored preset
+
+**Approved 2026-10-02** as the one FM-1+VA command the editor may send, gated on FM-1+VA from
+`FM-1_079` (`readsFm1VaPresets`). **Status: Likely**: the layout below was read from the modules
+FM-1+VA's Presets page loads (`fm1sound.js`, `fm1seq.js`, and `install/bank.js` under
+`https://baudgirl.com/fm1/app/835478add641fd2b/`, read 2026-10-02) and has not yet been captured
+from an FM1. The editor's codec is `src/lib/fm1-va-sysex.ts` and `src/lib/fm1-va-preset-read.ts`,
+and `useFm1VaPresetReader` sends it through the selected ports. Its tests use replies built from
+this layout until a captured one replaces them.
+
+- **Request:** `F0 43 00 7D 10 <slot> <sum> F7`, with `slot` 0–127 (the FM1 shows 001–128). Unlike
+  the preset write, whose checksum covers only its payload, this checksum covers the command and
+  the slot: slot 0 is `F0 43 00 7D 10 00 6E F7`.
+- **Reply:** `F0`, an 8-bit buffer packed seven bits at a time, least significant bit first (the
+  packing the identity reply uses), and `F7`. Because the buffer starts with `7D`, every reply
+  starts `F0 7D` on the wire. The buffer is `7D`, a kind (`50` preset, `51` memory, `52` pattern),
+  a status (`0` done, `1` value out of range, `2` damaged in transit, `3` Sequencer playing), a
+  32-bit argument and a 16-bit data length, both little-endian, the data, and the complement of
+  the low byte of the sum of everything before it.
+- **A preset reply** has kind `50`, the slot as its argument, and 187 bytes of data: the 128-byte
+  packed DX7 voice (the bank layout, name in bytes 118–127), then the 59-byte settings record,
+  eight bits a byte rather than in the 8-into-7 groups the preset write and the backup file use.
+- FM-1+VA's own page waits 1.5 s for an answer and asks three times; the editor does the same.
+  The editor sends the request again when the reply's status says it arrived damaged, and treats
+  a reply of any other size as a layout it does not know rather than asking again.
+- **An open question** for the first capture: FM-1+VA's modules give an FM preset's record byte 18
+  as `A5`, but every FM preset in three backups held `03` at the place the backup's groups put
+  byte 18 (above). Either the backups' FM presets predate the marker or the group order differs;
+  a read of the same preset as a backup settles which.
+
+**Mapping the record.** A development build (`npm run dev`) has an **FM-1+VA preset probe (dev)**
+in the footer. It reads one preset and shows its record and voice byte by byte, marking each byte
+that changed since that preset's last read, and **Copy capture** puts the reply, both parts, and
+the changed bytes on the clipboard as JSON for a fixture. Change one setting on the FM1, press
+SAVE, read the same preset again, and record each byte here.
 
 #### Controllers on the MIDI Channel
 

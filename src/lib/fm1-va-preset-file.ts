@@ -1,5 +1,6 @@
 import { dx7BankVoiceCount, isSevenBitData, packDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
+import { fm1VaChecksum, fm1VaRequestHeader } from '@/lib/fm1-va-sysex'
 
 /**
  * The `.syx` file FM-1+VA's **Save a backup** writes: one preset write per stored preset, 128 in
@@ -10,7 +11,7 @@ import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
 const fm1VaPresetCount = 128
 const fm1VaPresetMessageSize = 231
 export const fm1VaPresetFileSize = fm1VaPresetCount * fm1VaPresetMessageSize
-const fm1VaPresetHeader = [0xf0, 0x43, 0x00, 0x7d, 0x04] as const
+const fm1VaPresetHeader = [...fm1VaRequestHeader, 0x04] as const
 const payloadStart = fm1VaPresetHeader.length + 1
 const checksumIndex = fm1VaPresetMessageSize - 2
 const recordStart = payloadStart + FM1_VOICE_PARAMETER_COUNT
@@ -68,11 +69,6 @@ function presetFileSizeError(receivedBytes: number) {
     `Expected a ${fm1VaPresetFileSize}-byte FM-1+VA backup; received ${receivedBytes} bytes.`,
     receivedBytes,
   )
-}
-
-/** FM-1+VA's checksum: the low seven bits of the sum of each payload byte's complement. */
-export function fm1VaChecksum(payload: Uint8Array) {
-  return payload.reduce((sum, byte) => sum + (~byte & 0x7f), 0) & 0x7f
 }
 
 function hasPresetHeader(message: Uint8Array) {
