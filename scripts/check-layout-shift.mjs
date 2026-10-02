@@ -300,8 +300,9 @@ async function main() {
       return state.result.value
     }, 'the colourway image to unmount on mobile')
 
+    // No FM1 is connected here, so an FM-1+VA photo would be inactive too.
     const requestedColorways = [...requestedUrls].filter((requestUrl) =>
-      /fm1-(?:black|black-green|cool-gray|orange|purple|white-blue)-/.test(requestUrl),
+      /fm1-(?:va-)?(?:black|black-green|cool-gray|orange|purple|white-blue)-/.test(requestUrl),
     )
     if (
       requestedColorways.some(
