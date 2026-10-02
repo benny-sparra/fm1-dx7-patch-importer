@@ -46,7 +46,7 @@ describe('LibrarianPage duplicate patches that fail to load', () => {
       </ToastProvider>,
     )
 
-    await user.click(screen.getByTitle('More bank file actions'))
+    await user.click(screen.getByTitle('Library actions'))
     await user.click(screen.getByRole('button', { name: 'Find duplicate patches…' }))
 
     const alert = await screen.findByRole('alert')

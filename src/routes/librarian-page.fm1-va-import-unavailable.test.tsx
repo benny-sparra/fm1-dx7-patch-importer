@@ -59,7 +59,7 @@ describe('LibrarianPage FM-1+VA import that fails to load', () => {
       </ToastProvider>,
     )
 
-    await user.click(screen.getByTitle('More bank file actions'))
+    await user.click(screen.getByTitle('Library actions'))
     await user.click(screen.getByRole('button', { name: 'Import FM-1+VA presets…' }))
 
     const alert = await screen.findByRole('alert')

@@ -375,6 +375,12 @@ open everything an earlier release could have saved.
   their own actions, such as the saved banks, keeps them in the body. The body is
   positioned, so visually hidden text inside stays in it; a folding section inside a dialog wraps
   its contents in a positioned element too, or hidden text in a folded section stretches the body.
+- The patch-bank header's **Library actions** menu groups its items under headings only where a
+  heading holds more than one item, keeps the line under an item to one line at the menu's width
+  in English, and lines its icon up with the label's line (`menuItemWithHintClassName`). An item
+  that replaces patches, such as **Reset to factory patches…**, goes last in the danger colour,
+  as **Delete bank** does in a bank's menu. A line about FM-1+VA names it as Baud Girl's
+  firmware, since most FM1 owners run M-VAVE's and will not know the name.
 - Show an error in a dialog or on the page with `ErrorNotice` from
   `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
   restyling another paragraph.
