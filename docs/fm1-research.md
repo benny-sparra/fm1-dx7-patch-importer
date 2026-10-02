@@ -292,9 +292,11 @@ so the editor counted Felucca as FM-1+VA until 2026-10-02. It now counts only `F
 `FM-1_899` as FM-1+VA and leaves the 900s, and any other name, unidentified. The 900s are an
 inference from one release; whether later Felucca releases stay there is not known.
 
-**Installation. Dangerous / excluded.** The installer builds its package from the user's own copy of
-M-VAVE's V15 `FM-1.fwsc`, replacing only the application, and sends it through the updater's
-protocol over Web MIDI: the identity query, then `F0 22 24 35 7F F7` to start an update, then it
+**Installation. Dangerous / excluded.** The installer fetches the prebuilt
+`felucca-0.4-beta.fwsc` from its own site and never asks for the user's files. Its script also
+holds code that builds a package from M-VAVE's V15 `FM-1.fwsc`, checked by SHA-256, replacing only
+the application, but the 0.4-beta install never calls it. It sends the package through the
+updater's protocol over Web MIDI: the identity query, then `F0 22 24 35 7F F7` to start an update, then it
 answers the device's `00 59 30` read requests until the loader has written the image. That is the
 update path section 9 excludes, now published. The editor must never send `F0 22 24 35 7F F7` or
 answer a read request. Going back to stock needs M-VAVE's M-UPGRADE and V15; a failed install
