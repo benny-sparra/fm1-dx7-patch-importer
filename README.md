@@ -116,6 +116,7 @@ names, uploaded filenames, MIDI port identities, and SysEx data are never sent. 
 
 - [User guide](docs/user-guide.md): using the librarian and voice editor, keyboard shortcuts, and
   SysEx compatibility
+- [Accessibility](ACCESSIBILITY.md): what the app supports, known barriers, and how to report one
 - [Privacy](PRIVACY.md): anonymous usage analytics and error monitoring
 - [Contributing](CONTRIBUTING.md): local development, quality checks, scripts, and project structure
 - [Maintaining](docs/maintaining.md): deployment security, generated assets, source maps, and
