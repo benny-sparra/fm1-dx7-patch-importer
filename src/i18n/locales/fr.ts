@@ -352,6 +352,17 @@ export default {
       unreadable: 'Le fichier n’a pas pu être lu.',
     },
   },
+  duplicates: {
+    menuItem: 'Trouver les sons en double…',
+    title: 'Sons en double',
+    help: 'Sons dont les réglages de voix sont identiques, même sous un autre nom. Les effets FM1 ne sont pas comparés. Choisissez un son pour y aller et le jouer.',
+    group: '{{name}} et une copie',
+    group_other: '{{name}} et {{count, number}} copies',
+    effectsDiffer: 'Leurs effets FM1 diffèrent.',
+    goTo: 'Aller à {{name}}, son {{number}} de {{bank}}',
+    none: 'Aucun doublon : chaque son de vos banques a ses propres réglages de voix.',
+    openFailed: 'Impossible d’afficher les sons en double. Rechargez la page et réessayez.',
+  },
   persistence: {
     retryLoading: 'Réessayer',
     continueSessionOnly: 'Continuer sans enregistrer',

@@ -303,10 +303,14 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Tests: a round trip, the version 1 fixture, a malformed link reaching the UI translated, a byte
     above 7 bits rejected, nothing written without confirmation, and one-step Undo.
 
-- [ ] **Find duplicate patches.** List patches in loaded workspace banks whose voice data is
+- [x] **Find duplicate patches.** List patches in loaded workspace banks whose voice data is
       identical, with a way to jump to each copy, so imported archives can be tidied.
   - Read-only: it never deletes or changes a slot. Compare packed voice bytes; say in the UI
     whether names and FM1 effects are part of the match.
+  - _Done:_ **Find duplicate patches…** in the patch-bank header menu. Decided: names and FM1
+    effects are left out of the match, so a renamed copy is found, and a group says when its
+    copies' effects differ. Going to a copy selects its bank and plays it, as clicking the slot
+    does.
 
 - [x] **Search across all banks.** The librarian's search box finds a patch in every loaded
       workspace bank, and clicking a result plays it while the results stay up.

@@ -14,6 +14,7 @@ import {
 } from '@dnd-kit/sortable'
 import { FileMusic, Search } from 'lucide-react'
 import {
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -45,6 +46,11 @@ type PatchGridProps = {
    * slots take `resultsHeading` and an empty workspace shows nothing rather than "no matches".
    */
   extraResults?: ReactNode
+  /**
+   * A slot to move focus to once the grid shows it, such as a patch chosen among the duplicates.
+   * Each new request object asks again.
+   */
+  focusRequest?: { patchId: string } | null
   headerActions?: ReactNode
   isBankLoaded?: boolean
   isFavourite?: (patch: Patch) => boolean
@@ -91,6 +97,7 @@ export function PatchGrid({
   bankLabel = (bank) => bank,
   emptyState,
   extraResults,
+  focusRequest,
   headerActions,
   isBankLoaded = true,
   isFavourite = () => false,
@@ -131,6 +138,12 @@ export function PatchGrid({
     if (button) slotRefs.current.set(patchId, button)
     else slotRefs.current.delete(patchId)
   }
+
+  // The request comes with the bank that holds the slot, so the slot is registered by the time this
+  // runs.
+  useEffect(() => {
+    if (focusRequest) slotRefs.current.get(focusRequest.patchId)?.focus()
+  }, [focusRequest])
 
   const navigateSlots = (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => {
     // A disabled slot renders no button, so the order comes from what is there.

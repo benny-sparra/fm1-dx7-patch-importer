@@ -357,6 +357,18 @@ export default {
       unreadable: 'Die Datei konnte nicht gelesen werden.',
     },
   },
+  duplicates: {
+    menuItem: 'Doppelte Sounds finden…',
+    title: 'Doppelte Sounds',
+    help: 'Sounds mit denselben Stimmeneinstellungen, auch unter anderem Namen. FM1-Effekte werden nicht verglichen. Wähle einen Sound, um zu ihm zu springen und ihn zu spielen.',
+    group: '{{name}} und eine Kopie',
+    group_other: '{{name}} und {{count, number}} Kopien',
+    effectsDiffer: 'Ihre FM1-Effekte unterscheiden sich.',
+    goTo: 'Zu {{name}} springen, Sound {{number}} in {{bank}}',
+    none: 'Keine Doppelten: Jeder Sound in deinen Bänken hat eigene Stimmeneinstellungen.',
+    openFailed:
+      'Doppelte Sounds konnten nicht angezeigt werden. Lade die Seite neu und versuche es noch einmal.',
+  },
   persistence: {
     retryLoading: 'Erneut versuchen',
     continueSessionOnly: 'Ohne Speichern fortfahren',

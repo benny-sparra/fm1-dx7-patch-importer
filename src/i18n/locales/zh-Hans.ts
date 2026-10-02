@@ -308,6 +308,17 @@ export default {
       unreadable: '无法读取该文件。',
     },
   },
+  duplicates: {
+    menuItem: '查找重复的音色…',
+    title: '重复的音色',
+    help: '音色参数相同的音色，即使名称不同也会列出。不比较 FM1 效果。选择一个音色即可跳转到它并播放。',
+    group: '{{name}} 及 1 个副本',
+    group_other: '{{name}} 及 {{count, number}} 个副本',
+    effectsDiffer: '它们的 FM1 效果不同。',
+    goTo: '跳转到 {{bank}} 中的第 {{number}} 个音色 {{name}}',
+    none: '没有重复：音色库中的每个音色都有各自的参数。',
+    openFailed: '无法显示重复的音色。请重新加载页面后重试。',
+  },
   persistence: {
     retryLoading: '重试',
     continueSessionOnly: '继续但不保存',

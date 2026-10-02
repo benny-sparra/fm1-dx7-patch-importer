@@ -8,6 +8,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import '@/i18n'
 import { MidiSettingsMenu } from '@/components/midi/midi-controls'
 import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
+import { DuplicatePatchesDialog } from '@/components/patches/duplicate-patches-dialog'
 import {
   WorkspaceBankSelector,
   type WorkspaceBankSelectorBank,
@@ -18,6 +19,7 @@ import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { makeDemoVoices } from '@/lib/patch-library'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { expectNoAxeViolations } from '@/test/accessibility'
+import { makeWorkspaceWithCopies } from '@/test/factory-voices'
 import { makeFm1VaBackupFile } from '@/test/fm1-va-backup-file'
 import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
@@ -169,6 +171,24 @@ describe('rendered accessibility', () => {
     )
 
     expect(await screen.findByRole('region', { name: 'FM1 bank D' })).toBeTruthy()
+    await expectNoAxeViolations(container)
+  })
+
+  it('keeps the duplicate patches list free of violations', async () => {
+    const workspace = makeWorkspaceWithCopies([
+      { name: 'MY BRASS', slot: 5 },
+      { name: 'BRASS 1', slot: 9 },
+    ])
+    const reverb = makeDefaultFm1Effects()
+    reverb[0] = 1
+    const { container } = render(
+      <DuplicatePatchesDialog
+        library={{ ...workspace, effects: { 'bank-B-9': reverb } }}
+        onClose={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('region', { name: 'BRASS 1 and 2 copies' })).toBeTruthy()
     await expectNoAxeViolations(container)
   })
 

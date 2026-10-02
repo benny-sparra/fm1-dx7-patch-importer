@@ -227,7 +227,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader and its dialog when **Import FM-1+VA presets…** opens it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader and its dialog when **Import FM-1+VA presets…** opens it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -250,6 +250,11 @@ open everything an earlier release could have saved.
   uses takes it from a leaf module both import, as the piano keyboard takes its velocity limits
   from `src/lib/note-velocity.ts` rather than `src/lib/midi.ts`. Importing `midi.ts` itself made
   Rolldown split `fm1-effects` out of the entry and cost 412 B.
+- The modules a lazy chunk shares with the entry decide how Rolldown cuts the entry's shared
+  chunks, so a new lazy chunk can cost bytes it never loads. The duplicate patches dialog first used
+  React, i18next, and `cn` but no Lucide icon, and Rolldown split those out of the chunk holding
+  `Button` and Lucide, costing 366 B. Its heading icon put them back together. Measure every new
+  lazy chunk with `npm run bundle:check`, and compare the initial chunk list with `main`'s.
 - Prefer source-level `import()` at genuine interaction or data boundaries. Do not move initial code
   into eagerly imported vendor chunks to make the entry filename smaller.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
