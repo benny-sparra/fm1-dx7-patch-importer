@@ -16,6 +16,14 @@ export const fm1VaIdentityReply = Uint8Array.from([
   0x1c, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
 ])
 
+// Not captured: built for the name Felucca 0.4-beta's installer expects back, FM-1_904
+// (docs/fm1-research.md, "Felucca replacement firmware"), with V15's checksum as above.
+// prettier-ignore
+export const feluccaIdentityReply = Uint8Array.from([
+  0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x15, 0x07, 0x0c,
+  0x1a, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
+])
+
 // WebMidi's `midimessage` event carries the bytes as a plain array, not a Uint8Array.
 type MidiListener = (event: { data: number[] }) => void
 

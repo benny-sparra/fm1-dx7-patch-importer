@@ -6,7 +6,7 @@ import {
   parseFm1IdentityReply,
   sendsSingleVoiceDumps,
 } from '@/lib/fm1-firmware'
-import { fm1VaIdentityReply, mvaveIdentityReply } from '@/test/fake-fm1-midi'
+import { feluccaIdentityReply, fm1VaIdentityReply, mvaveIdentityReply } from '@/test/fake-fm1-midi'
 
 describe('fm1IdentityQuery', () => {
   it('is the updater identity query, which asks for item 0x40', () => {
@@ -27,6 +27,10 @@ describe('parseFm1IdentityReply', () => {
 
   it('reads the name from an FM-1+VA reply, which keeps M-VAVE V15’s checksum', () => {
     expect(parseFm1IdentityReply(fm1VaIdentityReply)).toBe('FM-1_089')
+  })
+
+  it('reads the name Felucca answers with', () => {
+    expect(parseFm1IdentityReply(feluccaIdentityReply)).toBe('FM-1_904')
   })
 
   it('rejects a reply whose block does not declare a 27-byte name field', () => {
@@ -60,13 +64,19 @@ describe('classifyFm1Firmware', () => {
     expect(classifyFm1Firmware('FM-1_019')).toEqual({ identity: 'FM-1_019', kind: 'mvave' })
   })
 
-  it('counts FM-1_020 and above as FM-1+VA, including releases after the tested one', () => {
+  it('counts FM-1_020 to FM-1_899 as FM-1+VA, including releases after the tested one', () => {
     expect(classifyFm1Firmware('FM-1_020')).toEqual({ identity: 'FM-1_020', kind: 'fm1-va' })
     expect(classifyFm1Firmware('FM-1_120')).toEqual({ identity: 'FM-1_120', kind: 'fm1-va' })
+    expect(classifyFm1Firmware('FM-1_899')).toEqual({ identity: 'FM-1_899', kind: 'fm1-va' })
+  })
+
+  it('leaves Felucca, which answers FM-1_904, unidentified rather than FM-1+VA', () => {
+    expect(classifyFm1Firmware('FM-1_904')).toEqual({ identity: 'FM-1_904', kind: 'unidentified' })
+    expect(classifyFm1Firmware('FM-1_900')).toEqual({ identity: 'FM-1_900', kind: 'unidentified' })
   })
 
   it('leaves a name it does not recognise unidentified', () => {
-    expect(classifyFm1Firmware('XR-9_015')).toEqual({ kind: 'unidentified' })
+    expect(classifyFm1Firmware('XR-9_015')).toEqual({ identity: 'XR-9_015', kind: 'unidentified' })
   })
 })
 
@@ -76,5 +86,6 @@ describe('sendsSingleVoiceDumps', () => {
     expect(sendsSingleVoiceDumps({ identity: 'FM-1_089', kind: 'fm1-va' })).toBe(false)
     expect(sendsSingleVoiceDumps({ kind: 'checking' })).toBe(false)
     expect(sendsSingleVoiceDumps({ kind: 'unidentified' })).toBe(false)
+    expect(sendsSingleVoiceDumps({ identity: 'FM-1_904', kind: 'unidentified' })).toBe(false)
   })
 })

@@ -7,7 +7,12 @@ import { unpackDx7Voice } from '@/lib/dx7'
 import { fm1IdentityQuery } from '@/lib/fm1-firmware'
 import { makeFm1ParameterPayload } from '@/lib/midi'
 import { makeDemoVoices } from '@/lib/patch-library'
-import { fm1VaIdentityReply, makeFakeFm1Ports, mvaveIdentityReply } from '@/test/fake-fm1-midi'
+import {
+  feluccaIdentityReply,
+  fm1VaIdentityReply,
+  makeFakeFm1Ports,
+  mvaveIdentityReply,
+} from '@/test/fake-fm1-midi'
 
 import { useMidi } from './use-midi'
 
@@ -84,6 +89,16 @@ describe('useMidi firmware identification', () => {
     expect(result.current.firmware).toEqual({ identity: 'FM-1_089', kind: 'fm1-va' })
   })
 
+  it('leaves Felucca unidentified and names it in the log', async () => {
+    const { result } = await connect(makeFakeFm1Ports({ reply: feluccaIdentityReply }))
+
+    expect(result.current.firmware).toEqual({ identity: 'FM-1_904', kind: 'unidentified' })
+    expect(logMessages(result)).toContainEqual([
+      'system',
+      'The FM1 runs firmware FM-1_904, which the editor does not recognise, so patches are sent as parameter changes.',
+    ])
+  })
+
   it('stays checking until the FM1 answers', async () => {
     const { result } = await connect(makeFakeFm1Ports())
 
@@ -145,6 +160,14 @@ describe('useMidi firmware analytics', () => {
     await connect(makeFakeFm1Ports({ reply: fm1VaIdentityReply }))
 
     expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'fm1-va' }]])
+  })
+
+  it('reports Felucca as unidentified, without its name', async () => {
+    const firmwareEvents = trackFirmwareEvents()
+
+    await connect(makeFakeFm1Ports({ reply: feluccaIdentityReply }))
+
+    expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'unidentified' }]])
   })
 
   it('reports nothing while the FM1 has not answered', async () => {

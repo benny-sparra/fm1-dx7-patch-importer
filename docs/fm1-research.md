@@ -269,6 +269,53 @@ What these CCs cannot give an editor: the current value of any setting, because 
 controllers back, and a way to store a Virtual Analog preset in the library or on the FM1. Both
 need the preset read and write commands above (`docs/feature-backlog.md`, FM-1+VA items 2 and 4).
 
+### Felucca replacement firmware
+
+Site, installer, and recovery tool:
+
+- https://hugelton.github.io/Felucca/ (repository https://github.com/hugelton/Felucca)
+- https://github.com/kurogedelic/FM-1-transporter
+- https://synthanatomy.com/2026/10/hugelton-instruments-felucca-custom-m-vave-fm-1-firmware-turns-it-into-a-multi-engine-synth.html
+
+Felucca is Leo Kuroshita's (Hügelton Instruments) replacement firmware for the FM1, released as
+0.4-beta on 2026-10-02 under GPL-3.0-only. It replaces M-VAVE's engine with five: virtual analog,
+FM, phase distortion, lo-fi (NES/SID), and a sample player. The repository holds the built package
+(`felucca-0.4-beta.fwsc`) and the installer page; no source, manual, or MIDI implementation was
+published at the time of review. Only the installer page's script was read for this note; the
+firmware itself has not been examined or run by this project.
+
+**Identity. Likely** (from the installer, not from a reply heard by this project). Felucca answers
+the identity query (§6.3) with `FM-1_904`: the installer sends `fm1IdentityQuery`'s bytes, parses
+the same `00 59 11` block, and after installing checks that the device now reports `FM-1_904`.
+That number is above every M-VAVE release and inside the range the editor first read as FM-1+VA,
+so the editor counted Felucca as FM-1+VA until 2026-10-02. It now counts only `FM-1_020` to
+`FM-1_899` as FM-1+VA and leaves the 900s, and any other name, unidentified. The 900s are an
+inference from one release; whether later Felucca releases stay there is not known.
+
+**Installation. Dangerous / excluded.** The installer builds its package from the user's own copy of
+M-VAVE's V15 `FM-1.fwsc`, replacing only the application, and sends it through the updater's
+protocol over Web MIDI: the identity query, then `F0 22 24 35 7F F7` to start an update, then it
+answers the device's `00 59 30` read requests until the loader has written the image. That is the
+update path section 9 excludes, now published. The editor must never send `F0 22 24 35 7F F7` or
+answer a read request. Going back to stock needs M-VAVE's M-UPGRADE and V15; a failed install
+needs FM-1-transporter, an RP2040 wired to the FM1's USB lines that reads and writes the whole
+1 MiB flash.
+
+**MIDI behaviour. Needs hardware test.** Nothing is known about what Felucca does with DX7
+single-voice or bank dumps, the 155 parameter changes, Program Change, or the FM1 effect
+controllers. Its FM engine is described by index and feedback, which does not suggest a DX7 voice.
+As an unidentified firmware it gets patches as parameter changes, the cautious default, and the
+bank destination instructions for an unknown firmware. Until a Felucca FM1 has been tested, make no
+editor behaviour depend on it.
+
+Open questions:
+
+1. Does Felucca accept DX7 voice data at all, by dump or parameter change, and does any of it
+   overwrite a stored preset?
+2. Does its USB port keep M-VAVE's name? The installer also looks for ports named `felucca`, which
+   `resolveMidiPortSelection` would not prefer.
+3. Do later releases keep the `FM-1_9NN` numbering?
+
 ### FM1 Editor
 
 Repository:
@@ -990,7 +1037,8 @@ instead.
   blocks, and not a generic transmitter. The one exception, approved on 2026-09-29, is the identity
   query `F0 00 32 45 00 00 00 40 7F F7` (`fm1IdentityQuery` in `src/lib/fm1-firmware.ts`), which
   reads the firmware name and changes nothing. The editor sends it when the ports in use change,
-  so it can tell M-VAVE's firmware from FM-1+VA (see Primary sources).
+  so it can tell M-VAVE's firmware from FM-1+VA and leave others, such as Felucca, unidentified
+  (see Primary sources).
 - Do not replay the capture, or any part of it, to hardware from editor or test code.
 - Standard Yamaha 32-voice bank dumps (1.2) remain the only bank-write path.
 - The identity reply carries only the firmware name, such as `FM-1_015`, and no serial (open
