@@ -40,6 +40,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   vi.useRealTimers()
+  delete window.umami
 })
 
 async function connect(ports: { input?: unknown; output: unknown }) {
@@ -120,6 +121,76 @@ describe('useMidi firmware identification', () => {
 
     expect(updated.output.send).toHaveBeenCalledWith(fm1IdentityQuery)
     expect(result.current.firmware).toEqual({ identity: 'FM-1_089', kind: 'fm1-va' })
+  })
+})
+
+describe('useMidi firmware analytics', () => {
+  function trackFirmwareEvents() {
+    const track = vi.fn()
+    window.umami = { track }
+    return () => track.mock.calls.filter(([name]) => name === 'fm1_identified')
+  }
+
+  it('reports M-VAVE firmware by its family, without its name', async () => {
+    const firmwareEvents = trackFirmwareEvents()
+
+    await connect(makeFakeFm1Ports({ reply: mvaveIdentityReply }))
+
+    expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'mvave' }]])
+  })
+
+  it('reports FM-1+VA firmware by its family, without its name', async () => {
+    const firmwareEvents = trackFirmwareEvents()
+
+    await connect(makeFakeFm1Ports({ reply: fm1VaIdentityReply }))
+
+    expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'fm1-va' }]])
+  })
+
+  it('reports nothing while the FM1 has not answered', async () => {
+    const firmwareEvents = trackFirmwareEvents()
+
+    await connect(makeFakeFm1Ports())
+
+    expect(firmwareEvents()).toEqual([])
+  })
+
+  it('reports an FM1 that never answers as unidentified, once', async () => {
+    const firmwareEvents = trackFirmwareEvents()
+
+    await connect(makeFakeFm1Ports())
+    await act(() => vi.advanceTimersByTimeAsync(3000))
+
+    expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'unidentified' }]])
+  })
+
+  it('reports each firmware family once per page load, however often the FM1 reconnects', async () => {
+    const firmwareEvents = trackFirmwareEvents()
+    await connect(makeFakeFm1Ports({ reply: mvaveIdentityReply }))
+    const portsChanged = webMidi.addListener.mock.calls.findLast(
+      ([event]) => event === 'portschanged',
+    )
+
+    for (const reply of [mvaveIdentityReply, fm1VaIdentityReply, mvaveIdentityReply]) {
+      const reconnected = makeFakeFm1Ports({ reply })
+      webMidi.inputs = [reconnected.input]
+      webMidi.outputs = [reconnected.output]
+      act(() => portsChanged?.[1]())
+    }
+
+    expect(firmwareEvents()).toEqual([
+      ['fm1_identified', { firmware: 'mvave' }],
+      ['fm1_identified', { firmware: 'fm1-va' }],
+    ])
+  })
+
+  it('reports nothing without an input, as the FM1 was never asked', async () => {
+    const firmwareEvents = trackFirmwareEvents()
+    const { output } = makeFakeFm1Ports({ reply: mvaveIdentityReply })
+
+    await connect({ output })
+
+    expect(firmwareEvents()).toEqual([])
   })
 })
 

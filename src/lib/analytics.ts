@@ -20,6 +20,12 @@ type AnalyticsEvent =
       name: 'bank_transfer_failed'
     }
   | {
+      // The firmware family only. Its name, such as FM-1_089, would single out the few FM1s on
+      // each release, so it never leaves the browser.
+      data: { firmware: 'fm1-va' | 'mvave' | 'unidentified' }
+      name: 'fm1_identified'
+    }
+  | {
       data: { surface: 'contextual' | 'guide' }
       name: 'help_opened'
     }
