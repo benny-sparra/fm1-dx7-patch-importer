@@ -1,5 +1,5 @@
 import { Library, Plus, Upload } from 'lucide-react'
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useRef, useState, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
@@ -9,6 +9,7 @@ import {
   Dialog,
   DialogBody,
   DialogCloseButton,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -48,6 +49,8 @@ export function AddWorkspaceBankDialog({
   suggestedName,
 }: AddWorkspaceBankDialogProps) {
   const { i18n, t } = useTranslation()
+  // The actions sit in the pinned footer, outside the form, and submit it by its id.
+  const formId = useId()
   const toast = useToast()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
@@ -180,7 +183,7 @@ export function AddWorkspaceBankDialog({
           {t('banks.addBankHelp')}
         </p>
 
-        <form className="grid gap-5 p-5" onSubmit={(event) => void submit(event)}>
+        <form id={formId} className="grid gap-5 p-5" onSubmit={(event) => void submit(event)}>
           <label className="grid gap-1 text-sm font-semibold">
             {t('banks.bankName')}
             <input
@@ -320,18 +323,18 @@ export function AddWorkspaceBankDialog({
 
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
           {readerUnavailable ? <LoadFailedNotice message={t('banks.bankFileUnavailable')} /> : null}
-
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button
-              disabled={working || !bank || (source === 'catalog' ? !catalogBankId : !fileVoices)}
-              type="submit"
-            >
-              <Plus />
-              <span>{working ? t('banks.creatingBank') : t('banks.createBank')}</span>
-            </Button>
-          </div>
         </form>
       </DialogBody>
+      <DialogFooter>
+        <Button
+          disabled={working || !bank || (source === 'catalog' ? !catalogBankId : !fileVoices)}
+          form={formId}
+          type="submit"
+        >
+          <Plus />
+          <span>{working ? t('banks.creatingBank') : t('banks.createBank')}</span>
+        </Button>
+      </DialogFooter>
     </Dialog>
   )
 }

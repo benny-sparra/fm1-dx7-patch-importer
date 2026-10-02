@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -108,7 +108,11 @@ async function chooseFile(user: ReturnType<typeof userEvent.setup>, file = syxFi
 
 async function chooseAndImport(user: ReturnType<typeof userEvent.setup>, file = syxFile()) {
   await chooseFile(user, file)
-  await user.click(await screen.findByRole('button', { name: 'Replace bank contents' }))
+  // The button exists before the file is read and is enabled once it has been, which the file
+  // reader's own chunk can delay.
+  const replace = screen.getByRole('button', { name: 'Replace bank contents' })
+  await waitFor(() => expect(replace).toHaveProperty('disabled', false))
+  await user.click(replace)
 }
 
 const playButtons = () => screen.queryAllByRole('button', { name: /^Play / })
@@ -159,7 +163,9 @@ describe('ImportDx7BankDialog', () => {
     )
 
     await user.upload(screen.getByLabelText(/SysEx/), syxFile())
-    await user.click(await screen.findByRole('button', { name: 'Bankinhalt ersetzen' }))
+    const replace = screen.getByRole('button', { name: 'Bankinhalt ersetzen' })
+    await waitFor(() => expect(replace).toHaveProperty('disabled', false))
+    await user.click(replace)
 
     const alert = await screen.findByRole('alert')
     expect(alert.textContent).toBe(german.banks.bankUnavailable)

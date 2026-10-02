@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogBody,
   DialogCloseButton,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -78,6 +79,8 @@ export function ImportFm1VaPresetsDialog({
   onPlay,
 }: ImportFm1VaPresetsDialogProps) {
   const { i18n, t } = useTranslation()
+  // The actions sit in the pinned footer, outside the form, and submit it by its id.
+  const formId = useId()
   const toast = useToast()
   const workspaceBankLabel = useWorkspaceBankLabel(library)
   const descriptionId = useId()
@@ -187,7 +190,7 @@ export function ImportFm1VaPresetsDialog({
           <p>{t('fm1VaImport.effectsNote')}</p>
         </div>
 
-        <form className="grid gap-5 p-5" onSubmit={submit}>
+        <form id={formId} className="grid gap-5 p-5" onSubmit={submit}>
           <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <TriangleAlert className="mt-0.5 size-5 shrink-0" />
             <p>{t('fm1VaImport.warning')}</p>
@@ -244,15 +247,19 @@ export function ImportFm1VaPresetsDialog({
           ) : null}
 
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
-
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button disabled={takenBanks.length === 0} type="submit" variant="destructive">
-              <Upload />
-              <span>{t('fm1VaImport.action', { count: takenBanks.length })}</span>
-            </Button>
-          </div>
         </form>
       </DialogBody>
+      <DialogFooter>
+        <Button
+          disabled={takenBanks.length === 0}
+          form={formId}
+          type="submit"
+          variant="destructive"
+        >
+          <Upload />
+          <span>{t('fm1VaImport.action', { count: takenBanks.length })}</span>
+        </Button>
+      </DialogFooter>
     </Dialog>
   )
 }

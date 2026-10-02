@@ -6,6 +6,7 @@ import {
   useEffectEvent,
   useRef,
   useState,
+  useId,
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -18,6 +19,7 @@ import {
   Dialog,
   DialogBody,
   DialogCloseButton,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -52,6 +54,8 @@ export function ImportDx7BankDialog({
   replacing,
 }: ImportDx7BankDialogProps) {
   const { i18n, t } = useTranslation()
+  // The actions sit in the pinned footer, outside the form, and submit it by its id.
+  const formId = useId()
   const toast = useToast()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -169,7 +173,7 @@ export function ImportDx7BankDialog({
           {t('overwriteImport.help')}
         </p>
 
-        <form className="grid gap-5 p-5" onSubmit={submit}>
+        <form id={formId} className="grid gap-5 p-5" onSubmit={submit}>
           {replacing ? (
             <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               <TriangleAlert className="mt-0.5 size-5 shrink-0" />
@@ -223,21 +227,19 @@ export function ImportDx7BankDialog({
 
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
           {readerUnavailable ? <LoadFailedNotice message={t('banks.bankFileUnavailable')} /> : null}
-
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button
-              disabled={!voices}
-              type="submit"
-              variant={replacing ? 'destructive' : 'default'}
-            >
-              <Upload />
-              <span>
-                {replacing ? t('overwriteImport.action') : t('overwriteImport.actionEmpty')}
-              </span>
-            </Button>
-          </div>
         </form>
       </DialogBody>
+      <DialogFooter>
+        <Button
+          disabled={!voices}
+          form={formId}
+          type="submit"
+          variant={replacing ? 'destructive' : 'default'}
+        >
+          <Upload />
+          <span>{replacing ? t('overwriteImport.action') : t('overwriteImport.actionEmpty')}</span>
+        </Button>
+      </DialogFooter>
     </Dialog>
   )
 }

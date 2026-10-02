@@ -9,6 +9,7 @@ import {
   Dialog,
   DialogBody,
   DialogCloseButton,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -71,6 +72,8 @@ export function CopyPatchDialog({
   source,
 }: CopyPatchDialogProps) {
   const { t } = useTranslation()
+  // The actions sit in the pinned footer, outside the form, and submit it by its id.
+  const formId = useId()
   const titleId = useId()
   const replacesId = useId()
   const editHintId = useId()
@@ -164,7 +167,7 @@ export function CopyPatchDialog({
         <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />
       </DialogHeader>
       <DialogBody>
-        <form className="grid gap-4 p-4 sm:p-5" onSubmit={submit}>
+        <form id={formId} className="grid gap-4 p-4 sm:p-5" onSubmit={submit}>
           {/* The readout repeats what the grid and the sentence below already say, for the eye. */}
           <div aria-hidden="true" className="crt-inset min-w-0 bg-[var(--crt-bg-1)] px-3 py-2.5">
             <p className="font-dot-matrix mb-2 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-acc-lt)] uppercase">
@@ -253,19 +256,18 @@ export function CopyPatchDialog({
           ) : null}
 
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
-
-          <div className="flex justify-end">
-            <Button disabled={!target} type="submit">
-              <Copy />
-              <span>
-                {t(opensEditor ? 'banks.copyAndEditAction' : 'banks.copyAction', {
-                  slot: target ? patchSlotCode(target) : '',
-                })}
-              </span>
-            </Button>
-          </div>
         </form>
       </DialogBody>
+      <DialogFooter>
+        <Button disabled={!target} form={formId} type="submit">
+          <Copy />
+          <span>
+            {t(opensEditor ? 'banks.copyAndEditAction' : 'banks.copyAction', {
+              slot: target ? patchSlotCode(target) : '',
+            })}
+          </span>
+        </Button>
+      </DialogFooter>
     </Dialog>
   )
 }

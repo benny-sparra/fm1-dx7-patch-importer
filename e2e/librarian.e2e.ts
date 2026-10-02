@@ -197,6 +197,13 @@ test('switches an FM-1+VA bank on and off without folding it, and folds it from 
   await switchLabel.click()
   await expect(bankSwitch).toBeChecked()
   await expect(firstPatch).toBeVisible()
+
+  // With every bank open the body scrolls, but the title and the action stay pinned in view.
+  for (const bank of ['B', 'C', 'D']) {
+    await dialog.getByRole('button', { name: `Expand FM1 bank ${bank}` }).click()
+  }
+  await expect(dialog.getByRole('button', { name: 'Replace 4 banks' })).toBeInViewport()
+  await expect(dialog.getByRole('heading', { name: 'Import FM-1+VA presets' })).toBeInViewport()
 })
 
 test('downloads a complete DX7 bank file', async ({ page }) => {

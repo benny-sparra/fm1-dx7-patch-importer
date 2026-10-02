@@ -7,6 +7,7 @@ import {
   Dialog,
   DialogBody,
   DialogCloseButton,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -33,6 +34,8 @@ export function BankInformationDialog({
   onClose,
 }: BankInformationDialogProps) {
   const { t } = useTranslation()
+  // The actions sit in the pinned footer, outside the form, and submit it by its id.
+  const formId = useId()
   const toast = useToast()
   const titleId = useId()
   const descriptionId = useId()
@@ -87,6 +90,7 @@ export function BankInformationDialog({
           </p>
 
           <form
+            id={formId}
             className="grid gap-4 p-5"
             onSubmit={(event) => {
               event.preventDefault()
@@ -123,11 +127,13 @@ export function BankInformationDialog({
               />
             </label>
             {error ? <ErrorNotice>{error}</ErrorNotice> : null}
-            <div className="flex justify-end">
-              <Button type="submit">{t('namedBanks.update')}</Button>
-            </div>
           </form>
         </DialogBody>
+        <DialogFooter>
+          <Button form={formId} type="submit">
+            {t('namedBanks.update')}
+          </Button>
+        </DialogFooter>
       </Dialog>
     </>
   )

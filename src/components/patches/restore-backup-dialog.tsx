@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogBody,
   DialogCloseButton,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -179,20 +180,19 @@ export function RestoreBackupDialog({ library, onClose, onRestored }: RestoreBac
           ) : null}
 
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
-
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button
-              disabled={working || reading || !backup}
-              onClick={() => void restore()}
-              type="button"
-              variant="destructive"
-            >
-              <HardDriveUpload />
-              <span>{working ? t('backup.restoring') : t('backup.restoreAction')}</span>
-            </Button>
-          </div>
         </div>
       </DialogBody>
+      <DialogFooter>
+        <Button
+          disabled={working || reading || !backup}
+          onClick={() => void restore()}
+          type="button"
+          variant="destructive"
+        >
+          <HardDriveUpload />
+          <span>{working ? t('backup.restoring') : t('backup.restoreAction')}</span>
+        </Button>
+      </DialogFooter>
     </Dialog>
   )
 }

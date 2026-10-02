@@ -9,6 +9,7 @@ import {
   Dialog,
   DialogBody,
   DialogCloseButton,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -56,6 +57,8 @@ export function ReplacePatchDialog({
   patch,
 }: ReplacePatchDialogProps) {
   const { t } = useTranslation()
+  // The actions sit in the pinned footer, outside the form, and submit it by its id.
+  const formId = useId()
   const titleId = useId()
   const warningId = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -111,7 +114,7 @@ export function ReplacePatchDialog({
         />
       </DialogHeader>
       <DialogBody>
-        <form className="grid gap-5 p-5" onSubmit={(event) => void submit(event)}>
+        <form id={formId} className="grid gap-5 p-5" onSubmit={(event) => void submit(event)}>
           <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
             <TriangleAlert className="mt-0.5 size-5 shrink-0" />
             <p id={warningId}>{t('replacePatch.warning')}</p>
@@ -134,15 +137,14 @@ export function ReplacePatchDialog({
           </label>
 
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
-
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button disabled={working || !file} type="submit" variant="destructive">
-              <Upload />
-              <span>{t('replacePatch.action')}</span>
-            </Button>
-          </div>
         </form>
       </DialogBody>
+      <DialogFooter>
+        <Button disabled={working || !file} form={formId} type="submit" variant="destructive">
+          <Upload />
+          <span>{t('replacePatch.action')}</span>
+        </Button>
+      </DialogFooter>
     </Dialog>
   )
 }

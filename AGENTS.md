@@ -358,7 +358,10 @@ open everything an earlier release could have saved.
   importing `HelpPopover`: importing it made Rolldown split the help popover and analytics out of
   the entry and cost 1.35 KiB.
 - A dialog built from `Dialog` scrolls only its `DialogBody`, so the title bar and any
-  `DialogFooter` stay in view; put scrolling content in the body, never beside it. The body is
+  `DialogFooter` stay in view; put scrolling content in the body, never beside it. A dialog's
+  actions go in its `DialogFooter`, pinned at the bottom, never at the end of the body: a form's
+  submit button there names the form by its `useId` id (`form={formId}`). A list whose rows carry
+  their own actions, such as the saved banks, keeps them in the body. The body is
   positioned, so visually hidden text inside stays in it; a folding section inside a dialog wraps
   its contents in a positioned element too, or hidden text in a folded section stretches the body.
 - Show an error in a dialog or on the page with `ErrorNotice` from
