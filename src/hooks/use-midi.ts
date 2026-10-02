@@ -101,7 +101,9 @@ function firmwareLogMessage(firmware: Fm1Firmware) {
     case 'fm1-va':
       return `The FM1 runs FM-1+VA firmware ${firmware.identity}, which stores a single-patch dump over the selected preset, so patches are sent as parameter changes instead.`
     default:
-      return 'The FM1 did not say which firmware it runs, so patches are sent as parameter changes, which it does not store.'
+      return 'identity' in firmware && firmware.identity
+        ? `The FM1 runs firmware ${firmware.identity}, which the editor does not recognise, so patches are sent as parameter changes.`
+        : 'The FM1 did not say which firmware it runs, so patches are sent as parameter changes, which it does not store.'
   }
 }
 

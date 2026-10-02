@@ -19,11 +19,21 @@ const identityHeader = [0x00, 0x59, 0x11]
 const identityNameStart = 6
 const identityNameLength = 27
 
-/** M-VAVE numbers its own releases up to V19; FM-1+VA's start at FM-1_020. */
+/**
+ * M-VAVE numbers its own releases up to V19, and FM-1+VA's run from FM-1_020. Felucca, another
+ * replacement firmware, answers FM-1_904, so the 900s are left to it and stay unidentified.
+ */
 const lastMvaveVersion = 19
+const lastFm1VaVersion = 899
 
+/**
+ * An FM1 that answered with a name the editor does not recognise keeps that name for the MIDI log;
+ * one that never answered has none.
+ */
 export type Fm1Firmware =
-  { kind: 'checking' | 'unidentified' } | { identity: string; kind: 'fm1-va' | 'mvave' }
+  | { kind: 'checking' }
+  | { identity?: string; kind: 'unidentified' }
+  | { identity: string; kind: 'fm1-va' | 'mvave' }
 
 function unpackSevenBitStream(bytes: Uint8Array) {
   const unpacked: number[] = []
@@ -77,12 +87,15 @@ export function parseFm1IdentityReply(message: Uint8Array | readonly number[]) {
 
 /**
  * The firmware an identity names. Only an FM1 name numbered as M-VAVE's own releases counts as
- * M-VAVE's firmware; any other FM1 number is FM-1+VA, and any other name is unidentified.
+ * M-VAVE's firmware, and only one numbered as FM-1+VA's counts as FM-1+VA, releases after the
+ * tested one included. Any other name, Felucca's among them, is unidentified, so the editor assumes
+ * neither firmware's behaviour.
  */
 export function classifyFm1Firmware(identity: string): Fm1Firmware {
   const match = /^FM-1_(\d{3})$/.exec(identity)
-  if (!match) return { kind: 'unidentified' }
-  return { identity, kind: Number(match[1]) <= lastMvaveVersion ? 'mvave' : 'fm1-va' }
+  const version = match ? Number(match[1]) : null
+  if (version === null || version > lastFm1VaVersion) return { identity, kind: 'unidentified' }
+  return { identity, kind: version <= lastMvaveVersion ? 'mvave' : 'fm1-va' }
 }
 
 /**
