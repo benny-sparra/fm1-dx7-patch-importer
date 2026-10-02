@@ -81,6 +81,8 @@ Other replacement firmware, such as Hügelton Instruments' [Felucca](https://hug
 shows as **Not identified** under **FM1 firmware**. The app sends it patches as parameter changes,
 but whether it plays DX7 patches at all has not been tested.
 
+To move your FM1 between these firmwares, see [Switching FM1 firmware](switching-firmware.md).
+
 To bring the FM1's own presets into the library, press **Save a backup** on FM-1+VA's Presets page,
 then choose **Import FM-1+VA presets…** from the menu in the patch-bank header and select the
 `.syx` file it saved. It holds the 128 presets in the FM1's banks A to D, each shown as a folded
