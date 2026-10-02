@@ -171,6 +171,9 @@ export function useMidi() {
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<MidiConnectionErrorCode | null>(null)
   const [identification, setIdentification] = useState<FirmwareIdentification | null>(null)
+  // The firmware families already reported to analytics. Each is reported once per page load, so
+  // the split between them counts sessions rather than how often an FM1 was plugged back in.
+  const reportedFirmwareKinds = useRef(new Set<Fm1Firmware['kind']>())
   // Counts MIDI panics, so a player can stop rather than strike the released notes again.
   const [midiPanicCount, setMidiPanicCount] = useState(0)
   const [logStore] = useState(
@@ -759,7 +762,8 @@ export function useMidi() {
       input.removeListener('midimessage', hear)
       setIdentification({ firmware: answer, input, output })
       appendLog(makeLogEntry('system', firmwareLogMessage(answer)))
-      if (answer.kind !== 'checking') {
+      if (answer.kind !== 'checking' && !reportedFirmwareKinds.current.has(answer.kind)) {
+        reportedFirmwareKinds.current.add(answer.kind)
         trackAnalyticsEvent({ data: { firmware: answer.kind }, name: 'fm1_identified' })
       }
     }

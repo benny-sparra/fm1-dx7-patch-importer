@@ -169,7 +169,8 @@ open everything an earlier release could have saved.
   It is the one `00 32` message the editor may send: never send another from that family, and
   never send FM-1+VA's own `F0 43 00 7D` commands. The firmware counts as unknown until the answer
   for the ports in use arrives. Analytics records only the family (`fm1_identified`: `mvave`,
-  `fm1-va`, or `unidentified`); the name and version, such as `FM-1_089`, stay out of analytics and
+  `fm1-va`, or `unidentified`), once per family per page load so the split counts sessions rather
+  than reconnections; the name and version, such as `FM-1_089`, stay out of analytics and
   monitoring, because a release has few enough FM1s on it to single one out.
 - Send a patch as a DX7 single-voice dump only to firmware identified as M-VAVE's
   (`sendsSingleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored preset, so
