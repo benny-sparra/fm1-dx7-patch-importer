@@ -350,6 +350,13 @@ open everything an earlier release could have saved.
   the working labels on bank buttons do, and key the branches of a conditional that swaps layouts
   built from the same element type, as `Fm1BankSelectionDialog` does. Cover it with
   `translatePageText` from `src/test/page-translator.ts`.
+- An on/off choice uses `Switch` from `src/components/ui/switch.tsx`, the slide switch MIDI online
+  uses, not a bare checkbox. A dialog listing several sections that would make it scroll, such as
+  the FM-1+VA import's banks, folds each with the editor's rack panel pieces in
+  `src/components/ui/rack-panel.tsx`; a control on a title strip sits above its fold overlay.
+  `rack-panel` takes its help button as an element (the editor's `RackPanelHelp`) rather than
+  importing `HelpPopover`: importing it made Rolldown split the help popover and analytics out of
+  the entry and cost 1.35 KiB.
 - Show an error in a dialog or on the page with `ErrorNotice` from
   `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
   restyling another paragraph.

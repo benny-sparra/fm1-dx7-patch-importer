@@ -79,10 +79,10 @@ cancel. The destination instructions shown before sending follow the firmware th
 
 To bring the FM1's own presets into the library, press **Save a backup** on FM-1+VA's Presets page,
 then choose **Import FM-1+VA presets…** from the menu in the patch-bank header and select the
-`.syx` file it saved. It holds the 128 presets in the FM1's banks A to D, and the dialog lists each
-bank's patches: click one to hear it on the FM1 with the default effects. Untick a bank to leave
-it as it is, then press **Replace** to put the ticked banks into banks A to D here, adding any of
-them your library does not have. The file sends nothing to the FM1, so the import works with MIDI
+`.syx` file it saved. It holds the 128 presets in the FM1's banks A to D, each shown as a folded
+panel: open one to see its patches, and click a patch to hear it on the FM1 with the default
+effects. Switch a bank off to leave it as it is, then press **Replace** to put the banks switched
+on into banks A to D here, adding any of them your library does not have. The file sends nothing to the FM1, so the import works with MIDI
 switched off and whichever firmware the FM1 runs. Only the patches come in: the file holds each
 preset's effects too, but the app cannot read them yet, so every imported patch starts with its
 effects off. A Virtual Analog preset is marked **VA** and left out, since the app cannot hold one

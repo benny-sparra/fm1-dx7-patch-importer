@@ -306,22 +306,19 @@ export default {
     menuItem: 'Import FM-1+VA presets…',
     menuContents: 'Banks A to D from the file its “Save a backup” writes',
     title: 'Import FM-1+VA presets',
-    help: 'Choose the .syx file that “Save a backup” on FM-1+VA’s Presets page saves. It holds the 128 presets in the FM1’s banks A to D.',
-    effectsNote:
-      'Only the patches come in. The file holds each preset’s effects too, but the editor cannot read them yet, so every imported patch starts with its effects off.',
-    warning:
-      'Each bank you tick replaces the patches in the same bank here. You can undo the import afterwards.',
+    help: 'Choose the file from “Save a backup” on FM-1+VA’s Presets page.',
+    effectsNote: 'Effects aren’t imported yet, so each patch arrives with them off.',
+    warning: 'Each bank switched on replaces the same bank here. You can undo this.',
     file: 'FM-1+VA presets file',
     chooseFile: 'Choose the file from “Save a backup”',
     previewTitle: 'Banks in this file',
-    previewHelp: 'Click a patch to hear it on the FM1. Untick a bank to leave it as it is.',
+    previewHelp: 'Open a bank to hear its patches on the FM1.',
     bankHeading: 'FM1 bank {{bank}}',
     replaceBank: 'Replace “{{name}}”',
     addBank: 'Add it as a new bank',
     damagedPreset: 'Damaged',
-    damagedPresets: 'One preset in this file is damaged. Its slot keeps the patch it has now.',
-    damagedPresets_other:
-      '{{count, number}} presets in this file are damaged. Their slots keep the patches they have now.',
+    damagedPresets: 'One preset is damaged. Its slot keeps its patch.',
+    damagedPresets_other: '{{count, number}} presets are damaged. Their slots keep their patches.',
     action: 'Replace one bank',
     action_other: 'Replace {{count, number}} banks',
     imported: 'Imported bank {{banks}} from FM-1+VA.',
@@ -330,9 +327,9 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Virtual Analog preset, not imported',
     virtualAnalogPresets:
-      'One preset in this file is a Virtual Analog preset, marked VA. The editor cannot hold those yet, so its slot keeps the patch it has now.',
+      'VA marks a Virtual Analog preset, which can’t be imported yet. Its slot keeps its patch.',
     virtualAnalogPresets_other:
-      '{{count, number}} presets in this file are Virtual Analog presets, marked VA. The editor cannot hold those yet, so their slots keep the patches they have now.',
+      'VA marks {{count, number}} Virtual Analog presets, which can’t be imported yet. Their slots keep their patches.',
     errors: {
       size: 'This file is {{bytes, number}} bytes. A file from FM-1+VA’s “Save a backup” is exactly {{expected, number}} bytes.',
       format: 'This file was not saved by FM-1+VA’s “Save a backup”.',

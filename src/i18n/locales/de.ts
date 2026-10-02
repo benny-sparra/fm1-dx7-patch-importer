@@ -321,24 +321,22 @@ export default {
     menuItem: 'FM-1+VA-Presets importieren…',
     menuContents: 'Bänke A bis D aus der Datei, die „Save a backup“ schreibt',
     title: 'FM-1+VA-Presets importieren',
-    help: 'Wähle die .syx-Datei, die „Save a backup“ auf der Presets-Seite von FM-1+VA speichert. Sie enthält die 128 Presets der FM1-Bänke A bis D.',
+    help: 'Wähle die Datei aus „Save a backup“ auf der Presets-Seite von FM-1+VA.',
     effectsNote:
-      'Übernommen werden nur die Sounds. Die Datei enthält auch die Effekte jedes Presets, doch der Editor kann sie noch nicht lesen. Jeder importierte Sound beginnt deshalb mit ausgeschalteten Effekten.',
+      'Effekte werden noch nicht importiert, darum kommt jeder Sound mit ausgeschalteten Effekten an.',
     warning:
-      'Jede angehakte Bank ersetzt die Sounds in der gleichen Bank hier. Du kannst den Import danach rückgängig machen.',
+      'Jede eingeschaltete Bank ersetzt die gleiche Bank hier. Du kannst das rückgängig machen.',
     file: 'FM-1+VA-Presetdatei',
     chooseFile: 'Datei aus „Save a backup“ wählen',
     previewTitle: 'Bänke in dieser Datei',
-    previewHelp:
-      'Klicke auf einen Sound, um ihn am FM1 zu hören. Entferne den Haken bei einer Bank, um sie unverändert zu lassen.',
+    previewHelp: 'Öffne eine Bank, um ihre Sounds am FM1 zu hören.',
     bankHeading: 'FM1-Bank {{bank}}',
     replaceBank: '„{{name}}“ ersetzen',
     addBank: 'Als neue Bank hinzufügen',
     damagedPreset: 'Beschädigt',
-    damagedPresets:
-      'Ein Preset in dieser Datei ist beschädigt. Sein Platz behält den Sound, den er jetzt hat.',
+    damagedPresets: 'Ein Preset ist beschädigt. Sein Platz behält seinen Sound.',
     damagedPresets_other:
-      '{{count, number}} Presets in dieser Datei sind beschädigt. Ihre Plätze behalten die Sounds, die sie jetzt haben.',
+      '{{count, number}} Presets sind beschädigt. Ihre Plätze behalten ihre Sounds.',
     action: 'Eine Bank ersetzen',
     action_other: '{{count, number}} Bänke ersetzen',
     imported: 'Bank {{banks}} von FM-1+VA importiert.',
@@ -348,9 +346,9 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Virtual-Analog-Preset, wird nicht importiert',
     virtualAnalogPresets:
-      'Ein Preset in dieser Datei ist ein Virtual-Analog-Preset, markiert mit VA. Der Editor kann solche Presets noch nicht aufnehmen, darum behält sein Platz den Sound, den er jetzt hat.',
+      'VA kennzeichnet ein Virtual-Analog-Preset, das noch nicht importiert werden kann. Sein Platz behält seinen Sound.',
     virtualAnalogPresets_other:
-      '{{count, number}} Presets in dieser Datei sind Virtual-Analog-Presets, markiert mit VA. Der Editor kann solche Presets noch nicht aufnehmen, darum behalten ihre Plätze die Sounds, die sie jetzt haben.',
+      'VA kennzeichnet {{count, number}} Virtual-Analog-Presets, die noch nicht importiert werden können. Ihre Plätze behalten ihre Sounds.',
     errors: {
       size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine Datei aus „Save a backup“ von FM-1+VA ist genau {{expected, number}} Bytes groß.',
       format: 'Diese Datei wurde nicht mit „Save a backup“ von FM-1+VA gespeichert.',

@@ -1,7 +1,8 @@
 import { Activity, Waves } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { AlgorithmPanel, RackPanelTitle } from '@/components/editor/editor-workspace'
+import { AlgorithmPanel, RackPanelHelp } from '@/components/editor/editor-workspace'
+import { RackPanelTitle } from '@/components/ui/rack-panel'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import { LfoScope } from '@/components/editor/lfo-scope'
 import {
@@ -108,7 +109,12 @@ export function GlobalConfigurationPanel({
         className="synthwave-panel flex min-w-[14rem] flex-[1_1_0%] flex-col"
       >
         <RackPanelTitle
-          help={{ label: t('editor.pitchEnvelope'), text: t('controlHelp.pitchEnvelope') }}
+          help={
+            <RackPanelHelp
+              label={t('editor.pitchEnvelope')}
+              text={t('controlHelp.pitchEnvelope')}
+            />
+          }
           icon={Activity}
           id="pitch-envelope-heading"
           title={t('editor.pitchEnvelope')}

@@ -312,24 +312,20 @@ export default {
     menuItem: 'Importar presets do FM-1+VA…',
     menuContents: 'Bancos A a D do arquivo gravado por “Save a backup”',
     title: 'Importar presets do FM-1+VA',
-    help: 'Escolha o arquivo .syx salvo por “Save a backup” na página Presets do FM-1+VA. Ele contém os 128 presets dos bancos A a D do FM1.',
-    effectsNote:
-      'Só os sons são importados. O arquivo também guarda os efeitos de cada preset, mas o editor ainda não consegue lê-los, então cada som importado começa com os efeitos desligados.',
-    warning:
-      'Cada banco marcado substitui os sons do mesmo banco aqui. Você pode desfazer a importação depois.',
+    help: 'Escolha o arquivo do “Save a backup” na página Presets do FM-1+VA.',
+    effectsNote: 'Os efeitos ainda não são importados, então cada som chega com eles desligados.',
+    warning: 'Cada banco ativado substitui o mesmo banco aqui. Você pode desfazer isso.',
     file: 'Arquivo de presets do FM-1+VA',
     chooseFile: 'Escolha o arquivo de “Save a backup”',
     previewTitle: 'Bancos deste arquivo',
-    previewHelp:
-      'Clique em um som para ouvi-lo no FM1. Desmarque um banco para deixá-lo como está.',
+    previewHelp: 'Abra um banco para ouvir seus sons no FM1.',
     bankHeading: 'Banco {{bank}} do FM1',
     replaceBank: 'Substituir “{{name}}”',
     addBank: 'Adicionar como banco novo',
     damagedPreset: 'Danificado',
-    damagedPresets:
-      'Um preset deste arquivo está danificado. A posição dele mantém o som que tem agora.',
+    damagedPresets: 'Um preset está danificado. A posição dele mantém o som.',
     damagedPresets_other:
-      '{{count, number}} presets deste arquivo estão danificados. As posições deles mantêm os sons que têm agora.',
+      '{{count, number}} presets estão danificados. As posições deles mantêm os sons.',
     action: 'Substituir um banco',
     action_other: 'Substituir {{count, number}} bancos',
     imported: 'Banco {{banks}} importado do FM-1+VA.',
@@ -339,9 +335,9 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Preset Virtual Analog, não importado',
     virtualAnalogPresets:
-      'Um preset deste arquivo é Virtual Analog, marcado com VA. O editor ainda não consegue guardá-los, então a posição dele mantém o som que tem agora.',
+      'VA marca um preset Virtual Analog, que ainda não pode ser importado. A posição dele mantém o som.',
     virtualAnalogPresets_other:
-      '{{count, number}} presets deste arquivo são Virtual Analog, marcados com VA. O editor ainda não consegue guardá-los, então as posições deles mantêm os sons que têm agora.',
+      'VA marca {{count, number}} presets Virtual Analog, que ainda não podem ser importados. As posições deles mantêm os sons.',
     errors: {
       size: 'Este arquivo tem {{bytes, number}} bytes. Um arquivo de “Save a backup” do FM-1+VA tem exatamente {{expected, number}} bytes.',
       format: 'Este arquivo não foi salvo pelo “Save a backup” do FM-1+VA.',
