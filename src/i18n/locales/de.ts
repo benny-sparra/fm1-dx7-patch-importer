@@ -14,6 +14,8 @@ export default {
       'Drehe SELECT auf Write und drücke SEL, um die 32 Sounds zu speichern, oder brich mit HOME ab.',
     bankFm1VaNote:
       'Läuft auf deinem FM1 die Firmware FM-1+VA, fragt er stattdessen „Write the bank?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Write, und drücke SEL.',
+    bankFeluccaNote:
+      'Felucca ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Presets also nicht.',
     bankFm1VaImage: 'FM1-Display mit FM-1+VA, das „Write the bank?“ fragt, mit Cancel und Write',
     bankImage:
       'FM1-Display mit der M-VAVE-Firmware, das „32 Voice Save To …“ über den Bänken A, B, C und D zeigt',
@@ -500,9 +502,12 @@ export default {
     firmwareUnidentified: 'Nicht erkannt',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareFelucca: 'Felucca {{identity}}',
     firmwareEditBuffer: 'Sounds, die du anspielst, gehen in den Bearbeitungspuffer des FM1.',
     firmwareParameterChanges:
       'Sounds, die du anspielst, werden als Parameteränderungen gesendet, damit der FM1 sie nie über das gewählte Preset speichert.',
+    firmwareIgnoresPatches:
+      'Felucca spielt deine Noten, ignoriert aber DX7-Sounds, DX7-Bänke und die Effektregler.',
     firmwareNeedsInput:
       'Wähle den FM1 als Monitoring-Eingang, damit der Editor fragen kann, welche Firmware er verwendet.',
     noteChannel: 'Notenkanal',
@@ -691,6 +696,9 @@ export default {
     randomiseHelp: 'Neue Stimme. Name und Effekte bleiben.',
   },
   midi: {
+    feluccaBadgeLabel: 'Firmware Felucca von Hügelton Instruments, {{release}}',
+    feluccaBadgeTitle:
+      'Auf dem FM1 läuft die Firmware Felucca von Hügelton Instruments, {{release}}. Sie spielt deine Noten, ignoriert aber DX7-Sounds, DX7-Bänke und die Effektregler.',
     fm1VaBadgeLabel: 'Firmware FM-1+VA von Baud Girl, {{release}}',
     fm1VaBadgeTitle:
       'Auf dem FM1 läuft die Firmware FM-1+VA von Baud Girl, {{release}}. Sounds, die du anspielst, kommen als ungespeicherte Änderungen an und überschreiben nie ein Preset.',

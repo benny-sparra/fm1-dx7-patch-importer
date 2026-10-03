@@ -187,8 +187,14 @@ describe('RootLayout hardware photo', () => {
     expect(photo.getAttribute('src')).not.toContain('fm1-va-')
   })
 
+  it('keeps the stock screen on Felucca firmware', () => {
+    const photo = renderWithFirmware({ identity: 'FM-1_904', kind: 'felucca' })
+
+    expect(photo.getAttribute('src')).not.toContain('fm1-va-')
+  })
+
   it('keeps the stock screen while the firmware is unidentified', () => {
-    const photo = renderWithFirmware({ identity: 'FM-1_904', kind: 'unidentified' })
+    const photo = renderWithFirmware({ identity: 'XR-9_015', kind: 'unidentified' })
 
     expect(photo.getAttribute('src')).not.toContain('fm1-va-')
   })

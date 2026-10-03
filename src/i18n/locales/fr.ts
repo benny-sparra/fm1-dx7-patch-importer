@@ -15,6 +15,8 @@ export default {
       'Tournez SELECT jusqu’à Write et appuyez sur SEL pour enregistrer les 32 sons, ou appuyez sur HOME pour annuler.',
     bankFm1VaNote:
       'Si votre FM1 utilise le firmware FM-1+VA, il demande plutôt « Write the bank? » et commence sur la banque A. Tournez ALGORITHM jusqu’à la banque de destination, puis SELECT jusqu’à Write, et appuyez sur SEL.',
+    bankFeluccaNote:
+      'Felucca ignore les banques DX7, donc envoyer cette banque ne modifie pas ses presets.',
     bankFm1VaImage: 'Écran du FM1 sous FM-1+VA demandant « Write the bank? », avec Cancel et Write',
     bankImage:
       'Écran du FM1 sous le firmware de M-VAVE affichant « 32 Voice Save To … » au-dessus des banques A, B, C et D',
@@ -494,9 +496,12 @@ export default {
     firmwareUnidentified: 'Non identifié',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareFelucca: 'Felucca {{identity}}',
     firmwareEditBuffer: 'Les sons que vous jouez vont dans le tampon d’édition du FM1.',
     firmwareParameterChanges:
       'Les sons que vous jouez sont envoyés sous forme de changements de paramètres, pour que le FM1 ne les enregistre jamais sur le preset sélectionné.',
+    firmwareIgnoresPatches:
+      'Felucca joue vos notes mais ignore les sons DX7, les banques et les commandes d’effets.',
     firmwareNeedsInput:
       'Choisissez le FM1 comme entrée de contrôle pour que l’éditeur puisse lui demander quel firmware il utilise.',
     noteChannel: 'Canal des notes',
@@ -684,6 +689,9 @@ export default {
     randomiseHelp: 'Nouvelle voix. Nom et effets gardés.',
   },
   midi: {
+    feluccaBadgeLabel: 'Firmware Felucca de Hügelton Instruments, {{release}}',
+    feluccaBadgeTitle:
+      'Le FM1 utilise le firmware Felucca de Hügelton Instruments, {{release}}. Il joue vos notes mais ignore les sons DX7, les banques et les commandes d’effets.',
     fm1VaBadgeLabel: 'Firmware FM-1+VA de Baud Girl, {{release}}',
     fm1VaBadgeTitle:
       'Le FM1 utilise le firmware FM-1+VA de Baud Girl, {{release}}. Les sons que vous jouez lui parviennent comme des modifications non enregistrées et n’écrasent jamais un preset.',

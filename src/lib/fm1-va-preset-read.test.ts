@@ -510,7 +510,7 @@ describe('readsFm1VaPresets', () => {
 
   it('does not read presets on any other firmware, or before the firmware is known', () => {
     expect(readsFm1VaPresets({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
-    expect(readsFm1VaPresets({ identity: 'FM-1_904', kind: 'unidentified' })).toBe(false)
+    expect(readsFm1VaPresets({ identity: 'FM-1_904', kind: 'felucca' })).toBe(false)
     expect(readsFm1VaPresets({ kind: 'unidentified' })).toBe(false)
     expect(readsFm1VaPresets({ kind: 'checking' })).toBe(false)
   })

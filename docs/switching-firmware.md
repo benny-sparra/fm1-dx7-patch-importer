@@ -128,11 +128,11 @@ the FM1 works; the FM-1-transporter README explains UBOOT mode.
 The app asks which firmware the FM1 runs whenever it reconnects, and sends patches to suit it (see
 [M-VAVE firmware and FM-1+VA](user-guide.md#m-vave-firmware-and-fm-1va) in the user guide).
 
-| Firmware     | Reports as                 | How the app sends a patch | Notes                                                                                    |
-| ------------ | -------------------------- | ------------------------- | ---------------------------------------------------------------------------------------- |
-| M-VAVE stock | Below `FM-1_020`           | Single-voice dump         | Hold **SAVE** on the FM1 to store it                                                     |
-| FM-1+VA      | `FM-1_020` to `FM-1_899`   | 155 parameter changes     | A send never overwrites a stored preset                                                  |
-| Felucca      | `FM-1_9XY`, not identified | 155 parameter changes     | Its port is named Felucca, so choose it yourself; it plays notes but ignores DX7 patches |
+| Firmware     | Reports as               | How the app sends a patch | Notes                                                                                    |
+| ------------ | ------------------------ | ------------------------- | ---------------------------------------------------------------------------------------- |
+| M-VAVE stock | Below `FM-1_020`         | Single-voice dump         | Hold **SAVE** on the FM1 to store it                                                     |
+| FM-1+VA      | `FM-1_020` to `FM-1_899` | 155 parameter changes     | A send never overwrites a stored preset                                                  |
+| Felucca      | `FM-1_9XY`, shown as X.Y | 155 parameter changes     | Its port is named Felucca, so choose it yourself; it plays notes but ignores DX7 patches |
 
 ## Sources
 

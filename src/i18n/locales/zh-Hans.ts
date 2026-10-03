@@ -11,6 +11,7 @@ export default {
     bankFm1VaStep3: '将 SELECT 转到 Write 并按 SEL 保存这 32 个音色，或按 HOME 取消。',
     bankFm1VaNote:
       '如果你的 FM1 运行 FM-1+VA 固件，它会改为询问“Write the bank?”，并先停在音色库 A。转动 ALGORITHM 选择目标音色库，再将 SELECT 转到 Write 并按 SEL。',
+    bankFeluccaNote: 'Felucca 会忽略 DX7 音色库，因此发送此音色库不会改变它的预设。',
     bankFm1VaImage: '运行 FM-1+VA 的 FM1 显示屏，询问“Write the bank?”，下方有 Cancel 和 Write',
     bankImage: '运行 M-VAVE 固件的 FM1 显示屏，显示“32 Voice Save To …”，下方是音色库 A、B、C 和 D',
     dontShow: '本次会话中不再显示',
@@ -438,9 +439,11 @@ export default {
     firmwareUnidentified: '未识别',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareFelucca: 'Felucca {{identity}}',
     firmwareEditBuffer: '你试听的音色会进入 FM1 的编辑缓冲区。',
     firmwareParameterChanges:
       '你试听的音色会以参数变化的方式发送，因此 FM1 绝不会把它们保存到所选预设上。',
+    firmwareIgnoresPatches: 'Felucca 会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
     firmwareNeedsInput: '请把 FM1 选为监听输入，这样编辑器才能询问它运行的固件。',
     noteChannel: '音符通道',
     fxChannel: '效果通道',
@@ -625,6 +628,9 @@ export default {
     randomiseHelp: '生成新音色，保留名称和效果。',
   },
   midi: {
+    feluccaBadgeLabel: 'Hügelton Instruments 的 Felucca 固件，{{release}}',
+    feluccaBadgeTitle:
+      'FM1 运行的是 Hügelton Instruments 的 Felucca 固件（{{release}}）。它会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
     fm1VaBadgeLabel: 'Baud Girl 的 FM-1+VA 固件，{{release}}',
     fm1VaBadgeTitle:
       'FM1 运行的是 Baud Girl 的 FM-1+VA 固件（{{release}}）。你试听的音色会作为未保存的编辑发送，绝不会覆盖预设。',
