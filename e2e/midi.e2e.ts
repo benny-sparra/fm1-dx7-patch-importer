@@ -363,7 +363,7 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
   test('selects the FM1 program for a factory slot, then sends its voice as parameter changes', async ({
     page,
   }) => {
-    await expect(page.getByTitle(/^The FM1 runs Baud Girl’s FM-1\+VA firmware/)).toBeVisible()
+    await expect(page.getByTitle(/^The FM1 runs Baud Girl’s firmware \(FM-1\+VA\)/)).toBeVisible()
 
     await slotButtons(page).nth(2).click()
 
@@ -379,10 +379,10 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
     expect(messages.some((message) => message.length === singleVoiceDumpLength)).toBe(false)
   })
 
-  test('shows the Baud Girl FM-1+VA badge in the header once the FM1 names its firmware', async ({
+  test('shows the Baud Girl badge in the header once the FM1 names its firmware', async ({
     page,
   }) => {
-    const badge = page.getByTitle(/^The FM1 runs Baud Girl’s FM-1\+VA firmware, FM-1_089\./)
+    const badge = page.getByTitle(/^The FM1 runs Baud Girl’s firmware \(FM-1\+VA\), FM-1_089\./)
 
     await expect(badge).toBeVisible()
     await expect(badge.getByRole('img')).toHaveCount(0)
