@@ -4,7 +4,7 @@ How to move one FM1 between M-VAVE's stock firmware, Baud Girl's
 [FM-1+VA](https://baudgirl.com/work/FM-1+VA), and Hügelton Instruments'
 [Felucca](https://hugelton.github.io/Felucca/). Use the stock firmware as the middle point: go back
 to it before moving between FM-1+VA and Felucca. Written for M-VAVE V15, FM-1+VA `FM-1_093`, and
-Felucca 0.4-beta, from each project's own pages as they stood on 2 October 2026.
+Felucca 0.8-beta, from each project's own pages as they stood on 3 October 2026.
 
 This app never installs firmware. Every step below uses the firmware projects' own tools.
 
@@ -12,7 +12,7 @@ This app never installs firmware. Every step below uses the firmware projects' o
 flowchart LR
   VA["FM-1+VA<br/>Baud Girl · FM-1_093"]
   Stock["Stock<br/>M-VAVE · V15"]
-  Felucca["Felucca<br/>Hügelton · 0.4-beta"]
+  Felucca["Felucca<br/>Hügelton · 0.8-beta"]
   Stock -- "FM-1+VA Install page" --> VA
   VA -- "same page, V15 file" --> Stock
   Stock -- "Felucca Install page" --> Felucca
@@ -62,14 +62,17 @@ Virtual Analog presets do not play on stock firmware, and FM-1+VA's extra FM fea
 
 Felucca's page installs its own prebuilt package and does not ask for M-VAVE's file.
 
-1. Open the [Felucca installer](https://hugelton.github.io/Felucca/) in Chrome or Edge and click
-   **Install**.
+1. Open the [Felucca installer](https://hugelton.github.io/Felucca/webapp/installer/) in Chrome or
+   Edge and click **Install**.
 2. It runs through Starting, Verifying, Switching to update mode, Writing, Restarting, and Done.
    Do not unplug the cable while it writes.
 3. If it stops partway, replug the cable and press **Install** again. The FM1 stays in update mode
    until the install finishes, and the page resumes it.
 
-Felucca 0.4 is a beta, and its author accepts no responsibility for damage. Whether your stock
+Felucca's repository also has a command-line installer, `tools/fm1_install.py`, for the same
+install from a terminal.
+
+Felucca 0.8 is a beta, and its author accepts no responsibility for damage. Whether your stock
 presets survive a Felucca install is not known: treat them as lost until you see otherwise.
 
 ## Felucca to stock
@@ -125,17 +128,18 @@ the FM1 works; the FM-1-transporter README explains UBOOT mode.
 The app asks which firmware the FM1 runs whenever it reconnects, and sends patches to suit it (see
 [M-VAVE firmware and FM-1+VA](user-guide.md#m-vave-firmware-and-fm-1va) in the user guide).
 
-| Firmware     | Reports as                 | How the app sends a patch | Notes                                                                                         |
-| ------------ | -------------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
-| M-VAVE stock | Below `FM-1_020`           | Single-voice dump         | Hold **SAVE** on the FM1 to store it                                                          |
-| FM-1+VA      | `FM-1_020` to `FM-1_899`   | 155 parameter changes     | A send never overwrites a stored preset                                                       |
-| Felucca      | `FM-1_904`, not identified | 155 parameter changes     | Its port is probably named Felucca, so choose it yourself; it may ignore DX7 patches entirely |
+| Firmware     | Reports as                 | How the app sends a patch | Notes                                                                                    |
+| ------------ | -------------------------- | ------------------------- | ---------------------------------------------------------------------------------------- |
+| M-VAVE stock | Below `FM-1_020`           | Single-voice dump         | Hold **SAVE** on the FM1 to store it                                                     |
+| FM-1+VA      | `FM-1_020` to `FM-1_899`   | 155 parameter changes     | A send never overwrites a stored preset                                                  |
+| Felucca      | `FM-1_9XY`, not identified | 155 parameter changes     | Its port is named Felucca, so choose it yourself; it plays notes but ignores DX7 patches |
 
 ## Sources
 
 - [FM-1+VA](https://baudgirl.com/work/FM-1+VA) and its
   [manual](https://baudgirl.com/work/FM-1+VA/manual) (Baud Girl)
-- [Felucca installer](https://hugelton.github.io/Felucca/) and
+- [Felucca installer](https://hugelton.github.io/Felucca/webapp/installer/),
+  [releases](https://github.com/hugelton/Felucca/releases), and
   [repository](https://github.com/hugelton/Felucca) (Hügelton Instruments)
 - [FM-1-transporter](https://github.com/kurogedelic/FM-1-transporter)
 - [M-VAVE downloads](https://www.m-vave.com/download)
