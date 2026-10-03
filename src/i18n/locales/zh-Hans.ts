@@ -6,13 +6,14 @@ export default {
     bankStep1: '等待 FM1 屏幕显示音色库选择界面。',
     bankStep2: '转动旋钮 1、2、3 或 4，选择目标音色库 A、B、C 或 D。',
     bankStep3: '稍等片刻，FM1 会自动保存全部 32 个音色。',
-    bankFm1VaStep1: 'FM1 会询问“Write the bank?”，并且无论你发送哪个音色库，都会先停在音色库 A。',
+    bankFm1VaStep1: 'FM1 会询问“Replace Bank A?”，并且无论你发送哪个音色库，都会先停在音色库 A。',
     bankFm1VaStep2: '转动 ALGORITHM，直到提示中显示目标音色库：A、B、C 或 D。',
-    bankFm1VaStep3: '将 SELECT 转到 Write 并按 SEL 保存这 32 个音色，或按 HOME 取消。',
+    bankFm1VaStep3:
+      '将 SELECT 转到 Replace 并按 SEL 保存这 32 个音色，或按 HOME 取消。它们还会永久替换该音色库的出厂预设。',
     bankFm1VaNote:
-      '如果你的 FM1 运行 FM-1+VA 固件，它会改为询问“Write the bank?”，并先停在音色库 A。转动 ALGORITHM 选择目标音色库，再将 SELECT 转到 Write 并按 SEL。',
+      '如果你的 FM1 运行 FM-1+VA 固件，它会改为询问“Replace Bank A?”，并先停在音色库 A。转动 ALGORITHM 选择目标音色库，再将 SELECT 转到 Replace 并按 SEL。',
     bankFeluccaNote: 'Felucca 会忽略 DX7 音色库，因此发送此音色库不会改变它的预设。',
-    bankFm1VaImage: '运行 FM-1+VA 的 FM1 显示屏，询问“Write the bank?”，下方有 Cancel 和 Write',
+    bankFm1VaImage: '运行 FM-1+VA 的 FM1 显示屏，询问“Replace Bank A?”，下方有 Cancel 和 Replace',
     bankImage: '运行 M-VAVE 固件的 FM1 显示屏，显示“32 Voice Save To …”，下方是音色库 A、B、C 和 D',
     dontShow: '本次会话中不再显示',
     midiTitle: '连接 MIDI 以发送此音色库',

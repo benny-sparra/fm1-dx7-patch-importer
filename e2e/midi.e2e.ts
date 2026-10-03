@@ -400,7 +400,7 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
     expect(await photo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
   })
 
-  test('explains the FM-1+VA Write the bank question before sending a bank', async ({ page }) => {
+  test('explains the FM-1+VA Replace Bank question before sending a bank', async ({ page }) => {
     await page.getByRole('button', { exact: true, name: 'Send to FM1' }).first().click()
     const instructions = page.getByRole('dialog', {
       name: 'Choose the destination bank on your FM1',

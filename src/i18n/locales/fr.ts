@@ -8,16 +8,17 @@ export default {
     bankStep2: 'Tournez le bouton 1, 2, 3 ou 4 pour choisir la banque A, B, C ou D.',
     bankStep3: 'Le FM1 enregistre automatiquement les 32 sons après un court délai.',
     bankFm1VaStep1:
-      'Le FM1 demande « Write the bank? » et commence sur la banque A, quelle que soit la banque envoyée.',
+      'Le FM1 demande « Replace Bank A? » et commence sur la banque A, quelle que soit la banque envoyée.',
     bankFm1VaStep2:
       'Tournez ALGORITHM jusqu’à ce que la question indique la banque de destination : A, B, C ou D.',
     bankFm1VaStep3:
-      'Tournez SELECT jusqu’à Write et appuyez sur SEL pour enregistrer les 32 sons, ou appuyez sur HOME pour annuler.',
+      'Tournez SELECT jusqu’à Replace et appuyez sur SEL pour enregistrer les 32 sons, ou appuyez sur HOME pour annuler. Ils remplacent aussi définitivement les presets d’usine de cette banque.',
     bankFm1VaNote:
-      'Si votre FM1 utilise le firmware FM-1+VA, il demande plutôt « Write the bank? » et commence sur la banque A. Tournez ALGORITHM jusqu’à la banque de destination, puis SELECT jusqu’à Write, et appuyez sur SEL.',
+      'Si votre FM1 utilise le firmware FM-1+VA, il demande plutôt « Replace Bank A? » et commence sur la banque A. Tournez ALGORITHM jusqu’à la banque de destination, puis SELECT jusqu’à Replace, et appuyez sur SEL.',
     bankFeluccaNote:
       'Felucca ignore les banques DX7, donc envoyer cette banque ne modifie pas ses presets.',
-    bankFm1VaImage: 'Écran du FM1 sous FM-1+VA demandant « Write the bank? », avec Cancel et Write',
+    bankFm1VaImage:
+      'Écran du FM1 sous FM-1+VA demandant « Replace Bank A? », avec Cancel et Replace',
     bankImage:
       'Écran du FM1 sous le firmware de M-VAVE affichant « 32 Voice Save To … » au-dessus des banques A, B, C et D',
     dontShow: 'Ne plus afficher pendant cette session',

@@ -88,7 +88,7 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
 7. Select the heart on any patch, or search result, to keep it in **Favourites**, below the banks on the left. Favourites can be played, edited, and reordered like a bank, and editing a favourite or the patch it came from updates both.
 8. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank, or Favourites. Favourites is sent as a 32-patch bank: a shorter list is filled with INIT VOICE, and from a longer one only the first 32 are sent. The instructions before sending say which.
-9. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay. FM-1+VA asks **Write the bank?** instead, starting on bank A: turn **ALGORITHM** to the destination bank, then turn **SELECT** to **Write** and press **SEL**. The instructions before sending follow the firmware the FM1 named.
+9. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay. FM-1+VA asks **Replace Bank A?** instead, starting on bank A: turn **ALGORITHM** to the destination bank, then turn **SELECT** to **Replace** and press **SEL**. It also replaces that bank's factory presets for good. The instructions before sending follow the firmware the FM1 named.
 
 See the [user guide](docs/user-guide.md) for bank management, Favourites, the voice editor,
 keyboard shortcuts, and SysEx compatibility.

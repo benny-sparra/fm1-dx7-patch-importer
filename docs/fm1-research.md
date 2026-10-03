@@ -160,6 +160,10 @@ One FM1 on FM-1_089 over USB, with Chrome 154 on macOS; results and bytes are in
   settings record: after two bank writes the FM-1+VA backup still matched every preset. HOME
   cancels without writing. The editor's destination instructions (turn KNOB1–4, saved after a
   delay) are the stock procedure and do not apply; following them writes bank A.
+  **By 2026-10-03 the prompt had been renamed. Confirmed** on the user's FM1 and in the FM-1+VA
+  manual: it asks **Replace Bank A?** with **Cancel** (selected first) and **Replace**, and says
+  the 32 patches replace presets 1–32 and the bank's factory presets permanently. ALGORITHM still
+  picks the bank and HOME still cancels.
 - **DX7 parameter changes are unsaved edits.** They show the dot and the FM1's EDIT screen, are
   heard from the next note only, and a preset change discards them.
 - **Effect CCs are unsaved edits, and selecting a preset loads its stored effects.** The editor's
@@ -183,7 +187,7 @@ treats it as FM-1+VA, which is safe but slower.
   155 DX7 parameter changes, sent back to back rather than 35 ms apart like live edits, so the
   patch arrives in well under a second. Test 7c stored one sent that way with SAVE and found it
   identical to the bundled voice, byte for byte (2026-09-29, FM-1_089, seen once).
-- The bank destination dialog shows the **Write the bank?** steps for FM-1+VA, M-VAVE's knob steps
+- The bank destination dialog shows the **Replace Bank A?** steps for FM-1+VA, M-VAVE's knob steps
   for M-VAVE's firmware, and M-VAVE's steps with a note on FM-1+VA while the firmware is unknown.
 - Settings shows the firmware and what it means for the patches the editor plays.
 
