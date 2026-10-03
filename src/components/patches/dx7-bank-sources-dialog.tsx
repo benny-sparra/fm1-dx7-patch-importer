@@ -1,5 +1,5 @@
 import { ExternalLink } from 'lucide-react'
-import { useRef } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -37,7 +37,8 @@ const bankSources = [
 const bankSubmissionUrl =
   'https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new?template=bank-submission.yml'
 
-export function Dx7BankSourcesDialog() {
+// The trigger's label is the caller's, so a sentence can carry the link in its own words.
+export function Dx7BankSourcesDialog({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -48,7 +49,7 @@ export function Dx7BankSourcesDialog() {
         onClick={() => dialogRef.current?.showModal()}
         type="button"
       >
-        {t('dialogs.sourcesOpen')}
+        {children}
       </button>
 
       <Dialog aria-labelledby="dx7-bank-sources-title" ref={dialogRef} size="lg">

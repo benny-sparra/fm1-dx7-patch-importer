@@ -9,7 +9,7 @@ export default {
       'Edit, organize, and transfer patches for the M-VAVE FM1 synthesizer, with DX7 SysEx bank import.',
   },
   root: {
-    intro: 'Edit, organize and transfer FM1 patches, or import DX7 SysEx banks.',
+    intro: 'Edit, organize and transfer FM1 patches, or <link>import DX7 SysEx banks</link>.',
     synthAlt: 'M-VAVE FM1 synthesizer front panel',
   },
   help: {
