@@ -56,12 +56,12 @@ describe('Fm1BankSelectionDialog', () => {
     expect(screen.queryByText(/FM-1\+VA/)).toBeNull()
   })
 
-  it('gives FM-1+VA firmware the Write the bank steps, which start on bank A', () => {
+  it('gives FM-1+VA firmware the Replace Bank steps, which start on bank A', () => {
     render(renderDialog(true, { identity: 'FM-1_089', kind: 'fm1-va' }))
 
     expect(
       screen.getByText(
-        'The FM1 asks “Write the bank?” and starts on bank A, whichever bank you send.',
+        'The FM1 asks “Replace Bank A?” and starts on bank A, whichever bank you send.',
       ),
     ).toBeTruthy()
     expect(
@@ -72,10 +72,20 @@ describe('Fm1BankSelectionDialog', () => {
     expect(screen.queryByText(/Turn Knob 1/)).toBeNull()
   })
 
-  it('shows FM-1+VA firmware its Write the bank screen', () => {
+  it('warns FM-1+VA firmware that Replace also replaces the bank’s factory presets', () => {
     render(renderDialog(true, { identity: 'FM-1_089', kind: 'fm1-va' }))
 
-    expect(screen.getByRole('img', { name: /asking “Write the bank\?”/ })).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Turn SELECT to Replace and press SEL to store the 32 patches, or press HOME to cancel. They also replace that bank’s factory presets permanently.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('shows FM-1+VA firmware its Replace Bank screen', () => {
+    render(renderDialog(true, { identity: 'FM-1_089', kind: 'fm1-va' }))
+
+    expect(screen.getByRole('img', { name: /asking “Replace Bank A\?”/ })).toBeTruthy()
     expect(screen.queryByRole('img', { name: /32 Voice Save To/ })).toBeNull()
   })
 
@@ -83,7 +93,7 @@ describe('Fm1BankSelectionDialog', () => {
     render(renderDialog(true, { kind: 'checking' }))
 
     expect(screen.getByRole('img', { name: /32 Voice Save To/ })).toBeTruthy()
-    expect(screen.queryByRole('img', { name: /Write the bank/ })).toBeNull()
+    expect(screen.queryByRole('img', { name: /Replace Bank A/ })).toBeNull()
   })
 
   it('says how FM-1+VA differs while the firmware is not identified', () => {
@@ -110,7 +120,7 @@ describe('Fm1BankSelectionDialog', () => {
 
     view.rerender(renderDialog(true, { identity: 'FM-1_089', kind: 'fm1-va' }))
 
-    expect(screen.getByText(/Turn SELECT to Write and press SEL/)).toBeTruthy()
+    expect(screen.getByText(/Turn SELECT to Replace and press SEL/)).toBeTruthy()
     expect(screen.queryByText(/Turn Knob 1/)).toBeNull()
   })
 })
