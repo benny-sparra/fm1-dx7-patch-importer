@@ -373,7 +373,7 @@ FM-1+VA's own bytes. `fm1VaRecordWithEffects` puts the library's effects into a 
 bytes "What the record holds" maps, and leaves the rest as read.
 
 **Confirmed on hardware, seen once each** (FM-1_093, 2026-10-03, through the editor's preset probe
-over USB, preset 001, ORGAN 3, starting from a fresh **Save a backup**):
+over USB, presets 001 and 002, starting from a fresh **Save a backup**):
 
 - **A write stores the preset exactly.** Writing ORGAN 3 back with its own bytes, renamed
   `WRITE TEST`, and then as first read, each read back byte for byte as written.
@@ -384,13 +384,16 @@ over USB, preset 001, ORGAN 3, starting from a fresh **Save a backup**):
 - **The selected preset shows the change at once.** With 001 selected on the FM1, its screen
   showed `WRITE TEST` as soon as the renamed write arrived. It still sounded the same, as only
   the name had changed.
+- **Writing another preset leaves the selected one alone.** With 001 selected, writing 002 as
+  `WRITE TEST` left the screen on ORGAN 3, which still played; 002 showed `WRITE TEST` when
+  stepped to, and restoring it read back as first read.
 
 The development build's **FM-1+VA preset probe (dev)** runs this test: it writes the preset just
 read back to its slot, unchanged or renamed `WRITE TEST`, reads it again and says whether it
 matches, and **Restore the first read** puts back the preset as the session first read it.
-**Needs hardware test:** whether a write changes what plays when the edit differs in sound, not
-only in name, and whether writing a preset other than the selected one leaves the selected
-preset's sound alone.
+
+**Needs hardware test:** whether a write to the selected preset changes what plays when the edit
+differs in sound, not only in name.
 
 #### Controllers on the MIDI Channel
 
