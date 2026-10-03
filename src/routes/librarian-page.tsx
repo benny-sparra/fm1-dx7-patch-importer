@@ -66,6 +66,7 @@ import {
 } from '@/lib/patch-library'
 import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
+import type { Fm1VaPresetSource } from '@/components/patches/import-fm1-va-presets-dialog'
 import { hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
 import { soundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
@@ -292,7 +293,9 @@ export function LibrarianPage({
   const addBankButtonRef = useRef<HTMLButtonElement>(null)
   const [isAddingBank, setIsAddingBank] = useState(false)
   const [isRestoringBackup, setIsRestoringBackup] = useState(false)
-  const [isImportingFm1VaPresets, setIsImportingFm1VaPresets] = useState(false)
+  // Which Baud Girl preset import is open: the read from the FM1 or the presets file.
+  const [fm1VaImportSource, setFm1VaImportSource] = useState<Fm1VaPresetSource | null>(null)
+  const baudGirlMenuHeadingId = useId()
   const [isWritingFm1VaPresets, setIsWritingFm1VaPresets] = useState(false)
   const [isFindingDuplicates, setIsFindingDuplicates] = useState(false)
   // The slot the grid moves focus to once it shows, such as a patch chosen among the duplicates.
@@ -914,14 +917,33 @@ export function LibrarianPage({
                   onClick={() => {
                     allBanksMenuRef.current?.removeAttribute('open')
                     setDialogLoadError('')
-                    setIsImportingFm1VaPresets(true)
+                    setFm1VaImportSource('file')
                   }}
                   type="button"
                 >
                   <Upload className="size-4 shrink-0" />
                   {t('fm1VaImport.menuItem')}
                 </button>
-                {hasFm1VaPresetCommands(midi.firmware) ? (
+              </div>
+              {/* Reading and writing the FM1's presets need Baud Girl's firmware, so they show only
+                  while the FM1 runs it, together under her name. */}
+              {hasFm1VaPresetCommands(midi.firmware) ? (
+                <div aria-labelledby={baudGirlMenuHeadingId} className="mt-1" role="group">
+                  <p className={menuHeadingClassName} id={baudGirlMenuHeadingId}>
+                    {t('fm1VaImport.menuHeading')}
+                  </p>
+                  <button
+                    className={menuItemClassName}
+                    onClick={() => {
+                      allBanksMenuRef.current?.removeAttribute('open')
+                      setDialogLoadError('')
+                      setFm1VaImportSource('fm1')
+                    }}
+                    type="button"
+                  >
+                    <Download className="size-4 shrink-0" />
+                    {t('fm1VaImport.menuRead')}
+                  </button>
                   <button
                     className={menuItemClassName}
                     onClick={() => {
@@ -934,8 +956,8 @@ export function LibrarianPage({
                     <Send className="size-4 shrink-0" />
                     {t('fm1VaWrite.menuItem')}
                   </button>
-                ) : null}
-              </div>
+                </div>
+              ) : null}
               <div className="my-1 border-t" />
               <button
                 className={menuItemClassName}
@@ -1206,10 +1228,10 @@ export function LibrarianPage({
           </Suspense>
         </ErrorBoundary>
       ) : null}
-      {isImportingFm1VaPresets ? (
+      {fm1VaImportSource ? (
         <ErrorBoundary
           onError={() => {
-            setIsImportingFm1VaPresets(false)
+            setFm1VaImportSource(null)
             setDialogLoadError(t('fm1VaImport.openFailed'))
           }}
         >
@@ -1218,10 +1240,11 @@ export function LibrarianPage({
               library={library}
               midi={midi}
               onClose={() => {
-                setIsImportingFm1VaPresets(false)
+                setFm1VaImportSource(null)
                 allBanksMenuRef.current?.querySelector('summary')?.focus()
               }}
               onPlay={onPlaySearchResult}
+              source={fm1VaImportSource}
             />
           </Suspense>
         </ErrorBoundary>

@@ -92,13 +92,15 @@ firmware shows as **Not identified**, and the app sends it patches as parameter 
 
 To move your FM1 between these firmwares, see [Switching FM1 firmware](switching-firmware.md).
 
-To bring the FM1's own presets into the library, choose **Import Baud Girl (FM-1+VA) presets…**
-from the menu in the patch-bank header. With the FM1 on Baud Girl's firmware, FM-1_079 or later,
-chosen as the MIDI output and input, and SysEx allowed, press **Read from FM1**: the app asks the FM1 for each of its 128
-presets in turn, which takes a few seconds and changes nothing on the FM1. **Stop reading** stops
-it, and so does closing the dialog or changing the MIDI ports. Otherwise, press **Save a backup**
-on Baud Girl's Presets page and select the `.syx` file it saved. That sends nothing to the FM1, so it
-works with MIDI switched off and whichever firmware the FM1 runs.
+To bring the FM1's own presets into the library while it runs Baud Girl's firmware, FM-1_079 or
+later, chosen as the MIDI output and input with SysEx allowed, choose **Read presets from the
+FM1…** under **Baud Girl (FM-1+VA)** in the menu in the patch-bank header. The app asks the FM1
+for each of its 128 presets in turn as the dialog opens, which takes a few seconds and changes
+nothing on the FM1. **Stop reading** stops it, and so does closing the dialog or changing the MIDI
+ports; **Read from FM1** reads again. Otherwise, press **Save a backup** on Baud Girl's Presets
+page, choose **Import Baud Girl presets file…** under **Other files**, and select the `.syx` file it
+saved. That sends nothing to the FM1, so it works with MIDI switched off and whichever firmware
+the FM1 runs.
 
 Either way the FM1's banks A to D are each shown as a folded panel: open one to see its patches,
 and click a patch to hear it on the FM1 with its effects. Under each bank, **Import into** chooses
@@ -115,7 +117,7 @@ preset that arrived damaged is marked too; either way that slot keeps the patch 
 notification offers **Undo**.
 
 To put your library's patches back on the FM1, preset by preset, choose **Write patches to the
-FM1…** from the same menu. It is offered while the FM1 runs Baud Girl's firmware, FM-1_079 or
+FM1…**, under **Baud Girl (FM-1+VA)** too. It is offered while the FM1 runs Baud Girl's firmware, FM-1_079 or
 later, chosen as the MIDI output and input with SysEx allowed. Unlike **Send to FM1**, it writes
 each patch straight into its own preset with its FM1 effects and Baud Girl settings, with no
 **Replace Bank A?** prompt. The dialog first reads the FM1, so it writes only the patches that

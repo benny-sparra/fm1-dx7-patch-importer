@@ -170,9 +170,10 @@ test('chooses where an FM-1+VA bank goes without folding it, and folds it from i
 }) => {
   await openLibrarian(page)
   await page.getByLabel('Library actions').click()
-  await page.getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' }).click()
-  const dialog = page.getByRole('dialog', { name: 'Import Baud Girl presets' })
-  await dialog.getByLabel('Baud Girl presets file').setInputFiles(fm1VaPresetsFile())
+  await page.getByRole('button', { name: 'Import Baud Girl presets file…' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Import Baud Girl presets file' })
+  // The dialog's title names the file too, so the input is found by its type.
+  await dialog.locator('input[type="file"]').setInputFiles(fm1VaPresetsFile())
 
   const bankA = dialog.getByRole('region', { name: 'FM1 bank A' })
   const firstPatch = bankA.getByRole('button', { name: 'Play A01 FM, patch 1' })
@@ -199,7 +200,9 @@ test('chooses where an FM-1+VA bank goes without folding it, and folds it from i
     await dialog.getByRole('button', { name: `Expand FM1 bank ${bank}` }).click()
   }
   await expect(dialog.getByRole('button', { name: 'Import 4 banks' })).toBeInViewport()
-  await expect(dialog.getByRole('heading', { name: 'Import Baud Girl presets' })).toBeInViewport()
+  await expect(
+    dialog.getByRole('heading', { name: 'Import Baud Girl presets file' }),
+  ).toBeInViewport()
 })
 
 test('downloads a complete DX7 bank file', async ({ page }) => {

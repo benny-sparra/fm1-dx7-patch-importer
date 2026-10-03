@@ -297,6 +297,7 @@ export function WriteFm1VaPresetsDialog({ library, midi, onClose }: WriteFm1VaPr
         </div>
       </DialogBody>
       <DialogFooter>
+        {/* Only the confirmation's button, which replaces presets, is in the danger colour. */}
         {phase === 'choosing' ? (
           <Button
             disabled={writes.length === 0}
@@ -305,7 +306,6 @@ export function WriteFm1VaPresetsDialog({ library, midi, onClose }: WriteFm1VaPr
               setPhase('confirming')
             }}
             type="button"
-            variant="destructive"
           >
             <Send />
             <span>{t('fm1VaWrite.action', { count: writes.length })}</span>

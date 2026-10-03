@@ -310,18 +310,16 @@ export default {
     warning: 'O conteúdo atual do banco será apagado e substituído pelos sons importados.',
   },
   fm1VaImport: {
-    menuItem: 'Importar presets da Baud Girl (FM-1+VA)…',
-    title: 'Importar presets da Baud Girl',
+    menuItem: 'Importar arquivo de presets da Baud Girl…',
+    menuRead: 'Ler presets do FM1…',
+    menuHeading: 'Baud Girl (FM-1+VA)',
+    title: 'Importar arquivo de presets da Baud Girl',
+    titleRead: 'Ler presets do FM1',
     help: 'Escolha o arquivo do “Save a backup” na página Presets da Baud Girl.',
-    helpRead:
-      'Leia os presets do FM1 ou escolha o arquivo do “Save a backup” na página Presets da Baud Girl.',
-    effectsNote: 'Cada som chega com seus efeitos do FM1 e o restante dos seus ajustes de preset.',
     warning:
       'Cada banco importado substitui o banco que você escolher para ele, ou é adicionado como banco novo. Você pode desfazer isso.',
     file: 'Arquivo de presets da Baud Girl',
-    readTitle: 'Presets no FM1',
     read: 'Ler do FM1',
-    readHelp: 'Lê os 128 presets do FM1 para comparar com a sua biblioteca. Nada muda no FM1.',
     readUnavailable:
       'Para ler os presets do FM1, escolha-o como saída e entrada MIDI, com SysEx permitido. A leitura precisa do firmware da Baud Girl FM-1_079 ou posterior.',
     reading: 'Lendo o preset {{number, number}} de {{total, number}}…',

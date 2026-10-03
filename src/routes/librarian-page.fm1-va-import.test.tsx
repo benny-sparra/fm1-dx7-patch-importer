@@ -65,8 +65,8 @@ function renderPage() {
 
 async function openImport(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByTitle('Library actions'))
-  await user.click(screen.getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' }))
-  return screen.findByRole('dialog', { name: 'Import Baud Girl presets' })
+  await user.click(screen.getByRole('button', { name: 'Import Baud Girl presets file…' }))
+  return screen.findByRole('dialog', { name: 'Import Baud Girl presets file' })
 }
 
 describe('LibrarianPage FM-1+VA import', () => {
@@ -74,7 +74,10 @@ describe('LibrarianPage FM-1+VA import', () => {
     const { changed, library, user } = renderPage()
     await openImport(user)
 
-    await user.upload(screen.getByLabelText(/Baud Girl presets file/), makeFm1VaBackupFile())
+    await user.upload(
+      screen.getByLabelText(/Baud Girl presets file/, { selector: 'input' }),
+      makeFm1VaBackupFile(),
+    )
     await user.click(await screen.findByRole('button', { name: 'Import 4 banks' }))
 
     expect(library.importFetchedBanks).toHaveBeenCalledOnce()
@@ -86,7 +89,10 @@ describe('LibrarianPage FM-1+VA import', () => {
   it('plays a patch from the file with the effects its record holds', async () => {
     const { onPlaySearchResult, user } = renderPage()
     await openImport(user)
-    await user.upload(screen.getByLabelText(/Baud Girl presets file/), makeFm1VaBackupFile())
+    await user.upload(
+      screen.getByLabelText(/Baud Girl presets file/, { selector: 'input' }),
+      makeFm1VaBackupFile(),
+    )
     await user.click(await screen.findByRole('button', { name: 'Expand FM1 bank A' }))
 
     await user.click(screen.getByRole('button', { name: `Play ${fm1VaTestPatchName(0)}, patch 1` }))

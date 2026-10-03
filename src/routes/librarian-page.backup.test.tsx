@@ -108,7 +108,7 @@ describe('LibrarianPage backup', () => {
       'DX7 data only, no FM1 effects',
     )
     expect(
-      within(otherFiles).getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' }),
+      within(otherFiles).getByRole('button', { name: 'Import Baud Girl presets file…' }),
     ).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Restore all banks' })).toBeNull()
   })

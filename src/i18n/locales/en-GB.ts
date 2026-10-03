@@ -303,19 +303,16 @@ export default {
     warning: 'The bank’s current contents will be wiped and replaced by the imported patches.',
   },
   fm1VaImport: {
-    menuItem: 'Import Baud Girl (FM-1+VA) presets…',
-    title: 'Import Baud Girl presets',
+    menuItem: 'Import Baud Girl presets file…',
+    menuRead: 'Read presets from the FM1…',
+    menuHeading: 'Baud Girl (FM-1+VA)',
+    title: 'Import Baud Girl presets file',
+    titleRead: 'Read presets from the FM1',
     help: 'Choose the file from “Save a backup” on Baud Girl’s Presets page.',
-    helpRead:
-      'Read the presets from the FM1, or choose the file from “Save a backup” on Baud Girl’s Presets page.',
-    effectsNote: 'Each patch arrives with its FM1 effects and its other preset settings.',
     warning:
       'Each bank you import replaces the bank you choose for it, or is added as a new bank. You can undo this.',
     file: 'Baud Girl presets file',
-    readTitle: 'Presets on the FM1',
     read: 'Read from FM1',
-    readHelp:
-      'Reads all 128 presets from the FM1 to compare with your library. Nothing on the FM1 changes.',
     readUnavailable:
       'To read the presets from the FM1, choose it as the MIDI output and input, with SysEx allowed. Reading needs Baud Girl firmware FM-1_079 or later.',
     reading: 'Reading preset {{number, number}} of {{total, number}}…',

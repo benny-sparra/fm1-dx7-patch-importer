@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -53,16 +53,30 @@ function renderPage(firmware: Fm1Firmware) {
 
 const writeItem = () => screen.queryByRole('button', { name: 'Write patches to the FM1…' })
 
-describe('LibrarianPage writing presets to an FM1 on Baud Girl’s firmware', () => {
-  it('offers the write on Baud Girl’s firmware from FM-1_079', async () => {
+describe('LibrarianPage reading and writing an FM1 on Baud Girl’s firmware', () => {
+  it('offers reading and writing the FM1 under Baud Girl’s name from FM-1_079', async () => {
     const { user } = renderPage({ identity: 'FM-1_079', kind: 'fm1-va' })
 
     await user.click(screen.getByTitle('Library actions'))
 
-    expect(writeItem()).toBeTruthy()
+    const group = screen.getByRole('group', { name: 'Baud Girl (FM-1+VA)' })
+    expect(
+      within(group)
+        .getAllByRole('button')
+        .map(({ textContent }) => textContent),
+    ).toEqual(['Read presets from the FM1…', 'Write patches to the FM1…'])
   })
 
-  it('offers no write on an earlier release, on M-VAVE’s firmware, or before the FM1 answers', async () => {
+  it('opens the read from the FM1, which starts by itself', async () => {
+    const { user } = renderPage({ identity: 'FM-1_093', kind: 'fm1-va' })
+    await user.click(screen.getByTitle('Library actions'))
+
+    await user.click(screen.getByRole('button', { name: 'Read presets from the FM1…' }))
+
+    expect(await screen.findByRole('dialog', { name: 'Read presets from the FM1' })).toBeTruthy()
+  })
+
+  it('offers no read or write on an earlier release, on M-VAVE’s firmware, or before the FM1 answers', async () => {
     const firmwares: Fm1Firmware[] = [
       { identity: 'FM-1_078', kind: 'fm1-va' },
       { identity: 'FM-1_015', kind: 'mvave' },
@@ -73,6 +87,7 @@ describe('LibrarianPage writing presets to an FM1 on Baud Girl’s firmware', ()
       await user.click(screen.getByTitle('Library actions'))
 
       expect(writeItem()).toBeNull()
+      expect(screen.queryByRole('group', { name: 'Baud Girl (FM-1+VA)' })).toBeNull()
       cleanup()
     }
   })

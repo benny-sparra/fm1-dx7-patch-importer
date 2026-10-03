@@ -431,7 +431,8 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       own takes the FM1 slot's stored record with the library's effects put in. The dev probe's
       write test passed on FM-1_093: a write stores the preset exactly, shows on the selected
       preset at once, and gets no reply, so the read back is the only confirmation. **Write patches
-      to the FM1…** in the patch-bank header menu (built 2026-10-03, waiting for a hardware test)
+      to the FM1…** in the patch-bank header menu (built 2026-10-03; on FM-1_093 it wrote one changed
+      preset, 001, and confirmed it)
       reads the FM1, writes each library bank chosen over an FM1 bank, only the patches that
       differ and never over a Virtual Analog preset, names every preset first, and reads each
       write back. The **Replace Bank A?** prompt for **Send to FM1** stays until that button

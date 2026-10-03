@@ -197,7 +197,7 @@ open everything an earlier release could have saved.
   Keep what it reads exactly as read until each byte is mapped in `docs/fm1-research.md`.
   Code that reads presets goes through `useFm1VaPresetReader`, which takes the ports from the
   `useMidi` slice it is given, rather than through `useMidi` itself: `useMidi` is in the initial
-  bundle, and the read's wiring there cost 1.6 KiB. **Import Baud Girl (FM-1+VA) presets…** reads all 128
+  bundle, and the read's wiring there cost 1.6 KiB. **Read presets from the FM1…** reads all 128
   presets through it, one at a time (`readEveryFm1VaPreset`), and the development probe uses it
   too. The reply parser takes `unpackSevenBitStream` from `src/lib/fm1-firmware.ts`; when the
   import dialog started reading, that split nothing out of the entry.
@@ -256,7 +256,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Import Baud Girl (FM-1+VA) presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -421,10 +421,15 @@ open everything an earlier release could have saved.
   (`menuItemWithHintClassName`). An item
   that replaces patches, such as **Reset to factory patches…**, goes last in the danger colour,
   as **Delete bank** does in a bank's menu.
+- Reading the FM1's presets and importing Baud Girl's presets file are separate menu items opening
+  one dialog in two modes (`source`), so neither mode mentions the other: the read starts as its
+  dialog opens, and the file mode opens on its chooser. **Read presets from the FM1…** and **Write
+  patches to the FM1…** sit together under **Baud Girl (FM-1+VA)**, shown only while the FM1 runs
+  it; the presets file import stays under **Other files**, offered whatever the FM1 runs.
 - Name FM-1+VA as Baud Girl's firmware in anything users read, since FM1 owners know it by her
   name rather than its own. Its own name appears only in brackets where people look for it, the
-  **Import Baud Girl (FM-1+VA) presets…** menu item, the help guide's heading, and the badge's
-  description, and on the link to its site. Where the device itself is meant, say the FM1.
+  **Library actions** menu's **Baud Girl (FM-1+VA)** heading, the help guide's heading, and the
+  badge's description, and on the link to its site. Where the device itself is meant, say the FM1.
   Code, research notes, and analytics keep the name `fm1-va`.
 - Show an error in a dialog or on the page with `ErrorNotice` from
   `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
