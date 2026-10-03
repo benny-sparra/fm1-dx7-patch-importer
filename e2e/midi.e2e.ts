@@ -165,6 +165,13 @@ test.describe('with an FM-1 connected', () => {
       .toContainEqual([0xf0, 0x43, 0x10, 0x01, 0x09, speed + 1, 0xf7])
   })
 
+  test('names the M-VAVE firmware and its release beside MIDI online', async ({ page }) => {
+    const badge = page.getByTitle(/^The FM1 runs M-VAVE’s own firmware, V15\./)
+
+    await expect(badge).toBeVisible()
+    await expect(badge.getByText('M-VAVE firmware, V15')).toBeAttached()
+  })
+
   test('shows notes played on the FM1 in the MIDI log', async ({ page }) => {
     await receiveMidi(page, [0x90, 60, 100])
     await receiveMidi(page, [0xf8])

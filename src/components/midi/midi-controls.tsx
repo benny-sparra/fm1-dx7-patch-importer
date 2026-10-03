@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 
 import { midiChannels, type MidiController } from '@/hooks/use-midi'
+import { fm1FirmwareRelease } from '@/lib/fm1-firmware'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { localeNames, supportedLocales, type SupportedLocale } from '@/i18n/locale'
 import { setLocale } from '@/i18n'
@@ -36,26 +37,42 @@ export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
 }
 
 /**
- * Shows that the FM1 runs Baud Girl's FM-1+VA firmware once it has said so, and that the editor
- * plays patches on it as unsaved edits. It is a status readout, not a control.
+ * Names the firmware the FM1 runs, with the release it reported, once it has said so: M-VAVE's own,
+ * whose edit buffer takes the patches the editor plays, or Baud Girl's FM-1+VA, which gets them as
+ * unsaved edits. It is a status readout, not a control.
  */
-export function MidiFirmwareBadge({ midi }: { midi: Pick<MidiController, 'firmware'> }) {
+export function MidiFirmwareBadge({
+  className,
+  midi,
+}: {
+  className?: string
+  midi: Pick<MidiController, 'firmware'>
+}) {
   const { t } = useTranslation()
-  if (midi.firmware.kind !== 'fm1-va') return null
-  const { identity } = midi.firmware
+  const { firmware } = midi
+  if (firmware.kind !== 'fm1-va' && firmware.kind !== 'mvave') return null
+  const release = fm1FirmwareRelease(firmware)
+  const fm1Va = firmware.kind === 'fm1-va'
 
   return (
     <span
-      className="crt-inset inline-flex min-h-8 items-center gap-2 bg-[var(--crt-bg-2)] px-2.5"
-      title={t('midi.fm1VaBadgeTitle', { identity })}
+      className={className ?? 'inline-flex min-h-8 items-center gap-2'}
+      title={t(fm1Va ? 'midi.fm1VaBadgeTitle' : 'midi.mvaveBadgeTitle', { release })}
     >
       <span aria-hidden="true" className="text-xs font-bold tracking-[0.1em] text-[var(--crt-ink)]">
-        BAUD GIRL
+        {fm1Va ? 'BAUD GIRL' : 'M-VAVE'}
       </span>
-      <span aria-hidden="true" className="text-xs tracking-[0.1em] text-[var(--crt-ink-2)]">
-        FM-1+VA
+      {fm1Va ? (
+        <span aria-hidden="true" className="text-xs tracking-[0.1em] text-[var(--crt-ink-2)]">
+          FM-1+VA
+        </span>
+      ) : null}
+      <span aria-hidden="true" className="text-xs tracking-[0.1em] text-[var(--crt-ink-3)]">
+        {release}
       </span>
-      <span className="sr-only">{t('midi.fm1VaBadgeLabel', { identity })}</span>
+      <span className="sr-only">
+        {t(fm1Va ? 'midi.fm1VaBadgeLabel' : 'midi.mvaveBadgeLabel', { release })}
+      </span>
     </span>
   )
 }
