@@ -100,7 +100,7 @@ messages). The `.syx` file is 29,568 bytes: 128 preset writes of 231 bytes each,
 that converts to the library's packed voice like any other. `<sum>` covers only the 223 payload
 bytes after the slot, not the command or the slot: the low seven bits of the sum of each byte's
 seven-bit complement. Every byte between `F0` and `F7` is seven-bit. The editor reads this file in
-**Import FM-1+VA presets…** (`src/lib/fm1-va-preset-file.ts`), voices only.
+**Import Baud Girl (FM-1+VA) presets…** (`src/lib/fm1-va-preset-file.ts`), voices only.
 
 **The engine marker. Confirmed** (three backups, 2026-09-29 and 2026-10-01, 384 presets). The
 record travels in 8-into-7 groups, each starting with the byte that carries the high bits of the
@@ -229,7 +229,7 @@ statuses and damage no capture shows yet.
 - FM-1+VA's own page waits 1.5 s for an answer and asks three times; the editor does the same.
   The editor sends the request again when the reply's status says it arrived damaged, and treats
   a reply of any other size as a layout it does not know rather than asking again.
-- **Reading every preset** (**Read from FM1** in **Import FM-1+VA presets…**, built 2026-10-03)
+- **Reading every preset** (**Read from FM1** in **Import Baud Girl (FM-1+VA) presets…**, built 2026-10-03)
   sends the 128 requests one at a time, each after the previous reply, and stops at the first
   read that fails. The import takes each FM preset's library effects from the record's effect
   bytes, as "What the record holds" maps them. **Confirmed on hardware** (FM-1_093, 2026-10-03,

@@ -181,7 +181,7 @@ function renderDialog({
 }
 
 async function chooseFile(user: ReturnType<typeof userEvent.setup>, file = makeFm1VaBackupFile()) {
-  await user.upload(screen.getByLabelText(/FM-1\+VA presets file|Presetdatei/), file)
+  await user.upload(screen.getByLabelText(/Baud Girl presets file|Presetdatei/), file)
 }
 
 /** A file whose contents arrive only when the test says, to order two reads by hand. */
@@ -217,7 +217,7 @@ describe('ImportFm1VaPresetsDialog', () => {
   it('waits for a file before it can replace anything', () => {
     renderDialog()
 
-    expect(screen.getByRole('dialog', { name: 'Import FM-1+VA presets' })).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'Import Baud Girl presets' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Import 0 banks' }).hasAttribute('disabled')).toBe(
       true,
     )
@@ -229,7 +229,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     const descriptionId = screen.getByRole('dialog').getAttribute('aria-describedby')
 
     expect(document.getElementById(descriptionId ?? '')?.textContent).toContain(
-      'Each patch arrives with its FM1 effects and its FM-1+VA settings.',
+      'Each patch arrives with its FM1 effects and its other preset settings.',
     )
   })
 
@@ -303,7 +303,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     expect(imported[2].sounds[31]?.record).toHaveLength(59)
     expect(dialog.open).toBe(false)
     expect(onClose).toHaveBeenCalledOnce()
-    expect(await screen.findByText('Imported banks A, B and D from FM-1+VA.')).toBeTruthy()
+    expect(await screen.findByText('Imported banks A, B and D from the FM1.')).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Undo' }))
     expect(undoChange).toHaveBeenCalledWith(changed)
   })
@@ -350,7 +350,7 @@ describe('ImportFm1VaPresetsDialog', () => {
 
     expect(importedInto(vi.mocked(importFetchedBanks).mock.calls[0][0])).toEqual([
       'A',
-      'FM-1+VA B',
+      'FM1 B',
       'C',
       'D',
     ])
@@ -429,7 +429,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     await chooseFile(user, bank)
 
     expect(screen.getByRole('alert').textContent).toBe(
-      'This file is 4,104 bytes. A file from FM-1+VA’s “Save a backup” is exactly 29,568 bytes.',
+      'This file is 4,104 bytes. A file from Baud Girl’s “Save a backup” is exactly 29,568 bytes.',
     )
   })
 
@@ -441,7 +441,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     await chooseFile(user, new File([bytes], 'other.syx'))
 
     expect(screen.getByRole('alert').textContent).toBe(
-      'This file was not saved by FM-1+VA’s “Save a backup”.',
+      'This file was not saved by Baud Girl’s “Save a backup”.',
     )
   })
 
@@ -452,7 +452,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     await chooseFile(user, makeFm1VaBackupFile('broken.syx', { damagedSlots: everySlot }))
 
     expect(screen.getByRole('alert').textContent).toBe(
-      'No preset in this file could be read. Save a new backup on FM-1+VA and try again.',
+      'No preset in this file could be read. Save a new backup on Baud Girl’s Presets page and try again.',
     )
   })
 
@@ -511,7 +511,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     )
     await user.click(screen.getByRole('button', { name: '3 Bänke importieren' }))
 
-    expect(await screen.findByText('Bänke A, B und D von FM-1+VA importiert.')).toBeTruthy()
+    expect(await screen.findByText('Bänke A, B und D vom FM1 importiert.')).toBeTruthy()
   })
 })
 
@@ -612,7 +612,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
       record: storedRecord,
       voice: storedVoice(2),
     })
-    expect(await screen.findByText('Imported bank A from FM-1+VA.')).toBeTruthy()
+    expect(await screen.findByText('Imported bank A from the FM1.')).toBeTruthy()
   })
 
   it('plays a patch from the FM1 with its effects', async () => {
@@ -717,7 +717,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
     expect(screen.queryByRole('button', { name: 'Read from FM1' })).toBeNull()
     expect(
       screen.getByText(
-        'To read the presets from the FM1, choose it as the MIDI output and input, with SysEx allowed. Reading needs FM-1+VA FM-1_079 or later.',
+        'To read the presets from the FM1, choose it as the MIDI output and input, with SysEx allowed. Reading needs Baud Girl firmware FM-1_079 or later.',
       ),
     ).toBeTruthy()
   })
