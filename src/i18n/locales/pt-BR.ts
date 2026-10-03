@@ -352,6 +352,7 @@ export default {
     group: '{{name}} e uma cópia',
     group_other: '{{name}} e {{count, number}} cópias',
     effectsDiffer: 'Os efeitos do FM1 deles são diferentes.',
+    settingsDiffer: 'Os ajustes de preset do FM-1+VA deles são diferentes.',
     goTo: 'Ir para {{name}}, som {{number}} de {{bank}}',
     none: 'Nenhum duplicado: cada som dos seus bancos tem ajustes de voz próprios.',
     openFailed:
@@ -675,9 +676,12 @@ export default {
     randomiseHelp: 'Nova voz. Mantém nome e efeitos.',
   },
   midi: {
-    fm1VaBadgeLabel: 'Firmware FM-1+VA da Baud Girl, {{identity}}',
+    fm1VaBadgeLabel: 'Firmware FM-1+VA da Baud Girl, {{release}}',
     fm1VaBadgeTitle:
-      'O FM1 usa o firmware FM-1+VA da Baud Girl, {{identity}}. Os sons que você toca chegam como alterações não salvas, então nunca sobrescrevem um preset.',
+      'O FM1 usa o firmware FM-1+VA da Baud Girl, {{release}}. Os sons que você toca chegam como alterações não salvas, então nunca sobrescrevem um preset.',
+    mvaveBadgeLabel: 'Firmware da M-VAVE, {{release}}',
+    mvaveBadgeTitle:
+      'O FM1 usa o firmware original da M-VAVE, {{release}}. Os sons que você toca vão para o buffer de edição dele.',
     panic: 'Pânico MIDI',
     panicHelp:
       'Pânico MIDI: envia um note-off para cada nota do canal de notas e interrompe as notas presas',

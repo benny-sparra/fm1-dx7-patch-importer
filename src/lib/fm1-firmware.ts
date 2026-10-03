@@ -35,7 +35,11 @@ export type Fm1Firmware =
   | { identity?: string; kind: 'unidentified' }
   | { identity: string; kind: 'fm1-va' | 'mvave' }
 
-function unpackSevenBitStream(bytes: Uint8Array) {
+/**
+ * Unpacks 8-bit bytes sent seven bits at a time, least significant bit first, as the identity reply
+ * and FM-1+VA's own replies are. Bits left over after the last whole byte are dropped.
+ */
+export function unpackSevenBitStream(bytes: Uint8Array) {
   const unpacked: number[] = []
   let accumulator = 0
   let bitCount = 0
@@ -106,4 +110,15 @@ export function classifyFm1Firmware(identity: string): Fm1Firmware {
  */
 export function sendsSingleVoiceDumps(firmware: Fm1Firmware) {
   return firmware.kind === 'mvave'
+}
+
+/**
+ * The release as its maker names it. M-VAVE calls `FM-1_015` V15, while FM-1+VA's releases go by
+ * the name the FM1 reports, such as `FM-1_089`.
+ */
+export function fm1FirmwareRelease({
+  identity,
+  kind,
+}: Extract<Fm1Firmware, { kind: 'fm1-va' | 'mvave' }>) {
+  return kind === 'mvave' ? `V${Number(identity.slice(-3))}` : identity
 }

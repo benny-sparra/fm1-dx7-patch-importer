@@ -166,13 +166,26 @@ open everything an earlier release could have saved.
   `midiPanicCount` changes rather than striking them again.
 - The editor asks which firmware the FM1 runs with the updater's identity query
   (`fm1IdentityQuery` in `src/lib/fm1-firmware.ts`), whenever the output or input in use changes.
-  It is the one `00 32` message the editor may send: never send another from that family, and
-  never send FM-1+VA's own `F0 43 00 7D` commands. The firmware counts as unknown until the answer
+  It is the one `00 32` message the editor may send: never send another from that family. The
+  firmware counts as unknown until the answer
   for the ports in use arrives. FM-1+VA is `FM-1_020` to `FM-1_899`; any other name, such as
   Felucca's `FM-1_904`, is unidentified, so no firmware's behaviour is assumed for it. Analytics records only the family (`fm1_identified`: `mvave`,
   `fm1-va`, or `unidentified`), once per family per page load so the split counts sessions rather
   than reconnections; the name and version, such as `FM-1_089`, stay out of analytics and
   monitoring, because a release has few enough FM1s on it to single one out.
+- Of FM-1+VA's own `F0 43 00 7D` commands, the editor may send only the preset read,
+  `7D 10 <slot>` (`readFm1VaPreset` in `src/lib/fm1-va-preset-read.ts`, approved 2026-10-02),
+  and only while `readsFm1VaPresets` allows it: FM-1+VA from `FM-1_079`, the release that added
+  it. It reads one stored preset and changes nothing. Every other FM-1+VA command, the preset
+  write `04` and the raw memory read `11` among them, needs its own approval recorded here first.
+  A read belongs to the ports it started on: changing either, or switching MIDI off, cancels it.
+  Keep what it reads exactly as read until each byte is mapped in `docs/fm1-research.md`.
+  Code that reads presets goes through `useFm1VaPresetReader`, which takes the ports from the
+  `useMidi` slice it is given, rather than through `useMidi` itself: `useMidi` is in the initial
+  bundle, and the read's wiring there cost 1.6 KiB. Today only the development probe uses the
+  reader. The reply parser takes `unpackSevenBitStream` from `src/lib/fm1-firmware.ts`, so the
+  first lazy chunk to use it in production makes Rolldown split that module out of the entry
+  (883 B in a trial); measure it with `npm run bundle:check` when that feature lands.
 - Send a patch as a DX7 single-voice dump only to firmware identified as M-VAVE's
   (`sendsSingleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored preset, so
   every other firmware, including one not yet identified, gets the patch as its 155 parameter
@@ -228,7 +241,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader and its dialog when **Import FM-1+VA presets…** opens it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader and its dialog when **Import FM-1+VA presets…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -267,9 +280,10 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 162 KiB gzip budget; raising it needs
+  Dynamic imports are excluded. Do not weaken or bypass the 163 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
-  149 KiB, and React 19.3's raise from 151 KiB had. React DOM ships prebuilt with its features
+  149 KiB, React 19.3's raise from 151 KiB, and the FM-1+VA header photos' raise from 162 KiB
+  had. React DOM ships prebuilt with its features
   switched on, so 19.3's stable View Transitions, Fragment refs, and SuspenseList cost about
   8.4 KiB whether or not the app uses them; a React upgrade is measured like any other change.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
@@ -339,7 +353,10 @@ open everything an earlier release could have saved.
   palette, the `--fm1-*` aliases that UI code consumes, and one `:root[data-fm1-colorway='…']`
   block per finish. Style components from the aliases rather than hard-coded colours.
 - `src/lib/fm1-colorway.ts` is the list of finishes. Adding or renaming one means updating its token
-  block, its favicon, its colourway images, and the tests that pair them.
+  block, its favicon, its colourway images, and the tests that pair them. Each finish has two
+  photos: the stock screen in `src/lib/fm1-colorway-images.ts`, and FM-1+VA's screen in
+  `src/lib/fm1-va-colorway-images.ts`, which the header loads and shows only once the FM1 is
+  identified as running FM-1+VA. Both sets keep the 923 × 554 size.
 - Panels, dialogs, racks, and slots share the bevelled terminal chrome already in `src/index.css`.
   Reuse those classes instead of introducing a parallel surface style.
 
@@ -409,19 +426,29 @@ open everything an earlier release could have saved.
   and the URL: bank letters move when a bank is deleted and the library exists only in this browser.
 - Favourites are copies of sounds, kept in the workspace record and the backup file, so they
   outlive the slot they came from. A heart matches by `soundKey` from `src/lib/sound-key.ts`, the
-  one source the search's duplicate hiding also uses, so every slot holding the same voice data and
-  FM1 effects shows it, and Favourites keeps one copy. Saving a sound in the editor goes through
+  one source the search's duplicate hiding also uses, so every slot holding the same voice data,
+  FM1 effects, and FM-1+VA settings record shows it, and Favourites keeps one copy. Saving a sound in the editor goes through
   `saveSound`, which also updates the copies that sounded the same before the edit: a slot's
   favourite, or every slot a favourite came from. Keep that one change, so one Undo reverses it.
 - A patch card leaves room for a full ten-character DX7 name beside its heart and menu at every
   width from 360 px, which `e2e/librarian.e2e.ts` checks. The name font is monospaced, so a name is
   about 93 px; give a new control on the card the room back by tightening the card, not the name.
+  Every control on the card is at least 24 px square (WCAG 2.5.8), which the same file checks: the
+  heart sits on the slot's own button, so spacing cannot excuse a smaller target.
 - Favourites are sent to the FM1 as one 32-voice bank: the first 32, and INIT VOICE after a shorter
   list. Say which before and after sending: in the destination instructions
   (`Fm1BankSelectionDialog`'s `note`) and in the sent message.
 - Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.
+- A patch from FM-1+VA keeps its 59-byte settings record (`src/lib/fm1-va-record.ts`) beside its
+  voice and effects, exactly as read, through every path its effects take: copying, moving,
+  Favourites, saved banks, backups, and Undo. A path that puts in a voice without one, such as a
+  DX7 file or bank, leaves the slot with no record. The record's effect bytes repeat the library's
+  effects, which stay the ones the effects panel edits; the bytes the panel cannot set (effect
+  order, Distortion type, Envelope, the preset's own Filter, Virtual Analog settings, and bytes not
+  mapped yet) come only from the record. Lazy code takes `fm1VaRecordSize` from
+  `src/lib/patch-library.ts`, since importing the record module directly gave it a chunk of its own.
 - **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
   `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.
@@ -582,6 +609,17 @@ npm run deps:audit
 
 When dependencies change, run `npm run lockfile:refresh` with the pinned npm release, then run
 `npm run check:install`. Do not use `npm audit fix --force`.
+
+`npm run deps:audit` runs `scripts/check-dependency-audit.mjs`, which fails on any high or critical
+advisory missing from its `auditAllowlist`. `npm run deps:audit:prod` is plain `npm audit` and is
+never filtered. An advisory may join the allowlist only with the user's approval, only when no
+patched release of the package exists, and only when `npm run deps:audit:prod` does not report it.
+Its entry records the GHSA id, the package, the advisory's exact range, the package's latest
+published version, a review date no more than three months ahead, and how the repository reaches
+it. The script fails when the range changes, a newer version is published, the review date passes,
+the advisory reaches production, or the advisory is no longer reported; then look for a fix, run
+`npm run lockfile:refresh` and remove the entry, or ask the user before renewing it. Never point an
+`overrides` entry at an unreleased fix, such as a git branch.
 
 ## Change discipline
 

@@ -86,7 +86,9 @@ Accessibility is checked in three complementary ways:
   focus visibility, and responsive interaction that jsdom cannot evaluate reliably.
 
 The audit commands below require npm registry access. A registry failure is a failed audit, not a
-clean result. Both commands block on high or critical advisories.
+clean result. Both commands block on high or critical advisories. The full-tree audit accepts the
+development-only advisories listed in `scripts/check-dependency-audit.mjs`, each one approved, with
+no patched release and a review date; the production audit accepts none.
 
 ## Contributing a patch bank
 
@@ -133,7 +135,7 @@ mene311's themed banks are.
 | `npm run typecheck`         | Check TypeScript with `tsc` without emitting files                  |
 | `npm run deps:check`        | Find unused dependencies, source files, and exports with Knip       |
 | `npm run deps:audit:prod`   | Audit production dependencies (requires registry access)            |
-| `npm run deps:audit`        | Audit the full dependency tree (requires registry access)           |
+| `npm run deps:audit`        | Audit the full tree, allowing listed dev-only advisories (registry) |
 | `npm test`                  | Run all unit and rendered accessibility tests                       |
 | `npm run test:a11y`         | Run the focused rendered Axe accessibility suite                    |
 | `npm run test:coverage`     | Run all tests and write a V8 coverage report to `coverage/`         |

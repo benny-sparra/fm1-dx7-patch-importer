@@ -172,7 +172,9 @@ describe('ImportFm1VaPresetsDialog', () => {
 
     const imported = vi.mocked(importFetchedBanks).mock.calls[0][0]
     expect(imported.map(({ bank }) => bank)).toEqual(['A', 'B', 'D'])
-    expect(imported[2].voices[31]?.name).toBe(fm1VaTestPatchName(127))
+    expect(imported[2].sounds[31]?.voice.name).toBe(fm1VaTestPatchName(127))
+    // Each patch keeps the settings record FM-1+VA stored with it.
+    expect(imported[2].sounds[31]?.record).toHaveLength(59)
     expect(dialog.open).toBe(false)
     expect(onClose).toHaveBeenCalledOnce()
     expect(await screen.findByText('Imported banks A, B and D from FM-1+VA.')).toBeTruthy()
@@ -206,7 +208,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     expect(within(bankSection('A')).getByText('Damaged')).toBeTruthy()
     expect(screen.getByText('One preset is damaged. Its slot keeps its patch.')).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Replace 4 banks' }))
-    expect(vi.mocked(importFetchedBanks).mock.calls[0][0][0].voices[5]).toBeNull()
+    expect(vi.mocked(importFetchedBanks).mock.calls[0][0][0].sounds[5]).toBeNull()
   })
 
   it('marks a Virtual Analog preset and keeps that slot out of the import', async () => {
@@ -219,7 +221,7 @@ describe('ImportFm1VaPresetsDialog', () => {
       screen.getByText(/^VA marks a Virtual Analog preset, which can’t be imported yet\./),
     ).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Replace 4 banks' }))
-    expect(vi.mocked(importFetchedBanks).mock.calls[0][0][1].voices[1]).toBeNull()
+    expect(vi.mocked(importFetchedBanks).mock.calls[0][0][1].sounds[1]).toBeNull()
   })
 
   it('cannot take a bank that holds only Virtual Analog presets', async () => {

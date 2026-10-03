@@ -31,7 +31,7 @@ import {
   type Fm1VaPresetBank,
   type Fm1VaPresetFileBank,
   fm1VaPresetFileSize,
-  importableVoices,
+  importableSounds,
   readFm1VaPresetFile,
 } from '@/lib/fm1-va-preset-file'
 import { sysexFileAccept } from '@/lib/sysex-file'
@@ -64,7 +64,7 @@ function presetFileErrorMessage(t: Translate, error: unknown) {
 
 /** Whether a bank holds an FM preset the library can take. */
 function hasImportableVoice(bank: Fm1VaPresetFileBank) {
-  return importableVoices(bank).some(Boolean)
+  return importableSounds(bank).some(Boolean)
 }
 
 function countPresets(banks: readonly Fm1VaPresetFileBank[] | null, kind: Fm1VaPreset['kind']) {
@@ -149,7 +149,7 @@ export function ImportFm1VaPresetsDialog({
     setError('')
     try {
       const changed = library.importFetchedBanks(
-        takenBanks.map((taken) => ({ bank: taken.bank, voices: importableVoices(taken) })),
+        takenBanks.map((taken) => ({ bank: taken.bank, sounds: importableSounds(taken) })),
       )
       trackAnalyticsEvent({ data: { source: 'fm1_va_backup' }, name: 'bank_imported' })
       toast.success(

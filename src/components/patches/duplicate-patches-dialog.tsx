@@ -18,7 +18,7 @@ import { patchSlotCode } from '@/lib/patch-library'
 type DuplicatePatchesDialogProps = {
   library: Pick<
     PatchLibrary,
-    'bankNames' | 'effects' | 'loadedBanks' | 'patches' | 'voices' | 'workspaceBanks'
+    'bankNames' | 'effects' | 'loadedBanks' | 'patches' | 'records' | 'voices' | 'workspaceBanks'
   >
   /** Called once the dialog has closed, with the patch chosen to go to, if one was. */
   onClose: (chosen: Patch | null) => void
@@ -42,8 +42,14 @@ export function DuplicatePatchesDialog({ library, onClose }: DuplicatePatchesDia
   // Worked out as the dialog opens; the library cannot change behind a modal dialog.
   const groups = useMemo(
     () =>
-      findDuplicatePatches(library.patches, library.voices, library.effects, library.loadedBanks),
-    [library.effects, library.loadedBanks, library.patches, library.voices],
+      findDuplicatePatches(
+        library.patches,
+        library.voices,
+        library.effects,
+        library.records,
+        library.loadedBanks,
+      ),
+    [library.effects, library.loadedBanks, library.patches, library.records, library.voices],
   )
 
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears,
@@ -78,7 +84,7 @@ export function DuplicatePatchesDialog({ library, onClose }: DuplicatePatchesDia
           <p className="p-4 text-sm">{t('duplicates.none')}</p>
         ) : (
           <ul className="grid gap-4 p-4">
-            {groups.map(({ effectsDiffer, patches }, groupIndex) => {
+            {groups.map(({ effectsDiffer, patches, settingsDiffer }, groupIndex) => {
               const headingId = `${titleId}-${groupIndex}`
               return (
                 <li key={patches[0].id}>
@@ -96,6 +102,11 @@ export function DuplicatePatchesDialog({ library, onClose }: DuplicatePatchesDia
                     {effectsDiffer ? (
                       <p className="text-xs text-[var(--crt-ink-3)]">
                         {t('duplicates.effectsDiffer')}
+                      </p>
+                    ) : null}
+                    {settingsDiffer ? (
+                      <p className="text-xs text-[var(--crt-ink-3)]">
+                        {t('duplicates.settingsDiffer')}
                       </p>
                     ) : null}
                     <ul className="grid gap-1 sm:grid-cols-2">

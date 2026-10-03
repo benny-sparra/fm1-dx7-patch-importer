@@ -1,5 +1,5 @@
 import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
-import type { ComponentProps, ReactNode } from 'react'
+import { useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpButton } from '@/components/help-button'
@@ -11,6 +11,7 @@ import {
 } from '@/components/midi/midi-controls'
 import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
+import { Fm1VaPresetProbe } from '@/components/midi/fm1-va-preset-probe'
 import { MidiPanicButton } from '@/components/midi/midi-panic-button'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
 import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dialog'
@@ -18,7 +19,7 @@ import type { MidiController } from '@/hooks/use-midi'
 import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { isUnsupportedBrowser } from '@/lib/browser'
-import { fm1ColorwayImages } from '@/lib/fm1-colorway-images'
+import { fm1ColorwayImages, type Fm1ColorwayImages } from '@/lib/fm1-colorway-images'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
 type RootLayoutProps = {
@@ -30,6 +31,7 @@ type RootLayoutProps = {
     ComponentProps<typeof MidiPanicButton>['midi'] &
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
     ComponentProps<typeof PianoKeyboard>['midi'] &
+    ComponentProps<typeof Fm1VaPresetProbe>['midi'] &
     Pick<MidiController, 'logStore' | 'sendEffectDiagnosticControl'>
 }
 
@@ -38,8 +40,20 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const unsupportedBrowser = isUnsupportedBrowser()
   const { colorway, setColorway } = useFm1Colorway()
   const showColorwayImage = useMediaQuery('(min-width: 1024px)')
-  const colorwayImage = fm1ColorwayImages[colorway]
   const showHardwareBay = !compact && showColorwayImage
+  const showFm1VaImage = showHardwareBay && midi.firmware.kind === 'fm1-va'
+  const [fm1VaColorwayImages, setFm1VaColorwayImages] = useState<Fm1ColorwayImages>()
+  const colorwayImage = ((showFm1VaImage && fm1VaColorwayImages) || fm1ColorwayImages)[colorway]
+
+  // Only an FM1 running FM-1+VA loads its photos. They are decorative, so a chunk that fails to
+  // load leaves the stock photo showing, and the next identification tries again.
+  useEffect(() => {
+    if (showFm1VaImage) {
+      import('@/lib/fm1-va-colorway-images')
+        .then((module) => setFm1VaColorwayImages(module.fm1VaColorwayImages))
+        .catch(() => {})
+    }
+  }, [showFm1VaImage])
 
   return (
     <main className="synthwave-shell flex min-h-screen flex-col text-foreground">
@@ -92,22 +106,18 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               }
             >
               <MidiConnectActions midi={midi} />
+              {/* On a phone the badge takes the last line, so the MIDI buttons keep one row. */}
+              <MidiFirmwareBadge
+                className="order-last inline-flex min-h-8 w-full items-center gap-2 sm:order-none sm:w-auto"
+                midi={midi}
+              />
               <PianoKeyboard midi={midi} />
               <MidiPanicButton midi={midi} />
             </div>
 
-            {/* In the compact editor masthead the firmware badge takes a line of its own, so it never
-                moves the MIDI actions above it. A narrow window, which has no room for the hardware
-                photo, leaves it out: MIDI settings still name the firmware. */}
-            {compact && showColorwayImage && midi.firmware.kind === 'fm1-va' ? (
-              <div className="col-span-2 flex justify-end">
-                <MidiFirmwareBadge midi={midi} />
-              </div>
-            ) : null}
-
             {showHardwareBay ? (
               // The hardware photo sits in a recessed bay, not a rounded card.
-              <figure className="crt-inset relative col-start-3 row-span-2 row-start-1 hidden w-[250px] self-start bg-[var(--crt-bg-2)] p-1 lg:block">
+              <figure className="crt-inset col-start-3 row-span-2 row-start-1 hidden w-[250px] self-start bg-[var(--crt-bg-2)] p-1 lg:block">
                 <img
                   alt={t('root.synthAlt')}
                   className="aspect-[242/146] h-auto w-full object-contain"
@@ -118,9 +128,6 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                   srcSet={colorwayImage.srcSet}
                   width={colorwayImage.width}
                 />
-                <div className="absolute right-1 bottom-1">
-                  <MidiFirmwareBadge midi={midi} />
-                </div>
               </figure>
             ) : null}
           </div>
@@ -181,7 +188,10 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           <div className="flex flex-col gap-2 border-t border-white/10 pt-3 text-[0.6875rem] leading-relaxed sm:flex-row sm:items-center sm:justify-between">
             <p>{t('root.disclaimer')}</p>
             {import.meta.env.DEV ? (
-              <FxHardwareProbe send={midi.sendEffectDiagnosticControl} />
+              <span className="flex flex-wrap gap-x-4 gap-y-2">
+                <FxHardwareProbe send={midi.sendEffectDiagnosticControl} />
+                <Fm1VaPresetProbe midi={midi} />
+              </span>
             ) : null}
           </div>
         </div>

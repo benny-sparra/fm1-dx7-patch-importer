@@ -100,6 +100,7 @@ describe('MidiFirmwareBadge', () => {
 
     expect(screen.getByText('FM-1+VA firmware by Baud Girl, FM-1_089')).toBeTruthy()
     expect(container.textContent).toContain('BAUD GIRL')
+    expect(container.textContent).toContain('FM-1_089')
     expect(container.querySelector('img')).toBeNull()
   })
 
@@ -111,13 +112,34 @@ describe('MidiFirmwareBadge', () => {
     expect(screen.getByText('Firmware FM-1+VA von Baud Girl, FM-1_089')).toBeTruthy()
   })
 
-  it('shows nothing for M-VAVE firmware or a firmware not yet identified', () => {
-    const { container, rerender } = render(
+  it('names M-VAVE with its version as M-VAVE numbers it', () => {
+    const { container } = render(
       <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_015', kind: 'mvave' } }} />,
+    )
+
+    expect(screen.getByText('M-VAVE firmware, V15')).toBeTruthy()
+    expect(container.textContent).toContain('M-VAVEV15')
+    expect(container.textContent).not.toContain('FM-1+VA')
+    expect(screen.getByTitle(/^The FM1 runs M-VAVE’s own firmware, V15\./)).toBeTruthy()
+  })
+
+  it('names M-VAVE with its version in French', async () => {
+    await setLocale('fr')
+
+    render(<MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_015', kind: 'mvave' } }} />)
+
+    expect(screen.getByText('Firmware de M-VAVE, V15')).toBeTruthy()
+  })
+
+  it('shows nothing while the firmware is unknown', () => {
+    const { container, rerender } = render(
+      <MidiFirmwareBadge midi={{ firmware: { kind: 'checking' } }} />,
     )
     expect(container.textContent).toBe('')
 
-    rerender(<MidiFirmwareBadge midi={{ firmware: { kind: 'checking' } }} />)
+    rerender(
+      <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_904', kind: 'unidentified' } }} />,
+    )
     expect(container.textContent).toBe('')
   })
 })

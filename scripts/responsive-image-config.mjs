@@ -5,6 +5,12 @@ export const responsiveImageConfig = [
   { height: 554, source: 'fm1-orange.webp', width: 923, widths: [460] },
   { height: 554, source: 'fm1-purple.webp', width: 923, widths: [460] },
   { height: 554, source: 'fm1-white-blue.webp', width: 923, widths: [460] },
+  { height: 554, source: 'fm1-va-black.webp', width: 923, widths: [460] },
+  { height: 554, source: 'fm1-va-black-green.webp', width: 923, widths: [460] },
+  { height: 554, source: 'fm1-va-cool-gray.webp', width: 923, widths: [460] },
+  { height: 554, source: 'fm1-va-orange.webp', width: 923, widths: [460] },
+  { height: 554, source: 'fm1-va-purple.webp', width: 923, widths: [460] },
+  { height: 554, source: 'fm1-va-white-blue.webp', width: 923, widths: [460] },
   { height: 477, source: 'fm1-synth.webp', width: 500, widths: [240, 360] },
   { height: 476, source: 'fm1-va-bank-screen.webp', width: 500, widths: [240, 360] },
 ]

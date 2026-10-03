@@ -102,6 +102,7 @@ export function usePatchLibrary() {
               effects: stored.effects,
               favourites: stored.favourites,
               loadedBanks: stored.loadedBanks,
+              records: stored.records,
               voices: stored.voices,
               workspaceBanks: stored.workspaceBanks,
             }
@@ -272,7 +273,10 @@ export function usePatchLibrary() {
 
   /** Adds or removes a sound from outside the workspace, such as a search result. */
   const toggleFavouriteSound = useCallback(
-    (sound: { effects?: Uint8Array; voice: Dx7Voice }, origin: FavouriteOrigin) => {
+    (
+      sound: { effects?: Uint8Array; record?: Uint8Array; voice: Dx7Voice },
+      origin: FavouriteOrigin,
+    ) => {
       let added = false
       const changed = commit((current) => {
         const toggled = toggleLibraryFavourite(current, sound, origin, createId())
@@ -326,8 +330,8 @@ export function usePatchLibrary() {
   )
 
   const replaceVoice = useCallback(
-    (bank: string, slot: number, voice: Dx7Voice, effects?: Uint8Array) =>
-      commit((current) => replaceLibraryVoice(current, bank, slot, voice, effects)),
+    (bank: string, slot: number, voice: Dx7Voice, effects?: Uint8Array, record?: Uint8Array) =>
+      commit((current) => replaceLibraryVoice(current, bank, slot, voice, effects, record)),
     [commit],
   )
 
@@ -486,6 +490,17 @@ export function usePatchLibrary() {
     }),
     [favourites, history.present.effects],
   )
+  const records = useMemo(
+    () => ({
+      ...history.present.records,
+      ...Object.fromEntries(
+        favourites.flatMap((favourite) =>
+          favourite.record ? [[favouritePatchId(favourite.id), favourite.record]] : [],
+        ),
+      ),
+    }),
+    [favourites, history.present.records],
+  )
   const favouriteKeys = useMemo(() => favouriteSoundKeys(favourites), [favourites])
   const getBankVoices = useCallback(
     (bank: string) => selectBankVoices(history.present, bank),
@@ -538,6 +553,7 @@ export function usePatchLibrary() {
     updateNamedBankDetails,
     updateVoice,
     effects,
+    records,
     voices,
     workspaceBanks: history.present.workspaceBanks,
     workspaceHasUnsavedChanges: persistence.hasUnsavedChanges,

@@ -314,6 +314,7 @@ export default {
     group: '{{name}} 及 1 个副本',
     group_other: '{{name}} 及 {{count, number}} 个副本',
     effectsDiffer: '它们的 FM1 效果不同。',
+    settingsDiffer: '它们的 FM-1+VA 预设设置不同。',
     goTo: '跳转到 {{bank}} 中的第 {{number}} 个音色 {{name}}',
     none: '没有重复：音色库中的每个音色都有各自的参数。',
     openFailed: '无法显示重复的音色。请重新加载页面后重试。',
@@ -624,9 +625,12 @@ export default {
     randomiseHelp: '生成新音色，保留名称和效果。',
   },
   midi: {
-    fm1VaBadgeLabel: 'Baud Girl 的 FM-1+VA 固件，{{identity}}',
+    fm1VaBadgeLabel: 'Baud Girl 的 FM-1+VA 固件，{{release}}',
     fm1VaBadgeTitle:
-      'FM1 运行的是 Baud Girl 的 FM-1+VA 固件（{{identity}}）。你试听的音色会作为未保存的编辑发送，绝不会覆盖预设。',
+      'FM1 运行的是 Baud Girl 的 FM-1+VA 固件（{{release}}）。你试听的音色会作为未保存的编辑发送，绝不会覆盖预设。',
+    mvaveBadgeLabel: 'M-VAVE 固件，{{release}}',
+    mvaveBadgeTitle:
+      'FM1 运行的是 M-VAVE 原厂固件（{{release}}）。你试听的音色会进入它的编辑缓冲区。',
     panic: 'MIDI 紧急停止',
     panicHelp: 'MIDI 紧急停止：在音符通道上为每个音符发送音符关闭消息，以停止悬挂的音符',
     panicUnavailable: 'MIDI 紧急停止：{{reason}}',

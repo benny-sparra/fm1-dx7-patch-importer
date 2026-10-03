@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   classifyFm1Firmware,
+  fm1FirmwareRelease,
   fm1IdentityQuery,
   parseFm1IdentityReply,
   sendsSingleVoiceDumps,
@@ -77,6 +78,17 @@ describe('classifyFm1Firmware', () => {
 
   it('leaves a name it does not recognise unidentified', () => {
     expect(classifyFm1Firmware('XR-9_015')).toEqual({ identity: 'XR-9_015', kind: 'unidentified' })
+  })
+})
+
+describe('fm1FirmwareRelease', () => {
+  it('names an M-VAVE release as M-VAVE numbers it', () => {
+    expect(fm1FirmwareRelease({ identity: 'FM-1_015', kind: 'mvave' })).toBe('V15')
+    expect(fm1FirmwareRelease({ identity: 'FM-1_009', kind: 'mvave' })).toBe('V9')
+  })
+
+  it('names an FM-1+VA release by the name the FM1 reports', () => {
+    expect(fm1FirmwareRelease({ identity: 'FM-1_089', kind: 'fm1-va' })).toBe('FM-1_089')
   })
 })
 

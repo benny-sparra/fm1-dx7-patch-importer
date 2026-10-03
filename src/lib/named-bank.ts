@@ -3,6 +3,7 @@ import { sysexFilenameStem } from '@/lib/sysex-file'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
 import {
   bankDescriptionLength,
+  fm1VaRecordSize,
   importVoices,
   normalizeWorkspaceBankNameForSave,
   voiceId,
@@ -13,10 +14,16 @@ export const savedBankNameLength = 80
 
 type NamedBankSlot = {
   effects: Uint8Array
+  /** The slot's FM-1+VA settings record, from version 2, when its sound has one. */
+  record?: Uint8Array
   slot: number
   voice: Dx7Voice
 }
 
+/**
+ * A saved bank. Version 2 adds each slot's optional record and is what this release writes; a
+ * version 1 bank, which has no records, is read as it is.
+ */
 export type NamedBank = {
   createdAt: string
   description: string
@@ -24,8 +31,10 @@ export type NamedBank = {
   name: string
   slots: NamedBankSlot[]
   updatedAt: string
-  version: 1
+  version: 1 | 2
 }
+
+const namedBankVersion = 2
 
 type CreateNamedBankOptions = {
   description: string
@@ -54,6 +63,7 @@ function normalizeDescription(description: string) {
 function cloneSlot(slot: NamedBankSlot): NamedBankSlot {
   return {
     effects: normalizeFm1Effects(slot.effects),
+    ...(slot.record ? { record: slot.record.slice() } : {}),
     slot: slot.slot,
     voice: { ...slot.voice, data: slot.voice.data.slice() },
   }
@@ -63,7 +73,7 @@ export function validateNamedBank(value: unknown): asserts value is NamedBank {
   if (!value || typeof value !== 'object') throw new Error('A saved bank record is invalid.')
   const bank = value as Partial<NamedBank>
   if (
-    bank.version !== 1 ||
+    (bank.version !== 1 && bank.version !== 2) ||
     typeof bank.id !== 'string' ||
     !bank.id ||
     typeof bank.name !== 'string' ||
@@ -86,7 +96,9 @@ export function validateNamedBank(value: unknown): asserts value is NamedBank {
       slot.voice.data.length !== dx7PackedVoiceSize ||
       typeof slot.voice.name !== 'string' ||
       !(slot.effects instanceof Uint8Array) ||
-      slot.effects.length !== fm1EffectParameterCount
+      slot.effects.length !== fm1EffectParameterCount ||
+      (slot.record !== undefined &&
+        (!(slot.record instanceof Uint8Array) || slot.record.length !== fm1VaRecordSize))
     ) {
       throw new Error('A saved bank must contain 32 valid sound slots.')
     }
@@ -107,8 +119,10 @@ export function createNamedBank(
     const id = voiceId(sourceBank, slot)
     const voice = snapshot.voices[id]
     if (!voice) throw new Error('A saved bank must contain exactly 32 sounds.')
+    const record = snapshot.records[id]
     return {
       effects: normalizeFm1Effects(snapshot.effects[id]),
+      ...(record ? { record: record.slice() } : {}),
       slot,
       voice: { ...voice, data: voice.data.slice() },
     }
@@ -121,7 +135,7 @@ export function createNamedBank(
     name: normalizeName(options.name),
     slots,
     updatedAt: options.now,
-    version: 1,
+    version: namedBankVersion,
   }
 }
 
@@ -137,8 +151,11 @@ export function loadNamedBank(
     bank.slots.map(({ voice }) => ({ ...voice, data: voice.data.slice() })),
   )
   const effects = { ...loaded.effects }
+  const records = { ...loaded.records }
   bank.slots.forEach((slot) => {
-    effects[voiceId(destinationBank, slot.slot)] = normalizeFm1Effects(slot.effects)
+    const id = voiceId(destinationBank, slot.slot)
+    effects[id] = normalizeFm1Effects(slot.effects)
+    if (slot.record) records[id] = slot.record.slice()
   })
   // A saved bank's name may be longer than a workspace bank title, which storage keeps short.
   const title = normalizeWorkspaceBankNameForSave(bank.name)
@@ -150,6 +167,7 @@ export function loadNamedBank(
     },
     bankNames: { ...loaded.bankNames, ...(title ? { [destinationBank]: title } : {}) },
     effects,
+    records,
   }
 }
 
@@ -164,6 +182,7 @@ export function renameNamedBank(
     description: normalizeDescription(description),
     name: normalizeName(name),
     updatedAt: now,
+    version: namedBankVersion,
   }
 }
 
@@ -176,6 +195,7 @@ export function duplicateNamedBank(bank: NamedBank, id: string, now: string): Na
     name: normalizeName(`${bank.name.slice(0, 75).trimEnd()} copy`),
     slots: bank.slots.map(cloneSlot),
     updatedAt: now,
+    version: namedBankVersion,
   }
 }
 

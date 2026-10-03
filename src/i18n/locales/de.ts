@@ -363,6 +363,7 @@ export default {
     group: '{{name}} und eine Kopie',
     group_other: '{{name}} und {{count, number}} Kopien',
     effectsDiffer: 'Ihre FM1-Effekte unterscheiden sich.',
+    settingsDiffer: 'Ihre FM-1+VA-Preset-Einstellungen unterscheiden sich.',
     goTo: 'Zu {{name}} springen, Sound {{number}} in {{bank}}',
     none: 'Keine Doppelten: Jeder Sound in deinen Bänken hat eigene Stimmeneinstellungen.',
     openFailed:
@@ -690,9 +691,12 @@ export default {
     randomiseHelp: 'Neue Stimme. Name und Effekte bleiben.',
   },
   midi: {
-    fm1VaBadgeLabel: 'Firmware FM-1+VA von Baud Girl, {{identity}}',
+    fm1VaBadgeLabel: 'Firmware FM-1+VA von Baud Girl, {{release}}',
     fm1VaBadgeTitle:
-      'Auf dem FM1 läuft die Firmware FM-1+VA von Baud Girl, {{identity}}. Sounds, die du anspielst, kommen als ungespeicherte Änderungen an und überschreiben nie ein Preset.',
+      'Auf dem FM1 läuft die Firmware FM-1+VA von Baud Girl, {{release}}. Sounds, die du anspielst, kommen als ungespeicherte Änderungen an und überschreiben nie ein Preset.',
+    mvaveBadgeLabel: 'Firmware von M-VAVE, {{release}}',
+    mvaveBadgeTitle:
+      'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer.',
     panic: 'MIDI-Panik',
     panicHelp:
       'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',
