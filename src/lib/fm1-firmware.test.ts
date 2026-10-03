@@ -71,9 +71,10 @@ describe('classifyFm1Firmware', () => {
     expect(classifyFm1Firmware('FM-1_899')).toEqual({ identity: 'FM-1_899', kind: 'fm1-va' })
   })
 
-  it('leaves Felucca, which answers FM-1_904, unidentified rather than FM-1+VA', () => {
-    expect(classifyFm1Firmware('FM-1_904')).toEqual({ identity: 'FM-1_904', kind: 'unidentified' })
-    expect(classifyFm1Firmware('FM-1_900')).toEqual({ identity: 'FM-1_900', kind: 'unidentified' })
+  it('counts FM-1_900 to FM-1_999 as Felucca rather than FM-1+VA', () => {
+    expect(classifyFm1Firmware('FM-1_900')).toEqual({ identity: 'FM-1_900', kind: 'felucca' })
+    expect(classifyFm1Firmware('FM-1_904')).toEqual({ identity: 'FM-1_904', kind: 'felucca' })
+    expect(classifyFm1Firmware('FM-1_999')).toEqual({ identity: 'FM-1_999', kind: 'felucca' })
   })
 
   it('leaves a name it does not recognise unidentified', () => {
@@ -90,6 +91,16 @@ describe('fm1FirmwareRelease', () => {
   it('names an FM-1+VA release by the name the FM1 reports', () => {
     expect(fm1FirmwareRelease({ identity: 'FM-1_089', kind: 'fm1-va' })).toBe('FM-1_089')
   })
+
+  it('names a Felucca release X.Y from its FM-1_9XY name', () => {
+    expect(fm1FirmwareRelease({ identity: 'FM-1_904', kind: 'felucca' })).toBe('0.4')
+    expect(fm1FirmwareRelease({ identity: 'FM-1_908', kind: 'felucca' })).toBe('0.8')
+    expect(fm1FirmwareRelease({ identity: 'FM-1_910', kind: 'felucca' })).toBe('1.0')
+  })
+
+  it('names a Felucca development build by the name the FM1 reports', () => {
+    expect(fm1FirmwareRelease({ identity: 'FM-1_900', kind: 'felucca' })).toBe('FM-1_900')
+  })
 })
 
 describe('sendsSingleVoiceDumps', () => {
@@ -98,6 +109,7 @@ describe('sendsSingleVoiceDumps', () => {
     expect(sendsSingleVoiceDumps({ identity: 'FM-1_089', kind: 'fm1-va' })).toBe(false)
     expect(sendsSingleVoiceDumps({ kind: 'checking' })).toBe(false)
     expect(sendsSingleVoiceDumps({ kind: 'unidentified' })).toBe(false)
-    expect(sendsSingleVoiceDumps({ identity: 'FM-1_904', kind: 'unidentified' })).toBe(false)
+    expect(sendsSingleVoiceDumps({ identity: 'FM-1_904', kind: 'felucca' })).toBe(false)
+    expect(sendsSingleVoiceDumps({ identity: 'XR-9_015', kind: 'unidentified' })).toBe(false)
   })
 })

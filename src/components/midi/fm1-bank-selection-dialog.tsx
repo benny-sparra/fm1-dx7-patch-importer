@@ -39,7 +39,8 @@ export function Fm1BankSelectionDialog({
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const sysexUnavailable = !midi.sysexAvailable
   // M-VAVE's firmware and FM-1+VA choose the destination bank differently. Until the editor knows
-  // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs.
+  // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs. Felucca ignores
+  // DX7 banks, so the dialog says so before the bank is sent.
   const firmwareKind = midi.firmware.kind
   const steps =
     firmwareKind === 'fm1-va'
@@ -50,10 +51,12 @@ export function Fm1BankSelectionDialog({
     firmwareKind === 'fm1-va'
       ? { alt: t('dialogs.bankFm1VaImage'), image: fm1VaBankScreenImage }
       : { alt: t('dialogs.bankImage'), image: fm1SynthImage }
-  const unidentifiedNote =
-    firmwareKind === 'checking' || firmwareKind === 'unidentified'
-      ? t('dialogs.bankFm1VaNote')
-      : null
+  const firmwareNote =
+    firmwareKind === 'felucca'
+      ? t('dialogs.bankFeluccaNote')
+      : firmwareKind === 'checking' || firmwareKind === 'unidentified'
+        ? t('dialogs.bankFm1VaNote')
+        : null
   const closeDialog = () => dialogRef.current?.close()
 
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
@@ -104,7 +107,7 @@ export function Fm1BankSelectionDialog({
             className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-center"
             key="bank-selection"
           >
-            {[note, unidentifiedNote].map((text) =>
+            {[note, firmwareNote].map((text) =>
               text ? (
                 <p
                   className="flex items-start gap-3 border border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-3 text-sm leading-5 sm:col-span-2"
