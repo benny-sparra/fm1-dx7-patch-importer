@@ -60,12 +60,12 @@ describe('LibrarianPage FM-1+VA import that fails to load', () => {
     )
 
     await user.click(screen.getByTitle('Library actions'))
-    await user.click(screen.getByRole('button', { name: 'Import FM-1+VA presets…' }))
+    await user.click(screen.getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' }))
 
     const alert = await screen.findByRole('alert')
     expect(
       within(alert).getByText(
-        'The FM-1+VA import could not be opened. Reload the page and try again.',
+        'The Baud Girl preset import could not be opened. Reload the page and try again.',
       ),
     ).toBeTruthy()
     expect(within(alert).getByRole('button', { name: 'Reload app' })).toBeTruthy()

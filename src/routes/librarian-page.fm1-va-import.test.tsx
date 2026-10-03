@@ -65,8 +65,8 @@ function renderPage() {
 
 async function openImport(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByTitle('Library actions'))
-  await user.click(screen.getByRole('button', { name: 'Import FM-1+VA presets…' }))
-  return screen.findByRole('dialog', { name: 'Import FM-1+VA presets' })
+  await user.click(screen.getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' }))
+  return screen.findByRole('dialog', { name: 'Import Baud Girl presets' })
 }
 
 describe('LibrarianPage FM-1+VA import', () => {
@@ -77,11 +77,11 @@ describe('LibrarianPage FM-1+VA import', () => {
 
     expect(
       screen
-        .getByRole('button', { name: 'Import FM-1+VA presets…' })
+        .getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' })
         .getAttribute('aria-describedby'),
     ).toBeTruthy()
     expect(screen.getByRole('group', { name: 'Other files' }).textContent).toContain(
-      'For Baud Girl’s FM-1+VA firmware',
+      'From the FM1, or a “Save a backup” file',
     )
   })
 
@@ -89,11 +89,11 @@ describe('LibrarianPage FM-1+VA import', () => {
     const { changed, library, user } = renderPage()
     await openImport(user)
 
-    await user.upload(screen.getByLabelText(/FM-1\+VA presets file/), makeFm1VaBackupFile())
+    await user.upload(screen.getByLabelText(/Baud Girl presets file/), makeFm1VaBackupFile())
     await user.click(await screen.findByRole('button', { name: 'Import 4 banks' }))
 
     expect(library.importFetchedBanks).toHaveBeenCalledOnce()
-    expect(await screen.findByText('Imported banks A, B, C and D from FM-1+VA.')).toBeTruthy()
+    expect(await screen.findByText('Imported banks A, B, C and D from the FM1.')).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Undo' }))
     expect(library.undoChange).toHaveBeenCalledWith(changed)
   })
@@ -101,7 +101,7 @@ describe('LibrarianPage FM-1+VA import', () => {
   it('plays a patch from the file with the effects its record holds', async () => {
     const { onPlaySearchResult, user } = renderPage()
     await openImport(user)
-    await user.upload(screen.getByLabelText(/FM-1\+VA presets file/), makeFm1VaBackupFile())
+    await user.upload(screen.getByLabelText(/Baud Girl presets file/), makeFm1VaBackupFile())
     await user.click(await screen.findByRole('button', { name: 'Expand FM1 bank A' }))
 
     await user.click(screen.getByRole('button', { name: `Play ${fm1VaTestPatchName(0)}, patch 1` }))

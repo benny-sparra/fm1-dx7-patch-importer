@@ -11,9 +11,10 @@ export default {
     bankFm1VaStep3:
       'Turn SELECT to Replace and press SEL to store the 32 patches, or press HOME to cancel. They also replace that bank’s factory presets permanently.',
     bankFm1VaNote:
-      'If your FM1 runs FM-1+VA firmware, it asks “Replace Bank A?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Replace and press SEL.',
+      'If your FM1 runs Baud Girl’s firmware, it asks “Replace Bank A?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Replace and press SEL.',
     bankFeluccaNote: 'Felucca ignores DX7 banks, so sending this bank does not change its presets.',
-    bankFm1VaImage: 'FM1 display running FM-1+VA, asking “Replace Bank A?” with Cancel and Replace',
+    bankFm1VaImage:
+      'FM1 display running Baud Girl’s firmware, asking “Replace Bank A?” with Cancel and Replace',
     bankImage:
       'FM1 display running M-VAVE’s firmware, showing “32 Voice Save To …” above banks A, B, C and D',
     dontShow: 'Don’t show me again this session',
@@ -302,21 +303,21 @@ export default {
     warning: 'The bank’s current contents will be wiped and replaced by the imported patches.',
   },
   fm1VaImport: {
-    menuItem: 'Import FM-1+VA presets…',
-    menuContents: 'For Baud Girl’s FM-1+VA firmware',
-    title: 'Import FM-1+VA presets',
-    help: 'Choose the file from “Save a backup” on FM-1+VA’s Presets page.',
+    menuItem: 'Import Baud Girl (FM-1+VA) presets…',
+    menuContents: 'From the FM1, or a “Save a backup” file',
+    title: 'Import Baud Girl presets',
+    help: 'Choose the file from “Save a backup” on Baud Girl’s Presets page.',
     helpRead:
-      'Read the presets from the FM1, or choose the file from “Save a backup” on FM-1+VA’s Presets page.',
-    effectsNote: 'Each patch arrives with its FM1 effects and its FM-1+VA settings.',
+      'Read the presets from the FM1, or choose the file from “Save a backup” on Baud Girl’s Presets page.',
+    effectsNote: 'Each patch arrives with its FM1 effects and its other preset settings.',
     warning:
       'Each bank you import replaces the bank you choose for it, or is added as a new bank. You can undo this.',
-    file: 'FM-1+VA presets file',
+    file: 'Baud Girl presets file',
     read: 'Read from FM1',
     readHelp:
       'Reads all 128 presets from the FM1 to compare with your library. Nothing on the FM1 changes.',
     readUnavailable:
-      'To read the presets from the FM1, choose it as the MIDI output and input, with SysEx allowed. Reading needs FM-1+VA FM-1_079 or later.',
+      'To read the presets from the FM1, choose it as the MIDI output and input, with SysEx allowed. Reading needs Baud Girl firmware FM-1_079 or later.',
     reading: 'Reading preset {{number, number}} of {{total, number}}…',
     stopReading: 'Stop reading',
     chooseFile: 'Choose the file from “Save a backup”',
@@ -338,9 +339,9 @@ export default {
     damagedPresets_other: '{{count, number}} presets are damaged. Their slots keep their patches.',
     action: 'Import one bank',
     action_other: 'Import {{count, number}} banks',
-    imported: 'Imported bank {{banks}} from FM-1+VA.',
-    imported_other: 'Imported banks {{banks}} from FM-1+VA.',
-    openFailed: 'The FM-1+VA import could not be opened. Reload the page and try again.',
+    imported: 'Imported bank {{banks}} from the FM1.',
+    imported_other: 'Imported banks {{banks}} from the FM1.',
+    openFailed: 'The Baud Girl preset import could not be opened. Reload the page and try again.',
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Virtual Analog preset, not imported',
     virtualAnalogPresets:
@@ -348,9 +349,10 @@ export default {
     virtualAnalogPresets_other:
       'VA marks {{count, number}} Virtual Analog presets, which can’t be imported yet. Their slots keep their patches.',
     errors: {
-      size: 'This file is {{bytes, number}} bytes. A file from FM-1+VA’s “Save a backup” is exactly {{expected, number}} bytes.',
-      format: 'This file was not saved by FM-1+VA’s “Save a backup”.',
-      damaged: 'No preset in this file could be read. Save a new backup on FM-1+VA and try again.',
+      size: 'This file is {{bytes, number}} bytes. A file from Baud Girl’s “Save a backup” is exactly {{expected, number}} bytes.',
+      format: 'This file was not saved by Baud Girl’s “Save a backup”.',
+      damaged:
+        'No preset in this file could be read. Save a new backup on Baud Girl’s Presets page and try again.',
       unreadable: 'The file could not be read.',
       readBusy:
         'The FM1 can’t send its presets while its Sequencer is playing. Stop it and read again.',
@@ -367,7 +369,7 @@ export default {
     group: '{{name}} and one copy',
     group_other: '{{name}} and {{count, number}} copies',
     effectsDiffer: 'Their FM1 effects differ.',
-    settingsDiffer: 'Their FM-1+VA preset settings differ.',
+    settingsDiffer: 'Their Baud Girl preset settings differ.',
     goTo: 'Go to {{name}}, patch {{number}} in {{bank}}',
     none: 'No duplicates: every patch in your banks has its own voice settings.',
     openFailed: 'Duplicate patches could not be shown. Reload the page and try again.',
@@ -498,7 +500,7 @@ export default {
     firmwareChecking: 'Checking…',
     firmwareUnidentified: 'Not identified',
     firmwareMvave: 'M-VAVE {{identity}}',
-    firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareFm1Va: 'Baud Girl {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
     firmwareParameterChanges:
@@ -522,7 +524,7 @@ export default {
     truthTitle: 'Browser banks are the source of truth',
     truthBody:
       'The FM1 accepts patches and banks but cannot send its stored banks back. Import or restore patches here, edit them, then transfer them to the FM1.',
-    firmwareTitle: 'FM-1+VA supported',
+    firmwareTitle: 'Baud Girl (FM-1+VA) supported',
     firmwareBody: 'Works with both M-VAVE and Baud Girl firmware.',
     start: 'Start editing',
     stepsTitle: 'Getting started',
@@ -694,9 +696,9 @@ export default {
     feluccaBadgeLabel: 'Felucca firmware by Hügelton Instruments, {{release}}',
     feluccaBadgeTitle:
       'The FM1 runs Hügelton Instruments’ Felucca firmware, {{release}}. It plays your notes but ignores DX7 patches, banks, and the effect controls.',
-    fm1VaBadgeLabel: 'FM-1+VA firmware by Baud Girl, {{release}}',
+    fm1VaBadgeLabel: 'Baud Girl firmware, {{release}}',
     fm1VaBadgeTitle:
-      'The FM1 runs Baud Girl’s FM-1+VA firmware, {{release}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',
+      'The FM1 runs Baud Girl’s firmware (FM-1+VA), {{release}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',
     mvaveBadgeLabel: 'M-VAVE firmware, {{release}}',
     mvaveBadgeTitle:
       'The FM1 runs M-VAVE’s own firmware, {{release}}. Patches you play go to its edit buffer.',

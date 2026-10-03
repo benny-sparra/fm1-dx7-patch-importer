@@ -408,20 +408,20 @@ describe('importing banks read from the FM1', () => {
     const before = deleteWorkspaceBank(emptyPatchLibrary(), 'D')
 
     const result = importFetchedBanks(before, [
-      { newBankTitle: 'FM-1+VA A', sounds },
-      { newBankTitle: 'FM-1+VA B', sounds },
+      { newBankTitle: 'FM1 A', sounds },
+      { newBankTitle: 'FM1 B', sounds },
     ])
 
     expect(result.workspaceBanks).toEqual(['A', 'B', 'C', 'D', 'E'])
     expect(getBankVoices(result, 'D')).toEqual(fetched)
-    expect(result.bankNames).toMatchObject({ D: 'FM-1+VA A', E: 'FM-1+VA B' })
+    expect(result.bankNames).toMatchObject({ D: 'FM1 A', E: 'FM1 B' })
   })
 
   it('leaves a new bank empty in a slot the FM1 could not supply', () => {
     const withGap = sounds.map((sound, index) => (index === 4 ? null : sound))
 
     const result = importFetchedBanks(emptyPatchLibrary(), [
-      { newBankTitle: 'FM-1+VA A', sounds: withGap },
+      { newBankTitle: 'FM1 A', sounds: withGap },
     ])
 
     expect(result.voices[voiceId('E', 5)]).toBeUndefined()
@@ -442,7 +442,7 @@ describe('importing banks read from the FM1', () => {
       full = addWorkspaceBank(full, getNextWorkspaceBank(full.workspaceBanks) ?? '')
     }
 
-    expect(() => importFetchedBanks(full, [{ newBankTitle: 'FM-1+VA A', sounds }])).toThrow(
+    expect(() => importFetchedBanks(full, [{ newBankTitle: 'FM1 A', sounds }])).toThrow(
       WorkspaceBankUnavailableError,
     )
   })

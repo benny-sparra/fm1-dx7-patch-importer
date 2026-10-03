@@ -37,7 +37,8 @@ export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
 }
 
 // What the badge shows for each firmware it names: its maker, its own name where the maker's is
-// not enough, and the translated label and description.
+// not enough, and the translated label and description. FM1 owners know Baud Girl's firmware by
+// her name rather than FM-1+VA's, so her badge shows the name alone.
 const firmwareBadges = {
   felucca: {
     label: 'midi.feluccaBadgeLabel',
@@ -48,7 +49,7 @@ const firmwareBadges = {
   'fm1-va': {
     label: 'midi.fm1VaBadgeLabel',
     maker: 'BAUD GIRL',
-    product: 'FM-1+VA',
+    product: null,
     title: 'midi.fm1VaBadgeTitle',
   },
   mvave: {
@@ -61,7 +62,7 @@ const firmwareBadges = {
 
 /**
  * Names the firmware the FM1 runs, with the release it reported, once it has said so: M-VAVE's own,
- * whose edit buffer takes the patches the editor plays, Baud Girl's FM-1+VA, which gets them as
+ * whose edit buffer takes the patches the editor plays, Baud Girl's (FM-1+VA), which gets them as
  * unsaved edits, or Hügelton Instruments' Felucca, which plays notes but ignores DX7 patches. It is
  * a status readout, not a control.
  */
