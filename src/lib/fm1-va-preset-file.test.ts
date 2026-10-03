@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import { dx7PackedVoiceSize, parseDx7Bank, unpackDx7Voice } from '@/lib/dx7'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
-import { fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
+import { fm1VaRecordEffects, fm1VaRecordWithEffects } from '@/lib/fm1-va-record-effects'
 import { fm1VaChecksum, parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import {
   capturedOrgan3,
@@ -325,6 +325,44 @@ describe('differsFromLibrary', () => {
     effects[0] = 1
 
     expect(differsFromLibrary(organ3, { ...sameSlot, effects })).toBe(true)
+  })
+
+  it('does not mark a slot whose effects changed after import, once they are written', () => {
+    const effects = organ3.effects.slice()
+    effects[4] = 1
+    const written = {
+      ...organ3,
+      effects,
+      record: fm1VaRecordWithEffects(organ3.record, effects),
+    }
+
+    // The library keeps the record as first imported, with its edited effects beside it.
+    expect(differsFromLibrary(written, { ...sameSlot, effects })).toBe(false)
+  })
+
+  it('does not mark a library voice with stray unused bits, which the FM1 stores without them', () => {
+    // Bits 4 to 6 of a packed voice's byte 11 hold nothing; the FM1 stores them clear.
+    const data = organ3.voice.data.slice()
+    data[11] |= 0x40
+
+    expect(differsFromLibrary(organ3, { ...sameSlot, voice: { ...organ3.voice, data } })).toBe(
+      false,
+    )
+  })
+
+  it('does not mark a record whose effect byte is above its range, as the library holds it', () => {
+    const record = organ3.record.slice()
+    record[0] = 200
+    const fm1 = { ...organ3, effects: fm1VaRecordEffects(record), record }
+
+    expect(differsFromLibrary(fm1, { ...sameSlot, effects: fm1.effects, record })).toBe(false)
+  })
+
+  it('marks a slot whose record differs in a setting other than the effects', () => {
+    const record = organ3.record.slice()
+    record[54] = 0x19
+
+    expect(differsFromLibrary(organ3, { ...sameSlot, record })).toBe(true)
   })
 
   it('marks a slot holding the same voice without the record', () => {

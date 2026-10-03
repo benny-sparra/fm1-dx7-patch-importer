@@ -117,6 +117,20 @@ export function sendsSingleVoiceDumps(firmware: Fm1Firmware) {
   return firmware.kind === 'mvave'
 }
 
+/** FM-1_079, the FM-1+VA release that added the preset read and the preset write. */
+const firstPresetCommandsRelease = 79
+
+/**
+ * Whether the FM1 runs FM-1+VA from the release that added its preset read and write. On any other
+ * firmware those messages are unknown vendor commands. Lives here, with the firmware it names, so
+ * the librarian can offer the preset dialogs without loading the code that sends them.
+ */
+export function hasFm1VaPresetCommands(firmware: Fm1Firmware) {
+  // `classifyFm1Firmware` names firmware FM-1+VA only for an `FM-1_NNN` identity.
+  if (firmware.kind !== 'fm1-va') return false
+  return Number(firmware.identity.slice('FM-1_'.length)) >= firstPresetCommandsRelease
+}
+
 /**
  * The release as its maker names it. M-VAVE calls `FM-1_015` V15 and Felucca calls `FM-1_908` 0.8,
  * while FM-1+VA's releases, and a Felucca development build, go by the name the FM1 reports, such

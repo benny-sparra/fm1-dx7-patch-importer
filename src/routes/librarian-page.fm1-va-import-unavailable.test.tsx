@@ -60,7 +60,7 @@ describe('LibrarianPage FM-1+VA import that fails to load', () => {
     )
 
     await user.click(screen.getByTitle('Library actions'))
-    await user.click(screen.getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' }))
+    await user.click(screen.getByRole('button', { name: 'Import Baud Girl presets file…' }))
 
     const alert = await screen.findByRole('alert')
     expect(

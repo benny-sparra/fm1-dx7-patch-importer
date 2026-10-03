@@ -92,13 +92,15 @@ firmware shows as **Not identified**, and the app sends it patches as parameter 
 
 To move your FM1 between these firmwares, see [Switching FM1 firmware](switching-firmware.md).
 
-To bring the FM1's own presets into the library, choose **Import Baud Girl (FM-1+VA) presets…**
-from the menu in the patch-bank header. With the FM1 on Baud Girl's firmware, FM-1_079 or later,
-chosen as the MIDI output and input, and SysEx allowed, press **Read from FM1**: the app asks the FM1 for each of its 128
-presets in turn, which takes a few seconds and changes nothing on the FM1. **Stop reading** stops
-it, and so does closing the dialog or changing the MIDI ports. Otherwise, press **Save a backup**
-on Baud Girl's Presets page and select the `.syx` file it saved. That sends nothing to the FM1, so it
-works with MIDI switched off and whichever firmware the FM1 runs.
+To bring the FM1's own presets into the library while it runs Baud Girl's firmware, FM-1_079 or
+later, chosen as the MIDI output and input with SysEx allowed, choose **Read presets from the
+FM1…** under **Baud Girl (FM-1+VA)** in the menu in the patch-bank header. The app asks the FM1
+for each of its 128 presets in turn as the dialog opens, which takes a few seconds and changes
+nothing on the FM1. **Stop reading** stops it, and so does closing the dialog or changing the MIDI
+ports; **Read from FM1** reads again. Otherwise, press **Save a backup** on Baud Girl's Presets
+page, choose **Import Baud Girl presets file…** under **Other files**, and select the `.syx` file it
+saved. That sends nothing to the FM1, so it works with MIDI switched off and whichever firmware
+the FM1 runs.
 
 Either way the FM1's banks A to D are each shown as a folded panel: open one to see its patches,
 and click a patch to hear it on the FM1 with its effects. Under each bank, **Import into** chooses
@@ -108,12 +110,33 @@ on a new bank if you have none; two FM1 banks cannot replace the same bank. A do
 that differs from the one in the same slot of the bank it would replace, in its voice, its
 effects, or its other preset settings. After a read from the FM1, only the banks holding such a patch
 start set to import; from a file, every bank does. Press **Import** to bring them in. Each patch
-arrives with
-its FM1 effects and keeps the other settings Baud Girl's firmware stored with it, such as its effect order,
-Envelope, and filter, exactly as they are, ready for the app to send back in a later release. A
-Virtual Analog preset is marked **VA** and left out, since the app cannot hold one yet, and a
+arrives with its FM1 effects and keeps the other settings Baud Girl's firmware stored with it,
+such as its effect order, Envelope, and filter, exactly as they are, so writing it back keeps them.
+A Virtual Analog preset is marked **VA** and left out, since the app cannot hold one yet, and a
 preset that arrived damaged is marked too; either way that slot keeps the patch it has now. The
 notification offers **Undo**.
+
+To put your library's patches back on the FM1, preset by preset, choose **Write patches to the
+FM1…**, under **Baud Girl (FM-1+VA)** too. It is offered while the FM1 runs Baud Girl's firmware, FM-1_079 or
+later, chosen as the MIDI output and input with SysEx allowed. It writes each patch straight into
+its own preset with its FM1 effects and Baud Girl settings, with no **Replace Bank A?** prompt.
+The dialog first reads the FM1, so it writes only the patches that
+differ. Under each FM1 bank, **Write from** chooses the library bank to write over it, starting on
+the bank of the same letter, or **Don't write**. Virtual Analog presets on the FM1 are never written
+over, and a slot your bank has no patch in keeps its preset. A patch that came from a DX7 file
+takes the FM1 preset's own settings, with your effects in them.
+
+Before anything is written, the dialog lists every preset it will replace. Each one is replaced the
+moment it is written, and the FM1 cannot undo it, so press **Save a backup** on Baud Girl's
+Presets page first. Writes go 3 seconds apart, as Baud Girl's own page spaces them, and the app
+reads each one back to check it, stopping at the first that does not match. **Stop after this
+patch** ends the writing between patches; the dialog cannot be closed while a patch is being
+written.
+
+On the same firmware, **Send to FM1** writes the selected bank the same way, rather than sending
+it as a DX7 bank for the FM1 to ask **Replace Bank A?**. **Write over** chooses the FM1 bank,
+starting on the bank of the same letter, or bank A for a bank after D or Favourites. Favourites
+writes only its first 32 patches; when it holds fewer, the rest of the FM1 bank keeps its presets.
 
 The search box above the patch grid looks through every bank that has patches in it, not only the one shown. It matches part of a patch's name, or a whole slot code such as `B07` or `b7`, and lists the matches in bank order, each labelled with its slot. While results show, the grid is titled **Search results**, no bank is selected, **Send to FM1** is unavailable because a bank transfer needs one bank, and patches cannot be dragged to reorder them. Click a result to play it as you would in its bank; the results stay up so you can try the next one, and they are still there when you come back from editing one. Clearing the search returns to the bank of the last result you played, or to the bank you were in if you played none. Choosing a bank on the left clears the search and shows that bank.
 

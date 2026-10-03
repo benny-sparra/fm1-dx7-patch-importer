@@ -62,6 +62,8 @@ import {
 } from '@/lib/patch-library'
 import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
+import type { Fm1VaPresetSource } from '@/components/patches/import-fm1-va-presets-dialog'
+import { hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
 import { soundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
 import type { MidiController } from '@/hooks/use-midi'
@@ -158,6 +160,11 @@ const ImportFm1VaPresetsDialog = lazy(() =>
     default: module.ImportFm1VaPresetsDialog,
   })),
 )
+const WriteFm1VaPresetsDialog = lazy(() =>
+  import('@/components/patches/write-fm1-va-presets-dialog').then((module) => ({
+    default: module.WriteFm1VaPresetsDialog,
+  })),
+)
 
 // Finding duplicate patches opens from the header menu, with the code that compares them, on first
 // use.
@@ -206,6 +213,7 @@ type LibrarianLibrary = BackupLibrary &
   ComponentProps<typeof ImportDx7BankDialog>['library'] &
   ComponentProps<typeof ImportFm1VaPresetsDialog>['library'] &
   ComponentProps<typeof NamedBankLibraryDialog>['library'] &
+  ComponentProps<typeof WriteFm1VaPresetsDialog>['library'] &
   ComponentProps<typeof ReplacePatchDialog>['library'] &
   ComponentProps<typeof RestoreBackupDialog>['library'] &
   Pick<
@@ -243,6 +251,7 @@ type LibrarianLibrary = BackupLibrary &
 
 type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof ImportFm1VaPresetsDialog>['midi'] &
+  ComponentProps<typeof WriteFm1VaPresetsDialog>['midi'] &
   Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
 type LibrarianPageProps = {
@@ -297,7 +306,12 @@ export function LibrarianPage({
   const addBankButtonRef = useRef<HTMLButtonElement>(null)
   const [isAddingBank, setIsAddingBank] = useState(false)
   const [isRestoringBackup, setIsRestoringBackup] = useState(false)
-  const [isImportingFm1VaPresets, setIsImportingFm1VaPresets] = useState(false)
+  // Which Baud Girl preset import is open: the read from the FM1 or the presets file.
+  const [fm1VaImportSource, setFm1VaImportSource] = useState<Fm1VaPresetSource | null>(null)
+  const baudGirlMenuHeadingId = useId()
+  // The write to an FM1 on Baud Girl's firmware: of every bank from the header menu, or of one bank
+  // from Send to FM1.
+  const [fm1VaWrite, setFm1VaWrite] = useState<{ sendBank?: string } | null>(null)
   const [isFindingDuplicates, setIsFindingDuplicates] = useState(false)
   // The slot the grid moves focus to once it shows, such as a patch chosen among the duplicates.
   const [slotFocusRequest, setSlotFocusRequest] = useState<{ patchId: string } | null>(null)
@@ -306,9 +320,7 @@ export function LibrarianPage({
   const otherFilesMenuHeadingId = useId()
   const backupMenuHeadingId = useId()
   const lastBackupId = useId()
-  const backupContentsId = useId()
   const sysexContentsId = useId()
-  const fm1VaContentsId = useId()
   const sendButtonRef = useRef<HTMLButtonElement>(null)
   // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
   // menu toggle that focus returns to.
@@ -326,6 +338,9 @@ export function LibrarianPage({
   const allBanksMenuRef = useDismissableDetails()
   const bankMenuRef = useDismissableDetails()
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
+  // Baud Girl's firmware stores each preset as written, effects included, so Send to FM1 writes the
+  // bank preset by preset over an FM1 bank chosen in the app, rather than sending a DX7 bank.
+  const sendsByPresetWrite = hasFm1VaPresetCommands(midi.firmware)
   const workspaceBankLabel = useWorkspaceBankLabel(library)
   // Favourites shows in the bank rail, so its name reads wherever a bank's name would.
   const bankDisplayName = (bank: string) =>
@@ -500,6 +515,11 @@ export function LibrarianPage({
     if (!midi.sysexAvailable) {
       trackAnalyticsEvent({ data: { reason: 'sysex_unavailable' }, name: 'bank_transfer_failed' })
       setSendGuide('bank-selection')
+      return
+    }
+    if (sendsByPresetWrite) {
+      setDialogLoadError('')
+      setFm1VaWrite({ sendBank: destinationBank })
       return
     }
     if (shouldShowFm1BankSelectionDialog()) {
@@ -829,12 +849,16 @@ export function LibrarianPage({
                   : !midi.hasMidiOutput
                     ? t('midi.connectFirst')
                     : showsFavourites
-                      ? favouriteCount > 0
-                        ? t('favourites.sendTitle')
-                        : t('favourites.addFirst')
-                      : isDestinationBankLoaded
-                        ? t('banks.sendTitle')
-                        : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+                      ? favouriteCount === 0
+                        ? t('favourites.addFirst')
+                        : sendsByPresetWrite
+                          ? t('fm1VaSend.favouritesTooltip')
+                          : t('favourites.sendTitle')
+                      : !isDestinationBankLoaded
+                        ? t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+                        : sendsByPresetWrite
+                          ? t('fm1VaSend.bankTooltip')
+                          : t('banks.sendTitle')
               }
               type="button"
             >
@@ -852,16 +876,14 @@ export function LibrarianPage({
             >
               <EllipsisVertical className="size-3.5" />
             </summary>
-            <div className="menu-surface absolute top-full right-0 z-50 mt-1 w-80 max-w-[calc(100vw-2rem)] border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
+            <div className="menu-surface absolute top-full right-0 z-50 mt-1 w-90 max-w-[calc(100vw-2rem)] border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
               {/* The backup comes first: it is the only copy of FM1 effects and saved banks. */}
               <div aria-labelledby={backupMenuHeadingId} role="group">
                 <p className={menuHeadingClassName} id={backupMenuHeadingId}>
                   {t('backup.menuHeading')}
                 </p>
                 <button
-                  aria-describedby={
-                    lastBackupTime ? `${backupContentsId} ${lastBackupId}` : backupContentsId
-                  }
+                  aria-describedby={lastBackupTime ? lastBackupId : undefined}
                   aria-label={t('backup.download')}
                   className={menuItemWithHintClassName}
                   // Saved banks are read as the page opens; a backup waits for them.
@@ -877,9 +899,6 @@ export function LibrarianPage({
                   <HardDriveDownload className={menuHintedIconClassName} />
                   <span className="grid">
                     <span>{t('backup.download')}</span>
-                    <span className="text-xs text-[var(--crt-ink-3)]" id={backupContentsId}>
-                      {t('backup.backupContents')}
-                    </span>
                     {lastBackupTime ? (
                       <span className="text-xs text-[var(--crt-ink-3)]" id={lastBackupId}>
                         {t('backup.lastBackup', {
@@ -927,25 +946,51 @@ export function LibrarianPage({
                   </span>
                 </button>
                 <button
-                  aria-describedby={fm1VaContentsId}
-                  aria-label={t('fm1VaImport.menuItem')}
-                  className={menuItemWithHintClassName}
+                  className={menuItemClassName}
                   onClick={() => {
                     allBanksMenuRef.current?.removeAttribute('open')
                     setDialogLoadError('')
-                    setIsImportingFm1VaPresets(true)
+                    setFm1VaImportSource('file')
                   }}
                   type="button"
                 >
-                  <Upload className={menuHintedIconClassName} />
-                  <span className="grid">
-                    <span>{t('fm1VaImport.menuItem')}</span>
-                    <span className="text-xs text-[var(--crt-ink-3)]" id={fm1VaContentsId}>
-                      {t('fm1VaImport.menuContents')}
-                    </span>
-                  </span>
+                  <Upload className="size-4 shrink-0" />
+                  {t('fm1VaImport.menuItem')}
                 </button>
               </div>
+              {/* Reading and writing the FM1's presets need Baud Girl's firmware, so they show only
+                  while the FM1 runs it, together under her name. */}
+              {hasFm1VaPresetCommands(midi.firmware) ? (
+                <div aria-labelledby={baudGirlMenuHeadingId} className="mt-1" role="group">
+                  <p className={menuHeadingClassName} id={baudGirlMenuHeadingId}>
+                    {t('fm1VaImport.menuHeading')}
+                  </p>
+                  <button
+                    className={menuItemClassName}
+                    onClick={() => {
+                      allBanksMenuRef.current?.removeAttribute('open')
+                      setDialogLoadError('')
+                      setFm1VaImportSource('fm1')
+                    }}
+                    type="button"
+                  >
+                    <Download className="size-4 shrink-0" />
+                    {t('fm1VaImport.menuRead')}
+                  </button>
+                  <button
+                    className={menuItemClassName}
+                    onClick={() => {
+                      allBanksMenuRef.current?.removeAttribute('open')
+                      setDialogLoadError('')
+                      setFm1VaWrite({})
+                    }}
+                    type="button"
+                  >
+                    <Send className="size-4 shrink-0" />
+                    {t('fm1VaWrite.menuItem')}
+                  </button>
+                </div>
+              ) : null}
               <div className="my-1 border-t" />
               <button
                 className={menuItemClassName}
@@ -1216,10 +1261,10 @@ export function LibrarianPage({
           </Suspense>
         </ErrorBoundary>
       ) : null}
-      {isImportingFm1VaPresets ? (
+      {fm1VaImportSource ? (
         <ErrorBoundary
           onError={() => {
-            setIsImportingFm1VaPresets(false)
+            setFm1VaImportSource(null)
             setDialogLoadError(t('fm1VaImport.openFailed'))
           }}
         >
@@ -1228,10 +1273,35 @@ export function LibrarianPage({
               library={library}
               midi={midi}
               onClose={() => {
-                setIsImportingFm1VaPresets(false)
+                setFm1VaImportSource(null)
                 allBanksMenuRef.current?.querySelector('summary')?.focus()
               }}
               onPlay={onPlaySearchResult}
+              source={fm1VaImportSource}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
+      {fm1VaWrite ? (
+        <ErrorBoundary
+          onError={() => {
+            setFm1VaWrite(null)
+            setDialogLoadError(t('fm1VaWrite.openFailed'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <WriteFm1VaPresetsDialog
+              library={library}
+              midi={midi}
+              onClose={() => {
+                setFm1VaWrite(null)
+                if (fm1VaWrite.sendBank === undefined) {
+                  allBanksMenuRef.current?.querySelector('summary')?.focus()
+                } else {
+                  sendButtonRef.current?.focus()
+                }
+              }}
+              sendBank={fm1VaWrite.sendBank}
             />
           </Suspense>
         </ErrorBoundary>

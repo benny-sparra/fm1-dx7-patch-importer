@@ -3,6 +3,7 @@ type AnalyticsEvent =
   | { name: 'backup_restored' }
   | { name: 'bank_transfer_completed' }
   | { name: 'editor_opened' }
+  | { name: 'fm1_va_presets_written' }
   | { name: 'patch_edit_started' }
   | { name: 'patch_saved' }
   | {

@@ -84,6 +84,8 @@ type Fm1Options = {
   status?: number
   /** The first slot the FM1 leaves unanswered, to hold a read in progress. */
   unansweredFrom?: number
+  /** Slots whose record marks a Virtual Analog preset. */
+  virtualAnalogSlots?: number[]
 }
 
 /** An FM1 on FM-1+VA that answers each read with `storedVoice` and `storedRecord`. */
@@ -91,16 +93,17 @@ function fakeFm1({
   firmware = { identity: 'FM-1_093', kind: 'fm1-va' },
   status,
   unansweredFrom = 128,
+  virtualAnalogSlots = [],
 }: Fm1Options = {}) {
   const ports = makeFakeFm1Ports({
     presetReply: (slot) => {
       // A reply of another kind, which a read ignores, leaves the read waiting.
       if (slot >= unansweredFrom) return makeFm1VaReply({ argument: slot, kind: 0x51 })
       if (status !== undefined) return makeFm1VaReply({ argument: slot, status })
-      return makeFm1VaReply({
-        argument: slot,
-        data: [...storedVoice(slot).data, ...storedRecord],
-      })
+      const record = storedRecord.slice()
+      // Record byte 18 marks a Virtual Analog preset with 5A.
+      if (virtualAnalogSlots.includes(slot)) record[18] = 0x5a
+      return makeFm1VaReply({ argument: slot, data: [...storedVoice(slot).data, ...record] })
     },
   })
   const midi: Midi = {
@@ -132,6 +135,7 @@ type LibraryOptions = {
   importFetchedBanks?: PatchLibrary['importFetchedBanks']
   midi?: Midi
   records?: PatchLibrary['records']
+  source?: ComponentProps<typeof ImportFm1VaPresetsDialog>['source']
   voices?: PatchLibrary['voices']
   workspaceBanks?: string[]
 }
@@ -142,6 +146,7 @@ function renderDialog({
   importFetchedBanks = vi.fn(() => changed),
   midi = noFm1,
   records = {},
+  source = 'file',
   voices = {},
   workspaceBanks = ['A', 'B', 'C', 'D'],
 }: LibraryOptions = {}) {
@@ -164,6 +169,7 @@ function renderDialog({
         midi={withMidi}
         onClose={onClose}
         onPlay={onPlay}
+        source={source}
       />
     </ToastProvider>
   )
@@ -181,7 +187,11 @@ function renderDialog({
 }
 
 async function chooseFile(user: ReturnType<typeof userEvent.setup>, file = makeFm1VaBackupFile()) {
-  await user.upload(screen.getByLabelText(/Baud Girl presets file|Presetdatei/), file)
+  // The dialog's title names the file too, so the file input is picked out by its element.
+  const field = screen.getByLabelText(/Baud Girl presets file|Baud-Girl-Presetdatei/, {
+    selector: 'input',
+  })
+  await user.upload(field, file)
 }
 
 /** A file whose contents arrive only when the test says, to order two reads by hand. */
@@ -217,20 +227,22 @@ describe('ImportFm1VaPresetsDialog', () => {
   it('waits for a file before it can replace anything', () => {
     renderDialog()
 
-    expect(screen.getByRole('dialog', { name: 'Import Baud Girl presets' })).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'Import Baud Girl presets file' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Import 0 banks' }).hasAttribute('disabled')).toBe(
       true,
     )
   })
 
-  it('says that each patch arrives with its effects and settings', () => {
-    renderDialog()
+  it('warns that banks are replaced only once there are banks to choose for', async () => {
+    const warning =
+      'Each bank you import replaces the bank you choose for it, or is added as a new bank. You can undo this.'
+    const { user } = renderDialog()
 
-    const descriptionId = screen.getByRole('dialog').getAttribute('aria-describedby')
+    expect(screen.queryByText(warning)).toBeNull()
 
-    expect(document.getElementById(descriptionId ?? '')?.textContent).toContain(
-      'Each patch arrives with its FM1 effects and its other preset settings.',
-    )
+    await chooseFile(user)
+
+    expect(screen.getByText(warning)).toBeTruthy()
   })
 
   it('shows the four FM1 banks of a chosen file, each going to the bank of its letter', async () => {
@@ -395,7 +407,9 @@ describe('ImportFm1VaPresetsDialog', () => {
     expect(within(bankSection('B')).getByText('Virtual Analog preset, not imported')).toBeTruthy()
     expect(within(bankSection('B')).getByText(fm1VaTestPatchName(33))).toBeTruthy()
     expect(
-      screen.getByText(/^VA marks a Virtual Analog preset, which can’t be imported yet\./),
+      screen.getByText(
+        'The file has a virtual analogue preset, which can’t currently be imported.',
+      ),
     ).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Import 4 banks' }))
     expect(vi.mocked(importFetchedBanks).mock.calls[0][0][1].sounds[1]).toBeNull()
@@ -520,9 +534,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
   it('reads all 128 presets from the FM1, in slot order, and shows its banks', async () => {
     const { midi, ports } = fakeFm1()
-    const { user } = renderDialog({ midi })
-
-    await user.click(readButton())
+    renderDialog({ midi, source: 'fm1' })
 
     expect(await screen.findByRole('heading', { name: 'Banks on the FM1' })).toBeTruthy()
     expect(ports.output.send.mock.calls.map(([message]) => message)).toEqual(
@@ -534,9 +546,12 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
   it('marks each patch that differs from the library and imports only its bank', async () => {
     const { midi } = fakeFm1()
     const changedVoice = updateDx7VoiceName(storedVoice(2), 'MY EDIT')
-    const { user } = renderDialog({ midi, ...matchingLibrary({ [voiceId('A', 3)]: changedVoice }) })
+    const { user } = renderDialog({
+      midi,
+      source: 'fm1',
+      ...matchingLibrary({ [voiceId('A', 3)]: changedVoice }),
+    })
 
-    await user.click(readButton())
     await screen.findByRole('heading', { name: 'Banks on the FM1' })
     await openBank(user, 'A')
 
@@ -558,8 +573,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
   it('compares an FM1 bank with the library bank chosen for it', async () => {
     const { midi } = fakeFm1()
-    const { user } = renderDialog({ midi, ...matchingLibrary() })
-    await user.click(readButton())
+    const { user } = renderDialog({ midi, source: 'fm1', ...matchingLibrary() })
     await screen.findByText('Every patch here matches your library.')
 
     await user.selectOptions(destination('A'), 'Replace “Bank 2”')
@@ -572,8 +586,11 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
   it('marks no patch of an FM1 bank going to a new bank, and claims no match', async () => {
     const { midi } = fakeFm1()
     const changedVoice = updateDx7VoiceName(storedVoice(2), 'MY EDIT')
-    const { user } = renderDialog({ midi, ...matchingLibrary({ [voiceId('A', 3)]: changedVoice }) })
-    await user.click(readButton())
+    const { user } = renderDialog({
+      midi,
+      source: 'fm1',
+      ...matchingLibrary({ [voiceId('A', 3)]: changedVoice }),
+    })
     await screen.findByRole('heading', { name: 'Banks on the FM1' })
 
     await user.selectOptions(destination('A'), 'Add it as a new bank')
@@ -584,9 +601,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
   it('says when every patch on the FM1 matches the library', async () => {
     const { midi } = fakeFm1()
-    const { user } = renderDialog({ midi, ...matchingLibrary() })
-
-    await user.click(readButton())
+    renderDialog({ midi, source: 'fm1', ...matchingLibrary() })
 
     expect(await screen.findByText('Every patch here matches your library.')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Import 0 banks' }).hasAttribute('disabled')).toBe(
@@ -598,9 +613,9 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
     const { midi } = fakeFm1()
     const { importFetchedBanks, user } = renderDialog({
       midi,
+      source: 'fm1',
       ...matchingLibrary({ [voiceId('A', 3)]: storedVoice(0) }),
     })
-    await user.click(readButton())
     await screen.findByRole('heading', { name: 'Banks on the FM1' })
 
     await user.click(screen.getByRole('button', { name: 'Import one bank' }))
@@ -617,8 +632,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
   it('plays a patch from the FM1 with its effects', async () => {
     const { midi } = fakeFm1()
-    const { onPlay, user } = renderDialog({ midi })
-    await user.click(readButton())
+    const { onPlay, user } = renderDialog({ midi, source: 'fm1' })
     await screen.findByRole('heading', { name: 'Banks on the FM1' })
     await openBank(user, 'B')
 
@@ -632,9 +646,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
   it('shows how far the read has got, in the interface language', async () => {
     await setLocale('de')
     const { midi } = fakeFm1({ unansweredFrom: 5 })
-    const { user } = renderDialog({ midi })
-
-    await user.click(screen.getByRole('button', { name: 'Vom FM1 lesen' }))
+    renderDialog({ midi, source: 'fm1' })
 
     expect(await screen.findByText('Lese Preset 6 von 128…')).toBeTruthy()
     expect(screen.getByRole('progressbar', { name: 'Lese Preset 6 von 128…' })).toBeTruthy()
@@ -642,8 +654,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
   it('stops reading when asked, and asks the FM1 for nothing more', async () => {
     const { midi, ports } = fakeFm1({ unansweredFrom: 5 })
-    const { user } = renderDialog({ midi })
-    await user.click(readButton())
+    const { user } = renderDialog({ midi, source: 'fm1' })
     await screen.findByText('Reading preset 6 of 128…')
 
     await user.click(screen.getByRole('button', { name: 'Stop reading' }))
@@ -657,8 +668,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
   it('stops reading when the dialog closes', async () => {
     const { midi, ports } = fakeFm1({ unansweredFrom: 5 })
-    const { user } = renderDialog({ midi })
-    await user.click(readButton())
+    const { user } = renderDialog({ midi, source: 'fm1' })
     await screen.findByText('Reading preset 6 of 128…')
 
     await user.click(screen.getByRole('button', { name: 'Close' }))
@@ -668,24 +678,9 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
     expect(ports.input.removeListener).toHaveBeenCalledTimes(6)
   })
 
-  it('shows a file chosen during a read rather than the read', async () => {
-    const { midi } = fakeFm1({ unansweredFrom: 5 })
-    const { user } = renderDialog({ midi })
-    await user.click(readButton())
-    await screen.findByText('Reading preset 6 of 128…')
-
-    await chooseFile(user)
-
-    expect(await screen.findByRole('heading', { name: 'Banks in this file' })).toBeTruthy()
-    expect(screen.queryByRole('progressbar')).toBeNull()
-    expect(screen.queryByRole('alert')).toBeNull()
-  })
-
   it('explains a read the FM1 is too busy to answer', async () => {
     const { midi } = fakeFm1({ status: 3 })
-    const { user } = renderDialog({ midi })
-
-    await user.click(readButton())
+    renderDialog({ midi, source: 'fm1' })
 
     expect((await screen.findByRole('alert')).textContent).toBe(
       'The FM1 can’t send its presets while its Sequencer is playing. Stop it and read again.',
@@ -695,8 +690,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
   it('stops and explains a read when the MIDI ports change', async () => {
     const { midi } = fakeFm1({ unansweredFrom: 5 })
-    const { rerender, user } = renderDialog({ midi })
-    await user.click(readButton())
+    const { rerender } = renderDialog({ midi, source: 'fm1' })
     await screen.findByText('Reading preset 6 of 128…')
 
     rerender({ ...midi, outputs: [], selectedOutputId: '' })
@@ -712,7 +706,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
   it('explains what reading needs on FM-1+VA without the FM1 as MIDI input', () => {
     const { midi } = fakeFm1()
 
-    renderDialog({ midi: { ...midi, selectedInputId: '' } })
+    renderDialog({ midi: { ...midi, selectedInputId: '' }, source: 'fm1' })
 
     expect(screen.queryByRole('button', { name: 'Read from FM1' })).toBeNull()
     expect(
@@ -722,12 +716,54 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
     ).toBeTruthy()
   })
 
-  it('offers no read on M-VAVE’s firmware', () => {
-    const { midi } = fakeFm1({ firmware: { identity: 'FM-1_015', kind: 'mvave' } })
+  it('offers no read in the presets file import, whatever the firmware', () => {
+    const { midi } = fakeFm1()
 
     renderDialog({ midi })
 
     expect(screen.queryByRole('button', { name: 'Read from FM1' })).toBeNull()
     expect(screen.queryByText(/To read the presets from the FM1/)).toBeNull()
+  })
+
+  it('reads the FM1 as it opens, with no file to choose', async () => {
+    const { midi } = fakeFm1()
+
+    renderDialog({ midi, source: 'fm1' })
+
+    expect(screen.getByRole('dialog', { name: 'Read presets from the FM1' })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'Banks on the FM1' })).toBeTruthy()
+    expect(screen.queryByLabelText(/Baud Girl presets file/)).toBeNull()
+  })
+
+  it('offers to read again after a stop, and not once the banks show', async () => {
+    const { midi, ports } = fakeFm1({ unansweredFrom: 5 })
+    const { user } = renderDialog({ midi, source: 'fm1' })
+    await screen.findByText('Reading preset 6 of 128…')
+    await user.click(screen.getByRole('button', { name: 'Stop reading' }))
+
+    await user.click(readButton())
+
+    expect(await screen.findByText('Reading preset 6 of 128…')).toBeTruthy()
+    expect(ports.output.send.mock.calls[6][0]).toEqual(makeFm1VaPresetReadRequest(0))
+  })
+
+  it('says how many virtual analogue presets the FM1 has that can’t be imported', async () => {
+    const { midi } = fakeFm1({ virtualAnalogSlots: [96, 112] })
+    renderDialog({ midi, source: 'fm1' })
+
+    expect(
+      await screen.findByText(
+        'The FM1 has 2 virtual analogue presets, which can’t currently be imported.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('offers no read button once the banks show, as the read ran as it opened', async () => {
+    const { midi } = fakeFm1()
+    renderDialog({ midi, source: 'fm1' })
+
+    await screen.findByRole('heading', { name: 'Banks on the FM1' })
+
+    expect(screen.queryByRole('button', { name: 'Read from FM1' })).toBeNull()
   })
 })

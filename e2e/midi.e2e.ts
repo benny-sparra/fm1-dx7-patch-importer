@@ -400,17 +400,15 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
     expect(await photo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
   })
 
-  test('explains the FM-1+VA Replace Bank question before sending a bank', async ({ page }) => {
+  test('sends a bank by writing its presets, with no Replace Bank question', async ({ page }) => {
     await page.getByRole('button', { exact: true, name: 'Send to FM1' }).first().click()
-    const instructions = page.getByRole('dialog', {
-      name: 'Choose the destination bank on your FM1',
-    })
 
+    // FM-1_089 has the preset write, so the bank is written preset by preset over an FM1 bank
+    // chosen in the app, rather than sent as a DX7 bank for the FM1 to ask where it goes.
+    await expect(page.getByRole('dialog', { name: 'Send Bank 1 to the FM1' })).toBeVisible()
     await expect(
-      instructions.getByText(
-        'Turn ALGORITHM until the question names the destination bank: A, B, C or D.',
-      ),
-    ).toBeVisible()
-    await expect(instructions.getByText(/Turn Knob 1/)).toBeHidden()
+      page.getByRole('dialog', { name: 'Choose the destination bank on your FM1' }),
+    ).toHaveCount(0)
+    expect((await sentSysex(page)).some((message) => message.length === bankDumpLength)).toBe(false)
   })
 })

@@ -66,10 +66,11 @@ export function FavouritesTab({ count, onSelect, selected }: FavouritesTabProps)
         >
           {title}
         </span>
-        {/* The tab keeps a stable name; opening it lists the favourites a screen reader counts. */}
+        {/* The tab keeps a stable name; opening it lists the favourites a screen reader counts.
+            The count is centred in a column as wide as a bank tab's ⋮ button, so the two line up. */}
         <span
           aria-hidden="true"
-          className="font-vt323 hidden shrink-0 text-[18px] leading-none text-[var(--crt-ink-3)] md:block"
+          className="font-vt323 hidden min-w-5 shrink-0 text-center text-[18px] leading-none text-[var(--crt-ink-3)] md:block"
         >
           {new Intl.NumberFormat(i18n.resolvedLanguage).format(count)}
         </span>

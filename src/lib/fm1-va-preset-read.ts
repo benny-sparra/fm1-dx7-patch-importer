@@ -1,5 +1,5 @@
 import { dx7PackedVoiceSize } from '@/lib/dx7'
-import type { Fm1Firmware } from '@/lib/fm1-firmware'
+import { hasFm1VaPresetCommands, type Fm1Firmware } from '@/lib/fm1-firmware'
 import {
   fm1VaChecksum,
   fm1VaReplyKinds,
@@ -20,17 +20,12 @@ export const fm1VaPresetRecordSize = 59
 
 const readCommand = 0x10
 
-/** FM-1_079, the first FM-1+VA release that answers the preset read. */
-const firstPresetReadRelease = 79
-
 /**
- * Whether the editor may ask the FM1 for its stored presets: only FM-1+VA from the release that
- * added the read. On any other firmware the message is an unknown vendor command.
+ * Whether the editor may ask the FM1 for its stored presets: only FM-1+VA from FM-1_079, the
+ * release that added the read. On any other firmware the message is an unknown vendor command.
  */
 export function readsFm1VaPresets(firmware: Fm1Firmware) {
-  // `classifyFm1Firmware` names firmware FM-1+VA only for an `FM-1_NNN` identity.
-  if (firmware.kind !== 'fm1-va') return false
-  return Number(firmware.identity.slice('FM-1_'.length)) >= firstPresetReadRelease
+  return hasFm1VaPresetCommands(firmware)
 }
 
 /** The number the FM1 shows for a slot, 001 to 128, as the research notes name presets. */

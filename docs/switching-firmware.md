@@ -27,7 +27,7 @@ The FM1 cannot send its presets back to this app, so your library is your only c
 
 - In this app, choose **Download backup** from the menu in the patch-bank header.
 - Leaving FM-1+VA: on its Presets page, press **Save a backup**. It saves all 128 presets as a
-  `.syx` file. Only FM-1+VA can make or restore it; this app's **Import Baud Girl (FM-1+VA) presets…** reads
+  `.syx` file. Only FM-1+VA can make or restore it; this app's **Import Baud Girl presets file…** reads
   only its patches.
 - Have M-VAVE's files ready from [m-vave.com/download](https://www.m-vave.com/download):
   **M-UPGRADE** (PC Software, Windows or Mac) and **FM-1 V15** (PC Firmware). Leaving Felucca

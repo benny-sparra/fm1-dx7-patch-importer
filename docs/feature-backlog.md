@@ -430,12 +430,22 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       `useFm1VaPresetWriter` sends one write at a time, 3 s apart. A patch without a record of its
       own takes the FM1 slot's stored record with the library's effects put in. The dev probe's
       write test passed on FM-1_093: a write stores the preset exactly, shows on the selected
-      preset at once, and gets no reply, so the read back is the only confirmation. The **Write
-      to FM1** dialog comes next.
+      preset at once, and gets no reply, so the read back is the only confirmation. **Write patches
+      to the FM1…** in the patch-bank header menu (built 2026-10-03; on FM-1_093 it wrote one changed
+      preset, 001, and confirmed it)
+      reads the FM1, writes each library bank chosen over an FM1 bank, only the patches that
+      differ and never over a Virtual Analog preset, names every preset first, and reads each
+      write back. **Send to FM1** uses the same path from FM-1_079 (built 2026-10-03, waiting for a
+      hardware test): the selected bank, or Favourites, is written over an FM1 bank chosen in the
+      dialog, so the **Replace Bank A?** prompt is left to releases before it. A short Favourites
+      writes only its own presets rather than INIT VOICE.
 - [ ] **5. Effect order and distortion type.** FM-1+VA stores both in the record and has no CC for
       them. A reorderable effect list and a Soft Clip / Hard Clip / Foldback choice in the effects
       panel, sent with the preset through 4, so a change is heard once written. This settles
       [Effect routing order](#effect-routing-order) on FM-1+VA only.
+      The record keeps the order and type with the patch, but no other firmware reads them: sent
+      to M-VAVE's firmware, a patch plays in the stock order with its stock distortion. Hide both
+      controls there, and say so in the effects panel where a patch carries a changed order.
 - [ ] **6. Virtual Analog presets.** Built in steps, each shippable:
   - **Keep them.** A slot whose record is marked Virtual Analog shows as such, survives import,
     backup, and copy unchanged, and is left out of DX7 `.syx` export with an explanation,
@@ -593,6 +603,12 @@ A full sync workflow with confirmation prompts was judged too complex for what i
   **Import FM-1+VA presets…**, whose line names Baud Girl's FM-1+VA firmware so owners of
   M-VAVE's firmware can pass it by. Below the divider, **Find duplicate patches…** and then
   **Reset to factory patches…**, in the danger colour. Every line under an item fits one line.
+- _Revised 2026-10-03_, as the menu read as too wordy: a line under an item stays only where it
+  says what the label cannot. **Download backup** keeps just the date of the last backup, and
+  **Download SysEx banks (.zip)** its DX7-data-only line, which now carries the comparison with the
+  backup alone. The Baud Girl import and write lose theirs: the import's label already names the
+  firmware, and the write shows only on it. The menu widens to 360 px so the import's label fits
+  one line.
 - The persistence warning also offers **Download backup** while browser storage is not keeping the
   workspace, which is when a backup matters most. There is no permanent storage area to put it in.
 
