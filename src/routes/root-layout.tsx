@@ -84,7 +84,10 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               </h1>
               {!compact ? (
                 <div className="hero-supporting-text text-xs leading-5">
-                  {t('root.intro')} <Dx7BankSourcesDialog />
+                  {/* An inline-block keeps the link beside the sentence when both fit, and lets a
+                      sentence that must wrap balance its lines rather than strand a word. */}
+                  <span className="inline-block text-balance">{t('root.intro')}</span>{' '}
+                  <Dx7BankSourcesDialog />
                 </div>
               ) : null}
             </div>
