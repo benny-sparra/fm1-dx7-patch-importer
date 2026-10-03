@@ -3,9 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { packDx7Voice } from '@/lib/dx7'
 import {
   capturedOrgan3,
+  capturedOrgan3FilterOnReply,
   capturedOrgan3Reply,
   capturedVirtualAnalog,
+  capturedVirtualAnalogCutoffControllerReply,
+  capturedVirtualAnalogCutoffReply,
   capturedVirtualAnalogFilterOnReply,
+  capturedVirtualAnalogFilterTypeReply,
+  capturedVirtualAnalogPhaserMixReply,
+  capturedVirtualAnalogReorderedReply,
+  capturedVirtualAnalogResonanceReply,
+  capturedVirtualAnalogReverbMixReply,
 } from '@/test/fm1-va-captures'
 import { makeFm1VaPresetReply, makeFm1VaReply, makeStoredPresetData } from '@/test/fm1-va-replies'
 
@@ -102,6 +110,120 @@ describe('readFm1VaPreset', () => {
     expected[28] = 0x01
     expect(preset.record).toEqual(expected)
     expect(preset.voice).toEqual(packDx7Voice(capturedVirtualAnalog.slice(6, 161)).data)
+  })
+
+  it('reads a change of effect order as a swap of the order bytes, leaving the switches', async () => {
+    const before = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogFilterOnReply).link,
+      96,
+    )
+    const after = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogReorderedReply).link,
+      96,
+    )
+
+    // Filter (0) moved below Reverb (1); the Filter's switch, byte 28, stayed on.
+    const expected = before.record.slice()
+    expected[27] = 0x01
+    expected[30] = 0x00
+    expect(after.record).toEqual(expected)
+    expect(after.record[28]).toBe(0x01)
+  })
+
+  it('reads the Filter switch of an FM preset in the same byte as a Virtual Analog one', async () => {
+    const before = await readFm1VaPreset(makeLink(() => capturedOrgan3Reply).link, 0)
+    const after = await readFm1VaPreset(makeLink(() => capturedOrgan3FilterOnReply).link, 0)
+
+    const expected = before.record.slice()
+    expected[28] = 0x01
+    expect(after.record).toEqual(expected)
+    expect(after.voice).toEqual(before.voice)
+  })
+
+  it("reads the Filter's Cutoff in record byte 0", async () => {
+    const before = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogReorderedReply).link,
+      96,
+    )
+    const after = await readFm1VaPreset(makeLink(() => capturedVirtualAnalogCutoffReply).link, 96)
+
+    // 6065 Hz on the FX screen before, 1686 Hz after.
+    const expected = before.record.slice()
+    expected[0] = 0x36
+    expect(before.record[0]).toBe(0x50)
+    expect(after.record).toEqual(expected)
+  })
+
+  it('reads a Cutoff sent as CC 2 and stored with SAVE as the value sent', async () => {
+    const before = await readFm1VaPreset(makeLink(() => capturedVirtualAnalogCutoffReply).link, 96)
+    const after = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogCutoffControllerReply).link,
+      96,
+    )
+
+    const expected = before.record.slice()
+    expected[0] = 40
+    expect(after.record).toEqual(expected)
+  })
+
+  it('reads a Resonance sent as CC 3 in record byte 1, as the value sent', async () => {
+    const before = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogCutoffControllerReply).link,
+      96,
+    )
+    const after = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogResonanceReply).link,
+      96,
+    )
+
+    const expected = before.record.slice()
+    expected[1] = 5
+    expect(after.record).toEqual(expected)
+  })
+
+  it("reads a Filter Type sent as CC 1 in record byte 29, beside the Filter's switch", async () => {
+    const before = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogResonanceReply).link,
+      96,
+    )
+    const after = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogFilterTypeReply).link,
+      96,
+    )
+
+    const expected = before.record.slice()
+    expected[29] = 2
+    expect(after.record).toEqual(expected)
+  })
+
+  it("reads Reverb's Mix sent as CC 7 in record byte 4", async () => {
+    const before = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogFilterTypeReply).link,
+      96,
+    )
+    const after = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogReverbMixReply).link,
+      96,
+    )
+
+    const expected = before.record.slice()
+    expected[4] = 77
+    expect(after.record).toEqual(expected)
+  })
+
+  it("reads Phaser's Mix sent as CC 23 in record byte 17, the last effect setting", async () => {
+    const before = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogReverbMixReply).link,
+      96,
+    )
+    const after = await readFm1VaPreset(
+      makeLink(() => capturedVirtualAnalogPhaserMixReply).link,
+      96,
+    )
+
+    const expected = before.record.slice()
+    expected[17] = 66
+    expect(after.record).toEqual(expected)
   })
 
   it('reads record byte 18 of a captured FM preset as 03', async () => {
