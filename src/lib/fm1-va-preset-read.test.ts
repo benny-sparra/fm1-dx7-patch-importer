@@ -3,7 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { packDx7Voice } from '@/lib/dx7'
 import {
   capturedOrgan3,
+  capturedOrgan3AttackReply,
+  capturedOrgan3EnvelopeOnReply,
   capturedOrgan3FilterOnReply,
+  capturedOrgan3PresetFilterCutoffReply,
+  capturedOrgan3PresetFilterOffReply,
+  capturedOrgan3PresetFilterOnReply,
   capturedOrgan3Reply,
   capturedVirtualAnalog,
   capturedVirtualAnalogCutoffControllerReply,
@@ -285,6 +290,59 @@ describe('readFm1VaPreset', () => {
     expected[byte] = value
 
     expect((await read(after)).record).toEqual(expected)
+  })
+
+  it('reads Envelope On, switched by holding ENV, as bit 6 of record byte 53', async () => {
+    const before = await readFm1VaPreset(makeLink(() => capturedOrgan3FilterOnReply).link, 0)
+    const after = await readFm1VaPreset(makeLink(() => capturedOrgan3EnvelopeOnReply).link, 0)
+
+    const expected = before.record.slice()
+    expected[53] = 0x40
+    expect(after.record).toEqual(expected)
+  })
+
+  it("reads the Envelope's Attack, set to 25, in record byte 54", async () => {
+    const before = await readFm1VaPreset(makeLink(() => capturedOrgan3EnvelopeOnReply).link, 0)
+    const after = await readFm1VaPreset(makeLink(() => capturedOrgan3AttackReply).link, 0)
+
+    const expected = before.record.slice()
+    expected[54] = 25
+    expect(after.record).toEqual(expected)
+  })
+
+  it("reads an FM preset's own Filter switched on as record byte 26 changing to 90", async () => {
+    const before = await readFm1VaPreset(makeLink(() => capturedOrgan3AttackReply).link, 0)
+    const after = await readFm1VaPreset(makeLink(() => capturedOrgan3PresetFilterOnReply).link, 0)
+
+    const expected = before.record.slice()
+    expected[26] = 0x90
+    expect(after.record).toEqual(expected)
+  })
+
+  it("reads an FM preset's own Filter Cutoff in record byte 23, as an eight-bit value", async () => {
+    const before = await readFm1VaPreset(makeLink(() => capturedOrgan3PresetFilterOnReply).link, 0)
+    const after = await readFm1VaPreset(
+      makeLink(() => capturedOrgan3PresetFilterCutoffReply).link,
+      0,
+    )
+
+    // 20 kHz, shown while the byte held 03, to 5 kHz.
+    const expected = before.record.slice()
+    expected[23] = 0xd0
+    expect(after.record).toEqual(expected)
+  })
+
+  it("reads an FM preset's own Filter switched off as bit 4 of byte 26, keeping its Cutoff", async () => {
+    const before = await readFm1VaPreset(
+      makeLink(() => capturedOrgan3PresetFilterCutoffReply).link,
+      0,
+    )
+    const after = await readFm1VaPreset(makeLink(() => capturedOrgan3PresetFilterOffReply).link, 0)
+
+    const expected = before.record.slice()
+    expected[26] = 0x80
+    expect(after.record).toEqual(expected)
+    expect(after.record[23]).toBe(0xd0)
   })
 
   it('reads record byte 18 of a captured FM preset as 03', async () => {

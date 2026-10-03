@@ -239,23 +239,28 @@ statuses and damage no capture shows yet.
 **What the record holds, one setting at a time.** Each row is a preset read before and after one
 change on the FM1, stored with SAVE.
 
-| Change                                                                                   | Preset            | Bytes that changed               | Seen                                                      |
-| ---------------------------------------------------------------------------------------- | ----------------- | -------------------------------- | --------------------------------------------------------- |
-| Filter switched on (was off since its backup)                                            | 097 (VA)          | 28: `00` → `01`                  | Once, FM-1_093, 2026-10-02, against the 2026-10-01 backup |
-| Filter moved below Reverb (Filter On, Reverb Off before and after)                       | 097 (VA)          | 27: `00` → `01`, 30: `01` → `00` | Once, FM-1_093, 2026-10-03                                |
-| Filter switched on                                                                       | 001 (FM, ORGAN 3) | 28: `00` → `01`                  | Once, FM-1_093, 2026-10-03                                |
-| Filter Cutoff turned from 6065 Hz to 1686 Hz                                             | 097 (VA)          | 0: `50` (80) → `36` (54)         | Once, FM-1_093, 2026-10-03                                |
-| CC 2 (Filter Cutoff) sent with 40 from the FX probe; the FX screen showed 812 Hz         | 097 (VA)          | 0: `36` (54) → `28` (40)         | Once, FM-1_093, 2026-10-03                                |
-| CC 3 (Filter Resonance) sent with 5 from the FX probe; the FX screen showed 50           | 097 (VA)          | 1: `03` → `05`                   | Once, FM-1_093, 2026-10-03                                |
-| CC 1 (Filter Type) sent with 2 from the FX probe; the FX screen showed high pass         | 097 (VA)          | 29: `00` → `02`                  | Once, FM-1_093, 2026-10-03                                |
-| CC 7 (Reverb Mix) sent with 77 from the FX probe; the FX screen showed 77                | 097 (VA)          | 4: `03` → `4D` (77)              | Once, FM-1_093, 2026-10-03                                |
-| CC 23 (Phaser Mix) sent with 66 from the FX probe; the FX screen showed 66               | 097 (VA)          | 17: `03` → `42` (66)             | Once, FM-1_093, 2026-10-03                                |
-| CC 10 (Delay Rate) sent with 33 from the FX probe; the FX screen showed 33               | 097 (VA)          | 7: `03` → `21` (33)              | Once, FM-1_093, 2026-10-03                                |
-| CC 14 (Distortion Tone) sent with 44 from the FX probe; the FX screen showed 44          | 097 (VA)          | 10: `03` → `2C` (44)             | Once, FM-1_093, 2026-10-03                                |
-| CC 18 (Chorus Depth) sent with 55 from the FX probe                                      | 097 (VA)          | 13: `03` → `37` (55)             | Once, FM-1_093, 2026-10-03                                |
-| CC 20 (Phaser on or off) sent with 127 from the FX probe; the FX screen showed Phaser On | 097 (VA)          | 43: `00` → `01`                  | Once, FM-1_093, 2026-10-03                                |
-| CC 5 (Reverb Type) sent with 2 from the FX probe; the FX screen showed Plate             | 097 (VA)          | 32: `00` → `02`                  | Once, FM-1_093, 2026-10-03                                |
-| Distortion Type turned from Soft Clip to Hard Clip on the FX screen                      | 097 (VA)          | 38: `00` → `01`                  | Once, FM-1_093, 2026-10-03                                |
+| Change                                                                                           | Preset            | Bytes that changed               | Seen                                                      |
+| ------------------------------------------------------------------------------------------------ | ----------------- | -------------------------------- | --------------------------------------------------------- |
+| Filter switched on (was off since its backup)                                                    | 097 (VA)          | 28: `00` → `01`                  | Once, FM-1_093, 2026-10-02, against the 2026-10-01 backup |
+| Filter moved below Reverb (Filter On, Reverb Off before and after)                               | 097 (VA)          | 27: `00` → `01`, 30: `01` → `00` | Once, FM-1_093, 2026-10-03                                |
+| Filter switched on                                                                               | 001 (FM, ORGAN 3) | 28: `00` → `01`                  | Once, FM-1_093, 2026-10-03                                |
+| Filter Cutoff turned from 6065 Hz to 1686 Hz                                                     | 097 (VA)          | 0: `50` (80) → `36` (54)         | Once, FM-1_093, 2026-10-03                                |
+| CC 2 (Filter Cutoff) sent with 40 from the FX probe; the FX screen showed 812 Hz                 | 097 (VA)          | 0: `36` (54) → `28` (40)         | Once, FM-1_093, 2026-10-03                                |
+| CC 3 (Filter Resonance) sent with 5 from the FX probe; the FX screen showed 50                   | 097 (VA)          | 1: `03` → `05`                   | Once, FM-1_093, 2026-10-03                                |
+| CC 1 (Filter Type) sent with 2 from the FX probe; the FX screen showed high pass                 | 097 (VA)          | 29: `00` → `02`                  | Once, FM-1_093, 2026-10-03                                |
+| CC 7 (Reverb Mix) sent with 77 from the FX probe; the FX screen showed 77                        | 097 (VA)          | 4: `03` → `4D` (77)              | Once, FM-1_093, 2026-10-03                                |
+| CC 23 (Phaser Mix) sent with 66 from the FX probe; the FX screen showed 66                       | 097 (VA)          | 17: `03` → `42` (66)             | Once, FM-1_093, 2026-10-03                                |
+| CC 10 (Delay Rate) sent with 33 from the FX probe; the FX screen showed 33                       | 097 (VA)          | 7: `03` → `21` (33)              | Once, FM-1_093, 2026-10-03                                |
+| CC 14 (Distortion Tone) sent with 44 from the FX probe; the FX screen showed 44                  | 097 (VA)          | 10: `03` → `2C` (44)             | Once, FM-1_093, 2026-10-03                                |
+| CC 18 (Chorus Depth) sent with 55 from the FX probe                                              | 097 (VA)          | 13: `03` → `37` (55)             | Once, FM-1_093, 2026-10-03                                |
+| CC 20 (Phaser on or off) sent with 127 from the FX probe; the FX screen showed Phaser On         | 097 (VA)          | 43: `00` → `01`                  | Once, FM-1_093, 2026-10-03                                |
+| CC 5 (Reverb Type) sent with 2 from the FX probe; the FX screen showed Plate                     | 097 (VA)          | 32: `00` → `02`                  | Once, FM-1_093, 2026-10-03                                |
+| Distortion Type turned from Soft Clip to Hard Clip on the FX screen                              | 097 (VA)          | 38: `00` → `01`                  | Once, FM-1_093, 2026-10-03                                |
+| Envelope switched on by holding ENV                                                              | 001 (FM, ORGAN 3) | 53: `00` → `40`                  | Once, FM-1_093, 2026-10-03                                |
+| Envelope Attack set to 25 in the Envelope group                                                  | 001 (FM, ORGAN 3) | 54: `00` → `19` (25)             | Once, FM-1_093, 2026-10-03                                |
+| The Filter section's Filter row in EDIT (FM-1_092's filter for FM presets) turned from Off to On | 001 (FM, ORGAN 3) | 26: `03` → `90`                  | Once, FM-1_093, 2026-10-03                                |
+| That Filter's Cutoff turned from 20 kHz, its maximum, to 5 kHz                                   | 001 (FM, ORGAN 3) | 23: `03` → `D0` (208)            | Once, FM-1_093, 2026-10-03                                |
+| That Filter turned back Off                                                                      | 001 (FM, ORGAN 3) | 26: `90` → `80`                  | Once, FM-1_093, 2026-10-03                                |
 
 **Bytes 27–44 interleave two lists. Confirmed for the first two positions (seen once) and the
 Filter's switch (two presets, one of each engine).** Byte 27 + 3*k* names the effect in position _k_ of the chain, top of the FX screen first,
@@ -311,6 +316,24 @@ setting sent above its maximum is stored as the maximum has not been read, but t
 it is. Bytes 2 and 5 have no controller. Distortion's type, which FM-1+VA's manual lists and no
 controller sets, is byte 38 (29 + 3 × 3): Hard Clip set it to `01`, so Soft Clip, Hard Clip, and
 Foldback are presumably 0, 1, and 2.
+
+**Byte 53 holds Envelope On or Off in bit 6 (`40`). Seen once** (001, above). The change set one
+bit rather than a value, so byte 53 presumably holds other on or off settings in its other bits; it
+is `00` in every other preset seen. Byte 54 is the Envelope's Attack, stored as the value
+the screen shows (25 read as `19`, seen once), and FM-1+VA's modules give Decay, Sustain, and
+Release as bytes 55–57, which are `00` while the Envelope has never been edited.
+
+**Bit 4 of byte 26 (`10`) switches an FM preset's own Filter on. Seen once each way** (001, above).
+FM-1+VA's modules give bytes 23–26 to the Virtual Analog filter and name `03` there as unset, which
+every FM preset seen holds. Switching the Filter on turned byte 26 from `03` to `90`, and switching
+it off turned it to `80`, keeping the Cutoff in byte 23 as the manual says. So byte 26 packs several
+settings into its bits: bit 4 is the switch, and bit 7 (`80`), set when the unset `03` was first
+replaced, is not known.
+
+**Byte 23 is that Filter's Cutoff. Seen once** (001, above). Turning it from 20 kHz to 5 kHz set byte
+23 from `03` to `D0`, so unlike the effects it uses all eight bits, and the `03` that FM-1+VA's
+modules call unset showed as the 20 kHz maximum. One reading gives no scale. Bytes 24 and 25
+presumably hold others of the section's settings.
 
 **Mapping the record.** A development build (`npm run dev`) has an **FM-1+VA preset probe (dev)**
 in the footer. It reads one preset and shows its record and voice byte by byte, marking each byte

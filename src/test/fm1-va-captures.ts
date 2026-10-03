@@ -254,3 +254,73 @@ export const capturedVirtualAnalogDistortionTypeReply = bytes(
    00 00 04 08 00 00 60 00 00 01 08 00 00 50 20 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
    00 73 00 F7`,
 )
+
+// FM-1_093's answer for preset 001 (ORGAN 3) on 2026-10-03, after holding ENV switched its envelope
+// on and SAVE stored it. Beside `capturedOrgan3FilterOnReply`, only record byte 53 differs, 00 to
+// 40.
+export const capturedOrgan3EnvelopeOnReply = bytes(
+  `F0 7D 20 01 00 00 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 50 02 00 08 00 20 02 20 02 01 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 00 15 20 18 01 32 46 1D 1A 36 6C 58 28 63 00 1C 01 00 00 00
+   1C 00 46 01 00 30 4C 56 31 63 46 65 1A 06 40 0A 00 37 00 40 0A 30 4A 01 00 63 20 0D 1B 36 2C 4E
+   31 00 4E 00 00 00 00 46 00 61 04 48 19 16 69 18 27 63 34 0D 03 40 25 45 11 00 20 09 58 04 02 40
+   31 63 46 0D 13 23 46 0C 19 1F 1C 48 29 51 60 40 0C 18 1E 49 3A 14 48 13 10 33 40 00 01 02 6A 40
+   01 03 06 0C 18 30 60 40 01 03 06 0C 18 30 60 40 01 03 06 0C 18 30 60 40 01 03 06 0C 00 10 00 40
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 06 00 00 38 00 00 00 04 00 00 01 00 00 00 00
+   00 3E 00 F7`,
+)
+
+// FM-1_093's answer for preset 001 (ORGAN 3) on 2026-10-03, after its Envelope's Attack was set to
+// 25 in the Envelope group and SAVE stored it. Beside `capturedOrgan3EnvelopeOnReply`, only record
+// byte 54 differs, 00 to 19.
+export const capturedOrgan3AttackReply = bytes(
+  `F0 7D 20 01 00 00 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 50 02 00 08 00 20 02 20 02 01 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 00 15 20 18 01 32 46 1D 1A 36 6C 58 28 63 00 1C 01 00 00 00
+   1C 00 46 01 00 30 4C 56 31 63 46 65 1A 06 40 0A 00 37 00 40 0A 30 4A 01 00 63 20 0D 1B 36 2C 4E
+   31 00 4E 00 00 00 00 46 00 61 04 48 19 16 69 18 27 63 34 0D 03 40 25 45 11 00 20 09 58 04 02 40
+   31 63 46 0D 13 23 46 0C 19 1F 1C 48 29 51 60 40 0C 18 1E 49 3A 14 48 13 10 33 40 00 01 02 6A 40
+   01 03 06 0C 18 30 60 40 01 03 06 0C 18 30 60 40 01 03 06 0C 18 30 60 40 01 03 06 0C 00 10 00 40
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 06 00 00 38 00 00 00 04 00 00 65 00 00 00 00
+   00 25 00 F7`,
+)
+
+// FM-1_093's answer for preset 001 (ORGAN 3) on 2026-10-03, after the Filter section's Filter row
+// in EDIT, FM-1_092's filter for FM presets, was turned from Off to On and SAVE stored it. Beside
+// `capturedOrgan3AttackReply`, only record byte 26 differs, 03 to 90.
+export const capturedOrgan3PresetFilterOnReply = bytes(
+  `F0 7D 20 01 00 00 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 50 02 00 08 00 20 02 20 02 01 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 00 15 20 18 01 32 46 1D 1A 36 6C 58 28 63 00 1C 01 00 00 00
+   1C 00 46 01 00 30 4C 56 31 63 46 65 1A 06 40 0A 00 37 00 40 0A 30 4A 01 00 63 20 0D 1B 36 2C 4E
+   31 00 4E 00 00 00 00 46 00 61 04 48 19 16 69 18 27 63 34 0D 03 40 25 45 11 00 20 09 58 04 02 40
+   31 63 46 0D 13 23 46 0C 19 1F 1C 48 29 51 60 40 0C 18 1E 49 3A 14 48 13 10 33 40 00 01 02 6A 40
+   01 03 06 0C 18 30 60 40 01 03 06 0C 18 30 60 40 01 03 06 0C 18 30 60 40 01 03 06 40 04 10 00 40
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 06 00 00 38 00 00 00 04 00 00 65 00 00 00 00
+   00 18 01 F7`,
+)
+
+// FM-1_093's answer for preset 001 (ORGAN 3) on 2026-10-03, after its own Filter's Cutoff in the
+// EDIT Filter section was turned from 20 kHz, the maximum, to 5 kHz and SAVE stored it. Beside
+// `capturedOrgan3PresetFilterOnReply`, only record byte 23 differs, 03 to D0.
+export const capturedOrgan3PresetFilterCutoffReply = bytes(
+  `F0 7D 20 01 00 00 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 50 02 00 08 00 20 02 20 02 01 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 00 15 20 18 01 32 46 1D 1A 36 6C 58 28 63 00 1C 01 00 00 00
+   1C 00 46 01 00 30 4C 56 31 63 46 65 1A 06 40 0A 00 37 00 40 0A 30 4A 01 00 63 20 0D 1B 36 2C 4E
+   31 00 4E 00 00 00 00 46 00 61 04 48 19 16 69 18 27 63 34 0D 03 40 25 45 11 00 20 09 58 04 02 40
+   31 63 46 0D 13 23 46 0C 19 1F 1C 48 29 51 60 40 0C 18 1E 49 3A 14 48 13 10 33 40 00 01 02 6A 40
+   01 03 06 0C 18 30 60 40 01 03 06 0C 18 30 60 40 01 03 06 0C 18 30 60 00 68 03 06 40 04 10 00 40
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 06 00 00 38 00 00 00 04 00 00 65 00 00 00 00
+   00 4B 01 F7`,
+)
+
+// FM-1_093's answer for preset 001 (ORGAN 3) on 2026-10-03, after its own Filter was turned back
+// Off in the EDIT Filter section and SAVE stored it. Beside `capturedOrgan3PresetFilterCutoffReply`,
+// only record byte 26 differs, 90 to 80, and the Cutoff in byte 23 is kept.
+export const capturedOrgan3PresetFilterOffReply = bytes(
+  `F0 7D 20 01 00 00 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 50 02 00 08 00 20 02 20 02 01 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 00 15 20 18 01 32 46 1D 1A 36 6C 58 28 63 00 1C 01 00 00 00
+   1C 00 46 01 00 30 4C 56 31 63 46 65 1A 06 40 0A 00 37 00 40 0A 30 4A 01 00 63 20 0D 1B 36 2C 4E
+   31 00 4E 00 00 00 00 46 00 61 04 48 19 16 69 18 27 63 34 0D 03 40 25 45 11 00 20 09 58 04 02 40
+   31 63 46 0D 13 23 46 0C 19 1F 1C 48 29 51 60 40 0C 18 1E 49 3A 14 48 13 10 33 40 00 01 02 6A 40
+   01 03 06 0C 18 30 60 40 01 03 06 0C 18 30 60 40 01 03 06 0C 18 30 60 00 68 03 06 00 04 10 00 40
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 06 00 00 38 00 00 00 04 00 00 65 00 00 00 00
+   00 5B 01 F7`,
+)
