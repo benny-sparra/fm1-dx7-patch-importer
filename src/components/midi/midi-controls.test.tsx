@@ -65,7 +65,7 @@ describe('MidiSettingsMenu firmware', () => {
 
     renderSettings({ identity: 'FM-1_089', kind: 'fm1-va' })
 
-    expect(screen.getByText('FM-1+VA FM-1_089')).toBeTruthy()
+    expect(screen.getByText('Baud Girl FM-1_089')).toBeTruthy()
     expect(
       screen.getByText(
         'Sounds, die du anspielst, werden als Parameteränderungen gesendet, damit der FM1 sie nie über das gewählte Preset speichert.',
@@ -105,14 +105,13 @@ describe('MidiSettingsMenu firmware', () => {
 })
 
 describe('MidiFirmwareBadge', () => {
-  it('names Baud Girl and FM-1+VA with its version', () => {
+  it('names Baud Girl with its version, as FM1 owners know the firmware', () => {
     const { container } = render(
       <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_089', kind: 'fm1-va' } }} />,
     )
 
-    expect(screen.getByText('FM-1+VA firmware by Baud Girl, FM-1_089')).toBeTruthy()
-    expect(container.textContent).toContain('BAUD GIRL')
-    expect(container.textContent).toContain('FM-1_089')
+    expect(screen.getByText('Baud Girl firmware, FM-1_089')).toBeTruthy()
+    expect(container.textContent).toBe('BAUD GIRLFM-1_089Baud Girl firmware, FM-1_089')
     expect(container.querySelector('img')).toBeNull()
   })
 
@@ -121,7 +120,7 @@ describe('MidiFirmwareBadge', () => {
 
     render(<MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_089', kind: 'fm1-va' } }} />)
 
-    expect(screen.getByText('Firmware FM-1+VA von Baud Girl, FM-1_089')).toBeTruthy()
+    expect(screen.getByText('Firmware von Baud Girl, FM-1_089')).toBeTruthy()
   })
 
   it('names M-VAVE with its version as M-VAVE numbers it', () => {

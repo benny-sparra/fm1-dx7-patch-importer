@@ -4,23 +4,13 @@ import { Button } from '@/components/ui/button'
 import { triggerSentryVerification } from '@/lib/monitoring'
 
 type SentryVerificationButtonProps = {
-  enabled?: boolean
   onVerify?: () => void
 }
 
-/**
- * Whether this build shows the Sentry test control. Check it where the control is rendered, so a
- * normal production build leaves the control's code out entirely.
- */
-export const sentryVerificationEnabled =
-  import.meta.env.PROD && import.meta.env.VITE_SENTRY_VERIFY === 'true'
-
+/** The temporary Sentry test control. Only a build with `VITE_SENTRY_VERIFY=true` renders it. */
 export function SentryVerificationButton({
-  enabled = sentryVerificationEnabled,
   onVerify = triggerSentryVerification,
 }: SentryVerificationButtonProps) {
-  if (!enabled) return null
-
   return (
     <aside className="flex flex-col gap-3 rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
       <p>

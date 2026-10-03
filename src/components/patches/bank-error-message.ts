@@ -1,7 +1,11 @@
 import type { TFunction } from 'i18next'
 
-import { dx7BankArchiveMaximumBanks, Dx7BankFileError, dx7BankFileSize } from '@/lib/dx7'
-import { Dx7CatalogBankUnavailableError } from '@/lib/dx7-bank-catalog'
+import {
+  dx7BankArchiveMaximumBanks,
+  Dx7BankFileError,
+  dx7BankFileSize,
+  Dx7CatalogBankUnavailableError,
+} from '@/lib/dx7'
 import { WorkspaceBankUnavailableError } from '@/lib/patch-library'
 
 /**

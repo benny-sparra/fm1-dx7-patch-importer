@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest'
 
 import de from './locales/de'
-import en from './locales/en-GB'
+import britishEnglish from './locales/en-GB'
+import britishEnglishEditorHelp from './locales/en-GB-editor-help'
 import enUS from './locales/en-US'
 import es from './locales/es'
 import fr from './locales/fr'
 import ptBR from './locales/pt-BR'
 import zhHans from './locales/zh-Hans'
+
+// British English as the editor sees it, once its chunk has added the help it brings.
+const en = { ...britishEnglish, ...britishEnglishEditorHelp }
 
 const resources = {
   de: { translation: de },
@@ -57,6 +61,17 @@ describe('translation resources', () => {
     }
   })
 
+  // The header links the marked words to the DX7 bank sources.
+  it('marks one link in the intro of every locale', () => {
+    const unmarked = Object.entries(resources)
+      .filter(
+        ([, { translation }]) => !/^[^<>]*<link>[^<>]+<\/link>[^<>]*$/.test(translation.root.intro),
+      )
+      .map(([locale]) => locale)
+
+    expect(unmarked).toEqual([])
+  })
+
   it('provides every English key in every supported locale', () => {
     const englishKeys = flattenKeys(resources.en.translation).sort()
 
@@ -91,6 +106,31 @@ describe('translation resources', () => {
       .map(([key]) => key)
 
     expect(unchanged).toEqual([])
+  })
+
+  // The editor's help loads with the editor, so the page's English resources must not carry it, and
+  // a module that reads it must bring it.
+  it('loads the editor help only through the modules that read it', () => {
+    const editorHelpSections = Object.keys(britishEnglishEditorHelp)
+    expect(Object.keys(britishEnglish).filter((key) => editorHelpSections.includes(key))).toEqual(
+      [],
+    )
+
+    const sources = import.meta.glob<string>(['/src/**/*.{ts,tsx}', '!/src/**/*.test.*'], {
+      eager: true,
+      import: 'default',
+      query: '?raw',
+    })
+    const readsEditorHelp = new RegExp(`['\`](${editorHelpSections.join('|')})\\.`)
+    const readers = Object.entries(sources).filter(
+      ([path, source]) => !path.startsWith('/src/i18n/') && readsEditorHelp.test(source),
+    )
+    const missingImport = readers
+      .filter(([, source]) => !source.includes("import '@/i18n/editor-help'"))
+      .map(([path]) => path)
+
+    expect(readers.map(([path]) => path)).toContain('/src/routes/patch-editor-page.tsx')
+    expect(missingImport).toEqual([])
   })
 
   it('provides Simplified Chinese text for editor help tooltips', () => {

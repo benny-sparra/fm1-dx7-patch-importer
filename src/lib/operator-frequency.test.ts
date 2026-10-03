@@ -57,16 +57,23 @@ describe('nearest ratio setting', () => {
   })
 
   it('never leaves a reachable ratio further away than another setting', () => {
+    const reachableRatios: number[] = []
+    for (let coarse = 0; coarse <= 31; coarse += 1) {
+      for (let fine = 0; fine <= 99; fine += 1) {
+        reachableRatios.push(operatorRatio(coarse, fine))
+      }
+    }
+
+    // One assertion per ratio against the closest of every setting: an
+    // assertion per setting made this half a million `expect` calls.
     for (let ratio = 0.5; ratio <= 61.5; ratio += 0.37) {
       const best = nearestRatioSetting(ratio)
       const bestError = Math.abs(operatorRatio(best.coarse, best.fine) - ratio)
-      for (let coarse = 0; coarse <= 31; coarse += 1) {
-        for (let fine = 0; fine <= 99; fine += 1) {
-          expect(bestError).toBeLessThanOrEqual(
-            Math.abs(operatorRatio(coarse, fine) - ratio) + 1e-9,
-          )
-        }
+      let closestError = Infinity
+      for (const reachable of reachableRatios) {
+        closestError = Math.min(closestError, Math.abs(reachable - ratio))
       }
+      expect(bestError, `ratio ${ratio}`).toBeLessThanOrEqual(closestError + 1e-9)
     }
   })
 })

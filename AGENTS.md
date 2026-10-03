@@ -168,7 +168,9 @@ open everything an earlier release could have saved.
   (`fm1IdentityQuery` in `src/lib/fm1-firmware.ts`), whenever the output or input in use changes.
   It is the one `00 32` message the editor may send: never send another from that family. The
   firmware counts as unknown until the answer
-  for the ports in use arrives. FM-1+VA is `FM-1_020` to `FM-1_899`, and Felucca, which names
+  for the ports in use arrives. An answer holds only while its ports stay selected: WebMidi hands
+  back the same port objects when a device returns, so forget the answer when a port goes away or
+  MIDI is switched off, rather than matching it by port identity. FM-1+VA is `FM-1_020` to `FM-1_899`, and Felucca, which names
   release X.Y `FM-1_9XY`, is `FM-1_900` to `FM-1_999`; any other name is unidentified, so no
   firmware's behaviour is assumed for it. Felucca ignores DX7 voice data, Program Change, and the
   effect controllers, so it gets the cautious parameter changes like an unidentified firmware, and
@@ -186,7 +188,7 @@ open everything an earlier release could have saved.
   Keep what it reads exactly as read until each byte is mapped in `docs/fm1-research.md`.
   Code that reads presets goes through `useFm1VaPresetReader`, which takes the ports from the
   `useMidi` slice it is given, rather than through `useMidi` itself: `useMidi` is in the initial
-  bundle, and the read's wiring there cost 1.6 KiB. **Import FM-1+VA presets…** reads all 128
+  bundle, and the read's wiring there cost 1.6 KiB. **Import Baud Girl (FM-1+VA) presets…** reads all 128
   presets through it, one at a time (`readEveryFm1VaPreset`), and the development probe uses it
   too. The reply parser takes `unpackSevenBitStream` from `src/lib/fm1-firmware.ts`; when the
   import dialog started reading, that split nothing out of the entry.
@@ -224,6 +226,12 @@ open everything an earlier release could have saved.
 - Keep `document.documentElement.lang`, the document title, and description metadata synchronized.
 - Every locale apart from `en-US` must contain the same leaf keys. Update
   `src/i18n/resources.test.ts` whenever resource structure changes.
+- British English keeps the editor's help (`controlHelp`, `effectHelp`, `effectParameterHelp`) in
+  `src/i18n/locales/en-GB-editor-help.ts`, out of the entry; other locales keep it in their own
+  file. Every module that reads those keys imports `@/i18n/editor-help`, which adds them to `en-GB`;
+  `src/i18n/resources.test.ts` checks both. That module reaches `i18next` directly: importing
+  `@/i18n` from the editor's chunk made Rolldown split `Button` and Lucide out of the entry, costing
+  800 B. Since a test can import an editor module before `@/i18n`, it waits for `initialized`.
 - Call a library item a patch, and say sound only for what you hear. Voice means the DX7 voice data,
   as in the voice editor and Init voice. German uses Sound for a patch and Klang for what you hear;
   Simplified Chinese uses 音色 and 声音.
@@ -245,7 +253,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Import FM-1+VA presets…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Import Baud Girl (FM-1+VA) presets…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -267,7 +275,10 @@ open everything an earlier release could have saved.
 - The same holds for values. A lazy chunk that needs a small constant from a large module the entry
   uses takes it from a leaf module both import, as the piano keyboard takes its velocity limits
   from `src/lib/note-velocity.ts` rather than `src/lib/midi.ts`. Importing `midi.ts` itself made
-  Rolldown split `fm1-effects` out of the entry and cost 412 B.
+  Rolldown split `fm1-effects` out of the entry and cost 412 B. The other way round, an error class
+  eager code recognises lives in a module the entry already holds: `bankErrorMessage` once took
+  `Dx7CatalogBankUnavailableError` from `src/lib/dx7-bank-catalog.ts`, which put the whole catalog
+  list in the entry for 1.3 KiB, so the class is in `src/lib/dx7.ts`.
 - The modules a lazy chunk shares with the entry decide how Rolldown cuts the entry's shared
   chunks, so a new lazy chunk can cost bytes it never loads. The duplicate patches dialog first used
   React, i18next, and `cn` but no Lucide icon, and Rolldown split those out of the chunk holding
@@ -278,11 +289,13 @@ open everything an earlier release could have saved.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
   bundler-made chunk is expected, and the budget counts it because the entry imports it.
 - Development and verification controls are gated where they are rendered, with a build-time
-  constant such as `sentryVerificationEnabled`, so normal production builds leave them out. A
-  control that imports code a lazy chunk also uses is itself loaded with `lazy` behind the gate,
-  as the FM-1+VA preset probe is: imported statically, it gave the entry a path to the preset
-  read, and once the import dialog used the read too, Rolldown kept 1.6 KB of it in the entry,
-  although the probe never renders there.
+  constant such as `sentryVerificationEnabled`, so normal production builds leave them out. Define
+  the constant in the module that renders the control: Rolldown does not fold one imported from
+  another module, so the gated `import()` and its chunk survive. A control is loaded with `lazy`
+  behind the gate, as the FM-1+VA preset probe and the Sentry test control are: imported
+  statically, the probe gave the entry a path to the preset read, and once the import dialog used
+  the read too, Rolldown kept 1.6 KB of it in the entry, although the probe never renders there;
+  the Sentry control kept its Lucide icon there.
 - A rejected optional chunk must be contained and recoverable; stale deployment chunks must not
   crash the entire application. Every deploy renames every chunk, so a tab left open across a
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
@@ -293,7 +306,7 @@ open everything an earlier release could have saved.
   149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB, and
   reading FM-1+VA presets from the FM1's raise from 163 KiB had. That last one paid for the read's
   eager English strings, because every `en-GB` string is in the entry, even one only a lazy dialog
-  shows. React DOM ships prebuilt with its features
+  shows, apart from the editor's help. React DOM ships prebuilt with its features
   switched on, so 19.3's stable View Transitions, Fragment refs, and SuspenseList cost about
   8.4 KiB whether or not the app uses them; a React upgrade is measured like any other change.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
@@ -406,8 +419,12 @@ open everything an earlier release could have saved.
   heading holds more than one item, keeps the line under an item to one line at the menu's width
   in English, and lines its icon up with the label's line (`menuItemWithHintClassName`). An item
   that replaces patches, such as **Reset to factory patches…**, goes last in the danger colour,
-  as **Delete bank** does in a bank's menu. A line about FM-1+VA names it as Baud Girl's
-  firmware, since most FM1 owners run M-VAVE's and will not know the name.
+  as **Delete bank** does in a bank's menu.
+- Name FM-1+VA as Baud Girl's firmware in anything users read, since FM1 owners know it by her
+  name rather than its own. Its own name appears only in brackets where people look for it, the
+  **Import Baud Girl (FM-1+VA) presets…** menu item, the help guide's heading, and the badge's
+  description, and on the link to its site. Where the device itself is meant, say the FM1.
+  Code, research notes, and analytics keep the name `fm1-va`.
 - Show an error in a dialog or on the page with `ErrorNotice` from
   `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
   restyling another paragraph.
@@ -466,7 +483,7 @@ open everything an earlier release could have saved.
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.
   Restoring replaces the workspace, which Undo reverses, and only adds saved banks, never
   overwriting a stored one (`addStoredNamedBank`), because Undo cannot reach saved banks.
-  FM-1+VA's own file is not a backup in this sense: the app calls it the **FM-1+VA presets** file,
+  FM-1+VA's own file is not a backup in this sense: the app calls it the **Baud Girl presets** file,
   and names FM-1+VA's button **“Save a backup”** only in quotation marks, as the device's own label.
 - A library change that replaces or removes sounds (deleting a bank, resetting to factory banks,
   restoring a backup, importing or loading over a bank, importing FM-1+VA presets, copying a sound over a slot) offers Undo in its notification through `undoToastOptions`, and a

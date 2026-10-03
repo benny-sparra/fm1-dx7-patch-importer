@@ -4,8 +4,12 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { i18nReady } from '@/i18n'
 import french from '@/i18n/locales/fr'
-import { Dx7BankFileError, makeDx7BankFile, parseDx7Bank } from '@/lib/dx7'
-import { Dx7CatalogBankUnavailableError } from '@/lib/dx7-bank-catalog'
+import {
+  Dx7BankFileError,
+  Dx7CatalogBankUnavailableError,
+  makeDx7BankFile,
+  parseDx7Bank,
+} from '@/lib/dx7'
 import { makeDemoVoices, WorkspaceBankUnavailableError } from '@/lib/patch-library'
 
 function importError(bytes: Uint8Array) {

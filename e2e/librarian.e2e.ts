@@ -107,6 +107,12 @@ test('zooms out of the slot as a patch opens and back into it as the editor clos
   expect(closing.first.width).toBeGreaterThan(closing.last.width)
 })
 
+test('leaves the Sentry test control out of a normal production build', async ({ page }) => {
+  await openLibrarian(page)
+
+  await expect(page.getByRole('button', { name: 'Send Sentry test error' })).toHaveCount(0)
+})
+
 test('persists a saved patch name across a browser reload', async ({ page }) => {
   await openLibrarian(page)
   await openFirstPatch(page)
@@ -204,9 +210,9 @@ test('chooses where an FM-1+VA bank goes without folding it, and folds it from i
 }) => {
   await openLibrarian(page)
   await page.getByLabel('Library actions').click()
-  await page.getByRole('button', { name: 'Import FM-1+VA presets…' }).click()
-  const dialog = page.getByRole('dialog', { name: 'Import FM-1+VA presets' })
-  await dialog.getByLabel('FM-1+VA presets file').setInputFiles(fm1VaPresetsFile())
+  await page.getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Import Baud Girl presets' })
+  await dialog.getByLabel('Baud Girl presets file').setInputFiles(fm1VaPresetsFile())
 
   const bankA = dialog.getByRole('region', { name: 'FM1 bank A' })
   const firstPatch = bankA.getByRole('button', { name: 'Play A01 FM, patch 1' })
@@ -233,7 +239,7 @@ test('chooses where an FM-1+VA bank goes without folding it, and folds it from i
     await dialog.getByRole('button', { name: `Expand FM1 bank ${bank}` }).click()
   }
   await expect(dialog.getByRole('button', { name: 'Import 4 banks' })).toBeInViewport()
-  await expect(dialog.getByRole('heading', { name: 'Import FM-1+VA presets' })).toBeInViewport()
+  await expect(dialog.getByRole('heading', { name: 'Import Baud Girl presets' })).toBeInViewport()
 })
 
 test('downloads a complete DX7 bank file', async ({ page }) => {

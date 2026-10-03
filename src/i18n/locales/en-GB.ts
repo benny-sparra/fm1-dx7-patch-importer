@@ -11,9 +11,10 @@ export default {
     bankFm1VaStep3:
       'Turn SELECT to Replace and press SEL to store the 32 patches, or press HOME to cancel. They also replace that bank’s factory presets permanently.',
     bankFm1VaNote:
-      'If your FM1 runs FM-1+VA firmware, it asks “Replace Bank A?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Replace and press SEL.',
+      'If your FM1 runs Baud Girl’s firmware, it asks “Replace Bank A?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Replace and press SEL.',
     bankFeluccaNote: 'Felucca ignores DX7 banks, so sending this bank does not change its presets.',
-    bankFm1VaImage: 'FM1 display running FM-1+VA, asking “Replace Bank A?” with Cancel and Replace',
+    bankFm1VaImage:
+      'FM1 display running Baud Girl’s firmware, asking “Replace Bank A?” with Cancel and Replace',
     bankImage:
       'FM1 display running M-VAVE’s firmware, showing “32 Voice Save To …” above banks A, B, C and D',
     dontShow: 'Don’t show me again this session',
@@ -29,7 +30,6 @@ export default {
     restoreDetails:
       'Banks A, B, C, and D will be reset to FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with.',
     restoreAction: 'Reset four banks',
-    sourcesOpen: 'Find patch banks to download here.',
     sourcesTitle: 'Find DX7 patch banks',
     sourcesIntro:
       'Download a 32-voice DX7 SysEx bank (.syx), then return here and choose Import DX7 bank.',
@@ -43,102 +43,6 @@ export default {
     sourcesClose: 'Close patch bank sources',
     sourcesSubmit: 'Programmed a DX7 bank of your own?',
     sourcesSubmitLink: 'Offer it for the bank catalog',
-  },
-  controlHelp: {
-    algorithm:
-      'Chooses how the six operators are connected. Operators at the bottom are carriers you hear directly; operators above them change the tone of the operators below.',
-    feedback:
-      'Feeds part of one operator back into itself. Higher values add brighter, rougher harmonics and can become noisy.',
-    pitchEnvelope:
-      'Changes the pitch over the life of each note. The four rates control how quickly each stage moves; the four levels set the pitch reached at each stage.',
-    pitchEnvelopePresets:
-      'Replaces all eight rates and levels with a starting shape. Flat removes any pitch movement; the others add a quick blip, a falling attack, a rising scoop or a droop on release. Undo restores the previous envelope.',
-    effectPresets:
-      'Sets this effect’s controls to a starting point. Switch the effect on to choose one. Other effects are left as they are, and Undo restores the previous settings.',
-    oscillatorSync:
-      'Restarts every operator at the same waveform position for each note. On gives a more consistent attack; off can sound more organic.',
-    lfoSync:
-      'Restarts the LFO for each new note. On makes modulation repeat consistently; off lets every note join the continuously running LFO.',
-    lfoWave:
-      'Chooses the repeating shape used for vibrato and tremolo. Sine is smooth, square jumps between two values, and sample & hold is random.',
-    lfoSpeed: 'Sets how quickly the LFO cycles. Raise it for faster vibrato or tremolo.',
-    lfoDelay:
-      'Delays the LFO after a note begins, so vibrato or tremolo fades in instead of starting immediately.',
-    pitchModDepth:
-      'Sets the maximum amount of LFO pitch movement. Pitch Mod Sensitivity on each voice determines how much of it is heard.',
-    ampModDepth:
-      'Sets the maximum amount of LFO volume movement. Each operator’s Amp Mod Sensitivity determines how much it responds.',
-    pitchModSensitivity:
-      'Controls how strongly the whole voice responds to LFO pitch modulation. Higher values create wider vibrato.',
-    transpose: 'Moves the entire patch up or down in semitones without changing the keys you play.',
-    operator:
-      'An operator is an oscillator with its own envelope. Carriers produce audible sound; modulators reshape another operator to create harmonics.',
-    outputLevel:
-      'Sets this operator’s strength. For a carrier it mainly changes volume; for a modulator it changes brightness and harmonic complexity.',
-    amplitudeEnvelope:
-      'Shapes this operator over time. Drag left/right to change how quickly a stage is reached, and up/down to change its level. For modulators, this shapes brightness rather than volume.',
-    oscillatorMode:
-      'Ratio tracks the keyboard and is best for pitched harmonics. Fixed uses a constant frequency, useful for metallic, noisy, or percussive sounds.',
-    coarse:
-      'Sets the main frequency ratio in Ratio mode, or the broad frequency range in Fixed mode. Whole-number ratios usually sound harmonic.',
-    fine: 'Fine-tunes the operator frequency between Coarse settings. Small changes can add new harmonics or beating.',
-    ratioEntry:
-      'Type the ratio you want, such as 3.5. Coarse and Fine move to the nearest ratio the FM1 can play, which the field then shows.',
-    fixedFrequencyEntry:
-      'Type the frequency you want in hertz, such as 440 or 1.2k. Coarse and Fine move to the nearest frequency the FM1 can play, which the field then shows.',
-    detune:
-      'Offsets this operator slightly from exact tuning. Use small amounts to thicken the sound; larger differences create beating or dissonance.',
-    breakpoint:
-      'Chooses the keyboard note where left and right level scaling meet. Scaling changes this operator’s level across the keyboard.',
-    leftDepth: 'Sets how much this operator’s level changes on notes below the breakpoint.',
-    rightDepth: 'Sets how much this operator’s level changes on notes above the breakpoint.',
-    curve:
-      'Chooses the direction and shape of the level change away from the breakpoint. Linear changes steadily; exponential changes more strongly near one end.',
-    rateScaling:
-      'Makes this operator’s envelope run faster on higher notes, similar to the shorter decay of many acoustic instruments.',
-    velocity:
-      'Sets how strongly key velocity changes this operator’s level. On carriers it affects loudness; on modulators it affects brightness.',
-    ampModSensitivity:
-      'Sets how strongly this operator responds to LFO amplitude modulation. On a carrier this creates tremolo; on a modulator it animates the tone.',
-  },
-  effectHelp: {
-    Filter:
-      'Removes parts of the frequency spectrum. Use it to darken, thin, or reshape the finished FM sound.',
-    Reverb: 'Adds simulated room reflections, giving the sound a sense of space and distance.',
-    Delay:
-      'Repeats the sound after a short time. Feedback-like decay controls how long the echoes continue.',
-    Distortion:
-      'Adds saturation and extra harmonics. It can make quiet sounds denser or aggressive sounds more intense.',
-    Chorus: 'Adds slightly shifted copies of the sound for width and movement.',
-    Phaser: 'Sweeps a series of notches through the sound, creating a hollow, moving character.',
-  },
-  effectParameterHelp: {
-    'Filter Type':
-      'Chooses what the filter keeps: low pass keeps lows, high pass keeps highs, and band pass keeps a middle band.',
-    'Filter Cutoff':
-      'Sets the frequency where filtering begins, from about 100 Hz at 0 to 20 kHz at 107. Its audible direction depends on the selected filter type.',
-    'Filter Resonance':
-      'Emphasizes frequencies around the cutoff. Higher values sound sharper and more pronounced.',
-    'Reverb Space': 'Chooses the character of the simulated space: room, hall, or bright plate.',
-    'Reverb Decay': 'Sets how long the reverb tail lasts.',
-    'Reverb Mix': 'Balances dry sound with reverb. At 0% you hear only the original sound.',
-    'Delay Decay':
-      'Sets how much of each echo is fed back into the delay. Higher values give more repeats before they fade away.',
-    'Delay Rate':
-      'Sets the time between echoes. Higher values bring them closer together, from about 0.8 seconds at 0 to 0.1 seconds at 100.',
-    'Delay Mix': 'Balances dry sound with echoes. At 0% you hear only the original sound.',
-    'Distortion Gain':
-      'Controls how hard the signal drives the distortion. Higher values add more saturation and harmonics.',
-    'Distortion Tone': 'Adjusts the brightness of the distorted sound.',
-    'Distortion Level':
-      'Sets the output volume after distortion, useful for matching the bypassed loudness.',
-    'Chorus Frequency': 'Sets how quickly the chorus movement cycles, from about 0.1 to 1 Hz.',
-    'Chorus Depth':
-      'Sets how far the chorus pitch movement travels. Higher values sound wider and more obvious.',
-    'Chorus Mix': 'Balances dry sound with the chorused signal.',
-    'Phaser Frequency': 'Sets how quickly the phaser sweep cycles, from about 0.5 to 6 Hz.',
-    'Phaser Depth': 'Sets the range and intensity of the phaser sweep.',
-    'Phaser Mix': 'Balances dry sound with the phased signal.',
   },
   ui: {
     auditionGroup: 'Operator {{number}} audition',
@@ -303,21 +207,21 @@ export default {
     warning: 'The bank’s current contents will be wiped and replaced by the imported patches.',
   },
   fm1VaImport: {
-    menuItem: 'Import FM-1+VA presets…',
-    menuContents: 'For Baud Girl’s FM-1+VA firmware',
-    title: 'Import FM-1+VA presets',
-    help: 'Choose the file from “Save a backup” on FM-1+VA’s Presets page.',
+    menuItem: 'Import Baud Girl (FM-1+VA) presets…',
+    menuContents: 'From the FM1, or a “Save a backup” file',
+    title: 'Import Baud Girl presets',
+    help: 'Choose the file from “Save a backup” on Baud Girl’s Presets page.',
     helpRead:
-      'Read the presets from the FM1, or choose the file from “Save a backup” on FM-1+VA’s Presets page.',
-    effectsNote: 'Each patch arrives with its FM1 effects and its FM-1+VA settings.',
+      'Read the presets from the FM1, or choose the file from “Save a backup” on Baud Girl’s Presets page.',
+    effectsNote: 'Each patch arrives with its FM1 effects and its other preset settings.',
     warning:
       'Each bank you import replaces the bank you choose for it, or is added as a new bank. You can undo this.',
-    file: 'FM-1+VA presets file',
+    file: 'Baud Girl presets file',
     read: 'Read from FM1',
     readHelp:
       'Reads all 128 presets from the FM1 to compare with your library. Nothing on the FM1 changes.',
     readUnavailable:
-      'To read the presets from the FM1, choose it as the MIDI output and input, with SysEx allowed. Reading needs FM-1+VA FM-1_079 or later.',
+      'To read the presets from the FM1, choose it as the MIDI output and input, with SysEx allowed. Reading needs Baud Girl firmware FM-1_079 or later.',
     reading: 'Reading preset {{number, number}} of {{total, number}}…',
     stopReading: 'Stop reading',
     chooseFile: 'Choose the file from “Save a backup”',
@@ -339,9 +243,9 @@ export default {
     damagedPresets_other: '{{count, number}} presets are damaged. Their slots keep their patches.',
     action: 'Import one bank',
     action_other: 'Import {{count, number}} banks',
-    imported: 'Imported bank {{banks}} from FM-1+VA.',
-    imported_other: 'Imported banks {{banks}} from FM-1+VA.',
-    openFailed: 'The FM-1+VA import could not be opened. Reload the page and try again.',
+    imported: 'Imported bank {{banks}} from the FM1.',
+    imported_other: 'Imported banks {{banks}} from the FM1.',
+    openFailed: 'The Baud Girl preset import could not be opened. Reload the page and try again.',
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Virtual Analog preset, not imported',
     virtualAnalogPresets:
@@ -349,9 +253,10 @@ export default {
     virtualAnalogPresets_other:
       'VA marks {{count, number}} Virtual Analog presets, which can’t be imported yet. Their slots keep their patches.',
     errors: {
-      size: 'This file is {{bytes, number}} bytes. A file from FM-1+VA’s “Save a backup” is exactly {{expected, number}} bytes.',
-      format: 'This file was not saved by FM-1+VA’s “Save a backup”.',
-      damaged: 'No preset in this file could be read. Save a new backup on FM-1+VA and try again.',
+      size: 'This file is {{bytes, number}} bytes. A file from Baud Girl’s “Save a backup” is exactly {{expected, number}} bytes.',
+      format: 'This file was not saved by Baud Girl’s “Save a backup”.',
+      damaged:
+        'No preset in this file could be read. Save a new backup on Baud Girl’s Presets page and try again.',
       unreadable: 'The file could not be read.',
       readBusy:
         'The FM1 can’t send its presets while its Sequencer is playing. Stop it and read again.',
@@ -368,7 +273,7 @@ export default {
     group: '{{name}} and one copy',
     group_other: '{{name}} and {{count, number}} copies',
     effectsDiffer: 'Their FM1 effects differ.',
-    settingsDiffer: 'Their FM-1+VA preset settings differ.',
+    settingsDiffer: 'Their Baud Girl preset settings differ.',
     goTo: 'Go to {{name}}, patch {{number}} in {{bank}}',
     none: 'No duplicates: every patch in your banks has its own voice settings.',
     openFailed: 'Duplicate patches could not be shown. Reload the page and try again.',
@@ -479,7 +384,7 @@ export default {
   },
   root: {
     subtitle: 'editor & librarian',
-    intro: 'Edit, organise and transfer FM1 patches, or import DX7 SysEx banks.',
+    intro: 'Edit, organise and transfer FM1 patches, or <link>import DX7 SysEx banks</link>.',
     synthAlt: 'M-VAVE FM1 synthesiser front panel',
     unsupportedTitle: 'Unsupported browser.',
     unsupportedBody:
@@ -499,7 +404,7 @@ export default {
     firmwareChecking: 'Checking…',
     firmwareUnidentified: 'Not identified',
     firmwareMvave: 'M-VAVE {{identity}}',
-    firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareFm1Va: 'Baud Girl {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
     firmwareParameterChanges:
@@ -523,7 +428,7 @@ export default {
     truthTitle: 'Browser banks are the source of truth',
     truthBody:
       'The FM1 accepts patches and banks but cannot send its stored banks back. Import or restore patches here, edit them, then transfer them to the FM1.',
-    firmwareTitle: 'FM-1+VA supported',
+    firmwareTitle: 'Baud Girl (FM-1+VA) supported',
     firmwareBody: 'Works with both M-VAVE and Baud Girl firmware.',
     start: 'Start editing',
     stepsTitle: 'Getting started',
@@ -695,9 +600,9 @@ export default {
     feluccaBadgeLabel: 'Felucca firmware by Hügelton Instruments, {{release}}',
     feluccaBadgeTitle:
       'The FM1 runs Hügelton Instruments’ Felucca firmware, {{release}}. It plays your notes but ignores DX7 patches, banks, and the effect controls.',
-    fm1VaBadgeLabel: 'FM-1+VA firmware by Baud Girl, {{release}}',
+    fm1VaBadgeLabel: 'Baud Girl firmware, {{release}}',
     fm1VaBadgeTitle:
-      'The FM1 runs Baud Girl’s FM-1+VA firmware, {{release}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',
+      'The FM1 runs Baud Girl’s firmware (FM-1+VA), {{release}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',
     mvaveBadgeLabel: 'M-VAVE firmware, {{release}}',
     mvaveBadgeTitle:
       'The FM1 runs M-VAVE’s own firmware, {{release}}. Patches you play go to its edit buffer.',

@@ -79,6 +79,18 @@ export class Dx7BankFileError extends Error {
   }
 }
 
+/**
+ * A catalog bank that could not be downloaded, for example while offline. It lives here rather than
+ * beside the catalog loader so the eager bank error messages can recognise it without bringing the
+ * catalog list into the initial bundle.
+ */
+export class Dx7CatalogBankUnavailableError extends Error {
+  constructor(bankName: string, cause?: unknown) {
+    super(`The ${bankName} sound bank could not be loaded.`, { cause })
+    this.name = 'Dx7CatalogBankUnavailableError'
+  }
+}
+
 function bankSizeError(receivedBytes: number) {
   return new Dx7BankFileError(
     'size',

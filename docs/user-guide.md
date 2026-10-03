@@ -60,22 +60,23 @@ Clicking a slot in banks A–D selects that hardware slot, then sends the patch'
 
 A patch played from a click stays an unsaved edit on the FM1. To keep it there, hold **SAVE** on the FM1, or send its whole bank. Opening a patch in the editor sends it the same way before you start editing.
 
-### M-VAVE firmware and FM-1+VA
+### M-VAVE and Baud Girl firmware
 
-Some FM1 owners replace M-VAVE's firmware with [FM-1+VA](https://baudgirl.com/work/FM-1+VA), a
-replacement firmware that adds a Virtual Analog engine. When MIDI connects, and whenever the FM1
-reconnects, the app asks the FM1 which firmware it runs; **Settings** shows the answer under
-**FM1 firmware**, and the header names it beside **MIDI online** with the release the FM1 reported,
-such as **M-VAVE V15** or **BAUD GIRL FM-1+VA FM-1_089**. On a phone it sits under the MIDI
-controls. On FM-1+VA the FM1 picture also shows FM-1+VA on its screen, in the finish you chose. The
-app needs the FM1 selected as the **Input monitor** to hear it.
+Some FM1 owners replace M-VAVE's firmware with Baud Girl's
+[FM-1+VA](https://baudgirl.com/work/FM-1+VA), a replacement firmware that adds a Virtual Analog
+engine. The app calls it Baud Girl's firmware, the name most owners know it by. When MIDI
+connects, and whenever the FM1 reconnects, the app asks the FM1 which firmware it runs;
+**Settings** shows the answer under **FM1 firmware**, and the header names it beside **MIDI
+online** with the release the FM1 reported, such as **M-VAVE V15** or **BAUD GIRL FM-1_089**. On
+a phone it sits under the MIDI controls. On Baud Girl's firmware the FM1 picture also shows its
+screen, in the finish you chose. The app needs the FM1 selected as the **Input monitor** to hear it.
 
-FM-1+VA stores a single patch sent as one SysEx message straight over the selected preset, with no
+Baud Girl's firmware stores a single patch sent as one SysEx message straight over the selected preset, with no
 **SAVE**. So unless the FM1 has said it runs M-VAVE's firmware, the app sends a patch you play or
 open as its 155 individual parameter changes instead. The FM1 holds those as an unsaved edit of the
 selected preset, which it drops when you change preset. They arrive in well under a second. Press **SAVE** on the FM1 to keep the patch there.
 
-FM-1+VA also chooses a bank's destination differently. When a bank arrives it asks **Replace Bank
+Baud Girl's firmware also chooses a bank's destination differently. When a bank arrives it asks **Replace Bank
 A?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names
 the bank you want, then turn **SELECT** to **Replace** and press **SEL**, or press **HOME** to
 cancel. Replacing also overwrites that bank's factory presets for good. The destination
@@ -91,24 +92,24 @@ firmware shows as **Not identified**, and the app sends it patches as parameter 
 
 To move your FM1 between these firmwares, see [Switching FM1 firmware](switching-firmware.md).
 
-To bring the FM1's own presets into the library, choose **Import FM-1+VA presets…** from the menu
-in the patch-bank header. With the FM1 on FM-1+VA FM-1_079 or later chosen as the MIDI output and
-input, and SysEx allowed, press **Read from FM1**: the app asks the FM1 for each of its 128
+To bring the FM1's own presets into the library, choose **Import Baud Girl (FM-1+VA) presets…**
+from the menu in the patch-bank header. With the FM1 on Baud Girl's firmware, FM-1_079 or later,
+chosen as the MIDI output and input, and SysEx allowed, press **Read from FM1**: the app asks the FM1 for each of its 128
 presets in turn, which takes a few seconds and changes nothing on the FM1. **Stop reading** stops
 it, and so does closing the dialog or changing the MIDI ports. Otherwise, press **Save a backup**
-on FM-1+VA's Presets page and select the `.syx` file it saved. That sends nothing to the FM1, so it
+on Baud Girl's Presets page and select the `.syx` file it saved. That sends nothing to the FM1, so it
 works with MIDI switched off and whichever firmware the FM1 runs.
 
 Either way the FM1's banks A to D are each shown as a folded panel: open one to see its patches,
 and click a patch to hear it on the FM1 with its effects. Under each bank, **Import into** chooses
 where it goes: **Don't import**, one of your banks to replace, or **Add it as a new bank**, which
-adds a bank titled after it, such as "FM-1+VA A". Each starts on your bank of the same letter, or
+adds a bank titled after it, such as "FM1 A". Each starts on your bank of the same letter, or
 on a new bank if you have none; two FM1 banks cannot replace the same bank. A dot marks each patch
 that differs from the one in the same slot of the bank it would replace, in its voice, its
-effects, or its FM-1+VA settings. After a read from the FM1, only the banks holding such a patch
+effects, or its other preset settings. After a read from the FM1, only the banks holding such a patch
 start set to import; from a file, every bank does. Press **Import** to bring them in. Each patch
 arrives with
-its FM1 effects and keeps the other settings FM-1+VA stored with it, such as its effect order,
+its FM1 effects and keeps the other settings Baud Girl's firmware stored with it, such as its effect order,
 Envelope, and filter, exactly as they are, ready for the app to send back in a later release. A
 Virtual Analog preset is marked **VA** and left out, since the app cannot hold one yet, and a
 preset that arrived damaged is marked too; either way that slot keeps the patch it has now. The
@@ -118,7 +119,7 @@ The search box above the patch grid looks through every bank that has patches in
 
 The search also looks through your saved banks and the bundled DX7 patch banks that **Add new bank** offers. Matches in your own banks come first, under **Your patch banks**; the rest follow under **Saved banks** and **Other DX7 patch banks**, each labelled with its bank and slot, and a long list shows its first 60 matches per group until you type more. Click one of those to hear it through the FM1 edit buffer: a saved-bank patch plays with its saved FM1 effects, and a bundled DX7 patch with the default effects, since those banks hold no effects of their own. They are not in one of your banks, so they cannot be edited or reordered where they are. Use the copy button on one to put it in a slot of your own, through the same **Copy to…** dialog, overwrite confirmation, and Undo as copying between banks. Double-click one, or press Enter on the one you just played, to do the same and then open the copy in the editor. A saved-bank or bundled patch that is an exact copy of one listed above it, with the same voice data, name, FM1 effects, and FM-1+VA preset settings, is left out, and a line under its group says duplicates aren’t shown. Patches that share a name but differ in their data all show. The bundled banks' patch names load the first time you search.
 
-To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. Replacing a populated bank requires confirmation. Once you choose the file, the confirmation lists its 32 patches, after you pick one bank if the file joins several (see [SysEx compatibility](#sysex-compatibility)): click one to hear it on the FM1, through the edit buffer with the default FM1 effects, before you decide. Nothing in your library changes until you press **Replace bank contents**, and a file that cannot be read is explained straight away. The same menu lets you edit the bank title and description, download the bank, or delete it when more than one workspace bank exists. Use the **Library actions** menu (⋮) in the patch-bank header to back up your library (see [Backing up your library](#backing-up-your-library)), choose **Download SysEx banks (.zip)** to get every loaded bank as a `.syx` file for other DX7 tools, or choose **Reset to factory patches…** to put the FM-1 factory banks back into A–D, which also resets their titles and descriptions. Additional workspace banks are left intact. Deleting a bank, resetting to the factory patches, restoring a backup, importing over a bank or from FM-1+VA's presets, loading a saved bank, or copying a patch over a slot can be undone from its notification or with `Cmd`/`Ctrl` + `Z`.
+To import another bank, open that workspace bank's menu, choose **Import DX7 bank**, and select a compatible `.syx` file. Replacing a populated bank requires confirmation. Once you choose the file, the confirmation lists its 32 patches, after you pick one bank if the file joins several (see [SysEx compatibility](#sysex-compatibility)): click one to hear it on the FM1, through the edit buffer with the default FM1 effects, before you decide. Nothing in your library changes until you press **Replace bank contents**, and a file that cannot be read is explained straight away. The same menu lets you edit the bank title and description, download the bank, or delete it when more than one workspace bank exists. Use the **Library actions** menu (⋮) in the patch-bank header to back up your library (see [Backing up your library](#backing-up-your-library)), choose **Download SysEx banks (.zip)** to get every loaded bank as a `.syx` file for other DX7 tools, or choose **Reset to factory patches…** to put the FM-1 factory banks back into A–D, which also resets their titles and descriptions. Additional workspace banks are left intact. Deleting a bank, resetting to the factory patches, restoring a backup, importing over a bank or from Baud Girl's presets, loading a saved bank, or copying a patch over a slot can be undone from its notification or with `Cmd`/`Ctrl` + `Z`.
 
 To copy a patch into another slot, open the slot's **⋮** menu and choose **Copy to…**. Pick a bank from its tabs and a slot from the grid, where the arrow keys also move the choice; only banks that have patches are offered, and the patch's own slot is skipped. The dialog names the patch that will be replaced. The copy brings the patch's FM1 effects with it and changes only the browser library, so send the bank to the FM1 to put it on the hardware. You can also drag a patch by its grip onto another bank on the left: the bank lights up while the patch is over it, and dropping opens the same dialog with that bank chosen. Only banks that have patches take a drop, and dropping on the patch's own bank does nothing.
 

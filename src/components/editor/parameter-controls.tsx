@@ -2,6 +2,7 @@ import { Check, ChevronDown } from 'lucide-react'
 import { type ComponentProps, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/editor-help'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'

@@ -27,7 +27,7 @@ The FM1 cannot send its presets back to this app, so your library is your only c
 
 - In this app, choose **Download backup** from the menu in the patch-bank header.
 - Leaving FM-1+VA: on its Presets page, press **Save a backup**. It saves all 128 presets as a
-  `.syx` file. Only FM-1+VA can make or restore it; this app's **Import FM-1+VA presets…** reads
+  `.syx` file. Only FM-1+VA can make or restore it; this app's **Import Baud Girl (FM-1+VA) presets…** reads
   only its patches.
 - Have M-VAVE's files ready from [m-vave.com/download](https://www.m-vave.com/download):
   **M-UPGRADE** (PC Software, Windows or Mac) and **FM-1 V15** (PC Firmware). Leaving Felucca
@@ -126,7 +126,7 @@ the FM1 works; the FM-1-transporter README explains UBOOT mode.
 ## This app on each firmware
 
 The app asks which firmware the FM1 runs whenever it reconnects, and sends patches to suit it (see
-[M-VAVE firmware and FM-1+VA](user-guide.md#m-vave-firmware-and-fm-1va) in the user guide).
+[M-VAVE and Baud Girl firmware](user-guide.md#m-vave-and-baud-girl-firmware) in the user guide).
 
 | Firmware     | Reports as               | How the app sends a patch | Notes                                                                                    |
 | ------------ | ------------------------ | ------------------------- | ---------------------------------------------------------------------------------------- |

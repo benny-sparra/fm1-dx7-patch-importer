@@ -2,6 +2,7 @@ import { AudioWaveform, type LucideIcon, SlidersHorizontal } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/editor-help'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import {
   ParameterControl,

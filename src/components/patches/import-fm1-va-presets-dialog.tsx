@@ -79,8 +79,11 @@ type Destination = string
 const skipBank: Destination = ''
 const newBank: Destination = 'new'
 
-/** A new bank's title: the bank's letter on the FM1, under the firmware's name. */
-const newBankTitle = (bank: Fm1VaPresetBank) => `FM-1+VA ${bank}`
+/**
+ * A new bank's title: the bank's letter on the FM1. It is the same in every language, since a
+ * translated one, such as Spanish's, would not fit a bank title's ten characters.
+ */
+const newBankTitle = (bank: Fm1VaPresetBank) => `FM1 ${bank}`
 
 type DestinationOption = { disabled?: boolean; label: string; value: Destination }
 

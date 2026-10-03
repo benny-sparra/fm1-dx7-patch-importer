@@ -33,6 +33,15 @@ const Fm1VaPresetProbe = import.meta.env.DEV
     )
   : null
 
+// The intro marks the words that open the bank sources as <link>…</link>, so each language puts
+// the link where its own sentence needs it.
+function splitIntroLink(intro: string) {
+  const match = /^(.*)<link>(.*)<\/link>(.*)$/s.exec(intro)
+  return match
+    ? { before: match[1], link: match[2], after: match[3] }
+    : { before: intro, link: null, after: '' }
+}
+
 type RootLayoutProps = {
   children: ReactNode
   compact?: boolean
@@ -48,6 +57,7 @@ type RootLayoutProps = {
 
 export function RootLayout({ children, compact = false, midi }: RootLayoutProps) {
   const { t } = useTranslation()
+  const intro = splitIntroLink(t('root.intro'))
   const unsupportedBrowser = isUnsupportedBrowser()
   const { colorway, setColorway } = useFm1Colorway()
   const showColorwayImage = useMediaQuery('(min-width: 1024px)')
@@ -94,11 +104,10 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 <span className="synthwave-hero-accent">{t('root.subtitle')}</span>
               </h1>
               {!compact ? (
-                <div className="hero-supporting-text text-xs leading-5">
-                  {/* An inline-block keeps the link beside the sentence when both fit, and lets a
-                      sentence that must wrap balance its lines rather than strand a word. */}
-                  <span className="inline-block text-balance">{t('root.intro')}</span>{' '}
-                  <Dx7BankSourcesDialog />
+                <div className="hero-supporting-text text-xs leading-5 text-balance">
+                  <span>{intro.before}</span>
+                  {intro.link ? <Dx7BankSourcesDialog>{intro.link}</Dx7BankSourcesDialog> : null}
+                  <span>{intro.after}</span>
                 </div>
               ) : null}
             </div>
