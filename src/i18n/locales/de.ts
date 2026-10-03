@@ -8,13 +8,13 @@ export default {
     bankStep2: 'Wähle mit Regler 1, 2, 3 oder 4 die Zielbank A, B, C oder D.',
     bankStep3: 'Der FM1 speichert die 32 Sounds nach kurzer Wartezeit automatisch.',
     bankFm1VaStep1:
-      'Der FM1 fragt „Write the bank?“ und beginnt bei Bank A, egal welche Bank du sendest.',
+      'Der FM1 fragt „Replace Bank A?“ und beginnt bei Bank A, egal welche Bank du sendest.',
     bankFm1VaStep2: 'Drehe ALGORITHM, bis die Frage die Zielbank nennt: A, B, C oder D.',
     bankFm1VaStep3:
-      'Drehe SELECT auf Write und drücke SEL, um die 32 Sounds zu speichern, oder brich mit HOME ab.',
+      'Drehe SELECT auf Replace und drücke SEL, um die 32 Sounds zu speichern, oder brich mit HOME ab. Sie ersetzen auch die Werkspresets dieser Bank dauerhaft.',
     bankFm1VaNote:
-      'Läuft auf deinem FM1 die Firmware FM-1+VA, fragt er stattdessen „Write the bank?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Write, und drücke SEL.',
-    bankFm1VaImage: 'FM1-Display mit FM-1+VA, das „Write the bank?“ fragt, mit Cancel und Write',
+      'Läuft auf deinem FM1 die Firmware FM-1+VA, fragt er stattdessen „Replace Bank A?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Replace, und drücke SEL.',
+    bankFm1VaImage: 'FM1-Display mit FM-1+VA, das „Replace Bank A?“ fragt, mit Cancel und Replace',
     bankImage:
       'FM1-Display mit der M-VAVE-Firmware, das „32 Voice Save To …“ über den Bänken A, B, C und D zeigt',
     dontShow: 'In dieser Sitzung nicht erneut anzeigen',

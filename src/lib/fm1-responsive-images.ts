@@ -14,7 +14,7 @@ export const fm1SynthImage = {
   width: 500,
 } satisfies ResponsiveImage
 
-/** FM-1+VA's display asking “Write the bank?” after a 32-voice bank arrives. */
+/** FM-1+VA's display asking “Replace Bank A?” after a 32-voice bank arrives. */
 export const fm1VaBankScreenImage = {
   height: 476,
   src: fm1VaBankScreen500,
