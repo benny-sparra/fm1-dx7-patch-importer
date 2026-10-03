@@ -8,12 +8,17 @@ import {
   capturedVirtualAnalog,
   capturedVirtualAnalogCutoffControllerReply,
   capturedVirtualAnalogCutoffReply,
+  capturedVirtualAnalogDelayRateReply,
+  capturedVirtualAnalogChorusDepthReply,
+  capturedVirtualAnalogDistortionToneReply,
   capturedVirtualAnalogFilterOnReply,
   capturedVirtualAnalogFilterTypeReply,
   capturedVirtualAnalogPhaserMixReply,
+  capturedVirtualAnalogPhaserOnReply,
   capturedVirtualAnalogReorderedReply,
   capturedVirtualAnalogResonanceReply,
   capturedVirtualAnalogReverbMixReply,
+  capturedVirtualAnalogReverbTypeReply,
 } from '@/test/fm1-va-captures'
 import { makeFm1VaPresetReply, makeFm1VaReply, makeStoredPresetData } from '@/test/fm1-va-replies'
 
@@ -224,6 +229,53 @@ describe('readFm1VaPreset', () => {
     const expected = before.record.slice()
     expected[17] = 66
     expect(after.record).toEqual(expected)
+  })
+
+  // Each spot check sends one FX controller from the FX probe, stores it with SAVE, and reads the
+  // preset again: only the byte the effects layout predicts changes, to the value sent.
+  it.each([
+    {
+      after: capturedVirtualAnalogDelayRateReply,
+      before: capturedVirtualAnalogPhaserMixReply,
+      byte: 7,
+      setting: 'Delay Rate, CC 10',
+      value: 33,
+    },
+    {
+      after: capturedVirtualAnalogDistortionToneReply,
+      before: capturedVirtualAnalogDelayRateReply,
+      byte: 10,
+      setting: 'Distortion Tone, CC 14',
+      value: 44,
+    },
+    {
+      after: capturedVirtualAnalogChorusDepthReply,
+      before: capturedVirtualAnalogDistortionToneReply,
+      byte: 13,
+      setting: 'Chorus Depth, CC 18',
+      value: 55,
+    },
+    {
+      // Sent as 127: the switch is stored as on, 1.
+      after: capturedVirtualAnalogPhaserOnReply,
+      before: capturedVirtualAnalogChorusDepthReply,
+      byte: 43,
+      setting: "the Phaser's switch, CC 20",
+      value: 1,
+    },
+    {
+      after: capturedVirtualAnalogReverbTypeReply,
+      before: capturedVirtualAnalogPhaserOnReply,
+      byte: 32,
+      setting: 'Reverb Type, CC 5',
+      value: 2,
+    },
+  ])('reads $setting in record byte $byte', async ({ after, before, byte, value }) => {
+    const read = (reply: Uint8Array) => readFm1VaPreset(makeLink(() => reply).link, 96)
+    const expected = (await read(before)).record.slice()
+    expected[byte] = value
+
+    expect((await read(after)).record).toEqual(expected)
   })
 
   it('reads record byte 18 of a captured FM preset as 03', async () => {

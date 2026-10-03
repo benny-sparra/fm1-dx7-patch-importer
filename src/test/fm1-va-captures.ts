@@ -169,3 +169,74 @@ export const capturedVirtualAnalogPhaserMixReply = bytes(
    00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
    00 72 01 F7`,
 )
+
+// FM-1_093's answer for preset 097 on 2026-10-03, after the FX probe sent CC 10 (Delay Rate) with
+// 33, the FX screen showed 33, and SAVE stored it. Beside `capturedVirtualAnalogPhaserMixReply`,
+// only record byte 7 differs, 03 to 21.
+export const capturedVirtualAnalogDelayRateReply = bytes(
+  `F0 7D 20 01 00 06 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 38 02 00 00 00 38 00 0C 13 00 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 40 03 00 00 01 00 46 0D 1B 36 6C 58 31 63 00 1C 01 00 00 00
+   1C 00 00 08 00 30 6C 58 31 63 46 0D 1B 06 60 09 00 00 00 60 01 00 40 00 00 63 46 0D 1B 36 6C 58
+   31 00 4E 00 00 00 00 0E 00 00 04 00 18 36 6C 58 31 63 46 0D 03 70 04 00 00 00 70 00 18 26 00 40
+   31 63 46 0D 13 23 46 0C 19 00 10 0C 01 00 00 00 18 18 2C 3D 4A 34 28 11 10 39 6E 00 01 02 25 41
+   01 03 1A 0D 18 10 64 40 01 03 06 0C 18 30 60 40 01 42 34 09 10 43 0C 00 72 00 01 02 0C 10 40 00
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
+   00 54 01 F7`,
+)
+
+// FM-1_093's answer for preset 097 on 2026-10-03, after the FX probe sent CC 14 (Distortion Tone)
+// with 44, the FX screen showed 44, and SAVE stored it. Beside
+// `capturedVirtualAnalogDelayRateReply`, only record byte 10 differs, 03 to 2C.
+export const capturedVirtualAnalogDistortionToneReply = bytes(
+  `F0 7D 20 01 00 06 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 38 02 00 00 00 38 00 0C 13 00 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 40 03 00 00 01 00 46 0D 1B 36 6C 58 31 63 00 1C 01 00 00 00
+   1C 00 00 08 00 30 6C 58 31 63 46 0D 1B 06 60 09 00 00 00 60 01 00 40 00 00 63 46 0D 1B 36 6C 58
+   31 00 4E 00 00 00 00 0E 00 00 04 00 18 36 6C 58 31 63 46 0D 03 70 04 00 00 00 70 00 18 26 00 40
+   31 63 46 0D 13 23 46 0C 19 00 10 0C 01 00 00 00 18 18 2C 3D 4A 34 28 11 10 39 6E 00 01 02 25 41
+   01 03 1A 0D 18 10 64 40 01 2C 06 0C 18 30 60 40 01 42 34 09 10 43 0C 00 72 00 01 02 0C 10 40 00
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
+   00 2B 01 F7`,
+)
+
+// FM-1_093's answer for preset 097 on 2026-10-03, after the FX probe sent CC 18 (Chorus Depth)
+// with 55 and SAVE stored it. Beside `capturedVirtualAnalogDistortionToneReply`, only record byte
+// 13 differs, 03 to 37.
+export const capturedVirtualAnalogChorusDepthReply = bytes(
+  `F0 7D 20 01 00 06 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 38 02 00 00 00 38 00 0C 13 00 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 40 03 00 00 01 00 46 0D 1B 36 6C 58 31 63 00 1C 01 00 00 00
+   1C 00 00 08 00 30 6C 58 31 63 46 0D 1B 06 60 09 00 00 00 60 01 00 40 00 00 63 46 0D 1B 36 6C 58
+   31 00 4E 00 00 00 00 0E 00 00 04 00 18 36 6C 58 31 63 46 0D 03 70 04 00 00 00 70 00 18 26 00 40
+   31 63 46 0D 13 23 46 0C 19 00 10 0C 01 00 00 00 18 18 2C 3D 4A 34 28 11 10 39 6E 00 01 02 25 41
+   01 03 1A 0D 18 10 64 40 01 2C 06 0C 38 33 60 40 01 42 34 09 10 43 0C 00 72 00 01 02 0C 10 40 00
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
+   00 77 00 F7`,
+)
+
+// FM-1_093's answer for preset 097 on 2026-10-03, after the FX probe sent CC 20 (Phaser on or off)
+// with 127, the FX screen showed the Phaser On, and SAVE stored it. Beside
+// `capturedVirtualAnalogChorusDepthReply`, only record byte 43 differs, 00 to 01: the switch is
+// stored as on, not as the 127 sent.
+export const capturedVirtualAnalogPhaserOnReply = bytes(
+  `F0 7D 20 01 00 06 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 38 02 00 00 00 38 00 0C 13 00 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 40 03 00 00 01 00 46 0D 1B 36 6C 58 31 63 00 1C 01 00 00 00
+   1C 00 00 08 00 30 6C 58 31 63 46 0D 1B 06 60 09 00 00 00 60 01 00 40 00 00 63 46 0D 1B 36 6C 58
+   31 00 4E 00 00 00 00 0E 00 00 04 00 18 36 6C 58 31 63 46 0D 03 70 04 00 00 00 70 00 18 26 00 40
+   31 63 46 0D 13 23 46 0C 19 00 10 0C 01 00 00 00 18 18 2C 3D 4A 34 28 11 10 39 6E 00 01 02 25 41
+   01 03 1A 0D 18 10 64 40 01 2C 06 0C 38 33 60 40 01 42 34 09 10 43 0C 00 72 00 01 02 0C 10 40 00
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 20 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
+   00 76 00 F7`,
+)
+
+// FM-1_093's answer for preset 097 on 2026-10-03, after the FX probe sent CC 5 (Reverb Type) with
+// 2, the FX screen showed Plate, and SAVE stored it. Beside `capturedVirtualAnalogPhaserOnReply`,
+// only record byte 32 differs, 00 to 02.
+export const capturedVirtualAnalogReverbTypeReply = bytes(
+  `F0 7D 20 01 00 06 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 38 02 00 00 00 38 00 0C 13 00 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 40 03 00 00 01 00 46 0D 1B 36 6C 58 31 63 00 1C 01 00 00 00
+   1C 00 00 08 00 30 6C 58 31 63 46 0D 1B 06 60 09 00 00 00 60 01 00 40 00 00 63 46 0D 1B 36 6C 58
+   31 00 4E 00 00 00 00 0E 00 00 04 00 18 36 6C 58 31 63 46 0D 03 70 04 00 00 00 70 00 18 26 00 40
+   31 63 46 0D 13 23 46 0C 19 00 10 0C 01 00 00 00 18 18 2C 3D 4A 34 28 11 10 39 6E 00 01 02 25 41
+   01 03 1A 0D 18 10 64 40 01 2C 06 0C 38 33 60 40 01 42 34 09 10 43 0C 00 72 00 01 02 0C 10 40 00
+   00 00 04 08 00 00 60 00 00 00 08 00 00 50 20 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
+   00 74 00 F7`,
+)
