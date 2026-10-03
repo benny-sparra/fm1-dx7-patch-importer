@@ -73,6 +73,40 @@ test('opens the lazy editor and returns to the patch library', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Patch banks' })).toBeVisible()
 })
 
+test('zooms out of the slot as a patch opens and back into it as the editor closes', async ({
+  page,
+}) => {
+  // The outlines last about a quarter of a second, so each zoom is recorded as it is drawn.
+  await page.addInitScript(() => {
+    const zooms: { first: DOMRect; last: DOMRect }[] = []
+    Object.assign(window, { zooms })
+    document.addEventListener('DOMContentLoaded', () => {
+      new MutationObserver((records) => {
+        for (const node of records.flatMap((record) => [...record.addedNodes])) {
+          if (!(node instanceof HTMLElement) || node.className !== 'zoom-rects') continue
+          const outlines = [...node.children].map((outline) => outline.getBoundingClientRect())
+          zooms.push({ first: outlines[0], last: outlines[outlines.length - 1] })
+        }
+      }).observe(document.body, { childList: true })
+    })
+  })
+  const zooms = () =>
+    page.evaluate(() => (window as unknown as { zooms: { first: DOMRect; last: DOMRect }[] }).zooms)
+  await openLibrarian(page)
+  const slot = await page.locator('[data-patch-id]').first().boundingBox()
+
+  await openFirstPatch(page)
+  await page.getByRole('button', { name: 'Back to patch banks' }).click()
+  await expect(page.getByRole('heading', { name: 'Patch banks' })).toBeVisible()
+
+  await expect.poll(async () => (await zooms()).length).toBe(2)
+  const [opening, closing] = await zooms()
+  expect(opening.first).toMatchObject({ x: slot?.x, y: slot?.y, width: slot?.width })
+  expect(opening.last.width).toBeGreaterThan(opening.first.width)
+  expect(closing.last).toMatchObject({ x: slot?.x, y: slot?.y, width: slot?.width })
+  expect(closing.first.width).toBeGreaterThan(closing.last.width)
+})
+
 test('persists a saved patch name across a browser reload', async ({ page }) => {
   await openLibrarian(page)
   await openFirstPatch(page)
