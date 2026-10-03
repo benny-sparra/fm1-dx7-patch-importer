@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
@@ -60,14 +59,15 @@ const buttonVariants = cva(
 
 interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
-  asChild?: boolean
   ref?: React.Ref<HTMLButtonElement>
 }
 
-function Button({ className, variant, size, asChild = false, ref, ...props }: ButtonProps) {
-  const Comp = asChild ? Slot : 'button'
-
-  return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+function Button({ className, variant, size, ref, ...props }: ButtonProps) {
+  return (
+    // The caller sets `type`, as on a plain button, so one inside a form still submits it by default.
+    // oxlint-disable-next-line react/button-has-type
+    <button className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+  )
 }
 
 export { Button, buttonVariants }

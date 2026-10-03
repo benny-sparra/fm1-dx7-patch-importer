@@ -6,8 +6,8 @@ import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 
 import { dx7BankCatalog, findDx7CatalogBank } from '@/data/dx7-bank-catalog'
-import { makeDx7BankFile, parseDx7Bank } from '@/lib/dx7'
-import { Dx7CatalogBankUnavailableError, loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
+import { Dx7CatalogBankUnavailableError, makeDx7BankFile, parseDx7Bank } from '@/lib/dx7'
+import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
 import { makeDemoVoices } from '@/lib/patch-library'
 
 describe('DX7 bank catalog', () => {

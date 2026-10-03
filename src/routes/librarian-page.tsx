@@ -45,10 +45,6 @@ import { DeleteWorkspaceBankDialog } from '@/components/patches/delete-workspace
 import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
-import {
-  SentryVerificationButton,
-  sentryVerificationEnabled,
-} from '@/components/sentry-verification-button'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { dx7BankVoiceCount, makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import {
@@ -87,6 +83,23 @@ import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { useToast } from '@/components/ui/toast'
 import { trackAnalyticsEvent } from '@/lib/analytics'
+
+/**
+ * Whether this build shows the Sentry test control. Only such a build loads it: imported statically,
+ * the control's icon stayed in the entry although a normal build never renders it. The flag is
+ * checked here, where the control is rendered, because the bundler drops the import only for a
+ * constant it can read in this module.
+ */
+const sentryVerificationEnabled =
+  import.meta.env.PROD && import.meta.env.VITE_SENTRY_VERIFY === 'true'
+
+const SentryVerificationButton = sentryVerificationEnabled
+  ? lazy(() =>
+      import('@/components/sentry-verification-button').then((module) => ({
+        default: module.SentryVerificationButton,
+      })),
+    )
+  : null
 
 // Adding a bank opens from the bank rack, so its dialog and the sound catalogue it lists load on
 // first use rather than with the page.
@@ -753,7 +766,13 @@ export function LibrarianPage({
 
   return (
     <section className="mx-auto grid max-w-7xl min-w-0 gap-5 px-3 pt-2.5 pb-4 sm:px-5 sm:pb-6 lg:px-8">
-      {sentryVerificationEnabled ? <SentryVerificationButton /> : null}
+      {SentryVerificationButton ? (
+        <ErrorBoundary>
+          <Suspense fallback={null}>
+            <SentryVerificationButton />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
       <PatchGrid
         activePatchId={activePatchId}
         actions={

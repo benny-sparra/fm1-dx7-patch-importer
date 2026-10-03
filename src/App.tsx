@@ -4,6 +4,7 @@ import {
   type ComponentProps,
   type CSSProperties,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react'
@@ -22,6 +23,7 @@ import { favouritesBank } from '@/lib/favourites'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { isRenumberedByBankDeletion } from '@/lib/patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
+import { visibleBox, zoomRects } from '@/lib/zoom-rects'
 import {
   beginDynamicImportRecovery,
   cancelDynamicImportRecovery,
@@ -71,6 +73,19 @@ function App() {
   const editorBrowserBack = useRef<(() => void) | null>(null)
   const findPatch = (patchId: string) =>
     library.patches.find((candidate) => candidate.id === patchId)
+  // A patch opens from its slot, and closes back into it, with the classic Mac zoom rectangles.
+  // A patch opened from anywhere else, such as a search result with no slot, simply opens.
+  const slotBox = (patchId: string) =>
+    visibleBox(
+      [...document.querySelectorAll<HTMLElement>('[data-patch-id]')].find(
+        (slot) => slot.dataset.patchId === patchId,
+      ) ?? null,
+    )
+  const viewAreaBox = () => visibleBox(document.querySelector('[data-view-area]'))
+  // Where the open editor was on screen as it closed, kept until the patch banks are back.
+  const closingEditor = useRef<{ from: ReturnType<typeof viewAreaBox>; patchId: string } | null>(
+    null,
+  )
   // Clicking a slot in banks A–D selects its FM1 program, so the FM1 shows that slot, then sends the
   // library's voice and effects to the edit buffer, so the click plays the library's sound even
   // when the FM1 stores another there. Without SysEx only the program and its saved effects can be
@@ -142,6 +157,7 @@ function App() {
     // selected on the way in.
     editBufferAudition.current = null
     if (patch.program !== undefined) midi.sendProgramChange(patch.program)
+    zoomRects(slotBox(patch.id), viewAreaBox())
     setAuditionedPatchId(patch.id)
     beginDynamicImportRecovery(patch.id)
     setSelectedPatchId(patch.id)
@@ -149,8 +165,17 @@ function App() {
   }
   const closeEditor = () => {
     cancelDynamicImportRecovery()
+    if (isEditorOpen) closingEditor.current = { from: viewAreaBox(), patchId: selectedPatchId }
     setSelectedPatchId('')
   }
+  // The slot exists again only once the patch banks have rendered, and the rectangles are drawn
+  // before that frame is painted.
+  useLayoutEffect(() => {
+    const closing = closingEditor.current
+    if (isEditorOpen || !closing) return
+    closingEditor.current = null
+    zoomRects(closing.from, slotBox(closing.patchId))
+  }, [isEditorOpen])
   useEditorHistoryEntry(
     isEditorOpen ? selectedPatchId : '',
     () => (editorBrowserBack.current ?? closeEditor)(),

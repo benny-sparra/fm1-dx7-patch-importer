@@ -168,7 +168,10 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
         </div>
       </section>
 
-      <div className="flex-1">{children}</div>
+      {/* The patch banks or the editor: where a patch's zoom rectangles open to. */}
+      <div className="flex-1" data-view-area="">
+        {children}
+      </div>
 
       <footer className="hero-footer-text synthwave-hero border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-xs sm:px-5 lg:px-8">

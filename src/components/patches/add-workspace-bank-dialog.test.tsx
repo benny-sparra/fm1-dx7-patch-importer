@@ -9,8 +9,8 @@ import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
 import english from '@/i18n/locales/en-GB'
 import french from '@/i18n/locales/fr'
-import { makeDx7BankFile, updateDx7VoiceName } from '@/lib/dx7'
-import { Dx7CatalogBankUnavailableError, loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
+import { Dx7CatalogBankUnavailableError, makeDx7BankFile, updateDx7VoiceName } from '@/lib/dx7'
+import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
 import { makeDemoVoices } from '@/lib/patch-library'
 
 vi.mock('@/lib/dx7-bank-catalog', async (importOriginal) => ({

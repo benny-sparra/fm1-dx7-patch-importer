@@ -98,6 +98,8 @@ export function PatchButton({
       data-active={isActive}
       data-disabled={disabled}
       data-flash={flash}
+      // Where opening the patch draws its zoom rectangles from, and closing it draws them back to.
+      data-patch-id={patch.id}
       onAnimationEnd={(event) => {
         if (event.animationName === 'patch-cell-select') setFlash(false)
       }}
