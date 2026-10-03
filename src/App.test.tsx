@@ -159,6 +159,10 @@ describe('App patch editor loading', () => {
     await screen.findByRole('alert')
     window.history.back()
     await screen.findByRole('button', { name: 'Edit Piano' })
+    // The patch banks show before the app's own step back, which takes the editor's entry away,
+    // has landed. jsdom picks a step's destination a task before taking it, so Forward pressed
+    // while that step is on its way finds no entry ahead and is lost.
+    await waitFor(() => expect(window.history.state).toBeNull())
 
     window.history.forward()
 

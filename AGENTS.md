@@ -553,6 +553,11 @@ open everything an earlier release could have saved.
   reduced. A test that stubs `matchMedia` for a width, as the operator table's page tests do, keeps
   `prefers-reduced-motion` matching, or the effect scopes animate without end and the worker runs
   out of memory.
+- jsdom takes each history step two timer tasks after `history.back()` or `forward()`, choosing
+  its destination in the first, so a second step started between them is measured from the old
+  entry and can be lost. A test that steps through history waits for any step the app takes itself
+  to land first, as the editor's browser Forward test waits for `history.state` to clear after the
+  app takes its entry away.
 - A test that runs the real storage module, such as a hook test that follows a saved bank into
   IndexedDB, installs the in-memory database with `installFakeIndexedDb` from
   `src/test/fake-indexed-db.ts`, not `fake-indexeddb` directly. Under jsdom the fake's copies are
