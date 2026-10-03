@@ -372,12 +372,25 @@ read of ORGAN 3 gives the backup's message for it, so reading a preset and writi
 FM-1+VA's own bytes. `fm1VaRecordWithEffects` puts the library's effects into a record in the
 bytes "What the record holds" maps, and leaves the rest as read.
 
-**Needs hardware test:** whether, and how, the FM1 answers a write (the write collects any
-FM-1+VA reply heard in the 1.5 s after it, for this test to read), whether writing a preset
-changes the edit buffer or the selected preset, and whether a write and the read that checks it
-can follow each other at once. The development build's **FM-1+VA preset probe (dev)** writes the
-preset just read back to its slot, unchanged or renamed `WRITE TEST`, then reads it again and
-says whether it matches.
+**Confirmed on hardware, seen once each** (FM-1_093, 2026-10-03, through the editor's preset probe
+over USB, preset 001, ORGAN 3, starting from a fresh **Save a backup**):
+
+- **A write stores the preset exactly.** Writing ORGAN 3 back with its own bytes, renamed
+  `WRITE TEST`, and then as first read, each read back byte for byte as written.
+- **The FM1 sends no reply to a write.** Nothing under `F0 7D` arrived in the 1.5 s after any of
+  the three writes, so the read that follows is the only confirmation, as on FM-1+VA's own page.
+- **A read straight after the write sees it.** Each check read followed its write's 1.5 s
+  listening window and returned the new contents.
+- **The selected preset shows the change at once.** With 001 selected on the FM1, its screen
+  showed `WRITE TEST` as soon as the renamed write arrived. It still sounded the same, as only
+  the name had changed.
+
+The development build's **FM-1+VA preset probe (dev)** runs this test: it writes the preset just
+read back to its slot, unchanged or renamed `WRITE TEST`, reads it again and says whether it
+matches, and **Restore the first read** puts back the preset as the session first read it.
+**Needs hardware test:** whether a write changes what plays when the edit differs in sound, not
+only in name, and whether writing a preset other than the selected one leaves the selected
+preset's sound alone.
 
 #### Controllers on the MIDI Channel
 
