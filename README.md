@@ -54,6 +54,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
 - Recognise Baud Girl's FM-1+VA replacement firmware, and send it patches as parameter changes so auditions never overwrite a stored preset
 - Import the FM1's banks A–D with their effects, read straight from an FM1 on Baud Girl's firmware or from the file its **Save a backup** writes, into the library banks you choose or new ones, with a preview that marks the patches differing from the library, and Undo
+- Write library patches back to an FM1 on Baud Girl's firmware, preset by preset with their effects, only where they differ, each read back to confirm it
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard, or loop one of six short phrases to audition a patch hands-free
 - Release hanging notes on the FM1 with a MIDI panic button
@@ -134,15 +135,17 @@ sequencer is being researched through captured fixtures only; it is not yet expo
 the editor does not send sequencer or other unclassified vendor commands. The one updater message it
 sends is the read-only identity query, to tell M-VAVE's firmware from FM-1+VA; the notes record how
 the editor was tested on FM-1+VA and why it sends that firmware patches as parameter changes. Of
-FM-1+VA's own commands it sends only the read of a stored preset, which changes nothing.
+FM-1+VA's own commands it sends only the read of a stored preset, which changes nothing, and the
+write of one, which **Write patches to the FM1…** sends after naming every preset it replaces,
+reading each back to confirm it.
 
 ## Future development
 
 Future development could add grouped modulation workflows, a focused internal-sequencer editor once
 its protocol is proven safe, and device readback if M-VAVE documents a compatible transmit protocol.
-FM-1+VA also offers exact preset writes and direct sequencer pattern transfer through commands of
-its own, which could support sending presets with their effects and Virtual Analog preset editing on
-that firmware once each command is reviewed and approved.
+FM-1+VA also offers direct sequencer pattern transfer through a command of its own, which could
+support editing its Sequencer, and its preset write could carry Virtual Analog presets once the
+library can hold them, each once reviewed and approved.
 
 ## Acknowledgements
 

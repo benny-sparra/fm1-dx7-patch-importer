@@ -108,12 +108,28 @@ on a new bank if you have none; two FM1 banks cannot replace the same bank. A do
 that differs from the one in the same slot of the bank it would replace, in its voice, its
 effects, or its other preset settings. After a read from the FM1, only the banks holding such a patch
 start set to import; from a file, every bank does. Press **Import** to bring them in. Each patch
-arrives with
-its FM1 effects and keeps the other settings Baud Girl's firmware stored with it, such as its effect order,
-Envelope, and filter, exactly as they are, ready for the app to send back in a later release. A
-Virtual Analog preset is marked **VA** and left out, since the app cannot hold one yet, and a
+arrives with its FM1 effects and keeps the other settings Baud Girl's firmware stored with it,
+such as its effect order, Envelope, and filter, exactly as they are, so writing it back keeps them.
+A Virtual Analog preset is marked **VA** and left out, since the app cannot hold one yet, and a
 preset that arrived damaged is marked too; either way that slot keeps the patch it has now. The
 notification offers **Undo**.
+
+To put your library's patches back on the FM1, preset by preset, choose **Write patches to the
+FM1…** from the same menu. It is offered while the FM1 runs Baud Girl's firmware, FM-1_079 or
+later, chosen as the MIDI output and input with SysEx allowed. Unlike **Send to FM1**, it writes
+each patch straight into its own preset with its FM1 effects and Baud Girl settings, with no
+**Replace Bank A?** prompt. The dialog first reads the FM1, so it writes only the patches that
+differ. Under each FM1 bank, **Write from** chooses the library bank to write over it, starting on
+the bank of the same letter, or **Don't write**. Virtual Analog presets on the FM1 are never written
+over, and a slot your bank has no patch in keeps its preset. A patch that came from a DX7 file
+takes the FM1 preset's own settings, with your effects in them.
+
+Before anything is written, the dialog lists every preset it will replace. Each one is replaced the
+moment it is written, and the FM1 cannot undo it, so press **Save a backup** on Baud Girl's
+Presets page first. Writes go 3 seconds apart, as Baud Girl's own page spaces them, and the app
+reads each one back to check it, stopping at the first that does not match. **Stop after this
+patch** ends the writing between patches; the dialog cannot be closed while a patch is being
+written.
 
 The search box above the patch grid looks through every bank that has patches in it, not only the one shown. It matches part of a patch's name, or a whole slot code such as `B07` or `b7`, and lists the matches in bank order, each labelled with its slot. While results show, the grid is titled **Search results**, no bank is selected, **Send to FM1** is unavailable because a bank transfer needs one bank, and patches cannot be dragged to reorder them. Click a result to play it as you would in its bank; the results stay up so you can try the next one, and they are still there when you come back from editing one. Clearing the search returns to the bank of the last result you played, or to the bank you were in if you played none. Choosing a bank on the left clears the search and shows that bank.
 

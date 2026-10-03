@@ -2,6 +2,7 @@ import { ChevronDown, Download, Square, TriangleAlert, Upload } from 'lucide-rea
 import { type ChangeEvent, type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { fm1VaReadErrorMessage } from '@/components/patches/fm1-va-read-error-message'
 import { PreviewPatchButton } from '@/components/patches/preview-patch-button'
 import { undoToastOptions } from '@/components/patches/undo-toast'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
@@ -37,11 +38,7 @@ import {
   importableSounds,
   readFm1VaPresetFile,
 } from '@/lib/fm1-va-preset-file'
-import {
-  Fm1VaPresetReadError,
-  fm1VaPresetCount,
-  readEveryFm1VaPreset,
-} from '@/lib/fm1-va-preset-read'
+import { fm1VaPresetCount, readEveryFm1VaPreset } from '@/lib/fm1-va-preset-read'
 import { type FetchedBank, maximumWorkspaceBanks, voiceId } from '@/lib/patch-library'
 import { sysexFileAccept } from '@/lib/sysex-file'
 
@@ -104,24 +101,6 @@ function presetFileErrorMessage(t: Translate, error: unknown) {
     }
   }
   return t('fm1VaImport.errors.unreadable')
-}
-
-function presetReadErrorMessage(t: Translate, error: unknown) {
-  if (error instanceof Fm1VaPresetReadError) {
-    switch (error.problem) {
-      case 'busy':
-        return t('fm1VaImport.errors.readBusy')
-      case 'no-reply':
-      case 'send-failed':
-        return t('fm1VaImport.errors.readNoReply')
-      // The reader cancels a read itself when the ports change, and refuses one once they cannot
-      // read; a read the user stops shows nothing.
-      case 'cancelled':
-      case 'unavailable':
-        return t('fm1VaImport.errors.readStopped')
-    }
-  }
-  return t('fm1VaImport.errors.readFailed')
 }
 
 /** Whether a bank holds an FM preset the library can take. */
@@ -294,7 +273,7 @@ export function ImportFm1VaPresetsDialog({
       if (presetRead.current !== read) return
       showBanks(fm1VaPresetBanksFromRead(presets), 'fm1')
     } catch (cause) {
-      if (presetRead.current === read) setError(presetReadErrorMessage(t, cause))
+      if (presetRead.current === read) setError(fm1VaReadErrorMessage(t, cause))
     } finally {
       if (presetRead.current === read) {
         presetRead.current = null
@@ -388,51 +367,56 @@ export function ImportFm1VaPresetsDialog({
         </div>
 
         <form id={formId} className="grid gap-5 p-5" onSubmit={submit}>
-          <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            <TriangleAlert className="mt-0.5 size-5 shrink-0" />
-            <p>{t('fm1VaImport.warning')}</p>
-          </div>
-
-          {reader.canRead ? (
-            <div className="grid gap-2">
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  disabled={readCount !== null}
-                  onClick={() => void readFromFm1()}
-                  type="button"
-                  variant="outline"
-                >
-                  <Download />
-                  <span>{t('fm1VaImport.read')}</span>
-                </Button>
-                {readCount === null ? null : (
-                  <Button onClick={stopReading} type="button" variant="ghost">
-                    <Square />
-                    <span>{t('fm1VaImport.stopReading')}</span>
-                  </Button>
-                )}
-              </div>
-              {readCount === null ? (
-                <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.readHelp')}</p>
+          {/* The FM1 and the file are alternatives, so the FM1 has a heading like the file's label. */}
+          {midi.firmware.kind === 'fm1-va' ? (
+            <div aria-labelledby={`${titleId}-read`} className="grid gap-2" role="group">
+              <span className="text-sm font-semibold" id={`${titleId}-read`}>
+                {t('fm1VaImport.readTitle')}
+              </span>
+              {reader.canRead ? (
+                <>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      disabled={readCount !== null}
+                      onClick={() => void readFromFm1()}
+                      type="button"
+                      variant="outline"
+                    >
+                      <Download />
+                      <span>{t('fm1VaImport.read')}</span>
+                    </Button>
+                    {readCount === null ? null : (
+                      <Button onClick={stopReading} type="button" variant="ghost">
+                        <Square />
+                        <span>{t('fm1VaImport.stopReading')}</span>
+                      </Button>
+                    )}
+                  </div>
+                  {readCount === null ? (
+                    <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.readHelp')}</p>
+                  ) : (
+                    <div className="grid gap-1">
+                      <p className="text-xs text-[var(--crt-ink-3)]" id={readingId}>
+                        {t('fm1VaImport.reading', {
+                          number: Math.min(readCount + 1, fm1VaPresetCount),
+                          total: fm1VaPresetCount,
+                        })}
+                      </p>
+                      <progress
+                        aria-labelledby={readingId}
+                        className="h-2 w-full accent-[var(--crt-led)]"
+                        max={fm1VaPresetCount}
+                        value={readCount}
+                      />
+                    </div>
+                  )}
+                </>
               ) : (
-                <div className="grid gap-1">
-                  <p className="text-xs text-[var(--crt-ink-3)]" id={readingId}>
-                    {t('fm1VaImport.reading', {
-                      number: Math.min(readCount + 1, fm1VaPresetCount),
-                      total: fm1VaPresetCount,
-                    })}
-                  </p>
-                  <progress
-                    aria-labelledby={readingId}
-                    className="h-2 w-full accent-[var(--crt-led)]"
-                    max={fm1VaPresetCount}
-                    value={readCount}
-                  />
-                </div>
+                <p className="text-xs text-[var(--crt-ink-3)]">
+                  {t('fm1VaImport.readUnavailable')}
+                </p>
               )}
             </div>
-          ) : midi.firmware.kind === 'fm1-va' ? (
-            <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.readUnavailable')}</p>
           ) : null}
 
           <label className="grid gap-2 text-sm font-semibold">
@@ -473,6 +457,11 @@ export function ImportFm1VaPresetsDialog({
                     {t('fm1VaImport.virtualAnalogPresets', { count: virtualAnalogCount })}
                   </p>
                 ) : null}
+              </div>
+              {/* Nothing is replaced until a bank is chosen, so the warning waits for the banks. */}
+              <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                <TriangleAlert className="mt-0.5 size-5 shrink-0" />
+                <p>{t('fm1VaImport.warning')}</p>
               </div>
               {damagedCount > 0 ? (
                 <ErrorNotice>

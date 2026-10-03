@@ -320,6 +320,7 @@ export default {
     warning:
       'Cada banco importado substitui o banco que você escolher para ele, ou é adicionado como banco novo. Você pode desfazer isso.',
     file: 'Arquivo de presets da Baud Girl',
+    readTitle: 'Presets no FM1',
     read: 'Ler do FM1',
     readHelp: 'Lê os 128 presets do FM1 para comparar com a sua biblioteca. Nada muda no FM1.',
     readUnavailable:
@@ -368,6 +369,38 @@ export default {
       readStopped: 'A leitura parou porque as portas MIDI mudaram. Leia de novo.',
       readFailed:
         'O FM1 não conseguiu enviar seus presets. Leia de novo ou escolha um arquivo do “Save a backup”.',
+    },
+  },
+  fm1VaWrite: {
+    menuItem: 'Gravar sons no FM1…',
+    menuContents: 'Firmware da Baud Girl, só sons alterados',
+    title: 'Gravar sons no FM1',
+    help: 'Grava os sons da sua biblioteca sobre os presets do FM1. Só os sons diferentes são gravados.',
+    source: 'Gravar a partir de',
+    skipBank: 'Não gravar',
+    differs: 'Um som é diferente.',
+    differs_other: '{{count, number}} sons são diferentes.',
+    same: 'Todos os sons coincidem.',
+    virtualAnalogKept: 'Os presets Virtual Analog são mantidos.',
+    replaces: '{{number}} {{replaces}} → {{name}}',
+    action: 'Gravar um som…',
+    action_other: 'Gravar {{count, number}} sons…',
+    confirmTitle: 'Substituir estes presets no FM1?',
+    confirmWarning:
+      'Cada preset é substituído na hora, e o FM1 não pode desfazer isso. Salve antes um backup na página Presets da Baud Girl.',
+    confirm: 'Gravar um som',
+    confirm_other: 'Gravar {{count, number}} sons',
+    writing: 'Gravando o som {{number, number}} de {{total, number}}…',
+    stop: 'Parar depois deste som',
+    written: 'Um som foi gravado no FM1.',
+    written_other: '{{count, number}} sons foram gravados no FM1.',
+    stopped: 'Parado após {{count, number}} de {{total, number}} sons. O restante não mudou.',
+    openFailed: 'Não foi possível abrir a gravação no FM1. Recarregue a página e tente novamente.',
+    errors: {
+      mismatch:
+        'O preset {{number}} não foi lido de volta como gravado, então a gravação parou após {{count, number}} de {{total, number}} sons.',
+      failed:
+        'A gravação parou após {{count, number}} de {{total, number}} sons. Verifique a conexão MIDI do FM1.',
     },
   },
   duplicates: {

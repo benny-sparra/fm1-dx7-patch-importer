@@ -313,6 +313,7 @@ export default {
     warning:
       'Each bank you import replaces the bank you choose for it, or is added as a new bank. You can undo this.',
     file: 'Baud Girl presets file',
+    readTitle: 'Presets on the FM1',
     read: 'Read from FM1',
     readHelp:
       'Reads all 128 presets from the FM1 to compare with your library. Nothing on the FM1 changes.',
@@ -360,6 +361,39 @@ export default {
       readStopped: 'The read stopped because the MIDI ports changed. Read again.',
       readFailed:
         'The FM1 couldn’t send its presets. Read again, or choose a file from “Save a backup”.',
+    },
+  },
+  fm1VaWrite: {
+    menuItem: 'Write patches to the FM1…',
+    menuContents: 'Baud Girl firmware, changed patches only',
+    title: 'Write patches to the FM1',
+    help: 'Writes your library’s patches over the FM1’s presets. Only patches that differ are written.',
+    source: 'Write from',
+    skipBank: 'Don’t write',
+    differs: 'One patch differs.',
+    differs_other: '{{count, number}} patches differ.',
+    same: 'Every patch matches.',
+    virtualAnalogKept: 'Virtual Analog presets are kept.',
+    replaces: '{{number}} {{replaces}} → {{name}}',
+    action: 'Write one patch…',
+    action_other: 'Write {{count, number}} patches…',
+    confirmTitle: 'Replace these presets on the FM1?',
+    confirmWarning:
+      'Each preset is replaced at once, and the FM1 can’t undo it. Save a backup on Baud Girl’s Presets page first.',
+    confirm: 'Write one patch',
+    confirm_other: 'Write {{count, number}} patches',
+    writing: 'Writing patch {{number, number}} of {{total, number}}…',
+    stop: 'Stop after this patch',
+    written: 'Wrote one patch to the FM1.',
+    written_other: 'Wrote {{count, number}} patches to the FM1.',
+    stopped:
+      'Stopped after {{count, number}} of {{total, number}} patches. The rest are unchanged.',
+    openFailed: 'Writing to the FM1 could not be opened. Reload the page and try again.',
+    errors: {
+      mismatch:
+        'Preset {{number}} didn’t read back as written, so writing stopped after {{count, number}} of {{total, number}} patches.',
+      failed:
+        'Writing stopped after {{count, number}} of {{total, number}} patches. Check the FM1’s MIDI connection.',
     },
   },
   duplicates: {

@@ -330,6 +330,7 @@ export default {
     warning:
       'Jede importierte Bank ersetzt die Bank, die du für sie wählst, oder kommt als neue Bank hinzu. Du kannst das rückgängig machen.',
     file: 'Baud-Girl-Presetdatei',
+    readTitle: 'Presets auf dem FM1',
     read: 'Vom FM1 lesen',
     readHelp:
       'Liest alle 128 Presets vom FM1, um sie mit deiner Bibliothek zu vergleichen. Am FM1 ändert sich nichts.',
@@ -379,6 +380,40 @@ export default {
       readStopped: 'Das Lesen wurde beendet, weil sich die MIDI-Ports geändert haben. Lies erneut.',
       readFailed:
         'Der FM1 konnte seine Presets nicht senden. Lies erneut oder wähle eine Datei aus „Save a backup“.',
+    },
+  },
+  fm1VaWrite: {
+    menuItem: 'Sounds auf den FM1 schreiben…',
+    menuContents: 'Firmware von Baud Girl, nur geänderte Sounds',
+    title: 'Sounds auf den FM1 schreiben',
+    help: 'Schreibt die Sounds deiner Bibliothek über die Presets des FM1. Nur Sounds, die sich unterscheiden, werden geschrieben.',
+    source: 'Schreiben aus',
+    skipBank: 'Nicht schreiben',
+    differs: 'Ein Sound unterscheidet sich.',
+    differs_other: '{{count, number}} Sounds unterscheiden sich.',
+    same: 'Alle Sounds stimmen überein.',
+    virtualAnalogKept: 'Virtual-Analog-Presets bleiben erhalten.',
+    replaces: '{{number}} {{replaces}} → {{name}}',
+    action: 'Einen Sound schreiben…',
+    action_other: '{{count, number}} Sounds schreiben…',
+    confirmTitle: 'Diese Presets auf dem FM1 ersetzen?',
+    confirmWarning:
+      'Jedes Preset wird sofort ersetzt, und der FM1 kann das nicht rückgängig machen. Speichere vorher auf der Presets-Seite von Baud Girl eine Sicherung.',
+    confirm: 'Einen Sound schreiben',
+    confirm_other: '{{count, number}} Sounds schreiben',
+    writing: 'Schreibe Sound {{number, number}} von {{total, number}}…',
+    stop: 'Nach diesem Sound anhalten',
+    written: 'Ein Sound auf den FM1 geschrieben.',
+    written_other: '{{count, number}} Sounds auf den FM1 geschrieben.',
+    stopped:
+      'Nach {{count, number}} von {{total, number}} Sounds angehalten. Die übrigen sind unverändert.',
+    openFailed:
+      'Das Schreiben auf den FM1 konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+    errors: {
+      mismatch:
+        'Preset {{number}} ließ sich nicht wie geschrieben zurücklesen, daher wurde nach {{count, number}} von {{total, number}} Sounds angehalten.',
+      failed:
+        'Das Schreiben wurde nach {{count, number}} von {{total, number}} Sounds angehalten. Prüfe die MIDI-Verbindung des FM1.',
     },
   },
   duplicates: {

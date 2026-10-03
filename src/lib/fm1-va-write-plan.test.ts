@@ -1,0 +1,191 @@
+import { describe, expect, it, vi } from 'vitest'
+
+import { decodeVoiceName, dx7PackedVoiceSize, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
+import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
+import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
+import { fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
+import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
+import { voiceId } from '@/lib/patch-library'
+import { capturedOrgan3Reply } from '@/test/fm1-va-captures'
+
+import {
+  Fm1VaWriteMismatchError,
+  planFm1VaBankWrite,
+  writeFm1VaPlannedPresets,
+  type Fm1VaPlannedWrite,
+} from './fm1-va-write-plan'
+
+// ORGAN 3 as FM-1_093 stores it, in every one of the 128 slots.
+const reply = parseFm1VaReply(capturedOrgan3Reply)
+if (!reply) throw new Error('The captured reply did not parse.')
+const storedVoice = reply.data.slice(0, dx7PackedVoiceSize)
+const storedRecord = reply.data.slice(dx7PackedVoiceSize)
+const organ3: Dx7Voice = { data: storedVoice, name: decodeVoiceName(storedVoice) }
+
+function storedPresets(change: (slot: number) => Partial<Fm1VaStoredPreset> = () => ({})) {
+  return Array.from({ length: 128 }, (_, slot) => ({
+    record: storedRecord.slice(),
+    reply: new Uint8Array(),
+    slot,
+    voice: storedVoice.slice(),
+    ...change(slot),
+  }))
+}
+
+/** A library whose bank holds ORGAN 3 with its stored effects and record in every slot. */
+function libraryOf(
+  bank: string,
+  change: (index: number) => Partial<{ voice: Dx7Voice }> = () => ({}),
+) {
+  const ids = Array.from({ length: 32 }, (_, index) => [voiceId(bank, index + 1), index] as const)
+  return {
+    effects: Object.fromEntries(ids.map(([id]) => [id, fm1VaRecordEffects(storedRecord)])),
+    records: Object.fromEntries(ids.map(([id]) => [id, storedRecord.slice()])),
+    voices: Object.fromEntries(ids.map(([id, index]) => [id, change(index).voice ?? organ3])),
+  }
+}
+
+describe('planFm1VaBankWrite', () => {
+  it('leaves every preset alone when the library bank matches the FM1', () => {
+    const plan = planFm1VaBankWrite(storedPresets(), 'A', 'A', libraryOf('A'))
+
+    expect(plan.every(({ kind }) => kind === 'same')).toBe(true)
+  })
+
+  it('writes only the presets whose library patch differs, to the FM1 bank chosen', () => {
+    const renamed = updateDx7VoiceName(organ3, 'MY ORGAN')
+    const library = libraryOf('C', (index) => (index === 4 ? { voice: renamed } : {}))
+
+    const plan = planFm1VaBankWrite(storedPresets(), 'B', 'C', library)
+
+    const writes = plan.filter(({ kind }) => kind === 'write')
+    expect(writes).toEqual([
+      expect.objectContaining({ name: 'MY ORGAN', replaces: 'ORGAN 3', slot: 36 }),
+    ])
+  })
+
+  it('writes the library’s effects into the record, and keeps the record’s other bytes', () => {
+    const library = libraryOf('A')
+    const reverbOn = fm1VaRecordEffects(storedRecord)
+    reverbOn[4] = 1
+    library.effects[voiceId('A', 1)] = reverbOn
+
+    const [first] = planFm1VaBankWrite(storedPresets(), 'A', 'A', library)
+
+    if (first.kind !== 'write') throw new Error('Expected a write.')
+    expect(fm1VaRecordEffects(first.record)).toEqual(reverbOn)
+    const changed = Array.from(first.record.keys()).filter(
+      (i) => first.record[i] !== storedRecord[i],
+    )
+    expect(changed).toEqual([31])
+  })
+
+  it('gives a patch without a record of its own the stored preset’s record', () => {
+    const library = libraryOf('A')
+    const record = storedRecord.slice()
+    record[45] = 0x2a
+    library.records = {}
+    library.effects = { [voiceId('A', 1)]: fm1VaRecordEffects(storedRecord) }
+
+    const plan = planFm1VaBankWrite(
+      storedPresets(() => ({ record: record.slice() })),
+      'A',
+      'A',
+      library,
+    )
+
+    expect(plan[0]).toEqual({ kind: 'same', slot: 0 })
+    // Without effects of its own, a patch is written with the default effects.
+    expect(plan[1]).toMatchObject({ kind: 'write' })
+    if (plan[1].kind !== 'write') return
+    expect(plan[1].record[45]).toBe(0x2a)
+    expect(fm1VaRecordEffects(plan[1].record)).toEqual(makeDefaultFm1Effects())
+  })
+
+  it('never writes over a Virtual Analog preset', () => {
+    const virtualAnalog = storedRecord.slice()
+    virtualAnalog[18] = 0x5a
+    const library = libraryOf('A', () => ({ voice: updateDx7VoiceName(organ3, 'NEW') }))
+
+    const plan = planFm1VaBankWrite(
+      storedPresets((slot) => (slot === 2 ? { record: virtualAnalog } : {})),
+      'A',
+      'A',
+      library,
+    )
+
+    expect(plan[2]).toEqual({ kind: 'virtual-analog', name: 'ORGAN 3', slot: 2 })
+    expect(plan[3]).toMatchObject({ kind: 'write' })
+  })
+
+  it('leaves a preset alone where the library bank has no patch', () => {
+    const library = libraryOf('A')
+    delete library.voices[voiceId('A', 7)]
+
+    const plan = planFm1VaBankWrite(storedPresets(), 'A', 'A', library)
+
+    expect(plan[6]).toEqual({ kind: 'empty', slot: 6 })
+  })
+})
+
+describe('writeFm1VaPlannedPresets', () => {
+  const planned = (slot: number): Fm1VaPlannedWrite => ({
+    expectedVoice: storedVoice,
+    name: 'ORGAN 3',
+    record: storedRecord,
+    replaces: 'ORGAN 3',
+    slot,
+    voice: organ3,
+  })
+  const readBack = (slot: number, voice = storedVoice) =>
+    Promise.resolve({ record: storedRecord, reply: new Uint8Array(), slot, voice })
+
+  it('writes each preset and reads it back, in order', async () => {
+    const calls: string[] = []
+    const onWritten = vi.fn()
+
+    const written = await writeFm1VaPlannedPresets([planned(3), planned(9)], {
+      onWritten,
+      read: (slot) => {
+        calls.push(`read ${slot}`)
+        return readBack(slot)
+      },
+      write: (slot) => {
+        calls.push(`write ${slot}`)
+        return Promise.resolve()
+      },
+    })
+
+    expect(written).toBe(2)
+    expect(calls).toEqual(['write 3', 'read 3', 'write 9', 'read 9'])
+    expect(onWritten.mock.calls).toEqual([[1], [2]])
+  })
+
+  it('stops at the first preset that does not read back as written', async () => {
+    const write = vi.fn(() => Promise.resolve())
+
+    const writing = writeFm1VaPlannedPresets([planned(3), planned(9)], {
+      read: (slot) => readBack(slot, new Uint8Array(dx7PackedVoiceSize)),
+      write,
+    })
+
+    await expect(writing).rejects.toBeInstanceOf(Fm1VaWriteMismatchError)
+    await expect(writing).rejects.toMatchObject({ slot: 3 })
+    expect(write).toHaveBeenCalledOnce()
+  })
+
+  it('stops before the next write once asked, confirming the one already sent', async () => {
+    const stop = new AbortController()
+    const write = vi.fn(() => Promise.resolve())
+
+    const written = await writeFm1VaPlannedPresets([planned(3), planned(9)], {
+      onWritten: () => stop.abort(),
+      read: readBack,
+      signal: stop.signal,
+      write,
+    })
+
+    expect(written).toBe(1)
+    expect(write).toHaveBeenCalledOnce()
+  })
+})

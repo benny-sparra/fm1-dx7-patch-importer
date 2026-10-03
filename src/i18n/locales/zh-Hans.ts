@@ -284,6 +284,7 @@ export default {
     effectsNote: '每个音色都会带上它的 FM1 效果和其余预设设置。',
     warning: '每个导入的音色库都会替换你为它选择的音色库，或作为新音色库添加。之后可以撤销。',
     file: 'Baud Girl 预设文件',
+    readTitle: 'FM1 上的预设',
     read: '从 FM1 读取',
     readHelp: '从 FM1 读取全部 128 个预设，与你的音色库比较。FM1 上的内容不会改变。',
     readUnavailable:
@@ -325,6 +326,38 @@ export default {
       readNoReply: 'FM1 已停止响应。请检查它的 MIDI 连接后重新读取。',
       readStopped: 'MIDI 端口已更改，读取已停止。请重新读取。',
       readFailed: 'FM1 无法发送它的预设。请重新读取，或选择“Save a backup”保存的文件。',
+    },
+  },
+  fm1VaWrite: {
+    menuItem: '将音色写入 FM1…',
+    menuContents: 'Baud Girl 固件，仅写入有变化的音色',
+    title: '将音色写入 FM1',
+    help: '将音色库中的音色写入 FM1，覆盖原有预设。只写入有差异的音色。',
+    source: '写入来源',
+    skipBank: '不写入',
+    differs: '有 1 个音色不同。',
+    differs_other: '有 {{count, number}} 个音色不同。',
+    same: '所有音色都一致。',
+    virtualAnalogKept: 'Virtual Analog 预设会保留。',
+    replaces: '{{number}} {{replaces}} → {{name}}',
+    action: '写入 1 个音色…',
+    action_other: '写入 {{count, number}} 个音色…',
+    confirmTitle: '要替换 FM1 上的这些预设吗？',
+    confirmWarning:
+      '每个预设会立即被替换，FM1 无法撤销。请先在 Baud Girl 的 Presets 页面上保存备份。',
+    confirm: '写入 1 个音色',
+    confirm_other: '写入 {{count, number}} 个音色',
+    writing: '正在写入第 {{number, number}} 个音色，共 {{total, number}} 个…',
+    stop: '写完这个音色后停止',
+    written: '已将 1 个音色写入 FM1。',
+    written_other: '已将 {{count, number}} 个音色写入 FM1。',
+    stopped: '已在写入 {{count, number}} 个（共 {{total, number}} 个）音色后停止。其余未改变。',
+    openFailed: '无法打开写入 FM1 的功能。请重新加载页面后重试。',
+    errors: {
+      mismatch:
+        '预设 {{number}} 读回的内容与写入的不一致，因此在写入 {{count, number}} 个（共 {{total, number}} 个）音色后停止。',
+      failed:
+        '写入在 {{count, number}} 个（共 {{total, number}} 个）音色后停止。请检查 FM1 的 MIDI 连接。',
     },
   },
   duplicates: {

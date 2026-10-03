@@ -66,6 +66,7 @@ import {
 } from '@/lib/patch-library'
 import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
+import { hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
 import { soundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
 import type { MidiController } from '@/hooks/use-midi'
@@ -145,6 +146,11 @@ const ImportFm1VaPresetsDialog = lazy(() =>
     default: module.ImportFm1VaPresetsDialog,
   })),
 )
+const WriteFm1VaPresetsDialog = lazy(() =>
+  import('@/components/patches/write-fm1-va-presets-dialog').then((module) => ({
+    default: module.WriteFm1VaPresetsDialog,
+  })),
+)
 
 // Finding duplicate patches opens from the header menu, with the code that compares them, on first
 // use.
@@ -193,6 +199,7 @@ type LibrarianLibrary = BackupLibrary &
   ComponentProps<typeof ImportDx7BankDialog>['library'] &
   ComponentProps<typeof ImportFm1VaPresetsDialog>['library'] &
   ComponentProps<typeof NamedBankLibraryDialog>['library'] &
+  ComponentProps<typeof WriteFm1VaPresetsDialog>['library'] &
   ComponentProps<typeof ReplacePatchDialog>['library'] &
   ComponentProps<typeof RestoreBackupDialog>['library'] &
   Pick<
@@ -230,6 +237,7 @@ type LibrarianLibrary = BackupLibrary &
 
 type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof ImportFm1VaPresetsDialog>['midi'] &
+  ComponentProps<typeof WriteFm1VaPresetsDialog>['midi'] &
   Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
 type LibrarianPageProps = {
@@ -285,6 +293,7 @@ export function LibrarianPage({
   const [isAddingBank, setIsAddingBank] = useState(false)
   const [isRestoringBackup, setIsRestoringBackup] = useState(false)
   const [isImportingFm1VaPresets, setIsImportingFm1VaPresets] = useState(false)
+  const [isWritingFm1VaPresets, setIsWritingFm1VaPresets] = useState(false)
   const [isFindingDuplicates, setIsFindingDuplicates] = useState(false)
   // The slot the grid moves focus to once it shows, such as a patch chosen among the duplicates.
   const [slotFocusRequest, setSlotFocusRequest] = useState<{ patchId: string } | null>(null)
@@ -296,6 +305,7 @@ export function LibrarianPage({
   const backupContentsId = useId()
   const sysexContentsId = useId()
   const fm1VaContentsId = useId()
+  const fm1VaWriteContentsId = useId()
   const sendButtonRef = useRef<HTMLButtonElement>(null)
   // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
   // menu toggle that focus returns to.
@@ -926,6 +936,27 @@ export function LibrarianPage({
                     </span>
                   </span>
                 </button>
+                {hasFm1VaPresetCommands(midi.firmware) ? (
+                  <button
+                    aria-describedby={fm1VaWriteContentsId}
+                    aria-label={t('fm1VaWrite.menuItem')}
+                    className={menuItemWithHintClassName}
+                    onClick={() => {
+                      allBanksMenuRef.current?.removeAttribute('open')
+                      setDialogLoadError('')
+                      setIsWritingFm1VaPresets(true)
+                    }}
+                    type="button"
+                  >
+                    <Send className={menuHintedIconClassName} />
+                    <span className="grid">
+                      <span>{t('fm1VaWrite.menuItem')}</span>
+                      <span className="text-xs text-[var(--crt-ink-3)]" id={fm1VaWriteContentsId}>
+                        {t('fm1VaWrite.menuContents')}
+                      </span>
+                    </span>
+                  </button>
+                ) : null}
               </div>
               <div className="my-1 border-t" />
               <button
@@ -1213,6 +1244,25 @@ export function LibrarianPage({
                 allBanksMenuRef.current?.querySelector('summary')?.focus()
               }}
               onPlay={onPlaySearchResult}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
+      {isWritingFm1VaPresets ? (
+        <ErrorBoundary
+          onError={() => {
+            setIsWritingFm1VaPresets(false)
+            setDialogLoadError(t('fm1VaWrite.openFailed'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <WriteFm1VaPresetsDialog
+              library={library}
+              midi={midi}
+              onClose={() => {
+                setIsWritingFm1VaPresets(false)
+                allBanksMenuRef.current?.querySelector('summary')?.focus()
+              }}
             />
           </Suspense>
         </ErrorBoundary>

@@ -223,6 +223,18 @@ describe('ImportFm1VaPresetsDialog', () => {
     )
   })
 
+  it('warns that banks are replaced only once there are banks to choose for', async () => {
+    const warning =
+      'Each bank you import replaces the bank you choose for it, or is added as a new bank. You can undo this.'
+    const { user } = renderDialog()
+
+    expect(screen.queryByText(warning)).toBeNull()
+
+    await chooseFile(user)
+
+    expect(screen.getByText(warning)).toBeTruthy()
+  })
+
   it('says that each patch arrives with its effects and settings', () => {
     renderDialog()
 
@@ -709,6 +721,15 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
     expect(screen.queryByRole('progressbar')).toBeNull()
   })
 
+  it('heads the read as an alternative to the file', () => {
+    const { midi } = fakeFm1()
+
+    renderDialog({ midi })
+
+    const group = screen.getByRole('group', { name: 'Presets on the FM1' })
+    expect(within(group).getByRole('button', { name: 'Read from FM1' })).toBeTruthy()
+  })
+
   it('explains what reading needs on FM-1+VA without the FM1 as MIDI input', () => {
     const { midi } = fakeFm1()
 
@@ -729,5 +750,6 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
     expect(screen.queryByRole('button', { name: 'Read from FM1' })).toBeNull()
     expect(screen.queryByText(/To read the presets from the FM1/)).toBeNull()
+    expect(screen.queryByRole('group', { name: 'Presets on the FM1' })).toBeNull()
   })
 })
