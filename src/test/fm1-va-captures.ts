@@ -324,3 +324,34 @@ export const capturedOrgan3PresetFilterOffReply = bytes(
    00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 06 00 00 38 00 00 00 04 00 00 65 00 00 00 00
    00 5B 01 F7`,
 )
+
+// FM-1_093's answer for preset 097 on 2026-10-03, after the FX probe sent thirteen controllers,
+// each with a value no other used, and one SAVE stored them: CC 4 = 1, 6 = 11, 8 = 1, 9 = 12,
+// 11 = 13, 12 = 1, 13 = 14, 15 = 15, 16 = 1, 17 = 16, 19 = 17, 21 = 18, and 22 = 19. Beside
+// `capturedVirtualAnalogDistortionTypeReply`, the eleven bytes the effects layout predicts for all
+// but CC 12 and 13 changed to those values, and nothing else did.
+export const capturedVirtualAnalogEffectControllersReply = bytes(
+  `F0 7D 20 01 00 06 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 38 02 00 00 00 38 00 0C 13 00 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 40 03 00 00 01 00 46 0D 1B 36 6C 58 31 63 00 1C 01 00 00 00
+   1C 00 00 08 00 30 6C 58 31 63 46 0D 1B 06 60 09 00 00 00 60 01 00 40 00 00 63 46 0D 1B 36 6C 58
+   31 00 4E 00 00 00 00 0E 00 00 04 00 18 36 6C 58 31 63 46 0D 03 70 04 00 00 00 70 00 18 26 00 40
+   31 63 46 0D 13 23 46 0C 19 00 10 0C 01 00 00 00 18 18 2C 3D 4A 34 28 11 10 39 6E 00 01 02 25 41
+   01 0B 1A 0D 60 10 24 43 01 2C 1E 40 38 13 42 44 09 42 34 09 10 43 0C 00 72 00 01 02 0C 10 40 00
+   00 01 04 08 08 00 60 00 00 01 08 04 00 50 20 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
+   00 0F 00 F7`,
+)
+
+// FM-1_093's answer for preset 097 on 2026-10-03, after the FX probe sent CC 12 (Distortion on or
+// off) with 1 and CC 13 (Distortion Gain) with 14, and SAVE stored them. Beside
+// `capturedVirtualAnalogEffectControllersReply`, only record bytes 9 (03 to 0E) and 37 (00 to 01)
+// differ.
+export const capturedVirtualAnalogDistortionReply = bytes(
+  `F0 7D 20 01 00 06 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 38 02 00 00 00 38 00 0C 13 00 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 40 03 00 00 01 00 46 0D 1B 36 6C 58 31 63 00 1C 01 00 00 00
+   1C 00 00 08 00 30 6C 58 31 63 46 0D 1B 06 60 09 00 00 00 60 01 00 40 00 00 63 46 0D 1B 36 6C 58
+   31 00 4E 00 00 00 00 0E 00 00 04 00 18 36 6C 58 31 63 46 0D 03 70 04 00 00 00 70 00 18 26 00 40
+   31 63 46 0D 13 23 46 0C 19 00 10 0C 01 00 00 00 18 18 2C 3D 4A 34 28 11 10 39 6E 00 01 02 25 41
+   01 0B 1A 0D 60 10 24 03 07 2C 1E 40 38 13 42 44 09 42 34 09 10 43 0C 00 72 00 01 02 0C 10 40 00
+   00 01 04 08 08 00 60 40 00 01 08 04 00 50 20 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
+   00 03 00 F7`,
+)

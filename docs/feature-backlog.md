@@ -405,9 +405,9 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       (`docs/fm1-research.md`, "What the record holds"). The record is now stored with each slot
       that has one: workspace version 7, saved banks version 2, and backup files version 3, each
       with fixture tests. **Import FM-1+VA presets…** keeps each FM preset's record, and the sound
-      key, so hearts, search, and duplicates, includes it. Still to do: confirm the 13 effect
-      controllers not read one by one, so items 3–5 can take effects from the record; the Virtual
-      Analog settings wait for item 6.
+      key, so hearts, search, and duplicates, includes it. Every one of the 24 effect controllers
+      has been read back in its byte, so items 3–5 can take a patch's effects from its record.
+      The Virtual Analog settings wait for item 6.
 - [ ] **3. Import from the FM1.** A **Read from FM1…** action reads all 128 presets, shows which
       slots differ from banks A–D, and lets the user take the FM1's version of each bank, with
       effects and record, as one Undo. This answers [Syncing patches with the FM1](#syncing-patches-with-the-fm1)

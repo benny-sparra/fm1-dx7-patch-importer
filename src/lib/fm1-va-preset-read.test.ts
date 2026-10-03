@@ -13,10 +13,12 @@ import {
   capturedVirtualAnalog,
   capturedVirtualAnalogCutoffControllerReply,
   capturedVirtualAnalogCutoffReply,
+  capturedVirtualAnalogDistortionReply,
   capturedVirtualAnalogDelayRateReply,
   capturedVirtualAnalogChorusDepthReply,
   capturedVirtualAnalogDistortionToneReply,
   capturedVirtualAnalogDistortionTypeReply,
+  capturedVirtualAnalogEffectControllersReply,
   capturedVirtualAnalogFilterOnReply,
   capturedVirtualAnalogFilterTypeReply,
   capturedVirtualAnalogPhaserMixReply,
@@ -343,6 +345,37 @@ describe('readFm1VaPreset', () => {
     expected[26] = 0x80
     expect(after.record).toEqual(expected)
     expect(after.record[23]).toBe(0xd0)
+  })
+
+  it('reads eleven effect controllers sent together in the bytes the effects layout predicts', async () => {
+    const read = (reply: Uint8Array) => readFm1VaPreset(makeLink(() => reply).link, 96)
+    const expected = (await read(capturedVirtualAnalogDistortionTypeReply)).record.slice()
+    // Byte: value sent, for CC 4, 6, 8, 9, 11, 15, 16, 17, 19, 21, and 22.
+    const sent = {
+      3: 11,
+      6: 12,
+      8: 13,
+      11: 15,
+      12: 16,
+      14: 17,
+      15: 18,
+      16: 19,
+      31: 1,
+      34: 1,
+      40: 1,
+    }
+    for (const [byte, value] of Object.entries(sent)) expected[Number(byte)] = value
+
+    expect((await read(capturedVirtualAnalogEffectControllersReply)).record).toEqual(expected)
+  })
+
+  it("reads Distortion's switch and Gain, sent as CC 12 and 13, in record bytes 37 and 9", async () => {
+    const read = (reply: Uint8Array) => readFm1VaPreset(makeLink(() => reply).link, 96)
+    const expected = (await read(capturedVirtualAnalogEffectControllersReply)).record.slice()
+    expected[9] = 14
+    expected[37] = 1
+
+    expect((await read(capturedVirtualAnalogDistortionReply)).record).toEqual(expected)
   })
 
   it('reads record byte 18 of a captured FM preset as 03', async () => {
