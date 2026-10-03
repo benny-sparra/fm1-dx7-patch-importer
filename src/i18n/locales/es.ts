@@ -406,6 +406,15 @@ export default {
         'La escritura se paró tras {{count, number}} de {{total, number}} sonidos. Comprueba la conexión MIDI del FM1.',
     },
   },
+  fm1VaSend: {
+    title: 'Enviar {{bank}} al FM1',
+    help: 'Escribe {{bank}} sobre uno de los bancos de presets del FM1. Solo se escriben los sonidos que difieren.',
+    destination: 'Escribir sobre',
+    favouritesShort:
+      'Favoritos tiene un sonido, así que los demás presets del banco del FM1 se quedan como están.',
+    favouritesShort_other:
+      'Favoritos tiene {{count, number}} sonidos, así que los demás presets del banco del FM1 se quedan como están.',
+  },
   duplicates: {
     menuItem: 'Buscar sonidos duplicados…',
     title: 'Sonidos duplicados',

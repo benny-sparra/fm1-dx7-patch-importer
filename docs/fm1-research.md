@@ -190,6 +190,8 @@ treats it as FM-1+VA, which is safe but slower.
   identical to the bundled voice, byte for byte (2026-09-29, FM-1_089, seen once).
 - The bank destination dialog shows the **Replace Bank A?** steps for FM-1+VA, M-VAVE's knob steps
   for M-VAVE's firmware, and M-VAVE's steps with a note on FM-1+VA while the firmware is unknown.
+  From FM-1_079, FM-1+VA gets no DX7 bank: **Send to FM1** writes the bank's presets with `7D 04`
+  through the write dialog, so the prompt is never reached.
 - Settings shows the firmware and what it means for the patches the editor plays.
 
 **Seen once on FM-1_089 (2026-09-29, test 7b):** a patch sent as its 155 parameter changes plays

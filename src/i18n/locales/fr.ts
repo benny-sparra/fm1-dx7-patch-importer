@@ -410,6 +410,15 @@ export default {
         'L’écriture s’est arrêtée après {{count, number}} sons sur {{total, number}}. Vérifiez la connexion MIDI du FM1.',
     },
   },
+  fm1VaSend: {
+    title: 'Envoyer {{bank}} au FM1',
+    help: 'Écrit {{bank}} sur l’une des banques de presets du FM1. Seuls les sons qui diffèrent sont écrits.',
+    destination: 'Écrire sur',
+    favouritesShort:
+      'Favoris contient un son, donc les autres presets de la banque du FM1 restent tels quels.',
+    favouritesShort_other:
+      'Favoris contient {{count, number}} sons, donc les autres presets de la banque du FM1 restent tels quels.',
+  },
   duplicates: {
     menuItem: 'Trouver les sons en double…',
     title: 'Sons en double',

@@ -118,9 +118,9 @@ notification offers **Undo**.
 
 To put your library's patches back on the FM1, preset by preset, choose **Write patches to the
 FM1…**, under **Baud Girl (FM-1+VA)** too. It is offered while the FM1 runs Baud Girl's firmware, FM-1_079 or
-later, chosen as the MIDI output and input with SysEx allowed. Unlike **Send to FM1**, it writes
-each patch straight into its own preset with its FM1 effects and Baud Girl settings, with no
-**Replace Bank A?** prompt. The dialog first reads the FM1, so it writes only the patches that
+later, chosen as the MIDI output and input with SysEx allowed. It writes each patch straight into
+its own preset with its FM1 effects and Baud Girl settings, with no **Replace Bank A?** prompt.
+The dialog first reads the FM1, so it writes only the patches that
 differ. Under each FM1 bank, **Write from** chooses the library bank to write over it, starting on
 the bank of the same letter, or **Don't write**. Virtual Analog presets on the FM1 are never written
 over, and a slot your bank has no patch in keeps its preset. A patch that came from a DX7 file
@@ -132,6 +132,11 @@ Presets page first. Writes go 3 seconds apart, as Baud Girl's own page spaces th
 reads each one back to check it, stopping at the first that does not match. **Stop after this
 patch** ends the writing between patches; the dialog cannot be closed while a patch is being
 written.
+
+On the same firmware, **Send to FM1** writes the selected bank the same way, rather than sending
+it as a DX7 bank for the FM1 to ask **Replace Bank A?**. **Write over** chooses the FM1 bank,
+starting on the bank of the same letter, or bank A for a bank after D or Favourites. Favourites
+writes only its first 32 patches; when it holds fewer, the rest of the FM1 bank keeps its presets.
 
 The search box above the patch grid looks through every bank that has patches in it, not only the one shown. It matches part of a patch's name, or a whole slot code such as `B07` or `b7`, and lists the matches in bank order, each labelled with its slot. While results show, the grid is titled **Search results**, no bank is selected, **Send to FM1** is unavailable because a bank transfer needs one bank, and patches cannot be dragged to reorder them. Click a result to play it as you would in its bank; the results stay up so you can try the next one, and they are still there when you come back from editing one. Clearing the search returns to the bank of the last result you played, or to the bank you were in if you played none. Choosing a bank on the left clears the search and shows that bank.
 

@@ -435,8 +435,10 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       preset, 001, and confirmed it)
       reads the FM1, writes each library bank chosen over an FM1 bank, only the patches that
       differ and never over a Virtual Analog preset, names every preset first, and reads each
-      write back. The **Replace Bank A?** prompt for **Send to FM1** stays until that button
-      uses the same path.
+      write back. **Send to FM1** uses the same path from FM-1_079 (built 2026-10-03, waiting for a
+      hardware test): the selected bank, or Favourites, is written over an FM1 bank chosen in the
+      dialog, so the **Replace Bank A?** prompt is left to releases before it. A short Favourites
+      writes only its own presets rather than INIT VOICE.
 - [ ] **5. Effect order and distortion type.** FM-1+VA stores both in the record and has no CC for
       them. A reorderable effect list and a Soft Clip / Hard Clip / Foldback choice in the effects
       panel, sent with the preset through 4, so a change is heard once written. This settles

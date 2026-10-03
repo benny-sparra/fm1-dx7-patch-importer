@@ -414,6 +414,15 @@ export default {
         'Das Schreiben wurde nach {{count, number}} von {{total, number}} Sounds angehalten. Prüfe die MIDI-Verbindung des FM1.',
     },
   },
+  fm1VaSend: {
+    title: '{{bank}} an den FM1 senden',
+    help: 'Schreibt {{bank}} über eine der Presetbänke des FM1. Nur Sounds, die sich unterscheiden, werden geschrieben.',
+    destination: 'Schreiben über',
+    favouritesShort:
+      'Favoriten enthält einen Sound, daher bleiben die übrigen Presets der FM1-Bank erhalten.',
+    favouritesShort_other:
+      'Favoriten enthält {{count, number}} Sounds, daher bleiben die übrigen Presets der FM1-Bank erhalten.',
+  },
   duplicates: {
     menuItem: 'Doppelte Sounds finden…',
     title: 'Doppelte Sounds',

@@ -299,6 +299,15 @@ export default {
         'Writing stopped after {{count, number}} of {{total, number}} patches. Check the FM1’s MIDI connection.',
     },
   },
+  fm1VaSend: {
+    title: 'Send {{bank}} to the FM1',
+    help: 'Writes {{bank}} over one of the FM1’s banks of presets. Only patches that differ are written.',
+    destination: 'Write over',
+    favouritesShort:
+      'Favourites holds one patch, so the FM1 bank’s other presets stay as they are.',
+    favouritesShort_other:
+      'Favourites holds {{count, number}} patches, so the FM1 bank’s other presets stay as they are.',
+  },
   duplicates: {
     menuItem: 'Find duplicate patches…',
     title: 'Duplicate patches',

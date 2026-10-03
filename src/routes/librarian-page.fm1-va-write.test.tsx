@@ -24,7 +24,7 @@ beforeAll(() => {
 
 afterEach(cleanup)
 
-function renderPage(firmware: Fm1Firmware) {
+function renderPage(firmware: Fm1Firmware, midi: Partial<LibrarianMidi> = {}) {
   const workspace = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
   const library = makeLibrarianLibrary({
     ...workspace,
@@ -40,7 +40,7 @@ function renderPage(firmware: Fm1Firmware) {
       <LibrarianPage
         activePatchId=""
         library={library}
-        midi={makeLibrarianMidi({ firmware })}
+        midi={makeLibrarianMidi({ firmware, ...midi })}
         onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
         onPlaySearchResult={vi.fn()}
@@ -50,6 +50,8 @@ function renderPage(firmware: Fm1Firmware) {
   )
   return { user: userEvent.setup() }
 }
+
+type LibrarianMidi = ReturnType<typeof makeLibrarianMidi>
 
 const writeItem = () => screen.queryByRole('button', { name: 'Write patches to the FM1…' })
 
@@ -102,5 +104,35 @@ describe('LibrarianPage reading and writing an FM1 on Baud Girl’s firmware', (
     expect(
       await screen.findByText(/^To read the presets from the FM1, choose it as the MIDI output/),
     ).toBeTruthy()
+  })
+
+  it('sends the selected bank by writing its presets from FM-1_079', async () => {
+    const sendBank = vi.fn<LibrarianMidi['sendBank']>()
+    const { user } = renderPage(
+      { identity: 'FM-1_079', kind: 'fm1-va' },
+      { hasMidiOutput: true, sendBank, sysexAvailable: true },
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+
+    expect(await screen.findByRole('dialog', { name: 'Send Bank 1 to the FM1' })).toBeTruthy()
+    expect(
+      screen.queryByRole('dialog', { name: 'Choose the destination bank on your FM1' }),
+    ).toBeNull()
+    expect(sendBank).not.toHaveBeenCalled()
+  })
+
+  it('sends the bank as a DX7 bank, with the FM1’s own instructions, before FM-1_079', async () => {
+    const { user } = renderPage(
+      { identity: 'FM-1_078', kind: 'fm1-va' },
+      { hasMidiOutput: true, sysexAvailable: true },
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+
+    expect(
+      screen.getByRole('dialog', { name: 'Choose the destination bank on your FM1' }),
+    ).toBeTruthy()
+    expect(screen.queryByRole('dialog', { name: 'Send Bank 1 to the FM1' })).toBeNull()
   })
 })

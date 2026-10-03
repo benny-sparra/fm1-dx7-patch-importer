@@ -358,6 +358,14 @@ export default {
         '写入在 {{count, number}} 个（共 {{total, number}} 个）音色后停止。请检查 FM1 的 MIDI 连接。',
     },
   },
+  fm1VaSend: {
+    title: '将 {{bank}} 发送到 FM1',
+    help: '将 {{bank}} 写入 FM1 的一个音色库，覆盖原有预设。只写入有差异的音色。',
+    destination: '写入到',
+    favouritesShort: '收藏中只有 1 个音色，因此该 FM1 音色库中的其余预设保持不变。',
+    favouritesShort_other:
+      '收藏中有 {{count, number}} 个音色，因此该 FM1 音色库中的其余预设保持不变。',
+  },
   duplicates: {
     menuItem: '查找重复的音色…',
     title: '重复的音色',

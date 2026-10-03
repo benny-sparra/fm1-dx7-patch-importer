@@ -11,6 +11,7 @@ import { capturedOrgan3Reply } from '@/test/fm1-va-captures'
 import {
   Fm1VaWriteMismatchError,
   planFm1VaBankWrite,
+  planFm1VaPatchesWrite,
   writeFm1VaPlannedPresets,
   type Fm1VaPlannedWrite,
 } from './fm1-va-write-plan'
@@ -125,6 +126,35 @@ describe('planFm1VaBankWrite', () => {
     const plan = planFm1VaBankWrite(storedPresets(), 'A', 'A', library)
 
     expect(plan[6]).toEqual({ kind: 'empty', slot: 6 })
+  })
+})
+
+describe('planFm1VaPatchesWrite', () => {
+  it('leaves every preset after the last patch alone, as a short Favourites does', () => {
+    const patch = { voice: updateDx7VoiceName(organ3, 'FAVOURITE') }
+
+    const plan = planFm1VaPatchesWrite(storedPresets(), 'D', [patch, patch, patch])
+
+    expect(plan.map(({ kind }) => kind)).toEqual([
+      ...Array.from({ length: 3 }, () => 'write'),
+      ...Array.from({ length: 29 }, () => 'empty'),
+    ])
+    expect(plan[0]).toMatchObject({ name: 'FAVOURITE', replaces: 'ORGAN 3', slot: 96 })
+  })
+
+  it('writes a patch with its own record and effects', () => {
+    const record = storedRecord.slice()
+    record[45] ^= 1
+    const effects = makeDefaultFm1Effects()
+
+    const [write] = planFm1VaPatchesWrite(storedPresets(), 'A', [
+      { effects, record, voice: organ3 },
+    ])
+
+    if (write.kind !== 'write') throw new Error('Expected a write.')
+    expect(write.slot).toBe(0)
+    expect(write.record[45]).toBe(record[45])
+    expect(fm1VaRecordEffects(write.record)).toEqual(effects)
   })
 })
 

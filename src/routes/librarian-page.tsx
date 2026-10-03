@@ -309,7 +309,9 @@ export function LibrarianPage({
   // Which Baud Girl preset import is open: the read from the FM1 or the presets file.
   const [fm1VaImportSource, setFm1VaImportSource] = useState<Fm1VaPresetSource | null>(null)
   const baudGirlMenuHeadingId = useId()
-  const [isWritingFm1VaPresets, setIsWritingFm1VaPresets] = useState(false)
+  // The write to an FM1 on Baud Girl's firmware: of every bank from the header menu, or of one bank
+  // from Send to FM1.
+  const [fm1VaWrite, setFm1VaWrite] = useState<{ sendBank?: string } | null>(null)
   const [isFindingDuplicates, setIsFindingDuplicates] = useState(false)
   // The slot the grid moves focus to once it shows, such as a patch chosen among the duplicates.
   const [slotFocusRequest, setSlotFocusRequest] = useState<{ patchId: string } | null>(null)
@@ -510,6 +512,13 @@ export function LibrarianPage({
     if (!midi.sysexAvailable) {
       trackAnalyticsEvent({ data: { reason: 'sysex_unavailable' }, name: 'bank_transfer_failed' })
       setSendGuide('bank-selection')
+      return
+    }
+    // Baud Girl's firmware stores each preset as written, effects included, so the bank is written
+    // preset by preset over an FM1 bank chosen in the dialog, rather than sent as a DX7 bank.
+    if (hasFm1VaPresetCommands(midi.firmware)) {
+      setDialogLoadError('')
+      setFm1VaWrite({ sendBank: destinationBank })
       return
     }
     if (shouldShowFm1BankSelectionDialog()) {
@@ -968,7 +977,7 @@ export function LibrarianPage({
                     onClick={() => {
                       allBanksMenuRef.current?.removeAttribute('open')
                       setDialogLoadError('')
-                      setIsWritingFm1VaPresets(true)
+                      setFm1VaWrite({})
                     }}
                     type="button"
                   >
@@ -1268,10 +1277,10 @@ export function LibrarianPage({
           </Suspense>
         </ErrorBoundary>
       ) : null}
-      {isWritingFm1VaPresets ? (
+      {fm1VaWrite ? (
         <ErrorBoundary
           onError={() => {
-            setIsWritingFm1VaPresets(false)
+            setFm1VaWrite(null)
             setDialogLoadError(t('fm1VaWrite.openFailed'))
           }}
         >
@@ -1280,9 +1289,14 @@ export function LibrarianPage({
               library={library}
               midi={midi}
               onClose={() => {
-                setIsWritingFm1VaPresets(false)
-                allBanksMenuRef.current?.querySelector('summary')?.focus()
+                setFm1VaWrite(null)
+                if (fm1VaWrite.sendBank === undefined) {
+                  allBanksMenuRef.current?.querySelector('summary')?.focus()
+                } else {
+                  sendButtonRef.current?.focus()
+                }
               }}
+              sendBank={fm1VaWrite.sendBank}
             />
           </Suspense>
         </ErrorBoundary>

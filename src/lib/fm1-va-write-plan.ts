@@ -45,22 +45,49 @@ type PlanLibrary = {
   voices: Partial<Record<string, Dx7Voice>>
 }
 
+/** A patch to write: its voice, its library effects, and its own settings record if it has one. */
+export type Fm1VaWritePatch = { effects?: Uint8Array; record?: Uint8Array; voice: Dx7Voice }
+
 function sameBytes(bytes: Uint8Array, other: Uint8Array) {
   return bytes.length === other.length && bytes.every((byte, index) => byte === other[index])
 }
 
+/** The 32 patches of workspace bank `libraryBank`, in slot order, with none where a slot is empty. */
+export function fm1VaLibraryBankPatches(
+  libraryBank: string,
+  library: PlanLibrary,
+): (Fm1VaWritePatch | undefined)[] {
+  return Array.from({ length: presetsPerBank }, (_, index) => {
+    const id = voiceId(libraryBank, index + 1)
+    const voice = library.voices[id]
+    return voice && { effects: library.effects[id], record: library.records[id], voice }
+  })
+}
+
 /**
- * The plan for writing workspace bank `libraryBank` over FM1 bank `bank`, from `stored`, all 128
- * presets read from the FM1 in slot order. Each library patch goes with its own settings record,
- * or the stored preset's when it has none, holding the library's effects either way, so bytes not
- * yet mapped keep the values the FM1 or the import read. A preset that would read back the same is
- * left alone, as is a slot the library bank has no patch in.
+ * The plan for writing workspace bank `libraryBank` over FM1 bank `bank`, as
+ * `planFm1VaPatchesWrite` plans it.
  */
 export function planFm1VaBankWrite(
   stored: readonly Fm1VaStoredPreset[],
   bank: Fm1VaWriteBank,
   libraryBank: string,
   library: PlanLibrary,
+): Fm1VaPresetPlan[] {
+  return planFm1VaPatchesWrite(stored, bank, fm1VaLibraryBankPatches(libraryBank, library))
+}
+
+/**
+ * The plan for writing `patches`, at most 32 in slot order, over FM1 bank `bank`, from `stored`,
+ * all 128 presets read from the FM1 in slot order. Each patch goes with its own settings record,
+ * or the stored preset's when it has none, holding the patch's effects either way, so bytes not
+ * yet mapped keep the values the FM1 or the import read. A preset that would read back the same is
+ * left alone, as is a slot with no patch, including every slot after the last.
+ */
+export function planFm1VaPatchesWrite(
+  stored: readonly Fm1VaStoredPreset[],
+  bank: Fm1VaWriteBank,
+  patches: readonly (Fm1VaWritePatch | undefined)[],
 ): Fm1VaPresetPlan[] {
   const firstSlot = fm1VaWriteBanks.indexOf(bank) * presetsPerBank
   return Array.from({ length: presetsPerBank }, (_, index): Fm1VaPresetPlan => {
@@ -70,13 +97,13 @@ export function planFm1VaBankWrite(
     if (preset.record[engineMarkerByte] === virtualAnalogMarker) {
       return { kind: 'virtual-analog', name: replaces, slot }
     }
-    const id = voiceId(libraryBank, index + 1)
-    const voice = library.voices[id]
-    if (!voice) return { kind: 'empty', slot }
+    const patch = patches[index]
+    if (!patch) return { kind: 'empty', slot }
 
+    const { voice } = patch
     const record = fm1VaRecordWithEffects(
-      library.records[id] ?? preset.record,
-      library.effects[id] ?? new Uint8Array(),
+      patch.record ?? preset.record,
+      patch.effects ?? new Uint8Array(),
     )
     const expectedVoice = packDx7Voice(Uint8Array.from(unpackDx7Voice(voice))).data
     if (sameBytes(expectedVoice, preset.voice) && sameBytes(record, preset.record)) {

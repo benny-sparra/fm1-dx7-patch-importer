@@ -33,6 +33,11 @@ export default {
     virtualAnalogPresetsFile_other:
       'The file has {{count, number}} virtual analog presets, which can’t currently be imported.',
   },
+  fm1VaSend: {
+    favouritesShort: 'Favorites holds one patch, so the FM1 bank’s other presets stay as they are.',
+    favouritesShort_other:
+      'Favorites holds {{count, number}} patches, so the FM1 bank’s other presets stay as they are.',
+  },
   favourites: {
     title: 'Favorites',
     tabTitle: 'Show your favorite patches',

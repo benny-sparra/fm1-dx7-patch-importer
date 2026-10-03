@@ -105,6 +105,7 @@ function matchingLibrary(voices: Library['voices'] = {}): Library {
   )
   return {
     bankNames: {},
+    favourites: [],
     effects: Object.fromEntries(ids.map(([id]) => [id, fm1VaRecordEffects(storedRecord)])),
     records: Object.fromEntries(ids.map(([id]) => [id, storedRecord])),
     voices: { ...Object.fromEntries(ids.map(([id, slot]) => [id, storedVoice(slot)])), ...voices },
@@ -119,11 +120,16 @@ const twoChanges = () =>
     [voiceId('C', 5)]: updateDx7VoiceName(storedVoice(68), 'MY BASS'),
   })
 
-function renderDialog(midi: Midi, library: Library = twoChanges()) {
+function renderDialog(midi: Midi, library: Library = twoChanges(), sendBank?: string) {
   const onClose = vi.fn()
   render(
     <ToastProvider>
-      <WriteFm1VaPresetsDialog library={library} midi={midi} onClose={onClose} />
+      <WriteFm1VaPresetsDialog
+        library={library}
+        midi={midi}
+        onClose={onClose}
+        sendBank={sendBank}
+      />
     </ToastProvider>,
   )
   const user = userEvent.setup({ advanceTimers: (ms) => vi.advanceTimersByTime(ms) })
@@ -282,6 +288,98 @@ describe('WriteFm1VaPresetsDialog', () => {
     expect(
       within(screen.getByRole('region', { name: 'FM1-Bank A' })).getByText(
         'Ein Sound unterscheidet sich.',
+      ),
+    ).toBeTruthy()
+  })
+})
+
+/** `count` favourites, each a copy of a patch named for its place, which no FM1 preset holds. */
+function favourites(count: number): Library['favourites'] {
+  return Array.from({ length: count }, (_, index) => ({
+    effects: fm1VaRecordEffects(storedRecord),
+    id: `favourite-${index}`,
+    origin: { bankNumber: 1 },
+    voice: updateDx7VoiceName(storedVoice(index), `FAV ${index + 1}`),
+  }))
+}
+
+const destination = () => screen.getByRole<HTMLSelectElement>('combobox', { name: 'Write over' })
+
+describe('WriteFm1VaPresetsDialog sending one bank', () => {
+  it('writes the bank over the FM1 bank of the same letter, only where it differs', async () => {
+    const fm1 = fakeFm1()
+    const { user } = renderDialog(fm1.midi, twoChanges(), 'C')
+
+    expect(await screen.findByRole('dialog', { name: 'Send Bank 3 to the FM1' })).toBeTruthy()
+    expect(destination().value).toBe('C')
+    expect(screen.getByText('One patch differs.')).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Write one patch…' }))
+    expect(screen.getByText('069 C05 PATCH → MY BASS')).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Write one patch' }))
+    await finishWriting(1)
+
+    expect(fm1.writtenSlots()).toEqual([68])
+  })
+
+  it('writes the bank over another FM1 bank chosen for it', async () => {
+    const fm1 = fakeFm1()
+    const { user } = renderDialog(fm1.midi, twoChanges(), 'C')
+    await screen.findByRole('button', { name: 'Write one patch…' })
+
+    await user.selectOptions(destination(), 'FM1 bank D')
+
+    // Every patch of library bank C differs from FM1 bank D's, whose names hold another letter.
+    expect(screen.getByText('32 patches differ.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Write 32 patches…' })).toBeTruthy()
+  })
+
+  it('starts a bank without an FM1 letter on FM1 bank A', async () => {
+    const library = matchingLibrary({ [voiceId('E', 1)]: storedVoice(0) })
+    renderDialog(fakeFm1().midi, { ...library, workspaceBanks: ['A', 'B', 'C', 'D', 'E'] }, 'E')
+
+    expect(
+      (await screen.findByRole<HTMLSelectElement>('combobox', { name: 'Write over' })).value,
+    ).toBe('A')
+  })
+
+  it('writes a short Favourites only as far as it goes, and says so', async () => {
+    const fm1 = fakeFm1()
+    const library = { ...matchingLibrary(), favourites: favourites(3) }
+    const { user } = renderDialog(fm1.midi, library, 'favourites')
+
+    expect(await screen.findByRole('dialog', { name: 'Send Favourites to the FM1' })).toBeTruthy()
+    expect(
+      await screen.findByText(
+        'Favourites holds 3 patches, so the FM1 bank’s other presets stay as they are.',
+      ),
+    ).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Write 3 patches…' }))
+    await user.click(screen.getByRole('button', { name: 'Write 3 patches' }))
+    await finishWriting(3)
+
+    expect(fm1.writtenSlots()).toEqual([0, 1, 2])
+  })
+
+  it('writes only the first 32 favourites, and says how many stay behind', async () => {
+    const library = { ...matchingLibrary(), favourites: favourites(34) }
+    renderDialog(fakeFm1().midi, library, 'favourites')
+
+    expect(
+      await screen.findByText(
+        'A bank holds 32 patches, so only the first 32 favourites are sent. The last 2 stay here.',
+      ),
+    ).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Write 32 patches…' })).toBeTruthy()
+  })
+
+  it('names the bank it sends in the interface language', async () => {
+    await setLocale('de')
+    renderDialog(fakeFm1().midi, twoChanges(), 'C')
+
+    expect(await screen.findByRole('dialog', { name: 'Bank 3 an den FM1 senden' })).toBeTruthy()
+    expect(
+      await screen.findByText(
+        'Schreibt Bank 3 über eine der Presetbänke des FM1. Nur Sounds, die sich unterscheiden, werden geschrieben.',
       ),
     ).toBeTruthy()
   })

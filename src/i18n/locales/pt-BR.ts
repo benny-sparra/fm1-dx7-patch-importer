@@ -403,6 +403,15 @@ export default {
         'A gravação parou após {{count, number}} de {{total, number}} sons. Verifique a conexão MIDI do FM1.',
     },
   },
+  fm1VaSend: {
+    title: 'Enviar {{bank}} ao FM1',
+    help: 'Grava {{bank}} sobre um dos bancos de presets do FM1. Só os sons diferentes são gravados.',
+    destination: 'Gravar sobre',
+    favouritesShort:
+      'Favoritos tem um som, então os outros presets do banco do FM1 continuam como estão.',
+    favouritesShort_other:
+      'Favoritos tem {{count, number}} sons, então os outros presets do banco do FM1 continuam como estão.',
+  },
   duplicates: {
     menuItem: 'Encontrar sons duplicados…',
     title: 'Sons duplicados',

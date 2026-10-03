@@ -208,6 +208,9 @@ open everything an earlier release could have saved.
   every other firmware, including one not yet identified, gets the patch as its 155 parameter
   changes, which it holds as an unsaved edit. The bank destination instructions follow the firmware
   too: FM-1+VA asks **Replace Bank A?** starting on bank A, and chooses the bank with ALGORITHM.
+  Where `hasFm1VaPresetCommands` allows the preset write (FM-1+VA from `FM-1_079`), **Send to
+  FM1** sends no DX7 bank: it opens the write dialog for the one bank (`sendBank`), which chooses
+  the FM1 bank in the app and writes only the presets that differ, effects included.
 - Clicking a slot in banks A–D sends its Program Change, then the library's voice and effects to
   the edit buffer, because the FM1's stored preset may not match the library and the app cannot
   read it back. Only without SysEx does the click fall back to the Program Change and effects. The
@@ -483,7 +486,9 @@ open everything an earlier release could have saved.
   heart sits on the slot's own button, so spacing cannot excuse a smaller target.
 - Favourites are sent to the FM1 as one 32-voice bank: the first 32, and INIT VOICE after a shorter
   list. Say which before and after sending: in the destination instructions
-  (`Fm1BankSelectionDialog`'s `note`) and in the sent message.
+  (`Fm1BankSelectionDialog`'s `note`) and in the sent message. Written preset by preset on
+  FM-1+VA, a shorter list writes only its own presets and leaves the rest of the FM1 bank as it
+  is, which the write dialog says before writing.
 - Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.
