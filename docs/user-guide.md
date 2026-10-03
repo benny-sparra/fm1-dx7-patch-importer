@@ -75,10 +75,11 @@ FM-1+VA stores a single patch sent as one SysEx message straight over the select
 open as its 155 individual parameter changes instead. The FM1 holds those as an unsaved edit of the
 selected preset, which it drops when you change preset. They arrive in well under a second. Press **SAVE** on the FM1 to keep the patch there.
 
-FM-1+VA also chooses a bank's destination differently. When a bank arrives it asks **Write the
-bank?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names
-the bank you want, then turn **SELECT** to **Write** and press **SEL**, or press **HOME** to
-cancel. The destination instructions shown before sending follow the firmware the FM1 named.
+FM-1+VA also chooses a bank's destination differently. When a bank arrives it asks **Replace Bank
+A?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names
+the bank you want, then turn **SELECT** to **Replace** and press **SEL**, or press **HOME** to
+cancel. Replacing also overwrites that bank's factory presets for good. The destination
+instructions shown before sending follow the firmware the FM1 named.
 
 Other replacement firmware, such as Hügelton Instruments' [Felucca](https://hugelton.github.io/Felucca/),
 shows as **Not identified** under **FM1 firmware**. The app sends it patches as parameter changes,

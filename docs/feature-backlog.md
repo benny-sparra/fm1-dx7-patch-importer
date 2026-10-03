@@ -412,7 +412,7 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       disconnection and completions after unmount.
 - [ ] **4. Write presets exactly.** Approve `04` and send chosen slots, or only the ones that
       differ from the FM1, straight to their own slots with effects and record, reading each back
-      to confirm it. This replaces the **Write the bank?** prompt on FM-1+VA and carries the
+      to confirm it. This replaces the **Replace Bank A?** prompt on FM-1+VA and carries the
       effects a DX7 bank loses. Each write stores the preset at once, so the confirmation names
       every preset it replaces and says an FM-1+VA backup is the way back; there is no Undo on
       the FM1. Pace writes 3 s apart, never cancel mid-write, and stop at the first preset that

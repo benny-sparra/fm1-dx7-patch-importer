@@ -6,13 +6,13 @@ export default {
     bankStep1: 'Wait for the bank selection screen to appear on the FM1 display.',
     bankStep2: 'Turn Knob 1, 2, 3 or 4 to choose destination bank A, B, C or D.',
     bankStep3: 'The FM1 saves the 32 patches automatically after a brief delay.',
-    bankFm1VaStep1: 'The FM1 asks “Write the bank?” and starts on bank A, whichever bank you send.',
+    bankFm1VaStep1: 'The FM1 asks “Replace Bank A?” and starts on bank A, whichever bank you send.',
     bankFm1VaStep2: 'Turn ALGORITHM until the question names the destination bank: A, B, C or D.',
     bankFm1VaStep3:
-      'Turn SELECT to Write and press SEL to store the 32 patches, or press HOME to cancel.',
+      'Turn SELECT to Replace and press SEL to store the 32 patches, or press HOME to cancel. They also replace that bank’s factory presets permanently.',
     bankFm1VaNote:
-      'If your FM1 runs FM-1+VA firmware, it asks “Write the bank?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Write and press SEL.',
-    bankFm1VaImage: 'FM1 display running FM-1+VA, asking “Write the bank?” with Cancel and Write',
+      'If your FM1 runs FM-1+VA firmware, it asks “Replace Bank A?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Replace and press SEL.',
+    bankFm1VaImage: 'FM1 display running FM-1+VA, asking “Replace Bank A?” with Cancel and Replace',
     bankImage:
       'FM1 display running M-VAVE’s firmware, showing “32 Voice Save To …” above banks A, B, C and D',
     dontShow: 'Don’t show me again this session',
