@@ -18,6 +18,11 @@ const effectRecordBytes = Array.from({ length: effectCount }, (_, effect) => {
   ]
 }).flat() as [controller: number, recordByte: number][]
 
+/** The record bytes that hold the FM1 effects; the rest hold the preset's other settings. */
+export const fm1VaEffectRecordBytes: ReadonlySet<number> = new Set(
+  effectRecordBytes.map(([, recordByte]) => recordByte),
+)
+
 /**
  * The FM1 effects a settings record holds, one value for each effect controller, CC 0 to 23, as
  * the effects panel edits them (docs/fm1-research.md, "What the record holds"). Effect _e_, in

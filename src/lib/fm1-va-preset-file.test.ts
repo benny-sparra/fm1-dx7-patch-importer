@@ -340,6 +340,31 @@ describe('differsFromLibrary', () => {
     expect(differsFromLibrary(written, { ...sameSlot, effects })).toBe(false)
   })
 
+  it('does not mark a library voice with stray unused bits, which the FM1 stores without them', () => {
+    // Bits 4 to 6 of a packed voice's byte 11 hold nothing; the FM1 stores them clear.
+    const data = organ3.voice.data.slice()
+    data[11] |= 0x40
+
+    expect(differsFromLibrary(organ3, { ...sameSlot, voice: { ...organ3.voice, data } })).toBe(
+      false,
+    )
+  })
+
+  it('does not mark a record whose effect byte is above its range, as the library holds it', () => {
+    const record = organ3.record.slice()
+    record[0] = 200
+    const fm1 = { ...organ3, effects: fm1VaRecordEffects(record), record }
+
+    expect(differsFromLibrary(fm1, { ...sameSlot, effects: fm1.effects, record })).toBe(false)
+  })
+
+  it('marks a slot whose record differs in a setting other than the effects', () => {
+    const record = organ3.record.slice()
+    record[54] = 0x19
+
+    expect(differsFromLibrary(organ3, { ...sameSlot, record })).toBe(true)
+  })
+
   it('marks a slot holding the same voice without the record', () => {
     expect(differsFromLibrary(organ3, { ...sameSlot, record: undefined })).toBe(true)
   })

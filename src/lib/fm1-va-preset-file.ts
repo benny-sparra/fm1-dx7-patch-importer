@@ -3,11 +3,13 @@ import {
   dx7BankVoiceCount,
   isSevenBitData,
   packDx7Voice,
+  unpackDx7Voice,
   type Dx7Voice,
 } from '@/lib/dx7'
+import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
-import { fm1VaRecordEffects, fm1VaRecordWithEffects } from '@/lib/fm1-va-record-effects'
+import { fm1VaEffectRecordBytes, fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
 import {
   fm1VaPresetChecksumIndex,
   fm1VaPresetHeader,
@@ -18,7 +20,6 @@ import {
 } from '@/lib/fm1-va-preset-message'
 import { fm1VaChecksum } from '@/lib/fm1-va-sysex'
 import type { FetchedSound } from '@/lib/patch-library'
-import { soundKey } from '@/lib/sound-key'
 
 /**
  * FM-1+VA's stored presets, from the `.syx` file its **Save a backup** writes or read from the FM1
@@ -69,11 +70,29 @@ export function importableSounds({ presets }: Fm1VaPresetFileBank): (FetchedSoun
   )
 }
 
+function sameBytes(bytes: Uint8Array, other: Uint8Array) {
+  return bytes.length === other.length && bytes.every((byte, index) => byte === other[index])
+}
+
+/** A voice's packed bytes as the FM1 stores it: the packed form of its edit buffer. */
+function storedVoiceBytes(voice: Dx7Voice) {
+  return packDx7Voice(Uint8Array.from(unpackDx7Voice(voice))).data
+}
+
+/** Whether two records hold the same settings apart from the FM1 effects. */
+function sameSettings(record: Uint8Array, other: Uint8Array) {
+  return (
+    record.length === other.length &&
+    record.every((byte, index) => fm1VaEffectRecordBytes.has(index) || byte === other[index])
+  )
+}
+
 /**
- * Whether a preset differs from the patch in the library slot it would replace, as the sound key
- * compares patches: voice data, FM1 effects, and record. The library's record is compared holding
- * the library's effects, as a preset write stores it, so a patch whose effects changed after it was
- * imported matches the FM1 once written. A slot the library has no patch in differs, as does one
+ * Whether a preset differs from the patch in the library slot it would replace, in what the FM1
+ * would play and store: the voice in the packed form the FM1 stores, the FM1 effects within their
+ * ranges, and every other byte of the settings record. It compares as a preset write stores a
+ * patch, so a patch written to the FM1 matches it however its library copy's bytes were first
+ * laid out or its effects since changed. A slot the library has no patch in differs, as does one
  * with no record, which importing would give it; a preset the import leaves out does not.
  */
 export function differsFromLibrary(
@@ -81,12 +100,11 @@ export function differsFromLibrary(
   slot: { effects?: Uint8Array; record?: Uint8Array; voice?: Dx7Voice },
 ) {
   if (preset.kind !== 'fm') return false
-  if (!slot.voice) return true
-  const record =
-    slot.record && fm1VaRecordWithEffects(slot.record, slot.effects ?? new Uint8Array())
+  if (!slot.voice || !slot.record) return true
   return (
-    soundKey(preset.voice, preset.effects, preset.record) !==
-    soundKey(slot.voice, slot.effects, record)
+    !sameBytes(storedVoiceBytes(preset.voice), storedVoiceBytes(slot.voice)) ||
+    !sameBytes(preset.effects, normalizeFm1Effects(slot.effects)) ||
+    !sameSettings(preset.record, slot.record)
   )
 }
 
