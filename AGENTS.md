@@ -186,10 +186,10 @@ open everything an earlier release could have saved.
   Keep what it reads exactly as read until each byte is mapped in `docs/fm1-research.md`.
   Code that reads presets goes through `useFm1VaPresetReader`, which takes the ports from the
   `useMidi` slice it is given, rather than through `useMidi` itself: `useMidi` is in the initial
-  bundle, and the read's wiring there cost 1.6 KiB. Today only the development probe uses the
-  reader. The reply parser takes `unpackSevenBitStream` from `src/lib/fm1-firmware.ts`, so the
-  first lazy chunk to use it in production makes Rolldown split that module out of the entry
-  (883 B in a trial); measure it with `npm run bundle:check` when that feature lands.
+  bundle, and the read's wiring there cost 1.6 KiB. **Import FM-1+VA presets…** reads all 128
+  presets through it, one at a time (`readEveryFm1VaPreset`), and the development probe uses it
+  too. The reply parser takes `unpackSevenBitStream` from `src/lib/fm1-firmware.ts`; when the
+  import dialog started reading, that split nothing out of the entry.
 - Send a patch as a DX7 single-voice dump only to firmware identified as M-VAVE's
   (`sendsSingleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored preset, so
   every other firmware, including one not yet identified, gets the patch as its 155 parameter
@@ -245,7 +245,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader and its dialog when **Import FM-1+VA presets…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Import FM-1+VA presets…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -278,16 +278,22 @@ open everything an earlier release could have saved.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
   bundler-made chunk is expected, and the budget counts it because the entry imports it.
 - Development and verification controls are gated where they are rendered, with a build-time
-  constant such as `sentryVerificationEnabled`, so normal production builds leave them out.
+  constant such as `sentryVerificationEnabled`, so normal production builds leave them out. A
+  control that imports code a lazy chunk also uses is itself loaded with `lazy` behind the gate,
+  as the FM-1+VA preset probe is: imported statically, it gave the entry a path to the preset
+  read, and once the import dialog used the read too, Rolldown kept 1.6 KB of it in the entry,
+  although the probe never renders there.
 - A rejected optional chunk must be contained and recoverable; stale deployment chunks must not
   crash the entire application. Every deploy renames every chunk, so a tab left open across a
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 163 KiB gzip budget; raising it needs
+  Dynamic imports are excluded. Do not weaken or bypass the 164 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
-  149 KiB, React 19.3's raise from 151 KiB, and the FM-1+VA header photos' raise from 162 KiB
-  had. React DOM ships prebuilt with its features
+  149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB, and
+  reading FM-1+VA presets from the FM1's raise from 163 KiB had. That last one paid for the read's
+  eager English strings, because every `en-GB` string is in the entry, even one only a lazy dialog
+  shows. React DOM ships prebuilt with its features
   switched on, so 19.3's stable View Transitions, Fragment refs, and SuspenseList cost about
   8.4 KiB whether or not the app uses them; a React upgrade is measured like any other change.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
@@ -448,8 +454,10 @@ open everything an earlier release could have saved.
 - A patch from FM-1+VA keeps its 59-byte settings record (`src/lib/fm1-va-record.ts`) beside its
   voice and effects, exactly as read, through every path its effects take: copying, moving,
   Favourites, saved banks, backups, and Undo. A path that puts in a voice without one, such as a
-  DX7 file or bank, leaves the slot with no record. The record's effect bytes repeat the library's
-  effects, which stay the ones the effects panel edits; the bytes the panel cannot set (effect
+  DX7 file or bank, leaves the slot with no record. Importing a preset, from the FM1 or its
+  file, takes the library's effects from the record's effect bytes (`fm1VaRecordEffects`, a module
+  only lazy code imports); after that the library's effects are the ones the effects panel
+  edits, and the record keeps its bytes as read. The bytes the panel cannot set (effect
   order, Distortion type, Envelope, the preset's own Filter, Virtual Analog settings, and bytes not
   mapped yet) come only from the record. Lazy code takes `fm1VaRecordSize` from
   `src/lib/patch-library.ts`, since importing the record module directly gave it a chunk of its own.

@@ -53,7 +53,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Audition any patch with a click: a slot in banks A–D selects the matching FM1 slot with MIDI Program Change, then sends the library's voice to the edit buffer, and a patch from an added bank goes straight to the edit buffer
 - Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
 - Recognise the FM-1+VA replacement firmware, and send it patches as parameter changes so auditions never overwrite a stored preset
-- Import the FM1's banks A–D from the file FM-1+VA's **Save a backup** writes, with a preview and Undo
+- Import the FM1's banks A–D with their effects, read straight from an FM1 on FM-1+VA or from the file its **Save a backup** writes, into the library banks you choose or new ones, with a preview that marks the patches differing from the library, and Undo
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard, or loop one of six short phrases to audition a patch hands-free
 - Release hanging notes on the FM1 with a MIDI panic button
@@ -133,15 +133,16 @@ The repository records the evidence behind FM1-specific behaviour in
 sequencer is being researched through captured fixtures only; it is not yet exposed in the app and
 the editor does not send sequencer or other unclassified vendor commands. The one updater message it
 sends is the read-only identity query, to tell M-VAVE's firmware from FM-1+VA; the notes record how
-the editor was tested on FM-1+VA and why it sends that firmware patches as parameter changes.
+the editor was tested on FM-1+VA and why it sends that firmware patches as parameter changes. Of
+FM-1+VA's own commands it sends only the read of a stored preset, which changes nothing.
 
 ## Future development
 
 Future development could add grouped modulation workflows, a focused internal-sequencer editor once
 its protocol is proven safe, and device readback if M-VAVE documents a compatible transmit protocol.
-FM-1+VA already offers preset readback, exact preset writes, and direct sequencer pattern transfer
-through commands of its own, which could support importing from the FM1 and Virtual Analog preset
-editing on that firmware once each command is reviewed and approved.
+FM-1+VA also offers exact preset writes and direct sequencer pattern transfer through commands of
+its own, which could support sending presets with their effects and Virtual Analog preset editing on
+that firmware once each command is reviewed and approved.
 
 ## Acknowledgements
 

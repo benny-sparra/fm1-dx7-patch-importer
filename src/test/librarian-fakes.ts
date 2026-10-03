@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react'
 import { vi } from 'vitest'
 
+import { MidiLogStore } from '@/lib/midi-log-store'
 import type { LibrarianPage } from '@/routes/librarian-page'
 
 type Library = ComponentProps<typeof LibrarianPage>['library']
@@ -67,8 +68,13 @@ export function makeLibrarianMidi(overrides: Partial<Midi> = {}): Midi {
     disconnectMidi: vi.fn<Midi['disconnectMidi']>(),
     firmware: { identity: 'FM-1_015', kind: 'mvave' },
     hasMidiOutput: false,
+    inputs: [],
     isConnecting: false,
+    logStore: new MidiLogStore([]),
     midiAccess: false,
+    outputs: [],
+    selectedInputId: '',
+    selectedOutputId: '',
     sendBank: vi.fn<Midi['sendBank']>(),
     sysexAvailable: false,
     ...overrides,

@@ -3,7 +3,9 @@ import { resolve } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { parseDx7Bank, unpackDx7Voice } from '@/lib/dx7'
+import { dx7PackedVoiceSize, parseDx7Bank, unpackDx7Voice } from '@/lib/dx7'
+import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
+import { fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
 import { fm1VaChecksum, parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import {
   capturedOrgan3,
@@ -13,7 +15,9 @@ import {
 } from '@/test/fm1-va-captures'
 
 import {
+  differsFromLibrary,
   Fm1VaPresetFileError,
+  fm1VaPresetBanksFromRead,
   fm1VaPresetFileSize,
   importableSounds,
   parseFm1VaPresetFile,
@@ -208,6 +212,16 @@ describe('parseFm1VaPresetFile', () => {
 })
 
 describe('importableSounds', () => {
+  it('gives each patch the effects its record holds', () => {
+    const [bankA] = parseFm1VaPresetFile(backupFile().buffer as ArrayBuffer)
+
+    const [organ3] = importableSounds(bankA)
+
+    expect(organ3?.effects).toEqual(fm1VaRecordEffects(organ3?.record ?? new Uint8Array()))
+    // ORGAN 3's stored Filter Cutoff, the record's byte 0.
+    expect(organ3?.effects?.[2]).toBe(80)
+  })
+
   it('leaves out the presets the library cannot take', () => {
     const file = backupFile()
     file[5 * 231 + 20] = (file[5 * 231 + 20] + 1) & 0x7f
@@ -235,5 +249,94 @@ describe('readFm1VaPresetFile', () => {
     expect(error).toBeInstanceOf(Fm1VaPresetFileError)
     expect((error as Fm1VaPresetFileError).problem).toBe('size')
     expect((error as Fm1VaPresetFileError).receivedBytes).toBe(4104)
+  })
+})
+
+/** The preset in a captured reply, as `readFm1VaPreset` resolves with it. */
+function storedPreset(reply: Uint8Array, slot: number): Fm1VaStoredPreset {
+  const data = parseFm1VaReply(reply)?.data ?? new Uint8Array()
+  return {
+    record: data.slice(dx7PackedVoiceSize),
+    reply,
+    slot,
+    voice: data.slice(0, dx7PackedVoiceSize),
+  }
+}
+
+/** 128 presets read from the FM1: ORGAN 3 in each slot, and the Virtual Analog preset in 097. */
+function readPresets() {
+  return Array.from({ length: 128 }, (_, slot) =>
+    storedPreset(slot === 96 ? capturedVirtualAnalogFilterOnReply : capturedOrgan3Reply, slot),
+  )
+}
+
+describe('fm1VaPresetBanksFromRead', () => {
+  it('divides the presets read into banks A to D of 32, in slot order', () => {
+    const banks = fm1VaPresetBanksFromRead(readPresets())
+
+    expect(banks.map(({ bank }) => bank)).toEqual(['A', 'B', 'C', 'D'])
+    expect(banks.every(({ presets }) => presets.length === 32)).toBe(true)
+  })
+
+  it('reads an FM preset’s voice, record, and effects', () => {
+    const [bankA] = fm1VaPresetBanksFromRead(readPresets())
+    const organ3 = storedPreset(capturedOrgan3Reply, 0)
+
+    expect(bankA.presets[0]).toEqual({
+      effects: fm1VaRecordEffects(organ3.record),
+      kind: 'fm',
+      record: organ3.record,
+      voice: { data: organ3.voice, name: 'ORGAN 3' },
+    })
+  })
+
+  it('reads the same voice and record as the backup file holds for the preset', () => {
+    const [fromRead] = fm1VaPresetBanksFromRead(readPresets())
+    const [fromFile] = parseFm1VaPresetFile(backupFile().buffer as ArrayBuffer)
+
+    expect(fromRead.presets[0]).toEqual(fromFile.presets[0])
+  })
+
+  it('names a Virtual Analog preset by its record', () => {
+    const banks = fm1VaPresetBanksFromRead(readPresets())
+
+    expect(banks[3].presets[0]).toEqual({ kind: 'virtual-analog', name: 'VOICE 97' })
+  })
+
+  it('counts an FM preset whose voice holds a byte above seven bits as damaged', () => {
+    const presets = readPresets()
+    presets[5].voice[20] = 0x80
+
+    expect(fm1VaPresetBanksFromRead(presets)[0].presets[5]).toEqual({ kind: 'damaged' })
+  })
+})
+
+describe('differsFromLibrary', () => {
+  const [organ3] = fm1VaPresetBanksFromRead(readPresets())[0].presets
+  if (organ3.kind !== 'fm') throw new Error('Expected an FM preset.')
+  const sameSlot = { effects: organ3.effects, record: organ3.record, voice: organ3.voice }
+
+  it('does not mark a slot holding the same voice, effects, and record', () => {
+    expect(differsFromLibrary(organ3, sameSlot)).toBe(false)
+  })
+
+  it('marks a slot whose effects differ', () => {
+    const effects = organ3.effects.slice()
+    effects[0] = 1
+
+    expect(differsFromLibrary(organ3, { ...sameSlot, effects })).toBe(true)
+  })
+
+  it('marks a slot holding the same voice without the record', () => {
+    expect(differsFromLibrary(organ3, { ...sameSlot, record: undefined })).toBe(true)
+  })
+
+  it('marks a slot the library has no patch in', () => {
+    expect(differsFromLibrary(organ3, {})).toBe(true)
+  })
+
+  it('does not mark a preset the import leaves out', () => {
+    expect(differsFromLibrary({ kind: 'virtual-analog', name: 'Default' }, {})).toBe(false)
+    expect(differsFromLibrary({ kind: 'damaged' }, {})).toBe(false)
   })
 })

@@ -32,10 +32,13 @@ import { makeFm1VaPresetReply, makeFm1VaReply, makeStoredPresetData } from '@/te
 
 import {
   Fm1VaPresetReadError,
+  fm1VaPresetCount,
   makeFm1VaPresetReadRequest,
+  readEveryFm1VaPreset,
   readFm1VaPreset,
   readsFm1VaPresets,
   type Fm1VaLink,
+  type Fm1VaStoredPreset,
 } from './fm1-va-preset-read'
 
 type Hear = Parameters<Fm1VaLink['listen']>[0]
@@ -513,5 +516,68 @@ describe('readsFm1VaPresets', () => {
     expect(readsFm1VaPresets({ identity: 'FM-1_904', kind: 'felucca' })).toBe(false)
     expect(readsFm1VaPresets({ kind: 'unidentified' })).toBe(false)
     expect(readsFm1VaPresets({ kind: 'checking' })).toBe(false)
+  })
+})
+
+describe('readEveryFm1VaPreset', () => {
+  const storedPreset = (slot: number): Fm1VaStoredPreset => ({
+    record: new Uint8Array(59),
+    reply: new Uint8Array(),
+    slot,
+    voice: new Uint8Array(128),
+  })
+
+  it('reads all 128 presets one at a time, in slot order', async () => {
+    const asked: number[] = []
+    let reading = 0
+    const read = vi.fn(async (slot: number) => {
+      reading += 1
+      expect(reading).toBe(1)
+      asked.push(slot)
+      await Promise.resolve()
+      reading -= 1
+      return storedPreset(slot)
+    })
+
+    const presets = await readEveryFm1VaPreset(read)
+
+    expect(asked).toEqual(Array.from({ length: fm1VaPresetCount }, (_, slot) => slot))
+    expect(presets.map(({ slot }) => slot)).toEqual(asked)
+  })
+
+  it('reports how many presets have arrived as each one does', async () => {
+    const onRead = vi.fn<(count: number) => void>()
+
+    await readEveryFm1VaPreset(async (slot) => storedPreset(slot), { onRead })
+
+    expect(onRead).toHaveBeenCalledTimes(fm1VaPresetCount)
+    expect(onRead).toHaveBeenNthCalledWith(1, 1)
+    expect(onRead).toHaveBeenLastCalledWith(fm1VaPresetCount)
+  })
+
+  it('stops at the first preset that cannot be read', async () => {
+    const refused = new Fm1VaPresetReadError('refused', 3, 'Refused.')
+    const read = vi.fn(async (slot: number) => {
+      if (slot === 3) throw refused
+      return storedPreset(slot)
+    })
+
+    await expect(readEveryFm1VaPreset(read)).rejects.toBe(refused)
+    expect(read).toHaveBeenCalledTimes(4)
+  })
+
+  it('hands each read the signal, so stopping ends the read in progress', async () => {
+    const stop = new AbortController()
+    const signals: (AbortSignal | undefined)[] = []
+
+    await readEveryFm1VaPreset(
+      async (slot, signal) => {
+        signals.push(signal)
+        return storedPreset(slot)
+      },
+      { signal: stop.signal },
+    )
+
+    expect(signals.every((signal) => signal === stop.signal)).toBe(true)
   })
 })

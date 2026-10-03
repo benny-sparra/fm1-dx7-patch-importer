@@ -321,22 +321,39 @@ export default {
     menuContents: 'Pour le firmware FM-1+VA de Baud Girl',
     title: 'Importer les presets FM-1+VA',
     help: 'Choisissez le fichier de « Save a backup » sur la page Presets de FM-1+VA.',
-    effectsNote:
-      'Les effets ne sont pas encore importés : chaque son arrive avec ses effets désactivés.',
-    warning: 'Chaque banque activée remplace la même banque ici. Vous pourrez l’annuler.',
+    helpRead:
+      'Lisez les presets du FM1, ou choisissez le fichier de « Save a backup » sur la page Presets de FM-1+VA.',
+    effectsNote: 'Chaque son arrive avec ses effets FM1 et ses réglages FM-1+VA.',
+    warning:
+      'Chaque banque importée remplace la banque que vous choisissez pour elle, ou s’ajoute comme nouvelle banque. Vous pourrez l’annuler.',
     file: 'Fichier de presets FM-1+VA',
+    read: 'Lire depuis le FM1',
+    readHelp:
+      'Lit les 128 presets du FM1 pour les comparer à votre bibliothèque. Rien ne change sur le FM1.',
+    readUnavailable:
+      'Pour lire les presets du FM1, choisissez-le comme sortie et entrée MIDI, avec SysEx autorisé. La lecture nécessite FM-1+VA FM-1_079 ou plus récent.',
+    reading: 'Lecture du preset {{number, number}} sur {{total, number}}…',
+    stopReading: 'Arrêter la lecture',
     chooseFile: 'Choisir le fichier de « Save a backup »',
     previewTitle: 'Banques de ce fichier',
     previewHelp: 'Ouvrez une banque pour écouter ses sons sur le FM1.',
+    previewTitleFm1: 'Banques sur le FM1',
+    allMatch: 'Chaque son ici correspond à votre bibliothèque.',
+    differs: 'Un point marque le seul son qui diffère de votre bibliothèque.',
+    differs_other:
+      'Un point marque chacun des {{count, number}} sons qui diffèrent de votre bibliothèque.',
+    differingPatch: 'Diffère de votre bibliothèque',
     bankHeading: 'Banque {{bank}} du FM1',
     replaceBank: 'Remplacer « {{name}} »',
     addBank: 'L’ajouter comme nouvelle banque',
+    destination: 'Importer dans',
+    skipBank: 'Ne pas importer',
     damagedPreset: 'Endommagé',
     damagedPresets: 'Un preset est endommagé. Son emplacement garde son son.',
     damagedPresets_other:
       '{{count, number}} presets sont endommagés. Leurs emplacements gardent leurs sons.',
-    action: 'Remplacer une banque',
-    action_other: 'Remplacer {{count, number}} banques',
+    action: 'Importer une banque',
+    action_other: 'Importer {{count, number}} banques',
     imported: 'Banque {{banks}} importée depuis FM-1+VA.',
     imported_other: 'Banques {{banks}} importées depuis FM-1+VA.',
     openFailed: 'Impossible d’ouvrir l’importation FM-1+VA. Rechargez la page et réessayez.',
@@ -352,6 +369,12 @@ export default {
       damaged:
         'Aucun preset de ce fichier n’a pu être lu. Enregistrez une nouvelle sauvegarde sur FM-1+VA et réessayez.',
       unreadable: 'Le fichier n’a pas pu être lu.',
+      readBusy:
+        'Le FM1 ne peut pas envoyer ses presets pendant que son Sequencer joue. Arrêtez-le et relancez la lecture.',
+      readNoReply: 'Le FM1 ne répond plus. Vérifiez sa connexion MIDI et relancez la lecture.',
+      readStopped: 'La lecture s’est arrêtée car les ports MIDI ont changé. Relancez la lecture.',
+      readFailed:
+        'Le FM1 n’a pas pu envoyer ses presets. Relancez la lecture ou choisissez un fichier de « Save a backup ».',
     },
   },
   duplicates: {

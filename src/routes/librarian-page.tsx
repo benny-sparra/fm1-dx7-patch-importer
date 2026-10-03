@@ -229,6 +229,7 @@ type LibrarianLibrary = BackupLibrary &
   >
 
 type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
+  ComponentProps<typeof ImportFm1VaPresetsDialog>['midi'] &
   Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
 type LibrarianPageProps = {
@@ -1206,12 +1207,12 @@ export function LibrarianPage({
           <Suspense fallback={null}>
             <ImportFm1VaPresetsDialog
               library={library}
+              midi={midi}
               onClose={() => {
                 setIsImportingFm1VaPresets(false)
                 allBanksMenuRef.current?.querySelector('summary')?.focus()
               }}
-              // The file's effects are not read, so its patches play with the defaults.
-              onPlay={(voice) => onPlaySearchResult(voice, undefined)}
+              onPlay={onPlaySearchResult}
             />
           </Suspense>
         </ErrorBoundary>

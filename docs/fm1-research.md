@@ -229,6 +229,18 @@ statuses and damage no capture shows yet.
 - FM-1+VA's own page waits 1.5 s for an answer and asks three times; the editor does the same.
   The editor sends the request again when the reply's status says it arrived damaged, and treats
   a reply of any other size as a layout it does not know rather than asking again.
+- **Reading every preset** (**Read from FM1** in **Import FM-1+VA presets…**, built 2026-10-03)
+  sends the 128 requests one at a time, each after the previous reply, and stops at the first
+  read that fails. The import takes each FM preset's library effects from the record's effect
+  bytes, as "What the record holds" maps them. **Confirmed on hardware** (FM-1_093, 2026-10-03,
+  through the editor over USB): the 128 reads take one to two seconds, and none failed across
+  several runs. Importing the four banks and reading again showed every patch matching the
+  library, so the voice, effects, and record survive the round trip. Changing one setting on
+  preset 001 and pressing SAVE marked that patch alone.
+- **The read is not refused while the Sequencer plays. Confirmed, seen once** (the same session):
+  with the FM1's own Sequencer playing, every read answered with status `0`. Status `3` belongs
+  to the writes, then, at least on FM-1_093; the editor still explains it if a read ever returns
+  it.
 - **Record byte 18 of an FM preset is `03`. Confirmed, seen once** (the capture above). FM-1+VA's
   modules give `A5` for an FM preset, but the read of ORGAN 3 holds `03`, as the backups did, so the
   backups were read in the right place and the editor's `5A` test stands. Its modules write `A5`

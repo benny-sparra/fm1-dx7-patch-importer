@@ -256,7 +256,8 @@ export function makeDx7BankFile(voices: Dx7Voice[], channel = 1) {
   return makeYamahaSysexMessage(makeDx7BankPayload(voices, channel))
 }
 
-function decodeVoiceName(data: Uint8Array) {
+/** The name in a packed voice's last ten bytes, as the FM1 shows it. */
+export function decodeVoiceName(data: Uint8Array) {
   return (
     String.fromCharCode(...data.slice(118, 128))
       .replace(/[^\x20-\x7e]/g, ' ')
