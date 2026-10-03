@@ -384,7 +384,7 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       file and sends nothing. A Virtual Analog preset, which record byte 18 marks with `5A`
       (`docs/fm1-research.md`, "Its backup file"), is shown as VA and left out, so its slot keeps
       its patch until item 6 can hold one.
-- [ ] **2. Groundwork: read presets, and map the record.** Approve `10`, build a bounded
+- [x] **2. Groundwork: read presets, and map the record.** Approve `10`, build a bounded
       `readFm1VaPreset(slot)` with typed, translated errors, and capture fixtures from an FM1.
       Then map the record by the research discipline: change one setting on the FM1 (an effect
       switch, a CC value, the effect order, a Virtual Analog setting), press SAVE, read, and diff,
@@ -393,21 +393,17 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       understood, keep it exactly as read. Storing the record with each slot is a new optional field: the workspace record
       moves to version 7 and the backup file to version 3, with fixtures for both and a default
       for patches that never had one.
-      _In progress:_ `10` approved 2026-10-02. `readFm1VaPreset(slot)` reads one preset through
-      `useFm1VaPresetReader`, with typed errors that a user-facing action will translate (3), and the
-      development build's **FM-1+VA preset probe (dev)** shows each read byte by byte with the
-      changes since the last. A reply captured from FM-1_093 (preset 001) confirmed the read and
-      matched the backup byte for byte; a read of 097 settled the backup's high-bit order and
-      found the Filter switch in record byte 28, and a change of effect order showed the order and the
-      switches are separate lists in bytes 27–44. By 2026-10-03, 19 reads had mapped every effect
-      (bytes 0–17 and 27–44, each the value its FX controller sends), Envelope On and Attack (53
-      and 54), and the FM preset's own Filter switch and Cutoff (26 and 23)
-      (`docs/fm1-research.md`, "What the record holds"). The record is now stored with each slot
-      that has one: workspace version 7, saved banks version 2, and backup files version 3, each
-      with fixture tests. **Import FM-1+VA presets…** keeps each FM preset's record, and the sound
-      key, so hearts, search, and duplicates, includes it. Every one of the 24 effect controllers
-      has been read back in its byte, so items 3–5 can take a patch's effects from its record.
-      The Virtual Analog settings wait for item 6.
+      _Shipped 2026-10-03 (#151):_ `10` is approved, for FM-1+VA from FM-1_079.
+      `readFm1VaPreset(slot)` reads one preset through `useFm1VaPresetReader`, with typed errors
+      that item 3 translates when it shows them; a development build's **FM-1+VA preset probe
+      (dev)** shows each read byte by byte. Captures from FM-1_093 confirmed the read, settled the
+      backup's high-bit order, and mapped every effect controller (bytes 0–17 and 27–44, each the
+      value the FM1 uses), Distortion Type (38), Envelope On and Attack (53 and 54), and the FM
+      preset's own Filter switch and Cutoff (26 and 23) (`docs/fm1-research.md`, "What the record
+      holds"). Each slot that has a record keeps it, exactly as read: workspace version 7, saved
+      banks version 2, and backup files version 3, each with fixture tests. **Import FM-1+VA
+      presets…** keeps each FM preset's record, and the sound key includes it. The Virtual Analog
+      settings wait for item 6, and the Filter section's other settings are not mapped yet.
 - [ ] **3. Import from the FM1.** A **Read from FM1…** action reads all 128 presets, shows which
       slots differ from banks A–D, and lets the user take the FM1's version of each bank, with
       effects and record, as one Undo. This answers [Syncing patches with the FM1](#syncing-patches-with-the-fm1)
