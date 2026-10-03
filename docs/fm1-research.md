@@ -419,83 +419,105 @@ need the preset read and write commands above (`docs/feature-backlog.md`, FM-1+V
 
 ### Felucca replacement firmware
 
-Site, installer, and recovery tool:
+Site, source, installer, editor, and recovery tool:
 
-- https://hugelton.github.io/Felucca/ (repository https://github.com/hugelton/Felucca)
+- https://hugelton.github.io/Felucca/ (repository https://github.com/hugelton/Felucca, releases
+  https://github.com/hugelton/Felucca/releases)
+- Installer https://hugelton.github.io/Felucca/webapp/installer/ and web editor
+  https://hugelton.github.io/Felucca/webapp/editor/
 - https://github.com/kurogedelic/FM-1-transporter
 - https://synthanatomy.com/2026/10/hugelton-instruments-felucca-custom-m-vave-fm-1-firmware-turns-it-into-a-multi-engine-synth.html
 
-Felucca is Leo Kuroshita's (Hügelton Instruments) replacement firmware for the FM1, released as
-0.4-beta on 2026-10-02 under GPL-3.0-only. It replaces M-VAVE's engine with five: virtual analog,
-FM, phase distortion, lo-fi (NES/SID), and a sample player. The repository holds the built package
-(`felucca-0.4-beta.fwsc`) and the installer page; no source, manual, or MIDI implementation was
-published at the time of review. The installer page's script and a static reading of the package
-(below) informed this note; the firmware has not been disassembled or run by this project.
+Felucca is Leo Kuroshita's (Hügelton Instruments) replacement firmware for the FM1, under
+GPL-3.0-only. 0.4-beta (2026-10-02) shipped only a built package; 0.8-beta (2026-10-03) is the
+first source release. 0.8 has six engines (ANALOG, DIGITAL 4-operator FM, PHASE CZ-style phase
+distortion, LOFI, SAMPLE, VOICE formant), three synth parts and a GM drum track sharing eight
+voices, a 64-step sequencer per track, 32 user preset slots, 4 project slots, and 3 user sample
+slots, edited by its own web editor. Users moving to it from FM-1+VA are told to go back to stock
+firmware first (`docs/switching-firmware.md`).
 
-**Identity. Likely** (from the installer, not from a reply heard by this project). Felucca answers
-the identity query (§6.3) with `FM-1_904`: the installer sends `fm1IdentityQuery`'s bytes, parses
-the same `00 59 11` block, and after installing checks that the device now reports `FM-1_904`.
-That number is above every M-VAVE release and inside the range the editor first read as FM-1+VA,
-so the editor counted Felucca as FM-1+VA until 2026-10-02. It now counts only `FM-1_020` to
-`FM-1_899` as FM-1+VA and leaves the 900s, and any other name, unidentified. The 900s are an
-inference from one release; whether later Felucca releases stay there is not known.
+The notes below come from reading the 0.8-beta source at commit
+`334477d10d582acaf5ab6e300e52431decb6c693` (2026-10-03), mainly `firmware/src/usb.c`, `seq.c`,
+`ota.c`, `editor.c`, `tools/build.py`, and `web/EDITOR_PROTOCOL.md`, and, where marked, a static
+reading of the 0.4-beta package. Reading source counts as analysis, so nothing here is
+**Confirmed**: no Felucca FM1 has been run with this editor.
 
-**Installation. Dangerous / excluded.** The installer fetches the prebuilt
-`felucca-0.4-beta.fwsc` from its own site and never asks for the user's files. Its script also
-holds code that builds a package from M-VAVE's V15 `FM-1.fwsc`, checked by SHA-256, replacing only
-the application, but the 0.4-beta install never calls it. It sends the package through the
-updater's protocol over Web MIDI: the identity query, then `F0 22 24 35 7F F7` to start an update, then it
-answers the device's `00 59 30` read requests until the loader has written the image. That is the
-update path section 9 excludes, now published. The editor must never send `F0 22 24 35 7F F7` or
-answer a read request. Going back to stock needs M-VAVE's M-UPGRADE and V15; a failed install
-needs FM-1-transporter, an RP2040 wired to the FM1's USB lines that reads and writes the whole
-1 MiB flash.
+**Identity. Likely.** Felucca answers the identity query (§6.3) outside an update with its
+package identity. Release builds name it `FM-1_9XY` for release X.Y (`build.py --release`, one
+digit each), so 0.4-beta is `FM-1_904` and 0.8-beta `FM-1_908`; a development build is
+`FM-1_900`. The whole 900s range is therefore Felucca's while its version stays below 10.0. The
+editor counted Felucca as FM-1+VA until 2026-10-02; it now counts only `FM-1_020` to `FM-1_899` as
+FM-1+VA and leaves Felucca unidentified, which the source shows is the right call.
 
-**MIDI behaviour. Needs hardware test.** Nothing is known about what Felucca does with DX7
-single-voice or bank dumps, the 155 parameter changes, Program Change, or the FM1 effect
-controllers. Its FM engine is described by index and feedback, which does not suggest a DX7 voice.
-As an unidentified firmware it gets patches as parameter changes, the cautious default, and the
-bank destination instructions for an unknown firmware. Until a Felucca FM1 has been tested, make no
-editor behaviour depend on it.
+**USB identity and port. Likely.** A composite device, vendor `1209` (pid.codes), product
+`0001`, manufacturer "Hügelton Instruments", product "Felucca", with Audio Control, MIDI
+Streaming, and a CDC serial port. Its protocol notes say the MIDI port is named "Felucca", so
+`resolveMidiPortSelection` picks it only as the first port without an instrument name, not by
+preference. Which name each operating system shows has not been seen.
 
-**What its application holds. Likely** (static reading of `felucca-0.4-beta.fwsc`, SHA-256
-`2b8496bdb76837389ead770a015ba86cf64378f944f7266441b47e148df2ecee`, 2026-10-02: the application
-was extracted with the installer's own package code and searched for strings, descriptors, and
-byte patterns; nothing was disassembled or run).
+**What it does with the editor's MIDI. Likely: nothing beyond notes.**
 
-- **USB identity.** A composite device with vendor ID `1209` (pid.codes) and product ID `0001`,
-  manufacturer "Hügelton Instruments", product "Felucca". Its interfaces are Audio Control, MIDI
-  Streaming, and a CDC serial port. The MIDI port is therefore probably named for Felucca rather
-  than `FM-1` or `USB Composite Device`, so `resolveMidiPortSelection` picks it only as the first
-  port without an instrument name, not by preference.
-- **Identity reply.** The application holds `FM-1_904`, matching what its installer expects, and
-  `ota-FM-1_015` and `FELUCCA-LOADER-1`, which name the update loader it hands over to.
-- **No sign of DX7 voice data.** There is no DX7 single-voice or 32-voice dump header
-  (`43 0n 00 01 1B`, `43 0n 09 20 00`), no FM-1+VA `43 00 7D` command, and no DX7 or Dexed text.
-  Its presets are named for its own engines (ANALOG, DIGITAL, PHASE, LOFI, SAMPLE, and a DRUMS
-  page), such as SAW LEAD, E.PIANO, GLASS, PULSE LD, and HARP. A parser that compares bytes one by
-  one would not leave a header in the data, so this suggests, but does not show, that Felucca
-  ignores the editor's voice SysEx.
-- **A MIDI settings page** with MPE (`MPEN`), note priority (`PRIO`), voice allocation (`ALLOC`),
-  sync, and routing. Which channels, controllers, and Program Changes it reads is not visible
-  without disassembly.
-- **A debug console over the CDC serial port**, not over MIDI: `status`, `dbg`, `crash`,
-  `params`, `memr` (RAM and flash reads), `flr` (flash reads from `0x93000`), and `uboot yes`,
-  which enters the chip's boot loader. The editor uses Web MIDI only and must never use it.
-- **`F0 22 24 35 7D F7`** sits beside the USB descriptors. It differs from the updater's
-  `F0 22 24 35 7F F7` in one byte, and its purpose is unknown. **Dangerous / excluded**: never
-  send it.
+- **Notes.** Note On and Note Off are the only channel messages it acts on. Channels 1–3 play the
+  three parts, the drum channel (global `CH`, default 10, 0 = off) plays the drum track, and every
+  other channel plays the selected track. The editor's audition notes will sound on whichever part
+  its note channel reaches.
+- **Control Change, Program Change, pitch bend, and pressure** are queued from USB but never read
+  in 0.8, so the FM1 effect controllers and the bank-slot Program Change have no effect.
+- **DX7 SysEx.** The USB SysEx assembler keeps one frame of at most 640 bytes. A frame is handed
+  to the web-editor parser, which takes only `F0 7D 46 4C …`, and then to the updater parser, which
+  takes only pack7-encoded `00 59 …` frames with a valid checksum; anything else is discarded. A
+  single-voice dump (163 bytes) and each of the 155 parameter changes are discarded that way; a
+  32-voice dump (4104 bytes) is too long and dropped while it arrives. So Felucca ignores every
+  patch or bank the editor sends, and none of it can overwrite a Felucca preset. The 0.4-beta
+  package's lack of any DX7 header (below) agreed.
+- **MIDI out.** It sends from its own playing, queued from the audio interrupt, which the
+  editor's MIDI log would show.
 
-What this changes: Felucca stays unidentified with today's cautious behaviour. A Felucca hardware
-test should first check whether a voice SysEx or the 155 parameter changes have any effect at all,
-and whether Program Change selects its presets, before the editor offers anything for it.
+**Felucca's own editor protocol. Likely; not used by this editor.** `F0 7D 46 4C <cmd> … F7`
+(`7D` is the non-commercial ID, `46 4C` is "FL"), documented in `web/EDITOR_PROTOCOL.md`: one
+request at a time, one reply each, values as 14-bit offset pairs. Commands 1–15 read and set
+parameters, describe them, read and write sequencer steps, apply presets, load and save projects,
+list preset names, and upload samples; 16–26 (v2) read and write the 32 user presets and push live
+changes while watched; 27–30 (v3) address the four tracks. `PROJECT` save, the sample commands, and
+`UP_PUT`, `UP_STORE`, and `UP_ERASE` write Felucca's own storage in flash. Its parameters are
+Felucca's engines, not DX7 voices, so a DX7 library has nothing to send there. Supporting Felucca
+would be a separate feature with its own approval, like FM-1+VA's preset read; until then the
+editor sends none of it.
+
+**Update and boot-loader messages. Dangerous / excluded.**
+
+- `F0 22 24 35 7F F7` starts an M-UPGRADE-style update; the installer then answers the device's
+  `00 59 30` read requests until the loader has written the image. That is the update path section
+  9 excludes, now published in `web/fm1ota.js` and `tools/fm1_install.py`.
+- `F0 22 24 35 7D F7`, which 0.4's package held with no known purpose, is Felucca's "soft key":
+  on receipt it detaches USB and enters the chip's own UBOOT boot loader (`usb.c`, `main.c`).
+- The CDC serial console offers `status`, `dbg`, `crash`, `params`, `memr`, `flr`, and `uboot yes`,
+  which enters the same boot loader. The editor uses Web MIDI only.
+
+The editor must never send either `F0 22 24 35` message, answer a `00 59` read request, or use the
+serial console. Going back to stock needs M-VAVE's M-UPGRADE and V15; a failed install needs
+FM-1-transporter, an RP2040 wired to the FM1's USB lines that reads and writes the whole 1 MiB
+flash.
+
+**From the 0.4-beta package. Likely** (static reading of `felucca-0.4-beta.fwsc`, SHA-256
+`2b8496bdb76837389ead770a015ba86cf64378f944f7266441b47e148df2ecee`, 2026-10-02: strings,
+descriptors, and byte patterns only). It held `FM-1_904`, `ota-FM-1_015` and `FELUCCA-LOADER-1`
+(the loader identities), no DX7 dump header (`43 0n 00 01 1B`, `43 0n 09 20 00`), no FM-1+VA
+`43 00 7D` command, and presets named for its own engines, such as SAW LEAD, E.PIANO, and GLASS.
+
+What this changes: nothing in the editor's behaviour. Felucca stays unidentified and gets the
+cautious default, which it ignores harmlessly. A Felucca FM1 can still use the editor's keyboard
+and audition notes, but sending a patch or bank, selecting a slot's preset, and the effect
+controls do nothing there. If Felucca owners use the editor, it may be worth naming Felucca when it
+is identified, so the editor can say that patches cannot reach it rather than appearing to send
+them.
 
 Open questions:
 
-1. Does Felucca accept DX7 voice data at all, by dump or parameter change, and does any of it
-   overwrite a stored preset?
-2. What does the MIDI port it lists as "Felucca" (above) appear as on each system?
-3. Do later releases keep the `FM-1_9NN` numbering?
+1. What does the "Felucca" MIDI port appear as on macOS, Windows, and Linux?
+2. Does a Felucca FM1 confirm on hardware that DX7 SysEx, Control Change, and Program Change have
+   no effect?
+3. Will a release from 10.0 on keep an identity in the 900s?
 
 ### FM1 Editor
 
