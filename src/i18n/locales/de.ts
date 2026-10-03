@@ -360,9 +360,13 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Virtual-Analog-Preset, wird nicht importiert',
     virtualAnalogPresets:
-      'VA kennzeichnet ein Virtual-Analog-Preset, das noch nicht importiert werden kann. Sein Platz behält seinen Sound.',
+      'Der FM1 hat ein Virtual-Analog-Preset, das sich derzeit nicht importieren lässt.',
     virtualAnalogPresets_other:
-      'VA kennzeichnet {{count, number}} Virtual-Analog-Presets, die noch nicht importiert werden können. Ihre Plätze behalten ihre Sounds.',
+      'Der FM1 hat {{count, number}} Virtual-Analog-Presets, die sich derzeit nicht importieren lassen.',
+    virtualAnalogPresetsFile:
+      'Die Datei enthält ein Virtual-Analog-Preset, das sich derzeit nicht importieren lässt.',
+    virtualAnalogPresetsFile_other:
+      'Die Datei enthält {{count, number}} Virtual-Analog-Presets, die sich derzeit nicht importieren lassen.',
     errors: {
       size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine Datei aus „Save a backup“ von Baud Girl ist genau {{expected, number}} Bytes groß.',
       format: 'Diese Datei wurde nicht mit „Save a backup“ von Baud Girl gespeichert.',

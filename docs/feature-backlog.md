@@ -441,6 +441,9 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       them. A reorderable effect list and a Soft Clip / Hard Clip / Foldback choice in the effects
       panel, sent with the preset through 4, so a change is heard once written. This settles
       [Effect routing order](#effect-routing-order) on FM-1+VA only.
+      The record keeps the order and type with the patch, but no other firmware reads them: sent
+      to M-VAVE's firmware, a patch plays in the stock order with its stock distortion. Hide both
+      controls there, and say so in the effects panel where a patch carries a changed order.
 - [ ] **6. Virtual Analog presets.** Built in steps, each shippable:
   - **Keep them.** A slot whose record is marked Virtual Analog shows as such, survives import,
     backup, and copy unchanged, and is left out of DX7 `.syx` export with an explanation,

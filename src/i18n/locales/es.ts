@@ -353,9 +353,13 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Preset Virtual Analog, no se importa',
     virtualAnalogPresets:
-      'VA marca un preset Virtual Analog, que aún no se puede importar. Su posición conserva su sonido.',
+      'El FM1 tiene un preset analógico virtual, que por ahora no se puede importar.',
     virtualAnalogPresets_other:
-      'VA marca {{count, number}} presets Virtual Analog, que aún no se pueden importar. Sus posiciones conservan sus sonidos.',
+      'El FM1 tiene {{count, number}} presets analógicos virtuales, que por ahora no se pueden importar.',
+    virtualAnalogPresetsFile:
+      'El archivo tiene un preset analógico virtual, que por ahora no se puede importar.',
+    virtualAnalogPresetsFile_other:
+      'El archivo tiene {{count, number}} presets analógicos virtuales, que por ahora no se pueden importar.',
     errors: {
       size: 'Este archivo tiene {{bytes, number}} bytes. Un archivo de «Save a backup» de Baud Girl tiene exactamente {{expected, number}} bytes.',
       format: 'Este archivo no se guardó con «Save a backup» de Baud Girl.',

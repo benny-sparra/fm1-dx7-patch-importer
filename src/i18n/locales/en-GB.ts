@@ -246,9 +246,13 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Virtual Analog preset, not imported',
     virtualAnalogPresets:
-      'VA marks a Virtual Analog preset, which can’t be imported yet. Its slot keeps its patch.',
+      'The FM1 has a virtual analogue preset, which can’t currently be imported.',
     virtualAnalogPresets_other:
-      'VA marks {{count, number}} Virtual Analog presets, which can’t be imported yet. Their slots keep their patches.',
+      'The FM1 has {{count, number}} virtual analogue presets, which can’t currently be imported.',
+    virtualAnalogPresetsFile:
+      'The file has a virtual analogue preset, which can’t currently be imported.',
+    virtualAnalogPresetsFile_other:
+      'The file has {{count, number}} virtual analogue presets, which can’t currently be imported.',
     errors: {
       size: 'This file is {{bytes, number}} bytes. A file from Baud Girl’s “Save a backup” is exactly {{expected, number}} bytes.',
       format: 'This file was not saved by Baud Girl’s “Save a backup”.',

@@ -24,6 +24,15 @@ export default {
     minimisePanel: 'Minimize {{panel}}',
     randomise: 'Randomize',
   },
+  fm1VaImport: {
+    virtualAnalogPresets: 'The FM1 has a virtual analog preset, which can’t currently be imported.',
+    virtualAnalogPresets_other:
+      'The FM1 has {{count, number}} virtual analog presets, which can’t currently be imported.',
+    virtualAnalogPresetsFile:
+      'The file has a virtual analog preset, which can’t currently be imported.',
+    virtualAnalogPresetsFile_other:
+      'The file has {{count, number}} virtual analog presets, which can’t currently be imported.',
+  },
   favourites: {
     title: 'Favorites',
     tabTitle: 'Show your favorite patches',

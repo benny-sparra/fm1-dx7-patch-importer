@@ -7,7 +7,7 @@ import {
 } from '@/lib/dx7'
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
-import { fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
+import { fm1VaRecordEffects, fm1VaRecordWithEffects } from '@/lib/fm1-va-record-effects'
 import {
   fm1VaPresetChecksumIndex,
   fm1VaPresetHeader,
@@ -71,18 +71,22 @@ export function importableSounds({ presets }: Fm1VaPresetFileBank): (FetchedSoun
 
 /**
  * Whether a preset differs from the patch in the library slot it would replace, as the sound key
- * compares patches: voice data, FM1 effects, and record. A slot the library has no patch in
- * differs; a preset the import leaves out does not.
+ * compares patches: voice data, FM1 effects, and record. The library's record is compared holding
+ * the library's effects, as a preset write stores it, so a patch whose effects changed after it was
+ * imported matches the FM1 once written. A slot the library has no patch in differs, as does one
+ * with no record, which importing would give it; a preset the import leaves out does not.
  */
 export function differsFromLibrary(
   preset: Fm1VaPreset,
   slot: { effects?: Uint8Array; record?: Uint8Array; voice?: Dx7Voice },
 ) {
   if (preset.kind !== 'fm') return false
+  if (!slot.voice) return true
+  const record =
+    slot.record && fm1VaRecordWithEffects(slot.record, slot.effects ?? new Uint8Array())
   return (
-    !slot.voice ||
     soundKey(preset.voice, preset.effects, preset.record) !==
-      soundKey(slot.voice, slot.effects, slot.record)
+    soundKey(slot.voice, slot.effects, record)
   )
 }
 

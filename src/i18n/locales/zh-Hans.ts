@@ -312,9 +312,10 @@ export default {
     openFailed: '无法打开 Baud Girl 预设导入。请重新加载页面后重试。',
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Virtual Analog 预设，不会导入',
-    virtualAnalogPresets: 'VA 表示 Virtual Analog 预设，目前还无法导入，其位置保留现有的音色。',
-    virtualAnalogPresets_other:
-      'VA 表示 {{count, number}} 个 Virtual Analog 预设，目前还无法导入，这些位置保留现有的音色。',
+    virtualAnalogPresets: 'FM1 上有 1 个虚拟模拟预设，目前无法导入。',
+    virtualAnalogPresets_other: 'FM1 上有 {{count, number}} 个虚拟模拟预设，目前无法导入。',
+    virtualAnalogPresetsFile: '此文件中有 1 个虚拟模拟预设，目前无法导入。',
+    virtualAnalogPresetsFile_other: '此文件中有 {{count, number}} 个虚拟模拟预设，目前无法导入。',
     errors: {
       size: '此文件大小为 {{bytes, number}} 字节。Baud Girl 的“Save a backup”保存的文件正好为 {{expected, number}} 字节。',
       format: '此文件不是由 Baud Girl 的“Save a backup”保存的。',

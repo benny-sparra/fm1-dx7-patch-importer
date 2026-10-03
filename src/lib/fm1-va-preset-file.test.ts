@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import { dx7PackedVoiceSize, parseDx7Bank, unpackDx7Voice } from '@/lib/dx7'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
-import { fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
+import { fm1VaRecordEffects, fm1VaRecordWithEffects } from '@/lib/fm1-va-record-effects'
 import { fm1VaChecksum, parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import {
   capturedOrgan3,
@@ -325,6 +325,19 @@ describe('differsFromLibrary', () => {
     effects[0] = 1
 
     expect(differsFromLibrary(organ3, { ...sameSlot, effects })).toBe(true)
+  })
+
+  it('does not mark a slot whose effects changed after import, once they are written', () => {
+    const effects = organ3.effects.slice()
+    effects[4] = 1
+    const written = {
+      ...organ3,
+      effects,
+      record: fm1VaRecordWithEffects(organ3.record, effects),
+    }
+
+    // The library keeps the record as first imported, with its edited effects beside it.
+    expect(differsFromLibrary(written, { ...sameSlot, effects })).toBe(false)
   })
 
   it('marks a slot holding the same voice without the record', () => {

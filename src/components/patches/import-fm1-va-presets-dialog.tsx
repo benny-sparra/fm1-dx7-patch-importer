@@ -393,17 +393,19 @@ export function ImportFm1VaPresetsDialog({
           ) : null}
           {source === 'fm1' && reader.canRead ? (
             readCount === null ? (
-              // The read starts as the dialog opens; this reads again, after a stop or a change on
-              // the FM1.
-              <Button
-                className="justify-self-start"
-                onClick={() => void readFromFm1()}
-                type="button"
-                variant="outline"
-              >
-                <Download />
-                <span>{t('fm1VaImport.read')}</span>
-              </Button>
+              // The read starts as the dialog opens, so this shows only when it left nothing to
+              // import from, after a stop or a failure, to read again.
+              banks ? null : (
+                <Button
+                  className="justify-self-start"
+                  onClick={() => void readFromFm1()}
+                  type="button"
+                  variant="outline"
+                >
+                  <Download />
+                  <span>{t('fm1VaImport.read')}</span>
+                </Button>
+              )
             ) : (
               <div className="grid gap-2">
                 <div className="grid gap-1">
@@ -472,7 +474,12 @@ export function ImportFm1VaPresetsDialog({
                 ) : null}
                 {virtualAnalogCount > 0 ? (
                   <p className="text-xs text-[var(--crt-ink-3)]">
-                    {t('fm1VaImport.virtualAnalogPresets', { count: virtualAnalogCount })}
+                    {t(
+                      source === 'fm1'
+                        ? 'fm1VaImport.virtualAnalogPresets'
+                        : 'fm1VaImport.virtualAnalogPresetsFile',
+                      { count: virtualAnalogCount },
+                    )}
                   </p>
                 ) : null}
               </div>
