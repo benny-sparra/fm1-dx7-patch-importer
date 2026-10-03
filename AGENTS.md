@@ -589,6 +589,17 @@ npm run deps:audit
 When dependencies change, run `npm run lockfile:refresh` with the pinned npm release, then run
 `npm run check:install`. Do not use `npm audit fix --force`.
 
+`npm run deps:audit` runs `scripts/check-dependency-audit.mjs`, which fails on any high or critical
+advisory missing from its `auditAllowlist`. `npm run deps:audit:prod` is plain `npm audit` and is
+never filtered. An advisory may join the allowlist only with the user's approval, only when no
+patched release of the package exists, and only when `npm run deps:audit:prod` does not report it.
+Its entry records the GHSA id, the package, the advisory's exact range, the package's latest
+published version, a review date no more than three months ahead, and how the repository reaches
+it. The script fails when the range changes, a newer version is published, the review date passes,
+the advisory reaches production, or the advisory is no longer reported; then look for a fix, run
+`npm run lockfile:refresh` and remove the entry, or ask the user before renewing it. Never point an
+`overrides` entry at an unreleased fix, such as a git branch.
+
 ## Change discipline
 
 - Inspect `git status` and the existing diff before editing. Preserve unrelated worktree changes.
