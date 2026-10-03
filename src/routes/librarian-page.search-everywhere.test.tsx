@@ -119,7 +119,13 @@ describe('LibrarianPage search beyond the workspace', () => {
     )
     await user.click(await screen.findByRole('button', { name: 'Replace A01' }))
 
-    expect(library.replaceVoice).toHaveBeenCalledExactlyOnceWith('A', 1, voices[0], undefined)
+    expect(library.replaceVoice).toHaveBeenCalledExactlyOnceWith(
+      'A',
+      1,
+      voices[0],
+      undefined,
+      undefined,
+    )
     expect(await screen.findByText('Copied “BRASS 1” to A01 in “Studio Favourites”.')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Undo' })).toBeTruthy()
   })

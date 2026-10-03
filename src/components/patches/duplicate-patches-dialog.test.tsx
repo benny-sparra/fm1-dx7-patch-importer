@@ -79,6 +79,15 @@ describe('DuplicatePatchesDialog', () => {
     expect(within(dialog).getByText('Their FM1 effects differ.')).toBeTruthy()
   })
 
+  it('says when the copies’ FM-1+VA preset settings differ', () => {
+    const workspace = makeWorkspaceWithCopies([{ name: 'BRASS 1', slot: 5 }])
+
+    const { dialog } = renderDialog({ ...workspace, records: { 'bank-B-5': new Uint8Array(59) } })
+
+    expect(within(dialog).getByText('Their FM-1+VA preset settings differ.')).toBeTruthy()
+    expect(within(dialog).queryByText('Their FM1 effects differ.')).toBeNull()
+  })
+
   it('says so when there are no duplicates', () => {
     const { dialog } = renderDialog(makeWorkspaceWithCopies([]))
 

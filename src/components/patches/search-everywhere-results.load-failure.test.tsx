@@ -28,6 +28,7 @@ it('explains a search that could not load and offers a reload', async () => {
       onToggleFavourite={vi.fn()}
       search="brass"
       workspaceEffects={{}}
+      workspaceRecords={{}}
       workspaceMatches={[]}
       workspaceVoices={{}}
     />,

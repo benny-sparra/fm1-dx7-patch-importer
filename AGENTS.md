@@ -166,13 +166,26 @@ open everything an earlier release could have saved.
   `midiPanicCount` changes rather than striking them again.
 - The editor asks which firmware the FM1 runs with the updater's identity query
   (`fm1IdentityQuery` in `src/lib/fm1-firmware.ts`), whenever the output or input in use changes.
-  It is the one `00 32` message the editor may send: never send another from that family, and
-  never send FM-1+VA's own `F0 43 00 7D` commands. The firmware counts as unknown until the answer
+  It is the one `00 32` message the editor may send: never send another from that family. The
+  firmware counts as unknown until the answer
   for the ports in use arrives. FM-1+VA is `FM-1_020` to `FM-1_899`; any other name, such as
   Felucca's `FM-1_904`, is unidentified, so no firmware's behaviour is assumed for it. Analytics records only the family (`fm1_identified`: `mvave`,
   `fm1-va`, or `unidentified`), once per family per page load so the split counts sessions rather
   than reconnections; the name and version, such as `FM-1_089`, stay out of analytics and
   monitoring, because a release has few enough FM1s on it to single one out.
+- Of FM-1+VA's own `F0 43 00 7D` commands, the editor may send only the preset read,
+  `7D 10 <slot>` (`readFm1VaPreset` in `src/lib/fm1-va-preset-read.ts`, approved 2026-10-02),
+  and only while `readsFm1VaPresets` allows it: FM-1+VA from `FM-1_079`, the release that added
+  it. It reads one stored preset and changes nothing. Every other FM-1+VA command, the preset
+  write `04` and the raw memory read `11` among them, needs its own approval recorded here first.
+  A read belongs to the ports it started on: changing either, or switching MIDI off, cancels it.
+  Keep what it reads exactly as read until each byte is mapped in `docs/fm1-research.md`.
+  Code that reads presets goes through `useFm1VaPresetReader`, which takes the ports from the
+  `useMidi` slice it is given, rather than through `useMidi` itself: `useMidi` is in the initial
+  bundle, and the read's wiring there cost 1.6 KiB. Today only the development probe uses the
+  reader. The reply parser takes `unpackSevenBitStream` from `src/lib/fm1-firmware.ts`, so the
+  first lazy chunk to use it in production makes Rolldown split that module out of the entry
+  (883 B in a trial); measure it with `npm run bundle:check` when that feature lands.
 - Send a patch as a DX7 single-voice dump only to firmware identified as M-VAVE's
   (`sendsSingleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored preset, so
   every other firmware, including one not yet identified, gets the patch as its 155 parameter
@@ -413,8 +426,8 @@ open everything an earlier release could have saved.
   and the URL: bank letters move when a bank is deleted and the library exists only in this browser.
 - Favourites are copies of sounds, kept in the workspace record and the backup file, so they
   outlive the slot they came from. A heart matches by `soundKey` from `src/lib/sound-key.ts`, the
-  one source the search's duplicate hiding also uses, so every slot holding the same voice data and
-  FM1 effects shows it, and Favourites keeps one copy. Saving a sound in the editor goes through
+  one source the search's duplicate hiding also uses, so every slot holding the same voice data,
+  FM1 effects, and FM-1+VA settings record shows it, and Favourites keeps one copy. Saving a sound in the editor goes through
   `saveSound`, which also updates the copies that sounded the same before the edit: a slot's
   favourite, or every slot a favourite came from. Keep that one change, so one Undo reverses it.
 - A patch card leaves room for a full ten-character DX7 name beside its heart and menu at every
@@ -428,6 +441,14 @@ open everything an earlier release could have saved.
 - Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.
+- A patch from FM-1+VA keeps its 59-byte settings record (`src/lib/fm1-va-record.ts`) beside its
+  voice and effects, exactly as read, through every path its effects take: copying, moving,
+  Favourites, saved banks, backups, and Undo. A path that puts in a voice without one, such as a
+  DX7 file or bank, leaves the slot with no record. The record's effect bytes repeat the library's
+  effects, which stay the ones the effects panel edits; the bytes the panel cannot set (effect
+  order, Distortion type, Envelope, the preset's own Filter, Virtual Analog settings, and bytes not
+  mapped yet) come only from the record. Lazy code takes `fm1VaRecordSize` from
+  `src/lib/patch-library.ts`, since importing the record module directly gave it a chunk of its own.
 - **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
   `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.

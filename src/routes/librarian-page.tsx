@@ -216,6 +216,7 @@ type LibrarianLibrary = BackupLibrary &
     | 'namedBanksLoadFailed'
     | 'namedBanksLoading'
     | 'patches'
+    | 'records'
     | 'redo'
     | 'replaceVoice'
     | 'resetFactoryBanks'
@@ -331,7 +332,8 @@ export function LibrarianPage({
   const requestResultCopy = (sound: SearchResultSound, edit: boolean) => {
     setDialogLoadError('')
     setCopyRequest({
-      copy: (bank, slot) => library.replaceVoice(bank, slot, sound.voice, sound.effects),
+      copy: (bank, slot) =>
+        library.replaceVoice(bank, slot, sound.voice, sound.effects, sound.record),
       edit,
       key: sound.origin,
       source: { name: sound.name, number: sound.slot, origin: sound.origin },
@@ -559,7 +561,11 @@ export function LibrarianPage({
 
   const isFavourite = (patch: Patch) => {
     const voice = library.voices[patch.id]
-    return voice ? library.favouriteKeys.has(soundKey(voice, library.effects[patch.id])) : false
+    return voice
+      ? library.favouriteKeys.has(
+          soundKey(voice, library.effects[patch.id], library.records[patch.id]),
+        )
+      : false
   }
 
   // A lit heart is the confirmation of an addition, so only taking a sound out says so, with Undo,
@@ -1026,6 +1032,7 @@ export function LibrarianPage({
                   }
                   search={search}
                   workspaceEffects={library.effects}
+                  workspaceRecords={library.records}
                   workspaceMatches={visiblePatches}
                   workspaceVoices={library.voices}
                 />

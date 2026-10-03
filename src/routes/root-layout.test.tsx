@@ -40,6 +40,7 @@ const midi: ComponentProps<typeof RootLayout>['midi'] = {
   setSelectedOutputId: vi.fn(),
   startNote: vi.fn(),
   stopNote: vi.fn(),
+  sysexAvailable: false,
 }
 
 beforeEach(() => localStorage.setItem('fm1-librarian-help-seen', 'true'))

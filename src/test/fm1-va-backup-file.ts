@@ -1,5 +1,6 @@
 import { unpackDx7Voice, updateDx7VoiceName } from '@/lib/dx7'
-import { fm1VaChecksum, fm1VaPresetFileSize } from '@/lib/fm1-va-preset-file'
+import { fm1VaPresetFileSize } from '@/lib/fm1-va-preset-file'
+import { fm1VaChecksum } from '@/lib/fm1-va-sysex'
 
 const messageSize = 231
 

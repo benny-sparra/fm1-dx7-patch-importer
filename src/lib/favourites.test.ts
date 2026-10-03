@@ -91,6 +91,68 @@ describe('toggleFavourite', () => {
   })
 })
 
+describe('favourites with FM-1+VA records', () => {
+  const record = (seed: number) =>
+    Uint8Array.from({ length: 59 }, (_, index) => (index + seed) & 0xff)
+
+  it('keeps its own copy of the record of the sound it adds', () => {
+    const added = record(1)
+
+    const { snapshot } = toggleFavourite(
+      emptyPatchLibrary(),
+      { record: added, voice: voices[0] },
+      { bankNumber: 1 },
+      'f1',
+    )
+
+    expect(snapshot.favourites[0].record).toEqual(added)
+    expect(snapshot.favourites[0].record).not.toBe(added)
+  })
+
+  it('adds the same voice again when only its record differs', () => {
+    const once = toggleFavourite(
+      emptyPatchLibrary(),
+      { record: record(1), voice: voices[0] },
+      { bankNumber: 1 },
+      'f1',
+    ).snapshot
+
+    const { added, snapshot } = toggleFavourite(
+      once,
+      { record: record(2), voice: voices[0] },
+      { bankNumber: 1 },
+      'f2',
+    )
+
+    expect(added).toBe(true)
+    expect(snapshot.favourites).toHaveLength(2)
+  })
+
+  it('takes out a favourite only when its record matches too', () => {
+    const once = toggleFavourite(
+      emptyPatchLibrary(),
+      { record: record(1), voice: voices[0] },
+      { bankNumber: 1 },
+      'f1',
+    ).snapshot
+
+    expect(toggleFavourite(once, { voice: voices[0] }, { bankNumber: 1 }, 'f2').added).toBe(true)
+    expect(
+      toggleFavourite(once, { record: record(1), voice: voices[0] }, { bankNumber: 1 }, 'f2').added,
+    ).toBe(false)
+  })
+
+  it('reads a stored record, and drops one of the wrong size, keeping the favourite', () => {
+    const favourites = readFavourites([
+      { id: 'f1', origin: { bankNumber: 1 }, record: record(1), voice: voices[0] },
+      { id: 'f2', origin: { bankNumber: 1 }, record: new Uint8Array(3), voice: voices[1] },
+    ])
+
+    expect(favourites?.[0].record).toEqual(record(1))
+    expect(favourites?.[1]).not.toHaveProperty('record')
+  })
+})
+
 describe('favourite patches', () => {
   it('numbers favourites in their order under the Favourites bank', () => {
     expect(makeFavouritePatches(withFavourites(2).favourites)).toEqual([

@@ -38,6 +38,7 @@ export function makeLibrarianLibrary(overrides: Partial<Library> = {}): Library 
     namedBanksLoadFailed: false,
     namedBanksLoading: false,
     patches: [],
+    records: {},
     redo: vi.fn<Library['redo']>(),
     replaceVoice: vi.fn<Library['replaceVoice']>(),
     resetFactoryBanks: vi.fn<Library['resetFactoryBanks']>(),

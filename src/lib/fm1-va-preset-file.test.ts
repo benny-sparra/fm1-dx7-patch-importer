@@ -4,48 +4,23 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import { parseDx7Bank, unpackDx7Voice } from '@/lib/dx7'
+import { fm1VaChecksum, parseFm1VaReply } from '@/lib/fm1-va-sysex'
+import {
+  capturedOrgan3,
+  capturedOrgan3Reply,
+  capturedVirtualAnalog,
+  capturedVirtualAnalogFilterOnReply,
+} from '@/test/fm1-va-captures'
 
 import {
   Fm1VaPresetFileError,
-  fm1VaChecksum,
   fm1VaPresetFileSize,
-  importableVoices,
+  importableSounds,
   parseFm1VaPresetFile,
   readFm1VaPresetFile,
 } from './fm1-va-preset-file'
 
-// Preset 001 (ORGAN 3) from a backup FM-1_089's Save a backup wrote on 2026-09-29: the header and
-// slot, the 155-byte voice, the 68-byte settings record, the checksum, and F7.
-const capturedOrgan3 = Uint8Array.from(
-  `F0 43 00 7D 04 00 63 63 63 63 63 63 63 00 2A 00 20 00 00 00 01 00 48 00 08 00 04 63 63 63 63 63
-   63 63 00 27 00 00 00 00 00 01 00 61 00 01 32 0A 63 47 63 63 63 51 63 00 27 00 00 00 00 00 00 00
-   63 00 00 00 07 63 5A 63 63 63 59 63 00 2A 00 37 00 00 00 01 00 53 00 03 00 0A 63 50 63 63 63 39
-   63 00 27 00 00 00 00 00 01 00 61 00 01 32 03 63 49 63 4E 63 5A 63 00 2C 15 23 00 00 00 02 00 4B
-   00 08 00 0A 63 63 63 63 32 32 32 32 1F 06 01 32 15 05 03 01 04 01 18 4F 52 47 41 4E 20 33 20 20
-   20 00 50 03 03 03 03 03 03 00 03 03 03 03 03 03 03 00 03 03 03 03 03 03 03 00 03 03 03 03 03 03
-   00 00 00 00 01 00 00 02 00 00 00 03 00 00 04 00 00 00 05 00 00 06 00 00 07 00 00 00 08 00 00 00
-   00 00 00 00 00 0C F7`
-    .trim()
-    .split(/\s+/)
-    .map((byte) => Number.parseInt(byte, 16)),
-)
 const capturedRecord = capturedOrgan3.slice(161, 229)
-
-// Preset 097 after Erase Preset made it a Virtual Analog preset and SAVE stored it, from a backup
-// saved on 2026-10-01. Its record's byte 18 is 5A, where an FM preset's is 03.
-const capturedVirtualAnalog = Uint8Array.from(
-  `F0 43 00 7D 04 60 63 63 63 63 63 63 63 00 27 00 00 00 00 00 00 00 63 00 01 00 07 63 63 63 63 63
-   63 63 00 27 00 00 00 00 00 00 00 00 00 01 00 07 63 63 63 63 63 63 63 00 27 00 00 00 00 00 00 00
-   00 00 01 00 07 63 63 63 63 63 63 63 00 27 00 00 00 00 00 00 00 00 00 01 00 07 63 63 63 63 63 63
-   63 00 27 00 00 00 00 00 00 00 00 00 01 00 07 63 63 63 63 63 63 63 00 27 00 00 00 00 00 00 00 63
-   00 01 00 07 63 63 63 63 32 32 32 32 00 00 01 23 00 00 00 00 00 03 18 56 4F 49 43 45 20 39 37 20
-   20 00 50 03 03 03 03 03 03 00 03 03 03 03 03 03 03 00 03 03 03 03 5A 02 32 3C 64 00 64 00 00 00
-   00 00 00 00 01 00 00 02 00 00 00 03 00 00 04 00 00 78 05 00 00 00 00 00 00 07 00 00 00 00 00 00
-   00 00 00 00 00 07 F7`
-    .trim()
-    .split(/\s+/)
-    .map((byte) => Number.parseInt(byte, 16)),
-)
 
 // Yamaha's ROM1A factory cartridge fills the other presets.
 const rom1a = parseDx7Bank(
@@ -96,7 +71,9 @@ function parsedPresets(file: Uint8Array) {
 }
 
 function parsedVoices(file: Uint8Array) {
-  return parseFm1VaPresetFile(file.buffer as ArrayBuffer).flatMap(importableVoices)
+  return parseFm1VaPresetFile(file.buffer as ArrayBuffer)
+    .flatMap(importableSounds)
+    .map((sound) => sound?.voice ?? null)
 }
 
 describe('fm1VaChecksum', () => {
@@ -114,10 +91,10 @@ describe('parseFm1VaPresetFile', () => {
   it('reads the voice of a captured preset', () => {
     const [bankA] = parseFm1VaPresetFile(backupFile().buffer as ArrayBuffer)
 
-    const [organ] = importableVoices(bankA)
+    const [organ] = importableSounds(bankA)
 
-    expect(organ?.name).toBe('ORGAN 3')
-    expect(unpackDx7Voice(organ!)).toEqual(capturedOrgan3.slice(6, 161))
+    expect(organ?.voice.name).toBe('ORGAN 3')
+    expect(unpackDx7Voice(organ!.voice)).toEqual(capturedOrgan3.slice(6, 161))
   })
 
   it('divides the 128 presets into banks A to D of 32, in slot order', () => {
@@ -129,7 +106,7 @@ describe('parseFm1VaPresetFile', () => {
       ['C', 32],
       ['D', 32],
     ])
-    expect(importableVoices(banks[3])[31]?.data).toEqual(rom1a[31].data)
+    expect(importableSounds(banks[3])[31]?.voice.data).toEqual(rom1a[31].data)
   })
 
   it('reads each voice in the packed form the library stores', () => {
@@ -137,6 +114,30 @@ describe('parseFm1VaPresetFile', () => {
 
     expect(voices[33]?.data).toEqual(rom1a[1].data)
     expect(voices[33]?.name).toBe(rom1a[1].name)
+  })
+
+  it('reads a preset’s record as FM-1_093 answers a read of the same preset', () => {
+    const [bankA] = parseFm1VaPresetFile(backupFile().buffer as ArrayBuffer)
+
+    expect(importableSounds(bankA)[0]?.record).toEqual(
+      parseFm1VaReply(capturedOrgan3Reply)?.data.slice(128),
+    )
+  })
+
+  it('puts each high bit of the record back on its own byte', () => {
+    // 097's record, which sets 13 high bits, with its engine marker (byte 18, the fifth of the
+    // third group) made FM so the preset is read. The read of 097 had its Filter switched on since.
+    const encoded = capturedVirtualAnalog.slice(161, 229)
+    encoded[16 + 1 + 4] = 0x03
+    const file = backupFile()
+    file.set(presetMessage(5, capturedVirtualAnalog.slice(6, 161), encoded), 5 * 231)
+    const expected = parseFm1VaReply(capturedVirtualAnalogFilterOnReply)!.data.slice(128)
+    expected[18] = 0x03
+    expected[28] = 0x00
+
+    expect(
+      importableSounds(parseFm1VaPresetFile(file.buffer as ArrayBuffer)[0])[5]?.record,
+    ).toEqual(expected)
   })
 
   it('recognises a Virtual Analog preset by its record', () => {
@@ -206,7 +207,7 @@ describe('parseFm1VaPresetFile', () => {
   })
 })
 
-describe('importableVoices', () => {
+describe('importableSounds', () => {
   it('leaves out the presets the library cannot take', () => {
     const file = backupFile()
     file[5 * 231 + 20] = (file[5 * 231 + 20] + 1) & 0x7f
@@ -223,7 +224,7 @@ describe('readFm1VaPresetFile', () => {
   it('reads a file the user chose', async () => {
     const banks = await readFm1VaPresetFile(new Blob([backupFile()]))
 
-    expect(importableVoices(banks[0])[0]?.name).toBe('ORGAN 3')
+    expect(importableSounds(banks[0])[0]?.voice.name).toBe('ORGAN 3')
   })
 
   it('reports the length of a file of the wrong size before reading it', async () => {

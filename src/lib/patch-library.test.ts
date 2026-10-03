@@ -339,11 +339,12 @@ describe('patch library operations', () => {
 
 describe('importing banks read from the FM1', () => {
   const fetched = makeDemoVoices().map((voice) => updateDx7VoiceName(voice, `FM1 ${voice.name}`))
+  const sounds = fetched.map((voice) => ({ voice }))
 
   it('replaces the patches of each bank it is given', () => {
     const before = importVoices(emptyPatchLibrary(), 'B', makeDemoVoices())
 
-    const result = importFetchedBanks(before, [{ bank: 'B', voices: fetched }])
+    const result = importFetchedBanks(before, [{ bank: 'B', sounds }])
 
     expect(getBankVoices(result, 'B')).toEqual(fetched)
     expect(result.loadedBanks).toEqual(['B'])
@@ -352,7 +353,7 @@ describe('importing banks read from the FM1', () => {
   it('leaves the banks it is not given as they are', () => {
     const before = importVoices(emptyPatchLibrary(), 'C', makeDemoVoices())
 
-    const result = importFetchedBanks(before, [{ bank: 'A', voices: fetched }])
+    const result = importFetchedBanks(before, [{ bank: 'A', sounds }])
 
     expect(getBankVoices(result, 'C')).toEqual(getBankVoices(before, 'C'))
     expect(result.loadedBanks).toEqual(['A', 'C'])
@@ -360,9 +361,9 @@ describe('importing banks read from the FM1', () => {
 
   it('keeps the patch in a slot the FM1 could not supply', () => {
     const before = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
-    const withGap = fetched.map((voice, index) => (index === 4 ? null : voice))
+    const withGap = sounds.map((sound, index) => (index === 4 ? null : sound))
 
-    const result = importFetchedBanks(before, [{ bank: 'A', voices: withGap }])
+    const result = importFetchedBanks(before, [{ bank: 'A', sounds: withGap }])
 
     expect(result.voices[voiceId('A', 5)]).toBe(before.voices[voiceId('A', 5)])
     expect(result.effects[voiceId('A', 5)]).toBe(before.effects[voiceId('A', 5)])
@@ -376,7 +377,7 @@ describe('importing banks read from the FM1', () => {
       effects: { ...before.effects, [voiceId('A', 1)]: Uint8Array.of(1) },
     }
 
-    const result = importFetchedBanks(reverbOn, [{ bank: 'A', voices: fetched }])
+    const result = importFetchedBanks(reverbOn, [{ bank: 'A', sounds }])
 
     expect(result.effects[voiceId('A', 1)]).toEqual(makeDefaultFm1Effects())
   })
@@ -384,7 +385,7 @@ describe('importing banks read from the FM1', () => {
   it('adds a missing bank and the banks before it', () => {
     const before = deleteWorkspaceBank(deleteWorkspaceBank(emptyPatchLibrary(), 'D'), 'C')
 
-    const result = importFetchedBanks(before, [{ bank: 'D', voices: fetched }])
+    const result = importFetchedBanks(before, [{ bank: 'D', sounds }])
 
     expect(result.workspaceBanks).toEqual(['A', 'B', 'C', 'D'])
     expect(getBankVoices(result, 'D')).toEqual(fetched)
@@ -394,7 +395,7 @@ describe('importing banks read from the FM1', () => {
   it('keeps bank titles, descriptions and favourites', () => {
     const titled = updateBankInformation(emptyPatchLibrary(), 'A', 'Live set', 'For Friday')
 
-    const result = importFetchedBanks(titled, [{ bank: 'A', voices: fetched }])
+    const result = importFetchedBanks(titled, [{ bank: 'A', sounds }])
 
     expect(result.bankNames).toBe(titled.bankNames)
     expect(result.bankDescriptions).toBe(titled.bankDescriptions)
@@ -403,7 +404,7 @@ describe('importing banks read from the FM1', () => {
 
   it('rejects a bank that is not 32 patches long', () => {
     expect(() =>
-      importFetchedBanks(emptyPatchLibrary(), [{ bank: 'A', voices: fetched.slice(1) }]),
+      importFetchedBanks(emptyPatchLibrary(), [{ bank: 'A', sounds: sounds.slice(1) }]),
     ).toThrow('A browser bank requires exactly 32 DX7 voices.')
   })
 })
@@ -702,5 +703,112 @@ describe('copying a voice', () => {
     for (const slot of [0, 33, 1.5]) {
       expect(() => copyVoice(library, voiceId('A', 1), 'B', slot)).toThrow(RangeError)
     }
+  })
+})
+
+describe('FM-1+VA settings records in the workspace', () => {
+  const record = (seed: number) =>
+    Uint8Array.from({ length: 59 }, (_, index) => (index + seed) & 0xff)
+  const withRecords = () => {
+    const library = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    return {
+      ...library,
+      records: { [voiceId('A', 1)]: record(1), [voiceId('A', 2)]: record(2) },
+    }
+  }
+
+  it('keeps the record each patch read from the FM1 carries', () => {
+    const voices = makeDemoVoices()
+    const sounds = voices.map((voice, index) =>
+      index === 0 ? { record: record(9), voice } : { voice },
+    )
+
+    const result = importFetchedBanks(withRecords(), [{ bank: 'A', sounds }])
+
+    expect(result.records[voiceId('A', 1)]).toEqual(record(9))
+    // A patch read without a record replaces the slot's record with none.
+    expect(result.records[voiceId('A', 2)]).toBeUndefined()
+  })
+
+  it('keeps the record of a slot the FM1 import leaves as it is', () => {
+    const sounds = makeDemoVoices().map((voice, index) => (index === 1 ? null : { voice }))
+
+    expect(importFetchedBanks(withRecords(), [{ bank: 'A', sounds }]).records).toEqual({
+      [voiceId('A', 2)]: record(2),
+    })
+  })
+
+  it('drops the records of slots a DX7 bank replaces, which carries none', () => {
+    expect(importVoices(withRecords(), 'A', makeDemoVoices()).records).toEqual({})
+  })
+
+  it('moves a record with its patch when patches are reordered', () => {
+    const moved = moveVoice(withRecords(), 'A', 1, 3)
+
+    expect(moved.records).toEqual({ [voiceId('A', 1)]: record(2), [voiceId('A', 3)]: record(1) })
+  })
+
+  it('copies a record with its patch, as its own copy', () => {
+    const library = withRecords()
+    const copied = copyVoice(library, voiceId('A', 1), 'A', 5)
+
+    expect(copied.records[voiceId('A', 5)]).toEqual(record(1))
+    expect(copied.records[voiceId('A', 5)]).not.toBe(library.records[voiceId('A', 1)])
+  })
+
+  it('clears the record of a slot a patch without one is copied over', () => {
+    const copied = copyVoice(withRecords(), voiceId('A', 7), 'A', 1)
+
+    expect(copied.records[voiceId('A', 1)]).toBeUndefined()
+  })
+
+  it('puts a record from outside the workspace over a slot, or none when there is none', () => {
+    const [voice] = makeDemoVoices()
+
+    expect(replaceVoice(withRecords(), 'A', 1, voice, undefined, record(5)).records).toMatchObject({
+      [voiceId('A', 1)]: record(5),
+    })
+    expect(replaceVoice(withRecords(), 'A', 2, voice).records[voiceId('A', 2)]).toBeUndefined()
+  })
+
+  it('removes the records of a cleared bank', () => {
+    expect(clearLibraryBank(withRecords(), 'A').records).toEqual({})
+  })
+
+  it('moves records up a letter with their bank when an earlier bank is deleted', () => {
+    const library = importVoices(withRecords(), 'B', makeDemoVoices())
+    const withB = { ...library, records: { [voiceId('B', 4)]: record(4) } }
+
+    expect(deleteWorkspaceBank(withB, 'A').records).toEqual({ [voiceId('A', 4)]: record(4) })
+  })
+
+  it('keeps a slot its record when the editor saves its sound', () => {
+    const library = withRecords()
+    const voice = updateDx7VoiceName(library.voices[voiceId('A', 1)], 'EDITED')
+
+    const { snapshot } = saveSound(library, voiceId('A', 1), voice, makeDefaultFm1Effects())
+
+    expect(snapshot.records[voiceId('A', 1)]).toEqual(record(1))
+  })
+
+  it('updates only the favourite whose record matches the slot saved', () => {
+    const library = withRecords()
+    const id = voiceId('A', 1)
+    const sound = { effects: library.effects[id], voice: library.voices[id] }
+    const withFavourites = toggleFavourite(
+      toggleFavourite(library, { ...sound, record: record(1) }, { bankNumber: 1 }, 'same').snapshot,
+      { ...sound, record: record(3) },
+      { bankNumber: 1 },
+      'other',
+    ).snapshot
+    const voice = updateDx7VoiceName(library.voices[id], 'EDITED')
+
+    const { linked, snapshot } = saveSound(withFavourites, id, voice, makeDefaultFm1Effects())
+
+    expect(linked).toBe(1)
+    expect(snapshot.favourites.map(({ voice: { name } }) => name)).toEqual([
+      'EDITED',
+      library.voices[id].name,
+    ])
   })
 })

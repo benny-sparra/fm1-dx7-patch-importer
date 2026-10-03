@@ -25,6 +25,7 @@ export type SavedPatchMatch = {
   bankName: string
   effects: Uint8Array
   name: string
+  record?: Uint8Array
   slot: number
   soundKey: string
   voice: Dx7Voice
@@ -73,8 +74,9 @@ export function findSavedBankMatches(banks: NamedBank[], search: string): SavedP
               bankName: bank.name,
               effects: slot.effects,
               name: slot.voice.name,
+              record: slot.record,
               slot: slot.slot,
-              soundKey: soundKey(slot.voice, slot.effects),
+              soundKey: soundKey(slot.voice, slot.effects, slot.record),
               voice: slot.voice,
             },
           ]
@@ -87,7 +89,8 @@ export function findSavedBankMatches(banks: NamedBank[], search: string): SavedP
  * Drops each match that sounds exactly like one listed before it, so an archive that repeats a
  * patch, or a catalog patch already in the user's banks, is listed once. `shown` holds the sound
  * keys of the workspace matches above the groups, which are slots and are never hidden. Patches
- * with the same name but different data, or the same voice with different FM1 effects, all stay.
+ * with the same name but different data, or the same voice with different FM1 effects or FM-1+VA
+ * records, all stay.
  */
 export function hideCopies<Match extends { soundKey: string }>(
   shown: Iterable<string>,

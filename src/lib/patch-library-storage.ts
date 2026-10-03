@@ -1,6 +1,7 @@
 import { normalizeStoredDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { type Favourite, readFavourites } from '@/lib/favourites'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
+import { readFm1VaRecord } from '@/lib/fm1-va-record'
 import { type NamedBank, validateNamedBank } from '@/lib/named-bank'
 import {
   bankDescriptionLength,
@@ -37,10 +38,23 @@ export type StoredPatchLibrary = {
   effects: Record<string, Uint8Array>
   favourites: Favourite[]
   loadedBanks: string[]
+  /** FM-1+VA settings records by slot id, from version 7. Favourites carry their own. */
+  records: Record<string, Uint8Array>
   savedAt: string
-  version: 6
+  version: 7
   voices: Record<string, Dx7Voice>
   workspaceBanks: string[]
+}
+
+/** Reads the records a workspace stored, keeping only those of slots it still has a voice for. */
+function readStoredRecords(value: unknown, voices: Record<string, unknown>) {
+  if (!value || typeof value !== 'object') return {}
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([id, stored]) => {
+      const record = id in voices ? readFm1VaRecord(stored) : undefined
+      return record ? [[id, record]] : []
+    }),
+  )
 }
 
 function asStorageError(
@@ -155,21 +169,30 @@ function normalizeStoredVoices(voices: Record<string, unknown>) {
 export async function loadStoredPatchLibrary() {
   let stored:
     | StoredPatchLibrary
-    | (Omit<StoredPatchLibrary, 'favourites' | 'version'> & { version: 5 })
-    | (Omit<StoredPatchLibrary, 'bankDescriptions' | 'favourites' | 'version'> & { version: 4 })
+    | (Omit<StoredPatchLibrary, 'records' | 'version'> & { version: 6 })
+    | (Omit<StoredPatchLibrary, 'favourites' | 'records' | 'version'> & { version: 5 })
+    | (Omit<StoredPatchLibrary, 'bankDescriptions' | 'favourites' | 'records' | 'version'> & {
+        version: 4
+      })
     | (Omit<
         StoredPatchLibrary,
-        'bankDescriptions' | 'favourites' | 'workspaceBanks' | 'version'
+        'bankDescriptions' | 'favourites' | 'records' | 'workspaceBanks' | 'version'
       > & { version: 3 })
     | (Omit<
         StoredPatchLibrary,
-        'bankDescriptions' | 'bankNames' | 'favourites' | 'workspaceBanks' | 'version'
+        'bankDescriptions' | 'bankNames' | 'favourites' | 'records' | 'workspaceBanks' | 'version'
       > & {
         version: 2
       })
     | (Omit<
         StoredPatchLibrary,
-        'bankDescriptions' | 'bankNames' | 'effects' | 'favourites' | 'workspaceBanks' | 'version'
+        | 'bankDescriptions'
+        | 'bankNames'
+        | 'effects'
+        | 'favourites'
+        | 'records'
+        | 'workspaceBanks'
+        | 'version'
       > & { version: 1 })
     | undefined
   try {
@@ -185,10 +208,14 @@ export async function loadStoredPatchLibrary() {
       stored.version !== 3 &&
       stored.version !== 4 &&
       stored.version !== 5 &&
-      stored.version !== 6) ||
+      stored.version !== 6 &&
+      stored.version !== 7) ||
     !Array.isArray(stored.loadedBanks) ||
     typeof stored.voices !== 'object' ||
-    ((stored.version === 4 || stored.version === 5 || stored.version === 6) &&
+    ((stored.version === 4 ||
+      stored.version === 5 ||
+      stored.version === 6 ||
+      stored.version === 7) &&
       !Array.isArray(stored.workspaceBanks))
   ) {
     throw new PatchLibraryStorageError(
@@ -206,23 +233,28 @@ export async function loadStoredPatchLibrary() {
       (stored.version === 3 ||
         stored.version === 4 ||
         stored.version === 5 ||
-        stored.version === 6) &&
+        stored.version === 6 ||
+        stored.version === 7) &&
       stored.bankNames &&
       typeof stored.bankNames === 'object'
         ? stored.bankNames
         : {}
     const storedBankDescriptions =
-      (stored.version === 5 || stored.version === 6) &&
+      (stored.version === 5 || stored.version === 6 || stored.version === 7) &&
       stored.bankDescriptions &&
       typeof stored.bankDescriptions === 'object'
         ? stored.bankDescriptions
         : {}
     const workspaceBanks =
-      stored.version === 4 || stored.version === 5 || stored.version === 6
+      stored.version === 4 || stored.version === 5 || stored.version === 6 || stored.version === 7
         ? [...new Set(stored.workspaceBanks.filter(isWorkspaceBankId))]
         : [...browserBanks]
     // Favourites arrived in version 6; earlier workspaces have none.
-    const favourites = stored.version === 6 ? readFavourites(stored.favourites) : []
+    const favourites =
+      stored.version === 6 || stored.version === 7 ? readFavourites(stored.favourites) : []
+    // Records arrived in version 7; earlier workspaces have none.
+    const storedRecords =
+      stored.version === 7 ? readStoredRecords(stored.records, stored.voices) : {}
     if (!favourites) {
       throw new PatchLibraryStorageError(
         'incompatible',
@@ -258,6 +290,7 @@ export async function loadStoredPatchLibrary() {
       effects: storedEffects,
       favourites,
       loadedBanks: stored.loadedBanks.filter((bank) => workspaceBanks.includes(bank)),
+      records: storedRecords,
       voices: stored.voices,
       workspaceBanks,
     })
@@ -265,7 +298,7 @@ export async function loadStoredPatchLibrary() {
     const effects = Object.fromEntries(
       Object.keys(voices).map((id) => [id, normalizeFm1Effects(compacted.effects[id])]),
     )
-    return { ...compacted, effects, savedAt: stored.savedAt, version: 6 as const, voices }
+    return { ...compacted, effects, savedAt: stored.savedAt, version: 7 as const, voices }
   } catch (error) {
     throw asStorageError(
       error,
@@ -284,7 +317,7 @@ export async function saveStoredPatchLibrary(
         {
           ...library,
           savedAt: new Date().toISOString(),
-          version: 6,
+          version: 7,
         } satisfies StoredPatchLibrary,
         recordKey,
       ),

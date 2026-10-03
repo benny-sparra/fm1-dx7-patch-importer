@@ -10,6 +10,10 @@ import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
 import { DX7_TRANSPOSE_C3 } from '@/lib/fm1-parameters'
 import { soundKey } from '@/lib/sound-key'
 
+// Lazy code takes the record size from here, a module the initial chunks already share with it, so
+// the small record module does not become a chunk of its own (docs: AGENTS.md, bundle boundaries).
+export { fm1VaRecordSize } from '@/lib/fm1-va-record'
+
 export const browserBanks = ['A', 'B', 'C', 'D'] as const
 export const maximumWorkspaceBanks = 10
 export const workspaceBankTitleLength = 10
@@ -31,6 +35,11 @@ export type PatchLibrarySnapshot = {
   /** Sounds kept in Favourites, in their order. They are copies, apart from the workspace banks. */
   favourites: Favourite[]
   loadedBanks: string[]
+  /**
+   * The FM-1+VA settings record of each slot that has one, by the slot's id. A slot without one,
+   * such as any patch that did not come from FM-1+VA, has no entry.
+   */
+  records: Record<string, Uint8Array>
   voices: Record<string, Dx7Voice>
   workspaceBanks: string[]
 }
@@ -44,6 +53,7 @@ export function emptyPatchLibrary(
     effects: {},
     favourites: [],
     loadedBanks: [],
+    records: {},
     voices: {},
     workspaceBanks: [...workspaceBanks],
   }
@@ -83,6 +93,7 @@ export function compactWorkspaceBanks(snapshot: PatchLibrarySnapshot): PatchLibr
   const bankNames: Record<string, string> = {}
   const effects: Record<string, Uint8Array> = {}
   const loadedBanks: string[] = []
+  const records: Record<string, Uint8Array> = {}
   const voices: Record<string, Dx7Voice> = {}
   const workspaceBanks = sourceBanks.map((_, index) => String.fromCharCode(65 + index))
 
@@ -101,6 +112,7 @@ export function compactWorkspaceBanks(snapshot: PatchLibrarySnapshot): PatchLibr
       const destinationId = voiceId(destinationBank, slot)
       if (snapshot.voices[sourceId]) voices[destinationId] = snapshot.voices[sourceId]
       if (snapshot.effects[sourceId]) effects[destinationId] = snapshot.effects[sourceId]
+      if (snapshot.records[sourceId]) records[destinationId] = snapshot.records[sourceId]
     }
   })
 
@@ -110,6 +122,7 @@ export function compactWorkspaceBanks(snapshot: PatchLibrarySnapshot): PatchLibr
     effects,
     favourites: snapshot.favourites,
     loadedBanks,
+    records,
     voices,
     workspaceBanks,
   }
@@ -167,10 +180,13 @@ export function importVoices(
 
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }
+  const records = { ...snapshot.records }
   imported.forEach((voice, index) => {
     const id = voiceId(bank, index + 1)
     voices[id] = voice
     effects[id] = makeDefaultFm1Effects()
+    // A DX7 bank carries no FM-1+VA record, so a slot it replaces loses its own.
+    delete records[id]
   })
   return {
     bankDescriptions: snapshot.bankDescriptions,
@@ -178,18 +194,26 @@ export function importVoices(
     effects,
     favourites: snapshot.favourites,
     loadedBanks: [...new Set([...snapshot.loadedBanks, bank])].sort(),
+    records,
     voices,
     workspaceBanks: snapshot.workspaceBanks,
   }
 }
 
+/**
+ * A patch read from the FM1's memory: its voice, and the FM-1+VA settings record stored with it,
+ * kept exactly as read.
+ */
+export type FetchedSound = { record?: Uint8Array; voice: Dx7Voice }
+
 /** A bank of patches read from the FM1's memory, with null for a slot that keeps its patch. */
-export type FetchedBank = { bank: string; voices: (Dx7Voice | null)[] }
+export type FetchedBank = { bank: string; sounds: (FetchedSound | null)[] }
 
 /**
  * Puts banks read from the FM1 into the workspace banks of the same letters, as one change. A
  * bank the workspace does not have yet is added, with any banks before it. Each patch arrives
- * with the default effects, as an imported bank's do; a null slot is left as it is.
+ * with the default effects, as an imported bank's do, and with its own record or none; a null slot
+ * is left as it is.
  */
 export function importFetchedBanks(
   snapshot: PatchLibrarySnapshot,
@@ -206,16 +230,19 @@ export function importFetchedBanks(
 
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }
+  const records = { ...snapshot.records }
   const loadedBanks = new Set(snapshot.loadedBanks)
-  for (const { bank, voices: fetched } of banks) {
-    if (fetched.length !== dx7BankVoiceCount) {
+  for (const { bank, sounds } of banks) {
+    if (sounds.length !== dx7BankVoiceCount) {
       throw new Error(`A browser bank requires exactly ${dx7BankVoiceCount} DX7 voices.`)
     }
-    fetched.forEach((voice, index) => {
-      if (!voice) return
+    sounds.forEach((sound, index) => {
+      if (!sound) return
       const id = voiceId(bank, index + 1)
-      voices[id] = voice
+      voices[id] = sound.voice
       effects[id] = makeDefaultFm1Effects()
+      if (sound.record) records[id] = sound.record.slice()
+      else delete records[id]
       loadedBanks.add(bank)
     })
   }
@@ -225,6 +252,7 @@ export function importFetchedBanks(
     effects,
     favourites: snapshot.favourites,
     loadedBanks: [...loadedBanks].sort(),
+    records,
     voices,
     workspaceBanks,
   }
@@ -295,6 +323,12 @@ export function moveVoice(
 
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }
+  const records = { ...snapshot.records }
+  const moveRecord = (sourceId: string, targetId: string) => {
+    const record = snapshot.records[sourceId]
+    if (record) records[targetId] = record
+    else delete records[targetId]
+  }
   const direction = from < to ? 1 : -1
   for (let slot = from; slot !== to; slot += direction) {
     const targetId = voiceId(bank, slot)
@@ -308,11 +342,13 @@ export function moveVoice(
       delete voices[targetId]
       delete effects[targetId]
     }
+    moveRecord(sourceId, targetId)
   }
   const targetId = voiceId(bank, to)
   voices[targetId] = moved
   effects[targetId] = normalizeFm1Effects(snapshot.effects[voiceId(bank, from)])
-  return { ...snapshot, effects, voices }
+  moveRecord(voiceId(bank, from), targetId)
+  return { ...snapshot, effects, records, voices }
 }
 
 /**
@@ -344,6 +380,7 @@ export function copyVoice(
   return {
     ...snapshot,
     effects: { ...snapshot.effects, [targetId]: normalizeFm1Effects(source.effects) },
+    records: withRecord(snapshot.records, targetId, source.record),
     voices: {
       ...snapshot.voices,
       [targetId]: { ...source.voice, data: source.voice.data.slice() },
@@ -351,12 +388,26 @@ export function copyVoice(
   }
 }
 
+/** The records with slot `id` holding its own copy of `record`, or no record when there is none. */
+function withRecord(
+  records: Record<string, Uint8Array>,
+  id: string,
+  record: Uint8Array | undefined,
+) {
+  const next = { ...records }
+  if (record) next[id] = record.slice()
+  else delete next[id]
+  return next
+}
+
 /** The sound a patch id names, in a workspace slot or in Favourites. */
 export function findLibrarySound(snapshot: PatchLibrarySnapshot, id: string) {
   const favourite = findFavourite(snapshot.favourites, id)
-  if (favourite) return { effects: favourite.effects, voice: favourite.voice }
+  if (favourite) {
+    return { effects: favourite.effects, record: favourite.record, voice: favourite.voice }
+  }
   const voice = snapshot.voices[id]
-  return voice ? { effects: snapshot.effects[id], voice } : undefined
+  return voice ? { effects: snapshot.effects[id], record: snapshot.records[id], voice } : undefined
 }
 
 /**
@@ -374,7 +425,7 @@ export function saveSound(
 ) {
   const previous = findLibrarySound(snapshot, id)
   if (!previous) return { linked: 0, snapshot }
-  const previousKey = soundKey(previous.voice, previous.effects)
+  const previousKey = soundKey(previous.voice, previous.effects, previous.record)
   const savedEffects = normalizeFm1Effects(effects)
   const voiceCopy = () => ({ ...voice, data: voice.data.slice() })
   let linked = 0
@@ -383,7 +434,8 @@ export function saveSound(
     const voices = { ...snapshot.voices }
     const slotEffects = { ...snapshot.effects }
     for (const [slotId, slotVoice] of Object.entries(snapshot.voices)) {
-      if (soundKey(slotVoice, snapshot.effects[slotId]) !== previousKey) continue
+      const slotKey = soundKey(slotVoice, snapshot.effects[slotId], snapshot.records[slotId])
+      if (slotKey !== previousKey) continue
       voices[slotId] = voiceCopy()
       slotEffects[slotId] = savedEffects.slice()
       linked += 1
@@ -415,9 +467,9 @@ export function saveSound(
 
 /**
  * Puts a voice from outside the workspace over a slot: one read from a file, or found in a saved
- * bank or the catalog. The slot gets its own copy of the voice and effects. A DX7 voice file
- * carries no FM1 effects, so without `effects` the slot's effects return to their defaults, as they
- * do when a bank is imported.
+ * bank or the catalog. The slot gets its own copy of the voice, effects, and record. A DX7 voice
+ * file carries no FM1 effects, so without `effects` the slot's effects return to their defaults, as
+ * they do when a bank is imported, and without `record` the slot has none.
  */
 export function replaceVoice(
   snapshot: PatchLibrarySnapshot,
@@ -425,12 +477,14 @@ export function replaceVoice(
   slot: number,
   voice: Dx7Voice,
   effects?: Uint8Array,
+  record?: Uint8Array,
 ): PatchLibrarySnapshot {
   assertReplaceableSlot(snapshot, bank, slot)
   const id = voiceId(bank, slot)
   return {
     ...snapshot,
     effects: { ...snapshot.effects, [id]: normalizeFm1Effects(effects) },
+    records: withRecord(snapshot.records, id, record),
     voices: { ...snapshot.voices, [id]: { ...voice, data: voice.data.slice() } },
   }
 }
@@ -438,10 +492,12 @@ export function replaceVoice(
 export function clearLibraryBank(snapshot: PatchLibrarySnapshot, bank: string) {
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }
+  const records = { ...snapshot.records }
   for (let slot = 1; slot <= dx7BankVoiceCount; slot += 1) {
     const id = voiceId(bank, slot)
     delete voices[id]
     delete effects[id]
+    delete records[id]
   }
   return {
     bankDescriptions: snapshot.bankDescriptions,
@@ -449,6 +505,7 @@ export function clearLibraryBank(snapshot: PatchLibrarySnapshot, bank: string) {
     effects,
     favourites: snapshot.favourites,
     loadedBanks: snapshot.loadedBanks.filter((loadedBank) => loadedBank !== bank),
+    records,
     voices,
     workspaceBanks: snapshot.workspaceBanks,
   }

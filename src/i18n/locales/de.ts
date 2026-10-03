@@ -363,6 +363,7 @@ export default {
     group: '{{name}} und eine Kopie',
     group_other: '{{name}} und {{count, number}} Kopien',
     effectsDiffer: 'Ihre FM1-Effekte unterscheiden sich.',
+    settingsDiffer: 'Ihre FM-1+VA-Preset-Einstellungen unterscheiden sich.',
     goTo: 'Zu {{name}} springen, Sound {{number}} in {{bank}}',
     none: 'Keine Doppelten: Jeder Sound in deinen Bänken hat eigene Stimmeneinstellungen.',
     openFailed:

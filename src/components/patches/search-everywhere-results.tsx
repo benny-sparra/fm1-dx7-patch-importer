@@ -45,6 +45,8 @@ export type SearchResultSound = {
   name: string
   /** Where it comes from, as the copy dialog shows it. */
   origin: string
+  /** The FM-1+VA settings record of a saved-bank sound that has one. */
+  record?: Uint8Array
   slot: number
   voice: Dx7Voice
 }
@@ -52,7 +54,7 @@ export type SearchResultSound = {
 type Result = {
   bankName: string
   key: string
-  load: () => Promise<{ effects?: Uint8Array; voice: Dx7Voice }>
+  load: () => Promise<{ effects?: Uint8Array; record?: Uint8Array; voice: Dx7Voice }>
   name: string
   slot: number
   soundKey: string
@@ -71,11 +73,12 @@ type SearchEverywhereResultsProps = {
   onPlay: (voice: Dx7Voice, effects: Uint8Array | undefined) => void
   /** A result's heart: adds the sound to Favourites, or takes it out, naming the bank it is in. */
   onToggleFavourite: (
-    sound: { effects: Uint8Array | undefined; voice: Dx7Voice },
+    sound: { effects: Uint8Array | undefined; record: Uint8Array | undefined; voice: Dx7Voice },
     bankName: string,
   ) => void
   search: string
   workspaceEffects: Record<string, Uint8Array>
+  workspaceRecords: Record<string, Uint8Array>
   /** The workspace results above. A result that sounds exactly like one of them is left out. */
   workspaceMatches: Pick<Patch, 'id'>[]
   workspaceVoices: Record<string, Dx7Voice>
@@ -101,6 +104,7 @@ export function SearchEverywhereResults({
   onToggleFavourite,
   search,
   workspaceEffects,
+  workspaceRecords,
   workspaceMatches,
   workspaceVoices,
 }: SearchEverywhereResultsProps) {
@@ -139,14 +143,17 @@ export function SearchEverywhereResults({
     const { findCatalogMatches, findSavedBankMatches, hideCopies } = searcher.module
     const shown = workspaceMatches.flatMap(({ id }) => {
       const voice = workspaceVoices[id]
-      return voice ? [soundKey(voice, workspaceEffects[id] ?? makeDefaultFm1Effects())] : []
+      return voice
+        ? [soundKey(voice, workspaceEffects[id] ?? makeDefaultFm1Effects(), workspaceRecords[id])]
+        : []
     })
     const [saved, catalog] = hideCopies<{ result: Result; soundKey: string }>(shown, [
       findSavedBankMatches(namedBanks, search).map((match) => ({
         result: {
           bankName: match.bankName,
           key: `saved:${match.bankId}:${match.slot}`,
-          load: () => Promise.resolve({ effects: match.effects, voice: match.voice }),
+          load: () =>
+            Promise.resolve({ effects: match.effects, record: match.record, voice: match.voice }),
           name: match.name,
           slot: match.slot,
           soundKey: match.soundKey,
@@ -169,7 +176,15 @@ export function SearchEverywhereResults({
       hidden,
       results: matches.map(({ result }) => result),
     }))
-  }, [namedBanks, search, searcher, workspaceEffects, workspaceMatches, workspaceVoices])
+  }, [
+    namedBanks,
+    search,
+    searcher,
+    workspaceEffects,
+    workspaceMatches,
+    workspaceRecords,
+    workspaceVoices,
+  ])
 
   const formatCount = (count: number) => new Intl.NumberFormat(i18n.resolvedLanguage).format(count)
 
@@ -178,7 +193,7 @@ export function SearchEverywhereResults({
     const request = latestRequest.current
     setError('')
     try {
-      const { effects, voice } = await result.load()
+      const { effects, record, voice } = await result.load()
       if (request !== latestRequest.current) return
       if (action === 'play') {
         onPlay(voice, effects)
@@ -186,7 +201,7 @@ export function SearchEverywhereResults({
         return
       }
       if (action === 'favourite') {
-        onToggleFavourite({ effects, voice }, result.bankName)
+        onToggleFavourite({ effects, record, voice }, result.bankName)
         return
       }
       onCopy(
@@ -194,6 +209,7 @@ export function SearchEverywhereResults({
           effects,
           name: result.name,
           origin: `${slotNumber(result.slot)} ${result.name} · ${result.bankName}`,
+          record,
           slot: result.slot,
           voice,
         },
