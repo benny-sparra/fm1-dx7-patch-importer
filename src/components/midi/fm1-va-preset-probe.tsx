@@ -137,6 +137,8 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
   const [failure, setFailure] = useState<string | null>(null)
   const [read, setRead] = useState<ProbeRead | null>(null)
   const lastReads = useRef(new Map<number, Fm1VaStoredPreset>())
+  // Each preset as this session first read it, which a write test can put back.
+  const firstReads = useRef(new Map<number, Fm1VaStoredPreset>())
   const titleId = useId()
   const numberId = useId()
 
@@ -153,6 +155,7 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
       const preset = await readStoredPreset(slot)
       const previous = lastReads.current.get(slot)
       lastReads.current.set(slot, preset)
+      if (!firstReads.current.has(slot)) firstReads.current.set(slot, preset)
       setRead({ firmware, preset, previous, readAt: new Date() })
     } catch (caughtError) {
       setFailure(caughtError instanceof Error ? caughtError.message : 'The read failed.')
@@ -162,14 +165,15 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
   }
 
   /**
-   * Writes the preset just read back to its slot, unchanged or under `writeTestName`, then reads
-   * it again to see whether the write landed exactly.
+   * Writes the preset just read back to its slot, unchanged, under `writeTestName`, or as this
+   * session first read it, then reads it again to see whether the write landed exactly.
    */
-  async function writeBack(renamed: boolean) {
+  async function writeBack(kind: 'first' | 'renamed' | 'unchanged') {
     if (!read) return
-    const { preset } = read
+    const preset =
+      kind === 'first' ? (firstReads.current.get(read.preset.slot) ?? read.preset) : read.preset
     const stored = { data: preset.voice, name: decodeVoiceName(preset.voice) }
-    const voice = renamed ? updateDx7VoiceName(stored, writeTestName) : stored
+    const voice = kind === 'renamed' ? updateDx7VoiceName(stored, writeTestName) : stored
     setReading(true)
     setFailure(null)
     try {
@@ -179,7 +183,7 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
       setRead({
         firmware,
         preset: readBack,
-        previous: preset,
+        previous: read.preset,
         readAt: new Date(),
         write: {
           matches:
@@ -205,6 +209,7 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
   }
 
   const marker = read?.preset.record[engineMarkerIndex]
+  const firstRead = read ? firstReads.current.get(read.preset.slot) : undefined
 
   return (
     <>
@@ -299,7 +304,7 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
                 <div className="flex flex-wrap gap-2">
                   <Button
                     disabled={!canWrite || reading}
-                    onClick={() => void writeBack(false)}
+                    onClick={() => void writeBack('unchanged')}
                     type="button"
                     variant="secondary"
                   >
@@ -307,12 +312,26 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
                   </Button>
                   <Button
                     disabled={!canWrite || reading}
-                    onClick={() => void writeBack(true)}
+                    onClick={() => void writeBack('renamed')}
                     type="button"
                     variant="secondary"
                   >
                     <span>Write back as {writeTestName}</span>
                   </Button>
+                  {firstRead &&
+                  !(
+                    sameBytes(firstRead.voice, read.preset.voice) &&
+                    sameBytes(firstRead.record, read.preset.record)
+                  ) ? (
+                    <Button
+                      disabled={!canWrite || reading}
+                      onClick={() => void writeBack('first')}
+                      type="button"
+                      variant="secondary"
+                    >
+                      <span>Restore the first read ({voiceName(firstRead.voice).trim()})</span>
+                    </Button>
+                  ) : null}
                 </div>
                 {read.write ? (
                   <p>

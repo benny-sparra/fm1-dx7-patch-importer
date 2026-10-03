@@ -13,6 +13,7 @@ import {
   makeFm1VaPresetWrite,
   readFm1VaMessageRecord,
 } from '@/lib/fm1-va-preset-message'
+import { fm1VaPresetWriteSpacingMs } from '@/lib/fm1-va-preset-write'
 import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { capturedOrgan3, capturedOrgan3Reply } from '@/test/fm1-va-captures'
@@ -166,11 +167,14 @@ describe('Fm1VaPresetProbe write test', () => {
     vi.useRealTimers()
   })
 
-  /** Clicks a write button and lets the write's listening window pass. */
+  /**
+   * Clicks a write button and lets the spacing after any earlier write and the write's listening
+   * window pass.
+   */
   async function writeBack(user: ReturnType<typeof userEvent.setup>, name: string) {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     await user.click(screen.getByRole('button', { hidden: true, name }))
-    await act(() => vi.advanceTimersByTimeAsync(1500))
+    await act(() => vi.advanceTimersByTimeAsync(fm1VaPresetWriteSpacingMs + 1500))
   }
 
   it('writes the preset back exactly as read, and reads it again to check', async () => {
@@ -200,6 +204,30 @@ describe('Fm1VaPresetProbe write test', () => {
     )
     expect(await within(dialog).findByText(/Wrote WRITE TEST\./)).toBeTruthy()
     expect(within(dialog).getByText(/The read back matches what was written\./)).toBeTruthy()
+  })
+
+  it('puts back the preset as first read after a renamed write', async () => {
+    const fake = makeWritableMidi()
+    const { dialog, user } = await openProbe(fake)
+    await readPreset(user, '1')
+    await writeBack(user, 'Write back as WRITE TEST')
+    await within(dialog).findByText(/Wrote WRITE TEST\./)
+
+    await writeBack(user, 'Restore the first read (ORGAN 3)')
+
+    const data = fake.reply.data.slice(0, dx7PackedVoiceSize)
+    const writes = fake.ports.output.send.mock.calls.filter(([message]) => message[4] === 0x04)
+    expect(writes.at(-1)?.[0]).toEqual(
+      makeFm1VaPresetWrite(
+        0,
+        { data, name: decodeVoiceName(data) },
+        fake.reply.data.slice(dx7PackedVoiceSize),
+      ),
+    )
+    expect(await within(dialog).findByText(/Wrote ORGAN 3\./)).toBeTruthy()
+    expect(
+      screen.queryByRole('button', { hidden: true, name: /^Restore the first read/ }),
+    ).toBeNull()
   })
 
   it('offers no write for a Virtual Analog preset', async () => {
