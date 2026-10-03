@@ -12,6 +12,7 @@ export default {
       'Turn SELECT to Write and press SEL to store the 32 patches, or press HOME to cancel.',
     bankFm1VaNote:
       'If your FM1 runs FM-1+VA firmware, it asks “Write the bank?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Write and press SEL.',
+    bankFeluccaNote: 'Felucca ignores DX7 banks, so sending this bank does not change its presets.',
     bankFm1VaImage: 'FM1 display running FM-1+VA, asking “Write the bank?” with Cancel and Write',
     bankImage:
       'FM1 display running M-VAVE’s firmware, showing “32 Voice Save To …” above banks A, B, C and D',
@@ -475,9 +476,12 @@ export default {
     firmwareUnidentified: 'Not identified',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareFelucca: 'Felucca {{identity}}',
     firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
     firmwareParameterChanges:
       'Patches you play are sent as parameter changes, so the FM1 never stores them over the selected preset.',
+    firmwareIgnoresPatches:
+      'Felucca plays your notes but ignores DX7 patches, banks, and the effect controls.',
     firmwareNeedsInput:
       'Choose the FM1 as the input monitor so the editor can ask which firmware it runs.',
     noteChannel: 'Note channel',
@@ -664,6 +668,9 @@ export default {
     randomiseHelp: 'A new voice. Keeps the name and effects.',
   },
   midi: {
+    feluccaBadgeLabel: 'Felucca firmware by Hügelton Instruments, {{release}}',
+    feluccaBadgeTitle:
+      'The FM1 runs Hügelton Instruments’ Felucca firmware, {{release}}. It plays your notes but ignores DX7 patches, banks, and the effect controls.',
     fm1VaBadgeLabel: 'FM-1+VA firmware by Baud Girl, {{release}}',
     fm1VaBadgeTitle:
       'The FM1 runs Baud Girl’s FM-1+VA firmware, {{release}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',

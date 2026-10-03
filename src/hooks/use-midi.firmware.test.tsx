@@ -89,13 +89,13 @@ describe('useMidi firmware identification', () => {
     expect(result.current.firmware).toEqual({ identity: 'FM-1_089', kind: 'fm1-va' })
   })
 
-  it('leaves Felucca unidentified and names it in the log', async () => {
+  it('identifies Felucca firmware and says in the log that it ignores patches', async () => {
     const { result } = await connect(makeFakeFm1Ports({ reply: feluccaIdentityReply }))
 
-    expect(result.current.firmware).toEqual({ identity: 'FM-1_904', kind: 'unidentified' })
+    expect(result.current.firmware).toEqual({ identity: 'FM-1_904', kind: 'felucca' })
     expect(logMessages(result)).toContainEqual([
       'system',
-      'The FM1 runs firmware FM-1_904, which the editor does not recognise, so patches are sent as parameter changes.',
+      'The FM1 runs Felucca firmware FM-1_904, which ignores DX7 patches, so the parameter changes sent to it have no effect.',
     ])
   })
 
@@ -162,12 +162,12 @@ describe('useMidi firmware analytics', () => {
     expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'fm1-va' }]])
   })
 
-  it('reports Felucca as unidentified, without its name', async () => {
+  it('reports Felucca firmware by its family, without its name', async () => {
     const firmwareEvents = trackFirmwareEvents()
 
     await connect(makeFakeFm1Ports({ reply: feluccaIdentityReply }))
 
-    expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'unidentified' }]])
+    expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'felucca' }]])
   })
 
   it('reports nothing while the FM1 has not answered', async () => {
