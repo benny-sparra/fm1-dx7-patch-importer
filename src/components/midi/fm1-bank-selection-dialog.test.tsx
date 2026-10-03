@@ -103,6 +103,17 @@ describe('Fm1BankSelectionDialog', () => {
     expect(screen.getByText(/If your FM1 runs FM-1\+VA firmware/)).toBeTruthy()
   })
 
+  it('says Felucca ignores DX7 banks rather than how FM-1+VA differs', () => {
+    render(renderDialog(true, { identity: 'FM-1_908', kind: 'felucca' }))
+
+    expect(
+      screen.getByText(
+        'Felucca ignores DX7 banks, so sending this bank does not change its presets.',
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByText(/If your FM1 runs FM-1\+VA firmware/)).toBeNull()
+  })
+
   it('changes to the FM-1+VA steps once identified, after a page translator replaces its text', () => {
     const view = render(renderDialog(true, { kind: 'checking' }))
     translatePageText(view.container)

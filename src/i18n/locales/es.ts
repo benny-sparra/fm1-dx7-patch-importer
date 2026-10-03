@@ -15,6 +15,8 @@ export default {
       'Gira SELECT hasta Replace y pulsa SEL para guardar los 32 sonidos, o pulsa HOME para cancelar. También sustituyen para siempre los presets de fábrica de ese banco.',
     bankFm1VaNote:
       'Si tu FM1 usa el firmware FM-1+VA, pregunta en su lugar «Replace Bank A?» y empieza en el banco A. Gira ALGORITHM hasta el banco de destino, luego SELECT hasta Replace, y pulsa SEL.',
+    bankFeluccaNote:
+      'Felucca ignora los bancos DX7, así que enviar este banco no cambia sus presets.',
     bankFm1VaImage:
       'Pantalla del FM1 con FM-1+VA que pregunta «Replace Bank A?», con Cancel y Replace',
     bankImage:
@@ -510,9 +512,12 @@ export default {
     firmwareUnidentified: 'Sin identificar',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareFelucca: 'Felucca {{identity}}',
     firmwareEditBuffer: 'Los sonidos que tocas van al búfer de edición del FM1.',
     firmwareParameterChanges:
       'Los sonidos que tocas se envían como cambios de parámetros, para que el FM1 nunca los guarde sobre el preset seleccionado.',
+    firmwareIgnoresPatches:
+      'Felucca toca tus notas, pero ignora los sonidos DX7, los bancos y los controles de efectos.',
     firmwareNeedsInput:
       'Elige el FM1 como entrada de monitorización para que el editor pueda preguntarle qué firmware usa.',
     noteChannel: 'Canal de notas',
@@ -699,6 +704,9 @@ export default {
     randomiseHelp: 'Voz nueva. Conserva nombre y efectos.',
   },
   midi: {
+    feluccaBadgeLabel: 'Firmware Felucca de Hügelton Instruments, {{release}}',
+    feluccaBadgeTitle:
+      'El FM1 usa el firmware Felucca de Hügelton Instruments, {{release}}. Toca tus notas, pero ignora los sonidos DX7, los bancos y los controles de efectos.',
     fm1VaBadgeLabel: 'Firmware FM-1+VA de Baud Girl, {{release}}',
     fm1VaBadgeTitle:
       'El FM1 usa el firmware FM-1+VA de Baud Girl, {{release}}. Los sonidos que tocas le llegan como cambios sin guardar, así que nunca sobrescriben un preset.',

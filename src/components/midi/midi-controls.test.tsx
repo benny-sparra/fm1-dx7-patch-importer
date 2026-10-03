@@ -84,6 +84,18 @@ describe('MidiSettingsMenu firmware', () => {
     ).toBeTruthy()
   })
 
+  it('names Felucca firmware and says it ignores the patches you play', () => {
+    renderSettings({ identity: 'FM-1_908', kind: 'felucca' })
+
+    expect(screen.getByText('Felucca FM-1_908')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Felucca plays your notes but ignores DX7 patches, banks, and the effect controls.',
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByText(/sent as parameter changes/)).toBeNull()
+  })
+
   it('shows the firmware is being checked while the FM1 has not answered', () => {
     renderSettings({ kind: 'checking' })
 
@@ -131,6 +143,24 @@ describe('MidiFirmwareBadge', () => {
     expect(screen.getByText('Firmware de M-VAVE, V15')).toBeTruthy()
   })
 
+  it('names Hügelton Instruments and Felucca with its release', () => {
+    const { container } = render(
+      <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_908', kind: 'felucca' } }} />,
+    )
+
+    expect(screen.getByText('Felucca firmware by Hügelton Instruments, 0.8')).toBeTruthy()
+    expect(container.textContent).toContain('HÜGELTONFELUCCA0.8')
+    expect(screen.getByTitle(/ignores DX7 patches, banks, and the effect controls\.$/)).toBeTruthy()
+  })
+
+  it('names Felucca with its release in Brazilian Portuguese', async () => {
+    await setLocale('pt-BR')
+
+    render(<MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_908', kind: 'felucca' } }} />)
+
+    expect(screen.getByText('Firmware Felucca da Hügelton Instruments, 0.8')).toBeTruthy()
+  })
+
   it('shows nothing while the firmware is unknown', () => {
     const { container, rerender } = render(
       <MidiFirmwareBadge midi={{ firmware: { kind: 'checking' } }} />,
@@ -138,7 +168,7 @@ describe('MidiFirmwareBadge', () => {
     expect(container.textContent).toBe('')
 
     rerender(
-      <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_904', kind: 'unidentified' } }} />,
+      <MidiFirmwareBadge midi={{ firmware: { identity: 'XR-9_015', kind: 'unidentified' } }} />,
     )
     expect(container.textContent).toBe('')
   })

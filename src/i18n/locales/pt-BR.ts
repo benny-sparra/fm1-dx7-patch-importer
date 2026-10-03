@@ -14,6 +14,8 @@ export default {
       'Gire SELECT até Replace e pressione SEL para salvar os 32 sons, ou pressione HOME para cancelar. Eles também substituem de forma permanente os presets de fábrica desse banco.',
     bankFm1VaNote:
       'Se o seu FM1 usa o firmware FM-1+VA, ele pergunta “Replace Bank A?” e começa no banco A. Gire ALGORITHM até o banco de destino, depois SELECT até Replace, e pressione SEL.',
+    bankFeluccaNote:
+      'O Felucca ignora bancos DX7, então enviar este banco não altera os presets dele.',
     bankFm1VaImage: 'Tela do FM1 com FM-1+VA perguntando “Replace Bank A?”, com Cancel e Replace',
     bankImage:
       'Tela do FM1 com o firmware da M-VAVE mostrando “32 Voice Save To …” acima dos bancos A, B, C e D',
@@ -505,9 +507,12 @@ export default {
     firmwareUnidentified: 'Não identificado',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareFelucca: 'Felucca {{identity}}',
     firmwareEditBuffer: 'Os sons que você toca vão para o buffer de edição do FM1.',
     firmwareParameterChanges:
       'Os sons que você toca são enviados como mudanças de parâmetros, para que o FM1 nunca os salve sobre o preset selecionado.',
+    firmwareIgnoresPatches:
+      'O Felucca toca suas notas, mas ignora sons DX7, bancos e os controles de efeito.',
     firmwareNeedsInput:
       'Escolha o FM1 como entrada de monitoração para que o editor possa perguntar qual firmware ele usa.',
     noteChannel: 'Canal de notas',
@@ -694,6 +699,9 @@ export default {
     randomiseHelp: 'Nova voz. Mantém nome e efeitos.',
   },
   midi: {
+    feluccaBadgeLabel: 'Firmware Felucca da Hügelton Instruments, {{release}}',
+    feluccaBadgeTitle:
+      'O FM1 usa o firmware Felucca da Hügelton Instruments, {{release}}. Ele toca suas notas, mas ignora sons DX7, bancos e os controles de efeito.',
     fm1VaBadgeLabel: 'Firmware FM-1+VA da Baud Girl, {{release}}',
     fm1VaBadgeTitle:
       'O FM1 usa o firmware FM-1+VA da Baud Girl, {{release}}. Os sons que você toca chegam como alterações não salvas, então nunca sobrescrevem um preset.',
