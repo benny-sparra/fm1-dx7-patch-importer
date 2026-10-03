@@ -18,14 +18,15 @@ const recordStart = payloadStart + FM1_VOICE_PARAMETER_COUNT
 
 /**
  * Where record byte `index` sits in a message. The record travels in groups of eight: a byte that
- * carries the high bits of the seven bytes after it, then those seven bytes' low bits.
+ * carries the high bits of the seven bytes after it, bit k for byte k, then those seven bytes' low
+ * bits.
  */
 function recordByteIndex(index: number) {
   return recordStart + Math.floor(index / 7) * 8 + 1 + (index % 7)
 }
 
-// Record byte 18 is `5A` in a Virtual Analog preset and `03` in an FM one; only its low seven bits
-// are read, since which of its group's high bits is its own is not known yet.
+// Record byte 18 is `5A` in a Virtual Analog preset and `03` in an FM one, so its high bit, which
+// is clear in every preset seen, is not read.
 const engineMarkerIndex = recordByteIndex(18)
 const virtualAnalogMarker = 0x5a
 

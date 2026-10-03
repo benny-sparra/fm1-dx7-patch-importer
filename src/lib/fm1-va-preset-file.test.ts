@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import { parseDx7Bank, unpackDx7Voice } from '@/lib/dx7'
 import { fm1VaChecksum } from '@/lib/fm1-va-sysex'
-import { capturedOrgan3 } from '@/test/fm1-va-captures'
+import { capturedOrgan3, capturedVirtualAnalog } from '@/test/fm1-va-captures'
 
 import {
   Fm1VaPresetFileError,
@@ -16,22 +16,6 @@ import {
 } from './fm1-va-preset-file'
 
 const capturedRecord = capturedOrgan3.slice(161, 229)
-
-// Preset 097 after Erase Preset made it a Virtual Analog preset and SAVE stored it, from a backup
-// saved on 2026-10-01. Its record's byte 18 is 5A, where an FM preset's is 03.
-const capturedVirtualAnalog = Uint8Array.from(
-  `F0 43 00 7D 04 60 63 63 63 63 63 63 63 00 27 00 00 00 00 00 00 00 63 00 01 00 07 63 63 63 63 63
-   63 63 00 27 00 00 00 00 00 00 00 00 00 01 00 07 63 63 63 63 63 63 63 00 27 00 00 00 00 00 00 00
-   00 00 01 00 07 63 63 63 63 63 63 63 00 27 00 00 00 00 00 00 00 00 00 01 00 07 63 63 63 63 63 63
-   63 00 27 00 00 00 00 00 00 00 00 00 01 00 07 63 63 63 63 63 63 63 00 27 00 00 00 00 00 00 00 63
-   00 01 00 07 63 63 63 63 32 32 32 32 00 00 01 23 00 00 00 00 00 03 18 56 4F 49 43 45 20 39 37 20
-   20 00 50 03 03 03 03 03 03 00 03 03 03 03 03 03 03 00 03 03 03 03 5A 02 32 3C 64 00 64 00 00 00
-   00 00 00 00 01 00 00 02 00 00 00 03 00 00 04 00 00 78 05 00 00 00 00 00 00 07 00 00 00 00 00 00
-   00 00 00 00 00 07 F7`
-    .trim()
-    .split(/\s+/)
-    .map((byte) => Number.parseInt(byte, 16)),
-)
 
 // Yamaha's ROM1A factory cartridge fills the other presets.
 const rom1a = parseDx7Bank(

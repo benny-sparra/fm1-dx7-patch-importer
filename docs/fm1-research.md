@@ -108,15 +108,16 @@ seven after it. Record byte 18, the fifth byte of the third group, is `5A` in ev
 preset and `03` in every FM preset. The 2026-10-01 backup held 17 Virtual Analog presets: 097, made
 with **Erase Preset** and stored with SAVE, and the 16 of FM-1+VA's preset pack in 113–128. No
 preset showed the `A5` that FM-1+VA's web modules were read as giving an FM preset. That group's
-high-bit byte is `00` in all 384 presets, so the editor compares only the low seven bits with `5A`
-and does not depend on the bit order, which is not known. The editor reads a preset with any other
-value as FM.
+high-bit byte is `00` in all 384 presets, so the editor compares only the low seven bits with `5A`.
+The editor reads a preset with any other value as FM. In each group, bit _k_ of the first byte is the
+high bit of the group's byte _k_ (Confirmed, below, "Reading a stored preset").
 
-**The rest of the record is not mapped. Needs hardware test.** Only three Virtual Analog records,
-097, 113, and 114, set any high bit, so the group bit order cannot be settled from these files. In
-FM presets, bytes 0–17 are `50` then seventeen `03`, and bytes 27 onwards repeat a pattern of three
-bytes with a count from 0 to 8, which is not the six-slot effect chain the backlog lists. The
-firmware release behind the 2026-10-01 backup was not recorded.
+**The rest of the record is mostly not mapped. Needs hardware test.** Only three Virtual Analog
+records, 097, 113, and 114, set any high bit. In FM presets, bytes 0–17 are `50` then seventeen
+`03`, and bytes 27–53 are nine groups of three, each a count from 0 to 8 then `00 00`. FM-1+VA's
+modules read bytes 27–44 as six effect slots of effect, switch, and type, and the first switch has
+been seen (below, "Reading a stored preset"); what bytes 45–53 hold is not known. The firmware
+release behind the 2026-10-01 backup was not recorded.
 
 **A Virtual Analog preset's voice bytes are not a DX7 voice. Confirmed** for the 2026-10-01 backup
 (one file, read 2026-10-02). Five of the 16 preset-pack voices hold 127 where a DX7 voice allows at
@@ -229,10 +230,22 @@ statuses and damage no capture shows yet.
   backups were read in the right place and the editor's `5A` test stands. Its modules write `A5`
   only in the record they make for a sound that arrives without one, such as from a DX7 file; a
   stored preset need not carry it.
-- **The bit order of the backup's 8-into-7 groups is still open.** ORGAN 3's record has no byte
-  above `7F`, so the match above does not show which group bit belongs to which byte. A read of a
-  preset whose record has a high bit set, such as 097, 113, or 114, beside the same preset in a
-  backup, settles it.
+- **In the backup's 8-into-7 groups, bit _k_ of a group's first byte is the high bit of its byte
+  _k_. Confirmed, seen once** (097 read on FM-1_093, 2026-10-02, fixture
+  `capturedVirtualAnalogFilterOnReply`). 097's record has 13 bytes above `7F`; decoded this way,
+  the 2026-10-01 backup matches the read in every byte but byte 28, below, and the reverse order
+  leaves 15 differences. The voice matches byte for byte.
+
+**What the record holds, one setting at a time.** Each row is a preset read before and after one
+change on the FM1, stored with SAVE.
+
+| Change                                        | Preset   | Bytes that changed | Seen                                                      |
+| --------------------------------------------- | -------- | ------------------ | --------------------------------------------------------- |
+| Filter switched on (was off since its backup) | 097 (VA) | 28: `00` → `01`    | Once, FM-1_093, 2026-10-02, against the 2026-10-01 backup |
+
+Byte 27 is `00` in that record, and FM-1+VA's modules read bytes 27–44 as six slots of effect,
+switch, and type. Whether byte 28 follows the Filter or whichever effect is first in the chain
+needs a read after the effect order changes. Switching the Filter on left bytes 0–17 as they were.
 
 **Mapping the record.** A development build (`npm run dev`) has an **FM-1+VA preset probe (dev)**
 in the footer. It reads one preset and shows its record and voice byte by byte, marking each byte

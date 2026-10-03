@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { packDx7Voice } from '@/lib/dx7'
-import { capturedOrgan3, capturedOrgan3Reply } from '@/test/fm1-va-captures'
+import {
+  capturedOrgan3,
+  capturedOrgan3Reply,
+  capturedVirtualAnalog,
+  capturedVirtualAnalogFilterOnReply,
+} from '@/test/fm1-va-captures'
 import { makeFm1VaPresetReply, makeFm1VaReply, makeStoredPresetData } from '@/test/fm1-va-replies'
 
 import {
@@ -85,6 +90,18 @@ describe('readFm1VaPreset', () => {
 
     expect(preset.voice).toEqual(packDx7Voice(capturedOrgan3.slice(6, 161)).data)
     expect(preset.record).toEqual(backupRecord(capturedOrgan3))
+  })
+
+  it('reads a Virtual Analog record as its backup holds it, with each high bit in place', async () => {
+    const { link } = makeLink(() => capturedVirtualAnalogFilterOnReply)
+
+    const preset = await readFm1VaPreset(link, 96)
+
+    // Switching the Filter on between the backup and the read set record byte 28 alone.
+    const expected = backupRecord(capturedVirtualAnalog)
+    expected[28] = 0x01
+    expect(preset.record).toEqual(expected)
+    expect(preset.voice).toEqual(packDx7Voice(capturedVirtualAnalog.slice(6, 161)).data)
   })
 
   it('reads record byte 18 of a captured FM preset as 03', async () => {

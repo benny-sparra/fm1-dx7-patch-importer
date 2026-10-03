@@ -397,7 +397,9 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       `useFm1VaPresetReader`, with typed errors that a user-facing action will translate (3), and the
       development build's **FM-1+VA preset probe (dev)** shows each read byte by byte with the
       changes since the last. A reply captured from FM-1_093 (preset 001) confirmed the read and
-      matched the backup byte for byte. Still to do: map the record, and store it.
+      matched the backup byte for byte; a read of 097 settled the backup's high-bit order and
+      found the Filter switch in record byte 28. Still to do: map the rest of the record, and
+      store it.
 - [ ] **3. Import from the FM1.** A **Read from FM1…** action reads all 128 presets, shows which
       slots differ from banks A–D, and lets the user take the FM1's version of each bank, with
       effects and record, as one Undo. This answers [Syncing patches with the FM1](#syncing-patches-with-the-fm1)
