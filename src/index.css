@@ -951,6 +951,39 @@
   }
 
   /*
+   * Opening a patch draws the classic Mac Finder's zoom rectangles from its
+   * slot to the editor, and closing it draws them back (`zoomRects`). Each
+   * outline is lit for a few frames from its delay, then goes dark at once.
+   */
+  .zoom-rects {
+    position: fixed;
+    z-index: 40;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .zoom-rect {
+    position: absolute;
+    border: 1px solid var(--crt-acc-lt);
+    opacity: 0;
+    box-shadow: 0 0 6px color-mix(in srgb, var(--crt-acc) 45%, transparent);
+    animation-name: zoom-rect;
+  }
+
+  @keyframes zoom-rect {
+    from,
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zoom-rects {
+      display: none;
+    }
+  }
+
+  /*
    * The compare notice switches on like a terminal window: it opens from a
    * bright line into its frame.
    */
