@@ -278,6 +278,13 @@ export function useMidi() {
       if (reason === 'connected' || outputId) preferredOutputId.current = outputId
       if (reason === 'connected' || inputId) preferredInputId.current = inputId
 
+      // An answer holds only while its ports stay selected. WebMidi hands back the same port object
+      // when a device returns, and an FM1 may come back with other firmware, so it is asked again.
+      const output = nextOutputs.find((device) => device.id === outputId)?.port
+      const input = nextInputs.find((device) => device.id === inputId)?.port
+      setIdentification((current) =>
+        current && current.output === output && current.input === input ? current : null,
+      )
       setOutputs(nextOutputs)
       setInputs(nextInputs)
       setSelectedOutputId(outputId)
@@ -356,6 +363,7 @@ export function useMidi() {
       setInputs([])
       setSelectedOutputId('')
       setSelectedInputId('')
+      setIdentification(null)
       appendLog(makeLogEntry('system', 'MIDI disconnected.'))
     } catch {
       setError('disconnect_failed')
