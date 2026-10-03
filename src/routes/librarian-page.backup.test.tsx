@@ -107,7 +107,9 @@ describe('LibrarianPage backup', () => {
     expect(document.getElementById(zip.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
       'DX7 data only, no FM1 effects',
     )
-    expect(within(otherFiles).getByRole('button', { name: 'Import FM-1+VA presets…' })).toBeTruthy()
+    expect(
+      within(otherFiles).getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' }),
+    ).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Restore all banks' })).toBeNull()
   })
 

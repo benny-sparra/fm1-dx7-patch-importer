@@ -386,7 +386,7 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
 
     await expect(badge).toBeVisible()
     await expect(badge.getByRole('img')).toHaveCount(0)
-    await expect(badge.getByText('FM-1+VA firmware by Baud Girl, FM-1_089')).toBeAttached()
+    await expect(badge.getByText('Baud Girl firmware, FM-1_089')).toBeAttached()
   })
 
   test('shows FM-1+VA on the screen of the FM1 photo in the chosen finish', async ({ page }) => {

@@ -164,9 +164,9 @@ describe('rendered accessibility', () => {
     const user = userEvent.setup()
 
     await user.click(screen.getByTitle('Library actions'))
-    await user.click(screen.getByRole('button', { name: 'Import FM-1+VA presets…' }))
+    await user.click(screen.getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' }))
     await user.upload(
-      await screen.findByLabelText(/FM-1\+VA presets file/),
+      await screen.findByLabelText(/Baud Girl presets file/),
       makeFm1VaBackupFile('FM-1 presets.syx', { damagedSlots: [5], virtualAnalogSlots: [112] }),
     )
 

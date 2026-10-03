@@ -14,11 +14,11 @@ export default {
     bankFm1VaStep3:
       'Gira SELECT hasta Replace y pulsa SEL para guardar los 32 sonidos, o pulsa HOME para cancelar. También sustituyen para siempre los presets de fábrica de ese banco.',
     bankFm1VaNote:
-      'Si tu FM1 usa el firmware FM-1+VA, pregunta en su lugar «Replace Bank A?» y empieza en el banco A. Gira ALGORITHM hasta el banco de destino, luego SELECT hasta Replace, y pulsa SEL.',
+      'Si tu FM1 usa el firmware de Baud Girl, pregunta en su lugar «Replace Bank A?» y empieza en el banco A. Gira ALGORITHM hasta el banco de destino, luego SELECT hasta Replace, y pulsa SEL.',
     bankFeluccaNote:
       'Felucca ignora los bancos DX7, así que enviar este banco no cambia sus presets.',
     bankFm1VaImage:
-      'Pantalla del FM1 con FM-1+VA que pregunta «Replace Bank A?», con Cancel y Replace',
+      'Pantalla del FM1 con el firmware de Baud Girl que pregunta «Replace Bank A?», con Cancel y Replace',
     bankImage:
       'Pantalla del FM1 con el firmware de M-VAVE que muestra «32 Voice Save To …» sobre los bancos A, B, C y D',
     dontShow: 'No volver a mostrar en esta sesión',
@@ -313,21 +313,21 @@ export default {
     warning: 'El contenido actual del banco se borrará y se sustituirá por los sonidos importados.',
   },
   fm1VaImport: {
-    menuItem: 'Importar presets de FM-1+VA…',
-    menuContents: 'Para el firmware FM-1+VA de Baud Girl',
-    title: 'Importar presets de FM-1+VA',
-    help: 'Elige el archivo de «Save a backup» en la página Presets de FM-1+VA.',
+    menuItem: 'Importar presets de Baud Girl (FM-1+VA)…',
+    menuContents: 'Del FM1 o de un archivo de «Save a backup»',
+    title: 'Importar presets de Baud Girl',
+    help: 'Elige el archivo de «Save a backup» en la página Presets de Baud Girl.',
     helpRead:
-      'Lee los presets del FM1 o elige el archivo de «Save a backup» en la página Presets de FM-1+VA.',
-    effectsNote: 'Cada sonido llega con sus efectos del FM1 y sus ajustes de FM-1+VA.',
+      'Lee los presets del FM1 o elige el archivo de «Save a backup» en la página Presets de Baud Girl.',
+    effectsNote: 'Cada sonido llega con sus efectos del FM1 y el resto de sus ajustes de preset.',
     warning:
       'Cada banco que importes reemplaza el banco que elijas para él, o se añade como banco nuevo. Puedes deshacerlo.',
-    file: 'Archivo de presets de FM-1+VA',
+    file: 'Archivo de presets de Baud Girl',
     read: 'Leer del FM1',
     readHelp:
       'Lee los 128 presets del FM1 para compararlos con tu biblioteca. No cambia nada en el FM1.',
     readUnavailable:
-      'Para leer los presets del FM1, elígelo como salida y entrada MIDI, con SysEx permitido. La lectura necesita FM-1+VA FM-1_079 o posterior.',
+      'Para leer los presets del FM1, elígelo como salida y entrada MIDI, con SysEx permitido. La lectura necesita el firmware de Baud Girl FM-1_079 o posterior.',
     reading: 'Leyendo el preset {{number, number}} de {{total, number}}…',
     stopReading: 'Dejar de leer',
     chooseFile: 'Elige el archivo de «Save a backup»',
@@ -350,10 +350,10 @@ export default {
       '{{count, number}} presets están dañados. Sus posiciones conservan sus sonidos.',
     action: 'Importar un banco',
     action_other: 'Importar {{count, number}} bancos',
-    imported: 'Banco {{banks}} importado de FM-1+VA.',
-    imported_other: 'Bancos {{banks}} importados de FM-1+VA.',
+    imported: 'Banco {{banks}} importado del FM1.',
+    imported_other: 'Bancos {{banks}} importados del FM1.',
     openFailed:
-      'No se pudo abrir la importación de FM-1+VA. Recarga la página e inténtalo de nuevo.',
+      'No se pudo abrir la importación de presets de Baud Girl. Recarga la página e inténtalo de nuevo.',
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Preset Virtual Analog, no se importa',
     virtualAnalogPresets:
@@ -361,10 +361,10 @@ export default {
     virtualAnalogPresets_other:
       'VA marca {{count, number}} presets Virtual Analog, que aún no se pueden importar. Sus posiciones conservan sus sonidos.',
     errors: {
-      size: 'Este archivo tiene {{bytes, number}} bytes. Un archivo de «Save a backup» de FM-1+VA tiene exactamente {{expected, number}} bytes.',
-      format: 'Este archivo no se guardó con «Save a backup» de FM-1+VA.',
+      size: 'Este archivo tiene {{bytes, number}} bytes. Un archivo de «Save a backup» de Baud Girl tiene exactamente {{expected, number}} bytes.',
+      format: 'Este archivo no se guardó con «Save a backup» de Baud Girl.',
       damaged:
-        'No se pudo leer ningún preset de este archivo. Guarda una copia nueva en FM-1+VA e inténtalo de nuevo.',
+        'No se pudo leer ningún preset de este archivo. Guarda una copia nueva en la página Presets de Baud Girl e inténtalo de nuevo.',
       unreadable: 'No se pudo leer el archivo.',
       readBusy:
         'El FM1 no puede enviar sus presets mientras su Sequencer está sonando. Detenlo y vuelve a leer.',
@@ -381,7 +381,7 @@ export default {
     group: '{{name}} y una copia',
     group_other: '{{name}} y {{count, number}} copias',
     effectsDiffer: 'Sus efectos del FM1 son distintos.',
-    settingsDiffer: 'Sus ajustes de preset de FM-1+VA son distintos.',
+    settingsDiffer: 'Sus ajustes de preset de Baud Girl son distintos.',
     goTo: 'Ir a {{name}}, sonido {{number}} de {{bank}}',
     none: 'No hay duplicados: cada sonido de tus bancos tiene sus propios ajustes de voz.',
     openFailed:
@@ -516,7 +516,7 @@ export default {
     firmwareChecking: 'Comprobando…',
     firmwareUnidentified: 'Sin identificar',
     firmwareMvave: 'M-VAVE {{identity}}',
-    firmwareFm1Va: 'FM-1+VA {{identity}}',
+    firmwareFm1Va: 'Baud Girl {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareEditBuffer: 'Los sonidos que tocas van al búfer de edición del FM1.',
     firmwareParameterChanges:
@@ -540,7 +540,7 @@ export default {
     truthTitle: 'Los bancos del navegador son la referencia.',
     truthBody:
       'El FM1 acepta voces y bancos, pero no puede devolver sus bancos guardados. Importa o restaura los sonidos aquí, edítalos y transfiérelos al FM1.',
-    firmwareTitle: 'Compatible con FM-1+VA',
+    firmwareTitle: 'Compatible con Baud Girl (FM-1+VA)',
     firmwareBody: 'Funciona tanto con el firmware de M-VAVE como con el de Baud Girl.',
     start: 'Empezar a editar',
     stepsTitle: 'Primeros pasos',
@@ -712,9 +712,9 @@ export default {
     feluccaBadgeLabel: 'Firmware Felucca de Hügelton Instruments, {{release}}',
     feluccaBadgeTitle:
       'El FM1 usa el firmware Felucca de Hügelton Instruments, {{release}}. Toca tus notas, pero ignora los sonidos DX7, los bancos y los controles de efectos.',
-    fm1VaBadgeLabel: 'Firmware FM-1+VA de Baud Girl, {{release}}',
+    fm1VaBadgeLabel: 'Firmware de Baud Girl, {{release}}',
     fm1VaBadgeTitle:
-      'El FM1 usa el firmware FM-1+VA de Baud Girl, {{release}}. Los sonidos que tocas le llegan como cambios sin guardar, así que nunca sobrescriben un preset.',
+      'El FM1 usa el firmware de Baud Girl (FM-1+VA), {{release}}. Los sonidos que tocas le llegan como cambios sin guardar, así que nunca sobrescriben un preset.',
     mvaveBadgeLabel: 'Firmware de M-VAVE, {{release}}',
     mvaveBadgeTitle:
       'El FM1 usa el firmware original de M-VAVE, {{release}}. Los sonidos que tocas van a su búfer de edición.',

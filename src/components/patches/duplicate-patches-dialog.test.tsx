@@ -84,7 +84,7 @@ describe('DuplicatePatchesDialog', () => {
 
     const { dialog } = renderDialog({ ...workspace, records: { 'bank-B-5': new Uint8Array(59) } })
 
-    expect(within(dialog).getByText('Their FM-1+VA preset settings differ.')).toBeTruthy()
+    expect(within(dialog).getByText('Their Baud Girl preset settings differ.')).toBeTruthy()
     expect(within(dialog).queryByText('Their FM1 effects differ.')).toBeNull()
   })
 

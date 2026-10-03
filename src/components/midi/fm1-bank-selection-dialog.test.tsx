@@ -100,7 +100,7 @@ describe('Fm1BankSelectionDialog', () => {
     render(renderDialog(true, { kind: 'unidentified' }))
 
     expect(screen.getByText(/Turn Knob 1, 2, 3 or 4/)).toBeTruthy()
-    expect(screen.getByText(/If your FM1 runs FM-1\+VA firmware/)).toBeTruthy()
+    expect(screen.getByText(/If your FM1 runs Baud Girl’s firmware/)).toBeTruthy()
   })
 
   it('says Felucca ignores DX7 banks rather than how FM-1+VA differs', () => {
@@ -111,7 +111,7 @@ describe('Fm1BankSelectionDialog', () => {
         'Felucca ignores DX7 banks, so sending this bank does not change its presets.',
       ),
     ).toBeTruthy()
-    expect(screen.queryByText(/If your FM1 runs FM-1\+VA firmware/)).toBeNull()
+    expect(screen.queryByText(/If your FM1 runs Baud Girl’s firmware/)).toBeNull()
   })
 
   it('changes to the FM-1+VA steps once identified, after a page translator replaces its text', () => {
