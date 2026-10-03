@@ -410,7 +410,7 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       on FM-1+VA: the browser stops being the only copy, and differences can be shown. Reading
       is one reply per preset; show progress, allow cancelling between presets, and handle
       disconnection and completions after unmount.
-      _Built 2026-10-03, waiting for a hardware test:_ **Read from FM1** sits in the
+      _Built and tested on hardware 2026-10-03 (FM-1_093):_ **Read from FM1** sits in the
       **Import FM-1+VA presets…** dialog beside the backup file, so the read shares its preview,
       bank switches, and Undo. It reads the 128 presets one at a time, with progress and **Stop
       reading**, and stops when the dialog closes or the ports change. A dot marks each patch
