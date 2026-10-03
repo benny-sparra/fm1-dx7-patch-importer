@@ -433,22 +433,27 @@ Site, source, installer, editor, and recovery tool:
 - https://synthanatomy.com/2026/10/hugelton-instruments-felucca-custom-m-vave-fm-1-firmware-turns-it-into-a-multi-engine-synth.html
 
 Felucca is Leo Kuroshita's (Hügelton Instruments) replacement firmware for the FM1, under
-GPL-3.0-only. 0.4-beta (2026-10-02) shipped only a built package; 0.8-beta (2026-10-03) is the
-first source release. 0.8 has six engines (ANALOG, DIGITAL 4-operator FM, PHASE CZ-style phase
-distortion, LOFI, SAMPLE, VOICE formant), three synth parts and a GM drum track sharing eight
-voices, a 64-step sequencer per track, 32 user preset slots, 4 project slots, and 3 user sample
-slots, edited by its own web editor. Users moving to it from FM-1+VA are told to go back to stock
+GPL-3.0-only. 0.4-beta (2026-10-02) shipped only a built package; 0.8-beta (2026-10-03) was the
+first source release, and 0.9-beta (2026-10-03) the latest. 0.9 has nine engines (ANALOG, DIGITAL
+4-operator FM, PHASE CZ-style phase distortion, LOFI, SAMPLE, VOICE formant, and new TRIO, WHEEL
+organ, and GRAIN granular), a per-track SLICER insert, three synth parts and a GM drum track
+sharing eight voices, a 64-step sequencer per track, 32 user preset slots, 4 project slots, and 3
+user sample slots, edited by its own web editor (`README.md`). Users moving to it from FM-1+VA are told to go back to stock
 firmware first (`docs/switching-firmware.md`).
 
-The notes below come from reading the 0.8-beta source at commit
-`334477d10d582acaf5ab6e300e52431decb6c693` (2026-10-03), mainly `firmware/src/usb.c`, `seq.c`,
-`ota.c`, `editor.c`, `tools/build.py`, and `web/EDITOR_PROTOCOL.md`, and, where marked, a static
+The notes below come from reading the source at the 0.9-beta tag, commit
+`e5a908d0383848cd85149de6dc35150c792231fc` (2026-10-03), and at `main`, commit
+`1e838e17e170b20ff09b9660c9a7171aadfc5dca` (2026-10-03, two commits later, adding a white-key
+scale option), mainly `firmware/src/usb.c`, `seq.c`, `ota.c`, `editor.c`, `tools/build.py`, and
+`web/EDITOR_PROTOCOL.md`. They were first written from 0.8-beta (commit `334477d`); the changes
+since then do not touch the points below, except as noted. Where marked, they also rest on a static
 reading of the 0.4-beta package. Reading source counts as analysis, so nothing here is
 **Confirmed**: no Felucca FM1 has been run with this editor.
 
 **Identity. Likely.** Felucca answers the identity query (§6.3) outside an update with its
 package identity. Release builds name it `FM-1_9XY` for release X.Y (`build.py --release`, one
-digit each), so 0.4-beta is `FM-1_904` and 0.8-beta `FM-1_908`; a development build is
+digit each), so 0.4-beta is `FM-1_904`, 0.8-beta `FM-1_908`, and 0.9-beta `FM-1_909`
+(`BUILDING.md`); a development build is
 `FM-1_900`. The whole 900s range is therefore Felucca's while its version stays below 10.0. The
 editor counted Felucca as FM-1+VA until 2026-10-02 and left it unidentified until 2026-10-03; it
 now names the 900s as Felucca (`classifyFm1Firmware`) and shows release X.Y.
@@ -466,10 +471,13 @@ preference. Which name each operating system shows has not been seen.
   other channel plays the selected track. The editor's audition notes will sound on whichever part
   its note channel reaches.
 - **Control Change, Program Change, pitch bend, and pressure** are queued from USB but never read
-  in 0.8, so the FM1 effect controllers and the bank-slot Program Change have no effect.
+  in 0.8 or 0.9 (`seq.c` still tests only `0x80` and `0x90`; 0.9 adds nothing for incoming MIDI
+  except that its MIDI-in jack now feeds the same queue as USB packets, with SysEx still dropped), so the FM1 effect controllers and the bank-slot Program Change have no effect.
 - **DX7 SysEx.** The USB SysEx assembler keeps one frame of at most 640 bytes. A frame is handed
   to the web-editor parser, which takes only `F0 7D 46 4C …`, and then to the updater parser, which
-  takes only pack7-encoded `00 59 …` frames with a valid checksum; anything else is discarded. A
+  takes only pack7-encoded `00 59 …` frames with a valid checksum; anything else is discarded. In
+  0.9 `usb.c` still has the 640-byte frame and the `F0 22 24 35 7D F7` key; its changes move
+  register access into `firmware/hal/`. A
   single-voice dump (163 bytes) and each of the 155 parameter changes are discarded that way; a
   32-voice dump (4104 bytes) is too long and dropped while it arrives. So Felucca ignores every
   patch or bank the editor sends, and none of it can overwrite a Felucca preset. The 0.4-beta
@@ -482,7 +490,8 @@ preference. Which name each operating system shows has not been seen.
 request at a time, one reply each, values as 14-bit offset pairs. Commands 1–15 read and set
 parameters, describe them, read and write sequencer steps, apply presets, load and save projects,
 list preset names, and upload samples; 16–26 (v2) read and write the 32 user presets and push live
-changes while watched; 27–30 (v3) address the four tracks. `PROJECT` save, the sample commands, and
+changes while watched; 27–30 (v3) address the four tracks; 31–32 (v4, new in 0.9, asked for with
+bit 1 of `WATCH`) get and set a parameter of any track and push mixer changes of unselected tracks. `PROJECT` save, the sample commands, and
 `UP_PUT`, `UP_STORE`, and `UP_ERASE` write Felucca's own storage in flash. Its parameters are
 Felucca's engines, not DX7 voices, so a DX7 library has nothing to send there. Supporting Felucca
 would be a separate feature with its own approval, like FM-1+VA's preset read; until then the
