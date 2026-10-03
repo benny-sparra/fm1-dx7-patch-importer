@@ -317,8 +317,11 @@ export default {
     menuContents: 'Para el firmware FM-1+VA de Baud Girl',
     title: 'Importar presets de FM-1+VA',
     help: 'Elige el archivo de «Save a backup» en la página Presets de FM-1+VA.',
+    helpRead:
+      'Lee los presets del FM1 o elige el archivo de «Save a backup» en la página Presets de FM-1+VA.',
     effectsNote: 'Cada sonido llega con sus efectos del FM1 y sus ajustes de FM-1+VA.',
-    warning: 'Cada banco activado reemplaza el mismo banco aquí. Puedes deshacerlo.',
+    warning:
+      'Cada banco que importes reemplaza el banco que elijas para él, o se añade como banco nuevo. Puedes deshacerlo.',
     file: 'Archivo de presets de FM-1+VA',
     read: 'Leer del FM1',
     readHelp:
@@ -339,12 +342,14 @@ export default {
     bankHeading: 'Banco {{bank}} del FM1',
     replaceBank: 'Reemplazar «{{name}}»',
     addBank: 'Añadirlo como banco nuevo',
+    destination: 'Importar en',
+    skipBank: 'No importar',
     damagedPreset: 'Dañado',
     damagedPresets: 'Un preset está dañado. Su posición conserva su sonido.',
     damagedPresets_other:
       '{{count, number}} presets están dañados. Sus posiciones conservan sus sonidos.',
-    action: 'Reemplazar un banco',
-    action_other: 'Reemplazar {{count, number}} bancos',
+    action: 'Importar un banco',
+    action_other: 'Importar {{count, number}} bancos',
     imported: 'Banco {{banks}} importado de FM-1+VA.',
     imported_other: 'Bancos {{banks}} importados de FM-1+VA.',
     openFailed:

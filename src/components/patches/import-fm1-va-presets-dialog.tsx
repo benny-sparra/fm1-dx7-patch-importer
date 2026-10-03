@@ -20,7 +20,6 @@ import {
   RackPanelCollapsibleBody,
   RackPanelTitle,
 } from '@/components/ui/rack-panel'
-import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/toast'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import type { MidiController } from '@/hooks/use-midi'
@@ -43,7 +42,7 @@ import {
   fm1VaPresetCount,
   readEveryFm1VaPreset,
 } from '@/lib/fm1-va-preset-read'
-import { voiceId } from '@/lib/patch-library'
+import { type FetchedBank, maximumWorkspaceBanks, voiceId } from '@/lib/patch-library'
 import { sysexFileAccept } from '@/lib/sysex-file'
 
 type ImportFm1VaPresetsDialogProps = {
@@ -74,6 +73,16 @@ type ImportFm1VaPresetsDialogProps = {
 
 /** Where the banks shown came from. */
 type PresetSource = 'file' | 'fm1'
+
+/** Where an FM1 bank goes: a workspace bank's letter, a new bank, or nowhere. */
+type Destination = string
+const skipBank: Destination = ''
+const newBank: Destination = 'new'
+
+/** A new bank's title: the bank's letter on the FM1, under the firmware's name. */
+const newBankTitle = (bank: Fm1VaPresetBank) => `FM-1+VA ${bank}`
+
+type DestinationOption = { disabled?: boolean; label: string; value: Destination }
 
 type Translate = ReturnType<typeof useTranslation>['t']
 
@@ -145,7 +154,9 @@ export function ImportFm1VaPresetsDialog({
   // it once.
   const [banks, setBanks] = useState<Fm1VaPresetFileBank[] | null>(null)
   const [source, setSource] = useState<PresetSource>('file')
-  const [chosenBanks, setChosenBanks] = useState<ReadonlySet<Fm1VaPresetBank>>(new Set())
+  const [destinations, setDestinations] = useState<ReadonlyMap<Fm1VaPresetBank, Destination>>(
+    new Map(),
+  )
   const [playing, setPlaying] = useState<Dx7Voice | null>(null)
   const readingFile = useRef<File | null>(null)
   const reader = useFm1VaPresetReader(midi)
@@ -173,14 +184,49 @@ export function ImportFm1VaPresetsDialog({
   const listFormat = new Intl.ListFormat(i18n.resolvedLanguage, { type: 'conjunction' })
   const damagedCount = countPresets(banks, 'damaged')
   const virtualAnalogCount = countPresets(banks, 'virtual-analog')
-  const takenBanks = banks?.filter(({ bank }) => chosenBanks.has(bank)) ?? []
-  const differs = (bank: Fm1VaPresetBank, index: number, preset: Fm1VaPreset) => {
-    const id = voiceId(bank, index + 1)
+  const destinationOf = (bank: Fm1VaPresetBank) => destinations.get(bank) ?? skipBank
+  const takenBanks = banks?.filter(({ bank }) => destinationOf(bank) !== skipBank) ?? []
+  const differsFromBank = (
+    workspaceBank: string | null,
+    index: number,
+    preset: Fm1VaPreset,
+  ): boolean => {
+    if (workspaceBank === null) return false
+    const id = voiceId(workspaceBank, index + 1)
     return differsFromLibrary(preset, {
       effects: library.effects[id],
       record: library.records[id],
       voice: library.voices[id],
     })
+  }
+  // A bank is compared with the workspace bank it replaces or, while it is not imported, with the
+  // one of the same letter. A new bank replaces nothing, so none of its patches is marked.
+  const comparedBank = (bank: Fm1VaPresetBank) => {
+    const destination = destinationOf(bank)
+    if (destination === newBank) return null
+    const compared = destination === skipBank ? bank : destination
+    return library.workspaceBanks.includes(compared) ? compared : null
+  }
+  const differs = (bank: Fm1VaPresetBank, index: number, preset: Fm1VaPreset) =>
+    differsFromBank(comparedBank(bank), index, preset)
+
+  const destinationOptions = (bank: Fm1VaPresetBank): DestinationOption[] => {
+    const others = [...destinations].filter(([other]) => other !== bank).map(([, to]) => to)
+    const newBanks = others.filter((to) => to === newBank).length
+    return [
+      { label: t('fm1VaImport.skipBank'), value: skipBank },
+      ...library.workspaceBanks.map((workspaceBank) => ({
+        // Two FM1 banks cannot replace the same bank.
+        disabled: others.includes(workspaceBank),
+        label: t('fm1VaImport.replaceBank', { name: workspaceBankLabel(workspaceBank) }),
+        value: workspaceBank,
+      })),
+      {
+        disabled: library.workspaceBanks.length + newBanks >= maximumWorkspaceBanks,
+        label: t('fm1VaImport.addBank'),
+        value: newBank,
+      },
+    ]
   }
   const differingCount =
     banks?.reduce(
@@ -192,18 +238,25 @@ export function ImportFm1VaPresetsDialog({
   const showBanks = (read: Fm1VaPresetFileBank[], from: PresetSource) => {
     setBanks(read)
     setSource(from)
-    // From the FM1, the banks that differ from the library start switched on; from a file, every
-    // bank it can import does, as the file is usually chosen to be imported.
-    setChosenBanks(
-      new Set(
-        read
-          .filter(
-            (fileBank) =>
-              hasImportableVoice(fileBank) &&
-              (from === 'file' ||
-                fileBank.presets.some((preset, index) => differs(fileBank.bank, index, preset))),
-          )
-          .map(({ bank }) => bank),
+    // Each bank starts going to the workspace bank of the same letter: from the FM1, only when it
+    // differs from it; from a file, always, as the file is usually chosen to be imported. A bank
+    // the workspace does not have starts as a new bank while there is room for one.
+    let room = maximumWorkspaceBanks - library.workspaceBanks.length
+    setDestinations(
+      new Map(
+        read.map((fileBank): [Fm1VaPresetBank, Destination] => {
+          const { bank, presets } = fileBank
+          if (!hasImportableVoice(fileBank)) return [bank, skipBank]
+          if (library.workspaceBanks.includes(bank)) {
+            const wanted =
+              from === 'file' ||
+              presets.some((preset, index) => differsFromBank(bank, index, preset))
+            return [bank, wanted ? bank : skipBank]
+          }
+          if (room <= 0) return [bank, skipBank]
+          room -= 1
+          return [bank, newBank]
+        }),
       ),
     )
   }
@@ -265,13 +318,8 @@ export function ImportFm1VaPresetsDialog({
     }
   }
 
-  const toggleBank = (bank: Fm1VaPresetBank, taken: boolean) => {
-    setChosenBanks((current) => {
-      const next = new Set(current)
-      if (taken) next.add(bank)
-      else next.delete(bank)
-      return next
-    })
+  const chooseDestination = (bank: Fm1VaPresetBank, destination: Destination) => {
+    setDestinations((current) => new Map(current).set(bank, destination))
   }
 
   const play = (voice: Dx7Voice, effects: Uint8Array) => {
@@ -286,7 +334,13 @@ export function ImportFm1VaPresetsDialog({
     setError('')
     try {
       const changed = library.importFetchedBanks(
-        takenBanks.map((taken) => ({ bank: taken.bank, sounds: importableSounds(taken) })),
+        takenBanks.map((taken): FetchedBank => {
+          const sounds = importableSounds(taken)
+          const destination = destinationOf(taken.bank)
+          return destination === newBank
+            ? { newBankTitle: newBankTitle(taken.bank), sounds }
+            : { bank: destination, sounds }
+        }),
       )
       trackAnalyticsEvent({
         data: { source: source === 'fm1' ? 'fm1_va_read' : 'fm1_va_backup' },
@@ -326,7 +380,7 @@ export function ImportFm1VaPresetsDialog({
           className="grid gap-2 px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]"
           id={descriptionId}
         >
-          <p>{t('fm1VaImport.help')}</p>
+          <p>{t(reader.canRead ? 'fm1VaImport.helpRead' : 'fm1VaImport.help')}</p>
           <p>{t('fm1VaImport.effectsNote')}</p>
         </div>
 
@@ -403,11 +457,14 @@ export function ImportFm1VaPresetsDialog({
                 <span hidden id={differingId}>
                   {t('fm1VaImport.differingPatch')}
                 </span>
-                <p className="text-xs text-[var(--crt-ink-3)]">
-                  {differingCount === 0
-                    ? t('fm1VaImport.allMatch')
-                    : t('fm1VaImport.differs', { count: differingCount })}
-                </p>
+                {/* A bank going to a new bank is compared with nothing, so it cannot match. */}
+                {differingCount > 0 ? (
+                  <p className="text-xs text-[var(--crt-ink-3)]">
+                    {t('fm1VaImport.differs', { count: differingCount })}
+                  </p>
+                ) : banks.every(({ bank }) => comparedBank(bank) !== null) ? (
+                  <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.allMatch')}</p>
+                ) : null}
                 {virtualAnalogCount > 0 ? (
                   <p className="text-xs text-[var(--crt-ink-3)]">
                     {t('fm1VaImport.virtualAnalogPresets', { count: virtualAnalogCount })}
@@ -421,19 +478,17 @@ export function ImportFm1VaPresetsDialog({
               ) : null}
               {banks.map((fileBank) => (
                 <PresetFileBank
+                  destination={destinationOf(fileBank.bank)}
+                  destinationOptions={destinationOptions(fileBank.bank)}
                   differs={(index, preset) => differs(fileBank.bank, index, preset)}
                   differingId={differingId}
                   fileBank={fileBank}
                   key={fileBank.bank}
-                  libraryBankName={
-                    library.workspaceBanks.includes(fileBank.bank)
-                      ? workspaceBankLabel(fileBank.bank)
-                      : null
+                  onChooseDestination={(destination) =>
+                    chooseDestination(fileBank.bank, destination)
                   }
                   onPlay={play}
-                  onToggle={(taken) => toggleBank(fileBank.bank, taken)}
                   playing={playing}
-                  taken={chosenBanks.has(fileBank.bank)}
                 />
               ))}
             </section>
@@ -458,32 +513,32 @@ export function ImportFm1VaPresetsDialog({
 }
 
 type PresetFileBankProps = {
+  destination: Destination
+  destinationOptions: DestinationOption[]
   /** Whether the preset at `index` differs from the patch in the library slot it would replace. */
   differs: (index: number, preset: Fm1VaPreset) => boolean
   /** The id of the text that describes a patch marked as differing. */
   differingId: string
   fileBank: Fm1VaPresetFileBank
-  /** The name of the workspace bank the FM1 bank replaces, or null when it is added. */
-  libraryBankName: string | null
+  onChooseDestination: (destination: Destination) => void
   onPlay: (voice: Dx7Voice, effects: Uint8Array) => void
-  onToggle: (taken: boolean) => void
   playing: Dx7Voice | null
-  taken: boolean
 }
 
 function PresetFileBank({
+  destination,
+  destinationOptions,
   differs,
   differingId,
   fileBank,
-  libraryBankName,
+  onChooseDestination,
   onPlay,
-  onToggle,
   playing,
-  taken,
 }: PresetFileBankProps) {
   const { i18n, t } = useTranslation()
   const headingId = useId()
   const bodyId = useId()
+  const destinationId = useId()
   // Banks start folded, so the four fit without scrolling; one is opened to hear its patches.
   const [collapsed, setCollapsed] = useState(true)
   const numberFormat = new Intl.NumberFormat(i18n.resolvedLanguage)
@@ -494,32 +549,37 @@ function PresetFileBank({
     <section aria-labelledby={headingId} className="synthwave-panel min-w-0">
       <RackPanelTitle
         action={
-          <span className="flex shrink-0 items-center gap-2">
-            {/* Above the strip's fold overlay, so switching a bank does not also fold it. */}
-            <Switch
-              checked={taken}
-              className="relative z-10 inline-flex min-h-6 items-center gap-2 px-2 text-[11px] tracking-[0.1em] uppercase transition-colors"
-              disabled={!hasImportableVoice(fileBank)}
-              onChange={onToggle}
-            >
-              <span>
-                {libraryBankName === null
-                  ? t('fm1VaImport.addBank', { bank })
-                  : t('fm1VaImport.replaceBank', { name: libraryBankName })}
-              </span>
-            </Switch>
-            <RackPanelCollapseToggle
-              collapsed={collapsed}
-              controls={bodyId}
-              onToggle={() => setCollapsed((current) => !current)}
-              panel={title}
-            />
-          </span>
+          <RackPanelCollapseToggle
+            collapsed={collapsed}
+            controls={bodyId}
+            onToggle={() => setCollapsed((current) => !current)}
+            panel={title}
+          />
         }
         headingLevel={4}
         id={headingId}
         title={title}
       />
+      {/* Below the strip rather than on it, so a long bank name fits at every width and choosing
+          a destination never folds the bank. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-[9px] py-2 text-sm">
+        <label className="shrink-0 text-[var(--crt-ink-3)]" htmlFor={destinationId}>
+          {t('fm1VaImport.destination')}
+        </label>
+        <select
+          className="h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          disabled={!hasImportableVoice(fileBank)}
+          id={destinationId}
+          onChange={(event) => onChooseDestination(event.target.value)}
+          value={destination}
+        >
+          {destinationOptions.map((option) => (
+            <option disabled={option.disabled} key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
       <RackPanelCollapsibleBody collapsed={collapsed} id={bodyId}>
         {/* Positioned, so the cells' visually hidden text folds away with the bank rather than
             stretching the dialog's scrolling body. */}

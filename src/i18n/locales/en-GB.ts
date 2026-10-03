@@ -307,8 +307,11 @@ export default {
     menuContents: 'For Baud Girl’s FM-1+VA firmware',
     title: 'Import FM-1+VA presets',
     help: 'Choose the file from “Save a backup” on FM-1+VA’s Presets page.',
+    helpRead:
+      'Read the presets from the FM1, or choose the file from “Save a backup” on FM-1+VA’s Presets page.',
     effectsNote: 'Each patch arrives with its FM1 effects and its FM-1+VA settings.',
-    warning: 'Each bank switched on replaces the same bank here. You can undo this.',
+    warning:
+      'Each bank you import replaces the bank you choose for it, or is added as a new bank. You can undo this.',
     file: 'FM-1+VA presets file',
     read: 'Read from FM1',
     readHelp:
@@ -329,11 +332,13 @@ export default {
     bankHeading: 'FM1 bank {{bank}}',
     replaceBank: 'Replace “{{name}}”',
     addBank: 'Add it as a new bank',
+    destination: 'Import into',
+    skipBank: 'Don’t import',
     damagedPreset: 'Damaged',
     damagedPresets: 'One preset is damaged. Its slot keeps its patch.',
     damagedPresets_other: '{{count, number}} presets are damaged. Their slots keep their patches.',
-    action: 'Replace one bank',
-    action_other: 'Replace {{count, number}} banks',
+    action: 'Import one bank',
+    action_other: 'Import {{count, number}} banks',
     imported: 'Imported bank {{banks}} from FM-1+VA.',
     imported_other: 'Imported banks {{banks}} from FM-1+VA.',
     openFailed: 'The FM-1+VA import could not be opened. Reload the page and try again.',

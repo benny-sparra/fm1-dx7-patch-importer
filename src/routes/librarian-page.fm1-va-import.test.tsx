@@ -90,7 +90,7 @@ describe('LibrarianPage FM-1+VA import', () => {
     await openImport(user)
 
     await user.upload(screen.getByLabelText(/FM-1\+VA presets file/), makeFm1VaBackupFile())
-    await user.click(await screen.findByRole('button', { name: 'Replace 4 banks' }))
+    await user.click(await screen.findByRole('button', { name: 'Import 4 banks' }))
 
     expect(library.importFetchedBanks).toHaveBeenCalledOnce()
     expect(await screen.findByText('Imported banks A, B, C and D from FM-1+VA.')).toBeTruthy()

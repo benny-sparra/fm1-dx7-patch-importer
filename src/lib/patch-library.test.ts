@@ -15,6 +15,7 @@ import {
   makeBankFingerprint,
   makeDemoVoices,
   makePatches,
+  maximumWorkspaceBanks,
   moveVoice,
   normalizeWorkspaceBankNameForSave,
   patchMatchesSearch,
@@ -394,14 +395,65 @@ describe('importing banks read from the FM1', () => {
     expect(result.effects[voiceId('A', 1)]).toEqual(makeDefaultFm1Effects())
   })
 
-  it('adds a missing bank and the banks before it', () => {
-    const before = deleteWorkspaceBank(deleteWorkspaceBank(emptyPatchLibrary(), 'D'), 'C')
+  it('puts a bank into whichever workspace bank it names', () => {
+    const before = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
 
-    const result = importFetchedBanks(before, [{ bank: 'D', sounds }])
+    const result = importFetchedBanks(before, [{ bank: 'C', sounds }])
 
-    expect(result.workspaceBanks).toEqual(['A', 'B', 'C', 'D'])
+    expect(getBankVoices(result, 'C')).toEqual(fetched)
+    expect(getBankVoices(result, 'A')).toEqual(getBankVoices(before, 'A'))
+  })
+
+  it('adds a bank given a new bank title after the others, with that title', () => {
+    const before = deleteWorkspaceBank(emptyPatchLibrary(), 'D')
+
+    const result = importFetchedBanks(before, [
+      { newBankTitle: 'FM-1+VA A', sounds },
+      { newBankTitle: 'FM-1+VA B', sounds },
+    ])
+
+    expect(result.workspaceBanks).toEqual(['A', 'B', 'C', 'D', 'E'])
     expect(getBankVoices(result, 'D')).toEqual(fetched)
-    expect(result.voices[voiceId('C', 1)]).toBeUndefined()
+    expect(result.bankNames).toMatchObject({ D: 'FM-1+VA A', E: 'FM-1+VA B' })
+  })
+
+  it('leaves a new bank empty in a slot the FM1 could not supply', () => {
+    const withGap = sounds.map((sound, index) => (index === 4 ? null : sound))
+
+    const result = importFetchedBanks(emptyPatchLibrary(), [
+      { newBankTitle: 'FM-1+VA A', sounds: withGap },
+    ])
+
+    expect(result.voices[voiceId('E', 5)]).toBeUndefined()
+    expect(result.voices[voiceId('E', 6)]).toBe(fetched[5])
+  })
+
+  it('rejects a workspace bank that does not exist', () => {
+    const before = deleteWorkspaceBank(emptyPatchLibrary(), 'D')
+
+    expect(() => importFetchedBanks(before, [{ bank: 'D', sounds }])).toThrow(
+      WorkspaceBankUnavailableError,
+    )
+  })
+
+  it('rejects a new bank once the workspace holds as many banks as it can', () => {
+    let full = emptyPatchLibrary()
+    while (full.workspaceBanks.length < maximumWorkspaceBanks) {
+      full = addWorkspaceBank(full, getNextWorkspaceBank(full.workspaceBanks) ?? '')
+    }
+
+    expect(() => importFetchedBanks(full, [{ newBankTitle: 'FM-1+VA A', sounds }])).toThrow(
+      WorkspaceBankUnavailableError,
+    )
+  })
+
+  it('rejects two banks that replace the same workspace bank', () => {
+    expect(() =>
+      importFetchedBanks(emptyPatchLibrary(), [
+        { bank: 'B', sounds },
+        { bank: 'B', sounds },
+      ]),
+    ).toThrow('Two banks read from the FM1 cannot replace the same workspace bank.')
   })
 
   it('keeps bank titles, descriptions and favourites', () => {
@@ -409,7 +461,7 @@ describe('importing banks read from the FM1', () => {
 
     const result = importFetchedBanks(titled, [{ bank: 'A', sounds }])
 
-    expect(result.bankNames).toBe(titled.bankNames)
+    expect(result.bankNames).toEqual(titled.bankNames)
     expect(result.bankDescriptions).toBe(titled.bankDescriptions)
     expect(result.favourites).toBe(titled.favourites)
   })

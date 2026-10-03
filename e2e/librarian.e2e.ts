@@ -165,7 +165,7 @@ function fm1VaPresetsFile() {
   }
 }
 
-test('switches an FM-1+VA bank on and off without folding it, and folds it from its title', async ({
+test('chooses where an FM-1+VA bank goes without folding it, and folds it from its title', async ({
   page,
 }) => {
   await openLibrarian(page)
@@ -176,33 +176,29 @@ test('switches an FM-1+VA bank on and off without folding it, and folds it from 
 
   const bankA = dialog.getByRole('region', { name: 'FM1 bank A' })
   const firstPatch = bankA.getByRole('button', { name: 'Play A01 FM, patch 1' })
-  const bankSwitch = bankA.getByRole('switch', { name: 'Replace “Bank 1”' })
-  await expect(bankSwitch).toBeChecked()
+  const destination = bankA.getByRole('combobox', { name: 'Import into' })
+  await expect(destination).toHaveValue('A')
   await expect(firstPatch).toBeHidden()
 
-  // The switch's input is hidden under its drawn track, so it is operated through its label, which
-  // sits above the strip's fold overlay: it switches the bank and folds nothing.
-  const switchLabel = bankA.getByText('Replace “Bank 1”', { exact: true })
-  await switchLabel.click()
-  await expect(bankSwitch).not.toBeChecked()
+  // The destination sits below the strip, clear of its fold overlay: choosing one folds nothing.
+  await destination.selectOption({ label: 'Don’t import' })
   await expect(firstPatch).toBeHidden()
-  await expect(dialog.getByRole('button', { name: 'Replace 3 banks' })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Import 3 banks' })).toBeVisible()
 
-  // Anywhere else on the strip unfolds the bank: its fold control's hit area is a CSS overlay
-  // across the strip, which only a real browser lays out, so the click lands by position.
+  // Anywhere on the strip unfolds the bank: its fold control's hit area is a CSS overlay across
+  // the strip, which only a real browser lays out, so the click lands by position.
   const title = await bankA.getByRole('heading', { name: 'FM1 bank A' }).boundingBox()
   expect(title).not.toBeNull()
   await page.mouse.click(title!.x + title!.width / 2, title!.y + title!.height / 2)
   await expect(firstPatch).toBeVisible()
-  await switchLabel.click()
-  await expect(bankSwitch).toBeChecked()
+  await destination.selectOption({ label: 'Replace “Bank 1”' })
   await expect(firstPatch).toBeVisible()
 
   // With every bank open the body scrolls, but the title and the action stay pinned in view.
   for (const bank of ['B', 'C', 'D']) {
     await dialog.getByRole('button', { name: `Expand FM1 bank ${bank}` }).click()
   }
-  await expect(dialog.getByRole('button', { name: 'Replace 4 banks' })).toBeInViewport()
+  await expect(dialog.getByRole('button', { name: 'Import 4 banks' })).toBeInViewport()
   await expect(dialog.getByRole('heading', { name: 'Import FM-1+VA presets' })).toBeInViewport()
 })
 

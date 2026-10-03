@@ -53,7 +53,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Audition any patch with a click: a slot in banks A–D selects the matching FM1 slot with MIDI Program Change, then sends the library's voice to the edit buffer, and a patch from an added bank goes straight to the edit buffer
 - Select MIDI input and output ports, with separate channels for notes/program changes and FM1 effects
 - Recognise the FM-1+VA replacement firmware, and send it patches as parameter changes so auditions never overwrite a stored preset
-- Import the FM1's banks A–D with their effects, read straight from an FM1 on FM-1+VA or from the file its **Save a backup** writes, with a preview that marks the patches differing from the library, and Undo
+- Import the FM1's banks A–D with their effects, read straight from an FM1 on FM-1+VA or from the file its **Save a backup** writes, into the library banks you choose or new ones, with a preview that marks the patches differing from the library, and Undo
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard, or loop one of six short phrases to audition a patch hands-free
 - Release hanging notes on the FM1 with a MIDI panic button

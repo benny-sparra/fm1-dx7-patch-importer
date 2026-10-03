@@ -206,33 +206,48 @@ export function importVoices(
  */
 export type FetchedSound = { effects?: Uint8Array; record?: Uint8Array; voice: Dx7Voice }
 
-/** A bank of patches read from the FM1's memory, with null for a slot that keeps its patch. */
-export type FetchedBank = { bank: string; sounds: (FetchedSound | null)[] }
+/**
+ * A bank of patches read from the FM1's memory, with null for a slot that keeps its patch, and
+ * where it goes: the workspace bank it replaces, or a new bank with this title.
+ */
+export type FetchedBank = { sounds: (FetchedSound | null)[] } & (
+  { bank: string } | { newBankTitle: string }
+)
 
 /**
- * Puts banks read from the FM1 into the workspace banks of the same letters, as one change. A
- * bank the workspace does not have yet is added, with any banks before it. Each patch arrives
- * with its own effects, or the defaults without them, and its own record or none; a null slot is
- * left as it is.
+ * Puts banks read from the FM1 into the workspace, as one change: each into the workspace bank it
+ * names, or into a new bank added after the others. Each patch arrives with its own effects, or
+ * the defaults without them, and its own record or none; a null slot is left as it is, so a new
+ * bank leaves it empty.
  */
 export function importFetchedBanks(
   snapshot: PatchLibrarySnapshot,
   banks: readonly FetchedBank[],
 ): PatchLibrarySnapshot {
   let workspaceBanks = snapshot.workspaceBanks
-  for (const { bank } of banks) {
-    while (!workspaceBanks.includes(bank)) {
-      const next = getNextWorkspaceBank(workspaceBanks)
-      if (!next || next > bank) throw new WorkspaceBankUnavailableError()
-      workspaceBanks = [...workspaceBanks, next]
+  const bankNames = { ...snapshot.bankNames }
+  const destinations = banks.map((fetched) => {
+    if ('bank' in fetched) {
+      if (!workspaceBanks.includes(fetched.bank)) throw new WorkspaceBankUnavailableError()
+      return fetched.bank
     }
+    const added = getNextWorkspaceBank(workspaceBanks)
+    if (!added) throw new WorkspaceBankUnavailableError()
+    workspaceBanks = [...workspaceBanks, added]
+    const title = normalizeWorkspaceBankNameForSave(fetched.newBankTitle)
+    if (title) bankNames[added] = title
+    return added
+  })
+  if (new Set(destinations).size !== destinations.length) {
+    throw new Error('Two banks read from the FM1 cannot replace the same workspace bank.')
   }
 
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }
   const records = { ...snapshot.records }
   const loadedBanks = new Set(snapshot.loadedBanks)
-  for (const { bank, sounds } of banks) {
+  banks.forEach(({ sounds }, bankIndex) => {
+    const bank = destinations[bankIndex]
     if (sounds.length !== dx7BankVoiceCount) {
       throw new Error(`A browser bank requires exactly ${dx7BankVoiceCount} DX7 voices.`)
     }
@@ -245,10 +260,10 @@ export function importFetchedBanks(
       else delete records[id]
       loadedBanks.add(bank)
     })
-  }
+  })
   return {
     bankDescriptions: snapshot.bankDescriptions,
-    bankNames: snapshot.bankNames,
+    bankNames,
     effects,
     favourites: snapshot.favourites,
     loadedBanks: [...loadedBanks].sort(),

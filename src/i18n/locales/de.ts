@@ -323,9 +323,11 @@ export default {
     menuContents: 'Für die FM-1+VA-Firmware von Baud Girl',
     title: 'FM-1+VA-Presets importieren',
     help: 'Wähle die Datei aus „Save a backup“ auf der Presets-Seite von FM-1+VA.',
+    helpRead:
+      'Lies die Presets vom FM1 oder wähle die Datei aus „Save a backup“ auf der Presets-Seite von FM-1+VA.',
     effectsNote: 'Jeder Sound kommt mit seinen FM1-Effekten und seinen FM-1+VA-Einstellungen an.',
     warning:
-      'Jede eingeschaltete Bank ersetzt die gleiche Bank hier. Du kannst das rückgängig machen.',
+      'Jede importierte Bank ersetzt die Bank, die du für sie wählst, oder kommt als neue Bank hinzu. Du kannst das rückgängig machen.',
     file: 'FM-1+VA-Presetdatei',
     read: 'Vom FM1 lesen',
     readHelp:
@@ -346,12 +348,14 @@ export default {
     bankHeading: 'FM1-Bank {{bank}}',
     replaceBank: '„{{name}}“ ersetzen',
     addBank: 'Als neue Bank hinzufügen',
+    destination: 'Importieren nach',
+    skipBank: 'Nicht importieren',
     damagedPreset: 'Beschädigt',
     damagedPresets: 'Ein Preset ist beschädigt. Sein Platz behält seinen Sound.',
     damagedPresets_other:
       '{{count, number}} Presets sind beschädigt. Ihre Plätze behalten ihre Sounds.',
-    action: 'Eine Bank ersetzen',
-    action_other: '{{count, number}} Bänke ersetzen',
+    action: 'Eine Bank importieren',
+    action_other: '{{count, number}} Bänke importieren',
     imported: 'Bank {{banks}} von FM-1+VA importiert.',
     imported_other: 'Bänke {{banks}} von FM-1+VA importiert.',
     openFailed:

@@ -100,11 +100,14 @@ on FM-1+VA's Presets page and select the `.syx` file it saved. That sends nothin
 works with MIDI switched off and whichever firmware the FM1 runs.
 
 Either way the FM1's banks A to D are each shown as a folded panel: open one to see its patches,
-and click a patch to hear it on the FM1 with its effects. A dot marks each patch that differs
-from the one in the same slot here, in its voice, its effects, or its FM-1+VA settings. After a
-read from the FM1, only the banks holding such a patch start switched on; from a file, every bank
-does. Switch a bank off to leave it as it is, then press **Replace** to put the banks switched on
-into banks A to D here, adding any of them your library does not have. Each patch arrives with
+and click a patch to hear it on the FM1 with its effects. Under each bank, **Import into** chooses
+where it goes: **Don't import**, one of your banks to replace, or **Add it as a new bank**, which
+adds a bank titled after it, such as "FM-1+VA A". Each starts on your bank of the same letter, or
+on a new bank if you have none; two FM1 banks cannot replace the same bank. A dot marks each patch
+that differs from the one in the same slot of the bank it would replace, in its voice, its
+effects, or its FM-1+VA settings. After a read from the FM1, only the banks holding such a patch
+start set to import; from a file, every bank does. Press **Import** to bring them in. Each patch
+arrives with
 its FM1 effects and keeps the other settings FM-1+VA stored with it, such as its effect order,
 Envelope, and filter, exactly as they are, ready for the app to send back in a later release. A
 Virtual Analog preset is marked **VA** and left out, since the app cannot hold one yet, and a
