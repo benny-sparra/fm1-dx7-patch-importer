@@ -255,6 +255,7 @@ change on the FM1, stored with SAVE.
 | CC 18 (Chorus Depth) sent with 55 from the FX probe                                      | 097 (VA)          | 13: `03` → `37` (55)             | Once, FM-1_093, 2026-10-03                                |
 | CC 20 (Phaser on or off) sent with 127 from the FX probe; the FX screen showed Phaser On | 097 (VA)          | 43: `00` → `01`                  | Once, FM-1_093, 2026-10-03                                |
 | CC 5 (Reverb Type) sent with 2 from the FX probe; the FX screen showed Plate             | 097 (VA)          | 32: `00` → `02`                  | Once, FM-1_093, 2026-10-03                                |
+| Distortion Type turned from Soft Clip to Hard Clip on the FX screen                      | 097 (VA)          | 38: `00` → `01`                  | Once, FM-1_093, 2026-10-03                                |
 
 **Bytes 27–44 interleave two lists. Confirmed for the first two positions (seen once) and the
 Filter's switch (two presets, one of each engine).** Byte 27 + 3*k* names the effect in position _k_ of the chain, top of the FX screen first,
@@ -307,8 +308,9 @@ depends on them. FM-1+VA's manual says a switch takes any value but 0 as on, and
 setting's maximum acts as the maximum (the effect controller table below). The record holds the
 value used, not the value sent: CC 20 sent with 127 stored the Phaser's switch as `01`. Whether a
 setting sent above its maximum is stored as the maximum has not been read, but the switch suggests
-it is. Bytes 2 and 5 have no controller. Distortion's type, which FM-1+VA's manual lists
-and no controller sets, presumably sits in byte 38 (29 + 3 × 3).
+it is. Bytes 2 and 5 have no controller. Distortion's type, which FM-1+VA's manual lists and no
+controller sets, is byte 38 (29 + 3 × 3): Hard Clip set it to `01`, so Soft Clip, Hard Clip, and
+Foldback are presumably 0, 1, and 2.
 
 **Mapping the record.** A development build (`npm run dev`) has an **FM-1+VA preset probe (dev)**
 in the footer. It reads one preset and shows its record and voice byte by byte, marking each byte

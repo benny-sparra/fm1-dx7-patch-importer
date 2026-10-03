@@ -11,6 +11,7 @@ import {
   capturedVirtualAnalogDelayRateReply,
   capturedVirtualAnalogChorusDepthReply,
   capturedVirtualAnalogDistortionToneReply,
+  capturedVirtualAnalogDistortionTypeReply,
   capturedVirtualAnalogFilterOnReply,
   capturedVirtualAnalogFilterTypeReply,
   capturedVirtualAnalogPhaserMixReply,
@@ -269,6 +270,14 @@ describe('readFm1VaPreset', () => {
       byte: 32,
       setting: 'Reverb Type, CC 5',
       value: 2,
+    },
+    {
+      // Set on the FX screen: no controller sets Distortion Type.
+      after: capturedVirtualAnalogDistortionTypeReply,
+      before: capturedVirtualAnalogReverbTypeReply,
+      byte: 38,
+      setting: 'Distortion Type, Hard Clip',
+      value: 1,
     },
   ])('reads $setting in record byte $byte', async ({ after, before, byte, value }) => {
     const read = (reply: Uint8Array) => readFm1VaPreset(makeLink(() => reply).link, 96)
