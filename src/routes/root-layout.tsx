@@ -1,5 +1,5 @@
 import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
-import { useEffect, useState, type ComponentProps, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpButton } from '@/components/help-button'
@@ -11,7 +11,7 @@ import {
 } from '@/components/midi/midi-controls'
 import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
-import { Fm1VaPresetProbe } from '@/components/midi/fm1-va-preset-probe'
+import type { Fm1VaPresetProbe as PresetProbe } from '@/components/midi/fm1-va-preset-probe'
 import { MidiPanicButton } from '@/components/midi/midi-panic-button'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
 import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dialog'
@@ -22,6 +22,17 @@ import { isUnsupportedBrowser } from '@/lib/browser'
 import { fm1ColorwayImages, type Fm1ColorwayImages } from '@/lib/fm1-colorway-images'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
+// Development builds alone load the preset probe. Importing it statically gave the entry a path
+// to the preset read, so the bundler kept that code in the entry once the FM-1+VA import dialog
+// used it too.
+const Fm1VaPresetProbe = import.meta.env.DEV
+  ? lazy(() =>
+      import('@/components/midi/fm1-va-preset-probe').then((module) => ({
+        default: module.Fm1VaPresetProbe,
+      })),
+    )
+  : null
+
 type RootLayoutProps = {
   children: ReactNode
   compact?: boolean
@@ -31,7 +42,7 @@ type RootLayoutProps = {
     ComponentProps<typeof MidiPanicButton>['midi'] &
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
     ComponentProps<typeof PianoKeyboard>['midi'] &
-    ComponentProps<typeof Fm1VaPresetProbe>['midi'] &
+    ComponentProps<typeof PresetProbe>['midi'] &
     Pick<MidiController, 'logStore' | 'sendEffectDiagnosticControl'>
 }
 
@@ -190,7 +201,11 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             {import.meta.env.DEV ? (
               <span className="flex flex-wrap gap-x-4 gap-y-2">
                 <FxHardwareProbe send={midi.sendEffectDiagnosticControl} />
-                <Fm1VaPresetProbe midi={midi} />
+                {Fm1VaPresetProbe ? (
+                  <Suspense fallback={null}>
+                    <Fm1VaPresetProbe midi={midi} />
+                  </Suspense>
+                ) : null}
               </span>
             ) : null}
           </div>

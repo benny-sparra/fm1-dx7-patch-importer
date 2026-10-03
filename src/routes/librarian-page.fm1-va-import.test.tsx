@@ -6,6 +6,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
+import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import { fm1VaTestPatchName, makeFm1VaBackupFile } from '@/test/fm1-va-backup-file'
 import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
@@ -97,7 +98,7 @@ describe('LibrarianPage FM-1+VA import', () => {
     expect(library.undoChange).toHaveBeenCalledWith(changed)
   })
 
-  it('plays a patch from the file with the default effects', async () => {
+  it('plays a patch from the file with the effects its record holds', async () => {
     const { onPlaySearchResult, user } = renderPage()
     await openImport(user)
     await user.upload(screen.getByLabelText(/FM-1\+VA presets file/), makeFm1VaBackupFile())
@@ -105,9 +106,10 @@ describe('LibrarianPage FM-1+VA import', () => {
 
     await user.click(screen.getByRole('button', { name: `Play ${fm1VaTestPatchName(0)}, patch 1` }))
 
+    // The test file's records are blank, so they hold every effect off at 0.
     expect(onPlaySearchResult).toHaveBeenCalledWith(
       expect.objectContaining({ name: fm1VaTestPatchName(0) }),
-      undefined,
+      makeDefaultFm1Effects(),
     )
   })
 

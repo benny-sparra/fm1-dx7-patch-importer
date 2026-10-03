@@ -87,18 +87,25 @@ but whether it plays DX7 patches at all has not been tested.
 
 To move your FM1 between these firmwares, see [Switching FM1 firmware](switching-firmware.md).
 
-To bring the FM1's own presets into the library, press **Save a backup** on FM-1+VA's Presets page,
-then choose **Import FM-1+VA presets…** from the menu in the patch-bank header and select the
-`.syx` file it saved. It holds the 128 presets in the FM1's banks A to D, each shown as a folded
-panel: open one to see its patches, and click a patch to hear it on the FM1 with the default
-effects. Switch a bank off to leave it as it is, then press **Replace** to put the banks switched
-on into banks A to D here, adding any of them your library does not have. The file sends nothing to the FM1, so the import works with MIDI
-switched off and whichever firmware the FM1 runs. Each patch keeps the settings FM-1+VA stored
-with it, such as its effect order, Envelope, and filter, exactly as they are, ready for the app to
-send back in a later release. The effects panel cannot use them yet, so every imported patch
-starts with its effects off there. A Virtual Analog preset is marked **VA** and left out, since the app cannot hold one
-yet, and a preset that is damaged in the file is marked too; either way that slot keeps the patch
-it has now. The notification offers **Undo**.
+To bring the FM1's own presets into the library, choose **Import FM-1+VA presets…** from the menu
+in the patch-bank header. With the FM1 on FM-1+VA FM-1_079 or later chosen as the MIDI output and
+input, and SysEx allowed, press **Read from FM1**: the app asks the FM1 for each of its 128
+presets in turn, which takes a few seconds and changes nothing on the FM1. **Stop reading** stops
+it, and so does closing the dialog or changing the MIDI ports. Otherwise, press **Save a backup**
+on FM-1+VA's Presets page and select the `.syx` file it saved. That sends nothing to the FM1, so it
+works with MIDI switched off and whichever firmware the FM1 runs.
+
+Either way the FM1's banks A to D are each shown as a folded panel: open one to see its patches,
+and click a patch to hear it on the FM1 with its effects. A dot marks each patch that differs
+from the one in the same slot here, in its voice, its effects, or its FM-1+VA settings. After a
+read from the FM1, only the banks holding such a patch start switched on; from a file, every bank
+does. Switch a bank off to leave it as it is, then press **Replace** to put the banks switched on
+into banks A to D here, adding any of them your library does not have. Each patch arrives with
+its FM1 effects and keeps the other settings FM-1+VA stored with it, such as its effect order,
+Envelope, and filter, exactly as they are, ready for the app to send back in a later release. A
+Virtual Analog preset is marked **VA** and left out, since the app cannot hold one yet, and a
+preset that arrived damaged is marked too; either way that slot keeps the patch it has now. The
+notification offers **Undo**.
 
 The search box above the patch grid looks through every bank that has patches in it, not only the one shown. It matches part of a patch's name, or a whole slot code such as `B07` or `b7`, and lists the matches in bank order, each labelled with its slot. While results show, the grid is titled **Search results**, no bank is selected, **Send to FM1** is unavailable because a bank transfer needs one bank, and patches cannot be dragged to reorder them. Click a result to play it as you would in its bank; the results stay up so you can try the next one, and they are still there when you come back from editing one. Clearing the search returns to the bank of the last result you played, or to the bank you were in if you played none. Choosing a bank on the left clears the search and shows that bank.
 

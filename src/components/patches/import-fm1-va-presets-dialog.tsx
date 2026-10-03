@@ -1,4 +1,4 @@
-import { TriangleAlert, Upload } from 'lucide-react'
+import { Download, Square, TriangleAlert, Upload } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -22,26 +22,58 @@ import {
 } from '@/components/ui/rack-panel'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/toast'
+import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
+import type { MidiController } from '@/hooks/use-midi'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import type { Dx7Voice } from '@/lib/dx7'
 import {
+  differsFromLibrary,
   Fm1VaPresetFileError,
   type Fm1VaPreset,
   type Fm1VaPresetBank,
   type Fm1VaPresetFileBank,
+  fm1VaPresetBanksFromRead,
   fm1VaPresetFileSize,
   importableSounds,
   readFm1VaPresetFile,
 } from '@/lib/fm1-va-preset-file'
+import {
+  Fm1VaPresetReadError,
+  fm1VaPresetCount,
+  readEveryFm1VaPreset,
+} from '@/lib/fm1-va-preset-read'
+import { voiceId } from '@/lib/patch-library'
 import { sysexFileAccept } from '@/lib/sysex-file'
 
 type ImportFm1VaPresetsDialogProps = {
-  library: Pick<PatchLibrary, 'bankNames' | 'importFetchedBanks' | 'undoChange' | 'workspaceBanks'>
+  library: Pick<
+    PatchLibrary,
+    | 'bankNames'
+    | 'effects'
+    | 'importFetchedBanks'
+    | 'records'
+    | 'undoChange'
+    | 'voices'
+    | 'workspaceBanks'
+  >
+  midi: Pick<
+    MidiController,
+    | 'firmware'
+    | 'inputs'
+    | 'logStore'
+    | 'outputs'
+    | 'selectedInputId'
+    | 'selectedOutputId'
+    | 'sysexAvailable'
+  >
   onClose: () => void
-  /** Plays a patch through the FM1 edit buffer with the default effects, as a search result is. */
-  onPlay: (voice: Dx7Voice) => void
+  /** Plays a patch through the FM1 edit buffer with its effects, as a search result is. */
+  onPlay: (voice: Dx7Voice, effects: Uint8Array) => void
 }
+
+/** Where the banks shown came from. */
+type PresetSource = 'file' | 'fm1'
 
 type Translate = ReturnType<typeof useTranslation>['t']
 
@@ -62,6 +94,24 @@ function presetFileErrorMessage(t: Translate, error: unknown) {
   return t('fm1VaImport.errors.unreadable')
 }
 
+function presetReadErrorMessage(t: Translate, error: unknown) {
+  if (error instanceof Fm1VaPresetReadError) {
+    switch (error.problem) {
+      case 'busy':
+        return t('fm1VaImport.errors.readBusy')
+      case 'no-reply':
+      case 'send-failed':
+        return t('fm1VaImport.errors.readNoReply')
+      // The reader cancels a read itself when the ports change, and refuses one once they cannot
+      // read; a read the user stops shows nothing.
+      case 'cancelled':
+      case 'unavailable':
+        return t('fm1VaImport.errors.readStopped')
+    }
+  }
+  return t('fm1VaImport.errors.readFailed')
+}
+
 /** Whether a bank holds an FM preset the library can take. */
 function hasImportableVoice(bank: Fm1VaPresetFileBank) {
   return importableSounds(bank).some(Boolean)
@@ -75,6 +125,7 @@ function countPresets(banks: readonly Fm1VaPresetFileBank[] | null, kind: Fm1VaP
 
 export function ImportFm1VaPresetsDialog({
   library,
+  midi,
   onClose,
   onPlay,
 }: ImportFm1VaPresetsDialogProps) {
@@ -93,9 +144,16 @@ export function ImportFm1VaPresetsDialog({
   // replaced. Each voice keeps one object while the dialog is open, so playing a patch twice sends
   // it once.
   const [banks, setBanks] = useState<Fm1VaPresetFileBank[] | null>(null)
+  const [source, setSource] = useState<PresetSource>('file')
   const [chosenBanks, setChosenBanks] = useState<ReadonlySet<Fm1VaPresetBank>>(new Set())
   const [playing, setPlaying] = useState<Dx7Voice | null>(null)
   const readingFile = useRef<File | null>(null)
+  const reader = useFm1VaPresetReader(midi)
+  // The read from the FM1 in progress, and how many presets it has read.
+  const presetRead = useRef<AbortController | null>(null)
+  const [readCount, setReadCount] = useState<number | null>(null)
+  const readingId = useId()
+  const differingId = useId()
 
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
   // its state is discarded with it rather than being reset by hand.
@@ -103,26 +161,105 @@ export function ImportFm1VaPresetsDialog({
     dialogRef.current?.showModal()
   }, [])
 
+  // Closing the dialog stops a read; the reader also stops it when the ports change.
+  useEffect(
+    () => () => {
+      presetRead.current?.abort()
+      presetRead.current = null
+    },
+    [],
+  )
+
   const listFormat = new Intl.ListFormat(i18n.resolvedLanguage, { type: 'conjunction' })
   const damagedCount = countPresets(banks, 'damaged')
   const virtualAnalogCount = countPresets(banks, 'virtual-analog')
   const takenBanks = banks?.filter(({ bank }) => chosenBanks.has(bank)) ?? []
+  const differs = (bank: Fm1VaPresetBank, index: number, preset: Fm1VaPreset) => {
+    const id = voiceId(bank, index + 1)
+    return differsFromLibrary(preset, {
+      effects: library.effects[id],
+      record: library.records[id],
+      voice: library.voices[id],
+    })
+  }
+  const differingCount =
+    banks?.reduce(
+      (total, { bank, presets }) =>
+        total + presets.filter((preset, index) => differs(bank, index, preset)).length,
+      0,
+    ) ?? 0
 
-  const chooseFile = async (event: ChangeEvent<HTMLInputElement>) => {
-    const chosen = event.target.files?.[0] ?? null
-    readingFile.current = chosen
-    setFile(chosen)
+  const showBanks = (read: Fm1VaPresetFileBank[], from: PresetSource) => {
+    setBanks(read)
+    setSource(from)
+    // From the FM1, the banks that differ from the library start switched on; from a file, every
+    // bank it can import does, as the file is usually chosen to be imported.
+    setChosenBanks(
+      new Set(
+        read
+          .filter(
+            (fileBank) =>
+              hasImportableVoice(fileBank) &&
+              (from === 'file' ||
+                fileBank.presets.some((preset, index) => differs(fileBank.bank, index, preset))),
+          )
+          .map(({ bank }) => bank),
+      ),
+    )
+  }
+
+  const clearBanks = () => {
     setBanks(null)
     setPlaying(null)
     setError('')
+  }
+
+  const stopReading = () => {
+    presetRead.current?.abort()
+    presetRead.current = null
+    setReadCount(null)
+  }
+
+  const readFromFm1 = async () => {
+    stopReading()
+    readingFile.current = null
+    setFile(null)
+    clearBanks()
+    const read = new AbortController()
+    presetRead.current = read
+    setReadCount(0)
+    try {
+      const presets = await readEveryFm1VaPreset(reader.readPreset, {
+        onRead: (count) => {
+          if (presetRead.current === read) setReadCount(count)
+        },
+        signal: read.signal,
+      })
+      if (presetRead.current !== read) return
+      showBanks(fm1VaPresetBanksFromRead(presets), 'fm1')
+    } catch (cause) {
+      if (presetRead.current === read) setError(presetReadErrorMessage(t, cause))
+    } finally {
+      if (presetRead.current === read) {
+        presetRead.current = null
+        setReadCount(null)
+      }
+    }
+  }
+
+  const chooseFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const chosen = event.target.files?.[0] ?? null
+    stopReading()
+    readingFile.current = chosen
+    setFile(chosen)
+    clearBanks()
     if (!chosen) return
 
     try {
       const read = await readFm1VaPresetFile(chosen)
       // A file chosen while this one was being read replaces it.
       if (readingFile.current !== chosen) return
-      setBanks(read)
-      setChosenBanks(new Set(read.filter(hasImportableVoice).map(({ bank }) => bank)))
+      showBanks(read, 'file')
     } catch (cause) {
       if (readingFile.current === chosen) setError(presetFileErrorMessage(t, cause))
     }
@@ -137,8 +274,8 @@ export function ImportFm1VaPresetsDialog({
     })
   }
 
-  const play = (voice: Dx7Voice) => {
-    onPlay(voice)
+  const play = (voice: Dx7Voice, effects: Uint8Array) => {
+    onPlay(voice, effects)
     setPlaying(voice)
   }
 
@@ -151,7 +288,10 @@ export function ImportFm1VaPresetsDialog({
       const changed = library.importFetchedBanks(
         takenBanks.map((taken) => ({ bank: taken.bank, sounds: importableSounds(taken) })),
       )
-      trackAnalyticsEvent({ data: { source: 'fm1_va_backup' }, name: 'bank_imported' })
+      trackAnalyticsEvent({
+        data: { source: source === 'fm1' ? 'fm1_va_read' : 'fm1_va_backup' },
+        name: 'bank_imported',
+      })
       toast.success(
         t('fm1VaImport.imported', {
           banks: listFormat.format(takenBanks.map(({ bank }) => bank)),
@@ -196,6 +336,48 @@ export function ImportFm1VaPresetsDialog({
             <p>{t('fm1VaImport.warning')}</p>
           </div>
 
+          {reader.canRead ? (
+            <div className="grid gap-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  disabled={readCount !== null}
+                  onClick={() => void readFromFm1()}
+                  type="button"
+                  variant="outline"
+                >
+                  <Download />
+                  <span>{t('fm1VaImport.read')}</span>
+                </Button>
+                {readCount === null ? null : (
+                  <Button onClick={stopReading} type="button" variant="ghost">
+                    <Square />
+                    <span>{t('fm1VaImport.stopReading')}</span>
+                  </Button>
+                )}
+              </div>
+              {readCount === null ? (
+                <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.readHelp')}</p>
+              ) : (
+                <div className="grid gap-1">
+                  <p className="text-xs text-[var(--crt-ink-3)]" id={readingId}>
+                    {t('fm1VaImport.reading', {
+                      number: Math.min(readCount + 1, fm1VaPresetCount),
+                      total: fm1VaPresetCount,
+                    })}
+                  </p>
+                  <progress
+                    aria-labelledby={readingId}
+                    className="h-2 w-full accent-[var(--crt-led)]"
+                    max={fm1VaPresetCount}
+                    value={readCount}
+                  />
+                </div>
+              )}
+            </div>
+          ) : midi.firmware.kind === 'fm1-va' ? (
+            <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.readUnavailable')}</p>
+          ) : null}
+
           <label className="grid gap-2 text-sm font-semibold">
             {t('fm1VaImport.file')}
             <span className="modal-input-surface flex min-h-11 cursor-pointer items-center rounded-md border border-dashed border-input px-3 font-normal transition-colors hover:bg-muted/50">
@@ -214,9 +396,18 @@ export function ImportFm1VaPresetsDialog({
             <section aria-labelledby={`${titleId}-preview`} className="grid gap-3">
               <div className="grid gap-1">
                 <h3 className="text-sm font-semibold" id={`${titleId}-preview`}>
-                  {t('fm1VaImport.previewTitle')}
+                  {t(source === 'fm1' ? 'fm1VaImport.previewTitleFm1' : 'fm1VaImport.previewTitle')}
                 </h3>
                 <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.previewHelp')}</p>
+                {/* Describes each marked patch, which a screen reader reads after its name. */}
+                <span hidden id={differingId}>
+                  {t('fm1VaImport.differingPatch')}
+                </span>
+                <p className="text-xs text-[var(--crt-ink-3)]">
+                  {differingCount === 0
+                    ? t('fm1VaImport.allMatch')
+                    : t('fm1VaImport.differs', { count: differingCount })}
+                </p>
                 {virtualAnalogCount > 0 ? (
                   <p className="text-xs text-[var(--crt-ink-3)]">
                     {t('fm1VaImport.virtualAnalogPresets', { count: virtualAnalogCount })}
@@ -230,6 +421,8 @@ export function ImportFm1VaPresetsDialog({
               ) : null}
               {banks.map((fileBank) => (
                 <PresetFileBank
+                  differs={(index, preset) => differs(fileBank.bank, index, preset)}
+                  differingId={differingId}
                   fileBank={fileBank}
                   key={fileBank.bank}
                   libraryBankName={
@@ -265,16 +458,22 @@ export function ImportFm1VaPresetsDialog({
 }
 
 type PresetFileBankProps = {
+  /** Whether the preset at `index` differs from the patch in the library slot it would replace. */
+  differs: (index: number, preset: Fm1VaPreset) => boolean
+  /** The id of the text that describes a patch marked as differing. */
+  differingId: string
   fileBank: Fm1VaPresetFileBank
   /** The name of the workspace bank the FM1 bank replaces, or null when it is added. */
   libraryBankName: string | null
-  onPlay: (voice: Dx7Voice) => void
+  onPlay: (voice: Dx7Voice, effects: Uint8Array) => void
   onToggle: (taken: boolean) => void
   playing: Dx7Voice | null
   taken: boolean
 }
 
 function PresetFileBank({
+  differs,
+  differingId,
   fileBank,
   libraryBankName,
   onPlay,
@@ -334,9 +533,10 @@ function PresetFileBank({
                     name: preset.voice.name.trim(),
                     number: numberFormat.format(index + 1),
                   })}
+                  markId={differs(index, preset) ? differingId : undefined}
                   name={preset.voice.name}
                   number={index + 1}
-                  onClick={() => onPlay(preset.voice)}
+                  onClick={() => onPlay(preset.voice, preset.effects)}
                   playingLabel={t('banks.auditioning')}
                 />
               ) : (

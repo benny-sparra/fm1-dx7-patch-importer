@@ -205,3 +205,26 @@ export function readFm1VaPreset(
     void ask()
   })
 }
+
+type ReadEveryPresetOptions = {
+  /** Called as each preset arrives, with how many have been read. */
+  onRead?: (count: number) => void
+  signal?: AbortSignal
+}
+
+/**
+ * Reads all 128 stored presets in slot order, one at a time, with `read` (the reader hook's
+ * `readPreset`). The first read that fails stops the rest and rejects with its error, so aborting
+ * `signal` stops between presets as well as during one.
+ */
+export async function readEveryFm1VaPreset(
+  read: (slot: number, signal?: AbortSignal) => Promise<Fm1VaStoredPreset>,
+  { onRead, signal }: ReadEveryPresetOptions = {},
+) {
+  const presets: Fm1VaStoredPreset[] = []
+  for (let slot = 0; slot < fm1VaPresetCount; slot += 1) {
+    presets.push(await read(slot, signal))
+    onRead?.(presets.length)
+  }
+  return presets
+}

@@ -315,12 +315,25 @@ export default {
     menuContents: 'Para el firmware FM-1+VA de Baud Girl',
     title: 'Importar presets de FM-1+VA',
     help: 'Elige el archivo de «Save a backup» en la página Presets de FM-1+VA.',
-    effectsNote: 'Los efectos aún no se importan, así que cada sonido llega con ellos apagados.',
+    effectsNote: 'Cada sonido llega con sus efectos del FM1 y sus ajustes de FM-1+VA.',
     warning: 'Cada banco activado reemplaza el mismo banco aquí. Puedes deshacerlo.',
     file: 'Archivo de presets de FM-1+VA',
+    read: 'Leer del FM1',
+    readHelp:
+      'Lee los 128 presets del FM1 para compararlos con tu biblioteca. No cambia nada en el FM1.',
+    readUnavailable:
+      'Para leer los presets del FM1, elígelo como salida y entrada MIDI, con SysEx permitido. La lectura necesita FM-1+VA FM-1_079 o posterior.',
+    reading: 'Leyendo el preset {{number, number}} de {{total, number}}…',
+    stopReading: 'Dejar de leer',
     chooseFile: 'Elige el archivo de «Save a backup»',
     previewTitle: 'Bancos de este archivo',
     previewHelp: 'Abre un banco para escuchar sus sonidos en el FM1.',
+    previewTitleFm1: 'Bancos en el FM1',
+    allMatch: 'Todos los sonidos de aquí coinciden con tu biblioteca.',
+    differs: 'Un punto marca el único sonido que difiere de tu biblioteca.',
+    differs_other:
+      'Un punto marca cada uno de los {{count, number}} sonidos que difieren de tu biblioteca.',
+    differingPatch: 'Difiere de tu biblioteca',
     bankHeading: 'Banco {{bank}} del FM1',
     replaceBank: 'Reemplazar «{{name}}»',
     addBank: 'Añadirlo como banco nuevo',
@@ -346,6 +359,12 @@ export default {
       damaged:
         'No se pudo leer ningún preset de este archivo. Guarda una copia nueva en FM-1+VA e inténtalo de nuevo.',
       unreadable: 'No se pudo leer el archivo.',
+      readBusy:
+        'El FM1 no puede enviar sus presets mientras su Sequencer está sonando. Detenlo y vuelve a leer.',
+      readNoReply: 'El FM1 dejó de responder. Comprueba su conexión MIDI y vuelve a leer.',
+      readStopped: 'La lectura se detuvo porque cambiaron los puertos MIDI. Vuelve a leer.',
+      readFailed:
+        'El FM1 no pudo enviar sus presets. Vuelve a leer o elige un archivo de «Save a backup».',
     },
   },
   duplicates: {

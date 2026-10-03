@@ -201,10 +201,10 @@ export function importVoices(
 }
 
 /**
- * A patch read from the FM1's memory: its voice, and the FM-1+VA settings record stored with it,
- * kept exactly as read.
+ * A patch read from the FM1's memory: its voice, the FM1 effects stored with it, and the FM-1+VA
+ * settings record, kept exactly as read.
  */
-export type FetchedSound = { record?: Uint8Array; voice: Dx7Voice }
+export type FetchedSound = { effects?: Uint8Array; record?: Uint8Array; voice: Dx7Voice }
 
 /** A bank of patches read from the FM1's memory, with null for a slot that keeps its patch. */
 export type FetchedBank = { bank: string; sounds: (FetchedSound | null)[] }
@@ -212,8 +212,8 @@ export type FetchedBank = { bank: string; sounds: (FetchedSound | null)[] }
 /**
  * Puts banks read from the FM1 into the workspace banks of the same letters, as one change. A
  * bank the workspace does not have yet is added, with any banks before it. Each patch arrives
- * with the default effects, as an imported bank's do, and with its own record or none; a null slot
- * is left as it is.
+ * with its own effects, or the defaults without them, and its own record or none; a null slot is
+ * left as it is.
  */
 export function importFetchedBanks(
   snapshot: PatchLibrarySnapshot,
@@ -240,7 +240,7 @@ export function importFetchedBanks(
       if (!sound) return
       const id = voiceId(bank, index + 1)
       voices[id] = sound.voice
-      effects[id] = makeDefaultFm1Effects()
+      effects[id] = normalizeFm1Effects(sound.effects)
       if (sound.record) records[id] = sound.record.slice()
       else delete records[id]
       loadedBanks.add(bank)

@@ -370,7 +370,19 @@ describe('importing banks read from the FM1', () => {
     expect(result.voices[voiceId('A', 6)]).toBe(fetched[5])
   })
 
-  it('gives each imported patch the default effects', () => {
+  it('gives each imported patch the effects it was read with', () => {
+    const before = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const filterOn = makeDefaultFm1Effects()
+    filterOn[0] = 1
+
+    const result = importFetchedBanks(before, [
+      { bank: 'A', sounds: sounds.map((sound) => ({ ...sound, effects: filterOn })) },
+    ])
+
+    expect(result.effects[voiceId('A', 1)]).toEqual(filterOn)
+  })
+
+  it('gives a patch read without effects the default effects', () => {
     const before = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
     const reverbOn = {
       ...before,

@@ -312,12 +312,24 @@ export default {
     menuContents: 'Para o firmware FM-1+VA da Baud Girl',
     title: 'Importar presets do FM-1+VA',
     help: 'Escolha o arquivo do “Save a backup” na página Presets do FM-1+VA.',
-    effectsNote: 'Os efeitos ainda não são importados, então cada som chega com eles desligados.',
+    effectsNote: 'Cada som chega com seus efeitos do FM1 e suas configurações do FM-1+VA.',
     warning: 'Cada banco ativado substitui o mesmo banco aqui. Você pode desfazer isso.',
     file: 'Arquivo de presets do FM-1+VA',
+    read: 'Ler do FM1',
+    readHelp: 'Lê os 128 presets do FM1 para comparar com a sua biblioteca. Nada muda no FM1.',
+    readUnavailable:
+      'Para ler os presets do FM1, escolha-o como saída e entrada MIDI, com SysEx permitido. A leitura precisa do FM-1+VA FM-1_079 ou posterior.',
+    reading: 'Lendo o preset {{number, number}} de {{total, number}}…',
+    stopReading: 'Parar a leitura',
     chooseFile: 'Escolha o arquivo de “Save a backup”',
     previewTitle: 'Bancos deste arquivo',
     previewHelp: 'Abra um banco para ouvir seus sons no FM1.',
+    previewTitleFm1: 'Bancos no FM1',
+    allMatch: 'Todos os sons aqui correspondem à sua biblioteca.',
+    differs: 'Um ponto marca o único som que difere da sua biblioteca.',
+    differs_other:
+      'Um ponto marca cada um dos {{count, number}} sons que diferem da sua biblioteca.',
+    differingPatch: 'Difere da sua biblioteca',
     bankHeading: 'Banco {{bank}} do FM1',
     replaceBank: 'Substituir “{{name}}”',
     addBank: 'Adicionar como banco novo',
@@ -343,6 +355,12 @@ export default {
       damaged:
         'Nenhum preset deste arquivo pôde ser lido. Salve um novo backup no FM-1+VA e tente novamente.',
       unreadable: 'Não foi possível ler o arquivo.',
+      readBusy:
+        'O FM1 não consegue enviar seus presets enquanto o Sequencer está tocando. Pare-o e leia de novo.',
+      readNoReply: 'O FM1 parou de responder. Verifique a conexão MIDI dele e leia de novo.',
+      readStopped: 'A leitura parou porque as portas MIDI mudaram. Leia de novo.',
+      readFailed:
+        'O FM1 não conseguiu enviar seus presets. Leia de novo ou escolha um arquivo do “Save a backup”.',
     },
   },
   duplicates: {

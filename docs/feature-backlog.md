@@ -410,6 +410,13 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       on FM-1+VA: the browser stops being the only copy, and differences can be shown. Reading
       is one reply per preset; show progress, allow cancelling between presets, and handle
       disconnection and completions after unmount.
+      _Built 2026-10-03, waiting for a hardware test:_ **Read from FM1** sits in the
+      **Import FM-1+VA presets…** dialog beside the backup file, so the read shares its preview,
+      bank switches, and Undo. It reads the 128 presets one at a time, with progress and **Stop
+      reading**, and stops when the dialog closes or the ports change. A dot marks each patch
+      whose sound key differs from the library slot it would replace, and only the banks holding
+      one start switched on. Each patch takes its library effects from the record's effect bytes,
+      from the FM1 or the file alike.
 - [ ] **4. Write presets exactly.** Approve `04` and send chosen slots, or only the ones that
       differ from the FM1, straight to their own slots with effects and record, reading each back
       to confirm it. This replaces the **Replace Bank A?** prompt on FM-1+VA and carries the

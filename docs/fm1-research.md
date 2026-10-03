@@ -229,6 +229,11 @@ statuses and damage no capture shows yet.
 - FM-1+VA's own page waits 1.5 s for an answer and asks three times; the editor does the same.
   The editor sends the request again when the reply's status says it arrived damaged, and treats
   a reply of any other size as a layout it does not know rather than asking again.
+- **Reading every preset** (**Read from FM1** in **Import FM-1+VA presets…**, built 2026-10-03)
+  sends the 128 requests one at a time, each after the previous reply, and stops at the first
+  read that fails. **Needs hardware test:** how long the 128 reads take on an FM1, and whether
+  any arrives damaged or unanswered in a run that long. The import takes each FM preset's
+  library effects from the record's effect bytes, as "What the record holds" maps them.
 - **Record byte 18 of an FM preset is `03`. Confirmed, seen once** (the capture above). FM-1+VA's
   modules give `A5` for an FM preset, but the read of ORGAN 3 holds `03`, as the backups did, so the
   backups were read in the right place and the editor's `5A` test stands. Its modules write `A5`

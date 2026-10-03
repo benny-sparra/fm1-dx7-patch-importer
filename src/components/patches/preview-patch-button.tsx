@@ -3,6 +3,11 @@ import { cn } from '@/lib/utils'
 type PreviewPatchButtonProps = {
   isPlaying: boolean
   label: string
+  /**
+   * Shows a dot after the name and describes the patch with the element of this id, as the FM-1+VA
+   * import marks a patch that differs from the library.
+   */
+  markId?: string
   name: string
   number: number
   onClick: () => void
@@ -13,6 +18,7 @@ type PreviewPatchButtonProps = {
 export function PreviewPatchButton({
   isPlaying,
   label,
+  markId,
   name,
   number,
   onClick,
@@ -21,6 +27,7 @@ export function PreviewPatchButton({
   return (
     <button
       aria-current={isPlaying ? 'true' : undefined}
+      aria-describedby={markId}
       aria-label={label}
       className={cn(
         'patch-cell flex min-h-9 w-full cursor-pointer items-center gap-1.5 border px-1.5 py-1 text-left transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]',
@@ -47,6 +54,12 @@ export function PreviewPatchButton({
       >
         {name}
       </span>
+      {markId ? (
+        <span
+          aria-hidden="true"
+          className="ml-auto size-2 shrink-0 rounded-full bg-[var(--crt-led)]"
+        />
+      ) : null}
       {isPlaying ? <span className="sr-only">{playingLabel}</span> : null}
     </button>
   )
