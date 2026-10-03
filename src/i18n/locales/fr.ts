@@ -34,7 +34,6 @@ export default {
     restoreDetails:
       'Les banques A, B, C et D seront respectivement rétablies avec les banques 1, 2, 3 et 4 du FM-1, les sons livrés avec le FM1.',
     restoreAction: 'Rétablir quatre banques',
-    sourcesOpen: 'Trouver des banques de sons à télécharger.',
     sourcesTitle: 'Trouver des banques DX7',
     sourcesIntro:
       'Téléchargez une banque SysEx DX7 de 32 voix (.syx), puis revenez ici et choisissez Importer une banque DX7.',
@@ -499,7 +498,8 @@ export default {
   },
   root: {
     subtitle: 'éditeur et bibliothécaire',
-    intro: 'Modifiez, organisez et transférez les sons du FM1, ou importez des banques SysEx DX7.',
+    intro:
+      'Modifiez, organisez et transférez les sons du FM1, ou <link>importez des banques SysEx DX7</link>.',
     synthAlt: 'Panneau avant du synthétiseur M-VAVE FM1',
     unsupportedTitle: 'Navigateur non pris en charge.',
     unsupportedBody:

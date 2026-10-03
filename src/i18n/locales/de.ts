@@ -33,7 +33,6 @@ export default {
     restoreDetails:
       'Bank A, B, C und D werden auf die FM-1-Bänke 1, 2, 3 bzw. 4 zurückgesetzt, die Sounds, mit denen der FM1 ausgeliefert wird.',
     restoreAction: 'Vier Bänke zurücksetzen',
-    sourcesOpen: 'Sound-Bänke zum Herunterladen finden.',
     sourcesTitle: 'DX7-Sound-Bänke finden',
     sourcesIntro:
       'Lade eine DX7-SysEx-Bank mit 32 Voices (.syx) herunter, kehre zurück und wähle DX7-Bank importieren.',
@@ -503,7 +502,8 @@ export default {
   },
   root: {
     subtitle: 'Editor und Librarian',
-    intro: 'FM1-Sounds bearbeiten, organisieren und übertragen oder DX7-SysEx-Bänke importieren.',
+    intro:
+      'FM1-Sounds bearbeiten, organisieren und übertragen oder <link>DX7-SysEx-Bänke importieren</link>.',
     synthAlt: 'Vorderseite des M-VAVE FM1 Synthesizers',
     unsupportedTitle: 'Nicht unterstützter Browser.',
     unsupportedBody:
