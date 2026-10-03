@@ -3,9 +3,19 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
+import { act } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { decodeVoiceName, dx7PackedVoiceSize, packDx7Voice, updateDx7VoiceName } from '@/lib/dx7'
+import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
+import {
+  fm1VaPresetPayloadStart,
+  makeFm1VaPresetWrite,
+  readFm1VaMessageRecord,
+} from '@/lib/fm1-va-preset-message'
+import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import { MidiLogStore } from '@/lib/midi-log-store'
+import { capturedOrgan3, capturedOrgan3Reply } from '@/test/fm1-va-captures'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
 import { makeFm1VaPresetReply, makeFm1VaReply, makeStoredPresetData } from '@/test/fm1-va-replies'
 
@@ -120,5 +130,86 @@ describe('Fm1VaPresetProbe', () => {
     const capture = JSON.parse(writeText.mock.calls[0][0])
     expect(capture).toMatchObject({ changedRecordBytes: [], firmware: 'FM-1_093', preset: '001' })
     expect(capture.reply).toMatch(/^F0 7D /)
+  })
+})
+
+/**
+ * A fake FM1 holding ORGAN 3 in every slot, as FM-1_093 answered its read, that stores what each
+ * preset write carries and answers later reads with it.
+ */
+function makeWritableMidi() {
+  const reply = parseFm1VaReply(capturedOrgan3Reply)
+  if (!reply) throw new Error('The captured reply did not parse.')
+  const stored = new Map<number, number[]>()
+  const ports = makeFakeFm1Ports({
+    presetReply: (slot) =>
+      makeFm1VaReply({ argument: slot, data: stored.get(slot) ?? Array.from(reply.data) }),
+    presetWrite: (message) => {
+      const editBuffer = message.slice(
+        fm1VaPresetPayloadStart,
+        fm1VaPresetPayloadStart + FM1_VOICE_PARAMETER_COUNT,
+      )
+      stored.set(message[5], [...packDx7Voice(editBuffer).data, ...readFm1VaMessageRecord(message)])
+    },
+  })
+  const midi: Midi = {
+    firmware: { identity: 'FM-1_093', kind: 'fm1-va' },
+    logStore: new MidiLogStore([]),
+    sysexAvailable: true,
+    ...makeFakeFm1Devices(ports),
+  }
+  return { midi, ports, reply }
+}
+
+describe('Fm1VaPresetProbe write test', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  /** Clicks a write button and lets the write's listening window pass. */
+  async function writeBack(user: ReturnType<typeof userEvent.setup>, name: string) {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    await user.click(screen.getByRole('button', { hidden: true, name }))
+    await act(() => vi.advanceTimersByTimeAsync(1500))
+  }
+
+  it('writes the preset back exactly as read, and reads it again to check', async () => {
+    const fake = makeWritableMidi()
+    const { dialog, user } = await openProbe(fake)
+    await readPreset(user, '1')
+
+    await writeBack(user, 'Write back unchanged')
+
+    const writes = fake.ports.output.send.mock.calls.filter(([message]) => message[4] === 0x04)
+    expect(writes).toEqual([[capturedOrgan3]])
+    expect(await within(dialog).findByText(/The read back matches what was written\./)).toBeTruthy()
+    expect(within(dialog).getByText(/No FM-1\+VA reply was heard after the write\./)).toBeTruthy()
+  })
+
+  it('writes the preset back renamed, so a landed write shows on the FM1', async () => {
+    const fake = makeWritableMidi()
+    const { dialog, user } = await openProbe(fake)
+    await readPreset(user, '1')
+
+    await writeBack(user, 'Write back as WRITE TEST')
+
+    const data = fake.reply.data.slice(0, dx7PackedVoiceSize)
+    const renamed = updateDx7VoiceName({ data, name: decodeVoiceName(data) }, 'WRITE TEST')
+    expect(fake.ports.output.send).toHaveBeenCalledWith(
+      makeFm1VaPresetWrite(0, renamed, fake.reply.data.slice(dx7PackedVoiceSize)),
+    )
+    expect(await within(dialog).findByText(/Wrote WRITE TEST\./)).toBeTruthy()
+    expect(within(dialog).getByText(/The read back matches what was written\./)).toBeTruthy()
+  })
+
+  it('offers no write for a Virtual Analog preset', async () => {
+    const { voice, record } = makeStoredPresetData()
+    record[18] = 0x5a
+    const fake = makeMidi((slot) => makeFm1VaReply({ argument: slot, data: [...voice, ...record] }))
+    const { user } = await openProbe(fake)
+
+    await readPreset(user, '97')
+
+    expect(screen.queryByRole('button', { hidden: true, name: 'Write back unchanged' })).toBeNull()
   })
 })

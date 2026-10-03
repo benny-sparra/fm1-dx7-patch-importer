@@ -81,7 +81,8 @@ How this project uses it:
   **Likely**, never **Confirmed**, because it is a derivative that has changed other behaviour.
 - Its own commands (below) do not exist on stock firmware. On stock firmware they are unknown
   vendor messages and stay **Dangerous / excluded**. Production code sends only the preset read
-  (approved 2026-10-02, below), and only to FM-1+VA from `FM-1_079`.
+  (approved 2026-10-02, below), and only to FM-1+VA from `FM-1_079`. The preset write is approved
+  too (2026-10-03, below), but so far only the development probe sends it.
 - This project is MIT-licensed. Reimplement any fact recorded here from this document; do not copy
   its code.
 
@@ -358,6 +359,25 @@ in the footer. It reads one preset and shows its record and voice byte by byte, 
 that changed since that preset's last read, and **Copy capture** puts the reply, both parts, and
 the changed bytes on the clipboard as JSON for a fixture. Change one setting on the FM1, press
 SAVE, read the same preset again, and record each byte here.
+
+#### Writing a stored preset
+
+**Approved 2026-10-03**, gated on FM-1+VA from `FM-1_079` (`writesFm1VaPresets`), one preset per
+message, at least 3 s apart, each read back to confirm it (`AGENTS.md`). The message is the one a
+backup file holds for each preset, `F0 43 00 7D 04 <slot> <155-byte voice> <68-byte record> <sum>
+F7` ("Its backup file", above). **Confirmed offline:** `makeFm1VaPresetWrite` in
+`src/lib/fm1-va-preset-message.ts` rebuilds the captured backup messages for 001 (ORGAN 3) and 097
+(a Virtual Analog preset whose record sets high bits) byte for byte, and building one from the
+read of ORGAN 3 gives the backup's message for it, so reading a preset and writing it back sends
+FM-1+VA's own bytes. `fm1VaRecordWithEffects` puts the library's effects into a record in the
+bytes "What the record holds" maps, and leaves the rest as read.
+
+**Needs hardware test:** whether, and how, the FM1 answers a write (the write collects any
+FM-1+VA reply heard in the 1.5 s after it, for this test to read), whether writing a preset
+changes the edit buffer or the selected preset, and whether a write and the read that checks it
+can follow each other at once. The development build's **FM-1+VA preset probe (dev)** writes the
+preset just read back to its slot, unchanged or renamed `WRITE TEST`, then reads it again and
+says whether it matches.
 
 #### Controllers on the MIDI Channel
 

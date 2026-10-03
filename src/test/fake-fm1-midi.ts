@@ -33,17 +33,19 @@ type MidiListener = (event: { data: number[] }) => void
 type FakeFm1Options = {
   /** Answers FM-1+VA's preset read for a slot; without it the read goes unanswered. */
   presetReply?: (slot: number) => Uint8Array
+  /** Receives each FM-1+VA preset write, so a test can store what it carries. */
+  presetWrite?: (message: Uint8Array) => void
   reply?: Uint8Array
 }
 
-const isPresetRead = (data: Uint8Array) =>
-  data[1] === 0x43 && data[2] === 0x00 && data[3] === 0x7d && data[4] === 0x10
+const isFm1VaCommand = (data: Uint8Array, command: number) =>
+  data[1] === 0x43 && data[2] === 0x00 && data[3] === 0x7d && data[4] === command
 
 /**
  * The input and output ports of a fake FM1 for `useMidi` tests. It answers the identity query with
  * `reply`, or stays silent without one, as an FM1 on unknown firmware or another device would.
  */
-export function makeFakeFm1Ports({ presetReply, reply }: FakeFm1Options = {}) {
+export function makeFakeFm1Ports({ presetReply, presetWrite, reply }: FakeFm1Options = {}) {
   const listeners = new Set<MidiListener>()
   const input = {
     addListener: vi.fn<(event: string, listener: MidiListener) => void>((event, listener) => {
@@ -67,7 +69,8 @@ export function makeFakeFm1Ports({ presetReply, reply }: FakeFm1Options = {}) {
     name: 'FM-1 MIDI 1',
     send: vi.fn<(data: Uint8Array) => void>((data) => {
       if (reply && data[1] === 0x00 && data[2] === 0x32) input.receive(reply)
-      if (presetReply && isPresetRead(data)) input.receive(presetReply(data[5]))
+      if (presetWrite && isFm1VaCommand(data, 0x04)) presetWrite(data)
+      if (presetReply && isFm1VaCommand(data, 0x10)) input.receive(presetReply(data[5]))
     }),
     sendControlChange: vi.fn<(controller: number, value: number, options?: object) => void>(),
     sendProgramChange: vi.fn<(program: number, options?: object) => void>(),

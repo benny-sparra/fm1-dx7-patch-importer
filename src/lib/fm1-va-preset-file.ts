@@ -8,8 +8,16 @@ import {
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
 import { fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
-import { fm1VaChecksum, fm1VaRequestHeader } from '@/lib/fm1-va-sysex'
-import { fm1VaRecordSize, type FetchedSound } from '@/lib/patch-library'
+import {
+  fm1VaPresetChecksumIndex,
+  fm1VaPresetHeader,
+  fm1VaPresetMessageSize,
+  fm1VaPresetPayloadStart,
+  fm1VaRecordByteIndex,
+  readFm1VaMessageRecord,
+} from '@/lib/fm1-va-preset-message'
+import { fm1VaChecksum } from '@/lib/fm1-va-sysex'
+import type { FetchedSound } from '@/lib/patch-library'
 import { soundKey } from '@/lib/sound-key'
 
 /**
@@ -20,34 +28,12 @@ import { soundKey } from '@/lib/sound-key'
  * stored, and the effects the record holds; a Virtual Analog preset is only named.
  */
 const fm1VaPresetCount = 128
-const fm1VaPresetMessageSize = 231
 export const fm1VaPresetFileSize = fm1VaPresetCount * fm1VaPresetMessageSize
-const fm1VaPresetHeader = [...fm1VaRequestHeader, 0x04] as const
-const payloadStart = fm1VaPresetHeader.length + 1
-const checksumIndex = fm1VaPresetMessageSize - 2
-const recordStart = payloadStart + FM1_VOICE_PARAMETER_COUNT
-
-/**
- * Where record byte `index` sits in a message. The record travels in groups of eight: a byte that
- * carries the high bits of the seven bytes after it, bit k for byte k, then those seven bytes' low
- * bits.
- */
-function recordByteIndex(index: number) {
-  return recordStart + Math.floor(index / 7) * 8 + 1 + (index % 7)
-}
-
-/** The record a message carries, out of its groups of eight. */
-function readRecord(message: Uint8Array) {
-  return Uint8Array.from({ length: fm1VaRecordSize }, (_, index) => {
-    const highBits = message[recordStart + Math.floor(index / 7) * 8]
-    return message[recordByteIndex(index)] | (((highBits >> (index % 7)) & 1) << 7)
-  })
-}
 
 // Record byte 18 is `5A` in a Virtual Analog preset and `03` in an FM one. In the file its high
 // bit, which is clear in every preset seen, is not read.
 const engineMarkerByte = 18
-const engineMarkerIndex = recordByteIndex(engineMarkerByte)
+const engineMarkerIndex = fm1VaRecordByteIndex(engineMarkerByte)
 const virtualAnalogMarker = 0x5a
 
 /** The FM1 banks a backup holds, in the order of its presets. */
@@ -159,14 +145,14 @@ function readPreset(message: Uint8Array, slot: number): Fm1VaPreset {
   if (!hasPresetHeader(message) || message[5] !== slot || message.at(-1) !== 0xf7) {
     return { kind: 'damaged' }
   }
-  const payload = message.subarray(payloadStart, checksumIndex)
-  if (!isSevenBitData(payload) || fm1VaChecksum(payload) !== message[checksumIndex]) {
+  const payload = message.subarray(fm1VaPresetPayloadStart, fm1VaPresetChecksumIndex)
+  if (!isSevenBitData(payload) || fm1VaChecksum(payload) !== message[fm1VaPresetChecksumIndex]) {
     return { kind: 'damaged' }
   }
   const voice = packDx7Voice(payload.slice(0, FM1_VOICE_PARAMETER_COUNT))
   return message[engineMarkerIndex] === virtualAnalogMarker
     ? { kind: 'virtual-analog', name: voice.name }
-    : fmPreset(readRecord(message), voice)
+    : fmPreset(readFm1VaMessageRecord(message), voice)
 }
 
 /**

@@ -11,11 +11,14 @@ import {
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
+import { useFm1VaPresetWriter } from '@/hooks/use-fm1-va-preset-writer'
+import { decodeVoiceName, updateDx7VoiceName } from '@/lib/dx7'
 import {
   fm1VaPresetCount,
   fm1VaPresetNumber,
   type Fm1VaStoredPreset,
 } from '@/lib/fm1-va-preset-read'
+import type { Fm1VaReply } from '@/lib/fm1-va-sysex'
 import { formatMidiBytes } from '@/lib/midi'
 
 type Fm1VaPresetProbeProps = {
@@ -28,7 +31,20 @@ type ProbeRead = {
   /** The same preset's previous read, which the bytes are compared with. */
   previous?: Fm1VaStoredPreset
   readAt: Date
+  /** The write this read checked, when the preset was read back after one. */
+  write?: ProbeWrite
 }
+
+/** A write the probe sent, and what came of it. */
+type ProbeWrite = {
+  /** Whether the read back holds exactly the voice and record that were written. */
+  matches: boolean
+  name: string
+  replies: Fm1VaReply[]
+}
+
+/** The name the probe writes a preset under, to show that a write landed. */
+const writeTestName = 'WRITE TEST'
 
 const engineMarkerIndex = 18
 const hex = (byte: number) => byte.toString(16).padStart(2, '0').toUpperCase()
@@ -37,15 +53,29 @@ function voiceName(voice: Uint8Array) {
   return String.fromCharCode(...voice.subarray(118, 128)).replace(/[^\x20-\x7e]/g, '?')
 }
 
+function sameBytes(bytes: Uint8Array, other: Uint8Array) {
+  return bytes.length === other.length && bytes.every((byte, index) => byte === other[index])
+}
+
 function changedIndexes(bytes: Uint8Array, previous: Uint8Array | undefined) {
   if (!previous) return []
   return Array.from(bytes.keys()).filter((index) => bytes[index] !== previous[index])
 }
 
 /** The capture a research note or a fixture is made from, as JSON for the clipboard. */
-function captureJson({ firmware, preset, previous, readAt }: ProbeRead) {
+function captureJson({ firmware, preset, previous, readAt, write }: ProbeRead) {
   return JSON.stringify(
     {
+      write: write && {
+        matches: write.matches,
+        name: write.name,
+        replies: write.replies.map(({ argument, data, kind, status }) => ({
+          argument,
+          data: formatMidiBytes(data),
+          kind,
+          status,
+        })),
+      },
       changedRecordBytes: changedIndexes(preset.record, previous?.record),
       changedVoiceBytes: changedIndexes(preset.voice, previous?.voice),
       firmware,
@@ -113,6 +143,7 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
   const slot = Number(number) - 1
   const validSlot = Number.isInteger(slot) && slot >= 0 && slot < fm1VaPresetCount
   const { canRead, readPreset: readStoredPreset } = useFm1VaPresetReader(midi)
+  const { canWrite, writePreset } = useFm1VaPresetWriter(midi)
   const firmware = ('identity' in midi.firmware && midi.firmware.identity) || midi.firmware.kind
 
   async function readPreset() {
@@ -125,6 +156,40 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
       setRead({ firmware, preset, previous, readAt: new Date() })
     } catch (caughtError) {
       setFailure(caughtError instanceof Error ? caughtError.message : 'The read failed.')
+    } finally {
+      setReading(false)
+    }
+  }
+
+  /**
+   * Writes the preset just read back to its slot, unchanged or under `writeTestName`, then reads
+   * it again to see whether the write landed exactly.
+   */
+  async function writeBack(renamed: boolean) {
+    if (!read) return
+    const { preset } = read
+    const stored = { data: preset.voice, name: decodeVoiceName(preset.voice) }
+    const voice = renamed ? updateDx7VoiceName(stored, writeTestName) : stored
+    setReading(true)
+    setFailure(null)
+    try {
+      const replies = await writePreset(preset.slot, voice, preset.record)
+      const readBack = await readStoredPreset(preset.slot)
+      lastReads.current.set(preset.slot, readBack)
+      setRead({
+        firmware,
+        preset: readBack,
+        previous: preset,
+        readAt: new Date(),
+        write: {
+          matches:
+            sameBytes(readBack.voice, voice.data) && sameBytes(readBack.record, preset.record),
+          name: voice.name,
+          replies,
+        },
+      })
+    } catch (caughtError) {
+      setFailure(caughtError instanceof Error ? caughtError.message : 'The write failed.')
     } finally {
       setReading(false)
     }
@@ -221,6 +286,50 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
                   label="Packed voice (128 bytes)"
                   previous={read.previous?.voice}
                 />
+              </section>
+            ) : null}
+            {read && marker !== 0x5a ? (
+              <section aria-label="Write test" className="space-y-2 border-t pt-3">
+                <p className="leading-6 text-[var(--crt-ink-3)]">
+                  Writes this preset back to slot {fm1VaPresetNumber(read.preset.slot)} with
+                  FM-1+VA&rsquo;s preset write, which stores it at once, then reads it again. Start
+                  from an FM-1+VA backup. A Virtual Analog preset is not written, since its voice
+                  bytes are not a DX7 voice.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    disabled={!canWrite || reading}
+                    onClick={() => void writeBack(false)}
+                    type="button"
+                    variant="secondary"
+                  >
+                    <span>Write back unchanged</span>
+                  </Button>
+                  <Button
+                    disabled={!canWrite || reading}
+                    onClick={() => void writeBack(true)}
+                    type="button"
+                    variant="secondary"
+                  >
+                    <span>Write back as {writeTestName}</span>
+                  </Button>
+                </div>
+                {read.write ? (
+                  <p>
+                    Wrote {read.write.name.trim()}.{' '}
+                    {read.write.matches
+                      ? 'The read back matches what was written.'
+                      : 'The read back differs from what was written.'}{' '}
+                    {read.write.replies.length === 0
+                      ? 'No FM-1+VA reply was heard after the write.'
+                      : `Replies heard after the write: ${read.write.replies
+                          .map(
+                            ({ argument, data, kind, status }) =>
+                              `kind ${hex(kind)}, status ${status}, argument ${argument}, ${data.length} data bytes`,
+                          )
+                          .join('; ')}.`}
+                  </p>
+                ) : null}
               </section>
             ) : null}
           </div>

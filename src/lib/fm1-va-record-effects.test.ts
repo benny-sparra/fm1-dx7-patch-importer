@@ -3,9 +3,13 @@ import { describe, expect, it } from 'vitest'
 import { dx7PackedVoiceSize } from '@/lib/dx7'
 import { fm1EffectParameterCount } from '@/lib/fm1-effects'
 import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
-import { capturedOrgan3Reply, capturedVirtualAnalogDistortionReply } from '@/test/fm1-va-captures'
+import {
+  capturedOrgan3Reply,
+  capturedVirtualAnalogDistortionReply,
+  capturedVirtualAnalogReorderedReply,
+} from '@/test/fm1-va-captures'
 
-import { fm1VaRecordEffects } from './fm1-va-record-effects'
+import { fm1VaRecordEffects, fm1VaRecordWithEffects } from './fm1-va-record-effects'
 
 function recordOf(reply: Uint8Array) {
   const parsed = parseFm1VaReply(reply)
@@ -51,5 +55,43 @@ describe('fm1VaRecordEffects', () => {
     expect(effects).toHaveLength(fm1EffectParameterCount)
     expect(effects[2]).toBe(107)
     expect(effects[0]).toBe(1)
+  })
+})
+
+describe('fm1VaRecordWithEffects', () => {
+  const captures = [
+    capturedOrgan3Reply,
+    capturedVirtualAnalogDistortionReply,
+    capturedVirtualAnalogReorderedReply,
+  ]
+
+  it('gives back each captured record unchanged with the effects it holds', () => {
+    for (const reply of captures) {
+      const record = recordOf(reply)
+
+      expect(fm1VaRecordWithEffects(record, fm1VaRecordEffects(record))).toEqual(record)
+    }
+  })
+
+  it('puts each effect in the record byte it is read from, and changes no other', () => {
+    const record = recordOf(capturedOrgan3Reply)
+    const effects = fm1VaRecordEffects(record)
+    effects[4] = 1 // Reverb on
+    effects[9] = 64 // Delay Decay
+
+    const updated = fm1VaRecordWithEffects(record, effects)
+
+    expect(fm1VaRecordEffects(updated)).toEqual(effects)
+    const changed = Array.from(updated.keys()).filter((index) => updated[index] !== record[index])
+    expect(changed).toEqual([6, 31])
+  })
+
+  it('leaves the record it was given as it is', () => {
+    const record = recordOf(capturedOrgan3Reply)
+    const before = record.slice()
+
+    fm1VaRecordWithEffects(record, new Uint8Array(fm1EffectParameterCount).fill(1))
+
+    expect(record).toEqual(before)
   })
 })
