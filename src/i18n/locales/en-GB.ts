@@ -302,9 +302,8 @@ export default {
     warning: 'The bank’s current contents will be wiped and replaced by the imported patches.',
   },
   fm1VaImport: {
-    menuHeading: 'From FM-1+VA',
     menuItem: 'Import FM-1+VA presets…',
-    menuContents: 'Banks A to D from the file its “Save a backup” writes',
+    menuContents: 'For Baud Girl’s FM-1+VA firmware',
     title: 'Import FM-1+VA presets',
     help: 'Choose the file from “Save a backup” on FM-1+VA’s Presets page.',
     effectsNote: 'Effects aren’t imported yet, so each patch arrives with them off.',
@@ -665,9 +664,12 @@ export default {
     randomiseHelp: 'A new voice. Keeps the name and effects.',
   },
   midi: {
-    fm1VaBadgeLabel: 'FM-1+VA firmware by Baud Girl, {{identity}}',
+    fm1VaBadgeLabel: 'FM-1+VA firmware by Baud Girl, {{release}}',
     fm1VaBadgeTitle:
-      'The FM1 runs Baud Girl’s FM-1+VA firmware, {{identity}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',
+      'The FM1 runs Baud Girl’s FM-1+VA firmware, {{release}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',
+    mvaveBadgeLabel: 'M-VAVE firmware, {{release}}',
+    mvaveBadgeTitle:
+      'The FM1 runs M-VAVE’s own firmware, {{release}}. Patches you play go to its edit buffer.',
     panic: 'MIDI panic',
     panicHelp:
       'MIDI panic: send a note-off for every note on the note channel, to stop hanging notes',
@@ -714,7 +716,7 @@ export default {
     catalogFactory: 'Factory',
     catalogFm1Factory: 'FM-1 factory presets',
     import: 'Import DX7 bank',
-    moreActions: 'More bank file actions',
+    moreActions: 'Library actions',
     bankMenu: 'Actions for {{bank}}',
     bankInformation: 'Bank information',
     bankInformationHelp: 'Edit the title and optional description for this workspace bank.',
@@ -864,12 +866,12 @@ export default {
     loaded: 'Loaded “{{name}}” into “{{bank}}”.',
   },
   backup: {
-    menuSysex: 'For other DX7 tools',
+    menuOtherFiles: 'Other files',
     sysexContents: 'DX7 data only, no FM1 effects',
-    menuHeading: 'Full backup',
+    menuHeading: 'Backup',
     download: 'Download backup',
     restore: 'Restore from backup…',
-    backupContents: 'Includes FM1 effects',
+    backupContents: 'Includes FM1 effects and saved banks',
     lastBackup: 'Last backed up: {{date}}',
     downloaded: 'Downloading a backup of your workspace banks and saved banks.',
     downloadedWithoutSavedBanks:

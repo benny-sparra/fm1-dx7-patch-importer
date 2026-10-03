@@ -317,9 +317,8 @@ export default {
       'Der aktuelle Inhalt der Bank wird gelöscht und durch die importierten Sounds ersetzt.',
   },
   fm1VaImport: {
-    menuHeading: 'Von FM-1+VA',
     menuItem: 'FM-1+VA-Presets importieren…',
-    menuContents: 'Bänke A bis D aus der Datei, die „Save a backup“ schreibt',
+    menuContents: 'Für die FM-1+VA-Firmware von Baud Girl',
     title: 'FM-1+VA-Presets importieren',
     help: 'Wähle die Datei aus „Save a backup“ auf der Presets-Seite von FM-1+VA.',
     effectsNote:
@@ -692,9 +691,12 @@ export default {
     randomiseHelp: 'Neue Stimme. Name und Effekte bleiben.',
   },
   midi: {
-    fm1VaBadgeLabel: 'Firmware FM-1+VA von Baud Girl, {{identity}}',
+    fm1VaBadgeLabel: 'Firmware FM-1+VA von Baud Girl, {{release}}',
     fm1VaBadgeTitle:
-      'Auf dem FM1 läuft die Firmware FM-1+VA von Baud Girl, {{identity}}. Sounds, die du anspielst, kommen als ungespeicherte Änderungen an und überschreiben nie ein Preset.',
+      'Auf dem FM1 läuft die Firmware FM-1+VA von Baud Girl, {{release}}. Sounds, die du anspielst, kommen als ungespeicherte Änderungen an und überschreiben nie ein Preset.',
+    mvaveBadgeLabel: 'Firmware von M-VAVE, {{release}}',
+    mvaveBadgeTitle:
+      'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer.',
     panic: 'MIDI-Panik',
     panicHelp:
       'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',
@@ -753,7 +755,7 @@ export default {
     catalogFactory: 'Werkssounds',
     catalogFm1Factory: 'FM-1-Werksvorlagen',
     import: 'DX7-Bank importieren',
-    moreActions: 'Weitere Bankdatei-Aktionen',
+    moreActions: 'Bibliotheksaktionen',
     bankMenu: 'Aktionen für {{bank}}',
     bankInformation: 'Bankinformationen',
     bankInformationHelp: 'Bearbeite den Titel und die optionale Beschreibung dieser Arbeitsbank.',
@@ -905,12 +907,12 @@ export default {
     loaded: '„{{name}}“ in „{{bank}}“ geladen.',
   },
   backup: {
-    menuSysex: 'Für andere DX7-Programme',
+    menuOtherFiles: 'Weitere Dateien',
     sysexContents: 'Nur DX7-Daten, keine FM1-Effekte',
-    menuHeading: 'Vollständige Sicherung',
+    menuHeading: 'Sicherung',
     download: 'Sicherung herunterladen',
     restore: 'Aus Sicherung wiederherstellen…',
-    backupContents: 'Mit FM1-Effekten',
+    backupContents: 'Mit FM1-Effekten und gespeicherten Bänken',
     lastBackup: 'Zuletzt gesichert: {{date}}',
     downloaded: 'Eine Sicherung deiner Arbeitsbänke und gespeicherten Bänke wird heruntergeladen.',
     downloadedWithoutSavedBanks:

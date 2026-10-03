@@ -62,7 +62,7 @@ async function chooseFromMenu(item: string) {
       />
     </ToastProvider>,
   )
-  await user.click(screen.getByTitle('More bank file actions'))
+  await user.click(screen.getByTitle('Library actions'))
   await user.click(screen.getByRole('button', { name: item }))
 }
 

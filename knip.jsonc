@@ -3,6 +3,7 @@
   "entry": [
     "src/main.tsx",
     "src/**/*.test.{ts,tsx}",
+    "scripts/**/*.test.mjs",
     "vite.config.ts",
     "scripts/check-layout-shift.mjs",
   ],

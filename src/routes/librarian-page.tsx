@@ -156,6 +156,12 @@ const DuplicatePatchesDialog = lazy(() =>
 
 const menuItemClassName =
   'flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50'
+// An item with a hint below its label keeps its icon beside the label's line.
+const menuItemWithHintClassName =
+  'flex w-full cursor-pointer items-start gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50'
+const menuHintedIconClassName = 'mt-0.5 size-4 shrink-0'
+const menuDangerItemClassName =
+  'flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground'
 const menuHeadingClassName =
   'font-dot-matrix px-3 pt-1.5 pb-0.5 text-[11px] font-bold tracking-[0.1em] text-[var(--crt-ink-3)] uppercase'
 
@@ -283,12 +289,11 @@ export function LibrarianPage({
   const [slotFocusRequest, setSlotFocusRequest] = useState<{ patchId: string } | null>(null)
   const downloadBackup = useDownloadWorkspaceBackup(library)
   const lastBackupTime = useLastBackupTime()
-  const sysexMenuHeadingId = useId()
+  const otherFilesMenuHeadingId = useId()
   const backupMenuHeadingId = useId()
   const lastBackupId = useId()
   const backupContentsId = useId()
   const sysexContentsId = useId()
-  const fm1VaMenuHeadingId = useId()
   const fm1VaContentsId = useId()
   const sendButtonRef = useRef<HTMLButtonElement>(null)
   // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
@@ -719,7 +724,7 @@ export function LibrarianPage({
         </button>
         {banks.length > 1 ? (
           <button
-            className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
+            className={menuDangerItemClassName}
             onClick={(event) => {
               closeMenu()
               setBankPendingDeletion({
@@ -838,7 +843,7 @@ export function LibrarianPage({
                     lastBackupTime ? `${backupContentsId} ${lastBackupId}` : backupContentsId
                   }
                   aria-label={t('backup.download')}
-                  className={menuItemClassName}
+                  className={menuItemWithHintClassName}
                   // Saved banks are read as the page opens; a backup waits for them.
                   disabled={library.namedBanksLoading}
                   onClick={() => {
@@ -849,7 +854,7 @@ export function LibrarianPage({
                   }}
                   type="button"
                 >
-                  <HardDriveDownload className="size-4 shrink-0" />
+                  <HardDriveDownload className={menuHintedIconClassName} />
                   <span className="grid">
                     <span>{t('backup.download')}</span>
                     <span className="text-xs text-[var(--crt-ink-3)]" id={backupContentsId}>
@@ -873,18 +878,19 @@ export function LibrarianPage({
                   }}
                   type="button"
                 >
-                  <HardDriveUpload className="size-4" />
+                  <HardDriveUpload className="size-4 shrink-0" />
                   {t('backup.restore')}
                 </button>
               </div>
-              <div aria-labelledby={sysexMenuHeadingId} className="mt-1" role="group">
-                <p className={menuHeadingClassName} id={sysexMenuHeadingId}>
-                  {t('backup.menuSysex')}
+              {/* DX7 banks for other tools go out, and FM-1+VA's own file comes in. */}
+              <div aria-labelledby={otherFilesMenuHeadingId} className="mt-1" role="group">
+                <p className={menuHeadingClassName} id={otherFilesMenuHeadingId}>
+                  {t('backup.menuOtherFiles')}
                 </p>
                 <button
                   aria-describedby={sysexContentsId}
                   aria-label={t('banks.downloadAll')}
-                  className={menuItemClassName}
+                  className={menuItemWithHintClassName}
                   disabled={library.loadedBanks.length === 0}
                   onClick={() => {
                     allBanksMenuRef.current?.removeAttribute('open')
@@ -892,7 +898,7 @@ export function LibrarianPage({
                   }}
                   type="button"
                 >
-                  <FileMusic className="size-4 shrink-0" />
+                  <FileMusic className={menuHintedIconClassName} />
                   <span className="grid">
                     <span>{t('banks.downloadAll')}</span>
                     <span className="text-xs text-[var(--crt-ink-3)]" id={sysexContentsId}>
@@ -900,15 +906,10 @@ export function LibrarianPage({
                     </span>
                   </span>
                 </button>
-              </div>
-              <div aria-labelledby={fm1VaMenuHeadingId} className="mt-1" role="group">
-                <p className={menuHeadingClassName} id={fm1VaMenuHeadingId}>
-                  {t('fm1VaImport.menuHeading')}
-                </p>
                 <button
                   aria-describedby={fm1VaContentsId}
                   aria-label={t('fm1VaImport.menuItem')}
-                  className={menuItemClassName}
+                  className={menuItemWithHintClassName}
                   onClick={() => {
                     allBanksMenuRef.current?.removeAttribute('open')
                     setDialogLoadError('')
@@ -916,7 +917,7 @@ export function LibrarianPage({
                   }}
                   type="button"
                 >
-                  <Upload className="size-4 shrink-0" />
+                  <Upload className={menuHintedIconClassName} />
                   <span className="grid">
                     <span>{t('fm1VaImport.menuItem')}</span>
                     <span className="text-xs text-[var(--crt-ink-3)]" id={fm1VaContentsId}>
@@ -936,18 +937,19 @@ export function LibrarianPage({
                 }}
                 type="button"
               >
-                <Files className="size-4" />
+                <Files className="size-4 shrink-0" />
                 {t('duplicates.menuItem')}
               </button>
+              {/* Last, in the danger colour, as it replaces banks A to D. */}
               <button
-                className={menuItemClassName}
+                className={menuDangerItemClassName}
                 onClick={() => {
                   allBanksMenuRef.current?.removeAttribute('open')
                   setIsRestoringFactoryBanks(true)
                 }}
                 type="button"
               >
-                <RotateCcw className="size-4" />
+                <RotateCcw className="size-4 shrink-0" />
                 {t('banks.restoreAll')}
               </button>
             </div>

@@ -50,7 +50,7 @@ function renderPage(loaded = true) {
 }
 
 async function openDuplicates(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByTitle('More bank file actions'))
+  await user.click(screen.getByTitle('Library actions'))
   await user.click(screen.getByRole('button', { name: 'Find duplicate patches…' }))
   return screen.findByRole('dialog', { name: 'Duplicate patches' })
 }
@@ -59,7 +59,7 @@ describe('LibrarianPage duplicate patches', () => {
   it('is not offered before any bank holds patches', async () => {
     const { user } = renderPage(false)
 
-    await user.click(screen.getByTitle('More bank file actions'))
+    await user.click(screen.getByTitle('Library actions'))
 
     expect(screen.getByRole('button', { name: 'Find duplicate patches…' })).toHaveProperty(
       'disabled',
@@ -102,6 +102,6 @@ describe('LibrarianPage duplicate patches', () => {
 
     await user.click(screen.getByRole('button', { name: 'Close' }))
 
-    expect(document.activeElement).toBe(screen.getByTitle('More bank file actions'))
+    expect(document.activeElement).toBe(screen.getByTitle('Library actions'))
   })
 })

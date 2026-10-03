@@ -87,26 +87,39 @@ function renderPage(library = makeLibrary()) {
 }
 
 async function openMenu(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByTitle('More bank file actions'))
+  await user.click(screen.getByTitle('Library actions'))
 }
 
 describe('LibrarianPage backup', () => {
-  it('puts the full backup first, then SysEx files, then the factory reset', async () => {
+  it('puts the backup first, then other files, then the library tools', async () => {
     const user = userEvent.setup()
     renderPage()
     await openMenu(user)
 
-    const backup = screen.getByRole('group', { name: 'Full backup' })
-    const sysex = screen.getByRole('group', { name: 'For other DX7 tools' })
-    expect(backup.compareDocumentPosition(sysex) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const backup = screen.getByRole('group', { name: 'Backup' })
+    const otherFiles = screen.getByRole('group', { name: 'Other files' })
+    expect(
+      backup.compareDocumentPosition(otherFiles) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
     expect(within(backup).getByRole('button', { name: 'Download backup' })).toBeTruthy()
     expect(within(backup).getByRole('button', { name: 'Restore from backup…' })).toBeTruthy()
-    const zip = within(sysex).getByRole('button', { name: 'Download SysEx banks (.zip)' })
+    const zip = within(otherFiles).getByRole('button', { name: 'Download SysEx banks (.zip)' })
     expect(document.getElementById(zip.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
       'DX7 data only, no FM1 effects',
     )
-    expect(screen.getByRole('button', { name: 'Reset to factory patches…' })).toBeTruthy()
+    expect(within(otherFiles).getByRole('button', { name: 'Import FM-1+VA presets…' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Restore all banks' })).toBeNull()
+  })
+
+  it('ends with the factory reset, after finding duplicates', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await openMenu(user)
+
+    const items = within(screen.getByTitle('Library actions').closest('details')!)
+      .getAllByRole('button')
+      .map((button) => button.getAttribute('aria-label') ?? button.textContent)
+    expect(items.slice(-2)).toEqual(['Find duplicate patches…', 'Reset to factory patches…'])
   })
 
   it('downloads the workspace as a backup file', async () => {
@@ -158,7 +171,7 @@ describe('LibrarianPage backup', () => {
     await openMenu(user)
 
     const download = screen.getByRole('button', { name: 'Download backup' })
-    const contents = screen.getByText('Includes FM1 effects')
+    const contents = screen.getByText('Includes FM1 effects and saved banks')
     expect(download.getAttribute('aria-describedby')).toBe(contents.id)
     expect(screen.queryByText(/^Last backed up:/)).toBeNull()
   })
@@ -182,7 +195,7 @@ describe('LibrarianPage backup', () => {
     await setLocale('fr')
     const user = userEvent.setup()
     renderPage()
-    await user.click(screen.getByTitle('Autres actions sur les banques'))
+    await user.click(screen.getByTitle('Actions de la bibliothèque'))
 
     const date = new Date('2026-09-21T13:03:00.000Z').toLocaleDateString('fr')
     expect(screen.getByText(`Dernière sauvegarde : ${date}`)).toBeTruthy()
@@ -194,7 +207,7 @@ describe('LibrarianPage backup', () => {
     renderPage()
     await openMenu(user)
 
-    expect(screen.getByText('Includes FM1 effects')).toBeTruthy()
+    expect(screen.getByText('Includes FM1 effects and saved banks')).toBeTruthy()
     expect(screen.queryByText(/^Last backed up:/)).toBeNull()
   })
 

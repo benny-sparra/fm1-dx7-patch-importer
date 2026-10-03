@@ -111,3 +111,14 @@ export function classifyFm1Firmware(identity: string): Fm1Firmware {
 export function sendsSingleVoiceDumps(firmware: Fm1Firmware) {
   return firmware.kind === 'mvave'
 }
+
+/**
+ * The release as its maker names it. M-VAVE calls `FM-1_015` V15, while FM-1+VA's releases go by
+ * the name the FM1 reports, such as `FM-1_089`.
+ */
+export function fm1FirmwareRelease({
+  identity,
+  kind,
+}: Extract<Fm1Firmware, { kind: 'fm1-va' | 'mvave' }>) {
+  return kind === 'mvave' ? `V${Number(identity.slice(-3))}` : identity
+}

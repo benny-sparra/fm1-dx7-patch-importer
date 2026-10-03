@@ -96,7 +96,7 @@ keyboard shortcuts, and SysEx compatibility.
 ### Your data
 
 > [!IMPORTANT]
-> Imported voices, edits, and FM1 effect settings are saved in this browser and kept after a page reload. Use **Download backup**, under **Full backup** in the patch-bank ⋮ menu, to keep a copy, especially before clearing browser data: the backup file holds the workspace banks, their FM1 effects and FM-1+VA preset settings, Favourites, and saved banks, and only this app can restore it. DX7 `.syx` export contains voice data only, for use in other DX7 tools.
+> Imported voices, edits, and FM1 effect settings are saved in this browser and kept after a page reload. Use **Download backup**, under **Backup** in the patch-bank header's **Library actions** (⋮) menu, to keep a copy, especially before clearing browser data: the backup file holds the workspace banks, their FM1 effects and FM-1+VA preset settings, Favourites, and saved banks, and only this app can restore it. DX7 `.syx` export contains voice data only, for use in other DX7 tools.
 
 Workspace-bank titles, descriptions, imported patches, patch ordering, Favourites, saved editor changes, and FM1 effect settings are saved automatically in the browser.
 

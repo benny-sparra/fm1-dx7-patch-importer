@@ -314,9 +314,8 @@ export default {
     warning: 'Le contenu actuel de la banque sera effacé et remplacé par les sons importés.',
   },
   fm1VaImport: {
-    menuHeading: 'Depuis FM-1+VA',
     menuItem: 'Importer les presets FM-1+VA…',
-    menuContents: 'Banques A à D du fichier écrit par « Save a backup »',
+    menuContents: 'Pour le firmware FM-1+VA de Baud Girl',
     title: 'Importer les presets FM-1+VA',
     help: 'Choisissez le fichier de « Save a backup » sur la page Presets de FM-1+VA.',
     effectsNote:
@@ -685,9 +684,12 @@ export default {
     randomiseHelp: 'Nouvelle voix. Nom et effets gardés.',
   },
   midi: {
-    fm1VaBadgeLabel: 'Firmware FM-1+VA de Baud Girl, {{identity}}',
+    fm1VaBadgeLabel: 'Firmware FM-1+VA de Baud Girl, {{release}}',
     fm1VaBadgeTitle:
-      'Le FM1 utilise le firmware FM-1+VA de Baud Girl, {{identity}}. Les sons que vous jouez lui parviennent comme des modifications non enregistrées et n’écrasent jamais un preset.',
+      'Le FM1 utilise le firmware FM-1+VA de Baud Girl, {{release}}. Les sons que vous jouez lui parviennent comme des modifications non enregistrées et n’écrasent jamais un preset.',
+    mvaveBadgeLabel: 'Firmware de M-VAVE, {{release}}',
+    mvaveBadgeTitle:
+      'Le FM1 utilise le firmware d’origine de M-VAVE, {{release}}. Les sons que vous jouez vont dans son tampon d’édition.',
     panic: 'Panique MIDI',
     panicHelp:
       'Panique MIDI : envoie un note-off pour chaque note du canal des notes afin d’arrêter les notes bloquées',
@@ -735,7 +737,7 @@ export default {
     catalogFactory: 'Sons d’usine',
     catalogFm1Factory: 'Préréglages d’usine FM-1',
     import: 'Importer une banque DX7',
-    moreActions: 'Autres actions sur les banques',
+    moreActions: 'Actions de la bibliothèque',
     bankMenu: 'Actions pour {{bank}}',
     bankInformation: 'Informations sur la banque',
     bankInformationHelp:
@@ -895,12 +897,12 @@ export default {
     loaded: '« {{name}} » chargée dans « {{bank}} ».',
   },
   backup: {
-    menuSysex: 'Pour d’autres outils DX7',
+    menuOtherFiles: 'Autres fichiers',
     sysexContents: 'Données DX7 seules, sans effets FM1',
-    menuHeading: 'Sauvegarde complète',
+    menuHeading: 'Sauvegarde',
     download: 'Télécharger une sauvegarde',
     restore: 'Restaurer une sauvegarde…',
-    backupContents: 'Avec les effets FM1',
+    backupContents: 'Avec les effets FM1 et les banques enregistrées',
     lastBackup: 'Dernière sauvegarde : {{date}}',
     downloaded:
       'Téléchargement d’une sauvegarde de vos banques de travail et banques enregistrées.',

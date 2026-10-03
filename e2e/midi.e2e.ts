@@ -165,6 +165,13 @@ test.describe('with an FM-1 connected', () => {
       .toContainEqual([0xf0, 0x43, 0x10, 0x01, 0x09, speed + 1, 0xf7])
   })
 
+  test('names the M-VAVE firmware and its release beside MIDI online', async ({ page }) => {
+    const badge = page.getByTitle(/^The FM1 runs M-VAVE’s own firmware, V15\./)
+
+    await expect(badge).toBeVisible()
+    await expect(badge.getByText('M-VAVE firmware, V15')).toBeAttached()
+  })
+
   test('shows notes played on the FM1 in the MIDI log', async ({ page }) => {
     await receiveMidi(page, [0x90, 60, 100])
     await receiveMidi(page, [0xf8])
@@ -380,6 +387,17 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
     await expect(badge).toBeVisible()
     await expect(badge.getByRole('img')).toHaveCount(0)
     await expect(badge.getByText('FM-1+VA firmware by Baud Girl, FM-1_089')).toBeAttached()
+  })
+
+  test('shows FM-1+VA on the screen of the FM1 photo in the chosen finish', async ({ page }) => {
+    // The other finishes slide out from the lit swatch while the picker has focus.
+    await page.getByRole('radio', { name: 'Black FM1 finish' }).focus()
+    await page.getByTitle('Orange', { exact: true }).click()
+
+    const photo = page.getByRole('img', { name: 'M-VAVE FM1 synthesiser front panel' })
+    await expect(photo).toHaveAttribute('src', /fm1-va-orange-/)
+    await expect.poll(() => photo.evaluate((image: HTMLImageElement) => image.complete)).toBe(true)
+    expect(await photo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
   })
 
   test('explains the FM-1+VA Write the bank question before sending a bank', async ({ page }) => {

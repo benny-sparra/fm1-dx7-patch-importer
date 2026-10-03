@@ -63,7 +63,7 @@ function renderPage() {
 }
 
 async function openImport(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByTitle('More bank file actions'))
+  await user.click(screen.getByTitle('Library actions'))
   await user.click(screen.getByRole('button', { name: 'Import FM-1+VA presets…' }))
   return screen.findByRole('dialog', { name: 'Import FM-1+VA presets' })
 }
@@ -72,15 +72,15 @@ describe('LibrarianPage FM-1+VA import', () => {
   it('describes the file the menu item reads', async () => {
     const { user } = renderPage()
 
-    await user.click(screen.getByTitle('More bank file actions'))
+    await user.click(screen.getByTitle('Library actions'))
 
     expect(
       screen
         .getByRole('button', { name: 'Import FM-1+VA presets…' })
         .getAttribute('aria-describedby'),
     ).toBeTruthy()
-    expect(screen.getByRole('group', { name: 'From FM-1+VA' }).textContent).toContain(
-      'Banks A to D from the file its “Save a backup” writes',
+    expect(screen.getByRole('group', { name: 'Other files' }).textContent).toContain(
+      'For Baud Girl’s FM-1+VA firmware',
     )
   })
 
@@ -117,8 +117,6 @@ describe('LibrarianPage FM-1+VA import', () => {
 
     await user.click(screen.getByRole('button', { name: 'Close' }))
 
-    await waitFor(() =>
-      expect(document.activeElement).toBe(screen.getByTitle('More bank file actions')),
-    )
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByTitle('Library actions')))
   })
 })
