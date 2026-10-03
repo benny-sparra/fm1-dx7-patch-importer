@@ -81,9 +81,13 @@ the bank you want, then turn **SELECT** to **Replace** and press **SEL**, or pre
 cancel. Replacing also overwrites that bank's factory presets for good. The destination
 instructions shown before sending follow the firmware the FM1 named.
 
-Other replacement firmware, such as Hügelton Instruments' [Felucca](https://hugelton.github.io/Felucca/),
-shows as **Not identified** under **FM1 firmware**. The app sends it patches as parameter changes,
-but whether it plays DX7 patches at all has not been tested.
+Hügelton Instruments' [Felucca](https://hugelton.github.io/Felucca/) replaces the FM1's sound
+engines with its own and does not take DX7 patches. The app names it beside **MIDI online** and
+under **FM1 firmware**, with its release, such as 0.8. The keyboard and audition notes play on it,
+but sending a patch or bank, clicking a slot to choose its preset, and the effect controls do not
+change its sound. To edit Felucca's sounds, sequences, and user presets, use its own
+[web editor](https://hugelton.github.io/Felucca/webapp/editor/) in Chrome or Edge. Any other
+firmware shows as **Not identified**, and the app sends it patches as parameter changes.
 
 To move your FM1 between these firmwares, see [Switching FM1 firmware](switching-firmware.md).
 

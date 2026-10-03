@@ -36,10 +36,34 @@ export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
   )
 }
 
+// What the badge shows for each firmware it names: its maker, its own name where the maker's is
+// not enough, and the translated label and description.
+const firmwareBadges = {
+  felucca: {
+    label: 'midi.feluccaBadgeLabel',
+    maker: 'HÜGELTON',
+    product: 'FELUCCA',
+    title: 'midi.feluccaBadgeTitle',
+  },
+  'fm1-va': {
+    label: 'midi.fm1VaBadgeLabel',
+    maker: 'BAUD GIRL',
+    product: 'FM-1+VA',
+    title: 'midi.fm1VaBadgeTitle',
+  },
+  mvave: {
+    label: 'midi.mvaveBadgeLabel',
+    maker: 'M-VAVE',
+    product: null,
+    title: 'midi.mvaveBadgeTitle',
+  },
+} as const
+
 /**
  * Names the firmware the FM1 runs, with the release it reported, once it has said so: M-VAVE's own,
- * whose edit buffer takes the patches the editor plays, or Baud Girl's FM-1+VA, which gets them as
- * unsaved edits. It is a status readout, not a control.
+ * whose edit buffer takes the patches the editor plays, Baud Girl's FM-1+VA, which gets them as
+ * unsaved edits, or Hügelton Instruments' Felucca, which plays notes but ignores DX7 patches. It is
+ * a status readout, not a control.
  */
 export function MidiFirmwareBadge({
   className,
@@ -50,29 +74,27 @@ export function MidiFirmwareBadge({
 }) {
   const { t } = useTranslation()
   const { firmware } = midi
-  if (firmware.kind !== 'fm1-va' && firmware.kind !== 'mvave') return null
+  if (firmware.kind === 'checking' || firmware.kind === 'unidentified') return null
   const release = fm1FirmwareRelease(firmware)
-  const fm1Va = firmware.kind === 'fm1-va'
+  const badge = firmwareBadges[firmware.kind]
 
   return (
     <span
       className={className ?? 'inline-flex min-h-8 items-center gap-2'}
-      title={t(fm1Va ? 'midi.fm1VaBadgeTitle' : 'midi.mvaveBadgeTitle', { release })}
+      title={t(badge.title, { release })}
     >
       <span aria-hidden="true" className="text-xs font-bold tracking-[0.1em] text-[var(--crt-ink)]">
-        {fm1Va ? 'BAUD GIRL' : 'M-VAVE'}
+        {badge.maker}
       </span>
-      {fm1Va ? (
+      {badge.product ? (
         <span aria-hidden="true" className="text-xs tracking-[0.1em] text-[var(--crt-ink-2)]">
-          FM-1+VA
+          {badge.product}
         </span>
       ) : null}
       <span aria-hidden="true" className="text-xs tracking-[0.1em] text-[var(--crt-ink-3)]">
         {release}
       </span>
-      <span className="sr-only">
-        {t(fm1Va ? 'midi.fm1VaBadgeLabel' : 'midi.mvaveBadgeLabel', { release })}
-      </span>
+      <span className="sr-only">{t(badge.label, { release })}</span>
     </span>
   )
 }
@@ -119,11 +141,20 @@ function firmwareName(firmware: MidiController['firmware'], t: TFunction) {
       return t('settings.firmwareMvave', { identity: firmware.identity })
     case 'fm1-va':
       return t('settings.firmwareFm1Va', { identity: firmware.identity })
+    case 'felucca':
+      return t('settings.firmwareFelucca', { identity: firmware.identity })
     case 'checking':
       return t('settings.firmwareChecking')
     default:
       return t('settings.firmwareUnidentified')
   }
+}
+
+// What the firmware does with the patches the editor plays; any other gets parameter changes.
+function firmwareSendingKey({ kind }: MidiController['firmware']) {
+  if (kind === 'mvave') return 'settings.firmwareEditBuffer'
+  if (kind === 'felucca') return 'settings.firmwareIgnoresPatches'
+  return 'settings.firmwareParameterChanges'
 }
 
 /** Which firmware the FM1 runs, and what that means for the patches the editor plays on it. */
@@ -139,11 +170,7 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
       </span>
       <span className="text-sm">{firmwareName(midi.firmware, t)}</span>
       <span className="text-[11px] text-muted-foreground">
-        {t(
-          midi.firmware.kind === 'mvave'
-            ? 'settings.firmwareEditBuffer'
-            : 'settings.firmwareParameterChanges',
-        )}
+        {t(firmwareSendingKey(midi.firmware))}
       </span>
       {needsInput ? (
         <span className="text-[11px] text-muted-foreground">

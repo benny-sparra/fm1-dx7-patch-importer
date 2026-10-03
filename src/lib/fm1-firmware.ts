@@ -1,7 +1,7 @@
 /**
  * Which firmware the connected FM1 runs, from the updater's identity query. M-VAVE's firmware and
- * the FM-1+VA replacement firmware both answer it with their `MODEL_NNN` name, such as `FM-1_015`
- * (docs/fm1-research.md §6.3). The query is the one `00 32` message the editor may send: it reads
+ * the FM-1+VA and Felucca replacement firmwares all answer it with their `MODEL_NNN` name, such as
+ * `FM-1_015` (docs/fm1-research.md §6.3). The query is the one `00 32` message the editor may send: it reads
  * the name and changes nothing, and no other message in that family is sent.
  */
 // prettier-ignore
@@ -20,11 +20,12 @@ const identityNameStart = 6
 const identityNameLength = 27
 
 /**
- * M-VAVE numbers its own releases up to V19, and FM-1+VA's run from FM-1_020. Felucca, another
- * replacement firmware, answers FM-1_904, so the 900s are left to it and stay unidentified.
+ * M-VAVE numbers its own releases up to V19, and FM-1+VA's run from FM-1_020. Felucca names release
+ * X.Y FM-1_9XY, one digit each, and a development build FM-1_900, so the 900s are Felucca's.
  */
 const lastMvaveVersion = 19
 const lastFm1VaVersion = 899
+const feluccaDevelopmentIdentity = 'FM-1_900'
 
 /**
  * An FM1 that answered with a name the editor does not recognise keeps that name for the MIDI log;
@@ -33,7 +34,10 @@ const lastFm1VaVersion = 899
 export type Fm1Firmware =
   | { kind: 'checking' }
   | { identity?: string; kind: 'unidentified' }
-  | { identity: string; kind: 'fm1-va' | 'mvave' }
+  | { identity: string; kind: 'felucca' | 'fm1-va' | 'mvave' }
+
+/** A firmware the editor names, with the release it reported. */
+type NamedFm1Firmware = Extract<Fm1Firmware, { identity: string }>
 
 /**
  * Unpacks 8-bit bytes sent seven bits at a time, least significant bit first, as the identity reply
@@ -91,15 +95,16 @@ export function parseFm1IdentityReply(message: Uint8Array | readonly number[]) {
 
 /**
  * The firmware an identity names. Only an FM1 name numbered as M-VAVE's own releases counts as
- * M-VAVE's firmware, and only one numbered as FM-1+VA's counts as FM-1+VA, releases after the
- * tested one included. Any other name, Felucca's among them, is unidentified, so the editor assumes
- * neither firmware's behaviour.
+ * M-VAVE's firmware, only one numbered as FM-1+VA's counts as FM-1+VA, releases after the tested
+ * one included, and only one in the 900s counts as Felucca. Any other name is unidentified, so the
+ * editor assumes no firmware's behaviour.
  */
 export function classifyFm1Firmware(identity: string): Fm1Firmware {
   const match = /^FM-1_(\d{3})$/.exec(identity)
-  const version = match ? Number(match[1]) : null
-  if (version === null || version > lastFm1VaVersion) return { identity, kind: 'unidentified' }
-  return { identity, kind: version <= lastMvaveVersion ? 'mvave' : 'fm1-va' }
+  if (!match) return { identity, kind: 'unidentified' }
+  const version = Number(match[1])
+  if (version <= lastMvaveVersion) return { identity, kind: 'mvave' }
+  return { identity, kind: version <= lastFm1VaVersion ? 'fm1-va' : 'felucca' }
 }
 
 /**
@@ -113,12 +118,14 @@ export function sendsSingleVoiceDumps(firmware: Fm1Firmware) {
 }
 
 /**
- * The release as its maker names it. M-VAVE calls `FM-1_015` V15, while FM-1+VA's releases go by
- * the name the FM1 reports, such as `FM-1_089`.
+ * The release as its maker names it. M-VAVE calls `FM-1_015` V15 and Felucca calls `FM-1_908` 0.8,
+ * while FM-1+VA's releases, and a Felucca development build, go by the name the FM1 reports, such
+ * as `FM-1_089`.
  */
-export function fm1FirmwareRelease({
-  identity,
-  kind,
-}: Extract<Fm1Firmware, { kind: 'fm1-va' | 'mvave' }>) {
-  return kind === 'mvave' ? `V${Number(identity.slice(-3))}` : identity
+export function fm1FirmwareRelease({ identity, kind }: NamedFm1Firmware) {
+  if (kind === 'mvave') return `V${Number(identity.slice(-3))}`
+  if (kind === 'felucca' && identity !== feluccaDevelopmentIdentity) {
+    return `${identity.at(-2)}.${identity.at(-1)}`
+  }
+  return identity
 }

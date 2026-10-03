@@ -100,6 +100,8 @@ function firmwareLogMessage(firmware: Fm1Firmware) {
       return `The FM1 runs M-VAVE firmware ${firmware.identity}. Patches go to its edit buffer.`
     case 'fm1-va':
       return `The FM1 runs FM-1+VA firmware ${firmware.identity}, which stores a single-patch dump over the selected preset, so patches are sent as parameter changes instead.`
+    case 'felucca':
+      return `The FM1 runs Felucca firmware ${firmware.identity}, which ignores DX7 patches, so the parameter changes sent to it have no effect.`
     default:
       return 'identity' in firmware && firmware.identity
         ? `The FM1 runs firmware ${firmware.identity}, which the editor does not recognise, so patches are sent as parameter changes.`

@@ -450,8 +450,8 @@ reading of the 0.4-beta package. Reading source counts as analysis, so nothing h
 package identity. Release builds name it `FM-1_9XY` for release X.Y (`build.py --release`, one
 digit each), so 0.4-beta is `FM-1_904` and 0.8-beta `FM-1_908`; a development build is
 `FM-1_900`. The whole 900s range is therefore Felucca's while its version stays below 10.0. The
-editor counted Felucca as FM-1+VA until 2026-10-02; it now counts only `FM-1_020` to `FM-1_899` as
-FM-1+VA and leaves Felucca unidentified, which the source shows is the right call.
+editor counted Felucca as FM-1+VA until 2026-10-02 and left it unidentified until 2026-10-03; it
+now names the 900s as Felucca (`classifyFm1Firmware`) and shows release X.Y.
 
 **USB identity and port. Likely.** A composite device, vendor `1209` (pid.codes), product
 `0001`, manufacturer "Hügelton Instruments", product "Felucca", with Audio Control, MIDI
@@ -509,12 +509,11 @@ descriptors, and byte patterns only). It held `FM-1_904`, `ota-FM-1_015` and `FE
 (the loader identities), no DX7 dump header (`43 0n 00 01 1B`, `43 0n 09 20 00`), no FM-1+VA
 `43 00 7D` command, and presets named for its own engines, such as SAW LEAD, E.PIANO, and GLASS.
 
-What this changes: nothing in the editor's behaviour. Felucca stays unidentified and gets the
-cautious default, which it ignores harmlessly. A Felucca FM1 can still use the editor's keyboard
-and audition notes, but sending a patch or bank, selecting a slot's preset, and the effect
-controls do nothing there. If Felucca owners use the editor, it may be worth naming Felucca when it
-is identified, so the editor can say that patches cannot reach it rather than appearing to send
-them.
+What this changes: the editor names Felucca but sends to it as before. It gets the cautious
+parameter changes an unidentified firmware gets, which it ignores harmlessly. A Felucca FM1 can
+still use the editor's keyboard and audition notes, but sending a patch or bank, selecting a slot's
+preset, and the effect controls do nothing there, so the firmware badge, the firmware setting, and
+the bank destination instructions say so rather than appearing to reach it.
 
 Open questions:
 
