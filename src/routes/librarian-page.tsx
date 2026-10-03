@@ -338,6 +338,9 @@ export function LibrarianPage({
   const allBanksMenuRef = useDismissableDetails()
   const bankMenuRef = useDismissableDetails()
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
+  // Baud Girl's firmware stores each preset as written, effects included, so Send to FM1 writes the
+  // bank preset by preset over an FM1 bank chosen in the app, rather than sending a DX7 bank.
+  const sendsByPresetWrite = hasFm1VaPresetCommands(midi.firmware)
   const workspaceBankLabel = useWorkspaceBankLabel(library)
   // Favourites shows in the bank rail, so its name reads wherever a bank's name would.
   const bankDisplayName = (bank: string) =>
@@ -514,9 +517,7 @@ export function LibrarianPage({
       setSendGuide('bank-selection')
       return
     }
-    // Baud Girl's firmware stores each preset as written, effects included, so the bank is written
-    // preset by preset over an FM1 bank chosen in the dialog, rather than sent as a DX7 bank.
-    if (hasFm1VaPresetCommands(midi.firmware)) {
+    if (sendsByPresetWrite) {
       setDialogLoadError('')
       setFm1VaWrite({ sendBank: destinationBank })
       return
@@ -848,12 +849,16 @@ export function LibrarianPage({
                   : !midi.hasMidiOutput
                     ? t('midi.connectFirst')
                     : showsFavourites
-                      ? favouriteCount > 0
-                        ? t('favourites.sendTitle')
-                        : t('favourites.addFirst')
-                      : isDestinationBankLoaded
-                        ? t('banks.sendTitle')
-                        : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+                      ? favouriteCount === 0
+                        ? t('favourites.addFirst')
+                        : sendsByPresetWrite
+                          ? t('fm1VaSend.favouritesTooltip')
+                          : t('favourites.sendTitle')
+                      : !isDestinationBankLoaded
+                        ? t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+                        : sendsByPresetWrite
+                          ? t('fm1VaSend.bankTooltip')
+                          : t('banks.sendTitle')
               }
               type="button"
             >

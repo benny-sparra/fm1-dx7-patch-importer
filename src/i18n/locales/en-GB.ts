@@ -307,6 +307,10 @@ export default {
       'Favourites holds one patch, so the FM1 bank’s other presets stay as they are.',
     favouritesShort_other:
       'Favourites holds {{count, number}} patches, so the FM1 bank’s other presets stay as they are.',
+    bankTooltip:
+      'Choose an FM1 bank to write these patches over; only the ones that differ are written',
+    favouritesTooltip:
+      'Choose an FM1 bank to write the first 32 favourites over; only the ones that differ are written',
   },
   duplicates: {
     menuItem: 'Find duplicate patches…',

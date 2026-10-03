@@ -135,4 +135,19 @@ describe('LibrarianPage reading and writing an FM1 on Baud Girl’s firmware', (
     ).toBeTruthy()
     expect(screen.queryByRole('dialog', { name: 'Send Bank 1 to the FM1' })).toBeNull()
   })
+
+  it('says in the send button’s tooltip where the bank is chosen', () => {
+    const midi = { hasMidiOutput: true, sysexAvailable: true }
+    renderPage({ identity: 'FM-1_079', kind: 'fm1-va' }, midi)
+
+    expect(screen.getByRole('button', { name: 'Send to FM1' }).title).toBe(
+      'Choose an FM1 bank to write these patches over; only the ones that differ are written',
+    )
+    cleanup()
+    renderPage({ identity: 'FM-1_078', kind: 'fm1-va' }, midi)
+
+    expect(screen.getByRole('button', { name: 'Send to FM1' }).title).toBe(
+      'Send all 32 patches; choose the destination bank on the FM1',
+    )
+  })
 })

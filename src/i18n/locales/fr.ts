@@ -418,6 +418,10 @@ export default {
       'Favoris contient un son, donc les autres presets de la banque du FM1 restent tels quels.',
     favouritesShort_other:
       'Favoris contient {{count, number}} sons, donc les autres presets de la banque du FM1 restent tels quels.',
+    bankTooltip:
+      'Choisir une banque du FM1 sur laquelle écrire ces sons ; seuls ceux qui diffèrent sont écrits',
+    favouritesTooltip:
+      'Choisir une banque du FM1 sur laquelle écrire les 32 premiers favoris ; seuls ceux qui diffèrent sont écrits',
   },
   duplicates: {
     menuItem: 'Trouver les sons en double…',

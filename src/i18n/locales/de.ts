@@ -422,6 +422,10 @@ export default {
       'Favoriten enthält einen Sound, daher bleiben die übrigen Presets der FM1-Bank erhalten.',
     favouritesShort_other:
       'Favoriten enthält {{count, number}} Sounds, daher bleiben die übrigen Presets der FM1-Bank erhalten.',
+    bankTooltip:
+      'FM1-Bank wählen, über die diese Sounds geschrieben werden; nur abweichende werden geschrieben',
+    favouritesTooltip:
+      'FM1-Bank wählen, über die die ersten 32 Favoriten geschrieben werden; nur abweichende werden geschrieben',
   },
   duplicates: {
     menuItem: 'Doppelte Sounds finden…',

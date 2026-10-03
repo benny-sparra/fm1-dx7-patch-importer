@@ -37,6 +37,8 @@ export default {
     favouritesShort: 'Favorites holds one patch, so the FM1 bank’s other presets stay as they are.',
     favouritesShort_other:
       'Favorites holds {{count, number}} patches, so the FM1 bank’s other presets stay as they are.',
+    favouritesTooltip:
+      'Choose an FM1 bank to write the first 32 favorites over; only the ones that differ are written',
   },
   favourites: {
     title: 'Favorites',

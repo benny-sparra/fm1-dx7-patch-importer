@@ -411,6 +411,10 @@ export default {
       'Favoritos tem um som, então os outros presets do banco do FM1 continuam como estão.',
     favouritesShort_other:
       'Favoritos tem {{count, number}} sons, então os outros presets do banco do FM1 continuam como estão.',
+    bankTooltip:
+      'Escolher um banco do FM1 sobre o qual gravar estes sons; só os diferentes são gravados',
+    favouritesTooltip:
+      'Escolher um banco do FM1 sobre o qual gravar os primeiros 32 favoritos; só os diferentes são gravados',
   },
   duplicates: {
     menuItem: 'Encontrar sons duplicados…',

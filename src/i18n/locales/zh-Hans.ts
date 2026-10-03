@@ -365,6 +365,8 @@ export default {
     favouritesShort: '收藏中只有 1 个音色，因此该 FM1 音色库中的其余预设保持不变。',
     favouritesShort_other:
       '收藏中有 {{count, number}} 个音色，因此该 FM1 音色库中的其余预设保持不变。',
+    bankTooltip: '选择要写入这些音色的 FM1 音色库；只写入有差异的音色',
+    favouritesTooltip: '选择要写入前 32 个收藏的 FM1 音色库；只写入有差异的音色',
   },
   duplicates: {
     menuItem: '查找重复的音色…',
