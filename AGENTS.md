@@ -226,6 +226,12 @@ open everything an earlier release could have saved.
 - Keep `document.documentElement.lang`, the document title, and description metadata synchronized.
 - Every locale apart from `en-US` must contain the same leaf keys. Update
   `src/i18n/resources.test.ts` whenever resource structure changes.
+- British English keeps the editor's help (`controlHelp`, `effectHelp`, `effectParameterHelp`) in
+  `src/i18n/locales/en-GB-editor-help.ts`, out of the entry; other locales keep it in their own
+  file. Every module that reads those keys imports `@/i18n/editor-help`, which adds them to `en-GB`;
+  `src/i18n/resources.test.ts` checks both. That module reaches `i18next` directly: importing
+  `@/i18n` from the editor's chunk made Rolldown split `Button` and Lucide out of the entry, costing
+  800 B. Since a test can import an editor module before `@/i18n`, it waits for `initialized`.
 - Call a library item a patch, and say sound only for what you hear. Voice means the DX7 voice data,
   as in the voice editor and Init voice. German uses Sound for a patch and Klang for what you hear;
   Simplified Chinese uses 音色 and 声音.
@@ -247,7 +253,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Import Baud Girl (FM-1+VA) presets…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Import Baud Girl (FM-1+VA) presets…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -269,7 +275,10 @@ open everything an earlier release could have saved.
 - The same holds for values. A lazy chunk that needs a small constant from a large module the entry
   uses takes it from a leaf module both import, as the piano keyboard takes its velocity limits
   from `src/lib/note-velocity.ts` rather than `src/lib/midi.ts`. Importing `midi.ts` itself made
-  Rolldown split `fm1-effects` out of the entry and cost 412 B.
+  Rolldown split `fm1-effects` out of the entry and cost 412 B. The other way round, an error class
+  eager code recognises lives in a module the entry already holds: `bankErrorMessage` once took
+  `Dx7CatalogBankUnavailableError` from `src/lib/dx7-bank-catalog.ts`, which put the whole catalog
+  list in the entry for 1.3 KiB, so the class is in `src/lib/dx7.ts`.
 - The modules a lazy chunk shares with the entry decide how Rolldown cuts the entry's shared
   chunks, so a new lazy chunk can cost bytes it never loads. The duplicate patches dialog first used
   React, i18next, and `cn` but no Lucide icon, and Rolldown split those out of the chunk holding
@@ -280,11 +289,13 @@ open everything an earlier release could have saved.
   Vite 8 (Rolldown) makes its own shared chunk for React once enough lazy chunks use it; that
   bundler-made chunk is expected, and the budget counts it because the entry imports it.
 - Development and verification controls are gated where they are rendered, with a build-time
-  constant such as `sentryVerificationEnabled`, so normal production builds leave them out. A
-  control that imports code a lazy chunk also uses is itself loaded with `lazy` behind the gate,
-  as the FM-1+VA preset probe is: imported statically, it gave the entry a path to the preset
-  read, and once the import dialog used the read too, Rolldown kept 1.6 KB of it in the entry,
-  although the probe never renders there.
+  constant such as `sentryVerificationEnabled`, so normal production builds leave them out. Define
+  the constant in the module that renders the control: Rolldown does not fold one imported from
+  another module, so the gated `import()` and its chunk survive. A control is loaded with `lazy`
+  behind the gate, as the FM-1+VA preset probe and the Sentry test control are: imported
+  statically, the probe gave the entry a path to the preset read, and once the import dialog used
+  the read too, Rolldown kept 1.6 KB of it in the entry, although the probe never renders there;
+  the Sentry control kept its Lucide icon there.
 - A rejected optional chunk must be contained and recoverable; stale deployment chunks must not
   crash the entire application. Every deploy renames every chunk, so a tab left open across a
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
@@ -295,7 +306,7 @@ open everything an earlier release could have saved.
   149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB, and
   reading FM-1+VA presets from the FM1's raise from 163 KiB had. That last one paid for the read's
   eager English strings, because every `en-GB` string is in the entry, even one only a lazy dialog
-  shows. React DOM ships prebuilt with its features
+  shows, apart from the editor's help. React DOM ships prebuilt with its features
   switched on, so 19.3's stable View Transitions, Fragment refs, and SuspenseList cost about
   8.4 KiB whether or not the app uses them; a React upgrade is measured like any other change.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.

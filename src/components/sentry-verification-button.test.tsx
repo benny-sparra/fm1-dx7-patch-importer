@@ -11,16 +11,10 @@ import { SentryVerificationButton } from './sentry-verification-button'
 afterEach(cleanup)
 
 describe('SentryVerificationButton', () => {
-  it('stays absent when verification is not explicitly enabled', () => {
-    render(<SentryVerificationButton enabled={false} onVerify={vi.fn()} />)
-
-    expect(screen.queryByRole('button', { name: 'Send Sentry test error' })).toBeNull()
-  })
-
   it('runs the verification action from the temporary control', async () => {
     const user = userEvent.setup()
     const onVerify = vi.fn()
-    render(<SentryVerificationButton enabled onVerify={onVerify} />)
+    render(<SentryVerificationButton onVerify={onVerify} />)
 
     await user.click(screen.getByRole('button', { name: 'Send Sentry test error' }))
 
@@ -28,7 +22,7 @@ describe('SentryVerificationButton', () => {
   })
 
   it('keeps the temporary warning and control accessible', async () => {
-    const { container } = render(<SentryVerificationButton enabled onVerify={vi.fn()} />)
+    const { container } = render(<SentryVerificationButton onVerify={vi.fn()} />)
 
     expect(screen.getByText('Sentry verification enabled.')).toBeTruthy()
     await expectNoAxeViolations(container)

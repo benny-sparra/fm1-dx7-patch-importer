@@ -1,15 +1,7 @@
 import { findDx7CatalogBank } from '@/data/dx7-bank-catalog'
-import { parseDx7Bank, type Dx7Voice } from '@/lib/dx7'
+import { Dx7CatalogBankUnavailableError, parseDx7Bank, type Dx7Voice } from '@/lib/dx7'
 
 type FetchBank = (input: string) => Promise<Pick<Response, 'arrayBuffer' | 'ok'>>
-
-/** A catalog bank that could not be downloaded, for example while offline. */
-export class Dx7CatalogBankUnavailableError extends Error {
-  constructor(bankName: string, cause?: unknown) {
-    super(`The ${bankName} sound bank could not be loaded.`, { cause })
-    this.name = 'Dx7CatalogBankUnavailableError'
-  }
-}
 
 export async function loadDx7CatalogBank(
   id: string,
