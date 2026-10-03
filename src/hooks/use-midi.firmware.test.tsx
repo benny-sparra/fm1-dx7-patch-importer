@@ -137,7 +137,45 @@ describe('useMidi firmware identification', () => {
     expect(updated.output.send).toHaveBeenCalledWith(fm1IdentityQuery)
     expect(result.current.firmware).toEqual({ identity: 'FM-1_089', kind: 'fm1-va' })
   })
+
+  it('checks the firmware again when the same ports come back, rather than trusting the old answer', async () => {
+    const ports = makeFakeFm1Ports({ reply: mvaveIdentityReply })
+    const { result } = await connect(ports)
+    replugSilently(ports)
+
+    expect(identityQueries(ports.output)).toHaveLength(2)
+    expect(result.current.firmware).toEqual({ kind: 'checking' })
+  })
+
+  it('checks the firmware again when MIDI is switched off and on with the same ports', async () => {
+    const ports = makeFakeFm1Ports({ reply: mvaveIdentityReply })
+    const { result } = await connect(ports)
+    ports.output.send.mockImplementation(() => undefined)
+
+    await act(() => result.current.disconnectMidi())
+    await act(() => result.current.connectMidi())
+
+    expect(identityQueries(ports.output)).toHaveLength(2)
+    expect(result.current.firmware).toEqual({ kind: 'checking' })
+  })
 })
+
+/**
+ * Unplugs the FM1 and plugs it back in. WebMidi hands back the same port objects when a device
+ * returns, and the FM1 stays silent, as one flashed with other firmware while away may be at first.
+ */
+function replugSilently(ports: ReturnType<typeof makeFakeFm1Ports>) {
+  const portsChanged = webMidi.addListener.mock.calls.findLast(
+    ([event]) => event === 'portschanged',
+  )
+  webMidi.inputs = []
+  webMidi.outputs = []
+  act(() => portsChanged?.[1]())
+  ports.output.send.mockImplementation(() => undefined)
+  webMidi.inputs = [ports.input]
+  webMidi.outputs = [ports.output]
+  act(() => portsChanged?.[1]())
+}
 
 describe('useMidi firmware analytics', () => {
   function trackFirmwareEvents() {
@@ -239,6 +277,19 @@ describe('useMidi patch sends by firmware', () => {
   it('sends a patch as parameter changes while the firmware is still being checked', async () => {
     const ports = makeFakeFm1Ports()
     const { result } = await connect(ports)
+
+    const sent = result.current.sendVoice(voice)
+    await act(() => vi.advanceTimersByTimeAsync(10_000))
+
+    await expect(sent).resolves.toBe(true)
+    expect(ports.output.sendSysex).toHaveBeenCalledTimes(155)
+    expect(ports.output.sendSysex.mock.calls.every(([, payload]) => payload[0] === 0x10)).toBe(true)
+  })
+
+  it('sends a patch as parameter changes to a returning FM1 until it answers again', async () => {
+    const ports = makeFakeFm1Ports({ reply: mvaveIdentityReply })
+    const { result } = await connect(ports)
+    replugSilently(ports)
 
     const sent = result.current.sendVoice(voice)
     await act(() => vi.advanceTimersByTimeAsync(10_000))

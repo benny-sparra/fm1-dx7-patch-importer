@@ -168,7 +168,9 @@ open everything an earlier release could have saved.
   (`fm1IdentityQuery` in `src/lib/fm1-firmware.ts`), whenever the output or input in use changes.
   It is the one `00 32` message the editor may send: never send another from that family. The
   firmware counts as unknown until the answer
-  for the ports in use arrives. FM-1+VA is `FM-1_020` to `FM-1_899`, and Felucca, which names
+  for the ports in use arrives. An answer holds only while its ports stay selected: WebMidi hands
+  back the same port objects when a device returns, so forget the answer when a port goes away or
+  MIDI is switched off, rather than matching it by port identity. FM-1+VA is `FM-1_020` to `FM-1_899`, and Felucca, which names
   release X.Y `FM-1_9XY`, is `FM-1_900` to `FM-1_999`; any other name is unidentified, so no
   firmware's behaviour is assumed for it. Felucca ignores DX7 voice data, Program Change, and the
   effect controllers, so it gets the cautious parameter changes like an unidentified firmware, and
