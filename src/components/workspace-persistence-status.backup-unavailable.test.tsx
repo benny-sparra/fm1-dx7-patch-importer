@@ -37,6 +37,7 @@ describe('WorkspacePersistenceStatus backup that fails to load', () => {
           persistenceError: { code: 'write-failed', detail: '' },
           persistenceStatus: 'save-error',
           retryWorkspaceLoading: vi.fn(),
+          records: {},
           retryWorkspaceSaving: vi.fn(),
           voices: {},
           workspaceBanks: ['A'],

@@ -315,6 +315,7 @@ export default {
     group: '{{name}} 及 1 个副本',
     group_other: '{{name}} 及 {{count, number}} 个副本',
     effectsDiffer: '它们的 FM1 效果不同。',
+    settingsDiffer: '它们的 FM-1+VA 预设设置不同。',
     goTo: '跳转到 {{bank}} 中的第 {{number}} 个音色 {{name}}',
     none: '没有重复：音色库中的每个音色都有各自的参数。',
     openFailed: '无法显示重复的音色。请重新加载页面后重试。',

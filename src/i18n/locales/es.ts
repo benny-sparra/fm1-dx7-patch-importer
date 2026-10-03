@@ -356,6 +356,7 @@ export default {
     group: '{{name}} y una copia',
     group_other: '{{name}} y {{count, number}} copias',
     effectsDiffer: 'Sus efectos del FM1 son distintos.',
+    settingsDiffer: 'Sus ajustes de preset de FM-1+VA son distintos.',
     goTo: 'Ir a {{name}}, sonido {{number}} de {{bank}}',
     none: 'No hay duplicados: cada sonido de tus bancos tiene sus propios ajustes de voz.',
     openFailed:

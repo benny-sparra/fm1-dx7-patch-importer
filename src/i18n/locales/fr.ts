@@ -359,6 +359,7 @@ export default {
     group: '{{name}} et une copie',
     group_other: '{{name}} et {{count, number}} copies',
     effectsDiffer: 'Leurs effets FM1 diffèrent.',
+    settingsDiffer: 'Leurs réglages de preset FM-1+VA diffèrent.',
     goTo: 'Aller à {{name}}, son {{number}} de {{bank}}',
     none: 'Aucun doublon : chaque son de vos banques a ses propres réglages de voix.',
     openFailed: 'Impossible d’afficher les sons en double. Rechargez la page et réessayez.',

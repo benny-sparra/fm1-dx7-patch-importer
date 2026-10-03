@@ -60,6 +60,7 @@ function renderResults(props: Partial<ComponentProps<typeof SearchEverywhereResu
       onToggleFavourite={onToggleFavourite}
       search="brass   1"
       workspaceEffects={{}}
+      workspaceRecords={{}}
       workspaceMatches={[]}
       workspaceVoices={{}}
       {...props}
@@ -174,6 +175,7 @@ describe('search everywhere results', () => {
         onToggleFavourite={vi.fn()}
         search="brass   1"
         workspaceEffects={{}}
+        workspaceRecords={{}}
         workspaceMatches={[]}
         workspaceVoices={{}}
       />,

@@ -73,6 +73,19 @@ describe('saved bank search', () => {
     })
   })
 
+  it('keys a saved patch with its FM-1+VA record, so it stays beside the same voice without one', () => {
+    const bank = savedBank('saved-1', 'Leads', 'SOLO LEAD')
+    const record = Uint8Array.from({ length: 59 }, (_, index) => index)
+    bank.slots[0].record = record
+    const [first] = bank.slots
+
+    const [match] = findSavedBankMatches([bank], 'solo')
+
+    expect(match.record).toBe(record)
+    expect(match.soundKey).toBe(soundKey(first.voice, first.effects, record))
+    expect(hideCopies([soundKey(first.voice, first.effects)], [[match]])[0].matches).toHaveLength(1)
+  })
+
   it('lists matches bank by bank', () => {
     const matches = findSavedBankMatches(
       [savedBank('saved-1', 'Leads', 'ZAP ONE'), savedBank('saved-2', 'Pads', 'ZAP TWO')],

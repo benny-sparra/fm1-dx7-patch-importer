@@ -1,6 +1,7 @@
 import type { Patch } from '@/data/patches'
 import { dx7BankVoiceCount, normalizeStoredDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
+import { readFm1VaRecord } from '@/lib/fm1-va-record'
 import type { PatchLibrarySnapshot } from '@/lib/patch-library'
 import { soundKey } from '@/lib/sound-key'
 
@@ -24,8 +25,13 @@ export type Favourite = {
   effects: Uint8Array
   id: string
   origin: FavouriteOrigin
+  /** The FM-1+VA settings record of the sound it copies, when that sound had one. */
+  record?: Uint8Array
   voice: Dx7Voice
 }
+
+/** A sound a heart is pressed on: a slot's, a favourite's, or a search result's. */
+type FavouriteSound = { effects?: Uint8Array; record?: Uint8Array; voice: Dx7Voice }
 
 const favouritePatchIdPrefix = 'favourite-'
 
@@ -48,8 +54,8 @@ export function findFavourite(favourites: readonly Favourite[], patchId: string)
   return favourites.find((favourite) => favouritePatchId(favourite.id) === patchId)
 }
 
-export function favouriteSoundKey(favourite: Pick<Favourite, 'effects' | 'voice'>) {
-  return soundKey(favourite.voice, favourite.effects)
+export function favouriteSoundKey(favourite: FavouriteSound) {
+  return soundKey(favourite.voice, favourite.effects, favourite.record)
 }
 
 /** The sound key of every favourite, so a slot can show whether it holds one. */
@@ -63,11 +69,11 @@ export function favouriteSoundKeys(favourites: readonly Favourite[]) {
  */
 function addFavourite(
   snapshot: PatchLibrarySnapshot,
-  sound: { effects?: Uint8Array; voice: Dx7Voice },
+  sound: FavouriteSound,
   origin: FavouriteOrigin,
   id: string,
 ): PatchLibrarySnapshot {
-  const key = soundKey(sound.voice, sound.effects)
+  const key = favouriteSoundKey(sound)
   if (snapshot.favourites.some((favourite) => favouriteSoundKey(favourite) === key)) return snapshot
   return {
     ...snapshot,
@@ -77,6 +83,7 @@ function addFavourite(
         effects: normalizeFm1Effects(sound.effects),
         id,
         origin,
+        ...(sound.record ? { record: sound.record.slice() } : {}),
         voice: { ...sound.voice, data: sound.voice.data.slice() },
       },
     ],
@@ -89,11 +96,11 @@ function addFavourite(
  */
 export function toggleFavourite(
   snapshot: PatchLibrarySnapshot,
-  sound: { effects?: Uint8Array; voice: Dx7Voice },
+  sound: FavouriteSound,
   origin: FavouriteOrigin,
   id: string,
 ) {
-  const key = soundKey(sound.voice, sound.effects)
+  const key = favouriteSoundKey(sound)
   const favourites = snapshot.favourites.filter((favourite) => favouriteSoundKey(favourite) !== key)
   if (favourites.length < snapshot.favourites.length) {
     return { added: false, snapshot: { ...snapshot, favourites } }
@@ -149,7 +156,8 @@ function readOrigin(value: unknown): FavouriteOrigin {
 /**
  * Reads favourites from storage or a backup, or returns null when one cannot be read, so the caller
  * refuses the record as it does an unreadable slot rather than dropping a sound. `readVoice` decides
- * how strictly voice bytes are checked. Missing or out-of-range effects are normalised, and a
+ * how strictly voice bytes are checked. Missing or out-of-range effects are normalised, a settings
+ * record of the wrong shape is dropped, as one from before records were kept has none, and a
  * repeated id keeps its first favourite.
  */
 export function readFavourites(
@@ -163,10 +171,12 @@ export function readFavourites(
     const voice = isRecord(entry) ? readVoice(entry.voice) : null
     if (!isRecord(entry) || !voice || typeof entry.id !== 'string' || !entry.id) return null
     if (favourites.some(({ id }) => id === entry.id)) continue
+    const record = readFm1VaRecord(entry.record)
     favourites.push({
       effects: normalizeFm1Effects(entry.effects),
       id: entry.id,
       origin: readOrigin(entry.origin),
+      ...(record ? { record } : {}),
       voice,
     })
   }

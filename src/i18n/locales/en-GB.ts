@@ -344,6 +344,7 @@ export default {
     group: '{{name}} and one copy',
     group_other: '{{name}} and {{count, number}} copies',
     effectsDiffer: 'Their FM1 effects differ.',
+    settingsDiffer: 'Their FM-1+VA preset settings differ.',
     goTo: 'Go to {{name}}, patch {{number}} in {{bank}}',
     none: 'No duplicates: every patch in your banks has its own voice settings.',
     openFailed: 'Duplicate patches could not be shown. Reload the page and try again.',

@@ -402,8 +402,12 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       switches are separate lists in bytes 27–44. By 2026-10-03, 19 reads had mapped every effect
       (bytes 0–17 and 27–44, each the value its FX controller sends), Envelope On and Attack (53
       and 54), and the FM preset's own Filter switch and Cutoff (26 and 23)
-      (`docs/fm1-research.md`, "What the record holds"). Still to do: store the record, keeping the
-      unmapped bytes as read; the Virtual Analog settings wait for item 6.
+      (`docs/fm1-research.md`, "What the record holds"). The record is now stored with each slot
+      that has one: workspace version 7, saved banks version 2, and backup files version 3, each
+      with fixture tests. **Import FM-1+VA presets…** keeps each FM preset's record, and the sound
+      key, so hearts, search, and duplicates, includes it. Still to do: confirm the 13 effect
+      controllers not read one by one, so items 3–5 can take effects from the record; the Virtual
+      Analog settings wait for item 6.
 - [ ] **3. Import from the FM1.** A **Read from FM1…** action reads all 128 presets, shows which
       slots differ from banks A–D, and lets the user take the FM1's version of each bank, with
       effects and record, as one Undo. This answers [Syncing patches with the FM1](#syncing-patches-with-the-fm1)
@@ -599,7 +603,7 @@ Before deciding, settle:
   preview beside a connected FM1 invites confusion.
 - **Licensing.** Dexed is GPL-3 and its original engine (MSFA) Apache-2.0, as understood; check
   both. The repository is MIT-licensed (see `LICENSE`), which decides what can be embedded.
-- **Cost.** Load the engine only when preview is first used, to stay inside the 162 KiB budget. The
+- **Cost.** Load the engine only when preview is first used, to stay inside the 163 KiB budget. The
   CSP in `public/_headers` would need `wasm-unsafe-eval`, with `scripts/check-security-headers.mjs`
   updated and a security review. Audio needs a user gesture to start.
 

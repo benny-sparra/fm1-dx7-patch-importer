@@ -32,7 +32,7 @@ describe('findDuplicatePatches', () => {
       [slot('B', 1), brass],
     ])
 
-    expect(ids(findDuplicatePatches(patches, voices, {}, ['A', 'B']))).toEqual([
+    expect(ids(findDuplicatePatches(patches, voices, {}, {}, ['A', 'B']))).toEqual([
       ['bank-A-1', 'bank-B-1'],
     ])
   })
@@ -43,7 +43,7 @@ describe('findDuplicatePatches', () => {
       [slot('A', 2), updateDx7VoiceName(brass, 'MY BRASS')],
     ])
 
-    expect(ids(findDuplicatePatches(patches, voices, {}, ['A']))).toEqual([
+    expect(ids(findDuplicatePatches(patches, voices, {}, {}, ['A']))).toEqual([
       ['bank-A-1', 'bank-A-2'],
     ])
   })
@@ -56,7 +56,7 @@ describe('findDuplicatePatches', () => {
       [slot('A', 2), changed],
     ])
 
-    expect(findDuplicatePatches(patches, voices, {}, ['A'])).toEqual([])
+    expect(findDuplicatePatches(patches, voices, {}, {}, ['A'])).toEqual([])
   })
 
   it('lists groups in the order of their first patch', () => {
@@ -67,7 +67,7 @@ describe('findDuplicatePatches', () => {
       [slot('A', 4), piano],
     ])
 
-    expect(ids(findDuplicatePatches(patches, voices, {}, ['A']))).toEqual([
+    expect(ids(findDuplicatePatches(patches, voices, {}, {}, ['A']))).toEqual([
       ['bank-A-1', 'bank-A-4'],
       ['bank-A-2', 'bank-A-3'],
     ])
@@ -79,7 +79,7 @@ describe('findDuplicatePatches', () => {
       [slot('B', 1), brass],
     ])
 
-    expect(findDuplicatePatches(patches, voices, {}, ['A'])).toEqual([])
+    expect(findDuplicatePatches(patches, voices, {}, {}, ['A'])).toEqual([])
   })
 
   it('says when the copies’ FM1 effects differ', () => {
@@ -90,7 +90,7 @@ describe('findDuplicatePatches', () => {
     const reverb = makeDefaultFm1Effects()
     reverb[0] = (reverb[0] + 1) & 0x7f
 
-    const [group] = findDuplicatePatches(patches, voices, { 'bank-A-2': reverb }, ['A'])
+    const [group] = findDuplicatePatches(patches, voices, { 'bank-A-2': reverb }, {}, ['A'])
 
     expect(group.effectsDiffer).toBe(true)
   })
@@ -101,10 +101,36 @@ describe('findDuplicatePatches', () => {
       [slot('A', 2), brass],
     ])
 
-    const [group] = findDuplicatePatches(patches, voices, { 'bank-A-1': makeDefaultFm1Effects() }, [
+    const effects = { 'bank-A-1': makeDefaultFm1Effects() }
+
+    const [group] = findDuplicatePatches(patches, voices, effects, {}, ['A'])
+
+    expect(group.effectsDiffer).toBe(false)
+  })
+
+  it('says when the copies’ FM-1+VA settings records differ, or only one has a record', () => {
+    const { patches, voices } = library([
+      [slot('A', 1), brass],
+      [slot('A', 2), brass],
+    ])
+
+    const [group] = findDuplicatePatches(patches, voices, {}, { 'bank-A-1': new Uint8Array(59) }, [
       'A',
     ])
 
+    expect(group.settingsDiffer).toBe(true)
     expect(group.effectsDiffer).toBe(false)
+  })
+
+  it('says nothing about settings when the copies’ records match', () => {
+    const { patches, voices } = library([
+      [slot('A', 1), brass],
+      [slot('A', 2), brass],
+    ])
+    const records = { 'bank-A-1': new Uint8Array(59), 'bank-A-2': new Uint8Array(59) }
+
+    const [group] = findDuplicatePatches(patches, voices, {}, records, ['A'])
+
+    expect(group.settingsDiffer).toBe(false)
   })
 })

@@ -1,12 +1,13 @@
 import { dx7BankVoiceCount, isSevenBitData, packDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
 import { fm1VaChecksum, fm1VaRequestHeader } from '@/lib/fm1-va-sysex'
+import { fm1VaRecordSize, type FetchedSound } from '@/lib/patch-library'
 
 /**
  * The `.syx` file FM-1+VA's **Save a backup** writes: one preset write per stored preset, 128 in
  * slot order, each `F0 43 00 7D 04 <slot> <155-byte DX7 voice> <68-byte settings record> <sum> F7`
- * (docs/fm1-research.md, FM-1+VA). The record holds the preset's effects, which are not mapped yet,
- * so only the voices are read, and the one record byte that says a preset is Virtual Analog.
+ * (docs/fm1-research.md, FM-1+VA). Each FM preset's voice is read with its record, kept exactly as
+ * stored; a Virtual Analog preset is only named.
  */
 const fm1VaPresetCount = 128
 const fm1VaPresetMessageSize = 231
@@ -25,6 +26,14 @@ function recordByteIndex(index: number) {
   return recordStart + Math.floor(index / 7) * 8 + 1 + (index % 7)
 }
 
+/** The record a message carries, out of its groups of eight. */
+function readRecord(message: Uint8Array) {
+  return Uint8Array.from({ length: fm1VaRecordSize }, (_, index) => {
+    const highBits = message[recordStart + Math.floor(index / 7) * 8]
+    return message[recordByteIndex(index)] | (((highBits >> (index % 7)) & 1) << 7)
+  })
+}
+
 // Record byte 18 is `5A` in a Virtual Analog preset and `03` in an FM one, so its high bit, which
 // is clear in every preset seen, is not read.
 const engineMarkerIndex = recordByteIndex(18)
@@ -39,14 +48,21 @@ export type Fm1VaPresetBank = (typeof fm1VaPresetBanks)[number]
  * not a DX7 voice and which the library cannot hold yet, or a message that was damaged.
  */
 export type Fm1VaPreset =
-  { kind: 'damaged' } | { kind: 'fm'; voice: Dx7Voice } | { kind: 'virtual-analog'; name: string }
+  | { kind: 'damaged' }
+  | { kind: 'fm'; record: Uint8Array; voice: Dx7Voice }
+  | { kind: 'virtual-analog'; name: string }
 
 /** One FM1 bank from the file: its 32 presets in slot order. */
 export type Fm1VaPresetFileBank = { bank: Fm1VaPresetBank; presets: Fm1VaPreset[] }
 
-/** A bank's patches for the library, with null for each preset an import leaves as it is. */
-export function importableVoices({ presets }: Fm1VaPresetFileBank) {
-  return presets.map((preset) => (preset.kind === 'fm' ? preset.voice : null))
+/**
+ * A bank's patches for the library, each with its record, and null for each preset an import leaves
+ * as it is.
+ */
+export function importableSounds({ presets }: Fm1VaPresetFileBank): (FetchedSound | null)[] {
+  return presets.map((preset) =>
+    preset.kind === 'fm' ? { record: preset.record, voice: preset.voice } : null,
+  )
 }
 
 type Fm1VaPresetFileProblem = 'damaged' | 'format' | 'size'
@@ -88,7 +104,7 @@ function readPreset(message: Uint8Array, slot: number): Fm1VaPreset {
   const voice = packDx7Voice(payload.slice(0, FM1_VOICE_PARAMETER_COUNT))
   return message[engineMarkerIndex] === virtualAnalogMarker
     ? { kind: 'virtual-analog', name: voice.name }
-    : { kind: 'fm', voice }
+    : { kind: 'fm', record: readRecord(message), voice }
 }
 
 /**

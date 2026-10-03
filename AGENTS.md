@@ -280,9 +280,10 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 162 KiB gzip budget; raising it needs
+  Dynamic imports are excluded. Do not weaken or bypass the 163 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
-  149 KiB, and React 19.3's raise from 151 KiB had. React DOM ships prebuilt with its features
+  149 KiB, React 19.3's raise from 151 KiB, and the FM-1+VA settings record's raise from 162 KiB
+  (2026-10-03) had. React DOM ships prebuilt with its features
   switched on, so 19.3's stable View Transitions, Fragment refs, and SuspenseList cost about
   8.4 KiB whether or not the app uses them; a React upgrade is measured like any other change.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
@@ -416,8 +417,8 @@ open everything an earlier release could have saved.
   and the URL: bank letters move when a bank is deleted and the library exists only in this browser.
 - Favourites are copies of sounds, kept in the workspace record and the backup file, so they
   outlive the slot they came from. A heart matches by `soundKey` from `src/lib/sound-key.ts`, the
-  one source the search's duplicate hiding also uses, so every slot holding the same voice data and
-  FM1 effects shows it, and Favourites keeps one copy. Saving a sound in the editor goes through
+  one source the search's duplicate hiding also uses, so every slot holding the same voice data,
+  FM1 effects, and FM-1+VA settings record shows it, and Favourites keeps one copy. Saving a sound in the editor goes through
   `saveSound`, which also updates the copies that sounded the same before the edit: a slot's
   favourite, or every slot a favourite came from. Keep that one change, so one Undo reverses it.
 - A patch card leaves room for a full ten-character DX7 name beside its heart and menu at every
@@ -429,6 +430,14 @@ open everything an earlier release could have saved.
 - Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.
+- A patch from FM-1+VA keeps its 59-byte settings record (`src/lib/fm1-va-record.ts`) beside its
+  voice and effects, exactly as read, through every path its effects take: copying, moving,
+  Favourites, saved banks, backups, and Undo. A path that puts in a voice without one, such as a
+  DX7 file or bank, leaves the slot with no record. The record's effect bytes repeat the library's
+  effects, which stay the ones the effects panel edits; the bytes the panel cannot set (effect
+  order, Distortion type, Envelope, the preset's own Filter, Virtual Analog settings, and bytes not
+  mapped yet) come only from the record. Lazy code takes `fm1VaRecordSize` from
+  `src/lib/patch-library.ts`, since importing the record module directly gave it a chunk of its own.
 - **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
   `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.

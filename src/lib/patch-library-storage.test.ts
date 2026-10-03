@@ -91,7 +91,7 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: {},
       bankNames: {},
       favourites: [],
-      version: 6,
+      version: 7,
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
   })
@@ -116,8 +116,9 @@ describe('saveStoredPatchLibrary', () => {
       effects: { 'bank-A-1': makeDefaultFm1Effects() },
       favourites: [],
       loadedBanks: ['A'],
+      records: {},
       savedAt: '2026-07-01T12:00:00.000Z',
-      version: 6,
+      version: 7,
       voices: { 'bank-A-1': voice },
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
@@ -143,7 +144,7 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: {},
       bankNames: { A: 'Pianos', B: 'Leads' },
       loadedBanks: ['A', 'B'],
-      version: 6,
+      version: 7,
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
   })
@@ -167,7 +168,7 @@ describe('saveStoredPatchLibrary', () => {
     await expect(loading).resolves.toMatchObject({
       bankDescriptions: {},
       loadedBanks: [],
-      version: 6,
+      version: 7,
       workspaceBanks: ['A', 'B', 'C', 'D', 'E'],
     })
   })
@@ -193,7 +194,7 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: { A: 'Friday performance' },
       bankNames: { A: 'Studio Fav' },
       favourites: [],
-      version: 6,
+      version: 7,
     })
   })
 
@@ -231,8 +232,93 @@ describe('saveStoredPatchLibrary', () => {
           voice: other,
         },
       ],
-      version: 6,
+      version: 7,
     })
+  })
+
+  it('loads a version 6 workspace, from before records were kept, with no records', async () => {
+    const [voice] = makeDemoVoices()
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {},
+      favourites: [{ effects: makeDefaultFm1Effects(), id: 'f', origin: { bankNumber: 1 }, voice }],
+      loadedBanks: ['A'],
+      savedAt: '2026-09-27T08:00:00.000Z',
+      version: 6,
+      voices: { 'bank-A-1': voice },
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    const loaded = await loading
+    expect(loaded?.records).toEqual({})
+    expect(loaded?.favourites[0]).not.toHaveProperty('record')
+  })
+
+  it('restores the FM-1+VA records of slots and favourites from version 7 storage', async () => {
+    const [voice] = makeDemoVoices()
+    const record = Uint8Array.from({ length: 59 }, (_, index) => 0xff - index)
+    const favouriteRecord = Uint8Array.from({ length: 59 }, (_, index) => index)
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {},
+      favourites: [
+        {
+          effects: makeDefaultFm1Effects(),
+          id: 'f',
+          origin: { bankNumber: 1 },
+          record: favouriteRecord,
+          voice,
+        },
+      ],
+      loadedBanks: ['A'],
+      records: { 'bank-A-1': record },
+      savedAt: '2026-10-03T08:00:00.000Z',
+      version: 7,
+      voices: { 'bank-A-1': voice },
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    const loaded = await loading
+    expect(loaded?.records).toEqual({ 'bank-A-1': record })
+    expect(loaded?.favourites[0].record).toEqual(favouriteRecord)
+  })
+
+  it('drops a version 7 record that is the wrong size or names an empty slot, keeping the rest', async () => {
+    const [voice] = makeDemoVoices()
+    const record = new Uint8Array(59)
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {},
+      favourites: [],
+      loadedBanks: ['A'],
+      records: { 'bank-A-1': record, 'bank-A-2': new Uint8Array(58), 'bank-A-3': record },
+      savedAt: '2026-10-03T08:00:00.000Z',
+      version: 7,
+      voices: { 'bank-A-1': voice, 'bank-A-2': voice },
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    const loaded = await loading
+    expect(loaded?.records).toEqual({ 'bank-A-1': record })
+    expect(Object.keys(loaded?.voices ?? {})).toEqual(['bank-A-1', 'bank-A-2'])
   })
 
   it('classifies a workspace with an unreadable favourite as incompatible without changing it', async () => {
@@ -350,7 +436,7 @@ describe('saveStoredPatchLibrary', () => {
         bankDescriptions: {},
         bankNames: {},
         favourites: [],
-        version: 6,
+        version: 7,
         workspaceBanks: ['A', 'B', 'C', 'D'],
       }),
       'current',
@@ -532,6 +618,41 @@ describe('listStoredNamedBanks', () => {
 
     await expect(listing).resolves.toEqual({ banks: [newer, older], damagedCount: 1 })
     expect(fake.put).not.toHaveBeenCalled()
+  })
+  it('lists a version 1 saved bank, from before slots carried records, and a version 2 one', async () => {
+    const voices = makeDemoVoices()
+    const versionOne = {
+      createdAt: '2026-08-01T12:00:00.000Z',
+      description: '',
+      id: 'version-1',
+      name: 'Version 1',
+      slots: voices.map((voice, index) => ({
+        effects: makeDefaultFm1Effects(),
+        slot: index + 1,
+        voice,
+      })),
+      updatedAt: '2026-08-01T12:00:00.000Z',
+      version: 1,
+    }
+    const record = Uint8Array.from({ length: 59 }, (_, index) => index)
+    const versionTwo = {
+      ...versionOne,
+      id: 'version-2',
+      slots: versionOne.slots.map((slot, index) => (index === 0 ? { ...slot, record } : slot)),
+      updatedAt: '2026-10-03T12:00:00.000Z',
+      version: 2,
+    }
+    const fake = installIndexedDb([versionOne, versionTwo])
+    const listing = listStoredNamedBanks()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    const { banks, damagedCount } = await listing
+    expect(damagedCount).toBe(0)
+    expect(banks.map(({ id }) => id)).toEqual(['version-2', 'version-1'])
+    expect(banks[0].slots[0].record).toEqual(record)
   })
 })
 

@@ -30,6 +30,7 @@ function makeLibrary(
     persistenceError,
     persistenceStatus,
     retryWorkspaceLoading: vi.fn(),
+    records: {},
     retryWorkspaceSaving: vi.fn(),
     voices: {},
     workspaceBanks: ['A'],

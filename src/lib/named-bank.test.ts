@@ -8,6 +8,8 @@ import {
   makeNamedBankSysexFile,
   makeNamedBankSysexFilename,
   renameNamedBank,
+  validateNamedBank,
+  type NamedBank,
 } from '@/lib/named-bank'
 import { parseDx7Bank } from '@/lib/dx7'
 import {
@@ -152,5 +154,75 @@ describe('named bank operations', () => {
     bank.slots.pop()
 
     expect(() => makeNamedBankSysexFile(bank)).toThrow('invalid')
+  })
+})
+
+describe('saved banks with FM-1+VA records', () => {
+  const record = (seed: number) =>
+    Uint8Array.from({ length: 59 }, (_, index) => (index + seed) & 0xff)
+  const options = { description: '', id: 'bank-1', name: 'Recorded', now: createdAt }
+
+  function withRecord() {
+    const library = makeLoadedLibrary()
+    return { ...library, records: { [voiceId('A', 2)]: record(2) } }
+  }
+
+  // A saved bank exactly as version 1 stored it, before slots could carry a record.
+  function versionOneBank(): NamedBank {
+    return {
+      createdAt,
+      description: '',
+      id: 'old',
+      name: 'Old bank',
+      slots: makeDemoVoices().map((voice, index) => ({
+        effects: makeDefaultFm1Effects(),
+        slot: index + 1,
+        voice,
+      })),
+      updatedAt: createdAt,
+      version: 1,
+    }
+  }
+
+  it('saves each slot’s record as its own copy, as version 2', () => {
+    const library = withRecord()
+
+    const bank = createNamedBank(library, 'A', options)
+
+    expect(bank.version).toBe(2)
+    expect(bank.slots[1].record).toEqual(record(2))
+    expect(bank.slots[1].record).not.toBe(library.records[voiceId('A', 2)])
+    expect(bank.slots[0]).not.toHaveProperty('record')
+  })
+
+  it('loads each slot’s record into the destination bank, replacing the records there', () => {
+    const bank = createNamedBank(withRecord(), 'A', options)
+    const destination = { ...makeLoadedLibrary(), records: { [voiceId('A', 5)]: record(5) } }
+
+    expect(loadNamedBank(destination, 'A', bank).records).toEqual({ [voiceId('A', 2)]: record(2) })
+  })
+
+  it('keeps the records when a bank is duplicated', () => {
+    const bank = createNamedBank(withRecord(), 'A', options)
+
+    expect(duplicateNamedBank(bank, 'copy', createdAt).slots[1].record).toEqual(record(2))
+  })
+
+  it('reads a version 1 bank, which has no records, and loads it without any', () => {
+    const bank = versionOneBank()
+
+    expect(() => validateNamedBank(bank)).not.toThrow()
+    expect(loadNamedBank(withRecord(), 'A', bank).records).toEqual({})
+  })
+
+  it('writes a renamed version 1 bank back as version 2', () => {
+    expect(renameNamedBank(versionOneBank(), 'New', '', createdAt).version).toBe(2)
+  })
+
+  it('refuses a slot whose record is the wrong size', () => {
+    const bank = createNamedBank(withRecord(), 'A', options)
+    bank.slots[1].record = new Uint8Array(58)
+
+    expect(() => validateNamedBank(bank)).toThrow('32 valid sound slots')
   })
 })
