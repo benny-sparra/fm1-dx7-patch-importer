@@ -1,6 +1,7 @@
 import { Power } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/editor-help'
 import {
   ChorusScope,
   DelayScope,

@@ -1,6 +1,7 @@
 import { Activity, Waves } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/editor-help'
 import { AlgorithmPanel, RackPanelHelp } from '@/components/editor/editor-workspace'
 import { RackPanelTitle } from '@/components/ui/rack-panel'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
