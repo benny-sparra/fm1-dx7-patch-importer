@@ -304,7 +304,6 @@ export default {
   },
   fm1VaImport: {
     menuItem: 'Import Baud Girl (FM-1+VA) presets…',
-    menuContents: 'From the FM1, or a “Save a backup” file',
     title: 'Import Baud Girl presets',
     help: 'Choose the file from “Save a backup” on Baud Girl’s Presets page.',
     helpRead:
@@ -365,7 +364,6 @@ export default {
   },
   fm1VaWrite: {
     menuItem: 'Write patches to the FM1…',
-    menuContents: 'Baud Girl firmware, changed patches only',
     title: 'Write patches to the FM1',
     help: 'Writes your library’s patches over the FM1’s presets. Only patches that differ are written.',
     source: 'Write from',
@@ -937,7 +935,6 @@ export default {
     menuHeading: 'Backup',
     download: 'Download backup',
     restore: 'Restore from backup…',
-    backupContents: 'Includes FM1 effects and saved banks',
     lastBackup: 'Last backed up: {{date}}',
     downloaded: 'Downloading a backup of your workspace banks and saved banks.',
     downloadedWithoutSavedBanks:

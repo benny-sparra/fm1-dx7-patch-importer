@@ -302,10 +302,7 @@ export function LibrarianPage({
   const otherFilesMenuHeadingId = useId()
   const backupMenuHeadingId = useId()
   const lastBackupId = useId()
-  const backupContentsId = useId()
   const sysexContentsId = useId()
-  const fm1VaContentsId = useId()
-  const fm1VaWriteContentsId = useId()
   const sendButtonRef = useRef<HTMLButtonElement>(null)
   // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
   // menu toggle that focus returns to.
@@ -843,16 +840,14 @@ export function LibrarianPage({
             >
               <EllipsisVertical className="size-3.5" />
             </summary>
-            <div className="menu-surface absolute top-full right-0 z-50 mt-1 w-80 max-w-[calc(100vw-2rem)] border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
+            <div className="menu-surface absolute top-full right-0 z-50 mt-1 w-90 max-w-[calc(100vw-2rem)] border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
               {/* The backup comes first: it is the only copy of FM1 effects and saved banks. */}
               <div aria-labelledby={backupMenuHeadingId} role="group">
                 <p className={menuHeadingClassName} id={backupMenuHeadingId}>
                   {t('backup.menuHeading')}
                 </p>
                 <button
-                  aria-describedby={
-                    lastBackupTime ? `${backupContentsId} ${lastBackupId}` : backupContentsId
-                  }
+                  aria-describedby={lastBackupTime ? lastBackupId : undefined}
                   aria-label={t('backup.download')}
                   className={menuItemWithHintClassName}
                   // Saved banks are read as the page opens; a backup waits for them.
@@ -868,9 +863,6 @@ export function LibrarianPage({
                   <HardDriveDownload className={menuHintedIconClassName} />
                   <span className="grid">
                     <span>{t('backup.download')}</span>
-                    <span className="text-xs text-[var(--crt-ink-3)]" id={backupContentsId}>
-                      {t('backup.backupContents')}
-                    </span>
                     {lastBackupTime ? (
                       <span className="text-xs text-[var(--crt-ink-3)]" id={lastBackupId}>
                         {t('backup.lastBackup', {
@@ -918,9 +910,7 @@ export function LibrarianPage({
                   </span>
                 </button>
                 <button
-                  aria-describedby={fm1VaContentsId}
-                  aria-label={t('fm1VaImport.menuItem')}
-                  className={menuItemWithHintClassName}
+                  className={menuItemClassName}
                   onClick={() => {
                     allBanksMenuRef.current?.removeAttribute('open')
                     setDialogLoadError('')
@@ -928,19 +918,12 @@ export function LibrarianPage({
                   }}
                   type="button"
                 >
-                  <Upload className={menuHintedIconClassName} />
-                  <span className="grid">
-                    <span>{t('fm1VaImport.menuItem')}</span>
-                    <span className="text-xs text-[var(--crt-ink-3)]" id={fm1VaContentsId}>
-                      {t('fm1VaImport.menuContents')}
-                    </span>
-                  </span>
+                  <Upload className="size-4 shrink-0" />
+                  {t('fm1VaImport.menuItem')}
                 </button>
                 {hasFm1VaPresetCommands(midi.firmware) ? (
                   <button
-                    aria-describedby={fm1VaWriteContentsId}
-                    aria-label={t('fm1VaWrite.menuItem')}
-                    className={menuItemWithHintClassName}
+                    className={menuItemClassName}
                     onClick={() => {
                       allBanksMenuRef.current?.removeAttribute('open')
                       setDialogLoadError('')
@@ -948,13 +931,8 @@ export function LibrarianPage({
                     }}
                     type="button"
                   >
-                    <Send className={menuHintedIconClassName} />
-                    <span className="grid">
-                      <span>{t('fm1VaWrite.menuItem')}</span>
-                      <span className="text-xs text-[var(--crt-ink-3)]" id={fm1VaWriteContentsId}>
-                        {t('fm1VaWrite.menuContents')}
-                      </span>
-                    </span>
+                    <Send className="size-4 shrink-0" />
+                    {t('fm1VaWrite.menuItem')}
                   </button>
                 ) : null}
               </div>

@@ -167,14 +167,13 @@ describe('LibrarianPage backup', () => {
     ).toBeTruthy()
   })
 
-  it('says a backup includes FM1 effects and shows no date before the first one', async () => {
+  it('shows no backup date before the first backup', async () => {
     const user = userEvent.setup()
     renderPage()
     await openMenu(user)
 
     const download = screen.getByRole('button', { name: 'Download backup' })
-    const contents = screen.getByText('Includes FM1 effects and saved banks')
-    expect(download.getAttribute('aria-describedby')).toBe(contents.id)
+    expect(download.hasAttribute('aria-describedby')).toBe(false)
     expect(screen.queryByText(/^Last backed up:/)).toBeNull()
   })
 
@@ -209,7 +208,6 @@ describe('LibrarianPage backup', () => {
     renderPage()
     await openMenu(user)
 
-    expect(screen.getByText('Includes FM1 effects and saved banks')).toBeTruthy()
     expect(screen.queryByText(/^Last backed up:/)).toBeNull()
   })
 

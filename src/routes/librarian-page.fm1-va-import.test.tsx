@@ -70,21 +70,6 @@ async function openImport(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('LibrarianPage FM-1+VA import', () => {
-  it('describes the file the menu item reads', async () => {
-    const { user } = renderPage()
-
-    await user.click(screen.getByTitle('Library actions'))
-
-    expect(
-      screen
-        .getByRole('button', { name: 'Import Baud Girl (FM-1+VA) presets…' })
-        .getAttribute('aria-describedby'),
-    ).toBeTruthy()
-    expect(screen.getByRole('group', { name: 'Other files' }).textContent).toContain(
-      'From the FM1, or a “Save a backup” file',
-    )
-  })
-
   it('imports the FM1 banks from the file and offers to undo it', async () => {
     const { changed, library, user } = renderPage()
     await openImport(user)

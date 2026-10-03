@@ -277,7 +277,6 @@ export default {
   },
   fm1VaImport: {
     menuItem: '导入 Baud Girl（FM-1+VA）预设…',
-    menuContents: '从 FM1 或“Save a backup”文件导入',
     title: '导入 Baud Girl 预设',
     help: '请选择 Baud Girl 的 Presets 页面上“Save a backup”保存的文件。',
     helpRead: '从 FM1 读取预设，或选择 Baud Girl 的 Presets 页面上“Save a backup”保存的文件。',
@@ -330,7 +329,6 @@ export default {
   },
   fm1VaWrite: {
     menuItem: '将音色写入 FM1…',
-    menuContents: 'Baud Girl 固件，仅写入有变化的音色',
     title: '将音色写入 FM1',
     help: '将音色库中的音色写入 FM1，覆盖原有预设。只写入有差异的音色。',
     source: '写入来源',
@@ -878,7 +876,6 @@ export default {
     menuHeading: '备份',
     download: '下载备份',
     restore: '从备份恢复…',
-    backupContents: '含 FM1 效果和已保存的音色库',
     lastBackup: '上次备份：{{date}}',
     downloaded: '正在下载工作区音色库和已保存音色库的备份。',
     downloadedWithoutSavedBanks:

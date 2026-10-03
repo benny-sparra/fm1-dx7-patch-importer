@@ -317,7 +317,6 @@ export default {
   },
   fm1VaImport: {
     menuItem: 'Importer les presets Baud Girl (FM-1+VA)…',
-    menuContents: 'Depuis le FM1 ou un fichier « Save a backup »',
     title: 'Importer les presets Baud Girl',
     help: 'Choisissez le fichier de « Save a backup » sur la page Presets de Baud Girl.',
     helpRead:
@@ -380,7 +379,6 @@ export default {
   },
   fm1VaWrite: {
     menuItem: 'Écrire des sons sur le FM1…',
-    menuContents: 'Firmware de Baud Girl, sons modifiés seulement',
     title: 'Écrire des sons sur le FM1',
     help: 'Écrit les sons de votre bibliothèque sur les presets du FM1. Seuls les sons qui diffèrent sont écrits.',
     source: 'Écrire depuis',
@@ -969,7 +967,6 @@ export default {
     menuHeading: 'Sauvegarde',
     download: 'Télécharger une sauvegarde',
     restore: 'Restaurer une sauvegarde…',
-    backupContents: 'Avec les effets FM1 et les banques enregistrées',
     lastBackup: 'Dernière sauvegarde : {{date}}',
     downloaded:
       'Téléchargement d’une sauvegarde de vos banques de travail et banques enregistrées.',

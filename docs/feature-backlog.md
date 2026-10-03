@@ -597,6 +597,12 @@ A full sync workflow with confirmation prompts was judged too complex for what i
   **Import FM-1+VA presets…**, whose line names Baud Girl's FM-1+VA firmware so owners of
   M-VAVE's firmware can pass it by. Below the divider, **Find duplicate patches…** and then
   **Reset to factory patches…**, in the danger colour. Every line under an item fits one line.
+- _Revised 2026-10-03_, as the menu read as too wordy: a line under an item stays only where it
+  says what the label cannot. **Download backup** keeps just the date of the last backup, and
+  **Download SysEx banks (.zip)** its DX7-data-only line, which now carries the comparison with the
+  backup alone. The Baud Girl import and write lose theirs: the import's label already names the
+  firmware, and the write shows only on it. The menu widens to 360 px so the import's label fits
+  one line.
 - The persistence warning also offers **Download backup** while browser storage is not keeping the
   workspace, which is when a backup matters most. There is no permanent storage area to put it in.
 

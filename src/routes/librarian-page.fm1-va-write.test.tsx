@@ -59,8 +59,7 @@ describe('LibrarianPage writing presets to an FM1 on Baud Girl’s firmware', ()
 
     await user.click(screen.getByTitle('Library actions'))
 
-    expect(writeItem()?.getAttribute('aria-describedby')).toBeTruthy()
-    expect(screen.getByText('Baud Girl firmware, changed patches only')).toBeTruthy()
+    expect(writeItem()).toBeTruthy()
   })
 
   it('offers no write on an earlier release, on M-VAVE’s firmware, or before the FM1 answers', async () => {

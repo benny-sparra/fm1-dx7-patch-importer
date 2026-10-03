@@ -320,7 +320,6 @@ export default {
   },
   fm1VaImport: {
     menuItem: 'Baud-Girl-Presets (FM-1+VA) importieren…',
-    menuContents: 'Vom FM1 oder aus einer „Save a backup“-Datei',
     title: 'Baud-Girl-Presets importieren',
     help: 'Wähle die Datei aus „Save a backup“ auf der Presets-Seite von Baud Girl.',
     helpRead:
@@ -384,7 +383,6 @@ export default {
   },
   fm1VaWrite: {
     menuItem: 'Sounds auf den FM1 schreiben…',
-    menuContents: 'Firmware von Baud Girl, nur geänderte Sounds',
     title: 'Sounds auf den FM1 schreiben',
     help: 'Schreibt die Sounds deiner Bibliothek über die Presets des FM1. Nur Sounds, die sich unterscheiden, werden geschrieben.',
     source: 'Schreiben aus',
@@ -979,7 +977,6 @@ export default {
     menuHeading: 'Sicherung',
     download: 'Sicherung herunterladen',
     restore: 'Aus Sicherung wiederherstellen…',
-    backupContents: 'Mit FM1-Effekten und gespeicherten Bänken',
     lastBackup: 'Zuletzt gesichert: {{date}}',
     downloaded: 'Eine Sicherung deiner Arbeitsbänke und gespeicherten Bänke wird heruntergeladen.',
     downloadedWithoutSavedBanks:

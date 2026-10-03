@@ -414,8 +414,11 @@ open everything an earlier release could have saved.
   positioned, so visually hidden text inside stays in it; a folding section inside a dialog wraps
   its contents in a positioned element too, or hidden text in a folded section stretches the body.
 - The patch-bank header's **Library actions** menu groups its items under headings only where a
-  heading holds more than one item, keeps the line under an item to one line at the menu's width
-  in English, and lines its icon up with the label's line (`menuItemWithHintClassName`). An item
+  heading holds more than one item, and keeps each label on one line at the menu's width in
+  English. An item has a line under it only to say what its label cannot, such as the SysEx
+  download leaving out FM1 effects or the date of the last backup, never to restate the label;
+  that line fits one line too, and the item lines its icon up with the label's line
+  (`menuItemWithHintClassName`). An item
   that replaces patches, such as **Reset to factory patches…**, goes last in the danger colour,
   as **Delete bank** does in a bank's menu.
 - Name FM-1+VA as Baud Girl's firmware in anything users read, since FM1 owners know it by her
