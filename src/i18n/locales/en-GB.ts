@@ -29,7 +29,6 @@ export default {
     restoreDetails:
       'Banks A, B, C, and D will be reset to FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with.',
     restoreAction: 'Reset four banks',
-    sourcesOpen: 'Find patch banks to download here.',
     sourcesTitle: 'Find DX7 patch banks',
     sourcesIntro:
       'Download a 32-voice DX7 SysEx bank (.syx), then return here and choose Import DX7 bank.',
@@ -479,7 +478,7 @@ export default {
   },
   root: {
     subtitle: 'editor & librarian',
-    intro: 'Edit, organise and transfer FM1 patches, or import DX7 SysEx banks.',
+    intro: 'Edit, organise and transfer FM1 patches, or <link>import DX7 SysEx banks</link>.',
     synthAlt: 'M-VAVE FM1 synthesiser front panel',
     unsupportedTitle: 'Unsupported browser.',
     unsupportedBody:

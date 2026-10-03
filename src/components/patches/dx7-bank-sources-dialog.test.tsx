@@ -14,7 +14,7 @@ afterEach(async () => {
 
 describe('Dx7BankSourcesDialog', () => {
   it('describes each bank source in English and keeps the site names', () => {
-    render(<Dx7BankSourcesDialog />)
+    render(<Dx7BankSourcesDialog>import DX7 SysEx banks</Dx7BankSourcesDialog>)
 
     expect(screen.getByText('Yamaha Black Boxes')).toBeTruthy()
     expect(screen.getByText('Factory DX7 cartridges and SysEx banks.')).toBeTruthy()
@@ -22,7 +22,7 @@ describe('Dx7BankSourcesDialog', () => {
   })
 
   it('links to the bank submission form', () => {
-    render(<Dx7BankSourcesDialog />)
+    render(<Dx7BankSourcesDialog>import DX7 SysEx banks</Dx7BankSourcesDialog>)
 
     const link = screen.getByRole('link', { hidden: true, name: 'Offer it for the bank catalog' })
     expect(link.getAttribute('href')).toBe(
@@ -32,7 +32,7 @@ describe('Dx7BankSourcesDialog', () => {
 
   it('describes each bank source in the interface language', async () => {
     await setLocale('fr')
-    render(<Dx7BankSourcesDialog />)
+    render(<Dx7BankSourcesDialog>import DX7 SysEx banks</Dx7BankSourcesDialog>)
 
     expect(screen.getByText('Yamaha Black Boxes')).toBeTruthy()
     for (const description of Object.values(french.dialogs.sourceDescriptions)) {

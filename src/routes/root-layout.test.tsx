@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import '@/i18n'
+import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { makeLogEntry } from '@/lib/midi'
 import { MidiLogStore } from '@/lib/midi-log-store'
@@ -48,6 +49,60 @@ afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+})
+
+describe('RootLayout intro', () => {
+  beforeEach(() => {
+    // jsdom has no modal dialogs.
+    HTMLDialogElement.prototype.showModal = function showModal() {
+      this.open = true
+    }
+  })
+  afterEach(() => setLocale('en-GB'))
+
+  it('opens the DX7 bank sources from the words about importing banks', async () => {
+    const user = userEvent.setup()
+    render(
+      <RootLayout midi={midi}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    await user.click(screen.getByRole('button', { name: 'import DX7 SysEx banks' }))
+
+    expect(screen.getByRole('dialog', { name: 'Find DX7 patch banks' })).toBeTruthy()
+  })
+
+  it('reads the intro as one sentence with the link in its place', () => {
+    const view = render(
+      <RootLayout midi={midi}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    // The sources dialog sits beside its trigger, so leave its text out of the sentence.
+    const intro = view.container.querySelector('.hero-supporting-text')?.cloneNode(true)
+    if (!(intro instanceof HTMLElement)) throw new Error('No intro')
+    intro.querySelector('dialog')?.remove()
+
+    expect(intro.textContent).toBe(
+      'Edit, organise and transfer FM1 patches, or import DX7 SysEx banks.',
+    )
+  })
+
+  it('links the words the interface language uses for importing banks', async () => {
+    await setLocale('de')
+    render(
+      <RootLayout midi={midi}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    expect(screen.getByRole('button', { name: 'DX7-SysEx-Bänke importieren' })).toBeTruthy()
+  })
 })
 
 describe('RootLayout title layout', () => {

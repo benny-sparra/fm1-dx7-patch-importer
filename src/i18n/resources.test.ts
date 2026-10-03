@@ -57,6 +57,17 @@ describe('translation resources', () => {
     }
   })
 
+  // The header links the marked words to the DX7 bank sources.
+  it('marks one link in the intro of every locale', () => {
+    const unmarked = Object.entries(resources)
+      .filter(
+        ([, { translation }]) => !/^[^<>]*<link>[^<>]+<\/link>[^<>]*$/.test(translation.root.intro),
+      )
+      .map(([locale]) => locale)
+
+    expect(unmarked).toEqual([])
+  })
+
   it('provides every English key in every supported locale', () => {
     const englishKeys = flattenKeys(resources.en.translation).sort()
 

@@ -25,7 +25,6 @@ export default {
     restoreClose: '关闭原厂重置',
     restoreDetails: '音色库 A、B、C、D 将分别重置为 FM-1 音色库 1、2、3、4，即 FM1 出厂时的音色。',
     restoreAction: '重置四个音色库',
-    sourcesOpen: '查找可下载的音色库。',
     sourcesTitle: '查找 DX7 音色库',
     sourcesIntro: '下载 32 音色 DX7 SysEx 音色库 (.syx)，返回此处并选择“导入 DX7 音色库”。',
     sourceDescriptions: {
@@ -438,7 +437,7 @@ export default {
   },
   root: {
     subtitle: '音色编辑器与音色库',
-    intro: '编辑、整理和传输 FM1 音色，或导入 DX7 SysEx 音色库。',
+    intro: '编辑、整理和传输 FM1 音色，或<link>导入 DX7 SysEx 音色库</link>。',
     synthAlt: 'M-VAVE FM1 合成器前面板',
     unsupportedTitle: '不支持的浏览器。',
     unsupportedBody:
