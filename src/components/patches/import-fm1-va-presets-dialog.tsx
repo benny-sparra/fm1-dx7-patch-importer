@@ -1,4 +1,4 @@
-import { Download, Square, TriangleAlert, Upload } from 'lucide-react'
+import { ChevronDown, Download, Square, TriangleAlert, Upload } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -566,19 +566,26 @@ function PresetFileBank({
         <label className="shrink-0 text-[var(--crt-ink-3)]" htmlFor={destinationId}>
           {t('fm1VaImport.destination')}
         </label>
-        <select
-          className="h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          disabled={!hasImportableVoice(fileBank)}
-          id={destinationId}
-          onChange={(event) => onChooseDestination(event.target.value)}
-          value={destination}
-        >
-          {destinationOptions.map((option) => (
-            <option disabled={option.disabled} key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        {/* The app's own chevron, as its other dropdowns draw, in place of the native arrow. */}
+        <span className="relative min-w-0 flex-1">
+          <select
+            className="settings-option-select h-9 w-full appearance-none truncate rounded-md border py-0 pr-8 pl-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+            disabled={!hasImportableVoice(fileBank)}
+            id={destinationId}
+            onChange={(event) => onChooseDestination(event.target.value)}
+            value={destination}
+          >
+            {destinationOptions.map((option) => (
+              <option disabled={option.disabled} key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 right-2 size-4 -translate-y-1/2 text-muted-foreground"
+          />
+        </span>
       </div>
       <RackPanelCollapsibleBody collapsed={collapsed} id={bodyId}>
         {/* Positioned, so the cells' visually hidden text folds away with the bank rather than
