@@ -73,6 +73,12 @@ test('opens the lazy editor and returns to the patch library', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Patch banks' })).toBeVisible()
 })
 
+test('leaves the Sentry test control out of a normal production build', async ({ page }) => {
+  await openLibrarian(page)
+
+  await expect(page.getByRole('button', { name: 'Send Sentry test error' })).toHaveCount(0)
+})
+
 test('persists a saved patch name across a browser reload', async ({ page }) => {
   await openLibrarian(page)
   await openFirstPatch(page)

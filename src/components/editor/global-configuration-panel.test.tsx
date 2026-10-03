@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
@@ -101,5 +102,20 @@ describe('algorithm diagram', () => {
 
     const region = screen.getByRole('region', { name: 'Algorithm' })
     expect(region.querySelector('.crt-well svg')?.getAttribute('aria-hidden')).toBe('true')
+  })
+})
+
+describe('help', () => {
+  // British English help arrives with the editor rather than with the page, and this file imports
+  // the panel before i18next is ready.
+  it('explains the pitch envelope in British English', async () => {
+    const user = userEvent.setup()
+    renderPanel(voice())
+
+    await user.hover(screen.getAllByRole('button', { name: 'Help: Pitch envelope' })[0])
+
+    expect(screen.getByRole('note').textContent).toContain(
+      'Changes the pitch over the life of each note.',
+    )
   })
 })

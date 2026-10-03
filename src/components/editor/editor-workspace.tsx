@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next'
 import { type ReactNode, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/editor-help'
 import { rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { PortalMenu } from '@/components/ui/portal-menu'

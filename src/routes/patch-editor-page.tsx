@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/editor-help'
 import { OperatorRack, RackPanelHelp } from '@/components/editor/editor-workspace'
 import { CompareOverlay } from '@/components/editor/compare-overlay'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
