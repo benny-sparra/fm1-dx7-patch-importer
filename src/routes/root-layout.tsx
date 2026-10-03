@@ -101,21 +101,18 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               }
             >
               <MidiConnectActions midi={midi} />
+              {/* On a phone the badge takes the last line, so the MIDI buttons keep one row. */}
+              <MidiFirmwareBadge
+                className="order-last inline-flex min-h-8 w-full items-center gap-2 sm:order-none sm:w-auto"
+                midi={midi}
+              />
               <PianoKeyboard midi={midi} />
               <MidiPanicButton midi={midi} />
             </div>
 
-            {/* Without the hardware photo to sit on, the firmware badge takes a line of its own, so
-                it never moves the MIDI actions above it. */}
-            {!showHardwareBay && midi.firmware.kind === 'fm1-va' ? (
-              <div className="col-span-2 flex justify-end">
-                <MidiFirmwareBadge midi={midi} />
-              </div>
-            ) : null}
-
             {showHardwareBay ? (
               // The hardware photo sits in a recessed bay, not a rounded card.
-              <figure className="crt-inset relative col-start-3 row-span-2 row-start-1 hidden w-[250px] self-start bg-[var(--crt-bg-2)] p-1 lg:block">
+              <figure className="crt-inset col-start-3 row-span-2 row-start-1 hidden w-[250px] self-start bg-[var(--crt-bg-2)] p-1 lg:block">
                 <img
                   alt={t('root.synthAlt')}
                   className="aspect-[242/146] h-auto w-full object-contain"
@@ -126,9 +123,6 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                   srcSet={colorwayImage.srcSet}
                   width={colorwayImage.width}
                 />
-                <div className="absolute right-1 bottom-1">
-                  <MidiFirmwareBadge midi={midi} />
-                </div>
               </figure>
             ) : null}
           </div>

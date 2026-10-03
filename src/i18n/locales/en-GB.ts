@@ -663,9 +663,12 @@ export default {
     randomiseHelp: 'A new voice. Keeps the name and effects.',
   },
   midi: {
-    fm1VaBadgeLabel: 'FM-1+VA firmware by Baud Girl, {{identity}}',
+    fm1VaBadgeLabel: 'FM-1+VA firmware by Baud Girl, {{release}}',
     fm1VaBadgeTitle:
-      'The FM1 runs Baud Girl’s FM-1+VA firmware, {{identity}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',
+      'The FM1 runs Baud Girl’s FM-1+VA firmware, {{release}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',
+    mvaveBadgeLabel: 'M-VAVE firmware, {{release}}',
+    mvaveBadgeTitle:
+      'The FM1 runs M-VAVE’s own firmware, {{release}}. Patches you play go to its edit buffer.',
     panic: 'MIDI panic',
     panicHelp:
       'MIDI panic: send a note-off for every note on the note channel, to stop hanging notes',
