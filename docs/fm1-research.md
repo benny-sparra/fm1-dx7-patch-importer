@@ -81,7 +81,8 @@ How this project uses it:
   **Likely**, never **Confirmed**, because it is a derivative that has changed other behaviour.
 - Its own commands (below) do not exist on stock firmware. On stock firmware they are unknown
   vendor messages and stay **Dangerous / excluded**. Production code sends only the preset read
-  (approved 2026-10-02, below), and only to FM-1+VA from `FM-1_079`.
+  (approved 2026-10-02, below), and only to FM-1+VA from `FM-1_079`. The preset write is approved
+  too (2026-10-03, below), but so far only the development probe sends it.
 - This project is MIT-licensed. Reimplement any fact recorded here from this document; do not copy
   its code.
 
@@ -358,6 +359,41 @@ in the footer. It reads one preset and shows its record and voice byte by byte, 
 that changed since that preset's last read, and **Copy capture** puts the reply, both parts, and
 the changed bytes on the clipboard as JSON for a fixture. Change one setting on the FM1, press
 SAVE, read the same preset again, and record each byte here.
+
+#### Writing a stored preset
+
+**Approved 2026-10-03**, gated on FM-1+VA from `FM-1_079` (`writesFm1VaPresets`), one preset per
+message, at least 3 s apart, each read back to confirm it (`AGENTS.md`). The message is the one a
+backup file holds for each preset, `F0 43 00 7D 04 <slot> <155-byte voice> <68-byte record> <sum>
+F7` ("Its backup file", above). **Confirmed offline:** `makeFm1VaPresetWrite` in
+`src/lib/fm1-va-preset-message.ts` rebuilds the captured backup messages for 001 (ORGAN 3) and 097
+(a Virtual Analog preset whose record sets high bits) byte for byte, and building one from the
+read of ORGAN 3 gives the backup's message for it, so reading a preset and writing it back sends
+FM-1+VA's own bytes. `fm1VaRecordWithEffects` puts the library's effects into a record in the
+bytes "What the record holds" maps, and leaves the rest as read.
+
+**Confirmed on hardware, seen once each** (FM-1_093, 2026-10-03, through the editor's preset probe
+over USB, presets 001 and 002, starting from a fresh **Save a backup**):
+
+- **A write stores the preset exactly.** Writing ORGAN 3 back with its own bytes, renamed
+  `WRITE TEST`, and then as first read, each read back byte for byte as written.
+- **The FM1 sends no reply to a write.** Nothing under `F0 7D` arrived in the 1.5 s after any of
+  the three writes, so the read that follows is the only confirmation, as on FM-1+VA's own page.
+- **A read straight after the write sees it.** Each check read followed its write's 1.5 s
+  listening window and returned the new contents.
+- **The selected preset shows the change at once.** With 001 selected on the FM1, its screen
+  showed `WRITE TEST` as soon as the renamed write arrived. It still sounded the same, as only
+  the name had changed.
+- **Writing another preset leaves the selected one alone.** With 001 selected, writing 002 as
+  `WRITE TEST` left the screen on ORGAN 3, which still played; 002 showed `WRITE TEST` when
+  stepped to, and restoring it read back as first read.
+
+The development build's **FM-1+VA preset probe (dev)** runs this test: it writes the preset just
+read back to its slot, unchanged or renamed `WRITE TEST`, reads it again and says whether it
+matches, and **Restore the first read** puts back the preset as the session first read it.
+
+**Needs hardware test:** whether a write to the selected preset changes what plays when the edit
+differs in sound, not only in name.
 
 #### Controllers on the MIDI Channel
 

@@ -182,8 +182,19 @@ open everything an earlier release could have saved.
 - Of FM-1+VA's own `F0 43 00 7D` commands, the editor may send only the preset read,
   `7D 10 <slot>` (`readFm1VaPreset` in `src/lib/fm1-va-preset-read.ts`, approved 2026-10-02),
   and only while `readsFm1VaPresets` allows it: FM-1+VA from `FM-1_079`, the release that added
-  it. It reads one stored preset and changes nothing. Every other FM-1+VA command, the preset
-  write `04` and the raw memory read `11` among them, needs its own approval recorded here first.
+  it. It reads one stored preset and changes nothing. Every other FM-1+VA command, the raw memory
+  read `11` among them, needs its own approval recorded here first.
+- The preset write, `7D 04 <slot>` (`makeFm1VaPresetWrite` in `src/lib/fm1-va-preset-message.ts`,
+  approved 2026-10-03), stores one preset at once, and the FM1 cannot undo it. Send it only while
+  `writesFm1VaPresets` allows it (FM-1+VA from `FM-1_079`), only through `useFm1VaPresetWriter`,
+  which spaces writes `fm1VaPresetWriteSpacingMs` (3 s) apart as FM-1+VA's own page does, one
+  preset per message, and never twice for one write. Read each preset back with `7D 10` to confirm
+  it, and stop at the first that does not read back the same. A write already sent is never
+  cancelled; changing the ports cancels only one still waiting its turn. Anything that writes asks
+  first, naming every preset it replaces and saying an FM-1+VA backup is the way back. A patch
+  without a settings record of its own takes the FM1 slot's stored record, with only the
+  library's effects put in it (`fm1VaRecordWithEffects`), so bytes not yet mapped keep the FM1's
+  values. Never write a Virtual Analog preset's voice bytes as a DX7 voice.
   A read belongs to the ports it started on: changing either, or switching MIDI off, cancels it.
   Keep what it reads exactly as read until each byte is mapped in `docs/fm1-research.md`.
   Code that reads presets goes through `useFm1VaPresetReader`, which takes the ports from the

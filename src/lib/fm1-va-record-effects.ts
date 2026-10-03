@@ -2,6 +2,22 @@ import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
 
 const effectCount = 6
 
+/** Each effect controller, CC 0 to 23, with the record byte that holds its value. */
+const effectRecordBytes = Array.from({ length: effectCount }, (_, effect) => {
+  const switchController = effect * 4
+  // The Filter and Reverb have a type controller, so two settings rather than three.
+  const typed = effect < 2
+  const settingCount = typed ? 2 : 3
+  return [
+    [switchController, 28 + effect * 3],
+    ...(typed ? [[switchController + 1, 29 + effect * 3]] : []),
+    ...Array.from({ length: settingCount }, (_value, setting) => [
+      switchController + 4 - settingCount + setting,
+      effect * 3 + setting,
+    ]),
+  ]
+}).flat() as [controller: number, recordByte: number][]
+
 /**
  * The FM1 effects a settings record holds, one value for each effect controller, CC 0 to 23, as
  * the effects panel edits them (docs/fm1-research.md, "What the record holds"). Effect _e_, in
@@ -13,16 +29,22 @@ const effectCount = 6
  */
 export function fm1VaRecordEffects(record: Uint8Array) {
   const effects = new Uint8Array(fm1EffectParameterCount)
-  for (let effect = 0; effect < effectCount; effect += 1) {
-    const switchController = effect * 4
-    effects[switchController] = record[28 + effect * 3]
-    // The Filter and Reverb have a type controller, so two settings rather than three.
-    const typed = effect < 2
-    if (typed) effects[switchController + 1] = record[29 + effect * 3]
-    const settingCount = typed ? 2 : 3
-    for (let setting = 0; setting < settingCount; setting += 1) {
-      effects[switchController + 4 - settingCount + setting] = record[effect * 3 + setting]
-    }
+  for (const [controller, recordByte] of effectRecordBytes) {
+    effects[controller] = record[recordByte]
   }
   return normalizeFm1Effects(effects)
+}
+
+/**
+ * A copy of `record` holding `effects` in the bytes `fm1VaRecordEffects` reads them from, and
+ * every other byte as it was, so a preset write carries the library's effects without changing
+ * what the record holds beyond them.
+ */
+export function fm1VaRecordWithEffects(record: Uint8Array, effects: Uint8Array) {
+  const normalized = normalizeFm1Effects(effects)
+  const updated = record.slice()
+  for (const [controller, recordByte] of effectRecordBytes) {
+    updated[recordByte] = normalized[controller]
+  }
+  return updated
 }

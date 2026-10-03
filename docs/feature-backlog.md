@@ -425,6 +425,13 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       every preset it replaces and says an FM-1+VA backup is the way back; there is no Undo on
       the FM1. Pace writes 3 s apart, never cancel mid-write, and stop at the first preset that
       does not read back the same.
+      _Started 2026-10-03:_ `04` is approved, with those limits, in `AGENTS.md`.
+      `makeFm1VaPresetWrite` rebuilds FM-1+VA's own backup messages byte for byte, and
+      `useFm1VaPresetWriter` sends one write at a time, 3 s apart. A patch without a record of its
+      own takes the FM1 slot's stored record with the library's effects put in. The dev probe's
+      write test passed on FM-1_093: a write stores the preset exactly, shows on the selected
+      preset at once, and gets no reply, so the read back is the only confirmation. The **Write
+      to FM1** dialog comes next.
 - [ ] **5. Effect order and distortion type.** FM-1+VA stores both in the record and has no CC for
       them. A reorderable effect list and a Soft Clip / Hard Clip / Foldback choice in the effects
       panel, sent with the preset through 4, so a change is heard once written. This settles
