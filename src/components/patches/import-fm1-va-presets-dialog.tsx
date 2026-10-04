@@ -1,7 +1,16 @@
 import { ChevronDown, Download, Square, TriangleAlert, Upload } from 'lucide-react'
-import { type ChangeEvent, type FormEvent, useEffect, useId, useRef, useState } from 'react'
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useEffect,
+  useEffectEvent,
+  useId,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { fm1VaReadErrorMessage } from '@/components/patches/fm1-va-read-error-message'
 import { PreviewPatchButton } from '@/components/patches/preview-patch-button'
 import { undoToastOptions } from '@/components/patches/undo-toast'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
@@ -38,11 +47,7 @@ import {
   importableSounds,
   readFm1VaPresetFile,
 } from '@/lib/fm1-va-preset-file'
-import {
-  Fm1VaPresetReadError,
-  fm1VaPresetCount,
-  readEveryFm1VaPreset,
-} from '@/lib/fm1-va-preset-read'
+import { fm1VaPresetCount, readEveryFm1VaPreset } from '@/lib/fm1-va-preset-read'
 import { type FetchedBank, maximumWorkspaceBanks, voiceId } from '@/lib/patch-library'
 import { sysexFileAccept } from '@/lib/sysex-file'
 
@@ -70,10 +75,16 @@ type ImportFm1VaPresetsDialogProps = {
   onClose: () => void
   /** Plays a patch through the FM1 edit buffer with its effects, as a search result is. */
   onPlay: (voice: Dx7Voice, effects: Uint8Array) => void
+  /**
+   * Where the presets come from: read from the FM1, which starts as the dialog opens, or from the
+   * file FM-1+VA's "Save a backup" writes. Each has its own menu item, so neither mode mentions
+   * the other.
+   */
+  source: Fm1VaPresetSource
 }
 
 /** Where the banks shown came from. */
-type PresetSource = 'file' | 'fm1'
+export type Fm1VaPresetSource = 'file' | 'fm1'
 
 /** Where an FM1 bank goes: a workspace bank's letter, a new bank, or nowhere. */
 type Destination = string
@@ -107,24 +118,6 @@ function presetFileErrorMessage(t: Translate, error: unknown) {
   return t('fm1VaImport.errors.unreadable')
 }
 
-function presetReadErrorMessage(t: Translate, error: unknown) {
-  if (error instanceof Fm1VaPresetReadError) {
-    switch (error.problem) {
-      case 'busy':
-        return t('fm1VaImport.errors.readBusy')
-      case 'no-reply':
-      case 'send-failed':
-        return t('fm1VaImport.errors.readNoReply')
-      // The reader cancels a read itself when the ports change, and refuses one once they cannot
-      // read; a read the user stops shows nothing.
-      case 'cancelled':
-      case 'unavailable':
-        return t('fm1VaImport.errors.readStopped')
-    }
-  }
-  return t('fm1VaImport.errors.readFailed')
-}
-
 /** Whether a bank holds an FM preset the library can take. */
 function hasImportableVoice(bank: Fm1VaPresetFileBank) {
   return importableSounds(bank).some(Boolean)
@@ -141,6 +134,7 @@ export function ImportFm1VaPresetsDialog({
   midi,
   onClose,
   onPlay,
+  source,
 }: ImportFm1VaPresetsDialogProps) {
   const { i18n, t } = useTranslation()
   // The actions sit in the pinned footer, outside the form, and submit it by its id.
@@ -157,7 +151,6 @@ export function ImportFm1VaPresetsDialog({
   // replaced. Each voice keeps one object while the dialog is open, so playing a patch twice sends
   // it once.
   const [banks, setBanks] = useState<Fm1VaPresetFileBank[] | null>(null)
-  const [source, setSource] = useState<PresetSource>('file')
   const [destinations, setDestinations] = useState<ReadonlyMap<Fm1VaPresetBank, Destination>>(
     new Map(),
   )
@@ -239,9 +232,8 @@ export function ImportFm1VaPresetsDialog({
       0,
     ) ?? 0
 
-  const showBanks = (read: Fm1VaPresetFileBank[], from: PresetSource) => {
+  const showBanks = (read: Fm1VaPresetFileBank[], from: Fm1VaPresetSource) => {
     setBanks(read)
-    setSource(from)
     // Each bank starts going to the workspace bank of the same letter: from the FM1, only when it
     // differs from it; from a file, always, as the file is usually chosen to be imported. A bank
     // the workspace does not have starts as a new bank while there is room for one.
@@ -295,7 +287,7 @@ export function ImportFm1VaPresetsDialog({
       if (presetRead.current !== read) return
       showBanks(fm1VaPresetBanksFromRead(presets), 'fm1')
     } catch (cause) {
-      if (presetRead.current === read) setError(presetReadErrorMessage(t, cause))
+      if (presetRead.current === read) setError(fm1VaReadErrorMessage(t, cause))
     } finally {
       if (presetRead.current === read) {
         presetRead.current = null
@@ -303,6 +295,14 @@ export function ImportFm1VaPresetsDialog({
       }
     }
   }
+
+  // Reading from the FM1 starts as the dialog opens, when the ports in use can read.
+  const readOnOpen = useEffectEvent(() => {
+    if (source === 'fm1' && reader.canRead) void readFromFm1()
+  })
+  useEffect(() => {
+    readOnOpen()
+  }, [])
 
   const chooseFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const chosen = event.target.files?.[0] ?? null
@@ -365,40 +365,40 @@ export function ImportFm1VaPresetsDialog({
 
   return (
     <Dialog
-      aria-describedby={descriptionId}
+      aria-describedby={source === 'file' ? descriptionId : undefined}
       aria-labelledby={titleId}
       onClose={onClose}
       onToggle={(event) => {
-        if (!event.currentTarget.open) return
+        if (!event.currentTarget.open || source !== 'file') return
         window.requestAnimationFrame(() => fileInputRef.current?.focus())
       }}
       ref={dialogRef}
       size="2xl"
     >
       <DialogHeader>
-        <DialogTitle id={titleId}>{t('fm1VaImport.title')}</DialogTitle>
+        <DialogTitle id={titleId}>
+          {t(source === 'fm1' ? 'fm1VaImport.titleRead' : 'fm1VaImport.title')}
+        </DialogTitle>
         <DialogCloseButton label={t('common.close')} onClick={() => dialogRef.current?.close()} />
       </DialogHeader>
       <DialogBody>
-        <div
-          className="grid gap-2 px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]"
-          id={descriptionId}
-        >
-          <p>{t(reader.canRead ? 'fm1VaImport.helpRead' : 'fm1VaImport.help')}</p>
-          <p>{t('fm1VaImport.effectsNote')}</p>
-        </div>
+        {source === 'file' ? (
+          <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]" id={descriptionId}>
+            {t('fm1VaImport.help')}
+          </p>
+        ) : null}
 
         <form id={formId} className="grid gap-5 p-5" onSubmit={submit}>
-          <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            <TriangleAlert className="mt-0.5 size-5 shrink-0" />
-            <p>{t('fm1VaImport.warning')}</p>
-          </div>
-
-          {reader.canRead ? (
-            <div className="grid gap-2">
-              <div className="flex flex-wrap items-center gap-3">
+          {source === 'fm1' && !reader.canRead ? (
+            <p className="text-sm">{t('fm1VaImport.readUnavailable')}</p>
+          ) : null}
+          {source === 'fm1' && reader.canRead ? (
+            readCount === null ? (
+              // The read starts as the dialog opens, so this shows only when it left nothing to
+              // import from, after a stop or a failure, to read again.
+              banks ? null : (
                 <Button
-                  disabled={readCount !== null}
+                  className="justify-self-start"
                   onClick={() => void readFromFm1()}
                   type="button"
                   variant="outline"
@@ -406,16 +406,9 @@ export function ImportFm1VaPresetsDialog({
                   <Download />
                   <span>{t('fm1VaImport.read')}</span>
                 </Button>
-                {readCount === null ? null : (
-                  <Button onClick={stopReading} type="button" variant="ghost">
-                    <Square />
-                    <span>{t('fm1VaImport.stopReading')}</span>
-                  </Button>
-                )}
-              </div>
-              {readCount === null ? (
-                <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.readHelp')}</p>
-              ) : (
+              )
+            ) : (
+              <div className="grid gap-2">
                 <div className="grid gap-1">
                   <p className="text-xs text-[var(--crt-ink-3)]" id={readingId}>
                     {t('fm1VaImport.reading', {
@@ -431,25 +424,36 @@ export function ImportFm1VaPresetsDialog({
                   />
                   <ReadLeds readCount={readCount} />
                 </div>
-              )}
-            </div>
-          ) : midi.firmware.kind === 'fm1-va' ? (
-            <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.readUnavailable')}</p>
+                <Button
+                  className="justify-self-start"
+                  onClick={stopReading}
+                  type="button"
+                  variant="ghost"
+                >
+                  <Square />
+                  <span>{t('fm1VaImport.stopReading')}</span>
+                </Button>
+              </div>
+            )
           ) : null}
 
-          <label className="grid gap-2 text-sm font-semibold">
-            {t('fm1VaImport.file')}
-            <span className="modal-input-surface flex min-h-11 cursor-pointer items-center rounded-md border border-dashed border-input px-3 font-normal transition-colors hover:bg-muted/50">
-              <span className="min-w-0 truncate">{file?.name ?? t('fm1VaImport.chooseFile')}</span>
-              <input
-                accept={sysexFileAccept}
-                className="sr-only"
-                onChange={(event) => void chooseFile(event)}
-                ref={fileInputRef}
-                type="file"
-              />
-            </span>
-          </label>
+          {source === 'file' ? (
+            <label className="grid gap-2 text-sm font-semibold">
+              {t('fm1VaImport.file')}
+              <span className="modal-input-surface flex min-h-11 cursor-pointer items-center rounded-md border border-dashed border-input px-3 font-normal transition-colors hover:bg-muted/50">
+                <span className="min-w-0 truncate">
+                  {file?.name ?? t('fm1VaImport.chooseFile')}
+                </span>
+                <input
+                  accept={sysexFileAccept}
+                  className="sr-only"
+                  onChange={(event) => void chooseFile(event)}
+                  ref={fileInputRef}
+                  type="file"
+                />
+              </span>
+            </label>
+          ) : null}
 
           {banks ? (
             <section aria-labelledby={`${titleId}-preview`} className="grid gap-3">
@@ -472,9 +476,19 @@ export function ImportFm1VaPresetsDialog({
                 ) : null}
                 {virtualAnalogCount > 0 ? (
                   <p className="text-xs text-[var(--crt-ink-3)]">
-                    {t('fm1VaImport.virtualAnalogPresets', { count: virtualAnalogCount })}
+                    {t(
+                      source === 'fm1'
+                        ? 'fm1VaImport.virtualAnalogPresets'
+                        : 'fm1VaImport.virtualAnalogPresetsFile',
+                      { count: virtualAnalogCount },
+                    )}
                   </p>
                 ) : null}
+              </div>
+              {/* Nothing is replaced until a bank is chosen, so the warning waits for the banks. */}
+              <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                <TriangleAlert className="mt-0.5 size-5 shrink-0" />
+                <p>{t('fm1VaImport.warning')}</p>
               </div>
               {damagedCount > 0 ? (
                 <ErrorNotice>

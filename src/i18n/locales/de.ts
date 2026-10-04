@@ -319,20 +319,16 @@ export default {
       'Der aktuelle Inhalt der Bank wird gelöscht und durch die importierten Sounds ersetzt.',
   },
   fm1VaImport: {
-    menuItem: 'Baud-Girl-Presets (FM-1+VA) importieren…',
-    menuContents: 'Vom FM1 oder aus einer „Save a backup“-Datei',
-    title: 'Baud-Girl-Presets importieren',
+    menuItem: 'Baud-Girl-Presetdatei importieren…',
+    menuRead: 'Presets vom FM1 lesen…',
+    menuHeading: 'Baud Girl (FM-1+VA)',
+    title: 'Baud-Girl-Presetdatei importieren',
+    titleRead: 'Presets vom FM1 lesen',
     help: 'Wähle die Datei aus „Save a backup“ auf der Presets-Seite von Baud Girl.',
-    helpRead:
-      'Lies die Presets vom FM1 oder wähle die Datei aus „Save a backup“ auf der Presets-Seite von Baud Girl.',
-    effectsNote:
-      'Jeder Sound kommt mit seinen FM1-Effekten und seinen übrigen Preset-Einstellungen an.',
     warning:
       'Jede importierte Bank ersetzt die Bank, die du für sie wählst, oder kommt als neue Bank hinzu. Du kannst das rückgängig machen.',
     file: 'Baud-Girl-Presetdatei',
     read: 'Vom FM1 lesen',
-    readHelp:
-      'Liest alle 128 Presets vom FM1, um sie mit deiner Bibliothek zu vergleichen. Am FM1 ändert sich nichts.',
     readUnavailable:
       'Um die Presets vom FM1 zu lesen, wähle ihn als MIDI-Ausgang und -Eingang und erlaube SysEx. Zum Lesen braucht er die Firmware von Baud Girl, FM-1_079 oder neuer.',
     reading: 'Lese Preset {{number, number}} von {{total, number}}…',
@@ -364,9 +360,13 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Virtual-Analog-Preset, wird nicht importiert',
     virtualAnalogPresets:
-      'VA kennzeichnet ein Virtual-Analog-Preset, das noch nicht importiert werden kann. Sein Platz behält seinen Sound.',
+      'Der FM1 hat ein Virtual-Analog-Preset, das sich derzeit nicht importieren lässt.',
     virtualAnalogPresets_other:
-      'VA kennzeichnet {{count, number}} Virtual-Analog-Presets, die noch nicht importiert werden können. Ihre Plätze behalten ihre Sounds.',
+      'Der FM1 hat {{count, number}} Virtual-Analog-Presets, die sich derzeit nicht importieren lassen.',
+    virtualAnalogPresetsFile:
+      'Die Datei enthält ein Virtual-Analog-Preset, das sich derzeit nicht importieren lässt.',
+    virtualAnalogPresetsFile_other:
+      'Die Datei enthält {{count, number}} Virtual-Analog-Presets, die sich derzeit nicht importieren lassen.',
     errors: {
       size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine Datei aus „Save a backup“ von Baud Girl ist genau {{expected, number}} Bytes groß.',
       format: 'Diese Datei wurde nicht mit „Save a backup“ von Baud Girl gespeichert.',
@@ -380,6 +380,52 @@ export default {
       readFailed:
         'Der FM1 konnte seine Presets nicht senden. Lies erneut oder wähle eine Datei aus „Save a backup“.',
     },
+  },
+  fm1VaWrite: {
+    menuItem: 'Sounds auf den FM1 schreiben…',
+    title: 'Sounds auf den FM1 schreiben',
+    help: 'Schreibt die Sounds deiner Bibliothek über die Presets des FM1. Nur Sounds, die sich unterscheiden, werden geschrieben.',
+    source: 'Schreiben aus',
+    skipBank: 'Nicht schreiben',
+    differs: 'Ein Sound unterscheidet sich.',
+    differs_other: '{{count, number}} Sounds unterscheiden sich.',
+    same: 'Alle Sounds stimmen überein.',
+    virtualAnalogKept: 'Virtual-Analog-Presets bleiben erhalten.',
+    replaces: '{{number}} {{replaces}} → {{name}}',
+    action: 'Einen Sound schreiben…',
+    action_other: '{{count, number}} Sounds schreiben…',
+    confirmTitle: 'Diese Presets auf dem FM1 ersetzen?',
+    confirmWarning:
+      'Jedes Preset wird sofort ersetzt, und der FM1 kann das nicht rückgängig machen. Speichere vorher auf der Presets-Seite von Baud Girl eine Sicherung.',
+    confirm: 'Einen Sound schreiben',
+    confirm_other: '{{count, number}} Sounds schreiben',
+    writing: 'Schreibe Sound {{number, number}} von {{total, number}}…',
+    stop: 'Nach diesem Sound anhalten',
+    written: 'Ein Sound auf den FM1 geschrieben.',
+    written_other: '{{count, number}} Sounds auf den FM1 geschrieben.',
+    stopped:
+      'Nach {{count, number}} von {{total, number}} Sounds angehalten. Die übrigen sind unverändert.',
+    openFailed:
+      'Das Schreiben auf den FM1 konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+    errors: {
+      mismatch:
+        'Preset {{number}} ließ sich nicht wie geschrieben zurücklesen, daher wurde nach {{count, number}} von {{total, number}} Sounds angehalten.',
+      failed:
+        'Das Schreiben wurde nach {{count, number}} von {{total, number}} Sounds angehalten. Prüfe die MIDI-Verbindung des FM1.',
+    },
+  },
+  fm1VaSend: {
+    title: '{{bank}} an den FM1 senden',
+    help: 'Schreibt {{bank}} über eine der Presetbänke des FM1. Nur Sounds, die sich unterscheiden, werden geschrieben.',
+    destination: 'Schreiben über',
+    favouritesShort:
+      'Favoriten enthält einen Sound, daher bleiben die übrigen Presets der FM1-Bank erhalten.',
+    favouritesShort_other:
+      'Favoriten enthält {{count, number}} Sounds, daher bleiben die übrigen Presets der FM1-Bank erhalten.',
+    bankTooltip:
+      'FM1-Bank wählen, über die diese Sounds geschrieben werden; nur abweichende werden geschrieben',
+    favouritesTooltip:
+      'FM1-Bank wählen, über die die ersten 32 Favoriten geschrieben werden; nur abweichende werden geschrieben',
   },
   duplicates: {
     menuItem: 'Doppelte Sounds finden…',
@@ -944,7 +990,6 @@ export default {
     menuHeading: 'Sicherung',
     download: 'Sicherung herunterladen',
     restore: 'Aus Sicherung wiederherstellen…',
-    backupContents: 'Mit FM1-Effekten und gespeicherten Bänken',
     lastBackup: 'Zuletzt gesichert: {{date}}',
     downloaded: 'Eine Sicherung deiner Arbeitsbänke und gespeicherten Bänke wird heruntergeladen.',
     downloadedWithoutSavedBanks:

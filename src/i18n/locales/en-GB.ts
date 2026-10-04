@@ -207,19 +207,16 @@ export default {
     warning: 'The bank’s current contents will be wiped and replaced by the imported patches.',
   },
   fm1VaImport: {
-    menuItem: 'Import Baud Girl (FM-1+VA) presets…',
-    menuContents: 'From the FM1, or a “Save a backup” file',
-    title: 'Import Baud Girl presets',
+    menuItem: 'Import Baud Girl presets file…',
+    menuRead: 'Read presets from the FM1…',
+    menuHeading: 'Baud Girl (FM-1+VA)',
+    title: 'Import Baud Girl presets file',
+    titleRead: 'Read presets from the FM1',
     help: 'Choose the file from “Save a backup” on Baud Girl’s Presets page.',
-    helpRead:
-      'Read the presets from the FM1, or choose the file from “Save a backup” on Baud Girl’s Presets page.',
-    effectsNote: 'Each patch arrives with its FM1 effects and its other preset settings.',
     warning:
       'Each bank you import replaces the bank you choose for it, or is added as a new bank. You can undo this.',
     file: 'Baud Girl presets file',
     read: 'Read from FM1',
-    readHelp:
-      'Reads all 128 presets from the FM1 to compare with your library. Nothing on the FM1 changes.',
     readUnavailable:
       'To read the presets from the FM1, choose it as the MIDI output and input, with SysEx allowed. Reading needs Baud Girl firmware FM-1_079 or later.',
     reading: 'Reading preset {{number, number}} of {{total, number}}…',
@@ -249,9 +246,13 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Virtual Analog preset, not imported',
     virtualAnalogPresets:
-      'VA marks a Virtual Analog preset, which can’t be imported yet. Its slot keeps its patch.',
+      'The FM1 has a virtual analogue preset, which can’t currently be imported.',
     virtualAnalogPresets_other:
-      'VA marks {{count, number}} Virtual Analog presets, which can’t be imported yet. Their slots keep their patches.',
+      'The FM1 has {{count, number}} virtual analogue presets, which can’t currently be imported.',
+    virtualAnalogPresetsFile:
+      'The file has a virtual analogue preset, which can’t currently be imported.',
+    virtualAnalogPresetsFile_other:
+      'The file has {{count, number}} virtual analogue presets, which can’t currently be imported.',
     errors: {
       size: 'This file is {{bytes, number}} bytes. A file from Baud Girl’s “Save a backup” is exactly {{expected, number}} bytes.',
       format: 'This file was not saved by Baud Girl’s “Save a backup”.',
@@ -265,6 +266,51 @@ export default {
       readFailed:
         'The FM1 couldn’t send its presets. Read again, or choose a file from “Save a backup”.',
     },
+  },
+  fm1VaWrite: {
+    menuItem: 'Write patches to the FM1…',
+    title: 'Write patches to the FM1',
+    help: 'Writes your library’s patches over the FM1’s presets. Only patches that differ are written.',
+    source: 'Write from',
+    skipBank: 'Don’t write',
+    differs: 'One patch differs.',
+    differs_other: '{{count, number}} patches differ.',
+    same: 'Every patch matches.',
+    virtualAnalogKept: 'Virtual Analog presets are kept.',
+    replaces: '{{number}} {{replaces}} → {{name}}',
+    action: 'Write one patch…',
+    action_other: 'Write {{count, number}} patches…',
+    confirmTitle: 'Replace these presets on the FM1?',
+    confirmWarning:
+      'Each preset is replaced at once, and the FM1 can’t undo it. Save a backup on Baud Girl’s Presets page first.',
+    confirm: 'Write one patch',
+    confirm_other: 'Write {{count, number}} patches',
+    writing: 'Writing patch {{number, number}} of {{total, number}}…',
+    stop: 'Stop after this patch',
+    written: 'Wrote one patch to the FM1.',
+    written_other: 'Wrote {{count, number}} patches to the FM1.',
+    stopped:
+      'Stopped after {{count, number}} of {{total, number}} patches. The rest are unchanged.',
+    openFailed: 'Writing to the FM1 could not be opened. Reload the page and try again.',
+    errors: {
+      mismatch:
+        'Preset {{number}} didn’t read back as written, so writing stopped after {{count, number}} of {{total, number}} patches.',
+      failed:
+        'Writing stopped after {{count, number}} of {{total, number}} patches. Check the FM1’s MIDI connection.',
+    },
+  },
+  fm1VaSend: {
+    title: 'Send {{bank}} to the FM1',
+    help: 'Writes {{bank}} over one of the FM1’s banks of presets. Only patches that differ are written.',
+    destination: 'Write over',
+    favouritesShort:
+      'Favourites holds one patch, so the FM1 bank’s other presets stay as they are.',
+    favouritesShort_other:
+      'Favourites holds {{count, number}} patches, so the FM1 bank’s other presets stay as they are.',
+    bankTooltip:
+      'Choose an FM1 bank to write these patches over; only the ones that differ are written',
+    favouritesTooltip:
+      'Choose an FM1 bank to write the first 32 favourites over; only the ones that differ are written',
   },
   duplicates: {
     menuItem: 'Find duplicate patches…',
@@ -807,7 +853,6 @@ export default {
     menuHeading: 'Backup',
     download: 'Download backup',
     restore: 'Restore from backup…',
-    backupContents: 'Includes FM1 effects and saved banks',
     lastBackup: 'Last backed up: {{date}}',
     downloaded: 'Downloading a backup of your workspace banks and saved banks.',
     downloadedWithoutSavedBanks:
