@@ -24,6 +24,7 @@ import {
   renameBank,
   renameVoice,
   replaceVoice,
+  replaceWithVirtualAnalog,
   saveSound,
   updateBankInformation,
   voiceId,
@@ -989,5 +990,21 @@ describe('Virtual Analog presets in the workspace', () => {
     expect(getBankVoices(library, 'A')).toHaveLength(31)
     expect(getBankVoices(library, 'A', initVoice)[2]).toBe(initVoice)
     expect(bankVirtualAnalogCount(library.virtualAnalog, 'A')).toBe(1)
+  })
+})
+
+describe('replaceWithVirtualAnalog', () => {
+  it('puts a Virtual Analog preset from outside the workspace over a slot, as its own copy', () => {
+    const library = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const virtualAnalog = virtualAnalogVoiceBeyondDx7Ranges()
+    const record = capturedVirtualAnalogRecord()
+
+    const replaced = replaceWithVirtualAnalog(library, 'A', 2, virtualAnalog, undefined, record)
+
+    expect(replaced.virtualAnalog[voiceId('A', 2)]).toEqual(virtualAnalog)
+    expect(replaced.virtualAnalog[voiceId('A', 2)]).not.toBe(virtualAnalog)
+    expect(replaced.records[voiceId('A', 2)]).toEqual(record)
+    expect(replaced.voices[voiceId('A', 2)]).toBeUndefined()
+    expect(replaced.effects[voiceId('A', 2)]).toEqual(makeDefaultFm1Effects())
   })
 })

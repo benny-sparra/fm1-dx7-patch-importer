@@ -20,31 +20,42 @@ export type DuplicatePatchGroup = {
   settingsDiffer: boolean
 }
 
-/** A fingerprint of a voice's settings without its name, so renamed copies match. */
-function settingsFingerprint(voice: Dx7Voice) {
-  const data = voice.data.slice()
-  data.fill(0x20, nameOffset, nameOffset + FM1_VOICE_NAME_LENGTH)
-  return voiceFingerprint(data)
+/**
+ * A fingerprint of a voice's bytes without its name, so renamed copies match. A Virtual Analog
+ * preset keeps its name in the same bytes as a DX7 voice; the two engines never match each other.
+ */
+function settingsFingerprint(data: Uint8Array, engine: 'dx7' | 'virtual-analog') {
+  const named = data.slice()
+  named.fill(0x20, nameOffset, nameOffset + FM1_VOICE_NAME_LENGTH)
+  return `${engine}:${voiceFingerprint(named)}`
 }
 
 /**
  * Groups the patches in `banks` whose packed voice data matches apart from the name, so an imported
  * archive's repeats can be found and tidied. FM1 effects and FM-1+VA settings records are not
- * part of the match; a group says when they differ. Groups come in the order of their first patch, and each lists its patches in
- * library order. A patch without a voice is left out.
+ * part of the match; a group says when they differ. Virtual Analog presets match on their voice
+ * bytes the same way, and only each other. Groups come in the order of their first patch, and each
+ * lists its patches in library order. An empty slot is left out.
  */
 export function findDuplicatePatches(
   patches: readonly Patch[],
   voices: Readonly<Record<string, Dx7Voice>>,
+  virtualAnalog: Readonly<Record<string, Uint8Array>>,
   effects: Readonly<Record<string, Uint8Array>>,
   records: Readonly<Record<string, Uint8Array>>,
   banks: readonly string[],
 ): DuplicatePatchGroup[] {
-  const groups = new Map<number, Patch[]>()
+  const groups = new Map<string, Patch[]>()
   for (const patch of patches) {
+    if (!banks.includes(patch.bank)) continue
     const voice = voices[patch.id]
-    if (!voice || !banks.includes(patch.bank)) continue
-    const key = settingsFingerprint(voice)
+    const virtualAnalogVoice = virtualAnalog[patch.id]
+    const key = voice
+      ? settingsFingerprint(voice.data, 'dx7')
+      : virtualAnalogVoice
+        ? settingsFingerprint(virtualAnalogVoice, 'virtual-analog')
+        : undefined
+    if (key === undefined) continue
     const group = groups.get(key)
     if (group) group.push(patch)
     else groups.set(key, [patch])

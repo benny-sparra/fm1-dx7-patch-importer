@@ -579,6 +579,29 @@ export function replaceVoice(
   }
 }
 
+/**
+ * Puts a Virtual Analog preset from outside the workspace over a slot, such as one found in a saved
+ * bank: its voice bytes exactly as read, its effects, and its record, each the slot's own copy.
+ */
+export function replaceWithVirtualAnalog(
+  snapshot: PatchLibrarySnapshot,
+  bank: string,
+  slot: number,
+  virtualAnalog: Uint8Array,
+  effects: Uint8Array | undefined,
+  record: Uint8Array,
+): PatchLibrarySnapshot {
+  assertReplaceableSlot(snapshot, bank, slot)
+  const id = voiceId(bank, slot)
+  return {
+    ...snapshot,
+    effects: { ...snapshot.effects, [id]: normalizeFm1Effects(effects) },
+    records: withRecord(snapshot.records, id, record),
+    virtualAnalog: { ...snapshot.virtualAnalog, [id]: virtualAnalog.slice() },
+    voices: withoutEntry(snapshot.voices, id),
+  }
+}
+
 export function clearLibraryBank(snapshot: PatchLibrarySnapshot, bank: string) {
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }

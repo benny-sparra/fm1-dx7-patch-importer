@@ -136,6 +136,12 @@ const SearchEverywhereResults = lazy(() =>
 )
 
 // Replacing a slot from a file opens from its menu, with the file reader, on first use.
+// Changing a Virtual Analog patch to FM opens from its slot menu, with the Init voice, on first use.
+const ChangeToFmDialog = lazy(() =>
+  import('@/components/patches/change-to-fm-dialog').then((module) => ({
+    default: module.ChangeToFmDialog,
+  })),
+)
 const ReplacePatchDialog = lazy(() =>
   import('@/components/patches/replace-patch-dialog').then((module) => ({
     default: module.ReplacePatchDialog,
@@ -217,6 +223,7 @@ type LibrarianLibrary = BackupLibrary &
   ComponentProps<typeof ImportFm1VaPresetsDialog>['library'] &
   ComponentProps<typeof NamedBankLibraryDialog>['library'] &
   ComponentProps<typeof WriteFm1VaPresetsDialog>['library'] &
+  ComponentProps<typeof ChangeToFmDialog>['library'] &
   ComponentProps<typeof ReplacePatchDialog>['library'] &
   ComponentProps<typeof RestoreBackupDialog>['library'] &
   Pick<
@@ -243,6 +250,7 @@ type LibrarianLibrary = BackupLibrary &
     | 'records'
     | 'redo'
     | 'replaceVoice'
+    | 'replaceWithVirtualAnalog'
     | 'resetFactoryBanks'
     | 'toggleFavourite'
     | 'toggleFavouriteSound'
@@ -300,6 +308,8 @@ export function LibrarianPage({
   const [copyRequest, setCopyRequest] = useState<CopyRequest | null>(null)
   // The slot whose menu chose to replace it from a file, kept while its dialog is open.
   const [replaceTarget, setReplaceTarget] = useState<Patch | null>(null)
+  // The Virtual Analog patch a slot menu asked to change to FM, while its dialog is open.
+  const [changeToFmTarget, setChangeToFmTarget] = useState<Patch | null>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [transferError, setTransferError] = useState('')
@@ -365,8 +375,17 @@ export function LibrarianPage({
     setDialogLoadError('')
     setCopyRequest({
       copy: (bank, slot) =>
-        library.replaceVoice(bank, slot, sound.voice, sound.effects, sound.record),
-      edit,
+        'virtualAnalog' in sound
+          ? library.replaceWithVirtualAnalog(
+              bank,
+              slot,
+              sound.virtualAnalog,
+              sound.effects,
+              sound.record,
+            )
+          : library.replaceVoice(bank, slot, sound.voice, sound.effects, sound.record),
+      // A Virtual Analog preset has no voice editor to open.
+      edit: edit && 'voice' in sound,
       key: sound.origin,
       source: { name: sound.name, number: sound.slot, origin: sound.origin },
     })
@@ -374,6 +393,10 @@ export function LibrarianPage({
   const requestReplace = (patch: Patch) => {
     setDialogLoadError('')
     setReplaceTarget(patch)
+  }
+  const requestChangeToFm = (patch: Patch) => {
+    setDialogLoadError('')
+    setChangeToFmTarget(patch)
   }
   // The single-voice file format loads with the first download rather than with the page.
   const downloadPatch = async (patch: Patch) => {
@@ -1122,6 +1145,7 @@ export function LibrarianPage({
         onPatchDownload={(patch) => void downloadPatch(patch)}
         // Importing a file puts it in a bank slot; Favourites takes sounds through their hearts.
         onPatchReplace={showsFavourites ? undefined : requestReplace}
+        onPatchChangeToFm={showsFavourites ? undefined : requestChangeToFm}
         onPatchEdit={(patch) => {
           followPlayedPatch(patch)
           onEditPatch(patch)
@@ -1137,6 +1161,7 @@ export function LibrarianPage({
         }}
         onPatchToggleFavourite={toggleFavourite}
         patchOrigin={showsFavourites ? favouriteOrigin : undefined}
+        tagsEngines={midi.firmware.kind === 'fm1-va'}
         changedSlots={changedSlots}
         patches={visiblePatches}
         reorderable={!isSearching}
@@ -1165,6 +1190,7 @@ export function LibrarianPage({
                   workspaceEffects={library.effects}
                   workspaceRecords={library.records}
                   workspaceMatches={visiblePatches}
+                  workspaceVirtualAnalog={library.virtualAnalog}
                   workspaceVoices={library.voices}
                 />
               </Suspense>
@@ -1467,6 +1493,32 @@ export function LibrarianPage({
                 }
               }}
               source={copyRequest.source}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
+      {changeToFmTarget ? (
+        <ErrorBoundary
+          key={changeToFmTarget.id}
+          onError={() => {
+            setChangeToFmTarget(null)
+            setDialogLoadError(t('changeToFm.openFailed'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <ChangeToFmDialog
+              library={library}
+              onChanged={(voice, changed) =>
+                toast.success(
+                  t('changeToFm.changed', {
+                    patch: voice.name,
+                    slot: patchSlotCode(changeToFmTarget),
+                  }),
+                  undoToastOptions(t, library, changed),
+                )
+              }
+              onClose={() => setChangeToFmTarget(null)}
+              patch={changeToFmTarget}
             />
           </Suspense>
         </ErrorBoundary>

@@ -18,7 +18,14 @@ import { patchSlotCode } from '@/lib/patch-library'
 type DuplicatePatchesDialogProps = {
   library: Pick<
     PatchLibrary,
-    'bankNames' | 'effects' | 'loadedBanks' | 'patches' | 'records' | 'voices' | 'workspaceBanks'
+    | 'bankNames'
+    | 'effects'
+    | 'loadedBanks'
+    | 'patches'
+    | 'records'
+    | 'virtualAnalog'
+    | 'voices'
+    | 'workspaceBanks'
   >
   /** Called once the dialog has closed, with the patch chosen to go to, if one was. */
   onClose: (chosen: Patch | null) => void
@@ -45,11 +52,19 @@ export function DuplicatePatchesDialog({ library, onClose }: DuplicatePatchesDia
       findDuplicatePatches(
         library.patches,
         library.voices,
+        library.virtualAnalog,
         library.effects,
         library.records,
         library.loadedBanks,
       ),
-    [library.effects, library.loadedBanks, library.patches, library.records, library.voices],
+    [
+      library.effects,
+      library.loadedBanks,
+      library.patches,
+      library.records,
+      library.virtualAnalog,
+      library.voices,
+    ],
   )
 
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears,

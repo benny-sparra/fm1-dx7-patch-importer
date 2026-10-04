@@ -10,8 +10,17 @@ import { SearchEverywhereResults } from '@/components/patches/search-everywhere-
 import { Dx7CatalogBankUnavailableError, type Dx7Voice, updateDx7VoiceName } from '@/lib/dx7'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { createNamedBank } from '@/lib/named-bank'
-import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
+import {
+  emptyPatchLibrary,
+  importFetchedBanks,
+  importVoices,
+  makeDemoVoices,
+} from '@/lib/patch-library'
 import { soundKey } from '@/lib/sound-key'
+import {
+  capturedVirtualAnalogRecord,
+  capturedVirtualAnalogVoice,
+} from '@/test/fm1-va-virtual-analog'
 import { translatePageText } from '@/test/page-translator'
 import { slotVoice } from '@/test/slot-voice'
 
@@ -44,6 +53,24 @@ function savedBank(firstVoiceName: string) {
   return bank
 }
 
+/** A saved bank of demo voices with the Virtual Analog preset 097 in slot 5. */
+function virtualAnalogBank() {
+  const sounds = Array.from({ length: 32 }, (_, index) =>
+    index === 4
+      ? { record: capturedVirtualAnalogRecord(), virtualAnalog: capturedVirtualAnalogVoice() }
+      : null,
+  )
+  const library = importFetchedBanks(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), [
+    { bank: 'A', sounds },
+  ])
+  return createNamedBank(library, 'A', {
+    description: '',
+    id: 'saved-va',
+    name: 'Analog',
+    now: '2026-10-04T00:00:00.000Z',
+  })
+}
+
 function renderResults(props: Partial<ComponentProps<typeof SearchEverywhereResults>> = {}) {
   const onCopy = vi.fn()
   const onPlay = vi.fn()
@@ -62,6 +89,7 @@ function renderResults(props: Partial<ComponentProps<typeof SearchEverywhereResu
       workspaceEffects={{}}
       workspaceRecords={{}}
       workspaceMatches={[]}
+      workspaceVirtualAnalog={{}}
       workspaceVoices={{}}
       {...props}
     />,
@@ -177,6 +205,7 @@ describe('search everywhere results', () => {
         workspaceEffects={{}}
         workspaceRecords={{}}
         workspaceMatches={[]}
+        workspaceVirtualAnalog={{}}
         workspaceVoices={{}}
       />,
     )
@@ -296,6 +325,49 @@ describe('search everywhere results', () => {
         name: 'No patches match this search',
       }),
     ).toBeTruthy()
+  })
+
+  it('lists a saved Virtual Analog preset that can only be copied', async () => {
+    const { onCopy, user } = renderResults({
+      namedBanks: [virtualAnalogBank()],
+      search: 'voice 97',
+    })
+
+    const saved = await screen.findByRole('region', { name: 'Saved banks' })
+    expect(within(saved).getByText('Virtual Analog preset')).toBeTruthy()
+    expect(within(saved).queryByRole('button', { name: /^Play VOICE 97/ })).toBeNull()
+    expect(within(saved).queryByRole('button', { name: /Favourites/ })).toBeNull()
+    await user.click(within(saved).getByRole('button', { name: 'Copy VOICE 97 to a bank' }))
+
+    await vi.waitFor(() =>
+      expect(onCopy).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          name: 'VOICE 97',
+          record: capturedVirtualAnalogRecord(),
+          slot: 5,
+          virtualAnalog: capturedVirtualAnalogVoice(),
+        }),
+        false,
+      ),
+    )
+  })
+
+  it('leaves out a saved Virtual Analog preset the workspace already holds', async () => {
+    const bank = virtualAnalogBank()
+    const effects = bank.slots[4].effects
+    renderResults({
+      namedBanks: [bank],
+      search: 'voice 97',
+      workspaceEffects: { 'bank-B-1': effects },
+      workspaceMatches: [{ id: 'bank-B-1' }],
+      workspaceRecords: { 'bank-B-1': capturedVirtualAnalogRecord() },
+      workspaceVirtualAnalog: { 'bank-B-1': capturedVirtualAnalogVoice() },
+    })
+
+    const saved = await screen.findByRole('region', { name: 'Saved banks' })
+
+    expect(within(saved).queryByText('VOICE 97')).toBeNull()
+    expect(within(saved).getByText('Duplicate patches aren’t shown.')).toBeTruthy()
   })
 
   it('leaves out a saved patch that sounds exactly like a workspace match, and says so', async () => {

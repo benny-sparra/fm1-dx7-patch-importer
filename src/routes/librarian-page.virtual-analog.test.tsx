@@ -93,7 +93,7 @@ function renderPage(firmware: Fm1Firmware = mvave) {
       />
     </ToastProvider>,
   )
-  return { midi, user: userEvent.setup() }
+  return { library, midi, user: userEvent.setup() }
 }
 
 const virtualAnalogSlot = () => screen.getByRole('button', { name: 'Send VOICE 97 to FM1' })
@@ -174,6 +174,72 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
       screen.getByText(
         'Eine DX7-Bank hat keinen Platz für ein Virtual-Analog-Preset, darum wird das dieser Bank als INIT VOICE gesendet.',
       ),
+    ).toBeTruthy()
+  })
+})
+
+const baudGirl: Fm1Firmware = { identity: 'FM-1_093', kind: 'fm1-va' }
+/** The card of the slot whose play button is named for `name`. */
+const cardOf = (name: string) =>
+  screen.getByRole('button', { name: `Send ${name} to FM1` }).parentElement as HTMLElement
+
+describe('LibrarianPage engine tags', () => {
+  it('tags each patch with its engine while the FM1 runs Baud Girl’s firmware', () => {
+    renderPage(baudGirl)
+
+    expect(within(cardOf('VOICE 97')).getByText('VA')).toBeTruthy()
+    expect(within(cardOf('E.PIANO1')).getByText('FM')).toBeTruthy()
+    expect(within(cardOf('E.PIANO1')).getByText('FM patch')).toBeTruthy()
+  })
+
+  it('tags only the Virtual Analog patch on other firmware', () => {
+    renderPage()
+
+    expect(within(cardOf('VOICE 97')).getByText('VA')).toBeTruthy()
+    expect(within(cardOf('E.PIANO1')).queryByText('FM')).toBeNull()
+  })
+})
+
+describe('LibrarianPage changing a Virtual Analog patch to FM', () => {
+  it('offers the change on a Virtual Analog patch only', async () => {
+    const { user } = renderPage()
+
+    await user.click(screen.getByRole('button', { name: 'Actions for E.PIANO1' }))
+    expect(screen.queryByRole('menuitem', { name: 'Change to FM…' })).toBeNull()
+    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Change to FM…' })).toBeTruthy()
+  })
+
+  it('replaces it with INIT VOICE under the name typed, keeping its effects, with Undo', async () => {
+    const { library, user } = renderPage()
+    vi.mocked(library.replaceVoice).mockReturnValue(workspace())
+    await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Change to FM…' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Change A03 “VOICE 97” to FM?' })
+    const name = within(dialog).getByRole('textbox', { name: 'Name' })
+    await user.clear(name)
+    await user.type(name, 'NEW FM')
+    await user.click(within(dialog).getByRole('button', { name: 'Change to FM' }))
+
+    const [bank, slot, voice, effects] = vi.mocked(library.replaceVoice).mock.calls[0]
+    expect([bank, slot, voice.name]).toEqual(['A', 3, 'NEW FM'])
+    expect(effects).toBe(library.effects['bank-A-3'])
+    expect(await screen.findByText('Changed A03 to FM as “NEW FM”.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeTruthy()
+  })
+
+  it('names the slot it changes in the interface language', async () => {
+    await setLocale('de')
+    const { user } = renderPage()
+    await user.click(screen.getByRole('button', { name: 'Aktionen für VOICE 97' }))
+
+    await user.click(screen.getByRole('menuitem', { name: 'In FM umwandeln…' }))
+
+    expect(
+      await screen.findByRole('dialog', { name: 'A03 „VOICE 97“ in FM umwandeln?' }),
     ).toBeTruthy()
   })
 })

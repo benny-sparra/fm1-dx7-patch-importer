@@ -33,6 +33,7 @@ import {
   renameBank as renameLibraryBank,
   renameVoice as renameLibraryVoice,
   replaceVoice as replaceLibraryVoice,
+  replaceWithVirtualAnalog as replaceLibraryWithVirtualAnalog,
   saveSound,
   updateBankInformation as updateLibraryBankInformation,
   type FetchedBank,
@@ -336,6 +337,20 @@ export function usePatchLibrary() {
     [commit],
   )
 
+  const replaceWithVirtualAnalog = useCallback(
+    (
+      bank: string,
+      slot: number,
+      virtualAnalog: Uint8Array,
+      effects: Uint8Array | undefined,
+      record: Uint8Array,
+    ) =>
+      commit((current) =>
+        replaceLibraryWithVirtualAnalog(current, bank, slot, virtualAnalog, effects, record),
+      ),
+    [commit],
+  )
+
   const deleteBank = useCallback(
     (bank: string) => commit((current) => deleteWorkspaceBank(current, bank)),
     [commit],
@@ -540,6 +555,7 @@ export function usePatchLibrary() {
     renameBank,
     renameVoice,
     replaceVoice,
+    replaceWithVirtualAnalog,
     retryWorkspaceLoading,
     retryWorkspaceSaving,
     resetFactoryBanks,

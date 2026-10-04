@@ -3,7 +3,12 @@ import { describe, expect, it, vi } from 'vitest'
 import { updateDx7VoiceName } from '@/lib/dx7'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { createNamedBank } from '@/lib/named-bank'
-import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
+import {
+  emptyPatchLibrary,
+  importFetchedBanks,
+  importVoices,
+  makeDemoVoices,
+} from '@/lib/patch-library'
 import {
   createCatalogVoiceLoader,
   findCatalogMatches,
@@ -11,7 +16,11 @@ import {
   dx7CatalogIndex,
   hideCopies,
 } from '@/lib/search-everywhere'
-import { soundKey } from '@/lib/sound-key'
+import { soundKey, virtualAnalogSoundKey } from '@/lib/sound-key'
+import {
+  capturedVirtualAnalogRecord,
+  capturedVirtualAnalogVoice,
+} from '@/test/fm1-va-virtual-analog'
 import { slotVoice } from '@/test/slot-voice'
 
 function savedBank(id: string, name: string, firstVoiceName: string) {
@@ -99,6 +108,29 @@ describe('saved bank search', () => {
       'Leads:ZAP ONE',
       'Pads:ZAP TWO',
     ])
+  })
+
+  it('finds a saved Virtual Analog preset by its name, keyed apart from DX7 voices', () => {
+    const virtualAnalog = capturedVirtualAnalogVoice()
+    const record = capturedVirtualAnalogRecord()
+    const sounds = Array.from({ length: 32 }, (_, index) =>
+      index === 4 ? { record, virtualAnalog } : null,
+    )
+    const library = importFetchedBanks(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), [
+      { bank: 'A', sounds },
+    ])
+    const bank = createNamedBank(library, 'A', {
+      description: '',
+      id: 'va',
+      name: 'Analog',
+      now: '2026-10-04T00:00:00.000Z',
+    })
+
+    const [match] = findSavedBankMatches([bank], 'voice 97')
+
+    expect(match).toMatchObject({ name: 'VOICE 97', record, slot: 5, virtualAnalog })
+    expect(match.soundKey).toBe(virtualAnalogSoundKey(virtualAnalog, match.effects, record))
+    expect(match.soundKey.startsWith('va:')).toBe(true)
   })
 })
 
