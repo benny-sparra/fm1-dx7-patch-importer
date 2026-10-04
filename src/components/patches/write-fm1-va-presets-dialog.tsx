@@ -1,4 +1,4 @@
-import { ChevronDown, Send, Square } from 'lucide-react'
+import { Send, Square } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/rack-panel'
 import { useToast } from '@/components/ui/toast'
 import { WarningNotice } from '@/components/ui/warning-notice'
+import { Select } from '@/components/ui/select'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import { useFm1VaPresetWriter } from '@/hooks/use-fm1-va-preset-writer'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
@@ -73,19 +74,6 @@ type WriteFailure = { count: number; slot?: number; total: number }
  * source, so switching it on again restores it.
  */
 type BankChoice = { source: string; written: boolean }
-
-/** The app's own chevron, in place of a dropdown's native arrow, as its other dropdowns draw. */
-function SelectChevron() {
-  return (
-    <ChevronDown
-      aria-hidden="true"
-      className="pointer-events-none absolute top-1/2 right-2 size-4 -translate-y-1/2 text-muted-foreground"
-    />
-  )
-}
-
-const selectClassName =
-  'settings-option-select h-9 w-full appearance-none truncate rounded-md border py-0 pr-8 pl-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60'
 
 function writeFailureMessage(t: Translate, { count, slot, total }: WriteFailure) {
   return slot === undefined
@@ -509,22 +497,19 @@ function BankWrite({ bank, choice, libraryBanks, onChooseSource, onSwitch, plan 
           <label className="shrink-0 text-[var(--crt-ink-3)]" htmlFor={sourceId}>
             {t('fm1VaWrite.source')}
           </label>
-          <span className="relative min-w-0 flex-1">
-            <select
-              className={selectClassName}
-              disabled={!choice.written}
-              id={sourceId}
-              onChange={(event) => onChooseSource(event.target.value)}
-              value={choice.source}
-            >
-              {libraryBanks.map(({ label, value }) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-            <SelectChevron />
-          </span>
+          <Select
+            className="min-w-0 flex-1"
+            disabled={!choice.written}
+            id={sourceId}
+            onChange={(event) => onChooseSource(event.target.value)}
+            value={choice.source}
+          >
+            {libraryBanks.map(({ label, value }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
         </div>
         {choice.written ? (
           <p className="text-xs text-[var(--crt-ink-3)]">{planSummary(t, plan)}</p>
@@ -558,25 +543,22 @@ function SendBankWrite({ destination, note, onChooseDestination, plan }: SendBan
         <label className="shrink-0 text-[var(--crt-ink-3)]" htmlFor={destinationId}>
           {t('fm1VaSend.destination')}
         </label>
-        <span className="relative min-w-0 flex-1">
-          <select
-            className={selectClassName}
-            id={destinationId}
-            onChange={(event) =>
-              onChooseDestination(
-                fm1VaWriteBanks.find((bank) => bank === event.target.value) ?? destination,
-              )
-            }
-            value={destination}
-          >
-            {fm1VaWriteBanks.map((bank) => (
-              <option key={bank} value={bank}>
-                {t('fm1VaImport.bankHeading', { bank })}
-              </option>
-            ))}
-          </select>
-          <SelectChevron />
-        </span>
+        <Select
+          className="min-w-0 flex-1"
+          id={destinationId}
+          onChange={(event) =>
+            onChooseDestination(
+              fm1VaWriteBanks.find((bank) => bank === event.target.value) ?? destination,
+            )
+          }
+          value={destination}
+        >
+          {fm1VaWriteBanks.map((bank) => (
+            <option key={bank} value={bank}>
+              {t('fm1VaImport.bankHeading', { bank })}
+            </option>
+          ))}
+        </Select>
       </div>
       <p className="text-xs text-[var(--crt-ink-3)]">{planSummary(t, plan)}</p>
       {note ? <p className="text-xs text-[var(--crt-ink-3)]">{note}</p> : null}

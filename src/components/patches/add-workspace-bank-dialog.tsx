@@ -21,6 +21,7 @@ import {
 } from '@/data/dx7-bank-catalog'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
+import { Select } from '@/components/ui/select'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import type { Dx7Voice } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
@@ -272,14 +273,15 @@ export function AddWorkspaceBankDialog({
 
             <div className="modal-input-surface rounded-md border border-input p-3">
               {source === 'catalog' ? (
-                <select
+                <Select
                   aria-label={t('banks.catalogBank')}
-                  className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   disabled={working}
                   onChange={(event) => setCatalogBankId(event.target.value)}
                   value={catalogBankId}
                 >
-                  <option value="">{t('banks.chooseCatalogBank')}</option>
+                  <option disabled value="">
+                    {t('banks.chooseCatalogBank')}
+                  </option>
                   {catalogGroups.map(({ category, label }) => (
                     <optgroup key={category} label={label}>
                       {dx7BankCatalog
@@ -293,7 +295,7 @@ export function AddWorkspaceBankDialog({
                         ))}
                     </optgroup>
                   ))}
-                </select>
+                </Select>
               ) : (
                 <label className="flex min-h-10 cursor-pointer items-center rounded-md border border-dashed border-input bg-background px-3 text-sm transition-colors hover:bg-muted/50">
                   <span className="min-w-0 truncate">

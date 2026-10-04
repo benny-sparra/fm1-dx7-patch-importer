@@ -142,7 +142,7 @@ export function ReplacePatchDialog({
       <DialogFooter>
         <Button disabled={working || !file} form={formId} type="submit" variant="destructive">
           <Upload />
-          <span>{t('replacePatch.action')}</span>
+          <span>{t(working ? 'replacePatch.replacing' : 'replacePatch.action')}</span>
         </Button>
       </DialogFooter>
     </Dialog>

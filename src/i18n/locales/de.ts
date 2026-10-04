@@ -296,6 +296,7 @@ export default {
     },
   },
   replacePatch: {
+    replacing: 'Wird ersetzt…',
     action: 'Sound ersetzen',
     title: '{{slot}} „{{patch}}“ ersetzen?',
     warning:
@@ -944,6 +945,7 @@ export default {
     },
   },
   namedBanks: {
+    saving: 'Wird gespeichert…',
     open: 'Bankbibliothek',
     title: 'Meine gespeicherten Bänke',
     intro: 'Wähle eine gespeicherte Bank für Arbeitsbank {{bank}} aus.',

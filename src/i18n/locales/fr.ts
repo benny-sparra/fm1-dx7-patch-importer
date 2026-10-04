@@ -294,6 +294,7 @@ export default {
     },
   },
   replacePatch: {
+    replacing: 'Remplacement…',
     action: 'Remplacer le son',
     title: 'Remplacer {{slot}} « {{patch}} » ?',
     warning:
@@ -847,7 +848,7 @@ export default {
     chooseSysexFile: 'Choisir un fichier SysEx DX7',
     soundDataHelp: 'Chaque nouvelle banque contient une banque DX7 standard complète de 32 voix.',
     createBank: 'Créer la banque',
-    creatingBank: 'Importation…',
+    creatingBank: 'Création…',
     addBankFailed: 'La banque n’a pas pu être créée.',
     destination: 'Banque de destination du navigateur',
     importFile: 'Importer un fichier de banque DX7',
@@ -935,6 +936,7 @@ export default {
     },
   },
   namedBanks: {
+    saving: 'Enregistrement…',
     open: 'Bibliothèque de banques',
     title: 'Mes banques enregistrées',
     intro: 'Choisissez une banque enregistrée à charger dans la banque de travail {{bank}}.',

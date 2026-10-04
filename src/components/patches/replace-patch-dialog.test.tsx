@@ -187,6 +187,7 @@ describe('ReplacePatchDialog', () => {
 
     expect(cancel.defaultPrevented).toBe(true)
     expect(screen.getByRole('button', { name: 'Close' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Replacing…' }).hasAttribute('disabled')).toBe(true)
     expect(onClose).not.toHaveBeenCalled()
   })
 })

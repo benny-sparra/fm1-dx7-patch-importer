@@ -289,6 +289,7 @@ export default {
     },
   },
   replacePatch: {
+    replacing: 'Substituindo…',
     action: 'Substituir som',
     title: 'Substituir {{slot}} “{{patch}}”?',
     warning:
@@ -923,6 +924,7 @@ export default {
     },
   },
   namedBanks: {
+    saving: 'Salvando…',
     open: 'Biblioteca de bancos',
     title: 'Meus bancos salvos',
     intro: 'Escolha um banco salvo para carregar no banco de trabalho {{bank}}.',

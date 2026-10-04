@@ -106,7 +106,7 @@ describe('SaveNamedBankDialog', () => {
     screen.getByRole('dialog').dispatchEvent(cancel)
 
     expect(cancel.defaultPrevented).toBe(true)
-    expect(screen.getByRole('button', { name: 'Save bank' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Saving…' }).hasAttribute('disabled')).toBe(true)
     expect(screen.getByRole('button', { name: 'Close' }).hasAttribute('disabled')).toBe(true)
     expect(saveNamedBank).toHaveBeenCalledTimes(1)
     expect(onClose).not.toHaveBeenCalled()

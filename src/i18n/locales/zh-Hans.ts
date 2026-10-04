@@ -256,6 +256,7 @@ export default {
     },
   },
   replacePatch: {
+    replacing: '正在替换…',
     action: '替换音色',
     title: '替换 {{slot}}“{{patch}}”吗？',
     warning: '此位置的音色将被文件中的音色替换，其 FM1 效果将恢复为默认值。',
@@ -840,6 +841,7 @@ export default {
     },
   },
   namedBanks: {
+    saving: '正在保存…',
     open: '音色库',
     title: '我保存的音色库',
     intro: '选择一个已保存的音色库，加载到工作区音色库 {{bank}}。',

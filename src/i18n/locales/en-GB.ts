@@ -175,6 +175,7 @@ export default {
     },
   },
   replacePatch: {
+    replacing: 'Replacing…',
     action: 'Replace patch',
     title: 'Replace {{slot}} “{{patch}}”?',
     warning:
@@ -716,7 +717,7 @@ export default {
     chooseSysexFile: 'Choose a DX7 SysEx file',
     soundDataHelp: 'Every new workspace bank starts with a complete standard 32-voice DX7 bank.',
     createBank: 'Create bank',
-    creatingBank: 'Importing…',
+    creatingBank: 'Creating…',
     addBankFailed: 'The bank could not be created.',
     destination: 'Destination browser bank',
     importFile: 'Import DX7 bank file',
@@ -796,6 +797,7 @@ export default {
     },
   },
   namedBanks: {
+    saving: 'Saving…',
     open: 'Bank library',
     title: 'My saved banks',
     intro: 'Choose a saved bank to load into workspace bank {{bank}}.',

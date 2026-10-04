@@ -259,7 +259,7 @@ describe('AddWorkspaceBankDialog creating a bank', () => {
     expect(within(dialog).getByRole('button', { name: 'Close' }).hasAttribute('disabled')).toBe(
       true,
     )
-    expect(within(dialog).getByRole('button', { name: 'Importing…' })).toBeTruthy()
+    expect(within(dialog).getByRole('button', { name: 'Creating…' })).toBeTruthy()
     expect(onClose).not.toHaveBeenCalled()
   })
 
