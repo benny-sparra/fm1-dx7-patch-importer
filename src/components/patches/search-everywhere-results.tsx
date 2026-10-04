@@ -12,7 +12,7 @@ import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import type { NamedBank } from '@/lib/named-bank'
 import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
 import type { Dx7CatalogIndex } from '@/lib/search-everywhere'
-import { soundKey } from '@/lib/sound-key'
+import { soundKey, virtualAnalogSoundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
 
 type SearchModule = typeof import('@/lib/search-everywhere')
@@ -38,23 +38,32 @@ const resultLimit = 60
 
 const emptyGroup: ResultGroupContent = { hidden: 0, results: [] }
 
+/**
+ * A result's sound: a DX7 voice, with the FM-1+VA settings record of a saved-bank sound that has
+ * one, or a saved Virtual Analog preset's voice bytes and record. A catalog sound has no FM1
+ * effects of its own.
+ */
+type ResultSound = { effects?: Uint8Array } & (
+  { record?: Uint8Array; voice: Dx7Voice } | { record: Uint8Array; virtualAnalog: Uint8Array }
+)
+
 /** A sound found outside the workspace, ready to copy into a workspace slot. */
-export type SearchResultSound = {
-  /** Absent for a catalog sound, which has no FM1 effects of its own. */
-  effects?: Uint8Array
+export type SearchResultSound = ResultSound & {
   name: string
   /** Where it comes from, as the copy dialog shows it. */
   origin: string
-  /** The FM-1+VA settings record of a saved-bank sound that has one. */
-  record?: Uint8Array
   slot: number
-  voice: Dx7Voice
 }
 
 type Result = {
   bankName: string
+  /**
+   * A saved Virtual Analog preset, which can only be copied: a saved bank has no FM1 slot to play
+   * it from, and it has no voice editor.
+   */
+  isVirtualAnalog: boolean
   key: string
-  load: () => Promise<{ effects?: Uint8Array; record?: Uint8Array; voice: Dx7Voice }>
+  load: () => Promise<ResultSound>
   name: string
   slot: number
   soundKey: string
@@ -81,6 +90,7 @@ type SearchEverywhereResultsProps = {
   workspaceRecords: Record<string, Uint8Array>
   /** The workspace results above. A result that sounds exactly like one of them is left out. */
   workspaceMatches: Pick<Patch, 'id'>[]
+  workspaceVirtualAnalog: Record<string, Uint8Array>
   workspaceVoices: Record<string, Dx7Voice>
 }
 
@@ -106,6 +116,7 @@ export function SearchEverywhereResults({
   workspaceEffects,
   workspaceRecords,
   workspaceMatches,
+  workspaceVirtualAnalog,
   workspaceVoices,
 }: SearchEverywhereResultsProps) {
   const { i18n, t } = useTranslation()
@@ -143,17 +154,28 @@ export function SearchEverywhereResults({
     const { findCatalogMatches, findSavedBankMatches, hideCopies } = searcher.module
     const shown = workspaceMatches.flatMap(({ id }) => {
       const voice = workspaceVoices[id]
-      return voice
-        ? [soundKey(voice, workspaceEffects[id] ?? makeDefaultFm1Effects(), workspaceRecords[id])]
-        : []
+      const virtualAnalog = workspaceVirtualAnalog[id]
+      const record = workspaceRecords[id]
+      const effects = workspaceEffects[id] ?? makeDefaultFm1Effects()
+      if (voice) return [soundKey(voice, effects, record)]
+      return virtualAnalog && record ? [virtualAnalogSoundKey(virtualAnalog, effects, record)] : []
     })
     const [saved, catalog] = hideCopies<{ result: Result; soundKey: string }>(shown, [
       findSavedBankMatches(namedBanks, search).map((match) => ({
         result: {
           bankName: match.bankName,
+          isVirtualAnalog: 'virtualAnalog' in match,
           key: `saved:${match.bankId}:${match.slot}`,
-          load: () =>
-            Promise.resolve({ effects: match.effects, record: match.record, voice: match.voice }),
+          load: (): Promise<ResultSound> =>
+            Promise.resolve(
+              'virtualAnalog' in match
+                ? {
+                    effects: match.effects,
+                    record: match.record,
+                    virtualAnalog: match.virtualAnalog,
+                  }
+                : { effects: match.effects, record: match.record, voice: match.voice },
+            ),
           name: match.name,
           slot: match.slot,
           soundKey: match.soundKey,
@@ -163,6 +185,7 @@ export function SearchEverywhereResults({
       findCatalogMatches(searcher.index, search).map((match) => ({
         result: {
           bankName: match.bankName,
+          isVirtualAnalog: false,
           key: `catalog:${match.bankId}:${match.slot}`,
           load: async () => ({ voice: await searcher.loadVoice(match.bankId, match.slot) }),
           name: match.name,
@@ -183,6 +206,7 @@ export function SearchEverywhereResults({
     workspaceEffects,
     workspaceMatches,
     workspaceRecords,
+    workspaceVirtualAnalog,
     workspaceVoices,
   ])
 
@@ -193,8 +217,17 @@ export function SearchEverywhereResults({
     const request = latestRequest.current
     setError('')
     try {
-      const { effects, record, voice } = await result.load()
+      const sound = await result.load()
       if (request !== latestRequest.current) return
+      const origin = `${slotNumber(result.slot)} ${result.name} · ${result.bankName}`
+      if ('virtualAnalog' in sound) {
+        // A Virtual Analog preset is only copied: it cannot play here or open in the editor.
+        if (action === 'copy' || action === 'edit') {
+          onCopy({ ...sound, name: result.name, origin, slot: result.slot }, false)
+        }
+        return
+      }
+      const { effects, record, voice } = sound
       if (action === 'play') {
         onPlay(voice, effects)
         setPlayedKey(result.key)
@@ -205,14 +238,7 @@ export function SearchEverywhereResults({
         return
       }
       onCopy(
-        {
-          effects,
-          name: result.name,
-          origin: `${slotNumber(result.slot)} ${result.name} · ${result.bankName}`,
-          record,
-          slot: result.slot,
-          voice,
-        },
+        { effects, name: result.name, origin, record, slot: result.slot, voice },
         action === 'edit',
       )
     } catch (cause) {
@@ -333,31 +359,42 @@ function ResultGroup({
                 )}
                 key={result.key}
               >
-                <button
-                  aria-current={isActive ? 'true' : undefined}
-                  aria-label={t('banks.everywhere.play', { name: result.name, origin })}
-                  className="absolute inset-0 z-0 cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-                  onClick={() => onPlay(result)}
-                  // Double-clicking edits, as on a slot, and Enter on the result just played does too.
-                  // A result has no slot to edit, so both copy it into one first.
-                  onDoubleClick={() => onEdit(result)}
-                  onKeyDown={(event) => {
-                    if (!isActive || !matchesShortcut(event, librarianShortcuts.openSlot)) return
-                    event.preventDefault()
-                    onEdit(result)
-                  }}
-                  title={t('banks.everywhere.playTitle', { name: result.name })}
-                  type="button"
-                />
+                {/* A Virtual Analog result has nothing to play here, so only its copy button acts. */}
+                {result.isVirtualAnalog ? null : (
+                  <button
+                    aria-current={isActive ? 'true' : undefined}
+                    aria-label={t('banks.everywhere.play', { name: result.name, origin })}
+                    className="absolute inset-0 z-0 cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+                    onClick={() => onPlay(result)}
+                    // Double-clicking edits, as on a slot, and Enter on the result just played does too.
+                    // A result has no slot to edit, so both copy it into one first.
+                    onDoubleClick={() => onEdit(result)}
+                    onKeyDown={(event) => {
+                      if (!isActive || !matchesShortcut(event, librarianShortcuts.openSlot)) return
+                      event.preventDefault()
+                      onEdit(result)
+                    }}
+                    title={t('banks.everywhere.playTitle', { name: result.name })}
+                    type="button"
+                  />
+                )}
                 <span
                   className={cn(
-                    'patch-slot font-vt323 pointer-events-none shrink-0 border bg-[var(--crt-bg-well)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none',
+                    'patch-slot font-vt323 pointer-events-none relative shrink-0 border bg-[var(--crt-bg-well)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none',
                     isActive
                       ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
                       : 'border-[var(--crt-line)] text-[var(--crt-acc-lt)]',
                   )}
                 >
-                  {slotNumber(result.slot)}
+                  <span>{slotNumber(result.slot)}</span>
+                  {result.isVirtualAnalog ? (
+                    <span
+                      aria-hidden="true"
+                      className="absolute -top-1.5 -right-2 bg-[var(--crt-bg-well)] px-0.5 font-sans text-[9px] leading-none font-semibold text-[var(--crt-led)]"
+                    >
+                      {t('fm1VaImport.virtualAnalogTag')}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="pointer-events-none min-w-0 flex-1">
                   <span
@@ -371,14 +408,19 @@ function ResultGroup({
                   <span className="block truncate text-[11px] text-[var(--crt-ink-3)]">
                     {result.bankName}
                   </span>
+                  {result.isVirtualAnalog ? (
+                    <span className="sr-only">{t('banks.virtualAnalogPatch')}</span>
+                  ) : null}
                 </span>
                 {/* As on a slot, the heart and copy button share one gap to leave the name room. */}
                 <span className="flex shrink-0 items-center">
-                  <FavouriteButton
-                    isFavourite={favouriteKeys.has(result.soundKey)}
-                    name={result.name}
-                    onToggle={() => onToggleFavourite(result)}
-                  />
+                  {result.isVirtualAnalog ? null : (
+                    <FavouriteButton
+                      isFavourite={favouriteKeys.has(result.soundKey)}
+                      name={result.name}
+                      onToggle={() => onToggleFavourite(result)}
+                    />
+                  )}
                   {/* Above the result's own button, so copying does not also play it. */}
                   <button
                     aria-label={t('banks.everywhere.copy', { name: result.name })}

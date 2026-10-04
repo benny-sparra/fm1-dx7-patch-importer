@@ -59,6 +59,7 @@ type PatchGridProps = {
   isBankLoaded?: boolean
   isFavourite?: (patch: Patch) => boolean
   isPatchDisabled?: (patch: Patch) => boolean
+  onPatchChangeToFm?: (patch: Patch) => void
   onPatchCopy?: (patch: Patch) => void
   onPatchDownload?: (patch: Patch) => void
   onPatchReplace?: (patch: Patch) => void
@@ -78,6 +79,8 @@ type PatchGridProps = {
   resultsHeading?: string
   search: string
   searchDisabled?: boolean
+  /** Tags each patch with its engine, FM or VA, while the FM1 runs Baud Girl's firmware. */
+  tagsEngines?: boolean
   searchRef?: RefObject<HTMLInputElement | null>
   setSearch: (search: string) => void
   toolbar?: ReactNode
@@ -107,6 +110,7 @@ export function PatchGrid({
   isBankLoaded = true,
   isFavourite = () => false,
   isPatchDisabled = () => false,
+  onPatchChangeToFm,
   onPatchCopy,
   onPatchDownload,
   onPatchReplace,
@@ -124,6 +128,7 @@ export function PatchGrid({
   search,
   searchDisabled = false,
   searchRef,
+  tagsEngines = false,
   setSearch,
   toolbar,
 }: PatchGridProps) {
@@ -280,6 +285,7 @@ export function PatchGrid({
                             }
                             disabled={isPatchDisabled(patch)}
                             disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
+                            onChangeToFm={onPatchChangeToFm}
                             onCopy={onPatchCopy}
                             onDownload={onPatchDownload}
                             onReplace={onPatchReplace}
@@ -293,6 +299,7 @@ export function PatchGrid({
                             isActive={patch.id === activePatchId}
                             registerButton={registerSlot}
                             tabIndex={patch.id === rovingSlot ? 0 : -1}
+                            tagsEngine={tagsEngines}
                           />
                         </div>
                       ))}

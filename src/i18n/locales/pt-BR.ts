@@ -403,6 +403,18 @@ export default {
         'A gravação parou após {{count, number}} de {{total, number}} sons. Verifique a conexão MIDI do FM1.',
     },
   },
+  changeToFm: {
+    menuItem: 'Mudar para FM…',
+    title: 'Mudar {{slot}} “{{patch}}” para FM?',
+    warning:
+      'Isso substitui o preset Virtual Analog desta posição por INIT VOICE, um som FM que você pode editar. Do som dele, só os efeitos do FM1 são mantidos. Desfazer o traz de volta.',
+    name: 'Nome',
+    fm1Note:
+      'Se o FM1 guarda este preset Virtual Analog, gravar no FM1 o mantém lá: apague-o no FM1 para mudar o motor lá também.',
+    action: 'Mudar para FM',
+    changed: '{{slot}} mudou para FM como “{{patch}}”.',
+    openFailed: 'Não foi possível abrir a mudança para FM. Recarregue a página e tente novamente.',
+  },
   fm1VaSend: {
     title: 'Enviar {{bank}} ao FM1',
     help: 'Grava {{bank}} sobre um dos bancos de presets do FM1. Só os sons diferentes são gravados.',
@@ -939,6 +951,8 @@ export default {
       'Um banco DX7 não tem lugar para um preset Virtual Analog, então o deste banco é enviado como INIT VOICE.',
     virtualAnalogInitNote_other:
       'Um banco DX7 não tem lugar para presets Virtual Analog, então os {{count, number}} deste banco são enviados como INIT VOICE.',
+    fmTag: 'FM',
+    fmPatch: 'Som FM',
   },
   namedBanks: {
     saving: 'Salvando…',

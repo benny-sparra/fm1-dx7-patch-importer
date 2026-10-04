@@ -24,6 +24,8 @@ type PatchButtonProps = {
   isActive?: boolean
   /** Whether Favourites holds this sound, which lights the slot's heart. */
   isFavourite?: boolean
+  /** Offered on a Virtual Analog patch only. */
+  onChangeToFm?: (patch: Patch) => void
   onCopy?: (patch: Patch) => void
   onDownload?: (patch: Patch) => void
   onEdit?: (patch: Patch) => void
@@ -36,6 +38,11 @@ type PatchButtonProps = {
   patch: Patch
   /** False while the slot is shown away from its bank, such as in search results. */
   reorderable?: boolean
+  /**
+   * Tags an FM patch as FM as well as a Virtual Analog one as VA, while the FM1 runs Baud Girl's
+   * firmware, where a slot may hold either engine. Elsewhere only a Virtual Analog patch is tagged.
+   */
+  tagsEngine?: boolean
   registerButton?: (patchId: string, button: HTMLButtonElement | null) => void
   /** The grid is one tab stop: only its roving slot is reachable with Tab. */
   tabIndex?: number
@@ -50,6 +57,7 @@ export function PatchButton({
   disabledTitle,
   isActive = false,
   isFavourite = false,
+  onChangeToFm,
   onCopy,
   onDownload,
   onEdit,
@@ -61,6 +69,7 @@ export function PatchButton({
   reorderable = true,
   registerButton,
   tabIndex,
+  tagsEngine = false,
 }: PatchButtonProps) {
   const { t } = useTranslation()
   // Set by a click and cleared when the selection animation finishes, so the
@@ -71,6 +80,11 @@ export function PatchButton({
   const isVirtualAnalog = patch.family === virtualAnalogFamily
   const canReorder = reorderable && (patch.family === 'DX7' || isVirtualAnalog)
   const editSlot = isVirtualAnalog ? undefined : onEdit
+  const engine = isVirtualAnalog
+    ? { label: t('banks.virtualAnalogPatch'), tag: t('fm1VaImport.virtualAnalogTag') }
+    : tagsEngine && patch.family === 'DX7'
+      ? { label: t('banks.fmPatch'), tag: t('banks.fmTag') }
+      : null
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
     // A bank tab reads this to leave a slot's own bank unlit as a drop target.
@@ -199,12 +213,12 @@ export function PatchButton({
       >
         <span>{patchSlotCode(patch)}</span>
         {/* In the slot code's corner, so the name keeps the room for ten characters. */}
-        {isVirtualAnalog ? (
+        {engine ? (
           <span
             aria-hidden="true"
             className="absolute -top-1.5 -right-2 bg-[var(--crt-bg-well)] px-0.5 font-sans text-[9px] leading-none font-semibold text-[var(--crt-led)]"
           >
-            {t('fm1VaImport.virtualAnalogTag')}
+            {engine.tag}
           </span>
         ) : null}
       </span>
@@ -221,7 +235,7 @@ export function PatchButton({
         {bankName ? (
           <span className="block truncate text-[11px] text-[var(--crt-ink-3)]">{bankName}</span>
         ) : null}
-        {isVirtualAnalog ? <span className="sr-only">{t('banks.virtualAnalogPatch')}</span> : null}
+        {engine ? <span className="sr-only">{engine.label}</span> : null}
       </span>
       {/* The heart and menu share one gap, so a full ten-character name fits beside them. */}
       {!disabled && (onToggleFavourite || onEdit || onCopy) ? (
@@ -237,6 +251,7 @@ export function PatchButton({
           {editSlot || onCopy ? (
             <PatchSlotMenu
               name={patch.name}
+              onChangeToFm={onChangeToFm && isVirtualAnalog ? () => onChangeToFm(patch) : undefined}
               onCopy={onCopy && (() => onCopy(patch))}
               onDownload={onDownload && !isVirtualAnalog ? () => onDownload(patch) : undefined}
               onEdit={editSlot && (() => editSlot(patch))}

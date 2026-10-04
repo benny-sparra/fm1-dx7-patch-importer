@@ -479,8 +479,16 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       and backup files version 4 carry them, each with fixture tests. Its card has the VA tag and
       no Edit or DX7 download; its click sends only its Program Change; copying, moving, and
       deleting a bank carry it; and a DX7 bank, sent or downloaded, puts INIT VOICE in its slot
-      and says so. Still to do: the FM tags, Favourites (its heart is hidden), search across saved
-      banks, the duplicate finder, and the FM-1+VA bank instructions' warning.
+      and says so. Still to do: Favourites (its heart is hidden), which needs workspace version 9
+      and backup version 5.
+    - _Built 2026-10-04:_ **Change to FM…** in a Virtual Analog slot's ⋮ menu, with its name
+      field, replaces it with INIT VOICE and no record, keeping its FM1 effects, and offers Undo. A
+      write still leaves a Virtual Analog preset in that FM1 slot alone, which the dialog says. Cards
+      carry FM tags while FM-1+VA is identified. Saved-bank search finds Virtual Analog presets,
+      which can be copied into a slot but not played or edited there, and the duplicate finder
+      groups identical ones, never with a DX7 voice. The bank instructions' warning is dropped: on
+      FM-1+VA from FM-1_079 **Send to FM1** writes presets rather than a DX7 bank, and releases
+      before FM-1_087 are not known to turn Virtual Analog presets into FM.
     - _Writing them back built 2026-10-04 (#178):_ the preset write
       takes a preset's voice bytes as a read returns them, for either engine, so a Virtual Analog
       patch is written with its bytes and record exactly as read, as FM-1+VA's own backup restores

@@ -42,6 +42,7 @@ export function makeLibrarianLibrary(overrides: Partial<Library> = {}): Library 
     records: {},
     redo: vi.fn<Library['redo']>(),
     replaceVoice: vi.fn<Library['replaceVoice']>(),
+    replaceWithVirtualAnalog: vi.fn<Library['replaceWithVirtualAnalog']>(),
     resetFactoryBanks: vi.fn<Library['resetFactoryBanks']>(),
     restoreBackup: vi.fn<Library['restoreBackup']>(),
     saveNamedBank: vi.fn<Library['saveNamedBank']>(),

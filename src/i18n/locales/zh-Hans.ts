@@ -361,6 +361,18 @@ export default {
         '写入在 {{count, number}} 个（共 {{total, number}} 个）音色后停止。请检查 FM1 的 MIDI 连接。',
     },
   },
+  changeToFm: {
+    menuItem: '转换为 FM…',
+    title: '要将 {{slot}}“{{patch}}”转换为 FM 吗？',
+    warning:
+      '这会用 INIT VOICE（一个可编辑的 FM 音色）替换此位置的 Virtual Analog 预设。其声音只保留 FM1 效果。撤销可以恢复。',
+    name: '名称',
+    fm1Note:
+      '如果 FM1 上保存着此 Virtual Analog 预设，写入 FM1 时会保留它：请在 FM1 上将其清除，才能在那里也更换引擎。',
+    action: '转换为 FM',
+    changed: '已将 {{slot}} 转换为 FM，名称为“{{patch}}”。',
+    openFailed: '无法打开转换为 FM。请重新加载页面后重试。',
+  },
   fm1VaSend: {
     title: '将 {{bank}} 发送到 FM1',
     help: '将 {{bank}} 写入 FM1 的一个音色库，覆盖原有预设。只写入有差异的音色。',
@@ -859,6 +871,8 @@ export default {
       'DX7 音色库无法容纳 Virtual Analog 预设，因此此音色库中的该预设会以 INIT VOICE 发送。',
     virtualAnalogInitNote_other:
       'DX7 音色库无法容纳 Virtual Analog 预设，因此此音色库中的 {{count, number}} 个此类预设会以 INIT VOICE 发送。',
+    fmTag: 'FM',
+    fmPatch: 'FM 音色',
   },
   namedBanks: {
     saving: '正在保存…',
