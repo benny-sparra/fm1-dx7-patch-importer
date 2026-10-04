@@ -32,7 +32,9 @@ import { useMediaQuery } from '@/hooks/use-media-query'
 import type { MidiController } from '@/hooks/use-midi'
 import { unpackDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { getFm1EffectParameters, makeFm1EditorParameters } from '@/lib/fm1-effects'
+import { hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
 import {
+  FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
   getGlobalParameterDefinition,
@@ -44,6 +46,10 @@ import {
   hasUnsavedEdits,
   PatchEditorSession,
 } from '@/lib/patch-editor-session'
+import {
+  fm1VaRecordDistortionType,
+  fm1VaRecordWithDistortionType,
+} from '@/lib/fm1-va-record-effects'
 import { initializeVoice } from '@/lib/init-voice'
 import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { copyOperator, type CopiedOperator } from '@/lib/operator-clipboard'
@@ -59,6 +65,7 @@ type PatchEditorPageProps = {
   effects: Uint8Array
   midi: Pick<
     MidiController,
+    | 'firmware'
     | 'hasMidiOutput'
     | 'midiAccess'
     | 'sendEffectParameter'
@@ -69,8 +76,11 @@ type PatchEditorPageProps = {
   >
   onBack: () => void
   onCopyOperator: (copied: CopiedOperator) => void
-  onSave: (voice: Dx7Voice, effects: Uint8Array) => void
+  /** Saves the sound, with its FM-1+VA settings record when it has one. */
+  onSave: (voice: Dx7Voice, effects: Uint8Array, record?: Uint8Array) => void
   patch: Patch
+  /** The patch's FM-1+VA settings record, which holds its Distortion type, if it has one. */
+  record?: Uint8Array
   voice: Dx7Voice
 }
 
@@ -86,13 +96,18 @@ export function PatchEditorPage({
   onCopyOperator,
   onSave,
   patch,
+  record,
   voice,
 }: PatchEditorPageProps) {
   const { t } = useTranslation()
   const midiRef = useRef(midi)
   // Only reads the voice while mounting: App remounts this editor for each patch, keyed by patch id.
   const [editor] = useState(() => {
-    const parameters = makeFm1EditorParameters(unpackDx7Voice(voice), effects)
+    const parameters = makeFm1EditorParameters(
+      unpackDx7Voice(voice),
+      effects,
+      record ? fm1VaRecordDistortionType(record) : 0,
+    )
     return new PatchEditorSession(parameters, () => midiRef.current)
   })
   const state = useSyncExternalStore(editor.subscribe, editor.getState)
@@ -166,7 +181,22 @@ export function PatchEditorPage({
     editor.sendName(liveName)
   }
 
-  const saveToLibrary = () => editor.save(onSave)
+  const saveToLibrary = () =>
+    editor.save((savedVoice, savedEffects, distortionType) =>
+      onSave(
+        savedVoice,
+        savedEffects,
+        record && fm1VaRecordWithDistortionType(record, distortionType),
+      ),
+    )
+  // Only FM-1+VA's preset write carries Distortion's type. Elsewhere, a type other than Soft Clip
+  // that the patch keeps is named, since the FM1 does not play it.
+  const distortionType = parameters[FM1_VA_DISTORTION_TYPE_INDEX]
+  const writesDistortionType = hasFm1VaPresetCommands(midi.firmware)
+  const keptDistortionType =
+    !writesDistortionType && record && distortionType !== 0 && midi.firmware.kind !== 'checking'
+      ? distortionType
+      : undefined
 
   const requestNavigation = () => {
     if (editor.getState().isComparing || isNavigationPending) return
@@ -388,6 +418,12 @@ export function PatchEditorPage({
             />
             <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="effects-unit">
               <EffectsUnit
+                distortionType={
+                  writesDistortionType
+                    ? { onChange: editor.setDistortionType, type: record ? distortionType : null }
+                    : undefined
+                }
+                keptDistortionType={keptDistortionType}
                 onApplyPreset={editor.selectEffectPreset}
                 onChange={editor.setEffectParameter}
                 onGestureEnd={editor.endGesture}

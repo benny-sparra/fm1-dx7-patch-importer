@@ -3,6 +3,7 @@ import {
   FM1_EFFECT_PARAMETER_START,
   FM1_OPERATOR_COUNT,
   FM1_OPERATOR_PARAMETER_COUNT,
+  FM1_VA_DISTORTION_TYPE_INDEX,
   type EffectParameterId,
   getEffectParameterDefinition,
   getGlobalParameterDefinition,
@@ -77,7 +78,9 @@ export function applySoundPreset(parameters: Uint8Array, presetId: SoundPresetId
   const preset = soundPresets.find(({ id }) => id === presetId)
   if (!preset) throw new RangeError(`Unknown sound preset: ${presetId}`)
   next[getGlobalParameterDefinition('global.algorithm').voiceIndex] = preset.algorithm
-  next.fill(0, FM1_EFFECT_PARAMETER_START) // Each starter replaces the complete effect chain.
+  // Each starter replaces the complete effect chain. FM-1+VA's Distortion type, which no starter
+  // sets, stays as it was.
+  next.fill(0, FM1_EFFECT_PARAMETER_START, FM1_VA_DISTORTION_TYPE_INDEX)
 
   switch (presetId) {
     case 'soft-pad':

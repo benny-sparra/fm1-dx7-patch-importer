@@ -446,6 +446,11 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       The record keeps the order and type with the patch, but no other firmware reads them: sent
       to M-VAVE's firmware, a patch plays in the stock order with its stock distortion. Hide both
       controls there, and say so in the effects panel where a patch carries a changed order.
+      _Distortion type built 2026-10-04:_ the Distortion box offers **Type** while the FM1 runs
+      FM-1+VA from FM-1_079, for a patch with a record, and saving writes record byte 38; it is
+      heard once the patch is written. A patch without a record cannot keep one, and on other
+      firmware a type other than Soft Clip is named under Distortion. Foldback's `02` was read from
+      the FM1 on 2026-10-04. Effect order waits for its bytes to be mapped.
 - [ ] **6. Virtual Analog presets.** Built in steps, each shippable:
   - **Keep them.** A slot whose record is marked Virtual Analog shows as such, survives import,
     backup, and copy unchanged, and is left out of DX7 `.syx` export with an explanation,

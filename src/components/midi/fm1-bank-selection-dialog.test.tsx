@@ -18,10 +18,10 @@ afterEach(cleanup)
 
 const mvave: Fm1Firmware = { identity: 'FM-1_015', kind: 'mvave' }
 
-function renderDialog(sysexAvailable: boolean, firmware = mvave) {
+function renderDialog(sysexAvailable: boolean, firmware = mvave, isSending = false) {
   return (
     <Fm1BankSelectionDialog
-      isSending={false}
+      isSending={isSending}
       midi={{
         connectMidi: vi.fn(),
         disconnectMidi: vi.fn(),
@@ -45,6 +45,19 @@ describe('Fm1BankSelectionDialog', () => {
 
     expect(screen.getByRole('button', { hidden: true, name: 'Send to FM1' })).toBeTruthy()
     expect(screen.queryByRole('button', { hidden: true, name: 'Close' })).toBeNull()
+  })
+
+  it('runs a barber pole on its Send button while the bank is on the way', () => {
+    const { rerender } = render(renderDialog(true, mvave, true))
+    expect(screen.getByRole('button', { hidden: true, name: 'Sending…' }).classList).toContain(
+      'barber-pole',
+    )
+
+    rerender(renderDialog(true, mvave, false))
+
+    expect(
+      screen.getByRole('button', { hidden: true, name: 'Send to FM1' }).classList,
+    ).not.toContain('barber-pole')
   })
 
   it('gives M-VAVE firmware its knob steps and no FM-1+VA note', () => {

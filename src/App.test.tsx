@@ -36,6 +36,7 @@ vi.mock('@/hooks/use-midi', () => ({
 vi.mock('@/hooks/use-patch-library', () => ({
   usePatchLibrary: () => ({
     effects: { 'patch-1': pianoEffects },
+    records: {},
     patches: [
       { bank: 'A', family: 'Keys', id: 'patch-1', name: 'Piano', number: 1, program: 0 },
       { bank: 'E', family: 'DX7', id: 'patch-e1', name: 'Pad', number: 1 },

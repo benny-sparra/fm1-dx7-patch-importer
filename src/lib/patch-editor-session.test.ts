@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { FM1_EDITOR_PARAMETER_COUNT, FM1_VOICE_NAME_START } from '@/lib/fm1-parameters'
+import {
+  FM1_EDITOR_PARAMETER_COUNT,
+  FM1_VA_DISTORTION_TYPE_INDEX,
+  FM1_VOICE_NAME_START,
+} from '@/lib/fm1-parameters'
 import { operatorOutputParameter } from '@/lib/operator-audition'
 import {
   displayedParameters,
@@ -130,6 +134,21 @@ describe('PatchEditorSession', () => {
 
     expect(store).toHaveBeenCalledTimes(1)
     expect(hasUnsavedEdits(session.getState())).toBe(false)
+  })
+
+  it('sets the Distortion type as one undo step, sends nothing, and saves it', async () => {
+    const { midi, session } = await openLiveSession()
+    const store = vi.fn()
+
+    session.setDistortionType(1)
+
+    expect(hasUnsavedEdits(session.getState())).toBe(true)
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+    expect(midi.sendEffectParameter).not.toHaveBeenCalled()
+    session.save(store)
+    expect(store).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1)
+    session.undo()
+    expect(displayedParameters(session.getState())[FM1_VA_DISTORTION_TYPE_INDEX]).toBe(0)
   })
 })
 

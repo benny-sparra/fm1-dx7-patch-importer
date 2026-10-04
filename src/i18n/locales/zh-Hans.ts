@@ -109,12 +109,22 @@ export default {
     'Distortion Gain': '控制信号推动失真的强度。数值越高，饱和度和谐波越多。',
     'Distortion Tone': '调整失真声音的明亮程度。',
     'Distortion Level': '设置失真后的输出音量，便于与旁通时的响度匹配。',
+    'Distortion Type':
+      '选择失真在 Baud Girl 固件上如何塑造声音。软削波是 M-VAVE 的原始失真，会把峰值磨圆；硬削波把峰值削平，声音更粗糙；Foldback 把峰值折回，声音更明亮、更有金属感。没有 MIDI 消息能设置它，因此要用“发送到 FM1”或“将音色写入 FM1”把音色写入 FM1 后才能听到。',
     'Chorus Frequency': '设置合唱效果变化的循环速度，约为 0.1 至 1 Hz。',
     'Chorus Depth': '设置合唱音高变化的幅度。数值越高，声音越宽广、效果越明显。',
     'Chorus Mix': '平衡原声与合唱处理后的信号。',
     'Phaser Frequency': '设置移相器扫频的循环速度，约为 0.5 至 6 Hz。',
     'Phaser Depth': '设置移相器扫频的范围和强度。',
     'Phaser Mix': '平衡原声与移相处理后的信号。',
+  },
+  distortionType: {
+    softClip: '软削波',
+    hardClip: '硬削波',
+    foldback: 'Foldback',
+    unknown: '未知（{{value, number}}）',
+    noRecord: '此音色并非来自 FM1，因此会沿用被它覆盖的预设的类型。',
+    otherFirmware: '为 Baud Girl 固件保留：{{type}}。此 FM1 会改用自己的失真。',
   },
   ui: {
     auditionGroup: '试听操作器 {{number}}',

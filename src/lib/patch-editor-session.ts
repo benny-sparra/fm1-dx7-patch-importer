@@ -3,6 +3,7 @@ import { makeDx7VoiceNameEdits, packDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { applyEffectPreset, type EffectPresetId } from '@/lib/effect-presets'
 import { getFm1EffectParameters, getFm1VoiceParameters } from '@/lib/fm1-effects'
 import {
+  FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
   fm1EffectParameters,
@@ -239,6 +240,15 @@ export class PatchEditorSession {
     if (this.isLive()) this.getMidi().sendEffectParameter(controller, value)
   }
 
+  /**
+   * Sets FM-1+VA's Distortion type as one undo step. No MIDI message carries it, so it is heard
+   * only once the patch is written to the FM1.
+   */
+  setDistortionType = (type: number) => {
+    this.gestureStart = null
+    this.applyEdits([[FM1_VA_DISTORTION_TYPE_INDEX, type, 0, 255]], false)
+  }
+
   toggleOperatorMute = (operator: number) => {
     const mutedOperators = new Set(this.state.mutedOperators)
     if (mutedOperators.has(operator)) mutedOperators.delete(operator)
@@ -257,11 +267,18 @@ export class PatchEditorSession {
     this.setOperatorAudition(new Set(), null, send)
   }
 
-  /** Stores the working copy through `store` and makes it the saved version. */
-  save = (store: (voice: Dx7Voice, effects: Uint8Array) => void) => {
+  /**
+   * Stores the working copy through `store`, with FM-1+VA's Distortion type, and makes it the saved
+   * version.
+   */
+  save = (store: (voice: Dx7Voice, effects: Uint8Array, distortionType: number) => void) => {
     if (this.state.isComparing) return
     const current = this.state.history.present
-    store(packDx7Voice(getFm1VoiceParameters(current)), getFm1EffectParameters(current))
+    store(
+      packDx7Voice(getFm1VoiceParameters(current)),
+      getFm1EffectParameters(current),
+      current[FM1_VA_DISTORTION_TYPE_INDEX],
+    )
     this.update({ savedParameters: current.slice() })
     trackAnalyticsEvent({ name: 'patch_saved' })
   }

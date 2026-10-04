@@ -64,6 +64,50 @@ describe('reduced motion', () => {
     ).toBe(true)
   })
 
+  it('hides the CRT switch-off when reduced motion is requested', async () => {
+    const css = await readFile(path.resolve('src/index.css'), 'utf8')
+    const reducedMotionBlocks = css
+      .split('@media (prefers-reduced-motion: reduce)')
+      .slice(1)
+      .map((block) => block.slice(0, block.indexOf('\n  }\n')))
+
+    expect(
+      reducedMotionBlocks.some((block) =>
+        /\.crt-switch-off-picture\s*\{\s*display:\s*none;/.test(block),
+      ),
+    ).toBe(true)
+  })
+
+  it('keeps the barber pole still when reduced motion is requested', async () => {
+    const css = await readFile(path.resolve('src/index.css'), 'utf8')
+    const reducedMotionBlocks = css
+      .split('@media (prefers-reduced-motion: reduce)')
+      .slice(1)
+      .map((block) => block.slice(0, block.indexOf('\n  }\n')))
+
+    expect(
+      reducedMotionBlocks.some((block) =>
+        /\.barber-pole,\s*\.midi-switch\[data-busy\] \.midi-switch-track\s*\{\s*animation:\s*none;/.test(
+          block,
+        ),
+      ),
+    ).toBe(true)
+  })
+
+  it('stops the preset read LEDs flashing when reduced motion is requested', async () => {
+    const css = await readFile(path.resolve('src/index.css'), 'utf8')
+    const reducedMotionBlocks = css
+      .split('@media (prefers-reduced-motion: reduce)')
+      .slice(1)
+      .map((block) => block.slice(0, block.indexOf('\n  }\n')))
+
+    expect(
+      reducedMotionBlocks.some((block) =>
+        /\.read-led\[data-state\]\s*\{\s*animation:\s*none;/.test(block),
+      ),
+    ).toBe(true)
+  })
+
   it('stops the compare notice switching on when reduced motion is requested', async () => {
     const css = await readFile(path.resolve('src/index.css'), 'utf8')
     const reducedMotionBlocks = css

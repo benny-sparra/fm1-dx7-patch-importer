@@ -141,6 +141,8 @@ export default {
     'Distortion Tone': 'Passt die Helligkeit des verzerrten Klangs an.',
     'Distortion Level':
       'Legt die Ausgangslautstärke nach der Verzerrung fest, nützlich zum Angleichen an die Lautstärke ohne Effekt.',
+    'Distortion Type':
+      'Legt fest, wie die Verzerrung auf der Firmware von Baud Girl klingt. Weiches Clipping, das Original von M-VAVE, rundet die Spitzen ab; hartes Clipping schneidet sie flach ab und klingt rauer; Foldback faltet sie zurück und klingt heller und metallischer. Keine MIDI-Nachricht stellt sie ein, daher hörst du sie erst, wenn der Sound mit „An FM1 senden“ oder „Sounds auf den FM1 schreiben“ auf den FM1 geschrieben ist.',
     'Chorus Frequency':
       'Legt fest, wie schnell die Chorus-Bewegung schwingt, von etwa 0,1 bis 1 Hz.',
     'Chorus Depth':
@@ -149,6 +151,16 @@ export default {
     'Phaser Frequency': 'Legt fest, wie schnell der Phaser-Sweep schwingt, von etwa 0,5 bis 6 Hz.',
     'Phaser Depth': 'Legt Umfang und Intensität des Phaser-Sweeps fest.',
     'Phaser Mix': 'Mischt trockenes Signal und Phaser-Signal.',
+  },
+  distortionType: {
+    softClip: 'Weiches Clipping',
+    hardClip: 'Hartes Clipping',
+    foldback: 'Foldback',
+    unknown: 'Unbekannt ({{value, number}})',
+    noRecord:
+      'Dieser Sound stammt nicht vom FM1 und übernimmt daher den Typ des Presets, über das er geschrieben wird.',
+    otherFirmware:
+      'Für die Firmware von Baud Girl gespeichert: {{type}}. Dieser FM1 spielt stattdessen seine eigene Verzerrung.',
   },
   ui: {
     auditionGroup: 'Operator {{number}} vorhören',

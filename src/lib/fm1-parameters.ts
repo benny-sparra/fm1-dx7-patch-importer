@@ -8,7 +8,13 @@ export const FM1_EFFECT_PARAMETER_START = FM1_VOICE_NAME_START + FM1_VOICE_NAME_
 export const FM1_EFFECT_PARAMETER_COUNT = 24
 /** Stored transpose for middle C at C3; the editor displays it as 0. */
 export const DX7_TRANSPOSE_C3 = 24
-export const FM1_EDITOR_PARAMETER_COUNT = FM1_EFFECT_PARAMETER_START + FM1_EFFECT_PARAMETER_COUNT
+/**
+ * Distortion's type on FM-1+VA, which only a preset write carries (docs/fm1-research.md, "What the
+ * record holds"). The editor keeps it after the effects so undo and compare cover it; no MIDI
+ * message sends it.
+ */
+export const FM1_VA_DISTORTION_TYPE_INDEX = FM1_EFFECT_PARAMETER_START + FM1_EFFECT_PARAMETER_COUNT
+export const FM1_EDITOR_PARAMETER_COUNT = FM1_VA_DISTORTION_TYPE_INDEX + 1
 
 type ValueKind = 'continuous' | 'enumerated' | 'switch'
 

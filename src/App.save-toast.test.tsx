@@ -19,6 +19,7 @@ vi.mock('@/hooks/use-midi', () => ({
 vi.mock('@/hooks/use-patch-library', () => ({
   usePatchLibrary: () => ({
     effects: {},
+    records: {},
     patches: [
       { bank: 'E', family: 'DX7', id: 'patch-e1', name: 'SYN PAD 1', number: 1 },
       { bank: 'favourites', family: 'DX7', id: 'favourite-1', name: 'SYN PAD 1', number: 1 },
