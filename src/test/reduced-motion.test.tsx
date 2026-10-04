@@ -87,7 +87,7 @@ describe('reduced motion', () => {
 
     expect(
       reducedMotionBlocks.some((block) =>
-        /\.barber-pole,\s*\.peer:disabled ~ \.midi-switch-track\s*\{\s*animation:\s*none;/.test(
+        /\.barber-pole,\s*\.midi-switch\[data-busy\] \.midi-switch-track\s*\{\s*animation:\s*none;/.test(
           block,
         ),
       ),

@@ -43,6 +43,17 @@ describe('editor parameter controls', () => {
     expect(onOptionChange).toHaveBeenLastCalledWith(2)
   })
 
+  it('names an on/off parameter’s switch by the parameter alone, whether it is on or off', () => {
+    const { rerender } = render(
+      <SwitchParameterControl label="Sync" onChange={vi.fn()} value={0} />,
+    )
+    expect(screen.getByRole<HTMLInputElement>('switch', { name: 'Sync' }).checked).toBe(false)
+
+    rerender(<SwitchParameterControl label="Sync" onChange={vi.fn()} value={1} />)
+
+    expect(screen.getByRole<HTMLInputElement>('switch', { name: 'Sync' }).checked).toBe(true)
+  })
+
   it('emits binary and radio stored values', async () => {
     const user = userEvent.setup()
     const onSwitchChange = vi.fn()

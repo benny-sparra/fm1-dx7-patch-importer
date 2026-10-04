@@ -1097,7 +1097,7 @@
    * period measured along the button, so the loop is seamless.
    */
   .barber-pole,
-  .peer:disabled ~ .midi-switch-track {
+  .midi-switch[data-busy] .midi-switch-track {
     background-image: repeating-linear-gradient(
       -45deg,
       transparent 0 6px,
@@ -1154,7 +1154,7 @@
     }
 
     .barber-pole,
-    .peer:disabled ~ .midi-switch-track {
+    .midi-switch[data-busy] .midi-switch-track {
       animation: none;
     }
 

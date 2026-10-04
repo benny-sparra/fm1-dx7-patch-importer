@@ -421,8 +421,10 @@ open everything an earlier release could have saved.
   lists only the choices, such as bare bank names under **Import into**. The FM-1+VA import and
   write dialogs make each bank's title the label of a switch at its left (`titleSwitch` on
   `RackPanelTitle`, as in "Import FM1 bank A") and disable the bank's dropdown while it is off,
-  keeping its choice for when it is switched on again. A switch waiting on what it
-  started, as MIDI connecting is, is `busy` and blinks; `disabled` only greys it out. A dialog listing several sections that would make it scroll, such as
+  keeping its choice for when it is switched on again. The editor's effects and its LFO and
+  oscillator sync work the same way: each name is its switch's label, so the switch keeps one name
+  in either state. A switch waiting on what it started, as MIDI connecting is, is `busy` and
+  blinks; `disabled` only greys it out. A dialog listing several sections that would make it scroll, such as
   the FM-1+VA import's banks, folds each with the editor's rack panel pieces in
   `src/components/ui/rack-panel.tsx`; a control on a title strip sits above its fold overlay.
   `rack-panel` takes its help button as an element (the editor's `RackPanelHelp`) rather than
