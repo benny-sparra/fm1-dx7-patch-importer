@@ -72,6 +72,14 @@ describe('BankInformationDialog', () => {
     expect(descriptionField().value).toBe('Bright leads')
   })
 
+  it('shows the DX7 block cursor in the bank name field', async () => {
+    const { user } = renderDialog()
+
+    await user.click(screen.getByRole('button', { name: 'Bank information' }))
+
+    expect(titleField().classList).toContain('name-caret')
+  })
+
   it('offers the default title for a bank that was never named', async () => {
     const { user } = renderDialog()
 

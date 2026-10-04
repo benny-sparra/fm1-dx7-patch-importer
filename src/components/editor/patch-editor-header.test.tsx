@@ -54,4 +54,10 @@ describe('PatchEditorHeader', () => {
 
     expect(items.slice(0, 3)).toEqual(['Init voice', 'Randomise', 'Soft pad'])
   })
+
+  it('shows the DX7 block cursor in the patch name field', () => {
+    renderHeader()
+
+    expect(screen.getByRole('textbox', { name: 'Patch name' }).classList).toContain('name-caret')
+  })
 })

@@ -346,6 +346,14 @@ describe('NamedBankLibraryDialog managing saved banks', () => {
     expect(screen.queryByRole('textbox', { name: 'Bank name' })).toBeNull()
   })
 
+  it('shows the DX7 block cursor while renaming a saved bank', async () => {
+    const user = renderLoadDialog()
+
+    await user.click(screen.getByRole('button', { name: 'Edit Stage' }))
+
+    expect(screen.getByRole('textbox', { name: 'Bank name' }).classList).toContain('name-caret')
+  })
+
   it('explains a failed edit without showing the browser error', async () => {
     const updateNamedBankDetails = vi.fn(async () => {
       throw new Error('QuotaExceededError')
