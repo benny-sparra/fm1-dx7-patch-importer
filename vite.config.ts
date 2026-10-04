@@ -10,11 +10,17 @@ type SourceMapMode = 'hidden' | 'none' | 'public'
 
 /**
  * The build this bundle came from, so a Sentry event names an exact deployment rather than leaving
- * the revision to be guessed from the date. Cloudflare Pages and GitHub Actions each supply the
- * commit themselves; SENTRY_RELEASE overrides both for a build made anywhere else.
+ * the revision to be guessed from the date. Cloudflare Pages, Cloudflare Workers Builds, and GitHub
+ * Actions each supply the commit themselves; SENTRY_RELEASE overrides them for a build made
+ * anywhere else.
  */
 export function resolveSentryRelease(env: Record<string, string | undefined>) {
-  const candidates = [env.SENTRY_RELEASE, env.CF_PAGES_COMMIT_SHA, env.GITHUB_SHA]
+  const candidates = [
+    env.SENTRY_RELEASE,
+    env.CF_PAGES_COMMIT_SHA,
+    env.WORKERS_CI_COMMIT_SHA,
+    env.GITHUB_SHA,
+  ]
   return candidates.map((value) => value?.trim()).find((value) => value) || undefined
 }
 

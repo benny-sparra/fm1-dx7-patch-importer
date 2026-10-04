@@ -9,6 +9,7 @@ describe('Sentry release resolution', () => {
 
   it('names the release from the deploying platform', () => {
     expect(resolveSentryRelease({ CF_PAGES_COMMIT_SHA: '  0c23a69  ' })).toBe('0c23a69')
+    expect(resolveSentryRelease({ WORKERS_CI_COMMIT_SHA: '9bd8513' })).toBe('9bd8513')
     expect(resolveSentryRelease({ GITHUB_SHA: '0dce878' })).toBe('0dce878')
   })
 
