@@ -206,6 +206,14 @@ open everything an earlier release could have saved.
   presets through it, one at a time (`readEveryFm1VaPreset`), and the development probe uses it
   too. The reply parser takes `unpackSevenBitStream` from `src/lib/fm1-firmware.ts`; when the
   import dialog started reading, that split nothing out of the entry.
+- FM-1+VA's sound-setting Control Changes, CC 24–31, 52–57, and 70–78 on the note channel, are
+  built only by `makeFm1VaSoundControlMessage` (`src/lib/fm1-va-sound-control.ts`), which refuses
+  every other controller, and sent only through `useFm1VaSoundControl` while
+  `sendsFm1VaSoundControls` allows it (FM-1+VA from `FM-1_086`, the release that added them). The
+  hook lives outside `useMidi`, as the preset reader does, so it costs the entry nothing, and the
+  module imports nothing from `src/lib/midi.ts`, so a lazy page can take it. Each is an unsaved
+  edit, like turning the knob. CC 85–119 press the FM1's own controls and are never sent. Today
+  only the development probe's map sends them.
 - Send a patch as a DX7 single-voice dump only to firmware identified as M-VAVE's
   (`sendsSingleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored preset, so
   every other firmware, including one not yet identified, gets the patch as its 155 parameter
