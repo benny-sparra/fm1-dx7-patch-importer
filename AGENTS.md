@@ -585,6 +585,12 @@ open everything an earlier release could have saved.
 - Match the short easing durations already used in `src/index.css` and always provide the
   `prefers-reduced-motion: reduce` snap. Animated disclosure must not leave controls half-hidden in
   the accessibility tree: flip visibility once the transition has finished.
+- A dialog built on `Dialog` that a click opens zooms out of the control clicked
+  (`src/lib/dialog-zoom.ts`) and stays hidden until the zoom arrives, then shows. It closes back
+  into what opened it: the control, or the toggle of the `<details>` menu the control sits in, such
+  as a bank's ⋮, since the item goes as the menu closes; failing that, the control focus returns
+  to. A dialog that opens by itself, such as the guide on a first visit, does not zoom, and reduced
+  motion shows a dialog at once.
 - The reduced-motion snap applies to Tailwind utilities too: a transition that moves, resizes, or
   slides needs `motion-reduce:transition-none`, and a looping animation such as `animate-spin` needs
   `motion-safe:`. Keyframe animations and transitions in `src/index.css` need a

@@ -319,3 +319,30 @@ describe('RootLayout hardware photo screen', () => {
     expect(screenOverlay()).toBeNull()
   })
 })
+
+describe('RootLayout degauss', () => {
+  function renderLayout() {
+    render(
+      <RootLayout midi={midi}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+    return screen.getByRole('main')
+  }
+
+  it('leaves the page still as it opens in the stored finish', () => {
+    expect(renderLayout().hasAttribute('data-degauss')).toBe(false)
+  })
+
+  it('degausses the page when another finish is chosen', async () => {
+    const page = renderLayout()
+    const otherFinish = screen
+      .getAllByRole<HTMLInputElement>('radio')
+      .find((finish) => !finish.checked)
+
+    await userEvent.click(otherFinish!)
+
+    expect(page.hasAttribute('data-degauss')).toBe(true)
+  })
+})

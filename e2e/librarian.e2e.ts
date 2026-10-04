@@ -107,6 +107,65 @@ test('zooms out of the slot as a patch opens and back into it as the editor clos
   expect(closing.first.width).toBeGreaterThan(closing.last.width)
 })
 
+test('zooms a dialog out of the menu item that opens it, then shows it, and back into the menu as it closes', async ({
+  page,
+}) => {
+  // The outlines last about a quarter of a second, so each zoom is recorded as it is drawn, with
+  // whether the dialog could be seen at that moment.
+  await page.addInitScript(() => {
+    const zooms: { dialogShown: boolean; first: DOMRect; last: DOMRect }[] = []
+    Object.assign(window, { zooms })
+    document.addEventListener('DOMContentLoaded', () => {
+      new MutationObserver((records) => {
+        for (const node of records.flatMap((record) => [...record.addedNodes])) {
+          if (!(node instanceof HTMLElement) || node.className !== 'zoom-rects') continue
+          const outlines = [...node.children].map((outline) => outline.getBoundingClientRect())
+          const dialog = document.querySelector('dialog[open]')
+          zooms.push({
+            dialogShown: dialog ? getComputedStyle(dialog).opacity !== '0' : false,
+            first: outlines[0],
+            last: outlines[outlines.length - 1],
+          })
+        }
+      }).observe(document.body, { childList: true })
+    })
+  })
+  const zooms = () =>
+    page.evaluate(
+      () =>
+        (window as unknown as { zooms: { dialogShown: boolean; first: DOMRect; last: DOMRect }[] })
+          .zooms,
+    )
+  // The guide that opens itself on a first visit closes without having zoomed open.
+  await openLibrarian(page)
+  expect(await zooms()).toEqual([])
+  // A bank below the first, so closing must find that bank's menu rather than the first one.
+  const bankMenu = page.getByLabel('Actions for Bank 2').locator('visible=true')
+  const bankMenuBox = await bankMenu.boundingBox()
+
+  await bankMenu.click()
+  const item = page.getByRole('button', { name: 'Bank information…' }).locator('visible=true')
+  const itemBox = await item.boundingBox()
+  await item.click()
+  const dialog = page.getByRole('dialog', { name: 'Bank information' })
+  await expect(dialog).toBeVisible()
+  await expect.poll(() => dialog.evaluate((element) => getComputedStyle(element).opacity)).toBe('1')
+  const dialogBox = await dialog.boundingBox()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+
+  await expect.poll(async () => (await zooms()).length).toBe(2)
+  const [opening, closing] = await zooms()
+  expect(opening.dialogShown).toBe(false)
+  expect(opening.first).toMatchObject({ x: itemBox?.x, y: itemBox?.y, width: itemBox?.width })
+  expect(opening.last).toMatchObject({ x: dialogBox?.x, width: dialogBox?.width })
+  expect(closing.last).toMatchObject({
+    x: bankMenuBox?.x,
+    y: bankMenuBox?.y,
+    width: bankMenuBox?.width,
+  })
+})
+
 test('switches a deleted bank off like a CRT over the bank that takes its place', async ({
   page,
 }) => {
