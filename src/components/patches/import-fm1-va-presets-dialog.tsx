@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Fm1VaReadLeds } from '@/components/patches/fm1-va-read-leds'
 import { fm1VaReadErrorMessage } from '@/components/patches/fm1-va-read-error-message'
 import { PreviewPatchButton } from '@/components/patches/preview-patch-button'
 import { undoToastOptions } from '@/components/patches/undo-toast'
@@ -435,10 +436,11 @@ export function ImportFm1VaPresetsDialog({
                   </p>
                   <progress
                     aria-labelledby={readingId}
-                    className="h-2 w-full accent-[var(--crt-led)]"
+                    className="sr-only"
                     max={fm1VaPresetCount}
                     value={readCount}
                   />
+                  <Fm1VaReadLeds readCount={readCount} />
                 </div>
                 <Button
                   className="justify-self-start"

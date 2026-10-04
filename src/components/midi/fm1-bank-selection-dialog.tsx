@@ -186,7 +186,13 @@ export function Fm1BankSelectionDialog({
             />
             {t('dialogs.dontShow')}
           </label>
-          <Button autoFocus disabled={isSending} onClick={onSend} type="button">
+          <Button
+            autoFocus
+            className={isSending ? 'barber-pole' : undefined}
+            disabled={isSending}
+            onClick={onSend}
+            type="button"
+          >
             {t(isSending ? 'banks.sending' : 'banks.send')}
           </Button>
         </DialogFooter>

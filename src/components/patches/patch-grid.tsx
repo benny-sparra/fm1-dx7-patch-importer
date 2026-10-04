@@ -248,6 +248,8 @@ export function PatchGrid({
                 'relative isolate space-y-4 bg-[var(--crt-bg-panel)] p-[9px]',
                 draggedId === null ? 'overflow-hidden' : 'z-20',
               )}
+              // What switches off like a CRT when its bank is deleted.
+              data-patch-grid=""
             >
               <div className="relative z-10">
                 {patches.length > 0 && resultsHeading ? (
