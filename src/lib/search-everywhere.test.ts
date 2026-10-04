@@ -12,6 +12,7 @@ import {
   hideCopies,
 } from '@/lib/search-everywhere'
 import { soundKey } from '@/lib/sound-key'
+import { slotVoice } from '@/test/slot-voice'
 
 function savedBank(id: string, name: string, firstVoiceName: string) {
   const voices = makeDemoVoices()
@@ -68,8 +69,8 @@ describe('saved bank search', () => {
       effects: makeDefaultFm1Effects(),
       name: 'SOLO LEAD',
       slot: 1,
-      soundKey: soundKey(bank.slots[0].voice, makeDefaultFm1Effects()),
-      voice: bank.slots[0].voice,
+      soundKey: soundKey(slotVoice(bank.slots[0]), makeDefaultFm1Effects()),
+      voice: slotVoice(bank.slots[0]),
     })
   })
 
@@ -82,8 +83,10 @@ describe('saved bank search', () => {
     const [match] = findSavedBankMatches([bank], 'solo')
 
     expect(match.record).toBe(record)
-    expect(match.soundKey).toBe(soundKey(first.voice, first.effects, record))
-    expect(hideCopies([soundKey(first.voice, first.effects)], [[match]])[0].matches).toHaveLength(1)
+    expect(match.soundKey).toBe(soundKey(slotVoice(first), first.effects, record))
+    expect(
+      hideCopies([soundKey(slotVoice(first), first.effects)], [[match]])[0].matches,
+    ).toHaveLength(1)
   })
 
   it('lists matches bank by bank', () => {

@@ -40,6 +40,8 @@ vi.mock('@/hooks/use-patch-library', () => ({
     patches: [
       { bank: 'A', family: 'Keys', id: 'patch-1', name: 'Piano', number: 1, program: 0 },
       { bank: 'E', family: 'DX7', id: 'patch-e1', name: 'Pad', number: 1 },
+      // A Virtual Analog preset in A3, whose bytes are not a DX7 voice, so it is not in `voices`.
+      { bank: 'A', family: 'VA', id: 'patch-va', name: 'VOICE 97', number: 3, program: 2 },
     ],
     persistenceStatus: 'ready',
     updatePatch: vi.fn(),
@@ -80,6 +82,12 @@ vi.mock('@/routes/librarian-page', () => ({
       </button>
       <button onClick={() => onEditPatch({ id: 'patch-e1' })} type="button">
         Edit Pad
+      </button>
+      <button onClick={() => onSelectPatch({ id: 'patch-va' })} type="button">
+        Play Virtual Analog
+      </button>
+      <button onClick={() => onEditPatch({ id: 'patch-va' })} type="button">
+        Edit Virtual Analog
       </button>
       <button onClick={() => onPlaySearchResult(catalogVoice, undefined)} type="button">
         Play catalog result
@@ -246,6 +254,31 @@ describe('App slot audition', () => {
 
     expect(sendProgramChange).not.toHaveBeenCalled()
     expect(sendVoice).not.toHaveBeenCalled()
+  })
+
+  it('selects a Virtual Analog slot’s program and sends nothing else, with or without SysEx', async () => {
+    for (const sysexAvailable of [true, false]) {
+      midiState.sysexAvailable = sysexAvailable
+      const user = renderApp()
+
+      await user.click(screen.getByRole('button', { name: 'Play Virtual Analog' }))
+
+      expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(2)
+      expect(sendVoice).not.toHaveBeenCalled()
+      expect(sendEffectSettings).not.toHaveBeenCalled()
+      cleanup()
+      vi.clearAllMocks()
+    }
+  })
+
+  it('does not open the voice editor for a Virtual Analog slot', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Edit Virtual Analog' }))
+
+    expect(loadPatchEditorPage).not.toHaveBeenCalled()
+    expect(sendProgramChange).not.toHaveBeenCalled()
+    expect(screen.getByText('Lit slot: none')).toBeTruthy()
   })
 })
 

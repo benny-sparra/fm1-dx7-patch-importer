@@ -13,6 +13,7 @@ import { createNamedBank } from '@/lib/named-bank'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import { soundKey } from '@/lib/sound-key'
 import { translatePageText } from '@/test/page-translator'
+import { slotVoice } from '@/test/slot-voice'
 
 const loadDx7CatalogBank = vi.hoisted(() => vi.fn<(bankId: string) => Promise<Dx7Voice[]>>())
 
@@ -104,7 +105,7 @@ describe('search everywhere results', () => {
   it('lights the heart of a result Favourites holds', async () => {
     const bank = savedBank('SOLO LEAD')
     renderResults({
-      favouriteKeys: new Set([soundKey(bank.slots[0].voice, savedEffects)]),
+      favouriteKeys: new Set([soundKey(slotVoice(bank.slots[0]), savedEffects)]),
       namedBanks: [bank],
       search: 'solo',
     })
@@ -127,7 +128,7 @@ describe('search everywhere results', () => {
 
     await vi.waitFor(() =>
       expect(onToggleFavourite).toHaveBeenCalledExactlyOnceWith(
-        { effects: savedEffects, voice: bank.slots[0].voice },
+        { effects: savedEffects, voice: slotVoice(bank.slots[0]) },
         'Leads',
       ),
     )
@@ -141,7 +142,7 @@ describe('search everywhere results', () => {
     await user.click(await screen.findByRole('button', { name: 'Play SOLO LEAD from Leads 01' }))
 
     await vi.waitFor(() =>
-      expect(onPlay).toHaveBeenCalledExactlyOnceWith(bank.slots[0].voice, savedEffects),
+      expect(onPlay).toHaveBeenCalledExactlyOnceWith(slotVoice(bank.slots[0]), savedEffects),
     )
   })
 
@@ -306,7 +307,7 @@ describe('search everywhere results', () => {
       search: 'solo',
       workspaceEffects: { 'bank-A-1': savedEffects },
       workspaceMatches: [{ id: 'bank-A-1' }],
-      workspaceVoices: { 'bank-A-1': bank.slots[0].voice },
+      workspaceVoices: { 'bank-A-1': slotVoice(bank.slots[0]) },
     })
 
     const saved = await screen.findByRole('region', { name: 'Saved banks' })
@@ -321,7 +322,7 @@ describe('search everywhere results', () => {
       namedBanks: [bank],
       search: 'solo',
       workspaceMatches: [{ id: 'bank-A-1' }],
-      workspaceVoices: { 'bank-A-1': bank.slots[0].voice },
+      workspaceVoices: { 'bank-A-1': slotVoice(bank.slots[0]) },
     })
 
     expect(await screen.findByRole('button', { name: 'Play SOLO LEAD from Leads 01' })).toBeTruthy()

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   addWorkspaceBank,
+  bankVirtualAnalogCount,
   clearLibraryBank,
   copyVoice,
   createWorkspaceBank,
@@ -37,6 +38,10 @@ import {
 import { updateDx7VoiceName } from '@/lib/dx7'
 import { favouritePatchId, toggleFavourite } from '@/lib/favourites'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
+import {
+  capturedVirtualAnalogRecord,
+  virtualAnalogVoiceBeyondDx7Ranges,
+} from '@/test/fm1-va-virtual-analog'
 
 describe('patch library operations', () => {
   it('starts every workspace with the four DX7 banks', () => {
@@ -903,5 +908,86 @@ describe('FM-1+VA settings records in the workspace', () => {
     )
 
     expect(snapshot.records[id]).toBeUndefined()
+  })
+})
+
+describe('Virtual Analog presets in the workspace', () => {
+  const record = capturedVirtualAnalogRecord()
+  const virtualAnalog = () => ({ record, virtualAnalog: virtualAnalogVoiceBeyondDx7Ranges() })
+
+  /** Bank A holds the demo voices, with a Virtual Analog preset read from the FM1 in A3. */
+  function withVirtualAnalogInA3() {
+    const loaded = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const sounds = Array.from({ length: 32 }, (_, index) => (index === 2 ? virtualAnalog() : null))
+    return importFetchedBanks(loaded, [{ bank: 'A', sounds }])
+  }
+  const a3 = voiceId('A', 3)
+
+  it('keeps a Virtual Analog preset’s bytes exactly as read, apart from the DX7 voices', () => {
+    const library = withVirtualAnalogInA3()
+
+    expect(library.virtualAnalog[a3]).toEqual(virtualAnalogVoiceBeyondDx7Ranges())
+    expect(library.voices[a3]).toBeUndefined()
+    expect(library.records[a3]).toEqual(record)
+  })
+
+  it('shows a Virtual Analog slot by its name and engine', () => {
+    const patch = makePatches(withVirtualAnalogInA3())[2]
+
+    expect(patch).toMatchObject({ family: 'VA', name: 'VOICE 97', program: 2 })
+  })
+
+  it('moves a Virtual Analog preset with its record when a slot is dragged', () => {
+    const moved = moveVoice(withVirtualAnalogInA3(), 'A', 3, 1)
+
+    expect(moved.virtualAnalog[voiceId('A', 1)]).toEqual(virtualAnalogVoiceBeyondDx7Ranges())
+    expect(moved.records[voiceId('A', 1)]).toEqual(record)
+    expect(moved.voices[voiceId('A', 1)]).toBeUndefined()
+    expect(moved.virtualAnalog[a3]).toBeUndefined()
+    expect(moved.voices[a3]).toBeDefined()
+  })
+
+  it('copies a Virtual Analog preset as its own bytes', () => {
+    const library = withVirtualAnalogInA3()
+
+    const copied = copyVoice(library, a3, 'A', 9)
+
+    expect(copied.virtualAnalog[voiceId('A', 9)]).toEqual(library.virtualAnalog[a3])
+    expect(copied.virtualAnalog[voiceId('A', 9)]).not.toBe(library.virtualAnalog[a3])
+    expect(copied.voices[voiceId('A', 9)]).toBeUndefined()
+  })
+
+  it('replaces a Virtual Analog preset with a DX7 voice copied or imported over it', () => {
+    const library = withVirtualAnalogInA3()
+    const [voice] = makeDemoVoices()
+
+    for (const replaced of [
+      copyVoice(library, voiceId('A', 1), 'A', 3),
+      replaceVoice(library, 'A', 3, voice),
+      importVoices(library, 'A', makeDemoVoices()),
+    ]) {
+      expect(replaced.virtualAnalog[a3]).toBeUndefined()
+      expect(replaced.voices[a3]).toBeDefined()
+    }
+  })
+
+  it('removes Virtual Analog presets with the bank they are in', () => {
+    expect(clearLibraryBank(withVirtualAnalogInA3(), 'A').virtualAnalog).toEqual({})
+  })
+
+  it('moves a Virtual Analog preset up a letter with its bank when an earlier bank goes', () => {
+    const library = importVoices(withVirtualAnalogInA3(), 'B', makeDemoVoices())
+    const inB = copyVoice(library, a3, 'B', 3)
+
+    expect(deleteWorkspaceBank(inB, 'A').virtualAnalog[a3]).toEqual(library.virtualAnalog[a3])
+  })
+
+  it('puts INIT VOICE in a Virtual Analog slot of a DX7 bank, and counts those slots', () => {
+    const library = withVirtualAnalogInA3()
+    const [initVoice] = makeDemoVoices()
+
+    expect(getBankVoices(library, 'A')).toHaveLength(31)
+    expect(getBankVoices(library, 'A', initVoice)[2]).toBe(initVoice)
+    expect(bankVirtualAnalogCount(library.virtualAnalog, 'A')).toBe(1)
   })
 })

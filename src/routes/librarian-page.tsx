@@ -55,6 +55,7 @@ import {
 } from '@/lib/favourites'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
+  bankVirtualAnalogCount,
   getNextWorkspaceBank,
   patchMatchesSearch,
   patchSlotCode,
@@ -401,15 +402,31 @@ export function LibrarianPage({
     importInputRef.current?.click()
   }
 
-  const downloadBank = (bank: string) => {
+  // A DX7 bank has no place for a Virtual Analog preset, so its slot takes INIT VOICE, which comes
+  // with the editor's voice code only when a bank needs it.
+  const virtualAnalogCount = (bank: string) => bankVirtualAnalogCount(library.virtualAnalog, bank)
+  const bankDx7Voices = async (sentBanks: readonly string[]) => {
+    const initVoice = sentBanks.some((bank) => virtualAnalogCount(bank) > 0)
+      ? (await import('@/lib/init-voice')).makeInitDx7Voice()
+      : undefined
+    return sentBanks.map((bank) => library.getBankVoices(bank, initVoice))
+  }
+
+  const downloadBank = async (bank: string) => {
     try {
-      downloadSysexFile(
-        makeDx7BankFile(library.getBankVoices(bank)),
-        `fm1-bank-${bank.toLowerCase()}.syx`,
-      )
+      const [voices] = await bankDx7Voices([bank])
+      downloadSysexFile(makeDx7BankFile(voices), `fm1-bank-${bank.toLowerCase()}.syx`)
       setImportError('')
       trackAnalyticsEvent({ data: { scope: 'single' }, name: 'bank_exported' })
-      toast.success(t('toasts.bankDownloadStarted', { bank: bankDisplayName(bank) }))
+      const initCount = virtualAnalogCount(bank)
+      toast.success(
+        initCount === 0
+          ? t('toasts.bankDownloadStarted', { bank: bankDisplayName(bank) })
+          : t('toasts.bankDownloadStartedWithInit', {
+              bank: bankDisplayName(bank),
+              count: initCount,
+            }),
+      )
     } catch (error) {
       setImportError(bankErrorMessage(t, error, t('banks.exportFailed')))
     }
@@ -418,16 +435,23 @@ export function LibrarianPage({
   const downloadAllBanks = async () => {
     try {
       const { zipSync } = await import('fflate')
+      const { loadedBanks } = library
+      const voices = await bankDx7Voices(loadedBanks)
       const files = Object.fromEntries(
-        library.loadedBanks.map((bank) => [
+        loadedBanks.map((bank, index) => [
           `fm1-bank-${bank.toLowerCase()}.syx`,
-          makeDx7BankFile(library.getBankVoices(bank)),
+          makeDx7BankFile(voices[index]),
         ]),
       )
       downloadFile(new Blob([zipSync(files)], { type: 'application/zip' }), 'fm1-browser-banks.zip')
       setImportError('')
       trackAnalyticsEvent({ data: { scope: 'all' }, name: 'bank_exported' })
-      toast.success(t('toasts.banksDownloadStarted'))
+      const initCount = loadedBanks.reduce((count, bank) => count + virtualAnalogCount(bank), 0)
+      toast.success(
+        initCount === 0
+          ? t('toasts.banksDownloadStarted')
+          : t('toasts.banksDownloadStartedWithInit', { count: initCount }),
+      )
     } catch (error) {
       setImportError(bankErrorMessage(t, error, t('banks.bulkExportFailed')))
     }
@@ -447,8 +471,15 @@ export function LibrarianPage({
     setTransferError('')
     let voiceCount: number | undefined
     try {
-      let voices = library.getBankVoices(destinationBank)
-      let sentStatus = t('banks.sentStatus', { bank: bankDisplayName(destinationBank) })
+      let [voices] = await bankDx7Voices([destinationBank])
+      const initCount = virtualAnalogCount(destinationBank)
+      let sentStatus =
+        initCount === 0
+          ? t('banks.sentStatus', { bank: bankDisplayName(destinationBank) })
+          : t('banks.sentStatusWithInit', {
+              bank: bankDisplayName(destinationBank),
+              count: initCount,
+            })
       if (destinationBank === favouritesBank) {
         const transfer = await prepareFavouritesTransfer()
         if (!transfer) return
@@ -574,14 +605,18 @@ export function LibrarianPage({
   const showsFavourites = !isSearching && destinationBank === favouritesBank
   const favouriteCount = library.favourites.length
   const canSendDestination = showsFavourites ? favouriteCount > 0 : isDestinationBankLoaded
-  // A bank holds 32 patches, so the destination instructions say before sending what Favourites
-  // becomes on the FM1.
-  const favouritesTransferNote =
-    !showsFavourites || favouriteCount === 0 || favouriteCount === dx7BankVoiceCount
+  // A bank holds 32 DX7 voices, so the destination instructions say before sending what Favourites
+  // becomes on the FM1, or that a bank's Virtual Analog presets become INIT VOICE.
+  const destinationVirtualAnalogCount = showsFavourites ? 0 : virtualAnalogCount(destinationBank)
+  const bankTransferNote = showsFavourites
+    ? favouriteCount === 0 || favouriteCount === dx7BankVoiceCount
       ? undefined
       : favouriteCount < dx7BankVoiceCount
         ? t('favourites.initNote', { count: dx7BankVoiceCount - favouriteCount })
         : t('favourites.leftOutNote', { count: favouriteCount - dx7BankVoiceCount })
+    : destinationVirtualAnalogCount > 0
+      ? t('banks.virtualAnalogInitNote', { count: destinationVirtualAnalogCount })
+      : undefined
 
   const visiblePatches = useMemo(() => {
     // A search looks through every loaded bank, so a result keeps showing while another is played.
@@ -745,7 +780,7 @@ export function LibrarianPage({
           disabled={!library.loadedBanks.includes(bank)}
           onClick={() => {
             closeMenu()
-            downloadBank(bank)
+            void downloadBank(bank)
           }}
           title={
             library.loadedBanks.includes(bank)
@@ -1183,7 +1218,7 @@ export function LibrarianPage({
         <Fm1BankSelectionDialog
           isSending={isSending}
           midi={midi}
-          note={favouritesTransferNote}
+          note={bankTransferNote}
           onClose={closeSendGuide}
           onSend={() => void transferSelectedBank()}
         />

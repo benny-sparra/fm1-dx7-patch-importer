@@ -59,6 +59,7 @@ type ImportFm1VaPresetsDialogProps = {
     | 'importFetchedBanks'
     | 'records'
     | 'undoChange'
+    | 'virtualAnalog'
     | 'voices'
     | 'workspaceBanks'
   >
@@ -183,7 +184,6 @@ export function ImportFm1VaPresetsDialog({
 
   const listFormat = new Intl.ListFormat(i18n.resolvedLanguage, { type: 'conjunction' })
   const damagedCount = countPresets(banks, 'damaged')
-  const virtualAnalogCount = countPresets(banks, 'virtual-analog')
   const choiceOf = (bank: Fm1VaPresetBank): BankChoice =>
     choices.get(bank) ?? { destination: bank, imported: false }
   const takenBanks = banks?.filter(({ bank }) => choiceOf(bank).imported) ?? []
@@ -197,6 +197,7 @@ export function ImportFm1VaPresetsDialog({
     return differsFromLibrary(preset, {
       effects: library.effects[id],
       record: library.records[id],
+      virtualAnalog: library.virtualAnalog[id],
       voice: library.voices[id],
     })
   }
@@ -492,16 +493,6 @@ export function ImportFm1VaPresetsDialog({
                 ) : banks.every(({ bank }) => comparedBank(bank) !== null) ? (
                   <p className="text-xs text-[var(--crt-ink-3)]">{t('fm1VaImport.allMatch')}</p>
                 ) : null}
-                {virtualAnalogCount > 0 ? (
-                  <p className="text-xs text-[var(--crt-ink-3)]">
-                    {t(
-                      source === 'fm1'
-                        ? 'fm1VaImport.virtualAnalogPresets'
-                        : 'fm1VaImport.virtualAnalogPresetsFile',
-                      { count: virtualAnalogCount },
-                    )}
-                  </p>
-                ) : null}
               </div>
               {/* Nothing is replaced until a bank is chosen, so the warning waits for the banks. */}
               <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -653,8 +644,14 @@ function PresetFileBank({
                   onClick={() => onPlay(preset.voice, preset.effects)}
                   playingLabel={t('banks.auditioning')}
                 />
+              ) : preset.kind === 'virtual-analog' ? (
+                <VirtualAnalogPresetCell
+                  differs={differs(index, preset)}
+                  name={preset.name}
+                  number={index + 1}
+                />
               ) : (
-                <KeptPresetCell number={index + 1} preset={preset} />
+                <DamagedPresetCell number={index + 1} />
               )}
             </li>
           ))}
@@ -664,33 +661,51 @@ function PresetFileBank({
   )
 }
 
-/** A preset the import leaves out, so its slot keeps the patch it has. */
-function KeptPresetCell({
+/**
+ * A Virtual Analog preset, which is imported but cannot be played here: no message but the preset
+ * write carries one, so it has no preview.
+ */
+function VirtualAnalogPresetCell({
+  differs,
+  name,
   number,
-  preset,
 }: {
+  differs: boolean
+  name: string
   number: number
-  preset: Exclude<Fm1VaPreset, { kind: 'fm' }>
 }) {
+  const { t } = useTranslation()
+  return (
+    <span className="patch-cell flex min-h-9 w-full items-center gap-1.5 border border-[var(--crt-line)] px-1.5 py-1 text-[var(--crt-ink-3)]">
+      <span className="font-vt323 shrink-0 text-[16px] leading-none">
+        {String(number).padStart(2, '0')}
+      </span>
+      <span className="font-dot-matrix min-w-0 flex-1 truncate text-[13px] font-bold whitespace-pre">
+        {name}
+      </span>
+      <span aria-hidden="true" className="shrink-0 text-[11px] font-semibold">
+        {t('fm1VaImport.virtualAnalogTag')}
+      </span>
+      <span className="sr-only">{t('banks.virtualAnalogPatch')}</span>
+      {differs ? (
+        <>
+          <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-[var(--crt-led)]" />
+          <span className="sr-only">{t('fm1VaImport.differingPatch')}</span>
+        </>
+      ) : null}
+    </span>
+  )
+}
+
+/** A preset that arrived damaged, which the import leaves out, so its slot keeps its patch. */
+function DamagedPresetCell({ number }: { number: number }) {
   const { t } = useTranslation()
   return (
     <span className="patch-cell flex min-h-9 w-full items-center gap-1.5 border border-dashed border-[var(--crt-line)] px-1.5 py-1 text-[var(--crt-ink-3)]">
       <span className="font-vt323 shrink-0 text-[16px] leading-none">
         {String(number).padStart(2, '0')}
       </span>
-      {preset.kind === 'virtual-analog' ? (
-        <>
-          <span className="font-dot-matrix min-w-0 flex-1 truncate text-[13px] font-bold whitespace-pre">
-            {preset.name}
-          </span>
-          <span aria-hidden="true" className="shrink-0 text-[11px] font-semibold">
-            {t('fm1VaImport.virtualAnalogTag')}
-          </span>
-          <span className="sr-only">{t('fm1VaImport.virtualAnalogPreset')}</span>
-        </>
-      ) : (
-        <span className="truncate text-xs">{t('fm1VaImport.damagedPreset')}</span>
-      )}
+      <span className="truncate text-xs">{t('fm1VaImport.damagedPreset')}</span>
     </span>
   )
 }

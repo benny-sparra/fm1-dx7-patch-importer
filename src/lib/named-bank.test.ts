@@ -7,18 +7,26 @@ import {
   loadNamedBank,
   makeNamedBankSysexFile,
   makeNamedBankSysexFilename,
+  namedBankVirtualAnalogCount,
   renameNamedBank,
   validateNamedBank,
   type NamedBank,
 } from '@/lib/named-bank'
 import { parseDx7Bank } from '@/lib/dx7'
+import { makeInitDx7Voice } from '@/lib/init-voice'
 import {
   emptyPatchLibrary,
   getBankVoices,
+  importFetchedBanks,
   importVoices,
   makeDemoVoices,
   voiceId,
 } from '@/lib/patch-library'
+import {
+  capturedVirtualAnalogRecord,
+  virtualAnalogVoiceBeyondDx7Ranges,
+} from '@/test/fm1-va-virtual-analog'
+import { slotVoice } from '@/test/slot-voice'
 
 const createdAt = '2026-08-13T12:00:00.000Z'
 
@@ -43,7 +51,7 @@ describe('named bank operations', () => {
     expect(bank.name).toBe('Gig bank')
     expect(bank.description).toBe('For Saturday')
     expect(bank.slots).toHaveLength(32)
-    expect(bank.slots[0].voice.data[0]).not.toBe(0)
+    expect(slotVoice(bank.slots[0]).data[0]).not.toBe(0)
     expect(bank.slots[0].effects[0]).toBe(1)
   })
 
@@ -113,8 +121,8 @@ describe('named bank operations', () => {
     expect(renamed.description).toBe('New notes')
     expect(duplicate.id).toBe('bank-2')
     expect(duplicate.name).toBe('Original copy')
-    duplicate.slots[0].voice.data[0] = 0
-    expect(bank.slots[0].voice.data[0]).not.toBe(0)
+    slotVoice(duplicate.slots[0]).data[0] = 0
+    expect(slotVoice(bank.slots[0]).data[0]).not.toBe(0)
   })
 
   it('exports the saved bank as a standard 32-voice DX7 SysEx file', () => {
@@ -125,12 +133,14 @@ describe('named bank operations', () => {
       now: createdAt,
     })
 
-    const exported = parseDx7Bank(makeNamedBankSysexFile(bank).buffer as ArrayBuffer)
+    const exported = parseDx7Bank(
+      makeNamedBankSysexFile(bank, makeInitDx7Voice()).buffer as ArrayBuffer,
+    )
 
     expect(exported).toHaveLength(32)
-    expect(exported.map(({ name }) => name)).toEqual(bank.slots.map(({ voice }) => voice.name))
-    expect(exported[0].data).toEqual(bank.slots[0].voice.data)
-    expect(exported[31].data).toEqual(bank.slots[31].voice.data)
+    expect(exported.map(({ name }) => name)).toEqual(bank.slots.map((slot) => slotVoice(slot).name))
+    expect(exported[0].data).toEqual(slotVoice(bank.slots[0]).data)
+    expect(exported[31].data).toEqual(slotVoice(bank.slots[31]).data)
   })
 
   it('uses a safe .syx filename derived from the saved bank name', () => {
@@ -153,7 +163,7 @@ describe('named bank operations', () => {
     })
     bank.slots.pop()
 
-    expect(() => makeNamedBankSysexFile(bank)).toThrow('invalid')
+    expect(() => makeNamedBankSysexFile(bank, makeInitDx7Voice())).toThrow('invalid')
   })
 })
 
@@ -184,12 +194,12 @@ describe('saved banks with FM-1+VA records', () => {
     }
   }
 
-  it('saves each slot’s record as its own copy, as version 2', () => {
+  it('saves each slot’s record as its own copy, as version 3', () => {
     const library = withRecord()
 
     const bank = createNamedBank(library, 'A', options)
 
-    expect(bank.version).toBe(2)
+    expect(bank.version).toBe(3)
     expect(bank.slots[1].record).toEqual(record(2))
     expect(bank.slots[1].record).not.toBe(library.records[voiceId('A', 2)])
     expect(bank.slots[0]).not.toHaveProperty('record')
@@ -215,8 +225,8 @@ describe('saved banks with FM-1+VA records', () => {
     expect(loadNamedBank(withRecord(), 'A', bank).records).toEqual({})
   })
 
-  it('writes a renamed version 1 bank back as version 2', () => {
-    expect(renameNamedBank(versionOneBank(), 'New', '', createdAt).version).toBe(2)
+  it('writes a renamed version 1 bank back as version 3', () => {
+    expect(renameNamedBank(versionOneBank(), 'New', '', createdAt).version).toBe(3)
   })
 
   it('refuses a slot whose record is the wrong size', () => {
@@ -224,5 +234,57 @@ describe('saved banks with FM-1+VA records', () => {
     bank.slots[1].record = new Uint8Array(58)
 
     expect(() => validateNamedBank(bank)).toThrow('32 valid sound slots')
+  })
+})
+
+describe('saved banks with Virtual Analog presets', () => {
+  const record = capturedVirtualAnalogRecord()
+
+  /** Bank A holds the demo voices, with a Virtual Analog preset in A3. */
+  function withVirtualAnalog() {
+    const sounds = Array.from({ length: 32 }, (_, index) =>
+      index === 2 ? { record, virtualAnalog: virtualAnalogVoiceBeyondDx7Ranges() } : null,
+    )
+    return importFetchedBanks(makeLoadedLibrary(), [{ bank: 'A', sounds }])
+  }
+  const save = () =>
+    createNamedBank(withVirtualAnalog(), 'A', {
+      description: '',
+      id: 'va',
+      name: 'With VA',
+      now: createdAt,
+    })
+
+  it('saves a Virtual Analog slot exactly as the workspace holds it, as version 3', () => {
+    const bank = save()
+
+    expect(bank.version).toBe(3)
+    expect(bank.slots[2]).toMatchObject({
+      record,
+      slot: 3,
+      virtualAnalog: virtualAnalogVoiceBeyondDx7Ranges(),
+    })
+    expect(namedBankVirtualAnalogCount(bank)).toBe(1)
+  })
+
+  it('loads a Virtual Analog slot back into a workspace bank as a Virtual Analog preset', () => {
+    const loaded = loadNamedBank(makeLoadedLibrary(), 'A', save())
+
+    expect(loaded.virtualAnalog[voiceId('A', 3)]).toEqual(virtualAnalogVoiceBeyondDx7Ranges())
+    expect(loaded.voices[voiceId('A', 3)]).toBeUndefined()
+    expect(loaded.records[voiceId('A', 3)]).toEqual(record)
+  })
+
+  it('downloads a bank with INIT VOICE in its Virtual Analog slot', () => {
+    const initVoice = makeInitDx7Voice()
+
+    const exported = parseDx7Bank(makeNamedBankSysexFile(save(), initVoice).buffer as ArrayBuffer)
+
+    expect(exported[2].name).toBe('INIT VOICE')
+    expect(exported[3].data).toEqual(getBankVoices(withVirtualAnalog(), 'A')[2].data)
+  })
+
+  it('refuses a Virtual Analog slot in a bank of an earlier version', () => {
+    expect(() => validateNamedBank({ ...save(), version: 2 })).toThrow('32 valid sound slots')
   })
 })

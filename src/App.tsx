@@ -21,7 +21,7 @@ import type { Dx7Voice } from '@/lib/dx7'
 import type { CopiedOperator } from '@/lib/operator-clipboard'
 import { favouritesBank } from '@/lib/favourites'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
-import { isRenumberedByBankDeletion } from '@/lib/patch-library'
+import { isRenumberedByBankDeletion, virtualAnalogFamily } from '@/lib/patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { visibleBox, zoomRects } from '@/lib/zoom-rects'
 import {
@@ -89,8 +89,15 @@ function App() {
   // Clicking a slot in banks A–D selects its FM1 program, so the FM1 shows that slot, then sends the
   // library's voice and effects to the edit buffer, so the click plays the library's sound even
   // when the FM1 stores another there. Without SysEx only the program and its saved effects can be
-  // sent. An added bank has no FM1 slot, so only its sound is sent.
+  // sent. An added bank has no FM1 slot, so only its sound is sent. A Virtual Analog preset's bytes
+  // are not a DX7 voice and no message but the preset write carries one, so its slot sends only its
+  // program, which plays whatever the FM1 stores there, and an added bank's sends nothing.
   const auditionPatch = (patch: Patch) => {
+    if (patch.family === virtualAnalogFamily) {
+      editBufferAudition.current = null
+      if (patch.program !== undefined) midi.sendProgramChange(patch.program)
+      return
+    }
     const voice = library.voices[patch.id]
     const effects = library.effects[patch.id]
     if (patch.program === undefined) {
@@ -152,7 +159,8 @@ function App() {
   }
   const editPatch = (patchId: string) => {
     const patch = findPatch(patchId)
-    if (!patch) return
+    // The voice editor edits DX7 voices, so a Virtual Analog preset does not open it.
+    if (!patch || patch.family === virtualAnalogFamily) return
     // The editor sends an added bank's sound itself as it opens, so only a slot in banks A–D is
     // selected on the way in.
     editBufferAudition.current = null

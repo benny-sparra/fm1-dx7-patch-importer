@@ -320,11 +320,6 @@ export default {
     imported_other: '已从 FM1 导入音色库 {{banks}}。',
     openFailed: '无法打开 Baud Girl 预设导入。请重新加载页面后重试。',
     virtualAnalogTag: 'VA',
-    virtualAnalogPreset: 'Virtual Analog 预设，不会导入',
-    virtualAnalogPresets: 'FM1 上有 1 个虚拟模拟预设，目前无法导入。',
-    virtualAnalogPresets_other: 'FM1 上有 {{count, number}} 个虚拟模拟预设，目前无法导入。',
-    virtualAnalogPresetsFile: '此文件中有 1 个虚拟模拟预设，目前无法导入。',
-    virtualAnalogPresetsFile_other: '此文件中有 {{count, number}} 个虚拟模拟预设，目前无法导入。',
     errors: {
       size: '此文件大小为 {{bytes, number}} 字节。Baud Girl 的“Save a backup”保存的文件正好为 {{expected, number}} 字节。',
       format: '此文件不是由 Baud Girl 的“Save a backup”保存的。',
@@ -468,6 +463,14 @@ export default {
     patchCopied: '已将“{{patch}}”复制到“{{bank}}”的 {{slot}}。',
     patchReplaced: '已将 {{slot}} 替换为“{{patch}}”。',
     operatorCopied: '已复制操作器 {{number}}。',
+    bankDownloadStartedWithInit:
+      '正在下载“{{bank}}”，其中的 Virtual Analog 预设以 INIT VOICE 代替。',
+    bankDownloadStartedWithInit_other:
+      '正在下载“{{bank}}”，其中的 {{count, number}} 个 Virtual Analog 预设以 INIT VOICE 代替。',
+    banksDownloadStartedWithInit:
+      '正在下载所有音色库，其中 1 个 Virtual Analog 预设以 INIT VOICE 代替。',
+    banksDownloadStartedWithInit_other:
+      '正在下载所有音色库，其中 {{count, number}} 个 Virtual Analog 预设以 INIT VOICE 代替。',
   },
   meta: {
     title: 'M-VAVE FM1 音色编辑器与音色库',
@@ -844,6 +847,18 @@ export default {
       playFailed: '无法播放该音色。',
       copiesHidden: '重复的音色不予显示。',
     },
+    slotVirtualAnalogTitle:
+      '单击可在 FM1 上选择 {{name}}，FM1 会演奏该位置保存的 Virtual Analog 预设',
+    slotVirtualAnalogAddedTitle: '{{name}} 是 Virtual Analog 预设，只能从 FM1 的 A 到 D 音色库演奏',
+    virtualAnalogPatch: 'Virtual Analog 预设',
+    sentStatusWithInit:
+      '已发送浏览器音色库 {{bank}}，其中的 Virtual Analog 预设以 INIT VOICE 代替。请在 FM1 上选择目标位置。',
+    sentStatusWithInit_other:
+      '已发送浏览器音色库 {{bank}}，其中的 {{count, number}} 个 Virtual Analog 预设以 INIT VOICE 代替。请在 FM1 上选择目标位置。',
+    virtualAnalogInitNote:
+      'DX7 音色库无法容纳 Virtual Analog 预设，因此此音色库中的该预设会以 INIT VOICE 发送。',
+    virtualAnalogInitNote_other:
+      'DX7 音色库无法容纳 Virtual Analog 预设，因此此音色库中的 {{count, number}} 个此类预设会以 INIT VOICE 发送。',
   },
   namedBanks: {
     open: '音色库',
@@ -888,6 +903,9 @@ export default {
     copied: '已创建“{{name}}”。',
     deleted: '已删除“{{name}}”。',
     loaded: '已将“{{name}}”加载到“{{bank}}”。',
+    downloadedWithInit: '已下载“{{name}}”，其中的 Virtual Analog 预设以 INIT VOICE 代替。',
+    downloadedWithInit_other:
+      '已下载“{{name}}”，其中的 {{count, number}} 个 Virtual Analog 预设以 INIT VOICE 代替。',
   },
   backup: {
     menuOtherFiles: '其他文件',

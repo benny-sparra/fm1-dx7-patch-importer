@@ -1,10 +1,11 @@
 import { dx7PackedVoiceSize, makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import { sysexFilenameStem } from '@/lib/sysex-file'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
+import { isFm1VaVirtualAnalogVoice } from '@/lib/fm1-va-virtual-analog'
 import {
   bankDescriptionLength,
   fm1VaRecordSize,
-  importVoices,
+  importFetchedBanks,
   normalizeWorkspaceBankNameForSave,
   voiceId,
   type PatchLibrarySnapshot,
@@ -12,17 +13,17 @@ import {
 
 export const savedBankNameLength = 80
 
-type NamedBankSlot = {
-  effects: Uint8Array
-  /** The slot's FM-1+VA settings record, from version 2, when its sound has one. */
-  record?: Uint8Array
-  slot: number
-  voice: Dx7Voice
-}
+/**
+ * One slot of a saved bank: a DX7 voice, with the FM-1+VA settings record from version 2 when its
+ * sound has one, or, from version 3, a Virtual Analog preset's voice bytes and its record.
+ */
+type NamedBankSlot = { effects: Uint8Array; slot: number } & (
+  { record?: Uint8Array; voice: Dx7Voice } | { record: Uint8Array; virtualAnalog: Uint8Array }
+)
 
 /**
- * A saved bank. Version 2 adds each slot's optional record and is what this release writes; a
- * version 1 bank, which has no records, is read as it is.
+ * A saved bank. Version 2 adds each slot's optional record, and version 3, which this release
+ * writes, Virtual Analog slots; earlier banks, which have neither, are read as they are.
  */
 export type NamedBank = {
   createdAt: string
@@ -31,10 +32,10 @@ export type NamedBank = {
   name: string
   slots: NamedBankSlot[]
   updatedAt: string
-  version: 1 | 2
+  version: 1 | 2 | 3
 }
 
-const namedBankVersion = 2
+const namedBankVersion = 3
 
 type CreateNamedBankOptions = {
   description: string
@@ -61,19 +62,48 @@ function normalizeDescription(description: string) {
 }
 
 function cloneSlot(slot: NamedBankSlot): NamedBankSlot {
+  const effects = normalizeFm1Effects(slot.effects)
+  if ('virtualAnalog' in slot) {
+    return {
+      effects,
+      record: slot.record.slice(),
+      slot: slot.slot,
+      virtualAnalog: slot.virtualAnalog.slice(),
+    }
+  }
   return {
-    effects: normalizeFm1Effects(slot.effects),
+    effects,
     ...(slot.record ? { record: slot.record.slice() } : {}),
     slot: slot.slot,
     voice: { ...slot.voice, data: slot.voice.data.slice() },
   }
 }
 
+function isValidRecord(record: unknown) {
+  return record instanceof Uint8Array && record.length === fm1VaRecordSize
+}
+
+/** Whether a slot holds a valid sound: a DX7 voice, or, from version 3, a Virtual Analog preset. */
+function isValidSlotSound(slot: Partial<NamedBankSlot>, version: NamedBank['version']) {
+  if ('virtualAnalog' in slot) {
+    return (
+      version === 3 && isFm1VaVirtualAnalogVoice(slot.virtualAnalog) && isValidRecord(slot.record)
+    )
+  }
+  return (
+    'voice' in slot &&
+    slot.voice?.data instanceof Uint8Array &&
+    slot.voice.data.length === dx7PackedVoiceSize &&
+    typeof slot.voice.name === 'string' &&
+    (slot.record === undefined || isValidRecord(slot.record))
+  )
+}
+
 export function validateNamedBank(value: unknown): asserts value is NamedBank {
   if (!value || typeof value !== 'object') throw new Error('A saved bank record is invalid.')
   const bank = value as Partial<NamedBank>
   if (
-    (bank.version !== 1 && bank.version !== 2) ||
+    (bank.version !== 1 && bank.version !== 2 && bank.version !== 3) ||
     typeof bank.id !== 'string' ||
     !bank.id ||
     typeof bank.name !== 'string' ||
@@ -88,17 +118,14 @@ export function validateNamedBank(value: unknown): asserts value is NamedBank {
 
   normalizeName(bank.name)
   normalizeDescription(bank.description)
+  const version = bank.version
   bank.slots.forEach((slot, index) => {
     if (
       !slot ||
       slot.slot !== index + 1 ||
-      !(slot.voice?.data instanceof Uint8Array) ||
-      slot.voice.data.length !== dx7PackedVoiceSize ||
-      typeof slot.voice.name !== 'string' ||
+      !isValidSlotSound(slot, version) ||
       !(slot.effects instanceof Uint8Array) ||
-      slot.effects.length !== fm1EffectParameterCount ||
-      (slot.record !== undefined &&
-        (!(slot.record instanceof Uint8Array) || slot.record.length !== fm1VaRecordSize))
+      slot.effects.length !== fm1EffectParameterCount
     ) {
       throw new Error('A saved bank must contain 32 valid sound slots.')
     }
@@ -118,10 +145,15 @@ export function createNamedBank(
     const slot = index + 1
     const id = voiceId(sourceBank, slot)
     const voice = snapshot.voices[id]
-    if (!voice) throw new Error('A saved bank must contain exactly 32 sounds.')
+    const virtualAnalog = snapshot.virtualAnalog[id]
     const record = snapshot.records[id]
+    const effects = normalizeFm1Effects(snapshot.effects[id])
+    if (virtualAnalog && record) {
+      return { effects, record: record.slice(), slot, virtualAnalog: virtualAnalog.slice() }
+    }
+    if (!voice) throw new Error('A saved bank must contain exactly 32 sounds.')
     return {
-      effects: normalizeFm1Effects(snapshot.effects[id]),
+      effects,
       ...(record ? { record: record.slice() } : {}),
       slot,
       voice: { ...voice, data: voice.data.slice() },
@@ -145,18 +177,9 @@ export function loadNamedBank(
   bank: NamedBank,
 ) {
   validateNamedBank(bank)
-  const loaded = importVoices(
-    snapshot,
-    destinationBank,
-    bank.slots.map(({ voice }) => ({ ...voice, data: voice.data.slice() })),
-  )
-  const effects = { ...loaded.effects }
-  const records = { ...loaded.records }
-  bank.slots.forEach((slot) => {
-    const id = voiceId(destinationBank, slot.slot)
-    effects[id] = normalizeFm1Effects(slot.effects)
-    if (slot.record) records[id] = slot.record.slice()
-  })
+  const loaded = importFetchedBanks(snapshot, [
+    { bank: destinationBank, sounds: bank.slots.map(cloneSlot) },
+  ])
   // A saved bank's name may be longer than a workspace bank title, which storage keeps short.
   const title = normalizeWorkspaceBankNameForSave(bank.name)
   return {
@@ -166,8 +189,6 @@ export function loadNamedBank(
       ...(bank.description ? { [destinationBank]: bank.description } : {}),
     },
     bankNames: { ...loaded.bankNames, ...(title ? { [destinationBank]: title } : {}) },
-    effects,
-    records,
   }
 }
 
@@ -199,9 +220,15 @@ export function duplicateNamedBank(bank: NamedBank, id: string, now: string): Na
   }
 }
 
-export function makeNamedBankSysexFile(bank: NamedBank) {
+/** A saved bank as a DX7 bank file, with `initVoice` in each Virtual Analog slot. */
+export function makeNamedBankSysexFile(bank: NamedBank, initVoice: Dx7Voice) {
   validateNamedBank(bank)
-  return makeDx7BankFile(bank.slots.map(({ voice }) => voice))
+  return makeDx7BankFile(bank.slots.map((slot) => ('voice' in slot ? slot.voice : initVoice)))
+}
+
+/** How many of a saved bank's slots hold a Virtual Analog preset. */
+export function namedBankVirtualAnalogCount(bank: NamedBank) {
+  return bank.slots.filter((slot) => 'virtualAnalog' in slot).length
 }
 
 export function makeNamedBankSysexFilename(bank: NamedBank) {

@@ -144,8 +144,8 @@ reading each back to confirm it.
 Future development could add grouped modulation workflows, a focused internal-sequencer editor once
 its protocol is proven safe, and device readback if M-VAVE documents a compatible transmit protocol.
 FM-1+VA also offers direct sequencer pattern transfer through a command of its own, which could
-support editing its Sequencer, and its preset write could carry Virtual Analog presets once the
-library can hold them, each once reviewed and approved.
+support editing its Sequencer, and its preset write could carry back the Virtual Analog presets the
+library now keeps, each once reviewed and approved.
 
 ## Acknowledgements
 

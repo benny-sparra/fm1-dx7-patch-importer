@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { Patch } from '@/data/patches'
 import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
-import { patchSlotCode } from '@/lib/patch-library'
+import { patchSlotCode, virtualAnalogFamily } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
 
 import { droppedBank } from './bank-drop'
@@ -63,7 +63,11 @@ export function PatchButton({
   // Set by a click and cleared when the selection animation finishes, so the
   // animation plays only in response to the user and never on mount.
   const [flash, setFlash] = useState(false)
-  const canReorder = reorderable && patch.family === 'DX7'
+  // A Virtual Analog preset moves like any patch, but its bytes are not a DX7 voice, so it has no
+  // voice editor and no DX7 file to download.
+  const isVirtualAnalog = patch.family === virtualAnalogFamily
+  const canReorder = reorderable && (patch.family === 'DX7' || isVirtualAnalog)
+  const editSlot = isVirtualAnalog ? undefined : onEdit
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
     // A bank tab reads this to leave a slot's own bank unlit as a drop target.
@@ -127,13 +131,13 @@ export function PatchButton({
             setFlash(true)
             onSelect?.(patch)
           }}
-          onDoubleClick={() => onEdit?.(patch)}
+          onDoubleClick={() => editSlot?.(patch)}
           onKeyDown={(event) => {
             if (matchesShortcut(event, librarianShortcuts.openSlot)) {
-              if (!isActive || !onEdit) return
+              if (!isActive || !editSlot) return
               // Claim the key so it does not also fire the button's own click.
               event.preventDefault()
-              onEdit(patch)
+              editSlot(patch)
               return
             }
             onNavigate?.(event, patch)
@@ -141,11 +145,15 @@ export function PatchButton({
           ref={(button) => registerButton?.(patch.id, button)}
           tabIndex={tabIndex}
           title={
-            isActive
-              ? t('banks.slotEditTitle', { name: patch.name })
-              : patch.program === undefined
-                ? t('banks.slotEditBufferTitle', { name: patch.name })
-                : t('banks.slotTitle', { name: patch.name })
+            isVirtualAnalog
+              ? patch.program === undefined
+                ? t('banks.slotVirtualAnalogAddedTitle', { name: patch.name })
+                : t('banks.slotVirtualAnalogTitle', { name: patch.name })
+              : isActive
+                ? t('banks.slotEditTitle', { name: patch.name })
+                : patch.program === undefined
+                  ? t('banks.slotEditBufferTitle', { name: patch.name })
+                  : t('banks.slotTitle', { name: patch.name })
           }
           type="button"
         />
@@ -175,14 +183,23 @@ export function PatchButton({
       )}
       <span
         className={cn(
-          'patch-slot font-vt323 pointer-events-none shrink-0 border px-1.5 pt-1.5 pb-1 text-[18px] leading-none',
+          'patch-slot font-vt323 pointer-events-none relative shrink-0 border px-1.5 pt-1.5 pb-1 text-[18px] leading-none',
           'bg-[var(--crt-bg-well)]',
           isActive
             ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
             : 'border-[var(--crt-line)] text-[var(--crt-acc-lt)]',
         )}
       >
-        {patchSlotCode(patch)}
+        <span>{patchSlotCode(patch)}</span>
+        {/* In the slot code's corner, so the name keeps the room for ten characters. */}
+        {isVirtualAnalog ? (
+          <span
+            aria-hidden="true"
+            className="absolute -top-1.5 -right-2 bg-[var(--crt-bg-well)] px-0.5 font-sans text-[9px] leading-none font-semibold text-[var(--crt-led)]"
+          >
+            {t('fm1VaImport.virtualAnalogTag')}
+          </span>
+        ) : null}
       </span>
       {/* The bank line is added after the name, so the name keeps its own element either way. */}
       <span className="pointer-events-none min-w-0 flex-1">
@@ -197,6 +214,7 @@ export function PatchButton({
         {bankName ? (
           <span className="block truncate text-[11px] text-[var(--crt-ink-3)]">{bankName}</span>
         ) : null}
+        {isVirtualAnalog ? <span className="sr-only">{t('banks.virtualAnalogPatch')}</span> : null}
       </span>
       {/* The heart and menu share one gap, so a full ten-character name fits beside them. */}
       {!disabled && (onToggleFavourite || onEdit || onCopy) ? (
@@ -209,12 +227,12 @@ export function PatchButton({
             />
           ) : null}
           {/* Above the slot's own button, like the grip, so opening it does not also play the slot. */}
-          {onEdit || onCopy ? (
+          {editSlot || onCopy ? (
             <PatchSlotMenu
               name={patch.name}
               onCopy={onCopy && (() => onCopy(patch))}
-              onDownload={onDownload && (() => onDownload(patch))}
-              onEdit={onEdit && (() => onEdit(patch))}
+              onDownload={onDownload && !isVirtualAnalog ? () => onDownload(patch) : undefined}
+              onEdit={editSlot && (() => editSlot(patch))}
               onReplace={onReplace && (() => onReplace(patch))}
             />
           ) : null}
