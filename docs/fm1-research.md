@@ -193,6 +193,10 @@ treats it as FM-1+VA, which is safe but slower.
   From FM-1_079, FM-1+VA gets no DX7 bank: **Send to FM1** writes the bank's presets with `7D 04`
   through the write dialog, so the prompt is never reached.
 - Settings shows the firmware and what it means for the patches the editor plays.
+- From FM-1_079 the effects panel sets Distortion's type, record byte 38, in a patch that has a
+  record: Soft Clip `00`, Hard Clip `01`, and Foldback `02`, each read from the FM1. The edit
+  buffer keeps the selected preset's type, so the editor's choice is heard only once a preset
+  write stores it.
 
 **Seen once on FM-1_089 (2026-09-29, test 7b):** a patch sent as its 155 parameter changes plays
 as the whole patch, name included, about five seconds after the click, shows the unsaved-changes
@@ -275,6 +279,7 @@ change on the FM1, stored with SAVE.
 | CC 20 (Phaser on or off) sent with 127 from the FX probe; the FX screen showed Phaser On                                                                                      | 097 (VA)          | 43: `00` → `01`                                                                                   | Once, FM-1_093, 2026-10-03                                |
 | CC 5 (Reverb Type) sent with 2 from the FX probe; the FX screen showed Plate                                                                                                  | 097 (VA)          | 32: `00` → `02`                                                                                   | Once, FM-1_093, 2026-10-03                                |
 | Distortion Type turned from Soft Clip to Hard Clip on the FX screen                                                                                                           | 097 (VA)          | 38: `00` → `01`                                                                                   | Once, FM-1_093, 2026-10-03                                |
+| Distortion Type turned from Hard Clip to Foldback on the FX screen                                                                                                            | 097 (VA)          | 38: `01` → `02`                                                                                   | Once, FM-1_093, 2026-10-04                                |
 | Thirteen FX controllers sent together, each a different value: CC 4 = 1, 6 = 11, 8 = 1, 9 = 12, 11 = 13, 12 = 1, 13 = 14, 15 = 15, 16 = 1, 17 = 16, 19 = 17, 21 = 18, 22 = 19 | 097 (VA)          | 3, 6, 8, 11, 12, 14, 15, 16, 31, 34, and 40 to the values sent; 9 and 37 (CC 13 and 12) unchanged | Once, FM-1_093, 2026-10-03                                |
 | CC 12 (Distortion on or off) sent with 1 and CC 13 (Distortion Gain) with 14                                                                                                  | 097 (VA)          | 37: `00` → `01`; 9: `03` → `0E` (14)                                                              | Once, FM-1_093, 2026-10-03                                |
 | Envelope switched on by holding ENV                                                                                                                                           | 001 (FM, ORGAN 3) | 53: `00` → `40`                                                                                   | Once, FM-1_093, 2026-10-03                                |
@@ -335,8 +340,8 @@ setting's maximum acts as the maximum (the effect controller table below). The r
 value used, not the value sent: CC 20 sent with 127 stored the Phaser's switch as `01`. Whether a
 setting sent above its maximum is stored as the maximum has not been read, but the switch suggests
 it is. Bytes 2 and 5 have no controller. Distortion's type, which FM-1+VA's manual lists and no
-controller sets, is byte 38 (29 + 3 × 3): Hard Clip set it to `01`, so Soft Clip, Hard Clip, and
-Foldback are presumably 0, 1, and 2.
+controller sets, is byte 38 (29 + 3 × 3): Soft Clip is `00`, Hard Clip `01`, and Foldback `02`,
+each seen once on 097.
 
 **Byte 53 holds Envelope On or Off in bit 6 (`40`). Seen once** (001, above). The change set one
 bit rather than a value, so byte 53 presumably holds other on or off settings in its other bits; it

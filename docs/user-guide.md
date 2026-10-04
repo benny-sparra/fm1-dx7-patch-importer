@@ -192,6 +192,14 @@ The pitch envelope has a presets menu of starting shapes: **Flat**, **Attack bli
 
 Every effect box on the effects panel has a **Preset** menu: **Warm**, **Muffled**, **Telephone**, **Thin**, and **Resonant** for the filter, **Small room**, **Large room**, **Small hall**, **Large hall**, and **Plate** for reverb, **Slapback**, **Quick delay**, **Quick repeats**, and **Echo** for delay, **Subtle chorus**, **Ensemble**, **Chorus wash**, and **Shimmer** for chorus, **Light drive**, **Warm drive**, **Crunch**, and **Fuzz** for distortion, and **Gentle phase**, **Slow sweep**, **Deep phase**, and **Fast swirl** for phaser. Switch the effect on to choose a preset; it sets that effect's controls and leaves the other effects as they are. It sends that effect to the FM1 and is a single undo step.
 
+While the FM1 runs Baud Girl's firmware, FM-1_079 or later, the Distortion box also has **Type**:
+Soft Clip, M-VAVE's original, Hard Clip, or Foldback. Baud Girl's firmware keeps it with each
+preset, and no MIDI message changes it, so you hear a new type once the patch is written to the FM1
+with **Send to FM1** or **Write patches to the FM1…**. Only a patch read from the FM1, or from
+Baud Girl's presets file, can keep a type; for any other patch it is shown disabled, and the patch
+takes the type of the preset it is written over. On other firmware the choice is hidden, and a line
+under Distortion names a type other than Soft Clip that the patch keeps for Baud Girl's firmware.
+
 The LFO and every FM1 effect open with a small animated scope drawn from their current settings. The LFO scrolls its selected wave at a rate set by LFO Speed. The filter shows its response curve, delay its echo taps, chorus its drifting copies, reverb its tail, distortion its clipped wave, and phaser its sweeping notches. A scope dims when its effect is bypassed or when the LFO has no modulation depth. With reduced motion enabled, each scope shows a still frame instead.
 
 ## Playing along while you edit

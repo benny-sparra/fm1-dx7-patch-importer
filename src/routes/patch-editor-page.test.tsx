@@ -7,8 +7,12 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import type { Patch } from '@/data/patches'
+import { dx7PackedVoiceSize } from '@/lib/dx7'
+import type { Fm1Firmware } from '@/lib/fm1-firmware'
+import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import { resolveOperatorParameterIndex } from '@/lib/fm1-parameters'
 import type { CopiedOperator } from '@/lib/operator-clipboard'
+import { capturedVirtualAnalogDistortionReply } from '@/test/fm1-va-captures'
 import { PatchEditorPage } from '@/routes/patch-editor-page'
 
 type EditorMidi = ComponentProps<typeof PatchEditorPage>['midi']
@@ -44,6 +48,7 @@ async function chooseRandomise(user: ReturnType<typeof userEvent.setup>) {
 
 function setup(overrides: Partial<EditorMidi> = {}) {
   const midi: EditorMidi = {
+    firmware: { identity: 'FM-1_015', kind: 'mvave' },
     hasMidiOutput: true,
     midiAccess: true,
     sendEffectParameter: vi.fn(() => true),
@@ -649,6 +654,7 @@ function ClipboardHarness({ midi, patch }: { midi: EditorMidi; patch: Patch }) {
 describe('PatchEditorPage operator copy and paste', () => {
   const setupClipboard = async () => {
     const midi: EditorMidi = {
+      firmware: { identity: 'FM-1_015', kind: 'mvave' },
       hasMidiOutput: true,
       midiAccess: true,
       sendEffectParameter: vi.fn(() => true),
@@ -812,6 +818,7 @@ describe('PatchEditorPage operator copy and paste', () => {
   it('closes the operator menu on Escape without leaving the editor', async () => {
     const user = userEvent.setup()
     const midi: EditorMidi = {
+      firmware: { identity: 'FM-1_015', kind: 'mvave' },
       hasMidiOutput: true,
       midiAccess: true,
       sendEffectParameter: vi.fn(() => true),
@@ -1154,5 +1161,106 @@ describe('PatchEditorPage compare with saved', () => {
 
     expect(feedbackValue()).toBe('0')
     expect(midi.sendVoice).not.toHaveBeenCalled()
+  })
+})
+
+// Preset 097 after the record-mapping tests, with Distortion Type turned to Hard Clip.
+const hardClipRecord = (
+  parseFm1VaReply(capturedVirtualAnalogDistortionReply)?.data ?? new Uint8Array()
+).slice(dx7PackedVoiceSize)
+
+/** Opens the editor on a patch with `record`, if any, as the FM1 named by `firmware`. */
+function renderWithRecord(firmware: Fm1Firmware, record?: Uint8Array) {
+  const onSave = vi.fn()
+  render(
+    <PatchEditorPage
+      copiedOperator={null}
+      effects={new Uint8Array(24)}
+      midi={{
+        firmware,
+        hasMidiOutput: true,
+        midiAccess: true,
+        sendEffectParameter: vi.fn(() => true),
+        sendEffectSettings: vi.fn(async () => true),
+        sendParameter: vi.fn(() => true),
+        sendVoice: vi.fn(async () => true),
+        sysexAvailable: true,
+      }}
+      onBack={vi.fn()}
+      onCopyOperator={vi.fn()}
+      onSave={onSave}
+      patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
+      record={record}
+      voice={{ data: new Uint8Array(128), name: 'INIT' }}
+    />,
+  )
+  return { onSave, user: userEvent.setup() }
+}
+
+const baudGirl: Fm1Firmware = { identity: 'FM-1_093', kind: 'fm1-va' }
+const distortionType = () =>
+  screen.queryByRole<HTMLSelectElement>('combobox', { name: 'Distortion Type' })
+
+describe('PatchEditorPage Distortion type on Baud Girl’s firmware', () => {
+  it('shows the type the patch’s record holds', () => {
+    renderWithRecord(baudGirl, hardClipRecord)
+
+    expect(distortionType()?.selectedOptions[0].textContent).toBe('Hard Clip')
+  })
+
+  it('saves a new type into the record, changing nothing else in it', async () => {
+    const { onSave, user } = renderWithRecord(baudGirl, hardClipRecord)
+    await user.click(screen.getByRole('button', { name: 'Enable Distortion' }))
+
+    await user.selectOptions(distortionType() as HTMLSelectElement, 'Soft Clip')
+    await user.click(screen.getByRole('button', { name: 'Save to Library' }))
+
+    const record: Uint8Array = onSave.mock.calls[0][2]
+    expect(Array.from(record.keys()).filter((i) => record[i] !== hardClipRecord[i])).toEqual([38])
+    expect(record[38]).toBe(0)
+  })
+
+  it('takes a type change back in one undo', async () => {
+    const { user } = renderWithRecord(baudGirl, hardClipRecord)
+    await user.click(screen.getByRole('button', { name: 'Enable Distortion' }))
+    await user.selectOptions(distortionType() as HTMLSelectElement, 'Soft Clip')
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+
+    expect(distortionType()?.selectedOptions[0].textContent).toBe('Hard Clip')
+  })
+
+  it('offers no type for a patch without a record, and says why', () => {
+    renderWithRecord(baudGirl)
+
+    expect(distortionType()?.disabled).toBe(true)
+    expect(
+      screen.getByText(
+        'This patch didn’t come from the FM1, so it takes the type of the preset it’s written over.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('hides the type on M-VAVE’s firmware and names the one the patch keeps', () => {
+    renderWithRecord({ identity: 'FM-1_015', kind: 'mvave' }, hardClipRecord)
+
+    expect(distortionType()).toBeNull()
+    expect(
+      screen.getByText(
+        'Kept for Baud Girl’s firmware: Hard Clip. This FM1 plays its own distortion instead.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('names the type the patch keeps in the interface language', async () => {
+    await setLocale('de')
+    renderWithRecord({ identity: 'FM-1_015', kind: 'mvave' }, hardClipRecord)
+
+    expect(
+      screen.getByText(
+        'Für die Firmware von Baud Girl gespeichert: Hartes Clipping. Dieser FM1 spielt stattdessen seine eigene Verzerrung.',
+      ),
+    ).toBeTruthy()
+    await setLocale('en-GB')
   })
 })

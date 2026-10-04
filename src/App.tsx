@@ -238,8 +238,8 @@ function App() {
                     toast.success(t('toasts.operatorCopied', { number: copied.operator }))
                   }}
                   effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
-                  onSave={(voice, effects) => {
-                    const linked = library.updatePatch(selectedPatch.id, voice, effects)
+                  onSave={(voice, effects, record) => {
+                    const linked = library.updatePatch(selectedPatch.id, voice, effects, record)
                     // Name the sound as saved: the editor may have renamed it since it opened.
                     const patch = voice.name
                     // A favourite and the slot it came from are one sound, so say where else it went.
@@ -252,6 +252,7 @@ function App() {
                     )
                   }}
                   patch={selectedPatch}
+                  record={library.records[selectedPatch.id]}
                   voice={selectedVoice}
                 />
               </Suspense>

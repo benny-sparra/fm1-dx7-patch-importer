@@ -38,7 +38,7 @@ describe('patch editor history', () => {
     'accepts and clamps $effect $control edits using its declared $min–$max range',
     ({ controller, max, min }) => {
       const editorIndex = 155 + controller
-      const initial = new Uint8Array(179)
+      const initial = new Uint8Array(180)
       const atMaximum = editParameters(makeEditorHistory(initial), [[editorIndex, max, min, max]])
       const aboveMaximum = editParameters(atMaximum, [[editorIndex, max + 1, min, max]])
       const belowMinimum = editParameters(aboveMaximum, [[editorIndex, min - 1, min, max]])
@@ -79,7 +79,7 @@ describe('patch editor history', () => {
 
 describe('sound starters', () => {
   const makeParameters = () =>
-    Uint8Array.from({ length: 179 }, (_, index) => (index < 155 ? index % 100 : 0))
+    Uint8Array.from({ length: 180 }, (_, index) => (index < 155 ? index % 100 : 0))
 
   it('offers repeatable presets that stay within MIDI data limits', () => {
     for (const preset of soundPresets) {
@@ -104,26 +104,33 @@ describe('sound starters', () => {
     ]).toEqual([4, 0, 31, 5, 18, 24])
   })
 
+  it('keeps FM-1+VA’s Distortion type, which no sound starter sets', () => {
+    const parameters = makeParameters()
+    parameters[179] = 1
+
+    expect(applySoundPreset(parameters, 'bright-pluck')[179]).toBe(1)
+  })
+
   it('sets a complete effect chain suited to each sound starter', () => {
     const parameters = makeParameters()
     parameters.fill(99, 155)
 
-    expect(Array.from(applySoundPreset(parameters, 'soft-pad').slice(155))).toEqual([
+    expect(Array.from(applySoundPreset(parameters, 'soft-pad').slice(155, 179))).toEqual([
       0, 0, 0, 0, 1, 1, 52, 24, 0, 0, 0, 0, 0, 0, 0, 0, 1, 18, 28, 20, 0, 0, 0, 0,
     ])
-    expect(Array.from(applySoundPreset(parameters, 'bright-pluck').slice(155))).toEqual([
+    expect(Array.from(applySoundPreset(parameters, 'bright-pluck').slice(155, 179))).toEqual([
       0, 0, 0, 0, 1, 0, 22, 12, 1, 18, 24, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     ])
-    expect(Array.from(applySoundPreset(parameters, 'steady-organ').slice(155))).toEqual([
+    expect(Array.from(applySoundPreset(parameters, 'steady-organ').slice(155, 179))).toEqual([
       0, 0, 0, 0, 1, 0, 18, 10, 0, 0, 0, 0, 0, 0, 0, 0, 1, 12, 22, 16, 1, 10, 24, 14,
     ])
-    expect(Array.from(applySoundPreset(parameters, 'gentle-motion').slice(155))).toEqual([
+    expect(Array.from(applySoundPreset(parameters, 'gentle-motion').slice(155, 179))).toEqual([
       0, 0, 0, 0, 1, 1, 34, 16, 0, 0, 0, 0, 0, 0, 0, 0, 1, 16, 20, 14, 0, 0, 0, 0,
     ])
-    expect(Array.from(applySoundPreset(parameters, 'warm-filter').slice(155))).toEqual([
+    expect(Array.from(applySoundPreset(parameters, 'warm-filter').slice(155, 179))).toEqual([
       1, 0, 58, 1, 1, 0, 32, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     ])
-    expect(Array.from(applySoundPreset(parameters, 'wide-space').slice(155))).toEqual([
+    expect(Array.from(applySoundPreset(parameters, 'wide-space').slice(155, 179))).toEqual([
       0, 0, 0, 0, 1, 1, 62, 28, 0, 0, 0, 0, 0, 0, 0, 0, 1, 34, 46, 38, 0, 0, 0, 0,
     ])
   })
@@ -145,7 +152,7 @@ describe('sound starters', () => {
   })
 
   it('rejects incomplete editor data', () => {
-    expect(() => applySoundPreset(new Uint8Array(155), 'soft-pad')).toThrow('179')
+    expect(() => applySoundPreset(new Uint8Array(155), 'soft-pad')).toThrow('180')
   })
 })
 

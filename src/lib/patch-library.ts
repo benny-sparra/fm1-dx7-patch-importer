@@ -431,42 +431,62 @@ export function findLibrarySound(snapshot: PatchLibrarySnapshot, id: string) {
  * edit: saving a slot updates the matching favourites, and saving a favourite updates the matching
  * slots in every workspace bank. Each copy gets its own voice and effect objects. `linked` counts
  * the other copies updated.
+ *
+ * `record`, given only for a sound that has an FM-1+VA settings record, replaces it in the sound
+ * and in each copy, which held the same record since copies match on it. Without it, every record
+ * stays as it was.
  */
 export function saveSound(
   snapshot: PatchLibrarySnapshot,
   id: string,
   voice: Dx7Voice,
   effects: Uint8Array,
+  record?: Uint8Array,
 ) {
   const previous = findLibrarySound(snapshot, id)
   if (!previous) return { linked: 0, snapshot }
   const previousKey = soundKey(previous.voice, previous.effects, previous.record)
   const savedEffects = normalizeFm1Effects(effects)
   const voiceCopy = () => ({ ...voice, data: voice.data.slice() })
+  // A record goes only where the sound had one, so a sound without a record never gains one.
+  const savedRecord = previous.record && record
+  const soundWithRecord = <T extends object>(sound: T) =>
+    savedRecord ? { ...sound, record: savedRecord.slice() } : sound
   let linked = 0
 
   if (findFavourite(snapshot.favourites, id)) {
     const voices = { ...snapshot.voices }
     const slotEffects = { ...snapshot.effects }
+    const records = { ...snapshot.records }
     for (const [slotId, slotVoice] of Object.entries(snapshot.voices)) {
       const slotKey = soundKey(slotVoice, snapshot.effects[slotId], snapshot.records[slotId])
       if (slotKey !== previousKey) continue
       voices[slotId] = voiceCopy()
       slotEffects[slotId] = savedEffects.slice()
+      if (savedRecord) records[slotId] = savedRecord.slice()
       linked += 1
     }
     const favourites = snapshot.favourites.map((favourite) =>
       favouritePatchId(favourite.id) === id
-        ? { ...favourite, effects: savedEffects, voice }
+        ? soundWithRecord({ ...favourite, effects: savedEffects, voice })
         : favourite,
     )
-    return { linked, snapshot: { ...snapshot, effects: slotEffects, favourites, voices } }
+    return {
+      linked,
+      snapshot: {
+        ...snapshot,
+        effects: slotEffects,
+        favourites,
+        records: savedRecord ? records : snapshot.records,
+        voices,
+      },
+    }
   }
 
   const favourites = snapshot.favourites.map((favourite) => {
     if (favouriteSoundKey(favourite) !== previousKey) return favourite
     linked += 1
-    return { ...favourite, effects: savedEffects.slice(), voice: voiceCopy() }
+    return soundWithRecord({ ...favourite, effects: savedEffects.slice(), voice: voiceCopy() })
   })
   return {
     linked,
@@ -475,6 +495,7 @@ export function saveSound(
       effects: { ...snapshot.effects, [id]: savedEffects },
       // Favourites that did not change stay the same list, so nothing reading them recomputes.
       favourites: linked > 0 ? favourites : snapshot.favourites,
+      records: savedRecord ? { ...snapshot.records, [id]: savedRecord } : snapshot.records,
       voices: { ...snapshot.voices, [id]: voice },
     },
   }
