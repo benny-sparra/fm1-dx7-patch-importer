@@ -88,6 +88,28 @@ function isIosWebMidiShimCallbackError(event: {
   )
 }
 
+// Safari rejects an extension content script's `runtime.sendMessage()` with this error when the
+// tab it ran in has gone. The app has no extension API to call, and the error reaches the page's
+// rejection handler from the extension's own world, so it carries no stack frame at all.
+const safariExtensionMessageError = /^Invalid call to runtime\.sendMessage\(\)\. Tab not found\.$/u
+
+function isSafariExtensionMessageError(event: {
+  exception?: {
+    values?: { stacktrace?: { frames?: unknown[] }; type?: string; value?: string }[]
+  }
+}) {
+  const exceptions = event.exception?.values ?? []
+  return (
+    exceptions.length > 0 &&
+    exceptions.every(
+      (exception) =>
+        exception.type === 'Error' &&
+        safariExtensionMessageError.test(exception.value ?? '') &&
+        !exception.stacktrace?.frames?.length,
+    )
+  )
+}
+
 // The browser's own rejection event always carries `reason`, so Sentry reports the event object
 // itself only when another script, such as an extension or a Bluebird-style promise library,
 // dispatches an `unhandledrejection` event of its own with nothing in it the app rejected.
@@ -137,6 +159,7 @@ export function createMonitoringInitializer({
             if (
               isAndroidNavigationLoggerError(event) ||
               isIosWebMidiShimCallbackError(event) ||
+              isSafariExtensionMessageError(event) ||
               isSyntheticUnhandledRejection(hint.originalException)
             ) {
               return null
