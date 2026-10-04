@@ -327,6 +327,23 @@ describe('search everywhere results', () => {
     ).toBeTruthy()
   })
 
+  it('names an FM result’s engine while the FM1 runs Baud Girl’s firmware', async () => {
+    renderResults({ tagsEngines: true })
+
+    const catalog = await screen.findByRole('region', { name: 'Other DX7 patch banks' })
+
+    expect(within(catalog).getAllByText('FM patch').length).toBeGreaterThan(0)
+    expect((await catalogResult()).title).toMatch(/^FM patch\n/)
+  })
+
+  it('leaves an FM result’s engine unnamed on other firmware', async () => {
+    renderResults()
+
+    const catalog = await screen.findByRole('region', { name: 'Other DX7 patch banks' })
+
+    expect(within(catalog).queryByText('FM patch')).toBeNull()
+  })
+
   it('lists a saved Virtual Analog preset that can only be copied', async () => {
     const { onCopy, user } = renderResults({
       namedBanks: [virtualAnalogBank()],
@@ -334,7 +351,7 @@ describe('search everywhere results', () => {
     })
 
     const saved = await screen.findByRole('region', { name: 'Saved banks' })
-    expect(within(saved).getByText('Virtual Analog preset')).toBeTruthy()
+    expect(within(saved).getByText('Virtual Analogue preset')).toBeTruthy()
     expect(within(saved).queryByRole('button', { name: /^Play VOICE 97/ })).toBeNull()
     expect(within(saved).queryByRole('button', { name: /Favourites/ })).toBeNull()
     await user.click(within(saved).getByRole('button', { name: 'Copy VOICE 97 to a bank' }))

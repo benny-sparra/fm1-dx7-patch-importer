@@ -1187,6 +1187,7 @@ export function LibrarianPage({
                     )
                   }
                   search={search}
+                  tagsEngines={midi.firmware.kind === 'fm1-va'}
                   workspaceEffects={library.effects}
                   workspaceRecords={library.records}
                   workspaceMatches={visiblePatches}

@@ -103,8 +103,7 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
     renderPage()
 
     const card = virtualAnalogSlot().parentElement as HTMLElement
-    expect(within(card).getByText('Virtual Analog preset')).toBeTruthy()
-    expect(within(card).getByText('VA')).toBeTruthy()
+    expect(within(card).getByText('Virtual Analogue preset')).toBeTruthy()
   })
 
   it('offers copying the slot, but not editing it or downloading it as a DX7 patch', async () => {
@@ -125,7 +124,7 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
     const dialog = screen.getByRole('dialog', { name: 'Choose the destination bank on your FM1' })
     expect(
       within(dialog).getByText(
-        'A DX7 bank has no place for a Virtual Analog preset, so this bank’s one is sent as INIT VOICE.',
+        'A DX7 bank has no place for a Virtual Analogue preset, so this bank’s one is sent as INIT VOICE.',
       ),
     ).toBeTruthy()
   })
@@ -144,7 +143,7 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
     expect(voices[2].name).toBe('INIT VOICE')
     expect(voices[3]).toEqual(workspace().voices['bank-A-4'])
     expect(
-      await screen.findByText(/was sent, with INIT VOICE in place of its Virtual Analog preset/),
+      await screen.findByText(/was sent, with INIT VOICE in place of its Virtual Analogue preset/),
     ).toBeTruthy()
   })
 
@@ -159,7 +158,7 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
     expect(parseDx7Bank(file)[2].name).toBe('INIT VOICE')
     expect(
       await screen.findByText(
-        'Downloading “Bank 1”, with INIT VOICE in place of its Virtual Analog preset.',
+        'Downloading “Bank 1”, with INIT VOICE in place of its Virtual Analogue preset.',
       ),
     ).toBeTruthy()
   })
@@ -183,20 +182,54 @@ const baudGirl: Fm1Firmware = { identity: 'FM-1_093', kind: 'fm1-va' }
 const cardOf = (name: string) =>
   screen.getByRole('button', { name: `Send ${name} to FM1` }).parentElement as HTMLElement
 
-describe('LibrarianPage engine tags', () => {
-  it('tags each patch with its engine while the FM1 runs Baud Girl’s firmware', () => {
+/** The letters of the engine tag between a card's slot code and name, if it shows one. */
+const engineTagOf = (name: string) =>
+  cardOf(name).querySelector(':scope > [aria-hidden="true"][translate="no"]')?.textContent
+
+describe('LibrarianPage engine marks', () => {
+  it('marks each patch with its engine while the FM1 runs Baud Girl’s firmware', () => {
     renderPage(baudGirl)
 
-    expect(within(cardOf('VOICE 97')).getByText('VA')).toBeTruthy()
-    expect(within(cardOf('E.PIANO1')).getByText('FM')).toBeTruthy()
+    expect(within(cardOf('VOICE 97')).getByText('Virtual Analogue preset')).toBeTruthy()
+    expect(engineTagOf('VOICE 97')).toBe('VA')
     expect(within(cardOf('E.PIANO1')).getByText('FM patch')).toBeTruthy()
+    expect(engineTagOf('E.PIANO1')).toBe('FM')
   })
 
-  it('tags only the Virtual Analog patch on other firmware', () => {
+  it('names each patch’s engine above what clicking it does, in its tooltip', () => {
+    renderPage(baudGirl)
+
+    expect(screen.getByRole('button', { name: 'Send E.PIANO1 to FM1' }).title).toBe(
+      'FM patch\nClick to play E.PIANO1 on the FM1; double-click to edit',
+    )
+    expect(virtualAnalogSlot().title).toBe(
+      'Virtual Analogue preset\nClick to select VOICE 97 on the FM1, which plays the Virtual Analogue preset stored there',
+    )
+  })
+
+  it('names the engine in the tooltip in the interface language', async () => {
+    await setLocale('de')
+    renderPage(baudGirl)
+
+    expect(screen.getByRole('button', { name: 'E.PIANO1 an FM1 senden' }).title).toMatch(
+      /^FM-Sound\n/,
+    )
+  })
+
+  it('leaves the engine out of an FM patch’s tooltip on other firmware', () => {
     renderPage()
 
-    expect(within(cardOf('VOICE 97')).getByText('VA')).toBeTruthy()
-    expect(within(cardOf('E.PIANO1')).queryByText('FM')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Send E.PIANO1 to FM1' }).title).toBe(
+      'Click to play E.PIANO1 on the FM1; double-click to edit',
+    )
+  })
+
+  it('marks only the Virtual Analog patch on other firmware', () => {
+    renderPage()
+
+    expect(engineTagOf('VOICE 97')).toBe('VA')
+    expect(within(cardOf('E.PIANO1')).queryByText('FM patch')).toBeNull()
+    expect(engineTagOf('E.PIANO1')).toBeUndefined()
   })
 })
 

@@ -63,7 +63,7 @@ A patch played from a click stays an unsaved edit on the FM1. To keep it there, 
 ### M-VAVE and Baud Girl firmware
 
 Some FM1 owners replace M-VAVE's firmware with Baud Girl's
-[FM-1+VA](https://baudgirl.com/work/FM-1+VA), a replacement firmware that adds a Virtual Analog
+[FM-1+VA](https://baudgirl.com/work/FM-1+VA), a replacement firmware that adds a Virtual Analogue
 engine. The app calls it Baud Girl's firmware, the name most owners know it by. When MIDI
 connects, and whenever the FM1 reconnects, the app asks the FM1 which firmware it runs;
 **Settings** shows the answer under **FM1 firmware**, and the header names it beside **MIDI
@@ -112,17 +112,17 @@ the bank it would replace, in its voice, its effects, or its other preset settin
 from the FM1, only the banks holding such a patch start switched on; from a file, every bank does. Press **Import** to bring them in. Each patch
 arrives with its FM1 effects and keeps the other settings Baud Girl's firmware stored with it,
 such as its effect order, Envelope, and filter, exactly as they are, so writing it back keeps them.
-A Virtual Analog preset is marked **VA** and imported too, kept exactly as the FM1 stores it. A
+A Virtual Analogue preset is marked **VA** and imported too, kept exactly as the FM1 stores it. A
 preset that arrived damaged is marked and left out, so that slot keeps the patch it has now. The
 notification offers **Undo**.
 
-In your banks a Virtual Analog preset shows **VA** beside its slot code, and while the FM1 runs
-Baud Girl's firmware every other patch shows **FM**. The app can't play or edit a Virtual Analog
+In your banks a Virtual Analogue preset shows a small amber **VA** box between its slot code and
+its name, and while the FM1 runs Baud Girl's firmware every other patch shows a dim **FM** box. Hover over a marked patch to see its engine named at the top of its tooltip. The app can't play or edit a Virtual Analogue
 sound, which only the FM1 makes: clicking it in banks A to D selects that preset on the FM1, so you
 hear what the FM1 has stored there, and it has no **Edit** or **Download patch file**. You can copy
 it, move it, save its bank, and back it up like any other patch. **Change to FM…** in its ⋮ menu
 replaces it with INIT VOICE, an FM patch you can edit, under a name you choose, keeping its FM1
-effects; **Undo** puts it back. On the FM1 a Virtual Analog preset stays until you erase it there,
+effects; **Undo** puts it back. On the FM1 a Virtual Analogue preset stays until you erase it there,
 because writing to the FM1 never puts an FM patch over one. A DX7 bank has no place for
 one, so sending or downloading a bank as SysEx puts INIT VOICE in its slot, and the app says so
 first. On Baud Girl's firmware, **Write patches to the FM1…** and **Send to FM1** write them back
@@ -135,8 +135,8 @@ its own preset with its FM1 effects and Baud Girl settings, with no **Replace Ba
 The dialog first reads the FM1, so it writes only the patches that
 differ. Each FM1 bank's title is a switch, such as **Write to FM1 bank A**, that says whether it
 is written, and **Write from** below it chooses the library bank to write over it, starting on the
-bank of the same letter. A Virtual Analog patch in your bank is written exactly as it was read,
-over whatever preset is there. A Virtual Analog preset on the FM1 is never replaced by a DX7 patch,
+bank of the same letter. A Virtual Analogue patch in your bank is written exactly as it was read,
+over whatever preset is there. A Virtual Analogue preset on the FM1 is never replaced by a DX7 patch,
 and a slot your bank has no patch in keeps its preset. A patch that came from a DX7 file
 takes the FM1 preset's own settings, with your effects in them.
 
@@ -154,7 +154,7 @@ writes only its first 32 patches; when it holds fewer, the rest of the FM1 bank 
 
 The search box above the patch grid looks through every bank that has patches in it, not only the one shown. It matches part of a patch's name, or a whole slot code such as `B07` or `b7`, and lists the matches in bank order, each labelled with its slot. While results show, the grid is titled **Search results**, no bank is selected, **Send to FM1** is unavailable because a bank transfer needs one bank, and patches cannot be dragged to reorder them. Click a result to play it as you would in its bank; the results stay up so you can try the next one, and they are still there when you come back from editing one. Clearing the search returns to the bank of the last result you played, or to the bank you were in if you played none. Choosing a bank on the left clears the search and shows that bank.
 
-The search also looks through your saved banks and the bundled DX7 patch banks that **Add new bank…** offers. Matches in your own banks come first, under **Your patch banks**; the rest follow under **Saved banks** and **Other DX7 patch banks**, each labelled with its bank and slot, and a long list shows its first 60 matches per group until you type more. Click one of those to hear it through the FM1 edit buffer: a saved-bank patch plays with its saved FM1 effects, and a bundled DX7 patch with the default effects, since those banks hold no effects of their own. They are not in one of your banks, so they cannot be edited or reordered where they are. Use the copy button on one to put it in a slot of your own, through the same **Copy to…** dialog, overwrite confirmation, and Undo as copying between banks. Double-click one, or press Enter on the one you just played, to do the same and then open the copy in the editor. A saved-bank or bundled patch that is an exact copy of one listed above it, with the same voice data, name, FM1 effects, and FM-1+VA preset settings, is left out, and a line under its group says duplicates aren’t shown. Patches that share a name but differ in their data all show. A Virtual Analog preset in a saved bank is found by its name too and marked **VA**; it can't be played or edited from the results, only copied into a slot. The bundled banks' patch names load the first time you search.
+The search also looks through your saved banks and the bundled DX7 patch banks that **Add new bank…** offers. Matches in your own banks come first, under **Your patch banks**; the rest follow under **Saved banks** and **Other DX7 patch banks**, each labelled with its bank and slot, and a long list shows its first 60 matches per group until you type more. Click one of those to hear it through the FM1 edit buffer: a saved-bank patch plays with its saved FM1 effects, and a bundled DX7 patch with the default effects, since those banks hold no effects of their own. They are not in one of your banks, so they cannot be edited or reordered where they are. Use the copy button on one to put it in a slot of your own, through the same **Copy to…** dialog, overwrite confirmation, and Undo as copying between banks. Double-click one, or press Enter on the one you just played, to do the same and then open the copy in the editor. A saved-bank or bundled patch that is an exact copy of one listed above it, with the same voice data, name, FM1 effects, and FM-1+VA preset settings, is left out, and a line under its group says duplicates aren’t shown. Patches that share a name but differ in their data all show. A Virtual Analogue preset in a saved bank is found by its name too and marked **VA**; it can't be played or edited from the results, only copied into a slot. The bundled banks' patch names load the first time you search.
 
 To import another bank, open that bank's menu, choose **Import DX7 bank…**, and select a compatible `.syx` file. Replacing a populated bank requires confirmation. Once you choose the file, the confirmation lists its 32 patches, after you pick one bank if the file joins several (see [SysEx compatibility](#sysex-compatibility)): click one to hear it on the FM1, through the edit buffer with the default FM1 effects, before you decide. Nothing in your library changes until you press **Replace bank contents**, and a file that cannot be read is explained straight away. The same menu lets you edit the bank title and description, download the bank, or delete it when more than one bank exists. Use the **Library actions** menu (⋮) in the patch-bank header to back up your library (see [Backing up your library](#backing-up-your-library)), choose **Download SysEx banks (.zip)** to get every loaded bank as a `.syx` file for other DX7 tools, or choose **Reset to factory patches…** to put the FM-1 factory banks back into A–D, which also resets their titles and descriptions. Additional banks are left intact. Deleting a bank, resetting to the factory patches, restoring a backup, importing over a bank or from Baud Girl's presets, loading a saved bank, or copying a patch over a slot can be undone from its notification or with `Cmd`/`Ctrl` + `Z`. Slots whose patch changes while their bank is on screen, such as the ones an Undo puts back, glow briefly so you can see what changed. Dragging slots into a new order does not light them.
 
@@ -162,7 +162,7 @@ To copy a patch into another slot, open the slot's **⋮** menu and choose **Cop
 
 A slot's **⋮** menu also works with single patches as files. **Download patch** saves the patch as a standard 163-byte DX7 single-voice SysEx file, named after its slot and patch, such as `fm1-A05-PIANO-2.syx`. It holds the DX7 voice only, as a bank download does, so the FM1 effects are not included. **Import patch…** asks before it replaces the slot, then reads a DX7 single-voice file into it. A file that is not a single DX7 patch, or that looks damaged, is refused with an explanation and leaves the slot as it was. A whole 32-voice bank is recognised and pointed to **Import DX7 bank…** in the bank's menu. The file carries no FM1 effects, so the slot's effects return to their defaults. The notification offers **Undo**.
 
-To tidy banks after importing archives, choose **Find duplicate patches…** from the menu in the patch-bank header. It lists the patches in your loaded banks whose voice settings match, grouped together, even when a copy has another name. FM1 effects and FM-1+VA preset settings are not compared, and a group says when its copies' effects or preset settings differ. Virtual Analog presets are grouped with identical Virtual Analog presets only. Choose a patch in the list to go to its bank and play it, as clicking its slot does. The list only reads your library: delete or replace a copy yourself, from its bank.
+To tidy banks after importing archives, choose **Find duplicate patches…** from the menu in the patch-bank header. It lists the patches in your loaded banks whose voice settings match, grouped together, even when a copy has another name. FM1 effects and FM-1+VA preset settings are not compared, and a group says when its copies' effects or preset settings differ. Virtual Analogue presets are grouped with identical Virtual Analogue presets only. Choose a patch in the list to go to its bank and play it, as clicking its slot does. The list only reads your library: delete or replace a copy yourself, from its bank.
 
 Each bank's menu also offers **Save bank…**, which keeps a named copy of its 32 patches and their FM1 effects in this browser, and **Load bank…**, which lists your saved banks. From that list you can load one into the bank, edit its name and description, make a copy, download it as a `.syx` file, or delete it. Loading into a bank that already has patches asks first. If a bank is empty, you can load the built-in demo bank instead.
 

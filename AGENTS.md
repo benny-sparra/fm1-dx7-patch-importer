@@ -539,8 +539,12 @@ open everything an earlier release could have saved.
   Anything that compares sounds keeps the engines apart: a Virtual Analog preset's sound key is
   `virtualAnalogSoundKey`, and duplicates match only within one engine. **Change to FM…** replaces
   one with INIT VOICE and no record, keeping its FM1 effects, so a write still leaves a Virtual
-  Analog preset in that FM1 slot alone. Its card is tagged VA, and while the FM1 runs FM-1+VA every
-  FM card is tagged FM.
+  Analog preset in that FM1 slot alone. Its card shows `EngineTag`, VA in a small amber box with
+  the letters stacked, between its slot code and name, and while the FM1 runs FM-1+VA every FM card
+  shows FM in a dim one, search results included. A card that shows a tag names the engine in text
+  for assistive technology and on the first line of its tooltip (`banks.engineTitle`). The letters
+  stack so the tag is one character wide, and the card made room for it by tightening its gaps,
+  never by narrowing the name.
 - Distortion type is the one record byte the editor changes (38). The editor keeps it after the
   effects in its parameters (`FM1_VA_DISTORTION_TYPE_INDEX`), so undo and compare cover it, and
   saving writes it into the record through `saveSound`, which gives the copies that held the same

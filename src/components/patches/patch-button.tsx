@@ -11,6 +11,7 @@ import { patchSlotCode, virtualAnalogFamily } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
 
 import { droppedBank } from './bank-drop'
+import { EngineTag, type PatchEngine } from './engine-tag'
 import { FavouriteButton } from './favourite-button'
 import { PatchSlotMenu } from './patch-slot-menu'
 
@@ -39,8 +40,8 @@ type PatchButtonProps = {
   /** False while the slot is shown away from its bank, such as in search results. */
   reorderable?: boolean
   /**
-   * Tags an FM patch as FM as well as a Virtual Analog one as VA, while the FM1 runs Baud Girl's
-   * firmware, where a slot may hold either engine. Elsewhere only a Virtual Analog patch is tagged.
+   * Marks an FM patch's engine as well as a Virtual Analog one's, while the FM1 runs Baud Girl's
+   * firmware, where a slot may hold either engine. Elsewhere only a Virtual Analog patch is marked.
    */
   tagsEngine?: boolean
   registerButton?: (patchId: string, button: HTMLButtonElement | null) => void
@@ -80,11 +81,21 @@ export function PatchButton({
   const isVirtualAnalog = patch.family === virtualAnalogFamily
   const canReorder = reorderable && (patch.family === 'DX7' || isVirtualAnalog)
   const editSlot = isVirtualAnalog ? undefined : onEdit
-  const engine = isVirtualAnalog
-    ? { label: t('banks.virtualAnalogPatch'), tag: t('fm1VaImport.virtualAnalogTag') }
+  const engine: { kind: PatchEngine; label: string } | null = isVirtualAnalog
+    ? { kind: 'virtual-analog', label: t('banks.virtualAnalogPatch') }
     : tagsEngine && patch.family === 'DX7'
-      ? { label: t('banks.fmPatch'), tag: t('banks.fmTag') }
+      ? { kind: 'fm', label: t('banks.fmPatch') }
       : null
+  // What clicking the slot does, under the engine's name where the slot marks its engine.
+  const action = isVirtualAnalog
+    ? patch.program === undefined
+      ? t('banks.slotVirtualAnalogAddedTitle', { name: patch.name })
+      : t('banks.slotVirtualAnalogTitle', { name: patch.name })
+    : isActive
+      ? t('banks.slotEditTitle', { name: patch.name })
+      : patch.program === undefined
+        ? t('banks.slotEditBufferTitle', { name: patch.name })
+        : t('banks.slotTitle', { name: patch.name })
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
     // A bank tab reads this to leave a slot's own bank unlit as a drop target.
@@ -109,7 +120,7 @@ export function PatchButton({
   return (
     <div
       className={cn(
-        'patch-cell patch-edge-gradient group relative flex h-full min-h-12 items-center gap-1.5 px-2 py-2 transition-colors duration-150',
+        'patch-cell patch-edge-gradient group relative flex h-full min-h-12 items-center gap-1 px-2 py-2 transition-colors duration-150',
         'border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
         'data-[disabled=true]:opacity-50',
         isActive
@@ -167,17 +178,7 @@ export function PatchButton({
           }}
           ref={(button) => registerButton?.(patch.id, button)}
           tabIndex={tabIndex}
-          title={
-            isVirtualAnalog
-              ? patch.program === undefined
-                ? t('banks.slotVirtualAnalogAddedTitle', { name: patch.name })
-                : t('banks.slotVirtualAnalogTitle', { name: patch.name })
-              : isActive
-                ? t('banks.slotEditTitle', { name: patch.name })
-                : patch.program === undefined
-                  ? t('banks.slotEditBufferTitle', { name: patch.name })
-                  : t('banks.slotTitle', { name: patch.name })
-          }
+          title={engine ? t('banks.engineTitle', { action, engine: engine.label }) : action}
           type="button"
         />
       ) : null}
@@ -214,16 +215,8 @@ export function PatchButton({
         )}
       >
         <span>{patchSlotCode(patch)}</span>
-        {/* In the slot code's corner, so the name keeps the room for ten characters. */}
-        {engine ? (
-          <span
-            aria-hidden="true"
-            className="absolute -top-1.5 -right-2 bg-[var(--crt-bg-well)] px-0.5 font-sans text-[9px] leading-none font-semibold text-[var(--crt-led)]"
-          >
-            {engine.tag}
-          </span>
-        ) : null}
       </span>
+      {engine ? <EngineTag engine={engine.kind} /> : null}
       {/* The bank line is added after the name, so the name keeps its own element either way. */}
       <span className="pointer-events-none min-w-0 flex-1">
         <span
