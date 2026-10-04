@@ -36,7 +36,7 @@ export default {
     restoreAction: 'Vier Bänke zurücksetzen',
     sourcesTitle: 'DX7-Sound-Bänke finden',
     sourcesIntro:
-      'Lade eine DX7-SysEx-Bank mit 32 Voices (.syx) herunter, kehre zurück und wähle DX7-Bank importieren.',
+      'Lade eine DX7-SysEx-Bank mit 32 Voices (.syx) herunter, kehre zurück und wähle „DX7-Bank importieren…“.',
     sourceDescriptions: {
       yamahaBlackBoxes: 'DX7-Werkscartridges und SysEx-Bänke.',
       bobbyBlues: 'Langjährige Sammlung von DX7-Sounds und -Bänken.',
@@ -838,10 +838,11 @@ export default {
     restoring: 'Wird zurückgesetzt…',
     catalogFactory: 'Werkssounds',
     catalogFm1Factory: 'FM-1-Werksvorlagen',
-    import: 'DX7-Bank importieren',
+    import: 'DX7-Bank importieren…',
     moreActions: 'Bibliotheksaktionen',
     bankMenu: 'Aktionen für {{bank}}',
     bankInformation: 'Bankinformationen',
+    bankInformationMenu: 'Bankinformationen…',
     bankInformationHelp: 'Bearbeite den Titel und die optionale Beschreibung dieser Bank.',
     download: 'Diese Bank herunterladen',
     downloadAll: 'SysEx-Bänke herunterladen (.zip)',
@@ -849,7 +850,7 @@ export default {
     sending: 'Senden…',
     send: 'An FM1 senden',
     bank: 'Bank {{bank}}',
-    addBank: 'Neue Bank hinzufügen',
+    addBank: 'Neue Bank hinzufügen…',
     addBankTitle: 'Bank {{bank}} hinzufügen',
     bankName: 'Bankname',
     bankNameRequired: 'Gib einen Namen für die neue Bank ein.',
@@ -861,6 +862,7 @@ export default {
     downloadTitle: '„{{bank}}“ als SysEx herunterladen',
     importFirst: 'Zuerst Bank {{bank}} importieren',
     deleteBank: 'Bank löschen',
+    deleteBankMenu: 'Bank löschen…',
     deleteBankConfirm:
       '„{{name}}“ und alle enthaltenen Sounds löschen? Diese Aktion kann rückgängig gemacht werden.',
     sendTitle: 'Alle 32 Sounds senden und Zielbank am FM1 wählen',
@@ -882,7 +884,7 @@ export default {
       voiceFormat:
         'Diese Datei ist kein DX7-Sound. Wähle eine .syx-Datei, die genau einen Sound enthält.',
       voiceGotBank:
-        'Diese Datei ist eine DX7-Bank mit 32 Voices. Um sie zu laden, wähle „DX7-Bank importieren“ im Menü der Bank.',
+        'Diese Datei ist eine DX7-Bank mit 32 Voices. Um sie zu laden, wähle „DX7-Bank importieren…“ im Menü der Bank.',
     },
     exportFailed: 'Export fehlgeschlagen.',
     bulkExportFailed: 'Sammel-Export fehlgeschlagen.',
@@ -954,7 +956,8 @@ export default {
     description: 'Beschreibung (optional)',
     descriptionPlaceholder: 'Notizen zu dieser Bank',
     save: 'Bank speichern',
-    loadBank: 'Bank laden',
+    saveMenu: 'Bank speichern…',
+    loadBank: 'Bank laden…',
     editDetails: 'Bankdetails bearbeiten',
     update: 'Details aktualisieren',
     savedBanks: 'Gespeicherte Bänke',

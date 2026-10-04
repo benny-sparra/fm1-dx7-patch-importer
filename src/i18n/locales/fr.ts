@@ -36,7 +36,7 @@ export default {
     restoreAction: 'Rétablir quatre banques',
     sourcesTitle: 'Trouver des banques DX7',
     sourcesIntro:
-      'Téléchargez une banque SysEx DX7 de 32 voix (.syx), puis revenez ici et choisissez Importer une banque DX7.',
+      'Téléchargez une banque SysEx DX7 de 32 voix (.syx), puis revenez ici et choisissez « Importer une banque DX7… ».',
     sourceDescriptions: {
       yamahaBlackBoxes: 'Cartouches DX7 d’usine et banques SysEx.',
       bobbyBlues: 'Collection de longue date de sons et de banques DX7.',
@@ -820,10 +820,11 @@ export default {
     restoring: 'Rétablissement…',
     catalogFactory: 'Sons d’usine',
     catalogFm1Factory: 'Préréglages d’usine FM-1',
-    import: 'Importer une banque DX7',
+    import: 'Importer une banque DX7…',
     moreActions: 'Actions de la bibliothèque',
     bankMenu: 'Actions pour {{bank}}',
     bankInformation: 'Informations sur la banque',
+    bankInformationMenu: 'Informations sur la banque…',
     bankInformationHelp: 'Modifiez le titre et la description facultative de cette banque.',
     download: 'Télécharger cette banque',
     downloadAll: 'Télécharger les banques SysEx (.zip)',
@@ -831,7 +832,7 @@ export default {
     sending: 'Envoi…',
     send: 'Envoyer au FM1',
     bank: 'Banque {{bank}}',
-    addBank: 'Ajouter une banque',
+    addBank: 'Ajouter une banque…',
     addBankTitle: 'Ajouter la banque {{bank}}',
     addBankHelp: 'Nommez la banque et choisissez les données sonores qui la rempliront.',
     bankName: 'Nom de la banque',
@@ -854,6 +855,7 @@ export default {
     downloadTitle: 'Télécharger « {{bank}} » au format SysEx',
     importFirst: 'Importez d’abord la banque {{bank}}',
     deleteBank: 'Supprimer la banque',
+    deleteBankMenu: 'Supprimer la banque…',
     deleteBankConfirm:
       'Supprimer « {{name}} » et tous ses sons ? Vous pourrez annuler cette action.',
     sendTitle: 'Envoyer les 32 voix et choisir la banque de destination sur le FM1',
@@ -873,7 +875,7 @@ export default {
       voiceFormat:
         'Ce fichier n’est pas un son DX7. Choisissez un fichier .syx qui contient un seul son.',
       voiceGotBank:
-        'Ce fichier est une banque DX7 de 32 voix. Pour la charger, choisissez « Importer une banque DX7 » dans le menu de la banque.',
+        'Ce fichier est une banque DX7 de 32 voix. Pour la charger, choisissez « Importer une banque DX7… » dans le menu de la banque.',
     },
     exportFailed: 'Échec de l’exportation.',
     bulkExportFailed: 'Échec de l’exportation groupée.',
@@ -944,7 +946,8 @@ export default {
     description: 'Description (facultative)',
     descriptionPlaceholder: 'Notes sur cette banque',
     save: 'Enregistrer la banque',
-    loadBank: 'Charger une banque',
+    saveMenu: 'Enregistrer la banque…',
+    loadBank: 'Charger une banque…',
     editDetails: 'Modifier les détails',
     update: 'Mettre à jour',
     savedBanks: 'Banques enregistrées',

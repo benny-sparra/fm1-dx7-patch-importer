@@ -124,7 +124,7 @@ describe('ReplacePatchDialog', () => {
     await chooseAndReplace(user, syxFile(new Uint8Array(4104), 'bank.syx'))
 
     expect(screen.getByRole('alert').textContent).toBe(
-      'This file is a 32-voice DX7 bank. To load it, choose “Import DX7 bank” from the bank’s menu.',
+      'This file is a 32-voice DX7 bank. To load it, choose “Import DX7 bank…” from the bank’s menu.',
     )
     expect(replaceVoice).not.toHaveBeenCalled()
   })

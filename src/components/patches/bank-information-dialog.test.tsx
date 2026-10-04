@@ -65,7 +65,7 @@ describe('BankInformationDialog', () => {
       bankNames: { B: 'Leads' },
     })
 
-    await user.click(screen.getByRole('button', { name: 'Bank information' }))
+    await user.click(screen.getByRole('button', { name: 'Bank information…' }))
 
     expect(screen.getByRole('dialog', { name: 'Bank information' })).toBeTruthy()
     expect(titleField().value).toBe('Leads')
@@ -75,7 +75,7 @@ describe('BankInformationDialog', () => {
   it('shows the DX7 block cursor in the bank name field', async () => {
     const { user } = renderDialog()
 
-    await user.click(screen.getByRole('button', { name: 'Bank information' }))
+    await user.click(screen.getByRole('button', { name: 'Bank information…' }))
 
     expect(titleField().classList).toContain('name-caret')
   })
@@ -83,7 +83,7 @@ describe('BankInformationDialog', () => {
   it('offers the default title for a bank that was never named', async () => {
     const { user } = renderDialog()
 
-    await user.click(screen.getByRole('button', { name: 'Bank information' }))
+    await user.click(screen.getByRole('button', { name: 'Bank information…' }))
 
     expect(titleField().value).toBe('Bank 2')
     expect(descriptionField().value).toBe('')
@@ -92,7 +92,7 @@ describe('BankInformationDialog', () => {
   it('saves a trimmed title and the description, then closes', async () => {
     const { onClose, updateBankInformation, user } = renderDialog({ bankNames: { B: 'Leads' } })
 
-    await user.click(screen.getByRole('button', { name: 'Bank information' }))
+    await user.click(screen.getByRole('button', { name: 'Bank information…' }))
     await user.clear(titleField())
     await user.type(titleField(), ' Solos ')
     await user.type(descriptionField(), 'For the gig')
@@ -106,7 +106,7 @@ describe('BankInformationDialog', () => {
   it('asks for a title rather than saving a blank one', async () => {
     const { onClose, updateBankInformation, user } = renderDialog()
 
-    await user.click(screen.getByRole('button', { name: 'Bank information' }))
+    await user.click(screen.getByRole('button', { name: 'Bank information…' }))
     await user.clear(titleField())
     await user.type(titleField(), '   ')
     await user.click(screen.getByRole('button', { name: 'Update details' }))
@@ -119,12 +119,12 @@ describe('BankInformationDialog', () => {
   it('discards unsaved edits and the error when closed', async () => {
     const { onClose, updateBankInformation, user } = renderDialog({ bankNames: { B: 'Leads' } })
 
-    await user.click(screen.getByRole('button', { name: 'Bank information' }))
+    await user.click(screen.getByRole('button', { name: 'Bank information…' }))
     await user.clear(titleField())
     await user.type(titleField(), '   ')
     await user.click(screen.getByRole('button', { name: 'Update details' }))
     await user.click(screen.getByRole('button', { name: 'Close' }))
-    await user.click(screen.getByRole('button', { name: 'Bank information' }))
+    await user.click(screen.getByRole('button', { name: 'Bank information…' }))
 
     expect(onClose).toHaveBeenCalledTimes(1)
     expect(updateBankInformation).not.toHaveBeenCalled()
@@ -136,7 +136,7 @@ describe('BankInformationDialog', () => {
     await setLocale('de')
     const { user } = renderDialog()
 
-    await user.click(screen.getByRole('button', { name: german.banks.bankInformation }))
+    await user.click(screen.getByRole('button', { name: german.banks.bankInformationMenu }))
 
     expect(screen.getByRole('dialog', { name: german.banks.bankInformation })).toBeTruthy()
     expect(screen.getByRole('button', { name: german.namedBanks.update })).toBeTruthy()

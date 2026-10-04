@@ -220,9 +220,7 @@ describe('search everywhere results', () => {
     loadDx7CatalogBank.mockResolvedValue(voices)
     const { onCopy, user } = renderResults()
 
-    await user.click(
-      await screen.findByRole('button', { name: 'Copy BRASS 1 to a bank' }),
-    )
+    await user.click(await screen.findByRole('button', { name: 'Copy BRASS 1 to a bank' }))
 
     await vi.waitFor(() =>
       expect(onCopy).toHaveBeenCalledExactlyOnceWith(

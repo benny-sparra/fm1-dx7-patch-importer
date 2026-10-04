@@ -875,7 +875,7 @@ describe('LibrarianPage bank deletion', () => {
     renderLibrarianPage({ onBankDeleted })
 
     await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
-    await user.click(screen.getAllByRole('button', { name: 'Delete bank' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Delete bank…' })[0])
     const dialog = screen.getByRole('dialog', { name: 'Delete bank' })
     await user.click(within(dialog).getByRole('button', { name: 'Delete bank' }))
 
@@ -898,7 +898,7 @@ describe('LibrarianPage bank menu dialogs', () => {
     const bankMenu = screen.getAllByTitle('Actions for Studio Favourites')[0]
 
     await user.click(bankMenu)
-    await user.click(screen.getAllByRole('button', { name: 'Delete bank' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Delete bank…' })[0])
     const dialog = screen.getByRole('dialog', { name: 'Delete bank' })
     await user.click(within(dialog).getByRole('button', { name: 'Close' }))
 
@@ -912,7 +912,7 @@ describe('LibrarianPage bank menu dialogs', () => {
     renderLibrarianPage()
     const openImport = async () => {
       await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
-      await user.click(screen.getAllByRole('button', { name: 'Import DX7 bank' })[0])
+      await user.click(screen.getAllByRole('button', { name: 'Import DX7 bank…' })[0])
       return screen.findByRole('dialog', { name: 'Import over “Studio Favourites”?' })
     }
 
@@ -986,7 +986,7 @@ describe('LibrarianPage undo', () => {
     const user = renderLibrarian()
 
     await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
-    await user.click(screen.getAllByRole('button', { name: 'Delete bank' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Delete bank…' })[0])
     const dialog = screen.getByRole('dialog', { name: 'Delete bank' })
     await user.click(within(dialog).getByRole('button', { name: 'Delete bank' }))
     await user.click(screen.getByRole('button', { name: 'Undo' }))
@@ -1001,10 +1001,10 @@ describe('LibrarianPage saved banks', () => {
     renderLibrarianPage()
 
     await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
-    await user.click(screen.getAllByRole('button', { name: 'Load bank' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Load bank…' })[0])
 
     expect(await screen.findByRole('heading', { name: 'My saved banks' })).toBeTruthy()
-    expect(screen.getAllByRole('button', { name: 'Save bank' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: 'Save bank…' }).length).toBeGreaterThan(0)
   })
 })
 
@@ -1059,7 +1059,7 @@ describe('LibrarianPage add bank dialog', () => {
     const user = renderLibrarian()
 
     // The trigger stays eager, so it is there before the dialog's chunk has been asked for.
-    const addBank = screen.getByRole('button', { name: 'Add new bank' })
+    const addBank = screen.getByRole('button', { name: 'Add new bank…' })
     expect(screen.queryByRole('dialog')).toBeNull()
 
     await user.click(addBank)
@@ -1070,7 +1070,7 @@ describe('LibrarianPage add bank dialog', () => {
 
   it('returns focus to the trigger when the dialog is closed', async () => {
     const user = renderLibrarian()
-    const addBank = screen.getByRole('button', { name: 'Add new bank' })
+    const addBank = screen.getByRole('button', { name: 'Add new bank…' })
 
     await user.click(addBank)
     await screen.findByRole('dialog')

@@ -67,7 +67,7 @@ export function BankInformationDialog({
         type="button"
       >
         <Info className="size-4" />
-        {t('banks.bankInformation')}
+        {t('banks.bankInformationMenu')}
       </button>
 
       <Dialog

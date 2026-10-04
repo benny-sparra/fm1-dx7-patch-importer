@@ -447,9 +447,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     expect(within(bankSection('B')).getByText('Virtual Analog preset, not imported')).toBeTruthy()
     expect(within(bankSection('B')).getByText(fm1VaTestPatchName(33))).toBeTruthy()
     expect(
-      screen.getByText(
-        'The file has a Virtual Analog preset, which can’t currently be imported.',
-      ),
+      screen.getByText('The file has a Virtual Analog preset, which can’t currently be imported.'),
     ).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Import 4 banks' }))
     expect(vi.mocked(importFetchedBanks).mock.calls[0][0][1].sounds[1]).toBeNull()

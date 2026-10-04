@@ -128,7 +128,7 @@ test('switches a deleted bank off like a CRT over the bank that takes its place'
   const firstPatch = (await slotNames(page))[0]?.replace(/^Send (.+) to FM1$/, '$1') ?? ''
 
   await openFirstBankMenu(page)
-  await page.getByRole('button', { name: 'Delete bank' }).click()
+  await page.getByRole('button', { name: 'Delete bank…' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Delete bank' }).click()
 
   await expect
@@ -165,7 +165,7 @@ test('persists a saved patch name across a browser reload', async ({ page }) => 
 test('imports a valid DX7 SysEx bank into a populated workspace bank', async ({ page }) => {
   await openLibrarian(page)
   await openFirstBankMenu(page)
-  await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
+  await page.getByRole('button', { exact: true, name: 'Import DX7 bank…' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
   await dialog.getByLabel('Patch data').setInputFiles(factoryBank)
@@ -177,7 +177,7 @@ test('imports a valid DX7 SysEx bank into a populated workspace bank', async ({ 
 test('imports the bank chosen from a file that joins several', async ({ page }) => {
   await openLibrarian(page)
   await openFirstBankMenu(page)
-  await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
+  await page.getByRole('button', { exact: true, name: 'Import DX7 bank…' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
   const [rom1a, rom1b] = await Promise.all([
@@ -202,7 +202,7 @@ test('rejects an invalid DX7 SysEx bank without closing the replacement dialog',
 }) => {
   await openLibrarian(page)
   await openFirstBankMenu(page)
-  await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
+  await page.getByRole('button', { exact: true, name: 'Import DX7 bank…' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
   await dialog.getByLabel('Patch data').setInputFiles({
@@ -589,7 +589,7 @@ test('restores a downloaded backup over a factory reset', async ({ page }) => {
   await page.getByRole('button', { name: 'Save to library' }).click()
   await page.getByRole('button', { name: 'Back to patch banks' }).click()
   await openFirstBankMenu(page)
-  await page.getByRole('button', { name: 'Save bank' }).click()
+  await page.getByRole('button', { name: 'Save bank…' }).click()
   const saveDialog = page.getByRole('dialog')
   await saveDialog.getByLabel('Bank name').fill('Kept bank')
   await saveDialog.getByRole('button', { name: 'Save bank' }).click()
