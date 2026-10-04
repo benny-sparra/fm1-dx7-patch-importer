@@ -3,6 +3,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
+import { EngineTag } from '@/components/patches/engine-tag'
 import { FavouriteButton } from '@/components/patches/favourite-button'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
@@ -86,6 +87,8 @@ type SearchEverywhereResultsProps = {
     bankName: string,
   ) => void
   search: string
+  /** Marks an FM result's engine as well as a Virtual Analog one's, as the slots above do. */
+  tagsEngines?: boolean
   workspaceEffects: Record<string, Uint8Array>
   workspaceRecords: Record<string, Uint8Array>
   /** The workspace results above. A result that sounds exactly like one of them is left out. */
@@ -113,6 +116,7 @@ export function SearchEverywhereResults({
   onPlay,
   onToggleFavourite,
   search,
+  tagsEngines = false,
   workspaceEffects,
   workspaceRecords,
   workspaceMatches,
@@ -279,6 +283,7 @@ export function SearchEverywhereResults({
         onEdit={(result) => void run(result, 'edit')}
         onPlay={(result) => void run(result, 'play')}
         onToggleFavourite={(result) => void run(result, 'favourite')}
+        tagsEngines={tagsEngines}
         {...savedResults}
         title={t('banks.everywhere.savedBanks')}
       />
@@ -290,6 +295,7 @@ export function SearchEverywhereResults({
         onEdit={(result) => void run(result, 'edit')}
         onPlay={(result) => void run(result, 'play')}
         onToggleFavourite={(result) => void run(result, 'favourite')}
+        tagsEngines={tagsEngines}
         {...catalogResults}
         title={t('banks.everywhere.catalog')}
       />
@@ -315,6 +321,7 @@ type ResultGroupProps = ResultGroupContent & {
   onEdit: (result: Result) => void
   onPlay: (result: Result) => void
   onToggleFavourite: (result: Result) => void
+  tagsEngines: boolean
   title: string
 }
 
@@ -328,6 +335,7 @@ function ResultGroup({
   onPlay,
   onToggleFavourite,
   results,
+  tagsEngines,
   title,
 }: ResultGroupProps) {
   const { t } = useTranslation()
@@ -351,7 +359,7 @@ function ResultGroup({
             return (
               <li
                 className={cn(
-                  'patch-cell patch-edge-gradient relative flex min-h-12 items-center gap-1.5 px-2 py-2 transition-colors duration-150',
+                  'patch-cell patch-edge-gradient relative flex min-h-12 items-center gap-1 px-2 py-2 transition-colors duration-150',
                   'border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)]',
                   isActive
                     ? 'border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
@@ -374,7 +382,14 @@ function ResultGroup({
                       event.preventDefault()
                       onEdit(result)
                     }}
-                    title={t('banks.everywhere.playTitle', { name: result.name })}
+                    title={
+                      tagsEngines
+                        ? t('banks.engineTitle', {
+                            action: t('banks.everywhere.playTitle', { name: result.name }),
+                            engine: t('banks.fmPatch'),
+                          })
+                        : t('banks.everywhere.playTitle', { name: result.name })
+                    }
                     type="button"
                   />
                 )}
@@ -387,15 +402,12 @@ function ResultGroup({
                   )}
                 >
                   <span>{slotNumber(result.slot)}</span>
-                  {result.isVirtualAnalog ? (
-                    <span
-                      aria-hidden="true"
-                      className="absolute -top-1.5 -right-2 bg-[var(--crt-bg-well)] px-0.5 font-sans text-[9px] leading-none font-semibold text-[var(--crt-led)]"
-                    >
-                      {t('fm1VaImport.virtualAnalogTag')}
-                    </span>
-                  ) : null}
                 </span>
+                {result.isVirtualAnalog ? (
+                  <EngineTag engine="virtual-analog" />
+                ) : tagsEngines ? (
+                  <EngineTag engine="fm" />
+                ) : null}
                 <span className="pointer-events-none min-w-0 flex-1">
                   <span
                     className={cn(
@@ -410,6 +422,8 @@ function ResultGroup({
                   </span>
                   {result.isVirtualAnalog ? (
                     <span className="sr-only">{t('banks.virtualAnalogPatch')}</span>
+                  ) : tagsEngines ? (
+                    <span className="sr-only">{t('banks.fmPatch')}</span>
                   ) : null}
                 </span>
                 {/* As on a slot, the heart and copy button share one gap to leave the name room. */}

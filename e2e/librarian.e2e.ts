@@ -2,6 +2,8 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import { unzipSync } from 'fflate'
 import { readFile } from 'node:fs/promises'
 
+import { installFakeMidi } from './fake-midi'
+
 const factoryBank = 'public/dx7-banks/factory/rom1a.syx'
 
 async function openLibrarian(page: Page) {
@@ -541,6 +543,21 @@ test('finds a copied patch among the duplicates and goes to its slot', async ({ 
 // from each of four cards, so each name keeps that much to spare.
 const scrollbarShare = 4
 
+/** The names narrower than a full ten-character name, which would be cut short. */
+function crampedNames(page: Page) {
+  return page.locator('.patch-cell .patch-name').evaluateAll((names, spare) => {
+    const probe = names[0].cloneNode() as HTMLElement
+    probe.style.cssText = 'position: absolute; visibility: hidden; width: auto'
+    probe.textContent = 'WWWWWWWWWW'
+    document.body.append(probe)
+    const fullName = probe.getBoundingClientRect().width
+    probe.remove()
+    return names
+      .filter((name) => name.getBoundingClientRect().width < fullName + spare)
+      .map((name) => name.textContent)
+  }, scrollbarShare)
+}
+
 for (const width of [1280, 768, 360]) {
   test(`leaves room for a full ten-character patch name beside the heart and menu at ${width} px`, async ({
     page,
@@ -548,19 +565,18 @@ for (const width of [1280, 768, 360]) {
     await page.setViewportSize({ height: 800, width })
     await openLibrarian(page)
 
-    const cramped = await page.locator('.patch-cell .patch-name').evaluateAll((names, spare) => {
-      const probe = names[0].cloneNode() as HTMLElement
-      probe.style.cssText = 'position: absolute; visibility: hidden; width: auto'
-      probe.textContent = 'WWWWWWWWWW'
-      document.body.append(probe)
-      const fullName = probe.getBoundingClientRect().width
-      probe.remove()
-      return names
-        .filter((name) => name.getBoundingClientRect().width < fullName + spare)
-        .map((name) => name.textContent)
-    }, scrollbarShare)
+    expect(await crampedNames(page)).toEqual([])
+  })
 
-    expect(cramped).toEqual([])
+  // On Baud Girl's firmware every slot carries its engine's tag beside its slot code, which takes room.
+  test(`leaves that room beside each slot's engine tag at ${width} px`, async ({ page }) => {
+    await installFakeMidi(page, { firmware: 'fm1-va' })
+    await page.setViewportSize({ height: 800, width })
+    await openLibrarian(page)
+    await page.getByText('MIDI offline', { exact: true }).locator('visible=true').first().click()
+    await expect(page.locator('.patch-cell').first().getByText('FM patch')).toBeAttached()
+
+    expect(await crampedNames(page)).toEqual([])
   })
 }
 

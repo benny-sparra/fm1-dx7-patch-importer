@@ -448,7 +448,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     const { importFetchedBanks, user } = renderDialog()
     await chooseFile(user, makeFm1VaBackupFile('va.syx', { virtualAnalogSlots: [33] }))
 
-    expect(within(bankSection('B')).getByText('Virtual Analog preset')).toBeTruthy()
+    expect(within(bankSection('B')).getByText('Virtual Analogue preset')).toBeTruthy()
     expect(within(bankSection('B')).getByText(fm1VaTestPatchName(33))).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Import 4 banks' }))
     const sound = vi.mocked(importFetchedBanks).mock.calls[0][0][1].sounds[1]
@@ -813,7 +813,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
     await screen.findByRole('heading', { name: 'Banks on the FM1' })
 
-    expect(within(bankSection('D')).getAllByText('Virtual Analog preset')).toHaveLength(2)
+    expect(within(bankSection('D')).getAllByText('Virtual Analogue preset')).toHaveLength(2)
   })
 
   it('offers no read button once the banks show, as the read ran as it opened', async () => {

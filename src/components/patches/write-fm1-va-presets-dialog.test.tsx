@@ -393,7 +393,7 @@ describe('WriteFm1VaPresetsDialog with Virtual Analog patches', () => {
 
     expect(
       await screen.findByText(
-        'Every patch matches. One Virtual Analog patch can’t be stored exactly, so its preset is kept.',
+        'Every patch matches. One Virtual Analogue patch can’t be stored exactly, so its preset is kept.',
       ),
     ).toBeTruthy()
   })

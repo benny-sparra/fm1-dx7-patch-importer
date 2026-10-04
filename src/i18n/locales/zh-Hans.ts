@@ -316,7 +316,6 @@ export default {
     imported: '已从 FM1 导入音色库 {{banks}}。',
     imported_other: '已从 FM1 导入音色库 {{banks}}。',
     openFailed: '无法打开 Baud Girl 预设导入。请重新加载页面后重试。',
-    virtualAnalogTag: 'VA',
     errors: {
       size: '此文件大小为 {{bytes, number}} 字节。Baud Girl 的“Save a backup”保存的文件正好为 {{expected, number}} 字节。',
       format: '此文件不是由 Baud Girl 的“Save a backup”保存的。',
@@ -871,8 +870,10 @@ export default {
       'DX7 音色库无法容纳 Virtual Analog 预设，因此此音色库中的该预设会以 INIT VOICE 发送。',
     virtualAnalogInitNote_other:
       'DX7 音色库无法容纳 Virtual Analog 预设，因此此音色库中的 {{count, number}} 个此类预设会以 INIT VOICE 发送。',
-    fmTag: 'FM',
     fmPatch: 'FM 音色',
+    fmTag: 'FM',
+    virtualAnalogTag: 'VA',
+    engineTitle: '{{engine}}\n{{action}}',
   },
   namedBanks: {
     saving: '正在保存…',

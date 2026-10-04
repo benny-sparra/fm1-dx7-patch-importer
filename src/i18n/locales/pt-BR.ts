@@ -353,7 +353,6 @@ export default {
     imported_other: 'Bancos {{banks}} importados do FM1.',
     openFailed:
       'Não foi possível abrir a importação de presets da Baud Girl. Recarregue a página e tente novamente.',
-    virtualAnalogTag: 'VA',
     errors: {
       size: 'Este arquivo tem {{bytes, number}} bytes. Um arquivo de “Save a backup” da Baud Girl tem exatamente {{expected, number}} bytes.',
       format: 'Este arquivo não foi salvo pelo “Save a backup” da Baud Girl.',
@@ -951,8 +950,10 @@ export default {
       'Um banco DX7 não tem lugar para um preset Virtual Analog, então o deste banco é enviado como INIT VOICE.',
     virtualAnalogInitNote_other:
       'Um banco DX7 não tem lugar para presets Virtual Analog, então os {{count, number}} deste banco são enviados como INIT VOICE.',
-    fmTag: 'FM',
     fmPatch: 'Som FM',
+    fmTag: 'FM',
+    virtualAnalogTag: 'VA',
+    engineTitle: '{{engine}}\n{{action}}',
   },
   namedBanks: {
     saving: 'Salvando…',

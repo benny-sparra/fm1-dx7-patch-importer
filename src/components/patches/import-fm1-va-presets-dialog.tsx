@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { EngineTag } from '@/components/patches/engine-tag'
 import { Fm1VaReadLeds } from '@/components/patches/fm1-va-read-leds'
 import { fm1VaReadErrorMessage } from '@/components/patches/fm1-va-read-error-message'
 import { PreviewPatchButton } from '@/components/patches/preview-patch-button'
@@ -680,9 +681,7 @@ function VirtualAnalogPresetCell({
       <span className="font-dot-matrix min-w-0 flex-1 truncate text-[13px] font-bold whitespace-pre">
         {name}
       </span>
-      <span aria-hidden="true" className="shrink-0 text-[11px] font-semibold">
-        {t('fm1VaImport.virtualAnalogTag')}
-      </span>
+      <EngineTag className="shrink-0" engine="virtual-analog" />
       <span className="sr-only">{t('banks.virtualAnalogPatch')}</span>
       {differs ? (
         <>

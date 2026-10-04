@@ -95,7 +95,7 @@ describe('translation resources', () => {
 
   it('gives American English its own spelling of every British English word', () => {
     const british =
-      /(favourit|colour|organis|synthesiser|minimis|maximis|randomis|behaviour|centre|catalogue|analys(e|ed|ing)\b|recognis|normalis|initialis|customis|optimis|visualis|licence|grey|travell|cancell|labell|modell|programme\b)/i
+      /(favourit|colour|organis|synthesiser|minimis|maximis|randomis|behaviour|centre|catalogue|analys(e|ed|ing)\b|analogue|recognis|normalis|initialis|customis|optimis|visualis|licence|grey|travell|cancell|labell|modell|programme\b)/i
     const american = new Map(flattenStrings(resources['en-US'].translation))
     // Interpolation names such as {{colour}} are code, not text a reader sees.
     const spelling = (text: string) => text.replace(/\{\{[^}]*\}\}/g, '')
