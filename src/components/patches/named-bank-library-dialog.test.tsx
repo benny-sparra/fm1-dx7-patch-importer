@@ -377,9 +377,10 @@ describe('NamedBankLibraryDialog managing saved banks', () => {
 
     await user.click(screen.getByRole('button', { name: 'Download Stage as SysEx' }))
 
+    // The INIT VOICE a Virtual Analog slot would take loads first, so the download follows it.
+    expect(await screen.findByText('Downloaded “Stage”.')).toBeTruthy()
     expect(downloadFile).toHaveBeenCalledExactlyOnceWith(expect.any(Blob), 'fm1-Stage.syx')
     expect(vi.mocked(downloadFile).mock.calls[0][0].size).toBe(4104)
-    expect(screen.getByText('Downloaded “Stage”.')).toBeTruthy()
   })
 
   it('duplicates a saved bank and reports the copy', async () => {

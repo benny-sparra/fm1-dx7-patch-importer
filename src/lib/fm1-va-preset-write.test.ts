@@ -30,7 +30,7 @@ const voice = packDx7Voice(
     fm1VaPresetPayloadStart,
     fm1VaPresetPayloadStart + FM1_VOICE_PARAMETER_COUNT,
   ),
-)
+).data
 const record = readFm1VaMessageRecord(capturedOrgan3)
 
 describe('writesFm1VaPresets', () => {

@@ -383,6 +383,10 @@ export default {
     differs_other: '{{count, number}} sonidos son distintos.',
     same: 'Todos los sonidos coinciden.',
     virtualAnalogKept: 'Los presets Virtual Analog se conservan.',
+    inexact:
+      'Un sonido Virtual Analog no se puede guardar exactamente, así que su preset se conserva.',
+    inexact_other:
+      '{{count, number}} sonidos Virtual Analog no se pueden guardar exactamente, así que sus presets se conservan.',
     replaces: '{{number}} {{replaces}} → {{name}}',
     action: 'Escribir un sonido…',
     action_other: 'Escribir {{count, number}} sonidos…',

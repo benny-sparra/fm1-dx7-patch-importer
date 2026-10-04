@@ -263,6 +263,9 @@ export default {
     differs_other: '{{count, number}} patches differ.',
     same: 'Every patch matches.',
     virtualAnalogKept: 'Virtual Analog presets are kept.',
+    inexact: 'One Virtual Analog patch can’t be stored exactly, so its preset is kept.',
+    inexact_other:
+      '{{count, number}} Virtual Analog patches can’t be stored exactly, so their presets are kept.',
     replaces: '{{number}} {{replaces}} → {{name}}',
     action: 'Write one patch…',
     action_other: 'Write {{count, number}} patches…',

@@ -1,4 +1,4 @@
-import { isSevenBitData, unpackDx7Voice, type Dx7Voice } from '@/lib/dx7'
+import { dx7PackedVoiceSize, isSevenBitData, packDx7Voice, unpackDx7Voice } from '@/lib/dx7'
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
 import { fm1VaChecksum, fm1VaRequestHeader } from '@/lib/fm1-va-sysex'
 import { fm1VaRecordSize } from '@/lib/patch-library'
@@ -45,12 +45,14 @@ function packRecord(record: Uint8Array) {
 }
 
 /**
- * The preset write that stores `voice` and `record` in preset `slot` (0–127), exactly. The voice
- * travels as its 155-byte edit buffer, so its bytes must be seven-bit, and the record must be the
- * 59 bytes a read returns. Sending it replaces that stored preset at once: only code that the
- * preset write's approval in `AGENTS.md` covers may send it.
+ * The preset write that stores `voice` and `record` in preset `slot` (0–127), exactly. `voice` is
+ * the preset's 128 voice bytes as a read returns them: FM-1+VA keeps every preset, a Virtual Analog
+ * one too, in the packed DX7 layout, and its write carries them as the 155-byte edit buffer they
+ * unpack to, so they must be seven-bit. The record must be the 59 bytes a read returns. Sending it
+ * replaces that stored preset at once: only code that the preset write's approval in `AGENTS.md`
+ * covers may send it.
  */
-export function makeFm1VaPresetWrite(slot: number, voice: Dx7Voice, record: Uint8Array) {
+export function makeFm1VaPresetWrite(slot: number, voice: Uint8Array, record: Uint8Array) {
   if (!Number.isInteger(slot) || slot < 0 || slot >= slotCount) {
     throw new RangeError(`An FM-1+VA preset slot is 0 to ${slotCount - 1}; received ${slot}.`)
   }
@@ -59,10 +61,20 @@ export function makeFm1VaPresetWrite(slot: number, voice: Dx7Voice, record: Uint
       `An FM-1+VA settings record is ${fm1VaRecordSize} bytes; received ${record.length}.`,
     )
   }
-  const editBuffer = Uint8Array.from(unpackDx7Voice(voice))
-  if (!isSevenBitData(editBuffer)) {
-    throw new RangeError('An FM-1+VA preset write needs a voice whose bytes are seven-bit.')
+  if (voice.length !== dx7PackedVoiceSize || !isSevenBitData(voice)) {
+    throw new RangeError(
+      `An FM-1+VA preset write needs ${dx7PackedVoiceSize} voice bytes, each seven-bit.`,
+    )
   }
+  const editBuffer = Uint8Array.from(unpackDx7Voice({ data: voice, name: '' }))
   const payload = Uint8Array.of(...editBuffer, ...packRecord(record))
   return Uint8Array.of(...fm1VaPresetHeader, slot, ...payload, fm1VaChecksum(payload), 0xf7)
+}
+
+/**
+ * The voice bytes a preset write of `voice` stores, and a read then returns: the packed form of the
+ * edit buffer the write carries. They match `voice` unless it sets bits its layout does not keep.
+ */
+export function fm1VaStoredVoice(voice: Uint8Array) {
+  return packDx7Voice(Uint8Array.from(unpackDx7Voice({ data: voice, name: '' }))).data
 }

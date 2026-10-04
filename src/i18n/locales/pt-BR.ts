@@ -378,6 +378,10 @@ export default {
     differs_other: '{{count, number}} sons são diferentes.',
     same: 'Todos os sons coincidem.',
     virtualAnalogKept: 'Os presets Virtual Analog são mantidos.',
+    inexact:
+      'Um som Virtual Analog não pode ser gravado exatamente, então o preset dele é mantido.',
+    inexact_other:
+      '{{count, number}} sons Virtual Analog não podem ser gravados exatamente, então os presets deles são mantidos.',
     replaces: '{{number}} {{replaces}} → {{name}}',
     action: 'Gravar um som…',
     action_other: 'Gravar {{count, number}} sons…',

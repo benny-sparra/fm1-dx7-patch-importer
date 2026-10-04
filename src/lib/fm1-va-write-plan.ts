@@ -1,4 +1,5 @@
-import { decodeVoiceName, packDx7Voice, unpackDx7Voice, type Dx7Voice } from '@/lib/dx7'
+import { decodeVoiceName, type Dx7Voice } from '@/lib/dx7'
+import { fm1VaStoredVoice } from '@/lib/fm1-va-preset-message'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
 import { fm1VaRecordWithEffects } from '@/lib/fm1-va-record-effects'
 import { voiceId } from '@/lib/patch-library'
@@ -26,27 +27,37 @@ export type Fm1VaPlannedWrite = {
   record: Uint8Array
   replaces: string
   slot: number
-  voice: Dx7Voice
+  /** The voice bytes the write carries: a DX7 voice's, or a Virtual Analog preset's as read. */
+  voice: Uint8Array
 }
 
 /**
  * One stored preset's part in a plan: a write, or why it is left as it is. A Virtual Analog preset
- * is never written over, since the library cannot hold one yet and its sound would be lost.
+ * on the FM1 is never written over with a DX7 voice, since its sound would be lost, though a
+ * Virtual Analog patch from the library may replace it. A Virtual Analog patch whose bytes the FM1
+ * would not store exactly (`inexact`) is not written either.
  */
 export type Fm1VaPresetPlan =
   | ({ kind: 'write' } & Fm1VaPlannedWrite)
   | { kind: 'empty'; slot: number }
+  | { kind: 'inexact'; name: string; slot: number }
   | { kind: 'same'; slot: number }
   | { kind: 'virtual-analog'; name: string; slot: number }
 
 type PlanLibrary = {
   effects: Partial<Record<string, Uint8Array>>
   records: Partial<Record<string, Uint8Array>>
+  virtualAnalog: Partial<Record<string, Uint8Array>>
   voices: Partial<Record<string, Dx7Voice>>
 }
 
-/** A patch to write: its voice, its library effects, and its own settings record if it has one. */
-export type Fm1VaWritePatch = { effects?: Uint8Array; record?: Uint8Array; voice: Dx7Voice }
+/**
+ * A patch to write: a DX7 voice, with its own settings record if it has one, or a Virtual Analog
+ * preset's voice bytes and record, each with its library effects.
+ */
+export type Fm1VaWritePatch = { effects?: Uint8Array } & (
+  { record?: Uint8Array; voice: Dx7Voice } | { record: Uint8Array; virtualAnalog: Uint8Array }
+)
 
 function sameBytes(bytes: Uint8Array, other: Uint8Array) {
   return bytes.length === other.length && bytes.every((byte, index) => byte === other[index])
@@ -60,7 +71,11 @@ export function fm1VaLibraryBankPatches(
   return Array.from({ length: presetsPerBank }, (_, index) => {
     const id = voiceId(libraryBank, index + 1)
     const voice = library.voices[id]
-    return voice && { effects: library.effects[id], record: library.records[id], voice }
+    const virtualAnalog = library.virtualAnalog[id]
+    const record = library.records[id]
+    const effects = library.effects[id]
+    if (voice) return { effects, record, voice }
+    return virtualAnalog && record ? { effects, record, virtualAnalog } : undefined
   })
 }
 
@@ -94,22 +109,27 @@ export function planFm1VaPatchesWrite(
     const slot = firstSlot + index
     const preset = stored[slot]
     const replaces = decodeVoiceName(preset.voice)
-    if (preset.record[engineMarkerByte] === virtualAnalogMarker) {
+    const patch = patches[index]
+    const isVirtualAnalog = patch !== undefined && 'virtualAnalog' in patch
+    if (preset.record[engineMarkerByte] === virtualAnalogMarker && !isVirtualAnalog) {
       return { kind: 'virtual-analog', name: replaces, slot }
     }
-    const patch = patches[index]
     if (!patch) return { kind: 'empty', slot }
 
-    const { voice } = patch
+    const voice = 'virtualAnalog' in patch ? patch.virtualAnalog : patch.voice.data
+    const name = decodeVoiceName(voice)
+    const expectedVoice = fm1VaStoredVoice(voice)
+    if (isVirtualAnalog && !sameBytes(expectedVoice, voice)) {
+      return { kind: 'inexact', name, slot }
+    }
     const record = fm1VaRecordWithEffects(
       patch.record ?? preset.record,
       patch.effects ?? new Uint8Array(),
     )
-    const expectedVoice = packDx7Voice(Uint8Array.from(unpackDx7Voice(voice))).data
     if (sameBytes(expectedVoice, preset.voice) && sameBytes(record, preset.record)) {
       return { kind: 'same', slot }
     }
-    return { expectedVoice, kind: 'write', name: voice.name, record, replaces, slot, voice }
+    return { expectedVoice, kind: 'write', name, record, replaces, slot, voice }
   })
 }
 
@@ -135,7 +155,7 @@ type WriteEveryOptions = {
   read: (slot: number) => Promise<Fm1VaStoredPreset>
   /** Aborting stops before the next write; a write already sent is still confirmed. */
   signal?: AbortSignal
-  write: (slot: number, voice: Dx7Voice, record: Uint8Array) => Promise<unknown>
+  write: (slot: number, voice: Uint8Array, record: Uint8Array) => Promise<unknown>
 }
 
 /**
