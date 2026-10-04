@@ -17,6 +17,10 @@ import { voiceId } from '@/lib/patch-library'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
 import { fm1VaTestPatchName } from '@/test/fm1-va-backup-file'
 import { capturedOrgan3Reply } from '@/test/fm1-va-captures'
+import {
+  capturedVirtualAnalogRecord,
+  capturedVirtualAnalogVoice,
+} from '@/test/fm1-va-virtual-analog'
 import { makeFm1VaReply } from '@/test/fm1-va-replies'
 
 import { WriteFm1VaPresetsDialog } from './write-fm1-va-presets-dialog'
@@ -111,6 +115,7 @@ function matchingLibrary(voices: Library['voices'] = {}): Library {
   return {
     bankNames: {},
     favourites: [],
+    virtualAnalog: {},
     effects: Object.fromEntries(ids.map(([id]) => [id, fm1VaRecordEffects(storedRecord)])),
     records: Object.fromEntries(ids.map(([id]) => [id, storedRecord])),
     voices: { ...Object.fromEntries(ids.map(([id, slot]) => [id, storedVoice(slot)])), ...voices },
@@ -350,6 +355,49 @@ function favourites(count: number): Library['favourites'] {
 }
 
 const destination = () => screen.getByRole<HTMLSelectElement>('combobox', { name: 'Write over' })
+
+describe('WriteFm1VaPresetsDialog with Virtual Analog patches', () => {
+  /** The library with the Virtual Analog preset 097, as read from the FM1, in slot A01. */
+  function withVirtualAnalogInA1(): Library {
+    const library = matchingLibrary()
+    const id = voiceId('A', 1)
+    const voices = { ...library.voices }
+    delete voices[id]
+    return {
+      ...library,
+      effects: { ...library.effects, [id]: fm1VaRecordEffects(capturedVirtualAnalogRecord()) },
+      records: { ...library.records, [id]: capturedVirtualAnalogRecord() },
+      virtualAnalog: { [id]: capturedVirtualAnalogVoice() },
+      voices,
+    }
+  }
+
+  it('writes a Virtual Analog patch with its voice bytes as read, and confirms it', async () => {
+    const fm1 = fakeFm1()
+    const { user } = renderDialog(fm1.midi, withVirtualAnalogInA1())
+
+    await user.click(await screen.findByRole('button', { name: 'Write one patch…' }))
+    expect(screen.getByText('001 A01 PATCH → VOICE 97')).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Write one patch' }))
+    await finishWriting(1)
+
+    expect(fm1.writtenSlots()).toEqual([0])
+    expect(fm1.stored.get(0)?.slice(0, 128)).toEqual(Array.from(capturedVirtualAnalogVoice()))
+    expect(screen.getByText('Wrote one patch to the FM1.')).toBeTruthy()
+  })
+
+  it('says when a Virtual Analog patch cannot be stored exactly, and keeps that preset', async () => {
+    const library = withVirtualAnalogInA1()
+    library.virtualAnalog[voiceId('A', 1)][110] |= 0x60
+    renderDialog(fakeFm1().midi, library)
+
+    expect(
+      await screen.findByText(
+        'Every patch matches. One Virtual Analog patch can’t be stored exactly, so its preset is kept.',
+      ),
+    ).toBeTruthy()
+  })
+})
 
 describe('WriteFm1VaPresetsDialog sending one bank', () => {
   it('writes the bank over the FM1 bank of the same letter, only where it differs', async () => {

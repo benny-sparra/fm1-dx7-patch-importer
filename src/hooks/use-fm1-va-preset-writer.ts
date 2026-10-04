@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef } from 'react'
 import type { MessageEvent } from 'webmidi'
 
 import type { MidiController } from '@/hooks/use-midi'
-import type { Dx7Voice } from '@/lib/dx7'
 import { fm1VaPresetNumber, type Fm1VaLink } from '@/lib/fm1-va-preset-read'
 import {
   Fm1VaPresetWriteError,
@@ -48,13 +47,14 @@ export function useFm1VaPresetWriter(midi: PresetWriterMidi) {
   }, [input, output])
 
   /**
-   * Stores `voice` and `record` in preset `slot` (0–127) and resolves with the FM-1+VA replies
+   * Stores `voice`, the preset's voice bytes as a read returns them, and `record` in preset `slot`
+   * (0–127) and resolves with the FM-1+VA replies
    * heard after it. Rejects with an `Fm1VaPresetWriteError` when the ports, SysEx, or firmware
    * cannot write presets, when the write cannot be sent, and when `signal` or a change of ports
    * cancels it before it is sent.
    */
   const writePreset = useCallback(
-    async (slot: number, voice: Dx7Voice, record: Uint8Array, signal?: AbortSignal) => {
+    async (slot: number, voice: Uint8Array, record: Uint8Array, signal?: AbortSignal) => {
       const number = fm1VaPresetNumber(slot)
       const log = (direction: 'out' | 'system', message: string, data?: Uint8Array) =>
         logStore.append(makeLogEntry(direction, message, data))

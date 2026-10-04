@@ -50,7 +50,13 @@ import {
 type WriteFm1VaPresetsDialogProps = {
   library: Pick<
     PatchLibrary,
-    'bankNames' | 'effects' | 'favourites' | 'records' | 'voices' | 'workspaceBanks'
+    | 'bankNames'
+    | 'effects'
+    | 'favourites'
+    | 'records'
+    | 'virtualAnalog'
+    | 'voices'
+    | 'workspaceBanks'
   >
   midi: Parameters<typeof useFm1VaPresetReader>[0]
   onClose: () => void
@@ -84,14 +90,20 @@ function writeFailureMessage(t: Translate, { count, slot, total }: WriteFailure)
 type WriteEntry = Extract<Fm1VaPresetPlan, { kind: 'write' }>
 const isWrite = (entry: Fm1VaPresetPlan): entry is WriteEntry => entry.kind === 'write'
 
-/** How many presets a plan would change, and whether it keeps a Virtual Analog preset. */
+/**
+ * How many presets a plan would change, whether it keeps a Virtual Analog preset on the FM1, and
+ * how many Virtual Analog patches it cannot write exactly.
+ */
 function planSummary(t: Translate, plan: readonly Fm1VaPresetPlan[]) {
   const writeCount = plan.filter(isWrite).length
-  const summary =
-    writeCount === 0 ? t('fm1VaWrite.same') : t('fm1VaWrite.differs', { count: writeCount })
-  return plan.some(({ kind }) => kind === 'virtual-analog')
-    ? `${summary} ${t('fm1VaWrite.virtualAnalogKept')}`
-    : summary
+  const inexactCount = plan.filter(({ kind }) => kind === 'inexact').length
+  return [
+    writeCount === 0 ? t('fm1VaWrite.same') : t('fm1VaWrite.differs', { count: writeCount }),
+    plan.some(({ kind }) => kind === 'virtual-analog') ? t('fm1VaWrite.virtualAnalogKept') : '',
+    inexactCount > 0 ? t('fm1VaWrite.inexact', { count: inexactCount }) : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 /** The patches **Send to FM1** writes: a workspace bank's 32, or the first 32 favourites. */

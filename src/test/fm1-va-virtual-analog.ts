@@ -6,7 +6,7 @@ const reply = parseFm1VaReply(capturedVirtualAnalogFilterOnReply)
 if (!reply) throw new Error('The captured Virtual Analog reply did not parse.')
 
 /** Preset 097's voice bytes as FM-1_093 read them back: a Virtual Analog preset named VOICE 97. */
-function capturedVirtualAnalogVoice() {
+export function capturedVirtualAnalogVoice() {
   return reply!.data.slice(0, dx7PackedVoiceSize)
 }
 

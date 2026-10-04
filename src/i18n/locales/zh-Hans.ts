@@ -338,6 +338,8 @@ export default {
     differs_other: '有 {{count, number}} 个音色不同。',
     same: '所有音色都一致。',
     virtualAnalogKept: 'Virtual Analog 预设会保留。',
+    inexact: '有 1 个 Virtual Analog 音色无法精确保存，因此保留其预设。',
+    inexact_other: '有 {{count, number}} 个 Virtual Analog 音色无法精确保存，因此保留其预设。',
     replaces: '{{number}} {{replaces}} → {{name}}',
     action: '写入 1 个音色…',
     action_other: '写入 {{count, number}} 个音色…',

@@ -121,8 +121,8 @@ its sound, which only the FM1 makes: clicking it in banks A to D selects that pr
 you hear what the FM1 has stored there, and it has no **Edit** or **Download patch file**. You can
 copy it, move it, save its bank, and back it up like any other patch. A DX7 bank has no place for
 one, so sending or downloading a bank as SysEx puts INIT VOICE in its slot, and the app says so
-first. Writing Virtual Analog presets back to the FM1 and adding them to Favourites are not
-available yet.
+first. On Baud Girl's firmware, **Write patches to the FM1…** and **Send to FM1** write them back
+exactly, as below. Adding them to Favourites is not available yet.
 
 To put your library's patches back on the FM1, preset by preset, choose **Write patches to the
 FM1…**, under **Baud Girl (FM-1+VA)** too. It is offered while the FM1 runs Baud Girl's firmware, FM-1_079 or
@@ -131,8 +131,9 @@ its own preset with its FM1 effects and Baud Girl settings, with no **Replace Ba
 The dialog first reads the FM1, so it writes only the patches that
 differ. Each FM1 bank's title is a switch, such as **Write to FM1 bank A**, that says whether it
 is written, and **Write from** below it chooses the library bank to write over it, starting on the
-bank of the same letter. Virtual Analog presets on the FM1 are never written
-over, and a slot your bank has no patch in keeps its preset. A patch that came from a DX7 file
+bank of the same letter. A Virtual Analog patch in your bank is written exactly as it was read,
+over whatever preset is there. A Virtual Analog preset on the FM1 is never replaced by a DX7 patch,
+and a slot your bank has no patch in keeps its preset. A patch that came from a DX7 file
 takes the FM1 preset's own settings, with your effects in them.
 
 Before anything is written, the dialog lists every preset it will replace. Each one is replaced the

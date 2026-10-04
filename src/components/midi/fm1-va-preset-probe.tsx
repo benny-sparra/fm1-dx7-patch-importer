@@ -172,12 +172,13 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
     if (!read) return
     const preset =
       kind === 'first' ? (firstReads.current.get(read.preset.slot) ?? read.preset) : read.preset
+    // A Virtual Analog preset keeps its name in the same bytes as an FM one, so either renames.
     const stored = { data: preset.voice, name: decodeVoiceName(preset.voice) }
     const voice = kind === 'renamed' ? updateDx7VoiceName(stored, writeTestName) : stored
     setReading(true)
     setFailure(null)
     try {
-      const replies = await writePreset(preset.slot, voice, preset.record)
+      const replies = await writePreset(preset.slot, voice.data, preset.record)
       const readBack = await readStoredPreset(preset.slot)
       lastReads.current.set(preset.slot, readBack)
       setRead({
@@ -293,13 +294,13 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
                 />
               </section>
             ) : null}
-            {read && marker !== 0x5a ? (
+            {read ? (
               <section aria-label="Write test" className="space-y-2 border-t pt-3">
                 <p className="leading-6 text-[var(--crt-ink-3)]">
                   Writes this preset back to slot {fm1VaPresetNumber(read.preset.slot)} with
                   FM-1+VA&rsquo;s preset write, which stores it at once, then reads it again. Start
-                  from an FM-1+VA backup. A Virtual Analog preset is not written, since its voice
-                  bytes are not a DX7 voice.
+                  from an FM-1+VA backup. A Virtual Analog preset is written the same way, with its
+                  voice bytes exactly as read, as FM-1+VA&rsquo;s own backup restores it.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button

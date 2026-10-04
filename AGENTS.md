@@ -194,7 +194,10 @@ open everything an earlier release could have saved.
   first, naming every preset it replaces and saying an FM-1+VA backup is the way back. A patch
   without a settings record of its own takes the FM1 slot's stored record, with only the
   library's effects put in it (`fm1VaRecordWithEffects`), so bytes not yet mapped keep the FM1's
-  values. Never write a Virtual Analog preset's voice bytes as a DX7 voice.
+  values. The write carries a Virtual Analog patch's voice bytes exactly as read, with its own
+  record, as FM-1+VA's own backup restores one; never send them any other way. A DX7 patch never
+  replaces a Virtual Analog preset on the FM1, and a Virtual Analog patch whose bytes the write
+  would not store exactly (`fm1VaStoredVoice`) is not written.
   A read belongs to the ports it started on: changing either, or switching MIDI off, cancels it.
   Keep what it reads exactly as read until each byte is mapped in `docs/fm1-research.md`.
   Code that reads presets goes through `useFm1VaPresetReader`, which takes the ports from the
@@ -528,8 +531,8 @@ open everything an earlier release could have saved.
   default; a path that should carry them (copying, moving, compacting, saved banks from version 3,
   backups from version 4) handles `virtualAnalog` on purpose. Its slot sends only its Program
   Change, never opens the voice editor, and a DX7 bank, sent or downloaded, gets INIT VOICE in its
-  place and says so before and after. Never normalise, clamp, pack, or send its bytes as a DX7
-  voice.
+  place and says so before and after. Only the preset write carries its bytes to the FM1; never
+  normalise, clamp, or send them as a DX7 voice.
 - Distortion type is the one record byte the editor changes (38). The editor keeps it after the
   effects in its parameters (`FM1_VA_DISTORTION_TYPE_INDEX`), so undo and compare cover it, and
   saving writes it into the record through `saveSound`, which gives the copies that held the same

@@ -16,7 +16,11 @@ import {
 import { fm1VaPresetWriteSpacingMs } from '@/lib/fm1-va-preset-write'
 import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import { MidiLogStore } from '@/lib/midi-log-store'
-import { capturedOrgan3, capturedOrgan3Reply } from '@/test/fm1-va-captures'
+import {
+  capturedOrgan3,
+  capturedOrgan3Reply,
+  capturedVirtualAnalogFilterOnReply,
+} from '@/test/fm1-va-captures'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
 import { makeFm1VaPresetReply, makeFm1VaReply, makeStoredPresetData } from '@/test/fm1-va-replies'
 
@@ -138,8 +142,8 @@ describe('Fm1VaPresetProbe', () => {
  * A fake FM1 holding ORGAN 3 in every slot, as FM-1_093 answered its read, that stores what each
  * preset write carries and answers later reads with it.
  */
-function makeWritableMidi() {
-  const reply = parseFm1VaReply(capturedOrgan3Reply)
+function makeWritableMidi(captured = capturedOrgan3Reply) {
+  const reply = parseFm1VaReply(captured)
   if (!reply) throw new Error('The captured reply did not parse.')
   const stored = new Map<number, number[]>()
   const ports = makeFakeFm1Ports({
@@ -200,7 +204,7 @@ describe('Fm1VaPresetProbe write test', () => {
     const data = fake.reply.data.slice(0, dx7PackedVoiceSize)
     const renamed = updateDx7VoiceName({ data, name: decodeVoiceName(data) }, 'WRITE TEST')
     expect(fake.ports.output.send).toHaveBeenCalledWith(
-      makeFm1VaPresetWrite(0, renamed, fake.reply.data.slice(dx7PackedVoiceSize)),
+      makeFm1VaPresetWrite(0, renamed.data, fake.reply.data.slice(dx7PackedVoiceSize)),
     )
     expect(await within(dialog).findByText(/Wrote WRITE TEST\./)).toBeTruthy()
     expect(within(dialog).getByText(/The read back matches what was written\./)).toBeTruthy()
@@ -218,11 +222,7 @@ describe('Fm1VaPresetProbe write test', () => {
     const data = fake.reply.data.slice(0, dx7PackedVoiceSize)
     const writes = fake.ports.output.send.mock.calls.filter(([message]) => message[4] === 0x04)
     expect(writes.at(-1)?.[0]).toEqual(
-      makeFm1VaPresetWrite(
-        0,
-        { data, name: decodeVoiceName(data) },
-        fake.reply.data.slice(dx7PackedVoiceSize),
-      ),
+      makeFm1VaPresetWrite(0, data, fake.reply.data.slice(dx7PackedVoiceSize)),
     )
     expect(await within(dialog).findByText(/Wrote ORGAN 3\./)).toBeTruthy()
     expect(
@@ -230,14 +230,20 @@ describe('Fm1VaPresetProbe write test', () => {
     ).toBeNull()
   })
 
-  it('offers no write for a Virtual Analog preset', async () => {
-    const { voice, record } = makeStoredPresetData()
-    record[18] = 0x5a
-    const fake = makeMidi((slot) => makeFm1VaReply({ argument: slot, data: [...voice, ...record] }))
-    const { user } = await openProbe(fake)
-
+  it('writes a Virtual Analog preset back with its voice bytes as read, and confirms it', async () => {
+    const fake = makeWritableMidi(capturedVirtualAnalogFilterOnReply)
+    const { dialog, user } = await openProbe(fake)
     await readPreset(user, '97')
 
-    expect(screen.queryByRole('button', { hidden: true, name: 'Write back unchanged' })).toBeNull()
+    await writeBack(user, 'Write back unchanged')
+
+    expect(fake.ports.output.send).toHaveBeenCalledWith(
+      makeFm1VaPresetWrite(
+        96,
+        fake.reply.data.slice(0, dx7PackedVoiceSize),
+        fake.reply.data.slice(dx7PackedVoiceSize),
+      ),
+    )
+    expect(await within(dialog).findByText(/The read back matches what was written\./)).toBeTruthy()
   })
 })

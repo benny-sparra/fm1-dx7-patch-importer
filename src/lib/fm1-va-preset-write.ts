@@ -1,4 +1,3 @@
-import type { Dx7Voice } from '@/lib/dx7'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
 import { makeFm1VaPresetWrite } from '@/lib/fm1-va-preset-message'
 import { fm1VaPresetNumber, readsFm1VaPresets, type Fm1VaLink } from '@/lib/fm1-va-preset-read'
@@ -51,14 +50,15 @@ export type Fm1VaPresetWriteOptions = {
 }
 
 /**
- * Sends the write that stores `voice` and `record` in preset `slot`, once, and resolves with the
+ * Sends the write that stores `voice`, the preset's voice bytes as a read returns them, and
+ * `record` in preset `slot`, once, and resolves with the
  * FM-1+VA replies heard in the `listenMs` after it. A write is never sent twice: unlike a read, a
  * repeat would store the preset again.
  */
 export function writeFm1VaPreset(
   link: Fm1VaLink,
   slot: number,
-  voice: Dx7Voice,
+  voice: Uint8Array,
   record: Uint8Array,
   { listenMs = 1500, signal }: Fm1VaPresetWriteOptions = {},
 ) {

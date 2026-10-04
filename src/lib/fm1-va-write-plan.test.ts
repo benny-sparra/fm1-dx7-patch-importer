@@ -7,6 +7,10 @@ import { fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
 import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import { voiceId } from '@/lib/patch-library'
 import { capturedOrgan3Reply } from '@/test/fm1-va-captures'
+import {
+  capturedVirtualAnalogRecord,
+  capturedVirtualAnalogVoice,
+} from '@/test/fm1-va-virtual-analog'
 
 import {
   Fm1VaWriteMismatchError,
@@ -42,8 +46,19 @@ function libraryOf(
   return {
     effects: Object.fromEntries(ids.map(([id]) => [id, fm1VaRecordEffects(storedRecord)])),
     records: Object.fromEntries(ids.map(([id]) => [id, storedRecord.slice()])),
+    virtualAnalog: {} as Record<string, Uint8Array>,
     voices: Object.fromEntries(ids.map(([id, index]) => [id, change(index).voice ?? organ3])),
   }
+}
+
+/** The library with the Virtual Analog preset 097, as read from the FM1, in slot `number`. */
+function withVirtualAnalog(library: ReturnType<typeof libraryOf>, bank: string, number: number) {
+  const id = voiceId(bank, number)
+  delete library.voices[id]
+  library.virtualAnalog[id] = capturedVirtualAnalogVoice()
+  library.records[id] = capturedVirtualAnalogRecord()
+  library.effects[id] = fm1VaRecordEffects(capturedVirtualAnalogRecord())
+  return library
 }
 
 describe('planFm1VaBankWrite', () => {
@@ -103,7 +118,7 @@ describe('planFm1VaBankWrite', () => {
     expect(fm1VaRecordEffects(plan[1].record)).toEqual(makeDefaultFm1Effects())
   })
 
-  it('never writes over a Virtual Analog preset', () => {
+  it('never writes a DX7 patch over a Virtual Analog preset', () => {
     const virtualAnalog = storedRecord.slice()
     virtualAnalog[18] = 0x5a
     const library = libraryOf('A', () => ({ voice: updateDx7VoiceName(organ3, 'NEW') }))
@@ -119,14 +134,52 @@ describe('planFm1VaBankWrite', () => {
     expect(plan[3]).toMatchObject({ kind: 'write' })
   })
 
-  it('leaves a preset alone where the library bank holds a Virtual Analog preset', () => {
-    // A Virtual Analog slot keeps its bytes apart from the DX7 voices, with only its record here.
-    const library = libraryOf('A')
-    delete library.voices[voiceId('A', 4)]
+  it('writes a Virtual Analog patch over an FM preset with its voice bytes as read', () => {
+    const plan = planFm1VaBankWrite(
+      storedPresets(),
+      'A',
+      'A',
+      withVirtualAnalog(libraryOf('A'), 'A', 4),
+    )
+
+    expect(plan[3]).toMatchObject({
+      expectedVoice: capturedVirtualAnalogVoice(),
+      kind: 'write',
+      name: 'VOICE 97',
+      record: capturedVirtualAnalogRecord(),
+      replaces: 'ORGAN 3',
+      voice: capturedVirtualAnalogVoice(),
+    })
+  })
+
+  it('writes a Virtual Analog patch over a Virtual Analog preset that differs', () => {
+    const library = withVirtualAnalog(libraryOf('A'), 'A', 4)
+    const stored = storedPresets((slot) =>
+      slot === 3 ? { record: capturedVirtualAnalogRecord(), voice: storedVoice.slice() } : {},
+    )
+
+    expect(planFm1VaBankWrite(stored, 'A', 'A', library)[3]).toMatchObject({ kind: 'write' })
+  })
+
+  it('leaves a Virtual Analog preset alone when the library holds the same one', () => {
+    const library = withVirtualAnalog(libraryOf('A'), 'A', 4)
+    const stored = storedPresets((slot) =>
+      slot === 3
+        ? { record: capturedVirtualAnalogRecord(), voice: capturedVirtualAnalogVoice() }
+        : {},
+    )
+
+    expect(planFm1VaBankWrite(stored, 'A', 'A', library)[3]).toEqual({ kind: 'same', slot: 3 })
+  })
+
+  it('does not write a Virtual Analog patch the FM1 would not store exactly', () => {
+    const library = withVirtualAnalog(libraryOf('A'), 'A', 4)
+    // Byte 110 keeps only the algorithm's five bits, so a write would drop these two.
+    library.virtualAnalog[voiceId('A', 4)][110] |= 0x60
 
     const plan = planFm1VaBankWrite(storedPresets(), 'A', 'A', library)
 
-    expect(plan[3]).toEqual({ kind: 'empty', slot: 3 })
+    expect(plan[3]).toEqual({ kind: 'inexact', name: 'VOICE 97', slot: 3 })
   })
 
   it('leaves a preset alone where the library bank has no patch', () => {
@@ -175,7 +228,7 @@ describe('writeFm1VaPlannedPresets', () => {
     record: storedRecord,
     replaces: 'ORGAN 3',
     slot,
-    voice: organ3,
+    voice: storedVoice,
   })
   const readBack = (slot: number, voice = storedVoice) =>
     Promise.resolve({ record: storedRecord, reply: new Uint8Array(), slot, voice })

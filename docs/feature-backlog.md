@@ -480,8 +480,14 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       no Edit or DX7 download; its click sends only its Program Change; copying, moving, and
       deleting a bank carry it; and a DX7 bank, sent or downloaded, puts INIT VOICE in its slot
       and says so. Still to do: the FM tags, Favourites (its heart is hidden), search across saved
-      banks, the duplicate finder, writing it back with 4 (the write leaves that FM1 preset alone),
-      and the FM-1+VA bank instructions' warning.
+      banks, the duplicate finder, and the FM-1+VA bank instructions' warning.
+    - _Writing them back built 2026-10-04, waiting for the probe's hardware test:_ the preset write
+      takes a preset's voice bytes as a read returns them, for either engine, so a Virtual Analog
+      patch is written with its bytes and record exactly as read, as FM-1+VA's own backup restores
+      one. **Write patches to the FM1…** and **Send to FM1** write it over any preset that differs,
+      a DX7 patch still never replaces a Virtual Analog preset, and a Virtual Analog patch the write
+      would not store exactly is kept back and counted. The dev probe now writes a Virtual Analog
+      preset back too, which is the hardware test.
   - **Play them live.** From FM-1_086, CC 24–31 and 52–57 on the note channel set Waveform,
     Super, Detune, Drift, Sub, Noise, PWM, Filter Type, and the filter's envelope and modulation,
     and CC 70–78 the shared Envelope, LFO, Cutoff, and Resonance, as unsaved edits heard at once.
