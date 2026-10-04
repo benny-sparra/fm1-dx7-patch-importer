@@ -40,3 +40,6 @@ skills-lock.json
 
 # Coverage reports from npm run test:coverage
 coverage
+
+# The controller test wizard remembers its answers here between sessions.
+docs/hardware-runs/.*.env

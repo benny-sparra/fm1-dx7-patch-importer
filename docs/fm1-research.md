@@ -413,8 +413,12 @@ differs in sound, not only in name.
 
 #### Controllers on the MIDI Channel
 
-**Status: Likely** (FM-1+VA manual, read 2026-10-01 at release `FM-1_093`; not reproduced by this
-project). Hardware tests: [`docs/fm1-va-controller-tests.md`](fm1-va-controller-tests.md).
+**Status: Confirmed** for CC 24, 25, 31, and 74, which two runs agreed on; **seen once** for the
+other sound-setting CCs, every one as the manual says (FM-1+VA manual, read 2026-10-01 at release
+`FM-1_093`; hardware run on `FM-1_093`, 2026-10-04, ledger
+[`docs/hardware-runs/fm1-va-controller-2026-10-04-2131.md`](hardware-runs/fm1-va-controller-2026-10-04-2131.md)).
+The Envelope switch side effect is still the manual's alone. Hardware tests:
+[`docs/fm1-va-controller-tests.md`](fm1-va-controller-tests.md).
 
 From `FM-1_086`, FM-1+VA reads two sets of Control Changes on its **MIDI Channel**, the channel for
 notes, not on the FX Channel. Neither exists on stock firmware, where these numbers are untested
@@ -453,12 +457,37 @@ Algorithm is heard from the next note.
 |  77 | LFO Pitch Mod Depth                  | LFO Pitch Mod Depth                 |
 |  78 | LFO Delay                            | LFO Delay                           |
 
-- **Scaling.** 0 sets a setting's lowest value and 127 its highest. A setting with a list of
-  choices divides the 128 values into equal bands, one per choice; for four choices that would be
-  0–31, 32–63, 64–95, and 96–127, but the manual gives no boundaries and no rounding for
-  continuous settings, whose screen ranges (0–100 for most) differ from the CC's.
-- **Side effect.** CC 70, 72, 73, or 75 received while the preset's Envelope is Off switches it
-  On, as holding ENV does. Envelope is saved per preset from `FM-1_092` and starts Off, so an
+- **Scaling. Confirmed for CC 24, 31, and 74; seen once for the rest.** 0 sets a setting's
+  lowest value and 127 its highest.
+  - A list setting divides the 128 values into four equal bands, 0–31, 32–63, 64–95, and 96–127:
+    Waveform Sine, Saw, Tri, Square (CC 24; 31 was not read), Filter Type LP12, LP24, BP, HP
+    (CC 31), and Filter Key Tracking 0, 33, 67, 100 (CC 56).
+  - A continuous setting shows `round(value × top ÷ 127)`, rounding to nearest: for Super and
+    Filter Decay (top 100), 1 → 1, 2 → 2, 32 → 25, 63 and 64 → 50, 65 → 51, 96 → 76, 126 → 99,
+    127 → 100. The LFO's Speed, Pitch Mod Depth, and Delay top out at 99 (64 → 50, 127 → 99).
+    Sustain's value at 127 was not read; Attack, Decay, and Release reach 100.
+  - Cutoff takes the same 0–100 step and shows it as `20 × 1000^(step ÷ 100)` Hz: 0 → 20,
+    1 → 21, 2 → 23, 32 → 112, 63 and 64 → 632, 65 → 678, 96 → 3.8k, 126 → 18k, 127 → 20k.
+  - Every CC reached the row the table names, showed it on screen, and put the unsaved-changes dot
+    after the preset's name on HOME. Where the change can be heard on a held note (Waveform,
+    Super, Detune, Sub, Noise, Filter Type, Cutoff, Pitch Mod Depth, and the Envelope group), it
+    was heard at once; the filter envelope and modulation settings were not judged by ear.
+  - A sweep of 256 values, 0 to 127 and back, on Cutoff and then on Super caused no crackle, stuck
+    note, or freeze, and left the screen on the last value sent. Seen once.
+- **Channels. Seen once.** The CCs on the FX Channel (2) changed nothing. With GLOBE's MIDI
+  Channel set to 1, they changed nothing on channel 3 and worked on channel 1.
+- **FM presets. Seen once.** On an FM preset, CC 24, 31, and 57 changed nothing and left no dot;
+  CC 74 set Brightness, as the table says.
+- **A new Virtual Analog preset. Seen once, rechecked for the Envelope.** Erase Preset to VA
+  gives Waveform Saw, Super 0, Detune 50, Drift, Sub, Noise, and PWM 0, Level 99, Mono Off; Filter
+  Type LP12, Cutoff 20k, Resonance, Filter Envelope, Filter Decay, Velocity, Key Tracking, and LFO
+  to Cutoff 0; LFO Wave Triangle, Speed 35, Pitch Mod Depth, Amp Mod Depth, and Delay 0, Pitch
+  Sensitivity 3, Sync Off; and Envelope Off with Attack, Decay, Sustain, and Release 0. Filter
+  Shape was not read clearly.
+- **Side effect. Needs hardware test.** The manual says CC 70, 72, 73, or 75 received while the
+  preset's Envelope is Off switches it On, as holding ENV does. The 2026-10-04 run sent CC 73 with
+  the Envelope already On, so it did not show this; stepping PRESETS away and back did return the
+  switch to the stored preset's setting. Envelope is saved per preset from `FM-1_092` and starts Off, so an
   editor that sends these changes the preset's Envelope switch too.
 - **CC 7** is volume, as MASTER sets it, only while the MIDI and FX channels differ; on a shared
   channel it stays Reverb Mix. **Ext Ctrl CC7 Vol** in GLOBE can switch it off. It is not a preset
@@ -478,8 +507,10 @@ unassigned), so no CC writes the FM1's memory.
 **Patches sent over a Virtual Analog preset.** From `FM-1_087`, a DX7 patch always arrives as an FM
 preset: a single patch sent over a Virtual Analog preset turns it into an FM preset, and a bank
 write does that to every Virtual Analog preset in the bank. The manual describes single-voice
-dumps, which FM-1+VA stores at once; whether the editor's 155 parameter changes also convert a
-selected Virtual Analog preset, and whether that is an unsaved edit, is not known (test V7).
+dumps, which FM-1+VA stores at once. **The editor's 155 parameter changes are an unsaved edit.
+Seen once** (test V7, `FM-1_093`, 2026-10-04): sent over a stored Virtual Analog preset, they
+played the DX7 patch, EDIT showed an FM preset with the unsaved-changes dot, and stepping PRESETS
+away and back without SAVE brought the stored Virtual Analog preset back.
 
 What these CCs cannot give an editor: the current value of any setting, because the FM1 sends no
 controllers back, and a way to store a Virtual Analog preset in the library or on the FM1. Both

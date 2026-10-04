@@ -1,7 +1,11 @@
 # FM-1+VA controller tests
 
 **Prepared:** 2026-10-01, from the FM-1+VA manual at release `FM-1_093`
-**Execution status:** not run.
+**Execution status:** run once on `FM-1_093`, 2026-10-04, with the repeat run of §9, by
+`scripts/run-fm1-va-controller-tests.sh`; ledger
+[`docs/hardware-runs/fm1-va-controller-2026-10-04-2131.md`](hardware-runs/fm1-va-controller-2026-10-04-2131.md),
+results in `docs/fm1-research.md`, "Controllers on the MIDI Channel". V5 is still open: the
+Envelope was already On when CC 73 was sent, so run `--from V5` again from an erased preset.
 **Scope:** whether the Control Changes FM-1+VA reads on its MIDI Channel set a Virtual Analog
 preset's settings as its manual says (`docs/fm1-research.md`, "Controllers on the MIDI Channel"),
 and how each CC value maps to the value the FM1 shows. The answers decide whether a live Virtual
@@ -9,7 +13,9 @@ Analog editor (`docs/feature-backlog.md`, FM-1+VA item 6, "Play them live") can 
 its controls scale.
 
 This plan sends only the sound-setting CCs 24–31, 52–57, and 70–78, through
-`scripts/send-fm1-va-sound-cc.c`, which refuses every other controller. It never sends CC 85–119,
+`scripts/send-fm1-va-sound-cc.c`, which refuses every other controller.
+`scripts/run-fm1-va-controller-tests.sh` walks through the whole plan, sends each CC itself, and
+writes the answers to a ledger in `docs/hardware-runs/`; `--from V5` resumes at one test. It never sends CC 85–119,
 which FM-1+VA reads as its own knobs and buttons, and it sends no SysEx apart from what the editor
 already sends in V7. No CC writes the FM1's memory: SAVE has no CC. V7 alone presses SAVE once,
 to store a Virtual Analog preset over the test preset, and §10 puts the test preset back.
@@ -140,16 +146,16 @@ differ from it. Check that GLOBE's MIDI Channel is All again.
 Record the date, FM-1+VA version, computer, and USB for every run, and copy each line the sender
 prints (`to_fm1 B0 19 7F`) beside its result.
 
-| Test | Run 1 result | Run 2 result | Bytes sent | Notes |
-| ---- | ------------ | ------------ | ---------- | ----- |
-| V1   |              |              |            |       |
-| V2   |              |              |            |       |
-| V3   |              |              |            |       |
-| V4   |              |              |            |       |
-| V5   |              |              |            |       |
-| V6   |              |              |            |       |
-| V7   |              |              |            |       |
-| V8   |              |              |            |       |
+| Test | Run 1 result                                                        | Run 2 result            | Bytes sent    | Notes                         |
+| ---- | ------------------------------------------------------------------- | ----------------------- | ------------- | ----------------------------- |
+| V1   | Recorded; Waveform Saw and Envelope Off rechecked                   | —                       | none          | Filter Shape not read clearly |
+| V2   | Every CC reached its row, with the dot                              | CC 24, 25, 31, 74 agree | in ledger     | Sustain at 127 not read       |
+| V3   | Four equal bands for CC 24, 31, 56                                  | CC 24 agrees            | in ledger     | CC 24 = 31 not read           |
+| V4   | `round(value × 100 ÷ 127)`; Cutoff `20 × 1000^(step ÷ 100)` Hz      | —                       | in ledger     |                               |
+| V5   | Envelope already On, so not shown                                   | —                       | `B0 49 40`    | Run again                     |
+| V6   | FX Channel and other channels ignored; FM preset ignores 24, 31, 57 | —                       | in ledger     | CC 74 sets Brightness         |
+| V7   | Parameter changes are an unsaved edit; stored VA preset came back   | —                       | none          |                               |
+| V8   | No crackle, stuck note, or freeze                                   | —                       | 256 per sweep |                               |
 
 ## 12. What follows from the results
 
