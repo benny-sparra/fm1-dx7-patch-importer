@@ -44,6 +44,7 @@ import {
   type MidiLogEntry,
 } from '@/lib/midi'
 import { MidiTransferCancelledError, MidiTransferQueue } from '@/lib/midi-transfer-queue'
+import { midiActivity } from '@/lib/midi-activity'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { defaultNoteVelocity } from '@/lib/note-velocity'
 
@@ -791,6 +792,7 @@ export function useMidi() {
       attempts += 1
       try {
         output.send(fm1IdentityQuery)
+        midiActivity.signal('out')
         appendLog(makeLogEntry('out', 'Asked the FM1 which firmware it runs.', fm1IdentityQuery))
       } catch {
         finish({ kind: 'unidentified' })
@@ -816,6 +818,7 @@ export function useMidi() {
 
     const handleMidiMessage = (event: MessageEvent) => {
       if (isHighRateMidiMessage(event.data)) return
+      midiActivity.signal('in')
       appendLog(makeLogEntry('in', formatMidiBytes(event.data), event.data))
     }
 

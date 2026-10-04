@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { unpackDx7Voice } from '@/lib/dx7'
 import { fm1IdentityQuery } from '@/lib/fm1-firmware'
 import { makeFm1ParameterPayload } from '@/lib/midi'
+import { midiActivity } from '@/lib/midi-activity'
 import { makeDemoVoices } from '@/lib/patch-library'
 import {
   feluccaIdentityReply,
@@ -71,6 +72,15 @@ describe('useMidi firmware identification', () => {
     await connect(ports)
 
     expect(ports.output.send).toHaveBeenCalledExactlyOnceWith(fm1IdentityQuery)
+  })
+
+  it('lights the OUT activity LED as it asks which firmware the FM1 runs', async () => {
+    const signal = vi.spyOn(midiActivity, 'signal')
+
+    await connect(makeFakeFm1Ports())
+
+    expect(signal).toHaveBeenCalledExactlyOnceWith('out')
+    signal.mockRestore()
   })
 
   it('identifies M-VAVE firmware from its answer', async () => {

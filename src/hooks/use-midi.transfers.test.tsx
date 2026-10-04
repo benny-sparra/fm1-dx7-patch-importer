@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { makeDx7SingleVoicePayload } from '@/lib/dx7'
 import { makeFm1ParameterPayload } from '@/lib/midi'
+import { midiActivity } from '@/lib/midi-activity'
 import { makeDemoVoices } from '@/lib/patch-library'
 import { makeFakeFm1Ports, mvaveIdentityReply } from '@/test/fake-fm1-midi'
 
@@ -286,6 +287,20 @@ describe('useMidi incoming message log', () => {
     act(() => input.receive([0xf8]))
 
     expect(result.current.logStore.getSnapshot()).toHaveLength(before)
+  })
+
+  it('lights the IN activity LED for a message from the input, but not for timing clock', async () => {
+    const input = makeInput()
+    webMidi.inputs = [input]
+    const { result } = await connect()
+    await waitFor(() => expect(result.current.hasMidiInput).toBe(true))
+    const signal = vi.spyOn(midiActivity, 'signal')
+
+    act(() => input.receive([0xf8]))
+    act(() => input.receive([0x90, 60, 100]))
+
+    expect(signal).toHaveBeenCalledExactlyOnceWith('in')
+    signal.mockRestore()
   })
 
   it('stops listening to the input when MIDI is switched off', async () => {

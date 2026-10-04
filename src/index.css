@@ -699,6 +699,40 @@
     }
   }
 
+  /*
+   * MIDI activity LEDs. Each lights at once for a message and fades as it
+   * goes dark, like a panel LED, so a single message reads as a blink and a
+   * stream as a steady glow.
+   */
+  .midi-activity {
+    background: var(--crt-bg-well);
+    color: var(--crt-ink-3);
+  }
+
+  .midi-activity-led {
+    flex: none;
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 50%;
+    background-color: color-mix(in srgb, var(--crt-led) 22%, var(--crt-bg-well));
+    box-shadow: inset 0 0 0 1px var(--crt-shadow);
+    transition:
+      background-color 120ms ease-out,
+      box-shadow 120ms ease-out;
+  }
+
+  .midi-activity-led[data-lit] {
+    background-color: var(--crt-led);
+    box-shadow: 0 0 6px var(--crt-led);
+    transition: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .midi-activity-led {
+      transition: none;
+    }
+  }
+
   .synthwave-hero-accent {
     color: var(--hero-accent);
   }

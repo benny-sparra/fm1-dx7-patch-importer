@@ -635,6 +635,8 @@ export default {
     randomiseHelp: 'A new voice. Keeps the name and effects.',
   },
   midi: {
+    activityTitle:
+      'MIDI activity: IN lights as a message arrives from the MIDI input, OUT as the editor sends one.',
     feluccaBadgeLabel: 'Felucca firmware by Hügelton Instruments, {{release}}',
     feluccaBadgeTitle:
       'The FM1 runs Hügelton Instruments’ Felucca firmware, {{release}}. It plays your notes but ignores DX7 patches, banks, and the effect controls.',
