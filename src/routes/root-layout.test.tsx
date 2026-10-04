@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -252,5 +252,70 @@ describe('RootLayout hardware photo', () => {
     const photo = renderWithFirmware({ identity: 'XR-9_015', kind: 'unidentified' })
 
     expect(photo.getAttribute('src')).not.toContain('fm1-va-')
+  })
+})
+
+describe('RootLayout hardware photo screen', () => {
+  beforeEach(() => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      addEventListener: vi.fn(),
+      matches: query === '(min-width: 1024px)' || query.includes('prefers-reduced-motion'),
+      media: query,
+      removeEventListener: vi.fn(),
+    }))
+  })
+
+  function renderOnline(midiAccess: boolean) {
+    const layout = (online: boolean) => (
+      <RootLayout midi={{ ...midi, midiAccess: online }}>
+        <div>Library</div>
+      </RootLayout>
+    )
+    const { container, rerender } = render(layout(midiAccess), { wrapper: ToastProvider })
+    return {
+      screenOverlay: () => container.querySelector('.fm1-photo-screen'),
+      setOnline: (online: boolean) => rerender(layout(online)),
+    }
+  }
+
+  it('keeps the screen lit on a page that opens with MIDI offline', () => {
+    const { screenOverlay } = renderOnline(false)
+
+    expect(screenOverlay()).toBeNull()
+  })
+
+  it('switches the screen off, hidden from assistive technology, when MIDI goes offline', () => {
+    const { screenOverlay, setOnline } = renderOnline(true)
+
+    setOnline(false)
+
+    expect(screenOverlay()?.getAttribute('aria-hidden')).toBe('true')
+    expect(screenOverlay()?.querySelector('.crt-switch-off-picture')).not.toBeNull()
+  })
+
+  it('keeps the screen dark without the switch-off once it has finished', () => {
+    const { screenOverlay, setOnline } = renderOnline(true)
+    setOnline(false)
+
+    // jsdom has no AnimationEvent, so React listens under a vendor-prefixed name, and the event
+    // carries no animation name; it is given the one CSS would, under both names.
+    for (const type of ['animationend', 'webkitAnimationEnd']) {
+      const animationEnd = Object.assign(new Event(type, { bubbles: true }), {
+        animationName: 'crt-switch-off',
+      })
+      fireEvent(screenOverlay()?.firstElementChild ?? document.body, animationEnd)
+    }
+
+    expect(screenOverlay()).not.toBeNull()
+    expect(screenOverlay()?.querySelector('.crt-switch-off-picture')).toBeNull()
+  })
+
+  it('lights the screen again when MIDI is back online', () => {
+    const { screenOverlay, setOnline } = renderOnline(true)
+    setOnline(false)
+
+    setOnline(true)
+
+    expect(screenOverlay()).toBeNull()
   })
 })

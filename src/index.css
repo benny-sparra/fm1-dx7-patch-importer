@@ -984,6 +984,169 @@
   }
 
   /*
+   * A CRT switching off: the picture squeezes into a bright line, the line
+   * shrinks to a dot, and the dot fades. Deleting a bank switches off a copy
+   * of its grid over the bank that replaces it (`crtSwitchOff`). Turning MIDI
+   * off switches off the screen in the header photo, which stays dark until
+   * MIDI is back. `--crt-off-line` and `--crt-off-dot` keep the line and dot a few
+   * pixels across whatever the picture's size.
+   */
+  .crt-switch-off {
+    --crt-off-line: 0.01;
+    --crt-off-dot: 0.008;
+
+    position: fixed;
+    z-index: 40;
+    pointer-events: none;
+  }
+
+  .crt-switch-off-picture {
+    position: relative;
+    animation: crt-switch-off 420ms ease-in forwards;
+  }
+
+  .crt-switch-off-picture::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    background-color: var(--crt-acc-br);
+    box-shadow: 0 0 12px var(--crt-acc);
+    animation: crt-switch-off-glow 420ms ease-in forwards;
+  }
+
+  @keyframes crt-switch-off {
+    0% {
+      transform: scale(1, 1);
+    }
+
+    45% {
+      transform: scale(1, var(--crt-off-line));
+    }
+
+    75% {
+      opacity: 1;
+      transform: scale(var(--crt-off-dot), var(--crt-off-line));
+    }
+
+    100% {
+      opacity: 0;
+      transform: scale(var(--crt-off-dot), var(--crt-off-line));
+    }
+  }
+
+  @keyframes crt-switch-off-glow {
+    0% {
+      opacity: 0;
+    }
+
+    45%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  /* The screen in the header photo, the same place in every finish's photo. */
+  .fm1-photo-screen {
+    --crt-off-line: 0.06;
+    --crt-off-dot: 0.08;
+
+    position: absolute;
+    top: 13%;
+    left: 29%;
+    overflow: hidden;
+    width: 17.6%;
+    height: 28.9%;
+    background-color: var(--crt-bg-well);
+  }
+
+  .fm1-photo-screen .crt-switch-off-picture {
+    height: 100%;
+  }
+
+  /* The photo again, scaled and moved so only its screen shows. */
+  .fm1-photo-screen img {
+    position: absolute;
+    top: -45%;
+    left: -164.8%;
+    width: 568.2%;
+    max-width: none;
+  }
+
+  /*
+   * A Mac OS 8 barber pole wherever the app is genuinely waiting: on a Send
+   * button whose bank is still on its way, and in the MIDI switch's track
+   * while it connects, which waits on the browser's MIDI permission prompt.
+   * Diagonal stripes slide along until the wait ends. 16.97px is one stripe
+   * period measured along the button, so the loop is seamless.
+   */
+  .barber-pole,
+  .peer:disabled ~ .midi-switch-track {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent 0 6px,
+      color-mix(in srgb, var(--crt-acc-br) 28%, transparent) 6px 12px
+    );
+    animation: barber-pole 600ms linear infinite;
+  }
+
+  @keyframes barber-pole {
+    to {
+      background-position: 16.97px 0;
+    }
+  }
+
+  /*
+   * Reading Baud Girl's presets from the FM1 lights one LED per preset, in
+   * bank order, each with a brief phosphor flash as it arrives. The LED for
+   * the preset being read blinks.
+   */
+  .read-led {
+    height: 0.5rem;
+    border: 1px solid var(--crt-line);
+    background-color: var(--crt-bg-well);
+  }
+
+  .read-led[data-state='read'] {
+    border-color: var(--crt-led);
+    background-color: var(--crt-led);
+    box-shadow: 0 0 4px var(--crt-led-glow);
+    animation: read-led-on 300ms ease-out;
+  }
+
+  .read-led[data-state='reading'] {
+    border-color: var(--crt-led);
+    animation: read-led-blink 400ms steps(1, end) infinite;
+  }
+
+  @keyframes read-led-on {
+    from {
+      filter: brightness(1.8);
+      box-shadow: 0 0 9px var(--crt-led-glow);
+    }
+  }
+
+  @keyframes read-led-blink {
+    50% {
+      background-color: var(--crt-led-glow);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .crt-switch-off-picture {
+      display: none;
+    }
+
+    .barber-pole,
+    .peer:disabled ~ .midi-switch-track {
+      animation: none;
+    }
+
+    .read-led[data-state] {
+      animation: none;
+    }
+  }
+
+  /*
    * The compare notice switches on like a terminal window: it opens from a
    * bright line into its frame.
    */

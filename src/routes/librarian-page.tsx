@@ -64,6 +64,7 @@ import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { soundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
+import { crtSwitchOff } from '@/lib/crt-switch-off'
 import type { MidiController } from '@/hooks/use-midi'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
@@ -819,7 +820,12 @@ export function LibrarianPage({
               </details>
             </span>
             <button
-              className="crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50 md:ml-auto md:flex-none"
+              className={cn(
+                'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none md:ml-auto md:flex-none',
+                // A barber pole while the bank is on its way, rather than the dimmed look of a
+                // button that cannot be used.
+                isSending ? 'barber-pole' : 'disabled:opacity-50',
+              )}
               disabled={isSending || isSearching || !canSendDestination}
               onClick={sendSelectedBank}
               ref={sendButtonRef}
@@ -1271,6 +1277,7 @@ export function LibrarianPage({
           onDelete={() => {
             const { bank } = bankPendingDeletion
             const replacement = workspaceBankAfterDeletion(banks, bank)
+            crtSwitchOff(document.querySelector('[data-patch-grid]'))
             onBankDeleted(bank)
             const changed = library.deleteBank(bank)
             if (replacement) setDestinationBank(replacement)

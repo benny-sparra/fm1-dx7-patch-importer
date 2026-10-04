@@ -52,7 +52,7 @@ type RootLayoutProps = {
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
     ComponentProps<typeof PianoKeyboard>['midi'] &
     ComponentProps<typeof PresetProbe>['midi'] &
-    Pick<MidiController, 'logStore' | 'sendEffectDiagnosticControl'>
+    Pick<MidiController, 'logStore' | 'midiAccess' | 'sendEffectDiagnosticControl'>
 }
 
 export function RootLayout({ children, compact = false, midi }: RootLayoutProps) {
@@ -65,6 +65,16 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const showFm1VaImage = showHardwareBay && midi.firmware.kind === 'fm1-va'
   const [fm1VaColorwayImages, setFm1VaColorwayImages] = useState<Fm1ColorwayImages>()
   const colorwayImage = ((showFm1VaImage && fm1VaColorwayImages) || fm1ColorwayImages)[colorway]
+  // Switching MIDI off switches off the screen in the photo like a CRT, and it stays dark until
+  // MIDI is back. A page that opens offline keeps the photo as it is. Once the screen is dark it
+  // stays still, so hiding and showing the photo again does not replay the switch-off.
+  const isMidiOnline = midi.midiAccess
+  const [wasMidiOnline, setWasMidiOnline] = useState(isMidiOnline)
+  const [photoScreen, setPhotoScreen] = useState<'dark' | 'lit' | 'switching-off'>('lit')
+  if (isMidiOnline !== wasMidiOnline) {
+    setWasMidiOnline(isMidiOnline)
+    setPhotoScreen(isMidiOnline ? 'lit' : 'switching-off')
+  }
 
   // Only an FM1 running FM-1+VA loads its photos. They are decorative, so a chunk that fails to
   // load leaves the stock photo showing, and the next identification tries again.
@@ -138,16 +148,38 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             {showHardwareBay ? (
               // The hardware photo sits in a recessed bay, not a rounded card.
               <figure className="crt-inset col-start-3 row-span-2 row-start-1 hidden w-[250px] self-start bg-[var(--crt-bg-2)] p-1 lg:block">
-                <img
-                  alt={t('root.synthAlt')}
-                  className="aspect-[242/146] h-auto w-full object-contain"
-                  decoding="async"
-                  height={colorwayImage.height}
-                  sizes="242px"
-                  src={colorwayImage.src}
-                  srcSet={colorwayImage.srcSet}
-                  width={colorwayImage.width}
-                />
+                <span className="relative block">
+                  <img
+                    alt={t('root.synthAlt')}
+                    className="aspect-[242/146] h-auto w-full object-contain"
+                    decoding="async"
+                    height={colorwayImage.height}
+                    sizes="242px"
+                    src={colorwayImage.src}
+                    srcSet={colorwayImage.srcSet}
+                    width={colorwayImage.width}
+                  />
+                  {photoScreen === 'lit' ? null : (
+                    <span aria-hidden="true" className="fm1-photo-screen">
+                      {photoScreen === 'switching-off' ? (
+                        <span
+                          className="crt-switch-off-picture block"
+                          onAnimationEnd={(event) => {
+                            if (event.animationName === 'crt-switch-off') setPhotoScreen('dark')
+                          }}
+                        >
+                          <img
+                            alt=""
+                            decoding="async"
+                            sizes="242px"
+                            src={colorwayImage.src}
+                            srcSet={colorwayImage.srcSet}
+                          />
+                        </span>
+                      ) : null}
+                    </span>
+                  )}
+                </span>
               </figure>
             ) : null}
           </div>

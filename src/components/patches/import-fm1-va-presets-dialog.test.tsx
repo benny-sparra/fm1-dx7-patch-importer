@@ -640,6 +640,23 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
     expect(screen.getByRole('progressbar', { name: 'Lese Preset 6 von 128…' })).toBeTruthy()
   })
 
+  it('lights an LED for each preset read and blinks the one being read', async () => {
+    const { midi } = fakeFm1({ unansweredFrom: 5 })
+    const { user } = renderDialog({ midi })
+
+    await user.click(readButton())
+    await screen.findByText('Reading preset 6 of 128…')
+
+    const leds = [...document.querySelectorAll<HTMLElement>('.read-led')]
+    expect(leds).toHaveLength(128)
+    expect(leds.map((led) => led.dataset.state ?? 'off')).toEqual([
+      ...Array<string>(5).fill('read'),
+      'reading',
+      ...Array<string>(122).fill('off'),
+    ])
+    expect(leds[0].closest('[aria-hidden="true"]')).not.toBeNull()
+  })
+
   it('stops reading when asked, and asks the FM1 for nothing more', async () => {
     const { midi, ports } = fakeFm1({ unansweredFrom: 5 })
     const { user } = renderDialog({ midi })

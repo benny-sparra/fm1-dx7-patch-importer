@@ -193,6 +193,32 @@ describe('LibrarianPage transfer analytics', () => {
     ).toHaveLength(1)
   })
 
+  it('runs a barber pole on the Send button while its bank is on the way, until it arrives', async () => {
+    const user = userEvent.setup()
+    let finishSending = (): void => undefined
+    const connectedMidi = makeLibrarianMidi({
+      hasMidiOutput: true,
+      sendBank: vi.fn(
+        () =>
+          new Promise<{ ok: true }>((resolve) => {
+            finishSending = () => resolve({ ok: true })
+          }),
+      ),
+      sysexAvailable: true,
+    })
+    renderLibrarianPage({ midi: connectedMidi })
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    const sending = screen.getByRole('button', { name: 'Sending…' })
+    expect(sending.classList).toContain('barber-pole')
+
+    finishSending()
+
+    expect((await screen.findByRole('button', { name: 'Send to FM1' })).classList).not.toContain(
+      'barber-pole',
+    )
+  })
+
   it('shows a failed bank transfer as an error on the page', async () => {
     const user = userEvent.setup()
     const connectedMidi = makeLibrarianMidi({

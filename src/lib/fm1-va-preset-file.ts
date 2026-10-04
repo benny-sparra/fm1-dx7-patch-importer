@@ -37,7 +37,7 @@ const engineMarkerIndex = fm1VaRecordByteIndex(engineMarkerByte)
 const virtualAnalogMarker = 0x5a
 
 /** The FM1 banks a backup holds, in the order of its presets. */
-const fm1VaPresetBanks = ['A', 'B', 'C', 'D'] as const
+export const fm1VaPresetBanks = ['A', 'B', 'C', 'D'] as const
 export type Fm1VaPresetBank = (typeof fm1VaPresetBanks)[number]
 
 /**

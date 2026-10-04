@@ -107,6 +107,40 @@ test('zooms out of the slot as a patch opens and back into it as the editor clos
   expect(closing.first.width).toBeGreaterThan(closing.last.width)
 })
 
+test('switches a deleted bank off like a CRT over the bank that takes its place', async ({
+  page,
+}) => {
+  // The copy lasts under half a second, so each switch-off is recorded as it is drawn.
+  await page.addInitScript(() => {
+    const switchOffs: { box: DOMRect; text: string }[] = []
+    Object.assign(window, { switchOffs })
+    document.addEventListener('DOMContentLoaded', () => {
+      new MutationObserver((records) => {
+        for (const node of records.flatMap((record) => [...record.addedNodes])) {
+          if (!(node instanceof HTMLElement) || node.className !== 'crt-switch-off') continue
+          switchOffs.push({ box: node.getBoundingClientRect(), text: node.textContent ?? '' })
+        }
+      }).observe(document.body, { childList: true })
+    })
+  })
+  await openLibrarian(page)
+  const grid = await page.locator('[data-patch-grid]').boundingBox()
+  const firstPatch = (await slotNames(page))[0]?.replace(/^Send (.+) to FM1$/, '$1') ?? ''
+
+  await openFirstBankMenu(page)
+  await page.getByRole('button', { name: 'Delete bank' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete bank' }).click()
+
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { switchOffs: unknown[] }).switchOffs))
+    .toHaveLength(1)
+  const [switchOff] = await page.evaluate(
+    () => (window as unknown as { switchOffs: { box: DOMRect; text: string }[] }).switchOffs,
+  )
+  expect(switchOff.box).toMatchObject({ x: grid?.x, y: grid?.y, width: grid?.width })
+  expect(switchOff.text).toContain(firstPatch)
+})
+
 test('leaves the Sentry test control out of a normal production build', async ({ page }) => {
   await openLibrarian(page)
 
