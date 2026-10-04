@@ -351,7 +351,10 @@ open everything an earlier release could have saved.
   the injected script's URL or the exact names it uses, so an error in the app's own code that
   merely resembles one is still reported. An `unhandledrejection` event another script dispatches
   itself, untrusted and with no `reason`, is dropped the same way: the browser's own always
-  carries the reason, so the app's real rejections are still reported.
+  carries the reason, so the app's real rejections are still reported. A browser extension's error
+  that reaches the page with no stack frame, such as Safari's
+  `Invalid call to runtime.sendMessage(). Tab not found.`, is matched by its exact message and the
+  absence of any frame, since the app calls no extension API.
 - Keep `public/_headers`, the origins used by browser code, and `scripts/check-security-headers.mjs`
   aligned. Any new remote resource or endpoint needs an explicit privacy and CSP review.
 - A production build names its release from the deploying platform's commit, resolved once in

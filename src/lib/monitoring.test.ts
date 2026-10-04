@@ -239,6 +239,63 @@ describe('Sentry monitoring', () => {
     expect(options.beforeSend?.(event, {})).toBe(event)
   })
 
+  it('drops a Safari extension message to a tab that has gone', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const event = {
+      exception: {
+        values: [
+          {
+            mechanism: {
+              handled: false,
+              type: 'auto.browser.global_handlers.onunhandledrejection',
+            },
+            type: 'Error',
+            value: 'Invalid call to runtime.sendMessage(). Tab not found.',
+          },
+        ],
+      },
+    }
+
+    expect(
+      options.beforeSend?.(event, {
+        originalException: new Error('Invalid call to runtime.sendMessage(). Tab not found.'),
+      }),
+    ).toBeNull()
+  })
+
+  it('keeps an error with that message raised from an application frame', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const event = {
+      exception: {
+        values: [
+          {
+            type: 'Error',
+            value: 'Invalid call to runtime.sendMessage(). Tab not found.',
+            stacktrace: { frames: [{ filename: 'https://fm1-editor.com/assets/index.js' }] },
+          },
+        ],
+      },
+    }
+
+    expect(options.beforeSend?.(event, {})).toBe(event)
+  })
+
   it('drops an unhandledrejection event another script dispatched with no rejection in it', async () => {
     const { sdk } = createSdk()
     const initialize = createMonitoringInitializer({
