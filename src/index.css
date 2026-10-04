@@ -942,8 +942,45 @@
   /* A bank tab under a slot dragged from the grid, which dropping copies the slot to. */
   .bank-tab[data-drop-target] {
     box-shadow: inset 0 0 12px var(--crt-led-glow);
-    outline: 2px solid var(--crt-led);
-    outline-offset: -2px;
+  }
+
+  /*
+   * Marching ants, MacPaint's crawling selection outline, round the slot
+   * being dragged and the bank tab it would be copied to. A dashed border
+   * cannot move, so each edge is a striped strip whose stripes slide a pixel
+   * at a time, clockwise, as the original's did. They show only mid-drag.
+   */
+  .bank-tab[data-drop-target]::after,
+  .patch-cell[data-dragging]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, var(--crt-led) 50%, var(--crt-bg-0) 0) 0 0 / 8px 2px repeat-x,
+      linear-gradient(90deg, var(--crt-led) 50%, var(--crt-bg-0) 0) 0 100% / 8px 2px repeat-x,
+      linear-gradient(0deg, var(--crt-led) 50%, var(--crt-bg-0) 0) 0 0 / 2px 8px repeat-y,
+      linear-gradient(0deg, var(--crt-led) 50%, var(--crt-bg-0) 0) 100% 0 / 2px 8px repeat-y;
+    animation: marching-ants 480ms steps(8) infinite;
+  }
+
+  @keyframes marching-ants {
+    to {
+      background-position:
+        8px 0,
+        -8px 100%,
+        0 -8px,
+        100% 8px;
+    }
+  }
+
+  /* Without the motion, the outline stays dashed and still. */
+  @media (prefers-reduced-motion: reduce) {
+    .bank-tab[data-drop-target]::after,
+    .patch-cell[data-dragging]::after {
+      animation: none;
+    }
   }
 
   .patch-search-input {

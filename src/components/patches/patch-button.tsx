@@ -118,6 +118,8 @@ export function PatchButton({
       )}
       data-active={isActive}
       data-disabled={disabled}
+      // The slot being dragged, which marching ants outline as a MacPaint selection.
+      data-dragging={sortable.isDragging || undefined}
       data-flash={flash}
       // Where opening the patch draws its zoom rectangles from, and closing it draws them back to.
       data-patch-id={patch.id}
