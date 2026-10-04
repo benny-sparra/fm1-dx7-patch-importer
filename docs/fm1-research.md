@@ -399,11 +399,12 @@ The development build's **FM-1+VA preset probe (dev)** runs this test: it writes
 read back to its slot, unchanged or renamed `WRITE TEST`, reads it again and says whether it
 matches, and **Restore the first read** puts back the preset as the session first read it.
 
-**A Virtual Analog preset written back. Needs hardware test.** The write carries any preset's
-voice as the edit buffer its 128 read bytes unpack to, so a Virtual Analog preset goes as FM-1+VA's
-own backup restores it: building the write from 097's read gives the backup's message for 097
-byte for byte (`src/lib/fm1-va-preset-message.test.ts`). The probe's **Write back unchanged**
-on a Virtual Analog preset, read back, would confirm the FM1 stores it exactly. A Virtual Analog
+**A Virtual Analog preset written back. Confirmed, seen once** (FM-1_093, 2026-10-04, preset
+097 through the editor's preset probe over USB, after a fresh **Save a backup**). The write carries
+any preset's voice as the edit buffer its 128 read bytes unpack to, so a Virtual Analog preset goes
+as FM-1+VA's own backup restores it: building the write from 097's read gives the backup's message
+for 097 byte for byte (`src/lib/fm1-va-preset-message.test.ts`). **Write back unchanged** on 097
+read back exactly as written, voice and record. A Virtual Analog
 voice that sets bits the packed layout does not keep would lose them, so the editor does not write
 one (`fm1VaStoredVoice`).
 
