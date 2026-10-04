@@ -205,7 +205,7 @@ function fm1VaPresetsFile() {
   }
 }
 
-test('chooses where an FM-1+VA bank goes without folding it, and folds it from its title', async ({
+test('switches an FM-1+VA bank and chooses where it goes without folding it, and folds it from its title', async ({
   page,
 }) => {
   await openLibrarian(page)
@@ -217,23 +217,40 @@ test('chooses where an FM-1+VA bank goes without folding it, and folds it from i
 
   const bankA = dialog.getByRole('region', { name: 'FM1 bank A' })
   const firstPatch = bankA.getByRole('button', { name: 'Play A01 FM, patch 1' })
+  const bankSwitch = bankA.getByRole('switch', { name: 'Import FM1 bank A' })
   const destination = bankA.getByRole('combobox', { name: 'Import into' })
+  await expect(bankSwitch).toBeChecked()
   await expect(destination).toHaveValue('A')
   await expect(firstPatch).toBeHidden()
 
-  // The destination sits below the strip, clear of its fold overlay: choosing one folds nothing.
-  await destination.selectOption({ label: 'Don’t import' })
+  // The switch and its label, the bank's title, sit above the strip's fold overlay, so a click on
+  // the title, landing by position, switches the bank and folds nothing.
+  const switchLabel = await bankA.getByText('Import FM1 bank A', { exact: true }).boundingBox()
+  expect(switchLabel).not.toBeNull()
+  const clickSwitch = () =>
+    page.mouse.click(
+      switchLabel!.x + switchLabel!.width / 2,
+      switchLabel!.y + switchLabel!.height / 2,
+    )
+  await clickSwitch()
+  await expect(bankSwitch).not.toBeChecked()
+  await expect(destination).toBeDisabled()
   await expect(firstPatch).toBeHidden()
   await expect(dialog.getByRole('button', { name: 'Import 3 banks' })).toBeVisible()
 
-  // Anywhere on the strip unfolds the bank: its fold control's hit area is a CSS overlay across
-  // the strip, which only a real browser lays out, so the click lands by position.
-  const title = await bankA.getByRole('heading', { name: 'FM1 bank A' }).boundingBox()
-  expect(title).not.toBeNull()
-  await page.mouse.click(title!.x + title!.width / 2, title!.y + title!.height / 2)
+  // Anywhere else on the strip unfolds the bank: its fold control's hit area is a CSS overlay
+  // across the strip, which only a real browser lays out, so the click lands by position.
+  const strip = await bankA.getByRole('heading', { level: 4 }).locator('..').boundingBox()
+  expect(strip).not.toBeNull()
+  await page.mouse.click(strip!.x + strip!.width - 60, strip!.y + strip!.height / 2)
   await expect(firstPatch).toBeVisible()
-  await destination.selectOption({ label: 'Replace “Bank 1”' })
+
+  // The destination sits below the strip, clear of its fold overlay: choosing one folds nothing.
+  await clickSwitch()
+  await expect(bankSwitch).toBeChecked()
+  await destination.selectOption({ label: 'A new bank' })
   await expect(firstPatch).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Import 4 banks' })).toBeVisible()
 
   // With every bank open the body scrolls, but the title and the action stay pinned in view.
   for (const bank of ['B', 'C', 'D']) {

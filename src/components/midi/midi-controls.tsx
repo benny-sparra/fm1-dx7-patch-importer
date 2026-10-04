@@ -27,7 +27,7 @@ export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
   }
 
   return (
-    <Switch checked={isOnline} disabled={midi.isConnecting} onChange={handleChange}>
+    <Switch busy={midi.isConnecting} checked={isOnline} onChange={handleChange}>
       {/* The word carries the state, so the switch names what it currently is. */}
       <span>
         {midi.isConnecting ? t('midi.connecting') : isOnline ? t('midi.online') : t('midi.offline')}
