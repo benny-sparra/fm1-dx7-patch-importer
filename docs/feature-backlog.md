@@ -501,9 +501,11 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
     and CC 70–78 the shared Envelope, LFO, Cutoff, and Resonance, as unsaved edits heard at once.
     A lazy Virtual Analog editor page, like the voice editor, sends these; continuous input is one
     undo step. Showing the current values needs the record map from 2. The CC map is recorded in
-    `docs/fm1-research.md`, "Controllers on the MIDI Channel" (**Likely**), and its hardware
-    tests are planned in [`fm1-va-controller-tests.md`](fm1-va-controller-tests.md); build this
-    step once they pass. It never sends CC 85–119, which press the FM1's own buttons.
+    `docs/fm1-research.md`, "Controllers on the MIDI Channel", and its hardware tests
+    ([`fm1-va-controller-tests.md`](fm1-va-controller-tests.md)) ran on 2026-10-04: every CC
+    reached its row, list settings split 128 values into equal bands, continuous ones show
+    `round(value × top ÷ 127)`, and fast sweeps need no thinning. Only the Envelope switch side
+    effect (V5) is still to see. It never sends CC 85–119, which press the FM1's own buttons.
   - **Change a patch's engine.** Planned 2026-10-02. On the FM1, a Virtual Analog preset is made
     by erasing a preset on the device (EDIT, **Erase Preset**, **VA**), which renames it and can
     only be reached through the panel. The editor never repeats that: the buttons' CCs, 85–119,
