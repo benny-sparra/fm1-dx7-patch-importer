@@ -214,6 +214,10 @@ const destination = (bank: string, region = bankSection(bank)) =>
 
 const chosenDestination = (bank: string) => destination(bank).selectedOptions[0]?.textContent
 
+/** The switch that says whether an FM1 bank is imported. */
+const bankSwitch = (bank: string, region = bankSection(bank)) =>
+  within(region).getByRole<HTMLInputElement>('switch', { name: `Import FM1 bank ${bank}` })
+
 /** Where each imported bank went: a workspace bank's letter, or a new bank's title. */
 const importedInto = (banks: readonly FetchedBank[]) =>
   banks.map((bank) => ('bank' in bank ? bank.bank : bank.newBankTitle))
@@ -251,6 +255,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     await chooseFile(user)
 
     for (const bank of ['A', 'B', 'C', 'D']) {
+      expect(bankSwitch(bank).checked).toBe(true)
       expect(destination(bank).value).toBe(bank)
     }
     expect(screen.getByRole('button', { name: 'Import 4 banks' })).toBeTruthy()
@@ -305,7 +310,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     const { dialog, importFetchedBanks, onClose, undoChange, user } = renderDialog()
     await chooseFile(user)
 
-    await user.selectOptions(destination('C'), 'Don’t import')
+    await user.click(bankSwitch('C'))
     await user.click(screen.getByRole('button', { name: 'Import 3 banks' }))
 
     const imported = vi.mocked(importFetchedBanks).mock.calls[0][0]
@@ -325,16 +330,16 @@ describe('ImportFm1VaPresetsDialog', () => {
 
     await chooseFile(user)
 
-    expect(chosenDestination('A')).toBe('Replace “Bank 1”')
-    expect(chosenDestination('B')).toBe('Replace “Leads”')
+    expect(chosenDestination('A')).toBe('Bank 1')
+    expect(chosenDestination('B')).toBe('Leads')
   })
 
   it('puts an FM1 bank into another library bank chosen for it', async () => {
     const { importFetchedBanks, user } = renderDialog()
     await chooseFile(user)
 
-    await user.selectOptions(destination('C'), 'Don’t import')
-    await user.selectOptions(destination('A'), 'Replace “Bank 3”')
+    await user.click(bankSwitch('C'))
+    await user.selectOptions(destination('A'), 'Bank 3')
     await user.click(screen.getByRole('button', { name: 'Import 3 banks' }))
 
     expect(importedInto(vi.mocked(importFetchedBanks).mock.calls[0][0])).toEqual(['C', 'B', 'D'])
@@ -346,18 +351,53 @@ describe('ImportFm1VaPresetsDialog', () => {
     await chooseFile(user)
 
     const bankC = within(destination('A')).getByRole<HTMLOptionElement>('option', {
-      name: 'Replace “Bank 3”',
+      name: 'Bank 3',
     })
     expect(bankC.disabled).toBe(true)
-    await user.selectOptions(destination('C'), 'Don’t import')
+    await user.click(bankSwitch('C'))
     expect(bankC.disabled).toBe(false)
+  })
+
+  it('keeps a bank switched off out of the import, and its destination out of reach', async () => {
+    const { user } = renderDialog()
+    await chooseFile(user)
+
+    await user.click(bankSwitch('B'))
+
+    expect(bankSwitch('B').checked).toBe(false)
+    expect(destination('B').disabled).toBe(true)
+    expect(screen.getByRole('button', { name: 'Import 3 banks' })).toBeTruthy()
+  })
+
+  it('restores a bank’s destination when it is switched on again', async () => {
+    const { user } = renderDialog()
+    await chooseFile(user)
+    await user.click(bankSwitch('C'))
+    await user.selectOptions(destination('A'), 'Bank 3')
+
+    await user.click(bankSwitch('A'))
+    await user.click(bankSwitch('A'))
+
+    expect(chosenDestination('A')).toBe('Bank 3')
+  })
+
+  it('moves a bank switched on to a free destination when another took its own', async () => {
+    const { user } = renderDialog()
+    await chooseFile(user)
+    await user.click(bankSwitch('C'))
+    await user.selectOptions(destination('A'), 'Bank 3')
+
+    await user.click(bankSwitch('C'))
+
+    expect(bankSwitch('C').checked).toBe(true)
+    expect(chosenDestination('C')).toBe('Bank 1')
   })
 
   it('adds an FM1 bank as a new bank named after it', async () => {
     const { importFetchedBanks, user } = renderDialog()
     await chooseFile(user)
 
-    await user.selectOptions(destination('B'), 'Add it as a new bank')
+    await user.selectOptions(destination('B'), 'A new bank')
     await user.click(screen.getByRole('button', { name: 'Import 4 banks' }))
 
     expect(importedInto(vi.mocked(importFetchedBanks).mock.calls[0][0])).toEqual([
@@ -373,8 +413,8 @@ describe('ImportFm1VaPresetsDialog', () => {
 
     await chooseFile(user)
 
-    expect(chosenDestination('C')).toBe('Add it as a new bank')
-    expect(chosenDestination('D')).toBe('Add it as a new bank')
+    expect(chosenDestination('C')).toBe('A new bank')
+    expect(chosenDestination('D')).toBe('A new bank')
   })
 
   it('offers no new bank once the library could hold no more', async () => {
@@ -385,7 +425,7 @@ describe('ImportFm1VaPresetsDialog', () => {
 
     expect(
       within(destination('A')).getByRole<HTMLOptionElement>('option', {
-        name: 'Add it as a new bank',
+        name: 'A new bank',
       }).disabled,
     ).toBe(true)
   })
@@ -421,8 +461,8 @@ describe('ImportFm1VaPresetsDialog', () => {
 
     await chooseFile(user, makeFm1VaBackupFile('va.syx', { virtualAnalogSlots: bankD }))
 
-    expect(destination('D').value).toBe('')
-    expect(destination('D').disabled).toBe(true)
+    expect(bankSwitch('D').checked).toBe(false)
+    expect(bankSwitch('D').disabled).toBe(true)
   })
 
   it('cannot take a bank in which every preset is damaged', async () => {
@@ -431,8 +471,8 @@ describe('ImportFm1VaPresetsDialog', () => {
 
     await chooseFile(user, makeFm1VaBackupFile('damaged.syx', { damagedSlots: bankB }))
 
-    expect(destination('B').value).toBe('')
-    expect(destination('B').disabled).toBe(true)
+    expect(bankSwitch('B').checked).toBe(false)
+    expect(bankSwitch('B').disabled).toBe(true)
     expect(screen.getByRole('button', { name: 'Import 3 banks' })).toBeTruthy()
   })
 
@@ -503,11 +543,10 @@ describe('ImportFm1VaPresetsDialog', () => {
   it('updates the button after a page translator rewrites the dialog', async () => {
     const { user } = renderDialog()
     await chooseFile(user)
-    const bankA = destination('A')
+    const bankA = bankSwitch('A')
     translatePageText(screen.getByRole('dialog'))
 
-    // The translator rewrites the options' text, so the choice is made by its value.
-    await user.selectOptions(bankA, '')
+    await user.click(bankA)
 
     expect(screen.getByRole('button', { name: 'Import 3 banks' })).toBeTruthy()
   })
@@ -517,11 +556,10 @@ describe('ImportFm1VaPresetsDialog', () => {
     const { user } = renderDialog()
     await chooseFile(user)
 
-    await user.selectOptions(
-      within(screen.getByRole('region', { name: 'FM1-Bank C' })).getByRole('combobox', {
-        name: 'Importieren nach',
+    await user.click(
+      within(screen.getByRole('region', { name: 'FM1-Bank C' })).getByRole('switch', {
+        name: 'FM1-Bank C importieren',
       }),
-      'Nicht importieren',
     )
     await user.click(screen.getByRole('button', { name: '3 Bänke importieren' }))
 
@@ -568,7 +606,12 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
         .getByRole('button', { name: `Play ${fm1VaTestPatchName(1)}, patch 2` })
         .hasAttribute('aria-describedby'),
     ).toBe(false)
-    expect(['A', 'B', 'C', 'D'].map((bank) => destination(bank).value)).toEqual(['A', '', '', ''])
+    expect(['A', 'B', 'C', 'D'].map((bank) => bankSwitch(bank).checked)).toEqual([
+      true,
+      false,
+      false,
+      false,
+    ])
   })
 
   it('compares an FM1 bank with the library bank chosen for it', async () => {
@@ -576,7 +619,8 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
     const { user } = renderDialog({ midi, source: 'fm1', ...matchingLibrary() })
     await screen.findByText('Every patch here matches your library.')
 
-    await user.selectOptions(destination('A'), 'Replace “Bank 2”')
+    await user.click(bankSwitch('A'))
+    await user.selectOptions(destination('A'), 'Bank 2')
 
     expect(
       screen.getByText('A dot marks each of the 32 patches that differ from your library.'),
@@ -593,7 +637,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
     })
     await screen.findByRole('heading', { name: 'Banks on the FM1' })
 
-    await user.selectOptions(destination('A'), 'Add it as a new bank')
+    await user.selectOptions(destination('A'), 'A new bank')
 
     expect(screen.queryByText(/^A dot marks/)).toBeNull()
     expect(screen.queryByText('Every patch here matches your library.')).toBeNull()

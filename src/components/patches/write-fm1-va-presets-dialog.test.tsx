@@ -143,6 +143,16 @@ async function finishWriting(count: number) {
 
 const bankSection = (bank: string) => screen.getByRole('region', { name: `FM1 bank ${bank}` })
 
+/** The switch that says whether an FM1 bank is written. */
+const bankSwitch = (bank: string) =>
+  within(bankSection(bank)).getByRole<HTMLInputElement>('switch', {
+    name: `Write to FM1 bank ${bank}`,
+  })
+
+/** The control that chooses which library bank an FM1 bank is written from. */
+const source = (bank: string) =>
+  within(bankSection(bank)).getByRole<HTMLSelectElement>('combobox', { name: 'Write from' })
+
 describe('WriteFm1VaPresetsDialog', () => {
   it('reads the FM1 as it opens and says what each bank would change', async () => {
     renderDialog(fakeFm1().midi)
@@ -193,15 +203,12 @@ describe('WriteFm1VaPresetsDialog', () => {
     expect(fm1.writtenSlots()).toEqual([])
   })
 
-  it('writes nothing from a bank set not to write', async () => {
+  it('writes nothing to a bank switched off', async () => {
     const fm1 = fakeFm1()
     const { user } = renderDialog(fm1.midi)
     await screen.findByRole('button', { name: 'Write 2 patches…' })
 
-    await user.selectOptions(
-      within(bankSection('C')).getByRole('combobox', { name: 'Write from' }),
-      'Don’t write',
-    )
+    await user.click(bankSwitch('C'))
     await user.click(screen.getByRole('button', { name: 'Write one patch…' }))
     await user.click(screen.getByRole('button', { name: 'Write one patch' }))
     await finishWriting(1)
@@ -214,13 +221,33 @@ describe('WriteFm1VaPresetsDialog', () => {
     const { user } = renderDialog(fm1.midi)
     await screen.findByRole('button', { name: 'Write 2 patches…' })
 
-    await user.selectOptions(
-      within(bankSection('D')).getByRole('combobox', { name: 'Write from' }),
-      'Bank 3',
-    )
+    await user.selectOptions(source('D'), 'Bank 3')
 
     // Every patch of library bank C differs from FM1 bank D's, whose names hold another letter.
     expect(within(bankSection('D')).getByText('32 patches differ.')).toBeTruthy()
+  })
+
+  it('waits for a bank to be switched on before its library bank can be chosen', async () => {
+    const fm1 = fakeFm1()
+    const { user } = renderDialog(fm1.midi)
+    await screen.findByRole('button', { name: 'Write 2 patches…' })
+
+    await user.click(bankSwitch('C'))
+
+    expect(source('C').disabled).toBe(true)
+    expect(within(bankSection('C')).queryByText('One patch differs.')).toBeNull()
+  })
+
+  it('starts a bank the library does not have switched off, offering the first library bank', async () => {
+    const fm1 = fakeFm1()
+    const library = { ...twoChanges(), workspaceBanks: ['A', 'B', 'C'] }
+    const { user } = renderDialog(fm1.midi, library)
+    await screen.findByRole('button', { name: 'Write 2 patches…' })
+
+    expect(bankSwitch('D').checked).toBe(false)
+    expect(source('D').value).toBe('A')
+    await user.click(bankSwitch('D'))
+    expect(screen.getByRole('button', { name: 'Write 34 patches…' })).toBeTruthy()
   })
 
   it('cannot be closed while writing', async () => {

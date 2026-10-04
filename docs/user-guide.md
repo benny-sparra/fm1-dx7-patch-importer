@@ -103,13 +103,13 @@ saved. That sends nothing to the FM1, so it works with MIDI switched off and whi
 the FM1 runs.
 
 Either way the FM1's banks A to D are each shown as a folded panel: open one to see its patches,
-and click a patch to hear it on the FM1 with its effects. Under each bank, **Import into** chooses
-where it goes: **Don't import**, one of your banks to replace, or **Add it as a new bank**, which
-adds a bank titled after it, such as "FM1 A". Each starts on your bank of the same letter, or
-on a new bank if you have none; two FM1 banks cannot replace the same bank. A dot marks each patch
-that differs from the one in the same slot of the bank it would replace, in its voice, its
-effects, or its other preset settings. After a read from the FM1, only the banks holding such a patch
-start set to import; from a file, every bank does. Press **Import** to bring them in. Each patch
+and click a patch to hear it on the FM1 with its effects. Each bank's title is a switch, such as
+**Import FM1 bank A**, that says whether it is imported, and **Import into** below it chooses where it goes: one of your
+banks, which it replaces, or **A new bank**, which adds a bank titled after it, such as "FM1 A".
+Each starts on your bank of the same letter, or on a new bank if you have none; two FM1 banks
+cannot replace the same bank. A dot marks each patch that differs from the one in the same slot of
+the bank it would replace, in its voice, its effects, or its other preset settings. After a read
+from the FM1, only the banks holding such a patch start switched on; from a file, every bank does. Press **Import** to bring them in. Each patch
 arrives with its FM1 effects and keeps the other settings Baud Girl's firmware stored with it,
 such as its effect order, Envelope, and filter, exactly as they are, so writing it back keeps them.
 A Virtual Analog preset is marked **VA** and left out, since the app cannot hold one yet, and a
@@ -121,8 +121,9 @@ FM1…**, under **Baud Girl (FM-1+VA)** too. It is offered while the FM1 runs Ba
 later, chosen as the MIDI output and input with SysEx allowed. It writes each patch straight into
 its own preset with its FM1 effects and Baud Girl settings, with no **Replace Bank A?** prompt.
 The dialog first reads the FM1, so it writes only the patches that
-differ. Under each FM1 bank, **Write from** chooses the library bank to write over it, starting on
-the bank of the same letter, or **Don't write**. Virtual Analog presets on the FM1 are never written
+differ. Each FM1 bank's title is a switch, such as **Write to FM1 bank A**, that says whether it
+is written, and **Write from** below it chooses the library bank to write over it, starting on the
+bank of the same letter. Virtual Analog presets on the FM1 are never written
 over, and a slot your bank has no patch in keeps its preset. A patch that came from a DX7 file
 takes the FM1 preset's own settings, with your effects in them.
 

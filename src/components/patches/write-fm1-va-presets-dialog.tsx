@@ -1,4 +1,4 @@
-import { Send, Square, TriangleAlert } from 'lucide-react'
+import { ChevronDown, Send, Square, TriangleAlert } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -66,8 +66,24 @@ type Phase = 'choosing' | 'confirming' | 'reading' | 'writing'
 /** How a write ended early: a preset that read back differently, or a failed write or read. */
 type WriteFailure = { count: number; slot?: number; total: number }
 
-/** An FM1 bank written from no library bank. */
-const skipBank = ''
+/**
+ * Whether an FM1 bank is written, and from which library bank. A bank switched off keeps its
+ * source, so switching it on again restores it.
+ */
+type BankChoice = { source: string; written: boolean }
+
+/** The app's own chevron, in place of a dropdown's native arrow, as its other dropdowns draw. */
+function SelectChevron() {
+  return (
+    <ChevronDown
+      aria-hidden="true"
+      className="pointer-events-none absolute top-1/2 right-2 size-4 -translate-y-1/2 text-muted-foreground"
+    />
+  )
+}
+
+const selectClassName =
+  'settings-option-select h-9 w-full appearance-none truncate rounded-md border py-0 pr-8 pl-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60'
 
 function writeFailureMessage(t: Translate, { count, slot, total }: WriteFailure) {
   return slot === undefined
@@ -125,7 +141,7 @@ export function WriteFm1VaPresetsDialog({
   const [writeFailure, setWriteFailure] = useState<WriteFailure | null>(null)
   const [readCount, setReadCount] = useState(0)
   const [stored, setStored] = useState<Fm1VaStoredPreset[] | null>(null)
-  const [sources, setSources] = useState<ReadonlyMap<Fm1VaWriteBank, string>>(new Map())
+  const [choices, setChoices] = useState<ReadonlyMap<Fm1VaWriteBank, BankChoice>>(new Map())
   // A bank sent on its own starts written over the FM1 bank of the same letter, or bank A.
   const [destination, setDestination] = useState<Fm1VaWriteBank>(
     () => fm1VaWriteBanks.find((bank) => bank === sendBank) ?? 'A',
@@ -170,25 +186,33 @@ export function WriteFm1VaPresetsDialog({
     if (phase === 'confirming') confirmHeadingRef.current?.focus()
   }, [phase])
 
-  // Each FM1 bank starts written from the library bank of the same letter, when there is one.
-  const sourceOf = (bank: Fm1VaWriteBank) =>
-    sources.get(bank) ?? (library.workspaceBanks.includes(bank) ? bank : skipBank)
+  // Each FM1 bank starts written from the library bank of the same letter, when there is one, and
+  // otherwise switched off, offering the first library bank.
+  const choiceOf = (bank: Fm1VaWriteBank): BankChoice => {
+    const chosen = choices.get(bank)
+    if (chosen && library.workspaceBanks.includes(chosen.source)) return chosen
+    const sameLetter = library.workspaceBanks.includes(bank)
+    return { source: sameLetter ? bank : (library.workspaceBanks[0] ?? ''), written: sameLetter }
+  }
+  const choose = (bank: Fm1VaWriteBank, choice: BankChoice) => {
+    setChoices((current) => new Map(current).set(bank, choice))
+  }
   const plans = !stored
     ? []
     : sendBank === undefined
       ? fm1VaWriteBanks.map((bank) => {
-          const source = sourceOf(bank)
+          const choice = choiceOf(bank)
           return {
             bank,
-            plan: source === skipBank ? [] : planFm1VaBankWrite(stored, bank, source, library),
-            source,
+            choice,
+            plan: choice.written ? planFm1VaBankWrite(stored, bank, choice.source, library) : [],
           }
         })
       : [
           {
             bank: destination,
+            choice: { source: sendBank, written: true },
             plan: planFm1VaPatchesWrite(stored, destination, sendPatches(sendBank, library)),
-            source: sendBank,
           },
         ]
   const writes = plans.flatMap(({ plan }) => plan.filter(isWrite))
@@ -310,19 +334,18 @@ export function WriteFm1VaPresetsDialog({
               ))
             : null}
           {phase === 'choosing' && sendBank === undefined
-            ? plans.map(({ bank, plan, source }) => (
+            ? plans.map(({ bank, choice, plan }) => (
                 <BankWrite
                   bank={bank}
+                  choice={choice}
                   key={bank}
                   libraryBanks={library.workspaceBanks.map((value) => ({
                     label: workspaceBankLabel(value),
                     value,
                   }))}
-                  onChooseSource={(value) =>
-                    setSources((current) => new Map(current).set(bank, value))
-                  }
+                  onChooseSource={(source) => choose(bank, { source, written: true })}
+                  onSwitch={(written) => choose(bank, { ...choice, written })}
                   plan={plan}
-                  source={source}
                 />
               ))
             : null}
@@ -441,16 +464,19 @@ function WriteList({ writes }: { writes: readonly Fm1VaPlannedWrite[] }) {
 
 type BankWriteProps = {
   bank: Fm1VaWriteBank
+  choice: BankChoice
   libraryBanks: { label: string; value: string }[]
   onChooseSource: (source: string) => void
+  onSwitch: (written: boolean) => void
   plan: Fm1VaPresetPlan[]
-  source: string
 }
 
-/** One FM1 bank: the library bank written over it, and the presets that would change. */
-function BankWrite({ bank, libraryBanks, onChooseSource, plan, source }: BankWriteProps) {
+/**
+ * One FM1 bank: whether it is written, the library bank written over it, and the presets that
+ * would change. Its title is the switch, and the library bank waits for it to be switched on.
+ */
+function BankWrite({ bank, choice, libraryBanks, onChooseSource, onSwitch, plan }: BankWriteProps) {
   const { t } = useTranslation()
-  const headingId = useId()
   const bodyId = useId()
   const sourceId = useId()
   const [collapsed, setCollapsed] = useState(true)
@@ -458,7 +484,7 @@ function BankWrite({ bank, libraryBanks, onChooseSource, plan, source }: BankWri
   const writes = plan.filter(isWrite)
 
   return (
-    <section aria-labelledby={headingId} className="synthwave-panel min-w-0">
+    <section aria-label={title} className="synthwave-panel min-w-0">
       <RackPanelTitle
         action={
           <RackPanelCollapseToggle
@@ -469,31 +495,38 @@ function BankWrite({ bank, libraryBanks, onChooseSource, plan, source }: BankWri
           />
         }
         headingLevel={3}
-        id={headingId}
-        title={title}
+        title={t('fm1VaWrite.bankSwitch', { bank })}
+        titleSwitch={{
+          checked: choice.written,
+          disabled: libraryBanks.length === 0,
+          onChange: onSwitch,
+        }}
       />
       <div className="grid gap-1 px-[9px] py-2 text-sm">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <label className="shrink-0 text-[var(--crt-ink-3)]" htmlFor={sourceId}>
             {t('fm1VaWrite.source')}
           </label>
-          <select
-            className="settings-option-select h-9 min-w-0 flex-1 truncate rounded-md border px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            id={sourceId}
-            onChange={(event) => onChooseSource(event.target.value)}
-            value={source}
-          >
-            <option value={skipBank}>{t('fm1VaWrite.skipBank')}</option>
-            {libraryBanks.map(({ label, value }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+          <span className="relative min-w-0 flex-1">
+            <select
+              className={selectClassName}
+              disabled={!choice.written}
+              id={sourceId}
+              onChange={(event) => onChooseSource(event.target.value)}
+              value={choice.source}
+            >
+              {libraryBanks.map(({ label, value }) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <SelectChevron />
+          </span>
         </div>
-        {source === skipBank ? null : (
+        {choice.written ? (
           <p className="text-xs text-[var(--crt-ink-3)]">{planSummary(t, plan)}</p>
-        )}
+        ) : null}
       </div>
       <RackPanelCollapsibleBody collapsed={collapsed} id={bodyId}>
         <div className="relative p-2">
@@ -523,22 +556,25 @@ function SendBankWrite({ destination, note, onChooseDestination, plan }: SendBan
         <label className="shrink-0 text-[var(--crt-ink-3)]" htmlFor={destinationId}>
           {t('fm1VaSend.destination')}
         </label>
-        <select
-          className="settings-option-select h-9 min-w-0 flex-1 truncate rounded-md border px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          id={destinationId}
-          onChange={(event) =>
-            onChooseDestination(
-              fm1VaWriteBanks.find((bank) => bank === event.target.value) ?? destination,
-            )
-          }
-          value={destination}
-        >
-          {fm1VaWriteBanks.map((bank) => (
-            <option key={bank} value={bank}>
-              {t('fm1VaImport.bankHeading', { bank })}
-            </option>
-          ))}
-        </select>
+        <span className="relative min-w-0 flex-1">
+          <select
+            className={selectClassName}
+            id={destinationId}
+            onChange={(event) =>
+              onChooseDestination(
+                fm1VaWriteBanks.find((bank) => bank === event.target.value) ?? destination,
+              )
+            }
+            value={destination}
+          >
+            {fm1VaWriteBanks.map((bank) => (
+              <option key={bank} value={bank}>
+                {t('fm1VaImport.bankHeading', { bank })}
+              </option>
+            ))}
+          </select>
+          <SelectChevron />
+        </span>
       </div>
       <p className="text-xs text-[var(--crt-ink-3)]">{planSummary(t, plan)}</p>
       {note ? <p className="text-xs text-[var(--crt-ink-3)]">{note}</p> : null}

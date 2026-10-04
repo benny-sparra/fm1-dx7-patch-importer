@@ -1,6 +1,8 @@
 import { ChevronDown, ChevronUp, type LucideIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+
+import { Switch } from '@/components/ui/switch'
 
 /**
  * The bevelled title strip, minimise control, and folding body that the editor's rack panels and
@@ -18,6 +20,7 @@ export function RackPanelTitle({
   icon: Icon,
   id,
   title,
+  titleSwitch,
 }: {
   action?: ReactNode
   /** The title's heading level: 2 on the editor's rack, deeper inside a dialog's own sections. */
@@ -30,6 +33,13 @@ export function RackPanelTitle({
   icon?: LucideIcon
   id?: string
   title: string
+  /**
+   * Makes the title the label of an on/off switch at its left, such as "Import FM1 bank A" in the
+   * FM-1+VA dialogs. The switch sits above the minimise control's overlay, so clicking the title
+   * switches it and the rest of the strip folds the panel. The title lights while it is on, and
+   * is set smaller on a phone so the bank letter at its end still fits.
+   */
+  titleSwitch?: Omit<ComponentProps<typeof Switch>, 'children' | 'className'>
 }) {
   const Heading = `h${headingLevel}` as const
   return (
@@ -39,7 +49,16 @@ export function RackPanelTitle({
         id={id}
       >
         {Icon ? <Icon aria-hidden="true" className="size-4 shrink-0" /> : null}
-        <span className="truncate">{title}</span>
+        {titleSwitch ? (
+          <Switch
+            {...titleSwitch}
+            className="relative z-10 -ml-[5px] inline-flex min-h-6 min-w-0 items-center gap-2 px-1 text-[11px] tracking-[0.06em] transition-colors sm:text-[13px] sm:tracking-[0.14em]"
+          >
+            <span className="truncate">{title}</span>
+          </Switch>
+        ) : (
+          <span className="truncate">{title}</span>
+        )}
         {help}
       </Heading>
       {action}

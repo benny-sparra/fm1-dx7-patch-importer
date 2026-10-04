@@ -652,12 +652,10 @@
     outline-offset: 2px;
   }
 
-  /*
-   * Connecting. The handle stays in the off position but blinks, so the wait
-   * looks like the switch working rather than the switch ignoring the press.
-   */
+  /* A switch that cannot be used here, such as a bank with nothing to import. */
   .midi-switch:has(:disabled) {
-    cursor: progress;
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 
   .midi-switch:has(:disabled):hover {
@@ -665,7 +663,17 @@
     background: var(--crt-btn-face);
   }
 
-  .peer:disabled ~ .midi-switch-track::after {
+  /*
+   * Busy, such as MIDI connecting. The handle stays in the off position but
+   * blinks, so the wait looks like the switch working rather than the switch
+   * ignoring the press.
+   */
+  .midi-switch[data-busy] {
+    cursor: progress;
+    opacity: 1;
+  }
+
+  .midi-switch[data-busy] .midi-switch-track::after {
     animation: midi-switch-wait 900ms steps(1, end) infinite;
   }
 
@@ -686,7 +694,7 @@
       transition: none;
     }
 
-    .peer:disabled ~ .midi-switch-track::after {
+    .midi-switch[data-busy] .midi-switch-track::after {
       animation: none;
     }
   }
