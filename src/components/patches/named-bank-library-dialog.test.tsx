@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render as renderPlain, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import { NamedBankLibraryDialog } from '@/components/patches/named-bank-library-dialog'
+import { ToastProvider } from '@/components/ui/toast'
 import { downloadFile } from '@/lib/download-file'
 import { createNamedBank } from '@/lib/named-bank'
 import {
@@ -17,6 +18,9 @@ import {
 } from '@/lib/patch-library'
 
 vi.mock('@/lib/download-file', () => ({ downloadFile: vi.fn() }))
+
+/** Renders inside the toast provider, where the dialog confirms what it did. */
+const render = (ui: ReactElement) => renderPlain(ui, { wrapper: ToastProvider })
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
@@ -95,7 +99,7 @@ describe('NamedBankLibraryDialog boundaries', () => {
 
     const alert = screen.getByRole('alert')
     expect(alert.textContent).toBe(
-      'That workspace bank is no longer available. Close this dialog and try again.',
+      'That bank is no longer available. Close this dialog and try again.',
     )
     expect(alert.closest('dialog')?.open).toBe(true)
   })

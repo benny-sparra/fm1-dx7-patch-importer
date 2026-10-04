@@ -128,7 +128,7 @@ export function SaveNamedBankDialog({
         <DialogFooter>
           <Button disabled={working} form={formId} type="submit">
             <Save />
-            {t('namedBanks.save')}
+            <span>{t(working ? 'namedBanks.saving' : 'namedBanks.save')}</span>
           </Button>
         </DialogFooter>
       </Dialog>

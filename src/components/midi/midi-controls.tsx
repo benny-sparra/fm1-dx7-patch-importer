@@ -8,6 +8,7 @@ import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { localeNames, supportedLocales, type SupportedLocale } from '@/i18n/locale'
 import { setLocale } from '@/i18n'
 import { Switch } from '@/components/ui/switch'
+import { ErrorNotice } from '@/components/ui/error-notice'
 
 import { DeviceSelect } from './device-select'
 
@@ -112,11 +113,7 @@ export function MidiConnectionError({ midi }: { midi: Pick<MidiController, 'erro
   const { t } = useTranslation()
   if (!midi.error) return null
 
-  return (
-    <div className="crt-inset bg-[var(--crt-bg-2)] px-4 py-3 text-sm text-[var(--crt-ink-2)]">
-      {t(midiConnectionErrorKeys[midi.error])}
-    </div>
-  )
+  return <ErrorNotice>{t(midiConnectionErrorKeys[midi.error])}</ErrorNotice>
 }
 
 type MidiSettingsMenuProps = {

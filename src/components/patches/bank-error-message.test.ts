@@ -95,7 +95,7 @@ describe('bankErrorMessage', () => {
       'That patch bank could not be downloaded. Check your connection, then try again.',
     )
     expect(bankErrorMessage(t, new WorkspaceBankUnavailableError(), 'Failed.')).toBe(
-      'That workspace bank is no longer available. Close this dialog and try again.',
+      'That bank is no longer available. Close this dialog and try again.',
     )
   })
 

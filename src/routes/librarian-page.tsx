@@ -717,7 +717,7 @@ export function LibrarianPage({
           type="button"
         >
           <Save className="size-4" />
-          {t('namedBanks.save')}
+          {t('namedBanks.saveMenu')}
         </button>
         <button
           className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -771,7 +771,7 @@ export function LibrarianPage({
             type="button"
           >
             <Trash2 className="size-4" />
-            {t('banks.deleteBank')}
+            {t('banks.deleteBankMenu')}
           </button>
         ) : null}
       </>

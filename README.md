@@ -2,30 +2,30 @@
 
 A browser-based voice editor and patch librarian for the [M-VAVE FM1](https://www.mvave.com/).
 
-The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, and transfer individual voices or complete banks over MIDI SysEx. The FM-1's own four factory banks are loaded initially. New workspace banks can use any of 65 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
+The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, and transfer individual voices or complete banks over MIDI SysEx. The FM-1's own four factory banks are loaded initially. New banks can use any of 65 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
 
 ![M-VAVE FM1 synthesiser](src/assets/fm1-header.png)
 
 ## Features
 
-- Start with the FM-1's four factory banks in browser banks A–D, so slot names match the patches on a stock FM1
-- Add up to six additional workspace banks from the bundled DX7 bank catalog or your own SysEx file, so every bank starts populated
-- Rename, describe, or delete workspace banks, with descriptions available from their tabs
+- Start with the FM-1's four factory banks in banks A–D, so slot names match the patches on a stock FM1
+- Add up to six additional banks from the bundled DX7 bank catalog or your own SysEx file, so every bank starts populated
+- Rename, describe, or delete banks, with descriptions available from their tabs
 - Replace a populated bank only after confirming that its current patches will be overwritten
-- Reset banks A–D to the four factory banks at any time without removing additional workspace banks
-- Download a backup of every workspace bank, FM1 effect setting, and saved bank in one file, and restore it later
+- Reset banks A–D to the four factory banks at any time without removing additional banks
+- Download a backup of every bank, FM1 effect setting, and saved bank in one file, and restore it later
 - Save named copies of a bank in the browser, then load, rename, copy, download, or delete them later
 - Copy a patch and its FM1 effects over any slot in a bank that has patches, from its **⋮** menu or
   by dragging it onto a bank
 - Undo deleting a bank, resetting to the factory patches, restoring a backup, importing over or loading into a bank, or copying a patch over a slot, from its notification or with Cmd/Ctrl + Z
 - Keep imported and edited banks across page reloads in IndexedDB browser storage
-- Retry browser-storage failures or continue explicitly with a session-only workspace without overwriting unreadable saved data
+- Retry browser-storage failures or continue explicitly with a session-only library without overwriting unreadable saved data
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
 - Download a single patch as a DX7 `.syx` file, or import one over a slot, from the slot's **⋮** menu (**Download patch** and **Import patch…**)
 - Search every bank at once, and reorder patches with pointer or keyboard drag-and-drop
 - Find duplicate patches: the patches in your banks whose voice settings match, renamed copies included, with a way to go to each one
 - Search your saved banks and the 65 bundled DX7 catalog banks at the same time, play any match through the FM1 edit buffer, and copy it into a slot of your own, or double-click it to copy it and open it in the editor
-- Export one browser bank as `.syx`, or every loaded bank as a `.zip` of SysEx files for Dexed, a DX7, or other DX7 tools (DX7 data only, without FM1 effects)
+- Export one bank as `.syx`, or every loaded bank as a `.zip` of SysEx files for Dexed, a DX7, or other DX7 tools (DX7 data only, without FM1 effects)
 - Edit all standard DX7 voice parameters with live MIDI updates
 - Compare the six operators as table rows under shared column headings on a wide window, and open any one in place beneath its row with its full controls; narrower windows show them as a rack of columns
 - Type an operator's ratio, or its fixed frequency in hertz, and Coarse and Fine move to the nearest setting the FM1 can play
@@ -84,11 +84,11 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 1. Open the app in a supported browser.
 2. Switch **MIDI online** on and grant MIDI/SysEx permission. Firefox asks you to install a small site permission add-on instead; accept it.
 3. Open **Settings** to select the FM1 as the MIDI output and the input monitor and, if needed, the note/program and effects channels. With the input selected, the app asks the FM1 which firmware it runs and shows the answer under **FM1 firmware**.
-4. Select Bank 1, 2, 3, or 4. On first use these contain FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with. Use **Add new bank** to name and describe an additional workspace bank while populating it from the bundled DX7 catalog, which holds banks from the [Yamaha Black Boxes collection](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) and mene311's themed FM-1 banks, or your own standard 32-voice DX7 SysEx file.
+4. Select Bank 1, 2, 3, or 4. On first use these contain FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with. Use **Add new bank…** to name and describe an additional bank while populating it from the bundled DX7 catalog, which holds banks from the [Yamaha Black Boxes collection](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) and mene311's themed FM-1 banks, or your own standard 32-voice DX7 SysEx file.
 5. Click a patch to select the matching FM1 slot and play it: the voice and effects in your library go to the edit buffer, so you hear the patch as it is in the browser even before its bank is on the FM1. The FM1 has four banks, so a patch in an added bank is only sent to the edit buffer. Double-click it, or choose **Edit** from its **⋮** menu, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1. On the [FM-1+VA](https://baudgirl.com/work/FM-1+VA) replacement firmware, which stores a single-patch transfer over the selected preset, and whenever the firmware is not identified, a patch is sent as parameter changes instead, so it stays an unsaved edit until you press **SAVE** on the FM1.
-6. Use **Save to Library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to Saved** on both the editor and FM1.
+6. Use **Save to library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to saved** on both the editor and FM1.
 7. Select the heart on any patch, or search result, to keep it in **Favourites**, below the banks on the left. Favourites can be played, edited, and reordered like a bank, and editing a favourite or the patch it came from updates both.
-8. Return to the librarian and choose **Send to FM1** to transfer the selected browser bank, or Favourites. Favourites is sent as a 32-patch bank: a shorter list is filled with INIT VOICE, and from a longer one only the first 32 are sent. The instructions before sending say which.
+8. Return to the librarian and choose **Send to FM1** to transfer the selected bank, or Favourites. Favourites is sent as a 32-patch bank: a shorter list is filled with INIT VOICE, and from a longer one only the first 32 are sent. The instructions before sending say which.
 9. When the FM1 displays its bank selection screen, turn knob 1, 2, 3, or 4 to choose destination bank A, B, C, or D. The hardware saves the bank automatically after a short delay. FM-1+VA before FM-1_079 asks **Replace Bank A?** instead, starting on bank A: turn **ALGORITHM** to the destination bank, then turn **SELECT** to **Replace** and press **SEL**. It also replaces that bank's factory presets for good. The instructions before sending follow the firmware the FM1 named. From FM-1_079, FM-1+VA needs no steps on the FM1: you choose its bank A–D in the app, which writes only the patches that differ, with their effects, and a short Favourites leaves the rest of the bank as it is.
 
 See the [user guide](docs/user-guide.md) for bank management, Favourites, the voice editor,
@@ -97,11 +97,11 @@ keyboard shortcuts, and SysEx compatibility.
 ### Your data
 
 > [!IMPORTANT]
-> Imported voices, edits, and FM1 effect settings are saved in this browser and kept after a page reload. Use **Download backup**, under **Backup** in the patch-bank header's **Library actions** (⋮) menu, to keep a copy, especially before clearing browser data: the backup file holds the workspace banks, their FM1 effects and FM-1+VA preset settings, Favourites, and saved banks, and only this app can restore it. DX7 `.syx` export contains voice data only, for use in other DX7 tools.
+> Imported voices, edits, and FM1 effect settings are saved in this browser and kept after a page reload. Use **Download backup**, under **Backup** in the patch-bank header's **Library actions** (⋮) menu, to keep a copy, especially before clearing browser data: the backup file holds the banks, their FM1 effects and FM-1+VA preset settings, Favourites, and saved banks, and only this app can restore it. DX7 `.syx` export contains voice data only, for use in other DX7 tools.
 
-Workspace-bank titles, descriptions, imported patches, patch ordering, Favourites, saved editor changes, and FM1 effect settings are saved automatically in the browser.
+Bank titles, descriptions, imported patches, patch ordering, Favourites, saved editor changes, and FM1 effect settings are saved automatically in the browser.
 
-If the saved workspace cannot be opened, the app leaves its browser record untouched and offers **Retry** or **Continue without saving**. The latter creates an explicit session-only workspace whose changes are lost when the page closes. If a later save fails, the latest changes remain available in memory and can be saved again with **Retry saving**.
+If the saved library cannot be opened, the app leaves its browser record untouched and offers **Retry** or **Continue without saving**. The latter creates an explicit session-only library whose changes are lost when the page closes. If a later save fails, the latest changes remain available in memory and can be saved again with **Retry saving**.
 
 ## Translations
 

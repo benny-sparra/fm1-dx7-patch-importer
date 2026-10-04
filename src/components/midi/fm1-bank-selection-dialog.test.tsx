@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
+import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { translatePageText } from '@/test/page-translator'
 
 beforeAll(() => {
@@ -14,7 +15,10 @@ beforeAll(() => {
   }
 })
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  sessionStorage.clear()
+})
 
 const mvave: Fm1Firmware = { identity: 'FM-1_015', kind: 'mvave' }
 
@@ -45,6 +49,28 @@ describe('Fm1BankSelectionDialog', () => {
 
     expect(screen.getByRole('button', { hidden: true, name: 'Send to FM1' })).toBeTruthy()
     expect(screen.queryByRole('button', { hidden: true, name: 'Close' })).toBeNull()
+  })
+
+  it('stops showing for the session once closed with its Don’t show switch on', () => {
+    render(renderDialog(true))
+    const dontShow = screen.getByRole<HTMLInputElement>('switch', {
+      hidden: true,
+      name: 'Don’t show me again this session',
+    })
+
+    fireEvent.click(dontShow)
+    fireEvent(screen.getByRole('dialog', { hidden: true }), new Event('close'))
+
+    expect(dontShow.checked).toBe(true)
+    expect(shouldShowFm1BankSelectionDialog()).toBe(false)
+  })
+
+  it('shows again next time when closed with its Don’t show switch off', () => {
+    render(renderDialog(true))
+
+    fireEvent(screen.getByRole('dialog', { hidden: true }), new Event('close'))
+
+    expect(shouldShowFm1BankSelectionDialog()).toBe(true)
   })
 
   it('runs a barber pole on its Send button while the bank is on the way', () => {

@@ -21,6 +21,7 @@ import {
 } from '@/data/dx7-bank-catalog'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
+import { Select } from '@/components/ui/select'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import type { Dx7Voice } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
@@ -212,15 +213,10 @@ export function AddWorkspaceBankDialog({
           <fieldset className="grid gap-2">
             <legend className="mb-1 text-sm font-semibold">{t('banks.soundSource')}</legend>
 
-            <div className="relative grid grid-cols-2 rounded-lg border border-primary/20 bg-card p-1 shadow-sm">
-              <span
-                aria-hidden="true"
-                className={cn(
-                  'pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-md bg-primary shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none',
-                  source === 'upload' && 'translate-x-full',
-                )}
-              />
-              <label className="relative z-10 min-w-0 cursor-pointer">
+            {/* The editor's segmented control: one sunken track, with the chosen source raised out
+                of it. Focus rings the whole track, and the arrow keys move the choice. */}
+            <div className="crt-inset grid grid-cols-2 gap-[2px] bg-[var(--crt-bg-1)] p-[2px] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--crt-led)]">
+              <label className="min-w-0 cursor-pointer">
                 <input
                   checked={source === 'catalog'}
                   className="peer sr-only"
@@ -234,17 +230,17 @@ export function AddWorkspaceBankDialog({
                 />
                 <span
                   className={cn(
-                    'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+                    'flex h-9 items-center justify-center gap-2 border-t border-r border-b border-l px-3 text-center text-sm font-semibold transition-colors peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
                     source === 'catalog'
-                      ? 'text-primary-foreground hover:bg-transparent hover:text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                      ? 'border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
+                      : 'border-transparent text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
                   )}
                 >
                   <Library className="size-4 shrink-0" />
                   {t('banks.catalogSource')}
                 </span>
               </label>
-              <label className="relative z-10 min-w-0 cursor-pointer">
+              <label className="min-w-0 cursor-pointer">
                 <input
                   checked={source === 'upload'}
                   className="peer sr-only"
@@ -258,10 +254,10 @@ export function AddWorkspaceBankDialog({
                 />
                 <span
                   className={cn(
-                    'flex h-10 items-center justify-center gap-2 rounded-md px-3 text-center text-sm font-bold transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
+                    'flex h-9 items-center justify-center gap-2 border-t border-r border-b border-l px-3 text-center text-sm font-semibold transition-colors peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
                     source === 'upload'
-                      ? 'text-primary-foreground hover:bg-transparent hover:text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                      ? 'border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
+                      : 'border-transparent text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
                   )}
                 >
                   <Upload className="size-4 shrink-0" />
@@ -272,14 +268,15 @@ export function AddWorkspaceBankDialog({
 
             <div className="modal-input-surface rounded-md border border-input p-3">
               {source === 'catalog' ? (
-                <select
+                <Select
                   aria-label={t('banks.catalogBank')}
-                  className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   disabled={working}
                   onChange={(event) => setCatalogBankId(event.target.value)}
                   value={catalogBankId}
                 >
-                  <option value="">{t('banks.chooseCatalogBank')}</option>
+                  <option disabled value="">
+                    {t('banks.chooseCatalogBank')}
+                  </option>
                   {catalogGroups.map(({ category, label }) => (
                     <optgroup key={category} label={label}>
                       {dx7BankCatalog
@@ -293,9 +290,9 @@ export function AddWorkspaceBankDialog({
                         ))}
                     </optgroup>
                   ))}
-                </select>
+                </Select>
               ) : (
-                <label className="flex min-h-10 cursor-pointer items-center rounded-md border border-dashed border-input bg-background px-3 text-sm transition-colors hover:bg-muted/50">
+                <label className="modal-input-surface flex min-h-11 cursor-pointer items-center rounded-md border border-dashed border-input px-3 text-sm transition-colors hover:bg-muted/50">
                   <span className="min-w-0 truncate">
                     {file?.name ?? t('banks.chooseSysexFile')}
                   </span>

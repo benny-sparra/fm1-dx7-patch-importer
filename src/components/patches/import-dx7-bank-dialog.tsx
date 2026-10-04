@@ -1,4 +1,4 @@
-import { TriangleAlert, Upload } from 'lucide-react'
+import { Upload } from 'lucide-react'
 import {
   type ChangeEvent,
   type FormEvent,
@@ -26,6 +26,7 @@ import {
 import { useToast } from '@/components/ui/toast'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
+import { WarningNotice } from '@/components/ui/warning-notice'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import type { Dx7Voice } from '@/lib/dx7'
@@ -175,10 +176,9 @@ export function ImportDx7BankDialog({
 
         <form id={formId} className="grid gap-5 p-5" onSubmit={submit}>
           {replacing ? (
-            <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              <TriangleAlert className="mt-0.5 size-5 shrink-0" />
+            <WarningNotice>
               <p>{t('overwriteImport.warning')}</p>
-            </div>
+            </WarningNotice>
           ) : null}
 
           <label className="grid gap-2 text-sm font-semibold">

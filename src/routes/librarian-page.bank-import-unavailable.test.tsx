@@ -59,7 +59,7 @@ describe('LibrarianPage bank import dialog that fails to load', () => {
     const menuToggle = screen.getAllByTitle('Actions for Studio Favourites')[0]
     await user.click(menuToggle)
     await user.click(
-      within(menuToggle.closest('details')!).getByRole('button', { name: 'Import DX7 bank' }),
+      within(menuToggle.closest('details')!).getByRole('button', { name: 'Import DX7 bank…' }),
     )
 
     const alert = await screen.findByRole('alert')

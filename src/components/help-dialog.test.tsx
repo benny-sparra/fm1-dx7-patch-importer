@@ -54,7 +54,7 @@ describe('HelpDialog sections', () => {
 
     expect(within(visiblePanel()).getByText('Jump to search')).toBeTruthy()
     // The editor rows reuse the labels from the buttons they mirror.
-    expect(within(visiblePanel()).getByText('Save to Library')).toBeTruthy()
+    expect(within(visiblePanel()).getByText('Save to library')).toBeTruthy()
     expect(within(visiblePanel()).queryByText(/Build your library/)).toBeNull()
   })
 

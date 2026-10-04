@@ -1,4 +1,4 @@
-import { ChevronDown, Download, Square, TriangleAlert, Upload } from 'lucide-react'
+import { Download, Square, Upload } from 'lucide-react'
 import {
   type ChangeEvent,
   type FormEvent,
@@ -31,6 +31,8 @@ import {
   RackPanelTitle,
 } from '@/components/ui/rack-panel'
 import { useToast } from '@/components/ui/toast'
+import { WarningNotice } from '@/components/ui/warning-notice'
+import { Select } from '@/components/ui/select'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import type { MidiController } from '@/hooks/use-midi'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
@@ -187,6 +189,7 @@ export function ImportFm1VaPresetsDialog({
   const choiceOf = (bank: Fm1VaPresetBank): BankChoice =>
     choices.get(bank) ?? { destination: bank, imported: false }
   const takenBanks = banks?.filter(({ bank }) => choiceOf(bank).imported) ?? []
+  const replacesBank = takenBanks.some(({ bank }) => choiceOf(bank).destination !== newBank)
   const differsFromBank = (
     workspaceBank: string | null,
     index: number,
@@ -502,17 +505,17 @@ export function ImportFm1VaPresetsDialog({
                     )}
                   </p>
                 ) : null}
+                {/* Information, like the Virtual Analog line: the import works around them. */}
+                {damagedCount > 0 ? (
+                  <p className="text-xs text-[var(--crt-ink-3)]">
+                    {t('fm1VaImport.damagedPresets', { count: damagedCount })}
+                  </p>
+                ) : null}
               </div>
               {/* Nothing is replaced until a bank is chosen, so the warning waits for the banks. */}
-              <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                <TriangleAlert className="mt-0.5 size-5 shrink-0" />
+              <WarningNotice>
                 <p>{t('fm1VaImport.warning')}</p>
-              </div>
-              {damagedCount > 0 ? (
-                <ErrorNotice>
-                  {t('fm1VaImport.damagedPresets', { count: damagedCount })}
-                </ErrorNotice>
-              ) : null}
+              </WarningNotice>
               {banks.map((fileBank) => (
                 <PresetFileBank
                   canImport={hasImportableVoice(fileBank)}
@@ -537,11 +540,12 @@ export function ImportFm1VaPresetsDialog({
         </form>
       </DialogBody>
       <DialogFooter>
+        {/* Red only when a bank is replaced; adding new banks replaces nothing. */}
         <Button
           disabled={takenBanks.length === 0}
           form={formId}
           type="submit"
-          variant="destructive"
+          variant={replacesBank ? 'destructive' : 'default'}
         >
           <Upload />
           <span>{t('fm1VaImport.action', { count: takenBanks.length })}</span>
@@ -613,26 +617,19 @@ function PresetFileBank({
         <label className="shrink-0 text-[var(--crt-ink-3)]" htmlFor={destinationId}>
           {t('fm1VaImport.destination')}
         </label>
-        {/* The app's own chevron, as its other dropdowns draw, in place of the native arrow. */}
-        <span className="relative min-w-0 flex-1">
-          <select
-            className="settings-option-select h-9 w-full appearance-none truncate rounded-md border py-0 pr-8 pl-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
-            disabled={!choice.imported}
-            id={destinationId}
-            onChange={(event) => onChooseDestination(event.target.value)}
-            value={choice.destination}
-          >
-            {destinationOptions.map((option) => (
-              <option disabled={option.disabled} key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 right-2 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-        </span>
+        <Select
+          className="min-w-0 flex-1"
+          disabled={!choice.imported}
+          id={destinationId}
+          onChange={(event) => onChooseDestination(event.target.value)}
+          value={choice.destination}
+        >
+          {destinationOptions.map((option) => (
+            <option disabled={option.disabled} key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
       </div>
       <RackPanelCollapsibleBody collapsed={collapsed} id={bodyId}>
         {/* Positioned, so the cells' visually hidden text folds away with the bank rather than

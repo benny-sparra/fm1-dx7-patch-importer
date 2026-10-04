@@ -59,7 +59,7 @@ describe('LibrarianPage saved banks that fail to load', () => {
     )
 
     await user.click(screen.getAllByTitle('Actions for Studio Favourites')[0])
-    await user.click(screen.getAllByRole('button', { name: 'Load bank' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Load bank…' })[0])
 
     const alert = await screen.findByRole('alert')
     expect(
