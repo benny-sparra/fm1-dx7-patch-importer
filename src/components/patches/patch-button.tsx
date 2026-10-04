@@ -17,6 +17,8 @@ import { PatchSlotMenu } from './patch-slot-menu'
 type PatchButtonProps = {
   /** The bank's name, shown under the patch name where the slot appears away from its bank. */
   bankName?: string
+  /** Set while the slot's sound has just changed; a new value starts the glow again. */
+  changeGlow?: number
   disabled?: boolean
   disabledTitle?: string
   isActive?: boolean
@@ -43,6 +45,7 @@ const animateWhileSorting: AnimateLayoutChanges = ({ isSorting }) => isSorting
 
 export function PatchButton({
   bankName,
+  changeGlow,
   disabled = false,
   disabledTitle,
   isActive = false,
@@ -116,6 +119,10 @@ export function PatchButton({
       }}
       title={disabled ? disabledTitle : undefined}
     >
+      {/* Keyed by the change, so a slot that changes again while glowing starts afresh. */}
+      {changeGlow === undefined ? null : (
+        <span aria-hidden="true" className="patch-cell-changed" key={changeGlow} />
+      )}
       {/*
         A single click plays the slot on the FM1; a double click opens it in
         the editor. Enter matches that from the keyboard: it plays an unlit

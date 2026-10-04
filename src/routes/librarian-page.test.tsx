@@ -8,6 +8,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { useLibrarianView } from '@/hooks/use-librarian-view'
+import { makeDemoVoices } from '@/lib/patch-library'
 import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 import { translatePageText } from '@/test/page-translator'
 
@@ -1077,5 +1078,53 @@ describe('LibrarianPage add bank dialog', () => {
     await user.click(screen.getByRole('button', { name: 'Close' }))
 
     expect(document.activeElement).toBe(addBank)
+  })
+})
+
+describe('LibrarianPage changed slots', () => {
+  const [pianoVoice, organVoice] = makeDemoVoices()
+
+  function renderWithVoices(voices: ComponentProps<typeof LibrarianPage>['library']['voices']) {
+    const page = (slotVoices: typeof voices) => (
+      <ToastProvider>
+        <LibrarianPage
+          activePatchId=""
+          library={{ ...library, voices: slotVoices }}
+          midi={midi}
+          onBankDeleted={vi.fn()}
+          onEditPatch={vi.fn()}
+          onPlaySearchResult={vi.fn()}
+          onSelectPatch={vi.fn()}
+        />
+      </ToastProvider>
+    )
+    const view = render(page(voices))
+    return { changeVoices: (next: typeof voices) => view.rerender(page(next)) }
+  }
+
+  function glowIn(patchId: string) {
+    return document.querySelector(`[data-patch-id="${patchId}"] .patch-cell-changed`)
+  }
+
+  it('shows the slots of the bank it opens without lighting them', () => {
+    renderWithVoices({ 'bank-A-1': pianoVoice })
+
+    expect(glowIn('bank-A-1')).toBeNull()
+  })
+
+  it('lights a slot whose sound changes while its bank is shown, out of the accessibility tree', () => {
+    const { changeVoices } = renderWithVoices({ 'bank-A-1': pianoVoice })
+
+    changeVoices({ 'bank-A-1': organVoice })
+
+    expect(glowIn('bank-A-1')?.getAttribute('aria-hidden')).toBe('true')
+  })
+
+  it('leaves a slot unlit when only the library around it changes', () => {
+    const { changeVoices } = renderWithVoices({ 'bank-A-1': pianoVoice })
+
+    changeVoices({ 'bank-A-1': pianoVoice, 'bank-B-1': organVoice })
+
+    expect(glowIn('bank-A-1')).toBeNull()
   })
 })

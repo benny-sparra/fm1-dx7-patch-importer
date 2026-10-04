@@ -68,6 +68,7 @@ import { hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
 import { soundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
 import { crtSwitchOff } from '@/lib/crt-switch-off'
+import { useChangedSlots } from '@/hooks/use-changed-slots'
 import type { MidiController } from '@/hooks/use-midi'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
@@ -629,6 +630,29 @@ export function LibrarianPage({
     return patches.filter((patch) => patch.bank === destinationBank)
   }, [destinationBank, isDestinationBankLoaded, isSearching, library.loadedBanks, patches, search])
 
+  // A drag moves every slot it passes, which the user has just watched, so each move starts the
+  // comparison afresh rather than lighting them all.
+  const [moveCount, setMoveCount] = useState(0)
+  const slotSounds = useMemo(
+    () =>
+      new Map(
+        visiblePatches.map((patch) => [
+          patch.id,
+          [
+            library.voices[patch.id],
+            library.effects[patch.id],
+            library.records[patch.id],
+            library.virtualAnalog[patch.id],
+          ],
+        ]),
+      ),
+    [library.effects, library.records, library.virtualAnalog, library.voices, visiblePatches],
+  )
+  const changedSlots = useChangedSlots(
+    `${isSearching ? `search:${search}` : destinationBank}:${moveCount}`,
+    slotSounds,
+  )
+
   const isFavourite = (patch: Patch) => {
     const voice = library.voices[patch.id]
     return voice
@@ -1106,13 +1130,14 @@ export function LibrarianPage({
           followPlayedPatch(patch)
           onSelectPatch(patch)
         }}
-        onPatchMove={(patch, target) =>
-          patch.bank === favouritesBank
-            ? library.moveFavourite(patch.number, target.number)
-            : library.moveVoice(patch.bank, patch.number, target.number)
-        }
+        onPatchMove={(patch, target) => {
+          setMoveCount((count) => count + 1)
+          if (patch.bank === favouritesBank) library.moveFavourite(patch.number, target.number)
+          else library.moveVoice(patch.bank, patch.number, target.number)
+        }}
         onPatchToggleFavourite={toggleFavourite}
         patchOrigin={showsFavourites ? favouriteOrigin : undefined}
+        changedSlots={changedSlots}
         patches={visiblePatches}
         reorderable={!isSearching}
         extraResults={

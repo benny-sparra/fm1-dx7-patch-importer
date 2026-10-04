@@ -53,6 +53,20 @@ describe('reduced motion', () => {
     ).toBe(true)
   })
 
+  it('holds a changed slot lit without fading when reduced motion is requested', async () => {
+    const css = await readFile(path.resolve('src/index.css'), 'utf8')
+    const reducedMotionBlocks = css
+      .split('@media (prefers-reduced-motion: reduce)')
+      .slice(1)
+      .map((block) => block.slice(0, block.indexOf('\n  }\n')))
+
+    expect(
+      reducedMotionBlocks.some((block) =>
+        /\.patch-cell-changed\s*\{[^}]*animation:\s*none;/.test(block),
+      ),
+    ).toBe(true)
+  })
+
   it('hides the zoom rectangles when reduced motion is requested', async () => {
     const css = await readFile(path.resolve('src/index.css'), 'utf8')
     const reducedMotionBlocks = css

@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import type { Patch } from '@/data/patches'
+import type { ChangedSlots } from '@/hooks/use-changed-slots'
 import { formatShortcut, isApplePlatform, librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { resolveGridKey } from '@/lib/patch-grid-navigation'
 import { cn } from '@/lib/utils'
@@ -40,6 +41,8 @@ type PatchGridProps = {
   activePatchId?: string
   actions?: ReactNode
   bankLabel?: (bank: string) => string
+  /** Slots whose sound has just changed, such as by Undo, which glow once. */
+  changedSlots?: ChangedSlots | null
   /** Shown instead of the empty bank's import prompt when there are no patches to show. */
   emptyState?: ReactNode
   /**
@@ -96,6 +99,7 @@ export function PatchGrid({
   activePatchId = '',
   actions,
   bankLabel = (bank) => bank,
+  changedSlots,
   emptyState,
   extraResults,
   focusRequest,
@@ -267,6 +271,9 @@ export function PatchGrid({
                       {patches.map((patch) => (
                         <div className="h-full w-full" key={patch.id}>
                           <PatchButton
+                            changeGlow={
+                              changedSlots?.ids.has(patch.id) ? changedSlots.key : undefined
+                            }
                             bankName={
                               patchOrigin?.(patch) ??
                               (reorderable ? undefined : bankLabel(patch.bank))

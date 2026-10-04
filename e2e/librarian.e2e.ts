@@ -343,6 +343,48 @@ test('reorders patches with the keyboard drag control', async ({ page }) => {
     .toEqual([namesBefore[1], namesBefore[0], ...namesBefore.slice(2)])
 })
 
+test('lights the slots Undo puts back, not the slots a drag moves, and leaves them clickable', async ({
+  page,
+}) => {
+  // The glow fades within a second, so each one is recorded as it appears, with what a click at
+  // its centre would reach.
+  await page.addInitScript(() => {
+    const glows: { hitsGlow: boolean; patchId: string }[] = []
+    Object.assign(window, { glows })
+    document.addEventListener('DOMContentLoaded', () => {
+      new MutationObserver((records) => {
+        for (const node of records.flatMap((record) => [...record.addedNodes])) {
+          if (!(node instanceof HTMLElement) || node.className !== 'patch-cell-changed') continue
+          const box = node.getBoundingClientRect()
+          const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2)
+          glows.push({ hitsGlow: hit === node, patchId: node.parentElement?.dataset.patchId ?? '' })
+        }
+      }).observe(document.body, { childList: true, subtree: true })
+    })
+  })
+  const glows = () =>
+    page.evaluate(
+      () => (window as unknown as { glows: { hitsGlow: boolean; patchId: string }[] }).glows,
+    )
+  await openLibrarian(page)
+  const namesBefore = await slotNames(page)
+
+  const reorderFirstPatch = page.getByRole('button', { name: /^Reorder / }).first()
+  await reorderFirstPatch.press('Space')
+  await reorderFirstPatch.press('ArrowRight')
+  await reorderFirstPatch.press('Space')
+  await expect.poll(() => slotNames(page)).not.toEqual(namesBefore)
+  expect(await glows()).toEqual([])
+
+  await page.keyboard.press('ControlOrMeta+z')
+
+  await expect.poll(() => slotNames(page)).toEqual(namesBefore)
+  await expect
+    .poll(async () => (await glows()).map(({ patchId }) => patchId).sort())
+    .toEqual(['bank-A-1', 'bank-A-2'])
+  expect((await glows()).some(({ hitsGlow }) => hitsGlow)).toBe(false)
+})
+
 test('plays a slot on a single click and stays in the library', async ({ page }) => {
   await openLibrarian(page)
 
