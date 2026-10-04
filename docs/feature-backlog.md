@@ -505,7 +505,9 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
     ([`fm1-va-controller-tests.md`](fm1-va-controller-tests.md)) ran on 2026-10-04: every CC
     reached its row, list settings split 128 values into equal bands, continuous ones show
     `round(value × top ÷ 127)`, and fast sweeps need no thinning. Only the Envelope switch side
-    effect (V5) is still to see. It never sends CC 85–119, which press the FM1's own buttons.
+    effect (V5) is still to see. `makeFm1VaSoundControlMessage` and `useFm1VaSoundControl` send
+    them, and the development probe's **Map a setting** uses them to find the bytes each setting
+    is stored in, the map this step needs to show current values. It never sends CC 85–119, which press the FM1's own buttons.
   - **Change a patch's engine.** Planned 2026-10-02. On the FM1, a Virtual Analog preset is made
     by erasing a preset on the device (EDIT, **Erase Preset**, **VA**), which renames it and can
     only be reached through the panel. The editor never repeats that: the buttons' CCs, 85–119,
