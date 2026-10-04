@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Fm1VaPresetReadError, makeFm1VaPresetReadRequest } from '@/lib/fm1-va-preset-read'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
+import { midiActivity } from '@/lib/midi-activity'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
 import { makeFm1VaPresetReply } from '@/test/fm1-va-replies'
@@ -59,6 +60,17 @@ describe('useFm1VaPresetReader', () => {
       'Read stored preset 097 from the FM1.',
       'Asked the FM1 for stored preset 097.',
     ])
+  })
+
+  it('lights the OUT activity LED as it asks for a preset', async () => {
+    const signal = vi.spyOn(midiActivity, 'signal')
+    const midi = makeMidi(makeFakeFm1Ports({ presetReply: makeFm1VaPresetReply }))
+    const { result } = renderHook(() => useFm1VaPresetReader(midi))
+
+    await result.current.readPreset(96)
+
+    expect(signal).toHaveBeenCalledExactlyOnceWith('out')
+    signal.mockRestore()
   })
 
   it('can read only from FM-1+VA FM-1_079 or later', () => {

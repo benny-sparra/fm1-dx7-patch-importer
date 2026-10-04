@@ -691,6 +691,7 @@ export default {
     randomiseHelp: '生成新音色，保留名称和效果。',
   },
   midi: {
+    activityTitle: 'MIDI 活动：MIDI 输入收到消息时 IN 灯亮，编辑器发送消息时 OUT 灯亮。',
     feluccaBadgeLabel: 'Hügelton Instruments 的 Felucca 固件，{{release}}',
     feluccaBadgeTitle:
       'FM1 运行的是 Hügelton Instruments 的 Felucca 固件（{{release}}）。它会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',

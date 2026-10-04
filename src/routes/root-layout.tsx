@@ -9,6 +9,7 @@ import {
   MidiFirmwareBadge,
   MidiSettingsMenu,
 } from '@/components/midi/midi-controls'
+import { MidiActivityLeds } from '@/components/midi/midi-activity-leds'
 import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
 import type { Fm1VaPresetProbe as PresetProbe } from '@/components/midi/fm1-va-preset-probe'
@@ -136,6 +137,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               }
             >
               <MidiConnectActions midi={midi} />
+              <MidiActivityLeds />
               {/* On a phone the badge takes the last line, so the MIDI buttons keep one row. */}
               <MidiFirmwareBadge
                 className="order-last inline-flex min-h-8 w-full items-center gap-2 sm:order-none sm:w-auto"

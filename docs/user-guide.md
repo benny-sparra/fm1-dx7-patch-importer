@@ -52,7 +52,7 @@ send the file with `amidi`, using the port that `amidi -l` lists for the FM1:
 amidi -p hw:2,0,0 -s bank.syx
 ```
 
-The **MIDI log** in the footer lists recent messages the app sent and received. **Download log** saves it as a text file, with the full data of each message and your browser version, to attach to a bug report. The file stays on your computer until you share it.
+Beside **MIDI online**, two activity lights flicker like the MIDI light on a synth's panel: **IN** as a message arrives from the MIDI input, and **OUT** as the app sends one. They leave out MIDI clock and active sensing, and are hidden on narrow phone screens. The **MIDI log** in the footer lists recent messages the app sent and received. **Download log** saves it as a text file, with the full data of each message and your browser version, to attach to a bug report. The file stays on your computer until you share it.
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 

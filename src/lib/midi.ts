@@ -9,6 +9,7 @@ import {
 import { fm1EffectParameterMaximums, fm1EffectParameterCount } from '@/lib/fm1-effects'
 import { fm1VoiceParameterMaximums } from '@/lib/fm1-parameters'
 import { createId } from '@/lib/id'
+import { midiActivity } from '@/lib/midi-activity'
 import { defaultNoteVelocity } from '@/lib/note-velocity'
 
 export type MidiPort = Input | Output
@@ -95,10 +96,12 @@ export function resolveMidiPortSelection(
 
 export function sendDx7Voice(output: Output, channel: number, voice: Dx7Voice) {
   output.sendSysex(yamahaManufacturerId, makeDx7SingleVoicePayload(voice, channel))
+  midiActivity.signal('out')
 }
 
 export function sendDx7Bank(output: Output, channel: number, voices: Dx7Voice[]) {
   output.sendSysex(yamahaManufacturerId, makeDx7BankPayload(voices, channel))
+  midiActivity.signal('out')
 }
 
 function assertMidiChannel(channel: number) {
@@ -122,6 +125,7 @@ export function makeFm1ProgramChangeMessage(program: number, channel = 1) {
 export function sendFm1ProgramChange(output: Output, channel: number, program: number) {
   assertFm1ProgramChange(program, channel)
   output.sendProgramChange(program, { channels: channel })
+  midiActivity.signal('out')
 }
 
 /**
@@ -148,6 +152,7 @@ export function makeFm1ParameterPayload(parameter: number, value: number) {
 
 export function sendFm1Parameter(output: Output, parameter: number, value: number) {
   output.sendSysex(yamahaManufacturerId, makeFm1ParameterPayload(parameter, value))
+  midiActivity.signal('out')
 }
 
 function assertFm1EffectControl(controller: number, value: number, channel: number) {
@@ -175,6 +180,7 @@ export function sendFm1EffectControl(
 ) {
   assertFm1EffectControl(controller, value, channel)
   output.sendControlChange(controller, value, { channels: channel })
+  midiActivity.signal('out')
 }
 
 function assertFm1EffectDiagnosticControl(controller: number, value: number, channel: number) {
@@ -211,6 +217,7 @@ export function sendFm1EffectDiagnosticControl(
 ) {
   assertFm1EffectDiagnosticControl(controller, value, channel)
   output.sendControlChange(controller, value, { channels: channel })
+  midiActivity.signal('out')
 }
 
 function assertMidiNote(note: number, velocity: number, channel: number) {
@@ -231,11 +238,13 @@ export function sendNoteOn(
 ) {
   assertMidiNote(note, velocity, channel)
   output.sendNoteOn(note, { channels: channel, rawAttack: velocity })
+  midiActivity.signal('out')
 }
 
 export function sendNoteOff(output: Output, channel: number, note: number, velocity = 0) {
   assertMidiNote(note, velocity, channel)
   output.sendNoteOff(note, { channels: channel, rawRelease: velocity })
+  midiActivity.signal('out')
 }
 
 export const midiNoteCount = 128
@@ -250,6 +259,7 @@ export function sendEveryNoteOff(output: Output, channel: number) {
   for (let note = 0; note < midiNoteCount; note += 1) {
     output.sendNoteOff(note, { channels: channel, rawRelease: 0 })
   }
+  midiActivity.signal('out')
 }
 
 const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']

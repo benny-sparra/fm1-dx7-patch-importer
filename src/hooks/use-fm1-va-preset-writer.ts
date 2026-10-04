@@ -11,6 +11,7 @@ import {
   writesFm1VaPresets,
 } from '@/lib/fm1-va-preset-write'
 import { makeLogEntry } from '@/lib/midi'
+import { midiActivity } from '@/lib/midi-activity'
 
 type PresetWriterMidi = Pick<
   MidiController,
@@ -85,6 +86,7 @@ export function useFm1VaPresetWriter(midi: PresetWriterMidi) {
           },
           send: (message) => {
             output.send(message)
+            midiActivity.signal('out')
             lastWriteAt.current = Date.now()
             log('out', `Wrote stored preset ${number} to the FM1.`, message)
           },

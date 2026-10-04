@@ -754,6 +754,8 @@ export default {
     randomiseHelp: 'Nova voz. Mantém nome e efeitos.',
   },
   midi: {
+    activityTitle:
+      'Atividade MIDI: IN acende quando chega uma mensagem da entrada MIDI e OUT quando o editor envia uma.',
     feluccaBadgeLabel: 'Firmware Felucca da Hügelton Instruments, {{release}}',
     feluccaBadgeTitle:
       'O FM1 usa o firmware Felucca da Hügelton Instruments, {{release}}. Ele toca suas notas, mas ignora sons DX7, bancos e os controles de efeito.',

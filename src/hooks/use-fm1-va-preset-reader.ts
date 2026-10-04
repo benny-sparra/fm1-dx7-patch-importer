@@ -10,6 +10,7 @@ import {
   type Fm1VaLink,
 } from '@/lib/fm1-va-preset-read'
 import { makeLogEntry } from '@/lib/midi'
+import { midiActivity } from '@/lib/midi-activity'
 
 type PresetReaderMidi = Pick<
   MidiController,
@@ -79,6 +80,7 @@ export function useFm1VaPresetReader(midi: PresetReaderMidi) {
         },
         send: (message) => {
           output.send(message)
+          midiActivity.signal('out')
           log('out', `Asked the FM1 for stored preset ${number}.`, message)
         },
       }

@@ -8,6 +8,7 @@ import type { Fm1Firmware } from '@/lib/fm1-firmware'
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
 import { fm1VaPresetPayloadStart, readFm1VaMessageRecord } from '@/lib/fm1-va-preset-message'
 import { Fm1VaPresetWriteError } from '@/lib/fm1-va-preset-write'
+import { midiActivity } from '@/lib/midi-activity'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
 import { capturedOrgan3 } from '@/test/fm1-va-captures'
@@ -70,6 +71,19 @@ describe('useFm1VaPresetWriter', () => {
     expect(midi.logStore.getSnapshot().map(({ message }) => message)).toEqual([
       'Wrote stored preset 001 to the FM1.',
     ])
+  })
+
+  it('lights the OUT activity LED as it writes a preset', async () => {
+    const signal = vi.spyOn(midiActivity, 'signal')
+    const midi = makeMidi(makeFakeFm1Ports())
+    const { result } = renderHook(() => useFm1VaPresetWriter(midi))
+
+    const write = result.current.writePreset(0, voice, record)
+    await vi.advanceTimersByTimeAsync(1500)
+    await write
+
+    expect(signal).toHaveBeenCalledExactlyOnceWith('out')
+    signal.mockRestore()
   })
 
   it('can write only to FM-1+VA FM-1_079 or later', () => {
