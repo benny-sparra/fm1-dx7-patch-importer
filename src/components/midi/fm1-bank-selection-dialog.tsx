@@ -162,7 +162,7 @@ export function Fm1BankSelectionDialog({
           cannot remove the reconnect button's label on its own. */}
       {sysexUnavailable ? (
         <DialogFooter key="sysex-warning">
-          <Button onClick={closeDialog} type="button" variant="outline">
+          <Button onClick={closeDialog} type="button" variant="ghost">
             {t('common.close')}
           </Button>
           <Button

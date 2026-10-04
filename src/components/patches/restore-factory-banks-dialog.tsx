@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { ErrorNotice } from '@/components/ui/error-notice'
 
 type RestoreFactoryBanksDialogProps = {
   onClose: () => void
@@ -75,15 +76,16 @@ export function RestoreFactoryBanksDialog({ onClose, onRestore }: RestoreFactory
           <p className="border border-[var(--crt-line-lt)] p-3.5 text-sm leading-6 text-[var(--crt-ink-2)]">
             {t('dialogs.restoreDetails')}
           </p>
-          {error ? (
-            <p className="mt-3 text-sm text-destructive" role="alert">
-              {error}
-            </p>
-          ) : null}
+          {error ? <ErrorNotice className="mt-3">{error}</ErrorNotice> : null}
         </div>
       </DialogBody>
       <DialogFooter>
-        <Button disabled={working} onClick={() => void restore()} type="button">
+        <Button
+          disabled={working}
+          onClick={() => void restore()}
+          type="button"
+          variant="destructive"
+        >
           <RotateCcw />
           <span>{working ? t('banks.restoring') : t('dialogs.restoreAction')}</span>
         </Button>

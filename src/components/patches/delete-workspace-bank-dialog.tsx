@@ -54,14 +54,14 @@ export function DeleteWorkspaceBankDialog({
         </p>
       </DialogBody>
       <DialogFooter>
+        {/* Red text rather than solid red: Undo in the notification brings the bank back. */}
         <Button
-          className="shadow-none hover:shadow-none"
           onClick={() => {
             onDelete()
             closeDialog()
           }}
           type="button"
-          variant="danger"
+          variant="destructive"
         >
           <Trash2 />
           {t('banks.deleteBank')}

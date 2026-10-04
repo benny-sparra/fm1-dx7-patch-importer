@@ -1,4 +1,4 @@
-import { ChevronDown, Send, Square, TriangleAlert } from 'lucide-react'
+import { ChevronDown, Send, Square } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -21,6 +21,7 @@ import {
   RackPanelTitle,
 } from '@/components/ui/rack-panel'
 import { useToast } from '@/components/ui/toast'
+import { WarningNotice } from '@/components/ui/warning-notice'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import { useFm1VaPresetWriter } from '@/hooks/use-fm1-va-preset-writer'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
@@ -362,10 +363,9 @@ export function WriteFm1VaPresetsDialog({
               >
                 {t('fm1VaWrite.confirmTitle')}
               </h3>
-              <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                <TriangleAlert className="mt-0.5 size-5 shrink-0" />
+              <WarningNotice>
                 <p>{t('fm1VaWrite.confirmWarning')}</p>
-              </div>
+              </WarningNotice>
               <WriteList writes={writes} />
               {writing ? (
                 <div className="grid gap-1">
@@ -421,7 +421,7 @@ export function WriteFm1VaPresetsDialog({
             <Button onClick={() => setPhase('choosing')} type="button" variant="ghost">
               <span>{t('common.cancel')}</span>
             </Button>
-            <Button onClick={() => void write()} type="button" variant="destructive">
+            <Button onClick={() => void write()} type="button" variant="danger">
               <Send />
               <span>{t('fm1VaWrite.confirm', { count: writes.length })}</span>
             </Button>

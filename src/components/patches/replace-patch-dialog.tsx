@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next'
-import { TriangleAlert, Upload } from 'lucide-react'
+import { Upload } from 'lucide-react'
 import { type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
+import { WarningNotice } from '@/components/ui/warning-notice'
 import type { Patch } from '@/data/patches'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import type { Dx7Voice } from '@/lib/dx7'
@@ -115,10 +116,9 @@ export function ReplacePatchDialog({
       </DialogHeader>
       <DialogBody>
         <form id={formId} className="grid gap-5 p-5" onSubmit={(event) => void submit(event)}>
-          <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            <TriangleAlert className="mt-0.5 size-5 shrink-0" />
+          <WarningNotice>
             <p id={warningId}>{t('replacePatch.warning')}</p>
-          </div>
+          </WarningNotice>
 
           <label className="modal-input-surface flex min-h-11 cursor-pointer items-center rounded-md border border-dashed border-input px-3 text-sm transition-colors hover:bg-muted/50">
             <span className="min-w-0 truncate">{file?.name ?? t('banks.chooseSysexFile')}</span>
