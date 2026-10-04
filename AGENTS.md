@@ -522,6 +522,14 @@ open everything an earlier release could have saved.
   order, Envelope, the preset's own Filter, Virtual Analog settings, and bytes not
   mapped yet) come only from the record. Lazy code takes `fm1VaRecordSize` from
   `src/lib/patch-library.ts`, since importing the record module directly gave it a chunk of its own.
+- A Virtual Analog preset lives in the snapshot's `virtualAnalog` map, never in `voices`: its 128
+  voice bytes exactly as the FM1 reads them back (`isFm1VaVirtualAnalogVoice`), with its record in
+  `records`. Every DX7 path reads `voices`, so it meets these slots as empty, which is safe by
+  default; a path that should carry them (copying, moving, compacting, saved banks from version 3,
+  backups from version 4) handles `virtualAnalog` on purpose. Its slot sends only its Program
+  Change, never opens the voice editor, and a DX7 bank, sent or downloaded, gets INIT VOICE in its
+  place and says so before and after. Never normalise, clamp, pack, or send its bytes as a DX7
+  voice.
 - Distortion type is the one record byte the editor changes (38). The editor keeps it after the
   effects in its parameters (`FM1_VA_DISTORTION_TYPE_INDEX`), so undo and compare cover it, and
   saving writes it into the record through `saveSound`, which gives the copies that held the same

@@ -475,6 +475,9 @@ selected Virtual Analog preset, and whether that is an unsaved edit, is not know
 What these CCs cannot give an editor: the current value of any setting, because the FM1 sends no
 controllers back, and a way to store a Virtual Analog preset in the library or on the FM1. Both
 need the preset read and write commands above (`docs/feature-backlog.md`, FM-1+VA items 2 and 4).
+From 2026-10-04 the library keeps Virtual Analog presets read with `7D 10` or from a backup file,
+as the 128 voice bytes the read returns and the record; preset 097's voice bytes from the
+2026-10-01 backup pack into exactly the bytes the read returned.
 
 ### Felucca replacement firmware
 

@@ -52,6 +52,7 @@ export function makeLibrarianLibrary(overrides: Partial<Library> = {}): Library 
     })),
     undo: vi.fn<Library['undo']>(),
     undoChange: vi.fn<Library['undoChange']>(),
+    virtualAnalog: {},
     updateBankInformation: vi.fn<Library['updateBankInformation']>(),
     updateNamedBankDetails: vi.fn<Library['updateNamedBankDetails']>(),
     voices: {},

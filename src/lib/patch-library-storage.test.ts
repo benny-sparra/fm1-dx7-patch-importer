@@ -4,6 +4,10 @@ import { createNamedBank } from '@/lib/named-bank'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import {
+  capturedVirtualAnalogRecord,
+  virtualAnalogVoiceBeyondDx7Ranges,
+} from '@/test/fm1-va-virtual-analog'
+import {
   addStoredNamedBank,
   listStoredNamedBanks,
   loadStoredPatchLibrary,
@@ -91,7 +95,7 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: {},
       bankNames: {},
       favourites: [],
-      version: 7,
+      version: 8,
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
   })
@@ -118,7 +122,8 @@ describe('saveStoredPatchLibrary', () => {
       loadedBanks: ['A'],
       records: {},
       savedAt: '2026-07-01T12:00:00.000Z',
-      version: 7,
+      version: 8,
+      virtualAnalog: {},
       voices: { 'bank-A-1': voice },
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
@@ -144,7 +149,7 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: {},
       bankNames: { A: 'Pianos', B: 'Leads' },
       loadedBanks: ['A', 'B'],
-      version: 7,
+      version: 8,
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
   })
@@ -168,7 +173,7 @@ describe('saveStoredPatchLibrary', () => {
     await expect(loading).resolves.toMatchObject({
       bankDescriptions: {},
       loadedBanks: [],
-      version: 7,
+      version: 8,
       workspaceBanks: ['A', 'B', 'C', 'D', 'E'],
     })
   })
@@ -194,7 +199,7 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: { A: 'Friday performance' },
       bankNames: { A: 'Studio Fav' },
       favourites: [],
-      version: 7,
+      version: 8,
     })
   })
 
@@ -232,7 +237,7 @@ describe('saveStoredPatchLibrary', () => {
           voice: other,
         },
       ],
-      version: 7,
+      version: 8,
     })
   })
 
@@ -319,6 +324,62 @@ describe('saveStoredPatchLibrary', () => {
     const loaded = await loading
     expect(loaded?.records).toEqual({ 'bank-A-1': record })
     expect(Object.keys(loaded?.voices ?? {})).toEqual(['bank-A-1', 'bank-A-2'])
+  })
+
+  it('restores Virtual Analog presets from version 8 storage exactly as stored', async () => {
+    const [voice] = makeDemoVoices()
+    const record = capturedVirtualAnalogRecord()
+    const virtualAnalog = virtualAnalogVoiceBeyondDx7Ranges()
+    const effects = makeDefaultFm1Effects()
+    effects[4] = 1
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: { 'bank-A-1': makeDefaultFm1Effects(), 'bank-A-2': effects },
+      favourites: [],
+      loadedBanks: ['A'],
+      records: { 'bank-A-2': record },
+      savedAt: '2026-10-04T08:00:00.000Z',
+      version: 8,
+      virtualAnalog: { 'bank-A-2': virtualAnalog },
+      voices: { 'bank-A-1': voice },
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    const loaded = await loading
+    expect(loaded?.virtualAnalog).toEqual({ 'bank-A-2': virtualAnalogVoiceBeyondDx7Ranges() })
+    expect(loaded?.records).toEqual({ 'bank-A-2': record })
+    expect(loaded?.effects['bank-A-2']).toEqual(effects)
+    expect(Object.keys(loaded?.voices ?? {})).toEqual(['bank-A-1'])
+  })
+
+  it('classifies a workspace with an unreadable Virtual Analog preset as incompatible', async () => {
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {},
+      favourites: [],
+      loadedBanks: ['A'],
+      records: {},
+      savedAt: '2026-10-04T08:00:00.000Z',
+      version: 8,
+      virtualAnalog: { 'bank-A-1': new Uint8Array(128).fill(0x80) },
+      voices: {},
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).rejects.toMatchObject({ code: 'incompatible' })
+    expect(fake.put).not.toHaveBeenCalled()
   })
 
   it('classifies a workspace with an unreadable favourite as incompatible without changing it', async () => {
@@ -436,7 +497,7 @@ describe('saveStoredPatchLibrary', () => {
         bankDescriptions: {},
         bankNames: {},
         favourites: [],
-        version: 7,
+        version: 8,
         workspaceBanks: ['A', 'B', 'C', 'D'],
       }),
       'current',

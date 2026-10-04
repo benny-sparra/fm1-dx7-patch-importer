@@ -31,6 +31,7 @@ import { makeFm1VaReply } from '@/test/fm1-va-replies'
 import { translatePageText } from '@/test/page-translator'
 
 import { ImportFm1VaPresetsDialog } from './import-fm1-va-presets-dialog'
+import { slotVoice } from '@/test/slot-voice'
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
@@ -136,6 +137,7 @@ type LibraryOptions = {
   midi?: Midi
   records?: PatchLibrary['records']
   source?: ComponentProps<typeof ImportFm1VaPresetsDialog>['source']
+  virtualAnalog?: PatchLibrary['virtualAnalog']
   voices?: PatchLibrary['voices']
   workspaceBanks?: string[]
 }
@@ -147,6 +149,7 @@ function renderDialog({
   midi = noFm1,
   records = {},
   source = 'file',
+  virtualAnalog = {},
   voices = {},
   workspaceBanks = ['A', 'B', 'C', 'D'],
 }: LibraryOptions = {}) {
@@ -159,6 +162,7 @@ function renderDialog({
     importFetchedBanks,
     records,
     undoChange,
+    virtualAnalog,
     voices,
     workspaceBanks,
   }
@@ -315,7 +319,7 @@ describe('ImportFm1VaPresetsDialog', () => {
 
     const imported = vi.mocked(importFetchedBanks).mock.calls[0][0]
     expect(importedInto(imported)).toEqual(['A', 'B', 'D'])
-    expect(imported[2].sounds[31]?.voice.name).toBe(fm1VaTestPatchName(127))
+    expect(slotVoice(imported[2].sounds[31]).name).toBe(fm1VaTestPatchName(127))
     // Each patch keeps the settings record FM-1+VA stored with it.
     expect(imported[2].sounds[31]?.record).toHaveLength(59)
     expect(dialog.open).toBe(false)
@@ -440,27 +444,25 @@ describe('ImportFm1VaPresetsDialog', () => {
     expect(vi.mocked(importFetchedBanks).mock.calls[0][0][0].sounds[5]).toBeNull()
   })
 
-  it('marks a Virtual Analog preset and keeps that slot out of the import', async () => {
+  it('marks a Virtual Analog preset and imports it apart from the DX7 voices', async () => {
     const { importFetchedBanks, user } = renderDialog()
     await chooseFile(user, makeFm1VaBackupFile('va.syx', { virtualAnalogSlots: [33] }))
 
-    expect(within(bankSection('B')).getByText('Virtual Analog preset, not imported')).toBeTruthy()
+    expect(within(bankSection('B')).getByText('Virtual Analog preset')).toBeTruthy()
     expect(within(bankSection('B')).getByText(fm1VaTestPatchName(33))).toBeTruthy()
-    expect(
-      screen.getByText('The file has a Virtual Analog preset, which can’t currently be imported.'),
-    ).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Import 4 banks' }))
-    expect(vi.mocked(importFetchedBanks).mock.calls[0][0][1].sounds[1]).toBeNull()
+    const sound = vi.mocked(importFetchedBanks).mock.calls[0][0][1].sounds[1]
+    expect(sound && 'virtualAnalog' in sound).toBe(true)
+    expect(sound && 'voice' in sound).toBe(false)
   })
 
-  it('cannot take a bank that holds only Virtual Analog presets', async () => {
+  it('can take a bank that holds only Virtual Analog presets', async () => {
     const { user } = renderDialog()
     const bankD = Array.from({ length: 32 }, (_, index) => 96 + index)
 
     await chooseFile(user, makeFm1VaBackupFile('va.syx', { virtualAnalogSlots: bankD }))
 
-    expect(bankSwitch('D').checked).toBe(false)
-    expect(bankSwitch('D').disabled).toBe(true)
+    expect(bankSwitch('D').disabled).toBe(false)
   })
 
   it('cannot take a bank in which every preset is damaged', async () => {
@@ -805,15 +807,13 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
     expect(ports.output.send.mock.calls[6][0]).toEqual(makeFm1VaPresetReadRequest(0))
   })
 
-  it('says how many virtual analogue presets the FM1 has that can’t be imported', async () => {
+  it('reads the FM1’s Virtual Analog presets to import them', async () => {
     const { midi } = fakeFm1({ virtualAnalogSlots: [96, 112] })
     renderDialog({ midi, source: 'fm1' })
 
-    expect(
-      await screen.findByText(
-        'The FM1 has 2 Virtual Analog presets, which can’t currently be imported.',
-      ),
-    ).toBeTruthy()
+    await screen.findByRole('heading', { name: 'Banks on the FM1' })
+
+    expect(within(bankSection('D')).getAllByText('Virtual Analog preset')).toHaveLength(2)
   })
 
   it('offers no read button once the banks show, as the read ran as it opened', async () => {

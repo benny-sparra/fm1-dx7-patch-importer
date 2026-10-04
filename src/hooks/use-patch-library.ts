@@ -103,6 +103,7 @@ export function usePatchLibrary() {
               favourites: stored.favourites,
               loadedBanks: stored.loadedBanks,
               records: stored.records,
+              virtualAnalog: stored.virtualAnalog,
               voices: stored.voices,
               workspaceBanks: stored.workspaceBanks,
             }
@@ -503,7 +504,7 @@ export function usePatchLibrary() {
   )
   const favouriteKeys = useMemo(() => favouriteSoundKeys(favourites), [favourites])
   const getBankVoices = useCallback(
-    (bank: string) => selectBankVoices(history.present, bank),
+    (bank: string, initVoice?: Dx7Voice) => selectBankVoices(history.present, bank, initVoice),
     [history.present],
   )
 
@@ -554,6 +555,7 @@ export function usePatchLibrary() {
     updateVoice,
     effects,
     records,
+    virtualAnalog: history.present.virtualAnalog,
     voices,
     workspaceBanks: history.present.workspaceBanks,
     workspaceHasUnsavedChanges: persistence.hasUnsavedChanges,

@@ -62,12 +62,15 @@ export function findCatalogMatches(index: Dx7CatalogIndex, search: string): Cata
   )
 }
 
-/** Patches in saved banks whose name contains the search, in the order the banks are listed. */
+/**
+ * Patches in saved banks whose name contains the search, in the order the banks are listed. A
+ * Virtual Analog preset is left out: a result plays and copies as a DX7 voice.
+ */
 export function findSavedBankMatches(banks: NamedBank[], search: string): SavedPatchMatch[] {
   if (!search.trim()) return []
   return banks.flatMap((bank) =>
     bank.slots.flatMap((slot) =>
-      patchNameMatchesSearch(slot.voice.name, search)
+      'voice' in slot && patchNameMatchesSearch(slot.voice.name, search)
         ? [
             {
               bankId: bank.id,

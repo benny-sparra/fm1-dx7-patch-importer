@@ -23,6 +23,7 @@ import {
   parseFm1VaPresetFile,
   readFm1VaPresetFile,
 } from './fm1-va-preset-file'
+import { slotVoice } from '@/test/slot-voice'
 
 const capturedRecord = capturedOrgan3.slice(161, 229)
 
@@ -77,7 +78,7 @@ function parsedPresets(file: Uint8Array) {
 function parsedVoices(file: Uint8Array) {
   return parseFm1VaPresetFile(file.buffer as ArrayBuffer)
     .flatMap(importableSounds)
-    .map((sound) => sound?.voice ?? null)
+    .map((sound) => (sound && 'voice' in sound ? slotVoice(sound) : null))
 }
 
 describe('fm1VaChecksum', () => {
@@ -97,8 +98,8 @@ describe('parseFm1VaPresetFile', () => {
 
     const [organ] = importableSounds(bankA)
 
-    expect(organ?.voice.name).toBe('ORGAN 3')
-    expect(unpackDx7Voice(organ!.voice)).toEqual(capturedOrgan3.slice(6, 161))
+    expect(slotVoice(organ).name).toBe('ORGAN 3')
+    expect(unpackDx7Voice(slotVoice(organ))).toEqual(capturedOrgan3.slice(6, 161))
   })
 
   it('divides the 128 presets into banks A to D of 32, in slot order', () => {
@@ -110,7 +111,7 @@ describe('parseFm1VaPresetFile', () => {
       ['C', 32],
       ['D', 32],
     ])
-    expect(importableSounds(banks[3])[31]?.voice.data).toEqual(rom1a[31].data)
+    expect(slotVoice(importableSounds(banks[3])[31]).data).toEqual(rom1a[31].data)
   })
 
   it('reads each voice in the packed form the library stores', () => {
@@ -145,7 +146,20 @@ describe('parseFm1VaPresetFile', () => {
   })
 
   it('recognises a Virtual Analog preset by its record', () => {
-    expect(parsedPresets(backupFile())[96]).toEqual({ kind: 'virtual-analog', name: 'VOICE 97' })
+    expect(parsedPresets(backupFile())[96]).toMatchObject({
+      kind: 'virtual-analog',
+      name: 'VOICE 97',
+    })
+  })
+
+  it('reads a Virtual Analog preset’s voice bytes as the FM1 reads them back', () => {
+    const fromFile = parsedPresets(backupFile())[96]
+    const fromRead = fm1VaPresetBanksFromRead(readPresets())[3].presets[0]
+
+    if (fromFile.kind !== 'virtual-analog' || fromRead.kind !== 'virtual-analog') {
+      throw new Error('Expected Virtual Analog presets.')
+    }
+    expect(fromFile.virtualAnalog).toEqual(fromRead.virtualAnalog)
   })
 
   it('reads an FM preset’s record as FM', () => {
@@ -222,15 +236,24 @@ describe('importableSounds', () => {
     expect(organ3?.effects?.[2]).toBe(80)
   })
 
-  it('leaves out the presets the library cannot take', () => {
+  it('leaves out a damaged preset', () => {
     const file = backupFile()
     file[5 * 231 + 20] = (file[5 * 231 + 20] + 1) & 0x7f
 
-    const voices = parsedVoices(file)
+    const sounds = parseFm1VaPresetFile(file.buffer as ArrayBuffer).flatMap(importableSounds)
 
-    expect(voices[5]).toBeNull()
-    expect(voices[96]).toBeNull()
-    expect(voices.filter((voice) => voice === null)).toHaveLength(2)
+    expect(sounds[5]).toBeNull()
+    expect(sounds.filter((sound) => sound === null)).toHaveLength(1)
+  })
+
+  it('keeps a Virtual Analog preset apart from DX7 voices, with its record and effects', () => {
+    const sound = parseFm1VaPresetFile(backupFile().buffer as ArrayBuffer).flatMap(
+      importableSounds,
+    )[96]
+
+    expect(sound && 'voice' in sound).toBe(false)
+    expect(sound).toMatchObject({ virtualAnalog: expect.any(Uint8Array) })
+    expect(sound?.record?.[18]).toBe(0x5a)
   })
 })
 
@@ -238,7 +261,7 @@ describe('readFm1VaPresetFile', () => {
   it('reads a file the user chose', async () => {
     const banks = await readFm1VaPresetFile(new Blob([backupFile()]))
 
-    expect(importableSounds(banks[0])[0]?.voice.name).toBe('ORGAN 3')
+    expect(slotVoice(importableSounds(banks[0])[0]).name).toBe('ORGAN 3')
   })
 
   it('reports the length of a file of the wrong size before reading it', async () => {
@@ -300,7 +323,7 @@ describe('fm1VaPresetBanksFromRead', () => {
   it('names a Virtual Analog preset by its record', () => {
     const banks = fm1VaPresetBanksFromRead(readPresets())
 
-    expect(banks[3].presets[0]).toEqual({ kind: 'virtual-analog', name: 'VOICE 97' })
+    expect(banks[3].presets[0]).toMatchObject({ kind: 'virtual-analog', name: 'VOICE 97' })
   })
 
   it('counts an FM preset whose voice holds a byte above seven bits as damaged', () => {
@@ -374,7 +397,21 @@ describe('differsFromLibrary', () => {
   })
 
   it('does not mark a preset the import leaves out', () => {
-    expect(differsFromLibrary({ kind: 'virtual-analog', name: 'Default' }, {})).toBe(false)
     expect(differsFromLibrary({ kind: 'damaged' }, {})).toBe(false)
+  })
+
+  it('compares a Virtual Analog preset with the slot’s Virtual Analog bytes', () => {
+    const preset = fm1VaPresetBanksFromRead(readPresets())[3].presets[0]
+    if (preset.kind !== 'virtual-analog') throw new Error('Expected a Virtual Analog preset.')
+    const slot = {
+      effects: preset.effects,
+      record: preset.record,
+      virtualAnalog: preset.virtualAnalog.slice(),
+    }
+
+    expect(differsFromLibrary(preset, slot)).toBe(false)
+    expect(differsFromLibrary(preset, { effects: preset.effects, record: preset.record })).toBe(
+      true,
+    )
   })
 })

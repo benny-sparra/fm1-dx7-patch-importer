@@ -471,6 +471,17 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       (`FM-1_087` on).
     - `soundKey` covers the raw bytes, so a favourite of a Virtual Analog slot matches it, and
       the search's duplicate hiding treats two identical ones as one.
+    - _Built 2026-10-04, waiting for a hardware test:_ importing from the FM1 or Baud Girl's
+      presets file keeps each Virtual Analog preset in the workspace's `virtualAnalog` map, never
+      in `voices`: its 128 voice bytes exactly as the FM1 reads them back, rather than the file's
+      155, since the FM1 stores that form and the file's packs into it byte for byte (preset 097
+      read both ways), and its record in `records`. Workspace version 8, saved banks version 3,
+      and backup files version 4 carry them, each with fixture tests. Its card has the VA tag and
+      no Edit or DX7 download; its click sends only its Program Change; copying, moving, and
+      deleting a bank carry it; and a DX7 bank, sent or downloaded, puts INIT VOICE in its slot
+      and says so. Still to do: the FM tags, Favourites (its heart is hidden), search across saved
+      banks, the duplicate finder, writing it back with 4 (the write leaves that FM1 preset alone),
+      and the FM-1+VA bank instructions' warning.
   - **Play them live.** From FM-1_086, CC 24–31 and 52–57 on the note channel set Waveform,
     Super, Detune, Drift, Sub, Noise, PWM, Filter Type, and the filter's envelope and modulation,
     and CC 70–78 the shared Envelope, LFO, Cutoff, and Resonance, as unsaved edits heard at once.

@@ -359,15 +359,6 @@ export default {
     openFailed:
       'No se pudo abrir la importación de presets de Baud Girl. Recarga la página e inténtalo de nuevo.',
     virtualAnalogTag: 'VA',
-    virtualAnalogPreset: 'Preset Virtual Analog, no se importa',
-    virtualAnalogPresets:
-      'El FM1 tiene un preset Virtual Analog, que por ahora no se puede importar.',
-    virtualAnalogPresets_other:
-      'El FM1 tiene {{count, number}} presets Virtual Analog, que por ahora no se pueden importar.',
-    virtualAnalogPresetsFile:
-      'El archivo tiene un preset Virtual Analog, que por ahora no se puede importar.',
-    virtualAnalogPresetsFile_other:
-      'El archivo tiene {{count, number}} presets Virtual Analog, que por ahora no se pueden importar.',
     errors: {
       size: 'Este archivo tiene {{bytes, number}} bytes. Un archivo de «Save a backup» de Baud Girl tiene exactamente {{expected, number}} bytes.',
       format: 'Este archivo no se guardó con «Save a backup» de Baud Girl.',
@@ -527,6 +518,14 @@ export default {
     patchCopied: 'Se copió «{{patch}}» a {{slot}} en «{{bank}}».',
     patchReplaced: 'Se reemplazó {{slot}} por «{{patch}}».',
     operatorCopied: 'Se copió el operador {{number}}.',
+    bankDownloadStartedWithInit:
+      'Descargando «{{bank}}», con INIT VOICE en lugar de su preset Virtual Analog.',
+    bankDownloadStartedWithInit_other:
+      'Descargando «{{bank}}», con INIT VOICE en lugar de sus {{count, number}} presets Virtual Analog.',
+    banksDownloadStartedWithInit:
+      'Descargando todos los bancos, con INIT VOICE en lugar de un preset Virtual Analog.',
+    banksDownloadStartedWithInit_other:
+      'Descargando todos los bancos, con INIT VOICE en lugar de {{count, number}} presets Virtual Analog.',
   },
   meta: {
     title: 'Editor y bibliotecario M-VAVE FM1',
@@ -928,6 +927,19 @@ export default {
       playFailed: 'No se pudo reproducir el sonido.',
       copiesHidden: 'No se muestran los sonidos duplicados.',
     },
+    slotVirtualAnalogTitle:
+      'Haz clic para seleccionar {{name}} en el FM1, que toca el preset Virtual Analog guardado ahí',
+    slotVirtualAnalogAddedTitle:
+      '{{name}} es un preset Virtual Analog, que solo suena desde los bancos A a D del FM1',
+    virtualAnalogPatch: 'Preset Virtual Analog',
+    sentStatusWithInit:
+      'Se envió el banco {{bank}}, con INIT VOICE en lugar de su preset Virtual Analog. Elige su destino en el FM1.',
+    sentStatusWithInit_other:
+      'Se envió el banco {{bank}}, con INIT VOICE en lugar de sus {{count, number}} presets Virtual Analog. Elige su destino en el FM1.',
+    virtualAnalogInitNote:
+      'Un banco DX7 no tiene sitio para un preset Virtual Analog, así que el de este banco se envía como INIT VOICE.',
+    virtualAnalogInitNote_other:
+      'Un banco DX7 no tiene sitio para presets Virtual Analog, así que los {{count, number}} de este banco se envían como INIT VOICE.',
   },
   namedBanks: {
     saving: 'Guardando…',
@@ -975,6 +987,10 @@ export default {
     copied: '“{{name}}” creado.',
     deleted: '“{{name}}” eliminado.',
     loaded: '“{{name}}” cargado en “{{bank}}”.',
+    downloadedWithInit:
+      'Se descargó «{{name}}», con INIT VOICE en lugar de su preset Virtual Analog.',
+    downloadedWithInit_other:
+      'Se descargó «{{name}}», con INIT VOICE en lugar de sus {{count, number}} presets Virtual Analog.',
   },
   backup: {
     menuOtherFiles: 'Otros archivos',

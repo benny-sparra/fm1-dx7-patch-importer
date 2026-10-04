@@ -5,6 +5,7 @@ import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
 import type { NamedBank } from '@/lib/named-bank'
 import {
   emptyPatchLibrary,
+  importFetchedBanks,
   importVoices,
   makeDemoVoices,
   voiceId,
@@ -20,6 +21,11 @@ import {
   workspaceBackupVersion,
   WorkspaceBackupError,
 } from './workspace-backup'
+import {
+  capturedVirtualAnalogRecord,
+  virtualAnalogVoiceBeyondDx7Ranges,
+} from '@/test/fm1-va-virtual-analog'
+import { slotVoice } from '@/test/slot-voice'
 
 // A voice and its effects exactly as version 1 wrote them. The voice's first 118 bytes count up
 // from 0 to 99 and round again, and its name is "BACKUP 1".
@@ -126,6 +132,40 @@ function versionThreeFixture(overrides: Record<string, unknown> = {}) {
   }
 }
 
+// A Virtual Analog preset's voice bytes and record, from version 4: preset 097 as FM-1_093 read it
+// back, with LFO Speed at 127, above the 99 a DX7 voice allows, as FM-1+VA's preset pack holds.
+const fixtureVirtualAnalog =
+  'Y2NjY2NjYwAnAAAAOABjAgBjY2NjY2NjACcAAAA4AAACAGNjY2NjY2MAJwAAADgAAAIAY2NjY2NjYwAnAAAAOAAAAgBjY2NjY2NjACcAAAA4AAACAGNjY2NjY2MAJwAAADgAYwIAY2NjYzIyMjIACH8AAAAwGFZPSUNFIDk3ICA='
+const fixtureVirtualAnalogRecord =
+  'UAMDAwMDAwMDAwMDAwMDAwMDWgIyZADkgICAAAEAAQAAAgAAAwAABAAABQAAgICAgICAgAAAAAAAAAA='
+
+// Version 4 lets a slot hold a Virtual Analog preset, written as version 4 writes it: in workspace
+// slot A2 and in the saved bank's slot 2.
+function versionFourFixture() {
+  const fixture = versionThreeFixture()
+  const virtualAnalogSlot = {
+    effects: fixtureEffects,
+    record: fixtureVirtualAnalogRecord,
+    slot: 2,
+    virtualAnalog: fixtureVirtualAnalog,
+  }
+  const [savedBank] = fixture.savedBanks
+  return {
+    ...fixture,
+    savedBanks: [
+      {
+        ...savedBank,
+        slots: savedBank.slots.map((saved, index) => (index === 1 ? virtualAnalogSlot : saved)),
+      },
+    ],
+    version: 4,
+    workspace: {
+      ...fixture.workspace,
+      slots: [...fixture.workspace.slots, { bank: 'A', ...virtualAnalogSlot }],
+    },
+  }
+}
+
 function fixtureVoiceBytes() {
   const data = new Uint8Array(dx7PackedVoiceSize)
   for (let index = 0; index < 118; index += 1) data[index] = index % 100
@@ -174,7 +214,7 @@ function makeSavedBank(id: string): NamedBank {
       voice,
     })),
     updatedAt: '2026-09-01T10:00:00.000Z',
-    version: 2,
+    version: 3,
   }
 }
 
@@ -210,9 +250,9 @@ describe('workspace backup', () => {
       id: 'saved-1',
       name: 'Live pads',
       // A saved bank is read as the version this release writes; it has no records.
-      version: 2,
+      version: 3,
     })
-    expect(backup.savedBanks[0].slots[31].voice.name).toBe('BACKUP 1')
+    expect(slotVoice(backup.savedBanks[0].slots[31]).name).toBe('BACKUP 1')
     expect(backup.damagedSavedBankCount).toBe(0)
     // Favourites arrived in version 2, and records in version 3.
     expect(backup.workspace.favourites).toEqual([])
@@ -250,6 +290,45 @@ describe('workspace backup', () => {
     expect(backup.workspace.favourites[1]).not.toHaveProperty('record')
     expect(backup.savedBanks[0].slots[0].record).toEqual(decodeFixture(fixtureHighRecord))
     expect(backup.savedBanks[0].slots[1]).not.toHaveProperty('record')
+  })
+
+  it('reads a version 4 backup, with its Virtual Analog presets, as that version wrote it', () => {
+    const backup = parseWorkspaceBackup(JSON.stringify(versionFourFixture()))
+
+    expect(backup.workspace.virtualAnalog).toEqual({
+      [voiceId('A', 2)]: virtualAnalogVoiceBeyondDx7Ranges(),
+    })
+    expect(backup.workspace.records[voiceId('A', 2)]).toEqual(capturedVirtualAnalogRecord())
+    expect(backup.workspace.voices[voiceId('A', 2)]).toBeUndefined()
+    expect(backup.savedBanks[0].slots[1]).toMatchObject({
+      record: capturedVirtualAnalogRecord(),
+      virtualAnalog: virtualAnalogVoiceBeyondDx7Ranges(),
+    })
+  })
+
+  it('backs up Virtual Analog presets and restores them exactly', () => {
+    const sounds = Array.from({ length: 32 }, (_, index) =>
+      index === 4
+        ? {
+            record: capturedVirtualAnalogRecord(),
+            virtualAnalog: virtualAnalogVoiceBeyondDx7Ranges(),
+          }
+        : null,
+    )
+    const workspace = importFetchedBanks(makeWorkspace(), [{ bank: 'B', sounds }])
+
+    const restored = parseWorkspaceBackup(
+      makeWorkspaceBackup(workspace, [], '2026-10-04T08:00:00Z'),
+    )
+
+    expect(restored.workspace.virtualAnalog).toEqual(workspace.virtualAnalog)
+    expect(restored.workspace.records).toEqual(workspace.records)
+  })
+
+  it('refuses a Virtual Analog preset in a backup of an earlier version', () => {
+    const fixture = { ...versionFourFixture(), version: 3 }
+
+    expect(problemOf(() => parseWorkspaceBackup(JSON.stringify(fixture)))).toBe('damaged')
   })
 
   it('reads no records from a version 2 backup', () => {

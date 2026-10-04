@@ -17,6 +17,7 @@ export type BackupLibrary = Pick<
   | 'namedBanksLoadFailed'
   | 'namedBanksLoading'
   | 'records'
+  | 'virtualAnalog'
   | 'voices'
   | 'workspaceBanks'
 >
@@ -52,6 +53,7 @@ export function useDownloadWorkspaceBackup(library: BackupLibrary) {
         favourites: library.favourites,
         loadedBanks: library.loadedBanks,
         records: library.records,
+        virtualAnalog: library.virtualAnalog,
         voices: library.voices,
         workspaceBanks: library.workspaceBanks,
       },

@@ -119,6 +119,16 @@ describe('planFm1VaBankWrite', () => {
     expect(plan[3]).toMatchObject({ kind: 'write' })
   })
 
+  it('leaves a preset alone where the library bank holds a Virtual Analog preset', () => {
+    // A Virtual Analog slot keeps its bytes apart from the DX7 voices, with only its record here.
+    const library = libraryOf('A')
+    delete library.voices[voiceId('A', 4)]
+
+    const plan = planFm1VaBankWrite(storedPresets(), 'A', 'A', library)
+
+    expect(plan[3]).toEqual({ kind: 'empty', slot: 3 })
+  })
+
   it('leaves a preset alone where the library bank has no patch', () => {
     const library = libraryOf('A')
     delete library.voices[voiceId('A', 7)]
