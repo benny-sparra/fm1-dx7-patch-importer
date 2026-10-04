@@ -152,7 +152,7 @@ test('persists a saved patch name across a browser reload', async ({ page }) => 
   await openFirstPatch(page)
 
   await page.getByRole('textbox', { name: 'Patch name' }).fill('E2E SAVE')
-  await page.getByRole('button', { name: 'Save to Library' }).click()
+  await page.getByRole('button', { name: 'Save to library' }).click()
   // The notification names the patch as saved, under its new name.
   await expect(page.getByText('Saved “E2E SAVE” to the library.')).toBeVisible()
   await expect.poll(() => storedFirstPatchName(page)).toBe('E2E SAVE')
@@ -586,7 +586,7 @@ test('restores a downloaded backup over a factory reset', async ({ page }) => {
   await openLibrarian(page)
   await openFirstPatch(page)
   await page.getByRole('textbox', { name: 'Patch name' }).fill('E2E BACKUP')
-  await page.getByRole('button', { name: 'Save to Library' }).click()
+  await page.getByRole('button', { name: 'Save to library' }).click()
   await page.getByRole('button', { name: 'Back to patch banks' }).click()
   await openFirstBankMenu(page)
   await page.getByRole('button', { name: 'Save bank' }).click()

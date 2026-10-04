@@ -246,6 +246,9 @@ open everything an earlier release could have saved.
   `src/i18n/resources.test.ts` checks both. That module reaches `i18next` directly: importing
   `@/i18n` from the editor's chunk made Rolldown split `Button` and Lucide out of the entry, costing
   800 B. Since a test can import an editor module before `@/i18n`, it waits for `initialized`.
+- Call the banks the library holds banks, a named copy of one a saved bank, and everything together
+  the library. Users never read "workspace" or "browser bank"; code keeps the name workspace bank.
+  A bank's title in a sentence goes in quotation marks, as in "Save “Leads”".
 - Call a library item a patch, and say sound only for what you hear. Voice means the DX7 voice data,
   as in the voice editor and Init voice. German uses Sound for a patch and Klang for what you hear;
   Simplified Chinese uses 音色 and 声音.

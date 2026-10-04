@@ -29,7 +29,7 @@ export default {
       'Activa MIDI en línea, permite el acceso MIDI y selecciona la salida MIDI del FM1 en Ajustes.',
     restoreTitle: '¿Restablecer los sonidos de fábrica?',
     restoreIntro:
-      'Esto sustituye los cuatro bancos locales. Puedes deshacer el restablecimiento inmediatamente.',
+      'Esto sustituye los cuatro bancos. Puedes deshacer el restablecimiento inmediatamente.',
     restoreClose: 'Cerrar el restablecimiento',
     restoreDetails:
       'Los bancos A, B, C y D se restablecerán respectivamente con los bancos 1, 2, 3 y 4 del FM-1, los sonidos que trae el FM1 de fábrica.',
@@ -193,7 +193,7 @@ export default {
     lfoWave: 'Forma de onda LFO',
     dx7Algorithm: 'Algoritmo DX7',
     unsavedBody:
-      'Guarda esta copia en la biblioteca del navegador o descártala y restaura el sonido guardado en el FM1.',
+      'Guarda esta copia en tu biblioteca o descártala y restaura el sonido guardado en el FM1.',
     revertTitle:
       'Descartar todos los cambios desde el último guardado y restaurar ese sonido en el FM1',
     keyboard: 'Teclado',
@@ -361,13 +361,13 @@ export default {
     virtualAnalogTag: 'VA',
     virtualAnalogPreset: 'Preset Virtual Analog, no se importa',
     virtualAnalogPresets:
-      'El FM1 tiene un preset analógico virtual, que por ahora no se puede importar.',
+      'El FM1 tiene un preset Virtual Analog, que por ahora no se puede importar.',
     virtualAnalogPresets_other:
-      'El FM1 tiene {{count, number}} presets analógicos virtuales, que por ahora no se pueden importar.',
+      'El FM1 tiene {{count, number}} presets Virtual Analog, que por ahora no se pueden importar.',
     virtualAnalogPresetsFile:
-      'El archivo tiene un preset analógico virtual, que por ahora no se puede importar.',
+      'El archivo tiene un preset Virtual Analog, que por ahora no se puede importar.',
     virtualAnalogPresetsFile_other:
-      'El archivo tiene {{count, number}} presets analógicos virtuales, que por ahora no se pueden importar.',
+      'El archivo tiene {{count, number}} presets Virtual Analog, que por ahora no se pueden importar.',
     errors: {
       size: 'Este archivo tiene {{bytes, number}} bytes. Un archivo de «Save a backup» de Baud Girl tiene exactamente {{expected, number}} bytes.',
       format: 'Este archivo no se guardó con «Save a backup» de Baud Girl.',
@@ -445,7 +445,7 @@ export default {
     continueSessionOnly: 'Continuar sin guardar',
     retrySaving: 'Reintentar guardado',
     technicalDetails: 'Detalles técnicos',
-    sessionOnlyTitle: 'Espacio de trabajo solo para esta sesión',
+    sessionOnlyTitle: 'Biblioteca solo para esta sesión',
     sessionOnlyBody:
       'Los datos existentes del navegador no se han modificado. Los cambios de esta sesión se perderán al cerrar la página.',
     saveErrorTitle: 'Los cambios no están guardados de forma segura',
@@ -454,19 +454,19 @@ export default {
     loadErrors: {
       unavailable: {
         title: 'El almacenamiento del navegador no está disponible',
-        body: 'No se pudo abrir el espacio guardado. Sus datos no se han modificado.',
+        body: 'No se pudo abrir la biblioteca guardada. Sus datos no se han modificado.',
       },
       'read-failed': {
-        title: 'No se pudo leer el espacio de trabajo guardado',
-        body: 'Puede ser un problema temporal del almacenamiento. No se creó ni guardó ningún espacio de sustitución.',
+        title: 'No se pudo leer la biblioteca guardada',
+        body: 'Puede ser un problema temporal del almacenamiento. No se creó ni guardó ninguna biblioteca de sustitución.',
       },
       incompatible: {
-        title: 'El espacio guardado es incompatible o está dañado',
+        title: 'La biblioteca guardada es incompatible o está dañada',
         body: 'El registro existente se dejó intacto. Esta versión no puede abrirlo de forma segura.',
       },
       'write-failed': {
-        title: 'No se pudo leer el espacio de trabajo guardado',
-        body: 'No se creó ni guardó ningún espacio de sustitución.',
+        title: 'No se pudo leer la biblioteca guardada',
+        body: 'No se creó ni guardó ninguna biblioteca de sustitución.',
       },
     },
   },
@@ -590,7 +590,7 @@ export default {
     intro:
       'Gestiona tu biblioteca, moldea voces en el editor y transfiérelas a tu M-VAVE FM1 desde el navegador.',
     close: 'Cerrar la ayuda',
-    truthTitle: 'Los bancos del navegador son la referencia.',
+    truthTitle: 'Los bancos de este navegador son la referencia.',
     truthBody:
       'El FM1 acepta voces y bancos, pero no puede devolver sus bancos guardados. Importa o restaura los sonidos aquí, edítalos y transfiérelos al FM1.',
     firmwareTitle: 'Compatible con Baud Girl (FM-1+VA)',
@@ -816,8 +816,7 @@ export default {
     chooseCatalogBank: 'Selecciona un banco de sonidos…',
     creatingBank: 'Creando…',
     soundData: 'Datos de sonido (opcional)',
-    soundDataHelp:
-      'Importa un banco DX7 .syx estándar de 32 voces o deja este campo vacío para empezar con un banco vacío.',
+    soundDataHelp: 'Cada banco nuevo empieza con un banco DX7 estándar completo de 32 voces.',
     soundSource: 'Elige una fuente de sonido',
     soundSourceRequired: 'Elige un banco del catálogo o sube tu propio archivo SysEx DX7.',
     uploadSource: 'Subir tu propio banco',
@@ -830,7 +829,7 @@ export default {
     moreActions: 'Acciones de la biblioteca',
     bankMenu: 'Acciones para {{bank}}',
     bankInformation: 'Información del banco',
-    bankInformationHelp: 'Edita el título y la descripción opcional de este banco de trabajo.',
+    bankInformationHelp: 'Edita el título y la descripción opcional de este banco.',
     download: 'Descargar este banco',
     downloadAll: 'Descargar bancos SysEx (.zip)',
     restoreAll: 'Restablecer sonidos de fábrica…',
@@ -844,20 +843,19 @@ export default {
     chooseSysexFile: 'Elegir un archivo SysEx DX7',
     createBank: 'Crear banco',
     addBankFailed: 'No se pudo crear el banco.',
-    destination: 'Banco de destino del navegador',
+    destination: 'Banco de destino',
     importFile: 'Importar archivo de banco DX7',
-    downloadTitle: 'Descargar el banco {{bank}} como SysEx',
+    downloadTitle: 'Descargar «{{bank}}» como SysEx',
     importFirst: 'Importa primero el banco {{bank}}',
     deleteBank: 'Eliminar banco',
     deleteBankConfirm: '¿Eliminar «{{name}}» y todos sus sonidos? Puedes deshacer esta acción.',
     sendTitle: 'Enviar las 32 voces y elegir el banco de destino en el FM1',
-    sentStatus: 'Se envió el banco {{bank}}. Elige su destino en el FM1.',
+    sentStatus: 'Se envió «{{bank}}». Elige su destino en el FM1.',
     notSent: 'No se envió el banco. Abre el registro MIDI y vuelve a intentarlo.',
     importFailed: 'Error de importación.',
     restoreFailed:
       'No se pudieron restablecer los bancos con los sonidos de fábrica. Vuelve a intentarlo.',
-    bankUnavailable:
-      'Ese banco de trabajo ya no está disponible. Cierra este diálogo y vuelve a intentarlo.',
+    bankUnavailable: 'Ese banco ya no está disponible. Cierra este diálogo y vuelve a intentarlo.',
     catalogUnavailable:
       'No se pudo descargar ese banco de sonidos. Comprueba tu conexión y vuelve a intentarlo.',
     fileErrors: {
@@ -874,12 +872,12 @@ export default {
     exportFailed: 'Error de exportación.',
     bulkExportFailed: 'Error de exportación masiva.',
     gridTitle: 'Bancos de sonidos',
-    gridDescription: 'Importa, edita y organiza cada banco local antes de transferirlo al FM1.',
+    gridDescription: 'Importa, edita y organiza cada banco antes de transferirlo al FM1.',
     search: 'Buscar',
     noMatches: 'Ningún sonido coincide con la búsqueda',
     searchResults: 'Resultados de búsqueda: «{{search}}»',
     sendFromSearch: 'Elige un banco para enviarlo al FM1',
-    bankEmpty: 'Este banco del navegador está vacío',
+    bankEmpty: 'Este banco está vacío',
     emptyHelp:
       'Carga el banco de demostración o importa tu propio banco SysEx DX7 estándar de 32 voces.',
     loadDemo: 'Cargar banco de demostración',
@@ -919,7 +917,7 @@ export default {
       play: 'Escuchar {{name}} de {{origin}}',
       playTitle:
         'Haz clic para escuchar {{name}} a través del búfer de edición del FM1; doble clic para copiarlo y editarlo',
-      copy: 'Copiar {{name}} a un banco del espacio de trabajo',
+      copy: 'Copiar {{name}} a un banco',
       truncated:
         'Se muestran los primeros {{shown}} de {{total}} resultados. Escribe más para acotar la búsqueda.',
       loading: 'Buscando en otros bancos de sonidos DX7…',
@@ -931,10 +929,9 @@ export default {
   },
   namedBanks: {
     saving: 'Guardando…',
-    open: 'Biblioteca de bancos',
     title: 'Mis bancos guardados',
-    intro: 'Elige un banco guardado para cargarlo en el banco de trabajo {{bank}}.',
-    saveCurrent: 'Guardar banco de trabajo {{bank}}',
+    intro: 'Elige un banco guardado para cargarlo en «{{bank}}».',
+    saveCurrent: 'Guardar «{{bank}}»',
     snapshotHelp: 'Crea una copia independiente de los 32 sonidos y sus efectos FM1.',
     name: 'Nombre del banco',
     namePlaceholder: 'p. ej., Concierto – sábado',
@@ -949,7 +946,7 @@ export default {
     count_other: '{{count, number}} bancos guardados',
     search: 'Buscar bancos guardados',
     loading: 'Cargando bancos guardados…',
-    empty: 'Aún no hay bancos con nombre. Guarda el banco de trabajo seleccionado para crear uno.',
+    empty: 'Aún no hay bancos guardados. Guarda el banco seleccionado para crear uno.',
     noMatches: 'Ningún banco guardado coincide con la búsqueda.',
     load: 'Cargar',
     updatedAt: 'Actualizado el {{date}}',
@@ -983,9 +980,9 @@ export default {
     download: 'Descargar copia de seguridad',
     restore: 'Restaurar desde una copia…',
     lastBackup: 'Última copia: {{date}}',
-    downloaded: 'Descargando una copia de seguridad de tus bancos de trabajo y bancos guardados.',
+    downloaded: 'Descargando una copia de seguridad de tus bancos y bancos guardados.',
     downloadedWithoutSavedBanks:
-      'Descargando una copia de tus bancos de trabajo. No se pudieron leer los bancos guardados, así que no están incluidos.',
+      'Descargando una copia de tus bancos. No se pudieron leer los bancos guardados, así que no están incluidos.',
     downloadedWithoutDamaged:
       'Descargando una copia de seguridad. Algunos bancos guardados no se pudieron leer, así que no están incluidos.',
     unavailable:
@@ -998,14 +995,14 @@ export default {
     chooseFile: 'Elegir un archivo de copia',
     reading: 'Leyendo la copia…',
     backedUpAt: 'Fecha de la copia',
-    workspaceBanks: 'Bancos de trabajo',
+    workspaceBanks: 'Bancos',
     patches: 'Sonidos',
     savedBanks: 'Bancos guardados',
     toAdd: 'Se añadirán',
     alreadyHere: 'Ya están, se conservan',
     unreadable: 'No se pudieron leer',
     workspaceEffect:
-      'Tus bancos de trabajo y todos sus sonidos se sustituyen por los de la copia. Deshacer en la notificación posterior los recupera.',
+      'Tus bancos y todos sus sonidos se sustituyen por los de la copia. Deshacer en la notificación posterior los recupera.',
     savedBanksEffect:
       'Los bancos guardados solo se añaden. Uno que ya esté en este navegador se conserva tal cual, y Deshacer no quita los añadidos.',
     restoreAction: 'Restaurar copia',
@@ -1020,7 +1017,7 @@ export default {
       size: 'Este archivo es demasiado grande para ser una copia de esta aplicación.',
       read: 'No se pudo leer el archivo. Vuelve a elegirlo.',
       savedBanksFailed:
-        'El almacenamiento del navegador no pudo guardar los bancos de esta copia, así que tus bancos de trabajo no cambiaron. Vuelve a intentarlo.',
+        'El almacenamiento del navegador no pudo guardar los bancos de esta copia, así que tu biblioteca no cambió. Vuelve a intentarlo.',
     },
   },
 } as const

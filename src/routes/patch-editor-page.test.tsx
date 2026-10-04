@@ -520,7 +520,7 @@ describe('PatchEditorPage analytics', () => {
       target: { value: '6' },
     })
 
-    await user.click(screen.getByRole('button', { name: 'Save to Library' }))
+    await user.click(screen.getByRole('button', { name: 'Save to library' }))
 
     expect(track).toHaveBeenNthCalledWith(2, 'patch_saved', undefined)
   })
@@ -1085,7 +1085,7 @@ describe('PatchEditorPage compare with saved', () => {
     expect(screen.getByRole('slider', { name: 'Feedback' }).closest('[inert]')).not.toBeNull()
     expect(screen.getByLabelText('Voice presets').closest('[inert]')).not.toBeNull()
     expect(screen.getByLabelText('More save options').closest('[inert]')).not.toBeNull()
-    for (const name of ['Undo', 'Back to patch banks', 'Save to Library']) {
+    for (const name of ['Undo', 'Back to patch banks', 'Save to library']) {
       expect((screen.getByRole('button', { name }) as HTMLButtonElement).disabled).toBe(true)
     }
     expect((screen.getByRole('textbox', { name: 'Patch name' }) as HTMLInputElement).disabled).toBe(
@@ -1231,7 +1231,7 @@ describe('PatchEditorPage Distortion type on Baud Girl’s firmware', () => {
     await user.click(screen.getByRole('switch', { name: 'Distortion' }))
 
     await user.selectOptions(distortionType() as HTMLSelectElement, 'Soft Clip')
-    await user.click(screen.getByRole('button', { name: 'Save to Library' }))
+    await user.click(screen.getByRole('button', { name: 'Save to library' }))
 
     const record: Uint8Array = onSave.mock.calls[0][2]
     expect(Array.from(record.keys()).filter((i) => record[i] !== hardClipRecord[i])).toEqual([38])

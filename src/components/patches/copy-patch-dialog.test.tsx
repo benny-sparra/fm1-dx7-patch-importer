@@ -190,7 +190,7 @@ describe('CopyPatchDialog', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Replace B01' }))
 
     expect(within(dialog).getByRole('alert').textContent).toBe(
-      'That workspace bank is no longer available. Close this dialog and try again.',
+      'That bank is no longer available. Close this dialog and try again.',
     )
     expect((dialog as HTMLDialogElement).open).toBe(true)
     expect(onCopied).not.toHaveBeenCalled()

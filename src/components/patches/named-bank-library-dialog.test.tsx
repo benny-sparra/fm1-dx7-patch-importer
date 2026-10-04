@@ -99,7 +99,7 @@ describe('NamedBankLibraryDialog boundaries', () => {
 
     const alert = screen.getByRole('alert')
     expect(alert.textContent).toBe(
-      'That workspace bank is no longer available. Close this dialog and try again.',
+      'That bank is no longer available. Close this dialog and try again.',
     )
     expect(alert.closest('dialog')?.open).toBe(true)
   })

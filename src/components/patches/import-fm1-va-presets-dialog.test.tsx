@@ -448,7 +448,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     expect(within(bankSection('B')).getByText(fm1VaTestPatchName(33))).toBeTruthy()
     expect(
       screen.getByText(
-        'The file has a virtual analogue preset, which can’t currently be imported.',
+        'The file has a Virtual Analog preset, which can’t currently be imported.',
       ),
     ).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Import 4 banks' }))
@@ -813,7 +813,7 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
     expect(
       await screen.findByText(
-        'The FM1 has 2 virtual analogue presets, which can’t currently be imported.',
+        'The FM1 has 2 Virtual Analog presets, which can’t currently be imported.',
       ),
     ).toBeTruthy()
   })

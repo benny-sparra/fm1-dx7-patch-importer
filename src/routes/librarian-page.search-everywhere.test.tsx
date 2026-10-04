@@ -115,7 +115,7 @@ describe('LibrarianPage search beyond the workspace', () => {
     await search(user, 'brass   1')
 
     await user.click(
-      await screen.findByRole('button', { name: 'Copy BRASS 1 to a workspace bank' }),
+      await screen.findByRole('button', { name: 'Copy BRASS 1 to a bank' }),
     )
     await user.click(await screen.findByRole('button', { name: 'Replace A01' }))
 
@@ -149,7 +149,7 @@ describe('LibrarianPage search beyond the workspace', () => {
     await search(user, 'brass   1')
 
     await user.click(
-      await screen.findByRole('button', { name: 'Copy BRASS 1 to a workspace bank' }),
+      await screen.findByRole('button', { name: 'Copy BRASS 1 to a bank' }),
     )
     await user.click(await screen.findByRole('button', { name: 'Replace A01' }))
 

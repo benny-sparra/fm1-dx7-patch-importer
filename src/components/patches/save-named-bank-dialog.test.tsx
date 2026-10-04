@@ -55,7 +55,7 @@ describe('SaveNamedBankDialog', () => {
   it('opens named for the workspace bank, with its name ready to type over', () => {
     renderDialog()
 
-    expect(screen.getByRole('dialog', { name: 'Save workspace bank Leads' })).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'Save “Leads”' })).toBeTruthy()
     expect(nameField().value).toBe('Leads')
     expect(document.activeElement).toBe(nameField())
   })
