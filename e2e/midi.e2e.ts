@@ -69,8 +69,8 @@ test.describe('with an FM-1 connected', () => {
   test('sends a slot in an added bank to the FM1 edit buffer once, however often it is clicked', async ({
     page,
   }) => {
-    await page.getByRole('button', { name: 'Add new bank' }).locator('visible=true').click()
-    const addBank = page.getByRole('dialog', { name: /^Add workspace bank/ })
+    await page.getByRole('button', { name: 'Add new bank…' }).locator('visible=true').click()
+    const addBank = page.getByRole('dialog', { name: /^Add bank/ })
     await addBank.getByRole('combobox', { name: 'DX7 catalog bank' }).selectOption('rom1a')
     await addBank.getByRole('button', { name: 'Create bank' }).click()
     await expect(addBank).toBeHidden()
@@ -98,7 +98,7 @@ test.describe('with an FM-1 connected', () => {
     await instructions.getByRole('button', { name: 'Send to FM1' }).click()
 
     await expect(
-      page.getByText('Browser bank Bank 1 was sent. Choose its destination on the FM1.'),
+      page.getByText('“Bank 1” was sent. Choose its destination on the FM1.'),
     ).toBeVisible()
     const dumps = await sentSysex(page)
     expect(dumps.map((dump) => dump.length)).toEqual([bankDumpLength])
@@ -218,7 +218,7 @@ test.describe('with an FM-1 connected', () => {
   }) => {
     const slotsBefore = await slotButtons(page).allTextContents()
     await page.getByLabel('Actions for Bank 1').locator('visible=true').click()
-    await page.getByRole('button', { exact: true, name: 'Import DX7 bank' }).click()
+    await page.getByRole('button', { exact: true, name: 'Import DX7 bank…' }).click()
     const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
     await dialog.getByLabel('Patch data').setInputFiles('public/dx7-banks/factory/rom1a.syx')
 
@@ -344,8 +344,8 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
   test('sends a slot in an added bank as parameter changes, never as a single-voice dump', async ({
     page,
   }) => {
-    await page.getByRole('button', { name: 'Add new bank' }).locator('visible=true').click()
-    const addBank = page.getByRole('dialog', { name: /^Add workspace bank/ })
+    await page.getByRole('button', { name: 'Add new bank…' }).locator('visible=true').click()
+    const addBank = page.getByRole('dialog', { name: /^Add bank/ })
     await addBank.getByRole('combobox', { name: 'DX7 catalog bank' }).selectOption('rom1a')
     await addBank.getByRole('button', { name: 'Create bank' }).click()
     await expect(addBank).toBeHidden()

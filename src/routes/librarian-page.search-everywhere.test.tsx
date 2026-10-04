@@ -114,9 +114,7 @@ describe('LibrarianPage search beyond the workspace', () => {
     const { library, user } = renderPage()
     await search(user, 'brass   1')
 
-    await user.click(
-      await screen.findByRole('button', { name: 'Copy BRASS 1 to a workspace bank' }),
-    )
+    await user.click(await screen.findByRole('button', { name: 'Copy BRASS 1 to a bank' }))
     await user.click(await screen.findByRole('button', { name: 'Replace A01' }))
 
     expect(library.replaceVoice).toHaveBeenCalledExactlyOnceWith(
@@ -148,9 +146,7 @@ describe('LibrarianPage search beyond the workspace', () => {
     const { onEditPatch, user } = renderPage()
     await search(user, 'brass   1')
 
-    await user.click(
-      await screen.findByRole('button', { name: 'Copy BRASS 1 to a workspace bank' }),
-    )
+    await user.click(await screen.findByRole('button', { name: 'Copy BRASS 1 to a bank' }))
     await user.click(await screen.findByRole('button', { name: 'Replace A01' }))
 
     expect(onEditPatch).not.toHaveBeenCalled()

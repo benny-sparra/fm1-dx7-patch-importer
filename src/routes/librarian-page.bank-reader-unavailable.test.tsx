@@ -67,7 +67,7 @@ async function openImport(user: ReturnType<typeof userEvent.setup>, bankName: st
   const menuToggle = screen.getAllByTitle(`Actions for ${bankName}`)[0]
   await user.click(menuToggle)
   await user.click(
-    within(menuToggle.closest('details')!).getByRole('button', { name: 'Import DX7 bank' }),
+    within(menuToggle.closest('details')!).getByRole('button', { name: 'Import DX7 bank…' }),
   )
 }
 

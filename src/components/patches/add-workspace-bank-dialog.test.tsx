@@ -119,6 +119,12 @@ describe('AddWorkspaceBankDialog creating a bank', () => {
     )
   })
 
+  it('shows the DX7 block cursor in the bank name field', () => {
+    renderDialog()
+
+    expect(screen.getByRole('textbox', { name: 'Bank name' }).classList).toContain('name-caret')
+  })
+
   it('waits for a sound source before offering to create the bank', () => {
     renderDialog()
 
@@ -253,7 +259,7 @@ describe('AddWorkspaceBankDialog creating a bank', () => {
     expect(within(dialog).getByRole('button', { name: 'Close' }).hasAttribute('disabled')).toBe(
       true,
     )
-    expect(within(dialog).getByRole('button', { name: 'Importing…' })).toBeTruthy()
+    expect(within(dialog).getByRole('button', { name: 'Creating…' })).toBeTruthy()
     expect(onClose).not.toHaveBeenCalled()
   })
 

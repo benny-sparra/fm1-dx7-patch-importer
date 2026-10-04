@@ -75,7 +75,7 @@ async function importIntoEmptyBank(user: ReturnType<typeof userEvent.setup>, fil
   const menuToggle = screen.getAllByTitle('Actions for Electric Keys')[0]
   await user.click(menuToggle)
   const menu = menuToggle.closest('details')!
-  await user.click(within(menu).getByRole('button', { name: 'Import DX7 bank' }))
+  await user.click(within(menu).getByRole('button', { name: 'Import DX7 bank…' }))
   await user.upload(screen.getByLabelText('Import DX7 bank file'), file)
 }
 

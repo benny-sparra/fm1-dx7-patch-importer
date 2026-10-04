@@ -139,7 +139,7 @@ export function PatchEditorHeader({
               <span className="flex items-center gap-1">
                 <input
                   aria-label={t('editor.patchName')}
-                  className="font-dot-matrix crt-inset h-8 w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-60"
+                  className="name-caret font-dot-matrix crt-inset h-8 w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-60"
                   disabled={isComparing}
                   maxLength={FM1_VOICE_NAME_LENGTH}
                   onBlur={onNameBlur}

@@ -25,6 +25,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import type { Patch } from '@/data/patches'
@@ -305,20 +306,12 @@ export function PatchGrid({
                             {t('banks.emptyHelp')}
                           </p>
                           <div className="mt-4 flex flex-wrap justify-center gap-2">
-                            <button
-                              className="crt-raised-lit cursor-pointer bg-[var(--crt-btn)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-white"
-                              onClick={onImportEmptyBank}
-                              type="button"
-                            >
+                            <Button onClick={onImportEmptyBank} type="button">
                               {t('banks.import')}
-                            </button>
-                            <button
-                              className="crt-raised-thin cursor-pointer bg-[var(--crt-btn-face)] px-3 py-1.5 text-xs font-semibold tracking-[0.08em] text-[var(--crt-ink-2)]"
-                              onClick={onLoadDemoBank}
-                              type="button"
-                            >
+                            </Button>
+                            <Button onClick={onLoadDemoBank} type="button" variant="secondary">
                               {t('banks.loadDemo')}
-                            </button>
+                            </Button>
                           </div>
                         </>
                       ) : null}

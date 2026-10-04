@@ -29,14 +29,14 @@ export default {
       'Activez MIDI en ligne en haut de la page, autorisez l’accès MIDI, puis sélectionnez la sortie MIDI du FM1 dans les réglages.',
     restoreTitle: 'Rétablir les sons d’usine ?',
     restoreIntro:
-      'Cette opération remplace les quatre banques locales. Vous pourrez annuler le rétablissement immédiatement.',
+      'Cette opération remplace les quatre banques. Vous pourrez annuler le rétablissement immédiatement.',
     restoreClose: 'Fermer le rétablissement',
     restoreDetails:
       'Les banques A, B, C et D seront respectivement rétablies avec les banques 1, 2, 3 et 4 du FM-1, les sons livrés avec le FM1.',
     restoreAction: 'Rétablir quatre banques',
     sourcesTitle: 'Trouver des banques DX7',
     sourcesIntro:
-      'Téléchargez une banque SysEx DX7 de 32 voix (.syx), puis revenez ici et choisissez Importer une banque DX7.',
+      'Téléchargez une banque SysEx DX7 de 32 voix (.syx), puis revenez ici et choisissez « Importer une banque DX7… ».',
     sourceDescriptions: {
       yamahaBlackBoxes: 'Cartouches DX7 d’usine et banques SysEx.',
       bobbyBlues: 'Collection de longue date de sons et de banques DX7.',
@@ -195,7 +195,7 @@ export default {
     lfoWave: 'Forme d’onde LFO',
     dx7Algorithm: 'Algorithme DX7',
     unsavedBody:
-      'Enregistrez cette copie dans la bibliothèque du navigateur, ou abandonnez-la et restaurez le son enregistré sur le FM1.',
+      'Enregistrez cette copie dans votre bibliothèque, ou abandonnez-la et restaurez le son enregistré sur le FM1.',
     revertTitle:
       'Abandonner toutes les modifications depuis le dernier enregistrement et restaurer ce son sur le FM1',
     keyboard: 'Clavier',
@@ -262,10 +262,6 @@ export default {
     },
     directionDown: 'bas',
     directionUp: 'haut',
-    enableEffect: 'Activer {{effect}}',
-    bypassEffect: 'Contourner {{effect}}',
-    effectState: '{{effect}} : {{state}}',
-    bypassed: 'contourné',
     effects: {
       filter: 'Filtre',
       reverb: 'Réverbération',
@@ -298,6 +294,7 @@ export default {
     },
   },
   replacePatch: {
+    replacing: 'Remplacement…',
     action: 'Remplacer le son',
     title: 'Remplacer {{slot}} « {{patch}} » ?',
     warning:
@@ -441,7 +438,7 @@ export default {
     continueSessionOnly: 'Continuer sans enregistrer',
     retrySaving: 'Réessayer l’enregistrement',
     technicalDetails: 'Détails techniques',
-    sessionOnlyTitle: 'Espace de travail temporaire',
+    sessionOnlyTitle: 'Bibliothèque temporaire',
     sessionOnlyBody:
       'Les données existantes du navigateur n’ont pas été modifiées. Les changements de cette session seront perdus à la fermeture de cette page.',
     saveErrorTitle: 'Les changements ne sont pas enregistrés en sécurité',
@@ -450,19 +447,19 @@ export default {
     loadErrors: {
       unavailable: {
         title: 'Le stockage du navigateur est indisponible',
-        body: 'L’espace de travail enregistré n’a pas pu être ouvert. Ses données n’ont pas été modifiées.',
+        body: 'La bibliothèque enregistrée n’a pas pu être ouverte. Ses données n’ont pas été modifiées.',
       },
       'read-failed': {
-        title: 'Impossible de lire l’espace de travail enregistré',
-        body: 'Il peut s’agir d’un problème temporaire de stockage. Aucun espace de remplacement n’a été créé ni enregistré.',
+        title: 'Impossible de lire la bibliothèque enregistrée',
+        body: 'Il peut s’agir d’un problème temporaire de stockage. Aucune bibliothèque de remplacement n’a été créée ni enregistrée.',
       },
       incompatible: {
-        title: 'L’espace enregistré est incompatible ou endommagé',
+        title: 'La bibliothèque enregistrée est incompatible ou endommagée',
         body: 'L’enregistrement existant a été laissé intact. Cette version ne peut pas l’ouvrir en sécurité.',
       },
       'write-failed': {
-        title: 'Impossible de lire l’espace de travail enregistré',
-        body: 'Aucun espace de remplacement n’a été créé ni enregistré.',
+        title: 'Impossible de lire la bibliothèque enregistrée',
+        body: 'Aucune bibliothèque de remplacement n’a été créée ni enregistrée.',
       },
     },
   },
@@ -596,7 +593,7 @@ export default {
     intro:
       'Gérez votre bibliothèque, façonnez les voix dans l’éditeur, puis transférez-les sur votre M-VAVE FM1, directement depuis le navigateur.',
     close: 'Fermer l’aide',
-    truthTitle: 'Les banques du navigateur constituent la référence.',
+    truthTitle: 'Les banques de ce navigateur constituent la référence.',
     truthBody:
       'Le FM1 accepte les voix et les banques, mais ne peut pas renvoyer ses banques mémorisées. Importez ou restaurez les sons ici, modifiez-les, puis transférez-les vers le FM1.',
     firmwareTitle: 'Compatible Baud Girl (FM-1+VA)',
@@ -755,8 +752,6 @@ export default {
     modulator: 'Modulateur',
     modulatorShort: 'Mod',
     output: 'Sortie',
-    on: 'Activé',
-    off: 'Désactivé',
     rate: 'Vitesse {{number}}',
     level: 'Niveau {{number}}',
     unsavedTitle: 'Modifications non enregistrées',
@@ -824,19 +819,19 @@ export default {
     restoring: 'Rétablissement…',
     catalogFactory: 'Sons d’usine',
     catalogFm1Factory: 'Préréglages d’usine FM-1',
-    import: 'Importer une banque DX7',
+    import: 'Importer une banque DX7…',
     moreActions: 'Actions de la bibliothèque',
     bankMenu: 'Actions pour {{bank}}',
     bankInformation: 'Informations sur la banque',
-    bankInformationHelp:
-      'Modifiez le titre et la description facultative de cette banque de travail.',
+    bankInformationMenu: 'Informations sur la banque…',
+    bankInformationHelp: 'Modifiez le titre et la description facultative de cette banque.',
     download: 'Télécharger cette banque',
     downloadAll: 'Télécharger les banques SysEx (.zip)',
     restoreAll: 'Rétablir les sons d’usine…',
     sending: 'Envoi…',
     send: 'Envoyer au FM1',
     bank: 'Banque {{bank}}',
-    addBank: 'Ajouter une banque',
+    addBank: 'Ajouter une banque…',
     addBankTitle: 'Ajouter la banque {{bank}}',
     addBankHelp: 'Nommez la banque et choisissez les données sonores qui la rempliront.',
     bankName: 'Nom de la banque',
@@ -852,22 +847,22 @@ export default {
     chooseSysexFile: 'Choisir un fichier SysEx DX7',
     soundDataHelp: 'Chaque nouvelle banque contient une banque DX7 standard complète de 32 voix.',
     createBank: 'Créer la banque',
-    creatingBank: 'Importation…',
+    creatingBank: 'Création…',
     addBankFailed: 'La banque n’a pas pu être créée.',
-    destination: 'Banque de destination du navigateur',
+    destination: 'Banque de destination',
     importFile: 'Importer un fichier de banque DX7',
-    downloadTitle: 'Télécharger la banque {{bank}} au format SysEx',
+    downloadTitle: 'Télécharger « {{bank}} » au format SysEx',
     importFirst: 'Importez d’abord la banque {{bank}}',
     deleteBank: 'Supprimer la banque',
+    deleteBankMenu: 'Supprimer la banque…',
     deleteBankConfirm:
       'Supprimer « {{name}} » et tous ses sons ? Vous pourrez annuler cette action.',
     sendTitle: 'Envoyer les 32 voix et choisir la banque de destination sur le FM1',
-    sentStatus: 'La banque {{bank}} a été envoyée. Choisissez sa destination sur le FM1.',
+    sentStatus: '« {{bank}} » a été envoyée. Choisissez sa destination sur le FM1.',
     notSent: 'La banque n’a pas été envoyée. Consultez le journal MIDI, puis réessayez.',
     importFailed: 'Échec de l’importation.',
     restoreFailed: 'Impossible de rétablir les sons d’usine dans les banques. Réessayez.',
-    bankUnavailable:
-      'Cette banque de travail n’est plus disponible. Fermez cette fenêtre et réessayez.',
+    bankUnavailable: 'Cette banque n’est plus disponible. Fermez cette fenêtre et réessayez.',
     catalogUnavailable:
       'Impossible de télécharger cette banque de sons. Vérifiez votre connexion, puis réessayez.',
     fileErrors: {
@@ -879,18 +874,18 @@ export default {
       voiceFormat:
         'Ce fichier n’est pas un son DX7. Choisissez un fichier .syx qui contient un seul son.',
       voiceGotBank:
-        'Ce fichier est une banque DX7 de 32 voix. Pour la charger, choisissez « Importer une banque DX7 » dans le menu de la banque.',
+        'Ce fichier est une banque DX7 de 32 voix. Pour la charger, choisissez « Importer une banque DX7… » dans le menu de la banque.',
     },
     exportFailed: 'Échec de l’exportation.',
     bulkExportFailed: 'Échec de l’exportation groupée.',
     gridTitle: 'Banques de sons',
     gridDescription:
-      'Importez, modifiez et organisez chaque banque locale avant de la transférer vers le FM1.',
+      'Importez, modifiez et organisez chaque banque avant de la transférer vers le FM1.',
     search: 'Rechercher',
     noMatches: 'Aucun son ne correspond à cette recherche',
     searchResults: 'Résultats de recherche : « {{search}} »',
     sendFromSearch: 'Choisissez une banque pour l’envoyer au FM1',
-    bankEmpty: 'Cette banque du navigateur est vide',
+    bankEmpty: 'Cette banque est vide',
     emptyHelp:
       'Chargez la banque de démonstration ou importez votre propre banque SysEx DX7 standard de 32 voix.',
     loadDemo: 'Charger la banque démo',
@@ -929,7 +924,7 @@ export default {
       play: 'Écouter {{name}} de {{origin}}',
       playTitle:
         'Cliquez pour écouter {{name}} via le tampon d’édition du FM1 ; double-cliquez pour le copier et le modifier',
-      copy: 'Copier {{name}} dans une banque de l’espace de travail',
+      copy: 'Copier {{name}} dans une banque',
       truncated:
         'Affichage des {{shown}} premiers résultats sur {{total}}. Précisez la recherche pour en réduire le nombre.',
       loading: 'Recherche dans les autres banques de sons DX7…',
@@ -953,17 +948,18 @@ export default {
       'Une banque DX7 n’a pas de place pour les presets Virtual Analog : les {{count, number}} de cette banque sont donc envoyés comme INIT VOICE.',
   },
   namedBanks: {
-    open: 'Bibliothèque de banques',
+    saving: 'Enregistrement…',
     title: 'Mes banques enregistrées',
-    intro: 'Choisissez une banque enregistrée à charger dans la banque de travail {{bank}}.',
-    saveCurrent: 'Enregistrer la banque de travail {{bank}}',
+    intro: 'Choisissez une banque enregistrée à charger dans « {{bank}} ».',
+    saveCurrent: 'Enregistrer « {{bank}} »',
     snapshotHelp: 'Crée une copie indépendante des 32 sons et de leurs effets FM1.',
     name: 'Nom de la banque',
     namePlaceholder: 'ex. Concert – samedi',
     description: 'Description (facultative)',
     descriptionPlaceholder: 'Notes sur cette banque',
     save: 'Enregistrer la banque',
-    loadBank: 'Charger une banque',
+    saveMenu: 'Enregistrer la banque…',
+    loadBank: 'Charger une banque…',
     editDetails: 'Modifier les détails',
     update: 'Mettre à jour',
     savedBanks: 'Banques enregistrées',
@@ -971,7 +967,7 @@ export default {
     count_other: '{{count, number}} banques enregistrées',
     search: 'Rechercher des banques',
     loading: 'Chargement des banques…',
-    empty: 'Aucune banque nommée. Enregistrez la banque de travail sélectionnée pour en créer une.',
+    empty: 'Aucune banque enregistrée. Enregistrez la banque sélectionnée pour en créer une.',
     noMatches: 'Aucune banque enregistrée ne correspond à cette recherche.',
     load: 'Charger',
     updatedAt: 'Modifiée le {{date}}',
@@ -1008,10 +1004,9 @@ export default {
     download: 'Télécharger une sauvegarde',
     restore: 'Restaurer une sauvegarde…',
     lastBackup: 'Dernière sauvegarde : {{date}}',
-    downloaded:
-      'Téléchargement d’une sauvegarde de vos banques de travail et banques enregistrées.',
+    downloaded: 'Téléchargement d’une sauvegarde de vos banques et banques enregistrées.',
     downloadedWithoutSavedBanks:
-      'Téléchargement d’une sauvegarde de vos banques de travail. Les banques enregistrées sont illisibles et n’y figurent pas.',
+      'Téléchargement d’une sauvegarde de vos banques. Les banques enregistrées sont illisibles et n’y figurent pas.',
     downloadedWithoutDamaged:
       'Téléchargement d’une sauvegarde. Certaines banques enregistrées sont illisibles et n’y figurent pas.',
     unavailable: 'Les sauvegardes n’ont pas pu s’ouvrir. Rechargez la page et réessayez.',
@@ -1023,14 +1018,14 @@ export default {
     chooseFile: 'Choisir un fichier de sauvegarde',
     reading: 'Lecture de la sauvegarde…',
     backedUpAt: 'Sauvegardé le',
-    workspaceBanks: 'Banques de travail',
+    workspaceBanks: 'Banques',
     patches: 'Sons',
     savedBanks: 'Banques enregistrées',
     toAdd: 'À ajouter',
     alreadyHere: 'Déjà présentes, conservées',
     unreadable: 'Illisibles',
     workspaceEffect:
-      'Vos banques de travail et tous leurs sons sont remplacés par ceux de la sauvegarde. Annuler dans la notification qui suit les rétablit.',
+      'Vos banques et tous leurs sons sont remplacés par ceux de la sauvegarde. Annuler dans la notification qui suit les rétablit.',
     savedBanksEffect:
       'Les banques enregistrées sont seulement ajoutées. Une banque déjà présente dans ce navigateur reste telle quelle, et Annuler ne retire pas celles ajoutées.',
     restoreAction: 'Restaurer la sauvegarde',
@@ -1046,7 +1041,7 @@ export default {
       size: 'Ce fichier est trop volumineux pour être une sauvegarde de cette application.',
       read: 'Impossible de lire le fichier. Choisissez-le de nouveau.',
       savedBanksFailed:
-        'Le stockage du navigateur n’a pas pu conserver les banques enregistrées de cette sauvegarde, vos banques de travail n’ont donc pas changé. Réessayez.',
+        'Le stockage du navigateur n’a pas pu conserver les banques enregistrées de cette sauvegarde, votre bibliothèque n’a donc pas changé. Réessayez.',
     },
   },
 } as const

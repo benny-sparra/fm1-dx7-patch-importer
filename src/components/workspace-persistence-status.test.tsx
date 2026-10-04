@@ -64,7 +64,7 @@ describe('WorkspacePersistenceStatus', () => {
     const alert = screen.getByRole('alert')
     expect(
       within(alert).getByRole('heading', {
-        name: 'The saved workspace is incompatible or damaged',
+        name: 'The saved library is incompatible or damaged',
       }),
     ).toBeTruthy()
     expect(within(alert).getByText(/existing browser record has been left untouched/)).toBeTruthy()
@@ -74,7 +74,7 @@ describe('WorkspacePersistenceStatus', () => {
     renderStatus(makeLibrary('load-error'))
 
     expect(
-      screen.getByRole('heading', { name: 'The saved workspace could not be read' }),
+      screen.getByRole('heading', { name: 'The saved library could not be read' }),
     ).toBeTruthy()
   })
 
@@ -125,7 +125,7 @@ describe('WorkspacePersistenceStatus', () => {
     renderStatus(library)
 
     const alert = screen.getByRole('alert')
-    expect(within(alert).getByText('Workspace changes are not safely stored')).toBeTruthy()
+    expect(within(alert).getByText('Library changes are not safely stored')).toBeTruthy()
     await user.click(within(alert).getByRole('button', { name: 'Retry saving' }))
 
     expect(library.retryWorkspaceSaving).toHaveBeenCalledTimes(1)
@@ -135,7 +135,7 @@ describe('WorkspacePersistenceStatus', () => {
     renderStatus(makeLibrary('session-only'))
 
     const alert = screen.getByRole('alert')
-    expect(within(alert).getByText('Session-only workspace')).toBeTruthy()
+    expect(within(alert).getByText('Session-only library')).toBeTruthy()
     expect(within(alert).queryByRole('button', { name: 'Retry saving' })).toBeNull()
   })
 
@@ -151,7 +151,7 @@ describe('WorkspacePersistenceStatus', () => {
       await user.click(screen.getByRole('button', { name: 'Download backup' }))
 
       expect(
-        await screen.findByText('Downloading a backup of your workspace banks and saved banks.'),
+        await screen.findByText('Downloading a backup of your banks and saved banks.'),
       ).toBeTruthy()
       expect(click).toHaveBeenCalledOnce()
       const file = createObjectURL.mock.calls[0][0]

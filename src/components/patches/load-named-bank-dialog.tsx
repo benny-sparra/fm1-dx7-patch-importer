@@ -21,6 +21,7 @@ import {
   type NamedBank,
 } from '@/lib/named-bank'
 import { ErrorNotice } from '@/components/ui/error-notice'
+import { useToast } from '@/components/ui/toast'
 import { bankDescriptionLength } from '@/lib/patch-library'
 import { downloadSysexFile } from '@/lib/sysex-file'
 
@@ -43,7 +44,7 @@ export function LoadNamedBankDialog({
   const [name, setName] = useState('')
   const [query, setQuery] = useState('')
   const [workingId, setWorkingId] = useState('')
-  const [status, setStatus] = useState('')
+  const toast = useToast()
   const [confirmingDeleteId, setConfirmingDeleteId] = useState('')
   const [confirmingLoadId, setConfirmingLoadId] = useState('')
   const deleteButtonRefs = useRef(new Map<string, HTMLButtonElement>())
@@ -89,13 +90,11 @@ export function LoadNamedBankDialog({
     setConfirmingLoadId('')
     setError('')
     setQuery('')
-    setStatus('')
   }
 
   const run = async (id: string, operation: () => Promise<unknown>) => {
     setWorkingId(id)
     setError('')
-    setStatus('')
     try {
       await operation()
     } catch (cause) {
@@ -121,7 +120,6 @@ export function LoadNamedBankDialog({
     setName(bank.name)
     setDescription(bank.description)
     setError('')
-    setStatus('')
     // The body scrolls smoothly only when motion is allowed (its motion-safe:scroll-smooth class).
     bodyRef.current?.scrollTo({ top: 0 })
     window.requestAnimationFrame(() => editNameRef.current?.focus())
@@ -161,7 +159,7 @@ export function LoadNamedBankDialog({
                   void run(editingId, async () => {
                     await library.updateNamedBankDetails(bank, name, description)
                     clearForm()
-                    setStatus(t('namedBanks.updated', { name: name.trim() }))
+                    toast.success(t('namedBanks.updated', { name: name.trim() }))
                   })
                 }}
               >
@@ -170,7 +168,7 @@ export function LoadNamedBankDialog({
                   {t('namedBanks.name')}
                   <input
                     autoComplete="off"
-                    className="h-10 rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="name-caret h-10 rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     maxLength={savedBankNameLength}
                     onChange={(event) => setName(event.target.value)}
                     placeholder={t('namedBanks.namePlaceholder')}
@@ -194,7 +192,7 @@ export function LoadNamedBankDialog({
                     disabled={workingId !== ''}
                     onClick={clearForm}
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                   >
                     {t('common.cancel')}
                   </Button>
@@ -265,7 +263,6 @@ export function LoadNamedBankDialog({
                             disabled={workingId !== ''}
                             onClick={() => {
                               setError('')
-                              setStatus('')
                               // A bank that already has sounds is replaced only once the user agrees.
                               if (destinationLoaded) {
                                 setConfirmingDeleteId('')
@@ -306,7 +303,7 @@ export function LoadNamedBankDialog({
                                 const bytes = makeNamedBankSysexFile(bank, makeInitDx7Voice())
                                 downloadSysexFile(bytes, makeNamedBankSysexFilename(bank))
                                 const initCount = namedBankVirtualAnalogCount(bank)
-                                setStatus(
+                                toast.success(
                                   initCount === 0
                                     ? t('namedBanks.downloaded', { name: bank.name })
                                     : t('namedBanks.downloadedWithInit', {
@@ -329,7 +326,7 @@ export function LoadNamedBankDialog({
                             onClick={() =>
                               void run(bank.id, async () => {
                                 const copy = await library.copyNamedBank(bank)
-                                setStatus(t('namedBanks.copied', { name: copy.name }))
+                                toast.success(t('namedBanks.copied', { name: copy.name }))
                               })
                             }
                             size="icon"
@@ -345,7 +342,6 @@ export function LoadNamedBankDialog({
                             disabled={workingId !== ''}
                             onClick={() => {
                               setError('')
-                              setStatus('')
                               setConfirmingLoadId('')
                               setConfirmingDeleteId(bank.id)
                             }}
@@ -382,7 +378,7 @@ export function LoadNamedBankDialog({
                               }}
                               size="sm"
                               type="button"
-                              variant="outline"
+                              variant="ghost"
                             >
                               {t('common.cancel')}
                             </Button>
@@ -418,7 +414,7 @@ export function LoadNamedBankDialog({
                               }}
                               size="sm"
                               type="button"
-                              variant="outline"
+                              variant="ghost"
                             >
                               {t('common.cancel')}
                             </Button>
@@ -428,14 +424,14 @@ export function LoadNamedBankDialog({
                                 void run(bank.id, async () => {
                                   await library.deleteNamedBank(bank.id)
                                   if (editingId === bank.id) clearForm()
-                                  setStatus(t('namedBanks.deleted', { name: bank.name }))
+                                  toast.success(t('namedBanks.deleted', { name: bank.name }))
                                   searchRef.current?.focus()
                                 })
                               }}
                               ref={confirmDeleteRef}
                               size="sm"
                               type="button"
-                              variant="destructive"
+                              variant="danger"
                             >
                               <Trash2 />
                               {t('namedBanks.deleteAction')}
@@ -451,10 +447,6 @@ export function LoadNamedBankDialog({
 
             {error || library.namedBanksLoadFailed ? (
               <ErrorNotice>{error || t('namedBanks.loadFailed')}</ErrorNotice>
-            ) : status ? (
-              <p aria-live="polite" className="text-sm text-emerald-400" role="status">
-                {status}
-              </p>
             ) : null}
           </div>
         </DialogBody>

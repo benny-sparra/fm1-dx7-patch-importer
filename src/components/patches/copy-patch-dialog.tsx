@@ -259,7 +259,7 @@ export function CopyPatchDialog({
         </form>
       </DialogBody>
       <DialogFooter>
-        <Button disabled={!target} form={formId} type="submit">
+        <Button disabled={!target} form={formId} type="submit" variant="destructive">
           <Copy />
           <span>
             {t(opensEditor ? 'banks.copyAndEditAction' : 'banks.copyAction', {

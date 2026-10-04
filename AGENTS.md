@@ -246,6 +246,9 @@ open everything an earlier release could have saved.
   `src/i18n/resources.test.ts` checks both. That module reaches `i18next` directly: importing
   `@/i18n` from the editor's chunk made Rolldown split `Button` and Lucide out of the entry, costing
   800 B. Since a test can import an editor module before `@/i18n`, it waits for `initialized`.
+- Call the banks the library holds banks, a named copy of one a saved bank, and everything together
+  the library. Users never read "workspace" or "browser bank"; code keeps the name workspace bank.
+  A bank's title in a sentence goes in quotation marks, as in "Save “Leads”".
 - Call a library item a patch, and say sound only for what you hear. Voice means the DX7 voice data,
   as in the voice editor and Init voice. German uses Sound for a patch and Klang for what you hear;
   Simplified Chinese uses 音色 and 声音.
@@ -267,7 +270,7 @@ open everything an earlier release could have saved.
 ### Bundle boundaries
 
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -421,8 +424,10 @@ open everything an earlier release could have saved.
   lists only the choices, such as bare bank names under **Import into**. The FM-1+VA import and
   write dialogs make each bank's title the label of a switch at its left (`titleSwitch` on
   `RackPanelTitle`, as in "Import FM1 bank A") and disable the bank's dropdown while it is off,
-  keeping its choice for when it is switched on again. A switch waiting on what it
-  started, as MIDI connecting is, is `busy` and blinks; `disabled` only greys it out. A dialog listing several sections that would make it scroll, such as
+  keeping its choice for when it is switched on again. The editor's effects and its LFO and
+  oscillator sync work the same way: each name is its switch's label, so the switch keeps one name
+  in either state. A switch waiting on what it started, as MIDI connecting is, is `busy` and
+  blinks; `disabled` only greys it out. A dialog listing several sections that would make it scroll, such as
   the FM-1+VA import's banks, folds each with the editor's rack panel pieces in
   `src/components/ui/rack-panel.tsx`; a control on a title strip sits above its fold overlay.
   `rack-panel` takes its help button as an element (the editor's `RackPanelHelp`) rather than
@@ -442,7 +447,7 @@ open everything an earlier release could have saved.
   that line fits one line too, and the item lines its icon up with the label's line
   (`menuItemWithHintClassName`). An item
   that replaces patches, such as **Reset to factory patches…**, goes last in the danger colour,
-  as **Delete bank** does in a bank's menu.
+  as **Delete bank…** does in a bank's menu.
 - Reading the FM1's presets and importing Baud Girl's presets file are separate menu items opening
   one dialog in two modes (`source`), so neither mode mentions the other: the read starts as its
   dialog opens, and the file mode opens on its chooser. **Read presets from the FM1…** and **Write
@@ -456,6 +461,15 @@ open everything an earlier release could have saved.
 - Show an error in a dialog or on the page with `ErrorNotice` from
   `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
   restyling another paragraph.
+- A menu item or button that opens a dialog, a file chooser, or a confirmation ends its label in an
+  ellipsis, such as **Save bank…** and **Delete bank…**; the dialog's own title and its action
+  button do not, so a menu item that shares their words takes its own string.
+- Colour a button by whether the action can be undone. `danger`, solid red, marks only what
+  nothing reverses, such as deleting a saved bank or writing presets to the FM1. `destructive`,
+  red text, marks what replaces or removes data that Undo brings back, such as deleting a bank or
+  copying over a slot. An action that only adds stays plain. A Cancel or Close beside an action is
+  `ghost`. A warning about what an action will replace is `WarningNotice`; an error is
+  `ErrorNotice`; information the action works around is a plain muted line.
 - Confirm an action that finished with a notification (`toast.success`), never a status line on the
   page, as sending a bank to the FM1 does. Show progress on the control that started the action,
   such as the button's working label, and keep only an error the user must act on on the page, in

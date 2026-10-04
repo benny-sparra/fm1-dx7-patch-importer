@@ -91,8 +91,8 @@ describe('RestoreBackupDialog', () => {
 
     await user.upload(screen.getByLabelText('Choose a backup file'), makeBackupFile())
 
-    expect(await screen.findByText('Workspace banks')).toBeTruthy()
-    expect(summaryValue('Workspace banks')).toBe('3')
+    expect(await screen.findByText('Banks')).toBeTruthy()
+    expect(summaryValue('Banks')).toBe('3')
     expect(summaryValue('Patches')).toBe('32')
     expect(summaryValue('Favourites')).toBe('1')
     expect(summaryValue('Saved banks')).toBe('2')
@@ -189,7 +189,7 @@ describe('RestoreBackupDialog', () => {
 
     expect(await screen.findByRole('alert')).toHaveProperty(
       'textContent',
-      'Browser storage could not keep the saved banks from this backup, so your workspace was not changed. Try again.',
+      'Browser storage could not keep the saved banks from this backup, so your library was not changed. Try again.',
     )
     expect(onClose).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: 'Restore backup' }))
@@ -213,7 +213,7 @@ describe('RestoreBackupDialog', () => {
     finishFirst(firstText)
     await Promise.resolve()
 
-    expect(screen.queryByText('Workspace banks')).toBeNull()
+    expect(screen.queryByText('Banks')).toBeNull()
     expect(within(screen.getByRole('alert')).getByText(/not a backup from this app/)).toBeTruthy()
   })
 })

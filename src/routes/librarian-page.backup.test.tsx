@@ -132,7 +132,7 @@ describe('LibrarianPage backup', () => {
     await user.click(screen.getByRole('button', { name: 'Download backup' }))
 
     expect(
-      await screen.findByText('Downloading a backup of your workspace banks and saved banks.'),
+      await screen.findByText('Downloading a backup of your banks and saved banks.'),
     ).toBeTruthy()
     const backup = JSON.parse(await createObjectURL.mock.calls[0][0].text())
     expect(backup).toMatchObject({ format: 'fm1-librarian-backup', version: 4 })
@@ -148,7 +148,7 @@ describe('LibrarianPage backup', () => {
 
     expect(
       await screen.findByText(
-        'Downloading a backup of your workspace banks. Saved banks could not be read, so they are not in it.',
+        'Downloading a backup of your banks. Saved banks could not be read, so they are not in it.',
       ),
     ).toBeTruthy()
   })
@@ -183,7 +183,7 @@ describe('LibrarianPage backup', () => {
     await openMenu(user)
 
     await user.click(screen.getByRole('button', { name: 'Download backup' }))
-    await screen.findByText('Downloading a backup of your workspace banks and saved banks.')
+    await screen.findByText('Downloading a backup of your banks and saved banks.')
 
     const line = screen.getByText(`Last backed up: ${new Date().toLocaleDateString('en-GB')}`)
     const download = screen.getByRole('button', { name: 'Download backup' })

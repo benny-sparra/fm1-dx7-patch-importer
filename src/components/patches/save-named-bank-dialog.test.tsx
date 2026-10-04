@@ -55,9 +55,15 @@ describe('SaveNamedBankDialog', () => {
   it('opens named for the workspace bank, with its name ready to type over', () => {
     renderDialog()
 
-    expect(screen.getByRole('dialog', { name: 'Save workspace bank Leads' })).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'Save “Leads”' })).toBeTruthy()
     expect(nameField().value).toBe('Leads')
     expect(document.activeElement).toBe(nameField())
+  })
+
+  it('shows the DX7 block cursor in the name field', () => {
+    renderDialog()
+
+    expect(nameField().classList).toContain('name-caret')
   })
 
   it('saves the bank under the chosen name and description, then closes', async () => {
@@ -100,7 +106,7 @@ describe('SaveNamedBankDialog', () => {
     screen.getByRole('dialog').dispatchEvent(cancel)
 
     expect(cancel.defaultPrevented).toBe(true)
-    expect(screen.getByRole('button', { name: 'Save bank' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Saving…' }).hasAttribute('disabled')).toBe(true)
     expect(screen.getByRole('button', { name: 'Close' }).hasAttribute('disabled')).toBe(true)
     expect(saveNamedBank).toHaveBeenCalledTimes(1)
     expect(onClose).not.toHaveBeenCalled()

@@ -16,6 +16,7 @@ import { LoadNamedBankDialog } from '@/components/patches/load-named-bank-dialog
 import { createNamedBank } from '@/lib/named-bank'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
+import { ToastProvider } from '@/components/ui/toast'
 
 afterEach(cleanup)
 
@@ -87,7 +88,7 @@ describe('reduced motion', () => {
 
     expect(
       reducedMotionBlocks.some((block) =>
-        /\.barber-pole,\s*\.peer:disabled ~ \.midi-switch-track\s*\{\s*animation:\s*none;/.test(
+        /\.barber-pole,\s*\.midi-switch\[data-busy\] \.midi-switch-track\s*\{\s*animation:\s*none;/.test(
           block,
         ),
       ),
@@ -255,6 +256,7 @@ describe('reduced motion', () => {
           workspaceBanks: ['A'],
         }}
       />,
+      { wrapper: ToastProvider },
     )
 
     await user.click(screen.getByRole('button', { name: 'Edit Stage' }))

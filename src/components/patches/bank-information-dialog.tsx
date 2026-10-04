@@ -1,4 +1,4 @@
-import { Info } from 'lucide-react'
+import { Info, Save } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -67,7 +67,7 @@ export function BankInformationDialog({
         type="button"
       >
         <Info className="size-4" />
-        {t('banks.bankInformation')}
+        {t('banks.bankInformationMenu')}
       </button>
 
       <Dialog
@@ -108,7 +108,7 @@ export function BankInformationDialog({
               {t('namedBanks.name')}
               <input
                 autoComplete="off"
-                className="h-10 rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="name-caret h-10 rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 maxLength={workspaceBankTitleLength}
                 onChange={(event) => setTitle(event.target.value)}
                 ref={titleInputRef}
@@ -131,7 +131,8 @@ export function BankInformationDialog({
         </DialogBody>
         <DialogFooter>
           <Button form={formId} type="submit">
-            {t('namedBanks.update')}
+            <Save />
+            <span>{t('namedBanks.update')}</span>
           </Button>
         </DialogFooter>
       </Dialog>

@@ -904,6 +904,15 @@
     color: var(--crt-ink-4);
   }
 
+  /*
+   * Naming a patch or a bank shows the DX7's blinking block cursor over the
+   * character it is on. The browser blinks it at the system's own rate, and a
+   * browser without block carets keeps its usual bar.
+   */
+  .name-caret {
+    caret-shape: block;
+  }
+
   .operator-tab[aria-selected='true'] {
     background: var(--crt-sel-bg);
     color: var(--crt-acc-lt);
@@ -1088,7 +1097,7 @@
    * period measured along the button, so the loop is seamless.
    */
   .barber-pole,
-  .peer:disabled ~ .midi-switch-track {
+  .midi-switch[data-busy] .midi-switch-track {
     background-image: repeating-linear-gradient(
       -45deg,
       transparent 0 6px,
@@ -1145,7 +1154,7 @@
     }
 
     .barber-pole,
-    .peer:disabled ~ .midi-switch-track {
+    .midi-switch[data-busy] .midi-switch-track {
       animation: none;
     }
 

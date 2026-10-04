@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next'
-import { HardDriveUpload, TriangleAlert } from 'lucide-react'
+import { HardDriveUpload } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
+import { WarningNotice } from '@/components/ui/warning-notice'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import type { PatchLibrarySnapshot } from '@/lib/patch-library'
 import {
@@ -169,13 +170,10 @@ export function RestoreBackupDialog({ library, onClose, onRestored }: RestoreBac
                   </div>
                 ))}
               </dl>
-              <div className="flex gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                <TriangleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
-                <div className="grid gap-2">
-                  <p>{t('backup.workspaceEffect')}</p>
-                  <p>{t('backup.savedBanksEffect')}</p>
-                </div>
-              </div>
+              <WarningNotice>
+                <p>{t('backup.workspaceEffect')}</p>
+                <p>{t('backup.savedBanksEffect')}</p>
+              </WarningNotice>
             </>
           ) : null}
 

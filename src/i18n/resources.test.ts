@@ -148,7 +148,7 @@ describe('translation resources', () => {
   it('provides localized text for saved-bank dialogs', () => {
     expect(resources.fr.translation.namedBanks.title).toBe('Mes banques enregistrées')
     expect(resources.es.translation.namedBanks.save).toBe('Guardar banco')
-    expect(resources.de.translation.namedBanks.loadBank).toBe('Bank laden')
+    expect(resources.de.translation.namedBanks.loadBank).toBe('Bank laden…')
     expect(resources['pt-BR'].translation.namedBanks.deleteAction).toBe('Excluir banco')
     expect(resources['zh-Hans'].translation.namedBanks.search).toBe('搜索已保存的音色库')
   })

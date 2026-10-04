@@ -28,8 +28,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: `${bevelLight} bg-[var(--crt-btn)] text-white hover:bg-[var(--crt-btn-hover)]`,
-        /** A confirmed destructive action, such as deleting a bank. */
+        /**
+         * An action nothing can undo, such as deleting a saved bank or writing presets to the FM1.
+         */
         danger: `${bevelLight} bg-destructive text-destructive-foreground hover:bg-destructive/90`,
+        /** An action that replaces or removes data, which Undo can still reverse. */
         destructive: `${bevel} bg-[var(--crt-btn-face)] text-destructive hover:bg-destructive hover:text-destructive-foreground`,
         secondary: `${bevel} bg-[var(--crt-btn-face)] text-[var(--crt-ink-2)] hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)]`,
         outline: `${bevelSunken} bg-[var(--crt-bg-1)] text-[var(--crt-ink-2)] hover:bg-[var(--crt-bg-head)] hover:text-[var(--crt-acc-lt)]`,
