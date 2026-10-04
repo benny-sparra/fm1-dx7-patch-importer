@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import '@/i18n/editor-help'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { HelpPopover } from '@/components/ui/help-popover'
-import { OnOffLabel } from '@/components/ui/on-off-label'
+import { Switch } from '@/components/ui/switch'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { rotaryControlAngle } from '@/lib/editor-visuals'
 import { rangeStyle } from '@/lib/range-style'
@@ -301,47 +301,26 @@ export function SliderParameterControl({
   )
 }
 
+/**
+ * An on/off parameter as the CRT slide switch, labelled by the parameter's name, as the effects'
+ * switches are. The name stays the same in either state; the switch says which it is.
+ */
 export function SwitchParameterControl({
   helpText,
   label,
   onChange,
   value,
 }: SwitchParameterControlProps) {
-  const checked = value > 0
-  const inputId = useId()
-
   return (
-    <div className={cn('grid min-w-0 content-start gap-1', captionClass)}>
-      <span className="flex min-w-0 items-center gap-1">
-        <span className="min-w-0 text-balance break-words" title={label}>
-          {label}
-        </span>
-        {helpText ? <HelpPopover label={label} text={helpText} /> : null}
-      </span>
-      <label className="flex cursor-pointer" htmlFor={inputId}>
-        <input
-          aria-checked={checked}
-          aria-label={label}
-          checked={checked}
-          className="peer sr-only"
-          id={inputId}
-          onChange={(event) => onChange(event.target.checked ? 1 : 0)}
-          role="switch"
-          type="checkbox"
-        />
-        {/* A latching panel button: lit and raised-bright while on. */}
-        <span
-          className={cn(
-            'flex items-center gap-1.5 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-3 py-[3px] text-[11px] tracking-[0.1em] uppercase peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--crt-led)]',
-            checked
-              ? 'border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
-              : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
-          )}
-        >
-          <span aria-hidden="true" className="crt-led" data-state={checked ? 'on' : 'off'} />
-          <OnOffLabel on={checked} />
-        </span>
-      </label>
+    <div className={cn('flex min-w-0 items-center gap-1', captionClass)}>
+      <Switch
+        checked={value > 0}
+        className="-ml-1 inline-flex min-h-6 min-w-0 items-center gap-2 px-1 transition-colors"
+        onChange={(checked) => onChange(checked ? 1 : 0)}
+      >
+        <span className="min-w-0 text-balance break-words">{label}</span>
+      </Switch>
+      {helpText ? <HelpPopover label={label} text={helpText} /> : null}
     </div>
   )
 }

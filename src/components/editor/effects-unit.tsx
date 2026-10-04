@@ -1,4 +1,3 @@
-import { Power } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
@@ -12,7 +11,7 @@ import {
 } from '@/components/editor/effect-scopes'
 import { RackSelect, rangeControlKeys } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
-import { OnOffLabel } from '@/components/ui/on-off-label'
+import { Switch } from '@/components/ui/switch'
 import { effectPresetsFor, type EffectPresetId } from '@/lib/effect-presets'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
 import { rangeStyle } from '@/lib/range-style'
@@ -346,38 +345,19 @@ export function EffectsUnit({
             className="crt-raised-thin flex min-w-0 flex-col bg-[var(--crt-bg-1)]"
             key={effect.name}
           >
-            <div className="flex min-w-0 items-center gap-2 border-b border-[var(--crt-line-dk)] px-[7px] py-[5px]">
-              <span aria-hidden="true" className="crt-led" data-state={enabled ? 'on' : 'off'} />
-              <h3
-                className={cn(
-                  'flex min-w-0 items-center gap-1 text-[11px] font-normal tracking-[0.18em] uppercase',
-                  enabled ? 'text-[var(--crt-acc-lt)]' : 'text-[var(--crt-ink-4)]',
-                )}
-              >
-                <span className="truncate">{translatedEffect}</span>
+            {/* The effect's name is its switch's label, so the switch keeps one name and its
+                checked state says whether the effect is on; the name lights with it. */}
+            <div className="flex min-w-0 items-center border-b border-[var(--crt-line-dk)] px-[7px] py-[3px]">
+              <h3 className="flex min-w-0 items-center gap-1 text-[11px] font-normal tracking-[0.18em] uppercase">
+                <Switch
+                  checked={enabled}
+                  className="-ml-[3px] inline-flex min-h-6 min-w-0 items-center gap-2 px-1 transition-colors"
+                  onChange={(checked) => onChange(switchController, checked ? 1 : 0)}
+                >
+                  <span className="truncate">{translatedEffect}</span>
+                </Switch>
                 <HelpPopover label={translatedEffect} text={t(`effectHelp.${effect.name}`)} />
               </h3>
-              <button
-                aria-label={t(enabled ? 'ui.bypassEffect' : 'ui.enableEffect', {
-                  effect: translatedEffect,
-                })}
-                aria-pressed={enabled}
-                className={cn(
-                  'ml-auto flex shrink-0 cursor-pointer items-center gap-1 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 py-0.5 text-[11px] tracking-[0.1em] uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
-                  enabled
-                    ? 'border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-btn)] text-[var(--crt-ink)]'
-                    : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]',
-                )}
-                onClick={() => onChange(switchController, enabled ? 0 : 1)}
-                title={t('ui.effectState', {
-                  effect: translatedEffect,
-                  state: t(enabled ? 'editor.on' : 'ui.bypassed'),
-                })}
-                type="button"
-              >
-                <Power aria-hidden="true" className="size-3" />
-                <OnOffLabel on={enabled} />
-              </button>
             </div>
             <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
               <EffectScope enabled={enabled} name={effect.name} values={values} />

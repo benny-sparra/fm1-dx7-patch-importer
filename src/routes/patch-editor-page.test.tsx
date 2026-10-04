@@ -7,7 +7,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import type { Patch } from '@/data/patches'
-import { resolveOperatorParameterIndex } from '@/lib/fm1-parameters'
+import { getEffectParameterDefinition, resolveOperatorParameterIndex } from '@/lib/fm1-parameters'
 import type { CopiedOperator } from '@/lib/operator-clipboard'
 import { PatchEditorPage } from '@/routes/patch-editor-page'
 
@@ -237,17 +237,17 @@ describe('PatchEditorPage MIDI paths', () => {
       )
     const operatorOneLevel = () =>
       (screen.getByRole('slider', { name: 'Operator 1 output level' }) as HTMLInputElement).value
-    await user.click(reverb.getByRole('button', { name: 'Enable Reverb' }))
+    await user.click(reverb.getByRole('switch', { name: 'Reverb' }))
     await user.selectOptions(reverb.getByRole('combobox', { name: 'Reverb Preset' }), 'Large hall')
 
     await chooseInitVoice(user)
 
-    expect(reverb.getByRole('button', { name: 'Enable Reverb' })).toBeTruthy()
+    expect(reverb.getByRole<HTMLInputElement>('switch', { name: 'Reverb' }).checked).toBe(false)
     expect(reverbSettings()).toEqual(['1', '70', '35'])
 
     await user.keyboard('{Meta>}z{/Meta}')
 
-    expect(reverb.getByRole('button', { name: 'Bypass Reverb' })).toBeTruthy()
+    expect(reverb.getByRole<HTMLInputElement>('switch', { name: 'Reverb' }).checked).toBe(true)
     expect(operatorOneLevel()).toBe('0')
   }, 15_000)
 
@@ -266,6 +266,24 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(midi.sendVoice).toHaveBeenCalledTimes(sends)
   }, 15_000)
 
+  it('names each effect’s switch by the effect alone, whether it is on or off', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const reverb = within(screen.getByRole('region', { name: 'Reverb' }))
+    const reverbSwitch = reverb.getByRole<HTMLInputElement>('switch', { name: 'Reverb' })
+
+    expect(reverbSwitch.checked).toBe(false)
+    await user.click(reverbSwitch)
+
+    expect(reverb.getByRole('switch', { name: 'Reverb' })).toBe(reverbSwitch)
+    expect(reverbSwitch.checked).toBe(true)
+    expect(midi.sendEffectParameter).toHaveBeenLastCalledWith(
+      getEffectParameterDefinition('effect.reverb.enabled').controller,
+      1,
+    )
+  })
+
   it('disables an effect’s preset menu while the effect is bypassed', async () => {
     const user = userEvent.setup()
     const { midi } = setup()
@@ -275,7 +293,7 @@ describe('PatchEditorPage MIDI paths', () => {
 
     expect(presets.disabled).toBe(true)
 
-    await user.click(reverb.getByRole('button', { name: 'Enable Reverb' }))
+    await user.click(reverb.getByRole('switch', { name: 'Reverb' }))
 
     expect(presets.disabled).toBe(false)
   })
@@ -290,7 +308,7 @@ describe('PatchEditorPage MIDI paths', () => {
       ['Reverb Space', 'Reverb Decay', 'Reverb Mix'].map(
         (name) => (reverb.getByLabelText(name) as HTMLInputElement | HTMLSelectElement).value,
       )
-    await user.click(reverb.getByRole('button', { name: 'Enable Reverb' }))
+    await user.click(reverb.getByRole('switch', { name: 'Reverb' }))
 
     await user.selectOptions(presets, 'Large hall')
 
@@ -300,7 +318,7 @@ describe('PatchEditorPage MIDI paths', () => {
     await user.keyboard('{Meta>}z{/Meta}')
 
     expect(reverbSettings()).toEqual(['0', '0', '0'])
-    expect(reverb.getByRole('button', { name: 'Bypass Reverb' })).toBeTruthy()
+    expect(reverb.getByRole<HTMLInputElement>('switch', { name: 'Reverb' }).checked).toBe(true)
   }, 15_000)
 
   it('sends only the preset effect’s controls, and nothing when the preset is applied again', async () => {
@@ -309,7 +327,7 @@ describe('PatchEditorPage MIDI paths', () => {
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
     const delay = within(screen.getByRole('region', { name: 'Delay' }))
     const presets = delay.getByRole('combobox', { name: 'Delay Preset' })
-    await user.click(delay.getByRole('button', { name: 'Enable Delay' }))
+    await user.click(delay.getByRole('switch', { name: 'Delay' }))
     vi.mocked(midi.sendEffectParameter).mockClear()
 
     await user.selectOptions(presets, 'Echo')
@@ -331,7 +349,7 @@ describe('PatchEditorPage MIDI paths', () => {
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
     const phaser = within(screen.getByRole('region', { name: 'Phaser' }))
     const chorusDepth = screen.getByRole('slider', { name: 'Chorus Depth' }) as HTMLInputElement
-    await user.click(phaser.getByRole('button', { name: 'Enable Phaser' }))
+    await user.click(phaser.getByRole('switch', { name: 'Phaser' }))
 
     await user.selectOptions(phaser.getByRole('combobox', { name: 'Phaser Preset' }), 'Slow sweep')
 
@@ -348,7 +366,7 @@ describe('PatchEditorPage MIDI paths', () => {
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
     const filter = within(screen.getByRole('region', { name: 'Filter' }))
-    await user.click(filter.getByRole('button', { name: 'Enable Filter' }))
+    await user.click(filter.getByRole('switch', { name: 'Filter' }))
 
     await user.selectOptions(filter.getByRole('combobox', { name: 'Filter Preset' }), 'Telephone')
 
@@ -364,7 +382,7 @@ describe('PatchEditorPage MIDI paths', () => {
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
     const reverb = within(screen.getByRole('region', { name: 'Reverb' }))
-    await user.click(reverb.getByRole('button', { pressed: false }))
+    await user.click(reverb.getByRole('switch', { name: 'Reverb' }))
     const decay = screen.getByRole('slider', { name: 'Reverb Decay' }) as HTMLInputElement
 
     fireEvent.keyDown(decay, { key: 'ArrowRight' })
@@ -454,7 +472,7 @@ describe('PatchEditorPage MIDI paths', () => {
     const { midi } = setup()
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
     // The effects are their own always-visible section now, not a tab to open.
-    await user.click(screen.getByRole('button', { name: 'Enable Filter' }))
+    await user.click(screen.getByRole('switch', { name: 'Filter' }))
     expect(midi.sendEffectParameter).toHaveBeenCalledWith(0, 1)
     expect(midi.sendParameter).not.toHaveBeenCalled()
   })

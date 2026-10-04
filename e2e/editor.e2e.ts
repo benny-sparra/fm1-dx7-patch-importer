@@ -254,8 +254,8 @@ test('applies effect presets one after another and undoes each as one step', asy
     for (const [index, setting] of settings.entries())
       await expect(setting).toHaveValue(values[index])
   }
-  const enable = reverb.getByRole('button', { name: 'Enable Reverb' })
-  if (await enable.isVisible()) await enable.click()
+  // The switch's input is visually hidden; checking it clicks its label, the effect's name.
+  await reverb.getByRole('switch', { name: 'Reverb' }).check({ force: true })
   await expect(presets).toBeEnabled()
   const before = await Promise.all(settings.map((setting) => setting.inputValue()))
 
