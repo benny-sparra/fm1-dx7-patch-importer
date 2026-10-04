@@ -78,8 +78,13 @@ other dependency install scripts remain unapproved.
 
 A production build names the deployment it came from, so an event points at an exact revision
 instead of one guessed from its date. The name is taken from the first of `SENTRY_RELEASE`,
-`CF_PAGES_COMMIT_SHA` and `GITHUB_SHA` that is set, so a Cloudflare Pages deployment needs no
-configuration; set `SENTRY_RELEASE` only for a build made somewhere that supplies neither commit.
+`CF_PAGES_COMMIT_SHA`, `WORKERS_CI_COMMIT_SHA` and `GITHUB_SHA` that is set, so a Cloudflare Pages
+or Workers Builds deployment needs no configuration; set `SENTRY_RELEASE` only for a build made
+somewhere that supplies none of these commits.
+
+The Sentry plugin falls back to `git rev-parse HEAD` when it finds no commit of its own, so uploaded
+source maps can carry a release while the client reports none. A production event without a release
+means the build platform supplied a commit variable this list does not read.
 
 The same name is given to the client and to the uploaded source maps, so a resolved stack trace is
 filed where the event that needs it will look. A build served without any of the variables, such as
