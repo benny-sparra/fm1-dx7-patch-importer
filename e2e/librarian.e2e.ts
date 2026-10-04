@@ -502,6 +502,35 @@ async function dragGrip(page: Page, slotName: string, target: Locator) {
   await page.mouse.up()
 }
 
+test('outlines the dragged slot, and the bank tab it is over, with marching ants', async ({
+  page,
+}) => {
+  await openLibrarian(page)
+  const { name } = await slotMenuButton(page, 1)
+  const ants = (selector: string) =>
+    page.evaluate((target) => {
+      const element = document.querySelector(target)
+      return element ? getComputedStyle(element, '::after').animationName : null
+    }, selector)
+  const grip = await page
+    .getByRole('button', { exact: true, name: `Reorder ${name}` })
+    .boundingBox()
+  const tab = await page.getByRole('button', { name: /^B — / }).boundingBox()
+  if (!grip || !tab) throw new Error('The grip or the bank tab is not on screen.')
+
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(grip.x + 140, grip.y + 60, { steps: 6 })
+  await expect.poll(() => ants('.patch-cell[data-dragging]')).toBe('marching-ants')
+  expect(await ants('.bank-tab[data-drop-target]')).toBeNull()
+  await page.mouse.move(tab.x + tab.width / 2, tab.y + tab.height / 2, { steps: 10 })
+  await expect.poll(() => ants('.bank-tab[data-drop-target]')).toBe('marching-ants')
+  await page.keyboard.press('Escape')
+  await page.mouse.up()
+
+  await expect(page.locator('[data-dragging], [data-drop-target]')).toHaveCount(0)
+})
+
 test('copies a slot by dropping it on another bank tab', async ({ page }) => {
   await openLibrarian(page)
   const { name } = await slotMenuButton(page, 0)
