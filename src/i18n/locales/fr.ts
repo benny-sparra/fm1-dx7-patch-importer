@@ -142,6 +142,8 @@ export default {
     'Distortion Tone': 'Ajuste la brillance du son distordu.',
     'Distortion Level':
       'Règle le volume de sortie après la distorsion, utile pour retrouver le niveau sans effet.',
+    'Distortion Type':
+      'Choisit comment la distorsion façonne le son sur le firmware de Baud Girl. L’écrêtage doux, l’original de M-VAVE, arrondit les crêtes ; l’écrêtage dur les coupe net pour un grain plus rude ; Foldback les replie pour un timbre plus brillant et métallique. Aucun message MIDI ne le règle : on l’entend une fois le son écrit sur le FM1 avec Envoyer au FM1 ou Écrire des sons sur le FM1.',
     'Chorus Frequency': 'Règle la vitesse de cycle du mouvement du chorus, d’environ 0,1 à 1 Hz.',
     'Chorus Depth':
       'Règle l’amplitude du mouvement de hauteur du chorus. Des valeurs élevées sonnent plus larges et plus marquées.',
@@ -149,6 +151,15 @@ export default {
     'Phaser Frequency': 'Règle la vitesse de cycle du balayage du phaser, d’environ 0,5 à 6 Hz.',
     'Phaser Depth': 'Règle l’étendue et l’intensité du balayage du phaser.',
     'Phaser Mix': 'Équilibre le son sec et le signal traité par le phaser.',
+  },
+  distortionType: {
+    softClip: 'Écrêtage doux',
+    hardClip: 'Écrêtage dur',
+    foldback: 'Foldback',
+    unknown: 'Inconnu ({{value, number}})',
+    noRecord: 'Ce son ne vient pas du FM1 : il prend le type du preset sur lequel il est écrit.',
+    otherFirmware:
+      'Conservé pour le firmware de Baud Girl : {{type}}. Ce FM1 joue sa propre distorsion à la place.',
   },
   ui: {
     auditionGroup: 'Écoute de l’opérateur {{number}}',

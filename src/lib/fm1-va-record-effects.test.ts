@@ -6,10 +6,16 @@ import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import {
   capturedOrgan3Reply,
   capturedVirtualAnalogDistortionReply,
+  capturedVirtualAnalogFoldbackReply,
   capturedVirtualAnalogReorderedReply,
 } from '@/test/fm1-va-captures'
 
-import { fm1VaRecordEffects, fm1VaRecordWithEffects } from './fm1-va-record-effects'
+import {
+  fm1VaRecordDistortionType,
+  fm1VaRecordEffects,
+  fm1VaRecordWithDistortionType,
+  fm1VaRecordWithEffects,
+} from './fm1-va-record-effects'
 
 function recordOf(reply: Uint8Array) {
   const parsed = parseFm1VaReply(reply)
@@ -93,5 +99,32 @@ describe('fm1VaRecordWithEffects', () => {
     fm1VaRecordWithEffects(record, new Uint8Array(fm1EffectParameterCount).fill(1))
 
     expect(record).toEqual(before)
+  })
+})
+
+describe('fm1VaRecordDistortionType', () => {
+  it('reads Hard Clip from the preset it was set on, and Soft Clip from a factory preset', () => {
+    // Preset 097 had Distortion Type turned to Hard Clip on the FX screen (docs/fm1-research.md).
+    expect(fm1VaRecordDistortionType(recordOf(capturedVirtualAnalogDistortionReply))).toBe(1)
+    expect(fm1VaRecordDistortionType(recordOf(capturedOrgan3Reply))).toBe(0)
+  })
+
+  it('reads Foldback from the same preset once it was set to Foldback', () => {
+    const foldback = recordOf(capturedVirtualAnalogFoldbackReply)
+    const hardClip = recordOf(capturedVirtualAnalogDistortionReply)
+
+    expect(fm1VaRecordDistortionType(foldback)).toBe(2)
+    expect(Array.from(foldback.keys()).filter((i) => foldback[i] !== hardClip[i])).toEqual([38])
+  })
+})
+
+describe('fm1VaRecordWithDistortionType', () => {
+  it('sets only the type, in a copy', () => {
+    const record = recordOf(capturedVirtualAnalogDistortionReply)
+
+    const updated = fm1VaRecordWithDistortionType(record, 0)
+
+    expect(Array.from(updated.keys()).filter((i) => updated[i] !== record[i])).toEqual([38])
+    expect(fm1VaRecordDistortionType(record)).toBe(1)
   })
 })

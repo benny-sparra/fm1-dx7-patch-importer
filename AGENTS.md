@@ -505,9 +505,16 @@ open everything an earlier release could have saved.
   file, takes the library's effects from the record's effect bytes (`fm1VaRecordEffects`, a module
   only lazy code imports); after that the library's effects are the ones the effects panel
   edits, and the record keeps its bytes as read. The bytes the panel cannot set (effect
-  order, Distortion type, Envelope, the preset's own Filter, Virtual Analog settings, and bytes not
+  order, Envelope, the preset's own Filter, Virtual Analog settings, and bytes not
   mapped yet) come only from the record. Lazy code takes `fm1VaRecordSize` from
   `src/lib/patch-library.ts`, since importing the record module directly gave it a chunk of its own.
+- Distortion type is the one record byte the editor changes (38). The editor keeps it after the
+  effects in its parameters (`FM1_VA_DISTORTION_TYPE_INDEX`), so undo and compare cover it, and
+  saving writes it into the record through `saveSound`, which gives the copies that held the same
+  record the new one. No MIDI message carries it, so it is heard only once the patch is written to
+  the FM1. The effects panel offers it only while `hasFm1VaPresetCommands` allows the preset
+  write, disabled for a patch without a record, which never gains one; on other firmware it names
+  a type other than Soft Clip that the patch keeps. Sound starters leave it as it is.
 - **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
   `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.

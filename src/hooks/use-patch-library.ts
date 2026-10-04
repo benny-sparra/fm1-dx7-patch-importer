@@ -235,10 +235,10 @@ export function usePatchLibrary() {
    * the same (`saveSound`). Returns how many other copies it updated.
    */
   const updatePatch = useCallback(
-    (id: string, voice: Dx7Voice, effects: Uint8Array) => {
+    (id: string, voice: Dx7Voice, effects: Uint8Array, record?: Uint8Array) => {
       let linked = 0
       commit((current) => {
-        const saved = saveSound(current, id, voice, effects)
+        const saved = saveSound(current, id, voice, effects, record)
         linked = saved.linked
         return saved.snapshot
       })

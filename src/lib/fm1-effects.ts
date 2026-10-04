@@ -2,6 +2,7 @@ import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_EFFECT_PARAMETER_COUNT,
   FM1_EFFECT_PARAMETER_START,
+  FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VOICE_PARAMETER_COUNT,
   fm1EffectParameters,
 } from '@/lib/fm1-parameters'
@@ -24,7 +25,15 @@ export function normalizeFm1Effects(value: unknown) {
   )
 }
 
-export function makeFm1EditorParameters(voiceParameters: Uint8Array, effects: Uint8Array) {
+/**
+ * The editor's parameters for a voice and its effects. `distortionType` is the FM-1+VA record's
+ * value, kept as read, or 0 for a patch without a record.
+ */
+export function makeFm1EditorParameters(
+  voiceParameters: Uint8Array,
+  effects: Uint8Array,
+  distortionType = 0,
+) {
   if (voiceParameters.length !== FM1_VOICE_PARAMETER_COUNT) {
     throw new RangeError(
       `FM1 voice editor data must contain ${FM1_VOICE_PARAMETER_COUNT} parameters.`,
@@ -35,6 +44,7 @@ export function makeFm1EditorParameters(voiceParameters: Uint8Array, effects: Ui
   const parameters = new Uint8Array(FM1_EDITOR_PARAMETER_COUNT)
   parameters.set(voiceParameters)
   parameters.set(normalizedEffects, FM1_EFFECT_PARAMETER_START)
+  parameters[FM1_VA_DISTORTION_TYPE_INDEX] = distortionType
   return parameters
 }
 
@@ -43,5 +53,10 @@ export function getFm1VoiceParameters(editorParameters: Uint8Array) {
 }
 
 export function getFm1EffectParameters(editorParameters: Uint8Array) {
-  return normalizeFm1Effects(editorParameters.slice(FM1_EFFECT_PARAMETER_START))
+  return normalizeFm1Effects(
+    editorParameters.slice(
+      FM1_EFFECT_PARAMETER_START,
+      FM1_EFFECT_PARAMETER_START + FM1_EFFECT_PARAMETER_COUNT,
+    ),
+  )
 }

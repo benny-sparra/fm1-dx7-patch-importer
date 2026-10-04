@@ -92,6 +92,8 @@ export default {
     'Distortion Tone': 'Adjusts the brightness of the distorted sound.',
     'Distortion Level':
       'Sets the output volume after distortion, useful for matching the bypassed loudness.',
+    'Distortion Type':
+      'Chooses how Distortion shapes the sound on Baud Girl’s firmware. Soft Clip, M-VAVE’s original, rounds the peaks off; Hard Clip cuts them flat for a harsher edge; Foldback folds them back for a brighter, metallic tone. No MIDI message sets it, so you hear it once the patch is written to the FM1 with Send to FM1 or Write patches to the FM1.',
     'Chorus Frequency': 'Sets how quickly the chorus movement cycles, from about 0.1 to 1 Hz.',
     'Chorus Depth':
       'Sets how far the chorus pitch movement travels. Higher values sound wider and more obvious.',
@@ -99,5 +101,15 @@ export default {
     'Phaser Frequency': 'Sets how quickly the phaser sweep cycles, from about 0.5 to 6 Hz.',
     'Phaser Depth': 'Sets the range and intensity of the phaser sweep.',
     'Phaser Mix': 'Balances dry sound with the phased signal.',
+  },
+  distortionType: {
+    softClip: 'Soft Clip',
+    hardClip: 'Hard Clip',
+    foldback: 'Foldback',
+    unknown: 'Unknown ({{value, number}})',
+    noRecord:
+      'This patch didn’t come from the FM1, so it takes the type of the preset it’s written over.',
+    otherFirmware:
+      'Kept for Baud Girl’s firmware: {{type}}. This FM1 plays its own distortion instead.',
   },
 }

@@ -15,10 +15,21 @@ import { HelpPopover } from '@/components/ui/help-popover'
 import { OnOffLabel } from '@/components/ui/on-off-label'
 import { effectPresetsFor, type EffectPresetId } from '@/lib/effect-presets'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
+import { fm1VaDistortionTypes } from '@/lib/fm1-va-record-effects'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
 type EffectsUnitProps = {
+  /**
+   * A Distortion type the patch keeps for FM-1+VA that the FM1's firmware does not play, which a
+   * line under Distortion names.
+   */
+  keptDistortionType?: number
+  /**
+   * FM-1+VA's Distortion type, offered while the FM1 runs a release that writes presets. `type` is
+   * null for a patch without a settings record, which has nowhere to keep one.
+   */
+  distortionType?: { onChange: (type: number) => void; type: number | null }
   onApplyPreset: (id: EffectPresetId) => void
   onChange: (controller: number, value: number) => void
   onGestureEnd: () => void
@@ -325,7 +336,73 @@ function EffectControl({
   )
 }
 
+/** The name of a Distortion type as the record holds it, including a value no type is known for. */
+function useDistortionTypeName() {
+  const { t } = useTranslation()
+  return (type: number) => {
+    const id = fm1VaDistortionTypes[type]
+    return id ? t(`distortionType.${id}`) : t('distortionType.unknown', { value: type })
+  }
+}
+
+/*
+  FM-1+VA's Distortion type, in the enumerated row layout. No MIDI message sets it, so it is
+  heard once the patch is written to the FM1, which its help says.
+*/
+function DistortionTypeControl({
+  disabled,
+  onChange,
+  type,
+}: {
+  disabled: boolean
+  onChange: (type: number) => void
+  type: number | null
+}) {
+  const { t } = useTranslation()
+  const typeName = useDistortionTypeName()
+  const translatedEffect = t('ui.effects.distortion')
+  const translatedParameter = t('ui.parameters.type')
+  const known = type === null || type < fm1VaDistortionTypes.length
+  return (
+    <>
+      <label className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+        <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+          <span className="min-w-0 truncate" title={translatedParameter}>
+            {translatedParameter}
+          </span>
+          <HelpPopover
+            label={`${translatedEffect} ${translatedParameter}`}
+            text={t('effectParameterHelp.Distortion Type')}
+          />
+        </span>
+        <RackSelect
+          aria-label={`${translatedEffect} ${translatedParameter}`}
+          className="crt-inset h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
+          disabled={disabled || type === null}
+          onChange={(event) => onChange(Number(event.target.value))}
+          value={type ?? 0}
+        >
+          {fm1VaDistortionTypes.map((id, value) => (
+            <option key={id} value={value}>
+              {typeName(value)}
+            </option>
+          ))}
+          {/* A value FM-1+VA may add later is shown and kept until another type is chosen. */}
+          {known ? null : <option value={type}>{typeName(type)}</option>}
+        </RackSelect>
+      </label>
+      {type === null ? (
+        <p className="text-[11px] leading-4 text-[var(--crt-ink-3)]">
+          {t('distortionType.noRecord')}
+        </p>
+      ) : null}
+    </>
+  )
+}
+
 export function EffectsUnit({
+  distortionType,
+  keptDistortionType,
   onApplyPreset,
   onChange,
   onGestureEnd,
@@ -333,6 +410,7 @@ export function EffectsUnit({
   values,
 }: EffectsUnitProps) {
   const { t } = useTranslation()
+  const typeName = useDistortionTypeName()
 
   return (
     <div className="grid gap-2 p-[9px] md:grid-cols-2 xl:grid-cols-3">
@@ -386,6 +464,13 @@ export function EffectsUnit({
                 effectName={effect.name}
                 onApplyPreset={onApplyPreset}
               />
+              {effect.name === 'Distortion' && distortionType ? (
+                <DistortionTypeControl
+                  disabled={!enabled}
+                  onChange={distortionType.onChange}
+                  type={distortionType.type}
+                />
+              ) : null}
               {effect.parameters.map((parameter) => (
                 <EffectControl
                   disabled={!enabled}
@@ -398,6 +483,11 @@ export function EffectsUnit({
                   value={values[getEffectParameterDefinition(parameter.id).controller]}
                 />
               ))}
+              {effect.name === 'Distortion' && keptDistortionType !== undefined ? (
+                <p className="text-[11px] leading-4 text-[var(--crt-ink-3)]">
+                  {t('distortionType.otherFirmware', { type: typeName(keptDistortionType) })}
+                </p>
+              ) : null}
             </div>
           </section>
         )

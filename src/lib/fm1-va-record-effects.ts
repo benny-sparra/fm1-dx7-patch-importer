@@ -53,3 +53,24 @@ export function fm1VaRecordWithEffects(record: Uint8Array, effects: Uint8Array) 
   }
   return updated
 }
+
+/** Record byte 38 (29 + 3 × 3) holds Distortion's type, which no controller sets. */
+const distortionTypeByte = 38
+
+/**
+ * Distortion's types on FM-1+VA, each at the value the record stores it as. Soft Clip is M-VAVE's
+ * original distortion; Hard Clip and Foldback are FM-1+VA's own (docs/fm1-research.md).
+ */
+export const fm1VaDistortionTypes = ['softClip', 'hardClip', 'foldback'] as const
+
+/** Distortion's type as the record holds it, which may be a value no type is known for. */
+export function fm1VaRecordDistortionType(record: Uint8Array) {
+  return record[distortionTypeByte]
+}
+
+/** A copy of `record` with Distortion's type set to `type`, and every other byte as it was. */
+export function fm1VaRecordWithDistortionType(record: Uint8Array, type: number) {
+  const updated = record.slice()
+  updated[distortionTypeByte] = type
+  return updated
+}

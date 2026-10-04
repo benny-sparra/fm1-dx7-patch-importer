@@ -875,4 +875,33 @@ describe('FM-1+VA settings records in the workspace', () => {
       library.voices[id].name,
     ])
   })
+  it('saves a changed record to the slot and to the favourite that held the same sound', () => {
+    const library = withRecords()
+    const id = voiceId('A', 1)
+    const sound = { effects: library.effects[id], record: record(1), voice: library.voices[id] }
+    const withFavourite = toggleFavourite(library, sound, { bankNumber: 1 }, 'same').snapshot
+    const changed = record(1)
+    changed[38] = 1
+
+    const { snapshot } = saveSound(withFavourite, id, sound.voice, makeDefaultFm1Effects(), changed)
+
+    expect(snapshot.records[id]).toEqual(changed)
+    expect(snapshot.favourites[0].record).toEqual(changed)
+    expect(snapshot.favourites[0].record).not.toBe(snapshot.records[id])
+  })
+
+  it('gives no record to a sound saved without one', () => {
+    const library = withRecords()
+    const id = voiceId('A', 3)
+
+    const { snapshot } = saveSound(
+      library,
+      id,
+      library.voices[id],
+      makeDefaultFm1Effects(),
+      record(7),
+    )
+
+    expect(snapshot.records[id]).toBeUndefined()
+  })
 })
