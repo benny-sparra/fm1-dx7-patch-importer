@@ -1,4 +1,4 @@
-import { Cable, CircleCheck, Info, TriangleAlert } from 'lucide-react'
+import { Cable, CircleCheck, Info, Send, TriangleAlert } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
 import type { MidiController } from '@/hooks/use-midi'
 import { fm1SynthImage, fm1VaBankScreenImage } from '@/lib/fm1-responsive-images'
 import { dismissFm1BankSelectionDialogForSession } from '@/lib/session'
@@ -177,15 +178,13 @@ export function Fm1BankSelectionDialog({
         </DialogFooter>
       ) : (
         <DialogFooter className="items-center justify-between gap-4" key="bank-selection">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-            <input
-              checked={dontShowAgain}
-              className="size-4 accent-primary"
-              onChange={(event) => setDontShowAgain(event.target.checked)}
-              type="checkbox"
-            />
-            {t('dialogs.dontShow')}
-          </label>
+          <Switch
+            checked={dontShowAgain}
+            className="inline-flex min-h-8 items-center gap-2 px-2 text-sm transition-colors"
+            onChange={setDontShowAgain}
+          >
+            <span>{t('dialogs.dontShow')}</span>
+          </Switch>
           <Button
             autoFocus
             className={isSending ? 'barber-pole' : undefined}
@@ -193,7 +192,8 @@ export function Fm1BankSelectionDialog({
             onClick={onSend}
             type="button"
           >
-            {t(isSending ? 'banks.sending' : 'banks.send')}
+            <Send aria-hidden="true" />
+            <span>{t(isSending ? 'banks.sending' : 'banks.send')}</span>
           </Button>
         </DialogFooter>
       )}

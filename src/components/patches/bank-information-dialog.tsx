@@ -1,4 +1,4 @@
-import { Info } from 'lucide-react'
+import { Info, Save } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -131,7 +131,8 @@ export function BankInformationDialog({
         </DialogBody>
         <DialogFooter>
           <Button form={formId} type="submit">
-            {t('namedBanks.update')}
+            <Save />
+            <span>{t('namedBanks.update')}</span>
           </Button>
         </DialogFooter>
       </Dialog>

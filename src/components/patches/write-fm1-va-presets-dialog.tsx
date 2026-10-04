@@ -1,4 +1,4 @@
-import { Send, Square } from 'lucide-react'
+import { Download, Send, Square } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -383,6 +383,7 @@ export function WriteFm1VaPresetsDialog({
                 type="button"
                 variant="outline"
               >
+                <Download />
                 <span>{t('fm1VaImport.read')}</span>
               </Button>
             </div>
