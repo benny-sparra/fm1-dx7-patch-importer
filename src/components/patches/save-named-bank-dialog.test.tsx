@@ -60,6 +60,12 @@ describe('SaveNamedBankDialog', () => {
     expect(document.activeElement).toBe(nameField())
   })
 
+  it('shows the DX7 block cursor in the name field', () => {
+    renderDialog()
+
+    expect(nameField().classList).toContain('name-caret')
+  })
+
   it('saves the bank under the chosen name and description, then closes', async () => {
     const { onClose, saveNamedBank, user } = renderDialog()
 

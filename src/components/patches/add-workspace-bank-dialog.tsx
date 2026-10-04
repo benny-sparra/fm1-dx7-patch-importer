@@ -188,7 +188,7 @@ export function AddWorkspaceBankDialog({
             {t('banks.bankName')}
             <input
               autoComplete="off"
-              className="h-10 rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="name-caret h-10 rounded-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
               maxLength={workspaceBankTitleLength}
               onChange={(event) => setName(event.target.value)}
               placeholder={suggestedName}
