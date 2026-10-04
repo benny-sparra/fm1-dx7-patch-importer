@@ -654,9 +654,8 @@ describe('ImportFm1VaPresetsDialog reading from the FM1', () => {
 
   it('lights an LED for each preset read and blinks the one being read', async () => {
     const { midi } = fakeFm1({ unansweredFrom: 5 })
-    const { user } = renderDialog({ midi })
+    renderDialog({ midi, source: 'fm1' })
 
-    await user.click(readButton())
     await screen.findByText('Reading preset 6 of 128…')
 
     const leds = [...document.querySelectorAll<HTMLElement>('.read-led')]

@@ -60,21 +60,26 @@ type Fm1Options = {
   garbledSlots?: number[]
   /** The status the FM1 answers every read with, instead of the preset. */
   status?: number
+  /** The first slot the FM1 leaves unanswered, to hold a read in progress. */
+  unansweredFrom?: number
 }
 
 /**
  * An FM1 on FM-1+VA FM-1_093 holding `storedVoice` and `storedRecord` in every slot, which stores
  * what each preset write carries and answers later reads with it.
  */
-function fakeFm1({ garbledSlots = [], status }: Fm1Options = {}) {
+function fakeFm1({ garbledSlots = [], status, unansweredFrom = Infinity }: Fm1Options = {}) {
   const stored = new Map<number, number[]>()
   const ports = makeFakeFm1Ports({
     presetReply: (slot) =>
-      makeFm1VaReply({
-        argument: slot,
-        data: stored.get(slot) ?? [...storedVoice(slot).data, ...storedRecord],
-        status,
-      }),
+      // A reply of another kind, which a read ignores, leaves the read waiting.
+      slot >= unansweredFrom
+        ? makeFm1VaReply({ argument: slot, kind: 0x51 })
+        : makeFm1VaReply({
+            argument: slot,
+            data: stored.get(slot) ?? [...storedVoice(slot).data, ...storedRecord],
+            status,
+          }),
     presetWrite: (message) => {
       const slot = message[5]
       const voice = packDx7Voice(
@@ -151,6 +156,20 @@ describe('WriteFm1VaPresetsDialog', () => {
     expect(within(bankSection('A')).getByText('One patch differs.')).toBeTruthy()
     expect(within(bankSection('B')).getByText('Every patch matches.')).toBeTruthy()
     expect(within(bankSection('C')).getByText('One patch differs.')).toBeTruthy()
+  })
+
+  it('lights an LED for each preset it reads and blinks the one being read', async () => {
+    renderDialog(fakeFm1({ unansweredFrom: 5 }).midi)
+
+    await screen.findByText('Reading preset 6 of 128…')
+
+    const leds = [...document.querySelectorAll<HTMLElement>('.read-led')]
+    expect(leds.map((led) => led.dataset.state ?? 'off')).toEqual([
+      ...Array<string>(5).fill('read'),
+      'reading',
+      ...Array<string>(122).fill('off'),
+    ])
+    expect(leds[0].closest('[aria-hidden="true"]')).not.toBeNull()
   })
 
   it('names every preset it would replace before writing anything', async () => {

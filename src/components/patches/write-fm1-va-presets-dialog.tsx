@@ -2,6 +2,7 @@ import { Send, Square, TriangleAlert } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Fm1VaReadLeds } from '@/components/patches/fm1-va-read-leds'
 import { fm1VaReadErrorMessage } from '@/components/patches/fm1-va-read-error-message'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
 import { Button } from '@/components/ui/button'
@@ -291,10 +292,11 @@ export function WriteFm1VaPresetsDialog({
               </p>
               <progress
                 aria-labelledby={progressId}
-                className="h-2 w-full accent-[var(--crt-led)]"
+                className="sr-only"
                 max={fm1VaPresetCount}
                 value={readCount}
               />
+              <Fm1VaReadLeds readCount={readCount} />
             </div>
           ) : null}
 
