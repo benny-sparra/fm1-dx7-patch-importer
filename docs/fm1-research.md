@@ -362,11 +362,31 @@ replaced, is not known.
 modules call unset showed as the 20 kHz maximum. One reading gives no scale. Bytes 24 and 25
 presumably hold others of the section's settings.
 
+**A Virtual Analog preset's oscillator and filter settings. Seen once each** (`FM-1_093`,
+2026-10-04, preset 097 erased to VA and saved; map in
+[`docs/hardware-runs/fm1-va-byte-map-2026-10-04.json`](hardware-runs/fm1-va-byte-map-2026-10-04.json)).
+Each setting was sent as its Control Change, saved, and read back; no voice byte changed for any of
+them, so these settings live in the record alone.
+
+| Record byte | Setting                                   | Stored as                                                          |
+| ----------: | ----------------------------------------- | ------------------------------------------------------------------ |
+|          19 | Waveform                                  | Sine `01`, Saw `02`, Tri `03`, Square `04`: the choice plus one    |
+|          20 | Super                                     | The value the screen shows: 50 as `32`, 100 as `64`                |
+|          21 | Detune                                    | The value the screen shows: 50 as `32` (a new preset's), 100 `64`  |
+|          26 | Filter Type in bits 0–1, Key Tracking 2–3 | The choice: LP12 0 to HP 3, and Key Tracking 0, 33, 67, 100 as 0–3 |
+
+Byte 26 of the new preset was `80`, so LP12 with Key Tracking 0. LP24 made it `81`, Key Tracking 33
+then `85`, HP `87`, and Key Tracking 100 `8F`. Bit 7 stays set, as it does in an FM preset whose
+Filter has been switched (above); what it means is still not known. Sending Saw, or Detune 50,
+changed nothing, because a new preset already holds them.
+
 **Mapping the record.** A development build (`npm run dev`) has an **FM-1+VA preset probe (dev)**
 in the footer. It reads one preset and shows its record and voice byte by byte, marking each byte
 that changed since that preset's last read, and **Copy capture** puts the reply, both parts, and
 the changed bytes on the clipboard as JSON for a fixture. Change one setting on the FM1, press
-SAVE, read the same preset again, and record each byte here.
+SAVE, read the same preset again, and record each byte here. Its **Map a setting** does this for a
+Virtual Analog preset: it sends one setting as its Control Change, or notes one changed by hand,
+and logs the bytes the read after SAVE finds changed, with **Copy map** for the JSON.
 
 #### Writing a stored preset
 
