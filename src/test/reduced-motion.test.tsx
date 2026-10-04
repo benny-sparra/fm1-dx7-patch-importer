@@ -67,6 +67,22 @@ describe('reduced motion', () => {
     ).toBe(true)
   })
 
+  it('leaves the degauss out when reduced motion is requested', async () => {
+    const css = await readFile(path.resolve('src/index.css'), 'utf8')
+    const reducedMotionBlocks = css
+      .split('@media (prefers-reduced-motion: reduce)')
+      .slice(1)
+      .map((block) => block.slice(0, block.indexOf('\n  }\n')))
+
+    expect(
+      reducedMotionBlocks.some(
+        (block) =>
+          /main\[data-degauss\]\s*\{\s*animation:\s*none;/.test(block) &&
+          /\.degauss\s*\{\s*display:\s*none;/.test(block),
+      ),
+    ).toBe(true)
+  })
+
   it('hides the zoom rectangles when reduced motion is requested', async () => {
     const css = await readFile(path.resolve('src/index.css'), 'utf8')
     const reducedMotionBlocks = css

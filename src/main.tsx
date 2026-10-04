@@ -6,8 +6,11 @@ import './index.css'
 import { i18nReady } from './i18n'
 import App from './App.tsx'
 import { ToastProvider } from './components/ui/toast.tsx'
+import { rememberDialogOpeners } from './lib/dialog-zoom.ts'
 import { initializeMonitoring, type MonitoringRootOptions } from './lib/monitoring.ts'
 import { runWhenIdle } from './lib/run-when-idle.ts'
+
+rememberDialogOpeners()
 
 void i18nReady.then(() => {
   let monitoringRootOptions: MonitoringRootOptions = {}

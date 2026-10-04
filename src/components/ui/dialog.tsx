@@ -1,5 +1,12 @@
-import type { ComponentProps, ComponentPropsWithoutRef, MouseEventHandler, Ref } from 'react'
+import {
+  useRef,
+  type ComponentProps,
+  type ComponentPropsWithoutRef,
+  type MouseEventHandler,
+  type Ref,
+} from 'react'
 
+import { holdDialogForZoom, zoomDialogClosed, zoomDialogOpen } from '@/lib/dialog-zoom'
 import { cn } from '@/lib/utils'
 
 const dialogWidths = {
@@ -22,11 +29,15 @@ type DialogProps = Omit<ComponentPropsWithoutRef<'dialog'>, 'onClick'> & {
 export function Dialog({
   className,
   closeOnBackdrop = true,
+  onBeforeToggle,
   onClick,
+  onToggle,
   ref,
   size = 'lg',
   ...props
 }: DialogProps) {
+  // What the dialog zoomed out of as it opened, and so zooms back into as it closes.
+  const zoomedFrom = useRef<Element | undefined>(undefined)
   return (
     // Native dialog handles Escape; this click handler only detects pointer activation on its backdrop.
     // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
@@ -39,6 +50,20 @@ export function Dialog({
         dialogWidths[size],
         className,
       )}
+      onBeforeToggle={(event) => {
+        onBeforeToggle?.(event)
+        if (event.newState === 'open') {
+          holdDialogForZoom(event.currentTarget)
+          return
+        }
+        if (!zoomedFrom.current) return
+        zoomDialogClosed(event.currentTarget, zoomedFrom.current)
+        zoomedFrom.current = undefined
+      }}
+      onToggle={(event) => {
+        onToggle?.(event)
+        if (event.newState === 'open') zoomedFrom.current = zoomDialogOpen(event.currentTarget)
+      }}
       onClick={(event) => {
         onClick?.(event)
         if (

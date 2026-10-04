@@ -1,5 +1,13 @@
 import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
-import { lazy, Suspense, useEffect, useState, type ComponentProps, type ReactNode } from 'react'
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { HelpButton } from '@/components/help-button'
@@ -21,6 +29,7 @@ import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { isUnsupportedBrowser } from '@/lib/browser'
 import { fm1ColorwayImages, type Fm1ColorwayImages } from '@/lib/fm1-colorway-images'
+import { degauss } from '@/lib/degauss'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
 // Development builds alone load the preset probe. Importing it statically gave the entry a path
@@ -61,6 +70,8 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const intro = splitIntroLink(t('root.intro'))
   const unsupportedBrowser = isUnsupportedBrowser()
   const { colorway, setColorway } = useFm1Colorway()
+  // The page a new finish degausses.
+  const screenRef = useRef<HTMLElement>(null)
   const showColorwayImage = useMediaQuery('(min-width: 1024px)')
   const showHardwareBay = !compact && showColorwayImage
   const showFm1VaImage = showHardwareBay && midi.firmware.kind === 'fm1-va'
@@ -88,7 +99,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   }, [showFm1VaImage])
 
   return (
-    <main className="synthwave-shell flex min-h-screen flex-col text-foreground">
+    <main className="synthwave-shell flex min-h-screen flex-col text-foreground" ref={screenRef}>
       <section className="synthwave-header synthwave-hero border-b">
         <div
           className={
@@ -124,7 +135,13 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             </div>
 
             <div className="flex shrink-0 items-center gap-2 self-start">
-              <Fm1ColorwayPicker onChange={setColorway} value={colorway} />
+              <Fm1ColorwayPicker
+                onChange={(next) => {
+                  degauss(screenRef.current)
+                  setColorway(next)
+                }}
+                value={colorway}
+              />
               <HelpButton />
               <MidiSettingsMenu midi={midi} />
             </div>

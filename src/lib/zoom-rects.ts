@@ -4,6 +4,8 @@ export const zoomRectCount = 12
 export const zoomRectStepMs = 16
 /** How many outlines stay on screen at once, so each leaves a short trail. */
 const zoomRectTrail = 3
+/** When a zoom's last outline, the size of the box it zooms to, appears. */
+export const zoomRectsArriveMs = (zoomRectCount - 1) * zoomRectStepMs
 
 type Box = Pick<DOMRect, 'height' | 'left' | 'top' | 'width'>
 
