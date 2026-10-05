@@ -13,6 +13,8 @@ export default {
     bankFm1VaNote:
       'If your FM1 runs Baud Girl’s firmware, it asks “Replace Bank A?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Replace and press SEL.',
     bankFeluccaNote: 'Felucca ignores DX7 banks, so sending this bank does not change its presets.',
+    bankFeluccaOrSloopNote:
+      'Felucca and SLOOP ignore DX7 banks, so sending this bank does not change the FM1’s presets.',
     bankFm1VaImage:
       'FM1 display running Baud Girl’s firmware, asking “Replace Bank A?” with Cancel and Replace',
     bankImage:
@@ -460,11 +462,14 @@ export default {
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
+    firmwareFeluccaOrSloop: 'Felucca or SLOOP {{identity}}',
     firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
     firmwareParameterChanges:
       'Patches you play are sent as parameter changes, so the FM1 never stores them over the selected preset.',
     firmwareIgnoresPatches:
       'Felucca plays your notes but ignores DX7 patches, banks, and the effect controls.',
+    firmwareFeluccaOrSloopIgnoresPatches:
+      'Felucca and SLOOP both report this name. Either plays your notes but ignores DX7 patches, banks, and the effect controls.',
     firmwareNeedsInput:
       'Choose the FM1 as the input monitor so the editor can ask which firmware it runs.',
     noteChannel: 'Note channel',
@@ -654,6 +659,9 @@ export default {
     feluccaBadgeLabel: 'Felucca firmware by Hügelton Instruments, {{release}}',
     feluccaBadgeTitle:
       'The FM1 runs Hügelton Instruments’ Felucca firmware, {{release}}. It plays your notes but ignores DX7 patches, banks, and the effect controls.',
+    feluccaOrSloopBadgeLabel: 'Felucca or SLOOP firmware, {{release}}',
+    feluccaOrSloopBadgeTitle:
+      'The FM1 runs Hügelton Instruments’ Felucca or SLOOP, which is built on it; both report {{release}}. Either plays your notes but ignores DX7 patches, banks, and the effect controls.',
     fm1VaBadgeLabel: 'Baud Girl firmware, {{release}}',
     fm1VaBadgeTitle:
       'The FM1 runs Baud Girl’s firmware (FM-1+VA), {{release}}. Patches you play reach it as unsaved edits, so they never overwrite a preset.',

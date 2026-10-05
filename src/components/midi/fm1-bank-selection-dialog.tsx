@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Switch } from '@/components/ui/switch'
 import type { MidiController } from '@/hooks/use-midi'
+import { mayBeSloop } from '@/lib/fm1-firmware'
 import { fm1SynthImage, fm1VaBankScreenImage } from '@/lib/fm1-responsive-images'
 import { dismissFm1BankSelectionDialogForSession } from '@/lib/session'
 
@@ -40,8 +41,8 @@ export function Fm1BankSelectionDialog({
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const sysexUnavailable = !midi.sysexAvailable
   // M-VAVE's firmware and FM-1+VA choose the destination bank differently. Until the editor knows
-  // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs. Felucca ignores
-  // DX7 banks, so the dialog says so before the bank is sent.
+  // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs. Felucca and SLOOP
+  // ignore DX7 banks, so the dialog says so before the bank is sent.
   const firmwareKind = midi.firmware.kind
   const steps =
     firmwareKind === 'fm1-va'
@@ -52,8 +53,9 @@ export function Fm1BankSelectionDialog({
     firmwareKind === 'fm1-va'
       ? { alt: t('dialogs.bankFm1VaImage'), image: fm1VaBankScreenImage }
       : { alt: t('dialogs.bankImage'), image: fm1SynthImage }
-  const firmwareNote =
-    firmwareKind === 'felucca'
+  const firmwareNote = mayBeSloop(midi.firmware)
+    ? t('dialogs.bankFeluccaOrSloopNote')
+    : firmwareKind === 'felucca'
       ? t('dialogs.bankFeluccaNote')
       : firmwareKind === 'checking' || firmwareKind === 'unidentified'
         ? t('dialogs.bankFm1VaNote')

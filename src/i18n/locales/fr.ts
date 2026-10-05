@@ -17,6 +17,8 @@ export default {
       'Si votre FM1 utilise le firmware de Baud Girl, il demande plutôt « Replace Bank A? » et commence sur la banque A. Tournez ALGORITHM jusqu’à la banque de destination, puis SELECT jusqu’à Replace, et appuyez sur SEL.',
     bankFeluccaNote:
       'Felucca ignore les banques DX7, donc envoyer cette banque ne modifie pas ses presets.',
+    bankFeluccaOrSloopNote:
+      'Felucca et SLOOP ignorent les banques DX7, donc envoyer cette banque ne modifie pas les presets du FM1.',
     bankFm1VaImage:
       'Écran du FM1 sous le firmware de Baud Girl demandant « Replace Bank A? », avec Cancel et Replace',
     bankImage:
@@ -589,11 +591,14 @@ export default {
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
+    firmwareFeluccaOrSloop: 'Felucca ou SLOOP {{identity}}',
     firmwareEditBuffer: 'Les sons que vous jouez vont dans le tampon d’édition du FM1.',
     firmwareParameterChanges:
       'Les sons que vous jouez sont envoyés sous forme de changements de paramètres, pour que le FM1 ne les enregistre jamais sur le preset sélectionné.',
     firmwareIgnoresPatches:
       'Felucca joue vos notes mais ignore les sons DX7, les banques et les commandes d’effets.',
+    firmwareFeluccaOrSloopIgnoresPatches:
+      'Felucca et SLOOP annoncent tous deux ce nom. L’un comme l’autre joue vos notes mais ignore les sons DX7, les banques et les commandes d’effets.',
     firmwareNeedsInput:
       'Choisissez le FM1 comme entrée de contrôle pour que l’éditeur puisse lui demander quel firmware il utilise.',
     noteChannel: 'Canal des notes',
@@ -784,6 +789,9 @@ export default {
     feluccaBadgeLabel: 'Firmware Felucca de Hügelton Instruments, {{release}}',
     feluccaBadgeTitle:
       'Le FM1 utilise le firmware Felucca de Hügelton Instruments, {{release}}. Il joue vos notes mais ignore les sons DX7, les banques et les commandes d’effets.',
+    feluccaOrSloopBadgeLabel: 'Firmware Felucca ou SLOOP, {{release}}',
+    feluccaOrSloopBadgeTitle:
+      'Le FM1 utilise Felucca de Hügelton Instruments, ou SLOOP qui en est dérivé. Tous deux annoncent {{release}}, jouent vos notes mais ignorent les sons DX7, les banques et les commandes d’effets.',
     fm1VaBadgeLabel: 'Firmware de Baud Girl, {{release}}',
     fm1VaBadgeTitle:
       'Le FM1 utilise le firmware de Baud Girl (FM-1+VA), {{release}}. Les sons que vous jouez lui parviennent comme des modifications non enregistrées et n’écrasent jamais un preset.',

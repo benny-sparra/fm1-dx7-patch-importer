@@ -10,6 +10,7 @@ import { midiActivity } from '@/lib/midi-activity'
 import { makeDemoVoices } from '@/lib/patch-library'
 import {
   feluccaIdentityReply,
+  feluccaOrSloopIdentityReply,
   fm1VaIdentityReply,
   makeFakeFm1Ports,
   mvaveIdentityReply,
@@ -106,6 +107,16 @@ describe('useMidi firmware identification', () => {
     expect(logMessages(result)).toContainEqual([
       'system',
       'The FM1 runs Felucca firmware FM-1_904, which ignores DX7 patches, so the parameter changes sent to it have no effect.',
+    ])
+  })
+
+  it('says in the log that FM-1_900 may be Felucca or SLOOP', async () => {
+    const { result } = await connect(makeFakeFm1Ports({ reply: feluccaOrSloopIdentityReply }))
+
+    expect(result.current.firmware).toEqual({ identity: 'FM-1_900', kind: 'felucca' })
+    expect(logMessages(result)).toContainEqual([
+      'system',
+      'The FM1 runs Felucca or SLOOP firmware FM-1_900, a name both report, and either ignores DX7 patches, so the parameter changes sent to it have no effect.',
     ])
   })
 

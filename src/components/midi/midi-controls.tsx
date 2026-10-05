@@ -3,7 +3,7 @@ import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 
 import { midiChannels, type MidiController } from '@/hooks/use-midi'
-import { fm1FirmwareRelease } from '@/lib/fm1-firmware'
+import { fm1FirmwareRelease, mayBeSloop } from '@/lib/fm1-firmware'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { localeNames, supportedLocales, type SupportedLocale } from '@/i18n/locale'
 import { setLocale } from '@/i18n'
@@ -39,13 +39,20 @@ export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
 
 // What the badge shows for each firmware it names: its maker, its own name where the maker's is
 // not enough, and the translated label and description. FM1 owners know Baud Girl's firmware by
-// her name rather than FM-1+VA's, so her badge shows the name alone.
+// her name rather than FM-1+VA's, so her badge shows the name alone. SLOOP reports the name a
+// Felucca development build does, so that name shows both firmwares and no maker.
 const firmwareBadges = {
   felucca: {
     label: 'midi.feluccaBadgeLabel',
     maker: 'HÜGELTON',
     product: 'FELUCCA',
     title: 'midi.feluccaBadgeTitle',
+  },
+  feluccaOrSloop: {
+    label: 'midi.feluccaOrSloopBadgeLabel',
+    maker: 'FELUCCA/SLOOP',
+    product: null,
+    title: 'midi.feluccaOrSloopBadgeTitle',
   },
   'fm1-va': {
     label: 'midi.fm1VaBadgeLabel',
@@ -64,8 +71,8 @@ const firmwareBadges = {
 /**
  * Names the firmware the FM1 runs, with the release it reported, once it has said so: M-VAVE's own,
  * whose edit buffer takes the patches the editor plays, Baud Girl's (FM-1+VA), which gets them as
- * unsaved edits, or Hügelton Instruments' Felucca, which plays notes but ignores DX7 patches. It is
- * a status readout, not a control.
+ * unsaved edits, or Hügelton Instruments' Felucca or SLOOP, built on it, which play notes but ignore
+ * DX7 patches. It is a status readout, not a control.
  */
 export function MidiFirmwareBadge({
   className,
@@ -78,7 +85,7 @@ export function MidiFirmwareBadge({
   const { firmware } = midi
   if (firmware.kind === 'checking' || firmware.kind === 'unidentified') return null
   const release = fm1FirmwareRelease(firmware)
-  const badge = firmwareBadges[firmware.kind]
+  const badge = firmwareBadges[mayBeSloop(firmware) ? 'feluccaOrSloop' : firmware.kind]
 
   return (
     <span
@@ -140,7 +147,9 @@ function firmwareName(firmware: MidiController['firmware'], t: TFunction) {
     case 'fm1-va':
       return t('settings.firmwareFm1Va', { identity: firmware.identity })
     case 'felucca':
-      return t('settings.firmwareFelucca', { identity: firmware.identity })
+      return mayBeSloop(firmware)
+        ? t('settings.firmwareFeluccaOrSloop', { identity: firmware.identity })
+        : t('settings.firmwareFelucca', { identity: firmware.identity })
     case 'checking':
       return t('settings.firmwareChecking')
     default:
@@ -149,9 +158,10 @@ function firmwareName(firmware: MidiController['firmware'], t: TFunction) {
 }
 
 // What the firmware does with the patches the editor plays; any other gets parameter changes.
-function firmwareSendingKey({ kind }: MidiController['firmware']) {
-  if (kind === 'mvave') return 'settings.firmwareEditBuffer'
-  if (kind === 'felucca') return 'settings.firmwareIgnoresPatches'
+function firmwareSendingKey(firmware: MidiController['firmware']) {
+  if (firmware.kind === 'mvave') return 'settings.firmwareEditBuffer'
+  if (mayBeSloop(firmware)) return 'settings.firmwareFeluccaOrSloopIgnoresPatches'
+  if (firmware.kind === 'felucca') return 'settings.firmwareIgnoresPatches'
   return 'settings.firmwareParameterChanges'
 }
 

@@ -13,6 +13,8 @@ export default {
     bankFm1VaNote:
       '如果你的 FM1 运行 Baud Girl 的固件，它会改为询问“Replace Bank A?”，并先停在音色库 A。转动 ALGORITHM 选择目标音色库，再将 SELECT 转到 Replace 并按 SEL。',
     bankFeluccaNote: 'Felucca 会忽略 DX7 音色库，因此发送此音色库不会改变它的预设。',
+    bankFeluccaOrSloopNote:
+      'Felucca 和 SLOOP 都会忽略 DX7 音色库，因此发送此音色库不会改变 FM1 的预设。',
     bankFm1VaImage:
       '运行 Baud Girl 固件的 FM1 显示屏，询问“Replace Bank A?”，下方有 Cancel 和 Replace',
     bankImage: '运行 M-VAVE 固件的 FM1 显示屏，显示“32 Voice Save To …”，下方是音色库 A、B、C 和 D',
@@ -522,10 +524,13 @@ export default {
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
+    firmwareFeluccaOrSloop: 'Felucca 或 SLOOP {{identity}}',
     firmwareEditBuffer: '你试听的音色会进入 FM1 的编辑缓冲区。',
     firmwareParameterChanges:
       '你试听的音色会以参数变化的方式发送，因此 FM1 绝不会把它们保存到所选预设上。',
     firmwareIgnoresPatches: 'Felucca 会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
+    firmwareFeluccaOrSloopIgnoresPatches:
+      'Felucca 和 SLOOP 都会报告这个名称。两者都会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
     firmwareNeedsInput: '请把 FM1 选为监听输入，这样编辑器才能询问它运行的固件。',
     noteChannel: '音符通道',
     fxChannel: '效果通道',
@@ -712,6 +717,9 @@ export default {
     feluccaBadgeLabel: 'Hügelton Instruments 的 Felucca 固件，{{release}}',
     feluccaBadgeTitle:
       'FM1 运行的是 Hügelton Instruments 的 Felucca 固件（{{release}}）。它会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
+    feluccaOrSloopBadgeLabel: 'Felucca 或 SLOOP 固件，{{release}}',
+    feluccaOrSloopBadgeTitle:
+      'FM1 运行的是 Hügelton Instruments 的 Felucca，或基于它的 SLOOP，两者都报告 {{release}}。两者都会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
     fm1VaBadgeLabel: 'Baud Girl 固件，{{release}}',
     fm1VaBadgeTitle:
       'FM1 运行的是 Baud Girl 的固件（FM-1+VA，{{release}}）。你试听的音色会作为未保存的编辑发送，绝不会覆盖预设。',

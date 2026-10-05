@@ -4,6 +4,7 @@ import {
   classifyFm1Firmware,
   fm1FirmwareRelease,
   fm1IdentityQuery,
+  mayBeSloop,
   parseFm1IdentityReply,
   sendsSingleVoiceDumps,
 } from '@/lib/fm1-firmware'
@@ -100,6 +101,22 @@ describe('fm1FirmwareRelease', () => {
 
   it('names a Felucca development build by the name the FM1 reports', () => {
     expect(fm1FirmwareRelease({ identity: 'FM-1_900', kind: 'felucca' })).toBe('FM-1_900')
+  })
+})
+
+describe('mayBeSloop', () => {
+  it('counts FM-1_900, which every SLOOP release reports, as possibly SLOOP', () => {
+    expect(mayBeSloop({ identity: 'FM-1_900', kind: 'felucca' })).toBe(true)
+  })
+
+  it('counts a numbered Felucca release as Felucca alone', () => {
+    expect(mayBeSloop({ identity: 'FM-1_909', kind: 'felucca' })).toBe(false)
+  })
+
+  it('counts no other firmware as possibly SLOOP', () => {
+    expect(mayBeSloop({ identity: 'FM-1_089', kind: 'fm1-va' })).toBe(false)
+    expect(mayBeSloop({ identity: 'FM-1_900', kind: 'unidentified' })).toBe(false)
+    expect(mayBeSloop({ kind: 'checking' })).toBe(false)
   })
 })
 
