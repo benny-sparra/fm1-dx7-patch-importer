@@ -153,6 +153,17 @@ describe('Fm1BankSelectionDialog', () => {
     expect(screen.queryByText(/If your FM1 runs Baud Girl’s firmware/)).toBeNull()
   })
 
+  it('says Felucca and SLOOP ignore DX7 banks for FM-1_900, the name both report', () => {
+    render(renderDialog(true, { identity: 'FM-1_900', kind: 'felucca' }))
+
+    expect(
+      screen.getByText(
+        'Felucca and SLOOP ignore DX7 banks, so sending this bank does not change the FM1’s presets.',
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByText(/^Felucca ignores DX7 banks/)).toBeNull()
+  })
+
   it('changes to the FM-1+VA steps once identified, after a page translator replaces its text', () => {
     const view = render(renderDialog(true, { kind: 'checking' }))
     translatePageText(view.container)

@@ -21,11 +21,12 @@ const identityNameLength = 27
 
 /**
  * M-VAVE numbers its own releases up to V19, and FM-1+VA's run from FM-1_020. Felucca names release
- * X.Y FM-1_9XY, one digit each, and a development build FM-1_900, so the 900s are Felucca's.
+ * X.Y FM-1_9XY, one digit each, and a development build FM-1_900, so the 900s are Felucca's. SLOOP,
+ * a firmware built on Felucca, reports FM-1_900 on every release, so that name may be either.
  */
 const lastMvaveVersion = 19
 const lastFm1VaVersion = 899
-const feluccaDevelopmentIdentity = 'FM-1_900'
+const feluccaOrSloopIdentity = 'FM-1_900'
 
 /**
  * An FM1 that answered with a name the editor does not recognise keeps that name for the MIDI log;
@@ -96,7 +97,7 @@ export function parseFm1IdentityReply(message: Uint8Array | readonly number[]) {
 /**
  * The firmware an identity names. Only an FM1 name numbered as M-VAVE's own releases counts as
  * M-VAVE's firmware, only one numbered as FM-1+VA's counts as FM-1+VA, releases after the tested
- * one included, and only one in the 900s counts as Felucca. Any other name is unidentified, so the
+ * one included, and only one in the 900s counts as Felucca, SLOOP included. Any other name is unidentified, so the
  * editor assumes no firmware's behaviour.
  */
 export function classifyFm1Firmware(identity: string): Fm1Firmware {
@@ -132,13 +133,21 @@ export function hasFm1VaPresetCommands(firmware: Fm1Firmware) {
 }
 
 /**
+ * Whether the FM1 may run SLOOP rather than Felucca. Every SLOOP release reports `FM-1_900`, as a
+ * Felucca development build does, so the editor names both. They treat the editor's MIDI alike.
+ */
+export function mayBeSloop(firmware: Fm1Firmware) {
+  return firmware.kind === 'felucca' && firmware.identity === feluccaOrSloopIdentity
+}
+
+/**
  * The release as its maker names it. M-VAVE calls `FM-1_015` V15 and Felucca calls `FM-1_908` 0.8,
- * while FM-1+VA's releases, and a Felucca development build, go by the name the FM1 reports, such
- * as `FM-1_089`.
+ * while FM-1+VA's releases, and the `FM-1_900` that Felucca's development builds and SLOOP share, go
+ * by the name the FM1 reports, such as `FM-1_089`.
  */
 export function fm1FirmwareRelease({ identity, kind }: NamedFm1Firmware) {
   if (kind === 'mvave') return `V${Number(identity.slice(-3))}`
-  if (kind === 'felucca' && identity !== feluccaDevelopmentIdentity) {
+  if (kind === 'felucca' && identity !== feluccaOrSloopIdentity) {
     return `${identity.at(-2)}.${identity.at(-1)}`
   }
   return identity

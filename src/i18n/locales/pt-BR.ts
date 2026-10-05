@@ -16,6 +16,8 @@ export default {
       'Se o seu FM1 usa o firmware da Baud Girl, ele pergunta “Replace Bank A?” e começa no banco A. Gire ALGORITHM até o banco de destino, depois SELECT até Replace, e pressione SEL.',
     bankFeluccaNote:
       'O Felucca ignora bancos DX7, então enviar este banco não altera os presets dele.',
+    bankFeluccaOrSloopNote:
+      'O Felucca e o SLOOP ignoram bancos DX7, então enviar este banco não altera os presets do FM1.',
     bankFm1VaImage:
       'Tela do FM1 com o firmware da Baud Girl perguntando “Replace Bank A?”, com Cancel e Replace',
     bankImage:
@@ -578,11 +580,14 @@ export default {
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
+    firmwareFeluccaOrSloop: 'Felucca ou SLOOP {{identity}}',
     firmwareEditBuffer: 'Os sons que você toca vão para o buffer de edição do FM1.',
     firmwareParameterChanges:
       'Os sons que você toca são enviados como mudanças de parâmetros, para que o FM1 nunca os salve sobre o preset selecionado.',
     firmwareIgnoresPatches:
       'O Felucca toca suas notas, mas ignora sons DX7, bancos e os controles de efeito.',
+    firmwareFeluccaOrSloopIgnoresPatches:
+      'O Felucca e o SLOOP informam o mesmo nome. Os dois tocam suas notas, mas ignoram sons DX7, bancos e os controles de efeito.',
     firmwareNeedsInput:
       'Escolha o FM1 como entrada de monitoração para que o editor possa perguntar qual firmware ele usa.',
     noteChannel: 'Canal de notas',
@@ -772,6 +777,9 @@ export default {
     feluccaBadgeLabel: 'Firmware Felucca da Hügelton Instruments, {{release}}',
     feluccaBadgeTitle:
       'O FM1 usa o firmware Felucca da Hügelton Instruments, {{release}}. Ele toca suas notas, mas ignora sons DX7, bancos e os controles de efeito.',
+    feluccaOrSloopBadgeLabel: 'Firmware Felucca ou SLOOP, {{release}}',
+    feluccaOrSloopBadgeTitle:
+      'O FM1 usa o Felucca da Hügelton Instruments, ou o SLOOP, baseado nele. Os dois informam {{release}}, tocam suas notas, mas ignoram sons DX7, bancos e os controles de efeito.',
     fm1VaBadgeLabel: 'Firmware da Baud Girl, {{release}}',
     fm1VaBadgeTitle:
       'O FM1 usa o firmware da Baud Girl (FM-1+VA), {{release}}. Os sons que você toca chegam como alterações não salvas, então nunca sobrescrevem um preset.',

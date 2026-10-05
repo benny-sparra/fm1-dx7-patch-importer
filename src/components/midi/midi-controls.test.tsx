@@ -96,6 +96,17 @@ describe('MidiSettingsMenu firmware', () => {
     expect(screen.queryByText(/sent as parameter changes/)).toBeNull()
   })
 
+  it('names Felucca and SLOOP for FM-1_900, the name both report', () => {
+    renderSettings({ identity: 'FM-1_900', kind: 'felucca' })
+
+    expect(screen.getByText('Felucca or SLOOP FM-1_900')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Felucca and SLOOP both report this name. Either plays your notes but ignores DX7 patches, banks, and the effect controls.',
+      ),
+    ).toBeTruthy()
+  })
+
   it('shows the firmware is being checked while the FM1 has not answered', () => {
     renderSettings({ kind: 'checking' })
 
@@ -158,6 +169,25 @@ describe('MidiFirmwareBadge', () => {
     render(<MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_908', kind: 'felucca' } }} />)
 
     expect(screen.getByText('Firmware Felucca da Hügelton Instruments, 0.8')).toBeTruthy()
+  })
+
+  it('names Felucca and SLOOP, with no maker, for FM-1_900', () => {
+    const { container } = render(
+      <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_900', kind: 'felucca' } }} />,
+    )
+
+    expect(screen.getByText('Felucca or SLOOP firmware, FM-1_900')).toBeTruthy()
+    expect(container.textContent).toContain('FELUCCA/SLOOPFM-1_900')
+    expect(container.textContent).not.toContain('HÜGELTON')
+    expect(screen.getByTitle(/^The FM1 runs Hügelton Instruments’ Felucca or SLOOP/)).toBeTruthy()
+  })
+
+  it('names Felucca and SLOOP for FM-1_900 in Simplified Chinese', async () => {
+    await setLocale('zh-Hans')
+
+    render(<MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_900', kind: 'felucca' } }} />)
+
+    expect(screen.getByText('Felucca 或 SLOOP 固件，FM-1_900')).toBeTruthy()
   })
 
   it('shows nothing while the firmware is unknown', () => {

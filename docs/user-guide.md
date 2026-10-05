@@ -87,8 +87,11 @@ engines with its own and does not take DX7 patches. The app names it beside **MI
 under **FM1 firmware**, with its release, such as 0.8. The keyboard and audition notes play on it,
 but sending a patch or bank, clicking a slot to choose its preset, and the effect controls do not
 change its sound. To edit Felucca's sounds, sequences, and user presets, use its own
-[web editor](https://hugelton.github.io/Felucca/webapp/editor/) in Chrome or Edge. Any other
-firmware shows as **Not identified**, and the app sends it patches as parameter changes.
+[web editor](https://hugelton.github.io/Felucca/webapp/editor/) in Chrome or Edge.
+[SLOOP](https://github.com/isod89/sloop-fm1), a groovebox firmware built on Felucca, plays notes
+and ignores DX7 patches in the same way. Every SLOOP release reports `FM-1_900`, as a Felucca
+development build does, so the app names that firmware **Felucca or SLOOP**. Any other firmware
+shows as **Not identified**, and the app sends it patches as parameter changes.
 
 To move your FM1 between these firmwares, see [Switching FM1 firmware](switching-firmware.md).
 
