@@ -370,7 +370,9 @@ What is known, from FM-1+VA's own code and manual:
   but `03`, not `A5`, in an FM one, and the rest of this map does not match what they hold
   (`docs/fm1-research.md`, "Its backup file"), so item 2 maps it afresh.
 
-Suggested order: 1 needs no new command; 2 underpins 3 to 6.
+Suggested order: 1 needs no new command; 2 underpins 3 to 6. Next, as of 2026-10-06: the Virtual
+Analog editor (6, **Play them live** and **Save them**), then **Erase a patch** (6), then 8-Bit
+presets (9).
 
 - [x] **1. Import an FM-1+VA backup file.** Read the `.syx` file FM-1+VA's **Save a backup**
       writes (128 `04` messages, each naming its slot) into banks A–D, as an ordinary import:
@@ -511,38 +513,39 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
     effect (V5) is still to see. `makeFm1VaSoundControlMessage` and `useFm1VaSoundControl` send
     them, and the development probe's **Map a setting** uses them to find the bytes each setting
     is stored in, the map this step needs to show current values. It never sends CC 85–119, which press the FM1's own buttons.
-  - **Change a patch's engine.** Planned 2026-10-02. On the FM1, a Virtual Analog preset is made
-    by erasing a preset on the device (EDIT, **Erase Preset**, **VA**), which renames it and can
-    only be reached through the panel. The editor never repeats that: the buttons' CCs, 85–119,
-    stay excluded. Instead, a slot's ⋮ menu offers **Change to Virtual Analog…** on an FM patch
-    and **Change to FM…** on a Virtual Analog one, and the library change is written with 4.
-    - Not "Convert": nothing carries over between the engines, so the dialog says the current
-      sound is replaced, and names the slot.
+  - **Save them.** Edits from the Virtual Analog editor page are saved to the library and written
+    with 4.
+  - **Erase a patch.** Planned 2026-10-02 as **Change to Virtual Analog…** and **Change to FM…**,
+    replanned 2026-10-06 as one **Erase patch…**, named after the FM1's own **Erase Preset**. Built
+    after the Virtual Analog editor (**Play them live** and **Save them**), with 8-Bit added once 9
+    is built. On the FM1, EDIT, **Erase Preset**, then **FM**, **VA**, or **8-Bit** makes a blank
+    preset of that engine, reachable only through the panel. The editor never repeats that: the
+    buttons' CCs, 85–119, stay excluded. Instead, a slot's ⋮ menu offers **Erase patch…**, which
+    replaces the library patch with a blank one of the chosen engine, and the FM1 takes it at the
+    next **Write patches to the FM1…** or **Send to FM1**.
+    - Offered only while the FM1 is identified as running FM-1+VA from FM-1_079, so the result can
+      reach it, and on every slot, whatever its engine. There it takes the place of **Change to
+      FM…**; elsewhere a Virtual Analog slot keeps **Change to FM…**, its only way back to FM.
+    - The dialog is its confirmation: it names the slot, says the current sound is replaced, and
+      lists the engines as a choice, FM first. It says the FM1 is unchanged until the patch is
+      written. An engine the library cannot hold yet is left out rather than shown disabled.
     - The dialog has a name field, filled with the patch's current name and focused with it
       selected, so typing replaces it and Enter confirms. It follows the editor's name field: ten
       characters (`FM1_VOICE_NAME_LENGTH`), and the characters `updateDx7VoiceName` keeps, any
-      other becoming a space. The name never follows the template.
-    - **Change to Virtual Analog…** lists templates: **Blank Virtual Analog preset** first, then
-      every Virtual Analog patch in the library, by bank. The new patch is the template's voice
-      and record byte for byte, with the name from the field. The blank template is the preset
-      **Erase Preset** makes, captured from an FM1 (097 in the 2026-10-01 backup, renamed), so
-      **New Virtual Analog preset** needs no defaults of the editor's own.
-    - **Change to FM…** gives Init voice with the name from the field. It lists no FM templates:
-      putting a chosen FM patch over a slot is what **Copy to…** and search already do.
-    - It replaces a sound, so its notification offers Undo through `undoToastOptions`. The dialog
-      is still worth having, for the template and the name.
-    - **Change to Virtual Analog…** is offered only once 4 is built, and only while the firmware is
-      FM-1+VA, because before then a Virtual Analog patch in the library cannot reach the FM1.
-      **Change to FM…** can ship with **Keep them**, since its result is an ordinary DX7 voice;
-      whether sending it as parameter changes over a stored Virtual Analog preset turns that preset
-      into FM is test V7.
-    - Effects: until the record is mapped (2), the new patch takes the template's record whole,
-      effects included. Keeping the slot's own effects waits for the map.
-  - **Save them.** Edits from the Virtual Analog editor page are saved to the library and written
-    with 4.
+      other becoming a space.
+    - It replaces a sound that Undo brings back, so its action button is `destructive`, not
+      `danger`, and its notification offers Undo through `undoToastOptions`.
+    - Each engine's blank is the preset **Erase Preset** makes, captured from an FM1, voice and
+      record byte for byte, so the editor needs no defaults of its own. Erasing matches the FM1:
+      every effect Off. FM can ship first as INIT VOICE with no record and every effect Off, as
+      **Change to FM…** gives, and take the captured FM blank's record once test M3
+      ([`fm1-va-096-tests.md`](fm1-va-096-tests.md)) has read one. VA waits for M3's capture and
+      the slot question below; 8-Bit waits for 9 and M3's 8-Bit capture.
+    - No templates: starting a slot from another patch, of either engine, is what **Copy to…** and
+      search already do.
   - Unknowns: where the oscillator settings are stored, and how each CC value maps to the stored
     value. A list setting such as Waveform divides the 128 CC values into equal bands. Whether
-    the name a preset gets from **Change to Virtual Analog…** shows on the FM1 as written needs a
+    the name a preset gets from **Erase patch…** shows on the FM1 as written needs a
     hardware check once 4 exists, and whether an erased preset's bytes depend on its slot needs a
     second erase diffed against 097.
 - [ ] **7. The Sequencer, on FM-1+VA.** `20` writes a pattern directly, the transfer
@@ -570,8 +573,9 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       out of every import, and never writes over it, so the library has no copy of it. Keeping
       them would follow item 6's steps: hold the voice bytes and record exactly as read, apart from
       DX7 voices (a stored shape change for the workspace, saved banks, and backups), show an
-      engine tag, write them back exactly, and keep them out of every DX7 path. Bitcrush, the
-      seventh effect from the same release, could then join item 5's record-only effect settings.
+      engine tag, write them back exactly, keep them out of every DX7 path, and add **8-Bit** to
+      **Erase patch…** (6). Bitcrush, the seventh effect from the same release, could then join
+      item 5's record-only effect settings.
 
 ## Open questions
 
