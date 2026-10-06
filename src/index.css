@@ -138,12 +138,12 @@
     --hero-action-hover-foreground: var(--crt-acc-lt);
 
     --shadow-raised-surface: 3px 3px 0 hsl(0 0% 0% / 45%);
-    --shadow-menu: 0 12px 26px hsl(0 0% 0% / 55%);
-    --shadow-editor-menu: 0 12px 26px hsl(0 0% 0% / 55%);
+    --shadow-menu: 6px 6px 0 hsl(0 0% 0% / 60%);
+    --shadow-editor-menu: 6px 6px 0 hsl(0 0% 0% / 60%);
     --shadow-editor-overlay: 12px 12px 0 hsl(0 0% 0% / 70%);
-    --shadow-popover: 0 12px 26px hsl(0 0% 0% / 55%);
+    --shadow-popover: 6px 6px 0 hsl(0 0% 0% / 60%);
     --shadow-modal: 12px 12px 0 hsl(0 0% 0% / 70%);
-    --shadow-toast: 0 12px 26px hsl(0 0% 0% / 55%);
+    --shadow-toast: 6px 6px 0 hsl(0 0% 0% / 60%);
   }
 
   /* Cyan phosphor. The default finish and the app's canonical look. */

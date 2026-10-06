@@ -422,6 +422,8 @@ open everything an earlier release could have saved.
   identified as running FM-1+VA. Both sets keep the 923 × 554 size.
 - Panels, dialogs, racks, and slots share the bevelled terminal chrome already in `src/index.css`.
   Reuse those classes instead of introducing a parallel surface style.
+- A drop shadow is a hard-edged offset with no blur, such as `6px 6px 0`, taken from the
+  `--shadow-*` tokens. Blur belongs only to glows, the phosphor and LED light around lit controls.
 
 ### UI and accessibility
 
