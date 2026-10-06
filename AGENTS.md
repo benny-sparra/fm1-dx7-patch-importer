@@ -583,6 +583,14 @@ open everything an earlier release could have saved.
   `playsFm1VaBitcrush` allows (FM-1+VA from `FM-1_096`), disabled for a patch without a record; on
   other firmware it says when the patch keeps Bitcrush on. It has no FX Channel controller, so it is
   heard only once the patch is written to the FM1.
+- The order of the seven effects follows Bitcrush in the editor's parameters
+  (`FM1_VA_EFFECT_ORDER_START`), as effect numbers first to last: 0 Filter, 1 Reverb, 2 Delay,
+  3 Distortion, 4 Chorus, 5 Phaser, 6 Bitcrush. Saving writes it through
+  `fm1VaRecordWithEffectOrder`: the chain bytes take the six other effects and byte 5 Bitcrush's
+  place, and a record already in that order, or one whose unset Bitcrush stays after the
+  Distortion, keeps its bytes. It is offered with Bitcrush, from `FM-1_096`, the release it was
+  mapped on, as a strip of move buttons whose focus follows the moved effect. A move is one undo
+  step and sends nothing.
 - **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
   `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.

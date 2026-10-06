@@ -14,9 +14,11 @@ import {
   fm1VaBitcrushSampleRateHz,
   fm1VaRecordBitcrush,
   fm1VaRecordDistortionType,
+  fm1VaRecordEffectOrder,
   fm1VaRecordEffects,
   fm1VaRecordWithBitcrush,
   fm1VaRecordWithDistortionType,
+  fm1VaRecordWithEffectOrder,
   fm1VaRecordWithEffects,
   playsFm1VaBitcrush,
 } from './fm1-va-record-effects'
@@ -233,5 +235,70 @@ describe('fm1VaBitcrushSampleRateHz', () => {
     expect(fm1VaBitcrushSampleRateHz(100)).toBeCloseTo(44118)
     expect(Math.round(fm1VaBitcrushSampleRateHz(73) / 100) / 10).toBe(11.5)
     expect(Math.round(fm1VaBitcrushSampleRateHz(72) / 100) / 10).toBe(10.9)
+  })
+})
+
+/** Preset 032 after B7 of the hardware run: Bitcrush set and on at the top, Reverb above Filter. */
+function afterB7() {
+  const record = erasedRecord()
+  record[5] = 0x88
+  record[35] = 4
+  record[41] = 73
+  record[44] = 50
+  ;[1, 0, 2, 3, 4, 5].forEach((effect, place) => (record[27 + place * 3] = effect))
+  return record
+}
+
+describe('fm1VaRecordEffectOrder', () => {
+  it('reads a record that never set Bitcrush in the stock order, Bitcrush after the Distortion', () => {
+    expect(fm1VaRecordEffectOrder(erasedRecord())).toEqual([0, 1, 2, 3, 6, 4, 5])
+  })
+
+  it('puts Bitcrush at its place among the six the chain lists', () => {
+    expect(fm1VaRecordEffectOrder(afterB7())).toEqual([6, 1, 0, 2, 3, 4, 5])
+  })
+
+  it('reads a chain that is not the six effects once each in the stock order', () => {
+    const record = erasedRecord()
+    record[30] = 0
+
+    expect(fm1VaRecordEffectOrder(record)).toEqual([0, 1, 2, 3, 6, 4, 5])
+  })
+})
+
+describe('fm1VaRecordWithEffectOrder', () => {
+  it('leaves a record already in the order as it was', () => {
+    const record = afterB7()
+
+    expect(fm1VaRecordWithEffectOrder(record, [6, 1, 0, 2, 3, 4, 5])).toBe(record)
+  })
+
+  it('stores Phaser moved to the top exactly as the FM1 did in B8', () => {
+    const updated = fm1VaRecordWithEffectOrder(afterB7(), [5, 6, 1, 0, 2, 3, 4])
+
+    expect(updated[5]).toBe(0x89)
+    expect([27, 30, 33, 36, 39, 42].map((byte) => updated[byte])).toEqual([5, 1, 0, 2, 3, 4])
+  })
+
+  it('keeps a record that never set Bitcrush unset while Bitcrush stays after the Distortion', () => {
+    const record = erasedRecord()
+
+    // Phaser to the top: Bitcrush is still straight after the Distortion.
+    const updated = fm1VaRecordWithEffectOrder(record, [5, 0, 1, 2, 3, 6, 4])
+
+    expect(updated[5]).toBe(0x03)
+    expect([27, 30, 33, 36, 39, 42].map((byte) => updated[byte])).toEqual([5, 0, 1, 2, 3, 4])
+  })
+
+  it('sets Bitcrush, Off at its defaults, when a record that never set it moves it', () => {
+    const updated = fm1VaRecordWithEffectOrder(erasedRecord(), [6, 0, 1, 2, 3, 4, 5])
+
+    expect([updated[5], updated[35], updated[41], updated[44]]).toEqual([0x80, 8, 72, 100])
+  })
+
+  it('ignores an order that is not the seven effects once each', () => {
+    const record = afterB7()
+
+    expect(fm1VaRecordWithEffectOrder(record, [0, 0, 1, 2, 3, 4, 5])).toBe(record)
   })
 })

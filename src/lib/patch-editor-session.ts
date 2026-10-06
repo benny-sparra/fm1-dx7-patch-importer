@@ -6,6 +6,7 @@ import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
+  FM1_VA_EFFECT_ORDER_START,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
   fm1EffectParameters,
@@ -43,6 +44,8 @@ export type Fm1VaRecordSettings = {
   /** Switch, Bits, Sample Rate, and Mix. */
   bitcrush: number[]
   distortionType: number
+  /** Seven effect numbers, first to last. */
+  effectOrder: number[]
 }
 
 export type PatchEditorState = {
@@ -267,6 +270,24 @@ export class PatchEditorSession {
     this.applyEdits([[FM1_VA_BITCRUSH_START + setting, value, min, max]], false)
   }
 
+  /**
+   * Moves the effect at `from` in FM-1+VA's order of seven effects to `to`, as one undo step. No MIDI
+   * message carries the order either, so nothing is sent.
+   */
+  moveEffect = (from: number, to: number) => {
+    const order = Array.from(
+      this.state.history.present.subarray(FM1_VA_EFFECT_ORDER_START, FM1_EDITOR_PARAMETER_COUNT),
+    )
+    if (from === to || to < 0 || to >= order.length) return
+    const [effect] = order.splice(from, 1)
+    order.splice(to, 0, effect)
+    this.gestureStart = null
+    this.applyEdits(
+      order.map((value, place): ParameterEdit => [FM1_VA_EFFECT_ORDER_START + place, value, 0, 6]),
+      false,
+    )
+  }
+
   toggleOperatorMute = (operator: number) => {
     const mutedOperators = new Set(this.state.mutedOperators)
     if (mutedOperators.has(operator)) mutedOperators.delete(operator)
@@ -293,8 +314,11 @@ export class PatchEditorSession {
     if (this.state.isComparing) return
     const current = this.state.history.present
     store(packDx7Voice(getFm1VoiceParameters(current)), getFm1EffectParameters(current), {
-      bitcrush: Array.from(current.subarray(FM1_VA_BITCRUSH_START, FM1_EDITOR_PARAMETER_COUNT)),
+      bitcrush: Array.from(current.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START)),
       distortionType: current[FM1_VA_DISTORTION_TYPE_INDEX],
+      effectOrder: Array.from(
+        current.subarray(FM1_VA_EFFECT_ORDER_START, FM1_EDITOR_PARAMETER_COUNT),
+      ),
     })
     this.update({ savedParameters: current.slice() })
     trackAnalyticsEvent({ name: 'patch_saved' })

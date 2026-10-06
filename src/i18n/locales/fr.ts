@@ -178,6 +178,16 @@ export default {
     otherFirmware:
       'Conservé pour le firmware de Baud Girl à partir de FM-1_096 : Bitcrush est activé. Ce FM1 ne le joue pas.',
   },
+  effectOrder: {
+    title: 'Ordre des effets',
+    list: 'Effets, du premier au dernier',
+    moveEarlier: 'Avancer {{effect}}',
+    moveLater: 'Reculer {{effect}}',
+    noRecord: 'Ce son ne vient pas du FM1 : il prend l’ordre du preset sur lequel il est écrit.',
+    otherFirmware:
+      'Conservé pour le firmware de Baud Girl : un ordre des effets modifié. Ce FM1 joue les effets dans son propre ordre.',
+    help: 'L’ordre dans lequel le son traverse les effets sur le firmware de Baud Girl, le premier à gauche. Une distorsion avant ou après la réverbération, par exemple, sonne très différemment. Aucun message MIDI ne le règle : on l’entend une fois le son écrit sur le FM1 avec Envoyer au FM1 ou Écrire des sons sur le FM1.',
+  },
   ui: {
     auditionGroup: 'Écoute de l’opérateur {{number}}',
     mute: 'Couper',

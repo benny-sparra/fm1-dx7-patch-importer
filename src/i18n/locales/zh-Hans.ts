@@ -140,6 +140,15 @@ export default {
     noRecord: '此音色并非来自 FM1，因此会沿用被它覆盖的预设的比特粉碎设置。',
     otherFirmware: '为 Baud Girl 固件 FM-1_096 及更高版本保留：比特粉碎已开启。此 FM1 不会播放它。',
   },
+  effectOrder: {
+    title: '效果顺序',
+    list: '效果，从前到后',
+    moveEarlier: '将{{effect}}前移',
+    moveLater: '将{{effect}}后移',
+    noRecord: '此音色并非来自 FM1，因此会沿用被它覆盖的预设的效果顺序。',
+    otherFirmware: '为 Baud Girl 固件保留：已更改的效果顺序。此 FM1 会按自己的顺序播放效果。',
+    help: '在 Baud Girl 固件上声音经过各效果的顺序，最左边的最先。例如，失真放在混响之前或之后，听起来会很不一样。没有 MIDI 消息能设置它，因此要用“发送到 FM1”或“将音色写入 FM1”把音色写入 FM1 后才能听到。',
+  },
   ui: {
     auditionGroup: '试听操作器 {{number}}',
     mute: '静音',

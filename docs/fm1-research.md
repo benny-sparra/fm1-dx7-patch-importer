@@ -561,7 +561,8 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
   effect wherever it sits. Bitcrush has no effect controller on the FX Channel; CC 85–88 reach it
   only through its knob bank, and the editor never sends them. From FM-1_096 the editor's effects
   panel sets Bitcrush in a patch with a record, written into these bytes by
-  `fm1VaRecordWithBitcrush` and heard once the patch is written to the FM1.
+  `fm1VaRecordWithBitcrush`, and the order of all seven, written by `fm1VaRecordWithEffectOrder`;
+  both are heard once the patch is written to the FM1.
 - **Knob choices** are bits 0–5 of bytes 53 (knobs 1 and 2) and 52 (knobs 3 and 4), with bit 7
   marking them set; Envelope On stays bit 6 of byte 53. The 8-Bit Drums Level is byte 2, stored as
   `80` | (99 − level). Where an FM or Virtual Analog preset keeps Preset Level was not found; byte 2

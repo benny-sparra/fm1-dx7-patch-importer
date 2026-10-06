@@ -232,6 +232,13 @@ Distortion type, it is kept with the patch and heard once the patch is written t
 patch read from the FM1, or from Baud Girl's presets file, can keep it. On other firmware the box is
 hidden, and a line on the panel says when the patch keeps Bitcrush on.
 
+On the same firmware the effects panel starts with **Effect order**: the seven effects in the
+order the sound passes through them, first at the left. The arrows beside each effect move it one
+place earlier or later, and each move is one Undo. The order is kept with the patch and heard once
+the patch is written to the FM1, as Bitcrush is; only a patch read from the FM1 or Baud Girl's
+presets file can keep one. On other firmware a line on the panel says when the patch keeps a changed
+order.
+
 The LFO and every FM1 effect open with a small animated scope drawn from their current settings. The LFO scrolls its selected wave at a rate set by LFO Speed. The filter shows its response curve, delay its echo taps, chorus its drifting copies, reverb its tail, distortion its clipped wave, and phaser its sweeping notches. A scope dims when its effect is bypassed or when the LFO has no modulation depth. With reduced motion enabled, each scope shows a still frame instead.
 
 ## Playing along while you edit

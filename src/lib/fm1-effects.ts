@@ -5,6 +5,8 @@ import {
   FM1_VA_BITCRUSH_DEFAULTS,
   FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
+  FM1_VA_EFFECT_ORDER_START,
+  FM1_VA_STOCK_EFFECT_ORDER,
   FM1_VOICE_PARAMETER_COUNT,
   fm1EffectParameters,
 } from '@/lib/fm1-parameters'
@@ -30,13 +32,15 @@ export function normalizeFm1Effects(value: unknown) {
 /**
  * The editor's parameters for a voice and its effects. `distortionType` is the FM-1+VA record's
  * value, kept as read, or 0 for a patch without a record; `bitcrush` is the record's Bitcrush, as
- * `fm1VaRecordBitcrush` reads it, or the defaults without one.
+ * `fm1VaRecordBitcrush` reads it, and `effectOrder` its order of seven effects, as
+ * `fm1VaRecordEffectOrder` reads it, each the defaults without one.
  */
 export function makeFm1EditorParameters(
   voiceParameters: Uint8Array,
   effects: Uint8Array,
   distortionType = 0,
   bitcrush: readonly number[] = FM1_VA_BITCRUSH_DEFAULTS,
+  effectOrder: readonly number[] = FM1_VA_STOCK_EFFECT_ORDER,
 ) {
   if (voiceParameters.length !== FM1_VOICE_PARAMETER_COUNT) {
     throw new RangeError(
@@ -50,6 +54,7 @@ export function makeFm1EditorParameters(
   parameters.set(normalizedEffects, FM1_EFFECT_PARAMETER_START)
   parameters[FM1_VA_DISTORTION_TYPE_INDEX] = distortionType
   parameters.set(bitcrush, FM1_VA_BITCRUSH_START)
+  parameters.set(effectOrder, FM1_VA_EFFECT_ORDER_START)
   return parameters
 }
 

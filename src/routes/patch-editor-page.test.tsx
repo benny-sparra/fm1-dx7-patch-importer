@@ -1367,3 +1367,82 @@ describe('PatchEditorPage Bitcrush on Baud Girl’s FM-1_096', () => {
     await setLocale('en-GB')
   })
 })
+
+/** The effect order strip's names, first to last. */
+const effectOrderNames = () =>
+  within(screen.getByRole('list', { name: 'Effects, first to last' }))
+    .getAllByRole('listitem')
+    .map((item) => item.textContent)
+
+describe('PatchEditorPage effect order on Baud Girl’s FM-1_096', () => {
+  it('lists the seven effects in the order the record plays them', () => {
+    renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    // Preset 097 had its Filter moved below Reverb, and never set Bitcrush.
+    expect(effectOrderNames()).toEqual([
+      '1Reverb',
+      '2Filter',
+      '3Delay',
+      '4Distortion',
+      '5Bitcrush',
+      '6Chorus',
+      '7Phaser',
+    ])
+  })
+
+  it('moves an effect, keeps focus on its button, and saves only the order’s bytes', async () => {
+    const { onSave, user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    await user.click(screen.getByRole('button', { name: 'Move Filter earlier' }))
+
+    expect(effectOrderNames().slice(0, 2)).toEqual(['1Filter', '2Reverb'])
+    // Filter reached the start, so focus moves to its other button.
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Move Filter later' }))
+    await user.click(screen.getByRole('button', { name: 'Save to library' }))
+    const record: Uint8Array = onSave.mock.calls[0][2]
+    const changed = Array.from(record.keys()).filter((i) => record[i] !== hardClipRecord[i])
+    expect(changed).toEqual([27, 30])
+    expect([record[27], record[30]]).toEqual([0, 1])
+  })
+
+  it('takes a move back in one undo', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+    await user.click(screen.getByRole('button', { name: 'Move Phaser earlier' }))
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+
+    expect(effectOrderNames().at(-1)).toBe('7Phaser')
+  })
+
+  it('cannot change the order of a patch without a record, and says why', () => {
+    renderWithRecord(bitcrushFirmware)
+
+    expect(
+      screen.getByRole<HTMLButtonElement>('button', { name: 'Move Reverb earlier' }).disabled,
+    ).toBe(true)
+    expect(
+      screen.getByText(
+        'This patch didn’t come from the FM1, so it takes the order of the preset it’s written over.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('says when a patch keeps a changed order for firmware that plays its own', () => {
+    renderWithRecord({ identity: 'FM-1_015', kind: 'mvave' }, hardClipRecord)
+
+    expect(screen.queryByRole('list', { name: 'Effects, first to last' })).toBeNull()
+    expect(
+      screen.getByText(
+        'Kept for Baud Girl’s firmware: a changed effect order. This FM1 plays the effects in its own order.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('names the move buttons in the interface language', async () => {
+    await setLocale('de')
+    renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    expect(screen.getByRole('button', { name: 'Hall nach vorne verschieben' })).toBeTruthy()
+    await setLocale('en-GB')
+  })
+})

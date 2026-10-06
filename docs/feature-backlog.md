@@ -452,8 +452,11 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       firmware a type other than Soft Clip is named under Distortion. Foldback's `02` was read from
       the FM1 on 2026-10-04. _Bitcrush built 2026-10-06:_ FM-1_096's seventh effect, mapped on
       hardware the same day (`docs/hardware-runs/fm1-va-bitcrush-order-2026-10-06.md`), has its own
-      box in the effects panel from FM-1_096, written into record bytes 5, 35, 41, and 44. Effect
-      order is mapped too, for all seven effects, and is next.
+      box in the effects panel from FM-1_096, written into record bytes 5, 35, 41, and 44.
+      _Effect order built 2026-10-06:_ an **Effect order** strip at the top of the effects panel,
+      from FM-1_096, moves each of the seven effects one place at a time and is written into the
+      chain bytes and Bitcrush's place. Neither has been written to the FM1 from the editor and
+      read back yet.
 - [ ] **6. Virtual Analog presets.** Built in steps, each shippable:
   - **Keep them.** A slot whose record is marked Virtual Analog shows as such, survives import,
     backup, and copy unchanged, and is left out of DX7 `.syx` export with an explanation,
