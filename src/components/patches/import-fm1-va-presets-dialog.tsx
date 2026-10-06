@@ -46,10 +46,10 @@ import {
   type Fm1VaPresetBank,
   type Fm1VaPresetFileBank,
   fm1VaPresetBanksFromRead,
-  fm1VaPresetFileSize,
   importableSounds,
   readFm1VaPresetFile,
 } from '@/lib/fm1-va-preset-file'
+import { fm1VaPresetMessageSize } from '@/lib/fm1-va-preset-message'
 import { fm1VaPresetCount, readEveryFm1VaPreset } from '@/lib/fm1-va-preset-read'
 import { type FetchedBank, maximumWorkspaceBanks, voiceId } from '@/lib/patch-library'
 import { sysexFileAccept } from '@/lib/sysex-file'
@@ -120,7 +120,7 @@ function presetFileErrorMessage(t: Translate, error: unknown) {
       case 'size':
         return t('fm1VaImport.errors.size', {
           bytes: error.receivedBytes,
-          expected: fm1VaPresetFileSize,
+          size: fm1VaPresetMessageSize,
         })
     }
   }
@@ -188,6 +188,10 @@ export function ImportFm1VaPresetsDialog({
   const listFormat = new Intl.ListFormat(i18n.resolvedLanguage, { type: 'conjunction' })
   const damagedCount = countPresets(banks, 'damaged')
   const eightBitCount = countPresets(banks, 'eight-bit')
+  // A file of one preset or a preset pack holds only some of the FM1's presets.
+  const heldCount =
+    banks?.flatMap(({ presets }) => presets).filter(({ kind }) => kind !== 'absent').length ??
+    fm1VaPresetCount
   const choiceOf = (bank: Fm1VaPresetBank): BankChoice =>
     choices.get(bank) ?? { destination: bank, imported: false }
   const takenBanks = banks?.filter(({ bank }) => choiceOf(bank).imported) ?? []
@@ -514,6 +518,9 @@ export function ImportFm1VaPresetsDialog({
               {/* Nothing is replaced until a bank is chosen, so the warning waits for the banks. */}
               <WarningNotice>
                 <p>{t('fm1VaImport.warning')}</p>
+                {heldCount < fm1VaPresetCount ? (
+                  <p>{t('fm1VaImport.partialFile', { count: heldCount })}</p>
+                ) : null}
               </WarningNotice>
               {banks.map((fileBank) => (
                 <PresetFileBank
@@ -657,6 +664,8 @@ function PresetFileBank({
                 />
               ) : preset.kind === 'eight-bit' ? (
                 <EightBitPresetCell name={preset.name} number={index + 1} />
+              ) : preset.kind === 'absent' ? (
+                <AbsentPresetCell number={index + 1} />
               ) : (
                 <DamagedPresetCell number={index + 1} />
               )}
@@ -717,6 +726,19 @@ function EightBitPresetCell({ name, number }: { name: string; number: number }) 
         {name}
       </span>
       <span className="shrink-0 text-xs">{t('fm1VaImport.eightBitPreset')}</span>
+    </span>
+  )
+}
+
+/** A slot the file holds no preset for, which the import leaves as it is. */
+function AbsentPresetCell({ number }: { number: number }) {
+  const { t } = useTranslation()
+  return (
+    <span className="patch-cell flex min-h-9 w-full items-center gap-1.5 border border-dashed border-[var(--crt-line)] px-1.5 py-1 text-[var(--crt-ink-3)] opacity-60">
+      <span className="font-vt323 shrink-0 text-[16px] leading-none">
+        {String(number).padStart(2, '0')}
+      </span>
+      <span className="truncate text-xs">{t('fm1VaImport.absentPreset')}</span>
     </span>
   )
 }

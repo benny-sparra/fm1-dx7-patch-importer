@@ -23,14 +23,17 @@ import { fm1VaVirtualAnalogName } from '@/lib/fm1-va-virtual-analog'
 import type { FetchedSound } from '@/lib/patch-library'
 
 /**
- * FM-1+VA's stored presets, from the `.syx` presets file Baud Girl's Device Manager saves (its
- * **Save a backup** on releases before FM-1_096) or read from the FM1 itself. The file holds one preset write per stored preset, 128 in slot order, each
+ * FM-1+VA's stored presets, read from the FM1 itself or from a `.syx` presets file of Baud Girl's.
+ * A file holds one preset write per preset, each
  * `F0 43 00 7D 04 <slot> <155-byte DX7 voice> <68-byte settings record> <sum> F7`
- * (docs/fm1-research.md, FM-1+VA). Each preset's voice is read with its record, kept exactly as
+ * (docs/fm1-research.md, FM-1+VA): all 128 in slot order in a backup from the Device Manager's
+ * **Back up everything** (**Save a backup** before FM-1_096), one preset from its **Save as a
+ * file**, or the 16 of a preset pack. Each preset's voice is read with its record, kept exactly as
  * stored, and the effects the record holds. A Virtual Analog preset's voice bytes are kept apart
  * from DX7 voices, in the packed form the FM1 stores them in.
  */
 const fm1VaPresetCount = 128
+/** A backup's size: every preset the FM1 holds. */
 export const fm1VaPresetFileSize = fm1VaPresetCount * fm1VaPresetMessageSize
 
 /** The FM1 banks a backup holds, in the order of its presets. */
@@ -40,9 +43,11 @@ export type Fm1VaPresetBank = (typeof fm1VaPresetBanks)[number]
 /**
  * A stored preset: an FM preset's DX7 voice, or a Virtual Analog preset's voice bytes, which are
  * not a DX7 voice, each with its record and the effects the record holds; an 8-Bit preset, which
- * the library cannot hold, so only its name is kept; or one that arrived damaged.
+ * the library cannot hold, so only its name is kept; one that arrived damaged; or, in a file that
+ * holds only some presets, one it does not hold.
  */
 export type Fm1VaPreset =
+  | { kind: 'absent' }
   | { kind: 'damaged' }
   | { kind: 'eight-bit'; name: string }
   | { effects: Uint8Array; kind: 'fm'; record: Uint8Array; voice: Dx7Voice }
@@ -127,13 +132,15 @@ function sameSettings(record: Uint8Array, other: Uint8Array) {
  * patch, so a patch written to the FM1 matches it however its library copy's bytes were first
  * laid out or its effects since changed. A slot the library has no patch in differs, as does one
  * with no record, which importing would give it, or one of the other engine; a damaged or 8-Bit
- * preset, which the import leaves out, does not. A Virtual Analog preset's voice bytes are compared as read.
+ * preset, or one the file does not hold, which the import leaves out, does not. A Virtual Analog preset's voice bytes are compared as read.
  */
 export function differsFromLibrary(
   preset: Fm1VaPreset,
   slot: { effects?: Uint8Array; record?: Uint8Array; virtualAnalog?: Uint8Array; voice?: Dx7Voice },
 ) {
-  if (preset.kind === 'damaged' || preset.kind === 'eight-bit') return false
+  if (preset.kind === 'absent' || preset.kind === 'damaged' || preset.kind === 'eight-bit') {
+    return false
+  }
   if (!slot.record) return true
   const sameVoice =
     preset.kind === 'fm'
@@ -190,7 +197,21 @@ export class Fm1VaPresetFileError extends Error {
 function presetFileSizeError(receivedBytes: number) {
   return new Fm1VaPresetFileError(
     'size',
-    `Expected a ${fm1VaPresetFileSize}-byte FM-1+VA backup; received ${receivedBytes} bytes.`,
+    `Expected 1 to ${fm1VaPresetCount} FM-1+VA presets of ${fm1VaPresetMessageSize} bytes; received ${receivedBytes} bytes.`,
+    receivedBytes,
+  )
+}
+
+/** How many preset writes a file of `size` bytes holds, or null when it cannot be such a file. */
+function presetCountOf(size: number) {
+  const count = size / fm1VaPresetMessageSize
+  return Number.isInteger(count) && count >= 1 && count <= fm1VaPresetCount ? count : null
+}
+
+function presetFileFormatError(receivedBytes: number) {
+  return new Fm1VaPresetFileError(
+    'format',
+    'This is not a presets file saved by FM-1+VA.',
     receivedBytes,
   )
 }
@@ -216,36 +237,61 @@ function readPreset(message: Uint8Array, slot: number): Fm1VaPreset {
 }
 
 /**
- * Reads an FM-1+VA backup into FM1 banks A–D. A damaged preset is reported rather than failing the
- * whole file; a file in which no preset can be read is refused.
+ * The presets of a file holding fewer than 128, each in the slot its write names, and every other
+ * slot absent. A slot named twice, or one the FM1 does not have, means the file is not laid out as
+ * FM-1+VA writes one.
+ */
+function readSomePresets(bytes: Uint8Array, count: number): Fm1VaPreset[] {
+  const presets = Array.from({ length: fm1VaPresetCount }, (): Fm1VaPreset => ({ kind: 'absent' }))
+  for (let index = 0; index < count; index += 1) {
+    const start = index * fm1VaPresetMessageSize
+    const message = bytes.subarray(start, start + fm1VaPresetMessageSize)
+    const slot = message[5]
+    if (slot >= fm1VaPresetCount || presets[slot].kind !== 'absent') {
+      throw presetFileFormatError(bytes.length)
+    }
+    presets[slot] = readPreset(message, slot)
+  }
+  return presets
+}
+
+/**
+ * Reads an FM-1+VA presets file into the FM1 banks it holds presets for. A backup holds all 128
+ * in slot order, and a preset that names another slot counts as damaged; a smaller file, such as
+ * one preset or a preset pack, places each preset in the slot it names. A damaged preset is
+ * reported rather than failing the whole file; a file in which no preset can be read is refused.
  */
 export function parseFm1VaPresetFile(file: ArrayBuffer): Fm1VaPresetFileBank[] {
   const bytes = new Uint8Array(file)
-  if (bytes.length !== fm1VaPresetFileSize) throw presetFileSizeError(bytes.length)
-  if (!hasPresetHeader(bytes)) {
-    throw new Fm1VaPresetFileError('format', 'This is not a backup saved by FM-1+VA.', bytes.length)
-  }
+  const count = presetCountOf(bytes.length)
+  if (count === null) throw presetFileSizeError(bytes.length)
+  if (!hasPresetHeader(bytes)) throw presetFileFormatError(bytes.length)
 
-  const presets = Array.from({ length: fm1VaPresetCount }, (_, slot) => {
-    const start = slot * fm1VaPresetMessageSize
-    return readPreset(bytes.subarray(start, start + fm1VaPresetMessageSize), slot)
-  })
-  if (presets.every(({ kind }) => kind === 'damaged')) {
+  const presets =
+    count === fm1VaPresetCount
+      ? Array.from({ length: fm1VaPresetCount }, (_, slot) => {
+          const start = slot * fm1VaPresetMessageSize
+          return readPreset(bytes.subarray(start, start + fm1VaPresetMessageSize), slot)
+        })
+      : readSomePresets(bytes, count)
+  if (presets.every(({ kind }) => kind === 'damaged' || kind === 'absent')) {
     throw new Fm1VaPresetFileError(
       'damaged',
-      'No preset in the FM-1+VA backup could be read.',
+      'No preset in the FM-1+VA presets file could be read.',
       bytes.length,
     )
   }
 
-  return toPresetBanks(presets)
+  return toPresetBanks(presets).filter(({ presets: bankPresets }) =>
+    bankPresets.some(({ kind }) => kind !== 'absent'),
+  )
 }
 
 /**
- * Reads a backup the user chose. A file of the wrong size is refused before it is loaded, so
+ * Reads a presets file the user chose. A file of the wrong size is refused before it is loaded, so
  * picking a large file by mistake does not read all of it into memory.
  */
 export async function readFm1VaPresetFile(file: Blob) {
-  if (file.size !== fm1VaPresetFileSize) throw presetFileSizeError(file.size)
+  if (presetCountOf(file.size) === null) throw presetFileSizeError(file.size)
   return parseFm1VaPresetFile(await file.arrayBuffer())
 }

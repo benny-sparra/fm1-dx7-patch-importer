@@ -323,16 +323,20 @@ export default {
     menuHeading: 'Baud Girl (FM-1+VA)',
     title: 'Importar arquivo de presets da Baud Girl',
     titleRead: 'Ler presets do FM1',
-    help: 'Escolha o arquivo de presets do “Back up everything” no Device Manager da Baud Girl.',
+    help: 'Escolha um arquivo de presets do Device Manager da Baud Girl: um backup do “Back up everything” ou um preset salvo com “Save as a file”.',
     warning:
       'Cada banco importado substitui o banco que você escolher para ele, ou é adicionado como banco novo. Você pode desfazer isso.',
+    partialFile:
+      'Este arquivo contém um preset. Só a posição dele muda; as outras posições mantêm o som.',
+    partialFile_other:
+      'Este arquivo contém {{count, number}} presets. Só as posições deles mudam; as outras posições mantêm o som.',
     file: 'Arquivo de presets da Baud Girl',
     read: 'Ler do FM1',
     readUnavailable:
       'Para ler os presets do FM1, escolha-o como saída e entrada MIDI, com SysEx permitido. A leitura precisa do firmware da Baud Girl FM-1_079 ou posterior.',
     reading: 'Lendo o preset {{number, number}} de {{total, number}}…',
     stopReading: 'Parar a leitura',
-    chooseFile: 'Escolha o arquivo de presets do “Back up everything”',
+    chooseFile: 'Escolha um arquivo de presets da Baud Girl',
     previewTitle: 'Bancos deste arquivo',
     previewHelp: 'Abra um banco para ouvir seus sons no FM1.',
     previewTitleFm1: 'Bancos no FM1',
@@ -354,6 +358,7 @@ export default {
       'Um preset é 8-Bit, e a biblioteca ainda não consegue guardá-lo. A posição dele mantém o som.',
     eightBitPresets_other:
       '{{count, number}} presets são 8-Bit, e a biblioteca ainda não consegue guardá-los. As posições deles mantêm os sons.',
+    absentPreset: 'Fora do arquivo',
     action: 'Importar um banco',
     action_other: 'Importar {{count, number}} bancos',
     imported: 'Banco {{banks}} importado do FM1.',
@@ -361,17 +366,17 @@ export default {
     openFailed:
       'Não foi possível abrir a importação de presets da Baud Girl. Recarregue a página e tente novamente.',
     errors: {
-      size: 'Este arquivo tem {{bytes, number}} bytes. Um arquivo de presets do “Back up everything” da Baud Girl tem exatamente {{expected, number}} bytes.',
-      format: 'Este arquivo não é um arquivo de presets do “Back up everything” da Baud Girl.',
+      size: 'Este arquivo tem {{bytes, number}} bytes. Um arquivo de presets da Baud Girl contém de 1 a 128 presets de {{size, number}} bytes cada.',
+      format: 'Este arquivo não é um arquivo de presets da Baud Girl.',
       damaged:
-        'Nenhum preset deste arquivo pôde ser lido. Salve um novo backup no Device Manager da Baud Girl e tente novamente.',
+        'Nenhum preset deste arquivo pôde ser lido. Salve o arquivo de novo no Device Manager da Baud Girl e tente novamente.',
       unreadable: 'Não foi possível ler o arquivo.',
       readBusy:
         'O FM1 não consegue enviar seus presets enquanto o Sequencer está tocando. Pare-o e leia de novo.',
       readNoReply: 'O FM1 parou de responder. Verifique a conexão MIDI dele e leia de novo.',
       readStopped: 'A leitura parou porque as portas MIDI mudaram. Leia de novo.',
       readFailed:
-        'O FM1 não conseguiu enviar seus presets. Leia de novo ou escolha um arquivo de presets do “Back up everything”.',
+        'O FM1 não conseguiu enviar seus presets. Leia de novo ou escolha um arquivo de presets da Baud Girl.',
     },
   },
   fm1VaWrite: {

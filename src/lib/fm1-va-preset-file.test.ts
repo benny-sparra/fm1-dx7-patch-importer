@@ -232,8 +232,17 @@ describe('parseFm1VaPresetFile', () => {
     expect(problemOf(file)).toBe('damaged')
   })
 
-  it('refuses a file of the wrong length', () => {
-    expect(problemOf(backupFile().slice(0, 231 * 127))).toBe('size')
+  it('refuses a file that is not a whole number of presets', () => {
+    expect(problemOf(backupFile().slice(0, 231 * 127 + 5))).toBe('size')
+  })
+
+  it('refuses a file of more presets than the FM1 holds', () => {
+    const file = backupFile()
+    const longer = new Uint8Array(file.length + 231)
+    longer.set(file)
+    longer.set(file.subarray(0, 231), file.length)
+
+    expect(problemOf(longer)).toBe('size')
   })
 
   it('refuses a file of the right length that FM-1+VA did not write', () => {
@@ -247,6 +256,64 @@ describe('parseFm1VaPresetFile', () => {
     const bank = readFileSync(resolve('public/dx7-banks/factory/rom1a.syx'))
 
     expect(problemOf(Uint8Array.from(bank))).toBe('size')
+  })
+})
+
+describe('parseFm1VaPresetFile with fewer than 128 presets', () => {
+  /** The presets of `backupFile` in `slots`, one write each, in the order given. */
+  function presetsOf(...slots: number[]) {
+    const file = backupFile()
+    return Uint8Array.from(
+      slots.flatMap((slot) => [...file.subarray(slot * 231, (slot + 1) * 231)]),
+    )
+  }
+
+  it('places a single preset in the bank and slot it names, and holds no other bank', () => {
+    const banks = parseFm1VaPresetFile(presetsOf(40).buffer as ArrayBuffer)
+
+    expect(banks.map(({ bank }) => bank)).toEqual(['B'])
+    expect(banks[0].presets[8]).toMatchObject({ kind: 'fm', voice: { name: rom1a[8].name } })
+    expect(banks[0].presets.filter(({ kind }) => kind === 'absent')).toHaveLength(31)
+  })
+
+  it('places a preset pack’s 16 presets in the last half of bank D', () => {
+    const slots = Array.from({ length: 16 }, (_, index) => 112 + index)
+
+    const [bankD, ...others] = parseFm1VaPresetFile(presetsOf(...slots).buffer as ArrayBuffer)
+
+    expect(others).toEqual([])
+    expect(bankD.bank).toBe('D')
+    expect(bankD.presets.slice(0, 16).every(({ kind }) => kind === 'absent')).toBe(true)
+    expect(bankD.presets.slice(16).every(({ kind }) => kind === 'fm')).toBe(true)
+  })
+
+  it('places each preset by the slot it names, whatever its place in the file', () => {
+    const [bankA] = parseFm1VaPresetFile(presetsOf(2, 0).buffer as ArrayBuffer)
+
+    expect(bankA.presets.map(({ kind }) => kind).slice(0, 3)).toEqual(['fm', 'absent', 'fm'])
+  })
+
+  it('refuses a file that names one slot twice', () => {
+    expect(problemOf(presetsOf(5, 5))).toBe('format')
+  })
+
+  it('leaves the slots the file does not hold out of the import', () => {
+    const [bankB] = parseFm1VaPresetFile(presetsOf(40).buffer as ArrayBuffer)
+
+    const sounds = importableSounds(bankB)
+
+    expect(sounds.filter(Boolean)).toHaveLength(1)
+    expect(sounds[8]).not.toBeNull()
+  })
+
+  it('does not mark a slot the file does not hold as differing from the library', () => {
+    expect(differsFromLibrary({ kind: 'absent' }, {})).toBe(false)
+  })
+
+  it('reads a one-preset file the user chose', async () => {
+    const banks = await readFm1VaPresetFile(new Blob([presetsOf(0)]))
+
+    expect(banks.map(({ bank }) => bank)).toEqual(['A'])
   })
 })
 

@@ -210,16 +210,20 @@ export default {
     menuHeading: 'Baud Girl (FM-1+VA)',
     title: 'Import Baud Girl presets file',
     titleRead: 'Read presets from the FM1',
-    help: 'Choose the presets file from “Back up everything” in Baud Girl’s Device Manager.',
+    help: 'Choose a presets file from Baud Girl’s Device Manager: a backup from “Back up everything”, or a preset saved with “Save as a file”.',
     warning:
       'Each bank you import replaces the bank you choose for it, or is added as a new bank. You can undo this.',
+    partialFile:
+      'This file holds one preset. Only its slot changes; every other slot keeps its patch.',
+    partialFile_other:
+      'This file holds {{count, number}} presets. Only their slots change; every other slot keeps its patch.',
     file: 'Baud Girl presets file',
     read: 'Read from FM1',
     readUnavailable:
       'To read the presets from the FM1, choose it as the MIDI output and input, with SysEx allowed. Reading needs Baud Girl firmware FM-1_079 or later.',
     reading: 'Reading preset {{number, number}} of {{total, number}}…',
     stopReading: 'Stop reading',
-    chooseFile: 'Choose the presets file from “Back up everything”',
+    chooseFile: 'Choose a Baud Girl presets file',
     previewTitle: 'Banks in this file',
     previewHelp: 'Open a bank to hear its patches on the FM1.',
     previewTitleFm1: 'Banks on the FM1',
@@ -240,23 +244,24 @@ export default {
       'One preset is 8-Bit, which the library can’t hold yet. Its slot keeps its patch.',
     eightBitPresets_other:
       '{{count, number}} presets are 8-Bit, which the library can’t hold yet. Their slots keep their patches.',
+    absentPreset: 'Not in file',
     action: 'Import one bank',
     action_other: 'Import {{count, number}} banks',
     imported: 'Imported bank {{banks}} from the FM1.',
     imported_other: 'Imported banks {{banks}} from the FM1.',
     openFailed: 'The Baud Girl preset import could not be opened. Reload the page and try again.',
     errors: {
-      size: 'This file is {{bytes, number}} bytes. A presets file from Baud Girl’s “Back up everything” is exactly {{expected, number}} bytes.',
-      format: 'This isn’t a presets file from Baud Girl’s “Back up everything”.',
+      size: 'This file is {{bytes, number}} bytes. A Baud Girl presets file holds 1 to 128 presets of {{size, number}} bytes each.',
+      format: 'This isn’t a Baud Girl presets file.',
       damaged:
-        'No preset in this file could be read. Save a new backup in Baud Girl’s Device Manager and try again.',
+        'No preset in this file could be read. Save the file again in Baud Girl’s Device Manager and try again.',
       unreadable: 'The file could not be read.',
       readBusy:
         'The FM1 can’t send its presets while its Sequencer is playing. Stop it and read again.',
       readNoReply: 'The FM1 stopped answering. Check its MIDI connection and read again.',
       readStopped: 'The read stopped because the MIDI ports changed. Read again.',
       readFailed:
-        'The FM1 couldn’t send its presets. Read again, or choose a presets file from “Back up everything”.',
+        'The FM1 couldn’t send its presets. Read again, or choose a Baud Girl presets file.',
     },
   },
   fm1VaWrite: {

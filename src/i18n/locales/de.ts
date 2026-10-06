@@ -335,16 +335,20 @@ export default {
     menuHeading: 'Baud Girl (FM-1+VA)',
     title: 'Baud-Girl-Presetdatei importieren',
     titleRead: 'Presets vom FM1 lesen',
-    help: 'Wähle die Presets-Datei aus „Back up everything“ im Device Manager von Baud Girl.',
+    help: 'Wähle eine Presets-Datei aus dem Device Manager von Baud Girl: eine Sicherung aus „Back up everything“ oder ein mit „Save as a file“ gespeichertes Preset.',
     warning:
       'Jede importierte Bank ersetzt die Bank, die du für sie wählst, oder kommt als neue Bank hinzu. Du kannst das rückgängig machen.',
+    partialFile:
+      'Diese Datei enthält ein Preset. Nur sein Platz ändert sich; alle anderen Plätze behalten ihren Sound.',
+    partialFile_other:
+      'Diese Datei enthält {{count, number}} Presets. Nur ihre Plätze ändern sich; alle anderen Plätze behalten ihren Sound.',
     file: 'Baud-Girl-Presetdatei',
     read: 'Vom FM1 lesen',
     readUnavailable:
       'Um die Presets vom FM1 zu lesen, wähle ihn als MIDI-Ausgang und -Eingang und erlaube SysEx. Zum Lesen braucht er die Firmware von Baud Girl, FM-1_079 oder neuer.',
     reading: 'Lese Preset {{number, number}} von {{total, number}}…',
     stopReading: 'Lesen abbrechen',
-    chooseFile: 'Presets-Datei aus „Back up everything“ wählen',
+    chooseFile: 'Presets-Datei von Baud Girl wählen',
     previewTitle: 'Bänke in dieser Datei',
     previewHelp: 'Öffne eine Bank, um ihre Sounds am FM1 zu hören.',
     previewTitleFm1: 'Bänke auf dem FM1',
@@ -366,6 +370,7 @@ export default {
       'Ein Preset ist ein 8-Bit-Preset, das die Bibliothek noch nicht aufnehmen kann. Sein Platz behält seinen Sound.',
     eightBitPresets_other:
       '{{count, number}} Presets sind 8-Bit-Presets, die die Bibliothek noch nicht aufnehmen kann. Ihre Plätze behalten ihre Sounds.',
+    absentPreset: 'Nicht in der Datei',
     action: 'Eine Bank importieren',
     action_other: '{{count, number}} Bänke importieren',
     imported: 'Bank {{banks}} vom FM1 importiert.',
@@ -373,17 +378,17 @@ export default {
     openFailed:
       'Der Import der Baud-Girl-Presets konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     errors: {
-      size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine Presets-Datei aus „Back up everything“ von Baud Girl ist genau {{expected, number}} Bytes groß.',
-      format: 'Diese Datei ist keine Presets-Datei aus „Back up everything“ von Baud Girl.',
+      size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine Presets-Datei von Baud Girl enthält 1 bis 128 Presets zu je {{size, number}} Bytes.',
+      format: 'Diese Datei ist keine Presets-Datei von Baud Girl.',
       damaged:
-        'Kein Preset in dieser Datei ist lesbar. Speichere im Device Manager von Baud Girl eine neue Sicherung und versuche es erneut.',
+        'Kein Preset in dieser Datei ist lesbar. Speichere die Datei im Device Manager von Baud Girl erneut und versuche es noch einmal.',
       unreadable: 'Die Datei konnte nicht gelesen werden.',
       readBusy:
         'Der FM1 kann seine Presets nicht senden, während sein Sequencer läuft. Halte ihn an und lies erneut.',
       readNoReply: 'Der FM1 antwortet nicht mehr. Prüfe seine MIDI-Verbindung und lies erneut.',
       readStopped: 'Das Lesen wurde beendet, weil sich die MIDI-Ports geändert haben. Lies erneut.',
       readFailed:
-        'Der FM1 konnte seine Presets nicht senden. Lies erneut oder wähle eine Presets-Datei aus „Back up everything“.',
+        'Der FM1 konnte seine Presets nicht senden. Lies erneut oder wähle eine Presets-Datei von Baud Girl.',
     },
   },
   fm1VaWrite: {
