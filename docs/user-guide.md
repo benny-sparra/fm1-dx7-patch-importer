@@ -225,6 +225,13 @@ Baud Girl's presets file, can keep a type; for any other patch it is shown disab
 takes the type of the preset it is written over. On other firmware the choice is hidden, and a line
 under Distortion names a type other than Soft Clip that the patch keeps for Baud Girl's firmware.
 
+From FM-1_096, Baud Girl's firmware has a seventh effect, **Bitcrush**, which rounds the sound to
+fewer levels and samples it less often. While the FM1 runs it, the effects panel has a Bitcrush box:
+its switch, **Bits** from 16 down to 1, **Sample rate** from 300 Hz to 44.1k, and **Mix**. Like the
+Distortion type, it is kept with the patch and heard once the patch is written to the FM1. Only a
+patch read from the FM1, or from Baud Girl's presets file, can keep it. On other firmware the box is
+hidden, and a line on the panel says when the patch keeps Bitcrush on.
+
 The LFO and every FM1 effect open with a small animated scope drawn from their current settings. The LFO scrolls its selected wave at a rate set by LFO Speed. The filter shows its response curve, delay its echo taps, chorus its drifting copies, reverb its tail, distortion its clipped wave, and phaser its sweeping notches. A scope dims when its effect is bypassed or when the LFO has no modulation depth. With reduced motion enabled, each scope shows a still frame instead.
 
 ## Playing along while you edit

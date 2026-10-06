@@ -14,11 +14,26 @@ import { HelpPopover } from '@/components/ui/help-popover'
 import { Switch } from '@/components/ui/switch'
 import { effectPresetsFor, type EffectPresetId } from '@/lib/effect-presets'
 import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
-import { fm1VaDistortionTypes } from '@/lib/fm1-va-record-effects'
+import {
+  fm1VaBitcrushSampleRateHz,
+  fm1VaBitcrushSettings,
+  fm1VaDistortionTypes,
+} from '@/lib/fm1-va-record-effects'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
 type EffectsUnitProps = {
+  /**
+   * FM-1+VA's Bitcrush, offered while the FM1 runs FM-1_096 or later. `values` holds its switch,
+   * Bits, Sample Rate, and Mix, or null for a patch without a settings record, which has nowhere to
+   * keep them.
+   */
+  bitcrush?: {
+    onChange: (setting: number, value: number, min: number, max: number) => void
+    values: readonly number[] | null
+  }
+  /** Whether the patch keeps Bitcrush on for FM-1_096 while the FM1's firmware does not play it. */
+  keepsBitcrush?: boolean
   /**
    * A Distortion type the patch keeps for FM-1+VA that the FM1's firmware does not play, which a
    * line under Distortion names.
@@ -399,8 +414,141 @@ function DistortionTypeControl({
   )
 }
 
+type BitcrushSettingId = (typeof fm1VaBitcrushSettings)[number]['id']
+
+/** Bitcrush's settings after its switch, each with its caption and the help that explains it. */
+const bitcrushControls: {
+  help: string
+  id: Exclude<BitcrushSettingId, 'enabled'>
+  label: string
+}[] = [
+  { help: 'Bitcrush Bits', id: 'bits', label: 'bits' },
+  { help: 'Bitcrush Sample Rate', id: 'sampleRate', label: 'sampleRate' },
+  { help: 'Bitcrush Mix', id: 'mix', label: 'mix' },
+]
+
+/** A Bitcrush setting as the FM1 shows it: Bits as a count, Sample Rate in hertz, Mix in percent. */
+function useBitcrushValueText() {
+  const { i18n, t } = useTranslation()
+  return (id: BitcrushSettingId, value: number) => {
+    if (id === 'mix') return `${value}%`
+    if (id !== 'sampleRate') return String(value)
+    const hertz = fm1VaBitcrushSampleRateHz(value)
+    const format = (number: number, digits: number) =>
+      new Intl.NumberFormat(i18n.resolvedLanguage, {
+        maximumFractionDigits: digits,
+        minimumFractionDigits: digits,
+      }).format(number)
+    return hertz < 1000
+      ? t('bitcrush.hertz', { value: format(hertz, 0) })
+      : t('bitcrush.kilohertz', { value: format(hertz / 1000, 1) })
+  }
+}
+
+/*
+  FM-1+VA's Bitcrush, from FM-1_096, laid out as the other effects are, with its name as its
+  switch's label. No MIDI message sets it, so it is heard once the patch is written to the FM1,
+  which its help says. Each slider's drag is one undo step.
+*/
+function BitcrushSection({
+  onChange,
+  onGestureEnd,
+  onGestureStart,
+  values,
+}: {
+  onChange: (setting: number, value: number, min: number, max: number) => void
+  onGestureEnd: () => void
+  onGestureStart: () => void
+  values: readonly number[] | null
+}) {
+  const { t } = useTranslation()
+  const valueText = useBitcrushValueText()
+  const translatedEffect = t('ui.effects.bitcrush')
+  const enabled = values !== null && values[0] > 0
+  const settingIndex = (id: BitcrushSettingId) =>
+    fm1VaBitcrushSettings.findIndex((setting) => setting.id === id)
+  return (
+    <section
+      aria-label={translatedEffect}
+      className="crt-raised-thin flex min-w-0 flex-col bg-[var(--crt-bg-1)]"
+    >
+      <div className="flex min-w-0 items-center border-b border-[var(--crt-line-dk)] px-[7px] py-[3px]">
+        <h3 className="flex min-w-0 items-center gap-1 text-[11px] font-normal tracking-[0.18em] uppercase">
+          <Switch
+            checked={enabled}
+            className="-ml-[3px] inline-flex min-h-6 min-w-0 items-center gap-2 px-1 transition-colors"
+            disabled={values === null}
+            onChange={(checked) => onChange(0, checked ? 1 : 0, 0, 1)}
+          >
+            <span className="truncate">{translatedEffect}</span>
+          </Switch>
+          <HelpPopover label={translatedEffect} text={t('effectHelp.Bitcrush')} />
+        </h3>
+      </div>
+      <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
+        {values === null ? (
+          <p className="text-[11px] leading-4 text-[var(--crt-ink-3)]">{t('bitcrush.noRecord')}</p>
+        ) : null}
+        {bitcrushControls.map(({ help, id, label }) => {
+          const index = settingIndex(id)
+          const { max, min } = fm1VaBitcrushSettings[index]
+          const value = values?.[index] ?? min
+          const translatedParameter = t(`ui.parameters.${label}`)
+          const disabled = !enabled
+          return (
+            <label
+              className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)_3rem] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase"
+              key={id}
+            >
+              <span className="flex min-w-0 items-center gap-1 overflow-hidden">
+                <span className="min-w-0 truncate" title={translatedParameter}>
+                  {translatedParameter}
+                </span>
+                <HelpPopover
+                  label={`${translatedEffect} ${translatedParameter}`}
+                  text={t(`effectParameterHelp.${help}`)}
+                />
+              </span>
+              <input
+                aria-label={`${translatedEffect} ${translatedParameter}`}
+                aria-valuetext={valueText(id, value)}
+                className="min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={disabled}
+                max={max}
+                min={min}
+                onBlur={onGestureEnd}
+                onChange={(event) => onChange(index, Number(event.target.value), min, max)}
+                onKeyDown={(event) => {
+                  if (rangeControlKeys.includes(event.key)) onGestureStart()
+                }}
+                onKeyUp={onGestureEnd}
+                onPointerCancel={onGestureEnd}
+                onPointerDown={onGestureStart}
+                onPointerUp={onGestureEnd}
+                style={rangeStyle(value, min, max, disabled ? 'var(--crt-line)' : 'var(--crt-acc)')}
+                type="range"
+                value={value}
+              />
+              <output
+                className={cn(
+                  'font-vt323 text-right text-lg leading-none',
+                  disabled ? 'text-[var(--crt-ink-4)]' : 'text-[var(--crt-led)]',
+                )}
+              >
+                {valueText(id, value)}
+              </output>
+            </label>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
 export function EffectsUnit({
+  bitcrush,
   distortionType,
+  keepsBitcrush,
   keptDistortionType,
   onApplyPreset,
   onChange,
@@ -472,6 +620,19 @@ export function EffectsUnit({
           </section>
         )
       })}
+      {bitcrush ? (
+        <BitcrushSection
+          onChange={bitcrush.onChange}
+          onGestureEnd={onGestureEnd}
+          onGestureStart={onGestureStart}
+          values={bitcrush.values}
+        />
+      ) : null}
+      {keepsBitcrush ? (
+        <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">
+          {t('bitcrush.otherFirmware')}
+        </p>
+      ) : null}
     </div>
   )
 }

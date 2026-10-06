@@ -122,6 +122,8 @@ export default {
       'Ajoute de la saturation et des harmoniques supplémentaires. Elle peut rendre les sons doux plus denses ou les sons agressifs plus intenses.',
     Chorus: 'Ajoute des copies légèrement décalées du son pour plus de largeur et de mouvement.',
     Phaser: 'Fait balayer une série d’encoches dans le son, pour un caractère creux et mouvant.',
+    Bitcrush:
+      'Arrondit le son à moins de niveaux et l’échantillonne moins souvent, pour un grain lo-fi. Seul le firmware de Baud Girl à partir de FM-1_096 le joue. Aucun message MIDI ne le règle : on l’entend une fois le son écrit sur le FM1 avec Envoyer au FM1 ou Écrire des sons sur le FM1.',
   },
   effectParameterHelp: {
     'Filter Type':
@@ -153,6 +155,11 @@ export default {
     'Phaser Frequency': 'Règle la vitesse de cycle du balayage du phaser, d’environ 0,5 à 6 Hz.',
     'Phaser Depth': 'Règle l’étendue et l’intensité du balayage du phaser.',
     'Phaser Mix': 'Équilibre le son sec et le signal traité par le phaser.',
+    'Bitcrush Bits':
+      'Règle le nombre de niveaux auxquels l’onde est arrondie, de 16, qui sonne net, jusqu’à 1. Un son discret peut disparaître aux réglages les plus bas.',
+    'Bitcrush Sample Rate':
+      'Règle la fréquence d’échantillonnage du son, de 300 Hz à 44,1 kHz. Les fréquences basses ajoutent des harmoniques rudes et métalliques.',
+    'Bitcrush Mix': 'Dose le son net et le son broyé. À 0 %, on n’entend que le son d’origine.',
   },
   distortionType: {
     softClip: 'Écrêtage doux',
@@ -162,6 +169,14 @@ export default {
     noRecord: 'Ce son ne vient pas du FM1 : il prend le type du preset sur lequel il est écrit.',
     otherFirmware:
       'Conservé pour le firmware de Baud Girl : {{type}}. Ce FM1 joue sa propre distorsion à la place.',
+  },
+  bitcrush: {
+    hertz: '{{value}}Hz',
+    kilohertz: '{{value}}k',
+    noRecord:
+      'Ce son ne vient pas du FM1 : il prend le Bitcrush du preset sur lequel il est écrit.',
+    otherFirmware:
+      'Conservé pour le firmware de Baud Girl à partir de FM-1_096 : Bitcrush est activé. Ce FM1 ne le joue pas.',
   },
   ui: {
     auditionGroup: 'Écoute de l’opérateur {{number}}',
@@ -271,6 +286,7 @@ export default {
       distortion: 'Distorsion',
       chorus: 'Chorus',
       phaser: 'Phaser',
+      bitcrush: 'Bitcrush',
     },
     parameters: {
       depth: 'Profondeur',
@@ -285,6 +301,8 @@ export default {
       tone: 'Tonalité',
       level: 'Niveau',
       frequency: 'Fréquence',
+      bits: 'Bits',
+      sampleRate: 'Échantillonnage',
     },
     options: {
       lowPass: 'Passe-bas',

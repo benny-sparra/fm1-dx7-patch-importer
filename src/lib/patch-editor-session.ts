@@ -3,6 +3,8 @@ import { makeDx7VoiceNameEdits, packDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { applyEffectPreset, type EffectPresetId } from '@/lib/effect-presets'
 import { getFm1EffectParameters, getFm1VoiceParameters } from '@/lib/fm1-effects'
 import {
+  FM1_EDITOR_PARAMETER_COUNT,
+  FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
@@ -34,6 +36,13 @@ export type PatchEditorMidi = {
   sendParameter: (parameter: number, value: number) => boolean
   sendVoice: (voice: Dx7Voice) => Promise<boolean>
   sysexAvailable: boolean
+}
+
+/** The settings only FM-1+VA's settings record keeps, which the editor edits. */
+export type Fm1VaRecordSettings = {
+  /** Switch, Bits, Sample Rate, and Mix. */
+  bitcrush: number[]
+  distortionType: number
 }
 
 export type PatchEditorState = {
@@ -249,6 +258,15 @@ export class PatchEditorSession {
     this.applyEdits([[FM1_VA_DISTORTION_TYPE_INDEX, type, 0, 255]], false)
   }
 
+  /**
+   * Sets one of FM-1+VA's Bitcrush settings, `setting` counted from its switch, within `min` and
+   * `max`. No MIDI message carries Bitcrush either, so nothing is sent; a slider's drag is one undo
+   * step through `beginGesture` and `endGesture`, as an effect's is.
+   */
+  setBitcrushSetting = (setting: number, value: number, min: number, max: number) => {
+    this.applyEdits([[FM1_VA_BITCRUSH_START + setting, value, min, max]], false)
+  }
+
   toggleOperatorMute = (operator: number) => {
     const mutedOperators = new Set(this.state.mutedOperators)
     if (mutedOperators.has(operator)) mutedOperators.delete(operator)
@@ -268,17 +286,16 @@ export class PatchEditorSession {
   }
 
   /**
-   * Stores the working copy through `store`, with FM-1+VA's Distortion type, and makes it the saved
-   * version.
+   * Stores the working copy through `store`, with FM-1+VA's Distortion type and Bitcrush, and makes
+   * it the saved version.
    */
-  save = (store: (voice: Dx7Voice, effects: Uint8Array, distortionType: number) => void) => {
+  save = (store: (voice: Dx7Voice, effects: Uint8Array, record: Fm1VaRecordSettings) => void) => {
     if (this.state.isComparing) return
     const current = this.state.history.present
-    store(
-      packDx7Voice(getFm1VoiceParameters(current)),
-      getFm1EffectParameters(current),
-      current[FM1_VA_DISTORTION_TYPE_INDEX],
-    )
+    store(packDx7Voice(getFm1VoiceParameters(current)), getFm1EffectParameters(current), {
+      bitcrush: Array.from(current.subarray(FM1_VA_BITCRUSH_START, FM1_EDITOR_PARAMETER_COUNT)),
+      distortionType: current[FM1_VA_DISTORTION_TYPE_INDEX],
+    })
     this.update({ savedParameters: current.slice() })
     trackAnalyticsEvent({ name: 'patch_saved' })
   }

@@ -38,7 +38,7 @@ describe('patch editor history', () => {
     'accepts and clamps $effect $control edits using its declared $min–$max range',
     ({ controller, max, min }) => {
       const editorIndex = 155 + controller
-      const initial = new Uint8Array(180)
+      const initial = new Uint8Array(184)
       const atMaximum = editParameters(makeEditorHistory(initial), [[editorIndex, max, min, max]])
       const aboveMaximum = editParameters(atMaximum, [[editorIndex, max + 1, min, max]])
       const belowMinimum = editParameters(aboveMaximum, [[editorIndex, min - 1, min, max]])
@@ -79,7 +79,7 @@ describe('patch editor history', () => {
 
 describe('sound starters', () => {
   const makeParameters = () =>
-    Uint8Array.from({ length: 180 }, (_, index) => (index < 155 ? index % 100 : 0))
+    Uint8Array.from({ length: 184 }, (_, index) => (index < 155 ? index % 100 : 0))
 
   it('offers repeatable presets that stay within MIDI data limits', () => {
     for (const preset of soundPresets) {
@@ -152,7 +152,7 @@ describe('sound starters', () => {
   })
 
   it('rejects incomplete editor data', () => {
-    expect(() => applySoundPreset(new Uint8Array(155), 'soft-pad')).toThrow('180')
+    expect(() => applySoundPreset(new Uint8Array(155), 'soft-pad')).toThrow('184')
   })
 })
 

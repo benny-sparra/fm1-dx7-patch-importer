@@ -34,6 +34,8 @@ import { unpackDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { getFm1EffectParameters, makeFm1EditorParameters } from '@/lib/fm1-effects'
 import { hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
 import {
+  FM1_EDITOR_PARAMETER_COUNT,
+  FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
@@ -47,8 +49,11 @@ import {
   PatchEditorSession,
 } from '@/lib/patch-editor-session'
 import {
+  fm1VaRecordBitcrush,
   fm1VaRecordDistortionType,
+  fm1VaRecordWithBitcrush,
   fm1VaRecordWithDistortionType,
+  playsFm1VaBitcrush,
 } from '@/lib/fm1-va-record-effects'
 import { initializeVoice } from '@/lib/init-voice'
 import { editorShortcuts } from '@/lib/keyboard-shortcuts'
@@ -107,6 +112,7 @@ export function PatchEditorPage({
       unpackDx7Voice(voice),
       effects,
       record ? fm1VaRecordDistortionType(record) : 0,
+      record ? fm1VaRecordBitcrush(record) : undefined,
     )
     return new PatchEditorSession(parameters, () => midiRef.current)
   })
@@ -182,11 +188,12 @@ export function PatchEditorPage({
   }
 
   const saveToLibrary = () =>
-    editor.save((savedVoice, savedEffects, distortionType) =>
+    editor.save((savedVoice, savedEffects, { bitcrush, distortionType }) =>
       onSave(
         savedVoice,
         savedEffects,
-        record && fm1VaRecordWithDistortionType(record, distortionType),
+        record &&
+          fm1VaRecordWithBitcrush(fm1VaRecordWithDistortionType(record, distortionType), bitcrush),
       ),
     )
   // Only FM-1+VA's preset write carries Distortion's type. Elsewhere, a type other than Soft Clip
@@ -197,6 +204,13 @@ export function PatchEditorPage({
     !writesDistortionType && record && distortionType !== 0 && midi.firmware.kind !== 'checking'
       ? distortionType
       : undefined
+  // Bitcrush is FM-1_096's own. Elsewhere, a patch that keeps it on says so, as the FM1 ignores it.
+  const bitcrush = Array.from(
+    parameters.subarray(FM1_VA_BITCRUSH_START, FM1_EDITOR_PARAMETER_COUNT),
+  )
+  const offersBitcrush = playsFm1VaBitcrush(midi.firmware)
+  const keepsBitcrush =
+    !offersBitcrush && Boolean(record) && bitcrush[0] === 1 && midi.firmware.kind !== 'checking'
 
   const requestNavigation = () => {
     if (editor.getState().isComparing || isNavigationPending) return
@@ -423,6 +437,15 @@ export function PatchEditorPage({
                     ? { onChange: editor.setDistortionType, type: record ? distortionType : null }
                     : undefined
                 }
+                bitcrush={
+                  offersBitcrush
+                    ? {
+                        onChange: editor.setBitcrushSetting,
+                        values: record ? bitcrush : null,
+                      }
+                    : undefined
+                }
+                keepsBitcrush={keepsBitcrush}
                 keptDistortionType={keptDistortionType}
                 onApplyPreset={editor.selectEffectPreset}
                 onChange={editor.setEffectParameter}
