@@ -149,8 +149,9 @@ takes the FM1 preset's own settings, with your effects in them.
 
 Before anything is written, the dialog lists every preset it will replace. Each one is replaced the
 moment it is written, and the FM1 cannot undo it, so press **Back up everything** in Baud Girl's
-Device Manager first. Writes go 3 seconds apart, as Baud Girl's own page spaces them, and the app
-reads each one back to check it, stopping at the first that does not match. **Stop after this
+Device Manager first. On FM-1_096 and later a whole bank of 32 takes about 10 seconds; earlier
+releases write 3 seconds apart, as Baud Girl's page for them did. The app reads each one back to
+check it, stopping at the first that does not match. **Stop after this
 patch** ends the writing between patches; the dialog cannot be closed while a patch is being
 written.
 

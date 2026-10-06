@@ -10,10 +10,11 @@ import { decodeVoiceName, dx7PackedVoiceSize, packDx7Voice, updateDx7VoiceName }
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
 import {
   fm1VaPresetPayloadStart,
+  fm1VaStoredVoice,
   makeFm1VaPresetWrite,
   readFm1VaMessageRecord,
 } from '@/lib/fm1-va-preset-message'
-import { fm1VaPresetWriteSpacingMs } from '@/lib/fm1-va-preset-write'
+import { fm1VaPresetWriteTiming } from '@/lib/fm1-va-preset-write'
 import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import {
@@ -202,7 +203,8 @@ describe('Fm1VaPresetProbe map', () => {
 
     await readPreset(user, '97')
     await sendSetting(user, 'CC 24 Waveform', '32')
-    expect(within(dialog).getByRole('status').textContent).toBe(
+    const map = within(dialog).getByRole('region', { name: 'Map a setting' })
+    expect(within(map).getByRole('status').textContent).toBe(
       'CC 24 Waveform = 32. Press SAVE on the FM1, then read preset 097 again.',
     )
     await user.click(screen.getByRole('button', { hidden: true, name: 'Read preset' }))
@@ -211,7 +213,7 @@ describe('Fm1VaPresetProbe map', () => {
     expect(within(dialog).getByRole('list', { hidden: true, name: 'Byte map' }).textContent).toBe(
       '097 CC 24 Waveform = 32 → record 19: 01 → 02; voice none',
     )
-    expect(within(dialog).getByRole('status').textContent).toBe('')
+    expect(within(map).getByRole('status').textContent).toBe('')
   })
 
   it('offers each choice of a list setting at the start of its band', async () => {
@@ -309,7 +311,8 @@ describe('Fm1VaPresetProbe write test', () => {
   async function writeBack(user: ReturnType<typeof userEvent.setup>, name: string) {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     await user.click(screen.getByRole('button', { hidden: true, name }))
-    await act(() => vi.advanceTimersByTimeAsync(fm1VaPresetWriteSpacingMs + 1500))
+    const { listenMs, spacingMs } = fm1VaPresetWriteTiming({ identity: 'FM-1_093', kind: 'fm1-va' })
+    await act(() => vi.advanceTimersByTimeAsync(spacingMs + listenMs))
   }
 
   it('writes the preset back exactly as read, and reads it again to check', async () => {
@@ -376,5 +379,125 @@ describe('Fm1VaPresetProbe write test', () => {
       ),
     )
     expect(await within(dialog).findByText(/The read back matches what was written\./)).toBeTruthy()
+  })
+})
+
+describe('Fm1VaPresetProbe write timing', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  async function startRun(
+    user: ReturnType<typeof userEvent.setup>,
+    { count, first, timing }: { count: string; first: string; timing: string },
+  ) {
+    const section = screen.getByRole('region', { hidden: true, name: 'Write timing' })
+    const firstField = within(section).getByRole('spinbutton', {
+      hidden: true,
+      name: 'First preset',
+    })
+    await user.clear(firstField)
+    await user.type(firstField, first)
+    const countField = within(section).getByRole('spinbutton', { hidden: true, name: 'How many' })
+    await user.clear(countField)
+    await user.type(countField, count)
+    await user.selectOptions(
+      within(section).getByRole('combobox', { hidden: true, name: 'Timing' }),
+      timing,
+    )
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    await user.click(within(section).getByRole('button', { hidden: true, name: 'Start' }))
+    await act(() => vi.advanceTimersByTimeAsync(1000))
+    return section
+  }
+
+  function runRows(section: HTMLElement) {
+    return within(section)
+      .getAllByRole('row', { hidden: true })
+      .slice(1)
+      .map((row) =>
+        within(row)
+          .getAllByRole('cell', { hidden: true })
+          .slice(0, 3)
+          .map((cell) => cell.textContent),
+      )
+  }
+
+  it('writes a run of presets back exactly as read, and logs that they all landed', async () => {
+    const fake = makeWritableMidi()
+    const { user } = await openProbe(fake)
+
+    const section = await startRun(user, {
+      count: '3',
+      first: '97',
+      timing: 'T2: check at once, next write 120 ms later (as Baud Girl’s Device Manager)',
+    })
+
+    const writes = fake.ports.output.send.mock.calls.filter(([message]) => message[4] === 0x04)
+    expect(writes.map(([message]) => message[5])).toEqual([96, 97, 98])
+    expect(writes[0][0]).toEqual(
+      makeFm1VaPresetWrite(
+        96,
+        fake.reply.data.slice(0, dx7PackedVoiceSize),
+        fake.reply.data.slice(dx7PackedVoiceSize),
+      ),
+    )
+    expect(runRows(section)).toEqual([['T2 120 ms', '097, 3', 'All 3 landed']])
+  })
+
+  it('logs where a run stopped when a preset does not read back as written', async () => {
+    // Preset 098 reads back with a different record from the one first read.
+    let readsOf98 = 0
+    const fake = makeMidi((slot) => {
+      const { record, voice } = makeStoredPresetData()
+      if (slot === 97 && readsOf98++ > 0) record[0] ^= 1
+      // As the FM1 stores a voice, so the presets around 098 read back as written.
+      const stored = fm1VaStoredVoice(Uint8Array.from(voice))
+      return makeFm1VaReply({ argument: slot, data: [...stored, ...record] })
+    })
+    const { user } = await openProbe(fake)
+
+    const section = await startRun(user, {
+      count: '3',
+      first: '97',
+      timing: 'T2: check at once, next write straight after',
+    })
+
+    expect(runRows(section)).toEqual([
+      ['T2 0 ms', '097, 3', 'Stopped: 098 did not read back as written'],
+    ])
+  })
+
+  it('copies every run with the crackle noted for it, for the ledger', async () => {
+    const fake = makeWritableMidi()
+    const { user } = await openProbe(fake)
+    const writeText = vi.spyOn(navigator.clipboard, 'writeText')
+    const section = await startRun(user, {
+      count: '1',
+      first: '1',
+      timing: 'T2: check at once, next write 500 ms later',
+    })
+
+    await user.selectOptions(
+      within(section).getByRole('combobox', { hidden: true, name: 'Crackle in run 1' }),
+      'None heard',
+    )
+    await user.click(within(section).getByRole('button', { hidden: true, name: 'Copy all runs' }))
+
+    expect(JSON.parse(writeText.mock.calls.at(-1)![0])).toMatchObject({
+      firmware: 'FM-1_093',
+      runs: [
+        {
+          crackle: 'none',
+          firstPreset: '001',
+          gapMs: 500,
+          listenMs: 0,
+          outcome: 'All 1 landed',
+          presets: 1,
+          results: [{ matches: true, preset: '001' }],
+          test: 'T2 500 ms',
+        },
+      ],
+    })
   })
 })

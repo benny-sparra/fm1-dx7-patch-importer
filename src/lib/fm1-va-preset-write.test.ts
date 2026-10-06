@@ -7,7 +7,12 @@ import type { Fm1VaLink } from '@/lib/fm1-va-preset-read'
 import { capturedOrgan3 } from '@/test/fm1-va-captures'
 import { makeFm1VaReply } from '@/test/fm1-va-replies'
 
-import { Fm1VaPresetWriteError, writeFm1VaPreset, writesFm1VaPresets } from './fm1-va-preset-write'
+import {
+  Fm1VaPresetWriteError,
+  fm1VaPresetWriteTiming,
+  writeFm1VaPreset,
+  writesFm1VaPresets,
+} from './fm1-va-preset-write'
 
 type Hear = Parameters<Fm1VaLink['listen']>[0]
 
@@ -44,6 +49,29 @@ describe('writesFm1VaPresets', () => {
     expect(writesFm1VaPresets({ identity: 'FM-1_904', kind: 'felucca' })).toBe(false)
     expect(writesFm1VaPresets({ kind: 'checking' })).toBe(false)
     expect(writesFm1VaPresets({ kind: 'unidentified' })).toBe(false)
+  })
+})
+
+describe('fm1VaPresetWriteTiming', () => {
+  it('writes without waiting for a reply, 320 ms apart, from FM-1_096, where it was tested', () => {
+    expect(fm1VaPresetWriteTiming({ identity: 'FM-1_096', kind: 'fm1-va' })).toEqual({
+      listenMs: 0,
+      spacingMs: 320,
+    })
+  })
+
+  it('keeps the Presets page’s 3 s and the 1.5 s reply wait for earlier releases', () => {
+    expect(fm1VaPresetWriteTiming({ identity: 'FM-1_094', kind: 'fm1-va' })).toEqual({
+      listenMs: 1500,
+      spacingMs: 3000,
+    })
+  })
+
+  it('keeps the slower timing for any firmware not identified as FM-1+VA', () => {
+    expect(fm1VaPresetWriteTiming({ kind: 'unidentified' })).toEqual({
+      listenMs: 1500,
+      spacingMs: 3000,
+    })
   })
 })
 
