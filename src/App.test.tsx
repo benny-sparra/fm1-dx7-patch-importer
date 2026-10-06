@@ -20,6 +20,7 @@ const savedVoice = vi.hoisted(() => ({ data: new Uint8Array(128), name: 'SOLO' }
 const savedEffects = vi.hoisted(() =>
   Uint8Array.from({ length: 24 }, (_, index) => (index + 1) % 2),
 )
+const loadVirtualAnalogEditorPage = vi.hoisted(() => vi.fn(() => new Promise<never>(() => {})))
 const loadPatchEditorPage = vi.hoisted(() =>
   vi.fn(() => Promise.reject(new TypeError('Failed to fetch dynamically imported module'))),
 )
@@ -36,7 +37,7 @@ vi.mock('@/hooks/use-midi', () => ({
 vi.mock('@/hooks/use-patch-library', () => ({
   usePatchLibrary: () => ({
     effects: { 'patch-1': pianoEffects },
-    records: {},
+    records: { 'patch-va': new Uint8Array(59) },
     patches: [
       { bank: 'A', family: 'Keys', id: 'patch-1', name: 'Piano', number: 1, program: 0 },
       { bank: 'E', family: 'DX7', id: 'patch-e1', name: 'Pad', number: 1 },
@@ -45,6 +46,7 @@ vi.mock('@/hooks/use-patch-library', () => ({
     ],
     persistenceStatus: 'ready',
     updatePatch: vi.fn(),
+    virtualAnalog: { 'patch-va': new Uint8Array(128) },
     voices: { 'patch-1': pianoVoice, 'patch-e1': addedVoice },
     workspaceBanks: ['A', 'E'],
     workspaceLoading: false,
@@ -109,7 +111,10 @@ vi.mock('@/components/workspace-persistence-status', () => ({
   WorkspacePersistenceStatus: () => null,
 }))
 
-vi.mock('@/routes/load-patch-editor-page', () => ({ loadPatchEditorPage }))
+vi.mock('@/routes/load-patch-editor-page', () => ({
+  loadPatchEditorPage,
+  loadVirtualAnalogEditorPage,
+}))
 
 afterEach(() => {
   midiState.sysexAvailable = true
@@ -271,14 +276,15 @@ describe('App slot audition', () => {
     }
   })
 
-  it('does not open the voice editor for a Virtual Analog slot', async () => {
+  it('opens a Virtual Analog slot in its own editor, selecting its preset on the FM1', async () => {
     const user = renderApp()
 
     await user.click(screen.getByRole('button', { name: 'Edit Virtual Analog' }))
 
+    expect(loadVirtualAnalogEditorPage).toHaveBeenCalledTimes(1)
     expect(loadPatchEditorPage).not.toHaveBeenCalled()
-    expect(sendProgramChange).not.toHaveBeenCalled()
-    expect(screen.getByText('Lit slot: none')).toBeTruthy()
+    expect(sendProgramChange).toHaveBeenCalledWith(2)
+    expect(sendVoice).not.toHaveBeenCalled()
   })
 })
 

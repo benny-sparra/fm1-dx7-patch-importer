@@ -218,8 +218,11 @@ open everything an earlier release could have saved.
   `sendsFm1VaSoundControls` allows it (FM-1+VA from `FM-1_086`, the release that added them). The
   hook lives outside `useMidi`, as the preset reader does, so it costs the entry nothing, and the
   module imports nothing from `src/lib/midi.ts`, so a lazy page can take it. Each is an unsaved
-  edit, like turning the knob. CC 85–119 press the FM1's own controls and are never sent. Today
-  only the development probe's map sends them.
+  edit, like turning the knob. CC 85–119 press the FM1's own controls and are never sent. The
+  Virtual Analog editor and the development probe's map send them. The editor sends them only
+  while the FM1 plays the preset it edits: a slot in banks A–D, whose stored preset it has read
+  with `7D 10` and found marked Virtual Analog, because an FM preset takes CC 70–78 as its own
+  Envelope, LFO, and Brightness. Without that read, or when it fails, the editor stays local.
 - Send a patch as a DX7 single-voice dump only to firmware identified as M-VAVE's
   (`sendsSingleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored preset, so
   every other firmware, including one not yet identified, gets the patch as its 155 parameter
@@ -286,7 +289,9 @@ open everything an earlier release could have saved.
 
 ### Bundle boundaries
 
-- Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, WebMidi on connection,
+- Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
+  Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
+  the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
   `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
@@ -552,9 +557,22 @@ open everything an earlier release could have saved.
   `records`. Every DX7 path reads `voices`, so it meets these slots as empty, which is safe by
   default; a path that should carry them (copying, moving, compacting, saved banks from version 3,
   backups from version 4) handles `virtualAnalog` on purpose. Its slot sends only its Program
-  Change, never opens the voice editor, and a DX7 bank, sent or downloaded, gets INIT VOICE in its
-  place and says so before and after. Only the preset write carries its bytes to the FM1; never
-  normalise, clamp, or send them as a DX7 voice.
+  Change, opens the Virtual Analog editor rather than the voice editor, and a DX7 bank, sent or
+  downloaded, gets INIT VOICE in its place and says so before and after. Only the preset write
+  carries its bytes to the FM1; never normalise, clamp, or send them as a DX7 voice.
+- The Virtual Analog editor (`src/routes/virtual-analog-editor-page.tsx`, loaded with the voice editor's chunk) edits
+  the rows `docs/fm1-research.md` maps under "Every row of a Virtual Analog preset", through
+  `src/lib/fm1-va-virtual-analog-editor.ts`. A row writes only its own bits, and only when its value
+  changed, so every other byte, unmarked defaults and values a DX7 voice would not allow included,
+  stays exactly as read; never unpack its voice to a DX7 edit buffer, which drops bits. Its rows
+  sit among the DX7 editor's parameters, so the effects, Distortion type, Bitcrush, and effect
+  order use the voice editor's indices and record functions. `VirtualAnalogEditorSession` sends, while
+  live, only the controllers whose values differ between the version the FM1 last got and the one
+  shown, so edits, undo, compare, and revert all reach it the same way. The Envelope's four
+  controllers go only while its switch is on, since one received while the FM1's Envelope is off
+  switches it on (the manual), and switching it on sends all four. Rows without a controller are
+  heard once the patch is written, which the page says. Saving puts the preset back in its slot
+  through `replaceWithVirtualAnalog`, as one library change Undo reverses.
   Anything that compares sounds keeps the engines apart: a Virtual Analog preset's sound key is
   `virtualAnalogSoundKey`, and duplicates match only within one engine. **Change to FM…** replaces
   one with INIT VOICE and no record, keeping its FM1 effects, so a write still leaves a Virtual

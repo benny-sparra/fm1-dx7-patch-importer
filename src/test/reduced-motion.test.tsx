@@ -182,16 +182,18 @@ describe('reduced motion', () => {
         onStopCompare={noop}
         onNameBlur={noop}
         onNameChange={noop}
-        onPreset={noop}
-        onInitVoice={noop}
-        onRandomise={noop}
         onRedo={noop}
         onResend={noop}
         onRevert={noop}
         onSave={noop}
         onUndo={noop}
         patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
-        presetsMenuRef={createRef<HTMLDetailsElement>()}
+        presets={{
+          menuRef: createRef<HTMLDetailsElement>(),
+          onInitVoice: noop,
+          onPreset: noop,
+          onRandomise: noop,
+        }}
         saveMenuRef={createRef<HTMLDetailsElement>()}
         syncState="sending"
       />,
@@ -218,16 +220,18 @@ describe('reduced motion', () => {
           onStopCompare={noop}
           onNameBlur={noop}
           onNameChange={noop}
-          onPreset={noop}
-          onInitVoice={noop}
-          onRandomise={noop}
           onRedo={noop}
           onResend={noop}
           onRevert={noop}
           onSave={noop}
           onUndo={noop}
           patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
-          presetsMenuRef={createRef<HTMLDetailsElement>()}
+          presets={{
+            menuRef: createRef<HTMLDetailsElement>(),
+            onInitVoice: noop,
+            onPreset: noop,
+            onRandomise: noop,
+          }}
           saveMenuRef={createRef<HTMLDetailsElement>()}
           syncState="live"
         />

@@ -126,9 +126,18 @@ is marked and left out the same way. The
 notification offers **Undo**.
 
 In your banks a Virtual Analogue preset shows a small amber **VA** box between its slot code and
-its name, and while the FM1 runs Baud Girl's firmware every other patch shows a dim **FM** box. Hover over a marked patch to see its engine named at the top of its tooltip. The app can't play or edit a Virtual Analogue
+its name, and while the FM1 runs Baud Girl's firmware every other patch shows a dim **FM** box. Hover over a marked patch to see its engine named at the top of its tooltip. The app can't play a Virtual Analogue
 sound, which only the FM1 makes: clicking it in banks A to D selects that preset on the FM1, so you
-hear what the FM1 has stored there, and it has no **Edit** or **Download patch file**. You can copy
+hear what the FM1 has stored there, and it has no **Download patch file**. **Edit**, a double-click,
+or a second click opens its own editor: the oscillator, filter, output, LFO, and envelope rows the
+FM1's screens list, and the effects. With Baud Girl's firmware from FM-1_086, a patch in banks A
+to D plays its changes on the FM1 as you make them, once the app has read that FM1 preset and found
+a Virtual Analogue one there; a line under the toolbar says which preset, or why not. Level,
+velocity to level, Mono, the LFO's waveform, amp mod depth, pitch mod sensitivity and sync,
+switching the envelope off, and the Distortion type, Bitcrush, and effect order have no MIDI
+message, so you hear those once the patch is written to the FM1. The envelope's settings show while
+it is switched on, and switching it on sends them, which switches it on on the FM1 too. **Save** keeps your changes in
+the library, and every byte the editor doesn't set stays exactly as read. You can copy
 it, move it, save its bank, and back it up like any other patch. **Change to FM…** in its ⋮ menu
 replaces it with INIT VOICE, an FM patch you can edit, under a name you choose, keeping its FM1
 effects; **Undo** puts it back. On the FM1 a Virtual Analogue preset stays until you erase it there,

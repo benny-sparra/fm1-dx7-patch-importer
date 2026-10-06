@@ -66,6 +66,9 @@ import { applySoundPreset, type SoundPresetId } from '@/lib/sound-presets'
 import { randomizeSound } from '@/lib/sound-randomizer'
 import { cn } from '@/lib/utils'
 
+// Loaded with this page's chunk (`loadVirtualAnalogEditorPage`).
+export { VirtualAnalogEditorPage } from '@/routes/virtual-analog-editor-page'
+
 type PatchEditorPageProps = {
   /** Set to the editor's back action while it is open, for the browser's Back button to use. */
   browserBackRef?: RefObject<(() => void) | null>
@@ -331,22 +334,24 @@ export function PatchEditorPage({
         onStopCompare={stopComparing}
         onNameBlur={commitName}
         onNameChange={updateName}
-        onPreset={selectPreset}
-        onInitVoice={() => {
-          presetsMenuRef.current?.removeAttribute('open')
-          editor.replaceVoice(initializeVoice)
-        }}
-        onRandomise={() => {
-          presetsMenuRef.current?.removeAttribute('open')
-          editor.replaceVoice(randomizeSound)
-        }}
         onRedo={editor.redo}
         onResend={resendToFm1}
         onRevert={revertToSaved}
         onSave={saveToLibrary}
         onUndo={editor.undo}
         patch={patch}
-        presetsMenuRef={presetsMenuRef}
+        presets={{
+          menuRef: presetsMenuRef,
+          onInitVoice: () => {
+            presetsMenuRef.current?.removeAttribute('open')
+            editor.replaceVoice(initializeVoice)
+          },
+          onPreset: selectPreset,
+          onRandomise: () => {
+            presetsMenuRef.current?.removeAttribute('open')
+            editor.replaceVoice(randomizeSound)
+          },
+        }}
         saveMenuRef={saveMenuRef}
         syncState={syncState}
       />

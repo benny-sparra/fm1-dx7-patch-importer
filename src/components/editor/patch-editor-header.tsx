@@ -42,16 +42,19 @@ type PatchEditorHeaderProps = {
   onStopCompare: () => void
   onNameBlur: () => void
   onNameChange: (name: string) => void
-  onPreset: (id: SoundPresetId) => void
-  onInitVoice: () => void
-  onRandomise: () => void
+  /** The sound presets, Init voice, and Randomise, which only a DX7 voice offers. */
+  presets?: {
+    menuRef: RefObject<HTMLDetailsElement | null>
+    onInitVoice: () => void
+    onPreset: (id: SoundPresetId) => void
+    onRandomise: () => void
+  }
   onRedo: () => void
   onResend: () => void
   onRevert: () => void
   onSave: () => void
   onUndo: () => void
   patch: Patch
-  presetsMenuRef: RefObject<HTMLDetailsElement | null>
   saveMenuRef: RefObject<HTMLDetailsElement | null>
   syncState: PatchSyncState
 }
@@ -76,16 +79,13 @@ export function PatchEditorHeader({
   onNameBlur,
   onStopCompare,
   onNameChange,
-  onPreset,
-  onInitVoice,
-  onRandomise,
   onRedo,
   onResend,
   onRevert,
   onSave,
   onUndo,
   patch,
-  presetsMenuRef,
+  presets,
   saveMenuRef,
   syncState,
 }: PatchEditorHeaderProps) {
@@ -186,70 +186,78 @@ export function PatchEditorHeader({
           >
             <Redo2 />
           </Button>
-          <ToolbarDivider />
-          {/* A summary cannot be disabled, so the menu is made inert while comparing. */}
-          <details className="group static sm:relative" inert={isComparing} ref={presetsMenuRef}>
-            <summary
-              aria-label={t('editor.presets')}
-              className={cn(
-                buttonVariants({ variant: 'outline' }),
-                'font-vt323 list-none [&::-webkit-details-marker]:hidden',
-                isComparing && 'opacity-50',
-              )}
-              title={t('editor.presets')}
-            >
-              <WandSparkles />
-              <span className="hidden xl:inline">{t('editor.presetsShort')}</span>
-              <ChevronDown className="hidden transition-transform group-open:rotate-180 motion-reduce:transition-none xl:block" />
-            </summary>
-            <div className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 left-0 z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground sm:left-auto sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
-              {/* Init voice leads the list as the blank starting point, then Randomise. */}
-              <button
-                className={presetItemClass}
-                disabled={syncState === 'sending'}
-                onClick={onInitVoice}
-                type="button"
+          {presets ? (
+            <>
+              <ToolbarDivider />
+              {/* A summary cannot be disabled, so the menu is made inert while comparing. */}
+              <details
+                className="group static sm:relative"
+                inert={isComparing}
+                ref={presets.menuRef}
               >
-                <span className="flex items-center gap-1.5 text-sm font-bold">
-                  <Eraser aria-hidden="true" className="size-3.5 shrink-0" />
-                  <span>{t('editor.initVoice')}</span>
-                </span>
-                <span className="text-xs leading-4 text-muted-foreground">
-                  {t('editor.initVoiceHelp')}
-                </span>
-              </button>
-              <button
-                className={presetItemClass}
-                disabled={syncState === 'sending'}
-                onClick={onRandomise}
-                type="button"
-              >
-                <span className="flex items-center gap-1.5 text-sm font-bold">
-                  <Dices aria-hidden="true" className="size-3.5 shrink-0" />
-                  <span>{t('editor.randomise')}</span>
-                </span>
-                <span className="text-xs leading-4 text-muted-foreground">
-                  {t('editor.randomiseHelp')}
-                </span>
-              </button>
-              {soundPresets.map((preset) => (
-                <button
-                  className={presetItemClass}
-                  disabled={syncState === 'sending'}
-                  key={preset.id}
-                  onClick={() => onPreset(preset.id)}
-                  type="button"
+                <summary
+                  aria-label={t('editor.presets')}
+                  className={cn(
+                    buttonVariants({ variant: 'outline' }),
+                    'font-vt323 list-none [&::-webkit-details-marker]:hidden',
+                    isComparing && 'opacity-50',
+                  )}
+                  title={t('editor.presets')}
                 >
-                  <span className="text-sm font-bold">
-                    {t(`editor.presetOptions.${preset.id}.name`)}
-                  </span>
-                  <span className="text-xs leading-4 text-muted-foreground">
-                    {t(`editor.presetOptions.${preset.id}.description`)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </details>
+                  <WandSparkles />
+                  <span className="hidden xl:inline">{t('editor.presetsShort')}</span>
+                  <ChevronDown className="hidden transition-transform group-open:rotate-180 motion-reduce:transition-none xl:block" />
+                </summary>
+                <div className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 left-0 z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground sm:left-auto sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
+                  {/* Init voice leads the list as the blank starting point, then Randomise. */}
+                  <button
+                    className={presetItemClass}
+                    disabled={syncState === 'sending'}
+                    onClick={presets.onInitVoice}
+                    type="button"
+                  >
+                    <span className="flex items-center gap-1.5 text-sm font-bold">
+                      <Eraser aria-hidden="true" className="size-3.5 shrink-0" />
+                      <span>{t('editor.initVoice')}</span>
+                    </span>
+                    <span className="text-xs leading-4 text-muted-foreground">
+                      {t('editor.initVoiceHelp')}
+                    </span>
+                  </button>
+                  <button
+                    className={presetItemClass}
+                    disabled={syncState === 'sending'}
+                    onClick={presets.onRandomise}
+                    type="button"
+                  >
+                    <span className="flex items-center gap-1.5 text-sm font-bold">
+                      <Dices aria-hidden="true" className="size-3.5 shrink-0" />
+                      <span>{t('editor.randomise')}</span>
+                    </span>
+                    <span className="text-xs leading-4 text-muted-foreground">
+                      {t('editor.randomiseHelp')}
+                    </span>
+                  </button>
+                  {soundPresets.map((preset) => (
+                    <button
+                      className={presetItemClass}
+                      disabled={syncState === 'sending'}
+                      key={preset.id}
+                      onClick={() => presets.onPreset(preset.id)}
+                      type="button"
+                    >
+                      <span className="text-sm font-bold">
+                        {t(`editor.presetOptions.${preset.id}.name`)}
+                      </span>
+                      <span className="text-xs leading-4 text-muted-foreground">
+                        {t(`editor.presetOptions.${preset.id}.description`)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </details>
+            </>
+          ) : null}
           <ToolbarDivider />
           {/* The name stays the same in both states; pressed means the saved version is playing. */}
           <Button

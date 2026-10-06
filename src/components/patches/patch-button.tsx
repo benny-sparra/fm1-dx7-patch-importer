@@ -76,23 +76,23 @@ export function PatchButton({
   // Set by a click and cleared when the selection animation finishes, so the
   // animation plays only in response to the user and never on mount.
   const [flash, setFlash] = useState(false)
-  // A Virtual Analog preset moves like any patch, but its bytes are not a DX7 voice, so it has no
-  // voice editor and no DX7 file to download.
+  // A Virtual Analog preset moves and opens an editor like any patch, its own, but its bytes are not
+  // a DX7 voice, so it has no DX7 file to download.
   const isVirtualAnalog = patch.family === virtualAnalogFamily
   const canReorder = reorderable && (patch.family === 'DX7' || isVirtualAnalog)
-  const editSlot = isVirtualAnalog ? undefined : onEdit
+  const editSlot = onEdit
   const engine: { kind: PatchEngine; label: string } | null = isVirtualAnalog
     ? { kind: 'virtual-analog', label: t('banks.virtualAnalogPatch') }
     : tagsEngine && patch.family === 'DX7'
       ? { kind: 'fm', label: t('banks.fmPatch') }
       : null
   // What clicking the slot does, under the engine's name where the slot marks its engine.
-  const action = isVirtualAnalog
-    ? patch.program === undefined
-      ? t('banks.slotVirtualAnalogAddedTitle', { name: patch.name })
-      : t('banks.slotVirtualAnalogTitle', { name: patch.name })
-    : isActive
-      ? t('banks.slotEditTitle', { name: patch.name })
+  const action = isActive
+    ? t('banks.slotEditTitle', { name: patch.name })
+    : isVirtualAnalog
+      ? patch.program === undefined
+        ? t('banks.slotVirtualAnalogAddedTitle', { name: patch.name })
+        : t('banks.slotVirtualAnalogTitle', { name: patch.name })
       : patch.program === undefined
         ? t('banks.slotEditBufferTitle', { name: patch.name })
         : t('banks.slotTitle', { name: patch.name })
