@@ -187,9 +187,13 @@ open everything an earlier release could have saved.
 - The preset write, `7D 04 <slot>` (`makeFm1VaPresetWrite` in `src/lib/fm1-va-preset-message.ts`,
   approved 2026-10-03), stores one preset at once, and the FM1 cannot undo it. Send it only while
   `writesFm1VaPresets` allows it (FM-1+VA from `FM-1_079`), only through `useFm1VaPresetWriter`,
-  which spaces writes `fm1VaPresetWriteSpacingMs` (3 s) apart as FM-1+VA's Presets page did (its
-  Device Manager waits 120 ms, untested here), one
-  preset per message, and never twice for one write. Read each preset back with `7D 10` to confirm
+  which paces writes as `fm1VaPresetWriteTiming` gives for the firmware: from `FM-1_096`, 320 ms
+  apart with no wait for a reply, as tested on hardware on 2026-10-06
+  (`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`); before it, 3 s apart with a 1.5 s
+  reply wait, as FM-1+VA's Presets page did. A faster timing for an earlier release needs its own
+  hardware run. One preset per message, and never twice for one write. Only the development probe's write timing
+  test changes the spacing or the 1.5 s reply wait, through the hook's timing option, and it
+  writes presets back exactly as read. Read each preset back with `7D 10` to confirm
   it, and stop at the first that does not read back the same. A write already sent is never
   cancelled; changing the ports cancels only one still waiting its turn. Anything that writes asks
   first, naming every preset it replaces and saying an FM-1+VA backup is the way back. A patch

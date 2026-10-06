@@ -136,6 +136,42 @@ describe('useFm1VaPresetWriter', () => {
     await second
   })
 
+  it('sends the next write at once, and resolves without listening, with the timing test’s settings', async () => {
+    const ports = makeFakeFm1Ports()
+    const { result } = renderHook(() =>
+      useFm1VaPresetWriter(makeMidi(ports), { listenMs: 0, spacingMs: 0 }),
+    )
+
+    const first = result.current.writePreset(0, voice, record)
+    await vi.advanceTimersByTimeAsync(0)
+    await first
+    const second = result.current.writePreset(1, voice, record)
+    await vi.advanceTimersByTimeAsync(0)
+    await second
+
+    expect(ports.output.send).toHaveBeenCalledTimes(2)
+  })
+
+  it('on FM-1_096 resolves as soon as it sends, and sends the next write 320 ms after the last', async () => {
+    const ports = makeFakeFm1Ports()
+    const { result } = renderHook(() =>
+      useFm1VaPresetWriter(makeMidi(ports, { identity: 'FM-1_096', kind: 'fm1-va' })),
+    )
+
+    // The first write goes at 0 ms and, with no reply to wait for, resolves by 1 ms.
+    const first = result.current.writePreset(0, voice, record)
+    await vi.advanceTimersByTimeAsync(1)
+    await first
+    const second = result.current.writePreset(1, voice, record)
+    await vi.advanceTimersByTimeAsync(318)
+
+    expect(ports.output.send).toHaveBeenCalledOnce()
+    await vi.advanceTimersByTimeAsync(1)
+    expect(ports.output.send).toHaveBeenCalledTimes(2)
+    await vi.advanceTimersByTimeAsync(1)
+    await second
+  })
+
   it('cancels a write still waiting its turn when the selected output changes', async () => {
     const ports = makeFakeFm1Ports()
     const other = makeFakeFm1Ports()

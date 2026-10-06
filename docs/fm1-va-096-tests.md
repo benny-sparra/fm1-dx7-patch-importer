@@ -1,15 +1,18 @@
 # FM-1_096 hardware tests
 
 **Prepared:** 2026-10-06, from the FM-1+VA manual and Device Manager at release `FM-1_096`
-**Execution status:** not run
+**Execution status:** §6 run on `FM-1_096`, 2026-10-06, apart from T2 at 500 ms; ledger
+[`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`](hardware-runs/fm1-va-write-timing-2026-10-06.md).
+§1–§5 and §7 not run yet.
 **Scope:** whether the facts `docs/fm1-research.md` records under "FM-1_096", all **Likely** and
 read from Baud Girl's web code and preset packs, hold on an FM1; whether the editor's handling of
 8-Bit presets (#191) keeps them safe; and where the settings FM-1_096 added live in the record. The
 answers decide what backlog items FM-1+VA 5, 6, and 9 can rely on (`docs/feature-backlog.md`).
 
 The editor sends only what production code already sends to FM-1+VA (the identity query, Program
-Change, DX7 parameter changes, effect CCs, and the preset read `7D 10`), plus, in §5, preset
-writes `7D 04` through **Write patches to the FM1…**, which asks before writing. Every other change
+Change, DX7 parameter changes, effect CCs, and the preset read `7D 10`), plus preset writes `7D 04`:
+in §5 through **Write patches to the FM1…**, which asks before writing, and in §2 and §6 from the
+preset probe, which writes presets back exactly as read. Every other change
 is made by hand on the FM1 and stored with SAVE. Nothing touches the updater, the loader, or a
 pattern. §7 puts every preset back from the backup.
 
@@ -136,13 +139,29 @@ pack in slots 17–32 and nothing in 1–16, which the 8-Bit presets left empty.
 that bank. Expected: the confirmation lists only preset 113, now named as 114. Write it, then read
 097–112 in the probe and compare each with the pack backup: all 16 must be unchanged.
 
-## 6. Not runnable yet
+## 6. Write timing (T1–T4)
 
-**Write spacing.** The Device Manager writes the next preset 120 ms after the read that confirmed
-the last; the editor waits 3 s (`fm1VaPresetWriteSpacingMs`). Testing a shorter gap needs a
-development-only spacing setting in the probe, which is not built. When it is: write the same 16
-presets back unchanged at 3 s, 1 s, 500 ms, and 120 ms, listening for crackle and recording every
-read-back mismatch.
+The editor sends a preset write about 3 s after the last, having listened 1.5 s after each for a
+reply that `FM-1_093` never sent before reading it back. FM-1+VA's Device Manager reads each write
+back at once and sends the next 120 ms later. These runs find how close writes can safely be.
+
+The **Write timing** section at the bottom of the preset probe walks through each run in numbered
+steps. It reads the chosen presets, writes each back with exactly the same bytes, and reads it
+again, stopping at the first that does not read back the same, so the FM1 ends up holding what it
+held. Each finished run is logged in a table with a **Crackle** choice for what you heard, and
+**Copy all runs** copies the whole log as JSON for the ledger.
+
+| Test | First preset, how many            | Timing                                                 | Purpose                                                                               |
+| ---- | --------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| T1   | 097, 16                           | T1: today's timing                                     | The baseline                                                                          |
+| T2   | 097, 16                           | Each T2 timing in turn, 1000 ms down to straight after | Whether checking at once still sees the write, and where crackle or a mismatch starts |
+| T3   | 001, 32                           | The fastest T2 timing that ran clean                   | A whole bank, the size **Write patches to the FM1…** writes                           |
+| T4   | the preset selected on the FM1, 1 | T2: check at once, next write straight after           | Whether writing the playing preset glitches what is sounding                          |
+
+Hold a note on the FM1 during every run. Work down the T2 timings one run at a time and stop at
+the first that crackles or stops on a mismatch; the timing before it is the fastest clean one. If
+the FM1 also runs an earlier release you can test, such as `FM-1_093`, repeat T2 there: the 3 s
+came from Baud Girl's page for those releases, so a shorter gap may hold only from `FM-1_096`.
 
 ## 7. Clean-up
 
@@ -182,6 +201,14 @@ them. Check that GLOBE's MIDI Channel is All again.
 | E1                     |        |               |
 | E2                     |        |               |
 | W1                     |        |               |
+| T1                     |        |               |
+| T2 1000 ms             |        |               |
+| T2 500 ms              |        |               |
+| T2 250 ms              |        |               |
+| T2 120 ms              |        |               |
+| T2 0 ms                |        |               |
+| T3                     |        |               |
+| T4                     |        |               |
 
 Record each result in `docs/fm1-research.md`, "FM-1_096", raising a fact from **Likely** to
 **Confirmed, seen once** where the FM1 agrees, and add the captures as fixtures in

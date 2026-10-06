@@ -23,6 +23,8 @@ import { fm1VaChoiceValue, fm1VaSoundSettings } from '@/lib/fm1-va-sound-control
 import type { Fm1VaReply } from '@/lib/fm1-va-sysex'
 import { formatMidiBytes } from '@/lib/midi'
 
+import { Fm1VaWriteTimingTest } from './fm1-va-write-timing-test'
+
 type Fm1VaPresetProbeProps = {
   midi: Parameters<typeof useFm1VaPresetReader>[0] & Parameters<typeof useFm1VaSoundControl>[0]
 }
@@ -573,6 +575,7 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
                 ) : null}
               </section>
             ) : null}
+            {canWrite ? <Fm1VaWriteTimingTest firmware={firmware} midi={midi} /> : null}
           </div>
         </DialogBody>
       </Dialog>

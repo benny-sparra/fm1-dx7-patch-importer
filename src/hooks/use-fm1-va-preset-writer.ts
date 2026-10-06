@@ -5,7 +5,7 @@ import type { MidiController } from '@/hooks/use-midi'
 import { fm1VaPresetNumber, type Fm1VaLink } from '@/lib/fm1-va-preset-read'
 import {
   Fm1VaPresetWriteError,
-  fm1VaPresetWriteSpacingMs,
+  fm1VaPresetWriteTiming,
   writeFm1VaPreset,
   writesFm1VaPresets,
 } from '@/lib/fm1-va-preset-write'
@@ -24,15 +24,31 @@ type PresetWriterMidi = Pick<
 >
 
 /**
+ * Timing only the development probe's write timing test changes, to try other timings on hardware
+ * (docs/fm1-va-096-tests.md). Production code passes none, and writes as `fm1VaPresetWriteTiming`
+ * paces the firmware in use.
+ */
+type PresetWriterTiming = {
+  /** How long to listen after each write for a reply. */
+  listenMs?: number
+  /** The least time between sending one write and the next. */
+  spacingMs?: number
+}
+
+/**
  * Writes stored presets to an FM1 on FM-1+VA through the ports `useMidi` has selected, as
  * `useFm1VaPresetReader` reads them, and outside `useMidi` for the same reason.
  *
- * Each write waits until `fm1VaPresetWriteSpacingMs` has passed since the one before. A write
+ * Each write waits until the spacing `fm1VaPresetWriteTiming` gives the firmware has passed since
+ * the one before, and resolves once its reply wait is over. A write
  * belongs to the ports it started on: changing either, or unmounting, cancels one still waiting,
  * while one already sent cannot be taken back.
  */
-export function useFm1VaPresetWriter(midi: PresetWriterMidi) {
+export function useFm1VaPresetWriter(midi: PresetWriterMidi, timing: PresetWriterTiming = {}) {
   const { firmware, logStore, sysexAvailable } = midi
+  const firmwareTiming = fm1VaPresetWriteTiming(firmware)
+  const listenMs = timing.listenMs ?? firmwareTiming.listenMs
+  const spacingMs = timing.spacingMs ?? firmwareTiming.spacingMs
   const input = midi.inputs.find((device) => device.id === midi.selectedInputId)?.port
   const output = midi.outputs.find((device) => device.id === midi.selectedOutputId)?.port
   const canWrite = Boolean(input && output && sysexAvailable && writesFm1VaPresets(firmware))
@@ -77,7 +93,9 @@ export function useFm1VaPresetWriter(midi: PresetWriterMidi) {
       const cancelled = () =>
         new Fm1VaPresetWriteError('cancelled', slot, `The write of preset ${number} was cancelled.`)
       try {
-        if (!(await waitForSpacing(lastWriteAt.current, write.signal))) throw cancelled()
+        if (!(await waitForSpacing(lastWriteAt.current, spacingMs, write.signal))) {
+          throw cancelled()
+        }
         const link: Fm1VaLink = {
           listen: (hear) => {
             const handle = (event: MessageEvent) => hear(event.data)
@@ -91,7 +109,7 @@ export function useFm1VaPresetWriter(midi: PresetWriterMidi) {
             log('out', `Wrote stored preset ${number} to the FM1.`, message)
           },
         }
-        return await writeFm1VaPreset(link, slot, voice, record, { signal: write.signal })
+        return await writeFm1VaPreset(link, slot, voice, record, { listenMs, signal: write.signal })
       } catch (caughtError) {
         if (caughtError instanceof Error) log('system', caughtError.message)
         throw caughtError
@@ -100,23 +118,23 @@ export function useFm1VaPresetWriter(midi: PresetWriterMidi) {
         signal?.removeEventListener('abort', cancel)
       }
     },
-    [canWrite, input, logStore, output],
+    [canWrite, input, listenMs, logStore, output, spacingMs],
   )
 
   return { canWrite, writePreset }
 }
 
 /**
- * Waits until the spacing after the last write has passed, resolving true, or false as soon as
+ * Waits until `spacingMs` after the last write has passed, resolving true, or false as soon as
  * `signal` aborts.
  */
-function waitForSpacing(lastWriteAt: number | null, signal: AbortSignal) {
+function waitForSpacing(lastWriteAt: number | null, spacingMs: number, signal: AbortSignal) {
   return new Promise<boolean>((resolve) => {
     if (signal.aborted) {
       resolve(false)
       return
     }
-    const wait = lastWriteAt === null ? 0 : lastWriteAt + fm1VaPresetWriteSpacingMs - Date.now()
+    const wait = lastWriteAt === null ? 0 : lastWriteAt + spacingMs - Date.now()
     if (wait <= 0) {
       resolve(true)
       return

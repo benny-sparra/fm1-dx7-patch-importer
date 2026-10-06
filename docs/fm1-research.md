@@ -552,9 +552,16 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
   marking them set; Envelope On stays bit 6 of byte 53. The 8-Bit Drums Level is byte 2, stored as
   `80` | (99 − level). Where an FM or Virtual Analog preset keeps Preset Level was not found; byte 2
   is the likely place.
-- **The Device Manager writes faster.** It sends each preset write 120 ms after the read that
-  confirmed the previous one, rather than 3 s. The editor keeps 3 s until a hardware run shows the
-  shorter gap is safe.
+- **Writes can follow each other closely. Confirmed** (FM-1_096, 2026-10-06, nine runs, 161
+  writes; [`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`](hardware-runs/fm1-va-write-timing-2026-10-06.md)).
+  The Device Manager reads each write back at once and sends the next 120 ms after that read,
+  where the editor listened 1.5 s for a reply the FM1 never sends and spaced writes 3 s apart.
+  Written back unchanged through the preset probe, every preset read back byte for byte at every
+  gap down to none, across 16 presets and a whole bank of 32, and no crackle was heard. Read
+  straight after a write, the FM1 answers in about 200 ms, against about 35 ms once the 1.5 s has
+  passed, so it seems to finish storing the write before it answers. From `FM-1_096` the editor
+  writes 320 ms apart with no reply wait (`fm1VaPresetWriteTiming`), about 120 ms after the
+  read-back; earlier releases keep the old timing, since none was tested.
 - Two new pattern writes, `7D 21` (a pattern's locks) and `7D 22` (whole steps), are writes the
   editor may not send.
 
