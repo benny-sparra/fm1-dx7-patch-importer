@@ -37,6 +37,8 @@ import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
+  FM1_VA_EFFECT_ORDER_START,
+  FM1_VA_STOCK_EFFECT_ORDER,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
   getGlobalParameterDefinition,
@@ -51,8 +53,10 @@ import {
 import {
   fm1VaRecordBitcrush,
   fm1VaRecordDistortionType,
+  fm1VaRecordEffectOrder,
   fm1VaRecordWithBitcrush,
   fm1VaRecordWithDistortionType,
+  fm1VaRecordWithEffectOrder,
   playsFm1VaBitcrush,
 } from '@/lib/fm1-va-record-effects'
 import { initializeVoice } from '@/lib/init-voice'
@@ -113,6 +117,7 @@ export function PatchEditorPage({
       effects,
       record ? fm1VaRecordDistortionType(record) : 0,
       record ? fm1VaRecordBitcrush(record) : undefined,
+      record ? fm1VaRecordEffectOrder(record) : undefined,
     )
     return new PatchEditorSession(parameters, () => midiRef.current)
   })
@@ -188,12 +193,18 @@ export function PatchEditorPage({
   }
 
   const saveToLibrary = () =>
-    editor.save((savedVoice, savedEffects, { bitcrush, distortionType }) =>
+    editor.save((savedVoice, savedEffects, { bitcrush, distortionType, effectOrder }) =>
       onSave(
         savedVoice,
         savedEffects,
         record &&
-          fm1VaRecordWithBitcrush(fm1VaRecordWithDistortionType(record, distortionType), bitcrush),
+          fm1VaRecordWithEffectOrder(
+            fm1VaRecordWithBitcrush(
+              fm1VaRecordWithDistortionType(record, distortionType),
+              bitcrush,
+            ),
+            effectOrder,
+          ),
       ),
     )
   // Only FM-1+VA's preset write carries Distortion's type. Elsewhere, a type other than Soft Clip
@@ -205,10 +216,18 @@ export function PatchEditorPage({
       ? distortionType
       : undefined
   // Bitcrush is FM-1_096's own. Elsewhere, a patch that keeps it on says so, as the FM1 ignores it.
-  const bitcrush = Array.from(
-    parameters.subarray(FM1_VA_BITCRUSH_START, FM1_EDITOR_PARAMETER_COUNT),
+  const bitcrush = Array.from(parameters.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START))
+  const effectOrder = Array.from(
+    parameters.subarray(FM1_VA_EFFECT_ORDER_START, FM1_EDITOR_PARAMETER_COUNT),
   )
   const offersBitcrush = playsFm1VaBitcrush(midi.firmware)
+  // The order is FM-1+VA's too, mapped on FM-1_096, so it is offered with Bitcrush. Elsewhere, a
+  // patch that keeps a changed order says so.
+  const keepsEffectOrder =
+    !offersBitcrush &&
+    Boolean(record) &&
+    midi.firmware.kind !== 'checking' &&
+    effectOrder.some((effect, place) => effect !== FM1_VA_STOCK_EFFECT_ORDER[place])
   const keepsBitcrush =
     !offersBitcrush && Boolean(record) && bitcrush[0] === 1 && midi.firmware.kind !== 'checking'
 
@@ -445,7 +464,13 @@ export function PatchEditorPage({
                       }
                     : undefined
                 }
+                effectOrder={
+                  offersBitcrush
+                    ? { onMove: editor.moveEffect, order: record ? effectOrder : null }
+                    : undefined
+                }
                 keepsBitcrush={keepsBitcrush}
+                keepsEffectOrder={keepsEffectOrder}
                 keptDistortionType={keptDistortionType}
                 onApplyPreset={editor.selectEffectPreset}
                 onChange={editor.setEffectParameter}

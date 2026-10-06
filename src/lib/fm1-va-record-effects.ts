@@ -1,6 +1,6 @@
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
-import { FM1_VA_BITCRUSH_DEFAULTS } from '@/lib/fm1-parameters'
+import { FM1_VA_BITCRUSH_DEFAULTS, FM1_VA_STOCK_EFFECT_ORDER } from '@/lib/fm1-parameters'
 
 const effectCount = 6
 
@@ -110,16 +110,27 @@ export const fm1VaBitcrushSettings = [
 const chainBytes = [27, 30, 33, 36, 39, 42] as const
 const distortion = 3
 
+/** Whether `effects` holds each of the effect numbers 0 to `count` − 1 once. */
+function isOrder(effects: readonly number[], count: number) {
+  return (
+    effects.length === count &&
+    [...effects].sort((first, second) => first - second).every((effect, index) => effect === index)
+  )
+}
+
+/** The six effects other than Bitcrush, first to last. A chain that is not them once each plays in
+ * the stock order. */
+function recordChain(record: Uint8Array) {
+  const chain = chainBytes.map((byte) => record[byte])
+  return isOrder(chain, chainBytes.length) ? chain : [0, 1, 2, 3, 4, 5]
+}
+
 /**
  * Where a preset that never set Bitcrush plays it: straight after the Distortion, counted among
- * all seven rows. A chain that is not the six effects once each plays in the stock order.
+ * all seven rows.
  */
 function placeAfterDistortion(record: Uint8Array) {
-  const chain = chainBytes.map((byte) => record[byte])
-  const valid = [...chain]
-    .sort((first, second) => first - second)
-    .every((effect, index) => effect === index)
-  return (valid ? chain.indexOf(distortion) : distortion) + 1
+  return recordChain(record).indexOf(distortion) + 1
 }
 
 /**
@@ -165,4 +176,48 @@ export function fm1VaRecordWithBitcrush(record: Uint8Array, bitcrush: readonly n
 /** Bitcrush's Sample Rate setting, 0 to 100, in hertz: 300 Hz at 0 to 44.1 kHz at 100. */
 export function fm1VaBitcrushSampleRateHz(value: number) {
   return 300 * (44118 / 300) ** (value / 100)
+}
+
+/** Bitcrush's number in an order of seven effects. */
+const bitcrush = 6
+
+/**
+ * The order the record plays its seven effects in, first to last, as effect numbers: the chain of
+ * six with Bitcrush at its place, or straight after the Distortion where it was never set.
+ */
+export function fm1VaRecordEffectOrder(record: Uint8Array): number[] {
+  const order = recordChain(record)
+  const place =
+    record[bitcrushByte] & bitcrushSet
+      ? Math.min(record[bitcrushByte] & bitcrushPlaceBits, order.length)
+      : placeAfterDistortion(record)
+  order.splice(place, 0, bitcrush)
+  return order
+}
+
+/**
+ * A copy of `record` playing its effects in `order`, seven effect numbers first to last. A record
+ * already in that order is returned as it was, and so is one given an order that is not the seven
+ * effects once each. The chain takes the six effects other than Bitcrush; Bitcrush's place goes in
+ * its own byte, marking it set and writing its settings as the FM1 does, unless it stays where a
+ * record that never set it already plays it.
+ */
+export function fm1VaRecordWithEffectOrder(record: Uint8Array, order: readonly number[]) {
+  if (!isOrder(order, FM1_VA_STOCK_EFFECT_ORDER.length)) return record
+  const current = fm1VaRecordEffectOrder(record)
+  if (current.every((effect, index) => effect === order[index])) return record
+  const updated = record.slice()
+  order
+    .filter((effect) => effect !== bitcrush)
+    .forEach((effect, place) => (updated[chainBytes[place]] = effect))
+  const place = order.indexOf(bitcrush)
+  if (record[bitcrushByte] & bitcrushSet) {
+    updated[bitcrushByte] = (record[bitcrushByte] & ~bitcrushPlaceBits) | place
+  } else if (place !== fm1VaRecordEffectOrder(updated).indexOf(bitcrush)) {
+    updated[bitcrushByte] = bitcrushSet | place
+    bitcrushSettingBytes.forEach((byte, index) => {
+      updated[byte] = FM1_VA_BITCRUSH_DEFAULTS[index + 1]
+    })
+  }
+  return updated
 }

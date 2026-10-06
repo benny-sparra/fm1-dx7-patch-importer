@@ -22,7 +22,16 @@ export const FM1_VA_DISTORTION_TYPE_INDEX = FM1_EFFECT_PARAMETER_START + FM1_EFF
 export const FM1_VA_BITCRUSH_START = FM1_VA_DISTORTION_TYPE_INDEX + 1
 /** Bitcrush as a preset that never set it plays it: Off, at Bits 8, Sample Rate 72, and Mix 100. */
 export const FM1_VA_BITCRUSH_DEFAULTS: readonly number[] = [0, 8, 72, 100]
-export const FM1_EDITOR_PARAMETER_COUNT = FM1_VA_BITCRUSH_START + FM1_VA_BITCRUSH_DEFAULTS.length
+/**
+ * The order FM-1+VA plays its seven effects in, first to last, as effect numbers: 0 Filter, 1 Reverb,
+ * 2 Delay, 3 Distortion, 4 Chorus, 5 Phaser, and 6 Bitcrush. It follows Bitcrush in the editor's
+ * parameters, and only a preset write carries it too (docs/fm1-research.md, "FM-1_096").
+ */
+export const FM1_VA_EFFECT_ORDER_START = FM1_VA_BITCRUSH_START + FM1_VA_BITCRUSH_DEFAULTS.length
+/** The stock order, with Bitcrush straight after the Distortion, as a preset that never moved one. */
+export const FM1_VA_STOCK_EFFECT_ORDER: readonly number[] = [0, 1, 2, 3, 6, 4, 5]
+export const FM1_EDITOR_PARAMETER_COUNT =
+  FM1_VA_EFFECT_ORDER_START + FM1_VA_STOCK_EFFECT_ORDER.length
 
 type ValueKind = 'continuous' | 'enumerated' | 'switch'
 

@@ -1,3 +1,5 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useLayoutEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
@@ -10,10 +12,15 @@ import {
   ReverbScope,
 } from '@/components/editor/effect-scopes'
 import { RackSelect, rangeControlKeys } from '@/components/editor/parameter-controls'
+import { Button } from '@/components/ui/button'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { Switch } from '@/components/ui/switch'
 import { effectPresetsFor, type EffectPresetId } from '@/lib/effect-presets'
-import { type EffectParameterId, getEffectParameterDefinition } from '@/lib/fm1-parameters'
+import {
+  type EffectParameterId,
+  FM1_VA_STOCK_EFFECT_ORDER,
+  getEffectParameterDefinition,
+} from '@/lib/fm1-parameters'
 import {
   fm1VaBitcrushSampleRateHz,
   fm1VaBitcrushSettings,
@@ -34,6 +41,13 @@ type EffectsUnitProps = {
   }
   /** Whether the patch keeps Bitcrush on for FM-1_096 while the FM1's firmware does not play it. */
   keepsBitcrush?: boolean
+  /**
+   * FM-1+VA's order of seven effects, offered with Bitcrush. `order` holds their numbers first to
+   * last, or null for a patch without a settings record, which has nowhere to keep one.
+   */
+  effectOrder?: { onMove: (from: number, to: number) => void; order: readonly number[] | null }
+  /** Whether the patch keeps a changed order while the FM1's firmware plays its own. */
+  keepsEffectOrder?: boolean
   /**
    * A Distortion type the patch keeps for FM-1+VA that the FM1's firmware does not play, which a
    * line under Distortion names.
@@ -545,10 +559,123 @@ function BitcrushSection({
   )
 }
 
+/** The effects by their number in FM-1+VA's order, as the interface names them. */
+const orderEffectKeys = [
+  'filter',
+  'reverb',
+  'delay',
+  'distortion',
+  'chorus',
+  'phaser',
+  'bitcrush',
+] as const
+
+/*
+  FM-1+VA's effect order, first at the left, each effect with buttons that move it one place.
+  The list re-renders in its new order, so focus follows the moved effect's button, or its other
+  button once it reaches an end. No MIDI message sets the order, so it is heard once the patch is
+  written to the FM1, which its help says.
+*/
+function EffectOrderStrip({
+  onMove,
+  order,
+}: {
+  onMove: (from: number, to: number) => void
+  order: readonly number[] | null
+}) {
+  const { t } = useTranslation()
+  const buttons = useRef(new Map<string, HTMLButtonElement>())
+  const pendingFocus = useRef<{ effect: number; step: -1 | 1 } | null>(null)
+  const title = t('effectOrder.title')
+
+  useLayoutEffect(() => {
+    const pending = pendingFocus.current
+    if (!pending) return
+    pendingFocus.current = null
+    const wanted = buttons.current.get(`${pending.effect}:${pending.step}`)
+    const other = buttons.current.get(`${pending.effect}:${-pending.step}`)
+    ;(wanted && !wanted.disabled ? wanted : other)?.focus()
+  }, [order])
+
+  const move = (place: number, step: -1 | 1) => {
+    if (!order) return
+    pendingFocus.current = { effect: order[place], step }
+    onMove(place, place + step)
+  }
+
+  const shown = order ?? FM1_VA_STOCK_EFFECT_ORDER
+  return (
+    <section
+      aria-label={title}
+      className="crt-raised-thin flex min-w-0 flex-col bg-[var(--crt-bg-1)] md:col-span-2 xl:col-span-3"
+    >
+      <div className="flex min-w-0 items-center border-b border-[var(--crt-line-dk)] px-[7px] py-[3px]">
+        <h3 className="flex min-w-0 items-center gap-1 px-1 text-[11px] font-normal tracking-[0.18em] uppercase">
+          <span className="truncate">{title}</span>
+          <HelpPopover label={title} text={t('effectOrder.help')} />
+        </h3>
+      </div>
+      <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
+        {order === null ? (
+          <p className="text-[11px] leading-4 text-[var(--crt-ink-3)]">
+            {t('effectOrder.noRecord')}
+          </p>
+        ) : null}
+        <ol aria-label={t('effectOrder.list')} className="flex flex-wrap gap-1.5">
+          {shown.map((effect, place) => {
+            const name = t(`ui.effects.${orderEffectKeys[effect]}`)
+            return (
+              <li
+                className="crt-inset flex min-w-0 items-center gap-1 bg-[var(--crt-bg-well)] py-0.5 pr-0.5 pl-1.5 text-[11px] tracking-[0.08em] text-[var(--crt-ink)] uppercase"
+                key={effect}
+              >
+                <span
+                  aria-hidden="true"
+                  className="font-vt323 text-base leading-none text-[var(--crt-led)]"
+                >
+                  {place + 1}
+                </span>
+                <span className="truncate">{name}</span>
+                {([-1, 1] as const).map((step) => (
+                  <Button
+                    aria-label={t(step < 0 ? 'effectOrder.moveEarlier' : 'effectOrder.moveLater', {
+                      effect: name,
+                    })}
+                    className="size-6 p-0"
+                    disabled={order === null || place + step < 0 || place + step >= shown.length}
+                    key={step}
+                    onClick={() => move(place, step)}
+                    ref={(button) => {
+                      const key = `${effect}:${step}`
+                      if (button) buttons.current.set(key, button)
+                      else buttons.current.delete(key)
+                    }}
+                    size="bare"
+                    type="button"
+                    variant="ghost"
+                  >
+                    {step < 0 ? (
+                      <ChevronLeft aria-hidden="true" className="size-4" />
+                    ) : (
+                      <ChevronRight aria-hidden="true" className="size-4" />
+                    )}
+                  </Button>
+                ))}
+              </li>
+            )
+          })}
+        </ol>
+      </div>
+    </section>
+  )
+}
+
 export function EffectsUnit({
   bitcrush,
   distortionType,
+  effectOrder,
   keepsBitcrush,
+  keepsEffectOrder,
   keptDistortionType,
   onApplyPreset,
   onChange,
@@ -561,6 +688,9 @@ export function EffectsUnit({
 
   return (
     <div className="grid gap-2 p-[9px] md:grid-cols-2 xl:grid-cols-3">
+      {effectOrder ? (
+        <EffectOrderStrip onMove={effectOrder.onMove} order={effectOrder.order} />
+      ) : null}
       {effects.map((effect) => {
         const switchController = getEffectParameterDefinition(effect.switchId).controller
         const enabled = values[switchController] > 0
@@ -631,6 +761,11 @@ export function EffectsUnit({
       {keepsBitcrush ? (
         <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">
           {t('bitcrush.otherFirmware')}
+        </p>
+      ) : null}
+      {keepsEffectOrder ? (
+        <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">
+          {t('effectOrder.otherFirmware')}
         </p>
       ) : null}
     </div>

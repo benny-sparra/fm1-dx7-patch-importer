@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_VA_BITCRUSH_START,
+  FM1_VA_EFFECT_ORDER_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VOICE_NAME_START,
 } from '@/lib/fm1-parameters'
@@ -177,8 +178,46 @@ describe('PatchEditorSession', () => {
     session.undo()
     session.undo()
     expect(
-      Array.from(displayedParameters(session.getState()).subarray(FM1_VA_BITCRUSH_START)),
+      Array.from(
+        displayedParameters(session.getState()).subarray(
+          FM1_VA_BITCRUSH_START,
+          FM1_VA_BITCRUSH_START + 4,
+        ),
+      ),
     ).toEqual([0, 0, 0, 0])
+  })
+
+  it('moves an effect in FM-1+VA’s order as one undo step, sending nothing, and saves the order', async () => {
+    const { midi, session } = await openLiveSession()
+    const order = () =>
+      Array.from(displayedParameters(session.getState()).subarray(FM1_VA_EFFECT_ORDER_START))
+    const store = vi.fn()
+    session.applyEdits(
+      [0, 1, 2, 3, 6, 4, 5].map((effect, place) => [FM1_VA_EFFECT_ORDER_START + place, effect]),
+      false,
+    )
+
+    session.moveEffect(1, 0)
+
+    expect(order()).toEqual([1, 0, 2, 3, 6, 4, 5])
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+    session.save(store)
+    expect(store).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ effectOrder: [1, 0, 2, 3, 6, 4, 5] }),
+    )
+    session.undo()
+    expect(order()).toEqual([0, 1, 2, 3, 6, 4, 5])
+  })
+
+  it('moves no effect past either end of the order', async () => {
+    const { session } = await openLiveSession()
+    const before = displayedParameters(session.getState()).slice()
+
+    session.moveEffect(0, -1)
+
+    expect(displayedParameters(session.getState())).toEqual(before)
   })
 
   it('keeps a Bitcrush setting within its range', async () => {

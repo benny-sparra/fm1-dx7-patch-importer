@@ -180,6 +180,17 @@ export default {
     otherFirmware:
       'Für die Firmware von Baud Girl ab FM-1_096 gespeichert: Bitcrush ist an. Dieser FM1 spielt ihn nicht.',
   },
+  effectOrder: {
+    title: 'Effektreihenfolge',
+    list: 'Effekte, vom ersten bis zum letzten',
+    moveEarlier: '{{effect}} nach vorne verschieben',
+    moveLater: '{{effect}} nach hinten verschieben',
+    noRecord:
+      'Dieser Sound stammt nicht vom FM1 und übernimmt daher die Reihenfolge des Presets, über das er geschrieben wird.',
+    otherFirmware:
+      'Für die Firmware von Baud Girl gespeichert: eine geänderte Effektreihenfolge. Dieser FM1 spielt die Effekte in seiner eigenen Reihenfolge.',
+    help: 'Die Reihenfolge, in der der Klang auf der Firmware von Baud Girl die Effekte durchläuft, der erste links. Eine Verzerrung vor oder nach dem Hall klingt zum Beispiel ganz anders. Keine MIDI-Nachricht stellt sie ein, daher hörst du sie erst, wenn der Sound mit „An FM1 senden“ oder „Sounds auf den FM1 schreiben“ auf den FM1 geschrieben ist.',
+  },
   ui: {
     auditionGroup: 'Operator {{number}} vorhören',
     mute: 'Stumm',

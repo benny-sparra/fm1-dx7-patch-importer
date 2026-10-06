@@ -128,4 +128,15 @@ export default {
     otherFirmware:
       'Kept for Baud Girl’s firmware from FM-1_096: Bitcrush is on. This FM1 doesn’t play it.',
   },
+  effectOrder: {
+    title: 'Effect order',
+    list: 'Effects, first to last',
+    moveEarlier: 'Move {{effect}} earlier',
+    moveLater: 'Move {{effect}} later',
+    noRecord:
+      'This patch didn’t come from the FM1, so it takes the order of the preset it’s written over.',
+    otherFirmware:
+      'Kept for Baud Girl’s firmware: a changed effect order. This FM1 plays the effects in its own order.',
+    help: 'The order the sound passes through the effects on Baud Girl’s firmware, first at the left. Distortion before or after reverb, for example, sounds quite different. No MIDI message sets it, so you hear it once the patch is written to the FM1 with Send to FM1 or Write patches to the FM1.',
+  },
 }
