@@ -532,9 +532,12 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
 
 - **Unchanged.** The preset read and write keep their layout and sizes: a 59-byte record, a
   187-byte read reply, a 231-byte write, no version byte, and no new preset command. The presets
-  file is still 128 preset writes, 29,568 bytes, named `fm1-presets-<date>.syx`. The identity query
-  is the one the editor sends. Effect switches and types stay indexed by effect, not by chain
-  position, as the editor reads them.
+  file is still 128 preset writes, 29,568 bytes, named `fm1-presets-<date>.syx`. **Save as a file**
+  saves one preset as one such write, naming its own slot, or slot 0 for a preset kept in the
+  browser; the two preset packs are 16 writes each, for presets 097–112 (8-Bit) and 113–128 (VA).
+  The editor's presets file import takes any file of 1 to 128 such writes and places each by the
+  slot it names. The identity query is the one the editor sends. Effect switches and types stay
+  indexed by effect, not by chain position, as the editor reads them.
 - **The engine marker.** Record byte 18 is `C3` in every preset of the 8-Bit pack (slots 096–111),
   and the Device Manager reads `C3` as 8-Bit, `5A` as Virtual Analog, and anything else as FM. An
   8-Bit preset keeps its drums, parts, and arpeggios partly in the voice bytes, which are not a DX7

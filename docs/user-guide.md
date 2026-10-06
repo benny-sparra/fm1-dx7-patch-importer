@@ -103,7 +103,10 @@ nothing on the FM1. **Stop reading** stops it, and so does closing the dialog or
 ports; **Read from FM1** reads again. Otherwise, press **Back up everything** in Baud Girl's
 Device Manager, choose **Import Baud Girl presets file…** under **Other files**, and select the
 presets file it saved, such as `fm1-presets-2026-10-06.syx`. A file from **Save a backup** on
-Baud Girl's older Presets page works too. That sends nothing to the FM1, so it works with MIDI switched off and whichever firmware
+Baud Girl's older Presets page works too, and so does a single preset saved with **Save as a file**
+or a preset pack. Such a file shows only the FM1 banks it holds presets for, puts each preset in
+the slot it came from, marked **Not in file** elsewhere, and leaves every other slot of your bank as
+it is. That sends nothing to the FM1, so it works with MIDI switched off and whichever firmware
 the FM1 runs.
 
 Either way the FM1's banks A to D are each shown as a folded panel: open one to see its patches,
