@@ -399,6 +399,38 @@ describe('WriteFm1VaPresetsDialog with Virtual Analog patches', () => {
   })
 })
 
+describe('WriteFm1VaPresetsDialog with 8-Bit presets', () => {
+  // ORGAN 3's record as FM-1_096 marks an 8-Bit preset.
+  const eightBitRecord = storedRecord.slice()
+  eightBitRecord[18] = 0xc3
+
+  it('keeps an 8-Bit preset on the FM1 rather than writing over it', async () => {
+    const fm1 = fakeFm1()
+    fm1.stored.set(0, [...storedVoice(0).data, ...eightBitRecord])
+    const { user } = renderDialog(fm1.midi)
+
+    expect(await screen.findByText('Every patch matches. 8-Bit presets are kept.')).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Write one patch…' }))
+    expect(screen.queryByText('001 A01 PATCH → MY PAD')).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Write one patch' }))
+    await finishWriting(1)
+
+    expect(fm1.writtenSlots()).toEqual([68])
+  })
+
+  it('says it does not write a patch read from an 8-Bit preset, and keeps that preset', async () => {
+    const library = twoChanges()
+    library.records[voiceId('A', 1)] = eightBitRecord
+    renderDialog(fakeFm1().midi, library)
+
+    expect(
+      await screen.findByText(
+        'Every patch matches. One patch was read from an 8-Bit preset and can’t be written, so its preset is kept.',
+      ),
+    ).toBeTruthy()
+  })
+})
+
 describe('WriteFm1VaPresetsDialog sending one bank', () => {
   it('writes the bank over the FM1 bank of the same letter, only where it differs', async () => {
     const fm1 = fakeFm1()

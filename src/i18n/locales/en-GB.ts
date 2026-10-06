@@ -210,7 +210,7 @@ export default {
     menuHeading: 'Baud Girl (FM-1+VA)',
     title: 'Import Baud Girl presets file',
     titleRead: 'Read presets from the FM1',
-    help: 'Choose the file from “Save a backup” on Baud Girl’s Presets page.',
+    help: 'Choose the presets file from “Back up everything” in Baud Girl’s Device Manager.',
     warning:
       'Each bank you import replaces the bank you choose for it, or is added as a new bank. You can undo this.',
     file: 'Baud Girl presets file',
@@ -219,7 +219,7 @@ export default {
       'To read the presets from the FM1, choose it as the MIDI output and input, with SysEx allowed. Reading needs Baud Girl firmware FM-1_079 or later.',
     reading: 'Reading preset {{number, number}} of {{total, number}}…',
     stopReading: 'Stop reading',
-    chooseFile: 'Choose the file from “Save a backup”',
+    chooseFile: 'Choose the presets file from “Back up everything”',
     previewTitle: 'Banks in this file',
     previewHelp: 'Open a bank to hear its patches on the FM1.',
     previewTitleFm1: 'Banks on the FM1',
@@ -235,23 +235,28 @@ export default {
     damagedPreset: 'Damaged',
     damagedPresets: 'One preset is damaged. Its slot keeps its patch.',
     damagedPresets_other: '{{count, number}} presets are damaged. Their slots keep their patches.',
+    eightBitPreset: '8-Bit',
+    eightBitPresets:
+      'One preset is 8-Bit, which the library can’t hold yet. Its slot keeps its patch.',
+    eightBitPresets_other:
+      '{{count, number}} presets are 8-Bit, which the library can’t hold yet. Their slots keep their patches.',
     action: 'Import one bank',
     action_other: 'Import {{count, number}} banks',
     imported: 'Imported bank {{banks}} from the FM1.',
     imported_other: 'Imported banks {{banks}} from the FM1.',
     openFailed: 'The Baud Girl preset import could not be opened. Reload the page and try again.',
     errors: {
-      size: 'This file is {{bytes, number}} bytes. A file from Baud Girl’s “Save a backup” is exactly {{expected, number}} bytes.',
-      format: 'This file was not saved by Baud Girl’s “Save a backup”.',
+      size: 'This file is {{bytes, number}} bytes. A presets file from Baud Girl’s “Back up everything” is exactly {{expected, number}} bytes.',
+      format: 'This isn’t a presets file from Baud Girl’s “Back up everything”.',
       damaged:
-        'No preset in this file could be read. Save a new backup on Baud Girl’s Presets page and try again.',
+        'No preset in this file could be read. Save a new backup in Baud Girl’s Device Manager and try again.',
       unreadable: 'The file could not be read.',
       readBusy:
         'The FM1 can’t send its presets while its Sequencer is playing. Stop it and read again.',
       readNoReply: 'The FM1 stopped answering. Check its MIDI connection and read again.',
       readStopped: 'The read stopped because the MIDI ports changed. Read again.',
       readFailed:
-        'The FM1 couldn’t send its presets. Read again, or choose a file from “Save a backup”.',
+        'The FM1 couldn’t send its presets. Read again, or choose a presets file from “Back up everything”.',
     },
   },
   fm1VaWrite: {
@@ -264,15 +269,20 @@ export default {
     differs_other: '{{count, number}} patches differ.',
     same: 'Every patch matches.',
     virtualAnalogKept: 'Virtual Analogue presets are kept.',
+    eightBitKept: '8-Bit presets are kept.',
     inexact: 'One Virtual Analogue patch can’t be stored exactly, so its preset is kept.',
     inexact_other:
       '{{count, number}} Virtual Analogue patches can’t be stored exactly, so their presets are kept.',
+    eightBitPatch:
+      'One patch was read from an 8-Bit preset and can’t be written, so its preset is kept.',
+    eightBitPatch_other:
+      '{{count, number}} patches were read from 8-Bit presets and can’t be written, so their presets are kept.',
     replaces: '{{number}} {{replaces}} → {{name}}',
     action: 'Write one patch…',
     action_other: 'Write {{count, number}} patches…',
     confirmTitle: 'Replace these presets on the FM1?',
     confirmWarning:
-      'Each preset is replaced at once, and the FM1 can’t undo it. Save a backup on Baud Girl’s Presets page first.',
+      'Each preset is replaced at once, and the FM1 can’t undo it. Save a backup with “Back up everything” in Baud Girl’s Device Manager first.',
     confirm: 'Write one patch',
     confirm_other: 'Write {{count, number}} patches',
     writing: 'Writing patch {{number, number}} of {{total, number}}…',

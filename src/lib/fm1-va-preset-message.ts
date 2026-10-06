@@ -21,7 +21,7 @@ const slotCount = 128
  * carries the high bits of the seven bytes after it, bit k for byte k, then those seven bytes' low
  * bits.
  */
-export function fm1VaRecordByteIndex(index: number) {
+function fm1VaRecordByteIndex(index: number) {
   return recordStart + Math.floor(index / 7) * 8 + 1 + (index % 7)
 }
 

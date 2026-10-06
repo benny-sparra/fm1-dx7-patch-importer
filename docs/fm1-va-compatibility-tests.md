@@ -20,8 +20,9 @@ Do these in order. Nothing below is safe to start without both backups.
 
 1. Install the current FM-1+VA release from its Install page, in Chrome or Edge. Record the version
    the page reports, such as `FM-1_089`, in the ledger (§9). An install keeps the stored presets.
-2. On the FM-1+VA Presets page, press **Save a backup** and keep the `.syx` file. It holds all 128
-   presets with their effects, and **Put a backup back** on the same page restores them. Close that
+2. In FM-1+VA's Device Manager, press **Back up everything** and keep the presets `.syx` file. It
+   holds all 128 presets with their effects, and **Install a backup** then **Send** in the Device
+   Manager restores them. Close that
    tab afterwards, so it does not hold the FM1's MIDI port.
 3. In the editor, choose **Download backup** from the patch-bank header menu.
 4. Pick one preset you can lose for the destructive tests, called the **test preset** below. Use
@@ -51,7 +52,8 @@ Steps:
 3. Record what HOME now shows: the new name or the old one, and whether a dot follows it.
 4. Turn PRESETS one step away and one step back, without pressing SAVE. Record the name and dot.
 5. Switch the FM1 off and on. Select the test preset. Record the name.
-6. Put the test preset back: on the FM-1+VA Presets page, **Put a backup back** with the §0 file.
+6. Put the test preset back: in the Device Manager, **Install a backup** with the §0 file, then
+   **Send**.
 
 | Outcome after step 4 and 5                        | Meaning                                | Editor consequence                                                                                          |
 | ------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
@@ -148,14 +150,15 @@ the FM1 applies every one of them when they arrive back to back.
    patch banks**, and note its name and bank.
 2. When the MIDI log says it was sent as parameter changes, press **SAVE** on the FM1, which stores
    the patch in the test preset.
-3. On the FM-1+VA Presets page, press **Save a backup**.
+3. In FM-1+VA's Device Manager, press **Back up everything**.
 4. Compare the test preset's voice in that backup with the patch in the bundled bank file. They
    must match byte for byte; a dropped change shows as a difference.
-5. Put the test preset back with **Put a backup back** and the §0 file.
+5. Put the test preset back with **Install a backup** and the §0 file, then **Send**.
 
 ## 8. Clean-up
 
-Restore every preset with **Put a backup back** on the FM-1+VA Presets page, using the §0 file.
+Restore every preset with **Install a backup** in FM-1+VA's Device Manager, using the §0 file, then
+**Send**.
 To return to M-VAVE's firmware, follow **Going Back to M-VAVE's Firmware** in the FM-1+VA manual.
 
 On 2026-09-29, banks A and D were first written back as DX7 banks built from the backup's presets

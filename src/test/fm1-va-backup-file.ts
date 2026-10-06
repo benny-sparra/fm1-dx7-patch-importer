@@ -13,19 +13,24 @@ export function fm1VaTestPatchName(slot: number) {
 type BackupOptions = {
   /** Presets given a checksum that does not match. */
   damagedSlots?: readonly number[]
+  /** Presets whose record marks them as 8-Bit. */
+  eightBitSlots?: readonly number[]
   /** Presets whose record marks them as Virtual Analog. */
   virtualAnalogSlots?: readonly number[]
 }
 
-// Record byte 18, the engine marker, as it sits in the 68 bytes the record travels in.
+// Record byte 18, the engine marker, as it sits in the 68 bytes the record travels in: its low
+// bits, and the byte holding its high bit, bit 4, at the start of its group.
 const engineMarkerOffset = 2 * 8 + 1 + 4
+const engineMarkerHighBitsOffset = 2 * 8
 
 /**
- * Builds a file laid out as FM-1+VA's "Save a backup" writes one (docs/fm1-research.md), with a
+ * Builds a file laid out as Baud Girl's Device Manager saves one (docs/fm1-research.md), with a
  * blank voice named by `fm1VaTestPatchName` in each preset and an otherwise empty settings record.
  */
 export function makeFm1VaBackupBytes({
   damagedSlots = [],
+  eightBitSlots = [],
   virtualAnalogSlots = [],
 }: BackupOptions = {}) {
   const file = new Uint8Array(fm1VaPresetFileSize)
@@ -36,6 +41,11 @@ export function makeFm1VaBackupBytes({
     )
     const record = new Uint8Array(68)
     record[engineMarkerOffset] = virtualAnalogSlots.includes(slot) ? 0x5a : 0x03
+    if (eightBitSlots.includes(slot)) {
+      // C3, 8-Bit's marker.
+      record[engineMarkerOffset] = 0x43
+      record[engineMarkerHighBitsOffset] = 1 << 4
+    }
     const payload = Uint8Array.from([...unpackDx7Voice(voice), ...record])
     const checksum = fm1VaChecksum(payload) ^ (damagedSlots.includes(slot) ? 0x01 : 0x00)
     file.set([0xf0, 0x43, 0x00, 0x7d, 0x04, slot, ...payload, checksum, 0xf7], slot * messageSize)

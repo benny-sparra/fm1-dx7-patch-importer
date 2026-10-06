@@ -134,6 +134,39 @@ describe('planFm1VaBankWrite', () => {
     expect(plan[3]).toMatchObject({ kind: 'write' })
   })
 
+  it('never writes over an 8-Bit preset, not even with a Virtual Analog patch', () => {
+    const eightBit = storedRecord.slice()
+    eightBit[18] = 0xc3
+    const library = withVirtualAnalog(
+      libraryOf('A', () => ({ voice: updateDx7VoiceName(organ3, 'NEW') })),
+      'A',
+      4,
+    )
+
+    const plan = planFm1VaBankWrite(
+      storedPresets((slot) => (slot === 2 || slot === 3 ? { record: eightBit } : {})),
+      'A',
+      'A',
+      library,
+    )
+
+    expect(plan[2]).toEqual({ kind: 'eight-bit', name: 'ORGAN 3', slot: 2 })
+    expect(plan[3]).toEqual({ kind: 'eight-bit', name: 'ORGAN 3', slot: 3 })
+    expect(plan[4]).toMatchObject({ kind: 'write' })
+  })
+
+  it('never writes a patch read from an 8-Bit preset, whose voice is not a DX7 voice', () => {
+    const eightBit = storedRecord.slice()
+    eightBit[18] = 0xc3
+    const library = libraryOf('A', () => ({ voice: updateDx7VoiceName(organ3, 'NES ROCK') }))
+    library.records[voiceId('A', 1)] = eightBit
+
+    const plan = planFm1VaBankWrite(storedPresets(), 'A', 'A', library)
+
+    expect(plan[0]).toEqual({ kind: 'eight-bit-patch', name: 'NES ROCK', slot: 0 })
+    expect(plan[1]).toMatchObject({ kind: 'write' })
+  })
+
   it('writes a Virtual Analog patch over an FM preset with its voice bytes as read', () => {
     const plan = planFm1VaBankWrite(
       storedPresets(),

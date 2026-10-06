@@ -61,6 +61,24 @@ function backupFile() {
   return file
 }
 
+/**
+ * ORGAN 3's record as FM-1_096 marks an 8-Bit preset, `C3` in byte 18: its low bits in the third
+ * group, and its high bit, bit 4, in that group's first byte.
+ */
+function eightBitRecord() {
+  const record = capturedRecord.slice()
+  record[2 * 8 + 1 + 4] = 0x43
+  record[2 * 8] |= 1 << 4
+  return record
+}
+
+/** `backupFile`, with preset 006 marked as 8-Bit. */
+function backupFileWithEightBit() {
+  const file = backupFile()
+  file.set(presetMessage(5, unpackDx7Voice(rom1a[5]), eightBitRecord()), 5 * 231)
+  return file
+}
+
 function problemOf(bytes: Uint8Array) {
   try {
     parseFm1VaPresetFile(bytes.buffer as ArrayBuffer)
@@ -162,6 +180,13 @@ describe('parseFm1VaPresetFile', () => {
     expect(fromFile.virtualAnalog).toEqual(fromRead.virtualAnalog)
   })
 
+  it('recognises an 8-Bit preset by its record, keeping only its name', () => {
+    expect(parsedPresets(backupFileWithEightBit())[5]).toEqual({
+      kind: 'eight-bit',
+      name: rom1a[5].name,
+    })
+  })
+
   it('reads an FM preset’s record as FM', () => {
     expect(parsedPresets(backupFile())[0].kind).toBe('fm')
   })
@@ -241,6 +266,15 @@ describe('importableSounds', () => {
     file[5 * 231 + 20] = (file[5 * 231 + 20] + 1) & 0x7f
 
     const sounds = parseFm1VaPresetFile(file.buffer as ArrayBuffer).flatMap(importableSounds)
+
+    expect(sounds[5]).toBeNull()
+    expect(sounds.filter((sound) => sound === null)).toHaveLength(1)
+  })
+
+  it('leaves out an 8-Bit preset, which the library cannot hold', () => {
+    const sounds = parseFm1VaPresetFile(backupFileWithEightBit().buffer as ArrayBuffer).flatMap(
+      importableSounds,
+    )
 
     expect(sounds[5]).toBeNull()
     expect(sounds.filter((sound) => sound === null)).toHaveLength(1)
@@ -326,6 +360,16 @@ describe('fm1VaPresetBanksFromRead', () => {
     expect(banks[3].presets[0]).toMatchObject({ kind: 'virtual-analog', name: 'VOICE 97' })
   })
 
+  it('names an 8-Bit preset by its record rather than reading its voice as DX7', () => {
+    const presets = readPresets()
+    presets[5].record[18] = 0xc3
+
+    expect(fm1VaPresetBanksFromRead(presets)[0].presets[5]).toEqual({
+      kind: 'eight-bit',
+      name: 'ORGAN 3',
+    })
+  })
+
   it('counts an FM preset whose voice holds a byte above seven bits as damaged', () => {
     const presets = readPresets()
     presets[5].voice[20] = 0x80
@@ -341,6 +385,10 @@ describe('differsFromLibrary', () => {
 
   it('does not mark a slot holding the same voice, effects, and record', () => {
     expect(differsFromLibrary(organ3, sameSlot)).toBe(false)
+  })
+
+  it('does not mark the slot of an 8-Bit preset, which the import leaves out', () => {
+    expect(differsFromLibrary({ kind: 'eight-bit', name: 'NES ROCK' }, {})).toBe(false)
   })
 
   it('marks a slot whose effects differ', () => {

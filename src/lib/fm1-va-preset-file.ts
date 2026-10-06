@@ -8,6 +8,7 @@ import {
 } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
+import { fm1VaRecordEngine } from '@/lib/fm1-va-engine'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
 import { fm1VaEffectRecordBytes, fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
 import {
@@ -15,7 +16,6 @@ import {
   fm1VaPresetHeader,
   fm1VaPresetMessageSize,
   fm1VaPresetPayloadStart,
-  fm1VaRecordByteIndex,
   readFm1VaMessageRecord,
 } from '@/lib/fm1-va-preset-message'
 import { fm1VaChecksum } from '@/lib/fm1-va-sysex'
@@ -23,8 +23,8 @@ import { fm1VaVirtualAnalogName } from '@/lib/fm1-va-virtual-analog'
 import type { FetchedSound } from '@/lib/patch-library'
 
 /**
- * FM-1+VA's stored presets, from the `.syx` file its **Save a backup** writes or read from the FM1
- * itself. The file holds one preset write per stored preset, 128 in slot order, each
+ * FM-1+VA's stored presets, from the `.syx` presets file Baud Girl's Device Manager saves (its
+ * **Save a backup** on releases before FM-1_096) or read from the FM1 itself. The file holds one preset write per stored preset, 128 in slot order, each
  * `F0 43 00 7D 04 <slot> <155-byte DX7 voice> <68-byte settings record> <sum> F7`
  * (docs/fm1-research.md, FM-1+VA). Each preset's voice is read with its record, kept exactly as
  * stored, and the effects the record holds. A Virtual Analog preset's voice bytes are kept apart
@@ -33,23 +33,18 @@ import type { FetchedSound } from '@/lib/patch-library'
 const fm1VaPresetCount = 128
 export const fm1VaPresetFileSize = fm1VaPresetCount * fm1VaPresetMessageSize
 
-// Record byte 18 is `5A` in a Virtual Analog preset and `03` in an FM one. In the file its high
-// bit, which is clear in every preset seen, is not read.
-const engineMarkerByte = 18
-const engineMarkerIndex = fm1VaRecordByteIndex(engineMarkerByte)
-const virtualAnalogMarker = 0x5a
-
 /** The FM1 banks a backup holds, in the order of its presets. */
 export const fm1VaPresetBanks = ['A', 'B', 'C', 'D'] as const
 export type Fm1VaPresetBank = (typeof fm1VaPresetBanks)[number]
 
 /**
  * A stored preset: an FM preset's DX7 voice, or a Virtual Analog preset's voice bytes, which are
- * not a DX7 voice, each with its record and the effects the record holds, or one that arrived
- * damaged.
+ * not a DX7 voice, each with its record and the effects the record holds; an 8-Bit preset, which
+ * the library cannot hold, so only its name is kept; or one that arrived damaged.
  */
 export type Fm1VaPreset =
   | { kind: 'damaged' }
+  | { kind: 'eight-bit'; name: string }
   | { effects: Uint8Array; kind: 'fm'; record: Uint8Array; voice: Dx7Voice }
   | {
       effects: Uint8Array
@@ -61,6 +56,21 @@ export type Fm1VaPreset =
 
 function fmPreset(record: Uint8Array, voice: Dx7Voice): Fm1VaPreset {
   return { effects: fm1VaRecordEffects(record), kind: 'fm', record, voice }
+}
+
+/**
+ * A preset on the engine its record names. An 8-Bit preset keeps its settings in its voice bytes
+ * as well as its record, and they are not a DX7 voice, so it is never read as one.
+ */
+function storedPreset(record: Uint8Array, voice: Uint8Array): Fm1VaPreset {
+  switch (fm1VaRecordEngine(record)) {
+    case 'eight-bit':
+      return { kind: 'eight-bit', name: decodeVoiceName(voice) }
+    case 'virtual-analog':
+      return virtualAnalogPreset(record, voice)
+    case 'fm':
+      return fmPreset(record, { data: voice, name: decodeVoiceName(voice) })
+  }
 }
 
 function virtualAnalogPreset(record: Uint8Array, virtualAnalog: Uint8Array): Fm1VaPreset {
@@ -116,14 +126,14 @@ function sameSettings(record: Uint8Array, other: Uint8Array) {
  * ranges, and every other byte of the settings record. It compares as a preset write stores a
  * patch, so a patch written to the FM1 matches it however its library copy's bytes were first
  * laid out or its effects since changed. A slot the library has no patch in differs, as does one
- * with no record, which importing would give it, or one of the other engine; a damaged preset, which
- * the import leaves out, does not. A Virtual Analog preset's voice bytes are compared as read.
+ * with no record, which importing would give it, or one of the other engine; a damaged or 8-Bit
+ * preset, which the import leaves out, does not. A Virtual Analog preset's voice bytes are compared as read.
  */
 export function differsFromLibrary(
   preset: Fm1VaPreset,
   slot: { effects?: Uint8Array; record?: Uint8Array; virtualAnalog?: Uint8Array; voice?: Dx7Voice },
 ) {
-  if (preset.kind === 'damaged') return false
+  if (preset.kind === 'damaged' || preset.kind === 'eight-bit') return false
   if (!slot.record) return true
   const sameVoice =
     preset.kind === 'fm'
@@ -152,10 +162,7 @@ function toPresetBanks(presets: readonly Fm1VaPreset[]): Fm1VaPresetFileBank[] {
  */
 function readStoredPreset({ record, voice }: Fm1VaStoredPreset): Fm1VaPreset {
   if (!isSevenBitData(voice)) return { kind: 'damaged' }
-  if (record[engineMarkerByte] === virtualAnalogMarker) {
-    return virtualAnalogPreset(record.slice(), voice.slice())
-  }
-  return fmPreset(record.slice(), { data: voice.slice(), name: decodeVoiceName(voice) })
+  return storedPreset(record.slice(), voice.slice())
 }
 
 /** The FM1 banks A–D from the 128 presets read from the FM1, in slot order. */
@@ -205,10 +212,7 @@ function readPreset(message: Uint8Array, slot: number): Fm1VaPreset {
   // back, for a Virtual Analog preset as for an FM one (docs/fm1-research.md, "Writing a stored
   // preset").
   const voice = packDx7Voice(payload.slice(0, FM1_VOICE_PARAMETER_COUNT))
-  const record = readFm1VaMessageRecord(message)
-  return message[engineMarkerIndex] === virtualAnalogMarker
-    ? virtualAnalogPreset(record, voice.data)
-    : fmPreset(record, voice)
+  return storedPreset(readFm1VaMessageRecord(message), voice.data)
 }
 
 /**
