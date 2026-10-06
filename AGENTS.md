@@ -187,7 +187,8 @@ open everything an earlier release could have saved.
 - The preset write, `7D 04 <slot>` (`makeFm1VaPresetWrite` in `src/lib/fm1-va-preset-message.ts`,
   approved 2026-10-03), stores one preset at once, and the FM1 cannot undo it. Send it only while
   `writesFm1VaPresets` allows it (FM-1+VA from `FM-1_079`), only through `useFm1VaPresetWriter`,
-  which spaces writes `fm1VaPresetWriteSpacingMs` (3 s) apart as FM-1+VA's own page does, one
+  which spaces writes `fm1VaPresetWriteSpacingMs` (3 s) apart as FM-1+VA's Presets page did (its
+  Device Manager waits 120 ms, untested here), one
   preset per message, and never twice for one write. Read each preset back with `7D 10` to confirm
   it, and stop at the first that does not read back the same. A write already sent is never
   cancelled; changing the ports cancels only one still waiting its turn. Anything that writes asks
@@ -197,7 +198,8 @@ open everything an earlier release could have saved.
   values. The write carries a Virtual Analog patch's voice bytes exactly as read, with its own
   record, as FM-1+VA's own backup restores one; never send them any other way. A DX7 patch never
   replaces a Virtual Analog preset on the FM1, and a Virtual Analog patch whose bytes the write
-  would not store exactly (`fm1VaStoredVoice`) is not written.
+  would not store exactly (`fm1VaStoredVoice`) is not written. Nothing replaces an 8-Bit preset
+  on the FM1, and a patch whose record names 8-Bit is never written.
   A read belongs to the ports it started on: changing either, or switching MIDI off, cancels it.
   Keep what it reads exactly as read until each byte is mapped in `docs/fm1-research.md`.
   Code that reads presets goes through `useFm1VaPresetReader`, which takes the ports from the
@@ -556,6 +558,11 @@ open everything an earlier release could have saved.
   for assistive technology and on the first line of its tooltip (`banks.engineTitle`). The letters
   stack so the tag is one character wide, and the card made room for it by tightening its gaps,
   never by narrowing the name.
+- Record byte 18 names a preset's engine, read only through `fm1VaRecordEngine`
+  (`src/lib/fm1-va-engine.ts`): `5A` Virtual Analog, `C3` 8-Bit from `FM-1_096`, anything else FM.
+  The library cannot hold an 8-Bit preset yet, since its voice bytes are not a DX7 voice and it has
+  no place of its own, so reading or importing presets marks one **8-Bit** and leaves its slot as it
+  is, and a write keeps it on the FM1. Never read one as a DX7 voice, which would change its bytes.
 - Distortion type is the one record byte the editor changes (38). The editor keeps it after the
   effects in its parameters (`FM1_VA_DISTORTION_TYPE_INDEX`), so undo and compare cover it, and
   saving writes it into the record through `saveSound`, which gives the copies that held the same
@@ -569,7 +576,8 @@ open everything an earlier release could have saved.
   Restoring replaces the workspace, which Undo reverses, and only adds saved banks, never
   overwriting a stored one (`addStoredNamedBank`), because Undo cannot reach saved banks.
   FM-1+VA's own file is not a backup in this sense: the app calls it the **Baud Girl presets** file,
-  and names FM-1+VA's button **“Save a backup”** only in quotation marks, as the device's own label.
+  and names the button that saves it, **“Back up everything”** in Baud Girl's Device Manager, only
+  in quotation marks, as the site's own label.
 - A library change that replaces or removes sounds (deleting a bank, resetting to factory banks,
   restoring a backup, importing or loading over a bank, importing FM-1+VA presets, copying a sound over a slot) offers Undo in its notification through `undoToastOptions`, and a
   notification with an action stays up for 10 seconds. The

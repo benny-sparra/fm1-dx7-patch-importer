@@ -1,4 +1,5 @@
 import { decodeVoiceName, type Dx7Voice } from '@/lib/dx7'
+import { fm1VaRecordEngine } from '@/lib/fm1-va-engine'
 import { fm1VaStoredVoice } from '@/lib/fm1-va-preset-message'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
 import { fm1VaRecordWithEffects } from '@/lib/fm1-va-record-effects'
@@ -14,10 +15,6 @@ import { voiceId } from '@/lib/patch-library'
 export const fm1VaWriteBanks = ['A', 'B', 'C', 'D'] as const
 export type Fm1VaWriteBank = (typeof fm1VaWriteBanks)[number]
 const presetsPerBank = 32
-
-/** Record byte 18 marks a Virtual Analog preset with `5A`. */
-const engineMarkerByte = 18
-const virtualAnalogMarker = 0x5a
 
 /** A preset write the plan calls for: what to store in `slot`, and the stored name it replaces. */
 export type Fm1VaPlannedWrite = {
@@ -35,10 +32,15 @@ export type Fm1VaPlannedWrite = {
  * One stored preset's part in a plan: a write, or why it is left as it is. A Virtual Analog preset
  * on the FM1 is never written over with a DX7 voice, since its sound would be lost, though a
  * Virtual Analog patch from the library may replace it. A Virtual Analog patch whose bytes the FM1
- * would not store exactly (`inexact`) is not written either.
+ * would not store exactly (`inexact`) is not written either. The library cannot hold an 8-Bit
+ * preset, so one on the FM1 is never written over (`eight-bit`), and a patch carrying an 8-Bit
+ * record, which reading presets on FM-1_096 gave the library before the editor knew the engine, is
+ * never written (`eight-bit-patch`): its voice may have been changed as a DX7 voice.
  */
 export type Fm1VaPresetPlan =
   | ({ kind: 'write' } & Fm1VaPlannedWrite)
+  | { kind: 'eight-bit'; name: string; slot: number }
+  | { kind: 'eight-bit-patch'; name: string; slot: number }
   | { kind: 'empty'; slot: number }
   | { kind: 'inexact'; name: string; slot: number }
   | { kind: 'same'; slot: number }
@@ -111,13 +113,18 @@ export function planFm1VaPatchesWrite(
     const replaces = decodeVoiceName(preset.voice)
     const patch = patches[index]
     const isVirtualAnalog = patch !== undefined && 'virtualAnalog' in patch
-    if (preset.record[engineMarkerByte] === virtualAnalogMarker && !isVirtualAnalog) {
+    const storedEngine = fm1VaRecordEngine(preset.record)
+    if (storedEngine === 'eight-bit') return { kind: 'eight-bit', name: replaces, slot }
+    if (storedEngine === 'virtual-analog' && !isVirtualAnalog) {
       return { kind: 'virtual-analog', name: replaces, slot }
     }
     if (!patch) return { kind: 'empty', slot }
 
     const voice = 'virtualAnalog' in patch ? patch.virtualAnalog : patch.voice.data
     const name = decodeVoiceName(voice)
+    if (patch.record && fm1VaRecordEngine(patch.record) === 'eight-bit') {
+      return { kind: 'eight-bit-patch', name, slot }
+    }
     const expectedVoice = fm1VaStoredVoice(voice)
     if (isVirtualAnalog && !sameBytes(expectedVoice, voice)) {
       return { kind: 'inexact', name, slot }

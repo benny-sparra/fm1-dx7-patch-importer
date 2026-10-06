@@ -33,9 +33,10 @@ installer, so moving straight between them may work, but neither project documen
 The FM1 cannot send its presets back to this app, so your library is your only copy of its patches.
 
 - In this app, choose **Download backup** from the menu in the patch-bank header.
-- Leaving FM-1+VA: on its Presets page, press **Save a backup**. It saves all 128 presets as a
-  `.syx` file. Only FM-1+VA can make or restore it; this app's **Import Baud Girl presets file…** reads
-  only its patches.
+- Leaving FM-1+VA: in its Device Manager, press **Back up everything**. It saves all 128 presets as
+  one `.syx` file and the 16 patterns as another. Only FM-1+VA can restore them, with **Install a
+  backup** in the Device Manager; this app's **Import Baud Girl presets file…** reads only the
+  presets file's patches.
 - Leaving SLOOP: in its [web editor](https://isod89.github.io/sloop-fm1/webapp/editor/), open
   **Library** and use **Export bank** under **User presets on the device**, and **Export library**
   for the sounds kept in the editor. No export of SLOOP's projects (its patterns and songs) is
@@ -62,12 +63,12 @@ version, such as VERSION 93 for `FM-1_093`.
 
 FM-1+VA's own installer puts M-VAVE's firmware back; M-UPGRADE is not needed for this direction.
 
-1. On FM-1+VA's Presets page, press **Save a backup**.
+1. In FM-1+VA's Device Manager, press **Back up everything**.
 2. On its Install page, choose **Install a file from your computer** and pick M-VAVE's V15
    `FM-1.fwsc`.
 3. Follow the usual install steps.
 
-Virtual Analog presets do not play on stock firmware, and FM-1+VA's extra FM features go away.
+Virtual Analog and 8-Bit presets do not play on stock firmware, and FM-1+VA's extra FM features go away.
 
 ## Stock to Felucca
 

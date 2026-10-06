@@ -100,9 +100,10 @@ later, chosen as the MIDI output and input with SysEx allowed, choose **Read pre
 FM1…** under **Baud Girl (FM-1+VA)** in the menu in the patch-bank header. The app asks the FM1
 for each of its 128 presets in turn as the dialog opens, which takes a few seconds and changes
 nothing on the FM1. **Stop reading** stops it, and so does closing the dialog or changing the MIDI
-ports; **Read from FM1** reads again. Otherwise, press **Save a backup** on Baud Girl's Presets
-page, choose **Import Baud Girl presets file…** under **Other files**, and select the `.syx` file it
-saved. That sends nothing to the FM1, so it works with MIDI switched off and whichever firmware
+ports; **Read from FM1** reads again. Otherwise, press **Back up everything** in Baud Girl's
+Device Manager, choose **Import Baud Girl presets file…** under **Other files**, and select the
+presets file it saved, such as `fm1-presets-2026-10-06.syx`. A file from **Save a backup** on
+Baud Girl's older Presets page works too. That sends nothing to the FM1, so it works with MIDI switched off and whichever firmware
 the FM1 runs.
 
 Either way the FM1's banks A to D are each shown as a folded panel: open one to see its patches,
@@ -115,8 +116,10 @@ the bank it would replace, in its voice, its effects, or its other preset settin
 from the FM1, only the banks holding such a patch start switched on; from a file, every bank does. Press **Import** to bring them in. Each patch
 arrives with its FM1 effects and keeps the other settings Baud Girl's firmware stored with it,
 such as its effect order, Envelope, and filter, exactly as they are, so writing it back keeps them.
-A Virtual Analogue preset is marked **VA** and imported too, kept exactly as the FM1 stores it. A
-preset that arrived damaged is marked and left out, so that slot keeps the patch it has now. The
+A Virtual Analogue preset is marked **VA** and imported too, kept exactly as the FM1 stores it. An
+8-Bit preset, the engine Baud Girl's FM-1_096 added, is marked **8-Bit** and left out, because the
+library can't hold one yet, so that slot keeps the patch it has now. A preset that arrived damaged
+is marked and left out the same way. The
 notification offers **Undo**.
 
 In your banks a Virtual Analogue preset shows a small amber **VA** box between its slot code and
@@ -140,12 +143,13 @@ differ. Each FM1 bank's title is a switch, such as **Write to FM1 bank A**, that
 is written, and **Write from** below it chooses the library bank to write over it, starting on the
 bank of the same letter. A Virtual Analogue patch in your bank is written exactly as it was read,
 over whatever preset is there. A Virtual Analogue preset on the FM1 is never replaced by a DX7 patch,
-and a slot your bank has no patch in keeps its preset. A patch that came from a DX7 file
+an 8-Bit preset is never replaced at all, and a slot your bank has no patch in keeps its preset. A
+patch read from an 8-Bit preset before the app knew that engine is not written either. A patch that came from a DX7 file
 takes the FM1 preset's own settings, with your effects in them.
 
 Before anything is written, the dialog lists every preset it will replace. Each one is replaced the
-moment it is written, and the FM1 cannot undo it, so press **Save a backup** on Baud Girl's
-Presets page first. Writes go 3 seconds apart, as Baud Girl's own page spaces them, and the app
+moment it is written, and the FM1 cannot undo it, so press **Back up everything** in Baud Girl's
+Device Manager first. Writes go 3 seconds apart, as Baud Girl's own page spaces them, and the app
 reads each one back to check it, stopping at the first that does not match. **Stop after this
 patch** ends the writing between patches; the dialog cannot be closed while a patch is being
 written.

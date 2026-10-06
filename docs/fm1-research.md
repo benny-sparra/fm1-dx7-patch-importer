@@ -109,8 +109,8 @@ seven after it. Record byte 18, the fifth byte of the third group, is `5A` in ev
 preset and `03` in every FM preset. The 2026-10-01 backup held 17 Virtual Analog presets: 097, made
 with **Erase Preset** and stored with SAVE, and the 16 of FM-1+VA's preset pack in 113–128. No
 preset showed the `A5` that FM-1+VA's web modules were read as giving an FM preset. That group's
-high-bit byte is `00` in all 384 presets, so the editor compares only the low seven bits with `5A`.
-The editor reads a preset with any other value as FM. In each group, bit _k_ of the first byte is the
+high-bit byte is `00` in all 384 presets. The editor compares the whole decoded byte: `5A` is
+Virtual Analog, `C3` is 8-Bit from `FM-1_096` (below, "FM-1_096"), and any other value is FM. In each group, bit _k_ of the first byte is the
 high bit of the group's byte _k_ (Confirmed, below, "Reading a stored preset").
 
 **The rest of the record is mostly not mapped. Needs hardware test.** Only three Virtual Analog
@@ -518,6 +518,44 @@ need the preset read and write commands above (`docs/feature-backlog.md`, FM-1+V
 From 2026-10-04 the library keeps Virtual Analog presets read with `7D 10` or from a backup file,
 as the 128 voice bytes the read returns and the record; preset 097's voice bytes from the
 2026-10-01 backup pack into exactly the bytes the read returned.
+
+#### FM-1_096 (reviewed 2026-10-06)
+
+`FM-1_096`, released 2026-10-06, adds an 8-Bit engine, a seventh effect (Bitcrush), knob banks with
+four knob choices saved in each preset, and a Preset Level on the Mixer knob bank. Baud Girl's
+Presets page was replaced by a Device Manager (`/work/FM-1+VA/device-manager`; the old address
+redirects there), whose **Back up everything** saves the presets file and a separate patterns file.
+Sources: the manual, the modules the Device Manager loads (app build `8405c164d16df69a`), and the
+two preset packs it installs. **Likely** throughout, since none of it has been checked on hardware
+yet; the 8-Bit marker and record size are also seen in the pack files.
+
+- **Unchanged.** The preset read and write keep their layout and sizes: a 59-byte record, a
+  187-byte read reply, a 231-byte write, no version byte, and no new preset command. The presets
+  file is still 128 preset writes, 29,568 bytes, named `fm1-presets-<date>.syx`. The identity query
+  is the one the editor sends. Effect switches and types stay indexed by effect, not by chain
+  position, as the editor reads them.
+- **The engine marker.** Record byte 18 is `C3` in every preset of the 8-Bit pack (slots 096–111),
+  and the Device Manager reads `C3` as 8-Bit, `5A` as Virtual Analog, and anything else as FM. An
+  8-Bit preset keeps its drums, parts, and arpeggios partly in the voice bytes, which are not a DX7
+  voice, and partly in record bytes 19–26 and 45–51. Its name stays in the name bytes. The editor
+  treats `C3` as 8-Bit (`src/lib/fm1-va-engine.ts`): reading and importing leave an 8-Bit preset
+  out, a write never replaces one, and a library patch whose record carries `C3`, which a read on
+  `FM-1_096` gave the library before the editor knew the engine, is never written.
+- **Bitcrush** lives in bytes the editor never writes: byte 5, `80` marking it set, its switch in
+  bit 3 and its place among the seven in bits 0–2; Bits in byte 35, Sample Rate in 41, and Mix in
+  44, the unused type bytes of Delay, Chorus, and Phaser. Without the `80` marker a preset has
+  Bitcrush Off after the Distortion, at Bits 8, Sample Rate 72 (about 10.9 kHz), and Mix 100. It has
+  no effect controller on the FX Channel; CC 85–88 reach it only through its knob bank, and the
+  editor never sends them.
+- **Knob choices** are bits 0–5 of bytes 53 (knobs 1 and 2) and 52 (knobs 3 and 4), with bit 7
+  marking them set; Envelope On stays bit 6 of byte 53. The 8-Bit Drums Level is byte 2, stored as
+  `80` | (99 − level). Where an FM or Virtual Analog preset keeps Preset Level was not found; byte 2
+  is the likely place.
+- **The Device Manager writes faster.** It sends each preset write 120 ms after the read that
+  confirmed the previous one, rather than 3 s. The editor keeps 3 s until a hardware run shows the
+  shorter gap is safe.
+- Two new pattern writes, `7D 21` (a pattern's locks) and `7D 22` (whole steps), are writes the
+  editor may not send.
 
 ### Felucca replacement firmware
 

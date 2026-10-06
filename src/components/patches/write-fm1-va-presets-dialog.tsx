@@ -91,16 +91,20 @@ type WriteEntry = Extract<Fm1VaPresetPlan, { kind: 'write' }>
 const isWrite = (entry: Fm1VaPresetPlan): entry is WriteEntry => entry.kind === 'write'
 
 /**
- * How many presets a plan would change, whether it keeps a Virtual Analog preset on the FM1, and
- * how many Virtual Analog patches it cannot write exactly.
+ * How many presets a plan would change, whether it keeps a Virtual Analog or 8-Bit preset on the
+ * FM1, how many Virtual Analog patches it cannot write exactly, and how many 8-Bit patches it
+ * does not write.
  */
 function planSummary(t: Translate, plan: readonly Fm1VaPresetPlan[]) {
   const writeCount = plan.filter(isWrite).length
   const inexactCount = plan.filter(({ kind }) => kind === 'inexact').length
+  const eightBitPatchCount = plan.filter(({ kind }) => kind === 'eight-bit-patch').length
   return [
     writeCount === 0 ? t('fm1VaWrite.same') : t('fm1VaWrite.differs', { count: writeCount }),
     plan.some(({ kind }) => kind === 'virtual-analog') ? t('fm1VaWrite.virtualAnalogKept') : '',
+    plan.some(({ kind }) => kind === 'eight-bit') ? t('fm1VaWrite.eightBitKept') : '',
     inexactCount > 0 ? t('fm1VaWrite.inexact', { count: inexactCount }) : '',
+    eightBitPatchCount > 0 ? t('fm1VaWrite.eightBitPatch', { count: eightBitPatchCount }) : '',
   ]
     .filter(Boolean)
     .join(' ')

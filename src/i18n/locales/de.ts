@@ -335,7 +335,7 @@ export default {
     menuHeading: 'Baud Girl (FM-1+VA)',
     title: 'Baud-Girl-Presetdatei importieren',
     titleRead: 'Presets vom FM1 lesen',
-    help: 'Wähle die Datei aus „Save a backup“ auf der Presets-Seite von Baud Girl.',
+    help: 'Wähle die Presets-Datei aus „Back up everything“ im Device Manager von Baud Girl.',
     warning:
       'Jede importierte Bank ersetzt die Bank, die du für sie wählst, oder kommt als neue Bank hinzu. Du kannst das rückgängig machen.',
     file: 'Baud-Girl-Presetdatei',
@@ -344,7 +344,7 @@ export default {
       'Um die Presets vom FM1 zu lesen, wähle ihn als MIDI-Ausgang und -Eingang und erlaube SysEx. Zum Lesen braucht er die Firmware von Baud Girl, FM-1_079 oder neuer.',
     reading: 'Lese Preset {{number, number}} von {{total, number}}…',
     stopReading: 'Lesen abbrechen',
-    chooseFile: 'Datei aus „Save a backup“ wählen',
+    chooseFile: 'Presets-Datei aus „Back up everything“ wählen',
     previewTitle: 'Bänke in dieser Datei',
     previewHelp: 'Öffne eine Bank, um ihre Sounds am FM1 zu hören.',
     previewTitleFm1: 'Bänke auf dem FM1',
@@ -361,6 +361,11 @@ export default {
     damagedPresets: 'Ein Preset ist beschädigt. Sein Platz behält seinen Sound.',
     damagedPresets_other:
       '{{count, number}} Presets sind beschädigt. Ihre Plätze behalten ihre Sounds.',
+    eightBitPreset: '8-Bit',
+    eightBitPresets:
+      'Ein Preset ist ein 8-Bit-Preset, das die Bibliothek noch nicht aufnehmen kann. Sein Platz behält seinen Sound.',
+    eightBitPresets_other:
+      '{{count, number}} Presets sind 8-Bit-Presets, die die Bibliothek noch nicht aufnehmen kann. Ihre Plätze behalten ihre Sounds.',
     action: 'Eine Bank importieren',
     action_other: '{{count, number}} Bänke importieren',
     imported: 'Bank {{banks}} vom FM1 importiert.',
@@ -368,17 +373,17 @@ export default {
     openFailed:
       'Der Import der Baud-Girl-Presets konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     errors: {
-      size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine Datei aus „Save a backup“ von Baud Girl ist genau {{expected, number}} Bytes groß.',
-      format: 'Diese Datei wurde nicht mit „Save a backup“ von Baud Girl gespeichert.',
+      size: 'Diese Datei ist {{bytes, number}} Bytes groß. Eine Presets-Datei aus „Back up everything“ von Baud Girl ist genau {{expected, number}} Bytes groß.',
+      format: 'Diese Datei ist keine Presets-Datei aus „Back up everything“ von Baud Girl.',
       damaged:
-        'Kein Preset in dieser Datei ist lesbar. Speichere auf der Presets-Seite von Baud Girl eine neue Sicherung und versuche es erneut.',
+        'Kein Preset in dieser Datei ist lesbar. Speichere im Device Manager von Baud Girl eine neue Sicherung und versuche es erneut.',
       unreadable: 'Die Datei konnte nicht gelesen werden.',
       readBusy:
         'Der FM1 kann seine Presets nicht senden, während sein Sequencer läuft. Halte ihn an und lies erneut.',
       readNoReply: 'Der FM1 antwortet nicht mehr. Prüfe seine MIDI-Verbindung und lies erneut.',
       readStopped: 'Das Lesen wurde beendet, weil sich die MIDI-Ports geändert haben. Lies erneut.',
       readFailed:
-        'Der FM1 konnte seine Presets nicht senden. Lies erneut oder wähle eine Datei aus „Save a backup“.',
+        'Der FM1 konnte seine Presets nicht senden. Lies erneut oder wähle eine Presets-Datei aus „Back up everything“.',
     },
   },
   fm1VaWrite: {
@@ -391,16 +396,21 @@ export default {
     differs_other: '{{count, number}} Sounds unterscheiden sich.',
     same: 'Alle Sounds stimmen überein.',
     virtualAnalogKept: 'Virtual-Analog-Presets bleiben erhalten.',
+    eightBitKept: '8-Bit-Presets bleiben erhalten.',
     inexact:
       'Ein Virtual-Analog-Sound lässt sich nicht exakt speichern, darum bleibt sein Preset erhalten.',
     inexact_other:
       '{{count, number}} Virtual-Analog-Sounds lassen sich nicht exakt speichern, darum bleiben ihre Presets erhalten.',
+    eightBitPatch:
+      'Ein Sound stammt aus einem 8-Bit-Preset und kann nicht geschrieben werden, darum bleibt sein Preset erhalten.',
+    eightBitPatch_other:
+      '{{count, number}} Sounds stammen aus 8-Bit-Presets und können nicht geschrieben werden, darum bleiben ihre Presets erhalten.',
     replaces: '{{number}} {{replaces}} → {{name}}',
     action: 'Einen Sound schreiben…',
     action_other: '{{count, number}} Sounds schreiben…',
     confirmTitle: 'Diese Presets auf dem FM1 ersetzen?',
     confirmWarning:
-      'Jedes Preset wird sofort ersetzt, und der FM1 kann das nicht rückgängig machen. Speichere vorher auf der Presets-Seite von Baud Girl eine Sicherung.',
+      'Jedes Preset wird sofort ersetzt, und der FM1 kann das nicht rückgängig machen. Speichere vorher mit „Back up everything“ im Device Manager von Baud Girl eine Sicherung.',
     confirm: 'Einen Sound schreiben',
     confirm_other: '{{count, number}} Sounds schreiben',
     writing: 'Schreibe Sound {{number, number}} von {{total, number}}…',

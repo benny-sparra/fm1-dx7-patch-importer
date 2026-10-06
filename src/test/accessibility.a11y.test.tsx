@@ -167,7 +167,11 @@ describe('rendered accessibility', () => {
     await user.click(screen.getByRole('button', { name: 'Import Baud Girl presets file…' }))
     await user.upload(
       await screen.findByLabelText(/Baud Girl presets file/, { selector: 'input' }),
-      makeFm1VaBackupFile('FM-1 presets.syx', { damagedSlots: [5], virtualAnalogSlots: [112] }),
+      makeFm1VaBackupFile('FM-1 presets.syx', {
+        damagedSlots: [5],
+        eightBitSlots: [100],
+        virtualAnalogSlots: [112],
+      }),
     )
 
     expect(await screen.findByRole('region', { name: 'FM1 bank D' })).toBeTruthy()

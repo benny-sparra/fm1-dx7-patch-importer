@@ -562,6 +562,13 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
   - Not CC 85–88: they turn KNOB1–4, which play whatever parameter each knob is assigned on the
     FM1, and the research notes exclude CC 85–119 because their effect depends on device state the
     editor cannot read.
+- [ ] **9. 8-Bit presets.** FM-1_096 added an 8-Bit engine, record byte 18 `C3`
+      (`docs/fm1-research.md`, "FM-1_096"). Since 2026-10-06 the editor recognises one, leaves it
+      out of every import, and never writes over it, so the library has no copy of it. Keeping
+      them would follow item 6's steps: hold the voice bytes and record exactly as read, apart from
+      DX7 voices (a stored shape change for the workspace, saved banks, and backups), show an
+      engine tag, write them back exactly, and keep them out of every DX7 path. Bitcrush, the
+      seventh effect from the same release, could then join item 5's record-only effect settings.
 
 ## Open questions
 

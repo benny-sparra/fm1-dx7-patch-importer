@@ -444,6 +444,34 @@ describe('ImportFm1VaPresetsDialog', () => {
     expect(vi.mocked(importFetchedBanks).mock.calls[0][0][0].sounds[5]).toBeNull()
   })
 
+  it('marks an 8-Bit preset and keeps that slot out of the import', async () => {
+    const { importFetchedBanks, user } = renderDialog()
+    await chooseFile(user, makeFm1VaBackupFile('8-bit.syx', { eightBitSlots: [100, 101] }))
+
+    expect(within(bankSection('D')).getByText(fm1VaTestPatchName(100))).toBeTruthy()
+    expect(within(bankSection('D')).getAllByText('8-Bit')).toHaveLength(2)
+    expect(
+      screen.getByText(
+        '2 presets are 8-Bit, which the library can’t hold yet. Their slots keep their patches.',
+      ),
+    ).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Import 4 banks' }))
+    const bankD = vi.mocked(importFetchedBanks).mock.calls[0][0][3]
+    expect(bankD.sounds.slice(4, 6)).toEqual([null, null])
+  })
+
+  it('names the 8-Bit presets it leaves out in German', async () => {
+    await setLocale('de')
+    const { user } = renderDialog()
+    await chooseFile(user, makeFm1VaBackupFile('8-bit.syx', { eightBitSlots: [100, 101] }))
+
+    expect(
+      screen.getByText(
+        '2 Presets sind 8-Bit-Presets, die die Bibliothek noch nicht aufnehmen kann. Ihre Plätze behalten ihre Sounds.',
+      ),
+    ).toBeTruthy()
+  })
+
   it('marks a Virtual Analog preset and imports it apart from the DX7 voices', async () => {
     const { importFetchedBanks, user } = renderDialog()
     await chooseFile(user, makeFm1VaBackupFile('va.syx', { virtualAnalogSlots: [33] }))
@@ -483,7 +511,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     await chooseFile(user, bank)
 
     expect(screen.getByRole('alert').textContent).toBe(
-      'This file is 4,104 bytes. A file from Baud Girl’s “Save a backup” is exactly 29,568 bytes.',
+      'This file is 4,104 bytes. A presets file from Baud Girl’s “Back up everything” is exactly 29,568 bytes.',
     )
   })
 
@@ -495,7 +523,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     await chooseFile(user, new File([bytes], 'other.syx'))
 
     expect(screen.getByRole('alert').textContent).toBe(
-      'This file was not saved by Baud Girl’s “Save a backup”.',
+      'This isn’t a presets file from Baud Girl’s “Back up everything”.',
     )
   })
 
@@ -506,7 +534,7 @@ describe('ImportFm1VaPresetsDialog', () => {
     await chooseFile(user, makeFm1VaBackupFile('broken.syx', { damagedSlots: everySlot }))
 
     expect(screen.getByRole('alert').textContent).toBe(
-      'No preset in this file could be read. Save a new backup on Baud Girl’s Presets page and try again.',
+      'No preset in this file could be read. Save a new backup in Baud Girl’s Device Manager and try again.',
     )
   })
 

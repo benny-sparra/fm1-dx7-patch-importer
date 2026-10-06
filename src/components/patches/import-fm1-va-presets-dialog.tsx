@@ -81,7 +81,7 @@ type ImportFm1VaPresetsDialogProps = {
   onPlay: (voice: Dx7Voice, effects: Uint8Array) => void
   /**
    * Where the presets come from: read from the FM1, which starts as the dialog opens, or from the
-   * file FM-1+VA's "Save a backup" writes. Each has its own menu item, so neither mode mentions
+   * presets file Baud Girl's Device Manager saves. Each has its own menu item, so neither mode mentions
    * the other.
    */
   source: Fm1VaPresetSource
@@ -187,6 +187,7 @@ export function ImportFm1VaPresetsDialog({
 
   const listFormat = new Intl.ListFormat(i18n.resolvedLanguage, { type: 'conjunction' })
   const damagedCount = countPresets(banks, 'damaged')
+  const eightBitCount = countPresets(banks, 'eight-bit')
   const choiceOf = (bank: Fm1VaPresetBank): BankChoice =>
     choices.get(bank) ?? { destination: bank, imported: false }
   const takenBanks = banks?.filter(({ bank }) => choiceOf(bank).imported) ?? []
@@ -503,6 +504,12 @@ export function ImportFm1VaPresetsDialog({
                     {t('fm1VaImport.damagedPresets', { count: damagedCount })}
                   </p>
                 ) : null}
+                {/* Information: the library cannot hold an 8-Bit preset, so the import leaves it out. */}
+                {eightBitCount > 0 ? (
+                  <p className="text-xs text-[var(--crt-ink-3)]">
+                    {t('fm1VaImport.eightBitPresets', { count: eightBitCount })}
+                  </p>
+                ) : null}
               </div>
               {/* Nothing is replaced until a bank is chosen, so the warning waits for the banks. */}
               <WarningNotice>
@@ -648,6 +655,8 @@ function PresetFileBank({
                   name={preset.name}
                   number={index + 1}
                 />
+              ) : preset.kind === 'eight-bit' ? (
+                <EightBitPresetCell name={preset.name} number={index + 1} />
               ) : (
                 <DamagedPresetCell number={index + 1} />
               )}
@@ -689,6 +698,25 @@ function VirtualAnalogPresetCell({
           <span className="sr-only">{t('fm1VaImport.differingPatch')}</span>
         </>
       ) : null}
+    </span>
+  )
+}
+
+/**
+ * An 8-Bit preset, which the library cannot hold yet, so the import leaves it out and its slot
+ * keeps its patch.
+ */
+function EightBitPresetCell({ name, number }: { name: string; number: number }) {
+  const { t } = useTranslation()
+  return (
+    <span className="patch-cell flex min-h-9 w-full items-center gap-1.5 border border-dashed border-[var(--crt-line)] px-1.5 py-1 text-[var(--crt-ink-3)]">
+      <span className="font-vt323 shrink-0 text-[16px] leading-none">
+        {String(number).padStart(2, '0')}
+      </span>
+      <span className="font-dot-matrix min-w-0 flex-1 truncate text-[13px] font-bold whitespace-pre">
+        {name}
+      </span>
+      <span className="shrink-0 text-xs">{t('fm1VaImport.eightBitPreset')}</span>
     </span>
   )
 }

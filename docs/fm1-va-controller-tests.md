@@ -25,7 +25,7 @@ to store a Virtual Analog preset over the test preset, and §10 puts the test pr
 1. Check the FM1's firmware under **About** at the end of the GLOBE screen, and record the version
    in the ledger (§9). Run on `FM-1_093` or later, or record the differences the manual notes for
    earlier releases.
-2. On the FM-1+VA Presets page, press **Save a backup** and keep the `.syx` file. Close the tab
+2. In FM-1+VA's Device Manager, press **Back up everything** and keep the presets `.syx` file. Close the tab
    afterwards, so it does not hold the FM1's MIDI port.
 3. Keep GLOBE at its defaults: **MIDI Channel** All, **FX Channel** 2, **Ext Ctrl CC7 Vol** On.
 4. Pick the **test preset**: 097 (bank D, slot 1) unless the Virtual Analog preset pack occupies
@@ -137,9 +137,9 @@ when both runs agree.
 
 ## 10. Clean-up
 
-Step PRESETS away from the test preset. If V7 ran, or any preset was saved by mistake, use **Put
-a backup back** on the FM-1+VA Presets page with the §0 file, which rewrites only the presets that
-differ from it. Check that GLOBE's MIDI Channel is All again.
+Step PRESETS away from the test preset. If V7 ran, or any preset was saved by mistake, use **Install
+a backup** in FM-1+VA's Device Manager with the §0 file, then **Send**, which rewrites only the
+presets that differ from it. Check that GLOBE's MIDI Channel is All again.
 
 ## 11. Ledger
 
