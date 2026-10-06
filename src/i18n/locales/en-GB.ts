@@ -151,6 +151,7 @@ export default {
       distortion: 'Distortion',
       chorus: 'Chorus',
       phaser: 'Phaser',
+      bitcrush: 'Bitcrush',
     },
     parameters: {
       depth: 'Depth',
@@ -165,6 +166,8 @@ export default {
       tone: 'Tone',
       level: 'Level',
       frequency: 'Frequency',
+      bits: 'Bits',
+      sampleRate: 'Sample rate',
     },
     options: {
       lowPass: 'Low pass',

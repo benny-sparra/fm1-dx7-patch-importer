@@ -71,6 +71,8 @@ export default {
       'Adds saturation and extra harmonics. It can make quiet sounds denser or aggressive sounds more intense.',
     Chorus: 'Adds slightly shifted copies of the sound for width and movement.',
     Phaser: 'Sweeps a series of notches through the sound, creating a hollow, moving character.',
+    Bitcrush:
+      'Rounds the sound to fewer levels and samples it less often, for a gritty, lo-fi edge. Only Baud Girl’s firmware from FM-1_096 plays it. No MIDI message sets it, so you hear it once the patch is written to the FM1 with Send to FM1 or Write patches to the FM1.',
   },
   effectParameterHelp: {
     'Filter Type':
@@ -101,6 +103,12 @@ export default {
     'Phaser Frequency': 'Sets how quickly the phaser sweep cycles, from about 0.5 to 6 Hz.',
     'Phaser Depth': 'Sets the range and intensity of the phaser sweep.',
     'Phaser Mix': 'Balances dry sound with the phased signal.',
+    'Bitcrush Bits':
+      'Sets how many levels the wave is rounded to, from 16, which is clean, down to 1. A quiet patch can drop out at the lowest settings.',
+    'Bitcrush Sample Rate':
+      'Sets how often the sound is sampled, from 300 Hz up to 44.1 kHz. Lower rates add harsh, metallic overtones.',
+    'Bitcrush Mix':
+      'Balances the clean sound with the crushed one. At 0% you hear only the original sound.',
   },
   distortionType: {
     softClip: 'Soft Clip',
@@ -111,5 +119,13 @@ export default {
       'This patch didn’t come from the FM1, so it takes the type of the preset it’s written over.',
     otherFirmware:
       'Kept for Baud Girl’s firmware: {{type}}. This FM1 plays its own distortion instead.',
+  },
+  bitcrush: {
+    hertz: '{{value}}Hz',
+    kilohertz: '{{value}}k',
+    noRecord:
+      'This patch didn’t come from the FM1, so it takes the Bitcrush of the preset it’s written over.',
+    otherFirmware:
+      'Kept for Baud Girl’s firmware from FM-1_096: Bitcrush is on. This FM1 doesn’t play it.',
   },
 }

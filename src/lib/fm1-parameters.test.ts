@@ -10,6 +10,7 @@ import {
   FM1_GLOBAL_PARAMETER_START,
   FM1_OPERATOR_COUNT,
   FM1_OPERATOR_PARAMETER_COUNT,
+  FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
@@ -51,9 +52,10 @@ describe('FM1 parameter schema', () => {
     expect(FM1_VOICE_PARAMETER_COUNT).toBe(155)
     expect(FM1_EFFECT_PARAMETER_START).toBe(155)
     expect(FM1_EFFECT_PARAMETER_COUNT).toBe(24)
-    // The last place holds FM-1+VA's Distortion type, which no MIDI message sends.
+    // The last places hold FM-1+VA's Distortion type and Bitcrush, which no MIDI message sends.
     expect(FM1_VA_DISTORTION_TYPE_INDEX).toBe(179)
-    expect(FM1_EDITOR_PARAMETER_COUNT).toBe(180)
+    expect(FM1_VA_BITCRUSH_START).toBe(180)
+    expect(FM1_EDITOR_PARAMETER_COUNT).toBe(184)
     expect(fm1EffectParameters.map(({ editorIndex }) => editorIndex)).toEqual([
       155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
       174, 175, 176, 177, 178,

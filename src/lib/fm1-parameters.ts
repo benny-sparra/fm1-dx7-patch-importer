@@ -14,7 +14,15 @@ export const DX7_TRANSPOSE_C3 = 24
  * message sends it.
  */
 export const FM1_VA_DISTORTION_TYPE_INDEX = FM1_EFFECT_PARAMETER_START + FM1_EFFECT_PARAMETER_COUNT
-export const FM1_EDITOR_PARAMETER_COUNT = FM1_VA_DISTORTION_TYPE_INDEX + 1
+/**
+ * FM-1+VA's Bitcrush, from FM-1_096, which also only a preset write carries: its switch, Bits,
+ * Sample Rate, and Mix, after the Distortion type, so undo and compare cover them too
+ * (docs/fm1-research.md, "FM-1_096").
+ */
+export const FM1_VA_BITCRUSH_START = FM1_VA_DISTORTION_TYPE_INDEX + 1
+/** Bitcrush as a preset that never set it plays it: Off, at Bits 8, Sample Rate 72, and Mix 100. */
+export const FM1_VA_BITCRUSH_DEFAULTS: readonly number[] = [0, 8, 72, 100]
+export const FM1_EDITOR_PARAMETER_COUNT = FM1_VA_BITCRUSH_START + FM1_VA_BITCRUSH_DEFAULTS.length
 
 type ValueKind = 'continuous' | 'enumerated' | 'switch'
 

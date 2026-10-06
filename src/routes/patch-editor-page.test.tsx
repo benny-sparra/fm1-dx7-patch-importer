@@ -1282,3 +1282,88 @@ describe('PatchEditorPage Distortion type on Baud Girl’s firmware', () => {
     await setLocale('en-GB')
   })
 })
+
+const bitcrushFirmware: Fm1Firmware = { identity: 'FM-1_096', kind: 'fm1-va' }
+const bitcrushSlider = (name: string) =>
+  screen.getByRole<HTMLInputElement>('slider', { name: `Bitcrush ${name}` })
+
+describe('PatchEditorPage Bitcrush on Baud Girl’s FM-1_096', () => {
+  it('offers Bitcrush from FM-1_096, Off at its defaults for a record that never set it', () => {
+    renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    expect(screen.getByRole<HTMLInputElement>('switch', { name: 'Bitcrush' }).checked).toBe(false)
+    expect(bitcrushSlider('Bits').value).toBe('8')
+    expect(bitcrushSlider('Sample rate').getAttribute('aria-valuetext')).toBe('10.9k')
+    expect(bitcrushSlider('Mix').value).toBe('100')
+  })
+
+  it('offers no Bitcrush before FM-1_096', () => {
+    renderWithRecord(baudGirl, hardClipRecord)
+
+    expect(screen.queryByRole('switch', { name: 'Bitcrush' })).toBeNull()
+  })
+
+  it('saves Bitcrush into the record as the FM1 stores it, changing nothing else', async () => {
+    const { onSave, user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    await user.click(screen.getByRole('switch', { name: 'Bitcrush' }))
+    fireEvent.change(bitcrushSlider('Bits'), { target: { value: '4' } })
+    await user.click(screen.getByRole('button', { name: 'Save to library' }))
+
+    const record: Uint8Array = onSave.mock.calls[0][2]
+    const changed = Array.from(record.keys()).filter((i) => record[i] !== hardClipRecord[i])
+    expect(changed).toEqual([5, 35, 41, 44])
+    // Marked set and on, in its place after the Distortion, with Bits 4 and the other defaults.
+    expect(record[5] & 0xf8).toBe(0x88)
+    expect([record[35], record[41], record[44]]).toEqual([4, 72, 100])
+  })
+
+  it('undoes a held arrow key on a Bitcrush slider as a single step', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+    await user.click(screen.getByRole('switch', { name: 'Bitcrush' }))
+    const mix = bitcrushSlider('Mix')
+
+    fireEvent.keyDown(mix, { key: 'ArrowLeft' })
+    fireEvent.change(mix, { target: { value: '99' } })
+    fireEvent.keyDown(mix, { key: 'ArrowLeft', repeat: true })
+    fireEvent.change(mix, { target: { value: '98' } })
+    fireEvent.keyUp(mix, { key: 'ArrowLeft' })
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+
+    expect(bitcrushSlider('Mix').value).toBe('100')
+    expect(screen.getByRole<HTMLInputElement>('switch', { name: 'Bitcrush' }).checked).toBe(true)
+  })
+
+  it('cannot set Bitcrush for a patch without a record, and says why', () => {
+    renderWithRecord(bitcrushFirmware)
+
+    expect(screen.getByRole<HTMLInputElement>('switch', { name: 'Bitcrush' }).disabled).toBe(true)
+    expect(
+      screen.getByText(
+        'This patch didn’t come from the FM1, so it takes the Bitcrush of the preset it’s written over.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('says when a patch keeps Bitcrush on for firmware that does not play it', () => {
+    const record = hardClipRecord.slice()
+    record[5] = 0x8c
+    renderWithRecord(baudGirl, record)
+
+    expect(
+      screen.getByText(
+        'Kept for Baud Girl’s firmware from FM-1_096: Bitcrush is on. This FM1 doesn’t play it.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('shows the Sample Rate in the interface language', async () => {
+    await setLocale('de')
+    renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    expect(
+      screen.getByRole('slider', { name: 'Bitcrush Abtastrate' }).getAttribute('aria-valuetext'),
+    ).toBe('10,9k')
+    await setLocale('en-GB')
+  })
+})

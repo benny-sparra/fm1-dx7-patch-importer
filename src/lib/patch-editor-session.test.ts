@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   FM1_EDITOR_PARAMETER_COUNT,
+  FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VOICE_NAME_START,
 } from '@/lib/fm1-parameters'
@@ -146,9 +147,46 @@ describe('PatchEditorSession', () => {
     expect(midi.sendParameter).not.toHaveBeenCalled()
     expect(midi.sendEffectParameter).not.toHaveBeenCalled()
     session.save(store)
-    expect(store).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1)
+    expect(store).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ distortionType: 1 }),
+    )
     session.undo()
     expect(displayedParameters(session.getState())[FM1_VA_DISTORTION_TYPE_INDEX]).toBe(0)
+  })
+
+  it('sets a Bitcrush setting dragged in one gesture as one undo step, sends nothing, and saves it', async () => {
+    const { midi, session } = await openLiveSession()
+    const store = vi.fn()
+
+    session.beginGesture()
+    session.setBitcrushSetting(1, 6, 1, 16)
+    session.setBitcrushSetting(1, 4, 1, 16)
+    session.endGesture()
+    session.setBitcrushSetting(0, 1, 0, 1)
+
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+    expect(midi.sendEffectParameter).not.toHaveBeenCalled()
+    session.save(store)
+    expect(store).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ bitcrush: [1, 4, 0, 0] }),
+    )
+    session.undo()
+    session.undo()
+    expect(
+      Array.from(displayedParameters(session.getState()).subarray(FM1_VA_BITCRUSH_START)),
+    ).toEqual([0, 0, 0, 0])
+  })
+
+  it('keeps a Bitcrush setting within its range', async () => {
+    const { session } = await openLiveSession()
+
+    session.setBitcrushSetting(1, 40, 1, 16)
+
+    expect(displayedParameters(session.getState())[FM1_VA_BITCRUSH_START + 1]).toBe(16)
   })
 })
 

@@ -288,8 +288,9 @@ change on the FM1, stored with SAVE.
 | That Filter's Cutoff turned from 20 kHz, its maximum, to 5 kHz                                                                                                                | 001 (FM, ORGAN 3) | 23: `03` → `D0` (208)                                                                             | Once, FM-1_093, 2026-10-03                                |
 | That Filter turned back Off                                                                                                                                                   | 001 (FM, ORGAN 3) | 26: `90` → `80`                                                                                   | Once, FM-1_093, 2026-10-03                                |
 
-**Bytes 27–44 interleave two lists. Confirmed for the first two positions (seen once) and the
-Filter's switch (two presets, one of each engine).** Byte 27 + 3*k* names the effect in position _k_ of the chain, top of the FX screen first,
+**Bytes 27–44 interleave two lists. Confirmed for every position and every effect number on
+`FM-1_096` (below, "FM-1_096"), and for the first two positions and the Filter's switch on
+`FM-1_093`.** Byte 27 + 3*k* names the effect in position _k_ of the chain, top of the FX screen first,
 where `00` is Filter and `01` is Reverb; the other four presumably follow the FX screen's own order
 (Delay, Distortion, Chorus, Phaser). Byte 28 + 3*e* is the switch of effect _e_, wherever the effect
 sits: moving the Filter below Reverb swapped bytes 27 and 30 and left byte 28 on, and the FX screen
@@ -545,12 +546,22 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
   treats `C3` as 8-Bit (`src/lib/fm1-va-engine.ts`): reading and importing leave an 8-Bit preset
   out, a write never replaces one, and a library patch whose record carries `C3`, which a read on
   `FM-1_096` gave the library before the editor knew the engine, is never written.
-- **Bitcrush** lives in bytes the editor never writes: byte 5, `80` marking it set, its switch in
-  bit 3 and its place among the seven in bits 0–2; Bits in byte 35, Sample Rate in 41, and Mix in
-  44, the unused type bytes of Delay, Chorus, and Phaser. Without the `80` marker a preset has
-  Bitcrush Off after the Distortion, at Bits 8, Sample Rate 72 (about 10.9 kHz), and Mix 100. It has
-  no effect controller on the FX Channel; CC 85–88 reach it only through its knob bank, and the
-  editor never sends them.
+- **Bitcrush and the order of seven effects. Confirmed, seen once** (FM-1_096, 2026-10-06, preset
+  032;
+  [`docs/hardware-runs/fm1-va-bitcrush-order-2026-10-06.md`](hardware-runs/fm1-va-bitcrush-order-2026-10-06.md)).
+  Byte 5 is Bitcrush's: `80` marks it set, `08` is its switch, and bits 0–2 are its place among the
+  seven rows of the Effects list, top first. Its Bits are byte 35 (1–16), Sample Rate byte 41 (0
+  for 300 Hz to 100 for 44.1 kHz, Hz = 300 × (44118 / 300)^(v / 100); 73 showed as 11.5k), and Mix
+  byte 44 (0–100): the unused type bytes of Delay, Chorus, and Phaser. Without the `80` marker, as
+  in an erased preset's `03`, a preset has Bitcrush Off after the Distortion, at Bits 8, Sample
+  Rate 72 (about 10.9 kHz), and Mix 100, and the first edit writes the marker and all three. The
+  six chain bytes, 27 + 3*k*, list the other six effects top to bottom without Bitcrush: moving
+  Bitcrush changed only byte 5, and moving another effect only the chain. The effects are numbered
+  0 Filter, 1 Reverb, 2 Delay, 3 Distortion, 4 Chorus, 5 Phaser, and each switch follows its
+  effect wherever it sits. Bitcrush has no effect controller on the FX Channel; CC 85–88 reach it
+  only through its knob bank, and the editor never sends them. From FM-1_096 the editor's effects
+  panel sets Bitcrush in a patch with a record, written into these bytes by
+  `fm1VaRecordWithBitcrush` and heard once the patch is written to the FM1.
 - **Knob choices** are bits 0–5 of bytes 53 (knobs 1 and 2) and 52 (knobs 3 and 4), with bit 7
   marking them set; Envelope On stays bit 6 of byte 53. The 8-Bit Drums Level is byte 2, stored as
   `80` | (99 − level). Where an FM or Virtual Analog preset keeps Preset Level was not found; byte 2

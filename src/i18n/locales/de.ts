@@ -122,6 +122,8 @@ export default {
     Chorus: 'Fügt leicht verschobene Kopien des Klangs hinzu, für Breite und Bewegung.',
     Phaser:
       'Lässt eine Reihe von Kerben durch den Klang wandern und erzeugt einen hohlen, bewegten Charakter.',
+    Bitcrush:
+      'Rundet den Klang auf weniger Stufen und tastet ihn seltener ab, für einen körnigen Lo-Fi-Charakter. Nur die Firmware von Baud Girl ab FM-1_096 spielt ihn. Keine MIDI-Nachricht stellt ihn ein, daher hörst du ihn erst, wenn der Sound mit „An FM1 senden“ oder „Sounds auf den FM1 schreiben“ auf den FM1 geschrieben ist.',
   },
   effectParameterHelp: {
     'Filter Type':
@@ -153,6 +155,12 @@ export default {
     'Phaser Frequency': 'Legt fest, wie schnell der Phaser-Sweep schwingt, von etwa 0,5 bis 6 Hz.',
     'Phaser Depth': 'Legt Umfang und Intensität des Phaser-Sweeps fest.',
     'Phaser Mix': 'Mischt trockenes Signal und Phaser-Signal.',
+    'Bitcrush Bits':
+      'Legt fest, auf wie viele Stufen die Welle gerundet wird, von 16, das sauber klingt, bis 1. Ein leiser Sound kann bei den niedrigsten Werten verstummen.',
+    'Bitcrush Sample Rate':
+      'Legt fest, wie oft der Klang abgetastet wird, von 300 Hz bis 44,1 kHz. Niedrige Raten fügen raue, metallische Obertöne hinzu.',
+    'Bitcrush Mix':
+      'Mischt den sauberen Klang mit dem zerkleinerten. Bei 0 % hörst du nur den ursprünglichen Klang.',
   },
   distortionType: {
     softClip: 'Weiches Clipping',
@@ -163,6 +171,14 @@ export default {
       'Dieser Sound stammt nicht vom FM1 und übernimmt daher den Typ des Presets, über das er geschrieben wird.',
     otherFirmware:
       'Für die Firmware von Baud Girl gespeichert: {{type}}. Dieser FM1 spielt stattdessen seine eigene Verzerrung.',
+  },
+  bitcrush: {
+    hertz: '{{value}}Hz',
+    kilohertz: '{{value}}k',
+    noRecord:
+      'Dieser Sound stammt nicht vom FM1 und übernimmt daher den Bitcrush des Presets, über das er geschrieben wird.',
+    otherFirmware:
+      'Für die Firmware von Baud Girl ab FM-1_096 gespeichert: Bitcrush ist an. Dieser FM1 spielt ihn nicht.',
   },
   ui: {
     auditionGroup: 'Operator {{number}} vorhören',
@@ -273,6 +289,7 @@ export default {
       distortion: 'Verzerrung',
       chorus: 'Chorus',
       phaser: 'Phaser',
+      bitcrush: 'Bitcrush',
     },
     parameters: {
       depth: 'Tiefe',
@@ -287,6 +304,8 @@ export default {
       tone: 'Klang',
       level: 'Pegel',
       frequency: 'Frequenz',
+      bits: 'Bits',
+      sampleRate: 'Abtastrate',
     },
     options: {
       lowPass: 'Tiefpass',

@@ -96,6 +96,8 @@ export default {
     Distortion: '加入饱和与额外谐波，可使较轻的声音更饱满，也可使强烈的声音更具冲击力。',
     Chorus: '加入轻微移调的声音副本，营造宽度和动态感。',
     Phaser: '让一系列频率凹口扫过声音，产生空洞而流动的音色。',
+    Bitcrush:
+      '把声音量化为更少的级数并降低采样频率，带来粗糙的低保真质感。只有 Baud Girl 固件 FM-1_096 及更高版本会播放它。没有 MIDI 消息能设置它，因此要用“发送到 FM1”或“将音色写入 FM1”把音色写入 FM1 后才能听到。',
   },
   effectParameterHelp: {
     'Filter Type': '选择滤波器保留的频段：低通保留低频，高通保留高频，带通保留中间频段。',
@@ -119,6 +121,10 @@ export default {
     'Phaser Frequency': '设置移相器扫频的循环速度，约为 0.5 至 6 Hz。',
     'Phaser Depth': '设置移相器扫频的范围和强度。',
     'Phaser Mix': '平衡原声与移相处理后的信号。',
+    'Bitcrush Bits': '设置波形被量化的级数，从清晰的 16 到 1。较安静的音色在最低设置下可能听不见。',
+    'Bitcrush Sample Rate':
+      '设置声音的采样频率，从 300 Hz 到 44.1 kHz。较低的采样率会加入刺耳的金属感泛音。',
+    'Bitcrush Mix': '平衡干净声音与粉碎后的声音。为 0% 时只能听到原始声音。',
   },
   distortionType: {
     softClip: '软削波',
@@ -127,6 +133,12 @@ export default {
     unknown: '未知（{{value, number}}）',
     noRecord: '此音色并非来自 FM1，因此会沿用被它覆盖的预设的类型。',
     otherFirmware: '为 Baud Girl 固件保留：{{type}}。此 FM1 会改用自己的失真。',
+  },
+  bitcrush: {
+    hertz: '{{value}}Hz',
+    kilohertz: '{{value}}k',
+    noRecord: '此音色并非来自 FM1，因此会沿用被它覆盖的预设的比特粉碎设置。',
+    otherFirmware: '为 Baud Girl 固件 FM-1_096 及更高版本保留：比特粉碎已开启。此 FM1 不会播放它。',
   },
   ui: {
     auditionGroup: '试听操作器 {{number}}',
@@ -233,6 +245,7 @@ export default {
       distortion: '失真',
       chorus: '合唱',
       phaser: '移相器',
+      bitcrush: '比特粉碎',
     },
     parameters: {
       depth: '深度',
@@ -247,6 +260,8 @@ export default {
       tone: '音色',
       level: '电平',
       frequency: '频率',
+      bits: '位数',
+      sampleRate: '采样率',
     },
     options: {
       lowPass: '低通',

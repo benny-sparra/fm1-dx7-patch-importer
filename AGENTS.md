@@ -574,6 +574,15 @@ open everything an earlier release could have saved.
   the FM1. The effects panel offers it only while `hasFm1VaPresetCommands` allows the preset
   write, disabled for a patch without a record, which never gains one; on other firmware it names
   a type other than Soft Clip that the patch keeps. Sound starters leave it as it is.
+- Bitcrush, FM-1_096's seventh effect, is kept the same way: its switch, Bits, Sample Rate, and Mix
+  follow the Distortion type in the editor's parameters (`FM1_VA_BITCRUSH_START`), and saving
+  writes record bytes 5, 35, 41, and 44 through `fm1VaRecordWithBitcrush`. That leaves a record
+  whose Bitcrush the editor did not change exactly as it was, so a record that never set it keeps
+  its `03`; setting it marks it set and writes all three settings, as the FM1 does, keeping its
+  place or putting it after the Distortion. The effects panel offers it only while
+  `playsFm1VaBitcrush` allows (FM-1+VA from `FM-1_096`), disabled for a patch without a record; on
+  other firmware it says when the patch keeps Bitcrush on. It has no FX Channel controller, so it is
+  heard only once the patch is written to the FM1.
 - **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
   `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.

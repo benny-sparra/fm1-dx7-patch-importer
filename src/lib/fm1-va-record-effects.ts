@@ -1,4 +1,6 @@
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
+import type { Fm1Firmware } from '@/lib/fm1-firmware'
+import { FM1_VA_BITCRUSH_DEFAULTS } from '@/lib/fm1-parameters'
 
 const effectCount = 6
 
@@ -73,4 +75,94 @@ export function fm1VaRecordWithDistortionType(record: Uint8Array, type: number) 
   const updated = record.slice()
   updated[distortionTypeByte] = type
   return updated
+}
+
+/** FM-1_096, the FM-1+VA release that added Bitcrush. */
+const firstBitcrushRelease = 96
+
+/** Whether the FM1 runs FM-1+VA from the release that plays Bitcrush. */
+export function playsFm1VaBitcrush(firmware: Fm1Firmware) {
+  // `classifyFm1Firmware` names firmware FM-1+VA only for an `FM-1_NNN` identity.
+  if (firmware.kind !== 'fm1-va') return false
+  return Number(firmware.identity.slice('FM-1_'.length)) >= firstBitcrushRelease
+}
+
+/**
+ * Bitcrush's own record byte (docs/fm1-research.md, "FM-1_096"): `80` once it has been set, `08`
+ * while it is on, and its place among the seven rows of the Effects list in bits 0–2. Its Bits,
+ * Sample Rate, and Mix take the unused type bytes of Delay, Chorus, and Phaser.
+ */
+const bitcrushByte = 5
+const bitcrushSet = 0x80
+const bitcrushOn = 0x08
+const bitcrushPlaceBits = 0x07
+const bitcrushSettingBytes = [35, 41, 44] as const
+
+/** Bitcrush's settings in the editor's order: switch, Bits, Sample Rate, and Mix. */
+export const fm1VaBitcrushSettings = [
+  { id: 'enabled', max: 1, min: 0 },
+  { id: 'bits', max: 16, min: 1 },
+  { id: 'sampleRate', max: 100, min: 0 },
+  { id: 'mix', max: 100, min: 0 },
+] as const
+
+/** The chain bytes, 27 + 3k, which list the six effects other than Bitcrush top to bottom. */
+const chainBytes = [27, 30, 33, 36, 39, 42] as const
+const distortion = 3
+
+/**
+ * Where a preset that never set Bitcrush plays it: straight after the Distortion, counted among
+ * all seven rows. A chain that is not the six effects once each plays in the stock order.
+ */
+function placeAfterDistortion(record: Uint8Array) {
+  const chain = chainBytes.map((byte) => record[byte])
+  const valid = [...chain]
+    .sort((first, second) => first - second)
+    .every((effect, index) => effect === index)
+  return (valid ? chain.indexOf(distortion) : distortion) + 1
+}
+
+/**
+ * Bitcrush as the record holds it, in the editor's order: switch (0 or 1), Bits, Sample Rate, and
+ * Mix. A record that never set it, as before FM-1_096, holds it Off at its defaults, and a value
+ * out of its range is brought into it.
+ */
+export function fm1VaRecordBitcrush(record: Uint8Array): number[] {
+  if (!(record[bitcrushByte] & bitcrushSet)) return [...FM1_VA_BITCRUSH_DEFAULTS]
+  const values = [
+    record[bitcrushByte] & bitcrushOn ? 1 : 0,
+    ...bitcrushSettingBytes.map((byte) => record[byte]),
+  ]
+  return values.map((value, index) => {
+    const { max, min } = fm1VaBitcrushSettings[index]
+    return Math.max(min, Math.min(max, value))
+  })
+}
+
+/**
+ * A copy of `record` holding `bitcrush`, in the editor's order. A record whose Bitcrush already
+ * reads as `bitcrush` is returned as it was, so a patch whose Bitcrush was never touched keeps a
+ * record that never set it. Setting it marks it set and writes all three settings, as the FM1 does
+ * on the first edit, keeping its place, or putting it after the Distortion where it had none.
+ */
+export function fm1VaRecordWithBitcrush(record: Uint8Array, bitcrush: readonly number[]) {
+  const current = fm1VaRecordBitcrush(record)
+  if (current.every((value, index) => value === bitcrush[index])) return record
+  const updated = record.slice()
+  const place =
+    record[bitcrushByte] & bitcrushSet
+      ? record[bitcrushByte] & bitcrushPlaceBits
+      : placeAfterDistortion(record)
+  const [enabled, ...settings] = bitcrush
+  updated[bitcrushByte] = bitcrushSet | (enabled ? bitcrushOn : 0) | place
+  bitcrushSettingBytes.forEach((byte, index) => {
+    const { max, min } = fm1VaBitcrushSettings[index + 1]
+    updated[byte] = Math.max(min, Math.min(max, Math.round(settings[index])))
+  })
+  return updated
+}
+
+/** Bitcrush's Sample Rate setting, 0 to 100, in hertz: 300 Hz at 0 to 44.1 kHz at 100. */
+export function fm1VaBitcrushSampleRateHz(value: number) {
+  return 300 * (44118 / 300) ** (value / 100)
 }

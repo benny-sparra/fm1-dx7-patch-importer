@@ -450,7 +450,10 @@ Suggested order: 1 needs no new command; 2 underpins 3 to 6.
       FM-1+VA from FM-1_079, for a patch with a record, and saving writes record byte 38; it is
       heard once the patch is written. A patch without a record cannot keep one, and on other
       firmware a type other than Soft Clip is named under Distortion. Foldback's `02` was read from
-      the FM1 on 2026-10-04. Effect order waits for its bytes to be mapped.
+      the FM1 on 2026-10-04. _Bitcrush built 2026-10-06:_ FM-1_096's seventh effect, mapped on
+      hardware the same day (`docs/hardware-runs/fm1-va-bitcrush-order-2026-10-06.md`), has its own
+      box in the effects panel from FM-1_096, written into record bytes 5, 35, 41, and 44. Effect
+      order is mapped too, for all seven effects, and is next.
 - [ ] **6. Virtual Analog presets.** Built in steps, each shippable:
   - **Keep them.** A slot whose record is marked Virtual Analog shows as such, survives import,
     backup, and copy unchanged, and is left out of DX7 `.syx` export with an explanation,

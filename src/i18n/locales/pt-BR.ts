@@ -117,6 +117,8 @@ export default {
       'Adiciona saturação e harmônicos extras. Pode deixar sons suaves mais densos ou sons agressivos mais intensos.',
     Chorus: 'Adiciona cópias levemente deslocadas do som para dar amplitude e movimento.',
     Phaser: 'Varre uma série de entalhes pelo som, criando um caráter oco e em movimento.',
+    Bitcrush:
+      'Arredonda o som para menos níveis e o amostra com menos frequência, para um caráter granulado e lo-fi. Só o firmware da Baud Girl a partir do FM-1_096 o toca. Nenhuma mensagem MIDI o define, então ele é ouvido quando o som é gravado no FM1 com Enviar ao FM1 ou Gravar sons no FM1.',
   },
   effectParameterHelp: {
     'Filter Type':
@@ -149,6 +151,11 @@ export default {
       'Define a velocidade de ciclo da varredura do phaser, de cerca de 0,5 a 6 Hz.',
     'Phaser Depth': 'Define a amplitude e a intensidade da varredura do phaser.',
     'Phaser Mix': 'Equilibra o som seco e o sinal com phaser.',
+    'Bitcrush Bits':
+      'Define para quantos níveis a onda é arredondada, de 16, que soa limpo, até 1. Um som baixo pode sumir nos valores mais baixos.',
+    'Bitcrush Sample Rate':
+      'Define com que frequência o som é amostrado, de 300 Hz a 44,1 kHz. Taxas baixas acrescentam harmônicos ásperos e metálicos.',
+    'Bitcrush Mix': 'Equilibra o som limpo com o triturado. Em 0% você ouve só o som original.',
   },
   distortionType: {
     softClip: 'Clipagem suave',
@@ -158,6 +165,13 @@ export default {
     noRecord: 'Este som não veio do FM1, então usa o tipo do preset sobre o qual for gravado.',
     otherFirmware:
       'Guardado para o firmware da Baud Girl: {{type}}. Este FM1 usa a própria distorção no lugar.',
+  },
+  bitcrush: {
+    hertz: '{{value}}Hz',
+    kilohertz: '{{value}}k',
+    noRecord: 'Este som não veio do FM1, então usa o Bitcrush do preset sobre o qual for gravado.',
+    otherFirmware:
+      'Guardado para o firmware da Baud Girl a partir do FM-1_096: o Bitcrush está ligado. Este FM1 não o toca.',
   },
   ui: {
     auditionGroup: 'Audição do operador {{number}}',
@@ -264,6 +278,7 @@ export default {
       distortion: 'Distorção',
       chorus: 'Chorus',
       phaser: 'Phaser',
+      bitcrush: 'Bitcrush',
     },
     parameters: {
       depth: 'Profundidade',
@@ -278,6 +293,8 @@ export default {
       tone: 'Timbre',
       level: 'Nível',
       frequency: 'Frequência',
+      bits: 'Bits',
+      sampleRate: 'Amostragem',
     },
     options: {
       lowPass: 'Passa-baixas',
