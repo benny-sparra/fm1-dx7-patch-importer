@@ -380,6 +380,44 @@ then `85`, HP `87`, and Key Tracking 100 `8F`. Bit 7 stays set, as it does in an
 Filter has been switched (above); what it means is still not known. Sending Saw, or Detune 50,
 changed nothing, because a new preset already holds them.
 
+**Every row of a Virtual Analog preset. Likely** (Baud Girl's Device Manager, app build
+`8405c164d16df69a`, `app/editmodel.js` and `fm1preset.js`, read 2026-10-06). Its edit model
+says it reads each row from the firmware's own row tables (`ui_screens.cpp` `k_vat`, `k_vaosc`,
+`k_vafilt`, `k_lfo`) and checks them in its own tests. It agrees with every byte mapped above,
+and explains the FM Filter's Cutoff: `D0` is `80` | 80, which the firmware's table shows as
+5.0k, the 5 kHz it was set to. Bit 7 of byte 26 and of the filter's other bytes marks the
+setting as set: without it, the row reads its default. Voice bytes are the packed voice's, with
+the operator FM-1+VA calls 6 stored first.
+
+| Where         | Row                  | Stored as                                                                                                | Default without the mark |
+| ------------- | -------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------ |
+| Record 19     | Waveform             | Sine `01`, Saw `02`, Triangle `03`, Square `04`                                                          | Saw                      |
+| Record 20     | Super                | 0–100                                                                                                    | 0 above 100              |
+| Record 21     | Detune               | 0–100                                                                                                    | 50 above 100             |
+| Record 22     | Drift                | 0–100                                                                                                    | 0 above 100              |
+| Record 45     | Sub                  | `80` \| 0–100                                                                                            | 0                        |
+| Record 46     | Noise                | `80` \| 0–100                                                                                            | 0                        |
+| Record 48     | PWM                  | `80` \| 0–100                                                                                            | 0                        |
+| Record 26     | Filter Type, Key Tr. | `80` \| Type in bits 0–1, Key Tracking in bits 2–3                                                       | LP12, 0                  |
+| Record 23     | Cutoff               | `80` \| 0–100, shown from the firmware's table, 20 Hz to 20k                                             | 100 (20k)                |
+| Record 24     | Resonance            | `80` \| 0–100                                                                                            | 0                        |
+| Record 25     | Filter Envelope      | `80` \| 0–100                                                                                            | 0                        |
+| Record 51     | Filter Decay         | `80` \| 0–100                                                                                            | 0                        |
+| Record 49     | Filter Shape         | `80` \| 0–100                                                                                            | 0                        |
+| Record 47     | Filter Velocity      | `80` \| 0–100                                                                                            | 0                        |
+| Record 50     | LFO to Cutoff        | `80` \| 0–100                                                                                            | 0                        |
+| Voice 14      | Level                | 0–99, operator 6's Output Level                                                                          |                          |
+| Voice 13      | Velocity to Level    | 0–7 in bits 2–4, operator 6's Key Velocity                                                               |                          |
+| Record 58     | Mono                 | `00` Off, `01` On                                                                                        |                          |
+| Voice 116     | LFO Wave, Sync, PMS  | Sync bit 0, Wave bits 1–3 (Triangle, Saw Down, Saw Up, Square, Sine, S&Hold), Pitch Sensitivity bits 4–6 |                          |
+| Voice 112–115 | LFO                  | Speed, Delay, Pitch Mod Depth, Amp Mod Depth, 0–99                                                       |                          |
+| Record 53     | Envelope On          | Bit 6                                                                                                    | Off                      |
+| Record 54–57  | Attack to Release    | 0–100                                                                                                    |                          |
+
+The Device Manager also gives operator 6's four rates and levels as the amplitude envelope of
+every note, rows the FM1 itself does not show. The editor leaves them, and the other operators'
+bytes, as read. Hardware checks: [`docs/fm1-va-editor-tests.md`](fm1-va-editor-tests.md).
+
 **Mapping the record.** A development build (`npm run dev`) has an **FM-1+VA preset probe (dev)**
 in the footer. It reads one preset and shows its record and voice byte by byte, marking each byte
 that changed since that preset's last read, and **Copy capture** puts the reply, both parts, and
