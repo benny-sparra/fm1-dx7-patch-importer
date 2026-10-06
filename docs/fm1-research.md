@@ -527,7 +527,8 @@ Presets page was replaced by a Device Manager (`/work/FM-1+VA/device-manager`; t
 redirects there), whose **Back up everything** saves the presets file and a separate patterns file.
 Sources: the manual, the modules the Device Manager loads (app build `8405c164d16df69a`), and the
 two preset packs it installs. **Likely** throughout, since none of it has been checked on hardware
-yet; the 8-Bit marker and record size are also seen in the pack files.
+yet; the 8-Bit marker and record size are also seen in the pack files. The hardware checks are planned in
+[`docs/fm1-va-096-tests.md`](fm1-va-096-tests.md).
 
 - **Unchanged.** The preset read and write keep their layout and sizes: a 59-byte record, a
   187-byte read reply, a 231-byte write, no version byte, and no new preset command. The presets
