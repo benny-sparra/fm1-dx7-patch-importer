@@ -4,7 +4,7 @@
 **Execution status:** V1–V26 run 2026-10-07 on `FM-1_096`, preset 032, through the development
 probe over USB. Every step changed exactly the bytes expected and nothing else, and the Envelope
 switched itself On at V15. Map: [`fm1-va-editor-map-2026-10-07.json`](hardware-runs/fm1-va-editor-map-2026-10-07.json).
-V27 not run.
+V27 run the same day, with Shape set by CC 54 so each picture's value is known.
 **Scope:** whether a Virtual Analog preset stores each row where `docs/fm1-research.md`, "Every
 row of a Virtual Analog preset", says it does (**Confirmed** by this run, from Baud Girl's code).
 The editor's Virtual Analog page reads and writes those bytes.

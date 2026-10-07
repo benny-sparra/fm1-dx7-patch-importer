@@ -424,6 +424,19 @@ gives and nothing else. CC value 127 stored 100 (`64`, or `E4` with the mark) in
 99 (`63`) in a voice row, and CC 74 at 0 stored `80`. The three LFO rows in voice 116 each moved
 only their own bits.
 
+**How the FM1 draws Filter Shape. Seen once** (`FM-1_096`, 2026-10-07, V27, preset 032 with
+Filter Envelope 100 and Filter Decay 50, Shape sent as CC 54 and photographed, not saved). The
+Shape row shows a small picture rather than a number:
+
+| Shape | CC 54 | Picture                                       |
+| ----: | ----: | --------------------------------------------- |
+|     0 |     0 | Straight up, flat top, straight down: a block |
+|    50 |    64 | Slope up, flat top, straight down             |
+|   100 |   127 | Straight up, flat top, slope down             |
+
+Values between these were not photographed, so how the picture moves from one to the next, and
+what it does to the sound, is not known yet. The editor does not draw it.
+
 **Mapping the record.** A development build (`npm run dev`) has an **FM-1+VA preset probe (dev)**
 in the footer. It reads one preset and shows its record and voice byte by byte, marking each byte
 that changed since that preset's last read, and **Copy capture** puts the reply, both parts, and
