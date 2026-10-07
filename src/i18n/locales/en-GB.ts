@@ -276,8 +276,14 @@ export default {
     differs: 'One patch differs.',
     differs_other: '{{count, number}} patches differ.',
     same: 'Every patch matches.',
-    virtualAnalogKept: 'Virtual Analogue presets are kept.',
-    eightBitKept: '8-Bit presets are kept.',
+    nothing: 'Nothing to write.',
+    virtualAnalogKept:
+      'One Virtual Analogue preset is kept: only a Virtual Analogue patch can replace it.',
+    virtualAnalogKept_other:
+      '{{count, number}} Virtual Analogue presets are kept: only Virtual Analogue patches can replace them.',
+    eightBitKept: 'One 8-Bit preset is kept, since the library can’t hold 8-Bit patches yet.',
+    eightBitKept_other:
+      '{{count, number}} 8-Bit presets are kept, since the library can’t hold 8-Bit patches yet.',
     inexact: 'One Virtual Analogue patch can’t be stored exactly, so its preset is kept.',
     inexact_other:
       '{{count, number}} Virtual Analogue patches can’t be stored exactly, so their presets are kept.',

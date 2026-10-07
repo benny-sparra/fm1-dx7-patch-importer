@@ -204,7 +204,9 @@ open everything an earlier release could have saved.
   record, as FM-1+VA's own backup restores one; never send them any other way. A DX7 patch never
   replaces a Virtual Analog preset on the FM1, and a Virtual Analog patch whose bytes the write
   would not store exactly (`fm1VaStoredVoice`) is not written. Nothing replaces an 8-Bit preset
-  on the FM1, and a patch whose record names 8-Bit is never written.
+  on the FM1, and a patch whose record names 8-Bit is never written. The write dialog counts the
+  presets it keeps and says why, and says every patch matches only when it keeps none: Baud Girl's
+  packs fill bank D with 8-Bit and Virtual Analog presets, which no DX7 patch replaces.
   A read belongs to the ports it started on: changing either, or switching MIDI off, cancels it.
   Keep what it reads exactly as read until each byte is mapped in `docs/fm1-research.md`.
   Code that reads presets goes through `useFm1VaPresetReader`, which takes the ports from the

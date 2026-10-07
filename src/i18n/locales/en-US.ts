@@ -67,7 +67,10 @@ export default {
     savedWithBanks: 'Saved “{{patch}}” to Favorites, and to the bank slots that held it.',
   },
   fm1VaWrite: {
-    virtualAnalogKept: 'Virtual Analog presets are kept.',
+    virtualAnalogKept:
+      'One Virtual Analog preset is kept: only a Virtual Analog patch can replace it.',
+    virtualAnalogKept_other:
+      '{{count, number}} Virtual Analog presets are kept: only Virtual Analog patches can replace them.',
     inexact: 'One Virtual Analog patch can’t be stored exactly, so its preset is kept.',
     inexact_other:
       '{{count, number}} Virtual Analog patches can’t be stored exactly, so their presets are kept.',
