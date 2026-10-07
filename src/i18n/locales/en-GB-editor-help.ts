@@ -129,17 +129,44 @@ export default {
       'Kept for Baud Girl’s firmware from FM-1_096: Bitcrush is on. This FM1 doesn’t play it.',
   },
   effectOrder: {
-    title: 'Effect order',
-    list: 'Effects, first to last',
-    moveEarlier: 'Move {{effect}} earlier',
-    moveLater: 'Move {{effect}} later',
+    dragTitle:
+      'Drag to change where this effect sits in the order the sound passes through, first at the top left. With the keyboard, press Space, then the arrow keys. You hear the new order once the patch is written to the FM1.',
     noRecord:
       'This patch didn’t come from the FM1, so it takes the order of the preset it’s written over.',
     otherFirmware:
       'Kept for Baud Girl’s firmware: a changed effect order. This FM1 plays the effects in its own order.',
-    help: 'The order the sound passes through the effects on Baud Girl’s firmware, first at the left. Distortion before or after reverb, for example, sounds quite different. No MIDI message sets it, so you hear it once the patch is written to the FM1 with Send to FM1 or Write patches to the FM1.',
   },
   virtualAnalog: {
+    help: {
+      waveform:
+        'The oscillator’s basic wave. Sine is soft, saw is bright and buzzy, triangle sits between them, and square is hollow but harder than sine.',
+      super:
+        'Adds six more copies of the wave around the one you chose. Turn Detune up too to spread them into a thick, supersaw-like sound.',
+      detune:
+        'How far apart in pitch the copies Super adds are. It does nothing while Super is at 0.',
+      drift:
+        'Puts each note slightly out of tune, as vintage oscillators do. Through the upper half it becomes deliberately unsteady.',
+      sub: 'Adds a square wave an octave below each note, for weight.',
+      noise: 'Mixes hiss in with the wave.',
+      pwm: 'Sweeps the width of the square wave so the tone moves by itself. It works only with the square waveform.',
+      filterType:
+        'Which part of the sound the filter removes. Low pass takes off the top, gently at 12 dB or steeply at 24 dB; band pass keeps a band around the cutoff; high pass takes off the bottom.',
+      cutoff: 'The frequency the filter works from. Lower it to make the sound darker.',
+      resonance: 'Boosts the sound right at the cutoff, until the filter whistles.',
+      filterEnvelope: 'How far the filter’s own envelope moves the cutoff on each note.',
+      filterDecay:
+        'How long the filter envelope’s move takes. Short, with the envelope amount well up, makes a pluck.',
+      filterShape: 'What the filter envelope’s move looks like, from its rise to its fall.',
+      filterVelocity: 'How far playing harder raises the cutoff. It leaves the loudness alone.',
+      keyTracking: 'How far the cutoff follows the notes you play up the keyboard.',
+      lfoToCutoff: 'How far the LFO moves the cutoff.',
+      level: 'How loud this patch is beside the others, about 0.74 dB a step.',
+      velocityToLevel:
+        'How much louder a note gets when you play harder. At 0 every note is equally loud.',
+      mono: 'Plays one note at a time. A new key takes over from the held one without a fresh attack.',
+      envelope:
+        'One attack, decay, sustain, and release for the whole patch while it is switched on. Drag its points or type the values. Release fades a note over 0.1 seconds at 0 to 2 seconds at 100. Raise Sustain when you switch it on, since at 0 a held note is short.',
+    },
     oscillator: 'Oscillator',
     waveform: 'Waveform',
     waveforms: {
@@ -170,19 +197,16 @@ export default {
     filterVelocity: 'Velocity',
     keyTracking: 'Key tracking',
     lfoToCutoff: 'LFO to cutoff',
-    output: 'Output',
     level: 'Level',
     velocityToLevel: 'Velocity to level',
-    mono: 'Mono',
+    mono: 'Monophonic',
     lfo: 'LFO',
     envelope: 'Envelope',
     attack: 'Attack',
     decay: 'Decay',
     sustain: 'Sustain',
     release: 'Release',
-    envelopeOff: 'Switch the envelope on to set it.',
     checking: 'Checking the FM1’s preset {{preset}}…',
-    live: 'Your changes play on the FM1’s preset {{preset}} as you make them. Level, velocity to level, Mono, the LFO’s waveform, amp mod depth, pitch mod sensitivity and sync, switching the envelope off, and Distortion type, Bitcrush, and the effect order are heard once the patch is written to the FM1.',
     noProgram:
       'This patch isn’t in banks A–D, so the FM1 has no preset playing it. Your changes are heard once the patch is written to the FM1.',
     noFirmware:
@@ -191,5 +215,35 @@ export default {
       'The FM1’s preset {{preset}} plays another engine, so your changes aren’t sent to it. They’re heard once the patch is written to the FM1.',
     readFailed:
       'The FM1 didn’t answer when asked for its preset {{preset}}, so your changes aren’t sent to it. They’re heard once the patch is written to the FM1.',
+    presets: 'Sound presets',
+    initPatch: 'Init patch',
+    initPatchHelp: 'A plain saw wave, filter open. Effects switch off.',
+    randomiseHelp: 'A new sound. Keeps the name, level, and effects.',
+    presetOptions: {
+      'super-saw': {
+        name: 'Super saw',
+        description: 'Detuned saws, chorus, and hall reverb.',
+      },
+      'mono-bass': {
+        name: 'Mono bass',
+        description: 'Square and sub, one note at a time.',
+      },
+      'filter-pluck': {
+        name: 'Filter pluck',
+        description: 'Short filter sweep, echo, and a small room.',
+      },
+      'warm-pad': {
+        name: 'Warm pad',
+        description: 'Slow attack, gentle drift, and hall reverb.',
+      },
+      'pulse-strings': {
+        name: 'Pulse strings',
+        description: 'Moving square wave, chorus, and hall reverb.',
+      },
+      'vibrato-lead': {
+        name: 'Vibrato lead',
+        description: 'One note at a time, delayed vibrato, and echo.',
+      },
+    },
   },
 }

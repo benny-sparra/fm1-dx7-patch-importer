@@ -1,4 +1,4 @@
-import { AudioWaveform, Sparkles } from 'lucide-react'
+import { AudioWaveform, Dices, Eraser, Sparkles } from 'lucide-react'
 import {
   type RefObject,
   useEffect,
@@ -62,7 +62,7 @@ import {
 import { initializeVoice } from '@/lib/init-voice'
 import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { copyOperator, type CopiedOperator } from '@/lib/operator-clipboard'
-import { applySoundPreset, type SoundPresetId } from '@/lib/sound-presets'
+import { applySoundPreset, soundPresets, type SoundPresetId } from '@/lib/sound-presets'
 import { randomizeSound } from '@/lib/sound-randomizer'
 import { cn } from '@/lib/utils'
 
@@ -326,6 +326,7 @@ export function PatchEditorPage({
         canSync={canSync}
         canRedo={history.future.length > 0}
         canUndo={history.past.length > 0}
+        engine={midi.firmware.kind === 'fm1-va' ? 'fm' : undefined}
         isComparing={isComparing}
         isDirty={isDirty}
         liveName={liveName}
@@ -341,16 +342,36 @@ export function PatchEditorPage({
         onUndo={editor.undo}
         patch={patch}
         presets={{
+          items: [
+            {
+              description: t('editor.initVoiceHelp'),
+              icon: Eraser,
+              id: 'init',
+              name: t('editor.initVoice'),
+              onSelect: () => {
+                presetsMenuRef.current?.removeAttribute('open')
+                editor.replaceVoice(initializeVoice)
+              },
+            },
+            {
+              description: t('editor.randomiseHelp'),
+              icon: Dices,
+              id: 'randomise',
+              name: t('editor.randomise'),
+              onSelect: () => {
+                presetsMenuRef.current?.removeAttribute('open')
+                editor.replaceVoice(randomizeSound)
+              },
+            },
+            ...soundPresets.map(({ id }) => ({
+              description: t(`editor.presetOptions.${id}.description`),
+              id,
+              name: t(`editor.presetOptions.${id}.name`),
+              onSelect: () => selectPreset(id),
+            })),
+          ],
+          label: t('editor.presets'),
           menuRef: presetsMenuRef,
-          onInitVoice: () => {
-            presetsMenuRef.current?.removeAttribute('open')
-            editor.replaceVoice(initializeVoice)
-          },
-          onPreset: selectPreset,
-          onRandomise: () => {
-            presetsMenuRef.current?.removeAttribute('open')
-            editor.replaceVoice(randomizeSound)
-          },
         }}
         saveMenuRef={saveMenuRef}
         syncState={syncState}
@@ -464,6 +485,7 @@ export function PatchEditorPage({
                 bitcrush={
                   offersBitcrush
                     ? {
+                        onApplyPreset: editor.selectBitcrushPreset,
                         onChange: editor.setBitcrushSetting,
                         values: record ? bitcrush : null,
                       }

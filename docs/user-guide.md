@@ -133,10 +133,16 @@ or a second click opens its own editor: the oscillator, filter, output, LFO, and
 FM1's screens list, and the effects. With Baud Girl's firmware from FM-1_086, a patch in banks A
 to D plays its changes on the FM1 as you make them, once the app has read that FM1 preset and found
 a Virtual Analogue one there; a line under the toolbar says which preset, or why not. Level,
-velocity to level, Mono, the LFO's waveform, amp mod depth, pitch mod sensitivity and sync,
+velocity to level, Monophonic, the LFO's waveform, amp mod depth, pitch mod sensitivity and sync,
 switching the envelope off, and the Distortion type, Bitcrush, and effect order have no MIDI
-message, so you hear those once the patch is written to the FM1. The envelope's settings show while
-it is switched on, and switching it on sends them, which switches it on on the FM1 too. **Save** keeps your changes in
+message, so you hear those once the patch is written to the FM1. The envelope's graph shows its shape;
+drag its points, or type into the four values under it, while it is switched on. Switching it on
+sends its settings, which switches it on on the FM1 too. Its **Presets** menu lists **Init
+patch**, a plain saw wave through an open filter with every effect switched off, then
+**Randomise**, then six sounds to start from. Each sets every row but Level and switches the
+envelope on, so a preset sounds the same whichever patch you start from; the sound presets also
+replace the effect chain, keeping the Distortion type, Bitcrush, and effect order, and
+**Randomise** keeps the effects. Each keeps the name and is one Undo. **Save** keeps your changes in
 the library, and every byte the editor doesn't set stays exactly as read. You can copy
 it, move it, save its bank, and back it up like any other patch. **Change to FM…** in its ⋮ menu
 replaces it with INIT VOICE, an FM patch you can edit, under a name you choose, keeping its FM1
@@ -235,15 +241,18 @@ takes the type of the preset it is written over. On other firmware the choice is
 under Distortion names a type other than Soft Clip that the patch keeps for Baud Girl's firmware.
 
 From FM-1_096, Baud Girl's firmware has a seventh effect, **Bitcrush**, which rounds the sound to
-fewer levels and samples it less often. While the FM1 runs it, the effects panel has a Bitcrush box:
-its switch, **Bits** from 16 down to 1, **Sample rate** from 300 Hz to 44.1k, and **Mix**. Like the
+fewer levels and samples it less often. While the FM1 runs it, the effects panel has a Bitcrush box
+like the others: its switch, a scope drawing the stepped wave, presets from **Sampler** to
+**Crushed**, and sliders for **Bits** from 16 down to 1, **Sample rate** from 300 Hz to 44.1k, and
+**Mix**. Like the
 Distortion type, it is kept with the patch and heard once the patch is written to the FM1. Only a
 patch read from the FM1, or from Baud Girl's presets file, can keep it. On other firmware the box is
 hidden, and a line on the panel says when the patch keeps Bitcrush on.
 
-On the same firmware the effects panel starts with **Effect order**: the seven effects in the
-order the sound passes through them, first at the left. The arrows beside each effect move it one
-place earlier or later, and each move is one Undo. The order is kept with the patch and heard once
+On the same firmware the effects panel lays out its seven boxes in the order the sound passes
+through them, first at the top left, each numbered by its place. Drag a box by the grip beside its
+number to move it, as you move a patch in a bank, or focus the grip, press Space, use the arrow
+keys, and press Space again; each move is one Undo. The order is kept with the patch and heard once
 the patch is written to the FM1, as Bitcrush is; only a patch read from the FM1 or Baud Girl's
 presets file can keep one. On other firmware a line on the panel says when the patch keeps a changed
 order.

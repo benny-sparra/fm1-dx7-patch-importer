@@ -181,17 +181,48 @@ export default {
       'Für die Firmware von Baud Girl ab FM-1_096 gespeichert: Bitcrush ist an. Dieser FM1 spielt ihn nicht.',
   },
   effectOrder: {
-    title: 'Effektreihenfolge',
-    list: 'Effekte, vom ersten bis zum letzten',
-    moveEarlier: '{{effect}} nach vorne verschieben',
-    moveLater: '{{effect}} nach hinten verschieben',
+    dragTitle:
+      'Ziehen, um zu ändern, an welcher Stelle der Klang diesen Effekt durchläuft, der erste oben links. Mit der Tastatur Leertaste drücken, dann die Pfeiltasten. Die neue Reihenfolge hörst du, sobald der Sound auf den FM1 geschrieben ist.',
     noRecord:
       'Dieser Sound stammt nicht vom FM1 und übernimmt daher die Reihenfolge des Presets, über das er geschrieben wird.',
     otherFirmware:
       'Für die Firmware von Baud Girl gespeichert: eine geänderte Effektreihenfolge. Dieser FM1 spielt die Effekte in seiner eigenen Reihenfolge.',
-    help: 'Die Reihenfolge, in der der Klang auf der Firmware von Baud Girl die Effekte durchläuft, der erste links. Eine Verzerrung vor oder nach dem Hall klingt zum Beispiel ganz anders. Keine MIDI-Nachricht stellt sie ein, daher hörst du sie erst, wenn der Sound mit „An FM1 senden“ oder „Sounds auf den FM1 schreiben“ auf den FM1 geschrieben ist.',
   },
   virtualAnalog: {
+    help: {
+      waveform:
+        'Die Grundwelle des Oszillators. Sinus klingt weich, Sägezahn hell und schnarrend, Dreieck liegt dazwischen, und Rechteck klingt hohl, aber härter als Sinus.',
+      super:
+        'Fügt sechs weitere Kopien der Welle um die gewählte hinzu. Dreh auch Verstimmung auf, um sie zu einem dichten Supersaw-Klang aufzufächern.',
+      detune:
+        'Wie weit die von Super hinzugefügten Kopien in der Tonhöhe auseinanderliegen. Solange Super auf 0 steht, bewirkt es nichts.',
+      drift:
+        'Verstimmt jede Note leicht, wie es alte Oszillatoren tun. In der oberen Hälfte wird es absichtlich unstet.',
+      sub: 'Fügt eine Rechteckwelle eine Oktave unter jeder Note hinzu, für mehr Fundament.',
+      noise: 'Mischt Rauschen unter die Welle.',
+      pwm: 'Bewegt die Pulsbreite der Rechteckwelle, sodass sich der Klang von selbst verändert. Wirkt nur bei der Wellenform Rechteck.',
+      filterType:
+        'Welchen Teil des Klangs der Filter entfernt. Tiefpass nimmt die Höhen weg, sanft mit 12 dB oder steil mit 24 dB; Bandpass behält ein Band um die Grenzfrequenz; Hochpass nimmt die Tiefen weg.',
+      cutoff:
+        'Die Frequenz, ab der der Filter arbeitet. Senke sie, um den Klang dunkler zu machen.',
+      resonance: 'Hebt den Klang genau an der Grenzfrequenz an, bis der Filter pfeift.',
+      filterEnvelope:
+        'Wie weit die eigene Hüllkurve des Filters die Grenzfrequenz bei jeder Note bewegt.',
+      filterDecay:
+        'Wie lange die Bewegung der Filterhüllkurve dauert. Kurz und mit viel Hüllkurvenanteil ergibt einen Zupfklang.',
+      filterShape: 'Wie die Bewegung der Filterhüllkurve aussieht, vom Anstieg bis zum Abfall.',
+      filterVelocity:
+        'Wie weit kräftigeres Spielen die Grenzfrequenz anhebt. Die Lautstärke bleibt dabei gleich.',
+      keyTracking:
+        'Wie weit die Grenzfrequenz den Noten folgt, die du höher auf der Tastatur spielst.',
+      lfoToCutoff: 'Wie weit der LFO die Grenzfrequenz bewegt.',
+      level: 'Wie laut dieser Sound neben den anderen ist, etwa 0,74 dB pro Schritt.',
+      velocityToLevel:
+        'Wie viel lauter eine Note wird, wenn du kräftiger spielst. Bei 0 sind alle Noten gleich laut.',
+      mono: 'Spielt eine Note auf einmal. Eine neue Taste übernimmt von der gehaltenen ohne neuen Anschlag.',
+      envelope:
+        'Ein Attack, Decay, Sustain und Release für den ganzen Sound, solange sie eingeschaltet ist. Zieh ihre Punkte oder tippe die Werte ein. Release blendet eine Note über 0,1 Sekunden bei 0 bis 2 Sekunden bei 100 aus. Erhöhe Sustain beim Einschalten, denn bei 0 ist eine gehaltene Note kurz.',
+    },
     oscillator: 'Oszillator',
     waveform: 'Wellenform',
     waveforms: {
@@ -222,19 +253,16 @@ export default {
     filterVelocity: 'Anschlag',
     keyTracking: 'Tastaturverfolgung',
     lfoToCutoff: 'LFO auf Grenzfrequenz',
-    output: 'Ausgang',
     level: 'Pegel',
     velocityToLevel: 'Anschlag auf Pegel',
-    mono: 'Mono',
+    mono: 'Monophon',
     lfo: 'LFO',
     envelope: 'Hüllkurve',
     attack: 'Attack',
     decay: 'Decay',
     sustain: 'Sustain',
     release: 'Release',
-    envelopeOff: 'Schalte die Hüllkurve ein, um sie einzustellen.',
     checking: 'Preset {{preset}} des FM1 wird geprüft …',
-    live: 'Deine Änderungen erklingen sofort auf Preset {{preset}} des FM1. Pegel, Anschlag auf Pegel, Mono, die LFO-Wellenform, Amp-Mod-Tiefe, Pitch-Mod-Empfindlichkeit und LFO-Sync, das Ausschalten der Hüllkurve sowie Verzerrungstyp, Bitcrush und Effektreihenfolge hörst du erst, wenn der Sound auf den FM1 geschrieben ist.',
     noProgram:
       'Dieser Sound liegt nicht in den Bänken A–D, daher spielt ihn kein Preset des FM1. Deine Änderungen hörst du, sobald der Sound auf den FM1 geschrieben ist.',
     noFirmware:
@@ -243,6 +271,36 @@ export default {
       'Preset {{preset}} des FM1 ist kein Virtual-Analog-Preset, daher werden deine Änderungen nicht dorthin gesendet. Du hörst sie, sobald der Sound auf den FM1 geschrieben ist.',
     readFailed:
       'Der FM1 hat auf die Abfrage seines Presets {{preset}} nicht geantwortet, daher werden deine Änderungen nicht gesendet. Du hörst sie, sobald der Sound auf den FM1 geschrieben ist.',
+    presets: 'Klang-Vorlagen',
+    initPatch: 'Initialisieren',
+    initPatchHelp: 'Einfache Sägezahnwelle, Filter offen. Effekte aus.',
+    randomiseHelp: 'Neuer Klang. Name, Pegel und Effekte bleiben.',
+    presetOptions: {
+      'super-saw': {
+        name: 'Super-Sägezahn',
+        description: 'Verstimmte Sägezähne, Chorus und Hall.',
+      },
+      'mono-bass': {
+        name: 'Mono-Bass',
+        description: 'Rechteck und Sub, immer nur eine Note.',
+      },
+      'filter-pluck': {
+        name: 'Filter-Zupfer',
+        description: 'Kurzer Filter-Sweep, Echo und kleiner Raum.',
+      },
+      'warm-pad': {
+        name: 'Warme Fläche',
+        description: 'Langsamer Anschlag, sanfte Drift und Hall.',
+      },
+      'pulse-strings': {
+        name: 'Puls-Streicher',
+        description: 'Bewegte Rechteckwelle, Chorus und Hall.',
+      },
+      'vibrato-lead': {
+        name: 'Vibrato-Lead',
+        description: 'Immer nur eine Note, spätes Vibrato und Echo.',
+      },
+    },
   },
   ui: {
     auditionGroup: 'Operator {{number}} vorhören',
@@ -853,6 +911,10 @@ export default {
       slowSweep: 'Langsamer Sweep',
       deepPhase: 'Tiefer Phaser',
       fastSwirl: 'Schneller Wirbel',
+      sampler: 'Sampler',
+      lofi: 'Lo-Fi',
+      eightBit: '8-Bit',
+      crushed: 'Zermalmt',
     },
     lfoGlobal: 'LFO und Global',
     oscillatorSync: 'Oszillator-Sync',

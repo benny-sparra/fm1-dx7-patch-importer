@@ -1,6 +1,11 @@
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { makeDx7VoiceNameEdits } from '@/lib/dx7'
-import { applyEffectPreset, type EffectPresetId } from '@/lib/effect-presets'
+import {
+  applyEffectPreset,
+  bitcrushPresetValues,
+  type BitcrushPresetId,
+  type EffectPresetId,
+} from '@/lib/effect-presets'
 import { getFm1EffectParameters } from '@/lib/fm1-effects'
 import {
   FM1_EDITOR_PARAMETER_COUNT,
@@ -159,6 +164,22 @@ export class VirtualAnalogEditorSession {
     this.update({ history: finishParameterGesture(start, current) })
   }
 
+  /**
+   * Replaces the working copy with what `replace` makes of it, such as a sound preset, as one undo
+   * step. While live, the settings it changed are sent as any edit's are.
+   */
+  replaceParameters = (replace: (parameters: Uint8Array) => Uint8Array) => {
+    if (this.state.isComparing) return
+    const present = this.state.history.present
+    const next = replace(present)
+    this.gestureStart = null
+    this.applyEdits(
+      Array.from(next.entries())
+        .filter(([index, value]) => present[index] !== value)
+        .map(([index, value]): ParameterEdit => [index, value, 0, 255]),
+    )
+  }
+
   /** Writes a name into the working copy. No controller carries a name, so nothing is sent. */
   editName = (name: string) => {
     this.applyEdits(
@@ -195,6 +216,17 @@ export class VirtualAnalogEditorSession {
 
   setBitcrushSetting = (setting: number, value: number, min: number, max: number) => {
     this.applyEdits([[FM1_VA_BITCRUSH_START + setting, value, min, max]])
+  }
+
+  /** Sets every Bitcrush setting from preset `id` as one undo step. No MIDI message carries it, so nothing is sent. */
+  selectBitcrushPreset = (id: BitcrushPresetId) => {
+    this.gestureStart = null
+    this.applyEdits(
+      bitcrushPresetValues(id).map((value, setting): ParameterEdit => [
+        FM1_VA_BITCRUSH_START + setting,
+        value,
+      ]),
+    )
   }
 
   /** Moves the effect at `from` in the order of seven effects to `to`, as one undo step. */

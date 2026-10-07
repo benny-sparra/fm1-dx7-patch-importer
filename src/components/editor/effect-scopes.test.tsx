@@ -4,6 +4,9 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import {
+  bitcrushPath,
+  BitcrushScope,
+  bitcrushStepsPerCycle,
   ChorusScope,
   DelayScope,
   delayTaps,
@@ -94,5 +97,29 @@ describe('effect scopes', () => {
     rerender(<PhaserScope depth={50} enabled frequency={50} mix={100} />)
     expect(scope.querySelector('g[opacity]')?.getAttribute('opacity')).toBe('1')
     expect(screen.getByTestId('phaser-trace').getAttribute('d')).not.toBe(shallow)
+  })
+
+  it('holds the bitcrush wave in more steps as sample rate rises', () => {
+    expect(bitcrushStepsPerCycle(0)).toBeLessThan(bitcrushStepsPerCycle(100))
+    expect(bitcrushPath(16, 50, 100)).not.toBe(bitcrushPath(16, 90, 100))
+  })
+
+  it('rounds the bitcrush wave to fewer levels with fewer bits', () => {
+    const levels = (path: string) =>
+      new Set(path.split(' L').map((point) => point.split(' ')[1])).size
+    expect(levels(bitcrushPath(1, 100, 100))).toBe(2)
+    expect(levels(bitcrushPath(3, 100, 100))).toBeGreaterThan(2)
+  })
+
+  it('redraws the bitcrush trace with mix and dims it while bypassed', () => {
+    const { rerender } = render(<BitcrushScope bits={4} enabled={false} mix={0} sampleRate={50} />)
+    const scope = screen.getByTestId('bitcrush-scope')
+    const dry = screen.getByTestId('bitcrush-trace').getAttribute('d')
+    expect(scope.querySelector('g[opacity]')?.getAttribute('opacity')).toBe('0.4')
+    expect(scope.getAttribute('aria-hidden')).toBe('true')
+
+    rerender(<BitcrushScope bits={4} enabled mix={100} sampleRate={50} />)
+    expect(scope.querySelector('g[opacity]')?.getAttribute('opacity')).toBe('1')
+    expect(screen.getByTestId('bitcrush-trace').getAttribute('d')).not.toBe(dry)
   })
 })

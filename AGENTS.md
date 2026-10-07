@@ -572,7 +572,12 @@ open everything an earlier release could have saved.
   controllers go only while its switch is on, since one received while the FM1's Envelope is off
   switches it on (the manual), and switching it on sends all four. Rows without a controller are
   heard once the patch is written, which the page says. Saving puts the preset back in its slot
-  through `replaceWithVirtualAnalog`, as one library change Undo reverses.
+  through `replaceWithVirtualAnalog`, as one library change Undo reverses. Its **Presets** menu
+  (`src/lib/virtual-analog-presets.ts`) shares the voice editor's header menu, which takes each
+  editor's items. Every starting point sets every row but Level and switches the Envelope on,
+  since a note plays operator 6's envelope while it is off, which the editor leaves as read, so a
+  preset would sound different on each patch; the sound presets replace the effect chain through
+  `replaceEffectChain`, as the voice editor's do.
   Anything that compares sounds keeps the engines apart: a Virtual Analog preset's sound key is
   `virtualAnalogSoundKey`, and duplicates match only within one engine. **Change to FM…** replaces
   one with INIT VOICE and no record, keeping its FM1 effects, so a write still leaves a Virtual
@@ -609,8 +614,9 @@ open everything an earlier release could have saved.
   `fm1VaRecordWithEffectOrder`: the chain bytes take the six other effects and byte 5 Bitcrush's
   place, and a record already in that order, or one whose unset Bitcrush stays after the
   Distortion, keeps its bytes. It is offered with Bitcrush, from `FM-1_096`, the release it was
-  mapped on, as a strip of move buttons whose focus follows the moved effect. A move is one undo
-  step and sends nothing.
+  mapped on, by dragging the effect boxes themselves, laid out in the order, by a grip beside
+  their place number, as a patch's grip moves it in its bank (dnd-kit, keyboard included), with
+  the same marching ants while one is dragged. A move is one undo step and sends nothing.
 - **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
   `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.

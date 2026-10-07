@@ -81,7 +81,14 @@ switches it On, which V15 checks.
 | V25  | LFO **Sync** On          | `V25 LFO Sync On`      | voice 116: bit 0 set               |
 | V26  | **Envelope** Off         | `V26 Envelope Off`     | record 53: bit 6 (`40`) cleared    |
 
-## 5. Finish
+## 5. The filter envelope's shape (V27)
+
+The FM1 draws the filter envelope on its **Shape** row, and the editor cannot draw it until it
+knows the curve. On the same preset, open **Filter**, set **Envelope** to 100 and **Decay** to 50,
+then set **Shape** to 0, 50, and 100 in turn and photograph the Shape row each time. Nothing needs
+saving. Share the three photographs with the map.
+
+## 6. Finish
 
 1. Press **Copy map** in the probe and paste the map into the conversation, or save it as
    `docs/hardware-runs/fm1-va-editor-map-<date>.json`.

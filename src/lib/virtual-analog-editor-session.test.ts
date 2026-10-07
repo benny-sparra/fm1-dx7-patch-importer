@@ -1,16 +1,22 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
-import { FM1_VA_EFFECT_ORDER_START, FM1_VOICE_NAME_START } from '@/lib/fm1-parameters'
+import {
+  FM1_VA_BITCRUSH_START,
+  FM1_VA_EFFECT_ORDER_START,
+  FM1_VOICE_NAME_START,
+} from '@/lib/fm1-parameters'
 import {
   makeVirtualAnalogEditorParameters,
   virtualAnalogRow,
+  virtualAnalogRows,
 } from '@/lib/fm1-va-virtual-analog-editor'
 import {
   displayedVirtualAnalogParameters,
   hasUnsavedVirtualAnalogEdits,
   VirtualAnalogEditorSession,
 } from '@/lib/virtual-analog-editor-session'
+import { applyVirtualAnalogPreset } from '@/lib/virtual-analog-presets'
 import {
   capturedVirtualAnalogRecord,
   capturedVirtualAnalogVoice,
@@ -112,6 +118,30 @@ describe('VirtualAnalogEditorSession', () => {
     expect(midi.sendSoundControl.mock.calls).toEqual([[27, 0]])
   })
 
+  it('applies a sound preset as one undo step, sending only the settings it changed', () => {
+    const { midi, session } = makeSession()
+    session.goLive()
+    midi.sendSoundControl.mockClear()
+    midi.sendEffectParameter.mockClear()
+    const before = displayedVirtualAnalogParameters(session.getState())
+    session.replaceParameters((parameters) => applyVirtualAnalogPreset(parameters, 'mono-bass'))
+    const after = displayedVirtualAnalogParameters(session.getState())
+    expect(session.getState().history.past).toHaveLength(1)
+    const changed = virtualAnalogRows.filter(
+      (row) => row.controller !== undefined && before[row.index] !== after[row.index],
+    )
+    // Switching the Envelope on sends all four of its settings, as switching it by hand does.
+    expect(
+      midi.sendSoundControl.mock.calls.map(([controller]) => controller).sort((a, b) => a - b),
+    ).toEqual(
+      [...new Set([...changed.map((row) => row.controller!), 70, 72, 73, 75])].sort(
+        (a, b) => a - b,
+      ),
+    )
+    session.undo()
+    expect(displayedVirtualAnalogParameters(session.getState())).toEqual(before)
+  })
+
   it('moves an effect as one undo step without sending anything', () => {
     const { midi, session } = makeSession()
     session.goLive()
@@ -121,6 +151,24 @@ describe('VirtualAnalogEditorSession', () => {
     const present = session.getState().history.present
     expect(present[FM1_VA_EFFECT_ORDER_START]).toBe(1)
     expect(present[FM1_VA_EFFECT_ORDER_START + 1]).toBe(0)
+    expect(session.getState().history.past).toHaveLength(1)
+    expect(midi.sendSoundControl).not.toHaveBeenCalled()
+    expect(midi.sendEffectParameter).not.toHaveBeenCalled()
+  })
+
+  it('applies a Bitcrush preset as one undo step without sending anything', () => {
+    const { midi, session } = makeSession()
+    session.goLive()
+    midi.sendSoundControl.mockClear()
+    midi.sendEffectParameter.mockClear()
+    session.selectBitcrushPreset('crushed')
+    const bitcrush = () =>
+      Array.from(
+        session
+          .getState()
+          .history.present.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START),
+      )
+    expect(bitcrush()).toEqual([1, 4, 40, 100])
     expect(session.getState().history.past).toHaveLength(1)
     expect(midi.sendSoundControl).not.toHaveBeenCalled()
     expect(midi.sendEffectParameter).not.toHaveBeenCalled()

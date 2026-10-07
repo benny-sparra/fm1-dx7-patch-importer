@@ -568,3 +568,82 @@ export function PhaserScope({ depth, enabled, frequency, mix }: PhaserScopeProps
     </ScopeFrame>
   )
 }
+
+/*
+  Bitcrush: the Distortion's scrolling sine, held in steps. Bits sets how many
+  levels each step rounds to, Sample Rate how many steps a cycle holds, and
+  Mix how far the stepped wave replaces the clean one ghosted behind it.
+*/
+
+type BitcrushScopeProps = { bits: number; enabled: boolean; mix: number; sampleRate: number }
+
+/** Points drawn in each held step, at least, so a step under a low Mix still curves. */
+const bitcrushPointsPerCycle = 48
+
+/** Held steps in one cycle: 3 at the lowest Sample Rate to 42 at 44.1 kHz. */
+export function bitcrushStepsPerCycle(sampleRate: number) {
+  return Math.round(3 * 14 ** clamp01(sampleRate / 100))
+}
+
+/** One cycle before the view to one past it, as the Distortion's path is, so it can scroll. */
+export function bitcrushPath(bits: number, sampleRate: number, mix: number) {
+  const steps = bitcrushStepsPerCycle(sampleRate)
+  const levels = 2 ** Math.min(16, Math.max(1, Math.round(bits))) - 1
+  const wet = clamp01(mix / 100)
+  const quantise = (value: number) => (Math.round(((value + 1) / 2) * levels) / levels) * 2 - 1
+  const pointsPerStep = Math.max(1, Math.ceil(bitcrushPointsPerCycle / steps))
+  const point = (phase: number, value: number) =>
+    `${((phase - 1) * distortionCycleWidth).toFixed(2)} ${(viewHeight / 2 - value * distortionAmplitude).toFixed(2)}`
+  const points: string[] = []
+  for (let step = 0; step < (distortionCycles + 2) * steps; step += 1) {
+    const held = quantise(Math.sin((step / steps) * Math.PI * 2))
+    for (let index = 0; index <= pointsPerStep; index += 1) {
+      const phase = (step + index / pointsPerStep) / steps
+      points.push(point(phase, (1 - wet) * Math.sin(phase * Math.PI * 2) + wet * held))
+    }
+  }
+  return `M${points.join(' L')}`
+}
+
+export function BitcrushScope({ bits, enabled, mix, sampleRate }: BitcrushScopeProps) {
+  const traceRef = useRef<SVGGElement>(null)
+  const scrollRef = useRef(0)
+
+  const crushed = useMemo(() => bitcrushPath(bits, sampleRate, mix), [bits, mix, sampleRate])
+
+  const frameRef = useAnimationLoop((elapsed) => {
+    scrollRef.current = (scrollRef.current + elapsed * distortionScrollRate) % 1
+    traceRef.current?.setAttribute(
+      'transform',
+      `translate(${(-scrollRef.current * distortionCycleWidth).toFixed(2)} 0)`,
+    )
+  })
+
+  return (
+    <ScopeFrame ref={frameRef} testId="bitcrush-scope">
+      <ScopeGrid columns={distortionCycles * 2} rowY={viewHeight / 2} />
+      <ScopeTrace active={enabled}>
+        <g ref={traceRef}>
+          <path
+            d={cleanDistortionPath}
+            fill="none"
+            opacity="0.25"
+            stroke="var(--crt-acc-lt)"
+            strokeDasharray="3 3"
+            strokeWidth="1"
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            d={crushed}
+            data-testid="bitcrush-trace"
+            fill="none"
+            stroke="var(--crt-acc)"
+            strokeLinejoin="miter"
+            strokeWidth="1.75"
+            vectorEffect="non-scaling-stroke"
+          />
+        </g>
+      </ScopeTrace>
+    </ScopeFrame>
+  )
+}

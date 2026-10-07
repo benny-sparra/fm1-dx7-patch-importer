@@ -130,9 +130,10 @@ export function ScopeFrame({
   return (
     <div
       aria-hidden="true"
+      // A class name sets the height in place of the effects' short strip.
       className={cn(
-        'crt-inset relative h-12 min-w-0 overflow-hidden bg-[var(--crt-bg-well)]',
-        className,
+        'crt-inset relative min-w-0 overflow-hidden bg-[var(--crt-bg-well)]',
+        className ?? 'h-12',
       )}
       data-testid={testId}
       ref={ref}

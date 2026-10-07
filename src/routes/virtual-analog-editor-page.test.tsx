@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -84,26 +84,75 @@ function setup({
   return { controlChanges, midi, onBack, onSave, ports, record, user: userEvent.setup(), voice }
 }
 
-const liveLine = /^Your changes play on the FM1’s preset 097 as you make them\./
-
 describe('VirtualAnalogEditorPage', () => {
+  it('marks the patch VA beside its slot code, as its card does', () => {
+    setup()
+
+    expect(screen.getByText('Virtual Analogue preset')).toBeTruthy()
+  })
+
+  it('picks the waveform from a dropdown of drawings, as the voice editor picks its algorithm', async () => {
+    const { record, user, voice } = setup()
+    const before = virtualAnalogRow('waveform').read(voice, record)
+    const names = ['Sine', 'Saw', 'Triangle', 'Square']
+
+    await user.click(screen.getByLabelText(`Waveform: ${names[before]}`))
+    const waveforms = within(screen.getByRole('radiogroup', { name: 'Waveform' }))
+    for (const name of names) {
+      expect(waveforms.getByRole('radio', { name }).querySelector('svg')).toBeTruthy()
+    }
+    const next = names[(before + 1) % names.length]
+    await user.click(waveforms.getByRole('radio', { name: next }))
+
+    expect(screen.getByLabelText(`Waveform: ${next}`)).toBeTruthy()
+    expect(screen.getByLabelText(`Waveform: ${next}`).closest('details')?.open).toBe(false)
+  })
+
+  it('picks the filter type from a dropdown of drawn responses', async () => {
+    const { record, user, voice } = setup()
+    const before = virtualAnalogRow('filterType').read(voice, record)
+    const names = ['Low pass 12 dB', 'Low pass 24 dB', 'Band pass', 'High pass']
+
+    await user.click(screen.getByLabelText(`Filter type: ${names[before]}`))
+    const types = within(screen.getByRole('radiogroup', { name: 'Filter type' }))
+    for (const name of names) {
+      expect(types.getByRole('radio', { name }).querySelector('svg')).toBeTruthy()
+    }
+    const next = names[(before + 1) % names.length]
+    await user.click(types.getByRole('radio', { name: next }))
+
+    expect(screen.getByLabelText(`Filter type: ${next}`)).toBeTruthy()
+    expect(screen.getByLabelText(`Filter type: ${next}`).closest('details')?.open).toBe(false)
+  })
+
+  it('explains each setting in a help popover, as the voice editor does', async () => {
+    const { user } = setup()
+
+    await user.hover(screen.getByRole('button', { name: 'Help: Super' }))
+
+    expect(screen.getByText(/^Adds six more copies of the wave/)).toBeTruthy()
+  })
+
   it('shows each row as the preset stores it', () => {
     const { record, voice } = setup()
     const superValue = virtualAnalogRow('super').read(voice, record)
     expect((screen.getByRole('slider', { name: 'Super' }) as HTMLInputElement).value).toBe(
       String(superValue),
     )
-    expect(screen.getByRole('radio', { name: 'Saw' })).toHaveProperty(
-      'checked',
-      virtualAnalogRow('waveform').read(voice, record) === 1,
-    )
+    expect(
+      screen.getByLabelText(
+        `Waveform: ${['Sine', 'Saw', 'Triangle', 'Square'][virtualAnalogRow('waveform').read(voice, record)]}`,
+      ),
+    ).toBeTruthy()
     expect(screen.getByRole('textbox', { name: 'Patch name' })).toHaveProperty('value', 'VOICE 97')
   })
 
   it('reads the FM1’s preset in the slot, then plays changes on it as they are made', async () => {
     const { controlChanges, ports } = setup()
 
-    expect(await screen.findByText(liveLine)).toBeTruthy()
+    await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
+    // While changes play on the FM1, no line explains anything.
+    expect(screen.queryByText(/preset 097/)).toBeNull()
     const read = ports.output.send.mock.calls.find(([data]) => data[4] === 0x10)
     expect(read?.[0][5]).toBe(96)
     // Going live sends every setting with a controller, so the FM1 plays the version shown.
@@ -138,8 +187,8 @@ describe('VirtualAnalogEditorPage', () => {
   })
 
   it('saves only the bytes of the rows changed', async () => {
-    const { onSave, record, user, voice } = setup()
-    await screen.findByText(liveLine)
+    const { controlChanges, onSave, record, user, voice } = setup()
+    await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
 
     fireEvent.change(screen.getByRole('slider', { name: 'Sub' }), { target: { value: '40' } })
     fireEvent.change(screen.getByRole('slider', { name: 'Level' }), { target: { value: '70' } })
@@ -157,8 +206,8 @@ describe('VirtualAnalogEditorPage', () => {
   })
 
   it('undoes a held arrow key in one step', async () => {
-    const { user } = setup()
-    await screen.findByText(liveLine)
+    const { controlChanges, user } = setup()
+    await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
     const drift = screen.getByRole('slider', { name: 'Drift' }) as HTMLInputElement
     const before = drift.value
 
@@ -174,20 +223,99 @@ describe('VirtualAnalogEditorPage', () => {
     expect(drift.value).toBe(before)
   })
 
-  it('shows the Envelope’s settings while it is on, and sends them as it is switched on', async () => {
+  it('disables the Envelope’s fields while it is off, and sends them as it is switched on', async () => {
     const { controlChanges, ports, user } = setup()
-    await screen.findByText(liveLine)
-    expect(screen.queryByRole('slider', { name: 'Attack' })).toBeNull()
+    await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
+    expect(screen.getByRole('spinbutton', { name: 'Attack' })).toHaveProperty('disabled', true)
 
     ports.output.send.mockClear()
     await user.click(screen.getByRole('switch', { name: 'Envelope' }))
 
-    expect(screen.getByRole('slider', { name: 'Attack' })).toBeTruthy()
+    expect(screen.getByRole('spinbutton', { name: 'Attack' })).toHaveProperty('disabled', false)
     expect(
       controlChanges()
         .map(([controller]) => controller)
         .sort((a, b) => a - b),
     ).toEqual([70, 72, 73, 75])
+  })
+
+  it('undoes a drag of an envelope point in one step', async () => {
+    vi.spyOn(SVGElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      height: 180,
+      left: 0,
+      top: 0,
+      width: 600,
+    } as DOMRect)
+    const { user } = setup()
+    await user.click(screen.getByRole('switch', { name: 'Envelope' }))
+    const release = screen.getByRole('spinbutton', { name: 'Release' }) as HTMLInputElement
+    const point = screen.getByTestId('adsr-point-4')
+
+    fireEvent.pointerDown(point, { clientX: 500, clientY: 150, pointerId: 1 })
+    fireEvent.pointerMove(point, { clientX: 560, clientY: 150, pointerId: 1 })
+    fireEvent.pointerUp(point, { pointerId: 1 })
+    expect(Number(release.value)).toBeGreaterThan(0)
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+
+    expect(release.value).toBe('0')
+    vi.restoreAllMocks()
+  })
+
+  it('takes a typed Envelope value as one undo step', async () => {
+    const { user } = setup()
+    await user.click(screen.getByRole('switch', { name: 'Envelope' }))
+    const decay = screen.getByRole('spinbutton', { name: 'Decay' }) as HTMLInputElement
+
+    await user.click(decay)
+    await user.keyboard('75')
+    await user.tab()
+    expect(decay.value).toBe('75')
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+
+    expect(decay.value).toBe('0')
+  })
+
+  it('minimises and restores the effects unit from the panel title', async () => {
+    const { user } = setup()
+
+    expect(screen.getByRole('slider', { name: 'Reverb Decay' })).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Minimise Effects' }))
+    expect(screen.queryByRole('slider', { name: 'Reverb Decay' })).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Expand Effects' }))
+    expect(screen.getByRole('slider', { name: 'Reverb Decay' })).toBeTruthy()
+  })
+
+  it('lists Init patch, then Randomise, then the Virtual Analog sound presets', async () => {
+    const { user } = setup()
+
+    await user.click(screen.getByLabelText('Sound presets'))
+    const items = within(
+      screen.getByLabelText('Sound presets').closest('details') as HTMLElement,
+    ).getAllByRole('button')
+
+    expect(items.slice(0, 3).map((button) => button.querySelector('span')?.textContent)).toEqual([
+      'Init patch',
+      'Randomise',
+      'Super saw',
+    ])
+  })
+
+  it('applies a sound preset as one undo step and closes the menu', async () => {
+    const { controlChanges, user } = setup()
+    await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
+    const sub = screen.getByRole('slider', { name: 'Sub' }) as HTMLInputElement
+    const before = sub.value
+
+    await user.click(screen.getByLabelText('Sound presets'))
+    await user.click(screen.getByRole('button', { name: /^Mono bass/ }))
+
+    expect(screen.getByLabelText('Sound presets').closest('details')?.open).toBe(false)
+    expect(sub.value).toBe('60')
+    expect(screen.getByRole('switch', { name: 'Monophonic' })).toHaveProperty('checked', true)
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(sub.value).toBe(before)
   })
 
   it('asks before leaving with unsaved changes', async () => {
@@ -205,15 +333,13 @@ describe('VirtualAnalogEditorPage', () => {
       await setLocale('en-GB')
     })
 
-    it('names the preset it plays on in the interface language', async () => {
+    it('names the preset it cannot play on in the interface language', async () => {
       await setLocale('de')
-      setup()
+      setup({ presetReply: (slot) => makeFm1VaPresetReply(slot) })
 
-      await waitFor(() =>
-        expect(
-          screen.getByText(/^Deine Änderungen erklingen sofort auf Preset 097 des FM1\./),
-        ).toBeTruthy(),
-      )
+      expect(
+        await screen.findByText(/^Preset 097 des FM1 ist kein Virtual-Analog-Preset/),
+      ).toBeTruthy()
     })
   })
 })

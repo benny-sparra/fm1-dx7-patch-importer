@@ -1,9 +1,26 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useLayoutEffect, useRef } from 'react'
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  rectSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVertical } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
 import {
+  BitcrushScope,
   ChorusScope,
   DelayScope,
   DistortionScope,
@@ -12,10 +29,14 @@ import {
   ReverbScope,
 } from '@/components/editor/effect-scopes'
 import { RackSelect, rangeControlKeys } from '@/components/editor/parameter-controls'
-import { Button } from '@/components/ui/button'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { Switch } from '@/components/ui/switch'
-import { effectPresetsFor, type EffectPresetId } from '@/lib/effect-presets'
+import {
+  bitcrushPresets,
+  type BitcrushPresetId,
+  effectPresetsFor,
+  type EffectPresetId,
+} from '@/lib/effect-presets'
 import {
   type EffectParameterId,
   FM1_VA_STOCK_EFFECT_ORDER,
@@ -36,6 +57,7 @@ type EffectsUnitProps = {
    * keep them.
    */
   bitcrush?: {
+    onApplyPreset: (id: BitcrushPresetId) => void
     onChange: (setting: number, value: number, min: number, max: number) => void
     values: readonly number[] | null
   }
@@ -223,19 +245,21 @@ function EffectScope({
   controls, and disabled with them while the effect is bypassed. A rule sets
   it apart from the controls below, which change one value each.
 */
-function EffectPresetControl({
+function EffectPresetControl<Id extends string>({
   disabled,
-  effectName,
+  effectKey,
   onApplyPreset,
+  presets,
 }: {
   disabled: boolean
-  effectName: EffectName
-  onApplyPreset: (id: EffectPresetId) => void
+  /** The effect as the interface names it, such as `reverb`. */
+  effectKey: string
+  onApplyPreset: (id: Id) => void
+  presets: readonly { id: Id }[]
 }) {
   const { t } = useTranslation()
-  const presets = effectPresetsFor(effectName.toLowerCase())
 
-  const translatedEffect = t(`ui.effects.${effectName.toLowerCase()}`)
+  const translatedEffect = t(`ui.effects.${effectKey}`)
   const label = t('editor.effectPreset')
   return (
     <label className="mb-1 grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 border-b border-[var(--crt-bevel)] pb-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
@@ -250,7 +274,7 @@ function EffectPresetControl({
         aria-label={`${translatedEffect} ${label}`}
         className="crt-inset h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
         disabled={disabled}
-        onChange={(event) => onApplyPreset(event.target.value as EffectPresetId)}
+        onChange={(event) => onApplyPreset(event.target.value as Id)}
         value=""
       >
         <option disabled value="">
@@ -461,15 +485,20 @@ function useBitcrushValueText() {
 
 /*
   FM-1+VA's Bitcrush, from FM-1_096, laid out as the other effects are, with its name as its
-  switch's label. No MIDI message sets it, so it is heard once the patch is written to the FM1,
-  which its help says. Each slider's drag is one undo step.
+  switch's label, a scope, presets, and a slider for each setting. No MIDI message sets it, so it is
+  heard once the patch is written to the FM1, which its help says. Each slider's drag is one undo
+  step, as is a preset.
 */
 function BitcrushSection({
+  handle,
+  onApplyPreset,
   onChange,
   onGestureEnd,
   onGestureStart,
   values,
 }: {
+  handle?: ReactNode
+  onApplyPreset: (id: BitcrushPresetId) => void
   onChange: (setting: number, value: number, min: number, max: number) => void
   onGestureEnd: () => void
   onGestureStart: () => void
@@ -481,12 +510,17 @@ function BitcrushSection({
   const enabled = values !== null && values[0] > 0
   const settingIndex = (id: BitcrushSettingId) =>
     fm1VaBitcrushSettings.findIndex((setting) => setting.id === id)
+  const setting = (id: BitcrushSettingId) => {
+    const index = settingIndex(id)
+    return values?.[index] ?? fm1VaBitcrushSettings[index].min
+  }
   return (
     <section
       aria-label={translatedEffect}
-      className="crt-raised-thin flex min-w-0 flex-col bg-[var(--crt-bg-1)]"
+      className="crt-raised-thin flex h-full min-w-0 flex-col bg-[var(--crt-bg-1)]"
     >
       <div className="flex min-w-0 items-center border-b border-[var(--crt-line-dk)] px-[7px] py-[3px]">
+        {handle}
         <h3 className="flex min-w-0 items-center gap-1 text-[11px] font-normal tracking-[0.18em] uppercase">
           <Switch
             checked={enabled}
@@ -500,13 +534,25 @@ function BitcrushSection({
         </h3>
       </div>
       <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
+        <BitcrushScope
+          bits={setting('bits')}
+          enabled={enabled}
+          mix={setting('mix')}
+          sampleRate={setting('sampleRate')}
+        />
+        <EffectPresetControl
+          disabled={!enabled}
+          effectKey="bitcrush"
+          onApplyPreset={onApplyPreset}
+          presets={bitcrushPresets}
+        />
         {values === null ? (
           <p className="text-[11px] leading-4 text-[var(--crt-ink-3)]">{t('bitcrush.noRecord')}</p>
         ) : null}
         {bitcrushControls.map(({ help, id, label }) => {
           const index = settingIndex(id)
           const { max, min } = fm1VaBitcrushSettings[index]
-          const value = values?.[index] ?? min
+          const value = setting(id)
           const translatedParameter = t(`ui.parameters.${label}`)
           const disabled = !enabled
           return (
@@ -571,102 +617,62 @@ const orderEffectKeys = [
 ] as const
 
 /*
-  FM-1+VA's effect order, first at the left, each effect with buttons that move it one place.
-  The list re-renders in its new order, so focus follows the moved effect's button, or its other
-  button once it reaches an end. No MIDI message sets the order, so it is heard once the patch is
-  written to the FM1, which its help says.
+  One effect's box, placed in FM-1+VA's order. While the order can change, a grip at the left of its
+  title strip drags it to another place, as a patch's grip moves it in its bank, and the keyboard
+  moves it with Space and the arrow keys. The number beside the grip is its place in the chain.
 */
-function EffectOrderStrip({
-  onMove,
-  order,
+function SortableEffect({
+  children,
+  effect,
+  place,
+  sortable,
 }: {
-  onMove: (from: number, to: number) => void
-  order: readonly number[] | null
+  children: (handle: ReactNode) => ReactNode
+  effect: number
+  place: number
+  sortable: boolean
 }) {
   const { t } = useTranslation()
-  const buttons = useRef(new Map<string, HTMLButtonElement>())
-  const pendingFocus = useRef<{ effect: number; step: -1 | 1 } | null>(null)
-  const title = t('effectOrder.title')
-
-  useLayoutEffect(() => {
-    const pending = pendingFocus.current
-    if (!pending) return
-    pendingFocus.current = null
-    const wanted = buttons.current.get(`${pending.effect}:${pending.step}`)
-    const other = buttons.current.get(`${pending.effect}:${-pending.step}`)
-    ;(wanted && !wanted.disabled ? wanted : other)?.focus()
-  }, [order])
-
-  const move = (place: number, step: -1 | 1) => {
-    if (!order) return
-    pendingFocus.current = { effect: order[place], step }
-    onMove(place, place + step)
-  }
-
-  const shown = order ?? FM1_VA_STOCK_EFFECT_ORDER
+  const { attributes, isDragging, listeners, setNodeRef, transform, transition } = useSortable({
+    disabled: !sortable,
+    id: effect,
+  })
+  const handle = sortable ? (
+    <>
+      <button
+        {...attributes}
+        {...listeners}
+        aria-label={t('banks.reorder', { name: t(`ui.effects.${orderEffectKeys[effect]}`) })}
+        className="-my-1 -ml-[7px] grid size-6 shrink-0 cursor-grab touch-none place-items-center text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] active:cursor-grabbing"
+        title={t('effectOrder.dragTitle')}
+        type="button"
+      >
+        <GripVertical aria-hidden="true" className="size-3.5" />
+      </button>
+      {/* The place in the chain, in the box a patch card gives its slot code. */}
+      <span
+        aria-hidden="true"
+        className="font-vt323 mr-1.5 shrink-0 border border-[var(--crt-line)] bg-[var(--crt-bg-well)] px-1.5 pt-1 pb-0.5 text-[16px] leading-none text-[var(--crt-acc-lt)]"
+      >
+        {place + 1}
+      </span>
+    </>
+  ) : null
   return (
-    <section
-      aria-label={title}
-      className="crt-raised-thin flex min-w-0 flex-col bg-[var(--crt-bg-1)] md:col-span-2 xl:col-span-3"
+    <div
+      className="effect-box relative min-w-0"
+      // The box being dragged, which marching ants outline, as a dragged patch slot is.
+      data-dragging={isDragging || undefined}
+      ref={setNodeRef}
+      style={{
+        opacity: isDragging ? 0.55 : 1,
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 10 : undefined,
+      }}
     >
-      <div className="flex min-w-0 items-center border-b border-[var(--crt-line-dk)] px-[7px] py-[3px]">
-        <h3 className="flex min-w-0 items-center gap-1 px-1 text-[11px] font-normal tracking-[0.18em] uppercase">
-          <span className="truncate">{title}</span>
-          <HelpPopover label={title} text={t('effectOrder.help')} />
-        </h3>
-      </div>
-      <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
-        {order === null ? (
-          <p className="text-[11px] leading-4 text-[var(--crt-ink-3)]">
-            {t('effectOrder.noRecord')}
-          </p>
-        ) : null}
-        <ol aria-label={t('effectOrder.list')} className="flex flex-wrap gap-1.5">
-          {shown.map((effect, place) => {
-            const name = t(`ui.effects.${orderEffectKeys[effect]}`)
-            return (
-              <li
-                className="crt-inset flex min-w-0 items-center gap-1 bg-[var(--crt-bg-well)] py-0.5 pr-0.5 pl-1.5 text-[11px] tracking-[0.08em] text-[var(--crt-ink)] uppercase"
-                key={effect}
-              >
-                <span
-                  aria-hidden="true"
-                  className="font-vt323 text-base leading-none text-[var(--crt-led)]"
-                >
-                  {place + 1}
-                </span>
-                <span className="truncate">{name}</span>
-                {([-1, 1] as const).map((step) => (
-                  <Button
-                    aria-label={t(step < 0 ? 'effectOrder.moveEarlier' : 'effectOrder.moveLater', {
-                      effect: name,
-                    })}
-                    className="size-6 p-0"
-                    disabled={order === null || place + step < 0 || place + step >= shown.length}
-                    key={step}
-                    onClick={() => move(place, step)}
-                    ref={(button) => {
-                      const key = `${effect}:${step}`
-                      if (button) buttons.current.set(key, button)
-                      else buttons.current.delete(key)
-                    }}
-                    size="bare"
-                    type="button"
-                    variant="ghost"
-                  >
-                    {step < 0 ? (
-                      <ChevronLeft aria-hidden="true" className="size-4" />
-                    ) : (
-                      <ChevronRight aria-hidden="true" className="size-4" />
-                    )}
-                  </Button>
-                ))}
-              </li>
-            )
-          })}
-        </ol>
-      </div>
-    </section>
+      {children(handle)}
+    </div>
   )
 }
 
@@ -685,78 +691,110 @@ export function EffectsUnit({
 }: EffectsUnitProps) {
   const { t } = useTranslation()
   const typeName = useDistortionTypeName()
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+  // FM-1+VA's order, with Bitcrush, where it is offered; elsewhere the six in the order they have
+  // always been laid out. Only a patch with a record has an order to change.
+  const order = effectOrder ? (effectOrder.order ?? FM1_VA_STOCK_EFFECT_ORDER) : [0, 1, 2, 3, 4, 5]
+  const sortable = Boolean(effectOrder?.order)
+  const finishDrag = ({ active, over }: DragEndEvent) => {
+    if (!effectOrder || !over || active.id === over.id) return
+    effectOrder.onMove(order.indexOf(Number(active.id)), order.indexOf(Number(over.id)))
+  }
+
+  const renderEffect = (effect: EffectDefinition, handle: ReactNode) => {
+    const switchController = getEffectParameterDefinition(effect.switchId).controller
+    const enabled = values[switchController] > 0
+    const translatedEffect = t(`ui.effects.${effect.name.toLowerCase()}`)
+    return (
+      <section
+        aria-label={translatedEffect}
+        className="crt-raised-thin flex h-full min-w-0 flex-col bg-[var(--crt-bg-1)]"
+      >
+        {/* The effect's name is its switch's label, so the switch keeps one name and its
+              checked state says whether the effect is on; the name lights with it. */}
+        <div className="flex min-w-0 items-center border-b border-[var(--crt-line-dk)] px-[7px] py-[3px]">
+          {handle}
+          <h3 className="flex min-w-0 items-center gap-1 text-[11px] font-normal tracking-[0.18em] uppercase">
+            <Switch
+              checked={enabled}
+              className="-ml-[3px] inline-flex min-h-6 min-w-0 items-center gap-2 px-1 transition-colors"
+              onChange={(checked) => onChange(switchController, checked ? 1 : 0)}
+            >
+              <span className="truncate">{translatedEffect}</span>
+            </Switch>
+            <HelpPopover label={translatedEffect} text={t(`effectHelp.${effect.name}`)} />
+          </h3>
+        </div>
+        <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
+          <EffectScope enabled={enabled} name={effect.name} values={values} />
+          <EffectPresetControl
+            disabled={!enabled}
+            effectKey={effect.name.toLowerCase()}
+            onApplyPreset={onApplyPreset}
+            presets={effectPresetsFor(effect.name.toLowerCase())}
+          />
+          {effect.name === 'Distortion' && distortionType ? (
+            <DistortionTypeControl
+              disabled={!enabled}
+              onChange={distortionType.onChange}
+              type={distortionType.type}
+            />
+          ) : null}
+          {effect.parameters.map((parameter) => (
+            <EffectControl
+              disabled={!enabled}
+              effectName={effect.name}
+              key={parameter.id}
+              onChange={onChange}
+              onGestureEnd={onGestureEnd}
+              onGestureStart={onGestureStart}
+              parameter={parameter}
+              value={values[getEffectParameterDefinition(parameter.id).controller]}
+            />
+          ))}
+          {effect.name === 'Distortion' && keptDistortionType !== undefined ? (
+            <p className="text-[11px] leading-4 text-[var(--crt-ink-3)]">
+              {t('distortionType.otherFirmware', { type: typeName(keptDistortionType) })}
+            </p>
+          ) : null}
+        </div>
+      </section>
+    )
+  }
 
   return (
     <div className="grid gap-2 p-[9px] md:grid-cols-2 xl:grid-cols-3">
-      {effectOrder ? (
-        <EffectOrderStrip onMove={effectOrder.onMove} order={effectOrder.order} />
-      ) : null}
-      {effects.map((effect) => {
-        const switchController = getEffectParameterDefinition(effect.switchId).controller
-        const enabled = values[switchController] > 0
-        const translatedEffect = t(`ui.effects.${effect.name.toLowerCase()}`)
-        return (
-          <section
-            aria-label={translatedEffect}
-            className="crt-raised-thin flex min-w-0 flex-col bg-[var(--crt-bg-1)]"
-            key={effect.name}
-          >
-            {/* The effect's name is its switch's label, so the switch keeps one name and its
-                checked state says whether the effect is on; the name lights with it. */}
-            <div className="flex min-w-0 items-center border-b border-[var(--crt-line-dk)] px-[7px] py-[3px]">
-              <h3 className="flex min-w-0 items-center gap-1 text-[11px] font-normal tracking-[0.18em] uppercase">
-                <Switch
-                  checked={enabled}
-                  className="-ml-[3px] inline-flex min-h-6 min-w-0 items-center gap-2 px-1 transition-colors"
-                  onChange={(checked) => onChange(switchController, checked ? 1 : 0)}
-                >
-                  <span className="truncate">{translatedEffect}</span>
-                </Switch>
-                <HelpPopover label={translatedEffect} text={t(`effectHelp.${effect.name}`)} />
-              </h3>
-            </div>
-            <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
-              <EffectScope enabled={enabled} name={effect.name} values={values} />
-              <EffectPresetControl
-                disabled={!enabled}
-                effectName={effect.name}
-                onApplyPreset={onApplyPreset}
-              />
-              {effect.name === 'Distortion' && distortionType ? (
-                <DistortionTypeControl
-                  disabled={!enabled}
-                  onChange={distortionType.onChange}
-                  type={distortionType.type}
-                />
-              ) : null}
-              {effect.parameters.map((parameter) => (
-                <EffectControl
-                  disabled={!enabled}
-                  effectName={effect.name}
-                  key={parameter.id}
-                  onChange={onChange}
-                  onGestureEnd={onGestureEnd}
-                  onGestureStart={onGestureStart}
-                  parameter={parameter}
-                  value={values[getEffectParameterDefinition(parameter.id).controller]}
-                />
-              ))}
-              {effect.name === 'Distortion' && keptDistortionType !== undefined ? (
-                <p className="text-[11px] leading-4 text-[var(--crt-ink-3)]">
-                  {t('distortionType.otherFirmware', { type: typeName(keptDistortionType) })}
-                </p>
-              ) : null}
-            </div>
-          </section>
-        )
-      })}
-      {bitcrush ? (
-        <BitcrushSection
-          onChange={bitcrush.onChange}
-          onGestureEnd={onGestureEnd}
-          onGestureStart={onGestureStart}
-          values={bitcrush.values}
-        />
+      <DndContext collisionDetection={closestCenter} onDragEnd={finishDrag} sensors={sensors}>
+        <SortableContext items={[...order]} strategy={rectSortingStrategy}>
+          {order.map((effect, place) => (
+            <SortableEffect effect={effect} key={effect} place={place} sortable={sortable}>
+              {(handle) =>
+                effect === orderEffectKeys.indexOf('bitcrush') ? (
+                  bitcrush ? (
+                    <BitcrushSection
+                      handle={handle}
+                      onApplyPreset={bitcrush.onApplyPreset}
+                      onChange={bitcrush.onChange}
+                      onGestureEnd={onGestureEnd}
+                      onGestureStart={onGestureStart}
+                      values={bitcrush.values}
+                    />
+                  ) : null
+                ) : (
+                  renderEffect(effects[effect], handle)
+                )
+              }
+            </SortableEffect>
+          ))}
+        </SortableContext>
+      </DndContext>
+      {effectOrder?.order === null ? (
+        <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">
+          {t('effectOrder.noRecord')}
+        </p>
       ) : null}
       {keepsBitcrush ? (
         <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">

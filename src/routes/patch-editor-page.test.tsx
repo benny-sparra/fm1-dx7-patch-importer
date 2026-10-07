@@ -92,6 +92,18 @@ function setup(overrides: Partial<EditorMidi> = {}) {
 }
 
 describe('PatchEditorPage MIDI paths', () => {
+  it('marks the patch FM beside its slot code while the FM1 runs Baud Girl’s firmware', () => {
+    setup({ firmware: { identity: 'FM-1_096', kind: 'fm1-va' } })
+
+    expect(screen.getByText('FM patch')).toBeTruthy()
+  })
+
+  it('marks no engine on M-VAVE’s firmware, where every patch is FM', () => {
+    setup()
+
+    expect(screen.queryByText('FM patch')).toBeNull()
+  })
+
   it('keeps LFO/global and pitch-envelope controls permanently visible without collapse buttons', () => {
     setup()
     const configurationPanel = screen.getByRole('complementary', { name: 'Patch configuration' })
@@ -183,6 +195,22 @@ describe('PatchEditorPage MIDI paths', () => {
 
     expect(envelopeValues()).toEqual(before)
   }, 15_000)
+
+  it('lists Init voice, then Randomise, then the voice presets', async () => {
+    const user = userEvent.setup()
+    setup()
+
+    await user.click(screen.getByLabelText('Voice presets'))
+    const items = screen
+      .getAllByRole('button')
+      .filter((button) => button.closest('details') && /^(Init|Rand|Soft)/.test(button.textContent))
+
+    expect(items.map((button) => button.querySelector('span')?.textContent)).toEqual([
+      'Init voice',
+      'Randomise',
+      'Soft pad',
+    ])
+  })
 
   it('applies a randomised sound as a single undo step', async () => {
     const user = userEvent.setup()
@@ -1286,15 +1314,45 @@ describe('PatchEditorPage Distortion type on Baud Girl’s firmware', () => {
 const bitcrushFirmware: Fm1Firmware = { identity: 'FM-1_096', kind: 'fm1-va' }
 const bitcrushSlider = (name: string) =>
   screen.getByRole<HTMLInputElement>('slider', { name: `Bitcrush ${name}` })
+const bitcrushValue = (name: string) => bitcrushSlider(name).value
+const bitcrushPreset = () =>
+  screen.getByRole<HTMLSelectElement>('combobox', { name: 'Bitcrush Preset' })
 
 describe('PatchEditorPage Bitcrush on Baud Girl’s FM-1_096', () => {
   it('offers Bitcrush from FM-1_096, Off at its defaults for a record that never set it', () => {
     renderWithRecord(bitcrushFirmware, hardClipRecord)
 
     expect(screen.getByRole<HTMLInputElement>('switch', { name: 'Bitcrush' }).checked).toBe(false)
-    expect(bitcrushSlider('Bits').value).toBe('8')
+    expect(bitcrushValue('Bits')).toBe('8')
     expect(bitcrushSlider('Sample rate').getAttribute('aria-valuetext')).toBe('10.9k')
-    expect(bitcrushSlider('Mix').value).toBe('100')
+    expect(bitcrushValue('Mix')).toBe('100')
+  })
+
+  it('disables the Bitcrush sliders and presets while Bitcrush is off', () => {
+    renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    expect(['Bits', 'Sample rate', 'Mix'].map((name) => bitcrushSlider(name).disabled)).toEqual([
+      true,
+      true,
+      true,
+    ])
+    expect(bitcrushPreset().disabled).toBe(true)
+  })
+
+  it('sets every Bitcrush setting from a preset as one undo step, and saves it', async () => {
+    const { onSave, user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+    await user.click(screen.getByRole('switch', { name: 'Bitcrush' }))
+
+    await user.selectOptions(bitcrushPreset(), 'Crushed')
+    expect(['Bits', 'Sample rate', 'Mix'].map(bitcrushValue)).toEqual(['4', '40', '100'])
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(['Bits', 'Sample rate', 'Mix'].map(bitcrushValue)).toEqual(['8', '72', '100'])
+    expect(screen.getByRole<HTMLInputElement>('switch', { name: 'Bitcrush' }).checked).toBe(true)
+
+    await user.click(screen.getByRole('button', { name: 'Redo' }))
+    await user.click(screen.getByRole('button', { name: 'Save to library' }))
+    const record: Uint8Array = onSave.mock.calls[0][2]
+    expect([record[35], record[41], record[44]]).toEqual([4, 40, 100])
   })
 
   it('offers no Bitcrush before FM-1_096', () => {
@@ -1330,7 +1388,7 @@ describe('PatchEditorPage Bitcrush on Baud Girl’s FM-1_096', () => {
     fireEvent.keyUp(mix, { key: 'ArrowLeft' })
     await user.click(screen.getByRole('button', { name: 'Undo' }))
 
-    expect(bitcrushSlider('Mix').value).toBe('100')
+    expect(bitcrushValue('Mix')).toBe('100')
     expect(screen.getByRole<HTMLInputElement>('switch', { name: 'Bitcrush' }).checked).toBe(true)
   })
 
@@ -1368,36 +1426,75 @@ describe('PatchEditorPage Bitcrush on Baud Girl’s FM-1_096', () => {
   })
 })
 
-/** The effect order strip's names, first to last. */
+const effectNames = ['Filter', 'Reverb', 'Delay', 'Distortion', 'Chorus', 'Phaser', 'Bitcrush']
+
+/** The effect boxes' names in the order the panel lays them out. */
 const effectOrderNames = () =>
-  within(screen.getByRole('list', { name: 'Effects, first to last' }))
-    .getAllByRole('listitem')
-    .map((item) => item.textContent)
+  screen
+    .getAllByRole('region')
+    .map((region) => region.getAttribute('aria-label') ?? '')
+    .filter((name) => effectNames.includes(name))
+
+/** jsdom does no layout, so the effect boxes are laid out in one row for the drag sensors. */
+function layOutEffectBoxes() {
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+    this: HTMLElement,
+  ) {
+    const boxes = [...document.querySelectorAll('.effect-box')]
+    const box = this.closest('.effect-box')
+    const left = box ? boxes.indexOf(box) * 110 : -1000
+    return {
+      bottom: 100,
+      height: 100,
+      left,
+      right: left + 100,
+      top: 0,
+      width: 100,
+      x: left,
+      y: 0,
+    } as DOMRect
+  })
+}
+
+/** Picks up an effect by its grip, moves it with the arrow keys, and drops it. */
+async function dragEffect(
+  user: ReturnType<typeof userEvent.setup>,
+  effect: string,
+  arrows: string,
+) {
+  screen.getByRole('button', { name: `Reorder ${effect}` }).focus()
+  await user.keyboard('[Space]')
+  await user.keyboard(arrows)
+  await user.keyboard('[Space]')
+}
 
 describe('PatchEditorPage effect order on Baud Girl’s FM-1_096', () => {
-  it('lists the seven effects in the order the record plays them', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('lays the seven effects out in the order the record plays them', () => {
     renderWithRecord(bitcrushFirmware, hardClipRecord)
 
     // Preset 097 had its Filter moved below Reverb, and never set Bitcrush.
     expect(effectOrderNames()).toEqual([
-      '1Reverb',
-      '2Filter',
-      '3Delay',
-      '4Distortion',
-      '5Bitcrush',
-      '6Chorus',
-      '7Phaser',
+      'Reverb',
+      'Filter',
+      'Delay',
+      'Distortion',
+      'Bitcrush',
+      'Chorus',
+      'Phaser',
     ])
   })
 
-  it('moves an effect, keeps focus on its button, and saves only the order’s bytes', async () => {
+  it('drags an effect to another place and saves only the order’s bytes', async () => {
+    layOutEffectBoxes()
     const { onSave, user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
 
-    await user.click(screen.getByRole('button', { name: 'Move Filter earlier' }))
+    await dragEffect(user, 'Filter', '[ArrowLeft]')
 
-    expect(effectOrderNames().slice(0, 2)).toEqual(['1Filter', '2Reverb'])
-    // Filter reached the start, so focus moves to its other button.
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Move Filter later' }))
+    await waitFor(() => expect(effectOrderNames().slice(0, 2)).toEqual(['Filter', 'Reverb']))
     await user.click(screen.getByRole('button', { name: 'Save to library' }))
     const record: Uint8Array = onSave.mock.calls[0][2]
     const changed = Array.from(record.keys()).filter((i) => record[i] !== hardClipRecord[i])
@@ -1405,21 +1502,21 @@ describe('PatchEditorPage effect order on Baud Girl’s FM-1_096', () => {
     expect([record[27], record[30]]).toEqual([0, 1])
   })
 
-  it('takes a move back in one undo', async () => {
+  it('takes a drag back in one undo', async () => {
+    layOutEffectBoxes()
     const { user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
-    await user.click(screen.getByRole('button', { name: 'Move Phaser earlier' }))
+    await dragEffect(user, 'Phaser', '[ArrowLeft][ArrowLeft]')
+    await waitFor(() => expect(effectOrderNames().at(-1)).not.toBe('Phaser'))
 
     await user.click(screen.getByRole('button', { name: 'Undo' }))
 
-    expect(effectOrderNames().at(-1)).toBe('7Phaser')
+    expect(effectOrderNames().at(-1)).toBe('Phaser')
   })
 
   it('cannot change the order of a patch without a record, and says why', () => {
     renderWithRecord(bitcrushFirmware)
 
-    expect(
-      screen.getByRole<HTMLButtonElement>('button', { name: 'Move Reverb earlier' }).disabled,
-    ).toBe(true)
+    expect(screen.queryByRole('button', { name: /^Reorder / })).toBeNull()
     expect(
       screen.getByText(
         'This patch didn’t come from the FM1, so it takes the order of the preset it’s written over.',
@@ -1430,7 +1527,7 @@ describe('PatchEditorPage effect order on Baud Girl’s FM-1_096', () => {
   it('says when a patch keeps a changed order for firmware that plays its own', () => {
     renderWithRecord({ identity: 'FM-1_015', kind: 'mvave' }, hardClipRecord)
 
-    expect(screen.queryByRole('list', { name: 'Effects, first to last' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Reorder / })).toBeNull()
     expect(
       screen.getByText(
         'Kept for Baud Girl’s firmware: a changed effect order. This FM1 plays the effects in its own order.',
@@ -1438,11 +1535,11 @@ describe('PatchEditorPage effect order on Baud Girl’s FM-1_096', () => {
     ).toBeTruthy()
   })
 
-  it('names the move buttons in the interface language', async () => {
+  it('names the grips in the interface language', async () => {
     await setLocale('de')
     renderWithRecord(bitcrushFirmware, hardClipRecord)
 
-    expect(screen.getByRole('button', { name: 'Hall nach vorne verschieben' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Hall verschieben' })).toBeTruthy()
     await setLocale('en-GB')
   })
 })

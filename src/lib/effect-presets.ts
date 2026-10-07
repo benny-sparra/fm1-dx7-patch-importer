@@ -352,3 +352,26 @@ export function applyEffectPreset(settings: Uint8Array, id: EffectPresetId) {
   }
   return { controllers, settings: next }
 }
+
+export type BitcrushPresetId = 'sampler' | 'lofi' | 'eightBit' | 'crushed'
+
+/*
+  Starting points for FM-1+VA's Bitcrush, which no controller carries, so they are values for its
+  four record settings rather than controllers: its switch, Bits (1 to 16), Sample Rate (0 to 100,
+  300 Hz to 44.1 kHz), and Mix (0 to 100), the order `fm1VaBitcrushSettings` gives. As the other
+  effects' presets do, each sets every setting and switches Bitcrush on. They run from gentle to
+  harsh: fewer bits and a lower Sample Rate crush harder, and the gentler ones mix in less.
+*/
+export const bitcrushPresets: { id: BitcrushPresetId; values: readonly number[] }[] = [
+  { id: 'sampler', values: [1, 12, 78, 100] },
+  { id: 'lofi', values: [1, 10, 60, 50] },
+  { id: 'eightBit', values: [1, 8, 72, 100] },
+  { id: 'crushed', values: [1, 4, 40, 100] },
+]
+
+/** The Bitcrush settings, from its switch, that preset `id` sets. */
+export function bitcrushPresetValues(id: BitcrushPresetId) {
+  const preset = bitcrushPresets.find((candidate) => candidate.id === id)
+  if (!preset) throw new RangeError(`Unknown Bitcrush preset: ${id}`)
+  return preset.values
+}

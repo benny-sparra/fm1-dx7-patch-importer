@@ -83,11 +83,16 @@ export function initializeVoice(parameters: Uint8Array) {
   next[globalIndex('global.pitchModSensitivity')] = PITCH_MOD_SENSITIVITY
   next[globalIndex('global.transpose')] = DX7_TRANSPOSE_C3
 
-  for (const { editorIndex, kind } of fm1EffectParameters) {
-    if (kind === 'switch') next[editorIndex] = 0
-  }
+  switchEffectsOff(next)
 
   return next
+}
+
+/** Switches every FM1 effect off, keeping each one's settings ready to switch back on. */
+export function switchEffectsOff(parameters: Uint8Array) {
+  for (const { editorIndex, kind } of fm1EffectParameters) {
+    if (kind === 'switch') parameters[editorIndex] = 0
+  }
 }
 
 /** The DX7 INIT VOICE as a bank voice, named INIT VOICE, such as fills unused slots of a bank. */

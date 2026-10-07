@@ -1,8 +1,6 @@
 import {
   ArrowLeft,
   ChevronDown,
-  Dices,
-  Eraser,
   GitCompareArrows,
   Pencil,
   Redo2,
@@ -11,11 +9,13 @@ import {
   Save,
   Undo2,
   WandSparkles,
+  type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CompareNotice } from '@/components/editor/compare-overlay'
+import { EngineTag, type PatchEngine } from '@/components/patches/engine-tag'
 import { Button, buttonVariants } from '@/components/ui/button'
 import type { Patch } from '@/data/patches'
 import { FM1_VOICE_NAME_LENGTH } from '@/lib/fm1-parameters'
@@ -26,7 +26,6 @@ import {
   type KeyboardShortcut,
 } from '@/lib/keyboard-shortcuts'
 import type { PatchSyncState } from '@/lib/patch-sync-coordinator'
-import { soundPresets, type SoundPresetId } from '@/lib/sound-presets'
 import { cn } from '@/lib/utils'
 import { patchSlotCode } from '@/lib/patch-library'
 
@@ -34,6 +33,11 @@ type PatchEditorHeaderProps = {
   canSync: boolean
   canRedo: boolean
   canUndo: boolean
+  /**
+   * The patch's engine, marked beside its slot code as its card marks it: Virtual Analog always, FM
+   * only while the FM1 runs Baud Girl's firmware.
+   */
+  engine?: PatchEngine
   isComparing: boolean
   isDirty: boolean
   liveName: string
@@ -42,12 +46,15 @@ type PatchEditorHeaderProps = {
   onStopCompare: () => void
   onNameBlur: () => void
   onNameChange: (name: string) => void
-  /** The sound presets, Init voice, and Randomise, which only a DX7 voice offers. */
+  /**
+   * The engine's starting points: a blank one first, then Randomise, then its sound presets. Each
+   * item closes the menu itself.
+   */
   presets?: {
+    items: readonly PresetMenuItem[]
+    /** The menu's accessible name, which says whose presets they are. */
+    label: string
     menuRef: RefObject<HTMLDetailsElement | null>
-    onInitVoice: () => void
-    onPreset: (id: SoundPresetId) => void
-    onRandomise: () => void
   }
   onRedo: () => void
   onResend: () => void
@@ -57,6 +64,14 @@ type PatchEditorHeaderProps = {
   patch: Patch
   saveMenuRef: RefObject<HTMLDetailsElement | null>
   syncState: PatchSyncState
+}
+
+type PresetMenuItem = {
+  description: string
+  icon?: LucideIcon
+  id: string
+  name: string
+  onSelect: () => void
 }
 
 const presetItemClass =
@@ -71,6 +86,7 @@ export function PatchEditorHeader({
   canSync,
   canRedo,
   canUndo,
+  engine,
   isComparing,
   isDirty,
   liveName,
@@ -133,6 +149,14 @@ export function PatchEditorHeader({
           <span className="patch-slot crt-inset font-vt323 flex h-8 shrink-0 items-center border bg-[var(--crt-bg-well)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
             {patchSlotCode(patch)}
           </span>
+          {engine ? (
+            <>
+              <EngineTag engine={engine} />
+              <span className="sr-only">
+                {engine === 'fm' ? t('banks.fmPatch') : t('banks.virtualAnalogPatch')}
+              </span>
+            </>
+          ) : null}
           <div className="flex min-w-0 items-center gap-2">
             <label className="min-w-0" title={t('editor.editName')}>
               <span className="sr-only">{t('editor.patchName')}</span>
@@ -196,62 +220,32 @@ export function PatchEditorHeader({
                 ref={presets.menuRef}
               >
                 <summary
-                  aria-label={t('editor.presets')}
+                  aria-label={presets.label}
                   className={cn(
                     buttonVariants({ variant: 'outline' }),
                     'font-vt323 list-none [&::-webkit-details-marker]:hidden',
                     isComparing && 'opacity-50',
                   )}
-                  title={t('editor.presets')}
+                  title={presets.label}
                 >
                   <WandSparkles />
                   <span className="hidden xl:inline">{t('editor.presetsShort')}</span>
                   <ChevronDown className="hidden transition-transform group-open:rotate-180 motion-reduce:transition-none xl:block" />
                 </summary>
                 <div className="editor-menu-surface absolute top-[calc(100%+0.5rem)] right-0 left-0 z-40 grid max-h-[min(26rem,calc(100vh-1.5rem))] gap-1 overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground sm:left-auto sm:max-h-none sm:w-[min(22rem,calc(100vw-1.5rem))]">
-                  {/* Init voice leads the list as the blank starting point, then Randomise. */}
-                  <button
-                    className={presetItemClass}
-                    disabled={syncState === 'sending'}
-                    onClick={presets.onInitVoice}
-                    type="button"
-                  >
-                    <span className="flex items-center gap-1.5 text-sm font-bold">
-                      <Eraser aria-hidden="true" className="size-3.5 shrink-0" />
-                      <span>{t('editor.initVoice')}</span>
-                    </span>
-                    <span className="text-xs leading-4 text-muted-foreground">
-                      {t('editor.initVoiceHelp')}
-                    </span>
-                  </button>
-                  <button
-                    className={presetItemClass}
-                    disabled={syncState === 'sending'}
-                    onClick={presets.onRandomise}
-                    type="button"
-                  >
-                    <span className="flex items-center gap-1.5 text-sm font-bold">
-                      <Dices aria-hidden="true" className="size-3.5 shrink-0" />
-                      <span>{t('editor.randomise')}</span>
-                    </span>
-                    <span className="text-xs leading-4 text-muted-foreground">
-                      {t('editor.randomiseHelp')}
-                    </span>
-                  </button>
-                  {soundPresets.map((preset) => (
+                  {presets.items.map(({ description, icon: Icon, id, name, onSelect }) => (
                     <button
                       className={presetItemClass}
                       disabled={syncState === 'sending'}
-                      key={preset.id}
-                      onClick={() => presets.onPreset(preset.id)}
+                      key={id}
+                      onClick={onSelect}
                       type="button"
                     >
-                      <span className="text-sm font-bold">
-                        {t(`editor.presetOptions.${preset.id}.name`)}
+                      <span className="flex items-center gap-1.5 text-sm font-bold">
+                        {Icon ? <Icon aria-hidden="true" className="size-3.5 shrink-0" /> : null}
+                        <span>{name}</span>
                       </span>
-                      <span className="text-xs leading-4 text-muted-foreground">
-                        {t(`editor.presetOptions.${preset.id}.description`)}
-                      </span>
+                      <span className="text-xs leading-4 text-muted-foreground">{description}</span>
                     </button>
                   ))}
                 </div>

@@ -455,8 +455,8 @@ presets (9).
       the FM1 on 2026-10-04. _Bitcrush built 2026-10-06:_ FM-1_096's seventh effect, mapped on
       hardware the same day (`docs/hardware-runs/fm1-va-bitcrush-order-2026-10-06.md`), has its own
       box in the effects panel from FM-1_096, written into record bytes 5, 35, 41, and 44.
-      _Effect order built 2026-10-06:_ an **Effect order** strip at the top of the effects panel,
-      from FM-1_096, moves each of the seven effects one place at a time and is written into the
+      _Effect order built 2026-10-06:_ from FM-1_096 the effects panel lays the seven boxes out in
+      their order, and each drags to another place by its grip; the order is written into the
       chain bytes and Bitcrush's place. Neither has been written to the FM1 from the editor and
       read back yet.
 - [ ] **6. Virtual Analog presets.** Built in steps, each shippable:

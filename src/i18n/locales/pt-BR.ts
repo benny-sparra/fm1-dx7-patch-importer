@@ -174,16 +174,43 @@ export default {
       'Guardado para o firmware da Baud Girl a partir do FM-1_096: o Bitcrush está ligado. Este FM1 não o toca.',
   },
   effectOrder: {
-    title: 'Ordem dos efeitos',
-    list: 'Efeitos, do primeiro ao último',
-    moveEarlier: 'Mover {{effect}} para antes',
-    moveLater: 'Mover {{effect}} para depois',
+    dragTitle:
+      'Arraste para mudar em que ponto do caminho do som fica este efeito, o primeiro no alto à esquerda. Pelo teclado, pressione Espaço e depois as setas. A nova ordem é ouvida quando o som é gravado no FM1.',
     noRecord: 'Este som não veio do FM1, então usa a ordem do preset sobre o qual for gravado.',
     otherFirmware:
       'Guardado para o firmware da Baud Girl: uma ordem de efeitos alterada. Este FM1 toca os efeitos na própria ordem.',
-    help: 'A ordem em que o som passa pelos efeitos no firmware da Baud Girl, o primeiro à esquerda. Uma distorção antes ou depois do reverb, por exemplo, soa bem diferente. Nenhuma mensagem MIDI a define, então ela é ouvida quando o som é gravado no FM1 com Enviar ao FM1 ou Gravar sons no FM1.',
   },
   virtualAnalog: {
+    help: {
+      waveform:
+        'A onda básica do oscilador. A senoide é suave, a dente de serra é brilhante e zumbida, a triangular fica entre as duas, e a quadrada é oca, mas mais dura que a senoide.',
+      super:
+        'Acrescenta mais seis cópias da onda em volta da escolhida. Aumente também a desafinação para abri-las num som denso, como um supersaw.',
+      detune:
+        'O quanto as cópias acrescentadas pelo Super se afastam em altura. Não faz nada enquanto o Super está em 0.',
+      drift:
+        'Desafina levemente cada nota, como fazem osciladores antigos. Na metade de cima, fica instável de propósito.',
+      sub: 'Acrescenta uma onda quadrada uma oitava abaixo de cada nota, para dar peso.',
+      noise: 'Mistura chiado à onda.',
+      pwm: 'Varia a largura da onda quadrada para que o timbre se mova sozinho. Só funciona com a forma de onda quadrada.',
+      filterType:
+        'Que parte do som o filtro remove. O passa-baixa tira os agudos, suave em 12 dB ou íngreme em 24 dB; o passa-banda mantém uma faixa em torno do corte; o passa-alta tira os graves.',
+      cutoff: 'A frequência a partir da qual o filtro age. Abaixe-a para escurecer o som.',
+      resonance: 'Realça o som bem no corte, até o filtro assobiar.',
+      filterEnvelope: 'O quanto o envelope próprio do filtro move o corte a cada nota.',
+      filterDecay:
+        'Quanto tempo dura o movimento do envelope do filtro. Curto, com bastante envelope, faz um som pinçado.',
+      filterShape: 'Como é o movimento do envelope do filtro, da subida à descida.',
+      filterVelocity: 'O quanto tocar mais forte abre o corte. O volume não muda.',
+      keyTracking: 'O quanto o corte acompanha as notas que você toca mais acima no teclado.',
+      lfoToCutoff: 'O quanto o LFO move o corte.',
+      level: 'O volume deste som em relação aos outros, cerca de 0,74 dB por passo.',
+      velocityToLevel:
+        'O quanto uma nota fica mais alta quando você toca mais forte. Em 0, todas as notas têm o mesmo volume.',
+      mono: 'Toca uma nota por vez. Uma tecla nova assume a que está presa sem um novo ataque.',
+      envelope:
+        'Um ataque, decaimento, sustentação e liberação para o som todo enquanto está ativado. Arraste seus pontos ou digite os valores. A liberação apaga uma nota em 0,1 segundo em 0 e em 2 segundos em 100. Aumente a sustentação ao ativá-lo, pois em 0 uma nota segurada é curta.',
+    },
     oscillator: 'Oscilador',
     waveform: 'Forma de onda',
     waveforms: {
@@ -214,19 +241,16 @@ export default {
     filterVelocity: 'Velocidade',
     keyTracking: 'Acompanhamento de teclado',
     lfoToCutoff: 'LFO no corte',
-    output: 'Saída',
     level: 'Nível',
     velocityToLevel: 'Velocidade no nível',
-    mono: 'Mono',
+    mono: 'Monofônico',
     lfo: 'LFO',
     envelope: 'Envelope',
     attack: 'Ataque',
     decay: 'Decaimento',
     sustain: 'Sustentação',
     release: 'Liberação',
-    envelopeOff: 'Ative o envelope para ajustá-lo.',
     checking: 'Verificando o preset {{preset}} do FM1…',
-    live: 'Suas mudanças tocam no preset {{preset}} do FM1 assim que você as faz. Nível, velocidade no nível, Mono, a forma de onda, a profundidade de modulação de amplitude, a sensibilidade de modulação de altura e a sincronia do LFO, desativar o envelope, e o tipo de distorção, o Bitcrush e a ordem dos efeitos são ouvidos quando o som é gravado no FM1.',
     noProgram:
       'Este som não está nos bancos A–D, então nenhum preset do FM1 o toca. Suas mudanças são ouvidas quando o som é gravado no FM1.',
     noFirmware:
@@ -235,6 +259,36 @@ export default {
       'O preset {{preset}} do FM1 não é um preset Virtual Analog, então suas mudanças não são enviadas a ele. Elas são ouvidas quando o som é gravado no FM1.',
     readFailed:
       'O FM1 não respondeu quando seu preset {{preset}} foi pedido, então suas mudanças não são enviadas a ele. Elas são ouvidas quando o som é gravado no FM1.',
+    presets: 'Predefinições de som',
+    initPatch: 'Inicializar',
+    initPatchHelp: 'Onda dente de serra simples, filtro aberto. Efeitos desligados.',
+    randomiseHelp: 'Som novo. Mantém nome, nível e efeitos.',
+    presetOptions: {
+      'super-saw': {
+        name: 'Superserra',
+        description: 'Serras desafinadas, chorus e reverb de salão.',
+      },
+      'mono-bass': {
+        name: 'Baixo mono',
+        description: 'Quadrada e sub, uma nota por vez.',
+      },
+      'filter-pluck': {
+        name: 'Pinçado filtrado',
+        description: 'Varredura curta de filtro, eco e sala pequena.',
+      },
+      'warm-pad': {
+        name: 'Pad quente',
+        description: 'Ataque lento, deriva suave e reverb de salão.',
+      },
+      'pulse-strings': {
+        name: 'Cordas de pulso',
+        description: 'Onda quadrada em movimento, chorus e reverb.',
+      },
+      'vibrato-lead': {
+        name: 'Solo com vibrato',
+        description: 'Uma nota por vez, vibrato atrasado e eco.',
+      },
+    },
   },
   ui: {
     auditionGroup: 'Audição do operador {{number}}',
@@ -830,6 +884,10 @@ export default {
       slowSweep: 'Varredura lenta',
       deepPhase: 'Phaser profundo',
       fastSwirl: 'Redemoinho rápido',
+      sampler: 'Sampler',
+      lofi: 'Lo-fi',
+      eightBit: '8 bits',
+      crushed: 'Esmagado',
     },
     lfoGlobal: 'LFO e global',
     oscillatorSync: 'Sincronização do oscilador',

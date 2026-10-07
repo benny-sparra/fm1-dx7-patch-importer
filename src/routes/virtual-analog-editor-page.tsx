@@ -1,4 +1,4 @@
-import { Activity, AudioWaveform, Funnel, SlidersHorizontal, Sparkles, Waves } from 'lucide-react'
+import { Activity, AudioWaveform, Dices, Eraser, Funnel, Sparkles, Waves } from 'lucide-react'
 import {
   type RefObject,
   useEffect,
@@ -11,19 +11,28 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
+import { AdsrFields, AdsrScope } from '@/components/editor/adsr-scope'
 import { CompareOverlay } from '@/components/editor/compare-overlay'
+import { RackPanelHelp } from '@/components/editor/editor-workspace'
 import { EffectsUnit } from '@/components/editor/effects-unit'
 import { LfoScope } from '@/components/editor/lfo-scope'
+import { VaFilterScope, VaFilterTypeIcon } from '@/components/editor/va-filter-scope'
 import {
   LfoWaveControl,
-  RackSelect,
+  PicturePickerControl,
   RadioParameterControl,
+  RotaryParameterControl,
   SliderParameterControl,
   SwitchParameterControl,
+  WaveShapeIcon,
 } from '@/components/editor/parameter-controls'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
-import { RackPanelTitle } from '@/components/ui/rack-panel'
+import {
+  RackPanelCollapseToggle,
+  RackPanelCollapsibleBody,
+  RackPanelTitle,
+} from '@/components/ui/rack-panel'
 import type { Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
@@ -59,6 +68,12 @@ import {
 import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { cn } from '@/lib/utils'
 import {
+  applyVirtualAnalogPreset,
+  initializeVirtualAnalog,
+  randomizeVirtualAnalog,
+  virtualAnalogPresets,
+} from '@/lib/virtual-analog-presets'
+import {
   displayedVirtualAnalogParameters,
   hasUnsavedVirtualAnalogEdits,
   VirtualAnalogEditorSession,
@@ -90,6 +105,15 @@ type VirtualAnalogEditorPageProps = {
 
 /** Whether, and why not, the editor's changes play on the FM1 as they are made. */
 type LiveStatus = 'checking' | 'live' | 'noFirmware' | 'noProgram' | 'otherEngine' | 'readFailed'
+
+/** Draws an LFO wave of the oscillator waveform's shape at the size the picker gives it. */
+const wavePicture = (wave: number) => (className: string) => (
+  <WaveShapeIcon className={className} wave={wave} />
+)
+
+const filterTypePicture = (type: number) => (className: string) => (
+  <VaFilterTypeIcon className={className} type={type} />
+)
 
 const panelClass = 'synthwave-panel @container flex min-w-0 flex-col'
 const controlsClass = 'grid grid-cols-2 content-start gap-x-3 gap-y-2.5 p-[9px] @sm:grid-cols-3'
@@ -128,6 +152,7 @@ export function VirtualAnalogEditorPage({
       ),
   )
   const state = useSyncExternalStore(editor.subscribe, editor.getState)
+  const [isEffectsCollapsed, setIsEffectsCollapsed] = useState(false)
   const { history, isComparing, syncState } = state
   const parameters = displayedVirtualAnalogParameters(state)
   const isDirty = hasUnsavedVirtualAnalogEdits(state)
@@ -140,7 +165,8 @@ export function VirtualAnalogEditorPage({
   } | null>(null)
   const unsavedDialogRef = useRef<HTMLDialogElement>(null)
   const saveMenuRef = useDismissableDetails()
-  const filterTypeId = useId()
+  const presetsMenuRef = useDismissableDetails()
+  const keyTrackingName = useId()
   const program = patch.program
   const canCheck = soundControl.canSend && reader.canRead
 
@@ -275,7 +301,13 @@ export function VirtualAnalogEditorPage({
 
   const toggleCompare = () => {
     if (!editor.toggleCompare()) return
+    presetsMenuRef.current?.removeAttribute('open')
     saveMenuRef.current?.removeAttribute('open')
+  }
+
+  const replaceSound = (replace: (parameters: Uint8Array) => Uint8Array) => {
+    presetsMenuRef.current?.removeAttribute('open')
+    editor.replaceParameters(replace)
   }
 
   const stopComparing = () => {
@@ -318,6 +350,7 @@ export function VirtualAnalogEditorPage({
     valueLabel?: (value: number) => string,
   ) => (
     <SliderParameterControl
+      helpText={t(`virtualAnalog.help.${id}`)}
       label={label}
       max={virtualAnalogRow(id).max}
       onChange={(next) => editor.setRow(id, next)}
@@ -325,6 +358,23 @@ export function VirtualAnalogEditorPage({
       onGestureStart={editor.beginGesture}
       value={value(id)}
       valueLabel={valueLabel}
+    />
+  )
+  const rotary = (
+    id: VirtualAnalogRowId,
+    label: string,
+    valueLabel?: (value: number) => string,
+    help = t(`virtualAnalog.help.${id}`),
+  ) => (
+    <RotaryParameterControl
+      helpText={help}
+      label={label}
+      valueLabel={valueLabel}
+      max={virtualAnalogRow(id).max}
+      onChange={(next) => editor.setRow(id, next)}
+      onGestureEnd={editor.endGesture}
+      onGestureStart={editor.beginGesture}
+      value={value(id)}
     />
   )
   const envelopeOn = value('envelope') === 1
@@ -336,6 +386,7 @@ export function VirtualAnalogEditorPage({
         canRedo={history.future.length > 0}
         canSync={liveStatus === 'live'}
         canUndo={history.past.length > 0}
+        engine="virtual-analog"
         isComparing={isComparing}
         isDirty={isDirty}
         liveName={liveName}
@@ -360,12 +411,39 @@ export function VirtualAnalogEditorPage({
         onStopCompare={stopComparing}
         onUndo={editor.undo}
         patch={patch}
+        presets={{
+          items: [
+            {
+              description: t('virtualAnalog.initPatchHelp'),
+              icon: Eraser,
+              id: 'init',
+              name: t('virtualAnalog.initPatch'),
+              onSelect: () => replaceSound(initializeVirtualAnalog),
+            },
+            {
+              description: t('virtualAnalog.randomiseHelp'),
+              icon: Dices,
+              id: 'randomise',
+              name: t('editor.randomise'),
+              onSelect: () => replaceSound((present) => randomizeVirtualAnalog(present)),
+            },
+            ...virtualAnalogPresets.map(({ id }) => ({
+              description: t(`virtualAnalog.presetOptions.${id}.description`),
+              id,
+              name: t(`virtualAnalog.presetOptions.${id}.name`),
+              onSelect: () => replaceSound((present) => applyVirtualAnalogPreset(present, id)),
+            })),
+          ],
+          label: t('virtualAnalog.presets'),
+          menuRef: presetsMenuRef,
+        }}
         saveMenuRef={saveMenuRef}
         syncState={syncState}
       />
 
-      <p className="text-sm leading-6 text-[var(--crt-ink-3)]" role="status">
-        {t(`virtualAnalog.${liveStatus}`, { preset: presetNumber })}
+      {/* Says why changes do not play on the FM1 as they are made; while they do, it is silent. */}
+      <p className="text-sm leading-6 text-[var(--crt-ink-3)] empty:hidden" role="status">
+        {liveStatus === 'live' ? null : t(`virtualAnalog.${liveStatus}`, { preset: presetNumber })}
       </p>
 
       <div className="relative min-w-0">
@@ -373,100 +451,170 @@ export function VirtualAnalogEditorPage({
           className={cn('grid min-w-0 gap-2.5', isComparing && 'opacity-60')}
           inert={isComparing}
         >
-          <div className="grid min-w-0 gap-2.5 lg:grid-cols-2">
-            <section aria-labelledby="va-oscillator-heading" className={panelClass}>
+          {/* Three columns from xl, as the voice editor's rack has them: the busy Oscillator and
+              Filter take two, each beside the panel that works with it. */}
+          <div className="grid min-w-0 gap-2.5 xl:grid-cols-3">
+            <section
+              aria-labelledby="va-oscillator-heading"
+              className={cn(panelClass, 'xl:col-span-2')}
+            >
               <RackPanelTitle
                 icon={AudioWaveform}
                 id="va-oscillator-heading"
                 title={t('virtualAnalog.oscillator')}
               />
-              <div className={controlsClass}>
-                <div className="col-span-full">
-                  <RadioParameterControl
+              {/* The waveform down the left, picked as the algorithm is, its settings beside it.
+                  From xl the row is held tall enough for knobs, and the Envelope fills it. */}
+              <div className="grid flex-1 grid-cols-[auto_minmax(0,1fr)] gap-3 p-[9px] xl:min-h-80">
+                <div className="flex w-40 flex-col gap-2.5">
+                  <PicturePickerControl
+                    helpText={t('virtualAnalog.help.waveform')}
                     label={t('virtualAnalog.waveform')}
-                    name={`${filterTypeId}-waveform`}
                     onChange={(next) => editor.chooseRow('waveform', next)}
-                    options={[
-                      t('virtualAnalog.waveforms.sine'),
-                      t('virtualAnalog.waveforms.saw'),
-                      t('virtualAnalog.waveforms.triangle'),
-                      t('virtualAnalog.waveforms.square'),
-                    ]}
+                    // Sine, Saw, Triangle, and Square, drawn as the LFO's waves of the same shapes.
+                    options={(
+                      [
+                        ['sine', 4],
+                        ['saw', 2],
+                        ['triangle', 0],
+                        ['square', 3],
+                      ] as const
+                    ).map(([name, wave]) => ({
+                      label: t(`virtualAnalog.waveforms.${name}`),
+                      picture: wavePicture(wave),
+                    }))}
                     value={value('waveform')}
                   />
+                  {/* Mono sits under the waveform's square, level with Level and Velocity. */}
+                  <SwitchParameterControl
+                    helpText={t('virtualAnalog.help.mono')}
+                    label={t('virtualAnalog.mono')}
+                    onChange={(next) => editor.chooseRow('mono', next)}
+                    value={value('mono')}
+                  />
                 </div>
-                {slider('super', t('virtualAnalog.super'))}
-                {slider('detune', t('virtualAnalog.detune'))}
-                {slider('drift', t('virtualAnalog.drift'))}
-                {slider('sub', t('virtualAnalog.sub'))}
-                {slider('noise', t('virtualAnalog.noise'))}
-                {slider('pwm', t('virtualAnalog.pwm'))}
+                {/* The rows share whatever height the Envelope beside them gives the panel. */}
+                <div className="grid grid-cols-1 content-between gap-x-3 gap-y-2.5 @sm:grid-cols-2 @2xl:grid-cols-3">
+                  {slider('super', t('virtualAnalog.super'))}
+                  {slider('detune', t('virtualAnalog.detune'))}
+                  {slider('drift', t('virtualAnalog.drift'))}
+                  {slider('sub', t('virtualAnalog.sub'))}
+                  {slider('noise', t('virtualAnalog.noise'))}
+                  {slider('pwm', t('virtualAnalog.pwm'))}
+                  {/* The FM1 lists Level and Velocity to Level beside the oscillator. */}
+                  <div className="col-span-full grid grid-cols-2 items-start gap-x-3 gap-y-2.5 border-t border-[var(--crt-line-dk)] pt-2">
+                    {slider('level', t('virtualAnalog.level'))}
+                    {slider('velocityToLevel', t('virtualAnalog.velocityToLevel'))}
+                  </div>
+                </div>
               </div>
             </section>
 
-            <section aria-labelledby="va-filter-heading" className={panelClass}>
+            <section aria-labelledby="va-envelope-heading" className={panelClass}>
+              <RackPanelTitle
+                icon={Activity}
+                help={
+                  <RackPanelHelp
+                    label={t('virtualAnalog.envelope')}
+                    text={t('virtualAnalog.help.envelope')}
+                  />
+                }
+                id="va-envelope-heading"
+                title={t('virtualAnalog.envelope')}
+                titleSwitch={{
+                  checked: envelopeOn,
+                  onChange: (on) => editor.chooseRow('envelope', on ? 1 : 0),
+                }}
+              />
+              <div className="flex flex-1 flex-col gap-2.5 p-[9px]">
+                <AdsrScope
+                  attack={value('attack')}
+                  decay={value('decay')}
+                  enabled={envelopeOn}
+                  onChange={(setting, next) => editor.setRow(setting, next)}
+                  onGestureEnd={editor.endGesture}
+                  onGestureStart={editor.beginGesture}
+                  release={value('release')}
+                  sustain={value('sustain')}
+                />
+                {/* FM-1+VA plays these only while the Envelope is on, so they wait for its switch. */}
+                <AdsrFields
+                  disabled={!envelopeOn}
+                  labels={{
+                    attack: t('virtualAnalog.attack'),
+                    decay: t('virtualAnalog.decay'),
+                    release: t('virtualAnalog.release'),
+                    sustain: t('virtualAnalog.sustain'),
+                  }}
+                  onChange={(setting, next) => editor.setRow(setting, next)}
+                  onGestureEnd={editor.endGesture}
+                  onGestureStart={editor.beginGesture}
+                  values={{
+                    attack: value('attack'),
+                    decay: value('decay'),
+                    release: value('release'),
+                    sustain: value('sustain'),
+                  }}
+                />
+              </div>
+            </section>
+
+            <section
+              aria-labelledby="va-filter-heading"
+              className={cn(panelClass, 'xl:col-span-2')}
+            >
               <RackPanelTitle
                 icon={Funnel}
                 id="va-filter-heading"
                 title={t('virtualAnalog.filter')}
               />
-              <div className={controlsClass}>
-                {/* The type's names and Key Tracking's four choices need two columns of room. */}
-                <label
-                  className="col-span-2 grid min-w-0 gap-1 text-[11px] tracking-[0.1em] text-[var(--crt-ink-3)] uppercase"
-                  htmlFor={filterTypeId}
-                >
-                  {t('virtualAnalog.filterType')}
-                  <RackSelect
-                    className="crt-inset h-8 bg-[var(--crt-bg-1)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-                    id={filterTypeId}
-                    onChange={(event) => editor.chooseRow('filterType', Number(event.target.value))}
-                    value={value('filterType')}
-                  >
-                    {(['lowPass12', 'lowPass24', 'bandPass', 'highPass'] as const).map(
-                      (type, index) => (
-                        <option key={type} value={index}>
-                          {t(`virtualAnalog.filterTypes.${type}`)}
-                        </option>
-                      ),
+              {/* The response and the choices at the left, the knobs in three groups beside them:
+                  where the filter sits, its own envelope, and what else moves it. */}
+              <div className="grid flex-1 gap-3 p-[9px] @2xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+                <div className="grid content-start gap-2.5">
+                  <VaFilterScope
+                    cutoff={value('cutoff')}
+                    resonance={value('resonance')}
+                    type={value('filterType')}
+                  />
+                  {/* The scope above draws the chosen response, so the picker needs no well. */}
+                  <PicturePickerControl
+                    helpText={t('virtualAnalog.help.filterType')}
+                    label={t('virtualAnalog.filterType')}
+                    onChange={(next) => editor.chooseRow('filterType', next)}
+                    options={(['lowPass12', 'lowPass24', 'bandPass', 'highPass'] as const).map(
+                      (name, type) => ({
+                        label: t(`virtualAnalog.filterTypes.${name}`),
+                        picture: filterTypePicture(type),
+                      }),
                     )}
-                  </RackSelect>
-                </label>
-                {slider('cutoff', t('virtualAnalog.cutoff'), cutoffLabel)}
-                {slider('resonance', t('virtualAnalog.resonance'))}
-                {slider('filterEnvelope', t('virtualAnalog.filterEnvelope'))}
-                {slider('filterDecay', t('virtualAnalog.filterDecay'))}
-                {slider('filterShape', t('virtualAnalog.filterShape'))}
-                {slider('filterVelocity', t('virtualAnalog.filterVelocity'))}
-                {slider('lfoToCutoff', t('virtualAnalog.lfoToCutoff'))}
-                <div className="col-span-2">
+                    value={value('filterType')}
+                    well={false}
+                  />
                   <RadioParameterControl
+                    helpText={t('virtualAnalog.help.keyTracking')}
                     label={t('virtualAnalog.keyTracking')}
-                    name={`${filterTypeId}-key-tracking`}
+                    name={keyTrackingName}
                     onChange={(next) => editor.chooseRow('keyTracking', next)}
                     options={[0, 33, 67, 100].map((amount) => format(amount, 0))}
                     value={value('keyTracking')}
                   />
                 </div>
-              </div>
-            </section>
-          </div>
-
-          <div className="grid min-w-0 gap-2.5 lg:grid-cols-3">
-            <section aria-labelledby="va-output-heading" className={panelClass}>
-              <RackPanelTitle
-                icon={SlidersHorizontal}
-                id="va-output-heading"
-                title={t('virtualAnalog.output')}
-              />
-              <div className={controlsClass}>
-                {slider('level', t('virtualAnalog.level'))}
-                {slider('velocityToLevel', t('virtualAnalog.velocityToLevel'))}
-                <SwitchParameterControl
-                  label={t('virtualAnalog.mono')}
-                  onChange={(next) => editor.chooseRow('mono', next)}
-                  value={value('mono')}
-                />
+                <div className="grid content-start gap-2.5">
+                  <div className="grid grid-cols-3 items-start gap-x-2">
+                    {rotary('cutoff', t('virtualAnalog.cutoff'), cutoffLabel)}
+                    {rotary('resonance', t('virtualAnalog.resonance'))}
+                  </div>
+                  <div className="grid grid-cols-3 items-start gap-x-2 border-t border-[var(--crt-line-dk)] pt-2">
+                    {rotary('filterEnvelope', t('virtualAnalog.filterEnvelope'))}
+                    {rotary('filterDecay', t('virtualAnalog.filterDecay'))}
+                    {rotary('filterShape', t('virtualAnalog.filterShape'))}
+                  </div>
+                  <div className="grid grid-cols-3 items-start gap-x-2 border-t border-[var(--crt-line-dk)] pt-2">
+                    {rotary('filterVelocity', t('virtualAnalog.filterVelocity'))}
+                    {rotary('lfoToCutoff', t('virtualAnalog.lfoToCutoff'))}
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -485,69 +633,86 @@ export function VirtualAnalogEditorPage({
                   onChange={(next) => editor.chooseRow('lfoWave', next)}
                   value={value('lfoWave')}
                 />
-                {slider('lfoSpeed', t('editor.lfoSpeed'))}
-                {slider('lfoDelay', t('editor.lfoDelay'))}
-                {slider('pitchModDepth', t('editor.pitchModDepth'))}
-                {slider('ampModDepth', t('editor.ampModDepth'))}
-                {slider('pitchModSensitivity', t('editor.pitchModSensitivity'))}
-                <SwitchParameterControl
-                  label={t('editor.lfoSync')}
-                  onChange={(next) => editor.chooseRow('lfoSync', next)}
-                  value={value('lfoSync')}
-                />
-              </div>
-            </section>
-
-            <section aria-labelledby="va-envelope-heading" className={panelClass}>
-              <RackPanelTitle
-                icon={Activity}
-                id="va-envelope-heading"
-                title={t('virtualAnalog.envelope')}
-                titleSwitch={{
-                  checked: envelopeOn,
-                  onChange: (on) => editor.chooseRow('envelope', on ? 1 : 0),
-                }}
-              />
-              {envelopeOn ? (
-                <div className={controlsClass}>
-                  {slider('attack', t('virtualAnalog.attack'))}
-                  {slider('decay', t('virtualAnalog.decay'))}
-                  {slider('sustain', t('virtualAnalog.sustain'))}
-                  {slider('release', t('virtualAnalog.release'))}
+                {/* LFO Sync shares the wave's row at its far end, its name kept on one line. */}
+                <div className="col-[-2/-1] self-end justify-self-end">
+                  <SwitchParameterControl
+                    helpText={t('controlHelp.lfoSync')}
+                    label={t('editor.lfoSync')}
+                    onChange={(next) => editor.chooseRow('lfoSync', next)}
+                    singleLine
+                    value={value('lfoSync')}
+                  />
                 </div>
-              ) : (
-                <p className="p-[9px] text-sm leading-6 text-[var(--crt-ink-3)]">
-                  {t('virtualAnalog.envelopeOff')}
-                </p>
-              )}
+                {/* The LFO's amounts as knobs, as the voice editor's operators have them. */}
+                <div className="col-span-full grid grid-cols-3 items-start gap-x-2 gap-y-2.5 border-t border-[var(--crt-line-dk)] pt-2">
+                  {rotary('lfoSpeed', t('editor.lfoSpeed'), undefined, t('controlHelp.lfoSpeed'))}
+                  {rotary('lfoDelay', t('editor.lfoDelay'), undefined, t('controlHelp.lfoDelay'))}
+                  {rotary(
+                    'pitchModDepth',
+                    t('editor.pitchModDepth'),
+                    undefined,
+                    t('controlHelp.pitchModDepth'),
+                  )}
+                  {rotary(
+                    'ampModDepth',
+                    t('editor.ampModDepth'),
+                    undefined,
+                    t('controlHelp.ampModDepth'),
+                  )}
+                  {rotary(
+                    'pitchModSensitivity',
+                    t('editor.pitchModSensitivity'),
+                    undefined,
+                    t('controlHelp.pitchModSensitivity'),
+                  )}
+                </div>
+              </div>
             </section>
           </div>
 
           <section aria-labelledby="va-effects-heading" className="synthwave-panel min-w-0">
-            <RackPanelTitle icon={Sparkles} id="va-effects-heading" title={t('editor.effects')} />
-            <EffectsUnit
-              bitcrush={
-                offersBitcrush
-                  ? { onChange: editor.setBitcrushSetting, values: bitcrush }
-                  : undefined
+            <RackPanelTitle
+              action={
+                <RackPanelCollapseToggle
+                  collapsed={isEffectsCollapsed}
+                  controls="va-effects-unit"
+                  onToggle={() => setIsEffectsCollapsed((collapsed) => !collapsed)}
+                  panel={t('editor.effects')}
+                />
               }
-              distortionType={
-                writesDistortionType
-                  ? { onChange: editor.setDistortionType, type: distortionType }
-                  : undefined
-              }
-              effectOrder={
-                offersBitcrush ? { onMove: editor.moveEffect, order: effectOrder } : undefined
-              }
-              keepsBitcrush={keepsBitcrush}
-              keepsEffectOrder={keepsEffectOrder}
-              keptDistortionType={keptDistortionType}
-              onApplyPreset={editor.selectEffectPreset}
-              onChange={editor.setEffectParameter}
-              onGestureEnd={editor.endGesture}
-              onGestureStart={editor.beginGesture}
-              values={getFm1EffectParameters(parameters)}
+              icon={Sparkles}
+              id="va-effects-heading"
+              title={t('editor.effects')}
             />
+            <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="va-effects-unit">
+              <EffectsUnit
+                bitcrush={
+                  offersBitcrush
+                    ? {
+                        onApplyPreset: editor.selectBitcrushPreset,
+                        onChange: editor.setBitcrushSetting,
+                        values: bitcrush,
+                      }
+                    : undefined
+                }
+                distortionType={
+                  writesDistortionType
+                    ? { onChange: editor.setDistortionType, type: distortionType }
+                    : undefined
+                }
+                effectOrder={
+                  offersBitcrush ? { onMove: editor.moveEffect, order: effectOrder } : undefined
+                }
+                keepsBitcrush={keepsBitcrush}
+                keepsEffectOrder={keepsEffectOrder}
+                keptDistortionType={keptDistortionType}
+                onApplyPreset={editor.selectEffectPreset}
+                onChange={editor.setEffectParameter}
+                onGestureEnd={editor.endGesture}
+                onGestureStart={editor.beginGesture}
+                values={getFm1EffectParameters(parameters)}
+              />
+            </RackPanelCollapsibleBody>
           </section>
         </div>
         <CompareOverlay isComparing={isComparing} />

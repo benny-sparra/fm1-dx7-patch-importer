@@ -1,6 +1,11 @@
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { makeDx7VoiceNameEdits, packDx7Voice, type Dx7Voice } from '@/lib/dx7'
-import { applyEffectPreset, type EffectPresetId } from '@/lib/effect-presets'
+import {
+  applyEffectPreset,
+  bitcrushPresetValues,
+  type BitcrushPresetId,
+  type EffectPresetId,
+} from '@/lib/effect-presets'
 import { getFm1EffectParameters, getFm1VoiceParameters } from '@/lib/fm1-effects'
 import {
   FM1_EDITOR_PARAMETER_COUNT,
@@ -268,6 +273,18 @@ export class PatchEditorSession {
    */
   setBitcrushSetting = (setting: number, value: number, min: number, max: number) => {
     this.applyEdits([[FM1_VA_BITCRUSH_START + setting, value, min, max]], false)
+  }
+
+  /** Sets every Bitcrush setting from preset `id` as one undo step. Nothing is sent, as above. */
+  selectBitcrushPreset = (id: BitcrushPresetId) => {
+    this.gestureStart = null
+    this.applyEdits(
+      bitcrushPresetValues(id).map((value, setting): ParameterEdit => [
+        FM1_VA_BITCRUSH_START + setting,
+        value,
+      ]),
+      false,
+    )
   }
 
   /**

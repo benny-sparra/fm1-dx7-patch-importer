@@ -179,16 +179,43 @@ export default {
       'Conservé pour le firmware de Baud Girl à partir de FM-1_096 : Bitcrush est activé. Ce FM1 ne le joue pas.',
   },
   effectOrder: {
-    title: 'Ordre des effets',
-    list: 'Effets, du premier au dernier',
-    moveEarlier: 'Avancer {{effect}}',
-    moveLater: 'Reculer {{effect}}',
+    dragTitle:
+      'Faites glisser pour changer la place de cet effet dans le trajet du son, le premier en haut à gauche. Au clavier, appuyez sur Espace, puis sur les flèches. Le nouvel ordre s’entend une fois le son écrit sur le FM1.',
     noRecord: 'Ce son ne vient pas du FM1 : il prend l’ordre du preset sur lequel il est écrit.',
     otherFirmware:
       'Conservé pour le firmware de Baud Girl : un ordre des effets modifié. Ce FM1 joue les effets dans son propre ordre.',
-    help: 'L’ordre dans lequel le son traverse les effets sur le firmware de Baud Girl, le premier à gauche. Une distorsion avant ou après la réverbération, par exemple, sonne très différemment. Aucun message MIDI ne le règle : on l’entend une fois le son écrit sur le FM1 avec Envoyer au FM1 ou Écrire des sons sur le FM1.',
   },
   virtualAnalog: {
+    help: {
+      waveform:
+        'L’onde de base de l’oscillateur. Le sinus est doux, la dent de scie brillante et bourdonnante, le triangle entre les deux, et le carré creux mais plus dur que le sinus.',
+      super:
+        'Ajoute six copies de l’onde autour de celle choisie. Montez aussi le désaccord pour les écarter en un son épais, façon supersaw.',
+      detune:
+        'L’écart de hauteur entre les copies ajoutées par Super. Sans effet tant que Super est à 0.',
+      drift:
+        'Désaccorde légèrement chaque note, comme le font les oscillateurs anciens. Dans la moitié haute, cela devient instable à dessein.',
+      sub: 'Ajoute une onde carrée une octave sous chaque note, pour du poids.',
+      noise: 'Mêle du souffle à l’onde.',
+      pwm: 'Fait varier la largeur de l’onde carrée pour que le timbre bouge tout seul. Ne fonctionne qu’avec la forme d’onde carrée.',
+      filterType:
+        'La partie du son que le filtre retire. Le passe-bas retire les aigus, en douceur à 12 dB ou nettement à 24 dB ; le passe-bande garde une bande autour de la coupure ; le passe-haut retire les graves.',
+      cutoff: 'La fréquence à partir de laquelle le filtre agit. Baissez-la pour assombrir le son.',
+      resonance: 'Accentue le son juste à la coupure, jusqu’à faire siffler le filtre.',
+      filterEnvelope: 'De combien l’enveloppe propre du filtre déplace la coupure à chaque note.',
+      filterDecay:
+        'La durée du mouvement de l’enveloppe du filtre. Courte, avec beaucoup d’enveloppe, elle donne un son pincé.',
+      filterShape: 'L’allure du mouvement de l’enveloppe du filtre, de la montée à la descente.',
+      filterVelocity: 'De combien jouer plus fort ouvre la coupure. Le volume ne change pas.',
+      keyTracking: 'À quel point la coupure suit les notes jouées plus haut sur le clavier.',
+      lfoToCutoff: 'De combien le LFO déplace la coupure.',
+      level: 'Le volume de ce son par rapport aux autres, environ 0,74 dB par pas.',
+      velocityToLevel:
+        'De combien une note devient plus forte quand vous jouez plus fort. À 0, toutes les notes ont le même volume.',
+      mono: 'Joue une note à la fois. Une nouvelle touche prend le relais de celle tenue sans nouvelle attaque.',
+      envelope:
+        'Une attaque, un déclin, un maintien et un relâchement pour tout le son quand elle est activée. Faites glisser ses points ou tapez les valeurs. Le relâchement éteint une note en 0,1 seconde à 0 et en 2 secondes à 100. Montez le maintien en l’activant, car à 0 une note tenue est courte.',
+    },
     oscillator: 'Oscillateur',
     waveform: 'Forme d’onde',
     waveforms: {
@@ -219,19 +246,16 @@ export default {
     filterVelocity: 'Vélocité',
     keyTracking: 'Suivi de clavier',
     lfoToCutoff: 'LFO vers la coupure',
-    output: 'Sortie',
     level: 'Niveau',
     velocityToLevel: 'Vélocité vers le niveau',
-    mono: 'Mono',
+    mono: 'Monophonique',
     lfo: 'LFO',
     envelope: 'Enveloppe',
     attack: 'Attaque',
     decay: 'Déclin',
     sustain: 'Maintien',
     release: 'Relâchement',
-    envelopeOff: 'Activez l’enveloppe pour la régler.',
     checking: 'Vérification du preset {{preset}} du FM1…',
-    live: 'Vos modifications jouent sur le preset {{preset}} du FM1 dès que vous les faites. Le niveau, la vélocité vers le niveau, Mono, la forme d’onde, la profondeur de modulation d’amplitude, la sensibilité de modulation de hauteur et la synchro du LFO, la désactivation de l’enveloppe, ainsi que le type de distorsion, Bitcrush et l’ordre des effets s’entendent une fois le son écrit sur le FM1.',
     noProgram:
       'Ce son n’est pas dans les banques A–D : aucun preset du FM1 ne le joue. Vos modifications s’entendent une fois le son écrit sur le FM1.',
     noFirmware:
@@ -240,6 +264,36 @@ export default {
       'Le preset {{preset}} du FM1 n’est pas un preset Virtual Analog : vos modifications ne lui sont pas envoyées. Elles s’entendent une fois le son écrit sur le FM1.',
     readFailed:
       'Le FM1 n’a pas répondu quand on lui a demandé son preset {{preset}} : vos modifications ne lui sont pas envoyées. Elles s’entendent une fois le son écrit sur le FM1.',
+    presets: 'Préréglages de son',
+    initPatch: 'Initialiser',
+    initPatchHelp: 'Simple onde en dents de scie, filtre ouvert. Effets coupés.',
+    randomiseHelp: 'Nouveau son. Nom, niveau et effets gardés.',
+    presetOptions: {
+      'super-saw': {
+        name: 'Super dents de scie',
+        description: 'Dents de scie désaccordées, chorus et grande salle.',
+      },
+      'mono-bass': {
+        name: 'Basse mono',
+        description: 'Carré et sub, une note à la fois.',
+      },
+      'filter-pluck': {
+        name: 'Pincement filtré',
+        description: 'Balayage de filtre court, écho et petite pièce.',
+      },
+      'warm-pad': {
+        name: 'Nappe chaude',
+        description: 'Attaque lente, légère dérive et grande salle.',
+      },
+      'pulse-strings': {
+        name: 'Cordes à impulsion',
+        description: 'Onde carrée mouvante, chorus et grande salle.',
+      },
+      'vibrato-lead': {
+        name: 'Lead vibrato',
+        description: 'Une note à la fois, vibrato retardé et écho.',
+      },
+    },
   },
   ui: {
     auditionGroup: 'Écoute de l’opérateur {{number}}',
@@ -843,6 +897,10 @@ export default {
       slowSweep: 'Balayage lent',
       deepPhase: 'Phaser profond',
       fastSwirl: 'Tourbillon rapide',
+      sampler: 'Échantillonneur',
+      lofi: 'Lo-fi',
+      eightBit: '8 bits',
+      crushed: 'Écrasé',
     },
     lfoGlobal: 'LFO et paramètres globaux',
     oscillatorSync: 'Synchro oscillateur',
