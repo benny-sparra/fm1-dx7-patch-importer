@@ -352,8 +352,7 @@ open everything an earlier release could have saved.
   Vite splits any module two pages import into a chunk of its own that the app's entry loads too,
   and its module preload polyfill counts: importing the colourway helpers cost the entry 237 B. It
   links its stylesheet (`src/firmware-page.css`, which imports `index.css`) from the HTML and takes
-  the editor's finish through `public/firmware-colourway.js`, a plain script served unchanged. Add
-  a firmware as another `<article class="firmware-entry">`; `src/firmware-page.test.ts` checks each
+  the editor's finish through `public/firmware-colourway.js`, a plain script served unchanged. Add a firmware as another `<article class="firmware-entry">` whose `id` is its short anchor, such as `felucca` (Baud Girl's is `baud-girl`), linked by the `#` beside its title, which people share, so never rename one; `src/firmware-page.test.ts` checks each
   has its heading, maker, support tag, blurb, sized photo or placeholder, and links. The page is in
   British English only, outside the locale files.
 

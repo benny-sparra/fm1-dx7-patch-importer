@@ -22,6 +22,15 @@ describe('firmware page', () => {
     expect(page.querySelectorAll(`[id="${heading?.id}"]`)).toHaveLength(1)
   })
 
+  it.each(named(entries))('%s has an anchor of its own that links to it', (_name, entry) => {
+    expect(entry.id).toMatch(/^[a-z0-9-]+$/)
+    expect(page.querySelectorAll(`[id="${entry.id}"]`)).toHaveLength(1)
+    expect(entry.querySelector('a.firmware-anchor')?.getAttribute('href')).toBe(`#${entry.id}`)
+    expect(entry.querySelector('a.firmware-anchor')?.getAttribute('aria-label')).toBe(
+      `Link to ${entry.querySelector('h2')?.textContent?.trim()}`,
+    )
+  })
+
   it.each(named(entries))('%s has a maker, a support tag, and a blurb', (_name, entry) => {
     expect(entry.querySelector('.synthwave-kicker')?.textContent?.trim()).toBeTruthy()
     expect(['full', 'partial', 'none']).toContain(
