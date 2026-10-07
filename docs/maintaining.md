@@ -11,6 +11,15 @@ Umami tracker, the Umami event endpoint, and the project's Sentry ingestion endp
 `npm run build` followed by `npm run security:check` after changing the policy or introducing a new
 browser resource origin.
 
+## Production branch
+
+Cloudflare Workers Builds deploys every build it makes straight to fm1-editor.com, so a push to any
+other branch would replace the live site with unmerged work. `npm run build` therefore runs
+`scripts/check-deploy-branch.mjs` first, which fails when `WORKERS_CI_BRANCH` names a branch other
+than `main`; local and CI builds, which do not set it, are unaffected. Builds for other branches
+should also be switched off in the Worker's build settings. If a branch does reach production,
+redeploy `main`'s latest build or roll back to it from the Worker's deployments.
+
 ## Responsive image assets
 
 The full-size WebPs in `src/assets/` are the source images and the largest browser fallbacks.
