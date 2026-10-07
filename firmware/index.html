@@ -62,16 +62,11 @@
               ← Open the editor
             </a>
           </div>
-          <p class="hero-supporting-text max-w-3xl text-xs leading-5 text-balance">
-            The FM1 can run more than the firmware it ships with. These are the firmwares known to
-            run on it, each from its own maker. This site installs none of them: every link goes to
-            the project's own pages and installer. Back up your patches before you switch.
-          </p>
         </div>
       </header>
 
       <div class="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 px-4 py-5 sm:px-5 lg:px-8">
-        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-stock">
+        <article class="firmware-entry synthwave-panel" id="stock" aria-labelledby="firmware-stock">
           <figure class="firmware-photo crt-inset">
             <img
               alt="An FM1 on M-VAVE's firmware"
@@ -89,7 +84,16 @@
           </figure>
           <div class="firmware-body">
             <p class="synthwave-kicker">M-VAVE</p>
-            <h2 class="firmware-title" id="firmware-stock">Stock firmware</h2>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-stock">Stock firmware</h2>
+              <a
+                class="firmware-anchor"
+                href="#stock"
+                aria-label="Link to Stock firmware"
+                title="Link to Stock firmware"
+                >#</a
+              >
+            </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="full">Works with this editor</span>
               <span>Latest V15</span>
@@ -114,7 +118,11 @@
           </div>
         </article>
 
-        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-fm1-va">
+        <article
+          class="firmware-entry synthwave-panel"
+          id="baud-girl"
+          aria-labelledby="firmware-fm1-va"
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="Baud Girl's FM1 render, with her name on the screen"
@@ -132,7 +140,16 @@
           </figure>
           <div class="firmware-body">
             <p class="synthwave-kicker">Baud Girl</p>
-            <h2 class="firmware-title" id="firmware-fm1-va">Baud Girl (FM-1+VA)</h2>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-fm1-va">Baud Girl (FM-1+VA)</h2>
+              <a
+                class="firmware-anchor"
+                href="#baud-girl"
+                aria-label="Link to Baud Girl (FM-1+VA)"
+                title="Link to Baud Girl (FM-1+VA)"
+                >#</a
+              >
+            </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="full">Works with this editor</span>
               <span>Latest FM-1_096</span>
@@ -141,7 +158,8 @@
               Keeps M-VAVE's FM engine and effects, fixes its engine bugs, and adds a Virtual Analog
               engine, an 8-Bit engine, a Bitcrush effect, and a 64-step sequencer. It installs from
               Baud Girl's own browser page, keeps your presets, and can put M-VAVE's firmware back.
-              This editor reads and writes its presets, effects included.
+              This editor reads and writes its FM and Virtual Analog presets, effects included, but
+              not its 8-Bit presets yet, which it leaves as they are on the FM1.
             </p>
             <ul class="firmware-links">
               <li>
@@ -168,7 +186,11 @@
           </div>
         </article>
 
-        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-choralroot">
+        <article
+          class="firmware-entry synthwave-panel"
+          id="choralroot"
+          aria-labelledby="firmware-choralroot"
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="ChoralRoot's FM1 panel, showing a D major seventh chord on the screen"
@@ -186,7 +208,16 @@
           </figure>
           <div class="firmware-body">
             <p class="synthwave-kicker">Quixotic7</p>
-            <h2 class="firmware-title" id="firmware-choralroot">ChoralRoot</h2>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-choralroot">ChoralRoot</h2>
+              <a
+                class="firmware-anchor"
+                href="#choralroot"
+                aria-label="Link to ChoralRoot"
+                title="Link to ChoralRoot"
+                >#</a
+              >
+            </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 0.1</span>
@@ -228,7 +259,11 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-felucca">
+        <article
+          class="firmware-entry synthwave-panel"
+          id="felucca"
+          aria-labelledby="firmware-felucca"
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="Felucca 1.0's feature overview: its new design, sequencer, thirteen engines, and effects"
@@ -246,7 +281,16 @@
           </figure>
           <div class="firmware-body">
             <p class="synthwave-kicker">Hügelton Instruments</p>
-            <h2 class="firmware-title" id="firmware-felucca">Felucca</h2>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-felucca">Felucca</h2>
+              <a
+                class="firmware-anchor"
+                href="#felucca"
+                aria-label="Link to Felucca"
+                title="Link to Felucca"
+                >#</a
+              >
+            </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Latest 1.0.5.1</span>
@@ -289,7 +333,11 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-fm1-quest">
+        <article
+          class="firmware-entry synthwave-panel"
+          id="fm1-quest"
+          aria-labelledby="firmware-fm1-quest"
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="FM1 Quest's title art: a pixel-art party of heroes around an FM1 in an autumn forest"
@@ -307,7 +355,16 @@
           </figure>
           <div class="firmware-body">
             <p class="synthwave-kicker">hericdk</p>
-            <h2 class="firmware-title" id="firmware-fm1-quest">FM1 Quest</h2>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-fm1-quest">FM1 Quest</h2>
+              <a
+                class="firmware-anchor"
+                href="#fm1-quest"
+                aria-label="Link to FM1 Quest"
+                title="Link to FM1 Quest"
+                >#</a
+              >
+            </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Not yet tried on an FM1</span>
@@ -350,7 +407,7 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-fomni">
+        <article class="firmware-entry synthwave-panel" id="fomni" aria-labelledby="firmware-fomni">
           <figure class="firmware-photo crt-inset">
             <img
               alt="FoMni's strum screen, with the chord's strings and its chord buttons"
@@ -368,7 +425,16 @@
           </figure>
           <div class="firmware-body">
             <p class="synthwave-kicker">Charles Vestal</p>
-            <h2 class="firmware-title" id="firmware-fomni">FoMni</h2>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-fomni">FoMni</h2>
+              <a
+                class="firmware-anchor"
+                href="#fomni"
+                aria-label="Link to FoMni"
+                title="Link to FoMni"
+                >#</a
+              >
+            </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Latest 0.3</span>
@@ -410,7 +476,11 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-groove-os">
+        <article
+          class="firmware-entry synthwave-panel"
+          id="groove-os"
+          aria-labelledby="firmware-groove-os"
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="Groove OS's tracks screen, with drum, acid, and FM tracks"
@@ -428,7 +498,16 @@
           </figure>
           <div class="firmware-body">
             <p class="synthwave-kicker">Peter Gombos</p>
-            <h2 class="firmware-title" id="firmware-groove-os">Groove OS</h2>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-groove-os">Groove OS</h2>
+              <a
+                class="firmware-anchor"
+                href="#groove-os"
+                aria-label="Link to Groove OS"
+                title="Link to Groove OS"
+                >#</a
+              >
+            </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Paid · Latest 1.1</span>
@@ -470,7 +549,7 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-sloop">
+        <article class="firmware-entry synthwave-panel" id="sloop" aria-labelledby="firmware-sloop">
           <figure class="firmware-photo crt-inset">
             <img
               alt="SLOOP's tracks screen, with its four tracks playing"
@@ -488,7 +567,16 @@
           </figure>
           <div class="firmware-body">
             <p class="synthwave-kicker">isod89</p>
-            <h2 class="firmware-title" id="firmware-sloop">SLOOP</h2>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-sloop">SLOOP</h2>
+              <a
+                class="firmware-anchor"
+                href="#sloop"
+                aria-label="Link to SLOOP"
+                title="Link to SLOOP"
+                >#</a
+              >
+            </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 2.3</span>
@@ -520,7 +608,7 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-x0x">
+        <article class="firmware-entry synthwave-panel" id="x0x" aria-labelledby="firmware-x0x">
           <figure class="firmware-photo crt-inset">
             <img
               alt="X0X's home screen, with the 909, 808, two 303s, and breakbeat patterns"
@@ -538,7 +626,12 @@
           </figure>
           <div class="firmware-body">
             <p class="synthwave-kicker">Charles Vestal</p>
-            <h2 class="firmware-title" id="firmware-x0x">X0X</h2>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-x0x">X0X</h2>
+              <a class="firmware-anchor" href="#x0x" aria-label="Link to X0X" title="Link to X0X"
+                >#</a
+              >
+            </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta</span>

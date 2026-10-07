@@ -628,6 +628,7 @@ export default {
       'Dieser Librarian benötigt einen Browser mit Web-MIDI- und SysEx-Unterstützung, etwa Chrome, Edge, Firefox oder Opera. Chrome unter Android funktioniert ebenfalls.',
     localOnly: 'Deine Sounds bleiben in diesem Browser',
     projectLinks: 'Projektlinks',
+    firmwareLink: 'FM1-Firmware',
     reportIssue: 'Problem melden',
     version: 'Version {{version}}',
     disclaimer:

@@ -8,6 +8,7 @@
  */
 @layer components {
   .firmware-entry {
+    scroll-margin-top: 1rem;
     display: grid;
     gap: 1rem;
     padding: 1rem;
@@ -78,6 +79,30 @@
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: var(--crt-acc-br);
+  }
+
+  .firmware-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  /* The card's own address, for linking straight to it. */
+  .firmware-anchor {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--crt-ink-4);
+    text-decoration: none;
+  }
+
+  .firmware-anchor:hover,
+  .firmware-anchor:focus-visible {
+    color: var(--crt-acc-lt);
+  }
+
+  .firmware-entry:target {
+    outline: 2px solid var(--crt-led);
+    outline-offset: 2px;
   }
 
   .firmware-status {

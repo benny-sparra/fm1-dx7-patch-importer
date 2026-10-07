@@ -1,4 +1,4 @@
-import { CodeXml, MessageCircleWarning, TriangleAlert } from 'lucide-react'
+import { CodeXml, Cpu, MessageCircleWarning, TriangleAlert } from 'lucide-react'
 import {
   lazy,
   Suspense,
@@ -237,6 +237,13 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 aria-label={t('root.projectLinks')}
                 className="flex flex-wrap items-center gap-x-4 gap-y-2"
               >
+                <a
+                  className="inline-flex items-center gap-1.5 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  href="/firmware/"
+                >
+                  <Cpu aria-hidden="true" className="size-3.5" />
+                  <span>{t('root.firmwareLink')}</span>
+                </a>
                 <a
                   className="inline-flex items-center gap-1.5 transition-colors hover:text-white focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                   href="https://github.com/benny-sparra/fm1-dx7-patch-importer"
