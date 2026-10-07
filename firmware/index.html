@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#1a1a1a" />
+    <meta
+      name="description"
+      content="Every firmware known to run on the M-VAVE FM1 synthesiser: M-VAVE's own, Baud Girl's FM-1+VA, Felucca, SLOOP, and more, with links to each project."
+    />
+    <link rel="canonical" href="https://fm1-editor.com/firmware/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="M-VAVE FM1 Editor &amp; Librarian" />
+    <meta property="og:url" content="https://fm1-editor.com/firmware/" />
+    <meta property="og:title" content="M-VAVE FM1 firmware" />
+    <meta
+      property="og:description"
+      content="Every firmware known to run on the M-VAVE FM1 synthesiser, with links to each project."
+    />
+    <meta property="og:image" content="https://fm1-editor.com/fm1-preview.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="432" />
+    <meta property="og:image:height" content="256" />
+    <meta property="og:image:alt" content="M-VAVE FM1 synthesiser" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>M-VAVE FM1 firmware</title>
+    <script
+      defer
+      src="https://cloud.umami.is/script.js"
+      data-domains="fm1-editor.com,www.fm1-editor.com"
+      data-do-not-track="true"
+      data-exclude-hash="true"
+      data-exclude-search="true"
+      data-website-id="b0439141-6c23-4711-9c3d-53249452eb8f"
+    ></script>
+    <link rel="stylesheet" href="/src/firmware-page.css" />
+    <script src="/firmware-colourway.js"></script>
+  </head>
+  <body>
+    <!--
+      One <article class="firmware-entry"> per firmware. Each has a photo (or the placeholder
+      figure), a maker, a title, a status line, a blurb, and one or more links that open the
+      project's own pages. src/firmware-page.test.ts checks every entry has them.
+    -->
+    <main class="synthwave-shell flex min-h-screen flex-col text-foreground">
+      <header class="synthwave-header synthwave-hero border-b">
+        <div class="mx-auto flex max-w-5xl flex-col gap-3 px-4 pt-4 pb-3.5 sm:px-5 lg:px-8">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <h1
+              data-layout="full"
+              class="synthwave-title min-w-0 items-baseline gap-x-[0.3em] gap-y-[7px]"
+            >
+              <span class="synthwave-brand-row">M-VAVE</span>
+              <span>FM1</span>
+              <span class="synthwave-hero-accent">Firmware</span>
+            </h1>
+            <a
+              class="hero-action inline-flex min-h-8 items-center px-3 text-xs font-bold uppercase"
+              href="/"
+            >
+              ← Open the editor
+            </a>
+          </div>
+          <p class="hero-supporting-text max-w-3xl text-xs leading-5 text-balance">
+            The FM1 can run more than the firmware it ships with. These are the firmwares known to
+            run on it, each from its own maker. This site installs none of them: every link goes to
+            the project's own pages and installer. Back up your patches before you switch.
+          </p>
+        </div>
+      </header>
+
+      <div class="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 px-4 py-5 sm:px-5 lg:px-8">
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-stock">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="An FM1 on M-VAVE's firmware"
+              decoding="async"
+              height="554"
+              loading="lazy"
+              sizes="(min-width: 40rem) 15rem, 100vw"
+              src="/src/assets/fm1-black.webp"
+              srcset="
+                /src/assets/generated/fm1-black-460.webp 460w,
+                /src/assets/fm1-black.webp               923w
+              "
+              width="923"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">M-VAVE</p>
+            <h2 class="firmware-title" id="firmware-stock">Stock firmware</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="full">Works with this editor</span>
+              <span>Latest V15</span>
+            </p>
+            <p class="firmware-blurb">
+              The firmware every FM1 ships with: a six-operator FM engine compatible with DX7
+              voices, four banks of 32 presets, effects, an arpeggiator, and a sequencer. Install it
+              with M-VAVE's M-UPGRADE tool, which is also the way back from Felucca and SLOOP.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://www.m-vave.com/download"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  M-VAVE downloads ↗
+                </a>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-fm1-va">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="An FM1 on Baud Girl's FM-1+VA firmware"
+              decoding="async"
+              height="554"
+              loading="lazy"
+              sizes="(min-width: 40rem) 15rem, 100vw"
+              src="/src/assets/fm1-va-black.webp"
+              srcset="
+                /src/assets/generated/fm1-va-black-460.webp 460w,
+                /src/assets/fm1-va-black.webp               923w
+              "
+              width="923"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">Madeline Hoyle (Baud Girl)</p>
+            <h2 class="firmware-title" id="firmware-fm1-va">Baud Girl (FM-1+VA)</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="full">Works with this editor</span>
+              <span>Latest FM-1_096</span>
+            </p>
+            <p class="firmware-blurb">
+              Keeps M-VAVE's FM engine and effects, fixes its engine bugs, and adds a Virtual Analog
+              engine, an 8-Bit engine, a Bitcrush effect, and a 64-step sequencer. It installs from
+              Baud Girl's own browser page, keeps your presets, and can put M-VAVE's firmware back.
+              This editor reads and writes its presets, effects included.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://baudgirl.com/work/FM-1+VA"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  FM-1+VA ↗
+                </a>
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://baudgirl.com/work/FM-1+VA/manual"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  Manual ↗
+                </a>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-felucca">
+          <figure class="firmware-photo firmware-photo-missing crt-inset" aria-hidden="true">
+            <span>Felucca</span>
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">Hügelton Instruments</p>
+            <h2 class="firmware-title" id="firmware-felucca">Felucca</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span>
+              <span>Beta · Latest 0.9</span>
+            </p>
+            <p class="firmware-blurb">
+              Turns the FM1 into a multi-engine groovebox: nine engines, from analogue, FM, and
+              phase distortion to samples, formant voice, organ, and granular, across three synth
+              parts and a drum track, each with its own 64-step sequencer. It has its own web editor
+              and installer. It ignores DX7 voice data, so patches from this editor do not reach it.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://hugelton.github.io/Felucca/"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  Felucca ↗
+                </a>
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/hugelton/Felucca"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  Source ↗
+                </a>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-sloop">
+          <figure class="firmware-photo firmware-photo-missing crt-inset" aria-hidden="true">
+            <span>SLOOP</span>
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">isod89</p>
+            <h2 class="firmware-title" id="firmware-sloop">SLOOP</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span>
+              <span>Beta · Latest 2.2</span>
+            </p>
+            <p class="firmware-blurb">
+              A groovebox firmware built on Felucca, with projects, patterns, and songs, and its own
+              web editor for presets and a sound library. It installs from its own browser page and
+              leaves through M-VAVE's M-UPGRADE, as Felucca does.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://isod89.github.io/sloop-fm1/"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  SLOOP ↗
+                </a>
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/isod89/sloop-fm1"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  Source ↗
+                </a>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <p class="hero-footer-text text-xs leading-5">
+          Moving between firmwares? The
+          <a
+            class="underline underline-offset-2"
+            href="https://github.com/benny-sparra/fm1-dx7-patch-importer/blob/main/docs/switching-firmware.md"
+            rel="noopener"
+            target="_blank"
+            >switching guide</a
+          >
+          covers the routes, the backups to take first, and how to recover a failed install. Know of
+          a firmware missing here?
+          <a
+            class="underline underline-offset-2"
+            href="https://github.com/benny-sparra/fm1-dx7-patch-importer/issues"
+            rel="noopener"
+            target="_blank"
+            >Open an issue</a
+          >.
+        </p>
+      </div>
+    </main>
+  </body>
+</html>
