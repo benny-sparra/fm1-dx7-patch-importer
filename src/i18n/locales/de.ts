@@ -221,7 +221,7 @@ export default {
         'Wie viel lauter eine Note wird, wenn du kräftiger spielst. Bei 0 sind alle Noten gleich laut.',
       mono: 'Spielt eine Note auf einmal. Eine neue Taste übernimmt von der gehaltenen ohne neuen Anschlag.',
       envelope:
-        'Ein Attack, Decay, Sustain und Release für den ganzen Sound, solange sie eingeschaltet ist. Zieh ihre Punkte oder tippe die Werte ein. Release blendet eine Note über 0,1 Sekunden bei 0 bis 2 Sekunden bei 100 aus. Erhöhe Sustain beim Einschalten, denn bei 0 ist eine gehaltene Note kurz.',
+        'Ein Attack, Decay, Sustain und Release für den ganzen Sound, solange sie eingeschaltet ist. Zieh ihre Punkte oder schiebe ihre Fader. Release blendet eine Note über 0,1 Sekunden bei 0 bis 2 Sekunden bei 100 aus. Erhöhe Sustain beim Einschalten, denn bei 0 ist eine gehaltene Note kurz.',
     },
     oscillator: 'Oszillator',
     waveform: 'Wellenform',

@@ -1,5 +1,6 @@
 import { Activity, AudioWaveform, Dices, Eraser, Sparkles, Waves } from 'lucide-react'
 import {
+  Fragment,
   type RefObject,
   useEffect,
   useLayoutEffect,
@@ -10,7 +11,7 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
-import { AdsrFields, AdsrScope } from '@/components/editor/adsr-scope'
+import { AdsrScope } from '@/components/editor/adsr-scope'
 import { CompareOverlay } from '@/components/editor/compare-overlay'
 import { RackPanelHelp } from '@/components/editor/editor-workspace'
 import { EffectsUnit } from '@/components/editor/effects-unit'
@@ -23,9 +24,9 @@ import {
 import {
   LfoWaveControl,
   PicturePickerControl,
+  FaderParameterControl,
   PictureRadioControl,
   RotaryParameterControl,
-  SliderParameterControl,
   SwitchParameterControl,
   WaveShapeIcon,
 } from '@/components/editor/parameter-controls'
@@ -125,6 +126,9 @@ const panelClass = 'synthwave-panel @container flex min-w-0 flex-col'
  * cannot pass its parent's rows on, so there they are not containers, and their columns follow
  * the viewport.
  */
+/** The sunken well a row of faders stands in, as a mixer's strip. */
+const faderWellClass =
+  'crt-inset flex items-stretch justify-evenly gap-6 bg-[var(--crt-bg-well)] px-5 pt-3 pb-2'
 const sharedRowsPanelClass =
   'synthwave-panel flex min-w-0 flex-col max-xl:@container xl:row-span-4 xl:grid xl:grid-rows-subgrid xl:gap-y-0'
 const sharedRowsClass = 'xl:row-span-3 xl:grid-rows-subgrid'
@@ -358,20 +362,17 @@ export function VirtualAnalogEditorPage({
     if (hertz < 10000) return t('bitcrush.kilohertz', { value: format(hertz / 1000, 1) })
     return t('bitcrush.kilohertz', { value: format(Math.floor(hertz / 1000), 0) })
   }
-  const slider = (
-    id: VirtualAnalogRowId,
-    label: string,
-    valueLabel?: (value: number) => string,
-  ) => (
-    <SliderParameterControl
-      helpText={t(`virtualAnalog.help.${id}`)}
+  // The Envelope's help covers its four settings, so only the oscillator's levels have their own.
+  const fader = (id: VirtualAnalogRowId, label: string, help?: string, disabled = false) => (
+    <FaderParameterControl
+      disabled={disabled}
+      helpText={help}
       label={label}
       max={virtualAnalogRow(id).max}
       onChange={(next) => editor.setRow(id, next)}
       onGestureEnd={editor.endGesture}
       onGestureStart={editor.beginGesture}
       value={value(id)}
-      valueLabel={valueLabel}
     />
   )
   const rotary = (
@@ -507,18 +508,24 @@ export function VirtualAnalogEditorPage({
                     value={value('mono')}
                   />
                 </div>
-                {/* The rows share whatever height the Envelope beside them gives the panel. */}
-                <div className="grid grid-cols-1 content-between gap-x-3 gap-y-2.5 @sm:grid-cols-2 @2xl:grid-cols-3">
-                  {slider('super', t('virtualAnalog.super'))}
-                  {slider('detune', t('virtualAnalog.detune'))}
-                  {slider('drift', t('virtualAnalog.drift'))}
-                  {slider('sub', t('virtualAnalog.sub'))}
-                  {slider('noise', t('virtualAnalog.noise'))}
-                  {slider('pwm', t('virtualAnalog.pwm'))}
-                  {/* The FM1 lists Level and Velocity to Level beside the oscillator. */}
-                  <div className="col-span-full grid grid-cols-2 items-start gap-x-3 gap-y-2.5 border-t border-[var(--crt-line-dk)] pt-2">
-                    {slider('level', t('virtualAnalog.level'))}
-                    {slider('velocityToLevel', t('virtualAnalog.velocityToLevel'))}
+                {/* The oscillator's character as knobs, and its levels as a Juno's faders in a
+                    mixer of their own beside them. */}
+                <div className="grid gap-3 @2xl:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="grid content-around gap-2.5">
+                    <div className={knobRowClass}>
+                      {rotary('super', t('virtualAnalog.super'))}
+                      {rotary('detune', t('virtualAnalog.detune'))}
+                    </div>
+                    <div className={cn(knobRowClass, 'border-t border-[var(--crt-line-dk)] pt-2')}>
+                      {rotary('drift', t('virtualAnalog.drift'))}
+                      {rotary('pwm', t('virtualAnalog.pwm'))}
+                      {rotary('velocityToLevel', t('virtualAnalog.velocityToLevel'))}
+                    </div>
+                  </div>
+                  <div className={faderWellClass}>
+                    {fader('sub', t('virtualAnalog.sub'), t('virtualAnalog.help.sub'))}
+                    {fader('noise', t('virtualAnalog.noise'), t('virtualAnalog.help.noise'))}
+                    {fader('level', t('virtualAnalog.level'), t('virtualAnalog.help.level'))}
                   </div>
                 </div>
               </div>
@@ -552,24 +559,13 @@ export function VirtualAnalogEditorPage({
                   sustain={value('sustain')}
                 />
                 {/* FM-1+VA plays these only while the Envelope is on, so they wait for its switch. */}
-                <AdsrFields
-                  disabled={!envelopeOn}
-                  labels={{
-                    attack: t('virtualAnalog.attack'),
-                    decay: t('virtualAnalog.decay'),
-                    release: t('virtualAnalog.release'),
-                    sustain: t('virtualAnalog.sustain'),
-                  }}
-                  onChange={(setting, next) => editor.setRow(setting, next)}
-                  onGestureEnd={editor.endGesture}
-                  onGestureStart={editor.beginGesture}
-                  values={{
-                    attack: value('attack'),
-                    decay: value('decay'),
-                    release: value('release'),
-                    sustain: value('sustain'),
-                  }}
-                />
+                <div className={faderWellClass}>
+                  {(['attack', 'decay', 'sustain', 'release'] as const).map((id) => (
+                    <Fragment key={id}>
+                      {fader(id, t(`virtualAnalog.${id}`), undefined, !envelopeOn)}
+                    </Fragment>
+                  ))}
+                </div>
               </div>
             </section>
 

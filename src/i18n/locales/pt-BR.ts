@@ -210,7 +210,7 @@ export default {
         'O quanto uma nota fica mais alta quando você toca mais forte. Em 0, todas as notas têm o mesmo volume.',
       mono: 'Toca uma nota por vez. Uma tecla nova assume a que está presa sem um novo ataque.',
       envelope:
-        'Um ataque, decaimento, sustentação e liberação para o som todo enquanto está ativado. Arraste seus pontos ou digite os valores. A liberação apaga uma nota em 0,1 segundo em 0 e em 2 segundos em 100. Aumente a sustentação ao ativá-lo, pois em 0 uma nota segurada é curta.',
+        'Um ataque, decaimento, sustentação e liberação para o som todo enquanto está ativado. Arraste seus pontos ou seus faders. A liberação apaga uma nota em 0,1 segundo em 0 e em 2 segundos em 100. Aumente a sustentação ao ativá-lo, pois em 0 uma nota segurada é curta.',
     },
     oscillator: 'Oscilador',
     waveform: 'Forma de onda',

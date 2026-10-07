@@ -215,7 +215,7 @@ export default {
         'De combien une note devient plus forte quand vous jouez plus fort. À 0, toutes les notes ont le même volume.',
       mono: 'Joue une note à la fois. Une nouvelle touche prend le relais de celle tenue sans nouvelle attaque.',
       envelope:
-        'Une attaque, un déclin, un maintien et un relâchement pour tout le son quand elle est activée. Faites glisser ses points ou tapez les valeurs. Le relâchement éteint une note en 0,1 seconde à 0 et en 2 secondes à 100. Montez le maintien en l’activant, car à 0 une note tenue est courte.',
+        'Une attaque, un déclin, un maintien et un relâchement pour tout le son quand elle est activée. Faites glisser ses points ou ses curseurs. Le relâchement éteint une note en 0,1 seconde à 0 et en 2 secondes à 100. Montez le maintien en l’activant, car à 0 une note tenue est courte.',
     },
     oscillator: 'Oscillateur',
     waveform: 'Forme d’onde',

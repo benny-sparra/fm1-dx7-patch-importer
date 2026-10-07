@@ -100,6 +100,19 @@ export const rangeControlKeys = [
   'PageUp',
 ]
 
+/**
+ * Where one of `rangeControlKeys` moves a knob or fader from `value`, as a range input moves:
+ * arrows by one, Page Up and Page Down by a tenth of the range, Home and End to its ends.
+ */
+function rangeKeyValue(key: string, value: number, min: number, max: number) {
+  const pageStep = Math.max(1, Math.round((max - min) / 10))
+  if (key === 'Home') return min
+  if (key === 'End') return max
+  if (key === 'ArrowUp' || key === 'ArrowRight') return value + 1
+  if (key === 'ArrowDown' || key === 'ArrowLeft') return value - 1
+  return value + (key === 'PageUp' ? pageStep : -pageStep)
+}
+
 export function RotaryParameterControl({
   accessibleLabel,
   disabled = false,
@@ -129,21 +142,7 @@ export function RotaryParameterControl({
     event.preventDefault()
     if (!event.repeat) onGestureStart()
 
-    const pageStep = Math.max(1, Math.round((max - min) / 10))
-    const nextValue =
-      event.key === 'Home'
-        ? min
-        : event.key === 'End'
-          ? max
-          : value +
-            (['ArrowUp', 'ArrowRight'].includes(event.key)
-              ? 1
-              : ['ArrowDown', 'ArrowLeft'].includes(event.key)
-                ? -1
-                : event.key === 'PageUp'
-                  ? pageStep
-                  : -pageStep)
-    onChange(clamp(nextValue))
+    onChange(clamp(rangeKeyValue(event.key, value, min, max)))
   }
 
   return (
@@ -326,6 +325,139 @@ export function SliderParameterControl({
         </output>
       </span>
     </label>
+  )
+}
+
+/**
+ * A level as an upright fader, as a Juno's sliders are: the sliders' LED meter stood on end, lit
+ * from the bottom, with a metal cap. It fills the height its row gives it. Dragging moves the cap
+ * to the pointer, and the keys move it as they move a knob; a drag or a held key is one gesture.
+ */
+export function FaderParameterControl({
+  accessibleLabel,
+  disabled = false,
+  helpText,
+  label,
+  max,
+  min = 0,
+  onChange,
+  onGestureEnd,
+  onGestureStart,
+  value,
+  valueLabel = String,
+}: RotaryParameterControlProps) {
+  const { t } = useTranslation()
+  const name = accessibleLabel ?? label
+  const dragPointer = useRef<number | null>(null)
+  const displayValue = valueLabel(value)
+  const percent = ((Math.max(min, Math.min(max, value)) - min) / (max - min)) * 100
+  const clamp = (nextValue: number) => Math.max(min, Math.min(max, Math.round(nextValue)))
+
+  /** The value at the pointer's height on the travel, the cap's centre at either end. */
+  const valueAtPointer = (track: HTMLElement, clientY: number) => {
+    const { bottom, height } = track.getBoundingClientRect()
+    return clamp(min + ((bottom - clientY) / Math.max(1, height)) * (max - min))
+  }
+
+  return (
+    <div
+      className={cn(
+        'grid min-h-0 min-w-0 grid-rows-[auto_minmax(6rem,1fr)_auto] justify-items-center gap-1.5',
+        captionClass,
+      )}
+    >
+      <span className="max-w-full text-center text-balance break-words">
+        <span title={label}>{label}</span>
+        {helpText ? (
+          <span className="ml-1 inline-block align-middle">
+            <HelpPopover label={name} text={helpText} />
+          </span>
+        ) : null}
+      </span>
+      <div
+        aria-disabled={disabled || undefined}
+        aria-label={name}
+        aria-orientation="vertical"
+        aria-valuemax={max}
+        aria-valuemin={min}
+        aria-valuenow={value}
+        aria-valuetext={displayValue}
+        className={cn(
+          'group relative h-full w-10 touch-none outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+          disabled ? 'cursor-not-allowed opacity-40' : 'cursor-ns-resize',
+        )}
+        onBlur={onGestureEnd}
+        onKeyDown={(event) => {
+          if (disabled || !rangeControlKeys.includes(event.key)) return
+          event.preventDefault()
+          if (!event.repeat) onGestureStart()
+          onChange(clamp(rangeKeyValue(event.key, value, min, max)))
+        }}
+        onKeyUp={(event) => {
+          if (rangeControlKeys.includes(event.key)) onGestureEnd()
+        }}
+        onPointerCancel={() => {
+          dragPointer.current = null
+          onGestureEnd()
+        }}
+        onPointerDown={(event) => {
+          if (disabled) return
+          dragPointer.current = event.pointerId
+          event.currentTarget.setPointerCapture(event.pointerId)
+          onGestureStart()
+          const track = event.currentTarget.querySelector<HTMLElement>('[data-fader-track]')
+          if (track) onChange(valueAtPointer(track, event.clientY))
+        }}
+        onPointerMove={(event) => {
+          if (dragPointer.current !== event.pointerId) return
+          const track = event.currentTarget.querySelector<HTMLElement>('[data-fader-track]')
+          if (track) onChange(valueAtPointer(track, event.clientY))
+        }}
+        onPointerUp={(event) => {
+          if (dragPointer.current !== event.pointerId) return
+          dragPointer.current = null
+          event.currentTarget.releasePointerCapture(event.pointerId)
+          onGestureEnd()
+        }}
+        role="slider"
+        // A disabled fader leaves the tab order, as a disabled range input does.
+        tabIndex={disabled ? undefined : 0}
+        title={t('ui.rotaryTitle', { label: name, value: displayValue })}
+      >
+        {/* A scale down each side, a long tick at either end and the middle. */}
+        {(['left-0 items-start', 'right-0 items-end'] as const).map((side) => (
+          <div
+            aria-hidden="true"
+            className={cn('absolute inset-y-1 flex w-1.5 flex-col justify-between', side)}
+            key={side}
+          >
+            {Array.from({ length: 11 }, (_, index) => (
+              <span
+                className={cn(
+                  'block h-px bg-[var(--crt-line-lt)]',
+                  index % 5 === 0 ? 'w-full' : 'w-3/5',
+                )}
+                key={index}
+              />
+            ))}
+          </div>
+        ))}
+        <div
+          aria-hidden="true"
+          className="crt-fader-track absolute inset-y-1 left-1/2 w-2.5 -translate-x-1/2"
+          data-fader-track
+          style={rangeStyle(value, min, max, 'var(--crt-acc)')}
+        />
+        <div
+          aria-hidden="true"
+          className="crt-fader-cap pointer-events-none absolute left-1/2 h-3.5 w-7 -translate-x-1/2 translate-y-1/2"
+          style={{ bottom: `calc(0.25rem + (100% - 0.5rem) * ${percent / 100})` }}
+        />
+      </div>
+      <output className={cn(ledClass, 'min-w-7 text-center text-2xl', disabled && 'opacity-40')}>
+        {displayValue}
+      </output>
+    </div>
   )
 }
 

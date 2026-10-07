@@ -1549,6 +1549,60 @@
   }
 
   /*
+   * An upright fader: the range's segmented LED meter stood on end, lit from
+   * the bottom, with the range thumb's metal cap lying across it.
+   */
+  .crt-fader-track {
+    --range-unlit: color-mix(in oklab, var(--crt-bg-well) 78%, transparent);
+    border-top: 1px solid var(--crt-shadow);
+    border-left: 1px solid var(--crt-shadow);
+    border-right: 1px solid var(--crt-line-lt2);
+    border-bottom: 1px solid var(--crt-line-lt2);
+    background:
+      linear-gradient(
+        to top,
+        var(--range-unlit) 0 var(--range-start),
+        transparent var(--range-start) var(--range-end),
+        var(--range-unlit) var(--range-end) 100%
+      ),
+      repeating-linear-gradient(
+        0deg,
+        var(--range-color, var(--crt-acc)) 0 3px,
+        var(--crt-bg-1) 3px 5px
+      );
+  }
+
+  .crt-fader-cap {
+    border-top: 1px solid var(--crt-ink);
+    border-left: 1px solid var(--crt-ink);
+    border-right: 1px solid var(--crt-shadow);
+    border-bottom: 1px solid var(--crt-shadow);
+    background: linear-gradient(
+      to bottom,
+      var(--crt-ink-2) 0%,
+      var(--crt-acc-mid) 45%,
+      var(--crt-shadow) 50%,
+      var(--crt-acc-mid) 55%,
+      var(--crt-ink-2) 100%
+    );
+    box-shadow:
+      0 0 0 1px var(--crt-bg-0),
+      0 1px 2px hsl(0 0% 0% / 55%);
+  }
+
+  .group:hover > .crt-fader-cap,
+  .group:focus-visible > .crt-fader-cap {
+    background: linear-gradient(
+      to bottom,
+      var(--crt-ink) 0%,
+      var(--crt-acc) 45%,
+      var(--crt-shadow) 50%,
+      var(--crt-acc) 55%,
+      var(--crt-ink) 100%
+    );
+  }
+
+  /*
    * The track is a segmented LED meter: a striped fill between the range's
    * start and end, dimmed almost to the well on either side, so the unlit
    * segments still show and a slider at zero reads as an empty meter.

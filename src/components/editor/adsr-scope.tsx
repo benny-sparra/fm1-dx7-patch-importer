@@ -11,7 +11,7 @@ const left = 8
 /** Each stage's time takes up to a quarter of the plot. */
 const stageWidth = (width - 2 * left) / 4
 
-export type AdsrSetting = 'attack' | 'decay' | 'release' | 'sustain'
+type AdsrSetting = 'attack' | 'decay' | 'release' | 'sustain'
 
 type AdsrValues = Record<AdsrSetting, number>
 
@@ -253,66 +253,6 @@ export function AdsrScope({
           ))}
         </g>
       </svg>
-    </div>
-  )
-}
-
-const fieldClass =
-  'font-vt323 h-6 w-full min-w-0 bg-transparent text-center text-[17px] leading-none text-[var(--crt-led)] outline-none [appearance:textfield] focus:bg-[var(--crt-sel-bg)] focus-visible:outline-1 focus-visible:outline-[var(--crt-led)] disabled:text-[var(--crt-ink-4)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
-
-/**
- * The Envelope's four settings as bevelled readouts under its drawing, typed into in place as the
- * operator envelope's rates and levels are. Typing in one is a gesture from focus to blur, so it is
- * one undo step.
- */
-export function AdsrFields({
-  disabled,
-  labels,
-  onChange,
-  onGestureEnd,
-  onGestureStart,
-  values,
-}: {
-  disabled: boolean
-  labels: Record<AdsrSetting, string>
-  onChange: (setting: AdsrSetting, value: number) => void
-  onGestureEnd: () => void
-  onGestureStart: () => void
-  values: AdsrValues
-}) {
-  const settings: AdsrSetting[] = ['attack', 'decay', 'sustain', 'release']
-  return (
-    <div className="grid grid-cols-2 gap-1 @sm:grid-cols-4">
-      {settings.map((setting) => (
-        <label
-          className="crt-inset grid min-w-0 bg-[var(--crt-bg-1)] px-0.5 pt-0.5 text-center text-[10px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase"
-          key={setting}
-        >
-          <span className="truncate">{labels[setting]}</span>
-          <input
-            className={fieldClass}
-            disabled={disabled}
-            inputMode="numeric"
-            max={100}
-            min={0}
-            onBlur={onGestureEnd}
-            onChange={(event) => {
-              const value = event.currentTarget.valueAsNumber
-              if (Number.isFinite(value)) onChange(setting, clampSetting(value))
-            }}
-            onFocus={(event) => {
-              onGestureStart()
-              event.currentTarget.select()
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') event.currentTarget.blur()
-            }}
-            step={1}
-            type="number"
-            value={values[setting]}
-          />
-        </label>
-      ))}
     </div>
   )
 }
