@@ -2,7 +2,6 @@ import { Activity, AudioWaveform, Dices, Eraser, Sparkles, Waves } from 'lucide-
 import {
   type RefObject,
   useEffect,
-  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -25,7 +24,6 @@ import {
   LfoWaveControl,
   PicturePickerControl,
   PictureRadioControl,
-  RadioParameterControl,
   RotaryParameterControl,
   SliderParameterControl,
   SwitchParameterControl,
@@ -175,7 +173,6 @@ export function VirtualAnalogEditorPage({
   const unsavedDialogRef = useRef<HTMLDialogElement>(null)
   const saveMenuRef = useDismissableDetails()
   const presetsMenuRef = useDismissableDetails()
-  const keyTrackingName = useId()
   const program = patch.program
   const canCheck = soundControl.canSend && reader.canRead
 
@@ -580,9 +577,10 @@ export function VirtualAnalogEditorPage({
               {/* The response and the choices at the left, the knobs in three groups beside them:
                   where the filter sits, its own envelope, and what else moves it. */}
               <div className="grid flex-1 gap-3 p-[9px] @2xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-                <div className="grid content-start gap-2.5">
+                <div className="grid content-start gap-4">
                   <VaFilterScope
                     cutoff={value('cutoff')}
+                    keyTracking={value('keyTracking')}
                     resonance={value('resonance')}
                     type={value('filterType')}
                   />
@@ -600,14 +598,6 @@ export function VirtualAnalogEditorPage({
                     )}
                     value={value('filterType')}
                   />
-                  <RadioParameterControl
-                    helpText={t('virtualAnalog.help.keyTracking')}
-                    label={t('virtualAnalog.keyTracking')}
-                    name={keyTrackingName}
-                    onChange={(next) => editor.chooseRow('keyTracking', next)}
-                    options={[0, 33, 67, 100].map((amount) => format(amount, 0))}
-                    value={value('keyTracking')}
-                  />
                 </div>
                 <div className="grid content-start gap-2.5">
                   <div className={knobRowClass}>
@@ -622,6 +612,9 @@ export function VirtualAnalogEditorPage({
                   <div className={cn(knobRowClass, 'border-t border-[var(--crt-line-dk)] pt-2')}>
                     {rotary('filterVelocity', t('virtualAnalog.filterVelocity'))}
                     {rotary('lfoToCutoff', t('virtualAnalog.lfoToCutoff'))}
+                    {rotary('keyTracking', t('virtualAnalog.keyTracking'), (step) =>
+                      format([0, 33, 67, 100][step] ?? 0, 0),
+                    )}
                   </div>
                 </div>
               </div>
