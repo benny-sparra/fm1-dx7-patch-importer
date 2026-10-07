@@ -71,6 +71,27 @@ export function VaFilterTypeIcon({ className, type }: { className: string; type:
 }
 
 /**
+ * The Virtual Analog filter panel's title icon, drawn in Lucide's grid and stroke: a low-pass
+ * response with a resonant peak, the shape a synth's filter is known by.
+ */
+export function VaFilterPanelIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="M2 11h9c2.5 0 3.5-5 5-5s2 3 3 7l2 7" />
+    </svg>
+  )
+}
+
+/**
  * The Virtual Analog filter's frequency response, in the effects' scope well, drawn taller beside
  * the filter's knobs. It is still: unlike the effect scopes, nothing flickers under it.
  */

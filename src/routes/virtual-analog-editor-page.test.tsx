@@ -108,21 +108,20 @@ describe('VirtualAnalogEditorPage', () => {
     expect(screen.getByLabelText(`Waveform: ${next}`).closest('details')?.open).toBe(false)
   })
 
-  it('picks the filter type from a dropdown of drawn responses', async () => {
+  it('picks the filter type from tiles of drawn responses', async () => {
     const { record, user, voice } = setup()
     const before = virtualAnalogRow('filterType').read(voice, record)
     const names = ['Low pass 12 dB', 'Low pass 24 dB', 'Band pass', 'High pass']
 
-    await user.click(screen.getByLabelText(`Filter type: ${names[before]}`))
     const types = within(screen.getByRole('radiogroup', { name: 'Filter type' }))
     for (const name of names) {
-      expect(types.getByRole('radio', { name }).querySelector('svg')).toBeTruthy()
+      expect(types.getByRole('radio', { name }).closest('label')?.querySelector('svg')).toBeTruthy()
     }
+    expect(types.getByRole('radio', { name: names[before] })).toHaveProperty('checked', true)
     const next = names[(before + 1) % names.length]
     await user.click(types.getByRole('radio', { name: next }))
 
-    expect(screen.getByLabelText(`Filter type: ${next}`)).toBeTruthy()
-    expect(screen.getByLabelText(`Filter type: ${next}`).closest('details')?.open).toBe(false)
+    expect(types.getByRole('radio', { name: next })).toHaveProperty('checked', true)
   })
 
   it('explains each setting in a help popover, as the voice editor does', async () => {

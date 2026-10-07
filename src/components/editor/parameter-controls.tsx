@@ -659,21 +659,33 @@ export function LfoWaveControl({
  * choice. A choice that a scope beside it already draws, such as the filter's Type, leaves the
  * well out with `well={false}`.
  */
+/** A picture picker's choice: its name, and its picture at the size its box gives it. */
+type PictureOption = { label: string; picture: (className: string) => ReactNode }
+
+/** A picture picker's tile, raised and lit while it holds the choice. */
+const pictureTileClass = (selected: boolean) =>
+  cn(
+    'grid min-w-0 cursor-pointer justify-items-center gap-2 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 pt-1.5 pb-3 transition-colors hover:bg-[var(--crt-bg-head)] hover:text-[var(--crt-acc-lt)]',
+    selected
+      ? 'border-t-[var(--crt-acc)] border-l-[var(--crt-acc)] bg-[var(--crt-sel-bg)] text-[var(--crt-led)]'
+      : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-1)] text-[var(--crt-acc-mid)]',
+  )
+
+const pictureTileLabelClass =
+  'justify-self-start text-[11px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase'
+
 export function PicturePickerControl({
   helpText,
   label,
   onChange,
   options,
   value,
-  well = true,
 }: {
   helpText?: string
   label: string
   onChange: (value: number) => void
-  /** Each option's name, and its picture at the size its box gives it. */
-  options: { label: string; picture: (className: string) => ReactNode }[]
+  options: PictureOption[]
   value: number
-  well?: boolean
 }) {
   const dropdownRef = useDismissableDetails()
   const selected = options[value] ?? options[0]
@@ -711,31 +723,76 @@ export function PicturePickerControl({
               aria-checked={value === index}
               aria-label={option.label}
               className={cn(
-                'grid min-w-0 cursor-pointer justify-items-center gap-2 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 pt-1.5 pb-3 transition-colors hover:bg-[var(--crt-bg-head)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
-                value === index
-                  ? 'border-t-[var(--crt-acc)] border-l-[var(--crt-acc)] bg-[var(--crt-sel-bg)] text-[var(--crt-led)]'
-                  : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-1)] text-[var(--crt-acc-mid)]',
+                pictureTileClass(value === index),
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
               )}
               key={option.label}
               onClick={() => select(index)}
               role="radio"
               type="button"
             >
-              <span className="justify-self-start text-[11px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase">
-                {option.label}
-              </span>
+              <span className={pictureTileLabelClass}>{option.label}</span>
               {option.picture('h-8 w-16')}
             </button>
           ))}
         </div>
       </details>
-      {well ? (
-        <div aria-hidden="true" className="crt-well relative aspect-square">
-          {selected.picture(
-            'absolute top-3 left-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] text-[var(--crt-led)] drop-shadow-[0_0_6px_var(--crt-led-glow)]',
-          )}
-        </div>
-      ) : null}
+      <div aria-hidden="true" className="crt-well relative aspect-square">
+        {selected.picture(
+          'absolute top-3 left-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] text-[var(--crt-led)] drop-shadow-[0_0_6px_var(--crt-led-glow)]',
+        )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The picture picker's choices laid out on the panel rather than in a dropdown, for a panel with
+ * room to show them all, such as the Virtual Analog filter's types. Native radios, so the arrow
+ * keys move the choice and focus rings the tile that holds it.
+ */
+export function PictureRadioControl({
+  helpText,
+  label,
+  onChange,
+  options,
+  value,
+}: {
+  helpText?: string
+  label: string
+  onChange: (value: number) => void
+  options: PictureOption[]
+  value: number
+}) {
+  const name = useId()
+  return (
+    <div className={cn('grid min-w-0 gap-1', captionClass)}>
+      <span className="flex items-center gap-1">
+        {label}
+        {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+      </span>
+      <div aria-label={label} className="grid grid-cols-2 gap-1.5" role="radiogroup">
+        {options.map((option, index) => (
+          <label
+            className={cn(
+              pictureTileClass(value === index),
+              'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--crt-led)]',
+            )}
+            key={option.label}
+          >
+            <input
+              checked={value === index}
+              className="sr-only"
+              name={name}
+              onChange={() => onChange(index)}
+              type="radio"
+              value={index}
+            />
+            <span className={pictureTileLabelClass}>{option.label}</span>
+            {option.picture('h-8 w-16')}
+          </label>
+        ))}
+      </div>
     </div>
   )
 }

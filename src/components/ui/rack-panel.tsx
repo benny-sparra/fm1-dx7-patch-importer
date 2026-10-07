@@ -1,5 +1,5 @@
-import { ChevronDown, ChevronUp, type LucideIcon } from 'lucide-react'
-import type { ComponentProps, ReactNode } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import type { ComponentProps, ComponentType, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Switch } from '@/components/ui/switch'
@@ -30,7 +30,8 @@ export function RackPanelTitle({
    * than built here, so the import dialogs that share this strip do not load the help popover.
    */
   help?: ReactNode
-  icon?: LucideIcon
+  /** A Lucide icon, or a drawing of its size and stroke where Lucide has none to fit. */
+  icon?: ComponentType<{ className?: string; 'aria-hidden'?: 'true' }>
   id?: string
   title: string
   /**

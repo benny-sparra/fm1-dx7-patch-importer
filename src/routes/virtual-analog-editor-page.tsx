@@ -1,4 +1,4 @@
-import { Activity, AudioWaveform, Dices, Eraser, Funnel, Sparkles, Waves } from 'lucide-react'
+import { Activity, AudioWaveform, Dices, Eraser, Sparkles, Waves } from 'lucide-react'
 import {
   type RefObject,
   useEffect,
@@ -16,10 +16,15 @@ import { CompareOverlay } from '@/components/editor/compare-overlay'
 import { RackPanelHelp } from '@/components/editor/editor-workspace'
 import { EffectsUnit } from '@/components/editor/effects-unit'
 import { LfoScope } from '@/components/editor/lfo-scope'
-import { VaFilterScope, VaFilterTypeIcon } from '@/components/editor/va-filter-scope'
+import {
+  VaFilterPanelIcon,
+  VaFilterScope,
+  VaFilterTypeIcon,
+} from '@/components/editor/va-filter-scope'
 import {
   LfoWaveControl,
   PicturePickerControl,
+  PictureRadioControl,
   RadioParameterControl,
   RotaryParameterControl,
   SliderParameterControl,
@@ -564,7 +569,7 @@ export function VirtualAnalogEditorPage({
               className={cn(panelClass, 'xl:col-span-2')}
             >
               <RackPanelTitle
-                icon={Funnel}
+                icon={VaFilterPanelIcon}
                 id="va-filter-heading"
                 title={t('virtualAnalog.filter')}
               />
@@ -577,8 +582,9 @@ export function VirtualAnalogEditorPage({
                     resonance={value('resonance')}
                     type={value('filterType')}
                   />
-                  {/* The scope above draws the chosen response, so the picker needs no well. */}
-                  <PicturePickerControl
+                  {/* The column has room for every type, so they show at once, as the
+                      oscillator's dropdown shows its waveforms. */}
+                  <PictureRadioControl
                     helpText={t('virtualAnalog.help.filterType')}
                     label={t('virtualAnalog.filterType')}
                     onChange={(next) => editor.chooseRow('filterType', next)}
@@ -589,7 +595,6 @@ export function VirtualAnalogEditorPage({
                       }),
                     )}
                     value={value('filterType')}
-                    well={false}
                   />
                   <RadioParameterControl
                     helpText={t('virtualAnalog.help.keyTracking')}
