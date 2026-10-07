@@ -146,11 +146,15 @@ export function RotaryParameterControl({
 
   return (
     <div className={cn('grid min-w-0 justify-items-center gap-1', captionClass)}>
-      <span className="flex max-w-full min-w-0 items-center gap-1">
-        <span className="min-w-0 text-balance break-words" title={label}>
-          {label}
-        </span>
-        {helpText ? <HelpPopover label={name} text={helpText} /> : null}
+      {/* The help button flows after the label's last word, so a label that wraps keeps it
+          beside the text rather than at the column's far edge. */}
+      <span className="max-w-full text-center text-balance break-words">
+        <span title={label}>{label}</span>
+        {helpText ? (
+          <span className="ml-1 inline-block align-middle">
+            <HelpPopover label={name} text={helpText} />
+          </span>
+        ) : null}
       </span>
       <div
         aria-disabled={disabled || undefined}

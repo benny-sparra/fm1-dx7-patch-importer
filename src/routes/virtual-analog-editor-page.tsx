@@ -122,6 +122,10 @@ const filterTypePicture = (type: number) => (className: string) => (
 
 const panelClass = 'synthwave-panel @container flex min-w-0 flex-col'
 const controlsClass = 'grid grid-cols-2 content-start gap-x-3 gap-y-2.5 p-[9px] @sm:grid-cols-3'
+/** Knobs three to a row, a shorter row centred under them, lined up by their faces whatever
+    their labels' lengths. */
+const knobRowClass =
+  'flex flex-wrap items-end justify-center gap-x-2 gap-y-2.5 *:basis-[calc((100%-1rem)/3)]'
 
 /**
  * The editor for a Virtual Analog preset from FM-1+VA: its oscillator, filter, output, LFO, and
@@ -606,16 +610,16 @@ export function VirtualAnalogEditorPage({
                   />
                 </div>
                 <div className="grid content-start gap-2.5">
-                  <div className="grid grid-cols-3 items-start gap-x-2">
+                  <div className={knobRowClass}>
                     {rotary('cutoff', t('virtualAnalog.cutoff'), cutoffLabel)}
                     {rotary('resonance', t('virtualAnalog.resonance'))}
                   </div>
-                  <div className="grid grid-cols-3 items-start gap-x-2 border-t border-[var(--crt-line-dk)] pt-2">
+                  <div className={cn(knobRowClass, 'border-t border-[var(--crt-line-dk)] pt-2')}>
                     {rotary('filterEnvelope', t('virtualAnalog.filterEnvelope'))}
                     {rotary('filterDecay', t('virtualAnalog.filterDecay'))}
                     {rotary('filterShape', t('virtualAnalog.filterShape'))}
                   </div>
-                  <div className="grid grid-cols-3 items-start gap-x-2 border-t border-[var(--crt-line-dk)] pt-2">
+                  <div className={cn(knobRowClass, 'border-t border-[var(--crt-line-dk)] pt-2')}>
                     {rotary('filterVelocity', t('virtualAnalog.filterVelocity'))}
                     {rotary('lfoToCutoff', t('virtualAnalog.lfoToCutoff'))}
                   </div>
@@ -649,7 +653,12 @@ export function VirtualAnalogEditorPage({
                   />
                 </div>
                 {/* The LFO's amounts as knobs, as the voice editor's operators have them. */}
-                <div className="col-span-full grid grid-cols-3 items-start gap-x-2 gap-y-2.5 border-t border-[var(--crt-line-dk)] pt-2">
+                <div
+                  className={cn(
+                    knobRowClass,
+                    'col-span-full border-t border-[var(--crt-line-dk)] pt-2',
+                  )}
+                >
                   {rotary('lfoSpeed', t('editor.lfoSpeed'), undefined, t('controlHelp.lfoSpeed'))}
                   {rotary('lfoDelay', t('editor.lfoDelay'), undefined, t('controlHelp.lfoDelay'))}
                   {rotary(

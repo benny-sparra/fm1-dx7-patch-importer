@@ -252,19 +252,6 @@
   }
 
   /*
-   * Text that explains itself in a native tooltip shows the help cursor,
-   * parameter labels included. A control keeps its own cursor, so a pointer
-   * still means a click does something, and so does anything inside one.
-   */
-  :where([title]):not(
-    :is(a, button, input, select, textarea, summary, [tabindex]),
-    :is([role='button'], [role='slider'], [role='switch'], [role^='menuitem'], [role='option']),
-    :is(a, button, summary, [tabindex], [role='button'], [role='slider']) *
-  ) {
-    cursor: help;
-  }
-
-  /*
    * The backdrop is a dithered 50% checker rather than a blur: it reads as a
    * CRT screen door and keeps the shell behind it legible as structure.
    */
