@@ -214,7 +214,7 @@ export default {
       filterVelocity:
         'Wie weit kräftigeres Spielen die Grenzfrequenz anhebt. Die Lautstärke bleibt dabei gleich.',
       keyTracking:
-        'Wie weit die Grenzfrequenz den Noten folgt, die du höher auf der Tastatur spielst.',
+        'Wie weit die Grenzfrequenz den Noten folgt, die du höher auf der Tastatur spielst. Solange sie an ist, skizziert die Grafik den Filter für die drei leuchtenden Tasten, die äußeren beiden als gestrichelte Kurven in ihren Farben.',
       lfoToCutoff: 'Wie weit der LFO die Grenzfrequenz bewegt.',
       level: 'Wie laut dieser Sound neben den anderen ist, etwa 0,74 dB pro Schritt.',
       velocityToLevel:
@@ -252,6 +252,7 @@ export default {
     filterShape: 'Hüllkurvenform',
     filterVelocity: 'Anschlag',
     keyTracking: 'Tastaturverfolgung',
+    keyTrackingNote: 'C{{octave}}',
     lfoToCutoff: 'LFO auf Grenzfrequenz',
     level: 'Pegel',
     velocityToLevel: 'Anschlag auf Pegel',

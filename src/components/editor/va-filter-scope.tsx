@@ -110,9 +110,9 @@ const trackingAmounts = [0, 1 / 3, 2 / 3, 1]
  * as the note the Cutoff is set for. Each is lit on the keyboard in its curve's colour.
  */
 const trackedNotes = [
-  { colour: 'var(--crt-acc-dim)', name: 'low', note: 36 },
-  { colour: 'var(--crt-acc)', name: 'middle', note: 60 },
-  { colour: 'var(--crt-led)', name: 'high', note: 84 },
+  { colour: 'var(--crt-acc-dim)', name: 'low', note: 36, octave: 2 },
+  { colour: 'var(--crt-acc)', name: 'middle', note: 60, octave: 4 },
+  { colour: 'var(--crt-led)', name: 'high', note: 84, octave: 6 },
 ] as const
 const pivotNote = 60
 
@@ -165,17 +165,6 @@ function ScopeKeyboard() {
             y={keyboardTop}
           />
         ))}
-      {trackedNotes.map(({ colour, note }) => (
-        <rect
-          fill={colour}
-          height={keyboardHeight}
-          key={note}
-          style={{ filter: `drop-shadow(0 0 2px ${colour})` }}
-          width={semitoneWidth * 1.6}
-          x={noteX(note) - semitoneWidth * 0.8}
-          y={keyboardTop}
-        />
-      ))}
     </g>
   )
 }
@@ -183,17 +172,23 @@ function ScopeKeyboard() {
 /**
  * The Virtual Analog filter's frequency response, in the effects' scope well, drawn taller beside
  * the filter's knobs, over a keyboard laid along its frequency axis. While Key Tracking is on,
- * dashed copies show where it moves the response for a low and a high note. It is still: unlike
- * the effect scopes, nothing flickers under it.
+ * three keys light up, named above them, and dashed copies in the outer two's colours show where
+ * it moves the response for those notes. It is still: unlike the effect scopes, nothing
+ * flickers under it.
  */
 export function VaFilterScope({
+  className,
   cutoff,
   keyTracking,
+  noteLabel,
   resonance,
   type,
 }: {
+  className?: string
   cutoff: number
   keyTracking: number
+  /** A note's name in the interface language, from its octave, as C4 or Do4. */
+  noteLabel: (octave: number) => string
   resonance: number
   type: number
 }) {
@@ -216,22 +211,55 @@ export function VaFilterScope({
   )
   const curve = curves.find(({ name }) => name === 'middle')!.d
   const markerX = hertzX(virtualAnalogCutoffHertz(cutoff))
+  const tracking = amount > 0
 
   return (
     <ScopeFrame
-      className="h-40"
+      className={className ?? 'h-40'}
       overlay={
-        <ScopeDot
-          active
-          x={markerX}
-          y={Math.min(keyboardTop, dbToY(vaFilterResponse(type, cutoff, resonance, markerX)))}
-        />
+        <>
+          <ScopeDot
+            active
+            x={markerX}
+            y={Math.min(keyboardTop, dbToY(vaFilterResponse(type, cutoff, resonance, markerX)))}
+          />
+          {/* The lit keys' names, in HTML so the stretched SVG does not stretch them. */}
+          {tracking
+            ? trackedNotes.map(({ colour, name, octave, note }) => (
+                <span
+                  className="absolute -translate-x-1/2 font-mono text-[10px] leading-none"
+                  data-note-label={name}
+                  key={name}
+                  style={{
+                    bottom: `${((keyboardHeight + 2) / viewHeight) * 100}%`,
+                    color: colour,
+                    left: `${(noteX(note) / viewWidth) * 100}%`,
+                  }}
+                >
+                  {noteLabel(octave)}
+                </span>
+              ))
+            : null}
+        </>
       }
       testId="va-filter-scope"
     >
       <ScopeGrid columns={decades * 2} rowY={dbToY(0)} />
       <ScopeKeyboard />
-      {amount > 0
+      {tracking
+        ? trackedNotes.map(({ colour, note }) => (
+            <rect
+              fill={colour}
+              height={keyboardHeight}
+              key={note}
+              style={{ filter: `drop-shadow(0 0 2px ${colour})` }}
+              width={semitoneWidth * 1.6}
+              x={noteX(note) - semitoneWidth * 0.8}
+              y={keyboardTop}
+            />
+          ))
+        : null}
+      {tracking
         ? curves
             .filter(({ name }) => name !== 'middle')
             .map(({ colour, d, name }) => (

@@ -207,7 +207,8 @@ export default {
         'La durée du mouvement de l’enveloppe du filtre. Courte, avec beaucoup d’enveloppe, elle donne un son pincé.',
       filterShape: 'L’allure du mouvement de l’enveloppe du filtre, de la montée à la descente.',
       filterVelocity: 'De combien jouer plus fort ouvre la coupure. Le volume ne change pas.',
-      keyTracking: 'À quel point la coupure suit les notes jouées plus haut sur le clavier.',
+      keyTracking:
+        'À quel point la coupure suit les notes jouées plus haut sur le clavier. Tant qu’il est actif, le graphique esquisse le filtre pour les trois touches allumées, les deux extrêmes en courbes pointillées de leur couleur.',
       lfoToCutoff: 'De combien le LFO déplace la coupure.',
       level: 'Le volume de ce son par rapport aux autres, environ 0,74 dB par pas.',
       velocityToLevel:
@@ -245,6 +246,7 @@ export default {
     filterShape: 'Forme d’enveloppe',
     filterVelocity: 'Vélocité',
     keyTracking: 'Suivi de clavier',
+    keyTrackingNote: 'Do{{octave}}',
     lfoToCutoff: 'LFO vers la coupure',
     level: 'Niveau',
     velocityToLevel: 'Vélocité vers le niveau',

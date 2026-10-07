@@ -139,13 +139,14 @@ describe('VirtualAnalogEditorPage', () => {
     expect(controlChanges().map(([controller]) => controller)).toContain(56)
   })
 
-  it('reads Key tracking out in the interface language', async () => {
-    await setLocale('de')
+  it('names the filter graph’s lit keys in the interface language', async () => {
+    await setLocale('fr')
     try {
       setup()
-      const dial = screen.getByRole('slider', { name: 'Tastaturverfolgung' })
-      fireEvent.keyDown(dial, { key: 'End' })
-      expect(dial.getAttribute('aria-valuetext')).toBe('100')
+      fireEvent.keyDown(screen.getByRole('slider', { name: 'Suivi de clavier' }), { key: 'End' })
+
+      const labels = screen.getByTestId('va-filter-scope').querySelectorAll('[data-note-label]')
+      expect(Array.from(labels, (label) => label.textContent)).toEqual(['Do2', 'Do4', 'Do6'])
     } finally {
       await setLocale('en-GB')
     }

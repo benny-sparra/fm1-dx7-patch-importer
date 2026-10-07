@@ -158,7 +158,8 @@ export default {
         'How long the filter envelope’s move takes. Short, with the envelope amount well up, makes a pluck.',
       filterShape: 'What the filter envelope’s move looks like, from its rise to its fall.',
       filterVelocity: 'How far playing harder raises the cutoff. It leaves the loudness alone.',
-      keyTracking: 'How far the cutoff follows the notes you play up the keyboard.',
+      keyTracking:
+        'How far the cutoff follows the notes you play up the keyboard. While it is on, the graph sketches the filter for the three lit keys, the outer two as matching dashed curves.',
       lfoToCutoff: 'How far the LFO moves the cutoff.',
       level: 'How loud this patch is beside the others, about 0.74 dB a step.',
       velocityToLevel:
@@ -196,6 +197,7 @@ export default {
     filterShape: 'Envelope shape',
     filterVelocity: 'Velocity',
     keyTracking: 'Key tracking',
+    keyTrackingNote: 'C{{octave}}',
     lfoToCutoff: 'LFO to cutoff',
     level: 'Level',
     velocityToLevel: 'Velocity to level',

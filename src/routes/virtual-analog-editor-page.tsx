@@ -577,10 +577,14 @@ export function VirtualAnalogEditorPage({
               {/* The response and the choices at the left, the knobs in three groups beside them:
                   where the filter sits, its own envelope, and what else moves it. */}
               <div className="grid flex-1 gap-3 p-[9px] @2xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-                <div className="grid content-start gap-4">
+                {/* The graph takes the column's spare height, so Filter Type ends level with the
+                    knobs beside it. */}
+                <div className="flex flex-col gap-4">
                   <VaFilterScope
+                    className="min-h-40 flex-1"
                     cutoff={value('cutoff')}
                     keyTracking={value('keyTracking')}
+                    noteLabel={(octave) => t('virtualAnalog.keyTrackingNote', { octave })}
                     resonance={value('resonance')}
                     type={value('filterType')}
                   />

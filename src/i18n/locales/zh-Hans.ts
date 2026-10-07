@@ -164,7 +164,8 @@ export default {
       filterDecay: '滤波器包络变化持续的时间。短衰减配合较大的包络量会得到拨弦般的声音。',
       filterShape: '滤波器包络变化的形状，从上升到下降。',
       filterVelocity: '弹得越重，截止频率提高多少。不影响音量。',
-      keyTracking: '截止频率随键盘上越高的音而跟随的程度。',
+      keyTracking:
+        '截止频率随键盘上越高的音而跟随的程度。开启时，图表会为三个亮起的琴键勾勒滤波器，外侧两个以各自颜色的虚线显示。',
       lfoToCutoff: 'LFO 推动截止频率的幅度。',
       level: '此音色相对其他音色的音量，每级约 0.74 dB。',
       velocityToLevel: '弹得越重，音量增加多少。为 0 时所有音一样响。',
@@ -201,6 +202,7 @@ export default {
     filterShape: '包络形状',
     filterVelocity: '力度',
     keyTracking: '键盘跟随',
+    keyTrackingNote: 'C{{octave}}',
     lfoToCutoff: 'LFO 调制截止频率',
     level: '电平',
     velocityToLevel: '力度控制电平',
