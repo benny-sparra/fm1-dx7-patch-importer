@@ -136,7 +136,10 @@ a Virtual Analogue one there; a line under the toolbar says which preset, or why
 velocity to level, Monophonic, the LFO's waveform, amp mod depth, pitch mod sensitivity and sync,
 switching the envelope off, and the Distortion type, Bitcrush, and effect order have no MIDI
 message, so you hear those once the patch is written to the FM1. The envelope's graph shows its shape;
-drag its points, or type into the four values under it, while it is switched on. Switching it on
+drag its points, or type into the four values under it, while it is switched on. The filter's
+graph runs over a keyboard laid along its frequencies and fills the height beside the filter's
+knobs. While the **Key tracking** dial is turned up, three keys light up and are named: C2, middle
+C, and C6. Dashed curves in the outer keys' colours sketch where the filter moves for those notes. Switching the envelope on
 sends its settings, which switches it on on the FM1 too. Its **Presets** menu lists **Init
 patch**, a plain saw wave through an open filter with every effect switched off, then
 **Randomise**, then six sounds to start from. Each sets every row but Level and switches the

@@ -2,7 +2,6 @@ import { Activity, AudioWaveform, Dices, Eraser, Sparkles, Waves } from 'lucide-
 import {
   type RefObject,
   useEffect,
-  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -25,7 +24,6 @@ import {
   LfoWaveControl,
   PicturePickerControl,
   PictureRadioControl,
-  RadioParameterControl,
   RotaryParameterControl,
   SliderParameterControl,
   SwitchParameterControl,
@@ -121,7 +119,15 @@ const filterTypePicture = (type: number) => (className: string) => (
 )
 
 const panelClass = 'synthwave-panel @container flex min-w-0 flex-col'
-const controlsClass = 'grid grid-cols-2 content-start gap-x-3 gap-y-2.5 p-[9px] @sm:grid-cols-3'
+/**
+ * Side by side, the Filter and LFO panels share four rows of the page's grid: their titles, then
+ * three rows of controls, so each row of one lines up with the row beside it. A size container
+ * cannot pass its parent's rows on, so there they are not containers, and their columns follow
+ * the viewport.
+ */
+const sharedRowsPanelClass =
+  'synthwave-panel flex min-w-0 flex-col max-xl:@container xl:row-span-4 xl:grid xl:grid-rows-subgrid xl:gap-y-0'
+const sharedRowsClass = 'xl:row-span-3 xl:grid-rows-subgrid'
 /** Knobs three to a row, a shorter row centred under them, lined up by their faces whatever
     their labels' lengths. */
 const knobRowClass =
@@ -175,7 +181,6 @@ export function VirtualAnalogEditorPage({
   const unsavedDialogRef = useRef<HTMLDialogElement>(null)
   const saveMenuRef = useDismissableDetails()
   const presetsMenuRef = useDismissableDetails()
-  const keyTrackingName = useId()
   const program = patch.program
   const canCheck = soundControl.canSend && reader.canRead
 
@@ -570,7 +575,7 @@ export function VirtualAnalogEditorPage({
 
             <section
               aria-labelledby="va-filter-heading"
-              className={cn(panelClass, 'xl:col-span-2')}
+              className={cn(sharedRowsPanelClass, 'xl:col-span-2')}
             >
               <RackPanelTitle
                 icon={VaFilterPanelIcon}
@@ -579,10 +584,20 @@ export function VirtualAnalogEditorPage({
               />
               {/* The response and the choices at the left, the knobs in three groups beside them:
                   where the filter sits, its own envelope, and what else moves it. */}
-              <div className="grid flex-1 gap-3 p-[9px] @2xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-                <div className="grid content-start gap-2.5">
+              <div
+                className={cn(
+                  'grid flex-1 gap-x-3 gap-y-2.5 p-[9px] xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] @2xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]',
+                  sharedRowsClass,
+                )}
+              >
+                {/* The graph takes the column's spare height, so Filter Type ends level with the
+                    knobs beside it. */}
+                <div className="flex flex-col gap-4 xl:row-span-3">
                   <VaFilterScope
+                    className="min-h-40 flex-1"
                     cutoff={value('cutoff')}
+                    keyTracking={value('keyTracking')}
+                    noteLabel={(octave) => t('virtualAnalog.keyTrackingNote', { octave })}
                     resonance={value('resonance')}
                     type={value('filterType')}
                   />
@@ -600,16 +615,8 @@ export function VirtualAnalogEditorPage({
                     )}
                     value={value('filterType')}
                   />
-                  <RadioParameterControl
-                    helpText={t('virtualAnalog.help.keyTracking')}
-                    label={t('virtualAnalog.keyTracking')}
-                    name={keyTrackingName}
-                    onChange={(next) => editor.chooseRow('keyTracking', next)}
-                    options={[0, 33, 67, 100].map((amount) => format(amount, 0))}
-                    value={value('keyTracking')}
-                  />
                 </div>
-                <div className="grid content-start gap-2.5">
+                <div className={cn('grid content-start gap-2.5', sharedRowsClass)}>
                   <div className={knobRowClass}>
                     {rotary('cutoff', t('virtualAnalog.cutoff'), cutoffLabel)}
                     {rotary('resonance', t('virtualAnalog.resonance'))}
@@ -622,43 +629,44 @@ export function VirtualAnalogEditorPage({
                   <div className={cn(knobRowClass, 'border-t border-[var(--crt-line-dk)] pt-2')}>
                     {rotary('filterVelocity', t('virtualAnalog.filterVelocity'))}
                     {rotary('lfoToCutoff', t('virtualAnalog.lfoToCutoff'))}
+                    {rotary('keyTracking', t('virtualAnalog.keyTracking'), (step) =>
+                      format([0, 33, 67, 100][step] ?? 0, 0),
+                    )}
                   </div>
                 </div>
               </div>
             </section>
 
-            <section aria-labelledby="va-lfo-heading" className={panelClass}>
+            <section aria-labelledby="va-lfo-heading" className={sharedRowsPanelClass}>
               <RackPanelTitle icon={Waves} id="va-lfo-heading" title={t('virtualAnalog.lfo')} />
-              <div className={controlsClass}>
-                <div className="col-span-full">
-                  <LfoScope
-                    ampModDepth={value('ampModDepth')}
-                    pitchModDepth={value('pitchModDepth')}
-                    speed={value('lfoSpeed')}
-                    wave={value('lfoWave')}
+              <div className={cn('grid content-start gap-y-2.5 p-[9px]', sharedRowsClass)}>
+                <div className="grid grid-cols-2 content-start gap-x-3 gap-y-2.5 xl:grid-cols-3 @sm:grid-cols-3">
+                  <div className="col-span-full">
+                    <LfoScope
+                      ampModDepth={value('ampModDepth')}
+                      pitchModDepth={value('pitchModDepth')}
+                      speed={value('lfoSpeed')}
+                      wave={value('lfoWave')}
+                    />
+                  </div>
+                  <LfoWaveControl
+                    onChange={(next) => editor.chooseRow('lfoWave', next)}
+                    value={value('lfoWave')}
                   />
+                  {/* LFO Sync shares the wave's row at its far end, its name kept on one line. */}
+                  <div className="col-[-2/-1] self-end justify-self-end">
+                    <SwitchParameterControl
+                      helpText={t('controlHelp.lfoSync')}
+                      label={t('editor.lfoSync')}
+                      onChange={(next) => editor.chooseRow('lfoSync', next)}
+                      singleLine
+                      value={value('lfoSync')}
+                    />
+                  </div>
                 </div>
-                <LfoWaveControl
-                  onChange={(next) => editor.chooseRow('lfoWave', next)}
-                  value={value('lfoWave')}
-                />
-                {/* LFO Sync shares the wave's row at its far end, its name kept on one line. */}
-                <div className="col-[-2/-1] self-end justify-self-end">
-                  <SwitchParameterControl
-                    helpText={t('controlHelp.lfoSync')}
-                    label={t('editor.lfoSync')}
-                    onChange={(next) => editor.chooseRow('lfoSync', next)}
-                    singleLine
-                    value={value('lfoSync')}
-                  />
-                </div>
-                {/* The LFO's amounts as knobs, as the voice editor's operators have them. */}
-                <div
-                  className={cn(
-                    knobRowClass,
-                    'col-span-full border-t border-[var(--crt-line-dk)] pt-2',
-                  )}
-                >
+                {/* The LFO's amounts as knobs, as the voice editor's operators have them, in two
+                    rows that line up with the filter's beside them. */}
+                <div className={cn(knobRowClass, 'border-t border-[var(--crt-line-dk)] pt-2')}>
                   {rotary('lfoSpeed', t('editor.lfoSpeed'), undefined, t('controlHelp.lfoSpeed'))}
                   {rotary('lfoDelay', t('editor.lfoDelay'), undefined, t('controlHelp.lfoDelay'))}
                   {rotary(
@@ -667,6 +675,8 @@ export function VirtualAnalogEditorPage({
                     undefined,
                     t('controlHelp.pitchModDepth'),
                   )}
+                </div>
+                <div className={cn(knobRowClass, 'border-t border-[var(--crt-line-dk)] pt-2')}>
                   {rotary(
                     'ampModDepth',
                     t('editor.ampModDepth'),

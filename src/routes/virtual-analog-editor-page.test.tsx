@@ -124,6 +124,34 @@ describe('VirtualAnalogEditorPage', () => {
     expect(types.getByRole('radio', { name: next })).toHaveProperty('checked', true)
   })
 
+  it('turns Key tracking as a dial of four steps, read out as 0, 33, 67, and 100', async () => {
+    const { controlChanges } = setup()
+    await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
+    const dial = screen.getByRole('slider', { name: 'Key tracking' })
+
+    fireEvent.keyDown(dial, { key: 'Home' })
+    expect(dial.getAttribute('aria-valuetext')).toBe('0')
+    fireEvent.keyDown(dial, { key: 'ArrowUp' })
+    expect(dial.getAttribute('aria-valuetext')).toBe('33')
+    fireEvent.keyDown(dial, { key: 'End' })
+
+    expect(dial.getAttribute('aria-valuetext')).toBe('100')
+    expect(controlChanges().map(([controller]) => controller)).toContain(56)
+  })
+
+  it('names the filter graph’s lit keys in the interface language', async () => {
+    await setLocale('fr')
+    try {
+      setup()
+      fireEvent.keyDown(screen.getByRole('slider', { name: 'Suivi de clavier' }), { key: 'End' })
+
+      const labels = screen.getByTestId('va-filter-scope').querySelectorAll('[data-note-label]')
+      expect(Array.from(labels, (label) => label.textContent)).toEqual(['Do2', 'Do4', 'Do6'])
+    } finally {
+      await setLocale('en-GB')
+    }
+  })
+
   it('explains each setting in a help popover, as the voice editor does', async () => {
     const { user } = setup()
 

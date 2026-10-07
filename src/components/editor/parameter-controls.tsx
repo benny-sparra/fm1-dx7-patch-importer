@@ -120,6 +120,8 @@ export function RotaryParameterControl({
   const displayValue = valueLabel(value)
   const fraction = (value - min) / (max - min)
   const angle = rotaryControlAngle(value, min, max)
+  const isStepped = max - min < 10
+  const tickCount = isStepped ? max - min + 1 : 11
   const clamp = (nextValue: number) => Math.max(min, Math.min(max, Math.round(nextValue)))
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -212,12 +214,14 @@ export function RotaryParameterControl({
               <stop offset="70%" style={{ stopColor: 'var(--crt-bg-1)' }} />
             </radialGradient>
           </defs>
-          {Array.from({ length: 11 }, (_, index) => {
-            const tickAngle = -135 + index * 27
+          {/* A knob with a few positions, such as Key Tracking's four, clicks between them: a
+              tick for each, all long, rather than the scale's eleven. */}
+          {Array.from({ length: tickCount }, (_, index) => {
+            const tickAngle = -135 + (index * 270) / (tickCount - 1)
             return (
               <line
                 className={
-                  !disabled && index / 10 <= fraction
+                  !disabled && index / (tickCount - 1) <= fraction
                     ? 'stroke-[var(--operator-color,var(--crt-acc))]'
                     : 'stroke-[var(--crt-line)]'
                 }
@@ -227,7 +231,7 @@ export function RotaryParameterControl({
                 x1="38"
                 x2="38"
                 y1="2"
-                y2={index % 5 === 0 ? '9' : '7'}
+                y2={isStepped || index % 5 === 0 ? '9' : '7'}
               />
             )
           })}

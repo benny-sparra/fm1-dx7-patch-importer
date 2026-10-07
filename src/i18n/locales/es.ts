@@ -209,7 +209,8 @@ export default {
       filterShape:
         'Cómo es el movimiento de la envolvente del filtro, desde la subida hasta la caída.',
       filterVelocity: 'Cuánto sube el corte al tocar más fuerte. No cambia el volumen.',
-      keyTracking: 'Cuánto sigue el corte a las notas que tocas más arriba en el teclado.',
+      keyTracking:
+        'Cuánto sigue el corte a las notas que tocas más arriba en el teclado. Mientras está activo, el gráfico esboza el filtro para las tres teclas iluminadas, las dos exteriores como curvas discontinuas de su color.',
       lfoToCutoff: 'Cuánto mueve el LFO el corte.',
       level: 'Lo fuerte que suena este sonido junto a los demás, unos 0,74 dB por paso.',
       velocityToLevel:
@@ -247,6 +248,7 @@ export default {
     filterShape: 'Forma de envolvente',
     filterVelocity: 'Velocidad',
     keyTracking: 'Seguimiento de teclado',
+    keyTrackingNote: 'Do{{octave}}',
     lfoToCutoff: 'LFO al corte',
     level: 'Nivel',
     velocityToLevel: 'Velocidad al nivel',

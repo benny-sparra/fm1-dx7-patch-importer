@@ -110,6 +110,44 @@ describe('RotaryParameterControl pointer', () => {
   })
 })
 
+describe('RotaryParameterControl steps', () => {
+  function ticks(max: number, value: number) {
+    const { container } = render(
+      <RotaryParameterControl
+        label="Key tracking"
+        max={max}
+        onChange={ignore}
+        onGestureEnd={ignore}
+        onGestureStart={ignore}
+        value={value}
+      />,
+    )
+    return Array.from(container.querySelectorAll('line[y1="2"]'))
+  }
+
+  it('draws a long tick for each position of a knob with only a few', () => {
+    const steps = ticks(3, 2)
+
+    expect(steps.map((tick) => tick.getAttribute('transform'))).toEqual([
+      'rotate(-135 38 38)',
+      'rotate(-45 38 38)',
+      'rotate(45 38 38)',
+      'rotate(135 38 38)',
+    ])
+    expect(steps.every((tick) => tick.getAttribute('y2') === '9')).toBe(true)
+    expect(steps.map((tick) => tick.getAttribute('class')?.includes('--crt-line'))).toEqual([
+      false,
+      false,
+      false,
+      true,
+    ])
+  })
+
+  it('keeps the eleven-tick scale for a knob with a wide range', () => {
+    expect(ticks(99, 50)).toHaveLength(11)
+  })
+})
+
 describe('RotaryParameterControl disabled', () => {
   it('leaves the tab order and ignores the pointer and keys', () => {
     const onChange = vi.fn()

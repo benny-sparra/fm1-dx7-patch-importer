@@ -202,7 +202,8 @@ export default {
         'Quanto tempo dura o movimento do envelope do filtro. Curto, com bastante envelope, faz um som pinçado.',
       filterShape: 'Como é o movimento do envelope do filtro, da subida à descida.',
       filterVelocity: 'O quanto tocar mais forte abre o corte. O volume não muda.',
-      keyTracking: 'O quanto o corte acompanha as notas que você toca mais acima no teclado.',
+      keyTracking:
+        'O quanto o corte acompanha as notas que você toca mais acima no teclado. Enquanto está ativo, o gráfico esboça o filtro para as três teclas acesas, as duas externas como curvas tracejadas da sua cor.',
       lfoToCutoff: 'O quanto o LFO move o corte.',
       level: 'O volume deste som em relação aos outros, cerca de 0,74 dB por passo.',
       velocityToLevel:
@@ -240,6 +241,7 @@ export default {
     filterShape: 'Forma do envelope',
     filterVelocity: 'Velocidade',
     keyTracking: 'Acompanhamento de teclado',
+    keyTrackingNote: 'Dó{{octave}}',
     lfoToCutoff: 'LFO no corte',
     level: 'Nível',
     velocityToLevel: 'Velocidade no nível',
