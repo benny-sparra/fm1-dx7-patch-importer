@@ -643,6 +643,9 @@ open everything an earlier release could have saved.
   the open operator's ⋮ menu in the rack, opens in a portal. Build it with `PortalMenu` from
   `src/components/ui/portal-menu.tsx` rather than another copy. It is not a `<details>` menu, so it
   claims Escape with `preventDefault`.
+- The patch banks panel does not clip its overflow, because each bank's ⋮ menu in the rail hangs
+  out beside its tab and, with enough banks, below the panel. Clipping it there hid the last bank's
+  menu items (issue 202); `e2e/librarian.e2e.ts` checks the last item can be reached.
 - A key chosen for its position, such as the piano's two-row note layout, is matched by
   `KeyboardEvent.code` and labelled with the user's layout letter (`useKeyboardKeyLabel`). A key
   chosen for its letter, such as Cmd/Ctrl + Z, is matched by `KeyboardEvent.key`.

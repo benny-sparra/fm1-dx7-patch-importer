@@ -191,7 +191,7 @@ export function PatchGrid({
   }
 
   return (
-    <Card className="synthwave-panel overflow-hidden">
+    <Card className="synthwave-panel">
       <CardHeader className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
         {/* Search covers every bank, so it sits above the bank rail rather than beside one bank. */}
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
