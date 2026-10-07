@@ -5,7 +5,7 @@
 [`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`](hardware-runs/fm1-va-write-timing-2026-10-06.md).
 §3 run the same day, with B8 (Phaser moved to the top) added; ledger
 [`docs/hardware-runs/fm1-va-bitcrush-order-2026-10-06.md`](hardware-runs/fm1-va-bitcrush-order-2026-10-06.md).
-§1, §2, §4, §5, §6b (added 2026-10-07), and §7 not run yet.
+§1, §2, §4, §4b and D2 (added 2026-10-07), §5, §6b (added 2026-10-07), and §7 not run yet.
 **Scope:** whether the facts `docs/fm1-research.md` records under "FM-1_096", all **Likely** and
 read from Baud Girl's web code and preset packs, hold on an FM1; whether the editor's handling of
 8-Bit presets (#191) keeps them safe; and where the settings FM-1_096 added live in the record. The
@@ -83,13 +83,17 @@ backup imported in F3 (or with the capture). Expected: identical.
 SAVE, and read it in the probe. Record byte 18 and every byte that differs from the factory preset
 it replaced. Repeat with **8-Bit**, then **VA**. Expected: `C3` for 8-Bit and `5A` for VA. FM-1+VA's
 web code expects `A5` for FM; the editor reads any value but `5A` and `C3` as FM, so record it
-either way.
+either way. If the FM1 runs `FM-1_097` or later, also run FM and VA there and compare the bytes
+with `FM-1_096`'s, since **Erase patch…** uses 96's from that release on. For 8-Bit, compare the
+bytes with the Device Manager's emulator capture (`docs/fm1-research.md`, "A new 8-Bit preset"),
+and press **Copy capture** so the blank can become a fixture.
 
 **M4. Write and read back an 8-Bit preset.** In the probe, read 097 and use its write-back test
 (unchanged, not renamed), which writes the preset to its own slot and reads it again. Record whether
 it matches, and whether NES ROCK still plays as before. Expected: a match. This checks that the
 preset write stores 8-Bit voice bytes exactly, which keeping 8-Bit presets in the library
-(backlog item 9) depends on.
+(backlog item 9) depends on. The write timing runs of §6 wrote 097–112 back exactly, but whether
+they held the 8-Bit pack then was not recorded, so check that 097 reads with byte 18 `C3` first.
 
 ## 3. Bitcrush and effect order (B1–B7)
 
@@ -132,6 +136,29 @@ Run each on the engine named.
 If L1 shows that Preset Level and the 8-Bit Drums Level share byte 2, record how an FM preset
 stores it (the same `80` | (99 − level) form or another), because `fm1VaRecordWithEffects` keeps
 byte 2 as read and the library would carry the level through every write.
+
+## 4b. 8-Bit fields (P1–P7)
+
+These check the 8-Bit field table in `docs/fm1-research.md` ("Every field of an 8-Bit preset"), one
+field of each kind, on preset 097 (NES ROCK) from the 8-Bit pack. Map each as above: read 097,
+change the one field on the FM1, note it, SAVE, and read again. **E** is a byte of the 155-byte
+edit buffer; the probe shows the 128 packed voice bytes, so record the packed bytes that change and
+compare them with the edit-buffer byte by unpacking the capture. Put 097 back from the pack backup
+afterwards, or let §7 do it.
+
+| Test | Change on the FM1, then SAVE               | Expected bytes                                                                           |
+| ---- | ------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| P1   | Bass, Wave Triangle → Pulse 50             | Record 19 bits 0–3: 4 → 2; bits 4–7 unchanged                                            |
+| P2   | Key E → Off, then → C (one read each)      | Record 26: `45` → `40` (the mark stays, Key 0), then `41`; bit 5 (Accidentals) unchanged |
+| P3   | Drums, F0 (the first drum), Pitch up by 10 | E 0 up by 10                                                                             |
+| P4   | Drums, Drum Decay 50 → 60, then → 40       | +10 then −10 in seven bits: bits 0–2 in E 15, bits 3–5 in E 36, bit 6 in E 14            |
+| P5   | Lead, User Arpeggio Step 1 from End to +3  | With Key Off, Arpeggio User first. Record 47 bits 0–4: 31 → 15; nothing else in 47–51    |
+| P6   | Lead, Octave up by 2                       | E 76 bits 0–2 up by 2 (Octave is stored + 3)                                             |
+| P7   | Bass, Level, and Lead, Mono, one per read  | Bass Level E 61; Lead Mono E 101 bit 0                                                   |
+
+Any byte that changes outside the expected one, or a field that lands elsewhere, goes in the
+ledger with the probe's JSON; the table in the research notes is then corrected before anything
+is built on it.
 
 ## 5. A write next to the 8-Bit presets (W1)
 
@@ -182,6 +209,15 @@ dump, so send this one from another tool, such as Dexed or SysEx Librarian, usin
 Run it on the release the FM1 runs, and record which. If the preset is unchanged, a later change
 may let `sendsSingleVoiceDumps` include that release and later ones.
 
+**D2. One DX7 parameter change over an 8-Bit preset.** Every 8-Bit field lies inside a DX7
+parameter's range, so a parameter change might edit one live (`docs/fm1-research.md`, "What can be
+heard before a write"). Select 097 on the FM1, hold or play the bass (notes 41–76 at Transpose
+24), and send this one parameter change, the form the editor sends, from a SysEx tool such as SysEx Librarian:
+`F0 43 10 00 3D 32 F7` (device 1; parameter 61, the bass's Level, to 50). Record whether the bass
+gets quieter, what EDIT shows (engine, unsaved-changes dot), and whether stepping PRESETS away and
+back brings NES ROCK back unchanged. Expected, from V7: an unsaved FM edit. If the bass changes and
+the preset stays 8-Bit, an 8-Bit editor could play every voice-byte field before a write.
+
 ## 7. Clean-up
 
 In the Device Manager, **Install a backup** with the §0.2 presets file, then **Send**, which
@@ -190,45 +226,54 @@ them. Check that GLOBE's MIDI Channel is All again.
 
 ## 8. Ledger
 
-| Test                   | Result | Bytes / notes |
-| ---------------------- | ------ | ------------- |
-| Version and build date |        |               |
-| F1                     |        |               |
-| F2                     |        |               |
-| F3                     |        |               |
-| F4                     |        |               |
-| F5                     |        |               |
-| M1                     |        |               |
-| M2                     |        |               |
-| M3 FM / 8-Bit / VA     |        |               |
-| M4                     |        |               |
-| B1                     |        |               |
-| B2                     |        |               |
-| B3                     |        |               |
-| B4                     |        |               |
-| B5                     |        |               |
-| B6                     |        |               |
-| B7                     |        |               |
-| FX CCs after B5–B6     |        |               |
-| K1                     |        |               |
-| K2                     |        |               |
-| K3                     |        |               |
-| L1                     |        |               |
-| L2                     |        |               |
-| L3                     |        |               |
-| L4                     |        |               |
-| E1                     |        |               |
-| E2                     |        |               |
-| W1                     |        |               |
-| T1                     |        |               |
-| T2 1000 ms             |        |               |
-| T2 500 ms              |        |               |
-| T2 250 ms              |        |               |
-| T2 120 ms              |        |               |
-| T2 0 ms                |        |               |
-| T3                     |        |               |
-| T4                     |        |               |
-| D1 (release: )         |        |               |
+| Test                    | Result | Bytes / notes |
+| ----------------------- | ------ | ------------- |
+| Version and build date  |        |               |
+| F1                      |        |               |
+| F2                      |        |               |
+| F3                      |        |               |
+| F4                      |        |               |
+| F5                      |        |               |
+| M1                      |        |               |
+| M2                      |        |               |
+| M3 FM / 8-Bit / VA      |        |               |
+| M3 on FM-1_097 (FM, VA) |        |               |
+| M4                      |        |               |
+| B1                      |        |               |
+| B2                      |        |               |
+| B3                      |        |               |
+| B4                      |        |               |
+| B5                      |        |               |
+| B6                      |        |               |
+| B7                      |        |               |
+| FX CCs after B5–B6      |        |               |
+| K1                      |        |               |
+| K2                      |        |               |
+| K3                      |        |               |
+| L1                      |        |               |
+| L2                      |        |               |
+| L3                      |        |               |
+| L4                      |        |               |
+| E1                      |        |               |
+| E2                      |        |               |
+| P1                      |        |               |
+| P2                      |        |               |
+| P3                      |        |               |
+| P4                      |        |               |
+| P5                      |        |               |
+| P6                      |        |               |
+| P7                      |        |               |
+| W1                      |        |               |
+| T1                      |        |               |
+| T2 1000 ms              |        |               |
+| T2 500 ms               |        |               |
+| T2 250 ms               |        |               |
+| T2 120 ms               |        |               |
+| T2 0 ms                 |        |               |
+| T3                      |        |               |
+| T4                      |        |               |
+| D1 (release: )          |        |               |
+| D2 (release: )          |        |               |
 
 Record each result in `docs/fm1-research.md`, "FM-1_096", raising a fact from **Likely** to
 **Confirmed, seen once** where the FM1 agrees, and add the captures as fixtures in
