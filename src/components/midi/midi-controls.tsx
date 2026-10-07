@@ -10,7 +10,7 @@ import { setLocale } from '@/i18n'
 import { Switch } from '@/components/ui/switch'
 import { ErrorNotice } from '@/components/ui/error-notice'
 
-import { DeviceSelect } from './device-select'
+import { DeviceSelect, SettingsSelect } from './device-select'
 
 type MidiConnectActionsProps = {
   midi: Pick<MidiController, 'connectMidi' | 'disconnectMidi' | 'isConnecting' | 'midiAccess'>
@@ -212,8 +212,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
             <Languages className="size-3.5" />
             {t('language')}
           </span>
-          <select
-            className="settings-option-select h-8 rounded-md border px-2 text-sm"
+          <SettingsSelect
             onChange={(event) => void setLocale(event.target.value as SupportedLocale)}
             value={i18n.resolvedLanguage}
           >
@@ -222,7 +221,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
                 {localeNames[locale]}
               </option>
             ))}
-          </select>
+          </SettingsSelect>
         </label>
         <DeviceSelect
           devices={midi.outputs}
@@ -244,8 +243,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
             <SlidersHorizontal className="size-3.5" />
             {t('settings.noteChannel')}
           </span>
-          <select
-            className="settings-option-select h-8 rounded-md border px-2 text-sm"
+          <SettingsSelect
             onChange={(event) => midi.setChannel(Number(event.target.value))}
             value={midi.channel}
           >
@@ -254,15 +252,14 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
                 {t('common.channel', { number: midiChannel })}
               </option>
             ))}
-          </select>
+          </SettingsSelect>
         </label>
         <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3">
           <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <SlidersHorizontal className="size-3.5" />
             {t('settings.fxChannel')}
           </span>
-          <select
-            className="settings-option-select h-8 rounded-md border px-2 text-sm"
+          <SettingsSelect
             onChange={(event) => midi.setEffectChannel(Number(event.target.value))}
             value={midi.effectChannel}
           >
@@ -271,7 +268,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
                 {t('common.channel', { number: midiChannel })}
               </option>
             ))}
-          </select>
+          </SettingsSelect>
           <span className="text-[11px] text-muted-foreground">{t('settings.defaultChannel')}</span>
         </label>
       </div>

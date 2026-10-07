@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { MidiDevice, MidiPort } from '@/lib/midi'
@@ -10,6 +10,26 @@ type DeviceSelectProps = {
   label: string
   onChange: (id: string) => void
   value: string
+}
+
+/**
+ * A dropdown in the settings menu. The browser's own arrow sits hard against the field's right
+ * edge, so it is hidden and the app's chevron is drawn inset from the edge instead, as every other
+ * dropdown in the app has it.
+ */
+export function SettingsSelect(props: Omit<ComponentProps<'select'>, 'className'>) {
+  return (
+    <span className="relative">
+      <select
+        {...props}
+        className="settings-option-select h-8 w-full appearance-none truncate rounded-md border py-0 pr-8 pl-2 text-sm"
+      />
+      <ChevronDown
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 right-2 size-4 -translate-y-1/2 text-muted-foreground"
+      />
+    </span>
+  )
 }
 
 export function DeviceSelect({ devices, icon, label, onChange, value }: DeviceSelectProps) {
@@ -23,32 +43,28 @@ export function DeviceSelect({ devices, icon, label, onChange, value }: DeviceSe
         <span className="[&_svg]:size-3.5">{icon}</span>
         {label}
       </span>
-      <span className="relative">
-        <select
-          className="settings-option-select h-8 w-full appearance-none truncate rounded-md border py-0 pr-8 pl-2 text-sm"
-          onChange={(event) => onChange(event.target.value)}
-          title={selected?.name}
-          value={value}
-        >
-          {devices.length === 0 ? (
-            <option value="">{t('settings.noDevice')}</option>
-          ) : (
-            <>
-              {/* A selected port that disconnected is not replaced by another device, so say that
+      <SettingsSelect
+        onChange={(event) => onChange(event.target.value)}
+        title={selected?.name}
+        value={value}
+      >
+        {devices.length === 0 ? (
+          <option value="">{t('settings.noDevice')}</option>
+        ) : (
+          <>
+            {/* A selected port that disconnected is not replaced by another device, so say that
                   nothing is selected rather than let the first device look chosen. */}
-              {devices.some((device) => device.id === value) ? null : (
-                <option value="">{t('settings.noDeviceSelected')}</option>
-              )}
-              {devices.map((device) => (
-                <option key={device.id} value={device.id}>
-                  {device.name}
-                </option>
-              ))}
-            </>
-          )}
-        </select>
-        <ChevronDown className="pointer-events-none absolute top-1/2 right-2 size-4 -translate-y-1/2 text-muted-foreground" />
-      </span>
+            {devices.some((device) => device.id === value) ? null : (
+              <option value="">{t('settings.noDeviceSelected')}</option>
+            )}
+            {devices.map((device) => (
+              <option key={device.id} value={device.id}>
+                {device.name}
+              </option>
+            ))}
+          </>
+        )}
+      </SettingsSelect>
     </label>
   )
 }
