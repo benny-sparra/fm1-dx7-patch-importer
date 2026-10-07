@@ -1,0 +1,135 @@
+@import './fonts.css';
+@import './index.css';
+
+/*
+ * The firmware page's entries. They reuse the editor's bevelled panel, photo bay, and button
+ * chrome from index.css; only the card layout lives here, so the editor's stylesheet carries none
+ * of it.
+ */
+@layer components {
+  .firmware-entry {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  @media (width >= 40rem) {
+    .firmware-entry {
+      grid-template-columns: 16rem minmax(0, 1fr);
+      gap: 1.25rem;
+    }
+  }
+
+  /* Pictures show only beside the text: on a narrow screen they would push it a screen away. */
+  .firmware-photo {
+    display: none;
+    align-self: start;
+    margin: 0;
+    padding: 0.25rem;
+    background: var(--crt-bg-2);
+  }
+
+  @media (width >= 40rem) {
+    .firmware-photo {
+      display: block;
+    }
+
+    .firmware-photo-missing {
+      display: grid;
+    }
+  }
+
+  .firmware-photo img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Stands in for a photo the entry does not have yet, at the photos' own proportions. */
+  .firmware-photo-missing {
+    place-items: center;
+    aspect-ratio: 923 / 554;
+    background-color: var(--crt-bg-well);
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--crt-hatch-a) 0 2px,
+      var(--crt-hatch-b) 2px 4px
+    );
+    color: var(--crt-acc-mid);
+    font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .firmware-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .firmware-title {
+    font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
+    font-size: 1.625rem;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--crt-acc-br);
+  }
+
+  .firmware-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--crt-ink-3);
+  }
+
+  .firmware-tag {
+    padding: 0.125rem 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid currentcolor;
+  }
+
+  .firmware-tag[data-support='full'] {
+    color: var(--crt-acc-lt);
+  }
+
+  .firmware-tag[data-support='partial'] {
+    color: var(--crt-led);
+  }
+
+  .firmware-tag[data-support='none'] {
+    color: var(--crt-ink-3);
+  }
+
+  .firmware-blurb {
+    max-width: 65ch;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--crt-ink-2);
+  }
+
+  .firmware-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .firmware-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+}

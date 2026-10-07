@@ -12,7 +12,8 @@ if (!fs.existsSync(manifestPath)) {
 }
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
-const entry = Object.entries(manifest).find(([, chunk]) => chunk.isEntry)
+// The app's own page, not the static firmware page beside it.
+const entry = Object.entries(manifest).find(([key, chunk]) => chunk.isEntry && key === 'index.html')
 if (!entry) {
   console.error('Bundle manifest does not contain an application entry.')
   process.exit(1)

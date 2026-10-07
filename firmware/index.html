@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#1a1a1a" />
+    <meta
+      name="description"
+      content="Every firmware known to run on the M-VAVE FM1 synthesiser: M-VAVE's own, Baud Girl's FM-1+VA, Felucca, Groove OS, X0X, and more, with links to each project."
+    />
+    <link rel="canonical" href="https://fm1-editor.com/firmware/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="M-VAVE FM1 Editor &amp; Librarian" />
+    <meta property="og:url" content="https://fm1-editor.com/firmware/" />
+    <meta property="og:title" content="M-VAVE FM1 firmware" />
+    <meta
+      property="og:description"
+      content="Every firmware known to run on the M-VAVE FM1 synthesiser, with links to each project."
+    />
+    <meta property="og:image" content="https://fm1-editor.com/fm1-preview.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="432" />
+    <meta property="og:image:height" content="256" />
+    <meta property="og:image:alt" content="M-VAVE FM1 synthesiser" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>M-VAVE FM1 firmware</title>
+    <script
+      defer
+      src="https://cloud.umami.is/script.js"
+      data-domains="fm1-editor.com,www.fm1-editor.com"
+      data-do-not-track="true"
+      data-exclude-hash="true"
+      data-exclude-search="true"
+      data-website-id="b0439141-6c23-4711-9c3d-53249452eb8f"
+    ></script>
+    <link rel="stylesheet" href="/src/firmware-page.css" />
+    <script src="/firmware-colourway.js"></script>
+  </head>
+  <body>
+    <!--
+      One <article class="firmware-entry"> per firmware. Each has a photo (or the placeholder
+      figure), a maker, a title, a status line, a blurb, and one or more links that open the
+      project's own pages. src/firmware-page.test.ts checks every entry has them.
+    -->
+    <main class="synthwave-shell flex min-h-screen flex-col text-foreground">
+      <header class="synthwave-header synthwave-hero border-b">
+        <div class="mx-auto flex max-w-5xl flex-col gap-3 px-4 pt-4 pb-3.5 sm:px-5 lg:px-8">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <h1
+              data-layout="full"
+              class="synthwave-title min-w-0 items-baseline gap-x-[0.3em] gap-y-[7px]"
+            >
+              <span class="synthwave-brand-row">M-VAVE</span>
+              <span>FM1</span>
+              <span class="synthwave-hero-accent">Firmware</span>
+            </h1>
+            <a
+              class="hero-action inline-flex min-h-8 items-center px-3 text-xs font-bold uppercase"
+              href="/"
+            >
+              ← Open the editor
+            </a>
+          </div>
+          <p class="hero-supporting-text max-w-3xl text-xs leading-5 text-balance">
+            The FM1 can run more than the firmware it ships with. These are the firmwares known to
+            run on it, each from its own maker. This site installs none of them: every link goes to
+            the project's own pages and installer. Back up your patches before you switch.
+          </p>
+        </div>
+      </header>
+
+      <div class="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 px-4 py-5 sm:px-5 lg:px-8">
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-stock">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="An FM1 on M-VAVE's firmware"
+              decoding="async"
+              height="554"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/fm1-black.webp"
+              srcset="
+                /src/assets/generated/fm1-black-460.webp 460w,
+                /src/assets/fm1-black.webp               923w
+              "
+              width="923"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">M-VAVE</p>
+            <h2 class="firmware-title" id="firmware-stock">Stock firmware</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="full">Works with this editor</span>
+              <span>Latest V15</span>
+            </p>
+            <p class="firmware-blurb">
+              The firmware every FM1 ships with: a six-operator FM engine compatible with DX7
+              voices, four banks of 32 presets, effects, an arpeggiator, and a sequencer. Install it
+              with M-VAVE's M-UPGRADE tool, which is also the way back from Felucca and SLOOP.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://www.m-vave.com/download"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  M-VAVE downloads ↗
+                </a>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-fm1-va">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="Baud Girl's FM1 render, with her name on the screen"
+              decoding="async"
+              height="485"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/firmware-fm1-va.webp"
+              srcset="
+                /src/assets/generated/firmware-fm1-va-460.webp 460w,
+                /src/assets/firmware-fm1-va.webp               923w
+              "
+              width="923"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">Baud Girl</p>
+            <h2 class="firmware-title" id="firmware-fm1-va">Baud Girl (FM-1+VA)</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="full">Works with this editor</span>
+              <span>Latest FM-1_096</span>
+            </p>
+            <p class="firmware-blurb">
+              Keeps M-VAVE's FM engine and effects, fixes its engine bugs, and adds a Virtual Analog
+              engine, an 8-Bit engine, a Bitcrush effect, and a 64-step sequencer. It installs from
+              Baud Girl's own browser page, keeps your presets, and can put M-VAVE's firmware back.
+              This editor reads and writes its presets, effects included.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://baudgirl.com/work/FM-1+VA"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  FM-1+VA ↗
+                </a>
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://baudgirl.com/work/FM-1+VA/manual"
+                  rel="noopener"
+                  target="_blank"
+                >
+                  Manual ↗
+                </a>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-choralroot">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="ChoralRoot's FM1 panel, showing a D major seventh chord on the screen"
+              decoding="async"
+              height="563"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/firmware-choralroot.webp"
+              srcset="
+                /src/assets/generated/firmware-choralroot-460.webp 460w,
+                /src/assets/firmware-choralroot.webp               923w
+              "
+              width="923"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">Quixotic7</p>
+            <h2 class="firmware-title" id="firmware-choralroot">ChoralRoot</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Beta · Latest 0.1</span>
+            </p>
+            <p class="firmware-blurb">
+              A chord instrument inspired by Telepathic Instruments' Orchid: one hand plays roots
+              while the other shapes chords, with voicings, key and performance modes, a bass line,
+              and a looper. Built on Felucca's engines and the monome grid ChoralRoot, it installs
+              from its own browser page and can be tried first in a browser emulator.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://quixotic7.github.io/ChoralRootFM1/"
+                  rel="noopener"
+                  target="_blank"
+                  >ChoralRoot ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://quixotic7.github.io/ChoralRootFM1/emu/"
+                  rel="noopener"
+                  target="_blank"
+                  >Try it in a browser ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/Quixotic7/ChoralRootFM1"
+                  rel="noopener"
+                  target="_blank"
+                  >Source ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-felucca">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="Felucca 1.0's feature overview: its new design, sequencer, thirteen engines, and effects"
+              decoding="async"
+              height="462"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/firmware-felucca.webp"
+              srcset="
+                /src/assets/generated/firmware-felucca-460.webp 460w,
+                /src/assets/firmware-felucca.webp               923w
+              "
+              width="923"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">Hügelton Instruments</p>
+            <h2 class="firmware-title" id="firmware-felucca">Felucca</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Latest 1.0.5.1</span>
+            </p>
+            <p class="firmware-blurb">
+              Turns the FM1 into a multi-engine synth: thirteen engines, from analogue, six-operator
+              FM, and phase distortion to samples, granular, drums, and physical models from Mutable
+              Instruments' Plaits and Rings, across four tracks with a 64-step sequencer,
+              arpeggiator, and modulation matrix. It has its own web editor and installer, and a
+              browser emulator to try first.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://hugelton.github.io/Felucca/"
+                  rel="noopener"
+                  target="_blank"
+                  >Felucca ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://hugelton.github.io/Felucca/webapp/try/"
+                  rel="noopener"
+                  target="_blank"
+                  >Try it in a browser ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/hugelton/Felucca"
+                  rel="noopener"
+                  target="_blank"
+                  >Source ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-fm1-quest">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="FM1 Quest's title art: a pixel-art party of heroes around an FM1 in an autumn forest"
+              decoding="async"
+              height="720"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/firmware-fm1-quest.webp"
+              srcset="
+                /src/assets/generated/firmware-fm1-quest-460.webp 460w,
+                /src/assets/firmware-fm1-quest.webp               720w
+              "
+              width="720"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">hericdk</p>
+            <h2 class="firmware-title" id="firmware-fm1-quest">FM1 Quest</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Not yet tried on an FM1</span>
+            </p>
+            <p class="firmware-blurb">
+              SLOOP as a pixel-art RPG. The four tracks are four heroes, every lit step is an
+              attack, the tempo sets how fast the party walks, the key picks the biome, effects
+              bring the weather, and recording a loop is a boss fight against the King Slime. Every
+              SLOOP function stays where it was, with the same controls. It installs from its own
+              browser page, and SLOOP's own release installs over it.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://hericdk.github.io/fm1-quest/webapp/installer/"
+                  rel="noopener"
+                  target="_blank"
+                  >Install ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://hericdk.github.io/fm1-quest/emulator/"
+                  rel="noopener"
+                  target="_blank"
+                  >Try it in a browser ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/hericdk/fm1-quest"
+                  rel="noopener"
+                  target="_blank"
+                  >Source ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-fomni">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="FoMni's strum screen, with the chord's strings and its chord buttons"
+              decoding="async"
+              height="720"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/firmware-fomni.webp"
+              srcset="
+                /src/assets/generated/firmware-fomni-460.webp 460w,
+                /src/assets/firmware-fomni.webp               720w
+              "
+              width="720"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">Charles Vestal</p>
+            <h2 class="firmware-title" id="firmware-fomni">FoMni</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Latest 0.3</span>
+            </p>
+            <p class="firmware-blurb">
+              A chord harp inspired by the Suzuki Omnichord: the 16 white keys are the strum plate
+              and the 11 black keys pick the chord, with rhythm patterns, an auto bass, and its own
+              effects. It installs from its own browser page, which can also put M-VAVE's firmware
+              back.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://charlesvestal.github.io/fm1-fomni/install/"
+                  rel="noopener"
+                  target="_blank"
+                  >Install ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://charlesvestal.github.io/fm1-fomni/emu/"
+                  rel="noopener"
+                  target="_blank"
+                  >Try it in a browser ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/charlesvestal/fm1-fomni"
+                  rel="noopener"
+                  target="_blank"
+                  >Source ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-groove-os">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="Groove OS's tracks screen, with drum, acid, and FM tracks"
+              decoding="async"
+              height="720"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/firmware-groove-os.webp"
+              srcset="
+                /src/assets/generated/firmware-groove-os-460.webp 460w,
+                /src/assets/firmware-groove-os.webp               720w
+              "
+              width="720"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">Peter Gombos</p>
+            <h2 class="firmware-title" id="firmware-groove-os">Groove OS</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Paid · Latest 1.1</span>
+            </p>
+            <p class="firmware-blurb">
+              An eight-track groovebox that keeps an FM synth and adds a virtual analogue synth and
+              drum kits, with a 64-step sequencer with parameter locks, a six-effect mixer, and a
+              performance mode with scenes. It installs from its own browser page, which can also
+              put M-VAVE's V15 back, and has a browser emulator to try first.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://www.groove-os.com/"
+                  rel="noopener"
+                  target="_blank"
+                  >Groove OS ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://grooveos.shop/emu"
+                  rel="noopener"
+                  target="_blank"
+                  >Try it in a browser ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://grooveos.shop/manual"
+                  rel="noopener"
+                  target="_blank"
+                  >Manual ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-sloop">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="SLOOP's tracks screen, with its four tracks playing"
+              decoding="async"
+              height="964"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/firmware-sloop.webp"
+              srcset="
+                /src/assets/generated/firmware-sloop-460.webp 460w,
+                /src/assets/firmware-sloop.webp               972w
+              "
+              width="972"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">isod89</p>
+            <h2 class="firmware-title" id="firmware-sloop">SLOOP</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Beta · Latest 2.3</span>
+            </p>
+            <p class="firmware-blurb">
+              A groovebox firmware built on Felucca, with projects, patterns, and songs, and its own
+              web editor for presets and a sound library. It installs from its own browser page and
+              leaves through M-VAVE's M-UPGRADE, as Felucca does.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://isod89.github.io/sloop-fm1/"
+                  rel="noopener"
+                  target="_blank"
+                  >SLOOP ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/isod89/sloop-fm1"
+                  rel="noopener"
+                  target="_blank"
+                  >Source ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+        <article class="firmware-entry synthwave-panel" aria-labelledby="firmware-x0x">
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="X0X's home screen, with the 909, 808, two 303s, and breakbeat patterns"
+              decoding="async"
+              height="960"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/firmware-x0x.webp"
+              srcset="
+                /src/assets/generated/firmware-x0x-460.webp 460w,
+                /src/assets/firmware-x0x.webp               960w
+              "
+              width="960"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">Charles Vestal</p>
+            <h2 class="firmware-title" id="firmware-x0x">X0X</h2>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Beta</span>
+            </p>
+            <p class="firmware-blurb">
+              A groovebox in the spirit of ReBirth: a 909, an 808, two 303s with an acid line
+              generator, and a breakbeat player, all playing at once, with automation, shared reverb
+              and tape delay sends, and a master compressor. A fork of Felucca, it installs from its
+              own browser page, which can also put M-VAVE's firmware back.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://charlesvestal.github.io/fm1-x0x/install/"
+                  rel="noopener"
+                  target="_blank"
+                  >Install ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://charlesvestal.github.io/fm1-x0x/emu/"
+                  rel="noopener"
+                  target="_blank"
+                  >Try it in a browser ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://charlesvestal.github.io/fm1-x0x/manual/"
+                  rel="noopener"
+                  target="_blank"
+                  >Manual ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/charlesvestal/fm1-x0x"
+                  rel="noopener"
+                  target="_blank"
+                  >Source ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <p class="hero-footer-text text-xs leading-5">
+          Pictures come from each project's own pages. Know of a firmware missing here?
+          <a
+            class="underline underline-offset-2"
+            href="https://github.com/benny-sparra/fm1-dx7-patch-importer/issues"
+            rel="noopener"
+            target="_blank"
+            >Open an issue</a
+          >.
+        </p>
+      </div>
+    </main>
+  </body>
+</html>

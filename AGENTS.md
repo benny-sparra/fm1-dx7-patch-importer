@@ -36,6 +36,7 @@ Use Node.js 24.18.0 and npm 11.16.0, as pinned by `.node-version` and `package.j
 - `src/test/`: shared accessibility helpers and rendered accessibility coverage.
 - `scripts/`: deterministic repository checks that do not belong in application code.
 - `public/`: files served unchanged by Vite.
+- `firmware/index.html`: the static firmware list served at `/firmware/`, a second Vite page.
 
 Use the `@/` alias for cross-directory imports. Use relative imports for a module's immediate local
 files when that is clearer.
@@ -347,6 +348,14 @@ open everything an earlier release could have saved.
   entry too, so a Vite upgrade is measured the same way: 8.3.2's rewrite of its CSS check cost
   61 B gzip when 52 B were spare.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
+- The firmware page (`firmware/index.html`) is static HTML and shares no JavaScript with the app.
+  Vite splits any module two pages import into a chunk of its own that the app's entry loads too,
+  and its module preload polyfill counts: importing the colourway helpers cost the entry 237 B. It
+  links its stylesheet (`src/firmware-page.css`, which imports `index.css`) from the HTML and takes
+  the editor's finish through `public/firmware-colourway.js`, a plain script served unchanged. Add
+  a firmware as another `<article class="firmware-entry">`; `src/firmware-page.test.ts` checks each
+  has its heading, maker, support tag, blurb, sized photo or placeholder, and links. The page is in
+  British English only, outside the locale files.
 
 ### Privacy, monitoring, and deployment security
 

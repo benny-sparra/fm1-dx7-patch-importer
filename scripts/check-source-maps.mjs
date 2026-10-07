@@ -27,7 +27,12 @@ try {
   throw new Error('Production output is missing. Run npm run build first.', { cause: error })
 }
 
-const javascriptFiles = files.filter((file) => file.endsWith('.js'))
+// Files in public/, such as the firmware page's colourway script, are copied unchanged and have no
+// map; only the chunks Vite builds into assets/ do.
+const assetDirectory = path.join(outputDirectory, 'assets')
+const javascriptFiles = files.filter(
+  (file) => file.startsWith(`${assetDirectory}${path.sep}`) && file.endsWith('.js'),
+)
 const mapFiles = files.filter((file) => file.endsWith('.js.map'))
 if (javascriptFiles.length === 0)
   throw new Error('Production output contains no JavaScript chunks.')
