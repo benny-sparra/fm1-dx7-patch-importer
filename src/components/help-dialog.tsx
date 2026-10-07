@@ -132,10 +132,11 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
 
   // The guide is mounted only once it has been asked for, so it opens as it arrives. A first visit
   // opens it unasked, even on a page something has taken out of the document, where a browser
-  // refuses to show a modal; nobody can see that page, so the guide stays closed there.
+  // refuses to show a modal, or in a browser without modal dialogs, such as Safari before 15.4;
+  // nobody can use the guide there, so it stays closed.
   useEffect(() => {
     const dialog = dialogRef.current
-    if (!dialog?.isConnected || dialog.open) return
+    if (!dialog?.isConnected || dialog.open || typeof dialog.showModal !== 'function') return
     dialog.showModal()
   }, [])
 
