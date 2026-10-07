@@ -392,6 +392,11 @@ open everything an earlier release could have saved.
   `resolveSentryRelease`. The client and the uploaded source maps must take the name from that same
   helper, or a resolved stack trace is filed where the event that needs it will not look. A build
   without one reports no release rather than a name matching no deployment.
+- Cloudflare Workers Builds publishes every build to production, so only `main` may build there.
+  `npm run build` starts with `scripts/check-deploy-branch.mjs`, which fails when
+  `WORKERS_CI_BRANCH` names another branch; keep it first in the build script. On 2026-10-07 a push
+  to an unmerged branch replaced the site and took the firmware page with it, which
+  `e2e/firmware.e2e.ts` now watches for.
 
 ### Images and generated assets
 
