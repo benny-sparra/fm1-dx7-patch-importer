@@ -20,11 +20,23 @@
     }
   }
 
+  /* Pictures show only beside the text: on a narrow screen they would push it a screen away. */
   .firmware-photo {
+    display: none;
     align-self: start;
     margin: 0;
     padding: 0.25rem;
     background: var(--crt-bg-2);
+  }
+
+  @media (width >= 40rem) {
+    .firmware-photo {
+      display: block;
+    }
+
+    .firmware-photo-missing {
+      display: grid;
+    }
   }
 
   .firmware-photo img {
@@ -35,7 +47,6 @@
 
   /* Stands in for a photo the entry does not have yet, at the photos' own proportions. */
   .firmware-photo-missing {
-    display: grid;
     place-items: center;
     aspect-ratio: 923 / 554;
     background-color: var(--crt-bg-well);
