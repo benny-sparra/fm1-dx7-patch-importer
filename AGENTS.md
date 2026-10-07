@@ -512,6 +512,10 @@ open everything an earlier release could have saved.
   **Library actions** menu's **Baud Girl (FM-1+VA)** heading, the help guide's heading, and the
   badge's description, and on the link to its site. Where the device itself is meant, say the FM1.
   Code, research notes, and analytics keep the name `fm1-va`.
+- A dropdown never shows the browser's own arrow, which sits hard against the field's edge. It
+  hides it with `appearance-none` and draws Lucide's `ChevronDown` 8 px in from the right edge,
+  through `Select` in a dialog, `RackSelect` in the editor, or `SettingsSelect` in the settings
+  menu (eager, so it does not pull `Select` into the entry).
 - Show an error in a dialog or on the page with `ErrorNotice` from
   `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
   restyling another paragraph.
