@@ -481,6 +481,11 @@ open everything an earlier release could have saved.
   `rack-panel` takes its help button as an element (the editor's `RackPanelHelp`) rather than
   importing `HelpPopover`: importing it made Rolldown split the help popover and analytics out of
   the entry and cost 1.35 KiB.
+- Panels side by side whose rows must line up, as the Virtual Analog editor's Filter and LFO do,
+  share the page grid's rows through `grid-rows-subgrid`. A size container (`@container`) cannot
+  be a subgrid, since its containment cuts it off from its parent's tracks, so such a panel is a
+  container only below the width where it subgrids (`max-xl:@container`), and its columns there
+  follow the viewport.
 - A dialog built from `Dialog` scrolls only its `DialogBody`, so the title bar and any
   `DialogFooter` stay in view; put scrolling content in the body, never beside it. A dialog's
   actions go in its `DialogFooter`, pinned at the bottom, never at the end of the body: a form's
