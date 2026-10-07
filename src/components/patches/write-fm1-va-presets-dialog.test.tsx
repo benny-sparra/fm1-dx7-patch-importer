@@ -393,7 +393,7 @@ describe('WriteFm1VaPresetsDialog with Virtual Analog patches', () => {
 
     expect(
       await screen.findByText(
-        'Every patch matches. One Virtual Analogue patch can’t be stored exactly, so its preset is kept.',
+        'Nothing to write. One Virtual Analogue patch can’t be stored exactly, so its preset is kept.',
       ),
     ).toBeTruthy()
   })
@@ -409,7 +409,11 @@ describe('WriteFm1VaPresetsDialog with 8-Bit presets', () => {
     fm1.stored.set(0, [...storedVoice(0).data, ...eightBitRecord])
     const { user } = renderDialog(fm1.midi)
 
-    expect(await screen.findByText('Every patch matches. 8-Bit presets are kept.')).toBeTruthy()
+    expect(
+      await screen.findByText(
+        'Nothing to write. One 8-Bit preset is kept, since the library can’t hold 8-Bit patches yet.',
+      ),
+    ).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Write one patch…' }))
     expect(screen.queryByText('001 A01 PATCH → MY PAD')).toBeNull()
     await user.click(screen.getByRole('button', { name: 'Write one patch' }))
@@ -425,7 +429,27 @@ describe('WriteFm1VaPresetsDialog with 8-Bit presets', () => {
 
     expect(
       await screen.findByText(
-        'Every patch matches. One patch was read from an 8-Bit preset and can’t be written, so its preset is kept.',
+        'Nothing to write. One patch was read from an 8-Bit preset and can’t be written, so its preset is kept.',
+      ),
+    ).toBeTruthy()
+  })
+  it('does not say a bank matches when it keeps 8-Bit and Virtual Analog presets that differ', async () => {
+    // Bank D as Baud Girl's Device Manager installs its packs: 8-Bit in 097–112, Virtual Analog
+    // in 113–128, with a library bank D whose patches all differ.
+    const fm1 = fakeFm1()
+    const virtualAnalogRecord = capturedVirtualAnalogRecord()
+    const voices: Library['voices'] = {}
+    for (let index = 0; index < 32; index += 1) {
+      const slot = 96 + index
+      const record = index < 16 ? eightBitRecord : virtualAnalogRecord
+      fm1.stored.set(slot, [...storedVoice(slot).data, ...record])
+      voices[voiceId('D', index + 1)] = updateDx7VoiceName(storedVoice(slot), 'MY PATCH')
+    }
+    renderDialog(fm1.midi, matchingLibrary(voices))
+
+    expect(
+      within(await screen.findByRole('region', { name: 'FM1 bank D' })).getByText(
+        'Nothing to write. 16 Virtual Analogue presets are kept: only Virtual Analogue patches can replace them. 16 8-Bit presets are kept, since the library can’t hold 8-Bit patches yet.',
       ),
     ).toBeTruthy()
   })

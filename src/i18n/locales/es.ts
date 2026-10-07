@@ -423,8 +423,15 @@ export default {
     differs: 'Un sonido es distinto.',
     differs_other: '{{count, number}} sonidos son distintos.',
     same: 'Todos los sonidos coinciden.',
-    virtualAnalogKept: 'Los presets Virtual Analog se conservan.',
-    eightBitKept: 'Los presets 8-Bit se conservan.',
+    nothing: 'No hay nada que escribir.',
+    virtualAnalogKept:
+      'Un preset Virtual Analog se conserva: solo un sonido Virtual Analog puede reemplazarlo.',
+    virtualAnalogKept_other:
+      '{{count, number}} presets Virtual Analog se conservan: solo sonidos Virtual Analog pueden reemplazarlos.',
+    eightBitKept:
+      'Un preset 8-Bit se conserva, porque la biblioteca aún no puede guardar sonidos 8-Bit.',
+    eightBitKept_other:
+      '{{count, number}} presets 8-Bit se conservan, porque la biblioteca aún no puede guardar sonidos 8-Bit.',
     inexact:
       'Un sonido Virtual Analog no se puede guardar exactamente, así que su preset se conserva.',
     inexact_other:
