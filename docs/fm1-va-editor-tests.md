@@ -1,10 +1,13 @@
 # Virtual Analog editor hardware tests
 
 **Prepared:** 2026-10-06, from Baud Girl's Device Manager code at release `FM-1_096`
-**Execution status:** not run yet.
+**Execution status:** V1–V26 run 2026-10-07 on `FM-1_096`, preset 032, through the development
+probe over USB. Every step changed exactly the bytes expected and nothing else, and the Envelope
+switched itself On at V15. Map: [`fm1-va-editor-map-2026-10-07.json`](hardware-runs/fm1-va-editor-map-2026-10-07.json).
+V27 not run.
 **Scope:** whether a Virtual Analog preset stores each row where `docs/fm1-research.md`, "Every
-row of a Virtual Analog preset", says it does (**Likely**, from Baud Girl's code). The editor's
-Virtual Analog page reads and writes those bytes, so it waits on this run.
+row of a Virtual Analog preset", says it does (**Confirmed** by this run, from Baud Girl's code).
+The editor's Virtual Analog page reads and writes those bytes.
 
 The probe sends only the preset read `7D 10` and the sound-setting CCs 24–31, 52–57, and 70–78 on
 the note channel. Every other change is made by hand on the FM1 and stored with SAVE. Nothing is

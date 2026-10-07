@@ -512,16 +512,16 @@ presets (9).
     `docs/fm1-research.md`, "Controllers on the MIDI Channel", and its hardware tests
     ([`fm1-va-controller-tests.md`](fm1-va-controller-tests.md)) ran on 2026-10-04: every CC
     reached its row, list settings split 128 values into equal bands, continuous ones show
-    `round(value × top ÷ 127)`, and fast sweeps need no thinning. Only the Envelope switch side
-    effect (V5) is still to see. `makeFm1VaSoundControlMessage` and `useFm1VaSoundControl` send
+    `round(value × top ÷ 127)`, and fast sweeps need no thinning. The Envelope switch side effect
+    (V5) was seen on 2026-10-07. `makeFm1VaSoundControlMessage` and `useFm1VaSoundControl` send
     them, and the development probe's **Map a setting** uses them to find the bytes each setting
     is stored in, the map this step needs to show current values. It never sends CC 85–119, which press the FM1's own buttons.
   - **Save them.** Edits from the Virtual Analog editor page are saved to the library and written
     with 4.
-  - _Play them live and Save them built 2026-10-06, waiting for a hardware test_
+  - _Play them live and Save them built 2026-10-06, byte map confirmed on hardware 2026-10-07_
     ([`fm1-va-editor-tests.md`](fm1-va-editor-tests.md)): a Virtual Analog slot's **Edit** opens
     its own lazy editor with the oscillator, filter, output, LFO, Envelope, and effects rows, read
-    and written as Baud Girl's Device Manager maps them (**Likely** until that run). In banks A–D on
+    and written as Baud Girl's Device Manager maps them (**Confirmed** by that run). In banks A–D on
     FM-1_086 and later it reads the slot's stored preset, and if it is Virtual Analog, sends each
     change with a controller as it is made; the rest are heard once written. Saving puts the
     preset's bytes back in its slot, every byte not edited exactly as read. Knob choices and the

@@ -380,7 +380,7 @@ then `85`, HP `87`, and Key Tracking 100 `8F`. Bit 7 stays set, as it does in an
 Filter has been switched (above); what it means is still not known. Sending Saw, or Detune 50,
 changed nothing, because a new preset already holds them.
 
-**Every row of a Virtual Analog preset. Likely** (Baud Girl's Device Manager, app build
+**Every row of a Virtual Analog preset. Confirmed** (Baud Girl's Device Manager, app build
 `8405c164d16df69a`, `app/editmodel.js` and `fm1preset.js`, read 2026-10-06). Its edit model
 says it reads each row from the firmware's own row tables (`ui_screens.cpp` `k_vat`, `k_vaosc`,
 `k_vafilt`, `k_lfo`) and checks them in its own tests. It agrees with every byte mapped above,
@@ -416,7 +416,13 @@ the operator FM-1+VA calls 6 stored first.
 
 The Device Manager also gives operator 6's four rates and levels as the amplitude envelope of
 every note, rows the FM1 itself does not show. The editor leaves them, and the other operators'
-bytes, as read. Hardware checks: [`docs/fm1-va-editor-tests.md`](fm1-va-editor-tests.md).
+bytes, as read. **Confirmed on hardware, seen once** (`FM-1_096`, 2026-10-07, preset 032, a new
+Virtual Analog preset; [`docs/fm1-va-editor-tests.md`](fm1-va-editor-tests.md) V1–V26, map
+[`fm1-va-editor-map-2026-10-07.json`](hardware-runs/fm1-va-editor-map-2026-10-07.json)): each
+of the 18 controllers and 8 rows changed by hand changed exactly the byte, or bits, the table
+gives and nothing else. CC value 127 stored 100 (`64`, or `E4` with the mark) in a record row and
+99 (`63`) in a voice row, and CC 74 at 0 stored `80`. The three LFO rows in voice 116 each moved
+only their own bits.
 
 **Mapping the record.** A development build (`npm run dev`) has an **FM-1+VA preset probe (dev)**
 in the footer. It reads one preset and shows its record and voice byte by byte, marking each byte
@@ -543,9 +549,11 @@ Algorithm is heard from the next note.
   to Cutoff 0; LFO Wave Triangle, Speed 35, Pitch Mod Depth, Amp Mod Depth, and Delay 0, Pitch
   Sensitivity 3, Sync Off; and Envelope Off with Attack, Decay, Sustain, and Release 0. Filter
   Shape was not read clearly.
-- **Side effect. Needs hardware test.** The manual says CC 70, 72, 73, or 75 received while the
-  preset's Envelope is Off switches it On, as holding ENV does. The 2026-10-04 run sent CC 73 with
-  the Envelope already On, so it did not show this; stepping PRESETS away and back did return the
+- **Side effect. Confirmed, seen once** (`FM-1_096`, 2026-10-07, V15). The manual says CC 70,
+  72, 73, or 75 received while the preset's Envelope is Off switches it On, as holding ENV does.
+  CC 73 sent with the Envelope Off switched it On on the screen, and after SAVE record 53 gained
+  bit 6 (`40`) beside the Attack in byte 54. The 2026-10-04 run sent CC 73 with the Envelope
+  already On, so it did not show this; stepping PRESETS away and back did return the
   switch to the stored preset's setting. Envelope is saved per preset from `FM-1_092` and starts Off, so an
   editor that sends these changes the preset's Envelope switch too.
 - **CC 7** is volume, as MASTER sets it, only while the MIDI and FX channels differ; on a shared
