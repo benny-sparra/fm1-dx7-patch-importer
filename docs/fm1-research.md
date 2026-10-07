@@ -723,6 +723,90 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
 - Two new pattern writes, `7D 21` (a pattern's locks) and `7D 22` (whole steps), are writes the
   editor may not send.
 
+**Every field of an 8-Bit preset. Likely** (Baud Girl's Device Manager, `app/editmodel.js`,
+`app/chipnames.js`, and `fm1preset.js`, unchanged from app build `8405c164d16df69a` to
+`5a1d425123f1fc0a`, read 2026-10-07; and the 8-Bit pack's 16 presets). Its edit model says it reads
+each field from the firmware's own row tables (`ui_screens.cpp`), the writes its editor makes, and
+where the sound code reads them (`chip.h`, `chip.c`), and takes the names from the firmware's
+`chip_names.h`. None of it has been checked on an FM1 yet; tests P1–P7 and D2 in
+[`docs/fm1-va-096-tests.md`](fm1-va-096-tests.md) do that.
+
+An 8-Bit preset keeps its fields in two places. **E** below is a byte of the 155-byte edit buffer
+that the preset write carries and the 128 voice bytes pack: the DX7's own order, operator 6 first,
+21 bytes an operator, then the globals from E 126. **Record** is a byte of the 59-byte record. Every
+field sits inside the bits the DX7 layout keeps for that byte, so the packed voice holds it, but
+none means what the DX7 parameter there means.
+
+| Where                                                        | Field                                     | Stored as                                                                                                                                                    |
+| ------------------------------------------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Record 18                                                    | Engine                                    | `C3`                                                                                                                                                         |
+| Record 26                                                    | Key, Accidentals                          | Key in bits 0–3 (0 Off, 1 C to 12 B), Accidentals in bit 5 (Borrowed, Leading), and bit 6 set with bits 7 and 4 clear as the mark; without the mark, Key Off |
+| E 56 and E 98, bits 0–1                                      | Scale                                     | Low two bits in E 56 and high two in E 98: 0–8, Major, Minor, H. Minor Pract, H. Minor Strict, Dorian, Mixolydian, Phrygian, Lydian, Melodic Minor           |
+| E 59, E 80, E 122, bit 0                                     | Voicing, Lead Follows, Arp Sync           | From Key or Close; Off or Bass; Key or Beat                                                                                                                  |
+| E 55, E 34, bit 0                                            | Tone, Tuning                              | Raw or Smooth; Exact or Chip                                                                                                                                 |
+| E 15, E 36, E 14                                             | Drum Decay                                | Shown 0–99 with 50 the middle; (shown − 50) in seven bits, two's complement: bits 0–2 in E 15, bits 3–5 in E 36, bit 6 in E 14                               |
+| E _b_ to _b_ + 4                                             | A drum's Pitch, Sweep, Decay, Level, Snap | Drum _d_ (0–11, keys F0 to E1) at _b_ = 0, 5, 21, 26, 42, 47, 63, 68, 84, 89, 105, 110: two drums an operator. Sweep 1–99 with 50 the middle, the rest 0–99  |
+| E 20, 18, 41, 39, 62, 60, 83, 81, 104, 102, 125, 123         | A drum's Wave                             | 0–14, the 15 waves below, drum 0 first                                                                                                                       |
+| E 11, 12, 32, 33, 53, 54, 74, 75, 95, 96, 116, 117, bits 0–1 | A drum's Choke                            | Off, A, B, C, drum 0 first                                                                                                                                   |
+| Record 2                                                     | Drums Level                               | `80` \| (99 − level); without bit 7, 99                                                                                                                      |
+| E 137–143, E 144, E 145–154                                  | LFO, Transpose, name                      | As on an FM preset                                                                                                                                           |
+
+The bass and the lead each have the same fields, bass first:
+
+| Field                           | Bass                         | Lead                           | Stored as                                                                                                      |
+| ------------------------------- | ---------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Wave                            | Record 19, bits 0–3          | Record 21, bits 0–3            | 0–14: Pulse 12.5, Pulse 25, Pulse 50, Pulse 75, Triangle, Noise, Metal, then eight GB waves                    |
+| Duty Sequence                   | Record 19, bits 4–7          | Record 21, bits 4–7            | 0–14, 0 Off; heard only while Wave is a Pulse, though the FM1 does not dim it                                  |
+| Arpeggio                        | Record 20                    | Record 22                      | 0 Off, 1–31 built in, 32 User; shown only while Key is Off, and kept while it is set                           |
+| Chord                           | E 57                         | E 99                           | 0–6 (Triad to Power); shown only while a Key is set                                                            |
+| Pattern                         | E 78 bits 0–2, E 77 bits 0–1 | E 120 bits 0–2, E 119 bits 0–1 | 0–17 (Off to User); shown only while a Key is set                                                              |
+| User Arpeggio                   | Record 23, 24, 25, 45, 46    | Record 47–51                   | Eight steps of five bits, least significant first across the five bytes; −12 to +18 stored + 12, and 31 is End |
+| Arp Speed                       | E 10                         | E 73                           | 0–6: 1/8, 1/8T, 1/16, 1/16T, 1/32, 1/32T, 1/64T                                                                |
+| Attack, Decay, Sustain, Release | E 16, 19, 31, 37             | E 79, 82, 94, 100              | 0–99                                                                                                           |
+| Vibrato, Glide                  | E 40, 52                     | E 103, 115                     | 0–99                                                                                                           |
+| Sweep                           | E 58                         | E 121                          | 1–99, 50 the middle                                                                                            |
+| Octave                          | E 13, bits 0–2               | E 76, bits 0–2                 | −3 to +4, stored + 3                                                                                           |
+| Level                           | E 61                         | E 124                          | 0–99                                                                                                           |
+| Mono                            | E 38, bit 0                  | E 101, bit 0                   | Off or On                                                                                                      |
+
+Record bytes 19–26 and 45–51 therefore mean one thing on a Virtual Analog preset (its oscillator
+and filter, above) and another on an 8-Bit one, so code that reads them checks the engine first.
+The Envelope, the seven effects, Bitcrush, and the knobs keep the record bytes they have on the
+other engines. The 8-Bit preset reads none of E 17, 35, 97, 118, 126–133, 134, 135, or 136 (four
+operators' oscillator mode, the pitch envelope, algorithm, feedback, and oscillator sync); every
+pack preset holds the same values there.
+
+The Device Manager marks some names as provisional in the firmware, not yet agreed: the Arp Speed
+names, the list of built-in Arpeggios, the Duty Sequence names, and the twelve sound effects. A
+later release may rename them without moving a byte.
+
+An 8-Bit preset plays four parts on fixed notes: drums on MIDI notes 17–28, sound effects on 29–40,
+the bass on 41–76, and the lead on 77–112, with keys above the lead folded down by octaves. Each
+range moves with Transpose (E 144) less 24.
+
+**Checked offline** (2026-10-07). The 16 presets of the 8-Bit pack (`fm1-8bit-presets.syx`,
+NES ROCK to BELLTONE) pack to 128 voice bytes and unpack to the same edit buffer,
+`fm1VaStoredVoice` leaves them as they are, and `makeFm1VaPresetWrite` rebuilds each pack message
+byte for byte from its voice and record, so the library can hold and write an 8-Bit preset the way
+it holds a Virtual Analog one. Every byte is seven-bit and inside its DX7 parameter's range.
+Decoded through the table, the presets agree with their names: GB POP and LOFI GB use the GB waves,
+USER ARP's lead plays the User Arpeggio with steps of its own, PLUCKS's lead runs Duty Sequence 7
+(Pluck 50>25), WOBBLE's runs 6 (Slow Wobble), and BELLTONE's lead is GB Bell.
+
+**What can be heard before a write.** The manual's controller table gives an 8-Bit preset only the
+Envelope (CC 70, 72, 73, 75) and the LFO (CC 76–78); CC 24–31, 52–57, 58, 71, and 74 do nothing on
+it. The Device Manager plays its 8-Bit edits through its copy of the sound engine on the computer,
+not on the FM1. So every other field is heard only once the preset is written. Whether a single DX7
+parameter change reaches an 8-Bit preset live, since every field lies inside a DX7 parameter's
+range, is not known: 155 of them turned a Virtual Analog preset into an unsaved FM edit (V7, above),
+and test D2 checks one.
+
+**A new 8-Bit preset.** The Device Manager's (`fm1preset.js` `newPreset`) was read off the
+firmware running on an emulator, not an FM1: its edit buffer is the firmware's kit, bass, and lead,
+record bytes 19–22 are `04 00 01 00` (the bass a Triangle, the lead Pulse 25), and both User
+Arpeggios are all End (`FF` in 23–25 and 45–51). It says Erase Preset leaves record byte 26 as it
+was apart from the Key. **Erase patch…** takes its blanks only from an FM1, so 8-Bit waits for M3.
+
 #### FM-1_097 beta (manual read 2026-10-07)
 
 Version 97, a beta announced on 2026-10-07, adds Bluetooth clock sync between two FM-1s, MIDI
@@ -746,6 +830,17 @@ statements matter to the editor:
   one dump rather than 155 parameter changes. Test D1 in
   [`docs/fm1-va-096-tests.md`](fm1-va-096-tests.md) checks it; until then the editor keeps the
   parameter changes.
+
+Compared section by section with the Version 96 manual (2026-10-07), nothing else changes for the
+editor: the 8-Bit engine, Erase Preset, the controller table, the preset read and write, and the
+packs read as they did. The Device Manager build of the same day, `5a1d425123f1fc0a`, changes only
+wording, such as "Version 96" for `FM-1_096`. `FM-1_097` is FM-1+VA to `classifyFm1Firmware`, and
+every capability the editor gates by release starts at a release and runs on, so 97 gets what 96
+gets. **Erase patch…** (backlog item FM-1+VA 6) is built the same way, so on 97 it would put in the
+blank presets captured on `FM-1_096`. 97's manual describes Erase Preset as 96's does; M3 run on 97
+would confirm the blanks match. With Clock Out on, the FM1 sends the editor
+`F8` 24 times a beat, which `isHighRateMidiMessage` already keeps out of the MIDI log and the
+activity light; Start and Stop are logged.
 
 ### Felucca replacement firmware
 

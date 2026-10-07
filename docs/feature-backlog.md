@@ -582,11 +582,22 @@ presets (9).
 - [ ] **9. 8-Bit presets.** FM-1_096 added an 8-Bit engine, record byte 18 `C3`
       (`docs/fm1-research.md`, "FM-1_096"). Since 2026-10-06 the editor recognises one, leaves it
       out of every import, and never writes over it, so the library has no copy of it. Keeping
-      them would follow item 6's steps: hold the voice bytes and record exactly as read, apart from
-      DX7 voices (a stored shape change for the workspace, saved banks, and backups), show an
-      engine tag, write them back exactly, keep them out of every DX7 path, and add **8-Bit** to
-      **Erase patch…** (6). Bitcrush, the seventh effect from the same release, could then join
-      item 5's record-only effect settings.
+      them would follow item 6's steps. Every field is now mapped from Baud Girl's Device Manager
+      (`docs/fm1-research.md`, "Every field of an 8-Bit preset", **Likely**), and the 8-Bit pack's
+      16 presets already round-trip byte for byte through the packed voice and
+      `makeFm1VaPresetWrite`. In order:
+  - **Hold and write them.** Keep the voice bytes and record exactly as read in a map of their
+    own, not in `virtualAnalog`, whose stored name must not be repurposed: a version bump with
+    fixtures for the workspace record, saved banks, and backups. Show an engine tag, write them
+    back exactly, and keep them out of every DX7 path. Needs M4 first
+    (`docs/fm1-va-096-tests.md`).
+  - **Erase patch… to 8-Bit** (item 6), once M3 has captured the blank on an FM1; the Device
+    Manager's comes from an emulator.
+  - **An 8-Bit editor.** About 150 fields: the Key group, twelve drums of seven rows, and the bass
+    and lead with their User Arpeggios. Only the Envelope and LFO controllers reach an 8-Bit
+    preset, so the rest is heard once written, unless D2 finds a DX7 parameter change plays a
+    voice-byte field live. Needs P1–P7 first. Several of its lists are provisional in the
+    firmware and may be renamed.
 
 ## Open questions
 
