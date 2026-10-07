@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import sharp from 'sharp'
 import { describe, expect, it } from 'vitest'
 
 const html = readFileSync(path.resolve(__dirname, '../firmware/index.html'), 'utf8')
@@ -34,13 +35,17 @@ describe('firmware page', () => {
   })
 
   it.each(named(entries.filter((entry) => entry.querySelector('.firmware-photo img'))))(
-    '%s gives its photo alt text and the photos’ size',
-    (_name, entry) => {
+    '%s gives its photo alt text and the size of its source image',
+    async (_name, entry) => {
       const image = entry.querySelector('.firmware-photo img')
+      const source = image?.getAttribute('src') ?? ''
+      const metadata = await sharp(path.resolve(__dirname, '..', `.${source}`)).metadata()
       expect(image?.getAttribute('alt')).toBeTruthy()
-      expect(image?.getAttribute('width')).toBe('923')
-      expect(image?.getAttribute('height')).toBe('554')
-      expect(image?.getAttribute('src')).toMatch(/^\/src\/assets\//)
+      expect(image?.getAttribute('width')).toBe(String(metadata.width))
+      expect(image?.getAttribute('height')).toBe(String(metadata.height))
+      expect(image?.getAttribute('srcset')?.replace(/\s+/g, ' ').trim()).toBe(
+        `${source.replace('/src/assets/', '/src/assets/generated/').replace(/\.webp$/, '-460.webp')} 460w, ${source} ${metadata.width}w`,
+      )
     },
   )
 

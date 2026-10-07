@@ -15,7 +15,7 @@
 
   @media (width >= 40rem) {
     .firmware-entry {
-      grid-template-columns: 15rem minmax(0, 1fr);
+      grid-template-columns: 16rem minmax(0, 1fr);
       gap: 1.25rem;
     }
   }
@@ -31,8 +31,6 @@
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 923 / 554;
-    object-fit: contain;
   }
 
   /* Stands in for a photo the entry does not have yet, at the photos' own proportions. */
