@@ -9,3 +9,10 @@ test('serves the firmware list at /firmware/ rather than the app', async ({ page
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Firmware/)
   await expect(page.getByRole('heading', { name: 'Patch banks' })).toHaveCount(0)
 })
+
+test('serves the firmware list at /firmware without its trailing slash', async ({ page }) => {
+  await page.goto('/firmware')
+
+  await expect(page).toHaveURL(/\/firmware\/$/)
+  await expect(page).toHaveTitle('M-VAVE FM1 firmware')
+})
