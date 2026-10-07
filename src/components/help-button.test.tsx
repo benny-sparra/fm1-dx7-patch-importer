@@ -109,6 +109,24 @@ describe('HelpButton', () => {
     expect(within(detachedPage).queryByRole('alert')).toBeNull()
   })
 
+  it('leaves the guide closed, without a failure notice, in a browser without modal dialogs', async () => {
+    const showModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')!
+    Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
+    try {
+      render(<HelpButton />)
+
+      const dialog = await waitFor(() => {
+        const mounted = document.querySelector('dialog')
+        expect(mounted).not.toBeNull()
+        return mounted!
+      })
+      expect(dialog.open).toBe(false)
+      expect(screen.queryByRole('alert')).toBeNull()
+    } finally {
+      Object.defineProperty(HTMLDialogElement.prototype, 'showModal', showModal)
+    }
+  })
+
   it('explains in translated text when the guide cannot be loaded', async () => {
     localStorage.setItem('fm1-librarian-help-seen', 'true')
     vi.resetModules()
