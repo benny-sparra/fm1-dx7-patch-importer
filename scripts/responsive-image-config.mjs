@@ -11,6 +11,12 @@ export const responsiveImageConfig = [
   { height: 554, source: 'fm1-va-orange.webp', width: 923, widths: [460] },
   { height: 554, source: 'fm1-va-purple.webp', width: 923, widths: [460] },
   { height: 554, source: 'fm1-va-white-blue.webp', width: 923, widths: [460] },
+  { height: 554, source: 'firmware-choralroot.webp', width: 923, widths: [460] },
+  { height: 554, source: 'firmware-felucca.webp', width: 923, widths: [460] },
+  { height: 554, source: 'firmware-fomni.webp', width: 923, widths: [460] },
+  { height: 554, source: 'firmware-groove-os.webp', width: 923, widths: [460] },
+  { height: 554, source: 'firmware-sloop.webp', width: 923, widths: [460] },
+  { height: 554, source: 'firmware-x0x.webp', width: 923, widths: [460] },
   { height: 477, source: 'fm1-synth.webp', width: 500, widths: [240, 360] },
   { height: 476, source: 'fm1-va-bank-screen.webp', width: 500, widths: [240, 360] },
 ]
