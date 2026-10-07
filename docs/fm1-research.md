@@ -723,6 +723,30 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
 - Two new pattern writes, `7D 21` (a pattern's locks) and `7D 22` (whole steps), are writes the
   editor may not send.
 
+#### FM-1_097 beta (manual read 2026-10-07)
+
+Version 97, a beta announced on 2026-10-07, adds Bluetooth clock sync between two FM-1s, MIDI
+Clock Out (`F8`, with Start, Stop, and Continue, over USB and Bluetooth when set to Always or
+Playing), and the Flow grid sequencer again. Its manual documents no new SysEx message. Two of its
+statements matter to the editor:
+
+- **No way to load a Virtual Analog preset without storing it. Likely.** The Device Manager's
+  Studio plays edits through a copy of the firmware's sound engine running on the computer, and the
+  FM1 plays nothing until **Send** stores the preset with `7D 04`. The firmware's own editor works
+  around the gap rather than using a hidden message, so a Virtual Analog patch the FM1 has not
+  stored is heard only through the sound-setting controllers, and only over a stored Virtual Analog
+  preset. Level, Mono, the LFO's Wave, Amp Mod Depth, Pitch Sensitivity, and Sync, and the Envelope
+  switch have no controller. This is why the editor cannot play an erased or copied Virtual Analog
+  patch as shown, and why **Erase patch…** waits.
+- **A single DX7 patch may now be an unsaved edit. Needs hardware test.** The manual says a
+  single patch "replaces the preset you have selected at once, and nothing is written to memory
+  until you press SAVE". On `FM-1_089` a single-voice dump stored the preset at once (above, "The
+  editor on FM-1+VA"), which is why only M-VAVE's firmware gets one (`sendsSingleVoiceDumps`). If
+  `FM-1_096` or later holds it as an unsaved edit, the editor could send an FM patch to FM-1+VA as
+  one dump rather than 155 parameter changes. Test D1 in
+  [`docs/fm1-va-096-tests.md`](fm1-va-096-tests.md) checks it; until then the editor keeps the
+  parameter changes.
+
 ### Felucca replacement firmware
 
 Site, source, installer, editor, and recovery tool:
