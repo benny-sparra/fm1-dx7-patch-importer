@@ -147,7 +147,11 @@ the library, and every byte the editor doesn't set stays exactly as read. You ca
 it, move it, save its bank, and back it up like any other patch. **Change to FM…** in its ⋮ menu
 replaces it with INIT VOICE, an FM patch you can edit, under a name you choose, keeping its FM1
 effects; **Undo** puts it back. On the FM1 a Virtual Analogue preset stays until you erase it there,
-because writing to the FM1 never puts an FM patch over one. A DX7 bank has no place for
+because writing to the FM1 never puts an FM patch over one. When the FM1 runs Baud Girl's
+firmware from `FM-1_096`, **Erase patch…** in any slot's ⋮ menu takes the place of **Change to
+FM…**: choose **FM** or **Virtual Analogue** and a name, and the slot gets the same blank preset
+the FM1's own **Erase Preset** makes, with every effect Off. **Undo** puts the old patch back, and
+the FM1 gets the blank when you next write the patch to it. A DX7 bank has no place for
 one, so sending or downloading a bank as SysEx puts INIT VOICE in its slot, and the app says so
 first. On Baud Girl's firmware, **Write patches to the FM1…** and **Send to FM1** write them back
 exactly, as below. Adding them to Favourites is not available yet.

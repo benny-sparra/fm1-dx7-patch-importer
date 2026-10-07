@@ -319,6 +319,21 @@ export default {
     changed: 'Changed {{slot}} to FM as “{{patch}}”.',
     openFailed: 'Changing to FM could not be opened. Reload the page and try again.',
   },
+  erasePatch: {
+    menuItem: 'Erase patch…',
+    title: 'Erase {{slot}} “{{patch}}”?',
+    warning:
+      'This replaces the patch in this slot with a blank one, as the FM1’s own Erase Preset makes it, with every effect Off. Nothing of its sound carries over. Undo puts it back.',
+    engine: 'Engine',
+    fm: 'FM',
+    virtualAnalog: 'Virtual Analogue',
+    name: 'Name',
+    fm1Note:
+      'Nothing changes on the FM1 until this patch is written to it. Writing never puts an FM patch over a Virtual Analogue preset there: erase that on the FM1 itself.',
+    action: 'Erase patch',
+    erased: 'Erased {{slot}} as “{{patch}}”.',
+    openFailed: 'Erasing could not be opened. Reload the page and try again.',
+  },
   fm1VaSend: {
     title: 'Send {{bank}} to the FM1',
     help: 'Writes {{bank}} over one of the FM1’s banks of presets. Only patches that differ are written.',

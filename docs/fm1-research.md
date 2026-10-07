@@ -135,6 +135,19 @@ except that OP6's output level is 99 as well as OP1's, and it is named `VOICE 97
 the erase names a preset by its number. The record's effect bytes, 0–17, are `50` then seventeen
 `03`, as in the FM presets in that backup. Erasing a second slot and diffing it against 097 would show what varies with the slot.
 
+**Erase Preset on FM-1_096. Confirmed, seen once each** (preset 032, 2026-10-07, read with the
+probe after SAVE; fixtures `capturedErasedVirtualAnalogReply` and `capturedErasedFmReply`). The
+release erases differently from FM-1_093 above: both engines name the preset `INIT`, not by its
+number, and the record's effect bytes 0–17 are `6B 03 03 1E 1E 03 1E 1E 19 1E 37 46 1E 19 28 1E
+32 14`, with every effect switch Off, the stock effect order in the chain bytes, and Bitcrush
+unset (`03`). Each Virtual Analog row holds its new-preset default ("Every row of a Virtual Analog
+preset"), Envelope Off. The two erases differ only in record byte 18, `5A` for VA and `A5` for FM,
+the value FM-1+VA's modules give an FM preset, and in voice bytes 13 and 14: VA sets operator 6's
+Key Velocity to 3 and Output Level to 78 (Velocity to Level and Level), where FM leaves them 0. The
+FM voice is the app's INIT VOICE but for byte 116, `30` where INIT VOICE has `31`: the FM1 leaves
+LFO Sync Off. **Erase patch…** gives these bytes on FM-1_096 and later. Whether a blank depends on
+the slot it is erased in still needs a second slot's erase on this release.
+
 Its pages identify the firmware before sending any of these, with the updater's `F0 00 32 45 …`
 identity query (§6.3), which stock firmware also answers. §6.3 bars production code from sending
 any `00 32` message, so supporting FM-1+VA as an optional target would first need an explicit,

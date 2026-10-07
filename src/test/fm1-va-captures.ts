@@ -369,3 +369,30 @@ export const capturedVirtualAnalogFoldbackReply = bytes(
    00 01 04 08 08 00 60 40 00 02 08 04 00 50 20 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
    00 02 00 F7`,
 )
+
+// FM-1_096's answer for preset 032 on 2026-10-07, after Erase Preset made it a Virtual Analog
+// preset and SAVE stored it: the blank **Erase patch…** gives a Virtual Analog slot.
+export const capturedErasedVirtualAnalogReply = bytes(
+  `F0 7D 20 01 78 01 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 38 02 00 00 00 38 18 38 12 00 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 40 03 00 00 01 00 46 0D 1B 36 6C 58 31 63 00 1C 01 00 00 00
+   1C 00 00 08 00 30 6C 58 31 63 46 0D 1B 06 60 09 00 00 00 60 01 00 40 00 00 63 46 0D 1B 36 6C 58
+   31 00 4E 00 00 00 00 0E 00 00 04 00 18 36 6C 58 31 63 46 0D 03 70 04 00 00 00 70 00 18 26 00 40
+   31 63 46 0D 13 23 46 0C 19 00 10 0C 01 00 00 00 18 18 12 39 4A 44 0A 08 10 20 40 00 01 32 6D 40
+   01 1E 3C 0C 70 61 23 06 0F 37 0C 79 48 01 45 07 19 14 34 09 00 20 06 00 72 00 01 02 04 00 00 40
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
+   00 78 00 F7`,
+)
+
+// The same preset a moment later, after Erase Preset made it an FM preset and SAVE stored it: the
+// blank **Erase patch…** gives an FM slot. Beside the Virtual Analog erase, only voice bytes 13 and
+// 14 and record byte 18 differ.
+export const capturedErasedFmReply = bytes(
+  `F0 7D 20 01 78 01 00 00 00 3B 01 0C 1B 36 6C 58 31 63 46 01 38 02 00 00 00 38 00 00 10 00 60 58
+   31 63 46 0D 1B 36 0C 40 13 00 00 00 40 03 00 00 01 00 46 0D 1B 36 6C 58 31 63 00 1C 01 00 00 00
+   1C 00 00 08 00 30 6C 58 31 63 46 0D 1B 06 60 09 00 00 00 60 01 00 40 00 00 63 46 0D 1B 36 6C 58
+   31 00 4E 00 00 00 00 0E 00 00 04 00 18 36 6C 58 31 63 46 0D 03 70 04 00 00 00 70 00 18 26 00 40
+   31 63 46 0D 13 23 46 0C 19 00 10 0C 01 00 00 00 18 18 12 39 4A 44 0A 08 10 20 40 00 01 32 6D 40
+   01 1E 3C 0C 70 61 23 06 0F 37 0C 79 48 01 45 07 19 14 4A 0A 00 20 06 00 72 00 01 02 04 00 00 40
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
+   00 07 01 F7`,
+)

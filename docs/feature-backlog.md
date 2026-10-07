@@ -526,6 +526,9 @@ presets (9).
     change with a controller as it is made; the rest are heard once written. Saving puts the
     preset's bytes back in its slot, every byte not edited exactly as read. Knob choices and the
     operator 6 amplitude envelope rows are not offered.
+  - _Erase a patch, FM and VA, built 2026-10-07 on FM-1_096's captured blanks (test M3's FM and VA
+    erases, read the same day). Offered from FM-1_096, where it replaces **Change to FM…**; an
+    earlier release keeps **Change to FM…** until its own blanks are captured._
   - **Erase a patch.** Planned 2026-10-02 as **Change to Virtual Analog…** and **Change to FM…**,
     replanned 2026-10-06 as one **Erase patch…**, named after the FM1's own **Erase Preset**. Built
     after the Virtual Analog editor (**Play them live** and **Save them**), with 8-Bit added once 9

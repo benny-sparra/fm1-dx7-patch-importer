@@ -587,6 +587,22 @@ export default {
     openFailed:
       'Das Umwandeln in FM konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
   },
+  erasePatch: {
+    menuItem: 'Sound löschen…',
+    title: '{{slot}} „{{patch}}“ löschen?',
+    warning:
+      'Das ersetzt den Sound an diesem Platz durch einen leeren, wie ihn „Erase Preset“ am FM1 selbst anlegt, mit allen Effekten aus. Von seinem Klang bleibt nichts. Rückgängig stellt ihn wieder her.',
+    engine: 'Engine',
+    fm: 'FM',
+    virtualAnalog: 'Virtual Analog',
+    name: 'Name',
+    fm1Note:
+      'Am FM1 ändert sich nichts, bis dieser Sound auf ihn geschrieben wird. Ein FM-Sound ersetzt dort nie ein Virtual-Analog-Preset: Lösche es dafür am FM1 selbst.',
+    action: 'Sound löschen',
+    erased: '{{slot}} wurde als „{{patch}}“ gelöscht.',
+    openFailed:
+      'Das Löschen konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+  },
   fm1VaSend: {
     title: '{{bank}} an den FM1 senden',
     help: 'Schreibt {{bank}} über eine der Presetbänke des FM1. Nur Sounds, die sich unterscheiden, werden geschrieben.',

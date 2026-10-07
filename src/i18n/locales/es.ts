@@ -575,6 +575,21 @@ export default {
     changed: '{{slot}} se cambió a FM como «{{patch}}».',
     openFailed: 'No se pudo abrir el cambio a FM. Recarga la página e inténtalo de nuevo.',
   },
+  erasePatch: {
+    menuItem: 'Borrar sonido…',
+    title: '¿Borrar {{slot}} «{{patch}}»?',
+    warning:
+      'Esto reemplaza el sonido de esta posición por uno en blanco, como lo crea el propio «Erase Preset» del FM1, con todos los efectos desactivados. No se conserva nada de su sonido. Deshacer lo recupera.',
+    engine: 'Motor',
+    fm: 'FM',
+    virtualAnalog: 'Virtual Analog',
+    name: 'Nombre',
+    fm1Note:
+      'Nada cambia en el FM1 hasta que se escriba este sonido en él. Escribir nunca pone un sonido FM sobre un preset Virtual Analog: bórralo en el propio FM1.',
+    action: 'Borrar sonido',
+    erased: '{{slot}} se borró como «{{patch}}».',
+    openFailed: 'No se pudo abrir el borrado. Recarga la página e inténtalo de nuevo.',
+  },
   fm1VaSend: {
     title: 'Enviar {{bank}} al FM1',
     help: 'Escribe {{bank}} sobre uno de los bancos de presets del FM1. Solo se escriben los sonidos que difieren.',

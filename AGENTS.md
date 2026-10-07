@@ -293,7 +293,8 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the erase dialog,
+  with the FM1's blank presets, when **Erase patch…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -341,11 +342,12 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 165 KiB gzip budget; raising it needs
+  Dynamic imports are excluded. Do not weaken or bypass the 166 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
   149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB,
-  reading FM-1+VA presets from the FM1's raise from 163 KiB, and Vite 8.3.2's raise from 164 KiB
-  had. Reading presets paid for the read's eager English strings, because every `en-GB` string is
+  reading FM-1+VA presets from the FM1's raise from 163 KiB, Vite 8.3.2's raise from 164 KiB, and
+  **Erase patch…**'s raise from 165 KiB (2026-10-07) had. A slot-menu item opening a lazy dialog
+  cost the entry about 350 B gzip before its strings, which shortening could not recover. Reading presets paid for the read's eager English strings, because every `en-GB` string is
   in the entry, even one only a lazy dialog shows, apart from the editor's help. React DOM ships
   prebuilt with its features switched on, so 19.3's stable View Transitions, Fragment refs, and
   SuspenseList cost about 8.4 KiB whether or not the app uses them; a React upgrade is measured
@@ -597,7 +599,11 @@ open everything an earlier release could have saved.
   Anything that compares sounds keeps the engines apart: a Virtual Analog preset's sound key is
   `virtualAnalogSoundKey`, and duplicates match only within one engine. **Change to FM…** replaces
   one with INIT VOICE and no record, keeping its FM1 effects, so a write still leaves a Virtual
-  Analog preset in that FM1 slot alone. Its card shows `EngineTag`, VA in a small amber box with
+  Analog preset in that FM1 slot alone. While `erasesFm1VaPresets` allows (FM-1+VA from
+  `FM-1_096`), **Erase patch…** takes its place on every slot: it puts the blank preset that
+  release's Erase Preset stores for the chosen engine (`makeErasedFm1VaPreset`, captured byte for
+  byte, record and every effect Off) in the library, as one Undo, and the write's rules still
+  apply to it. Another release's blanks need their own capture. Its card shows `EngineTag`, VA in a small amber box with
   the letters stacked, between its slot code and name, and while the FM1 runs FM-1+VA every FM card
   shows FM in a dim one, search results included. A card that shows a tag names the engine in text
   for assistive technology and on the first line of its tooltip (`banks.engineTitle`). The letters

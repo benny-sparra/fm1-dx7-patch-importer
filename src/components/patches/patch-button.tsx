@@ -25,11 +25,13 @@ type PatchButtonProps = {
   isActive?: boolean
   /** Whether Favourites holds this sound, which lights the slot's heart. */
   isFavourite?: boolean
-  /** Offered on a Virtual Analog patch only. */
+  /** Offered on a Virtual Analog patch only, and not beside `onErase`, which takes its place. */
   onChangeToFm?: (patch: Patch) => void
   onCopy?: (patch: Patch) => void
   onDownload?: (patch: Patch) => void
   onEdit?: (patch: Patch) => void
+  /** Replaces the patch with a blank one of either engine, while the FM1 can take it. */
+  onErase?: (patch: Patch) => void
   /** Arrow-key navigation across the grid, owned by the grid itself. */
   onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
   onReplace?: (patch: Patch) => void
@@ -62,6 +64,7 @@ export function PatchButton({
   onCopy,
   onDownload,
   onEdit,
+  onErase,
   onNavigate,
   onReplace,
   onSelect,
@@ -246,10 +249,13 @@ export function PatchButton({
           {editSlot || onCopy ? (
             <PatchSlotMenu
               name={patch.name}
-              onChangeToFm={onChangeToFm && isVirtualAnalog ? () => onChangeToFm(patch) : undefined}
+              onChangeToFm={
+                onChangeToFm && isVirtualAnalog && !onErase ? () => onChangeToFm(patch) : undefined
+              }
               onCopy={onCopy && (() => onCopy(patch))}
               onDownload={onDownload && !isVirtualAnalog ? () => onDownload(patch) : undefined}
               onEdit={editSlot && (() => editSlot(patch))}
+              onErase={onErase && (() => onErase(patch))}
               onReplace={onReplace && (() => onReplace(patch))}
             />
           ) : null}

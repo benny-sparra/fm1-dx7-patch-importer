@@ -276,3 +276,107 @@ describe('LibrarianPage changing a Virtual Analog patch to FM', () => {
     ).toBeTruthy()
   })
 })
+
+describe('LibrarianPage erasing a patch', () => {
+  const fm1Va096: Fm1Firmware = { identity: 'FM-1_096', kind: 'fm1-va' }
+
+  it('offers Erase patch on every slot while the FM1 runs FM-1_096, in place of Change to FM', async () => {
+    const { user } = renderPage(fm1Va096)
+
+    await user.click(screen.getByRole('button', { name: 'Actions for E.PIANO1' }))
+    expect(screen.getByRole('menuitem', { name: 'Erase patch…' })).toBeTruthy()
+    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Erase patch…' })).toBeTruthy()
+    expect(screen.queryByRole('menuitem', { name: 'Change to FM…' })).toBeNull()
+  })
+
+  it.each([
+    ['M-VAVE’s firmware', mvave],
+    ['an earlier FM-1+VA release', { identity: 'FM-1_093', kind: 'fm1-va' } as Fm1Firmware],
+  ])('leaves Erase patch out on %s, keeping Change to FM', async (_, firmware) => {
+    const { user } = renderPage(firmware)
+
+    await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
+
+    expect(screen.queryByRole('menuitem', { name: 'Erase patch…' })).toBeNull()
+    expect(screen.getByRole('menuitem', { name: 'Change to FM…' })).toBeTruthy()
+  })
+
+  it('erases an FM patch to the FM1’s blank FM preset under the name typed, with Undo', async () => {
+    const { library, user } = renderPage(fm1Va096)
+    vi.mocked(library.replaceVoice).mockReturnValue(workspace())
+    await user.click(screen.getByRole('button', { name: 'Actions for E.PIANO1' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Erase patch…' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Erase A01 “E.PIANO1”?' })
+    expect(within(dialog).getByRole('radio', { name: 'FM' })).toHaveProperty('checked', true)
+    const name = within(dialog).getByRole('textbox', { name: 'Name' })
+    await user.clear(name)
+    await user.type(name, 'BLANK')
+    await user.click(within(dialog).getByRole('button', { name: 'Erase patch' }))
+
+    const [bank, slot, voice, effects, record] = vi.mocked(library.replaceVoice).mock.calls[0]
+    expect([bank, slot, voice.name]).toEqual(['A', 1, 'BLANK'])
+    expect(record?.[18]).toBe(0xa5)
+    // The Filter is Off, keeping the erase's Cutoff, controller 2, from record byte 0.
+    expect([effects?.[0], effects?.[2]]).toEqual([0, 0x6b])
+    expect(library.replaceWithVirtualAnalog).not.toHaveBeenCalled()
+    expect(await screen.findByText('Erased A01 as “BLANK”.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeTruthy()
+  })
+
+  it('erases a patch to a blank Virtual Analog preset when VA is chosen', async () => {
+    const { library, user } = renderPage(fm1Va096)
+    vi.mocked(library.replaceWithVirtualAnalog).mockReturnValue(workspace())
+    await user.click(screen.getByRole('button', { name: 'Actions for E.PIANO1' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Erase patch…' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Erase A01 “E.PIANO1”?' })
+    await user.click(within(dialog).getByRole('radio', { name: 'Virtual Analogue' }))
+    await user.click(within(dialog).getByRole('button', { name: 'Erase patch' }))
+
+    const [bank, slot, voice, , record] = vi.mocked(library.replaceWithVirtualAnalog).mock.calls[0]
+    expect([bank, slot]).toEqual(['A', 1])
+    expect(String.fromCharCode(...voice.subarray(118, 128))).toBe('E.PIANO1  ')
+    expect(record[18]).toBe(0x5a)
+    expect(library.replaceVoice).not.toHaveBeenCalled()
+  })
+
+  it('starts a Virtual Analog patch’s erase on Virtual Analog', async () => {
+    const { user } = renderPage(fm1Va096)
+    await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Erase patch…' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Erase A03 “VOICE 97”?' })
+
+    expect(within(dialog).getByRole('radio', { name: 'Virtual Analogue' })).toHaveProperty(
+      'checked',
+      true,
+    )
+  })
+
+  it('changes nothing when the dialog is closed', async () => {
+    const { library, user } = renderPage(fm1Va096)
+    await user.click(screen.getByRole('button', { name: 'Actions for E.PIANO1' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Erase patch…' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Erase A01 “E.PIANO1”?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Close' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(library.replaceVoice).not.toHaveBeenCalled()
+    expect(library.replaceWithVirtualAnalog).not.toHaveBeenCalled()
+  })
+
+  it('names the slot it erases in the interface language', async () => {
+    await setLocale('de')
+    const { user } = renderPage(fm1Va096)
+    await user.click(screen.getByRole('button', { name: 'Aktionen für VOICE 97' }))
+
+    await user.click(screen.getByRole('menuitem', { name: 'Sound löschen…' }))
+
+    expect(await screen.findByRole('dialog', { name: 'A03 „VOICE 97“ löschen?' })).toBeTruthy()
+  })
+})

@@ -511,6 +511,21 @@ export default {
     changed: '已将 {{slot}} 转换为 FM，名称为“{{patch}}”。',
     openFailed: '无法打开转换为 FM。请重新加载页面后重试。',
   },
+  erasePatch: {
+    menuItem: '清除音色…',
+    title: '要清除 {{slot}}“{{patch}}”吗？',
+    warning:
+      '这会用一个空白音色替换此位置的音色，与 FM1 自身的“Erase Preset”所建的相同，所有效果均为关闭。其声音不会保留。撤销可以恢复。',
+    engine: '引擎',
+    fm: 'FM',
+    virtualAnalog: 'Virtual Analog',
+    name: '名称',
+    fm1Note:
+      '在此音色写入 FM1 之前，FM1 上不会有任何变化。写入绝不会用 FM 音色覆盖那里的 Virtual Analog 预设：请在 FM1 上自行清除。',
+    action: '清除音色',
+    erased: '已将 {{slot}} 清除，名称为“{{patch}}”。',
+    openFailed: '无法打开清除功能。请重新加载页面后重试。',
+  },
   fm1VaSend: {
     title: '将 {{bank}} 发送到 FM1',
     help: '将 {{bank}} 写入 FM1 的一个音色库，覆盖原有预设。只写入有差异的音色。',

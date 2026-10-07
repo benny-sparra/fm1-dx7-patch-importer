@@ -575,6 +575,21 @@ export default {
     changed: '{{slot}} est passé en FM sous le nom « {{patch}} ».',
     openFailed: 'Le passage en FM n’a pas pu s’ouvrir. Rechargez la page et réessayez.',
   },
+  erasePatch: {
+    menuItem: 'Effacer le son…',
+    title: 'Effacer {{slot}} « {{patch}} » ?',
+    warning:
+      'Cela remplace le son de cet emplacement par un son vierge, tel que le crée la fonction « Erase Preset » du FM1, avec tous les effets désactivés. Rien de son son n’est conservé. Annuler le rétablit.',
+    engine: 'Moteur',
+    fm: 'FM',
+    virtualAnalog: 'Virtual Analog',
+    name: 'Nom',
+    fm1Note:
+      'Rien ne change sur le FM1 tant que ce son n’y est pas écrit. L’écriture ne place jamais un son FM sur un preset Virtual Analog : effacez celui-ci sur le FM1 lui-même.',
+    action: 'Effacer le son',
+    erased: '{{slot}} a été effacé sous le nom « {{patch}} ».',
+    openFailed: 'L’effacement n’a pas pu s’ouvrir. Rechargez la page et réessayez.',
+  },
   fm1VaSend: {
     title: 'Envoyer {{bank}} au FM1',
     help: 'Écrit {{bank}} sur l’une des banques de presets du FM1. Seuls les sons qui diffèrent sont écrits.',

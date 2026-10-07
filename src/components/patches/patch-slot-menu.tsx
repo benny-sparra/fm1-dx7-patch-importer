@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Copy, Download, Pencil, Upload } from 'lucide-react'
+import { ArrowRightLeft, Copy, Download, Eraser, Pencil, Upload } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { PortalMenu } from '@/components/ui/portal-menu'
@@ -9,6 +9,7 @@ type PatchSlotMenuProps = {
   onCopy?: () => void
   onDownload?: () => void
   onEdit?: () => void
+  onErase?: () => void
   onReplace?: () => void
 }
 
@@ -22,6 +23,7 @@ export function PatchSlotMenu({
   onCopy,
   onDownload,
   onEdit,
+  onErase,
   onReplace,
 }: PatchSlotMenuProps) {
   const { t } = useTranslation()
@@ -34,6 +36,7 @@ export function PatchSlotMenu({
         { Icon: Upload, label: t('banks.importPatchFile'), onSelect: onReplace },
         { Icon: Download, label: t('banks.downloadPatchFile'), onSelect: onDownload },
         { Icon: ArrowRightLeft, label: t('changeToFm.menuItem'), onSelect: onChangeToFm },
+        { Icon: Eraser, label: t('erasePatch.menuItem'), onSelect: onErase },
       ].filter(({ onSelect }) => onSelect)}
       menuLabel={name}
       triggerClassName="z-[1] -my-1 -mr-1"

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   classifyFm1Firmware,
+  erasesFm1VaPresets,
   fm1FirmwareRelease,
   fm1IdentityQuery,
   mayBeSloop,
@@ -128,5 +129,21 @@ describe('sendsSingleVoiceDumps', () => {
     expect(sendsSingleVoiceDumps({ kind: 'unidentified' })).toBe(false)
     expect(sendsSingleVoiceDumps({ identity: 'FM-1_904', kind: 'felucca' })).toBe(false)
     expect(sendsSingleVoiceDumps({ identity: 'XR-9_015', kind: 'unidentified' })).toBe(false)
+  })
+})
+
+describe('erasesFm1VaPresets', () => {
+  it('offers the blanks from FM-1_096, the FM-1+VA release they were captured on', () => {
+    expect(erasesFm1VaPresets({ identity: 'FM-1_096', kind: 'fm1-va' })).toBe(true)
+    expect(erasesFm1VaPresets({ identity: 'FM-1_120', kind: 'fm1-va' })).toBe(true)
+  })
+
+  it('leaves them out on an earlier FM-1+VA release and on every other firmware', () => {
+    expect(erasesFm1VaPresets({ identity: 'FM-1_095', kind: 'fm1-va' })).toBe(false)
+    expect(erasesFm1VaPresets({ identity: 'FM-1_079', kind: 'fm1-va' })).toBe(false)
+    expect(erasesFm1VaPresets({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
+    expect(erasesFm1VaPresets({ identity: 'FM-1_904', kind: 'felucca' })).toBe(false)
+    expect(erasesFm1VaPresets({ kind: 'checking' })).toBe(false)
+    expect(erasesFm1VaPresets({ kind: 'unidentified' })).toBe(false)
   })
 })

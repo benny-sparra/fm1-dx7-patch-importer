@@ -565,6 +565,21 @@ export default {
     changed: '{{slot}} mudou para FM como “{{patch}}”.',
     openFailed: 'Não foi possível abrir a mudança para FM. Recarregue a página e tente novamente.',
   },
+  erasePatch: {
+    menuItem: 'Apagar som…',
+    title: 'Apagar {{slot}} “{{patch}}”?',
+    warning:
+      'Isso substitui o som desta posição por um em branco, como o próprio “Erase Preset” do FM1 o cria, com todos os efeitos desligados. Nada do som dele é mantido. Desfazer o traz de volta.',
+    engine: 'Motor',
+    fm: 'FM',
+    virtualAnalog: 'Virtual Analog',
+    name: 'Nome',
+    fm1Note:
+      'Nada muda no FM1 até este som ser gravado nele. Gravar nunca coloca um som FM sobre um preset Virtual Analog: apague-o no próprio FM1.',
+    action: 'Apagar som',
+    erased: '{{slot}} foi apagado como “{{patch}}”.',
+    openFailed: 'Não foi possível abrir o apagamento. Recarregue a página e tente novamente.',
+  },
   fm1VaSend: {
     title: 'Enviar {{bank}} ao FM1',
     help: 'Grava {{bank}} sobre um dos bancos de presets do FM1. Só os sons diferentes são gravados.',

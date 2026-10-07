@@ -78,6 +78,11 @@ export default {
     fm1Note:
       'If the FM1 holds this Virtual Analog preset, writing to the FM1 leaves it there: erase it on the FM1 to change its engine there too.',
   },
+  erasePatch: {
+    virtualAnalog: 'Virtual Analog',
+    fm1Note:
+      'Nothing changes on the FM1 until this patch is written to it. Writing never puts an FM patch over a Virtual Analog preset there: erase that on the FM1 itself.',
+  },
   toasts: {
     bankDownloadStartedWithInit:
       'Downloading “{{bank}}”, with INIT VOICE in place of its Virtual Analog preset.',

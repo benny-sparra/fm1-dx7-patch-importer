@@ -59,12 +59,13 @@ import {
   getNextWorkspaceBank,
   patchMatchesSearch,
   patchSlotCode,
+  virtualAnalogFamily,
   workspaceBankAfterDeletion,
 } from '@/lib/patch-library'
 import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import type { Fm1VaPresetSource } from '@/components/patches/import-fm1-va-presets-dialog'
-import { hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
+import { erasesFm1VaPresets, hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
 import { soundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
 import { crtSwitchOff } from '@/lib/crt-switch-off'
@@ -140,6 +141,12 @@ const SearchEverywhereResults = lazy(() =>
 const ChangeToFmDialog = lazy(() =>
   import('@/components/patches/change-to-fm-dialog').then((module) => ({
     default: module.ChangeToFmDialog,
+  })),
+)
+// Erasing a patch opens from its slot menu, with the FM1's blank presets, on first use.
+const ErasePatchDialog = lazy(() =>
+  import('@/components/patches/erase-patch-dialog').then((module) => ({
+    default: module.ErasePatchDialog,
   })),
 )
 const ReplacePatchDialog = lazy(() =>
@@ -224,6 +231,7 @@ type LibrarianLibrary = BackupLibrary &
   ComponentProps<typeof NamedBankLibraryDialog>['library'] &
   ComponentProps<typeof WriteFm1VaPresetsDialog>['library'] &
   ComponentProps<typeof ChangeToFmDialog>['library'] &
+  ComponentProps<typeof ErasePatchDialog>['library'] &
   ComponentProps<typeof ReplacePatchDialog>['library'] &
   ComponentProps<typeof RestoreBackupDialog>['library'] &
   Pick<
@@ -310,6 +318,8 @@ export function LibrarianPage({
   const [replaceTarget, setReplaceTarget] = useState<Patch | null>(null)
   // The Virtual Analog patch a slot menu asked to change to FM, while its dialog is open.
   const [changeToFmTarget, setChangeToFmTarget] = useState<Patch | null>(null)
+  // The patch a slot menu asked to erase, while its dialog is open.
+  const [eraseTarget, setEraseTarget] = useState<Patch | null>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [transferError, setTransferError] = useState('')
@@ -398,6 +408,13 @@ export function LibrarianPage({
     setDialogLoadError('')
     setChangeToFmTarget(patch)
   }
+  const requestErase = (patch: Patch) => {
+    setDialogLoadError('')
+    setEraseTarget(patch)
+  }
+  // Erasing gives the FM1's own blank presets, so it is offered while the FM1 runs the release they
+  // were captured on; there it takes the place of Change to FM.
+  const offersErase = erasesFm1VaPresets(midi.firmware)
   // The single-voice file format loads with the first download rather than with the page.
   const downloadPatch = async (patch: Patch) => {
     const voice = library.voices[patch.id]
@@ -1146,6 +1163,7 @@ export function LibrarianPage({
         // Importing a file puts it in a bank slot; Favourites takes sounds through their hearts.
         onPatchReplace={showsFavourites ? undefined : requestReplace}
         onPatchChangeToFm={showsFavourites ? undefined : requestChangeToFm}
+        onPatchErase={showsFavourites || !offersErase ? undefined : requestErase}
         onPatchEdit={(patch) => {
           followPlayedPatch(patch)
           onEditPatch(patch)
@@ -1520,6 +1538,30 @@ export function LibrarianPage({
               }
               onClose={() => setChangeToFmTarget(null)}
               patch={changeToFmTarget}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
+      {eraseTarget ? (
+        <ErrorBoundary
+          key={eraseTarget.id}
+          onError={() => {
+            setEraseTarget(null)
+            setDialogLoadError(t('erasePatch.openFailed'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <ErasePatchDialog
+              engine={eraseTarget.family === virtualAnalogFamily ? 'virtualAnalog' : 'fm'}
+              library={library}
+              onChanged={(name, changed) =>
+                toast.success(
+                  t('erasePatch.erased', { patch: name, slot: patchSlotCode(eraseTarget) }),
+                  undoToastOptions(t, library, changed),
+                )
+              }
+              onClose={() => setEraseTarget(null)}
+              patch={eraseTarget}
             />
           </Suspense>
         </ErrorBoundary>

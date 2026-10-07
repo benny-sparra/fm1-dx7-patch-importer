@@ -132,6 +132,20 @@ export function hasFm1VaPresetCommands(firmware: Fm1Firmware) {
   return Number(firmware.identity.slice('FM-1_'.length)) >= firstPresetCommandsRelease
 }
 
+/** FM-1_096, the FM-1+VA release whose Erase Preset `makeErasedFm1VaPreset` copies. */
+const firstErasedPresetRelease = 96
+
+/**
+ * Whether **Erase patch…** may offer the FM1's blank presets: FM-1+VA from the release they were
+ * captured on, which also writes them. An earlier release's Erase Preset stores other bytes, so
+ * it keeps **Change to FM…**. Lives here so the librarian can offer it without the blanks.
+ */
+export function erasesFm1VaPresets(firmware: Fm1Firmware) {
+  // `classifyFm1Firmware` names firmware FM-1+VA only for an `FM-1_NNN` identity.
+  if (firmware.kind !== 'fm1-va') return false
+  return Number(firmware.identity.slice('FM-1_'.length)) >= firstErasedPresetRelease
+}
+
 /**
  * Whether the FM1 may run SLOOP rather than Felucca. Every SLOOP release reports `FM-1_900`, as a
  * Felucca development build does, so the editor names both. They treat the editor's MIDI alike.
