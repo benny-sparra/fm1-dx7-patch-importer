@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#1a1a1a" />
     <meta
       name="description"
-      content="Every firmware known to run on the M-VAVE FM1 synthesiser: M-VAVE's own, Baud Girl's FM-1+VA, Felucca, Groove OS, X0X, and more, with links to each project."
+      content="Every firmware known to run on the M-VAVE FM1 synthesiser: M-VAVE's own, Baud Girl's FM-1+VA, Felucca, Groove OS, Jangada, X0X, and more, with links to each project."
     />
     <link rel="canonical" href="https://fm1-editor.com/firmware/" />
     <meta property="og:type" content="website" />
@@ -220,7 +220,7 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Beta · Latest 0.1</span>
+              ><span>Beta · Latest 0.13</span>
             </p>
             <p class="firmware-blurb">
               A chord instrument inspired by Telepathic Instruments' Orchid: one hand plays roots
@@ -335,6 +335,49 @@
         </article>
         <article
           class="firmware-entry synthwave-panel"
+          id="fm1-nes"
+          aria-labelledby="firmware-fm1-nes"
+        >
+          <figure class="firmware-photo firmware-photo-missing crt-inset" aria-hidden="true">
+            <span>FM-1 NES</span>
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">Keitark</p>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-fm1-nes">FM-1 NES</h2>
+              <a
+                class="firmware-anchor"
+                href="#fm1-nes"
+                aria-label="Link to FM-1 NES"
+                title="Link to FM-1 NES"
+                >#</a
+              >
+            </div>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Experimental · Source only</span>
+            </p>
+            <p class="firmware-blurb">
+              Plays NES games on the FM1: its 27 keys are the controller and its screen the
+              television. It is the worked example in a kit for writing FM1 firmware from scratch,
+              published as source with no installer page or ready-made release, and no game
+              included. It makes no music.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/Keitark/fm1-nes"
+                  rel="noopener"
+                  target="_blank"
+                  >Source ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+        <article
+          class="firmware-entry synthwave-panel"
           id="fm1-quest"
           aria-labelledby="firmware-fm1-quest"
         >
@@ -367,7 +410,7 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Not yet tried on an FM1</span>
+              ><span>Not yet tried on an FM1 · Build 15</span>
             </p>
             <p class="firmware-blurb">
               SLOOP as a pixel-art RPG. The four tracks are four heroes, every lit step is an
@@ -549,6 +592,203 @@
             </ul>
           </div>
         </article>
+        <article
+          class="firmware-entry synthwave-panel"
+          id="jangada"
+          aria-labelledby="firmware-jangada"
+        >
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="Jangada&#x27;s tracks screen, with four tracks in magenta"
+              decoding="async"
+              height="720"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/firmware-jangada.webp"
+              srcset="
+                /src/assets/generated/firmware-jangada-460.webp 460w,
+                /src/assets/firmware-jangada.webp               720w
+              "
+              width="720"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">zednaked</p>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-jangada">Jangada</h2>
+              <a
+                class="firmware-anchor"
+                href="#jangada"
+                aria-label="Link to Jangada"
+                title="Link to Jangada"
+                >#</a
+              >
+            </div>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Alpha · Latest 0.5.1</span>
+            </p>
+            <p class="firmware-blurb">
+              A Felucca fork with a dark, industrial, and Brazilian accent: ten engines, among them
+              a six-operator FM and a superwave analogue, four tracks, a modulation matrix,
+              ratchets, drones that hold and evolve while you play, and drum kits of its own. It
+              installs from its own browser page, and Jangada Studio plays its sound in a browser.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://zednaked.github.io/jangada/"
+                  rel="noopener"
+                  target="_blank"
+                  >Install ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://zednaked.github.io/jangada/webapp/studio/"
+                  rel="noopener"
+                  target="_blank"
+                  >Try it in a browser ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/zednaked/jangada"
+                  rel="noopener"
+                  target="_blank"
+                  >Source ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+        <article
+          class="firmware-entry synthwave-panel"
+          id="lunar-modulator"
+          aria-labelledby="firmware-lunar-modulator"
+        >
+          <figure class="firmware-photo crt-inset">
+            <img
+              alt="Lunar Modulator&#x27;s start screen: a crescent moon and a satellite over its name"
+              decoding="async"
+              height="720"
+              loading="lazy"
+              sizes="16rem"
+              src="/src/assets/firmware-lunar-modulator.webp"
+              srcset="
+                /src/assets/generated/firmware-lunar-modulator-460.webp 460w,
+                /src/assets/firmware-lunar-modulator.webp               720w
+              "
+              width="720"
+            />
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">ip2k</p>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-lunar-modulator">Lunar Modulator</h2>
+              <a
+                class="firmware-anchor"
+                href="#lunar-modulator"
+                aria-label="Link to Lunar Modulator"
+                title="Link to Lunar Modulator"
+                >#</a
+              >
+            </div>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Not installable yet</span>
+            </p>
+            <p class="firmware-blurb">
+              Open firmware in the making, with engines derived from Mutable Instruments' modules
+              and a Movy-style sequencer. For now it runs only as a virtual FM1 in a browser: it
+              cannot be installed on an FM1 yet, and has never written anything to one.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://ip2k.github.io/lunar-modulator/"
+                  rel="noopener"
+                  target="_blank"
+                  >Try it in a browser ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/ip2k/lunar-modulator"
+                  rel="noopener"
+                  target="_blank"
+                  >Source ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
+        <article
+          class="firmware-entry synthwave-panel"
+          id="melodee"
+          aria-labelledby="firmware-melodee"
+        >
+          <figure class="firmware-photo firmware-photo-missing crt-inset" aria-hidden="true">
+            <span>Melodee</span>
+          </figure>
+          <div class="firmware-body">
+            <p class="synthwave-kicker">keremimo</p>
+            <div class="firmware-title-row">
+              <h2 class="firmware-title" id="firmware-melodee">Melodee</h2>
+              <a
+                class="firmware-anchor"
+                href="#melodee"
+                aria-label="Link to Melodee"
+                title="Link to Melodee"
+                >#</a
+              >
+            </div>
+            <p class="firmware-status">
+              <span class="firmware-tag" data-support="none">Not supported by this editor</span
+              ><span>Latest 0.11.1</span>
+            </p>
+            <p class="firmware-blurb">
+              A Felucca fork that follows Felucca 1.0's design and adds engines of its own, among
+              them CZ-1, which plays Casio CZ-1 tones, with all 64 of Casio's preset tones, and
+              takes Casio's SysEx. It installs from its own browser page, which saves a backup first
+              and can return the FM1 to M-VAVE's V15, and it has its own web editor.
+            </p>
+            <ul class="firmware-links">
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://keremimo.github.io/melodee/"
+                  rel="noopener"
+                  target="_blank"
+                  >Install ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://keremimo.github.io/melodee/webapp/editor/"
+                  rel="noopener"
+                  target="_blank"
+                  >Editor ↗</a
+                >
+              </li>
+              <li>
+                <a
+                  class="hero-action firmware-link"
+                  href="https://github.com/keremimo/melodee"
+                  rel="noopener"
+                  target="_blank"
+                  >Source ↗</a
+                >
+              </li>
+            </ul>
+          </div>
+        </article>
         <article class="firmware-entry synthwave-panel" id="sloop" aria-labelledby="firmware-sloop">
           <figure class="firmware-photo crt-inset">
             <img
@@ -634,7 +874,7 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Beta</span>
+              ><span>Beta · Latest 0.10.1</span>
             </p>
             <p class="firmware-blurb">
               A groovebox in the spirit of ReBirth: a 909, an 808, two 303s with an acid line
