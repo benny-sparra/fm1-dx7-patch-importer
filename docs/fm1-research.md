@@ -93,7 +93,7 @@ Commands of its own, all under the Yamaha ID with a sub-ID it assigns (`F0 43 00
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `7D 10 <slot> <sum>`            | Reads stored preset `slot` (0–127). The reply carries the 128-byte packed DX7 voice and a 59-byte settings record holding that preset's effects, effect order, and engine choice.                                                              |
 | `7D 04 <slot> <155> <68> <sum>` | Writes a preset exactly: the voice as a 155-byte edit buffer, then the 59-byte record in 8-into-7 groups. 231 bytes. Its Presets page reads each back to check it and waits 3 s between writes, because closer writes were heard as crackling. |
-| `7D 20 <pattern> <part> …`      | Writes eight steps of a sequencer pattern and its settings (177 bytes); a separate memory-read request reads patterns back.                                                                                                                    |
+| `7D 20 <pattern> <part> …`      | Writes eight steps of a sequencer pattern and its settings (177 bytes); a separate memory-read request reads patterns back. Layout under "Writing a sequencer pattern".                                                                        |
 
 **Its backup file. Confirmed** (two files from **Save a backup** on `FM-1_089`, 2026-09-29, 256
 messages). The `.syx` file is 29,568 bytes: 128 preset writes of 231 bytes each, in slot order,
@@ -577,6 +577,70 @@ need the preset read and write commands above (`docs/feature-backlog.md`, FM-1+V
 From 2026-10-04 the library keeps Virtual Analog presets read with `7D 10` or from a backup file,
 as the 128 voice bytes the read returns and the record; preset 097's voice bytes from the
 2026-10-01 backup pack into exactly the bytes the read returned.
+
+#### Writing a sequencer pattern (from FM-1 Pulses, reviewed 2026-10-07)
+
+FM-1 Pulses (https://github.com/mene311/fm1-pulses, live at https://mene311.github.io/fm1-pulses/)
+is mene311's browser sequence generator for FM-1+VA. It writes generated phrases into the FM1's
+16 sequencer patterns with `7D 20`, and checks its writes with the raw memory read `7D 11`. Its
+repository carries no licence, so all rights stay with its author: record facts from it here, and
+never copy its code. Everything below is **Likely**: its author reports it working on their FM1,
+and its encoder is said to match `jbschooley/Virtual-FM-1` (`sync/Fm1Seq.cpp`) and a Python
+encoder (`fm1pat.py`) byte for byte, but the editor has not sent any of it. The editor may send
+neither `7D 20` nor `7D 11` until each has its own approval recorded in AGENTS.md.
+
+**The pattern write.** One message carries eight steps, 177 bytes in all:
+
+```
+F0 43 00 7D 20 <pattern> <part> <save> <length> <rate> <tempo lo> <tempo hi> <gate> <swing> <voice>
+              8 × ( <step rate> <note count> <note 1–9> <velocity 1–9> )
+              <sum> F7
+```
+
+| Field                  | Values                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| `pattern`              | 0–15, the FM1's 16 sequencer patterns                                           |
+| `part`                 | 0–7, which eight steps the message carries (steps 8·part to 8·part + 7)         |
+| `save`                 | 1 stores the pattern; set only on a pattern's last message, 0 on the others     |
+| `length`               | 1–64 steps                                                                      |
+| `rate`, step rate      | 0–9: 1/1, 1/2, 1/4, 1/4T, 1/8, 1/8T, 1/16, 1/16T, 1/32, 1/32T                   |
+| `tempo lo`, `tempo hi` | 30–300 BPM as two seven-bit bytes, low first                                    |
+| `gate`                 | 5–100 (%)                                                                       |
+| `swing`                | 50–75 (%)                                                                       |
+| `voice`                | sent as 0; a pattern has not stored its own voice since `FM-1_060`              |
+| note count             | 0–9 notes on the step                                                           |
+| notes, velocities      | nine note bytes (0–127), then nine velocity bytes (1–127); unused entries are 0 |
+
+The checksum is `ysum`, but unlike the backup file's preset writes it covers every byte after
+`7D`, the command byte `20` included. A pattern takes max(2, ⌈length / 8⌉) messages, so even a pattern of eight steps or fewer
+sends two. FM-1 Pulses sends them 60 ms apart and waits up to 2.5 s for a reply to each, which
+arrives as the other commands' replies do (`F0 7D <packed> F7`).
+
+**It is refused while the sequencer plays.** The FM1 answers a pattern write with status 3 while
+its sequencer is playing; the other statuses read as the preset commands' do (1 a value out of
+range, 2 damaged in transit). FM-1 Pulses tells the user to switch SEQ off, not only to press
+STOP, and retries a status 3 once after 400 ms, because the FM1 can still be busy with the previous
+write. Whether STOP alone is enough was not recorded as tested.
+
+**The raw memory read.** `7D 11 <address: five seven-bit bytes, low first> <length: two seven-bit
+bytes, low first> <sum>` reads a block of the FM1's memory, and FM-1 Pulses uses it to read back a
+pattern it wrote. It is the read AGENTS.md names as needing its own approval. FM-1 Pulses does not
+record the addresses of the patterns.
+
+**The reply's length field.** FM-1 Pulses decodes a reply's data length as unpacked bytes 7 and 8
+joined as `byte 7 | (byte 8 << 8)`; its own Bluetooth probe notes that both are seven-bit groups,
+so the field is `byte 7 | (byte 8 << 7)` and the first form cannot give a length of 128 or more.
+Neither tool uses the value. The editor's preset read checks the reply's status and the preset's
+size rather than this field, so a parser that does read it should take the seven-bit form.
+
+**Bluetooth carries notes but not FM-1+VA's commands. Seen once** by mene311 (`FM-1_093` over
+Bluetooth from Android Chrome, 2026-10-04, Web Bluetooth to the standard BLE-MIDI service
+`03B80E5A-EDE8-4B33-A751-6CE34EC4C700`, characteristic `7772E5DB-3868-4112-A1A9-F2669D106BF3`).
+Note On and Off reached the FM1 and its sequencer's notes came back. Three `7D 11` reads with the
+sequencer stopped got no reply within 4 s, and a `7D 20` write saved to pattern 15 did not land.
+So any Bluetooth connection the editor offers carries notes and controllers only, and preset reads
+and writes, and firmware identification until it is tested, stay on USB. Two Bluetooth drops in
+the first minute were seen in the same session.
 
 #### FM-1_096 (reviewed 2026-10-06)
 
