@@ -396,7 +396,9 @@ open everything an earlier release could have saved.
   `npm run build` starts with `scripts/check-deploy-branch.mjs`, which fails when
   `WORKERS_CI_BRANCH` names another branch; keep it first in the build script. On 2026-10-07 a push
   to an unmerged branch replaced the site and took the firmware page with it, which
-  `e2e/firmware.e2e.ts` now watches for.
+  `e2e/firmware.e2e.ts` now watches for. The hourly **Live site** workflow checks that
+  fm1-editor.com still serves it (`scripts/check-live-firmware-page.mjs`), since a deploy that
+  bypasses both checks would otherwise go unnoticed.
 
 ### Images and generated assets
 

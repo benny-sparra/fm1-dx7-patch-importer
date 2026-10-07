@@ -20,6 +20,12 @@ than `main`; local and CI builds, which do not set it, are unaffected. Builds fo
 should also be switched off in the Worker's build settings. If a branch does reach production,
 redeploy `main`'s latest build or roll back to it from the Worker's deployments.
 
+The **Live site** workflow (`.github/workflows/live-site.yml`) fetches
+https://fm1-editor.com/firmware/ every hour and fails unless it is the firmware list, so a deploy
+that loses the page, from any cause, fails a run and GitHub emails the repository's owner. Run it
+from the Actions tab after changing Cloudflare settings, or locally with
+`npm run live:firmware:check`.
+
 ## Responsive image assets
 
 The full-size WebPs in `src/assets/` are the source images and the largest browser fallbacks.
