@@ -607,6 +607,7 @@ export default {
       'Este bibliotecário precisa de um navegador compatível com Web MIDI e SysEx, como Chrome, Edge, Firefox ou Opera. O Chrome no Android também funciona.',
     localOnly: 'Seus sons ficam neste navegador',
     projectLinks: 'Links do projeto',
+    firmwareLink: 'Firmwares do FM1',
     reportIssue: 'Relatar um problema',
     version: 'Versão {{version}}',
     disclaimer:
