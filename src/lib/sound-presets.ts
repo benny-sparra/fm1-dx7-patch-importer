@@ -57,10 +57,16 @@ function setOperatorEnvelopes(
   }
 }
 
-function setEffect(
+/**
+ * Replaces the complete effect chain with `values`, every other effect setting at 0, as each
+ * starter does. FM-1+VA's Distortion type, Bitcrush, and effect order, which no starter sets, stay
+ * as they were.
+ */
+export function replaceEffectChain(
   parameters: Uint8Array,
   values: readonly [id: EffectParameterId, value: number][],
 ) {
+  parameters.fill(0, FM1_EFFECT_PARAMETER_START, FM1_VA_DISTORTION_TYPE_INDEX)
   for (const [id, value] of values) {
     parameters[getEffectParameterDefinition(id).editorIndex] = value
   }
@@ -78,14 +84,11 @@ export function applySoundPreset(parameters: Uint8Array, presetId: SoundPresetId
   const preset = soundPresets.find(({ id }) => id === presetId)
   if (!preset) throw new RangeError(`Unknown sound preset: ${presetId}`)
   next[getGlobalParameterDefinition('global.algorithm').voiceIndex] = preset.algorithm
-  // Each starter replaces the complete effect chain. FM-1+VA's Distortion type, which no starter
-  // sets, stays as it was.
-  next.fill(0, FM1_EFFECT_PARAMETER_START, FM1_VA_DISTORTION_TYPE_INDEX)
 
   switch (presetId) {
     case 'soft-pad':
       setOperatorEnvelopes(next, [42, 32, 24, 34], [99, 92, 82, 0])
-      setEffect(next, [
+      replaceEffectChain(next, [
         ['effect.reverb.enabled', 1],
         ['effect.reverb.space', 1],
         ['effect.reverb.decay', 52],
@@ -98,7 +101,7 @@ export function applySoundPreset(parameters: Uint8Array, presetId: SoundPresetId
       break
     case 'bright-pluck':
       setOperatorEnvelopes(next, [99, 74, 56, 78], [99, 68, 24, 0])
-      setEffect(next, [
+      replaceEffectChain(next, [
         ['effect.reverb.enabled', 1],
         ['effect.reverb.space', 0],
         ['effect.reverb.decay', 22],
@@ -111,7 +114,7 @@ export function applySoundPreset(parameters: Uint8Array, presetId: SoundPresetId
       break
     case 'steady-organ':
       setOperatorEnvelopes(next, [99, 99, 99, 99], [99, 99, 99, 99])
-      setEffect(next, [
+      replaceEffectChain(next, [
         ['effect.reverb.enabled', 1],
         ['effect.reverb.space', 0],
         ['effect.reverb.decay', 18],
@@ -134,7 +137,7 @@ export function applySoundPreset(parameters: Uint8Array, presetId: SoundPresetId
       next[getGlobalParameterDefinition('global.lfoKeySync').voiceIndex] = 1
       next[getGlobalParameterDefinition('global.lfoWave').voiceIndex] = 4
       next[getGlobalParameterDefinition('global.pitchModSensitivity').voiceIndex] = 2
-      setEffect(next, [
+      replaceEffectChain(next, [
         ['effect.reverb.enabled', 1],
         ['effect.reverb.space', 1],
         ['effect.reverb.decay', 34],
@@ -146,7 +149,7 @@ export function applySoundPreset(parameters: Uint8Array, presetId: SoundPresetId
       ])
       break
     case 'warm-filter':
-      setEffect(next, [
+      replaceEffectChain(next, [
         ['effect.filter.enabled', 1],
         ['effect.filter.type', 0],
         ['effect.filter.cutoff', 58],
@@ -158,7 +161,7 @@ export function applySoundPreset(parameters: Uint8Array, presetId: SoundPresetId
       ])
       break
     case 'wide-space':
-      setEffect(next, [
+      replaceEffectChain(next, [
         ['effect.reverb.enabled', 1],
         ['effect.reverb.space', 1],
         ['effect.reverb.decay', 62],

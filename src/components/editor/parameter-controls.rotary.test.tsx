@@ -109,3 +109,33 @@ describe('RotaryParameterControl pointer', () => {
     expect(pointerTransform(30)).toBe('rotate(135 38 38)')
   })
 })
+
+describe('RotaryParameterControl disabled', () => {
+  it('leaves the tab order and ignores the pointer and keys', () => {
+    const onChange = vi.fn()
+    const onGestureStart = vi.fn()
+    render(
+      <RotaryParameterControl
+        accessibleLabel="Bitcrush Bits"
+        disabled
+        label="Bits"
+        max={16}
+        min={1}
+        onChange={onChange}
+        onGestureEnd={ignore}
+        onGestureStart={onGestureStart}
+        value={8}
+      />,
+    )
+    const knob = screen.getByRole('slider', { name: 'Bitcrush Bits' })
+
+    fireEvent.keyDown(knob, { key: 'ArrowUp' })
+    fireEvent.pointerDown(knob, { clientY: 200, pointerId: 1 })
+    fireEvent.pointerMove(knob, { clientY: 100, pointerId: 1 })
+
+    expect(knob.getAttribute('aria-disabled')).toBe('true')
+    expect(knob.hasAttribute('tabindex')).toBe(false)
+    expect(onChange).not.toHaveBeenCalled()
+    expect(onGestureStart).not.toHaveBeenCalled()
+  })
+})

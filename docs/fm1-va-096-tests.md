@@ -5,7 +5,7 @@
 [`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`](hardware-runs/fm1-va-write-timing-2026-10-06.md).
 §3 run the same day, with B8 (Phaser moved to the top) added; ledger
 [`docs/hardware-runs/fm1-va-bitcrush-order-2026-10-06.md`](hardware-runs/fm1-va-bitcrush-order-2026-10-06.md).
-§1, §2, §4, §5, and §7 not run yet.
+§1, §2, §4, §5, §6b (added 2026-10-07), and §7 not run yet.
 **Scope:** whether the facts `docs/fm1-research.md` records under "FM-1_096", all **Likely** and
 read from Baud Girl's web code and preset packs, hold on an FM1; whether the editor's handling of
 8-Bit presets (#191) keeps them safe; and where the settings FM-1_096 added live in the record. The
@@ -165,6 +165,23 @@ the first that crackles or stops on a mismatch; the timing before it is the fast
 the FM1 also runs an earlier release you can test, such as `FM-1_093`, repeat T2 there: the 3 s
 came from Baud Girl's page for those releases, so a shorter gap may hold only from `FM-1_096`.
 
+## 6b. A single DX7 patch (D1)
+
+**D1.** The FM-1_097 manual says a single DX7 patch is held until SAVE, where `FM-1_089` stored it
+at once (`docs/fm1-research.md`, "FM-1_097 beta"). The editor never sends FM-1+VA a single-voice
+dump, so send this one from another tool, such as Dexed or SysEx Librarian, using a single-patch
+`.syx` file (the editor's **Download patch** writes one).
+
+1. On the FM1, select the FM test preset and read it in the probe.
+2. Send the single patch. Record whether the name changes and the unsaved-changes dot shows.
+3. Without pressing SAVE, step PRESETS away and back. Record whether the preset is the patch or the
+   one read in step 1.
+4. Read the FM test preset in the probe again. Expected, if the manual holds: the bytes from step 1,
+   unchanged.
+
+Run it on the release the FM1 runs, and record which. If the preset is unchanged, a later change
+may let `sendsSingleVoiceDumps` include that release and later ones.
+
 ## 7. Clean-up
 
 In the Device Manager, **Install a backup** with the §0.2 presets file, then **Send**, which
@@ -211,6 +228,7 @@ them. Check that GLOBE's MIDI Channel is All again.
 | T2 0 ms                |        |               |
 | T3                     |        |               |
 | T4                     |        |               |
+| D1 (release: )         |        |               |
 
 Record each result in `docs/fm1-research.md`, "FM-1_096", raising a fact from **Likely** to
 **Confirmed, seen once** where the FM1 agrees, and add the captures as fixtures in

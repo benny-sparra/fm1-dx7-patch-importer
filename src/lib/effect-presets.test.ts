@@ -1,12 +1,19 @@
 import { describe, expect, it } from 'vitest'
 
-import { applyEffectPreset, effectOfParameter, effectPresets } from '@/lib/effect-presets'
+import {
+  applyEffectPreset,
+  bitcrushPresets,
+  bitcrushPresetValues,
+  effectOfParameter,
+  effectPresets,
+} from '@/lib/effect-presets'
 import {
   FM1_EFFECT_PARAMETER_COUNT,
   fm1EffectParameters,
   getEffectParameterDefinition,
   type EffectParameterId,
 } from '@/lib/fm1-parameters'
+import { fm1VaBitcrushSettings } from '@/lib/fm1-va-record-effects'
 
 describe('effect presets', () => {
   it('gives every preset a unique id', () => {
@@ -62,5 +69,36 @@ describe('effect presets', () => {
       Array(FM1_EFFECT_PARAMETER_COUNT - 4).fill(1),
     )
     expect(settings.every((value) => value === 1)).toBe(true)
+  })
+})
+
+describe('Bitcrush presets', () => {
+  // Their names share one list of translations with the other effects' presets.
+  it('gives every preset an id no other effect preset uses', () => {
+    const ids = [...effectPresets, ...bitcrushPresets].map(({ id }) => id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('switches Bitcrush on and keeps every setting an integer inside its range', () => {
+    for (const { values } of bitcrushPresets) {
+      expect(values).toHaveLength(fm1VaBitcrushSettings.length)
+      expect(values[0]).toBe(1)
+      values.forEach((value, index) => {
+        const { max, min } = fm1VaBitcrushSettings[index]
+        expect(Number.isInteger(value)).toBe(true)
+        expect(value).toBeGreaterThanOrEqual(min)
+        expect(value).toBeLessThanOrEqual(max)
+      })
+    }
+  })
+
+  it('runs from gentle to harsh, with no more bits than the one before', () => {
+    const bits = bitcrushPresets.map(({ values }) => values[1])
+    expect(bits).toEqual([...bits].sort((first, second) => second - first))
+  })
+
+  it('looks up a preset by id and rejects an unknown one', () => {
+    expect(bitcrushPresetValues('eightBit')).toEqual([1, 8, 72, 100])
+    expect(() => bitcrushPresetValues('unknown' as never)).toThrow(RangeError)
   })
 })

@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { AlgorithmPanel } from '@/components/editor/editor-workspace'
-import { LfoWaveControl } from '@/components/editor/parameter-controls'
+import { LfoWaveControl, PicturePickerControl } from '@/components/editor/parameter-controls'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { LoadNamedBankDialog } from '@/components/patches/load-named-bank-dialog'
 import { createNamedBank } from '@/lib/named-bank'
@@ -92,7 +92,7 @@ describe('reduced motion', () => {
 
     expect(
       reducedMotionBlocks.some((block) =>
-        /\.bank-tab\[data-drop-target\]::after,\s*\.patch-cell\[data-dragging\]::after\s*\{\s*animation:\s*none;/.test(
+        /\.bank-tab\[data-drop-target\]::after,\s*\.effect-box\[data-dragging\]::after,\s*\.patch-cell\[data-dragging\]::after\s*\{\s*animation:\s*none;/.test(
           block,
         ),
       ),
@@ -182,16 +182,17 @@ describe('reduced motion', () => {
         onStopCompare={noop}
         onNameBlur={noop}
         onNameChange={noop}
-        onPreset={noop}
-        onInitVoice={noop}
-        onRandomise={noop}
         onRedo={noop}
         onResend={noop}
         onRevert={noop}
         onSave={noop}
         onUndo={noop}
         patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
-        presetsMenuRef={createRef<HTMLDetailsElement>()}
+        presets={{
+          items: [],
+          label: 'Voice presets',
+          menuRef: createRef<HTMLDetailsElement>(),
+        }}
         saveMenuRef={createRef<HTMLDetailsElement>()}
         syncState="sending"
       />,
@@ -218,16 +219,17 @@ describe('reduced motion', () => {
           onStopCompare={noop}
           onNameBlur={noop}
           onNameChange={noop}
-          onPreset={noop}
-          onInitVoice={noop}
-          onRandomise={noop}
           onRedo={noop}
           onResend={noop}
           onRevert={noop}
           onSave={noop}
           onUndo={noop}
           patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
-          presetsMenuRef={createRef<HTMLDetailsElement>()}
+          presets={{
+            items: [],
+            label: 'Voice presets',
+            menuRef: createRef<HTMLDetailsElement>(),
+          }}
           saveMenuRef={createRef<HTMLDetailsElement>()}
           syncState="live"
         />
@@ -241,11 +243,17 @@ describe('reduced motion', () => {
           operatorFrequencies={['1.00×', '1.00×', '1.00×', '1.00×', '1.00×', '1.00×']}
         />
         <LfoWaveControl onChange={noop} value={0} />
+        <PicturePickerControl
+          label="Waveform"
+          onChange={noop}
+          options={[{ label: 'Saw', picture: () => null }]}
+          value={0}
+        />
       </>,
     )
 
     const arrows = container.querySelectorAll('svg.lucide-chevron-down')
-    expect(arrows).toHaveLength(4)
+    expect(arrows).toHaveLength(5)
     for (const arrow of arrows) {
       expect(classTokens(arrow)).toContain('motion-reduce:transition-none')
     }

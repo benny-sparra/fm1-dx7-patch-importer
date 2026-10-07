@@ -945,12 +945,13 @@
   }
 
   /*
-   * Marching ants, MacPaint's crawling selection outline, round the slot
-   * being dragged and the bank tab it would be copied to. A dashed border
+   * Marching ants, MacPaint's crawling selection outline, round the slot or
+   * effect box being dragged and the bank tab a slot would be copied to. A dashed border
    * cannot move, so each edge is a striped strip whose stripes slide a pixel
    * at a time, clockwise, as the original's did. They show only mid-drag.
    */
   .bank-tab[data-drop-target]::after,
+  .effect-box[data-dragging]::after,
   .patch-cell[data-dragging]::after {
     content: '';
     position: absolute;
@@ -978,6 +979,7 @@
   /* Without the motion, the outline stays dashed and still. */
   @media (prefers-reduced-motion: reduce) {
     .bank-tab[data-drop-target]::after,
+    .effect-box[data-dragging]::after,
     .patch-cell[data-dragging]::after {
       animation: none;
     }

@@ -106,13 +106,13 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
     expect(within(card).getByText('Virtual Analogue preset')).toBeTruthy()
   })
 
-  it('offers copying the slot, but not editing it or downloading it as a DX7 patch', async () => {
+  it('offers editing and copying the slot, but not downloading it as a DX7 patch', async () => {
     const { user } = renderPage()
 
     await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
 
     expect(screen.getByRole('menuitem', { name: 'Copy to…' })).toBeTruthy()
-    expect(screen.queryByRole('menuitem', { name: 'Edit' })).toBeNull()
+    expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeTruthy()
     expect(screen.queryByRole('menuitem', { name: /Download/ })).toBeNull()
   })
 

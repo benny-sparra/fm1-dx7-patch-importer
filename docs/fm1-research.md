@@ -93,7 +93,7 @@ Commands of its own, all under the Yamaha ID with a sub-ID it assigns (`F0 43 00
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `7D 10 <slot> <sum>`            | Reads stored preset `slot` (0–127). The reply carries the 128-byte packed DX7 voice and a 59-byte settings record holding that preset's effects, effect order, and engine choice.                                                              |
 | `7D 04 <slot> <155> <68> <sum>` | Writes a preset exactly: the voice as a 155-byte edit buffer, then the 59-byte record in 8-into-7 groups. 231 bytes. Its Presets page reads each back to check it and waits 3 s between writes, because closer writes were heard as crackling. |
-| `7D 20 <pattern> <part> …`      | Writes eight steps of a sequencer pattern and its settings (177 bytes); a separate memory-read request reads patterns back.                                                                                                                    |
+| `7D 20 <pattern> <part> …`      | Writes eight steps of a sequencer pattern and its settings (177 bytes); a separate memory-read request reads patterns back. Layout under "Writing a sequencer pattern".                                                                        |
 
 **Its backup file. Confirmed** (two files from **Save a backup** on `FM-1_089`, 2026-09-29, 256
 messages). The `.syx` file is 29,568 bytes: 128 preset writes of 231 bytes each, in slot order,
@@ -362,11 +362,88 @@ replaced, is not known.
 modules call unset showed as the 20 kHz maximum. One reading gives no scale. Bytes 24 and 25
 presumably hold others of the section's settings.
 
+**A Virtual Analog preset's oscillator and filter settings. Seen once each** (`FM-1_093`,
+2026-10-04, preset 097 erased to VA and saved; map in
+[`docs/hardware-runs/fm1-va-byte-map-2026-10-04.json`](hardware-runs/fm1-va-byte-map-2026-10-04.json)).
+Each setting was sent as its Control Change, saved, and read back; no voice byte changed for any of
+them, so these settings live in the record alone.
+
+| Record byte | Setting                                   | Stored as                                                          |
+| ----------: | ----------------------------------------- | ------------------------------------------------------------------ |
+|          19 | Waveform                                  | Sine `01`, Saw `02`, Tri `03`, Square `04`: the choice plus one    |
+|          20 | Super                                     | The value the screen shows: 50 as `32`, 100 as `64`                |
+|          21 | Detune                                    | The value the screen shows: 50 as `32` (a new preset's), 100 `64`  |
+|          26 | Filter Type in bits 0–1, Key Tracking 2–3 | The choice: LP12 0 to HP 3, and Key Tracking 0, 33, 67, 100 as 0–3 |
+
+Byte 26 of the new preset was `80`, so LP12 with Key Tracking 0. LP24 made it `81`, Key Tracking 33
+then `85`, HP `87`, and Key Tracking 100 `8F`. Bit 7 stays set, as it does in an FM preset whose
+Filter has been switched (above); what it means is still not known. Sending Saw, or Detune 50,
+changed nothing, because a new preset already holds them.
+
+**Every row of a Virtual Analog preset. Confirmed** (Baud Girl's Device Manager, app build
+`8405c164d16df69a`, `app/editmodel.js` and `fm1preset.js`, read 2026-10-06). Its edit model
+says it reads each row from the firmware's own row tables (`ui_screens.cpp` `k_vat`, `k_vaosc`,
+`k_vafilt`, `k_lfo`) and checks them in its own tests. It agrees with every byte mapped above,
+and explains the FM Filter's Cutoff: `D0` is `80` | 80, which the firmware's table shows as
+5.0k, the 5 kHz it was set to. Bit 7 of byte 26 and of the filter's other bytes marks the
+setting as set: without it, the row reads its default. Voice bytes are the packed voice's, with
+the operator FM-1+VA calls 6 stored first.
+
+| Where         | Row                  | Stored as                                                                                                | Default without the mark |
+| ------------- | -------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------ |
+| Record 19     | Waveform             | Sine `01`, Saw `02`, Triangle `03`, Square `04`                                                          | Saw                      |
+| Record 20     | Super                | 0–100                                                                                                    | 0 above 100              |
+| Record 21     | Detune               | 0–100                                                                                                    | 50 above 100             |
+| Record 22     | Drift                | 0–100                                                                                                    | 0 above 100              |
+| Record 45     | Sub                  | `80` \| 0–100                                                                                            | 0                        |
+| Record 46     | Noise                | `80` \| 0–100                                                                                            | 0                        |
+| Record 48     | PWM                  | `80` \| 0–100                                                                                            | 0                        |
+| Record 26     | Filter Type, Key Tr. | `80` \| Type in bits 0–1, Key Tracking in bits 2–3                                                       | LP12, 0                  |
+| Record 23     | Cutoff               | `80` \| 0–100, shown from the firmware's table, 20 Hz to 20k                                             | 100 (20k)                |
+| Record 24     | Resonance            | `80` \| 0–100                                                                                            | 0                        |
+| Record 25     | Filter Envelope      | `80` \| 0–100                                                                                            | 0                        |
+| Record 51     | Filter Decay         | `80` \| 0–100                                                                                            | 0                        |
+| Record 49     | Filter Shape         | `80` \| 0–100                                                                                            | 0                        |
+| Record 47     | Filter Velocity      | `80` \| 0–100                                                                                            | 0                        |
+| Record 50     | LFO to Cutoff        | `80` \| 0–100                                                                                            | 0                        |
+| Voice 14      | Level                | 0–99, operator 6's Output Level                                                                          |                          |
+| Voice 13      | Velocity to Level    | 0–7 in bits 2–4, operator 6's Key Velocity                                                               |                          |
+| Record 58     | Mono                 | `00` Off, `01` On                                                                                        |                          |
+| Voice 116     | LFO Wave, Sync, PMS  | Sync bit 0, Wave bits 1–3 (Triangle, Saw Down, Saw Up, Square, Sine, S&Hold), Pitch Sensitivity bits 4–6 |                          |
+| Voice 112–115 | LFO                  | Speed, Delay, Pitch Mod Depth, Amp Mod Depth, 0–99                                                       |                          |
+| Record 53     | Envelope On          | Bit 6                                                                                                    | Off                      |
+| Record 54–57  | Attack to Release    | 0–100                                                                                                    |                          |
+
+The Device Manager also gives operator 6's four rates and levels as the amplitude envelope of
+every note, rows the FM1 itself does not show. The editor leaves them, and the other operators'
+bytes, as read. **Confirmed on hardware, seen once** (`FM-1_096`, 2026-10-07, preset 032, a new
+Virtual Analog preset; [`docs/fm1-va-editor-tests.md`](fm1-va-editor-tests.md) V1–V26, map
+[`fm1-va-editor-map-2026-10-07.json`](hardware-runs/fm1-va-editor-map-2026-10-07.json)): each
+of the 18 controllers and 8 rows changed by hand changed exactly the byte, or bits, the table
+gives and nothing else. CC value 127 stored 100 (`64`, or `E4` with the mark) in a record row and
+99 (`63`) in a voice row, and CC 74 at 0 stored `80`. The three LFO rows in voice 116 each moved
+only their own bits.
+
+**How the FM1 draws Filter Shape. Seen once** (`FM-1_096`, 2026-10-07, V27, preset 032 with
+Filter Envelope 100 and Filter Decay 50, Shape sent as CC 54 and photographed, not saved). The
+Shape row shows a small picture rather than a number:
+
+| Shape | CC 54 | Picture                                       |
+| ----: | ----: | --------------------------------------------- |
+|     0 |     0 | Straight up, flat top, straight down: a block |
+|    50 |    64 | Slope up, flat top, straight down             |
+|   100 |   127 | Straight up, flat top, slope down             |
+
+Values between these were not photographed, so how the picture moves from one to the next, and
+what it does to the sound, is not known yet. The editor does not draw it.
+
 **Mapping the record.** A development build (`npm run dev`) has an **FM-1+VA preset probe (dev)**
 in the footer. It reads one preset and shows its record and voice byte by byte, marking each byte
 that changed since that preset's last read, and **Copy capture** puts the reply, both parts, and
 the changed bytes on the clipboard as JSON for a fixture. Change one setting on the FM1, press
-SAVE, read the same preset again, and record each byte here.
+SAVE, read the same preset again, and record each byte here. Its **Map a setting** does this for a
+Virtual Analog preset: it sends one setting as its Control Change, or notes one changed by hand,
+and logs the bytes the read after SAVE finds changed, with **Copy map** for the JSON.
 
 #### Writing a stored preset
 
@@ -485,9 +562,11 @@ Algorithm is heard from the next note.
   to Cutoff 0; LFO Wave Triangle, Speed 35, Pitch Mod Depth, Amp Mod Depth, and Delay 0, Pitch
   Sensitivity 3, Sync Off; and Envelope Off with Attack, Decay, Sustain, and Release 0. Filter
   Shape was not read clearly.
-- **Side effect. Needs hardware test.** The manual says CC 70, 72, 73, or 75 received while the
-  preset's Envelope is Off switches it On, as holding ENV does. The 2026-10-04 run sent CC 73 with
-  the Envelope already On, so it did not show this; stepping PRESETS away and back did return the
+- **Side effect. Confirmed, seen once** (`FM-1_096`, 2026-10-07, V15). The manual says CC 70,
+  72, 73, or 75 received while the preset's Envelope is Off switches it On, as holding ENV does.
+  CC 73 sent with the Envelope Off switched it On on the screen, and after SAVE record 53 gained
+  bit 6 (`40`) beside the Attack in byte 54. The 2026-10-04 run sent CC 73 with the Envelope
+  already On, so it did not show this; stepping PRESETS away and back did return the
   switch to the stored preset's setting. Envelope is saved per preset from `FM-1_092` and starts Off, so an
   editor that sends these changes the preset's Envelope switch too.
 - **CC 7** is volume, as MASTER sets it, only while the MIDI and FX channels differ; on a shared
@@ -519,6 +598,70 @@ need the preset read and write commands above (`docs/feature-backlog.md`, FM-1+V
 From 2026-10-04 the library keeps Virtual Analog presets read with `7D 10` or from a backup file,
 as the 128 voice bytes the read returns and the record; preset 097's voice bytes from the
 2026-10-01 backup pack into exactly the bytes the read returned.
+
+#### Writing a sequencer pattern (from FM-1 Pulses, reviewed 2026-10-07)
+
+FM-1 Pulses (https://github.com/mene311/fm1-pulses, live at https://mene311.github.io/fm1-pulses/)
+is mene311's browser sequence generator for FM-1+VA. It writes generated phrases into the FM1's
+16 sequencer patterns with `7D 20`, and checks its writes with the raw memory read `7D 11`. Its
+repository carries no licence, so all rights stay with its author: record facts from it here, and
+never copy its code. Everything below is **Likely**: its author reports it working on their FM1,
+and its encoder is said to match `jbschooley/Virtual-FM-1` (`sync/Fm1Seq.cpp`) and a Python
+encoder (`fm1pat.py`) byte for byte, but the editor has not sent any of it. The editor may send
+neither `7D 20` nor `7D 11` until each has its own approval recorded in AGENTS.md.
+
+**The pattern write.** One message carries eight steps, 177 bytes in all:
+
+```
+F0 43 00 7D 20 <pattern> <part> <save> <length> <rate> <tempo lo> <tempo hi> <gate> <swing> <voice>
+              8 × ( <step rate> <note count> <note 1–9> <velocity 1–9> )
+              <sum> F7
+```
+
+| Field                  | Values                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| `pattern`              | 0–15, the FM1's 16 sequencer patterns                                           |
+| `part`                 | 0–7, which eight steps the message carries (steps 8·part to 8·part + 7)         |
+| `save`                 | 1 stores the pattern; set only on a pattern's last message, 0 on the others     |
+| `length`               | 1–64 steps                                                                      |
+| `rate`, step rate      | 0–9: 1/1, 1/2, 1/4, 1/4T, 1/8, 1/8T, 1/16, 1/16T, 1/32, 1/32T                   |
+| `tempo lo`, `tempo hi` | 30–300 BPM as two seven-bit bytes, low first                                    |
+| `gate`                 | 5–100 (%)                                                                       |
+| `swing`                | 50–75 (%)                                                                       |
+| `voice`                | sent as 0; a pattern has not stored its own voice since `FM-1_060`              |
+| note count             | 0–9 notes on the step                                                           |
+| notes, velocities      | nine note bytes (0–127), then nine velocity bytes (1–127); unused entries are 0 |
+
+The checksum is `ysum`, but unlike the backup file's preset writes it covers every byte after
+`7D`, the command byte `20` included. A pattern takes max(2, ⌈length / 8⌉) messages, so even a pattern of eight steps or fewer
+sends two. FM-1 Pulses sends them 60 ms apart and waits up to 2.5 s for a reply to each, which
+arrives as the other commands' replies do (`F0 7D <packed> F7`).
+
+**It is refused while the sequencer plays.** The FM1 answers a pattern write with status 3 while
+its sequencer is playing; the other statuses read as the preset commands' do (1 a value out of
+range, 2 damaged in transit). FM-1 Pulses tells the user to switch SEQ off, not only to press
+STOP, and retries a status 3 once after 400 ms, because the FM1 can still be busy with the previous
+write. Whether STOP alone is enough was not recorded as tested.
+
+**The raw memory read.** `7D 11 <address: five seven-bit bytes, low first> <length: two seven-bit
+bytes, low first> <sum>` reads a block of the FM1's memory, and FM-1 Pulses uses it to read back a
+pattern it wrote. It is the read AGENTS.md names as needing its own approval. FM-1 Pulses does not
+record the addresses of the patterns.
+
+**The reply's length field.** FM-1 Pulses decodes a reply's data length as unpacked bytes 7 and 8
+joined as `byte 7 | (byte 8 << 8)`; its own Bluetooth probe notes that both are seven-bit groups,
+so the field is `byte 7 | (byte 8 << 7)` and the first form cannot give a length of 128 or more.
+Neither tool uses the value. The editor's preset read checks the reply's status and the preset's
+size rather than this field, so a parser that does read it should take the seven-bit form.
+
+**Bluetooth carries notes but not FM-1+VA's commands. Seen once** by mene311 (`FM-1_093` over
+Bluetooth from Android Chrome, 2026-10-04, Web Bluetooth to the standard BLE-MIDI service
+`03B80E5A-EDE8-4B33-A751-6CE34EC4C700`, characteristic `7772E5DB-3868-4112-A1A9-F2669D106BF3`).
+Note On and Off reached the FM1 and its sequencer's notes came back. Three `7D 11` reads with the
+sequencer stopped got no reply within 4 s, and a `7D 20` write saved to pattern 15 did not land.
+So any Bluetooth connection the editor offers carries notes and controllers only, and preset reads
+and writes, and firmware identification until it is tested, stay on USB. Two Bluetooth drops in
+the first minute were seen in the same session.
 
 #### FM-1_096 (reviewed 2026-10-06)
 
@@ -579,6 +722,30 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
   read-back; earlier releases keep the old timing, since none was tested.
 - Two new pattern writes, `7D 21` (a pattern's locks) and `7D 22` (whole steps), are writes the
   editor may not send.
+
+#### FM-1_097 beta (manual read 2026-10-07)
+
+Version 97, a beta announced on 2026-10-07, adds Bluetooth clock sync between two FM-1s, MIDI
+Clock Out (`F8`, with Start, Stop, and Continue, over USB and Bluetooth when set to Always or
+Playing), and the Flow grid sequencer again. Its manual documents no new SysEx message. Two of its
+statements matter to the editor:
+
+- **No way to load a Virtual Analog preset without storing it. Likely.** The Device Manager's
+  Studio plays edits through a copy of the firmware's sound engine running on the computer, and the
+  FM1 plays nothing until **Send** stores the preset with `7D 04`. The firmware's own editor works
+  around the gap rather than using a hidden message, so a Virtual Analog patch the FM1 has not
+  stored is heard only through the sound-setting controllers, and only over a stored Virtual Analog
+  preset. Level, Mono, the LFO's Wave, Amp Mod Depth, Pitch Sensitivity, and Sync, and the Envelope
+  switch have no controller. This is why the editor cannot play an erased or copied Virtual Analog
+  patch as shown, and why **Erase patch…** waits.
+- **A single DX7 patch may now be an unsaved edit. Needs hardware test.** The manual says a
+  single patch "replaces the preset you have selected at once, and nothing is written to memory
+  until you press SAVE". On `FM-1_089` a single-voice dump stored the preset at once (above, "The
+  editor on FM-1+VA"), which is why only M-VAVE's firmware gets one (`sendsSingleVoiceDumps`). If
+  `FM-1_096` or later holds it as an unsaved edit, the editor could send an FM patch to FM-1+VA as
+  one dump rather than 155 parameter changes. Test D1 in
+  [`docs/fm1-va-096-tests.md`](fm1-va-096-tests.md) checks it; until then the editor keeps the
+  parameter changes.
 
 ### Felucca replacement firmware
 

@@ -1,5 +1,5 @@
 import { Check, ChevronDown } from 'lucide-react'
-import { type ComponentProps, useId, useRef, useState } from 'react'
+import { type ComponentProps, type ReactNode, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
@@ -64,6 +64,8 @@ type SwitchParameterControlProps = {
   helpText?: string
   label: string
   onChange: (value: number) => void
+  /** Keeps the name on one line rather than wrapping it in a narrow column. */
+  singleLine?: boolean
   value: number
 }
 
@@ -80,7 +82,12 @@ type SliderParameterControlProps = {
   valueLabel?: (value: number) => string
 }
 
-type RotaryParameterControlProps = Omit<SliderParameterControlProps, 'origin'>
+type RotaryParameterControlProps = Omit<SliderParameterControlProps, 'origin'> & {
+  /** The knob's accessible name where the caption alone is not enough, such as "Bitcrush Bits". */
+  accessibleLabel?: string
+  /** Greys the knob out and ignores the pointer and keys, as a disabled range input does. */
+  disabled?: boolean
+}
 
 export const rangeControlKeys = [
   'ArrowDown',
@@ -94,6 +101,8 @@ export const rangeControlKeys = [
 ]
 
 export function RotaryParameterControl({
+  accessibleLabel,
+  disabled = false,
   helpText,
   label,
   max,
@@ -105,6 +114,7 @@ export function RotaryParameterControl({
   valueLabel = String,
 }: RotaryParameterControlProps) {
   const { t } = useTranslation()
+  const name = accessibleLabel ?? label
   const drag = useRef<{ pointerId: number; startValue: number; startY: number } | null>(null)
   const faceId = `knob-face-${useId().replace(/:/g, '')}`
   const displayValue = valueLabel(value)
@@ -113,7 +123,7 @@ export function RotaryParameterControl({
   const clamp = (nextValue: number) => Math.max(min, Math.min(max, Math.round(nextValue)))
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!rangeControlKeys.includes(event.key)) return
+    if (disabled || !rangeControlKeys.includes(event.key)) return
     event.preventDefault()
     if (!event.repeat) onGestureStart()
 
@@ -136,19 +146,27 @@ export function RotaryParameterControl({
 
   return (
     <div className={cn('grid min-w-0 justify-items-center gap-1', captionClass)}>
-      <span className="flex max-w-full min-w-0 items-center gap-1">
-        <span className="min-w-0 text-balance break-words" title={label}>
-          {label}
-        </span>
-        {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+      {/* The help button flows after the label's last word, so a label that wraps keeps it
+          beside the text rather than at the column's far edge. */}
+      <span className="max-w-full text-center text-balance break-words">
+        <span title={label}>{label}</span>
+        {helpText ? (
+          <span className="ml-1 inline-block align-middle">
+            <HelpPopover label={name} text={helpText} />
+          </span>
+        ) : null}
       </span>
       <div
-        aria-label={label}
+        aria-disabled={disabled || undefined}
+        aria-label={name}
         aria-valuemax={max}
         aria-valuemin={min}
         aria-valuenow={value}
         aria-valuetext={displayValue}
-        className="group relative size-[3.6rem] cursor-ns-resize touch-none rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+        className={cn(
+          'group relative size-[3.6rem] touch-none rounded-full outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+          disabled ? 'cursor-not-allowed opacity-40' : 'cursor-ns-resize',
+        )}
         onBlur={onGestureEnd}
         onKeyDown={handleKeyDown}
         onKeyUp={(event) => {
@@ -159,6 +177,7 @@ export function RotaryParameterControl({
           onGestureEnd()
         }}
         onPointerDown={(event) => {
+          if (disabled) return
           drag.current = { pointerId: event.pointerId, startValue: value, startY: event.clientY }
           event.currentTarget.setPointerCapture(event.pointerId)
           onGestureStart()
@@ -178,8 +197,9 @@ export function RotaryParameterControl({
           onGestureEnd()
         }}
         role="slider"
-        tabIndex={0}
-        title={t('ui.rotaryTitle', { label, value: displayValue })}
+        // A disabled knob leaves the tab order, as a disabled range input does.
+        tabIndex={disabled ? undefined : 0}
+        title={t('ui.rotaryTitle', { label: name, value: displayValue })}
       >
         {/*
           A bevelled knob: a domed face lit from the top left, an arc of
@@ -197,7 +217,7 @@ export function RotaryParameterControl({
             return (
               <line
                 className={
-                  index / 10 <= fraction
+                  !disabled && index / 10 <= fraction
                     ? 'stroke-[var(--operator-color,var(--crt-acc))]'
                     : 'stroke-[var(--crt-line)]'
                 }
@@ -231,7 +251,11 @@ export function RotaryParameterControl({
             transform="rotate(135 38 38)"
           />
           <line
-            className="stroke-[var(--operator-color,var(--crt-acc))] [filter:drop-shadow(0_0_3px_var(--operator-color,var(--crt-acc)))]"
+            className={
+              disabled
+                ? 'stroke-[var(--crt-ink-4)]'
+                : 'stroke-[var(--operator-color,var(--crt-acc))] [filter:drop-shadow(0_0_3px_var(--operator-color,var(--crt-acc)))]'
+            }
             strokeWidth="2.5"
             transform={`rotate(${angle} 38 38)`}
             x1="38"
@@ -243,8 +267,8 @@ export function RotaryParameterControl({
       </div>
       <output
         className={cn(
-          ledClass,
-          'min-w-11 border border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-1.5 py-0.5 text-center text-[19px]',
+          'font-vt323 min-w-11 border border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-1.5 py-0.5 text-center text-[19px]',
+          disabled ? 'text-[var(--crt-ink-4)]' : 'text-[var(--crt-led)]',
         )}
       >
         {displayValue}
@@ -309,6 +333,7 @@ export function SwitchParameterControl({
   helpText,
   label,
   onChange,
+  singleLine = false,
   value,
 }: SwitchParameterControlProps) {
   return (
@@ -318,7 +343,9 @@ export function SwitchParameterControl({
         className="-ml-1 inline-flex min-h-6 min-w-0 items-center gap-2 px-1 transition-colors"
         onChange={(checked) => onChange(checked ? 1 : 0)}
       >
-        <span className="min-w-0 text-balance break-words">{label}</span>
+        <span className={singleLine ? 'whitespace-nowrap' : 'min-w-0 text-balance break-words'}>
+          {label}
+        </span>
       </Switch>
       {helpText ? <HelpPopover label={label} text={helpText} /> : null}
     </div>
@@ -532,7 +559,11 @@ export function TypedValueControl({
   )
 }
 
-function WaveShapeIcon({ wave }: { wave: number }) {
+/**
+ * An LFO wave's shape, by its DX7 number: triangle, saw down, saw up, square, sine, sample and
+ * hold. `className` sizes it; a box of another shape stretches the wave, at the same line width.
+ */
+export function WaveShapeIcon({ className, wave }: { className?: string; wave: number }) {
   const paths = [
     'M1 12 L8.5 3 L16 12 L23.5 3 L31 12',
     'M1 3 L16 13 L16 3 L31 13',
@@ -543,13 +574,20 @@ function WaveShapeIcon({ wave }: { wave: number }) {
   ]
 
   return (
-    <svg aria-hidden="true" className="h-4 w-7 shrink-0" fill="none" viewBox="0 0 32 16">
+    <svg
+      aria-hidden="true"
+      className={className ?? 'h-4 w-7 shrink-0'}
+      fill="none"
+      preserveAspectRatio="none"
+      viewBox="0 0 32 16"
+    >
       <path
         d={paths[wave] ?? paths[0]}
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.75"
+        vectorEffect="non-scaling-stroke"
       />
     </svg>
   )
@@ -614,6 +652,151 @@ export function LfoWaveControl({
           ))}
         </div>
       </details>
+    </div>
+  )
+}
+
+/**
+ * A choice drawn as pictures, picked as the algorithm is: a dropdown of tiles, each option's
+ * picture under its name, and the chosen one's picture in a square well below the trigger, as the
+ * algorithm panel draws its diagram. The well's picture is decorative; the trigger names the
+ * choice. A choice that a scope beside it already draws, such as the filter's Type, leaves the
+ * well out with `well={false}`.
+ */
+/** A picture picker's choice: its name, and its picture at the size its box gives it. */
+type PictureOption = { label: string; picture: (className: string) => ReactNode }
+
+/** A picture picker's tile, raised and lit while it holds the choice. */
+const pictureTileClass = (selected: boolean) =>
+  cn(
+    'grid min-w-0 cursor-pointer justify-items-center gap-2 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 pt-1.5 pb-3 transition-colors hover:bg-[var(--crt-bg-head)] hover:text-[var(--crt-acc-lt)]',
+    selected
+      ? 'border-t-[var(--crt-acc)] border-l-[var(--crt-acc)] bg-[var(--crt-sel-bg)] text-[var(--crt-led)]'
+      : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-1)] text-[var(--crt-acc-mid)]',
+  )
+
+const pictureTileLabelClass =
+  'justify-self-start text-[11px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase'
+
+export function PicturePickerControl({
+  helpText,
+  label,
+  onChange,
+  options,
+  value,
+}: {
+  helpText?: string
+  label: string
+  onChange: (value: number) => void
+  options: PictureOption[]
+  value: number
+}) {
+  const dropdownRef = useDismissableDetails()
+  const selected = options[value] ?? options[0]
+
+  const select = (index: number) => {
+    onChange(index)
+    dropdownRef.current?.removeAttribute('open')
+  }
+
+  return (
+    <div className={cn('flex min-w-0 flex-1 flex-col gap-1', captionClass)}>
+      <span className="flex items-center gap-1">
+        {label}
+        {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+      </span>
+      <details className="group relative min-w-0" ref={dropdownRef}>
+        <summary
+          aria-label={`${label}: ${selected.label}`}
+          className={cn(
+            fieldClass,
+            'flex cursor-pointer list-none items-center gap-1.5 transition-colors hover:bg-[var(--crt-bg-head)] [&::-webkit-details-marker]:hidden',
+          )}
+        >
+          {selected.picture('h-4 w-7 shrink-0 text-[var(--crt-acc-lt)]')}
+          <span className="min-w-0 flex-1 truncate tracking-[0.1em]">{selected.label}</span>
+          <ChevronDown className="size-3.5 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+        </summary>
+        <div
+          aria-label={label}
+          className="editor-menu-surface absolute top-[calc(100%+0.3rem)] left-0 z-30 grid w-[min(20rem,calc(100vw-1.5rem))] grid-cols-2 gap-1.5 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-2"
+          role="radiogroup"
+        >
+          {options.map((option, index) => (
+            <button
+              aria-checked={value === index}
+              aria-label={option.label}
+              className={cn(
+                pictureTileClass(value === index),
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+              )}
+              key={option.label}
+              onClick={() => select(index)}
+              role="radio"
+              type="button"
+            >
+              <span className={pictureTileLabelClass}>{option.label}</span>
+              {option.picture('h-8 w-16')}
+            </button>
+          ))}
+        </div>
+      </details>
+      <div aria-hidden="true" className="crt-well relative aspect-square">
+        {selected.picture(
+          'absolute top-3 left-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] text-[var(--crt-led)] drop-shadow-[0_0_6px_var(--crt-led-glow)]',
+        )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The picture picker's choices laid out on the panel rather than in a dropdown, for a panel with
+ * room to show them all, such as the Virtual Analog filter's types. Native radios, so the arrow
+ * keys move the choice and focus rings the tile that holds it.
+ */
+export function PictureRadioControl({
+  helpText,
+  label,
+  onChange,
+  options,
+  value,
+}: {
+  helpText?: string
+  label: string
+  onChange: (value: number) => void
+  options: PictureOption[]
+  value: number
+}) {
+  const name = useId()
+  return (
+    <div className={cn('grid min-w-0 gap-1', captionClass)}>
+      <span className="flex items-center gap-1">
+        {label}
+        {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+      </span>
+      <div aria-label={label} className="grid grid-cols-2 gap-1.5" role="radiogroup">
+        {options.map((option, index) => (
+          <label
+            className={cn(
+              pictureTileClass(value === index),
+              'focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--crt-led)]',
+            )}
+            key={option.label}
+          >
+            <input
+              checked={value === index}
+              className="sr-only"
+              name={name}
+              onChange={() => onChange(index)}
+              type="radio"
+              value={index}
+            />
+            <span className={pictureTileLabelClass}>{option.label}</span>
+            {option.picture('h-8 w-16')}
+          </label>
+        ))}
+      </div>
     </div>
   )
 }

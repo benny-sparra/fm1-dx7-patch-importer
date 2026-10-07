@@ -179,15 +179,123 @@ export default {
       'Guardado para el firmware de Baud Girl desde FM-1_096: Bitcrush está activado. Este FM1 no lo reproduce.',
   },
   effectOrder: {
-    title: 'Orden de efectos',
-    list: 'Efectos, del primero al último',
-    moveEarlier: 'Mover {{effect}} antes',
-    moveLater: 'Mover {{effect}} después',
+    dragTitle:
+      'Arrastra para cambiar en qué lugar del recorrido del sonido está este efecto, el primero arriba a la izquierda. Con el teclado, pulsa Espacio y luego las flechas. El nuevo orden se oye cuando el sonido se escribe en el FM1.',
     noRecord:
       'Este sonido no viene del FM1, así que toma el orden del preset sobre el que se escribe.',
     otherFirmware:
       'Guardado para el firmware de Baud Girl: un orden de efectos cambiado. Este FM1 usa su propio orden.',
-    help: 'El orden en que el sonido pasa por los efectos en el firmware de Baud Girl, el primero a la izquierda. Una distorsión antes o después de la reverberación, por ejemplo, suena muy distinta. Ningún mensaje MIDI lo ajusta, así que se oye cuando el sonido se escribe en el FM1 con Enviar al FM1 o Escribir sonidos en el FM1.',
+  },
+  virtualAnalog: {
+    help: {
+      waveform:
+        'La onda básica del oscilador. La senoidal es suave, la de sierra brillante y zumbona, la triangular queda entre ambas, y la cuadrada es hueca pero más dura que la senoidal.',
+      super:
+        'Añade seis copias más de la onda alrededor de la elegida. Sube también la desafinación para abrirlas en un sonido denso, como un supersaw.',
+      detune:
+        'Cuánto se separan en tono las copias que añade Super. No hace nada mientras Super esté en 0.',
+      drift:
+        'Desafina un poco cada nota, como hacen los osciladores antiguos. En la mitad superior se vuelve inestable a propósito.',
+      sub: 'Añade una onda cuadrada una octava por debajo de cada nota, para dar peso.',
+      noise: 'Mezcla ruido con la onda.',
+      pwm: 'Mueve el ancho de la onda cuadrada para que el tono cambie solo. Solo funciona con la forma de onda cuadrada.',
+      filterType:
+        'Qué parte del sonido quita el filtro. El paso bajo quita los agudos, suave a 12 dB o abrupto a 24 dB; el paso banda conserva una banda alrededor del corte; el paso alto quita los graves.',
+      cutoff: 'La frecuencia desde la que trabaja el filtro. Bájala para oscurecer el sonido.',
+      resonance: 'Realza el sonido justo en el corte, hasta que el filtro silba.',
+      filterEnvelope: 'Cuánto mueve el corte la envolvente propia del filtro en cada nota.',
+      filterDecay:
+        'Cuánto dura el movimiento de la envolvente del filtro. Corta y con mucha cantidad de envolvente da un sonido punteado.',
+      filterShape:
+        'Cómo es el movimiento de la envolvente del filtro, desde la subida hasta la caída.',
+      filterVelocity: 'Cuánto sube el corte al tocar más fuerte. No cambia el volumen.',
+      keyTracking: 'Cuánto sigue el corte a las notas que tocas más arriba en el teclado.',
+      lfoToCutoff: 'Cuánto mueve el LFO el corte.',
+      level: 'Lo fuerte que suena este sonido junto a los demás, unos 0,74 dB por paso.',
+      velocityToLevel:
+        'Cuánto más fuerte suena una nota al tocar con más fuerza. En 0 todas las notas suenan igual.',
+      mono: 'Toca una nota cada vez. Una tecla nueva sustituye a la que mantienes sin un nuevo ataque.',
+      envelope:
+        'Un ataque, una caída, un sostenido y una liberación para todo el sonido mientras está activada. Arrastra sus puntos o escribe los valores. La liberación apaga una nota en 0,1 segundos en 0 y en 2 segundos en 100. Sube el sostenido al activarla, porque en 0 una nota mantenida es corta.',
+    },
+    oscillator: 'Oscilador',
+    waveform: 'Forma de onda',
+    waveforms: {
+      sine: 'Senoidal',
+      saw: 'Sierra',
+      triangle: 'Triangular',
+      square: 'Cuadrada',
+    },
+    super: 'Super',
+    detune: 'Desafinación',
+    drift: 'Deriva',
+    sub: 'Sub',
+    noise: 'Ruido',
+    pwm: 'PWM',
+    filter: 'Filtro',
+    filterType: 'Tipo de filtro',
+    filterTypes: {
+      lowPass12: 'Paso bajo 12 dB',
+      lowPass24: 'Paso bajo 24 dB',
+      bandPass: 'Paso banda',
+      highPass: 'Paso alto',
+    },
+    cutoff: 'Corte',
+    resonance: 'Resonancia',
+    filterEnvelope: 'Cantidad de envolvente',
+    filterDecay: 'Caída de envolvente',
+    filterShape: 'Forma de envolvente',
+    filterVelocity: 'Velocidad',
+    keyTracking: 'Seguimiento de teclado',
+    lfoToCutoff: 'LFO al corte',
+    level: 'Nivel',
+    velocityToLevel: 'Velocidad al nivel',
+    mono: 'Monofónico',
+    lfo: 'LFO',
+    envelope: 'Envolvente',
+    attack: 'Ataque',
+    decay: 'Caída',
+    sustain: 'Sostenido',
+    release: 'Liberación',
+    checking: 'Comprobando el preset {{preset}} del FM1…',
+    noProgram:
+      'Este sonido no está en los bancos A–D, así que ningún preset del FM1 lo toca. Tus cambios se oyen cuando el sonido se escribe en el FM1.',
+    noFirmware:
+      'Con el firmware de Baud Girl FM-1_086 o posterior y MIDI activado, tus cambios suenan en el FM1 en cuanto los haces. Hasta entonces, se oyen cuando el sonido se escribe en el FM1.',
+    otherEngine:
+      'El preset {{preset}} del FM1 no es un preset Virtual Analog, así que tus cambios no se le envían. Se oyen cuando el sonido se escribe en el FM1.',
+    readFailed:
+      'El FM1 no respondió al pedirle su preset {{preset}}, así que tus cambios no se le envían. Se oyen cuando el sonido se escribe en el FM1.',
+    presets: 'Preajustes de sonido',
+    initPatch: 'Inicializar',
+    initPatchHelp: 'Onda de sierra simple, filtro abierto. Efectos apagados.',
+    randomiseHelp: 'Sonido nuevo. Conserva nombre, nivel y efectos.',
+    presetOptions: {
+      'super-saw': {
+        name: 'Supersierra',
+        description: 'Sierras desafinadas, chorus y reverb de sala.',
+      },
+      'mono-bass': {
+        name: 'Bajo mono',
+        description: 'Cuadrada y sub, una nota cada vez.',
+      },
+      'filter-pluck': {
+        name: 'Pulsación filtrada',
+        description: 'Barrido corto de filtro, eco y sala pequeña.',
+      },
+      'warm-pad': {
+        name: 'Pad cálido',
+        description: 'Ataque lento, deriva suave y reverb de sala.',
+      },
+      'pulse-strings': {
+        name: 'Cuerdas de pulso',
+        description: 'Onda cuadrada en movimiento, chorus y reverb.',
+      },
+      'vibrato-lead': {
+        name: 'Solista con vibrato',
+        description: 'Una nota cada vez, vibrato retardado y eco.',
+      },
+    },
   },
   ui: {
     auditionGroup: 'Prueba del operador {{number}}',
@@ -795,6 +903,10 @@ export default {
       slowSweep: 'Barrido lento',
       deepPhase: 'Fáser profundo',
       fastSwirl: 'Remolino rápido',
+      sampler: 'Sampler',
+      lofi: 'Lo-fi',
+      eightBit: '8 bits',
+      crushed: 'Triturado',
     },
     lfoGlobal: 'LFO y global',
     oscillatorSync: 'Sincronización del oscilador',

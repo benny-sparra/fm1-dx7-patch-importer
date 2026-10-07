@@ -22,6 +22,7 @@ import type { CopiedOperator } from '@/lib/operator-clipboard'
 import { favouritesBank } from '@/lib/favourites'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { isRenumberedByBankDeletion, virtualAnalogFamily } from '@/lib/patch-library'
+import { fm1VaVirtualAnalogName } from '@/lib/fm1-va-virtual-analog'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { visibleBox, zoomRects } from '@/lib/zoom-rects'
 import {
@@ -32,13 +33,19 @@ import {
 import { useToast } from '@/components/ui/toast'
 import { PatchEditorErrorBoundary } from '@/components/editor/patch-editor-error-boundary'
 import { WorkspacePersistenceStatus } from '@/components/workspace-persistence-status'
-import { loadPatchEditorPage } from '@/routes/load-patch-editor-page'
+import { loadPatchEditorPage, loadVirtualAnalogEditorPage } from '@/routes/load-patch-editor-page'
 
 const PatchEditorPage = lazy(loadPatchEditorPage)
+const VirtualAnalogEditorPage = lazy(loadVirtualAnalogEditorPage)
 
 function LoadedPatchEditorPage(props: ComponentProps<typeof PatchEditorPage>) {
   useEffect(() => cancelDynamicImportRecovery(), [])
   return <PatchEditorPage {...props} />
+}
+
+function LoadedVirtualAnalogEditorPage(props: ComponentProps<typeof VirtualAnalogEditorPage>) {
+  useEffect(() => cancelDynamicImportRecovery(), [])
+  return <VirtualAnalogEditorPage {...props} />
 }
 
 function App() {
@@ -67,7 +74,13 @@ function App() {
   } | null>(null)
   const selectedPatch = library.patches.find((patch) => patch.id === selectedPatchId)
   const selectedVoice = selectedPatch ? library.voices[selectedPatch.id] : undefined
-  const isEditorOpen = Boolean(selectedPatch && selectedVoice)
+  // A Virtual Analog preset opens its own editor, which needs its settings record too.
+  const selectedVirtualAnalog = selectedPatch && {
+    record: library.records[selectedPatch.id],
+    voice: library.virtualAnalog[selectedPatch.id],
+  }
+  const editsVirtualAnalog = Boolean(selectedVirtualAnalog?.voice && selectedVirtualAnalog.record)
+  const isEditorOpen = Boolean(selectedPatch && (selectedVoice || editsVirtualAnalog))
   // The loaded editor leaves through its own back action, which asks about unsaved changes. Until
   // it has loaded, or after it failed to, browser Back simply closes it.
   const editorBrowserBack = useRef<(() => void) | null>(null)
@@ -159,8 +172,7 @@ function App() {
   }
   const editPatch = (patchId: string) => {
     const patch = findPatch(patchId)
-    // The voice editor edits DX7 voices, so a Virtual Analog preset does not open it.
-    if (!patch || patch.family === virtualAnalogFamily) return
+    if (!patch) return
     // The editor sends an added bank's sound itself as it opens, so only a slot in banks A–D is
     // selected on the way in.
     editBufferAudition.current = null
@@ -233,7 +245,33 @@ function App() {
       ) : (
         <>
           <WorkspacePersistenceStatus library={library} />
-          {selectedPatch && selectedVoice ? (
+          {selectedPatch && selectedVirtualAnalog?.voice && selectedVirtualAnalog.record ? (
+            <PatchEditorErrorBoundary key={selectedPatch.id} onBack={closeEditor}>
+              <Suspense fallback={loadingSection(t('common.loading'))}>
+                <LoadedVirtualAnalogEditorPage
+                  browserBackRef={editorBrowserBack}
+                  effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
+                  midi={midi}
+                  onBack={closeEditor}
+                  onSave={(voice, effects, record) => {
+                    library.replaceWithVirtualAnalog(
+                      selectedPatch.bank,
+                      selectedPatch.number,
+                      voice,
+                      effects,
+                      record,
+                    )
+                    toast.success(
+                      t('toasts.patchSaved', { patch: fm1VaVirtualAnalogName(voice).trimEnd() }),
+                    )
+                  }}
+                  patch={selectedPatch}
+                  record={selectedVirtualAnalog.record}
+                  voice={selectedVirtualAnalog.voice}
+                />
+              </Suspense>
+            </PatchEditorErrorBoundary>
+          ) : selectedPatch && selectedVoice ? (
             <PatchEditorErrorBoundary key={selectedPatch.id} onBack={closeEditor}>
               <Suspense fallback={loadingSection(t('common.loading'))}>
                 <LoadedPatchEditorPage

@@ -455,8 +455,8 @@ presets (9).
       the FM1 on 2026-10-04. _Bitcrush built 2026-10-06:_ FM-1_096's seventh effect, mapped on
       hardware the same day (`docs/hardware-runs/fm1-va-bitcrush-order-2026-10-06.md`), has its own
       box in the effects panel from FM-1_096, written into record bytes 5, 35, 41, and 44.
-      _Effect order built 2026-10-06:_ an **Effect order** strip at the top of the effects panel,
-      from FM-1_096, moves each of the seven effects one place at a time and is written into the
+      _Effect order built 2026-10-06:_ from FM-1_096 the effects panel lays the seven boxes out in
+      their order, and each drags to another place by its grip; the order is written into the
       chain bytes and Bitcrush's place. Neither has been written to the FM1 from the editor and
       read back yet.
 - [ ] **6. Virtual Analog presets.** Built in steps, each shippable:
@@ -512,12 +512,20 @@ presets (9).
     `docs/fm1-research.md`, "Controllers on the MIDI Channel", and its hardware tests
     ([`fm1-va-controller-tests.md`](fm1-va-controller-tests.md)) ran on 2026-10-04: every CC
     reached its row, list settings split 128 values into equal bands, continuous ones show
-    `round(value × top ÷ 127)`, and fast sweeps need no thinning. Only the Envelope switch side
-    effect (V5) is still to see. `makeFm1VaSoundControlMessage` and `useFm1VaSoundControl` send
+    `round(value × top ÷ 127)`, and fast sweeps need no thinning. The Envelope switch side effect
+    (V5) was seen on 2026-10-07. `makeFm1VaSoundControlMessage` and `useFm1VaSoundControl` send
     them, and the development probe's **Map a setting** uses them to find the bytes each setting
     is stored in, the map this step needs to show current values. It never sends CC 85–119, which press the FM1's own buttons.
   - **Save them.** Edits from the Virtual Analog editor page are saved to the library and written
     with 4.
+  - _Play them live and Save them built 2026-10-06, byte map confirmed on hardware 2026-10-07_
+    ([`fm1-va-editor-tests.md`](fm1-va-editor-tests.md)): a Virtual Analog slot's **Edit** opens
+    its own lazy editor with the oscillator, filter, output, LFO, Envelope, and effects rows, read
+    and written as Baud Girl's Device Manager maps them (**Confirmed** by that run). In banks A–D on
+    FM-1_086 and later it reads the slot's stored preset, and if it is Virtual Analog, sends each
+    change with a controller as it is made; the rest are heard once written. Saving puts the
+    preset's bytes back in its slot, every byte not edited exactly as read. Knob choices and the
+    operator 6 amplitude envelope rows are not offered.
   - **Erase a patch.** Planned 2026-10-02 as **Change to Virtual Analog…** and **Change to FM…**,
     replanned 2026-10-06 as one **Erase patch…**, named after the FM1's own **Erase Preset**. Built
     after the Virtual Analog editor (**Play them live** and **Save them**), with 8-Bit added once 9

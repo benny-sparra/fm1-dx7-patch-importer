@@ -1,0 +1,102 @@
+{
+  "firmware": "FM-1_093",
+  "note": "Map a setting, FM-1+VA preset probe, 2026-10-04, preset 097 erased to VA and saved. Session 1 reached CC 26.",
+  "entries": [
+    {
+      "controller": 24,
+      "preset": "097",
+      "record": [],
+      "setting": "Waveform",
+      "value": 32,
+      "voice": []
+    },
+    {
+      "controller": 31,
+      "preset": "097",
+      "record": [{ "from": "80", "index": 26, "to": "81" }],
+      "setting": "Filter Type",
+      "value": 32,
+      "voice": []
+    },
+    {
+      "controller": 56,
+      "preset": "097",
+      "record": [{ "from": "81", "index": 26, "to": "85" }],
+      "setting": "Filter Key Tracking",
+      "value": 32,
+      "voice": []
+    },
+    {
+      "controller": 24,
+      "preset": "097",
+      "record": [{ "from": "02", "index": 19, "to": "04" }],
+      "setting": "Waveform",
+      "value": 96,
+      "voice": []
+    },
+    {
+      "controller": 24,
+      "preset": "097",
+      "record": [{ "from": "04", "index": 19, "to": "01" }],
+      "setting": "Waveform",
+      "value": 0,
+      "voice": []
+    },
+    {
+      "controller": 24,
+      "preset": "097",
+      "record": [{ "from": "01", "index": 19, "to": "03" }],
+      "setting": "Waveform",
+      "value": 64,
+      "voice": []
+    },
+    {
+      "controller": 31,
+      "preset": "097",
+      "record": [{ "from": "85", "index": 26, "to": "87" }],
+      "setting": "Filter Type",
+      "value": 96,
+      "voice": []
+    },
+    {
+      "controller": 56,
+      "preset": "097",
+      "record": [{ "from": "87", "index": 26, "to": "8F" }],
+      "setting": "Filter Key Tracking",
+      "value": 96,
+      "voice": []
+    },
+    {
+      "controller": 25,
+      "preset": "097",
+      "record": [{ "from": "00", "index": 20, "to": "32" }],
+      "setting": "Super",
+      "value": 64,
+      "voice": []
+    },
+    {
+      "controller": 25,
+      "preset": "097",
+      "record": [{ "from": "32", "index": 20, "to": "64" }],
+      "setting": "Super",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 26,
+      "preset": "097",
+      "record": [],
+      "setting": "Detune",
+      "value": 64,
+      "voice": []
+    },
+    {
+      "controller": 26,
+      "preset": "097",
+      "record": [{ "from": "32", "index": 21, "to": "64" }],
+      "setting": "Detune",
+      "value": 127,
+      "voice": []
+    }
+  ]
+}

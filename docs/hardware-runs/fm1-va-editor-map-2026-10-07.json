@@ -1,0 +1,358 @@
+{
+  "firmware": "FM-1_096",
+  "entries": [
+    {
+      "controller": 27,
+      "preset": "032",
+      "record": [
+        {
+          "from": "00",
+          "index": 22,
+          "to": "64"
+        }
+      ],
+      "setting": "Drift",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 28,
+      "preset": "032",
+      "record": [
+        {
+          "from": "80",
+          "index": 45,
+          "to": "E4"
+        }
+      ],
+      "setting": "Sub",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 29,
+      "preset": "032",
+      "record": [
+        {
+          "from": "80",
+          "index": 46,
+          "to": "E4"
+        }
+      ],
+      "setting": "Noise",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 30,
+      "preset": "032",
+      "record": [
+        {
+          "from": "80",
+          "index": 48,
+          "to": "E4"
+        }
+      ],
+      "setting": "PWM",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 52,
+      "preset": "032",
+      "record": [
+        {
+          "from": "80",
+          "index": 25,
+          "to": "E4"
+        }
+      ],
+      "setting": "Filter Envelope",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 53,
+      "preset": "032",
+      "record": [
+        {
+          "from": "80",
+          "index": 51,
+          "to": "E4"
+        }
+      ],
+      "setting": "Filter Decay",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 54,
+      "preset": "032",
+      "record": [
+        {
+          "from": "80",
+          "index": 49,
+          "to": "E4"
+        }
+      ],
+      "setting": "Filter Shape",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 55,
+      "preset": "032",
+      "record": [
+        {
+          "from": "80",
+          "index": 47,
+          "to": "E4"
+        }
+      ],
+      "setting": "Filter Velocity",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 57,
+      "preset": "032",
+      "record": [
+        {
+          "from": "80",
+          "index": 50,
+          "to": "E4"
+        }
+      ],
+      "setting": "LFO to Cutoff",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 71,
+      "preset": "032",
+      "record": [
+        {
+          "from": "80",
+          "index": 24,
+          "to": "E4"
+        }
+      ],
+      "setting": "Resonance",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 74,
+      "preset": "032",
+      "record": [
+        {
+          "from": "E4",
+          "index": 23,
+          "to": "80"
+        }
+      ],
+      "setting": "Cutoff",
+      "value": 0,
+      "voice": []
+    },
+    {
+      "controller": 76,
+      "preset": "032",
+      "record": [],
+      "setting": "LFO Speed",
+      "value": 127,
+      "voice": [
+        {
+          "from": "23",
+          "index": 112,
+          "to": "63"
+        }
+      ]
+    },
+    {
+      "controller": 77,
+      "preset": "032",
+      "record": [],
+      "setting": "LFO Pitch Mod Depth",
+      "value": 127,
+      "voice": [
+        {
+          "from": "00",
+          "index": 114,
+          "to": "63"
+        }
+      ]
+    },
+    {
+      "controller": 78,
+      "preset": "032",
+      "record": [],
+      "setting": "LFO Delay",
+      "value": 127,
+      "voice": [
+        {
+          "from": "00",
+          "index": 113,
+          "to": "63"
+        }
+      ]
+    },
+    {
+      "controller": 73,
+      "preset": "032",
+      "record": [
+        {
+          "from": "00",
+          "index": 53,
+          "to": "40"
+        },
+        {
+          "from": "00",
+          "index": 54,
+          "to": "64"
+        }
+      ],
+      "setting": "Attack",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 75,
+      "preset": "032",
+      "record": [
+        {
+          "from": "00",
+          "index": 55,
+          "to": "64"
+        }
+      ],
+      "setting": "Decay",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 70,
+      "preset": "032",
+      "record": [
+        {
+          "from": "00",
+          "index": 56,
+          "to": "64"
+        }
+      ],
+      "setting": "Sustain",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "controller": 72,
+      "preset": "032",
+      "record": [
+        {
+          "from": "00",
+          "index": 57,
+          "to": "64"
+        }
+      ],
+      "setting": "Release",
+      "value": 127,
+      "voice": []
+    },
+    {
+      "preset": "032",
+      "record": [],
+      "setting": "V19 Level 50",
+      "voice": [
+        {
+          "from": "4E",
+          "index": 14,
+          "to": "32"
+        }
+      ]
+    },
+    {
+      "preset": "032",
+      "record": [],
+      "setting": "V20 Velocity 7",
+      "voice": [
+        {
+          "from": "0C",
+          "index": 13,
+          "to": "1C"
+        }
+      ]
+    },
+    {
+      "preset": "032",
+      "record": [
+        {
+          "from": "00",
+          "index": 58,
+          "to": "01"
+        }
+      ],
+      "setting": "V21 Mono On",
+      "voice": []
+    },
+    {
+      "preset": "032",
+      "record": [],
+      "setting": "V22 LFO Wave Sine",
+      "voice": [
+        {
+          "from": "30",
+          "index": 116,
+          "to": "38"
+        }
+      ]
+    },
+    {
+      "preset": "032",
+      "record": [],
+      "setting": "V23 Amp Mod Depth 50",
+      "voice": [
+        {
+          "from": "00",
+          "index": 115,
+          "to": "32"
+        }
+      ]
+    },
+    {
+      "preset": "032",
+      "record": [],
+      "setting": "V24 Pitch Sens 7",
+      "voice": [
+        {
+          "from": "38",
+          "index": 116,
+          "to": "78"
+        }
+      ]
+    },
+    {
+      "preset": "032",
+      "record": [],
+      "setting": "V25 LFO Sync On",
+      "voice": [
+        {
+          "from": "78",
+          "index": 116,
+          "to": "79"
+        }
+      ]
+    },
+    {
+      "preset": "032",
+      "record": [
+        {
+          "from": "40",
+          "index": 53,
+          "to": "00"
+        }
+      ],
+      "setting": "V26 Envelope Off",
+      "voice": []
+    }
+  ]
+}
