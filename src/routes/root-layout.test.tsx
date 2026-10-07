@@ -346,3 +346,18 @@ describe('RootLayout degauss', () => {
     expect(page.hasAttribute('data-degauss')).toBe(true)
   })
 })
+
+describe('RootLayout footer', () => {
+  it('links to the firmware page in the same tab', () => {
+    render(
+      <RootLayout midi={midi}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    const link = screen.getByRole('link', { name: 'FM1 firmware' })
+    expect(link.getAttribute('href')).toBe('/firmware/')
+    expect(link.hasAttribute('target')).toBe(false)
+  })
+})

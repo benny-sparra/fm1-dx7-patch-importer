@@ -91,6 +91,13 @@ export default defineConfig(({ command, mode }) => {
       // on every build.
       chunkSizeWarningLimit: 600,
       manifest: true,
+      // The firmware list is a second, static page beside the app, served at /firmware/.
+      rolldownOptions: {
+        input: {
+          index: path.resolve(__dirname, 'index.html'),
+          firmware: path.resolve(__dirname, 'firmware/index.html'),
+        },
+      },
       sourcemap: sourceMapModes[sourceMapMode as keyof typeof sourceMapModes],
     },
     define: {

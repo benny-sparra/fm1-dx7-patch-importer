@@ -80,6 +80,7 @@ const outputDirectory = path.resolve('dist')
 const assetDirectory = path.join(outputDirectory, 'assets')
 const browserTextFiles = [
   path.join(outputDirectory, 'index.html'),
+  path.join(outputDirectory, 'firmware', 'index.html'),
   ...(await readdir(assetDirectory))
     .filter((filename) => /\.(?:css|js)$/.test(filename))
     .map((filename) => path.join(assetDirectory, filename)),

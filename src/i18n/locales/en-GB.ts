@@ -465,6 +465,7 @@ export default {
       'This librarian needs a browser that supports Web MIDI and SysEx, such as Chrome, Edge, Firefox, or Opera. Chrome on Android works too.',
     localOnly: 'Your patches stay in this browser',
     projectLinks: 'Project links',
+    firmwareLink: 'FM1 firmware',
     reportIssue: 'Report an issue',
     version: 'Version {{version}}',
     disclaimer:

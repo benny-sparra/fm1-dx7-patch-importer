@@ -36,6 +36,7 @@ Use Node.js 24.18.0 and npm 11.16.0, as pinned by `.node-version` and `package.j
 - `src/test/`: shared accessibility helpers and rendered accessibility coverage.
 - `scripts/`: deterministic repository checks that do not belong in application code.
 - `public/`: files served unchanged by Vite.
+- `firmware/index.html`: the static firmware list served at `/firmware/`, a second Vite page.
 
 Use the `@/` alias for cross-directory imports. Use relative imports for a module's immediate local
 files when that is clearer.
@@ -352,6 +353,16 @@ open everything an earlier release could have saved.
   entry too, so a Vite upgrade is measured the same way: 8.3.2's rewrite of its CSS check cost
   61 B gzip when 52 B were spare.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
+- The firmware page (`firmware/index.html`) is static HTML and shares no JavaScript with the app.
+  Vite splits any module two pages import into a chunk of its own that the app's entry loads too,
+  and its module preload polyfill counts: importing the colourway helpers cost the entry 237 B. It
+  links its stylesheet (`src/firmware-page.css`, which imports `index.css`) from the HTML and takes
+  the editor's finish through `public/firmware-colourway.js`, a plain script served unchanged. Add a
+  firmware as another `<article class="firmware-entry">` whose `id` is its short anchor, such as
+  `felucca` (Baud Girl's is `baud-girl`), linked by the `#` beside its title, which people share, so
+  never rename one; `src/firmware-page.test.ts` checks each has its heading, maker, support tag,
+  blurb, sized photo or placeholder, and links. The page is in British English only, outside the
+  locale files.
 
 ### Privacy, monitoring, and deployment security
 
@@ -386,6 +397,11 @@ open everything an earlier release could have saved.
   `resolveSentryRelease`. The client and the uploaded source maps must take the name from that same
   helper, or a resolved stack trace is filed where the event that needs it will not look. A build
   without one reports no release rather than a name matching no deployment.
+- Cloudflare Workers Builds publishes every build to production, so only `main` may build there.
+  `npm run build` starts with `scripts/check-deploy-branch.mjs`, which fails when
+  `WORKERS_CI_BRANCH` names another branch; keep it first in the build script. On 2026-10-07 a push
+  to an unmerged branch replaced the site and took the firmware page with it, which
+  `e2e/firmware.e2e.ts` now watches for.
 
 ### Images and generated assets
 
