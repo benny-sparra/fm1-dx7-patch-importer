@@ -696,6 +696,35 @@ test('opens a slot menu on the last row above the grid without playing the slot'
   await expect(page.getByRole('dialog', { name: `Copy ${name}` })).toBeVisible()
 })
 
+// Issue 202: a rail longer than the grid once ran the last bank's menu past the panel, which
+// clipped it.
+test('opens the last bank menu in full when the rail is longer than the grid', async ({ page }) => {
+  await page.setViewportSize({ height: 900, width: 1440 })
+  await openLibrarian(page)
+  for (const [index, source] of ['rom1a', 'rom1b', 'rom2a', 'rom2b'].entries()) {
+    const bank = `Bank ${index + 5}`
+    await page.getByRole('button', { name: 'Add new bank…' }).click()
+    const dialog = page.getByRole('dialog', { name: `Add bank ${String.fromCharCode(69 + index)}` })
+    await dialog.getByRole('combobox').selectOption(source)
+    await dialog.getByRole('button', { name: 'Create bank' }).click()
+    await expect(page.getByRole('button', { name: new RegExp(` — ${bank}$`) })).toBeVisible()
+  }
+
+  await page.getByLabel('Actions for Bank 8').locator('visible=true').click()
+  const deleteItem = page.getByRole('button', { name: 'Delete bank…' }).locator('visible=true')
+  // A clipped item keeps its box, and Playwright's own scrolling would scroll the clipping panel
+  // to reach it, so the page alone scrolls and the item must be what lies under its centre.
+  const reached = await deleteItem.evaluate((item) => {
+    scrollBy(0, Math.max(0, item.getBoundingClientRect().bottom - innerHeight + 16))
+    const box = item.getBoundingClientRect()
+    return item.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2))
+  })
+  expect(reached).toBe(true)
+  await deleteItem.click()
+
+  await expect(page.getByRole('dialog', { name: 'Delete bank' })).toContainText('“Bank 8”')
+})
+
 test('switches the favicon to the chosen colourway and keeps it after a reload', async ({
   page,
 }) => {
