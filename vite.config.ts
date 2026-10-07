@@ -1,4 +1,4 @@
-import { loadEnv } from 'vite'
+import { loadEnv, type Connect, type Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import { sentryVitePlugin, type SentryVitePluginOptions } from '@sentry/vite-plugin'
 import react from '@vitejs/plugin-react'
@@ -62,6 +62,26 @@ export function resolveSentrySourceMapUpload(
   }
 }
 
+/**
+ * Cloudflare answers /firmware with a redirect to /firmware/, but Vite's dev and preview servers
+ * only find a page's index.html behind a trailing slash and serve the app for /firmware. This
+ * redirects the same way, so the bare path opens the firmware list everywhere.
+ */
+function redirectFirmwareWithoutSlash(): Plugin {
+  const redirect: Connect.NextHandleFunction = (req, res, next) => {
+    const url = new URL(req.url ?? '/', 'http://localhost')
+    if (url.pathname !== '/firmware') return next()
+    res.statusCode = 307
+    res.setHeader('Location', `/firmware/${url.search}`)
+    res.end()
+  }
+  return {
+    name: 'redirect-firmware-without-slash',
+    configureServer: (server) => void server.middlewares.use(redirect),
+    configurePreviewServer: (server) => void server.middlewares.use(redirect),
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -106,6 +126,7 @@ export default defineConfig(({ command, mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      redirectFirmwareWithoutSlash(),
       ...(sentrySourceMapUpload ? sentryVitePlugin(sentrySourceMapUpload) : []),
     ],
     preview: {
