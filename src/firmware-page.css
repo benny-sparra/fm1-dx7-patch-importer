@@ -148,6 +148,51 @@
     margin-top: 0.25rem;
   }
 
+  /* Firmwares that cannot be installed yet: one panel of short rows, with no photos or tags. */
+  .firmware-watch {
+    scroll-margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .firmware-watch:target {
+    outline: 2px solid var(--crt-led);
+    outline-offset: 2px;
+  }
+
+  .firmware-watch-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .firmware-watch-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--crt-ink-4);
+  }
+
+  .firmware-watch-item > p:first-child {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+  }
+
+  .firmware-watch-name {
+    font-weight: 700;
+    color: var(--crt-acc-lt);
+    text-underline-offset: 2px;
+  }
+
+  .firmware-watch-maker {
+    font-size: 0.75rem;
+    color: var(--crt-ink-3);
+  }
+
   .firmware-link {
     display: inline-flex;
     align-items: center;
