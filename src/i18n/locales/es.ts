@@ -217,7 +217,7 @@ export default {
         'Cuánto más fuerte suena una nota al tocar con más fuerza. En 0 todas las notas suenan igual.',
       mono: 'Toca una nota cada vez. Una tecla nueva sustituye a la que mantienes sin un nuevo ataque.',
       envelope:
-        'Un ataque, una caída, un sostenido y una liberación para todo el sonido mientras está activada. Arrastra sus puntos o escribe los valores. La liberación apaga una nota en 0,1 segundos en 0 y en 2 segundos en 100. Sube el sostenido al activarla, porque en 0 una nota mantenida es corta.',
+        'Un ataque, una caída, un sostenido y una liberación para todo el sonido mientras está activada. Arrastra sus puntos o sus faders. La liberación apaga una nota en 0,1 segundos en 0 y en 2 segundos en 100. Sube el sostenido al activarla, porque en 0 una nota mantenida es corta.',
     },
     oscillator: 'Oscilador',
     waveform: 'Forma de onda',

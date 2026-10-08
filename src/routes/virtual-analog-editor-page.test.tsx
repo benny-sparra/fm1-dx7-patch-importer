@@ -84,6 +84,27 @@ function setup({
   return { controlChanges, midi, onBack, onSave, ports, record, user: userEvent.setup(), voice }
 }
 
+/** A knob's or fader's value, which it gives as a slider. */
+const sliderValue = (name: string) =>
+  Number(screen.getByRole('slider', { name }).getAttribute('aria-valuenow'))
+
+/**
+ * Turns a knob or fader to `value` from the bottom of its travel as one held key: Page Up for each
+ * tenth of its range, then the arrow for the rest.
+ */
+function setSlider(name: string, value: number) {
+  const slider = screen.getByRole('slider', { name })
+  const pageStep = Math.max(1, Math.round(Number(slider.getAttribute('aria-valuemax')) / 10))
+  fireEvent.keyDown(slider, { key: 'Home' })
+  for (let step = 0; step < Math.floor(value / pageStep); step += 1) {
+    fireEvent.keyDown(slider, { key: 'PageUp', repeat: true })
+  }
+  for (let step = 0; step < value % pageStep; step += 1) {
+    fireEvent.keyDown(slider, { key: 'ArrowUp', repeat: true })
+  }
+  fireEvent.keyUp(slider, { key: 'ArrowUp' })
+}
+
 describe('VirtualAnalogEditorPage', () => {
   it('marks the patch VA beside its slot code, as its card does', () => {
     setup()
@@ -163,9 +184,8 @@ describe('VirtualAnalogEditorPage', () => {
   it('shows each row as the preset stores it', () => {
     const { record, voice } = setup()
     const superValue = virtualAnalogRow('super').read(voice, record)
-    expect((screen.getByRole('slider', { name: 'Super' }) as HTMLInputElement).value).toBe(
-      String(superValue),
-    )
+    expect(sliderValue('Super')).toBe(superValue)
+    expect(sliderValue('Noise')).toBe(virtualAnalogRow('noise').read(voice, record))
     expect(
       screen.getByLabelText(
         `Waveform: ${['Sine', 'Saw', 'Triangle', 'Square'][virtualAnalogRow('waveform').read(voice, record)]}`,
@@ -186,8 +206,8 @@ describe('VirtualAnalogEditorPage', () => {
     expect(controlChanges().map(([controller]) => controller)).toContain(74)
 
     ports.output.send.mockClear()
-    fireEvent.change(screen.getByRole('slider', { name: 'Noise' }), { target: { value: '60' } })
-    expect(controlChanges()).toEqual([[29, 76]])
+    fireEvent.keyDown(screen.getByRole('slider', { name: 'Noise' }), { key: 'End' })
+    expect(controlChanges()).toEqual([[29, 127]])
   })
 
   it('sends nothing to a slot holding a preset of another engine, and says so', async () => {
@@ -195,7 +215,7 @@ describe('VirtualAnalogEditorPage', () => {
 
     expect(await screen.findByText(/^The FM1’s preset 097 plays another engine/)).toBeTruthy()
     ports.output.send.mockClear()
-    fireEvent.change(screen.getByRole('slider', { name: 'Noise' }), { target: { value: '60' } })
+    fireEvent.keyDown(screen.getByRole('slider', { name: 'Noise' }), { key: 'End' })
     expect(controlChanges()).toEqual([])
   })
 
@@ -217,8 +237,8 @@ describe('VirtualAnalogEditorPage', () => {
     const { controlChanges, onSave, record, user, voice } = setup()
     await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
 
-    fireEvent.change(screen.getByRole('slider', { name: 'Sub' }), { target: { value: '40' } })
-    fireEvent.change(screen.getByRole('slider', { name: 'Level' }), { target: { value: '70' } })
+    setSlider('Sub', 40)
+    setSlider('Level', 70)
     await user.click(screen.getByRole('button', { name: /^Save/ }))
 
     const [savedVoice, , savedRecord] = onSave.mock.calls[0]
@@ -235,30 +255,30 @@ describe('VirtualAnalogEditorPage', () => {
   it('undoes a held arrow key in one step', async () => {
     const { controlChanges, user } = setup()
     await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
-    const drift = screen.getByRole('slider', { name: 'Drift' }) as HTMLInputElement
-    const before = drift.value
+    const drift = screen.getByRole('slider', { name: 'Drift' })
+    const before = sliderValue('Drift')
 
     fireEvent.keyDown(drift, { key: 'ArrowRight' })
-    fireEvent.change(drift, { target: { value: String(Number(before) + 1) } })
     fireEvent.keyDown(drift, { key: 'ArrowRight', repeat: true })
-    fireEvent.change(drift, { target: { value: String(Number(before) + 2) } })
-    fireEvent.change(drift, { target: { value: String(Number(before) + 3) } })
+    fireEvent.keyDown(drift, { key: 'ArrowRight', repeat: true })
     fireEvent.keyUp(drift, { key: 'ArrowRight' })
-    expect(Number(drift.value)).toBe(Number(before) + 3)
+    expect(sliderValue('Drift')).toBe(before + 3)
     await user.click(screen.getByRole('button', { name: 'Undo' }))
 
-    expect(drift.value).toBe(before)
+    expect(sliderValue('Drift')).toBe(before)
   })
 
-  it('disables the Envelope’s fields while it is off, and sends them as it is switched on', async () => {
+  it('disables the Envelope’s faders while it is off, and sends them as it is switched on', async () => {
     const { controlChanges, ports, user } = setup()
     await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
-    expect(screen.getByRole('spinbutton', { name: 'Attack' })).toHaveProperty('disabled', true)
+    expect(screen.getByRole('slider', { name: 'Attack' }).getAttribute('aria-disabled')).toBe(
+      'true',
+    )
 
     ports.output.send.mockClear()
     await user.click(screen.getByRole('switch', { name: 'Envelope' }))
 
-    expect(screen.getByRole('spinbutton', { name: 'Attack' })).toHaveProperty('disabled', false)
+    expect(screen.getByRole('slider', { name: 'Attack' }).hasAttribute('aria-disabled')).toBe(false)
     expect(
       controlChanges()
         .map(([controller]) => controller)
@@ -275,31 +295,38 @@ describe('VirtualAnalogEditorPage', () => {
     } as DOMRect)
     const { user } = setup()
     await user.click(screen.getByRole('switch', { name: 'Envelope' }))
-    const release = screen.getByRole('spinbutton', { name: 'Release' }) as HTMLInputElement
     const point = screen.getByTestId('adsr-point-4')
 
     fireEvent.pointerDown(point, { clientX: 500, clientY: 150, pointerId: 1 })
     fireEvent.pointerMove(point, { clientX: 560, clientY: 150, pointerId: 1 })
     fireEvent.pointerUp(point, { pointerId: 1 })
-    expect(Number(release.value)).toBeGreaterThan(0)
+    expect(sliderValue('Release')).toBeGreaterThan(0)
     await user.click(screen.getByRole('button', { name: 'Undo' }))
 
-    expect(release.value).toBe('0')
+    expect(sliderValue('Release')).toBe(0)
     vi.restoreAllMocks()
   })
 
-  it('takes a typed Envelope value as one undo step', async () => {
+  it('takes a drag of an Envelope fader as one undo step', async () => {
+    HTMLElement.prototype.setPointerCapture = () => {}
+    HTMLElement.prototype.releasePointerCapture = () => {}
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      bottom: 200,
+      height: 100,
+      top: 100,
+    } as DOMRect)
     const { user } = setup()
     await user.click(screen.getByRole('switch', { name: 'Envelope' }))
-    const decay = screen.getByRole('spinbutton', { name: 'Decay' }) as HTMLInputElement
+    const decay = screen.getByRole('slider', { name: 'Decay' })
 
-    await user.click(decay)
-    await user.keyboard('75')
-    await user.tab()
-    expect(decay.value).toBe('75')
+    fireEvent.pointerDown(decay, { clientY: 150, pointerId: 1 })
+    fireEvent.pointerMove(decay, { clientY: 125, pointerId: 1 })
+    fireEvent.pointerUp(decay, { pointerId: 1 })
+    expect(sliderValue('Decay')).toBe(75)
     await user.click(screen.getByRole('button', { name: 'Undo' }))
 
-    expect(decay.value).toBe('0')
+    expect(sliderValue('Decay')).toBe(0)
+    vi.restoreAllMocks()
   })
 
   it('minimises and restores the effects unit from the panel title', async () => {
@@ -332,22 +359,21 @@ describe('VirtualAnalogEditorPage', () => {
   it('applies a sound preset as one undo step and closes the menu', async () => {
     const { controlChanges, user } = setup()
     await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
-    const sub = screen.getByRole('slider', { name: 'Sub' }) as HTMLInputElement
-    const before = sub.value
+    const before = sliderValue('Sub')
 
     await user.click(screen.getByLabelText('Sound presets'))
     await user.click(screen.getByRole('button', { name: /^Mono bass/ }))
 
     expect(screen.getByLabelText('Sound presets').closest('details')?.open).toBe(false)
-    expect(sub.value).toBe('60')
+    expect(sliderValue('Sub')).toBe(60)
     expect(screen.getByRole('switch', { name: 'Monophonic' })).toHaveProperty('checked', true)
     await user.click(screen.getByRole('button', { name: 'Undo' }))
-    expect(sub.value).toBe(before)
+    expect(sliderValue('Sub')).toBe(before)
   })
 
   it('asks before leaving with unsaved changes', async () => {
     const { onBack, user } = setup()
-    fireEvent.change(screen.getByRole('slider', { name: 'Sub' }), { target: { value: '40' } })
+    setSlider('Sub', 40)
 
     await user.click(screen.getByRole('button', { name: 'Back to patch banks' }))
 

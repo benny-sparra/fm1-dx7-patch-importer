@@ -166,7 +166,7 @@ export default {
         'How much louder a note gets when you play harder. At 0 every note is equally loud.',
       mono: 'Plays one note at a time. A new key takes over from the held one without a fresh attack.',
       envelope:
-        'One attack, decay, sustain, and release for the whole patch while it is switched on. Drag its points or type the values. Release fades a note over 0.1 seconds at 0 to 2 seconds at 100. Raise Sustain when you switch it on, since at 0 a held note is short.',
+        'One attack, decay, sustain, and release for the whole patch while it is switched on. Drag its points or move its faders. Release fades a note over 0.1 seconds at 0 to 2 seconds at 100. Raise Sustain when you switch it on, since at 0 a held note is short.',
     },
     oscillator: 'Oscillator',
     waveform: 'Waveform',
