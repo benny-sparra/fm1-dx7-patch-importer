@@ -7,8 +7,17 @@ import { describe, expect, it } from 'vitest'
 const html = readFileSync(path.resolve(__dirname, '../firmware/index.html'), 'utf8')
 const page = new DOMParser().parseFromString(html, 'text/html')
 const entries = [...page.querySelectorAll('article.firmware-entry')]
+const watched = [...page.querySelectorAll('.firmware-watch-item')]
 const named = (list: Element[]) =>
-  list.map((entry) => [entry.querySelector('h2')?.textContent?.trim(), entry] as const)
+  list.map(
+    (entry) =>
+      [
+        (entry.querySelector('h2, .firmware-watch-name')?.textContent ?? '')
+          .replace('↗', '')
+          .trim(),
+        entry,
+      ] as const,
+  )
 
 describe('firmware page', () => {
   it('lists at least one firmware', () => {
@@ -66,6 +75,25 @@ describe('firmware page', () => {
       )
     },
   )
+
+  it.each(named(watched))('%s on the watch list has a maker and a note', (_name, item) => {
+    expect(item.querySelector('.firmware-watch-maker')?.textContent?.trim()).toBeTruthy()
+    expect(item.querySelector('.firmware-blurb')?.textContent?.trim()).toBeTruthy()
+  })
+
+  it.each(named(watched))('%s on the watch list links out in a new tab', (_name, item) => {
+    const link = item.querySelector('a.firmware-watch-name')
+    expect(link?.getAttribute('href')).toMatch(/^https:\/\//)
+    expect(link?.getAttribute('target')).toBe('_blank')
+    expect(link?.getAttribute('rel')).toContain('noopener')
+  })
+
+  it('keeps every firmware either listed or watched, never both', () => {
+    const projectLinks = (list: Element[]) =>
+      new Set(list.flatMap((element) => [...element.querySelectorAll('a')].map((a) => a.href)))
+    const listed = projectLinks(entries)
+    for (const link of projectLinks(watched)) expect(listed).not.toContain(link)
+  })
 
   it.each(named(entries))('%s links out to its project in a new tab', (_name, entry) => {
     const links = [...entry.querySelectorAll('.firmware-links a')]
