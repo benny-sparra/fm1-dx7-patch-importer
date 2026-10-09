@@ -37,6 +37,7 @@ import { Select } from '@/components/ui/select'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import type { MidiController } from '@/hooks/use-midi'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
+import '@/i18n/librarian-dialogs'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import type { Dx7Voice } from '@/lib/dx7'
 import {

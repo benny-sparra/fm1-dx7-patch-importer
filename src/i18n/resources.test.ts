@@ -3,14 +3,47 @@ import { describe, expect, it } from 'vitest'
 import de from './locales/de'
 import britishEnglish from './locales/en-GB'
 import britishEnglishEditorHelp from './locales/en-GB-editor-help'
+import britishEnglishLibrarianDialogs from './locales/en-GB-librarian-dialogs'
 import enUS from './locales/en-US'
 import es from './locales/es'
 import fr from './locales/fr'
 import ptBR from './locales/pt-BR'
 import zhHans from './locales/zh-Hans'
 
-// British English as the editor sees it, once its chunk has added the help it brings.
-const en = { ...britishEnglish, ...britishEnglishEditorHelp }
+type Strings = { [key: string]: string | Strings }
+
+function mergeStrings<T extends object, U extends object>(target: T, source: U): T & U {
+  const merged: Strings = { ...(target as Strings) }
+  for (const [key, value] of Object.entries(source as Strings)) {
+    const current = merged[key]
+    merged[key] =
+      typeof value === 'object' && typeof current === 'object'
+        ? mergeStrings(current, value)
+        : value
+  }
+  return merged as T & U
+}
+
+// British English strings that load with the lazy chunks that show them, each with the module that
+// adds it and one module known to read it.
+const lazyBritishEnglish = [
+  {
+    module: '@/i18n/editor-help',
+    reader: '/src/routes/patch-editor-page.tsx',
+    strings: britishEnglishEditorHelp,
+  },
+  {
+    module: '@/i18n/librarian-dialogs',
+    reader: '/src/components/patches/write-fm1-va-presets-dialog.tsx',
+    strings: britishEnglishLibrarianDialogs,
+  },
+]
+
+// British English as a page sees it once every lazy chunk has added its strings.
+const en = mergeStrings(
+  mergeStrings(britishEnglish, britishEnglishEditorHelp),
+  britishEnglishLibrarianDialogs,
+)
 
 const resources = {
   de: { translation: de },
@@ -108,29 +141,48 @@ describe('translation resources', () => {
     expect(unchanged).toEqual([])
   })
 
-  // The editor's help loads with the editor, so the page's English resources must not carry it, and
-  // a module that reads it must bring it.
-  it('loads the editor help only through the modules that read it', () => {
-    const editorHelpSections = Object.keys(britishEnglishEditorHelp)
-    expect(Object.keys(britishEnglish).filter((key) => editorHelpSections.includes(key))).toEqual(
-      [],
-    )
+  // Strings that load with a lazy chunk must stay out of the page's English, and a module that reads
+  // one must bring them. A key read through a template, such as `controlHelp.${id}`, counts by the
+  // part before the placeholder.
+  describe.each(lazyBritishEnglish)('strings added by $module', ({ module, reader, strings }) => {
+    const lazyKeys = flattenKeys(strings)
 
-    const sources = import.meta.glob<string>(['/src/**/*.{ts,tsx}', '!/src/**/*.test.*'], {
-      eager: true,
-      import: 'default',
-      query: '?raw',
+    it('leaves them out of the page’s English', () => {
+      const pageKeys = new Set(flattenKeys(britishEnglish))
+
+      expect(lazyKeys.filter((key) => pageKeys.has(key))).toEqual([])
     })
-    const readsEditorHelp = new RegExp(`['\`](${editorHelpSections.join('|')})\\.`)
-    const readers = Object.entries(sources).filter(
-      ([path, source]) => !path.startsWith('/src/i18n/') && readsEditorHelp.test(source),
-    )
-    const missingImport = readers
-      .filter(([, source]) => !source.includes("import '@/i18n/editor-help'"))
-      .map(([path]) => path)
 
-    expect(readers.map(([path]) => path)).toContain('/src/routes/patch-editor-page.tsx')
-    expect(missingImport).toEqual([])
+    it('is imported by every module that reads them', () => {
+      const sources = import.meta.glob<string>(['/src/**/*.{ts,tsx}', '!/src/**/*.test.*'], {
+        eager: true,
+        import: 'default',
+        query: '?raw',
+      })
+      const sections = Object.keys(strings).join('|')
+      const keyReference = new RegExp(`['"\`]((?:${sections})\\.[^'"\`$\\n]*)(['"\`]|\\$)`, 'g')
+      const readsLazyKey = (reference: string, end: string) =>
+        lazyKeys.some((key) =>
+          end === '$'
+            ? key.startsWith(reference)
+            : key === reference ||
+              key.startsWith(`${reference}_`) ||
+              key.startsWith(`${reference}.`),
+        )
+      const readers = Object.entries(sources).filter(
+        ([path, source]) =>
+          !path.startsWith('/src/i18n/') &&
+          [...source.matchAll(keyReference)].some(([, reference, end]) =>
+            readsLazyKey(reference, end),
+          ),
+      )
+      const missingImport = readers
+        .filter(([, source]) => !source.includes(`import '${module}'`))
+        .map(([path]) => path)
+
+      expect(readers.map(([path]) => path)).toContain(reader)
+      expect(missingImport).toEqual([])
+    })
   })
 
   it('provides Simplified Chinese text for editor help tooltips', () => {

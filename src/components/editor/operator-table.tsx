@@ -11,6 +11,7 @@ import {
   operatorSummaryLabel,
   readOperatorSummary,
 } from '@/components/editor/editor-workspace'
+import '@/i18n/editor-help'
 import { FM1_OPERATOR_COUNT } from '@/lib/fm1-parameters'
 import { cn } from '@/lib/utils'
 
