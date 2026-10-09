@@ -36,6 +36,7 @@
     ></script>
     <link rel="stylesheet" href="/src/firmware-page.css" />
     <script src="/firmware-colourway.js"></script>
+    <script defer src="/firmware-sort.js"></script>
   </head>
   <body>
     <!--
@@ -66,7 +67,43 @@
       </header>
 
       <div class="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 px-4 py-5 sm:px-5 lg:px-8">
-        <article class="firmware-entry synthwave-panel" id="stock" aria-labelledby="firmware-stock">
+        <!--
+          Orders the entries below the two pinned ones, alphabetically as written or by GitHub
+          stars, through public/firmware-sort.js. npm run firmware:stars refreshes the counts and
+          the date.
+        -->
+        <div class="firmware-sort">
+          <div class="firmware-sort-options" role="group" aria-labelledby="firmware-sort-label">
+            <span class="firmware-sort-label" id="firmware-sort-label">Order</span>
+            <button
+              class="hero-action firmware-sort-option"
+              type="button"
+              aria-pressed="true"
+              data-order="name"
+            >
+              A–Z
+            </button>
+            <button
+              class="hero-action firmware-sort-option"
+              type="button"
+              aria-pressed="false"
+              data-order="stars"
+            >
+              Most starred
+            </button>
+          </div>
+          <p class="firmware-sort-note">
+            Stars on GitHub as of <time datetime="2026-10-09">9 October 2026</time>. M-VAVE's
+            firmware and Baud Girl's stay first, as the two this editor works with.
+          </p>
+        </div>
+
+        <article
+          class="firmware-entry synthwave-panel"
+          id="stock"
+          aria-labelledby="firmware-stock"
+          data-pinned
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="An FM1 on M-VAVE's firmware"
@@ -129,6 +166,7 @@
           class="firmware-entry synthwave-panel"
           id="baud-girl"
           aria-labelledby="firmware-fm1-va"
+          data-pinned
         >
           <figure class="firmware-photo crt-inset">
             <img
@@ -197,6 +235,7 @@
           class="firmware-entry synthwave-panel"
           id="choralroot"
           aria-labelledby="firmware-choralroot"
+          data-stars="12"
         >
           <figure class="firmware-photo crt-inset">
             <img
@@ -228,6 +267,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 0.13</span>
+              <span class="firmware-stars">12 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A chord instrument inspired by Telepathic Instruments' Orchid: one hand plays roots
@@ -270,6 +310,7 @@
           class="firmware-entry synthwave-panel"
           id="felucca"
           aria-labelledby="firmware-felucca"
+          data-stars="346"
         >
           <figure class="firmware-photo crt-inset">
             <img
@@ -300,7 +341,7 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Latest 1.1.5.1</span>
+              ><span>Latest 1.1.5.1</span> <span class="firmware-stars">346 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               Turns the FM1 into a multi-engine synth: thirteen engines, from analogue, six-operator
@@ -340,7 +381,12 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" id="fimba" aria-labelledby="firmware-fimba">
+        <article
+          class="firmware-entry synthwave-panel"
+          id="fimba"
+          aria-labelledby="firmware-fimba"
+          data-stars="5"
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="FiMba-1's tines screen, with the kalimba's tines, its chord buttons, and its Material, Hardness, Decay, and Tone"
@@ -371,6 +417,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 0.4.0</span>
+              <span class="firmware-stars">5 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A kalimba grown from FoMni: the 16 white keys are tines laid out as a real kalimba's,
@@ -404,6 +451,7 @@
           class="firmware-entry synthwave-panel"
           id="fm1-nes"
           aria-labelledby="firmware-fm1-nes"
+          data-stars="13"
         >
           <figure class="firmware-photo firmware-photo-missing crt-inset" aria-hidden="true">
             <span>FM-1 NES</span>
@@ -423,6 +471,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Experimental · Source only</span>
+              <span class="firmware-stars">13 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               Plays NES games on the FM1: its 27 keys are the controller and its screen the
@@ -447,6 +496,7 @@
           class="firmware-entry synthwave-panel"
           id="fm1-quest"
           aria-labelledby="firmware-fm1-quest"
+          data-stars="5"
         >
           <figure class="firmware-photo crt-inset">
             <img
@@ -478,6 +528,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Not yet tried on an FM1 · Build 15</span>
+              <span class="firmware-stars">5 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               SLOOP as a pixel-art RPG. The four tracks are four heroes, every lit step is an
@@ -517,7 +568,12 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" id="fomni" aria-labelledby="firmware-fomni">
+        <article
+          class="firmware-entry synthwave-panel"
+          id="fomni"
+          aria-labelledby="firmware-fomni"
+          data-stars="41"
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="FoMni's strum screen, with the chord's strings and its chord buttons"
@@ -547,7 +603,7 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Latest 0.3.1</span>
+              ><span>Latest 0.3.1</span> <span class="firmware-stars">41 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A chord harp inspired by the Suzuki Omnichord: the 16 white keys are the strum plate
@@ -590,6 +646,7 @@
           class="firmware-entry synthwave-panel"
           id="ghoulbox"
           aria-labelledby="firmware-ghoulbox"
+          data-stars="15"
         >
           <figure class="firmware-photo crt-inset">
             <img
@@ -620,7 +677,7 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Latest 1.0</span>
+              ><span>Latest 1.0</span> <span class="firmware-stars">15 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A Felucca fork for dungeon synth, dark ambient, and fantasy music: a cathedral-sized
@@ -728,6 +785,7 @@
           class="firmware-entry synthwave-panel"
           id="hortator"
           aria-labelledby="firmware-hortator"
+          data-stars="3"
         >
           <figure class="firmware-photo firmware-photo-missing crt-inset" aria-hidden="true">
             <span>Hortator</span>
@@ -747,6 +805,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 0.13.0</span>
+              <span class="firmware-stars">3 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A drum machine built on Felucca: eight drum tracks of 808, 909, and Plaits drum models
@@ -790,6 +849,7 @@
           class="firmware-entry synthwave-panel"
           id="jangada"
           aria-labelledby="firmware-jangada"
+          data-stars="19"
         >
           <figure class="firmware-photo crt-inset">
             <img
@@ -821,6 +881,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Alpha · Latest 0.5.1</span>
+              <span class="firmware-stars">19 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A Felucca fork with a dark, industrial, and Brazilian accent: ten engines, among them
@@ -863,6 +924,7 @@
           class="firmware-entry synthwave-panel"
           id="lunar-modulator"
           aria-labelledby="firmware-lunar-modulator"
+          data-stars="51"
         >
           <figure class="firmware-photo crt-inset">
             <img
@@ -894,6 +956,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Not installable yet</span>
+              <span class="firmware-stars">51 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               Open firmware in the making, with engines derived from Mutable Instruments' modules
@@ -926,6 +989,7 @@
           class="firmware-entry synthwave-panel"
           id="melodee"
           aria-labelledby="firmware-melodee"
+          data-stars="30"
         >
           <figure class="firmware-photo firmware-photo-missing crt-inset" aria-hidden="true">
             <span>Melodee</span>
@@ -944,7 +1008,7 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Latest 0.11.1</span>
+              ><span>Latest 0.11.1</span> <span class="firmware-stars">30 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A Felucca fork that follows Felucca 1.0's design and adds engines of its own, among
@@ -987,6 +1051,7 @@
           class="firmware-entry synthwave-panel"
           id="rainbow-mode"
           aria-labelledby="firmware-rainbow-mode"
+          data-stars="2"
         >
           <figure class="firmware-photo crt-inset">
             <img
@@ -1018,6 +1083,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>No numbered releases</span>
+              <span class="firmware-stars">2 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A music toy for small children, built on Felucca: every key shows its note in its own
@@ -1030,7 +1096,7 @@
               <li>
                 <a
                   class="hero-action firmware-link"
-                  href="https://joshbartlettband-web.github.io/Hi-/"
+                  href="https://joshbartlettband-web.github.io/felucca-rainbow/"
                   rel="noopener"
                   target="_blank"
                   >Rainbow mode ↗</a
@@ -1039,7 +1105,7 @@
               <li>
                 <a
                   class="hero-action firmware-link"
-                  href="https://joshbartlettband-web.github.io/Hi-/webapp/try/"
+                  href="https://joshbartlettband-web.github.io/felucca-rainbow/webapp/try/"
                   rel="noopener"
                   target="_blank"
                   >Try it in a browser ↗</a
@@ -1048,7 +1114,7 @@
               <li>
                 <a
                   class="hero-action firmware-link"
-                  href="https://github.com/joshbartlettband-web/Hi-"
+                  href="https://github.com/joshbartlettband-web/felucca-rainbow"
                   rel="noopener"
                   target="_blank"
                   >Source ↗</a
@@ -1057,7 +1123,12 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" id="sloop" aria-labelledby="firmware-sloop">
+        <article
+          class="firmware-entry synthwave-panel"
+          id="sloop"
+          aria-labelledby="firmware-sloop"
+          data-stars="323"
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="SLOOP's tracks screen, with its four tracks playing"
@@ -1088,6 +1159,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 2.4.1</span>
+              <span class="firmware-stars">323 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A groovebox firmware built on Felucca, with projects, patterns, and songs, and its own
@@ -1120,6 +1192,7 @@
           class="firmware-entry synthwave-panel"
           id="sloop-alg"
           aria-labelledby="firmware-sloop-alg"
+          data-stars="1"
         >
           <figure class="firmware-photo firmware-photo-missing crt-inset" aria-hidden="true">
             <span>SLOOP ALG</span>
@@ -1139,6 +1212,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Test build · Latest ALG05</span>
+              <span class="firmware-stars">1 star on GitHub</span>
             </p>
             <p class="firmware-blurb">
               An experimental fork of SLOOP 2.2 that adds engines of its own: a six-operator DX7
@@ -1181,6 +1255,7 @@
           class="firmware-entry synthwave-panel"
           id="sloopdx"
           aria-labelledby="firmware-sloopdx"
+          data-stars="16"
         >
           <figure class="firmware-photo crt-inset">
             <img
@@ -1211,7 +1286,7 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Beta · Latest 2.6</span>
+              ><span>Beta · Latest 2.6</span> <span class="firmware-stars">16 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               SLOOP's live workflow with a DX7 inside: a fork of SLOOP that replaces its engines
@@ -1251,7 +1326,12 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" id="x0x" aria-labelledby="firmware-x0x">
+        <article
+          class="firmware-entry synthwave-panel"
+          id="x0x"
+          aria-labelledby="firmware-x0x"
+          data-stars="90"
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="X0X's home screen, with the 909, 808, two 303s, and breakbeat patterns"
@@ -1278,6 +1358,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 0.10.2</span>
+              <span class="firmware-stars">90 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A groovebox in the spirit of ReBirth: a 909, an 808, two 303s with an acid line
@@ -1325,7 +1406,12 @@
             </ul>
           </div>
         </article>
-        <article class="firmware-entry synthwave-panel" id="zp12" aria-labelledby="firmware-zp12">
+        <article
+          class="firmware-entry synthwave-panel"
+          id="zp12"
+          aria-labelledby="firmware-zp12"
+          data-stars="14"
+        >
           <figure class="firmware-photo crt-inset">
             <img
               alt="zp12's home screen, with A1 KICK on its LCD above eight channel faders and pads"
@@ -1352,6 +1438,7 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Test build · Latest 1.9.2</span>
+              <span class="firmware-stars">14 stars on GitHub</span>
             </p>
             <p class="firmware-blurb">
               A 12-bit sampling drum machine in the spirit of the 80s: 32 pads at 26 kHz, pitched

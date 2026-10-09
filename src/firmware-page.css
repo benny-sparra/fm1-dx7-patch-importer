@@ -134,6 +134,49 @@
     color: var(--crt-ink-3);
   }
 
+  /* The order of the entries, with the date their star counts were read. */
+  .firmware-sort {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+  }
+
+  .firmware-sort-options {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .firmware-sort-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--crt-ink-3);
+  }
+
+  .firmware-sort-option {
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* The order shown, lit like the editor's pressed toggles. */
+  .firmware-sort-option[aria-pressed='true'],
+  .firmware-sort-option[aria-pressed='true']:hover {
+    color: var(--crt-bg-0);
+    background: var(--crt-led);
+    border-color: var(--crt-shadow) var(--crt-line-lt2) var(--crt-line-lt2) var(--crt-shadow);
+  }
+
+  .firmware-sort-note {
+    font-size: 0.75rem;
+    color: var(--crt-ink-3);
+  }
+
   .firmware-blurb {
     max-width: 65ch;
     font-size: 0.875rem;

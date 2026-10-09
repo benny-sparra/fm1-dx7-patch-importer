@@ -365,6 +365,16 @@ open everything an earlier release could have saved.
   never rename one; `src/firmware-page.test.ts` checks each has its heading, maker, support tag,
   blurb, sized photo or placeholder, and links. The page is in British English only, outside the
   locale files.
+- The firmware page orders its entries A–Z, as written, or by GitHub stars on request, through
+  `public/firmware-sort.js`, another plain script. The counts are a snapshot in the HTML
+  (`data-stars` and the status line), never fetched by the page, since a visitor's browser asking
+  GitHub would need a privacy and CSP review and meets its anonymous rate limit. Refresh them, and
+  the date beside the order buttons, with `npm run firmware:stars` whenever the page is edited.
+  The entries `data-pinned` marks, M-VAVE's firmware and Baud Girl's, stay first in either order
+  and have no count; an entry without a GitHub repository, such as Groove OS, has no count and
+  follows the counted ones. A new firmware is written in alphabetical place, and the script gives
+  it a count. Label the order **Most starred**, never popular, since stars say how widely a project
+  was shared rather than how many FM1s run it.
 
 ### Privacy, monitoring, and deployment security
 

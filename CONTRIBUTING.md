@@ -126,6 +126,7 @@ mene311's themed banks are.
 | `npm run icons:generate`    | Regenerate the committed installed-app icons with Sharp             |
 | `npm run icons:check`       | Verify the manifest icons are present, square, and correctly typed  |
 | `npm run catalog:index`     | Regenerate the catalog patch-name and fingerprint index             |
+| `npm run firmware:stars`    | Refresh the firmware page's GitHub star counts and their date       |
 | `npm run lint`              | Run Oxlint and Stylelint; warnings fail the command                 |
 | `npm run lint:code`         | Run type-aware TypeScript, React, import, promise, and test linting |
 | `npm run lint:css`          | Check CSS with Stylelint                                            |
