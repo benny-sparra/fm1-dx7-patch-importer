@@ -123,10 +123,41 @@ describe('firmware page', () => {
   it.each(named(starred))('%s shows the star count it is sorted by', (_name, entry) => {
     const stars = entry.getAttribute('data-stars') ?? ''
     expect(stars).toMatch(/^\d+$/)
-    expect(entry.querySelector('.firmware-status .firmware-stars')?.textContent).toBe(
-      `${stars} ${stars === '1' ? 'star' : 'stars'} on GitHub`,
-    )
+    const label = entry.querySelector('.firmware-status .firmware-stars')
+    expect(label?.getAttribute('data-counted')).toBe('true')
+    expect(label?.querySelector('[aria-hidden="true"]:not(svg)')?.textContent).toBe(stars)
   })
+
+  it.each(named(starred))(
+    '%s names its star count in full for assistive technology and the tooltip',
+    (_name, entry) => {
+      const stars = entry.getAttribute('data-stars') ?? ''
+      const full = `${stars} ${stars === '1' ? 'star' : 'stars'} on GitHub`
+      const label = entry.querySelector('.firmware-status .firmware-stars')
+      expect(label?.querySelector('.sr-only')?.textContent).toBe(full)
+      expect(label?.getAttribute('title')).toBe(full)
+    },
+  )
+
+  it.each(named(entries.filter((entry) => !entry.querySelector('a[href^="https://github.com/"]'))))(
+    '%s says it is not on GitHub and has no star count',
+    (_name, entry) => {
+      expect(entry.hasAttribute('data-stars')).toBe(false)
+      const label = entry.querySelector('.firmware-status .firmware-stars')
+      expect(label?.getAttribute('data-counted')).toBe('false')
+      expect(label?.textContent?.trim()).toBe('Not on GitHub')
+    },
+  )
+
+  it.each(named(entries))(
+    '%s draws its star from the page symbol, hidden from assistive technology',
+    (_name, entry) => {
+      const star = entry.querySelector('.firmware-stars svg.firmware-star')
+      expect(star?.getAttribute('aria-hidden')).toBe('true')
+      const symbol = star?.querySelector('use')?.getAttribute('href') ?? ''
+      expect(page.querySelector(`svg[hidden] symbol${symbol}`)).not.toBeNull()
+    },
+  )
 
   it('says when the star counts were read', () => {
     const time = page.querySelector('.firmware-sort-note time')
