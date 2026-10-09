@@ -79,7 +79,8 @@ day), or L (several days). Tick an item off, with its pull request, when it land
 
 All three were confirmed against the live site with `curl`.
 
-- [ ] **Plain HTTP serves the whole app, with no redirect and no HSTS.** (S)
+- [ ] **Plain HTTP serves the whole app, with no redirect and no HSTS.** (S; one-day HSTS added on
+      `chore/hsts`, redirect and a year's max-age still to do)
       Web MIDI fails without a secure context, and the http origin has its own empty IndexedDB, so
       a visitor there sees a blank library or starts a second one. Fix: turn on Cloudflare **Always
       Use HTTPS** and add `Strict-Transport-Security: max-age=31536000; includeSubDomains` to
