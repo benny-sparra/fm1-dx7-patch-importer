@@ -715,6 +715,67 @@ describe('listStoredNamedBanks', () => {
     expect(banks.map(({ id }) => id)).toEqual(['version-2', 'version-1'])
     expect(banks[0].slots[0].record).toEqual(record)
   })
+
+  it('lists a version 3 saved bank, with a Virtual Analog slot, exactly as stored', async () => {
+    const voices = makeDemoVoices()
+    const record = capturedVirtualAnalogRecord()
+    const virtualAnalog = virtualAnalogVoiceBeyondDx7Ranges()
+    const versionThree = {
+      createdAt: '2026-10-07T12:00:00.000Z',
+      description: 'Leads',
+      id: 'version-3',
+      name: 'Version 3',
+      slots: voices.map((voice, index) =>
+        index === 0
+          ? { effects: makeDefaultFm1Effects(), record, slot: 1, virtualAnalog }
+          : { effects: makeDefaultFm1Effects(), slot: index + 1, voice },
+      ),
+      updatedAt: '2026-10-07T12:00:00.000Z',
+      version: 3,
+    }
+    const fake = installIndexedDb([versionThree])
+    const listing = listStoredNamedBanks()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    const { banks, damagedCount } = await listing
+    expect(damagedCount).toBe(0)
+    expect(banks).toEqual([versionThree])
+    expect(banks[0].slots[0]).toMatchObject({ record, virtualAnalog })
+  })
+
+  it('masks a saved voice byte above seven bits, as an earlier release could store', async () => {
+    const voices = makeDemoVoices()
+    const highBit = { ...voices[0], data: voices[0].data.slice() }
+    highBit.data[3] = 0x80 | voices[0].data[3]
+    const stored = {
+      createdAt: '2026-08-01T12:00:00.000Z',
+      description: '',
+      id: 'unmasked',
+      name: 'Unmasked',
+      slots: voices.map((voice, index) => ({
+        effects: makeDefaultFm1Effects(),
+        slot: index + 1,
+        voice: index === 0 ? highBit : voice,
+      })),
+      updatedAt: '2026-08-01T12:00:00.000Z',
+      version: 1,
+    }
+    const fake = installIndexedDb([stored])
+    const listing = listStoredNamedBanks()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    const { banks, damagedCount } = await listing
+    expect(damagedCount).toBe(0)
+    const [slot] = banks[0].slots
+    expect('voice' in slot && slot.voice.data).toEqual(voices[0].data)
+    expect(fake.put).not.toHaveBeenCalled()
+  })
 })
 
 // A workspace that cannot be opened must reject rather than resolve as missing: a missing workspace

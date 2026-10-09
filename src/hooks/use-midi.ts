@@ -808,6 +808,9 @@ export function useMidi() {
     ask()
 
     return () => {
+      // An answer holds only while its ports stay selected, so choosing another port and then this
+      // one again asks again rather than bringing back the answer from before.
+      setIdentification(null)
       if (finished) return
       window.clearTimeout(timer)
       input.removeListener('midimessage', hear)

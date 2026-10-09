@@ -672,8 +672,9 @@ open everything an earlier release could have saved.
   change opens the editor on the slot it replaced, as copying a search result to edit it does, its
   Undo closes the editor before reverting (the `beforeUndo` of `undoToastOptions`).
 - Continuous input is one undo step. Start a gesture on pointer down or key down and end it on
-  pointer up, key up, and blur, as the sliders, knobs, and envelope points do. A preset or randomise
-  that writes many parameters is also one step.
+  pointer up, key up, and blur, as the sliders, knobs, and envelope points do; a native range input
+  takes its handlers from `rangeInputGestureHandlers`. A preset or randomise that writes many
+  parameters is also one step.
 
 ### Keyboard and motion
 

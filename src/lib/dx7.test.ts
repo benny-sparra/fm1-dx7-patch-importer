@@ -153,6 +153,27 @@ describe('DX7 7-bit data boundaries', () => {
   })
 })
 
+describe('DX7 dump channels', () => {
+  it.each([0, 17, 1.5, Number.NaN])(
+    'refuses to build a single-voice dump for channel %s rather than wrapping it',
+    (channel) => {
+      expect(() => makeDx7SingleVoicePayload(makeVoice(), channel)).toThrow('MIDI channel')
+    },
+  )
+
+  it.each([0, 17, 1.5, Number.NaN])(
+    'refuses to build a bank dump for channel %s rather than wrapping it',
+    (channel) => {
+      const voices = Array.from({ length: 32 }, makeVoice)
+      expect(() => makeDx7BankPayload(voices, channel)).toThrow('MIDI channel')
+    },
+  )
+
+  it('puts channel 16 in the dump header as 15', () => {
+    expect(makeDx7SingleVoicePayload(makeVoice(), 16)[0]).toBe(15)
+  })
+})
+
 describe('normalizeStoredDx7Voice', () => {
   it('keeps a valid stored voice unchanged', () => {
     const voice = makeVoice()

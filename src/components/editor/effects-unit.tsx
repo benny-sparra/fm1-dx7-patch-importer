@@ -28,7 +28,7 @@ import {
   PhaserScope,
   ReverbScope,
 } from '@/components/editor/effect-scopes'
-import { RackSelect, rangeControlKeys } from '@/components/editor/parameter-controls'
+import { RackSelect, rangeInputGestureHandlers } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -357,15 +357,8 @@ function EffectControl({
         disabled={disabled}
         max={definition.max}
         min={0}
-        onBlur={onGestureEnd}
+        {...rangeInputGestureHandlers(onGestureStart, onGestureEnd)}
         onChange={(event) => onChange(definition.controller, Number(event.target.value))}
-        onKeyDown={(event) => {
-          if (rangeControlKeys.includes(event.key)) onGestureStart()
-        }}
-        onKeyUp={onGestureEnd}
-        onPointerCancel={onGestureEnd}
-        onPointerDown={onGestureStart}
-        onPointerUp={onGestureEnd}
         style={rangeStyle(
           value,
           0,
@@ -576,15 +569,8 @@ function BitcrushSection({
                 disabled={disabled}
                 max={max}
                 min={min}
-                onBlur={onGestureEnd}
+                {...rangeInputGestureHandlers(onGestureStart, onGestureEnd)}
                 onChange={(event) => onChange(index, Number(event.target.value), min, max)}
-                onKeyDown={(event) => {
-                  if (rangeControlKeys.includes(event.key)) onGestureStart()
-                }}
-                onKeyUp={onGestureEnd}
-                onPointerCancel={onGestureEnd}
-                onPointerDown={onGestureStart}
-                onPointerUp={onGestureEnd}
                 style={rangeStyle(value, min, max, disabled ? 'var(--crt-line)' : 'var(--crt-acc)')}
                 type="range"
                 value={value}

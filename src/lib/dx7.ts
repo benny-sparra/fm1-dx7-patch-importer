@@ -233,17 +233,26 @@ export function packDx7Voice(unpacked: Uint8Array): Dx7Voice {
   return { data: packed, name: decodeVoiceName(packed) }
 }
 
+/** Throws unless `channel` is a MIDI channel, an integer from 1 to 16. */
+export function assertMidiChannel(channel: number) {
+  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
+    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
+  }
+}
+
 /** Yamaha DX7 single-voice bulk dump, excluding the F0/43 manufacturer prefix and F7 terminator. */
 export function makeDx7SingleVoicePayload(voice: Dx7Voice, channel = 1) {
+  assertMidiChannel(channel)
   assertPackedVoice(voice)
   const data = unpackDx7Voice(voice)
   const checksum = dx7Checksum(data)
 
-  return Uint8Array.from([(channel - 1) & 0x0f, 0x00, 0x01, 0x1b, ...data, checksum])
+  return Uint8Array.from([channel - 1, 0x00, 0x01, 0x1b, ...data, checksum])
 }
 
 /** Yamaha DX7 32-voice bulk dump, excluding the F0/43 manufacturer prefix and F7 terminator. */
 export function makeDx7BankPayload(voices: Dx7Voice[], channel = 1) {
+  assertMidiChannel(channel)
   if (voices.length !== dx7BankVoiceCount) {
     throw new Error(`A DX7 bank must contain exactly ${dx7BankVoiceCount} voices.`)
   }
@@ -252,7 +261,7 @@ export function makeDx7BankPayload(voices: Dx7Voice[], channel = 1) {
   const data = Uint8Array.from(voices.flatMap((voice) => Array.from(voice.data)))
   const checksum = dx7Checksum(data)
 
-  return Uint8Array.from([(channel - 1) & 0x0f, 0x09, 0x20, 0x00, ...data, checksum])
+  return Uint8Array.from([channel - 1, 0x09, 0x20, 0x00, ...data, checksum])
 }
 
 /** Yamaha's MIDI manufacturer ID, which follows F0 in every Yamaha SysEx message. */
