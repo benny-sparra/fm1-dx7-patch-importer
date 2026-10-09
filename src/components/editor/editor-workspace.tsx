@@ -1,6 +1,6 @@
 import { ChevronDown, ClipboardPaste, Copy, RadioTower, Route } from 'lucide-react'
 import type { TFunction } from 'i18next'
-import { type ReactNode, useRef } from 'react'
+import { memo, type ReactNode, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
@@ -166,7 +166,11 @@ const VT323_ADVANCE = 0.55
 const FREQUENCY_FONT_SIZE = 7.4
 const frequencyWidth = featuredGrid.halfWidth * 2 - 3
 
-function AlgorithmDiagram({
+/**
+ * Memoised because the algorithm picker renders 32 thumbnails whose only prop
+ * is a constant table entry, and the editor re-renders on every knob step.
+ */
+const AlgorithmDiagram = memo(function AlgorithmDiagram({
   className,
   frequencies,
   operators,
@@ -275,7 +279,7 @@ function AlgorithmDiagram({
       })}
     </svg>
   )
-}
+})
 
 /** The help button a rack panel's title strip carries, above the strip's fold overlay. */
 export function RackPanelHelp({ label, text }: { label: string; text: string }) {

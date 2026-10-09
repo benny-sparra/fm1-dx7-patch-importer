@@ -68,7 +68,7 @@ export function FilterScope({ cutoff, enabled, resonance, type }: FilterScopePro
       bar.setAttribute('y', top.toFixed(2))
       bar.setAttribute('height', Math.max(0, viewHeight - top).toFixed(2))
     })
-  })
+  }, enabled)
 
   const markerX = cutoffX(cutoff)
 
@@ -169,7 +169,7 @@ export function DelayScope({ decay, enabled, mix, rate }: DelayScopeProps) {
         (base * (delayRestingOpacity + (1 - delayRestingOpacity) * flash)).toFixed(3),
       )
     })
-  })
+  }, enabled)
 
   return (
     <ScopeFrame ref={frameRef} testId="delay-scope">
@@ -244,7 +244,7 @@ export function ChorusScope({ depth, enabled, frequency, mix }: ChorusScopeProps
       const offset = drift * clamp01(depth / 100) * chorusMaxOffset * (index === 0 ? 1 : -1)
       voice?.setAttribute('transform', translate(scrollRef.current + offset))
     })
-  })
+  }, enabled)
 
   const wetOpacity = 0.15 + 0.6 * clamp01(mix / 100)
 
@@ -353,7 +353,7 @@ export function ReverbScope({ decay, enabled, mix, space }: ReverbScopeProps) {
       grain.setAttribute('y2', (viewHeight / 2 + half).toFixed(2))
       grain.setAttribute('opacity', x <= head ? '1' : '0')
     })
-  })
+  }, enabled)
 
   return (
     <ScopeFrame ref={frameRef} testId="reverb-scope">
@@ -462,7 +462,7 @@ export function DistortionScope({ enabled, gain, level, tone }: DistortionScopeP
       'transform',
       `translate(${(-scrollRef.current * distortionCycleWidth).toFixed(2)} 0)`,
     )
-  })
+  }, enabled)
 
   return (
     <ScopeFrame ref={frameRef} testId="distortion-scope">
@@ -539,7 +539,7 @@ export function PhaserScope({ depth, enabled, frequency, mix }: PhaserScopeProps
     const path = phaserPath(notchX, mix)
     lineRef.current?.setAttribute('d', path)
     fillRef.current?.setAttribute('d', `${path} L${viewWidth} ${viewHeight} L0 ${viewHeight} Z`)
-  })
+  }, enabled)
 
   const initial = phaserPath(phaserCentre, mix)
 
@@ -617,7 +617,7 @@ export function BitcrushScope({ bits, enabled, mix, sampleRate }: BitcrushScopeP
       'transform',
       `translate(${(-scrollRef.current * distortionCycleWidth).toFixed(2)} 0)`,
     )
-  })
+  }, enabled)
 
   return (
     <ScopeFrame ref={frameRef} testId="bitcrush-scope">

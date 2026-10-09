@@ -10,8 +10,8 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function Loop({ step }: { step: (elapsed: number) => void }) {
-  useAnimationLoop(step)
+function Loop({ running, step }: { running?: boolean; step: (elapsed: number) => void }) {
+  useAnimationLoop(step, running)
   return null
 }
 
@@ -89,6 +89,27 @@ describe('useAnimationLoop', () => {
     expect(requestAnimationFrame).toHaveBeenCalledTimes(1)
     unmount()
     expect(cancelAnimationFrame).toHaveBeenCalledWith(1)
+  })
+
+  it('draws a still frame without animating while not running, as for an effect switched off', () => {
+    const { requestAnimationFrame } = stubMotion(false)
+    const step = vi.fn()
+    render(<Loop running={false} step={step} />)
+
+    expect(requestAnimationFrame).not.toHaveBeenCalled()
+    expect(step).toHaveBeenCalledExactlyOnceWith(0)
+  })
+
+  it('stops requesting frames when switched off and resumes when switched on', () => {
+    const { pendingFrames } = stubMotion(false)
+    const step = vi.fn()
+    const { rerender } = render(<Loop step={step} />)
+
+    rerender(<Loop running={false} step={step} />)
+    expect(pendingFrames()).toBe(0)
+
+    rerender(<Loop running step={step} />)
+    expect(pendingFrames()).toBe(1)
   })
 
   it('draws still frames on render without animating when motion is reduced', () => {

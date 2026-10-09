@@ -16,9 +16,10 @@ export const scopeViewHeight = 48
  * Attach the returned ref to the scope's `ScopeFrame`: frames are only
  * requested while it shows on screen, so a scope scrolled away or inside a
  * folded rack panel (clipped to zero height) stops repainting. Without
- * IntersectionObserver the loop always runs.
+ * IntersectionObserver the loop always runs. While `running` is false, as for
+ * a scope whose effect is off, only the render redraws happen.
  */
-export function useAnimationLoop(step: (elapsed: number) => void) {
+export function useAnimationLoop(step: (elapsed: number) => void, running = true) {
   const runStep = useEffectEvent(step)
   const frameRef = useRef<HTMLDivElement>(null)
 
@@ -27,7 +28,9 @@ export function useAnimationLoop(step: (elapsed: number) => void) {
   })
 
   useEffect(() => {
-    if (typeof window.requestAnimationFrame !== 'function' || prefersReducedMotion()) return
+    if (!running || typeof window.requestAnimationFrame !== 'function' || prefersReducedMotion()) {
+      return
+    }
 
     let frame: number | undefined
     let last: number | undefined
@@ -72,7 +75,7 @@ export function useAnimationLoop(step: (elapsed: number) => void) {
       observer.disconnect()
       stop()
     }
-  }, [])
+  }, [running])
 
   return frameRef
 }
