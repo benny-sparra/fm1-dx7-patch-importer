@@ -42,7 +42,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:a11y": "vitest run src/test/accessibility.a11y.test.tsx",
-    "test:e2e": "npm run build && playwright test",
+    "test:e2e": "npm run build && playwright test --project=chromium --project=firefox",
+    "test:e2e:touch": "npm run build && playwright test --project='touch-*'",
     "typecheck": "tsc -b",
     "test:cls": "npm run build && node scripts/check-layout-shift.mjs",
     "firmware:stars": "node scripts/update-firmware-stars.mjs"

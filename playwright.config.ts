@@ -20,9 +20,13 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   // Firefox is a supported Web MIDI browser, so every journey runs in it as well as Chromium.
+  // The touch journeys in e2e/mobile are an advisory audit of phones and tablets, run only by
+  // `npm run test:e2e:touch`, so a gap they find never fails `npm run test:e2e` or a deploy.
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'chromium', testIgnore: 'mobile/**', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', testIgnore: 'mobile/**', use: { ...devices['Desktop Firefox'] } },
+    { name: 'touch-phone', testDir: './e2e/mobile', use: { ...devices['Pixel 7'] } },
+    { name: 'touch-tablet', testDir: './e2e/mobile', use: { ...devices['Galaxy Tab S9'] } },
   ],
   webServer: {
     command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',

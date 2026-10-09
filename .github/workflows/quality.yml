@@ -121,3 +121,72 @@ jobs:
         run: npx playwright install chromium firefox
       - name: Run browser journeys
         run: npm run test:e2e
+
+  # An audit of phones and tablets, not a gate: the journeys record where touch falls short, so a
+  # failure warns and keeps its report but never fails the workflow. Its caches have keys of their
+  # own, since this job installs Chromium alone and the browser journeys must not restore that.
+  touch-tests:
+    name: Touch journeys (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Read the Playwright and runner image versions
+        id: versions
+        run: |
+          echo "playwright=$(node -p "require('./package-lock.json').packages['node_modules/@playwright/test'].version")" >> "$GITHUB_OUTPUT"
+          echo "image-os=${ImageOS}" >> "$GITHUB_OUTPUT"
+          echo "image-version=${ImageVersion}" >> "$GITHUB_OUTPUT"
+      - name: Keep downloaded system packages for the cache
+        run: |
+          sudo install -d -o "$USER" /var/cache/playwright-apt
+          mkdir /var/cache/playwright-apt/partial
+          printf 'Dir::Cache::Archives "/var/cache/playwright-apt";\nAPT::Keep-Downloaded-Packages "true";\n' |
+            sudo tee /etc/apt/apt.conf.d/99-playwright-cache
+      - name: Restore browser system packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /var/cache/playwright-apt/*.deb
+          key: playwright-touch-apt-${{ steps.versions.outputs.image-os }}-${{ steps.versions.outputs.image-version }}-${{ steps.versions.outputs.playwright }}
+          restore-keys: playwright-touch-apt-${{ steps.versions.outputs.image-os }}-
+      - name: Install browser system packages
+        timeout-minutes: 8
+        run: npx playwright install-deps chromium
+      - name: Restore Chromium
+        id: browser-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-touch-browsers-${{ runner.os }}-${{ steps.versions.outputs.playwright }}
+      - name: Install Chromium
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 5
+        run: npx playwright install chromium
+      - name: Run touch journeys
+        id: touch
+        continue-on-error: true
+        # The list and HTML reports, not the GitHub one, so an advisory failure adds no error
+        # annotations to the pull request.
+        run: npm run test:e2e:touch -- --reporter=list,html
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+      - name: Warn about touch gaps
+        if: steps.touch.outcome == 'failure'
+        run: echo "::warning title=Touch journeys::Some touch journeys failed. They are advisory; the touch-journeys artifact has the report."
+      - name: Keep the touch report
+        if: steps.touch.outcome == 'failure'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: touch-journeys
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
