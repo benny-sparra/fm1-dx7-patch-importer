@@ -89,7 +89,7 @@ type RotaryParameterControlProps = Omit<SliderParameterControlProps, 'origin'> &
   disabled?: boolean
 }
 
-export const rangeControlKeys = [
+const rangeControlKeys = [
   'ArrowDown',
   'ArrowLeft',
   'ArrowRight',
@@ -99,6 +99,23 @@ export const rangeControlKeys = [
   'PageDown',
   'PageUp',
 ]
+
+/**
+ * The gesture handlers a native range input takes, so that a drag or a held arrow key is one undo
+ * step: it starts on pointer down or a range key, and ends on pointer up or cancel, key up, or blur.
+ */
+export function rangeInputGestureHandlers(onGestureStart: () => void, onGestureEnd: () => void) {
+  return {
+    onBlur: onGestureEnd,
+    onKeyDown: (event: React.KeyboardEvent) => {
+      if (rangeControlKeys.includes(event.key)) onGestureStart()
+    },
+    onKeyUp: onGestureEnd,
+    onPointerCancel: onGestureEnd,
+    onPointerDown: onGestureStart,
+    onPointerUp: onGestureEnd,
+  }
+}
 
 /**
  * Where one of `rangeControlKeys` moves a knob or fader from `value`, as a range input moves:
@@ -306,15 +323,8 @@ export function SliderParameterControl({
           className="min-w-0 flex-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
           max={max}
           min={min}
-          onBlur={onGestureEnd}
+          {...rangeInputGestureHandlers(onGestureStart, onGestureEnd)}
           onChange={(event) => onChange(Number(event.target.value))}
-          onKeyDown={(event) => {
-            if (rangeControlKeys.includes(event.key)) onGestureStart()
-          }}
-          onKeyUp={onGestureEnd}
-          onPointerCancel={onGestureEnd}
-          onPointerDown={onGestureStart}
-          onPointerUp={onGestureEnd}
           step={1}
           style={rangeStyle(value, min, max, 'var(--crt-acc)', origin)}
           type="range"

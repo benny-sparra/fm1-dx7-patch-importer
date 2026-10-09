@@ -168,6 +168,22 @@ describe('useMidi firmware identification', () => {
     expect(result.current.firmware).toEqual({ kind: 'checking' })
   })
 
+  it('checks the firmware again when its output is chosen again after another, rather than trusting the old answer', async () => {
+    const ports = makeFakeFm1Ports({ reply: mvaveIdentityReply })
+    const other = { ...makeFakeFm1Ports().output, id: 'other-out', name: 'Other synth' }
+    webMidi.inputs = [ports.input]
+    webMidi.outputs = [ports.output, other]
+    const { result } = renderHook(() => useMidi())
+    await act(() => result.current.connectMidi())
+    expect(result.current.firmware).toMatchObject({ kind: 'mvave' })
+    ports.output.send.mockImplementation(() => undefined)
+
+    act(() => result.current.setSelectedOutputId('other-out'))
+    act(() => result.current.setSelectedOutputId('fm1-out'))
+
+    expect(result.current.firmware).toEqual({ kind: 'checking' })
+  })
+
   it('checks the firmware again when MIDI is switched off and on with the same ports', async () => {
     const ports = makeFakeFm1Ports({ reply: mvaveIdentityReply })
     const { result } = await connect(ports)

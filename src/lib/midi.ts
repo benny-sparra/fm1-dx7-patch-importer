@@ -1,6 +1,7 @@
 import type { Input, Output } from 'webmidi'
 
 import {
+  assertMidiChannel,
   makeDx7BankPayload,
   makeDx7SingleVoicePayload,
   yamahaManufacturerId,
@@ -102,12 +103,6 @@ export function sendDx7Voice(output: Output, channel: number, voice: Dx7Voice) {
 export function sendDx7Bank(output: Output, channel: number, voices: Dx7Voice[]) {
   output.sendSysex(yamahaManufacturerId, makeDx7BankPayload(voices, channel))
   midiActivity.signal('out')
-}
-
-function assertMidiChannel(channel: number) {
-  if (!Number.isInteger(channel) || channel < 1 || channel > 16) {
-    throw new RangeError('MIDI channel must be an integer from 1 to 16.')
-  }
 }
 
 function assertFm1ProgramChange(program: number, channel: number) {

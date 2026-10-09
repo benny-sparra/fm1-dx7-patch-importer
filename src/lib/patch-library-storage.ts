@@ -415,6 +415,11 @@ export async function listStoredNamedBanks() {
   for (const record of records) {
     try {
       validateNamedBank(record)
+      // Mask any voice byte above seven bits, as the workspace does, so a bank an earlier release
+      // stored unmasked loads, sends, and backs up like any other. The record is a fresh copy.
+      for (const slot of record.slots) {
+        if ('voice' in slot) slot.voice = normalizeStoredDx7Voice(slot.voice) ?? slot.voice
+      }
       banks.push(record)
     } catch {
       damagedCount += 1

@@ -4,7 +4,7 @@ import { memo, type ReactNode, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
-import { rangeControlKeys } from '@/components/editor/parameter-controls'
+import { rangeInputGestureHandlers } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { PortalMenu } from '@/components/ui/portal-menu'
 import { RackPanelTitle } from '@/components/ui/rack-panel'
@@ -347,7 +347,7 @@ export function AlgorithmPanel({
 
           <div
             aria-label={t('ui.dx7Algorithm')}
-            className="editor-overlay-surface absolute top-[calc(100%+0.3rem)] left-0 z-30 grid max-h-[min(34rem,70vh)] w-[min(42rem,calc(100vw-1.5rem))] grid-cols-2 gap-1.5 overflow-y-auto border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-2 shadow-[0_12px_26px_rgb(0_0_0/55%)] sm:grid-cols-4"
+            className="editor-overlay-surface absolute top-[calc(100%+0.3rem)] left-0 z-30 grid max-h-[min(34rem,70vh)] w-[min(42rem,calc(100vw-1.5rem))] grid-cols-2 gap-1.5 overflow-y-auto border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-2 sm:grid-cols-4"
             role="radiogroup"
           >
             {dx7Algorithms.map((operators, index) => (
@@ -413,15 +413,8 @@ export function AlgorithmPanel({
           className="min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
           max={feedbackMax}
           min={0}
-          onBlur={onFeedbackGestureEnd}
+          {...rangeInputGestureHandlers(onFeedbackGestureStart, onFeedbackGestureEnd)}
           onChange={(event) => onFeedbackChange(Number(event.target.value))}
-          onKeyDown={(event) => {
-            if (rangeControlKeys.includes(event.key)) onFeedbackGestureStart()
-          }}
-          onKeyUp={onFeedbackGestureEnd}
-          onPointerCancel={onFeedbackGestureEnd}
-          onPointerDown={onFeedbackGestureStart}
-          onPointerUp={onFeedbackGestureEnd}
           step={1}
           style={rangeStyle(feedback, 0, feedbackMax, 'var(--crt-acc)')}
           type="range"
@@ -629,15 +622,8 @@ export function OperatorOutputSlider({
       className="w-full min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
       max={outputMax}
       min={0}
-      onBlur={onGestureEnd}
+      {...rangeInputGestureHandlers(onGestureStart, onGestureEnd)}
       onChange={(event) => onChange(Number(event.target.value))}
-      onKeyDown={(event) => {
-        if (rangeControlKeys.includes(event.key)) onGestureStart()
-      }}
-      onKeyUp={onGestureEnd}
-      onPointerCancel={onGestureEnd}
-      onPointerDown={onGestureStart}
-      onPointerUp={onGestureEnd}
       step={1}
       style={rangeStyle(output, 0, outputMax, isSelected ? 'var(--crt-acc)' : 'var(--crt-acc-dim)')}
       type="range"

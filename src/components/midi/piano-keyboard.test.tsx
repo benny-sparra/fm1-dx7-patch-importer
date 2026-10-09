@@ -536,6 +536,18 @@ describe('PianoKeyboard audition phrases', () => {
     expect(sent).toEqual(['fm1 ch1 on 48', 'fm1 ch1 off 48'])
   })
 
+  it('releases a held key on the channel it was struck on when the channel changes', async () => {
+    const sent: string[] = []
+    const { midi, rerender } = await openWithPhrase()
+    rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'fm1', 1)} />)
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
+
+    rerender(<PianoKeyboard midi={routedMidi(midi, sent, 'fm1', 4)} />)
+    fireEvent.keyUp(window, { code: 'KeyA', key: 'a' })
+
+    expect(sent).toEqual(['fm1 ch1 on 48', 'fm1 ch1 off 48'])
+  })
+
   it('stops the phrase rather than moving it when another output is chosen', async () => {
     const sent: string[] = []
     const { midi, rerender } = await openWithPhrase()
