@@ -22,6 +22,31 @@ const expectedDirectives = new Map([
   ['upgrade-insecure-requests', []],
 ])
 
+// Every other header the site sends, with its exact value. The Permissions-Policy allows only Web
+// MIDI, which the editor needs, and denies the device and payment features it never uses.
+const expectedHeaders = new Map([
+  ['X-Content-Type-Options', 'nosniff'],
+  ['Referrer-Policy', 'strict-origin-when-cross-origin'],
+  ['Cross-Origin-Opener-Policy', 'same-origin'],
+  [
+    'Permissions-Policy',
+    'midi=(self), camera=(), microphone=(), geolocation=(), usb=(), serial=(), hid=(), bluetooth=(), payment=()',
+  ],
+])
+
+function parseHeaders(headers) {
+  const values = new Map()
+  for (const line of headers.split('\n')) {
+    const match = /^\s+([A-Za-z-]+):\s*(.*)$/.exec(line)
+    if (!match) continue
+    const [, name, value] = match
+    if (name === 'Content-Security-Policy') continue
+    if (values.has(name)) throw new Error(`${name} is set more than once.`)
+    values.set(name, value)
+  }
+  return values
+}
+
 function parsePolicy(headers) {
   const headerLines = headers
     .split('\n')
@@ -76,6 +101,19 @@ for (const [name, expectedSources] of expectedDirectives) {
   }
 }
 
+const headers = parseHeaders(outputHeaders)
+for (const name of headers.keys()) {
+  if (!expectedHeaders.has(name)) {
+    throw new Error(`${name} is not a header the security check knows; add it to expectedHeaders.`)
+  }
+}
+for (const [name, expectedValue] of expectedHeaders) {
+  const value = headers.get(name)
+  if (value !== expectedValue) {
+    throw new Error(`${name} is ${value ?? 'missing'}; expected ${expectedValue}.`)
+  }
+}
+
 const outputDirectory = path.resolve('dist')
 const assetDirectory = path.join(outputDirectory, 'assets')
 const browserTextFiles = [
@@ -94,4 +132,6 @@ for (const filename of browserTextFiles) {
   }
 }
 
-console.log(`Verified ${directives.size} production Content-Security-Policy directives.`)
+console.log(
+  `Verified ${directives.size} production Content-Security-Policy directives and ${headers.size} other security headers.`,
+)
