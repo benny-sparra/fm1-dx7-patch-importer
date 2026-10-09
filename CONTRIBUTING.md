@@ -65,6 +65,16 @@ The run builds the app and starts its own preview on port 4173. If something is 
 port, the run stops rather than testing an older build: stop the other server, or set
 `PLAYWRIGHT_REUSE_SERVER=true` to test against it deliberately.
 
+The touch journeys in `e2e/mobile/` drive a phone (Pixel 7) and a tablet (Galaxy Tab S9) in
+Chromium with real touch input: taps, finger drags, long presses, and two-finger chords. They are an
+audit of where the app falls short on touch rather than a gate, so `npm run test:e2e` leaves them
+out and CI runs them in an advisory job whose failures warn without failing the workflow. Run them
+with:
+
+```bash
+npm run test:e2e:touch
+```
+
 Add or update automated tests whenever functionality or a regression path changes. Use focused
 Vitest coverage for domain, component, and mocked browser behaviour; add a Playwright journey when
 the behaviour depends on a real browser or production build, such as storage, downloads, native
@@ -141,6 +151,7 @@ mene311's themed banks are.
 | `npm run test:a11y`         | Run the focused rendered Axe accessibility suite                    |
 | `npm run test:coverage`     | Run all tests and write a V8 coverage report to `coverage/`         |
 | `npm run test:e2e`          | Build and run Chromium and Firefox browser journeys with Playwright |
+| `npm run test:e2e:touch`    | Build and run the advisory phone and tablet touch journeys          |
 | `npm run test:cls`          | Check layout stability across representative responsive viewports   |
 | `npm run build`             | Create a production Vite build in `dist/`                           |
 | `npm run bundle:check`      | Enforce the transitive initial JavaScript gzip budget               |

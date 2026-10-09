@@ -800,6 +800,7 @@ npm test
 npm run test:coverage
 npm run test:a11y
 npm run test:e2e
+npm run test:e2e:touch
 npm run images:check
 npm run icons:check
 npm run build
@@ -821,6 +822,13 @@ Run the checks with the Node.js and npm versions pinned in `.node-version` and `
 to `npm run check`, add the same step to the quality job in `.github/workflows/quality.yml` so local
 and CI checks stay equal. `npm run test:e2e` starts its own preview server; set
 `PLAYWRIGHT_REUSE_SERVER=true` only to test an already running build on purpose.
+
+`npm run test:e2e:touch` runs the touch journeys in `e2e/mobile/` on a phone and a tablet. They
+audit how far touch falls short, so they stay out of `npm run test:e2e` and run in CI's advisory
+job, whose failure warns and never fails the workflow or holds back a deploy. Send touch through
+`e2e/mobile/touch.ts`, which dispatches real touch events, rather than the mouse. When a fix makes a
+failing touch journey pass, keep it passing; it may move into the blocking journeys once the touch
+work is done.
 
 Dependency audits require registry access and are separate from the deterministic suite:
 
