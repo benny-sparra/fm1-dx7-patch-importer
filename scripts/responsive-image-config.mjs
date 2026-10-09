@@ -24,6 +24,7 @@ export const responsiveImageConfig = [
   { height: 720, source: 'firmware-jangada.webp', width: 720, widths: [460] },
   { height: 720, source: 'firmware-lunar-modulator.webp', width: 720, widths: [460] },
   { height: 720, source: 'firmware-fm1-quest.webp', width: 720, widths: [460] },
+  { height: 720, source: 'firmware-orbit.webp', width: 720, widths: [460] },
   { height: 720, source: 'firmware-fimba.webp', width: 720, widths: [460] },
   { height: 720, source: 'firmware-rainbow-mode.webp', width: 720, widths: [460] },
   { height: 477, source: 'fm1-synth.webp', width: 500, widths: [240, 360] },
