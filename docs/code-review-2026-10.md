@@ -92,7 +92,7 @@ All three were confirmed against the live site with `curl`.
       rule with `Cache-Control: public, max-age=31536000, immutable`, and a static `public/404.html`
       so a deleted chunk returns 404 rather than `index.html`, which immutable caching would keep
       for a year. The app never changes the URL path, so it does not need the SPA fallback.
-- [ ] **Common security headers are missing.** (S)
+- [x] **Common security headers are missing.** (S, fixed on `chore/security-headers`)
       Add `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
       `Cross-Origin-Opener-Policy: same-origin`, and a `Permissions-Policy` allowing `midi=(self)`
       and denying camera, microphone, geolocation, USB, serial, HID, Bluetooth, and payment. Assert

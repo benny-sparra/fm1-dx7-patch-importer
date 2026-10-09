@@ -7,8 +7,11 @@ setup and the everyday quality checks, see [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 Cloudflare Pages applies the Content Security Policy in `public/_headers` to every route. The policy
 keeps scripts, styles, fonts, images, frames, workers, and network requests self-hosted except for the
-Umami tracker, the Umami event endpoint, and the project's Sentry ingestion endpoint. Run
-`npm run build` followed by `npm run security:check` after changing the policy or introducing a new
+Umami tracker, the Umami event endpoint, and the project's Sentry ingestion endpoint. The same rule
+sends `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
+`Cross-Origin-Opener-Policy: same-origin`, and a `Permissions-Policy` that allows only Web MIDI.
+`npm run security:check` asserts each header's exact value and fails on one it does not know. Run
+`npm run build` followed by `npm run security:check` after changing a header or introducing a new
 browser resource origin.
 
 ## Production branch
