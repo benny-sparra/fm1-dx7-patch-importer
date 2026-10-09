@@ -44,7 +44,8 @@
     "test:a11y": "vitest run src/test/accessibility.a11y.test.tsx",
     "test:e2e": "npm run build && playwright test",
     "typecheck": "tsc -b",
-    "test:cls": "npm run build && node scripts/check-layout-shift.mjs"
+    "test:cls": "npm run build && node scripts/check-layout-shift.mjs",
+    "firmware:stars": "node scripts/update-firmware-stars.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -120,7 +120,7 @@ names, uploaded filenames, MIDI port identities, and SysEx data are never sent. 
 - [Switching FM1 firmware](docs/switching-firmware.md): moving an FM1 between M-VAVE's firmware,
   FM-1+VA, Felucca, and SLOOP, and recovering from a failed install
 - [FM1 firmware](https://fm1-editor.com/firmware/): every firmware known to run on the FM1, with
-  links to each project (source in `firmware/index.html`)
+  links to each project, ordered A–Z or by GitHub stars (source in `firmware/index.html`)
 - [Accessibility](ACCESSIBILITY.md): what the app supports, known barriers, and how to report one
 - [Privacy](PRIVACY.md): anonymous usage analytics and error monitoring
 - [Contributing](CONTRIBUTING.md): local development, quality checks, scripts, and project structure

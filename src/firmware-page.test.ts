@@ -2,9 +2,12 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import sharp from 'sharp'
-import { describe, expect, it } from 'vitest'
+import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
 
 const html = readFileSync(path.resolve(__dirname, '../firmware/index.html'), 'utf8')
+const sortScriptPath = path.resolve(__dirname, '../public/firmware-sort.js')
 const page = new DOMParser().parseFromString(html, 'text/html')
 const entries = [...page.querySelectorAll('article.firmware-entry')]
 const watched = [...page.querySelectorAll('.firmware-watch-item')]
@@ -103,5 +106,88 @@ describe('firmware page', () => {
       expect(link.getAttribute('target')).toBe('_blank')
       expect(link.getAttribute('rel')).toContain('noopener')
     }
+  })
+
+  it('pins the stock firmware and Baud Girl, which have no star count', () => {
+    const pinned = entries.filter((entry) => entry.hasAttribute('data-pinned'))
+    expect(pinned.map((entry) => entry.id)).toEqual(['stock', 'baud-girl'])
+    expect(entries.slice(0, 2)).toEqual(pinned)
+    for (const entry of pinned) expect(entry.hasAttribute('data-stars')).toBe(false)
+  })
+
+  const starred = entries.filter(
+    (entry) =>
+      !entry.hasAttribute('data-pinned') && entry.querySelector('a[href^="https://github.com/"]'),
+  )
+
+  it.each(named(starred))('%s shows the star count it is sorted by', (_name, entry) => {
+    const stars = entry.getAttribute('data-stars') ?? ''
+    expect(stars).toMatch(/^\d+$/)
+    expect(entry.querySelector('.firmware-status .firmware-stars')?.textContent).toBe(
+      `${stars} ${stars === '1' ? 'star' : 'stars'} on GitHub`,
+    )
+  })
+
+  it('says when the star counts were read', () => {
+    const time = page.querySelector('.firmware-sort-note time')
+    expect(time?.getAttribute('datetime')).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(time?.textContent).toBe(
+      new Date(`${time?.getAttribute('datetime')}T00:00:00Z`).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        timeZone: 'UTC',
+        year: 'numeric',
+      }),
+    )
+  })
+})
+
+describe('firmware page order', () => {
+  async function renderPage() {
+    document.body.innerHTML = page.body.innerHTML
+    vi.resetModules()
+    await import(/* @vite-ignore */ sortScriptPath)
+    return () => [...document.querySelectorAll('article.firmware-entry')].map((entry) => entry.id)
+  }
+  const option = (name: string) => screen.getByRole('button', { name })
+  const written = entries.map((entry) => entry.id)
+  const pinned = written.slice(0, 2)
+  const byStars = entries
+    .slice(2)
+    .toSorted(
+      (a, b) =>
+        Number(b.getAttribute('data-stars') ?? -1) - Number(a.getAttribute('data-stars') ?? -1),
+    )
+    .map((entry) => entry.id)
+
+  it('starts alphabetically, as written', async () => {
+    const order = await renderPage()
+    expect(order()).toEqual(written)
+    expect(option('A–Z').getAttribute('aria-pressed')).toBe('true')
+    expect(option('Most starred').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('orders by stars after the pinned entries, keeping ties alphabetical', async () => {
+    const order = await renderPage()
+    await userEvent.click(option('Most starred'))
+    expect(order()).toEqual([...pinned, ...byStars])
+    expect(option('Most starred').getAttribute('aria-pressed')).toBe('true')
+    expect(option('A–Z').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('puts an entry without a star count after the counted ones', async () => {
+    const order = await renderPage()
+    await userEvent.click(option('Most starred'))
+    expect(order().at(-1)).toBe('groove-os')
+  })
+
+  it('returns to alphabetical order, with the watch list still last', async () => {
+    const order = await renderPage()
+    await userEvent.click(option('Most starred'))
+    await userEvent.click(option('A–Z'))
+    expect(order()).toEqual(written)
+    expect(document.querySelector('article.firmware-entry:last-of-type')?.nextElementSibling).toBe(
+      document.querySelector('.firmware-watch'),
+    )
   })
 })
