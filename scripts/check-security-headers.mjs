@@ -23,9 +23,12 @@ const expectedDirectives = new Map([
 ])
 
 // Every other header the site sends, with its exact value. The Permissions-Policy allows only Web
-// MIDI, which the editor needs, and denies the device and payment features it never uses.
+// MIDI, which the editor needs, and denies the device and payment features it never uses. HSTS
+// starts at one day, without includeSubDomains or preload, while plain HTTP is still served: see
+// docs/maintaining.md before raising it.
 const expectedHeaders = new Map([
   ['X-Content-Type-Options', 'nosniff'],
+  ['Strict-Transport-Security', 'max-age=86400'],
   ['Referrer-Policy', 'strict-origin-when-cross-origin'],
   ['Cross-Origin-Opener-Policy', 'same-origin'],
   [

@@ -10,7 +10,14 @@ keeps scripts, styles, fonts, images, frames, workers, and network requests self
 Umami tracker, the Umami event endpoint, and the project's Sentry ingestion endpoint. The same rule
 sends `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
 `Cross-Origin-Opener-Policy: same-origin`, and a `Permissions-Policy` that allows only Web MIDI.
-`npm run security:check` asserts each header's exact value and fails on one it does not know. Run
+`npm run security:check` asserts each header's exact value and fails on one it does not know.
+
+`Strict-Transport-Security` starts at `max-age=86400` (one day), without `includeSubDomains` or
+`preload`, because the site still serves plain HTTP. HTTP and HTTPS keep separate browser storage,
+so once a browser has seen the header, a library saved at `http://` is out of its reach until the
+header expires; a short max-age keeps a mistake brief. Before raising it to `max-age=31536000`,
+check Umami for visits over HTTP and turn on **Always Use HTTPS** in Cloudflare. A long max-age, and
+above all `preload`, cannot be taken back quickly, since browsers keep it for its whole length. Run
 `npm run build` followed by `npm run security:check` after changing a header or introducing a new
 browser resource origin.
 
