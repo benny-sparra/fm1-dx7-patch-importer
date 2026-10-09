@@ -21,6 +21,11 @@ above all `preload`, cannot be taken back quickly, since browsers keep it for it
 `npm run build` followed by `npm run security:check` after changing a header or introducing a new
 browser resource origin.
 
+`public/404.html` is the page Cloudflare serves for a path the site does not hold. Without it,
+every missing path, a chunk an old deployment named included, was answered with the editor's
+`index.html` and status 200, which a long cache on `/assets/*` would keep for its whole length. It
+is plain HTML with style attributes only, since the policy allows no inline `<style>` element.
+
 ## Production branch
 
 Cloudflare Workers Builds deploys every build it makes straight to fm1-editor.com, so a push to any
