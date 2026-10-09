@@ -1,5 +1,6 @@
 import type { TFunction } from 'i18next'
 
+import '@/i18n/librarian-dialogs'
 import { Fm1VaPresetReadError } from '@/lib/fm1-va-preset-read'
 
 /**

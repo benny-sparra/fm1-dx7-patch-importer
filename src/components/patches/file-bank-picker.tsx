@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/librarian-dialogs'
 import type { Dx7Voice } from '@/lib/dx7'
 import { cn } from '@/lib/utils'
 

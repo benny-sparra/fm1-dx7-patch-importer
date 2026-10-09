@@ -139,6 +139,10 @@ export default defineConfig(({ command, mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        'use-sync-external-store/shim': path.resolve(
+          __dirname,
+          './src/lib/use-sync-external-store-shim.ts',
+        ),
       },
     },
     test: {

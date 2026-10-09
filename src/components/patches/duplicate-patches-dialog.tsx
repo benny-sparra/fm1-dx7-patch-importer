@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import type { Patch } from '@/data/patches'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
+import '@/i18n/librarian-dialogs'
 import { findDuplicatePatches } from '@/lib/duplicate-patches'
 import { patchSlotCode } from '@/lib/patch-library'
 

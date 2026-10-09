@@ -18,6 +18,7 @@ import { CompareNotice } from '@/components/editor/compare-overlay'
 import { EngineTag, type PatchEngine } from '@/components/patches/engine-tag'
 import { Button, buttonVariants } from '@/components/ui/button'
 import type { Patch } from '@/data/patches'
+import '@/i18n/editor-help'
 import { FM1_VOICE_NAME_LENGTH } from '@/lib/fm1-parameters'
 import {
   editorShortcuts,

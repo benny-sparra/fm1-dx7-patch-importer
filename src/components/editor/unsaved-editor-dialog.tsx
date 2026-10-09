@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogFooter, DialogBody, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import '@/i18n/editor-help'
 
 type UnsavedEditorDialogProps = {
   dialogRef: RefObject<HTMLDialogElement | null>

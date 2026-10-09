@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { DialogBody, DialogCloseButton, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import '@/i18n/editor-help'
 
 type CompareNoticeProps = {
   closeTitle: string

@@ -263,12 +263,19 @@ open everything an earlier release could have saved.
 - Keep `document.documentElement.lang`, the document title, and description metadata synchronized.
 - Every locale apart from `en-US` must contain the same leaf keys. Update
   `src/i18n/resources.test.ts` whenever resource structure changes.
-- British English keeps the editor's help (`controlHelp`, `effectHelp`, `effectParameterHelp`) in
-  `src/i18n/locales/en-GB-editor-help.ts`, out of the entry; other locales keep it in their own
-  file. Every module that reads those keys imports `@/i18n/editor-help`, which adds them to `en-GB`;
-  `src/i18n/resources.test.ts` checks both. That module reaches `i18next` directly: importing
-  `@/i18n` from the editor's chunk made Rolldown split `Button` and Lucide out of the entry, costing
-  800 B. Since a test can import an editor module before `@/i18n`, it waits for `initialized`.
+- Every `en-GB` string in `en-GB.ts` is in the entry, so British English keeps the strings only lazy
+  chunks show in files of their own, and other locales keep them in their own file. The editor's
+  help (`controlHelp`, `effectHelp`, `effectParameterHelp`) and the `editor` strings the page does
+  not read are in `src/i18n/locales/en-GB-editor-help.ts`, added by `@/i18n/editor-help`; the
+  dialogs the patch banks open on demand keep theirs in
+  `src/i18n/locales/en-GB-librarian-dialogs.ts`, added by `@/i18n/librarian-dialogs`. A section the
+  page reads a few keys from, such as a menu item and its load failure, keeps those keys in
+  `en-GB.ts` and the rest in the lazy file, merged when the lazy file is added. Every module that
+  reads a lazy key imports the module that adds it, and a new string only a lazy chunk shows goes in
+  that chunk's file; `src/i18n/resources.test.ts` checks both. `addBritishEnglish` reaches `i18next`
+  directly: importing `@/i18n` from the editor's chunk made Rolldown split `Button` and Lucide out
+  of the entry, costing 800 B. Since a test can import a lazy module before `@/i18n`, it waits for
+  `initialized`. Moving the dialogs' strings and the editor's out of the entry saved 2.4 KiB.
 - Call the banks the library holds banks, a named copy of one a saved bank, and everything together
   the library. Users never read "workspace" or "browser bank"; code keeps the name workspace bank.
   A bank's title in a sentence goes in quotation marks, as in "Save “Leads”".
@@ -347,13 +354,16 @@ open everything an earlier release could have saved.
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
   149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB,
   reading FM-1+VA presets from the FM1's raise from 163 KiB, and Vite 8.3.2's raise from 164 KiB
-  had. Reading presets paid for the read's eager English strings, because every `en-GB` string is
-  in the entry, even one only a lazy dialog shows, apart from the editor's help. React DOM ships
+  had. Reading presets paid for the read's eager English strings, which were in the entry until
+  the strings only lazy chunks show moved into lazy files of their own. React DOM ships
   prebuilt with its features switched on, so 19.3's stable View Transitions, Fragment refs, and
   SuspenseList cost about 8.4 KiB whether or not the app uses them; a React upgrade is measured
   like any other change. Vite's `__vitePreload` helper, which every lazy import calls, is in the
   entry too, so a Vite upgrade is measured the same way: 8.3.2's rewrite of its CSS check cost
   61 B gzip when 52 B were spare.
+- react-i18next imports `use-sync-external-store/shim` for Reacts before 18. `vite.config.ts`
+  points it at `src/lib/use-sync-external-store-shim.ts`, which takes the hook from React, so the
+  entry leaves out the shim's fallback (283 B). Keep the alias while react-i18next imports the shim.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
 - The firmware page (`firmware/index.html`) is static HTML and shares no JavaScript with the app.
   Vite splits any module two pages import into a chunk of its own that the app's entry loads too,
