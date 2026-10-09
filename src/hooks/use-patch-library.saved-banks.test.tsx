@@ -264,3 +264,37 @@ describe('usePatchLibrary copying a saved bank', () => {
     expect(await storedBankIds()).toEqual([copy.id, 'newer', 'older'])
   })
 })
+
+describe('usePatchLibrary changing saved banks while their list is still loading', () => {
+  async function renderBeforeListLoads() {
+    await saveStoredPatchLibrary(emptyPatchLibrary())
+    await addStoredNamedBank(makeSavedBank('older', '2026-09-01T10:00:00.000Z'))
+    await addStoredNamedBank(makeSavedBank('newer', '2026-09-02T10:00:00.000Z'))
+    const hook = renderHook(() => usePatchLibrary())
+    expect(hook.result.current.namedBanksLoading).toBe(true)
+    return hook
+  }
+
+  it('keeps a copy made before the list arrives', async () => {
+    const hook = await renderBeforeListLoads()
+
+    let copy: Awaited<ReturnType<typeof hook.result.current.copyNamedBank>> | undefined
+    await act(async () => {
+      copy = await hook.result.current.copyNamedBank(
+        makeSavedBank('older', '2026-09-01T10:00:00.000Z'),
+      )
+    })
+    await waitFor(() => expect(hook.result.current.namedBanksLoading).toBe(false))
+
+    expect(listedBankIds(hook)).toEqual([copy?.id, 'newer', 'older'])
+  })
+
+  it('keeps a bank deleted before the list arrives out of it', async () => {
+    const hook = await renderBeforeListLoads()
+
+    await act(() => hook.result.current.deleteNamedBank('newer'))
+    await waitFor(() => expect(hook.result.current.namedBanksLoading).toBe(false))
+
+    expect(listedBankIds(hook)).toEqual(['older'])
+  })
+})
