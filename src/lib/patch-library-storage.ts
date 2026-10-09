@@ -109,12 +109,13 @@ function openDatabase() {
       return
     }
     let finished = false
-    const fail = (message: string) => {
+    const fail = (message: string, cause?: unknown) => {
       if (finished) return
       finished = true
-      reject(new PatchLibraryStorageError('unavailable', message, request.error))
+      reject(new PatchLibraryStorageError('unavailable', message, cause))
     }
-    request.onerror = () => fail('Browser storage could not be opened.')
+    request.onerror = () => fail('Browser storage could not be opened.', request.error)
+    // The request is still pending while blocked, and reading its `error` then throws.
     request.onblocked = () => fail('Browser storage is blocked by another open tab.')
     request.onupgradeneeded = () => {
       if (!request.result.objectStoreNames.contains(workspaceStoreName)) {

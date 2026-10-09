@@ -768,6 +768,24 @@ describe('opening browser storage', () => {
     })
   })
 
+  it('reports a blocked upgrade without reading the error of a request still pending', async () => {
+    const fake = installIndexedDb()
+    // Browsers throw InvalidStateError from `error` until the request is done.
+    Object.defineProperty(fake.openRequest, 'error', {
+      get() {
+        throw new DOMException('The request has not finished.', 'InvalidStateError')
+      },
+    })
+    const loading = loadStoredPatchLibrary()
+
+    fake.openRequest.onblocked?.()
+
+    await expect(loading).rejects.toMatchObject({
+      code: 'unavailable',
+      technicalMessage: 'Browser storage is blocked by another open tab.',
+    })
+  })
+
   it('closes a database that opens after it was reported blocked, without reading it', async () => {
     const fake = installIndexedDb({ version: 5 })
     const loading = loadStoredPatchLibrary()

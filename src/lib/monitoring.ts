@@ -138,7 +138,11 @@ export function createMonitoringInitializer({
       .then((sentry) => {
         sentry.init({
           beforeBreadcrumb(breadcrumb) {
-            if (breadcrumb.category === 'console' || breadcrumb.category === 'ui.click') return null
+            // Every `ui.*` breadcrumb describes an element by its accessible name and title, which
+            // can hold patch names: `ui.input` records keypresses in fields as well as clicks.
+            if (breadcrumb.category === 'console' || breadcrumb.category?.startsWith('ui.')) {
+              return null
+            }
 
             const data = breadcrumb.data
             if (!data) return breadcrumb

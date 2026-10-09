@@ -128,6 +128,25 @@ describe('Sentry monitoring', () => {
     })
   })
 
+  it('drops keypress breadcrumbs, whose element labels can name patches', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+
+    expect(
+      options.beforeBreadcrumb?.({
+        category: 'ui.input',
+        message: 'input[aria-label="Bank 2: PRIVATE LEAD, …"][type="radio"]',
+      }),
+    ).toBe(null)
+  })
+
   it('drops errors raised entirely by the Android in-app navigation logger', async () => {
     const { sdk } = createSdk()
     const initialize = createMonitoringInitializer({
