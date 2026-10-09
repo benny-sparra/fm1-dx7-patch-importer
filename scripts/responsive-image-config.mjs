@@ -26,6 +26,7 @@ export const responsiveImageConfig = [
   { height: 720, source: 'firmware-orbit.webp', width: 720, widths: [460] },
   { height: 720, source: 'firmware-fimba.webp', width: 720, widths: [460] },
   { height: 720, source: 'firmware-rainbow-mode.webp', width: 720, widths: [460] },
+  { height: 720, source: 'firmware-fumi.webp', width: 720, widths: [460] },
   { height: 477, source: 'fm1-synth.webp', width: 500, widths: [240, 360] },
   { height: 476, source: 'fm1-va-bank-screen.webp', width: 500, widths: [240, 360] },
 ]
