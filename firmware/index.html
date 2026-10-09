@@ -39,6 +39,14 @@
     <script defer src="/firmware-sort.js"></script>
   </head>
   <body>
+    <!-- Lucide's star, which the editor's icons come from, drawn beside each GitHub star count. -->
+    <svg hidden>
+      <symbol id="firmware-star" viewBox="0 0 24 24">
+        <path
+          d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"
+        />
+      </symbol>
+    </svg>
     <!--
       One <article class="firmware-entry"> per firmware. Each has a photo (or the placeholder
       figure), a maker, a title, a status line, a blurb, and one or more links that open the
@@ -134,6 +142,11 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="full">Works with this editor</span>
               <span>Latest V15</span>
+              <span class="firmware-stars" data-counted="false"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                >Not on GitHub</span
+              >
             </p>
             <p class="firmware-blurb">
               The firmware every FM1 ships with: a six-operator FM engine compatible with DX7
@@ -198,6 +211,11 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="full">Works with this editor</span>
               <span>Latest FM-1_096</span>
+              <span class="firmware-stars" data-counted="false"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                >Not on GitHub</span
+              >
             </p>
             <p class="firmware-blurb">
               Keeps M-VAVE's FM engine and effects, fixes its engine bugs, and adds a Virtual Analog
@@ -267,7 +285,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 0.13</span>
-              <span class="firmware-stars">13 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="13 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">13</span
+                ><span class="sr-only">13 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A chord instrument inspired by Telepathic Instruments' Orchid: one hand plays roots
@@ -341,7 +364,13 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Latest 1.4.1</span> <span class="firmware-stars">347 stars on GitHub</span>
+              ><span>Latest 1.4.1</span>
+              <span class="firmware-stars" data-counted="true" title="347 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">347</span
+                ><span class="sr-only">347 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               Turns the FM1 into a multi-engine synth: thirteen engines, from analogue, six-operator
@@ -417,7 +446,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 0.6.0</span>
-              <span class="firmware-stars">5 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="5 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">5</span
+                ><span class="sr-only">5 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A kalimba grown from FoMni: the 16 white keys are tines laid out as a real kalimba's,
@@ -471,7 +505,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Experimental · Source only</span>
-              <span class="firmware-stars">13 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="13 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">13</span
+                ><span class="sr-only">13 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               Plays NES games on the FM1: its 27 keys are the controller and its screen the
@@ -528,7 +567,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Not yet tried on an FM1 · Build 15</span>
-              <span class="firmware-stars">5 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="5 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">5</span
+                ><span class="sr-only">5 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               SLOOP as a pixel-art RPG. The four tracks are four heroes, every lit step is an
@@ -603,7 +647,13 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Latest 0.3.2</span> <span class="firmware-stars">41 stars on GitHub</span>
+              ><span>Latest 0.3.2</span>
+              <span class="firmware-stars" data-counted="true" title="41 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">41</span
+                ><span class="sr-only">41 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A chord harp inspired by the Suzuki Omnichord: the 16 white keys are the strum plate
@@ -677,7 +727,13 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Latest 1.1</span> <span class="firmware-stars">15 stars on GitHub</span>
+              ><span>Latest 1.1</span>
+              <span class="firmware-stars" data-counted="true" title="15 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">15</span
+                ><span class="sr-only">15 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A Felucca fork for dungeon synth, dark ambient, and fantasy music: a cathedral-sized
@@ -743,6 +799,11 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Paid · Latest 1.1</span>
+              <span class="firmware-stars" data-counted="false"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                >Not on GitHub</span
+              >
             </p>
             <p class="firmware-blurb">
               An eight-track groovebox that keeps an FM synth and adds a virtual analogue synth and
@@ -805,7 +866,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 0.14.0</span>
-              <span class="firmware-stars">3 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="3 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">3</span
+                ><span class="sr-only">3 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A drum machine built on Felucca: eight drum tracks of 808, 909, and Plaits drum models
@@ -881,7 +947,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Alpha · Latest 0.8.2</span>
-              <span class="firmware-stars">19 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="19 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">19</span
+                ><span class="sr-only">19 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A Felucca fork with a dark, industrial, and Brazilian accent: ten engines, among them
@@ -956,7 +1027,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Not installable yet</span>
-              <span class="firmware-stars">51 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="51 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">51</span
+                ><span class="sr-only">51 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               Open firmware in the making, with engines derived from Mutable Instruments' modules
@@ -1008,7 +1084,13 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Latest 0.13.1</span> <span class="firmware-stars">30 stars on GitHub</span>
+              ><span>Latest 0.13.1</span>
+              <span class="firmware-stars" data-counted="true" title="30 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">30</span
+                ><span class="sr-only">30 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A Felucca fork that follows Felucca 1.0's design and adds engines of its own, among
@@ -1085,7 +1167,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>No numbered releases</span>
-              <span class="firmware-stars">2 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="2 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">2</span
+                ><span class="sr-only">2 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A music toy for small children, built on Felucca: every key shows its note in its own
@@ -1161,7 +1248,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 2.5</span>
-              <span class="firmware-stars">325 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="325 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">325</span
+                ><span class="sr-only">325 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A groovebox firmware built on Felucca, with projects, patterns, and songs, twelve
@@ -1215,7 +1307,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Test build · Latest ALG05</span>
-              <span class="firmware-stars">1 star on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="1 star on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">1</span
+                ><span class="sr-only">1 star on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               An experimental fork of SLOOP 2.2 that adds engines of its own: a six-operator DX7
@@ -1289,7 +1386,13 @@
             </div>
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
-              ><span>Beta · Latest 3.4</span> <span class="firmware-stars">16 stars on GitHub</span>
+              ><span>Beta · Latest 3.4</span>
+              <span class="firmware-stars" data-counted="true" title="16 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">16</span
+                ><span class="sr-only">16 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               SLOOP's live workflow with a DX7 inside: a fork of SLOOP that replaces its engines
@@ -1361,7 +1464,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Beta · Latest 0.10.3</span>
-              <span class="firmware-stars">92 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="92 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">92</span
+                ><span class="sr-only">92 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A groovebox in the spirit of ReBirth: a 909, an 808, two 303s with an acid line
@@ -1441,7 +1549,12 @@
             <p class="firmware-status">
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Test build · Latest 2.0</span>
-              <span class="firmware-stars">14 stars on GitHub</span>
+              <span class="firmware-stars" data-counted="true" title="14 stars on GitHub"
+                ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                  <use href="#firmware-star" /></svg
+                ><span aria-hidden="true">14</span
+                ><span class="sr-only">14 stars on GitHub</span></span
+              >
             </p>
             <p class="firmware-blurb">
               A 12-bit sampling drum machine in the spirit of the 80s: 32 pads at 26 kHz, pitched

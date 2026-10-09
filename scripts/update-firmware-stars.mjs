@@ -1,6 +1,7 @@
 // Refreshes the GitHub star counts on the firmware page (firmware/index.html) and the date they
 // were read. Each entry with a GitHub repository link and no `data-pinned` gets `data-stars` and a
-// visible count in its status line; entries without a repository, such as Groove OS, get neither.
+// visible count beside a filled star in its status line; an entry without a repository, such as
+// Groove OS, says it is not on GitHub beside an outline star instead, and has no `data-stars`.
 // It reads the public GitHub API, which allows 60 requests an hour without a token; set
 // GITHUB_TOKEN to raise that.
 import { readFile, writeFile } from 'node:fs/promises'
@@ -12,7 +13,8 @@ const pagePath = path.resolve('firmware/index.html')
 const articlePattern = /<article\b[^>]*\bclass="firmware-entry\b[^>]*>[\s\S]*?<\/article>/g
 const repositoryPattern = /href="https:\/\/github\.com\/([\w.-]+\/[\w.-]+)"/g
 const statusPattern = /(<p class="firmware-status">[\s\S]*?)(<\/p>)/
-const starsSpanPattern = /\s*<span class="firmware-stars">[^<]*<\/span\s*>/
+// The count is the status line's last item, so everything from it to the paragraph's end goes.
+const starsSpanPattern = /\s*<span class="firmware-stars"[\s\S]*$/
 
 function entryRepository(article) {
   const repositories = new Set([...article.matchAll(repositoryPattern)].map((match) => match[1]))
@@ -36,18 +38,28 @@ function starsLabel(stars) {
   return `${stars} ${stars === 1 ? 'star' : 'stars'} on GitHub`
 }
 
+// A star and the bare number; assistive technology and the tooltip read the whole label.
+function starsSpan(stars) {
+  const star =
+    '<svg aria-hidden="true" class="firmware-star" height="12" width="12"><use href="#firmware-star" /></svg>'
+  if (stars === undefined) {
+    return `<span class="firmware-stars" data-counted="false">${star}Not on GitHub</span>`
+  }
+  const label = starsLabel(stars)
+  return `<span class="firmware-stars" data-counted="true" title="${label}">${star}<span aria-hidden="true">${stars}</span><span class="sr-only">${label}</span></span>`
+}
+
 function withStars(article, stars) {
   const openingTag = article.slice(0, article.indexOf('>') + 1)
-  const taggedOpening = /\bdata-stars="\d*"/.test(openingTag)
-    ? openingTag.replace(/\bdata-stars="\d*"/, `data-stars="${stars}"`)
-    : openingTag.replace(/\s*>$/, ` data-stars="${stars}">`)
+  const withoutCount = openingTag.replace(/\s*\bdata-stars="\d*"/, '')
+  const taggedOpening =
+    stars === undefined ? withoutCount : withoutCount.replace(/\s*>$/, ` data-stars="${stars}">`)
   const body = article
     .slice(openingTag.length)
-    .replace(starsSpanPattern, '')
     .replace(
       statusPattern,
       (_match, status, end) =>
-        `${status.trimEnd()}\n<span class="firmware-stars">${starsLabel(stars)}</span>${end}`,
+        `${status.replace(starsSpanPattern, '').trimEnd()}\n${starsSpan(stars)}${end}`,
     )
   return taggedOpening + body
 }
@@ -56,11 +68,11 @@ const page = await readFile(pagePath, 'utf8')
 const counted = []
 let updated = page
 for (const [article] of page.matchAll(articlePattern)) {
-  if (/\bdata-pinned\b/.test(article.slice(0, article.indexOf('>')))) continue
+  const pinned = /\bdata-pinned\b/.test(article.slice(0, article.indexOf('>')))
   const repository = entryRepository(article)
-  if (!repository) continue
-  const stars = await starCount(repository)
-  counted.push(`${repository}: ${stars}`)
+  if (pinned && repository) continue
+  const stars = repository ? await starCount(repository) : undefined
+  if (repository) counted.push(`${repository}: ${stars}`)
   updated = updated.replace(article, withStars(article, stars))
 }
 

@@ -114,6 +114,26 @@
     color: var(--crt-ink-3);
   }
 
+  /* A GitHub star count beside a filled star, or an outline star for a firmware not on GitHub. */
+  .firmware-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .firmware-star {
+    flex: none;
+    fill: var(--crt-led);
+    stroke: var(--crt-led);
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .firmware-stars[data-counted='false'] .firmware-star {
+    fill: none;
+    stroke: var(--crt-ink-4);
+  }
+
   .firmware-tag {
     padding: 0.125rem 0.5rem;
     font-weight: 700;
