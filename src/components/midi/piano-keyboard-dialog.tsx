@@ -57,7 +57,7 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
   const dragOffsetRef = useRef<{ x: number; y: number } | null>(null)
   const activeNotesRef = useRef<Set<number>>(new Set())
   const activeComputerKeysRef = useRef<Map<string, number>>(new Map())
-  const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set())
+  const [activeNotes, setActiveNotes] = useState<Set<number>>(() => new Set())
   const [baseOctave, setBaseOctave] = useState(3)
   const [keyVelocity, setKeyVelocity] = useState(defaultNoteVelocity)
   const [phraseId, setPhraseId] = useState(defaultAuditionPhraseId)

@@ -49,7 +49,7 @@ import { ErrorNotice } from '@/components/ui/error-notice'
 import { dx7BankVoiceCount, makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import {
   favouritesBank,
-  findFavourite,
+  favouritePatchId,
   makeFavouritesTransfer,
   type FavouriteOrigin,
 } from '@/lib/favourites'
@@ -676,14 +676,24 @@ export function LibrarianPage({
     slotSounds,
   )
 
-  const isFavourite = (patch: Patch) => {
-    const voice = library.voices[patch.id]
-    return voice
-      ? library.favouriteKeys.has(
-          soundKey(voice, library.effects[patch.id], library.records[patch.id]),
-        )
-      : false
-  }
+  // Worked out once per change rather than for every card on every render: a search can show 320
+  // cards, and each sound key hashes the voice and its record. Only a visible card asks.
+  const favouriteSlots = useMemo(
+    () =>
+      new Set(
+        visiblePatches
+          .filter(({ id }) => {
+            const voice = library.voices[id]
+            return (
+              voice &&
+              library.favouriteKeys.has(soundKey(voice, library.effects[id], library.records[id]))
+            )
+          })
+          .map(({ id }) => id),
+      ),
+    [library.effects, library.favouriteKeys, library.records, library.voices, visiblePatches],
+  )
+  const isFavourite = (patch: Patch) => favouriteSlots.has(patch.id)
 
   // A lit heart is the confirmation of an addition, so only taking a sound out says so, with Undo,
   // since the favourite taken out may be an edited copy found nowhere else.
@@ -711,8 +721,15 @@ export function LibrarianPage({
     }
   }
 
+  const favouriteOrigins = useMemo(
+    () =>
+      new Map<string, FavouriteOrigin | undefined>(
+        library.favourites.map((favourite) => [favouritePatchId(favourite.id), favourite.origin]),
+      ),
+    [library.favourites],
+  )
   const favouriteOrigin = (patch: Patch) => {
-    const origin: FavouriteOrigin | undefined = findFavourite(library.favourites, patch.id)?.origin
+    const origin = favouriteOrigins.get(patch.id)
     if (!origin) return undefined
     return 'bankName' in origin
       ? origin.bankName || undefined

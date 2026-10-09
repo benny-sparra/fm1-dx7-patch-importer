@@ -105,6 +105,8 @@ export function LfoScope({ ampModDepth, pitchModDepth, speed, wave }: LfoScopePr
   const dotRef = useRef<HTMLSpanElement>(null)
   const phaseRef = useRef(0)
 
+  const active = pitchModDepth > 0 || ampModDepth > 0
+
   const frameRef = useAnimationLoop((elapsed) => {
     phaseRef.current += elapsed * cyclesPerSecond(speed)
     const period = patternCycles(wave)
@@ -113,9 +115,7 @@ export function LfoScope({ ampModDepth, pitchModDepth, speed, wave }: LfoScopePr
     traceRef.current?.setAttribute('transform', `translate(${(-offset * cycleWidth).toFixed(2)} 0)`)
     const value = sampleWave(wave, phase + playheadX * visibleCycles)
     if (dotRef.current) dotRef.current.style.top = `${(toY(value) / viewHeight) * 100}%`
-  })
-
-  const active = pitchModDepth > 0 || ampModDepth > 0
+  }, active)
 
   return (
     <ScopeFrame
