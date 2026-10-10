@@ -15,6 +15,7 @@ import { AdsrScope } from '@/components/editor/adsr-scope'
 import { CompareOverlay } from '@/components/editor/compare-overlay'
 import { RackPanelHelp } from '@/components/editor/editor-workspace'
 import { EffectsUnit } from '@/components/editor/effects-unit'
+import { KnobChoicesPanel } from '@/components/editor/knob-choices-panel'
 import { LfoScope } from '@/components/editor/lfo-scope'
 import {
   VaFilterPanelIcon,
@@ -50,6 +51,7 @@ import {
   FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VA_EFFECT_ORDER_START,
+  FM1_VA_KNOB_CHOICES_START,
   FM1_VA_STOCK_EFFECT_ORDER,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
@@ -62,6 +64,7 @@ import {
   fm1VaRecordWithEffectOrder,
   playsFm1VaBitcrush,
 } from '@/lib/fm1-va-record-effects'
+import { fm1VaRecordWithKnobChoices, playsFm1VaKnobChoices } from '@/lib/fm1-va-knob-choices'
 import {
   makeVirtualAnalogEditorParameters,
   virtualAnalogCutoffHertz,
@@ -256,9 +259,13 @@ export function VirtualAnalogEditorPage({
 
   const bitcrush = Array.from(parameters.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START))
   const effectOrder = Array.from(
-    parameters.subarray(FM1_VA_EFFECT_ORDER_START, FM1_EDITOR_PARAMETER_COUNT),
+    parameters.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START),
   )
   const offersBitcrush = playsFm1VaBitcrush(midi.firmware)
+  const offersKnobChoices = playsFm1VaKnobChoices(midi.firmware)
+  const knobChoices = Array.from(
+    parameters.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT),
+  )
   const writesDistortionType = hasFm1VaPresetCommands(midi.firmware)
   // On firmware that does not play them, a line says what the patch keeps, as the voice editor's
   // effects panel does.
@@ -278,12 +285,16 @@ export function VirtualAnalogEditorPage({
       onSave(
         stored.voice,
         getFm1EffectParameters(saved),
-        fm1VaRecordWithEffectOrder(
-          fm1VaRecordWithBitcrush(
-            fm1VaRecordWithDistortionType(stored.record, saved[FM1_VA_DISTORTION_TYPE_INDEX]),
-            Array.from(saved.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START)),
+        fm1VaRecordWithKnobChoices(
+          fm1VaRecordWithEffectOrder(
+            fm1VaRecordWithBitcrush(
+              fm1VaRecordWithDistortionType(stored.record, saved[FM1_VA_DISTORTION_TYPE_INDEX]),
+              Array.from(saved.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START)),
+            ),
+            Array.from(saved.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START)),
           ),
-          Array.from(saved.subarray(FM1_VA_EFFECT_ORDER_START, FM1_EDITOR_PARAMETER_COUNT)),
+          Array.from(saved.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT)),
+          'virtual-analog',
         ),
       )
     })
@@ -734,6 +745,14 @@ export function VirtualAnalogEditorPage({
               />
             </RackPanelCollapsibleBody>
           </section>
+
+          {offersKnobChoices ? (
+            <KnobChoicesPanel
+              choices={knobChoices}
+              engine="virtual-analog"
+              onChange={editor.setKnobChoice}
+            />
+          ) : null}
         </div>
         <CompareOverlay isComparing={isComparing} />
       </div>

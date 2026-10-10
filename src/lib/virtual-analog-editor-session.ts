@@ -8,11 +8,11 @@ import {
 } from '@/lib/effect-presets'
 import { getFm1EffectParameters } from '@/lib/fm1-effects'
 import {
-  FM1_EDITOR_PARAMETER_COUNT,
   FM1_EFFECT_PARAMETER_COUNT,
   FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VA_EFFECT_ORDER_START,
+  FM1_VA_KNOB_CHOICES_START,
   fm1EffectParameters,
   resolveEffectEditorIndex,
 } from '@/lib/fm1-parameters'
@@ -232,7 +232,7 @@ export class VirtualAnalogEditorSession {
   /** Moves the effect at `from` in the order of seven effects to `to`, as one undo step. */
   moveEffect = (from: number, to: number) => {
     const order = Array.from(
-      this.state.history.present.subarray(FM1_VA_EFFECT_ORDER_START, FM1_EDITOR_PARAMETER_COUNT),
+      this.state.history.present.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START),
     )
     if (from === to || to < 0 || to >= order.length) return
     const [effect] = order.splice(from, 1)
@@ -241,6 +241,15 @@ export class VirtualAnalogEditorSession {
     this.applyEdits(
       order.map((value, place): ParameterEdit => [FM1_VA_EFFECT_ORDER_START + place, value, 0, 6]),
     )
+  }
+
+  /**
+   * Sets what knob `knob`, counted from 0, plays as one undo step. No MIDI message carries it, so
+   * nothing is sent.
+   */
+  setKnobChoice = (knob: number, choice: number) => {
+    this.gestureStart = null
+    this.applyEdits([[FM1_VA_KNOB_CHOICES_START + knob, choice, 0, 7]])
   }
 
   /** Stores the working copy through `store` and makes it the saved version. */

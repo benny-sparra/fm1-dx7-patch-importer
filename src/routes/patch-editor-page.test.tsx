@@ -1426,6 +1426,91 @@ describe('PatchEditorPage Bitcrush on Baud Girl’s FM-1_096', () => {
   })
 })
 
+/** `hardClipRecord` with knobs never chosen and its Envelope on, in byte 53's bit 6. */
+const unsetKnobsRecord = (() => {
+  const record = hardClipRecord.slice()
+  record[52] = 0x00
+  record[53] = 0x40
+  return record
+})()
+const knob = (number: number) =>
+  screen.queryByRole<HTMLSelectElement>('combobox', { name: `Knob ${number}` })
+const knobChoice = (number: number) => knob(number)?.selectedOptions[0].textContent
+
+describe('PatchEditorPage knob choices on Baud Girl’s FM-1_096', () => {
+  it('shows the knobs an FM preset that never chose them plays', () => {
+    renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    expect([1, 2, 3, 4].map(knobChoice)).toEqual(['Brightness', 'Feedback', 'Attack', 'Release'])
+    expect(
+      screen.getByText('The FM1 uses these knobs once the patch is written to it.'),
+    ).toBeTruthy()
+  })
+
+  it('saves a knob choice into the record as the FM1 stores it, changing nothing else', async () => {
+    const { onSave, user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    await user.selectOptions(knob(1) as HTMLSelectElement, 'Decay')
+    await user.click(screen.getByRole('button', { name: 'Save to library' }))
+
+    const record: Uint8Array = onSave.mock.calls[0][2]
+    expect(Array.from(record.keys()).filter((i) => record[i] !== unsetKnobsRecord[i])).toEqual([53])
+    // Knob 1 at Decay and Knob 2 at its default, marked set, with the Envelope kept on.
+    expect(record[53]).toBe(0xcb)
+  })
+
+  it('takes a knob choice back in one undo', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+    await user.selectOptions(knob(3) as HTMLSelectElement, 'Vibrato')
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+
+    expect(knobChoice(3)).toBe('Attack')
+  })
+
+  it('saves the knob bytes as read when another setting changes', async () => {
+    const record = unsetKnobsRecord.slice()
+    record[52] = 0x03
+    record[53] = 0x43
+    const { onSave, user } = renderWithRecord(bitcrushFirmware, record)
+
+    await user.click(screen.getByRole('switch', { name: 'Distortion' }))
+    await user.selectOptions(distortionType() as HTMLSelectElement, 'Soft Clip')
+    await user.click(screen.getByRole('button', { name: 'Save to library' }))
+
+    const saved: Uint8Array = onSave.mock.calls[0][2]
+    expect([saved[52], saved[53]]).toEqual([0x03, 0x43])
+  })
+
+  it('cannot choose knobs for a patch without a record, and says why', () => {
+    renderWithRecord(bitcrushFirmware)
+
+    expect(knob(1)?.disabled).toBe(true)
+    expect(
+      screen.getByText(
+        'This patch didn’t come from the FM1, so it takes the knobs of the preset it’s written over.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('offers no knob choices before FM-1_096', () => {
+    renderWithRecord(baudGirl, unsetKnobsRecord)
+
+    expect(knob(1)).toBeNull()
+  })
+
+  it('names each knob in the interface language', async () => {
+    await setLocale('de')
+    renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    expect(
+      screen.getByRole<HTMLSelectElement>('combobox', { name: 'Regler 4' }).selectedOptions[0]
+        .textContent,
+    ).toBe('Release')
+    await setLocale('en-GB')
+  })
+})
+
 const effectNames = ['Filter', 'Reverb', 'Delay', 'Distortion', 'Chorus', 'Phaser', 'Bitcrush']
 
 /** The effect boxes' names in the order the panel lays them out. */

@@ -706,10 +706,34 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
   panel sets Bitcrush in a patch with a record, written into these bytes by
   `fm1VaRecordWithBitcrush`, and the order of all seven, written by `fm1VaRecordWithEffectOrder`;
   both are heard once the patch is written to the FM1.
-- **Knob choices** are bits 0–5 of bytes 53 (knobs 1 and 2) and 52 (knobs 3 and 4), with bit 7
-  marking them set; Envelope On stays bit 6 of byte 53. The 8-Bit Drums Level is byte 2, stored as
-  `80` | (99 − level). Where an FM or Virtual Analog preset keeps Preset Level was not found; byte 2
-  is the likely place.
+- **Knob choices. Confirmed** (FM-1_097, 2026-10-10, tests K1–K3 through the preset probe, on an
+  FM preset, Virtual Analog preset 113, and 8-Bit preset 097). Byte 53 holds Knob 1 in bits 0–2
+  and Knob 2 in bits 3–5, and byte 52 Knob 3 and Knob 4 the same way; bit 7 of each marks its two
+  choices set, and Envelope On stays bit 6 of byte 53. Bit 6 of byte 52 was not seen used. Setting
+  one knob on the FM1 wrote both fields of its byte and the mark, leaving the other byte alone:
+  Knob 1 → Decay on an FM preset gave byte 53 `00` → `8B`, Knob 3 → Vibrato gave byte 52 `00` →
+  `A5`, Knob 2 → Shape on 113 gave byte 53 `A0`, and Knob 1 → Lead Arp Speed on 097 gave `8C`.
+  The layout is the same on all three engines. A byte without the mark, such as `00` or the stock
+  `03`, plays its knobs' defaults, the four a new preset starts with (the manual): Brightness,
+  Feedback, Attack, and Release (0, 1, 2, 4) on FM, and choices 0–3 on Virtual Analog and 8-Bit;
+  the fields written beside each change agree. Each engine's eight choices, numbered 0–7 in the
+  FM1's order:
+  - FM: Brightness, Feedback, Attack, Decay, Release, Vibrato, LFO speed, Cutoff.
+  - Virtual Analog: Cutoff, Resonance, Filter Env, Filter Decay, Shape, Super, Detune, LFO to
+    Cutoff.
+  - 8-Bit: Drum Decay, Bass Arpeggio, Lead Arpeggio, Lead Decay, Lead Arp Speed, Lead Vibrato,
+    Lead Release, Bass Decay.
+
+  No MIDI message sets a knob choice, and CC 85–88, which turn the knobs, stay excluded. From
+  FM-1_096 the voice editor, for a patch with a record, and the Virtual Analog editor offer the
+  four choices, written by `fm1VaRecordWithKnobChoices` (`src/lib/fm1-va-knob-choices.ts`), which
+  rewrites only a byte whose choices changed and keeps its bit 6; they are heard once the patch is
+  written to the FM1.
+
+- **Preset Level. Confirmed** (FM-1_097, 2026-10-10, test L1). On FM and Virtual Analog presets
+  it is byte 2, stored as `80` | (99 − level), the form the 8-Bit Drums Level takes in the same
+  byte: 99 → 50 gave `03` → `B1`, then 50 → 0 gave `E3`. An unmarked byte, `03` or `00`, plays 99.
+  The editor keeps byte 2 as read and does not offer the level yet.
 - **Writes can follow each other closely. Confirmed** (FM-1_096, 2026-10-06, nine runs, 161
   writes; [`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`](hardware-runs/fm1-va-write-timing-2026-10-06.md)).
   The Device Manager reads each write back at once and sends the next 120 ms after that read,

@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import {
+  FM1_EDITOR_PARAMETER_COUNT,
   FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VA_EFFECT_ORDER_START,
+  FM1_VA_KNOB_CHOICES_START,
   FM1_VA_STOCK_EFFECT_ORDER,
   FM1_VOICE_NAME_START,
   FM1_EFFECT_PARAMETER_START,
@@ -51,12 +53,12 @@ function save(
 }
 
 describe('Virtual Analog rows', () => {
-  it('gives every row its own parameter, clear of the effects and the name', () => {
+  it('gives every row its own parameter, clear of the effects, knob choices, and name', () => {
     const indexes = virtualAnalogRows.map((row) => row.index)
     expect(new Set(indexes).size).toBe(indexes.length)
     for (const index of indexes) {
       expect(index).toBeLessThan(virtualAnalogParameterCount)
-      expect(index < FM1_VOICE_NAME_START || index >= FM1_VA_EFFECT_ORDER_START + 7).toBe(true)
+      expect(index < FM1_VOICE_NAME_START || index >= FM1_EDITOR_PARAMETER_COUNT).toBe(true)
     }
   })
 
@@ -194,6 +196,20 @@ describe('Virtual Analog rows', () => {
     expect(
       Array.from(parameters.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_EFFECT_ORDER_START + 7)),
     ).toEqual(FM1_VA_STOCK_EFFECT_ORDER)
+  })
+
+  it('reads the knob choices as a Virtual Analog preset plays them, past the Envelope switch', () => {
+    const record = newVirtualAnalogRecord()
+    record[53] = 0xe0
+    const parameters = makeVirtualAnalogEditorParameters(
+      capturedVirtualAnalogVoice(),
+      record,
+      makeDefaultFm1Effects(),
+    )
+    expect(
+      Array.from(parameters.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT)),
+    ).toEqual([0, 4, 2, 3])
+    expect(parameters[virtualAnalogRow('envelope').index]).toBe(1)
   })
 
   it('writes a new name into the packed name bytes', () => {

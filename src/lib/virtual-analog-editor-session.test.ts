@@ -4,6 +4,7 @@ import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import {
   FM1_VA_BITCRUSH_START,
   FM1_VA_EFFECT_ORDER_START,
+  FM1_VA_KNOB_CHOICES_START,
   FM1_VOICE_NAME_START,
 } from '@/lib/fm1-parameters'
 import {
@@ -151,6 +152,18 @@ describe('VirtualAnalogEditorSession', () => {
     const present = session.getState().history.present
     expect(present[FM1_VA_EFFECT_ORDER_START]).toBe(1)
     expect(present[FM1_VA_EFFECT_ORDER_START + 1]).toBe(0)
+    expect(session.getState().history.past).toHaveLength(1)
+    expect(midi.sendSoundControl).not.toHaveBeenCalled()
+    expect(midi.sendEffectParameter).not.toHaveBeenCalled()
+  })
+
+  it('sets a knob choice as one undo step without sending anything', () => {
+    const { midi, session } = makeSession()
+    session.goLive()
+    midi.sendSoundControl.mockClear()
+    midi.sendEffectParameter.mockClear()
+    session.setKnobChoice(1, 4)
+    expect(session.getState().history.present[FM1_VA_KNOB_CHOICES_START + 1]).toBe(4)
     expect(session.getState().history.past).toHaveLength(1)
     expect(midi.sendSoundControl).not.toHaveBeenCalled()
     expect(midi.sendEffectParameter).not.toHaveBeenCalled()

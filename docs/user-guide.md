@@ -261,6 +261,12 @@ the patch is written to the FM1, as Bitcrush is; only a patch read from the FM1 
 presets file can keep one. On other firmware a line on the panel says when the patch keeps a changed
 order.
 
+From FM-1_096 each preset also chooses what KNOB1 to KNOB4 play on the FM1's Preset knob bank. While
+the FM1 runs it, a **Knobs** panel under the effects has a dropdown for each knob, listing the eight
+choices of the patch's engine: Brightness to Cutoff in the voice editor, Cutoff to LFO to cutoff in
+the Virtual Analogue editor. Each choice is one Undo, kept with the patch, and used once the patch is
+written to the FM1; only a patch read from the FM1 or Baud Girl's presets file can keep one.
+
 The LFO and every FM1 effect open with a small animated scope drawn from their current settings. The LFO scrolls its selected wave at a rate set by LFO Speed. The filter shows its response curve, delay its echo taps, chorus its drifting copies, reverb its tail, distortion its clipped wave, and phaser its sweeping notches. A scope dims when its effect is bypassed or when the LFO has no modulation depth. With reduced motion enabled, each scope shows a still frame instead.
 
 ## Playing along while you edit

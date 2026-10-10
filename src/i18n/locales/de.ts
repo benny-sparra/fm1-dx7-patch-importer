@@ -188,6 +188,44 @@ export default {
     otherFirmware:
       'Für die Firmware von Baud Girl gespeichert: eine geänderte Effektreihenfolge. Dieser FM1 spielt die Effekte in seiner eigenen Reihenfolge.',
   },
+  knobChoices: {
+    title: 'Regler',
+    knob: 'Regler {{number}}',
+    help: 'Wählt, was KNOB1 bis KNOB4 für diesen Sound in der Preset-Reglerbank der Firmware von Baud Girl steuern, aus den acht Möglichkeiten seiner Klangerzeugung. Keine MIDI-Nachricht stellt sie ein, daher wirken sie erst, wenn der Sound mit „An FM1 senden“ oder „Sounds auf den FM1 schreiben“ auf den FM1 geschrieben ist.',
+    heardOnceWritten: 'Der FM1 verwendet diese Regler, sobald der Sound auf ihn geschrieben ist.',
+    noRecord:
+      'Dieser Sound stammt nicht vom FM1 und übernimmt daher die Regler des Presets, über das er geschrieben wird.',
+    fm: {
+      brightness: 'Helligkeit',
+      feedback: 'Feedback',
+      attack: 'Attack',
+      decay: 'Decay',
+      release: 'Release',
+      vibrato: 'Vibrato',
+      lfoSpeed: 'LFO-Geschwindigkeit',
+      cutoff: 'Grenzfrequenz',
+    },
+    virtualAnalog: {
+      cutoff: 'Grenzfrequenz',
+      resonance: 'Resonanz',
+      filterEnvelope: 'Filterhüllkurve',
+      filterDecay: 'Filter-Decay',
+      shape: 'Form',
+      super: 'Super',
+      detune: 'Verstimmung',
+      lfoToCutoff: 'LFO auf Grenzfrequenz',
+    },
+    eightBit: {
+      drumDecay: 'Drum-Decay',
+      bassArpeggio: 'Bass-Arpeggio',
+      leadArpeggio: 'Lead-Arpeggio',
+      leadDecay: 'Lead-Decay',
+      leadArpSpeed: 'Lead-Arp-Tempo',
+      leadVibrato: 'Lead-Vibrato',
+      leadRelease: 'Lead-Release',
+      bassDecay: 'Bass-Decay',
+    },
+  },
   virtualAnalog: {
     help: {
       waveform:

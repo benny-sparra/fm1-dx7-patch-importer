@@ -12,6 +12,7 @@ import {
   FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VA_EFFECT_ORDER_START,
+  FM1_VA_KNOB_CHOICES_START,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
   fm1EffectParameters,
@@ -51,6 +52,8 @@ export type Fm1VaRecordSettings = {
   distortionType: number
   /** Seven effect numbers, first to last. */
   effectOrder: number[]
+  /** What KNOB1–4 play, Knob 1 first, as choice numbers 0–7. */
+  knobChoices: number[]
 }
 
 export type PatchEditorState = {
@@ -293,7 +296,7 @@ export class PatchEditorSession {
    */
   moveEffect = (from: number, to: number) => {
     const order = Array.from(
-      this.state.history.present.subarray(FM1_VA_EFFECT_ORDER_START, FM1_EDITOR_PARAMETER_COUNT),
+      this.state.history.present.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START),
     )
     if (from === to || to < 0 || to >= order.length) return
     const [effect] = order.splice(from, 1)
@@ -303,6 +306,15 @@ export class PatchEditorSession {
       order.map((value, place): ParameterEdit => [FM1_VA_EFFECT_ORDER_START + place, value, 0, 6]),
       false,
     )
+  }
+
+  /**
+   * Sets what FM-1+VA's knob `knob`, counted from 0, plays as one undo step. No MIDI message
+   * carries a knob choice, so it is heard only once the patch is written to the FM1.
+   */
+  setKnobChoice = (knob: number, choice: number) => {
+    this.gestureStart = null
+    this.applyEdits([[FM1_VA_KNOB_CHOICES_START + knob, choice, 0, 7]], false)
   }
 
   toggleOperatorMute = (operator: number) => {
@@ -324,8 +336,8 @@ export class PatchEditorSession {
   }
 
   /**
-   * Stores the working copy through `store`, with FM-1+VA's Distortion type and Bitcrush, and makes
-   * it the saved version.
+   * Stores the working copy through `store`, with FM-1+VA's Distortion type, Bitcrush, effect order,
+   * and knob choices, and makes it the saved version.
    */
   save = (store: (voice: Dx7Voice, effects: Uint8Array, record: Fm1VaRecordSettings) => void) => {
     if (this.state.isComparing) return
@@ -334,7 +346,10 @@ export class PatchEditorSession {
       bitcrush: Array.from(current.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START)),
       distortionType: current[FM1_VA_DISTORTION_TYPE_INDEX],
       effectOrder: Array.from(
-        current.subarray(FM1_VA_EFFECT_ORDER_START, FM1_EDITOR_PARAMETER_COUNT),
+        current.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START),
+      ),
+      knobChoices: Array.from(
+        current.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT),
       ),
     })
     this.update({ savedParameters: current.slice() })

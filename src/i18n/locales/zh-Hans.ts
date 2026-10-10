@@ -146,6 +146,43 @@ export default {
     noRecord: '此音色并非来自 FM1，因此会沿用被它覆盖的预设的效果顺序。',
     otherFirmware: '为 Baud Girl 固件保留：已更改的效果顺序。此 FM1 会按自己的顺序播放效果。',
   },
+  knobChoices: {
+    title: '旋钮',
+    knob: '旋钮 {{number}}',
+    help: '为此音色选择 Baud Girl 固件 Preset 旋钮组中 KNOB1 至 KNOB4 控制的参数，可从其引擎提供的八项中选择。没有 MIDI 消息能设置它们，因此用“发送到 FM1”或“将音色写入 FM1”把音色写入 FM1 后才会生效。',
+    heardOnceWritten: '音色写入 FM1 后，FM1 才会使用这些旋钮设置。',
+    noRecord: '此音色并非来自 FM1，因此会沿用被它覆盖的预设的旋钮设置。',
+    fm: {
+      brightness: '亮度',
+      feedback: '反馈',
+      attack: '起音',
+      decay: '衰减',
+      release: '释音',
+      vibrato: '颤音',
+      lfoSpeed: 'LFO 速度',
+      cutoff: '截止频率',
+    },
+    virtualAnalog: {
+      cutoff: '截止频率',
+      resonance: '共振',
+      filterEnvelope: '滤波器包络',
+      filterDecay: '滤波器衰减',
+      shape: '形状',
+      super: 'Super',
+      detune: '失谐',
+      lfoToCutoff: 'LFO 调制截止频率',
+    },
+    eightBit: {
+      drumDecay: '鼓衰减',
+      bassArpeggio: '贝斯琶音',
+      leadArpeggio: '主音琶音',
+      leadDecay: '主音衰减',
+      leadArpSpeed: '主音琶音速度',
+      leadVibrato: '主音颤音',
+      leadRelease: '主音释音',
+      bassDecay: '贝斯衰减',
+    },
+  },
   virtualAnalog: {
     help: {
       waveform:

@@ -252,6 +252,48 @@ describe('VirtualAnalogEditorPage', () => {
     expect(savedVoice[14]).toBe(70)
   })
 
+  it('saves a knob choice into byte 53 as the FM1 stores it, keeping the Envelope switch', async () => {
+    const { controlChanges, onSave, record, user } = setup()
+    await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
+    const sent = controlChanges().length
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Knob 2' }), 'Shape')
+    await user.click(screen.getByRole('button', { name: /^Save/ }))
+
+    const [, , savedRecord] = onSave.mock.calls[0]
+    expect([...savedRecord.keys()].filter((index) => savedRecord[index] !== record[index])).toEqual(
+      [53],
+    )
+    expect(savedRecord[53]).toBe(0x80 | (record[53] & 0x40) | (4 << 3) | 0)
+    // No MIDI message carries a knob choice.
+    expect(controlChanges()).toHaveLength(sent)
+  })
+
+  it('lists the Virtual Analog engine’s own knob choices', () => {
+    setup()
+
+    expect(
+      within(screen.getByRole('combobox', { name: 'Knob 1' }))
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual([
+      'Cutoff',
+      'Resonance',
+      'Filter envelope',
+      'Filter decay',
+      'Shape',
+      'Super',
+      'Detune',
+      'LFO to cutoff',
+    ])
+  })
+
+  it('offers no knob choices before FM-1_096', () => {
+    setup({ firmware: 'FM-1_093' })
+
+    expect(screen.queryByRole('combobox', { name: 'Knob 1' })).toBeNull()
+  })
+
   it('undoes a held arrow key in one step', async () => {
     const { controlChanges, user } = setup()
     await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))

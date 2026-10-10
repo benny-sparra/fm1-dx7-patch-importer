@@ -186,6 +186,44 @@ export default {
     otherFirmware:
       'Guardado para el firmware de Baud Girl: un orden de efectos cambiado. Este FM1 usa su propio orden.',
   },
+  knobChoices: {
+    title: 'Mandos',
+    knob: 'Mando {{number}}',
+    help: 'Elige qué controlan KNOB1 a KNOB4 para este sonido en el banco de mandos Preset del firmware de Baud Girl, entre las ocho opciones de su motor. Ningún mensaje MIDI los ajusta, así que surten efecto cuando el sonido se escribe en el FM1 con Enviar al FM1 o Escribir sonidos en el FM1.',
+    heardOnceWritten: 'El FM1 usa estos mandos cuando el sonido se escribe en él.',
+    noRecord:
+      'Este sonido no viene del FM1, así que toma los mandos del preset sobre el que se escribe.',
+    fm: {
+      brightness: 'Brillo',
+      feedback: 'Realimentación',
+      attack: 'Ataque',
+      decay: 'Caída',
+      release: 'Liberación',
+      vibrato: 'Vibrato',
+      lfoSpeed: 'Velocidad LFO',
+      cutoff: 'Corte',
+    },
+    virtualAnalog: {
+      cutoff: 'Corte',
+      resonance: 'Resonancia',
+      filterEnvelope: 'Envolvente del filtro',
+      filterDecay: 'Caída del filtro',
+      shape: 'Forma',
+      super: 'Super',
+      detune: 'Desafinación',
+      lfoToCutoff: 'LFO al corte',
+    },
+    eightBit: {
+      drumDecay: 'Caída de batería',
+      bassArpeggio: 'Arpegio del bajo',
+      leadArpeggio: 'Arpegio de la melodía',
+      leadDecay: 'Caída de la melodía',
+      leadArpSpeed: 'Velocidad del arpegio de la melodía',
+      leadVibrato: 'Vibrato de la melodía',
+      leadRelease: 'Liberación de la melodía',
+      bassDecay: 'Caída del bajo',
+    },
+  },
   virtualAnalog: {
     help: {
       waveform:

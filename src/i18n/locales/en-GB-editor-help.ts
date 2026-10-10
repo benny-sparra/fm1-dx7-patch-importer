@@ -258,6 +258,44 @@ export default {
     otherFirmware:
       'Kept for Baud Girl’s firmware: a changed effect order. This FM1 plays the effects in its own order.',
   },
+  knobChoices: {
+    title: 'Knobs',
+    knob: 'Knob {{number}}',
+    help: 'Chooses what KNOB1 to KNOB4 play for this patch on the Preset knob bank of Baud Girl’s firmware, from the eight its engine offers. No MIDI message sets them, so they take effect once the patch is written to the FM1 with Send to FM1 or Write patches to the FM1.',
+    heardOnceWritten: 'The FM1 uses these knobs once the patch is written to it.',
+    noRecord:
+      'This patch didn’t come from the FM1, so it takes the knobs of the preset it’s written over.',
+    fm: {
+      brightness: 'Brightness',
+      feedback: 'Feedback',
+      attack: 'Attack',
+      decay: 'Decay',
+      release: 'Release',
+      vibrato: 'Vibrato',
+      lfoSpeed: 'LFO speed',
+      cutoff: 'Cutoff',
+    },
+    virtualAnalog: {
+      cutoff: 'Cutoff',
+      resonance: 'Resonance',
+      filterEnvelope: 'Filter envelope',
+      filterDecay: 'Filter decay',
+      shape: 'Shape',
+      super: 'Super',
+      detune: 'Detune',
+      lfoToCutoff: 'LFO to cutoff',
+    },
+    eightBit: {
+      drumDecay: 'Drum decay',
+      bassArpeggio: 'Bass arpeggio',
+      leadArpeggio: 'Lead arpeggio',
+      leadDecay: 'Lead decay',
+      leadArpSpeed: 'Lead arp speed',
+      leadVibrato: 'Lead vibrato',
+      leadRelease: 'Lead release',
+      bassDecay: 'Bass decay',
+    },
+  },
   virtualAnalog: {
     help: {
       waveform:
