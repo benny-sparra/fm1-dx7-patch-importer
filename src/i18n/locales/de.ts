@@ -188,6 +188,47 @@ export default {
     otherFirmware:
       'Für die Firmware von Baud Girl gespeichert: eine geänderte Effektreihenfolge. Dieser FM1 spielt die Effekte in seiner eigenen Reihenfolge.',
   },
+  knobChoices: {
+    title: 'Echtzeit-Regler',
+    knob: 'Regler {{number}}',
+    assign: '{{parameter}} einem Regler zuweisen',
+    assignHeading: '{{parameter}} zuweisen an',
+    assigned: 'Bereits zugewiesen',
+    replaces: 'Ersetzt {{choice}}',
+    help: 'Legt fest, was jeder der vier Regler des FM1 bei diesem Sound steuert, aus den acht Einstellungen seiner Klangerzeugung. Die Wahl wird mit dem Sound gespeichert und erreicht den FM1, wenn du ihn mit „An FM1 senden“ oder „Sounds auf den FM1 schreiben“ überträgst.',
+    noRecord:
+      'Dieser Sound stammt nicht vom FM1 und übernimmt daher die Regler des Presets, über das er geschrieben wird.',
+    fm: {
+      brightness: 'Helligkeit',
+      feedback: 'Feedback',
+      attack: 'Attack',
+      decay: 'Decay',
+      release: 'Release',
+      vibrato: 'Vibrato',
+      lfoSpeed: 'LFO-Geschwindigkeit',
+      cutoff: 'Grenzfrequenz',
+    },
+    virtualAnalog: {
+      cutoff: 'Grenzfrequenz',
+      resonance: 'Resonanz',
+      filterEnvelope: 'Filterhüllkurve',
+      filterDecay: 'Filter-Decay',
+      shape: 'Form',
+      super: 'Super',
+      detune: 'Verstimmung',
+      lfoToCutoff: 'LFO auf Grenzfrequenz',
+    },
+    eightBit: {
+      drumDecay: 'Drum-Decay',
+      bassArpeggio: 'Bass-Arpeggio',
+      leadArpeggio: 'Lead-Arpeggio',
+      leadDecay: 'Lead-Decay',
+      leadArpSpeed: 'Lead-Arp-Tempo',
+      leadVibrato: 'Lead-Vibrato',
+      leadRelease: 'Lead-Release',
+      bassDecay: 'Bass-Decay',
+    },
+  },
   virtualAnalog: {
     help: {
       waveform:

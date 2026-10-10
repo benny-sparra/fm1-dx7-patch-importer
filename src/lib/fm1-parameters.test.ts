@@ -13,6 +13,7 @@ import {
   FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VA_EFFECT_ORDER_START,
+  FM1_VA_KNOB_CHOICES_START,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
   FM1_VOICE_PARAMETER_COUNT,
@@ -53,11 +54,13 @@ describe('FM1 parameter schema', () => {
     expect(FM1_VOICE_PARAMETER_COUNT).toBe(155)
     expect(FM1_EFFECT_PARAMETER_START).toBe(155)
     expect(FM1_EFFECT_PARAMETER_COUNT).toBe(24)
-    // The last places hold FM-1+VA's Distortion type and Bitcrush, which no MIDI message sends.
+    // The last places hold FM-1+VA's Distortion type, Bitcrush, effect order, and knob choices,
+    // which no MIDI message sends.
     expect(FM1_VA_DISTORTION_TYPE_INDEX).toBe(179)
     expect(FM1_VA_BITCRUSH_START).toBe(180)
     expect(FM1_VA_EFFECT_ORDER_START).toBe(184)
-    expect(FM1_EDITOR_PARAMETER_COUNT).toBe(191)
+    expect(FM1_VA_KNOB_CHOICES_START).toBe(191)
+    expect(FM1_EDITOR_PARAMETER_COUNT).toBe(195)
     expect(fm1EffectParameters.map(({ editorIndex }) => editorIndex)).toEqual([
       155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173,
       174, 175, 176, 177, 178,
@@ -201,10 +204,11 @@ describe('FM1 parameter schema', () => {
       FM1_VA_DISTORTION_TYPE_INDEX,
       ...Array.from({ length: 4 }, (_, setting) => FM1_VA_BITCRUSH_START + setting),
       ...Array.from({ length: 7 }, (_, place) => FM1_VA_EFFECT_ORDER_START + place),
+      ...Array.from({ length: 4 }, (_, knob) => FM1_VA_KNOB_CHOICES_START + knob),
     ]
-    expect(new Set(indexes).size).toBe(191)
+    expect(new Set(indexes).size).toBe(195)
     expect(indexes.toSorted((left, right) => left - right)).toEqual(
-      Array.from({ length: 191 }, (_, index) => index),
+      Array.from({ length: 195 }, (_, index) => index),
     )
   })
 

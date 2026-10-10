@@ -711,7 +711,17 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
 - **Knob choices** are bits 0–5 of bytes 53 (knobs 1 and 2) and 52 (knobs 3 and 4), with bit 7
   marking them set; Envelope On stays bit 6 of byte 53. The 8-Bit Drums Level is byte 2, stored as
   `80` | (99 − level), and so is an FM or Virtual Analog preset's Preset Level. **Confirmed on
-  `FM-1_097`** (below, "Hardware run on FM-1_097"), with the choice names.
+  `FM-1_097`** (below, "Hardware run on FM-1_097"), with the choice names. No MIDI message sets a
+  knob choice, and CC 85–88, which turn the knobs, stay excluded. From FM-1_096 the voice editor,
+  for a patch with a record, and the Virtual Analog editor offer the four choices, written by
+  `fm1VaRecordWithKnobChoices` (`src/lib/fm1-va-knob-choices.ts`), which rewrites only a byte whose
+  choices changed and keeps its bit 6; they are heard once the patch is written to the FM1. Which
+  editor control each choice turns is **Likely**, from the names: every Virtual Analog choice is
+  one of the editor's rows, with Shape taken as the filter envelope's shape, since Filter Env,
+  Filter Decay, and Shape follow each other as CC 52–54 do; on FM, Feedback and LFO speed are the
+  DX7 parameters of those names, and the other FM choices turn FM-1+VA's own Envelope, Filter, and
+  Brightness, which the voice editor does not show. The editor keeps byte 2 as read and does not
+  offer the Preset Level yet.
 - **Writes can follow each other closely. Confirmed** (FM-1_096, 2026-10-06, nine runs, 161
   writes; [`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`](hardware-runs/fm1-va-write-timing-2026-10-06.md)).
   The Device Manager reads each write back at once and sends the next 120 ms after that read,
@@ -882,7 +892,9 @@ after placing the 8-Bit pack), §4b, §5, D1, D2, and the clean-up. Everything b
   are.
 - **Knob choices** (K1–K3): setting one knob writes both fields of its byte and sets bit 7, the same
   on every engine. An unset byte, bit 7 clear, holds the defaults, which the written fields put at
-  Knob 2 = 1 and Knob 4 = 4. The choices, codes 0–7:
+  Knob 2 = 1 and Knob 4 = 4. FM-1+VA's manual lists the four a new preset starts with: Brightness,
+  Feedback, Attack, and Release (0, 1, 2, 4) on FM, and choices 0–3 on Virtual Analog and 8-Bit,
+  which agrees with every field written. The choices, codes 0–7:
   - FM: Brightness, Feedback, Attack, Decay, Release, Vibrato, LFO speed, Cutoff
   - Virtual Analog: Cutoff, Resonance, Filter Env, Filter Decay, Shape, Super, Detune, LFO to Cutoff
   - 8-Bit: Drum Decay, Bass Arpeggio, Lead Arpeggio, Lead Decay, Lead Arp Speed, Lead Vibrato, Lead

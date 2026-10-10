@@ -791,8 +791,18 @@
     transition: visibility 0s 160ms;
   }
 
+  /* A panel whose dropdowns hang below it stops clipping once it has finished opening. */
+  .rack-collapsible[data-overflow='open'][data-collapsed='false'] {
+    overflow: visible;
+    transition:
+      height 160ms ease,
+      overflow 0s 160ms;
+    transition-behavior: allow-discrete;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .rack-collapsible,
+    .rack-collapsible[data-overflow='open'][data-collapsed='false'],
     .rack-collapsible[data-collapsed='true'] > * {
       transition: none;
     }

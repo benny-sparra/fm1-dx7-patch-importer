@@ -114,13 +114,21 @@ export function RackPanelCollapsibleBody({
   children,
   collapsed,
   id,
+  overflowWhenOpen = false,
 }: {
   children: ReactNode
   collapsed: boolean
   id: string
+  /** Lets a dropdown inside hang out below the panel while it is open, as the Knobs panel's do. */
+  overflowWhenOpen?: boolean
 }) {
   return (
-    <div className="rack-collapsible" data-collapsed={collapsed} id={id}>
+    <div
+      className="rack-collapsible"
+      data-collapsed={collapsed}
+      data-overflow={overflowWhenOpen ? 'open' : undefined}
+      id={id}
+    >
       <div style={{ visibility: collapsed ? 'hidden' : undefined }}>{children}</div>
     </div>
   )

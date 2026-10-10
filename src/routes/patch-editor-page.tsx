@@ -16,6 +16,7 @@ import { CompareOverlay } from '@/components/editor/compare-overlay'
 import { FocusedOperatorPanel } from '@/components/editor/focused-operator-panel'
 import { EffectsUnit } from '@/components/editor/effects-unit'
 import { GlobalConfigurationPanel } from '@/components/editor/global-configuration-panel'
+import { KnobChoicesPanel } from '@/components/editor/knob-choices-panel'
 import { OperatorTable } from '@/components/editor/operator-table'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
@@ -38,6 +39,7 @@ import {
   FM1_VA_BITCRUSH_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VA_EFFECT_ORDER_START,
+  FM1_VA_KNOB_CHOICES_START,
   FM1_VA_STOCK_EFFECT_ORDER,
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
@@ -59,6 +61,11 @@ import {
   fm1VaRecordWithEffectOrder,
   playsFm1VaBitcrush,
 } from '@/lib/fm1-va-record-effects'
+import {
+  fm1VaRecordKnobChoices,
+  fm1VaRecordWithKnobChoices,
+  playsFm1VaKnobChoices,
+} from '@/lib/fm1-va-knob-choices'
 import { initializeVoice } from '@/lib/init-voice'
 import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { copyOperator, type CopiedOperator } from '@/lib/operator-clipboard'
@@ -91,7 +98,10 @@ type PatchEditorPageProps = {
   /** Saves the sound, with its FM-1+VA settings record when it has one. */
   onSave: (voice: Dx7Voice, effects: Uint8Array, record?: Uint8Array) => void
   patch: Patch
-  /** The patch's FM-1+VA settings record, which holds its Distortion type, if it has one. */
+  /**
+   * The patch's FM-1+VA settings record, which holds its Distortion type, Bitcrush, effect order,
+   * and knob choices, if it has one.
+   */
   record?: Uint8Array
   voice: Dx7Voice
 }
@@ -121,6 +131,7 @@ export function PatchEditorPage({
       record ? fm1VaRecordDistortionType(record) : 0,
       record ? fm1VaRecordBitcrush(record) : undefined,
       record ? fm1VaRecordEffectOrder(record) : undefined,
+      record ? fm1VaRecordKnobChoices(record, 'fm') : undefined,
     )
     return new PatchEditorSession(parameters, () => midiRef.current)
   })
@@ -196,19 +207,24 @@ export function PatchEditorPage({
   }
 
   const saveToLibrary = () =>
-    editor.save((savedVoice, savedEffects, { bitcrush, distortionType, effectOrder }) =>
-      onSave(
-        savedVoice,
-        savedEffects,
-        record &&
-          fm1VaRecordWithEffectOrder(
-            fm1VaRecordWithBitcrush(
-              fm1VaRecordWithDistortionType(record, distortionType),
-              bitcrush,
+    editor.save(
+      (savedVoice, savedEffects, { bitcrush, distortionType, effectOrder, knobChoices }) =>
+        onSave(
+          savedVoice,
+          savedEffects,
+          record &&
+            fm1VaRecordWithKnobChoices(
+              fm1VaRecordWithEffectOrder(
+                fm1VaRecordWithBitcrush(
+                  fm1VaRecordWithDistortionType(record, distortionType),
+                  bitcrush,
+                ),
+                effectOrder,
+              ),
+              knobChoices,
+              'fm',
             ),
-            effectOrder,
-          ),
-      ),
+        ),
     )
   // Only FM-1+VA's preset write carries Distortion's type. Elsewhere, a type other than Soft Clip
   // that the patch keeps is named, since the FM1 does not play it.
@@ -221,7 +237,7 @@ export function PatchEditorPage({
   // Bitcrush is FM-1_096's own. Elsewhere, a patch that keeps it on says so, as the FM1 ignores it.
   const bitcrush = Array.from(parameters.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START))
   const effectOrder = Array.from(
-    parameters.subarray(FM1_VA_EFFECT_ORDER_START, FM1_EDITOR_PARAMETER_COUNT),
+    parameters.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START),
   )
   const offersBitcrush = playsFm1VaBitcrush(midi.firmware)
   // The order is FM-1+VA's too, mapped on FM-1_096, so it is offered with Bitcrush. Elsewhere, a
@@ -233,6 +249,11 @@ export function PatchEditorPage({
     effectOrder.some((effect, place) => effect !== FM1_VA_STOCK_EFFECT_ORDER[place])
   const keepsBitcrush =
     !offersBitcrush && Boolean(record) && bitcrush[0] === 1 && midi.firmware.kind !== 'checking'
+  // FM-1_096 added knob choices, so they are offered only from it, and only a record holds them.
+  const offersKnobChoices = playsFm1VaKnobChoices(midi.firmware)
+  const knobChoices = Array.from(
+    parameters.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT),
+  )
 
   const requestNavigation = () => {
     if (editor.getState().isComparing || isNavigationPending) return
@@ -388,6 +409,14 @@ export function PatchEditorPage({
           className={cn('grid min-w-0 gap-2.5', isComparing && 'opacity-60')}
           inert={isComparing}
         >
+          {offersKnobChoices ? (
+            <KnobChoicesPanel
+              choices={record ? knobChoices : null}
+              engine="fm"
+              onChange={editor.setKnobChoice}
+            />
+          ) : null}
+
           <section aria-labelledby="operators-heading" className="synthwave-panel min-w-0">
             <RackPanelTitle
               action={
@@ -457,6 +486,11 @@ export function PatchEditorPage({
           <GlobalConfigurationPanel
             beginGesture={editor.beginGesture}
             endGesture={editor.endGesture}
+            knobAssignment={
+              offersKnobChoices && record
+                ? { choices: knobChoices, engine: 'fm', onAssign: editor.setKnobChoice }
+                : undefined
+            }
             parameters={parameters}
             setParameter={editor.setParameter}
           />

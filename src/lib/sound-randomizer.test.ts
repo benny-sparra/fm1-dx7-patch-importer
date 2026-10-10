@@ -192,6 +192,6 @@ describe('sound randomisation', () => {
   })
 
   it('rejects incomplete editor data', () => {
-    expect(() => randomizeSound(new Uint8Array(155))).toThrow('191')
+    expect(() => randomizeSound(new Uint8Array(155))).toThrow('195')
   })
 })

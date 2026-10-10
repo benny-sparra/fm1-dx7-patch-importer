@@ -5,6 +5,7 @@ import {
   FM1_VOICE_NAME_START,
   FM1_VOICE_PARAMETER_COUNT,
 } from '@/lib/fm1-parameters'
+import { fm1VaRecordKnobChoices } from '@/lib/fm1-va-knob-choices'
 import { fm1VaChoiceValue } from '@/lib/fm1-va-sound-control'
 import {
   fm1VaRecordBitcrush,
@@ -143,7 +144,10 @@ function filterModeRow(id: VirtualAnalogRowId, shift: number) {
   }
 }
 
-/** Record byte 53's bit 6 is the Envelope's switch; its other bits hold the knob choices. */
+/**
+ * Record byte 53's bit 6 is the Envelope's switch; its other bits hold the knob choices, which
+ * `fm1VaRecordWithKnobChoices` writes around it.
+ */
 const envelopeByte = 53
 const envelopeOn = 0x40
 
@@ -251,7 +255,7 @@ const voiceNameByte = 118
 
 /**
  * The editor's parameters for a Virtual Analog preset: its rows, its name, the library's effects,
- * and the Distortion type, Bitcrush, and effect order its record keeps.
+ * and the Distortion type, Bitcrush, effect order, and knob choices its record keeps.
  */
 export function makeVirtualAnalogEditorParameters(
   voice: Uint8Array,
@@ -266,6 +270,7 @@ export function makeVirtualAnalogEditorParameters(
       fm1VaRecordDistortionType(record),
       fm1VaRecordBitcrush(record),
       fm1VaRecordEffectOrder(record),
+      fm1VaRecordKnobChoices(record, 'virtual-analog'),
     ),
   )
   parameters.set(
@@ -279,8 +284,8 @@ export function makeVirtualAnalogEditorParameters(
 /**
  * Copies of `voice` and `record` holding the rows and name in `parameters`. A row that already
  * reads as its parameter is left as it was, so a byte the edit did not touch keeps exactly what
- * the FM1 stored, unmarked defaults included. The effects, Distortion type, Bitcrush, and effect
- * order are the caller's, through the record functions that write them.
+ * the FM1 stored, unmarked defaults included. The effects, Distortion type, Bitcrush, effect
+ * order, and knob choices are the caller's, through the record functions that write them.
  */
 export function virtualAnalogFromEditorParameters(
   voice: Uint8Array,

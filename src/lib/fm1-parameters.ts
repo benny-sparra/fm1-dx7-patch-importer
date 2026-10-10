@@ -30,8 +30,16 @@ export const FM1_VA_BITCRUSH_DEFAULTS: readonly number[] = [0, 8, 72, 100]
 export const FM1_VA_EFFECT_ORDER_START = FM1_VA_BITCRUSH_START + FM1_VA_BITCRUSH_DEFAULTS.length
 /** The stock order, with Bitcrush straight after the Distortion, as a preset that never moved one. */
 export const FM1_VA_STOCK_EFFECT_ORDER: readonly number[] = [0, 1, 2, 3, 6, 4, 5]
-export const FM1_EDITOR_PARAMETER_COUNT =
+/**
+ * What FM-1+VA's KNOB1–4 play on its Preset knob bank, from FM-1_096, as each engine's choice
+ * numbers 0–7. They follow the effect order, and only a preset write carries them too
+ * (docs/fm1-research.md, "FM-1_096").
+ */
+export const FM1_VA_KNOB_CHOICES_START =
   FM1_VA_EFFECT_ORDER_START + FM1_VA_STOCK_EFFECT_ORDER.length
+/** The knobs an FM preset that never chose them plays: Brightness, Feedback, Attack, and Release. */
+export const FM1_VA_FM_KNOB_CHOICES: readonly number[] = [0, 1, 2, 4]
+export const FM1_EDITOR_PARAMETER_COUNT = FM1_VA_KNOB_CHOICES_START + FM1_VA_FM_KNOB_CHOICES.length
 
 type ValueKind = 'continuous' | 'enumerated' | 'switch'
 

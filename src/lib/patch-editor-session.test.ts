@@ -4,6 +4,7 @@ import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_VA_BITCRUSH_START,
   FM1_VA_EFFECT_ORDER_START,
+  FM1_VA_KNOB_CHOICES_START,
   FM1_VA_DISTORTION_TYPE_INDEX,
   FM1_VOICE_NAME_START,
 } from '@/lib/fm1-parameters'
@@ -190,7 +191,12 @@ describe('PatchEditorSession', () => {
   it('moves an effect in FM-1+VA’s order as one undo step, sending nothing, and saves the order', async () => {
     const { midi, session } = await openLiveSession()
     const order = () =>
-      Array.from(displayedParameters(session.getState()).subarray(FM1_VA_EFFECT_ORDER_START))
+      Array.from(
+        displayedParameters(session.getState()).subarray(
+          FM1_VA_EFFECT_ORDER_START,
+          FM1_VA_KNOB_CHOICES_START,
+        ),
+      )
     const store = vi.fn()
     session.applyEdits(
       [0, 1, 2, 3, 6, 4, 5].map((effect, place) => [FM1_VA_EFFECT_ORDER_START + place, effect]),
@@ -209,6 +215,41 @@ describe('PatchEditorSession', () => {
     )
     session.undo()
     expect(order()).toEqual([0, 1, 2, 3, 6, 4, 5])
+  })
+
+  it('sets a knob choice as one undo step, sending nothing, and saves it', async () => {
+    const { midi, session } = await openLiveSession()
+    const knobs = () =>
+      Array.from(
+        displayedParameters(session.getState()).subarray(
+          FM1_VA_KNOB_CHOICES_START,
+          FM1_EDITOR_PARAMETER_COUNT,
+        ),
+      )
+    const store = vi.fn()
+    const before = knobs()
+
+    session.setKnobChoice(0, 3)
+
+    expect(knobs()).toEqual([3, ...before.slice(1)])
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+    expect(midi.sendEffectParameter).not.toHaveBeenCalled()
+    session.save(store)
+    expect(store).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ knobChoices: [3, ...before.slice(1)] }),
+    )
+    session.undo()
+    expect(knobs()).toEqual(before)
+  })
+
+  it('keeps a knob choice within the eight an engine offers', async () => {
+    const { session } = await openLiveSession()
+
+    session.setKnobChoice(2, 12)
+
+    expect(displayedParameters(session.getState())[FM1_VA_KNOB_CHOICES_START + 2]).toBe(7)
   })
 
   it('moves no effect past either end of the order', async () => {

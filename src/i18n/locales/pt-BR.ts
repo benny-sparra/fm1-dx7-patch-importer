@@ -180,6 +180,46 @@ export default {
     otherFirmware:
       'Guardado para o firmware da Baud Girl: uma ordem de efeitos alterada. Este FM1 toca os efeitos na própria ordem.',
   },
+  knobChoices: {
+    title: 'Knobs de controle em tempo real',
+    knob: 'Knob {{number}}',
+    assign: 'Atribuir {{parameter}} a um knob',
+    assignHeading: 'Atribuir {{parameter}} a',
+    assigned: 'Já atribuído',
+    replaces: 'Substitui {{choice}}',
+    help: 'Escolhe o que cada um dos quatro knobs do FM1 controla neste som, entre os oito ajustes do seu motor. A escolha é salva com o som e chega ao FM1 quando você o grava com Enviar ao FM1 ou Gravar sons no FM1.',
+    noRecord: 'Este som não veio do FM1, então usa os knobs do preset sobre o qual for gravado.',
+    fm: {
+      brightness: 'Brilho',
+      feedback: 'Realimentação',
+      attack: 'Ataque',
+      decay: 'Decaimento',
+      release: 'Liberação',
+      vibrato: 'Vibrato',
+      lfoSpeed: 'Velocidade LFO',
+      cutoff: 'Corte',
+    },
+    virtualAnalog: {
+      cutoff: 'Corte',
+      resonance: 'Ressonância',
+      filterEnvelope: 'Envelope do filtro',
+      filterDecay: 'Decaimento do filtro',
+      shape: 'Forma',
+      super: 'Super',
+      detune: 'Desafinação',
+      lfoToCutoff: 'LFO no corte',
+    },
+    eightBit: {
+      drumDecay: 'Decaimento da bateria',
+      bassArpeggio: 'Arpejo do baixo',
+      leadArpeggio: 'Arpejo do lead',
+      leadDecay: 'Decaimento do lead',
+      leadArpSpeed: 'Velocidade do arpejo do lead',
+      leadVibrato: 'Vibrato do lead',
+      leadRelease: 'Liberação do lead',
+      bassDecay: 'Decaimento do baixo',
+    },
+  },
   virtualAnalog: {
     help: {
       waveform:

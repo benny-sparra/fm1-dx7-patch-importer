@@ -690,6 +690,21 @@ open everything an earlier release could have saved.
   mapped on, by dragging the effect boxes themselves, laid out in the order, by a grip beside
   their place number, as a patch's grip moves it in its bank (dnd-kit, keyboard included), with
   the same marching ants while one is dragged. A move is one undo step and sends nothing.
+- The four knob choices, what KNOB1–4 play on FM-1+VA's Preset knob bank, are kept the same way:
+  after the effect order in the editor's parameters (`FM1_VA_KNOB_CHOICES_START`), saved through
+  `fm1VaRecordWithKnobChoices` (`src/lib/fm1-va-knob-choices.ts`) into record bytes 53 and 52.
+  It rewrites only a byte whose two choices changed, marking it set and keeping its bit 6, the
+  Envelope switch in byte 53, so an unset byte keeps its `03`. Each engine lists its own eight;
+  the voice editor offers the FM list for a patch with a record, disabled without one, and the
+  Virtual Analog editor its own, both only while `playsFm1VaKnobChoices` allows (FM-1+VA from
+  `FM-1_096`). No MIDI message sets them, and CC 85–88 stay excluded, so they are heard once the
+  patch is written. The panel sits at the top of each editor and minimises, each knob a
+  `PicturePickerControl` laid out `inline` with a picture of each choice (`KnobChoicePicture`);
+  its body sets `overflowWhenOpen` so a picker's tiles hang over the panel below. A control a knob can
+  play also carries `KnobAssignMenu`, a small knob lit with the knob's number while one plays it,
+  whose menu puts it on one of the four: every Virtual Analog row the FM1 lists, and the voice
+  editor's Feedback and LFO speed (`virtualAnalogKnobChoice`, `fmKnobChoice`). Its colour goes on
+  the icon, since `PortalMenu` sets the trigger's own.
 - **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
   `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.

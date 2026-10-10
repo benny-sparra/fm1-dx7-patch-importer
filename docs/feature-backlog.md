@@ -524,8 +524,12 @@ presets (9).
     and written as Baud Girl's Device Manager maps them (**Confirmed** by that run). In banks A–D on
     FM-1_086 and later it reads the slot's stored preset, and if it is Virtual Analog, sends each
     change with a controller as it is made; the rest are heard once written. Saving puts the
-    preset's bytes back in its slot, every byte not edited exactly as read. Knob choices and the
-    operator 6 amplitude envelope rows are not offered.
+    preset's bytes back in its slot, every byte not edited exactly as read. The operator 6
+    amplitude envelope rows are not offered.
+  - _Knob choices built 2026-10-10:_ from FM-1_096, the Virtual Analog editor and the voice
+    editor, for a patch with a record, offer what KNOB1–4 play on the Preset knob bank, from the
+    engine's eight, written into record bytes 52 and 53 (confirmed on FM-1_097) and heard once
+    the patch is written.
   - **Erase a patch.** Planned 2026-10-02 as **Change to Virtual Analog…** and **Change to FM…**,
     replanned 2026-10-06 as one **Erase patch…**, named after the FM1's own **Erase Preset**. Built
     after the Virtual Analog editor (**Play them live** and **Save them**), with 8-Bit added once 9

@@ -1426,6 +1426,172 @@ describe('PatchEditorPage Bitcrush on Baud Girl’s FM-1_096', () => {
   })
 })
 
+/** `hardClipRecord` with knobs never chosen and its Envelope on, in byte 53's bit 6. */
+const unsetKnobsRecord = (() => {
+  const record = hardClipRecord.slice()
+  record[52] = 0x00
+  record[53] = 0x40
+  return record
+})()
+/** Knob `number`'s picker, named for the knob and what it plays, such as "Knob 1: Brightness". */
+const fm1Knob = (number: number) => screen.queryByLabelText(new RegExp(`^Knob ${number}: `))
+const knobChoice = (number: number) =>
+  fm1Knob(number)
+    ?.getAttribute('aria-label')
+    ?.replace(/^Knob \d: /, '')
+
+/** Opens knob `number`'s picker and chooses `choice`. */
+async function chooseKnob(
+  user: ReturnType<typeof userEvent.setup>,
+  number: number,
+  choice: string,
+) {
+  await user.click(fm1Knob(number) as HTMLElement)
+  await user.click(
+    within(screen.getByRole('radiogroup', { name: `Knob ${number}` })).getByRole('radio', {
+      name: choice,
+    }),
+  )
+}
+
+describe('PatchEditorPage knob choices on Baud Girl’s FM-1_096', () => {
+  it('shows the knobs an FM preset that never chose them plays', () => {
+    renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    expect([1, 2, 3, 4].map(knobChoice)).toEqual(['Brightness', 'Feedback', 'Attack', 'Release'])
+  })
+
+  it('saves a knob choice into the record as the FM1 stores it, changing nothing else', async () => {
+    const { onSave, user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    await chooseKnob(user, 1, 'Decay')
+    await user.click(screen.getByRole('button', { name: 'Save to library' }))
+
+    const record: Uint8Array = onSave.mock.calls[0][2]
+    expect(Array.from(record.keys()).filter((i) => record[i] !== unsetKnobsRecord[i])).toEqual([53])
+    // Knob 1 at Decay and Knob 2 at its default, marked set, with the Envelope kept on.
+    expect(record[53]).toBe(0xcb)
+  })
+
+  it('closes a knob’s picker once a choice is made', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    await chooseKnob(user, 4, 'Vibrato')
+
+    expect(knobChoice(4)).toBe('Vibrato')
+    expect(fm1Knob(4)?.closest('details')?.open).toBe(false)
+  })
+
+  it('takes a knob choice back in one undo', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+    await chooseKnob(user, 3, 'Vibrato')
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+
+    expect(knobChoice(3)).toBe('Attack')
+  })
+
+  it('saves the knob bytes as read when another setting changes', async () => {
+    const record = unsetKnobsRecord.slice()
+    record[52] = 0x03
+    record[53] = 0x43
+    const { onSave, user } = renderWithRecord(bitcrushFirmware, record)
+
+    await user.click(screen.getByRole('switch', { name: 'Distortion' }))
+    await user.selectOptions(distortionType() as HTMLSelectElement, 'Soft Clip')
+    await user.click(screen.getByRole('button', { name: 'Save to library' }))
+
+    const saved: Uint8Array = onSave.mock.calls[0][2]
+    expect([saved[52], saved[53]]).toEqual([0x03, 0x43])
+  })
+
+  it('cannot choose knobs for a patch without a record, and says why', () => {
+    renderWithRecord(bitcrushFirmware)
+
+    expect(fm1Knob(1)?.getAttribute('aria-disabled')).toBe('true')
+    expect(knobChoice(1)).toBe('—')
+    expect(fm1Knob(1)?.closest('details')).toBeNull()
+    expect(
+      screen.getByText(
+        'This patch didn’t come from the FM1, so it takes the knobs of the preset it’s written over.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('minimises the knobs panel and opens it again', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    await user.click(screen.getByRole('button', { name: 'Minimise Real-time control knobs' }))
+    expect(fm1Knob(1)?.closest<HTMLElement>('[style]')?.style.visibility).toBe('hidden')
+    await user.click(screen.getByRole('button', { name: 'Expand Real-time control knobs' }))
+    expect(knobChoice(1)).toBe('Brightness')
+  })
+
+  it('puts Feedback on a knob from the knob beside its name, as one undo step', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    await user.click(screen.getByRole('button', { name: 'Assign Feedback to a knob' }))
+    expect(screen.getByRole('menu', { name: 'Assign Feedback to a knob' })).toBeTruthy()
+    const items = screen.getAllByRole('menuitemradio')
+    for (const [name, description] of [
+      ['Knob 1', 'Replaces Brightness'],
+      ['Knob 2', 'Already assigned'],
+      ['Knob 3', 'Replaces Attack'],
+      ['Knob 4', 'Replaces Release'],
+    ]) {
+      expect(screen.getByRole('menuitemradio', { description, name })).toBeTruthy()
+    }
+    // The knob that already plays it is ticked.
+    expect(items[1].querySelector('svg')).not.toBeNull()
+    expect(items[0].querySelector('svg')).toBeNull()
+    expect(items.map((item) => item.getAttribute('aria-checked'))).toEqual([
+      'false',
+      'true',
+      'false',
+      'false',
+    ])
+    await user.click(items[3])
+
+    expect(knobChoice(4)).toBe('Feedback')
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(knobChoice(4)).toBe('Release')
+  })
+
+  it('offers no knob beside Feedback for a patch without a record', () => {
+    renderWithRecord(bitcrushFirmware)
+
+    expect(screen.queryByRole('button', { name: 'Assign Feedback to a knob' })).toBeNull()
+  })
+
+  it('names the knobs in the menu in the interface language', async () => {
+    await setLocale('de')
+    const { user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    await user.click(
+      screen.getByRole('button', { name: 'LFO-Geschwindigkeit einem Regler zuweisen' }),
+    )
+
+    expect(
+      screen.getByRole('menuitemradio', { description: 'Ersetzt Helligkeit', name: 'Regler 1' }),
+    ).toBeTruthy()
+    await setLocale('en-GB')
+  })
+
+  it('offers no knob choices before FM-1_096', () => {
+    renderWithRecord(baudGirl, unsetKnobsRecord)
+
+    expect(fm1Knob(1)).toBeNull()
+  })
+
+  it('names each knob in the interface language', async () => {
+    await setLocale('de')
+    renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    expect(screen.getByLabelText('Regler 4: Release')).toBeTruthy()
+    await setLocale('en-GB')
+  })
+})
+
 const effectNames = ['Filter', 'Reverb', 'Delay', 'Distortion', 'Chorus', 'Phaser', 'Bitcrush']
 
 /** The effect boxes' names in the order the panel lays them out. */

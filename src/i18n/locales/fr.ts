@@ -185,6 +185,47 @@ export default {
     otherFirmware:
       'Conservé pour le firmware de Baud Girl : un ordre des effets modifié. Ce FM1 joue les effets dans son propre ordre.',
   },
+  knobChoices: {
+    title: 'Potentiomètres de contrôle en temps réel',
+    knob: 'Potentiomètre {{number}}',
+    assign: 'Affecter {{parameter}} à un potentiomètre',
+    assignHeading: 'Affecter {{parameter}} à',
+    assigned: 'Déjà affecté',
+    replaces: 'Remplace {{choice}}',
+    help: 'Choisit ce que règle chacun des quatre potentiomètres du FM1 avec ce son, parmi les huit réglages de son moteur. Le choix est enregistré avec le son et parvient au FM1 quand vous l’écrivez avec Envoyer au FM1 ou Écrire des sons sur le FM1.',
+    noRecord:
+      'Ce son ne vient pas du FM1 : il prend les potentiomètres du preset sur lequel il est écrit.',
+    fm: {
+      brightness: 'Brillance',
+      feedback: 'Retour de signal',
+      attack: 'Attaque',
+      decay: 'Déclin',
+      release: 'Relâchement',
+      vibrato: 'Vibrato',
+      lfoSpeed: 'Vitesse LFO',
+      cutoff: 'Coupure',
+    },
+    virtualAnalog: {
+      cutoff: 'Coupure',
+      resonance: 'Résonance',
+      filterEnvelope: 'Enveloppe du filtre',
+      filterDecay: 'Déclin du filtre',
+      shape: 'Forme',
+      super: 'Super',
+      detune: 'Désaccord',
+      lfoToCutoff: 'LFO vers la coupure',
+    },
+    eightBit: {
+      drumDecay: 'Déclin de la batterie',
+      bassArpeggio: 'Arpège de la basse',
+      leadArpeggio: 'Arpège du lead',
+      leadDecay: 'Déclin du lead',
+      leadArpSpeed: 'Vitesse d’arpège du lead',
+      leadVibrato: 'Vibrato du lead',
+      leadRelease: 'Relâchement du lead',
+      bassDecay: 'Déclin de la basse',
+    },
+  },
   virtualAnalog: {
     help: {
       waveform:

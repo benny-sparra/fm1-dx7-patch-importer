@@ -300,6 +300,38 @@ function fm1VaPresetsFile() {
   }
 }
 
+// The Knobs panel's pickers hang out below it over the operators, which only a real browser lays out.
+test('chooses a knob from a picker that hangs over the panel below', async ({ page }) => {
+  await installFakeMidi(page, { firmware: 'fm1-va-097' })
+  await openLibrarian(page)
+  await page.getByLabel('Library actions').click()
+  await page.getByRole('button', { name: 'Import Baud Girl presets file…' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Import Baud Girl presets file' })
+  await dialog.locator('input[type="file"]').setInputFiles(fm1VaPresetsFile())
+  await dialog.getByRole('button', { name: 'Import 4 banks' }).click()
+  await expect(dialog).toBeHidden()
+  await page.getByText('MIDI offline', { exact: true }).locator('visible=true').first().click()
+  await expect(page.getByText('FM-1_097').locator('visible=true').first()).toBeVisible()
+
+  await slotButtons(page).first().dblclick()
+  await page.getByLabel('Knob 1: Brightness').click()
+  const decay = page.getByRole('radiogroup', { name: 'Knob 1' }).getByRole('radio', {
+    name: 'Decay',
+  })
+  const tile = await decay.boundingBox()
+  const knobs = await page
+    .getByRole('heading', { name: 'Real-time control knobs' })
+    .locator('../..')
+    .boundingBox()
+  expect(tile).not.toBeNull()
+  expect(knobs).not.toBeNull()
+  // The tile lies below the Knobs panel, so a click by position proves nothing covers it.
+  expect(tile!.y).toBeGreaterThan(knobs!.y + knobs!.height)
+  await page.mouse.click(tile!.x + tile!.width / 2, tile!.y + tile!.height / 2)
+
+  await expect(page.getByLabel('Knob 1: Decay')).toBeVisible()
+})
+
 test('switches an FM-1+VA bank and chooses where it goes without folding it, and folds it from its title', async ({
   page,
 }) => {
