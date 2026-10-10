@@ -684,6 +684,7 @@ export default {
     bankDeleted: '« {{bank}} » a été supprimée.',
     banksRestored: 'Les quatre banques ont été rétablies avec les sons d’usine.',
     bankDownloadStarted: 'Téléchargement de « {{bank}} ».',
+    presetFileDownloadStarted: 'Téléchargement de « {{name}} » comme fichier de presets Baud Girl.',
     banksDownloadStarted: 'Téléchargement de toutes les banques.',
     bankUpdated: '« {{bank}} » a été mise à jour.',
     demoLoaded: 'Sons de démonstration chargés dans « {{bank}} ».',
@@ -1104,6 +1105,8 @@ export default {
       'Impossible de lire les fichiers de banque. Rechargez la page et réessayez.',
     patchFileUnavailable:
       'Impossible d’ouvrir les fichiers de son. Rechargez la page et réessayez.',
+    presetFileInexact:
+      '« {{name}} » ne peut pas être enregistré à l’identique comme fichier de presets Baud Girl : il n’a donc pas été téléchargé.',
     everywhere: {
       workspace: 'Vos banques de sons',
       savedBanks: 'Banques enregistrées',

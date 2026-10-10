@@ -127,7 +127,9 @@ notification offers **Undo**.
 In your banks a Virtual Analogue preset shows a small amber **VA** box between its slot code and
 its name, and while the FM1 runs Baud Girl's firmware every other patch shows a dim **FM** box. Hover over a marked patch to see its engine named at the top of its tooltip. The app can't play a Virtual Analogue
 sound, which only the FM1 makes: clicking it in banks A to D selects that preset on the FM1, so you
-hear what the FM1 has stored there, and it has no **Download patch file**. **Edit**, a double-click,
+hear what the FM1 has stored there. **Download patch** saves it as a Baud Girl presets file of one
+preset, the file the Device Manager's **Save as a file** makes, which **Import Baud Girl presets
+file…** reads back. **Edit**, a double-click,
 or a second click opens its own editor: the oscillator, filter, output, LFO, and envelope rows the
 FM1's screens list, and the effects. With Baud Girl's firmware from FM-1_086, a patch in banks A
 to D plays its changes on the FM1 as you make them, once the app has read that FM1 preset and found
@@ -156,7 +158,7 @@ first. On Baud Girl's firmware, **Write patches to the FM1…** and **Send to FM
 exactly, as below. Adding them to Favourites is not available yet.
 
 An 8-Bit preset shows a lit **8B** box in the same place. Like a Virtual Analogue preset, clicking
-it in banks A to D selects that preset on the FM1, it has no **Download patch file**, and a DX7 bank
+it in banks A to D selects that preset on the FM1, **Download patch** saves it as a presets file, and a DX7 bank
 sent or downloaded puts INIT VOICE in its slot. It has no editor yet, so it doesn't open on a
 double-click, and it has no **Change to FM…**: copy another patch over it to replace it. You can
 copy it, move it, save its bank, and back it up like any other patch, and **Write patches to the
@@ -197,7 +199,7 @@ To import another bank, open that bank's menu, choose **Import DX7 bank…**, an
 
 To copy a patch into another slot, open the slot's **⋮** menu and choose **Copy to…**. Pick a bank from its tabs and a slot from the grid, where the arrow keys also move the choice; only banks that have patches are offered, and the patch's own slot is skipped. The dialog names the patch that will be replaced. To keep that patch, choose **Swap with** instead of **Replace**: the two patches change places, each with its FM1 effects, and the notification offers Undo. A favourite can be copied but not swapped, since it has no slot of its own. The copy brings the patch's FM1 effects with it and changes only the browser library, so send the bank to the FM1 to put it on the hardware. You can also drag a patch by its grip onto another bank on the left: the bank lights up while the patch is over it, and dropping opens the same dialog with that bank chosen. Only banks that have patches take a drop, and dropping on the patch's own bank does nothing.
 
-A slot's **⋮** menu also works with single patches as files. **Download patch** saves the patch as a standard 163-byte DX7 single-voice SysEx file, named after its slot and patch, such as `fm1-A05-PIANO-2.syx`. It holds the DX7 voice only, as a bank download does, so the FM1 effects are not included. **Import patch…** asks before it replaces the slot, then reads a DX7 single-voice file into it. A file that is not a single DX7 patch, or that looks damaged, is refused with an explanation and leaves the slot as it was. A whole 32-voice bank is recognised and pointed to **Import DX7 bank…** in the bank's menu. The file carries no FM1 effects, so the slot's effects return to their defaults. The notification offers **Undo**.
+A slot's **⋮** menu also works with single patches as files. **Download patch** saves the patch as a standard 163-byte DX7 single-voice SysEx file, named after its slot and patch, such as `fm1-A05-PIANO-2.syx`. It holds the DX7 voice only, as a bank download does, so the FM1 effects are not included. A Virtual Analogue or 8-Bit patch is not a DX7 voice, so it is saved instead as a 231-byte Baud Girl presets file holding that one preset with its effects and settings. The file names the patch's own FM1 preset, or for a bank after D the same slot in bank A, which is where importing it puts it. **Import patch…** asks before it replaces the slot, then reads a DX7 single-voice file into it. A file that is not a single DX7 patch, or that looks damaged, is refused with an explanation and leaves the slot as it was. A whole 32-voice bank is recognised and pointed to **Import DX7 bank…** in the bank's menu. The file carries no FM1 effects, so the slot's effects return to their defaults. The notification offers **Undo**.
 
 To tidy banks after importing archives, choose **Find duplicate patches…** from the menu in the patch-bank header. It lists the patches in your loaded banks whose voice settings match, grouped together, even when a copy has another name. FM1 effects and FM-1+VA preset settings are not compared, and a group says when its copies' effects or preset settings differ. Virtual Analogue presets are grouped with identical Virtual Analogue presets only, and 8-Bit presets with 8-Bit ones. Choose a patch in the list to go to its bank and play it, as clicking its slot does. The list only reads your library: delete or replace a copy yourself, from its bank.
 

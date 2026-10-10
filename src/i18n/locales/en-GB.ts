@@ -294,6 +294,7 @@ export default {
     bankDeleted: 'Deleted “{{bank}}”.',
     banksRestored: 'Reset the four banks to the factory patches.',
     bankDownloadStarted: 'Downloading “{{bank}}”.',
+    presetFileDownloadStarted: 'Downloading “{{name}}” as a Baud Girl presets file.',
     banksDownloadStarted: 'Downloading all banks.',
     bankUpdated: 'Updated “{{bank}}”.',
     demoLoaded: 'Loaded the demo patches into “{{bank}}”.',
@@ -580,6 +581,8 @@ export default {
     downloadPatchFile: 'Download patch',
     bankFileUnavailable: 'Bank files could not be read. Reload the page and try again.',
     patchFileUnavailable: 'Patch files could not be opened. Reload the page and try again.',
+    presetFileInexact:
+      '“{{name}}” can’t be saved exactly as a Baud Girl presets file, so it wasn’t downloaded.',
     everywhere: {
       workspace: 'Your patch banks',
       savedBanks: 'Saved banks',

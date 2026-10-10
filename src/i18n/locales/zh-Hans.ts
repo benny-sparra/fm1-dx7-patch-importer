@@ -608,6 +608,7 @@ export default {
     bankDeleted: '已删除“{{bank}}”。',
     banksRestored: '已将四个音色库重置为原厂音色。',
     bankDownloadStarted: '正在下载“{{bank}}”。',
+    presetFileDownloadStarted: '正在将“{{name}}”下载为 Baud Girl 预设文件。',
     banksDownloadStarted: '正在下载所有音色库。',
     bankUpdated: '已更新“{{bank}}”。',
     demoLoaded: '已将演示音色载入“{{bank}}”。',
@@ -1002,6 +1003,7 @@ export default {
     downloadPatchFile: '下载音色',
     bankFileUnavailable: '无法读取音色库文件。请重新加载页面后重试。',
     patchFileUnavailable: '无法打开音色文件。请重新加载页面后重试。',
+    presetFileInexact: '“{{name}}”无法精确保存为 Baud Girl 预设文件，因此未下载。',
     everywhere: {
       workspace: '你的音色库',
       savedBanks: '已保存的音色库',
