@@ -72,6 +72,8 @@ type SwitchParameterControlProps = {
 type SliderParameterControlProps = {
   helpText?: string
   label: string
+  /** A control beside the label, after its help, such as the menu putting it on an FM1 knob. */
+  labelAction?: ReactNode
   max: number
   min?: number
   onChange: (value: number) => void
@@ -135,6 +137,7 @@ export function RotaryParameterControl({
   disabled = false,
   helpText,
   label,
+  labelAction,
   max,
   min = 0,
   onChange,
@@ -173,6 +176,7 @@ export function RotaryParameterControl({
             <HelpPopover label={name} text={helpText} />
           </span>
         ) : null}
+        {labelAction}
       </span>
       <div
         aria-disabled={disabled || undefined}
@@ -300,6 +304,7 @@ export function RotaryParameterControl({
 export function SliderParameterControl({
   helpText,
   label,
+  labelAction,
   max,
   min = 0,
   onChange,
@@ -316,6 +321,7 @@ export function SliderParameterControl({
           {label}
         </span>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
+        {labelAction}
       </span>
       <span className="flex min-h-6 min-w-0 items-center gap-2">
         <input

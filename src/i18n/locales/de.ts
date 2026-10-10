@@ -191,6 +191,8 @@ export default {
   knobChoices: {
     title: 'Regler',
     knob: 'Regler {{number}}',
+    assign: 'Regler für {{parameter}} wählen',
+    menuItem: 'Regler {{number}}: {{choice}}',
     help: 'Wählt, was KNOB1 bis KNOB4 für diesen Sound in der Preset-Reglerbank der Firmware von Baud Girl steuern, aus den acht Möglichkeiten seiner Klangerzeugung. Keine MIDI-Nachricht stellt sie ein, daher wirken sie erst, wenn der Sound mit „An FM1 senden“ oder „Sounds auf den FM1 schreiben“ auf den FM1 geschrieben ist.',
     noRecord:
       'Dieser Sound stammt nicht vom FM1 und übernimmt daher die Regler des Presets, über das er geschrieben wird.',

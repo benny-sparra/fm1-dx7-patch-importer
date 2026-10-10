@@ -288,6 +288,24 @@ describe('VirtualAnalogEditorPage', () => {
     ])
   })
 
+  it('puts Cutoff on a knob from the knob beside its name', async () => {
+    const { user } = setup()
+
+    await user.click(screen.getByRole('button', { name: 'Choose a knob for Cutoff' }))
+    await user.click(screen.getByRole('menuitemradio', { name: 'Knob 3: Filter envelope' }))
+
+    expect(
+      screen.getByRole<HTMLSelectElement>('combobox', { name: 'Knob 3' }).selectedOptions[0]
+        .textContent,
+    ).toBe('Cutoff')
+  })
+
+  it('offers no knob beside a row no knob plays', () => {
+    setup()
+
+    expect(screen.queryByRole('button', { name: 'Choose a knob for Drift' })).toBeNull()
+  })
+
   it('offers no knob choices before FM-1_096', () => {
     setup({ firmware: 'FM-1_093' })
 

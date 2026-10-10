@@ -7,7 +7,9 @@ import {
   fm1VaKnobChoiceIds,
   fm1VaRecordKnobChoices,
   fm1VaRecordWithKnobChoices,
+  fmKnobChoice,
   playsFm1VaKnobChoices,
+  virtualAnalogKnobChoice,
 } from './fm1-va-knob-choices'
 
 /** A record whose knob bytes 52 and 53 hold `byte52` and `byte53`, and every other byte `fill`. */
@@ -125,5 +127,28 @@ describe('playsFm1VaKnobChoices', () => {
     expect(playsFm1VaKnobChoices({ identity: 'FM-1_097', kind: 'fm1-va' })).toBe(true)
     expect(playsFm1VaKnobChoices({ identity: 'FM-1_094', kind: 'fm1-va' })).toBe(false)
     expect(playsFm1VaKnobChoices({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
+  })
+})
+
+describe('the controls a knob choice turns', () => {
+  it('gives each Virtual Analog choice its own editor row', () => {
+    const rows = [
+      'cutoff',
+      'resonance',
+      'filterEnvelope',
+      'filterDecay',
+      'filterShape',
+      'super',
+      'detune',
+      'lfoToCutoff',
+    ]
+    expect(rows.map(virtualAnalogKnobChoice)).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
+    expect(virtualAnalogKnobChoice('drift')).toBeUndefined()
+  })
+
+  it('puts the voice editor’s Feedback and LFO speed on the FM choices of those names', () => {
+    expect(fm1VaKnobChoiceIds.fm[fmKnobChoice('global.feedback') ?? -1]).toBe('feedback')
+    expect(fm1VaKnobChoiceIds.fm[fmKnobChoice('global.lfoSpeed') ?? -1]).toBe('lfoSpeed')
+    expect(fmKnobChoice('global.lfoDelay')).toBeUndefined()
   })
 })

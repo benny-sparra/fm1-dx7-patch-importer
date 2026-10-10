@@ -728,7 +728,11 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
   FM-1_096 the voice editor, for a patch with a record, and the Virtual Analog editor offer the
   four choices, written by `fm1VaRecordWithKnobChoices` (`src/lib/fm1-va-knob-choices.ts`), which
   rewrites only a byte whose choices changed and keeps its bit 6; they are heard once the patch is
-  written to the FM1.
+  written to the FM1. Which editor control each choice turns is **Likely**, from the names: every
+  Virtual Analog choice is one of the editor's rows, with Shape taken as the filter envelope's
+  shape, since Filter Env, Filter Decay, and Shape follow each other as CC 52–54 do; on FM,
+  Feedback and LFO speed are the DX7 parameters of those names, and the other FM choices turn
+  FM-1+VA's own Envelope, Filter, and Brightness, which the voice editor does not show.
 
 - **Preset Level. Confirmed** (FM-1_097, 2026-10-10, test L1). On FM and Virtual Analog presets
   it is byte 2, stored as `80` | (99 − level), the form the 8-Bit Drums Level takes in the same

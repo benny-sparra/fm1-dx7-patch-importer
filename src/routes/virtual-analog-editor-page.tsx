@@ -15,6 +15,7 @@ import { AdsrScope } from '@/components/editor/adsr-scope'
 import { CompareOverlay } from '@/components/editor/compare-overlay'
 import { RackPanelHelp } from '@/components/editor/editor-workspace'
 import { EffectsUnit } from '@/components/editor/effects-unit'
+import { KnobAssignMenu } from '@/components/editor/knob-assign-menu'
 import { KnobChoicesPanel } from '@/components/editor/knob-choices-panel'
 import { LfoScope } from '@/components/editor/lfo-scope'
 import {
@@ -64,7 +65,11 @@ import {
   fm1VaRecordWithEffectOrder,
   playsFm1VaBitcrush,
 } from '@/lib/fm1-va-record-effects'
-import { fm1VaRecordWithKnobChoices, playsFm1VaKnobChoices } from '@/lib/fm1-va-knob-choices'
+import {
+  fm1VaRecordWithKnobChoices,
+  playsFm1VaKnobChoices,
+  virtualAnalogKnobChoice,
+} from '@/lib/fm1-va-knob-choices'
 import {
   makeVirtualAnalogEditorParameters,
   virtualAnalogCutoffHertz,
@@ -386,6 +391,19 @@ export function VirtualAnalogEditorPage({
       value={value(id)}
     />
   )
+  /** Where FM-1+VA plays knob choices, a row a knob can turn offers putting it on one. */
+  const knobMenu = (id: VirtualAnalogRowId, label: string) => {
+    const choice = virtualAnalogKnobChoice(id)
+    return offersKnobChoices && choice !== undefined ? (
+      <KnobAssignMenu
+        choice={choice}
+        choices={knobChoices}
+        engine="virtual-analog"
+        onAssign={editor.setKnobChoice}
+        parameter={label}
+      />
+    ) : undefined
+  }
   const rotary = (
     id: VirtualAnalogRowId,
     label: string,
@@ -395,6 +413,7 @@ export function VirtualAnalogEditorPage({
     <RotaryParameterControl
       helpText={help}
       label={label}
+      labelAction={knobMenu(id, label)}
       valueLabel={valueLabel}
       max={virtualAnalogRow(id).max}
       onChange={(next) => editor.setRow(id, next)}

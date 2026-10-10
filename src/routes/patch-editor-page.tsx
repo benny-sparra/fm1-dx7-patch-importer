@@ -486,6 +486,11 @@ export function PatchEditorPage({
           <GlobalConfigurationPanel
             beginGesture={editor.beginGesture}
             endGesture={editor.endGesture}
+            knobAssignment={
+              offersKnobChoices && record
+                ? { choices: knobChoices, engine: 'fm', onAssign: editor.setKnobChoice }
+                : undefined
+            }
             parameters={parameters}
             setParameter={editor.setParameter}
           />

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
 import { RackPanelHelp } from '@/components/editor/editor-workspace'
+import { knobChoiceEngineKeys } from '@/components/editor/knob-assign-menu'
 import { RackSelect } from '@/components/editor/parameter-controls'
 import {
   RackPanelCollapseToggle,
@@ -12,13 +13,6 @@ import {
 } from '@/components/ui/rack-panel'
 import type { Fm1VaEngine } from '@/lib/fm1-va-engine'
 import { fm1VaKnobChoiceIds } from '@/lib/fm1-va-knob-choices'
-
-/** Each engine's section of `knobChoices` in the locale files. */
-const engineKeys: Record<Fm1VaEngine, string> = {
-  'eight-bit': 'eightBit',
-  fm: 'fm',
-  'virtual-analog': 'virtualAnalog',
-}
 
 type KnobChoicesPanelProps = {
   engine: Fm1VaEngine
@@ -73,7 +67,7 @@ export function KnobChoicesPanel({ choices, engine, onChange }: KnobChoicesPanel
                   >
                     {ids.map((id, choice) => (
                       <option key={id} value={choice}>
-                        {t(`knobChoices.${engineKeys[engine]}.${id}`)}
+                        {t(`knobChoices.${knobChoiceEngineKeys[engine]}.${id}`)}
                       </option>
                     ))}
                   </RackSelect>

@@ -93,3 +93,40 @@ export function fm1VaRecordWithKnobChoices(
   })
   return updated
 }
+
+/**
+ * The Virtual Analog editor's row each knob choice turns, by choice number. The three filter
+ * envelope rows follow Cutoff and Resonance in the FM1's list as their controllers do, CC 52–54,
+ * so Shape is taken as the filter envelope's shape.
+ */
+const virtualAnalogKnobRows = [
+  'cutoff',
+  'resonance',
+  'filterEnvelope',
+  'filterDecay',
+  'filterShape',
+  'super',
+  'detune',
+  'lfoToCutoff',
+] as const
+
+/** The knob choice that turns the Virtual Analog row `row`, if a knob can play it. */
+export function virtualAnalogKnobChoice(row: string) {
+  const choice = (virtualAnalogKnobRows as readonly string[]).indexOf(row)
+  return choice === -1 ? undefined : choice
+}
+
+/**
+ * The voice editor's DX7 parameters an FM preset's knob choices turn, by choice number: Feedback
+ * and LFO speed. The other FM choices turn FM-1+VA's own Envelope, Filter, and Brightness, which
+ * the voice editor does not show.
+ */
+const fmKnobParameters: Partial<Record<string, number>> = {
+  'global.feedback': 1,
+  'global.lfoSpeed': 6,
+}
+
+/** The knob choice that turns the voice editor's parameter `id`, if a knob can play it. */
+export function fmKnobChoice(id: string) {
+  return fmKnobParameters[id]
+}

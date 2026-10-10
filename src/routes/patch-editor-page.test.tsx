@@ -1499,6 +1499,46 @@ describe('PatchEditorPage knob choices on Baud Girl’s FM-1_096', () => {
     expect(knobChoice(1)).toBe('Brightness')
   })
 
+  it('puts Feedback on a knob from the knob beside its name, as one undo step', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    await user.click(screen.getByRole('button', { name: 'Choose a knob for Feedback' }))
+    const items = screen.getAllByRole('menuitemradio')
+    expect(items.map((item) => item.textContent)).toEqual([
+      'Knob 1: Brightness',
+      'Knob 2: Feedback',
+      'Knob 3: Attack',
+      'Knob 4: Release',
+    ])
+    expect(items.map((item) => item.getAttribute('aria-checked'))).toEqual([
+      'false',
+      'true',
+      'false',
+      'false',
+    ])
+    await user.click(items[3])
+
+    expect(knobChoice(4)).toBe('Feedback')
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(knobChoice(4)).toBe('Release')
+  })
+
+  it('offers no knob beside Feedback for a patch without a record', () => {
+    renderWithRecord(bitcrushFirmware)
+
+    expect(screen.queryByRole('button', { name: 'Choose a knob for Feedback' })).toBeNull()
+  })
+
+  it('names the knobs in the menu in the interface language', async () => {
+    await setLocale('de')
+    const { user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    await user.click(screen.getByRole('button', { name: 'Regler für LFO-Geschwindigkeit wählen' }))
+
+    expect(screen.getAllByRole('menuitemradio')[0].textContent).toBe('Regler 1: Helligkeit')
+    await setLocale('en-GB')
+  })
+
   it('offers no knob choices before FM-1_096', () => {
     renderWithRecord(baudGirl, unsetKnobsRecord)
 

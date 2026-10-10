@@ -295,6 +295,8 @@ export function RackPanelHelp({ label, text }: { label: string; text: string }) 
 type AlgorithmPanelProps = {
   algorithm: number
   feedback: number
+  /** A control beside Feedback's name, such as the menu putting it on an FM1 knob. */
+  feedbackAction?: ReactNode
   onAlgorithmChange: (algorithm: number) => void
   onFeedbackChange: (feedback: number) => void
   onFeedbackGestureEnd: () => void
@@ -306,6 +308,7 @@ type AlgorithmPanelProps = {
 export function AlgorithmPanel({
   algorithm,
   feedback,
+  feedbackAction,
   onAlgorithmChange,
   onFeedbackChange,
   onFeedbackGestureEnd,
@@ -407,6 +410,7 @@ export function AlgorithmPanel({
             label={t('editor.feedback')}
             text={t('controlHelp.feedback')}
           />
+          {feedbackAction}
         </span>
         <input
           aria-label={t('editor.feedback')}

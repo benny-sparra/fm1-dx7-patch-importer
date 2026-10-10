@@ -682,7 +682,11 @@ open everything an earlier release could have saved.
   the voice editor offers the FM list for a patch with a record, disabled without one, and the
   Virtual Analog editor its own, both only while `playsFm1VaKnobChoices` allows (FM-1+VA from
   `FM-1_096`). No MIDI message sets them, and CC 85–88 stay excluded, so they are heard once the
-  patch is written.
+  patch is written. The panel sits at the top of each editor and minimises. A control a knob can
+  play also carries `KnobAssignMenu`, a small knob lit with the knob's number while one plays it,
+  whose menu puts it on one of the four: every Virtual Analog row the FM1 lists, and the voice
+  editor's Feedback and LFO speed (`virtualAnalogKnobChoice`, `fmKnobChoice`). Its colour goes on
+  the icon, since `PortalMenu` sets the trigger's own.
 - **Backup** names only this app's own file, which holds FM1 effects and saved banks; **SysEx**,
   `.syx`, patch, and bank name the DX7 files other tools read. **Restore** means restoring a backup
   and nothing else, which is why putting the factory banks back is **Reset to factory patches**.

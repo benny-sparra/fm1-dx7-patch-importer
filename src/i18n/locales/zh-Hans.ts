@@ -149,6 +149,8 @@ export default {
   knobChoices: {
     title: '旋钮',
     knob: '旋钮 {{number}}',
+    assign: '为{{parameter}}选择旋钮',
+    menuItem: '旋钮 {{number}}：{{choice}}',
     help: '为此音色选择 Baud Girl 固件 Preset 旋钮组中 KNOB1 至 KNOB4 控制的参数，可从其引擎提供的八项中选择。没有 MIDI 消息能设置它们，因此用“发送到 FM1”或“将音色写入 FM1”把音色写入 FM1 后才会生效。',
     noRecord: '此音色并非来自 FM1，因此会沿用被它覆盖的预设的旋钮设置。',
     fm: {

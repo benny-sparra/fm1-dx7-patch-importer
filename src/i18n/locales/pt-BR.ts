@@ -183,6 +183,8 @@ export default {
   knobChoices: {
     title: 'Knobs',
     knob: 'Knob {{number}}',
+    assign: 'Escolher um knob para {{parameter}}',
+    menuItem: 'Knob {{number}}: {{choice}}',
     help: 'Escolhe o que KNOB1 a KNOB4 controlam neste som no banco de knobs Preset do firmware da Baud Girl, entre as oito opções do seu motor. Nenhuma mensagem MIDI os ajusta, então eles valem quando o som é gravado no FM1 com Enviar ao FM1 ou Gravar sons no FM1.',
     noRecord: 'Este som não veio do FM1, então usa os knobs do preset sobre o qual for gravado.',
     fm: {

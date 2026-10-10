@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
 import { AlgorithmPanel, RackPanelHelp } from '@/components/editor/editor-workspace'
+import { KnobAssignMenu, type KnobAssignment } from '@/components/editor/knob-assign-menu'
 import { RackPanelTitle } from '@/components/ui/rack-panel'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
 import { LfoScope } from '@/components/editor/lfo-scope'
@@ -22,11 +23,14 @@ import {
   storedToDisplayValue,
   type GlobalParameterId,
 } from '@/lib/fm1-parameters'
+import { fmKnobChoice } from '@/lib/fm1-va-knob-choices'
 import { pitchEnvelopePresets, type PitchEnvelopePresetId } from '@/lib/pitch-envelope-presets'
 
 type GlobalConfigurationPanelProps = {
   beginGesture: () => void
   endGesture: () => void
+  /** Offers putting Feedback and LFO speed on an FM1 knob, where FM-1+VA plays knob choices. */
+  knobAssignment?: KnobAssignment
   parameters: Uint8Array
   setParameter: (parameter: number, value: number, maximum: number) => void
 }
@@ -40,10 +44,17 @@ const pitchEnvelopeMax = getGlobalParameterDefinition('global.pitchEnvelope.rate
 export function GlobalConfigurationPanel({
   beginGesture,
   endGesture,
+  knobAssignment,
   parameters,
   setParameter,
 }: GlobalConfigurationPanelProps) {
   const { t } = useTranslation()
+  const knobMenu = (id: GlobalParameterId, parameter: string) => {
+    const choice = fmKnobChoice(id)
+    return knobAssignment && choice !== undefined ? (
+      <KnobAssignMenu {...knobAssignment} choice={choice} parameter={parameter} />
+    ) : undefined
+  }
   const setGlobal = (id: GlobalParameterId, value: number) => {
     const definition = getGlobalParameterDefinition(id)
     setParameter(definition.voiceIndex, value, definition.max)
@@ -52,6 +63,7 @@ export function GlobalConfigurationPanel({
     <SliderParameterControl
       helpText={helpText}
       label={label}
+      labelAction={knobMenu(id, label)}
       max={getGlobalParameterDefinition(id).max}
       onChange={(value) => setGlobal(id, value)}
       onGestureEnd={endGesture}
@@ -91,6 +103,7 @@ export function GlobalConfigurationPanel({
         <AlgorithmPanel
           algorithm={parameters[algorithmParameter.voiceIndex]}
           feedback={parameters[feedbackParameter.voiceIndex]}
+          feedbackAction={knobMenu('global.feedback', t('editor.feedback'))}
           onAlgorithmChange={(algorithm) =>
             setParameter(algorithmParameter.voiceIndex, algorithm, algorithmParameter.max)
           }

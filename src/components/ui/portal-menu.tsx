@@ -1,13 +1,22 @@
-import { EllipsisVertical, type LucideIcon } from 'lucide-react'
-import { type KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Check, EllipsisVertical, type LucideIcon } from 'lucide-react'
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import { createPortal } from 'react-dom'
 
 import { positionHelpPopover, type HelpPopoverPosition } from '@/lib/help-popover'
 import { cn } from '@/lib/utils'
 
 type PortalMenuItem = {
+  /** Makes the item one of a set of choices, ticked while it is the one chosen. */
+  checked?: boolean
   disabled?: boolean
-  Icon: LucideIcon
+  Icon?: LucideIcon
   label: string
   onSelect?: () => void
 }
@@ -17,8 +26,12 @@ type PortalMenuProps = {
   /** The accessible name of the open menu. */
   menuLabel: string
   triggerClassName?: string
-  /** The accessible name of the ⋮ trigger. */
+  /** What the trigger shows in place of ⋮. */
+  triggerContent?: ReactNode
+  /** The accessible name of the trigger. */
   triggerLabel: string
+  /** The trigger's tooltip. */
+  triggerTitle?: string
 }
 
 const enabledItems = (menu: HTMLElement | null) =>
@@ -29,7 +42,14 @@ const enabledItems = (menu: HTMLElement | null) =>
  * The menu opens in a portal, claims Escape so the view's shortcuts do not also act on it, and
  * closes on scroll rather than following its trigger.
  */
-export function PortalMenu({ items, menuLabel, triggerClassName, triggerLabel }: PortalMenuProps) {
+export function PortalMenu({
+  items,
+  menuLabel,
+  triggerClassName,
+  triggerContent,
+  triggerLabel,
+  triggerTitle,
+}: PortalMenuProps) {
   const [open, setOpen] = useState(false)
   const [position, setPosition] = useState<HelpPopoverPosition>({ left: 12, top: 12 })
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -100,9 +120,10 @@ export function PortalMenu({ items, menuLabel, triggerClassName, triggerLabel }:
         )}
         onClick={() => setOpen((current) => !current)}
         ref={triggerRef}
+        title={triggerTitle}
         type="button"
       >
-        <EllipsisVertical aria-hidden="true" className="size-3.5" />
+        {triggerContent ?? <EllipsisVertical aria-hidden="true" className="size-3.5" />}
       </button>
       {open
         ? createPortal(
@@ -121,24 +142,31 @@ export function PortalMenu({ items, menuLabel, triggerClassName, triggerLabel }:
               style={position}
               tabIndex={-1}
             >
-              {items.map(({ disabled, Icon, label, onSelect }) => (
-                <button
-                  className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-                  disabled={disabled}
-                  key={label}
-                  onClick={() => {
-                    // Focus returns to the trigger first, so a dialog the action opens restores it there.
-                    close(true)
-                    onSelect?.()
-                  }}
-                  role="menuitem"
-                  tabIndex={-1}
-                  type="button"
-                >
-                  <Icon aria-hidden="true" className="size-4 shrink-0" />
-                  <span>{label}</span>
-                </button>
-              ))}
+              {items.map(
+                ({ checked, disabled, Icon = checked ? Check : undefined, label, onSelect }) => (
+                  <button
+                    aria-checked={checked}
+                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+                    disabled={disabled}
+                    key={label}
+                    onClick={() => {
+                      // Focus returns to the trigger first, so a dialog the action opens restores it there.
+                      close(true)
+                      onSelect?.()
+                    }}
+                    role={checked === undefined ? 'menuitem' : 'menuitemradio'}
+                    tabIndex={-1}
+                    type="button"
+                  >
+                    {Icon ? (
+                      <Icon aria-hidden="true" className="size-4 shrink-0" />
+                    ) : (
+                      <span aria-hidden="true" className="size-4 shrink-0" />
+                    )}
+                    <span>{label}</span>
+                  </button>
+                ),
+              )}
             </div>,
             document.body,
           )
