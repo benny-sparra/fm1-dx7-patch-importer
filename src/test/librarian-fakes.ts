@@ -46,6 +46,7 @@ export function makeLibrarianLibrary(overrides: Partial<Library> = {}): Library 
     resetFactoryBanks: vi.fn<Library['resetFactoryBanks']>(),
     restoreBackup: vi.fn<Library['restoreBackup']>(),
     saveNamedBank: vi.fn<Library['saveNamedBank']>(),
+    swapVoices: vi.fn<Library['swapVoices']>(),
     toggleFavourite: vi.fn<Library['toggleFavourite']>(() => ({ added: false, changed: null })),
     toggleFavouriteSound: vi.fn<Library['toggleFavouriteSound']>(() => ({
       added: false,

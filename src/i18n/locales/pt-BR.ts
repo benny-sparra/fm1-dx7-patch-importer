@@ -684,6 +684,7 @@ export default {
     demoLoaded: 'Sons de demonstração carregados em “{{bank}}”.',
     patchSaved: '“{{patch}}” foi salvo na biblioteca.',
     patchCopied: '“{{patch}}” foi copiado para {{slot}} em “{{bank}}”.',
+    patchesSwapped: '“{{patch}}” e “{{target}}” foram trocados.',
     patchReplaced: '{{slot}} foi substituído por “{{patch}}”.',
     operatorCopied: 'O operador {{number}} foi copiado.',
     bankDownloadStartedWithInit:
@@ -1082,6 +1083,9 @@ export default {
     copyAndEditAction: 'Substituir {{slot}} e editar',
     copyToEditHint: 'Para editar este som, copie-o para um dos seus bancos.',
     copyFailed: 'Não foi possível copiar o som.',
+    swapAction: 'Trocar com {{slot}}',
+    swapHint: 'Para manter “{{name}}”, troque-os: ele vai para {{slot}}.',
+    swapFailed: 'Não foi possível trocar os sons.',
     addBankOpenFailed:
       'Não foi possível abrir as opções do novo banco. Recarregue a página e tente novamente.',
     copyOpenFailed:

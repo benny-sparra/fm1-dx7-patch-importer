@@ -153,6 +153,18 @@ describe('LibrarianPage Favourites', () => {
     expect(screen.queryByRole('menuitem', { name: 'Import patch…' })).toBeNull()
   })
 
+  it('copies a favourite but offers no swap, since it has no slot to take the other patch', async () => {
+    const user = renderPage(makeLibrary(makeWorkspace(1)))
+    await user.click(screen.getByRole('button', { name: 'Favourites' }))
+
+    await user.click(screen.getByRole('button', { name: `Actions for ${voices[0].name}` }))
+    await user.click(screen.getByRole('menuitem', { name: 'Copy to…' }))
+    const dialog = await screen.findByRole('dialog', { name: `Copy ${voices[0].name}` })
+
+    expect(within(dialog).getByRole('button', { name: 'Replace A01' })).toBeTruthy()
+    expect(within(dialog).queryByRole('button', { name: /^Swap/ })).toBeNull()
+  })
+
   it('takes a favourite out with its heart and offers Undo', async () => {
     const snapshot = makeWorkspace(1)
     const undoChange = vi.fn<Library['undoChange']>(() => true)

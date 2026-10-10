@@ -1035,6 +1035,35 @@ describe('LibrarianPage copying a sound', () => {
     expect(library.undoChange).toHaveBeenCalledExactlyOnceWith(changed)
   })
 
+  it('swaps a slot from the copy dialog and offers to undo it from the notification', async () => {
+    const changed = { workspaceBanks: ['A', 'B'] }
+    vi.mocked(library.swapVoices).mockReturnValueOnce(changed as never)
+    const user = renderLibrarian('')
+
+    await user.click(screen.getByRole('button', { name: 'Actions for Alpha Piano' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Copy to…' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Copy Alpha Piano' })
+    await user.click(within(dialog).getByRole('button', { name: 'Swap with B01' }))
+
+    expect(library.swapVoices).toHaveBeenCalledExactlyOnceWith('bank-A-1', 'B', 1)
+    expect(library.copyVoice).not.toHaveBeenCalled()
+    expect(screen.getByText('Swapped “Alpha Piano” and “Beta Bass”.')).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(library.undoChange).toHaveBeenCalledExactlyOnceWith(changed)
+  })
+
+  it('reports the swap in the interface language', async () => {
+    vi.mocked(library.swapVoices).mockReturnValueOnce({} as never)
+    await setLocale('de')
+    const user = renderLibrarian('bank-A-1')
+
+    await user.click(screen.getByRole('button', { name: 'Aktionen für Alpha Piano' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Kopieren nach…' }))
+    await user.click(await screen.findByRole('button', { name: 'Mit B01 tauschen' }))
+
+    expect(screen.getByText('„Alpha Piano“ und „Beta Bass“ wurden getauscht.')).toBeTruthy()
+  })
+
   it('reports the copy in the interface language', async () => {
     vi.mocked(library.copyVoice).mockReturnValueOnce({} as never)
     await setLocale('de')

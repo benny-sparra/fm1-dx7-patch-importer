@@ -283,6 +283,34 @@ describe('usePatchLibrary copying a voice', () => {
   })
 })
 
+describe('usePatchLibrary swapping two patches', () => {
+  it('swaps two patches across banks and reverses it in one undo', async () => {
+    const voices = makeDemoVoices()
+    storage.loadStoredPatchLibrary.mockResolvedValue({
+      ...importVoices(importVoices(emptyPatchLibrary(), 'A', voices), 'B', voices.toReversed()),
+      savedAt: '2026-10-10T12:00:00.000Z',
+      version: 6,
+    })
+    const hook = await renderLoadedLibrary()
+    const [a1, b3] = [
+      hook.result.current.voices['bank-A-1'],
+      hook.result.current.voices['bank-B-3'],
+    ]
+
+    act(() => {
+      hook.result.current.swapVoices('bank-A-1', 'B', 3)
+    })
+    expect(hook.result.current.voices['bank-B-3'].name).toBe(a1.name)
+    expect(hook.result.current.voices['bank-A-1'].name).toBe(b3.name)
+
+    act(() => hook.result.current.undo())
+
+    expect(hook.result.current.voices['bank-A-1']).toBe(a1)
+    expect(hook.result.current.voices['bank-B-3']).toBe(b3)
+    expect(hook.result.current.canUndo).toBe(false)
+  })
+})
+
 describe('usePatchLibrary favourites', () => {
   const voices = makeDemoVoices()
 
