@@ -696,6 +696,7 @@ export default {
     bankDeleted: '„{{bank}}“ wurde gelöscht.',
     banksRestored: 'Die vier Bänke wurden auf die Werks-Sounds zurückgesetzt.',
     bankDownloadStarted: '„{{bank}}“ wird heruntergeladen.',
+    presetFileDownloadStarted: '„{{name}}“ wird als Presets-Datei von Baud Girl heruntergeladen.',
     banksDownloadStarted: 'Alle Bänke werden heruntergeladen.',
     bankUpdated: '„{{bank}}“ wurde aktualisiert.',
     demoLoaded: 'Demo-Sounds in „{{bank}}“ geladen.',
@@ -1120,6 +1121,8 @@ export default {
       'Bankdateien konnten nicht gelesen werden. Lade die Seite neu und versuche es erneut.',
     patchFileUnavailable:
       'Sounddateien konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+    presetFileInexact:
+      '„{{name}}“ lässt sich nicht exakt als Presets-Datei von Baud Girl speichern und wurde darum nicht heruntergeladen.',
     everywhere: {
       workspace: 'Deine Sound-Bänke',
       savedBanks: 'Gespeicherte Bänke',

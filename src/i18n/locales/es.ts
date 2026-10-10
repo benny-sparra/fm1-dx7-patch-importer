@@ -684,6 +684,7 @@ export default {
     bankDeleted: 'Se eliminó «{{bank}}».',
     banksRestored: 'Se restablecieron los cuatro bancos con los sonidos de fábrica.',
     bankDownloadStarted: 'Descargando «{{bank}}».',
+    presetFileDownloadStarted: 'Descargando «{{name}}» como archivo de presets de Baud Girl.',
     banksDownloadStarted: 'Descargando todos los bancos.',
     bankUpdated: 'Se actualizó «{{bank}}».',
     demoLoaded: 'Sonidos de demostración cargados en «{{bank}}».',
@@ -1101,6 +1102,8 @@ export default {
       'No se pudieron leer los archivos de banco. Recarga la página e inténtalo de nuevo.',
     patchFileUnavailable:
       'No se pudieron abrir los archivos de sonido. Recarga la página e inténtalo de nuevo.',
+    presetFileInexact:
+      '«{{name}}» no se puede guardar exactamente como archivo de presets de Baud Girl, así que no se ha descargado.',
     everywhere: {
       workspace: 'Tus bancos de sonidos',
       savedBanks: 'Bancos guardados',

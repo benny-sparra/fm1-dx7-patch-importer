@@ -413,6 +413,12 @@ export function LibrarianPage({
   // The single-voice file format loads with the first download rather than with the page.
   const downloadPatch = async (patch: Patch) => {
     const voice = library.voices[patch.id]
+    const presetVoice = library.virtualAnalog[patch.id] ?? library.eightBit[patch.id]
+    const record = library.records[patch.id]
+    if (presetVoice && record) {
+      void downloadPresetFile(patch, presetVoice, record)
+      return
+    }
     if (!voice) return
     let voiceFile: typeof import('@/lib/dx7-voice-file')
     try {
@@ -423,6 +429,33 @@ export function LibrarianPage({
     }
     downloadSysexFile(voiceFile.makeDx7VoiceFile(voice), voiceFile.makeDx7VoiceFilename(patch))
     toast.success(t('toasts.bankDownloadStarted', { bank: patch.name }))
+  }
+  // A Virtual Analog or 8-Bit patch is not a DX7 voice, so it downloads as a presets file of one
+  // preset, as Baud Girl's Device Manager saves one, which **Import Baud Girl presets file…** reads.
+  const downloadPresetFile = async (patch: Patch, voice: Uint8Array, record: Uint8Array) => {
+    let presetFile: typeof import('@/lib/fm1-va-preset-download')
+    try {
+      presetFile = await import('@/lib/fm1-va-preset-download')
+    } catch {
+      setDialogLoadError(t('banks.patchFileUnavailable'))
+      return
+    }
+    let bytes: Uint8Array<ArrayBuffer>
+    try {
+      bytes = presetFile.makeFm1VaPresetFile({
+        ...patch,
+        effects: library.effects[patch.id],
+        record,
+        voice,
+      })
+    } catch (error) {
+      if (!(error instanceof presetFile.Fm1VaPresetFileInexactError)) throw error
+      setImportError(t('banks.presetFileInexact', { name: patch.name }))
+      return
+    }
+    setImportError('')
+    downloadSysexFile(bytes, presetFile.makeFm1VaPresetFilename(patch))
+    toast.success(t('toasts.presetFileDownloadStarted', { name: patch.name }))
   }
   const beginImport = (bank: string, opener?: HTMLElement) => {
     if (library.loadedBanks.includes(bank)) {

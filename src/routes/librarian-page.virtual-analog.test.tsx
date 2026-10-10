@@ -106,14 +106,29 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
     expect(within(card).getByText('Virtual Analogue preset')).toBeTruthy()
   })
 
-  it('offers editing and copying the slot, but not downloading it as a DX7 patch', async () => {
+  it('offers editing, copying, and downloading the slot', async () => {
     const { user } = renderPage()
 
     await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
 
     expect(screen.getByRole('menuitem', { name: 'Copy to…' })).toBeTruthy()
     expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeTruthy()
-    expect(screen.queryByRole('menuitem', { name: /Download/ })).toBeNull()
+    expect(screen.getByRole('menuitem', { name: 'Download patch' })).toBeTruthy()
+  })
+
+  it('downloads the patch as a Baud Girl presets file of one preset', async () => {
+    const { user } = renderPage()
+    await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
+
+    await user.click(screen.getByRole('menuitem', { name: 'Download patch' }))
+
+    await waitFor(() => expect(createObjectURL).toHaveBeenCalledOnce())
+    const file = new Uint8Array(await createObjectURL.mock.calls[0][0].arrayBuffer())
+    expect(file).toHaveLength(231)
+    expect([...file.subarray(0, 6)]).toEqual([0xf0, 0x43, 0x00, 0x7d, 0x04, 2])
+    expect(
+      await screen.findByText('Downloading “VOICE 97” as a Baud Girl presets file.'),
+    ).toBeTruthy()
   })
 
   it('says before sending that the bank’s Virtual Analog preset becomes INIT VOICE', async () => {

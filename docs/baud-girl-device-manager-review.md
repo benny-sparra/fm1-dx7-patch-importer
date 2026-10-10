@@ -73,6 +73,7 @@ also sends the patch to the FM1.
 **Save as a file** saves one preset as a single 231-byte preset write. **Download patch** here is a
 DX7 single-voice file, so a Virtual Analog patch cannot be downloaded at all. The presets file
 import already reads a file of 1 to 128 preset writes, so the round trip works today.
+_Built 2026-10-10:_ **Download patch** on a Virtual Analog or 8-Bit patch saves one preset write.
 
 ### 6. Source packs beside the FM1
 

@@ -61,7 +61,10 @@ function workspace() {
 
 /** The librarian on an FM1 running `firmware`, with the 8-Bit preset in A3. */
 function renderPage(firmware: Fm1Firmware = mvave) {
-  const snapshot = workspace()
+  return renderPageWith(workspace(), firmware)
+}
+
+function renderPageWith(snapshot: ReturnType<typeof workspace>, firmware: Fm1Firmware = mvave) {
   const library = makeLibrarianLibrary({
     ...snapshot,
     getBankVoices: (bank: string, initVoice?: Dx7Voice) => getBankVoices(snapshot, bank, initVoice),
@@ -121,15 +124,48 @@ describe('LibrarianPage with an 8-Bit preset', () => {
     )
   })
 
-  it('offers copying the slot, but neither editing it nor downloading it as a DX7 patch', async () => {
+  it('offers copying and downloading the slot, but not editing it', async () => {
     const { user } = renderPage()
 
     await user.click(screen.getByRole('button', { name: 'Actions for NES ROCK' }))
 
     expect(screen.getByRole('menuitem', { name: 'Copy to…' })).toBeTruthy()
+    expect(screen.getByRole('menuitem', { name: 'Download patch' })).toBeTruthy()
     expect(screen.queryByRole('menuitem', { name: 'Edit' })).toBeNull()
-    expect(screen.queryByRole('menuitem', { name: /Download/ })).toBeNull()
     expect(screen.queryByRole('menuitem', { name: 'Change to FM…' })).toBeNull()
+  })
+
+  it('downloads the patch as a Baud Girl presets file naming its own slot', async () => {
+    const { user } = renderPage()
+    await user.click(screen.getByRole('button', { name: 'Actions for NES ROCK' }))
+
+    await user.click(screen.getByRole('menuitem', { name: 'Download patch' }))
+
+    await waitFor(() => expect(createObjectURL).toHaveBeenCalledOnce())
+    const file = new Uint8Array(await createObjectURL.mock.calls[0][0].arrayBuffer())
+    expect(file).toHaveLength(231)
+    expect(file[5]).toBe(2)
+    expect(
+      await screen.findByText('Downloading “NES ROCK” as a Baud Girl presets file.'),
+    ).toBeTruthy()
+  })
+
+  it('explains in the interface language when the patch cannot be saved exactly', async () => {
+    await setLocale('de')
+    const snapshot = workspace()
+    snapshot.eightBit['bank-A-3'][110] |= 0x60
+    renderPageWith(snapshot)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Aktionen für NES ROCK' }))
+
+    await user.click(screen.getByRole('menuitem', { name: 'Sound herunterladen' }))
+
+    expect(
+      await screen.findByText(
+        '„NES ROCK“ lässt sich nicht exakt als Presets-Datei von Baud Girl speichern und wurde darum nicht heruntergeladen.',
+      ),
+    ).toBeTruthy()
+    expect(createObjectURL).not.toHaveBeenCalled()
   })
 
   it('opens no editor when the slot is double-clicked', async () => {

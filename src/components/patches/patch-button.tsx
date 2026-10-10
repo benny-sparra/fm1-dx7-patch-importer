@@ -76,8 +76,8 @@ export function PatchButton({
   // Set by a click and cleared when the selection animation finishes, so the
   // animation plays only in response to the user and never on mount.
   const [flash, setFlash] = useState(false)
-  // A Virtual Analog preset moves and opens an editor like any patch, its own, but its bytes are not
-  // a DX7 voice, so it has no DX7 file to download. An 8-Bit preset moves too, but has no editor.
+  // A Virtual Analog preset moves and opens an editor like any patch, its own; its bytes are not a
+  // DX7 voice, so it downloads as a presets file. An 8-Bit preset is the same, but has no editor.
   const isVirtualAnalog = patch.family === virtualAnalogFamily
   const isEightBit = patch.family === eightBitFamily
   const canReorder = reorderable && (patch.family === 'DX7' || isVirtualAnalog || isEightBit)
@@ -256,9 +256,7 @@ export function PatchButton({
               name={patch.name}
               onChangeToFm={onChangeToFm && isVirtualAnalog ? () => onChangeToFm(patch) : undefined}
               onCopy={onCopy && (() => onCopy(patch))}
-              onDownload={
-                onDownload && !isVirtualAnalog && !isEightBit ? () => onDownload(patch) : undefined
-              }
+              onDownload={onDownload && (() => onDownload(patch))}
               onEdit={editSlot && (() => editSlot(patch))}
               onReplace={onReplace && (() => onReplace(patch))}
             />
