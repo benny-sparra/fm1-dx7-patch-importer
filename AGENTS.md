@@ -296,6 +296,8 @@ open everything an earlier release could have saved.
   осцилятор, оператор, фільтр, частота зрізу, фейдер), never an English word given a Ukrainian
   ending (fader’и). One Ukrainian word per idea across the file: change a term in every `uk`
   string that uses it in the same change.
+- Doto and VT323 have no Cyrillic: the `unicode-range` faces in `src/fonts.css` take Ukrainian
+  letters from Departure Mono, vendored with its licence in `src/fonts/departure-mono/`.
 - Every user-visible string and accessible name comes from the locale files: labels, `aria-label`,
   `aria-valuetext`, `title`, option lists, empty states, confirmations, and error messages. Only
   product and site names, DX7 cartridge titles, the technical MIDI log, and the editor's
