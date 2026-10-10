@@ -26,6 +26,7 @@ const localeImporters: Record<LazyLocale, LocaleImporter> = {
   es: () => import('./locales/es'),
   fr: () => import('./locales/fr'),
   'pt-BR': () => import('./locales/pt-BR'),
+  uk: () => import('./locales/uk'),
   'zh-Hans': () => import('./locales/zh-Hans'),
 }
 

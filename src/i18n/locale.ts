@@ -1,4 +1,13 @@
-export const supportedLocales = ['en-GB', 'en-US', 'fr', 'es', 'de', 'pt-BR', 'zh-Hans'] as const
+export const supportedLocales = [
+  'en-GB',
+  'en-US',
+  'fr',
+  'es',
+  'de',
+  'pt-BR',
+  'uk',
+  'zh-Hans',
+] as const
 
 export type SupportedLocale = (typeof supportedLocales)[number]
 
@@ -9,6 +18,7 @@ export const localeNames: Record<SupportedLocale, string> = {
   es: 'Español',
   de: 'Deutsch',
   'pt-BR': 'Português (Brasil)',
+  uk: 'Українська',
   'zh-Hans': '简体中文',
 }
 
@@ -30,6 +40,7 @@ const normalizedLocales: Record<string, SupportedLocale> = {
   fr: 'fr',
   pt: 'pt-BR',
   'pt-br': 'pt-BR',
+  uk: 'uk',
   zh: 'zh-Hans',
   'zh-cn': 'zh-Hans',
   'zh-hans': 'zh-Hans',
