@@ -159,6 +159,54 @@ describe('firmware page', () => {
     },
   )
 
+  const dayOf = (iso: string, options: Intl.DateTimeFormatOptions) =>
+    new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', { ...options, timeZone: 'UTC' })
+
+  it.each(named(entries))('%s shows the date it was last updated', (_name, entry) => {
+    const updated = entry.getAttribute('data-updated') ?? ''
+    expect(updated).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    const time = entry.querySelector('.firmware-status .firmware-updated time')
+    expect(time?.getAttribute('datetime')).toBe(updated)
+    expect(time?.textContent).toBe(
+      dayOf(updated, { day: 'numeric', month: 'short', year: 'numeric' }),
+    )
+  })
+
+  const latest = [...page.querySelectorAll('.firmware-latest-item')]
+  const latestDates = latest.map(
+    (item) => item.querySelector('time')?.getAttribute('datetime') ?? '',
+  )
+
+  it('keeps the Latest strip to six dated lines, newest first', () => {
+    expect(latest.length).toBeGreaterThan(0)
+    expect(latest.length).toBeLessThanOrEqual(6)
+    for (const iso of latestDates) expect(iso).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(latestDates).toEqual(latestDates.toSorted().toReversed())
+  })
+
+  it('keeps only the last week in the Latest strip', () => {
+    const newest = Date.parse(latestDates[0] ?? '')
+    for (const iso of latestDates) {
+      expect(newest - Date.parse(iso)).toBeLessThanOrEqual(7 * 24 * 60 * 60 * 1000)
+    }
+  })
+
+  it.each(latest.map((item) => [item.textContent?.replace(/\s+/g, ' ').trim(), item] as const))(
+    'dates "%s" and links it to the page',
+    (_text, item) => {
+      const time = item.querySelector('time')
+      const iso = time?.getAttribute('datetime') ?? ''
+      expect(time?.textContent).toBe(dayOf(iso, { day: 'numeric', month: 'short' }))
+      const links = [...item.querySelectorAll('a')]
+      expect(links.length).toBeGreaterThan(0)
+      for (const link of links) {
+        const target = link.getAttribute('href') ?? ''
+        expect(target).toMatch(/^#[a-z0-9-]+$/)
+        expect(page.getElementById(target.slice(1))).not.toBeNull()
+      }
+    },
+  )
+
   it('says when the star counts were read', () => {
     const time = page.querySelector('.firmware-sort-note time')
     expect(time?.getAttribute('datetime')).toMatch(/^\d{4}-\d{2}-\d{2}$/)
@@ -203,6 +251,20 @@ describe('firmware page order', () => {
     await userEvent.click(option('Most starred'))
     expect(order()).toEqual([...pinned, ...byStars])
     expect(option('Most starred').getAttribute('aria-pressed')).toBe('true')
+    expect(option('A–Z').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('orders by release date after the pinned entries, newest first, ties alphabetical', async () => {
+    const byUpdated = entries
+      .slice(2)
+      .toSorted((a, b) =>
+        (b.getAttribute('data-updated') ?? '').localeCompare(a.getAttribute('data-updated') ?? ''),
+      )
+      .map((entry) => entry.id)
+    const order = await renderPage()
+    await userEvent.click(option('Recently updated'))
+    expect(order()).toEqual([...pinned, ...byUpdated])
+    expect(option('Recently updated').getAttribute('aria-pressed')).toBe('true')
     expect(option('A–Z').getAttribute('aria-pressed')).toBe('false')
   })
 

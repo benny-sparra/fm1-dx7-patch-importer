@@ -154,6 +154,54 @@
     color: var(--crt-ink-3);
   }
 
+  /* What changed on the page this week: dated lines, each linking to its cards. */
+  .firmware-latest {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .firmware-latest-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--crt-ink-3);
+  }
+
+  .firmware-latest-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .firmware-latest-item {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--crt-ink-2);
+  }
+
+  .firmware-latest-item time {
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.75;
+    color: var(--crt-ink-3);
+  }
+
+  .firmware-latest-item a {
+    color: var(--crt-acc-lt);
+    text-underline-offset: 2px;
+  }
+
+  /* The date the release a card names came out. */
+  .firmware-updated {
+    color: var(--crt-ink-3);
+  }
+
   /* The order of the entries, with the date their star counts were read. */
   .firmware-sort {
     display: flex;
@@ -164,6 +212,7 @@
 
   .firmware-sort-options {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
   }
@@ -178,6 +227,7 @@
 
   .firmware-sort-option {
     min-height: 2rem;
+    white-space: nowrap;
     padding: 0 0.75rem;
     font-size: 0.75rem;
     font-weight: 700;

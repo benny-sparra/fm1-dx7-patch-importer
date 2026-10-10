@@ -1,7 +1,8 @@
-// Orders the firmware page's entries alphabetically, as the page is written, or by the GitHub
-// star counts in their `data-stars`, most first. Entries marked `data-pinned` stay first in either
-// order, and entries without a count, such as a paid firmware with no repository, follow the
-// counted ones. A plain script served as it is, for the reason firmware-colourway.js gives.
+// Orders the firmware page's entries alphabetically, as the page is written, by the GitHub star
+// counts in their `data-stars`, most first, or by the release dates in their `data-updated`, newest
+// first. Entries marked `data-pinned` stay first in every order, entries without a count, such as
+// a paid firmware with no repository, follow the counted ones, and ties keep alphabetical order.
+// A plain script served as it is, for the reason firmware-colourway.js gives.
 const options = [...document.querySelectorAll('.firmware-sort-option')]
 const entries = [...document.querySelectorAll('.firmware-entry:not([data-pinned])')]
 const anchor = entries.at(-1)?.nextElementSibling ?? null
@@ -12,8 +13,18 @@ function starsOf(entry) {
   return Number.isNaN(stars) ? -1 : stars
 }
 
+function updatedOf(entry) {
+  return entry.dataset.updated ?? ''
+}
+
+const comparators = {
+  stars: (a, b) => starsOf(b) - starsOf(a),
+  updated: (a, b) => updatedOf(b).localeCompare(updatedOf(a)),
+}
+
 function showOrder(order) {
-  const ordered = order === 'stars' ? [...entries].sort((a, b) => starsOf(b) - starsOf(a)) : entries
+  const compare = comparators[order]
+  const ordered = compare ? [...entries].sort(compare) : entries
   for (const entry of ordered) parent?.insertBefore(entry, anchor)
   for (const option of options) {
     option.setAttribute('aria-pressed', String(option.dataset.order === order))
