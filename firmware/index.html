@@ -76,14 +76,15 @@
 
       <div class="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-5 px-4 py-5 sm:px-5 lg:px-8">
         <!--
-          What changed on this page in the last week, newest first and six lines at most, each
-          linking to its card. src/firmware-page.test.ts checks the dates and the links.
+          What changed on this page on the day of its latest change, each name linking to its card.
+          src/firmware-page.test.ts checks the date and the links.
         -->
         <section class="firmware-latest synthwave-panel" aria-labelledby="firmware-latest-title">
-          <h2 class="firmware-latest-title" id="firmware-latest-title">Latest</h2>
-          <ol class="firmware-latest-list">
+          <h2 class="firmware-latest-title" id="firmware-latest-title">
+            Latest · <time datetime="2026-10-10">10 October 2026</time>
+          </h2>
+          <ul class="firmware-latest-list">
             <li class="firmware-latest-item">
-              <time datetime="2026-10-10">10 Oct</time>
               <span
                 >Added <a href="#amb-1">AMB-1</a>, <a href="#april-os">April OS</a>,
                 <a href="#dinghy">Dinghy</a>, <a href="#felucca-salt">Felucca [Salt]</a>,
@@ -94,7 +95,6 @@
               >
             </li>
             <li class="firmware-latest-item">
-              <time datetime="2026-10-10">10 Oct</time>
               <span
                 >New versions: <a href="#baud-girl">Baud Girl 97</a>,
                 <a href="#felucca">Felucca 1.5</a>, <a href="#fumi">FuMi-1 1.0.5</a>,
@@ -104,36 +104,11 @@
               >
             </li>
             <li class="firmware-latest-item">
-              <time datetime="2026-10-10">10 Oct</time>
               <span
                 >Watching FM80S and NoteSorcery on the <a href="#watch-list">watch list</a></span
               >
             </li>
-            <li class="firmware-latest-item">
-              <time datetime="2026-10-09">9 Oct</time>
-              <span
-                >Added <a href="#fm1-doom">FM-1 Doom</a>,
-                <a href="#fm1-firmware-patcher">FM-1 firmware patcher</a>,
-                <a href="#fumi">FuMi-1</a>, <a href="#orbit">ORBIT</a></span
-              >
-            </li>
-            <li class="firmware-latest-item">
-              <time datetime="2026-10-08">8 Oct</time>
-              <span
-                >Added <a href="#fimba">FiMba-1</a>, <a href="#hortator">Hortator</a>,
-                <a href="#rainbow-mode">Rainbow mode</a>, <a href="#sloop-alg">SLOOP ALG</a>,
-                <a href="#zp12">zp12</a></span
-              >
-            </li>
-            <li class="firmware-latest-item">
-              <time datetime="2026-10-07">7 Oct</time>
-              <span
-                >Added <a href="#fm1-nes">FM-1 NES</a>, <a href="#ghoulbox">GHOULBOX</a>,
-                <a href="#jangada">Jangada</a>, <a href="#melodee">Melodee</a>,
-                <a href="#sloopdx">sloopDX</a></span
-              >
-            </li>
-          </ol>
+          </ul>
         </section>
 
         <!--

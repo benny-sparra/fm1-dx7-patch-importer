@@ -173,30 +173,25 @@ describe('firmware page', () => {
   })
 
   const latest = [...page.querySelectorAll('.firmware-latest-item')]
-  const latestDates = latest.map(
-    (item) => item.querySelector('time')?.getAttribute('datetime') ?? '',
-  )
+  const latestTime = page.querySelector('.firmware-latest-title time')
+  const latestDate = latestTime?.getAttribute('datetime') ?? ''
 
-  it('keeps the Latest strip to six dated lines, newest first', () => {
-    expect(latest.length).toBeGreaterThan(0)
-    expect(latest.length).toBeLessThanOrEqual(6)
-    for (const iso of latestDates) expect(iso).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-    expect(latestDates).toEqual(latestDates.toSorted().toReversed())
+  it('dates the Latest strip in full', () => {
+    expect(latestDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(latestTime?.textContent).toBe(
+      dayOf(latestDate, { day: 'numeric', month: 'long', year: 'numeric' }),
+    )
   })
 
-  it('keeps only the last week in the Latest strip', () => {
-    const newest = Date.parse(latestDates[0] ?? '')
-    for (const iso of latestDates) {
-      expect(newest - Date.parse(iso)).toBeLessThanOrEqual(7 * 24 * 60 * 60 * 1000)
+  it('dates the Latest strip no earlier than any release on the page', () => {
+    for (const entry of entries) {
+      expect((entry.getAttribute('data-updated') ?? '') <= latestDate).toBe(true)
     }
   })
 
   it.each(latest.map((item) => [item.textContent?.replace(/\s+/g, ' ').trim(), item] as const))(
-    'dates "%s" and links it to the page',
+    'links "%s" to the page',
     (_text, item) => {
-      const time = item.querySelector('time')
-      const iso = time?.getAttribute('datetime') ?? ''
-      expect(time?.textContent).toBe(dayOf(iso, { day: 'numeric', month: 'short' }))
       const links = [...item.querySelectorAll('a')]
       expect(links.length).toBeGreaterThan(0)
       for (const link of links) {
