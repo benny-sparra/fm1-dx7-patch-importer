@@ -53,6 +53,7 @@ type WriteFm1VaPresetsDialogProps = {
     PatchLibrary,
     | 'bankNames'
     | 'effects'
+    | 'eightBit'
     | 'favourites'
     | 'records'
     | 'virtualAnalog'

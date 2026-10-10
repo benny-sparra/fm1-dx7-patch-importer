@@ -7,11 +7,11 @@ import { useTranslation } from 'react-i18next'
 
 import type { Patch } from '@/data/patches'
 import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
-import { patchSlotCode, virtualAnalogFamily } from '@/lib/patch-library'
+import { eightBitFamily, patchSlotCode, virtualAnalogFamily } from '@/lib/patch-library'
 import { cn } from '@/lib/utils'
 
 import { droppedBank } from './bank-drop'
-import { EngineTag, type PatchEngine } from './engine-tag'
+import { EngineTag, engineName, type PatchEngine } from './engine-tag'
 import { FavouriteButton } from './favourite-button'
 import { PatchSlotMenu } from './patch-slot-menu'
 
@@ -40,8 +40,8 @@ type PatchButtonProps = {
   /** False while the slot is shown away from its bank, such as in search results. */
   reorderable?: boolean
   /**
-   * Marks an FM patch's engine as well as a Virtual Analog one's, while the FM1 runs Baud Girl's
-   * firmware, where a slot may hold either engine. Elsewhere only a Virtual Analog patch is marked.
+   * Marks an FM patch's engine as well as a Virtual Analog or 8-Bit one's, while the FM1 runs Baud
+   * Girl's firmware, where a slot may hold any engine. Elsewhere only those presets are marked.
    */
   tagsEngine?: boolean
   registerButton?: (patchId: string, button: HTMLButtonElement | null) => void
@@ -77,25 +77,33 @@ export function PatchButton({
   // animation plays only in response to the user and never on mount.
   const [flash, setFlash] = useState(false)
   // A Virtual Analog preset moves and opens an editor like any patch, its own, but its bytes are not
-  // a DX7 voice, so it has no DX7 file to download.
+  // a DX7 voice, so it has no DX7 file to download. An 8-Bit preset moves too, but has no editor.
   const isVirtualAnalog = patch.family === virtualAnalogFamily
-  const canReorder = reorderable && (patch.family === 'DX7' || isVirtualAnalog)
-  const editSlot = onEdit
-  const engine: { kind: PatchEngine; label: string } | null = isVirtualAnalog
-    ? { kind: 'virtual-analog', label: t('banks.virtualAnalogPatch') }
-    : tagsEngine && patch.family === 'DX7'
-      ? { kind: 'fm', label: t('banks.fmPatch') }
-      : null
+  const isEightBit = patch.family === eightBitFamily
+  const canReorder = reorderable && (patch.family === 'DX7' || isVirtualAnalog || isEightBit)
+  const editSlot = isEightBit ? undefined : onEdit
+  const engineKind: PatchEngine | null = isVirtualAnalog
+    ? 'virtual-analog'
+    : isEightBit
+      ? 'eight-bit'
+      : tagsEngine && patch.family === 'DX7'
+        ? 'fm'
+        : null
+  const engine = engineKind ? { kind: engineKind, label: engineName(t, engineKind) } : null
   // What clicking the slot does, under the engine's name where the slot marks its engine.
-  const action = isActive
-    ? t('banks.slotEditTitle', { name: patch.name })
-    : isVirtualAnalog
-      ? patch.program === undefined
-        ? t('banks.slotVirtualAnalogAddedTitle', { name: patch.name })
-        : t('banks.slotVirtualAnalogTitle', { name: patch.name })
-      : patch.program === undefined
-        ? t('banks.slotEditBufferTitle', { name: patch.name })
-        : t('banks.slotTitle', { name: patch.name })
+  const action = isEightBit
+    ? patch.program === undefined
+      ? t('banks.slotEightBitAddedTitle', { name: patch.name })
+      : t('banks.slotEightBitTitle', { name: patch.name })
+    : isActive
+      ? t('banks.slotEditTitle', { name: patch.name })
+      : isVirtualAnalog
+        ? patch.program === undefined
+          ? t('banks.slotVirtualAnalogAddedTitle', { name: patch.name })
+          : t('banks.slotVirtualAnalogTitle', { name: patch.name })
+        : patch.program === undefined
+          ? t('banks.slotEditBufferTitle', { name: patch.name })
+          : t('banks.slotTitle', { name: patch.name })
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
     // A bank tab reads this to leave a slot's own bank unlit as a drop target.
@@ -248,7 +256,9 @@ export function PatchButton({
               name={patch.name}
               onChangeToFm={onChangeToFm && isVirtualAnalog ? () => onChangeToFm(patch) : undefined}
               onCopy={onCopy && (() => onCopy(patch))}
-              onDownload={onDownload && !isVirtualAnalog ? () => onDownload(patch) : undefined}
+              onDownload={
+                onDownload && !isVirtualAnalog && !isEightBit ? () => onDownload(patch) : undefined
+              }
               onEdit={editSlot && (() => editSlot(patch))}
               onReplace={onReplace && (() => onReplace(patch))}
             />

@@ -16,7 +16,7 @@ import {
 import {
   makeNamedBankSysexFile,
   makeNamedBankSysexFilename,
-  namedBankVirtualAnalogCount,
+  namedBankInitVoiceCount,
   savedBankNameLength,
   type NamedBank,
 } from '@/lib/named-bank'
@@ -297,12 +297,12 @@ export function LoadNamedBankDialog({
                             disabled={workingId !== ''}
                             onClick={() =>
                               void run(bank.id, async () => {
-                                // A DX7 bank has no place for a Virtual Analog preset, so each
+                                // A DX7 bank has no place for a Virtual Analog or 8-Bit preset, so each
                                 // becomes INIT VOICE, which the message counts.
                                 const { makeInitDx7Voice } = await import('@/lib/init-voice')
                                 const bytes = makeNamedBankSysexFile(bank, makeInitDx7Voice())
                                 downloadSysexFile(bytes, makeNamedBankSysexFilename(bank))
-                                const initCount = namedBankVirtualAnalogCount(bank)
+                                const initCount = namedBankInitVoiceCount(bank)
                                 toast.success(
                                   initCount === 0
                                     ? t('namedBanks.downloaded', { name: bank.name })

@@ -369,3 +369,18 @@ export const capturedVirtualAnalogFoldbackReply = bytes(
    00 01 04 08 08 00 60 40 00 02 08 04 00 50 20 00 00 00 01 02 04 08 10 20 40 00 00 00 00 00 00 00
    00 02 00 F7`,
 )
+
+// FM-1_097's answer for preset 097 on 2026-10-10, copied from the preset probe: NES ROCK from
+// Baud Girl's 8-Bit pack, placed by the Device Manager. Its record's byte 18 is C3. Written back
+// through the preset probe, it read back byte for byte (docs/hardware-runs/fm1-va-097-tests-2026-10-10.md,
+// M4).
+export const capturedEightBitReply = bytes(
+  `F0 7D 20 01 00 06 00 00 00 3B 01 20 41 51 65 18 00 60 64 30 30 04 40 00 02 23 00 00 50 00 05 0D
+   13 24 34 41 62 25 06 44 20 00 16 11 00 02 00 43 06 00 10 49 71 51 0A 00 30 32 6E 18 02 00 00 41
+   14 19 64 28 78 45 04 0A 19 5A 00 2C 41 02 46 16 00 04 00 0C 49 01 00 42 11 48 64 28 00 65 43 0C
+   14 2D 34 01 60 03 00 00 00 19 10 50 60 24 06 07 23 00 30 49 11 35 09 00 00 00 10 00 10 23 61 58
+   31 63 46 0D 13 23 46 0C 19 00 10 0C 01 00 00 00 04 18 1C 15 1A 05 44 54 27 43 16 01 01 02 6A 00
+   00 1E 3C 78 70 61 43 07 0F 1E 3C 78 70 61 43 07 0F 1E 06 13 00 10 00 40 7F 7F 7F 17 02 00 00 00
+   00 00 00 08 00 00 60 00 00 00 08 00 00 50 00 00 00 7F 7F 7F 7F 7F 7F 7F 7F 00 00 00 00 40 0C 00
+   00 6C 01 F7`,
+)

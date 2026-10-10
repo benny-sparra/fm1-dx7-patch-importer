@@ -133,6 +133,7 @@ function matchingLibrary(voices: PatchLibrary['voices'] = {}) {
 type LibraryOptions = {
   bankNames?: Record<string, string>
   effects?: PatchLibrary['effects']
+  eightBit?: PatchLibrary['eightBit']
   importFetchedBanks?: PatchLibrary['importFetchedBanks']
   midi?: Midi
   records?: PatchLibrary['records']
@@ -145,6 +146,7 @@ type LibraryOptions = {
 function renderDialog({
   bankNames = {},
   effects = {},
+  eightBit = {},
   importFetchedBanks = vi.fn(() => changed),
   midi = noFm1,
   records = {},
@@ -159,6 +161,7 @@ function renderDialog({
   const library = {
     bankNames,
     effects,
+    eightBit,
     importFetchedBanks,
     records,
     undoChange,
@@ -464,32 +467,17 @@ describe('ImportFm1VaPresetsDialog', () => {
     expect(bankB.sounds[8]).not.toBeNull()
   })
 
-  it('marks an 8-Bit preset and keeps that slot out of the import', async () => {
+  it('marks an 8-Bit preset and imports it apart from the DX7 voices', async () => {
     const { importFetchedBanks, user } = renderDialog()
     await chooseFile(user, makeFm1VaBackupFile('8-bit.syx', { eightBitSlots: [100, 101] }))
 
     expect(within(bankSection('D')).getByText(fm1VaTestPatchName(100))).toBeTruthy()
-    expect(within(bankSection('D')).getAllByText('8-Bit')).toHaveLength(2)
-    expect(
-      screen.getByText(
-        '2 presets are 8-Bit, which the library can’t hold yet. Their slots keep their patches.',
-      ),
-    ).toBeTruthy()
+    expect(within(bankSection('D')).getAllByText('8-Bit preset')).toHaveLength(2)
     await user.click(screen.getByRole('button', { name: 'Import 4 banks' }))
     const bankD = vi.mocked(importFetchedBanks).mock.calls[0][0][3]
-    expect(bankD.sounds.slice(4, 6)).toEqual([null, null])
-  })
-
-  it('names the 8-Bit presets it leaves out in German', async () => {
-    await setLocale('de')
-    const { user } = renderDialog()
-    await chooseFile(user, makeFm1VaBackupFile('8-bit.syx', { eightBitSlots: [100, 101] }))
-
-    expect(
-      screen.getByText(
-        '2 Presets sind 8-Bit-Presets, die die Bibliothek noch nicht aufnehmen kann. Ihre Plätze behalten ihre Sounds.',
-      ),
-    ).toBeTruthy()
+    const [sound] = bankD.sounds.slice(4, 5)
+    expect(sound && 'eightBit' in sound).toBe(true)
+    expect(sound && 'voice' in sound).toBe(false)
   })
 
   it('marks a Virtual Analog preset and imports it apart from the DX7 voices', async () => {

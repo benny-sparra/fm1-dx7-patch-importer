@@ -203,8 +203,11 @@ open everything an earlier release could have saved.
   values. The write carries a Virtual Analog patch's voice bytes exactly as read, with its own
   record, as FM-1+VA's own backup restores one; never send them any other way. A DX7 patch never
   replaces a Virtual Analog preset on the FM1, and a Virtual Analog patch whose bytes the write
-  would not store exactly (`fm1VaStoredVoice`) is not written. Nothing replaces an 8-Bit preset
-  on the FM1, and a patch whose record names 8-Bit is never written. The write dialog counts the
+  would not store exactly (`fm1VaStoredVoice`) is not written. 8-Bit presets work the same way:
+  only an 8-Bit patch replaces one on the FM1, carrying its voice bytes exactly as read (NES ROCK
+  written back read back byte for byte on `FM-1_097`), and a Virtual Analog or 8-Bit patch never
+  replaces a preset of the other engine. A DX7 voice whose record names 8-Bit, which reads on
+  `FM-1_096` gave the library before the editor knew the engine, is never written. The write dialog counts the
   presets it keeps and says why, and says every patch matches only when it keeps none: Baud Girl's
   packs fill bank D with 8-Bit and Virtual Analog presets, which no DX7 patch replaces.
   A read belongs to the ports it started on: changing either, or switching MIDI off, cancels it.
@@ -646,9 +649,16 @@ open everything an earlier release could have saved.
   never by narrowing the name.
 - Record byte 18 names a preset's engine, read only through `fm1VaRecordEngine`
   (`src/lib/fm1-va-engine.ts`): `5A` Virtual Analog, `C3` 8-Bit from `FM-1_096`, anything else FM.
-  The library cannot hold an 8-Bit preset yet, since its voice bytes are not a DX7 voice and it has
-  no place of its own, so reading or importing presets marks one **8-Bit** and leaves its slot as it
-  is, and a write keeps it on the FM1. Never read one as a DX7 voice, which would change its bytes.
+  Never read an 8-Bit preset as a DX7 voice, which would change its bytes.
+- An 8-Bit preset lives in the snapshot's `eightBit` map, as a Virtual Analog preset lives in
+  `virtualAnalog`, never in `voices` or `virtualAnalog`: its 128 voice bytes exactly as read
+  (`isFm1VaEightBitVoice`), with its record in `records`. Workspace version 9, saved banks version
+  4, and backup files version 5 carry them. Everything the Virtual Analog slot rule above says holds
+  for it too: DX7 paths meet it as empty, the paths that should carry it do so on purpose, its slot
+  sends only its Program Change, and a DX7 bank puts INIT VOICE in its place and says so. It has no
+  editor yet, so its card offers neither Edit nor double-click editing, and no **Change to FM…**;
+  its tag is 8B, lit like VA, and its sound key is `eightBitSoundKey`. Favourites cannot hold it,
+  as they cannot hold a Virtual Analog preset.
 - Distortion type is the one record byte the editor changes (38). The editor keeps it after the
   effects in its parameters (`FM1_VA_DISTORTION_TYPE_INDEX`), so undo and compare cover it, and
   saving writes it into the record through `saveSound`, which gives the copies that held the same

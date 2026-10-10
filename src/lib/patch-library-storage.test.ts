@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createNamedBank } from '@/lib/named-bank'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
+import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
 import {
   capturedVirtualAnalogRecord,
   virtualAnalogVoiceBeyondDx7Ranges,
@@ -95,7 +96,7 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: {},
       bankNames: {},
       favourites: [],
-      version: 8,
+      version: 9,
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
   })
@@ -118,11 +119,12 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: {},
       bankNames: {},
       effects: { 'bank-A-1': makeDefaultFm1Effects() },
+      eightBit: {},
       favourites: [],
       loadedBanks: ['A'],
       records: {},
       savedAt: '2026-07-01T12:00:00.000Z',
-      version: 8,
+      version: 9,
       virtualAnalog: {},
       voices: { 'bank-A-1': voice },
       workspaceBanks: ['A', 'B', 'C', 'D'],
@@ -149,7 +151,7 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: {},
       bankNames: { A: 'Pianos', B: 'Leads' },
       loadedBanks: ['A', 'B'],
-      version: 8,
+      version: 9,
       workspaceBanks: ['A', 'B', 'C', 'D'],
     })
   })
@@ -173,7 +175,7 @@ describe('saveStoredPatchLibrary', () => {
     await expect(loading).resolves.toMatchObject({
       bankDescriptions: {},
       loadedBanks: [],
-      version: 8,
+      version: 9,
       workspaceBanks: ['A', 'B', 'C', 'D', 'E'],
     })
   })
@@ -199,7 +201,7 @@ describe('saveStoredPatchLibrary', () => {
       bankDescriptions: { A: 'Friday performance' },
       bankNames: { A: 'Studio Fav' },
       favourites: [],
-      version: 8,
+      version: 9,
     })
   })
 
@@ -237,7 +239,7 @@ describe('saveStoredPatchLibrary', () => {
           voice: other,
         },
       ],
-      version: 8,
+      version: 9,
     })
   })
 
@@ -356,6 +358,92 @@ describe('saveStoredPatchLibrary', () => {
     expect(loaded?.records).toEqual({ 'bank-A-2': record })
     expect(loaded?.effects['bank-A-2']).toEqual(effects)
     expect(Object.keys(loaded?.voices ?? {})).toEqual(['bank-A-1'])
+  })
+
+  it('restores 8-Bit presets from version 9 storage exactly as stored', async () => {
+    const [voice] = makeDemoVoices()
+    const eightBitRecord = capturedEightBitRecord()
+    const virtualAnalogRecord = capturedVirtualAnalogRecord()
+    const effects = makeDefaultFm1Effects()
+    effects[8] = 1
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {
+        'bank-A-1': makeDefaultFm1Effects(),
+        'bank-A-2': makeDefaultFm1Effects(),
+        'bank-A-3': effects,
+      },
+      eightBit: { 'bank-A-3': capturedEightBitVoice() },
+      favourites: [],
+      loadedBanks: ['A'],
+      records: { 'bank-A-2': virtualAnalogRecord, 'bank-A-3': eightBitRecord },
+      savedAt: '2026-10-10T12:00:00.000Z',
+      version: 9,
+      virtualAnalog: { 'bank-A-2': virtualAnalogVoiceBeyondDx7Ranges() },
+      voices: { 'bank-A-1': voice },
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    const loaded = await loading
+    expect(loaded?.eightBit).toEqual({ 'bank-A-3': capturedEightBitVoice() })
+    expect(loaded?.virtualAnalog).toEqual({ 'bank-A-2': virtualAnalogVoiceBeyondDx7Ranges() })
+    expect(loaded?.records).toEqual({ 'bank-A-2': virtualAnalogRecord, 'bank-A-3': eightBitRecord })
+    expect(loaded?.effects['bank-A-3']).toEqual(effects)
+    expect(Object.keys(loaded?.voices ?? {})).toEqual(['bank-A-1'])
+  })
+
+  it('gives a version 8 workspace no 8-Bit presets', async () => {
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {},
+      favourites: [],
+      loadedBanks: ['A'],
+      records: {},
+      savedAt: '2026-10-04T08:00:00.000Z',
+      version: 8,
+      virtualAnalog: {},
+      voices: {},
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    expect((await loading)?.eightBit).toEqual({})
+  })
+
+  it('classifies a workspace with an unreadable 8-Bit preset as incompatible', async () => {
+    const fake = installIndexedDb({
+      bankDescriptions: {},
+      bankNames: {},
+      effects: {},
+      eightBit: { 'bank-A-1': new Uint8Array(128).fill(0x80) },
+      favourites: [],
+      loadedBanks: ['A'],
+      records: {},
+      savedAt: '2026-10-10T12:00:00.000Z',
+      version: 9,
+      virtualAnalog: {},
+      voices: {},
+      workspaceBanks: ['A', 'B', 'C', 'D'],
+    })
+    const loading = loadStoredPatchLibrary()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    await expect(loading).rejects.toMatchObject({ code: 'incompatible' })
+    expect(fake.put).not.toHaveBeenCalled()
   })
 
   it('classifies a workspace with an unreadable Virtual Analog preset as incompatible', async () => {
@@ -497,7 +585,7 @@ describe('saveStoredPatchLibrary', () => {
         bankDescriptions: {},
         bankNames: {},
         favourites: [],
-        version: 8,
+        version: 9,
         workspaceBanks: ['A', 'B', 'C', 'D'],
       }),
       'current',
@@ -744,6 +832,36 @@ describe('listStoredNamedBanks', () => {
     expect(damagedCount).toBe(0)
     expect(banks).toEqual([versionThree])
     expect(banks[0].slots[0]).toMatchObject({ record, virtualAnalog })
+  })
+
+  it('lists a version 4 saved bank with an 8-Bit slot exactly as stored', async () => {
+    const voices = makeDemoVoices()
+    const record = capturedEightBitRecord()
+    const eightBit = capturedEightBitVoice()
+    const versionFour = {
+      createdAt: '2026-10-10T12:00:00.000Z',
+      description: 'Chiptune',
+      id: 'version-4',
+      name: 'Version 4',
+      slots: voices.map((voice, index) =>
+        index === 0
+          ? { effects: makeDefaultFm1Effects(), eightBit, record, slot: 1 }
+          : { effects: makeDefaultFm1Effects(), slot: index + 1, voice },
+      ),
+      updatedAt: '2026-10-10T12:00:00.000Z',
+      version: 4,
+    }
+    const fake = installIndexedDb([versionFour])
+    const listing = listStoredNamedBanks()
+
+    await openDatabase(fake.openRequest)
+    fake.readRequest.onsuccess?.()
+    fake.transaction.oncomplete?.()
+
+    const { banks, damagedCount } = await listing
+    expect(damagedCount).toBe(0)
+    expect(banks).toEqual([versionFour])
+    expect(banks[0].slots[0]).toMatchObject({ eightBit, record })
   })
 
   it('masks a saved voice byte above seven bits, as an earlier release could store', async () => {

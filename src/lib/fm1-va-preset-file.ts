@@ -8,6 +8,7 @@ import {
 } from '@/lib/dx7'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
+import { fm1VaEightBitName } from '@/lib/fm1-va-eight-bit'
 import { fm1VaRecordEngine } from '@/lib/fm1-va-engine'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
 import { fm1VaEffectRecordBytes, fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
@@ -41,15 +42,20 @@ export const fm1VaPresetBanks = ['A', 'B', 'C', 'D'] as const
 export type Fm1VaPresetBank = (typeof fm1VaPresetBanks)[number]
 
 /**
- * A stored preset: an FM preset's DX7 voice, or a Virtual Analog preset's voice bytes, which are
- * not a DX7 voice, each with its record and the effects the record holds; an 8-Bit preset, which
- * the library cannot hold, so only its name is kept; one that arrived damaged; or, in a file that
- * holds only some presets, one it does not hold.
+ * A stored preset: an FM preset's DX7 voice, or a Virtual Analog or 8-Bit preset's voice bytes,
+ * which are not a DX7 voice, each with its record and the effects the record holds; one that
+ * arrived damaged; or, in a file that holds only some presets, one it does not hold.
  */
 export type Fm1VaPreset =
   | { kind: 'absent' }
   | { kind: 'damaged' }
-  | { kind: 'eight-bit'; name: string }
+  | {
+      effects: Uint8Array
+      eightBit: Uint8Array
+      kind: 'eight-bit'
+      name: string
+      record: Uint8Array
+    }
   | { effects: Uint8Array; kind: 'fm'; record: Uint8Array; voice: Dx7Voice }
   | {
       effects: Uint8Array
@@ -64,13 +70,19 @@ function fmPreset(record: Uint8Array, voice: Dx7Voice): Fm1VaPreset {
 }
 
 /**
- * A preset on the engine its record names. An 8-Bit preset keeps its settings in its voice bytes
- * as well as its record, and they are not a DX7 voice, so it is never read as one.
+ * A preset on the engine its record names. A Virtual Analog or 8-Bit preset keeps its settings in
+ * its voice bytes as well as its record, and they are not a DX7 voice, so it is never read as one.
  */
 function storedPreset(record: Uint8Array, voice: Uint8Array): Fm1VaPreset {
   switch (fm1VaRecordEngine(record)) {
     case 'eight-bit':
-      return { kind: 'eight-bit', name: decodeVoiceName(voice) }
+      return {
+        effects: fm1VaRecordEffects(record),
+        eightBit: voice,
+        kind: 'eight-bit',
+        name: fm1VaEightBitName(voice),
+        record,
+      }
     case 'virtual-analog':
       return virtualAnalogPreset(record, voice)
     case 'fm':
@@ -104,6 +116,10 @@ export function importableSounds({ presets }: Fm1VaPresetFileBank): (FetchedSoun
       const { effects, record, virtualAnalog } = preset
       return { effects, record, virtualAnalog }
     }
+    if (preset.kind === 'eight-bit') {
+      const { effects, eightBit, record } = preset
+      return { effects, eightBit, record }
+    }
     return null
   })
 }
@@ -131,22 +147,29 @@ function sameSettings(record: Uint8Array, other: Uint8Array) {
  * ranges, and every other byte of the settings record. It compares as a preset write stores a
  * patch, so a patch written to the FM1 matches it however its library copy's bytes were first
  * laid out or its effects since changed. A slot the library has no patch in differs, as does one
- * with no record, which importing would give it, or one of the other engine; a damaged or 8-Bit
- * preset, or one the file does not hold, which the import leaves out, does not. A Virtual Analog preset's voice bytes are compared as read.
+ * with no record, which importing would give it, or one of another engine; a damaged preset, or
+ * one the file does not hold, which the import leaves out, does not. A Virtual Analog or 8-Bit
+ * preset's voice bytes are compared as read.
  */
 export function differsFromLibrary(
   preset: Fm1VaPreset,
-  slot: { effects?: Uint8Array; record?: Uint8Array; virtualAnalog?: Uint8Array; voice?: Dx7Voice },
+  slot: {
+    effects?: Uint8Array
+    eightBit?: Uint8Array
+    record?: Uint8Array
+    virtualAnalog?: Uint8Array
+    voice?: Dx7Voice
+  },
 ) {
-  if (preset.kind === 'absent' || preset.kind === 'damaged' || preset.kind === 'eight-bit') {
-    return false
-  }
+  if (preset.kind === 'absent' || preset.kind === 'damaged') return false
   if (!slot.record) return true
   const sameVoice =
     preset.kind === 'fm'
       ? slot.voice !== undefined &&
         sameBytes(storedVoiceBytes(preset.voice), storedVoiceBytes(slot.voice))
-      : slot.virtualAnalog !== undefined && sameBytes(preset.virtualAnalog, slot.virtualAnalog)
+      : preset.kind === 'virtual-analog'
+        ? slot.virtualAnalog !== undefined && sameBytes(preset.virtualAnalog, slot.virtualAnalog)
+        : slot.eightBit !== undefined && sameBytes(preset.eightBit, slot.eightBit)
   return (
     !sameVoice ||
     !sameBytes(preset.effects, normalizeFm1Effects(slot.effects)) ||

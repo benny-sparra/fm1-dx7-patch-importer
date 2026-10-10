@@ -22,6 +22,7 @@ import {
   capturedVirtualAnalogVoice,
 } from '@/test/fm1-va-virtual-analog'
 import { translatePageText } from '@/test/page-translator'
+import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
 import { slotVoice } from '@/test/slot-voice'
 
 const loadDx7CatalogBank = vi.hoisted(() => vi.fn<(bankId: string) => Promise<Dx7Voice[]>>())
@@ -71,6 +72,22 @@ function virtualAnalogBank() {
   })
 }
 
+/** A saved bank of demo voices with the 8-Bit preset NES ROCK in slot 5. */
+function eightBitBank() {
+  const sounds = Array.from({ length: 32 }, (_, index) =>
+    index === 4 ? { eightBit: capturedEightBitVoice(), record: capturedEightBitRecord() } : null,
+  )
+  const library = importFetchedBanks(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), [
+    { bank: 'A', sounds },
+  ])
+  return createNamedBank(library, 'A', {
+    description: '',
+    id: 'saved-8-bit',
+    name: 'Chiptune',
+    now: '2026-10-10T00:00:00.000Z',
+  })
+}
+
 function renderResults(props: Partial<ComponentProps<typeof SearchEverywhereResults>> = {}) {
   const onCopy = vi.fn()
   const onPlay = vi.fn()
@@ -89,6 +106,7 @@ function renderResults(props: Partial<ComponentProps<typeof SearchEverywhereResu
       workspaceEffects={{}}
       workspaceRecords={{}}
       workspaceMatches={[]}
+      workspaceEightBit={{}}
       workspaceVirtualAnalog={{}}
       workspaceVoices={{}}
       {...props}
@@ -205,6 +223,7 @@ describe('search everywhere results', () => {
         workspaceEffects={{}}
         workspaceRecords={{}}
         workspaceMatches={[]}
+        workspaceEightBit={{}}
         workspaceVirtualAnalog={{}}
         workspaceVoices={{}}
       />,
@@ -363,6 +382,28 @@ describe('search everywhere results', () => {
           record: capturedVirtualAnalogRecord(),
           slot: 5,
           virtualAnalog: capturedVirtualAnalogVoice(),
+        }),
+        false,
+      ),
+    )
+  })
+
+  it('lists a saved 8-Bit preset that can only be copied', async () => {
+    const { onCopy, user } = renderResults({ namedBanks: [eightBitBank()], search: 'nes rock' })
+
+    const saved = await screen.findByRole('region', { name: 'Saved banks' })
+    expect(within(saved).getByText('8-Bit preset')).toBeTruthy()
+    expect(within(saved).queryByRole('button', { name: /^Play NES ROCK/ })).toBeNull()
+    expect(within(saved).queryByRole('button', { name: 'Favourite NES ROCK' })).toBeNull()
+    await user.click(within(saved).getByRole('button', { name: 'Copy NES ROCK to a bank' }))
+
+    await vi.waitFor(() =>
+      expect(onCopy).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({
+          eightBit: capturedEightBitVoice(),
+          name: 'NES ROCK',
+          record: capturedEightBitRecord(),
+          slot: 5,
         }),
         false,
       ),
