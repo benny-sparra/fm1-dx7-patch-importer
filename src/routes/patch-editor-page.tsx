@@ -409,6 +409,14 @@ export function PatchEditorPage({
           className={cn('grid min-w-0 gap-2.5', isComparing && 'opacity-60')}
           inert={isComparing}
         >
+          {offersKnobChoices ? (
+            <KnobChoicesPanel
+              choices={record ? knobChoices : null}
+              engine="fm"
+              onChange={editor.setKnobChoice}
+            />
+          ) : null}
+
           <section aria-labelledby="operators-heading" className="synthwave-panel min-w-0">
             <RackPanelTitle
               action={
@@ -528,14 +536,6 @@ export function PatchEditorPage({
               />
             </RackPanelCollapsibleBody>
           </section>
-
-          {offersKnobChoices ? (
-            <KnobChoicesPanel
-              choices={record ? knobChoices : null}
-              engine="fm"
-              onChange={editor.setKnobChoice}
-            />
-          ) : null}
         </div>
         <CompareOverlay isComparing={isComparing} />
       </div>

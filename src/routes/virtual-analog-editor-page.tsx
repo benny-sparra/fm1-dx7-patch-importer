@@ -477,6 +477,14 @@ export function VirtualAnalogEditorPage({
           className={cn('grid min-w-0 gap-2.5', isComparing && 'opacity-60')}
           inert={isComparing}
         >
+          {offersKnobChoices ? (
+            <KnobChoicesPanel
+              choices={knobChoices}
+              engine="virtual-analog"
+              onChange={editor.setKnobChoice}
+            />
+          ) : null}
+
           {/* Three columns from xl, as the voice editor's rack has them: the busy Oscillator and
               Filter take two, each beside the panel that works with it. */}
           <div className="grid min-w-0 gap-2.5 xl:grid-cols-3">
@@ -745,14 +753,6 @@ export function VirtualAnalogEditorPage({
               />
             </RackPanelCollapsibleBody>
           </section>
-
-          {offersKnobChoices ? (
-            <KnobChoicesPanel
-              choices={knobChoices}
-              engine="virtual-analog"
-              onChange={editor.setKnobChoice}
-            />
-          ) : null}
         </div>
         <CompareOverlay isComparing={isComparing} />
       </div>

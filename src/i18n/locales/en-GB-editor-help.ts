@@ -262,7 +262,6 @@ export default {
     title: 'Knobs',
     knob: 'Knob {{number}}',
     help: 'Chooses what KNOB1 to KNOB4 play for this patch on the Preset knob bank of Baud Girl’s firmware, from the eight its engine offers. No MIDI message sets them, so they take effect once the patch is written to the FM1 with Send to FM1 or Write patches to the FM1.',
-    heardOnceWritten: 'The FM1 uses these knobs once the patch is written to it.',
     noRecord:
       'This patch didn’t come from the FM1, so it takes the knobs of the preset it’s written over.',
     fm: {

@@ -262,7 +262,8 @@ presets file can keep one. On other firmware a line on the panel says when the p
 order.
 
 From FM-1_096 each preset also chooses what KNOB1 to KNOB4 play on the FM1's Preset knob bank. While
-the FM1 runs it, a **Knobs** panel under the effects has a dropdown for each knob, listing the eight
+the FM1 runs it, a **Knobs** panel at the top of the editor, which minimises like the others, has a dropdown
+for each knob, listing the eight
 choices of the patch's engine: Brightness to Cutoff in the voice editor, Cutoff to LFO to cutoff in
 the Virtual Analogue editor. Each choice is one Undo, kept with the patch, and used once the patch is
 written to the FM1; only a patch read from the FM1 or Baud Girl's presets file can keep one.

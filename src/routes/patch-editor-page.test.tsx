@@ -1442,9 +1442,6 @@ describe('PatchEditorPage knob choices on Baud Girl’s FM-1_096', () => {
     renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
 
     expect([1, 2, 3, 4].map(knobChoice)).toEqual(['Brightness', 'Feedback', 'Attack', 'Release'])
-    expect(
-      screen.getByText('The FM1 uses these knobs once the patch is written to it.'),
-    ).toBeTruthy()
   })
 
   it('saves a knob choice into the record as the FM1 stores it, changing nothing else', async () => {
@@ -1491,6 +1488,15 @@ describe('PatchEditorPage knob choices on Baud Girl’s FM-1_096', () => {
         'This patch didn’t come from the FM1, so it takes the knobs of the preset it’s written over.',
       ),
     ).toBeTruthy()
+  })
+
+  it('minimises the knobs panel and opens it again', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, unsetKnobsRecord)
+
+    await user.click(screen.getByRole('button', { name: 'Minimise Knobs' }))
+    expect(knob(1)).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Expand Knobs' }))
+    expect(knobChoice(1)).toBe('Brightness')
   })
 
   it('offers no knob choices before FM-1_096', () => {

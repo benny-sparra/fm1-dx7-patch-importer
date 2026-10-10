@@ -189,7 +189,6 @@ export default {
     title: 'Potentiomètres',
     knob: 'Potentiomètre {{number}}',
     help: 'Choisit ce que KNOB1 à KNOB4 règlent pour ce son dans la banque de potentiomètres Preset du firmware de Baud Girl, parmi les huit choix de son moteur. Aucun message MIDI ne les règle : ils prennent effet une fois le son écrit sur le FM1 avec Envoyer au FM1 ou Écrire des sons sur le FM1.',
-    heardOnceWritten: 'Le FM1 utilise ces potentiomètres une fois le son écrit dessus.',
     noRecord:
       'Ce son ne vient pas du FM1 : il prend les potentiomètres du preset sur lequel il est écrit.',
     fm: {

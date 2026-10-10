@@ -190,7 +190,6 @@ export default {
     title: 'Mandos',
     knob: 'Mando {{number}}',
     help: 'Elige qué controlan KNOB1 a KNOB4 para este sonido en el banco de mandos Preset del firmware de Baud Girl, entre las ocho opciones de su motor. Ningún mensaje MIDI los ajusta, así que surten efecto cuando el sonido se escribe en el FM1 con Enviar al FM1 o Escribir sonidos en el FM1.',
-    heardOnceWritten: 'El FM1 usa estos mandos cuando el sonido se escribe en él.',
     noRecord:
       'Este sonido no viene del FM1, así que toma los mandos del preset sobre el que se escribe.',
     fm: {
