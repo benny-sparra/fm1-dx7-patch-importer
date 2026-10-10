@@ -299,6 +299,7 @@ export default {
     demoLoaded: 'Loaded the demo patches into “{{bank}}”.',
     patchSaved: 'Saved “{{patch}}” to the library.',
     patchCopied: 'Copied “{{patch}}” to {{slot}} in “{{bank}}”.',
+    patchesSwapped: 'Swapped “{{patch}}” and “{{target}}”.',
     patchReplaced: 'Replaced {{slot}} with “{{patch}}”.',
     operatorCopied: 'Copied operator {{number}}.',
     bankDownloadStartedWithInit:

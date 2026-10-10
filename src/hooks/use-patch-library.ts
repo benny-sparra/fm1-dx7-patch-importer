@@ -36,6 +36,7 @@ import {
   replaceWithEightBit as replaceLibraryWithEightBit,
   replaceWithVirtualAnalog as replaceLibraryWithVirtualAnalog,
   saveSound,
+  swapVoices as swapLibraryVoices,
   updateBankInformation as updateLibraryBankInformation,
   type FetchedBank,
   type PatchLibrarySnapshot,
@@ -333,6 +334,12 @@ export function usePatchLibrary() {
     [commit],
   )
 
+  const swapVoices = useCallback(
+    (sourceId: string, bank: string, slot: number) =>
+      commit((current) => swapLibraryVoices(current, sourceId, bank, slot)),
+    [commit],
+  )
+
   const replaceVoice = useCallback(
     (bank: string, slot: number, voice: Dx7Voice, effects?: Uint8Array, record?: Uint8Array) =>
       commit((current) => replaceLibraryVoice(current, bank, slot, voice, effects, record)),
@@ -578,6 +585,7 @@ export function usePatchLibrary() {
     resetFactoryBanks,
     restoreBackup,
     saveNamedBank,
+    swapVoices,
     toggleFavourite,
     toggleFavouriteSound,
     undo,

@@ -4,7 +4,7 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import '@/i18n'
+import { setLocale } from '@/i18n'
 import { CopyPatchDialog } from '@/components/patches/copy-patch-dialog'
 import type { Patch } from '@/data/patches'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
@@ -20,8 +20,9 @@ beforeAll(() => {
   }
 })
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
+  await setLocale('en-GB')
 })
 
 function slot(bank: string, number: number, name: string): Patch {
@@ -43,13 +44,16 @@ function renderDialog({
   copyVoice = vi.fn<PatchLibrary['copyVoice']>(() => null),
   initialBank,
   loadedBanks = ['A', 'B'],
+  swapVoices,
 }: {
   copyVoice?: PatchLibrary['copyVoice']
   initialBank?: string
   loadedBanks?: string[]
+  swapVoices?: PatchLibrary['swapVoices']
 } = {}) {
   const onClose = vi.fn()
   const onCopied = vi.fn<Parameters<typeof CopyPatchDialog>[0]['onCopied']>()
+  const onSwapped = vi.fn<NonNullable<Parameters<typeof CopyPatchDialog>[0]['onSwapped']>>()
   const library = {
     bankNames: { B: 'Keys' },
     loadedBanks,
@@ -63,6 +67,8 @@ function renderDialog({
       onClose={onClose}
       onCopy={(bank, number) => copyVoice(alpha.id, bank, number)}
       onCopied={onCopied}
+      onSwap={swapVoices && ((bank, number) => swapVoices(alpha.id, bank, number))}
+      onSwapped={onSwapped}
       source={alpha}
     />,
   )
@@ -71,6 +77,7 @@ function renderDialog({
     dialog: screen.getByRole('dialog'),
     onClose,
     onCopied,
+    onSwapped,
     user: userEvent.setup(),
   }
 }
@@ -197,6 +204,64 @@ describe('CopyPatchDialog', () => {
   })
 })
 
+describe('CopyPatchDialog swapping two patches', () => {
+  it('offers no swap unless it is given one', () => {
+    renderDialog()
+
+    expect(screen.queryByRole('button', { name: /^Swap/ })).toBeNull()
+  })
+
+  it('offers to swap with the chosen slot, saying where its sound goes', () => {
+    renderDialog({ swapVoices: vi.fn<PatchLibrary['swapVoices']>(() => null) })
+
+    expect(screen.getByRole('button', { name: 'Swap with B01' })).toBeTruthy()
+    expect(
+      screen.getByRole('dialog', {
+        description:
+          'This replaces “Beta Bass” in B01. You can undo this action. To keep “Beta Bass”, swap instead: it moves to A01.',
+      }),
+    ).toBeTruthy()
+  })
+
+  it('swaps with the slot chosen in the grid, closes, and reports the change', async () => {
+    const changed = { workspaceBanks: ['A', 'B', 'C'] } as unknown as PatchLibrarySnapshot
+    const swapVoices = vi.fn<PatchLibrary['swapVoices']>(() => changed)
+    const { copyVoice, dialog, onClose, onSwapped, user } = renderDialog({ swapVoices })
+
+    await user.click(screen.getByRole('button', { name: 'B02 Beta Brass' }))
+    await user.click(screen.getByRole('button', { name: 'Swap with B02' }))
+
+    expect(swapVoices).toHaveBeenCalledExactlyOnceWith('bank-A-1', 'B', 2)
+    expect(copyVoice).not.toHaveBeenCalled()
+    expect(onSwapped).toHaveBeenCalledExactlyOnceWith(patches[4], changed)
+    expect((dialog as HTMLDialogElement).open).toBe(false)
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('explains a failed swap in translated text and stays open', async () => {
+    const swapVoices = vi.fn<PatchLibrary['swapVoices']>(() => {
+      throw new Error('storage exploded')
+    })
+    const { dialog, onSwapped, user } = renderDialog({ swapVoices })
+
+    await user.click(within(dialog).getByRole('button', { name: 'Swap with B01' }))
+
+    expect(within(dialog).getByRole('alert').textContent).toBe('The patches could not be swapped.')
+    expect((dialog as HTMLDialogElement).open).toBe(true)
+    expect(onSwapped).not.toHaveBeenCalled()
+  })
+
+  it('names both slots in German', async () => {
+    await setLocale('de')
+    renderDialog({ swapVoices: vi.fn<PatchLibrary['swapVoices']>(() => null) })
+
+    expect(screen.getByRole('button', { name: 'Mit B01 tauschen' })).toBeTruthy()
+    expect(
+      screen.getByText('Um „Beta Bass“ zu behalten, tausche stattdessen: Er kommt nach A01.'),
+    ).toBeTruthy()
+  })
+})
+
 describe('CopyPatchDialog with a sound from outside the workspace', () => {
   const external = { name: 'BRASS 1', number: 1, origin: '01 BRASS 1 · ROM1A Master' }
 
@@ -213,6 +278,7 @@ describe('CopyPatchDialog with a sound from outside the workspace', () => {
         onClose={vi.fn()}
         onCopy={onCopy}
         onCopied={vi.fn()}
+        onSwap={vi.fn(() => null)}
         opensEditor={opensEditor}
         source={external}
       />,
@@ -245,6 +311,12 @@ describe('CopyPatchDialog with a sound from outside the workspace', () => {
       }),
     ).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Replace A01 and edit' })).toBeTruthy()
+  })
+
+  it('offers no swap, since the sound has no slot to take the other one', () => {
+    renderExternal()
+
+    expect(screen.queryByRole('button', { name: /^Swap/ })).toBeNull()
   })
 
   it('copies over the chosen slot through the action it was given', async () => {

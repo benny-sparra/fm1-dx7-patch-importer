@@ -60,6 +60,9 @@ Swapping two slots, in one bank or across two, is one step in the Device Manager
 **Copy to…** steps and a spare slot. It is one library change with one Undo, and it carries each
 patch's voice, effects, record, and Virtual Analog bytes. It needs no protocol.
 
+_Built 2026-10-10:_ **Copy to…** offers **Swap with** beside **Replace** for a patch in a bank
+slot, through `swapVoices` in `src/lib/patch-library.ts`.
+
 ### 4. Rename without opening the editor
 
 The Device Manager renames from the library. Here a patch is renamed in its editor's name field, which

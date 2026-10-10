@@ -491,6 +491,44 @@ export function copyVoice(
   }
 }
 
+/**
+ * Swaps a workspace slot's patch with the one in another slot of a loaded bank: its voice or
+ * Virtual Analog or 8-Bit bytes, FM1 effects, and record. Each gets its own copies, as a copy does, since a
+ * swap puts a sound in a slot.
+ */
+export function swapVoices(
+  snapshot: PatchLibrarySnapshot,
+  sourceId: string,
+  bank: string,
+  slot: number,
+): PatchLibrarySnapshot {
+  // A favourite or any other id that names no workspace slot has no slot to take the other patch.
+  const source = /^bank-([A-Z])-(\d+)$/.exec(sourceId)
+  if (!source) throw new WorkspaceBankUnavailableError()
+  assertReplaceableSlot(snapshot, source[1], Number(source[2]))
+  assertReplaceableSlot(snapshot, bank, slot)
+  const targetId = voiceId(bank, slot)
+  if (targetId === sourceId) return snapshot
+
+  const voices = { ...snapshot.voices }
+  const effects = { ...snapshot.effects }
+  const records = { ...snapshot.records }
+  const virtualAnalog = { ...snapshot.virtualAnalog }
+  const eightBit = { ...snapshot.eightBit }
+  const put = (fromId: string, toId: string) => {
+    const voice = snapshot.voices[fromId]
+    moveEntry(voices, voice && { ...voice, data: voice.data.slice() }, toId)
+    moveEntry(records, snapshot.records[fromId]?.slice(), toId)
+    moveEntry(virtualAnalog, snapshot.virtualAnalog[fromId]?.slice(), toId)
+    moveEntry(eightBit, snapshot.eightBit[fromId]?.slice(), toId)
+    const filled = holdsSound(snapshot, fromId)
+    moveEntry(effects, filled ? normalizeFm1Effects(snapshot.effects[fromId]) : undefined, toId)
+  }
+  put(sourceId, targetId)
+  put(targetId, sourceId)
+  return { ...snapshot, effects, eightBit, records, virtualAnalog, voices }
+}
+
 /** The entries without one for slot `id`, or the same entries when it has none. */
 function withoutEntry<T>(entries: Record<string, T>, id: string) {
   if (!(id in entries)) return entries

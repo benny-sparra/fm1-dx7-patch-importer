@@ -212,6 +212,8 @@ type CopyRequest = {
   edit?: boolean
   key: string
   source: ComponentProps<typeof CopyPatchDialog>['source']
+  /** Swaps the sound with the chosen slot's, for a sound in a workspace slot. */
+  swap?: ComponentProps<typeof CopyPatchDialog>['onSwap']
 }
 
 type LibrarianLibrary = BackupLibrary &
@@ -254,6 +256,7 @@ type LibrarianLibrary = BackupLibrary &
     | 'replaceWithEightBit'
     | 'replaceWithVirtualAnalog'
     | 'resetFactoryBanks'
+    | 'swapVoices'
     | 'toggleFavourite'
     | 'toggleFavouriteSound'
     | 'undo'
@@ -371,6 +374,11 @@ export function LibrarianPage({
       copy: (targetBank, slot) => library.copyVoice(patch.id, targetBank, slot),
       key: patch.id,
       source: patch,
+      // A favourite is a copy kept apart from the banks, with no slot to take the other sound.
+      swap:
+        patch.bank === favouritesBank
+          ? undefined
+          : (targetBank, slot) => library.swapVoices(patch.id, targetBank, slot),
     })
   }
   const requestResultCopy = (sound: SearchResultSound, edit: boolean) => {
@@ -1522,6 +1530,16 @@ export function LibrarianPage({
                   followPlayedPatch(target)
                   onEditPatch(target)
                 }
+              }}
+              onSwap={copyRequest.swap}
+              onSwapped={(target, changed) => {
+                toast.success(
+                  t('toasts.patchesSwapped', {
+                    patch: copyRequest.source.name,
+                    target: target.name,
+                  }),
+                  undoToastOptions(t, library, changed),
+                )
               }}
               source={copyRequest.source}
             />
