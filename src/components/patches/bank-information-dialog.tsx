@@ -66,7 +66,7 @@ export function BankInformationDialog({
         }}
         type="button"
       >
-        <Info className="size-4" />
+        <Info className="size-4 shrink-0" />
         {t('banks.bankInformationMenu')}
       </button>
 

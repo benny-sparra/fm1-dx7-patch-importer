@@ -868,7 +868,7 @@ export function LibrarianPage({
           }
           type="button"
         >
-          <Save className="size-4" />
+          <Save className="size-4 shrink-0" />
           {t('namedBanks.saveMenu')}
         </button>
         <button
@@ -876,7 +876,7 @@ export function LibrarianPage({
           onClick={() => requestSavedBanks({ bank, closeMenu, mode: 'load' })}
           type="button"
         >
-          <Database className="size-4" />
+          <Database className="size-4 shrink-0" />
           {t('namedBanks.loadBank')}
         </button>
         <div className="my-1 border-t" />
@@ -889,7 +889,7 @@ export function LibrarianPage({
           }}
           type="button"
         >
-          <Upload className="size-4" />
+          <Upload className="size-4 shrink-0" />
           <span>{isImporting ? t('banks.importing') : t('banks.import')}</span>
         </button>
         <button
@@ -906,7 +906,7 @@ export function LibrarianPage({
           }
           type="button"
         >
-          <Download className="size-4" />
+          <Download className="size-4 shrink-0" />
           {t('banks.download')}
         </button>
         {banks.length > 1 ? (
@@ -922,7 +922,7 @@ export function LibrarianPage({
             }}
             type="button"
           >
-            <Trash2 className="size-4" />
+            <Trash2 className="size-4 shrink-0" />
             {t('banks.deleteBankMenu')}
           </button>
         ) : null}

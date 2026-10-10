@@ -5,6 +5,7 @@ import en from '../src/i18n/locales/en-GB'
 import es from '../src/i18n/locales/es'
 import fr from '../src/i18n/locales/fr'
 import ptBR from '../src/i18n/locales/pt-BR'
+import uk from '../src/i18n/locales/uk'
 import zhHans from '../src/i18n/locales/zh-Hans'
 
 type Translations = { [key: string]: string | Translations }
@@ -15,6 +16,7 @@ const locales: Record<string, Translations> = {
   es: es as Translations,
   fr: fr as Translations,
   'pt-BR': ptBR as Translations,
+  uk: uk as Translations,
   'zh-Hans': zhHans as Translations,
 }
 

@@ -8,6 +8,7 @@ import enUS from './locales/en-US'
 import es from './locales/es'
 import fr from './locales/fr'
 import ptBR from './locales/pt-BR'
+import uk from './locales/uk'
 import zhHans from './locales/zh-Hans'
 
 type Strings = { [key: string]: string | Strings }
@@ -52,6 +53,7 @@ const resources = {
   es: { translation: es },
   fr: { translation: fr },
   'pt-BR': { translation: ptBR },
+  uk: { translation: uk },
   'zh-Hans': { translation: zhHans },
 }
 
@@ -84,7 +86,7 @@ describe('translation resources', () => {
       ([, text]) => wordCount(text) >= 5,
     )
 
-    for (const locale of ['de', 'es', 'fr', 'pt-BR', 'zh-Hans'] as const) {
+    for (const locale of ['de', 'es', 'fr', 'pt-BR', 'uk', 'zh-Hans'] as const) {
       const localized = new Map(flattenStrings(resources[locale].translation))
       const copied = english
         .filter(([key, text]) => localized.get(key) === text)
@@ -113,6 +115,19 @@ describe('translation resources', () => {
     expect(flattenKeys(resources.de.translation).sort()).toEqual(englishKeys)
     expect(flattenKeys(resources['pt-BR'].translation).sort()).toEqual(englishKeys)
     expect(flattenKeys(resources['zh-Hans'].translation).sort()).toEqual(englishKeys)
+  })
+
+  // Ukrainian counts in three forms where English has two: the key itself holds the form for 1,
+  // 21, and 31, `_few` the form for 2 to 4, and `_many` the form for 0 and 5 to 20.
+  it('provides every English key in Ukrainian, with its extra plural forms', () => {
+    const englishKeys = flattenKeys(resources.en.translation)
+    const ukrainianKeys = englishKeys.flatMap((key) =>
+      key.endsWith('_other')
+        ? [key, key.replace(/_other$/, '_few'), key.replace(/_other$/, '_many')]
+        : [key],
+    )
+
+    expect(flattenKeys(resources.uk.translation).sort()).toEqual(ukrainianKeys.sort())
   })
 
   // American English holds only overrides; i18next reads everything else from British English.
@@ -202,6 +217,7 @@ describe('translation resources', () => {
     expect(resources.es.translation.namedBanks.save).toBe('Guardar banco')
     expect(resources.de.translation.namedBanks.loadBank).toBe('Bank laden…')
     expect(resources['pt-BR'].translation.namedBanks.deleteAction).toBe('Excluir banco')
+    expect(resources.uk.translation.namedBanks.title).toBe('Мої збережені банки')
     expect(resources['zh-Hans'].translation.namedBanks.search).toBe('搜索已保存的音色库')
   })
 })
