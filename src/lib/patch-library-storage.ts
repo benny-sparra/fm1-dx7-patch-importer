@@ -1,6 +1,7 @@
 import { normalizeStoredDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import { type Favourite, readFavourites } from '@/lib/favourites'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
+import { isFm1VaEightBitVoice } from '@/lib/fm1-va-eight-bit'
 import { readFm1VaRecord } from '@/lib/fm1-va-record'
 import { isFm1VaVirtualAnalogVoice } from '@/lib/fm1-va-virtual-analog'
 import { type NamedBank, validateNamedBank } from '@/lib/named-bank'
@@ -37,12 +38,17 @@ export type StoredPatchLibrary = {
   bankDescriptions: Record<string, string>
   bankNames: Record<string, string>
   effects: Record<string, Uint8Array>
+  /**
+   * The voice bytes of each slot holding an FM-1+VA 8-Bit preset, by slot id, from version 9, kept
+   * exactly as read.
+   */
+  eightBit: Record<string, Uint8Array>
   favourites: Favourite[]
   loadedBanks: string[]
   /** FM-1+VA settings records by slot id, from version 7. Favourites carry their own. */
   records: Record<string, Uint8Array>
   savedAt: string
-  version: 8
+  version: 9
   /**
    * The voice bytes of each slot holding an FM-1+VA Virtual Analog preset, by slot id, from
    * version 8, kept exactly as read.
@@ -64,21 +70,26 @@ function readStoredRecords(value: unknown, filled: (id: string) => boolean) {
 }
 
 /**
- * Reads the Virtual Analog voices a workspace stored. They are kept exactly as read, so one that is
- * not seven-bit data of a voice's size cannot be put right, and makes the workspace unreadable
- * rather than being changed. A slot that also holds a DX7 voice keeps the DX7 voice.
+ * Reads the Virtual Analog or 8-Bit voices a workspace stored. They are kept exactly as read, so
+ * one that is not seven-bit data of a voice's size cannot be put right, and makes the workspace
+ * unreadable rather than being changed. A slot that already holds another sound keeps it.
  */
-function readStoredVirtualAnalog(value: unknown, voices: Record<string, unknown>) {
+function readStoredPresetVoices(
+  value: unknown,
+  isPresetVoice: (stored: unknown) => stored is Uint8Array,
+  taken: (id: string) => boolean,
+  engine: string,
+): Record<string, Uint8Array> {
   if (!value || typeof value !== 'object') return {}
   return Object.fromEntries(
     Object.entries(value).flatMap(([id, stored]) => {
-      if (!isFm1VaVirtualAnalogVoice(stored)) {
+      if (!isPresetVoice(stored)) {
         throw new PatchLibraryStorageError(
           'incompatible',
-          'The saved patch library contains an unreadable Virtual Analog preset.',
+          `The saved patch library contains an unreadable ${engine} preset.`,
         )
       }
-      return id in voices ? [] : [[id, stored]]
+      return taken(id) ? [] : [[id, stored]]
     }),
   )
 }
@@ -196,20 +207,27 @@ function normalizeStoredVoices(voices: Record<string, unknown>) {
 export async function loadStoredPatchLibrary() {
   let stored:
     | StoredPatchLibrary
-    | (Omit<StoredPatchLibrary, 'version' | 'virtualAnalog'> & { version: 7 })
-    | (Omit<StoredPatchLibrary, 'records' | 'version' | 'virtualAnalog'> & { version: 6 })
-    | (Omit<StoredPatchLibrary, 'favourites' | 'records' | 'version' | 'virtualAnalog'> & {
+    | (Omit<StoredPatchLibrary, 'eightBit' | 'version'> & { version: 8 })
+    | (Omit<StoredPatchLibrary, 'eightBit' | 'version' | 'virtualAnalog'> & { version: 7 })
+    | (Omit<StoredPatchLibrary, 'eightBit' | 'records' | 'version' | 'virtualAnalog'> & {
+        version: 6
+      })
+    | (Omit<
+        StoredPatchLibrary,
+        'eightBit' | 'favourites' | 'records' | 'version' | 'virtualAnalog'
+      > & {
         version: 5
       })
     | (Omit<
         StoredPatchLibrary,
-        'bankDescriptions' | 'favourites' | 'records' | 'version' | 'virtualAnalog'
+        'bankDescriptions' | 'eightBit' | 'favourites' | 'records' | 'version' | 'virtualAnalog'
       > & {
         version: 4
       })
     | (Omit<
         StoredPatchLibrary,
         | 'bankDescriptions'
+        | 'eightBit'
         | 'favourites'
         | 'records'
         | 'workspaceBanks'
@@ -220,6 +238,7 @@ export async function loadStoredPatchLibrary() {
         StoredPatchLibrary,
         | 'bankDescriptions'
         | 'bankNames'
+        | 'eightBit'
         | 'favourites'
         | 'records'
         | 'workspaceBanks'
@@ -233,6 +252,7 @@ export async function loadStoredPatchLibrary() {
         | 'bankDescriptions'
         | 'bankNames'
         | 'effects'
+        | 'eightBit'
         | 'favourites'
         | 'records'
         | 'workspaceBanks'
@@ -255,14 +275,16 @@ export async function loadStoredPatchLibrary() {
       stored.version !== 5 &&
       stored.version !== 6 &&
       stored.version !== 7 &&
-      stored.version !== 8) ||
+      stored.version !== 8 &&
+      stored.version !== 9) ||
     !Array.isArray(stored.loadedBanks) ||
     typeof stored.voices !== 'object' ||
     ((stored.version === 4 ||
       stored.version === 5 ||
       stored.version === 6 ||
       stored.version === 7 ||
-      stored.version === 8) &&
+      stored.version === 8 ||
+      stored.version === 9) &&
       !Array.isArray(stored.workspaceBanks))
   ) {
     throw new PatchLibraryStorageError(
@@ -282,7 +304,8 @@ export async function loadStoredPatchLibrary() {
         stored.version === 5 ||
         stored.version === 6 ||
         stored.version === 7 ||
-        stored.version === 8) &&
+        stored.version === 8 ||
+        stored.version === 9) &&
       stored.bankNames &&
       typeof stored.bankNames === 'object'
         ? stored.bankNames
@@ -291,7 +314,8 @@ export async function loadStoredPatchLibrary() {
       (stored.version === 5 ||
         stored.version === 6 ||
         stored.version === 7 ||
-        stored.version === 8) &&
+        stored.version === 8 ||
+        stored.version === 9) &&
       stored.bankDescriptions &&
       typeof stored.bankDescriptions === 'object'
         ? stored.bankDescriptions
@@ -301,23 +325,40 @@ export async function loadStoredPatchLibrary() {
       stored.version === 5 ||
       stored.version === 6 ||
       stored.version === 7 ||
-      stored.version === 8
+      stored.version === 8 ||
+      stored.version === 9
         ? [...new Set(stored.workspaceBanks.filter(isWorkspaceBankId))]
         : [...browserBanks]
     // Favourites arrived in version 6; earlier workspaces have none.
     const favourites =
-      stored.version === 6 || stored.version === 7 || stored.version === 8
+      stored.version === 6 || stored.version === 7 || stored.version === 8 || stored.version === 9
         ? readFavourites(stored.favourites)
         : []
-    // Virtual Analog presets arrived in version 8, and records in version 7; earlier workspaces
-    // have none.
+    // 8-Bit presets arrived in version 9, Virtual Analog presets in version 8, and records in
+    // version 7; earlier workspaces have none.
     const storedVirtualAnalog =
-      stored.version === 8 ? readStoredVirtualAnalog(stored.virtualAnalog, stored.voices) : {}
+      stored.version === 8 || stored.version === 9
+        ? readStoredPresetVoices(
+            stored.virtualAnalog,
+            isFm1VaVirtualAnalogVoice,
+            (id) => id in stored.voices,
+            'Virtual Analog',
+          )
+        : {}
+    const storedEightBit =
+      stored.version === 9
+        ? readStoredPresetVoices(
+            stored.eightBit,
+            isFm1VaEightBitVoice,
+            (id) => id in stored.voices || id in storedVirtualAnalog,
+            '8-Bit',
+          )
+        : {}
     const storedRecords =
-      stored.version === 7 || stored.version === 8
+      stored.version === 7 || stored.version === 8 || stored.version === 9
         ? readStoredRecords(
             stored.records,
-            (id) => id in stored.voices || id in storedVirtualAnalog,
+            (id) => id in stored.voices || id in storedVirtualAnalog || id in storedEightBit,
           )
         : {}
     if (!favourites) {
@@ -353,6 +394,7 @@ export async function loadStoredPatchLibrary() {
           .filter(([, name]) => Boolean(name)),
       ),
       effects: storedEffects,
+      eightBit: storedEightBit,
       favourites,
       loadedBanks: stored.loadedBanks.filter((bank) => workspaceBanks.includes(bank)),
       records: storedRecords,
@@ -362,12 +404,13 @@ export async function loadStoredPatchLibrary() {
     })
     const voices = normalizeStoredVoices(compacted.voices)
     const effects = Object.fromEntries(
-      [...Object.keys(voices), ...Object.keys(compacted.virtualAnalog)].map((id) => [
-        id,
-        normalizeFm1Effects(compacted.effects[id]),
-      ]),
+      [
+        ...Object.keys(voices),
+        ...Object.keys(compacted.virtualAnalog),
+        ...Object.keys(compacted.eightBit),
+      ].map((id) => [id, normalizeFm1Effects(compacted.effects[id])]),
     )
-    return { ...compacted, effects, savedAt: stored.savedAt, version: 8 as const, voices }
+    return { ...compacted, effects, savedAt: stored.savedAt, version: 9 as const, voices }
   } catch (error) {
     throw asStorageError(
       error,
@@ -386,7 +429,7 @@ export async function saveStoredPatchLibrary(
         {
           ...library,
           savedAt: new Date().toISOString(),
-          version: 8,
+          version: 9,
         } satisfies StoredPatchLibrary,
         recordKey,
       ),

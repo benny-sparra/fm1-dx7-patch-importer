@@ -39,3 +39,20 @@ export function virtualAnalogSoundKey(
     fm1VaRecordKey(record),
   )}`
 }
+
+/**
+ * The sound key of an 8-Bit preset's voice bytes, its effects, and its record. It never equals a
+ * DX7 voice's or a Virtual Analog preset's key, since the same bytes play differently on another
+ * engine.
+ */
+export function eightBitSoundKey(
+  voice: Uint8Array,
+  effects: Uint8Array | undefined,
+  record: Uint8Array,
+) {
+  return `8bit:${makeSoundKey(
+    voiceFingerprint(voice),
+    normalizeFm1Effects(effects).join(','),
+    fm1VaRecordKey(record),
+  )}`
+}

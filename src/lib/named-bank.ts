@@ -1,6 +1,7 @@
 import { dx7PackedVoiceSize, makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import { sysexFilenameStem } from '@/lib/sysex-file'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
+import { isFm1VaEightBitVoice } from '@/lib/fm1-va-eight-bit'
 import { isFm1VaVirtualAnalogVoice } from '@/lib/fm1-va-virtual-analog'
 import {
   bankDescriptionLength,
@@ -15,15 +16,19 @@ export const savedBankNameLength = 80
 
 /**
  * One slot of a saved bank: a DX7 voice, with the FM-1+VA settings record from version 2 when its
- * sound has one, or, from version 3, a Virtual Analog preset's voice bytes and its record.
+ * sound has one, or a preset's voice bytes and its record: a Virtual Analog preset's from version
+ * 3, or an 8-Bit preset's from version 4.
  */
 type NamedBankSlot = { effects: Uint8Array; slot: number } & (
-  { record?: Uint8Array; voice: Dx7Voice } | { record: Uint8Array; virtualAnalog: Uint8Array }
+  | { record?: Uint8Array; voice: Dx7Voice }
+  | { record: Uint8Array; virtualAnalog: Uint8Array }
+  | { eightBit: Uint8Array; record: Uint8Array }
 )
 
 /**
- * A saved bank. Version 2 adds each slot's optional record, and version 3, which this release
- * writes, Virtual Analog slots; earlier banks, which have neither, are read as they are.
+ * A saved bank. Version 2 adds each slot's optional record, version 3 Virtual Analog slots, and
+ * version 4, which this release writes, 8-Bit slots; earlier banks, which have none of these, are
+ * read as they are.
  */
 export type NamedBank = {
   createdAt: string
@@ -32,10 +37,10 @@ export type NamedBank = {
   name: string
   slots: NamedBankSlot[]
   updatedAt: string
-  version: 1 | 2 | 3
+  version: 1 | 2 | 3 | 4
 }
 
-const namedBankVersion = 3
+const namedBankVersion = 4
 
 type CreateNamedBankOptions = {
   description: string
@@ -71,6 +76,14 @@ function cloneSlot(slot: NamedBankSlot): NamedBankSlot {
       virtualAnalog: slot.virtualAnalog.slice(),
     }
   }
+  if ('eightBit' in slot) {
+    return {
+      effects,
+      eightBit: slot.eightBit.slice(),
+      record: slot.record.slice(),
+      slot: slot.slot,
+    }
+  }
   return {
     effects,
     ...(slot.record ? { record: slot.record.slice() } : {}),
@@ -83,12 +96,18 @@ function isValidRecord(record: unknown) {
   return record instanceof Uint8Array && record.length === fm1VaRecordSize
 }
 
-/** Whether a slot holds a valid sound: a DX7 voice, or, from version 3, a Virtual Analog preset. */
+/**
+ * Whether a slot holds a valid sound: a DX7 voice, from version 3 a Virtual Analog preset, or from
+ * version 4 an 8-Bit preset.
+ */
 function isValidSlotSound(slot: Partial<NamedBankSlot>, version: NamedBank['version']) {
   if ('virtualAnalog' in slot) {
     return (
-      version === 3 && isFm1VaVirtualAnalogVoice(slot.virtualAnalog) && isValidRecord(slot.record)
+      version >= 3 && isFm1VaVirtualAnalogVoice(slot.virtualAnalog) && isValidRecord(slot.record)
     )
+  }
+  if ('eightBit' in slot) {
+    return version >= 4 && isFm1VaEightBitVoice(slot.eightBit) && isValidRecord(slot.record)
   }
   return (
     'voice' in slot &&
@@ -103,7 +122,7 @@ export function validateNamedBank(value: unknown): asserts value is NamedBank {
   if (!value || typeof value !== 'object') throw new Error('A saved bank record is invalid.')
   const bank = value as Partial<NamedBank>
   if (
-    (bank.version !== 1 && bank.version !== 2 && bank.version !== 3) ||
+    (bank.version !== 1 && bank.version !== 2 && bank.version !== 3 && bank.version !== 4) ||
     typeof bank.id !== 'string' ||
     !bank.id ||
     typeof bank.name !== 'string' ||
@@ -146,10 +165,14 @@ export function createNamedBank(
     const id = voiceId(sourceBank, slot)
     const voice = snapshot.voices[id]
     const virtualAnalog = snapshot.virtualAnalog[id]
+    const eightBit = snapshot.eightBit[id]
     const record = snapshot.records[id]
     const effects = normalizeFm1Effects(snapshot.effects[id])
     if (virtualAnalog && record) {
       return { effects, record: record.slice(), slot, virtualAnalog: virtualAnalog.slice() }
+    }
+    if (eightBit && record) {
+      return { effects, eightBit: eightBit.slice(), record: record.slice(), slot }
     }
     if (!voice) throw new Error('A saved bank must contain exactly 32 sounds.')
     return {
@@ -220,15 +243,15 @@ export function duplicateNamedBank(bank: NamedBank, id: string, now: string): Na
   }
 }
 
-/** A saved bank as a DX7 bank file, with `initVoice` in each Virtual Analog slot. */
+/** A saved bank as a DX7 bank file, with `initVoice` in each Virtual Analog or 8-Bit slot. */
 export function makeNamedBankSysexFile(bank: NamedBank, initVoice: Dx7Voice) {
   validateNamedBank(bank)
   return makeDx7BankFile(bank.slots.map((slot) => ('voice' in slot ? slot.voice : initVoice)))
 }
 
-/** How many of a saved bank's slots hold a Virtual Analog preset. */
-export function namedBankVirtualAnalogCount(bank: NamedBank) {
-  return bank.slots.filter((slot) => 'virtualAnalog' in slot).length
+/** How many of a saved bank's slots hold a Virtual Analog or 8-Bit preset, sent as INIT VOICE. */
+export function namedBankInitVoiceCount(bank: NamedBank) {
+  return bank.slots.filter((slot) => !('voice' in slot)).length
 }
 
 export function makeNamedBankSysexFilename(bank: NamedBank) {

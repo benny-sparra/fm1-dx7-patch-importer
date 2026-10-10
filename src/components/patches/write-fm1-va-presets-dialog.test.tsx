@@ -114,6 +114,7 @@ function matchingLibrary(voices: Library['voices'] = {}): Library {
   )
   return {
     bankNames: {},
+    eightBit: {},
     favourites: [],
     virtualAnalog: {},
     effects: Object.fromEntries(ids.map(([id]) => [id, fm1VaRecordEffects(storedRecord)])),
@@ -393,7 +394,7 @@ describe('WriteFm1VaPresetsDialog with Virtual Analog patches', () => {
 
     expect(
       await screen.findByText(
-        'Nothing to write. One Virtual Analogue patch can’t be stored exactly, so its preset is kept.',
+        'Nothing to write. One Virtual Analogue or 8-Bit patch can’t be stored exactly, so its preset is kept.',
       ),
     ).toBeTruthy()
   })
@@ -411,7 +412,7 @@ describe('WriteFm1VaPresetsDialog with 8-Bit presets', () => {
 
     expect(
       await screen.findByText(
-        'Nothing to write. One 8-Bit preset is kept, since the library can’t hold 8-Bit patches yet.',
+        'Nothing to write. One 8-Bit preset is kept: only an 8-Bit patch can replace it.',
       ),
     ).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Write one patch…' }))
@@ -449,7 +450,7 @@ describe('WriteFm1VaPresetsDialog with 8-Bit presets', () => {
 
     expect(
       within(await screen.findByRole('region', { name: 'FM1 bank D' })).getByText(
-        'Nothing to write. 16 Virtual Analogue presets are kept: only Virtual Analogue patches can replace them. 16 8-Bit presets are kept, since the library can’t hold 8-Bit patches yet.',
+        'Nothing to write. 16 Virtual Analogue presets are kept: only Virtual Analogue patches can replace them. 16 8-Bit presets are kept: only 8-Bit patches can replace them.',
       ),
     ).toBeTruthy()
   })

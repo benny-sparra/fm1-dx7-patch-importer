@@ -489,11 +489,6 @@ export default {
     damagedPresets: 'Um preset está danificado. A posição dele mantém o som.',
     damagedPresets_other:
       '{{count, number}} presets estão danificados. As posições deles mantêm os sons.',
-    eightBitPreset: '8-Bit',
-    eightBitPresets:
-      'Um preset é 8-Bit, e a biblioteca ainda não consegue guardá-lo. A posição dele mantém o som.',
-    eightBitPresets_other:
-      '{{count, number}} presets são 8-Bit, e a biblioteca ainda não consegue guardá-los. As posições deles mantêm os sons.',
     absentPreset: 'Fora do arquivo',
     action: 'Importar um banco',
     action_other: 'Importar {{count, number}} bancos',
@@ -529,14 +524,13 @@ export default {
       'Um preset Virtual Analog é mantido: só um som Virtual Analog pode substituí-lo.',
     virtualAnalogKept_other:
       '{{count, number}} presets Virtual Analog são mantidos: só sons Virtual Analog podem substituí-los.',
-    eightBitKept:
-      'Um preset 8-Bit é mantido, porque a biblioteca ainda não consegue guardar sons 8-Bit.',
+    eightBitKept: 'Um preset 8-Bit é mantido: só um som 8-Bit pode substituí-lo.',
     eightBitKept_other:
-      '{{count, number}} presets 8-Bit são mantidos, porque a biblioteca ainda não consegue guardar sons 8-Bit.',
+      '{{count, number}} presets 8-Bit são mantidos: só sons 8-Bit podem substituí-los.',
     inexact:
-      'Um som Virtual Analog não pode ser gravado exatamente, então o preset dele é mantido.',
+      'Um som Virtual Analog ou 8-Bit não pode ser gravado exatamente, então o preset dele é mantido.',
     inexact_other:
-      '{{count, number}} sons Virtual Analog não podem ser gravados exatamente, então os presets deles são mantidos.',
+      '{{count, number}} sons Virtual Analog ou 8-Bit não podem ser gravados exatamente, então os presets deles são mantidos.',
     eightBitPatch:
       'Um som foi lido de um preset 8-Bit e não pode ser gravado, então o preset dele é mantido.',
     eightBitPatch_other:
@@ -688,13 +682,13 @@ export default {
     patchReplaced: '{{slot}} foi substituído por “{{patch}}”.',
     operatorCopied: 'O operador {{number}} foi copiado.',
     bankDownloadStartedWithInit:
-      'Baixando “{{bank}}”, com INIT VOICE no lugar do seu preset Virtual Analog.',
+      'Baixando “{{bank}}”, com INIT VOICE no lugar do seu preset Virtual Analog ou 8-Bit.',
     bankDownloadStartedWithInit_other:
-      'Baixando “{{bank}}”, com INIT VOICE no lugar dos seus {{count, number}} presets Virtual Analog.',
+      'Baixando “{{bank}}”, com INIT VOICE no lugar dos seus {{count, number}} presets Virtual Analog ou 8-Bit.',
     banksDownloadStartedWithInit:
-      'Baixando todos os bancos, com INIT VOICE no lugar de um preset Virtual Analog.',
+      'Baixando todos os bancos, com INIT VOICE no lugar de um preset Virtual Analog ou 8-Bit.',
     banksDownloadStartedWithInit_other:
-      'Baixando todos os bancos, com INIT VOICE no lugar de {{count, number}} presets Virtual Analog.',
+      'Baixando todos os bancos, com INIT VOICE no lugar de {{count, number}} presets Virtual Analog ou 8-Bit.',
   },
   meta: {
     title: 'Editor e bibliotecário M-VAVE FM1',
@@ -1116,18 +1110,24 @@ export default {
       'Clique para selecionar {{name}} no FM1, que toca o preset Virtual Analog guardado ali',
     slotVirtualAnalogAddedTitle:
       '{{name}} é um preset Virtual Analog, que só toca a partir dos bancos A a D do FM1',
+    slotEightBitTitle:
+      'Clique para selecionar {{name}} no FM1, que toca o preset 8-Bit guardado ali',
+    slotEightBitAddedTitle:
+      '{{name}} é um preset 8-Bit, que só toca a partir dos bancos A a D do FM1',
     virtualAnalogPatch: 'Preset Virtual Analog',
+    eightBitPatch: 'Preset 8-Bit',
     sentStatusWithInit:
-      'O banco {{bank}} foi enviado, com INIT VOICE no lugar do seu preset Virtual Analog. Escolha o destino no FM1.',
+      'O banco {{bank}} foi enviado, com INIT VOICE no lugar do seu preset Virtual Analog ou 8-Bit. Escolha o destino no FM1.',
     sentStatusWithInit_other:
-      'O banco {{bank}} foi enviado, com INIT VOICE no lugar dos seus {{count, number}} presets Virtual Analog. Escolha o destino no FM1.',
+      'O banco {{bank}} foi enviado, com INIT VOICE no lugar dos seus {{count, number}} presets Virtual Analog ou 8-Bit. Escolha o destino no FM1.',
     virtualAnalogInitNote:
-      'Um banco DX7 não tem lugar para um preset Virtual Analog, então o deste banco é enviado como INIT VOICE.',
+      'Um banco DX7 não tem lugar para um preset Virtual Analog ou 8-Bit, então o deste banco é enviado como INIT VOICE.',
     virtualAnalogInitNote_other:
-      'Um banco DX7 não tem lugar para presets Virtual Analog, então os {{count, number}} deste banco são enviados como INIT VOICE.',
+      'Um banco DX7 não tem lugar para presets Virtual Analog ou 8-Bit, então os {{count, number}} deste banco são enviados como INIT VOICE.',
     fmPatch: 'Som FM',
     fmTag: 'FM',
     virtualAnalogTag: 'VA',
+    eightBitTag: '8B',
     engineTitle: '{{engine}}\n{{action}}',
   },
   namedBanks: {
@@ -1176,9 +1176,9 @@ export default {
     deleted: '“{{name}}” excluído.',
     loaded: '“{{name}}” carregado em “{{bank}}”.',
     downloadedWithInit:
-      '“{{name}}” foi baixado, com INIT VOICE no lugar do seu preset Virtual Analog.',
+      '“{{name}}” foi baixado, com INIT VOICE no lugar do seu preset Virtual Analog ou 8-Bit.',
     downloadedWithInit_other:
-      '“{{name}}” foi baixado, com INIT VOICE no lugar dos seus {{count, number}} presets Virtual Analog.',
+      '“{{name}}” foi baixado, com INIT VOICE no lugar dos seus {{count, number}} presets Virtual Analog ou 8-Bit.',
   },
   backup: {
     menuOtherFiles: 'Outros arquivos',

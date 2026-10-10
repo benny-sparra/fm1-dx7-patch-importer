@@ -686,9 +686,11 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
   and the Device Manager reads `C3` as 8-Bit, `5A` as Virtual Analog, and anything else as FM. An
   8-Bit preset keeps its drums, parts, and arpeggios partly in the voice bytes, which are not a DX7
   voice, and partly in record bytes 19–26 and 45–51. Its name stays in the name bytes. The editor
-  treats `C3` as 8-Bit (`src/lib/fm1-va-engine.ts`): reading and importing leave an 8-Bit preset
-  out, a write never replaces one, and a library patch whose record carries `C3`, which a read on
-  `FM-1_096` gave the library before the editor knew the engine, is never written.
+  treats `C3` as 8-Bit (`src/lib/fm1-va-engine.ts`). Since 2026-10-10 the library keeps 8-Bit
+  presets exactly as read and writes them back the same way (below, "Hardware run on FM-1_097");
+  only an 8-Bit patch replaces an 8-Bit preset on the FM1, and a DX7 voice whose record carries
+  `C3`, which a read on `FM-1_096` gave the library before the editor knew the engine, is never
+  written.
 - **Bitcrush and the order of seven effects. Confirmed, seen once** (FM-1_096, 2026-10-06, preset
   032;
   [`docs/hardware-runs/fm1-va-bitcrush-order-2026-10-06.md`](hardware-runs/fm1-va-bitcrush-order-2026-10-06.md)).
@@ -708,8 +710,8 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
   both are heard once the patch is written to the FM1.
 - **Knob choices** are bits 0–5 of bytes 53 (knobs 1 and 2) and 52 (knobs 3 and 4), with bit 7
   marking them set; Envelope On stays bit 6 of byte 53. The 8-Bit Drums Level is byte 2, stored as
-  `80` | (99 − level). Where an FM or Virtual Analog preset keeps Preset Level was not found; byte 2
-  is the likely place.
+  `80` | (99 − level), and so is an FM or Virtual Analog preset's Preset Level. **Confirmed on
+  `FM-1_097`** (below, "Hardware run on FM-1_097"), with the choice names.
 - **Writes can follow each other closely. Confirmed** (FM-1_096, 2026-10-06, nine runs, 161
   writes; [`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`](hardware-runs/fm1-va-write-timing-2026-10-06.md)).
   The Device Manager reads each write back at once and sends the next 120 ms after that read,
@@ -841,6 +843,59 @@ blank presets captured on `FM-1_096`. 97's manual describes Erase Preset as 96's
 would confirm the blanks match. With Clock Out on, the FM1 sends the editor
 `F8` 24 times a beat, which `isHighRateMidiMessage` already keeps out of the MIDI log and the
 activity light; Start and Stop are logged.
+
+#### Hardware run on FM-1_097 (2026-10-10)
+
+`FM-1_097` was released after the beta. The FM-1_096 test plan ([`fm1-va-096-tests.md`](fm1-va-096-tests.md))
+was run on it on 2026-10-10 over USB, through the development build's preset probe, with preset
+032 (`SYN PAD 8`) as the FM test preset. Ledger and captures:
+[`hardware-runs/fm1-va-097-tests-2026-10-10.md`](hardware-runs/fm1-va-097-tests-2026-10-10.md).
+Run: F1, F2, F4, F5, M1, M3, M4, K1–K3, L1–L4, E1, E2. Not run: F3 and M2 (no backup was taken
+after placing the 8-Bit pack), §4b, §5, D1, D2, and the clean-up. Everything below is
+**Confirmed, seen once**, on `FM-1_097`.
+
+- **The editor on FM-1_097.** It is identified as Baud Girl's firmware (F1); reading all 128
+  presets marks Baud Girl's 8-Bit pack, in 097–112, and the VA pack, in 113–128 (F2); a write from a
+  bank of DX7 patches over FM1 bank D writes nothing and keeps all 32 (F4); and clicking a slot over
+  an 8-Bit preset leaves an unsaved FM edit that changing preset throws away (F5).
+- **Reads.** Each read gives a 59-byte record and 128 voice bytes; byte 18 was `C3` for NES ROCK,
+  `5A` for SUPERSAW, and `03` for SYN PAD 8 (M1).
+- **Erase Preset.** Each engine's blank is named `INIT`, not `VOICE nn`, on any slot (M3; preset
+  031's VA blank matched 032's byte for byte):
+  - **FM:** byte 18 `A5`, the value FM-1+VA's web code expects, where the backups' FM presets hold
+    `03`. The voice is a DX7 init voice with only OP1 at 99. Bytes 0–17 become the effect settings'
+    defaults (`6B 03 03 1E 1E 03 1E 1E 19 1E 37 46 1E 19 28 1E 32 14`: Cutoff 107, Resonance 3,
+    Reverb 30/30, Delay 30/25/30, Distortion 55/70/30, Chorus 25/40/30, Phaser 50/20/20), every
+    effect is Off and the chain in order. Bytes 19–26 and 45–51, which FM does not read, keep
+    whatever the preset held, so an FM erase is not one fixed set of bytes.
+  - **8-Bit:** byte 18 `C3`, 19–22 `04 00 01 00`, 23–25 and 45–51 `FF`, byte 26 as it was, and the
+    firmware's kit, bass, and lead: the Device Manager's emulator blank in every byte the notes
+    give.
+  - **VA:** byte 18 `5A`, 19–26 `02 00 32 00 E4 80 80 80`, 45–51 `80`, and a DX7 init voice with
+    OP6's Output Level (the VA Level) at 78 as well as OP1 at 99. The 2026-10-01 erase on an earlier
+    release named it `VOICE 97` with OP6 at 99.
+- **8-Bit presets survive the preset write** (M4): NES ROCK written back renamed read back with
+  every other byte the same, and restored from its first read it read back byte for byte, and
+  played as before. FM-1+VA sent no reply to either write.
+- **Baud Girl's 8-Bit pack names Filter twice in its effect chain** (bytes 27 and 30 both `00`, no
+  Reverb). SAVE on the FM1 corrects byte 30 to `01`. A write of the pack's bytes stores them as they
+  are.
+- **Knob choices** (K1–K3): setting one knob writes both fields of its byte and sets bit 7, the same
+  on every engine. An unset byte, bit 7 clear, holds the defaults, which the written fields put at
+  Knob 2 = 1 and Knob 4 = 4. The choices, codes 0–7:
+  - FM: Brightness, Feedback, Attack, Decay, Release, Vibrato, LFO speed, Cutoff
+  - Virtual Analog: Cutoff, Resonance, Filter Env, Filter Decay, Shape, Super, Detune, LFO to Cutoff
+  - 8-Bit: Drum Decay, Bass Arpeggio, Lead Arpeggio, Lead Decay, Lead Arp Speed, Lead Vibrato, Lead
+    Release, Bass Decay
+- **Levels** (L1–L4): the Mixer knob bank's Preset Level, on FM and Virtual Analog presets, is
+  record byte 2 as `80` | (99 − level), so 50 is `B1` and 0 is `E3`; an unmarked `03` or `00` reads
+  as 99. The 8-Bit Drums Level is the same byte in the same form. The VA Level is packed voice byte
+  14, OP6's Output Level. The 8-Bit Bass and Lead Levels are packed voice bytes 50 and 101
+  (edit-buffer bytes 61 and 124), stored as the level shown. The library keeps byte 2 as read, so a
+  patch carries its Preset Level through every write.
+- **Envelope and Mono** (E1, E2): Envelope On is bit 6 of byte 53, and Decay, Sustain, and Release
+  are bytes 55, 56, and 57; Mono is byte 58, `00` to `01`. The Virtual Analog editor already maps
+  them this way.
 
 ### Felucca replacement firmware
 

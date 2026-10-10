@@ -33,6 +33,7 @@ import {
   renameBank as renameLibraryBank,
   renameVoice as renameLibraryVoice,
   replaceVoice as replaceLibraryVoice,
+  replaceWithEightBit as replaceLibraryWithEightBit,
   replaceWithVirtualAnalog as replaceLibraryWithVirtualAnalog,
   saveSound,
   swapVoices as swapLibraryVoices,
@@ -102,6 +103,7 @@ export function usePatchLibrary() {
               bankDescriptions: stored.bankDescriptions,
               bankNames: stored.bankNames,
               effects: stored.effects,
+              eightBit: stored.eightBit,
               favourites: stored.favourites,
               loadedBanks: stored.loadedBanks,
               records: stored.records,
@@ -358,6 +360,20 @@ export function usePatchLibrary() {
     [commit],
   )
 
+  const replaceWithEightBit = useCallback(
+    (
+      bank: string,
+      slot: number,
+      eightBit: Uint8Array,
+      effects: Uint8Array | undefined,
+      record: Uint8Array,
+    ) =>
+      commit((current) =>
+        replaceLibraryWithEightBit(current, bank, slot, eightBit, effects, record),
+      ),
+    [commit],
+  )
+
   const deleteBank = useCallback(
     (bank: string) => commit((current) => deleteWorkspaceBank(current, bank)),
     [commit],
@@ -562,6 +578,7 @@ export function usePatchLibrary() {
     renameBank,
     renameVoice,
     replaceVoice,
+    replaceWithEightBit,
     replaceWithVirtualAnalog,
     retryWorkspaceLoading,
     retryWorkspaceSaving,
@@ -578,6 +595,7 @@ export function usePatchLibrary() {
     updateNamedBankDetails,
     updateVoice,
     effects,
+    eightBit: history.present.eightBit,
     records,
     virtualAnalog: history.present.virtualAnalog,
     voices,

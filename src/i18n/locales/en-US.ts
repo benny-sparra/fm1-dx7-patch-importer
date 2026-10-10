@@ -71,9 +71,9 @@ export default {
       'One Virtual Analog preset is kept: only a Virtual Analog patch can replace it.',
     virtualAnalogKept_other:
       '{{count, number}} Virtual Analog presets are kept: only Virtual Analog patches can replace them.',
-    inexact: 'One Virtual Analog patch can’t be stored exactly, so its preset is kept.',
+    inexact: 'One Virtual Analog or 8-Bit patch can’t be stored exactly, so its preset is kept.',
     inexact_other:
-      '{{count, number}} Virtual Analog patches can’t be stored exactly, so their presets are kept.',
+      '{{count, number}} Virtual Analog or 8-Bit patches can’t be stored exactly, so their presets are kept.',
   },
   changeToFm: {
     warning:
@@ -83,13 +83,13 @@ export default {
   },
   toasts: {
     bankDownloadStartedWithInit:
-      'Downloading “{{bank}}”, with INIT VOICE in place of its Virtual Analog preset.',
+      'Downloading “{{bank}}”, with INIT VOICE in place of its Virtual Analog or 8-Bit preset.',
     bankDownloadStartedWithInit_other:
-      'Downloading “{{bank}}”, with INIT VOICE in place of its {{count, number}} Virtual Analog presets.',
+      'Downloading “{{bank}}”, with INIT VOICE in place of its {{count, number}} Virtual Analog or 8-Bit presets.',
     banksDownloadStartedWithInit:
-      'Downloading all banks, with INIT VOICE in place of one Virtual Analog preset.',
+      'Downloading all banks, with INIT VOICE in place of one Virtual Analog or 8-Bit preset.',
     banksDownloadStartedWithInit_other:
-      'Downloading all banks, with INIT VOICE in place of {{count, number}} Virtual Analog presets.',
+      'Downloading all banks, with INIT VOICE in place of {{count, number}} Virtual Analog or 8-Bit presets.',
   },
   banks: {
     slotVirtualAnalogTitle:
@@ -98,18 +98,18 @@ export default {
       '{{name}} is a Virtual Analog preset, which plays only from the FM1’s banks A to D',
     virtualAnalogPatch: 'Virtual Analog preset',
     sentStatusWithInit:
-      'Browser bank {{bank}} was sent, with INIT VOICE in place of its Virtual Analog preset. Choose its destination on the FM1.',
+      'Browser bank {{bank}} was sent, with INIT VOICE in place of its Virtual Analog or 8-Bit preset. Choose its destination on the FM1.',
     sentStatusWithInit_other:
-      'Browser bank {{bank}} was sent, with INIT VOICE in place of its {{count, number}} Virtual Analog presets. Choose its destination on the FM1.',
+      'Browser bank {{bank}} was sent, with INIT VOICE in place of its {{count, number}} Virtual Analog or 8-Bit presets. Choose its destination on the FM1.',
     virtualAnalogInitNote:
-      'A DX7 bank has no place for a Virtual Analog preset, so this bank’s one is sent as INIT VOICE.',
+      'A DX7 bank has no place for a Virtual Analog or 8-Bit preset, so this bank’s one is sent as INIT VOICE.',
     virtualAnalogInitNote_other:
-      'A DX7 bank has no place for a Virtual Analog preset, so this bank’s {{count, number}} are sent as INIT VOICE.',
+      'A DX7 bank has no place for a Virtual Analog or 8-Bit preset, so this bank’s {{count, number}} are sent as INIT VOICE.',
   },
   namedBanks: {
     downloadedWithInit:
-      'Downloaded “{{name}}”, with INIT VOICE in place of its Virtual Analog preset.',
+      'Downloaded “{{name}}”, with INIT VOICE in place of its Virtual Analog or 8-Bit preset.',
     downloadedWithInit_other:
-      'Downloaded “{{name}}”, with INIT VOICE in place of its {{count, number}} Virtual Analog presets.',
+      'Downloaded “{{name}}”, with INIT VOICE in place of its {{count, number}} Virtual Analog or 8-Bit presets.',
   },
 }

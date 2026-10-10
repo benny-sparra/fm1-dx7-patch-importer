@@ -30,6 +30,7 @@ it('explains a search that could not load and offers a reload', async () => {
       workspaceEffects={{}}
       workspaceRecords={{}}
       workspaceMatches={[]}
+      workspaceEightBit={{}}
       workspaceVirtualAnalog={{}}
       workspaceVoices={{}}
     />,

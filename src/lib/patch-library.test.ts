@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   addWorkspaceBank,
-  bankVirtualAnalogCount,
+  bankInitVoiceCount,
   clearLibraryBank,
   copyVoice,
   createWorkspaceBank,
@@ -24,6 +24,7 @@ import {
   renameBank,
   renameVoice,
   replaceVoice,
+  replaceWithEightBit,
   replaceWithVirtualAnalog,
   saveSound,
   swapVoices,
@@ -40,6 +41,7 @@ import {
 import { updateDx7VoiceName } from '@/lib/dx7'
 import { favouritePatchId, toggleFavourite } from '@/lib/favourites'
 import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
+import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
 import {
   capturedVirtualAnalogRecord,
   virtualAnalogVoiceBeyondDx7Ranges,
@@ -1087,7 +1089,7 @@ describe('Virtual Analog presets in the workspace', () => {
 
     expect(getBankVoices(library, 'A')).toHaveLength(31)
     expect(getBankVoices(library, 'A', initVoice)[2]).toBe(initVoice)
-    expect(bankVirtualAnalogCount(library.virtualAnalog, 'A')).toBe(1)
+    expect(bankInitVoiceCount(library, 'A')).toBe(1)
   })
 })
 
@@ -1101,6 +1103,148 @@ describe('replaceWithVirtualAnalog', () => {
 
     expect(replaced.virtualAnalog[voiceId('A', 2)]).toEqual(virtualAnalog)
     expect(replaced.virtualAnalog[voiceId('A', 2)]).not.toBe(virtualAnalog)
+    expect(replaced.records[voiceId('A', 2)]).toEqual(record)
+    expect(replaced.voices[voiceId('A', 2)]).toBeUndefined()
+    expect(replaced.effects[voiceId('A', 2)]).toEqual(makeDefaultFm1Effects())
+  })
+})
+
+describe('8-Bit presets in the workspace', () => {
+  const eightBitRecord = capturedEightBitRecord()
+  function withEightBitInA3() {
+    const loaded = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const sounds = Array.from({ length: 32 }, (_, index) =>
+      index === 2 ? { eightBit: capturedEightBitVoice(), record: eightBitRecord } : null,
+    )
+    return importFetchedBanks(loaded, [{ bank: 'A', sounds }])
+  }
+  const a3 = voiceId('A', 3)
+
+  it('keeps an 8-Bit preset’s bytes exactly as read, apart from the DX7 voices', () => {
+    const library = withEightBitInA3()
+
+    expect(library.eightBit[a3]).toEqual(capturedEightBitVoice())
+    expect(library.voices[a3]).toBeUndefined()
+    expect(library.virtualAnalog[a3]).toBeUndefined()
+    expect(library.records[a3]).toEqual(eightBitRecord)
+  })
+
+  it('shows an 8-Bit slot by its name and engine', () => {
+    const patch = makePatches(withEightBitInA3())[2]
+
+    expect(patch).toMatchObject({ family: '8-Bit', name: 'NES ROCK', program: 2 })
+  })
+
+  it('moves an 8-Bit preset with its record when a slot is dragged', () => {
+    const moved = moveVoice(withEightBitInA3(), 'A', 3, 1)
+
+    expect(moved.eightBit[voiceId('A', 1)]).toEqual(capturedEightBitVoice())
+    expect(moved.records[voiceId('A', 1)]).toEqual(eightBitRecord)
+    expect(moved.voices[voiceId('A', 1)]).toBeUndefined()
+    expect(moved.eightBit[a3]).toBeUndefined()
+    expect(moved.voices[a3]).toBeDefined()
+  })
+
+  it('copies an 8-Bit preset as its own bytes', () => {
+    const library = withEightBitInA3()
+
+    const copied = copyVoice(library, a3, 'A', 9)
+
+    expect(copied.eightBit[voiceId('A', 9)]).toEqual(library.eightBit[a3])
+    expect(copied.eightBit[voiceId('A', 9)]).not.toBe(library.eightBit[a3])
+    expect(copied.voices[voiceId('A', 9)]).toBeUndefined()
+  })
+
+  it('replaces an 8-Bit preset with a DX7 voice or a Virtual Analog preset put over it', () => {
+    const library = withEightBitInA3()
+    const [voice] = makeDemoVoices()
+
+    for (const replaced of [
+      copyVoice(library, voiceId('A', 1), 'A', 3),
+      replaceVoice(library, 'A', 3, voice),
+      importVoices(library, 'A', makeDemoVoices()),
+      replaceWithVirtualAnalog(
+        library,
+        'A',
+        3,
+        virtualAnalogVoiceBeyondDx7Ranges(),
+        undefined,
+        capturedVirtualAnalogRecord(),
+      ),
+    ]) {
+      expect(replaced.eightBit[a3]).toBeUndefined()
+    }
+  })
+
+  it('replaces a Virtual Analog preset with an 8-Bit preset copied over it', () => {
+    const sounds = Array.from({ length: 32 }, (_, index) =>
+      index === 0
+        ? {
+            record: capturedVirtualAnalogRecord(),
+            virtualAnalog: virtualAnalogVoiceBeyondDx7Ranges(),
+          }
+        : null,
+    )
+    const library = importFetchedBanks(withEightBitInA3(), [{ bank: 'A', sounds }])
+
+    const copied = copyVoice(library, a3, 'A', 1)
+
+    expect(copied.virtualAnalog[voiceId('A', 1)]).toBeUndefined()
+    expect(copied.eightBit[voiceId('A', 1)]).toEqual(capturedEightBitVoice())
+  })
+
+  it('swaps an 8-Bit preset with a DX7 voice, each keeping its own record', () => {
+    const library = withEightBitInA3()
+    const a1 = voiceId('A', 1)
+
+    const swapped = swapVoices(library, a3, 'A', 1)
+
+    expect(swapped.eightBit[a1]).toEqual(capturedEightBitVoice())
+    expect(swapped.records[a1]).toEqual(eightBitRecord)
+    expect(swapped.voices[a1]).toBeUndefined()
+    expect(swapped.voices[a3]).toEqual(library.voices[a1])
+    expect(swapped.eightBit[a3]).toBeUndefined()
+    expect(swapped.records[a3]).toBeUndefined()
+  })
+
+  it('removes 8-Bit presets with the bank they are in', () => {
+    expect(clearLibraryBank(withEightBitInA3(), 'A').eightBit).toEqual({})
+  })
+
+  it('moves an 8-Bit preset up a letter with its bank when an earlier bank goes', () => {
+    const library = importVoices(withEightBitInA3(), 'B', makeDemoVoices())
+    const inB = copyVoice(library, a3, 'B', 3)
+
+    expect(deleteWorkspaceBank(inB, 'A').eightBit[a3]).toEqual(library.eightBit[a3])
+  })
+
+  it('puts INIT VOICE in an 8-Bit slot of a DX7 bank, and counts it with Virtual Analog ones', () => {
+    const library = replaceWithVirtualAnalog(
+      withEightBitInA3(),
+      'A',
+      5,
+      virtualAnalogVoiceBeyondDx7Ranges(),
+      undefined,
+      capturedVirtualAnalogRecord(),
+    )
+    const [initVoice] = makeDemoVoices()
+
+    expect(getBankVoices(library, 'A')).toHaveLength(30)
+    expect(getBankVoices(library, 'A', initVoice)[2]).toBe(initVoice)
+    expect(bankInitVoiceCount(library, 'A')).toBe(2)
+  })
+})
+
+describe('replaceWithEightBit', () => {
+  it('puts an 8-Bit preset from outside the workspace over a slot, as its own copy', () => {
+    const library = importVoices(emptyPatchLibrary(), 'A', makeDemoVoices())
+    const eightBit = capturedEightBitVoice()
+    const record = capturedEightBitRecord()
+
+    const replaced = replaceWithEightBit(library, 'A', 2, eightBit, undefined, record)
+
+    expect(replaced.eightBit[voiceId('A', 2)]).toEqual(eightBit)
+    expect(replaced.eightBit[voiceId('A', 2)]).not.toBe(eightBit)
     expect(replaced.records[voiceId('A', 2)]).toEqual(record)
     expect(replaced.voices[voiceId('A', 2)]).toBeUndefined()
     expect(replaced.effects[voiceId('A', 2)]).toEqual(makeDefaultFm1Effects())

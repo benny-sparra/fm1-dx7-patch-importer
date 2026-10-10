@@ -21,6 +21,7 @@ import {
   workspaceBackupVersion,
   WorkspaceBackupError,
 } from './workspace-backup'
+import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
 import {
   capturedVirtualAnalogRecord,
   virtualAnalogVoiceBeyondDx7Ranges,
@@ -166,6 +167,40 @@ function versionFourFixture() {
   }
 }
 
+// An 8-Bit preset's voice bytes and record, from version 5: preset 097, NES ROCK, as FM-1_097 read
+// it back.
+const fixtureEightBit =
+  'KBgtYwBgMgxGAAIEIwAACig0JiRaUFwyEEEASwQgAAwNAEgyHlUAYDI3RgAABCkZMgpfJCgyWgArKDBaAAQAIxkACCNIMgpQHjIoLVoAPAAAABkIFEwyHEYAWDJSSwAAAAgAMgpjY2NjYzIyMjIACCMAAAAIGE5FUyBST0NLICA='
+const fixtureEightBitRecord =
+  'UAMAHh4eHh4eHh4eHh4eHh4ewwQAAQD///9FAAAAAAAAAgAAAwAABAAABQAA/////////wAAAABkAAA='
+
+// Version 5 lets a slot hold an 8-Bit preset, written as version 5 writes it: in workspace slot A3
+// and in the saved bank's slot 3.
+function versionFiveFixture() {
+  const fixture = versionFourFixture()
+  const eightBitSlot = {
+    effects: fixtureEffects,
+    eightBit: fixtureEightBit,
+    record: fixtureEightBitRecord,
+    slot: 3,
+  }
+  const [savedBank] = fixture.savedBanks
+  return {
+    ...fixture,
+    savedBanks: [
+      {
+        ...savedBank,
+        slots: savedBank.slots.map((saved, index) => (index === 2 ? eightBitSlot : saved)),
+      },
+    ],
+    version: 5,
+    workspace: {
+      ...fixture.workspace,
+      slots: [...fixture.workspace.slots, { bank: 'A', ...eightBitSlot }],
+    },
+  }
+}
+
 function fixtureVoiceBytes() {
   const data = new Uint8Array(dx7PackedVoiceSize)
   for (let index = 0; index < 118; index += 1) data[index] = index % 100
@@ -214,7 +249,7 @@ function makeSavedBank(id: string): NamedBank {
       voice,
     })),
     updatedAt: '2026-09-01T10:00:00.000Z',
-    version: 3,
+    version: 4,
   }
 }
 
@@ -250,7 +285,7 @@ describe('workspace backup', () => {
       id: 'saved-1',
       name: 'Live pads',
       // A saved bank is read as the version this release writes; it has no records.
-      version: 3,
+      version: 4,
     })
     expect(slotVoice(backup.savedBanks[0].slots[31]).name).toBe('BACKUP 1')
     expect(backup.damagedSavedBankCount).toBe(0)
@@ -327,6 +362,39 @@ describe('workspace backup', () => {
 
   it('refuses a Virtual Analog preset in a backup of an earlier version', () => {
     const fixture = { ...versionFourFixture(), version: 3 }
+
+    expect(problemOf(() => parseWorkspaceBackup(JSON.stringify(fixture)))).toBe('damaged')
+  })
+
+  it('reads a version 5 backup, with its 8-Bit presets, as that version wrote it', () => {
+    const backup = parseWorkspaceBackup(JSON.stringify(versionFiveFixture()))
+
+    expect(backup.workspace.eightBit).toEqual({ [voiceId('A', 3)]: capturedEightBitVoice() })
+    expect(backup.workspace.records[voiceId('A', 3)]).toEqual(capturedEightBitRecord())
+    expect(backup.workspace.voices[voiceId('A', 3)]).toBeUndefined()
+    expect(backup.workspace.virtualAnalog[voiceId('A', 2)]).toBeDefined()
+    expect(backup.savedBanks[0].slots[2]).toMatchObject({
+      eightBit: capturedEightBitVoice(),
+      record: capturedEightBitRecord(),
+    })
+  })
+
+  it('backs up 8-Bit presets and restores them exactly', () => {
+    const sounds = Array.from({ length: 32 }, (_, index) =>
+      index === 4 ? { eightBit: capturedEightBitVoice(), record: capturedEightBitRecord() } : null,
+    )
+    const workspace = importFetchedBanks(makeWorkspace(), [{ bank: 'B', sounds }])
+
+    const restored = parseWorkspaceBackup(
+      makeWorkspaceBackup(workspace, [], '2026-10-10T12:00:00Z'),
+    )
+
+    expect(restored.workspace.eightBit).toEqual(workspace.eightBit)
+    expect(restored.workspace.records).toEqual(workspace.records)
+  })
+
+  it('refuses an 8-Bit preset in a backup of an earlier version', () => {
+    const fixture = { ...versionFiveFixture(), version: 4 }
 
     expect(problemOf(() => parseWorkspaceBackup(JSON.stringify(fixture)))).toBe('damaged')
   })

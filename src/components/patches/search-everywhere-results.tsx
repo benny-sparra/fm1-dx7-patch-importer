@@ -3,7 +3,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
-import { EngineTag } from '@/components/patches/engine-tag'
+import { EngineTag, engineName, type PresetEngine } from '@/components/patches/engine-tag'
 import { FavouriteButton } from '@/components/patches/favourite-button'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
@@ -13,7 +13,7 @@ import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import type { NamedBank } from '@/lib/named-bank'
 import { librarianShortcuts, matchesShortcut } from '@/lib/keyboard-shortcuts'
 import type { Dx7CatalogIndex } from '@/lib/search-everywhere'
-import { soundKey, virtualAnalogSoundKey } from '@/lib/sound-key'
+import { eightBitSoundKey, soundKey, virtualAnalogSoundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
 
 type SearchModule = typeof import('@/lib/search-everywhere')
@@ -41,11 +41,13 @@ const emptyGroup: ResultGroupContent = { hidden: 0, results: [] }
 
 /**
  * A result's sound: a DX7 voice, with the FM-1+VA settings record of a saved-bank sound that has
- * one, or a saved Virtual Analog preset's voice bytes and record. A catalog sound has no FM1
- * effects of its own.
+ * one, or a saved Virtual Analog or 8-Bit preset's voice bytes and record. A catalog sound has no
+ * FM1 effects of its own.
  */
 type ResultSound = { effects?: Uint8Array } & (
-  { record?: Uint8Array; voice: Dx7Voice } | { record: Uint8Array; virtualAnalog: Uint8Array }
+  | { record?: Uint8Array; voice: Dx7Voice }
+  | { record: Uint8Array; virtualAnalog: Uint8Array }
+  | { eightBit: Uint8Array; record: Uint8Array }
 )
 
 /** A sound found outside the workspace, ready to copy into a workspace slot. */
@@ -59,10 +61,10 @@ export type SearchResultSound = ResultSound & {
 type Result = {
   bankName: string
   /**
-   * A saved Virtual Analog preset, which can only be copied: a saved bank has no FM1 slot to play
-   * it from, and it has no voice editor.
+   * The engine of a saved Virtual Analog or 8-Bit preset, which can only be copied: a saved bank
+   * has no FM1 slot to play it from, and it has no voice editor. Null for a DX7 voice.
    */
-  isVirtualAnalog: boolean
+  presetEngine: PresetEngine | null
   key: string
   load: () => Promise<ResultSound>
   name: string
@@ -87,12 +89,13 @@ type SearchEverywhereResultsProps = {
     bankName: string,
   ) => void
   search: string
-  /** Marks an FM result's engine as well as a Virtual Analog one's, as the slots above do. */
+  /** Marks an FM result's engine as well as a Virtual Analog or 8-Bit one's, as the slots do. */
   tagsEngines?: boolean
   workspaceEffects: Record<string, Uint8Array>
   workspaceRecords: Record<string, Uint8Array>
   /** The workspace results above. A result that sounds exactly like one of them is left out. */
   workspaceMatches: Pick<Patch, 'id'>[]
+  workspaceEightBit: Record<string, Uint8Array>
   workspaceVirtualAnalog: Record<string, Uint8Array>
   workspaceVoices: Record<string, Dx7Voice>
 }
@@ -120,6 +123,7 @@ export function SearchEverywhereResults({
   workspaceEffects,
   workspaceRecords,
   workspaceMatches,
+  workspaceEightBit,
   workspaceVirtualAnalog,
   workspaceVoices,
 }: SearchEverywhereResultsProps) {
@@ -159,16 +163,17 @@ export function SearchEverywhereResults({
     const shown = workspaceMatches.flatMap(({ id }) => {
       const voice = workspaceVoices[id]
       const virtualAnalog = workspaceVirtualAnalog[id]
+      const eightBit = workspaceEightBit[id]
       const record = workspaceRecords[id]
       const effects = workspaceEffects[id] ?? makeDefaultFm1Effects()
       if (voice) return [soundKey(voice, effects, record)]
-      return virtualAnalog && record ? [virtualAnalogSoundKey(virtualAnalog, effects, record)] : []
+      if (virtualAnalog && record) return [virtualAnalogSoundKey(virtualAnalog, effects, record)]
+      return eightBit && record ? [eightBitSoundKey(eightBit, effects, record)] : []
     })
     const [saved, catalog] = hideCopies<{ result: Result; soundKey: string }>(shown, [
       findSavedBankMatches(namedBanks, search).map((match) => ({
         result: {
           bankName: match.bankName,
-          isVirtualAnalog: 'virtualAnalog' in match,
           key: `saved:${match.bankId}:${match.slot}`,
           load: (): Promise<ResultSound> =>
             Promise.resolve(
@@ -178,9 +183,13 @@ export function SearchEverywhereResults({
                     record: match.record,
                     virtualAnalog: match.virtualAnalog,
                   }
-                : { effects: match.effects, record: match.record, voice: match.voice },
+                : 'eightBit' in match
+                  ? { effects: match.effects, eightBit: match.eightBit, record: match.record }
+                  : { effects: match.effects, record: match.record, voice: match.voice },
             ),
           name: match.name,
+          presetEngine:
+            'virtualAnalog' in match ? 'virtual-analog' : 'eightBit' in match ? 'eight-bit' : null,
           slot: match.slot,
           soundKey: match.soundKey,
         },
@@ -189,10 +198,10 @@ export function SearchEverywhereResults({
       findCatalogMatches(searcher.index, search).map((match) => ({
         result: {
           bankName: match.bankName,
-          isVirtualAnalog: false,
           key: `catalog:${match.bankId}:${match.slot}`,
           load: async () => ({ voice: await searcher.loadVoice(match.bankId, match.slot) }),
           name: match.name,
+          presetEngine: null,
           slot: match.slot,
           soundKey: match.soundKey,
         },
@@ -210,6 +219,7 @@ export function SearchEverywhereResults({
     workspaceEffects,
     workspaceMatches,
     workspaceRecords,
+    workspaceEightBit,
     workspaceVirtualAnalog,
     workspaceVoices,
   ])
@@ -224,8 +234,8 @@ export function SearchEverywhereResults({
       const sound = await result.load()
       if (request !== latestRequest.current) return
       const origin = `${slotNumber(result.slot)} ${result.name} · ${result.bankName}`
-      if ('virtualAnalog' in sound) {
-        // A Virtual Analog preset is only copied: it cannot play here or open in the editor.
+      if (!('voice' in sound)) {
+        // A Virtual Analog or 8-Bit preset is only copied: it cannot play here or open in an editor.
         if (action === 'copy' || action === 'edit') {
           onCopy({ ...sound, name: result.name, origin, slot: result.slot }, false)
         }
@@ -367,8 +377,8 @@ function ResultGroup({
                 )}
                 key={result.key}
               >
-                {/* A Virtual Analog result has nothing to play here, so only its copy button acts. */}
-                {result.isVirtualAnalog ? null : (
+                {/* A Virtual Analog or 8-Bit result has nothing to play here, so only its copy acts. */}
+                {result.presetEngine ? null : (
                   <button
                     aria-current={isActive ? 'true' : undefined}
                     aria-label={t('banks.everywhere.play', { name: result.name, origin })}
@@ -403,8 +413,8 @@ function ResultGroup({
                 >
                   <span>{slotNumber(result.slot)}</span>
                 </span>
-                {result.isVirtualAnalog ? (
-                  <EngineTag engine="virtual-analog" />
+                {result.presetEngine ? (
+                  <EngineTag engine={result.presetEngine} />
                 ) : tagsEngines ? (
                   <EngineTag engine="fm" />
                 ) : null}
@@ -420,15 +430,15 @@ function ResultGroup({
                   <span className="block truncate text-[11px] text-[var(--crt-ink-3)]">
                     {result.bankName}
                   </span>
-                  {result.isVirtualAnalog ? (
-                    <span className="sr-only">{t('banks.virtualAnalogPatch')}</span>
+                  {result.presetEngine ? (
+                    <span className="sr-only">{engineName(t, result.presetEngine)}</span>
                   ) : tagsEngines ? (
                     <span className="sr-only">{t('banks.fmPatch')}</span>
                   ) : null}
                 </span>
                 {/* As on a slot, the heart and copy button share one gap to leave the name room. */}
                 <span className="flex shrink-0 items-center">
-                  {result.isVirtualAnalog ? null : (
+                  {result.presetEngine ? null : (
                     <FavouriteButton
                       isFavourite={favouriteKeys.has(result.soundKey)}
                       name={result.name}

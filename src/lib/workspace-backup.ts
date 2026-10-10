@@ -9,6 +9,7 @@ import {
 } from '@/lib/dx7'
 import { type Favourite, type FavouriteOrigin, readFavourites } from '@/lib/favourites'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
+import { isFm1VaEightBitVoice } from '@/lib/fm1-va-eight-bit'
 import { isFm1VaVirtualAnalogVoice } from '@/lib/fm1-va-virtual-analog'
 import { recordBackupTime } from '@/lib/last-backup'
 import { type NamedBank, validateNamedBank } from '@/lib/named-bank'
@@ -29,7 +30,7 @@ import {
  * change for different reasons.
  */
 export const workspaceBackupFormat = 'fm1-librarian-backup'
-export const workspaceBackupVersion = 4
+export const workspaceBackupVersion = 5
 export const workspaceBackupFileAccept = '.json,application/json'
 
 /**
@@ -109,6 +110,23 @@ type BackupFileV4 = Omit<BackupFileV3, 'savedBanks' | 'version' | 'workspace'> &
   }
 }
 
+/** A slot holding an 8-Bit preset, from version 5: its voice bytes and record in base64. */
+type BackupEightBitSlotV5 = { effects: string; eightBit: string; record: string; slot: number }
+
+type BackupSlotV5 = BackupSlotV4 | BackupEightBitSlotV5
+
+/**
+ * Version 5 lets a workspace or saved-bank slot hold an 8-Bit preset in place of a DX7 voice.
+ * Everything else is as version 4 wrote it.
+ */
+type BackupFileV5 = Omit<BackupFileV4, 'savedBanks' | 'version' | 'workspace'> & {
+  savedBanks: (Omit<BackupFileV4['savedBanks'][number], 'slots'> & { slots: BackupSlotV5[] })[]
+  version: 5
+  workspace: Omit<BackupFileV4['workspace'], 'slots'> & {
+    slots: (BackupSlotV5 & { bank: string })[]
+  }
+}
+
 // 'format' is not a backup at all, 'newer' was written by a later release, and 'damaged' is a
 // backup whose workspace cannot be read.
 type WorkspaceBackupProblem = 'damaged' | 'format' | 'newer' | 'size'
@@ -149,12 +167,14 @@ function encodeRecord(record: Uint8Array | undefined): BackupRecordV3 {
   return record ? { record: encodeBase64(record) } : {}
 }
 
-/** A slot's sound: a DX7 voice with its optional record, or a Virtual Analog preset. */
+/** A slot's sound: a DX7 voice with its optional record, or a Virtual Analog or 8-Bit preset. */
 type SlotSound = { effects?: Uint8Array } & (
-  { record?: Uint8Array; voice: Dx7Voice } | { record: Uint8Array; virtualAnalog: Uint8Array }
+  | { record?: Uint8Array; voice: Dx7Voice }
+  | { record: Uint8Array; virtualAnalog: Uint8Array }
+  | { eightBit: Uint8Array; record: Uint8Array }
 )
 
-function encodeSlot(sound: SlotSound, slot: number): BackupSlotV4 {
+function encodeSlot(sound: SlotSound, slot: number): BackupSlotV5 {
   const effects = encodeBase64(normalizeFm1Effects(sound.effects))
   if ('virtualAnalog' in sound) {
     return {
@@ -164,12 +184,20 @@ function encodeSlot(sound: SlotSound, slot: number): BackupSlotV4 {
       virtualAnalog: encodeBase64(sound.virtualAnalog),
     }
   }
+  if ('eightBit' in sound) {
+    return {
+      effects,
+      eightBit: encodeBase64(sound.eightBit),
+      record: encodeBase64(sound.record),
+      slot,
+    }
+  }
   return { effects, ...encodeRecord(sound.record), slot, voice: encodeBase64(sound.voice.data) }
 }
 
 /**
- * Writes the workspace, with its favourites, records, and Virtual Analog presets, and the saved
- * banks as a version 4 file.
+ * Writes the workspace, with its favourites, records, and Virtual Analog and 8-Bit presets, and the
+ * saved banks as a version 5 file.
  */
 export function makeWorkspaceBackup(
   snapshot: PatchLibrarySnapshot,
@@ -181,16 +209,18 @@ export function makeWorkspaceBackup(
       const id = voiceId(bank, slot)
       const voice = snapshot.voices[id]
       const virtualAnalog = snapshot.virtualAnalog[id]
+      const eightBit = snapshot.eightBit[id]
       const record = snapshot.records[id]
       const effects = snapshot.effects[id]
       if (voice) return [{ bank, ...encodeSlot({ effects, record, voice }, slot) }]
       if (virtualAnalog && record) {
         return [{ bank, ...encodeSlot({ effects, record, virtualAnalog }, slot) }]
       }
+      if (eightBit && record) return [{ bank, ...encodeSlot({ effects, eightBit, record }, slot) }]
       return []
     }),
   )
-  const file: BackupFileV4 = {
+  const file: BackupFileV5 = {
     format: workspaceBackupFormat,
     savedAt,
     savedBanks: savedBanks.map((bank) => ({
@@ -257,11 +287,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Reads one voice, its effects, and, from version 3, its record, or from version 4 a Virtual
- * Analog preset in place of the voice. Voice data is checked as strictly as a `.syx` import: a
+ * Reads one voice, its effects, and, from version 3, its record, or in place of the voice a Virtual
+ * Analog preset from version 4 or an 8-Bit preset from version 5. Voice data is checked as strictly as a `.syx` import: a
  * byte above seven bits means the file was spoiled, so it is refused rather than masked. A record
  * of the wrong size is refused the same way; a DX7 voice without one has none, while a Virtual
- * Analog preset needs its record.
+ * Analog or 8-Bit preset needs its record.
  */
 function readSound(value: Record<string, unknown>, version: number): SlotSound | null {
   const effects = decodeBase64(value.effects)
@@ -278,6 +308,19 @@ function readSound(value: Record<string, unknown>, version: number): SlotSound |
       return null
     }
     return { effects: normalizeFm1Effects(effects), record, virtualAnalog }
+  }
+  if (version >= 5 && value.eightBit !== undefined) {
+    const eightBit = decodeBase64(value.eightBit)
+    if (
+      !isFm1VaEightBitVoice(eightBit) ||
+      !effects ||
+      effects.length !== fm1EffectParameterCount ||
+      !record ||
+      record.length !== fm1VaRecordSize
+    ) {
+      return null
+    }
+    return { effects: normalizeFm1Effects(effects), eightBit, record }
   }
   const data = decodeBase64(value.voice)
   if (
@@ -352,6 +395,7 @@ function readWorkspace(value: unknown, version: number): PatchLibrarySnapshot {
 
   const voices: Record<string, Dx7Voice> = {}
   const virtualAnalog: Record<string, Uint8Array> = {}
+  const eightBit: Record<string, Uint8Array> = {}
   const effects: Record<string, Uint8Array> = {}
   const records: Record<string, Uint8Array> = {}
   for (const entry of value.slots) {
@@ -361,9 +405,12 @@ function readWorkspace(value: unknown, version: number): PatchLibrarySnapshot {
       damaged('The backup contains an unreadable workspace patch.')
     }
     const id = voiceId(bank, slot.slot)
-    if (voices[id] || virtualAnalog[id]) damaged('The backup contains a workspace slot twice.')
+    if (voices[id] || virtualAnalog[id] || eightBit[id]) {
+      damaged('The backup contains a workspace slot twice.')
+    }
     if ('voice' in slot) voices[id] = slot.voice
-    else virtualAnalog[id] = slot.virtualAnalog
+    else if ('virtualAnalog' in slot) virtualAnalog[id] = slot.virtualAnalog
+    else eightBit[id] = slot.eightBit
     effects[id] = normalizeFm1Effects(slot.effects)
     if (slot.record) records[id] = slot.record
   }
@@ -376,11 +423,12 @@ function readWorkspace(value: unknown, version: number): PatchLibrarySnapshot {
     bankDescriptions: readBankText(value.bankDescriptions, bankDescriptionLength, banks),
     bankNames: readBankText(value.bankNames, workspaceBankTitleLength, banks),
     effects,
+    eightBit,
     // Favourites arrived in version 2; a version 1 backup has none.
     favourites: version >= 2 ? readBackupFavourites(value.favourites, version) : [],
     loadedBanks,
-    // Records arrived in version 3, and Virtual Analog presets in version 4; earlier backups have
-    // none.
+    // Records arrived in version 3, Virtual Analog presets in version 4, and 8-Bit presets in
+    // version 5; earlier backups have none.
     records,
     virtualAnalog,
     voices,
@@ -400,7 +448,7 @@ function readSavedBank(value: unknown, version: number): NamedBank | null {
     name: value.name,
     slots,
     updatedAt: value.updatedAt,
-    version: 3,
+    version: 4,
   }
   try {
     validateNamedBank(bank)

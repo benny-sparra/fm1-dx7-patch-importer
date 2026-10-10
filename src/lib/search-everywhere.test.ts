@@ -16,7 +16,8 @@ import {
   dx7CatalogIndex,
   hideCopies,
 } from '@/lib/search-everywhere'
-import { soundKey, virtualAnalogSoundKey } from '@/lib/sound-key'
+import { eightBitSoundKey, soundKey, virtualAnalogSoundKey } from '@/lib/sound-key'
+import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
 import {
   capturedVirtualAnalogRecord,
   capturedVirtualAnalogVoice,
@@ -131,6 +132,31 @@ describe('saved bank search', () => {
     expect(match).toMatchObject({ name: 'VOICE 97', record, slot: 5, virtualAnalog })
     expect(match.soundKey).toBe(virtualAnalogSoundKey(virtualAnalog, match.effects, record))
     expect(match.soundKey.startsWith('va:')).toBe(true)
+  })
+})
+
+describe('finding saved 8-Bit presets', () => {
+  it('finds a saved 8-Bit preset by its name, keyed apart from other engines', () => {
+    const eightBit = capturedEightBitVoice()
+    const record = capturedEightBitRecord()
+    const sounds = Array.from({ length: 32 }, (_, index) =>
+      index === 4 ? { eightBit, record } : null,
+    )
+    const library = importFetchedBanks(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), [
+      { bank: 'A', sounds },
+    ])
+    const bank = createNamedBank(library, 'A', {
+      description: '',
+      id: '8-bit',
+      name: 'Chiptune',
+      now: '2026-10-10T00:00:00.000Z',
+    })
+
+    const [match] = findSavedBankMatches([bank], 'nes')
+
+    expect(match).toMatchObject({ eightBit, name: 'NES ROCK', record, slot: 5 })
+    expect(match.soundKey).toBe(eightBitSoundKey(eightBit, match.effects, record))
+    expect(match.soundKey.startsWith('8bit:')).toBe(true)
   })
 })
 
