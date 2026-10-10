@@ -5,6 +5,11 @@
  * these sections in its own file.
  */
 export default {
+  banks: {
+    swapAction: 'Swap with {{slot}}',
+    swapHint: 'To keep “{{name}}”, swap instead: it moves to {{slot}}.',
+    swapFailed: 'The patches could not be swapped.',
+  },
   replacePatch: {
     replacing: 'Replacing…',
     action: 'Replace patch',

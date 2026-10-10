@@ -616,6 +616,7 @@ export default {
     demoLoaded: '已将演示音色载入“{{bank}}”。',
     patchSaved: '已将“{{patch}}”保存到音色库。',
     patchCopied: '已将“{{patch}}”复制到“{{bank}}”的 {{slot}}。',
+    patchesSwapped: '已交换“{{patch}}”和“{{target}}”。',
     patchReplaced: '已将 {{slot}} 替换为“{{patch}}”。',
     operatorCopied: '已复制操作器 {{number}}。',
     bankDownloadStartedWithInit:
@@ -995,6 +996,9 @@ export default {
     copyAndEditAction: '替换 {{slot}} 并编辑',
     copyToEditHint: '要编辑此音色，请先将其复制到你的某个音色库中。',
     copyFailed: '无法复制该音色。',
+    swapAction: '与 {{slot}} 交换',
+    swapHint: '如要保留“{{name}}”，可改为交换：它会移到 {{slot}}。',
+    swapFailed: '无法交换这两个音色。',
     addBankOpenFailed: '无法打开新音色库选项。请重新加载页面后重试。',
     copyOpenFailed: '无法打开复制选项。请重新加载页面后重试。',
     importPatchFile: '导入音色…',
