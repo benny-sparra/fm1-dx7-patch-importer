@@ -159,6 +159,49 @@ describe('firmware page', () => {
     },
   )
 
+  const dayOf = (iso: string, options: Intl.DateTimeFormatOptions) =>
+    new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', { ...options, timeZone: 'UTC' })
+
+  it.each(named(entries))('%s shows the date it was last updated', (_name, entry) => {
+    const updated = entry.getAttribute('data-updated') ?? ''
+    expect(updated).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    const time = entry.querySelector('.firmware-status .firmware-updated time')
+    expect(time?.getAttribute('datetime')).toBe(updated)
+    expect(time?.textContent).toBe(
+      dayOf(updated, { day: 'numeric', month: 'short', year: 'numeric' }),
+    )
+  })
+
+  const latest = [...page.querySelectorAll('.firmware-latest-item')]
+  const latestTime = page.querySelector('.firmware-latest-title time')
+  const latestDate = latestTime?.getAttribute('datetime') ?? ''
+
+  it('dates the Latest strip in full', () => {
+    expect(latestDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(latestTime?.textContent).toBe(
+      dayOf(latestDate, { day: 'numeric', month: 'long', year: 'numeric' }),
+    )
+  })
+
+  it('dates the Latest strip no earlier than any release on the page', () => {
+    for (const entry of entries) {
+      expect((entry.getAttribute('data-updated') ?? '') <= latestDate).toBe(true)
+    }
+  })
+
+  it.each(latest.map((item) => [item.textContent?.replace(/\s+/g, ' ').trim(), item] as const))(
+    'links "%s" to the page',
+    (_text, item) => {
+      const links = [...item.querySelectorAll('a')]
+      expect(links.length).toBeGreaterThan(0)
+      for (const link of links) {
+        const target = link.getAttribute('href') ?? ''
+        expect(target).toMatch(/^#[a-z0-9-]+$/)
+        expect(page.getElementById(target.slice(1))).not.toBeNull()
+      }
+    },
+  )
+
   it('says when the star counts were read', () => {
     const time = page.querySelector('.firmware-sort-note time')
     expect(time?.getAttribute('datetime')).toMatch(/^\d{4}-\d{2}-\d{2}$/)
@@ -203,6 +246,20 @@ describe('firmware page order', () => {
     await userEvent.click(option('Most starred'))
     expect(order()).toEqual([...pinned, ...byStars])
     expect(option('Most starred').getAttribute('aria-pressed')).toBe('true')
+    expect(option('A–Z').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('orders by release date after the pinned entries, newest first, ties alphabetical', async () => {
+    const byUpdated = entries
+      .slice(2)
+      .toSorted((a, b) =>
+        (b.getAttribute('data-updated') ?? '').localeCompare(a.getAttribute('data-updated') ?? ''),
+      )
+      .map((entry) => entry.id)
+    const order = await renderPage()
+    await userEvent.click(option('Recently updated'))
+    expect(order()).toEqual([...pinned, ...byUpdated])
+    expect(option('Recently updated').getAttribute('aria-pressed')).toBe('true')
     expect(option('A–Z').getAttribute('aria-pressed')).toBe('false')
   })
 

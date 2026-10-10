@@ -85,8 +85,8 @@ const longDate = today.toLocaleDateString('en-GB', {
   year: 'numeric',
 })
 updated = updated.replace(
-  /<time datetime="[\d-]+">[^<]*<\/time>/,
-  `<time datetime="${isoDate}">${longDate}</time>`,
+  /(<p class="firmware-sort-note">[\s\S]*?)<time datetime="[\d-]+">[^<]*<\/time>/,
+  (_match, note) => `${note}<time datetime="${isoDate}">${longDate}</time>`,
 )
 
 const formatted = await format(updated, {

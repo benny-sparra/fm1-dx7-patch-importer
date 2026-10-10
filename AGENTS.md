@@ -386,6 +386,14 @@ open everything an earlier release could have saved.
   Not on GitHub beside an outline star, and follows the counted ones. A new firmware is written in alphabetical place, and the script gives
   it a count. Label the order **Most starred**, never popular, since stars say how widely a project
   was shared rather than how many FM1s run it.
+- Every firmware entry carries `data-updated`, the date the release its status line names came
+  out (the last commit for a project without numbered releases), shown as **Updated** in its status
+  line, and **Recently updated** orders by it, newest first. Change the date in the same edit that
+  changes the version, never on a refresh that changes nothing else. The **Latest** strip above the
+  order buttons, tinted amber, lists only what changed on the page on its latest day, dated in its
+  heading: one line per kind of change (added, new versions, watched), each name linking to its
+  card. A day's edit replaces the previous day's lines rather than adding to them;
+  `src/firmware-page.test.ts` checks the date and that every link reaches a card.
 
 ### Privacy, monitoring, and deployment security
 
