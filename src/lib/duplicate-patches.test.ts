@@ -140,6 +140,19 @@ describe('findDuplicatePatches', () => {
     expect(group.settingsDiffer).toBe(false)
   })
 
+  it('groups 8-Bit presets whose bytes match apart from the name, and only each other', () => {
+    const voice = capturedVirtualAnalogVoice()
+    const renamed = updateDx7VoiceName({ data: voice, name: '' }, 'MY 8BIT').data
+    const patches = [slot('A', 1), slot('A', 2), slot('A', 3)]
+
+    const groups = findDuplicatePatches(patches, {}, { 'bank-A-3': voice }, {}, {}, ['A'], {
+      'bank-A-1': voice,
+      'bank-A-2': renamed,
+    })
+
+    expect(ids(groups)).toEqual([['bank-A-1', 'bank-A-2']])
+  })
+
   it('groups Virtual Analog presets whose bytes match apart from the name, and only each other', () => {
     const virtualAnalog = capturedVirtualAnalogVoice()
     const renamed = updateDx7VoiceName({ data: virtualAnalog, name: '' }, 'MY VA').data

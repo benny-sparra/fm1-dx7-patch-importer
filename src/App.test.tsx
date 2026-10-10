@@ -37,12 +37,15 @@ vi.mock('@/hooks/use-midi', () => ({
 vi.mock('@/hooks/use-patch-library', () => ({
   usePatchLibrary: () => ({
     effects: { 'patch-1': pianoEffects },
-    records: { 'patch-va': new Uint8Array(59) },
+    eightBit: { 'patch-8bit': new Uint8Array(128) },
+    records: { 'patch-8bit': new Uint8Array(59), 'patch-va': new Uint8Array(59) },
     patches: [
       { bank: 'A', family: 'Keys', id: 'patch-1', name: 'Piano', number: 1, program: 0 },
       { bank: 'E', family: 'DX7', id: 'patch-e1', name: 'Pad', number: 1 },
       // A Virtual Analog preset in A3, whose bytes are not a DX7 voice, so it is not in `voices`.
       { bank: 'A', family: 'VA', id: 'patch-va', name: 'VOICE 97', number: 3, program: 2 },
+      // An 8-Bit preset in A4, kept apart from the DX7 voices the same way.
+      { bank: 'A', family: '8-Bit', id: 'patch-8bit', name: 'NES ROCK', number: 4, program: 3 },
     ],
     persistenceStatus: 'ready',
     updatePatch: vi.fn(),
@@ -90,6 +93,12 @@ vi.mock('@/routes/librarian-page', () => ({
       </button>
       <button onClick={() => onEditPatch({ id: 'patch-va' })} type="button">
         Edit Virtual Analog
+      </button>
+      <button onClick={() => onSelectPatch({ id: 'patch-8bit' })} type="button">
+        Play 8-Bit
+      </button>
+      <button onClick={() => onEditPatch({ id: 'patch-8bit' })} type="button">
+        Edit 8-Bit
       </button>
       <button onClick={() => onPlaySearchResult(catalogVoice, undefined)} type="button">
         Play catalog result
@@ -285,6 +294,43 @@ describe('App slot audition', () => {
     expect(loadPatchEditorPage).not.toHaveBeenCalled()
     expect(sendProgramChange).toHaveBeenCalledWith(2)
     expect(sendVoice).not.toHaveBeenCalled()
+  })
+})
+
+describe('App with an 8-Bit slot', () => {
+  function renderApp() {
+    render(
+      <ToastProvider>
+        <App />
+      </ToastProvider>,
+    )
+    return userEvent.setup()
+  }
+
+  it('selects an 8-Bit slot’s program and sends nothing else, with or without SysEx', async () => {
+    for (const sysexAvailable of [true, false]) {
+      midiState.sysexAvailable = sysexAvailable
+      const user = renderApp()
+
+      await user.click(screen.getByRole('button', { name: 'Play 8-Bit' }))
+
+      expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(3)
+      expect(sendVoice).not.toHaveBeenCalled()
+      expect(sendEffectSettings).not.toHaveBeenCalled()
+      cleanup()
+      vi.clearAllMocks()
+    }
+  })
+
+  it('opens no editor for an 8-Bit slot', async () => {
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Edit 8-Bit' }))
+
+    expect(loadVirtualAnalogEditorPage).not.toHaveBeenCalled()
+    expect(loadPatchEditorPage).not.toHaveBeenCalled()
+    expect(sendProgramChange).not.toHaveBeenCalled()
+    expect(screen.getByText('Lit slot: none')).toBeTruthy()
   })
 })
 

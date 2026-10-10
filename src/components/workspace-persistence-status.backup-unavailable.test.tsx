@@ -38,6 +38,7 @@ describe('WorkspacePersistenceStatus backup that fails to load', () => {
           persistenceStatus: 'save-error',
           retryWorkspaceLoading: vi.fn(),
           records: {},
+          eightBit: {},
           virtualAnalog: {},
           retryWorkspaceSaving: vi.fn(),
           voices: {},

@@ -33,8 +33,10 @@ import {
   renameBank as renameLibraryBank,
   renameVoice as renameLibraryVoice,
   replaceVoice as replaceLibraryVoice,
+  replaceWithEightBit as replaceLibraryWithEightBit,
   replaceWithVirtualAnalog as replaceLibraryWithVirtualAnalog,
   saveSound,
+  swapVoices as swapLibraryVoices,
   updateBankInformation as updateLibraryBankInformation,
   type FetchedBank,
   type PatchLibrarySnapshot,
@@ -101,6 +103,7 @@ export function usePatchLibrary() {
               bankDescriptions: stored.bankDescriptions,
               bankNames: stored.bankNames,
               effects: stored.effects,
+              eightBit: stored.eightBit,
               favourites: stored.favourites,
               loadedBanks: stored.loadedBanks,
               records: stored.records,
@@ -331,6 +334,12 @@ export function usePatchLibrary() {
     [commit],
   )
 
+  const swapVoices = useCallback(
+    (sourceId: string, bank: string, slot: number) =>
+      commit((current) => swapLibraryVoices(current, sourceId, bank, slot)),
+    [commit],
+  )
+
   const replaceVoice = useCallback(
     (bank: string, slot: number, voice: Dx7Voice, effects?: Uint8Array, record?: Uint8Array) =>
       commit((current) => replaceLibraryVoice(current, bank, slot, voice, effects, record)),
@@ -347,6 +356,20 @@ export function usePatchLibrary() {
     ) =>
       commit((current) =>
         replaceLibraryWithVirtualAnalog(current, bank, slot, virtualAnalog, effects, record),
+      ),
+    [commit],
+  )
+
+  const replaceWithEightBit = useCallback(
+    (
+      bank: string,
+      slot: number,
+      eightBit: Uint8Array,
+      effects: Uint8Array | undefined,
+      record: Uint8Array,
+    ) =>
+      commit((current) =>
+        replaceLibraryWithEightBit(current, bank, slot, eightBit, effects, record),
       ),
     [commit],
   )
@@ -555,12 +578,14 @@ export function usePatchLibrary() {
     renameBank,
     renameVoice,
     replaceVoice,
+    replaceWithEightBit,
     replaceWithVirtualAnalog,
     retryWorkspaceLoading,
     retryWorkspaceSaving,
     resetFactoryBanks,
     restoreBackup,
     saveNamedBank,
+    swapVoices,
     toggleFavourite,
     toggleFavouriteSound,
     undo,
@@ -570,6 +595,7 @@ export function usePatchLibrary() {
     updateNamedBankDetails,
     updateVoice,
     effects,
+    eightBit: history.present.eightBit,
     records,
     virtualAnalog: history.present.virtualAnalog,
     voices,

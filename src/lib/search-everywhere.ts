@@ -3,10 +3,11 @@ import catalogIndex from '@/data/dx7-catalog-index.json'
 import type { Dx7Voice } from '@/lib/dx7'
 import { loadDx7CatalogBank } from '@/lib/dx7-bank-catalog'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
+import { fm1VaEightBitName } from '@/lib/fm1-va-eight-bit'
 import { fm1VaVirtualAnalogName } from '@/lib/fm1-va-virtual-analog'
 import type { NamedBank } from '@/lib/named-bank'
 import { patchNameMatchesSearch } from '@/lib/patch-library'
-import { makeSoundKey, soundKey, virtualAnalogSoundKey } from '@/lib/sound-key'
+import { eightBitSoundKey, makeSoundKey, soundKey, virtualAnalogSoundKey } from '@/lib/sound-key'
 
 /**
  * The patch name and voice fingerprint of every catalog patch, by catalog id, in slot order.
@@ -21,7 +22,7 @@ export type CatalogPatchMatch = {
   soundKey: string
 }
 
-/** A saved-bank patch: a DX7 voice, or a Virtual Analog preset's voice bytes and record. */
+/** A saved-bank patch: a DX7 voice, or a Virtual Analog or 8-Bit preset's voice bytes and record. */
 export type SavedPatchMatch = {
   bankId: string
   bankName: string
@@ -29,7 +30,11 @@ export type SavedPatchMatch = {
   name: string
   slot: number
   soundKey: string
-} & ({ record?: Uint8Array; voice: Dx7Voice } | { record: Uint8Array; virtualAnalog: Uint8Array })
+} & (
+  | { record?: Uint8Array; voice: Dx7Voice }
+  | { record: Uint8Array; virtualAnalog: Uint8Array }
+  | { eightBit: Uint8Array; record: Uint8Array }
+)
 
 /**
  * The catalog's patch names and voice fingerprints, generated from the bank files by
@@ -64,7 +69,7 @@ export function findCatalogMatches(index: Dx7CatalogIndex, search: string): Cata
 
 /**
  * Patches in saved banks whose name contains the search, in the order the banks are listed. A
- * Virtual Analog preset is found by the name in its voice bytes, as a DX7 voice is.
+ * Virtual Analog or 8-Bit preset is found by the name in its voice bytes, as a DX7 voice is.
  */
 export function findSavedBankMatches(banks: NamedBank[], search: string): SavedPatchMatch[] {
   if (!search.trim()) return []
@@ -81,6 +86,20 @@ export function findSavedBankMatches(banks: NamedBank[], search: string): SavedP
                 record: slot.record,
                 soundKey: virtualAnalogSoundKey(slot.virtualAnalog, slot.effects, slot.record),
                 virtualAnalog: slot.virtualAnalog,
+              },
+            ]
+          : []
+      }
+      if ('eightBit' in slot) {
+        const name = fm1VaEightBitName(slot.eightBit)
+        return patchNameMatchesSearch(name, search)
+          ? [
+              {
+                ...found,
+                eightBit: slot.eightBit,
+                name,
+                record: slot.record,
+                soundKey: eightBitSoundKey(slot.eightBit, slot.effects, slot.record),
               },
             ]
           : []

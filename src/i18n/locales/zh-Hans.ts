@@ -483,10 +483,6 @@ export default {
     damagedPreset: '已损坏',
     damagedPresets: '有 1 个预设已损坏，其位置保留现有的音色。',
     damagedPresets_other: '有 {{count, number}} 个预设已损坏，这些位置保留现有的音色。',
-    eightBitPreset: '8-Bit',
-    eightBitPresets: '有 1 个预设是 8-Bit 预设，音色库暂时无法保存它。其位置保留现有的音色。',
-    eightBitPresets_other:
-      '有 {{count, number}} 个预设是 8-Bit 预设，音色库暂时无法保存它们。这些位置保留现有的音色。',
     absentPreset: '不在文件中',
     action: '导入 1 个音色库',
     action_other: '导入 {{count, number}} 个音色库',
@@ -518,10 +514,11 @@ export default {
     virtualAnalogKept: '保留 1 个 Virtual Analog 预设：只有 Virtual Analog 音色才能替换它。',
     virtualAnalogKept_other:
       '保留 {{count, number}} 个 Virtual Analog 预设：只有 Virtual Analog 音色才能替换它们。',
-    eightBitKept: '保留 1 个 8-Bit 预设，因为音色库暂时无法保存 8-Bit 音色。',
-    eightBitKept_other: '保留 {{count, number}} 个 8-Bit 预设，因为音色库暂时无法保存 8-Bit 音色。',
-    inexact: '有 1 个 Virtual Analog 音色无法精确保存，因此保留其预设。',
-    inexact_other: '有 {{count, number}} 个 Virtual Analog 音色无法精确保存，因此保留其预设。',
+    eightBitKept: '保留 1 个 8-Bit 预设：只有 8-Bit 音色才能替换它。',
+    eightBitKept_other: '保留 {{count, number}} 个 8-Bit 预设：只有 8-Bit 音色才能替换它们。',
+    inexact: '有 1 个 Virtual Analog 或 8-Bit 音色无法精确保存，因此保留其预设。',
+    inexact_other:
+      '有 {{count, number}} 个 Virtual Analog 或 8-Bit 音色无法精确保存，因此保留其预设。',
     eightBitPatch: '有 1 个音色读取自 8-Bit 预设，无法写入，因此保留其预设。',
     eightBitPatch_other: '有 {{count, number}} 个音色读取自 8-Bit 预设，无法写入，因此保留其预设。',
     replaces: '{{number}} {{replaces}} → {{name}}',
@@ -656,16 +653,17 @@ export default {
     demoLoaded: '已将演示音色载入“{{bank}}”。',
     patchSaved: '已将“{{patch}}”保存到音色库。',
     patchCopied: '已将“{{patch}}”复制到“{{bank}}”的 {{slot}}。',
+    patchesSwapped: '已交换“{{patch}}”和“{{target}}”。',
     patchReplaced: '已将 {{slot}} 替换为“{{patch}}”。',
     operatorCopied: '已复制操作器 {{number}}。',
     bankDownloadStartedWithInit:
-      '正在下载“{{bank}}”，其中的 Virtual Analog 预设以 INIT VOICE 代替。',
+      '正在下载“{{bank}}”，其中的 Virtual Analog 或 8-Bit 预设以 INIT VOICE 代替。',
     bankDownloadStartedWithInit_other:
-      '正在下载“{{bank}}”，其中的 {{count, number}} 个 Virtual Analog 预设以 INIT VOICE 代替。',
+      '正在下载“{{bank}}”，其中的 {{count, number}} 个 Virtual Analog 或 8-Bit 预设以 INIT VOICE 代替。',
     banksDownloadStartedWithInit:
-      '正在下载所有音色库，其中 1 个 Virtual Analog 预设以 INIT VOICE 代替。',
+      '正在下载所有音色库，其中 1 个 Virtual Analog 或 8-Bit 预设以 INIT VOICE 代替。',
     banksDownloadStartedWithInit_other:
-      '正在下载所有音色库，其中 {{count, number}} 个 Virtual Analog 预设以 INIT VOICE 代替。',
+      '正在下载所有音色库，其中 {{count, number}} 个 Virtual Analog 或 8-Bit 预设以 INIT VOICE 代替。',
   },
   meta: {
     title: 'M-VAVE FM1 音色编辑器与音色库',
@@ -1035,6 +1033,9 @@ export default {
     copyAndEditAction: '替换 {{slot}} 并编辑',
     copyToEditHint: '要编辑此音色，请先将其复制到你的某个音色库中。',
     copyFailed: '无法复制该音色。',
+    swapAction: '与 {{slot}} 交换',
+    swapHint: '如要保留“{{name}}”，可改为交换：它会移到 {{slot}}。',
+    swapFailed: '无法交换这两个音色。',
     addBankOpenFailed: '无法打开新音色库选项。请重新加载页面后重试。',
     copyOpenFailed: '无法打开复制选项。请重新加载页面后重试。',
     importPatchFile: '导入音色…',
@@ -1057,18 +1058,22 @@ export default {
     slotVirtualAnalogTitle:
       '单击可在 FM1 上选择 {{name}}，FM1 会演奏该位置保存的 Virtual Analog 预设',
     slotVirtualAnalogAddedTitle: '{{name}} 是 Virtual Analog 预设，只能从 FM1 的 A 到 D 音色库演奏',
+    slotEightBitTitle: '单击可在 FM1 上选择 {{name}}，FM1 会演奏该位置保存的 8-Bit 预设',
+    slotEightBitAddedTitle: '{{name}} 是 8-Bit 预设，只能从 FM1 的 A 到 D 音色库演奏',
     virtualAnalogPatch: 'Virtual Analog 预设',
+    eightBitPatch: '8-Bit 预设',
     sentStatusWithInit:
-      '已发送浏览器音色库 {{bank}}，其中的 Virtual Analog 预设以 INIT VOICE 代替。请在 FM1 上选择目标位置。',
+      '已发送浏览器音色库 {{bank}}，其中的 Virtual Analog 或 8-Bit 预设以 INIT VOICE 代替。请在 FM1 上选择目标位置。',
     sentStatusWithInit_other:
-      '已发送浏览器音色库 {{bank}}，其中的 {{count, number}} 个 Virtual Analog 预设以 INIT VOICE 代替。请在 FM1 上选择目标位置。',
+      '已发送浏览器音色库 {{bank}}，其中的 {{count, number}} 个 Virtual Analog 或 8-Bit 预设以 INIT VOICE 代替。请在 FM1 上选择目标位置。',
     virtualAnalogInitNote:
-      'DX7 音色库无法容纳 Virtual Analog 预设，因此此音色库中的该预设会以 INIT VOICE 发送。',
+      'DX7 音色库无法容纳 Virtual Analog 或 8-Bit 预设，因此此音色库中的该预设会以 INIT VOICE 发送。',
     virtualAnalogInitNote_other:
-      'DX7 音色库无法容纳 Virtual Analog 预设，因此此音色库中的 {{count, number}} 个此类预设会以 INIT VOICE 发送。',
+      'DX7 音色库无法容纳 Virtual Analog 或 8-Bit 预设，因此此音色库中的 {{count, number}} 个此类预设会以 INIT VOICE 发送。',
     fmPatch: 'FM 音色',
     fmTag: 'FM',
     virtualAnalogTag: 'VA',
+    eightBitTag: '8B',
     engineTitle: '{{engine}}\n{{action}}',
   },
   namedBanks: {
@@ -1115,9 +1120,9 @@ export default {
     copied: '已创建“{{name}}”。',
     deleted: '已删除“{{name}}”。',
     loaded: '已将“{{name}}”加载到“{{bank}}”。',
-    downloadedWithInit: '已下载“{{name}}”，其中的 Virtual Analog 预设以 INIT VOICE 代替。',
+    downloadedWithInit: '已下载“{{name}}”，其中的 Virtual Analog 或 8-Bit 预设以 INIT VOICE 代替。',
     downloadedWithInit_other:
-      '已下载“{{name}}”，其中的 {{count, number}} 个 Virtual Analog 预设以 INIT VOICE 代替。',
+      '已下载“{{name}}”，其中的 {{count, number}} 个 Virtual Analog 或 8-Bit 预设以 INIT VOICE 代替。',
   },
   backup: {
     menuOtherFiles: '其他文件',

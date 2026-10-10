@@ -3,7 +3,8 @@ import { resolve } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { dx7PackedVoiceSize, parseDx7Bank, unpackDx7Voice } from '@/lib/dx7'
+import { dx7PackedVoiceSize, packDx7Voice, parseDx7Bank, unpackDx7Voice } from '@/lib/dx7'
+import { readFm1VaMessageRecord } from '@/lib/fm1-va-preset-message'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
 import { fm1VaRecordEffects, fm1VaRecordWithEffects } from '@/lib/fm1-va-record-effects'
 import { fm1VaChecksum, parseFm1VaReply } from '@/lib/fm1-va-sysex'
@@ -70,6 +71,11 @@ function eightBitRecord() {
   record[2 * 8 + 1 + 4] = 0x43
   record[2 * 8] |= 1 << 4
   return record
+}
+
+/** `eightBitRecord` as a preset read gives it, eight bits a byte. */
+function eightBitRecordBytes() {
+  return readFm1VaMessageRecord(presetMessage(5, unpackDx7Voice(rom1a[5]), eightBitRecord()))
 }
 
 /** `backupFile`, with preset 006 marked as 8-Bit. */
@@ -180,11 +186,13 @@ describe('parseFm1VaPresetFile', () => {
     expect(fromFile.virtualAnalog).toEqual(fromRead.virtualAnalog)
   })
 
-  it('recognises an 8-Bit preset by its record, keeping only its name', () => {
-    expect(parsedPresets(backupFileWithEightBit())[5]).toEqual({
-      kind: 'eight-bit',
-      name: rom1a[5].name,
-    })
+  it('recognises an 8-Bit preset by its record, keeping its voice bytes and record as read', () => {
+    const preset = parsedPresets(backupFileWithEightBit())[5]
+
+    expect(preset).toMatchObject({ kind: 'eight-bit', name: rom1a[5].name.trim() })
+    if (preset.kind !== 'eight-bit') throw new Error('Expected an 8-Bit preset.')
+    expect(preset.record).toEqual(eightBitRecordBytes())
+    expect(preset.eightBit).toEqual(packDx7Voice(unpackDx7Voice(rom1a[5])).data)
   })
 
   it('reads an FM preset’s record as FM', () => {
@@ -338,13 +346,15 @@ describe('importableSounds', () => {
     expect(sounds.filter((sound) => sound === null)).toHaveLength(1)
   })
 
-  it('leaves out an 8-Bit preset, which the library cannot hold', () => {
+  it('keeps an 8-Bit preset apart from DX7 voices, with its record', () => {
     const sounds = parseFm1VaPresetFile(backupFileWithEightBit().buffer as ArrayBuffer).flatMap(
       importableSounds,
     )
 
-    expect(sounds[5]).toBeNull()
-    expect(sounds.filter((sound) => sound === null)).toHaveLength(1)
+    expect(sounds[5]).toMatchObject({ record: eightBitRecordBytes() })
+    expect(sounds[5]).toHaveProperty('eightBit')
+    expect(sounds[5]).not.toHaveProperty('voice')
+    expect(sounds.filter((sound) => sound === null)).toHaveLength(0)
   })
 
   it('keeps a Virtual Analog preset apart from DX7 voices, with its record and effects', () => {
@@ -431,9 +441,11 @@ describe('fm1VaPresetBanksFromRead', () => {
     const presets = readPresets()
     presets[5].record[18] = 0xc3
 
-    expect(fm1VaPresetBanksFromRead(presets)[0].presets[5]).toEqual({
+    expect(fm1VaPresetBanksFromRead(presets)[0].presets[5]).toMatchObject({
+      eightBit: presets[5].voice,
       kind: 'eight-bit',
       name: 'ORGAN 3',
+      record: presets[5].record,
     })
   })
 
@@ -454,8 +466,20 @@ describe('differsFromLibrary', () => {
     expect(differsFromLibrary(organ3, sameSlot)).toBe(false)
   })
 
-  it('does not mark the slot of an 8-Bit preset, which the import leaves out', () => {
-    expect(differsFromLibrary({ kind: 'eight-bit', name: 'NES ROCK' }, {})).toBe(false)
+  it('compares an 8-Bit preset’s voice bytes as read, and only with another 8-Bit preset', () => {
+    const presets = readPresets()
+    presets[5].record[18] = 0xc3
+    const eightBit = fm1VaPresetBanksFromRead(presets)[0].presets[5]
+    if (eightBit.kind !== 'eight-bit') throw new Error('Expected an 8-Bit preset.')
+    const slot = { effects: eightBit.effects, eightBit: eightBit.eightBit, record: eightBit.record }
+    const changed = eightBit.eightBit.slice()
+    changed[0] ^= 1
+
+    expect(differsFromLibrary(eightBit, slot)).toBe(false)
+    expect(differsFromLibrary(eightBit, { ...slot, eightBit: changed })).toBe(true)
+    expect(differsFromLibrary(eightBit, { ...slot, eightBit: undefined, voice: rom1a[5] })).toBe(
+      true,
+    )
   })
 
   it('marks a slot whose effects differ', () => {

@@ -31,6 +31,7 @@ function makeLibrary(
     persistenceStatus,
     retryWorkspaceLoading: vi.fn(),
     records: {},
+    eightBit: {},
     virtualAnalog: {},
     retryWorkspaceSaving: vi.fn(),
     voices: {},

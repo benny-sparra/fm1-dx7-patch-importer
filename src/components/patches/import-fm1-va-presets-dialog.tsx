@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { EngineTag } from '@/components/patches/engine-tag'
+import { EngineTag, engineName, type PresetEngine } from '@/components/patches/engine-tag'
 import { Fm1VaReadLeds } from '@/components/patches/fm1-va-read-leds'
 import { fm1VaReadErrorMessage } from '@/components/patches/fm1-va-read-error-message'
 import { PreviewPatchButton } from '@/components/patches/preview-patch-button'
@@ -60,6 +60,7 @@ type ImportFm1VaPresetsDialogProps = {
     PatchLibrary,
     | 'bankNames'
     | 'effects'
+    | 'eightBit'
     | 'importFetchedBanks'
     | 'records'
     | 'undoChange'
@@ -188,7 +189,6 @@ export function ImportFm1VaPresetsDialog({
 
   const listFormat = new Intl.ListFormat(i18n.resolvedLanguage, { type: 'conjunction' })
   const damagedCount = countPresets(banks, 'damaged')
-  const eightBitCount = countPresets(banks, 'eight-bit')
   // A file of one preset or a preset pack holds only some of the FM1's presets.
   const heldCount =
     banks?.flatMap(({ presets }) => presets).filter(({ kind }) => kind !== 'absent').length ??
@@ -206,6 +206,7 @@ export function ImportFm1VaPresetsDialog({
     const id = voiceId(workspaceBank, index + 1)
     return differsFromLibrary(preset, {
       effects: library.effects[id],
+      eightBit: library.eightBit[id],
       record: library.records[id],
       virtualAnalog: library.virtualAnalog[id],
       voice: library.voices[id],
@@ -509,12 +510,6 @@ export function ImportFm1VaPresetsDialog({
                     {t('fm1VaImport.damagedPresets', { count: damagedCount })}
                   </p>
                 ) : null}
-                {/* Information: the library cannot hold an 8-Bit preset, so the import leaves it out. */}
-                {eightBitCount > 0 ? (
-                  <p className="text-xs text-[var(--crt-ink-3)]">
-                    {t('fm1VaImport.eightBitPresets', { count: eightBitCount })}
-                  </p>
-                ) : null}
               </div>
               {/* Nothing is replaced until a bank is chosen, so the warning waits for the banks. */}
               <WarningNotice>
@@ -657,14 +652,13 @@ function PresetFileBank({
                   onClick={() => onPlay(preset.voice, preset.effects)}
                   playingLabel={t('banks.auditioning')}
                 />
-              ) : preset.kind === 'virtual-analog' ? (
-                <VirtualAnalogPresetCell
+              ) : preset.kind === 'virtual-analog' || preset.kind === 'eight-bit' ? (
+                <PresetCell
                   differs={differs(index, preset)}
+                  engine={preset.kind}
                   name={preset.name}
                   number={index + 1}
                 />
-              ) : preset.kind === 'eight-bit' ? (
-                <EightBitPresetCell name={preset.name} number={index + 1} />
               ) : preset.kind === 'absent' ? (
                 <AbsentPresetCell number={index + 1} />
               ) : (
@@ -679,15 +673,17 @@ function PresetFileBank({
 }
 
 /**
- * A Virtual Analog preset, which is imported but cannot be played here: no message but the preset
- * write carries one, so it has no preview.
+ * A Virtual Analog or 8-Bit preset, which is imported but cannot be played here: no message but the
+ * preset write carries one, so it has no preview.
  */
-function VirtualAnalogPresetCell({
+function PresetCell({
   differs,
+  engine,
   name,
   number,
 }: {
   differs: boolean
+  engine: PresetEngine
   name: string
   number: number
 }) {
@@ -700,33 +696,14 @@ function VirtualAnalogPresetCell({
       <span className="font-dot-matrix min-w-0 flex-1 truncate text-[13px] font-bold whitespace-pre">
         {name}
       </span>
-      <EngineTag className="shrink-0" engine="virtual-analog" />
-      <span className="sr-only">{t('banks.virtualAnalogPatch')}</span>
+      <EngineTag className="shrink-0" engine={engine} />
+      <span className="sr-only">{engineName(t, engine)}</span>
       {differs ? (
         <>
           <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-[var(--crt-led)]" />
           <span className="sr-only">{t('fm1VaImport.differingPatch')}</span>
         </>
       ) : null}
-    </span>
-  )
-}
-
-/**
- * An 8-Bit preset, which the library cannot hold yet, so the import leaves it out and its slot
- * keeps its patch.
- */
-function EightBitPresetCell({ name, number }: { name: string; number: number }) {
-  const { t } = useTranslation()
-  return (
-    <span className="patch-cell flex min-h-9 w-full items-center gap-1.5 border border-dashed border-[var(--crt-line)] px-1.5 py-1 text-[var(--crt-ink-3)]">
-      <span className="font-vt323 shrink-0 text-[16px] leading-none">
-        {String(number).padStart(2, '0')}
-      </span>
-      <span className="font-dot-matrix min-w-0 flex-1 truncate text-[13px] font-bold whitespace-pre">
-        {name}
-      </span>
-      <span className="shrink-0 text-xs">{t('fm1VaImport.eightBitPreset')}</span>
     </span>
   )
 }

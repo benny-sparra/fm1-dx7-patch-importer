@@ -55,7 +55,7 @@ import {
 } from '@/lib/favourites'
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
-  bankVirtualAnalogCount,
+  bankInitVoiceCount,
   getNextWorkspaceBank,
   patchMatchesSearch,
   patchSlotCode,
@@ -212,6 +212,8 @@ type CopyRequest = {
   edit?: boolean
   key: string
   source: ComponentProps<typeof CopyPatchDialog>['source']
+  /** Swaps the sound with the chosen slot's, for a sound in a workspace slot. */
+  swap?: ComponentProps<typeof CopyPatchDialog>['onSwap']
 }
 
 type LibrarianLibrary = BackupLibrary &
@@ -234,6 +236,7 @@ type LibrarianLibrary = BackupLibrary &
     | 'copyVoice'
     | 'deleteBank'
     | 'effects'
+    | 'eightBit'
     | 'favouriteKeys'
     | 'favourites'
     | 'getBankVoices'
@@ -250,8 +253,10 @@ type LibrarianLibrary = BackupLibrary &
     | 'records'
     | 'redo'
     | 'replaceVoice'
+    | 'replaceWithEightBit'
     | 'replaceWithVirtualAnalog'
     | 'resetFactoryBanks'
+    | 'swapVoices'
     | 'toggleFavourite'
     | 'toggleFavouriteSound'
     | 'undo'
@@ -369,6 +374,11 @@ export function LibrarianPage({
       copy: (targetBank, slot) => library.copyVoice(patch.id, targetBank, slot),
       key: patch.id,
       source: patch,
+      // A favourite is a copy kept apart from the banks, with no slot to take the other sound.
+      swap:
+        patch.bank === favouritesBank
+          ? undefined
+          : (targetBank, slot) => library.swapVoices(patch.id, targetBank, slot),
     })
   }
   const requestResultCopy = (sound: SearchResultSound, edit: boolean) => {
@@ -383,8 +393,10 @@ export function LibrarianPage({
               sound.effects,
               sound.record,
             )
-          : library.replaceVoice(bank, slot, sound.voice, sound.effects, sound.record),
-      // A Virtual Analog preset has no voice editor to open.
+          : 'eightBit' in sound
+            ? library.replaceWithEightBit(bank, slot, sound.eightBit, sound.effects, sound.record)
+            : library.replaceVoice(bank, slot, sound.voice, sound.effects, sound.record),
+      // A Virtual Analog or 8-Bit preset has no voice editor to open.
       edit: edit && 'voice' in sound,
       key: sound.origin,
       source: { name: sound.name, number: sound.slot, origin: sound.origin },
@@ -426,11 +438,11 @@ export function LibrarianPage({
     importInputRef.current?.click()
   }
 
-  // A DX7 bank has no place for a Virtual Analog preset, so its slot takes INIT VOICE, which comes
+  // A DX7 bank has no place for a Virtual Analog or 8-Bit preset, so its slot takes INIT VOICE, which comes
   // with the editor's voice code only when a bank needs it.
-  const virtualAnalogCount = (bank: string) => bankVirtualAnalogCount(library.virtualAnalog, bank)
+  const initVoiceCount = (bank: string) => bankInitVoiceCount(library, bank)
   const bankDx7Voices = async (sentBanks: readonly string[]) => {
-    const initVoice = sentBanks.some((bank) => virtualAnalogCount(bank) > 0)
+    const initVoice = sentBanks.some((bank) => initVoiceCount(bank) > 0)
       ? (await import('@/lib/init-voice')).makeInitDx7Voice()
       : undefined
     return sentBanks.map((bank) => library.getBankVoices(bank, initVoice))
@@ -442,7 +454,7 @@ export function LibrarianPage({
       downloadSysexFile(makeDx7BankFile(voices), `fm1-bank-${bank.toLowerCase()}.syx`)
       setImportError('')
       trackAnalyticsEvent({ data: { scope: 'single' }, name: 'bank_exported' })
-      const initCount = virtualAnalogCount(bank)
+      const initCount = initVoiceCount(bank)
       toast.success(
         initCount === 0
           ? t('toasts.bankDownloadStarted', { bank: bankDisplayName(bank) })
@@ -470,7 +482,7 @@ export function LibrarianPage({
       downloadFile(new Blob([zipSync(files)], { type: 'application/zip' }), 'fm1-browser-banks.zip')
       setImportError('')
       trackAnalyticsEvent({ data: { scope: 'all' }, name: 'bank_exported' })
-      const initCount = loadedBanks.reduce((count, bank) => count + virtualAnalogCount(bank), 0)
+      const initCount = loadedBanks.reduce((count, bank) => count + initVoiceCount(bank), 0)
       toast.success(
         initCount === 0
           ? t('toasts.banksDownloadStarted')
@@ -496,7 +508,7 @@ export function LibrarianPage({
     let voiceCount: number | undefined
     try {
       let [voices] = await bankDx7Voices([destinationBank])
-      const initCount = virtualAnalogCount(destinationBank)
+      const initCount = initVoiceCount(destinationBank)
       let sentStatus =
         initCount === 0
           ? t('banks.sentStatus', { bank: bankDisplayName(destinationBank) })
@@ -630,16 +642,16 @@ export function LibrarianPage({
   const favouriteCount = library.favourites.length
   const canSendDestination = showsFavourites ? favouriteCount > 0 : isDestinationBankLoaded
   // A bank holds 32 DX7 voices, so the destination instructions say before sending what Favourites
-  // becomes on the FM1, or that a bank's Virtual Analog presets become INIT VOICE.
-  const destinationVirtualAnalogCount = showsFavourites ? 0 : virtualAnalogCount(destinationBank)
+  // becomes on the FM1, or that a bank's Virtual Analog and 8-Bit presets become INIT VOICE.
+  const destinationInitVoiceCount = showsFavourites ? 0 : initVoiceCount(destinationBank)
   const bankTransferNote = showsFavourites
     ? favouriteCount === 0 || favouriteCount === dx7BankVoiceCount
       ? undefined
       : favouriteCount < dx7BankVoiceCount
         ? t('favourites.initNote', { count: dx7BankVoiceCount - favouriteCount })
         : t('favourites.leftOutNote', { count: favouriteCount - dx7BankVoiceCount })
-    : destinationVirtualAnalogCount > 0
-      ? t('banks.virtualAnalogInitNote', { count: destinationVirtualAnalogCount })
+    : destinationInitVoiceCount > 0
+      ? t('banks.virtualAnalogInitNote', { count: destinationInitVoiceCount })
       : undefined
 
   const visiblePatches = useMemo(() => {
@@ -666,10 +678,18 @@ export function LibrarianPage({
             library.effects[patch.id],
             library.records[patch.id],
             library.virtualAnalog[patch.id],
+            library.eightBit[patch.id],
           ],
         ]),
       ),
-    [library.effects, library.records, library.virtualAnalog, library.voices, visiblePatches],
+    [
+      library.effects,
+      library.eightBit,
+      library.records,
+      library.virtualAnalog,
+      library.voices,
+      visiblePatches,
+    ],
   )
   const changedSlots = useChangedSlots(
     `${isSearching ? `search:${search}` : destinationBank}:${moveCount}`,
@@ -1208,6 +1228,7 @@ export function LibrarianPage({
                   workspaceEffects={library.effects}
                   workspaceRecords={library.records}
                   workspaceMatches={visiblePatches}
+                  workspaceEightBit={library.eightBit}
                   workspaceVirtualAnalog={library.virtualAnalog}
                   workspaceVoices={library.voices}
                 />
@@ -1509,6 +1530,16 @@ export function LibrarianPage({
                   followPlayedPatch(target)
                   onEditPatch(target)
                 }
+              }}
+              onSwap={copyRequest.swap}
+              onSwapped={(target, changed) => {
+                toast.success(
+                  t('toasts.patchesSwapped', {
+                    patch: copyRequest.source.name,
+                    target: target.name,
+                  }),
+                  undoToastOptions(t, library, changed),
+                )
               }}
               source={copyRequest.source}
             />

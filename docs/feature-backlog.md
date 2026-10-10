@@ -595,8 +595,17 @@ presets (9).
     fixtures for the workspace record, saved banks, and backups. Show an engine tag, write them
     back exactly, and keep them out of every DX7 path. Needs M4 first
     (`docs/fm1-va-096-tests.md`).
+    _Built 2026-10-10, after M4 passed on `FM-1_097` the same day:_ reading presets from the FM1
+    or Baud Girl's presets file keeps each 8-Bit preset in the workspace's `eightBit` map, its 128
+    voice bytes and record exactly as read. Workspace version 9, saved banks version 4, and backup
+    files version 5 carry them, each with fixture tests. Its card shows an 8B tag and offers Copy
+    but no Edit, DX7 download, heart, or **Change to FM…**; its click sends only its Program
+    Change; a DX7 bank, sent or downloaded, puts INIT VOICE in its place and says so; search and
+    the duplicate finder keep it apart from the other engines; and **Write patches to the FM1…**
+    writes it back exactly, only over an FM or 8-Bit preset. Favourites still holds only FM
+    patches, as for Virtual Analog presets.
   - **Erase patch… to 8-Bit** (item 6), once M3 has captured the blank on an FM1; the Device
-    Manager's comes from an emulator.
+    Manager's comes from an emulator. _M3 captured it on `FM-1_097` on 2026-10-10._
   - **An 8-Bit editor.** About 150 fields: the Key group, twelve drums of seven rows, and the bass
     and lead with their User Arpeggios. Only the Envelope and LFO controllers reach an 8-Bit
     preset, so the rest is heard once written, unless D2 finds a DX7 parameter change plays a

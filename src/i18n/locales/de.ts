@@ -548,11 +548,6 @@ export default {
     damagedPresets: 'Ein Preset ist beschädigt. Sein Platz behält seinen Sound.',
     damagedPresets_other:
       '{{count, number}} Presets sind beschädigt. Ihre Plätze behalten ihre Sounds.',
-    eightBitPreset: '8-Bit',
-    eightBitPresets:
-      'Ein Preset ist ein 8-Bit-Preset, das die Bibliothek noch nicht aufnehmen kann. Sein Platz behält seinen Sound.',
-    eightBitPresets_other:
-      '{{count, number}} Presets sind 8-Bit-Presets, die die Bibliothek noch nicht aufnehmen kann. Ihre Plätze behalten ihre Sounds.',
     absentPreset: 'Nicht in der Datei',
     action: 'Eine Bank importieren',
     action_other: '{{count, number}} Bänke importieren',
@@ -588,14 +583,13 @@ export default {
       'Ein Virtual-Analog-Preset bleibt erhalten: Nur ein Virtual-Analog-Sound kann es ersetzen.',
     virtualAnalogKept_other:
       '{{count, number}} Virtual-Analog-Presets bleiben erhalten: Nur Virtual-Analog-Sounds können sie ersetzen.',
-    eightBitKept:
-      'Ein 8-Bit-Preset bleibt erhalten, da die Bibliothek noch keine 8-Bit-Sounds aufnehmen kann.',
+    eightBitKept: 'Ein 8-Bit-Preset bleibt erhalten: Nur ein 8-Bit-Sound kann es ersetzen.',
     eightBitKept_other:
-      '{{count, number}} 8-Bit-Presets bleiben erhalten, da die Bibliothek noch keine 8-Bit-Sounds aufnehmen kann.',
+      '{{count, number}} 8-Bit-Presets bleiben erhalten: Nur 8-Bit-Sounds können sie ersetzen.',
     inexact:
-      'Ein Virtual-Analog-Sound lässt sich nicht exakt speichern, darum bleibt sein Preset erhalten.',
+      'Ein Virtual-Analog- oder 8-Bit-Sound lässt sich nicht exakt speichern, darum bleibt sein Preset erhalten.',
     inexact_other:
-      '{{count, number}} Virtual-Analog-Sounds lassen sich nicht exakt speichern, darum bleiben ihre Presets erhalten.',
+      '{{count, number}} Virtual-Analog- oder 8-Bit-Sounds lassen sich nicht exakt speichern, darum bleiben ihre Presets erhalten.',
     eightBitPatch:
       'Ein Sound stammt aus einem 8-Bit-Preset und kann nicht geschrieben werden, darum bleibt sein Preset erhalten.',
     eightBitPatch_other:
@@ -748,16 +742,17 @@ export default {
     demoLoaded: 'Demo-Sounds in „{{bank}}“ geladen.',
     patchSaved: '„{{patch}}“ wurde in der Bibliothek gespeichert.',
     patchCopied: '„{{patch}}“ wurde nach {{slot}} in „{{bank}}“ kopiert.',
+    patchesSwapped: '„{{patch}}“ und „{{target}}“ wurden getauscht.',
     patchReplaced: '{{slot}} wurde durch „{{patch}}“ ersetzt.',
     operatorCopied: 'Operator {{number}} wurde kopiert.',
     bankDownloadStartedWithInit:
-      '„{{bank}}“ wird heruntergeladen, mit INIT VOICE anstelle seines Virtual-Analog-Presets.',
+      '„{{bank}}“ wird heruntergeladen, mit INIT VOICE anstelle seines Virtual-Analog- oder 8-Bit-Presets.',
     bankDownloadStartedWithInit_other:
-      '„{{bank}}“ wird heruntergeladen, mit INIT VOICE anstelle seiner {{count, number}} Virtual-Analog-Presets.',
+      '„{{bank}}“ wird heruntergeladen, mit INIT VOICE anstelle seiner {{count, number}} Virtual-Analog- oder 8-Bit-Presets.',
     banksDownloadStartedWithInit:
-      'Alle Bänke werden heruntergeladen, mit INIT VOICE anstelle eines Virtual-Analog-Presets.',
+      'Alle Bänke werden heruntergeladen, mit INIT VOICE anstelle eines Virtual-Analog- oder 8-Bit-Presets.',
     banksDownloadStartedWithInit_other:
-      'Alle Bänke werden heruntergeladen, mit INIT VOICE anstelle von {{count, number}} Virtual-Analog-Presets.',
+      'Alle Bänke werden heruntergeladen, mit INIT VOICE anstelle von {{count, number}} Virtual-Analog- oder 8-Bit-Presets.',
   },
   meta: {
     title: 'M-VAVE FM1 Editor und Librarian',
@@ -1153,6 +1148,9 @@ export default {
     copyAndEditAction: '{{slot}} ersetzen und bearbeiten',
     copyToEditHint: 'Um diesen Sound zu bearbeiten, kopiere ihn in eine deiner Bänke.',
     copyFailed: 'Der Sound konnte nicht kopiert werden.',
+    swapAction: 'Mit {{slot}} tauschen',
+    swapHint: 'Um „{{name}}“ zu behalten, tausche stattdessen: Er kommt nach {{slot}}.',
+    swapFailed: 'Die Sounds konnten nicht getauscht werden.',
     addBankOpenFailed:
       'Die Optionen für eine neue Bank konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     copyOpenFailed:
@@ -1183,18 +1181,24 @@ export default {
       'Klicken, um {{name}} auf dem FM1 auszuwählen; er spielt das dort gespeicherte Virtual-Analog-Preset',
     slotVirtualAnalogAddedTitle:
       '{{name}} ist ein Virtual-Analog-Preset und spielt nur aus den Bänken A bis D des FM1',
+    slotEightBitTitle:
+      'Klicken, um {{name}} auf dem FM1 auszuwählen; er spielt das dort gespeicherte 8-Bit-Preset',
+    slotEightBitAddedTitle:
+      '{{name}} ist ein 8-Bit-Preset und spielt nur aus den Bänken A bis D des FM1',
     virtualAnalogPatch: 'Virtual-Analog-Preset',
+    eightBitPatch: '8-Bit-Preset',
     sentStatusWithInit:
-      'Browser-Bank {{bank}} wurde gesendet, mit INIT VOICE anstelle ihres Virtual-Analog-Presets. Wähle ihr Ziel am FM1.',
+      'Browser-Bank {{bank}} wurde gesendet, mit INIT VOICE anstelle ihres Virtual-Analog- oder 8-Bit-Presets. Wähle ihr Ziel am FM1.',
     sentStatusWithInit_other:
-      'Browser-Bank {{bank}} wurde gesendet, mit INIT VOICE anstelle ihrer {{count, number}} Virtual-Analog-Presets. Wähle ihr Ziel am FM1.',
+      'Browser-Bank {{bank}} wurde gesendet, mit INIT VOICE anstelle ihrer {{count, number}} Virtual-Analog- oder 8-Bit-Presets. Wähle ihr Ziel am FM1.',
     virtualAnalogInitNote:
-      'Eine DX7-Bank hat keinen Platz für ein Virtual-Analog-Preset, darum wird das dieser Bank als INIT VOICE gesendet.',
+      'Eine DX7-Bank hat keinen Platz für ein Virtual-Analog- oder 8-Bit-Preset, darum wird das dieser Bank als INIT VOICE gesendet.',
     virtualAnalogInitNote_other:
-      'Eine DX7-Bank hat keinen Platz für Virtual-Analog-Presets, darum werden die {{count, number}} dieser Bank als INIT VOICE gesendet.',
+      'Eine DX7-Bank hat keinen Platz für Virtual-Analog- oder 8-Bit-Presets, darum werden die {{count, number}} dieser Bank als INIT VOICE gesendet.',
     fmPatch: 'FM-Sound',
     fmTag: 'FM',
     virtualAnalogTag: 'VA',
+    eightBitTag: '8B',
     engineTitle: '{{engine}}\n{{action}}',
   },
   namedBanks: {
@@ -1244,9 +1248,9 @@ export default {
     deleted: '„{{name}}“ gelöscht.',
     loaded: '„{{name}}“ in „{{bank}}“ geladen.',
     downloadedWithInit:
-      '„{{name}}“ wurde heruntergeladen, mit INIT VOICE anstelle seines Virtual-Analog-Presets.',
+      '„{{name}}“ wurde heruntergeladen, mit INIT VOICE anstelle seines Virtual-Analog- oder 8-Bit-Presets.',
     downloadedWithInit_other:
-      '„{{name}}“ wurde heruntergeladen, mit INIT VOICE anstelle seiner {{count, number}} Virtual-Analog-Presets.',
+      '„{{name}}“ wurde heruntergeladen, mit INIT VOICE anstelle seiner {{count, number}} Virtual-Analog- oder 8-Bit-Presets.',
   },
   backup: {
     menuOtherFiles: 'Weitere Dateien',

@@ -7,6 +7,7 @@ import { fm1VaRecordEffects } from '@/lib/fm1-va-record-effects'
 import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import { voiceId } from '@/lib/patch-library'
 import { capturedOrgan3Reply } from '@/test/fm1-va-captures'
+import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
 import {
   capturedVirtualAnalogRecord,
   capturedVirtualAnalogVoice,
@@ -46,9 +47,20 @@ function libraryOf(
   return {
     effects: Object.fromEntries(ids.map(([id]) => [id, fm1VaRecordEffects(storedRecord)])),
     records: Object.fromEntries(ids.map(([id]) => [id, storedRecord.slice()])),
+    eightBit: {} as Record<string, Uint8Array>,
     virtualAnalog: {} as Record<string, Uint8Array>,
     voices: Object.fromEntries(ids.map(([id, index]) => [id, change(index).voice ?? organ3])),
   }
+}
+
+/** The library with the 8-Bit preset 097, NES ROCK, as read from the FM1, in slot `number`. */
+function withEightBit(library: ReturnType<typeof libraryOf>, bank: string, number: number) {
+  const id = voiceId(bank, number)
+  delete library.voices[id]
+  library.eightBit[id] = capturedEightBitVoice()
+  library.records[id] = capturedEightBitRecord()
+  library.effects[id] = fm1VaRecordEffects(capturedEightBitRecord())
+  return library
 }
 
 /** The library with the Virtual Analog preset 097, as read from the FM1, in slot `number`. */
@@ -213,6 +225,59 @@ describe('planFm1VaBankWrite', () => {
     const plan = planFm1VaBankWrite(storedPresets(), 'A', 'A', library)
 
     expect(plan[3]).toEqual({ kind: 'inexact', name: 'VOICE 97', slot: 3 })
+  })
+
+  it('writes an 8-Bit patch over an FM preset with its voice bytes as read', () => {
+    const plan = planFm1VaBankWrite(storedPresets(), 'A', 'A', withEightBit(libraryOf('A'), 'A', 4))
+
+    expect(plan[3]).toMatchObject({
+      expectedVoice: capturedEightBitVoice(),
+      kind: 'write',
+      name: 'NES ROCK',
+      record: capturedEightBitRecord(),
+      replaces: 'ORGAN 3',
+      voice: capturedEightBitVoice(),
+    })
+  })
+
+  it('writes an 8-Bit patch over an 8-Bit preset that differs, and leaves the same one alone', () => {
+    const library = withEightBit(withEightBit(libraryOf('A'), 'A', 4), 'A', 5)
+    const stored = storedPresets((slot) =>
+      slot === 3
+        ? { record: capturedEightBitRecord(), voice: storedVoice.slice() }
+        : slot === 4
+          ? { record: capturedEightBitRecord(), voice: capturedEightBitVoice() }
+          : {},
+    )
+
+    const plan = planFm1VaBankWrite(stored, 'A', 'A', library)
+
+    expect(plan[3]).toMatchObject({ kind: 'write' })
+    expect(plan[4]).toEqual({ kind: 'same', slot: 4 })
+  })
+
+  it('never writes an 8-Bit patch over a Virtual Analog preset', () => {
+    const library = withEightBit(libraryOf('A'), 'A', 4)
+    const stored = storedPresets((slot) =>
+      slot === 3
+        ? { record: capturedVirtualAnalogRecord(), voice: capturedVirtualAnalogVoice() }
+        : {},
+    )
+
+    expect(planFm1VaBankWrite(stored, 'A', 'A', library)[3]).toEqual({
+      kind: 'virtual-analog',
+      name: 'VOICE 97',
+      slot: 3,
+    })
+  })
+
+  it('does not write an 8-Bit patch the FM1 would not store exactly', () => {
+    const library = withEightBit(libraryOf('A'), 'A', 4)
+    library.eightBit[voiceId('A', 4)][110] |= 0x60
+
+    const plan = planFm1VaBankWrite(storedPresets(), 'A', 'A', library)
+
+    expect(plan[3]).toEqual({ kind: 'inexact', name: 'NES ROCK', slot: 3 })
   })
 
   it('leaves a preset alone where the library bank has no patch', () => {

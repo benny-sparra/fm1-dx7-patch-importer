@@ -7,7 +7,7 @@ import {
   loadNamedBank,
   makeNamedBankSysexFile,
   makeNamedBankSysexFilename,
-  namedBankVirtualAnalogCount,
+  namedBankInitVoiceCount,
   renameNamedBank,
   validateNamedBank,
   type NamedBank,
@@ -22,6 +22,7 @@ import {
   makeDemoVoices,
   voiceId,
 } from '@/lib/patch-library'
+import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
 import {
   capturedVirtualAnalogRecord,
   virtualAnalogVoiceBeyondDx7Ranges,
@@ -194,12 +195,12 @@ describe('saved banks with FM-1+VA records', () => {
     }
   }
 
-  it('saves each slot’s record as its own copy, as version 3', () => {
+  it('saves each slot’s record as its own copy, as version 4', () => {
     const library = withRecord()
 
     const bank = createNamedBank(library, 'A', options)
 
-    expect(bank.version).toBe(3)
+    expect(bank.version).toBe(4)
     expect(bank.slots[1].record).toEqual(record(2))
     expect(bank.slots[1].record).not.toBe(library.records[voiceId('A', 2)])
     expect(bank.slots[0]).not.toHaveProperty('record')
@@ -225,8 +226,8 @@ describe('saved banks with FM-1+VA records', () => {
     expect(loadNamedBank(withRecord(), 'A', bank).records).toEqual({})
   })
 
-  it('writes a renamed version 1 bank back as version 3', () => {
-    expect(renameNamedBank(versionOneBank(), 'New', '', createdAt).version).toBe(3)
+  it('writes a renamed version 1 bank back as version 4', () => {
+    expect(renameNamedBank(versionOneBank(), 'New', '', createdAt).version).toBe(4)
   })
 
   it('refuses a slot whose record is the wrong size', () => {
@@ -255,16 +256,16 @@ describe('saved banks with Virtual Analog presets', () => {
       now: createdAt,
     })
 
-  it('saves a Virtual Analog slot exactly as the workspace holds it, as version 3', () => {
+  it('saves a Virtual Analog slot exactly as the workspace holds it, as version 4', () => {
     const bank = save()
 
-    expect(bank.version).toBe(3)
+    expect(bank.version).toBe(4)
     expect(bank.slots[2]).toMatchObject({
       record,
       slot: 3,
       virtualAnalog: virtualAnalogVoiceBeyondDx7Ranges(),
     })
-    expect(namedBankVirtualAnalogCount(bank)).toBe(1)
+    expect(namedBankInitVoiceCount(bank)).toBe(1)
   })
 
   it('loads a Virtual Analog slot back into a workspace bank as a Virtual Analog preset', () => {
@@ -286,5 +287,62 @@ describe('saved banks with Virtual Analog presets', () => {
 
   it('refuses a Virtual Analog slot in a bank of an earlier version', () => {
     expect(() => validateNamedBank({ ...save(), version: 2 })).toThrow('32 valid sound slots')
+  })
+})
+
+describe('saved banks with 8-Bit presets', () => {
+  const record = capturedEightBitRecord()
+
+  /** Bank A holds the demo voices, with an 8-Bit preset in A3. */
+  function withEightBit() {
+    const sounds = Array.from({ length: 32 }, (_, index) =>
+      index === 2 ? { eightBit: capturedEightBitVoice(), record } : null,
+    )
+    return importFetchedBanks(makeLoadedLibrary(), [{ bank: 'A', sounds }])
+  }
+  const save = () =>
+    createNamedBank(withEightBit(), 'A', {
+      description: '',
+      id: '8-bit',
+      name: 'With 8-Bit',
+      now: createdAt,
+    })
+
+  it('saves an 8-Bit slot exactly as the workspace holds it, as version 4', () => {
+    const bank = save()
+
+    expect(bank.version).toBe(4)
+    expect(bank.slots[2]).toMatchObject({ eightBit: capturedEightBitVoice(), record, slot: 3 })
+    expect(namedBankInitVoiceCount(bank)).toBe(1)
+  })
+
+  it('loads an 8-Bit slot back into a workspace bank as an 8-Bit preset', () => {
+    const loaded = loadNamedBank(makeLoadedLibrary(), 'A', save())
+
+    expect(loaded.eightBit[voiceId('A', 3)]).toEqual(capturedEightBitVoice())
+    expect(loaded.voices[voiceId('A', 3)]).toBeUndefined()
+    expect(loaded.records[voiceId('A', 3)]).toEqual(record)
+  })
+
+  it('downloads a bank with INIT VOICE in its 8-Bit slot', () => {
+    const exported = parseDx7Bank(
+      makeNamedBankSysexFile(save(), makeInitDx7Voice()).buffer as ArrayBuffer,
+    )
+
+    expect(exported[2].name).toBe('INIT VOICE')
+  })
+
+  it('duplicates an 8-Bit slot as its own copy', () => {
+    const bank = save()
+    const copy = duplicateNamedBank(bank, 'copy', createdAt)
+
+    expect(copy.slots[2]).toEqual(bank.slots[2])
+    expect('eightBit' in copy.slots[2] && copy.slots[2].eightBit).not.toBe(
+      'eightBit' in bank.slots[2] && bank.slots[2].eightBit,
+    )
+  })
+
+  it('refuses an 8-Bit slot in a bank of an earlier version', () => {
+    expect(() => validateNamedBank({ ...save(), version: 3 })).toThrow('32 valid sound slots')
   })
 })

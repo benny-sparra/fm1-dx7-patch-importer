@@ -1,4 +1,4 @@
-import { Copy } from 'lucide-react'
+import { ArrowLeftRight, Copy } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
+import '@/i18n/librarian-dialogs'
 import type { Patch } from '@/data/patches'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { dx7BankVoiceCount } from '@/lib/dx7'
@@ -38,6 +39,12 @@ type CopyPatchDialogProps = {
   /** Puts the sound in the chosen slot, returning the change to undo. */
   onCopy: (bank: string, slot: number) => PatchLibrarySnapshot | null
   onCopied: (target: Patch, changed: PatchLibrarySnapshot | null) => void
+  /**
+   * Swaps a workspace slot's sound with the chosen slot's, returning the change to undo. Without
+   * it, the dialog only copies.
+   */
+  onSwap?: (bank: string, slot: number) => PatchLibrarySnapshot | null
+  onSwapped?: (target: Patch, changed: PatchLibrarySnapshot | null) => void
   /** Explains that copying comes before editing, for a sound that has no slot of its own yet. */
   opensEditor?: boolean
   source: Patch | ExternalCopySource
@@ -68,6 +75,8 @@ export function CopyPatchDialog({
   onClose,
   onCopy,
   onCopied,
+  onSwap,
+  onSwapped,
   opensEditor = false,
   source,
 }: CopyPatchDialogProps) {
@@ -77,6 +86,7 @@ export function CopyPatchDialog({
   const titleId = useId()
   const replacesId = useId()
   const editHintId = useId()
+  const swapHintId = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const cellRefs = useRef(new Map<number, HTMLButtonElement>())
   const focusChosenCell = useRef(false)
@@ -107,6 +117,8 @@ export function CopyPatchDialog({
   const slot = avoidSlot(chosen.slot, chosen.slot, avoidedSlot(bank))
   const targetPatches = library.patches.filter((patch) => patch.bank === bank)
   const target = targetPatches.find((patch) => patch.number === slot && patch.id !== sourceSlot?.id)
+  // Only a sound with a slot of its own has somewhere to take the other one.
+  const swapsWith = onSwap && sourceSlot && target ? target : undefined
 
   useEffect(() => {
     const dialog = dialogRef.current
@@ -154,9 +166,24 @@ export function CopyPatchDialog({
     }
   }
 
+  const swap = () => {
+    if (!swapsWith || !onSwap) return
+    try {
+      const changed = onSwap(bank, slot)
+      dialogRef.current?.close()
+      onSwapped?.(swapsWith, changed)
+    } catch (cause) {
+      setError(bankErrorMessage(t, cause, t('banks.swapFailed')))
+    }
+  }
+
+  const describedBy = [opensEditor ? editHintId : '', replacesId, swapsWith ? swapHintId : '']
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <Dialog
-      aria-describedby={opensEditor ? `${editHintId} ${replacesId}` : replacesId}
+      aria-describedby={describedBy}
       aria-labelledby={titleId}
       onClose={onClose}
       ref={dialogRef}
@@ -254,11 +281,27 @@ export function CopyPatchDialog({
               {t('banks.copyReplaces', { name: target.name, slot: patchSlotCode(target) })}
             </p>
           ) : null}
+          {swapsWith && sourceSlot ? (
+            <p
+              aria-live="polite"
+              className="text-sm leading-6 text-[var(--crt-ink-2)]"
+              id={swapHintId}
+            >
+              {t('banks.swapHint', { name: swapsWith.name, slot: patchSlotCode(sourceSlot) })}
+            </p>
+          ) : null}
 
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
         </form>
       </DialogBody>
-      <DialogFooter>
+      {/* Two actions with longer translations wrap rather than overflow a narrow window. */}
+      <DialogFooter className="flex-wrap justify-end gap-2">
+        {swapsWith ? (
+          <Button onClick={swap} type="button" variant="secondary">
+            <ArrowLeftRight />
+            <span>{t('banks.swapAction', { slot: patchSlotCode(swapsWith) })}</span>
+          </Button>
+        ) : null}
         <Button disabled={!target} form={formId} type="submit" variant="destructive">
           <Copy />
           <span>

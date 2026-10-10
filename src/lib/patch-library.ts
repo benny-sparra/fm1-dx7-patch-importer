@@ -8,6 +8,7 @@ import {
 } from '@/lib/favourites'
 import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
 import { DX7_TRANSPOSE_C3 } from '@/lib/fm1-parameters'
+import { fm1VaEightBitName } from '@/lib/fm1-va-eight-bit'
 import { fm1VaVirtualAnalogName } from '@/lib/fm1-va-virtual-analog'
 import { soundKey } from '@/lib/sound-key'
 
@@ -18,6 +19,8 @@ export { fm1VaRecordSize } from '@/lib/fm1-va-record'
 export const browserBanks = ['A', 'B', 'C', 'D'] as const
 /** The `family` of a slot holding an FM-1+VA Virtual Analog preset. */
 export const virtualAnalogFamily = 'VA'
+/** The `family` of a slot holding an FM-1+VA 8-Bit preset. */
+export const eightBitFamily = '8-Bit'
 export const maximumWorkspaceBanks = 10
 export const workspaceBankTitleLength = 10
 /** The longest description a workspace bank or a saved bank keeps. */
@@ -35,6 +38,12 @@ export type PatchLibrarySnapshot = {
   bankDescriptions: Record<string, string>
   bankNames: Record<string, string>
   effects: Record<string, Uint8Array>
+  /**
+   * The voice bytes of each slot holding an FM-1+VA 8-Bit preset, by the slot's id, kept exactly as
+   * read, as `virtualAnalog` keeps a Virtual Analog preset's: no entry in `voices`, and its record
+   * in `records`.
+   */
+  eightBit: Record<string, Uint8Array>
   /** Sounds kept in Favourites, in their order. They are copies, apart from the workspace banks. */
   favourites: Favourite[]
   loadedBanks: string[]
@@ -60,6 +69,7 @@ export function emptyPatchLibrary(
     bankDescriptions: {},
     bankNames: {},
     effects: {},
+    eightBit: {},
     favourites: [],
     loadedBanks: [],
     records: {},
@@ -102,6 +112,7 @@ export function compactWorkspaceBanks(snapshot: PatchLibrarySnapshot): PatchLibr
   const bankDescriptions: Record<string, string> = {}
   const bankNames: Record<string, string> = {}
   const effects: Record<string, Uint8Array> = {}
+  const eightBit: Record<string, Uint8Array> = {}
   const loadedBanks: string[] = []
   const records: Record<string, Uint8Array> = {}
   const virtualAnalog: Record<string, Uint8Array> = {}
@@ -127,6 +138,7 @@ export function compactWorkspaceBanks(snapshot: PatchLibrarySnapshot): PatchLibr
       if (snapshot.virtualAnalog[sourceId]) {
         virtualAnalog[destinationId] = snapshot.virtualAnalog[sourceId]
       }
+      if (snapshot.eightBit[sourceId]) eightBit[destinationId] = snapshot.eightBit[sourceId]
     }
   })
 
@@ -134,6 +146,7 @@ export function compactWorkspaceBanks(snapshot: PatchLibrarySnapshot): PatchLibr
     bankDescriptions,
     bankNames,
     effects,
+    eightBit,
     favourites: snapshot.favourites,
     loadedBanks,
     records,
@@ -169,11 +182,24 @@ export function makePatches(snapshot: PatchLibrarySnapshot): Patch[] {
       const id = voiceId(bank, number)
       const voice = snapshot.voices[id]
       const virtualAnalog = snapshot.virtualAnalog[id]
+      const eightBit = snapshot.eightBit[id]
       return {
         bank,
-        family: voice ? 'DX7' : virtualAnalog ? virtualAnalogFamily : '',
+        family: voice
+          ? 'DX7'
+          : virtualAnalog
+            ? virtualAnalogFamily
+            : eightBit
+              ? eightBitFamily
+              : '',
         id,
-        name: voice?.name ?? (virtualAnalog ? fm1VaVirtualAnalogName(virtualAnalog) : 'Empty'),
+        name:
+          voice?.name ??
+          (virtualAnalog
+            ? fm1VaVirtualAnalogName(virtualAnalog)
+            : eightBit
+              ? fm1VaEightBitName(eightBit)
+              : 'Empty'),
         number,
         // The FM1 has four banks, so only the first four workspace banks have a program to select.
         ...(bankIndex < browserBanks.length
@@ -198,6 +224,7 @@ export function importVoices(
   const effects = { ...snapshot.effects }
   const records = { ...snapshot.records }
   const virtualAnalog = { ...snapshot.virtualAnalog }
+  const eightBit = { ...snapshot.eightBit }
   imported.forEach((voice, index) => {
     const id = voiceId(bank, index + 1)
     voices[id] = voice
@@ -205,11 +232,13 @@ export function importVoices(
     // A DX7 bank carries no FM-1+VA record, so a slot it replaces loses its own.
     delete records[id]
     delete virtualAnalog[id]
+    delete eightBit[id]
   })
   return {
     bankDescriptions: snapshot.bankDescriptions,
     bankNames: snapshot.bankNames,
     effects,
+    eightBit,
     favourites: snapshot.favourites,
     loadedBanks: [...new Set([...snapshot.loadedBanks, bank])].sort(),
     records,
@@ -220,13 +249,14 @@ export function importVoices(
 }
 
 /**
- * A patch read from the FM1's memory: its DX7 voice, or a Virtual Analog preset's voice bytes, the
- * FM1 effects stored with it, and the FM-1+VA settings record, kept exactly as read. A Virtual
- * Analog preset always has its record, which marks it.
+ * A patch read from the FM1's memory: its DX7 voice, or a Virtual Analog or 8-Bit preset's voice
+ * bytes, the FM1 effects stored with it, and the FM-1+VA settings record, kept exactly as read. A
+ * Virtual Analog or 8-Bit preset always has its record, which marks it.
  */
 export type FetchedSound =
   | { effects?: Uint8Array; record?: Uint8Array; voice: Dx7Voice }
   | { effects?: Uint8Array; record: Uint8Array; virtualAnalog: Uint8Array }
+  | { effects?: Uint8Array; eightBit: Uint8Array; record: Uint8Array }
 
 /**
  * A bank of patches read from the FM1's memory, with null for a slot that keeps its patch, and
@@ -268,6 +298,7 @@ export function importFetchedBanks(
   const effects = { ...snapshot.effects }
   const records = { ...snapshot.records }
   const virtualAnalog = { ...snapshot.virtualAnalog }
+  const eightBit = { ...snapshot.eightBit }
   const loadedBanks = new Set(snapshot.loadedBanks)
   banks.forEach(({ sounds }, bankIndex) => {
     const bank = destinations[bankIndex]
@@ -277,13 +308,12 @@ export function importFetchedBanks(
     sounds.forEach((sound, index) => {
       if (!sound) return
       const id = voiceId(bank, index + 1)
-      if ('voice' in sound) {
-        voices[id] = sound.voice
-        delete virtualAnalog[id]
-      } else {
-        virtualAnalog[id] = sound.virtualAnalog.slice()
-        delete voices[id]
-      }
+      delete voices[id]
+      delete virtualAnalog[id]
+      delete eightBit[id]
+      if ('voice' in sound) voices[id] = sound.voice
+      else if ('virtualAnalog' in sound) virtualAnalog[id] = sound.virtualAnalog.slice()
+      else eightBit[id] = sound.eightBit.slice()
       effects[id] = normalizeFm1Effects(sound.effects)
       if (sound.record) records[id] = sound.record.slice()
       else delete records[id]
@@ -294,6 +324,7 @@ export function importFetchedBanks(
     bankDescriptions: snapshot.bankDescriptions,
     bankNames,
     effects,
+    eightBit,
     favourites: snapshot.favourites,
     loadedBanks: [...loadedBanks].sort(),
     records,
@@ -370,19 +401,21 @@ export function moveVoice(
   if (to < 1 || to > dx7BankVoiceCount || from < 1 || from > dx7BankVoiceCount || from === to)
     return snapshot
   const fromId = voiceId(bank, from)
-  if (!snapshot.voices[fromId] && !snapshot.virtualAnalog[fromId]) return snapshot
+  if (!holdsSound(snapshot, fromId)) return snapshot
 
   const voices = { ...snapshot.voices }
   const effects = { ...snapshot.effects }
   const records = { ...snapshot.records }
   const virtualAnalog = { ...snapshot.virtualAnalog }
+  const eightBit = { ...snapshot.eightBit }
   // Each slot's entries move together; one the source has none of is removed, so an empty slot
   // moves as empty rather than as a stored entry holding undefined.
   const moveSlot = (sourceId: string, targetId: string) => {
     moveEntry(voices, snapshot.voices[sourceId], targetId)
     moveEntry(records, snapshot.records[sourceId], targetId)
     moveEntry(virtualAnalog, snapshot.virtualAnalog[sourceId], targetId)
-    const filled = Boolean(snapshot.voices[sourceId] || snapshot.virtualAnalog[sourceId])
+    moveEntry(eightBit, snapshot.eightBit[sourceId], targetId)
+    const filled = holdsSound(snapshot, sourceId)
     moveEntry(
       effects,
       filled ? normalizeFm1Effects(snapshot.effects[sourceId]) : undefined,
@@ -394,7 +427,12 @@ export function moveVoice(
     moveSlot(voiceId(bank, slot + direction), voiceId(bank, slot))
   }
   moveSlot(fromId, voiceId(bank, to))
-  return { ...snapshot, effects, records, virtualAnalog, voices }
+  return { ...snapshot, effects, eightBit, records, virtualAnalog, voices }
+}
+
+/** Whether slot `id` holds a sound: a DX7 voice, or a Virtual Analog or 8-Bit preset. */
+function holdsSound(snapshot: PatchLibrarySnapshot, id: string) {
+  return Boolean(snapshot.voices[id] || snapshot.virtualAnalog[id] || snapshot.eightBit[id])
 }
 
 /**
@@ -422,15 +460,19 @@ export function copyVoice(
   const targetId = voiceId(bank, slot)
   if (targetId === sourceId) return snapshot
   const virtualAnalog = snapshot.virtualAnalog[sourceId]
-  if (virtualAnalog) {
-    const voices = { ...snapshot.voices }
-    delete voices[targetId]
+  const eightBit = snapshot.eightBit[sourceId]
+  if (virtualAnalog || eightBit) {
     return {
       ...snapshot,
       effects: { ...snapshot.effects, [targetId]: normalizeFm1Effects(snapshot.effects[sourceId]) },
+      eightBit: eightBit
+        ? { ...snapshot.eightBit, [targetId]: eightBit.slice() }
+        : withoutEntry(snapshot.eightBit, targetId),
       records: withRecord(snapshot.records, targetId, snapshot.records[sourceId]),
-      virtualAnalog: { ...snapshot.virtualAnalog, [targetId]: virtualAnalog.slice() },
-      voices,
+      virtualAnalog: virtualAnalog
+        ? { ...snapshot.virtualAnalog, [targetId]: virtualAnalog.slice() }
+        : withoutEntry(snapshot.virtualAnalog, targetId),
+      voices: withoutEntry(snapshot.voices, targetId),
     }
   }
   const source = findLibrarySound(snapshot, sourceId)
@@ -439,6 +481,7 @@ export function copyVoice(
   return {
     ...snapshot,
     effects: { ...snapshot.effects, [targetId]: normalizeFm1Effects(source.effects) },
+    eightBit: withoutEntry(snapshot.eightBit, targetId),
     records: withRecord(snapshot.records, targetId, source.record),
     virtualAnalog: withoutEntry(snapshot.virtualAnalog, targetId),
     voices: {
@@ -446,6 +489,44 @@ export function copyVoice(
       [targetId]: { ...source.voice, data: source.voice.data.slice() },
     },
   }
+}
+
+/**
+ * Swaps a workspace slot's patch with the one in another slot of a loaded bank: its voice or
+ * Virtual Analog or 8-Bit bytes, FM1 effects, and record. Each gets its own copies, as a copy does, since a
+ * swap puts a sound in a slot.
+ */
+export function swapVoices(
+  snapshot: PatchLibrarySnapshot,
+  sourceId: string,
+  bank: string,
+  slot: number,
+): PatchLibrarySnapshot {
+  // A favourite or any other id that names no workspace slot has no slot to take the other patch.
+  const source = /^bank-([A-Z])-(\d+)$/.exec(sourceId)
+  if (!source) throw new WorkspaceBankUnavailableError()
+  assertReplaceableSlot(snapshot, source[1], Number(source[2]))
+  assertReplaceableSlot(snapshot, bank, slot)
+  const targetId = voiceId(bank, slot)
+  if (targetId === sourceId) return snapshot
+
+  const voices = { ...snapshot.voices }
+  const effects = { ...snapshot.effects }
+  const records = { ...snapshot.records }
+  const virtualAnalog = { ...snapshot.virtualAnalog }
+  const eightBit = { ...snapshot.eightBit }
+  const put = (fromId: string, toId: string) => {
+    const voice = snapshot.voices[fromId]
+    moveEntry(voices, voice && { ...voice, data: voice.data.slice() }, toId)
+    moveEntry(records, snapshot.records[fromId]?.slice(), toId)
+    moveEntry(virtualAnalog, snapshot.virtualAnalog[fromId]?.slice(), toId)
+    moveEntry(eightBit, snapshot.eightBit[fromId]?.slice(), toId)
+    const filled = holdsSound(snapshot, fromId)
+    moveEntry(effects, filled ? normalizeFm1Effects(snapshot.effects[fromId]) : undefined, toId)
+  }
+  put(sourceId, targetId)
+  put(targetId, sourceId)
+  return { ...snapshot, effects, eightBit, records, virtualAnalog, voices }
 }
 
 /** The entries without one for slot `id`, or the same entries when it has none. */
@@ -573,6 +654,7 @@ export function replaceVoice(
   return {
     ...snapshot,
     effects: { ...snapshot.effects, [id]: normalizeFm1Effects(effects) },
+    eightBit: withoutEntry(snapshot.eightBit, id),
     records: withRecord(snapshot.records, id, record),
     virtualAnalog: withoutEntry(snapshot.virtualAnalog, id),
     voices: { ...snapshot.voices, [id]: { ...voice, data: voice.data.slice() } },
@@ -596,8 +678,33 @@ export function replaceWithVirtualAnalog(
   return {
     ...snapshot,
     effects: { ...snapshot.effects, [id]: normalizeFm1Effects(effects) },
+    eightBit: withoutEntry(snapshot.eightBit, id),
     records: withRecord(snapshot.records, id, record),
     virtualAnalog: { ...snapshot.virtualAnalog, [id]: virtualAnalog.slice() },
+    voices: withoutEntry(snapshot.voices, id),
+  }
+}
+
+/**
+ * Puts an 8-Bit preset from outside the workspace over a slot, such as one found in a saved bank:
+ * its voice bytes exactly as read, its effects, and its record, each the slot's own copy.
+ */
+export function replaceWithEightBit(
+  snapshot: PatchLibrarySnapshot,
+  bank: string,
+  slot: number,
+  eightBit: Uint8Array,
+  effects: Uint8Array | undefined,
+  record: Uint8Array,
+): PatchLibrarySnapshot {
+  assertReplaceableSlot(snapshot, bank, slot)
+  const id = voiceId(bank, slot)
+  return {
+    ...snapshot,
+    effects: { ...snapshot.effects, [id]: normalizeFm1Effects(effects) },
+    eightBit: { ...snapshot.eightBit, [id]: eightBit.slice() },
+    records: withRecord(snapshot.records, id, record),
+    virtualAnalog: withoutEntry(snapshot.virtualAnalog, id),
     voices: withoutEntry(snapshot.voices, id),
   }
 }
@@ -607,17 +714,20 @@ export function clearLibraryBank(snapshot: PatchLibrarySnapshot, bank: string) {
   const effects = { ...snapshot.effects }
   const records = { ...snapshot.records }
   const virtualAnalog = { ...snapshot.virtualAnalog }
+  const eightBit = { ...snapshot.eightBit }
   for (let slot = 1; slot <= dx7BankVoiceCount; slot += 1) {
     const id = voiceId(bank, slot)
     delete voices[id]
     delete effects[id]
     delete records[id]
     delete virtualAnalog[id]
+    delete eightBit[id]
   }
   return {
     bankDescriptions: snapshot.bankDescriptions,
     bankNames: snapshot.bankNames,
     effects,
+    eightBit,
     favourites: snapshot.favourites,
     loadedBanks: snapshot.loadedBanks.filter((loadedBank) => loadedBank !== bank),
     records,
@@ -684,23 +794,29 @@ export function patchMatchesSearch(patch: Pick<Patch, 'bank' | 'name' | 'number'
 }
 
 /**
- * A workspace bank's DX7 voices in slot order. A DX7 bank has no place for a Virtual Analog preset,
- * so its slot takes `initVoice` when one is given and is left out otherwise.
+ * A workspace bank's DX7 voices in slot order. A DX7 bank has no place for a Virtual Analog or
+ * 8-Bit preset, so its slot takes `initVoice` when one is given and is left out otherwise.
  */
 export function getBankVoices(snapshot: PatchLibrarySnapshot, bank: string, initVoice?: Dx7Voice) {
   return Array.from({ length: dx7BankVoiceCount }, (_, index) => {
     const id = voiceId(bank, index + 1)
-    return snapshot.voices[id] ?? (snapshot.virtualAnalog[id] ? initVoice : undefined)
+    return (
+      snapshot.voices[id] ??
+      (snapshot.virtualAnalog[id] || snapshot.eightBit[id] ? initVoice : undefined)
+    )
   }).filter((voice): voice is Dx7Voice => Boolean(voice))
 }
 
-/** How many of a workspace bank's slots hold a Virtual Analog preset. */
-export function bankVirtualAnalogCount(
-  virtualAnalog: Readonly<Record<string, Uint8Array>>,
+/**
+ * How many of a workspace bank's slots hold a Virtual Analog or 8-Bit preset, which a DX7 bank
+ * sends or downloads as INIT VOICE.
+ */
+export function bankInitVoiceCount(
+  library: Pick<PatchLibrarySnapshot, 'eightBit' | 'virtualAnalog'>,
   bank: string,
 ) {
   return Array.from({ length: dx7BankVoiceCount }, (_, index) => voiceId(bank, index + 1)).filter(
-    (id) => id in virtualAnalog,
+    (id) => id in library.virtualAnalog || id in library.eightBit,
   ).length
 }
 

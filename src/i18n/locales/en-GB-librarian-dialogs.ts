@@ -5,6 +5,11 @@
  * these sections in its own file.
  */
 export default {
+  banks: {
+    swapAction: 'Swap with {{slot}}',
+    swapHint: 'To keep “{{name}}”, swap instead: it moves to {{slot}}.',
+    swapFailed: 'The patches could not be swapped.',
+  },
   replacePatch: {
     replacing: 'Replacing…',
     action: 'Replace patch',
@@ -66,11 +71,6 @@ export default {
     damagedPreset: 'Damaged',
     damagedPresets: 'One preset is damaged. Its slot keeps its patch.',
     damagedPresets_other: '{{count, number}} presets are damaged. Their slots keep their patches.',
-    eightBitPreset: '8-Bit',
-    eightBitPresets:
-      'One preset is 8-Bit, which the library can’t hold yet. Its slot keeps its patch.',
-    eightBitPresets_other:
-      '{{count, number}} presets are 8-Bit, which the library can’t hold yet. Their slots keep their patches.',
     absentPreset: 'Not in file',
     action: 'Import one bank',
     action_other: 'Import {{count, number}} banks',
@@ -103,12 +103,12 @@ export default {
       'One Virtual Analogue preset is kept: only a Virtual Analogue patch can replace it.',
     virtualAnalogKept_other:
       '{{count, number}} Virtual Analogue presets are kept: only Virtual Analogue patches can replace them.',
-    eightBitKept: 'One 8-Bit preset is kept, since the library can’t hold 8-Bit patches yet.',
+    eightBitKept: 'One 8-Bit preset is kept: only an 8-Bit patch can replace it.',
     eightBitKept_other:
-      '{{count, number}} 8-Bit presets are kept, since the library can’t hold 8-Bit patches yet.',
-    inexact: 'One Virtual Analogue patch can’t be stored exactly, so its preset is kept.',
+      '{{count, number}} 8-Bit presets are kept: only 8-Bit patches can replace them.',
+    inexact: 'One Virtual Analogue or 8-Bit patch can’t be stored exactly, so its preset is kept.',
     inexact_other:
-      '{{count, number}} Virtual Analogue patches can’t be stored exactly, so their presets are kept.',
+      '{{count, number}} Virtual Analogue or 8-Bit patches can’t be stored exactly, so their presets are kept.',
     eightBitPatch:
       'One patch was read from an 8-Bit preset and can’t be written, so its preset is kept.',
     eightBitPatch_other:

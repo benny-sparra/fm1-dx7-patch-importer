@@ -124,7 +124,7 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
     const dialog = screen.getByRole('dialog', { name: 'Choose the destination bank on your FM1' })
     expect(
       within(dialog).getByText(
-        'A DX7 bank has no place for a Virtual Analogue preset, so this bank’s one is sent as INIT VOICE.',
+        'A DX7 bank has no place for a Virtual Analogue or 8-Bit preset, so this bank’s one is sent as INIT VOICE.',
       ),
     ).toBeTruthy()
   })
@@ -143,7 +143,9 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
     expect(voices[2].name).toBe('INIT VOICE')
     expect(voices[3]).toEqual(workspace().voices['bank-A-4'])
     expect(
-      await screen.findByText(/was sent, with INIT VOICE in place of its Virtual Analogue preset/),
+      await screen.findByText(
+        /was sent, with INIT VOICE in place of its Virtual Analogue or 8-Bit preset/,
+      ),
     ).toBeTruthy()
   })
 
@@ -158,7 +160,7 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
     expect(parseDx7Bank(file)[2].name).toBe('INIT VOICE')
     expect(
       await screen.findByText(
-        'Downloading “Bank 1”, with INIT VOICE in place of its Virtual Analogue preset.',
+        'Downloading “Bank 1”, with INIT VOICE in place of its Virtual Analogue or 8-Bit preset.',
       ),
     ).toBeTruthy()
   })
@@ -171,7 +173,7 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
 
     expect(
       screen.getByText(
-        'Eine DX7-Bank hat keinen Platz für ein Virtual-Analog-Preset, darum wird das dieser Bank als INIT VOICE gesendet.',
+        'Eine DX7-Bank hat keinen Platz für ein Virtual-Analog- oder 8-Bit-Preset, darum wird das dieser Bank als INIT VOICE gesendet.',
       ),
     ).toBeTruthy()
   })

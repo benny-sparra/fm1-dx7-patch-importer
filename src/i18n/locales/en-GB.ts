@@ -299,16 +299,17 @@ export default {
     demoLoaded: 'Loaded the demo patches into “{{bank}}”.',
     patchSaved: 'Saved “{{patch}}” to the library.',
     patchCopied: 'Copied “{{patch}}” to {{slot}} in “{{bank}}”.',
+    patchesSwapped: 'Swapped “{{patch}}” and “{{target}}”.',
     patchReplaced: 'Replaced {{slot}} with “{{patch}}”.',
     operatorCopied: 'Copied operator {{number}}.',
     bankDownloadStartedWithInit:
-      'Downloading “{{bank}}”, with INIT VOICE in place of its Virtual Analogue preset.',
+      'Downloading “{{bank}}”, with INIT VOICE in place of its Virtual Analogue or 8-Bit preset.',
     bankDownloadStartedWithInit_other:
-      'Downloading “{{bank}}”, with INIT VOICE in place of its {{count, number}} Virtual Analogue presets.',
+      'Downloading “{{bank}}”, with INIT VOICE in place of its {{count, number}} Virtual Analogue or 8-Bit presets.',
     banksDownloadStartedWithInit:
-      'Downloading all banks, with INIT VOICE in place of one Virtual Analogue preset.',
+      'Downloading all banks, with INIT VOICE in place of one Virtual Analogue or 8-Bit preset.',
     banksDownloadStartedWithInit_other:
-      'Downloading all banks, with INIT VOICE in place of {{count, number}} Virtual Analogue presets.',
+      'Downloading all banks, with INIT VOICE in place of {{count, number}} Virtual Analogue or 8-Bit presets.',
   },
   meta: {
     title: 'M-VAVE FM1 Editor & Librarian',
@@ -599,18 +600,24 @@ export default {
       'Click to select {{name}} on the FM1, which plays the Virtual Analogue preset stored there',
     slotVirtualAnalogAddedTitle:
       '{{name}} is a Virtual Analogue preset, which plays only from the FM1’s banks A to D',
+    slotEightBitTitle:
+      'Click to select {{name}} on the FM1, which plays the 8-Bit preset stored there',
+    slotEightBitAddedTitle:
+      '{{name}} is an 8-Bit preset, which plays only from the FM1’s banks A to D',
     virtualAnalogPatch: 'Virtual Analogue preset',
+    eightBitPatch: '8-Bit preset',
     sentStatusWithInit:
-      'Browser bank {{bank}} was sent, with INIT VOICE in place of its Virtual Analogue preset. Choose its destination on the FM1.',
+      'Browser bank {{bank}} was sent, with INIT VOICE in place of its Virtual Analogue or 8-Bit preset. Choose its destination on the FM1.',
     sentStatusWithInit_other:
-      'Browser bank {{bank}} was sent, with INIT VOICE in place of its {{count, number}} Virtual Analogue presets. Choose its destination on the FM1.',
+      'Browser bank {{bank}} was sent, with INIT VOICE in place of its {{count, number}} Virtual Analogue or 8-Bit presets. Choose its destination on the FM1.',
     virtualAnalogInitNote:
-      'A DX7 bank has no place for a Virtual Analogue preset, so this bank’s one is sent as INIT VOICE.',
+      'A DX7 bank has no place for a Virtual Analogue or 8-Bit preset, so this bank’s one is sent as INIT VOICE.',
     virtualAnalogInitNote_other:
-      'A DX7 bank has no place for a Virtual Analogue preset, so this bank’s {{count, number}} are sent as INIT VOICE.',
+      'A DX7 bank has no place for a Virtual Analogue or 8-Bit preset, so this bank’s {{count, number}} are sent as INIT VOICE.',
     fmPatch: 'FM patch',
     fmTag: 'FM',
     virtualAnalogTag: 'VA',
+    eightBitTag: '8B',
     engineTitle: '{{engine}}\n{{action}}',
   },
   namedBanks: {
@@ -659,9 +666,9 @@ export default {
     deleted: 'Deleted “{{name}}”.',
     loaded: 'Loaded “{{name}}” into “{{bank}}”.',
     downloadedWithInit:
-      'Downloaded “{{name}}”, with INIT VOICE in place of its Virtual Analogue preset.',
+      'Downloaded “{{name}}”, with INIT VOICE in place of its Virtual Analogue or 8-Bit preset.',
     downloadedWithInit_other:
-      'Downloaded “{{name}}”, with INIT VOICE in place of its {{count, number}} Virtual Analogue presets.',
+      'Downloaded “{{name}}”, with INIT VOICE in place of its {{count, number}} Virtual Analogue or 8-Bit presets.',
   },
   backup: {
     menuOtherFiles: 'Other files',

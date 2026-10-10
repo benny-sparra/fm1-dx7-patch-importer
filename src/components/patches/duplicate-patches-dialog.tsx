@@ -21,6 +21,7 @@ type DuplicatePatchesDialogProps = {
     PatchLibrary,
     | 'bankNames'
     | 'effects'
+    | 'eightBit'
     | 'loadedBanks'
     | 'patches'
     | 'records'
@@ -57,9 +58,11 @@ export function DuplicatePatchesDialog({ library, onClose }: DuplicatePatchesDia
         library.effects,
         library.records,
         library.loadedBanks,
+        library.eightBit,
       ),
     [
       library.effects,
+      library.eightBit,
       library.loadedBanks,
       library.patches,
       library.records,
