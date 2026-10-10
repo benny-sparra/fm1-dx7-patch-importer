@@ -831,13 +831,24 @@ const pictureTileLabelClass =
   'justify-self-start text-[11px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase'
 
 export function PicturePickerControl({
+  disabled,
+  disabledText,
   helpText,
+  icon,
+  inline = false,
   label,
   onChange,
   options,
   value,
 }: {
+  /** Shows `disabledText` in a greyed field in place of the picker. */
+  disabled?: boolean
+  disabledText?: string
   helpText?: string
+  /** An icon before the label. */
+  icon?: ReactNode
+  /** Puts the label beside the picker, and leaves out the large picture under it. */
+  inline?: boolean
   label: string
   onChange: (value: number) => void
   options: PictureOption[]
@@ -852,52 +863,73 @@ export function PicturePickerControl({
   }
 
   return (
-    <div className={cn('flex min-w-0 flex-1 flex-col gap-1', captionClass)}>
+    <div
+      className={cn(
+        inline
+          ? 'grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2'
+          : 'flex min-w-0 flex-1 flex-col gap-1',
+        captionClass,
+      )}
+    >
       <span className="flex items-center gap-1">
+        {icon}
         {label}
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
       </span>
-      <details className="group relative min-w-0" ref={dropdownRef}>
-        <summary
-          aria-label={`${label}: ${selected.label}`}
-          className={cn(
-            fieldClass,
-            'flex cursor-pointer list-none items-center gap-1.5 transition-colors hover:bg-[var(--crt-bg-head)] [&::-webkit-details-marker]:hidden',
-          )}
-        >
-          {selected.picture('h-4 w-7 shrink-0 text-[var(--crt-acc-lt)]')}
-          <span className="min-w-0 flex-1 truncate tracking-[0.1em]">{selected.label}</span>
-          <ChevronDown className="size-3.5 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
-        </summary>
+      {disabled ? (
         <div
-          aria-label={label}
-          className="editor-menu-surface absolute top-[calc(100%+0.3rem)] left-0 z-30 grid w-[min(20rem,calc(100vw-1.5rem))] grid-cols-2 gap-1.5 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-2"
-          role="radiogroup"
+          aria-disabled="true"
+          aria-label={`${label}: ${disabledText ?? ''}`}
+          className={cn(fieldClass, 'flex cursor-not-allowed items-center opacity-50')}
+          role="group"
         >
-          {options.map((option, index) => (
-            <button
-              aria-checked={value === index}
-              aria-label={option.label}
-              className={cn(
-                pictureTileClass(value === index),
-                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
-              )}
-              key={option.label}
-              onClick={() => select(index)}
-              role="radio"
-              type="button"
-            >
-              <span className={pictureTileLabelClass}>{option.label}</span>
-              {option.picture('h-8 w-16')}
-            </button>
-          ))}
+          <span className="min-w-0 flex-1 truncate tracking-[0.1em]">{disabledText}</span>
         </div>
-      </details>
-      <div aria-hidden="true" className="crt-well relative aspect-square">
-        {selected.picture(
-          'absolute top-3 left-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] text-[var(--crt-led)] drop-shadow-[0_0_6px_var(--crt-led-glow)]',
-        )}
-      </div>
+      ) : (
+        <details className="group relative min-w-0" ref={dropdownRef}>
+          <summary
+            aria-label={`${label}: ${selected.label}`}
+            className={cn(
+              fieldClass,
+              'flex cursor-pointer list-none items-center gap-1.5 transition-colors hover:bg-[var(--crt-bg-head)] [&::-webkit-details-marker]:hidden',
+            )}
+          >
+            {selected.picture('h-4 w-7 shrink-0 text-[var(--crt-acc-lt)]')}
+            <span className="min-w-0 flex-1 truncate tracking-[0.1em]">{selected.label}</span>
+            <ChevronDown className="size-3.5 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+          </summary>
+          <div
+            aria-label={label}
+            className="editor-menu-surface absolute top-[calc(100%+0.3rem)] left-0 z-30 grid w-[min(20rem,calc(100vw-1.5rem))] grid-cols-2 gap-1.5 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-2"
+            role="radiogroup"
+          >
+            {options.map((option, index) => (
+              <button
+                aria-checked={value === index}
+                aria-label={option.label}
+                className={cn(
+                  pictureTileClass(value === index),
+                  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+                )}
+                key={option.label}
+                onClick={() => select(index)}
+                role="radio"
+                type="button"
+              >
+                <span className={pictureTileLabelClass}>{option.label}</span>
+                {option.picture('h-8 w-16')}
+              </button>
+            ))}
+          </div>
+        </details>
+      )}
+      {inline ? null : (
+        <div aria-hidden="true" className="crt-well relative aspect-square">
+          {selected.picture(
+            'absolute top-3 left-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] text-[var(--crt-led)] drop-shadow-[0_0_6px_var(--crt-led-glow)]',
+          )}
+        </div>
+      )}
     </div>
   )
 }

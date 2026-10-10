@@ -244,11 +244,10 @@ export class VirtualAnalogEditorSession {
   }
 
   /**
-   * Sets what knob `knob`, counted from 0, plays as one undo step. No MIDI message carries it, so
-   * nothing is sent.
+   * Sets what knob `knob`, counted from 0, plays: one undo step, or part of a knob's drag through
+   * `beginGesture` and `endGesture`. No MIDI message carries it, so nothing is sent.
    */
   setKnobChoice = (knob: number, choice: number) => {
-    this.gestureStart = null
     this.applyEdits([[FM1_VA_KNOB_CHOICES_START + knob, choice, 0, 7]])
   }
 

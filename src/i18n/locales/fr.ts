@@ -186,11 +186,13 @@ export default {
       'Conservé pour le firmware de Baud Girl : un ordre des effets modifié. Ce FM1 joue les effets dans son propre ordre.',
   },
   knobChoices: {
-    title: 'Potentiomètres',
+    title: 'Potentiomètres de contrôle en temps réel',
     knob: 'Potentiomètre {{number}}',
-    assign: 'Choisir un potentiomètre pour {{parameter}}',
-    menuItem: 'Potentiomètre {{number}} : {{choice}}',
-    help: 'Choisit ce que KNOB1 à KNOB4 règlent pour ce son dans la banque de potentiomètres Preset du firmware de Baud Girl, parmi les huit choix de son moteur. Aucun message MIDI ne les règle : ils prennent effet une fois le son écrit sur le FM1 avec Envoyer au FM1 ou Écrire des sons sur le FM1.',
+    assign: 'Affecter {{parameter}} à un potentiomètre',
+    assignHeading: 'Affecter {{parameter}} à',
+    assigned: 'Déjà affecté',
+    replaces: 'Remplace {{choice}}',
+    help: 'Choisit ce que règle chacun des quatre potentiomètres du FM1 avec ce son, parmi les huit réglages de son moteur. Le choix est enregistré avec le son et parvient au FM1 quand vous l’écrivez avec Envoyer au FM1 ou Écrire des sons sur le FM1.',
     noRecord:
       'Ce son ne vient pas du FM1 : il prend les potentiomètres du preset sur lequel il est écrit.',
     fm: {

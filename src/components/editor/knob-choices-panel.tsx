@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
 import { RackPanelHelp } from '@/components/editor/editor-workspace'
+import { KnobChoicePicture } from '@/components/editor/knob-choice-pictures'
 import { knobChoiceEngineKeys } from '@/components/editor/knob-assign-menu'
-import { RackSelect } from '@/components/editor/parameter-controls'
+import { PicturePickerControl } from '@/components/editor/parameter-controls'
 import {
   RackPanelCollapseToggle,
   RackPanelCollapsibleBody,
@@ -13,6 +14,11 @@ import {
 } from '@/components/ui/rack-panel'
 import type { Fm1VaEngine } from '@/lib/fm1-va-engine'
 import { fm1VaKnobChoiceIds } from '@/lib/fm1-va-knob-choices'
+
+/** Draws a knob choice at the size the picture picker gives it. */
+const knobPicture = (engine: Fm1VaEngine, choice: number) => (className: string) => (
+  <KnobChoicePicture choice={choice} className={className} engine={engine} />
+)
 
 type KnobChoicesPanelProps = {
   engine: Fm1VaEngine
@@ -48,32 +54,26 @@ export function KnobChoicesPanel({ choices, engine, onChange }: KnobChoicesPanel
         id={headingId}
         title={t('knobChoices.title')}
       />
-      <RackPanelCollapsibleBody collapsed={collapsed} id={bodyId}>
+      <RackPanelCollapsibleBody collapsed={collapsed} id={bodyId} overflowWhenOpen>
         <div className="grid gap-2.5 p-[9px]">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 lg:grid-cols-4">
-            {[0, 1, 2, 3].map((knob) => {
-              const label = t('knobChoices.knob', { number: knob + 1 })
-              return (
-                <label
-                  className="grid min-w-0 gap-1 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase"
-                  key={knob}
-                >
-                  <span className="min-w-0 truncate">{label}</span>
-                  <RackSelect
-                    className="crt-inset h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
-                    disabled={choices === null}
-                    onChange={(event) => onChange(knob, Number(event.target.value))}
-                    value={choices?.[knob] ?? 0}
-                  >
-                    {ids.map((id, choice) => (
-                      <option key={id} value={choice}>
-                        {t(`knobChoices.${knobChoiceEngineKeys[engine]}.${id}`)}
-                      </option>
-                    ))}
-                  </RackSelect>
-                </label>
-              )
-            })}
+          {/* Each knob's choice as a picture picker, as the oscillator's waveform is chosen. */}
+          <div className="grid grid-cols-1 gap-x-4 gap-y-2.5 sm:grid-cols-2 xl:grid-cols-4">
+            {[0, 1, 2, 3].map((knob) => (
+              <PicturePickerControl
+                disabled={choices === null}
+                disabledText="—"
+                icon={<Gauge aria-hidden="true" className="size-3.5 text-[var(--crt-acc)]" />}
+                inline
+                key={knob}
+                label={t('knobChoices.knob', { number: knob + 1 })}
+                onChange={(choice) => onChange(knob, choice)}
+                options={ids.map((id, choice) => ({
+                  label: t(`knobChoices.${knobChoiceEngineKeys[engine]}.${id}`),
+                  picture: knobPicture(engine, choice),
+                }))}
+                value={choices?.[knob] ?? 0}
+              />
+            ))}
           </div>
           {choices === null ? (
             <p className="text-[11px] leading-4 text-[var(--crt-ink-3)]">

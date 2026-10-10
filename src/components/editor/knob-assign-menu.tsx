@@ -47,12 +47,16 @@ export function KnobAssignMenu({
   return (
     <span className="inline-block align-middle">
       <PortalMenu
+        heading={t('knobChoices.assignHeading', { parameter })}
         items={choices.map((current, knob) => ({
           checked: current === choice,
-          label: t('knobChoices.menuItem', {
-            choice: t(`knobChoices.${engineKey}.${fm1VaKnobChoiceIds[engine][current]}`),
-            number: knob + 1,
-          }),
+          hint:
+            current === choice
+              ? t('knobChoices.assigned')
+              : t('knobChoices.replaces', {
+                  choice: t(`knobChoices.${engineKey}.${fm1VaKnobChoiceIds[engine][current]}`),
+                }),
+          label: t('knobChoices.knob', { number: knob + 1 }),
           onSelect: () => onAssign(knob, choice),
         }))}
         menuLabel={label}

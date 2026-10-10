@@ -257,7 +257,12 @@ describe('VirtualAnalogEditorPage', () => {
     await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
     const sent = controlChanges().length
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Knob 2' }), 'Shape')
+    await user.click(screen.getByLabelText(/^Knob 2: /))
+    await user.click(
+      within(screen.getByRole('radiogroup', { name: 'Knob 2' })).getByRole('radio', {
+        name: 'Shape',
+      }),
+    )
     await user.click(screen.getByRole('button', { name: /^Save/ }))
 
     const [, , savedRecord] = onSave.mock.calls[0]
@@ -269,13 +274,15 @@ describe('VirtualAnalogEditorPage', () => {
     expect(controlChanges()).toHaveLength(sent)
   })
 
-  it('lists the Virtual Analog engine’s own knob choices', () => {
-    setup()
+  it('lists the Virtual Analog engine’s own knob choices', async () => {
+    const { user } = setup()
+
+    await user.click(screen.getByLabelText(/^Knob 1: /))
 
     expect(
-      within(screen.getByRole('combobox', { name: 'Knob 1' }))
-        .getAllByRole('option')
-        .map((option) => option.textContent),
+      within(screen.getByRole('radiogroup', { name: 'Knob 1' }))
+        .getAllByRole('radio')
+        .map((option) => option.getAttribute('aria-label')),
     ).toEqual([
       'Cutoff',
       'Resonance',
@@ -291,25 +298,27 @@ describe('VirtualAnalogEditorPage', () => {
   it('puts Cutoff on a knob from the knob beside its name', async () => {
     const { user } = setup()
 
-    await user.click(screen.getByRole('button', { name: 'Choose a knob for Cutoff' }))
-    await user.click(screen.getByRole('menuitemradio', { name: 'Knob 3: Filter envelope' }))
+    await user.click(screen.getByRole('button', { name: 'Assign Cutoff to a knob' }))
+    await user.click(
+      screen.getByRole('menuitemradio', {
+        name: 'Knob 3',
+        description: 'Replaces Filter envelope',
+      }),
+    )
 
-    expect(
-      screen.getByRole<HTMLSelectElement>('combobox', { name: 'Knob 3' }).selectedOptions[0]
-        .textContent,
-    ).toBe('Cutoff')
+    expect(screen.getByLabelText('Knob 3: Cutoff')).toBeTruthy()
   })
 
   it('offers no knob beside a row no knob plays', () => {
     setup()
 
-    expect(screen.queryByRole('button', { name: 'Choose a knob for Drift' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Assign Drift to a knob' })).toBeNull()
   })
 
   it('offers no knob choices before FM-1_096', () => {
     setup({ firmware: 'FM-1_093' })
 
-    expect(screen.queryByRole('combobox', { name: 'Knob 1' })).toBeNull()
+    expect(screen.queryByLabelText(/^Knob 1: /)).toBeNull()
   })
 
   it('undoes a held arrow key in one step', async () => {

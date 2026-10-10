@@ -181,11 +181,13 @@ export default {
       'Guardado para o firmware da Baud Girl: uma ordem de efeitos alterada. Este FM1 toca os efeitos na própria ordem.',
   },
   knobChoices: {
-    title: 'Knobs',
+    title: 'Knobs de controle em tempo real',
     knob: 'Knob {{number}}',
-    assign: 'Escolher um knob para {{parameter}}',
-    menuItem: 'Knob {{number}}: {{choice}}',
-    help: 'Escolhe o que KNOB1 a KNOB4 controlam neste som no banco de knobs Preset do firmware da Baud Girl, entre as oito opções do seu motor. Nenhuma mensagem MIDI os ajusta, então eles valem quando o som é gravado no FM1 com Enviar ao FM1 ou Gravar sons no FM1.',
+    assign: 'Atribuir {{parameter}} a um knob',
+    assignHeading: 'Atribuir {{parameter}} a',
+    assigned: 'Já atribuído',
+    replaces: 'Substitui {{choice}}',
+    help: 'Escolhe o que cada um dos quatro knobs do FM1 controla neste som, entre os oito ajustes do seu motor. A escolha é salva com o som e chega ao FM1 quando você o grava com Enviar ao FM1 ou Gravar sons no FM1.',
     noRecord: 'Este som não veio do FM1, então usa os knobs do preset sobre o qual for gravado.',
     fm: {
       brightness: 'Brilho',

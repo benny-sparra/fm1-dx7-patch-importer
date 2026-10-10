@@ -309,11 +309,11 @@ export class PatchEditorSession {
   }
 
   /**
-   * Sets what FM-1+VA's knob `knob`, counted from 0, plays as one undo step. No MIDI message
-   * carries a knob choice, so it is heard only once the patch is written to the FM1.
+   * Sets what FM-1+VA's knob `knob`, counted from 0, plays: one undo step, or part of a knob's
+   * drag through `beginGesture` and `endGesture`. No MIDI message carries a knob choice, so it is
+   * heard only once the patch is written to the FM1.
    */
   setKnobChoice = (knob: number, choice: number) => {
-    this.gestureStart = null
     this.applyEdits([[FM1_VA_KNOB_CHOICES_START + knob, choice, 0, 7]], false)
   }
 

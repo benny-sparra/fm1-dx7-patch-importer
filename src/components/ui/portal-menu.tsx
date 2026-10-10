@@ -3,6 +3,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -16,12 +17,16 @@ type PortalMenuItem = {
   /** Makes the item one of a set of choices, ticked while it is the one chosen. */
   checked?: boolean
   disabled?: boolean
+  /** A muted line under the label, saying what choosing the item does. */
+  hint?: string
   Icon?: LucideIcon
   label: string
   onSelect?: () => void
 }
 
 type PortalMenuProps = {
+  /** A caption above the items, saying what the menu is for. */
+  heading?: string
   items: readonly PortalMenuItem[]
   /** The accessible name of the open menu. */
   menuLabel: string
@@ -43,6 +48,7 @@ const enabledItems = (menu: HTMLElement | null) =>
  * closes on scroll rather than following its trigger.
  */
 export function PortalMenu({
+  heading,
   items,
   menuLabel,
   triggerClassName,
@@ -52,6 +58,7 @@ export function PortalMenu({
 }: PortalMenuProps) {
   const [open, setOpen] = useState(false)
   const [position, setPosition] = useState<HelpPopoverPosition>({ left: 12, top: 12 })
+  const hintId = useId()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -142,10 +149,23 @@ export function PortalMenu({
               style={position}
               tabIndex={-1}
             >
+              {heading ? (
+                <p
+                  aria-hidden="true"
+                  className="px-3 pt-1.5 pb-1 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase"
+                >
+                  {heading}
+                </p>
+              ) : null}
               {items.map(
-                ({ checked, disabled, Icon = checked ? Check : undefined, label, onSelect }) => (
+                (
+                  { checked, disabled, hint, Icon = checked ? Check : undefined, label, onSelect },
+                  index,
+                ) => (
                   <button
                     aria-checked={checked}
+                    aria-describedby={hint ? `${hintId}-hint-${index}` : undefined}
+                    aria-labelledby={hint ? `${hintId}-label-${index}` : undefined}
                     className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                     disabled={disabled}
                     key={label}
@@ -163,7 +183,19 @@ export function PortalMenu({
                     ) : (
                       <span aria-hidden="true" className="size-4 shrink-0" />
                     )}
-                    <span>{label}</span>
+                    {hint ? (
+                      <span className="grid">
+                        <span id={`${hintId}-label-${index}`}>{label}</span>
+                        <span
+                          className="text-xs text-[var(--crt-ink-3)]"
+                          id={`${hintId}-hint-${index}`}
+                        >
+                          {hint}
+                        </span>
+                      </span>
+                    ) : (
+                      <span>{label}</span>
+                    )}
                   </button>
                 ),
               )}
