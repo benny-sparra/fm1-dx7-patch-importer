@@ -5,7 +5,9 @@
 [`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`](hardware-runs/fm1-va-write-timing-2026-10-06.md).
 §3 run the same day, with B8 (Phaser moved to the top) added; ledger
 [`docs/hardware-runs/fm1-va-bitcrush-order-2026-10-06.md`](hardware-runs/fm1-va-bitcrush-order-2026-10-06.md).
-§1, §2, §4, §4b and D2 (added 2026-10-07), §5, §6b (added 2026-10-07), and §7 not run yet.
+On `FM-1_097`, 2026-10-10: §1 apart from F3, M1, M3 (with a second slot's VA erase), M4, and
+§4; ledger [`docs/hardware-runs/fm1-va-097-tests-2026-10-10.md`](hardware-runs/fm1-va-097-tests-2026-10-10.md).
+F3 and M2, §4b and D2, §5, §6b, and §7 not run yet.
 **Scope:** whether the facts `docs/fm1-research.md` records under "FM-1_096", all **Likely** and
 read from Baud Girl's web code and preset packs, hold on an FM1; whether the editor's handling of
 8-Bit presets (#191) keeps them safe; and where the settings FM-1_096 added live in the record. The
