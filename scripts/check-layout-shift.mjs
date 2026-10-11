@@ -178,6 +178,10 @@ async function main() {
       mobile: true,
       width: 412,
     })
+    // The page follows the browser's language, so pin British English as the Playwright config
+    // does; on a machine set to another language the alt text below would never match.
+    const { userAgent } = await connection.send('Browser.getVersion')
+    await connection.send('Emulation.setUserAgentOverride', { acceptLanguage: 'en-GB', userAgent })
     await connection.send('Page.addScriptToEvaluateOnNewDocument', {
       source: `
         window.__initialPageCls = { entries: [], value: 0 };

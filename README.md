@@ -58,7 +58,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard, or loop one of six short phrases to audition a patch hands-free
 - Release hanging notes on the FM1 with a MIDI panic button
-- Use the interface in British or American English, French, Spanish, German, Brazilian Portuguese, or Simplified Chinese
+- Use the interface in British or American English, French, Spanish, German, Brazilian Portuguese, Ukrainian, or Simplified Chinese
 - Use a dark CRT-terminal interface whose accent, product image, and tab icon follow any of the six FM1 colour finishes, with contrast checked to WCAG 2.2 AA in each
 - Install the editor as a standalone desktop app in browsers that support installation
 
@@ -179,4 +179,4 @@ This does not cover third-party material bundled with it, which keeps its own te
   [Acknowledgements](#acknowledgements), and banks contributed to the catalog keep the licence their
   author chose.
 - **Fonts**: Doto, Space Grotesk, IBM Plex Mono, and VT323 are installed from npm under the SIL Open
-  Font License 1.1.
+  Font License 1.1. Departure Mono is under the same licence.

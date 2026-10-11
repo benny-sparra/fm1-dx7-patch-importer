@@ -536,6 +536,11 @@
     text-shadow: 0 0 10px color-mix(in srgb, var(--crt-acc) 35%, transparent);
   }
 
+  /* Doto has no Cyrillic, so the title in Ukrainian is set whole in Departure Mono (fonts.css). */
+  .synthwave-title:lang(uk) {
+    font-family: 'Departure Mono', 'Doto Metrics Fallback', ui-monospace, monospace;
+  }
+
   .synthwave-title[data-layout='compact'] {
     font-size: 1.25rem;
   }
