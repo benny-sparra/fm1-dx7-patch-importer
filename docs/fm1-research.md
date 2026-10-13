@@ -922,28 +922,33 @@ Site, source, installer, editor, and recovery tool:
 
 Felucca is Leo Kuroshita's (Hügelton Instruments) replacement firmware for the FM1, under
 GPL-3.0-only. 0.4-beta (2026-10-02) shipped only a built package; 0.8-beta (2026-10-03) was the
-first source release, and 0.9-beta (2026-10-03) the latest. 0.9 has nine engines (ANALOG, DIGITAL
-4-operator FM, PHASE CZ-style phase distortion, LOFI, SAMPLE, VOICE formant, and new TRIO, WHEEL
-organ, and GRAIN granular), a per-track SLICER insert, three synth parts and a GM drum track sharing
-eight voices, a 64-step sequencer per track, 32 user preset slots, 4 project slots, and 3 user
-sample slots, edited by its own web editor (`README.md`). Users moving to it from FM-1+VA are told
-to go back to stock firmware first (`docs/switching-firmware.md`).
+first source release, and 0.9-beta (2026-10-03) the last beta. 1.0 followed on 2026-10-05, and the
+latest tag is v1.5.1 (2026-10-10). The README describes thirteen engines, a per-track SLICER insert,
+four synth tracks, a sequencer per track, 32 user preset slots, project slots, MIDI Program Change
+since 1.5.1, and MIDI LEARN since 1.5, edited by its own web editor (`README.md`). The editor's
+development has moved to https://github.com/hugelton/Felucca-WebApp. Users moving to it from
+FM-1+VA are told to go back to stock firmware first (`docs/switching-firmware.md`).
 
-The notes below come from reading the source at the 0.9-beta tag, commit
-`e5a908d0383848cd85149de6dc35150c792231fc` (2026-10-03), and at `main`, commit
-`1e838e17e170b20ff09b9660c9a7171aadfc5dca` (2026-10-03, two commits later, adding a white-key
-scale option), mainly `firmware/src/usb.c`, `seq.c`, `ota.c`, `editor.c`, `tools/build.py`, and
-`web/EDITOR_PROTOCOL.md`. They were first written from 0.8-beta (commit `334477d`); the changes
-since then do not touch the points below, except as noted. Where marked, they also rest on a static
-reading of the 0.4-beta package. Reading source counts as analysis, so nothing here is
-**Confirmed**: no Felucca FM1 has been run with this editor.
+The notes below were checked on 2026-10-12 against the v1.5.1 tag, commit
+`a4d7ca2e5d52a4c35e2468401f00d883cadbda03` (2026-10-10), and `main`, commit
+`ef1f561b6b105f20350f6b1eac0dc0789a357f00` (2026-10-11, "Remove sponsorship links", the one commit
+after the tag), mainly `firmware/src/felucca.c`, `usb.c`, `seq.c`, `midi_control.c`, `midi_uart.c`,
+`ota.c`, `console.c`, `tools/build.py`, `README.md`, and `web/EDITOR_PROTOCOL.md`. The previous
+check read 0.9-beta, commit `e5a908d0383848cd85149de6dc35150c792231fc` (2026-10-03), and `main`
+at `1e838e17e170b20ff09b9660c9a7171aadfc5dca`. They were first written from 0.8-beta (commit
+`334477d`). Where marked, they also rest on a static reading of the 0.4-beta package. Reading
+source counts as analysis, so nothing here is **Confirmed**: no Felucca FM1 has been run with this
+editor. The GitHub releases API could not be read in this check, so release dates are the tags'.
 
 **Identity. Likely.** Felucca answers the identity query (§6.3) outside an update with its package
-identity. Release builds name it `FM-1_9XY` for release X.Y (`build.py --release`, one digit each),
-so 0.4-beta is `FM-1_904`, 0.8-beta `FM-1_908`, and 0.9-beta `FM-1_909` (`BUILDING.md`); a
-development build is `FM-1_900`. The whole 900s range is therefore Felucca's while its version stays
-below 10.0. The editor counted Felucca as FM-1+VA until 2026-10-02 and left it unidentified until
-2026-10-03; it now names the 900s as Felucca (`classifyFm1Firmware`) and shows release X.Y.
+identity (`ota_reply_identity`, `ota.c`). Release builds name it `FM-1_9XY` for release X.Y
+(`build.py --release`, one digit each), so 0.8-beta is `FM-1_908`, 0.9-beta `FM-1_909`, 1.0
+`FM-1_910`, and 1.4 `FM-1_914`; a development build is `FM-1_900`. `build.py` now accepts `X.Y`,
+`X.Y.Z`, `X.Y.Z.W`, or `X.Y-suffix` and keeps only the first two digits, so 1.1.5 is `FM-1_911` and
+v1.5.1 is `FM-1_915`, the same as 1.5. The editor shows both as 1.5. The whole 900s range is
+therefore Felucca's while its major version stays below 10; a 10.0 would be refused by `build.py`
+(one digit each). The editor counted Felucca as FM-1+VA until 2026-10-02 and left it unidentified
+until 2026-10-03; it now names the 900s as Felucca (`classifyFm1Firmware`) and shows release X.Y.
 
 **USB identity and port. Likely.** A composite device, vendor `1209` (pid.codes), product
 `0001`, manufacturer "Hügelton Instruments", product "Felucca", with Audio Control, MIDI
@@ -951,25 +956,42 @@ Streaming, and a CDC serial port. Its protocol notes say the MIDI port is named 
 `resolveMidiPortSelection` picks it only as the first port without an instrument name, not by
 preference. Which name each operating system shows has not been seen.
 
-**What it does with the editor's MIDI. Likely: nothing beyond notes.**
+**What it does with the editor's MIDI. Likely: notes and a fixed set of controllers; no SysEx.**
+This changed after 0.9: 0.8 and 0.9 acted only on Note On and Note Off. v1.5.1 acts on more
+(`seq.c` hands each queued channel message to `midi_event`, in `midi_control.c`).
 
-- **Notes.** Note On and Note Off are the only channel messages it acts on. Channels 1–3 play the
-  three parts, the drum channel (global `CH`, default 10, 0 = off) plays the drum track, and every
-  other channel plays the selected track. The editor's audition notes will sound on whichever part
-  its note channel reaches.
-- **Control Change, Program Change, pitch bend, and pressure** are queued from USB but never read in
-  0.8 or 0.9 (`seq.c` still tests only `0x80` and `0x90`), so the FM1 effect controllers and the
-  bank-slot Program Change have no effect. A TRS MIDI-in jack (`midi_uart.c`) would feed the same
-  queue, dropping SysEx, but it is compiled in only with `FELUCCA_UART=1`, which `felucca.c` leaves
-  off as untested, so released builds take MIDI over USB only.
-- **DX7 SysEx.** The USB SysEx assembler keeps one frame of at most 640 bytes. A frame is handed to
-  the web-editor parser, which takes only `F0 7D 46 4C …`, and then to the updater parser, which
-  takes only pack7-encoded `00 59 …` frames with a valid checksum; anything else is discarded. In
-  0.9 `usb.c` still has the 640-byte frame and the `F0 22 24 35 7D F7` key; its changes move
-  register access into `firmware/hal/`. A single-voice dump (163 bytes) and each of the 155
-  parameter changes are discarded that way; a 32-voice dump (4104 bytes) is too long and dropped
-  while it arrives. So Felucca ignores every patch or bank the editor sends, and none of it can
-  overwrite a Felucca preset. The 0.4-beta package's lack of any DX7 header (below) agreed.
+- **Notes.** Note On and Note Off. With the default input routing (`ROUT`, `CH1-4`) channels 1–4
+  play tracks 1–4 and channels 5–16 are ignored; `SEL` plays the selected track from every channel,
+  and further settings map channels 5–8, 9–12, or 13–16 to the four tracks (`seq.c`). The editor's
+  audition notes sound on whichever track its note channel reaches, if any.
+- **Pitch bend, channel aftertouch, and Program Change.** Pitch bend (range from RPN 0, default 2
+  semitones), channel pressure, and Program Change are acted on (`midi_control.c`). Program Change
+  loads a sound on the track the channel plays; it is new in 1.5.1 (README, `mpc_io`). It is
+  Felucca's own program numbering, not the FM1's A–D bank slots, so the editor's slot click sends
+  a Program Change that now loads whichever Felucca sound has that number.
+- **Control Change.** CC 1 (mod wheel), 6 and 38 (RPN data), 11, 64 (sustain), 98–101 (RPN/NRPN
+  selection), 120, 121, and 123 are handled as channel controls. A standard map sets parameters of
+  the track the channel plays: CC 5 glide, 7 level, 10 pan, 71 and 74 the engine's resonance and
+  cutoff, 72 release, 73 attack, 75 decay, 91 reverb, 93 chorus, and 94 delay (`MIDI_CC_MAP`). MIDI
+  LEARN (1.5) can assign up to 16 other CCs to parameters, and a learned CC replaces the map's
+  meaning. None of these are the stock FM1's effect controllers, so the editor's effect Control
+  Changes can move Felucca parameters if they use a number in the map and their channel is routed.
+  The Control Change numbers and channel the editor uses for FM1 effects are not compared here.
+- **MIDI clock.** Clock, Start, Continue, and Stop are followed when the clock source is set to
+  MIDI (`seq.c`, `midi_clock.c`). The editor sends none.
+- **TRS MIDI in.** `FELUCCA_UART` now defaults to 1 (`felucca.c`; `BUILDING.md` lists it as 1), so
+  released builds read the TRS jack as well as USB. `midi_uart.c` drops SysEx there. This reverses
+  the earlier reading, when it defaulted to 0.
+- **DX7 SysEx.** Unchanged. The USB SysEx assembler keeps one frame of at most 640 bytes
+  (`usb.c`, `sx_frame`). A frame goes to the web-editor parser, which takes only `F0 7D 46 4C …`,
+  or to the updater parser, which takes only pack7-encoded `00 59 …` frames with a valid checksum;
+  anything else is discarded. No Yamaha (`43`) handling exists in the firmware: a search of
+  `firmware/src/` finds no DX7 dump header. A single-voice dump (163 bytes) and each of the 155
+  parameter changes are discarded; a 32-voice dump (4104 bytes) is too long and dropped while it
+  arrives. So Felucca still ignores every patch or bank the editor sends, and none of it can
+  overwrite a Felucca preset. Its FM6 engine does import `.syx` voices, but only through its web
+  editor's `F0 7D 46 4C` protocol (`fm6_vbank.c`, `eng_fm6.c`, `EDITOR_PROTOCOL.md`), not as DX7
+  SysEx.
 - **MIDI out.** It sends from its own playing, queued from the audio interrupt, which the
   editor's MIDI log would show.
 
@@ -978,8 +1000,11 @@ is the non-commercial ID, `46 4C` is "FL"), documented in `web/EDITOR_PROTOCOL.m
 time, one reply each, values as 14-bit offset pairs. Commands 1–15 read and set parameters, describe
 them, read and write sequencer steps, apply presets, load and save projects, list preset names, and
 upload samples; 16–26 (v2) read and write the 32 user presets and push live changes while watched;
-27–30 (v3) address the four tracks; 31–32 (v4, new in 0.9, asked for with bit 1 of `WATCH`) get and
-set a parameter of any track and push mixer changes of unselected tracks. `PROJECT` save, the sample
+27–30 (v3) address the four tracks; 31–32 (v4, asked for with bit 1 of `WATCH`) get and set a
+parameter of any track and push mixer changes of unselected tracks. Later versions add the drum
+grid (v5), song chain (v6), chance, motion, MIDI clock, and a full backup, commands 65–67 (v7),
+FM6 patches and a voice bank (68–77), MENU settings (72–73), and MIDI LEARN (78–79, 1.5); the
+document now runs to command 79. `PROJECT` save, the sample
 commands, and `UP_PUT`, `UP_STORE`, and `UP_ERASE` write Felucca's own storage in flash. Its
 parameters are Felucca's engines, not DX7 voices, so a DX7 library has nothing to send there.
 Supporting Felucca would be a separate feature with its own approval, like FM-1+VA's preset read;
@@ -992,8 +1017,14 @@ until then the editor sends none of it.
   9 excludes, now published in `web/fm1ota.js` and `tools/fm1_install.py`.
 - `F0 22 24 35 7D F7`, which 0.4's package held with no known purpose, is Felucca's "soft key":
   on receipt it detaches USB and enters the chip's own UBOOT boot loader (`usb.c`, `main.c`).
-- The CDC serial console offers `status`, `dbg`, `crash`, `params`, `memr`, `flr`, and `uboot yes`,
-  which enters the same boot loader. The editor uses Web MIDI only.
+- The CDC serial console offers `status`, `dbg`, `inp`, `crash`, `params`, `memr`, `flr`, and
+  `uboot yes`, which enters the same boot loader (`console.c`; `inp` is new since 0.9). The editor
+  uses Web MIDI only.
+- v1.5.1 keeps the same two `F0 22 24 35` keys (`7D` and `7F`, `usb.c`) and the `00 59` frames;
+  `midi_uart.c` states that SysEx from the DIN jack cannot reach the boot loader. The installer
+  (`web/fm1ota.js`, `web/index_pkg.html`) now also has a **Return to official V15** flow that reads
+  the user's own unmodified `FM-1.fwsc` and saves a complete backup first, using the `BACKUP_*`
+  editor commands. No new key was found.
 
 The editor must never send either `F0 22 24 35` message, answer a `00 59` read request, or use the
 serial console. Going back to stock needs M-VAVE's M-UPGRADE and V15; a failed install needs
@@ -1017,7 +1048,13 @@ Open questions:
 1. What does the "Felucca" MIDI port appear as on macOS, Windows, and Linux?
 2. Does a Felucca FM1 confirm on hardware that DX7 SysEx, Control Change, and Program Change have
    no effect?
-3. Will a release from 10.0 on keep an identity in the 900s?
+3. Will a release from 10.0 on keep an identity in the 900s? `build.py` allows one digit for the
+   major version, so it would have to change scheme first.
+4. Does Felucca's Program Change numbering line up with anything the editor means by a slot, and do
+   the editor's effect Control Change numbers collide with Felucca's CC map? Both need a hardware
+   run before the editor's "ignores Program Change and the effect controllers" wording is changed.
+5. What does the web installer's start page show today? https://hugelton.github.io/Felucca/ is
+   the README's installer link; the `webapp/installer/` address could not be fetched in this check.
 
 ### FM1 Editor
 

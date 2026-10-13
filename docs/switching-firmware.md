@@ -5,8 +5,9 @@ How to move one FM1 between M-VAVE's stock firmware, Baud Girl's
 [Felucca](https://hugelton.github.io/Felucca/), and isod89's
 [SLOOP](https://github.com/isod89/sloop-fm1), a groovebox firmware built on Felucca. Use the stock
 firmware as the middle point: go back to it before moving from one replacement firmware to another.
-Written for M-VAVE V15, FM-1+VA `FM-1_093`, and Felucca 0.9-beta, from each project's own pages as
-they stood on 3 October 2026, and SLOOP 2.2, as it stood on 5 October 2026.
+Written for M-VAVE V15, FM-1+VA `FM-1_093`, and Felucca 1.5.1, from each project's own pages as they
+stood on 12 October 2026 (Felucca's source as of its 11 October commit), and SLOOP 2.2, as it stood
+on 5 October 2026.
 
 This app never installs firmware. Every step below uses the firmware projects' own tools.
 
@@ -14,7 +15,7 @@ This app never installs firmware. Every step below uses the firmware projects' o
 flowchart LR
   VA["FM-1+VA<br/>Baud Girl · FM-1_093"]
   Stock["Stock<br/>M-VAVE · V15"]
-  Felucca["Felucca<br/>Hügelton · 0.9-beta"]
+  Felucca["Felucca<br/>Hügelton · 1.5.1"]
   Sloop["SLOOP<br/>isod89 · 2.2"]
   Stock -- "FM-1+VA Install page" --> VA
   VA -- "same page, V15 file" --> Stock
@@ -74,8 +75,9 @@ Virtual Analog and 8-Bit presets do not play on stock firmware, and FM-1+VA's ex
 
 Felucca's page installs its own prebuilt package and does not ask for M-VAVE's file.
 
-1. Open the [Felucca installer](https://hugelton.github.io/Felucca/webapp/installer/) in Chrome or
-   Edge and click **Install**.
+1. Open the [Felucca installer](https://hugelton.github.io/Felucca/) (the link in Felucca's
+   README; the earlier `webapp/installer/` address was not reachable when this was checked) in
+   Chrome or Edge and click **Install**.
 2. It runs through Starting, Verifying, Switching to update mode, Writing, Restarting, and Done.
    Do not unplug the cable while it writes.
 3. If it stops partway, replug the cable and press **Install** again. The FM1 stays in update mode
@@ -84,12 +86,15 @@ Felucca's page installs its own prebuilt package and does not ask for M-VAVE's f
 Felucca's repository also has a command-line installer, `tools/fm1_install.py`, for the same
 install from a terminal.
 
-Felucca 0.9 is a beta, and its author accepts no responsibility for damage. Whether your stock
-presets survive a Felucca install is not known: treat them as lost until you see otherwise.
+Felucca's author accepts no responsibility for damage, and calls 1.x a field-testing release.
+Whether your stock presets survive a Felucca install is not known: treat them as lost until you see
+otherwise.
 
 ## Felucca to stock
 
-Leaving Felucca needs M-VAVE's own updater; this is the route Felucca's installer gives.
+Leaving Felucca needs M-VAVE's own updater. Felucca's installer now also has **Return to official
+V15**: you select your own unmodified `FM-1.fwsc` from M-VAVE, it saves a complete backup first,
+and it warns that official V15 cannot open Felucca's music. The route below is M-VAVE's own.
 
 1. Open **M-UPGRADE**.
 2. Install the **FM-1 V15** firmware with it.
