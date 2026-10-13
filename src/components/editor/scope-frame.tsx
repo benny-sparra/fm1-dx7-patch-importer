@@ -1,4 +1,4 @@
-import { type ReactNode, type Ref, useEffect, useEffectEvent, useRef } from 'react'
+import { type ReactNode, type Ref, useEffect, useLayoutEffect, useRef } from 'react'
 
 import { prefersReducedMotion } from '@/lib/reduced-motion'
 import { cn } from '@/lib/utils'
@@ -20,11 +20,17 @@ export const scopeViewHeight = 48
  * a scope whose effect is off, only the render redraws happen.
  */
 export function useAnimationLoop(step: (elapsed: number) => void, running = true) {
-  const runStep = useEffectEvent(step)
+  // The frame callbacks run outside React, so they read the latest step from a ref set in a layout
+  // effect: a useEffectEvent throws if React is mid-render when the callback fires.
+  const stepRef = useRef(step)
   const frameRef = useRef<HTMLDivElement>(null)
 
+  useLayoutEffect(() => {
+    stepRef.current = step
+  })
+
   useEffect(() => {
-    runStep(0)
+    stepRef.current(0)
   })
 
   useEffect(() => {
@@ -38,7 +44,7 @@ export function useAnimationLoop(step: (elapsed: number) => void, running = true
       // Cap the step so a tab returning from the background doesn't lurch.
       const elapsed = last === undefined ? 0 : Math.min(0.1, (now - last) / 1000)
       last = now
-      runStep(elapsed)
+      stepRef.current(elapsed)
       frame = window.requestAnimationFrame(tick)
     }
     const start = () => {
