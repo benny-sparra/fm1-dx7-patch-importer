@@ -623,12 +623,14 @@ and 8-Bit presets, then the 8-Bit editor (9) once item 10 has mapped its Note En
 - [ ] **10. Version 98.** Baud Girl's Version 98 beta (2026-10-10) adds the Note Engine (Arp,
       Auto-Arp, and Auto-Chord, with chords in a Key and Scale), a Preset per Sequencer pattern,
       a Bluetooth **None**, the 128 factory presets in the Device Manager's Library, and a fix
-      for Sustain 0. Its release notes name no new SysEx message. The Note Engine's settings are
+      for Sustain 0. Its release notes name no new SysEx message, and the 2026-10-13 read of
+      Version 101's manual (`docs/fm1-research.md`, "FM-1_101") found none either, nor a record
+      change, so `FM-1_101` also gets what 97 gets. The Note Engine's settings are
       the FM1's own, saved with its other settings and used on every preset, so they are not in a
       preset and no approved command reaches them; Bluetooth is the FM1's alone. `FM-1_098` is
       FM-1+VA to `classifyFm1Firmware` and gets what 97 gets. Before relying on that:
   - **Check the editor on 98.** Read the 98 manual against 97's, as for 97, and run the
-    identity, read-all, and write-back tests (F1, M4) on `FM-1_098`. Record the release in
+    identity, read-all, and write-back tests (F1, M4) on `FM-1_098` or later. Record the release in
     `docs/fm1-research.md`.
   - **Map the 8-Bit Note Engine row.** One field per part (P-series in
     [`fm1-va-096-tests.md`](fm1-va-096-tests.md)): set the bass's, then the lead's, to each

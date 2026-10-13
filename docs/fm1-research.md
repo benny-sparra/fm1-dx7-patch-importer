@@ -923,6 +923,42 @@ Baud Girl's release notes, 2026-10-10. **Likely** (from the notes alone; not yet
 - Still to do on hardware: the identity, read-all, and write-back tests on `FM-1_098`, and mapping
   the 8-Bit Note Engine row (backlog item 10).
 
+### FM-1_101 (manual read 2026-10-13)
+
+Version 101, released 2026-10-12. Read from the manual's release notes and sections (the manual
+lists 97 and then 101, so 99 and 100 have no notes of their own). **Likely**, not yet run on an
+FM1:
+
+- **No new SysEx message, controller, or record change.** The manual's only SysEx section is DX7
+  patch and bank loading, no `F0 43 00 7D` command appears in what was read, and CC 85–88 still set
+  the knob bank's four knobs, which the editor never sends. `FM-1_101` is FM-1+VA to
+  `classifyFm1Firmware`, so it gets what 97 gets.
+- **Key latency.** Key events outrank screen drawing, and the key scan runs every 2 ms, not 20 ms,
+  registering a press on first detection. Key-to-note-on is under 2 ms; with HOME showing it
+  averaged 28 ms on the FM-1 and 42 ms on the SMK-37. Notes sent over MIDI are not affected by the
+  scan, and the preset write's pacing was measured on 96 and 97 (`fm1VaPresetWriteTiming`); a
+  rerun on 101 would show whether it moves.
+- **Effects CPU.** Reverb is about 35% lighter and Distortion about 20%, with the same audio.
+- **Display.** The HOME oscilloscope redraws only when the waveform changes, at most 10 Hz, and the
+  Preset knob bank labels its four knobs with text.
+- **Sustain 0** (manual 4.5.4). With the Envelope On, Sustain 0 fades a held note to silence; any
+  other value holds it while the key is down. This agrees with 98's note above.
+- **Note Engine** (manual 8). ARP switches it; the modes are Arp, Auto-Arp, and Auto-Chord. Its
+  settings belong to the whole FM1, saved with its other settings by SAVE, and are not in a
+  preset. On an 8-Bit preset, drum and sound-effect keys stay out of Auto-Arp and Auto-Chord, and
+  bass and lead keys take its chord only when their part plays none of its own. The manual does not
+  say whether MIDI reaches its settings. With MIDI In on (the default) the arpeggiator takes
+  notes from a MIDI keyboard as it takes the FM1's own keys.
+- **A preset for each pattern** (manual 9.15.2). Each pattern's Preset reads Off until set, and
+  every pattern reads Off after installing 98. Part of the pattern format backlog item 7 has yet
+  to map.
+- **Factory presets** (manual 12.4.2). The Device Manager's **Factory** lists the 128 presets of
+  M-VAVE's original firmware at their original numbers (backlog item 11).
+- **Not read.** The last 15,000 characters of the manual, and the text of "Preset Loading during a
+  Fast Turn", were not seen.
+- Still to do on hardware: the identity, read-all, and write-back tests (F1, M4) and the preset
+  write timing on `FM-1_101`.
+
 ### Felucca replacement firmware
 
 Site, source, installer, editor, and recovery tool:
