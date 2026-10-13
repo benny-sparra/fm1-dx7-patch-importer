@@ -266,7 +266,7 @@ describe('firmware page order', () => {
   it('puts an entry without a star count after the counted ones', async () => {
     const order = await renderPage()
     await userEvent.click(option('Most starred'))
-    expect(order().at(-1)).toBe('groove-os')
+    expect(order().slice(-2)).toEqual(['groove-os', 'redacted'])
   })
 
   it('returns to alphabetical order, with the watch list still last', async () => {
