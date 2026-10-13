@@ -954,8 +954,17 @@ FM1:
   to map.
 - **Factory presets** (manual 12.4.2). The Device Manager's **Factory** lists the 128 presets of
   M-VAVE's original firmware at their original numbers (backlog item 11).
-- **Not read.** The last 15,000 characters of the manual, and the text of "Preset Loading during a
-  Fast Turn", were not seen.
+- **Preset loading during a fast turn** (manual 3.1.2). Turning PRESETS slowly loads each preset at
+  once; turned quickly, the number and name follow the knob and the FM1 loads the preset once the
+  knob has been still for 150 ms. This describes the front panel. The manual does not say that a
+  Program Change over MIDI waits, so the editor's slot click (Program Change, then the voice and
+  effects) is unchanged; a hardware run would show whether a quick run of Program Changes loads
+  each preset.
+- **Device Manager limits** (manual 12.14). It has no control for a step's Ratchet, Accent, or
+  Tie & Slide, which are set on the FM1.
+- **Whole manual read.** Every part of the page was read on 2026-10-13. Nothing else in it, the
+  troubleshooting list and glossary included, names a SysEx command, a record byte, or a
+  Program Change or Bank Select change.
 - Still to do on hardware: the identity, read-all, and write-back tests (F1, M4) and the preset
   write timing on `FM-1_101`.
 
