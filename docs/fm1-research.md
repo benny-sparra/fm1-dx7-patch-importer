@@ -909,6 +909,20 @@ after placing the 8-Bit pack), §4b, §5, D1, D2, and the clean-up. Everything b
   are bytes 55, 56, and 57; Mono is byte 58, `00` to `01`. The Virtual Analog editor already maps
   them this way.
 
+### FM-1_098 (Version 98 beta)
+
+Baud Girl's release notes, 2026-10-10. **Likely** (from the notes alone; not yet run on an FM1):
+
+- **Sustain 0.** A held note at Sustain 0 now fades to silence on FM and Virtual Analog presets.
+  Before 98 the FM1 held it at a tenth of its level with the Envelope On. The Virtual Analog
+  editor's Envelope help says "at 0 a held note is short", which is true on 98 and not on earlier
+  releases, where it is quiet but held. Worth rewording in every locale if it is ever edited for
+  another reason.
+- **No new SysEx message** is named, so the editor sends nothing new. The Note Engine's settings
+  belong to the FM1, not to a preset, and no approved command reaches them.
+- Still to do on hardware: the identity, read-all, and write-back tests on `FM-1_098`, and mapping
+  the 8-Bit Note Engine row (backlog item 10).
+
 ### Felucca replacement firmware
 
 Site, source, installer, editor, and recovery tool:

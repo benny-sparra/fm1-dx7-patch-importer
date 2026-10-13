@@ -370,9 +370,11 @@ What is known, from FM-1+VA's own code and manual:
   but `03`, not `A5`, in an FM one, and the rest of this map does not match what they hold
   (`docs/fm1-research.md`, "Its backup file"), so item 2 maps it afresh.
 
-Suggested order: 1 needs no new command; 2 underpins 3 to 6. Next, as of 2026-10-06: the Virtual
-Analog editor (6, **Play them live** and **Save them**), then **Erase a patch** (6), then 8-Bit
-presets (9).
+Suggested order: 1 needs no new command; 2 underpins 3 to 6. Status as of 2026-10-13: 1 and 2 are
+done, and 3, 4, 5, 9, and the Virtual Analog editor in 6 are built, each with a hardware check
+left (`Send to FM1`, the effect order and Bitcrush read back, and `FM-1_098`). Next: **Erase a
+patch** (6), now that the Virtual Analog editor has shipped, then Favourites for Virtual Analog
+and 8-Bit presets, then the 8-Bit editor (9) once item 10 has mapped its Note Engine row.
 
 - [x] **1. Import an FM-1+VA backup file.** Read the `.syx` file FM-1+VA's **Save a backup**
       writes (128 `04` messages, each naming its slot) into banks A–D, as an ordinary import:
