@@ -572,6 +572,10 @@ presets (9).
       format again (held notes and per-note Tie & Slide), so the known message may no longer
       describe it. Status `3` refuses a write while the
       Sequencer plays.
+      Version 98 (2026-10-10) changes patterns again: each pattern's settings gain **Preset**, the
+      preset the FM1 switches to when the pattern starts (Off keeps the one playing), and real-time
+      recording writes the notes the Note Engine plays rather than the key held. Map both before
+      any pattern write, and offer a pattern's Preset as a slot from banks A–D, or Off.
 - [ ] **8. Performance controls.** Small, and optional: from FM-1_086, CC 70–78 set Brightness,
       Feedback, the envelope, and the LFO on the playing preset, and CC 58 its Algorithm. Most of
       these duplicate the voice editor's own controls; Brightness, which moves every modulator's
@@ -611,6 +615,37 @@ presets (9).
     preset, so the rest is heard once written, unless D2 finds a DX7 parameter change plays a
     voice-byte field live. Needs P1–P7 first. Several of its lists are provisional in the
     firmware and may be renamed.
+    Version 98 adds a **Note Engine** row to the bass and the lead, after Arp Speed: at
+    Auto-Chord the part plays its chord's notes together rather than one after another. It is
+    not mapped yet (item 10).
+- [ ] **10. Version 98.** Baud Girl's Version 98 beta (2026-10-10) adds the Note Engine (Arp,
+      Auto-Arp, and Auto-Chord, with chords in a Key and Scale), a Preset per Sequencer pattern,
+      a Bluetooth **None**, the 128 factory presets in the Device Manager's Library, and a fix
+      for Sustain 0. Its release notes name no new SysEx message. The Note Engine's settings are
+      the FM1's own, saved with its other settings and used on every preset, so they are not in a
+      preset and no approved command reaches them; Bluetooth is the FM1's alone. `FM-1_098` is
+      FM-1+VA to `classifyFm1Firmware` and gets what 97 gets. Before relying on that:
+  - **Check the editor on 98.** Read the 98 manual against 97's, as for 97, and run the
+    identity, read-all, and write-back tests (F1, M4) on `FM-1_098`. Record the release in
+    `docs/fm1-research.md`.
+  - **Map the 8-Bit Note Engine row.** One field per part (P-series in
+    [`fm1-va-096-tests.md`](fm1-va-096-tests.md)): set the bass's, then the lead's, to each
+    choice, save, read, and diff. Confirm it takes bytes the 8-Bit table counts as unread, so an
+    8-Bit preset from 97 reads the same on 98 and the 8-Bit pack still round-trips. Add it to
+    the table under "Every field of an 8-Bit preset" before the 8-Bit editor (9) offers it.
+  - **Sustain 0.** On 98 a held note at Sustain 0 fades to silence on FM and Virtual Analog
+    presets; before it the FM1 held it at a tenth of its level, with the Envelope On. Note the
+    change in the research notes, and check the Virtual Analog editor's Envelope drawing and its
+    help ("at 0 a held note is short") describe 98 without being wrong for earlier releases.
+- [ ] **11. The factory presets with their effects.** The Device Manager's Library now offers
+      the 128 presets an FM-1 ships with. **Reset to factory patches** puts back M-VAVE's four
+      banks as DX7 voices with every FM1 effect off, since the restore capture carries none
+      (`src/data/fm1-factory-banks.ts`). If the Device Manager's set holds each preset's stock
+      effects in its records, compare its voices with the bundled banks, byte for byte, and take
+      the effects for the factory reset and new workspaces, which changes no stored shape. Check
+      first where its records come from (a stock FM1 read, or Baud Girl's defaults) and their
+      licence, since the bundled banks are CC0. Until then, a user on FM-1+VA can import the set
+      through **Import Baud Girl presets file…** if the Device Manager saves it as a file.
 
 ## Open questions
 
