@@ -264,8 +264,9 @@ open everything an earlier release could have saved.
 - Locale failures must leave a usable current language. Storage access may be absent, invalid, or
   throw.
 - Keep `document.documentElement.lang`, the document title, and description metadata synchronized.
-- Every locale apart from `en-US` must contain the same leaf keys. Update
-  `src/i18n/resources.test.ts` whenever resource structure changes.
+- Every locale apart from `en-US` must contain the same leaf keys, and `uk` also the `_few` and
+  `_many` plural forms below. Update `src/i18n/resources.test.ts` whenever resource structure
+  changes.
 - Ukrainian counts in three forms where English has two, so every `_other` key has `_few` (2–4)
   and `_many` (0, 5–20) siblings in `uk`; the key itself is the form for 1, 21, and 31, so it
   shows `{{count, number}}` where English writes “one”, unless the count cannot pass 4, as the
@@ -290,12 +291,14 @@ open everything an earlier release could have saved.
   as in the voice editor and Init voice. German uses Sound for a patch and Klang for what you hear;
   Simplified Chinese uses 音色 and 声音; Ukrainian uses патч and звук.
 - Ukrainian keeps in English what is printed on the FM1, on the editor's panels, or on synths and
-  plugins: effect, parameter, option, waveform, mode, and preset names, used in their base form
-  wherever a sentence points at that control («параметр Cutoff», «Release стишує ноту»). The
-  explanation around them is Ukrainian, with the established words for concepts (обвідна,
-  осцилятор, оператор, фільтр, частота зрізу, фейдер), never an English word given a Ukrainian
-  ending (fader’и). One Ukrainian word per idea across the file: change a term in every `uk`
-  string that uses it in the same change.
+  plugins, and what musicians who speak Ukrainian know by its English name, such as the audition
+  phrases (Pad, Lead, Bass): effect, parameter, option, waveform, mode, and preset names, used in
+  their base form wherever a sentence points at that control («параметр Cutoff», «Release стишує
+  ноту»). They learn these names in English, from synths, plugins, and DAWs, so «Пед» or «Лід»
+  would read as contrived, a calque. The explanation around them is Ukrainian, with the
+  established words for concepts (обвідна, осцилятор, оператор, фільтр, частота зрізу, фейдер),
+  never an English word given a Ukrainian ending (fader’и). One Ukrainian word per idea across the
+  file: change a term in every `uk` string that uses it in the same change.
 - Doto and VT323 have no Cyrillic: the `unicode-range` faces in `src/fonts.css` take Ukrainian
   letters from Departure Mono, vendored with its licence in `src/fonts/departure-mono/`.
 - Every user-visible string and accessible name comes from the locale files: labels, `aria-label`,
