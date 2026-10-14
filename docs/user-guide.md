@@ -203,6 +203,25 @@ To copy a patch into another slot, open the slot's **⋮** menu and choose **Cop
 
 A slot's **⋮** menu also works with single patches as files. **Download patch** saves the patch as a standard 163-byte DX7 single-voice SysEx file, named after its slot and patch, such as `fm1-A05-PIANO-2.syx`. It holds the DX7 voice only, as a bank download does, so the FM1 effects are not included. A Virtual Analogue or 8-Bit patch is not a DX7 voice, so it is saved instead as a 231-byte Baud Girl presets file holding that one preset with its effects and settings. The file names the patch's own FM1 preset, or for a bank after D the same slot in bank A, which is where importing it puts it. **Import patch…** asks before it replaces the slot, then reads a DX7 single-voice file into it. A file that is not a single DX7 patch, or that looks damaged, is refused with an explanation and leaves the slot as it was. A whole 32-voice bank is recognised and pointed to **Import DX7 bank…** in the bank's menu. The file carries no FM1 effects, so the slot's effects return to their defaults. The notification offers **Undo**.
 
+**Copy share link** in a slot's **⋮** menu copies a link to the patch, such as
+`https://fm1-editor.com/#p=AQAA…`, to paste into a chat, forum, or email. The link opens the site
+you copied it from. The link holds the whole
+patch: its voice data, its FM1 effects, and its Baud Girl preset settings when it has them, so a
+Virtual Analogue or 8-Bit patch shares too. A DX7 patch makes a link of about 220 characters, and
+one with Baud Girl settings about 300. The patch is in the part after `#`, which browsers never send
+to a server: nothing is uploaded, and the link works for as long as people keep it. Anyone who has
+the link can open the patch.
+
+Opening a share link shows the patch in a **Shared patch** dialog, with its name and engine. **Play
+on FM1** sends a DX7 patch to the FM1's edit buffer, as clicking a search result does, so you can
+hear it without changing your library or the presets stored on the FM1. A Virtual Analogue or 8-Bit
+preset cannot be played from the dialog: add it to banks A to D and write it to the FM1 to hear it.
+**Add to library…** opens the **Copy to…** dialog, starting on the bank you were looking at, to
+choose the slot it replaces; nothing is added until you choose, and the notification offers
+**Undo**. The link leaves the address bar once it is read, so reloading the page does not offer the
+patch again. A damaged or incomplete link is explained and adds nothing. A link made by a newer
+release of the editor asks you to reload, which fetches that release and opens it.
+
 To tidy banks after importing archives, choose **Find duplicate patches…** from the menu in the patch-bank header. It lists the patches in your loaded banks whose voice settings match, grouped together, even when a copy has another name. FM1 effects and FM-1+VA preset settings are not compared, and a group says when its copies' effects or preset settings differ. Virtual Analogue presets are grouped with identical Virtual Analogue presets only, and 8-Bit presets with 8-Bit ones. Choose a patch in the list to go to its bank and play it, as clicking its slot does. The list only reads your library: delete or replace a copy yourself, from its bank.
 
 Each bank's menu also offers **Save bank…**, which keeps a named copy of its 32 patches and their FM1 effects in this browser, and **Load bank…**, which lists your saved banks. From that list you can load one into the bank, edit its name and description, make a copy, download it as a `.syx` file, or delete it. Loading into a bank that already has patches asks first. If a bank is empty, you can load the built-in demo bank instead.
@@ -342,7 +361,7 @@ normally inside the search field, where `Esc` clears it.
 
 `Enter` gives the keyboard the route the mouse already had through double-click: it plays an unlit
 slot as a click would, and opens the slot that is already lit. Each slot's **⋮** menu also
-offers **Edit**, **Copy to…**, **Import patch…**, and **Download patch**; it opens with `Enter` and moves between its items with the arrow keys.
+offers **Edit**, **Copy to…**, **Import patch…**, **Download patch**, and **Copy share link**; it opens with `Enter` and moves between its items with the arrow keys.
 
 Individual controls keep their own keyboard behaviour. Rotary controls and envelope points respond
 to the arrow keys, `Home`, `End`, `Page Up`, and `Page Down`, and the bank tabs move with the arrow

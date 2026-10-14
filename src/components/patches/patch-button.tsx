@@ -29,6 +29,7 @@ type PatchButtonProps = {
   onChangeToFm?: (patch: Patch) => void
   onCopy?: (patch: Patch) => void
   onDownload?: (patch: Patch) => void
+  onShare?: (patch: Patch) => void
   onEdit?: (patch: Patch) => void
   /** Arrow-key navigation across the grid, owned by the grid itself. */
   onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
@@ -61,6 +62,7 @@ export function PatchButton({
   onChangeToFm,
   onCopy,
   onDownload,
+  onShare,
   onEdit,
   onNavigate,
   onReplace,
@@ -259,6 +261,7 @@ export function PatchButton({
               onDownload={onDownload && (() => onDownload(patch))}
               onEdit={editSlot && (() => editSlot(patch))}
               onReplace={onReplace && (() => onReplace(patch))}
+              onShare={onShare && (() => onShare(patch))}
             />
           ) : null}
         </span>

@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Copy, Download, Pencil, Upload } from 'lucide-react'
+import { ArrowRightLeft, Copy, Download, Link, Pencil, Upload } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { PortalMenu } from '@/components/ui/portal-menu'
@@ -10,6 +10,7 @@ type PatchSlotMenuProps = {
   onDownload?: () => void
   onEdit?: () => void
   onReplace?: () => void
+  onShare?: () => void
 }
 
 /**
@@ -23,6 +24,7 @@ export function PatchSlotMenu({
   onDownload,
   onEdit,
   onReplace,
+  onShare,
 }: PatchSlotMenuProps) {
   const { t } = useTranslation()
 
@@ -33,6 +35,7 @@ export function PatchSlotMenu({
         { Icon: Copy, label: t('banks.copySelected'), onSelect: onCopy },
         { Icon: Upload, label: t('banks.importPatchFile'), onSelect: onReplace },
         { Icon: Download, label: t('banks.downloadPatchFile'), onSelect: onDownload },
+        { Icon: Link, label: t('shareLink.menuItem'), onSelect: onShare },
         { Icon: ArrowRightLeft, label: t('changeToFm.menuItem'), onSelect: onChangeToFm },
       ].filter(({ onSelect }) => onSelect)}
       menuLabel={name}

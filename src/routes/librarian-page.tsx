@@ -81,7 +81,9 @@ import {
 import { type LibrarianView, useLibrarianView } from '@/hooks/use-librarian-view'
 import type { Patch } from '@/data/patches'
 import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
+import { copyTextToClipboard } from '@/lib/copy-text'
 import { downloadFile } from '@/lib/download-file'
+import { sharedPatchPayload } from '@/lib/share-link-fragment'
 import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
@@ -180,6 +182,14 @@ const WriteFm1VaPresetsDialog = lazy(() =>
 const DuplicatePatchesDialog = lazy(() =>
   import('@/components/patches/duplicate-patches-dialog').then((module) => ({
     default: module.DuplicatePatchesDialog,
+  })),
+)
+
+// A share link's patch shows in its dialog, which loads with the link's decoder when the page opens
+// on a `#p=` link.
+const SharedPatchDialog = lazy(() =>
+  import('@/components/patches/shared-patch-dialog').then((module) => ({
+    default: module.SharedPatchDialog,
   })),
 )
 
@@ -305,12 +315,17 @@ export function LibrarianPage({
   const ownView = useLibrarianView()
   const { bank: destinationBank, search, setBank: setDestinationBank, setSearch } = view ?? ownView
   const [importError, setImportError] = useState('')
+  // The page's errors show below the patch grid, which can be far out of view of the slot or bank
+  // menu whose action failed, so a new one is scrolled into view.
+  const pageNoticeRef = useRef<HTMLDivElement>(null)
   // Explains a dialog whose chunk did not arrive, such as after a newer deployment replaced it.
   const [dialogLoadError, setDialogLoadError] = useState('')
   const [savedBanksRequest, setSavedBanksRequest] = useState<SavedBanksRequest | null>(null)
   // The sound whose menu chose Copy, or that was dropped on a bank's tab, or a search result from
   // outside the workspace, kept while its dialog is open with the bank it was dropped on.
   const [copyRequest, setCopyRequest] = useState<CopyRequest | null>(null)
+  // The payload of the share link the page was opened on, or given later, while its dialog is open.
+  const [sharedPayload, setSharedPayload] = useState<string | null>(null)
   // The slot whose menu chose to replace it from a file, kept while its dialog is open.
   const [replaceTarget, setReplaceTarget] = useState<Patch | null>(null)
   // The Virtual Analog patch a slot menu asked to change to FM, while its dialog is open.
@@ -381,9 +396,10 @@ export function LibrarianPage({
           : (targetBank, slot) => library.swapVoices(patch.id, targetBank, slot),
     })
   }
-  const requestResultCopy = (sound: SearchResultSound, edit: boolean) => {
+  const requestResultCopy = (sound: SearchResultSound, edit: boolean, openOnBank?: string) => {
     setDialogLoadError('')
     setCopyRequest({
+      bank: openOnBank,
       copy: (bank, slot) =>
         'virtualAnalog' in sound
           ? library.replaceWithVirtualAnalog(
@@ -401,6 +417,28 @@ export function LibrarianPage({
       key: sound.origin,
       source: { name: sound.name, number: sound.slot, origin: sound.origin },
     })
+  }
+  // The link's code loads with the first copy. The clipboard takes the link as it is made, since
+  // Safari allows the clipboard only during the click. The link opens this site, whichever it is.
+  const copyShareLink = (patch: Patch) => {
+    setDialogLoadError('')
+    setImportError('')
+    let codeFailed = false
+    const page = window.location.origin + window.location.pathname
+    const link = import('@/lib/patch-share-link').then(
+      (module) =>
+        module.makePatchShareLink(library, patch.id, page) ?? Promise.reject(new Error('Empty')),
+      (error: unknown) => {
+        codeFailed = true
+        throw error
+      },
+    )
+    copyTextToClipboard(link)
+      .then(() => toast.success(t('shareLink.copied', { patch: patch.name })))
+      .catch(() => {
+        if (codeFailed) setDialogLoadError(t('shareLink.loadFailed'))
+        else setImportError(t('shareLink.copyFailed'))
+      })
   }
   const requestReplace = (patch: Patch) => {
     setDialogLoadError('')
@@ -792,6 +830,26 @@ export function LibrarianPage({
   useEffect(() => {
     if (!hasLoadedBank) setSearch('')
   }, [hasLoadedBank, setSearch])
+
+  // jsdom, which the tests run in, has no scrollIntoView.
+  useEffect(() => {
+    if (importError || dialogLoadError)
+      pageNoticeRef.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [dialogLoadError, importError])
+
+  // A share link opens its patch's dialog as the patch banks show, or when one is pasted into the
+  // address bar of this tab. The dialog takes the link out of the address bar.
+  useEffect(() => {
+    const openSharedPatch = () => {
+      const payload = sharedPatchPayload(window.location.hash)
+      if (payload === null) return
+      setDialogLoadError('')
+      setSharedPayload(payload)
+    }
+    openSharedPatch()
+    window.addEventListener('hashchange', openSharedPatch)
+    return () => window.removeEventListener('hashchange', openSharedPatch)
+  }, [])
 
   // No bank shows as selected during a search, so the played result's bank is the one that
   // clearing the search returns to.
@@ -1214,6 +1272,7 @@ export function LibrarianPage({
           bank === favouritesBank ? dropOnFavourites(patch) : requestCopy(patch, bank)
         }
         onPatchDownload={(patch) => void downloadPatch(patch)}
+        onPatchShare={copyShareLink}
         // Importing a file puts it in a bank slot; Favourites takes sounds through their hearts.
         onPatchReplace={showsFavourites ? undefined : requestReplace}
         onPatchChangeToFm={showsFavourites ? undefined : requestChangeToFm}
@@ -1329,14 +1388,17 @@ export function LibrarianPage({
 
       {transferError ? <ErrorNotice>{transferError}</ErrorNotice> : null}
 
-      {dialogLoadError ? (
-        <LoadFailedNotice
-          className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3"
-          message={dialogLoadError}
-        />
+      {dialogLoadError || importError ? (
+        <div className="grid gap-5" ref={pageNoticeRef}>
+          {dialogLoadError ? (
+            <LoadFailedNotice
+              className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3"
+              message={dialogLoadError}
+            />
+          ) : null}
+          {importError ? <ErrorNotice>{importError}</ErrorNotice> : null}
+        </div>
       ) : null}
-
-      {importError ? <ErrorNotice>{importError}</ErrorNotice> : null}
 
       {sendGuide === 'bank-selection' ? (
         <Fm1BankSelectionDialog
@@ -1576,6 +1638,25 @@ export function LibrarianPage({
                 )
               }}
               source={copyRequest.source}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
+      {sharedPayload !== null ? (
+        <ErrorBoundary
+          key={sharedPayload}
+          onError={() => {
+            setSharedPayload(null)
+            setDialogLoadError(t('shareLink.loadFailed'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <SharedPatchDialog
+              canPlay={midi.hasMidiOutput}
+              onAdd={(sound) => requestResultCopy(sound, false, destinationBank)}
+              onClose={() => setSharedPayload(null)}
+              onPlay={onPlaySearchResult}
+              payload={sharedPayload}
             />
           </Suspense>
         </ErrorBoundary>

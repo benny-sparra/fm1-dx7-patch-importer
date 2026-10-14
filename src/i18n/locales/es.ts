@@ -607,6 +607,28 @@ export default {
         'La escritura se paró tras {{count, number}} de {{total, number}} sonidos. Comprueba la conexión MIDI del FM1.',
     },
   },
+  shareLink: {
+    loadFailed:
+      'No se pudieron abrir los enlaces para compartir. Recarga la página e inténtalo de nuevo.',
+    menuItem: 'Copiar enlace para compartir',
+    copied: 'Se copió el enlace para compartir «{{patch}}».',
+    copyFailed:
+      'No se pudo copiar el enlace para compartir: el navegador no permitió usar el portapapeles.',
+    title: 'Sonido compartido',
+    intro:
+      'Alguien compartió este sonido con un enlace. No entra en tu biblioteca hasta que lo añadas a una ranura.',
+    play: 'Tocar en el FM1',
+    playHelp: 'Tocar lo envía al búfer de edición del FM1, sin cambiar los presets que guarda.',
+    connectToPlay: 'Conecta el FM1 para tocarlo.',
+    presetPlaysOnFm1:
+      'Este preset solo suena con el firmware de Baud Girl: añádelo a los bancos A–D y luego escríbelo en el FM1 para oírlo.',
+    add: 'Añadir a la biblioteca…',
+    origin: 'Enlace compartido',
+    damaged:
+      'Este enlace para compartir está dañado o incompleto. Pídelo de nuevo y cópialo entero.',
+    newerVersion:
+      'Este enlace para compartir viene de una versión más reciente del editor. Recarga la página para abrirlo.',
+  },
   changeToFm: {
     menuItem: 'Cambiar a FM…',
     title: '¿Cambiar {{slot}} «{{patch}}» a FM?',

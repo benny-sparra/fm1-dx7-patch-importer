@@ -25,6 +25,7 @@ afterEach(() => {
   cleanup()
   localStorage.clear()
   vi.unstubAllGlobals()
+  window.history.replaceState(null, '', '/')
 })
 
 const helpButton = () =>
@@ -48,6 +49,14 @@ describe('HelpButton', () => {
     render(<HelpButton />)
 
     expect(await screen.findByRole('tab', { name: 'Getting started' })).toBeTruthy()
+  })
+
+  it('leaves the guide closed on a first visit that came to open a share link', async () => {
+    window.history.replaceState(null, '', '/#p=AQAA')
+    render(<HelpButton />)
+
+    await waitFor(() => expect(helpButton()).toBeTruthy())
+    expect(guide()).toBeNull()
   })
 
   it('leaves the guide closed once it has been seen', async () => {

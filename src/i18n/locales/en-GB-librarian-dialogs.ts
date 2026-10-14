@@ -144,4 +144,20 @@ export default {
     goTo: 'Go to {{name}}, patch {{number}} in {{bank}}',
     none: 'No duplicates: every patch in your banks has its own voice settings.',
   },
+  shareLink: {
+    title: 'Shared patch',
+    intro:
+      'Someone shared this patch with a link. It stays out of your library until you add it to a slot.',
+    play: 'Play on FM1',
+    playHelp:
+      'Play sends it to the FM1’s edit buffer, leaving the presets the FM1 stores as they are.',
+    connectToPlay: 'Connect the FM1 to play it.',
+    presetPlaysOnFm1:
+      'This preset plays only on Baud Girl’s firmware: add it to banks A–D, then write it to the FM1 to hear it.',
+    add: 'Add to library…',
+    origin: 'Share link',
+    damaged: 'This share link is damaged or incomplete. Ask for it again, and copy all of it.',
+    newerVersion:
+      'This share link comes from a newer release of the editor. Reload the page to open it.',
+  },
 }

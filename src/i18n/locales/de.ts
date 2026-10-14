@@ -617,6 +617,29 @@ export default {
         'Das Schreiben wurde nach {{count, number}} von {{total, number}} Sounds angehalten. Prüfe die MIDI-Verbindung des FM1.',
     },
   },
+  shareLink: {
+    loadFailed:
+      'Freigabelinks konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+    menuItem: 'Freigabelink kopieren',
+    copied: 'Freigabelink für „{{patch}}“ kopiert.',
+    copyFailed:
+      'Der Freigabelink konnte nicht kopiert werden, weil der Browser die Zwischenablage nicht erlaubt hat.',
+    title: 'Geteilter Sound',
+    intro:
+      'Jemand hat diesen Sound per Link geteilt. Er kommt erst in deine Bibliothek, wenn du ihn einem Slot hinzufügst.',
+    play: 'Am FM1 spielen',
+    playHelp:
+      'Spielen schickt ihn in den Bearbeitungspuffer des FM1; die gespeicherten Presets des FM1 bleiben, wie sie sind.',
+    connectToPlay: 'Verbinde den FM1, um ihn zu spielen.',
+    presetPlaysOnFm1:
+      'Dieses Preset spielt nur auf der Firmware von Baud Girl: Füge es den Bänken A–D hinzu und schreibe es dann auf den FM1, um es zu hören.',
+    add: 'Zur Bibliothek hinzufügen…',
+    origin: 'Freigabelink',
+    damaged:
+      'Dieser Freigabelink ist beschädigt oder unvollständig. Lass ihn dir noch einmal schicken und kopiere ihn vollständig.',
+    newerVersion:
+      'Dieser Freigabelink stammt aus einer neueren Version des Editors. Lade die Seite neu, um ihn zu öffnen.',
+  },
   changeToFm: {
     menuItem: 'In FM umwandeln…',
     title: '{{slot}} „{{patch}}“ in FM umwandeln?',

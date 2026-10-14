@@ -111,7 +111,9 @@ open everything an earlier release could have saved.
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
   versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
   `fm1-colourway`, `fm1-last-backup`, and the MIDI port and help-dialog keys. Do not rename,
-  remove, or repurpose any of them.
+  remove, or repurpose any of them. A patch's share link (`#p=`, `src/lib/patch-share-link.ts`) is
+  one too: links live for years in chats and forums, so every release reads version 1, and its
+  version 1 fixtures stay in the codec's test.
 - Changing a stored shape means bumping its record `version` and adding an upgrade path that reads
   every earlier version. Never drop support for an old version, and never reuse a version number for
   a different shape.
@@ -332,7 +334,7 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -577,7 +579,9 @@ open everything an earlier release could have saved.
   menu (eager, so it does not pull `Select` into the entry).
 - Show an error in a dialog or on the page with `ErrorNotice` from
   `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
-  restyling another paragraph.
+  restyling another paragraph. The librarian page's own errors show below the patch
+  grid, far from a slot or bank menu near the top, so a new one scrolls into view
+  (`pageNoticeRef`); `e2e/share-link.e2e.ts` checks a refused share link copy is seen.
 - A menu item or button that opens a dialog, a file chooser, or a confirmation ends its label in an
   ellipsis, such as **Save bank…** and **Delete bank…**; the dialog's own title and its action
   button do not, so a menu item that shares their words takes its own string.
