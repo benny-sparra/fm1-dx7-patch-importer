@@ -20,7 +20,6 @@ import {
   fm1VaRecordWithDistortionType,
   fm1VaRecordWithEffectOrder,
   fm1VaRecordWithEffects,
-  playsFm1VaBitcrush,
 } from './fm1-va-record-effects'
 
 function recordOf(reply: Uint8Array) {
@@ -149,14 +148,6 @@ function erasedRecord() {
   record[44] = 0
   return record
 }
-
-describe('playsFm1VaBitcrush', () => {
-  it('names FM-1+VA from FM-1_096, the release that added Bitcrush', () => {
-    expect(playsFm1VaBitcrush({ identity: 'FM-1_096', kind: 'fm1-va' })).toBe(true)
-    expect(playsFm1VaBitcrush({ identity: 'FM-1_094', kind: 'fm1-va' })).toBe(false)
-    expect(playsFm1VaBitcrush({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
-  })
-})
 
 describe('fm1VaRecordBitcrush', () => {
   it('reads a record that never set Bitcrush as Off at its defaults', () => {

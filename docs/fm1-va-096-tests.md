@@ -209,7 +209,7 @@ dump, so send this one from another tool, such as Dexed or SysEx Librarian, usin
    unchanged.
 
 Run it on the release the FM1 runs, and record which. If the preset is unchanged, a later change
-may let `sendsSingleVoiceDumps` include that release and later ones.
+may let the firmware profile's `singleVoiceDumps` include that release and later ones.
 
 **D2. One DX7 parameter change over an 8-Bit preset.** Every 8-Bit field lies inside a DX7
 parameter's range, so a parameter change might edit one live (`docs/fm1-research.md`, "What can be

@@ -2,13 +2,9 @@ import { useCallback, useEffect, useRef } from 'react'
 import type { MessageEvent } from 'webmidi'
 
 import type { MidiController } from '@/hooks/use-midi'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { fm1VaPresetNumber, type Fm1VaLink } from '@/lib/fm1-va-preset-read'
-import {
-  Fm1VaPresetWriteError,
-  fm1VaPresetWriteTiming,
-  writeFm1VaPreset,
-  writesFm1VaPresets,
-} from '@/lib/fm1-va-preset-write'
+import { Fm1VaPresetWriteError, writeFm1VaPreset } from '@/lib/fm1-va-preset-write'
 import { makeLogEntry } from '@/lib/midi'
 import { midiActivity } from '@/lib/midi-activity'
 
@@ -25,8 +21,8 @@ type PresetWriterMidi = Pick<
 
 /**
  * Timing only the development probe's write timing test changes, to try other timings on hardware
- * (docs/fm1-va-096-tests.md). Production code passes none, and writes as `fm1VaPresetWriteTiming`
- * paces the firmware in use.
+ * (docs/fm1-va-096-tests.md). Production code passes none, and writes as the firmware profile's
+ * `presetWriteTiming` paces the firmware in use.
  */
 type PresetWriterTiming = {
   /** How long to listen after each write for a reply. */
@@ -39,19 +35,19 @@ type PresetWriterTiming = {
  * Writes stored presets to an FM1 on FM-1+VA through the ports `useMidi` has selected, as
  * `useFm1VaPresetReader` reads them, and outside `useMidi` for the same reason.
  *
- * Each write waits until the spacing `fm1VaPresetWriteTiming` gives the firmware has passed since
+ * Each write waits until the spacing the firmware profile gives has passed since
  * the one before, and resolves once its reply wait is over. A write
  * belongs to the ports it started on: changing either, or unmounting, cancels one still waiting,
  * while one already sent cannot be taken back.
  */
 export function useFm1VaPresetWriter(midi: PresetWriterMidi, timing: PresetWriterTiming = {}) {
   const { firmware, logStore, sysexAvailable } = midi
-  const firmwareTiming = fm1VaPresetWriteTiming(firmware)
+  const { capabilities, presetWriteTiming: firmwareTiming } = resolveFirmwareProfile(firmware)
   const listenMs = timing.listenMs ?? firmwareTiming.listenMs
   const spacingMs = timing.spacingMs ?? firmwareTiming.spacingMs
   const input = midi.inputs.find((device) => device.id === midi.selectedInputId)?.port
   const output = midi.outputs.find((device) => device.id === midi.selectedOutputId)?.port
-  const canWrite = Boolean(input && output && sysexAvailable && writesFm1VaPresets(firmware))
+  const canWrite = Boolean(input && output && sysexAvailable && capabilities.presetWrite)
   const writes = useRef(new Set<AbortController>())
   const lastWriteAt = useRef<number | null>(null)
 

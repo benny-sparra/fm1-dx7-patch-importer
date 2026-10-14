@@ -8,7 +8,6 @@ import {
   fm1VaRecordKnobChoices,
   fm1VaRecordWithKnobChoices,
   fmKnobChoice,
-  playsFm1VaKnobChoices,
   virtualAnalogKnobChoice,
 } from './fm1-va-knob-choices'
 
@@ -118,15 +117,6 @@ describe('fm1VaRecordWithKnobChoices', () => {
   it('brings a choice out of range into 0 to 7', () => {
     const updated = fm1VaRecordWithKnobChoices(recordWith(0x00, 0x00), [9, -1, 2, 4], 'fm')
     expect(fm1VaRecordKnobChoices(updated, 'fm')).toEqual([7, 0, 2, 4])
-  })
-})
-
-describe('playsFm1VaKnobChoices', () => {
-  it('allows FM-1+VA from FM-1_096, the release that added knob choices', () => {
-    expect(playsFm1VaKnobChoices({ identity: 'FM-1_096', kind: 'fm1-va' })).toBe(true)
-    expect(playsFm1VaKnobChoices({ identity: 'FM-1_097', kind: 'fm1-va' })).toBe(true)
-    expect(playsFm1VaKnobChoices({ identity: 'FM-1_094', kind: 'fm1-va' })).toBe(false)
-    expect(playsFm1VaKnobChoices({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
   })
 })
 

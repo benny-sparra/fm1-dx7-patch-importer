@@ -45,8 +45,8 @@ import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import { useFm1VaSoundControl } from '@/hooks/use-fm1-va-sound-control'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import type { MidiController } from '@/hooks/use-midi'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { getFm1EffectParameters } from '@/lib/fm1-effects'
-import { hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
 import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_VA_BITCRUSH_START,
@@ -63,13 +63,8 @@ import {
   fm1VaRecordWithBitcrush,
   fm1VaRecordWithDistortionType,
   fm1VaRecordWithEffectOrder,
-  playsFm1VaBitcrush,
 } from '@/lib/fm1-va-record-effects'
-import {
-  fm1VaRecordWithKnobChoices,
-  playsFm1VaKnobChoices,
-  virtualAnalogKnobChoice,
-} from '@/lib/fm1-va-knob-choices'
+import { fm1VaRecordWithKnobChoices, virtualAnalogKnobChoice } from '@/lib/fm1-va-knob-choices'
 import {
   makeVirtualAnalogEditorParameters,
   virtualAnalogCutoffHertz,
@@ -266,12 +261,13 @@ export function VirtualAnalogEditorPage({
   const effectOrder = Array.from(
     parameters.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START),
   )
-  const offersBitcrush = playsFm1VaBitcrush(midi.firmware)
-  const offersKnobChoices = playsFm1VaKnobChoices(midi.firmware)
+  const firmwareCapabilities = resolveFirmwareProfile(midi.firmware).capabilities
+  const offersBitcrush = firmwareCapabilities.bitcrush
+  const offersKnobChoices = firmwareCapabilities.knobChoices
   const knobChoices = Array.from(
     parameters.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT),
   )
-  const writesDistortionType = hasFm1VaPresetCommands(midi.firmware)
+  const writesDistortionType = firmwareCapabilities.presetWrite
   // On firmware that does not play them, a line says what the patch keeps, as the voice editor's
   // effects panel does.
   const knowsFirmware = midi.firmware.kind !== 'checking'

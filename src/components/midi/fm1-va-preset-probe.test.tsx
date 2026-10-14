@@ -7,6 +7,7 @@ import { act } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { decodeVoiceName, dx7PackedVoiceSize, packDx7Voice, updateDx7VoiceName } from '@/lib/dx7'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { FM1_VOICE_PARAMETER_COUNT } from '@/lib/fm1-parameters'
 import {
   fm1VaPresetPayloadStart,
@@ -14,7 +15,6 @@ import {
   makeFm1VaPresetWrite,
   readFm1VaMessageRecord,
 } from '@/lib/fm1-va-preset-message'
-import { fm1VaPresetWriteTiming } from '@/lib/fm1-va-preset-write'
 import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import {
@@ -311,7 +311,10 @@ describe('Fm1VaPresetProbe write test', () => {
   async function writeBack(user: ReturnType<typeof userEvent.setup>, name: string) {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     await user.click(screen.getByRole('button', { hidden: true, name }))
-    const { listenMs, spacingMs } = fm1VaPresetWriteTiming({ identity: 'FM-1_093', kind: 'fm1-va' })
+    const { listenMs, spacingMs } = resolveFirmwareProfile({
+      identity: 'FM-1_093',
+      kind: 'fm1-va',
+    }).presetWriteTiming
     await act(() => vi.advanceTimersByTimeAsync(spacingMs + listenMs))
   }
 

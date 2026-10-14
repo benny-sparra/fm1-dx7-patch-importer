@@ -1,7 +1,8 @@
 import { useCallback } from 'react'
 
 import type { MidiController } from '@/hooks/use-midi'
-import { makeFm1VaSoundControlMessage, sendsFm1VaSoundControls } from '@/lib/fm1-va-sound-control'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
+import { makeFm1VaSoundControlMessage } from '@/lib/fm1-va-sound-control'
 import { makeLogEntry } from '@/lib/midi'
 import { midiActivity } from '@/lib/midi-activity'
 
@@ -19,7 +20,7 @@ type SoundControlMidi = Pick<
 export function useFm1VaSoundControl(midi: SoundControlMidi) {
   const { channel, firmware, logStore } = midi
   const output = midi.outputs.find((device) => device.id === midi.selectedOutputId)?.port
-  const canSend = Boolean(output && sendsFm1VaSoundControls(firmware))
+  const canSend = Boolean(output && resolveFirmwareProfile(firmware).capabilities.soundControls)
 
   /**
    * Sends `controller` = `value` and returns whether it went. Throws a `RangeError` for a

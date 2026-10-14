@@ -6,7 +6,6 @@ import {
   fm1IdentityQuery,
   mayBeSloop,
   parseFm1IdentityReply,
-  sendsSingleVoiceDumps,
 } from '@/lib/fm1-firmware'
 import { feluccaIdentityReply, fm1VaIdentityReply, mvaveIdentityReply } from '@/test/fake-fm1-midi'
 
@@ -117,16 +116,5 @@ describe('mayBeSloop', () => {
     expect(mayBeSloop({ identity: 'FM-1_089', kind: 'fm1-va' })).toBe(false)
     expect(mayBeSloop({ identity: 'FM-1_900', kind: 'unidentified' })).toBe(false)
     expect(mayBeSloop({ kind: 'checking' })).toBe(false)
-  })
-})
-
-describe('sendsSingleVoiceDumps', () => {
-  it('sends single-voice dumps only to M-VAVE firmware', () => {
-    expect(sendsSingleVoiceDumps({ identity: 'FM-1_015', kind: 'mvave' })).toBe(true)
-    expect(sendsSingleVoiceDumps({ identity: 'FM-1_089', kind: 'fm1-va' })).toBe(false)
-    expect(sendsSingleVoiceDumps({ kind: 'checking' })).toBe(false)
-    expect(sendsSingleVoiceDumps({ kind: 'unidentified' })).toBe(false)
-    expect(sendsSingleVoiceDumps({ identity: 'FM-1_904', kind: 'felucca' })).toBe(false)
-    expect(sendsSingleVoiceDumps({ identity: 'XR-9_015', kind: 'unidentified' })).toBe(false)
   })
 })

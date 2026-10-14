@@ -63,8 +63,8 @@ import {
 } from '@/lib/patch-library'
 import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import type { Fm1VaPresetSource } from '@/components/patches/import-fm1-va-presets-dialog'
-import { hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
 import { soundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
 import { crtSwitchOff } from '@/lib/crt-switch-off'
@@ -358,7 +358,7 @@ export function LibrarianPage({
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
   // Baud Girl's firmware stores each preset as written, effects included, so Send to FM1 writes the
   // bank preset by preset over an FM1 bank chosen in the app, rather than sending a DX7 bank.
-  const sendsByPresetWrite = hasFm1VaPresetCommands(midi.firmware)
+  const sendsByPresetWrite = resolveFirmwareProfile(midi.firmware).capabilities.presetWrite
   const workspaceBankLabel = useWorkspaceBankLabel(library)
   // Favourites shows in the bank rail, so its name reads wherever a bank's name would.
   const bankDisplayName = (bank: string) =>
@@ -1117,8 +1117,9 @@ export function LibrarianPage({
                 </button>
               </div>
               {/* Reading and writing the FM1's presets need Baud Girl's firmware, so they show only
-                  while the FM1 runs it, together under her name. */}
-              {hasFm1VaPresetCommands(midi.firmware) ? (
+                  while the FM1 runs it, together under her name. A write is confirmed by reading
+                  it back, so a firmware that writes presets reads them too. */}
+              {sendsByPresetWrite ? (
                 <div aria-labelledby={baudGirlMenuHeadingId} className="mt-1" role="group">
                   <p className={menuHeadingClassName} id={baudGirlMenuHeadingId}>
                     {t('fm1VaImport.menuHeading')}

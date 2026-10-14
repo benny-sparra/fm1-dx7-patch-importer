@@ -180,21 +180,32 @@ open everything an earlier release could have saved.
   once per family per page load so the split counts sessions rather
   than reconnections; the name and version, such as `FM-1_089`, stay out of analytics and
   monitoring, because a release has few enough FM1s on it to single one out.
+- What each firmware can take is its profile in `src/lib/firmware-profile.ts`, and nowhere else:
+  `resolveFirmwareProfile` gives its family, its capabilities (`singleVoiceDumps`, `presetRead`,
+  `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`), and its preset write timing. A family
+  lists the first release with each capability, so a new firmware, a release that adds one, or
+  another device's firmware is an entry in `familyProfiles`, never a predicate in the module that
+  uses it. A capability a family does not list is never offered, which keeps a firmware being
+  checked, an unidentified one, and Felucca on the cautious parameter changes. Code reads a
+  capability from the profile rather than comparing `Fm1Firmware`'s `kind` or release; compare the
+  family only to word what users read about it, such as the badge. The module imports nothing but
+  the `Fm1Firmware` type, because the entry and the lazy preset, sound control, and editor chunks
+  all read it. Its test covers every family and every release threshold.
 - Of FM-1+VA's own `F0 43 00 7D` commands, the editor may send only the preset read,
   `7D 10 <slot>` (`readFm1VaPreset` in `src/lib/fm1-va-preset-read.ts`, approved 2026-10-02),
-  and only while `readsFm1VaPresets` allows it: FM-1+VA from `FM-1_079`, the release that added
-  it. It reads one stored preset and changes nothing. Every other FM-1+VA command, the raw memory
-  read `11` among them, needs its own approval recorded here first.
+  and only while the profile's `presetRead` allows it: FM-1+VA from `FM-1_079`, the release that
+  added it. It reads one stored preset and changes nothing. Every other FM-1+VA command, the raw
+  memory read `11` among them, needs its own approval recorded here first.
 - The preset write, `7D 04 <slot>` (`makeFm1VaPresetWrite` in `src/lib/fm1-va-preset-message.ts`,
   approved 2026-10-03), stores one preset at once, and the FM1 cannot undo it. Send it only while
-  `writesFm1VaPresets` allows it (FM-1+VA from `FM-1_079`), only through `useFm1VaPresetWriter`,
-  which paces writes as `fm1VaPresetWriteTiming` gives for the firmware: from `FM-1_096`, 320 ms
-  apart with no wait for a reply, as tested on hardware on 2026-10-06
-  (`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`); before it, 3 s apart with a 1.5 s
-  reply wait, as FM-1+VA's Presets page did. A faster timing for an earlier release needs its own
-  hardware run. One preset per message, and never twice for one write. Only the development probe's write timing
-  test changes the spacing or the 1.5 s reply wait, through the hook's timing option, and it
-  writes presets back exactly as read. Read each preset back with `7D 10` to confirm
+  the profile's `presetWrite` allows it (FM-1+VA from `FM-1_079`), only through
+  `useFm1VaPresetWriter`, which paces writes as the profile's `presetWriteTiming` gives for the
+  firmware: from `FM-1_096`, 320 ms apart with no wait for a reply, as tested on hardware on
+  2026-10-06 (`docs/hardware-runs/fm1-va-write-timing-2026-10-06.md`); before it, 3 s apart with a
+  1.5 s reply wait, as FM-1+VA's Presets page did. A faster timing for an earlier release needs its
+  own hardware run. One preset per message, and never twice for one write. Only the development
+  probe's write timing test changes the spacing or the 1.5 s reply wait, through the hook's timing
+  option, and it writes presets back exactly as read. Read each preset back with `7D 10` to confirm
   it, and stop at the first that does not read back the same. A write already sent is never
   cancelled; changing the ports cancels only one still waiting its turn. Anything that writes asks
   first, naming every preset it replaces and saying an FM-1+VA backup is the way back. A patch
@@ -221,22 +232,22 @@ open everything an earlier release could have saved.
 - FM-1+VA's sound-setting Control Changes, CC 24–31, 52–57, and 70–78 on the note channel, are
   built only by `makeFm1VaSoundControlMessage` (`src/lib/fm1-va-sound-control.ts`), which refuses
   every other controller, and sent only through `useFm1VaSoundControl` while
-  `sendsFm1VaSoundControls` allows it (FM-1+VA from `FM-1_086`, the release that added them). The
-  hook lives outside `useMidi`, as the preset reader does, so it costs the entry nothing, and the
-  module imports nothing from `src/lib/midi.ts`, so a lazy page can take it. Each is an unsaved
-  edit, like turning the knob. CC 85–119 press the FM1's own controls and are never sent. The
-  Virtual Analog editor and the development probe's map send them. The editor sends them only
+  the profile's `soundControls` allows it (FM-1+VA from `FM-1_086`, the release that added
+  them). The hook lives outside `useMidi`, as the preset reader does, so it costs the entry nothing,
+  and the module imports nothing from `src/lib/midi.ts`, so a lazy page can take it. Each is an
+  unsaved edit, like turning the knob. CC 85–119 press the FM1's own controls and are never sent.
+  The Virtual Analog editor and the development probe's map send them. The editor sends them only
   while the FM1 plays the preset it edits: a slot in banks A–D, whose stored preset it has read
   with `7D 10` and found marked Virtual Analog, because an FM preset takes CC 70–78 as its own
   Envelope, LFO, and Brightness. Without that read, or when it fails, the editor stays local.
 - Send a patch as a DX7 single-voice dump only to firmware identified as M-VAVE's
-  (`sendsSingleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored preset, so
-  every other firmware, including one not yet identified, gets the patch as its 155 parameter
-  changes, which it holds as an unsaved edit. The bank destination instructions follow the firmware
-  too: FM-1+VA asks **Replace Bank A?** starting on bank A, and chooses the bank with ALGORITHM.
-  Where `hasFm1VaPresetCommands` allows the preset write (FM-1+VA from `FM-1_079`), **Send to
-  FM1** sends no DX7 bank: it opens the write dialog for the one bank (`sendBank`), which chooses
-  the FM1 bank in the app and writes only the presets that differ, effects included.
+  (the profile's `singleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored
+  preset, so every other firmware, including one not yet identified, gets the patch as its 155
+  parameter changes, which it holds as an unsaved edit. The bank destination instructions follow
+  the firmware too: FM-1+VA asks **Replace Bank A?** starting on bank A, and chooses the bank with
+  ALGORITHM. Where the profile's `presetWrite` allows the preset write (FM-1+VA from `FM-1_079`),
+  **Send to FM1** sends no DX7 bank: it opens the write dialog for the one bank (`sendBank`), which
+  chooses the FM1 bank in the app and writes only the presets that differ, effects included.
 - Clicking a slot in banks A–D sends its Program Change, then the library's voice and effects to
   the edit buffer, because the FM1's stored preset may not match the library and the app cannot
   read it back. Only without SysEx does the click fall back to the Program Change and effects. The
@@ -685,7 +696,7 @@ open everything an earlier release could have saved.
   effects in its parameters (`FM1_VA_DISTORTION_TYPE_INDEX`), so undo and compare cover it, and
   saving writes it into the record through `saveSound`, which gives the copies that held the same
   record the new one. No MIDI message carries it, so it is heard only once the patch is written to
-  the FM1. The effects panel offers it only while `hasFm1VaPresetCommands` allows the preset
+  the FM1. The effects panel offers it only while the profile's `presetWrite` allows the preset
   write, disabled for a patch without a record, which never gains one; on other firmware it names
   a type other than Soft Clip that the patch keeps. Sound starters leave it as it is.
 - Bitcrush, FM-1_096's seventh effect, is kept the same way: its switch, Bits, Sample Rate, and Mix
@@ -694,9 +705,9 @@ open everything an earlier release could have saved.
   whose Bitcrush the editor did not change exactly as it was, so a record that never set it keeps
   its `03`; setting it marks it set and writes all three settings, as the FM1 does, keeping its
   place or putting it after the Distortion. The effects panel offers it only while
-  `playsFm1VaBitcrush` allows (FM-1+VA from `FM-1_096`), disabled for a patch without a record; on
-  other firmware it says when the patch keeps Bitcrush on. It has no FX Channel controller, so it is
-  heard only once the patch is written to the FM1.
+  the profile's `bitcrush` allows (FM-1+VA from `FM-1_096`), disabled for a patch without a
+  record; on other firmware it says when the patch keeps Bitcrush on. It has no FX Channel
+  controller, so it is heard only once the patch is written to the FM1.
 - The order of the seven effects follows Bitcrush in the editor's parameters
   (`FM1_VA_EFFECT_ORDER_START`), as effect numbers first to last: 0 Filter, 1 Reverb, 2 Delay,
   3 Distortion, 4 Chorus, 5 Phaser, 6 Bitcrush. Saving writes it through
@@ -712,7 +723,7 @@ open everything an earlier release could have saved.
   It rewrites only a byte whose two choices changed, marking it set and keeping its bit 6, the
   Envelope switch in byte 53, so an unset byte keeps its `03`. Each engine lists its own eight;
   the voice editor offers the FM list for a patch with a record, disabled without one, and the
-  Virtual Analog editor its own, both only while `playsFm1VaKnobChoices` allows (FM-1+VA from
+  Virtual Analog editor its own, both only while the profile's `knobChoices` allows (FM-1+VA from
   `FM-1_096`). No MIDI message sets them, and CC 85–88 stay excluded, so they are heard once the
   patch is written. The panel sits at the top of each editor and minimises, each knob a
   `PicturePickerControl` laid out `inline` with a picture of each choice (`KnobChoicePicture`);

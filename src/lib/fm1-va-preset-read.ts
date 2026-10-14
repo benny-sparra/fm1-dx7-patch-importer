@@ -1,5 +1,4 @@
 import { dx7PackedVoiceSize } from '@/lib/dx7'
-import { hasFm1VaPresetCommands, type Fm1Firmware } from '@/lib/fm1-firmware'
 import {
   fm1VaChecksum,
   fm1VaReplyKinds,
@@ -11,7 +10,7 @@ import {
 /**
  * Reading one stored preset from an FM1 on FM-1+VA, the one FM-1+VA command the editor may send
  * (docs/fm1-research.md, "Reading a stored preset"). It reads and changes nothing. Offer it only
- * where `readsFm1VaPresets` allows.
+ * where the firmware profile's `presetRead` allows.
  */
 export const fm1VaPresetCount = 128
 
@@ -19,14 +18,6 @@ export const fm1VaPresetCount = 128
 export const fm1VaPresetRecordSize = 59
 
 const readCommand = 0x10
-
-/**
- * Whether the editor may ask the FM1 for its stored presets: only FM-1+VA from FM-1_079, the
- * release that added the read. On any other firmware the message is an unknown vendor command.
- */
-export function readsFm1VaPresets(firmware: Fm1Firmware) {
-  return hasFm1VaPresetCommands(firmware)
-}
 
 /** The number the FM1 shows for a slot, 001 to 128, as the research notes name presets. */
 export function fm1VaPresetNumber(slot: number) {

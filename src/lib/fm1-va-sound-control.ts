@@ -1,5 +1,3 @@
-import type { Fm1Firmware } from '@/lib/fm1-firmware'
-
 /**
  * The Control Changes FM-1+VA reads on its MIDI Channel to set a Virtual Analog preset's settings,
  * as turning their knobs would: an unsaved edit, heard at once (docs/fm1-research.md, "Controllers
@@ -38,16 +36,6 @@ export const fm1VaSoundSettings = [
   controller: number
   setting: string
 }[]
-
-/** FM-1_086, the FM-1+VA release that added these controllers. */
-const firstSoundControlRelease = 86
-
-/** Whether the FM1 runs FM-1+VA from the release that reads these controllers. */
-export function sendsFm1VaSoundControls(firmware: Fm1Firmware) {
-  // `classifyFm1Firmware` names firmware FM-1+VA only for an `FM-1_NNN` identity.
-  if (firmware.kind !== 'fm1-va') return false
-  return Number(firmware.identity.slice('FM-1_'.length)) >= firstSoundControlRelease
-}
 
 export function isFm1VaSoundController(controller: number) {
   return fm1VaSoundSettings.some((setting) => setting.controller === controller)

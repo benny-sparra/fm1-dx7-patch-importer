@@ -109,30 +109,6 @@ export function classifyFm1Firmware(identity: string): Fm1Firmware {
 }
 
 /**
- * Whether a patch may be sent as a DX7 single-voice dump. M-VAVE's firmware puts one in its edit
- * buffer, but FM-1+VA writes it straight over the selected stored preset, so every other firmware,
- * including one not yet identified, gets the patch as parameter changes, which it holds as an
- * unsaved edit (docs/fm1-research.md, "The editor on FM-1+VA").
- */
-export function sendsSingleVoiceDumps(firmware: Fm1Firmware) {
-  return firmware.kind === 'mvave'
-}
-
-/** FM-1_079, the FM-1+VA release that added the preset read and the preset write. */
-const firstPresetCommandsRelease = 79
-
-/**
- * Whether the FM1 runs FM-1+VA from the release that added its preset read and write. On any other
- * firmware those messages are unknown vendor commands. Lives here, with the firmware it names, so
- * the librarian can offer the preset dialogs without loading the code that sends them.
- */
-export function hasFm1VaPresetCommands(firmware: Fm1Firmware) {
-  // `classifyFm1Firmware` names firmware FM-1+VA only for an `FM-1_NNN` identity.
-  if (firmware.kind !== 'fm1-va') return false
-  return Number(firmware.identity.slice('FM-1_'.length)) >= firstPresetCommandsRelease
-}
-
-/**
  * Whether the FM1 may run SLOOP rather than Felucca. Every SLOOP release reports `FM-1_900`, as a
  * Felucca development build does, so the editor names both. They treat the editor's MIDI alike.
  */

@@ -10,13 +10,13 @@ import {
   unpackDx7Voice,
   type Dx7Voice,
 } from '@/lib/dx7'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
 import {
   classifyFm1Firmware,
   fm1IdentityQuery,
   mayBeSloop,
   parseFm1IdentityReply,
-  sendsSingleVoiceDumps,
   type Fm1Firmware,
 } from '@/lib/fm1-firmware'
 import { reportBankTransferFailure } from '@/lib/monitoring'
@@ -542,7 +542,9 @@ export function useMidi() {
         return Promise.resolve(false)
       }
 
-      if (!sendsSingleVoiceDumps(firmware)) return sendVoiceAsParameters(selectedOutput, voice)
+      if (!resolveFirmwareProfile(firmware).capabilities.singleVoiceDumps) {
+        return sendVoiceAsParameters(selectedOutput, voice)
+      }
 
       const payload = makeDx7SingleVoicePayload(voice, channel)
       const message = makeYamahaSysexMessage(payload)
