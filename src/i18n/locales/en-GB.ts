@@ -188,6 +188,12 @@ export default {
     menuItem: 'Write patches to the FM1…',
     openFailed: 'Writing to the FM1 could not be opened. Reload the page and try again.',
   },
+  shareLink: {
+    loadFailed: 'Share links could not be opened. Reload the page and try again.',
+    menuItem: 'Copy share link',
+    copied: 'Copied a share link for “{{patch}}”.',
+    copyFailed: 'The browser did not allow the share link to be copied.',
+  },
   changeToFm: {
     menuItem: 'Change to FM…',
     title: 'Change {{slot}} “{{patch}}” to FM?',

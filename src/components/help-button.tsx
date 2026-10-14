@@ -6,6 +6,7 @@ import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { hasSeenHelp } from '@/lib/help-seen'
+import { sharedPatchPayload } from '@/lib/share-link-fragment'
 
 // The guide loads when it is first asked for; the trigger stays in the initial bundle.
 const HelpDialog = lazy(() =>
@@ -18,9 +19,10 @@ export function HelpButton() {
   const [requested, setRequested] = useState(false)
   const [loadFailed, setLoadFailed] = useState(false)
 
-  // A first visit opens the guide itself, before anything has been clicked.
+  // A first visit opens the guide itself, before anything has been clicked, unless it came to open a
+  // share link, whose patch opens instead.
   useEffect(() => {
-    if (!hasSeenHelp()) setRequested(true)
+    if (!hasSeenHelp() && sharedPatchPayload(window.location.hash) === null) setRequested(true)
   }, [])
 
   return (

@@ -63,6 +63,7 @@ type PatchGridProps = {
   onPatchCopy?: (patch: Patch) => void
   onPatchDownload?: (patch: Patch) => void
   onPatchReplace?: (patch: Patch) => void
+  onPatchShare?: (patch: Patch) => void
   onPatchMove: (patch: Patch, target: Patch) => void
   /** A slot dragged onto a bank tab in the `toolbar`, other than its own bank's. */
   onPatchDropOnBank?: (patch: Patch, bank: string) => void
@@ -114,6 +115,7 @@ export function PatchGrid({
   onPatchCopy,
   onPatchDownload,
   onPatchReplace,
+  onPatchShare,
   onPatchMove,
   onPatchDropOnBank,
   onPatchEdit,
@@ -289,6 +291,7 @@ export function PatchGrid({
                             onCopy={onPatchCopy}
                             onDownload={onPatchDownload}
                             onReplace={onPatchReplace}
+                            onShare={onPatchShare}
                             onEdit={onPatchEdit}
                             onNavigate={navigateSlots}
                             onSelect={onPatchSelect}

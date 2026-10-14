@@ -4,6 +4,16 @@ The M-VAVE FM1 Editor & Librarian runs entirely in the browser. Voices, banks, a
 browser storage. A backup file is written and read in the browser; it is never uploaded. This page describes the limited analytics and error monitoring used by the deployed
 site.
 
+## Share links
+
+**Copy share link** puts a patch into a link: its voice data, name, FM1 effects, and Baud Girl
+preset settings are encoded in the link's fragment, the part after `#`. Browsers never send a
+fragment to the server they load a page from, so the patch is not uploaded anywhere by the editor;
+it reaches whoever the link is given to, and the chat, forum, or email it is pasted into handles it
+under its own terms. Opening a link reads the fragment in the browser and then removes it from the
+address bar. Analytics excludes fragments and error monitoring strips them from every URL, as
+described below, so a shared patch reaches neither service.
+
 ## Anonymous usage analytics
 
 The deployed site uses cookie-free [Umami](https://umami.is/) analytics to understand aggregate

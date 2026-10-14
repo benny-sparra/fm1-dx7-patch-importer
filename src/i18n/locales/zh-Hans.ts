@@ -542,6 +542,23 @@ export default {
         '写入在 {{count, number}} 个（共 {{total, number}} 个）音色后停止。请检查 FM1 的 MIDI 连接。',
     },
   },
+  shareLink: {
+    loadFailed: '无法打开分享链接。请重新加载页面后重试。',
+    menuItem: '复制分享链接',
+    copied: '已复制“{{patch}}”的分享链接。',
+    copyFailed: '无法复制分享链接：浏览器不允许使用剪贴板。',
+    title: '分享的音色',
+    intro: '有人通过链接分享了这个音色。在你把它添加到音色位之前，它不会进入你的音色库。',
+    play: '在 FM1 上试听',
+    playHelp: '试听会把它发送到 FM1 的编辑缓冲区，FM1 中存储的预设保持不变。',
+    connectToPlay: '连接 FM1 即可试听。',
+    presetPlaysOnFm1:
+      '此预设只能在 Baud Girl 的固件上播放：将它添加到 A–D 音色库，再写入 FM1 即可听到。',
+    add: '添加到音色库…',
+    origin: '分享链接',
+    damaged: '此分享链接已损坏或不完整。请重新索取，并完整复制。',
+    newerVersion: '此分享链接来自更新版本的编辑器。请重新加载页面以打开它。',
+  },
   changeToFm: {
     menuItem: '转换为 FM…',
     title: '要将 {{slot}}“{{patch}}”转换为 FM 吗？',
