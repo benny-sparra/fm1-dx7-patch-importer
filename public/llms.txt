@@ -1,20 +1,46 @@
 # M-VAVE FM1 Editor & Librarian
 
-> A browser-based voice editor and patch librarian for the M-VAVE FM1 synthesiser. It edits DX7 voices and the FM1 effects chain, organises up to 10 local patch banks, imports standard Yamaha DX7 32-voice SysEx banks, and transfers voices or whole banks to the FM1 over Web MIDI.
+> A browser-based patch librarian and voice editor for the M-VAVE FM1 synthesiser. It keeps up to 10 banks of 32 patches in browser storage, edits DX7 voices, the FM1 effects chain, and the Virtual Analogue presets of Baud Girl's FM-1+VA firmware, and sends patches and banks to the FM1 over Web MIDI.
 
-The app runs entirely in the browser and keeps patches in local browser storage; there is no account or server-side library. It needs a Chromium-based browser (Chrome, Edge, or Opera) with Web MIDI and SysEx permission, and a MIDI connection to an FM1.
+The app runs entirely in the browser, with no account or server. The library in the browser's storage is the only copy, so users keep it safe with **Download backup**. It needs a browser with Web MIDI and SysEx (desktop Chrome, Edge, or Firefox, or Chrome on Android; not Safari, nor any browser on iPhone or iPad) and a MIDI connection to an FM1.
+
+## What it does on each FM1 firmware
+
+When MIDI connects, the app asks the FM1 which firmware it runs and follows the answer. It never installs or updates firmware, and never sends loader, flash, or unknown vendor commands.
+
+- M-VAVE's stock firmware: a patch goes to the edit buffer as a DX7 single-voice dump, and a bank as a DX7 32-voice dump the FM1 stores once a bank is chosen on the device. The app cannot read patches back from it.
+- Baud Girl's FM-1+VA: a patch goes as DX7 parameter changes, because this firmware stores a single-voice dump over the selected preset. From release FM-1_079 the app reads the FM1's presets and writes changed patches back one preset at a time, reading each back to confirm it. Virtual Analogue presets, and 8-Bit presets from FM-1_096, are kept byte for byte; Virtual Analogue ones have their own editor.
+- Hügelton Instruments' Felucca: it ignores DX7 voice data, so patches do not reach it.
+- Any firmware the app cannot identify: it gets parameter changes only, as an unsaved edit.
 
 ## App
 
-- [FM1 Editor & Librarian](https://fm1-editor.com/): Open the editor and librarian
+- [FM1 Editor & Librarian](https://fm1-editor.com/): Open the librarian and editor
+- [FM1 firmware](https://fm1-editor.com/firmware/): Every firmware known to run on the FM1, with its maker, how well this app supports it, its latest release, and links
+
+## Documentation
+
+- [README](https://github.com/benny-sparra/fm1-dx7-patch-importer/blob/main/README.md): Features, browser requirements, first steps, and privacy summary
+- [User guide](https://github.com/benny-sparra/fm1-dx7-patch-importer/blob/main/docs/user-guide.md): Banks, transfers, firmware differences, the voice editor, keyboard shortcuts, backups, and SysEx compatibility
+- [Switching FM1 firmware](https://github.com/benny-sparra/fm1-dx7-patch-importer/blob/main/docs/switching-firmware.md): Moving an FM1 between M-VAVE's firmware and the replacement firmwares, using each project's own tools
+- [FM1 research notes](https://github.com/benny-sparra/fm1-dx7-patch-importer/blob/main/docs/fm1-research.md): The FM1's MIDI and SysEx behaviour as found for this editor, each finding marked Confirmed, Likely, Needs hardware test, or Dangerous / excluded, including FM-1+VA's preset commands and settings record
+- [Privacy](https://github.com/benny-sparra/fm1-dx7-patch-importer/blob/main/PRIVACY.md): What stays in the browser, and the limited analytics and error monitoring
+
+## File formats
+
+- DX7 SysEx (`.syx`): Imports and exports standard Yamaha DX7 32-voice banks (4,104 bytes) and single voices. DX7 files carry no FM1 effects.
+- Backup (`fm1-backup-YYYY-MM-DD.json`): This app's own file, holding every bank with its FM1 effects and the saved banks. The format is defined in [workspace-backup.ts](https://github.com/benny-sparra/fm1-dx7-patch-importer/blob/main/src/lib/workspace-backup.ts).
+- Baud Girl presets file: Reads the file "Back up everything" saves in Baud Girl's Device Manager, and saves a Virtual Analogue or 8-Bit patch as a presets file of one preset.
 
 ## Source and support
 
-- [Source code and documentation](https://github.com/benny-sparra/fm1-dx7-patch-importer): README with features, requirements, usage, keyboard shortcuts, and privacy details
+- [Source code](https://github.com/benny-sparra/fm1-dx7-patch-importer): The React and TypeScript source, under the MIT licence
+- [Contributing](https://github.com/benny-sparra/fm1-dx7-patch-importer/blob/main/CONTRIBUTING.md): Local development, quality checks, contributing a patch bank, and the project structure
 - [Report an issue](https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new): Bug reports and feature requests
 
 ## Optional
 
 - [M-VAVE](https://www.mvave.com/): Manufacturer of the FM1 synthesiser
+- [FM-1+VA](https://baudgirl.com/work/FM-1+VA): Baud Girl's replacement firmware for the FM1, adding a Virtual Analogue engine
 - [Yamaha Black Boxes DX7 patch collection](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/): Source of the bundled DX7 bank catalog
 - [FM-1 factory presets](https://github.com/KingParamount/fm1-factory-presets): Source of the bundled FM-1 factory banks
