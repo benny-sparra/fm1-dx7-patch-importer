@@ -830,6 +830,31 @@ can be built:
 
 It does not reopen the parked sequencer: starting the FM1's own pattern is not writing one.
 
+### M-VAVE's Official Open firmware
+
+On 2026-10-14 M-VAVE briefly published FM1 Workbench, the web editor and installer for a firmware
+it calls Official Open, and took it down again. It turns the FM1 into an eight-track groovebox with
+DX7, 303, 808, PSG, Pluck, and sampler engines, saved as projects with a shared sample bank. What
+the archived page says is in [the research notes](fm1-research.md#m-vaves-official-open-firmware-withdrawn-preview-read-2026-10-14).
+Nothing here can be built until it is released, but when it is:
+
+- **Identify it before anything else.** Find what it answers to the identity query. If the
+  answer falls in a range `classifyFm1Firmware` already gives M-VAVE's firmware or FM-1+VA, as the
+  page's V10 suggests it might, the editor would send it single-voice dumps or FM-1+VA's preset
+  commands. Give it its own kind and a cautious profile in `resolveFirmwareProfile`, as Felucca
+  has, with the badge, firmware setting, and bank instructions saying what reaches it. This is the
+  one item that should not wait for anything else.
+- **Add it to the firmware page** as M-VAVE's own, with its Workbench link, and its restore and
+  migration steps to [Switching FM1 firmware](switching-firmware.md). Restoring V15 from the
+  Workbench replaces all four banks with the factory voices, and a force flash may erase what the
+  FM1 holds, so the guide should send people to **Download backup** first.
+- **DX7 tracks.** Its Workbench imports a `.syx` voice or bank into a DX7 track, so the editor's
+  library, catalog, and voice editor already feed it through **Download patch**. Exporting a DX7
+  patch as a `.fm1t` track sound would save a step, but needs the format published; the page
+  gives none.
+- **Don't follow it into projects, steps, or samples.** Those belong to its own Workbench, and the
+  [sequencer scope](../AGENTS.md#sequencer-scope) rules out a general sequencer here.
+
 ## Decided against
 
 - **Tags, ratings, and favourites.** New stored fields to support forever, for little benefit with

@@ -1115,6 +1115,96 @@ Open questions:
 5. What does the web installer's start page show today? https://hugelton.github.io/Felucca/ is
    the README's installer link; the `webapp/installer/` address could not be fetched in this check.
 
+### M-VAVE's Official Open firmware (withdrawn preview, read 2026-10-14)
+
+Source, the only one:
+
+- https://web.archive.org/web/20261014153742/https://open.m-vave.com/fm1-workbench, an archived
+  copy of a page M-VAVE published at `open.m-vave.com` and took down again soon after. Its source
+  link, https://github.com/m-vave/official_fm1_open, did not resolve on 2026-10-14.
+
+Everything below comes from that page's text, read in the archive on 2026-10-14. Nothing has been
+released, run, or checked on an FM1, so every claim here is at most **Likely**, and any of it may
+change before release. The page's scripts partly failed in the archive (`atob` errors), so the
+simulator and its factory projects could not be inspected.
+
+**What it is.** "FM1 Workbench" is M-VAVE's web tool for a firmware the page calls **Official
+Open**: an editor, a WebAssembly simulator of the device, a project and sample librarian, and a
+firmware installer in one page, in English and Simplified Chinese, for desktop Chrome or Edge. The
+page header shows **V10**. It is not the community project of the same name
+(https://github.com/thegiantsnail/fm1-workbench-public, a web app, Android app, plugin, and MCP
+server), which the awesome-fm-1 list carries.
+
+**The firmware is a groovebox, not a DX7.** Eight tracks of 16, 32, 48, or 64 steps, each playing
+one of six engines: DX7 (FM), 303, 808, PSG, PLUCK, and SAMPLER. It holds 16 read-only factory
+projects and 16 USER project slots, and one 8-slot sample bank of 456 KiB (about 20.45 s) that
+every project shares. Each track has its own arpeggiator, LFO, and reverb and delay sends. The
+application is GPL-3.0-only. Its board code (GPIO, input, LCD) and firmware packager come from
+Felucca, the 303 and 808 from Charles Vestal's FM1 X0X, the PSG from emu2149, and PLUCK from
+Soundpipe; the device SDK is a binary archive whose GPL compatibility the page says is "under
+review".
+
+**Files.** The page names four:
+
+| Extension | Holds                                                                                    |
+| --------- | ---------------------------------------------------------------------------------------- |
+| `.fm1`    | A whole eight-track project: engines, parameters, levels, loop lengths, steps. No audio. |
+| `.fm1t`   | One track's engine, sound parameters, and level, without steps.                          |
+| `.fm1s`   | The whole 8-slot sample bank.                                                            |
+| `.syx`    | A DX7 single voice or 32-voice bank, imported into a track set to DX7.                   |
+
+No layout is given for `.fm1`, `.fm1t`, or `.fm1s`.
+
+**MIDI.** Tracks 1–7 receive on channels 1–7 and track 8 on channel 10; channels 8, 9, and 11–16
+are ignored. Every engine takes Note On and Off, CC 7 (volume), 10 (pan), 11 (expression), 91
+(reverb send), and 120, 121, and 123. FM, 303, PSG, and Pluck take pitch bend (±2 semitones) and
+CC 64; FM also takes channel pressure and CC 2 and 4. CC 1 is FM vibrato, 303 EnvMod, and track
+LFO depth elsewhere. 303 takes CC 5, 71, 74, and 75; PSG CC 74 and 72; Pluck CC 74, 75, and 72.
+Program Change picks FM sounds 0–15, 303 saw or square (0, 1), and PSG modes (0–3); other engines
+ignore it. It follows MIDI clock, Start, Continue, Stop, Song Position, and a subset of MMC. The
+page lists RPN, NRPN, Bank Select, and unlisted controllers as ignored, and says nothing about
+DX7 parameter-change or voice-dump SysEx over MIDI: a `.syx` reaches a track through the
+Workbench.
+
+**Transfers.** "Save to device" writes a project to a chosen USER slot and reads it back to verify
+it; "Read device project" brings the device's workspace into the browser. A sample-bank write
+replaces all eight slots and is verified by read-back. Nothing is read or synced on connect. The
+commands are not documented on the page.
+
+**Firmware install.** The Workbench carries its firmware and the original M-VAVE V15 as a recovery
+image, and "External firmware files are not supported". It installs over what the page calls the "USB-MIDI
+update protocol", after a device handshake and an identity reply; that is presumably M-VAVE's
+`00 32` family, which §6.3 keeps **Dangerous / excluded** for this editor. Three paths:
+
+- **Update** within Official Open keeps project slots and the sample bank when the storage layout
+  is unchanged.
+- **Restore original V15** installs V15 and "replaces all four banks with 128 factory voices"; an
+  FM1 already on V15 only has its voices restored. Official Open's projects and samples do not work
+  there.
+- **Force flash** migrates from another firmware, its example being `FM-1_015`, and "may erase
+  projects and samples". Firmware without the USB-MIDI update protocol needs its own recovery tool.
+
+The page also mentions an "Open build-hash read-back" that V15 lacks.
+
+What this changes: nothing yet. The firmware is unreleased, and the editor sends nothing new. Two
+points matter when it ships. First, `classifyFm1Firmware` reads any `FM-1_NNN` at or below
+`FM-1_019` as M-VAVE's and `FM-1_020` to `FM-1_899` as FM-1+VA, so an Official Open identity in
+either range would get single-voice dumps or FM-1+VA's preset commands; it needs its own profile
+in `resolveFirmwareProfile` before release, most likely the cautious one Felucca gets. Second, both
+the V15 restore and a force flash can wipe what an FM1 holds, so the editor's library and backup
+are a user's copy of their DX7 voices across a switch.
+
+Open questions:
+
+1. What does Official Open answer to the identity query (`fm1IdentityQuery`), and does its answer
+   fall in a range `classifyFm1Firmware` already gives another firmware? The header's V10 suggests
+   `FM-1_010`, which the editor would read as M-VAVE's.
+2. Does it act on DX7 parameter-change SysEx or a single-voice dump sent to a DX7 track's channel,
+   or only on `.syx` files through the Workbench?
+3. Will `.fm1t` and `.fm1` be documented? A DX7 track sound exported from this editor as `.fm1t`
+   would need the layout.
+4. Does the source repository reappear, and under which name?
+
 ### FM1 Editor
 
 Repository:
