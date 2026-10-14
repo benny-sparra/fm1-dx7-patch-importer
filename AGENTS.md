@@ -579,7 +579,9 @@ open everything an earlier release could have saved.
   menu (eager, so it does not pull `Select` into the entry).
 - Show an error in a dialog or on the page with `ErrorNotice` from
   `src/components/ui/error-notice.tsx`, which is the destructive panel and an alert, rather than
-  restyling another paragraph.
+  restyling another paragraph. The librarian page's own errors show below the patch
+  grid, far from a slot or bank menu near the top, so a new one scrolls into view
+  (`pageNoticeRef`); `e2e/share-link.e2e.ts` checks a refused share link copy is seen.
 - A menu item or button that opens a dialog, a file chooser, or a confirmation ends its label in an
   ellipsis, such as **Save bank…** and **Delete bank…**; the dialog's own title and its action
   button do not, so a menu item that shares their words takes its own string.

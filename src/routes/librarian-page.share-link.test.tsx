@@ -30,6 +30,8 @@ beforeEach(() => {
 afterEach(async () => {
   cleanup()
   vi.restoreAllMocks()
+  // jsdom has no scrollIntoView; a test that watches it adds its own.
+  Reflect.deleteProperty(Element.prototype, 'scrollIntoView')
   await setLocale('en-GB')
 })
 
@@ -103,6 +105,21 @@ describe('LibrarianPage share links', () => {
       ),
     ).toBeTruthy()
     expect(screen.queryByText(/NotAllowedError/)).toBeNull()
+  })
+
+  it('brings a refused copy’s explanation into view below the patch banks', async () => {
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    const { user } = renderPage()
+    vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('NotAllowedError'))
+
+    await user.click(screen.getByRole('button', { name: `Actions for ${voice.name}` }))
+    await user.click(screen.getByRole('menuitem', { name: 'Copy share link' }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toBe('The browser did not allow the share link to be copied.')
+    expect(scrollIntoView.mock.contexts).toContain(alert.parentElement)
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' })
   })
 
   it('confirms a copied link in the interface language, naming the patch', async () => {

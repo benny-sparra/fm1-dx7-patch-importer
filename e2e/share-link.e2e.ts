@@ -63,3 +63,32 @@ test('copies a slot’s share link that opens the same patch', async ({
   await expect(dialog).toBeVisible()
   await expect(dialog.getByText(name, { exact: true })).toBeVisible()
 })
+
+test('shows a refused copy’s explanation in view of the slot it was copied from', async ({
+  page,
+}) => {
+  // Stands in for a browser that refuses the clipboard, as an embedded browser or a denied
+  // permission does.
+  await page.addInitScript(() => {
+    const refuse = () =>
+      Promise.reject(new DOMException('Write permission denied.', 'NotAllowedError'))
+    navigator.clipboard.write = refuse
+    navigator.clipboard.writeText = refuse
+  })
+  await page.goto('/')
+  const helpDialog = page.getByRole('dialog', { name: 'Welcome to the FM1 editor & librarian' })
+  await expect(helpDialog).toBeVisible()
+  await helpDialog.getByRole('button', { name: 'Close help' }).click()
+  await expect(helpDialog).toBeHidden()
+  const label = (await slotButtons(page).first().getAttribute('aria-label')) ?? ''
+  const name = label.replace(/^Send (.+) to FM1$/, '$1')
+
+  await page.getByRole('button', { name: `Actions for ${name}` }).click()
+  await page.getByRole('menuitem', { name: 'Copy share link' }).click()
+
+  await expect(
+    page
+      .getByRole('alert')
+      .filter({ hasText: 'The browser did not allow the share link to be copied.' }),
+  ).toBeInViewport()
+})

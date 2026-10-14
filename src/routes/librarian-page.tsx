@@ -315,6 +315,9 @@ export function LibrarianPage({
   const ownView = useLibrarianView()
   const { bank: destinationBank, search, setBank: setDestinationBank, setSearch } = view ?? ownView
   const [importError, setImportError] = useState('')
+  // The page's errors show below the patch grid, which can be far out of view of the slot or bank
+  // menu whose action failed, so a new one is scrolled into view.
+  const pageNoticeRef = useRef<HTMLDivElement>(null)
   // Explains a dialog whose chunk did not arrive, such as after a newer deployment replaced it.
   const [dialogLoadError, setDialogLoadError] = useState('')
   const [savedBanksRequest, setSavedBanksRequest] = useState<SavedBanksRequest | null>(null)
@@ -827,6 +830,12 @@ export function LibrarianPage({
   useEffect(() => {
     if (!hasLoadedBank) setSearch('')
   }, [hasLoadedBank, setSearch])
+
+  // jsdom, which the tests run in, has no scrollIntoView.
+  useEffect(() => {
+    if (importError || dialogLoadError)
+      pageNoticeRef.current?.scrollIntoView?.({ block: 'nearest' })
+  }, [dialogLoadError, importError])
 
   // A share link opens its patch's dialog as the patch banks show, or when one is pasted into the
   // address bar of this tab. The dialog takes the link out of the address bar.
@@ -1379,14 +1388,17 @@ export function LibrarianPage({
 
       {transferError ? <ErrorNotice>{transferError}</ErrorNotice> : null}
 
-      {dialogLoadError ? (
-        <LoadFailedNotice
-          className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3"
-          message={dialogLoadError}
-        />
+      {dialogLoadError || importError ? (
+        <div className="grid gap-5" ref={pageNoticeRef}>
+          {dialogLoadError ? (
+            <LoadFailedNotice
+              className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3"
+              message={dialogLoadError}
+            />
+          ) : null}
+          {importError ? <ErrorNotice>{importError}</ErrorNotice> : null}
+        </div>
       ) : null}
-
-      {importError ? <ErrorNotice>{importError}</ErrorNotice> : null}
 
       {sendGuide === 'bank-selection' ? (
         <Fm1BankSelectionDialog
