@@ -44,15 +44,16 @@ Envelope among the bytes the editor cannot set.
 - **Heard once written**, like Distortion type, unless the FM-1+VA controllers reach them. An FM
   preset takes CC 70–78 as its own Envelope, LFO, and Brightness, so a short hardware run should
   find out whether any of them moves the FM Filter or Envelope live.
-- Offered only for a patch with a record, while `hasFm1VaPresetCommands` allows the preset write.
+- Offered only for a patch with a record, while the firmware profile's `presetWrite` allows the
+  preset write.
 
 ### 2. Knob assignments
 
 From `FM-1_096`, each preset chooses what KNOB1–4 do: Brightness, Feedback, Attack, Decay, Release,
 Vibrato, LFO Speed, or Cutoff. These are bits 0–5 of bytes 53 (knobs 1 and 2) and 52 (knobs 3 and
 4), with bit 7 marking the choice as set. The backlog notes knob choices as not offered. The change
-is four dropdowns, written into the record and heard once written, while `playsFm1VaBitcrush` (from
-`FM-1_096`) allows it.
+is four dropdowns, written into the record and heard once written, while the firmware profile's
+`bitcrush` (from `FM-1_096`) allows it.
 
 ### 3. Swap two patches
 

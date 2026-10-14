@@ -211,12 +211,12 @@ planned FM-1+VA features would read and write (`docs/feature-backlog.md`). Repea
 #### Reading a stored preset
 
 **Approved 2026-10-02** as the one FM-1+VA command the editor may send, gated on FM-1+VA from
-`FM-1_079` (`readsFm1VaPresets`). The layout below was first read from the modules FM-1+VA's
-Presets page loads (`fm1sound.js`, `fm1seq.js`, and `install/bank.js` under
-`https://baudgirl.com/fm1/app/835478add641fd2b/`, read 2026-10-02). **Status: Confirmed, seen
-once** (FM-1_093, 2026-10-02): the FM1 answered the request for preset 001 (ORGAN 3) with a reply
-that decodes as below, and its voice and record match the same preset in the 2026-09-29 backup byte
-for byte. The editor's codec is `src/lib/fm1-va-sysex.ts` and `src/lib/fm1-va-preset-read.ts`, and
+`FM-1_079` (the firmware profile's `presetRead`). The layout below was first read from the modules
+FM-1+VA's Presets page loads (`fm1sound.js`, `fm1seq.js`, and `install/bank.js` under
+`https://baudgirl.com/fm1/app/835478add641fd2b/`, read 2026-10-02). **Status: Confirmed, seen once**
+(FM-1_093, 2026-10-02): the FM1 answered the request for preset 001 (ORGAN 3) with a reply that
+decodes as below, and its voice and record match the same preset in the 2026-09-29 backup byte for
+byte. The editor's codec is `src/lib/fm1-va-sysex.ts` and `src/lib/fm1-va-preset-read.ts`, and
 `useFm1VaPresetReader` sends it through the selected ports. The capture is the fixture
 `capturedOrgan3Reply` in `src/test/fm1-va-captures.ts`; replies built from this layout cover the
 statuses and damage no capture shows yet.
@@ -447,15 +447,15 @@ and logs the bytes the read after SAVE finds changed, with **Copy map** for the 
 
 #### Writing a stored preset
 
-**Approved 2026-10-03**, gated on FM-1+VA from `FM-1_079` (`writesFm1VaPresets`), one preset per
-message, at least 3 s apart, each read back to confirm it (`AGENTS.md`). The message is the one a
-backup file holds for each preset, `F0 43 00 7D 04 <slot> <155-byte voice> <68-byte record> <sum>
-F7` ("Its backup file", above). **Confirmed offline:** `makeFm1VaPresetWrite` in
+**Approved 2026-10-03**, gated on FM-1+VA from `FM-1_079` (the firmware profile's `presetWrite`),
+one preset per message, at least 3 s apart, each read back to confirm it (`AGENTS.md`). The message
+is the one a backup file holds for each preset, `F0 43 00 7D 04 <slot> <155-byte voice> <68-byte
+record> <sum> F7` ("Its backup file", above). **Confirmed offline:** `makeFm1VaPresetWrite` in
 `src/lib/fm1-va-preset-message.ts` rebuilds the captured backup messages for 001 (ORGAN 3) and 097
-(a Virtual Analog preset whose record sets high bits) byte for byte, and building one from the
-read of ORGAN 3 gives the backup's message for it, so reading a preset and writing it back sends
-FM-1+VA's own bytes. `fm1VaRecordWithEffects` puts the library's effects into a record in the
-bytes "What the record holds" maps, and leaves the rest as read.
+(a Virtual Analog preset whose record sets high bits) byte for byte, and building one from the read
+of ORGAN 3 gives the backup's message for it, so reading a preset and writing it back sends
+FM-1+VA's own bytes. `fm1VaRecordWithEffects` puts the library's effects into a record in the bytes
+"What the record holds" maps, and leaves the rest as read.
 
 **Confirmed on hardware, seen once each** (FM-1_093, 2026-10-03, through the editor's preset probe
 over USB, presets 001 and 002, starting from a fresh **Save a backup**):
@@ -730,8 +730,8 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
   gap down to none, across 16 presets and a whole bank of 32, and no crackle was heard. Read
   straight after a write, the FM1 answers in about 200 ms, against about 35 ms once the 1.5 s has
   passed, so it seems to finish storing the write before it answers. From `FM-1_096` the editor
-  writes 320 ms apart with no reply wait (`fm1VaPresetWriteTiming`), about 120 ms after the
-  read-back; earlier releases keep the old timing, since none was tested.
+  writes 320 ms apart with no reply wait (the firmware profile's `presetWriteTiming`), about 120 ms
+  after the read-back; earlier releases keep the old timing, since none was tested.
 - Two new pattern writes, `7D 21` (a pattern's locks) and `7D 22` (whole steps), are writes the
   editor may not send.
 
@@ -837,9 +837,9 @@ statements matter to the editor:
 - **A single DX7 patch may now be an unsaved edit. Needs hardware test.** The manual says a
   single patch "replaces the preset you have selected at once, and nothing is written to memory
   until you press SAVE". On `FM-1_089` a single-voice dump stored the preset at once (above, "The
-  editor on FM-1+VA"), which is why only M-VAVE's firmware gets one (`sendsSingleVoiceDumps`). If
-  `FM-1_096` or later holds it as an unsaved edit, the editor could send an FM patch to FM-1+VA as
-  one dump rather than 155 parameter changes. Test D1 in
+  editor on FM-1+VA"), which is why only M-VAVE's firmware gets one (the firmware profile's
+  `singleVoiceDumps`). If `FM-1_096` or later holds it as an unsaved edit, the editor could send an
+  FM patch to FM-1+VA as one dump rather than 155 parameter changes. Test D1 in
   [`docs/fm1-va-096-tests.md`](fm1-va-096-tests.md) checks it; until then the editor keeps the
   parameter changes.
 
@@ -936,8 +936,8 @@ FM1:
 - **Key latency.** Key events outrank screen drawing, and the key scan runs every 2 ms, not 20 ms,
   registering a press on first detection. Key-to-note-on is under 2 ms; with HOME showing it
   averaged 28 ms on the FM-1 and 42 ms on the SMK-37. Notes sent over MIDI are not affected by the
-  scan, and the preset write's pacing was measured on 96 and 97 (`fm1VaPresetWriteTiming`); a
-  rerun on 101 would show whether it moves.
+  scan, and the preset write's pacing was measured on 96 and 97 (the firmware profile's
+  `presetWriteTiming`); a rerun on 101 would show whether it moves.
 - **Effects CPU.** Reverb is about 35% lighter and Distortion about 20%, with the same audio.
 - **Display.** The HOME oscilloscope redraws only when the waveform changes, at most 10 Hz, and the
   Preset knob bank labels its four knobs with text.

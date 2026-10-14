@@ -5,7 +5,6 @@ import {
   fm1VaSoundSettings,
   isFm1VaSoundController,
   makeFm1VaSoundControlMessage,
-  sendsFm1VaSoundControls,
 } from './fm1-va-sound-control'
 
 describe('fm1VaSoundSettings', () => {
@@ -66,20 +65,5 @@ describe('fm1VaChoiceValue', () => {
 
   it('refuses a choice outside the list', () => {
     expect(() => fm1VaChoiceValue(4, 4)).toThrow(RangeError)
-  })
-})
-
-describe('sendsFm1VaSoundControls', () => {
-  it('allows FM-1+VA from FM-1_086, which added the controllers', () => {
-    expect(sendsFm1VaSoundControls({ identity: 'FM-1_086', kind: 'fm1-va' })).toBe(true)
-    expect(sendsFm1VaSoundControls({ identity: 'FM-1_093', kind: 'fm1-va' })).toBe(true)
-  })
-
-  it('refuses earlier FM-1+VA releases and every other firmware', () => {
-    expect(sendsFm1VaSoundControls({ identity: 'FM-1_085', kind: 'fm1-va' })).toBe(false)
-    expect(sendsFm1VaSoundControls({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
-    expect(sendsFm1VaSoundControls({ identity: 'FM-1_908', kind: 'felucca' })).toBe(false)
-    expect(sendsFm1VaSoundControls({ kind: 'checking' })).toBe(false)
-    expect(sendsFm1VaSoundControls({ identity: 'FM-1_999X', kind: 'unidentified' })).toBe(false)
   })
 })

@@ -1,5 +1,4 @@
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
-import type { Fm1Firmware } from '@/lib/fm1-firmware'
 import { FM1_VA_BITCRUSH_DEFAULTS, FM1_VA_STOCK_EFFECT_ORDER } from '@/lib/fm1-parameters'
 
 const effectCount = 6
@@ -75,16 +74,6 @@ export function fm1VaRecordWithDistortionType(record: Uint8Array, type: number) 
   const updated = record.slice()
   updated[distortionTypeByte] = type
   return updated
-}
-
-/** FM-1_096, the FM-1+VA release that added Bitcrush. */
-const firstBitcrushRelease = 96
-
-/** Whether the FM1 runs FM-1+VA from the release that plays Bitcrush. */
-export function playsFm1VaBitcrush(firmware: Fm1Firmware) {
-  // `classifyFm1Firmware` names firmware FM-1+VA only for an `FM-1_NNN` identity.
-  if (firmware.kind !== 'fm1-va') return false
-  return Number(firmware.identity.slice('FM-1_'.length)) >= firstBitcrushRelease
 }
 
 /**

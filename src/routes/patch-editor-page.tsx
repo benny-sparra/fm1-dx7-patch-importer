@@ -32,8 +32,8 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import type { MidiController } from '@/hooks/use-midi'
 import { unpackDx7Voice, type Dx7Voice } from '@/lib/dx7'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { getFm1EffectParameters, makeFm1EditorParameters } from '@/lib/fm1-effects'
-import { hasFm1VaPresetCommands } from '@/lib/fm1-firmware'
 import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_VA_BITCRUSH_START,
@@ -59,13 +59,8 @@ import {
   fm1VaRecordWithBitcrush,
   fm1VaRecordWithDistortionType,
   fm1VaRecordWithEffectOrder,
-  playsFm1VaBitcrush,
 } from '@/lib/fm1-va-record-effects'
-import {
-  fm1VaRecordKnobChoices,
-  fm1VaRecordWithKnobChoices,
-  playsFm1VaKnobChoices,
-} from '@/lib/fm1-va-knob-choices'
+import { fm1VaRecordKnobChoices, fm1VaRecordWithKnobChoices } from '@/lib/fm1-va-knob-choices'
 import { initializeVoice } from '@/lib/init-voice'
 import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { copyOperator, type CopiedOperator } from '@/lib/operator-clipboard'
@@ -229,7 +224,8 @@ export function PatchEditorPage({
   // Only FM-1+VA's preset write carries Distortion's type. Elsewhere, a type other than Soft Clip
   // that the patch keeps is named, since the FM1 does not play it.
   const distortionType = parameters[FM1_VA_DISTORTION_TYPE_INDEX]
-  const writesDistortionType = hasFm1VaPresetCommands(midi.firmware)
+  const firmwareCapabilities = resolveFirmwareProfile(midi.firmware).capabilities
+  const writesDistortionType = firmwareCapabilities.presetWrite
   const keptDistortionType =
     !writesDistortionType && record && distortionType !== 0 && midi.firmware.kind !== 'checking'
       ? distortionType
@@ -239,7 +235,7 @@ export function PatchEditorPage({
   const effectOrder = Array.from(
     parameters.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START),
   )
-  const offersBitcrush = playsFm1VaBitcrush(midi.firmware)
+  const offersBitcrush = firmwareCapabilities.bitcrush
   // The order is FM-1+VA's too, mapped on FM-1_096, so it is offered with Bitcrush. Elsewhere, a
   // patch that keeps a changed order says so.
   const keepsEffectOrder =
@@ -250,7 +246,7 @@ export function PatchEditorPage({
   const keepsBitcrush =
     !offersBitcrush && Boolean(record) && bitcrush[0] === 1 && midi.firmware.kind !== 'checking'
   // FM-1_096 added knob choices, so they are offered only from it, and only a record holds them.
-  const offersKnobChoices = playsFm1VaKnobChoices(midi.firmware)
+  const offersKnobChoices = firmwareCapabilities.knobChoices
   const knobChoices = Array.from(
     parameters.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT),
   )

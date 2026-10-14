@@ -36,7 +36,6 @@ import {
   makeFm1VaPresetReadRequest,
   readEveryFm1VaPreset,
   readFm1VaPreset,
-  readsFm1VaPresets,
   type Fm1VaLink,
   type Fm1VaStoredPreset,
 } from './fm1-va-preset-read'
@@ -498,24 +497,6 @@ describe('readFm1VaPreset', () => {
       'cancelled',
     )
     expect(link.send).not.toHaveBeenCalled()
-  })
-})
-
-describe('readsFm1VaPresets', () => {
-  it('reads presets on FM-1+VA from FM-1_079, the release that added the read', () => {
-    expect(readsFm1VaPresets({ identity: 'FM-1_079', kind: 'fm1-va' })).toBe(true)
-    expect(readsFm1VaPresets({ identity: 'FM-1_093', kind: 'fm1-va' })).toBe(true)
-  })
-
-  it('does not read presets on an FM-1+VA release before FM-1_079', () => {
-    expect(readsFm1VaPresets({ identity: 'FM-1_078', kind: 'fm1-va' })).toBe(false)
-  })
-
-  it('does not read presets on any other firmware, or before the firmware is known', () => {
-    expect(readsFm1VaPresets({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
-    expect(readsFm1VaPresets({ identity: 'FM-1_904', kind: 'felucca' })).toBe(false)
-    expect(readsFm1VaPresets({ kind: 'unidentified' })).toBe(false)
-    expect(readsFm1VaPresets({ kind: 'checking' })).toBe(false)
   })
 })
 

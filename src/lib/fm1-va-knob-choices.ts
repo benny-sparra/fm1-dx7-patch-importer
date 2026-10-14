@@ -1,7 +1,5 @@
-import type { Fm1Firmware } from '@/lib/fm1-firmware'
 import type { Fm1VaEngine } from '@/lib/fm1-va-engine'
 import { FM1_VA_FM_KNOB_CHOICES } from '@/lib/fm1-parameters'
-import { playsFm1VaBitcrush } from '@/lib/fm1-va-record-effects'
 
 /**
  * What KNOB1–4 play on FM-1+VA's Preset knob bank, chosen per preset from eight its engine offers,
@@ -53,11 +51,6 @@ const knobBytes = [53, 52] as const
 const setMark = 0x80
 const keptBit = 0x40
 const fieldMask = 0x07
-
-/** FM-1_096 added knob choices with Bitcrush, so the same releases play them. */
-export function playsFm1VaKnobChoices(firmware: Fm1Firmware) {
-  return playsFm1VaBitcrush(firmware)
-}
 
 /** The four knob choices a record holds, Knob 1 first, for a preset on `engine`. */
 export function fm1VaRecordKnobChoices(record: Uint8Array, engine: Fm1VaEngine): number[] {

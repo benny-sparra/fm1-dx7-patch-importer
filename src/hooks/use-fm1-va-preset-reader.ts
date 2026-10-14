@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef } from 'react'
 import type { MessageEvent } from 'webmidi'
 
 import type { MidiController } from '@/hooks/use-midi'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import {
   Fm1VaPresetReadError,
   fm1VaPresetNumber,
   readFm1VaPreset,
-  readsFm1VaPresets,
   type Fm1VaLink,
 } from '@/lib/fm1-va-preset-read'
 import { makeLogEntry } from '@/lib/midi'
@@ -36,7 +36,9 @@ export function useFm1VaPresetReader(midi: PresetReaderMidi) {
   const { firmware, logStore, sysexAvailable } = midi
   const input = midi.inputs.find((device) => device.id === midi.selectedInputId)?.port
   const output = midi.outputs.find((device) => device.id === midi.selectedOutputId)?.port
-  const canRead = Boolean(input && output && sysexAvailable && readsFm1VaPresets(firmware))
+  const canRead = Boolean(
+    input && output && sysexAvailable && resolveFirmwareProfile(firmware).capabilities.presetRead,
+  )
   const reads = useRef(new Set<AbortController>())
 
   useEffect(() => {
