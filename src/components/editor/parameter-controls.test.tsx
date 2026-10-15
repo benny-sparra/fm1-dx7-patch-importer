@@ -43,6 +43,31 @@ describe('editor parameter controls', () => {
     expect(onOptionChange).toHaveBeenLastCalledWith(2)
   })
 
+  it('names a field by its label when the label also holds a help button', () => {
+    render(
+      <>
+        <ParameterControl
+          helpText="How the level falls away left of the break point."
+          label="Left Curve"
+          max={3}
+          onChange={vi.fn()}
+          options={['-LIN', '-EXP', '+EXP', '+LIN']}
+          value={0}
+        />
+        <ParameterControl
+          helpText="How loud the operator is."
+          label="Level"
+          max={99}
+          onChange={vi.fn()}
+          value={20}
+        />
+      </>,
+    )
+
+    expect(screen.getByRole('combobox', { name: 'Left Curve' })).toBeTruthy()
+    expect(screen.getByRole('spinbutton', { name: 'Level' })).toBeTruthy()
+  })
+
   it('names an on/off parameter’s switch by the parameter alone, whether it is on or off', () => {
     const { rerender } = render(
       <SwitchParameterControl label="Sync" onChange={vi.fn()} value={0} />,

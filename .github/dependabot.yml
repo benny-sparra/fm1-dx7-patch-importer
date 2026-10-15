@@ -8,6 +8,10 @@ updates:
       time: '06:00'
       timezone: Europe/London
     open-pull-requests-limit: 10
+    # A hijacked release is usually caught and pulled within days, so new versions wait a week.
+    # Security updates are not delayed.
+    cooldown:
+      default-days: 7
     groups:
       production-minor-and-patch:
         dependency-type: production

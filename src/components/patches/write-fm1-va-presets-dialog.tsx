@@ -250,6 +250,10 @@ export function WriteFm1VaPresetsDialog({
         ? t('fm1VaSend.favouritesShort', { count: favouriteCount })
         : t('favourites.leftOutNote', { count: favouriteCount - dx7BankVoiceCount })
 
+  // Unmounting mid-write, as browser Forward into the editor does, stops the presets still waiting
+  // their turn; the one already sent finishes, as Stop leaves it.
+  useEffect(() => () => stopWriting.current?.abort(), [])
+
   const write = async () => {
     const stop = new AbortController()
     stopWriting.current = stop

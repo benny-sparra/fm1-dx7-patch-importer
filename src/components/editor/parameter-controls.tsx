@@ -592,8 +592,10 @@ export function ParameterControl({
         </span>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
       </span>
+      {/* The help button is the label's first control, so the field takes the label as its name. */}
       {options ? (
         <RackSelect
+          aria-label={label}
           className={`${fieldSurfaceClass} text-xs text-[var(--crt-ink)] normal-case`}
           onChange={(event) => onChange(Number(event.target.value))}
           value={value}
@@ -606,6 +608,7 @@ export function ParameterControl({
         </RackSelect>
       ) : (
         <input
+          aria-label={label}
           className={cn(fieldFrameClass, 'font-vt323 text-base text-[var(--crt-led)]')}
           max={max}
           min={min}

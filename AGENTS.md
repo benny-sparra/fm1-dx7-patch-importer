@@ -592,7 +592,10 @@ open everything an earlier release could have saved.
   such as the button's working label, and keep only an error the user must act on on the page, in
   an `ErrorNotice`. Never show the same message in both places.
 - Interactive controls need stable accessible names. Preserve ARIA relationships and avoid nesting
-  buttons, links, summaries, inputs, or other interactive elements.
+  buttons, links, summaries, inputs, or other interactive elements. A `<label>` names only its
+  first labelable descendant, so a field whose label also holds a help button takes the label as
+  its `aria-label`, as `ParameterControl` does. A generic `div` or `span` cannot carry an
+  `aria-label`; give it a role, or hide it and say the same in `sr-only` text.
 - If a feature body becomes lazy, keep its trigger eager. One activation must eventually open the
   requested feature; repeated activation must not duplicate imports or dialogs.
 - Use focused `Suspense` or loading states that do not replace the whole librarian page.
@@ -761,12 +764,13 @@ open everything an earlier release could have saved.
   for bare keys, and an open menu for Escape. Modified shortcuts still run while typing, and while
   only a dialog marked `data-plain-keys-only` (the floating piano keyboard) is open. A widget that
   claims plain keys must ignore Ctrl, Command, and Alt presses and close on Escape.
-- Closing a menu with Escape claims the key, so no view shortcut also runs, and moves focus back to
-  the menu's toggle when focus was inside it.
+- Closing a menu or popover with Escape claims the key with `preventDefault`, so no view shortcut
+  also runs, and moves focus back to its toggle when focus was inside it.
 - A menu inside a container that clips its overflow, such as a slot's ⋮ menu in the patch grid or
   the open operator's ⋮ menu in the rack, opens in a portal. Build it with `PortalMenu` from
   `src/components/ui/portal-menu.tsx` rather than another copy. It is not a `<details>` menu, so it
-  claims Escape with `preventDefault`.
+  claims Escape with `preventDefault`, and Tab closes it onto its toggle, since the portal puts it
+  at the end of the page.
 - The patch banks panel does not clip its overflow, because each bank's ⋮ menu in the rail hangs
   out beside its tab and, with enough banks, below the panel. Clipping it there hid the last bank's
   menu items (issue 202); `e2e/librarian.e2e.ts` checks the last item can be reached.
@@ -888,6 +892,9 @@ npm run bundle:check
 npm run test:cls
 ```
 
+For a security, React, accessibility, or web vitals sweep or audit, follow
+`docs/quality-sweep.md`, and record the run in a dated `docs/quality-sweep-<date>.md`.
+
 Run `npm run build` before `npm run bundle:check`. Use `npm run test:cls` for changes affecting the
 initial render, fonts, images, loading states, or layout. The CLS check starts a local server and may
 need permission in a restricted environment. It drives the production page directly and is not part
@@ -907,7 +914,11 @@ job, whose failure warns and never fails the workflow or holds back a deploy. Se
 failing touch journey pass, keep it passing; it may move into the blocking journeys once the touch
 work is done.
 
-Dependency audits require registry access and are separate from the deterministic suite:
+### Checking JavaScript packages
+
+Every change to `package.json` or `package-lock.json`, Dependabot's included, runs both dependency
+audits before handoff and reports what they found. They need registry access, so they sit outside
+the deterministic suite and run in CI's audit job:
 
 ```bash
 npm run deps:audit:prod
@@ -915,7 +926,31 @@ npm run deps:audit
 ```
 
 When dependencies change, run `npm run lockfile:refresh` with the pinned npm release, then run
-`npm run check:install`. Do not use `npm audit fix --force`.
+`npm run check:install`, then `npm ci`: the audits read the lockfile, but tests and builds run
+against `node_modules`, which an earlier install leaves on older versions. Never use
+`npm audit fix --force`, which jumps major versions.
+
+Before adding a package, or upgrading one across a major version, vet it and say in the handoff what
+you found:
+
+- Reach first for the platform, an existing dependency, or a few lines of the app's own code. A
+  production dependency is measured with `npm run bundle:check` like any other entry change.
+- `npm view <package>` shows a source repository, a licence compatible with MIT, and maintainers
+  who publish it. Choose a release at least two weeks old, since a hijacked release is usually
+  caught and pulled within days, and spell-check the name against that repository's README to rule
+  out a typosquat.
+- `npm view <package>@<version> scripts` lists no `preinstall`, `install`, or `postinstall`.
+  `allowScripts` in `package.json` names the only packages whose install scripts are approved;
+  adding one, or running `npm approve-scripts`, needs the user's approval.
+- Every `resolved` URL in `package-lock.json` is on `https://registry.npmjs.org/` with an
+  `integrity` hash, never a git, tarball, or file source.
+
+A moderate or low advisory with a patched release that its parent's range accepts is fixed in the
+same change by moving only that package in the lockfile, then `npm ci`:
+
+```bash
+npx --yes npm@11.16.0 update <package> --package-lock-only --ignore-scripts --no-audit --no-fund
+```
 
 `npm run deps:audit` runs `scripts/check-dependency-audit.mjs`, which fails on any high or critical
 advisory missing from its `auditAllowlist`. `npm run deps:audit:prod` is plain `npm audit` and is

@@ -167,10 +167,13 @@ export function readFavourites(
   if (value === undefined) return []
   if (!Array.isArray(value)) return null
   const favourites: Favourite[] = []
+  // A set keeps a backup with a very long list from taking quadratic time to read.
+  const seenIds = new Set<string>()
   for (const entry of value) {
     const voice = isRecord(entry) ? readVoice(entry.voice) : null
     if (!isRecord(entry) || !voice || typeof entry.id !== 'string' || !entry.id) return null
-    if (favourites.some(({ id }) => id === entry.id)) continue
+    if (seenIds.has(entry.id)) continue
+    seenIds.add(entry.id)
     const record = readFm1VaRecord(entry.record)
     favourites.push({
       effects: normalizeFm1Effects(entry.effects),

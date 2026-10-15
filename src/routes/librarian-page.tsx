@@ -18,6 +18,7 @@ import {
   type ComponentProps,
   lazy,
   Suspense,
+  useDeferredValue,
   useEffect,
   useId,
   useMemo,
@@ -303,7 +304,15 @@ export function LibrarianPage({
   const banks = library.workspaceBanks
   const nextBank = getNextWorkspaceBank(banks)
   const ownView = useLibrarianView()
-  const { bank: destinationBank, search, setBank: setDestinationBank, setSearch } = view ?? ownView
+  const {
+    bank: destinationBank,
+    search: typedSearch,
+    setBank: setDestinationBank,
+    setSearch,
+  } = view ?? ownView
+  // A search can show 320 cards and look through every saved bank and the catalog, so the results
+  // follow the box a render behind and a keystroke is never held up by them.
+  const search = useDeferredValue(typedSearch)
   const [importError, setImportError] = useState('')
   // Explains a dialog whose chunk did not arrive, such as after a newer deployment replaced it.
   const [dialogLoadError, setDialogLoadError] = useState('')
@@ -838,7 +847,7 @@ export function LibrarianPage({
     { ...librarianShortcuts.find, enabled: hasLoadedBank, onTrigger: focusSearch },
     {
       ...librarianShortcuts.clearSearch,
-      enabled: search !== '',
+      enabled: typedSearch !== '',
       onTrigger: () => setSearch(''),
     },
   ])
@@ -1271,7 +1280,7 @@ export function LibrarianPage({
           ) : undefined
         }
         resultsHeading={isSearching ? t('banks.everywhere.workspace') : undefined}
-        search={search}
+        search={typedSearch}
         searchDisabled={!hasLoadedBank}
         searchRef={searchRef}
         setSearch={setSearch}

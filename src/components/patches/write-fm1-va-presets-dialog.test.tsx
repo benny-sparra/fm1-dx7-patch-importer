@@ -302,6 +302,18 @@ describe('WriteFm1VaPresetsDialog', () => {
     expect(screen.getByText('Stopped after 1 of 2 patches. The rest are unchanged.')).toBeTruthy()
   })
 
+  it('finishes the patch being written but writes no more once it unmounts', async () => {
+    const fm1 = fakeFm1()
+    const { user } = renderDialog(fm1.midi)
+    await user.click(await screen.findByRole('button', { name: 'Write 2 patches…' }))
+    await user.click(screen.getByRole('button', { name: 'Write 2 patches' }))
+
+    cleanup()
+    await finishWriting(2)
+
+    expect(fm1.writtenSlots()).toEqual([0])
+  })
+
   it('stops at a preset that does not read back as written, and reads the FM1 again', async () => {
     const fm1 = fakeFm1({ garbledSlots: [0] })
     const { dialog, user } = renderDialog(fm1.midi)

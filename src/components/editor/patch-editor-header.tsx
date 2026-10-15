@@ -179,11 +179,13 @@ export function PatchEditorHeader({
               </span>
             </label>
             {isDirty ? (
-              <span
-                aria-label={t('editor.unsaved')}
-                className="size-2 rounded-full bg-[var(--crt-led)]"
-                title={t('editor.unsaved')}
-              />
+              <span title={t('editor.unsaved')}>
+                <span
+                  aria-hidden="true"
+                  className="block size-2 rounded-full bg-[var(--crt-led)]"
+                />
+                <span className="sr-only">{t('editor.unsaved')}</span>
+              </span>
             ) : null}
           </div>
         </div>

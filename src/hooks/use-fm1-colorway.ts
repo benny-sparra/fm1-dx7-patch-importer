@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 
 import { normalizeFm1Colorway, type Fm1Colorway } from '@/lib/fm1-colorway'
 import { applyFm1Favicon } from '@/lib/fm1-favicon'
@@ -16,7 +16,8 @@ function getStoredColorway(): Fm1Colorway {
 export function useFm1Colorway() {
   const [colorway, setColorway] = useState<Fm1Colorway>(getStoredColorway)
 
-  useEffect(() => {
+  // Before paint, so a stored finish never shows a frame of the default one.
+  useLayoutEffect(() => {
     document.documentElement.dataset.fm1Colorway = colorway
     applyFm1Favicon(colorway)
 
