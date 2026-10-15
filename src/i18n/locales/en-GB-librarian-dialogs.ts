@@ -6,9 +6,32 @@
  */
 export default {
   banks: {
+    addBankNamedTitle: 'Add bank: “{{name}}”',
+    addBankFileNoteFormat: 'A standard 32-voice DX7 bank in a .syx file',
+    addBankFileNoteSeveral:
+      'If the file joins several banks, you will choose which one to use next',
+    addBankFileNotePrivacy: 'The file is read in your browser and goes nowhere else',
+    addBankSourceHelp: 'Where should the new bank’s patches come from?',
+    addBankCatalogHelp: 'Choose a collection, then the bank to start from.',
+    addBankFileHelp: 'Choose a standard 32-voice DX7 SysEx bank file.',
+    addBankFileBankHelp: 'Choose which of the banks in the file to use.',
+    catalogSourceHint:
+      'Yamaha factory banks, the FM1’s own presets, and collections by other authors.',
+    uploadSourceHint: 'A standard 32-voice DX7 SysEx bank from your computer.',
+    collections: 'Collections',
+    banksInCollection: 'Banks in {{collection}}',
+    collectionBanks: '{{count, number}} bank',
+    collectionBanks_other: '{{count, number}} banks',
+    wizardBack: 'Back',
+    wizardNext: 'Next',
     swapAction: 'Swap with {{slot}}',
     swapHint: 'To keep “{{name}}”, swap instead: it moves to {{slot}}.',
     swapFailed: 'The patches could not be swapped.',
+  },
+  toasts: {
+    bankCreatedFromCatalog: 'Created “{{bank}}” from “{{source}}” in {{collection}}.',
+    bankCreatedFromFile: 'Created “{{bank}}” from the file “{{file}}”.',
+    bankCreatedFromFileBank: 'Created “{{bank}}” from bank {{number}} of the file “{{file}}”.',
   },
   replacePatch: {
     replacing: 'Replacing…',

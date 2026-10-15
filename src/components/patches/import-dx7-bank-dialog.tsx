@@ -208,7 +208,7 @@ export function ImportDx7BankDialog({
                 {t('overwriteImport.previewTitle')}
               </h3>
               <p className="text-xs text-[var(--crt-ink-3)]">{t('overwriteImport.previewHelp')}</p>
-              <ul className="grid grid-cols-2 gap-1 sm:grid-cols-4">
+              <ul className="dither-well grid grid-cols-2 gap-1 border border-[var(--crt-line-dk)] p-2 sm:grid-cols-4">
                 {voices.map((voice, index) => (
                   <li key={index}>
                     <PreviewPatchButton

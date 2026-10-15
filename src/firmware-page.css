@@ -27,6 +27,10 @@
     align-self: start;
     margin: 0;
     padding: 0.25rem;
+  }
+
+  /* A missing photo's placeholder takes its background from .dither-well instead. */
+  .firmware-photo:not(.firmware-photo-missing) {
     background: var(--crt-bg-2);
   }
 
@@ -50,18 +54,20 @@
   .firmware-photo-missing {
     place-items: center;
     aspect-ratio: 923 / 554;
-    background-color: var(--crt-bg-well);
-    background-image: repeating-linear-gradient(
-      90deg,
-      var(--crt-hatch-a) 0 2px,
-      var(--crt-hatch-b) 2px 4px
-    );
+    border: 1px solid var(--crt-line-dk);
     color: var(--crt-acc-mid);
     font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
     font-size: 1.5rem;
     font-weight: 900;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  /* The name sits on a solid panel, so the dither never runs behind the letters. */
+  .firmware-photo-missing > span {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--crt-line);
+    background-color: var(--crt-bg-panel3);
   }
 
   .firmware-body {
