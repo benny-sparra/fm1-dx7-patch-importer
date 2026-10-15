@@ -32,7 +32,7 @@ export function FileBankPicker({ banks, chosen, disabled = false, onChoose }: Fi
           <span>{t('bankFile.damagedBanks', { count: damagedCount })}</span>
         ) : null}
       </p>
-      <ul className="grid max-h-60 gap-1 overflow-y-auto">
+      <ul className="dither-well relative grid max-h-60 gap-1 overflow-y-auto border border-[var(--crt-line-dk)] p-2">
         {banks.map((voices, index) => {
           const bank = t('bankFile.bank', { number: numberFormat.format(index + 1) })
           const contents =
@@ -48,7 +48,7 @@ export function FileBankPicker({ banks, chosen, disabled = false, onChoose }: Fi
                 className={cn(
                   'flex min-h-9 items-center gap-2 border px-2 py-1 text-sm',
                   voices === null
-                    ? 'cursor-not-allowed border-dashed border-[var(--crt-line)] text-[var(--crt-ink-3)]'
+                    ? 'cursor-not-allowed border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] text-[var(--crt-ink-3)]'
                     : index === chosen
                       ? 'cursor-pointer border-[var(--crt-acc)] bg-[var(--crt-sel-bg)]'
                       : 'cursor-pointer border-[var(--crt-line)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)]',

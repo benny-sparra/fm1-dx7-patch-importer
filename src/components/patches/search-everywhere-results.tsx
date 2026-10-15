@@ -310,8 +310,8 @@ export function SearchEverywhereResults({
         title={t('banks.everywhere.catalog')}
       />
       {foundNothing ? (
-        <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
-          <div className="max-w-md">
+        <div className="dither-well grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] p-6 text-center">
+          <div className="max-w-md border border-[var(--crt-line)] bg-[var(--crt-bg-panel3)] p-6">
             <FileMusic aria-hidden="true" className="mx-auto size-10 text-[var(--crt-acc-dim)]" />
             <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
               {t('banks.noMatches')}
