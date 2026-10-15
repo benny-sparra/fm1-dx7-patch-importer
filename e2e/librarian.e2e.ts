@@ -750,8 +750,8 @@ test('opens the last bank menu in full when the rail is longer than the grid', a
     const dialog = page.getByRole('dialog', { name: 'Add bank' })
     await dialog.getByRole('button', { name: 'Next' }).click()
     await dialog.getByRole('button', { name: 'Next' }).click()
-    await dialog.getByRole('radio', { exact: true, name: 'Factory' }).check({ force: true })
-    await dialog.getByRole('radio', { exact: true, name: source }).check({ force: true })
+    await dialog.getByRole('radio', { exact: true, name: 'Factory' }).locator('..').click()
+    await dialog.getByRole('radio', { exact: true, name: source }).locator('..').click()
     await dialog.getByRole('button', { name: 'Create bank' }).click()
     await expect(page.getByRole('button', { name: new RegExp(` — ${bank}$`) })).toBeVisible()
   }
