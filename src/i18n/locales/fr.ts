@@ -840,26 +840,26 @@ export default {
   help: {
     open: 'Comment utiliser l’éditeur et le bibliothécaire FM1',
     title: 'Bienvenue dans l’éditeur et le bibliothécaire FM1',
-    intro:
-      'Gérez votre bibliothèque, façonnez les voix dans l’éditeur, puis transférez-les sur votre M-VAVE FM1, directement depuis le navigateur.',
+    guideTitle: 'Guide',
     close: 'Fermer l’aide',
-    truthTitle: 'Les banques de ce navigateur constituent la référence.',
-    truthBody:
-      'Le FM1 accepte les voix et les banques, mais ne peut pas renvoyer ses banques mémorisées. Importez ou restaurez les sons ici, modifiez-les, puis transférez-les vers le FM1.',
-    firmwareTitle: 'Compatible Baud Girl (FM-1+VA)',
-    firmwareBody: 'Fonctionne avec le firmware de M-VAVE comme avec celui de Baud Girl.',
+    lead: 'Modifiez et organisez les sons de votre M-VAVE FM1, directement dans le navigateur.',
+    quickSteps: {
+      connect: 'Branchez le FM1 et activez MIDI en ligne.',
+      play: 'Cliquez sur un son pour l’écouter, double-cliquez pour le modifier.',
+      send: '« Envoyer au FM1 » transfère une banque entière sur le synthé.',
+    },
+    savedInBrowser:
+      'Vos banques sont enregistrées dans ce navigateur. Sauvegardez-les depuis Actions de la bibliothèque.',
+    unsupportedTitle: 'Ce navigateur ne peut pas se connecter au FM1.',
+    unsupportedBody:
+      'Ouvrez cette page dans Chrome, Edge ou Firefox sur un ordinateur, ou dans Chrome sur Android.',
+    stillWorks: 'Vous pouvez quand même parcourir et modifier les sons ici.',
+    fullGuide: 'Guide complet',
     start: 'Commencer',
+    done: 'Fermer',
     stepsTitle: 'Premiers pas',
     sections: 'Sections du guide',
     shortcutsTitle: 'Raccourcis clavier',
-    browsers: {
-      title: 'Navigateurs compatibles',
-      works: 'Fonctionne',
-      unsupported: 'Non pris en charge',
-      yours: 'Votre navigateur',
-      desktop: 'Ordinateur',
-      desktopAndAndroid: 'Ordinateur et Android',
-    },
     shortcuts: {
       banks: 'Banques de sons',
       editor: 'Éditeur de voix',
@@ -868,16 +868,24 @@ export default {
       openSlot: 'Ouvrir l’emplacement allumé',
     },
     steps: {
-      libraryTitle: 'Créez votre bibliothèque',
-      libraryBody: 'Partez des banques d’usine du FM1 ou importez les vôtres.',
-      editTitle: 'Modifiez et organisez',
-      editBody: 'Ouvrez un son pour le modifier, puis enregistrez-le dans votre bibliothèque.',
       connectTitle: 'Connectez votre FM1',
-      connectBody: 'Branchez le FM1 et activez MIDI en ligne.',
-      transferTitle: 'Transférez les sons',
-      transferBody: 'Cliquez sur un son pour l’écouter, ou envoyez une banque complète au FM1.',
+      connectBody:
+        'Branchez le FM1 et activez MIDI en ligne. La première fois, le navigateur demande l’autorisation d’utiliser MIDI.',
+      playTitle: 'Écoutez et modifiez',
+      playBody:
+        'Cliquez sur un son pour l’écouter sur le FM1. Double-cliquez dessus pour ouvrir l’éditeur de voix, puis enregistrez pour garder vos modifications.',
+      sendTitle: 'Envoyer au FM1',
+      sendBody:
+        'Envoyez une banque entière depuis son en-tête, puis choisissez où elle arrive sur le FM1.',
+      backupTitle: 'Gardez une sauvegarde',
+      backupBody:
+        'Le FM1 ne peut pas renvoyer ses banques : celles d’ici sont donc la seule copie. Téléchargez une sauvegarde depuis Actions de la bibliothèque.',
     },
+    firmwareTitle: 'Baud Girl (FM-1+VA)',
+    firmwareBody:
+      'Lisez les presets du FM1 et réécrivez-y des sons depuis Actions de la bibliothèque. Les sons Virtual Analog s’ouvrent dans leur propre éditeur.',
   },
+
   colorway: {
     legend: 'Couleur du FM1',
     option: 'Finition FM1 {{colour}}',

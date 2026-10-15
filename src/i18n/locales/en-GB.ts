@@ -391,45 +391,8 @@ export default {
   },
   help: {
     open: 'How to use the FM1 editor and librarian',
-    title: 'Welcome to the FM1 editor & librarian',
-    intro:
-      'Manage your patch library, shape patches in the voice editor, and transfer them to your M-VAVE FM1, all from the browser.',
-    close: 'Close help',
-    truthTitle: 'Banks in this browser are the source of truth',
-    truthBody:
-      'The FM1 accepts patches and banks but cannot send its stored banks back. Import or restore patches here, edit them, then transfer them to the FM1.',
-    firmwareTitle: 'Baud Girl (FM-1+VA) supported',
-    firmwareBody: 'Works with both M-VAVE and Baud Girl firmware.',
-    start: 'Start editing',
-    stepsTitle: 'Getting started',
-    sections: 'Guide sections',
-    shortcutsTitle: 'Keyboard shortcuts',
-    browsers: {
-      title: 'Browser support',
-      works: 'Works',
-      unsupported: 'Not supported',
-      yours: 'Your browser',
-      desktop: 'Desktop',
-      desktopAndAndroid: 'Desktop and Android',
-    },
-    shortcuts: {
-      banks: 'Patch banks',
-      editor: 'Voice editor',
-      search: 'Jump to search',
-      clearSearch: 'Clear the search',
-      openSlot: 'Open the lit slot',
-    },
-    steps: {
-      libraryTitle: 'Build your library',
-      libraryBody: 'Start from the FM1’s factory banks, or import your own.',
-      editTitle: 'Edit and organise',
-      editBody: 'Open a patch to edit it, then save it to your library.',
-      connectTitle: 'Connect your FM1',
-      connectBody: 'Plug in the FM1 and switch MIDI online on.',
-      transferTitle: 'Transfer the patches',
-      transferBody: 'Click a patch to hear it, or send a whole bank to the FM1.',
-    },
   },
+
   colorway: {
     legend: 'FM1 colour finish',
     option: '{{colour}} FM1 finish',

@@ -82,7 +82,7 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 
 ## Using the editor & librarian
 
-1. Open the app in a supported browser.
+1. Open the app in a supported browser. A first visit opens a short welcome; the **?** button in the header opens the full guide at any time.
 2. Switch **MIDI online** on and grant MIDI/SysEx permission. Firefox asks you to install a small site permission add-on instead; accept it.
 3. Open **Settings** to select the FM1 as the MIDI output and the input monitor and, if needed, the note/program and effects channels. With the input selected, the app asks the FM1 which firmware it runs and shows the answer under **FM1 firmware**.
 4. Select Bank 1, 2, 3, or 4. On first use these contain FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with. Use **Add new bank…** to name and describe an additional bank while populating it from the bundled DX7 catalog, which holds banks from the [Yamaha Black Boxes collection](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) mene311's themed FM-1 banks, and Aquanode's Dexed presets, or your own standard 32-voice DX7 SysEx file.
