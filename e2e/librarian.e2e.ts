@@ -739,11 +739,19 @@ test('opens a slot menu on the last row above the grid without playing the slot'
 test('opens the last bank menu in full when the rail is longer than the grid', async ({ page }) => {
   await page.setViewportSize({ height: 900, width: 1440 })
   await openLibrarian(page)
-  for (const [index, source] of ['rom1a', 'rom1b', 'rom2a', 'rom2b'].entries()) {
+  for (const [index, source] of [
+    'ROM1A Master',
+    'ROM1B Keyboard & Plucked',
+    'ROM2A Orchestral & Percussive',
+    'ROM2B Synth, Complex & Effects',
+  ].entries()) {
     const bank = `Bank ${index + 5}`
     await page.getByRole('button', { name: 'Add new bank…' }).click()
-    const dialog = page.getByRole('dialog', { name: `Add bank ${String.fromCharCode(69 + index)}` })
-    await dialog.getByRole('combobox').selectOption(source)
+    const dialog = page.getByRole('dialog', { name: 'Add bank' })
+    await dialog.getByRole('button', { name: 'Next' }).click()
+    await dialog.getByRole('button', { name: 'Next' }).click()
+    await dialog.getByRole('radio', { name: 'Factory' }).check({ force: true })
+    await dialog.getByRole('radio', { name: source }).check({ force: true })
     await dialog.getByRole('button', { name: 'Create bank' }).click()
     await expect(page.getByRole('button', { name: new RegExp(` — ${bank}$`) })).toBeVisible()
   }

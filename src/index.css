@@ -349,6 +349,19 @@
   }
 
   /*
+   * A well filled with a dithered 50% checker, two pixels on and two off, as 1980s graphics shaded
+   * a flat colour. Cells laid on it are solid, so the dots show between them.
+   */
+  .dither-well {
+    background-color: var(--crt-bg-well);
+    background-image: repeating-conic-gradient(
+      color-mix(in srgb, var(--crt-sel-bg) 75%, transparent) 0% 25%,
+      transparent 0% 50%
+    );
+    background-size: 4px 4px;
+  }
+
+  /*
    * A text field's or dropdown's edge. It is all that marks where the field is, so it takes the
    * accent's dim tone, 3:1 or better on every surface a field sits on (1.4.11, checked in
    * colour-contrast.test.ts), where the sunken well's lower and right edges fall short.

@@ -534,6 +534,19 @@ open everything an earlier release could have saved.
 
 - Prefer semantic HTML and native dialog behavior. Preserve Escape-to-close, modal semantics, focus
   placement/restoration, and keyboard activation.
+- **Add new bank…** is a wizard with one decision on each screen and **Back** and **Next** pinned in
+  the footer, **Back** at the left and hidden on the first screen, and **Create bank** in place of
+  **Next** on the last. The title and description come first, so the bank is named before its
+  patches are chosen and the name is never filled in from the source; the source comes next
+  (built-in banks or a file), then a collection and a bank in it, or the file and, only for a
+  file that joins several banks, which bank to use. Every choice is a native radio drawn as a
+  bevelled cell by `BevelRadio` (`src/components/ui/bevel-radio.tsx`), which looks like the
+  librarian's bank tabs and patch cells and keeps arrow-key movement; use it, not a new surface
+  style, for another list of choices. The built-in screen has a bank selected as soon as a
+  collection is open, and remembers each collection's choice until the dialog closes. A collection
+  shows how many banks it holds in a lozenge after its name, never a number in the badge, since
+  the numbers on the banks are only their places in the list. Moving to a screen moves focus to
+  its first control, and Enter in a field moves on.
 - A dialog that opens without a click, as the help guide does on a first visit, checks that it is
   connected, not already open, and has `showModal` before calling it. Crawlers and extensions can
   take the page out of the document, where `showModal()` throws, and Safari before 15.4 and some

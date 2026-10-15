@@ -71,7 +71,10 @@ test.describe('with an FM-1 connected', () => {
   }) => {
     await page.getByRole('button', { name: 'Add new bank…' }).locator('visible=true').click()
     const addBank = page.getByRole('dialog', { name: /^Add bank/ })
-    await addBank.getByRole('combobox', { name: 'DX7 catalog bank' }).selectOption('rom1a')
+    await addBank.getByRole('button', { name: 'Next' }).click()
+    await addBank.getByRole('button', { name: 'Next' }).click()
+    await addBank.getByRole('radio', { name: 'Factory' }).check({ force: true })
+    await addBank.getByRole('radio', { name: 'ROM1A Master' }).check({ force: true })
     await addBank.getByRole('button', { name: 'Create bank' }).click()
     await expect(addBank).toBeHidden()
     const slot = slotButtons(page).first()
@@ -346,7 +349,10 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
   }) => {
     await page.getByRole('button', { name: 'Add new bank…' }).locator('visible=true').click()
     const addBank = page.getByRole('dialog', { name: /^Add bank/ })
-    await addBank.getByRole('combobox', { name: 'DX7 catalog bank' }).selectOption('rom1a')
+    await addBank.getByRole('button', { name: 'Next' }).click()
+    await addBank.getByRole('button', { name: 'Next' }).click()
+    await addBank.getByRole('radio', { name: 'Factory' }).check({ force: true })
+    await addBank.getByRole('radio', { name: 'ROM1A Master' }).check({ force: true })
     await addBank.getByRole('button', { name: 'Create bank' }).click()
     await expect(addBank).toBeHidden()
 
