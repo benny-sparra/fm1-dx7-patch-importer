@@ -79,6 +79,7 @@ function createButton() {
 describe('AddWorkspaceBankDialog catalog groups', () => {
   it('lists the groups alphabetically in English and keeps the product and author names', () => {
     expect(renderCatalogGroups()).toEqual([
+      'Aquanode',
       'Factory',
       'FM-1 factory presets',
       'Grey Matter E!',
@@ -91,6 +92,7 @@ describe('AddWorkspaceBankDialog catalog groups', () => {
     await setLocale('fr')
 
     expect(renderCatalogGroups()).toEqual([
+      'Aquanode',
       'Grey Matter E!',
       'mene311',
       french.banks.catalogFm1Factory,

@@ -5,6 +5,7 @@ export const dx7BankCatalogCategories = [
   'VRC Voice ROMs',
   'Grey Matter E!',
   'mene311',
+  'Aquanode',
 ] as const
 
 type Dx7BankCatalogEntry = {
@@ -125,6 +126,29 @@ const mene311Banks: Dx7BankCatalogEntry[] = [
   name,
 }))
 
+// Dexed presets by Aquanode, released under CC0: https://github.com/aquanodemusic/aquanode-soundscapes
+// (commit 1e1cd442edf267b453de75875357af6680c5bdf3, `dexed/Dexed Presets`). The files are unchanged,
+// only renamed. The repository's "Aquanode Presets 3" is left out: it holds bytes above 7-bit,
+// which the bank importer rejects.
+const aquanodeBanks: Dx7BankCatalogEntry[] = [
+  ['aquazone', 'Aquazone'],
+  ['presets-1', 'Presets 1'],
+  ['presets-2', 'Presets 2'],
+  ['presets-4', 'Presets 4'],
+  ['infinite-cycles-1', 'Infinite Cycles Remakes 1'],
+  ['infinite-cycles-2', 'Infinite Cycles Remakes 2'],
+  ['infinite-cycles-3', 'Infinite Cycles Remakes 3'],
+  ['infinite-cycles-4', 'Infinite Cycles Remakes 4'],
+  ['infinite-cycles-5', 'Infinite Cycles Remakes 5'],
+  ['infinite-cycles-6', 'Infinite Cycles Remakes 6'],
+  ['infinite-cycles-greatest', 'Infinite Cycles Remakes Greatest'],
+].map(([id, name]) => ({
+  category: 'Aquanode',
+  file: `/dx7-banks/aquanode/${id}.syx`,
+  id: `aquanode-${id}`,
+  name,
+}))
+
 /** Banks bundled locally so imports work without a third-party request. */
 export const dx7BankCatalog = [
   ...factoryBanks,
@@ -132,6 +156,7 @@ export const dx7BankCatalog = [
   ...vrcBanks,
   ...greyMatterBanks,
   ...mene311Banks,
+  ...aquanodeBanks,
 ]
 
 const catalogCategoryLabelKeys: Partial<Record<Dx7BankCatalogEntry['category'], string>> = {
