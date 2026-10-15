@@ -149,8 +149,13 @@ export function RotaryParameterControl({
   const { t } = useTranslation()
   const name = accessibleLabel ?? label
   const drag = useRef<{ pointerId: number; startValue: number; startY: number } | null>(null)
-  const faceId = `knob-face-${useId().replace(/:/g, '')}`
+  const instanceId = useId().replace(/:/g, '')
+  const faceId = `knob-face-${instanceId}`
+  const valueLabelId = `knob-value-${instanceId}`
   const displayValue = valueLabel(value)
+  const isFormatted = displayValue !== String(value)
+  // What is typed while the field has focus, so a lone minus sign survives on the way to -5.
+  const [draft, setDraft] = useState<string | null>(null)
   const fraction = (value - min) / (max - min)
   const angle = rotaryControlAngle(value, min, max)
   const isStepped = max - min < 10
@@ -289,14 +294,57 @@ export function RotaryParameterControl({
           />
         </svg>
       </div>
-      <output
-        className={cn(
-          'font-vt323 min-w-11 border border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)] px-1.5 py-0.5 text-center text-[19px]',
-          disabled ? 'text-[var(--crt-ink-4)]' : 'text-[var(--crt-led)]',
-        )}
-      >
-        {displayValue}
-      </output>
+      {/* The readout takes a typed value, so the knob can be set without a drag (WCAG 2.5.7). The
+          label behind the field sizes it, and shows a formatted value, such as a cutoff in hertz,
+          until the field is focused for editing in the knob's own steps. */}
+      <span className="grid border border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)]">
+        <input
+          aria-label={name}
+          aria-describedby={isFormatted ? valueLabelId : undefined}
+          className={cn(
+            'peer font-vt323 w-0 min-w-full [appearance:textfield] bg-transparent px-1.5 py-0.5 text-center text-[19px] outline-none [grid-area:1/1] focus:bg-[var(--crt-sel-bg)] focus-visible:outline-1 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+            disabled
+              ? 'text-[var(--crt-ink-4)]'
+              : isFormatted
+                ? 'text-transparent focus:text-[var(--crt-led)]'
+                : 'text-[var(--crt-led)]',
+          )}
+          disabled={disabled}
+          inputMode="numeric"
+          max={max}
+          min={min}
+          onBlur={() => {
+            setDraft(null)
+            onGestureEnd()
+          }}
+          onChange={(event) => {
+            setDraft(event.currentTarget.value)
+            const next = event.currentTarget.valueAsNumber
+            if (Number.isFinite(next)) onChange(clamp(next))
+          }}
+          onFocus={(event) => {
+            onGestureStart()
+            event.currentTarget.select()
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') event.currentTarget.blur()
+          }}
+          step={1}
+          type="number"
+          value={draft ?? value}
+        />
+        <span
+          aria-hidden="true"
+          className={cn(
+            'font-vt323 pointer-events-none min-w-11 px-1.5 py-0.5 text-center text-[19px] whitespace-nowrap [grid-area:1/1]',
+            isFormatted ? 'peer-focus:invisible' : 'invisible',
+            disabled ? 'text-[var(--crt-ink-4)]' : 'text-[var(--crt-led)]',
+          )}
+          id={valueLabelId}
+        >
+          {displayValue}
+        </span>
+      </span>
     </div>
   )
 }
@@ -592,8 +640,10 @@ export function ParameterControl({
         </span>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
       </span>
+      {/* The help button is the label's first control, so the field takes the label as its name. */}
       {options ? (
         <RackSelect
+          aria-label={label}
           className={`${fieldSurfaceClass} text-xs text-[var(--crt-ink)] normal-case`}
           onChange={(event) => onChange(Number(event.target.value))}
           value={value}
@@ -606,6 +656,7 @@ export function ParameterControl({
         </RackSelect>
       ) : (
         <input
+          aria-label={label}
           className={cn(fieldFrameClass, 'font-vt323 text-base text-[var(--crt-led)]')}
           max={max}
           min={min}

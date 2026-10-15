@@ -16,6 +16,9 @@ test-results
 .cert
 *.local
 .env.sentry-build-plugin
+# Vite reads SENTRY_AUTH_TOKEN and friends from these, so they never belong in the repository.
+.env
+.env.*
 
 # Editor files
 .vscode/*

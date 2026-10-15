@@ -15,7 +15,7 @@ function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
 }
 
 function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col gap-1.5 p-5', className)} {...props} />
+  return <div className={className ?? 'flex flex-col gap-1.5 p-5'} {...props} />
 }
 
 function CardTitle({ children, className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {

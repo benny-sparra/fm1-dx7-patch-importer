@@ -2,6 +2,7 @@
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
@@ -41,6 +42,31 @@ describe('editor parameter controls', () => {
     )
     await user.selectOptions(screen.getByRole('combobox', { name: 'Curve' }), '2')
     expect(onOptionChange).toHaveBeenLastCalledWith(2)
+  })
+
+  it('names a field by its label when the label also holds a help button', () => {
+    render(
+      <>
+        <ParameterControl
+          helpText="How the level falls away left of the break point."
+          label="Left Curve"
+          max={3}
+          onChange={vi.fn()}
+          options={['-LIN', '-EXP', '+EXP', '+LIN']}
+          value={0}
+        />
+        <ParameterControl
+          helpText="How loud the operator is."
+          label="Level"
+          max={99}
+          onChange={vi.fn()}
+          value={20}
+        />
+      </>,
+    )
+
+    expect(screen.getByRole('combobox', { name: 'Left Curve' })).toBeTruthy()
+    expect(screen.getByRole('spinbutton', { name: 'Level' })).toBeTruthy()
   })
 
   it('names an on/off parameter’s switch by the parameter alone, whether it is on or off', () => {
@@ -131,6 +157,66 @@ describe('editor parameter controls', () => {
     expect(onChange).toHaveBeenCalledWith(-1)
     expect(onGestureStart).toHaveBeenCalledTimes(1)
     expect(onGestureEnd).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('rotary knob value field', () => {
+  function Knob({
+    onGestureEnd = vi.fn(),
+    onGestureStart = vi.fn(),
+    valueLabel,
+  }: {
+    onGestureEnd?: () => void
+    onGestureStart?: () => void
+    valueLabel?: (value: number) => string
+  }) {
+    const [value, setValue] = useState(0)
+    return (
+      <RotaryParameterControl
+        label="Detune"
+        max={7}
+        min={-7}
+        onChange={setValue}
+        onGestureEnd={onGestureEnd}
+        onGestureStart={onGestureStart}
+        value={value}
+        valueLabel={valueLabel}
+      />
+    )
+  }
+
+  it('sets the knob from a typed value, as one gesture, without a drag', async () => {
+    const user = userEvent.setup()
+    const onGestureStart = vi.fn()
+    const onGestureEnd = vi.fn()
+    render(<Knob onGestureEnd={onGestureEnd} onGestureStart={onGestureStart} />)
+
+    await user.click(screen.getByRole('spinbutton', { name: 'Detune' }))
+    await user.keyboard('-5{Enter}')
+
+    expect(screen.getByRole('slider', { name: 'Detune' }).getAttribute('aria-valuenow')).toBe('-5')
+    expect(onGestureStart).toHaveBeenCalledOnce()
+    expect(onGestureEnd).toHaveBeenCalledOnce()
+  })
+
+  it('keeps a typed value within the knob’s range', async () => {
+    const user = userEvent.setup()
+    render(<Knob />)
+
+    await user.click(screen.getByRole('spinbutton', { name: 'Detune' }))
+    await user.keyboard('42{Enter}')
+
+    expect(screen.getByRole('slider', { name: 'Detune' }).getAttribute('aria-valuenow')).toBe('7')
+  })
+
+  it('describes a formatted value to assistive technology while the field holds the step', () => {
+    render(<Knob valueLabel={(value) => `${value * 10} Hz`} />)
+
+    const field = screen.getByRole<HTMLInputElement>('spinbutton', {
+      description: '0 Hz',
+      name: 'Detune',
+    })
+    expect(field.value).toBe('0')
   })
 })
 

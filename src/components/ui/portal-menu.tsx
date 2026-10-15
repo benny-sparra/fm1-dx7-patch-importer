@@ -104,8 +104,14 @@ export function PortalMenu({
     }
   }, [open])
 
-  // The arrow keys move between the items that can be chosen, wrapping at either end.
+  // The arrow keys move between the items that can be chosen, wrapping at either end. The menu sits at
+  // the end of the page, so Tab closes it onto its toggle rather than leaving the page.
   const moveFocus = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Tab') {
+      event.preventDefault()
+      close(true)
+      return
+    }
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
     event.preventDefault()
     const choices = enabledItems(menuRef.current)
@@ -166,7 +172,7 @@ export function PortalMenu({
                     aria-checked={checked}
                     aria-describedby={hint ? `${hintId}-hint-${index}` : undefined}
                     aria-labelledby={hint ? `${hintId}-label-${index}` : undefined}
-                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
+                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
                     disabled={disabled}
                     key={label}
                     onClick={() => {

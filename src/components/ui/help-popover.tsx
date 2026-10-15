@@ -91,6 +91,8 @@ export function HelpPopover({ className, label, text }: HelpPopoverProps) {
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        // Closing the popover claims the key, so no view shortcut also runs.
+        event.preventDefault()
         setOpen(false)
         buttonRef.current?.focus()
       }
