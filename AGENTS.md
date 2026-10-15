@@ -590,7 +590,10 @@ open everything an earlier release could have saved.
   red text, marks what replaces or removes data that Undo brings back, such as deleting a bank or
   copying over a slot. An action that only adds stays plain. A Cancel or Close beside an action is
   `ghost`. A warning about what an action will replace is `WarningNotice`; an error is
-  `ErrorNotice`; information the action works around is a plain muted line.
+  `ErrorNotice`; information the page or action works around, such as why an editor's changes
+  are not playing on the FM1 yet, is `InfoNotice`: the sunken message box with the 8-bit info
+  sign. It has no role of its own, so a notice that comes and goes sits in a `role="status"` region
+  that stays mounted.
 - Confirm an action that finished with a notification (`toast.success`), never a status line on the
   page, as sending a bank to the FM1 does. Show progress on the control that started the action,
   such as the button's working label, and keep only an error the user must act on on the page, in

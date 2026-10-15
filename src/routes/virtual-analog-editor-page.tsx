@@ -34,6 +34,7 @@ import {
 } from '@/components/editor/parameter-controls'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
+import { InfoNotice } from '@/components/ui/info-notice'
 import {
   RackPanelCollapseToggle,
   RackPanelCollapsibleBody,
@@ -483,9 +484,13 @@ export function VirtualAnalogEditorPage({
       />
 
       {/* Says why changes do not play on the FM1 as they are made; while they do, it is silent. */}
-      <p className="text-sm leading-6 text-[var(--crt-ink-3)] empty:hidden" role="status">
-        {liveStatus === 'live' ? null : t(`virtualAnalog.${liveStatus}`, { preset: presetNumber })}
-      </p>
+      <div className="empty:hidden" role="status">
+        {liveStatus === 'live' ? null : (
+          <InfoNotice>
+            <p>{t(`virtualAnalog.${liveStatus}`, { preset: presetNumber })}</p>
+          </InfoNotice>
+        )}
+      </div>
 
       <div className="relative min-w-0">
         <div
