@@ -5,6 +5,7 @@ import type { ComponentProps } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  MidiConnectActions,
   MidiConnectionError,
   MidiFirmwareBadge,
   MidiSettingsMenu,
@@ -49,6 +50,40 @@ describe('MidiConnectionError', () => {
     const { container } = render(<MidiConnectionError midi={{ error: null }} />)
 
     expect(container.textContent).toBe('')
+  })
+})
+
+describe('MidiConnectActions', () => {
+  function renderSwitch(midi: { isConnecting: boolean; midiAccess: boolean }) {
+    return render(
+      <MidiConnectActions midi={{ ...midi, connectMidi: vi.fn(), disconnectMidi: vi.fn() }} />,
+    )
+  }
+
+  it.each([
+    ['offline', { isConnecting: false, midiAccess: false }, 'MIDI offline'],
+    ['connecting', { isConnecting: true, midiAccess: false }, 'Connecting…'],
+    ['online', { isConnecting: false, midiAccess: true }, 'MIDI online'],
+  ])('is named only for its state while %s', (_state, midi, name) => {
+    renderSwitch(midi)
+
+    expect(screen.getByRole('switch', { name })).toBeTruthy()
+  })
+
+  it('keeps the width of its longest state by hiding the others', () => {
+    const { container } = renderSwitch({ isConnecting: false, midiAccess: false })
+
+    const hidden = [...container.querySelectorAll('[aria-hidden="true"]')]
+      .map((element) => element.textContent)
+      .filter(Boolean)
+    expect(hidden.sort()).toEqual(['Connecting…', 'MIDI online'])
+  })
+
+  it('names its state in the interface language and hides the other languages’ words', async () => {
+    await setLocale('de')
+    renderSwitch({ isConnecting: true, midiAccess: false })
+
+    expect(screen.getByRole('switch', { name: 'Verbindung wird hergestellt…' })).toBeTruthy()
   })
 })
 
@@ -118,7 +153,13 @@ describe('MidiSettingsMenu firmware', () => {
 describe('MidiFirmwareBadge', () => {
   it('names Baud Girl with its version, as FM1 owners know the firmware', () => {
     const { container } = render(
-      <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_089', kind: 'fm1-va' } }} />,
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_089', kind: 'fm1-va' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
     )
 
     expect(screen.getByText('Baud Girl firmware, FM-1_089')).toBeTruthy()
@@ -129,14 +170,28 @@ describe('MidiFirmwareBadge', () => {
   it('names FM-1+VA with its version in German', async () => {
     await setLocale('de')
 
-    render(<MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_089', kind: 'fm1-va' } }} />)
+    render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_089', kind: 'fm1-va' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
 
     expect(screen.getByText('Firmware von Baud Girl, FM-1_089')).toBeTruthy()
   })
 
   it('names M-VAVE with its version as M-VAVE numbers it', () => {
     const { container } = render(
-      <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_015', kind: 'mvave' } }} />,
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_015', kind: 'mvave' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
     )
 
     expect(screen.getByText('M-VAVE firmware, V15')).toBeTruthy()
@@ -148,14 +203,28 @@ describe('MidiFirmwareBadge', () => {
   it('names M-VAVE with its version in French', async () => {
     await setLocale('fr')
 
-    render(<MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_015', kind: 'mvave' } }} />)
+    render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_015', kind: 'mvave' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
 
     expect(screen.getByText('Firmware de M-VAVE, V15')).toBeTruthy()
   })
 
   it('names Hügelton Instruments and Felucca with its release', () => {
     const { container } = render(
-      <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_908', kind: 'felucca' } }} />,
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_908', kind: 'felucca' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
     )
 
     expect(screen.getByText('Felucca firmware by Hügelton Instruments, 0.8')).toBeTruthy()
@@ -166,14 +235,28 @@ describe('MidiFirmwareBadge', () => {
   it('names Felucca with its release in Brazilian Portuguese', async () => {
     await setLocale('pt-BR')
 
-    render(<MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_908', kind: 'felucca' } }} />)
+    render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_908', kind: 'felucca' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
 
     expect(screen.getByText('Firmware Felucca da Hügelton Instruments, 0.8')).toBeTruthy()
   })
 
   it('names Felucca and SLOOP, with no maker, for FM-1_900', () => {
     const { container } = render(
-      <MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_900', kind: 'felucca' } }} />,
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_900', kind: 'felucca' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
     )
 
     expect(screen.getByText('Felucca or SLOOP firmware, FM-1_900')).toBeTruthy()
@@ -185,20 +268,83 @@ describe('MidiFirmwareBadge', () => {
   it('names Felucca and SLOOP for FM-1_900 in Simplified Chinese', async () => {
     await setLocale('zh-Hans')
 
-    render(<MidiFirmwareBadge midi={{ firmware: { identity: 'FM-1_900', kind: 'felucca' } }} />)
+    render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_900', kind: 'felucca' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
 
     expect(screen.getByText('Felucca 或 SLOOP 固件，FM-1_900')).toBeTruthy()
   })
 
   it('shows nothing while the firmware is unknown', () => {
     const { container, rerender } = render(
-      <MidiFirmwareBadge midi={{ firmware: { kind: 'checking' } }} />,
+      <MidiFirmwareBadge
+        midi={{ firmware: { kind: 'checking' }, isConnecting: false, midiAccess: false }}
+      />,
     )
     expect(container.textContent).toBe('')
 
     rerender(
-      <MidiFirmwareBadge midi={{ firmware: { identity: 'XR-9_015', kind: 'unidentified' } }} />,
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'XR-9_015', kind: 'unidentified' },
+          isConnecting: false,
+          midiAccess: false,
+        }}
+      />,
     )
     expect(container.textContent).toBe('')
+  })
+
+  it.each([
+    ['MIDI is connecting', { isConnecting: true, midiAccess: false }],
+    ['MIDI is online and the FM1 is being asked', { isConnecting: false, midiAccess: true }],
+  ])('holds its place, empty, while %s', (_state, connection) => {
+    const { container } = render(
+      <MidiFirmwareBadge
+        className="reserved-row"
+        midi={{ ...connection, firmware: { kind: 'checking' } }}
+      />,
+    )
+
+    const place = container.firstElementChild
+    expect(place?.className).toBe('reserved-row')
+    expect(place?.textContent).toBe('')
+  })
+
+  it('gives its place up when MIDI is online but no FM1 answers', () => {
+    const { container } = render(
+      <MidiFirmwareBadge
+        midi={{ firmware: { kind: 'unidentified' }, isConnecting: false, midiAccess: true }}
+      />,
+    )
+
+    expect(container.firstElementChild).toBeNull()
+  })
+
+  it('fills the place it held with the firmware once the FM1 answers', () => {
+    const connection = { isConnecting: false, midiAccess: true }
+    const { container, rerender } = render(
+      <MidiFirmwareBadge
+        className="reserved-row"
+        midi={{ ...connection, firmware: { kind: 'checking' } }}
+      />,
+    )
+    const place = container.firstElementChild
+
+    rerender(
+      <MidiFirmwareBadge
+        className="reserved-row"
+        midi={{ ...connection, firmware: { identity: 'FM-1_015', kind: 'mvave' } }}
+      />,
+    )
+
+    expect(container.firstElementChild).toBe(place)
+    expect(screen.getByText('M-VAVE firmware, V15')).toBeTruthy()
   })
 })

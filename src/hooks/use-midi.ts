@@ -176,7 +176,12 @@ export function useMidi() {
   const [selectedInputId, setSelectedInputId] = useState('')
   const [channel, setChannelState] = useState(readStoredChannel)
   const [effectChannel, setEffectChannelState] = useState(readStoredEffectChannel)
-  const [isConnecting, setIsConnecting] = useState(false)
+  // MIDI left connected connects by itself as the page starts, so it says so from the first render
+  // and the header holds the room the connection and the FM1's badge will fill.
+  const [isConnecting, setIsConnecting] = useState(
+    () =>
+      getMidiSupport() === 'supported' && readStoredValue(midiStorageKeys.autoConnect) === 'true',
+  )
   const [error, setError] = useState<MidiConnectionErrorCode | null>(null)
   const [identification, setIdentification] = useState<FirmwareIdentification | null>(null)
   // The firmware families already reported to analytics. Each is reported once per page load, so

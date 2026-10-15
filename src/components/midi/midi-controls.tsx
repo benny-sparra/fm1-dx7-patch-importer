@@ -16,9 +16,17 @@ type MidiConnectActionsProps = {
   midi: Pick<MidiController, 'connectMidi' | 'disconnectMidi' | 'isConnecting' | 'midiAccess'>
 }
 
+const states = ['offline', 'connecting', 'online'] as const
+const stateLabels = {
+  connecting: 'midi.connecting',
+  offline: 'midi.offline',
+  online: 'midi.online',
+} as const satisfies Record<(typeof states)[number], string>
+
 export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
   const { t } = useTranslation()
   const isOnline = Boolean(midi.midiAccess)
+  const currentState = midi.isConnecting ? 'connecting' : isOnline ? 'online' : 'offline'
   const handleChange = () => {
     if (midi.midiAccess) {
       void midi.disconnectMidi()
@@ -29,9 +37,22 @@ export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
 
   return (
     <Switch busy={midi.isConnecting} checked={isOnline} onChange={handleChange}>
-      {/* The word carries the state, so the switch names what it currently is. */}
-      <span>
-        {midi.isConnecting ? t('midi.connecting') : isOnline ? t('midi.online') : t('midi.offline')}
+      {/* The word carries the state, so the switch names what it currently is. The others are
+          stacked behind it, unseen and unread, so the label keeps the width of the longest and
+          nothing beside it moves when the state changes. */}
+      <span className="inline-grid">
+        {states.map((state) => {
+          const current = state === currentState
+          return (
+            <span
+              aria-hidden={current ? undefined : true}
+              className={current ? '[grid-area:1/1]' : 'invisible [grid-area:1/1]'}
+              key={state}
+            >
+              {t(stateLabels[state])}
+            </span>
+          )
+        })}
       </span>
     </Switch>
   )
@@ -79,11 +100,18 @@ export function MidiFirmwareBadge({
   midi,
 }: {
   className?: string
-  midi: Pick<MidiController, 'firmware'>
+  midi: Pick<MidiController, 'firmware' | 'isConnecting' | 'midiAccess'>
 }) {
   const { t } = useTranslation()
   const { firmware } = midi
-  if (firmware.kind === 'checking' || firmware.kind === 'unidentified') return null
+  if (firmware.kind === 'checking' || firmware.kind === 'unidentified') {
+    // The FM1's answer is on its way while MIDI connects and is asked, and on a phone the badge is
+    // a row of its own, so its place stays, empty, rather than the page moving down when it fills.
+    const expected = midi.isConnecting || (midi.midiAccess && firmware.kind === 'checking')
+    return expected ? (
+      <span className={className ?? 'inline-flex min-h-8 items-center gap-2'} />
+    ) : null
+  }
   const release = fm1FirmwareRelease(firmware)
   const badge = firmwareBadges[mayBeSloop(firmware) ? 'feluccaOrSloop' : firmware.kind]
 

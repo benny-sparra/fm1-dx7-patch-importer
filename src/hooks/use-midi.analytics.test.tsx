@@ -107,6 +107,45 @@ describe('useMidi connection analytics', () => {
   })
 })
 
+describe('useMidi at start-up', () => {
+  /** What `isConnecting` said on each render, so the first one can be checked. */
+  function renderAndRecord() {
+    const connecting: boolean[] = []
+    const view = renderHook(() => {
+      const midi = useMidi()
+      connecting.push(midi.isConnecting)
+      return midi
+    })
+    return { connecting, ...view }
+  }
+
+  it('says it is connecting from its first render when MIDI will connect by itself', async () => {
+    localStorage.setItem('fm1-midi-auto-connect', 'true')
+
+    const { connecting, result } = renderAndRecord()
+
+    expect(connecting[0]).toBe(true)
+    await waitFor(() => expect(result.current.isConnecting).toBe(false))
+    expect(result.current.midiAccess).toBe(true)
+  })
+
+  it('does not say it is connecting when MIDI was not left connected', () => {
+    const { connecting } = renderAndRecord()
+
+    expect(connecting[0]).toBe(false)
+  })
+
+  it('does not say it is connecting when the browser cannot connect it by itself', async () => {
+    localStorage.setItem('fm1-midi-auto-connect', 'true')
+    Object.defineProperty(window, 'isSecureContext', { configurable: true, value: false })
+
+    const { connecting, result } = renderAndRecord()
+
+    expect(connecting.every((isConnecting) => !isConnecting)).toBe(true)
+    await waitFor(() => expect(result.current.error).toBe('insecure_context'))
+  })
+})
+
 describe('useMidi connection in a browser that cannot use MIDI', () => {
   const unusableBrowsers = [
     [
