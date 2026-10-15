@@ -12,9 +12,9 @@ import { makeDemoVoices } from '@/lib/patch-library'
 
 describe('DX7 bank catalog', () => {
   it('lists every bank published in the source catalog with unique local files', () => {
-    expect(dx7BankCatalog).toHaveLength(65)
-    expect(new Set(dx7BankCatalog.map(({ id }) => id)).size).toBe(65)
-    expect(new Set(dx7BankCatalog.map(({ file }) => file)).size).toBe(65)
+    expect(dx7BankCatalog).toHaveLength(76)
+    expect(new Set(dx7BankCatalog.map(({ id }) => id)).size).toBe(76)
+    expect(new Set(dx7BankCatalog.map(({ file }) => file)).size).toBe(76)
     expect(findDx7CatalogBank('vrc112b')?.name).toBe('VRC112B')
   })
 
@@ -29,6 +29,16 @@ describe('DX7 bank catalog', () => {
     expect(findDx7CatalogBank('mene311-synthwave-bass')?.file).toBe(
       '/dx7-banks/mene311/synthwave-bass.syx',
     )
+  })
+
+  it('lists the 11 Aquanode banks as their own group, as 32-voice banks the importer accepts', () => {
+    const banks = dx7BankCatalog.filter(({ category }) => category === 'Aquanode')
+
+    expect(banks).toHaveLength(11)
+    for (const { file } of banks) {
+      const bytes = readFileSync(resolve('public', file.slice(1)))
+      expect(parseDx7Bank(Uint8Array.from(bytes).buffer)).toHaveLength(32)
+    }
   })
 
   it('keeps the recovered FM-1 voice names byte for byte, device quirks included', () => {

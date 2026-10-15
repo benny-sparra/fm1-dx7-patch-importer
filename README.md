@@ -2,7 +2,7 @@
 
 A browser-based voice editor and patch librarian for the [M-VAVE FM1](https://www.mvave.com/).
 
-The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, and transfer individual voices or complete banks over MIDI SysEx. The FM-1's own four factory banks are loaded initially. New banks can use any of 65 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
+The app runs entirely in the browser. Build and organise up to 10 local patch banks, edit every standard DX7 voice parameter and the FM1 effects chain, and transfer individual voices or complete banks over MIDI SysEx. The FM-1's own four factory banks are loaded initially. New banks can use any of 76 bundled catalog banks or a standard 32-voice DX7 `.syx` upload.
 
 ![M-VAVE FM1 synthesiser](src/assets/fm1-header.png)
 
@@ -25,7 +25,7 @@ The app runs entirely in the browser. Build and organise up to 10 local patch ba
 - Share a patch as a link with **Copy share link** in its **⋮** menu: the patch travels in the link's `#` fragment, which never reaches a server, and opening the link shows the patch to play and add to a slot of your choice, with Undo
 - Search every bank at once, and reorder patches with pointer or keyboard drag-and-drop
 - Find duplicate patches: the patches in your banks whose voice settings match, renamed copies included, with a way to go to each one
-- Search your saved banks and the 65 bundled DX7 catalog banks at the same time, play any match through the FM1 edit buffer, and copy it into a slot of your own, or double-click it to copy it and open it in the editor
+- Search your saved banks and the 76 bundled DX7 catalog banks at the same time, play any match through the FM1 edit buffer, and copy it into a slot of your own, or double-click it to copy it and open it in the editor
 - Export one bank as `.syx`, or every loaded bank as a `.zip` of SysEx files for Dexed, a DX7, or other DX7 tools (DX7 data only, without FM1 effects)
 - Edit all standard DX7 voice parameters with live MIDI updates
 - Compare the six operators as table rows under shared column headings on a wide window, and open any one in place beneath its row with its full controls; narrower windows show them as a rack of columns
@@ -85,7 +85,7 @@ Web MIDI requires a secure context. The local development server uses HTTPS by d
 1. Open the app in a supported browser.
 2. Switch **MIDI online** on and grant MIDI/SysEx permission. Firefox asks you to install a small site permission add-on instead; accept it.
 3. Open **Settings** to select the FM1 as the MIDI output and the input monitor and, if needed, the note/program and effects channels. With the input selected, the app asks the FM1 which firmware it runs and shows the answer under **FM1 firmware**.
-4. Select Bank 1, 2, 3, or 4. On first use these contain FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with. Use **Add new bank…** to name and describe an additional bank while populating it from the bundled DX7 catalog, which holds banks from the [Yamaha Black Boxes collection](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) and mene311's themed FM-1 banks, or your own standard 32-voice DX7 SysEx file.
+4. Select Bank 1, 2, 3, or 4. On first use these contain FM-1 Banks 1, 2, 3, and 4, the patches the FM1 ships with. Use **Add new bank…** to name and describe an additional bank while populating it from the bundled DX7 catalog, which holds banks from the [Yamaha Black Boxes collection](https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/) mene311's themed FM-1 banks, and Aquanode's Dexed presets, or your own standard 32-voice DX7 SysEx file.
 5. Click a patch to select the matching FM1 slot and play it: the voice and effects in your library go to the edit buffer, so you hear the patch as it is in the browser even before its bank is on the FM1. The FM1 has four banks, so a patch in an added bank is only sent to the edit buffer. Double-click it, or choose **Edit** from its **⋮** menu, to load it into the edit buffer and open the voice editor. Changes are sent live once the initial voice and effects have reached the FM1. On the [FM-1+VA](https://baudgirl.com/work/FM-1+VA) replacement firmware, which stores a single-patch transfer over the selected preset, and whenever the firmware is not identified, a patch is sent as parameter changes instead, so it stays an unsaved edit until you press **SAVE** on the FM1.
 6. Use **Save to library** to keep an edit, or open its adjacent menu to resend the working copy or **Revert to saved** on both the editor and FM1.
 7. Select the heart on any patch, or search result, to keep it in **Favourites**, below the banks on the left. Favourites can be played, edited, and reordered like a bank, and editing a favourite or the patch it came from updates both.
@@ -158,6 +158,8 @@ The randomiser is an independent implementation of the voice generator from Tom 
 The four FM-1 factory banks, loaded into banks A–D on first use and also offered in the catalog, were recovered from M-VAVE's preset-restore tool by KingParamount and are bundled unchanged under CC0 from [fm1-factory-presets](https://github.com/KingParamount/fm1-factory-presets). The licence covers the capture, decode and rebuilt files, not the voices themselves: those trace to Yamaha ROM and VRC cartridges and the community Dexed_cart 1.0 collection, as selected and renamed by M-VAVE. The repository documents the per-voice provenance.
 
 The 26 themed banks in the catalog's **mene311** group are bundled unchanged, with mene311's permission, from [fm1-banks](https://github.com/mene311/fm1-banks). mene311 sorted voices from public DX7 collections, among them Dexed cartridge dumps, Yamaha Black Boxes, and Bobby Blues, into banks of 32 by theme. The voices remain the work of their original programmers, and the repository's `banks/provenance.json` records the collections each one came from.
+
+The 11 banks in the catalog's **Aquanode** group are Dexed presets by Aquanode, released under CC0 and bundled unchanged from [aquanode-soundscapes](https://github.com/aquanodemusic/aquanode-soundscapes). One more bank in that repository, Aquanode Presets 3, is left out because it holds bytes a DX7 bank cannot carry.
 
 [FM-1+VA](https://baudgirl.com/work/FM-1+VA) is Madeline Hoyle's (Baud Girl) replacement firmware for the FM1. Its manual and published web modules informed the research notes; no code was copied from it.
 
