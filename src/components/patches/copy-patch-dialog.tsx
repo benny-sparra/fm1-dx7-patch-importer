@@ -1,5 +1,13 @@
 import { ArrowLeftRight, Copy } from 'lucide-react'
-import { type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from 'react'
+import {
+  type FormEvent,
+  type KeyboardEvent,
+  useEffect,
+  useEffectEvent,
+  useId,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
@@ -120,13 +128,13 @@ export function CopyPatchDialog({
   // Only a sound with a slot of its own has somewhere to take the other one.
   const swapsWith = onSwap && sourceSlot && target ? target : undefined
 
+  // Opening happens once; later choices move focus themselves.
+  const focusChosenSlot = useEffectEvent(() => cellRefs.current.get(slot)?.focus())
   useEffect(() => {
     const dialog = dialogRef.current
     if (!dialog || dialog.open) return
     dialog.showModal()
-    window.requestAnimationFrame(() => cellRefs.current.get(slot)?.focus())
-    // Opening happens once; later choices move focus themselves.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    window.requestAnimationFrame(() => focusChosenSlot())
   }, [])
 
   useEffect(() => {

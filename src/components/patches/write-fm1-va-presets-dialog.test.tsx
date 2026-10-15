@@ -165,6 +165,27 @@ const source = (bank: string) =>
   within(bankSection(bank)).getByRole<HTMLSelectElement>('combobox', { name: 'Write from' })
 
 describe('WriteFm1VaPresetsDialog', () => {
+  it('opens once when its opening effect runs twice, as StrictMode makes it', () => {
+    // Browsers before the HTML spec changed it throw when an open dialog is opened again.
+    const showModal = vi.spyOn(HTMLDialogElement.prototype, 'showModal')
+    showModal.mockImplementation(function showModalOnce(this: HTMLDialogElement) {
+      if (this.open) throw new DOMException('Already open', 'InvalidStateError')
+      this.open = true
+    })
+    try {
+      render(
+        <ToastProvider>
+          <WriteFm1VaPresetsDialog library={twoChanges()} midi={fakeFm1().midi} onClose={vi.fn()} />
+        </ToastProvider>,
+        { reactStrictMode: true },
+      )
+
+      expect(screen.getByRole<HTMLDialogElement>('dialog').open).toBe(true)
+    } finally {
+      showModal.mockRestore()
+    }
+  })
+
   it('reads the FM1 as it opens and says what each bank would change', async () => {
     renderDialog(fakeFm1().midi)
 

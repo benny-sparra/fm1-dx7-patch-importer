@@ -76,7 +76,9 @@ export function ImportDx7BankDialog({
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
   // its state is discarded with it rather than being reset by hand.
   useEffect(() => {
-    dialogRef.current?.showModal()
+    const dialog = dialogRef.current
+    if (!dialog || dialog.open) return
+    dialog.showModal()
   }, [])
 
   const readFile = async (chosen: File | null) => {

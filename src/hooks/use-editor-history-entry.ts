@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 
 /**
  * Reads the patch named by the history entry the open editor adds, or an empty string for any
@@ -27,13 +27,8 @@ export function useEditorHistoryEntry(
   onBrowserLeave: () => void,
   onBrowserForward: (patchId: string) => void,
 ) {
-  const latest = useRef({ onBrowserForward, onBrowserLeave, openPatchId })
   const isLeavingEntry = useRef(false)
   const isFirstRun = useRef(true)
-
-  useEffect(() => {
-    latest.current = { onBrowserForward, onBrowserLeave, openPatchId }
-  })
 
   useEffect(() => {
     const onEntry = entryPatchId(window.history.state)
@@ -51,25 +46,25 @@ export function useEditorHistoryEntry(
     isFirstRun.current = false
   }, [openPatchId])
 
-  useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
-      const leftByApp = isLeavingEntry.current
-      isLeavingEntry.current = false
-      const onEntry = entryPatchId(event.state)
-      const openPatch = latest.current.openPatchId
-      if (!openPatch) {
-        // Forward, back to the editor's own step. The patch may be gone by now, in which case the
-        // app leaves the patch banks showing.
-        if (onEntry) latest.current.onBrowserForward(onEntry)
-        return
-      }
-      if (onEntry) return
-      // The editor is still open, either because it has to ask about unsaved changes or because
-      // it was opened again before the app's own step back arrived. It keeps its entry either way.
-      window.history.pushState({ fm1Editor: openPatch }, '')
-      if (!leftByApp) latest.current.onBrowserLeave()
+  const handlePopState = useEffectEvent((event: PopStateEvent) => {
+    const leftByApp = isLeavingEntry.current
+    isLeavingEntry.current = false
+    const onEntry = entryPatchId(event.state)
+    if (!openPatchId) {
+      // Forward, back to the editor's own step. The patch may be gone by now, in which case the
+      // app leaves the patch banks showing.
+      if (onEntry) onBrowserForward(onEntry)
+      return
     }
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
+    if (onEntry) return
+    // The editor is still open, either because it has to ask about unsaved changes or because
+    // it was opened again before the app's own step back arrived. It keeps its entry either way.
+    window.history.pushState({ fm1Editor: openPatchId }, '')
+    if (!leftByApp) onBrowserLeave()
+  })
+  useEffect(() => {
+    const onPopState = (event: PopStateEvent) => handlePopState(event)
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
   }, [])
 }

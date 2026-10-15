@@ -77,6 +77,9 @@ files when that is clearer.
   effect or event handler through `useEffectEvent`, as `useKeyboardShortcuts` does. When code
   outside the component reads it, such as a session's async sends, update the ref in a layout
   effect, as `PatchEditorPage` does for its MIDI controller.
+- Never read a ref during render to decide what to show: render reads state, props, and context.
+  Keep what the page shows in state, set beside the change that makes it true, as `useMidi` keeps
+  `sysexEnabled` beside `setMidiAccess(true)` rather than reading `webMidi.current` as it renders.
 - Keep one source for shared constants and helpers such as key lists, limits, and value formatting.
   Reuse or export the existing one rather than copying it into another module: for example
   `makeYamahaSysexMessage` for Yamaha SysEx framing, `src/lib/sysex-file.ts` for `.syx` file
@@ -340,7 +343,10 @@ open everything an earlier release could have saved.
   status, and essential MIDI controls eager.
 - A dialog the librarian mounts on demand opens itself from an effect and takes an `onClose`, rather
   than being rendered always and opened through a `dialogRef`. Unmounting it discards its state, so
-  it needs no reset, and `onClose` returns focus to the control that opened it. Making another eager
+  it needs no reset, and `onClose` returns focus to the control that opened it. The effect opens it
+  only if it is not already open (`if (!dialog || dialog.open) return`), since StrictMode runs an
+  effect twice and a browser before the HTML spec changed it throws on opening an open dialog;
+  `src/components/patches/dialog-open-guard.test.tsx` renders each in StrictMode. Making another eager
   dialog lazy no longer frees headroom: Rolldown moves the code it shares with the entry into new
   shared chunks, which the entry still loads, and compressing them separately costs as much as the
   dialog saved. Measure with `npm run bundle:check` before and after any such move. A dialog whose
@@ -376,7 +382,8 @@ open everything an earlier release could have saved.
   behind the gate, as the FM-1+VA preset probe and the Sentry test control are: imported
   statically, the probe gave the entry a path to the preset read, and once the import dialog used
   the read too, Rolldown kept 1.6 KB of it in the entry, although the probe never renders there;
-  the Sentry control kept its Lucide icon there.
+  the Sentry control kept its Lucide icon there. Each sits in an `ErrorBoundary` as well as a
+  `Suspense`, so a chunk or a bug that fails in development leaves the page showing.
 - A rejected optional chunk must be contained and recoverable; stale deployment chunks must not
   crash the entire application. Every deploy renames every chunk, so a tab left open across a
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
