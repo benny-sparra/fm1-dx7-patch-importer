@@ -148,19 +148,27 @@ screenReaderInstructions }}` built from new locale strings naming the slot code 
 
 ### React
 
-16. **Small consistency fixes (low).** One change each, each with the existing tests passing:
+16. **Small consistency fixes (low). Done.** One change each, each with the existing tests passing:
     - `src/components/patches/copy-patch-dialog.tsx:122-130`: replace the `exhaustive-deps`
-      suppression with `useEffectEvent`, as `import-dx7-bank-dialog.tsx:110-115` does.
+      suppression with `useEffectEvent`, as `import-dx7-bank-dialog.tsx:110-115` does. Done; a
+      refactor with no change to behaviour, covered by `copy-patch-dialog.test.tsx`.
     - `src/hooks/use-midi.ts:211`: `sysexAvailable` reads `webMidi.current` during render; keep
-      `sysexEnabled` in state set beside `setMidiAccess(true)`.
+      `sysexEnabled` in state set beside `setMidiAccess(true)`. Done; a refactor with no change to
+      behaviour, covered by the `use-midi.*.test.tsx` files.
     - `src/hooks/use-editor-history-entry.ts:34-36`: replace the callbacks mirrored into a ref with
-      `useEffectEvent`.
+      `useEffectEvent`. Done; covered by `use-editor-history-entry.test.tsx`.
     - `src/routes/root-layout.tsx:274-277`: wrap the development-only `Fm1VaPresetProbe` in an
-      `ErrorBoundary`, as `SentryVerificationButton` is in `librarian-page.tsx:935-940`.
+      `ErrorBoundary`, as `SentryVerificationButton` is in `librarian-page.tsx:935-940`. Done;
+      proved by `root-layout.probe.test.tsx`, which failed before.
     - Dialogs that open from a mount effect call `showModal()` unguarded in
       `write-fm1-va-presets-dialog`, `import-dx7-bank-dialog`, `delete-workspace-bank-dialog`,
       `add-workspace-bank-dialog`, and `duplicate-patches-dialog`; guard with `!dialog.open`, as the
-      copy and save dialogs do.
+      copy and save dialogs do. Done; proved by `dialog-open-guard.test.tsx` and, for the write
+      dialog, `write-fm1-va-presets-dialog.test.tsx`, which failed before. The same guard is on the four
+      other dialogs the librarian mounts that opened the same way (`fm1-bank-selection`,
+      `midi-connection-required`, `import-fm1-va-presets`, `restore-factory-banks`); the first
+      three are in `dialog-open-guard.test.tsx`, and the preset import dialog is too heavy to
+      render there.
 
 ## Checked and fine
 

@@ -74,7 +74,9 @@ export function DuplicatePatchesDialog({ library, onClose }: DuplicatePatchesDia
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears,
   // on the first patch listed, or on its close button when there are none.
   useEffect(() => {
-    dialogRef.current?.showModal()
+    const dialog = dialogRef.current
+    if (!dialog || dialog.open) return
+    dialog.showModal()
     firstPatchRef.current?.focus()
   }, [])
 

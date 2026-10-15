@@ -170,6 +170,7 @@ type LoggedLiveEdit = {
 
 export function useMidi() {
   const [midiAccess, setMidiAccess] = useState(false)
+  const [sysexEnabled, setSysexEnabled] = useState(false)
   const [outputs, setOutputs] = useState<MidiDevice<Output>[]>([])
   const [inputs, setInputs] = useState<MidiDevice<Input>[]>([])
   const [selectedOutputId, setSelectedOutputId] = useState('')
@@ -208,7 +209,7 @@ export function useMidi() {
 
   const hasMidiOutput = Boolean(selectedOutput)
   const hasMidiInput = Boolean(selectedInput)
-  const sysexAvailable = midiAccess && Boolean(webMidi.current?.sysexEnabled)
+  const sysexAvailable = midiAccess && sysexEnabled
 
   // Asking needs SysEx and both of the FM1's ports. Until the answer for the ports in use arrives,
   // the firmware is being checked, so nothing is sent as though it were known.
@@ -322,6 +323,7 @@ export function useMidi() {
         const activeWebMidi = await loadWebMidi()
         await activeWebMidi.enable({ sysex: true })
         setMidiAccess(true)
+        setSysexEnabled(Boolean(activeWebMidi.sysexEnabled))
         if (remember) storeValue(midiStorageKeys.autoConnect, 'true')
         refreshDevices('connected')
         appendLog(
@@ -363,6 +365,7 @@ export function useMidi() {
       await webMidi.current?.disable()
       storeValue(midiStorageKeys.autoConnect, 'false')
       setMidiAccess(false)
+      setSysexEnabled(false)
       setOutputs([])
       setInputs([])
       setSelectedOutputId('')

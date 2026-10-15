@@ -30,6 +30,7 @@ import { useMediaQuery } from '@/hooks/use-media-query'
 import { isUnsupportedBrowser } from '@/lib/browser'
 import { fm1ColorwayImages, type Fm1ColorwayImages } from '@/lib/fm1-colorway-images'
 import { degauss } from '@/lib/degauss'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
 // Development builds alone load the preset probe. Importing it statically gave the entry a path
@@ -272,9 +273,11 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               <span className="flex flex-wrap gap-x-4 gap-y-2">
                 <FxHardwareProbe send={midi.sendEffectDiagnosticControl} />
                 {Fm1VaPresetProbe ? (
-                  <Suspense fallback={null}>
-                    <Fm1VaPresetProbe midi={midi} />
-                  </Suspense>
+                  <ErrorBoundary>
+                    <Suspense fallback={null}>
+                      <Fm1VaPresetProbe midi={midi} />
+                    </Suspense>
+                  </ErrorBoundary>
                 ) : null}
               </span>
             ) : null}

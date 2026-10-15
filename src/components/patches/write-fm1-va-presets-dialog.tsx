@@ -173,7 +173,9 @@ export function WriteFm1VaPresetsDialog({
   const reading = phase === 'reading'
 
   useEffect(() => {
-    dialogRef.current?.showModal()
+    const dialog = dialogRef.current
+    if (!dialog || dialog.open) return
+    dialog.showModal()
   }, [])
 
   // The FM1 is read as the dialog opens and after a write ends early. Closing the dialog, or a

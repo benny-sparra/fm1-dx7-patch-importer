@@ -175,7 +175,9 @@ export function ImportFm1VaPresetsDialog({
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
   // its state is discarded with it rather than being reset by hand.
   useEffect(() => {
-    dialogRef.current?.showModal()
+    const dialog = dialogRef.current
+    if (!dialog || dialog.open) return
+    dialog.showModal()
   }, [])
 
   // Closing the dialog stops a read; the reader also stops it when the ports change.
