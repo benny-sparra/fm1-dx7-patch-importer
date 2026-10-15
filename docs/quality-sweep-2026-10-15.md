@@ -134,17 +134,25 @@ screenReaderInstructions }}` built from new locale strings naming the slot code 
 13. **Umami loads from cloud.umami.is. Accepted.** The hosted script can change without notice
     and runs with the app's access; the risk is accepted, and it stays loaded from
     `https://cloud.umami.is`. Nothing to do; later sweeps do not report it.
-14. **Restored names are kept unnormalised (low).** `readSavedBank` in
+14. **Restored names are kept unnormalised (low). Done.** `readSavedBank` in
     `src/lib/workspace-backup.ts:441-451` stores a saved bank's `name` and `description` as the
     file gives them; `validateNamedBank` (`src/lib/named-bank.ts:138-139`) checks only the trimmed
     length, so megabytes of padding survive. A favourite's `origin.bankName`
     (`src/lib/favourites.ts:145`) has no limit. Store the normalised values and cap `bankName` at
     `workspaceBankTitleLength`. Read **Legacy stored data compatibility** first: this changes what
     is kept, not what is accepted. Test: restoring a padded name keeps the trimmed name.
-15. **The header check does not compare the built pages with the CSP (info).**
+    Done, with one change from the task: `readSavedBank` keeps the trimmed name and description
+    (`workspace-backup.test.ts`, failed before), and `readOrigin` cuts `bankName` to 80
+    (`favourites.test.ts`, failed before), not to `workspaceBankTitleLength`. The origin of a
+    favourite added from a search result is a saved bank's or a catalog bank's name, up to 80
+    characters, so a cap of 10 would have cut the origin of favourites already in storage the next
+    time the page loaded. 80 is `savedBankNameLength`, which a test pins the new constant to.
+15. **The header check does not compare the built pages with the CSP (info). Done.**
     `scripts/check-security-headers.mjs` could also fail when `dist/*.html` holds an inline
     `<script>` or loads an origin the CSP does not list. Both mistakes break the site rather than
-    weaken it, so this is optional.
+    weaken it, so this is optional. Done in `scripts/check-html-policy.mjs`, which the header
+    check runs over every built page; proved by `scripts/check-html-policy.test.mjs`. It also
+    refuses a `<style>` element, an inline event handler, and an image carried in the page.
 
 ### React
 

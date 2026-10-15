@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { updateDx7VoiceName } from '@/lib/dx7'
 import {
+  favouriteOriginNameLength,
   favouritePatchId,
   favouriteSoundKeys,
   makeFavouritePatches,
@@ -12,6 +13,7 @@ import {
 } from '@/lib/favourites'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { makeInitDx7Voice } from '@/lib/init-voice'
+import { savedBankNameLength } from '@/lib/named-bank'
 import { emptyPatchLibrary, makeDemoVoices } from '@/lib/patch-library'
 import { soundKey } from '@/lib/sound-key'
 
@@ -231,6 +233,24 @@ describe('readFavourites', () => {
     expect(readFavourites([{ id: 'f1', origin: { bankNumber: 0 }, voice: voices[0] }])).toEqual([
       { effects: makeDefaultFm1Effects(), id: 'f1', origin: { bankName: '' }, voice: voices[0] },
     ])
+  })
+
+  it('keeps the name of any bank a favourite can come from, saved banks and the catalog included', () => {
+    const name = 'A saved bank or a catalog bank, with a long name'
+
+    expect(readFavourites([{ id: 'f1', origin: { bankName: name }, voice: voices[0] }])).toEqual([
+      { effects: makeDefaultFm1Effects(), id: 'f1', origin: { bankName: name }, voice: voices[0] },
+    ])
+  })
+
+  it('keeps an origin name to the longest a bank name can be, however much a file gives', () => {
+    const [favourite] =
+      readFavourites([
+        { id: 'f1', origin: { bankName: 'x'.repeat(1_000_000) }, voice: voices[0] },
+      ]) ?? []
+
+    expect(favourite.origin).toEqual({ bankName: 'x'.repeat(favouriteOriginNameLength) })
+    expect(favouriteOriginNameLength).toBe(savedBankNameLength)
   })
 
   it('keeps the first favourite of a repeated id', () => {

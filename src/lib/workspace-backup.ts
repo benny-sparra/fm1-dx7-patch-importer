@@ -441,11 +441,12 @@ function readSavedBank(value: unknown, version: number): NamedBank | null {
   if (!isRecord(value) || !Array.isArray(value.slots)) return null
   const slots = value.slots.map((slot) => readSlot(slot, version))
   if (slots.some((slot) => !slot)) return null
+  // The validator accepts a name by its trimmed length, so what is kept is trimmed too.
   const bank = {
     createdAt: value.createdAt,
-    description: value.description,
+    description: typeof value.description === 'string' ? value.description.trim() : undefined,
     id: value.id,
-    name: value.name,
+    name: typeof value.name === 'string' ? value.name.trim() : undefined,
     slots,
     updatedAt: value.updatedAt,
     version: 4,

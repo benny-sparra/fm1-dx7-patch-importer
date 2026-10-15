@@ -97,6 +97,12 @@ files when that is clearer.
 - Storage and backups keep a workspace bank title to `workspaceBankTitleLength`, so every path that
   sets one, loading a saved bank included, goes through `normalizeWorkspaceBankNameForSave`. A
   title longer in memory than in storage changes when the page reloads.
+- A name read from a file or storage is kept trimmed and bounded, so padding a backup cannot make
+  it hold megabytes. A restored saved bank keeps its trimmed name and description, which the
+  validator already checks by their trimmed length. A favourite's origin bank name is cut to
+  `favouriteOriginNameLength` (80, the saved bank name limit that a test pins it to), not to
+  `workspaceBankTitleLength`: a search result makes a saved bank's or a catalog bank's name the
+  origin, and cutting those to ten characters would change stored favourites on the next load.
 - Read and write `localStorage` and `sessionStorage` only inside `try/catch`. Blocked or throwing
   storage must leave the feature working with a safe default, never break the action that uses it.
 
@@ -459,6 +465,9 @@ open everything an earlier release could have saved.
   absence of any frame, since the app calls no extension API.
 - Keep `public/_headers`, the origins used by browser code, and `scripts/check-security-headers.mjs`
   aligned. Any new remote resource or endpoint needs an explicit privacy and CSP review.
+  The same script holds every built page in `dist` to the policy (`scripts/check-html-policy.mjs`): an
+  inline script, a `<style>` element, an inline event handler, or a script, stylesheet, image, or
+  font from an origin the policy does not list fails `npm run security:check`.
 - A production build names its release from the deploying platform's commit, resolved once in
   `resolveSentryRelease`. The client and the uploaded source maps must take the name from that same
   helper, or a resolved stack trace is filed where the event that needs it will not look. A build
