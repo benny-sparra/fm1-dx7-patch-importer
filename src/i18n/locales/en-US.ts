@@ -13,9 +13,7 @@ export default {
     synthAlt: 'M-VAVE FM1 synthesizer front panel',
   },
   help: {
-    steps: {
-      editTitle: 'Edit and organize',
-    },
+    lead: 'Edit and organize patches for your M-VAVE FM1, in the browser.',
   },
   colorway: {
     legend: 'FM1 color finish',

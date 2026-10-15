@@ -2,6 +2,7 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test'
 
 import de from '../src/i18n/locales/de'
 import en from '../src/i18n/locales/en-GB'
+import enHelp from '../src/i18n/locales/en-GB-help'
 import es from '../src/i18n/locales/es'
 import fr from '../src/i18n/locales/fr'
 import ptBR from '../src/i18n/locales/pt-BR'
@@ -12,7 +13,8 @@ type Translations = { [key: string]: string | Translations }
 
 const locales: Record<string, Translations> = {
   de: de as Translations,
-  en: en as Translations,
+  // The guide's English loads with its chunk, so it is kept apart from the page's.
+  en: { ...en, help: { ...en.help, ...enHelp.help } } as Translations,
   es: es as Translations,
   fr: fr as Translations,
   'pt-BR': ptBR as Translations,
@@ -133,11 +135,15 @@ async function expectNoClippedLayout(page: Page, testInfo: TestInfo, view: strin
   expect(clipped, `${view} clips translated text`).toEqual([])
 }
 
-async function openLibrarian(page: Page, locale: string) {
-  await page.addInitScript((language: string) => {
-    localStorage.setItem('fm1-language', language)
-    localStorage.setItem('fm1-librarian-help-seen', 'true')
-  }, locale)
+// A first visit meets the welcome, which opens itself over the librarian.
+async function openLibrarian(page: Page, locale: string, { firstVisit = false } = {}) {
+  await page.addInitScript(
+    ({ language, showWelcome }: { language: string; showWelcome: boolean }) => {
+      localStorage.setItem('fm1-language', language)
+      if (!showWelcome) localStorage.setItem('fm1-librarian-help-seen', 'true')
+    },
+    { language: locale, showWelcome: firstVisit },
+  )
   await page.goto('/')
   await expect(
     page.getByRole('heading', { level: 2, name: translate(locale, 'banks.gridTitle') }).first(),
@@ -201,14 +207,23 @@ for (const locale of testedLocales) {
       await expectNoClippedLayout(page, testInfo, `editor-${locale}-${viewport.name}`)
     })
 
-    test(`fits ${locale} text in the help dialog on ${viewport.name}`, async ({
-      page,
-    }, testInfo) => {
+    test(`fits ${locale} text in the welcome on ${viewport.name}`, async ({ page }, testInfo) => {
+      await page.setViewportSize({ height: viewport.height, width: viewport.width })
+      await openLibrarian(page, locale, { firstVisit: true })
+
+      // The welcome arrives with its own chunk, so wait for it rather than look once.
+      const dialog = page.getByRole('dialog', { name: translate(locale, 'help.title') })
+      await expect(dialog).toBeVisible()
+
+      await expectNoClippedLayout(page, testInfo, `welcome-${locale}-${viewport.name}`)
+    })
+
+    test(`fits ${locale} text in the guide on ${viewport.name}`, async ({ page }, testInfo) => {
       await page.setViewportSize({ height: viewport.height, width: viewport.width })
       await openLibrarian(page, locale)
 
       await page.getByRole('button', { name: translate(locale, 'help.open') }).click()
-      const dialog = page.getByRole('dialog', { name: translate(locale, 'help.title') })
+      const dialog = page.getByRole('dialog', { name: translate(locale, 'help.guideTitle') })
       await expect(dialog).toBeVisible()
 
       await expectNoClippedLayout(page, testInfo, `help-${locale}-${viewport.name}`)
@@ -226,7 +241,9 @@ for (const locale of ['de', 'uk']) {
     await openLibrarian(page, locale)
     await expectNoClippedLayout(page, testInfo, `librarian-${locale}-320`)
 
-    await page.getByRole('button', { name: translate(locale, 'help.open') }).click()
+    // The welcome's title is the longest a dialog has, so a first visit is the one to measure.
+    await page.addInitScript(() => localStorage.removeItem('fm1-librarian-help-seen'))
+    await page.reload()
     const dialog = page.getByRole('dialog', { name: translate(locale, 'help.title') })
     await expect(dialog).toBeVisible()
     const title = dialog.locator('h2').first()

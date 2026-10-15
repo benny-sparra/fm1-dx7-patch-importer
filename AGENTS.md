@@ -551,6 +551,13 @@ open everything an earlier release could have saved.
   connected, not already open, and has `showModal` before calling it. Crawlers and extensions can
   take the page out of the document, where `showModal()` throws, and Safari before 15.4 and some
   embedded WebKit views have no `showModal` at all; either way the guide would report a failed load.
+- The guide opens itself on a first visit as the welcome: one line on what the app does, the FM1
+  photo in the page's finish, three one-line steps, and a footnote that the banks live in this
+  browser. Keep it that short; reference belongs in the full guide, which **Full guide** and the
+  **?** button open. Something only some visitors need appears only for them: the browser
+  warning only where `isUnsupportedBrowser` holds, where it replaces the steps, and the Baud Girl
+  note only once the FM1 is identified as running FM-1+VA. The guide's strings, apart from the
+  button's name, load with its chunk from `src/i18n/locales/en-GB-help.ts`.
 - While a dialog's action is in progress, keep the dialog open: block Escape with `onCancel` and
   backdrop clicks, as the add-bank, import, and unsaved-changes dialogs do.
 - A button whose action is under way, or that cannot act yet, does not take `disabled` when the

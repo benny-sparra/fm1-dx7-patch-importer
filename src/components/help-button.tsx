@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
+import type { MidiController } from '@/hooks/use-midi'
 import { trackAnalyticsEvent } from '@/lib/analytics'
+import type { Fm1Colorway } from '@/lib/fm1-colorway'
 import { hasSeenHelp } from '@/lib/help-seen'
 import { sharedPatchPayload } from '@/lib/share-link-fragment'
 
@@ -13,16 +15,26 @@ const HelpDialog = lazy(() =>
   import('@/components/help-dialog').then((module) => ({ default: module.HelpDialog })),
 )
 
-export function HelpButton() {
+type HelpButtonProps = {
+  colorway: Fm1Colorway
+  midi: Pick<MidiController, 'firmware'>
+}
+
+export function HelpButton({ colorway, midi }: HelpButtonProps) {
   const { t } = useTranslation()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const [requested, setRequested] = useState(false)
+  // A guide that opened itself greets a first visit; one asked for opens on the full guide.
+  const [firstVisit, setFirstVisit] = useState(false)
   const [loadFailed, setLoadFailed] = useState(false)
 
   // A first visit opens the guide itself, before anything has been clicked, unless it came to open a
   // share link, whose patch opens instead.
   useEffect(() => {
-    if (!hasSeenHelp() && sharedPatchPayload(window.location.hash) === null) setRequested(true)
+    if (!hasSeenHelp() && sharedPatchPayload(window.location.hash) === null) {
+      setFirstVisit(true)
+      setRequested(true)
+    }
   }, [])
 
   return (
@@ -33,6 +45,7 @@ export function HelpButton() {
         onClick={() => {
           trackAnalyticsEvent({ data: { surface: 'guide' }, name: 'help_opened' })
           setLoadFailed(false)
+          setFirstVisit(false)
           setRequested(true)
         }}
         ref={triggerRef}
@@ -53,6 +66,9 @@ export function HelpButton() {
         >
           <Suspense fallback={null}>
             <HelpDialog
+              colorway={colorway}
+              firstVisit={firstVisit}
+              midi={midi}
               onClose={() => {
                 setRequested(false)
                 triggerRef.current?.focus()

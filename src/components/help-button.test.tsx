@@ -2,6 +2,7 @@
 
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
@@ -24,6 +25,8 @@ beforeAll(() => {
 afterEach(() => {
   cleanup()
   localStorage.clear()
+  // The blocked store's spy would otherwise turn every later test into a first visit.
+  vi.restoreAllMocks()
   vi.unstubAllGlobals()
   window.history.replaceState(null, '', '/')
 })
@@ -33,11 +36,13 @@ const helpButton = () =>
 
 const guide = () => screen.queryByRole('dialog')
 
+const midi: ComponentProps<typeof HelpButton>['midi'] = { firmware: { kind: 'checking' } }
+
 describe('HelpButton', () => {
   it('loads and opens the guide when it is asked for', async () => {
     localStorage.setItem('fm1-librarian-help-seen', 'true')
     const user = userEvent.setup()
-    render(<HelpButton />)
+    render(<HelpButton colorway="black" midi={midi} />)
     expect(guide()).toBeNull()
 
     await user.click(helpButton())
@@ -45,15 +50,28 @@ describe('HelpButton', () => {
     expect(await screen.findByRole('tab', { name: 'Getting started' })).toBeTruthy()
   })
 
-  it('opens the guide on a first visit without waiting to be asked', async () => {
-    render(<HelpButton />)
+  it('opens the welcome on a first visit without waiting to be asked', async () => {
+    render(<HelpButton colorway="black" midi={midi} />)
 
-    expect(await screen.findByRole('tab', { name: 'Getting started' })).toBeTruthy()
+    expect(
+      await screen.findByRole('dialog', { name: 'Welcome to the FM1 editor & librarian' }),
+    ).toBeTruthy()
+  })
+
+  it('opens the full guide, not the welcome, when asked for after a first visit', async () => {
+    const user = userEvent.setup()
+    render(<HelpButton colorway="black" midi={midi} />)
+    await user.click(await screen.findByRole('button', { name: 'Start editing' }))
+    await waitFor(() => expect(guide()).toBeNull())
+
+    await user.click(helpButton())
+
+    expect(await screen.findByRole('dialog', { name: 'Guide' })).toBeTruthy()
   })
 
   it('leaves the guide closed on a first visit that came to open a share link', async () => {
     window.history.replaceState(null, '', '/#p=AQAA')
-    render(<HelpButton />)
+    render(<HelpButton colorway="black" midi={midi} />)
 
     await waitFor(() => expect(helpButton()).toBeTruthy())
     expect(guide()).toBeNull()
@@ -61,7 +79,7 @@ describe('HelpButton', () => {
 
   it('leaves the guide closed once it has been seen', async () => {
     localStorage.setItem('fm1-librarian-help-seen', 'true')
-    render(<HelpButton />)
+    render(<HelpButton colorway="black" midi={midi} />)
 
     await waitFor(() => expect(helpButton()).toBeTruthy())
     expect(guide()).toBeNull()
@@ -71,19 +89,19 @@ describe('HelpButton', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('storage blocked')
     })
-    render(<HelpButton />)
+    render(<HelpButton colorway="black" midi={midi} />)
 
-    expect(await screen.findByRole('tab', { name: 'Getting started' })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: 'Full guide' })).toBeTruthy()
   })
 
   it('returns focus to the trigger when the guide is closed, and opens it again', async () => {
     localStorage.setItem('fm1-librarian-help-seen', 'true')
     const user = userEvent.setup()
-    render(<HelpButton />)
+    render(<HelpButton colorway="black" midi={midi} />)
     await user.click(helpButton())
     await screen.findByRole('tab', { name: 'Getting started' })
 
-    await user.click(screen.getByRole('button', { name: 'Start editing' }))
+    await user.click(screen.getByRole('button', { name: 'Close' }))
 
     await waitFor(() => expect(guide()).toBeNull())
     expect(document.activeElement).toBe(helpButton())
@@ -96,7 +114,7 @@ describe('HelpButton', () => {
   it('opens a single guide when the trigger is activated repeatedly', async () => {
     localStorage.setItem('fm1-librarian-help-seen', 'true')
     const user = userEvent.setup()
-    render(<HelpButton />)
+    render(<HelpButton colorway="black" midi={midi} />)
 
     await user.click(helpButton())
     await user.click(helpButton())
@@ -107,7 +125,10 @@ describe('HelpButton', () => {
 
   it('leaves the guide closed, without a failure notice, on a page outside the document', async () => {
     const detachedPage = document.createElement('div')
-    render(<HelpButton />, { baseElement: detachedPage, container: detachedPage })
+    render(<HelpButton colorway="black" midi={midi} />, {
+      baseElement: detachedPage,
+      container: detachedPage,
+    })
 
     const dialog = await waitFor(() => {
       const mounted = detachedPage.querySelector('dialog')
@@ -122,7 +143,7 @@ describe('HelpButton', () => {
     const showModal = Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, 'showModal')!
     Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
     try {
-      render(<HelpButton />)
+      render(<HelpButton colorway="black" midi={midi} />)
 
       const dialog = await waitFor(() => {
         const mounted = document.querySelector('dialog')
@@ -145,7 +166,7 @@ describe('HelpButton', () => {
     const { HelpButton: ButtonWithFailingChunk } = await import('@/components/help-button')
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     const user = userEvent.setup()
-    render(<ButtonWithFailingChunk />)
+    render(<ButtonWithFailingChunk colorway="black" midi={midi} />)
 
     await user.click(helpButton())
 

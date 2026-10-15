@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import de from './locales/de'
 import britishEnglish from './locales/en-GB'
 import britishEnglishEditorHelp from './locales/en-GB-editor-help'
+import britishEnglishHelp from './locales/en-GB-help'
 import britishEnglishLibrarianDialogs from './locales/en-GB-librarian-dialogs'
 import enUS from './locales/en-US'
 import es from './locales/es'
@@ -38,12 +39,20 @@ const lazyBritishEnglish = [
     reader: '/src/components/patches/write-fm1-va-presets-dialog.tsx',
     strings: britishEnglishLibrarianDialogs,
   },
+  {
+    module: '@/i18n/help',
+    reader: '/src/components/help-dialog.tsx',
+    strings: britishEnglishHelp,
+  },
 ]
 
 // British English as a page sees it once every lazy chunk has added its strings.
 const en = mergeStrings(
-  mergeStrings(britishEnglish, britishEnglishEditorHelp),
-  britishEnglishLibrarianDialogs,
+  mergeStrings(
+    mergeStrings(britishEnglish, britishEnglishEditorHelp),
+    britishEnglishLibrarianDialogs,
+  ),
+  britishEnglishHelp,
 )
 
 const resources = {

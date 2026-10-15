@@ -71,6 +71,32 @@ async function storedFirstPatchName(page: Page) {
   )
 }
 
+test('a first visit meets the welcome, which opens the full guide and closes for good', async ({
+  page,
+}) => {
+  await page.goto('/')
+  // The welcome arrives with its own chunk, so wait for it rather than look once.
+  const welcome = page.getByRole('dialog', { name: 'Welcome to the FM1 editor & librarian' })
+  await expect(welcome).toBeVisible()
+  await expect(
+    welcome.getByText('Edit and organise patches for your M-VAVE FM1, in the browser.'),
+  ).toBeVisible()
+
+  await welcome.getByRole('button', { name: 'Full guide' }).click()
+  const guide = page.getByRole('dialog', { name: 'Guide' })
+  await expect(guide.getByRole('tab', { name: 'Getting started' })).toBeFocused()
+  await guide.getByRole('button', { name: 'Close', exact: true }).click()
+  await expect(guide).toBeHidden()
+
+  // Seen once, it stays closed on the next visit, so the ? button can open the full guide; a
+  // welcome opening itself would cover the button and take its place.
+  await page.reload()
+  await expect(slotButtons(page).first()).toBeVisible()
+  await page.getByRole('button', { name: 'How to use the FM1 editor and librarian' }).click()
+  await expect(page.getByRole('dialog', { name: 'Guide' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: /Welcome/ })).toHaveCount(0)
+})
+
 test('opens the lazy editor and returns to the patch library', async ({ page }) => {
   await openLibrarian(page)
   await openFirstPatch(page)
