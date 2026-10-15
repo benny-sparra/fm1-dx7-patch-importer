@@ -5,7 +5,11 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 
+import { installFakeMidi } from '../e2e/fake-midi.ts'
+
 const maximumCls = 0.1
+// What connecting MIDI by itself may shift: nothing, beyond the page's own rounding.
+const maximumAutoConnectCls = 0.001
 const startupTimeoutMs = 20_000
 
 function findChrome() {
@@ -317,11 +321,62 @@ async function main() {
       throw new Error(`Changing colourway requested an inactive colourway image.`)
     }
 
+    // A returning visitor whose MIDI connects by itself: the page reserves what the connection and
+    // the FM1's firmware badge will fill, so neither moves the content below the header.
+    await installFakeMidi({
+      addInitScript: (script, argument) => {
+        if (typeof script !== 'function')
+          throw new Error('The fake MIDI script must be a function.')
+        return connection.send('Page.addScriptToEvaluateOnNewDocument', {
+          source: `(${script.toString()})(${JSON.stringify(argument)})`,
+        })
+      },
+    })
+    await connection.send('Page.addScriptToEvaluateOnNewDocument', {
+      source: `localStorage.setItem('fm1-midi-auto-connect', 'true')`,
+    })
+    await connection.send('Page.navigate', { url })
+    await waitFor(async () => {
+      const state = await connection.send('Runtime.evaluate', {
+        expression: 'document.readyState',
+        returnByValue: true,
+      })
+      return state.result.value === 'complete'
+    }, 'the page load with MIDI connecting by itself')
+    const autoConnect = await connection.send('Runtime.evaluate', {
+      awaitPromise: true,
+      expression: `
+        (async () => {
+          const deadline = performance.now() + 15000;
+          while (!/firmware, \\w+/.test(document.body.innerText) && performance.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+          }
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          return {
+            ...window.__initialPageCls,
+            identified: /firmware, \\w+/.test(document.body.innerText),
+          };
+        })()
+      `,
+      returnByValue: true,
+    })
+    const autoConnectMeasurement = autoConnect.result.value
+    if (!autoConnectMeasurement.identified) {
+      throw new Error(`MIDI did not connect and identify the fake FM1 at start-up.`)
+    }
+    if (autoConnectMeasurement.value > maximumAutoConnectCls) {
+      throw new Error(
+        `Connecting MIDI at start-up shifted the page by ${autoConnectMeasurement.value.toFixed(4)}, over ${maximumAutoConnectCls}.`,
+      )
+    }
+
     console.log(
       JSON.stringify(
         {
           maximumCls,
           ...measurement,
+          autoConnect: autoConnectMeasurement,
           responsiveImages: {
             desktopHeader: desktopHeader.currentSrc,
             purpleHeader,

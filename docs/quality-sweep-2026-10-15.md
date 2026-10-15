@@ -118,7 +118,7 @@ screenReaderInstructions }}` built from new locale strings naming the slot code 
 
 ### Web vitals
 
-11. **The header moves when MIDI connects by itself (CLS, low to medium).** With
+11. **The header moves when MIDI connects by itself (CLS, low to medium). Done.** With
     `fm1-midi-auto-connect` stored, `useMidi` connects at start-up (`src/hooks/use-midi.ts:378-388`)
     and `MidiFirmwareBadge` (`src/components/midi/midi-controls.tsx:86`) returns `null` until the
     FM1 answers, then adds a 32 px row on phones (`root-layout.tsx:157-160`); the switch's label
@@ -126,6 +126,13 @@ screenReaderInstructions }}` built from new locale strings naming the slot code 
     the firmware is checking, and keep the label's width with the hidden-alternate-text pattern in
     `AGENTS.md`. Add a scenario to `scripts/check-layout-shift.mjs` that installs
     `e2e/fake-midi.ts` and stores auto-connect, then run `npm run test:cls`.
+    Done. The scenario in `scripts/check-layout-shift.mjs` shifted the page by 0.0753 before and
+    by 0 now. `useMidi` reports `isConnecting` from its first render when MIDI is left connected
+    and the browser can connect it (`use-midi.analytics.test.tsx`), `MidiFirmwareBadge` holds its
+    place while MIDI connects or is online and the FM1 is being asked, and `MidiConnectActions`
+    stacks its three labels (`midi-controls.test.tsx`, each state's accessible name). One case
+    still moves: a visitor with MIDI left connected and no FM1 answering sees the held row go
+    away on a phone, as the page used to have no row at all.
 12. **No field data for web vitals. Declined.** Analytics only shows whether the site and its
     features are used, so no performance measurement of real visitors is added. Nothing to do.
 

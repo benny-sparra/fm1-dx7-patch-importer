@@ -562,6 +562,14 @@ open everything an earlier release could have saved.
   `rack-panel` takes its help button as an element (the editor's `RackPanelHelp`) rather than
   importing `HelpPopover`: importing it made Rolldown split the help popover and analytics out of
   the entry and cost 1.35 KiB.
+- Content that arrives after the first paint without a click, as MIDI left connected does, holds its
+  place from the first render. `useMidi` says it is connecting then (`isConnecting`), when the
+  browser can connect it, and `MidiFirmwareBadge` keeps its place, empty, while MIDI connects or
+  online waits for the FM1's answer, so the phone's badge row is there before it fills. A label
+  that changes words with its state, as MIDI's switch does, keeps the width of the longest by
+  stacking every state in one grid cell (`[grid-area:1/1]`) with the others `invisible` and
+  `aria-hidden`; its test reads the accessible name for each state. `npm run test:cls` loads the
+  page with MIDI left connected to the fake FM-1 (`e2e/fake-midi.ts`) and allows it no shift.
 - Panels side by side whose rows must line up, as the Virtual Analog editor's Filter and LFO do,
   share the page grid's rows through `grid-rows-subgrid`. A size container (`@container`) cannot
   be a subgrid, since its containment cuts it off from its parent's tracks, so such a panel is a
