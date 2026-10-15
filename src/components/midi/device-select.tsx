@@ -22,7 +22,7 @@ export function SettingsSelect(props: Omit<ComponentProps<'select'>, 'className'
     <span className="relative">
       <select
         {...props}
-        className="settings-option-select h-8 w-full appearance-none truncate rounded-md border py-0 pr-8 pl-2 text-sm"
+        className="settings-option-select h-8 w-full appearance-none truncate rounded-md border border-input py-0 pr-8 pl-2 text-sm"
       />
       <ChevronDown
         aria-hidden="true"

@@ -7,7 +7,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { makeDemoVoices } from '@/lib/patch-library'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -70,7 +70,7 @@ describe('LibrarianPage patch files that fail to load', () => {
     await chooseFromSlotMenu('Import patch…')
 
     expect(await screen.findByText(unavailable)).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Send ALPHA to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: sendSlotName('ALPHA') })).toBeTruthy()
   })
 
   it('explains a download that cannot start', async () => {

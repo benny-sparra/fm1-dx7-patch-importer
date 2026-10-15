@@ -189,16 +189,23 @@ export function Fm1BankSelectionDialog({
           >
             <span>{t('dialogs.dontShow')}</span>
           </Switch>
+          {/* Not `disabled` while sending, which would drop focus: the button stays where the
+              keyboard is, and a press is ignored. The status tells a screen reader what changed. */}
           <Button
+            aria-disabled={isSending || undefined}
             autoFocus
             className={isSending ? 'barber-pole' : undefined}
-            disabled={isSending}
-            onClick={onSend}
+            onClick={() => {
+              if (!isSending) onSend()
+            }}
             type="button"
           >
             <Send aria-hidden="true" />
             <span>{t(isSending ? 'banks.sending' : 'banks.send')}</span>
           </Button>
+          <span className="sr-only" role="status">
+            {isSending ? t('banks.sending') : ''}
+          </span>
         </DialogFooter>
       )}
     </Dialog>

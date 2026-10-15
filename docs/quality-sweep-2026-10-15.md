@@ -55,7 +55,7 @@ code changes: ask, quoting the options given.
 
 ### Accessibility
 
-1. **Slot names cannot tell two patches apart (WCAG 2.5.3, medium).**
+1. **Slot names cannot tell two patches apart (WCAG 2.5.3, medium). Done.**
    `src/components/patches/patch-button.tsx:170` names each slot with `banks.sendPatch`, and :201
    names its grip with `banks.reorder`; neither includes the slot code (A1…) shown on the card. A
    bank of INIT VOICE patches gives every slot the same name. Add `{{slot}}`, from
@@ -63,58 +63,77 @@ code changes: ask, quoting the options given.
    `_few` and `_many` forms if the string counts. Read **Internationalisation** in `AGENTS.md`.
    Test: a rendered test that two slots holding the same patch have different names, in `en-GB`
    and one other locale; update tests that query the old names.
-2. **dnd-kit reads English to screen readers in every locale (WCAG 3.1.2, medium).**
+   Proved by `patch-button.test.tsx` (two slots holding one patch have different names, in en-GB and German).
+
+2. **dnd-kit reads English to screen readers in every locale (WCAG 3.1.2, medium). Done.**
    `<DndContext>` in `src/components/patches/patch-grid.tsx:232` and
    `src/components/editor/effects-unit.tsx:756` passes no `accessibility` prop, so dnd-kit
    announces "draggable item 3" in English. Pass `accessibility={{ announcements,
 screenReaderInstructions }}` built from new locale strings naming the slot code and patch name,
    or the effect name. Test: a rendered test in a non-English locale that the instructions are
    translated.
-3. **Patch and effect order need a drag (WCAG 2.5.7, medium).** The knobs are done: their
+   Proved by `librarian-page.test.tsx` and `patch-editor-page.test.tsx`, “reads a slot’s / an effect’s drag instructions and announcements in the interface language”. Shared by `src/lib/drag-accessibility.ts`, with the strings under `ui.drag` in every locale.
+
+3. **Patch and effect order need a drag (WCAG 2.5.7, medium). Done.** The knobs are done: their
    readouts take a typed value (decided 15 October 2026). Patch reordering
    (`src/components/patches/patch-button.tsx`) and effect order
    (`src/components/editor/effects-unit.tsx`) are still drag-only. Add **Move earlier** and **Move
    later** to the slot's ⋮ menu and to each effect box's controls, with their strings in every
    locale, each move one undo step. Test: a rendered test that each item moves the patch or effect
    one place and that one undo reverses it.
-4. **The sticky editor header can cover the focused control (WCAG 2.4.11, medium).**
+   Proved by `librarian-page.test.tsx`, “moving a slot from its menu” (one `moveVoice` call a move, focus follows, disabled at the ends, not offered in search results), and `patch-editor-page.test.tsx` (an effect moves from its menu and one Undo takes it back).
+
+4. **The sticky editor header can cover the focused control (WCAG 2.4.11, medium). Done.**
    `src/components/editor/patch-editor-header.tsx:134` is `sticky top-0` and wraps to two rows on
    a phone, and nothing sets `scroll-padding`. Measure the header with a `ResizeObserver` into a
    CSS variable on the editor page and set `scroll-padding-top` from it in `src/index.css`. Test:
    Playwright at 375 px, Shift+Tab up the operator panel, and assert each focused control's top is
    below the header's bottom.
-5. **Help buttons inside labels (WCAG 2.5.8 and 4.1.2, low).** `SliderParameterControl` (:318),
+   Proved by `e2e/editor.e2e.ts`, “sticky header” (fails at control 10 without the fix) and `use-sticky-header-offset.test.tsx`.
+
+5. **Help buttons inside labels (WCAG 2.5.8 and 4.1.2, low). Done.** `SliderParameterControl` (:318),
    `TypedValueControl` (:667) in `parameter-controls.tsx`, `effects-unit.tsx:265,413,552`, and
    `editor-workspace.tsx:404` put `HelpPopover` inside a `<label>`, so clicking the caption opens
    the help. Move the `HelpPopover` beside the label rather than inside it, keeping the visual
    layout, and keep each field's `aria-label`. The help button is 20 px (`size-5`); where it sits
    beside `KnobAssignMenu` (`RotaryParameterControl` :171-178), add `ml-1` so the two targets keep
    24 px apart. Test: clicking a caption does not open a `note`; the field keeps its name.
-6. **Landmarks and a skip link (WCAG 1.3.1 and 2.4.1, low).** `src/routes/root-layout.tsx:102`
+   Proved by `parameter-controls.test.tsx`, “help beside a caption”, and `patch-editor-page.test.tsx`, “opens no help when any caption on the page is clicked”. Covers the slider, number, choice, and typed-value controls, the effects’ rows, Distortion type, preset and Bitcrush rows, Feedback, and the pitch envelope presets.
+
+6. **Landmarks and a skip link (WCAG 1.3.1 and 2.4.1, low). Done.** `src/routes/root-layout.tsx:102`
    wraps the masthead, the view, and the `<footer>` in one `<main>`. Make the masthead a
    `<header>`, `<main>` hold only the view, and `<footer>` a sibling, and add a visually hidden
    **Skip to patch banks** link, shown on focus, as the first focusable element, with its string in
    every locale. Run `npm run test:cls`, since this changes the first screen. Test: the
    accessibility test finds one `banner`, one `main`, one `contentinfo`, and the link moves focus
    into `main`.
-7. **Field borders below 3:1 (WCAG 1.4.11, low).** The `.crt-inset` lower and right edge
+   Proved by `root-layout.test.tsx`, “RootLayout landmarks” (one banner, main, and contentinfo; axe clean; the skip link is first and moves focus into main), and `npm run test:cls` (CLS 0.043). The link reads **Skip to main content** rather than **Skip to patch banks**, since the editor is in `main` too.
+
+7. **Field borders below 3:1 (WCAG 1.4.11, low). Done.** The `.crt-inset` lower and right edge
    (`--crt-line-lt2`) is 2.13–2.75:1 against the panel, and `Select` and `SettingsSelect` borders
    (`--crt-line`) are 1.55–1.98:1 against a dialog body. The patch search field relies on that
    edge alone. Give text inputs the `--crt-acc-dim` border already used by `border-input`, and add
    each pairing, in every colourway, to `src/test/colour-contrast.test.ts`.
-8. **Sending is silent and drops focus (WCAG 4.1.3, low).** In
+   Proved by `colour-contrast.test.ts`, “field edges” and the new pairings in every colourway. Text fields in the rack take `crt-field`; the dialog and settings dropdowns take `border-input`.
+
+8. **Sending is silent and drops focus (WCAG 4.1.3, low). Done.** In
    `src/components/midi/fm1-bank-selection-dialog.tsx:191-198` the Send button becomes `disabled`
    while sending, which drops focus, and **Sending…** is not announced. Use `aria-disabled` with a
    guard in `onSend`. `src/components/midi/midi-panic-button.tsx:34` gives its disabled reason only
    in `title`; add it as `aria-describedby` text. Test: focus stays on the button while sending.
-9. **The piano's drag handle names a `div` (WCAG 4.1.2, low).**
+   Proved by `fm1-bank-selection-dialog.test.tsx` (focus stays on Send while sending, **Sending…** is in a status, a second press is ignored) and `midi-panic-button.test.tsx` (focusable while unavailable, the reason is its description).
+
+9. **The piano's drag handle names a `div` (WCAG 4.1.2, low). Done.**
    `src/components/midi/piano-keyboard-dialog.tsx:468` puts `aria-label={t('ui.dragKeyboard')}` on a
    `div` without a role. Apply the `AGENTS.md` rule: hide the decoration and give the name to
    `sr-only` text, or drop the name if the handle is mouse-only and the dialog moves by keyboard
    another way.
-10. **Reflow at 320 px is not tested (WCAG 1.4.10, low).** `e2e/librarian.e2e.ts:622` starts at
+   Proved by `piano-keyboard.test.tsx`, “gives no name to a header that has no role”. The hint is a `title` on the grip and title, and the grip icon is hidden.
+
+10. **Reflow at 320 px is not tested (WCAG 1.4.10, low). Done.** `e2e/librarian.e2e.ts:622` starts at
     360 px, and `DialogTitle` (`src/components/ui/dialog.tsx:96`) truncates. Add 320 px to the
     widths, let dialog titles wrap, and check German and Ukrainian titles at that width.
+    Proved by `e2e/i18n-layout.e2e.ts`, “reflows the de / uk librarian at 320 px and wraps its dialog titles in full” (fails without the fix), and `dialog.test.tsx`. The 360 px ten-character-name check stays at 360, which `AGENTS.md` sets as the narrowest card.
 
 ### Web vitals
 

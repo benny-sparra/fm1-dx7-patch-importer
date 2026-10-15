@@ -1,4 +1,5 @@
 import { OctagonAlert } from 'lucide-react'
+import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -11,12 +12,15 @@ type MidiPanicButtonProps = {
 
 /**
  * A MIDI panic: releases every note on the note channel, for notes left hanging on the FM1. It
- * shows only an icon, so its name and anything stopping it are in its tooltip. A notification
- * confirms it was sent; the MIDI log records why it could not be.
+ * shows only an icon, so its name and anything stopping it are in its tooltip, and what stops it
+ * is also its description. It stays focusable while it cannot send, since a disabled button takes no
+ * focus and its tooltip and description would never reach the keyboard. A notification confirms it
+ * was sent; the MIDI log records why it could not be.
  */
 export function MidiPanicButton({ midi }: MidiPanicButtonProps) {
   const { t } = useTranslation()
   const toast = useToast()
+  const reasonId = useId()
   const unavailableReason = !midi.midiAccess
     ? t('midi.switchOnFirst')
     : !midi.hasMidiOutput
@@ -24,22 +28,30 @@ export function MidiPanicButton({ midi }: MidiPanicButtonProps) {
       : null
 
   return (
-    <Button
-      aria-label={t('midi.panic')}
-      disabled={!midi.hasMidiOutput}
-      onClick={() => {
-        if (midi.sendMidiPanic()) toast.success(t('toasts.midiPanicSent'))
-      }}
-      size="icon"
-      title={
-        unavailableReason
-          ? t('midi.panicUnavailable', { reason: unavailableReason })
-          : t('midi.panicHelp')
-      }
-      type="button"
-      variant="secondary"
-    >
-      <OctagonAlert aria-hidden="true" />
-    </Button>
+    <>
+      <Button
+        aria-describedby={unavailableReason ? reasonId : undefined}
+        aria-disabled={!midi.hasMidiOutput || undefined}
+        aria-label={t('midi.panic')}
+        onClick={() => {
+          if (midi.hasMidiOutput && midi.sendMidiPanic()) toast.success(t('toasts.midiPanicSent'))
+        }}
+        size="icon"
+        title={
+          unavailableReason
+            ? t('midi.panicUnavailable', { reason: unavailableReason })
+            : t('midi.panicHelp')
+        }
+        type="button"
+        variant="secondary"
+      >
+        <OctagonAlert aria-hidden="true" />
+      </Button>
+      {unavailableReason ? (
+        <span className="sr-only" id={reasonId}>
+          {unavailableReason}
+        </span>
+      ) : null}
+    </>
   )
 }

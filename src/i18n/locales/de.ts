@@ -181,6 +181,7 @@ export default {
       'Für die Firmware von Baud Girl ab FM-1_096 gespeichert: Bitcrush ist an. Dieser FM1 spielt ihn nicht.',
   },
   effectOrder: {
+    menu: 'Aktionen für {{effect}}',
     dragTitle:
       'Ziehen, um zu ändern, an welcher Stelle der Klang diesen Effekt durchläuft, der erste oben links. Mit der Tastatur Leertaste drücken, dann die Pfeiltasten. Die neue Reihenfolge hörst du, sobald der Sound auf den FM1 geschrieben ist.',
     noRecord:
@@ -345,6 +346,16 @@ export default {
     },
   },
   ui: {
+    drag: {
+      cancelled: 'Das Verschieben von {{name}} wurde abgebrochen.',
+      dropped: '{{name}} wurde auf {{target}} abgelegt.',
+      droppedInPlace: '{{name}} wurde an der alten Stelle abgelegt.',
+      instructions:
+        'Um ein Element zu verschieben, fokussiere seinen Griff und drücke Leertaste oder Eingabetaste. Verschiebe es mit den Pfeiltasten und lege es mit Leertaste oder Eingabetaste ab. Mit Escape brichst du ab.',
+      over: '{{name}} befindet sich über {{target}}.',
+      pickedUp: '{{name}} wurde aufgenommen.',
+      roleDescription: 'sortierbares Element',
+    },
     auditionGroup: 'Operator {{number}} vorhören',
     mute: 'Stumm',
     unmute: 'Ton an',
@@ -798,6 +809,7 @@ export default {
     backToLibrary: 'Zurück zur Bibliothek',
   },
   root: {
+    skipToContent: 'Zum Hauptinhalt springen',
     subtitle: 'Editor und Librarian',
     intro:
       'FM1-Sounds bearbeiten, organisieren und übertragen oder <link>DX7-SysEx-Bänke importieren</link>.',
@@ -1157,9 +1169,12 @@ export default {
     slotEditBufferTitle:
       'Klicken, um {{name}} über den Bearbeitungspuffer des FM1 zu spielen; Doppelklick zum Bearbeiten',
     slotEditTitle: 'Doppelklicken oder Eingabetaste drücken, um {{name}} zu bearbeiten',
-    sendPatch: '{{name}} an FM1 senden',
+    sendPatch: '{{slot}} {{name}} an FM1 senden',
     auditioning: 'Vorhören',
     reorder: '{{name}} verschieben',
+    reorderPatch: '{{slot}} {{name}} verschieben',
+    moveEarlier: 'Nach vorn verschieben',
+    moveLater: 'Nach hinten verschieben',
     reorderTitle:
       'Zum Sortieren ziehen, oder auf eine Bank, um den Sound dorthin zu kopieren; bei Fokus mit Pfeiltasten sortieren',
     copySelected: 'Kopieren nach…',

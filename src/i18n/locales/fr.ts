@@ -179,6 +179,7 @@ export default {
       'Conservé pour le firmware de Baud Girl à partir de FM-1_096 : Bitcrush est activé. Ce FM1 ne le joue pas.',
   },
   effectOrder: {
+    menu: 'Actions pour {{effect}}',
     dragTitle:
       'Faites glisser pour changer la place de cet effet dans le trajet du son, le premier en haut à gauche. Au clavier, appuyez sur Espace, puis sur les flèches. Le nouvel ordre s’entend une fois le son écrit sur le FM1.',
     noRecord: 'Ce son ne vient pas du FM1 : il prend l’ordre du preset sur lequel il est écrit.',
@@ -339,6 +340,16 @@ export default {
     },
   },
   ui: {
+    drag: {
+      cancelled: 'Le déplacement de {{name}} a été annulé.',
+      dropped: '{{name}} a été déposé sur {{target}}.',
+      droppedInPlace: '{{name}} a été déposé à sa place.',
+      instructions:
+        'Pour déplacer un élément, placez le focus sur sa poignée et appuyez sur Espace ou Entrée. Déplacez-le avec les flèches, puis appuyez sur Espace ou Entrée pour le déposer, ou sur Échap pour annuler.',
+      over: '{{name}} est au-dessus de {{target}}.',
+      pickedUp: '{{name}} a été saisi.',
+      roleDescription: 'élément triable',
+    },
     auditionGroup: 'Écoute de l’opérateur {{number}}',
     mute: 'Couper',
     unmute: 'Rétablir',
@@ -784,6 +795,7 @@ export default {
     backToLibrary: 'Retour à la bibliothèque',
   },
   root: {
+    skipToContent: 'Aller au contenu principal',
     subtitle: 'éditeur et bibliothécaire',
     intro:
       'Modifiez, organisez et transférez les sons du FM1, ou <link>importez des banques SysEx DX7</link>.',
@@ -1141,9 +1153,12 @@ export default {
     slotEditBufferTitle:
       'Cliquez pour écouter {{name}} via le tampon d’édition du FM1 ; double-cliquez pour le modifier',
     slotEditTitle: 'Double-cliquer ou appuyer sur Entrée pour modifier {{name}}',
-    sendPatch: 'Envoyer {{name}} au FM1',
+    sendPatch: 'Envoyer {{slot}} {{name}} au FM1',
     auditioning: 'Écoute',
     reorder: 'Réorganiser {{name}}',
+    reorderPatch: 'Réorganiser {{slot}} {{name}}',
+    moveEarlier: 'Déplacer avant',
+    moveLater: 'Déplacer après',
     reorderTitle:
       'Faites glisser pour réorganiser, ou sur une banque pour y copier le son ; utilisez les flèches au clavier pour réorganiser',
     copySelected: 'Copier vers…',

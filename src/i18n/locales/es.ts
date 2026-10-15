@@ -179,6 +179,7 @@ export default {
       'Guardado para el firmware de Baud Girl desde FM-1_096: Bitcrush está activado. Este FM1 no lo reproduce.',
   },
   effectOrder: {
+    menu: 'Acciones para {{effect}}',
     dragTitle:
       'Arrastra para cambiar en qué lugar del recorrido del sonido está este efecto, el primero arriba a la izquierda. Con el teclado, pulsa Espacio y luego las flechas. El nuevo orden se oye cuando el sonido se escribe en el FM1.',
     noRecord:
@@ -341,6 +342,16 @@ export default {
     },
   },
   ui: {
+    drag: {
+      cancelled: 'Se canceló el movimiento de {{name}}.',
+      dropped: '{{name}} se soltó sobre {{target}}.',
+      droppedInPlace: '{{name}} se soltó en su sitio.',
+      instructions:
+        'Para mover un elemento, enfoca su asa y pulsa Espacio o Intro. Usa las flechas para moverlo, y pulsa Espacio o Intro para soltarlo, o Escape para cancelar.',
+      over: '{{name}} está sobre {{target}}.',
+      pickedUp: 'Se recogió {{name}}.',
+      roleDescription: 'elemento ordenable',
+    },
     auditionGroup: 'Prueba del operador {{number}}',
     mute: 'Silenciar',
     unmute: 'Activar sonido',
@@ -785,6 +796,7 @@ export default {
     backToLibrary: 'Volver a la biblioteca',
   },
   root: {
+    skipToContent: 'Saltar al contenido principal',
     subtitle: 'editor y bibliotecario',
     intro: 'Edita, organiza y transfiere sonidos del FM1, o <link>importa bancos SysEx DX7</link>.',
     synthAlt: 'Panel frontal del sintetizador M-VAVE FM1',
@@ -1138,9 +1150,12 @@ export default {
     slotEditBufferTitle:
       'Haz clic para escuchar {{name}} a través del búfer de edición del FM1; doble clic para editar',
     slotEditTitle: 'Haz doble clic o pulsa Intro para editar {{name}}',
-    sendPatch: 'Enviar {{name}} al FM1',
+    sendPatch: 'Enviar {{slot}} {{name}} al FM1',
     auditioning: 'Probando',
     reorder: 'Reordenar {{name}}',
+    reorderPatch: 'Reordenar {{slot}} {{name}}',
+    moveEarlier: 'Mover antes',
+    moveLater: 'Mover después',
     reorderTitle:
       'Arrastra para reordenar, o sobre un banco para copiar el sonido allí; usa las flechas para reordenar con el control enfocado',
     copySelected: 'Copiar a…',

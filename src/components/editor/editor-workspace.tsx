@@ -1,6 +1,6 @@
 import { ChevronDown, ClipboardPaste, Copy, RadioTower, Route } from 'lucide-react'
 import type { TFunction } from 'i18next'
-import { memo, type ReactNode, useRef } from 'react'
+import { memo, type ReactNode, useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
@@ -317,6 +317,7 @@ export function AlgorithmPanel({
 }: AlgorithmPanelProps) {
   const { t } = useTranslation()
   const dropdownRef = useRef<HTMLDetailsElement>(null)
+  const feedbackId = useId()
 
   const selectAlgorithm = (index: number) => {
     onAlgorithmChange(index)
@@ -401,10 +402,11 @@ export function AlgorithmPanel({
         </span>
       </div>
 
-      <label className="mt-auto grid min-h-10 grid-cols-[auto_minmax(2rem,1fr)_1.25rem] items-center gap-2 border-t border-[var(--crt-line-dk)] px-[9px] py-1.5">
+      <div className="mt-auto grid min-h-10 grid-cols-[auto_minmax(2rem,1fr)_1.25rem] items-center gap-2 border-t border-[var(--crt-line-dk)] px-[9px] py-1.5">
         <span className="flex items-center gap-1 text-[11px] tracking-[0.14em] text-[var(--crt-ink-3)] uppercase">
           <RadioTower aria-hidden="true" className="size-3 text-[var(--crt-acc)]" />
-          {t('editor.feedback')}
+          {/* The help button sits beside the label: inside it, a click on the caption would open it. */}
+          <label htmlFor={feedbackId}>{t('editor.feedback')}</label>
           <HelpPopover
             className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
             label={t('editor.feedback')}
@@ -414,6 +416,7 @@ export function AlgorithmPanel({
         </span>
         <input
           aria-label={t('editor.feedback')}
+          id={feedbackId}
           className="min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
           max={feedbackMax}
           min={0}
@@ -427,7 +430,7 @@ export function AlgorithmPanel({
         <output className="font-vt323 text-right text-xl leading-none text-[var(--crt-led)]">
           {feedback}
         </output>
-      </label>
+      </div>
     </section>
   )
 }

@@ -22,7 +22,7 @@ import {
   makePatches,
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -136,11 +136,11 @@ describe('LibrarianPage Favourites', () => {
     expect(screen.getByRole('button', { name: 'Favourites' }).getAttribute('aria-pressed')).toBe(
       'true',
     )
-    const first = screen.getByRole('button', { name: `Send ${voices[0].name} to FM1` })
+    const first = screen.getByRole('button', { name: sendSlotName(voices[0].name) })
     const card = first.parentElement as HTMLElement
     expect(within(card).getByText('01')).toBeTruthy()
     expect(within(card).getByText('Keys')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: `Send ${voices[2].name} to FM1` })).toBeNull()
+    expect(screen.queryByRole('button', { name: sendSlotName(voices[2].name) })).toBeNull()
   })
 
   it('offers no file import over a favourite', async () => {

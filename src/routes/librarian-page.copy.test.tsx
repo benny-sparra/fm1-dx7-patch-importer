@@ -7,7 +7,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { reloadPage } from '@/lib/reload-page'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -75,7 +75,7 @@ describe('LibrarianPage copy dialog that fails to load', () => {
         'The copy options could not be opened. Reload the page and try again.',
       ),
     ).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: sendSlotName('Alpha Piano') })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Actions for Alpha Piano' })).toBeTruthy()
   })
 

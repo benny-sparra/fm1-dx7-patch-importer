@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { droppedBank } from './bank-drop'
 import { EngineTag, engineName, type PatchEngine } from './engine-tag'
 import { FavouriteButton } from './favourite-button'
-import { PatchSlotMenu } from './patch-slot-menu'
+import { PatchSlotMenu, type PatchSlotMove } from './patch-slot-menu'
 
 type PatchButtonProps = {
   /** The bank's name, shown under the patch name where the slot appears away from its bank. */
@@ -25,6 +25,8 @@ type PatchButtonProps = {
   isActive?: boolean
   /** Whether Favourites holds this sound, which lights the slot's heart. */
   isFavourite?: boolean
+  /** Moves the slot one place in its bank from its menu, as dragging its grip does. */
+  move?: PatchSlotMove
   /** Offered on a Virtual Analog patch only. */
   onChangeToFm?: (patch: Patch) => void
   onCopy?: (patch: Patch) => void
@@ -59,6 +61,7 @@ export function PatchButton({
   disabledTitle,
   isActive = false,
   isFavourite = false,
+  move,
   onChangeToFm,
   onCopy,
   onDownload,
@@ -108,6 +111,7 @@ export function PatchButton({
           : t('banks.slotTitle', { name: patch.name })
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
+    attributes: { roleDescription: t('ui.drag.roleDescription') },
     // A bank tab reads this to leave a slot's own bank unlit as a drop target.
     data: { bank: patch.bank },
     id: patch.id,
@@ -169,7 +173,7 @@ export function PatchButton({
       {!disabled && (onSelect || onEdit) ? (
         <button
           aria-current={isActive ? 'true' : undefined}
-          aria-label={t('banks.sendPatch', { name: patch.name })}
+          aria-label={t('banks.sendPatch', { name: patch.name, slot: patchSlotCode(patch) })}
           className="absolute inset-0 z-0 cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
           onClick={() => {
             setFlash(true)
@@ -200,7 +204,7 @@ export function PatchButton({
         <button
           {...sortable.attributes}
           {...sortable.listeners}
-          aria-label={t('banks.reorder', { name: patch.name })}
+          aria-label={t('banks.reorderPatch', { name: patch.name, slot: patchSlotCode(patch) })}
           className="z-[1] -my-1 -mr-2 -ml-4 grid size-6 shrink-0 cursor-grab touch-none place-items-center text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] active:cursor-grabbing"
           title={t('banks.reorderTitle')}
           type="button"
@@ -255,6 +259,7 @@ export function PatchButton({
           {/* Above the slot's own button, like the grip, so opening it does not also play the slot. */}
           {editSlot || onCopy ? (
             <PatchSlotMenu
+              move={canReorder ? move : undefined}
               name={patch.name}
               onChangeToFm={onChangeToFm && isVirtualAnalog ? () => onChangeToFm(patch) : undefined}
               onCopy={onCopy && (() => onCopy(patch))}

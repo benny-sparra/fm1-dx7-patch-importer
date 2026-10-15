@@ -7,6 +7,16 @@ import type { LibrarianPage } from '@/routes/librarian-page'
 type Library = ComponentProps<typeof LibrarianPage>['library']
 type Midi = ComponentProps<typeof LibrarianPage>['midi']
 
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** A patch slot's accessible name: it names the slot code the card shows, then the patch. */
+export const sendSlotName = (name: string) =>
+  new RegExp(`^Send [A-Z]?\\d+ ${escapeRegExp(name)} to FM1$`)
+
+/** The name of a patch slot's drag grip. */
+export const reorderSlotName = (name: string) =>
+  new RegExp(`^Reorder [A-Z]?\\d+ ${escapeRegExp(name)}$`)
+
 /**
  * A stand-in for the patch library the librarian page reads: an empty workspace whose actions are
  * mocks. A test overrides what it relies on. When the page starts reading another member, it has

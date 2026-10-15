@@ -220,6 +220,9 @@
 
   html {
     background: var(--color-background);
+    /* The open editor's sticky header sets this (use-sticky-header-offset), so a control that takes
+       focus scrolls into view below it. Nothing sets it in the librarian. */
+    scroll-padding-top: var(--sticky-header-height, 0px);
     scrollbar-width: none;
   }
 
@@ -345,6 +348,15 @@
     border-bottom: 1px solid var(--crt-line-lt2);
   }
 
+  /*
+   * A text field's or dropdown's edge. It is all that marks where the field is, so it takes the
+   * accent's dim tone, 3:1 or better on every surface a field sits on (1.4.11, checked in
+   * colour-contrast.test.ts), where the sunken well's lower and right edges fall short.
+   */
+  .crt-field {
+    border: 1px solid var(--crt-acc-dim);
+  }
+
   .crt-hatch {
     background-image: repeating-linear-gradient(
       90deg,
@@ -466,6 +478,12 @@
 
   .settings-option-select {
     background-color: var(--crt-bg-well);
+  }
+
+  /* A button left focusable while it cannot act, such as Send while sending, looks as disabled does. */
+  button[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 
   .raised-surface {
@@ -1308,7 +1326,7 @@
    * phosphor colours over it for a moment (`degauss`), as a CRT's degauss
    * button did, while the new finish takes over underneath.
    */
-  main[data-degauss] {
+  .synthwave-shell[data-degauss] {
     animation: degauss-wobble 700ms linear;
   }
 
@@ -1372,7 +1390,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    main[data-degauss] {
+    .synthwave-shell[data-degauss] {
       animation: none;
     }
 

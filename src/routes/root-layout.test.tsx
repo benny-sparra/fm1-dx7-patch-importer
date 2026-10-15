@@ -9,6 +9,7 @@ import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { makeLogEntry } from '@/lib/midi'
 import { MidiLogStore } from '@/lib/midi-log-store'
+import { expectNoAxeViolations } from '@/test/accessibility'
 
 import { RootLayout } from './root-layout'
 
@@ -320,15 +321,62 @@ describe('RootLayout hardware photo screen', () => {
   })
 })
 
-describe('RootLayout degauss', () => {
+describe('RootLayout landmarks', () => {
+  afterEach(() => setLocale('en-GB'))
+
   function renderLayout() {
-    render(
+    return render(
       <RootLayout midi={midi}>
         <div>Library</div>
       </RootLayout>,
       { wrapper: ToastProvider },
     )
-    return screen.getByRole('main')
+  }
+
+  it('has one banner, one main holding only the view, and one contentinfo', async () => {
+    const { container } = renderLayout()
+
+    const banner = screen.getByRole('banner')
+    const main = screen.getByRole('main')
+    const footer = screen.getByRole('contentinfo')
+    expect(banner.querySelector('h1')).toBeTruthy()
+    expect(main.textContent).toBe('Library')
+    expect(banner.contains(main) || main.contains(footer) || main.contains(banner)).toBe(false)
+    await expectNoAxeViolations(container)
+  })
+
+  it('offers a skip link first, which moves focus into main without changing the address', async () => {
+    const user = userEvent.setup()
+    renderLayout()
+
+    await user.tab()
+    const skip = screen.getByRole('link', { name: 'Skip to main content' })
+    expect(document.activeElement).toBe(skip)
+    await user.keyboard('[Enter]')
+
+    expect(document.activeElement).toBe(screen.getByRole('main'))
+    expect(window.location.hash).toBe('')
+  })
+
+  it('words the skip link in the interface language', async () => {
+    await setLocale('de')
+
+    renderLayout()
+
+    expect(screen.getByRole('link', { name: 'Zum Hauptinhalt springen' })).toBeTruthy()
+  })
+})
+
+describe('RootLayout degauss', () => {
+  function renderLayout() {
+    const { container } = render(
+      <RootLayout midi={midi}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+    // The page itself, which holds the banner, the main view, and the footer.
+    return container.querySelector<HTMLElement>('.synthwave-shell')!
   }
 
   it('leaves the page still as it opens in the stored finish', () => {

@@ -24,6 +24,11 @@ export default {
     minimisePanel: 'Minimize {{panel}}',
     randomise: 'Randomize',
   },
+  ui: {
+    drag: {
+      cancelled: 'Dragging {{name}} was canceled.',
+    },
+  },
   fm1VaSend: {
     favouritesShort: 'Favorites holds one patch, so the FM1 bank’s other presets stay as they are.',
     favouritesShort_other:

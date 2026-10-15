@@ -20,7 +20,7 @@ import {
   capturedVirtualAnalogRecord,
   virtualAnalogVoiceBeyondDx7Ranges,
 } from '@/test/fm1-va-virtual-analog'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -96,7 +96,7 @@ function renderPage(firmware: Fm1Firmware = mvave) {
   return { library, midi, user: userEvent.setup() }
 }
 
-const virtualAnalogSlot = () => screen.getByRole('button', { name: 'Send VOICE 97 to FM1' })
+const virtualAnalogSlot = () => screen.getByRole('button', { name: sendSlotName('VOICE 97') })
 
 describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', () => {
   it('marks the slot as a Virtual Analog preset', () => {
@@ -197,7 +197,7 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
 const baudGirl: Fm1Firmware = { identity: 'FM-1_093', kind: 'fm1-va' }
 /** The card of the slot whose play button is named for `name`. */
 const cardOf = (name: string) =>
-  screen.getByRole('button', { name: `Send ${name} to FM1` }).parentElement as HTMLElement
+  screen.getByRole('button', { name: sendSlotName(name) }).parentElement as HTMLElement
 
 /** The letters of the engine tag between a card's slot code and name, if it shows one. */
 const engineTagOf = (name: string) =>
@@ -216,7 +216,7 @@ describe('LibrarianPage engine marks', () => {
   it('names each patch’s engine above what clicking it does, in its tooltip', () => {
     renderPage(baudGirl)
 
-    expect(screen.getByRole('button', { name: 'Send E.PIANO1 to FM1' }).title).toBe(
+    expect(screen.getByRole('button', { name: sendSlotName('E.PIANO1') }).title).toBe(
       'FM patch\nClick to play E.PIANO1 on the FM1; double-click to edit',
     )
     expect(virtualAnalogSlot().title).toBe(
@@ -228,15 +228,15 @@ describe('LibrarianPage engine marks', () => {
     await setLocale('de')
     renderPage(baudGirl)
 
-    expect(screen.getByRole('button', { name: 'E.PIANO1 an FM1 senden' }).title).toMatch(
-      /^FM-Sound\n/,
-    )
+    expect(
+      screen.getByRole('button', { name: /^[A-Z]?\d+ E\.PIANO1 an FM1 senden$/ }).title,
+    ).toMatch(/^FM-Sound\n/)
   })
 
   it('leaves the engine out of an FM patch’s tooltip on other firmware', () => {
     renderPage()
 
-    expect(screen.getByRole('button', { name: 'Send E.PIANO1 to FM1' }).title).toBe(
+    expect(screen.getByRole('button', { name: sendSlotName('E.PIANO1') }).title).toBe(
       'Click to play E.PIANO1 on the FM1; double-click to edit',
     )
   })

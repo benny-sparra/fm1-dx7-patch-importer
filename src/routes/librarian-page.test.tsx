@@ -9,7 +9,12 @@ import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { useLibrarianView } from '@/hooks/use-librarian-view'
 import { makeDemoVoices } from '@/lib/patch-library'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import {
+  makeLibrarianLibrary,
+  makeLibrarianMidi,
+  reorderSlotName,
+  sendSlotName,
+} from '@/test/librarian-fakes'
 import { translatePageText } from '@/test/page-translator'
 
 import { LibrarianPage } from './librarian-page'
@@ -100,14 +105,14 @@ describe('LibrarianPage bank selection', () => {
     renderLibrarianPage()
 
     expect(screen.getByText('A01')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Send Beta Bass to FM1' })).toBeNull()
+    expect(screen.getByRole('button', { name: sendSlotName('Alpha Piano') })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: sendSlotName('Beta Bass') })).toBeNull()
 
     await user.click(screen.getByRole('button', { name: 'B — Electric Keys' }))
 
     expect(screen.getByText('B01')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
+    expect(screen.getByRole('button', { name: sendSlotName('Beta Bass') })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: sendSlotName('Alpha Piano') })).toBeNull()
 
     await user.type(screen.getByPlaceholderText('Search'), 'no match')
     expect(await screen.findByText('No patches match this search')).toBeTruthy()
@@ -121,11 +126,11 @@ describe('LibrarianPage slot actions', () => {
     const onSelectPatch = vi.fn()
     renderLibrarianPage({ onEditPatch, onSelectPatch })
 
-    await user.click(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }))
+    await user.click(screen.getByRole('button', { name: sendSlotName('Alpha Piano') }))
     expect(onSelectPatch).toHaveBeenCalledWith(library.patches[0])
     expect(onEditPatch).not.toHaveBeenCalled()
 
-    await user.dblClick(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }))
+    await user.dblClick(screen.getByRole('button', { name: sendSlotName('Alpha Piano') }))
     expect(onEditPatch).toHaveBeenCalledWith(library.patches[0])
 
     onEditPatch.mockClear()
@@ -394,7 +399,7 @@ describe('LibrarianPage keyboard shortcuts', () => {
     const { search } = renderLibrarian()
 
     await user.type(search, 'Alpha')
-    await user.click(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }))
+    await user.click(screen.getByRole('button', { name: sendSlotName('Alpha Piano') }))
     await user.keyboard('{Escape}')
 
     expect((search as HTMLInputElement).value).toBe('')
@@ -404,7 +409,7 @@ describe('LibrarianPage keyboard shortcuts', () => {
     const user = userEvent.setup()
     const { onEditPatch } = renderLibrarian({ activePatchId: 'bank-A-1' })
 
-    screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }).focus()
+    screen.getByRole('button', { name: sendSlotName('Alpha Piano') }).focus()
     await user.keyboard('{Enter}')
 
     expect(onEditPatch).toHaveBeenCalledWith(library.patches[0])
@@ -414,10 +419,88 @@ describe('LibrarianPage keyboard shortcuts', () => {
     const user = userEvent.setup()
     const { onEditPatch } = renderLibrarian()
 
-    screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }).focus()
+    screen.getByRole('button', { name: sendSlotName('Alpha Piano') }).focus()
     await user.keyboard('{Enter}')
 
     expect(onEditPatch).not.toHaveBeenCalled()
+  })
+})
+
+describe('LibrarianPage moving a slot from its menu', () => {
+  const dx7Patches = Array.from({ length: 3 }, (_, index) => ({
+    bank: 'A',
+    family: 'DX7',
+    id: `bank-A-${index + 1}`,
+    name: `Slot ${index + 1}`,
+    number: index + 1,
+    program: index,
+  }))
+
+  function renderSlots() {
+    const moveVoice = vi.fn()
+    renderLibrarianPage({ library: { ...library, moveVoice, patches: dx7Patches } })
+
+    return { moveVoice, user: userEvent.setup() }
+  }
+
+  const openMenu = (user: ReturnType<typeof userEvent.setup>, name: string, label: string) =>
+    user.click(screen.getByRole('button', { name: `${label} ${name}` }))
+
+  it('moves a slot one place later in one change, and focuses it where it landed', async () => {
+    const { moveVoice, user } = renderSlots()
+
+    await openMenu(user, 'Slot 2', 'Actions for')
+    await user.click(screen.getByRole('menuitem', { name: 'Move later' }))
+
+    expect(moveVoice).toHaveBeenCalledExactlyOnceWith('A', 2, 3)
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: sendSlotName('Slot 3') }),
+    )
+  })
+
+  it('moves a slot one place earlier', async () => {
+    const { moveVoice, user } = renderSlots()
+
+    await openMenu(user, 'Slot 2', 'Actions for')
+    await user.click(screen.getByRole('menuitem', { name: 'Move earlier' }))
+
+    expect(moveVoice).toHaveBeenCalledExactlyOnceWith('A', 2, 1)
+  })
+
+  it('cannot move the first slot earlier or the last slot later', async () => {
+    const { user } = renderSlots()
+
+    await openMenu(user, 'Slot 1', 'Actions for')
+    expect(screen.getByRole('menuitem', { name: 'Move earlier' }).hasAttribute('disabled')).toBe(
+      true,
+    )
+    expect(screen.getByRole('menuitem', { name: 'Move later' }).hasAttribute('disabled')).toBe(
+      false,
+    )
+    await user.keyboard('[Escape]')
+    await openMenu(user, 'Slot 3', 'Actions for')
+
+    expect(screen.getByRole('menuitem', { name: 'Move later' }).hasAttribute('disabled')).toBe(true)
+  })
+
+  it('offers no move while a search shows slots away from their banks', async () => {
+    const { user } = renderSlots()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'slot')
+    await openMenu(user, 'Slot 2', 'Actions for')
+
+    expect(screen.queryByRole('menuitem', { name: 'Move later' })).toBeNull()
+  })
+
+  it('words the items in the interface language', async () => {
+    await setLocale('de')
+    const { user } = renderSlots()
+
+    await openMenu(user, 'Slot 2', 'Aktionen für')
+
+    expect(screen.getByRole('menuitem', { name: 'Nach vorn verschieben' })).toBeTruthy()
+    expect(screen.getByRole('menuitem', { name: 'Nach hinten verschieben' })).toBeTruthy()
+    await setLocale('en-GB')
   })
 })
 
@@ -449,14 +532,14 @@ describe('LibrarianPage grid navigation', () => {
   }
 
   const slot = (number: number) =>
-    screen.getByRole('button', { name: `Send Slot ${number} to FM1` })
+    screen.getByRole('button', { name: sendSlotName(`Slot ${number}`) })
 
   /** jsdom does no layout, so the row geometry has to be supplied. */
   function layOutInColumns(columns: number) {
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: HTMLElement,
     ) {
-      const match = this.getAttribute('aria-label')?.match(/Send Slot (\d+) to FM1/)
+      const match = this.getAttribute('aria-label')?.match(/Send \S+ Slot (\d+) to FM1/)
       const row = match ? Math.floor((Number(match[1]) - 1) / columns) : 0
 
       return { top: row * 40 } as DOMRect
@@ -567,10 +650,10 @@ describe('LibrarianPage slot tooltips', () => {
     renderLibrarianPage({ library: slotLibrary })
 
     expect(
-      screen.getByRole('button', { name: 'Send Hardware Keys to FM1' }).getAttribute('title'),
+      screen.getByRole('button', { name: sendSlotName('Hardware Keys') }).getAttribute('title'),
     ).toBe('Click to play Hardware Keys on the FM1; double-click to edit')
     expect(
-      screen.getByRole('button', { name: 'Send Added Pad to FM1' }).getAttribute('title'),
+      screen.getByRole('button', { name: sendSlotName('Added Pad') }).getAttribute('title'),
     ).toBe('Click to play Added Pad through the FM1 edit buffer; double-click to edit')
   })
 })
@@ -582,7 +665,7 @@ describe('LibrarianPage search', () => {
 
     await user.type(screen.getByPlaceholderText('Search'), 'a01')
 
-    expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: sendSlotName('Alpha Piano') })).toBeTruthy()
   })
 
   function renderLibrarian(
@@ -606,8 +689,8 @@ describe('LibrarianPage search', () => {
 
     await user.type(screen.getByPlaceholderText('Search'), 'bass')
 
-    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
+    expect(screen.getByRole('button', { name: sendSlotName('Beta Bass') })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: sendSlotName('Alpha Piano') })).toBeNull()
   })
 
   it('lists matches from every bank in bank order', async () => {
@@ -617,8 +700,8 @@ describe('LibrarianPage search', () => {
 
     const results = screen.getAllByRole('button', { name: /^Send .* to FM1$/ })
     expect(results.map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Send Alpha Piano to FM1',
-      'Send Beta Bass to FM1',
+      'Send A01 Alpha Piano to FM1',
+      'Send B01 Beta Bass to FM1',
     ])
   })
 
@@ -627,11 +710,11 @@ describe('LibrarianPage search', () => {
     const user = renderLibrarian({ onSelectPatch })
 
     await user.type(screen.getByPlaceholderText('Search'), 'bass')
-    await user.click(screen.getByRole('button', { name: 'Send Beta Bass to FM1' }))
+    await user.click(screen.getByRole('button', { name: sendSlotName('Beta Bass') }))
 
     expect(onSelectPatch).toHaveBeenCalledExactlyOnceWith(library.patches[1])
     expect((screen.getByPlaceholderText('Search') as HTMLInputElement).value).toBe('bass')
-    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: sendSlotName('Beta Bass') })).toBeTruthy()
   })
 
   it('leaves out banks that have nothing loaded', async () => {
@@ -639,7 +722,7 @@ describe('LibrarianPage search', () => {
 
     await user.type(screen.getByPlaceholderText('Search'), 'beta')
 
-    expect(screen.queryByRole('button', { name: 'Send Beta Bass to FM1' })).toBeNull()
+    expect(screen.queryByRole('button', { name: sendSlotName('Beta Bass') })).toBeNull()
     expect(await screen.findByText('No patches match this search')).toBeTruthy()
   })
 
@@ -648,7 +731,7 @@ describe('LibrarianPage search', () => {
 
     await user.type(screen.getByPlaceholderText('Search'), 'bass')
 
-    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: sendSlotName('Beta Bass') })).toBeTruthy()
   })
 
   it('disables the search when no bank has anything loaded', () => {
@@ -671,7 +754,7 @@ describe('LibrarianPage search', () => {
 
     await user.type(screen.getByPlaceholderText('Search'), 'beta')
 
-    const slot = screen.getByRole('button', { name: 'Send Beta Bass to FM1' }).parentElement
+    const slot = screen.getByRole('button', { name: sendSlotName('Beta Bass') }).parentElement
     expect(slot?.textContent).toContain('Electric Keys')
   })
 
@@ -681,7 +764,7 @@ describe('LibrarianPage search', () => {
     await user.type(screen.getByPlaceholderText('Search'), 'alpha')
     await user.clear(screen.getByPlaceholderText('Search'))
 
-    const slot = screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }).parentElement
+    const slot = screen.getByRole('button', { name: sendSlotName('Alpha Piano') }).parentElement
     expect(slot?.textContent).not.toContain('Studio Favourites')
   })
 
@@ -692,7 +775,7 @@ describe('LibrarianPage search', () => {
     translatePageText(document.body)
     await user.clear(screen.getByPlaceholderText('Search'))
 
-    const slot = screen.getByRole('button', { name: 'Send Alpha Piano to FM1' }).parentElement
+    const slot = screen.getByRole('button', { name: sendSlotName('Alpha Piano') }).parentElement
     expect(slot?.textContent).toContain('Alpha Piano')
     expect(slot?.textContent).not.toContain('Studio Favourites')
   })
@@ -783,13 +866,13 @@ describe('LibrarianPage search', () => {
     const user = renderLibrarian()
 
     await user.type(screen.getByPlaceholderText('Search'), 'bass')
-    await user.click(screen.getByRole('button', { name: 'Send Beta Bass to FM1' }))
+    await user.click(screen.getByRole('button', { name: sendSlotName('Beta Bass') }))
     await user.clear(screen.getByPlaceholderText('Search'))
 
     expect(
       screen.getByRole('button', { name: 'B — Electric Keys' }).getAttribute('aria-pressed'),
     ).toBe('true')
-    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: sendSlotName('Beta Bass') })).toBeTruthy()
   })
 
   // Only a slot holding a DX7 voice has a grip to drag.
@@ -801,10 +884,10 @@ describe('LibrarianPage search', () => {
   it('offers no reordering while showing search results', async () => {
     const user = renderLibrarian({ library: voicedLibrary })
 
-    expect(screen.getByRole('button', { name: 'Reorder Alpha Piano' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: reorderSlotName('Alpha Piano') })).toBeTruthy()
     await user.type(screen.getByPlaceholderText('Search'), 'a')
 
-    expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: sendSlotName('Alpha Piano') })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Reorder / })).toBeNull()
   })
 
@@ -814,7 +897,27 @@ describe('LibrarianPage search', () => {
     await user.type(screen.getByPlaceholderText('Search'), 'alpha')
     await user.clear(screen.getByPlaceholderText('Search'))
 
-    expect(screen.getByRole('button', { name: 'Reorder Alpha Piano' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: reorderSlotName('Alpha Piano') })).toBeTruthy()
+  })
+
+  it('reads a slot’s drag instructions and announcements in the interface language', async () => {
+    await setLocale('de')
+    const user = renderLibrarian({ library: voicedLibrary })
+    const grip = screen.getByRole('button', { name: /^A01 Alpha Piano verschieben$/ })
+
+    expect(grip.getAttribute('aria-roledescription')).toBe('sortierbares Element')
+    expect(
+      document.getElementById(grip.getAttribute('aria-describedby') ?? '')?.textContent,
+    ).toMatch(/^Um ein Element zu verschieben/)
+    grip.focus()
+    await user.keyboard('[Space]')
+
+    expect(await screen.findByText('A01 Alpha Piano wurde aufgenommen.')).toBeTruthy()
+    await user.keyboard('[Escape]')
+    expect(
+      await screen.findByText('Das Verschieben von A01 Alpha Piano wurde abgebrochen.'),
+    ).toBeTruthy()
+    await setLocale('en-GB')
   })
 
   it('keeps the search results after the page is replaced and shown again', async () => {
@@ -849,7 +952,7 @@ describe('LibrarianPage search', () => {
     await user.click(screen.getByRole('button', { name: 'Toggle editor' }))
 
     expect((screen.getByPlaceholderText('Search') as HTMLInputElement).value).toBe('bass')
-    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: sendSlotName('Beta Bass') })).toBeTruthy()
   })
 
   it('clears the search when a bank is chosen', async () => {
@@ -859,8 +962,8 @@ describe('LibrarianPage search', () => {
     await user.click(screen.getByRole('button', { name: 'B — Electric Keys' }))
 
     expect((screen.getByPlaceholderText('Search') as HTMLInputElement).value).toBe('')
-    expect(screen.getByRole('button', { name: 'Send Beta Bass to FM1' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeNull()
+    expect(screen.getByRole('button', { name: sendSlotName('Beta Bass') })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: sendSlotName('Alpha Piano') })).toBeNull()
     expect(
       screen.getByRole('button', { name: 'B — Electric Keys' }).getAttribute('aria-pressed'),
     ).toBe('true')

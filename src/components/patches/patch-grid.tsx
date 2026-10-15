@@ -30,7 +30,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { HelpPopover } from '@/components/ui/help-popover'
 import type { Patch } from '@/data/patches'
 import type { ChangedSlots } from '@/hooks/use-changed-slots'
+import { makeDragAccessibility } from '@/lib/drag-accessibility'
 import { formatShortcut, isApplePlatform, librarianShortcuts } from '@/lib/keyboard-shortcuts'
+import { patchSlotCode } from '@/lib/patch-library'
 import { resolveGridKey } from '@/lib/patch-grid-navigation'
 import { cn } from '@/lib/utils'
 
@@ -139,6 +141,9 @@ export function PatchGrid({
   const slotRefs = useRef(new Map<string, HTMLButtonElement>())
   const [focusedPatchId, setFocusedPatchId] = useState('')
   const [draggedId, setDraggedId] = useState<UniqueIdentifier | null>(null)
+  // The slot a menu move landed on, which takes focus once the grid shows the move. Each move is
+  // a new object, so moving again asks again.
+  const [movedTo, setMovedTo] = useState<{ patchId: string } | null>(null)
   // The grid is a single tab stop. It opens on the lit slot so Tab lands where
   // the user last was, and follows the arrows from there.
   const rovingPatchId = [focusedPatchId, activePatchId].find((candidate) =>
@@ -156,6 +161,19 @@ export function PatchGrid({
   useEffect(() => {
     if (focusRequest) slotRefs.current.get(focusRequest.patchId)?.focus()
   }, [focusRequest])
+
+  useEffect(() => {
+    if (movedTo) slotRefs.current.get(movedTo.patchId)?.focus()
+  }, [movedTo])
+
+  // Slot ids are places, so the moved patch is now at the target's id.
+  const moveSlot = (patch: Patch, offset: -1 | 1) => {
+    const target = patches[patches.findIndex(({ id }) => id === patch.id) + offset]
+    if (!target || target.bank !== patch.bank) return
+    onPatchMove(patch, target)
+    setFocusedPatchId(target.id)
+    setMovedTo({ patchId: target.id })
+  }
 
   const navigateSlots = (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => {
     // A disabled slot renders no button, so the order comes from what is there.
@@ -178,6 +196,14 @@ export function PatchGrid({
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
+
+  // A slot is read as its code and name, and a bank tab it is dragged over as the bank.
+  const dragAccessibility = makeDragAccessibility(t, (id) => {
+    const bank = droppedBank(id)
+    if (bank !== undefined) return bankLabel(bank)
+    const patch = patches.find((candidate) => candidate.id === id)
+    return patch ? `${patchSlotCode(patch)} ${patch.name}` : undefined
+  })
 
   const finishDrag = ({ active, over }: DragEndEvent) => {
     setDraggedId(null)
@@ -210,7 +236,7 @@ export function PatchGrid({
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
             <input
               aria-label={t('banks.search')}
-              className="patch-search-input crt-inset h-7 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="patch-search-input crt-field h-7 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
               disabled={searchDisabled}
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => {
@@ -232,6 +258,7 @@ export function PatchGrid({
       </CardHeader>
       {/* The bank rail shares the grid's drag context, so a slot can be dropped on a bank's tab. */}
       <DndContext
+        accessibility={dragAccessibility}
         collisionDetection={patchDragCollision}
         onDragCancel={() => setDraggedId(null)}
         onDragEnd={finishDrag}
@@ -275,7 +302,7 @@ export function PatchGrid({
                     strategy={rectSortingStrategy}
                   >
                     <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
-                      {patches.map((patch) => (
+                      {patches.map((patch, index) => (
                         <div className="h-full w-full" key={patch.id}>
                           <PatchButton
                             changeGlow={
@@ -297,6 +324,11 @@ export function PatchGrid({
                             onSelect={onPatchSelect}
                             onToggleFavourite={onPatchToggleFavourite}
                             isFavourite={isFavourite(patch)}
+                            move={{
+                              canMoveEarlier: patches[index - 1]?.bank === patch.bank,
+                              canMoveLater: patches[index + 1]?.bank === patch.bank,
+                              onMove: (offset) => moveSlot(patch, offset),
+                            }}
                             patch={patch}
                             reorderable={reorderable}
                             isActive={patch.id === activePatchId}

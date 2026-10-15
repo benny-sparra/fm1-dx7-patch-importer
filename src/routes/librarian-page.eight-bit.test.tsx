@@ -17,7 +17,7 @@ import {
   makePatches,
 } from '@/lib/patch-library'
 import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -93,9 +93,9 @@ function renderPageWith(snapshot: ReturnType<typeof workspace>, firmware: Fm1Fir
   return { library, midi, onEditPatch, user: userEvent.setup() }
 }
 
-const eightBitSlot = () => screen.getByRole('button', { name: 'Send NES ROCK to FM1' })
+const eightBitSlot = () => screen.getByRole('button', { name: sendSlotName('NES ROCK') })
 const cardOf = (name: string) =>
-  screen.getByRole('button', { name: `Send ${name} to FM1` }).parentElement as HTMLElement
+  screen.getByRole('button', { name: sendSlotName(name) }).parentElement as HTMLElement
 const engineTagOf = (name: string) =>
   cardOf(name).querySelector(':scope > [aria-hidden="true"][translate="no"]')?.textContent
 
@@ -119,7 +119,7 @@ describe('LibrarianPage with an 8-Bit preset', () => {
     await setLocale('de')
     renderPage(baudGirl)
 
-    expect(screen.getByRole('button', { name: 'NES ROCK an FM1 senden' }).title).toBe(
+    expect(screen.getByRole('button', { name: /^[A-Z]?\d+ NES ROCK an FM1 senden$/ }).title).toBe(
       '8-Bit-Preset\nKlicken, um NES ROCK auf dem FM1 auszuwählen; er spielt das dort gespeicherte 8-Bit-Preset',
     )
   })

@@ -1668,6 +1668,91 @@ describe('PatchEditorPage effect order on Baud Girl’s FM-1_096', () => {
     expect([record[27], record[30]]).toEqual([0, 1])
   })
 
+  it('reads an effect’s drag instructions and announcements in the interface language', async () => {
+    await setLocale('de')
+    layOutEffectBoxes()
+    const { user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+    const grip = screen.getByRole('button', { name: 'Filter verschieben' })
+
+    expect(grip.getAttribute('aria-roledescription')).toBe('sortierbares Element')
+    expect(
+      document.getElementById(grip.getAttribute('aria-describedby') ?? '')?.textContent,
+    ).toMatch(/^Um ein Element zu verschieben/)
+    grip.focus()
+    await user.keyboard('[Space]')
+
+    expect(await screen.findByText('Filter wurde aufgenommen.')).toBeTruthy()
+    await user.keyboard('[ArrowLeft]')
+    expect(await screen.findByText('Filter befindet sich über Hall.')).toBeTruthy()
+    await user.keyboard('[Space]')
+    expect(await screen.findByText('Filter wurde auf Hall abgelegt.')).toBeTruthy()
+    await setLocale('en-GB')
+  })
+
+  it('moves an effect one place earlier from its menu, and one undo takes it back', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    await user.click(screen.getByRole('button', { name: 'Actions for Phaser' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Move earlier' }))
+
+    expect(effectOrderNames().slice(-2)).toEqual(['Phaser', 'Chorus'])
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Actions for Phaser' }))
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(effectOrderNames().slice(-2)).toEqual(['Chorus', 'Phaser'])
+  })
+
+  it('moves an effect one place later from its menu, and one undo takes it back', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    await user.click(screen.getByRole('button', { name: 'Actions for Reverb' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Move later' }))
+
+    expect(effectOrderNames().slice(0, 2)).toEqual(['Filter', 'Reverb'])
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(effectOrderNames().slice(0, 2)).toEqual(['Reverb', 'Filter'])
+  })
+
+  it('cannot move the first effect earlier or the last later', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    await user.click(screen.getByRole('button', { name: 'Actions for Reverb' }))
+    expect(screen.getByRole('menuitem', { name: 'Move earlier' }).hasAttribute('disabled')).toBe(
+      true,
+    )
+    await user.keyboard('[Escape]')
+    await user.click(screen.getByRole('button', { name: 'Actions for Phaser' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Move later' }).hasAttribute('disabled')).toBe(true)
+  })
+
+  it('words an effect’s menu in the interface language', async () => {
+    await setLocale('de')
+    const { user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+
+    await user.click(screen.getByRole('button', { name: 'Aktionen für Hall' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Nach vorn verschieben' })).toBeTruthy()
+    expect(screen.getByRole('menuitem', { name: 'Nach hinten verschieben' })).toBeTruthy()
+    await setLocale('en-GB')
+  })
+
+  // A help button inside a label takes the click the label forwards, so clicking a caption opened
+  // its help instead of focusing its field.
+  it('opens no help when any caption on the page is clicked', async () => {
+    const { user } = renderWithRecord(bitcrushFirmware, hardClipRecord)
+    const captions = [...document.querySelectorAll('label')].filter((label) =>
+      label.htmlFor ? document.getElementById(label.htmlFor) : false,
+    )
+
+    expect(document.querySelectorAll('label [aria-controls][aria-expanded]')).toHaveLength(0)
+    // The effects' parameter rows, Distortion type, presets and Bitcrush rows among them.
+    expect(captions.length).toBeGreaterThan(20)
+    for (const caption of captions) {
+      await user.click(caption)
+      expect(screen.queryByRole('note')).toBeNull()
+    }
+  })
+
   it('takes a drag back in one undo', async () => {
     layOutEffectBoxes()
     const { user } = renderWithRecord(bitcrushFirmware, hardClipRecord)

@@ -14,8 +14,8 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { ArrowLeftToLine, ArrowRightToLine, GripVertical } from 'lucide-react'
+import { useId, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
@@ -30,6 +30,7 @@ import {
 } from '@/components/editor/effect-scopes'
 import { RackSelect, rangeInputGestureHandlers } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { PortalMenu } from '@/components/ui/portal-menu'
 import { Switch } from '@/components/ui/switch'
 import {
   bitcrushPresets,
@@ -47,6 +48,7 @@ import {
   fm1VaBitcrushSettings,
   fm1VaDistortionTypes,
 } from '@/lib/fm1-va-record-effects'
+import { makeDragAccessibility } from '@/lib/drag-accessibility'
 import { rangeStyle } from '@/lib/range-style'
 import { cn } from '@/lib/utils'
 
@@ -259,20 +261,23 @@ function EffectPresetControl<Id extends string>({
 }) {
   const { t } = useTranslation()
 
+  const fieldId = useId()
   const translatedEffect = t(`ui.effects.${effectKey}`)
   const label = t('editor.effectPreset')
   return (
-    <label className="mb-1 grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 border-b border-[var(--crt-bevel)] pb-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+    <div className="mb-1 grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 border-b border-[var(--crt-bevel)] pb-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+      {/* The help button sits beside the label: inside it, a click on the caption would open it. */}
       <span className="flex min-w-0 items-center gap-1 overflow-hidden">
-        <span className="min-w-0 truncate" title={label}>
+        <label className="min-w-0 truncate" htmlFor={fieldId} title={label}>
           {label}
-        </span>
+        </label>
         <HelpPopover label={`${translatedEffect} ${label}`} text={t('controlHelp.effectPresets')} />
       </span>
       {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
       <RackSelect
         aria-label={`${translatedEffect} ${label}`}
-        className="crt-inset h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
+        id={fieldId}
+        className="crt-field h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
         disabled={disabled}
         onChange={(event) => onApplyPreset(event.target.value as Id)}
         value=""
@@ -286,7 +291,7 @@ function EffectPresetControl<Id extends string>({
           </option>
         ))}
       </RackSelect>
-    </label>
+    </div>
   )
 }
 
@@ -316,11 +321,12 @@ function EffectControl({
   const helpText = t(`effectParameterHelp.${effectName} ${parameter.label}`)
   const translatedEffect = t(`ui.effects.${effectName.toLowerCase()}`)
   const translatedParameter = t(`ui.parameters.${lowerFirst(parameter.label)}`)
+  const fieldId = useId()
   const caption = (
     <span className="flex min-w-0 items-center gap-1 overflow-hidden">
-      <span className="min-w-0 truncate" title={translatedParameter}>
+      <label className="min-w-0 truncate" htmlFor={fieldId} title={translatedParameter}>
         {translatedParameter}
-      </span>
+      </label>
       {helpText ? (
         <HelpPopover label={`${translatedEffect} ${translatedParameter}`} text={helpText} />
       ) : null}
@@ -329,11 +335,12 @@ function EffectControl({
 
   if (definition.optionIds) {
     return (
-      <label className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+      <div className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
         {caption}
         <RackSelect
           aria-label={`${translatedEffect} ${translatedParameter}`}
-          className="crt-inset h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
+          id={fieldId}
+          className="crt-field h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
           disabled={disabled}
           onChange={(event) => onChange(definition.controller, Number(event.target.value))}
           value={value}
@@ -344,15 +351,16 @@ function EffectControl({
             </option>
           ))}
         </RackSelect>
-      </label>
+      </div>
     )
   }
 
   return (
-    <label className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)_2.5rem] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+    <div className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)_2.5rem] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
       {caption}
       <input
         aria-label={`${translatedEffect} ${translatedParameter}`}
+        id={fieldId}
         className="min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-40"
         disabled={disabled}
         max={definition.max}
@@ -377,7 +385,7 @@ function EffectControl({
         {value}
         {parameter.suffix}
       </output>
-    </label>
+    </div>
   )
 }
 
@@ -408,13 +416,14 @@ function DistortionTypeControl({
   const translatedEffect = t('ui.effects.distortion')
   const translatedParameter = t('ui.parameters.type')
   const known = type === null || type < fm1VaDistortionTypes.length
+  const fieldId = useId()
   return (
     <>
-      <label className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+      <div className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
         <span className="flex min-w-0 items-center gap-1 overflow-hidden">
-          <span className="min-w-0 truncate" title={translatedParameter}>
+          <label className="min-w-0 truncate" htmlFor={fieldId} title={translatedParameter}>
             {translatedParameter}
-          </span>
+          </label>
           <HelpPopover
             label={`${translatedEffect} ${translatedParameter}`}
             text={t('effectParameterHelp.Distortion Type')}
@@ -422,8 +431,9 @@ function DistortionTypeControl({
         </span>
         <RackSelect
           aria-label={`${translatedEffect} ${translatedParameter}`}
-          className="crt-inset h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
+          className="crt-field h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
           disabled={disabled || type === null}
+          id={fieldId}
           onChange={(event) => onChange(Number(event.target.value))}
           value={type ?? 0}
         >
@@ -435,7 +445,7 @@ function DistortionTypeControl({
           {/* A value FM-1+VA may add later is shown and kept until another type is chosen. */}
           {known ? null : <option value={type}>{typeName(type)}</option>}
         </RackSelect>
-      </label>
+      </div>
       {type === null ? (
         <p className="text-[11px] leading-4 text-[var(--crt-ink-3)]">
           {t('distortionType.noRecord')}
@@ -484,6 +494,7 @@ function useBitcrushValueText() {
 */
 function BitcrushSection({
   handle,
+  menu,
   onApplyPreset,
   onChange,
   onGestureEnd,
@@ -491,6 +502,7 @@ function BitcrushSection({
   values,
 }: {
   handle?: ReactNode
+  menu?: ReactNode
   onApplyPreset: (id: BitcrushPresetId) => void
   onChange: (setting: number, value: number, min: number, max: number) => void
   onGestureEnd: () => void
@@ -500,6 +512,7 @@ function BitcrushSection({
   const { t } = useTranslation()
   const valueText = useBitcrushValueText()
   const translatedEffect = t('ui.effects.bitcrush')
+  const fieldIdPrefix = useId()
   const enabled = values !== null && values[0] > 0
   const settingIndex = (id: BitcrushSettingId) =>
     fm1VaBitcrushSettings.findIndex((setting) => setting.id === id)
@@ -525,6 +538,7 @@ function BitcrushSection({
           </Switch>
           <HelpPopover label={translatedEffect} text={t('effectHelp.Bitcrush')} />
         </h3>
+        {menu}
       </div>
       <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
         <BitcrushScope
@@ -549,14 +563,18 @@ function BitcrushSection({
           const translatedParameter = t(`ui.parameters.${label}`)
           const disabled = !enabled
           return (
-            <label
+            <div
               className="grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)_3rem] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase"
               key={id}
             >
               <span className="flex min-w-0 items-center gap-1 overflow-hidden">
-                <span className="min-w-0 truncate" title={translatedParameter}>
+                <label
+                  className="min-w-0 truncate"
+                  htmlFor={`${fieldIdPrefix}-${id}`}
+                  title={translatedParameter}
+                >
                   {translatedParameter}
-                </span>
+                </label>
                 <HelpPopover
                   label={`${translatedEffect} ${translatedParameter}`}
                   text={t(`effectParameterHelp.${help}`)}
@@ -565,6 +583,7 @@ function BitcrushSection({
               <input
                 aria-label={`${translatedEffect} ${translatedParameter}`}
                 aria-valuetext={valueText(id, value)}
+                id={`${fieldIdPrefix}-${id}`}
                 className="min-w-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-40"
                 disabled={disabled}
                 max={max}
@@ -583,7 +602,7 @@ function BitcrushSection({
               >
                 {valueText(id, value)}
               </output>
-            </label>
+            </div>
           )
         })}
       </div>
@@ -609,17 +628,34 @@ const orderEffectKeys = [
 */
 function SortableEffect({
   children,
+  count,
   effect,
+  onMove,
   place,
   sortable,
 }: {
-  children: (handle: ReactNode) => ReactNode
+  children: (handle: ReactNode, menu: ReactNode) => ReactNode
+  /** How many effects there are in the order. */
+  count: number
   effect: number
+  /** Moves the effect one place, as dragging its grip does, for a pointer that cannot drag. */
+  onMove: (offset: -1 | 1) => void
   place: number
   sortable: boolean
 }) {
   const { t } = useTranslation()
+  const box = useRef<HTMLDivElement | null>(null)
+  const movedFromMenu = useRef(false)
+  const effectName = t(`ui.effects.${orderEffectKeys[effect]}`)
+  // Moving the box takes it out of the page and back, which drops focus; the menu was in use, so
+  // its toggle gets it back at the box's new place.
+  useLayoutEffect(() => {
+    if (!movedFromMenu.current) return
+    movedFromMenu.current = false
+    box.current?.querySelector<HTMLButtonElement>('[aria-haspopup="menu"]')?.focus()
+  }, [place])
   const { attributes, isDragging, listeners, setNodeRef, transform, transition } = useSortable({
+    attributes: { roleDescription: t('ui.drag.roleDescription') },
     disabled: !sortable,
     id: effect,
   })
@@ -644,12 +680,42 @@ function SortableEffect({
       </span>
     </>
   ) : null
+  const menu = sortable ? (
+    <PortalMenu
+      items={[
+        {
+          Icon: ArrowLeftToLine,
+          disabled: place === 0,
+          label: t('banks.moveEarlier'),
+          onSelect: () => {
+            movedFromMenu.current = true
+            onMove(-1)
+          },
+        },
+        {
+          Icon: ArrowRightToLine,
+          disabled: place === count - 1,
+          label: t('banks.moveLater'),
+          onSelect: () => {
+            movedFromMenu.current = true
+            onMove(1)
+          },
+        },
+      ]}
+      menuLabel={effectName}
+      triggerClassName="ml-auto -mr-1.5 shrink-0"
+      triggerLabel={t('effectOrder.menu', { effect: effectName })}
+    />
+  ) : null
   return (
     <div
       className="effect-box relative min-w-0"
       // The box being dragged, which marching ants outline, as a dragged patch slot is.
       data-dragging={isDragging || undefined}
-      ref={setNodeRef}
+      ref={(node) => {
+        box.current = node
+        setNodeRef(node)
+      }}
       style={{
         opacity: isDragging ? 0.55 : 1,
         transform: CSS.Transform.toString(transform),
@@ -657,7 +723,7 @@ function SortableEffect({
         zIndex: isDragging ? 10 : undefined,
       }}
     >
-      {children(handle)}
+      {children(handle, menu)}
     </div>
   )
 }
@@ -685,12 +751,16 @@ export function EffectsUnit({
   // always been laid out. Only a patch with a record has an order to change.
   const order = effectOrder ? (effectOrder.order ?? FM1_VA_STOCK_EFFECT_ORDER) : [0, 1, 2, 3, 4, 5]
   const sortable = Boolean(effectOrder?.order)
+  const dragAccessibility = makeDragAccessibility(t, (id) => {
+    const key = orderEffectKeys[Number(id)]
+    return key === undefined ? undefined : t(`ui.effects.${key}`)
+  })
   const finishDrag = ({ active, over }: DragEndEvent) => {
     if (!effectOrder || !over || active.id === over.id) return
     effectOrder.onMove(order.indexOf(Number(active.id)), order.indexOf(Number(over.id)))
   }
 
-  const renderEffect = (effect: EffectDefinition, handle: ReactNode) => {
+  const renderEffect = (effect: EffectDefinition, handle: ReactNode, menu: ReactNode) => {
     const switchController = getEffectParameterDefinition(effect.switchId).controller
     const enabled = values[switchController] > 0
     const translatedEffect = t(`ui.effects.${effect.name.toLowerCase()}`)
@@ -713,6 +783,7 @@ export function EffectsUnit({
             </Switch>
             <HelpPopover label={translatedEffect} text={t(`effectHelp.${effect.name}`)} />
           </h3>
+          {menu}
         </div>
         <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
           <EffectScope enabled={enabled} name={effect.name} values={values} />
@@ -753,15 +824,28 @@ export function EffectsUnit({
 
   return (
     <div className="grid gap-2 p-[9px] md:grid-cols-2 xl:grid-cols-3">
-      <DndContext collisionDetection={closestCenter} onDragEnd={finishDrag} sensors={sensors}>
+      <DndContext
+        accessibility={dragAccessibility}
+        collisionDetection={closestCenter}
+        onDragEnd={finishDrag}
+        sensors={sensors}
+      >
         <SortableContext items={[...order]} strategy={rectSortingStrategy}>
           {order.map((effect, place) => (
-            <SortableEffect effect={effect} key={effect} place={place} sortable={sortable}>
-              {(handle) =>
+            <SortableEffect
+              count={order.length}
+              effect={effect}
+              key={effect}
+              onMove={(offset) => effectOrder?.onMove(place, place + offset)}
+              place={place}
+              sortable={sortable}
+            >
+              {(handle, menu) =>
                 effect === orderEffectKeys.indexOf('bitcrush') ? (
                   bitcrush ? (
                     <BitcrushSection
                       handle={handle}
+                      menu={menu}
                       onApplyPreset={bitcrush.onApplyPreset}
                       onChange={bitcrush.onChange}
                       onGestureEnd={onGestureEnd}
@@ -770,7 +854,7 @@ export function EffectsUnit({
                     />
                   ) : null
                 ) : (
-                  renderEffect(effects[effect], handle)
+                  renderEffect(effects[effect], handle, menu)
                 )
               }
             </SortableEffect>

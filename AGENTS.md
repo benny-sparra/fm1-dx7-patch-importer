@@ -395,11 +395,13 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 165 KiB gzip budget; raising it needs
+  Dynamic imports are excluded. Do not weaken or bypass the 166 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
   149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB,
-  reading FM-1+VA presets from the FM1's raise from 163 KiB, and Vite 8.3.2's raise from 164 KiB
-  had. Reading presets paid for the read's eager English strings, which were in the entry until
+  reading FM-1+VA presets from the FM1's raise from 163 KiB, Vite 8.3.2's raise from 164 KiB, and
+  the sweep's accessibility fixes' raise from 165 KiB had. Those fixes cost about 1 KiB in the entry:
+  the translated drag announcements and their strings (`ui.drag`), the move items, the skip link
+  and landmarks, and the panic button's reason. Reading presets paid for the read's eager English strings, which were in the entry until
   the strings only lazy chunks show moved into lazy files of their own. React DOM ships
   prebuilt with its features switched on, so 19.3's stable View Transitions, Fragment refs, and
   SuspenseList cost about 8.4 KiB whether or not the app uses them; a React upgrade is measured
@@ -538,6 +540,16 @@ open everything an earlier release could have saved.
   embedded WebKit views have no `showModal` at all; either way the guide would report a failed load.
 - While a dialog's action is in progress, keep the dialog open: block Escape with `onCancel` and
   backdrop clicks, as the add-bank, import, and unsaved-changes dialogs do.
+- A button whose action is under way, or that cannot act yet, does not take `disabled` when the
+  keyboard is on it or its reason has to be read: `disabled` drops focus and takes the button out
+  of the tab order, so neither a screen reader nor the keyboard reaches its tooltip. Give it
+  `aria-disabled`, guard its `onClick`, and say what changed or what stops it in text: a
+  `role="status"` that reads **Sending…** beside Send, and the reason as `sr-only` text named by
+  `aria-describedby` on `MidiPanicButton`. `index.css` dims `button[aria-disabled='true']`, so the
+  look stays in the stylesheet rather than in every button's classes.
+- A dialog's title wraps (`DialogTitle` takes `break-words`, not `truncate`), so a translated title
+  is never ended by an ellipsis at 320 px (WCAG 1.4.10). `e2e/i18n-layout.e2e.ts` checks German and
+  Ukrainian there.
 - A component that can be rendered more than once takes its ARIA ids from `useId` rather than fixed
   strings.
 - Browser page translators replace text nodes with `<font>` elements, and React then crashes when it
@@ -626,10 +638,33 @@ open everything an earlier release could have saved.
   such as the button's working label, and keep only an error the user must act on on the page, in
   an `ErrorNotice`. Never show the same message in both places.
 - Interactive controls need stable accessible names. Preserve ARIA relationships and avoid nesting
-  buttons, links, summaries, inputs, or other interactive elements. A `<label>` names only its
-  first labelable descendant, so a field whose label also holds a help button takes the label as
-  its `aria-label`, as `ParameterControl` does. A generic `div` or `span` cannot carry an
-  `aria-label`; give it a role, or hide it and say the same in `sr-only` text.
+  buttons, links, summaries, inputs, or other interactive elements. A help button never sits inside
+  a `<label>`: a label forwards a click on its caption to its first control, which opened the
+  help instead of focusing the field. The caption is a `<label htmlFor>` naming the field's
+  `useId` id, in a row with the `HelpPopover` and any `labelAction`, inside a `div`; the field
+  keeps an `aria-label` where its name differs from its caption, as the effects' do.
+  `RotaryParameterControl` sets its `labelAction` 4 px (`ml-1`) from the help button, so each
+  target keeps 24 px (WCAG 2.5.8). `parameter-controls.test.tsx` and the `patch-editor-page` test
+  that clicks every caption fail when one goes back inside a label. A generic `div` or `span` cannot
+  carry an `aria-label`; give it a role, or hide it and say the same in `sr-only` text, or, for a
+  pointer-only hint such as the piano's drag handle, give it a `title`.
+- A patch slot's accessible names carry its slot code, as its card shows it: `banks.sendPatch` is
+  "Send A01 NAME to FM1" and `banks.reorderPatch` "Reorder A01 NAME" (`patchSlotCode`), so a bank
+  of INIT VOICE patches does not give every slot one name (WCAG 2.5.3). `banks.reorder` names an
+  effect's grip, which has no slot. The code is part of the name, so a test that finds a slot uses
+  `sendSlotName` and `reorderSlotName` from `src/test/librarian-fakes.ts`, and one that compares
+  names across a reorder compares the patch names alone, since the codes stay where they are.
+- Dragging is never the only way: WCAG 2.5.7. A slot's ⋮ menu and each effect box's ⋮ menu offer
+  **Move earlier** and **Move later**, one place each through the same change the drag makes (one
+  undo step), disabled at the ends. A move from a slot's menu moves focus to the slot the patch
+  landed in, since slot ids are places; a move from an effect's menu returns focus to that box's
+  menu, which moving the box drops. Search results, which are not in their banks, offer neither.
+- Every drag context passes `accessibility={makeDragAccessibility(t, nameOf)}`
+  (`src/lib/drag-accessibility.ts`), and every `useSortable` grip a translated `roleDescription`
+  (`ui.drag.roleDescription`), because dnd-kit's own instructions, announcements, and "sortable"
+  are English and name an item only by its id (WCAG 3.1.2). `nameOf` gives what an id is called
+  aloud: a slot's code and name, a bank tab's bank, an effect's name. Add a string to every locale
+  with it, since the drag strings are in the entry.
 - If a feature body becomes lazy, keep its trigger eager. One activation must eventually open the
   requested feature; repeated activation must not duplicate imports or dialogs.
 - Use focused `Suspense` or loading states that do not replace the whole librarian page.
@@ -788,6 +823,27 @@ open everything an earlier release could have saved.
   pointer up, key up, and blur, as the sliders, knobs, and envelope points do; a native range input
   takes its handlers from `rangeInputGestureHandlers`. A preset or randomise that writes many
   parameters is also one step.
+
+- The editor's sticky header is as tall as it wraps to, which on a phone is two rows, so a control
+  that takes focus must scroll in below it, not behind it (WCAG 2.4.11). `useStickyHeaderOffset`
+  writes the header's height to `--sticky-header-height` on the root while the header is mounted,
+  and `index.css` reads it as the page's `scroll-padding-top`. Another sticky bar does the same,
+  or the two would need their heights added. `e2e/editor.e2e.ts` walks Shift+Tab up the editor at
+  375 px.
+- The page has landmarks: the masthead is the one `<header>` (banner), `<main id="main-content">`
+  holds only the view, and the `<footer>` is its sibling (contentinfo). The first focusable
+  element is the **Skip to main content** link, which moves focus into `main` (`tabIndex={-1}`)
+  rather than going to its address, which would reach the share link's fragment. It says main
+  content, not patch banks, since `main` holds the editor too. The degauss, and `.synthwave-shell`
+  in `index.css`, belong to the outer `div`. The editor's own `<header>` is inside `main`, so it is
+  no banner.
+- A text field or dropdown has a visible edge of 3:1 or more on what it sits on (WCAG 1.4.11): a
+  text field in the rack takes `crt-field` (`--crt-acc-dim` all round) where the sunken well's
+  `crt-inset` lower and right edges are 2.1–2.8:1; a dropdown in a dialog or the settings menu
+  takes `border-input`, since the default border colour is `--crt-line`. `crt-inset` stays for
+  wells and readouts that are not controls. `src/test/colour-contrast.test.ts` measures
+  `--crt-acc-dim` on every surface a field sits on, in every colourway, and checks the components
+  use these classes.
 
 ### Keyboard and motion
 

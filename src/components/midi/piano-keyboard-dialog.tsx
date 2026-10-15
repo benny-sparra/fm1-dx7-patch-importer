@@ -465,15 +465,16 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
       }
     >
       <div
-        aria-label={t('ui.dragKeyboard')}
         className="synthwave-keyboard-header flex min-h-12 cursor-move touch-none flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-1.5 select-none"
         onPointerCancel={stopDrag}
         onPointerDown={startDrag}
         onPointerMove={moveDialog}
         onPointerUp={stopDrag}
       >
-        <div className="flex shrink-0 items-center gap-3">
-          <GripHorizontal className="size-5 opacity-60" />
+        {/* Dragging is a pointer convenience, so the hint is a tooltip on the grip and title, not a
+            name: an element with no role is not announced with one. */}
+        <div className="flex shrink-0 items-center gap-3" title={t('ui.dragKeyboard')}>
+          <GripHorizontal aria-hidden="true" className="size-5 opacity-60" />
           <span className="text-xs font-extrabold tracking-[0.24em] uppercase">
             {t('ui.keyboard')}
           </span>

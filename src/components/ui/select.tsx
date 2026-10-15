@@ -12,7 +12,7 @@ export function Select({ className, ...props }: ComponentProps<'select'>) {
     <span className={`relative ${className ?? 'block min-w-0'}`}>
       <select
         {...props}
-        className="settings-option-select h-9 w-full min-w-0 appearance-none truncate rounded-md border py-0 pr-8 pl-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+        className="settings-option-select h-9 w-full min-w-0 appearance-none truncate rounded-md border border-input py-0 pr-8 pl-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
       />
       <ChevronDown
         aria-hidden="true"

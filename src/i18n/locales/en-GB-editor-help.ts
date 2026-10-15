@@ -251,6 +251,7 @@ export default {
       'Kept for Baud Girl’s firmware from FM-1_096: Bitcrush is on. This FM1 doesn’t play it.',
   },
   effectOrder: {
+    menu: 'Actions for {{effect}}',
     dragTitle:
       'Drag to change where this effect sits in the order the sound passes through, first at the top left. With the keyboard, press Space, then the arrow keys. You hear the new order once the patch is written to the FM1.',
     noRecord:
