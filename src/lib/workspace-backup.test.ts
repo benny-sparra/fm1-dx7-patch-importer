@@ -575,6 +575,26 @@ describe('workspace backup', () => {
     expect(backup.damagedSavedBankCount).toBe(2)
   })
 
+  it('keeps a restored saved bank’s trimmed name and description, not the padding', () => {
+    const padding = ' '.repeat(10_000)
+    const backup = parseWorkspaceBackup(
+      JSON.stringify(
+        versionOneFixture({
+          savedBanks: [
+            {
+              ...savedBankFixture('padded'),
+              description: `${padding}Pads for the live set${padding}`,
+              name: `${padding}Live pads${padding}`,
+            },
+          ],
+        }),
+      ),
+    )
+
+    expect(backup.savedBanks[0].name).toBe('Live pads')
+    expect(backup.savedBanks[0].description).toBe('Pads for the live set')
+  })
+
   it('keeps one copy of a saved bank listed twice', () => {
     const backup = parseWorkspaceBackup(
       JSON.stringify(

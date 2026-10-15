@@ -1,6 +1,8 @@
 import { readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 
+import { findHtmlPolicyViolations } from './check-html-policy.mjs'
+
 const expectedDirectives = new Map([
   ['default-src', ["'self'"]],
   ['base-uri', ["'none'"]],
@@ -135,6 +137,20 @@ for (const filename of browserTextFiles) {
   }
 }
 
+// Every built page is held to the same policy: an inline script or a new origin it does not list
+// would be refused in the browser.
+const htmlFiles = (await readdir(outputDirectory, { recursive: true }))
+  .filter((filename) => filename.endsWith('.html'))
+  .map((filename) => path.join(outputDirectory, filename))
+for (const filename of htmlFiles) {
+  const violations = findHtmlPolicyViolations(await readFile(filename, 'utf8'), directives)
+  if (violations.length > 0) {
+    throw new Error(
+      `${path.relative(outputDirectory, filename)} does not fit the Content-Security-Policy:\n${violations.join('\n')}`,
+    )
+  }
+}
+
 console.log(
-  `Verified ${directives.size} production Content-Security-Policy directives and ${headers.size} other security headers.`,
+  `Verified ${directives.size} production Content-Security-Policy directives, ${headers.size} other security headers, and ${htmlFiles.length} pages.`,
 )

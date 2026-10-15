@@ -140,10 +140,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
+/**
+ * The longest bank name a favourite keeps as its origin: a saved bank's name is the longest of the
+ * names it comes from (`savedBankNameLength`, which a test checks this against, since importing it
+ * here would make a cycle). A catalog bank's name is shorter, and a workspace bank's title is
+ * shorter still, so no real origin is cut; a file that gives more is.
+ */
+export const favouriteOriginNameLength = 80
+
 function readOrigin(value: unknown): FavouriteOrigin {
   if (isRecord(value)) {
     if (typeof value.bankName === 'string' && value.bankName.trim()) {
-      return { bankName: value.bankName.trim() }
+      return { bankName: value.bankName.trim().slice(0, favouriteOriginNameLength).trimEnd() }
     }
     if (Number.isInteger(value.bankNumber) && (value.bankNumber as number) >= 1) {
       return { bankNumber: value.bankNumber as number }
