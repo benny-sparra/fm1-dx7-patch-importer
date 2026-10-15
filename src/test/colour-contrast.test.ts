@@ -20,6 +20,15 @@ import { fm1Colorways, type Fm1Colorway } from '@/lib/fm1-colorway'
 
 const stylesheet = readFileSync(new URL('../index.css', import.meta.url), 'utf8')
 
+/*
+ * The edge of a text field or dropdown, which is all that marks where it is, so it needs 3:1 on
+ * what the field sits on (1.4.11). `.crt-field` and the dialogs' `border-input` name it; reading
+ * the stylesheet keeps this test on the colour the fields really use.
+ */
+const fieldBorder = /\.crt-field\s*\{[^}]*border:\s*1px solid var\((--[\w-]+)\)/.exec(
+  stylesheet,
+)?.[1]
+
 const TEXT = 4.5 // 1.4.3, normal-size text
 const NON_TEXT = 3 // 1.4.11, icons, control boundaries and state indicators
 
@@ -125,6 +134,29 @@ const pairings: Pairing[] = [
     minimum: NON_TEXT,
     where: 'warning icon',
   },
+
+  // The edge of a text field or dropdown, on every surface one is placed on.
+  ...[
+    '--crt-bg-panel',
+    '--crt-bg-panel2',
+    '--crt-bg-panel3',
+    '--crt-bg-1',
+    '--crt-bg-2',
+    '--crt-bg-head',
+    '--crt-hatch-a',
+    '--crt-hatch-b',
+  ].map((background) => ({
+    foreground: fieldBorder ?? '.crt-field is missing from index.css',
+    background,
+    minimum: NON_TEXT,
+    where: `field edge on ${background}`,
+  })),
+  ...['--crt-bg-panel2', '--crt-bg-well'].map((background) => ({
+    foreground: '--color-input',
+    background,
+    minimum: NON_TEXT,
+    where: `dialog field edge, border-input, against ${background}`,
+  })),
 
   // Control boundaries and state indicators.
   {
@@ -313,5 +345,30 @@ describe.each(fm1Colorways.map(({ value }) => value))('%s colourway', (colorway)
     })
 
     expect(failures).toEqual([])
+  })
+})
+
+describe('field edges', () => {
+  const source = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8')
+
+  it('draws a text field’s edge in the colour the contrast pairings measure', () => {
+    expect(fieldBorder).toBe('--crt-acc-dim')
+  })
+
+  it.each([
+    ['a dialog’s dropdown', '../components/ui/select.tsx'],
+    ['the settings dropdown', '../components/midi/device-select.tsx'],
+  ])('gives %s the field edge, not the default border colour', (_, path) => {
+    expect(source(path)).toMatch(/settings-option-select[^"]*\bborder-input\b/)
+  })
+
+  it.each([
+    ['the patch search field', '../components/patches/patch-grid.tsx'],
+    ['the patch name field', '../components/editor/patch-editor-header.tsx'],
+    ['the rack’s number fields and dropdowns', '../components/editor/parameter-controls.tsx'],
+    ['the effects’ dropdowns', '../components/editor/effects-unit.tsx'],
+    ['the pitch envelope presets dropdown', '../components/editor/global-configuration-panel.tsx'],
+  ])('gives %s the field edge, not the sunken well edge', (_, path) => {
+    expect(source(path)).toMatch(/\bcrt-field\b/)
   })
 })

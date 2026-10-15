@@ -220,6 +220,110 @@ describe('rotary knob value field', () => {
   })
 })
 
+describe('help beside a caption', () => {
+  const help = 'Explains the control.'
+
+  // A button inside a label takes the click the label forwards, so clicking a caption opened its help.
+  it.each([
+    [
+      'a number field',
+      () => (
+        <ParameterControl helpText={help} label="Level" max={99} onChange={vi.fn()} value={20} />
+      ),
+      'spinbutton',
+    ],
+    [
+      'a choice',
+      () => (
+        <ParameterControl
+          helpText={help}
+          label="Curve"
+          max={3}
+          onChange={vi.fn()}
+          options={['A', 'B', 'C', 'D']}
+          value={0}
+        />
+      ),
+      'combobox',
+    ],
+    [
+      'a slider',
+      () => (
+        <SliderParameterControl
+          helpText={help}
+          label="Mix"
+          max={99}
+          onChange={vi.fn()}
+          onGestureEnd={vi.fn()}
+          onGestureStart={vi.fn()}
+          value={20}
+        />
+      ),
+      'slider',
+    ],
+    [
+      'a typed value',
+      () => (
+        <TypedValueControl
+          helpText={help}
+          invalidMessage="Type a number."
+          label="Ratio"
+          onCommit={() => true}
+          value="1.00"
+        />
+      ),
+      'textbox',
+    ],
+  ])('focuses %s from its caption without opening the help', async (_, control, role) => {
+    const user = userEvent.setup()
+    render(control())
+    const field = screen.getByRole(role)
+
+    await user.click(
+      screen.getByText(field.getAttribute('aria-label') ?? '', { selector: 'label' }),
+    )
+
+    expect(screen.queryByRole('note')).toBeNull()
+    expect(document.activeElement).toBe(field)
+  })
+
+  it('keeps a field’s name and its help button apart', () => {
+    render(
+      <SliderParameterControl
+        helpText={help}
+        label="Mix"
+        max={99}
+        onChange={vi.fn()}
+        onGestureEnd={vi.fn()}
+        onGestureStart={vi.fn()}
+        value={20}
+      />,
+    )
+
+    expect(screen.getByRole('slider', { name: 'Mix' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Help: Mix' }).closest('label')).toBeNull()
+  })
+
+  it('keeps a knob’s help and assign buttons 4 px apart', () => {
+    render(
+      <RotaryParameterControl
+        helpText={help}
+        label="Cutoff"
+        labelAction={<button type="button">Assign</button>}
+        max={99}
+        onChange={vi.fn()}
+        onGestureEnd={vi.fn()}
+        onGestureStart={vi.fn()}
+        value={20}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Assign' }).parentElement?.className).toContain(
+      'ml-1',
+    )
+  })
+})
+
 describe('typed value control', () => {
   function renderTyped(onCommit: (text: string) => boolean = () => true, value = '1.00') {
     return render(

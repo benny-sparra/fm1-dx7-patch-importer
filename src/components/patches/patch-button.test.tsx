@@ -6,11 +6,14 @@ import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import '@/i18n'
 import { PatchButton } from '@/components/patches/patch-button'
 import type { Patch } from '@/data/patches'
+import { setLocale } from '@/i18n'
 
-afterEach(cleanup)
+afterEach(async () => {
+  cleanup()
+  await setLocale('en-GB')
+})
 
 const patch = {
   bank: 'A',
@@ -32,8 +35,8 @@ describe('PatchButton touch scrolling', () => {
       </DndContext>,
     )
 
-    const grip = screen.getByRole('button', { name: /^Reorder Alpha Piano/ })
-    const slot = screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })
+    const grip = screen.getByRole('button', { name: /^Reorder A01 Alpha Piano/ })
+    const slot = screen.getByRole('button', { name: 'Send A01 Alpha Piano to FM1' })
 
     expect(grip.classList.contains('touch-none')).toBe(true)
     expect(slot.closest('.patch-cell')?.classList.contains('touch-none')).toBe(false)
@@ -162,5 +165,40 @@ describe('PatchButton slot menu', () => {
     renderSlot({ disabled: true })
 
     expect(screen.queryByRole('button', { name: 'Actions for Alpha Piano' })).toBeNull()
+  })
+})
+
+describe('PatchButton slot names', () => {
+  const second = { ...patch, id: 'bank-A-2', number: 2 }
+
+  function renderTwoSlots() {
+    render(
+      <DndContext>
+        <SortableContext items={[patch.id, second.id]}>
+          <PatchButton onSelect={vi.fn()} patch={patch} />
+          <PatchButton onSelect={vi.fn()} patch={second} />
+        </SortableContext>
+      </DndContext>,
+    )
+  }
+
+  it('tells two slots holding the same patch apart by their slot codes', () => {
+    renderTwoSlots()
+
+    expect(screen.getByRole('button', { name: 'Send A01 Alpha Piano to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Send A02 Alpha Piano to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Reorder A01 Alpha Piano' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Reorder A02 Alpha Piano' })).toBeTruthy()
+  })
+
+  it('tells them apart in the interface language', async () => {
+    await setLocale('de')
+
+    renderTwoSlots()
+
+    expect(screen.getByRole('button', { name: 'A01 Alpha Piano an FM1 senden' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'A02 Alpha Piano an FM1 senden' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'A01 Alpha Piano verschieben' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'A02 Alpha Piano verschieben' })).toBeTruthy()
   })
 })

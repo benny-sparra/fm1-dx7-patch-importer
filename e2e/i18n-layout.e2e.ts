@@ -40,10 +40,13 @@ function translate(locale: string, key: string) {
   return translation
 }
 
-/** Builds a name matcher from a translation containing an interpolated value. */
+/** Builds a name matcher from a translation containing interpolated values, such as the slot and name. */
 function interpolatedPattern(locale: string, key: string) {
   const escape = (value: string) => value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)
-  const pattern = translate(locale, key).split('{{name}}').map(escape).join('.+')
+  const pattern = translate(locale, key)
+    .split(/\{\{\w+\}\}/)
+    .map(escape)
+    .join('.+')
   return new RegExp(`^${pattern}$`)
 }
 
@@ -211,4 +214,27 @@ for (const locale of testedLocales) {
       await expectNoClippedLayout(page, testInfo, `help-${locale}-${viewport.name}`)
     })
   }
+}
+
+// WCAG 1.4.10 asks for the page to reflow at 320 px without sideways scrolling or lost text. A
+// translated dialog title is longest there, and used to end in an ellipsis.
+for (const locale of ['de', 'uk']) {
+  test(`reflows the ${locale} librarian at 320 px and wraps its dialog titles in full`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ height: 700, width: 320 })
+    await openLibrarian(page, locale)
+    await expectNoClippedLayout(page, testInfo, `librarian-${locale}-320`)
+
+    await page.getByRole('button', { name: translate(locale, 'help.open') }).click()
+    const dialog = page.getByRole('dialog', { name: translate(locale, 'help.title') })
+    await expect(dialog).toBeVisible()
+    const title = dialog.locator('h2').first()
+
+    const cutShort = await title.evaluate(
+      (heading) => heading.scrollWidth > heading.clientWidth + 1,
+    )
+    expect(cutShort, `the ${locale} help title is cut short`).toBe(false)
+    expect(await horizontalPageOverflow(page)).toBeNull()
+  })
 }

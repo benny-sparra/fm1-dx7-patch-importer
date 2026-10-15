@@ -1,4 +1,5 @@
 import { Activity, Waves } from 'lucide-react'
+import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
@@ -49,6 +50,7 @@ export function GlobalConfigurationPanel({
   setParameter,
 }: GlobalConfigurationPanelProps) {
   const { t } = useTranslation()
+  const pitchPresetId = useId()
   const knobMenu = (id: GlobalParameterId, parameter: string) => {
     const choice = fmKnobChoice(id)
     return knobAssignment && choice !== undefined ? (
@@ -168,18 +170,19 @@ export function GlobalConfigurationPanel({
             variant="pitch"
           />
           {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
-          <label className="mt-2 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+          <div className="mt-2 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
+            {/* The help button sits beside the label: inside it, a click on the caption would open it. */}
             <span className="flex items-center gap-1">
-              {t('editor.pitchEnvelopePresets')}
+              <label htmlFor={pitchPresetId}>{t('editor.pitchEnvelopePresets')}</label>
               <HelpPopover
                 label={t('editor.pitchEnvelopePresets')}
                 text={t('controlHelp.pitchEnvelopePresets')}
               />
             </span>
-            {/* The help button shares the label, so name the select directly. */}
             <RackSelect
               aria-label={t('editor.pitchEnvelopePresets')}
-              className="crt-inset h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+              id={pitchPresetId}
+              className="crt-field h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
               onChange={(event) => {
                 applyPitchEnvelopePreset(event.target.value as PitchEnvelopePresetId)
               }}
@@ -194,7 +197,7 @@ export function GlobalConfigurationPanel({
                 </option>
               ))}
             </RackSelect>
-          </label>
+          </div>
         </div>
       </section>
 

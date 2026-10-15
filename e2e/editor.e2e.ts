@@ -27,6 +27,43 @@ async function nudge(page: Page, name: string) {
   return String(value > 0 ? value - 1 : value + 1)
 }
 
+test.describe('sticky header', () => {
+  // The header wraps to two rows on a phone, and a control that took focus scrolled in behind it
+  // (WCAG 2.4.11).
+  test('never covers the control that takes focus, walking up the page at 375 px', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ height: 667, width: 375 })
+    await openEditor(page)
+    const header = page.locator('header.sticky')
+    // From the footer, so the walk up crosses everything in the editor.
+    await page.getByRole('contentinfo').locator('a, button').last().focus()
+
+    let walked = 0
+    for (let step = 0; step < 60; step += 1) {
+      await page.keyboard.press('Shift+Tab')
+      const covered = await page.evaluate(() => {
+        const active = document.activeElement
+        const bar = document.querySelector('header.sticky')
+        // Only what follows the header in the page can sit behind it once the page scrolls.
+        if (
+          !active ||
+          !bar ||
+          !(bar.compareDocumentPosition(active) & Node.DOCUMENT_POSITION_FOLLOWING)
+        )
+          return null
+        return bar.getBoundingClientRect().bottom - active.getBoundingClientRect().top
+      })
+      if (covered === null) break
+      walked += 1
+      expect(covered, `control ${walked} up from the end`).toBeLessThanOrEqual(1)
+    }
+
+    expect(walked).toBeGreaterThan(10)
+    expect((await header.boundingBox())?.height).toBeGreaterThan(60)
+  })
+})
+
 test.describe('operator rack', () => {
   test('keeps exactly one operator column open', async ({ page }) => {
     await openEditor(page)

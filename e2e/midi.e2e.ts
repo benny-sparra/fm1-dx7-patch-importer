@@ -141,7 +141,7 @@ test.describe('with an FM-1 connected', () => {
   test('sends each voice edit to the FM1 as a parameter change', async ({ page }) => {
     // Opened from the slot's menu, since a double-click's first click also plays the slot.
     const label = (await slotButtons(page).first().getAttribute('aria-label')) ?? ''
-    const name = label.replace(/^Send (.+) to FM1$/, '$1')
+    const name = label.replace(/^Send \S+ (.+) to FM1$/, '$1')
     await page
       .getByRole('button', { exact: true, name: `Actions for ${name}` })
       .first()

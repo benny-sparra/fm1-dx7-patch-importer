@@ -25,7 +25,7 @@ test('opens a shared patch from its link and adds it to a slot, which Undo rever
   await dialog.getByRole('button', { name: 'Add to library…' }).click()
   await page.getByRole('button', { name: 'Replace A01' }).click()
 
-  await expect(page.getByRole('button', { name: 'Send SHARE DX7 to FM1' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Send \S+ SHARE DX7 to FM1$/ })).toBeVisible()
   await page.getByRole('button', { name: 'Undo' }).click()
   await expect(slotButtons(page).first()).toHaveAttribute('aria-label', replaced ?? '')
 
@@ -48,7 +48,7 @@ test('copies a slot’s share link that opens the same patch', async ({
   await helpDialog.getByRole('button', { name: 'Close help' }).click()
   await expect(helpDialog).toBeHidden()
   const label = (await slotButtons(page).nth(1).getAttribute('aria-label')) ?? ''
-  const name = label.replace(/^Send (.+) to FM1$/, '$1')
+  const name = label.replace(/^Send \S+ (.+) to FM1$/, '$1')
 
   await page.getByRole('button', { name: `Actions for ${name}` }).click()
   await page.getByRole('menuitem', { name: 'Copy share link' }).click()
@@ -81,7 +81,7 @@ test('shows a refused copy’s explanation in view of the slot it was copied fro
   await helpDialog.getByRole('button', { name: 'Close help' }).click()
   await expect(helpDialog).toBeHidden()
   const label = (await slotButtons(page).first().getAttribute('aria-label')) ?? ''
-  const name = label.replace(/^Send (.+) to FM1$/, '$1')
+  const name = label.replace(/^Send \S+ (.+) to FM1$/, '$1')
 
   await page.getByRole('button', { name: `Actions for ${name}` }).click()
   await page.getByRole('menuitem', { name: 'Copy share link' }).click()

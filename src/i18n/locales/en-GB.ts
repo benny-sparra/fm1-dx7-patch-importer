@@ -46,6 +46,16 @@ export default {
     sourcesSubmitLink: 'Offer it for the bank catalog',
   },
   ui: {
+    drag: {
+      cancelled: 'Dragging {{name}} was cancelled.',
+      dropped: '{{name}} was dropped on {{target}}.',
+      droppedInPlace: '{{name}} was dropped where it was.',
+      instructions:
+        'To move an item, focus its grip and press Space or Enter. Use the arrow keys to move it, then press Space or Enter to drop it, or Escape to cancel.',
+      over: '{{name}} is over {{target}}.',
+      pickedUp: 'Picked up {{name}}.',
+      roleDescription: 'sortable item',
+    },
     auditionGroup: 'Operator {{number}} audition',
     mute: 'Mute',
     unmute: 'Unmute',
@@ -338,6 +348,7 @@ export default {
     backToLibrary: 'Back to library',
   },
   root: {
+    skipToContent: 'Skip to main content',
     subtitle: 'editor & librarian',
     intro: 'Edit, organise and transfer FM1 patches, or <link>import DX7 SysEx banks</link>.',
     synthAlt: 'M-VAVE FM1 synthesiser front panel',
@@ -567,9 +578,12 @@ export default {
     slotTitle: 'Click to play {{name}} on the FM1; double-click to edit',
     slotEditBufferTitle: 'Click to play {{name}} through the FM1 edit buffer; double-click to edit',
     slotEditTitle: 'Double-click or press Enter to edit {{name}}',
-    sendPatch: 'Send {{name}} to FM1',
+    sendPatch: 'Send {{slot}} {{name}} to FM1',
     auditioning: 'Auditioning',
     reorder: 'Reorder {{name}}',
+    reorderPatch: 'Reorder {{slot}} {{name}}',
+    moveEarlier: 'Move earlier',
+    moveLater: 'Move later',
     reorderTitle:
       'Drag to reorder, or onto a bank to copy the patch there; use arrow keys to reorder when focused',
     copySelected: 'Copy to…',

@@ -18,6 +18,7 @@ import { CompareNotice } from '@/components/editor/compare-overlay'
 import { EngineTag, type PatchEngine } from '@/components/patches/engine-tag'
 import { Button, buttonVariants } from '@/components/ui/button'
 import type { Patch } from '@/data/patches'
+import { useStickyHeaderOffset } from '@/hooks/use-sticky-header-offset'
 import '@/i18n/editor-help'
 import { FM1_VOICE_NAME_LENGTH } from '@/lib/fm1-parameters'
 import {
@@ -107,6 +108,8 @@ export function PatchEditorHeader({
   syncState,
 }: PatchEditorHeaderProps) {
   const { t } = useTranslation()
+  const headerRef = useRef<HTMLElement>(null)
+  useStickyHeaderOffset(headerRef)
   const onApplePlatform = useMemo(() => isApplePlatform(), [])
   // The accessible name stays plain; the hint only rides along in the tooltip.
   const withShortcut = (label: string, shortcut: KeyboardShortcut) =>
@@ -131,7 +134,10 @@ export function PatchEditorHeader({
   }, [compareDisabled, isComparing])
 
   return (
-    <header className="crt-hatch sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b-2 border-[var(--crt-shadow)] py-1.5 shadow-sm">
+    <header
+      className="crt-hatch sticky top-0 z-20 ml-[calc(50%_-_50vw)] w-screen min-w-0 border-b-2 border-[var(--crt-shadow)] py-1.5 shadow-sm"
+      ref={headerRef}
+    >
       <div className="relative mx-auto flex max-w-[90rem] flex-wrap items-center gap-3 px-3 sm:px-5 lg:px-8">
         <Button
           aria-label={t('editor.back')}
@@ -164,7 +170,7 @@ export function PatchEditorHeader({
               <span className="flex items-center gap-1">
                 <input
                   aria-label={t('editor.patchName')}
-                  className="name-caret font-dot-matrix crt-inset h-8 w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-60"
+                  className="name-caret font-dot-matrix crt-field h-8 w-[12ch] max-w-[42vw] bg-[var(--crt-bg-well)] px-1 text-xl font-black text-[var(--crt-led)] uppercase transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-60"
                   disabled={isComparing}
                   maxLength={FM1_VOICE_NAME_LENGTH}
                   onBlur={onNameBlur}

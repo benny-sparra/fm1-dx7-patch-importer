@@ -99,7 +99,7 @@ export function DialogTitle({ children, className, ...props }: ComponentPropsWit
   return (
     <h2
       className={cn(
-        'font-dot-matrix mx-1 flex min-w-0 items-center gap-2 truncate px-2.5 text-sm font-black tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase',
+        'font-dot-matrix mx-1 flex min-w-0 items-center gap-2 px-2.5 text-sm font-black tracking-[0.14em] break-words text-[var(--crt-acc-lt)] uppercase',
         className,
       )}
       {...props}

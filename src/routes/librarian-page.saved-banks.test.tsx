@@ -6,7 +6,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -66,6 +66,6 @@ describe('LibrarianPage saved banks that fail to load', () => {
       within(alert).getByText('Saved banks could not be opened. Reload the page and try again.'),
     ).toBeTruthy()
     expect(within(alert).getByRole('button', { name: 'Reload app' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Send Alpha Piano to FM1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: sendSlotName('Alpha Piano') })).toBeTruthy()
   })
 })

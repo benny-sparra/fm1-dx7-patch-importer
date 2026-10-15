@@ -174,6 +174,7 @@ export default {
       'Guardado para o firmware da Baud Girl a partir do FM-1_096: o Bitcrush está ligado. Este FM1 não o toca.',
   },
   effectOrder: {
+    menu: 'Ações para {{effect}}',
     dragTitle:
       'Arraste para mudar em que ponto do caminho do som fica este efeito, o primeiro no alto à esquerda. Pelo teclado, pressione Espaço e depois as setas. A nova ordem é ouvida quando o som é gravado no FM1.',
     noRecord: 'Este som não veio do FM1, então usa a ordem do preset sobre o qual for gravado.',
@@ -333,6 +334,16 @@ export default {
     },
   },
   ui: {
+    drag: {
+      cancelled: 'O movimento de {{name}} foi cancelado.',
+      dropped: '{{name}} foi solto sobre {{target}}.',
+      droppedInPlace: '{{name}} foi solto onde estava.',
+      instructions:
+        'Para mover um item, foque a alça dele e pressione Espaço ou Enter. Use as setas para movê-lo e pressione Espaço ou Enter para soltá-lo, ou Esc para cancelar.',
+      over: '{{name}} está sobre {{target}}.',
+      pickedUp: '{{name}} foi pego.',
+      roleDescription: 'item reordenável',
+    },
     auditionGroup: 'Audição do operador {{number}}',
     mute: 'Silenciar',
     unmute: 'Ativar som',
@@ -773,6 +784,7 @@ export default {
     backToLibrary: 'Voltar à biblioteca',
   },
   root: {
+    skipToContent: 'Ir para o conteúdo principal',
     subtitle: 'editor e bibliotecário',
     intro: 'Edite, organize e transfira sons do FM1 ou <link>importe bancos SysEx do DX7</link>.',
     synthAlt: 'Painel frontal do sintetizador M-VAVE FM1',
@@ -1126,9 +1138,12 @@ export default {
     slotEditBufferTitle:
       'Clique para tocar {{name}} pelo buffer de edição do FM1; clique duas vezes para editar',
     slotEditTitle: 'Clique duas vezes ou pressione Enter para editar {{name}}',
-    sendPatch: 'Enviar {{name}} ao FM1',
+    sendPatch: 'Enviar {{slot}} {{name}} ao FM1',
     auditioning: 'Testando',
     reorder: 'Reordenar {{name}}',
+    reorderPatch: 'Reordenar {{slot}} {{name}}',
+    moveEarlier: 'Mover para antes',
+    moveLater: 'Mover para depois',
     reorderTitle:
       'Arraste para reordenar, ou sobre um banco para copiar o som para lá; use as setas para reordenar quando estiver em foco',
     copySelected: 'Copiar para…',

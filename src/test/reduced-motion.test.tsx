@@ -93,7 +93,7 @@ describe('reduced motion', () => {
     expect(
       reducedMotionBlocks.some(
         (block) =>
-          /main\[data-degauss\]\s*\{\s*animation:\s*none;/.test(block) &&
+          /\.synthwave-shell\[data-degauss\]\s*\{\s*animation:\s*none;/.test(block) &&
           /\.degauss\s*\{\s*display:\s*none;/.test(block),
       ),
     ).toBe(true)

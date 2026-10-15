@@ -7,7 +7,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { rememberDialogOpeners } from '@/lib/dialog-zoom'
 import { zoomRectsArriveMs } from '@/lib/zoom-rects'
 
-import { Dialog } from './dialog'
+import { Dialog, DialogTitle } from './dialog'
 
 beforeAll(() => {
   rememberDialogOpeners()
@@ -86,5 +86,16 @@ describe('Dialog zoom', () => {
     vi.advanceTimersToNextFrame()
 
     expect(document.querySelectorAll('.zoom-rects')).toHaveLength(2)
+  })
+})
+
+describe('DialogTitle', () => {
+  // WCAG 1.4.10: at 320 px a translated title is cut short by an ellipsis unless it wraps.
+  it('wraps a long title rather than ending it in an ellipsis', () => {
+    render(<DialogTitle>Willkommen beim FM1-Editor &amp; Librarian</DialogTitle>)
+
+    const title = screen.getByRole('heading')
+    expect(title.classList).not.toContain('truncate')
+    expect(title.classList).toContain('break-words')
   })
 })

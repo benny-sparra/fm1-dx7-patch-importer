@@ -22,7 +22,12 @@ afterEach(() => {
 
 const mvave: Fm1Firmware = { identity: 'FM-1_015', kind: 'mvave' }
 
-function renderDialog(sysexAvailable: boolean, firmware = mvave, isSending = false) {
+function renderDialog(
+  sysexAvailable: boolean,
+  firmware = mvave,
+  isSending = false,
+  onSend = vi.fn(),
+) {
   return (
     <Fm1BankSelectionDialog
       isSending={isSending}
@@ -35,7 +40,7 @@ function renderDialog(sysexAvailable: boolean, firmware = mvave, isSending = fal
         sysexAvailable,
       }}
       onClose={vi.fn()}
-      onSend={vi.fn()}
+      onSend={onSend}
     />
   )
 }
@@ -84,6 +89,35 @@ describe('Fm1BankSelectionDialog', () => {
     expect(
       screen.getByRole('button', { hidden: true, name: 'Send to FM1' }).classList,
     ).not.toContain('barber-pole')
+  })
+
+  // A disabled button drops focus, and a screen reader hears nothing of what replaced its name.
+  it('keeps focus on its Send button while sending, which says so and ignores another press', () => {
+    const onSend = vi.fn()
+    const { rerender } = render(renderDialog(true, mvave, false, onSend))
+    screen.getByRole('button', { hidden: true, name: 'Send to FM1' }).focus()
+
+    rerender(renderDialog(true, mvave, true, onSend))
+
+    const sending = screen.getByRole<HTMLButtonElement>('button', {
+      hidden: true,
+      name: 'Sending…',
+    })
+    expect(document.activeElement).toBe(sending)
+    expect(sending.disabled).toBe(false)
+    expect(sending.getAttribute('aria-disabled')).toBe('true')
+    expect(screen.getByRole('status', { hidden: true }).textContent).toBe('Sending…')
+    fireEvent.click(sending)
+    expect(onSend).not.toHaveBeenCalled()
+  })
+
+  it('sends when its Send button is pressed', () => {
+    const onSend = vi.fn()
+    render(renderDialog(true, mvave, false, onSend))
+
+    fireEvent.click(screen.getByRole('button', { hidden: true, name: 'Send to FM1' }))
+
+    expect(onSend).toHaveBeenCalledTimes(1)
   })
 
   it('gives M-VAVE firmware its knob steps and no FM-1+VA note', () => {

@@ -288,16 +288,26 @@ describe('PianoKeyboard dragging', () => {
   it('moves the keyboard when its header is dragged', async () => {
     await openKeyboard()
 
-    fireEvent.pointerDown(screen.getByLabelText('Drag keyboard'), { clientX: 20, clientY: 20 })
-    fireEvent.pointerMove(screen.getByLabelText('Drag keyboard'), { clientX: 60, clientY: 90 })
+    fireEvent.pointerDown(screen.getByTitle('Drag keyboard'), { clientX: 20, clientY: 20 })
+    fireEvent.pointerMove(screen.getByTitle('Drag keyboard'), { clientX: 60, clientY: 90 })
 
     expect(keyboardDialog()?.style.inset).toBe('auto')
+  })
+
+  // A name on an element with no role is not announced, and axe rejects it.
+  it('gives no name to a header that has no role, only a hint for the pointer', async () => {
+    await openKeyboard()
+
+    expect(keyboardDialog()?.querySelectorAll('div[aria-label]:not([role])')).toHaveLength(0)
+    expect(
+      screen.getByTitle('Drag keyboard').querySelector('svg')?.getAttribute('aria-hidden'),
+    ).toBe('true')
   })
 
   it('titles itself with the keyboard name alone', async () => {
     await openKeyboard()
 
-    const header = screen.getByLabelText('Drag keyboard')
+    const header = screen.getByTitle('Drag keyboard')
 
     expect(within(header).getByText('Keyboard', { exact: true })).toBeTruthy()
     expect(within(header).queryByText(/performance/i)).toBeNull()

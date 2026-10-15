@@ -28,7 +28,7 @@ const ledClass = 'font-vt323 text-[var(--crt-led)]'
 
 /** A sunken field — selects, number entry and the wave picker's trigger. */
 const fieldSurfaceClass =
-  'crt-inset h-8 min-w-0 rounded-none bg-[var(--crt-bg-1)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
+  'crt-field h-8 min-w-0 rounded-none bg-[var(--crt-bg-1)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
 const fieldFrameClass = `${fieldSurfaceClass} px-2`
 const fieldClass = `${fieldFrameClass} text-xs text-[var(--crt-ink)]`
 
@@ -181,7 +181,8 @@ export function RotaryParameterControl({
             <HelpPopover label={name} text={helpText} />
           </span>
         ) : null}
-        {labelAction}
+        {/* Apart from the help button by a gap, so each target keeps its own 24 px (WCAG 2.5.8). */}
+        {labelAction ? <span className="ml-1 inline-block align-middle">{labelAction}</span> : null}
       </span>
       <div
         aria-disabled={disabled || undefined}
@@ -362,18 +363,21 @@ export function SliderParameterControl({
   value,
   valueLabel = String,
 }: SliderParameterControlProps) {
+  const fieldId = useId()
   return (
-    <label className={cn('grid min-w-0 gap-1', captionClass)}>
+    <div className={cn('grid min-w-0 gap-1', captionClass)}>
+      {/* The help button sits beside the label: inside it, a click on the caption would open it. */}
       <span className="flex min-w-0 items-center gap-1 overflow-hidden">
-        <span className="min-w-0 text-balance break-words" title={label}>
+        <label className="min-w-0 text-balance break-words" htmlFor={fieldId} title={label}>
           {label}
-        </span>
+        </label>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
         {labelAction}
       </span>
       <span className="flex min-h-6 min-w-0 items-center gap-2">
         <input
           aria-label={label}
+          id={fieldId}
           className="min-w-0 flex-1 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
           max={max}
           min={min}
@@ -388,7 +392,7 @@ export function SliderParameterControl({
           {valueLabel(value)}
         </output>
       </span>
-    </label>
+    </div>
   )
 }
 
@@ -632,18 +636,19 @@ export function ParameterControl({
   options,
   value,
 }: ParameterControlProps) {
+  const fieldId = useId()
   return (
-    <label className={cn('grid min-w-0 gap-1', captionClass)}>
+    <div className={cn('grid min-w-0 gap-1', captionClass)}>
       <span className="flex min-w-0 items-center gap-1">
-        <span className="min-w-0 text-balance break-words" title={label}>
+        <label className="min-w-0 text-balance break-words" htmlFor={fieldId} title={label}>
           {label}
-        </span>
+        </label>
         {helpText ? <HelpPopover label={label} text={helpText} /> : null}
       </span>
-      {/* The help button is the label's first control, so the field takes the label as its name. */}
       {options ? (
         <RackSelect
           aria-label={label}
+          id={fieldId}
           className={`${fieldSurfaceClass} text-xs text-[var(--crt-ink)] normal-case`}
           onChange={(event) => onChange(Number(event.target.value))}
           value={value}
@@ -658,6 +663,7 @@ export function ParameterControl({
         <input
           aria-label={label}
           className={cn(fieldFrameClass, 'font-vt323 text-base text-[var(--crt-led)]')}
+          id={fieldId}
           max={max}
           min={min}
           onChange={(event) => {
@@ -668,7 +674,7 @@ export function ParameterControl({
           value={value}
         />
       )}
-    </label>
+    </div>
   )
 }
 
@@ -698,6 +704,7 @@ export function TypedValueControl({
   const [draft, setDraft] = useState<string | null>(null)
   const [invalid, setInvalid] = useState(false)
   const errorId = useId()
+  const fieldId = useId()
 
   const discard = () => {
     setDraft(null)
@@ -715,11 +722,11 @@ export function TypedValueControl({
 
   return (
     <div className="grid min-w-0 gap-1">
-      <label className={cn('grid min-w-0 gap-1', captionClass)}>
+      <div className={cn('grid min-w-0 gap-1', captionClass)}>
         <span className="flex min-w-0 items-center gap-1">
-          <span className="min-w-0 text-balance break-words" title={label}>
+          <label className="min-w-0 text-balance break-words" htmlFor={fieldId} title={label}>
             {label}
-          </span>
+          </label>
           {helpText ? <HelpPopover label={label} text={helpText} /> : null}
         </span>
         <input
@@ -731,6 +738,7 @@ export function TypedValueControl({
             fieldFrameClass,
             'font-vt323 w-28 justify-self-start text-base text-[var(--crt-led)]',
           )}
+          id={fieldId}
           inputMode="decimal"
           onBlur={() => {
             if (!commit()) discard()
@@ -752,7 +760,7 @@ export function TypedValueControl({
           type="text"
           value={draft ?? value}
         />
-      </label>
+      </div>
       {invalid ? (
         <div id={errorId}>
           <ErrorNotice>{invalidMessage}</ErrorNotice>

@@ -141,6 +141,7 @@ export default {
     otherFirmware: '为 Baud Girl 固件 FM-1_096 及更高版本保留：比特粉碎已开启。此 FM1 不会播放它。',
   },
   effectOrder: {
+    menu: '{{effect}} 操作',
     dragTitle:
       '拖动以更改此效果在声音经过顺序中的位置，左上角为第一个。使用键盘时，按空格键，再按方向键。音色写入 FM1 后才能听到新的顺序。',
     noRecord: '此音色并非来自 FM1，因此会沿用被它覆盖的预设的效果顺序。',
@@ -293,6 +294,16 @@ export default {
     },
   },
   ui: {
+    drag: {
+      cancelled: '已取消移动 {{name}}。',
+      dropped: '已将 {{name}} 放到 {{target}} 上。',
+      droppedInPlace: '已将 {{name}} 放回原位。',
+      instructions:
+        '要移动某项，请聚焦其拖动手柄并按空格键或回车键。用方向键移动，再按空格键或回车键放下，或按 Esc 取消。',
+      over: '{{name}} 位于 {{target}} 上方。',
+      pickedUp: '已拿起 {{name}}。',
+      roleDescription: '可排序项目',
+    },
     auditionGroup: '试听操作器 {{number}}',
     mute: '静音',
     unmute: '取消静音',
@@ -701,6 +712,7 @@ export default {
     backToLibrary: '返回音色库',
   },
   root: {
+    skipToContent: '跳到主要内容',
     subtitle: '音色编辑器与音色库',
     intro: '编辑、整理和传输 FM1 音色，或<link>导入 DX7 SysEx 音色库</link>。',
     synthAlt: 'M-VAVE FM1 合成器前面板',
@@ -1037,9 +1049,12 @@ export default {
     slotTitle: '单击可在 FM1 上演奏 {{name}}；双击可编辑',
     slotEditBufferTitle: '单击通过 FM1 编辑缓冲区试听 {{name}}；双击进行编辑',
     slotEditTitle: '双击或按 Enter 键编辑 {{name}}',
-    sendPatch: '将 {{name}} 发送到 FM1',
+    sendPatch: '将 {{slot}} {{name}} 发送到 FM1',
     auditioning: '试听中',
     reorder: '重新排列 {{name}}',
+    reorderPatch: '重新排列 {{slot}} {{name}}',
+    moveEarlier: '前移',
+    moveLater: '后移',
     reorderTitle:
       '拖动以重新排列，或拖到某个音色库上将音色复制到该库；获得焦点时可使用方向键重新排列',
     copySelected: '复制到…',

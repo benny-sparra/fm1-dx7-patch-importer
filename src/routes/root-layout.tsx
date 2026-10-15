@@ -71,7 +71,8 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const unsupportedBrowser = isUnsupportedBrowser()
   const { colorway, setColorway } = useFm1Colorway()
   // The page a new finish degausses.
-  const screenRef = useRef<HTMLElement>(null)
+  const screenRef = useRef<HTMLDivElement>(null)
+  const mainRef = useRef<HTMLElement>(null)
   const showColorwayImage = useMediaQuery('(min-width: 1024px)')
   const showHardwareBay = !compact && showColorwayImage
   const showFm1VaImage = showHardwareBay && midi.firmware.kind === 'fm1-va'
@@ -99,8 +100,20 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   }, [showFm1VaImage])
 
   return (
-    <main className="synthwave-shell flex min-h-screen flex-col text-foreground" ref={screenRef}>
-      <section className="synthwave-header synthwave-hero border-b">
+    <div className="synthwave-shell flex min-h-screen flex-col text-foreground" ref={screenRef}>
+      {/* The first stop for the keyboard. It moves focus without going to an address, which the
+          share link's fragment would otherwise take for a link. */}
+      <a
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:border focus:border-[var(--crt-acc)] focus:bg-[var(--crt-bg-panel)] focus:px-3 focus:py-2 focus:text-sm focus:text-[var(--crt-led)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+        href="#main-content"
+        onClick={(event) => {
+          event.preventDefault()
+          mainRef.current?.focus()
+        }}
+      >
+        {t('root.skipToContent')}
+      </a>
+      <header className="synthwave-header synthwave-hero border-b">
         <div
           className={
             compact
@@ -217,12 +230,18 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             </div>
           ) : null}
         </div>
-      </section>
+      </header>
 
       {/* The patch banks or the editor: where a patch's zoom rectangles open to. */}
-      <div className="flex-1" data-view-area="">
+      <main
+        className="flex-1 outline-none"
+        data-view-area=""
+        id="main-content"
+        ref={mainRef}
+        tabIndex={-1}
+      >
         {children}
-      </div>
+      </main>
 
       <footer className="hero-footer-text synthwave-hero border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-xs sm:px-5 lg:px-8">
@@ -281,6 +300,6 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           </div>
         </div>
       </footer>
-    </main>
+    </div>
   )
 }

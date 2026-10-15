@@ -23,7 +23,7 @@ function slotButtons(page: Page) {
 
 async function firstSlotName(page: Page) {
   const label = (await slotButtons(page).first().getAttribute('aria-label')) ?? ''
-  return label.replace(/^Send (.+) to FM1$/, '$1')
+  return label.replace(/^Send \S+ (.+) to FM1$/, '$1')
 }
 
 test('fits the patch banks to the screen without sideways scrolling', async ({ page }) => {
@@ -75,7 +75,9 @@ test('opens a patch in the editor from its menu with taps', async ({ page }) => 
 test('copies a slot by dragging its grip onto another bank tab with a finger', async ({ page }) => {
   await openLibrarian(page)
   const name = await firstSlotName(page)
-  const grip = await centre(page.getByRole('button', { exact: true, name: `Reorder ${name}` }))
+  const grip = await centre(
+    page.getByRole('button', { name: new RegExp(`^Reorder \\S+ ${name}$`) }),
+  )
   const tab = await centre(page.getByRole('button', { name: /^B — / }))
 
   await touchDrag(page, grip, { x: tab.x - grip.x, y: tab.y - grip.y }, { steps: 16 })

@@ -29,6 +29,11 @@ function slotNames(page: Page) {
   )
 }
 
+/** The patch names in slot order, which a reorder moves; the slot codes beside them stay put. */
+async function patchNames(page: Page) {
+  return (await slotNames(page)).map((label) => label?.replace(/^Send \S+ (.+) to FM1$/, '$1'))
+}
+
 /** The rail holds the bank menu from md up; below that it sits beside the bank name instead. */
 async function openFirstBankMenu(page: Page) {
   await page.getByLabel('Actions for Bank 1').locator('visible=true').click()
@@ -186,7 +191,7 @@ test('switches a deleted bank off like a CRT over the bank that takes its place'
   })
   await openLibrarian(page)
   const grid = await page.locator('[data-patch-grid]').boundingBox()
-  const firstPatch = (await slotNames(page))[0]?.replace(/^Send (.+) to FM1$/, '$1') ?? ''
+  const firstPatch = (await slotNames(page))[0]?.replace(/^Send \S+ (.+) to FM1$/, '$1') ?? ''
 
   await openFirstBankMenu(page)
   await page.getByRole('button', { name: 'Delete bank…' }).click()
@@ -220,7 +225,7 @@ test('persists a saved patch name across a browser reload', async ({ page }) => 
 
   await page.reload()
 
-  await expect(page.getByRole('button', { name: 'Send E2E SAVE to FM1' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Send \S+ E2E SAVE to FM1$/ })).toBeVisible()
 })
 
 test('imports a valid DX7 SysEx bank into a populated workspace bank', async ({ page }) => {
@@ -255,7 +260,7 @@ test('imports the bank chosen from a file that joins several', async ({ page }) 
   await dialog.getByRole('button', { name: 'Replace bank contents' }).click()
 
   await expect(page.getByText('Imported patches into “Bank 1”.')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Send PIANO 4 to FM1' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Send \S+ PIANO 4 to FM1$/ })).toBeVisible()
 })
 
 test('rejects an invalid DX7 SysEx bank without closing the replacement dialog', async ({
@@ -424,7 +429,7 @@ test('downloads every loaded bank as one zip archive', async ({ page }) => {
 
 test('reorders patches with the keyboard drag control', async ({ page }) => {
   await openLibrarian(page)
-  const namesBefore = await slotNames(page)
+  const namesBefore = await patchNames(page)
 
   const reorderFirstPatch = page.getByRole('button', { name: /^Reorder / }).first()
   await reorderFirstPatch.press('Space')
@@ -432,7 +437,7 @@ test('reorders patches with the keyboard drag control', async ({ page }) => {
   await reorderFirstPatch.press('Space')
 
   await expect
-    .poll(() => slotNames(page))
+    .poll(() => patchNames(page))
     .toEqual([namesBefore[1], namesBefore[0], ...namesBefore.slice(2)])
 })
 
@@ -491,7 +496,7 @@ test('plays a slot on a single click and stays in the library', async ({ page })
 /** The ⋮ button on a slot, named after its sound; the bank menus share the "Actions for" wording. */
 async function slotMenuButton(page: Page, index: number) {
   const label = (await slotNames(page)).at(index) ?? ''
-  const name = label.replace(/^Send (.+) to FM1$/, '$1')
+  const name = label.replace(/^Send \S+ (.+) to FM1$/, '$1')
   return { button: page.getByRole('button', { exact: true, name: `Actions for ${name}` }), name }
 }
 
@@ -526,7 +531,7 @@ test('copies a slot from the keyboard through its menu and the slot grid', async
 /** Drags a slot's grip with the pointer in steps, as dnd-kit needs moves to follow it. */
 async function dragGrip(page: Page, slotName: string, target: Locator) {
   const grip = await page
-    .getByRole('button', { exact: true, name: `Reorder ${slotName}` })
+    .getByRole('button', { name: new RegExp(`^Reorder \\S+ ${slotName}$`) })
     .boundingBox()
   const drop = await target.boundingBox()
   if (!grip || !drop) throw new Error('The grip or its drop target is not on screen.')
@@ -547,7 +552,7 @@ test('outlines the dragged slot, and the bank tab it is over, with marching ants
       return element ? getComputedStyle(element, '::after').animationName : null
     }, selector)
   const grip = await page
-    .getByRole('button', { exact: true, name: `Reorder ${name}` })
+    .getByRole('button', { name: new RegExp(`^Reorder \\S+ ${name}$`) })
     .boundingBox()
   const tab = await page.getByRole('button', { name: /^B — / }).boundingBox()
   if (!grip || !tab) throw new Error('The grip or the bank tab is not on screen.')
@@ -664,7 +669,8 @@ test('gives every patch card control a 24 px target', async ({ page }) => {
 test('adds a slot to Favourites from its heart without playing it', async ({ page }) => {
   await openLibrarian(page)
   const slot = slotButtons(page).first()
-  const name = (await slot.getAttribute('aria-label'))?.replace(/^Send (.+) to FM1$/, '$1') ?? ''
+  const name =
+    (await slot.getAttribute('aria-label'))?.replace(/^Send \S+ (.+) to FM1$/, '$1') ?? ''
 
   // The heart sits above the slot's own button, which plays the slot when it gets the click.
   const heart = page.getByRole('button', { exact: true, name: `Favourite ${name}` })
@@ -702,13 +708,13 @@ test.describe('in a browser set to American English', () => {
 
 test('reorders when a slot is dropped in the grid beside the bank rail', async ({ page }) => {
   await openLibrarian(page)
-  const namesBefore = await slotNames(page)
+  const namesBefore = await patchNames(page)
   const { name } = await slotMenuButton(page, 1)
 
   await dragGrip(page, name, slotButtons(page).first())
 
   await expect
-    .poll(() => slotNames(page))
+    .poll(() => patchNames(page))
     .toEqual([namesBefore[1], namesBefore[0], ...namesBefore.slice(2)])
   await expect(page.getByRole('dialog')).toHaveCount(0)
 })
@@ -811,7 +817,7 @@ test('restores a downloaded backup over a factory reset', async ({ page }) => {
   await page.getByLabel('Library actions').click()
   await page.getByRole('button', { name: 'Reset to factory patches…' }).click()
   await page.getByRole('button', { name: 'Reset four banks' }).click()
-  await expect(page.getByRole('button', { name: 'Send PIANO 1 to FM1' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Send \S+ PIANO 1 to FM1$/ })).toBeVisible()
 
   await page.getByLabel('Library actions').click()
   await page.getByRole('button', { name: 'Restore from backup…' }).click()
@@ -821,6 +827,6 @@ test('restores a downloaded backup over a factory reset', async ({ page }) => {
   await restoreDialog.getByRole('button', { name: 'Restore backup' }).click()
 
   await expect(page.getByText(/^Restored the backup from /)).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Send E2E BACKUP to FM1' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Send \S+ E2E BACKUP to FM1$/ })).toBeVisible()
   await expect.poll(() => storedFirstPatchName(page)).toBe('E2E BACKUP')
 })

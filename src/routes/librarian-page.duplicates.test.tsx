@@ -7,7 +7,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { makeWorkspaceWithCopies } from '@/test/factory-voices'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -77,8 +77,8 @@ describe('LibrarianPage duplicate patches', () => {
 
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(onSelectPatch).toHaveBeenCalledWith(expect.objectContaining({ id: 'bank-B-5' }))
-    expect(screen.getByRole('button', { name: 'Send MY BRASS to FM1' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Send BRASS 1 to FM1' })).toBeNull()
+    expect(screen.getByRole('button', { name: sendSlotName('MY BRASS') })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: sendSlotName('BRASS 1') })).toBeNull()
   })
 
   it('moves focus to the slot of the patch chosen', async () => {
@@ -91,7 +91,7 @@ describe('LibrarianPage duplicate patches', () => {
 
     await waitFor(() =>
       expect(document.activeElement).toBe(
-        screen.getByRole('button', { name: 'Send MY BRASS to FM1' }),
+        screen.getByRole('button', { name: sendSlotName('MY BRASS') }),
       ),
     )
   })

@@ -28,24 +28,47 @@ describe('MidiPanicButton', () => {
   it('names itself and asks for MIDI to be switched on while offline', () => {
     const { button } = renderButton({ hasMidiOutput: false, midiAccess: false })
 
-    expect(button.disabled).toBe(true)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
     expect(button.title).toBe('MIDI panic: Switch MIDI on first')
   })
 
   it('names itself and asks for an output while online without one', () => {
     const { button } = renderButton({ hasMidiOutput: false, midiAccess: true })
 
-    expect(button.disabled).toBe(true)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
     expect(button.title).toBe('MIDI panic: Choose a MIDI output')
   })
 
   it('explains what it sends once an output is selected', () => {
     const { button } = renderButton({ hasMidiOutput: true, midiAccess: true })
 
-    expect(button.disabled).toBe(false)
+    expect(button.getAttribute('aria-disabled')).toBeNull()
     expect(button.title).toBe(
       'MIDI panic: send a note-off for every note on the note channel, to stop hanging notes',
     )
+  })
+
+  // A disabled button cannot take focus, so a keyboard user never reaches its tooltip.
+  it('says in text what stops it, and can be reached with the keyboard', async () => {
+    const user = userEvent.setup()
+    const { button, sendMidiPanic } = renderButton({ hasMidiOutput: false, midiAccess: true })
+
+    await user.tab()
+
+    expect(document.activeElement).toBe(button)
+    expect(button.getAttribute('aria-describedby')).toBeTruthy()
+    expect(button.getAttribute('aria-describedby') ?? '').not.toBe('')
+    expect(
+      document.getElementById(button.getAttribute('aria-describedby') ?? '')?.textContent,
+    ).toBe('Choose a MIDI output')
+    await user.keyboard('[Enter]')
+    expect(sendMidiPanic).not.toHaveBeenCalled()
+  })
+
+  it('has no description to read once it can send', () => {
+    const { button } = renderButton({ hasMidiOutput: true, midiAccess: true })
+
+    expect(button.getAttribute('aria-describedby')).toBeNull()
   })
 
   it('shows only an icon, leaving its name to the label', () => {
@@ -89,5 +112,8 @@ describe('MidiPanicButton', () => {
     const { button } = renderButton({ hasMidiOutput: false, midiAccess: false }, 'MIDI-Panik')
 
     expect(button.title).toBe('MIDI-Panik: Zuerst MIDI einschalten')
+    expect(
+      document.getElementById(button.getAttribute('aria-describedby') ?? '')?.textContent,
+    ).toBe('Zuerst MIDI einschalten')
   })
 })
