@@ -57,7 +57,7 @@ covered.
 - **Links.** `grep -rn -A3 'target="_blank"' src firmware` and `grep -rnE 'href=\{' src --include='*.tsx'`.
   Fine: `rel="noreferrer"` or `noopener` on each; dynamic `href`s from constants or catalog data.
 - **Origins against the CSP.** `grep -rnoE 'https?://[a-zA-Z0-9.-]+' src index.html firmware/index.html public/*.js | sort | uniq -c`.
-  Fine: Every origin a script loads or fetches is in `public/_headers` and `scripts/check-security-headers.mjs`. Plain links need no entry.
+  Fine: Every origin a script loads or fetches is in `public/_headers` and `scripts/check-security-headers.mjs`. Plain links need no entry. Umami's script from `cloud.umami.is` is accepted as it is (decided 15 October 2026).
 - **Untrusted files.** `grep -rnE 'JSON\.parse|\.arrayBuffer\(\)|\.text\(\)|fflate' src`, then read each parser in `src/lib`.
   Fine: Size caps, 7-bit checks, and checksums before use; `fflate` only zips, never unzips.
 - **Loops over untrusted data.** In those parsers, `.some(`, `.find(`, or `.includes(` inside a loop over file entries.
@@ -157,6 +157,8 @@ exist.
   Fine: Passes. A new path that changes the first screen, such as MIDI auto-connect, has a scenario in the script.
 - **Caching.** `cat public/_headers`.
   Fine: Hashed `/assets/*` immutable.
+- **Field measurement.** None, by decision: analytics only shows whether the site and its features
+  are used. Do not report its absence.
 
 Done with section 3 when every row of every table has a result: passed, a finding, or not
 applicable with a reason.

@@ -429,6 +429,9 @@ open everything an earlier release could have saved.
 
 - The application handles user-authored patch names, bank names, uploaded filenames, MIDI port
   identities, voice data, and SysEx bytes. Do not send those values to analytics or error monitoring.
+- Analytics answers only whether the site and each feature are used. Do not add measurement of
+  visitors' performance, devices, or behaviour beyond that, such as web vitals, which would need a
+  privacy policy the project does not have.
 - Analytics events must use fixed event names and coarse, bounded properties. Sentry reports must
   keep query strings, fragments, console breadcrumbs, UI breadcrumbs, request data, and user details
   out of events.

@@ -36,13 +36,19 @@ person to pick up one at a time.
 | Supply chain | CI checkouts kept the token in `.git/config`; Dependabot proposed releases the day they shipped.                                                     | `persist-credentials: false` on every checkout; a seven-day Dependabot cooldown.                     | CI run on the pull request.                           |
 | Supply chain | `postcss-selector-parser` 7.1.5, moderate CPU exhaustion (dev only).                                                                                 | Moved to 7.1.6 in the lockfile only.                                                                 | `npm audit`                                           |
 
+The knobs' value readouts became number fields that take a typed value (WCAG 2.5.7): a knob whose
+value is formatted, such as the Virtual Analog cutoff in hertz, shows its label until the field is
+focused, and gives it to assistive technology as the field's description. Tested in
+`parameter-controls.test.tsx`; one undo reverses a typed value.
+
 `AGENTS.md` gained **Checking JavaScript packages** under Validation, and rules for a label that
 holds a help button, names on generic elements, popovers claiming Escape, and Tab in a portal
 menu.
 
 ## Open tasks
 
-Each task names its files, the change, and what proves it. Before starting one, run `git status`,
+Tasks 12 and 13 are settled and need no work. Each other task names its files, the change, and
+what proves it. Before starting one, run `git status`,
 read the `AGENTS.md` sections it names, and branch from `main`. Finish with the focused test, then
 `npm run check` and `git diff --check`. Tasks marked **Decision** need the user's answer before any
 code changes: ask, quoting the options given.
@@ -64,13 +70,13 @@ code changes: ask, quoting the options given.
 screenReaderInstructions }}` built from new locale strings naming the slot code and patch name,
    or the effect name. Test: a rendered test in a non-English locale that the instructions are
    translated.
-3. **The knob needs a drag (WCAG 2.5.7, medium). Decision.** `RotaryParameterControl` in
-   `src/components/editor/parameter-controls.tsx:183-218` changes only on a vertical drag; the
-   keyboard works, but 2.5.7 asks for a single-pointer way too. Options: (a) make the value
-   `<output>` an editable number field, as the envelope's R/L readouts are; (b) step the value on a
-   click in the knob's upper or lower half. Patch reordering and effect order are drag-only too:
-   add **Move earlier** and **Move later** to the slot's ⋮ menu and to each effect box. Test: a
-   rendered test that the chosen alternative changes the value as one undo step.
+3. **Patch and effect order need a drag (WCAG 2.5.7, medium).** The knobs are done: their
+   readouts take a typed value (decided 15 October 2026). Patch reordering
+   (`src/components/patches/patch-button.tsx`) and effect order
+   (`src/components/editor/effects-unit.tsx`) are still drag-only. Add **Move earlier** and **Move
+   later** to the slot's ⋮ menu and to each effect box's controls, with their strings in every
+   locale, each move one undo step. Test: a rendered test that each item moves the patch or effect
+   one place and that one undo reverses it.
 4. **The sticky editor header can cover the focused control (WCAG 2.4.11, medium).**
    `src/components/editor/patch-editor-header.tsx:134` is `sticky top-0` and wraps to two rows on
    a phone, and nothing sets `scroll-padding`. Measure the header with a `ResizeObserver` into a
@@ -120,21 +126,14 @@ screenReaderInstructions }}` built from new locale strings naming the slot code 
     the firmware is checking, and keep the label's width with the hidden-alternate-text pattern in
     `AGENTS.md`. Add a scenario to `scripts/check-layout-shift.mjs` that installs
     `e2e/fake-midi.ts` and stores auto-connect, then run `npm run test:cls`.
-12. **No field data for web vitals (note). Decision.** Nothing measures LCP, CLS, or INP for real
-    visitors. Options: (a) leave it; (b) send rounded values as one fixed-name Umami event, which
-    adds no endpoint but needs the privacy review `AGENTS.md` asks for. Ask before writing any
-    code.
+12. **No field data for web vitals. Declined.** Analytics only shows whether the site and its
+    features are used, so no performance measurement of real visitors is added. Nothing to do.
 
 ### Security
 
-13. **Umami is unpinned third-party code with the app's full access (low to medium). Decision.**
-    `index.html` and `firmware/index.html` load `https://cloud.umami.is/script.js`, which can change
-    without notice and, if compromised, could read the library or send SysEx through an existing
-    MIDI grant. Options: (a) keep it, accepting the risk; (b) serve a reviewed copy from `public/`
-    with `data-host-url` set to the gateway `connect-src` already allows, and drop
-    `https://cloud.umami.is` from `script-src` in `public/_headers` and
-    `scripts/check-security-headers.mjs`. Option (b) narrows the CSP and needs the review
-    `AGENTS.md` asks for, plus a check after deploying that page views still arrive.
+13. **Umami loads from cloud.umami.is. Accepted.** The hosted script can change without notice
+    and runs with the app's access; the risk is accepted, and it stays loaded from
+    `https://cloud.umami.is`. Nothing to do; later sweeps do not report it.
 14. **Restored names are kept unnormalised (low).** `readSavedBank` in
     `src/lib/workspace-backup.ts:441-451` stores a saved bank's `name` and `description` as the
     file gives them; `validateNamedBank` (`src/lib/named-bank.ts:138-139`) checks only the trimmed
