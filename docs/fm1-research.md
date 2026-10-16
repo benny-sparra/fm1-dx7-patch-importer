@@ -1202,16 +1202,20 @@ Source: https://github.com/m-vave/fm1_open, commit `5d3eac2573dbd054254fabda6fde
 (2026-10-16), and the Workbench at https://open.m-vave.com/fm1-workbench. The application under
 `app/` and `web/` is GPL-3.0-only with a linking exception; the device SDK under `sdk/` is a binary
 archive with its JavaScript tools in source. Paths and lines below are in that commit. Everything is
-read from source, not run on an FM1, so every claim is **Likely** until a hardware run confirms it.
+read from source, not run on an FM1, so every claim is **Likely** until a hardware run confirms it;
+the identity reply below is the first that has been.
 
 **Identity.** `app/version.h:5–6` names the release `V12` and its update product `FM-1_8000012`.
 The Workbench's updater accepts an Open identity with
 `/^(FM1_OFFICIAL_OPEN|FM1_COMMUNITY_\d+|FM-1_8\d{6})$/` (`sdk/WebUpdate.js:58`): the release
 builds, a community build, and a development build's fixed name. It asks with `query(17)`
 (`sdk/WebUpdate.js:252`), whose frame is byte for byte the editor's `fm1IdentityQuery`
-(`F0 00 32 45 00 00 00 40 7F F7`). The reply comes from the binary SDK, not the GPL application, so
-whether it uses the 34-byte block `parseFm1IdentityReply` reads, with a name of up to 27 bytes,
-**needs hardware test**. Before this change `classifyFm1Firmware` read all three forms as
+(`F0 00 32 45 00 00 00 40 7F F7`). The reply comes from the binary SDK, not the GPL application.
+**Confirmed** on hardware on 2026-10-16: an FM1 running V12 answered the editor's query with the
+41-byte reply `parseFm1IdentityReply` reads, the 34-byte block `00 59 11`, a declared length of 27,
+and the name `FM-1_8000012`, with a checksum of its own (`54`, `15` on the wire) rather than V15's.
+The capture is `officialOpenIdentityReply` in `src/test/fake-fm1-midi.ts`. On macOS its one MIDI
+port is named `FM1 Community`, which `resolveMidiPortSelection` picks as an FM1 port. Before this change `classifyFm1Firmware` read all three forms as
 unidentified, since none is `FM-1_` and three digits; the editor now names them the
 `official-open` family (below).
 

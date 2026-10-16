@@ -39,7 +39,7 @@ describe('parseFm1IdentityReply', () => {
     expect(parseFm1IdentityReply(feluccaIdentityReply)).toBe('FM-1_904')
   })
 
-  it('reads the longer name Official Open V12 is built to answer with', () => {
+  it('reads the name from a reply captured on Official Open V12', () => {
     expect(parseFm1IdentityReply(officialOpenIdentityReply)).toBe('FM-1_8000012')
   })
 
