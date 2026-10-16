@@ -740,8 +740,15 @@ yet; the 8-Bit marker and record size are also seen in the pack files. The hardw
 `5a1d425123f1fc0a`, read 2026-10-07; and the 8-Bit pack's 16 presets). Its edit model says it reads
 each field from the firmware's own row tables (`ui_screens.cpp`), the writes its editor makes, and
 where the sound code reads them (`chip.h`, `chip.c`), and takes the names from the firmware's
-`chip_names.h`. None of it has been checked on an FM1 yet; tests P1–P7 and D2 in
-[`docs/fm1-va-096-tests.md`](fm1-va-096-tests.md) do that.
+`chip_names.h`. Tests P1–P7 in [`docs/fm1-va-096-tests.md`](fm1-va-096-tests.md) checked one
+field of each kind on `FM-1_098` on 2026-10-16, and every one landed where the table says
+([ledger](hardware-runs/fm1-va-8bit-fields-2026-10-16.md)). **Confirmed, seen once**: the Bass
+Wave (record 19 bits 0–3); the Key (record 26: the mark, Key Off, and Key C; Accidentals was not
+changed); a drum's Pitch (E 0); Drum Decay (E 15, E 36, and E 14); the Lead's User Arpeggio step 1
+(record 47 bits 0–4) and Arpeggio 32 for User (record 22); the Lead's Octave (E 76) and Mono
+(E 101 bit 0); the Bass Level (E 61); and the Note Engine (below), which the run found. The Lead
+Level (E 124) was confirmed on `FM-1_097` (L4). Every other field stays **Likely**, and D2, whether
+a DX7 parameter change reaches an 8-Bit preset live, has not been run.
 
 An 8-Bit preset keeps its fields in two places. **E** below is a byte of the 155-byte edit buffer
 that the preset write carries and the 128 voice bytes pack: the DX7's own order, operator 6 first,
@@ -765,28 +772,32 @@ none means what the DX7 parameter there means.
 
 The bass and the lead each have the same fields, bass first:
 
-| Field                           | Bass                         | Lead                           | Stored as                                                                                                      |
-| ------------------------------- | ---------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| Wave                            | Record 19, bits 0–3          | Record 21, bits 0–3            | 0–14: Pulse 12.5, Pulse 25, Pulse 50, Pulse 75, Triangle, Noise, Metal, then eight GB waves                    |
-| Duty Sequence                   | Record 19, bits 4–7          | Record 21, bits 4–7            | 0–14, 0 Off; heard only while Wave is a Pulse, though the FM1 does not dim it                                  |
-| Arpeggio                        | Record 20                    | Record 22                      | 0 Off, 1–31 built in, 32 User; shown only while Key is Off, and kept while it is set                           |
-| Chord                           | E 57                         | E 99                           | 0–6 (Triad to Power); shown only while a Key is set                                                            |
-| Pattern                         | E 78 bits 0–2, E 77 bits 0–1 | E 120 bits 0–2, E 119 bits 0–1 | 0–17 (Off to User); shown only while a Key is set                                                              |
-| User Arpeggio                   | Record 23, 24, 25, 45, 46    | Record 47–51                   | Eight steps of five bits, least significant first across the five bytes; −12 to +18 stored + 12, and 31 is End |
-| Arp Speed                       | E 10                         | E 73                           | 0–6: 1/8, 1/8T, 1/16, 1/16T, 1/32, 1/32T, 1/64T                                                                |
-| Attack, Decay, Sustain, Release | E 16, 19, 31, 37             | E 79, 82, 94, 100              | 0–99                                                                                                           |
-| Vibrato, Glide                  | E 40, 52                     | E 103, 115                     | 0–99                                                                                                           |
-| Sweep                           | E 58                         | E 121                          | 1–99, 50 the middle                                                                                            |
-| Octave                          | E 13, bits 0–2               | E 76, bits 0–2                 | −3 to +4, stored + 3                                                                                           |
-| Level                           | E 61                         | E 124                          | 0–99                                                                                                           |
-| Mono                            | E 38, bit 0                  | E 101, bit 0                   | Off or On                                                                                                      |
+| Field                           | Bass                         | Lead                           | Stored as                                                                                                          |
+| ------------------------------- | ---------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Wave                            | Record 19, bits 0–3          | Record 21, bits 0–3            | 0–14: Pulse 12.5, Pulse 25, Pulse 50, Pulse 75, Triangle, Noise, Metal, then eight GB waves                        |
+| Duty Sequence                   | Record 19, bits 4–7          | Record 21, bits 4–7            | 0–14, 0 Off; heard only while Wave is a Pulse, though the FM1 does not dim it                                      |
+| Arpeggio                        | Record 20                    | Record 22                      | 0 Off, 1–31 built in, 32 User; shown only while Key is Off, and kept while it is set                               |
+| Chord                           | E 57                         | E 99                           | 0–6 (Triad to Power); shown only while a Key is set                                                                |
+| Pattern                         | E 78 bits 0–2, E 77 bits 0–1 | E 120 bits 0–2, E 119 bits 0–1 | 0–17 (Off to User); shown only while a Key is set                                                                  |
+| User Arpeggio                   | Record 23, 24, 25, 45, 46    | Record 47–51                   | Eight steps of five bits, least significant first across the five bytes; −12 to +18 stored + 12, and 31 is End     |
+| Arp Speed                       | E 10                         | E 73                           | 0–6: 1/8, 1/8T, 1/16, 1/16T, 1/32, 1/32T, 1/64T                                                                    |
+| Attack, Decay, Sustain, Release | E 16, 19, 31, 37             | E 79, 82, 94, 100              | 0–99                                                                                                               |
+| Vibrato, Glide                  | E 40, 52                     | E 103, 115                     | 0–99                                                                                                               |
+| Sweep                           | E 58                         | E 121                          | 1–99, 50 the middle                                                                                                |
+| Octave                          | E 13, bits 0–2               | E 76, bits 0–2                 | −3 to +4, stored + 3                                                                                               |
+| Level                           | E 61                         | E 124                          | 0–99                                                                                                               |
+| Mono                            | E 38, bit 0                  | E 101, bit 0                   | Off or On                                                                                                          |
+| Note Engine                     | E 35, bit 0                  | E 35, bit 1                    | Auto-Arp or Auto-Chord; in Auto-Chord the FM1 dims the part's Arp Speed, Pattern, and User Arpeggio and keeps them |
 
 Record bytes 19–26 and 45–51 therefore mean one thing on a Virtual Analog preset (its oscillator
 and filter, above) and another on an 8-Bit one, so code that reads them checks the engine first.
 The Envelope, the seven effects, Bitcrush, and the knobs keep the record bytes they have on the
-other engines. The 8-Bit preset reads none of E 17, 35, 97, 118, 126–133, 134, 135, or 136 (four
-operators' oscillator mode, the pitch envelope, algorithm, feedback, and oscillator sync); every
-pack preset holds the same values there.
+other engines. E 35 holds the Note Engine in bits 0–1, from Version 98, and the preset reads no
+other bit of it; it reads none of E 17, 97, 118, 126–133, 134, 135, or 136 (operators' oscillator
+mode, the pitch envelope, algorithm, feedback, and oscillator sync). Every pack preset holds the
+same values there, E 35 `00` among them. The first SAVE of a pack preset on the FM1 also sets
+record 30 from `00` to `01`, putting Reverb at chain position 1, on `FM-1_097` and `FM-1_098`
+alike.
 
 The Device Manager marks some names as provisional in the firmware, not yet agreed: the Arp Speed
 names, the list of built-in Arpeggios, the Duty Sequence names, and the twelve sound effects. A
@@ -919,9 +930,11 @@ Baud Girl's release notes, 2026-10-10. **Likely** (from the notes alone; not yet
   releases, where it is quiet but held. Worth rewording in every locale if it is ever edited for
   another reason.
 - **No new SysEx message** is named, so the editor sends nothing new. The Note Engine's settings
-  belong to the FM1, not to a preset, and no approved command reaches them.
-- Still to do on hardware: the identity, read-all, and write-back tests on `FM-1_098`, and mapping
-  the 8-Bit Note Engine row (backlog item 10).
+  belong to the FM1, not to a preset, and no approved command reaches them, except the 8-Bit bass
+  and lead's own Note Engine row, which the preset keeps in E 35 (below).
+- Still to do on hardware: the identity, read-all, and write-back tests on `FM-1_098`. The 8-Bit
+  Note Engine row was mapped on `FM-1_098` on 2026-10-16: E 35, bit 0 for the bass and bit 1 for
+  the lead (see "Every field of an 8-Bit preset").
 
 ### FM-1_101 (manual read 2026-10-13)
 
