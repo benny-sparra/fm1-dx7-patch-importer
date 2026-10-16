@@ -108,10 +108,10 @@ describe('firmware page', () => {
     }
   })
 
-  it('pins the stock firmware and Baud Girl, which have no star count', () => {
+  it('pins Baud Girl, which has no star count', () => {
     const pinned = entries.filter((entry) => entry.hasAttribute('data-pinned'))
-    expect(pinned.map((entry) => entry.id)).toEqual(['stock', 'baud-girl'])
-    expect(entries.slice(0, 2)).toEqual(pinned)
+    expect(pinned.map((entry) => entry.id)).toEqual(['baud-girl'])
+    expect(entries.slice(0, 1)).toEqual(pinned)
     for (const entry of pinned) expect(entry.hasAttribute('data-stars')).toBe(false)
   })
 
@@ -225,9 +225,9 @@ describe('firmware page order', () => {
   }
   const option = (name: string) => screen.getByRole('button', { name })
   const written = entries.map((entry) => entry.id)
-  const pinned = written.slice(0, 2)
+  const pinned = written.slice(0, 1)
   const byStars = entries
-    .slice(2)
+    .slice(1)
     .toSorted(
       (a, b) =>
         Number(b.getAttribute('data-stars') ?? -1) - Number(a.getAttribute('data-stars') ?? -1),
@@ -251,7 +251,7 @@ describe('firmware page order', () => {
 
   it('orders by release date after the pinned entries, newest first, ties alphabetical', async () => {
     const byUpdated = entries
-      .slice(2)
+      .slice(1)
       .toSorted((a, b) =>
         (b.getAttribute('data-updated') ?? '').localeCompare(a.getAttribute('data-updated') ?? ''),
       )

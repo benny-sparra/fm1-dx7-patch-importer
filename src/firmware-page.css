@@ -259,7 +259,8 @@
   }
 
   /* Firmwares that cannot be installed yet: one panel of short rows, with no photos or tags. */
-  .firmware-watch {
+  .firmware-watch,
+  .firmware-stock {
     scroll-margin-top: 1rem;
     display: flex;
     flex-direction: column;
@@ -267,7 +268,8 @@
     padding: 1rem;
   }
 
-  .firmware-watch:target {
+  .firmware-watch:target,
+  .firmware-stock:target {
     outline: 2px solid var(--crt-led);
     outline-offset: 2px;
   }
