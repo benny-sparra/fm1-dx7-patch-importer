@@ -504,7 +504,6 @@ export default {
     titleEmpty: 'Імпорт у «{{bank}}»',
     actionEmpty: 'Імпортувати банк',
     action: 'Замінити вміст банку',
-    help: 'Оберіть стандартний файл банку DX7 SysEx на 32 патчі.',
     play: 'Зіграти {{name}}, патч {{number}}',
     previewHelp:
       'Натисніть на патч, щоб почути його на FM1. Ваш банк лишиться без змін, доки ви його не заміните.',
@@ -1194,7 +1193,6 @@ export default {
     wizardNext: 'Далі',
     bankName: 'Назва банку',
     bankNameRequired: 'Введіть назву нового банку.',
-    soundData: 'Дані патчів',
     soundSource: 'Оберіть джерело патчів',
     catalogSource: 'Готові банки DX7',
     uploadSource: 'Власний файл банку',

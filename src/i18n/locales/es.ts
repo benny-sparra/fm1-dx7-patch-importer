@@ -508,7 +508,6 @@ export default {
     titleEmpty: 'Importar en «{{bank}}»',
     actionEmpty: 'Importar banco',
     action: 'Reemplazar contenido',
-    help: 'Elige un archivo de banco SysEx DX7 estándar de 32 voces.',
     play: 'Escuchar {{name}}, sonido {{number}}',
     previewHelp:
       'Haz clic en un sonido para escucharlo en el FM1. Tu banco no cambia hasta que lo reemplaces.',
@@ -1110,7 +1109,6 @@ export default {
     wizardNext: 'Siguiente',
     catalogSource: 'Elegir del catálogo de bancos DX7',
     creatingBank: 'Creando…',
-    soundData: 'Datos de sonido (opcional)',
     soundSource: 'Elige una fuente de sonido',
     uploadSource: 'Subir tu propio banco',
     empty: 'Vacío',

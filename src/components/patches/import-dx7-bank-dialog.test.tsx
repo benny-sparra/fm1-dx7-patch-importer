@@ -8,6 +8,7 @@ import { ToastProvider } from '@/components/ui/toast'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { setLocale } from '@/i18n'
 import german from '@/i18n/locales/de'
+import ukrainian from '@/i18n/locales/uk'
 import { makeDx7BankFile, updateDx7VoiceName } from '@/lib/dx7'
 import { type PatchLibrarySnapshot, WorkspaceBankUnavailableError } from '@/lib/patch-library'
 import { translatePageText } from '@/test/page-translator'
@@ -17,6 +18,7 @@ import { ImportDx7BankDialog } from './import-dx7-bank-dialog'
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
     this.open = true
+    this.dispatchEvent(new Event('toggle'))
   }
   HTMLDialogElement.prototype.close = function close() {
     this.open = false
@@ -85,7 +87,7 @@ function renderDialog(
   const onClose = vi.fn()
   const onPlay = vi.fn()
   const undoChange = vi.fn()
-  render(
+  const view = render(
     <ToastProvider>
       <ImportDx7BankDialog
         bank="B"
@@ -99,34 +101,129 @@ function renderDialog(
     </ToastProvider>,
   )
   const dialog = screen.getByRole<HTMLDialogElement>('dialog')
-  return { dialog, onClose, onPlay, undoChange, user: userEvent.setup() }
+  return { dialog, onClose, onPlay, undoChange, user: userEvent.setup(), view }
 }
 
-async function chooseFile(user: ReturnType<typeof userEvent.setup>, file = syxFile()) {
+type User = ReturnType<typeof userEvent.setup>
+
+const nextButton = (name = 'Next') => screen.getByRole('button', { hidden: true, name })
+const backButton = () => screen.queryByRole('button', { name: 'Back' })
+const replaceButton = () => screen.getByRole('button', { name: 'Replace bank contents' })
+
+async function chooseFile(user: User, file = syxFile()) {
   await user.upload(screen.getByLabelText(/SysEx|\.syx/), file)
 }
 
-async function chooseAndImport(user: ReturnType<typeof userEvent.setup>, file = syxFile()) {
+/** Moves on once the file has been read, which the file reader's own chunk can delay. */
+async function moveOn(user: User, name = 'Next') {
+  const next = nextButton(name)
+  await waitFor(() => expect(next).toHaveProperty('disabled', false))
+  await user.click(next)
+}
+
+/** Chooses a file holding one bank and moves on to its patches. */
+async function toPreview(user: User, file = syxFile()) {
   await chooseFile(user, file)
-  // The button exists before the file is read and is enabled once it has been, which the file
-  // reader's own chunk can delay.
-  const replace = screen.getByRole('button', { name: 'Replace bank contents' })
-  await waitFor(() => expect(replace).toHaveProperty('disabled', false))
-  await user.click(replace)
+  await moveOn(user)
+}
+
+async function chooseAndImport(user: User, file = syxFile()) {
+  await toPreview(user, file)
+  await user.click(replaceButton())
 }
 
 const playButtons = () => screen.queryAllByRole('button', { name: /^Play / })
 
-describe('ImportDx7BankDialog', () => {
-  it('names the bank it will replace and waits for a file', () => {
+describe('ImportDx7BankDialog screens', () => {
+  it('opens on the file, naming the bank it will replace, with no way back', () => {
     renderDialog(vi.fn())
 
     expect(screen.getByRole('dialog', { name: 'Import over “Leads”?' })).toBeTruthy()
-    expect(
-      screen.getByRole('button', { name: 'Replace bank contents' }).hasAttribute('disabled'),
-    ).toBe(true)
+    expect(screen.getByText('Choose a standard 32-voice DX7 SysEx bank file.')).toBeTruthy()
+    expect(screen.getByText('A standard 32-voice DX7 bank in a .syx file')).toBeTruthy()
+    expect(backButton()).toBeNull()
+    expect(nextButton().hasAttribute('disabled')).toBe(true)
   })
 
+  it('focuses the file chooser as it opens', () => {
+    renderDialog(vi.fn())
+
+    expect(document.activeElement).toBe(screen.getByLabelText('Choose a DX7 SysEx file'))
+  })
+
+  it('goes straight to the patches for a file holding one bank, and back to the file', async () => {
+    const { user } = renderDialog(vi.fn())
+
+    await toPreview(user)
+
+    expect(screen.queryByRole('group', { name: 'Banks in this file' })).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Patches in this file' })).toBeTruthy()
+    expect(replaceButton()).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
+
+    await user.click(backButton()!)
+
+    expect(screen.getByText('bank.syx')).toBeTruthy()
+    expect(backButton()).toBeNull()
+  })
+
+  it('asks which bank to use in a file that joins several, then shows its patches', async () => {
+    const { user } = renderDialog(vi.fn())
+    await chooseFile(user, archiveFile([bankBytes('FIRST'), bankBytes('LATER')]))
+    await moveOn(user)
+
+    expect(screen.getByText('Choose which of the banks in the file to use.')).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Banks in this file' })).toBeTruthy()
+    expect(playButtons()).toHaveLength(0)
+
+    await moveOn(user)
+
+    expect(screen.getByRole('button', { name: 'Play FIRST 01, patch 1' })).toBeTruthy()
+    await user.click(backButton()!)
+    expect(screen.getByRole('group', { name: 'Banks in this file' })).toBeTruthy()
+  })
+
+  it('moves focus to the first control of the screen it opens', async () => {
+    const { user } = renderDialog(vi.fn())
+    await chooseFile(user, archiveFile([damagedBytes(bankBytes('FIRST')), bankBytes('LATER')]))
+    await moveOn(user)
+
+    expect(document.activeElement).toBe(screen.getByRole('radio', { name: /^Bank 2: / }))
+
+    await moveOn(user)
+
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Play LATER 01, patch 1' }),
+    )
+  })
+
+  it('warns that the bank is replaced only on the screen that replaces it', async () => {
+    const { user } = renderDialog(vi.fn())
+    await chooseFile(user)
+
+    expect(screen.queryByText(/will be wiped/)).toBeNull()
+    await moveOn(user)
+
+    expect(screen.getByText(/will be wiped/)).toBeTruthy()
+  })
+
+  it('switches screens after a page translator has replaced the dialog’s text', async () => {
+    const importBank = vi.fn<PatchLibrary['importBank']>(() => changed)
+    const { user, view } = renderDialog(importBank)
+    await chooseFile(user, archiveFile([bankBytes('FIRST'), bankBytes('LATER')]))
+    translatePageText(view.container)
+
+    await moveOn(user)
+    translatePageText(view.container)
+    await moveOn(user)
+    translatePageText(view.container)
+    await user.click(screen.getByRole('button', { hidden: true, name: 'Replace bank contents' }))
+
+    expect(importBank).toHaveBeenCalledOnce()
+  })
+})
+
+describe('ImportDx7BankDialog importing', () => {
   it('imports the chosen file into its bank and offers to undo it', async () => {
     const importBank = vi.fn<PatchLibrary['importBank']>(() => changed)
     const { dialog, onClose, undoChange, user } = renderDialog(importBank)
@@ -163,9 +260,8 @@ describe('ImportDx7BankDialog', () => {
     )
 
     await user.upload(screen.getByLabelText(/SysEx/), syxFile())
-    const replace = screen.getByRole('button', { name: 'Bankinhalt ersetzen' })
-    await waitFor(() => expect(replace).toHaveProperty('disabled', false))
-    await user.click(replace)
+    await moveOn(user, german.banks.wizardNext)
+    await user.click(screen.getByRole('button', { name: 'Bankinhalt ersetzen' }))
 
     const alert = await screen.findByRole('alert')
     expect(alert.textContent).toBe(german.banks.bankUnavailable)
@@ -186,7 +282,7 @@ describe('ImportDx7BankDialog', () => {
     expect(alert.textContent).not.toContain('QuotaExceededError')
   })
 
-  it('clears the error once another file is chosen', async () => {
+  it('clears the error when going back to choose another file', async () => {
     const { user } = renderDialog(
       vi.fn(() => {
         throw new Error('failed')
@@ -195,18 +291,41 @@ describe('ImportDx7BankDialog', () => {
 
     await chooseAndImport(user)
     await screen.findByRole('alert')
-    await user.upload(screen.getByLabelText(/Choose a DX7 SysEx file|bank\.syx/), syxFile('b.syx'))
+    await user.click(backButton()!)
 
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
+  it('imports into an empty bank without warning that it replaces anything', async () => {
+    const importBank = vi.fn<PatchLibrary['importBank']>(() => changed)
+    const { user } = renderDialog(importBank, { replacing: false })
+
+    expect(screen.getByRole('dialog', { name: 'Import into “Leads”' })).toBeTruthy()
+    await toPreview(user)
+    expect(screen.queryByText(/will be wiped/)).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Import bank' }))
+
+    expect(importBank).toHaveBeenCalledOnce()
+  })
+
+  it('tells the librarian it closed, so the chosen file goes with it', async () => {
+    const { dialog, onClose, user } = renderDialog(vi.fn())
+
+    await user.upload(screen.getByLabelText(/Choose a DX7 SysEx file/), syxFile())
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+
+    expect(dialog.open).toBe(false)
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+})
+
+describe('ImportDx7BankDialog preview', () => {
   it('lists the chosen file’s patches before anything is replaced', async () => {
     const importBank = vi.fn(() => changed)
     const { user } = renderDialog(importBank)
 
-    await chooseFile(user)
+    await toPreview(user)
 
-    expect(await screen.findByRole('heading', { name: 'Patches in this file' })).toBeTruthy()
     expect(playButtons()).toHaveLength(32)
     expect(screen.getByRole('button', { name: 'Play SOUND 17, patch 17' })).toBeTruthy()
     expect(importBank).not.toHaveBeenCalled()
@@ -216,8 +335,8 @@ describe('ImportDx7BankDialog', () => {
     const importBank = vi.fn(() => changed)
     const { onPlay, user } = renderDialog(importBank)
 
-    await chooseFile(user)
-    const patch = await screen.findByRole('button', { name: 'Play SOUND 03, patch 3' })
+    await toPreview(user)
+    const patch = screen.getByRole('button', { name: 'Play SOUND 03, patch 3' })
     await user.click(patch)
 
     expect(onPlay).toHaveBeenCalledOnce()
@@ -230,8 +349,8 @@ describe('ImportDx7BankDialog', () => {
   it('plays the same voice object each time a patch is clicked, so it is sent once', async () => {
     const { onPlay, user } = renderDialog(vi.fn())
 
-    await chooseFile(user)
-    const patch = await screen.findByRole('button', { name: 'Play SOUND 03, patch 3' })
+    await toPreview(user)
+    const patch = screen.getByRole('button', { name: 'Play SOUND 03, patch 3' })
     await user.click(patch)
     await user.click(patch)
 
@@ -242,28 +361,37 @@ describe('ImportDx7BankDialog', () => {
     const importBank = vi.fn(() => changed)
     const { onClose, user } = renderDialog(importBank)
 
-    await chooseFile(user)
-    await user.click(await screen.findByRole('button', { name: 'Play SOUND 03, patch 3' }))
+    await toPreview(user)
+    await user.click(screen.getByRole('button', { name: 'Play SOUND 03, patch 3' }))
     await user.click(screen.getByRole('button', { name: 'Close' }))
 
     expect(onClose).toHaveBeenCalledOnce()
     expect(importBank).not.toHaveBeenCalled()
   })
 
-  it('explains a file it cannot read as soon as it is chosen, and imports nothing', async () => {
+  it('names each patch in the interface language', async () => {
     await setLocale('de')
-    const importBank = vi.fn(() => changed)
-    const { user } = renderDialog(importBank)
+    const { user } = renderDialog(vi.fn())
+
+    await chooseFile(user)
+    await moveOn(user, german.banks.wizardNext)
+
+    expect(screen.getByRole('heading', { name: german.overwriteImport.previewTitle })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'SOUND 03 spielen, Sound 3' })).toBeTruthy()
+  })
+})
+
+describe('ImportDx7BankDialog reading the file', () => {
+  it('explains a file it cannot read as soon as it is chosen, and stays on the file', async () => {
+    await setLocale('de')
+    const { user } = renderDialog(vi.fn())
     const damaged = new File([new Uint8Array(4104)], 'damaged.syx')
 
     await chooseFile(user, damaged)
 
     const alert = await screen.findByRole('alert')
     expect(alert.textContent).toContain(german.banks.fileErrors.format)
-    expect(playButtons()).toHaveLength(0)
-    expect(
-      screen.getByRole('button', { name: 'Bankinhalt ersetzen' }).hasAttribute('disabled'),
-    ).toBe(true)
+    expect(nextButton(german.banks.wizardNext).hasAttribute('disabled')).toBe(true)
   })
 
   it('lists the file chosen last when an earlier file finishes reading after it', async () => {
@@ -274,24 +402,13 @@ describe('ImportDx7BankDialog', () => {
     await chooseFile(user, first.file)
     await chooseFile(user, second.file)
     second.release()
-    await screen.findByRole('button', { name: 'Play LATER 01, patch 1' })
+    await moveOn(user)
     first.release()
     await new Promise((resolve) => setTimeout(resolve, 0))
 
+    expect(screen.getByRole('button', { name: 'Play LATER 01, patch 1' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Play FIRST 01, patch 1' })).toBeNull()
     expect(playButtons()).toHaveLength(32)
-  })
-
-  it('names each patch in the interface language', async () => {
-    await setLocale('de')
-    const { user } = renderDialog(vi.fn())
-
-    await chooseFile(user)
-
-    expect(
-      await screen.findByRole('heading', { name: german.overwriteImport.previewTitle }),
-    ).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'SOUND 03 spielen, Sound 3' })).toBeTruthy()
   })
 
   it('offers a choice of bank when the file joins several, starting on the first', async () => {
@@ -301,24 +418,26 @@ describe('ImportDx7BankDialog', () => {
       user,
       archiveFile([bankBytes('FIRST'), bankBytes('LATER'), bankBytes('THIRD')]),
     )
+    await moveOn(user)
 
-    const picker = await screen.findByRole('group', { name: 'Banks in this file' })
+    const picker = screen.getByRole('group', { name: 'Banks in this file' })
     expect(within(picker).getAllByRole('radio')).toHaveLength(3)
     expect(within(picker).getByRole('radio', { name: /^Bank 1: FIRST 01, / })).toHaveProperty(
       'checked',
       true,
     )
-    expect(screen.getByRole('button', { name: 'Play FIRST 01, patch 1' })).toBeTruthy()
   })
 
   it('previews and imports the bank chosen from the file', async () => {
     const importBank = vi.fn<PatchLibrary['importBank']>(() => changed)
     const { user } = renderDialog(importBank)
     await chooseFile(user, archiveFile([bankBytes('FIRST'), bankBytes('LATER')]))
+    await moveOn(user)
 
-    await user.click(await screen.findByRole('radio', { name: /^Bank 2: / }))
+    await user.click(screen.getByRole('radio', { name: /^Bank 2: / }))
+    await moveOn(user)
     expect(screen.getByRole('button', { name: 'Play LATER 01, patch 1' })).toBeTruthy()
-    await user.click(screen.getByRole('button', { name: 'Replace bank contents' }))
+    await user.click(replaceButton())
 
     expect(importBank.mock.calls[0][1][0].name).toBe('LATER 01')
   })
@@ -327,52 +446,40 @@ describe('ImportDx7BankDialog', () => {
     const { user } = renderDialog(vi.fn())
 
     await chooseFile(user, archiveFile([damagedBytes(bankBytes('FIRST')), bankBytes('LATER')]))
+    await moveOn(user)
 
-    const damaged = await screen.findByRole('radio', { name: 'Bank 1: Damaged' })
+    const damaged = screen.getByRole('radio', { name: 'Bank 1: Damaged' })
     expect(damaged).toHaveProperty('disabled', true)
     expect(screen.getByRole('radio', { name: /^Bank 2: / })).toHaveProperty('checked', true)
     expect(screen.getByText(/One of them is damaged and cannot be imported\./)).toBeTruthy()
   })
 
-  it('updates the bank choice after a page translator rewrites the dialog', async () => {
-    const { user } = renderDialog(vi.fn())
+  it('shows the banks of a file chosen again after a page translator rewrote the dialog', async () => {
+    const { user, view } = renderDialog(vi.fn())
     await chooseFile(user, archiveFile([bankBytes('FIRST'), bankBytes('LATER')]))
-    await screen.findByRole('group', { name: 'Banks in this file' })
-    translatePageText(screen.getByRole('dialog'))
+    await moveOn(user)
+    translatePageText(view.container)
 
+    await user.click(screen.getByRole('button', { hidden: true, name: 'Back' }))
     await chooseFile(
       user,
       archiveFile([damagedBytes(bankBytes('FIRST')), bankBytes('LATER'), bankBytes('THIRD')]),
     )
+    await moveOn(user)
 
-    expect(await screen.findByRole('radio', { name: /^Bank 3: THIRD 01, / })).toBeTruthy()
+    expect(screen.getByRole('radio', { name: /^Bank 3: THIRD 01, / })).toBeTruthy()
     expect(screen.getByText('One of them is damaged and cannot be imported.')).toBeTruthy()
   })
 
-  it('shows no choice for a file holding one bank', async () => {
-    const { user } = renderDialog(vi.fn())
-
-    await chooseFile(user)
-
-    await screen.findByRole('button', { name: 'Play SOUND 01, patch 1' })
-    expect(screen.queryByRole('group', { name: 'Banks in this file' })).toBeNull()
-  })
-
-  it('reads a file chosen before it opened', async () => {
-    renderDialog(vi.fn(), {
+  it('opens on the banks of a file chosen before it opened, and can go back to the file', async () => {
+    const { user } = renderDialog(vi.fn(), {
       initialFile: archiveFile([bankBytes('FIRST'), bankBytes('LATER')], 'collection.syx'),
+      replacing: false,
     })
 
     expect(await screen.findByRole('group', { name: 'Banks in this file' })).toBeTruthy()
+    await user.click(backButton()!)
     expect(screen.getByText('collection.syx')).toBeTruthy()
-  })
-
-  it('imports into an empty bank without warning that it replaces anything', async () => {
-    renderDialog(vi.fn(), { replacing: false })
-
-    expect(screen.getByRole('dialog', { name: 'Import into “Leads”' })).toBeTruthy()
-    expect(screen.queryByText(/will be wiped/)).toBeNull()
-    expect(screen.getByRole('button', { name: 'Import bank' })).toBeTruthy()
   })
 
   it('counts the banks in a file in the interface language', async () => {
@@ -383,21 +490,26 @@ describe('ImportDx7BankDialog', () => {
       user,
       archiveFile([bankBytes('FIRST'), bankBytes('LATER'), bankBytes('THIRD')]),
     )
+    await moveOn(user, german.banks.wizardNext)
 
     expect(
-      await screen.findByText(
+      screen.getByText(
         'Diese Datei enthält 3 DX7-Bänke. Wähle die Bank, die du importieren möchtest.',
       ),
     ).toBeTruthy()
   })
 
-  it('tells the librarian it closed, so the chosen file goes with it', async () => {
-    const { dialog, onClose, user } = renderDialog(vi.fn())
+  it('steps through the screens in Ukrainian', async () => {
+    await setLocale('uk')
+    const { user } = renderDialog(vi.fn())
 
-    await user.upload(screen.getByLabelText(/Choose a DX7 SysEx file/), syxFile())
-    await user.click(screen.getByRole('button', { name: 'Close' }))
+    await chooseFile(user, archiveFile([bankBytes('FIRST'), bankBytes('LATER')]))
+    await moveOn(user, ukrainian.banks.wizardNext)
+    await moveOn(user, ukrainian.banks.wizardNext)
 
-    expect(dialog.open).toBe(false)
-    expect(onClose).toHaveBeenCalledOnce()
+    expect(screen.getByRole('button', { name: ukrainian.banks.wizardBack })).toBeTruthy()
+    expect(
+      screen.getByRole('heading', { name: ukrainian.overwriteImport.previewTitle }),
+    ).toBeTruthy()
   })
 })

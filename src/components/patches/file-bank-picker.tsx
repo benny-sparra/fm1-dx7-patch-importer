@@ -32,7 +32,7 @@ export function FileBankPicker({ banks, chosen, disabled = false, onChoose }: Fi
           <span>{t('bankFile.damagedBanks', { count: damagedCount })}</span>
         ) : null}
       </p>
-      <ul className="dither-well relative grid max-h-60 gap-1 overflow-y-auto border border-[var(--crt-line-dk)] p-2">
+      <ul className="dither-well relative grid max-h-60 grid-cols-1 gap-1 overflow-y-auto border border-[var(--crt-line-dk)] p-2">
         {banks.map((voices, index) => {
           const bank = t('bankFile.bank', { number: numberFormat.format(index + 1) })
           const contents =

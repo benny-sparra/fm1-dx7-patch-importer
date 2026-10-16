@@ -508,7 +508,6 @@ export default {
     titleEmpty: 'Importer dans « {{bank}} »',
     actionEmpty: 'Importer la banque',
     action: 'Remplacer le contenu',
-    help: 'Choisissez un fichier de banque SysEx DX7 standard de 32 voix.',
     play: 'Écouter {{name}}, son {{number}}',
     previewHelp:
       'Cliquez sur un son pour l’écouter sur le FM1. Votre banque reste inchangée tant que vous ne la remplacez pas.',
@@ -1133,7 +1132,6 @@ export default {
     wizardNext: 'Suivant',
     bankName: 'Nom de la banque',
     bankNameRequired: 'Saisissez un nom pour la nouvelle banque.',
-    soundData: 'Données sonores',
     soundSource: 'Choisissez une source sonore',
     catalogSource: 'Choisir dans le catalogue DX7',
     uploadSource: 'Importer votre propre banque',

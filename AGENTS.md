@@ -583,6 +583,14 @@ open everything an earlier release could have saved.
   shows how many banks it holds in a lozenge after its name, never a number in the badge, since
   the numbers on the banks are only their places in the list. Moving to a screen moves focus to
   its first control, and Enter in a field moves on.
+- **Import DX7 bank…** is a wizard the same way: the file, with what it accepts; which bank, only
+  for a file that joins several; then the bank's patches to audition, with the replace warning
+  when the bank holds patches, and **Replace bank contents** (`destructive`) or **Import bank** in
+  place of **Next**. A file chosen before it opens, as importing into an empty bank passes on, opens
+  it on the bank screen. Both wizards take their screen state, focus on each screen, the
+  Back/Next footer, and the file screen from `src/components/patches/bank-wizard.tsx`, and the
+  bank screen from `FileBankPicker`; a new step-by-step dialog uses them rather than another copy.
+  The footer wraps, so **Back** and a long action fit a 320 px phone (`e2e/librarian.e2e.ts`).
 - A dialog that opens without a click, as the help guide does on a first visit, checks that it is
   connected, not already open, and has `showModal` before calling it. Crawlers and extensions can
   take the page out of the document, where `showModal()` throws, and Safari before 15.4 and some
