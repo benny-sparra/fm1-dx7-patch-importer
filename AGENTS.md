@@ -455,8 +455,10 @@ open everything an earlier release could have saved.
   the editor's finish through `public/firmware-colourway.js`, a plain script served unchanged. Add a
   firmware as another `<article class="firmware-entry">` whose `id` is its short anchor, such as
   `felucca` (Baud Girl's is `baud-girl`), linked by the `#` beside its title, which people share, so
-  never rename one; `src/firmware-page.test.ts` checks each has its heading, maker, support tag,
-  blurb, sized photo or placeholder, and links. The page is in British English only, outside the
+  never rename one; `src/firmware-page.test.ts` checks each has its heading, maker, blurb, sized
+  photo or placeholder, and links. Only a firmware this editor works with carries a support tag
+  (**Works with this editor**); the rest carry none rather than a tag saying they are not
+  supported. The page is in British English only, outside the
   locale files.
 - The firmware page orders its entries A–Z, as written, or by GitHub stars on request, through
   `public/firmware-sort.js`, another plain script. The counts are a snapshot in the HTML
@@ -477,6 +479,16 @@ open everything an earlier release could have saved.
   heading: one line per kind of change (added, new versions, watched), each name linking to its
   card. A day's edit replaces the previous day's lines rather than adding to them;
   `src/firmware-page.test.ts` checks the date and that every link reaches a card.
+- The firmware page lays its entries out in `.firmware-grid`, one column on a phone, two from
+  40rem, and three from 60rem; the two pinned entries span the row with their photo beside the
+  text. Every entry carries `data-categories`, one or more of the kinds the **Show** filter lists
+  (Synths, Grooveboxes, Samplers, Chords, Generative, Tools, Games & toys), and a new
+  firmware names at least one, with the count on that kind's filter button raised in the same
+  edit; `src/firmware-page.test.ts` checks both. `public/firmware-filter.js` hides the others and
+  shows every entry again when a link reaches a hidden card. `public/firmware-blurbs.js` folds
+  each blurb to four lines behind a **More** button: it runs in the head, not deferred, to mark the
+  page so the stylesheet folds the blurbs from the first frame, since folding them after the cards
+  painted would move every card below. Without it the blurbs show in full.
 
 ### Privacy, monitoring, and deployment security
 

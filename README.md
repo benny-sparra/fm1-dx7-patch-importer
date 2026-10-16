@@ -122,7 +122,7 @@ names, uploaded filenames, MIDI port identities, and SysEx data are never sent. 
   FM-1+VA, Felucca, and SLOOP, and recovering from a failed install
 - [FM1 firmware](https://fm1-editor.com/firmware/): every firmware known to run on the FM1, with
   links to each project and the week's changes at the top, ordered A–Z, by GitHub stars, or by
-  release date (source in `firmware/index.html`)
+  release date, and filtered by kind (source in `firmware/index.html`)
 - [Accessibility](ACCESSIBILITY.md): what the app supports, known barriers, and how to report one
 - [Privacy](PRIVACY.md): anonymous usage analytics and error monitoring
 - [Contributing](CONTRIBUTING.md): local development, quality checks, scripts, and project structure
