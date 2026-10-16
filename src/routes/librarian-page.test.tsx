@@ -1026,11 +1026,9 @@ describe('LibrarianPage bank menu dialogs', () => {
     const reopened = await openImport()
 
     expect(within(reopened).getByText('Choose a DX7 SysEx file')).toBeTruthy()
-    expect(
-      within(reopened)
-        .getByRole('button', { name: 'Replace bank contents' })
-        .hasAttribute('disabled'),
-    ).toBe(true)
+    expect(within(reopened).getByRole('button', { name: 'Next' }).hasAttribute('disabled')).toBe(
+      true,
+    )
   })
 
   it('returns focus to the bank file menu when the factory reset is closed', async () => {

@@ -54,7 +54,6 @@ export default {
     titleEmpty: 'Import into “{{bank}}”',
     actionEmpty: 'Import bank',
     action: 'Replace bank contents',
-    help: 'Choose a standard 32-voice DX7 SysEx bank file.',
     play: 'Play {{name}}, patch {{number}}',
     previewHelp:
       'Click a patch to hear it on the FM1. Your bank stays as it is until you replace it.',

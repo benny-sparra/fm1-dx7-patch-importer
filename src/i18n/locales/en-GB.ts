@@ -496,7 +496,6 @@ export default {
     addBankHelp: 'Give the bank a name and an optional description.',
     bankName: 'Bank name',
     bankNameRequired: 'Enter a name for the new bank.',
-    soundData: 'Patch data',
     soundSource: 'Choose a patch source',
     catalogSource: 'Existing DX7 patch banks',
     uploadSource: 'Upload your own bank',
