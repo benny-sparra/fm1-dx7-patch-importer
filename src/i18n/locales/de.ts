@@ -849,7 +849,7 @@ export default {
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca und SLOOP melden beide diesen Namen. Beide spielen deine Noten, ignorieren aber DX7-Sounds, DX7-Bänke und die Effektregler.',
     firmwareOfficialOpenSends:
-      'Die Open-Firmware von M-VAVE spielt deine Noten, ignoriert aber die DX7-Sounds und -Bänke, die der Editor sendet. Ein Klick auf einen Platz wählt dort kein Preset, und die Effektregler senden nichts, da sie beides als Änderungen an ihren Spuren verstehen würde.',
+      'Die Open-Firmware von M-VAVE spielt deine Noten, und ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',
     firmwareNeedsInput:
       'Wähle den FM1 als Monitoring-Eingang, damit der Editor fragen kann, welche Firmware er verwendet.',
     noteChannel: 'Notenkanal',
@@ -1063,7 +1063,7 @@ export default {
       'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer.',
     officialOpenBadgeLabel: 'Open-Firmware von M-VAVE, {{release}}',
     officialOpenBadgeTitle:
-      'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Sie spielt deine Noten, ignoriert aber die DX7-Sounds und -Bänke, die der Editor sendet. Ein Klick auf einen Platz wählt dort kein Preset, und die Effektregler senden nichts, da sie beides als Änderungen an ihren Spuren verstehen würde.',
+      'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',
     panic: 'MIDI-Panik',
     panicHelp:
       'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',
@@ -1370,5 +1370,14 @@ export default {
       savedBanksFailed:
         'Der Browserspeicher konnte die gespeicherten Bänke aus dieser Sicherung nicht aufnehmen, deshalb wurde deine Bibliothek nicht geändert. Versuche es erneut.',
     },
+  },
+  officialOpenTracks: {
+    sent: '„{{name}}“ an Spur {{track}} gesendet. Speichere das Projekt auf dem FM1, um ihn zu behalten.',
+    noTrack:
+      'Der Notenkanal {{channel}} erreicht keine Spur, deshalb wurde der Sound nicht gesendet. Open spielt die Spuren 1 bis 7 auf den Kanälen 1 bis 7 und Spur 8 auf Kanal 10: Wähle einen davon in den MIDI-Einstellungen als Notenkanal.',
+    notDx7:
+      'Spur {{track}} spielt {{engine}} und kann keinen Sound aufnehmen, deshalb wurde nichts gesendet. Stelle Spur {{track}} am FM1 auf DX7, oder wähle den Notenkanal einer Spur, die DX7 spielt.',
+    unread:
+      'Der FM1 hat nicht gemeldet, welche Engine Spur {{track}} spielt, deshalb wurde der Sound nicht gesendet. Prüfe, ob der FM1 verbunden ist, und versuche es dann erneut.',
   },
 } as const

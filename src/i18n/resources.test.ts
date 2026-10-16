@@ -5,6 +5,7 @@ import britishEnglish from './locales/en-GB'
 import britishEnglishEditorHelp from './locales/en-GB-editor-help'
 import britishEnglishHelp from './locales/en-GB-help'
 import britishEnglishLibrarianDialogs from './locales/en-GB-librarian-dialogs'
+import britishEnglishOfficialOpen from './locales/en-GB-official-open'
 import enUS from './locales/en-US'
 import es from './locales/es'
 import fr from './locales/fr'
@@ -44,15 +45,23 @@ const lazyBritishEnglish = [
     reader: '/src/components/help-dialog.tsx',
     strings: britishEnglishHelp,
   },
+  {
+    module: '@/i18n/official-open',
+    reader: '/src/components/midi/official-open-track-status.tsx',
+    strings: britishEnglishOfficialOpen,
+  },
 ]
 
 // British English as a page sees it once every lazy chunk has added its strings.
 const en = mergeStrings(
   mergeStrings(
-    mergeStrings(britishEnglish, britishEnglishEditorHelp),
-    britishEnglishLibrarianDialogs,
+    mergeStrings(
+      mergeStrings(britishEnglish, britishEnglishEditorHelp),
+      britishEnglishLibrarianDialogs,
+    ),
+    britishEnglishHelp,
   ),
-  britishEnglishHelp,
+  britishEnglishOfficialOpen,
 )
 
 const resources = {

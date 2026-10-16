@@ -48,6 +48,7 @@ import { MidiTransferCancelledError, MidiTransferQueue } from '@/lib/midi-transf
 import { midiActivity } from '@/lib/midi-activity'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { defaultNoteVelocity } from '@/lib/note-velocity'
+import type { OfficialOpenTrackDelivery } from '@/lib/official-open-track-send'
 
 type WebMidiApi = (typeof import('webmidi'))['WebMidi']
 
@@ -96,6 +97,13 @@ const identityAttempts = 3
 /** The firmware answer for one pair of ports, so an answer never outlives the ports it came from. */
 type FirmwareIdentification = { firmware: Fm1Firmware; input: Input; output: Output }
 
+/**
+ * The last patch sent to an Official Open track, held while its ports stay selected. `announce`
+ * says whether a sent patch is confirmed with a notification, as a slot click's is and an editor's
+ * live edit's is not.
+ */
+type TrackDelivery = { announce: boolean; delivery: OfficialOpenTrackDelivery }
+
 function firmwareLogMessage(firmware: Fm1Firmware) {
   switch (firmware.kind) {
     case 'mvave':
@@ -103,7 +111,7 @@ function firmwareLogMessage(firmware: Fm1Firmware) {
     case 'fm1-va':
       return `The FM1 runs FM-1+VA firmware ${firmware.identity}, which stores a single-patch dump over the selected preset, so patches are sent as parameter changes instead.`
     case 'official-open':
-      return `The FM1 runs M-VAVE's Official Open firmware ${firmware.identity}, an eight-track groovebox, which takes Program Change and the effect controllers as changes to its tracks, so the editor sends neither, and ignores the parameter changes patches are sent as.`
+      return `The FM1 runs M-VAVE's Official Open firmware ${firmware.identity}, an eight-track groovebox. Patches go to the note channel's track once it says that track runs DX7, and no Program Change or effect controller is sent.`
     case 'felucca':
       return mayBeSloop(firmware)
         ? `The FM1 runs Felucca or SLOOP firmware ${firmware.identity}, a name both report, and either ignores DX7 patches, so the parameter changes sent to it have no effect.`
@@ -201,6 +209,10 @@ export function useMidi() {
   const preferredOutputId = useRef(readStoredValue(midiStorageKeys.outputId))
   const preferredInputId = useRef(readStoredValue(midiStorageKeys.inputId))
   const startupConnectionAttempted = useRef(false)
+  const [trackDelivery, setTrackDelivery] = useState<TrackDelivery | null>(null)
+  // Aborted when the ports change or MIDI is switched off, so a read of Official Open's tracks
+  // belongs to the ports it started on.
+  const trackReads = useRef(new AbortController())
 
   const midiSupport = getMidiSupport()
 
@@ -405,6 +417,15 @@ export function useMidi() {
     return () => transferQueue.clear(outputChangedMessage)
   }, [selectedOutput, transferQueue])
 
+  useEffect(() => {
+    const reads = new AbortController()
+    trackReads.current = reads
+    return () => {
+      reads.abort()
+      setTrackDelivery(null)
+    }
+  }, [selectedInput, selectedOutput])
+
   const selectOutput = useCallback((id: string) => {
     preferredOutputId.current = id
     storeValue(midiStorageKeys.outputId, id)
@@ -541,8 +562,13 @@ export function useMidi() {
     [appendLog, transferQueue],
   )
 
+  /**
+   * Sends a patch to the FM1: to the edit buffer, or on Official Open to the track on the note
+   * channel. `announce` false keeps a patch sent to a track from being confirmed in a notification,
+   * as each live edit in the editor is.
+   */
   const sendVoice = useCallback(
-    (voice: Dx7Voice) => {
+    (voice: Dx7Voice, announce = true) => {
       if (!selectedOutput) {
         appendLog(noOutputEntry(`send ${voice.name}`))
         return Promise.resolve(false)
@@ -552,9 +578,32 @@ export function useMidi() {
         return Promise.resolve(false)
       }
 
-      if (!resolveFirmwareProfile(firmware).capabilities.singleVoiceDumps) {
-        return sendVoiceAsParameters(selectedOutput, voice)
+      const { singleVoiceDumps, trackEngineRead } = resolveFirmwareProfile(firmware).capabilities
+      if (trackEngineRead) {
+        const signal = trackReads.current.signal
+        return import('@/lib/official-open-track-send')
+          .then((module) =>
+            module.sendVoiceToOfficialOpenTrack({
+              channel,
+              input: selectedInput,
+              log: (direction, message, data) => appendLog(makeLogEntry(direction, message, data)),
+              output: selectedOutput,
+              queue: transferQueue,
+              sendDump: () => sendDx7Voice(selectedOutput, channel, voice),
+              signal,
+              voice,
+            }),
+          )
+          .then((delivery) => {
+            if (!signal.aborted) setTrackDelivery({ announce, delivery })
+            return delivery.type === 'sent'
+          })
+          .catch((caughtError) => {
+            appendLog(failureEntry(caughtError, 'Patch transfer failed.'))
+            return false
+          })
       }
+      if (!singleVoiceDumps) return sendVoiceAsParameters(selectedOutput, voice)
 
       const payload = makeDx7SingleVoicePayload(voice, channel)
       const message = makeYamahaSysexMessage(payload)
@@ -578,7 +627,15 @@ export function useMidi() {
           return false
         })
     },
-    [appendLog, channel, firmware, selectedOutput, sendVoiceAsParameters, transferQueue],
+    [
+      appendLog,
+      channel,
+      firmware,
+      selectedInput,
+      selectedOutput,
+      sendVoiceAsParameters,
+      transferQueue,
+    ],
   )
 
   const sendProgramChange = useCallback(
@@ -889,6 +946,7 @@ export function useMidi() {
     startNote,
     stopNote,
     sysexAvailable,
+    trackDelivery,
   }
 }
 

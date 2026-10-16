@@ -836,7 +836,7 @@ export default {
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca y SLOOP informan ambos este nombre. Los dos tocan tus notas, pero ignoran los sonidos DX7, los bancos y los controles de efectos.',
     firmwareOfficialOpenSends:
-      'El firmware Open de M-VAVE toca tus notas, pero ignora los sonidos y bancos DX7 que envía el editor. Al hacer clic en una posición no se selecciona ningún preset, y los controles de efectos no envían nada, porque tomaría ambos como cambios en sus pistas.',
+      'El firmware Open de M-VAVE toca tus notas, y un sonido en el que haces clic o que editas va a la pista del canal de notas cuando esa pista usa DX7. Ignora los bancos DX7, y los controles de efectos no envían nada, porque los tomaría como cambios en sus pistas.',
     firmwareNeedsInput:
       'Elige el FM1 como entrada de monitorización para que el editor pueda preguntarle qué firmware usa.',
     noteChannel: 'Canal de notas',
@@ -1048,7 +1048,7 @@ export default {
       'El FM1 usa el firmware original de M-VAVE, {{release}}. Los sonidos que tocas van a su búfer de edición.',
     officialOpenBadgeLabel: 'Firmware Open de M-VAVE, {{release}}',
     officialOpenBadgeTitle:
-      'El FM1 usa el firmware Open de M-VAVE, {{release}}, una groovebox de ocho pistas. Toca tus notas, pero ignora los sonidos y bancos DX7 que envía el editor. Al hacer clic en una posición no se selecciona ningún preset, y los controles de efectos no envían nada, porque tomaría ambos como cambios en sus pistas.',
+      'El FM1 usa el firmware Open de M-VAVE, {{release}}, una groovebox de ocho pistas. Un sonido en el que haces clic o que editas va a la pista del canal de notas cuando esa pista usa DX7. Ignora los bancos DX7, y los controles de efectos no envían nada, porque los tomaría como cambios en sus pistas.',
     panic: 'Pánico MIDI',
     panicHelp:
       'Pánico MIDI: envía un note-off para cada nota del canal de notas y detiene las notas colgadas',
@@ -1350,5 +1350,14 @@ export default {
       savedBanksFailed:
         'El almacenamiento del navegador no pudo guardar los bancos de esta copia, así que tu biblioteca no cambió. Vuelve a intentarlo.',
     },
+  },
+  officialOpenTracks: {
+    sent: 'Se envió “{{name}}” a la pista {{track}}. Guarda el proyecto en el FM1 para conservarlo.',
+    noTrack:
+      'El canal de notas {{channel}} no llega a ninguna pista, así que el sonido no se envió. Open toca las pistas 1 a 7 en los canales 1 a 7 y la pista 8 en el canal 10: elige uno de ellos como canal de notas en los ajustes MIDI.',
+    notDx7:
+      'La pista {{track}} usa {{engine}}, que no admite un sonido, así que no se envió nada. Pon la pista {{track}} en DX7 en el FM1, o elige el canal de notas de una pista que use DX7.',
+    unread:
+      'El FM1 no indicó qué motor usa la pista {{track}}, así que el sonido no se envió. Comprueba que el FM1 esté conectado y vuelve a intentarlo.',
   },
 } as const

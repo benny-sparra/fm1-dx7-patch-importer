@@ -749,7 +749,7 @@ export default {
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca 和 SLOOP 都会报告这个名称。两者都会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
     firmwareOfficialOpenSends:
-      'M-VAVE 的 Open 固件会演奏你弹的音符，但会忽略编辑器发送的 DX7 音色和音色库。点击位置不会在它上面选择预设，效果控制也不会发送任何内容，因为它会把两者都当作对音轨的更改。',
+      'M-VAVE 的 Open 固件会演奏你弹的音符，你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
     firmwareNeedsInput: '请把 FM1 选为监听输入，这样编辑器才能询问它运行的固件。',
     noteChannel: '音符通道',
     fxChannel: '效果通道',
@@ -955,7 +955,7 @@ export default {
       'FM1 运行的是 M-VAVE 原厂固件（{{release}}）。你试听的音色会进入它的编辑缓冲区。',
     officialOpenBadgeLabel: 'M-VAVE Open 固件，{{release}}',
     officialOpenBadgeTitle:
-      'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。它会演奏你弹的音符，但会忽略编辑器发送的 DX7 音色和音色库。点击位置不会在它上面选择预设，效果控制也不会发送任何内容，因为它会把两者都当作对音轨的更改。',
+      'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
     panic: 'MIDI 紧急停止',
     panicHelp: 'MIDI 紧急停止：在音符通道上为每个音符发送音符关闭消息，以停止悬挂的音符',
     panicUnavailable: 'MIDI 紧急停止：{{reason}}',
@@ -1222,5 +1222,14 @@ export default {
       read: '无法读取该文件。请重新选择。',
       savedBanksFailed: '浏览器存储无法保存此备份中的音色库，因此音色库未作更改。请重试。',
     },
+  },
+  officialOpenTracks: {
+    sent: '已将“{{name}}”发送到音轨 {{track}}。请在 FM1 上保存工程以保留它。',
+    noTrack:
+      '音符通道 {{channel}} 没有对应的音轨，因此没有发送音色。Open 在通道 1 到 7 上演奏音轨 1 到 7，在通道 10 上演奏音轨 8：请在 MIDI 设置中选择其中一个作为音符通道。',
+    notDx7:
+      '音轨 {{track}} 使用的是 {{engine}}，无法接收音色，因此没有发送任何内容。请在 FM1 上把音轨 {{track}} 设为 DX7，或选择使用 DX7 的音轨所在的音符通道。',
+    unread:
+      'FM1 没有告知音轨 {{track}} 使用哪种引擎，因此没有发送音色。请检查 FM1 是否已连接，然后重试。',
   },
 } as const

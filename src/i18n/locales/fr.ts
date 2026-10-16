@@ -837,7 +837,7 @@ export default {
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca et SLOOP annoncent tous deux ce nom. L’un comme l’autre joue vos notes mais ignore les sons DX7, les banques et les commandes d’effets.',
     firmwareOfficialOpenSends:
-      'Le firmware Open de M-VAVE joue vos notes mais ignore les sons et banques DX7 que l’éditeur envoie. Cliquer sur un emplacement n’y sélectionne aucun preset, et les commandes d’effets n’envoient rien, car il prendrait les deux pour des modifications de ses pistes.',
+      'Le firmware Open de M-VAVE joue vos notes, et un son sur lequel vous cliquez ou que vous modifiez va à la piste du canal des notes quand cette piste utilise DX7. Il ignore les banques DX7, et les commandes d’effets n’envoient rien, car il les prendrait pour des modifications de ses pistes.',
     firmwareNeedsInput:
       'Choisissez le FM1 comme entrée de contrôle pour que l’éditeur puisse lui demander quel firmware il utilise.',
     noteChannel: 'Canal des notes',
@@ -1051,7 +1051,7 @@ export default {
       'Le FM1 utilise le firmware d’origine de M-VAVE, {{release}}. Les sons que vous jouez vont dans son tampon d’édition.',
     officialOpenBadgeLabel: 'Firmware Open de M-VAVE, {{release}}',
     officialOpenBadgeTitle:
-      'Le FM1 utilise le firmware Open de M-VAVE, {{release}}, une groovebox à huit pistes. Il joue vos notes mais ignore les sons et banques DX7 que l’éditeur envoie. Cliquer sur un emplacement n’y sélectionne aucun preset, et les commandes d’effets n’envoient rien, car il prendrait les deux pour des modifications de ses pistes.',
+      'Le FM1 utilise le firmware Open de M-VAVE, {{release}}, une groovebox à huit pistes. Un son sur lequel vous cliquez ou que vous modifiez va à la piste du canal des notes quand cette piste utilise DX7. Il ignore les banques DX7, et les commandes d’effets n’envoient rien, car il les prendrait pour des modifications de ses pistes.',
     panic: 'Panique MIDI',
     panicHelp:
       'Panique MIDI : envoie un note-off pour chaque note du canal des notes afin d’arrêter les notes bloquées',
@@ -1353,5 +1353,14 @@ export default {
       savedBanksFailed:
         'Le stockage du navigateur n’a pas pu conserver les banques enregistrées de cette sauvegarde, votre bibliothèque n’a donc pas changé. Réessayez.',
     },
+  },
+  officialOpenTracks: {
+    sent: '« {{name}} » envoyé à la piste {{track}}. Enregistrez le projet sur le FM1 pour le conserver.',
+    noTrack:
+      'Le canal des notes {{channel}} n’atteint aucune piste, donc le son n’a pas été envoyé. Open joue les pistes 1 à 7 sur les canaux 1 à 7 et la piste 8 sur le canal 10 : choisissez l’un d’eux comme canal des notes dans les réglages MIDI.',
+    notDx7:
+      'La piste {{track}} utilise {{engine}}, qui ne peut pas recevoir de son, donc rien n’a été envoyé. Réglez la piste {{track}} sur DX7 sur le FM1, ou choisissez le canal des notes d’une piste qui utilise DX7.',
+    unread:
+      'Le FM1 n’a pas indiqué quel moteur utilise la piste {{track}}, donc le son n’a pas été envoyé. Vérifiez que le FM1 est connecté, puis réessayez.',
   },
 } as const

@@ -70,8 +70,10 @@ function App() {
   const [copiedOperator, setCopiedOperator] = useState<CopiedOperator | null>(null)
   // What the last edit-buffer audition put in the FM1, and the program it selected first, so
   // clicking the same unchanged sound again, as a double-click does, does not send it twice.
-  // Anything else that replaces the edit buffer clears it.
+  // Anything else that replaces the edit buffer clears it. The channel counts, as Official Open
+  // puts the sound in the track on it.
   const editBufferAudition = useRef<{
+    channel: number
     effects: Uint8Array | undefined
     outputId: string
     program: number | undefined
@@ -147,6 +149,7 @@ function App() {
     const previous = editBufferAudition.current
     if (
       previous?.voice === voice &&
+      previous.channel === midi.channel &&
       previous.effects === storedEffects &&
       previous.outputId === midi.selectedOutputId &&
       previous.program === program
@@ -158,7 +161,13 @@ function App() {
       editBufferAudition.current = null
       return
     }
-    const audition = { effects: storedEffects, outputId: midi.selectedOutputId, program, voice }
+    const audition = {
+      channel: midi.channel,
+      effects: storedEffects,
+      outputId: midi.selectedOutputId,
+      program,
+      voice,
+    }
     editBufferAudition.current = audition
     void midi.sendVoice(voice).then((sent) => {
       if (!sent) {

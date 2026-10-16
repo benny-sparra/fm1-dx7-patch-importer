@@ -22,6 +22,7 @@ import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
 import type { Fm1VaPresetProbe as PresetProbe } from '@/components/midi/fm1-va-preset-probe'
 import { MidiPanicButton } from '@/components/midi/midi-panic-button'
+import type { OfficialOpenTrackStatus as TrackStatus } from '@/components/midi/official-open-track-status'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
 import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dialog'
 import type { MidiController } from '@/hooks/use-midi'
@@ -30,6 +31,7 @@ import { useMediaQuery } from '@/hooks/use-media-query'
 import { isUnsupportedBrowser } from '@/lib/browser'
 import { fm1ColorwayImages, type Fm1ColorwayImages } from '@/lib/fm1-colorway-images'
 import { degauss } from '@/lib/degauss'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
@@ -43,6 +45,13 @@ const Fm1VaPresetProbe = import.meta.env.DEV
       })),
     )
   : null
+
+// Only an FM1 on Official Open, where a patch goes to a track, loads what it says about the track.
+const OfficialOpenTrackStatus = lazy(() =>
+  import('@/components/midi/official-open-track-status').then((module) => ({
+    default: module.OfficialOpenTrackStatus,
+  })),
+)
 
 // The intro marks the words that open the bank sources as <link>…</link>, so each language puts
 // the link where its own sentence needs it.
@@ -64,6 +73,7 @@ type RootLayoutProps = {
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
     ComponentProps<typeof PianoKeyboard>['midi'] &
     ComponentProps<typeof PresetProbe>['midi'] &
+    ComponentProps<typeof TrackStatus>['midi'] &
     Pick<MidiController, 'logStore' | 'midiAccess' | 'sendEffectDiagnosticControl'>
 }
 
@@ -219,6 +229,13 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           </div>
 
           <MidiConnectionError midi={midi} />
+          {resolveFirmwareProfile(midi.firmware).capabilities.trackEngineRead ? (
+            <ErrorBoundary>
+              <Suspense fallback={null}>
+                <OfficialOpenTrackStatus midi={midi} />
+              </Suspense>
+            </ErrorBoundary>
+          ) : null}
           {unsupportedBrowser ? (
             <div
               className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"

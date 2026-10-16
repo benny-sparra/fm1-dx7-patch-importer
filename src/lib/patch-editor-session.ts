@@ -6,7 +6,9 @@ import {
   type BitcrushPresetId,
   type EffectPresetId,
 } from '@/lib/effect-presets'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { getFm1EffectParameters, getFm1VoiceParameters } from '@/lib/fm1-effects'
+import type { Fm1Firmware } from '@/lib/fm1-firmware'
 import {
   FM1_EDITOR_PARAMETER_COUNT,
   FM1_VA_BITCRUSH_START,
@@ -37,11 +39,13 @@ import {
 
 /** The MIDI connection the editor sends through, read afresh for every send. */
 export type PatchEditorMidi = {
+  firmware: Fm1Firmware
   hasMidiOutput: boolean
   sendEffectParameter: (controller: number, value: number) => boolean
   sendEffectSettings: (settings: Uint8Array) => Promise<boolean>
   sendParameter: (parameter: number, value: number) => boolean
-  sendVoice: (voice: Dx7Voice) => Promise<boolean>
+  /** `announce` false sends without a notification, as a live edit does. */
+  sendVoice: (voice: Dx7Voice, announce?: boolean) => Promise<boolean>
   sysexAvailable: boolean
 }
 
@@ -105,7 +109,11 @@ export class PatchEditorSession {
   private active = true
   private editStarted = false
   private gestureStart: EditorHistory | null = null
+  /** The revision when the open gesture began, which a whole-voice send waits on. */
+  private gestureRevision = 0
   private revision = 0
+  /** Whether a patch has reached the FM1 yet, which only the first send announces. */
+  private sentOnce = false
   private sentName: Uint8Array
   private state: PatchEditorState
   private synchronizedPatch = ''
@@ -122,10 +130,12 @@ export class PatchEditorSession {
     }
     this.sentName = voiceNameParameters(parameters)
     this.sync = createPatchSyncCoordinator({
-      getLatestSnapshot: () => ({
-        parameters: displayedParameters(this.state),
-        revision: this.revision,
-      }),
+      // While a gesture is open, a firmware that takes the whole voice for each edit is sent the
+      // version from before it, so one drag reaches the FM1 as one dump as it ends.
+      getLatestSnapshot: () =>
+        this.gestureStart && this.sendsWholeVoice()
+          ? { parameters: this.gestureStart.present, revision: this.gestureRevision }
+          : { parameters: displayedParameters(this.state), revision: this.revision },
       isCurrent: () => this.active,
       onStateChange: (syncState) => this.setSyncState(syncState),
       onSynchronized: (sentParameters) => {
@@ -140,8 +150,12 @@ export class PatchEditorSession {
       },
       sendEffects: (sentParameters) =>
         this.getMidi().sendEffectSettings(getFm1EffectParameters(sentParameters)),
-      sendVoice: (sentParameters) =>
-        this.getMidi().sendVoice(packDx7Voice(getFm1VoiceParameters(sentParameters))),
+      sendVoice: async (sentParameters) => {
+        const voice = packDx7Voice(getFm1VoiceParameters(sentParameters))
+        const sent = await this.getMidi().sendVoice(voice, !this.sentOnce)
+        if (sent) this.sentOnce = true
+        return sent
+      },
     })
   }
 
@@ -191,6 +205,12 @@ export class PatchEditorSession {
     this.commitHistory(activeGesture ? { ...edited, past: activeGesture.past } : edited)
 
     if (send && this.isLive()) {
+      // Each edit goes as the whole voice where parameter changes do nothing: at once, or once
+      // the gesture it is part of ends.
+      if (this.sendsWholeVoice()) {
+        if (!activeGesture) void this.requestSync()
+        return
+      }
       const midi = this.getMidi()
       const { mutedOperators, soloOperator } = this.state
       edits.forEach(([index, value, min = 0, max = 127]) => {
@@ -208,7 +228,9 @@ export class PatchEditorSession {
   }
 
   beginGesture = () => {
-    this.gestureStart ??= this.state.history
+    if (this.gestureStart) return
+    this.gestureStart = this.state.history
+    this.gestureRevision = this.revision
   }
 
   endGesture = () => {
@@ -219,6 +241,7 @@ export class PatchEditorSession {
     const current = this.state.history
     if (parametersMatch(start.present, current.present)) return
     this.commitHistory(finishParameterGesture(start, current))
+    if (this.sendsWholeVoice() && this.isLive()) void this.requestSync()
   }
 
   /** Writes a name into the working copy without sending it, so typing stays off the MIDI port. */
@@ -235,6 +258,11 @@ export class PatchEditorSession {
   /** Sends the characters of the name that differ from those the FM1 last received. */
   sendName = (name: string) => {
     if (!this.isLive()) return
+    if (this.sendsWholeVoice()) {
+      const typed = voiceNameParameters(displayedParameters(this.state))
+      if (!parametersMatch(typed, this.sentName)) void this.requestSync()
+      return
+    }
     const lastSentName = this.sentName
     const lastSentParameters = displayedParameters(this.state).slice()
     lastSentParameters.set(lastSentName, FM1_VOICE_NAME_START)
@@ -431,6 +459,17 @@ export class PatchEditorSession {
 
   private isLive() {
     return this.canSync() && this.state.syncState === 'live'
+  }
+
+  /**
+   * Whether each edit goes as the whole voice, on a firmware that takes single-voice dumps and
+   * drops parameter changes, as Official Open does.
+   */
+  private sendsWholeVoice() {
+    const { parameterChanges, singleVoiceDumps } = resolveFirmwareProfile(
+      this.getMidi().firmware,
+    ).capabilities
+    return singleVoiceDumps && !parameterChanges
   }
 
   private update(changes: Partial<PatchEditorState>) {
