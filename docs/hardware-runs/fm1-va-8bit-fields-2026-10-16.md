@@ -32,7 +32,7 @@ shows.
 | P7 Bass Level                | Pass   | 95 → 50: E 61 `5F` → `32` (packed voice byte 50), the level itself. Nothing else; the same byte as L4 on 097                                                                                                                                                                                        |
 | P7 Lead Mono                 | Pass   | Off → On: E 101 0 → 1 (packed voice byte 83 `08` → `09`). Nothing else                                                                                                                                                                                                                              |
 | Note Engine, bass            | Seen   | Auto-Arp → Auto-Chord: E 35 `00` → `01` (packed voice byte 30 `18` → `19`), nothing else, no record byte. Back to Auto-Arp: E 35 `01` → `00`, and the read is identical to the one before the change. Arp Speed above it greys out in Auto-Chord and is active again in Auto-Arp                    |
-| Note Engine, lead            | Seen   | Auto-Arp → Auto-Chord: E 35 `00` → `02` (packed voice byte 30 `18` → `1A`), nothing else, no record byte. Back to Auto-Arp: E 35 `02` → `00`, and the read is identical to the baseline. Whether the lead's Arp Speed greys out was not noted                                                       |
+| Note Engine, lead            | Seen   | Auto-Arp → Auto-Chord: E 35 `00` → `02` (packed voice byte 30 `18` → `1A`), nothing else, no record byte. Back to Auto-Arp: E 35 `02` → `00`, and the read is identical to the baseline. In Auto-Chord the lead's Arp Speed, Pattern, and User Arpeggio rows grey out                               |
 | Restore                      | Done   | 097 reinstalled from the pack backup through the Device Manager's **Install a backup**, **Send**. The read is identical to the baseline in record, voice, and the raw reply. Which presets Send listed was not noted. MIDI Channel is All                                                           |
 
 All seven P tests matched the expected bytes. The only byte that moved outside a field was record
@@ -55,8 +55,8 @@ All seven P tests matched the expected bytes. The only byte that moved outside a
 Not edited now; the file is being edited on another branch. In "Every field of an 8-Bit preset":
 
 1. **Note Engine row (new).** In the bass and lead table, add **Note Engine**: Bass E 35 bit 0, Lead
-   E 35 bit 1; 0 Auto-Arp, 1 Auto-Chord. Seen once on `FM-1_098`; the bass's Arp Speed greys out in
-   Auto-Chord while its value stays stored, so it is like the other rows the FM1 dims and keeps
+   E 35 bit 1; 0 Auto-Arp, 1 Auto-Chord. Seen once on `FM-1_098`; in Auto-Chord the lead's Arp Speed, Pattern, and User Arpeggio rows and the bass's Arp Speed
+   grey out while their bytes stay as they were (no read changed them), so it is like the other rows the FM1 dims and keeps
    (Arpeggio, Duty Sequence).
 2. **The unread list.** "The 8-Bit preset reads none of E 17, 35, 97, 118, 126–133, 134, 135, or
    136" is wrong for E 35 bits 0–1: they are the Note Engine. The list should say E 35 holds the
