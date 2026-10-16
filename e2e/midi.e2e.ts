@@ -73,8 +73,8 @@ test.describe('with an FM-1 connected', () => {
     const addBank = page.getByRole('dialog', { name: /^Add bank/ })
     await addBank.getByRole('button', { name: 'Next' }).click()
     await addBank.getByRole('button', { name: 'Next' }).click()
-    await addBank.getByRole('radio', { exact: true, name: 'Factory' }).check({ force: true })
-    await addBank.getByRole('radio', { exact: true, name: 'ROM1A Master' }).check({ force: true })
+    await addBank.getByRole('radio', { exact: true, name: 'Factory' }).locator('..').click()
+    await addBank.getByRole('radio', { exact: true, name: 'ROM1A Master' }).locator('..').click()
     await addBank.getByRole('button', { name: 'Create bank' }).click()
     await expect(addBank).toBeHidden()
     const slot = slotButtons(page).first()
@@ -223,7 +223,10 @@ test.describe('with an FM-1 connected', () => {
     await page.getByLabel('Actions for Bank 1').locator('visible=true').click()
     await page.getByRole('button', { exact: true, name: 'Import DX7 bank…' }).click()
     const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
-    await dialog.getByLabel('Patch data').setInputFiles('public/dx7-banks/factory/rom1a.syx')
+    await dialog
+      .getByLabel('Choose a DX7 SysEx file')
+      .setInputFiles('public/dx7-banks/factory/rom1a.syx')
+    await dialog.getByRole('button', { name: 'Next' }).click()
 
     await dialog.getByRole('button', { name: /^Play .+, patch 5$/ }).click()
 
@@ -351,8 +354,8 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
     const addBank = page.getByRole('dialog', { name: /^Add bank/ })
     await addBank.getByRole('button', { name: 'Next' }).click()
     await addBank.getByRole('button', { name: 'Next' }).click()
-    await addBank.getByRole('radio', { exact: true, name: 'Factory' }).check({ force: true })
-    await addBank.getByRole('radio', { exact: true, name: 'ROM1A Master' }).check({ force: true })
+    await addBank.getByRole('radio', { exact: true, name: 'Factory' }).locator('..').click()
+    await addBank.getByRole('radio', { exact: true, name: 'ROM1A Master' }).locator('..').click()
     await addBank.getByRole('button', { name: 'Create bank' }).click()
     await expect(addBank).toBeHidden()
 

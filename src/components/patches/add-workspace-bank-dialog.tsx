@@ -1,22 +1,20 @@
-import { ArrowLeft, ArrowRight, Library, Plus, Upload } from 'lucide-react'
+import { Library, Plus, Upload } from 'lucide-react'
 import { type FormEvent, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { AddBankCatalogPicker } from '@/components/patches/add-bank-catalog-picker'
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
+import { BankFileScreen, useWizardScreens, WizardFooter } from '@/components/patches/bank-wizard'
 import { FileBankPicker, firstReadableBank } from '@/components/patches/file-bank-picker'
 import { BevelRadio } from '@/components/ui/bevel-radio'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogBody,
   DialogCloseButton,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
-import { InfoNotice } from '@/components/ui/info-notice'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { useToast } from '@/components/ui/toast'
 import {
@@ -33,7 +31,6 @@ import {
   normalizeWorkspaceBankNameForSave,
   workspaceBankTitleLength,
 } from '@/lib/patch-library'
-import { sysexFileAccept } from '@/lib/sysex-file'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 
@@ -80,11 +77,7 @@ export function AddWorkspaceBankDialog({
   const formId = useId()
   const toast = useToast()
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const formRef = useRef<HTMLFormElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
-  // Whether the user has moved between screens, since only then does focus follow.
-  const movedRef = useRef(false)
-  const [screenIndex, setScreenIndex] = useState(0)
   const [name, setName] = useState(suggestedName)
   const [description, setDescription] = useState('')
   const [source, setSource] = useState<Source>('catalog')
@@ -127,8 +120,9 @@ export function AddWorkspaceBankDialog({
       ? (['catalog'] as const)
       : (['file', ...(joinsSeveral ? (['fileBank'] as const) : [])] as const)),
   ]
-  const screen = screens[screenIndex]
-  const isLastScreen = screenIndex === screens.length - 1
+  const { formRef, goToScreen, isLastScreen, screen, screenIndex } = useWizardScreens(screens, {
+    onMove: () => setError(''),
+  })
   // Once the bank has a name, the title carries it, so every later screen says what is being made.
   const bankTitle = normalizeWorkspaceBankNameForSave(name)
   const dialogTitle =
@@ -144,20 +138,6 @@ export function AddWorkspaceBankDialog({
     if (!dialog || dialog.open) return
     dialog.showModal()
   }, [])
-
-  // Moving to another screen puts focus on its first control, as a change of page would.
-  useEffect(() => {
-    if (!movedRef.current) return
-    formRef.current
-      ?.querySelector<HTMLElement>('input:checked, input, textarea')
-      ?.focus({ preventScroll: true })
-  }, [screen])
-
-  const goToScreen = (index: number) => {
-    movedRef.current = true
-    setError('')
-    setScreenIndex(index)
-  }
 
   const chooseFile = async (chosen: File | null) => {
     readingFile.current = chosen
@@ -361,25 +341,11 @@ export function AddWorkspaceBankDialog({
           ) : null}
 
           {screen === 'file' ? (
-            <>
-              <label className="modal-input-surface flex min-h-11 cursor-pointer items-center rounded-md border border-dashed border-input px-3 text-sm transition-colors focus-within:outline-2 focus-within:outline-[var(--crt-led)] hover:bg-muted/50">
-                <span className="min-w-0 truncate">{file?.name ?? t('banks.chooseSysexFile')}</span>
-                <input
-                  accept={sysexFileAccept}
-                  className="sr-only"
-                  disabled={working}
-                  onChange={(event) => void chooseFile(event.target.files?.[0] ?? null)}
-                  type="file"
-                />
-              </label>
-              <InfoNotice>
-                <ul className="list-disc space-y-1 pl-4">
-                  <li>{t('banks.addBankFileNoteFormat')}</li>
-                  <li>{t('banks.addBankFileNoteSeveral')}</li>
-                  <li>{t('banks.addBankFileNotePrivacy')}</li>
-                </ul>
-              </InfoNotice>
-            </>
+            <BankFileScreen
+              disabled={working}
+              file={file}
+              onChoose={(chosen) => void chooseFile(chosen)}
+            />
           ) : null}
 
           {screen === 'fileBank' && fileBanks ? (
@@ -397,30 +363,18 @@ export function AddWorkspaceBankDialog({
           ) : null}
         </form>
       </DialogBody>
-      <DialogFooter className="justify-between gap-2">
-        {screenIndex > 0 ? (
-          <Button disabled={working} onClick={() => goToScreen(screenIndex - 1)} variant="ghost">
-            <ArrowLeft />
-            <span>{t('banks.wizardBack')}</span>
-          </Button>
-        ) : null}
-        <Button
-          className="ml-auto"
-          disabled={working || !bank || !screenReady}
-          form={formId}
-          type="submit"
-        >
-          {isLastScreen ? <Plus /> : null}
-          <span>
-            {isLastScreen
-              ? working
-                ? t('banks.creatingBank')
-                : t('banks.createBank')
-              : t('banks.wizardNext')}
-          </span>
-          {isLastScreen ? null : <ArrowRight />}
-        </Button>
-      </DialogFooter>
+      <WizardFooter
+        action={
+          isLastScreen
+            ? { icon: <Plus />, label: working ? t('banks.creatingBank') : t('banks.createBank') }
+            : null
+        }
+        disabled={!bank || !screenReady}
+        formId={formId}
+        onBack={() => goToScreen(screenIndex - 1)}
+        screenIndex={screenIndex}
+        working={working}
+      />
     </Dialog>
   )
 }

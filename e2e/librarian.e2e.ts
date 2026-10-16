@@ -234,7 +234,9 @@ test('imports a valid DX7 SysEx bank into a populated workspace bank', async ({ 
   await page.getByRole('button', { exact: true, name: 'Import DX7 bank…' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
-  await dialog.getByLabel('Patch data').setInputFiles(factoryBank)
+  await dialog.getByLabel('Choose a DX7 SysEx file').setInputFiles(factoryBank)
+  await dialog.getByRole('button', { name: 'Next' }).click()
+  await expect(dialog.getByText(/will be wiped/)).toBeVisible()
   await dialog.getByRole('button', { name: 'Replace bank contents' }).click()
 
   await expect(page.getByText('Imported patches into “Bank 1”.')).toBeVisible()
@@ -250,17 +252,64 @@ test('imports the bank chosen from a file that joins several', async ({ page }) 
     readFile(factoryBank),
     readFile('public/dx7-banks/factory/rom1b.syx'),
   ])
-  await dialog.getByLabel('Patch data').setInputFiles({
+  await dialog.getByLabel('Choose a DX7 SysEx file').setInputFiles({
     buffer: Buffer.concat([rom1a, rom1b]),
     mimeType: 'application/octet-stream',
     name: 'rom1.syx',
   })
+  await dialog.getByRole('button', { name: 'Next' }).click()
+  // Enter on the chosen bank moves on, as the footer's Next does.
   await dialog.getByRole('radio', { name: /^Bank 2: PIANO 4, / }).check()
+  await page.keyboard.press('Enter')
   await expect(dialog.getByRole('button', { name: 'Play PIANO 4, patch 1' })).toBeVisible()
   await dialog.getByRole('button', { name: 'Replace bank contents' }).click()
 
   await expect(page.getByText('Imported patches into “Bank 1”.')).toBeVisible()
   await expect(page.getByRole('button', { name: /^Send \S+ PIANO 4 to FM1$/ })).toBeVisible()
+})
+
+test('fits each screen of the DX7 bank import on a 320 px phone', async ({ page }) => {
+  await page.setViewportSize({ height: 700, width: 320 })
+  await openLibrarian(page)
+  await openFirstBankMenu(page)
+  await page.getByRole('button', { exact: true, name: 'Import DX7 bank…' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
+  const [rom1a, rom1b] = await Promise.all([
+    readFile(factoryBank),
+    readFile('public/dx7-banks/factory/rom1b.syx'),
+  ])
+
+  /** Every control in the dialog lies inside it, and nothing in it scrolls sideways. */
+  const expectFits = async () => {
+    const box = (await dialog.boundingBox())!
+    for (const button of await dialog.getByRole('button').all()) {
+      const { width, x } = (await button.boundingBox())!
+      expect(x).toBeGreaterThanOrEqual(box.x)
+      expect(x + width).toBeLessThanOrEqual(box.x + box.width)
+    }
+    expect(
+      await dialog.evaluate((element) =>
+        [element, ...element.querySelectorAll('*')].some(
+          (child) =>
+            ['auto', 'scroll'].includes(getComputedStyle(child).overflowX) &&
+            child.scrollWidth > child.clientWidth + 1,
+        ),
+      ),
+    ).toBe(false)
+  }
+
+  await expectFits()
+  await dialog.getByLabel('Choose a DX7 SysEx file').setInputFiles({
+    buffer: Buffer.concat([rom1a, rom1b]),
+    mimeType: 'application/octet-stream',
+    name: 'rom1.syx',
+  })
+  await dialog.getByRole('button', { name: 'Next' }).click()
+  await expect(dialog.getByRole('group', { name: 'Banks in this file' })).toBeVisible()
+  await expectFits()
+  await dialog.getByRole('button', { name: 'Next' }).click()
+  await expect(dialog.getByRole('button', { name: 'Replace bank contents' })).toBeVisible()
+  await expectFits()
 })
 
 test('rejects an invalid DX7 SysEx bank without closing the replacement dialog', async ({
@@ -271,7 +320,7 @@ test('rejects an invalid DX7 SysEx bank without closing the replacement dialog',
   await page.getByRole('button', { exact: true, name: 'Import DX7 bank…' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Import over “Bank 1”?' })
-  await dialog.getByLabel('Patch data').setInputFiles({
+  await dialog.getByLabel('Choose a DX7 SysEx file').setInputFiles({
     buffer: Buffer.from([0xf0, 0x43, 0xf7]),
     mimeType: 'application/octet-stream',
     name: 'invalid.syx',
@@ -281,7 +330,7 @@ test('rejects an invalid DX7 SysEx bank without closing the replacement dialog',
   await expect(dialog.getByRole('alert')).toHaveText(
     'This file is 3 bytes and holds no complete DX7 bank. A bank file is 4,104 bytes, or a multiple of that when it joins several banks.',
   )
-  await expect(dialog.getByRole('button', { name: 'Replace bank contents' })).toBeDisabled()
+  await expect(dialog.getByRole('button', { name: 'Next' })).toBeDisabled()
   await expect(dialog).toBeVisible()
 })
 
@@ -750,8 +799,8 @@ test('opens the last bank menu in full when the rail is longer than the grid', a
     const dialog = page.getByRole('dialog', { name: 'Add bank' })
     await dialog.getByRole('button', { name: 'Next' }).click()
     await dialog.getByRole('button', { name: 'Next' }).click()
-    await dialog.getByRole('radio', { exact: true, name: 'Factory' }).check({ force: true })
-    await dialog.getByRole('radio', { exact: true, name: source }).check({ force: true })
+    await dialog.getByRole('radio', { exact: true, name: 'Factory' }).locator('..').click()
+    await dialog.getByRole('radio', { exact: true, name: source }).locator('..').click()
     await dialog.getByRole('button', { name: 'Create bank' }).click()
     await expect(page.getByRole('button', { name: new RegExp(` — ${bank}$`) })).toBeVisible()
   }

@@ -101,7 +101,6 @@ describe('LibrarianPage bank import into an empty bank', () => {
 
     const dialog = await screen.findByRole('dialog', { name: 'Import into “Electric Keys”' })
     expect(await within(dialog).findByRole('group', { name: 'Banks in this file' })).toBeTruthy()
-    expect(within(dialog).getByText('collection.syx')).toBeTruthy()
     expect(library.importBank).not.toHaveBeenCalled()
   })
 
@@ -113,6 +112,7 @@ describe('LibrarianPage bank import into an empty bank', () => {
     )
 
     await user.click(await screen.findByRole('radio', { name: /^Bank 2: SECOND, / }))
+    await user.click(screen.getByRole('button', { name: 'Next' }))
     await user.click(screen.getByRole('button', { name: 'Import bank' }))
 
     expect(vi.mocked(library.importBank).mock.calls[0][0]).toBe('B')

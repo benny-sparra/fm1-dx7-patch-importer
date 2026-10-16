@@ -514,7 +514,6 @@ export default {
     titleEmpty: 'In „{{bank}}“ importieren',
     actionEmpty: 'Bank importieren',
     action: 'Bankinhalt ersetzen',
-    help: 'Wähle eine Standard-DX7-SysEx-Bankdatei mit 32 Voices.',
     play: '{{name}} spielen, Sound {{number}}',
     previewHelp:
       'Klicke auf einen Sound, um ihn am FM1 zu hören. Deine Bank bleibt unverändert, bis du sie ersetzt.',
@@ -1111,7 +1110,6 @@ export default {
     wizardNext: 'Weiter',
     catalogSource: 'Aus dem DX7-Bankkatalog wählen',
     creatingBank: 'Wird erstellt…',
-    soundData: 'Sounddaten (optional)',
     soundSource: 'Soundquelle wählen',
     uploadSource: 'Eigene Bank hochladen',
     empty: 'Leer',

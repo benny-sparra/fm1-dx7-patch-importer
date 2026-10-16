@@ -1,25 +1,16 @@
 import { Upload } from 'lucide-react'
-import {
-  type ChangeEvent,
-  type FormEvent,
-  useEffect,
-  useEffectEvent,
-  useRef,
-  useState,
-  useId,
-} from 'react'
+import { type FormEvent, useEffect, useEffectEvent, useRef, useState, useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
+import { BankFileScreen, useWizardScreens, WizardFooter } from '@/components/patches/bank-wizard'
 import { FileBankPicker, firstReadableBank } from '@/components/patches/file-bank-picker'
 import { PreviewPatchButton } from '@/components/patches/preview-patch-button'
 import { undoToastOptions } from '@/components/patches/undo-toast'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogBody,
   DialogCloseButton,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -31,7 +22,6 @@ import type { PatchLibrary } from '@/hooks/use-patch-library'
 import '@/i18n/librarian-dialogs'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import type { Dx7Voice } from '@/lib/dx7'
-import { sysexFileAccept } from '@/lib/sysex-file'
 
 type ImportDx7BankDialogProps = {
   bank: string
@@ -45,6 +35,16 @@ type ImportDx7BankDialogProps = {
   /** Whether the bank has patches the import replaces. */
   replacing: boolean
 }
+
+// One screen for each decision: the file, the bank in it when it joins several, and then its
+// patches, heard before anything is replaced.
+type Screen = 'file' | 'fileBank' | 'preview'
+
+const screenHelpKeys = {
+  file: 'banks.addBankFileHelp',
+  fileBank: 'banks.addBankFileBankHelp',
+  preview: 'overwriteImport.previewHelp',
+} as const
 
 export function ImportDx7BankDialog({
   bank,
@@ -60,7 +60,6 @@ export function ImportDx7BankDialog({
   const formId = useId()
   const toast = useToast()
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
   const [readerUnavailable, setReaderUnavailable] = useState(false)
   const [file, setFile] = useState<File | null>(initialFile ?? null)
@@ -72,6 +71,20 @@ export function ImportDx7BankDialog({
   const [playingIndex, setPlayingIndex] = useState<number | null>(null)
   const readingFile = useRef<File | null>(null)
   const voices = banks?.[chosenBank] ?? null
+  // A file not yet read is taken for one that joins several, so its screen offers Next, and the
+  // bank screen goes once the file says otherwise.
+  const joinsSeveral = banks === null || banks.length > 1
+
+  const screens: Screen[] = ['file', ...(joinsSeveral ? (['fileBank'] as const) : []), 'preview']
+  const { focusFirstControl, formRef, goToScreen, isLastScreen, screen, screenIndex } =
+    useWizardScreens(screens, {
+      // A file chosen before the dialog opened has been chosen already, so it opens on its banks.
+      initialIndex: initialFile ? 1 : 0,
+      onMove: () => setError(''),
+    })
+  // The file screen moves on once the file is read, even when every bank in it is damaged, so the
+  // bank screen can say so; the later screens need a bank to import.
+  const screenReady = screen === 'file' ? banks !== null : voices !== null
 
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
   // its state is discarded with it rather than being reset by hand.
@@ -116,9 +129,6 @@ export function ImportDx7BankDialog({
     readInitialFile()
   }, [])
 
-  const chooseFile = (event: ChangeEvent<HTMLInputElement>) =>
-    void readFile(event.target.files?.[0] ?? null)
-
   const chooseBank = (index: number) => {
     setChosenBank(index)
     setPlayingIndex(null)
@@ -131,13 +141,10 @@ export function ImportDx7BankDialog({
     setPlayingIndex(index)
   }
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (!voices) return
-
+  const importVoices = (imported: Dx7Voice[]) => {
     setError('')
     try {
-      const changed = library.importBank(bank, voices)
+      const changed = library.importBank(bank, imported)
       trackAnalyticsEvent({ data: { source: 'file' }, name: 'bank_imported' })
       toast.success(
         t('toasts.bankImported', { bank: bankName }),
@@ -149,6 +156,14 @@ export function ImportDx7BankDialog({
     }
   }
 
+  // Enter in a field, like the footer's button, moves on, and imports the bank on the last screen.
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!screenReady) return
+    if (isLastScreen) importVoices(voices!)
+    else goToScreen(screenIndex + 1)
+  }
+
   return (
     <Dialog
       aria-describedby="import-dx7-bank-description"
@@ -156,7 +171,7 @@ export function ImportDx7BankDialog({
       onClose={onClose}
       onToggle={(event) => {
         if (!event.currentTarget.open) return
-        window.requestAnimationFrame(() => fileInputRef.current?.focus())
+        window.requestAnimationFrame(focusFirstControl)
       }}
       ref={dialogRef}
       size="2xl"
@@ -174,75 +189,70 @@ export function ImportDx7BankDialog({
           className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]"
           id="import-dx7-bank-description"
         >
-          {t('overwriteImport.help')}
+          {t(screenHelpKeys[screen])}
         </p>
 
-        <form id={formId} className="grid gap-5 p-5" onSubmit={submit}>
-          {replacing ? (
-            <WarningNotice>
-              <p>{t('overwriteImport.warning')}</p>
-            </WarningNotice>
+        <form className="grid gap-5 p-5" id={formId} noValidate onSubmit={submit} ref={formRef}>
+          {screen === 'file' ? (
+            <BankFileScreen file={file} onChoose={(chosen) => void readFile(chosen)} />
           ) : null}
 
-          <label className="grid gap-2 text-sm font-semibold">
-            {t('banks.soundData')}
-            <span className="modal-input-surface flex min-h-11 cursor-pointer items-center rounded-md border border-dashed border-input px-3 font-normal transition-colors hover:bg-muted/50">
-              <span className="min-w-0 truncate">{file?.name ?? t('banks.chooseSysexFile')}</span>
-              <input
-                accept={sysexFileAccept}
-                className="sr-only"
-                onChange={chooseFile}
-                ref={fileInputRef}
-                type="file"
-              />
-            </span>
-          </label>
-
-          {banks && banks.length > 1 ? (
+          {screen === 'fileBank' && banks ? (
             <FileBankPicker banks={banks} chosen={chosenBank} onChoose={chooseBank} />
           ) : null}
 
-          {voices ? (
-            <section aria-labelledby="import-dx7-bank-preview-title" className="grid gap-2">
-              <h3 className="text-sm font-semibold" id="import-dx7-bank-preview-title">
-                {t('overwriteImport.previewTitle')}
-              </h3>
-              <p className="text-xs text-[var(--crt-ink-3)]">{t('overwriteImport.previewHelp')}</p>
-              <ul className="dither-well grid grid-cols-2 gap-1 border border-[var(--crt-line-dk)] p-2 sm:grid-cols-4">
-                {voices.map((voice, index) => (
-                  <li key={index}>
-                    <PreviewPatchButton
-                      isPlaying={index === playingIndex}
-                      label={t('overwriteImport.play', {
-                        name: voice.name.trim(),
-                        number: new Intl.NumberFormat(i18n.resolvedLanguage).format(index + 1),
-                      })}
-                      name={voice.name}
-                      number={index + 1}
-                      onClick={() => play(index)}
-                      playingLabel={t('banks.auditioning')}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </section>
+          {screen === 'preview' && voices ? (
+            <>
+              {replacing ? (
+                <WarningNotice>
+                  <p>{t('overwriteImport.warning')}</p>
+                </WarningNotice>
+              ) : null}
+              <section aria-labelledby="import-dx7-bank-preview-title" className="grid gap-2">
+                <h3 className="text-sm font-semibold" id="import-dx7-bank-preview-title">
+                  {t('overwriteImport.previewTitle')}
+                </h3>
+                <ul className="dither-well grid grid-cols-2 gap-1 border border-[var(--crt-line-dk)] p-2 sm:grid-cols-4">
+                  {voices.map((voice, index) => (
+                    <li key={index}>
+                      <PreviewPatchButton
+                        isPlaying={index === playingIndex}
+                        label={t('overwriteImport.play', {
+                          name: voice.name.trim(),
+                          number: new Intl.NumberFormat(i18n.resolvedLanguage).format(index + 1),
+                        })}
+                        name={voice.name}
+                        number={index + 1}
+                        onClick={() => play(index)}
+                        playingLabel={t('banks.auditioning')}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
           ) : null}
 
           {error ? <ErrorNotice>{error}</ErrorNotice> : null}
           {readerUnavailable ? <LoadFailedNotice message={t('banks.bankFileUnavailable')} /> : null}
         </form>
       </DialogBody>
-      <DialogFooter>
-        <Button
-          disabled={!voices}
-          form={formId}
-          type="submit"
-          variant={replacing ? 'destructive' : 'default'}
-        >
-          <Upload />
-          <span>{replacing ? t('overwriteImport.action') : t('overwriteImport.actionEmpty')}</span>
-        </Button>
-      </DialogFooter>
+      <WizardFooter
+        action={
+          isLastScreen
+            ? {
+                icon: <Upload />,
+                label: replacing ? t('overwriteImport.action') : t('overwriteImport.actionEmpty'),
+                variant: replacing ? 'destructive' : 'default',
+              }
+            : null
+        }
+        disabled={!screenReady}
+        formId={formId}
+        onBack={() => goToScreen(screenIndex - 1)}
+        screenIndex={screenIndex}
+        working={false}
+      />
     </Dialog>
   )
 }

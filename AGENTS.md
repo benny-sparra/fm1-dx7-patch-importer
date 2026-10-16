@@ -428,8 +428,9 @@ open everything an earlier release could have saved.
   number, with the full label for assistive technology and the tooltip), never fetched by the page, since a visitor's browser asking
   GitHub would need a privacy and CSP review and meets its anonymous rate limit. Refresh them, and
   the date beside the order buttons, with `npm run firmware:stars` whenever the page is edited.
-  The entries `data-pinned` marks, M-VAVE's firmware and Baud Girl's, stay first in either order
-  and have no count; an entry without a GitHub repository, such as Groove OS, has no count, says
+  The entry `data-pinned` marks, Baud Girl's, stays first in either order and has no count.
+  M-VAVE's own firmware is not an entry: visitors come for something to install, so it is the
+  compact `#stock` section after the watch list, which keeps the way back; an entry without a GitHub repository, such as Groove OS, has no count, says
   Not on GitHub beside an outline star, and follows the counted ones. A new firmware is written in alphabetical place, and the script gives
   it a count. Label the order **Most starred**, never popular, since stars say how widely a project
   was shared rather than how many FM1s run it.
@@ -547,6 +548,14 @@ open everything an earlier release could have saved.
   shows how many banks it holds in a lozenge after its name, never a number in the badge, since
   the numbers on the banks are only their places in the list. Moving to a screen moves focus to
   its first control, and Enter in a field moves on.
+- **Import DX7 bank…** is a wizard the same way: the file, with what it accepts; which bank, only
+  for a file that joins several; then the bank's patches to audition, with the replace warning
+  when the bank holds patches, and **Replace bank contents** (`destructive`) or **Import bank** in
+  place of **Next**. A file chosen before it opens, as importing into an empty bank passes on, opens
+  it on the bank screen. Both wizards take their screen state, focus on each screen, the
+  Back/Next footer, and the file screen from `src/components/patches/bank-wizard.tsx`, and the
+  bank screen from `FileBankPicker`; a new step-by-step dialog uses them rather than another copy.
+  The footer wraps, so **Back** and a long action fit a 320 px phone (`e2e/librarian.e2e.ts`).
 - A dialog that opens without a click, as the help guide does on a first visit, checks that it is
   connected, not already open, and has `showModal` before calling it. Crawlers and extensions can
   take the page out of the document, where `showModal()` throws, and Safari before 15.4 and some
