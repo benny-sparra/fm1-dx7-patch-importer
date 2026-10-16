@@ -1360,6 +1360,237 @@ Open questions:
 3. `.fm1t` is a 223-byte track preset (`struct groove_preset`) and `.fm1` a 4064-byte project; their
    layouts are in the source but not yet mapped here.
 
+#### Official Open: second reading, transfer details, file formats, and the update gate (2026-10-16)
+
+Same commit as above (`5d3eac2573dbd054254fabda6fde099adc594348`, still the head of `main`; the
+repository has three commits, `3be7fbd` the initial V12 release), checked line by line against the
+announcement at https://forum.m-vave.com/topic/4 (posted 2026-10-16). Source read only; nothing here
+was run, and no MIDI was sent for this reading. Paths are in that commit. This extends the section
+above rather than replacing it; where it adds a fact, the fact is new, and where the section above is
+confirmed or corrected, that is said.
+
+**Announcement versus source.** The post matches what the source does: eight tracks, six sources,
+16 demo and 16 user projects, one 8-slot sample bank of about 20.45 s, USB MIDI, hardware MIDI in
+and BLE MIDI, an arpeggiator, and the four file types. It says the Workbench imports "a single DX7
+patch or a 32-patch bank" and that the flashing tool "does not accept external firmware files".
+Nothing in the post describes an editor-facing MIDI protocol or promises one. The source matches it:
+the bank import is a Workbench feature (below), not something the device takes as a bank dump.
+
+##### Framing facts that sharpen the section above
+
+- **Two vendor families, one name.** The `00 32 …` bytes the editor already sends are the 7-bit
+  packing of the update tool's own frame: raw bytes `00 59 <cmd> <len lo> <len hi> 00 <payload>
+<checksum>`, packed seven bits at a time least significant bit first, inside `F0 … F7`, with the
+  checksum the bitwise complement of the payload's byte sum (`frame` and `parse`,
+  `sdk/WebUpdate.js:159–175`, a payload of at most 520 bytes). Packing `00 59 11 00 00 00 FF`
+  gives `00 32 45 00 00 00 40 7F`, exactly `fm1IdentityQuery`'s body, so the identity query is
+  update-family command 17 with no payload (`Link.query`, `WebUpdate.js:208`, and
+  `Updater.open`, `:245–259`). **Confirmed** by computation here and by the hardware run above. It is
+  the same family section 6.3 and the Felucca notes call `00 32` or `00 59`. The project transfer
+  protocol is a different family (`F0 7D 46 4D 02`, the one FM-1+VA's `7D` commands live beside).
+- **Reply status.** Besides 0 for success, the project reply's status byte is 1 for "empty" (a
+  project slot that was never saved) and `64 + n` for an error `-n`; the Workbench reads 71 as
+  "invalid file or parameter" and 72 as "out of memory", and on 72 or 71 says the working project is
+  unchanged (`app/transfer.c:277`, `sdk/WebUpdate.js:593`). The section above gave only 0 and
+  `64 + error`. **Likely** (source).
+- **Size limits.** `fm1_app_sysex` drops any SysEx longer than 192 bytes before it looks at the
+  shape (`app/transfer.c:34`), so a 4,104-byte DX7 bank dump is discarded on size as well as on shape.
+  The SDK's own limit is 1,024 bytes per frame, assembled separately for USB, BLE, and UART, with
+  firmware update messages handled before this hook (`sdk/include/fm1.h:80–86`). Whether BLE MIDI and
+  the TRS input carry the project protocol the way USB does is not stated; the Workbench uses USB
+  only. **Likely**; BLE and UART unverified.
+- **Token and retry.** The 14-bit token is two seven-bit bytes, low first. The Workbench takes a
+  fresh token per request and sends a request up to three times, one second apart, until a reply
+  with the command's bit 6 and the same token arrives (`Library.query`, `WebUpdate.js:561–580`). The
+  device caches only the last reply and sends it again for an identical request (`transfer.c:221`).
+- **Port names.** The firmware's USB descriptor lives in the binary SDK and is not in the source.
+  The Workbench accepts input names matching `fm.?1` or a bare `USB-MIDI` and pairs the output of the
+  same name (`pairs`, `WebUpdate.js:224–238`), and its update path also accepts `felucca`, `sloop`,
+  `clipper`, `ota`, `sinco`, `usb.?midi`, and `composite`. Windows is said to show the application as
+  `USB-Midi` in a code comment (`:225`). **Likely**.
+
+##### Identity (question 2)
+
+- The reply is the update family's command 17 answer: a 27-byte field holding the name in printable
+  ASCII with zero padding. The Workbench accepts a reply only if it is exactly 27 bytes and holds
+  1 to 27 printable characters (`WebUpdate.js:255`), then accepts an Open identity with
+  `/^(FM1_OFFICIAL_OPEN|FM1_COMMUNITY_\d+|FM-1_8\d{6})$/` (`:58`, used at `:293`). This is
+  what `officialOpenIdentity` in `src/lib/fm1-firmware.ts` holds, and `parseFm1IdentityReply` reads
+  the same 41-byte frame, so **no change is needed**. **Confirmed** on a V12 FM1 (above).
+- The source builds only a `FM1_OFFICIAL_OPEN.fwsc` package whose product string is `FM-1_8`
+  and six digits, taken from `FM1_UPDATE_PRODUCT` (`sdk/Build.ps1:227, 289`, `sdk/Package.cs:139`,
+  `app/version.h:6`). `FM1_COMMUNITY_<n>` and a bare `FM1_OFFICIAL_OPEN` appear only in the
+  Workbench's accepted list, so which builds report them is **not established**; the editor's
+  regular expression is the safe superset.
+- A device that is in the updater's loader answers the same query with a name starting `ota-`:
+  `ota-FM-1_015` for the vendor loader, `ota-<product>` for a stock package, and
+  `ota-FM1C_<16 hex digits of the build hash>` for an Open package (`WebUpdate.js:149`, `:290`). The
+  editor reads each as unidentified, which is correct: a device in its loader is not playing
+  anything. **Likely**.
+- `FM-1_8` is the release marker, not a release number the editor can compare: `FM-1_8000012` is
+  V12 only by the badge's rule. The Workbench never asks for a version separately; its capability
+  command (49, below) carries a 32-byte build hash instead.
+
+##### Project and track transfer (question 3), in full
+
+The table above gives the commands. Details it leaves out, all in `app/transfer.c` and the
+Workbench's `Library` (`sdk/WebUpdate.js:551–640`):
+
+- **Kinds.** Kind 0 is the whole project, 4,064 bytes in format 4 or 4,048 in the older format 3,
+  which the device still imports (`GROOVE_PROJECT_LEGACY_BYTES`, `transfer.c:61`,
+  `project.c:295–300`); kind 1 is one DX7 voice of 156 bytes for a track 0–7; kind 2 is one track's
+  preset of 223 bytes. A write of kind 0 must name target 0. The reply to command 0 reports the
+  project size, which is how a client tells format 3 from format 4. V12 reports 4.
+- **Chunks.** A read takes at most 64 bytes per command 2, with a 16-bit offset. A write takes at
+  most 64 bytes per command 4, strictly in order (`at` must equal the bytes already received), then
+  command 5 with the CRC-32 as four bytes, low first. Either side may end with command 6, which
+  frees the 4 KiB buffer.
+- **CRC.** Standard CRC-32 (polynomial `0xEDB88320`, initial and final inversion). The device
+  compares the received four bytes against the complement of its own running value, which is the same
+  number once the final inversion is applied (`transfer.c:175`, `project.c:38–49`, and the
+  Workbench's `crc32`, `WebUpdate.js:455`). **Likely**; the CRC has not been recomputed against a
+  device reply.
+- **What a write does.** Command 5 applies the buffer to the working project in RAM; nothing reaches
+  Flash until command 7. A project import replaces the working project at once and the screen picks
+  it up (`screen.c:1866`). The Workbench therefore reads the working project back after a write
+  and compares it byte for byte before it saves, saves with 7, reloads the slot with 8, and reads it
+  back again before it reports success (`saveProject`, `WebUpdate.js:587–602`).
+- **Sample bank.** Command 11 reports a status byte, the bank's size, and the capacity (466,944
+  bytes, 456 KiB). The Workbench reads it in 64-byte pieces with command 15 and a 32-bit offset.
+  A write begins with 12 (the total size, 32 bits), sends 128-byte pieces with 13, and ends with 14;
+  the device erases and rewrites its Flash region (`app/samples.c:152–227`), and the Workbench
+  reads the whole bank back and compares it. The write path and its failure case (a bank half
+  written when power or USB is lost; a header is committed only at the end, `samples.c:217–222`) stay
+  **Dangerous / excluded**. The read path (11, 15, 16) changes nothing and stays out of scope.
+- **Save slot 15.** A project slot is one Flash sector, and the last, slot 15, also holds the
+  device settings (`project.c:11–35, 251–254`), so a save to it writes both. Command 8 reads a slot
+  into RAM, but it also records that slot as the current one in the device settings, which a
+  delayed write puts in Flash (`project.c:284–289`). It never erases a slot, so its exclusion in
+  `AGENTS.md` is cautious rather than a Flash write in itself: it discards unsaved work on the device
+  and changes a stored preference. Keep it excluded.
+- **File layouts.** `.fm1` is a 16-byte header, `FM1P`, a version byte (3 or 4), three zero bytes, the
+  payload length as 32 bits little-endian, and its CRC-32 as 32 bits little-endian, then the project
+  payload: 4,064 or 4,080 bytes in all (`projectFile`, `readProjectFile`, `WebUpdate.js:527–539`).
+  The format byte is at offset 3,852 of the payload and the 12-character project name at 3,836
+  (`Simulator.js:739`). Upgrading format 3 sets that byte to 4, appends 16 bytes, and writes 66 into
+  every second one of them for the eight tracks (`upgradeProject`, `WebUpdate.js:521–526`). `.fm1t`
+  is the same header with `FM1T`, version 1, and the 223-byte preset: 239 bytes (`timbreFile`).
+  `.fm1s` is read by `sdk/Samples.js`, not mapped here. **Likely** (source); no file has been
+  loaded on a device.
+
+##### DX7 `.syx` import (question 4)
+
+- **Over MIDI, by the device.** One shape only: the 163-byte single-voice dump,
+  `F0 43 0n 00 01 1B <155 bytes> <checksum> F7`, as recorded above, on the channel of the DX7 track,
+  and **Confirmed** on a V12 FM1 (2026-10-16 hardware run). The device checks the checksum and the
+  channel, sets operator enable to 63, and takes only a DX7 track and in-range bytes
+  (`transfer.c:240–251`, `web/engine/sound.c:1369–1395`). A 32-voice bank dump (`F0 43 0n 09 20 00
+…`, 4,104 bytes) is dropped on its size; a parameter change (`F0 43 1n …`) is dropped on its shape.
+  **Confirmed** by source for the drops; only the single-voice dump has been sent to hardware.
+- **In the Workbench.** A chosen `.syx` must be 163 or 4,104 bytes, first byte `F0 43 0n`, every
+  byte below 128, its type byte 0 or 9 matching the size, and a valid checksum
+  (`readVoices`, `WebUpdate.js:481–510`). A bank is unpacked with the standard 32-voice-to-single-voice
+  field mapping and every byte is range-checked (`validateVoice`, `:474`; the 21-byte operator
+  limits and 19 global limits are written out in the function). The user picks one voice and a DX7
+  track, and the Workbench sends it through the transfer protocol as **kind 1, one 156-byte voice
+  with the operator-enable byte at 63**, not as a MIDI dump (`Update.html.in:636–646`, which also
+  confirms with the user and warns that the track's notes stop). Export builds a 163-byte dump on the
+  track's channel (channel 10 for track 8) from a kind 1 read (`voiceFile`, `:511`).
+  So the Workbench's import and the editor's dump reach the same device function through different
+  doors. The kind 1 route needs commands 3, 4, 5, and 6 and a CRC; the dump needs none. Neither
+  saves to Flash. **Likely**.
+- The 32-voice bank is therefore a Workbench-side convenience: the device holds one voice per DX7
+  track, so there is no bank to send to it. This agrees with `AGENTS.md`.
+
+##### Channel messages (question 5), what the section above did not say
+
+- Routing is by channel only, with no Omni or program-to-track mapping: track 1–7 take channels 1–7,
+  track 8 channel 10, and every other channel is dropped before it reaches a sound
+  (`web/engine/sound.c:698–731`, `groove_channel`, `app/instrument.h:60`). A message with a data byte
+  above 127 or the wrong length is dropped too.
+- System Reset (`FF`) stops everything, rewinds, silences every track, and clears the effects
+  (`sound.c:717–723`). Clock, Start, Continue, Stop, Song Position, and a subset of MMC (`F0 7F 00|7F
+06 <01 02 03 06 07 09> F7`) are channel-less and act on the whole device
+  (`sdk/Update.html.in:250` states the list in prose; `transfer.c:236–239` and `sound.c:706–723` do
+  it). The editor sends none of them.
+- Incoming MIDI is also recorded into the sequence while the device is recording (`groove_record_midi`,
+  `sound.c:720`), so a note or controller sent to a track during recording becomes part of the
+  project's pattern. The audition phrase and the keyboard therefore must not be played at an Open
+  FM1 that a person has armed for recording. **Likely**; not tried.
+- CC 91 scales 0–127 to the track's reverb send in 16 steps (`sound.c:621–624`), CC 7 is the
+  track's volume and, on an 808 track, also releases a parameter lock; CC 121 resets expression to
+  127, pan to centre, and the wheel to 0.
+
+All of the above matches the section above and the profile (`programChanges` and `effectControllers`
+absent) without change.
+
+##### The update protocol and its gate (question 6): described, never to be sent
+
+**Status: Dangerous / excluded.** Described so that the editor can recognise what it must not send,
+not so that it ever does. The host side is `sdk/WebUpdate.js:205–451` (`Updater`); the device side
+is the SDK's binary and its vendor loader, which the source does not show, so every claim about what
+the device checks is read from what the host assumes.
+
+1. **Discovery and identity.** The tool opens each MIDI input/output pair that names an FM1 (or, with
+   Force, any), asks command 17 once or twice, and demands exactly one answering device
+   (`discover`, `open`).
+2. **Capability.** Command 49 returns 47 bytes: `FMC1`, version 1, a family number 0–7, a state
+   byte, a flag that the loader is known, the loader's 512-byte block size, the Flash size
+   (1,048,576), a 32-byte build hash, and an error byte (`capability`, `:219–223`). Open's package
+   names family 7. A family mismatch without Force routes to "migration" and refuses; a nonzero state
+   refuses ("another update in progress").
+3. **Arming.** The tool sends command 50 with a 1, the family, the package length, and the build tag;
+   a reply of a single 0 is the device accepting it (`:422–424`). The state must be 0 and the build
+   must differ from the installed one.
+4. **Trigger.** Only after that it sends the raw, unpacked six bytes `F0 22 24 35 7F F7`
+   (`:426`, `:431`), the same trigger Felucca's notes record. The device then asks for its image
+   itself with command 48 requests (an id, a 32-bit address, a 24-bit length up to 512); the tool
+   answers with the bytes from its package, and an address of `0xE0000000` or `0xF0000000` marks the
+   end of the first and second stage (`serve`, `:338–373`). Two stages: a loader first, then the
+   application, with a reconnect between in which the identity must read the loader's `ota-` name.
+5. **Checks on the host.** The package must carry a pinned SHA-256 for the bytes, the loader, and
+   (for the V15 package) the factory voices; its header, directory, and per-entry CRC-16 values must
+   hold; the product name must match; the family must be 7; the tool refuses any file the user supplies
+   (`inspectPackage`, `prepare`, `:60–150`). After the second stage the device must reconnect under
+   its product name and its capability reply must show the new build hash with state 0 (`:441`).
+6. **The V15 and "Force" routes.** A stock V15 has no capability or arming command. The tool then
+   goes ahead only when the user has chosen Force, the identity is exactly `FM-1_015` or the
+   capability query times out, and the user confirmed (`:290–309`). In that path the six-byte
+   trigger is the only gate the host can see. Restoring V15's four banks uses commands 33 and 34
+   (sector-erase-and-write by address, 512 bytes at a time) after the V15 image, and checks the
+   result (`restoreFactory`, `:376–401`).
+7. **What the host cannot tell us.** Whether the device's loader requires anything beyond the
+   trigger bytes, whether update traffic is accepted over BLE or UART as well as USB (`fm1.h:84`
+   says update messages are handled before the application hook for every transport), and what
+   happens to Flash on an interrupted update. The tool's own comment says a transfer "does not
+   guarantee data preservation or recovery from interrupted power" (`:3–5`).
+
+The editor must not send command 49, 50, 48, 33, or 34, the trigger, or anything else from the
+`00 59` family but the identity query, which `AGENTS.md` already allows. Because the trigger is a
+single six-byte frame with no payload, no editor code may build any `F0 22` frame. No OTA, loader, or
+flash path is involved in anything the editor sends today.
+
+##### What this changes for the editor
+
+Nothing is contradicted. `AGENTS.md`'s Official Open paragraph, `src/lib/fm1-firmware.ts`, and
+`src/lib/firmware-profile.ts` all agree with the source at this commit. These are the points a later
+change can use, each needing its approval recorded first:
+
+- **Command 0's engines** are what decides whether a dump can land, and it is already used.
+- **Kind 1 read** (commands 1, 2, 6 with `groove_fm_copy`) would import a track's DX7 voice into the
+  library. It changes nothing on the device, needs no Flash, and its reply layout is mapped above.
+  **Likely**; needs an approval and a hardware run.
+- **Kind 1 write** (3, 4, 5, 6) is the Workbench's own import route and is equivalent to the
+  dump the editor already sends. It needs a CRC and four more commands for the same effect; the dump stays.
+- **Command 9** (read a project slot's name) is read-only and has no editor use yet.
+- **Command 8** and **7** stay excluded for the reasons above.
+- A device in recording mode takes incoming MIDI into the pattern; mention it in any future note
+  about auditioning on Open.
+
+Hardware run required before any of these ship: yes. Persistence: nothing described here changes
+Flash except commands 7, 8 (setting), 12–14, and the update path, all excluded. No OTA, loader, or
+flash path is involved in anything this note adds to the editor.
+
 ### FM1 Editor
 
 Repository:
