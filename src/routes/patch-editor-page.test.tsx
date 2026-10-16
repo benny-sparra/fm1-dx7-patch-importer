@@ -7,7 +7,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import type { Patch } from '@/data/patches'
-import { dx7PackedVoiceSize } from '@/lib/dx7'
+import { dx7PackedVoiceSize, unpackDx7Voice } from '@/lib/dx7'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
 import { parseFm1VaReply } from '@/lib/fm1-va-sysex'
 import { getEffectParameterDefinition, resolveOperatorParameterIndex } from '@/lib/fm1-parameters'
@@ -448,6 +448,37 @@ describe('PatchEditorPage MIDI paths', () => {
     await user.keyboard('{Meta>}z{/Meta}')
 
     expect(level()).toBe('0')
+  }, 15_000)
+
+  it('sends a held arrow key to Official Open as one dump, and undoes it as one step', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup({ firmware: { identity: 'FM-1_8000012', kind: 'official-open' } })
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const point = screen.getByRole('slider', { name: 'Pitch envelope point 1' })
+    const level = () => (screen.getByLabelText('Pitch envelope level 1') as HTMLInputElement).value
+    const sentLevels = () =>
+      vi
+        .mocked(midi.sendVoice)
+        .mock.calls.map(([voice, announce]) => [unpackDx7Voice(voice)[130], announce])
+
+    fireEvent.keyDown(point, { key: 'ArrowUp' })
+    fireEvent.keyDown(point, { key: 'ArrowUp', repeat: true })
+    fireEvent.keyDown(point, { key: 'ArrowUp', repeat: true })
+    expect(midi.sendVoice).toHaveBeenCalledOnce()
+    fireEvent.keyUp(point, { key: 'ArrowUp' })
+    expect(level()).toBe('3')
+    await waitFor(() => expect(midi.sendVoice).toHaveBeenCalledTimes(2))
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(level()).toBe('0')
+    await waitFor(() => expect(midi.sendVoice).toHaveBeenCalledTimes(3))
+    expect(sentLevels()).toEqual([
+      [0, true],
+      [3, false],
+      [0, false],
+    ])
+    expect(midi.sendParameter).not.toHaveBeenCalled()
   }, 15_000)
 
   it('stays local and explains the unavailable SysEx connection without attempting initial sync', async () => {

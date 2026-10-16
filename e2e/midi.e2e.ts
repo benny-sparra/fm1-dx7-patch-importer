@@ -418,3 +418,98 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
     expect((await sentSysex(page)).some((message) => message.length === bankDumpLength)).toBe(false)
   })
 })
+
+test.describe('with an FM-1 on M-VAVE’s Official Open', () => {
+  // Tracks 1 to 8 run 303, 808, DX7, and five PSG, as the FM1 answered on 2026-10-16.
+  const trackEngines = [1, 2, 0, 3, 3, 3, 3, 3]
+
+  const isInfoRequest = (message: number[]) => message[0] === 0xf0 && message[1] === 0x7d
+
+  async function connectOnChannel(page: Page, channel: number) {
+    await page.addInitScript((value) => {
+      localStorage.setItem('fm1-midi-channel', value)
+    }, String(channel))
+    await installFakeMidi(page, { firmware: 'official-open', trackEngines })
+    await openLibrarian(page)
+    await switchMidiOn(page)
+    await expect(page.getByTitle(/^The FM1 runs M-VAVE’s Open firmware, V12/)).toBeVisible()
+  }
+
+  test('reads the track engines, then sends the patch to the DX7 track on the note channel', async ({
+    page,
+  }) => {
+    await connectOnChannel(page, 3)
+    const slot = slotButtons(page).nth(2)
+    const name = (await slot.getAttribute('aria-label'))?.replace(/^Send A03 (.+) to FM1$/, '$1')
+
+    await slot.click()
+
+    await expect(page.getByText(`Sent “${name}” to track 3.`, { exact: false })).toBeVisible()
+    const messages = (await sentMidi(page)).filter(([status]) => status === 0xf0)
+    const [request, dump] = messages.filter((message) => message[1] !== 0x00)
+    // Command 0 with its token and checksum, then the dump on channel 3 (02), with no Program
+    // Change and no effect controller, which Official Open would take as changes to its tracks.
+    const requestChecksum = -request.slice(1, -2).reduce((sum, byte) => sum + byte, 0) & 0x7f
+    expect(request).toEqual([
+      0xf0,
+      0x7d,
+      0x46,
+      0x4d,
+      0x02,
+      0x00,
+      request[6],
+      request[7],
+      requestChecksum,
+      0xf7,
+    ])
+    expect(dump).toHaveLength(singleVoiceDumpLength)
+    expect(dump.slice(0, 6)).toEqual([0xf0, 0x43, 0x02, 0x00, 0x01, 0x1b])
+    const voiceSum = dump.slice(6, 161).reduce((sum, byte) => sum + byte, 0)
+    expect((voiceSum + dump[161]) & 0x7f).toBe(0)
+    expect(dump.at(-1)).toBe(0xf7)
+    expect(String.fromCharCode(...dump.slice(151, 161)).trimEnd()).toBe(name)
+    const channelMessages = (await sentMidi(page)).filter(([status]) => status < 0xf0)
+    expect(channelMessages).toEqual([])
+
+    // Clicking the same unchanged slot again sends nothing more.
+    const count = (await sentMidi(page)).length
+    await slot.click()
+    await expect.poll(async () => (await sentMidi(page)).length).toBe(count)
+  })
+
+  test('sends nothing to a track on another engine, and says how to fix it', async ({ page }) => {
+    await connectOnChannel(page, 1)
+
+    await slotButtons(page).nth(2).click()
+
+    await expect(
+      page.getByText(
+        'Track 1 runs 303, which cannot take a patch, so nothing was sent. Set track 1 to DX7 on the FM1, or choose the note channel of a track that runs DX7.',
+      ),
+    ).toBeVisible()
+    const messages = await sentMidi(page)
+    expect(messages.filter(isInfoRequest)).toHaveLength(1)
+    expect(messages.some((message) => message.length === singleVoiceDumpLength)).toBe(false)
+  })
+
+  test('sends each held key in the editor as one dump when it is let go', async ({ page }) => {
+    await connectOnChannel(page, 3)
+    await slotButtons(page).nth(2).dblclick()
+    const back = page.getByRole('button', { name: 'Back to patch banks' })
+    await expect(back).toBeEnabled()
+    const dumps = async () =>
+      (await sentMidi(page)).filter((message) => message.length === singleVoiceDumpLength)
+    await expect.poll(async () => (await dumps()).length).toBeGreaterThan(0)
+    const before = (await dumps()).length
+
+    const point = page.getByRole('slider', { name: 'Pitch envelope point 1' })
+    await point.focus()
+    await page.keyboard.down('ArrowUp')
+    await page.keyboard.down('ArrowUp')
+    await page.keyboard.down('ArrowUp')
+    await page.keyboard.up('ArrowUp')
+
+    await expect.poll(async () => (await dumps()).length).toBe(before + 1)
+    expect((await sentSysex(page)).filter((message) => message[2] === 0x10)).toEqual([])
+  })
+})

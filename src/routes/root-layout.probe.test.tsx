@@ -43,6 +43,7 @@ const midi: ComponentProps<typeof RootLayout>['midi'] = {
   startNote: vi.fn(),
   stopNote: vi.fn(),
   sysexAvailable: false,
+  trackDelivery: null,
 }
 
 beforeEach(() => {

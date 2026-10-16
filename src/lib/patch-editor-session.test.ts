@@ -31,6 +31,7 @@ function deferred<T>(): Deferred<T> {
 
 function makeMidi(overrides: Partial<PatchEditorMidi> = {}): PatchEditorMidi {
   return {
+    firmware: { identity: 'FM-1_015', kind: 'mvave' },
     hasMidiOutput: true,
     sendEffectParameter: vi.fn(() => true),
     sendEffectSettings: vi.fn(async () => true),
@@ -290,6 +291,91 @@ function sentCharacters(midi: PatchEditorMidi) {
       String.fromCharCode(value),
     ])
 }
+
+describe('PatchEditorSession on Official Open', () => {
+  const officialOpen = () =>
+    makeMidi({ firmware: { identity: 'FM-1_8000012', kind: 'official-open' } })
+
+  it('sends a drag as one whole-voice dump as it ends, and no parameter change', async () => {
+    const { midi, session } = await openLiveSession(officialOpen())
+    vi.mocked(midi.sendVoice).mockClear()
+
+    session.beginGesture()
+    session.setParameter(0, 10)
+    session.setParameter(0, 20)
+    session.setParameter(0, 30)
+    expect(midi.sendVoice).not.toHaveBeenCalled()
+    session.endGesture()
+
+    await vi.waitFor(() => expect(midi.sendVoice).toHaveBeenCalledOnce())
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+    expect(vi.mocked(midi.sendVoice).mock.calls[0][0].data[0]).toBe(30)
+  })
+
+  it('sends a preset that writes many parameters as one dump', async () => {
+    const { midi, session } = await openLiveSession(officialOpen())
+    vi.mocked(midi.sendVoice).mockClear()
+
+    session.replaceVoice((parameters) => parameters.map((_, index) => (index < 120 ? 7 : 0)))
+
+    await vi.waitFor(() => expect(midi.sendVoice).toHaveBeenCalledOnce())
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+  })
+
+  it('sends a single edit outside a gesture as a dump at once', async () => {
+    const { midi, session } = await openLiveSession(officialOpen())
+    vi.mocked(midi.sendVoice).mockClear()
+
+    session.setParameter(0, 12)
+
+    await vi.waitFor(() => expect(midi.sendVoice).toHaveBeenCalledOnce())
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+  })
+
+  it('sends the version from before a gesture while one is open, not the drag part-way', async () => {
+    const first = deferred<boolean>()
+    const midi = officialOpen()
+    const { session } = await openLiveSession(midi)
+    vi.mocked(midi.sendVoice).mockClear()
+    vi.mocked(midi.sendVoice).mockImplementationOnce(() => first.promise)
+
+    session.setParameter(1, 5)
+    session.beginGesture()
+    session.setParameter(0, 40)
+    first.resolve(true)
+    await vi.waitFor(() => expect(session.getState().syncState).toBe('live'))
+    session.endGesture()
+
+    await vi.waitFor(() => expect(midi.sendVoice).toHaveBeenCalledTimes(2))
+    const [[beforeDrag], [afterDrag]] = vi.mocked(midi.sendVoice).mock.calls
+    expect([beforeDrag.data[0], beforeDrag.data[1]]).toEqual([0, 5])
+    expect(afterDrag.data[0]).toBe(40)
+  })
+
+  it('announces only the first patch the editor sends, not each live edit', async () => {
+    const { midi, session } = await openLiveSession(officialOpen())
+
+    session.setParameter(0, 12)
+
+    await vi.waitFor(() => expect(midi.sendVoice).toHaveBeenCalledTimes(2))
+    expect(vi.mocked(midi.sendVoice).mock.calls.map(([, announce]) => announce)).toEqual([
+      true,
+      false,
+    ])
+  })
+
+  it('sends a committed name as a dump only when it changed', async () => {
+    const { midi, session } = await openLiveSession(officialOpen())
+    vi.mocked(midi.sendVoice).mockClear()
+
+    session.sendName('')
+    session.editName('BRASS')
+    session.sendName('BRASS')
+
+    await vi.waitFor(() => expect(midi.sendVoice).toHaveBeenCalledOnce())
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+  })
+})
 
 describe('PatchEditorSession voice name', () => {
   it('sends only the characters that differ from the name the FM1 has', async () => {

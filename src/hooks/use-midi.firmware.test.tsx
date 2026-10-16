@@ -121,13 +121,13 @@ describe('useMidi firmware identification', () => {
     ])
   })
 
-  it('identifies M-VAVE’s Official Open and says in the log what it does not send', async () => {
+  it('identifies M-VAVE’s Official Open and says in the log where patches go', async () => {
     const { result } = await connect(makeFakeFm1Ports({ reply: officialOpenIdentityReply }))
 
     expect(result.current.firmware).toEqual({ identity: 'FM-1_8000012', kind: 'official-open' })
     expect(logMessages(result)).toContainEqual([
       'system',
-      "The FM1 runs M-VAVE's Official Open firmware FM-1_8000012, an eight-track groovebox, which takes Program Change and the effect controllers as changes to its tracks, so the editor sends neither, and ignores the parameter changes patches are sent as.",
+      "The FM1 runs M-VAVE's Official Open firmware FM-1_8000012, an eight-track groovebox. Patches go to the note channel's track once it says that track runs DX7, and no Program Change or effect controller is sent.",
     ])
   })
 

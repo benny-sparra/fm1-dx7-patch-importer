@@ -131,13 +131,13 @@ describe('MidiSettingsMenu firmware', () => {
     expect(screen.queryByText(/sent as parameter changes/)).toBeNull()
   })
 
-  it('names M-VAVE’s Official Open and says what the editor does not send it', () => {
+  it('names M-VAVE’s Official Open and says where patches go and what is not sent', () => {
     renderSettings({ identity: 'FM-1_8000012', kind: 'official-open' })
 
     expect(screen.getByText('M-VAVE Open FM-1_8000012')).toBeTruthy()
     expect(
       screen.getByText(
-        'M-VAVE’s Open firmware plays your notes but ignores the DX7 patches and banks the editor sends. Clicking a slot selects no preset there, and the effect controls send nothing, since it would take both as changes to its tracks.',
+        'M-VAVE’s Open firmware plays your notes, and a patch you click or edit goes to the track on the note channel when that track runs DX7. It ignores DX7 banks, and the effect controls send nothing, since it would take them as changes to its tracks.',
       ),
     ).toBeTruthy()
     expect(screen.queryByText(/sent as parameter changes/)).toBeNull()
