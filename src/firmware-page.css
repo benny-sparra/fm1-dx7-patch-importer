@@ -7,15 +7,46 @@
  * of it.
  */
 @layer components {
+  /*
+   * The entries, in one column on a phone, then two, then three. The two pinned entries span the
+   * row with their photo beside the text, as the two this editor works with; every other card
+   * puts its photo above its text, and the cards in a row share its height.
+   */
+  /* The grid is a .dither-well, so its dots show in the gutters between the solid cards. */
+  .firmware-grid {
+    display: grid;
+    gap: 1.25rem;
+    padding: 0.75rem;
+    border: 1px solid var(--crt-line-dk);
+  }
+
+  @media (width >= 40rem) {
+    .firmware-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (width >= 60rem) {
+    .firmware-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
   .firmware-entry {
     scroll-margin-top: 1rem;
     display: grid;
+    grid-template-rows: auto 1fr;
     gap: 1rem;
     padding: 1rem;
   }
 
+  .firmware-entry[data-pinned] {
+    grid-column: 1 / -1;
+    grid-template-rows: none;
+  }
+
   @media (width >= 40rem) {
-    .firmware-entry {
+    .firmware-entry[data-pinned] {
       grid-template-columns: 16rem minmax(0, 1fr);
       gap: 1.25rem;
     }
@@ -29,8 +60,11 @@
     padding: 0.25rem;
   }
 
-  /* A missing photo's placeholder takes its background from .dither-well instead. */
-  .firmware-photo:not(.firmware-photo-missing) {
+  /*
+   * A card's photo bay, and a missing photo's placeholder, take their background from .dither-well
+   * instead, so the dots fill the bands beside a square screen.
+   */
+  .firmware-photo:not(.dither-well) {
     background: var(--crt-bg-2);
   }
 
@@ -48,6 +82,12 @@
     display: block;
     width: 100%;
     height: auto;
+  }
+
+  /* A card's photo fills a box of the photos' usual proportions, so square screens line up. */
+  .firmware-entry:not([data-pinned]) .firmware-photo img {
+    aspect-ratio: 923 / 554;
+    object-fit: contain;
   }
 
   /* Stands in for a photo the entry does not have yet, at the photos' own proportions. */
@@ -156,10 +196,6 @@
     color: var(--crt-led);
   }
 
-  .firmware-tag[data-support='none'] {
-    color: var(--crt-ink-3);
-  }
-
   /* What changed on the page on its latest day, lit amber so it reads as news. */
   .firmware-latest.synthwave-panel {
     display: flex;
@@ -222,7 +258,15 @@
     color: var(--crt-ink-3);
   }
 
-  .firmware-sort-option {
+  /* The order and the kinds of firmware to show, one row each, then the stars' date. */
+  .firmware-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .firmware-sort-option,
+  .firmware-filter-option {
     min-height: 2rem;
     white-space: nowrap;
     padding: 0 0.75rem;
@@ -233,10 +277,66 @@
 
   /* The order shown, lit like the editor's pressed toggles. */
   .firmware-sort-option[aria-pressed='true'],
-  .firmware-sort-option[aria-pressed='true']:hover {
+  .firmware-sort-option[aria-pressed='true']:hover,
+  .firmware-filter-option[aria-pressed='true'],
+  .firmware-filter-option[aria-pressed='true']:hover {
     color: var(--crt-bg-0);
     background: var(--crt-led);
     border-color: var(--crt-shadow) var(--crt-line-lt2) var(--crt-line-lt2) var(--crt-shadow);
+  }
+
+  .firmware-filter-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  /*
+   * On a phone each label sits above its buttons, the order on one line and the kinds in two even
+   * columns with their counts at the right, so neither row wraps raggedly under its label.
+   */
+  @media (width < 40rem) {
+    .firmware-sort-label {
+      flex-basis: 100%;
+    }
+
+    .firmware-sort-option {
+      padding: 0 0.5rem;
+    }
+
+    .firmware-filter .firmware-sort-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .firmware-filter .firmware-sort-label {
+      grid-column: 1 / -1;
+    }
+
+    .firmware-filter-option {
+      justify-content: space-between;
+    }
+  }
+
+  /*
+   * Wider, both labels take one width beside their buttons, which hang from it: the order's and
+   * the kinds' start in line, and a row that wraps starts under its first button, not its label.
+   */
+  @media (width >= 40rem) {
+    .firmware-sort-options {
+      padding-left: 4rem;
+    }
+
+    .firmware-sort-label {
+      width: 3.5rem;
+      margin-left: -4rem;
+    }
+  }
+
+  /* How many entries a kind holds, dimmer than its name. */
+  .firmware-filter-count {
+    font-weight: 400;
+    opacity: 0.75;
   }
 
   .firmware-sort-note {
@@ -251,11 +351,48 @@
     color: var(--crt-ink-2);
   }
 
+  /*
+   * public/firmware-blurbs.js marks the page before it paints, and folds each blurb to its first
+   * four lines until its More button opens it. Without the script nothing folds.
+   */
+  :root[data-firmware-folds]
+    .firmware-entry:not([data-open])
+    .firmware-blurb:not(.firmware-blurb ~ .firmware-blurb) {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+  }
+
+  :root[data-firmware-folds] .firmware-entry:not([data-open]) .firmware-blurb ~ .firmware-blurb {
+    display: none;
+  }
+
+  .firmware-more {
+    align-self: flex-start;
+    min-height: 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--crt-acc-lt);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .firmware-more:hover,
+  .firmware-more:focus-visible {
+    color: var(--crt-acc-br);
+  }
+
+  /* The links sit at the foot of the card, so a row of cards lines its links up. */
   .firmware-links {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-top: 0.25rem;
+    margin-top: auto;
+    padding-top: 0.25rem;
   }
 
   /* Firmwares that cannot be installed yet: one panel of short rows, with no photos or tags. */
@@ -275,6 +412,14 @@
   .firmware-watch-list {
     display: flex;
     flex-direction: column;
+  }
+
+  @media (width >= 40rem) {
+    .firmware-watch-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 1.5rem;
+    }
   }
 
   .firmware-watch-item {

@@ -4,10 +4,12 @@ import path from 'node:path'
 import sharp from 'sharp'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const html = readFileSync(path.resolve(__dirname, '../firmware/index.html'), 'utf8')
 const sortScriptPath = path.resolve(__dirname, '../public/firmware-sort.js')
+const filterScriptPath = path.resolve(__dirname, '../public/firmware-filter.js')
+const blurbScriptPath = path.resolve(__dirname, '../public/firmware-blurbs.js')
 const page = new DOMParser().parseFromString(html, 'text/html')
 const entries = [...page.querySelectorAll('article.firmware-entry')]
 const watched = [...page.querySelectorAll('.firmware-watch-item')]
@@ -43,12 +45,25 @@ describe('firmware page', () => {
     )
   })
 
-  it.each(named(entries))('%s has a maker, a support tag, and a blurb', (_name, entry) => {
+  it.each(named(entries))('%s has a maker and a blurb', (_name, entry) => {
     expect(entry.querySelector('.synthwave-kicker')?.textContent?.trim()).toBeTruthy()
-    expect(['full', 'partial', 'none']).toContain(
-      entry.querySelector('.firmware-tag')?.getAttribute('data-support'),
-    )
     expect(entry.querySelector('.firmware-blurb')?.textContent?.trim()).toBeTruthy()
+  })
+
+  // Only the firmwares this editor works with carry a tag, so the rest carry no "not supported".
+  it.each(named(entries))(
+    '%s carries a support tag only if the editor works with it',
+    (_name, entry) => {
+      for (const tag of entry.querySelectorAll('.firmware-tag')) {
+        expect(['full', 'partial']).toContain(tag.getAttribute('data-support'))
+      }
+    },
+  )
+
+  it('tags the pinned entries as working with this editor', () => {
+    for (const entry of entries.filter((candidate) => candidate.hasAttribute('data-pinned'))) {
+      expect(entry.querySelector('.firmware-tag')?.getAttribute('data-support')).toBe('full')
+    }
   })
 
   it.each(named(entries))('%s has either a photo or a placeholder', (_name, entry) => {
@@ -269,13 +284,149 @@ describe('firmware page order', () => {
     expect(order().slice(-2)).toEqual(['groove-os', 'redacted'])
   })
 
-  it('returns to alphabetical order, with the watch list still last', async () => {
+  it('returns to alphabetical order, with the watch list still after the cards', async () => {
     const order = await renderPage()
     await userEvent.click(option('Most starred'))
     await userEvent.click(option('A–Z'))
     expect(order()).toEqual(written)
-    expect(document.querySelector('article.firmware-entry:last-of-type')?.nextElementSibling).toBe(
-      document.querySelector('.firmware-watch'),
+    const grid = document.querySelector('.firmware-grid')
+    expect(grid?.lastElementChild?.matches('article.firmware-entry')).toBe(true)
+    expect(grid?.nextElementSibling).toBe(document.querySelector('.firmware-watch'))
+  })
+})
+
+const categoriesOf = (entry: Element) => (entry.getAttribute('data-categories') ?? '').split(/\s+/)
+const filters = [...page.querySelectorAll('.firmware-filter-option')]
+const filterCategories = filters.map((filter) => filter.getAttribute('data-category'))
+
+describe('firmware page categories', () => {
+  it.each(named(entries))(
+    '%s names at least one kind of firmware a filter shows',
+    (_name, entry) => {
+      const categories = categoriesOf(entry)
+      expect(categories.length).toBeGreaterThan(0)
+      for (const category of categories) {
+        expect(category).not.toBe('all')
+        expect(filterCategories).toContain(category)
+      }
+    },
+  )
+
+  it.each(filters.map((filter) => [filter.getAttribute('data-category'), filter] as const))(
+    'counts the entries the %s filter shows',
+    (category, filter) => {
+      const shown = entries.filter(
+        (entry) => category === 'all' || categoriesOf(entry).includes(category ?? ''),
+      )
+      expect(shown.length).toBeGreaterThan(0)
+      expect(filter.querySelector('.firmware-filter-count')?.textContent).toBe(String(shown.length))
+    },
+  )
+})
+
+describe('firmware page filter', () => {
+  // A link the test follows leaves its card in the address, which would open that card's blurb.
+  afterEach(() => {
+    history.replaceState(null, '', location.pathname)
+  })
+
+  async function renderPage() {
+    document.body.innerHTML = page.body.innerHTML
+    vi.resetModules()
+    await import(/* @vite-ignore */ filterScriptPath)
+    return () =>
+      [...document.querySelectorAll('article.firmware-entry:not([hidden])')].map(
+        (entry) => entry.id,
+      )
+  }
+  const filter = (name: RegExp) => screen.getByRole('button', { name })
+  const samplers = entries
+    .filter((entry) => categoriesOf(entry).includes('samplers'))
+    .map((entry) => entry.id)
+
+  it('starts showing every entry', async () => {
+    const shown = await renderPage()
+    expect(shown()).toEqual(entries.map((entry) => entry.id))
+    expect(filter(/^All/).getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('shows only the entries of the chosen kind and says how many', async () => {
+    const shown = await renderPage()
+    await userEvent.click(filter(/^Samplers/))
+    expect(shown()).toEqual(samplers)
+    expect(filter(/^Samplers/).getAttribute('aria-pressed')).toBe('true')
+    expect(filter(/^All/).getAttribute('aria-pressed')).toBe('false')
+    expect(screen.getByRole('status').textContent).toBe(
+      `Showing ${samplers.length} of ${entries.length} firmwares`,
     )
+  })
+
+  it('shows every entry again for All', async () => {
+    const shown = await renderPage()
+    await userEvent.click(filter(/^Samplers/))
+    await userEvent.click(filter(/^All/))
+    expect(shown()).toHaveLength(entries.length)
+    expect(screen.getByRole('status').textContent).toBe(`Showing all ${entries.length} firmwares`)
+  })
+
+  it('shows every entry when a link reaches a card the filter hides', async () => {
+    const shown = await renderPage()
+    await userEvent.click(filter(/^Samplers/))
+    const hidden = entries.find((entry) => !samplers.includes(entry.id))?.id ?? ''
+    const link = document.createElement('a')
+    link.href = `#${hidden}`
+    link.textContent = 'Linked card'
+    document.querySelector('.firmware-latest')?.append(link)
+    await userEvent.click(screen.getByRole('link', { name: 'Linked card' }))
+    expect(shown()).toContain(hidden)
+    expect(filter(/^All/).getAttribute('aria-pressed')).toBe('true')
+  })
+})
+
+describe('firmware page blurbs', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  async function renderPage(overflowing: boolean) {
+    document.body.innerHTML = page.body.innerHTML
+    // jsdom lays nothing out, so a blurb is as tall as the test says.
+    vi.spyOn(Element.prototype, 'scrollHeight', 'get').mockReturnValue(overflowing ? 200 : 0)
+    vi.resetModules()
+    await import(/* @vite-ignore */ blurbScriptPath)
+  }
+  const single = entries.find((entry) => entry.querySelectorAll('.firmware-blurb').length === 1)
+  const several = entries.find((entry) => entry.querySelectorAll('.firmware-blurb').length > 1)
+  const nameOf = (entry: Element | undefined) =>
+    entry?.querySelector('.firmware-title')?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
+
+  it('marks the page so the stylesheet folds the blurbs', async () => {
+    await renderPage(true)
+    expect(document.documentElement.hasAttribute('data-firmware-folds')).toBe(true)
+  })
+
+  it('opens and folds a long blurb with its More button', async () => {
+    await renderPage(true)
+    const card = document.getElementById(single?.id ?? '')
+    const more = screen.getByRole('button', { name: `More about ${nameOf(single)}` })
+    expect(more.getAttribute('aria-expanded')).toBe('false')
+    await userEvent.click(more)
+    expect(card?.hasAttribute('data-open')).toBe(true)
+    expect(more.getAttribute('aria-expanded')).toBe('true')
+    expect(more.textContent).toBe('Less')
+    expect(more.getAttribute('aria-label')).toBe(`Less about ${nameOf(single)}`)
+    await userEvent.click(more)
+    expect(card?.hasAttribute('data-open')).toBe(false)
+    expect(more.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('gives a blurb that fits in its folded lines no button', async () => {
+    await renderPage(false)
+    expect(screen.queryByRole('button', { name: `More about ${nameOf(single)}` })).toBeNull()
+  })
+
+  it('gives a blurb with a paragraph after it a button, however short', async () => {
+    await renderPage(false)
+    expect(screen.getByRole('button', { name: `More about ${nameOf(several)}` })).toBeTruthy()
   })
 })
