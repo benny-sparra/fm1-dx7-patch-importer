@@ -1308,22 +1308,44 @@ Notes, the keyboard, and the audition phrases still play on the note channel, wh
 default. While the identity query is still being answered, the editor behaves as for an
 unidentified firmware, so a slot clicked in that second still sends its Program Change.
 
+**Hardware run (2026-10-16, V12 on macOS, by CoreMIDI from a scratch script, not the editor).**
+Each message below was sent once, with the user's approval for that test, and the user's project
+saved first.
+
+- **Identity query** (`fm1IdentityQuery`): **Confirmed**, as recorded under Identity above.
+- **Command 0, info**: `F0 7D 46 4D 02 00 01 00 6D F7` was answered with
+  `F0 7D 46 4D 02 40 01 00 00 08 40 00 00 7C 03 00 01 04 00 18 30 60 40 01 03 00 75 F7`: token
+  echoed, command 0 with bit 6 set, checksum valid, and unpacked status 0, format 4, 16 slots,
+  current slot 0, project size 4064, internal clock, and engines 303, 808, DX7, PSG, PSG, PSG, PSG,
+  PSG. **Confirmed**: the framing, packing, checksum, and reply layout match `app/transfer.c`.
+- **Single-voice dump on channel 1** (`F0 43 00 …`, INIT VOICE named `CLAUDE TST`, every byte in
+  range, checksum valid): no reply, and track 1 unchanged. Command 0 then showed track 1 running
+  303, so `groove_fm_import` refused it as the source says. The user had set a different track to
+  DX7 than they thought; the device's own report is the way to know.
+- **The same dump on channel 3** (`F0 43 02 …`), track 3 running DX7: no reply; the track's sound
+  changed to the voice sent. **Confirmed.** The main screen still showed the built-in program's
+  name (`SOFT LE`, Soft Lead cut short) with **edited** beneath it, and only the track's edit
+  screen named the voice `CLAUDE TST`: the main screen names the track's program, not its voice.
+  The voice is an unsaved edit in the working project, as `transfer.c` says.
+
+So a dump reaches only a DX7 track, gives no reply, and fails silently on any other engine. Code
+that sends one should first read the engines with command 0 and say when the track it would reach
+is not DX7.
+
 Next, each needing approval first:
 
 - Send a patch to a DX7 track as the 163-byte single-voice dump, which Official Open puts in the
-  working project with an undo checkpoint, on the channel of the track chosen.
+  working project with an undo checkpoint, on the channel of the track chosen, after command 0
+  shows that track running DX7.
 - Read a track's engine types and DX7 voice with commands 0, 1, and 2, to import a track's voice
   into the library.
 
 Open questions:
 
-1. What exactly does Official Open answer to the identity query, and does `parseFm1IdentityReply`
-   read it? The reply comes from the binary SDK. Expected `FM-1_8000012` for V12.
-2. Does a single-voice dump on the track's channel reach it on hardware, as `transfer.c` says, and
-   does the device's undo bring the previous voice back?
-3. What does the MIDI port appear as on macOS, Windows, and Linux? The Workbench matches `fm.?1`
-   or a bare `USB-MIDI` (`sdk/WebUpdate.js:225`).
-4. `.fm1t` is a 223-byte track preset (`struct groove_preset`) and `.fm1` a 4064-byte project; their
+1. Does the device's undo bring back the voice a dump replaced?
+2. What does the MIDI port appear as on Windows and Linux? On macOS it is `FM1 Community`. The
+   Workbench matches `fm.?1` or a bare `USB-MIDI` (`sdk/WebUpdate.js:225`).
+3. `.fm1t` is a 223-byte track preset (`struct groove_preset`) and `.fm1` a 4064-byte project; their
    layouts are in the source but not yet mapped here.
 
 ### FM1 Editor
