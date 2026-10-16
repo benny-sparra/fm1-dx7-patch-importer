@@ -10,6 +10,8 @@ On `FM-1_097`, 2026-10-10: §1 apart from F3, M1, M3 (with a second slot's VA er
 On `FM-1_098` (built 2026-10-10), 2026-10-16: §4b P1–P7, all matching, and the 8-Bit Note Engine
 row (backlog item 10), with 097 restored from the pack backup; ledger
 [`docs/hardware-runs/fm1-va-8bit-fields-2026-10-16.md`](hardware-runs/fm1-va-8bit-fields-2026-10-16.md).
+The 8-Bit Pattern's bit order was then mapped on the same FM1 the same day; ledger
+[`docs/hardware-runs/fm1-va-8bit-pattern-2026-10-16.md`](hardware-runs/fm1-va-8bit-pattern-2026-10-16.md).
 F3 and M2, D2, §5, §6b, and the rest of §7 not run yet.
 **Scope:** whether the facts `docs/fm1-research.md` records under "FM-1_096", all **Likely** and
 read from Baud Girl's web code and preset packs, hold on an FM1; whether the editor's handling of
