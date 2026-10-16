@@ -1358,7 +1358,11 @@ Open questions:
 2. What does the MIDI port appear as on Windows and Linux? On macOS it is `FM1 Community`. The
    Workbench matches `fm.?1` or a bare `USB-MIDI` (`sdk/WebUpdate.js:225`).
 3. `.fm1t` is a 223-byte track preset (`struct groove_preset`) and `.fm1` a 4064-byte project; their
-   layouts are in the source but not yet mapped here.
+   layouts are in the source but not yet mapped here. Answered, from source and **Likely**, in
+   "Official Open: track preset (.fm1t)" below: every byte of the preset, each engine's use of
+   `data`, and the project's offsets. Still open there: whether the device matches the simulator
+   sources the rules were read from, what loading a `.fm1t` sounds like on hardware, and the
+   units and a few bytes the source does not explain.
 
 #### Official Open: second reading, transfer details, file formats, and the update gate (2026-10-16)
 
@@ -1590,6 +1594,425 @@ change can use, each needing its approval recorded first:
 Hardware run required before any of these ship: yes. Persistence: nothing described here changes
 Flash except commands 7, 8 (setting), 12–14, and the update path, all excluded. No OTA, loader, or
 flash path is involved in anything this note adds to the editor.
+
+#### Official Open: track preset (.fm1t) (2026-10-16)
+
+Same commit as the two sections above (`5d3eac2573dbd054254fabda6fde099adc594348`). Source read only:
+nothing was built or run, and no MIDI was sent. Paths are in that commit. It answers question 3
+above, the layout of `struct groove_preset`, and gives the project's offsets with it. Confidence is
+**Likely** (from source) throughout; nothing here is **Confirmed**, because no `.fm1t` has been
+loaded on a device.
+
+**Which code is read.** `app/` (`instrument.h`, `transfer.c`, `project.c`, `presets.c`) is the
+device's own code. The readable engine, `web/engine/*.c`, `web/synth/*.c` and `third_party/synth/*.c`,
+is what the Workbench compiles to WebAssembly (`tools/Build-Web.ps1:79`, `-DFM1_OPEN_WEB`); the device
+links M-VAVE's prebuilt `sdk/lib/libfm1_engine.a` instead (`sdk/Build.ps1:343`). The validity rule
+and every engine's parameter table are only readable in the WebAssembly sources, so what follows
+about the device assumes the two agree. That assumption is question 1 below.
+
+##### The struct
+
+`struct groove_preset` (`app/instrument.h:123–130`) is four `uint8_t`, `controls` (`struct groove_fm_controls`, `instrument.h:111–117`, seven
+`uint8_t`), `uint8_t data[210]`, and two more `uint8_t`. Every member has alignment 1, so there is no padding, and the source asserts
+`sizeof == 223` (`instrument.h:130`). Nothing is `packed`; nothing needs to be. The offsets below add
+up to 223, which was checked with a script as well as by hand (4 + 7 + 210 + 1 + 1). Offsets are from
+the start of the preset; a `.fm1t` file has 16 bytes in front (`FM1T`, version 1, three zeros, the length
+223 and its CRC-32, little-endian; `WebUpdate.js:540–544`), so add 16 for a file offset.
+
+| Offset | Size | Field                | Meaning                                                                | Range                  | Confidence |
+| ------ | ---- | -------------------- | ---------------------------------------------------------------------- | ---------------------- | ---------- |
+| 0      | 1    | `type`               | The track's engine (table below)                                       | 0–5                    | Likely     |
+| 1      | 1    | `volume`             | The track's level                                                      | 0–127                  | Likely     |
+| 2      | 1    | `program`            | Built-in program number or mode (per engine, below)                    | per engine             | Likely     |
+| 3      | 1    | `modified`           | 1 once the sound differs from its program; the screen's EDITED         | 0–1                    | Likely     |
+| 4      | 4    | `controls.envelope`  | DX7: ADSR override. Other engines: the track's LFO                     | 0–100 each, see below  | Likely     |
+| 8      | 1    | `controls.enabled`   | DX7: ADSR override on. Other engines: the LFO values are stored        | 0–1                    | Likely     |
+| 9      | 1    | `controls.operators` | DX7: operators switched off; bit _i_ set switches off operator _i_ + 1 | 0–63                   | Likely     |
+| 10     | 1    | `controls.mono`      | DX7 and 303: monophonic                                                | 0–1                    | Likely     |
+| 11     | 210  | `data`               | The sound, laid out by engine (below); byte 209 is the sends           | per engine             | Likely     |
+| 221    | 1    | `sequence_pages`     | The track's loop length: 0 is 64 steps, 1/2/3 are 16/32/48             | 0–3; ignored on import | Likely     |
+| 222    | 1    | `sampler_pads`       | 8 for SAMPLER, 0 for every other engine                                | exactly 8 or 0         | Likely     |
+
+Inside `data`, offset 11 + _n_ is `data[n]`; `data[209]`, at offset 220, is the sends for every engine.
+
+**The engine byte** (`enum groove_source`, `instrument.h:19–27`; the same numbers are what command 0
+reports for each track, `transfer.c:138–139`):
+
+| `type` | Engine  | `program` accepted (`sound.c:1644–1647, 1670–1672`) | Bytes of `data` it reads |
+| ------ | ------- | --------------------------------------------------- | ------------------------ |
+| 0      | DX7     | 0–15 (`FM1_FM_PROGRAMS`, `app/fm_patch.h:5`)        | 0–155, then 209          |
+| 1      | 303     | 0–1, and must equal `data[5]` (Wave)                | 0–11, then 209           |
+| 2      | 808     | 0 only                                              | 0–208, then 209          |
+| 3      | PSG     | 0–3, and must equal `data[0]` (Mode)                | 0–3, then 209            |
+| 4      | PLUCK   | 0 only                                              | 0–3, then 209            |
+| 5      | SAMPLER | 0 only                                              | 0–47, then 209           |
+
+Types 6 and above are refused (`sound.c:1640`). The `program` byte is checked and stored for every engine; for the 303 and PSG it is a copy of the
+Wave or Mode byte that must agree with it, and a preset that disagrees is refused rather than
+repaired. What else reads the stored `program` after a load
+was not traced (question 4).
+
+##### The bytes every engine shares
+
+| Offset | Field                     | What the source does with it                                                                                                                                                                                                                                                                                                           | Confidence |
+| ------ | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 1      | `volume`                  | Track level, 0–127 (`sound.c:1640`). It sets the track's gain through `source_gain`, which divides by 508, 127, 1016, 508, 508 and 254 for DX7, 303, 808, PSG, PLUCK and SAMPLER (`sound.c:735–740`). That is a different scale per engine, so one number is not one loudness; the source gives no dB figure.                          | Likely     |
+| 3      | `modified`                | Shown as EDITED (`app/screen.c:564`). Factory presets set it to 1 for every engine but DX7 (`app/presets.c:162–165`).                                                                                                                                                                                                                  | Likely     |
+| 4–7    | `controls.envelope`, DX7  | ADSR override: attack, decay, sustain, release, each 0–100, passed in that order to `synth_dx7_set_adsr` (`sound.c:1743`; `web/synth/adsr.c:13–24`, which clamps each to 100). Default 0, 0, 100, 0.                                                                                                                                   | Likely     |
+| 8      | `controls.enabled`, DX7   | 1 makes the ADSR override apply. Default 0.                                                                                                                                                                                                                                                                                            | Likely     |
+| 4      | LFO rate, other engines   | 0–100, mapped to 5 + 1995·_v_²/10000 hundredths of a hertz (`sound.c:53`), so 0.05 to 20 Hz. Shown as 40 when `enabled` is 0 (`sound.c:54–59`).                                                                                                                                                                                        | Likely     |
+| 5      | LFO depth, other engines  | 0–100.                                                                                                                                                                                                                                                                                                                                 | Likely     |
+| 6      | LFO target, other engines | 0 volume, 1 pan. Refused above 1 when `enabled` is 1 (`sound.c:1652–1653`).                                                                                                                                                                                                                                                            | Likely     |
+| 7      | LFO wave, other engines   | 0 triangle, 1 square, 2 ramp up, 3 ramp down (`instrument.h:112–115`, `sound.c:91–95`). Refused above 3 when `enabled` is 1.                                                                                                                                                                                                           | Likely     |
+| 8      | `controls.enabled`, other | 1 means bytes 4–7 are the LFO; 0 means an unmodulated track (`instrument.h:112–116`, `sound.c:80–82`). A track starts with bytes 4–7 as 0, 0, 100, 0 and this byte 0 (`sound.c:812–816, 865–866`).                                                                                                                                     | Likely     |
+| 9      | `controls.operators`      | Bit _i_ set switches off operator _i_ + 1; the preset applies it as the operator mask, bit 5 − _i_ clear (`sound.c:1737–1741`, and `groove_fm_import`, `sound.c:1384–1386`). Validated for every engine (0–63); the other engines were not seen to read it.                                                                            | Likely     |
+| 10     | `controls.mono`           | DX7: passed to `synth_dx7_set_poly_mode`, whose comment reads "mono: 0, 1" (`web/synth/dx7synth.c:577–582`). 303: monophonic with last-note slide against four voices (`third_party/synth/bass303.h:28–29`; `sound.c:299, 934`). Validated 0–1 for every engine; the rest were not seen to read it.                                    | Likely     |
+| 220    | `data[209]`, sends        | Low nibble the reverb send, high nibble the delay send, each 0–15 (`sound.c:1722, 1774–1775`; `instrument.h:126`). A send's level is the track's gain times _n_/15 (`sound.c:973–984`). Not validated, and any byte is two valid nibbles.                                                                                              | Likely     |
+| 221    | `sequence_pages`          | The track's loop length when the preset is exported (`web/engine/sequencer.c:544`). A project import reads it (`sequencer.c:553`) and refuses above 3 (`sound.c:1641`). A track import replaces the file's value with the track's own before anything is checked (`web/engine/edit.c:469`), so in a `.fm1t` it is carried and ignored. | Likely     |
+| 222    | `sampler_pads`            | Must be 8 when `type` is 5 and 0 otherwise, or the whole preset is refused (`sound.c:1642`).                                                                                                                                                                                                                                           | Likely     |
+
+##### DX7 (type 0): `data[0..155]`
+
+The 156 bytes are the DX7 voice as the editor already knows it, in the layout the Workbench itself
+uses for a single-voice dump (`sound.c:1703`, `memcpy` of the track's 156-byte patch).
+
+| `data`  | Offset  | Size | Field                                                                             | Range (`fm_limit`, `sound.c:1279–1289`)                                                                     | Confidence |
+| ------- | ------- | ---- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------- |
+| 0–125   | 11–136  | 126  | Six operators of 21 bytes, operator 6 first, operator 1 last (`instrument.h:106`) | 99 for the first eleven of each (rates, levels, break point, depths), then 3, 3, 7, 3, 7, 99, 1, 31, 99, 14 | Likely     |
+| 126–133 | 137–144 | 8    | Pitch envelope rates 1–4, levels 1–4                                              | 0–99                                                                                                        | Likely     |
+| 134     | 145     | 1    | Algorithm                                                                         | 0–31                                                                                                        | Likely     |
+| 135     | 146     | 1    | Feedback                                                                          | 0–7                                                                                                         | Likely     |
+| 136     | 147     | 1    | Oscillator key sync                                                               | 0–1                                                                                                         | Likely     |
+| 137–140 | 148–151 | 4    | LFO speed, delay, pitch depth, amplitude depth                                    | 0–99                                                                                                        | Likely     |
+| 141     | 152     | 1    | LFO key sync                                                                      | 0–1                                                                                                         | Likely     |
+| 142     | 153     | 1    | LFO wave                                                                          | 0–5                                                                                                         | Likely     |
+| 143     | 154     | 1    | LFO pitch sensitivity                                                             | 0–7                                                                                                         | Likely     |
+| 144     | 155     | 1    | Transpose                                                                         | 0–48                                                                                                        | Likely     |
+| 145–154 | 156–165 | 10   | Voice name, one byte per character                                                | 0–127; the panel's own editor offers 32–126 (`sound.c:1399–1400`)                                           | Likely     |
+| 155     | 166     | 1    | Operator on/off mask, bit 5 operator 1 … bit 0 operator 6                         | 0–63; **rebuilt on load**, see below                                                                        | Likely     |
+| 156–208 | 167–219 | 53   | Not read, not validated; written as zero on export                                | any                                                                                                         | Likely     |
+
+**Against the DX7 single-voice dump.** `data[0..154]` is the 155 data bytes of a DX7 voice (VCED)
+byte for byte. The Workbench builds a `.syx` single-voice file from exactly those bytes
+(`voiceFile`, `WebUpdate.js:511–515`: `F0 43 0n 00 01 1B`, `patch[0..154]`, checksum, `F7`), and reads
+one back into `patch[0..154]` with byte 155 set to 63 (`readVoices`, `WebUpdate.js:489–490`). Byte 155
+is an FM1 addition. The meanings of 126–144 are the standard VCED ones, which the source supports
+with its limits and with `app/presets.c:153–158` (`p[134]` the algorithm, `p[135]` feedback, `p[144]`
+transpose); the source names none of them.
+
+**Byte 155 is not the operator switch.** Loading copies `data[0..155]` into the voice and then writes
+byte 155 again from `controls.operators` (`sound.c:1735–1741`). Both are validated, but the preset
+that wins is `controls.operators`. A tool that edits one must edit the other, or the byte it edits is
+ignored.
+
+##### 303 (type 1): `data[0..11]`
+
+Order and limits are the source's parameter table (`third_party/synth/bass303.c:13–19`,
+`third_party/synth/bass303.h:9–13`); `u` below is the value divided by 127 as the setter uses it
+(`bass303.c:26–40`). The setter clamps; the validator has refused a larger value before it can run.
+
+| `data` | Offset | Parameter | Range | Default | What the setter does                                                  | Confidence |
+| ------ | ------ | --------- | ----- | ------- | --------------------------------------------------------------------- | ---------- |
+| 0      | 11     | Cutoff    | 0–127 | 64      | Filter cutoff 314·2^(2.9306·u)                                        | Likely     |
+| 1      | 12     | Reso      | 0–127 | 64      | Resonance, (1 − e^(−3u)) / (1 − e^(−3))                               | Likely     |
+| 2      | 13     | EnvMod    | 0–127 | 64      | Scales the filter envelope, with Cutoff (`bass303.c:44–49`)           | Likely     |
+| 3      | 14     | Decay     | 0–127 | 64      | Decay 0.2·2^(3.3219·u)                                                | Likely     |
+| 4      | 15     | Accent    | 0–127 | 64      | Accent amount, _u_                                                    | Likely     |
+| 5      | 16     | Wave      | 0–1   | 0       | 0 Saw, 1 Sqr; must equal `program`                                    | Likely     |
+| 6      | 17     | Tune      | 0–127 | 64      | Reference pitch 440 + (_v_ − 64)·0.625, so 64 is 440 (`bass303.c:23`) | Likely     |
+| 7      | 18     | Volume    | 0–127 | 96      | Gain 2^((_u_ − 1)·9.9658)                                             | Likely     |
+| 8      | 19     | Drive     | 0–127 | 0       | Drive gain; its curve depends on DrvTyp (`bass303.c:50–62`)           | Likely     |
+| 9      | 20     | DrvTyp    | 0–2   | 1       | 0 Off, 1 Soft, 2 RAT                                                  | Likely     |
+| 10     | 21     | Slide     | 0–127 | 21      | Slide time 0.0004 + 0.0716·_u_                                        | Likely     |
+| 11     | 22     | AccDec    | 0–127 | 7       | Accent decay 0.030 + 2.970·_u_                                        | Likely     |
+
+`data[12..208]` is not read, not validated, and written as zero. The units of the formulas are the
+source's own and are not stated in it; `app/instrument.h:99` says the stored values are "pot
+positions, not Hz or milliseconds".
+
+##### PSG (type 3) and PLUCK (type 4): `data[0..3]`
+
+Both read four bytes and nothing else (`sound.c:1666, 1713`). The setters ignore a value above its
+maximum rather than clamping it (`web/synth/psg.c:37–41`, `third_party/synth/pluck.c:33–37`), which
+the validator makes unreachable.
+
+| Engine | `data` | Offset | Parameter | Range | Default | Notes (`web/synth/psg.c:13–15`, `third_party/synth/pluck.c:19–20`) | Confidence |
+| ------ | ------ | ------ | --------- | ----- | ------- | ------------------------------------------------------------------ | ---------- |
+| PSG    | 0      | 11     | MODE      | 0–3   | 0       | 0 YM, 1 AY, 2 NOISE, 3 MIX; must equal `program`                   | Likely     |
+| PSG    | 1      | 12     | NOISE     | 0–31  | 16      | Not traced beyond the range                                        | Likely     |
+| PSG    | 2      | 13     | TUNE      | 0–48  | 24      | 24 is the centre; the unit is not stated                           | Likely     |
+| PSG    | 3      | 14     | RELEASE   | 0–127 | 32      | Not traced beyond the range                                        | Likely     |
+| PLUCK  | 0      | 11     | DECAY     | 0–127 | 90      | Not traced beyond the range                                        | Likely     |
+| PLUCK  | 1      | 12     | BRIGHT    | 0–127 | 100     | Not traced beyond the range                                        | Likely     |
+| PLUCK  | 2      | 13     | TUNE      | 0–48  | 24      | 24 is the centre; the unit is not stated                           | Likely     |
+| PLUCK  | 3      | 14     | RELEASE   | 0–127 | 35      | Not traced beyond the range                                        | Likely     |
+
+`data[4..208]` is not read, not validated, and written as zero.
+
+##### SAMPLER (type 5): `data[0..47]`
+
+Eight pads of six bytes: pad _p_ parameter _i_ is `data[6p + i]`, offset 11 + 6_p_ + _i_
+(`sound.c:1661–1664, 1708–1711`; `web/synth/sampledrum.c:48–50`). `sampler_pads` must be 8.
+`sampledrum_set` clamps (`sampledrum.c:67–74`), which the validator makes unreachable.
+
+| `i` | Parameter | Range | Default | Meaning (`third_party/synth/sampledrum.h:17–20`)                                                          | Confidence |
+| --- | --------- | ----- | ------- | --------------------------------------------------------------------------------------------------------- | ---------- |
+| 0   | Level     | 0–127 | 100     | Pad level                                                                                                 | Likely     |
+| 1   | Tune      | 0–48  | 24      | −24 to +24 semitones                                                                                      | Likely     |
+| 2   | Length    | 0–127 | 127     | Plays (_n_ + 1)/128 of the sample                                                                         | Likely     |
+| 3   | Choke     | 0–4   | 0       | 0 off, 1–4 choke groups                                                                                   | Likely     |
+| 4   | Variation | 0–3   | 1       | Four-hit cyclic change of pitch, gain and start; the header says it can be bypassed, not which value does | Likely     |
+| 5   | Vel LPF   | 0–127 | 96      | How much softer hits darken                                                                               | Likely     |
+
+`data[48..208]` is not read, not validated, and written as zero. **No audio is in the preset, and
+nothing in it names the sample bank.** The eight pads read whatever the device's one shared bank holds
+(`sdk/Update.html.in:227`: the `.fm1` project carries no sample audio, and the bank is the separate
+`.fm1s`). A pad whose slot is empty is silent (`sampledrum.c:126–129`).
+
+##### 808 (type 2): `data[0..208]`
+
+The only engine that fills all of `data[0..208]`. The layout is `D8_PRESET_BYTES` = 209: eleven
+selectors, then two sets of 99 parameter bytes (`third_party/synth/drum808.h:33–38`;
+`web/synth/voices.c:334–376`). 11 + 99 + 99 = 209, and `data[209]` is the sends.
+
+| `data`  | Offset  | Size | What                                                                                    | Confidence |
+| ------- | ------- | ---- | --------------------------------------------------------------------------------------- | ---------- |
+| 0–10    | 11–21   | 11   | One selector per drum part, BD to CH, each 0 or 1: which of the part's two sounds plays | Likely     |
+| 11–109  | 22–120  | 99   | Variant 0: every part's parameters, parts in the order below                            | Likely     |
+| 110–208 | 121–219 | 99   | Variant 1: the same, for the other sound of each part that has two                      | Likely     |
+
+Inside a variant the parts follow each other in the order BD, SD, LT, MT, HT, RS, CP, CB, CY, OH, CH,
+then KIT, holding 8, 10, 9, 9, 9, 9, 10, 8, 8, 8, 8 and 3 bytes (`drum808.c:36`), so a part starts
+at this offset into its variant: BD 0, SD 8, LT 18, MT 27, HT 36, RS 45, CP 54, CB 64, CY 72, OH 80, CH 88,
+KIT 96. Every value runs 0 to its maximum and is refused above it (`drum808_preset_valid`,
+`voices.c:334–343`). Names, maxima and defaults are the descriptors (`third_party/synth/drum808.c:17–34`);
+`Level`, `Tone`, `Tune`, `Decay`, `Attack`, `Drive`, `Snappy`, `Rev`, `Dly` and `Pan` are 0–127.
+
+| Part | Parameters in order (default; maximum where not 127)                                    |
+| ---- | --------------------------------------------------------------------------------------- |
+| BD   | Level 64, Tone 42, Decay 87, Tune 64, Attack 24, Drive 0, Dist 0, Pan 64                |
+| SD   | Level 64, Tone 64, Snappy 89, Tune 64, Decay 108, Drive 0, Dist 0, Rev 0, Dly 0, Pan 64 |
+| LT   | Level 64, Tune 64, Decay 68, Sound 0, Drive 0, Dist 0, Rev 0, Dly 0, Pan 64             |
+| MT   | Level 64, Tune 64, Decay 56, Sound 0, Drive 0, Dist 0, Rev 0, Dly 0, Pan 64             |
+| HT   | Level 64, Tune 64, Decay 53, Sound 0, Drive 0, Dist 0, Rev 0, Dly 0, Pan 64             |
+| RS   | Level 64, Tune 64, Decay 40, Sound 0, Drive 0, Dist 0, Rev 0, Dly 0, Pan 64             |
+| CP   | Level 64, Tune 64, Decay 64, Attack 32, Sound 0, Drive 0, Dist 0, Rev 0, Dly 0, Pan 64  |
+| CB   | Level 64, Tune 64, Decay 62, Drive 0, Dist 0, Rev 0, Dly 0, Pan 64                      |
+| CY   | Level 64, Decay 70, Tune 64, Drive 0, Dist 0, Rev 0, Dly 0, Pan 64                      |
+| OH   | Level 64, Decay 74, Tune 64, Drive 0, Dist 0, Rev 0, Dly 0, Pan 64                      |
+| CH   | Level 64, Tune 64, Decay 47, Drive 0, Dist 0, Rev 0, Dly 0, Pan 64                      |
+| KIT  | Level 100, Accent 127, Choke 1                                                          |
+
+Maxima that are not 127: Dist 6 (DIODE, CLIP, SAT, BFZ, PDIST, FOLD, CRUSH); Sound 1 (LT, MT, HT
+TOM or CONGA; RS RIM or CLAVE; CP CLAP or MARAC); Choke 2 (OFF, CH>OH, BOTH).
+
+- **Which variant holds which sound.** The selector pairs are TOM then CONGA for LT, MT and HT, RIM
+  then CLAVE for RS, and CLAP then MARAC for CP (`drum808.c:44`). BD, SD, CB, CY, OH and CH have one
+  sound, so both variants are the same and their selector changes nothing.
+- **Shared bytes.** Pan and the KIT bytes are not per variant, so both sets store the same value.
+  On load the second set is written last and wins (`voices.c:365–370`).
+- **Storing writes Sound as the variant number.** `drum808_kit_store` reads each part's Sound byte as 0
+  in variant 0 and 1 in variant 1 (`voices.c:349–354`), and the factory builder does the same
+  (`presets.c:187`). A preset in that form loads exactly. One whose Sound byte disagrees with its
+  variant would, on the code read, send the bytes after it in that part to the other variant, and
+  the selectors then replace the Sound bytes at the end (`voices.c:365–371`). The validator allows it
+  (question 3).
+- **808 volume.** Besides each part's Level, the 808 has `volume` in byte 1 like the others; a
+  parameter-locked step's base value replaces `volume` on export (`sound.c:1717–1721`).
+
+##### What the preset carries besides the sound
+
+Level (byte 1), the track's reverb and delay sends (`data[209]`), the DX7 ADSR and operator switches
+or the other engines' LFO (bytes 4–9), mono (byte 10), and for the 808 each part's Pan inside `data`.
+The Workbench's own words agree: a `.fm1t` is "one track's engine type, sound parameters and volume;
+it carries no steps" (`sdk/Update.html.in:227`, translated). The source agrees with that, and says more
+about what is out:
+
+- **Steps and patterns are excluded.** The 64 step cells, chord table, swing, metronome, count-in and
+  parameter locks are in the project (`instrument.h:131–142`). A track import takes none from the
+  file; it rewrites the track's steps only to clear them when the engine class changes (below).
+- **Loop length** is byte 221, carried on export and ignored on import.
+- **The arpeggiator** is the project's `arp[8][2]` (`instrument.h:141`), not the preset's, so it stays.
+- **Mute and solo, tempo, the project name, and the global effects** (reverb decay, delay time and
+  feedback, return level) are the project's.
+- **Pan** has no track-level byte; the 808's parts have their own, and a MIDI pan message sets a
+  runtime value reset to 64 (`sound.c:66`).
+- **The MIDI channel** follows the track (`groove_channel`, `instrument.h:60`) and is not stored.
+- **A held parameter lock's value** is exported as its base value, not the value being played
+  (`sound.c:1717–1721`).
+
+##### Loading, validating and defaulting
+
+- **Workbench, reading a file** (`readTimbreFile`, `WebUpdate.js:545–550`): exactly 239 bytes; `FM1T`;
+  version byte 1; the next three bytes zero; the length field 223; the CRC-32 of the 223 bytes equal
+  to the stored one. **Version 1 is the only one accepted**: there is no other version to upgrade
+  from, and a file of another version is refused as "invalid format". `timbreFile` writes version 1
+  (`WebUpdate.js:540–544`). The page refuses a file that is not 239 bytes before reading it
+  (`Update.html.in:622`).
+- **Workbench, sending** (`Library.upload`, `WebUpdate.js:626–639`): for kind 2 it checks only that
+  the payload is 223 bytes, where kind 1 runs `validateVoice`. The checks on the preset's values are
+  all the device's. It then sends commands 3, 4 (in chunks of 64 bytes), 5 with the CRC-32, and 6.
+- **Device, receiving** (`transfer.c:57–79, 165–181`): kind 2 needs a target 0–7 and size 223. A
+  chunk must arrive at the offset after the last one. Command 5 compares the CRC-32, then calls
+  `groove_timbre_import`. A transfer left open is dropped after ten seconds (`transfer.c:209`).
+- **`groove_timbre_import`** (`web/engine/edit.c:458–486`) captures the whole current project into a
+  scratch copy, replaces that one track's preset with the file's after putting the track's own
+  `sequence_pages` in it, and runs `groove_project_valid` on the **whole project**. A value out of
+  range anywhere in the preset refuses the import (return −1, which the reply carries as status 65);
+  **nothing is clamped or repaired at this boundary**. Then, still on that copy:
+  - if the track crosses between the drum engines (808, SAMPLER) and the pitched ones (DX7, 303, PSG,
+    PLUCK), its 64 steps are cleared: drums and velocity 0, and note 0 for a drum track or 60 for a
+    pitched one (`edit.c:471–478`);
+  - every parameter lock on the track is released, whether or not the class changed
+    (`edit.c:479–481`).
+
+  It then opens one undo step (`groove_edit_checkpoint`) and calls `groove_timbre_apply`
+  (`sound.c:1783–1810`), which validates again, reuses the engine if the type matches (resetting it
+  to its defaults first) or builds a new one (status 72 if memory fails), stops the track's notes,
+  applies the preset, and replaces the track's steps and the sequence options. The other tracks keep
+  sounding. Nothing reaches Flash, and the Workbench says so: "save the project to keep the change"
+  (`Update.html.in:629`).
+
+- **The values after the last check.** Bytes the validator does not read (the ranges named above, and
+  `data[209]`) are never applied and are zero in the next export, so a round trip through the device
+  normalises them. DX7 byte 155 is applied from `controls.operators`.
+- **Defaults.** A new track starts at volume 100, program 0, `modified` 0, bytes 4–10 as
+  0, 0, 100, 0, 0, 0, 0 and no sends (`sound.c:857–866`); changing a track's engine does the same,
+  apart from keeping its volume (`sound.c:812–818`). Each engine's own defaults are the `def`
+  columns above. The factory projects write their own values and set `modified` to 1 for every
+  engine but DX7, with `controls.mono` 1 on the 303 (`presets.c:160–215`).
+- **Simulator** (`sdk/Simulator.js:40, 60–62, 742, 750`; `web/engine/Simulator.c:385–388`): the same
+  223 bytes, applied to or read from the track selected on its screen.
+- **Export** (`groove_timbre_export`, `edit.c:448–457`): captures the project and copies out that
+  track's 223 bytes, so everything in them is in the form `groove_project_capture` writes
+  (`sound.c:1677–1730`), including the zeroed unused bytes and the track's current loop length.
+
+##### How a preset sits in the project
+
+`struct groove_project` (`instrument.h:131–143`, 4,064 bytes, asserted at line 143) holds the eight
+presets as one array of the same struct: `memcpy`'d whole in and out (`edit.c:455, 467–470`,
+`sound.c:1696–1722`) and checked by one loop (`sound.c:1635–1674`). The offsets, which the format
+byte at 3,852 and the name at 3,836 that the Workbench reads agree with (`WebUpdate.js:519`,
+`Simulator.js:739`):
+
+| Offset | Size  | Field                                                                                             | Confidence |
+| ------ | ----- | ------------------------------------------------------------------------------------------------- | ---------- |
+| 0      | 2,048 | `step[8][64]`, four bytes a cell: note, velocity, and a 16-bit cell word                          | Likely     |
+| 2,048  | 1,784 | `preset[8]`, 223 bytes each; track _t_ starts at 2,048 + 223·_t_                                  | Likely     |
+| 3,832  | 2     | Tempo, 30–300                                                                                     | Likely     |
+| 3,834  | 1     | Mute mask                                                                                         | Likely     |
+| 3,835  | 1     | Solo mask                                                                                         | Likely     |
+| 3,836  | 12    | Project name, printable ASCII                                                                     | Likely     |
+| 3,848  | 4     | Effects: reverb decay, delay time, delay feedback, return level, each 0–127                       | Likely     |
+| 3,852  | 196   | Sequence options: format byte (3 or 4), swing, metronome, count-in, 16 chords of 8, 16 locks of 4 | Likely     |
+| 4,048  | 16    | `arp[8][2]`, format 4 only                                                                        | Likely     |
+
+Track _t_ starts at 2,048, 2,271, 2,494, 2,717, 2,940, 3,163, 3,386 and 3,609 (_t_ = 0–7). The sums
+check: 2,048 + 1,784 + 2 + 1 + 1 + 12 + 4 + 196 + 16 = 4,064.
+
+**Format 3 against format 4.** Format 3 is the same bytes up to offset 4,047 and ends there: 4,048
+bytes, no arpeggiator (`GROOVE_PROJECT_LEGACY_BYTES`, `instrument.h:144–145`). The device and the
+Workbench both upgrade it by appending the 16 arp bytes with the default settings, and setting the
+format byte to 4 (`project.c:298–302`; `upgradeProject`, `WebUpdate.js:521–526`). **Nothing differs
+in the preset between the two**: no byte is moved, added or reinterpreted by the upgrade. What a
+format-3 firmware wrote into a preset is not in this repository, which has three commits and no
+history to read; question 5 is about it. A `.fm1t` has no format number beyond its own version byte.
+
+In a project a preset's `sequence_pages` is used, to set the track's loop length (`sequencer.c:553`).
+Two tracks may share an engine, and loading a project reuses engines already built for a type
+(`sound.c:1826–1858`).
+
+##### MIDI: which commands touch a track preset
+
+Only the transfer family's kind 2, with the commands in the table at the top of the second reading
+(`transfer.c:7, 143–181`). No other command reads or writes one: command 0 reports each track's
+engine only (`transfer.c:131–142`), and the DX7 single-voice dump and Program Change reach a track's
+voice but never a preset as a whole.
+
+| Command | Kind 2 does                                                                                                         | Class (unchanged)               |
+| ------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| 1       | Captures the project, copies the track's preset into a 223-byte RAM buffer, replies with 223 (`transfer.c:143–157`) | Read; candidate, needs approval |
+| 2       | Reads that buffer, at most 64 bytes a command; four commands cover it (64, 64, 64, 31)                              | Read; candidate, needs approval |
+| 3       | Opens a write buffer of 223 bytes for a target track 0–7                                                            | RAM write; needs approval       |
+| 4       | Fills it in order, at most 64 bytes a command                                                                       | RAM write; needs approval       |
+| 5       | With the right CRC-32, runs `groove_timbre_import`: replaces the track's engine and sound, one undo step            | RAM write; needs approval       |
+| 6       | Drops the buffer                                                                                                    | Needs approval with 1–5         |
+
+The read changes nothing on the device but takes the audio gate while it captures the project
+(`sound.c:1681, 1728`) and overwrites the shared RAM scratch project; it writes no Flash. The write
+is a larger step than the DX7 dump the editor already sends: it can **clear the track's steps** when
+the engine class changes, **releases its parameter locks**, stops its notes, and changes the engine.
+It stays an unsaved edit until command 7, which stays **Dangerous / excluded**, as do 8 and 12–14. A
+failed kind 2 write can reply 65 (a refused value), 71 (a wrong CRC, or an apply that fails) or 72
+(no memory); the Workbench words 71 and 72 and shows 65 as an unnamed "operation failed: 65"
+(`WebUpdate.js:574`). AGENTS.md lets the editor send command 0 of this family only, and this section
+approves nothing else.
+
+##### A fixture, if one is wanted
+
+No code or fixture is added by this change. Three can be built by hand from the tables, one a
+default track of an engine whose bytes need no data beyond four or twelve parameters. They are not
+captured from a device or from the Workbench, and the layout of each is only what this section reads
+from the source:
+
+- **PLUCK**: `type` 4, `volume` 100, `program` 0, `modified` 0, bytes 4–10 as 0, 0, 100, 0, 0, 0, 0, then
+  `data[0..3]` as 90, 100, 24, 35 (the table's defaults), the rest zero, `sequence_pages` 0 and
+  `sampler_pads` 0. The first fifteen bytes are
+  `04 64 00 00 00 00 64 00 00 00 00 5a 64 18 23`. As a `.fm1t` the file is 239 bytes, its header
+  `46 4d 31 54 01 00 00 00 df 00 00 00 4b ed 6a 18` (CRC-32 of the payload `186aed4b`).
+- **PSG**: `type` 3, `data[0..3]` as 0, 16, 24, 32; CRC-32 of the payload `9b1b044d`.
+- **303**: `type` 1, `mono` 0, `data[0..11]` as 64, 64, 64, 64, 64, 0, 64, 96, 0, 1, 21, 7; CRC-32 of
+  the payload `3f7dcf4d`.
+
+The CRC-32 is the standard one, which was computed with a library routine and not by the device's
+nibble table; the table in `project.c:35–40` and `WebUpdate.js:453–454` is the standard 16-entry one.
+A later change would put these into a test with the codec it adds.
+
+##### What this changes for the editor
+
+Nothing is approved. A later change can use these, each needing its approval recorded in AGENTS.md
+first, and none is needed by the editor's DX7 work:
+
+- **Read and write `.fm1t` files** is host-side work on bytes the editor already handles: the wrapper
+  is a 16-byte header and a CRC-32, and the preset is the map above. Reading needs no MIDI.
+- **Edit the non-DX7 engines' sounds** is possible for 303, PSG, PLUCK and SAMPLER from the tables,
+  and for the 808 once the variant question (3) is answered. A tool should write only the bytes it
+  edits and keep the rest as read, as it does for other FM1 records.
+- **Sending a preset to a track** is kind 2, commands 3–6. It would need its own approval, a
+  warning that it can clear the track's steps, and a hardware run first; the existing DX7 dump stays
+  the route for a single voice.
+- **Reading a track's preset** (kind 2, commands 1, 2, 6) is read-only and the likelier first step;
+  it needs its approval and a hardware run (question 2).
+
+Hardware run required before any of these ship: yes. Persistence: a kind 2 write changes RAM only,
+until the project is saved with command 7, which stays excluded. No OTA, loader, or flash path is
+involved in anything this section describes.
+
+Open questions:
+
+1. Do the device's validity rule and engines match the WebAssembly sources read here? The rule and
+   the parameter tables are only readable there; the device runs `libfm1_engine.a`. A hardware run:
+   export a track of each engine from a device with the Workbench and compare it with a hand-built
+   file; then load one with an out-of-range byte per engine and see whether the device refuses it.
+2. Does a `.fm1t` exported by the Workbench load back into each engine and sound as it did? Needs a
+   hardware run through the Workbench, and the same for kind 2 reads of each engine (command 1 and 2
+   replies against the file the Workbench makes from them).
+3. On the 808, what does a preset whose Sound byte disagrees with its variant do? The source would put
+   later bytes of that part in the other variant (`voices.c:365–371`); a hardware run, or a test of
+   the compiled code, is the only way to see it.
+4. Units and effects the source does not give: what `volume`'s per-engine divisors sound like, the
+   unit of PSG and PLUCK TUNE, PSG NOISE and RELEASE, PLUCK DECAY, BRIGHT and RELEASE, 303 EnvMod and
+   Drive, which SAMPLER Variation value is the bypass, and whether the stored DX7 `program` does
+   anything after a load.
+5. What did earlier firmware store in bytes 4–8 of a non-DX7 preset? The header says `enabled` 0
+   "preserves legacy projects" and that the seven-byte layout is unchanged
+   (`instrument.h:112–116`), which suggests the LFO reuses bytes that were once only the DX7's.
+   Nothing here shows what format-3 projects held there.
+6. Does anything else read byte 221 of a track import? The source read finds only `sequencer.c:553`
+   (a project import) and `edit.c:469` (which replaces it), and no third reader.
+7. What does a loaded SAMPLER preset do when the device's bank is empty or differs from the one the
+   preset was made for? The source says the pad is silent when empty, and the preset carries no bank
+   identity.
 
 ### FM1 Editor
 
