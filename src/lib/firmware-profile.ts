@@ -6,7 +6,8 @@ import type { Fm1Firmware } from '@/lib/fm1-firmware'
  * `familyProfiles` rather than a predicate in each module that needs it. A family lists only what
  * it can do, so a firmware still being identified, one not recognised, and Felucca, which ignores
  * DX7 voice data, get only the cautious parameter changes, Program Change, and the effect
- * controllers, and no vendor command. Official Open gets less still.
+ * controllers, and no vendor command. Official Open gets less still, and the one vendor command
+ * that reads its tracks' engines.
  */
 export type FirmwareProfile = {
   capabilities: Readonly<Record<FirmwareCapability, boolean>>
@@ -17,9 +18,14 @@ export type FirmwareProfile = {
 
 /**
  * - `singleVoiceDumps`: a patch may go as a DX7 single-voice dump, which M-VAVE's firmware puts in
- *   its edit buffer. FM-1+VA writes one straight over the selected stored preset, so every other
- *   firmware gets the patch as parameter changes, which it holds as an unsaved edit
- *   (docs/fm1-research.md, "The editor on FM-1+VA").
+ *   its edit buffer and Official Open in the track on the dump's channel. FM-1+VA writes one
+ *   straight over the selected stored preset, so every other firmware gets the patch as parameter
+ *   changes, which it holds as an unsaved edit (docs/fm1-research.md, "The editor on FM-1+VA").
+ * - `trackEngineRead`: Official Open's command 0, `F0 7D 'F' 'M' 02 00`, which reads each track's
+ *   engine. Where it is offered, a dump goes to the track on the note channel, and only after
+ *   command 0 shows that track running DX7, since a dump to another engine is dropped silently.
+ * - `parameterChanges`: DX7 parameter changes reach the voice, so a live edit goes as the one
+ *   parameter it changed. Official Open drops them, so there each edit goes as the whole voice.
  * - `presetRead`: FM-1+VA's preset read, `7D 10` (`readFm1VaPreset`). On any other firmware the
  *   message is an unknown vendor command.
  * - `presetWrite`: FM-1+VA's preset write, `7D 04`, with the read that confirms it.
@@ -35,11 +41,13 @@ type FirmwareCapability =
   | 'bitcrush'
   | 'effectControllers'
   | 'knobChoices'
+  | 'parameterChanges'
   | 'presetRead'
   | 'presetWrite'
   | 'programChanges'
   | 'singleVoiceDumps'
   | 'soundControls'
+  | 'trackEngineRead'
 
 /** How a run of preset writes is paced. */
 type PresetWriteTiming = {
@@ -75,7 +83,7 @@ type FamilyProfile = {
 }
 
 /** What every firmware but Official Open takes, as it always has. */
-const channelMessages = { effectControllers: 0, programChanges: 0 } as const
+const channelMessages = { effectControllers: 0, parameterChanges: 0, programChanges: 0 } as const
 
 const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
   checking: { capabilities: channelMessages },
@@ -97,8 +105,9 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
   mvave: { capabilities: { ...channelMessages, singleVoiceDumps: 0 } },
   // M-VAVE's Official Open is an eight-track groovebox, not a bank of DX7 presets, and takes a
   // slot's Program Change and the effect controllers as changes to its tracks
-  // (docs/fm1-research.md, "Official Open: released source").
-  'official-open': { capabilities: {} },
+  // (docs/fm1-research.md, "Official Open: released source"). It takes a single-voice dump into
+  // a DX7 track, and command 0 says which tracks run DX7 (both approved 2026-10-16).
+  'official-open': { capabilities: { singleVoiceDumps: 0, trackEngineRead: 0 } },
   unidentified: { capabilities: channelMessages },
 }
 
@@ -121,11 +130,13 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       bitcrush: from(capabilities.bitcrush),
       effectControllers: from(capabilities.effectControllers),
       knobChoices: from(capabilities.knobChoices),
+      parameterChanges: from(capabilities.parameterChanges),
       presetRead: from(capabilities.presetRead),
       presetWrite: from(capabilities.presetWrite),
       programChanges: from(capabilities.programChanges),
       singleVoiceDumps: from(capabilities.singleVoiceDumps),
       soundControls: from(capabilities.soundControls),
+      trackEngineRead: from(capabilities.trackEngineRead),
     },
     family: firmware.kind,
     presetWriteTiming:

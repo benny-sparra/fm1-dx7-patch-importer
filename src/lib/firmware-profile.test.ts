@@ -6,15 +6,22 @@ const nothing = {
   bitcrush: false,
   effectControllers: false,
   knobChoices: false,
+  parameterChanges: false,
   presetRead: false,
   presetWrite: false,
   programChanges: false,
   singleVoiceDumps: false,
   soundControls: false,
+  trackEngineRead: false,
 }
 
 // What every firmware but Official Open takes, whatever else it can do.
-const cautious = { ...nothing, effectControllers: true, programChanges: true }
+const cautious = {
+  ...nothing,
+  effectControllers: true,
+  parameterChanges: true,
+  programChanges: true,
+}
 
 const presetsPageTiming = { listenMs: 1500, spacingMs: 3000 }
 
@@ -112,7 +119,7 @@ describe('resolveFirmwareProfile', () => {
     expect(fm1Va('FM-1_089').family).toBe('fm1-va')
   })
 
-  it('sends Official Open no Program Change, effect controller, or vendor command', () => {
+  it('sends Official Open dumps to DX7 tracks it reads, and no channel message it misreads', () => {
     for (const identity of [
       'FM-1_8000012',
       'FM-1_8000099',
@@ -120,14 +127,26 @@ describe('resolveFirmwareProfile', () => {
       'FM1_OFFICIAL_OPEN',
     ]) {
       expect(resolveFirmwareProfile({ identity, kind: 'official-open' })).toEqual({
-        capabilities: nothing,
+        capabilities: { ...nothing, singleVoiceDumps: true, trackEngineRead: true },
         family: 'official-open',
         presetWriteTiming: presetsPageTiming,
       })
     }
   })
 
-  it('keeps Program Change and the effect controllers on every other family', () => {
+  it('reads track engines only on Official Open, where a dump goes to a track', () => {
+    for (const firmware of [
+      { kind: 'checking' },
+      { kind: 'unidentified' },
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { identity: 'FM-1_908', kind: 'felucca' },
+    ] as const) {
+      expect(resolveFirmwareProfile(firmware).capabilities.trackEngineRead).toBe(false)
+    }
+  })
+
+  it('keeps Program Change, parameter changes, and the effect controllers elsewhere', () => {
     for (const firmware of [
       { kind: 'checking' },
       { kind: 'unidentified' },
@@ -138,6 +157,7 @@ describe('resolveFirmwareProfile', () => {
     ] as const) {
       expect(resolveFirmwareProfile(firmware).capabilities).toMatchObject({
         effectControllers: true,
+        parameterChanges: true,
         programChanges: true,
       })
     }

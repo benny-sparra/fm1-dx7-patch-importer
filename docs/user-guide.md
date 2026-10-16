@@ -101,6 +101,17 @@ ignores DX7 patches in the same way. Every SLOOP release reports `FM-1_900`, as 
 development build does, so the app names that firmware **Felucca or SLOOP**. Any other firmware
 shows as **Not identified**, and the app sends it patches as parameter changes.
 
+M-VAVE's Official Open, which the app names **M-VAVE OPEN**, is an eight-track groovebox: tracks 1
+to 7 listen on MIDI channels 1 to 7, and track 8 on channel 10. A patch you click, open, or edit
+goes to the track on the **Note channel**, as an unsaved edit of the project, and only when that
+track runs DX7: before each patch the app asks the FM1 which engine every track runs. If the track
+runs another engine, or the note channel reaches no track, nothing is sent and the app says how to
+fix it: set the track to DX7 on the FM1, or choose the note channel of a DX7 track. Save the
+project on the FM1 to keep a patch. In the editor each change is sent when you let go of the
+control, so the FM1's own undo steps match the editor's. Official Open ignores DX7 banks, and the
+app sends it no Program Change and no effect controls, which it would take as changes to its
+tracks.
+
 To move your FM1 between these firmwares, see [Switching FM1 firmware](switching-firmware.md).
 
 To bring the FM1's own presets into the library while it runs Baud Girl's firmware, FM-1_079 or

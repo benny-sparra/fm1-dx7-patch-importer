@@ -1267,7 +1267,7 @@ again. A transfer left idle for 10 s is cancelled.
 
 | Cmd   | Payload                     | Does                                                                                                                                                                                  | Class                           |
 | ----- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| 0     | none                        | Info: format 4, 16 slots, current slot, project size 4064, clock mode, and each track's engine (14 bytes)                                                                             | Read; candidate, needs approval |
+| 0     | none                        | Info: format 4, 16 slots, current slot, project size 4064, clock mode, and each track's engine (14 bytes)                                                                             | Read; approved 2026-10-16       |
 | 1     | kind, target                | Starts an export into a RAM buffer; replies with its size. Kind 0 project (4064 bytes), 1 a track's DX7 voice (156, `groove_fm_copy`), 2 a track preset (223, `groove_timbre_export`) | Read; candidate, needs approval |
 | 2     | offset (16-bit), count ≤ 64 | Reads a chunk of that export                                                                                                                                                          | Read; candidate, needs approval |
 | 3     | kind, target, size          | Starts a write of the same kinds                                                                                                                                                      | RAM write; needs approval       |
@@ -1284,8 +1284,8 @@ again. A transfer left idle for 10 s is cancelled.
 | 16    | none                        | Cancels a sample transfer                                                                                                                                                             | Out of scope                    |
 | 17–20 | none                        | Engine, render, audio, and master-level statistics                                                                                                                                    | Read; out of scope              |
 
-The editor sends none of these. Each needs its approval recorded in `AGENTS.md` before any code
-sends it, as FM-1+VA's `7D 10` and `7D 04` had.
+The editor sends only command 0, approved on 2026-10-16 (below). Each other command needs its
+approval recorded in `AGENTS.md` before any code sends it, as FM-1+VA's `7D 10` and `7D 04` had.
 
 **What it meant for the editor before this change.** On an unidentified firmware the editor sends
 patches as parameter changes, which Official Open ignores, and three things that do harm there:
@@ -1299,9 +1299,11 @@ patches as parameter changes, which Official Open ignores, and three things that
 - A bank sent from **Send to FM1** and every parameter change did nothing.
 
 **What the editor does now** (`resolveFirmwareProfile`, `src/lib/firmware-profile.ts`). The
-`official-open` family has none of the existing capabilities and neither of two new ones every
-other family keeps, `programChanges` and `effectControllers`: a slot click sends no Program Change,
-and the effects send no FX Channel controllers. The badge names it **M-VAVE OPEN** with its
+`official-open` family lacks three capabilities every other family keeps, `programChanges`,
+`effectControllers`, and `parameterChanges`: a slot click sends no Program Change, the effects send
+no FX Channel controllers, and the voice editor sends whole voices rather than parameter changes.
+Since 2026-10-16 it has `singleVoiceDumps` and `trackEngineRead`, which send a patch to a DX7 track
+(below). The badge names it **M-VAVE OPEN** with its
 release (V12 for `FM-1_8000012`), and the badge, the firmware setting, and the bank instructions
 say what does not reach it. Analytics records the family `official-open`, never the identity.
 Notes, the keyboard, and the audition phrases still play on the note channel, which is track 1 by
@@ -1332,17 +1334,27 @@ So a dump reaches only a DX7 track, gives no reply, and fails silently on any ot
 that sends one should first read the engines with command 0 and say when the track it would reach
 is not DX7.
 
+**Sending a patch to a DX7 track** (approved by the user on 2026-10-16, for Official Open only).
+A slot click, opening a patch in the editor, and each of the editor's edits send the patch as the
+163-byte single-voice dump on the note channel, after command 0, read afresh before every dump,
+shows the channel's track running DX7 (`sendVoiceToOfficialOpenTrack`,
+`src/lib/official-open-track-send.ts`). The read and the dump share one turn of the transfer queue,
+so nothing reaches the FM1 between them; `groove_transfer_poll` handles one message at a time and
+drops a SysEx message that arrives while another waits. Each read takes a new token, as an identical
+request is answered with the reply kept from before, which would report the engines as they were.
+A channel that reaches no track (8, 9, 11–16), a track on another engine, and an FM1 that does not
+answer twice, a second apart, send no dump; the page says which track runs what and how to fix it.
+DX7 parameter changes do nothing here, so the voice editor sends each edit as the whole voice, one
+dump per gesture, as it ends. The codec is **Confirmed** against the capture above; the editor's
+own sends are **Likely** until a hardware run through the editor.
+
 Next, each needing approval first:
 
-- Send a patch to a DX7 track as the 163-byte single-voice dump, which Official Open puts in the
-  working project with an undo checkpoint, on the channel of the track chosen, after command 0
-  shows that track running DX7.
-- Read a track's engine types and DX7 voice with commands 0, 1, and 2, to import a track's voice
-  into the library.
+- Read a track's DX7 voice with commands 1 and 2, to import a track's voice into the library.
 
 Open questions:
 
-1. Does the device's undo bring back the voice a dump replaced?
+1. Does the device's undo bring back the voice a dump replaced, one step per dump?
 2. What does the MIDI port appear as on Windows and Linux? On macOS it is `FM1 Community`. The
    Workbench matches `fm.?1` or a bare `USB-MIDI` (`sdk/WebUpdate.js:225`).
 3. `.fm1t` is a 223-byte track preset (`struct groove_preset`) and `.fm1` a 4064-byte project; their

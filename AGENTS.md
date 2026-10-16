@@ -212,9 +212,27 @@ open everything an earlier release could have saved.
   controllers as the volume, pan, and modulation of the track on that channel, so its profile has
   neither `programChanges` nor `effectControllers`: a slot click selects no program there, and the
   effects send nothing. Every other family lists both from release 0, which counts for a firmware
-  not yet identified too. The badge, the firmware setting, and the bank instructions say so. No
-  single-voice dump and no `F0 7D 'F' 'M' 02` command is sent to it until its approval is recorded
-  here; its Flash commands (7, 8, 12–14) are **Dangerous / excluded**.
+  not yet identified too. The badge, the firmware setting, and the bank instructions say so.
+- On Official Open the editor may send two things, both approved on 2026-10-16. The DX7
+  single-voice dump goes only on note channels 1–7 or 10, the channels of tracks 1–8, and only
+  after command 0 has shown that channel's track running DX7, since a dump to another engine is
+  dropped silently; it replaces the track's voice as an unsaved edit, so the notification says
+  to save the project on the FM1. Command 0, info (`F0 7D 46 4D 02 00 <token> <sum> F7`,
+  `makeOfficialOpenInfoRequest` in `src/lib/official-open-transfer.ts`), is the only `7D 'F' 'M'`
+  command the editor may send; it reads the engines and changes nothing. Every other command of
+  that protocol needs its own approval recorded here first, and 7, 8, and 12–14, which write or
+  load Flash, stay **Dangerous / excluded**. The profile's `singleVoiceDumps` and
+  `trackEngineRead` choose the track path, never the family, since the dump means the edit buffer
+  on M-VAVE's V15. The read and dump live in `src/lib/official-open-track-send.ts`, which
+  `useMidi` imports the first time it sends there; they wait their turn in the transfer queue
+  together, so a second click cannot land between them, and a read belongs to the ports it started
+  on. Each read takes a new token, because Official Open answers a request it has already seen with
+  the reply it kept. A channel with no track (8, 9, 11–16), a track on another engine, and an FM1
+  that does not answer send nothing and show an `InfoNotice` naming the track and how to fix it.
+  Official Open drops DX7 parameter changes, which its profile marks by leaving out
+  `parameterChanges`, so the voice editor sends each edit as the whole voice: a gesture as one dump
+  when it ends, a preset or randomise as one, so the FM1's undo steps match the editor's. The
+  engine names (DX7, 303, 808, PSG, PLUCK, SAMPLER) are printed on the FM1 and stay in English.
 - Of FM-1+VA's own `F0 43 00 7D` commands, the editor may send only the preset read,
   `7D 10 <slot>` (`readFm1VaPreset` in `src/lib/fm1-va-preset-read.ts`, approved 2026-10-02),
   and only while the profile's `presetRead` allows it: FM-1+VA from `FM-1_079`, the release that
@@ -356,7 +374,7 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -388,7 +406,9 @@ open everything an earlier release could have saved.
 - The modules a lazy chunk shares with the entry decide how Rolldown cuts the entry's shared
   chunks, so a new lazy chunk can cost bytes it never loads. The duplicate patches dialog first used
   React, i18next, and `cn` but no Lucide icon, and Rolldown split those out of the chunk holding
-  `Button` and Lucide, costing 366 B. Its heading icon put them back together. Measure every new
+  `Button` and Lucide, costing 366 B. Its heading icon put them back together. The Official Open track
+  status rendered JSX without `cn`, and Rolldown split `cn` out of the JSX runtime's shared chunk,
+  costing 140 B; it takes its class through `cn`, as every other lazy chunk with JSX does. Measure every new
   lazy chunk with `npm run bundle:check`, and compare the initial chunk list with `main`'s.
 - Prefer source-level `import()` at genuine interaction or data boundaries. Do not move initial code
   into eagerly imported vendor chunks to make the entry filename smaller.

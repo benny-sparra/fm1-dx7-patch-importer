@@ -43,6 +43,36 @@ export const officialOpenIdentityReply = Uint8Array.from([
   0x18, 0x30, 0x60, 0x44, 0x11, 0x03, ...Array<number>(17).fill(0), 0x15, 0xf7,
 ])
 
+/**
+ * Official Open's answer to command 0, info, for the request sent with `token`, as V12 builds it
+ * (app/transfer.c): status 0, format 4, 16 slots, slot 0, a 4064-byte project, the internal clock,
+ * and `engines`, track 1 first, by engine number (0 DX7, 1 303, 2 808, 3 PSG, 4 PLUCK, 5 SAMPLER).
+ * With token 1 and engines 1 2 0 3 3 3 3 3 it is the reply captured from an FM1 on 2026-10-16.
+ */
+export function officialOpenInfoReply(token: number, engines: readonly number[]) {
+  const fields = [0, 4, 16, 0, 0xe0, 0x0f, 0, ...engines]
+  const packed: number[] = []
+  let accumulator = 0
+  let bitCount = 0
+  for (const byte of fields) {
+    accumulator |= byte << bitCount
+    bitCount += 8
+    while (bitCount >= 7) {
+      packed.push(accumulator & 0x7f)
+      accumulator >>= 7
+      bitCount -= 7
+    }
+  }
+  if (bitCount > 0) packed.push(accumulator & 0x7f)
+  const body = [0x7d, 0x46, 0x4d, 0x02, 0x40, token & 0x7f, token >> 7, ...packed]
+  const checksum = -body.reduce((sum, byte) => sum + byte, 0) & 0x7f
+  return Uint8Array.from([0xf0, ...body, checksum, 0xf7])
+}
+
+const isOfficialOpenInfoRequest = (data: Uint8Array) =>
+  data.length === 10 &&
+  [0xf0, 0x7d, 0x46, 0x4d, 0x02, 0x00].every((byte, index) => data[index] === byte)
+
 // WebMidi's `midimessage` event carries the bytes as a plain array, not a Uint8Array.
 type MidiListener = (event: { data: number[] }) => void
 
@@ -52,6 +82,11 @@ type FakeFm1Options = {
   /** Receives each FM-1+VA preset write, so a test can store what it carries. */
   presetWrite?: (message: Uint8Array) => void
   reply?: Uint8Array
+  /**
+   * The engine each Official Open track runs, by number, which it answers command 0 with. Without
+   * it the request goes unanswered.
+   */
+  trackEngines?: readonly number[]
 }
 
 const isFm1VaCommand = (data: Uint8Array, command: number) =>
@@ -61,7 +96,12 @@ const isFm1VaCommand = (data: Uint8Array, command: number) =>
  * The input and output ports of a fake FM1 for `useMidi` tests. It answers the identity query with
  * `reply`, or stays silent without one, as an FM1 on unknown firmware or another device would.
  */
-export function makeFakeFm1Ports({ presetReply, presetWrite, reply }: FakeFm1Options = {}) {
+export function makeFakeFm1Ports({
+  presetReply,
+  presetWrite,
+  reply,
+  trackEngines,
+}: FakeFm1Options = {}) {
   const listeners = new Set<MidiListener>()
   const input = {
     addListener: vi.fn<(event: string, listener: MidiListener) => void>((event, listener) => {
@@ -87,6 +127,9 @@ export function makeFakeFm1Ports({ presetReply, presetWrite, reply }: FakeFm1Opt
       if (reply && data[1] === 0x00 && data[2] === 0x32) input.receive(reply)
       if (presetWrite && isFm1VaCommand(data, 0x04)) presetWrite(data)
       if (presetReply && isFm1VaCommand(data, 0x10)) input.receive(presetReply(data[5]))
+      if (trackEngines && isOfficialOpenInfoRequest(data)) {
+        input.receive(officialOpenInfoReply(data[6] | (data[7] << 7), trackEngines))
+      }
     }),
     sendControlChange: vi.fn<(controller: number, value: number, options?: object) => void>(),
     sendProgramChange: vi.fn<(program: number, options?: object) => void>(),

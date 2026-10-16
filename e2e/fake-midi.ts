@@ -1,7 +1,8 @@
 import type { Page } from '@playwright/test'
 
-// The FM1's answers to the identity query, captured from M-VAVE's V15 firmware and from FM-1+VA's
-// FM-1_089 (see src/test/fake-fm1-midi.ts), and FM-1_089's with the name changed to FM-1_097.
+// The FM1's answers to the identity query, captured from M-VAVE's V15 firmware, from FM-1+VA's
+// FM-1_089, and from Official Open V12 (see src/test/fake-fm1-midi.ts), and FM-1_089's with the
+// name changed to FM-1_097.
 // prettier-ignore
 const identityReplies = {
   'fm1-va': [
@@ -16,6 +17,10 @@ const identityReplies = {
     0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x26, 0x4c,
     0x1a, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
   ],
+  'official-open': [
+    0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x07, 0x0c,
+    0x18, 0x30, 0x60, 0x44, 0x11, 0x03, ...Array<number>(17).fill(0), 0x15, 0xf7,
+  ],
 }
 
 type FakeMidiOptions = {
@@ -25,6 +30,11 @@ type FakeMidiOptions = {
   portName?: string
   /** Whether the browser grants SysEx access, as a user can decline it at the permission prompt. */
   sysex?: boolean
+  /**
+   * The engine each Official Open track runs, by number (0 DX7, 1 303, 2 808, 3 PSG), which the
+   * FM1 answers command 0 with, as `officialOpenInfoReply` in src/test/fake-fm1-midi.ts builds it.
+   */
+  trackEngines?: number[]
 }
 
 /**
@@ -33,11 +43,36 @@ type FakeMidiOptions = {
  */
 export async function installFakeMidi(
   page: Page,
-  { firmware = 'mvave', portName = 'FM-1 MIDI 1', sysex = true }: FakeMidiOptions = {},
+  {
+    firmware = 'mvave',
+    portName = 'FM-1 MIDI 1',
+    sysex = true,
+    trackEngines,
+  }: FakeMidiOptions = {},
 ) {
   await page.addInitScript(
-    ({ identityReply, name, sysexGranted }) => {
+    ({ engines, identityReply, name, sysexGranted }) => {
       const sent: number[][] = []
+      // Official Open's answer to command 0 (F0 7D 46 4D 02 00 …), echoing the request's token.
+      const infoReply = (tokenLow: number, tokenHigh: number) => {
+        const fields = [0, 4, 16, 0, 0xe0, 0x0f, 0, ...(engines ?? [])]
+        const packed: number[] = []
+        let accumulator = 0
+        let bitCount = 0
+        for (const byte of fields) {
+          accumulator |= byte << bitCount
+          bitCount += 8
+          while (bitCount >= 7) {
+            packed.push(accumulator & 0x7f)
+            accumulator >>= 7
+            bitCount -= 7
+          }
+        }
+        if (bitCount > 0) packed.push(accumulator & 0x7f)
+        const body = [0x7d, 0x46, 0x4d, 0x02, 0x40, tokenLow, tokenHigh, ...packed]
+        const checksum = -body.reduce((sum, byte) => sum + byte, 0) & 0x7f
+        return [0xf0, ...body, checksum, 0xf7]
+      }
       const makePort = (type: 'input' | 'output') => ({
         connection: 'closed',
         id: `fm1-${type}`,
@@ -69,6 +104,14 @@ export async function installFakeMidi(
               }),
             )
           }
+          if (engines && message[1] === 0x7d && message[5] === 0x00) {
+            setTimeout(() =>
+              input.onmidimessage?.({
+                data: Uint8Array.from(infoReply(message[6], message[7])),
+                timeStamp: performance.now(),
+              }),
+            )
+          }
         },
       })
       const input = makePort('input')
@@ -91,7 +134,12 @@ export async function installFakeMidi(
         }),
       })
     },
-    { identityReply: identityReplies[firmware], name: portName, sysexGranted: sysex },
+    {
+      engines: trackEngines,
+      identityReply: identityReplies[firmware],
+      name: portName,
+      sysexGranted: sysex,
+    },
   )
 }
 
