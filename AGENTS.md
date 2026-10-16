@@ -428,11 +428,14 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 166 KiB gzip budget; raising it needs
+  Dynamic imports are excluded. Do not weaken or bypass the 167 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
   149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB,
-  reading FM-1+VA presets from the FM1's raise from 163 KiB, Vite 8.3.2's raise from 164 KiB, and
-  the sweep's accessibility fixes' raise from 165 KiB had. Those fixes cost about 1 KiB in the entry:
+  reading FM-1+VA presets from the FM1's raise from 163 KiB, Vite 8.3.2's raise from 164 KiB,
+  the sweep's accessibility fixes' raise from 165 KiB, and sending patches to Official Open's DX7
+  tracks' raise from 166 KiB (approved 2026-10-16) had. That send costs about 380 B in the entry:
+  its branch and state in `useMidi`, the track status's lazy mount in `RootLayout`, two profile
+  capabilities, and the corrected Official Open badge strings; the read, dump, and notice are lazy. Those fixes cost about 1 KiB in the entry:
   the translated drag announcements and their strings (`ui.drag`), the move items, the skip link
   and landmarks, and the panic button's reason. Reading presets paid for the read's eager English strings, which were in the entry until
   the strings only lazy chunks show moved into lazy files of their own. React DOM ships
