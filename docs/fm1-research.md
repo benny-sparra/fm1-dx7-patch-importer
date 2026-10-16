@@ -746,7 +746,10 @@ field of each kind on `FM-1_098` on 2026-10-16, and every one landed where the t
 Wave (record 19 bits 0–3); the Key (record 26: the mark, Key Off, and Key C; Accidentals was not
 changed); a drum's Pitch (E 0); Drum Decay (E 15, E 36, and E 14); the Lead's User Arpeggio step 1
 (record 47 bits 0–4) and Arpeggio 32 for User (record 22); the Lead's Octave (E 76) and Mono
-(E 101 bit 0); the Bass Level (E 61); and the Note Engine (below), which the run found. The Lead
+(E 101 bit 0); the Bass Level (E 61); and the Note Engine (below), which the run found. **Confirmed, seen once**
+(`FM-1_098`, 2026-10-16, a second run, [ledger](hardware-runs/fm1-va-8bit-pattern-2026-10-16.md)): the
+Pattern, with E 78 (the lead's E 120) holding its low three bits and E 77 (E 119) its high two;
+bass 1, 8, and 17 and the lead's 8 were set, and the baseline's Gallop is 14. The Lead
 Level (E 124) was confirmed on `FM-1_097` (L4). Every other field stays **Likely**, and D2, whether
 a DX7 parameter change reaches an 8-Bit preset live, has not been run.
 
@@ -772,22 +775,22 @@ none means what the DX7 parameter there means.
 
 The bass and the lead each have the same fields, bass first:
 
-| Field                           | Bass                         | Lead                           | Stored as                                                                                                          |
-| ------------------------------- | ---------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| Wave                            | Record 19, bits 0–3          | Record 21, bits 0–3            | 0–14: Pulse 12.5, Pulse 25, Pulse 50, Pulse 75, Triangle, Noise, Metal, then eight GB waves                        |
-| Duty Sequence                   | Record 19, bits 4–7          | Record 21, bits 4–7            | 0–14, 0 Off; heard only while Wave is a Pulse, though the FM1 does not dim it                                      |
-| Arpeggio                        | Record 20                    | Record 22                      | 0 Off, 1–31 built in, 32 User; shown only while Key is Off, and kept while it is set                               |
-| Chord                           | E 57                         | E 99                           | 0–6 (Triad to Power); shown only while a Key is set                                                                |
-| Pattern                         | E 78 bits 0–2, E 77 bits 0–1 | E 120 bits 0–2, E 119 bits 0–1 | 0–17 (Off to User); shown only while a Key is set                                                                  |
-| User Arpeggio                   | Record 23, 24, 25, 45, 46    | Record 47–51                   | Eight steps of five bits, least significant first across the five bytes; −12 to +18 stored + 12, and 31 is End     |
-| Arp Speed                       | E 10                         | E 73                           | 0–6: 1/8, 1/8T, 1/16, 1/16T, 1/32, 1/32T, 1/64T                                                                    |
-| Attack, Decay, Sustain, Release | E 16, 19, 31, 37             | E 79, 82, 94, 100              | 0–99                                                                                                               |
-| Vibrato, Glide                  | E 40, 52                     | E 103, 115                     | 0–99                                                                                                               |
-| Sweep                           | E 58                         | E 121                          | 1–99, 50 the middle                                                                                                |
-| Octave                          | E 13, bits 0–2               | E 76, bits 0–2                 | −3 to +4, stored + 3                                                                                               |
-| Level                           | E 61                         | E 124                          | 0–99                                                                                                               |
-| Mono                            | E 38, bit 0                  | E 101, bit 0                   | Off or On                                                                                                          |
-| Note Engine                     | E 35, bit 0                  | E 35, bit 1                    | Auto-Arp or Auto-Chord; in Auto-Chord the FM1 dims the part's Arp Speed, Pattern, and User Arpeggio and keeps them |
+| Field                           | Bass                         | Lead                           | Stored as                                                                                                                 |
+| ------------------------------- | ---------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Wave                            | Record 19, bits 0–3          | Record 21, bits 0–3            | 0–14: Pulse 12.5, Pulse 25, Pulse 50, Pulse 75, Triangle, Noise, Metal, then eight GB waves                               |
+| Duty Sequence                   | Record 19, bits 4–7          | Record 21, bits 4–7            | 0–14, 0 Off; heard only while Wave is a Pulse, though the FM1 does not dim it                                             |
+| Arpeggio                        | Record 20                    | Record 22                      | 0 Off, 1–31 built in, 32 User; shown only while Key is Off, and kept while it is set                                      |
+| Chord                           | E 57                         | E 99                           | 0–6 (Triad to Power); shown only while a Key is set                                                                       |
+| Pattern                         | E 78 bits 0–2, E 77 bits 0–1 | E 120 bits 0–2, E 119 bits 0–1 | 0–17 (Off to User); the E 78 / E 120 part holds the low bits, so Pattern = E 78 + 8 × E 77; shown only while a Key is set |
+| User Arpeggio                   | Record 23, 24, 25, 45, 46    | Record 47–51                   | Eight steps of five bits, least significant first across the five bytes; −12 to +18 stored + 12, and 31 is End            |
+| Arp Speed                       | E 10                         | E 73                           | 0–6: 1/8, 1/8T, 1/16, 1/16T, 1/32, 1/32T, 1/64T                                                                           |
+| Attack, Decay, Sustain, Release | E 16, 19, 31, 37             | E 79, 82, 94, 100              | 0–99                                                                                                                      |
+| Vibrato, Glide                  | E 40, 52                     | E 103, 115                     | 0–99                                                                                                                      |
+| Sweep                           | E 58                         | E 121                          | 1–99, 50 the middle                                                                                                       |
+| Octave                          | E 13, bits 0–2               | E 76, bits 0–2                 | −3 to +4, stored + 3                                                                                                      |
+| Level                           | E 61                         | E 124                          | 0–99                                                                                                                      |
+| Mono                            | E 38, bit 0                  | E 101, bit 0                   | Off or On                                                                                                                 |
+| Note Engine                     | E 35, bit 0                  | E 35, bit 1                    | Auto-Arp or Auto-Chord; in Auto-Chord the FM1 dims the part's Arp Speed, Pattern, and User Arpeggio and keeps them        |
 
 Record bytes 19–26 and 45–51 therefore mean one thing on a Virtual Analog preset (its oscillator
 and filter, above) and another on an 8-Bit one, so code that reads them checks the engine first.

@@ -24,7 +24,7 @@ import {
  * packed again: that drops bits, and a write here changes only its own bits.
  *
  * Left out: the LFO, Transpose, and the name, which are as on an FM preset, so the editor uses the
- * DX7 parameters of those names; and the Pattern, whose two parts' order the table does not give.
+ * DX7 parameters of those names.
  */
 type DrumField = 'Choke' | 'Decay' | 'Level' | 'Pitch' | 'Snap' | 'Sweep' | 'Wave'
 type DrumNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11
@@ -40,6 +40,7 @@ type PartField =
   | 'Mono'
   | 'NoteEngine'
   | 'Octave'
+  | 'Pattern'
   | 'Release'
   | 'Sustain'
   | 'Sweep'
@@ -321,6 +322,8 @@ type PartPlace = {
   mono: number
   noteEngineBit: number
   octave: number
+  patternHigh: number
+  patternLow: number
   release: number
   sustain: number
   sweep: number
@@ -339,6 +342,8 @@ const bass: PartPlace = {
   mono: 38,
   noteEngineBit: 0,
   octave: 13,
+  patternHigh: 77,
+  patternLow: 78,
   release: 37,
   sustain: 31,
   sweep: 58,
@@ -357,6 +362,8 @@ const lead: PartPlace = {
   mono: 101,
   noteEngineBit: 1,
   octave: 76,
+  patternHigh: 119,
+  patternLow: 120,
   release: 100,
   sustain: 94,
   sweep: 121,
@@ -383,6 +390,15 @@ function partRows(name: EightBitPart, place: PartPlace): RowBody[] {
     nibble('DutySequence', 4, 14),
     recordByteRow(id('Arpeggio'), place.waveRecord + 1, 32),
     voiceRow(id('Chord'), [{ e: place.chord }], 6),
+    // 0–17, Off to User: the low three bits in `patternLow`, the high two in `patternHigh`.
+    voiceListRow(
+      id('Pattern'),
+      [
+        { e: place.patternLow, width: 3 },
+        { e: place.patternHigh, width: 2 },
+      ],
+      18,
+    ),
     ...Array.from({ length: userArpeggioStepCount }, (_, step) =>
       userArpeggioRow(
         `${name}UserArpeggio${(step + 1) as UserArpeggioStep}`,

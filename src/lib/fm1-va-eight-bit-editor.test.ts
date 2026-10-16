@@ -30,8 +30,8 @@ const hex = (text: string) =>
   Uint8Array.from(text.trim().split(/\s+/), (byte) => parseInt(byte, 16))
 
 /** A read of preset 097 from the 2026-10-16 run on FM-1_098. */
-function capture(name: string) {
-  const file = `fm1-va-8bit-fields-capture-097-${name}-2026-10-16.json`
+function capture(name: string, ledger = 'fields') {
+  const file = `fm1-va-8bit-${ledger}-capture-097-${name}-2026-10-16.json`
   const json = JSON.parse(readFileSync(path.join(runs, file), 'utf8')) as {
     record: string
     voice: string
@@ -145,6 +145,7 @@ describe('8-Bit rows: the table', () => {
         'DutySequence',
         'Arpeggio',
         'Chord',
+        'Pattern',
         'ArpSpeed',
         'Attack',
         'Decay',
@@ -210,6 +211,8 @@ describe('8-Bit rows: the table', () => {
       ['drumDecay', [15, 36, 14]],
       ['bassChord', [57]],
       ['leadChord', [99]],
+      ['bassPattern', [78, 77]],
+      ['leadPattern', [120, 119]],
       ['bassArpSpeed', [10]],
       ['leadArpSpeed', [73]],
       ['bassAttack', [16]],
@@ -457,6 +460,65 @@ describe('8-Bit rows: the 2026-10-16 captures on FM-1_098', () => {
   it('leaves every capture byte for byte unchanged through the editor parameters', () => {
     for (const [name] of steps) {
       const { record, voice } = capture(name)
+      const parameters = makeEightBitEditorParameters(voice, record, makeDefaultFm1Effects())
+      const saved = eightBitFromEditorParameters(voice, record, parameters)
+      expect({ name, voice: saved.voice }).toEqual({ name, voice })
+      expect({ name, record: saved.record }).toEqual({ name, record })
+    }
+  })
+})
+
+describe('8-Bit rows: the Pattern captures on FM-1_098', () => {
+  const pattern = (name: string) => capture(name, 'pattern')
+  const steps: [string, Partial<Record<EightBitRowId, number>>, string][] = [
+    ['p2-bass-pattern-1', { bassPattern: 1 }, 'baseline'],
+    ['p3-bass-pattern-8', { bassPattern: 8 }, 'p2-bass-pattern-1'],
+    ['p4-bass-pattern-17', { bassPattern: 17 }, 'p3-bass-pattern-8'],
+    ['p5-lead-pattern-8', { leadPattern: 8 }, 'p4-bass-pattern-17'],
+    ['p6-back-to-baseline', { bassPattern: 14, leadPattern: 0 }, 'p5-lead-pattern-8'],
+  ]
+
+  it('reads the baseline as the FM1 showed it: bass Gallop (14), lead Off', () => {
+    const baseline = pattern('baseline')
+    expect(baseline.voice).toEqual(nesRock.voice)
+    expect(baseline.record.slice(0, 59)).toEqual(nesRock.record)
+    expect(read('bassPattern', baseline.voice, baseline.record)).toBe(14)
+    expect(read('leadPattern', baseline.voice, baseline.record)).toBe(0)
+  })
+
+  it.each(steps)(
+    '%s: the change the ledger names gives the bytes the FM1 read back',
+    (name, changes, from) => {
+      const after = write(pattern(from), changes)
+      // The first SAVE also moved record 30 from 00 to 01, which no 8-Bit field owns.
+      if (name === 'p2-bass-pattern-1') after.record[30] = 0x01
+      const expected = pattern(name)
+      expect(after.voice).toEqual(expected.voice)
+      expect(after.record).toEqual(expected.record)
+    },
+  )
+
+  it('keeps the low three bits in E 78 and the high two in E 77, and the lead the same', () => {
+    // Packed byte 64 holds E 77 in bits 0–1 and E 78 in bits 2–4; byte 98 the lead's E 119 and E 120.
+    expect(pattern('p2-bass-pattern-1').voice[64]).toBe(0b00100)
+    expect(pattern('p3-bass-pattern-8').voice[64]).toBe(0b00001)
+    expect(pattern('p4-bass-pattern-17').voice[64]).toBe(0b00110)
+    expect(pattern('p5-lead-pattern-8').voice[98]).toBe(0b00001)
+    const user = pattern('p4-bass-pattern-17')
+    expect(read('bassPattern', user.voice, user.record)).toBe(17)
+    const lead = pattern('p5-lead-pattern-8')
+    expect(read('leadPattern', lead.voice, lead.record)).toBe(8)
+  })
+
+  it('puts 097 back as it was once restored from the pack backup', () => {
+    const restored = pattern('restored')
+    expect(restored.voice).toEqual(nesRock.voice)
+    expect(restored.record.slice(0, 59)).toEqual(nesRock.record)
+  })
+
+  it('leaves every capture byte for byte unchanged through the editor parameters', () => {
+    for (const name of ['baseline', ...steps.map(([step]) => step), 'restored']) {
+      const { record, voice } = pattern(name)
       const parameters = makeEightBitEditorParameters(voice, record, makeDefaultFm1Effects())
       const saved = eightBitFromEditorParameters(voice, record, parameters)
       expect({ name, voice: saved.voice }).toEqual({ name, voice })
