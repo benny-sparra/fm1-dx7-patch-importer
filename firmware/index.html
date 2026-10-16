@@ -89,7 +89,8 @@
                 >Added <a href="#fantasma">Fantasma</a>, <a href="#fomajam">FOMAJAM</a>,
                 <a href="#gammawave">GammaWave</a>, <a href="#lcd-4">LCD-4</a>,
                 <a href="#mc-1">MC-1</a>, <a href="#melodee-tess">Melodee (Tess)</a>,
-                <a href="#min-1">MIN-1</a>, <a href="#x0x-rmx">X0X-RMX</a></span
+                <a href="#min-1">MIN-1</a>, <a href="#official-open">Official Open</a>,
+                <a href="#x0x-rmx">X0X-RMX</a></span
               >
             </li>
             <li class="firmware-latest-item">
@@ -150,7 +151,7 @@
             </button>
           </div>
           <p class="firmware-sort-note">
-            Stars on GitHub as of <time datetime="2026-10-16">16 October 2026</time>. M-VAVE's
+            Stars on GitHub as of <time datetime="2026-10-16">16 October 2026</time>. M-VAVE's stock
             firmware and Baud Girl's stay first, as the two this editor works with.
           </p>
         </div>
@@ -212,6 +213,10 @@
               back too. If SLOOP, or a firmware built on it such as sloopDX or zp12, no longer
               starts, hold OCT− alone while switching the FM1 on: it starts in USB rescue, ready to
               install again.
+            </p>
+            <p class="firmware-blurb">
+              M-VAVE also publishes a groovebox firmware of its own,
+              <a href="#official-open">Official Open</a>, listed below.
             </p>
             <ul class="firmware-links">
               <li>
@@ -3534,7 +3539,7 @@
           class="firmware-entry synthwave-panel"
           id="official-open"
           aria-labelledby="firmware-official-open"
-          data-updated="2026-10-16"
+          data-updated="2026-10-14"
           data-stars="26"
         >
           <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
@@ -3556,7 +3561,7 @@
               <span class="firmware-tag" data-support="none">Not supported by this editor</span
               ><span>Latest V12</span>
               <span class="firmware-updated"
-                >Updated <time datetime="2026-10-16">16 Oct 2026</time></span
+                >Updated <time datetime="2026-10-14">14 Oct 2026</time></span
               >
               <span class="firmware-stars" data-counted="true" title="26 stars on GitHub"
                 ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
@@ -3566,18 +3571,24 @@
               >
             </p>
             <p class="firmware-blurb">
-              M-VAVE's own open firmware, released with its source: eight tracks and 64 steps with
-              FM, 303-style bass, 808 drums, PSG, Pluck, and sampler engines, an arpeggiator, and
-              MIDI over USB, UART, and Bluetooth. M-VAVE's FM1 Workbench installs it and switches an
-              FM1 back to V15; its projects and samples do not work on V15, and forcing the switch
-              can erase data. This editor recognises it but sends it no Program Change or effect
-              controllers, so a patch does not reach it.
+              M-VAVE's own open-source firmware, which turns the FM1 into an eight-track groovebox:
+              each track plays a DX7, 303, 808, PSG, Pluck, or sampler engine, with 16 USER project
+              slots and an eight-slot sample bank every project shares. It installs from M-VAVE's
+              FM1 Workbench, which also edits projects, simulates the device, and can put V15 back.
+              This editor recognises it and sends it no Program Change or effect controls, which
+              would change its tracks, but sends it no patches yet: a DX7 track takes a voice or
+              bank downloaded from this editor as a .syx file, through the Workbench.
+            </p>
+            <p class="firmware-blurb">
+              Going back: the Workbench's Restore original V15 replaces all four banks with the
+              factory voices, and a force flash may erase projects and samples, so download a backup
+              from this editor first.
             </p>
             <ul class="firmware-links">
               <li>
                 <a
                   class="hero-action firmware-link"
-                  href="https://open.m-vave.com/"
+                  href="https://open.m-vave.com/fm1-workbench"
                   rel="noopener"
                   target="_blank"
                   >FM1 Workbench ↗</a
