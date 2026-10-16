@@ -1,0 +1,102 @@
+{
+  "firmware": "FM-1_098",
+  "entries": [
+    {
+      "preset": "097",
+      "record": [
+        { "from": "04", "index": 19, "to": "02" },
+        { "from": "00", "index": 30, "to": "01" }
+      ],
+      "setting": "Bass Wave Triangle → Pulse 50",
+      "voice": []
+    },
+    {
+      "preset": "097",
+      "record": [{ "from": "45", "index": 26, "to": "40" }],
+      "setting": "Key E → Off",
+      "voice": []
+    },
+    {
+      "preset": "097",
+      "record": [{ "from": "40", "index": 26, "to": "41" }],
+      "setting": "Key Off → C",
+      "voice": []
+    },
+    {
+      "preset": "097",
+      "record": [],
+      "setting": "Drums F0 Pitch +10",
+      "voice": [{ "from": "28", "index": 0, "to": "32" }]
+    },
+    {
+      "preset": "097",
+      "record": [],
+      "setting": "Drum Decay 50 → 60",
+      "voice": [
+        { "from": "00", "index": 13, "to": "08" },
+        { "from": "00", "index": 30, "to": "04" }
+      ]
+    },
+    {
+      "preset": "097",
+      "record": [],
+      "setting": "Drum Decay 60 → 40",
+      "voice": [
+        { "from": "08", "index": 13, "to": "19" },
+        { "from": "04", "index": 30, "to": "18" }
+      ]
+    },
+    {
+      "preset": "097",
+      "record": [
+        { "from": "00", "index": 22, "to": "20" },
+        { "from": "41", "index": 26, "to": "40" },
+        { "from": "FF", "index": 47, "to": "EF" }
+      ],
+      "setting": "Lead User Arpeggio Step 1 End → +3",
+      "voice": []
+    },
+    {
+      "preset": "097",
+      "record": [],
+      "setting": "Lead Octave +2",
+      "voice": [{ "from": "23", "index": 63, "to": "25" }]
+    },
+    {
+      "preset": "097",
+      "record": [],
+      "setting": "Bass Level 95 → 50",
+      "voice": [{ "from": "5F", "index": 50, "to": "32" }]
+    },
+    {
+      "preset": "097",
+      "record": [],
+      "setting": "Lead Mono Off → On",
+      "voice": [{ "from": "08", "index": 83, "to": "09" }]
+    },
+    {
+      "preset": "097",
+      "record": [],
+      "setting": "Bass Note Engine Auto-Arp → Auto-Chord",
+      "voice": [{ "from": "18", "index": 30, "to": "19" }]
+    },
+    {
+      "preset": "097",
+      "record": [],
+      "setting": "Bass Note Engine Auto-Chord → Auto-Arp",
+      "voice": [{ "from": "19", "index": 30, "to": "18" }]
+    },
+    {
+      "preset": "097",
+      "record": [],
+      "setting": "Lead Note Engine Auto-Arp → Auto-Chord",
+      "voice": [{ "from": "18", "index": 30, "to": "1A" }]
+    },
+    {
+      "preset": "097",
+      "record": [],
+      "setting": "Lead Note Engine Auto-Chord → Auto-Arp",
+      "voice": [{ "from": "1A", "index": 30, "to": "18" }]
+    }
+  ]
+}
