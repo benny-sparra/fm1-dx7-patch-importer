@@ -7,7 +7,10 @@
 [`docs/hardware-runs/fm1-va-bitcrush-order-2026-10-06.md`](hardware-runs/fm1-va-bitcrush-order-2026-10-06.md).
 On `FM-1_097`, 2026-10-10: §1 apart from F3, M1, M3 (with a second slot's VA erase), M4, and
 §4; ledger [`docs/hardware-runs/fm1-va-097-tests-2026-10-10.md`](hardware-runs/fm1-va-097-tests-2026-10-10.md).
-F3 and M2, §4b and D2, §5, §6b, and §7 not run yet.
+On `FM-1_098` (built 2026-10-10), 2026-10-16: §4b P1–P7, all matching, and the 8-Bit Note Engine
+row (backlog item 10), with 097 restored from the pack backup; ledger
+[`docs/hardware-runs/fm1-va-8bit-fields-2026-10-16.md`](hardware-runs/fm1-va-8bit-fields-2026-10-16.md).
+F3 and M2, D2, §5, §6b, and the rest of §7 not run yet.
 **Scope:** whether the facts `docs/fm1-research.md` records under "FM-1_096", all **Likely** and
 read from Baud Girl's web code and preset packs, hold on an FM1; whether the editor's handling of
 8-Bit presets (#191) keeps them safe; and where the settings FM-1_096 added live in the record. The
@@ -228,54 +231,55 @@ them. Check that GLOBE's MIDI Channel is All again.
 
 ## 8. Ledger
 
-| Test                    | Result | Bytes / notes |
-| ----------------------- | ------ | ------------- |
-| Version and build date  |        |               |
-| F1                      |        |               |
-| F2                      |        |               |
-| F3                      |        |               |
-| F4                      |        |               |
-| F5                      |        |               |
-| M1                      |        |               |
-| M2                      |        |               |
-| M3 FM / 8-Bit / VA      |        |               |
-| M3 on FM-1_097 (FM, VA) |        |               |
-| M4                      |        |               |
-| B1                      |        |               |
-| B2                      |        |               |
-| B3                      |        |               |
-| B4                      |        |               |
-| B5                      |        |               |
-| B6                      |        |               |
-| B7                      |        |               |
-| FX CCs after B5–B6      |        |               |
-| K1                      |        |               |
-| K2                      |        |               |
-| K3                      |        |               |
-| L1                      |        |               |
-| L2                      |        |               |
-| L3                      |        |               |
-| L4                      |        |               |
-| E1                      |        |               |
-| E2                      |        |               |
-| P1                      |        |               |
-| P2                      |        |               |
-| P3                      |        |               |
-| P4                      |        |               |
-| P5                      |        |               |
-| P6                      |        |               |
-| P7                      |        |               |
-| W1                      |        |               |
-| T1                      |        |               |
-| T2 1000 ms              |        |               |
-| T2 500 ms               |        |               |
-| T2 250 ms               |        |               |
-| T2 120 ms               |        |               |
-| T2 0 ms                 |        |               |
-| T3                      |        |               |
-| T4                      |        |               |
-| D1 (release: )          |        |               |
-| D2 (release: )          |        |               |
+| Test                    | Result | Bytes / notes                                                                                 |
+| ----------------------- | ------ | --------------------------------------------------------------------------------------------- |
+| Version and build date  | Done   | `FM-1_098`, built 2026-10-10 (2026-10-16 run; 097 run: `FM-1_097`, no date)                   |
+| F1                      |        |                                                                                               |
+| F2                      |        |                                                                                               |
+| F3                      |        |                                                                                               |
+| F4                      |        |                                                                                               |
+| F5                      |        |                                                                                               |
+| M1                      |        |                                                                                               |
+| M2                      |        |                                                                                               |
+| M3 FM / 8-Bit / VA      |        |                                                                                               |
+| M3 on FM-1_097 (FM, VA) |        |                                                                                               |
+| M4                      |        |                                                                                               |
+| B1                      |        |                                                                                               |
+| B2                      |        |                                                                                               |
+| B3                      |        |                                                                                               |
+| B4                      |        |                                                                                               |
+| B5                      |        |                                                                                               |
+| B6                      |        |                                                                                               |
+| B7                      |        |                                                                                               |
+| FX CCs after B5–B6      |        |                                                                                               |
+| K1                      |        |                                                                                               |
+| K2                      |        |                                                                                               |
+| K3                      |        |                                                                                               |
+| L1                      |        |                                                                                               |
+| L2                      |        |                                                                                               |
+| L3                      |        |                                                                                               |
+| L4                      |        |                                                                                               |
+| E1                      |        |                                                                                               |
+| E2                      |        |                                                                                               |
+| P1                      | Pass   | 098: record 19 `04` → `02`; 30 `00` → `01` (SAVE repair)                                      |
+| P2                      | Pass   | 098: record 26 `45` → `40` → `41`                                                             |
+| P3                      | Pass   | 098: E 0 `28` → `32`                                                                          |
+| P4                      | Pass   | 098: 60: E 15 2, E 36 1; 40: E 14 1, E 15 6, E 36 6                                           |
+| P5                      | Pass   | 098: record 47 `FF` → `EF`; 22 `00` → `20`; 26 `41` → `40` (Key Off, Arpeggio User set first) |
+| P6                      | Pass   | 098: E 76 3 → 5                                                                               |
+| P7                      | Pass   | 098: Bass Level E 61 `5F` → `32`; Lead Mono E 101 0 → 1                                       |
+| Note Engine (8-Bit)     | Seen   | 098: bass E 35 bit 0, lead E 35 bit 1; Auto-Arp 0, Auto-Chord 1; no record byte               |
+| W1                      |        |                                                                                               |
+| T1                      |        |                                                                                               |
+| T2 1000 ms              |        |                                                                                               |
+| T2 500 ms               |        |                                                                                               |
+| T2 250 ms               |        |                                                                                               |
+| T2 120 ms               |        |                                                                                               |
+| T2 0 ms                 |        |                                                                                               |
+| T3                      |        |                                                                                               |
+| T4                      |        |                                                                                               |
+| D1 (release: )          |        |                                                                                               |
+| D2 (release: )          |        |                                                                                               |
 
 Record each result in `docs/fm1-research.md`, "FM-1_096", raising a fact from **Likely** to
 **Confirmed, seen once** where the FM1 agrees, and add the captures as fixtures in
