@@ -14,6 +14,8 @@ export default {
       'Drehe SELECT auf Replace und drücke SEL, um die 32 Sounds zu speichern, oder brich mit HOME ab. Sie ersetzen auch die Werkspresets dieser Bank dauerhaft.',
     bankFm1VaNote:
       'Läuft auf deinem FM1 die Firmware von Baud Girl, fragt er stattdessen „Replace Bank A?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Replace, und drücke SEL.',
+    bankOfficialOpenNote:
+      'Die Open-Firmware von M-VAVE ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Projekte also nicht.',
     bankFeluccaNote:
       'Felucca ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Presets also nicht.',
     bankFeluccaOrSloopNote:
@@ -835,6 +837,7 @@ export default {
     firmwareUnidentified: 'Nicht erkannt',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
+    firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca oder SLOOP {{identity}}',
     firmwareEditBuffer: 'Sounds, die du anspielst, gehen in den Bearbeitungspuffer des FM1.',
@@ -844,6 +847,8 @@ export default {
       'Felucca spielt deine Noten, ignoriert aber DX7-Sounds, DX7-Bänke und die Effektregler.',
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca und SLOOP melden beide diesen Namen. Beide spielen deine Noten, ignorieren aber DX7-Sounds, DX7-Bänke und die Effektregler.',
+    firmwareOfficialOpenSends:
+      'Die Open-Firmware von M-VAVE spielt deine Noten, ignoriert aber die DX7-Sounds und -Bänke, die der Editor sendet. Ein Klick auf einen Platz wählt dort kein Preset, und die Effektregler senden nichts, da sie beides als Änderungen an ihren Spuren verstehen würde.',
     firmwareNeedsInput:
       'Wähle den FM1 als Monitoring-Eingang, damit der Editor fragen kann, welche Firmware er verwendet.',
     noteChannel: 'Notenkanal',
@@ -855,26 +860,26 @@ export default {
   help: {
     open: 'FM1 Editor und Librarian verwenden',
     title: 'Willkommen beim FM1 Editor und Librarian',
-    intro:
-      'Verwalte deine Sound-Bibliothek, forme Sounds im Voice-Editor und übertrage sie auf deinen M-VAVE FM1 – direkt im Browser.',
+    guideTitle: 'Anleitung',
     close: 'Hilfe schließen',
-    truthTitle: 'Die Bänke in diesem Browser sind die maßgebliche Quelle.',
-    truthBody:
-      'Der FM1 kann Sounds und Bänke empfangen, seine gespeicherten Bänke aber nicht zurücksenden. Importiere oder stelle Sounds hier wieder her, bearbeite sie und übertrage sie dann zum FM1.',
-    firmwareTitle: 'Baud Girl (FM-1+VA) unterstützt',
-    firmwareBody: 'Funktioniert mit der Firmware von M-VAVE und von Baud Girl.',
+    lead: 'Bearbeite und organisiere Sounds für deinen M-VAVE FM1 – direkt im Browser.',
+    quickSteps: {
+      connect: 'Schließe den FM1 an und aktiviere MIDI online.',
+      play: 'Klicke auf einen Sound, um ihn zu hören, und doppelklicke, um ihn zu bearbeiten.',
+      send: '„An FM1 senden“ überträgt eine ganze Bank auf den Synth.',
+    },
+    savedInBrowser:
+      'Deine Bänke sind in diesem Browser gespeichert. Sichere sie über die Bibliotheksaktionen.',
+    unsupportedTitle: 'Dieser Browser kann keine Verbindung zum FM1 herstellen.',
+    unsupportedBody:
+      'Öffne diese Seite in Chrome, Edge oder Firefox auf einem Computer oder in Chrome auf Android.',
+    stillWorks: 'Sounds durchsuchen und bearbeiten kannst du hier trotzdem.',
+    fullGuide: 'Ganze Anleitung',
     start: 'Bearbeitung starten',
+    done: 'Schließen',
     stepsTitle: 'Erste Schritte',
     sections: 'Abschnitte der Anleitung',
     shortcutsTitle: 'Tastaturkürzel',
-    browsers: {
-      title: 'Browserunterstützung',
-      works: 'Funktioniert',
-      unsupported: 'Nicht unterstützt',
-      yours: 'Dein Browser',
-      desktop: 'Desktop',
-      desktopAndAndroid: 'Desktop und Android',
-    },
     shortcuts: {
       banks: 'Sound-Bänke',
       editor: 'Voice-Editor',
@@ -883,17 +888,24 @@ export default {
       openSlot: 'Leuchtenden Slot öffnen',
     },
     steps: {
-      libraryTitle: 'Bibliothek aufbauen',
-      libraryBody: 'Starte mit den Werksbänken des FM1 oder importiere eigene.',
-      editTitle: 'Bearbeiten und organisieren',
-      editBody: 'Öffne einen Sound zum Bearbeiten und speichere ihn in deiner Bibliothek.',
       connectTitle: 'FM1 verbinden',
-      connectBody: 'Schließe den FM1 an und aktiviere MIDI online.',
-      transferTitle: 'Sounds übertragen',
-      transferBody:
-        'Klicke auf einen Sound, um ihn zu hören, oder sende eine ganze Bank an den FM1.',
+      connectBody:
+        'Schließe den FM1 an und aktiviere MIDI online. Beim ersten Mal fragt der Browser, ob er MIDI erlauben soll.',
+      playTitle: 'Anhören und bearbeiten',
+      playBody:
+        'Klicke auf einen Sound, um ihn auf dem FM1 zu hören. Ein Doppelklick öffnet den Voice-Editor; speichere, um deine Änderungen zu behalten.',
+      sendTitle: 'An FM1 senden',
+      sendBody:
+        'Sende eine ganze Bank über ihre Kopfzeile und wähle dann, wo sie auf dem FM1 landet.',
+      backupTitle: 'Sicherung anlegen',
+      backupBody:
+        'Der FM1 kann seine Bänke nicht zurücksenden, deshalb sind die Bänke hier die einzige Kopie. Lade über die Bibliotheksaktionen eine Sicherung herunter.',
     },
+    firmwareTitle: 'Baud Girl (FM-1+VA)',
+    firmwareBody:
+      'Lies Presets vom FM1 und schreibe Sounds über die Bibliotheksaktionen zurück. Virtual-Analog-Sounds öffnen ihren eigenen Editor.',
   },
+
   colorway: {
     legend: 'FM1-Farbausführung',
     option: 'FM1-Finish {{colour}}',
@@ -1048,6 +1060,9 @@ export default {
     mvaveBadgeLabel: 'Firmware von M-VAVE, {{release}}',
     mvaveBadgeTitle:
       'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer.',
+    officialOpenBadgeLabel: 'Open-Firmware von M-VAVE, {{release}}',
+    officialOpenBadgeTitle:
+      'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Sie spielt deine Noten, ignoriert aber die DX7-Sounds und -Bänke, die der Editor sendet. Ein Klick auf einen Platz wählt dort kein Preset, und die Effektregler senden nichts, da sie beides als Änderungen an ihren Spuren verstehen würde.',
     panic: 'MIDI-Panik',
     panicHelp:
       'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',

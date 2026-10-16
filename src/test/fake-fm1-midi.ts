@@ -35,6 +35,14 @@ export const feluccaOrSloopIdentityReply = Uint8Array.from([
   0x18, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
 ])
 
+// Captured from an FM1 running M-VAVE's Official Open V12 on 2026-10-16. The reply carries its own
+// checksum rather than V15's.
+// prettier-ignore
+export const officialOpenIdentityReply = Uint8Array.from([
+  0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x07, 0x0c,
+  0x18, 0x30, 0x60, 0x44, 0x11, 0x03, ...Array<number>(17).fill(0), 0x15, 0xf7,
+])
+
 // WebMidi's `midimessage` event carries the bytes as a plain array, not a Uint8Array.
 type MidiListener = (event: { data: number[] }) => void
 

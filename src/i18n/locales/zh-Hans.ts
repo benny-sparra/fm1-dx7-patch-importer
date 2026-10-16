@@ -12,6 +12,8 @@ export default {
       '将 SELECT 转到 Replace 并按 SEL 保存这 32 个音色，或按 HOME 取消。它们还会永久替换该音色库的出厂预设。',
     bankFm1VaNote:
       '如果你的 FM1 运行 Baud Girl 的固件，它会改为询问“Replace Bank A?”，并先停在音色库 A。转动 ALGORITHM 选择目标音色库，再将 SELECT 转到 Replace 并按 SEL。',
+    bankOfficialOpenNote:
+      'M-VAVE 的 Open 固件会忽略 DX7 音色库，因此发送此音色库不会改变它的工程。',
     bankFeluccaNote: 'Felucca 会忽略 DX7 音色库，因此发送此音色库不会改变它的预设。',
     bankFeluccaOrSloopNote:
       'Felucca 和 SLOOP 都会忽略 DX7 音色库，因此发送此音色库不会改变 FM1 的预设。',
@@ -736,6 +738,7 @@ export default {
     firmwareUnidentified: '未识别',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
+    firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca 或 SLOOP {{identity}}',
     firmwareEditBuffer: '你试听的音色会进入 FM1 的编辑缓冲区。',
@@ -744,6 +747,8 @@ export default {
     firmwareIgnoresPatches: 'Felucca 会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca 和 SLOOP 都会报告这个名称。两者都会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
+    firmwareOfficialOpenSends:
+      'M-VAVE 的 Open 固件会演奏你弹的音符，但会忽略编辑器发送的 DX7 音色和音色库。点击位置不会在它上面选择预设，效果控制也不会发送任何内容，因为它会把两者都当作对音轨的更改。',
     firmwareNeedsInput: '请把 FM1 选为监听输入，这样编辑器才能询问它运行的固件。',
     noteChannel: '音符通道',
     fxChannel: '效果通道',
@@ -754,25 +759,25 @@ export default {
   help: {
     open: 'FM1 编辑器与音色库使用说明',
     title: '欢迎使用 FM1 音色编辑器与音色库',
-    intro: '直接在浏览器中管理音色库、编辑音色，并传输到 M-VAVE FM1。',
+    guideTitle: '使用指南',
     close: '关闭帮助',
-    truthTitle: '以此浏览器中的音色库为准。',
-    truthBody:
-      'FM1 可以接收音色和音色库，但无法将其中已保存的音色库传回。请在此导入或恢复音色、进行编辑，然后传输到 FM1。',
-    firmwareTitle: '支持 Baud Girl（FM-1+VA）',
-    firmwareBody: '同时支持 M-VAVE 和 Baud Girl 的固件。',
+    lead: '在浏览器中编辑和整理 M-VAVE FM1 的音色。',
+    quickSteps: {
+      connect: '连接 FM1 并开启“MIDI 在线”。',
+      play: '单击音色即可试听，双击即可编辑。',
+      send: '“发送到 FM1”会把整个音色库传到合成器上。',
+    },
+    savedInBrowser: '你的音色库保存在此浏览器中。请通过“音色库操作”备份。',
+    unsupportedTitle: '此浏览器无法连接 FM1。',
+    unsupportedBody:
+      '请在电脑上用 Chrome、Edge 或 Firefox 打开此页面，或在 Android 上用 Chrome 打开。',
+    stillWorks: '你仍然可以在这里浏览和编辑音色。',
+    fullGuide: '完整指南',
     start: '开始编辑',
+    done: '关闭',
     stepsTitle: '快速上手',
     sections: '指南分区',
     shortcutsTitle: '键盘快捷键',
-    browsers: {
-      title: '浏览器支持',
-      works: '可用',
-      unsupported: '不支持',
-      yours: '你的浏览器',
-      desktop: '桌面版',
-      desktopAndAndroid: '桌面版和 Android',
-    },
     shortcuts: {
       banks: '音色库',
       editor: '音色编辑器',
@@ -781,16 +786,20 @@ export default {
       openSlot: '打开点亮的槽位',
     },
     steps: {
-      libraryTitle: '建立音色库',
-      libraryBody: '从 FM1 的原厂音色库开始，或导入你自己的音色库。',
-      editTitle: '编辑和整理',
-      editBody: '打开音色进行编辑，然后保存到你的音色库。',
       connectTitle: '连接 FM1',
-      connectBody: '连接 FM1 并开启 MIDI 在线。',
-      transferTitle: '传输音色',
-      transferBody: '点击音色即可试听，或将整个音色库发送到 FM1。',
+      connectBody: '连接 FM1 并开启“MIDI 在线”。首次连接时，浏览器会请求允许使用 MIDI。',
+      playTitle: '试听和编辑',
+      playBody: '单击音色即可在 FM1 上试听。双击打开音色编辑器，保存后即可保留修改。',
+      sendTitle: '发送到 FM1',
+      sendBody: '从音色库标题栏发送整个音色库，然后选择它在 FM1 上的位置。',
+      backupTitle: '保留备份',
+      backupBody: 'FM1 无法传回其音色库，因此这里的音色库是唯一副本。请通过“音色库操作”下载备份。',
     },
+    firmwareTitle: 'Baud Girl (FM-1+VA)',
+    firmwareBody:
+      '通过“音色库操作”从 FM1 读取预设，并将音色写回。Virtual Analog 音色会在专属编辑器中打开。',
   },
+
   colorway: {
     legend: 'FM1 配色',
     option: 'FM1 {{colour}}配色',
@@ -943,6 +952,9 @@ export default {
     mvaveBadgeLabel: 'M-VAVE 固件，{{release}}',
     mvaveBadgeTitle:
       'FM1 运行的是 M-VAVE 原厂固件（{{release}}）。你试听的音色会进入它的编辑缓冲区。',
+    officialOpenBadgeLabel: 'M-VAVE Open 固件，{{release}}',
+    officialOpenBadgeTitle:
+      'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。它会演奏你弹的音符，但会忽略编辑器发送的 DX7 音色和音色库。点击位置不会在它上面选择预设，效果控制也不会发送任何内容，因为它会把两者都当作对音轨的更改。',
     panic: 'MIDI 紧急停止',
     panicHelp: 'MIDI 紧急停止：在音符通道上为每个音符发送音符关闭消息，以停止悬挂的音符',
     panicUnavailable: 'MIDI 紧急停止：{{reason}}',

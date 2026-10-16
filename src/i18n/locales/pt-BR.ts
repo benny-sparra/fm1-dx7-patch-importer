@@ -14,6 +14,8 @@ export default {
       'Gire SELECT até Replace e pressione SEL para salvar os 32 sons, ou pressione HOME para cancelar. Eles também substituem de forma permanente os presets de fábrica desse banco.',
     bankFm1VaNote:
       'Se o seu FM1 usa o firmware da Baud Girl, ele pergunta “Replace Bank A?” e começa no banco A. Gire ALGORITHM até o banco de destino, depois SELECT até Replace, e pressione SEL.',
+    bankOfficialOpenNote:
+      'O firmware Open da M-VAVE ignora bancos DX7, então enviar este banco não altera os projetos dele.',
     bankFeluccaNote:
       'O Felucca ignora bancos DX7, então enviar este banco não altera os presets dele.',
     bankFeluccaOrSloopNote:
@@ -810,6 +812,7 @@ export default {
     firmwareUnidentified: 'Não identificado',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
+    firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca ou SLOOP {{identity}}',
     firmwareEditBuffer: 'Os sons que você toca vão para o buffer de edição do FM1.',
@@ -819,6 +822,8 @@ export default {
       'O Felucca toca suas notas, mas ignora sons DX7, bancos e os controles de efeito.',
     firmwareFeluccaOrSloopIgnoresPatches:
       'O Felucca e o SLOOP informam o mesmo nome. Os dois tocam suas notas, mas ignoram sons DX7, bancos e os controles de efeito.',
+    firmwareOfficialOpenSends:
+      'O firmware Open da M-VAVE toca suas notas, mas ignora os sons e bancos DX7 que o editor envia. Clicar em uma posição não seleciona nenhum preset, e os controles de efeito não enviam nada, porque ele trataria os dois como mudanças nas faixas.',
     firmwareNeedsInput:
       'Escolha o FM1 como entrada de monitoração para que o editor possa perguntar qual firmware ele usa.',
     noteChannel: 'Canal de notas',
@@ -830,26 +835,25 @@ export default {
   help: {
     open: 'Como usar o editor e bibliotecário FM1',
     title: 'Boas-vindas ao editor e bibliotecário FM1',
-    intro:
-      'Gerencie sua biblioteca, modele vozes no editor e transfira-as para o M-VAVE FM1, tudo pelo navegador.',
+    guideTitle: 'Guia',
     close: 'Fechar ajuda',
-    truthTitle: 'Os bancos deste navegador são a referência.',
-    truthBody:
-      'O FM1 aceita vozes e bancos, mas não consegue enviar de volta seus bancos armazenados. Importe ou restaure sons aqui, edite-os e depois transfira-os para o FM1.',
-    firmwareTitle: 'Compatível com Baud Girl (FM-1+VA)',
-    firmwareBody: 'Funciona tanto com o firmware da M-VAVE quanto com o da Baud Girl.',
+    lead: 'Edite e organize sons para o seu M-VAVE FM1, direto no navegador.',
+    quickSteps: {
+      connect: 'Conecte o FM1 e ative MIDI online.',
+      play: 'Clique em um som para ouvi-lo e dê um clique duplo para editá-lo.',
+      send: '“Enviar ao FM1” passa um banco inteiro para o sintetizador.',
+    },
+    savedInBrowser: 'Seus bancos ficam salvos neste navegador. Faça backup em Ações da biblioteca.',
+    unsupportedTitle: 'Este navegador não consegue se conectar ao FM1.',
+    unsupportedBody:
+      'Abra esta página no Chrome, Edge ou Firefox em um computador, ou no Chrome no Android.',
+    stillWorks: 'Mesmo assim, você pode navegar pelos sons e editá-los aqui.',
+    fullGuide: 'Guia completo',
     start: 'Começar a editar',
+    done: 'Fechar',
     stepsTitle: 'Primeiros passos',
     sections: 'Seções do guia',
     shortcutsTitle: 'Atalhos de teclado',
-    browsers: {
-      title: 'Navegadores compatíveis',
-      works: 'Funciona',
-      unsupported: 'Não compatível',
-      yours: 'Seu navegador',
-      desktop: 'Desktop',
-      desktopAndAndroid: 'Desktop e Android',
-    },
     shortcuts: {
       banks: 'Bancos de sons',
       editor: 'Editor de vozes',
@@ -858,16 +862,23 @@ export default {
       openSlot: 'Abrir o slot aceso',
     },
     steps: {
-      libraryTitle: 'Monte sua biblioteca',
-      libraryBody: 'Comece pelos bancos de fábrica do FM1 ou importe os seus.',
-      editTitle: 'Edite e organize',
-      editBody: 'Abra um som para editá-lo e salve-o na sua biblioteca.',
       connectTitle: 'Conecte seu FM1',
-      connectBody: 'Conecte o FM1 e ative MIDI online.',
-      transferTitle: 'Transfira os sons',
-      transferBody: 'Clique em um som para ouvi-lo ou envie um banco completo ao FM1.',
+      connectBody:
+        'Conecte o FM1 e ative MIDI online. Na primeira vez, o navegador pede permissão para usar MIDI.',
+      playTitle: 'Ouça e edite',
+      playBody:
+        'Clique em um som para ouvi-lo no FM1. Dê um clique duplo para abrir o editor de vozes e salve para manter as alterações.',
+      sendTitle: 'Enviar ao FM1',
+      sendBody: 'Envie um banco inteiro pelo cabeçalho dele e escolha onde ele fica no FM1.',
+      backupTitle: 'Mantenha um backup',
+      backupBody:
+        'O FM1 não consegue enviar seus bancos de volta, então os bancos daqui são a única cópia. Baixe um backup em Ações da biblioteca.',
     },
+    firmwareTitle: 'Baud Girl (FM-1+VA)',
+    firmwareBody:
+      'Leia presets do FM1 e grave sons de volta em Ações da biblioteca. Sons Virtual Analog abrem no próprio editor.',
   },
+
   colorway: {
     legend: 'Cor do acabamento do FM1',
     option: 'Acabamento {{colour}} do FM1',
@@ -1021,6 +1032,9 @@ export default {
     mvaveBadgeLabel: 'Firmware da M-VAVE, {{release}}',
     mvaveBadgeTitle:
       'O FM1 usa o firmware original da M-VAVE, {{release}}. Os sons que você toca vão para o buffer de edição dele.',
+    officialOpenBadgeLabel: 'Firmware Open da M-VAVE, {{release}}',
+    officialOpenBadgeTitle:
+      'O FM1 usa o firmware Open da M-VAVE, {{release}}, uma groovebox de oito faixas. Ele toca suas notas, mas ignora os sons e bancos DX7 que o editor envia. Clicar em uma posição não seleciona nenhum preset, e os controles de efeito não enviam nada, porque ele trataria os dois como mudanças nas faixas.',
     panic: 'Pânico MIDI',
     panicHelp:
       'Pânico MIDI: envia um note-off para cada nota do canal de notas e interrompe as notas presas',

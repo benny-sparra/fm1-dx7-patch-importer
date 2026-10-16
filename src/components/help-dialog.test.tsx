@@ -6,6 +6,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { HelpDialog } from '@/components/help-dialog'
+import type { Fm1Firmware } from '@/lib/fm1-firmware'
+import { translatePageText } from '@/test/page-translator'
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
@@ -22,12 +24,33 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-// The guide is mounted only once it has been asked for, so rendering it opens it.
-async function openHelp() {
+const midiWith = (firmware: Fm1Firmware) => ({ firmware })
+
+// The guide is mounted only once it has been asked for, so rendering it opens it. Asked for, it
+// opens on the full guide; a first visit opens it on the welcome.
+async function openHelp({
+  firmware = { kind: 'checking' },
+  firstVisit = false,
+}: { firmware?: Fm1Firmware; firstVisit?: boolean } = {}) {
   const user = userEvent.setup()
-  render(<HelpDialog onClose={vi.fn()} />)
+  render(
+    <HelpDialog
+      colorway="black"
+      firstVisit={firstVisit}
+      midi={midiWith(firmware)}
+      onClose={vi.fn()}
+    />,
+  )
 
   return user
+}
+
+// A browser with Web MIDI, and Safari, which has none, on a secure page.
+const useBrowserWithWebMidi = () =>
+  vi.stubGlobal('navigator', { requestMIDIAccess: vi.fn(), userAgent: 'Mozilla/5.0 Chrome/140' })
+const useBrowserWithoutWebMidi = () => {
+  vi.stubGlobal('navigator', { userAgent: 'Mozilla/5.0 (Macintosh) Version/18.0 Safari/605.1.15' })
+  vi.stubGlobal('isSecureContext', true)
 }
 
 const visiblePanel = () => screen.getByRole('tabpanel')
@@ -35,16 +58,83 @@ const visiblePanel = () => screen.getByRole('tabpanel')
 const openShortcuts = async (user: ReturnType<typeof userEvent.setup>) =>
   user.click(screen.getByRole('tab', { name: 'Keyboard shortcuts' }))
 
+describe('HelpDialog welcome', () => {
+  it('greets a first visit with what the site does and three steps', async () => {
+    useBrowserWithWebMidi()
+    await openHelp({ firstVisit: true })
+
+    const dialog = screen.getByRole('dialog', { name: 'Welcome to the FM1 editor & librarian' })
+    expect(
+      within(dialog).getByText('Edit and organise patches for your M-VAVE FM1, in the browser.'),
+    ).toBeTruthy()
+    const steps = within(within(dialog).getByRole('list')).getAllByRole('listitem')
+    expect(steps.map((step) => step.textContent)).toEqual([
+      '1Plug in the FM1 and switch MIDI online on.',
+      '2Click a patch to hear it, double-click to edit.',
+      '3Send to FM1 puts a whole bank on the synth.',
+    ])
+    expect(within(dialog).queryByRole('tablist')).toBeNull()
+  })
+
+  it('notes that the banks are saved in this browser', async () => {
+    useBrowserWithWebMidi()
+    await openHelp({ firstVisit: true })
+
+    expect(
+      screen.getByText('Your banks are saved in this browser. Back them up from Library actions.'),
+    ).toBeTruthy()
+  })
+
+  it('says nothing about the browser when it can reach the FM1', async () => {
+    useBrowserWithWebMidi()
+    await openHelp({ firstVisit: true })
+
+    expect(screen.queryByText('This browser can’t connect to the FM1.')).toBeNull()
+  })
+
+  it('swaps the steps for where the site works in a browser without Web MIDI', async () => {
+    useBrowserWithoutWebMidi()
+    await openHelp({ firstVisit: true })
+
+    expect(screen.getByText('This browser can’t connect to the FM1.')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Open this page in Chrome, Edge or Firefox on a computer, or Chrome on Android.',
+      ),
+    ).toBeTruthy()
+    expect(screen.getByText('You can still browse and edit patches here.')).toBeTruthy()
+    expect(screen.queryByText('Plug in the FM1 and switch MIDI online on.')).toBeNull()
+  })
+
+  it('opens the full guide in place and moves focus to its first tab', async () => {
+    const user = await openHelp({ firstVisit: true })
+
+    await user.click(screen.getByRole('button', { name: 'Full guide' }))
+
+    expect(screen.getByRole('dialog', { name: 'Guide' })).toBeTruthy()
+    expect(document.activeElement).toBe(screen.getByRole('tab', { name: 'Getting started' }))
+  })
+
+  it('survives a page translator when it swaps the welcome for the guide', async () => {
+    const user = await openHelp({ firstVisit: true })
+    translatePageText(screen.getByRole('dialog'))
+
+    await user.click(screen.getByRole('button', { name: 'Full guide' }))
+
+    expect(screen.getByRole('tab', { name: 'Getting started' })).toBeTruthy()
+  })
+})
+
 describe('HelpDialog sections', () => {
-  it('opens on the numbered walkthrough', async () => {
+  it('opens on the numbered walkthrough when it is asked for', async () => {
     await openHelp()
 
+    expect(screen.getByRole('dialog', { name: 'Guide' })).toBeTruthy()
     expect(screen.getByRole('tab', { name: 'Getting started' }).getAttribute('aria-selected')).toBe(
       'true',
     )
-    // The step titles carry their number and icon in the same element.
-    expect(within(visiblePanel()).getByText(/Build your library/)).toBeTruthy()
-    expect(within(visiblePanel()).getByText(/Transfer the patches/)).toBeTruthy()
+    expect(within(visiblePanel()).getByText('Connect your FM1')).toBeTruthy()
+    expect(within(visiblePanel()).getByText('Keep a backup')).toBeTruthy()
   })
 
   it('swaps the walkthrough for the shortcuts when that tab is chosen', async () => {
@@ -55,7 +145,7 @@ describe('HelpDialog sections', () => {
     expect(within(visiblePanel()).getByText('Jump to search')).toBeTruthy()
     // The editor rows reuse the labels from the buttons they mirror.
     expect(within(visiblePanel()).getByText('Save to library')).toBeTruthy()
-    expect(within(visiblePanel()).queryByText(/Build your library/)).toBeNull()
+    expect(within(visiblePanel()).queryByText('Connect your FM1')).toBeNull()
   })
 
   it('moves between tabs with the arrow keys', async () => {
@@ -137,49 +227,43 @@ describe('HelpDialog shortcuts', () => {
   })
 })
 
-const safariUserAgent =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15'
-
-const browserTile = (name: string) =>
-  within(screen.getByRole('list', { name: 'Browser support' }))
-    .getByText(name)
-    .closest('li') as HTMLElement
-
 describe('HelpDialog firmware note', () => {
-  it('links to Baud Girl’s FM-1+VA page in a new tab', async () => {
-    await openHelp()
+  it('describes Baud Girl’s firmware once the FM1 is identified as running it', async () => {
+    await openHelp({ firmware: { identity: 'FM-1_097', kind: 'fm1-va' } })
 
+    expect(within(visiblePanel()).getByText('Baud Girl (FM-1+VA)')).toBeTruthy()
     const link = screen.getByRole('link', { name: 'baudgirl.com' })
     expect(link.getAttribute('href')).toBe('https://baudgirl.com/work/FM-1+VA')
     expect(link.getAttribute('target')).toBe('_blank')
   })
+
+  it.each([
+    { firmware: { kind: 'checking' } },
+    { firmware: { identity: 'FM-1_001', kind: 'mvave' } },
+    { firmware: { identity: 'FM-1_910', kind: 'felucca' } },
+  ] satisfies Array<{ firmware: Fm1Firmware }>)(
+    'leaves it out while the firmware is $firmware.kind',
+    async ({ firmware }) => {
+      await openHelp({ firmware })
+
+      expect(screen.queryByText('Baud Girl (FM-1+VA)')).toBeNull()
+    },
+  )
 })
 
 describe('HelpDialog browser support', () => {
-  it('says which browsers can drive the FM1', async () => {
+  it('says nothing about the browser when it can reach the FM1', async () => {
+    useBrowserWithWebMidi()
     await openHelp()
 
-    expect(within(browserTile('Chrome')).getByText('Works')).toBeTruthy()
-    expect(within(browserTile('Firefox')).getByText('Desktop')).toBeTruthy()
-    expect(within(browserTile('Safari')).getByText('Not supported')).toBeTruthy()
+    expect(screen.queryByText('This browser can’t connect to the FM1.')).toBeNull()
   })
 
-  it('marks Safari as this browser when it has no Web MIDI', async () => {
-    vi.stubGlobal('navigator', { userAgent: safariUserAgent })
-    vi.stubGlobal('isSecureContext', true)
-
+  it('says where the site works in a browser without Web MIDI', async () => {
+    useBrowserWithoutWebMidi()
     await openHelp()
 
-    expect(within(browserTile('Safari')).getByText('Your browser')).toBeTruthy()
-    expect(screen.getAllByText('Your browser')).toHaveLength(1)
-  })
-
-  it('marks no browser it cannot name', async () => {
-    vi.stubGlobal('navigator', { userAgent: 'curl/8.7.1' })
-    vi.stubGlobal('isSecureContext', true)
-
-    await openHelp()
-
-    expect(screen.queryByText('Your browser')).toBeNull()
+    expect(screen.getByText('This browser can’t connect to the FM1.')).toBeTruthy()
+    expect(within(visiblePanel()).getByText('Connect your FM1')).toBeTruthy()
   })
 })

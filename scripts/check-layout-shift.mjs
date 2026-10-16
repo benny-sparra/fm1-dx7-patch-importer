@@ -240,6 +240,10 @@ async function main() {
           return {
             dialog: dialog?.currentSrc || null,
             header: header?.currentSrc || null,
+            // A first visit's welcome shows the FM1 in the page's finish, at every width.
+            welcome: [...document.querySelectorAll('dialog[open] img')].map(
+              (image) => image.currentSrc,
+            ),
           };
         })()
       `,
@@ -251,9 +255,14 @@ async function main() {
     if (mobileImages.result.value.dialog) {
       throw new Error(`The closed dialog loaded its lazy image.`)
     }
+    // The header shows no photo below lg, so the only colourway raster a phone may fetch is the one
+    // the welcome on a first visit shows.
+    const welcomeImages = new Set(mobileImages.result.value.welcome)
     if (
-      [...requestedUrls].some((requestUrl) =>
-        /fm1-(?:black|black-green|cool-gray|orange|purple|white-blue)-/.test(requestUrl),
+      [...requestedUrls].some(
+        (requestUrl) =>
+          /fm1-(?:black|black-green|cool-gray|orange|purple|white-blue)-/.test(requestUrl) &&
+          !welcomeImages.has(requestUrl),
       )
     ) {
       throw new Error(`A colourway raster was requested below the lg breakpoint.`)

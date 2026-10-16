@@ -12,6 +12,8 @@ export default {
       'Turn SELECT to Replace and press SEL to store the 32 patches, or press HOME to cancel. They also replace that bank’s factory presets permanently.',
     bankFm1VaNote:
       'If your FM1 runs Baud Girl’s firmware, it asks “Replace Bank A?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Replace and press SEL.',
+    bankOfficialOpenNote:
+      'M-VAVE’s Open firmware ignores DX7 banks, so sending this bank does not change its projects.',
     bankFeluccaNote: 'Felucca ignores DX7 banks, so sending this bank does not change its presets.',
     bankFeluccaOrSloopNote:
       'Felucca and SLOOP ignore DX7 banks, so sending this bank does not change the FM1’s presets.',
@@ -371,6 +373,7 @@ export default {
     firmwareUnidentified: 'Not identified',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
+    firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca or SLOOP {{identity}}',
     firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
@@ -380,6 +383,8 @@ export default {
       'Felucca plays your notes but ignores DX7 patches, banks, and the effect controls.',
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca and SLOOP both report this name. Either plays your notes but ignores DX7 patches, banks, and the effect controls.',
+    firmwareOfficialOpenSends:
+      'M-VAVE’s Open firmware plays your notes but ignores the DX7 patches and banks the editor sends. Clicking a slot selects no preset there, and the effect controls send nothing, since it would take both as changes to its tracks.',
     firmwareNeedsInput:
       'Choose the FM1 as the input monitor so the editor can ask which firmware it runs.',
     noteChannel: 'Note channel',
@@ -390,45 +395,8 @@ export default {
   },
   help: {
     open: 'How to use the FM1 editor and librarian',
-    title: 'Welcome to the FM1 editor & librarian',
-    intro:
-      'Manage your patch library, shape patches in the voice editor, and transfer them to your M-VAVE FM1, all from the browser.',
-    close: 'Close help',
-    truthTitle: 'Banks in this browser are the source of truth',
-    truthBody:
-      'The FM1 accepts patches and banks but cannot send its stored banks back. Import or restore patches here, edit them, then transfer them to the FM1.',
-    firmwareTitle: 'Baud Girl (FM-1+VA) supported',
-    firmwareBody: 'Works with both M-VAVE and Baud Girl firmware.',
-    start: 'Start editing',
-    stepsTitle: 'Getting started',
-    sections: 'Guide sections',
-    shortcutsTitle: 'Keyboard shortcuts',
-    browsers: {
-      title: 'Browser support',
-      works: 'Works',
-      unsupported: 'Not supported',
-      yours: 'Your browser',
-      desktop: 'Desktop',
-      desktopAndAndroid: 'Desktop and Android',
-    },
-    shortcuts: {
-      banks: 'Patch banks',
-      editor: 'Voice editor',
-      search: 'Jump to search',
-      clearSearch: 'Clear the search',
-      openSlot: 'Open the lit slot',
-    },
-    steps: {
-      libraryTitle: 'Build your library',
-      libraryBody: 'Start from the FM1’s factory banks, or import your own.',
-      editTitle: 'Edit and organise',
-      editBody: 'Open a patch to edit it, then save it to your library.',
-      connectTitle: 'Connect your FM1',
-      connectBody: 'Plug in the FM1 and switch MIDI online on.',
-      transferTitle: 'Transfer the patches',
-      transferBody: 'Click a patch to hear it, or send a whole bank to the FM1.',
-    },
   },
+
   colorway: {
     legend: 'FM1 colour finish',
     option: '{{colour}} FM1 finish',
@@ -463,6 +431,9 @@ export default {
     mvaveBadgeLabel: 'M-VAVE firmware, {{release}}',
     mvaveBadgeTitle:
       'The FM1 runs M-VAVE’s own firmware, {{release}}. Patches you play go to its edit buffer.',
+    officialOpenBadgeLabel: 'M-VAVE Open firmware, {{release}}',
+    officialOpenBadgeTitle:
+      'The FM1 runs M-VAVE’s Open firmware, {{release}}, an eight-track groovebox. It plays your notes but ignores the DX7 patches and banks the editor sends. Clicking a slot selects no preset there, and the effect controls send nothing, since it would take both as changes to its tracks.',
     panic: 'MIDI panic',
     panicHelp:
       'MIDI panic: send a note-off for every note on the note channel, to stop hanging notes',

@@ -3,9 +3,15 @@
 This guide covers the M-VAVE FM1 Editor & Librarian in detail. For requirements and a quick start,
 see the [README](../README.md).
 
+## Welcome and guide
+
+A first visit opens a short welcome: what the app does and three steps to start. **Full guide** turns it into the guide. Once closed, by **Start editing** or **✕**, it does not open itself again in that browser. The **?** button in the header opens the guide whenever you want it. Its **Getting started** tab explains connecting, playing and editing, sending, and keeping a backup, and, once the FM1 is identified as running Baud Girl's FM-1+VA, what that firmware adds. Its **Keyboard shortcuts** tab lists the shortcuts below.
+
+A link to a shared patch opens that patch instead of the welcome.
+
 ## Banks, transfers, and settings
 
-The editor works in browsers with Web MIDI and SysEx. The help guide's **Getting started** tab shows the same table and marks the browser you are using.
+The editor works in browsers with Web MIDI and SysEx. In a browser without them, the welcome and the **?** guide say so and name the browsers that work; you can still browse and edit patches there.
 
 | Browser | Drives the FM1 | Where                             |
 | ------- | -------------- | --------------------------------- |

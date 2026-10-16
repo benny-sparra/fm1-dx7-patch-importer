@@ -5,7 +5,8 @@ import type { Fm1Firmware } from '@/lib/fm1-firmware'
  * A new firmware, a release that adds a capability, or a later device's firmware is one entry in
  * `familyProfiles` rather than a predicate in each module that needs it. A family lists only what
  * it can do, so a firmware still being identified, one not recognised, and Felucca, which ignores
- * DX7 voice data, get nothing: the cautious parameter changes and no vendor command.
+ * DX7 voice data, get only the cautious parameter changes, Program Change, and the effect
+ * controllers, and no vendor command. Official Open gets less still.
  */
 export type FirmwareProfile = {
   capabilities: Readonly<Record<FirmwareCapability, boolean>>
@@ -25,9 +26,20 @@ export type FirmwareProfile = {
  * - `soundControls`: FM-1+VA's sound-setting Control Changes (`makeFm1VaSoundControlMessage`).
  * - `bitcrush`: Bitcrush and the effect order, mapped on the release that added Bitcrush.
  * - `knobChoices`: what KNOB1–4 play on FM-1+VA's Preset knob bank.
+ * - `programChanges`: a slot's Program Change, which selects its stored preset. M-VAVE's Official
+ *   Open takes it on a DX7 track as replacing the track's voice with a built-in sound.
+ * - `effectControllers`: the effect unit's controllers on the FX channel. Official Open has no such
+ *   unit and takes them as the volume, pan, and modulation of the track on that channel.
  */
 type FirmwareCapability =
-  'bitcrush' | 'knobChoices' | 'presetRead' | 'presetWrite' | 'singleVoiceDumps' | 'soundControls'
+  | 'bitcrush'
+  | 'effectControllers'
+  | 'knobChoices'
+  | 'presetRead'
+  | 'presetWrite'
+  | 'programChanges'
+  | 'singleVoiceDumps'
+  | 'soundControls'
 
 /** How a run of preset writes is paced. */
 type PresetWriteTiming = {
@@ -53,17 +65,24 @@ const presetsPageTiming: PresetWriteTiming = { listenMs: 1500, spacingMs: 3000 }
 const deviceManagerTiming: PresetWriteTiming = { listenMs: 0, spacingMs: 320 }
 
 type FamilyProfile = {
-  /** The first release with each capability. A capability not listed is never offered. */
+  /**
+   * The first release with each capability. A capability not listed is never offered, and 0 is
+   * every release, one not yet known included.
+   */
   capabilities: Partial<Record<FirmwareCapability, number>>
   /** A faster preset write timing and the first release it was tested on. */
   presetWriteTiming?: { from: number; timing: PresetWriteTiming }
 }
 
+/** What every firmware but Official Open takes, as it always has. */
+const channelMessages = { effectControllers: 0, programChanges: 0 } as const
+
 const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
-  checking: { capabilities: {} },
-  felucca: { capabilities: {} },
+  checking: { capabilities: channelMessages },
+  felucca: { capabilities: channelMessages },
   'fm1-va': {
     capabilities: {
+      ...channelMessages,
       // FM-1_096 added Bitcrush and knob choices.
       bitcrush: 96,
       knobChoices: 96,
@@ -75,29 +94,36 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
     },
     presetWriteTiming: { from: 96, timing: deviceManagerTiming },
   },
-  mvave: { capabilities: { singleVoiceDumps: 0 } },
-  unidentified: { capabilities: {} },
+  mvave: { capabilities: { ...channelMessages, singleVoiceDumps: 0 } },
+  // M-VAVE's Official Open is an eight-track groovebox, not a bank of DX7 presets, and takes a
+  // slot's Program Change and the effect controllers as changes to its tracks
+  // (docs/fm1-research.md, "Official Open: released source").
+  'official-open': { capabilities: {} },
+  unidentified: { capabilities: channelMessages },
 }
 
-/** The release an identified firmware reports, such as 89 for `FM-1_089`. */
+/** The release an FM-1+VA, Felucca, or M-VAVE firmware reports, such as 89 for `FM-1_089`. */
 function releaseNumber(firmware: Fm1Firmware) {
   if (firmware.kind === 'checking' || firmware.kind === 'unidentified') return null
-  // `classifyFm1Firmware` names a family only for an `FM-1_NNN` identity.
-  return Number(firmware.identity.slice('FM-1_'.length))
+  const match = /^FM-1_(\d{3})$/.exec(firmware.identity)
+  return match ? Number(match[1]) : null
 }
 
 /** What the editor may do with `firmware`. */
 export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
   const release = releaseNumber(firmware)
   const from = (firstRelease: number | undefined) =>
-    release !== null && firstRelease !== undefined && release >= firstRelease
+    firstRelease === 0 ||
+    (release !== null && firstRelease !== undefined && release >= firstRelease)
   const { capabilities, presetWriteTiming: fasterTiming } = familyProfiles[firmware.kind]
   return {
     capabilities: {
       bitcrush: from(capabilities.bitcrush),
+      effectControllers: from(capabilities.effectControllers),
       knobChoices: from(capabilities.knobChoices),
       presetRead: from(capabilities.presetRead),
       presetWrite: from(capabilities.presetWrite),
+      programChanges: from(capabilities.programChanges),
       singleVoiceDumps: from(capabilities.singleVoiceDumps),
       soundControls: from(capabilities.soundControls),
     },

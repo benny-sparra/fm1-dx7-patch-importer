@@ -58,6 +58,7 @@ type RootLayoutProps = {
   compact?: boolean
   midi: ComponentProps<typeof MidiConnectActions>['midi'] &
     ComponentProps<typeof MidiConnectionError>['midi'] &
+    ComponentProps<typeof HelpButton>['midi'] &
     ComponentProps<typeof MidiFirmwareBadge>['midi'] &
     ComponentProps<typeof MidiPanicButton>['midi'] &
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
@@ -156,7 +157,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 }}
                 value={colorway}
               />
-              <HelpButton />
+              <HelpButton colorway={colorway} midi={midi} />
               <MidiSettingsMenu midi={midi} />
             </div>
 
