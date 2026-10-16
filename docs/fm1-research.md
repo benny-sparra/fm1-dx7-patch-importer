@@ -1115,7 +1115,13 @@ Open questions:
 5. What does the web installer's start page show today? https://hugelton.github.io/Felucca/ is
    the README's installer link; the `webapp/installer/` address could not be fetched in this check.
 
-### M-VAVE's Official Open firmware (withdrawn preview, read 2026-10-14)
+### M-VAVE's Official Open firmware
+
+M-VAVE published the preview below on 2026-10-14 and released the firmware, as V12, with its
+source on 2026-10-16. The preview notes come first, as read; [the released source](#official-open-released-source-read-2026-10-16)
+answers their open questions.
+
+#### The withdrawn preview (read 2026-10-14)
 
 Source, the only one:
 
@@ -1186,24 +1192,161 @@ update protocol", after a device handshake and an identity reply; that is presum
 
 The page also mentions an "Open build-hash read-back" that V15 lacks.
 
-What this changes: nothing yet. The firmware is unreleased, and the editor sends nothing new. Two
-points matter when it ships. First, `classifyFm1Firmware` reads any `FM-1_NNN` at or below
-`FM-1_019` as M-VAVE's and `FM-1_020` to `FM-1_899` as FM-1+VA, so an Official Open identity in
-either range would get single-voice dumps or FM-1+VA's preset commands; it needs its own profile
-in `resolveFirmwareProfile` before release, most likely the cautious one Felucca gets. Second, both
-the V15 restore and a force flash can wipe what an FM1 holds, so the editor's library and backup
-are a user's copy of their DX7 voices across a switch.
+The preview's own open questions were what Official Open answers to the identity query, whether it
+acts on DX7 SysEx sent over MIDI, whether `.fm1t` and `.fm1` would be documented, and whether the
+source would reappear. The released source answers all four.
+
+#### Official Open: released source (read 2026-10-16)
+
+Source: https://github.com/m-vave/fm1_open, commit `5d3eac2573dbd054254fabda6fde099adc594348`
+(2026-10-16), and the Workbench at https://open.m-vave.com/fm1-workbench. The application under
+`app/` and `web/` is GPL-3.0-only with a linking exception; the device SDK under `sdk/` is a binary
+archive with its JavaScript tools in source. Paths and lines below are in that commit. Everything is
+read from source, not run on an FM1, so every claim is **Likely** until a hardware run confirms it;
+the identity reply below is the first that has been.
+
+**Identity.** `app/version.h:5–6` names the release `V12` and its update product `FM-1_8000012`.
+The Workbench's updater accepts an Open identity with
+`/^(FM1_OFFICIAL_OPEN|FM1_COMMUNITY_\d+|FM-1_8\d{6})$/` (`sdk/WebUpdate.js:58`): the release
+builds, a community build, and a development build's fixed name. It asks with `query(17)`
+(`sdk/WebUpdate.js:252`), whose frame is byte for byte the editor's `fm1IdentityQuery`
+(`F0 00 32 45 00 00 00 40 7F F7`). The reply comes from the binary SDK, not the GPL application.
+**Confirmed** on hardware on 2026-10-16: an FM1 running V12 answered the editor's query with the
+41-byte reply `parseFm1IdentityReply` reads, the 34-byte block `00 59 11`, a declared length of 27,
+and the name `FM-1_8000012`, with a checksum of its own (`54`, `15` on the wire) rather than V15's.
+The capture is `officialOpenIdentityReply` in `src/test/fake-fm1-midi.ts`. On macOS its one MIDI
+port is named `FM1 Community`, which `resolveMidiPortSelection` picks as an FM1 port. Before this change `classifyFm1Firmware` read all three forms as
+unidentified, since none is `FM-1_` and three digits; the editor now names them the
+`official-open` family (below).
+
+**What it is.** The preview's description holds: eight tracks, each running one of six engines
+(DX7, 303, 808, PSG, Pluck, Sampler), 16 USER project slots (`out[1]` of command 0 below), tracks
+1–7 on MIDI channels 1–7 and track 8 on channel 10 (`groove_channel`, `app/instrument.h:60`).
+There are no 4 × 32 DX7 banks, no FX Channel effect unit, and no edit buffer in the stock
+firmware's sense: a DX7 track holds one 156-byte voice in the working project.
+
+**SysEx it takes.** `fm1_app_sysex` (`app/transfer.c:32–45`) queues only three shapes and drops
+every other SysEx message:
+
+1. `F0 7D 'F' 'M' 02 …`, the project transfer protocol below.
+2. A 6-byte MMC command, `F0 7F <00 or 7F> 06 <command> F7`, passed to the screen
+   (`app/transfer.c:226–229`).
+3. A DX7 single-voice dump of exactly 163 bytes, `F0 43 0n 00 01 1B <155 bytes> <checksum> F7`
+   with `n` below 16. `groove_transfer_poll` (`app/transfer.c:230–251`) checks the checksum, routes
+   it to the track whose channel is `n` (channel 10, `n = 9`, is track 8), sets the operator-enable
+   byte to 63, and calls `groove_fm_import` (`web/engine/sound.c:1369–1395`). That refuses the voice
+   unless the track runs DX7 and every byte is within the DX7 limit, then adds a device undo
+   checkpoint, marks the project changed, stops the track's notes, and writes the voice into the
+   working project in RAM. It is not saved to a project slot until the user saves.
+
+DX7 parameter changes (`F0 43 1n …`) and 32-voice bulk dumps (`F0 43 0n 09 …`) fail the shape
+check and are ignored. So the editor's parameter changes, which carry a patch to every firmware
+without `singleVoiceDumps`, do nothing on Official Open, and a bank sent from **Send to FM1** does
+nothing either.
+
+**Channel messages.** `message()` (`web/engine/sound.c:581–692`) handles, per track:
+
+- **Program Change** on a DX7 track (`sound.c:593–609`) stops its notes and replaces the track's
+  voice with built-in program `n % 16` (`groove_fm_program`, `app/presets.c:126`; 16 programs,
+  `app/fm_patch.h:5`), with no device undo checkpoint. A custom voice imported into that track is
+  lost unless the project was saved. On a 303 track it picks saw or square (`n & 1`), on PSG a mode
+  (`n & 3`).
+- **CC 7** track volume, **10** pan, **11** expression, **91** reverb send, **120** all sound off,
+  **121** reset controllers, **123** all notes off. **CC 1** is LFO depth on PSG, Pluck, 808, and
+  Sampler; DX7 takes CC 1, 2, 4, and 64 through `synth_dx7_midi` (`web/synth/dx7synth.c:414–440`).
+  303 takes CC 1, 5, 64, 71, 74, 75, and 121; PSG CC 72 and 74; Pluck CC 72, 74, and 75.
+
+**The `7D 'FM' 02` protocol** (`app/transfer.c:85–297`; the Workbench's client is
+`demoFrame`/`demoParse`, `sdk/WebUpdate.js:460–475`, and its `Library` from line 557). A request is
+`F0 7D 46 4D 02 <cmd> <token lo> <token hi> <payload> <checksum> F7`: the command below 64, a
+14-bit token the reply echoes, the payload packed seven bits at a time least significant bit first,
+and a checksum making bytes 1 to the checksum sum to 0 mod 128. The reply repeats the first eight
+bytes with bit 6 of the command set, then packs a status byte (0 for success, 64 + error otherwise)
+and its data the same way. An identical repeated request gets the stored reply rather than running
+again. A transfer left idle for 10 s is cancelled.
+
+| Cmd   | Payload                     | Does                                                                                                                                                                                  | Class                           |
+| ----- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| 0     | none                        | Info: format 4, 16 slots, current slot, project size 4064, clock mode, and each track's engine (14 bytes)                                                                             | Read; candidate, needs approval |
+| 1     | kind, target                | Starts an export into a RAM buffer; replies with its size. Kind 0 project (4064 bytes), 1 a track's DX7 voice (156, `groove_fm_copy`), 2 a track preset (223, `groove_timbre_export`) | Read; candidate, needs approval |
+| 2     | offset (16-bit), count ≤ 64 | Reads a chunk of that export                                                                                                                                                          | Read; candidate, needs approval |
+| 3     | kind, target, size          | Starts a write of the same kinds                                                                                                                                                      | RAM write; needs approval       |
+| 4     | offset, ≤ 64 bytes          | Writes the next chunk, in order                                                                                                                                                       | RAM write; needs approval       |
+| 5     | CRC-32                      | Checks the CRC and imports into the working project (`groove_fm_import`, `groove_timbre_import`, `groove_project_import`)                                                             | RAM write; needs approval       |
+| 6     | none                        | Cancels a transfer                                                                                                                                                                    | Needs approval with 1–5         |
+| 7     | slot                        | Saves the working project to a project slot in Flash (`groove_project_save_slot`, `app/project.c:237`)                                                                                | **Dangerous / excluded**        |
+| 8     | slot                        | Loads a slot over the working project, discarding unsaved device work (`app/project.c:270`)                                                                                           | **Dangerous / excluded**        |
+| 9     | slot                        | Reads a slot's 12-character name                                                                                                                                                      | Read; candidate, needs approval |
+| 10    | 12 printable bytes          | Renames the working project                                                                                                                                                           | RAM write; needs approval       |
+| 11    | none                        | Sample bank status and size                                                                                                                                                           | Read; out of scope              |
+| 12–14 | begin, write, finish        | Rewrite the sample bank in Flash                                                                                                                                                      | **Dangerous / excluded**        |
+| 15    | offset, count               | Reads sample data                                                                                                                                                                     | Read; out of scope              |
+| 16    | none                        | Cancels a sample transfer                                                                                                                                                             | Out of scope                    |
+| 17–20 | none                        | Engine, render, audio, and master-level statistics                                                                                                                                    | Read; out of scope              |
+
+The editor sends none of these. Each needs its approval recorded in `AGENTS.md` before any code
+sends it, as FM-1+VA's `7D 10` and `7D 04` had.
+
+**What it meant for the editor before this change.** On an unidentified firmware the editor sends
+patches as parameter changes, which Official Open ignores, and three things that do harm there:
+
+- Clicking a slot in banks A–D, or opening one in the editor, sent its **Program Change** on the
+  note channel, which replaced track 1's voice (or that channel's track's) with a built-in program,
+  losing an imported voice with no undo on the device.
+- The **effect controls** went as CC 0–23 on the FX channel, by default channel 2, which is track
+  2: CC 7, the Reverb Mix, became track 2's volume, CC 10 and 11 its pan and expression, and CC 1,
+  2, 4, and 5 its modulation.
+- A bank sent from **Send to FM1** and every parameter change did nothing.
+
+**What the editor does now** (`resolveFirmwareProfile`, `src/lib/firmware-profile.ts`). The
+`official-open` family has none of the existing capabilities and neither of two new ones every
+other family keeps, `programChanges` and `effectControllers`: a slot click sends no Program Change,
+and the effects send no FX Channel controllers. The badge names it **M-VAVE OPEN** with its
+release (V12 for `FM-1_8000012`), and the badge, the firmware setting, and the bank instructions
+say what does not reach it. Analytics records the family `official-open`, never the identity.
+Notes, the keyboard, and the audition phrases still play on the note channel, which is track 1 by
+default. While the identity query is still being answered, the editor behaves as for an
+unidentified firmware, so a slot clicked in that second still sends its Program Change.
+
+**Hardware run (2026-10-16, V12 on macOS, by CoreMIDI from a scratch script, not the editor).**
+Each message below was sent once, with the user's approval for that test, and the user's project
+saved first.
+
+- **Identity query** (`fm1IdentityQuery`): **Confirmed**, as recorded under Identity above.
+- **Command 0, info**: `F0 7D 46 4D 02 00 01 00 6D F7` was answered with
+  `F0 7D 46 4D 02 40 01 00 00 08 40 00 00 7C 03 00 01 04 00 18 30 60 40 01 03 00 75 F7`: token
+  echoed, command 0 with bit 6 set, checksum valid, and unpacked status 0, format 4, 16 slots,
+  current slot 0, project size 4064, internal clock, and engines 303, 808, DX7, PSG, PSG, PSG, PSG,
+  PSG. **Confirmed**: the framing, packing, checksum, and reply layout match `app/transfer.c`.
+- **Single-voice dump on channel 1** (`F0 43 00 …`, INIT VOICE named `CLAUDE TST`, every byte in
+  range, checksum valid): no reply, and track 1 unchanged. Command 0 then showed track 1 running
+  303, so `groove_fm_import` refused it as the source says. The user had set a different track to
+  DX7 than they thought; the device's own report is the way to know.
+- **The same dump on channel 3** (`F0 43 02 …`), track 3 running DX7: no reply; the track's sound
+  changed to the voice sent. **Confirmed.** The main screen still showed the built-in program's
+  name (`SOFT LE`, Soft Lead cut short) with **edited** beneath it, and only the track's edit
+  screen named the voice `CLAUDE TST`: the main screen names the track's program, not its voice.
+  The voice is an unsaved edit in the working project, as `transfer.c` says.
+
+So a dump reaches only a DX7 track, gives no reply, and fails silently on any other engine. Code
+that sends one should first read the engines with command 0 and say when the track it would reach
+is not DX7.
+
+Next, each needing approval first:
+
+- Send a patch to a DX7 track as the 163-byte single-voice dump, which Official Open puts in the
+  working project with an undo checkpoint, on the channel of the track chosen, after command 0
+  shows that track running DX7.
+- Read a track's engine types and DX7 voice with commands 0, 1, and 2, to import a track's voice
+  into the library.
 
 Open questions:
 
-1. What does Official Open answer to the identity query (`fm1IdentityQuery`), and does its answer
-   fall in a range `classifyFm1Firmware` already gives another firmware? The header's V10 suggests
-   `FM-1_010`, which the editor would read as M-VAVE's.
-2. Does it act on DX7 parameter-change SysEx or a single-voice dump sent to a DX7 track's channel,
-   or only on `.syx` files through the Workbench?
-3. Will `.fm1t` and `.fm1` be documented? A DX7 track sound exported from this editor as `.fm1t`
-   would need the layout.
-4. Does the source repository reappear, and under which name?
+1. Does the device's undo bring back the voice a dump replaced?
+2. What does the MIDI port appear as on Windows and Linux? On macOS it is `FM1 Community`. The
+   Workbench matches `fm.?1` or a bare `USB-MIDI` (`sdk/WebUpdate.js:225`).
+3. `.fm1t` is a 223-byte track preset (`struct groove_preset`) and `.fm1` a 4064-byte project; their
+   layouts are in the source but not yet mapped here.
 
 ### FM1 Editor
 

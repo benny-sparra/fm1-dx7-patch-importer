@@ -87,6 +87,12 @@ const firmwareBadges = {
     product: null,
     title: 'midi.mvaveBadgeTitle',
   },
+  'official-open': {
+    label: 'midi.officialOpenBadgeLabel',
+    maker: 'M-VAVE',
+    product: 'OPEN',
+    title: 'midi.officialOpenBadgeTitle',
+  },
 } as const
 
 /**
@@ -174,6 +180,8 @@ function firmwareName(firmware: MidiController['firmware'], t: TFunction) {
       return t('settings.firmwareMvave', { identity: firmware.identity })
     case 'fm1-va':
       return t('settings.firmwareFm1Va', { identity: firmware.identity })
+    case 'official-open':
+      return t('settings.firmwareOfficialOpen', { identity: firmware.identity })
     case 'felucca':
       return mayBeSloop(firmware)
         ? t('settings.firmwareFeluccaOrSloop', { identity: firmware.identity })
@@ -190,6 +198,7 @@ function firmwareSendingKey(firmware: MidiController['firmware']) {
   if (firmware.kind === 'mvave') return 'settings.firmwareEditBuffer'
   if (mayBeSloop(firmware)) return 'settings.firmwareFeluccaOrSloopIgnoresPatches'
   if (firmware.kind === 'felucca') return 'settings.firmwareIgnoresPatches'
+  if (firmware.kind === 'official-open') return 'settings.firmwareOfficialOpenSends'
   return 'settings.firmwareParameterChanges'
 }
 

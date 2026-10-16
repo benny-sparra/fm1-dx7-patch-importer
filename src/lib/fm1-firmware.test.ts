@@ -7,7 +7,12 @@ import {
   mayBeSloop,
   parseFm1IdentityReply,
 } from '@/lib/fm1-firmware'
-import { feluccaIdentityReply, fm1VaIdentityReply, mvaveIdentityReply } from '@/test/fake-fm1-midi'
+import {
+  feluccaIdentityReply,
+  fm1VaIdentityReply,
+  mvaveIdentityReply,
+  officialOpenIdentityReply,
+} from '@/test/fake-fm1-midi'
 
 describe('fm1IdentityQuery', () => {
   it('is the updater identity query, which asks for item 0x40', () => {
@@ -32,6 +37,10 @@ describe('parseFm1IdentityReply', () => {
 
   it('reads the name Felucca answers with', () => {
     expect(parseFm1IdentityReply(feluccaIdentityReply)).toBe('FM-1_904')
+  })
+
+  it('reads the name from a reply captured on Official Open V12', () => {
+    expect(parseFm1IdentityReply(officialOpenIdentityReply)).toBe('FM-1_8000012')
   })
 
   it('rejects a reply whose block does not declare a 27-byte name field', () => {
@@ -77,8 +86,39 @@ describe('classifyFm1Firmware', () => {
     expect(classifyFm1Firmware('FM-1_999')).toEqual({ identity: 'FM-1_999', kind: 'felucca' })
   })
 
+  it('counts every name Official Open’s updater accepts as Official Open', () => {
+    for (const identity of [
+      'FM-1_8000012',
+      'FM-1_8999999',
+      'FM1_COMMUNITY_0',
+      'FM1_COMMUNITY_42',
+      'FM1_OFFICIAL_OPEN',
+    ]) {
+      expect(classifyFm1Firmware(identity)).toEqual({ identity, kind: 'official-open' })
+    }
+  })
+
+  it('keeps three-digit names in the 800s as FM-1+VA rather than Official Open', () => {
+    expect(classifyFm1Firmware('FM-1_800')).toEqual({ identity: 'FM-1_800', kind: 'fm1-va' })
+    expect(classifyFm1Firmware('FM-1_812')).toEqual({ identity: 'FM-1_812', kind: 'fm1-va' })
+  })
+
   it('leaves a name it does not recognise unidentified', () => {
     expect(classifyFm1Firmware('XR-9_015')).toEqual({ identity: 'XR-9_015', kind: 'unidentified' })
+  })
+
+  it('leaves names close to Official Open’s unidentified', () => {
+    for (const identity of [
+      'FM-1_800012',
+      'FM-1_80000120',
+      'FM-1_9000012',
+      'FM1_COMMUNITY_',
+      'FM1_COMMUNITY_X',
+      'fm1_official_open',
+      'FM1_OFFICIAL_OPEN_2',
+    ]) {
+      expect(classifyFm1Firmware(identity)).toEqual({ identity, kind: 'unidentified' })
+    }
   })
 })
 
@@ -86,6 +126,16 @@ describe('fm1FirmwareRelease', () => {
   it('names an M-VAVE release as M-VAVE numbers it', () => {
     expect(fm1FirmwareRelease({ identity: 'FM-1_015', kind: 'mvave' })).toBe('V15')
     expect(fm1FirmwareRelease({ identity: 'FM-1_009', kind: 'mvave' })).toBe('V9')
+  })
+
+  it('names an Official Open release as M-VAVE numbers it, and other builds by their name', () => {
+    expect(fm1FirmwareRelease({ identity: 'FM-1_8000012', kind: 'official-open' })).toBe('V12')
+    expect(fm1FirmwareRelease({ identity: 'FM1_COMMUNITY_3', kind: 'official-open' })).toBe(
+      'FM1_COMMUNITY_3',
+    )
+    expect(fm1FirmwareRelease({ identity: 'FM1_OFFICIAL_OPEN', kind: 'official-open' })).toBe(
+      'FM1_OFFICIAL_OPEN',
+    )
   })
 
   it('names an FM-1+VA release by the name the FM1 reports', () => {

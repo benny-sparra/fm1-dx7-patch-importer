@@ -14,6 +14,7 @@ import {
   fm1VaIdentityReply,
   makeFakeFm1Ports,
   mvaveIdentityReply,
+  officialOpenIdentityReply,
 } from '@/test/fake-fm1-midi'
 
 import { useMidi } from './use-midi'
@@ -117,6 +118,16 @@ describe('useMidi firmware identification', () => {
     expect(logMessages(result)).toContainEqual([
       'system',
       'The FM1 runs Felucca or SLOOP firmware FM-1_900, a name both report, and either ignores DX7 patches, so the parameter changes sent to it have no effect.',
+    ])
+  })
+
+  it('identifies M-VAVE’s Official Open and says in the log what it does not send', async () => {
+    const { result } = await connect(makeFakeFm1Ports({ reply: officialOpenIdentityReply }))
+
+    expect(result.current.firmware).toEqual({ identity: 'FM-1_8000012', kind: 'official-open' })
+    expect(logMessages(result)).toContainEqual([
+      'system',
+      "The FM1 runs M-VAVE's Official Open firmware FM-1_8000012, an eight-track groovebox, which takes Program Change and the effect controllers as changes to its tracks, so the editor sends neither, and ignores the parameter changes patches are sent as.",
     ])
   })
 
@@ -245,6 +256,14 @@ describe('useMidi firmware analytics', () => {
     expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'felucca' }]])
   })
 
+  it('reports Official Open by its family, without its name', async () => {
+    const firmwareEvents = trackFirmwareEvents()
+
+    await connect(makeFakeFm1Ports({ reply: officialOpenIdentityReply }))
+
+    expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'official-open' }]])
+  })
+
   it('reports nothing while the FM1 has not answered', async () => {
     const firmwareEvents = trackFirmwareEvents()
 
@@ -369,5 +388,28 @@ describe('useMidi patch sends by firmware', () => {
     expect(Array.from({ length: 155 }, (_, parameter) => last.get(parameter))).toEqual([
       ...unpackDx7Voice(second),
     ])
+  })
+})
+
+describe('useMidi effect controllers by firmware', () => {
+  it('sends Official Open no effect controller, which it takes as a track’s volume or pan', async () => {
+    const ports = makeFakeFm1Ports({ reply: officialOpenIdentityReply })
+    const { result } = await connect(ports)
+
+    expect(result.current.sendEffectParameter(7, 100)).toBe(false)
+    await expect(result.current.sendEffectSettings(new Uint8Array(24))).resolves.toBe(true)
+    await act(() => vi.advanceTimersByTimeAsync(1_000))
+
+    expect(ports.output.sendControlChange).not.toHaveBeenCalled()
+  })
+
+  it('sends the effect controllers while the firmware is still being checked', async () => {
+    const ports = makeFakeFm1Ports()
+    const { result } = await connect(ports)
+
+    expect(result.current.sendEffectParameter(7, 100)).toBe(true)
+    await act(() => vi.advanceTimersByTimeAsync(1_000))
+
+    expect(ports.output.sendControlChange).toHaveBeenCalledWith(7, 100, { channels: 2 })
   })
 })

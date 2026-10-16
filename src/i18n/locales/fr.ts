@@ -15,6 +15,8 @@ export default {
       'Tournez SELECT jusqu’à Replace et appuyez sur SEL pour enregistrer les 32 sons, ou appuyez sur HOME pour annuler. Ils remplacent aussi définitivement les presets d’usine de cette banque.',
     bankFm1VaNote:
       'Si votre FM1 utilise le firmware de Baud Girl, il demande plutôt « Replace Bank A? » et commence sur la banque A. Tournez ALGORITHM jusqu’à la banque de destination, puis SELECT jusqu’à Replace, et appuyez sur SEL.',
+    bankOfficialOpenNote:
+      'Le firmware Open de M-VAVE ignore les banques DX7, donc envoyer cette banque ne modifie pas ses projets.',
     bankFeluccaNote:
       'Felucca ignore les banques DX7, donc envoyer cette banque ne modifie pas ses presets.',
     bankFeluccaOrSloopNote:
@@ -824,6 +826,7 @@ export default {
     firmwareUnidentified: 'Non identifié',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
+    firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca ou SLOOP {{identity}}',
     firmwareEditBuffer: 'Les sons que vous jouez vont dans le tampon d’édition du FM1.',
@@ -833,6 +836,8 @@ export default {
       'Felucca joue vos notes mais ignore les sons DX7, les banques et les commandes d’effets.',
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca et SLOOP annoncent tous deux ce nom. L’un comme l’autre joue vos notes mais ignore les sons DX7, les banques et les commandes d’effets.',
+    firmwareOfficialOpenSends:
+      'Le firmware Open de M-VAVE joue vos notes mais ignore les sons et banques DX7 que l’éditeur envoie. Cliquer sur un emplacement n’y sélectionne aucun preset, et les commandes d’effets n’envoient rien, car il prendrait les deux pour des modifications de ses pistes.',
     firmwareNeedsInput:
       'Choisissez le FM1 comme entrée de contrôle pour que l’éditeur puisse lui demander quel firmware il utilise.',
     noteChannel: 'Canal des notes',
@@ -1044,6 +1049,9 @@ export default {
     mvaveBadgeLabel: 'Firmware de M-VAVE, {{release}}',
     mvaveBadgeTitle:
       'Le FM1 utilise le firmware d’origine de M-VAVE, {{release}}. Les sons que vous jouez vont dans son tampon d’édition.',
+    officialOpenBadgeLabel: 'Firmware Open de M-VAVE, {{release}}',
+    officialOpenBadgeTitle:
+      'Le FM1 utilise le firmware Open de M-VAVE, {{release}}, une groovebox à huit pistes. Il joue vos notes mais ignore les sons et banques DX7 que l’éditeur envoie. Cliquer sur un emplacement n’y sélectionne aucun preset, et les commandes d’effets n’envoient rien, car il prendrait les deux pour des modifications de ses pistes.',
     panic: 'Panique MIDI',
     panicHelp:
       'Panique MIDI : envoie un note-off pour chaque note du canal des notes afin d’arrêter les notes bloquées',

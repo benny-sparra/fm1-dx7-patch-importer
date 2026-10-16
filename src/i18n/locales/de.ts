@@ -14,6 +14,8 @@ export default {
       'Drehe SELECT auf Replace und drücke SEL, um die 32 Sounds zu speichern, oder brich mit HOME ab. Sie ersetzen auch die Werkspresets dieser Bank dauerhaft.',
     bankFm1VaNote:
       'Läuft auf deinem FM1 die Firmware von Baud Girl, fragt er stattdessen „Replace Bank A?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Replace, und drücke SEL.',
+    bankOfficialOpenNote:
+      'Die Open-Firmware von M-VAVE ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Projekte also nicht.',
     bankFeluccaNote:
       'Felucca ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Presets also nicht.',
     bankFeluccaOrSloopNote:
@@ -836,6 +838,7 @@ export default {
     firmwareUnidentified: 'Nicht erkannt',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
+    firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca oder SLOOP {{identity}}',
     firmwareEditBuffer: 'Sounds, die du anspielst, gehen in den Bearbeitungspuffer des FM1.',
@@ -845,6 +848,8 @@ export default {
       'Felucca spielt deine Noten, ignoriert aber DX7-Sounds, DX7-Bänke und die Effektregler.',
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca und SLOOP melden beide diesen Namen. Beide spielen deine Noten, ignorieren aber DX7-Sounds, DX7-Bänke und die Effektregler.',
+    firmwareOfficialOpenSends:
+      'Die Open-Firmware von M-VAVE spielt deine Noten, ignoriert aber die DX7-Sounds und -Bänke, die der Editor sendet. Ein Klick auf einen Platz wählt dort kein Preset, und die Effektregler senden nichts, da sie beides als Änderungen an ihren Spuren verstehen würde.',
     firmwareNeedsInput:
       'Wähle den FM1 als Monitoring-Eingang, damit der Editor fragen kann, welche Firmware er verwendet.',
     noteChannel: 'Notenkanal',
@@ -1056,6 +1061,9 @@ export default {
     mvaveBadgeLabel: 'Firmware von M-VAVE, {{release}}',
     mvaveBadgeTitle:
       'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer.',
+    officialOpenBadgeLabel: 'Open-Firmware von M-VAVE, {{release}}',
+    officialOpenBadgeTitle:
+      'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Sie spielt deine Noten, ignoriert aber die DX7-Sounds und -Bänke, die der Editor sendet. Ein Klick auf einen Platz wählt dort kein Preset, und die Effektregler senden nichts, da sie beides als Änderungen an ihren Spuren verstehen würde.',
     panic: 'MIDI-Panik',
     panicHelp:
       'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',

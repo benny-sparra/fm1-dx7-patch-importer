@@ -41,8 +41,8 @@ export function Fm1BankSelectionDialog({
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const sysexUnavailable = !midi.sysexAvailable
   // M-VAVE's firmware and FM-1+VA choose the destination bank differently. Until the editor knows
-  // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs. Felucca and SLOOP
-  // ignore DX7 banks, so the dialog says so before the bank is sent.
+  // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs. Felucca, SLOOP,
+  // and M-VAVE's Official Open ignore DX7 banks, so the dialog says so before the bank is sent.
   const firmwareKind = midi.firmware.kind
   const steps =
     firmwareKind === 'fm1-va'
@@ -57,9 +57,11 @@ export function Fm1BankSelectionDialog({
     ? t('dialogs.bankFeluccaOrSloopNote')
     : firmwareKind === 'felucca'
       ? t('dialogs.bankFeluccaNote')
-      : firmwareKind === 'checking' || firmwareKind === 'unidentified'
-        ? t('dialogs.bankFm1VaNote')
-        : null
+      : firmwareKind === 'official-open'
+        ? t('dialogs.bankOfficialOpenNote')
+        : firmwareKind === 'checking' || firmwareKind === 'unidentified'
+          ? t('dialogs.bankFm1VaNote')
+          : null
   const closeDialog = () => dialogRef.current?.close()
 
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and

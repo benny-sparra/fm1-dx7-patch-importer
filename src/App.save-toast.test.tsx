@@ -21,7 +21,12 @@ const virtualAnalogVoice = vi.hoisted(() => {
 const virtualAnalogRecord = vi.hoisted(() => new Uint8Array(59))
 
 vi.mock('@/hooks/use-midi', () => ({
-  useMidi: () => ({ sendEffectSettings: vi.fn(), sendProgramChange: vi.fn(), sendVoice: vi.fn() }),
+  useMidi: () => ({
+    firmware: { kind: 'checking' },
+    sendEffectSettings: vi.fn(),
+    sendProgramChange: vi.fn(),
+    sendVoice: vi.fn(),
+  }),
 }))
 
 vi.mock('@/hooks/use-patch-library', () => ({
