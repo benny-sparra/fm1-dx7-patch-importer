@@ -4,12 +4,17 @@ import { resolveFirmwareProfile } from './firmware-profile'
 
 const nothing = {
   bitcrush: false,
+  effectControllers: false,
   knobChoices: false,
   presetRead: false,
   presetWrite: false,
+  programChanges: false,
   singleVoiceDumps: false,
   soundControls: false,
 }
+
+// What every firmware but Official Open takes, whatever else it can do.
+const cautious = { ...nothing, effectControllers: true, programChanges: true }
 
 const presetsPageTiming = { listenMs: 1500, spacingMs: 3000 }
 
@@ -18,9 +23,9 @@ function fm1Va(identity: string) {
 }
 
 describe('resolveFirmwareProfile', () => {
-  it('sends single-voice dumps to M-VAVE firmware and offers it nothing of FM-1+VA’s', () => {
+  it('sends single-voice dumps to M-VAVE firmware and offers it cautious of FM-1+VA’s', () => {
     expect(resolveFirmwareProfile({ identity: 'FM-1_015', kind: 'mvave' })).toEqual({
-      capabilities: { ...nothing, singleVoiceDumps: true },
+      capabilities: { ...cautious, singleVoiceDumps: true },
       family: 'mvave',
       presetWriteTiming: presetsPageTiming,
     })
@@ -29,30 +34,30 @@ describe('resolveFirmwareProfile', () => {
     ).toBe(true)
   })
 
-  it('gives Felucca nothing, as it ignores DX7 voice data', () => {
+  it('gives Felucca cautious, as it ignores DX7 voice data', () => {
     expect(resolveFirmwareProfile({ identity: 'FM-1_904', kind: 'felucca' })).toEqual({
-      capabilities: nothing,
+      capabilities: cautious,
       family: 'felucca',
       presetWriteTiming: presetsPageTiming,
     })
     expect(resolveFirmwareProfile({ identity: 'FM-1_908', kind: 'felucca' }).capabilities).toEqual(
-      nothing,
+      cautious,
     )
   })
 
-  it('gives a firmware it does not recognise nothing, whatever name it answered with', () => {
+  it('gives a firmware it does not recognise cautious, whatever name it answered with', () => {
     for (const identity of [undefined, 'XR-9_015', 'FM-1_999X']) {
       expect(resolveFirmwareProfile({ identity, kind: 'unidentified' })).toEqual({
-        capabilities: nothing,
+        capabilities: cautious,
         family: 'unidentified',
         presetWriteTiming: presetsPageTiming,
       })
     }
   })
 
-  it('gives nothing before the firmware is known', () => {
+  it('gives cautious before the firmware is known', () => {
     expect(resolveFirmwareProfile({ kind: 'checking' })).toEqual({
-      capabilities: nothing,
+      capabilities: cautious,
       family: 'checking',
       presetWriteTiming: presetsPageTiming,
     })
@@ -64,9 +69,9 @@ describe('resolveFirmwareProfile', () => {
   })
 
   it('reads and writes presets on FM-1+VA from FM-1_079, the release that added both', () => {
-    expect(fm1Va('FM-1_078').capabilities).toEqual(nothing)
+    expect(fm1Va('FM-1_078').capabilities).toEqual(cautious)
     expect(fm1Va('FM-1_079').capabilities).toEqual({
-      ...nothing,
+      ...cautious,
       presetRead: true,
       presetWrite: true,
     })
@@ -82,6 +87,7 @@ describe('resolveFirmwareProfile', () => {
   it('plays Bitcrush and knob choices on FM-1+VA from FM-1_096, which added them', () => {
     expect(fm1Va('FM-1_094').capabilities).toMatchObject({ bitcrush: false, knobChoices: false })
     expect(fm1Va('FM-1_096').capabilities).toEqual({
+      ...cautious,
       bitcrush: true,
       knobChoices: true,
       presetRead: true,
@@ -104,5 +110,36 @@ describe('resolveFirmwareProfile', () => {
 
   it('names the family the firmware was classified as', () => {
     expect(fm1Va('FM-1_089').family).toBe('fm1-va')
+  })
+
+  it('sends Official Open no Program Change, effect controller, or vendor command', () => {
+    for (const identity of [
+      'FM-1_8000012',
+      'FM-1_8000099',
+      'FM1_COMMUNITY_3',
+      'FM1_OFFICIAL_OPEN',
+    ]) {
+      expect(resolveFirmwareProfile({ identity, kind: 'official-open' })).toEqual({
+        capabilities: nothing,
+        family: 'official-open',
+        presetWriteTiming: presetsPageTiming,
+      })
+    }
+  })
+
+  it('keeps Program Change and the effect controllers on every other family', () => {
+    for (const firmware of [
+      { kind: 'checking' },
+      { kind: 'unidentified' },
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_020', kind: 'fm1-va' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { identity: 'FM-1_908', kind: 'felucca' },
+    ] as const) {
+      expect(resolveFirmwareProfile(firmware).capabilities).toMatchObject({
+        effectControllers: true,
+        programChanges: true,
+      })
+    }
   })
 })

@@ -12,6 +12,8 @@ export default {
       '将 SELECT 转到 Replace 并按 SEL 保存这 32 个音色，或按 HOME 取消。它们还会永久替换该音色库的出厂预设。',
     bankFm1VaNote:
       '如果你的 FM1 运行 Baud Girl 的固件，它会改为询问“Replace Bank A?”，并先停在音色库 A。转动 ALGORITHM 选择目标音色库，再将 SELECT 转到 Replace 并按 SEL。',
+    bankOfficialOpenNote:
+      'M-VAVE 的 Open 固件会忽略 DX7 音色库，因此发送此音色库不会改变它的工程。',
     bankFeluccaNote: 'Felucca 会忽略 DX7 音色库，因此发送此音色库不会改变它的预设。',
     bankFeluccaOrSloopNote:
       'Felucca 和 SLOOP 都会忽略 DX7 音色库，因此发送此音色库不会改变 FM1 的预设。',
@@ -737,6 +739,7 @@ export default {
     firmwareUnidentified: '未识别',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
+    firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca 或 SLOOP {{identity}}',
     firmwareEditBuffer: '你试听的音色会进入 FM1 的编辑缓冲区。',
@@ -745,6 +748,8 @@ export default {
     firmwareIgnoresPatches: 'Felucca 会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca 和 SLOOP 都会报告这个名称。两者都会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
+    firmwareOfficialOpenSends:
+      'M-VAVE 的 Open 固件会演奏你弹的音符，但会忽略编辑器发送的 DX7 音色和音色库。点击位置不会在它上面选择预设，效果控制也不会发送任何内容，因为它会把两者都当作对音轨的更改。',
     firmwareNeedsInput: '请把 FM1 选为监听输入，这样编辑器才能询问它运行的固件。',
     noteChannel: '音符通道',
     fxChannel: '效果通道',
@@ -948,6 +953,9 @@ export default {
     mvaveBadgeLabel: 'M-VAVE 固件，{{release}}',
     mvaveBadgeTitle:
       'FM1 运行的是 M-VAVE 原厂固件（{{release}}）。你试听的音色会进入它的编辑缓冲区。',
+    officialOpenBadgeLabel: 'M-VAVE Open 固件，{{release}}',
+    officialOpenBadgeTitle:
+      'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。它会演奏你弹的音符，但会忽略编辑器发送的 DX7 音色和音色库。点击位置不会在它上面选择预设，效果控制也不会发送任何内容，因为它会把两者都当作对音轨的更改。',
     panic: 'MIDI 紧急停止',
     panicHelp: 'MIDI 紧急停止：在音符通道上为每个音符发送音符关闭消息，以停止悬挂的音符',
     panicUnavailable: 'MIDI 紧急停止：{{reason}}',

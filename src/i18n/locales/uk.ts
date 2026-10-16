@@ -14,6 +14,8 @@ export default {
       'Поверніть SELECT на Replace і натисніть SEL, щоб зберегти 32 патчі, або натисніть HOME, щоб скасувати. При цьому заводські пресети цього банку буде замінено назавжди.',
     bankFm1VaNote:
       'На прошивці Baud Girl FM1 натомість запитає «Replace Bank A?» і почне з банку A. Поверніть ALGORITHM до потрібного банку, а SELECT — на Replace, і натисніть SEL.',
+    bankOfficialOpenNote:
+      'Прошивка Open від M-VAVE ігнорує банки DX7, тож надсилання цього банку не змінить її проєкти.',
     bankFeluccaNote: 'Felucca ігнорує банки DX7, тож надсилання цього банку не змінить її пресети.',
     bankFeluccaOrSloopNote:
       'Felucca і SLOOP ігнорують банки DX7, тож надсилання цього банку не змінить пресети FM1.',
@@ -887,6 +889,7 @@ export default {
     firmwareUnidentified: 'Не ідентифікована',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
+    firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca або SLOOP {{identity}}',
     firmwareEditBuffer: 'Коли ви граєте патч, він потрапляє в буфер редагування FM1.',
@@ -896,6 +899,8 @@ export default {
       'Felucca відтворює ваші ноти, але ігнорує патчі й банки DX7 та керування ефектами.',
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca і SLOOP мають однакову назву прошивки, тож редактор їх не розрізняє. Обидві відтворюють ваші ноти, але ігнорують патчі й банки DX7 та керування ефектами.',
+    firmwareOfficialOpenSends:
+      'Прошивка Open від M-VAVE відтворює ваші ноти, але ігнорує патчі й банки DX7, які надсилає редактор. Клік по слоту не вибирає на ній пресет, а керування ефектами нічого не надсилає, бо вона сприйняла б і те, і інше як зміни своїх доріжок.',
     firmwareNeedsInput: 'Оберіть FM1 як вхід, щоб редактор зміг визначити його прошивку.',
     noteChannel: 'Канал нот',
     fxChannel: 'Канал ефектів',
@@ -1106,6 +1111,9 @@ export default {
     mvaveBadgeLabel: 'Прошивка M-VAVE, {{release}}',
     mvaveBadgeTitle:
       'На FM1 працює власна прошивка M-VAVE, {{release}}. Коли ви граєте патч, він потрапляє в буфер редагування FM1.',
+    officialOpenBadgeLabel: 'Прошивка Open від M-VAVE, {{release}}',
+    officialOpenBadgeTitle:
+      'На FM1 працює прошивка Open від M-VAVE, {{release}}, groovebox на вісім доріжок. Вона відтворює ваші ноти, але ігнорує патчі й банки DX7, які надсилає редактор. Клік по слоту не вибирає на ній пресет, а керування ефектами нічого не надсилає, бо вона сприйняла б і те, і інше як зміни своїх доріжок.',
     panic: 'MIDI panic',
     panicHelp:
       'MIDI panic: надіслати Note Off для кожної ноти на каналі нот, щоб зупинити завислі ноти',

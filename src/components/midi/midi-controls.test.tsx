@@ -131,6 +131,18 @@ describe('MidiSettingsMenu firmware', () => {
     expect(screen.queryByText(/sent as parameter changes/)).toBeNull()
   })
 
+  it('names M-VAVE’s Official Open and says what the editor does not send it', () => {
+    renderSettings({ identity: 'FM-1_8000012', kind: 'official-open' })
+
+    expect(screen.getByText('M-VAVE Open FM-1_8000012')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'M-VAVE’s Open firmware plays your notes but ignores the DX7 patches and banks the editor sends. Clicking a slot selects no preset there, and the effect controls send nothing, since it would take both as changes to its tracks.',
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByText(/sent as parameter changes/)).toBeNull()
+  })
+
   it('names Felucca and SLOOP for FM-1_900, the name both report', () => {
     renderSettings({ identity: 'FM-1_900', kind: 'felucca' })
 
@@ -246,6 +258,40 @@ describe('MidiFirmwareBadge', () => {
     )
 
     expect(screen.getByText('Firmware Felucca da Hügelton Instruments, 0.8')).toBeTruthy()
+  })
+
+  it('names M-VAVE’s Official Open with its release', () => {
+    const { container } = render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_8000012', kind: 'official-open' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
+
+    expect(screen.getByText('M-VAVE Open firmware, V12')).toBeTruthy()
+    expect(container.textContent).toContain('M-VAVEOPENV12')
+    expect(
+      screen.getByTitle(/^The FM1 runs M-VAVE’s Open firmware, V12, an eight-track/),
+    ).toBeTruthy()
+  })
+
+  it('names Official Open with its release in Ukrainian', async () => {
+    await setLocale('uk')
+
+    render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_8000012', kind: 'official-open' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
+
+    expect(screen.getByText('Прошивка Open від M-VAVE, V12')).toBeTruthy()
   })
 
   it('names Felucca and SLOOP, with no maker, for FM-1_900', () => {

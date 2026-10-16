@@ -102,6 +102,8 @@ function firmwareLogMessage(firmware: Fm1Firmware) {
       return `The FM1 runs M-VAVE firmware ${firmware.identity}. Patches go to its edit buffer.`
     case 'fm1-va':
       return `The FM1 runs FM-1+VA firmware ${firmware.identity}, which stores a single-patch dump over the selected preset, so patches are sent as parameter changes instead.`
+    case 'official-open':
+      return `The FM1 runs M-VAVE's Official Open firmware ${firmware.identity}, an eight-track groovebox, which takes Program Change and the effect controllers as changes to its tracks, so the editor sends neither, and ignores the parameter changes patches are sent as.`
     case 'felucca':
       return mayBeSloop(firmware)
         ? `The FM1 runs Felucca or SLOOP firmware ${firmware.identity}, a name both report, and either ignores DX7 patches, so the parameter changes sent to it have no effect.`
@@ -630,6 +632,7 @@ export function useMidi() {
         appendLog(noOutputEntry('send FM1 effect'))
         return false
       }
+      if (!resolveFirmwareProfile(firmware).capabilities.effectControllers) return false
 
       return enqueueLogged({
         key: `effect-${controller}`,
@@ -639,7 +642,7 @@ export function useMidi() {
         failure: 'FM1 effect write failed.',
       })
     },
-    [appendLog, effectChannel, enqueueLogged, selectedOutput],
+    [appendLog, effectChannel, enqueueLogged, firmware, selectedOutput],
   )
 
   const sendEffectDiagnosticControl = useCallback(
@@ -648,6 +651,10 @@ export function useMidi() {
 
       if (!selectedOutput) {
         appendLog(noOutputEntry('send development FX probe'))
+        return false
+      }
+      if (!resolveFirmwareProfile(firmware).capabilities.effectControllers) {
+        appendLog(makeLogEntry('system', 'This firmware takes no FM1 effect controllers.'))
         return false
       }
 
@@ -660,7 +667,7 @@ export function useMidi() {
         failure: 'Development FX probe failed.',
       })
     },
-    [appendLog, effectChannel, enqueueLogged, selectedOutput],
+    [appendLog, effectChannel, enqueueLogged, firmware, selectedOutput],
   )
 
   const sendEffectSettings = useCallback(
@@ -669,6 +676,12 @@ export function useMidi() {
       if (!selectedOutput) {
         appendLog(noOutputEntry('send FM1 effects'))
         return Promise.resolve(false)
+      }
+      // Official Open has no FX Channel effect unit and takes these as the track's volume and pan,
+      // so there is nothing to send, and a patch it is sent with has still gone as far as it can.
+      if (!resolveFirmwareProfile(firmware).capabilities.effectControllers) {
+        appendLog(makeLogEntry('system', 'This firmware takes no FM1 effect controllers.'))
+        return Promise.resolve(true)
       }
 
       const transfers = Array.from({ length: fm1EffectParameterCount }, (_, controller) =>
@@ -687,7 +700,7 @@ export function useMidi() {
           return false
         })
     },
-    [appendLog, effectChannel, selectedOutput, transferQueue],
+    [appendLog, effectChannel, firmware, selectedOutput, transferQueue],
   )
 
   const startNote = useCallback(

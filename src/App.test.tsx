@@ -7,11 +7,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import '@/i18n'
 import App from '@/App'
 import { ToastProvider } from '@/components/ui/toast'
+import type { Fm1Firmware } from '@/lib/fm1-firmware'
 
 const sendProgramChange = vi.hoisted(() => vi.fn(() => true))
 const sendVoice = vi.hoisted(() => vi.fn(async () => true))
 const sendEffectSettings = vi.hoisted(() => vi.fn(async () => true))
-const midiState = vi.hoisted(() => ({ sysexAvailable: true }))
+const midiState = vi.hoisted(() => ({
+  firmware: { kind: 'checking' } as Fm1Firmware,
+  sysexAvailable: true,
+}))
 const pianoVoice = vi.hoisted(() => ({ data: new Uint8Array(128), name: 'PIANO' }))
 const addedVoice = vi.hoisted(() => ({ data: new Uint8Array(128), name: 'PAD' }))
 const pianoEffects = vi.hoisted(() => Uint8Array.from({ length: 24 }, (_, index) => index % 2))
@@ -27,6 +31,7 @@ const loadPatchEditorPage = vi.hoisted(() =>
 
 vi.mock('@/hooks/use-midi', () => ({
   useMidi: () => ({
+    firmware: midiState.firmware,
     sendEffectSettings,
     sendProgramChange,
     sendVoice,
@@ -126,6 +131,7 @@ vi.mock('@/routes/load-patch-editor-page', () => ({
 }))
 
 afterEach(() => {
+  midiState.firmware = { kind: 'checking' }
   midiState.sysexAvailable = true
   cleanup()
   vi.restoreAllMocks()
@@ -285,6 +291,17 @@ describe('App slot audition', () => {
     }
   })
 
+  it('sends no Program Change from a slot in banks A to D to M-VAVE’s Official Open', async () => {
+    midiState.firmware = { identity: 'FM-1_8000012', kind: 'official-open' }
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+    await user.click(screen.getByRole('button', { name: 'Play Virtual Analog' }))
+
+    expect(sendProgramChange).not.toHaveBeenCalled()
+    expect(sendVoice).toHaveBeenCalledExactlyOnceWith(pianoVoice)
+  })
+
   it('opens a Virtual Analog slot in its own editor, selecting its preset on the FM1', async () => {
     const user = renderApp()
 
@@ -294,6 +311,15 @@ describe('App slot audition', () => {
     expect(loadPatchEditorPage).not.toHaveBeenCalled()
     expect(sendProgramChange).toHaveBeenCalledWith(2)
     expect(sendVoice).not.toHaveBeenCalled()
+  })
+
+  it('opens a slot in banks A to D on Official Open without selecting its program', async () => {
+    midiState.firmware = { identity: 'FM-1_8000012', kind: 'official-open' }
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Edit Virtual Analog' }))
+
+    expect(sendProgramChange).not.toHaveBeenCalled()
   })
 })
 

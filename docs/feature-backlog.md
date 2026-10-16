@@ -833,17 +833,15 @@ It does not reopen the parked sequencer: starting the FM1's own pattern is not w
 ### M-VAVE's Official Open firmware
 
 On 2026-10-14 M-VAVE briefly published FM1 Workbench, the web editor and installer for a firmware
-it calls Official Open, and took it down again. It turns the FM1 into an eight-track groovebox with
-DX7, 303, 808, PSG, Pluck, and sampler engines, saved as projects with a shared sample bank. What
-the archived page says is in [the research notes](fm1-research.md#m-vaves-official-open-firmware-withdrawn-preview-read-2026-10-14).
-Nothing here can be built until it is released, but when it is:
+it calls Official Open, and on 2026-10-16 released it as V12 with its source. It turns the FM1 into
+an eight-track groovebox with DX7, 303, 808, PSG, Pluck, and sampler engines, saved as projects
+with a shared sample bank. What its source says is in
+[the research notes](fm1-research.md#m-vaves-official-open-firmware).
 
-- **Identify it before anything else.** Find what it answers to the identity query. If the
-  answer falls in a range `classifyFm1Firmware` already gives M-VAVE's firmware or FM-1+VA, as the
-  page's V10 suggests it might, the editor would send it single-voice dumps or FM-1+VA's preset
-  commands. Give it its own kind and a cautious profile in `resolveFirmwareProfile`, as Felucca
-  has, with the badge, firmware setting, and bank instructions saying what reaches it. This is the
-  one item that should not wait for anything else.
+- **Identified.** The editor names it the `official-open` family and sends it no Program Change
+  and no FX Channel effect controllers, which it would take as changes to its tracks. Sending a
+  patch as a single-voice dump to a DX7 track, and reading a track's voice over its `7D 'FM'`
+  protocol, each need their approval recorded in `AGENTS.md` first.
 - **Add it to the firmware page** as M-VAVE's own, with its Workbench link, and its restore and
   migration steps to [Switching FM1 firmware](switching-firmware.md). Restoring V15 from the
   Workbench replaces all four banks with the factory voices, and a force flash may erase what the

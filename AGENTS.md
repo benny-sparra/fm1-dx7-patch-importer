@@ -183,17 +183,21 @@ open everything an earlier release could have saved.
   for the ports in use arrives. An answer holds only while its ports stay selected: WebMidi hands
   back the same port objects when a device returns, so forget the answer when a port goes away or
   MIDI is switched off, rather than matching it by port identity. FM-1+VA is `FM-1_020` to `FM-1_899`, and Felucca, which names
-  release X.Y `FM-1_9XY`, is `FM-1_900` to `FM-1_999`; any other name is unidentified, so no
+  release X.Y `FM-1_9XY`, is `FM-1_900` to `FM-1_999`. M-VAVE's Official Open is
+  `FM-1_8` and six digits (`FM-1_8000012` is V12), `FM1_COMMUNITY_` and a number, or
+  `FM1_OFFICIAL_OPEN`, the names its updater accepts; any other name is unidentified, so no
   firmware's behaviour is assumed for it. Felucca ignores DX7 voice data, Program Change, and the
   effect controllers, so it gets the cautious parameter changes like an unidentified firmware, and
   the badge, firmware setting, and bank instructions say that patches do not reach it. Analytics
-  records only the family (`fm1_identified`: `mvave`, `fm1-va`, `felucca`, or `unidentified`),
+  records only the family (`fm1_identified`: `mvave`, `fm1-va`, `felucca`, `official-open`, or
+  `unidentified`),
   once per family per page load so the split counts sessions rather
   than reconnections; the name and version, such as `FM-1_089`, stay out of analytics and
   monitoring, because a release has few enough FM1s on it to single one out.
 - What each firmware can take is its profile in `src/lib/firmware-profile.ts`, and nowhere else:
   `resolveFirmwareProfile` gives its family, its capabilities (`singleVoiceDumps`, `presetRead`,
-  `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`), and its preset write timing. A family
+  `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`, `programChanges`,
+  `effectControllers`), and its preset write timing. A family
   lists the first release with each capability, so a new firmware, a release that adds one, or
   another device's firmware is an entry in `familyProfiles`, never a predicate in the module that
   uses it. A capability a family does not list is never offered, which keeps a firmware being
@@ -202,6 +206,15 @@ open everything an earlier release could have saved.
   family only to word what users read about it, such as the badge. The module imports nothing but
   the `Fm1Firmware` type, because the entry and the lazy preset, sound control, and editor chunks
   all read it. Its test covers every family and every release threshold.
+- M-VAVE's Official Open is an eight-track groovebox, not a bank of DX7 presets
+  (docs/fm1-research.md, "Official Open: released source"). It takes a Program Change on a DX7
+  track as replacing that track's voice with a built-in sound, and the FX channel's effect
+  controllers as the volume, pan, and modulation of the track on that channel, so its profile has
+  neither `programChanges` nor `effectControllers`: a slot click selects no program there, and the
+  effects send nothing. Every other family lists both from release 0, which counts for a firmware
+  not yet identified too. The badge, the firmware setting, and the bank instructions say so. No
+  single-voice dump and no `F0 7D 'F' 'M' 02` command is sent to it until its approval is recorded
+  here; its Flash commands (7, 8, 12–14) are **Dangerous / excluded**.
 - Of FM-1+VA's own `F0 43 00 7D` commands, the editor may send only the preset read,
   `7D 10 <slot>` (`readFm1VaPreset` in `src/lib/fm1-va-preset-read.ts`, approved 2026-10-02),
   and only while the profile's `presetRead` allows it: FM-1+VA from `FM-1_079`, the release that

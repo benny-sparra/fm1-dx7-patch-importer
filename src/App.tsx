@@ -28,6 +28,7 @@ import {
 } from '@/lib/patch-library'
 import { fm1VaVirtualAnalogName } from '@/lib/fm1-va-virtual-analog'
 import { trackAnalyticsEvent } from '@/lib/analytics'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { visibleBox, zoomRects } from '@/lib/zoom-rects'
 import {
   beginDynamicImportRecovery,
@@ -109,25 +110,29 @@ function App() {
   // sent. An added bank has no FM1 slot, so only its sound is sent. A Virtual Analog preset's bytes
   // are not a DX7 voice and no message but the preset write carries one, so its slot sends only its
   // program, which plays whatever the FM1 stores there, and an added bank's sends nothing. An 8-Bit
-  // preset's slot is the same.
+  // preset's slot is the same. M-VAVE's Official Open takes a Program Change as replacing a track's
+  // voice with a built-in sound, so there a slot sends no program, as an added bank's does.
+  const slotProgram = (patch: Patch) =>
+    resolveFirmwareProfile(midi.firmware).capabilities.programChanges ? patch.program : undefined
   const auditionPatch = (patch: Patch) => {
+    const program = slotProgram(patch)
     if (patch.family === virtualAnalogFamily || patch.family === eightBitFamily) {
       editBufferAudition.current = null
-      if (patch.program !== undefined) midi.sendProgramChange(patch.program)
+      if (program !== undefined) midi.sendProgramChange(program)
       return
     }
     const voice = library.voices[patch.id]
     const effects = library.effects[patch.id]
-    if (patch.program === undefined) {
+    if (program === undefined) {
       if (voice) auditionInEditBuffer(voice, effects)
       return
     }
     if (voice && midi.sysexAvailable) {
-      auditionInEditBuffer(voice, effects, patch.program)
+      auditionInEditBuffer(voice, effects, program)
       return
     }
     editBufferAudition.current = null
-    if (midi.sendProgramChange(patch.program)) {
+    if (midi.sendProgramChange(program)) {
       void midi.sendEffectSettings(normalizeFm1Effects(effects))
     }
   }
@@ -182,7 +187,8 @@ function App() {
     // The editor sends an added bank's sound itself as it opens, so only a slot in banks A–D is
     // selected on the way in.
     editBufferAudition.current = null
-    if (patch.program !== undefined) midi.sendProgramChange(patch.program)
+    const program = slotProgram(patch)
+    if (program !== undefined) midi.sendProgramChange(program)
     zoomRects(slotBox(patch.id), viewAreaBox())
     setAuditionedPatchId(patch.id)
     beginDynamicImportRecovery(patch.id)

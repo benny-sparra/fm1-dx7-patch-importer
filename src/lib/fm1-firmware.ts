@@ -29,13 +29,20 @@ const lastFm1VaVersion = 899
 const feluccaOrSloopIdentity = 'FM-1_900'
 
 /**
+ * M-VAVE's Official Open firmware names a release `FM-1_8` and six digits (`FM-1_8000012` is V12),
+ * a community build `FM1_COMMUNITY_` and a number, and a development build `FM1_OFFICIAL_OPEN`, as
+ * its updater matches them (docs/fm1-research.md, "Official Open: released source").
+ */
+const officialOpenIdentity = /^(FM1_OFFICIAL_OPEN|FM1_COMMUNITY_\d+|FM-1_8(\d{6}))$/
+
+/**
  * An FM1 that answered with a name the editor does not recognise keeps that name for the MIDI log;
  * one that never answered has none.
  */
 export type Fm1Firmware =
   | { kind: 'checking' }
   | { identity?: string; kind: 'unidentified' }
-  | { identity: string; kind: 'felucca' | 'fm1-va' | 'mvave' }
+  | { identity: string; kind: 'felucca' | 'fm1-va' | 'mvave' | 'official-open' }
 
 /** A firmware the editor names, with the release it reported. */
 type NamedFm1Firmware = Extract<Fm1Firmware, { identity: string }>
@@ -97,10 +104,12 @@ export function parseFm1IdentityReply(message: Uint8Array | readonly number[]) {
 /**
  * The firmware an identity names. Only an FM1 name numbered as M-VAVE's own releases counts as
  * M-VAVE's firmware, only one numbered as FM-1+VA's counts as FM-1+VA, releases after the tested
- * one included, and only one in the 900s counts as Felucca, SLOOP included. Any other name is unidentified, so the
- * editor assumes no firmware's behaviour.
+ * one included, and only one in the 900s counts as Felucca, SLOOP included. Official Open's three
+ * forms of name count as Official Open. Any other name is unidentified, so the editor assumes no
+ * firmware's behaviour.
  */
 export function classifyFm1Firmware(identity: string): Fm1Firmware {
+  if (officialOpenIdentity.test(identity)) return { identity, kind: 'official-open' }
   const match = /^FM-1_(\d{3})$/.exec(identity)
   if (!match) return { identity, kind: 'unidentified' }
   const version = Number(match[1])
@@ -117,12 +126,17 @@ export function mayBeSloop(firmware: Fm1Firmware) {
 }
 
 /**
- * The release as its maker names it. M-VAVE calls `FM-1_015` V15 and Felucca calls `FM-1_908` 0.8,
- * while FM-1+VA's releases, and the `FM-1_900` that Felucca's development builds and SLOOP share, go
- * by the name the FM1 reports, such as `FM-1_089`.
+ * The release as its maker names it. M-VAVE calls `FM-1_015` V15 and `FM-1_8000012` Official Open
+ * V12, and Felucca calls `FM-1_908` 0.8, while FM-1+VA's releases, Official Open's community and
+ * development builds, and the `FM-1_900` that Felucca's development builds and SLOOP share, go by
+ * the name the FM1 reports, such as `FM-1_089`.
  */
 export function fm1FirmwareRelease({ identity, kind }: NamedFm1Firmware) {
   if (kind === 'mvave') return `V${Number(identity.slice(-3))}`
+  if (kind === 'official-open') {
+    const release = officialOpenIdentity.exec(identity)?.[2]
+    if (release) return `V${Number(release)}`
+  }
   if (kind === 'felucca' && identity !== feluccaOrSloopIdentity) {
     return `${identity.at(-2)}.${identity.at(-1)}`
   }

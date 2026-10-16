@@ -12,6 +12,8 @@ export default {
       'Turn SELECT to Replace and press SEL to store the 32 patches, or press HOME to cancel. They also replace that bank’s factory presets permanently.',
     bankFm1VaNote:
       'If your FM1 runs Baud Girl’s firmware, it asks “Replace Bank A?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Replace and press SEL.',
+    bankOfficialOpenNote:
+      'M-VAVE’s Open firmware ignores DX7 banks, so sending this bank does not change its projects.',
     bankFeluccaNote: 'Felucca ignores DX7 banks, so sending this bank does not change its presets.',
     bankFeluccaOrSloopNote:
       'Felucca and SLOOP ignore DX7 banks, so sending this bank does not change the FM1’s presets.',
@@ -371,6 +373,7 @@ export default {
     firmwareUnidentified: 'Not identified',
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
+    firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca or SLOOP {{identity}}',
     firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
@@ -380,6 +383,8 @@ export default {
       'Felucca plays your notes but ignores DX7 patches, banks, and the effect controls.',
     firmwareFeluccaOrSloopIgnoresPatches:
       'Felucca and SLOOP both report this name. Either plays your notes but ignores DX7 patches, banks, and the effect controls.',
+    firmwareOfficialOpenSends:
+      'M-VAVE’s Open firmware plays your notes but ignores the DX7 patches and banks the editor sends. Clicking a slot selects no preset there, and the effect controls send nothing, since it would take both as changes to its tracks.',
     firmwareNeedsInput:
       'Choose the FM1 as the input monitor so the editor can ask which firmware it runs.',
     noteChannel: 'Note channel',
@@ -426,6 +431,9 @@ export default {
     mvaveBadgeLabel: 'M-VAVE firmware, {{release}}',
     mvaveBadgeTitle:
       'The FM1 runs M-VAVE’s own firmware, {{release}}. Patches you play go to its edit buffer.',
+    officialOpenBadgeLabel: 'M-VAVE Open firmware, {{release}}',
+    officialOpenBadgeTitle:
+      'The FM1 runs M-VAVE’s Open firmware, {{release}}, an eight-track groovebox. It plays your notes but ignores the DX7 patches and banks the editor sends. Clicking a slot selects no preset there, and the effect controls send nothing, since it would take both as changes to its tracks.',
     panic: 'MIDI panic',
     panicHelp:
       'MIDI panic: send a note-off for every note on the note channel, to stop hanging notes',
