@@ -225,6 +225,10 @@ export default {
   },
   eightBit: {
     help: {
+      drumPreset:
+        'Um tambor do kit do próprio FM1 como ponto de partida para este. O nível dele não muda.',
+      partPreset:
+        'Um timbre de partida para esta parte: onda, sequência de ciclo e forma de cada nota. O arpejo, a oitava, o nível e o modo monofônico não mudam.',
       key: 'Coloca as duas partes numa tonalidade, então cada tecla toca o acorde que lhe cabe na escala. Em Off, cada parte toca o seu arpejo. A primeira tonalidade de um som tira o acorde e o padrão de cada parte do seu arpejo, como faz o FM1.',
       accidentals:
         'O que tocam as cinco teclas fora da escala. Borrowed faz de cada uma a fundamental de um acorde de fora da escala; Leading, a terça de um acorde maior que leva à tecla de cima.',
@@ -258,6 +262,53 @@ export default {
         'Oito passos em semitons a partir da tecla que você toca, de −12 a +18. Um passo além de +18 mostra End e volta ao primeiro passo.',
       glide:
         'Quanto tempo a altura leva para deslizar até a próxima nota. Precisa do modo monofônico.',
+    },
+    drumPresets: {
+      kick: 'Bumbo',
+      snare: 'Caixa',
+      noiseSnare: 'Caixa de ruído',
+      rim: 'Aro',
+      closedHat: 'Chimbal fechado',
+      openHat: 'Chimbal aberto',
+      metalHat: 'Chimbal metálico',
+      crash: 'Crash',
+      lowTom: 'Tom grave',
+      midTom: 'Tom médio',
+      highTom: 'Tom agudo',
+      blip: 'Blip',
+    },
+    partPresets: {
+      triangle: 'Baixo triangular',
+      pulse: 'Lead de pulso',
+      square: 'Quadrada',
+      pluck: 'Pinçado',
+      wobble: 'Wobble',
+      sweep: 'Varredura',
+      gbBass: 'Baixo GB',
+      organ: 'Órgão',
+      bell: 'Sino',
+      pad: 'Pad suave',
+    },
+    starters: {
+      console: {
+        name: 'Console',
+        description:
+          'O kit do próprio FM1, um baixo triangular e um lead de pulso, pelos filtros do console.',
+      },
+      rawChip: {
+        name: 'Chip cru',
+        description:
+          'O kit com um baixo de onda quadrada e um lead com varredura, cru e afinado como o chip.',
+      },
+      gameBoy: {
+        name: 'Game Boy',
+        description: 'O kit com as ondas de baixo e de sino do Game Boy.',
+      },
+      arpLead: {
+        name: 'Lead arpejado',
+        description:
+          'Um baixo pinçado sob um lead quadrado que toca um arpejo maior rápido enquanto o som não tem tonalidade.',
+      },
     },
     key: 'Tonalidade',
     partSetting: '{{setting}} de {{part}}',

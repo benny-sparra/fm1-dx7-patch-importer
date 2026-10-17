@@ -231,6 +231,10 @@ export default {
   },
   eightBit: {
     help: {
+      drumPreset:
+        'Une percussion du kit du FM1 lui-même, comme point de départ pour celle-ci. Son niveau ne change pas.',
+      partPreset:
+        'Un timbre de départ pour cette partie : son onde, sa séquence de rapport cyclique et la forme de chaque note. Son arpège, son octave, son niveau et le mode monophonique ne changent pas.',
       key: 'Place les deux parties dans une tonalité : chaque touche joue l’accord qui lui revient dans la gamme. Sur Off, chaque partie joue son arpège. La première tonalité d’un son tire l’accord et le motif de chaque partie de son arpège, comme le fait le FM1.',
       accidentals:
         'Ce que jouent les cinq touches hors de la gamme. Borrowed fait de chacune la fondamentale d’un accord étranger à la gamme ; Leading, la tierce d’un accord majeur qui mène à la touche du dessus.',
@@ -264,6 +268,53 @@ export default {
         'Huit pas en demi-tons depuis la touche jouée, de −12 à +18. Un pas tourné au-delà de +18 affiche End et revient au premier pas.',
       glide:
         'Le temps que met la hauteur à glisser vers la note suivante. Le portamento demande le mode monophonique.',
+    },
+    drumPresets: {
+      kick: 'Grosse caisse',
+      snare: 'Caisse claire',
+      noiseSnare: 'Caisse claire bruitée',
+      rim: 'Cerclage',
+      closedHat: 'Charleston fermé',
+      openHat: 'Charleston ouvert',
+      metalHat: 'Charleston métallique',
+      crash: 'Crash',
+      lowTom: 'Tom grave',
+      midTom: 'Tom médium',
+      highTom: 'Tom aigu',
+      blip: 'Blip',
+    },
+    partPresets: {
+      triangle: 'Basse triangle',
+      pulse: 'Lead à impulsion',
+      square: 'Carré',
+      pluck: 'Pincé',
+      wobble: 'Wobble',
+      sweep: 'Balayage',
+      gbBass: 'Basse GB',
+      organ: 'Orgue',
+      bell: 'Cloche',
+      pad: 'Nappe douce',
+    },
+    starters: {
+      console: {
+        name: 'Console',
+        description:
+          'Le kit du FM1 lui-même, une basse triangle et un lead à impulsion, à travers les filtres de la console.',
+      },
+      rawChip: {
+        name: 'Chip brut',
+        description:
+          'Le kit avec une basse carrée et un lead balayé, brut et accordé comme la puce.',
+      },
+      gameBoy: {
+        name: 'Game Boy',
+        description: 'Le kit avec les ondes de basse et de cloche de la Game Boy.',
+      },
+      arpLead: {
+        name: 'Lead arpégé',
+        description:
+          'Une basse pincée sous un lead carré qui joue un arpège majeur rapide tant que le son n’a pas de tonalité.',
+      },
     },
     key: 'Tonalité',
     partSetting: '{{setting}} de {{part}}',

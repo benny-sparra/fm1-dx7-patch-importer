@@ -191,6 +191,9 @@ export default {
   },
   eightBit: {
     help: {
+      drumPreset: '取自 FM1 自带鼓组的一个鼓，作为这个鼓的起点。它的电平保持不变。',
+      partPreset:
+        '这个声部的起始声音：波形、占空比序列和每个音的形状。它的琶音、八度、电平和单音保持不变。',
       key: '让两个声部进入一个调，每个键都弹出它在音阶中对应的和弦。设为 Off 时，每个声部改弹自己的琶音。音色第一次设定调时，会像 FM1 一样从各声部的琶音得出和弦和琶音型。',
       accidentals:
         '音阶外五个键弹什么。Borrowed 让每个键成为音阶外和弦的根音；Leading 让它成为通向上方键的大三和弦的三音。',
@@ -215,6 +218,50 @@ export default {
       userArpeggio:
         '八步，以距所按键的半音数表示，范围 −12 到 +18。超过 +18 的步显示 End，并回到第一步。',
       glide: '音高滑到下一个音所需的时间。滑音需要打开单音。',
+    },
+    drumPresets: {
+      kick: '底鼓',
+      snare: '军鼓',
+      noiseSnare: '噪声军鼓',
+      rim: '鼓边',
+      closedHat: '闭镲',
+      openHat: '开镲',
+      metalHat: '金属镲',
+      crash: '吊镲',
+      lowTom: '低音嗵鼓',
+      midTom: '中音嗵鼓',
+      highTom: '高音嗵鼓',
+      blip: '哔声',
+    },
+    partPresets: {
+      triangle: '三角波贝斯',
+      pulse: '脉冲主旋律',
+      square: '方波',
+      pluck: '拨弦',
+      wobble: '摇摆',
+      sweep: '扫频',
+      gbBass: 'GB 贝斯',
+      organ: '风琴',
+      bell: '钟声',
+      pad: '柔和铺底',
+    },
+    starters: {
+      console: {
+        name: '游戏机',
+        description: 'FM1 自带鼓组、三角波贝斯和脉冲主旋律，经过游戏机的滤波器。',
+      },
+      rawChip: {
+        name: '原始芯片',
+        description: '鼓组配方波贝斯和扫频主旋律，像芯片一样原始并按芯片调律。',
+      },
+      gameBoy: {
+        name: 'Game Boy',
+        description: '鼓组配 Game Boy 的贝斯和钟声波形。',
+      },
+      arpLead: {
+        name: '琶音主旋律',
+        description: '拨弦贝斯配方波主旋律，在音色没有设调时弹奏快速大三和弦琶音。',
+      },
     },
     key: '调',
     partSetting: '{{part}}{{setting}}',

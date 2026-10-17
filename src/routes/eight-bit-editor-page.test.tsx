@@ -339,7 +339,7 @@ describe('EightBitEditorPage', () => {
     expect(screen.queryByText('Step 3')).toBeNull()
   })
 
-  it('offers Init patch alone, and applies it as one undo step', async () => {
+  it('applies Init patch as one undo step', async () => {
     const { user } = setup()
     const before = sliderValue('Bass Level')
 
@@ -347,7 +347,6 @@ describe('EightBitEditorPage', () => {
     const items = within(
       screen.getByLabelText('Sound presets').closest('details') as HTMLElement,
     ).getAllByRole('button')
-    expect(items.map((button) => button.querySelector('span')?.textContent)).toEqual(['Init patch'])
     await user.click(items[0])
 
     expect(screen.getByRole('textbox', { name: 'Patch name' })).toHaveProperty('value', 'NES ROCK')
@@ -358,6 +357,53 @@ describe('EightBitEditorPage', () => {
     await user.click(screen.getByRole('button', { name: 'Undo' }))
     expect(sliderValue('Bass Level')).toBe(before)
     expect(screen.getByRole('combobox', { name: 'Key' })).toHaveProperty('value', '5')
+  })
+
+  it('gives the chosen drum a preset from the FM1’s kit as one undo step', async () => {
+    const { user } = setup()
+    const level = sliderValue('Drum F0 Level')
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Drum F0 Preset' }), 'Open hat')
+
+    expect(screen.getByRole('combobox', { name: 'Drum F0 Wave' })).toHaveProperty('value', '5')
+    expect(sliderValue('Drum F0 Decay')).toBe(55)
+    expect(sliderValue('Drum F0 Level')).toBe(level)
+    // The preset is a starting point, so its dropdown goes back to its placeholder.
+    expect(screen.getByRole('combobox', { name: 'Drum F0 Preset' })).toHaveProperty('value', '')
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+
+    expect(screen.getByRole('combobox', { name: 'Drum F0 Wave' })).toHaveProperty('value', '4')
+    expect(sliderValue('Drum F0 Decay')).toBe(45)
+  })
+
+  it('gives a part a sound preset as one undo step, keeping its Level', async () => {
+    const { user } = setup()
+    const level = sliderValue('Lead Level')
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Lead Preset' }), 'Bell')
+
+    expect(screen.getByRole('combobox', { name: 'Lead Wave' })).toHaveProperty('value', '13')
+    expect(sliderValue('Lead Sustain')).toBe(0)
+    expect(sliderValue('Lead Level')).toBe(level)
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+
+    expect(screen.getByRole('combobox', { name: 'Lead Wave' })).toHaveProperty('value', '1')
+  })
+
+  it('lists the patch starters after Init patch, each one undo step', async () => {
+    const { user } = setup()
+
+    await user.click(screen.getByLabelText('Sound presets'))
+    const menu = within(screen.getByLabelText('Sound presets').closest('details') as HTMLElement)
+    expect(
+      menu.getAllByRole('button').map((button) => button.querySelector('span')?.textContent),
+    ).toEqual(['Init patch', 'Console', 'Raw chip', 'Game Boy', 'Arpeggio lead'])
+    await user.click(menu.getByRole('button', { name: /^Game Boy/ }))
+
+    expect(screen.getByRole('combobox', { name: 'Bass Wave' })).toHaveProperty('value', '12')
+    expect(screen.getByRole('combobox', { name: 'Key' })).toHaveProperty('value', '5')
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(screen.getByRole('combobox', { name: 'Bass Wave' })).toHaveProperty('value', '4')
   })
 
   it('asks before leaving with unsaved changes', async () => {
