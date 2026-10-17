@@ -232,6 +232,86 @@ export default {
       bassDecay: 'Bass-Decay',
     },
   },
+  eightBit: {
+    help: {
+      key: 'Setzt beide Parts in eine Tonart, sodass jede Taste den Akkord spielt, der in der Skala auf ihr liegt. Bei Off spielt jeder Part stattdessen sein Arpeggio. Die erste Tonart eines Sounds leitet Akkord und Pattern jedes Parts aus seinem Arpeggio ab, wie der FM1 es tut.',
+      accidentals:
+        'Was die fünf Tasten außerhalb der Skala spielen. Borrowed macht jede zum Grundton eines Akkords von außerhalb der Skala, Leading zur Terz eines Durakkords, der zur nächsthöheren Taste führt.',
+      voicing:
+        'From Key beginnt jeden Akkord auf der gedrückten Taste. Close hält die Töne jedes Akkords innerhalb einer Oktave über dem Grundton, sodass sich zwischen Akkorden weniger Töne bewegen.',
+      leadFollows:
+        'Bei Bass nimmt der Lead seinen Akkord von der zuletzt gespielten Bass-Taste, sodass eine Hand die Akkordfolge unter der anderen spielt.',
+      arpSync:
+        'Key startet jedes Arpeggio, sobald seine Taste gedrückt wird. Beat legt alle Arpeggio-Schritte auf ein gemeinsames Raster im Tempo oder auf die Schritte eines laufenden Patterns.',
+      tone: 'Raw ist die schlichte emulierte Welle. Smooth glättet jede Flanke und schickt den Klang durch die Ausgangsfilter der Konsole.',
+      tuning:
+        'Exact spielt jede Note sauber gestimmt. Chip nutzt nur die Tonhöhen, die die Konsole erzeugen konnte, was oben auf der Tastatur hörbar abweicht.',
+      drums: 'Zwölf Drums auf den Tasten F0 bis E1. Wähle eine aus, um sie zu bearbeiten.',
+      drumDecay:
+        'Macht alle Drums gemeinsam länger oder kürzer und behält ihre Unterschiede bei. Bei 50 klingt jede so lange wie ihr eigenes Decay.',
+      choke:
+        'Eine Drum in Gruppe A, B oder C stoppt jede noch klingende Drum ihrer Gruppe, so wie eine geschlossene Hi-Hat eine offene abschneidet.',
+      snap: 'Ein Rauschstoß unter dem Ton, der einen Schlag wie eine Snare klingen lässt.',
+      sweep:
+        'Wie weit die Tonhöhe fällt oder steigt, während die Note klingt. Bei 0 bleibt sie stehen.',
+      dutySequence:
+        'Verändert die Breite einer Pulswelle, während die Note klingt, für Bewegung auf einem Kanal. Sie wirkt nur auf die vier Pulse-Wellen.',
+      arpeggio:
+        'Der Akkord, den eine Taste Ton für Ton spielt, solange der Sound keine Tonart hat. User spielt die Schritte unter Eigenes Arpeggio.',
+      chord:
+        'Welche Töne der Skala jede Taste spielt. Bei Pattern User wird er nicht gespielt, denn dort wählen die Schritte die Töne.',
+      pattern:
+        'Die Reihenfolge, in der die Akkordtöne erklingen, gezählt vom tiefsten Ton. Off spielt nur die Taste.',
+      noteEngine:
+        'Auto-Arp spielt den Akkord des Parts Ton für Ton. Auto-Chord spielt seine Töne zusammen, bis zu vier.',
+      userArpeggio:
+        'Acht Schritte in Halbtönen von der gedrückten Taste, −12 bis +18. Ein Schritt über +18 zeigt End und springt zurück zum ersten Schritt.',
+      glide: 'Wie lange die Tonhöhe zur nächsten Note gleitet. Glide braucht Monophon.',
+    },
+    key: 'Tonart',
+    partSetting: '{{part}} {{setting}}',
+    keySettings: 'Einstellungen zur Tonart',
+    scale: 'Skala',
+    accidentals: 'Vorzeichen',
+    voicing: 'Voicing',
+    leadFollows: 'Lead folgt',
+    arpSync: 'Arp-Sync',
+    tone: 'Klangfarbe',
+    tuning: 'Stimmung',
+    drums: 'Drums',
+    drumsLevel: 'Drums-Pegel',
+    drumDecay: 'Drum-Decay',
+    drum: 'Drum',
+    drumHeading: 'Drum {{drum}}',
+    wave: 'Welle',
+    choke: 'Choke',
+    pitch: 'Tonhöhe',
+    sweep: 'Sweep',
+    decay: 'Decay',
+    level: 'Pegel',
+    snap: 'Snap',
+    bass: 'Bass',
+    lead: 'Lead',
+    dutySequence: 'Duty-Sequenz',
+    dutySequenceUnheard:
+      'Eine Duty-Sequenz verändert nur die vier Pulse-Wellen, darum hörst du sie bei diesem Part nicht.',
+    arpeggio: 'Arpeggio',
+    chord: 'Akkord',
+    pattern: 'Pattern',
+    arpSpeed: 'Arp-Tempo',
+    noteEngine: 'Note Engine',
+    userArpeggio: 'Eigenes Arpeggio',
+    step: 'Schritt {{step}}',
+    vibrato: 'Vibrato',
+    glide: 'Glide',
+    octave: 'Oktave',
+    mono: 'Monophon',
+    initPatch: 'Initialisieren',
+    initPatchHelp: 'Das leere 8-Bit-Preset des FM1. Effekte aus.',
+    live: 'Hüllkurve, LFO und Effekte erklingen sofort auf dem FM1. Alles andere hörst du, sobald der Sound auf den FM1 geschrieben ist.',
+    noFirmware:
+      'Mit der Firmware von Baud Girl ab FM-1_096 und eingeschaltetem MIDI erklingen Hüllkurve, LFO und Effekte sofort auf dem FM1. Bis dahin hörst du deine Änderungen, sobald der Sound auf den FM1 geschrieben ist.',
+  },
   virtualAnalog: {
     help: {
       waveform:

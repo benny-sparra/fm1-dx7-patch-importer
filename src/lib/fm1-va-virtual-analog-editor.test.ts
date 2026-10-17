@@ -13,7 +13,6 @@ import {
 } from '@/lib/fm1-parameters'
 import {
   makeVirtualAnalogEditorParameters,
-  virtualAnalogControlValue,
   virtualAnalogCutoffHertz,
   virtualAnalogFromEditorParameters,
   virtualAnalogParameterCount,
@@ -21,6 +20,7 @@ import {
   virtualAnalogRows,
   type VirtualAnalogRowId,
 } from '@/lib/fm1-va-virtual-analog-editor'
+import { fm1VaRowControlValue as virtualAnalogControlValue } from '@/lib/fm1-va-shared-rows'
 import {
   capturedVirtualAnalogRecord,
   capturedVirtualAnalogVoice,
@@ -226,7 +226,7 @@ describe('Virtual Analog rows', () => {
   })
 })
 
-describe('virtualAnalogControlValue', () => {
+describe('fm1VaRowControlValue', () => {
   it('sends the first value of a list choice’s band', () => {
     expect(virtualAnalogControlValue(virtualAnalogRow('waveform'), 0)).toBe(0)
     expect(virtualAnalogControlValue(virtualAnalogRow('waveform'), 3)).toBe(96)

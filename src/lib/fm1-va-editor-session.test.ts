@@ -11,13 +11,21 @@ import {
   makeVirtualAnalogEditorParameters,
   virtualAnalogRow,
   virtualAnalogRows,
+  type VirtualAnalogRowId,
 } from '@/lib/fm1-va-virtual-analog-editor'
 import {
-  displayedVirtualAnalogParameters,
-  hasUnsavedVirtualAnalogEdits,
-  VirtualAnalogEditorSession,
-} from '@/lib/virtual-analog-editor-session'
+  displayedFm1VaParameters,
+  Fm1VaEditorSession,
+  hasUnsavedFm1VaEdits,
+} from '@/lib/fm1-va-editor-session'
+import {
+  eightBitRow,
+  eightBitRows,
+  makeEightBitEditorParameters,
+  type EightBitRowId,
+} from '@/lib/fm1-va-eight-bit-editor'
 import { applyVirtualAnalogPreset } from '@/lib/virtual-analog-presets'
+import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
 import {
   capturedVirtualAnalogRecord,
   capturedVirtualAnalogVoice,
@@ -35,14 +43,14 @@ function makeSession({ envelope = false } = {}) {
     sendEffectParameter: vi.fn<(controller: number, value: number) => boolean>(() => true),
     sendSoundControl: vi.fn<(controller: number, value: number) => boolean>(() => true),
   }
-  const session = new VirtualAnalogEditorSession(parameters, () => midi)
+  const session = new Fm1VaEditorSession(parameters, () => midi, virtualAnalogRows)
   return { midi, session }
 }
 
-const value = (session: VirtualAnalogEditorSession, id: Parameters<typeof virtualAnalogRow>[0]) =>
-  displayedVirtualAnalogParameters(session.getState())[virtualAnalogRow(id).index]
+const value = (session: Fm1VaEditorSession<VirtualAnalogRowId>, id: VirtualAnalogRowId) =>
+  displayedFm1VaParameters(session.getState())[virtualAnalogRow(id).index]
 
-describe('VirtualAnalogEditorSession', () => {
+describe('Fm1VaEditorSession on a Virtual Analog preset', () => {
   it('sends nothing while local', () => {
     const { midi, session } = makeSession()
     session.setRow('cutoff', 40)
@@ -124,9 +132,9 @@ describe('VirtualAnalogEditorSession', () => {
     session.goLive()
     midi.sendSoundControl.mockClear()
     midi.sendEffectParameter.mockClear()
-    const before = displayedVirtualAnalogParameters(session.getState())
+    const before = displayedFm1VaParameters(session.getState())
     session.replaceParameters((parameters) => applyVirtualAnalogPreset(parameters, 'mono-bass'))
-    const after = displayedVirtualAnalogParameters(session.getState())
+    const after = displayedFm1VaParameters(session.getState())
     expect(session.getState().history.past).toHaveLength(1)
     const changed = virtualAnalogRows.filter(
       (row) => row.controller !== undefined && before[row.index] !== after[row.index],
@@ -140,7 +148,7 @@ describe('VirtualAnalogEditorSession', () => {
       ),
     )
     session.undo()
-    expect(displayedVirtualAnalogParameters(session.getState())).toEqual(before)
+    expect(displayedFm1VaParameters(session.getState())).toEqual(before)
   })
 
   it('moves an effect as one undo step without sending anything', () => {
@@ -210,7 +218,7 @@ describe('VirtualAnalogEditorSession', () => {
     expect(
       String.fromCharCode(...saved.slice(FM1_VOICE_NAME_START, FM1_VOICE_NAME_START + 6)),
     ).toBe('BASS 1')
-    expect(hasUnsavedVirtualAnalogEdits(session.getState())).toBe(false)
+    expect(hasUnsavedFm1VaEdits(session.getState())).toBe(false)
   })
 
   it('reverts to the saved version and sends what changed back', () => {
@@ -221,7 +229,7 @@ describe('VirtualAnalogEditorSession', () => {
     session.revertToSaved()
     expect(value(session, 'noise')).toBe(0)
     expect(midi.sendSoundControl.mock.calls).toEqual([[29, 0]])
-    expect(hasUnsavedVirtualAnalogEdits(session.getState())).toBe(false)
+    expect(hasUnsavedFm1VaEdits(session.getState())).toBe(false)
   })
 
   it('stops sending once the editor has gone', () => {
@@ -232,5 +240,59 @@ describe('VirtualAnalogEditorSession', () => {
     midi.sendSoundControl.mockClear()
     session.setRow('cutoff', 40)
     expect(midi.sendSoundControl).not.toHaveBeenCalled()
+  })
+})
+
+describe('Fm1VaEditorSession on an 8-Bit preset', () => {
+  function makeEightBitSession() {
+    const parameters = makeEightBitEditorParameters(
+      capturedEightBitVoice(),
+      capturedEightBitRecord(),
+      makeDefaultFm1Effects(),
+    )
+    const midi = {
+      sendEffectParameter: vi.fn<(controller: number, value: number) => boolean>(() => true),
+      sendSoundControl: vi.fn<(controller: number, value: number) => boolean>(() => true),
+    }
+    const session = new Fm1VaEditorSession(parameters, () => midi, eightBitRows)
+    return { midi, session }
+  }
+  const eightBitValue = (session: Fm1VaEditorSession<EightBitRowId>, id: EightBitRowId) =>
+    displayedFm1VaParameters(session.getState())[eightBitRow(id).index]
+
+  it('sets several rows as one undo step', () => {
+    const { session } = makeEightBitSession()
+    const before = [eightBitValue(session, 'bassChord'), eightBitValue(session, 'bassPattern')]
+
+    session.chooseRows([
+      ['bassChord', 3],
+      ['bassPattern', 9],
+    ])
+    expect([eightBitValue(session, 'bassChord'), eightBitValue(session, 'bassPattern')]).toEqual([
+      3, 9,
+    ])
+    session.undo()
+
+    expect([eightBitValue(session, 'bassChord'), eightBitValue(session, 'bassPattern')]).toEqual(
+      before,
+    )
+  })
+
+  it('sends only the Envelope’s and LFO’s controllers live, the Envelope’s once it is on', () => {
+    const { midi, session } = makeEightBitSession()
+    session.goLive()
+    expect(
+      midi.sendSoundControl.mock.calls.map(([controller]) => controller).sort((a, b) => a - b),
+    ).toEqual([76, 77, 78])
+
+    midi.sendSoundControl.mockClear()
+    session.setRow('bassLevel', 50)
+    session.setRow('drumDecay', 70)
+    expect(midi.sendSoundControl).not.toHaveBeenCalled()
+
+    session.chooseRow('envelope', 1)
+    expect(
+      midi.sendSoundControl.mock.calls.map(([controller]) => controller).sort((a, b) => a - b),
+    ).toEqual([70, 72, 73, 75])
   })
 })

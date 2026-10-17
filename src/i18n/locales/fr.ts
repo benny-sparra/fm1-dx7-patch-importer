@@ -229,6 +229,86 @@ export default {
       bassDecay: 'Déclin de la basse',
     },
   },
+  eightBit: {
+    help: {
+      key: 'Place les deux parties dans une tonalité : chaque touche joue l’accord qui lui revient dans la gamme. Sur Off, chaque partie joue son arpège. La première tonalité d’un son tire l’accord et le motif de chaque partie de son arpège, comme le fait le FM1.',
+      accidentals:
+        'Ce que jouent les cinq touches hors de la gamme. Borrowed fait de chacune la fondamentale d’un accord étranger à la gamme ; Leading, la tierce d’un accord majeur qui mène à la touche du dessus.',
+      voicing:
+        'From Key commence chaque accord sur la touche jouée. Close garde les notes de chaque accord dans une octave au-dessus de la tonique, pour que moins de notes bougent d’un accord à l’autre.',
+      leadFollows:
+        'Sur Bass, le lead prend son accord de la dernière touche de basse jouée : une main joue la progression sous l’autre.',
+      arpSync:
+        'Key lance chaque arpège quand sa touche s’enfonce. Beat place tous les pas d’arpège sur une même grille au tempo, ou sur les pas d’un motif en cours.',
+      tone: 'Raw est l’onde émulée telle quelle. Smooth adoucit chaque front et fait passer le son par les filtres de sortie de la console.',
+      tuning:
+        'Exact joue chaque note juste. Chip n’utilise que les hauteurs que la console savait produire, ce qui s’entend en haut du clavier.',
+      drums: 'Douze percussions sur les touches F0 à E1. Choisissez-en une pour la modifier.',
+      drumDecay:
+        'Allonge ou raccourcit toutes les percussions à la fois en gardant leurs écarts. À 50, chacune sonne selon son propre déclin.',
+      choke:
+        'Une percussion du groupe A, B ou C coupe toute autre de son groupe qui sonne encore, comme un charleston fermé coupe un ouvert.',
+      snap: 'Une bouffée de bruit sous le son, qui donne à un coup l’allure d’une caisse claire.',
+      sweep: 'De combien la hauteur descend ou monte pendant la note. À 0, elle reste fixe.',
+      dutySequence:
+        'Change la largeur d’une onde d’impulsion pendant la note, pour animer un seul canal. Elle n’agit que sur les quatre ondes Pulse.',
+      arpeggio:
+        'L’accord qu’une touche joue note après note tant que le son n’a pas de tonalité. User joue les pas de l’arpège personnel.',
+      chord:
+        'Quelles notes de la gamme chaque touche joue. Il n’est pas joué avec le motif User, dont les pas choisissent les notes.',
+      pattern:
+        'L’ordre dans lequel les notes de l’accord jouent, comptées depuis la plus grave. Off joue la touche seule.',
+      noteEngine:
+        'Auto-Arp joue l’accord de la partie note après note. Auto-Chord joue ses notes ensemble, jusqu’à quatre.',
+      userArpeggio:
+        'Huit pas en demi-tons depuis la touche jouée, de −12 à +18. Un pas tourné au-delà de +18 affiche End et revient au premier pas.',
+      glide:
+        'Le temps que met la hauteur à glisser vers la note suivante. Le portamento demande le mode monophonique.',
+    },
+    key: 'Tonalité',
+    partSetting: '{{setting}} de {{part}}',
+    keySettings: 'Réglages liés à la tonalité',
+    scale: 'Gamme',
+    accidentals: 'Altérations',
+    voicing: 'Disposition',
+    leadFollows: 'Le lead suit',
+    arpSync: 'Synchro de l’arpège',
+    tone: 'Timbre',
+    tuning: 'Accordage',
+    drums: 'Batterie',
+    drumsLevel: 'Niveau de la batterie',
+    drumDecay: 'Déclin de la batterie',
+    drum: 'Percussion',
+    drumHeading: 'Percussion {{drum}}',
+    wave: 'Onde',
+    choke: 'Coupure',
+    pitch: 'Hauteur',
+    sweep: 'Balayage',
+    decay: 'Déclin',
+    level: 'Niveau',
+    snap: 'Claquement',
+    bass: 'Basse',
+    lead: 'Lead',
+    dutySequence: 'Séquence de rapport cyclique',
+    dutySequenceUnheard:
+      'Une séquence de rapport cyclique ne change que les quatre ondes Pulse : on ne l’entend pas sur cette partie.',
+    arpeggio: 'Arpège',
+    chord: 'Accord',
+    pattern: 'Motif',
+    arpSpeed: 'Vitesse de l’arpège',
+    noteEngine: 'Moteur de notes',
+    userArpeggio: 'Arpège personnel',
+    step: 'Pas {{step}}',
+    vibrato: 'Vibrato',
+    glide: 'Portamento',
+    octave: 'Octave',
+    mono: 'Monophonique',
+    initPatch: 'Initialiser',
+    initPatchHelp: 'Le preset 8-Bit vide du FM1 lui-même. Effets coupés.',
+    live: 'L’enveloppe, le LFO et les effets jouent sur le FM1 dès que vous les changez. Le reste s’entend une fois le son écrit sur le FM1.',
+    noFirmware:
+      'Avec le firmware de Baud Girl FM-1_096 ou plus récent et le MIDI activé, l’enveloppe, le LFO et les effets jouent sur le FM1 dès que vous les changez. D’ici là, vos modifications s’entendent une fois le son écrit sur le FM1.',
+  },
   virtualAnalog: {
     help: {
       waveform:

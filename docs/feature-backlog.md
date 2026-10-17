@@ -617,6 +617,11 @@ and 8-Bit presets, then the 8-Bit editor (9) once item 10 has mapped its Note En
     preset, so the rest is heard once written, unless D2 finds a DX7 parameter change plays a
     voice-byte field live. Needs P1–P7 first. Several of its lists are provisional in the
     firmware and may be renamed.
+    _Built 2026-10-17, after P1–P7 and the Pattern passed on `FM-1_098`:_ the drums as twelve
+    pads with the chosen one's settings, the Key panel, the bass and the lead, and the Envelope,
+    LFO, and effects, which alone play live. Its lists show the FM1's own names. The first Key
+    carries each part's Arpeggio over as the FM1 does. Its Presets menu has Init patch only;
+    Randomise and sound starters could follow. Not yet heard through the editor on hardware.
     Version 98 adds a **Note Engine** row to the bass and the lead, after Arp Speed: at
     Auto-Chord the part plays its chord's notes together rather than one after another. It is
     not mapped yet (item 10).

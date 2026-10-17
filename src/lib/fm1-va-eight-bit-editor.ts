@@ -11,6 +11,13 @@ import {
   fm1VaRecordDistortionType,
   fm1VaRecordEffectOrder,
 } from '@/lib/fm1-va-record-effects'
+import {
+  fm1VaEnvelopeRows,
+  fm1VaLfoRows,
+  type Fm1VaEnvelopeRowId,
+  type Fm1VaLfoRowId,
+  type Fm1VaRow,
+} from '@/lib/fm1-va-shared-rows'
 
 /**
  * The fields of an 8-Bit preset the editor sets, and where the preset keeps each
@@ -23,8 +30,10 @@ import {
  * each row reads and writes its bits where `packDx7Voice` puts them. A voice is never unpacked and
  * packed again: that drops bits, and a write here changes only its own bits.
  *
- * Left out: the LFO, Transpose, and the name, which are as on an FM preset, so the editor uses the
- * DX7 parameters of those names.
+ * The Envelope and the LFO are the rows every FM-1+VA engine keeps in the same bytes, and the only
+ * ones a sound-setting controller reaches on an 8-Bit preset, so they come from
+ * `fm1-va-shared-rows`, with those controllers. Transpose is left out: the Device Manager offers it
+ * on an FM preset only.
  */
 type DrumField = 'Choke' | 'Decay' | 'Level' | 'Pitch' | 'Snap' | 'Sweep' | 'Wave'
 type DrumNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11
@@ -51,6 +60,8 @@ type UserArpeggioStep = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
 type EightBitPart = 'bass' | 'lead'
 
 export type EightBitRowId =
+  | Fm1VaEnvelopeRowId
+  | Fm1VaLfoRowId
   | 'accidentals'
   | 'arpSync'
   | 'drumDecay'
@@ -65,18 +76,9 @@ export type EightBitRowId =
   | `${EightBitPart}${PartField}`
   | `${EightBitPart}UserArpeggio${UserArpeggioStep}`
 
-export type EightBitRow = {
-  /** For a list, how many choices it has; the value is the choice's number. */
-  choices?: number
-  id: EightBitRowId
-  /** Where the row is in the editor's parameters. */
-  index: number
-  max: number
-  read: (voice: Uint8Array, record: Uint8Array) => number
+export type EightBitRow = Fm1VaRow<EightBitRowId> & {
   /** What to take off the value to get the number the FM1 shows, for a field it shows signed. */
   shownOffset?: number
-  /** Writes `value` into copies of the voice and record. */
-  write: (voice: Uint8Array, record: Uint8Array, value: number) => void
 }
 
 type RowBody = Omit<EightBitRow, 'index'>
@@ -198,16 +200,34 @@ const keyMarked = (record: Uint8Array) => (record[keyByte] & 0xd0) === 0x40
 const keyMark = 0x40
 const accidentalsBit = 0x20
 
+/**
+ * The Key row's value says whether the preset has the mark as well as which Key it plays, since
+ * the FM1 does more when it gives a preset its first Key (`eightBitKeyChoice`): 0 without the mark,
+ * which plays Key Off, and `eightBitKeyMarked` plus the Key (0 Off, 1 C to 12 B) with it.
+ */
+export const eightBitKeyMarked = 16
+
+/** The Key a Key row value plays: 0 Off, 1 C to 12 B. */
+export function eightBitShownKey(value: number) {
+  return value & 0x0f
+}
+
 /** The Key and Accidentals keep their bits in byte 26 under the mark; without it, Key Off. */
 function keyRow(): RowBody {
   return {
-    choices: 13,
     id: 'key',
-    max: 12,
-    read: (_voice, record) => (keyMarked(record) ? record[keyByte] & 0x0f : 0),
+    max: eightBitKeyMarked + 12,
+    read: (_voice, record) =>
+      keyMarked(record) ? eightBitKeyMarked | Math.min(12, record[keyByte] & 0x0f) : 0,
     write: (_voice, record, value) => {
+      if (!(value & eightBitKeyMarked)) {
+        // Only an undo back to a preset that never had a Key asks for this: its byte goes back to
+        // Key Off without the mark.
+        record[keyByte] &= ~keyMark
+        return
+      }
       const kept = keyMarked(record) ? record[keyByte] & accidentalsBit : 0
-      record[keyByte] = keyMark | kept | clamp(value, 0, 12)
+      record[keyByte] = keyMark | kept | clamp(eightBitShownKey(value), 0, 12)
     },
   }
 }
@@ -453,14 +473,18 @@ const definitions: RowBody[] = [
   ...drumDefinitions,
   ...partRows('bass', bass),
   ...partRows('lead', lead),
+  ...fm1VaEnvelopeRows,
 ]
 
-export const eightBitRows: readonly EightBitRow[] = definitions.map((row, offset) => ({
+const recordAndVoiceRows: EightBitRow[] = definitions.map((row, offset) => ({
   ...row,
   index: rowStart + offset,
 }))
 
-export const eightBitParameterCount = rowStart + eightBitRows.length
+/** Every row, the LFO's at the DX7 voice parameters they share, as on a Virtual Analog preset. */
+export const eightBitRows: readonly EightBitRow[] = [...recordAndVoiceRows, ...fm1VaLfoRows]
+
+export const eightBitParameterCount = rowStart + recordAndVoiceRows.length
 
 const rowsById = new Map(eightBitRows.map((row) => [row.id, row]))
 
@@ -524,4 +548,49 @@ export function eightBitFromEditorParameters(
     voiceNameByte,
   )
   return { record: savedRecord, voice: savedVoice }
+}
+
+/**
+ * What the FM1 carries over from a part's Arpeggio when a preset gets its first Key, for each
+ * Arpeggio 0–32: the Chord in bits 5–7 and the Pattern in bits 0–4 (the firmware's
+ * `CH_ARP_KEYED`, as Baud Girl's Device Manager has it in `app/chipnames.js`, read 2026-10-17).
+ */
+const arpeggioKeyed = [
+  0, 1, 1, 4, 4, 10, 12, 193, 196, 129, 97, 1, 1, 33, 33, 33, 65, 65, 5, 5, 6, 6, 16, 16, 16, 16,
+  129, 11, 199, 7, 7, 13, 17,
+]
+const userArpeggio = arpeggioKeyed.length - 1
+
+/**
+ * The rows choosing Key `key` (0 Off, 1 C to 12 B) sets, as one change. Giving a preset its first
+ * Key does more on the FM1 (`ui_screens.cpp`, as the Device Manager does it too): Scale Major,
+ * Voicing From Key, Lead Follows Off, Accidentals Borrowed, and each part's Chord and Pattern from
+ * its Arpeggio, so the parts keep playing much as they did. Without that, both parts would play a
+ * Triad with Pattern Off. Choosing Off for a preset that never had a Key changes nothing.
+ */
+export function eightBitKeyChoice(
+  parameters: Uint8Array,
+  key: number,
+): (readonly [EightBitRowId, number])[] {
+  const current = parameters[eightBitRow('key').index]
+  const marked = (current & eightBitKeyMarked) !== 0
+  const next = eightBitKeyMarked | clamp(key, 0, 12)
+  if (!marked && key === 0) return []
+  if (marked) return current === next ? [] : [['key', next]]
+  const carried = (['bass', 'lead'] as const).flatMap((part) => {
+    const arpeggio = parameters[eightBitRow(`${part}Arpeggio`).index]
+    const keyed = arpeggioKeyed[arpeggio <= userArpeggio ? arpeggio : 0]
+    return [
+      [`${part}Chord`, keyed >> 5],
+      [`${part}Pattern`, keyed & 0x1f],
+    ] as const
+  })
+  return [
+    ['scale', 0],
+    ['voicing', 0],
+    ['leadFollows', 0],
+    ['accidentals', 0],
+    ...carried,
+    ['key', next],
+  ]
 }

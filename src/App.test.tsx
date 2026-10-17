@@ -25,6 +25,7 @@ const savedEffects = vi.hoisted(() =>
   Uint8Array.from({ length: 24 }, (_, index) => (index + 1) % 2),
 )
 const loadVirtualAnalogEditorPage = vi.hoisted(() => vi.fn(() => new Promise<never>(() => {})))
+const loadEightBitEditorPage = vi.hoisted(() => vi.fn(() => new Promise<never>(() => {})))
 const loadPatchEditorPage = vi.hoisted(() =>
   vi.fn(() => Promise.reject(new TypeError('Failed to fetch dynamically imported module'))),
 )
@@ -126,6 +127,7 @@ vi.mock('@/components/workspace-persistence-status', () => ({
 }))
 
 vi.mock('@/routes/load-patch-editor-page', () => ({
+  loadEightBitEditorPage,
   loadPatchEditorPage,
   loadVirtualAnalogEditorPage,
 }))
@@ -348,15 +350,16 @@ describe('App with an 8-Bit slot', () => {
     }
   })
 
-  it('opens no editor for an 8-Bit slot', async () => {
+  it('opens an 8-Bit slot in its own editor, selecting its preset on the FM1', async () => {
     const user = renderApp()
 
     await user.click(screen.getByRole('button', { name: 'Edit 8-Bit' }))
 
+    expect(loadEightBitEditorPage).toHaveBeenCalledTimes(1)
     expect(loadVirtualAnalogEditorPage).not.toHaveBeenCalled()
     expect(loadPatchEditorPage).not.toHaveBeenCalled()
-    expect(sendProgramChange).not.toHaveBeenCalled()
-    expect(screen.getByText('Lit slot: none')).toBeTruthy()
+    expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(3)
+    expect(sendVoice).not.toHaveBeenCalled()
   })
 })
 

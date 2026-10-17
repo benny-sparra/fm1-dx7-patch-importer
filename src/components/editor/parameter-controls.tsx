@@ -51,6 +51,9 @@ export function RackSelect({ className, ...props }: ComponentProps<'select'>) {
 }
 
 type ParameterControlProps = {
+  /** The field's name where the caption alone would repeat another field's, as in two panels. */
+  accessibleLabel?: string
+  disabled?: boolean
   helpText?: string
   label: string
   max: number
@@ -557,6 +560,7 @@ export function SwitchParameterControl({
 }
 
 export function RadioParameterControl({
+  accessibleLabel,
   helpText,
   label,
   name,
@@ -565,6 +569,8 @@ export function RadioParameterControl({
   showLabel = true,
   value,
 }: {
+  /** The group's name where the caption alone would repeat another group's, as in two panels. */
+  accessibleLabel?: string
   helpText?: string
   label: string
   name: string
@@ -597,7 +603,7 @@ export function RadioParameterControl({
         the arrow keys move the choice, as in any radio group.
       */}
       <div
-        aria-label={label}
+        aria-label={accessibleLabel ?? label}
         className="crt-inset flex gap-[2px] bg-[var(--crt-bg-1)] p-[2px] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--crt-led)]"
         role="radiogroup"
       >
@@ -628,6 +634,8 @@ export function RadioParameterControl({
 }
 
 export function ParameterControl({
+  accessibleLabel,
+  disabled = false,
   helpText,
   label,
   max,
@@ -647,9 +655,10 @@ export function ParameterControl({
       </span>
       {options ? (
         <RackSelect
-          aria-label={label}
+          aria-label={accessibleLabel ?? label}
+          disabled={disabled}
           id={fieldId}
-          className={`${fieldSurfaceClass} text-xs text-[var(--crt-ink)] normal-case`}
+          className={`${fieldSurfaceClass} text-xs text-[var(--crt-ink)] normal-case disabled:opacity-50`}
           onChange={(event) => onChange(Number(event.target.value))}
           value={value}
         >
@@ -661,8 +670,12 @@ export function ParameterControl({
         </RackSelect>
       ) : (
         <input
-          aria-label={label}
-          className={cn(fieldFrameClass, 'font-vt323 text-base text-[var(--crt-led)]')}
+          aria-label={accessibleLabel ?? label}
+          className={cn(
+            fieldFrameClass,
+            'font-vt323 text-base text-[var(--crt-led)] disabled:opacity-50',
+          )}
+          disabled={disabled}
           id={fieldId}
           max={max}
           min={min}

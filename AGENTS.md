@@ -830,10 +830,31 @@ open everything an earlier release could have saved.
   (`isFm1VaEightBitVoice`), with its record in `records`. Workspace version 9, saved banks version
   4, and backup files version 5 carry them. Everything the Virtual Analog slot rule above says holds
   for it too: DX7 paths meet it as empty, the paths that should carry it do so on purpose, its slot
-  sends only its Program Change, and a DX7 bank puts INIT VOICE in its place and says so. It has no
-  editor yet, so its card offers neither Edit nor double-click editing, and no **Change to FM…**;
+  sends only its Program Change, and a DX7 bank puts INIT VOICE in its place and says so. Its card
+  offers Edit and double-click editing, which open the 8-Bit editor, and no **Change to FM…**;
   its tag is 8B, lit like VA, and its sound key is `eightBitSoundKey`. Favourites cannot hold it,
   as they cannot hold a Virtual Analog preset.
+- The 8-Bit editor (`src/routes/eight-bit-editor-page.tsx`, in the voice editor's chunk through
+  `loadEightBitEditorPage`) edits the rows `docs/fm1-research.md` maps under "Every field of an
+  8-Bit preset", through `src/lib/fm1-va-eight-bit-editor.ts`, under the same rule as the Virtual
+  Analog editor: a row writes only its own bits, and only when its value changed. Both editors
+  share their session (`Fm1VaEditorSession`, given the engine's rows) and the Envelope and LFO rows
+  (`src/lib/fm1-va-shared-rows.ts`), which keep the same bytes on every engine. While live it sends
+  only the Envelope's, the LFO's, and the effects' controllers, since no other controller reaches
+  an 8-Bit preset; the page says the rest is heard once the patch is written. The Key row's value
+  carries the record's mark as well as the Key (`eightBitKeyMarked`), because the FM1 does more on a
+  preset's first Key: `eightBitKeyChoice` gives the Scale, Voicing, Lead Follows, Accidentals, and
+  each part's Chord and Pattern it sets from the Arpeggio (`CH_ARP_KEYED`), applied as one undo
+  step through `chooseRows`. It dims what the FM1 dims and keeps it: the Key's settings while
+  there is no Key, Arp Speed on Auto-Chord, and with a Key, the Pattern and User Arpeggio on
+  Auto-Chord and the Chord on Pattern User. Its lists show the names the FM1 prints, in English in
+  every locale, from `src/lib/fm1-va-eight-bit-names.ts` (taken from the firmware's
+  `chip_names.h` through the Device Manager), so they match the FM1's screen; the firmware calls
+  several provisional, and a rename changes that table alone. Field labels and help are
+  translated. A control the bass, the lead, a drum, and the Envelope each have takes its part in
+  its accessible name (`eightBit.partSetting`), so no two sliders share a name. **Init patch**
+  takes every row from the blank 8-Bit preset the FM1 writes for Erase Preset (M3), switches the
+  effects off, and keeps the name.
 - **Download patch** saves a Virtual Analog or 8-Bit patch as a presets file of one preset, the
   file Baud Girl's **Save as a file** makes, through `makeFm1VaPresetFile`: one preset write with
   the voice bytes as read and the record holding the library's effects, as the preset write would

@@ -28,3 +28,17 @@ export function loadVirtualAnalogEditorPage() {
     return new Promise<never>(() => {})
   })
 }
+
+/** The 8-Bit editor shares the voice editor's chunk, as the Virtual Analog editor does. */
+export function loadEightBitEditorPage() {
+  const moduleRequest = import('@/routes/patch-editor-page') as Promise<
+    typeof import('@/routes/patch-editor-page') | undefined
+  >
+
+  return moduleRequest.then((module) => {
+    if (module) return { default: module.EightBitEditorPage }
+
+    // As for the voice editor: pending only until the requested page reload.
+    return new Promise<never>(() => {})
+  })
+}
