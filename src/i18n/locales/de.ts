@@ -234,6 +234,10 @@ export default {
   },
   eightBit: {
     help: {
+      drumPreset:
+        'Eine Drum aus dem eigenen Kit des FM1 als Ausgangspunkt für diese. Ihr Pegel bleibt, wie er ist.',
+      partPreset:
+        'Ein Klang als Ausgangspunkt für diesen Part: Welle, Duty-Sequenz und Notenverlauf. Arpeggio, Oktave, Pegel und Monophon bleiben, wie sie sind.',
       key: 'Setzt beide Parts in eine Tonart, sodass jede Taste den Akkord spielt, der in der Skala auf ihr liegt. Bei Off spielt jeder Part stattdessen sein Arpeggio. Die erste Tonart eines Sounds leitet Akkord und Pattern jedes Parts aus seinem Arpeggio ab, wie der FM1 es tut.',
       accidentals:
         'Was die fünf Tasten außerhalb der Skala spielen. Borrowed macht jede zum Grundton eines Akkords von außerhalb der Skala, Leading zur Terz eines Durakkords, der zur nächsthöheren Taste führt.',
@@ -267,6 +271,53 @@ export default {
       userArpeggio:
         'Acht Schritte in Halbtönen von der gedrückten Taste, −12 bis +18. Ein Schritt über +18 zeigt End und springt zurück zum ersten Schritt.',
       glide: 'Wie lange die Tonhöhe zur nächsten Note gleitet. Glide braucht Monophon.',
+    },
+    drumPresets: {
+      kick: 'Kick',
+      snare: 'Snare',
+      noiseSnare: 'Rausch-Snare',
+      rim: 'Rimshot',
+      closedHat: 'Geschlossene Hi-Hat',
+      openHat: 'Offene Hi-Hat',
+      metalHat: 'Metall-Hi-Hat',
+      crash: 'Crash',
+      lowTom: 'Tiefes Tom',
+      midTom: 'Mittleres Tom',
+      highTom: 'Hohes Tom',
+      blip: 'Blip',
+    },
+    partPresets: {
+      triangle: 'Dreieck-Bass',
+      pulse: 'Puls-Lead',
+      square: 'Rechteck',
+      pluck: 'Pluck',
+      wobble: 'Wobble',
+      sweep: 'Sweep',
+      gbBass: 'GB-Bass',
+      organ: 'Orgel',
+      bell: 'Glocke',
+      pad: 'Weiche Fläche',
+    },
+    starters: {
+      console: {
+        name: 'Konsole',
+        description:
+          'Das eigene Kit des FM1, ein Dreieck-Bass und ein Puls-Lead, durch die Filter der Konsole.',
+      },
+      rawChip: {
+        name: 'Roher Chip',
+        description:
+          'Das Kit mit Rechteck-Bass und einem schwebenden Lead, roh und gestimmt wie der Chip.',
+      },
+      gameBoy: {
+        name: 'Game Boy',
+        description: 'Das Kit mit der Bass- und der Glockenwelle des Game Boy.',
+      },
+      arpLead: {
+        name: 'Arpeggio-Lead',
+        description:
+          'Ein gezupfter Bass unter einem Rechteck-Lead, der ein schnelles Dur-Arpeggio spielt, solange der Sound keine Tonart hat.',
+      },
     },
     key: 'Tonart',
     partSetting: '{{part}} {{setting}}',

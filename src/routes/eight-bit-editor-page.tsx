@@ -23,6 +23,7 @@ import {
   FaderParameterControl,
   LfoWaveControl,
   ParameterControl,
+  RackSelect,
   RadioParameterControl,
   RotaryParameterControl,
   SwitchParameterControl,
@@ -42,7 +43,17 @@ import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import { useFm1VaSoundControl } from '@/hooks/use-fm1-va-sound-control'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import type { MidiController } from '@/hooks/use-midi'
-import { initializeEightBit } from '@/lib/eight-bit-presets'
+import {
+  applyEightBitStarter,
+  eightBitDrumPresets,
+  eightBitDrumPresetValues,
+  eightBitPartPresets,
+  eightBitPartPresetValues,
+  eightBitStarters,
+  initializeEightBit,
+  type EightBitDrumPresetId,
+  type EightBitPartPresetId,
+} from '@/lib/eight-bit-presets'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { getFm1EffectParameters } from '@/lib/fm1-effects'
 import {
@@ -145,6 +156,52 @@ const dimmableClass = 'm-0 grid min-w-0 gap-2.5 border-0 p-0 disabled:opacity-50
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value))
 /** A User Arpeggio step past +18 reads End, which the FM1 stores as 31, shown as 19. */
 const userArpeggioEndShown = 31 - 12
+
+/**
+ * A starting point for one drum or part, applied as one undo step. It always shows its placeholder,
+ * as the effect boxes' presets do: a preset is a starting point, not a mode.
+ */
+function PresetSelect<Id extends string>({
+  accessibleLabel,
+  help,
+  label,
+  onApply,
+  options,
+}: {
+  accessibleLabel: string
+  help: string
+  label: string
+  onApply: (id: Id) => void
+  options: readonly { id: Id; name: string }[]
+}) {
+  const { t } = useTranslation()
+  const fieldId = useId()
+  return (
+    <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 text-xs tracking-[0.1em] text-[var(--crt-ink-2)] uppercase">
+      {/* The help button sits beside the label: inside it, a click on the caption would open it. */}
+      <span className="flex items-center gap-1">
+        <label htmlFor={fieldId}>{label}</label>
+        <RackPanelHelp label={accessibleLabel} text={help} />
+      </span>
+      <RackSelect
+        aria-label={accessibleLabel}
+        className="crt-field h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+        id={fieldId}
+        onChange={(event) => onApply(event.target.value as Id)}
+        value=""
+      >
+        <option disabled value="">
+          {t('editor.effectPresetPlaceholder')}
+        </option>
+        {options.map(({ id, name }) => (
+          <option key={id} value={id}>
+            {name}
+          </option>
+        ))}
+      </RackSelect>
+    </div>
+  )
+}
 
 /**
  * The editor for an 8-Bit preset from FM-1+VA: its Key, its twelve drums, its bass and lead, the
@@ -502,6 +559,19 @@ export function EightBitEditorPage({
           title={title}
         />
         <div className="flex flex-1 flex-col gap-2.5 p-[9px]">
+          <PresetSelect<EightBitPartPresetId>
+            accessibleLabel={t('eightBit.partSetting', {
+              part: title,
+              setting: t('editor.effectPreset'),
+            })}
+            help={t('eightBit.help.partPreset')}
+            label={t('editor.effectPreset')}
+            onApply={(id) => editor.chooseRows(eightBitPartPresetValues(part, id))}
+            options={eightBitPartPresets.map(({ id }) => ({
+              id,
+              name: t(`eightBit.partPresets.${id}`),
+            }))}
+          />
           <div className="grid grid-cols-2 gap-2.5">
             {partList(row('Wave'), t('eightBit.wave'), eightBitWaveNames)}
             {partList(row('DutySequence'), t('eightBit.dutySequence'), eightBitDutySequenceNames, {
@@ -654,6 +724,15 @@ export function EightBitEditorPage({
                 editor.replaceParameters(initializeEightBit)
               },
             },
+            ...eightBitStarters.map(({ id }) => ({
+              description: t(`eightBit.starters.${id}.description`),
+              id,
+              name: t(`eightBit.starters.${id}.name`),
+              onSelect: () => {
+                presetsMenuRef.current?.removeAttribute('open')
+                editor.replaceParameters((present) => applyEightBitStarter(present, id))
+              },
+            })),
           ],
           label: t('virtualAnalog.presets'),
           menuRef: presetsMenuRef,
@@ -783,6 +862,19 @@ export function EightBitEditorPage({
                   <h3 className="font-vt323 text-[18px] leading-none text-[var(--crt-led)]">
                     {drumTitle}
                   </h3>
+                  <PresetSelect<EightBitDrumPresetId>
+                    accessibleLabel={t('eightBit.partSetting', {
+                      part: drumTitle,
+                      setting: t('editor.effectPreset'),
+                    })}
+                    help={t('eightBit.help.drumPreset')}
+                    label={t('editor.effectPreset')}
+                    onApply={(id) => editor.chooseRows(eightBitDrumPresetValues(drum, id))}
+                    options={eightBitDrumPresets.map(({ id }) => ({
+                      id,
+                      name: t(`eightBit.drumPresets.${id}`),
+                    }))}
+                  />
                   <div className="grid grid-cols-2 gap-2.5">
                     {list(drumRow('Wave'), t('eightBit.wave'), eightBitWaveNames, drumScope())}
                     {choice(

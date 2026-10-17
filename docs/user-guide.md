@@ -187,7 +187,10 @@ the place of its **Arpeggio**, and the first Key a patch gets carries each Arpeg
 does, in one Undo. While the FM1 runs Baud Girl's firmware FM-1_096 or later and plays that preset
 in its slot, the envelope, LFO, and effects play on it as you change them; everything else is heard
 once the patch is written to the FM1, as a line at the top says. Its **Presets** menu lists **Init
-patch**, the FM1's own blank 8-Bit preset with every effect switched off, keeping the name.
+patch**, the FM1's own blank 8-Bit preset with every effect switched off, keeping the name, then
+four starters that set the kit and both parts at once. A drum's **Preset** gives the chosen drum
+one of the twelve from the FM1's own kit, keeping its Level, and the bass's and the lead's give
+that part a sound, keeping its Arpeggio, Octave, Level, and Mono. Each is one Undo.
 **Save** keeps your changes in the library, and every bit the editor doesn't set stays exactly as
 read. It has no **Change to FM…**: copy another patch over it to replace it. You can copy it, move
 it, save its bank, and back it up like any other patch, and **Write patches to the FM1…** writes it

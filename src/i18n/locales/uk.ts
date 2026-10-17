@@ -368,6 +368,10 @@ export default {
   },
   eightBit: {
     help: {
+      drumPreset:
+        'Барабан із власного кіта FM1 як відправна точка для цього. Його Level не змінюється.',
+      partPreset:
+        'Звук, з якого почати цю партію: хвиля, Duty Sequence і форма ноти. Її Arpeggio, Octave, Level і Mono не змінюються.',
       key: 'Ставить обидві партії в тональність, тож кожна клавіша грає акорд, що належить їй у гамі. За Off кожна партія грає свій Arpeggio. Перший Key патча виводить Chord і Pattern кожної партії з її Arpeggio, як це робить FM1.',
       accidentals:
         'Що грають п’ять клавіш поза гамою. Borrowed робить кожну основою акорду поза гамою, Leading — терцією мажорного акорду, що веде до клавіші вище.',
@@ -400,6 +404,51 @@ export default {
       userArpeggio:
         'Вісім кроків у півтонах від натиснутої клавіші, від −12 до +18. Крок понад +18 показує End і повертає на перший крок.',
       glide: 'Скільки триває ковзання висоти до наступної ноти. Glide потребує Mono.',
+    },
+    drumPresets: {
+      kick: 'Kick',
+      snare: 'Snare',
+      noiseSnare: 'Noise snare',
+      rim: 'Rim',
+      closedHat: 'Closed hat',
+      openHat: 'Open hat',
+      metalHat: 'Metal hat',
+      crash: 'Crash',
+      lowTom: 'Low tom',
+      midTom: 'Mid tom',
+      highTom: 'High tom',
+      blip: 'Blip',
+    },
+    partPresets: {
+      triangle: 'Triangle bass',
+      pulse: 'Pulse lead',
+      square: 'Square',
+      pluck: 'Pluck',
+      wobble: 'Wobble',
+      sweep: 'Sweep',
+      gbBass: 'GB bass',
+      organ: 'Organ',
+      bell: 'Bell',
+      pad: 'Soft pad',
+    },
+    starters: {
+      console: {
+        name: 'Console',
+        description: 'Власний кіт FM1, бас Triangle і лід Pulse крізь фільтри консолі.',
+      },
+      rawChip: {
+        name: 'Raw chip',
+        description: 'Кіт із басом Square і лідом зі Sweep, сирий і строєний, як чип.',
+      },
+      gameBoy: {
+        name: 'Game Boy',
+        description: 'Кіт із хвилями баса й дзвона з Game Boy.',
+      },
+      arpLead: {
+        name: 'Arpeggio lead',
+        description:
+          'Бас Pluck під лідом Square, що грає швидке мажорне арпеджіо, поки патч не має Key.',
+      },
     },
     key: 'Key',
     partSetting: '{{part}}: {{setting}}',

@@ -854,7 +854,13 @@ open everything an earlier release could have saved.
   translated. A control the bass, the lead, a drum, and the Envelope each have takes its part in
   its accessible name (`eightBit.partSetting`), so no two sliders share a name. **Init patch**
   takes every row from the blank 8-Bit preset the FM1 writes for Erase Preset (M3), switches the
-  effects off, and keeps the name.
+  effects off, and keeps the name. Its presets live in `src/lib/eight-bit-presets.ts`, each
+  applied as one undo step: a drum's are the FM1 blank kit's twelve drums, setting every row but
+  Level; a part's set its sound (Wave, Duty Sequence, envelope, Vibrato, Glide, Sweep) and leave
+  how it is played (Arpeggio, Arp Speed, Note Engine, Octave, Level, Mono); a starter in the
+  Presets menu sets the kit, both parts, Tone, Tuning, and the Arpeggios, keeping the Key and its
+  settings, the levels, name, Envelope, LFO, and effects. A preset whose values are the editor's
+  own, not the FM1's, ships only once it has been heard on an FM1, as the effect presets did.
 - **Download patch** saves a Virtual Analog or 8-Bit patch as a presets file of one preset, the
   file Baud Girl's **Save as a file** makes, through `makeFm1VaPresetFile`: one preset write with
   the voice bytes as read and the record holding the library's effects, as the preset write would

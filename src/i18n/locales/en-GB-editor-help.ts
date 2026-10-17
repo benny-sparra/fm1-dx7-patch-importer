@@ -302,6 +302,10 @@ export default {
   },
   eightBit: {
     help: {
+      drumPreset:
+        'A drum from the FM1’s own kit, as a starting point for this one. Its Level stays as it is.',
+      partPreset:
+        'A sound to start this part from: its wave, duty sequence, and note shape. Its Arpeggio, Octave, Level, and Mono stay as they are.',
       key: 'Puts both parts in a key, so each key you press plays the chord that belongs on it in the scale. At Off, each part plays its Arpeggio instead. A patch’s first Key sets each part’s Chord and Pattern from its Arpeggio, as the FM1 does.',
       accidentals:
         'What the five keys outside the scale play. Borrowed makes each the root of a chord from outside the scale; Leading makes it the third of a major chord that leads up to the key above.',
@@ -334,6 +338,53 @@ export default {
       userArpeggio:
         'Eight steps in semitones from the key you press, −12 to +18. A step turned past +18 reads End and loops back to the first step.',
       glide: 'How long the pitch takes to slide to the next note. Glide needs Mono on.',
+    },
+    drumPresets: {
+      kick: 'Kick',
+      snare: 'Snare',
+      noiseSnare: 'Noise snare',
+      rim: 'Rim',
+      closedHat: 'Closed hat',
+      openHat: 'Open hat',
+      metalHat: 'Metal hat',
+      crash: 'Crash',
+      lowTom: 'Low tom',
+      midTom: 'Mid tom',
+      highTom: 'High tom',
+      blip: 'Blip',
+    },
+    partPresets: {
+      triangle: 'Triangle bass',
+      pulse: 'Pulse lead',
+      square: 'Square',
+      pluck: 'Pluck',
+      wobble: 'Wobble',
+      sweep: 'Sweep',
+      gbBass: 'GB bass',
+      organ: 'Organ',
+      bell: 'Bell',
+      pad: 'Soft pad',
+    },
+    starters: {
+      console: {
+        name: 'Console',
+        description:
+          'The FM1’s own kit, a triangle bass, and a pulse lead, through the console’s filters.',
+      },
+      rawChip: {
+        name: 'Raw chip',
+        description:
+          'The kit with a square bass and a sweeping lead, raw and tuned as the chip was.',
+      },
+      gameBoy: {
+        name: 'Game Boy',
+        description: 'The kit with the Game Boy’s bass and bell waves.',
+      },
+      arpLead: {
+        name: 'Arpeggio lead',
+        description:
+          'A plucked bass under a square lead that plays a fast major arpeggio while the patch has no Key.',
+      },
     },
     key: 'Key',
     partSetting: '{{part}} {{setting}}',

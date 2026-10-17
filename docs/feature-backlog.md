@@ -622,6 +622,13 @@ and 8-Bit presets, then the 8-Bit editor (9) once item 10 has mapped its Note En
     LFO, and effects, which alone play live. Its lists show the FM1's own names. The first Key
     carries each part's Arpeggio over as the FM1 does. Its Presets menu has Init patch only;
     Randomise and sound starters could follow. Not yet heard through the editor on hardware.
+  - **8-Bit presets.** A drum preset menu (the FM1 blank kit's twelve drums), a part preset
+    menu on the bass and the lead (ten sounds, the first two the FM1's own blank bass and lead),
+    and four whole-patch starters beside Init patch. Built 2026-10-17. Before they ship, write
+    each to the green FM1 and listen: every part preset on the bass and the lead (a written patch
+    per preset), and each starter with Key Off and with a Key set. Change any that do not match
+    their names, and note what was heard here. The drum presets are the FM1's own values, so one
+    listen through the kit is enough.
     Version 98 adds a **Note Engine** row to the bass and the lead, after Arp Speed: at
     Auto-Chord the part plays its chord's notes together rather than one after another. It is
     not mapped yet (item 10).
