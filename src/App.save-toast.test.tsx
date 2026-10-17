@@ -19,6 +19,14 @@ const virtualAnalogVoice = vi.hoisted(() => {
   return voice
 })
 const virtualAnalogRecord = vi.hoisted(() => new Uint8Array(59))
+const replaceWithEightBit = vi.hoisted(() => vi.fn())
+// An 8-Bit preset's voice bytes, named CHIP TUNE in the packed name bytes.
+const eightBitVoice = vi.hoisted(() => {
+  const voice = new Uint8Array(128)
+  voice.set(new TextEncoder().encode('CHIP TUNE '), 118)
+  return voice
+})
+const eightBitRecord = vi.hoisted(() => new Uint8Array(59))
 
 vi.mock('@/hooks/use-midi', () => ({
   useMidi: () => ({
@@ -32,13 +40,16 @@ vi.mock('@/hooks/use-midi', () => ({
 vi.mock('@/hooks/use-patch-library', () => ({
   usePatchLibrary: () => ({
     effects: {},
-    records: { 'patch-e2': virtualAnalogRecord },
+    eightBit: { 'patch-e3': eightBitVoice },
+    records: { 'patch-e2': virtualAnalogRecord, 'patch-e3': eightBitRecord },
     patches: [
       { bank: 'E', family: 'DX7', id: 'patch-e1', name: 'SYN PAD 1', number: 1 },
       { bank: 'E', family: 'VA', id: 'patch-e2', name: 'BASS VA', number: 2 },
+      { bank: 'E', family: '8-Bit', id: 'patch-e3', name: 'CHIP TUNE', number: 3 },
       { bank: 'favourites', family: 'DX7', id: 'favourite-1', name: 'SYN PAD 1', number: 1 },
     ],
     persistenceStatus: 'ready',
+    replaceWithEightBit,
     replaceWithVirtualAnalog,
     updatePatch,
     virtualAnalog: { 'patch-e2': virtualAnalogVoice },
@@ -63,6 +74,9 @@ vi.mock('@/routes/librarian-page', () => ({
       </button>
       <button onClick={() => onEditPatch({ id: 'patch-e2' })} type="button">
         Edit Virtual Analog
+      </button>
+      <button onClick={() => onEditPatch({ id: 'patch-e3' })} type="button">
+        Edit 8-Bit
       </button>
     </>
   ),
@@ -96,6 +110,20 @@ vi.mock('@/routes/load-patch-editor-page', () => ({
           type="button"
         >
           Save Virtual Analog
+        </button>
+      ),
+    }),
+  loadEightBitEditorPage: () =>
+    Promise.resolve({
+      default: ({
+        onSave,
+        voice,
+      }: {
+        onSave: (voice: Uint8Array, effects: Uint8Array, record: Uint8Array) => void
+        voice: Uint8Array
+      }) => (
+        <button onClick={() => onSave(voice, new Uint8Array(24), eightBitRecord)} type="button">
+          Save 8-Bit
         </button>
       ),
     }),
@@ -165,5 +193,26 @@ describe('App save notification', () => {
     )
     expect(updatePatch).not.toHaveBeenCalled()
     expect(await screen.findByText('Saved “BASS VA” to the library.')).toBeTruthy()
+  })
+
+  it('opens an 8-Bit preset in its own editor and saves it in its slot', async () => {
+    const user = userEvent.setup()
+    render(
+      <ToastProvider>
+        <App />
+      </ToastProvider>,
+    )
+    await user.click(screen.getByRole('button', { name: 'Edit 8-Bit' }))
+    await user.click(await screen.findByRole('button', { name: 'Save 8-Bit' }))
+
+    expect(replaceWithEightBit).toHaveBeenCalledWith(
+      'E',
+      3,
+      eightBitVoice,
+      new Uint8Array(24),
+      eightBitRecord,
+    )
+    expect(replaceWithVirtualAnalog).not.toHaveBeenCalled()
+    expect(await screen.findByText('Saved “CHIP TUNE” to the library.')).toBeTruthy()
   })
 })

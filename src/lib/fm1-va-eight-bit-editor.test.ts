@@ -16,13 +16,20 @@ import {
 import { packDx7Voice, unpackDx7Voice } from '@/lib/dx7'
 import {
   eightBitFromEditorParameters,
+  eightBitKeyChoice,
+  eightBitKeyMarked,
   eightBitParameterCount,
   eightBitRow,
   eightBitRows,
   makeEightBitEditorParameters,
   type EightBitRowId,
 } from '@/lib/fm1-va-eight-bit-editor'
+import { fm1VaLfoRows } from '@/lib/fm1-va-shared-rows'
 import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
+
+const lfoIds = new Set<EightBitRowId>(fm1VaLfoRows.map((row) => row.id))
+/** The Key row's values: without the mark, and each Key with it. */
+const keyValues = [0, ...Array.from({ length: 13 }, (_, key) => eightBitKeyMarked + key)]
 
 const runs = path.resolve(__dirname, '../../docs/hardware-runs')
 
@@ -88,7 +95,9 @@ function computeFootprint(id: EightBitRowId) {
       voice: new Uint8Array(128).fill(fill & 0x7f),
     }
     base.record[26] = fill ? 0x6f : 0x40
-    for (let value = 0; value <= row.max; value += 1) {
+    for (const value of id === 'key'
+      ? keyValues
+      : Array.from({ length: row.max + 1 }, (_, v) => v)) {
       const voice = base.voice.slice()
       const record = base.record.slice()
       row.write(voice, record, value)
@@ -107,9 +116,12 @@ describe('8-Bit rows: the table', () => {
   })
 
   it('keeps every row clear of the effects, Distortion type, Bitcrush, effect order, knob choices, and name', () => {
-    for (const { index } of eightBitRows) {
-      expect(index).toBeGreaterThanOrEqual(FM1_EDITOR_PARAMETER_COUNT)
-      expect(index).toBeLessThan(eightBitParameterCount)
+    for (const { id, index } of eightBitRows) {
+      // The LFO sits at the DX7 voice parameters it shares, as on a Virtual Analog preset.
+      const placed = lfoIds.has(id)
+        ? index >= 137 && index <= 143
+        : index >= FM1_EDITOR_PARAMETER_COUNT && index < eightBitParameterCount
+      expect({ id, placed }).toEqual({ id, placed: true })
     }
     expect(FM1_EDITOR_PARAMETER_COUNT).toBeGreaterThan(FM1_VA_DISTORTION_TYPE_INDEX)
     expect(FM1_EDITOR_PARAMETER_COUNT).toBeGreaterThan(FM1_VA_BITCRUSH_START)
@@ -131,6 +143,12 @@ describe('8-Bit rows: the table', () => {
       'tuning',
       'drumDecay',
       'drumsLevel',
+      'envelope',
+      'attack',
+      'decay',
+      'sustain',
+      'release',
+      ...lfoIds,
     ] as const) {
       expect(ids).toContain(id)
     }
@@ -185,7 +203,7 @@ describe('8-Bit rows: the table', () => {
     }
   })
 
-  it('writes none of the bits the preset does not read, nor the LFO, Transpose, and name', () => {
+  it('writes none of the bits the preset does not read, nor Transpose and the name, and the LFO only from its own rows', () => {
     const unread = [
       17, 97, 118, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 144, 145,
     ]
@@ -194,7 +212,13 @@ describe('8-Bit rows: the table', () => {
     for (let byte = 112; byte < 128; byte += 1) forbidden[byte] = 0x7f
     for (const { id } of eightBitRows) {
       footprint(id).voice.forEach((byte, i) => {
-        expect(byte & forbidden[i], `${id} byte ${i}`).toBe(0)
+        const lfoByte = lfoIds.has(id) && i >= 112 && i <= 116
+        expect(byte & (lfoByte ? 0 : forbidden[i]), `${id} byte ${i}`).toBe(0)
+        expect({ id, i, outside: lfoIds.has(id) && byte !== 0 && !lfoByte }).toEqual({
+          id,
+          i,
+          outside: false,
+        })
       })
     }
   })
@@ -267,7 +291,11 @@ describe('8-Bit rows: writing', () => {
       const row = eightBitRow(id)
       const own = footprint(id)
       const lowest = id.endsWith('Sweep') ? 1 : 0
-      for (let value = lowest; value <= row.max; value += 1) {
+      const values =
+        id === 'key'
+          ? keyValues
+          : Array.from({ length: row.max + 1 - lowest }, (_, step) => lowest + step)
+      for (const value of values) {
         const after = write(nesRock, { [id]: value })
         expect({ value, read: read(id, after.voice, after.record) }).toEqual({ value, read: value })
         expect(after.voice.every((byte, i) => !((byte ^ nesRock.voice[i]) & ~own.voice[i]))).toBe(
@@ -332,11 +360,52 @@ describe('8-Bit rows: writing', () => {
     const unmarked = { record: new Uint8Array(59).fill(0xff), voice: new Uint8Array(128) }
     expect(read('key', unmarked.voice, unmarked.record)).toBe(0)
     expect(read('accidentals', unmarked.voice, unmarked.record)).toBe(0)
-    const keyed = write(unmarked, { key: 5 })
+    const keyed = write(unmarked, { key: eightBitKeyMarked + 5 })
     expect(keyed.record[26]).toBe(0x45)
+    expect(read('key', keyed.voice, keyed.record)).toBe(eightBitKeyMarked + 5)
     expect(write(keyed, { accidentals: 1 }).record[26]).toBe(0x65)
-    expect(write(write(keyed, { accidentals: 1 }), { key: 0 }).record[26]).toBe(0x60)
+    const keyOff = write(write(keyed, { accidentals: 1 }), { key: eightBitKeyMarked })
+    expect(keyOff.record[26]).toBe(0x60)
+    expect(read('key', keyOff.voice, keyOff.record)).toBe(eightBitKeyMarked)
     expect(write(unmarked, { accidentals: 1 }).record[26]).toBe(0x60)
+    // Undoing back to a preset that never had a Key takes the mark away again.
+    expect(write(keyed, { key: 0 }).record[26]).toBe(0x05)
+  })
+
+  it('carries each part’s Arpeggio over to its Chord and Pattern when a preset gets its first Key', () => {
+    const unmarked = { record: nesRock.record.slice(), voice: nesRock.voice.slice() }
+    unmarked.record[26] = 0x03
+    const parameters = makeEightBitEditorParameters(
+      unmarked.voice,
+      write(unmarked, { bassArpeggio: 7, leadArpeggio: 32 }).record,
+      makeDefaultFm1Effects(),
+    )
+    // Fifth (7) is keyed 193: Chord 6, Pattern 1; User (32) is keyed 17: Chord 0, Pattern 17.
+    expect(new Map(eightBitKeyChoice(parameters, 1))).toEqual(
+      new Map([
+        ['scale', 0],
+        ['voicing', 0],
+        ['leadFollows', 0],
+        ['accidentals', 0],
+        ['bassChord', 6],
+        ['bassPattern', 1],
+        ['leadChord', 0],
+        ['leadPattern', 17],
+        ['key', eightBitKeyMarked + 1],
+      ]),
+    )
+    expect(eightBitKeyChoice(parameters, 0)).toEqual([])
+  })
+
+  it('changes only the Key once the preset has had one', () => {
+    const parameters = makeEightBitEditorParameters(
+      nesRock.voice,
+      nesRock.record,
+      makeDefaultFm1Effects(),
+    )
+    expect(eightBitKeyChoice(parameters, 0)).toEqual([['key', eightBitKeyMarked]])
+    expect(eightBitKeyChoice(parameters, 5)).toEqual([])
+    expect(eightBitKeyChoice(parameters, 1)).toEqual([['key', eightBitKeyMarked + 1]])
   })
 
   it('stores Drums Level as 80 | (99 − level), and 99 without the mark', () => {
@@ -356,7 +425,7 @@ describe('8-Bit rows: NES ROCK, the one pack preset in the repository', () => {
     const { voice, record } = nesRock
     expect(read('bassWave', voice, record)).toBe(4)
     expect(read('leadWave', voice, record)).toBe(1)
-    expect(read('key', voice, record)).toBe(5)
+    expect(read('key', voice, record)).toBe(eightBitKeyMarked + 5)
     expect(read('bassLevel', voice, record)).toBe(95)
     expect(read('bassNoteEngine', voice, record)).toBe(0)
     expect(read('leadNoteEngine', voice, record)).toBe(0)
@@ -416,12 +485,16 @@ describe('8-Bit rows: NES ROCK, the one pack preset in the repository', () => {
 describe('8-Bit rows: the 2026-10-16 captures on FM-1_098', () => {
   const steps: [string, Partial<Record<EightBitRowId, number>>, string][] = [
     ['p1', { bassWave: 2 }, 'baseline'],
-    ['p2a-key-off', { key: 0 }, 'p1'],
-    ['p2b-key-c', { key: 1 }, 'p2a-key-off'],
+    ['p2a-key-off', { key: eightBitKeyMarked }, 'p1'],
+    ['p2b-key-c', { key: eightBitKeyMarked + 1 }, 'p2a-key-off'],
     ['p3-drum-pitch', { drum0Pitch: 50 }, 'p2b-key-c'],
     ['p4a-decay-60', { drumDecay: 60 }, 'p3-drum-pitch'],
     ['p4b-decay-40', { drumDecay: 40 }, 'p4a-decay-60'],
-    ['p5-lead-user-arp', { key: 0, leadArpeggio: 32, leadUserArpeggio1: 15 }, 'p4b-decay-40'],
+    [
+      'p5-lead-user-arp',
+      { key: eightBitKeyMarked, leadArpeggio: 32, leadUserArpeggio1: 15 },
+      'p4b-decay-40',
+    ],
     ['p6-lead-octave', { leadOctave: 5 }, 'p5-lead-user-arp'],
     ['p7a-bass-level', { bassLevel: 50 }, 'p6-lead-octave'],
     ['p7b-lead-mono', { leadMono: 1 }, 'p7a-bass-level'],

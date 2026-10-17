@@ -68,8 +68,9 @@ import { applySoundPreset, soundPresets, type SoundPresetId } from '@/lib/sound-
 import { randomizeSound } from '@/lib/sound-randomizer'
 import { cn } from '@/lib/utils'
 
-// Loaded with this page's chunk (`loadVirtualAnalogEditorPage`).
+// Loaded with this page's chunk (`loadVirtualAnalogEditorPage`, `loadEightBitEditorPage`).
 export { VirtualAnalogEditorPage } from '@/routes/virtual-analog-editor-page'
+export { EightBitEditorPage } from '@/routes/eight-bit-editor-page'
 
 type PatchEditorPageProps = {
   /** Set to the editor's back action while it is open, for the browser's Back button to use. */

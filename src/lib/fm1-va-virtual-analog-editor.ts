@@ -6,7 +6,13 @@ import {
   FM1_VOICE_PARAMETER_COUNT,
 } from '@/lib/fm1-parameters'
 import { fm1VaRecordKnobChoices } from '@/lib/fm1-va-knob-choices'
-import { fm1VaChoiceValue } from '@/lib/fm1-va-sound-control'
+import {
+  fm1VaEnvelopeRows,
+  fm1VaLfoRows,
+  voiceBitsRow,
+  voiceByteRow,
+  type Fm1VaRow,
+} from '@/lib/fm1-va-shared-rows'
 import {
   fm1VaRecordBitcrush,
   fm1VaRecordDistortionType,
@@ -56,19 +62,7 @@ export type VirtualAnalogRowId =
   | 'velocityToLevel'
   | 'waveform'
 
-export type VirtualAnalogRow = {
-  /** For a list, how many choices it has; the value is the choice's number. */
-  choices?: number
-  /** The sound-setting Control Change that sets it live, where it has one. */
-  controller?: number
-  id: VirtualAnalogRowId
-  /** Where the row is in the editor's parameters. */
-  index: number
-  max: number
-  read: (voice: Uint8Array, record: Uint8Array) => number
-  /** Writes `value` into copies of the voice and record. */
-  write: (voice: Uint8Array, record: Uint8Array, value: number) => void
-}
+export type VirtualAnalogRow = Fm1VaRow<VirtualAnalogRowId>
 
 const clamp = (value: number, max: number) => Math.max(0, Math.min(max, Math.round(value)))
 
@@ -101,32 +95,6 @@ function markedRecordRow(id: VirtualAnalogRowId, byte: number, fallback: number)
   }
 }
 
-/** Bits `shift` onwards of packed voice byte `byte`, `width` bits wide. */
-function voiceBitsRow(id: VirtualAnalogRowId, byte: number, shift: number, width: number, max = 0) {
-  const mask = (1 << width) - 1
-  const top = max || mask
-  return {
-    id,
-    max: top,
-    read: (voice: Uint8Array) => Math.min(top, (voice[byte] >> shift) & mask),
-    write: (voice: Uint8Array, _record: Uint8Array, value: number) => {
-      voice[byte] = (voice[byte] & ~(mask << shift)) | (clamp(value, top) << shift)
-    },
-  }
-}
-
-/** A packed voice byte holding 0–99. */
-function voiceByteRow(id: VirtualAnalogRowId, byte: number) {
-  return {
-    id,
-    max: 99,
-    read: (voice: Uint8Array) => Math.min(99, voice[byte]),
-    write: (voice: Uint8Array, _record: Uint8Array, value: number) => {
-      voice[byte] = clamp(value, 99)
-    },
-  }
-}
-
 /** Record byte 26: `80` once set, Filter Type in bits 0–1, and Key Tracking in bits 2–3. */
 const filterModeByte = 26
 const filterMode = (record: Uint8Array) =>
@@ -143,13 +111,6 @@ function filterModeRow(id: VirtualAnalogRowId, shift: number) {
     },
   }
 }
-
-/**
- * Record byte 53's bit 6 is the Envelope's switch; its other bits hold the knob choices, which
- * `fm1VaRecordWithKnobChoices` writes around it.
- */
-const envelopeByte = 53
-const envelopeOn = 0x40
 
 /** The record's own rows go after the effect order, in this order. */
 const recordRowStart = FM1_EDITOR_PARAMETER_COUNT
@@ -190,26 +151,8 @@ const recordRows = [
       record[58] = value ? 1 : 0
     },
   },
-  {
-    id: 'envelope',
-    max: 1,
-    read: (_voice: Uint8Array, record: Uint8Array) => (record[envelopeByte] & envelopeOn ? 1 : 0),
-    write: (_voice: Uint8Array, record: Uint8Array, value: number) => {
-      record[envelopeByte] = value
-        ? record[envelopeByte] | envelopeOn
-        : record[envelopeByte] & ~envelopeOn
-    },
-  },
-  { ...plainRecordRow('attack', 54, 100), controller: 73, read: envelopeRead(54) },
-  { ...plainRecordRow('decay', 55, 100), controller: 75, read: envelopeRead(55) },
-  { ...plainRecordRow('sustain', 56, 100), controller: 70, read: envelopeRead(56) },
-  { ...plainRecordRow('release', 57, 100), controller: 72, read: envelopeRead(57) },
+  ...fm1VaEnvelopeRows,
 ] satisfies Omit<VirtualAnalogRow, 'index'>[]
-
-/** The Envelope's four settings show 100 for any byte above it. */
-function envelopeRead(byte: number) {
-  return (_voice: Uint8Array, record: Uint8Array) => Math.min(100, record[byte])
-}
 
 /**
  * The rows kept in the packed voice, at the index of the DX7 voice parameter each shares. The
@@ -218,13 +161,7 @@ function envelopeRead(byte: number) {
 const voiceRows = [
   { ...voiceByteRow('level', 14), index: 16 },
   { ...voiceBitsRow('velocityToLevel', 13, 2, 3), index: 15 },
-  { ...voiceByteRow('lfoSpeed', 112), controller: 76, index: 137 },
-  { ...voiceByteRow('lfoDelay', 113), controller: 78, index: 138 },
-  { ...voiceByteRow('pitchModDepth', 114), controller: 77, index: 139 },
-  { ...voiceByteRow('ampModDepth', 115), index: 140 },
-  { ...voiceBitsRow('lfoSync', 116, 0, 1), index: 141 },
-  { ...voiceBitsRow('lfoWave', 116, 1, 3, 5), choices: 6, index: 142 },
-  { ...voiceBitsRow('pitchModSensitivity', 116, 4, 3), index: 143 },
+  ...fm1VaLfoRows,
 ] satisfies VirtualAnalogRow[]
 
 export const virtualAnalogRows: readonly VirtualAnalogRow[] = [
@@ -241,14 +178,6 @@ export function virtualAnalogRow(id: VirtualAnalogRowId) {
   if (!row) throw new RangeError(`${id} is not a Virtual Analog row.`)
   return row
 }
-
-/** The Envelope's settings, which FM-1+VA plays, and sets by CC, only while its switch is on. */
-export const virtualAnalogEnvelopeRows: readonly VirtualAnalogRowId[] = [
-  'attack',
-  'decay',
-  'sustain',
-  'release',
-]
 
 /** The packed voice's name bytes. */
 const voiceNameByte = 118
@@ -304,15 +233,6 @@ export function virtualAnalogFromEditorParameters(
     voiceNameByte,
   )
   return { record: savedRecord, voice: savedVoice }
-}
-
-/**
- * The Control Change value that sets a row to `value` on FM-1+VA: a list's band, or the lowest
- * value the FM1 rounds to `value`, as it shows `round(cc × top ÷ 127)`.
- */
-export function virtualAnalogControlValue(row: VirtualAnalogRow, value: number) {
-  if (row.choices) return fm1VaChoiceValue(clamp(value, row.choices - 1), row.choices)
-  return Math.min(127, Math.max(0, Math.ceil(((clamp(value, row.max) - 0.5) * 127) / row.max)))
 }
 
 // The FM1's own Cutoff table (Baud Girl's Device Manager, `cutoffText`, from the firmware's

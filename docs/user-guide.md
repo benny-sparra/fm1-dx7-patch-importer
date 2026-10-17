@@ -178,10 +178,20 @@ exactly, as below. Adding them to Favourites is not available yet.
 
 An 8-Bit preset shows a lit **8B** box in the same place. Like a Virtual Analogue preset, clicking
 it in banks A to D selects that preset on the FM1, **Download patch** saves it as a presets file, and a DX7 bank
-sent or downloaded puts INIT VOICE in its slot. It has no editor yet, so it doesn't open on a
-double-click, and it has no **Change to FM…**: copy another patch over it to replace it. You can
-copy it, move it, save its bank, and back it up like any other patch, and **Write patches to the
-FM1…** writes it back exactly.
+sent or downloaded puts INIT VOICE in its slot. A double-click, **Edit** in its ⋮ menu, or a second
+click opens its own editor, with the rows the FM1's own 8-Bit screens list: the **Key** and its
+settings, the **Drums**, with a pad for each of the twelve drums that opens its seven settings, the
+**Bass** and the **Lead**, and the envelope, LFO, and effects every engine shares. Its lists use the
+names the FM1 prints, in every language. With a Key set, each part's **Chord** and **Pattern** take
+the place of its **Arpeggio**, and the first Key a patch gets carries each Arpeggio over, as the FM1
+does, in one Undo. While the FM1 runs Baud Girl's firmware FM-1_096 or later and plays that preset
+in its slot, the envelope, LFO, and effects play on it as you change them; everything else is heard
+once the patch is written to the FM1, as a line at the top says. Its **Presets** menu lists **Init
+patch**, the FM1's own blank 8-Bit preset with every effect switched off, keeping the name.
+**Save** keeps your changes in the library, and every bit the editor doesn't set stays exactly as
+read. It has no **Change to FM…**: copy another patch over it to replace it. You can copy it, move
+it, save its bank, and back it up like any other patch, and **Write patches to the FM1…** writes it
+back exactly.
 
 To put your library's patches back on the FM1, preset by preset, choose **Write patches to the
 FM1…**, under **Baud Girl (FM-1+VA)** too. It is offered while the FM1 runs Baud Girl's firmware, FM-1_079 or

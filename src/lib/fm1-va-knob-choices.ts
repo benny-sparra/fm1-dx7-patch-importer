@@ -110,6 +110,18 @@ export function virtualAnalogKnobChoice(row: string) {
 }
 
 /**
+ * The knob choice that turns the 8-Bit row `row`, if a knob can play it. The choices are named for
+ * the rows they turn, and a knob on a part's Arpeggio plays its Pattern while the preset has a
+ * Key, as the Device Manager notes (FW-026).
+ */
+export function eightBitKnobChoice(row: string, keyed: boolean) {
+  const turned = keyed ? row.replace(/Pattern$/, 'Arpeggio') : row
+  if (keyed && turned.endsWith('Arpeggio') && turned === row) return undefined
+  const choice = (fm1VaKnobChoiceIds['eight-bit'] as readonly string[]).indexOf(turned)
+  return choice === -1 ? undefined : choice
+}
+
+/**
  * The voice editor's DX7 parameters an FM preset's knob choices turn, by choice number: Feedback
  * and LFO speed. The other FM choices turn FM-1+VA's own Envelope, Filter, and Brightness, which
  * the voice editor does not show.

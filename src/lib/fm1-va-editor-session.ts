@@ -17,12 +17,10 @@ import {
   resolveEffectEditorIndex,
 } from '@/lib/fm1-parameters'
 import {
-  virtualAnalogControlValue,
-  virtualAnalogEnvelopeRows,
-  virtualAnalogRow,
-  virtualAnalogRows,
-  type VirtualAnalogRowId,
-} from '@/lib/fm1-va-virtual-analog-editor'
+  fm1VaEnvelopeSettingIds,
+  fm1VaRowControlValue,
+  type Fm1VaRow,
+} from '@/lib/fm1-va-shared-rows'
 import {
   editParameters,
   finishParameterGesture,
@@ -35,12 +33,12 @@ import {
 import type { PatchSyncState } from '@/lib/patch-sync-coordinator'
 
 /** The MIDI connection the editor sends through, read afresh for every send. */
-export type VirtualAnalogEditorMidi = {
+export type Fm1VaEditorMidi = {
   sendEffectParameter: (controller: number, value: number) => boolean
   sendSoundControl: (controller: number, value: number) => boolean
 }
 
-export type VirtualAnalogEditorState = {
+export type Fm1VaEditorState = {
   history: EditorHistory
   /** While comparing, the editor shows and plays the saved version, and editing is paused. */
   isComparing: boolean
@@ -56,38 +54,47 @@ function parametersMatch(left: Uint8Array, right: Uint8Array) {
   return left.length === right.length && left.every((value, index) => value === right[index])
 }
 
-const envelopeIndex = virtualAnalogRow('envelope').index
-const envelopeRowIndexes = new Set(
-  virtualAnalogEnvelopeRows.map((id) => virtualAnalogRow(id).index),
-)
-const liveRows = virtualAnalogRows.filter((row) => row.controller !== undefined)
-
 /** The version the editor shows and plays: the saved one while comparing, else the working copy. */
-export function displayedVirtualAnalogParameters(state: VirtualAnalogEditorState) {
+export function displayedFm1VaParameters(state: Fm1VaEditorState) {
   return state.isComparing ? state.savedParameters : state.history.present
 }
 
-export function hasUnsavedVirtualAnalogEdits(state: VirtualAnalogEditorState) {
+export function hasUnsavedFm1VaEdits(state: Fm1VaEditorState) {
   return !parametersMatch(state.history.present, state.savedParameters)
 }
 
 /**
- * Owns the open Virtual Analog editor's working copy, undo history, and compare mode, and while
- * live keeps the FM1's preset in step with them through FM-1+VA's sound-setting controllers and the
- * effect controllers. Each change sends only the settings that differ from what the FM1 last got,
- * so an edit, undo, compare, or revert all reach it the same way. Rows without a controller, and
- * the Envelope's switch, are heard only once the patch is written to the FM1.
+ * Owns an open FM-1+VA preset editor's working copy, undo history, and compare mode, for the
+ * engine whose rows it is given, and while live keeps the FM1's preset in step with them through
+ * FM-1+VA's sound-setting controllers and the effect controllers. Each change sends only the
+ * settings that differ from what the FM1 last got, so an edit, undo, compare, or revert all reach
+ * it the same way. Rows without a controller, and the Envelope's switch, are heard only once the
+ * patch is written to the FM1.
  */
-export class VirtualAnalogEditorSession {
-  private readonly getMidi: () => VirtualAnalogEditorMidi
+export class Fm1VaEditorSession<Id extends string> {
+  private readonly getMidi: () => Fm1VaEditorMidi
   private readonly listeners = new Set<() => void>()
+  private readonly rowsById: ReadonlyMap<string, Fm1VaRow<Id>>
+  private readonly liveRows: readonly Fm1VaRow<Id>[]
+  private readonly envelopeIndex: number | undefined
+  private readonly envelopeRowIndexes: ReadonlySet<number>
   private active = true
   private editStarted = false
   private gestureStart: EditorHistory | null = null
-  private state: VirtualAnalogEditorState
+  private state: Fm1VaEditorState
 
-  constructor(parameters: Uint8Array, getMidi: () => VirtualAnalogEditorMidi) {
+  constructor(
+    parameters: Uint8Array,
+    getMidi: () => Fm1VaEditorMidi,
+    rows: readonly Fm1VaRow<Id>[],
+  ) {
     this.getMidi = getMidi
+    this.rowsById = new Map(rows.map((row) => [row.id, row]))
+    this.liveRows = rows.filter((row) => row.controller !== undefined)
+    this.envelopeIndex = this.rowsById.get('envelope')?.index
+    this.envelopeRowIndexes = new Set(
+      fm1VaEnvelopeSettingIds.flatMap((id) => this.rowsById.get(id)?.index ?? []),
+    )
     this.state = {
       history: makeEditorHistory(parameters),
       isComparing: false,
@@ -128,7 +135,7 @@ export class VirtualAnalogEditorSession {
   goLive = () => {
     if (!this.active) return
     this.setSyncState('live')
-    this.sendChanges(null, displayedVirtualAnalogParameters(this.state))
+    this.sendChanges(null, displayedFm1VaParameters(this.state))
   }
 
   applyEdits = (edits: ParameterEdit[]) => {
@@ -140,15 +147,26 @@ export class VirtualAnalogEditorSession {
     this.commitHistory(activeGesture ? { ...edited, past: activeGesture.past } : edited)
   }
 
-  setRow = (id: VirtualAnalogRowId, value: number) => {
-    const row = virtualAnalogRow(id)
+  setRow = (id: Id, value: number) => {
+    const row = this.row(id)
     this.applyEdits([[row.index, value, 0, row.max]])
   }
 
   /** Sets a switch or list as one undo step, ending any gesture still open. */
-  chooseRow = (id: VirtualAnalogRowId, value: number) => {
+  chooseRow = (id: Id, value: number) => {
     this.gestureStart = null
     this.setRow(id, value)
+  }
+
+  /** Sets several rows together as one undo step, such as a choice the FM1 follows with others. */
+  chooseRows = (values: readonly (readonly [Id, number])[]) => {
+    this.gestureStart = null
+    this.applyEdits(
+      values.map(([id, value]): ParameterEdit => {
+        const row = this.row(id)
+        return [row.index, value, 0, row.max]
+      }),
+    )
   }
 
   beginGesture = () => {
@@ -270,12 +288,18 @@ export class VirtualAnalogEditorSession {
   /** Switches between the working copy and the saved version. Returns whether it switched. */
   toggleCompare = () => {
     const comparing = !this.state.isComparing
-    if (comparing && !hasUnsavedVirtualAnalogEdits(this.state)) return false
+    if (comparing && !hasUnsavedFm1VaEdits(this.state)) return false
     this.gestureStart = null
-    const shown = displayedVirtualAnalogParameters(this.state)
+    const shown = displayedFm1VaParameters(this.state)
     this.update({ isComparing: comparing })
-    this.sendChanges(shown, displayedVirtualAnalogParameters(this.state))
+    this.sendChanges(shown, displayedFm1VaParameters(this.state))
     return true
+  }
+
+  private row(id: Id) {
+    const row = this.rowsById.get(id)
+    if (!row) throw new RangeError(`${id} is not a row of this editor.`)
+    return row
   }
 
   private sendChanges(from: Uint8Array | null, to: Uint8Array) {
@@ -283,16 +307,18 @@ export class VirtualAnalogEditorSession {
     const midi = this.getMidi()
     // The Envelope's settings play, and are sent, only while it is on. Sending one while the FM1's
     // Envelope is off switches it on, so switching it on here sends all four.
-    const envelopeOn = to[envelopeIndex] === 1
-    const envelopeSwitchedOn = envelopeOn && from?.[envelopeIndex] !== 1
-    for (const row of liveRows) {
-      if (envelopeRowIndexes.has(row.index)) {
+    const envelopeIndex = this.envelopeIndex
+    const envelopeOn = envelopeIndex !== undefined && to[envelopeIndex] === 1
+    const envelopeSwitchedOn =
+      envelopeOn && envelopeIndex !== undefined && from?.[envelopeIndex] !== 1
+    for (const row of this.liveRows) {
+      if (this.envelopeRowIndexes.has(row.index)) {
         if (!envelopeOn) continue
         if (!envelopeSwitchedOn && from?.[row.index] === to[row.index]) continue
       } else if (from?.[row.index] === to[row.index]) {
         continue
       }
-      midi.sendSoundControl(row.controller!, virtualAnalogControlValue(row, to[row.index]))
+      midi.sendSoundControl(row.controller!, fm1VaRowControlValue(row, to[row.index]))
     }
     for (let controller = 0; controller < FM1_EFFECT_PARAMETER_COUNT; controller += 1) {
       const index = resolveEffectEditorIndex(controller)
@@ -301,7 +327,7 @@ export class VirtualAnalogEditorSession {
     }
   }
 
-  private update(changes: Partial<VirtualAnalogEditorState>) {
+  private update(changes: Partial<Fm1VaEditorState>) {
     this.state = { ...this.state, ...changes }
     this.listeners.forEach((listener) => listener())
   }

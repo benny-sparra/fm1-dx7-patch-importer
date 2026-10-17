@@ -71,6 +71,7 @@ import {
   virtualAnalogCutoffHertz,
   virtualAnalogFromEditorParameters,
   virtualAnalogRow,
+  virtualAnalogRows,
   type VirtualAnalogRowId,
 } from '@/lib/fm1-va-virtual-analog-editor'
 import { editorShortcuts } from '@/lib/keyboard-shortcuts'
@@ -82,10 +83,10 @@ import {
   virtualAnalogPresets,
 } from '@/lib/virtual-analog-presets'
 import {
-  displayedVirtualAnalogParameters,
-  hasUnsavedVirtualAnalogEdits,
-  VirtualAnalogEditorSession,
-} from '@/lib/virtual-analog-editor-session'
+  displayedFm1VaParameters,
+  Fm1VaEditorSession,
+  hasUnsavedFm1VaEdits,
+} from '@/lib/fm1-va-editor-session'
 
 type VirtualAnalogEditorPageProps = {
   /** Set to the editor's back action while it is open, for the browser's Back button to use. */
@@ -169,16 +170,17 @@ export function VirtualAnalogEditorPage({
   // Only reads the preset while mounting: App remounts this editor for each patch, keyed by its id.
   const [editor] = useState(
     () =>
-      new VirtualAnalogEditorSession(
+      new Fm1VaEditorSession(
         makeVirtualAnalogEditorParameters(voice, record, effects),
         () => sendsRef.current,
+        virtualAnalogRows,
       ),
   )
   const state = useSyncExternalStore(editor.subscribe, editor.getState)
   const [isEffectsCollapsed, setIsEffectsCollapsed] = useState(false)
   const { history, isComparing, syncState } = state
-  const parameters = displayedVirtualAnalogParameters(state)
-  const isDirty = hasUnsavedVirtualAnalogEdits(state)
+  const parameters = displayedFm1VaParameters(state)
+  const isDirty = hasUnsavedFm1VaEdits(state)
   const [nameDraft, setNameDraft] = useState<string | null>(null)
   const [isNavigationPending, setIsNavigationPending] = useState(false)
   const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)

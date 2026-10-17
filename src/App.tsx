@@ -26,6 +26,7 @@ import {
   isRenumberedByBankDeletion,
   virtualAnalogFamily,
 } from '@/lib/patch-library'
+import { fm1VaEightBitName } from '@/lib/fm1-va-eight-bit'
 import { fm1VaVirtualAnalogName } from '@/lib/fm1-va-virtual-analog'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
@@ -38,10 +39,15 @@ import {
 import { useToast } from '@/components/ui/toast'
 import { PatchEditorErrorBoundary } from '@/components/editor/patch-editor-error-boundary'
 import { WorkspacePersistenceStatus } from '@/components/workspace-persistence-status'
-import { loadPatchEditorPage, loadVirtualAnalogEditorPage } from '@/routes/load-patch-editor-page'
+import {
+  loadEightBitEditorPage,
+  loadPatchEditorPage,
+  loadVirtualAnalogEditorPage,
+} from '@/routes/load-patch-editor-page'
 
 const PatchEditorPage = lazy(loadPatchEditorPage)
 const VirtualAnalogEditorPage = lazy(loadVirtualAnalogEditorPage)
+const EightBitEditorPage = lazy(loadEightBitEditorPage)
 
 function LoadedPatchEditorPage(props: ComponentProps<typeof PatchEditorPage>) {
   useEffect(() => cancelDynamicImportRecovery(), [])
@@ -51,6 +57,11 @@ function LoadedPatchEditorPage(props: ComponentProps<typeof PatchEditorPage>) {
 function LoadedVirtualAnalogEditorPage(props: ComponentProps<typeof VirtualAnalogEditorPage>) {
   useEffect(() => cancelDynamicImportRecovery(), [])
   return <VirtualAnalogEditorPage {...props} />
+}
+
+function LoadedEightBitEditorPage(props: ComponentProps<typeof EightBitEditorPage>) {
+  useEffect(() => cancelDynamicImportRecovery(), [])
+  return <EightBitEditorPage {...props} />
 }
 
 function App() {
@@ -81,13 +92,21 @@ function App() {
   } | null>(null)
   const selectedPatch = library.patches.find((patch) => patch.id === selectedPatchId)
   const selectedVoice = selectedPatch ? library.voices[selectedPatch.id] : undefined
-  // A Virtual Analog preset opens its own editor, which needs its settings record too.
+  // A Virtual Analog or 8-Bit preset opens its engine's own editor, which needs its settings record
+  // too.
   const selectedVirtualAnalog = selectedPatch && {
     record: library.records[selectedPatch.id],
     voice: library.virtualAnalog[selectedPatch.id],
   }
   const editsVirtualAnalog = Boolean(selectedVirtualAnalog?.voice && selectedVirtualAnalog.record)
-  const isEditorOpen = Boolean(selectedPatch && (selectedVoice || editsVirtualAnalog))
+  const selectedEightBit = selectedPatch && {
+    record: library.records[selectedPatch.id],
+    voice: library.eightBit[selectedPatch.id],
+  }
+  const editsEightBit = Boolean(selectedEightBit?.voice && selectedEightBit.record)
+  const isEditorOpen = Boolean(
+    selectedPatch && (selectedVoice || editsVirtualAnalog || editsEightBit),
+  )
   // The loaded editor leaves through its own back action, which asks about unsaved changes. Until
   // it has loaded, or after it failed to, browser Back simply closes it.
   const editorBrowserBack = useRef<(() => void) | null>(null)
@@ -191,8 +210,7 @@ function App() {
   }
   const editPatch = (patchId: string) => {
     const patch = findPatch(patchId)
-    // An 8-Bit preset has no editor yet.
-    if (!patch || patch.family === eightBitFamily) return
+    if (!patch) return
     // The editor sends an added bank's sound itself as it opens, so only a slot in banks A–D is
     // selected on the way in.
     editBufferAudition.current = null
@@ -289,6 +307,32 @@ function App() {
                   patch={selectedPatch}
                   record={selectedVirtualAnalog.record}
                   voice={selectedVirtualAnalog.voice}
+                />
+              </Suspense>
+            </PatchEditorErrorBoundary>
+          ) : selectedPatch && selectedEightBit?.voice && selectedEightBit.record ? (
+            <PatchEditorErrorBoundary key={selectedPatch.id} onBack={closeEditor}>
+              <Suspense fallback={loadingSection(t('common.loading'))}>
+                <LoadedEightBitEditorPage
+                  browserBackRef={editorBrowserBack}
+                  effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
+                  midi={midi}
+                  onBack={closeEditor}
+                  onSave={(voice, effects, record) => {
+                    library.replaceWithEightBit(
+                      selectedPatch.bank,
+                      selectedPatch.number,
+                      voice,
+                      effects,
+                      record,
+                    )
+                    toast.success(
+                      t('toasts.patchSaved', { patch: fm1VaEightBitName(voice).trimEnd() }),
+                    )
+                  }}
+                  patch={selectedPatch}
+                  record={selectedEightBit.record}
+                  voice={selectedEightBit.voice}
                 />
               </Suspense>
             </PatchEditorErrorBoundary>

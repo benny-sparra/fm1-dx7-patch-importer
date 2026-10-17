@@ -300,6 +300,85 @@ export default {
       bassDecay: 'Bass decay',
     },
   },
+  eightBit: {
+    help: {
+      key: 'Puts both parts in a key, so each key you press plays the chord that belongs on it in the scale. At Off, each part plays its Arpeggio instead. A patch’s first Key sets each part’s Chord and Pattern from its Arpeggio, as the FM1 does.',
+      accidentals:
+        'What the five keys outside the scale play. Borrowed makes each the root of a chord from outside the scale; Leading makes it the third of a major chord that leads up to the key above.',
+      voicing:
+        'From Key starts each chord on the key you press. Close keeps every chord’s notes within an octave above the tonic, so fewer notes move between chords.',
+      leadFollows:
+        'At Bass, the lead takes its chord from the last bass key you played, so one hand plays the progression under the other.',
+      arpSync:
+        'Key starts each arpeggio as its key goes down. Beat puts every arpeggio step on one grid at the tempo, or on the steps of a playing pattern.',
+      tone: 'Raw is the plain emulated wave. Smooth softens each edge and passes the sound through the console’s own output filters.',
+      tuning:
+        'Exact plays every note in tune. Chip uses only the pitches the console could make, which drifts at the top of the keyboard.',
+      drums: 'Twelve drums on the keys F0 to E1. Choose one to edit it.',
+      drumDecay:
+        'Makes every drum ring longer or shorter at once, keeping their differences. At 50 each rings for its own Decay.',
+      choke:
+        'A drum in group A, B, or C stops any other drum of its group that is still ringing, as a closed hi-hat stops an open one.',
+      snap: 'A burst of noise under the tone, which makes a hit sound like a snare.',
+      sweep: 'How far the pitch falls or rises while the note sounds. 0 holds it still.',
+      dutySequence:
+        'Changes a pulse wave’s width while the note sounds, for movement on one channel. It changes only the four Pulse waves.',
+      arpeggio:
+        'The chord one key plays, a note at a time, while the patch has no Key. User plays the steps you set under User arpeggio.',
+      chord:
+        'Which notes of the scale each key plays. Not played while Pattern is User, whose steps choose the notes.',
+      pattern:
+        'The order the chord’s notes play in, counted up from its lowest note. Off plays the key alone.',
+      noteEngine:
+        'Auto-Arp plays the part’s chord a note at a time. Auto-Chord plays its notes together, up to four.',
+      userArpeggio:
+        'Eight steps in semitones from the key you press, −12 to +18. A step turned past +18 reads End and loops back to the first step.',
+      glide: 'How long the pitch takes to slide to the next note. Glide needs Mono on.',
+    },
+    key: 'Key',
+    partSetting: '{{part}} {{setting}}',
+    keySettings: 'Settings that follow the Key',
+    scale: 'Scale',
+    accidentals: 'Accidentals',
+    voicing: 'Voicing',
+    leadFollows: 'Lead follows',
+    arpSync: 'Arp sync',
+    tone: 'Tone',
+    tuning: 'Tuning',
+    drums: 'Drums',
+    drumsLevel: 'Drums level',
+    drumDecay: 'Drum decay',
+    drum: 'Drum',
+    drumHeading: 'Drum {{drum}}',
+    wave: 'Wave',
+    choke: 'Choke',
+    pitch: 'Pitch',
+    sweep: 'Sweep',
+    decay: 'Decay',
+    level: 'Level',
+    snap: 'Snap',
+    bass: 'Bass',
+    lead: 'Lead',
+    dutySequence: 'Duty sequence',
+    dutySequenceUnheard:
+      'A duty sequence changes only the four Pulse waves, so this part’s isn’t heard.',
+    arpeggio: 'Arpeggio',
+    chord: 'Chord',
+    pattern: 'Pattern',
+    arpSpeed: 'Arp speed',
+    noteEngine: 'Note engine',
+    userArpeggio: 'User arpeggio',
+    step: 'Step {{step}}',
+    vibrato: 'Vibrato',
+    glide: 'Glide',
+    octave: 'Octave',
+    mono: 'Mono',
+    initPatch: 'Init patch',
+    initPatchHelp: 'The FM1’s own blank 8-Bit preset. Effects switch off.',
+    live: 'The Envelope, LFO, and effects play on the FM1 as you change them. Everything else is heard once the patch is written to the FM1.',
+    noFirmware:
+      'With Baud Girl’s firmware FM-1_096 or later and MIDI on, the Envelope, LFO, and effects play on the FM1 as you change them. Until then, your changes are heard once the patch is written to the FM1.',
+  },
   virtualAnalog: {
     help: {
       waveform:

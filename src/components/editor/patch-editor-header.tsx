@@ -15,7 +15,7 @@ import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { CompareNotice } from '@/components/editor/compare-overlay'
-import { EngineTag, type PatchEngine } from '@/components/patches/engine-tag'
+import { EngineTag, engineName, type PatchEngine } from '@/components/patches/engine-tag'
 import { Button, buttonVariants } from '@/components/ui/button'
 import type { Patch } from '@/data/patches'
 import { useStickyHeaderOffset } from '@/hooks/use-sticky-header-offset'
@@ -36,8 +36,8 @@ type PatchEditorHeaderProps = {
   canRedo: boolean
   canUndo: boolean
   /**
-   * The patch's engine, marked beside its slot code as its card marks it: Virtual Analog always, FM
-   * only while the FM1 runs Baud Girl's firmware.
+   * The patch's engine, marked beside its slot code as its card marks it: Virtual Analog and 8-Bit
+   * always, FM only while the FM1 runs Baud Girl's firmware.
    */
   engine?: PatchEngine
   isComparing: boolean
@@ -159,9 +159,7 @@ export function PatchEditorHeader({
           {engine ? (
             <>
               <EngineTag engine={engine} />
-              <span className="sr-only">
-                {engine === 'fm' ? t('banks.fmPatch') : t('banks.virtualAnalogPatch')}
-              </span>
+              <span className="sr-only">{engineName(t, engine)}</span>
             </>
           ) : null}
           <div className="flex min-w-0 items-center gap-2">

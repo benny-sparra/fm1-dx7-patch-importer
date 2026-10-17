@@ -124,14 +124,14 @@ describe('LibrarianPage with an 8-Bit preset', () => {
     )
   })
 
-  it('offers copying and downloading the slot, but not editing it', async () => {
+  it('offers editing, copying, and downloading the slot, but not changing it to FM', async () => {
     const { user } = renderPage()
 
     await user.click(screen.getByRole('button', { name: 'Actions for NES ROCK' }))
 
     expect(screen.getByRole('menuitem', { name: 'Copy to…' })).toBeTruthy()
     expect(screen.getByRole('menuitem', { name: 'Download patch' })).toBeTruthy()
-    expect(screen.queryByRole('menuitem', { name: 'Edit' })).toBeNull()
+    expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeTruthy()
     expect(screen.queryByRole('menuitem', { name: 'Change to FM…' })).toBeNull()
   })
 
@@ -168,12 +168,12 @@ describe('LibrarianPage with an 8-Bit preset', () => {
     expect(createObjectURL).not.toHaveBeenCalled()
   })
 
-  it('opens no editor when the slot is double-clicked', async () => {
+  it('opens its editor when the slot is double-clicked', async () => {
     const { onEditPatch, user } = renderPage()
 
     await user.dblClick(eightBitSlot())
 
-    expect(onEditPatch).not.toHaveBeenCalled()
+    expect(onEditPatch).toHaveBeenCalledOnce()
   })
 
   it('has no heart, since Favourites holds only FM patches', () => {

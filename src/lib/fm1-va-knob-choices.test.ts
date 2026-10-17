@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import { fm1VaRecordSize } from '@/lib/fm1-va-record'
 
+import { eightBitRow, type EightBitRowId } from '@/lib/fm1-va-eight-bit-editor'
+
 import {
+  eightBitKnobChoice,
   fm1VaDefaultKnobChoices,
   fm1VaKnobChoiceIds,
   fm1VaRecordKnobChoices,
@@ -140,5 +143,20 @@ describe('the controls a knob choice turns', () => {
     expect(fm1VaKnobChoiceIds.fm[fmKnobChoice('global.feedback') ?? -1]).toBe('feedback')
     expect(fm1VaKnobChoiceIds.fm[fmKnobChoice('global.lfoSpeed') ?? -1]).toBe('lfoSpeed')
     expect(fmKnobChoice('global.lfoDelay')).toBeUndefined()
+  })
+
+  it('gives each 8-Bit choice the 8-Bit editor row it is named for', () => {
+    const ids = fm1VaKnobChoiceIds['eight-bit']
+    expect(ids.map((id) => eightBitRow(id as EightBitRowId).id)).toEqual([...ids])
+    expect(ids.map((id) => eightBitKnobChoice(id, false))).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
+    expect(eightBitKnobChoice('bassVibrato', false)).toBeUndefined()
+  })
+
+  it('puts a part’s Arpeggio knob on its Pattern while the 8-Bit preset has a Key', () => {
+    expect(eightBitKnobChoice('bassPattern', true)).toBe(1)
+    expect(eightBitKnobChoice('leadPattern', true)).toBe(2)
+    expect(eightBitKnobChoice('bassArpeggio', true)).toBeUndefined()
+    expect(eightBitKnobChoice('bassPattern', false)).toBeUndefined()
+    expect(eightBitKnobChoice('drumDecay', true)).toBe(0)
   })
 })

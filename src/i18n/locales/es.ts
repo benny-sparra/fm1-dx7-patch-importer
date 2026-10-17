@@ -230,6 +230,86 @@ export default {
       bassDecay: 'Caída del bajo',
     },
   },
+  eightBit: {
+    help: {
+      key: 'Pone ambas partes en una tonalidad, así que cada tecla toca el acorde que le corresponde en la escala. En Off, cada parte toca su arpegio. La primera tonalidad de un sonido deriva el acorde y el patrón de cada parte de su arpegio, como hace el FM1.',
+      accidentals:
+        'Lo que tocan las cinco teclas fuera de la escala. Borrowed hace de cada una la fundamental de un acorde ajeno a la escala; Leading, la tercera de un acorde mayor que lleva a la tecla de arriba.',
+      voicing:
+        'From Key empieza cada acorde en la tecla que pulsas. Close mantiene las notas de cada acorde dentro de una octava sobre la tónica, así que se mueven menos notas entre acordes.',
+      leadFollows:
+        'En Bass, el lead toma su acorde de la última tecla de bajo que tocaste, así que una mano toca la progresión bajo la otra.',
+      arpSync:
+        'Key empieza cada arpegio al bajar su tecla. Beat pone todos los pasos de arpegio en una misma rejilla al tempo, o en los pasos de un patrón que suena.',
+      tone: 'Raw es la onda emulada sin más. Smooth suaviza cada flanco y pasa el sonido por los filtros de salida de la consola.',
+      tuning:
+        'Exact toca cada nota afinada. Chip usa solo las alturas que la consola podía producir, y se desafina en la parte alta del teclado.',
+      drums: 'Doce tambores en las teclas F0 a E1. Elige uno para editarlo.',
+      drumDecay:
+        'Alarga o acorta todos los tambores a la vez y conserva sus diferencias. En 50 cada uno suena lo que marca su propia caída.',
+      choke:
+        'Un tambor del grupo A, B o C corta cualquier otro de su grupo que siga sonando, como un charles cerrado corta uno abierto.',
+      snap: 'Una ráfaga de ruido bajo el tono, que hace que un golpe suene a caja.',
+      sweep: 'Cuánto baja o sube la altura mientras suena la nota. En 0 se mantiene.',
+      dutySequence:
+        'Cambia el ancho de una onda de pulso mientras suena la nota, para dar movimiento a un canal. Solo actúa sobre las cuatro ondas Pulse.',
+      arpeggio:
+        'El acorde que una tecla toca nota a nota mientras el sonido no tiene tonalidad. User toca los pasos de Arpegio propio.',
+      chord:
+        'Qué notas de la escala toca cada tecla. No se toca con el patrón User, cuyos pasos eligen las notas.',
+      pattern:
+        'El orden en que suenan las notas del acorde, contadas desde la más grave. Off toca solo la tecla.',
+      noteEngine:
+        'Auto-Arp toca el acorde de la parte nota a nota. Auto-Chord toca sus notas juntas, hasta cuatro.',
+      userArpeggio:
+        'Ocho pasos en semitonos desde la tecla que pulsas, de −12 a +18. Un paso pasado de +18 marca End y vuelve al primer paso.',
+      glide:
+        'Cuánto tarda la altura en deslizarse a la siguiente nota. Necesita Monofónico activado.',
+    },
+    key: 'Tonalidad',
+    partSetting: '{{setting}} de {{part}}',
+    keySettings: 'Ajustes que siguen la tonalidad',
+    scale: 'Escala',
+    accidentals: 'Alteraciones',
+    voicing: 'Disposición',
+    leadFollows: 'El lead sigue',
+    arpSync: 'Sincronía del arpegio',
+    tone: 'Timbre',
+    tuning: 'Afinación',
+    drums: 'Batería',
+    drumsLevel: 'Nivel de batería',
+    drumDecay: 'Caída de batería',
+    drum: 'Tambor',
+    drumHeading: 'Tambor {{drum}}',
+    wave: 'Onda',
+    choke: 'Corte',
+    pitch: 'Altura',
+    sweep: 'Barrido',
+    decay: 'Caída',
+    level: 'Nivel',
+    snap: 'Chasquido',
+    bass: 'Bajo',
+    lead: 'Lead',
+    dutySequence: 'Secuencia de ciclo',
+    dutySequenceUnheard:
+      'Una secuencia de ciclo solo cambia las cuatro ondas Pulse, así que en esta parte no se oye.',
+    arpeggio: 'Arpegio',
+    chord: 'Acorde',
+    pattern: 'Patrón',
+    arpSpeed: 'Velocidad del arpegio',
+    noteEngine: 'Motor de notas',
+    userArpeggio: 'Arpegio propio',
+    step: 'Paso {{step}}',
+    vibrato: 'Vibrato',
+    glide: 'Portamento',
+    octave: 'Octava',
+    mono: 'Monofónico',
+    initPatch: 'Inicializar',
+    initPatchHelp: 'El preset 8-Bit vacío del propio FM1. Efectos apagados.',
+    live: 'La envolvente, el LFO y los efectos suenan en el FM1 en cuanto los cambias. Lo demás se oye cuando el sonido se escribe en el FM1.',
+    noFirmware:
+      'Con el firmware de Baud Girl FM-1_096 o posterior y MIDI activado, la envolvente, el LFO y los efectos suenan en el FM1 en cuanto los cambias. Hasta entonces, tus cambios se oyen cuando el sonido se escribe en el FM1.',
+  },
   virtualAnalog: {
     help: {
       waveform:

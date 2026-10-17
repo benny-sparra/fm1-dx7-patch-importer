@@ -81,12 +81,12 @@ export function PatchButton({
   // Set by a click and cleared when the selection animation finishes, so the
   // animation plays only in response to the user and never on mount.
   const [flash, setFlash] = useState(false)
-  // A Virtual Analog preset moves and opens an editor like any patch, its own; its bytes are not a
-  // DX7 voice, so it downloads as a presets file. An 8-Bit preset is the same, but has no editor.
+  // A Virtual Analog or 8-Bit preset moves and opens an editor like any patch, its engine's own; its
+  // bytes are not a DX7 voice, so it downloads as a presets file.
   const isVirtualAnalog = patch.family === virtualAnalogFamily
   const isEightBit = patch.family === eightBitFamily
   const canReorder = reorderable && (patch.family === 'DX7' || isVirtualAnalog || isEightBit)
-  const editSlot = isEightBit ? undefined : onEdit
+  const editSlot = onEdit
   const engineKind: PatchEngine | null = isVirtualAnalog
     ? 'virtual-analog'
     : isEightBit
@@ -96,12 +96,12 @@ export function PatchButton({
         : null
   const engine = engineKind ? { kind: engineKind, label: engineName(t, engineKind) } : null
   // What clicking the slot does, under the engine's name where the slot marks its engine.
-  const action = isEightBit
-    ? patch.program === undefined
-      ? t('banks.slotEightBitAddedTitle', { name: patch.name })
-      : t('banks.slotEightBitTitle', { name: patch.name })
-    : isActive
-      ? t('banks.slotEditTitle', { name: patch.name })
+  const action = isActive
+    ? t('banks.slotEditTitle', { name: patch.name })
+    : isEightBit
+      ? patch.program === undefined
+        ? t('banks.slotEightBitAddedTitle', { name: patch.name })
+        : t('banks.slotEightBitTitle', { name: patch.name })
       : isVirtualAnalog
         ? patch.program === undefined
           ? t('banks.slotVirtualAnalogAddedTitle', { name: patch.name })
