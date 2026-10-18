@@ -1246,6 +1246,13 @@ not grow into it. They are a fixed, bundled table in `src/lib/audition-phrases.t
 `src/lib/phrase-player.ts` while a patch is edited. They stay unwritable and unrecordable: no
 editing, no saving, no transfer to the device, and no phrase that quotes an existing recording.
 
+The library may store and organise Official Open projects (`.fm1`, approved 2026-10-18,
+`docs/official-open-plan.md`): keep each one's bytes exactly as read, list its tracks, and move a
+track's sound between a project and the banks. It never edits a project's steps, chords, locks, or
+loop lengths, which stay the FM1's and its Workbench's, and storing projects is not a reason to
+grow this sequencer feature. Every transfer of a project to or from the FM1 still needs its own
+approval recorded under MIDI first.
+
 Build in this order:
 
 1. domain model

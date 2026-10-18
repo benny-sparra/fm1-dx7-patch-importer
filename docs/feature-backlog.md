@@ -862,8 +862,11 @@ with a shared sample bank. What its source says is in
   library, catalog, and voice editor already feed it through **Download patch**. Exporting a DX7
   patch as a `.fm1t` track sound would save a step; its 223-byte layout is in the source but not
   yet mapped.
-- **Don't follow it into projects, steps, or samples.** Those belong to its own Workbench, and the
-  [sequencer scope](../AGENTS.md#sequencer-scope) rules out a general sequencer here.
+- **Keep its projects, but don't edit their steps.** Approved 2026-10-18: the library may store and
+  organise `.fm1` projects, list their tracks, and move sounds between a project and the banks
+  ([the plan](official-open-plan.md), Phase 5). Steps, chords, locks, and samples stay with its own
+  Workbench, and the [sequencer scope](../AGENTS.md#sequencer-scope) rules out a general sequencer
+  here.
 
 ## Decided against
 
