@@ -563,9 +563,11 @@ export default {
     addBankOpenFailed: 'The new bank options could not be opened. Reload the page and try again.',
     copyOpenFailed: 'The copy options could not be opened. Reload the page and try again.',
     importPatchFile: 'Import patch…',
+    receivePatch: 'Receive patch…',
     downloadPatchFile: 'Download patch',
     bankFileUnavailable: 'Bank files could not be read. Reload the page and try again.',
     patchFileUnavailable: 'Patch files could not be opened. Reload the page and try again.',
+    receivePatchUnavailable: 'Patches could not be received. Reload the page and try again.',
     presetFileInexact:
       '“{{name}}” can’t be saved exactly as a Baud Girl presets file, so it wasn’t downloaded.',
     everywhere: {

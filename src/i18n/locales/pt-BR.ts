@@ -615,6 +615,23 @@ export default {
     warning:
       'O som deste slot será substituído pelo do arquivo, e seus efeitos FM1 voltarão aos valores padrão.',
   },
+  receivePatch: {
+    action: 'Substituir som',
+    title: 'Receber um som em {{slot}} “{{patch}}”',
+    listening:
+      'Ouvindo a entrada de monitoração. Envie um som DX7 do Dexed, de um DX7 ou de outro editor.',
+    noInput: 'Ative o MIDI e escolha como entrada de monitoração o dispositivo que envia o som.',
+    noSysex:
+      'Receber um som exige SysEx. Reconecte o MIDI e permita o acesso SysEx quando o navegador pedir.',
+    received: '“{{patch}}” recebido. Envie outro para recebê-lo no lugar.',
+    warning:
+      'O som deste slot será substituído pelo recebido, e seus efeitos FM1 voltarão aos valores padrão.',
+    errors: {
+      bank: 'Isso era um banco DX7 de 32 vozes. Envie um único som, ou salve o banco como arquivo e escolha “Importar banco DX7…” no menu do banco.',
+      damaged: 'Esse som chegou danificado. Envie-o novamente.',
+      format: 'Isso não era um som DX7. Envie o dump de uma única voz.',
+    },
+  },
   bankFile: {
     legend: 'Bancos deste arquivo',
     help: 'Este arquivo contém um banco DX7.',
@@ -1323,11 +1340,14 @@ export default {
     copyOpenFailed:
       'Não foi possível abrir as opções de cópia. Recarregue a página e tente novamente.',
     importPatchFile: 'Importar som…',
+    receivePatch: 'Receber som…',
     downloadPatchFile: 'Baixar som',
     bankFileUnavailable:
       'Não foi possível ler arquivos de banco. Recarregue a página e tente novamente.',
     patchFileUnavailable:
       'Não foi possível abrir os arquivos de som. Recarregue a página e tente novamente.',
+    receivePatchUnavailable:
+      'Não foi possível receber sons. Recarregue a página e tente novamente.',
     presetFileInexact:
       '“{{name}}” não pode ser gravado exatamente como arquivo de presets da Baud Girl, então não foi baixado.',
     everywhere: {

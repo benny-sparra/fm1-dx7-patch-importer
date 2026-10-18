@@ -10,6 +10,7 @@ import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-
 import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
 import { DuplicatePatchesDialog } from '@/components/patches/duplicate-patches-dialog'
 import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog'
+import { ReceivePatchDialog } from '@/components/patches/receive-patch-dialog'
 import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
 import { makeWorkspaceWithCopies } from '@/test/factory-voices'
@@ -78,6 +79,15 @@ const openDialogs = {
       onClose={vi.fn()}
       onPlay={vi.fn()}
       replacing
+    />
+  ),
+  'receive-patch': () => (
+    <ReceivePatchDialog
+      library={{ replaceVoice: vi.fn() }}
+      midi={{ inputs: [], selectedInputId: '', sysexAvailable: false }}
+      onClose={vi.fn()}
+      onReplaced={vi.fn()}
+      patch={{ bank: 'A', family: 'DX7', id: 'bank-A-1', name: 'ALPHA', number: 1 }}
     />
   ),
 }

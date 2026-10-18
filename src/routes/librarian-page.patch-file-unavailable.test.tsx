@@ -73,6 +73,15 @@ describe('LibrarianPage patch files that fail to load', () => {
     expect(screen.getByRole('button', { name: sendSlotName('ALPHA') })).toBeTruthy()
   })
 
+  it('explains a receive dialog that cannot open and keeps the librarian working', async () => {
+    await chooseFromSlotMenu('Receive patch…')
+
+    expect(
+      await screen.findByText('Patches could not be received. Reload the page and try again.'),
+    ).toBeTruthy()
+    expect(screen.getByRole('button', { name: sendSlotName('ALPHA') })).toBeTruthy()
+  })
+
   it('explains a download that cannot start', async () => {
     await chooseFromSlotMenu('Download patch')
 

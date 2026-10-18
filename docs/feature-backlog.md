@@ -273,7 +273,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Nice to have
 
-- [ ] **Receive a DX7 voice over MIDI.** Offer to place a standard DX7 single-voice dump arriving at
+- [x] **Receive a DX7 voice over MIDI.** Offer to place a standard DX7 single-voice dump arriving at
       the MIDI input, from Dexed, a DX7, or another editor, into a chosen slot, with the same checks
       and confirmation as **Import patch…**.
   - This is standard Yamaha SysEx, not FM1 readback, which stays unsupported. Nothing is taken
@@ -282,6 +282,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Validate length, header, 7-bit data, and checksum at the boundary, and drop the listener when
     the dialog closes, MIDI goes offline, or the input changes.
   - Tests use captured fixtures and a fake input; no hardware or permission.
+  - _Done:_ **Receive patch…** sits in a slot's ⋮ menu beside **Import patch…**, since it replaces
+    one slot the same way and the menu chooses the slot, so the dialog needs no slot picker. The
+    lazy dialog listens on the input monitor through `useDx7VoiceReceiver` only while open, and
+    `Dx7VoiceReceiver` (`src/lib/dx7-voice-receiver.ts`) joins a dump split across messages, ignores
+    everything but a Yamaha bulk dump (Dexed's parameter changes included), and checks it with
+    `parseDx7VoiceFile`. It sends nothing. A later dump replaces the one shown; the replacement is
+    one library change with Undo, as **Import patch…** is. No analytics event or stored state.
 
 - [ ] **Share a patch as a link.** **Copy share link** in a slot's ⋮ menu copies a URL that carries
       the patch in its fragment (the part after `#`), so someone else can open it in their own
