@@ -864,14 +864,21 @@ with a shared sample bank. What its source says is in
   yet mapped.
 - **Keep its projects, but don't edit their steps.** Approved 2026-10-18: the library may store and
   organise `.fm1` projects, list their tracks, and move sounds between a project and the banks
-  ([the plan](official-open-plan.md), Phase 5). Editing its steps is a nice to have, the plan's
+  ([the plan](official-open-plan.md), Phases 4 and 7). Editing its steps is a nice to have, the plan's
   last phase, needing its scope approved first; samples stay with its own Workbench, and the
   [sequencer scope](../AGENTS.md#sequencer-scope) rules out a general sequencer here.
+- **Categories for finding sounds.** Reopened 2026-10-18 from "Tags, ratings, and favourites"
+  below: a library of thousands of sounds across six engines needs more than 32-slot banks and a
+  name search. A fixed, translated list of categories, suggested from DX7 names and bundled with
+  catalog sounds, with engine and category filters, a browsable catalog for every engine, and
+  starter sets ([the plan](official-open-plan.md), Phase 6). Ratings stay decided against;
+  favourites shipped.
 
 ## Decided against
 
-- **Tags, ratings, and favourites.** New stored fields to support forever, for little benefit with
-  32-slot banks.
+- **Ratings.** A new stored field to support forever, for little benefit. Tags were decided against
+  with them while the library was 32-slot banks of one engine; categories are reopened above, and
+  favourites shipped.
 - **Vary the current voice.** Small random changes around the current sound, beside Randomise.
   Too close to voice morphing, and Randomise plus undo already covers exploring.
 - **Online sharing or accounts.** Needs a server and conflicts with the client-only design and the
