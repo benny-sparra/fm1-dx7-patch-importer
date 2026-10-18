@@ -245,6 +245,41 @@ nothing a general sequencer adds (`AGENTS.md`, Sequencer scope).
 - Needs its scope recorded in `AGENTS.md` first, and the step layout mapped in
   `docs/fm1-research.md` from the source and a hardware run.
 
+## Separate track: the M-VAVE SMK-37 Pro
+
+A 37-key controller with pads, encoders, and faders, and a DX7-style FM engine of its own. Community
+ports of FM-1 firmware already run on it (X0X37, Makkuro37, and a kit for porting any FM-1
+firmware), so the library and the DX7 catalog suit it, and Official Open may follow. Ben has one
+arriving the week of 2026-10-19. Nothing below is known yet; every point waits for a hardware run,
+recorded in `docs/fm1-research.md` and `docs/hardware-runs/` before code depends on it.
+
+**First hardware run**, each message sent once with Ben's approval for that test, nothing stored on
+the keyboard that cannot be lost (there is no backup of its sounds yet):
+
+1. **Ports.** What its MIDI ports are called on macOS (and Linux or Windows if possible), and whether
+   `resolveMidiPortSelection` picks them.
+2. **Identity.** Its answer to `fm1IdentityQuery`, the one `00 32` message the editor may send:
+   the reply's bytes and name, captured as a fixture. No other `00 32` or `00 59` message.
+3. **What it plays.** A Note On and Off on each channel, to find the channel its engine listens on.
+4. **Program Change.** Whether it selects a stored sound, and which bank layout that implies.
+5. **DX7 parameter change.** One parameter on INIT VOICE: heard, and is it kept after a Program
+   Change?
+6. **DX7 single-voice dump.** To the edit buffer, or over a stored sound as FM-1+VA does? Test on a
+   sound whose loss does not matter.
+7. **32-voice bank dump.** Only if 6 shows dumps go to an edit buffer: does it replace a bank?
+8. **Effect controllers.** The FM1's FX Channel CC 0–23, one at a time, on a channel the engine does
+   not play.
+
+**Then, in the editor:**
+
+- **A device as well as a firmware.** `classifyFm1Firmware` and `resolveFirmwareProfile` gain the
+  SMK-37's stock firmware as its own family, with only the capabilities the run proved; an FM-1
+  firmware port on it keeps that firmware's family.
+- **Names.** The badge, help, photos, and interface strings say "FM1" today. Where the device is
+  meant, they follow the identified device, in every locale.
+- **Out of scope:** its pads, sequencer patterns, chord and scale modes, and controller mappings,
+  which are the keyboard's own, as the FM1's sequencer is.
+
 ## Out of scope
 
 - The firmware installer, the `00 59` update family beyond the identity query, and the sample bank
