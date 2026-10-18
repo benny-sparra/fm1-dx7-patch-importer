@@ -12,7 +12,7 @@ import { patchSlotCode } from '@/lib/patch-library'
 import { sysexFilenameStem } from '@/lib/sysex-file'
 
 // F0 43 0n 00 01 1B, the 155 edit-buffer bytes, the checksum, and F7.
-const dx7VoiceFileSize = FM1_VOICE_PARAMETER_COUNT + 8
+export const dx7VoiceFileSize = FM1_VOICE_PARAMETER_COUNT + 8
 const voiceDataStart = 6
 
 // 'bank' is a file the size of a 32-voice bank, which belongs in a bank's own import.
@@ -31,7 +31,8 @@ export class Dx7VoiceFileError extends Error {
   }
 }
 
-function voiceSizeError(receivedBytes: number) {
+/** Rejects a single-voice dump of the wrong size, naming a bank when it is the size of one. */
+export function dx7VoiceSizeError(receivedBytes: number) {
   return new Dx7VoiceFileError(
     receivedBytes === dx7BankFileSize ? 'bank' : 'size',
     `Expected a ${dx7VoiceFileSize}-byte DX7 voice; received ${receivedBytes} bytes.`,
@@ -42,7 +43,7 @@ function voiceSizeError(receivedBytes: number) {
 /** Reads a Yamaha DX7 single-voice bulk dump into the packed form the library stores. */
 export function parseDx7VoiceFile(file: ArrayBuffer): Dx7Voice {
   const bytes = new Uint8Array(file)
-  if (bytes.length !== dx7VoiceFileSize) throw voiceSizeError(bytes.length)
+  if (bytes.length !== dx7VoiceFileSize) throw dx7VoiceSizeError(bytes.length)
   if (
     bytes[0] !== 0xf0 ||
     bytes[1] !== 0x43 ||
@@ -77,7 +78,7 @@ export function parseDx7VoiceFile(file: ArrayBuffer): Dx7Voice {
  * loaded, so picking a large file by mistake does not read all of it into memory.
  */
 export async function readDx7VoiceFile(file: Blob) {
-  if (file.size !== dx7VoiceFileSize) throw voiceSizeError(file.size)
+  if (file.size !== dx7VoiceFileSize) throw dx7VoiceSizeError(file.size)
   return parseDx7VoiceFile(await file.arrayBuffer())
 }
 

@@ -233,6 +233,8 @@ To copy a patch into another slot, open the slot's **⋮** menu and choose **Cop
 
 A slot's **⋮** menu also works with single patches as files. **Download patch** saves the patch as a standard 163-byte DX7 single-voice SysEx file, named after its slot and patch, such as `fm1-A05-PIANO-2.syx`. It holds the DX7 voice only, as a bank download does, so the FM1 effects are not included. A Virtual Analogue or 8-Bit patch is not a DX7 voice, so it is saved instead as a 231-byte Baud Girl presets file holding that one preset with its effects and settings. The file names the patch's own FM1 preset, or for a bank after D the same slot in bank A, which is where importing it puts it. **Import patch…** asks before it replaces the slot, then reads a DX7 single-voice file into it. A file that is not a single DX7 patch, or that looks damaged, is refused with an explanation and leaves the slot as it was. A whole 32-voice bank is recognised and pointed to **Import DX7 bank…** in the bank's menu. The file carries no FM1 effects, so the slot's effects return to their defaults. The notification offers **Undo**.
 
+**Receive patch…** in the same menu takes a patch sent over MIDI instead of from a file, such as one Dexed, a DX7, or another editor sends as a single-voice dump. Switch MIDI on, choose the device sending it as the input monitor in the settings, then choose **Receive patch…** on the slot it should go into and send the patch. The dialog shows the name of the patch that arrived; send another and it takes that one instead. **Replace patch** puts it in the slot, with its FM1 effects reset to their defaults, and the notification offers **Undo**. The editor listens only while the dialog is open, ignores notes, controllers, and every other message arriving meanwhile, and sends nothing to the FM1. A dump that is not a single DX7 patch, or that arrives damaged, is explained in the dialog and leaves the slot as it was. Receiving needs SysEx access, as sending does. This is standard DX7 SysEx from another device, not a read from the FM1, which cannot send its stored patches.
+
 **Copy share link** in a slot's **⋮** menu copies a link to the patch, such as
 `https://fm1-editor.com/#p=AQAA…`, to paste into a chat, forum, or email. The link opens the site
 you copied it from. The link holds the whole
@@ -391,7 +393,7 @@ normally inside the search field, where `Esc` clears it.
 
 `Enter` gives the keyboard the route the mouse already had through double-click: it plays an unlit
 slot as a click would, and opens the slot that is already lit. Each slot's **⋮** menu also
-offers **Edit**, **Copy to…**, **Import patch…**, **Download patch**, and **Copy share link**; it opens with `Enter` and moves between its items with the arrow keys.
+offers **Edit**, **Copy to…**, **Import patch…**, **Receive patch…**, **Download patch**, and **Copy share link**; it opens with `Enter` and moves between its items with the arrow keys.
 
 Individual controls keep their own keyboard behaviour. Rotary controls and envelope points respond
 to the arrow keys, `Home`, `End`, `Page Up`, and `Page Down`, and the bank tabs move with the arrow
@@ -442,7 +444,7 @@ these checks is marked damaged and cannot be chosen, while the rest of the file 
 file holding one bank is refused when that bank fails, with the reason. Importing into an empty
 bank takes a single-bank file at once, and asks which bank only when the file holds several.
 
-Single-voice dumps, which **Import patch…** reads, and banks using another SysEx format are not
+Single-voice dumps, which **Import patch…** and **Receive patch…** read, and banks using another SysEx format are not
 accepted.
 
 The browser library is the source of truth. The current FM1 firmware does not document transmission of stored voices or banks over MIDI, so the librarian cannot import a bank directly from the hardware. Download a backup regularly (see [Backing up your library](#backing-up-your-library)). If M-VAVE adds bulk-dump output in a future firmware release, device-to-bank import can be added without changing the saved library format.

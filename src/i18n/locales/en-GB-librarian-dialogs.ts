@@ -40,6 +40,23 @@ export default {
     warning:
       'The patch in this slot will be replaced by the one in the file, and its FM1 effects reset to their defaults.',
   },
+  receivePatch: {
+    action: 'Replace patch',
+    title: 'Receive a patch into {{slot}} “{{patch}}”',
+    listening:
+      'Listening on the input monitor. Send one DX7 patch from Dexed, a DX7, or another editor.',
+    noInput: 'Switch MIDI on and choose the device sending the patch as the input monitor.',
+    noSysex:
+      'Receiving a patch needs SysEx. Reconnect MIDI and allow SysEx access when the browser asks.',
+    received: 'Received “{{patch}}”. Send another to receive it instead.',
+    warning:
+      'The patch in this slot will be replaced by the one received, and its FM1 effects reset to their defaults.',
+    errors: {
+      bank: 'That was a 32-voice DX7 bank. Send a single patch, or save the bank as a file and choose “Import DX7 bank…” from the bank’s menu.',
+      damaged: 'That patch arrived damaged. Send it again.',
+      format: 'That wasn’t a DX7 patch. Send a single-voice dump of one patch.',
+    },
+  },
   bankFile: {
     legend: 'Banks in this file',
     help: 'This file holds one DX7 bank.',

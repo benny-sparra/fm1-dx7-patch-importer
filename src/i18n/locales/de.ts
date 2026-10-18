@@ -631,6 +631,23 @@ export default {
     warning:
       'Der Sound in diesem Slot wird durch den Sound aus der Datei ersetzt, und seine FM1-Effekte werden auf die Standardwerte zurückgesetzt.',
   },
+  receivePatch: {
+    action: 'Sound ersetzen',
+    title: 'Sound in {{slot}} „{{patch}}“ empfangen',
+    listening:
+      'Der Monitoring-Eingang wird abgehört. Sende einen DX7-Sound aus Dexed, einem DX7 oder einem anderen Editor.',
+    noInput: 'Schalte MIDI ein und wähle das Gerät, das den Sound sendet, als Monitoring-Eingang.',
+    noSysex:
+      'Zum Empfangen eines Sounds wird SysEx benötigt. Verbinde MIDI neu und erlaube den SysEx-Zugriff, wenn der Browser fragt.',
+    received: '„{{patch}}“ empfangen. Sende einen anderen, um stattdessen ihn zu empfangen.',
+    warning:
+      'Der Sound in diesem Slot wird durch den empfangenen Sound ersetzt, und seine FM1-Effekte werden auf die Standardwerte zurückgesetzt.',
+    errors: {
+      bank: 'Das war eine DX7-Bank mit 32 Voices. Sende einen einzelnen Sound, oder speichere die Bank als Datei und wähle „DX7-Bank importieren…“ im Menü der Bank.',
+      damaged: 'Dieser Sound ist beschädigt angekommen. Sende ihn erneut.',
+      format: 'Das war kein DX7-Sound. Sende einen Single-Voice-Dump mit einem Sound.',
+    },
+  },
   bankFile: {
     legend: 'Bänke in dieser Datei',
     help: 'Diese Datei enthält eine DX7-Bank.',
@@ -1354,11 +1371,14 @@ export default {
     copyOpenFailed:
       'Die Kopieroptionen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     importPatchFile: 'Sound importieren…',
+    receivePatch: 'Sound empfangen…',
     downloadPatchFile: 'Sound herunterladen',
     bankFileUnavailable:
       'Bankdateien konnten nicht gelesen werden. Lade die Seite neu und versuche es erneut.',
     patchFileUnavailable:
       'Sounddateien konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+    receivePatchUnavailable:
+      'Sounds konnten nicht empfangen werden. Lade die Seite neu und versuche es erneut.',
     presetFileInexact:
       '„{{name}}“ lässt sich nicht exakt als Presets-Datei von Baud Girl speichern und wurde darum nicht heruntergeladen.',
     everywhere: {

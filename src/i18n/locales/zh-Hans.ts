@@ -560,6 +560,20 @@ export default {
     title: '替换 {{slot}}“{{patch}}”吗？',
     warning: '此位置的音色将被文件中的音色替换，其 FM1 效果将恢复为默认值。',
   },
+  receivePatch: {
+    action: '替换音色',
+    title: '接收音色到 {{slot}}“{{patch}}”',
+    listening: '正在监听输入。请从 Dexed、DX7 或其他编辑器发送一个 DX7 音色。',
+    noInput: '请打开 MIDI，并将发送音色的设备选为监听输入。',
+    noSysex: '接收音色需要 SysEx。请重新连接 MIDI，并在浏览器询问时允许 SysEx 访问。',
+    received: '已接收“{{patch}}”。再发送一个即可改为接收它。',
+    warning: '此位置的音色将被接收到的音色替换，其 FM1 效果将恢复为默认值。',
+    errors: {
+      bank: '收到的是 32 音色的 DX7 音色库。请发送单个音色，或将音色库存为文件，然后在音色库菜单中选择“导入 DX7 音色库…”。',
+      damaged: '收到的音色已损坏。请重新发送。',
+      format: '收到的不是 DX7 音色。请发送只包含一个音色的单音色转储。',
+    },
+  },
   bankFile: {
     legend: '此文件中的音色库',
     help: '此文件包含 1 个 DX7 音色库。',
@@ -1213,9 +1227,11 @@ export default {
     addBankOpenFailed: '无法打开新音色库选项。请重新加载页面后重试。',
     copyOpenFailed: '无法打开复制选项。请重新加载页面后重试。',
     importPatchFile: '导入音色…',
+    receivePatch: '接收音色…',
     downloadPatchFile: '下载音色',
     bankFileUnavailable: '无法读取音色库文件。请重新加载页面后重试。',
     patchFileUnavailable: '无法打开音色文件。请重新加载页面后重试。',
+    receivePatchUnavailable: '无法接收音色。请重新加载页面后重试。',
     presetFileInexact: '“{{name}}”无法精确保存为 Baud Girl 预设文件，因此未下载。',
     everywhere: {
       workspace: '你的音色库',

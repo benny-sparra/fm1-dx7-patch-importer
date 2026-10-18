@@ -624,6 +624,23 @@ export default {
     warning:
       'Le son de cet emplacement sera remplacé par celui du fichier, et ses effets FM1 reviendront à leurs valeurs par défaut.',
   },
+  receivePatch: {
+    action: 'Remplacer le son',
+    title: 'Recevoir un son dans {{slot}} « {{patch}} »',
+    listening:
+      'Écoute de l’entrée de contrôle. Envoyez un son DX7 depuis Dexed, un DX7 ou un autre éditeur.',
+    noInput: 'Activez le MIDI et choisissez l’appareil qui envoie le son comme entrée de contrôle.',
+    noSysex:
+      'Recevoir un son nécessite SysEx. Reconnectez le MIDI et autorisez l’accès SysEx quand le navigateur le demande.',
+    received: '« {{patch}} » reçu. Envoyez-en un autre pour le recevoir à la place.',
+    warning:
+      'Le son de cet emplacement sera remplacé par celui reçu, et ses effets FM1 reviendront à leurs valeurs par défaut.',
+    errors: {
+      bank: 'C’était une banque DX7 de 32 voix. Envoyez un seul son, ou enregistrez la banque dans un fichier et choisissez « Importer une banque DX7… » dans le menu de la banque.',
+      damaged: 'Ce son est arrivé endommagé. Envoyez-le de nouveau.',
+      format: 'Ce n’était pas un son DX7. Envoyez le dump d’une seule voix.',
+    },
+  },
   bankFile: {
     legend: 'Banques de ce fichier',
     help: 'Ce fichier contient une banque DX7.',
@@ -1339,11 +1356,13 @@ export default {
       'Impossible d’ouvrir les options de nouvelle banque. Rechargez la page et réessayez.',
     copyOpenFailed: 'Impossible d’ouvrir les options de copie. Rechargez la page et réessayez.',
     importPatchFile: 'Importer un son…',
+    receivePatch: 'Recevoir un son…',
     downloadPatchFile: 'Télécharger le son',
     bankFileUnavailable:
       'Impossible de lire les fichiers de banque. Rechargez la page et réessayez.',
     patchFileUnavailable:
       'Impossible d’ouvrir les fichiers de son. Rechargez la page et réessayez.',
+    receivePatchUnavailable: 'Impossible de recevoir des sons. Rechargez la page et réessayez.',
     presetFileInexact:
       '« {{name}} » ne peut pas être enregistré à l’identique comme fichier de presets Baud Girl : il n’a donc pas été téléchargé.',
     everywhere: {
