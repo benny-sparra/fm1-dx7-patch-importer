@@ -1248,9 +1248,9 @@ editing, no saving, no transfer to the device, and no phrase that quotes an exis
 
 The library may store and organise Official Open projects (`.fm1`, approved 2026-10-18,
 `docs/official-open-plan.md`): keep each one's bytes exactly as read, list its tracks, and move a
-track's sound between a project and the banks. It never edits a project's steps, chords, locks, or
-loop lengths, which stay the FM1's and its Workbench's, and storing projects is not a reason to
-grow this sequencer feature. Every transfer of a project to or from the FM1 still needs its own
+track's sound between a project and the banks. It does not edit a project's steps, chords, locks,
+or loop lengths: step editing is the plan's last phase, a nice to have, and needs its scope
+approved here first. Storing projects is not a reason to grow this sequencer feature. Every transfer of a project to or from the FM1 still needs its own
 approval recorded under MIDI first.
 
 Build in this order:

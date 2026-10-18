@@ -864,9 +864,9 @@ with a shared sample bank. What its source says is in
   yet mapped.
 - **Keep its projects, but don't edit their steps.** Approved 2026-10-18: the library may store and
   organise `.fm1` projects, list their tracks, and move sounds between a project and the banks
-  ([the plan](official-open-plan.md), Phase 5). Steps, chords, locks, and samples stay with its own
-  Workbench, and the [sequencer scope](../AGENTS.md#sequencer-scope) rules out a general sequencer
-  here.
+  ([the plan](official-open-plan.md), Phase 5). Editing its steps is a nice to have, the plan's
+  last phase, needing its scope approved first; samples stay with its own Workbench, and the
+  [sequencer scope](../AGENTS.md#sequencer-scope) rules out a general sequencer here.
 
 ## Decided against
 

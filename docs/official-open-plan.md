@@ -18,10 +18,10 @@ recorded in `AGENTS.md` before any code depends on it.
 1. **Projects in the library: approved 2026-10-18.** The library may store and organise Official
    Open projects without editing their steps, as `AGENTS.md`'s sequencer scope now says. Phases 5
    and 7 may go ahead, each transfer still needing its protocol approval.
-2. **Step editing.** The sequencer scope rules out a general sequencer. Official Open's steps are
-   its own fixed model (8 tracks, 16–64 steps, chords, locks), so an editor for them would stay
-   within "edit the FM1's internal sequencer", but it is a large feature. This plan leaves it out;
-   say if it should be in.
+2. **Step editing: a nice to have, last (2026-10-18).** Official Open's steps are its own fixed
+   model (8 tracks, 16–64 steps, chords, locks), so an editor for them stays within "edit the
+   FM1's internal sequencer". It is Phase 8, after everything else, and needs its scope approved
+   in `AGENTS.md` before work starts.
 3. **Saving to a project slot (command 7) and loading one (command 8).** Both are **Dangerous /
    excluded** today. Without them the editor can put a sound or a project into the FM1's working
    project, but the user must press SAVE on the FM1 to keep it, and the editor cannot back up all
@@ -162,13 +162,23 @@ for alternate notes, kept in the project's tuning block.
 - A tuning library beside the banks, and tunings sent as part of a project (kind 3).
 - Needs a hardware run of a tuned project before anything ships, and approval of the kind 3 write.
 
+## Phase 8: step editing (nice to have)
+
+Last, and only once Phases 1–5 are in. The project's steps as Official Open models them, and
+nothing a general sequencer adds (`AGENTS.md`, Sequencer scope).
+
+- Per track: the step grid at its loop length (16, 32, 48, or 64), notes or drum parts, and each
+  step's velocity, gate, probability, chord, and tie.
+- Edits a project in the library, byte for byte, and reaches the FM1 by Phase 5's project send.
+- Needs its scope recorded in `AGENTS.md` first, and the step layout mapped in
+  `docs/fm1-research.md` from the source and a hardware run.
+
 ## Out of scope
 
 - The firmware installer, the `00 59` update family beyond the identity query, and the sample bank
   write (commands 12–14): **Dangerous / excluded**.
 - The WebAssembly simulator.
 - Sample editing; `.fm1s` files are kept in backups and files only.
-- Step editing, unless decision 2 says otherwise.
 
 ## Throughout
 
@@ -194,5 +204,6 @@ for alternate notes, kept in the project's tuning block.
 | 5     | decision 1, 1             | large      | Projects kept and assembled from the library |
 | 6     | decision 3, 5             | medium     | Whole-device backup in one action            |
 | 7     | decision 1, 5             | medium     | The one feature M-VAVE does not offer        |
+| 8     | decision 2, 5             | large      | Steps edited off the FM1 (nice to have)      |
 
 Phases 0 and 2's file half can start at once; 1 needs only its approval and a hardware run.
