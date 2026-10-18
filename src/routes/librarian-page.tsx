@@ -150,6 +150,12 @@ const ReplacePatchDialog = lazy(() =>
     default: module.ReplacePatchDialog,
   })),
 )
+// Receiving a slot's patch over MIDI opens from its menu, with the dump reader, on first use.
+const ReceivePatchDialog = lazy(() =>
+  import('@/components/patches/receive-patch-dialog').then((module) => ({
+    default: module.ReceivePatchDialog,
+  })),
+)
 
 // Restoring a backup opens from the header menu, with the backup format, on first use.
 const RestoreBackupDialog = lazy(() =>
@@ -279,6 +285,7 @@ type LibrarianLibrary = BackupLibrary &
 type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof ImportFm1VaPresetsDialog>['midi'] &
   ComponentProps<typeof WriteFm1VaPresetsDialog>['midi'] &
+  ComponentProps<typeof ReceivePatchDialog>['midi'] &
   Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
 type LibrarianPageProps = {
@@ -337,6 +344,8 @@ export function LibrarianPage({
   const [sharedPayload, setSharedPayload] = useState<string | null>(null)
   // The slot whose menu chose to replace it from a file, kept while its dialog is open.
   const [replaceTarget, setReplaceTarget] = useState<Patch | null>(null)
+  // The slot whose menu chose to receive a patch over MIDI, kept while its dialog is open.
+  const [receiveTarget, setReceiveTarget] = useState<Patch | null>(null)
   // The Virtual Analog patch a slot menu asked to change to FM, while its dialog is open.
   const [changeToFmTarget, setChangeToFmTarget] = useState<Patch | null>(null)
   const [isImporting, setIsImporting] = useState(false)
@@ -452,6 +461,10 @@ export function LibrarianPage({
   const requestReplace = (patch: Patch) => {
     setDialogLoadError('')
     setReplaceTarget(patch)
+  }
+  const requestReceive = (patch: Patch) => {
+    setDialogLoadError('')
+    setReceiveTarget(patch)
   }
   const requestChangeToFm = (patch: Patch) => {
     setDialogLoadError('')
@@ -1284,6 +1297,7 @@ export function LibrarianPage({
         onPatchShare={copyShareLink}
         // Importing a file puts it in a bank slot; Favourites takes sounds through their hearts.
         onPatchReplace={showsFavourites ? undefined : requestReplace}
+        onPatchReceive={showsFavourites ? undefined : requestReceive}
         onPatchChangeToFm={showsFavourites ? undefined : requestChangeToFm}
         onPatchEdit={(patch) => {
           followPlayedPatch(patch)
@@ -1718,6 +1732,33 @@ export function LibrarianPage({
                 )
               }
               patch={replaceTarget}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
+      {receiveTarget ? (
+        <ErrorBoundary
+          key={receiveTarget.id}
+          onError={() => {
+            setReceiveTarget(null)
+            setDialogLoadError(t('banks.receivePatchUnavailable'))
+          }}
+        >
+          <Suspense fallback={null}>
+            <ReceivePatchDialog
+              library={library}
+              midi={midi}
+              onClose={() => setReceiveTarget(null)}
+              onReplaced={(voice, changed) =>
+                toast.success(
+                  t('toasts.patchReplaced', {
+                    patch: voice.name,
+                    slot: patchSlotCode(receiveTarget),
+                  }),
+                  undoToastOptions(t, library, changed),
+                )
+              }
+              patch={receiveTarget}
             />
           </Suspense>
         </ErrorBoundary>

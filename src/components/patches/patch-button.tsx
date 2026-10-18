@@ -35,6 +35,7 @@ type PatchButtonProps = {
   onEdit?: (patch: Patch) => void
   /** Arrow-key navigation across the grid, owned by the grid itself. */
   onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
+  onReceive?: (patch: Patch) => void
   onReplace?: (patch: Patch) => void
   onSelect?: (patch: Patch) => void
   /** Shows the slot's heart, which adds its sound to Favourites or takes it out. */
@@ -68,6 +69,7 @@ export function PatchButton({
   onShare,
   onEdit,
   onNavigate,
+  onReceive,
   onReplace,
   onSelect,
   onToggleFavourite,
@@ -265,6 +267,7 @@ export function PatchButton({
               onCopy={onCopy && (() => onCopy(patch))}
               onDownload={onDownload && (() => onDownload(patch))}
               onEdit={editSlot && (() => editSlot(patch))}
+              onReceive={onReceive && (() => onReceive(patch))}
               onReplace={onReplace && (() => onReplace(patch))}
               onShare={onShare && (() => onShare(patch))}
             />

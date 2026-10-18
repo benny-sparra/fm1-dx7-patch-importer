@@ -625,6 +625,24 @@ export default {
     warning:
       'El sonido de esta ranura se sustituirá por el del archivo y sus efectos FM1 volverán a los valores predeterminados.',
   },
+  receivePatch: {
+    action: 'Reemplazar sonido',
+    title: 'Recibir un sonido en {{slot}} «{{patch}}»',
+    listening:
+      'Escuchando la entrada de monitorización. Envía un sonido DX7 desde Dexed, un DX7 u otro editor.',
+    noInput:
+      'Activa MIDI y elige como entrada de monitorización el dispositivo que envía el sonido.',
+    noSysex:
+      'Para recibir un sonido se necesita SysEx. Reconecta MIDI y permite el acceso SysEx cuando el navegador lo pida.',
+    received: 'Se recibió «{{patch}}». Envía otro para recibirlo en su lugar.',
+    warning:
+      'El sonido de esta ranura se sustituirá por el recibido y sus efectos FM1 volverán a los valores predeterminados.',
+    errors: {
+      bank: 'Eso era un banco DX7 de 32 voces. Envía un solo sonido, o guarda el banco como archivo y elige «Importar banco DX7…» en el menú del banco.',
+      damaged: 'Ese sonido llegó dañado. Envíalo de nuevo.',
+      format: 'Eso no era un sonido DX7. Envía un volcado de una sola voz con un sonido.',
+    },
+  },
   bankFile: {
     legend: 'Bancos de este archivo',
     help: 'Este archivo contiene un banco DX7.',
@@ -1335,11 +1353,14 @@ export default {
     copyOpenFailed:
       'No se pudieron abrir las opciones de copia. Recarga la página e inténtalo de nuevo.',
     importPatchFile: 'Importar sonido…',
+    receivePatch: 'Recibir sonido…',
     downloadPatchFile: 'Descargar sonido',
     bankFileUnavailable:
       'No se pudieron leer los archivos de banco. Recarga la página e inténtalo de nuevo.',
     patchFileUnavailable:
       'No se pudieron abrir los archivos de sonido. Recarga la página e inténtalo de nuevo.',
+    receivePatchUnavailable:
+      'No se pudieron recibir sonidos. Recarga la página e inténtalo de nuevo.',
     presetFileInexact:
       '«{{name}}» no se puede guardar exactamente como archivo de presets de Baud Girl, así que no se ha descargado.',
     everywhere: {
