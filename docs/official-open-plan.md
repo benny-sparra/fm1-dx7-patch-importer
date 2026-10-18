@@ -22,10 +22,10 @@ recorded in `AGENTS.md` before any code depends on it.
    model (8 tracks, 16–64 steps, chords, locks), so an editor for them stays within "edit the
    FM1's internal sequencer". It is Phase 8, after everything else, and needs its scope approved
    in `AGENTS.md` before work starts.
-3. **Saving to a project slot (command 7) and loading one (command 8).** Both are **Dangerous /
-   excluded** today. Without them the editor can put a sound or a project into the FM1's working
-   project, but the user must press SAVE on the FM1 to keep it, and the editor cannot back up all
-   16 slots. The Workbench does both, with read-back verification. Phase 6 needs them.
+3. **Saving to a project slot (command 7) and loading one (command 8): parked 2026-10-18.** Both
+   stay **Dangerous / excluded**. Without them the editor puts a sound or a project into the FM1's
+   working project, the user presses SAVE on the FM1 to keep it, and the editor backs up only the
+   working project. Revisit once Phases 1–3 have worked on the FM1; Phase 6 waits for it.
 
 The protocol approvals each phase needs are listed with it.
 
@@ -142,7 +142,9 @@ writes only its own bits, only when its value changed.
 - **Send a project** to the working project (kind 0 or 3 write, approval needed), after reading the
   current one so Undo can put it back, with read-back verification as the Workbench does.
 
-## Phase 6: back up the whole FM1 (decision 3)
+## Phase 6: back up the whole FM1 (decision 3, parked)
+
+Parked until Phases 1–3 have worked on the FM1 and decision 3 is revisited.
 
 - **Save to a slot** (command 7) with the Workbench's sequence: write, read back and compare, save,
   load the slot, read back again. Asks first, naming the slot it replaces; slot 15 also holds the
@@ -202,7 +204,7 @@ nothing a general sequencer adds (`AGENTS.md`, Sequencer scope).
 | 3     | 1, 2, approval            | medium     | One click puts any library sound on a track  |
 | 4     | 2, 3, approval            | large      | Edits every engine better than the panel     |
 | 5     | decision 1, 1             | large      | Projects kept and assembled from the library |
-| 6     | decision 3, 5             | medium     | Whole-device backup in one action            |
+| 6     | decision 3 (parked), 5    | medium     | Whole-device backup in one action            |
 | 7     | decision 1, 5             | medium     | The one feature M-VAVE does not offer        |
 | 8     | decision 2, 5             | large      | Steps edited off the FM1 (nice to have)      |
 
