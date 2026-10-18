@@ -60,8 +60,10 @@ describe('firmware page', () => {
     },
   )
 
-  it('tags the pinned entries as working with this editor', () => {
-    for (const entry of entries.filter((candidate) => candidate.hasAttribute('data-pinned'))) {
+  it('tags the stock firmware and Baud Girl as working with this editor', () => {
+    for (const entry of entries.filter((candidate) =>
+      ['stock', 'baud-girl'].includes(candidate.id),
+    )) {
       expect(entry.querySelector('.firmware-tag')?.getAttribute('data-support')).toBe('full')
     }
   })
@@ -123,10 +125,10 @@ describe('firmware page', () => {
     }
   })
 
-  it('pins the stock firmware and Baud Girl, which have no star count', () => {
+  it('pins Official Open, the stock firmware, and Baud Girl, which have no star count', () => {
     const pinned = entries.filter((entry) => entry.hasAttribute('data-pinned'))
-    expect(pinned.map((entry) => entry.id)).toEqual(['stock', 'baud-girl'])
-    expect(entries.slice(0, 2)).toEqual(pinned)
+    expect(pinned.map((entry) => entry.id)).toEqual(['official-open', 'stock', 'baud-girl'])
+    expect(entries.slice(0, 3)).toEqual(pinned)
     for (const entry of pinned) expect(entry.hasAttribute('data-stars')).toBe(false)
   })
 
@@ -164,7 +166,8 @@ describe('firmware page', () => {
     },
   )
 
-  it.each(named(entries))(
+  // Official Open is pinned, so it carries no count and no star.
+  it.each(named(entries.filter((entry) => entry.id !== 'official-open')))(
     '%s draws its star from the page symbol, hidden from assistive technology',
     (_name, entry) => {
       const star = entry.querySelector('.firmware-stars svg.firmware-star')
@@ -240,9 +243,9 @@ describe('firmware page order', () => {
   }
   const option = (name: string) => screen.getByRole('button', { name })
   const written = entries.map((entry) => entry.id)
-  const pinned = written.slice(0, 2)
+  const pinned = written.slice(0, 3)
   const byStars = entries
-    .slice(2)
+    .slice(3)
     .toSorted(
       (a, b) =>
         Number(b.getAttribute('data-stars') ?? -1) - Number(a.getAttribute('data-stars') ?? -1),
@@ -266,7 +269,7 @@ describe('firmware page order', () => {
 
   it('orders by release date after the pinned entries, newest first, ties alphabetical', async () => {
     const byUpdated = entries
-      .slice(2)
+      .slice(3)
       .toSorted((a, b) =>
         (b.getAttribute('data-updated') ?? '').localeCompare(a.getAttribute('data-updated') ?? ''),
       )

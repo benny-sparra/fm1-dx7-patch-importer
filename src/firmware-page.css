@@ -8,8 +8,8 @@
  */
 @layer components {
   /*
-   * The entries, in one column on a phone, then two, then three. The two pinned entries span the
-   * row with their photo beside the text, as the two this editor works with; every other card
+   * The entries, in one column on a phone, then two, then three. The three pinned entries span the
+   * row with their photo beside the text: M-VAVE's two firmwares and Baud Girl's; every other card
    * puts its photo above its text, and the cards in a row share its height.
    */
   /* The grid is a .dither-well, so its dots show in the gutters between the solid cards. */
