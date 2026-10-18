@@ -466,8 +466,8 @@ open everything an earlier release could have saved.
   number, with the full label for assistive technology and the tooltip), never fetched by the page, since a visitor's browser asking
   GitHub would need a privacy and CSP review and meets its anonymous rate limit. Refresh them, and
   the date beside the order buttons, with `npm run firmware:stars` whenever the page is edited.
-  The entries `data-pinned` marks, M-VAVE's firmware and Baud Girl's, stay first in either order
-  and have no count; an entry without a GitHub repository, such as Groove OS, has no count, says
+  The entries `data-pinned` marks, M-VAVE's two firmwares (Official Open, then the stock one) and
+  Baud Girl's, stay first in either order and have no count; an entry without a GitHub repository, such as Groove OS, has no count, says
   Not on GitHub beside an outline star, and follows the counted ones. A new firmware is written in alphabetical place, and the script gives
   it a count. Label the order **Most starred**, never popular, since stars say how widely a project
   was shared rather than how many FM1s run it.
@@ -480,7 +480,7 @@ open everything an earlier release could have saved.
   card. A day's edit replaces the previous day's lines rather than adding to them;
   `src/firmware-page.test.ts` checks the date and that every link reaches a card.
 - The firmware page lays its entries out in `.firmware-grid`, one column on a phone, two from
-  40rem, and three from 60rem; the two pinned entries span the row with their photo beside the
+  40rem, and three from 60rem; the three pinned entries span the row with their photo beside the
   text. Every entry carries `data-categories`, one or more of the kinds the **Show** filter lists
   (Synths, Grooveboxes, Samplers, Chords, Generative, Tools, Games & toys), and a new
   firmware names at least one, with the count on that kind's filter button raised in the same
