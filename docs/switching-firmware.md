@@ -3,11 +3,13 @@
 How to move one FM1 between M-VAVE's stock firmware, Baud Girl's
 [FM-1+VA](https://baudgirl.com/work/FM-1+VA), Hügelton Instruments'
 [Felucca](https://hugelton.github.io/Felucca/), and isod89's
-[SLOOP](https://github.com/isod89/sloop-fm1), a groovebox firmware built on Felucca. Use the stock
+[SLOOP](https://github.com/isod89/sloop-fm1), a groovebox firmware built on Felucca, and M-VAVE's
+own [Official Open](https://open.m-vave.com/fm1-workbench), an eight-track groovebox. Use the stock
 firmware as the middle point: go back to it before moving from one replacement firmware to another.
 Written for M-VAVE V15, FM-1+VA `FM-1_093`, and Felucca 1.5.1, from each project's own pages as they
-stood on 12 October 2026 (Felucca's source as of its 11 October commit), and SLOOP 2.2, as it stood
-on 5 October 2026.
+stood on 12 October 2026 (Felucca's source as of its 11 October commit), SLOOP 2.2, as it stood on
+5 October 2026, and Official Open V13, from the FM1 Workbench's own manual as it stood on
+18 October 2026.
 
 This app never installs firmware. Every step below uses the firmware projects' own tools.
 
@@ -17,12 +19,15 @@ flowchart LR
   Stock["Stock<br/>M-VAVE · V15"]
   Felucca["Felucca<br/>Hügelton · 1.5.1"]
   Sloop["SLOOP<br/>isod89 · 2.2"]
+  Open["Official Open<br/>M-VAVE · V13"]
   Stock -- "FM-1+VA Install page" --> VA
   VA -- "same page, V15 file" --> Stock
   Stock -- "Felucca Install page" --> Felucca
   Felucca -- "M-UPGRADE + V15" --> Stock
   Stock -- "SLOOP installer" --> Sloop
   Sloop -- "M-UPGRADE + V15" --> Stock
+  Stock -- "Workbench force flash" --> Open
+  Open -- "Workbench Restore original V15" --> Stock
 ```
 
 No direct route between FM-1+VA and Felucca or SLOOP is documented. Felucca and SLOOP share an
@@ -42,6 +47,10 @@ The FM1 cannot send its presets back to this app, so your library is your only c
   **Library** and use **Export bank** under **User presets on the device**, and **Export library**
   for the sounds kept in the editor. No export of SLOOP's projects (its patterns and songs) is
   documented.
+- Leaving Official Open: in the [FM1 Workbench](https://open.m-vave.com/fm1-workbench), open
+  **Projects & sounds** and back up the current project and the sample bank. Load each other
+  project slot you want to keep and back it up too, one at a time. Project files hold no audio, so
+  keep the sample bank's `.fm1s` file with them.
 - Have M-VAVE's files ready from [m-vave.com/download](https://www.m-vave.com/download):
   **M-UPGRADE** (PC Software, Windows or Mac) and **FM-1 V15** (PC Firmware). Leaving Felucca or
   SLOOP depends on them.
@@ -140,6 +149,46 @@ install the other.
 If an install of either is interrupted, finish it with the installer you started. The two use the
 same update mode, so the other's installer could resume it and write its own firmware instead.
 
+## Stock to Official Open
+
+M-VAVE's FM1 Workbench carries the firmware itself, and refuses any file you supply. The stock
+firmware has no Official Open update protocol, so the Workbench reaches it through **Force flash**.
+
+1. Open the [FM1 Workbench](https://open.m-vave.com/fm1-workbench) in desktop Chrome or Edge and
+   choose **Device update**.
+2. Click **Connect device** and allow MIDI. The Workbench identifies the FM1 as other firmware
+   (`FM-1_015` on V15).
+3. Click **Enable force flash and reconnect**. That writes nothing; it connects again in force mode.
+4. Tick **I have backed up the sounds, projects and samples I want to keep**, click **Force flash**,
+   and accept the compatibility warning. Keep power and USB connected until it restarts and checks
+   the version.
+
+The Workbench warns that a force flash may erase what the FM1 holds. Official Open has no banks of
+DX7 voices, so the stock presets do not play there; keep them in this app's library.
+
+## Official Open to stock
+
+1. Back up your projects and sample bank (see [Before any switch](#before-any-switch)).
+2. In the Workbench's **Device update**, click **Restore original V15**, connect, confirm your
+   backup, then click **Install original V15** and accept the warning.
+3. It installs V15, then replaces all four banks with M-VAVE's 128 factory voices. If it is
+   interrupted, reconnect and retry.
+
+Official Open's projects and samples do not work on V15. To put your own patches back, send each
+bank from this app's library with **Send to FM1**. An FM1 already on V15 is offered **Restore
+factory voices**, which skips the firmware install.
+
+## Updating Official Open
+
+The Workbench's **Device update** installs the release that page carries. Back up first, connect,
+tick the backup box, and click **Start update**. An update that keeps the same storage layout keeps
+your project slots and sample bank; unsaved edits on the FM1 are lost. If samples are unavailable
+afterwards, write your backup or the built-in bank from **Projects & sounds**.
+
+V13 keeps per-track tuning in the last 4 KiB of the FM1's memory, where a sample bank written by
+V12 at its full size may still reach. The FM1 then shows REDUCE SAMPLE BANK when you save a
+project; write a smaller sample bank first.
+
 ## If something goes wrong
 
 Most failed installs recover with a replug and a retry, because the FM1 waits in update mode until
@@ -162,6 +211,8 @@ an install finishes.
 | The FM-1 did not come back. Power-cycle it.                 | SLOOP          | Switch the FM1 off and on.                                                                                           |
 | Written, but the FM-1 reports another version:              | SLOOP          | Power-cycle the FM1 and check the startup screen.                                                                    |
 | Failed to enter upgrade mode!                               | M-UPGRADE      | Keep M-UPGRADE open, unplug and replug the USB cable, then continue.                                                 |
+| An update stops partway, or the FM1 stays in update mode    | Workbench      | Keep the same version of the Workbench page, check the cable, reconnect, and follow its prompts.                     |
+| No device, or no identity reply                             | Workbench      | Open **Connection details** to see the ports found. Close other MIDI apps, power-cycle, replug, and connect again.   |
 
 If you hit an error that isn't listed here, or a step doesn't match what you see,
 [open an issue](https://github.com/benny-sparra/fm1-dx7-patch-importer/issues/new). Include the
@@ -192,12 +243,13 @@ the FM1 works; the FM-1-transporter README explains UBOOT mode.
 The app asks which firmware the FM1 runs whenever it reconnects, and sends patches to suit it (see
 [M-VAVE and Baud Girl firmware](user-guide.md#m-vave-and-baud-girl-firmware) in the user guide).
 
-| Firmware     | Reports as                | How the app sends a patch | Notes                                                                                                        |
-| ------------ | ------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| M-VAVE stock | Below `FM-1_020`          | Single-voice dump         | Hold **SAVE** on the FM1 to store it                                                                         |
-| FM-1+VA      | `FM-1_020` to `FM-1_899`  | 155 parameter changes     | A send never overwrites a stored preset                                                                      |
-| Felucca      | `FM-1_9XY`, shown as X.Y  | 155 parameter changes     | Its port is named Felucca, so choose it yourself; it plays notes but ignores DX7 patches                     |
-| SLOOP        | `FM-1_900`, every release | 155 parameter changes     | Shown as Felucca or SLOOP, since a Felucca development build reports the same name; port and MIDI as Felucca |
+| Firmware      | Reports as                                      | How the app sends a patch                     | Notes                                                                                                          |
+| ------------- | ----------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| M-VAVE stock  | Below `FM-1_020`                                | Single-voice dump                             | Hold **SAVE** on the FM1 to store it                                                                           |
+| FM-1+VA       | `FM-1_020` to `FM-1_899`                        | 155 parameter changes                         | A send never overwrites a stored preset                                                                        |
+| Felucca       | `FM-1_9XY`, shown as X.Y                        | 155 parameter changes                         | Its port is named Felucca, so choose it yourself; it plays notes but ignores DX7 patches                       |
+| SLOOP         | `FM-1_900`, every release                       | 155 parameter changes                         | Shown as Felucca or SLOOP, since a Felucca development build reports the same name; port and MIDI as Felucca   |
+| Official Open | `FM-1_8` and six digits (`FM-1_8000013` is V13) | Single-voice dump to the note channel's track | Only once the FM1 says that track runs DX7; no Program Change or effects; press **SAVE** on the FM1 to keep it |
 
 ## Sources
 
@@ -212,4 +264,6 @@ The app asks which firmware the FM1 runs whenever it reconnects, and sends patch
   [repository](https://github.com/isod89/sloop-fm1) (isod89), read at release 2.2
 - [FM-1-transporter](https://github.com/kurogedelic/FM-1-transporter)
 - [M-VAVE downloads](https://www.m-vave.com/download)
+- [FM1 Workbench](https://open.m-vave.com/fm1-workbench) and its manual, and
+  [Official Open's source](https://github.com/m-vave/fm1_open) (M-VAVE), read at V13
 - [FM1 research notes](fm1-research.md), for how the app identifies each firmware

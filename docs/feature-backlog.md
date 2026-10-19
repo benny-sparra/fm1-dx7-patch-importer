@@ -861,10 +861,9 @@ with a shared sample bank. What its source says is in
   and no FX Channel effect controllers, which it would take as changes to its tracks. Sending a
   patch as a single-voice dump to a DX7 track, and reading a track's voice over its `7D 'FM'`
   protocol, each need their approval recorded in `AGENTS.md` first.
-- **Add its restore and migration steps** to [Switching FM1 firmware](switching-firmware.md). The
-  firmware page lists it as M-VAVE's own, with its Workbench and source. Restoring V15 from the
-  Workbench replaces all four banks with the factory voices, and a force flash may erase what the
-  FM1 holds, so the guide should send people to **Download backup** first.
+- **Its restore and migration steps** are in [Switching FM1 firmware](switching-firmware.md)
+  (2026-10-18): force flash from stock, Restore original V15, and updates within Official Open,
+  with backups first. The firmware page lists it as M-VAVE's own, with its Workbench and source.
 - **DX7 tracks.** Its Workbench imports a `.syx` voice or bank into a DX7 track, so the editor's
   library, catalog, and voice editor already feed it through **Download patch**. Exporting a DX7
   patch as a `.fm1t` track sound would save a step; its 223-byte layout is in the source but not

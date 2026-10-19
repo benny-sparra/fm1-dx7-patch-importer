@@ -89,6 +89,7 @@ describe('classifyFm1Firmware', () => {
   it('counts every name Official Open’s updater accepts as Official Open', () => {
     for (const identity of [
       'FM-1_8000012',
+      'FM-1_8000013',
       'FM-1_8999999',
       'FM1_COMMUNITY_0',
       'FM1_COMMUNITY_42',
@@ -130,6 +131,7 @@ describe('fm1FirmwareRelease', () => {
 
   it('names an Official Open release as M-VAVE numbers it, and other builds by their name', () => {
     expect(fm1FirmwareRelease({ identity: 'FM-1_8000012', kind: 'official-open' })).toBe('V12')
+    expect(fm1FirmwareRelease({ identity: 'FM-1_8000013', kind: 'official-open' })).toBe('V13')
     expect(fm1FirmwareRelease({ identity: 'FM1_COMMUNITY_3', kind: 'official-open' })).toBe(
       'FM1_COMMUNITY_3',
     )

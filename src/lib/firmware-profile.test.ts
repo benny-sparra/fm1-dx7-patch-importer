@@ -122,6 +122,7 @@ describe('resolveFirmwareProfile', () => {
   it('sends Official Open dumps to DX7 tracks it reads, and no channel message it misreads', () => {
     for (const identity of [
       'FM-1_8000012',
+      'FM-1_8000013',
       'FM-1_8000099',
       'FM1_COMMUNITY_3',
       'FM1_OFFICIAL_OPEN',

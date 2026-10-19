@@ -1135,7 +1135,8 @@ Open questions:
 
 M-VAVE published the preview below on 2026-10-14 and released the firmware, as V12, with its
 source on 2026-10-16. The preview notes come first, as read; [the released source](#official-open-released-source-read-2026-10-16)
-answers their open questions.
+answers their open questions. V13 followed on 2026-10-17; what it changed is in
+[Official Open V13](#official-open-v13-read-2026-10-18).
 
 #### The withdrawn preview (read 2026-10-14)
 
@@ -2029,6 +2030,79 @@ Open questions:
 7. What does a loaded SAMPLER preset do when the device's bank is empty or differs from the one the
    preset was made for? The source says the pad is silent when empty, and the preset carries no bank
    identity.
+
+#### Official Open V13 (read 2026-10-18)
+
+Source: https://github.com/m-vave/fm1_open commit `b178ac43` ("Update FM1 Open to V13",
+2026-10-17), compared with `5d3eac25`, the V12 commit the sections above read. Source read only:
+nothing was run, and no MIDI was sent. Paths are in that commit. Everything is **Likely** (from
+source) unless marked otherwise.
+
+**Identity.** `app/version.h` names the release `V13` and its update product `FM-1_8000013`.
+`officialOpenIdentity` already accepts it and `fm1FirmwareRelease` names it V13; the tests now say
+so. No FM1 here has run V13 yet, so the reply itself is unconfirmed.
+
+**What V13 adds: per-track tuning.** Each track has two tables of twelve signed whole-cent offsets
+from equal temperament, `main` and `alt`, indexed by pitch class (MIDI note mod 12, C = 0), each
+entry −127 to +127, with −128 reserved and refused (`struct groove_tuning`, `app/instrument.h`). A
+melodic step with bit 13 set (`GROOVE_STEP_ALT`) plays from `alt`, as does a live note while the
+track's alt hold is on; alt hold is live state and is never saved. The offset is read at note-on, so
+an edit changes the next note, never one sounding. DX7, 303, PSG, and Pluck take it; 808 and
+Sampler ignore it (`web/engine/sound.c`, `engine_note`). The README says the firmware has the API
+but no tuning editor: "a dedicated tuning editor is not included".
+
+**The tuning block.** An exported or imported project may carry 200 bytes after its 4,064:
+`FM1T` (`0x54314d46` little-endian), the eight tracks' tables (8 × 24 bytes, `main` then `alt`),
+and a CRC-32 of the first 196 bytes, little-endian (`GROOVE_TUNING_BLOCK_BYTES`,
+`GROOVE_PROJECT_TUNED_BYTES = 4264`). The header comment calls the last field "~CRC-32"; the
+Workbench checks it against its own `crc32`, the standard CRC with final inversion, so it is the
+usual CRC-32 value (`sdk/WebUpdate.js`, `projectVersion`). The Workbench refuses a block whose
+magic or CRC is wrong or that holds a byte of 128 (−128). The magic is the same four bytes as the
+`.fm1t` file header; context, the 4,064-byte offset, tells them apart. A `.fm1` file of a tuned
+project is 4,280 bytes: the 16-byte header and the 4,264-byte payload.
+
+**Transfer protocol changes** (`app/transfer.c`). All additive; V12's commands behave as before.
+
+- **Kind 3**, the tuned project, for commands 1 and 3: 4,264 bytes, target 0. A kind 0 write also
+  accepts 4,264 bytes; a kind 0 read still returns 4,064.
+- **Command 21**, no payload, reports 7 bytes: a flag (1 if this build supports tuning), the tuned
+  project size (4,264, 16 bits), and the largest sample bank a new write accepts (462,848, 32 bits).
+  V12 answers it with status 71, invalid, which is how the Workbench tells the two apart
+  (`extensions`, `sdk/WebUpdate.js`). Read-only.
+- **Status 73** (64 + 9, `GROOVE_PROJECT_TUNING_SPACE`): a save needed the tuning sector, which a
+  sample bank stored at the old full size still occupies. The FM1 shows REDUCE SAMPLE BANK.
+- Command 11's reported capacity stays 466,944 because SDK clients check that exact value, but a new
+  bank write over 462,848 bytes is refused.
+
+**Storage.** The last 4 KiB of Flash now holds the tuning tables for the 16 project slots, keyed to
+each slot and its project's contents and written through a journal (`app/project.c`), which is why
+the sample bank's limit shrank by one sector. Saving a project writes its tuning there; loading a
+slot applies it.
+
+**Device undo.** Applying a track preset import (`groove_timbre_apply`) now adds a device undo
+checkpoint (`0xb0000 + track`), and a project import can add one (`groove_project_apply_edit`). On
+V12 neither did. So loading a sound onto a track from the editor would be undoable on the FM1 too.
+
+**What did not change.** `struct groove_project` is still 4,064 bytes (its static assertion is
+unchanged) and `struct groove_preset` is untouched, so the `.fm1t` map above holds for V13. The
+SysEx shapes `fm1_app_sysex` accepts, the single-voice dump path, and channel-message routing are
+unchanged. The DX7, 303, PSG, and Pluck engines changed only to take the tuning offset.
+
+**What this changes for the editor.** Nothing it sends today: the identity query, command 0, and
+the single-voice dump behave as on V12. Two later steps gain from it, each needing its approval
+first: reading a project should use kind 3 where command 21 reports tuning, so a tuned project keeps
+its tables, and a tuning editor (`docs/official-open-plan.md`, Phase 9) has a format to write. No
+OTA, loader, or flash path is involved in anything this note adds.
+
+Open questions:
+
+1. Does a V13 FM1 answer the identity query with `FM-1_8000013`? A hardware run once the orange FM1
+   is updated.
+2. Does an FM1 updated from V12 keep its projects and samples, and does a sample bank at the old full
+   size block saving until it is reduced?
+3. What does the device's undo restore after a track preset import? A single-voice dump already
+   adds a checkpoint through `groove_fm_import`; question 1 of the released-source section asks
+   whether it brings the voice back.
 
 ### FM1 Editor
 
