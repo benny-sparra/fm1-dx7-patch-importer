@@ -50,7 +50,7 @@
       </symbol>
     </svg>
     <!--
-      One <article class="firmware-entry" data-stars="105"> per firmware. Each has a photo (or the placeholder
+      One <article class="firmware-entry" data-stars="147"> per firmware. Each has a photo (or the placeholder
       figure), a maker, a title, a status line, a blurb, and one or more links that open the
       project's own pages. src/firmware-page.test.ts checks every entry has them.
     -->
@@ -83,26 +83,31 @@
         -->
         <section class="firmware-latest synthwave-panel" aria-labelledby="firmware-latest-title">
           <h2 class="firmware-latest-title" id="firmware-latest-title">
-            Latest · <time datetime="2026-10-18">18 October 2026</time>
+            Latest · <time datetime="2026-10-19">19 October 2026</time>
           </h2>
           <ul class="firmware-latest-list">
             <li class="firmware-latest-item">
               <span
-                >Added <a href="#ambwave">AmbWave</a>, <a href="#grimm">GR!MM</a>,
-                <a href="#mini-tone">Mini-Tone</a>, <a href="#zen-1">ZEN-1</a></span
+                >Added <a href="#386dx">386DX</a>, <a href="#bop-1">BOP-1</a>,
+                <a href="#clipper">Clipper</a>, <a href="#fm-lab">FM Lab</a>,
+                <a href="#loom-fm-1">Loom FM-1</a>, <a href="#loom-8">LOOM-8</a>,
+                <a href="#mutable-dreams">Mutable Dreams</a>, <a href="#prysm">Prysm</a></span
               >
             </li>
             <li class="firmware-latest-item">
               <span
-                >New versions: <a href="#araminta">Araminta 2.5</a>,
-                <a href="#melodee">Melodee 1.4.3</a>,
-                <a href="#melodee-tess">Melodee (Tess) 1.3.1</a>, <a href="#pigeon">PIGEON 0.4</a>,
-                <a href="#x0x-rmx">X0X-RMX 1.0.1</a></span
+                >New versions: <a href="#bubba-machine">Bubba Machine 0.9.0</a>,
+                <a href="#doom-fm1-smk">Doom FM-1 / SMK Release 17</a>,
+                <a href="#mc-1">MC-1 1.0.2</a>, <a href="#melodee">Melodee 1.4.4</a>,
+                <a href="#melodee-tess">Melodee (Tess) 1.3.3</a>,
+                <a href="#obervave">OberVave 1.5.1</a>, <a href="#skiff">Skiff 1.3.2</a>,
+                <a href="#x0x-rmx">X0X-RMX 1.1.0</a></span
               >
             </li>
             <li class="firmware-latest-item">
               <span
-                >Watching Haave (formerly Drift) on the <a href="#watch-list">watch list</a></span
+                >Watching FRASIL, more chords, and Oktowave on the
+                <a href="#watch-list">watch list</a></span
               >
             </li>
           </ul>
@@ -158,7 +163,7 @@
                 aria-pressed="true"
                 data-category="all"
               >
-                All <span class="firmware-filter-count">76</span>
+                All <span class="firmware-filter-count">84</span>
               </button>
               <button
                 class="hero-action firmware-filter-option"
@@ -166,7 +171,7 @@
                 aria-pressed="false"
                 data-category="synths"
               >
-                Synths <span class="firmware-filter-count">22</span>
+                Synths <span class="firmware-filter-count">27</span>
               </button>
               <button
                 class="hero-action firmware-filter-option"
@@ -174,7 +179,7 @@
                 aria-pressed="false"
                 data-category="grooveboxes"
               >
-                Grooveboxes <span class="firmware-filter-count">24</span>
+                Grooveboxes <span class="firmware-filter-count">27</span>
               </button>
               <button
                 class="hero-action firmware-filter-option"
@@ -182,7 +187,7 @@
                 aria-pressed="false"
                 data-category="samplers"
               >
-                Samplers <span class="firmware-filter-count">4</span>
+                Samplers <span class="firmware-filter-count">5</span>
               </button>
               <button
                 class="hero-action firmware-filter-option"
@@ -198,7 +203,7 @@
                 aria-pressed="false"
                 data-category="generative"
               >
-                Generative <span class="firmware-filter-count">9</span>
+                Generative <span class="firmware-filter-count">10</span>
               </button>
               <button
                 class="hero-action firmware-filter-option"
@@ -214,13 +219,13 @@
                 aria-pressed="false"
                 data-category="games"
               >
-                Games &amp; toys <span class="firmware-filter-count">11</span>
+                Games &amp; toys <span class="firmware-filter-count">13</span>
               </button>
             </div>
             <p class="sr-only" role="status" id="firmware-filter-status"></p>
           </div>
           <p class="firmware-sort-note">
-            Stars on GitHub as of <time datetime="2026-10-18">18 October 2026</time>. M-VAVE's own
+            Stars on GitHub as of <time datetime="2026-10-19">19 October 2026</time>. M-VAVE's own
             firmwares, Official Open and the stock one, and Baud Girl's stay first.
           </p>
         </div>
@@ -254,11 +259,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-14">14 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="105 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="147 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">105</span
-                  ><span class="sr-only">105 stars on GitHub</span></span
+                  ><span aria-hidden="true">147</span
+                  ><span class="sr-only">147 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -459,11 +464,84 @@
 
           <article
             class="firmware-entry synthwave-panel"
+            id="386dx"
+            aria-labelledby="firmware-386dx"
+            data-categories="grooveboxes games"
+            data-updated="2026-10-19"
+            data-stars="1"
+          >
+            <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
+              <span>386DX</span>
+            </figure>
+            <div class="firmware-body">
+              <p class="synthwave-kicker">seajaysec</p>
+              <div class="firmware-title-row">
+                <h2 class="firmware-title" id="firmware-386dx">386DX</h2>
+                <a
+                  class="firmware-anchor"
+                  href="#386dx"
+                  aria-label="Link to 386DX"
+                  title="Link to 386DX"
+                  >#</a
+                >
+              </div>
+              <p class="firmware-status">
+                <span>Latest 1.0.2</span>
+                <span class="firmware-updated"
+                  >Updated <time datetime="2026-10-19">19 Oct 2026</time></span
+                >
+                <span class="firmware-stars" data-counted="true" title="1 star on GitHub"
+                  ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                    <use href="#firmware-star" /></svg
+                  ><span aria-hidden="true">1</span
+                  ><span class="sr-only">1 star on GitHub</span></span
+                >
+              </p>
+              <p class="firmware-blurb">
+                A karaoke robot with a band, an homage to the performer Alexei Shulgin's 386 DX. It
+                sings songs you bring in from karaoke and MIDI files, and lines you type on the FM1,
+                to the notes you play, with a face whose mouth opens with the sound. Keys, bass, and
+                drums play along with a step sequencer and sixteen punch-in effects. It installs
+                from its own browser page, which also runs it there.
+              </p>
+              <ul class="firmware-links">
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://386dx.linecross.ing"
+                    rel="noopener"
+                    target="_blank"
+                    >Install ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/seajaysec/386-DX-FM1-KaraokeBot/releases/latest"
+                    rel="noopener"
+                    target="_blank"
+                    >Release ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/seajaysec/386-DX-FM1-KaraokeBot"
+                    rel="noopener"
+                    target="_blank"
+                    >Source ↗</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </article>
+          <article
+            class="firmware-entry synthwave-panel"
             id="amb-1"
             aria-labelledby="firmware-amb-1"
             data-categories="generative"
             data-updated="2026-10-17"
-            data-stars="69"
+            data-stars="72"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -497,11 +575,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="69 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="72 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">69</span
-                  ><span class="sr-only">69 stars on GitHub</span></span
+                  ><span aria-hidden="true">72</span
+                  ><span class="sr-only">72 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -779,10 +857,82 @@
           </article>
           <article
             class="firmware-entry synthwave-panel"
+            id="bop-1"
+            aria-labelledby="firmware-bop-1"
+            data-categories="games synths"
+            data-updated="2026-10-18"
+            data-stars="0"
+          >
+            <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
+              <span>BOP-1</span>
+            </figure>
+            <div class="firmware-body">
+              <p class="synthwave-kicker">devrvega</p>
+              <div class="firmware-title-row">
+                <h2 class="firmware-title" id="firmware-bop-1">BOP-1</h2>
+                <a
+                  class="firmware-anchor"
+                  href="#bop-1"
+                  aria-label="Link to BOP-1"
+                  title="Link to BOP-1"
+                  >#</a
+                >
+              </div>
+              <p class="firmware-status">
+                <span>Latest 0.1.0</span>
+                <span class="firmware-updated"
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
+                >
+                <span class="firmware-stars" data-counted="true" title="0 stars on GitHub"
+                  ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                    <use href="#firmware-star" /></svg
+                  ><span aria-hidden="true">0</span
+                  ><span class="sr-only">0 stars on GitHub</span></span
+                >
+              </p>
+              <p class="firmware-blurb">
+                A music toy for children that is also a real synthesizer: every control is a friend
+                whose body is the sound, and the same toy grows from pressing things at three, to
+                beats and loops, to a subtractive synth with its real names. It installs from its
+                own browser page, with an emulator to try first and printable guides.
+              </p>
+              <ul class="firmware-links">
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://devrvega.github.io/BOP-1/install/"
+                    rel="noopener"
+                    target="_blank"
+                    >Install ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://devrvega.github.io/BOP-1/emu/"
+                    rel="noopener"
+                    target="_blank"
+                    >Try it in a browser ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/devrvega/BOP-1"
+                    rel="noopener"
+                    target="_blank"
+                    >Source ↗</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </article>
+          <article
+            class="firmware-entry synthwave-panel"
             id="bubba-machine"
             aria-labelledby="firmware-bubba-machine"
             data-categories="grooveboxes samplers"
-            data-updated="2026-10-17"
+            data-updated="2026-10-18"
             data-stars="9"
           >
             <figure class="firmware-photo crt-inset dither-well">
@@ -813,9 +963,9 @@
                 >
               </div>
               <p class="firmware-status">
-                <span>Beta · Latest 0.8.0</span>
+                <span>Beta · Latest 0.9.0</span>
                 <span class="firmware-updated"
-                  >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
                 >
                 <span class="firmware-stars" data-counted="true" title="9 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
@@ -829,7 +979,8 @@
                 instruments, a pad sampler that plays your own recordings, a bass, and three tracks
                 for analogue, FM, acid, or MIDI, with chord grids, scenes, and a song mode. It
                 installs from a browser page and has been tested on one FM1, and until 1.0 an update
-                can erase what you saved. Its documentation is in Spanish and English.
+                can erase what you saved, and 0.9 keeps ten patterns, dropping 11 to 16 on its first
+                start. Its documentation is in Spanish and English.
               </p>
               <ul class="firmware-links">
                 <li>
@@ -868,7 +1019,7 @@
             aria-labelledby="firmware-choralroot"
             data-categories="chords"
             data-updated="2026-10-17"
-            data-stars="65"
+            data-stars="66"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -902,11 +1053,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="65 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="66 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">65</span
-                  ><span class="sr-only">65 stars on GitHub</span></span
+                  ><span aria-hidden="true">66</span
+                  ><span class="sr-only">66 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -948,11 +1099,93 @@
           </article>
           <article
             class="firmware-entry synthwave-panel"
+            id="clipper"
+            aria-labelledby="firmware-clipper"
+            data-categories="synths"
+            data-updated="2026-10-19"
+            data-stars="1"
+          >
+            <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
+              <span>Clipper</span>
+            </figure>
+            <div class="firmware-body">
+              <p class="synthwave-kicker">isod89</p>
+              <div class="firmware-title-row">
+                <h2 class="firmware-title" id="firmware-clipper">Clipper</h2>
+                <a
+                  class="firmware-anchor"
+                  href="#clipper"
+                  aria-label="Link to Clipper"
+                  title="Link to Clipper"
+                  >#</a
+                >
+              </div>
+              <p class="firmware-status">
+                <span>Experimental · Latest 1.0</span>
+                <span class="firmware-updated"
+                  >Updated <time datetime="2026-10-19">19 Oct 2026</time></span
+                >
+                <span class="firmware-stars" data-counted="true" title="1 star on GitHub"
+                  ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                    <use href="#firmware-star" /></svg
+                  ><span aria-hidden="true">1</span
+                  ><span class="sr-only">1 star on GitHub</span></span
+                >
+              </p>
+              <p class="firmware-blurb">
+                A synthesizer from SLOOP, and so from Felucca, with 23 engines and 407 sounds in one
+                instrument and no tracks, drum machine, or song mode. Among them are a
+                three-oscillator voice, a six-operator FM engine that also plays the DX7 voices of a
+                bank, and wavetables. Its notes call it experimental and say it has run very little
+                on an FM1. It installs from its own browser page, with a web editor.
+              </p>
+              <ul class="firmware-links">
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://isod89.github.io/clipper-fm1/webapp/installer/"
+                    rel="noopener"
+                    target="_blank"
+                    >Install ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://isod89.github.io/clipper-fm1/webapp/editor/"
+                    rel="noopener"
+                    target="_blank"
+                    >Editor ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/isod89/clipper-fm1/releases/tag/v1.0-experimental"
+                    rel="noopener"
+                    target="_blank"
+                    >Release ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/isod89/clipper-fm1"
+                    rel="noopener"
+                    target="_blank"
+                    >Source ↗</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </article>
+          <article
+            class="firmware-entry synthwave-panel"
             id="cs-1"
             aria-labelledby="firmware-cs-1"
             data-categories="synths"
             data-updated="2026-10-17"
-            data-stars="5"
+            data-stars="6"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>CS-1</span>
@@ -974,11 +1207,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="5 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="6 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">5</span
-                  ><span class="sr-only">5 stars on GitHub</span></span
+                  ><span aria-hidden="true">6</span
+                  ><span class="sr-only">6 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -1033,7 +1266,7 @@
             aria-labelledby="firmware-ctl-1"
             data-categories="tools"
             data-updated="2026-10-17"
-            data-stars="13"
+            data-stars="15"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -1067,11 +1300,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="13 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="15 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">13</span
-                  ><span class="sr-only">13 stars on GitHub</span></span
+                  ><span aria-hidden="true">15</span
+                  ><span class="sr-only">15 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -1252,7 +1485,7 @@
             aria-labelledby="firmware-dub-1"
             data-categories="generative"
             data-updated="2026-10-17"
-            data-stars="15"
+            data-stars="16"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>DUB-1</span>
@@ -1274,11 +1507,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="15 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="16 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">15</span
-                  ><span class="sr-only">15 stars on GitHub</span></span
+                  ><span aria-hidden="true">16</span
+                  ><span class="sr-only">16 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -1333,7 +1566,7 @@
             id="doom-fm1-smk"
             aria-labelledby="firmware-doom-fm1-smk"
             data-categories="games"
-            data-updated="2026-10-13"
+            data-updated="2026-10-18"
             data-stars="1"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
@@ -1352,9 +1585,9 @@
                 >
               </div>
               <p class="firmware-status">
-                <span>Experimental · Release 16</span>
+                <span>Experimental · Release 17</span>
                 <span class="firmware-updated"
-                  >Updated <time datetime="2026-10-13">13 Oct 2026</time></span
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
                 >
                 <span class="firmware-stars" data-counted="true" title="1 star on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
@@ -1406,7 +1639,7 @@
             aria-labelledby="firmware-duell"
             data-categories="synths"
             data-updated="2026-10-15"
-            data-stars="14"
+            data-stars="15"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>DUELL</span>
@@ -1428,11 +1661,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-15">15 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="14 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="15 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">14</span
-                  ><span class="sr-only">14 stars on GitHub</span></span
+                  ><span aria-hidden="true">15</span
+                  ><span class="sr-only">15 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -1551,7 +1784,7 @@
             aria-labelledby="firmware-fantasma"
             data-categories="generative"
             data-updated="2026-10-16"
-            data-stars="1"
+            data-stars="2"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>Fantasma</span>
@@ -1573,11 +1806,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-16">16 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="1 star on GitHub"
+                <span class="firmware-stars" data-counted="true" title="2 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">1</span
-                  ><span class="sr-only">1 star on GitHub</span></span
+                  ><span aria-hidden="true">2</span
+                  ><span class="sr-only">2 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -1698,7 +1931,7 @@
             aria-labelledby="firmware-felucca"
             data-categories="synths"
             data-updated="2026-10-14"
-            data-stars="529"
+            data-stars="536"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -1732,11 +1965,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-14">14 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="529 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="536 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">529</span
-                  ><span class="sr-only">529 stars on GitHub</span></span
+                  ><span aria-hidden="true">536</span
+                  ><span class="sr-only">536 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -1991,6 +2224,70 @@
                   <a
                     class="hero-action firmware-link"
                     href="https://github.com/jadamsowers/fm1-fimba"
+                    rel="noopener"
+                    target="_blank"
+                    >Source ↗</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </article>
+          <article
+            class="firmware-entry synthwave-panel"
+            id="fm-lab"
+            aria-labelledby="firmware-fm-lab"
+            data-categories="synths"
+            data-updated="2026-10-18"
+            data-stars="5"
+          >
+            <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
+              <span>FM Lab</span>
+            </figure>
+            <div class="firmware-body">
+              <p class="synthwave-kicker">jsmith13</p>
+              <div class="firmware-title-row">
+                <h2 class="firmware-title" id="firmware-fm-lab">FM Lab</h2>
+                <a
+                  class="firmware-anchor"
+                  href="#fm-lab"
+                  aria-label="Link to FM Lab"
+                  title="Link to FM Lab"
+                  >#</a
+                >
+              </div>
+              <p class="firmware-status">
+                <span>Latest 1.1.0</span>
+                <span class="firmware-updated"
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
+                >
+                <span class="firmware-stars" data-counted="true" title="5 stars on GitHub"
+                  ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                    <use href="#firmware-star" /></svg
+                  ><span aria-hidden="true">5</span
+                  ><span class="sr-only">5 stars on GitHub</span></span
+                >
+              </p>
+              <p class="firmware-blurb">
+                A six-operator FM synthesizer made for learning FM: no drums or song mode, just the
+                DX7 engine with every parameter under a knob while the sound plays, and a screen
+                that shows what you changed. It has eight voices, 32 user slots, a small arpeggiator
+                and a one-phrase looper, and is built on Dinghy. Its README says it runs on the FM1,
+                and it installs from its release package.
+              </p>
+              <ul class="firmware-links">
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/jsmith13/fm_lab/releases/tag/v1.1.0"
+                    rel="noopener"
+                    target="_blank"
+                    >Release ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/jsmith13/fm_lab"
                     rel="noopener"
                     target="_blank"
                     >Source ↗</a
@@ -2533,7 +2830,7 @@
             aria-labelledby="firmware-fomni"
             data-categories="chords"
             data-updated="2026-10-15"
-            data-stars="64"
+            data-stars="65"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -2567,11 +2864,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-15">15 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="64 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="65 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">64</span
-                  ><span class="sr-only">64 stars on GitHub</span></span
+                  ><span aria-hidden="true">65</span
+                  ><span class="sr-only">65 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -2702,7 +2999,7 @@
             aria-labelledby="firmware-gammawave"
             data-categories="synths"
             data-updated="2026-10-15"
-            data-stars="4"
+            data-stars="5"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>GammaWave</span>
@@ -2724,11 +3021,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-15">15 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="4 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="5 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">4</span
-                  ><span class="sr-only">4 stars on GitHub</span></span
+                  ><span aria-hidden="true">5</span
+                  ><span class="sr-only">5 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -2843,7 +3140,7 @@
             aria-labelledby="firmware-ghoulbox"
             data-categories="synths"
             data-updated="2026-10-17"
-            data-stars="60"
+            data-stars="62"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -2877,11 +3174,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="60 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="62 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">60</span
-                  ><span class="sr-only">60 stars on GitHub</span></span
+                  ><span aria-hidden="true">62</span
+                  ><span class="sr-only">62 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -2920,7 +3217,7 @@
             aria-labelledby="firmware-grimm"
             data-categories="synths"
             data-updated="2026-10-17"
-            data-stars="1"
+            data-stars="5"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>GR!MM</span>
@@ -2942,11 +3239,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="1 star on GitHub"
+                <span class="firmware-stars" data-counted="true" title="5 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">1</span
-                  ><span class="sr-only">1 star on GitHub</span></span
+                  ><span aria-hidden="true">5</span
+                  ><span class="sr-only">5 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -3156,7 +3453,7 @@
             aria-labelledby="firmware-hyp-1"
             data-categories="generative"
             data-updated="2026-10-17"
-            data-stars="18"
+            data-stars="20"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -3190,11 +3487,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="18 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="20 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">18</span
-                  ><span class="sr-only">18 stars on GitHub</span></span
+                  ><span aria-hidden="true">20</span
+                  ><span class="sr-only">20 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -3247,7 +3544,7 @@
             aria-labelledby="firmware-jangada"
             data-categories="synths"
             data-updated="2026-10-16"
-            data-stars="31"
+            data-stars="32"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -3281,11 +3578,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-16">16 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="31 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="32 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">31</span
-                  ><span class="sr-only">31 stars on GitHub</span></span
+                  ><span aria-hidden="true">32</span
+                  ><span class="sr-only">32 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -3332,7 +3629,7 @@
             aria-labelledby="firmware-jiant"
             data-categories="grooveboxes"
             data-updated="2026-10-13"
-            data-stars="138"
+            data-stars="141"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -3366,11 +3663,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-13">13 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="138 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="141 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">138</span
-                  ><span class="sr-only">138 stars on GitHub</span></span
+                  ><span aria-hidden="true">141</span
+                  ><span class="sr-only">141 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -3426,7 +3723,7 @@
             aria-labelledby="firmware-lcd-4"
             data-categories="grooveboxes"
             data-updated="2026-10-16"
-            data-stars="2"
+            data-stars="4"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>LCD-4</span>
@@ -3448,11 +3745,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-16">16 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="2 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="4 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">2</span
-                  ><span class="sr-only">2 stars on GitHub</span></span
+                  ><span aria-hidden="true">4</span
+                  ><span class="sr-only">4 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -3494,6 +3791,142 @@
                   <a
                     class="hero-action firmware-link"
                     href="https://github.com/devrvega/LCD-4"
+                    rel="noopener"
+                    target="_blank"
+                    >Source ↗</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </article>
+          <article
+            class="firmware-entry synthwave-panel"
+            id="loom-fm-1"
+            aria-labelledby="firmware-loom-fm-1"
+            data-categories="grooveboxes samplers"
+            data-updated="2026-10-18"
+            data-stars="0"
+          >
+            <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
+              <span>Loom FM-1</span>
+            </figure>
+            <div class="firmware-body">
+              <p class="synthwave-kicker">Co-oscillator</p>
+              <div class="firmware-title-row">
+                <h2 class="firmware-title" id="firmware-loom-fm-1">Loom FM-1</h2>
+                <a
+                  class="firmware-anchor"
+                  href="#loom-fm-1"
+                  aria-label="Link to Loom FM-1"
+                  title="Link to Loom FM-1"
+                  >#</a
+                >
+              </div>
+              <p class="firmware-status">
+                <span>Latest 0.1.0</span>
+                <span class="firmware-updated"
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
+                >
+                <span class="firmware-stars" data-counted="true" title="0 stars on GitHub"
+                  ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                    <use href="#firmware-star" /></svg
+                  ><span aria-hidden="true">0</span
+                  ><span class="sr-only">0 stars on GitHub</span></span
+                >
+              </p>
+              <p class="firmware-blurb">
+                A five-track synthesizer, sampler, and groovebox built on Felucca: four polyphonic
+                tracks and a drum track, fourteen engines including wavetable, six-operator FM,
+                granular, and tape-scrub sampling, a 64-step sequencer, a chord progression
+                generator, and an arpeggiator. It has a web workbench with an emulator, and installs
+                from its release package.
+              </p>
+              <ul class="firmware-links">
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/Co-oscillator/Loom-FM-1/releases/tag/v0.1.0"
+                    rel="noopener"
+                    target="_blank"
+                    >Release ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/Co-oscillator/Loom-FM-1"
+                    rel="noopener"
+                    target="_blank"
+                    >Source ↗</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </article>
+          <article
+            class="firmware-entry synthwave-panel"
+            id="loom-8"
+            aria-labelledby="firmware-loom-8"
+            data-categories="grooveboxes"
+            data-updated="2026-10-19"
+            data-stars="0"
+          >
+            <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
+              <span>LOOM-8</span>
+            </figure>
+            <div class="firmware-body">
+              <p class="synthwave-kicker">charlesvestal</p>
+              <div class="firmware-title-row">
+                <h2 class="firmware-title" id="firmware-loom-8">LOOM-8</h2>
+                <a
+                  class="firmware-anchor"
+                  href="#loom-8"
+                  aria-label="Link to LOOM-8"
+                  title="Link to LOOM-8"
+                  >#</a
+                >
+              </div>
+              <p class="firmware-status">
+                <span>No numbered releases</span>
+                <span class="firmware-updated"
+                  >Updated <time datetime="2026-10-19">19 Oct 2026</time></span
+                >
+                <span class="firmware-stars" data-counted="true" title="0 stars on GitHub"
+                  ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                    <use href="#firmware-star" /></svg
+                  ><span aria-hidden="true">0</span
+                  ><span class="sr-only">0 stars on GitHub</span></span
+                >
+              </p>
+              <p class="firmware-blurb">
+                A pocket groovebox of eight tracks on eight synth engines, a sample player, a break
+                slicer, and a drum kit, with a 64-step sequencer and parameter locks, weave, which
+                crosses two patterns, throws, a conductor track, two send-effect tracks, and scenes
+                and a song. It installs from its own browser page, with an emulator to try first.
+              </p>
+              <ul class="firmware-links">
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://charlesvestal.github.io/fm1-loom/install/"
+                    rel="noopener"
+                    target="_blank"
+                    >Install ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://charlesvestal.github.io/fm1-loom/emu/"
+                    rel="noopener"
+                    target="_blank"
+                    >Try it in a browser ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/charlesvestal/fm1-loom"
                     rel="noopener"
                     target="_blank"
                     >Source ↗</a
@@ -3593,7 +4026,7 @@
             id="mc-1"
             aria-labelledby="firmware-mc-1"
             data-categories="grooveboxes"
-            data-updated="2026-10-16"
+            data-updated="2026-10-18"
             data-stars="4"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
@@ -3612,9 +4045,9 @@
                 >
               </div>
               <p class="firmware-status">
-                <span>Latest 1.0.1</span>
+                <span>Latest 1.0.2</span>
                 <span class="firmware-updated"
-                  >Updated <time datetime="2026-10-16">16 Oct 2026</time></span
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
                 >
                 <span class="firmware-stars" data-counted="true" title="4 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
@@ -3665,8 +4098,8 @@
             id="melodee"
             aria-labelledby="firmware-melodee"
             data-categories="synths"
-            data-updated="2026-10-17"
-            data-stars="114"
+            data-updated="2026-10-18"
+            data-stars="117"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -3696,15 +4129,15 @@
                 >
               </div>
               <p class="firmware-status">
-                <span>Latest 1.4.3</span>
+                <span>Latest 1.4.4</span>
                 <span class="firmware-updated"
-                  >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="114 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="117 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">114</span
-                  ><span class="sr-only">114 stars on GitHub</span></span
+                  ><span aria-hidden="true">117</span
+                  ><span class="sr-only">117 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -3829,7 +4262,7 @@
             aria-labelledby="firmware-mini-tone"
             data-categories="grooveboxes"
             data-updated="2026-10-18"
-            data-stars="0"
+            data-stars="1"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>Mini-Tone</span>
@@ -3851,11 +4284,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="0 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="1 star on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">0</span
-                  ><span class="sr-only">0 stars on GitHub</span></span
+                  ><span aria-hidden="true">1</span
+                  ><span class="sr-only">1 star on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -3891,8 +4324,8 @@
             id="melodee-tess"
             aria-labelledby="firmware-melodee-tess"
             data-categories="generative"
-            data-updated="2026-10-18"
-            data-stars="5"
+            data-updated="2026-10-19"
+            data-stars="6"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>Melodee (Tess)</span>
@@ -3910,15 +4343,15 @@
                 >
               </div>
               <p class="firmware-status">
-                <span>Experimental · Latest 1.3.1</span>
+                <span>Experimental · Latest 1.3.3</span>
                 <span class="firmware-updated"
-                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
+                  >Updated <time datetime="2026-10-19">19 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="5 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="6 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">5</span
-                  ><span class="sr-only">5 stars on GitHub</span></span
+                  ><span aria-hidden="true">6</span
+                  ><span class="sr-only">6 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -4042,6 +4475,79 @@
                   <a
                     class="hero-action firmware-link"
                     href="https://github.com/charlesvestal/fm1-mocky"
+                    rel="noopener"
+                    target="_blank"
+                    >Source ↗</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </article>
+          <article
+            class="firmware-entry synthwave-panel"
+            id="mutable-dreams"
+            aria-labelledby="firmware-mutable-dreams"
+            data-categories="generative synths"
+            data-updated="2026-10-18"
+            data-stars="0"
+          >
+            <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
+              <span>Mutable Dreams</span>
+            </figure>
+            <div class="firmware-body">
+              <p class="synthwave-kicker">kidbee85-beep</p>
+              <div class="firmware-title-row">
+                <h2 class="firmware-title" id="firmware-mutable-dreams">Mutable Dreams</h2>
+                <a
+                  class="firmware-anchor"
+                  href="#mutable-dreams"
+                  aria-label="Link to Mutable Dreams"
+                  title="Link to Mutable Dreams"
+                  >#</a
+                >
+              </div>
+              <p class="firmware-status">
+                <span>Latest 1.0</span>
+                <span class="firmware-updated"
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
+                >
+                <span class="firmware-stars" data-counted="true" title="0 stars on GitHub"
+                  ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                    <use href="#firmware-star" /></svg
+                  ><span aria-hidden="true">0</span
+                  ><span class="sr-only">0 stars on GitHub</span></span
+                >
+              </p>
+              <p class="firmware-blurb">
+                Kid Bunka's generative instrument built on Mutable Instruments' open engines: six
+                assignable tracks across eight engines, among them Plaits drums, FM, and a Rings
+                modal resonator, with 64 editable Biomes, Euclidean rhythm, granular sends, and four
+                live macros. Its notes say the release passed installation on an FM1 and a return to
+                V15. It has a browser instrument, and installs from its release package.
+              </p>
+              <ul class="firmware-links">
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://mutable-dreams.sugarypixie10.chatgpt.site"
+                    rel="noopener"
+                    target="_blank"
+                    >Try it in a browser ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/kidbee85-beep/mutable-dreams/releases/tag/v1.0"
+                    rel="noopener"
+                    target="_blank"
+                    >Release ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/kidbee85-beep/mutable-dreams"
                     rel="noopener"
                     target="_blank"
                     >Source ↗</a
@@ -4271,8 +4777,8 @@
             id="obervave"
             aria-labelledby="firmware-obervave"
             data-categories="synths"
-            data-updated="2026-10-16"
-            data-stars="28"
+            data-updated="2026-10-18"
+            data-stars="30"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -4302,15 +4808,15 @@
                 >
               </div>
               <p class="firmware-status">
-                <span>Latest 1.5</span>
+                <span>Latest 1.5.1</span>
                 <span class="firmware-updated"
-                  >Updated <time datetime="2026-10-16">16 Oct 2026</time></span
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="28 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="30 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">28</span
-                  ><span class="sr-only">28 stars on GitHub</span></span
+                  ><span aria-hidden="true">30</span
+                  ><span class="sr-only">30 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -4519,7 +5025,7 @@
             aria-labelledby="firmware-polly"
             data-categories="chords"
             data-updated="2026-10-17"
-            data-stars="18"
+            data-stars="19"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>Polly</span>
@@ -4541,11 +5047,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="18 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="19 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">18</span
-                  ><span class="sr-only">18 stars on GitHub</span></span
+                  ><span aria-hidden="true">19</span
+                  ><span class="sr-only">19 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -4570,6 +5076,87 @@
                   <a
                     class="hero-action firmware-link"
                     href="https://github.com/charlesvestal/fm1-polly"
+                    rel="noopener"
+                    target="_blank"
+                    >Source ↗</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </article>
+          <article
+            class="firmware-entry synthwave-panel"
+            id="prysm"
+            aria-labelledby="firmware-prysm"
+            data-categories="synths"
+            data-updated="2026-10-19"
+            data-stars="0"
+          >
+            <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
+              <span>Prysm</span>
+            </figure>
+            <div class="firmware-body">
+              <p class="synthwave-kicker">NicholasPratt</p>
+              <div class="firmware-title-row">
+                <h2 class="firmware-title" id="firmware-prysm">Prysm</h2>
+                <a
+                  class="firmware-anchor"
+                  href="#prysm"
+                  aria-label="Link to Prysm"
+                  title="Link to Prysm"
+                  >#</a
+                >
+              </div>
+              <p class="firmware-status">
+                <span>Latest 0.2</span>
+                <span class="firmware-updated"
+                  >Updated <time datetime="2026-10-19">19 Oct 2026</time></span
+                >
+                <span class="firmware-stars" data-counted="true" title="0 stars on GitHub"
+                  ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
+                    <use href="#firmware-star" /></svg
+                  ><span aria-hidden="true">0</span
+                  ><span class="sr-only">0 stars on GitHub</span></span
+                >
+              </p>
+              <p class="firmware-blurb">
+                A four-voice wavetable FM synthesizer built on Dinghy and Felucca: two oscillators a
+                voice, each a chain of three wavetable operators that modulate by FM, ring, or mix,
+                with a resonant filter, an LFO, a looping modulation envelope, chorus, delay, plate
+                reverb, and eight patch slots. It installs from its own browser page.
+              </p>
+              <ul class="firmware-links">
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://nicholaspratt.github.io/Prysm/"
+                    rel="noopener"
+                    target="_blank"
+                    >Install ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://nicholaspratt.github.io/Prysm/manual.html"
+                    rel="noopener"
+                    target="_blank"
+                    >Manual ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/NicholasPratt/Prysm/releases/tag/v0.2"
+                    rel="noopener"
+                    target="_blank"
+                    >Release ↗</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="hero-action firmware-link"
+                    href="https://github.com/NicholasPratt/Prysm"
                     rel="noopener"
                     target="_blank"
                     >Source ↗</a
@@ -4947,8 +5534,8 @@
             id="skiff"
             aria-labelledby="firmware-skiff"
             data-categories="grooveboxes"
-            data-updated="2026-10-17"
-            data-stars="42"
+            data-updated="2026-10-18"
+            data-stars="48"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -4978,15 +5565,15 @@
                 >
               </div>
               <p class="firmware-status">
-                <span>Latest 1.3.1</span>
+                <span>Latest 1.3.2</span>
                 <span class="firmware-updated"
-                  >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="42 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="48 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">42</span
-                  ><span class="sr-only">42 stars on GitHub</span></span
+                  ><span aria-hidden="true">48</span
+                  ><span class="sr-only">48 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -5033,7 +5620,7 @@
             aria-labelledby="firmware-sloop"
             data-categories="grooveboxes"
             data-updated="2026-10-16"
-            data-stars="543"
+            data-stars="556"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -5067,11 +5654,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-16">16 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="543 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="556 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">543</span
-                  ><span class="sr-only">543 stars on GitHub</span></span
+                  ><span aria-hidden="true">556</span
+                  ><span class="sr-only">556 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -5305,7 +5892,7 @@
             aria-labelledby="firmware-sloopdx"
             data-categories="grooveboxes synths"
             data-updated="2026-10-16"
-            data-stars="26"
+            data-stars="27"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -5339,11 +5926,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-16">16 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="26 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="27 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">26</span
-                  ><span class="sr-only">26 stars on GitHub</span></span
+                  ><span aria-hidden="true">27</span
+                  ><span class="sr-only">27 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -5390,7 +5977,7 @@
             aria-labelledby="firmware-tonitor"
             data-categories="generative"
             data-updated="2026-10-15"
-            data-stars="11"
+            data-stars="12"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>Tonitor</span>
@@ -5412,11 +5999,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-15">15 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="11 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="12 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">11</span
-                  ><span class="sr-only">11 stars on GitHub</span></span
+                  ><span aria-hidden="true">12</span
+                  ><span class="sr-only">12 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -5462,7 +6049,7 @@
             aria-labelledby="firmware-tribe"
             data-categories="grooveboxes"
             data-updated="2026-10-13"
-            data-stars="10"
+            data-stars="11"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -5496,11 +6083,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-13">13 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="10 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="11 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">10</span
-                  ><span class="sr-only">10 stars on GitHub</span></span
+                  ><span aria-hidden="true">11</span
+                  ><span class="sr-only">11 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -5618,7 +6205,7 @@
             aria-labelledby="firmware-waveloop"
             data-categories="tools"
             data-updated="2026-10-09"
-            data-stars="8"
+            data-stars="9"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>WaveLoop FM-1</span>
@@ -5640,11 +6227,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-09">9 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="8 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="9 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">8</span
-                  ><span class="sr-only">8 stars on GitHub</span></span
+                  ><span aria-hidden="true">9</span
+                  ><span class="sr-only">9 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -5689,7 +6276,7 @@
             aria-labelledby="firmware-x0x"
             data-categories="grooveboxes"
             data-updated="2026-10-15"
-            data-stars="183"
+            data-stars="184"
           >
             <figure class="firmware-photo crt-inset dither-well">
               <img
@@ -5719,11 +6306,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-15">15 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="183 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="184 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">183</span
-                  ><span class="sr-only">183 stars on GitHub</span></span
+                  ><span aria-hidden="true">184</span
+                  ><span class="sr-only">184 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -5777,7 +6364,7 @@
             id="x0x-rmx"
             aria-labelledby="firmware-x0x-rmx"
             data-categories="grooveboxes"
-            data-updated="2026-10-17"
+            data-updated="2026-10-18"
             data-stars="1"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
@@ -5796,9 +6383,9 @@
                 >
               </div>
               <p class="firmware-status">
-                <span>Latest 1.0.1</span>
+                <span>Latest 1.1.0</span>
                 <span class="firmware-updated"
-                  >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
+                  >Updated <time datetime="2026-10-18">18 Oct 2026</time></span
                 >
                 <span class="firmware-stars" data-counted="true" title="1 star on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
@@ -5860,7 +6447,7 @@
             aria-labelledby="firmware-zen-1"
             data-categories="generative"
             data-updated="2026-10-17"
-            data-stars="2"
+            data-stars="4"
           >
             <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
               <span>ZEN-1</span>
@@ -5882,11 +6469,11 @@
                 <span class="firmware-updated"
                   >Updated <time datetime="2026-10-17">17 Oct 2026</time></span
                 >
-                <span class="firmware-stars" data-counted="true" title="2 stars on GitHub"
+                <span class="firmware-stars" data-counted="true" title="4 stars on GitHub"
                   ><svg aria-hidden="true" class="firmware-star" height="12" width="12">
                     <use href="#firmware-star" /></svg
-                  ><span aria-hidden="true">2</span
-                  ><span class="sr-only">2 stars on GitHub</span></span
+                  ><span aria-hidden="true">4</span
+                  ><span class="sr-only">4 stars on GitHub</span></span
                 >
               </p>
               <p class="firmware-blurb">
@@ -6213,6 +6800,23 @@
               <p>
                 <a
                   class="firmware-watch-name"
+                  href="https://github.com/styvesgoupil/frasil"
+                  rel="noopener"
+                  target="_blank"
+                  >FRASIL ↗</a
+                >
+                <span class="firmware-watch-maker">styvesgoupil</span>
+              </p>
+              <p class="firmware-blurb">
+                An ambient drone and texture firmware: you latch drones and chords, with no
+                sequencer, into a large reverb with shimmer and freeze. Its notes call it beta, but
+                there is no release or installer page yet.
+              </p>
+            </li>
+            <li class="firmware-watch-item">
+              <p>
+                <a
+                  class="firmware-watch-name"
                   href="https://github.com/ip2k/lunar-modulator"
                   rel="noopener"
                   target="_blank"
@@ -6262,6 +6866,22 @@
               <p>
                 <a
                   class="firmware-watch-name"
+                  href="https://github.com/rosen-wav/more-chords-M-VAVE-FM-1-Custom-Firmware"
+                  rel="noopener"
+                  target="_blank"
+                  >more chords ↗</a
+                >
+                <span class="firmware-watch-maker">rosen-wav</span>
+              </p>
+              <p class="firmware-blurb">
+                A ChoralRoot remix with engines adapted from Melodee and ORBIT. It has a web
+                installer page and an emulator, but no release and no licence stated.
+              </p>
+            </li>
+            <li class="firmware-watch-item">
+              <p>
+                <a
+                  class="firmware-watch-name"
                   href="https://github.com/catacombius/NoteSorcery"
                   rel="noopener"
                   target="_blank"
@@ -6272,6 +6892,22 @@
               <p class="firmware-blurb">
                 An eight-track firmware that works with Ableton and an Android app. It has its own
                 installer page, but has been tested only on a computer, not yet on an FM1.
+              </p>
+            </li>
+            <li class="firmware-watch-item">
+              <p>
+                <a
+                  class="firmware-watch-name"
+                  href="https://github.com/PierreArnaudGUYOT/FM1-Oktowave-Firmware"
+                  rel="noopener"
+                  target="_blank"
+                  >Oktowave ↗</a
+                >
+                <span class="firmware-watch-maker">PierreArnaudGUYOT</span>
+              </p>
+              <p class="firmware-blurb">
+                Felucca 1.6.1 with a WAVELET engine from the Wavelet Synthesizer, and 108 of its
+                presets. Its README says version 0.1 has not been run on an FM1 yet.
               </p>
             </li>
             <li class="firmware-watch-item">
