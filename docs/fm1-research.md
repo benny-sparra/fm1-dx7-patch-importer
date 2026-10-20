@@ -1369,6 +1369,14 @@ Next, each needing approval first:
 
 - Read a track's DX7 voice with commands 1 and 2, to import a track's voice into the library.
 
+**Hardware run on V14 (2026-10-20, through the editor,**
+[`docs/hardware-runs/official-open-v14-tracks-2026-10-20.md`](hardware-runs/official-open-v14-tracks-2026-10-20.md)**).**
+The badge named the FM1 V14. A slot click on a DX7 track (1 and 4) read the engines with command 0,
+sent one dump on that channel, and changed the track's sound; track 2, running 303, got nothing and
+the page said so. The notification and log both said to save the project. **Confirmed**: the
+editor's own sends, as the **Likely** note above expected. The main screen keeps the old patch name
+until the track's screen is entered and left, as on V12. Undo was not tested.
+
 Open questions:
 
 1. Does the device's undo bring back the voice a dump replaced, one step per dump?
@@ -2096,8 +2104,8 @@ OTA, loader, or flash path is involved in anything this note adds.
 
 Open questions:
 
-1. Does a V13 FM1 answer the identity query with `FM-1_8000013`? A hardware run once the orange FM1
-   is updated.
+1. Does a V13 FM1 answer the identity query with `FM-1_8000013`? Not run on V13; a V14 FM1 was
+   identified as `FM-1_8000014` on 2026-10-20 (see the track send note above).
 2. Does an FM1 updated from V12 keep its projects and samples, and does a sample bank at the old full
    size block saving until it is reduced?
 3. What does the device's undo restore after a track preset import? A single-voice dump already

@@ -80,7 +80,9 @@ engines and a way to read what is on the FM1 before it is the better tool.
   4 KiB of Flash, and the sample bank limit shrinking by 4 KiB. Check whether `groove_preset` or the
   project layout moved (`app/instrument.h`, `app/project.c` diff).
 - Check that the badge reads `FM-1_8000013` as V13, with a test, and run the identity query and
-  command 0 on the orange FM1 once it is on V13.
+  command 0 on the orange FM1 once it is on V13. The orange FM1 went to V14 instead, and the badge, command 0, and
+  the DX7 track send were checked on it on 2026-10-20
+  (`docs/hardware-runs/official-open-v14-tracks-2026-10-20.md`).
 - Answer the open question of the port's name on Windows and Linux if anyone can capture it.
 - Update [Switching FM1 firmware](switching-firmware.md) with the Workbench's restore and
   force-flash steps, sending people to **Download backup** first (an existing backlog item).
