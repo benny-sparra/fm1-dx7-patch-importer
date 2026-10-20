@@ -1282,24 +1282,24 @@ bytes with bit 6 of the command set, then packs a status byte (0 for success, 64
 and its data the same way. An identical repeated request gets the stored reply rather than running
 again. A transfer left idle for 10 s is cancelled.
 
-| Cmd   | Payload                     | Does                                                                                                                                                                                  | Class                           |
-| ----- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| 0     | none                        | Info: format 4, 16 slots, current slot, project size 4064, clock mode, and each track's engine (14 bytes)                                                                             | Read; approved 2026-10-16       |
-| 1     | kind, target                | Starts an export into a RAM buffer; replies with its size. Kind 0 project (4064 bytes), 1 a track's DX7 voice (156, `groove_fm_copy`), 2 a track preset (223, `groove_timbre_export`) | Read; candidate, needs approval |
-| 2     | offset (16-bit), count ≤ 64 | Reads a chunk of that export                                                                                                                                                          | Read; candidate, needs approval |
-| 3     | kind, target, size          | Starts a write of the same kinds                                                                                                                                                      | RAM write; needs approval       |
-| 4     | offset, ≤ 64 bytes          | Writes the next chunk, in order                                                                                                                                                       | RAM write; needs approval       |
-| 5     | CRC-32                      | Checks the CRC and imports into the working project (`groove_fm_import`, `groove_timbre_import`, `groove_project_import`)                                                             | RAM write; needs approval       |
-| 6     | none                        | Cancels a transfer                                                                                                                                                                    | Needs approval with 1–5         |
-| 7     | slot                        | Saves the working project to a project slot in Flash (`groove_project_save_slot`, `app/project.c:237`)                                                                                | **Dangerous / excluded**        |
-| 8     | slot                        | Loads a slot over the working project, discarding unsaved device work (`app/project.c:270`)                                                                                           | **Dangerous / excluded**        |
-| 9     | slot                        | Reads a slot's 12-character name                                                                                                                                                      | Read; candidate, needs approval |
-| 10    | 12 printable bytes          | Renames the working project                                                                                                                                                           | RAM write; needs approval       |
-| 11    | none                        | Sample bank status and size                                                                                                                                                           | Read; out of scope              |
-| 12–14 | begin, write, finish        | Rewrite the sample bank in Flash                                                                                                                                                      | **Dangerous / excluded**        |
-| 15    | offset, count               | Reads sample data                                                                                                                                                                     | Read; out of scope              |
-| 16    | none                        | Cancels a sample transfer                                                                                                                                                             | Out of scope                    |
-| 17–20 | none                        | Engine, render, audio, and master-level statistics                                                                                                                                    | Read; out of scope              |
+| Cmd   | Payload                     | Does                                                                                                                                                                                  | Class                               |
+| ----- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| 0     | none                        | Info: format 4, 16 slots, current slot, project size 4064, clock mode, and each track's engine (14 bytes)                                                                             | Read; approved 2026-10-16           |
+| 1     | kind, target                | Starts an export into a RAM buffer; replies with its size. Kind 0 project (4064 bytes), 1 a track's DX7 voice (156, `groove_fm_copy`), 2 a track preset (223, `groove_timbre_export`) | Read; approved 2026-10-20           |
+| 2     | offset (16-bit), count ≤ 64 | Reads a chunk of that export                                                                                                                                                          | Read; approved 2026-10-20           |
+| 3     | kind, target, size          | Starts a write of the same kinds                                                                                                                                                      | RAM write; needs approval           |
+| 4     | offset, ≤ 64 bytes          | Writes the next chunk, in order                                                                                                                                                       | RAM write; needs approval           |
+| 5     | CRC-32                      | Checks the CRC and imports into the working project (`groove_fm_import`, `groove_timbre_import`, `groove_project_import`)                                                             | RAM write; needs approval           |
+| 6     | none                        | Cancels a transfer                                                                                                                                                                    | Approved 2026-10-20, with the reads |
+| 7     | slot                        | Saves the working project to a project slot in Flash (`groove_project_save_slot`, `app/project.c:237`)                                                                                | **Dangerous / excluded**            |
+| 8     | slot                        | Loads a slot over the working project, discarding unsaved device work (`app/project.c:270`)                                                                                           | **Dangerous / excluded**            |
+| 9     | slot                        | Reads a slot's 12-character name                                                                                                                                                      | Read; approved 2026-10-20           |
+| 10    | 12 printable bytes          | Renames the working project                                                                                                                                                           | RAM write; needs approval           |
+| 11    | none                        | Sample bank status and size                                                                                                                                                           | Read; out of scope                  |
+| 12–14 | begin, write, finish        | Rewrite the sample bank in Flash                                                                                                                                                      | **Dangerous / excluded**            |
+| 15    | offset, count               | Reads sample data                                                                                                                                                                     | Read; out of scope                  |
+| 16    | none                        | Cancels a sample transfer                                                                                                                                                             | Out of scope                        |
+| 17–20 | none                        | Engine, render, audio, and master-level statistics                                                                                                                                    | Read; out of scope                  |
 
 The editor sends only command 0, approved on 2026-10-16 (below). Each other command needs its
 approval recorded in `AGENTS.md` before any code sends it, as FM-1+VA's `7D 10` and `7D 04` had.
@@ -2172,15 +2172,25 @@ Phase 1 a way to import the FM1's four banks into the library, which the plan sh
 reading a track's voice. No OTA, loader, or Flash path is sent by anything this note adds; a kind 4
 write is a Flash write and stays excluded.
 
+**Hardware run of the reads (2026-10-20, V14,**
+[`docs/hardware-runs/official-open-v14-reads-2026-10-20.md`](hardware-runs/official-open-v14-reads-2026-10-20.md)**).**
+Commands 22, 0, and 9, and kinds 1, 2, and 4 of command 1 with 2 and 6, all answered as the source
+says. **Confirmed**: command 22's nine bytes; a track's sound is 223 bytes for DX7, 303, PSG, and
+SAMPLER, with the 303's twelve parameters in the mapped order and eight 6-byte SAMPLER pads; a
+track's voice (kind 1) is the first 156 bytes of its sound's `data`; a library bank (kind 4) is 32
+standard 128-byte voices, 7-bit throughout, named in bytes 118 to 127, and the four banks hold the
+128 library voices; an empty project slot answers command 9 with status 1. The 808 and Pluck were
+not read. This answers question 3 and question 4 below.
+
 Open questions:
 
 1. Does a dump on a remapped input channel reach the track or tracks the source says it does, and
    does command 0 say which? A hardware run with a track's input channel changed on the FM1.
 2. What does Program Change do on V14: select one of the 128 library voices for a track, or still
    one of the built-in sounds?
-3. Does a kind 4 read return the four banks' voices as the screen shows them, in the order the
-   screen lists them?
-4. Does command 22 answer as the source says on a V14 FM1?
+3. ~~Does a kind 4 read return the four banks' voices?~~ Yes, read 2026-10-20; whether the order is
+   the screen's is not checked.
+4. ~~Does command 22 answer as the source says?~~ Yes, read 2026-10-20.
 
 ### FM1 Editor
 

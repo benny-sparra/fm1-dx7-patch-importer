@@ -10,6 +10,7 @@ import {
   parseOfficialOpenInfoReply,
   type OfficialOpenEngine,
   type OfficialOpenInfo,
+  type OfficialOpenLink,
 } from '@/lib/official-open-transfer'
 
 /**
@@ -32,12 +33,6 @@ export type OfficialOpenTrackDelivery =
   | { type: 'cancelled' }
   /** The dump could not be built or sent. */
   | { type: 'failed' }
-
-/** The ports a read talks through: a send and the input's messages. */
-type OfficialOpenLink = {
-  listen: (hear: (message: Uint8Array | readonly number[]) => void) => () => void
-  send: (message: Uint8Array) => void
-}
 
 type InfoReadProblem = 'cancelled' | 'no-reply' | 'refused' | 'send-failed' | 'unexpected'
 
