@@ -81,8 +81,14 @@ describe('firmware page', () => {
       expect(image?.getAttribute('alt')).toBeTruthy()
       expect(image?.getAttribute('width')).toBe(String(metadata.width))
       expect(image?.getAttribute('height')).toBe(String(metadata.height))
+      // A source narrower than the 460 px derivative is served as it is, without a srcset.
+      const derivative = source
+        .replace('/src/assets/', '/src/assets/generated/')
+        .replace(/\.webp$/, '-460.webp')
       expect(image?.getAttribute('srcset')?.replace(/\s+/g, ' ').trim()).toBe(
-        `${source.replace('/src/assets/', '/src/assets/generated/').replace(/\.webp$/, '-460.webp')} 460w, ${source} ${metadata.width}w`,
+        (metadata.width ?? 0) > 460
+          ? `${derivative} 460w, ${source} ${metadata.width}w`
+          : undefined,
       )
     },
   )
