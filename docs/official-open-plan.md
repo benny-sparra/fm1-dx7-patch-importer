@@ -93,6 +93,11 @@ engines and a way to read what is on the FM1 before it is the better tool.
 
 ## Phase 1: read what the FM1 holds (approval: commands 1, 2, 6, and 9)
 
+**Approved 2026-10-20** (commands 1, 2, 6, 9, and 22; kinds 1, 2, and 4, V14's DX7 bank). The codec
+and reader are in `src/lib/official-open-read.ts`; the first hardware run is set out in
+`docs/hardware-runs/official-open-v14-reads-2026-10-20.md`. Reading a project (kind 0 and 3) is not
+approved.
+
 The read-only half of the transfer protocol. Nothing it does changes the FM1.
 
 - **Codec** in `src/lib/official-open-transfer.ts`: command 1 (begin export, kinds 0–3), command 2

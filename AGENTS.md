@@ -223,10 +223,15 @@ open everything an earlier release could have saved.
   after command 0 has shown that channel's track running DX7, since a dump to another engine is
   dropped silently; it replaces the track's voice as an unsaved edit, so the notification says
   to save the project on the FM1. Command 0, info (`F0 7D 46 4D 02 00 <token> <sum> F7`,
-  `makeOfficialOpenInfoRequest` in `src/lib/official-open-transfer.ts`), is the only `7D 'F' 'M'`
-  command the editor may send; it reads the engines and changes nothing. Every other command of
-  that protocol needs its own approval recorded here first, and 7, 8, and 12–14, which write or
-  load Flash, stay **Dangerous / excluded**. The profile's `singleVoiceDumps` and
+  `makeOfficialOpenInfoRequest` in `src/lib/official-open-transfer.ts`), reads the engines and
+  changes nothing. Five more read commands are approved (2026-10-20, on V14): 1, begin an export,
+  for kinds 1 (a track's DX7 voice, 156 bytes), 2 (a track's sound, 223), and 4 (a DX7 bank of the
+  FM1's library, 4096; V14 and later); 2, read a chunk of 64 bytes or fewer; 6, cancel; 9, a
+  project slot's name; and 22, capabilities. They live in `src/lib/official-open-read.ts`, change
+  nothing on the FM1, and take their turn in the transfer queue. Kinds 0 and 3, the project, are
+  not approved to read. Every other command of that protocol needs its own approval recorded here
+  first, and 7, 8, and 12–14, which write or load Flash, stay **Dangerous / excluded**, as do
+  commands 3–5 with kind 4, which write a bank to Flash. The profile's `singleVoiceDumps` and
   `trackEngineRead` choose the track path, never the family, since the dump means the edit buffer
   on M-VAVE's V15. The read and dump live in `src/lib/official-open-track-send.ts`, which
   `useMidi` imports the first time it sends there; they wait their turn in the transfer queue
