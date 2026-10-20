@@ -79,10 +79,14 @@ engines and a way to read what is on the FM1 before it is the better tool.
   command 21 (tuning support, tuned project size, sample bank limit), the tuning sector in the last
   4 KiB of Flash, and the sample bank limit shrinking by 4 KiB. Check whether `groove_preset` or the
   project layout moved (`app/instrument.h`, `app/project.c` diff).
-- Check that the badge reads `FM-1_8000013` as V13, with a test, and run the identity query and
-  command 0 on the orange FM1 once it is on V13. The orange FM1 went to V14 instead, and the badge, command 0, and
-  the DX7 track send were checked on it on 2026-10-20
+- ~~Check that the badge reads `FM-1_8000013` as V13~~ Done for V14: the tests name V13 and V14,
+  and on 2026-10-20 the badge, command 0, and the DX7 track send were checked on the orange FM1
   (`docs/hardware-runs/official-open-v14-tracks-2026-10-20.md`).
+- **V14 (2026-10-19) changed more than V13** and is recorded in `docs/fm1-research.md` (Official
+  Open V14): a 128-voice DX7 library on the FM1 with a bank read (transfer kind 4, read-only) and
+  write, configurable track roles and input channels that change where a DX7 dump lands, MIDI
+  routing, and command 22. Phase 1 should take the kind 4 bank read into account, and the track
+  send must not assume the default channel map once command 0 cannot confirm it.
 - Answer the open question of the port's name on Windows and Linux if anyone can capture it.
 - Update [Switching FM1 firmware](switching-firmware.md) with the Workbench's restore and
   force-flash steps, sending people to **Download backup** first (an existing backlog item).

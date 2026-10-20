@@ -2112,6 +2112,76 @@ Open questions:
    adds a checkpoint through `groove_fm_import`; question 1 of the released-source section asks
    whether it brings the voice back.
 
+#### Official Open V14 (read 2026-10-20)
+
+Source: https://github.com/m-vave/fm1_open commit `4d266850` ("Update FM1 Open to V14", 2026-10-19),
+diffed against V13's `b178ac43`. **Confirmed** from source only, except where a run is named; the
+V14 FM1 run on 2026-10-20
+([`docs/hardware-runs/official-open-v14-tracks-2026-10-20.md`](hardware-runs/official-open-v14-tracks-2026-10-20.md))
+covered the identity, command 0, and the DX7 track send with the default channel map.
+
+**Identity.** `app/version.h` names the release `V14` and its update product `FM-1_8000014`.
+**Confirmed** on hardware: the badge read V14.
+
+**What V14 adds** (the commit's own words: a 128-voice DX7 library, configurable track roles and
+MIDI routing, Tap Tempo, synchronised delay):
+
+- **A DX7 library on the FM1.** `FM1_FM_PROGRAMS` goes from 16 to 128 (MIDI programs 0–127, panel
+  positions 1–128), held as four banks of 32 voices in the last Flash sectors
+  (`app/fm_library.c`: standard 128-byte VMEM voices packed to 112 bytes, each sector with its own
+  CRC and commit header, a replacement staged in the shared project sector so an interrupted write
+  keeps the last bank). The original V15 factory voices are kept (`groove_fm_factory`).
+- **Transfer kind 4, a DX7 bank.** `transfer_begin` accepts kind 4 with a target below 4 and a size
+  of 4096, which is 32 voices of 128 bytes. Command 1 with kind 4 reads a bank
+  (`groove_fm_library_read`); commands 3–5 with kind 4 write it to Flash
+  (`groove_fm_library_write`). **This is the first readback of DX7 voices from any M-VAVE
+  firmware**: the editor's "no device-to-browser bank readback" holds for stock V15 and FM-1+VA,
+  not for Official Open V14. Reading is the same read-only path as commands 1 and 2; writing
+  replaces one of four banks in Flash, so it needs its own approval and a hardware run, and stays
+  excluded until then.
+- **Command 22, capabilities.** An empty request is answered with 9 bytes: `1`, the number of FM
+  programs (`128`), the number of banks (`4`), whether the library is available, the sample bank
+  limit as a 32-bit value, and a feature mask (`3`: session roles, and extended and synchronised
+  delay). Command 21 keeps its layout but reports the limit as the sample bank size less 4 KiB
+  again. The sample limit now stops before the library's four sectors.
+- **Configurable track roles and input channels.** Each track has a role (Normal, Play, Off) and
+  an input channel 0–15, device preferences stored apart from the project
+  (`groove_track_role`, `groove_midi_input_channel`; the default is eight Normal tracks on the
+  original channel map). **This changes where a DX7 dump goes.** V13 took a dump on the channel
+  `groove_channel(track)` gave a track and imported it into that track. V14 imports it into every
+  track whose role is not Off and whose input channel equals the dump's channel, so a remapped
+  FM1 sends a dump to a different track, or to several, or to none. The editor's channel-to-track
+  map (channels 1–7 and 10 are tracks 1–8) holds only for the default. Command 0 is not known to
+  report roles or input channels: its reply still carries only the engines, so after a remap the
+  track the editor names may not be the one that sounds. **Needs hardware test** with a remapped
+  channel.
+- **MIDI routing.** Per-port output (DIN, USB, BLE) with independent queues, a router
+  (`app/midi_router.c`) with local, local plus MIDI, and MIDI-only modes, clock source selection,
+  Thru, and a panic. SysEx replies go out the port the request arrived on, and a transfer another
+  port started makes the FM1 answer a busy status rather than interleave. The editor uses one USB
+  port, so it meets none of this.
+- **Delay, tap tempo.** The delay byte now reaches 1/32T to 1/4 synchronised values (128–136) and
+  free times to 2.04 s (137–253), the project layout unchanged; Tap Tempo is on the screen.
+
+**What this changes for the editor.** The identity query, command 0, and the single-voice dump
+work as on V12 and V13 with the default channel map (the 2026-10-20 run). Open: whether
+Program Change now selects one of the 128 library voices for a track (the source diff for the
+router does not handle it, and `track_session.inc` stores the program in the track, so the screen
+may); the profile keeps `programChanges` off until a hardware run says. The kind 4 read gives
+Phase 1 a way to import the FM1's four banks into the library, which the plan should weigh against
+reading a track's voice. No OTA, loader, or Flash path is sent by anything this note adds; a kind 4
+write is a Flash write and stays excluded.
+
+Open questions:
+
+1. Does a dump on a remapped input channel reach the track or tracks the source says it does, and
+   does command 0 say which? A hardware run with a track's input channel changed on the FM1.
+2. What does Program Change do on V14: select one of the 128 library voices for a track, or still
+   one of the built-in sounds?
+3. Does a kind 4 read return the four banks' voices as the screen shows them, in the order the
+   screen lists them?
+4. Does command 22 answer as the source says on a V14 FM1?
+
 ### FM1 Editor
 
 Repository:
