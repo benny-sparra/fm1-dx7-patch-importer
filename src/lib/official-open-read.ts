@@ -300,18 +300,32 @@ export async function readOfficialOpenCapabilities(
 
 const slotNameLength = 12
 
-/** Asks command 9 for project slot `slot`'s name, which is up to 12 printable characters. */
+/** The status the FM1 gives for a project slot nothing has been saved to (hardware, 2026-10-20). */
+const emptySlotStatus = 1
+
+/**
+ * Asks command 9 for project slot `slot`'s name, which is up to 12 printable characters, or null for
+ * a slot nothing has been saved to, which the FM1 answers with status 1.
+ */
 export async function readOfficialOpenSlotName(
   link: OfficialOpenLink,
   slot: number,
   options: ReadOptions,
 ) {
-  const fields = await exchange(
-    link,
-    slotNameCommand,
-    (token) => makeOfficialOpenSlotNameRequest(token, slot),
-    options,
-  )
+  let fields: number[]
+  try {
+    fields = await exchange(
+      link,
+      slotNameCommand,
+      (token) => makeOfficialOpenSlotNameRequest(token, slot),
+      options,
+    )
+  } catch (caughtError) {
+    if (caughtError instanceof OfficialOpenReadError && caughtError.status === emptySlotStatus) {
+      return null
+    }
+    throw caughtError
+  }
   if (fields.length !== slotNameLength || fields.some((byte) => byte < 0x20 || byte > 0x7e)) {
     throw new OfficialOpenReadError(
       'unexpected',

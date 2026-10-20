@@ -2172,15 +2172,25 @@ Phase 1 a way to import the FM1's four banks into the library, which the plan sh
 reading a track's voice. No OTA, loader, or Flash path is sent by anything this note adds; a kind 4
 write is a Flash write and stays excluded.
 
+**Hardware run of the reads (2026-10-20, V14,**
+[`docs/hardware-runs/official-open-v14-reads-2026-10-20.md`](hardware-runs/official-open-v14-reads-2026-10-20.md)**).**
+Commands 22, 0, and 9, and kinds 1, 2, and 4 of command 1 with 2 and 6, all answered as the source
+says. **Confirmed**: command 22's nine bytes; a track's sound is 223 bytes for DX7, 303, PSG, and
+SAMPLER, with the 303's twelve parameters in the mapped order and eight 6-byte SAMPLER pads; a
+track's voice (kind 1) is the first 156 bytes of its sound's `data`; a library bank (kind 4) is 32
+standard 128-byte voices, 7-bit throughout, named in bytes 118 to 127, and the four banks hold the
+128 library voices; an empty project slot answers command 9 with status 1. The 808 and Pluck were
+not read. This answers question 3 and question 4 below.
+
 Open questions:
 
 1. Does a dump on a remapped input channel reach the track or tracks the source says it does, and
    does command 0 say which? A hardware run with a track's input channel changed on the FM1.
 2. What does Program Change do on V14: select one of the 128 library voices for a track, or still
    one of the built-in sounds?
-3. Does a kind 4 read return the four banks' voices as the screen shows them, in the order the
-   screen lists them?
-4. Does command 22 answer as the source says on a V14 FM1?
+3. ~~Does a kind 4 read return the four banks' voices?~~ Yes, read 2026-10-20; whether the order is
+   the screen's is not checked.
+4. ~~Does command 22 answer as the source says?~~ Yes, read 2026-10-20.
 
 ### FM1 Editor
 

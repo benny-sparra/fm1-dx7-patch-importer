@@ -350,7 +350,23 @@ describe('readOfficialOpenSlotName', () => {
     expect(await readOfficialOpenSlotName(fm1.link, 2, { takeToken })).toBe('BASS ONE')
   })
 
-  it('rejects a slot the FM1 refuses', async () => {
+  it('reads a slot nothing was saved to, which the FM1 answers with status 1, as null', async () => {
+    const link: OfficialOpenLink = {
+      listen: (hear) => {
+        listeners.push(hear)
+        return () => {}
+      },
+      send: (request) => {
+        const token = request[6] | (request[7] << 7)
+        for (const hear of listeners) hear(frame(9 | 0x40, token, [1]))
+      },
+    }
+    const listeners: Array<(message: readonly number[]) => void> = []
+
+    expect(await readOfficialOpenSlotName(link, 4, { takeToken })).toBeNull()
+  })
+
+  it('rejects a slot the FM1 refuses for another reason', async () => {
     const link: OfficialOpenLink = {
       listen: (hear) => {
         listeners.push(hear)
