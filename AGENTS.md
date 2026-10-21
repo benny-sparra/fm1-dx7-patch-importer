@@ -633,6 +633,17 @@ open everything an earlier release could have saved.
   `role="status"` that reads **Sending…** beside Send, and the reason as `sr-only` text named by
   `aria-describedby` on `MidiPanicButton`. `index.css` dims `button[aria-disabled='true']`, so the
   look stays in the stylesheet rather than in every button's classes.
+- A header control that shows only an icon carries a caption under it (`hero-captioned`,
+  `hero-caption` in `index.css`), as the FM1 prints a name under a button: **Finish**, **Help**,
+  and **Settings**, and the MIDI panic says **Panic** beside its icon. A tooltip never shows on
+  touch, so it cannot be the only name. The caption is a word of the control's accessible name
+  (WCAG 2.5.3), and pressing it does what pressing the control does: the finish's caption is a
+  `<label>` for the current finish, which opens the choice as a tap on the swatch does.
+- On a phone the full title runs the header's width beneath those controls and wraps as words, at
+  a size that follows the width, so it takes two lines at 320 and 375 px with the MIDI switch in
+  the first screen (`e2e/librarian.e2e.ts`). The loading stand-in for the patch banks or editor
+  fills the viewport (`min-h-svh`), since a shorter one let the footer show on a phone and jump
+  down when the banks arrived, which `npm run test:cls` measures.
 - A dialog's title wraps (`DialogTitle` takes `break-words`, not `truncate`), so a translated title
   is never ended by an ellipsis at 320 px (WCAG 1.4.10). `e2e/i18n-layout.e2e.ts` checks German and
   Ukrainian there.

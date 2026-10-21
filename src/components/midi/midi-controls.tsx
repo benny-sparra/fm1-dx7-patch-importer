@@ -242,12 +242,17 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
     <details className="group relative" ref={menuRef}>
       <summary
         aria-label={t('common.settings')}
-        className="hero-action flex size-[26px] cursor-pointer list-none items-center justify-center transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
+        className="group/settings cursor-pointer list-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
         title={t('common.settings')}
       >
-        <MoreVertical className="size-4" />
+        <span className="hero-captioned">
+          <span className="hero-action flex size-[26px] items-center justify-center transition group-hover/settings:bg-[var(--crt-sel-bg)] group-hover/settings:text-[var(--crt-acc-lt)]">
+            <MoreVertical aria-hidden="true" className="size-4" />
+          </span>
+          <span className="hero-caption">{t('common.settings')}</span>
+        </span>
       </summary>
-      <div className="menu-surface absolute top-9 right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-3 text-[var(--crt-ink)] sm:grid-cols-2">
+      <div className="menu-surface absolute top-[calc(100%+0.5rem)] right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-3 text-[var(--crt-ink)] sm:grid-cols-2">
         <div className="px-1 pt-1 sm:col-span-2">
           <p className="font-dot-matrix text-base font-semibold">{t('common.settings')}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">{t('settings.description')}</p>

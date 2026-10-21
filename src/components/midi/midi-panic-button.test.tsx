@@ -71,10 +71,19 @@ describe('MidiPanicButton', () => {
     expect(button.getAttribute('aria-describedby')).toBeNull()
   })
 
-  it('shows only an icon, leaving its name to the label', () => {
+  // A phone shows no tooltip, so the button says what it is; its name holds the same word.
+  it('shows a short label that its accessible name contains', () => {
     const { button } = renderButton({ hasMidiOutput: true, midiAccess: true })
 
-    expect(button.textContent).toBe('')
+    expect(button.textContent).toBe('Panic')
+  })
+
+  it('shows its label in the interface language', async () => {
+    await setLocale('de')
+
+    const { button } = renderButton({ hasMidiOutput: true, midiAccess: true }, 'MIDI-Panik')
+
+    expect(button.textContent).toBe('Panik')
   })
 
   it('sends a MIDI panic when pressed', async () => {

@@ -92,7 +92,7 @@ test('a first visit meets the welcome, which opens the full guide and closes for
   // welcome opening itself would cover the button and take its place.
   await page.reload()
   await expect(slotButtons(page).first()).toBeVisible()
-  await page.getByRole('button', { name: 'How to use the FM1 editor and librarian' }).click()
+  await page.getByRole('button', { name: 'Help: how to use the FM1 editor and librarian' }).click()
   await expect(page.getByRole('dialog', { name: 'Guide' })).toBeVisible()
   await expect(page.getByRole('dialog', { name: /Welcome/ })).toHaveCount(0)
 })
@@ -697,6 +697,49 @@ function crampedNames(page: Page) {
       .filter((name) => name.getBoundingClientRect().width < fullName + spare)
       .map((name) => name.textContent)
   }, scrollbarShare)
+}
+
+for (const width of [320, 375]) {
+  // On a phone the title once took three lines and pushed the first patch two thirds down.
+  test(`keeps the title to two lines and the MIDI row in view at ${width} px`, async ({ page }) => {
+    await page.setViewportSize({ height: 812, width })
+    await openLibrarian(page)
+
+    const titleLines = await page
+      .getByRole('heading', { level: 1 })
+      .evaluate(
+        (title) =>
+          new Set(
+            [...title.querySelectorAll(':scope > span:not(.synthwave-brand-row)')].flatMap((part) =>
+              [...part.getClientRects()].map((line) => Math.round(line.top)),
+            ),
+          ).size,
+      )
+    expect(titleLines).toBeLessThanOrEqual(2)
+
+    const midiSwitch = page.getByText('MIDI offline', { exact: true }).locator('visible=true')
+    const switchBox = await midiSwitch.boundingBox()
+    expect((switchBox?.y ?? Infinity) + (switchBox?.height ?? 0)).toBeLessThan(812)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
+  })
+
+  // A tooltip never shows on touch, so each header key says what it is under it.
+  test(`names each header key in view at ${width} px`, async ({ page }) => {
+    await page.setViewportSize({ height: 812, width })
+    await openLibrarian(page)
+    const header = page.getByRole('banner')
+
+    // The closed settings menu repeats its name as its heading, after the caption.
+    for (const caption of ['Finish', 'Help', 'Settings']) {
+      await expect(header.getByText(caption, { exact: true }).first()).toBeInViewport()
+    }
+    await expect(page.getByRole('button', { name: 'MIDI panic' })).toContainText('Panic')
+
+    // A tap on the caption opens the choice of finishes, as a tap on the swatch does.
+    await header.getByText('Finish', { exact: true }).click()
+    await expect(page.getByRole('radio', { name: 'Black FM1 finish' })).toBeFocused()
+    await expect(header.getByTitle('Orange', { exact: true })).toBeVisible()
+  })
 }
 
 for (const width of [1280, 768, 360]) {

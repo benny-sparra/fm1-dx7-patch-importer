@@ -281,7 +281,7 @@ describe('reduced motion', () => {
     expect(classTokens(container.querySelector('fieldset'))).toContain(
       'motion-reduce:transition-none',
     )
-    for (const swatch of container.querySelectorAll('label')) {
+    for (const swatch of container.querySelectorAll('fieldset label')) {
       expect(classTokens(swatch)).toContain('motion-reduce:transition-none')
     }
   })

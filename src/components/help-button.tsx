@@ -39,9 +39,10 @@ export function HelpButton({ colorway, midi }: HelpButtonProps) {
 
   return (
     <>
+      {/* The caption under the key names it on a phone, where no tooltip shows. */}
       <Button
         aria-label={t('help.open')}
-        className="hero-action font-dot-matrix size-[26px] cursor-pointer rounded-none p-0 text-base leading-none font-bold text-[var(--crt-acc-lt)] hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+        className="group/help"
         onClick={() => {
           trackAnalyticsEvent({ data: { surface: 'guide' }, name: 'help_opened' })
           setLoadFailed(false)
@@ -54,7 +55,15 @@ export function HelpButton({ colorway, midi }: HelpButtonProps) {
         type="button"
         variant="bare"
       >
-        <span aria-hidden="true">?</span>
+        <span className="hero-captioned">
+          <span
+            aria-hidden="true"
+            className="hero-action font-dot-matrix grid size-[26px] place-items-center text-base leading-none font-bold text-[var(--crt-acc-lt)] group-hover/help:bg-[var(--crt-sel-bg)]"
+          >
+            ?
+          </span>
+          <span className="hero-caption">{t('help.caption')}</span>
+        </span>
       </Button>
       {loadFailed ? <LoadFailedNotice message={t('ui.helpOpenFailed')} /> : null}
       {requested ? (

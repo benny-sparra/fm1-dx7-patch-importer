@@ -248,10 +248,12 @@ function App() {
       setAuditionedPatchId('')
     }
   }
+  // The patch banks and the editor both run past the fold, so their stand-in does too, keeping the
+  // footer out of view until they arrive; on a phone a shorter one let it show and then jump down.
   const loadingSection = (label: string) => (
     <section
       aria-live="polite"
-      className="mx-auto flex min-h-[60svh] max-w-[90rem] items-center justify-center px-4 py-8"
+      className="mx-auto flex min-h-svh max-w-[90rem] items-center justify-center px-4 py-8"
       role="status"
     >
       <div className="crt-boot crt-raised bg-card">

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -84,6 +84,16 @@ describe('MidiConnectActions', () => {
     renderSwitch({ isConnecting: true, midiAccess: false })
 
     expect(screen.getByRole('switch', { name: 'Verbindung wird hergestellt…' })).toBeTruthy()
+  })
+})
+
+// A phone shows no tooltip, so the menu's key carries a caption naming it.
+describe('MidiSettingsMenu toggle', () => {
+  it('shows its name under the key and keeps it as its accessible name', () => {
+    renderSettings({ kind: 'checking' })
+
+    const toggle = screen.getByLabelText('Settings', { selector: 'summary' })
+    expect(within(toggle).getByText('Settings')).toBeTruthy()
   })
 })
 

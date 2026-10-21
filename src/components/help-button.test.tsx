@@ -32,7 +32,7 @@ afterEach(() => {
 })
 
 const helpButton = () =>
-  screen.getByRole('button', { name: 'How to use the FM1 editor and librarian' })
+  screen.getByRole('button', { name: 'Help: how to use the FM1 editor and librarian' })
 
 const guide = () => screen.queryByRole('dialog')
 
@@ -48,6 +48,14 @@ describe('HelpButton', () => {
     await user.click(helpButton())
 
     expect(await screen.findByRole('tab', { name: 'Getting started' })).toBeTruthy()
+  })
+
+  // A phone shows no tooltip, so the key carries a caption, which its name begins with.
+  it('shows its caption under the key', () => {
+    localStorage.setItem('fm1-librarian-help-seen', 'true')
+    render(<HelpButton colorway="black" midi={midi} />)
+
+    expect(within(helpButton()).getByText('Help')).toBeTruthy()
   })
 
   it('opens the welcome on a first visit without waiting to be asked', async () => {

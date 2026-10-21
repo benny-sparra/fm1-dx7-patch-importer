@@ -11,9 +11,9 @@ type MidiPanicButtonProps = {
 }
 
 /**
- * A MIDI panic: releases every note on the note channel, for notes left hanging on the FM1. It
- * shows only an icon, so its name and anything stopping it are in its tooltip, and what stops it
- * is also its description. It stays focusable while it cannot send, since a disabled button takes no
+ * A MIDI panic: releases every note on the note channel, for notes left hanging on the FM1. Its
+ * short label names it on a phone, where no tooltip shows; what stops it is in its tooltip and
+ * also its description. It stays focusable while it cannot send, since a disabled button takes no
  * focus and its tooltip and description would never reach the keyboard. A notification confirms it
  * was sent; the MIDI log records why it could not be.
  */
@@ -33,10 +33,10 @@ export function MidiPanicButton({ midi }: MidiPanicButtonProps) {
         aria-describedby={unavailableReason ? reasonId : undefined}
         aria-disabled={!midi.hasMidiOutput || undefined}
         aria-label={t('midi.panic')}
+        className="font-vt323"
         onClick={() => {
           if (midi.hasMidiOutput && midi.sendMidiPanic()) toast.success(t('toasts.midiPanicSent'))
         }}
-        size="icon"
         title={
           unavailableReason
             ? t('midi.panicUnavailable', { reason: unavailableReason })
@@ -46,6 +46,7 @@ export function MidiPanicButton({ midi }: MidiPanicButtonProps) {
         variant="secondary"
       >
         <OctagonAlert aria-hidden="true" />
+        <span>{t('midi.panicLabel')}</span>
       </Button>
       {unavailableReason ? (
         <span className="sr-only" id={reasonId}>

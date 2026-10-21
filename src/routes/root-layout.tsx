@@ -139,10 +139,17 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
            * first row; the MIDI actions run underneath both, so the right-hand
            * action lines up with the kebab above it. The hardware bay spans
            * both rows and the spare height falls to the action row, pinning it
-           * to the bottom of the bay.
+           * to the bottom of the bay. On a phone the full title runs under the
+           * header controls too, beside its brand line, so it wraps to two lines.
            */}
           <div className="grid grid-cols-[minmax(0,1fr)_auto] grid-rows-[auto_1fr] gap-x-3 gap-y-2 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
-            <div className="flex min-w-0 flex-col gap-[7px]">
+            <div
+              className={
+                compact
+                  ? 'col-start-1 row-start-1 flex min-w-0 flex-col gap-[7px]'
+                  : 'col-span-2 col-start-1 row-start-1 flex min-w-0 flex-col gap-[7px] sm:col-span-1'
+              }
+            >
               <h1
                 data-layout={compact ? 'compact' : 'full'}
                 className="synthwave-title min-w-0 items-baseline gap-x-[0.3em] gap-y-[7px]"
@@ -160,7 +167,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               ) : null}
             </div>
 
-            <div className="flex shrink-0 items-center gap-2 self-start">
+            <div className="col-start-2 row-start-1 flex shrink-0 items-start gap-2.5 self-start">
               <Fm1ColorwayPicker
                 onChange={(next) => {
                   degauss(screenRef.current)
@@ -181,13 +188,19 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             >
               <MidiConnectActions midi={midi} />
               <MidiActivityLeds midi={midi} />
-              {/* On a phone the badge takes the last line, so the MIDI buttons keep one row. */}
-              <MidiFirmwareBadge
-                className="order-last inline-flex min-h-8 w-full items-center gap-2 sm:order-none sm:w-auto"
-                midi={midi}
-              />
+              {/* On a phone the badge and the panic take the last line, so the MIDI switch and the
+                  keyboard keep one row. From the small breakpoint the line dissolves into the row,
+                  and the panic follows the keyboard. */}
+              <div className="order-last flex w-full items-center gap-2.5 sm:contents">
+                <MidiFirmwareBadge
+                  className="inline-flex min-h-8 min-w-0 flex-1 items-center gap-2 sm:flex-none"
+                  midi={midi}
+                />
+                <span className="ml-auto flex sm:order-last sm:ml-0">
+                  <MidiPanicButton midi={midi} />
+                </span>
+              </div>
               <PianoKeyboard midi={midi} />
-              <MidiPanicButton midi={midi} />
             </div>
 
             {showHardwareBay ? (

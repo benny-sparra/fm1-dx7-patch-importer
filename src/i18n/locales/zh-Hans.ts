@@ -888,7 +888,8 @@ export default {
     noDeviceSelected: '未选择设备',
   },
   help: {
-    open: 'FM1 编辑器与音色库使用说明',
+    caption: '帮助',
+    open: '帮助：FM1 编辑器与音色库使用说明',
     title: '欢迎使用 FM1 音色编辑器与音色库',
     guideTitle: '使用指南',
     close: '关闭帮助',
@@ -932,6 +933,7 @@ export default {
   },
 
   colorway: {
+    caption: '配色',
     legend: 'FM1 配色',
     option: 'FM1 {{colour}}配色',
     black: '黑色',
@@ -1087,6 +1089,7 @@ export default {
     officialOpenBadgeTitle:
       'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
     panic: 'MIDI 紧急停止',
+    panicLabel: '紧急停止',
     panicHelp: 'MIDI 紧急停止：在音符通道上为每个音符发送音符关闭消息，以停止悬挂的音符',
     panicUnavailable: 'MIDI 紧急停止：{{reason}}',
     online: 'MIDI 在线',
