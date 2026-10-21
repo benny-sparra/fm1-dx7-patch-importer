@@ -1262,6 +1262,7 @@ export default {
     panicUnavailable: 'MIDI panic: {{reason}}',
     online: 'MIDI онлайн',
     offline: 'MIDI офлайн',
+    offlineHint: 'Увімкніть, щоб зв’язатися з FM1',
     connectFirst: 'Спершу підключіть MIDI-вихід',
     chooseOutput: 'Оберіть MIDI-вихід',
     switchOnFirst: 'Спершу ввімкніть MIDI',
@@ -1382,6 +1383,11 @@ export default {
     loadDemo: 'Відкрити демобанк',
     editSelected: 'Редагувати',
     slotTitle: 'Натисніть, щоб зіграти {{name}} на FM1; двічі — щоб редагувати',
+    sendOffline: 'Увімкніть MIDI, щоб надсилати. Доти клік на патчі лише вибирає його.',
+    sendNoOutput:
+      'Оберіть MIDI-вихід у налаштуваннях, щоб надсилати. Доти клік на патчі лише вибирає його.',
+    sendUnidentified:
+      'Прошивку не ідентифіковано: FM1 отримує звичайний банк DX7, а патчі — як незбережені зміни.',
     slotOfflineTitle: 'MIDI офлайн, тож клік лише вибирає {{name}}; двічі — щоб редагувати',
     slotEditBufferTitle:
       'Натисніть, щоб зіграти {{name}} на FM1, не перезаписуючи пресет; двічі — щоб редагувати',

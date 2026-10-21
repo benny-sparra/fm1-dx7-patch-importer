@@ -1203,6 +1203,7 @@ export default {
     panicUnavailable: 'Pánico MIDI: {{reason}}',
     online: 'MIDI en línea',
     offline: 'MIDI sin conexión',
+    offlineHint: 'Actívalo para llegar al FM1',
     connectFirst: 'Conecta primero una salida MIDI',
     chooseOutput: 'Elige una salida MIDI',
     switchOnFirst: 'Activa primero el MIDI',
@@ -1325,6 +1326,12 @@ export default {
     loadDemo: 'Cargar banco de demostración',
     editSelected: 'Editar',
     slotTitle: 'Haz clic para tocar {{name}} en el FM1; doble clic para editarlo',
+    sendOffline:
+      'Pon el MIDI en línea para enviar. Mientras tanto, un clic en un sonido solo lo selecciona.',
+    sendNoOutput:
+      'Elige una salida MIDI en Ajustes para enviar. Mientras tanto, un clic en un sonido solo lo selecciona.',
+    sendUnidentified:
+      'Firmware sin identificar: el FM1 recibe un banco DX7 sencillo, y los sonidos como cambios sin guardar.',
     slotOfflineTitle:
       'MIDI está sin conexión, así que un clic solo selecciona {{name}}; doble clic para editarlo',
     slotEditBufferTitle:

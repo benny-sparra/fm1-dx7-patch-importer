@@ -327,20 +327,36 @@ describe('MidiFirmwareBadge', () => {
     expect(screen.getByText('Felucca 或 SLOOP 固件，FM-1_900')).toBeTruthy()
   })
 
-  it('shows nothing while the firmware is unknown', () => {
-    const { container, rerender } = render(
+  it('says to switch MIDI on while it is offline', () => {
+    const { container } = render(
       <MidiFirmwareBadge
         midi={{ firmware: { kind: 'checking' }, isConnecting: false, midiAccess: false }}
       />,
     )
-    expect(container.textContent).toBe('')
+    expect(container.textContent).toBe('Switch on to reach the FM1')
+  })
 
-    rerender(
+  it('says to switch MIDI on in Ukrainian while it is offline', async () => {
+    await setLocale('uk')
+    try {
+      const { container } = render(
+        <MidiFirmwareBadge
+          midi={{ firmware: { kind: 'checking' }, isConnecting: false, midiAccess: false }}
+        />,
+      )
+      expect(container.textContent).toBe('Увімкніть, щоб зв’язатися з FM1')
+    } finally {
+      await setLocale('en-GB')
+    }
+  })
+
+  it('shows nothing once MIDI is online and the firmware is not identified', () => {
+    const { container } = render(
       <MidiFirmwareBadge
         midi={{
           firmware: { identity: 'XR-9_015', kind: 'unidentified' },
           isConnecting: false,
-          midiAccess: false,
+          midiAccess: true,
         }}
       />,
     )
