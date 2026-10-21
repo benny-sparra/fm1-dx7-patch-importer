@@ -558,6 +558,8 @@ export default {
     reorder: 'Reorder {{name}}',
     reorderPatch: 'Reorder {{slot}} {{name}}',
     moveEarlier: 'Move earlier',
+    menuOrder: 'Order',
+    menuTransfer: 'Transfer',
     moveLater: 'Move later',
     reorderTitle:
       'Drag to reorder, or onto a bank to copy the patch there; use arrow keys to reorder when focused',

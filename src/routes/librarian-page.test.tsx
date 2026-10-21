@@ -487,6 +487,28 @@ describe('LibrarianPage moving a slot from its menu', () => {
     expect(screen.getByRole('menuitem', { name: 'Move later' }).hasAttribute('disabled')).toBe(true)
   })
 
+  it('heads a slot menu with Transfer and Order, leaving Edit bare at the top', async () => {
+    const { user } = renderSlots()
+
+    await openMenu(user, 'Slot 2', 'Actions for')
+
+    const menu = screen.getByRole('menu')
+    expect(within(menu).getByText('Transfer')).toBeTruthy()
+    expect(within(menu).getByText('Order')).toBeTruthy()
+    expect(within(menu).getAllByRole('menuitem')[0].textContent).toBe('Edit')
+  })
+
+  it('heads only Transfer while a search shows slots away from their banks', async () => {
+    const { user } = renderSlots()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'slot')
+    await openMenu(user, 'Slot 2', 'Actions for')
+
+    const menu = screen.getByRole('menu')
+    expect(within(menu).queryByText('Order')).toBeNull()
+    expect(within(menu).getByText('Transfer')).toBeTruthy()
+  })
+
   it('offers no move while a search shows slots away from their banks', async () => {
     const { user } = renderSlots()
 
@@ -504,6 +526,8 @@ describe('LibrarianPage moving a slot from its menu', () => {
 
     expect(screen.getByRole('menuitem', { name: 'Nach vorn verschieben' })).toBeTruthy()
     expect(screen.getByRole('menuitem', { name: 'Nach hinten verschieben' })).toBeTruthy()
+    expect(screen.getByText('Reihenfolge')).toBeTruthy()
+    expect(screen.getByText('Übertragen')).toBeTruthy()
     await setLocale('en-GB')
   })
 })

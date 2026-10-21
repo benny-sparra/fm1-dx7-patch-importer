@@ -1,5 +1,6 @@
 import { Check, EllipsisVertical, type LucideIcon } from 'lucide-react'
 import {
+  Fragment,
   type KeyboardEvent,
   type ReactNode,
   useEffect,
@@ -17,6 +18,11 @@ type PortalMenuItem = {
   /** Makes the item one of a set of choices, ticked while it is the one chosen. */
   checked?: boolean
   disabled?: boolean
+  /**
+   * Names the run of items this one starts, or sits in. A run of two or more shows its name as a
+   * heading under a divider; a lone item shows neither, so an ungrouped item opens the menu.
+   */
+  group?: string
   /** A muted line under the label, saying what choosing the item does. */
   hint?: string
   Icon?: LucideIcon
@@ -165,44 +171,63 @@ export function PortalMenu({
               ) : null}
               {items.map(
                 (
-                  { checked, disabled, hint, Icon = checked ? Check : undefined, label, onSelect },
+                  {
+                    checked,
+                    disabled,
+                    group,
+                    hint,
+                    Icon = checked ? Check : undefined,
+                    label,
+                    onSelect,
+                  },
                   index,
                 ) => (
-                  <button
-                    aria-checked={checked}
-                    aria-describedby={hint ? `${hintId}-hint-${index}` : undefined}
-                    aria-labelledby={hint ? `${hintId}-label-${index}` : undefined}
-                    className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
-                    disabled={disabled}
-                    key={label}
-                    onClick={() => {
-                      // Focus returns to the trigger first, so a dialog the action opens restores it there.
-                      close(true)
-                      onSelect?.()
-                    }}
-                    role={checked === undefined ? 'menuitem' : 'menuitemradio'}
-                    tabIndex={-1}
-                    type="button"
-                  >
-                    {Icon ? (
-                      <Icon aria-hidden="true" className="size-4 shrink-0" />
-                    ) : (
-                      <span aria-hidden="true" className="size-4 shrink-0" />
-                    )}
-                    {hint ? (
-                      <span className="grid">
-                        <span id={`${hintId}-label-${index}`}>{label}</span>
-                        <span
-                          className="text-xs text-[var(--crt-ink-3)]"
-                          id={`${hintId}-hint-${index}`}
-                        >
-                          {hint}
+                  <Fragment key={label}>
+                    {group &&
+                    group !== items[index - 1]?.group &&
+                    group === items[index + 1]?.group ? (
+                      <p
+                        aria-hidden="true"
+                        className="mt-1 border-t border-[var(--crt-line)] px-3 pt-1.5 pb-1 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase"
+                      >
+                        {group}
+                      </p>
+                    ) : null}
+                    <button
+                      aria-checked={checked}
+                      aria-describedby={hint ? `${hintId}-hint-${index}` : undefined}
+                      aria-labelledby={hint ? `${hintId}-label-${index}` : undefined}
+                      className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
+                      disabled={disabled}
+                      onClick={() => {
+                        // Focus returns to the trigger first, so a dialog the action opens restores it there.
+                        close(true)
+                        onSelect?.()
+                      }}
+                      role={checked === undefined ? 'menuitem' : 'menuitemradio'}
+                      tabIndex={-1}
+                      type="button"
+                    >
+                      {Icon ? (
+                        <Icon aria-hidden="true" className="size-4 shrink-0" />
+                      ) : (
+                        <span aria-hidden="true" className="size-4 shrink-0" />
+                      )}
+                      {hint ? (
+                        <span className="grid">
+                          <span id={`${hintId}-label-${index}`}>{label}</span>
+                          <span
+                            className="text-xs text-[var(--crt-ink-3)]"
+                            id={`${hintId}-hint-${index}`}
+                          >
+                            {hint}
+                          </span>
                         </span>
-                      </span>
-                    ) : (
-                      <span>{label}</span>
-                    )}
-                  </button>
+                      ) : (
+                        <span>{label}</span>
+                      )}
+                    </button>
+                  </Fragment>
                 ),
               )}
             </div>,

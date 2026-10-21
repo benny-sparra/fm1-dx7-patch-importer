@@ -1349,6 +1349,8 @@ export default {
     reorder: 'Réorganiser {{name}}',
     reorderPatch: 'Réorganiser {{slot}} {{name}}',
     moveEarlier: 'Déplacer avant',
+    menuOrder: 'Ordre',
+    menuTransfer: 'Transfert',
     moveLater: 'Déplacer après',
     reorderTitle:
       'Faites glisser pour réorganiser, ou sur une banque pour y copier le son ; utilisez les flèches au clavier pour réorganiser',

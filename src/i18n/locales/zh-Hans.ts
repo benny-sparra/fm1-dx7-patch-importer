@@ -1217,6 +1217,8 @@ export default {
     reorder: '重新排列 {{name}}',
     reorderPatch: '重新排列 {{slot}} {{name}}',
     moveEarlier: '前移',
+    menuOrder: '顺序',
+    menuTransfer: '传输',
     moveLater: '后移',
     reorderTitle:
       '拖动以重新排列，或拖到某个音色库上将音色复制到该库；获得焦点时可使用方向键重新排列',
