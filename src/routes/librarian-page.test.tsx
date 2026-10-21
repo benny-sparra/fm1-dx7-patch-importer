@@ -1068,7 +1068,7 @@ describe('LibrarianPage while MIDI has no output', () => {
 
   const offlineNote = 'Switch MIDI online to send. Until then, clicking a patch only selects it.'
 
-  it('marks Send to FM1 aria-disabled with its reason in view, keeps it focusable, and sends nothing', async () => {
+  it('marks Send to FM1 aria-disabled with its reason as its description, keeps it focusable, and sends nothing', async () => {
     const user = userEvent.setup()
     const offlineMidi = makeLibrarianMidi()
     renderLibrarianPage({ midi: offlineMidi })

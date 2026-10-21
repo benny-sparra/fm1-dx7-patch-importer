@@ -736,9 +736,9 @@ export function LibrarianPage({
   const showsFavourites = !isSearching && destinationBank === favouritesBank
   const favouriteCount = library.favourites.length
   const canSendDestination = showsFavourites ? favouriteCount > 0 : isDestinationBankLoaded
-  // Said beside Send to FM1 rather than only in its tooltip: what stops it and what a slot click
-  // does meanwhile, or what an FM1 whose firmware is not identified gets. Nothing shows while MIDI
-  // connects, so the line does not appear and vanish as MIDI left connected comes back.
+  // Send to FM1's description, read with it rather than only in its tooltip: what stops it and
+  // what a slot click does meanwhile, or what an FM1 whose firmware is not identified gets. None
+  // while MIDI connects, when the switch beside it already says so.
   const sendNote =
     isSearching || midi.isConnecting
       ? null
@@ -1087,25 +1087,22 @@ export function LibrarianPage({
                 </div>
               </details>
             </span>
-            {/* Its own line above the button on a phone; beside it, at the right, from md. */}
             {sendNote ? (
-              <p
-                className="w-full min-w-0 text-xs leading-4 text-[var(--crt-ink-2)] md:ml-auto md:w-auto md:max-w-80 md:text-right"
+              <span
+                className="sr-only"
                 id={sendNoteId}
                 // Keyed by its text: a page translator's replaced text would otherwise stay
                 // behind when the reason changes.
                 key={sendNote}
               >
                 {sendNote}
-              </p>
+              </span>
             ) : null}
             <button
               aria-describedby={sendNote ? sendNoteId : undefined}
               aria-disabled={!midi.hasMidiOutput || undefined}
               className={cn(
-                'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none md:flex-none',
-                // The note takes the free space when it shows, so the button stays at the right.
-                !sendNote && 'md:ml-auto',
+                'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none md:ml-auto md:flex-none',
                 // A barber pole while the bank is on its way, rather than the dimmed look of a
                 // button that cannot be used.
                 isSending ? 'barber-pole' : 'disabled:opacity-50',
