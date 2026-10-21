@@ -1331,6 +1331,8 @@ export default {
     reorder: 'Reordenar {{name}}',
     reorderPatch: 'Reordenar {{slot}} {{name}}',
     moveEarlier: 'Mover para antes',
+    menuOrder: 'Ordem',
+    menuTransfer: 'Transferir',
     moveLater: 'Mover para depois',
     reorderTitle:
       'Arraste para reordenar, ou sobre um banco para copiar o som para lá; use as setas para reordenar quando estiver em foco',

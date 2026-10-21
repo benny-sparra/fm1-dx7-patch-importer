@@ -38,24 +38,33 @@ export function PatchSlotMenu({
   onShare,
 }: PatchSlotMenuProps) {
   const { t } = useTranslation()
+  const transfer = t('banks.menuTransfer')
+  const order = t('banks.menuOrder')
 
   return (
     <PortalMenu
       items={[
         { Icon: Pencil, label: t('banks.editSelected'), onSelect: onEdit },
-        { Icon: Copy, label: t('banks.copySelected'), onSelect: onCopy },
-        { Icon: Upload, label: t('banks.importPatchFile'), onSelect: onReplace },
-        { Icon: Cable, label: t('banks.receivePatch'), onSelect: onReceive },
-        { Icon: Download, label: t('banks.downloadPatchFile'), onSelect: onDownload },
-        { Icon: Link, label: t('shareLink.menuItem'), onSelect: onShare },
         { Icon: ArrowRightLeft, label: t('changeToFm.menuItem'), onSelect: onChangeToFm },
+        { Icon: Copy, group: transfer, label: t('banks.copySelected'), onSelect: onCopy },
+        { Icon: Upload, group: transfer, label: t('banks.importPatchFile'), onSelect: onReplace },
+        { Icon: Cable, group: transfer, label: t('banks.receivePatch'), onSelect: onReceive },
+        {
+          Icon: Download,
+          group: transfer,
+          label: t('banks.downloadPatchFile'),
+          onSelect: onDownload,
+        },
+        { Icon: Link, group: transfer, label: t('shareLink.menuItem'), onSelect: onShare },
         {
           disabled: move && !move.canMoveEarlier,
+          group: order,
           label: t('banks.moveEarlier'),
           onSelect: move && (() => move.onMove(-1)),
         },
         {
           disabled: move && !move.canMoveLater,
+          group: order,
           label: t('banks.moveLater'),
           onSelect: move && (() => move.onMove(1)),
         },

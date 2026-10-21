@@ -1362,6 +1362,8 @@ export default {
     reorder: '{{name}} verschieben',
     reorderPatch: '{{slot}} {{name}} verschieben',
     moveEarlier: 'Nach vorn verschieben',
+    menuOrder: 'Reihenfolge',
+    menuTransfer: 'Übertragen',
     moveLater: 'Nach hinten verschieben',
     reorderTitle:
       'Zum Sortieren ziehen, oder auf eine Bank, um den Sound dorthin zu kopieren; bei Fokus mit Pfeiltasten sortieren',
