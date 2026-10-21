@@ -110,6 +110,14 @@ export function MidiFirmwareBadge({
 }) {
   const { t } = useTranslation()
   const { firmware } = midi
+  // Offline, its place says what the switch beside it is for, so the next step is in view.
+  if (!midi.midiAccess && !midi.isConnecting) {
+    return (
+      <span className={className ?? 'inline-flex min-h-8 items-center gap-2'}>
+        <span className="text-xs text-[var(--crt-ink-2)]">{t('midi.offlineHint')}</span>
+      </span>
+    )
+  }
   if (firmware.kind === 'checking' || firmware.kind === 'unidentified') {
     // The FM1's answer is on its way while MIDI connects and is asked, and on a phone the badge is
     // a row of its own, so its place stays, empty, rather than the page moving down when it fills.

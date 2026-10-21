@@ -38,21 +38,31 @@ function letLedGoDark() {
 }
 
 describe('MidiActivityLeds', () => {
+  it('dims while MIDI is offline, and not once it is online', () => {
+    const { container, rerender } = render(<MidiActivityLeds midi={{ midiAccess: false }} />)
+    const readout = container.firstElementChild
+    expect(readout?.hasAttribute('data-offline')).toBe(true)
+    expect(readout?.getAttribute('aria-hidden')).toBe('true')
+
+    rerender(<MidiActivityLeds midi={{ midiAccess: true }} />)
+    expect(readout?.hasAttribute('data-offline')).toBe(false)
+  })
+
   it('stays out of the accessibility tree, leaving the MIDI log as the record', () => {
-    render(<MidiActivityLeds />)
+    render(<MidiActivityLeds midi={{ midiAccess: true }} />)
 
     expect(screen.getByTitle(activityTitle).getAttribute('aria-hidden')).toBe('true')
   })
 
   it('starts dark', () => {
-    render(<MidiActivityLeds />)
+    render(<MidiActivityLeds midi={{ midiAccess: true }} />)
 
     expect(led('IN')?.hasAttribute('data-lit')).toBe(false)
     expect(led('OUT')?.hasAttribute('data-lit')).toBe(false)
   })
 
   it('lights OUT as the editor sends a message', () => {
-    render(<MidiActivityLeds />)
+    render(<MidiActivityLeds midi={{ midiAccess: true }} />)
 
     act(() => sendNoteOn(makeOutput() as never, 1, 60))
 
@@ -62,7 +72,7 @@ describe('MidiActivityLeds', () => {
   })
 
   it('lights IN as a message arrives', () => {
-    render(<MidiActivityLeds />)
+    render(<MidiActivityLeds midi={{ midiAccess: true }} />)
 
     act(() => midiActivity.signal('in'))
 
@@ -71,7 +81,7 @@ describe('MidiActivityLeds', () => {
   })
 
   it('goes dark once the messages stop', () => {
-    render(<MidiActivityLeds />)
+    render(<MidiActivityLeds midi={{ midiAccess: true }} />)
 
     act(() => sendEveryNoteOff(makeOutput() as never, 1))
     letLedGoDark()

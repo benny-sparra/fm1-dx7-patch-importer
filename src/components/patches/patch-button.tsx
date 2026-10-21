@@ -25,6 +25,8 @@ type PatchButtonProps = {
   isActive?: boolean
   /** Whether Favourites holds this sound, which lights the slot's heart. */
   isFavourite?: boolean
+  /** True while MIDI has no output, so a click selects the slot without reaching the FM1. */
+  isMidiOffline?: boolean
   /** Moves the slot one place in its bank from its menu, as dragging its grip does. */
   move?: PatchSlotMove
   /** Offered on a Virtual Analog patch only. */
@@ -62,6 +64,7 @@ export function PatchButton({
   disabledTitle,
   isActive = false,
   isFavourite = false,
+  isMidiOffline = false,
   move,
   onChangeToFm,
   onCopy,
@@ -100,17 +103,19 @@ export function PatchButton({
   // What clicking the slot does, under the engine's name where the slot marks its engine.
   const action = isActive
     ? t('banks.slotEditTitle', { name: patch.name })
-    : isEightBit
-      ? patch.program === undefined
-        ? t('banks.slotEightBitAddedTitle', { name: patch.name })
-        : t('banks.slotEightBitTitle', { name: patch.name })
-      : isVirtualAnalog
+    : isMidiOffline
+      ? t('banks.slotOfflineTitle', { name: patch.name })
+      : isEightBit
         ? patch.program === undefined
-          ? t('banks.slotVirtualAnalogAddedTitle', { name: patch.name })
-          : t('banks.slotVirtualAnalogTitle', { name: patch.name })
-        : patch.program === undefined
-          ? t('banks.slotEditBufferTitle', { name: patch.name })
-          : t('banks.slotTitle', { name: patch.name })
+          ? t('banks.slotEightBitAddedTitle', { name: patch.name })
+          : t('banks.slotEightBitTitle', { name: patch.name })
+        : isVirtualAnalog
+          ? patch.program === undefined
+            ? t('banks.slotVirtualAnalogAddedTitle', { name: patch.name })
+            : t('banks.slotVirtualAnalogTitle', { name: patch.name })
+          : patch.program === undefined
+            ? t('banks.slotEditBufferTitle', { name: patch.name })
+            : t('banks.slotTitle', { name: patch.name })
   const sortable = useSortable({
     animateLayoutChanges: animateWhileSorting,
     attributes: { roleDescription: t('ui.drag.roleDescription') },

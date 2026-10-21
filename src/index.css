@@ -762,6 +762,10 @@
     color: var(--crt-ink-3);
   }
 
+  .midi-activity[data-offline] {
+    opacity: 0.5;
+  }
+
   .midi-activity-led {
     flex: none;
     width: 0.4375rem;

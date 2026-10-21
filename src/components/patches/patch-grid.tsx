@@ -60,6 +60,8 @@ type PatchGridProps = {
   headerActions?: ReactNode
   isBankLoaded?: boolean
   isFavourite?: (patch: Patch) => boolean
+  /** True while MIDI has no output, which a slot's title says since clicking only selects it. */
+  isMidiOffline?: boolean
   isPatchDisabled?: (patch: Patch) => boolean
   onPatchChangeToFm?: (patch: Patch) => void
   onPatchCopy?: (patch: Patch) => void
@@ -113,6 +115,7 @@ export function PatchGrid({
   headerActions,
   isBankLoaded = true,
   isFavourite = () => false,
+  isMidiOffline = false,
   isPatchDisabled = () => false,
   onPatchChangeToFm,
   onPatchCopy,
@@ -327,6 +330,7 @@ export function PatchGrid({
                             onSelect={onPatchSelect}
                             onToggleFavourite={onPatchToggleFavourite}
                             isFavourite={isFavourite(patch)}
+                            isMidiOffline={isMidiOffline}
                             move={{
                               canMoveEarlier: patches[index - 1]?.bank === patch.bank,
                               canMoveLater: patches[index + 1]?.bank === patch.bank,

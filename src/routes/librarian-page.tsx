@@ -371,6 +371,7 @@ export function LibrarianPage({
   const otherFilesMenuHeadingId = useId()
   const backupMenuHeadingId = useId()
   const lastBackupId = useId()
+  const sendNoteId = useId()
   const sysexContentsId = useId()
   const sendButtonRef = useRef<HTMLButtonElement>(null)
   // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
@@ -391,7 +392,8 @@ export function LibrarianPage({
   const isDestinationBankLoaded = library.loadedBanks.includes(destinationBank)
   // Baud Girl's firmware stores each preset as written, effects included, so Send to FM1 writes the
   // bank preset by preset over an FM1 bank chosen in the app, rather than sending a DX7 bank.
-  const sendsByPresetWrite = resolveFirmwareProfile(midi.firmware).capabilities.presetWrite
+  const firmwareProfile = resolveFirmwareProfile(midi.firmware)
+  const sendsByPresetWrite = firmwareProfile.capabilities.presetWrite
   const workspaceBankLabel = useWorkspaceBankLabel(library)
   // Favourites shows in the bank rail, so its name reads wherever a bank's name would.
   const bankDisplayName = (bank: string) =>
@@ -734,6 +736,19 @@ export function LibrarianPage({
   const showsFavourites = !isSearching && destinationBank === favouritesBank
   const favouriteCount = library.favourites.length
   const canSendDestination = showsFavourites ? favouriteCount > 0 : isDestinationBankLoaded
+  // Send to FM1's description, read with it rather than only in its tooltip: what stops it and
+  // what a slot click does meanwhile, or what an FM1 whose firmware is not identified gets. None
+  // while MIDI connects, when the switch beside it already says so.
+  const sendNote =
+    isSearching || midi.isConnecting
+      ? null
+      : !midi.hasMidiOutput
+        ? midi.midiAccess
+          ? t('banks.sendNoOutput')
+          : t('banks.sendOffline')
+        : firmwareProfile.family === 'unidentified'
+          ? t('banks.sendUnidentified')
+          : null
   // A bank holds 32 DX7 voices, so the destination instructions say before sending what Favourites
   // becomes on the FM1, or that a bank's Virtual Analog and 8-Bit presets become INIT VOICE.
   const destinationInitVoiceCount = showsFavourites ? 0 : initVoiceCount(destinationBank)
@@ -1021,6 +1036,7 @@ export function LibrarianPage({
       ) : null}
       <PatchGrid
         activePatchId={activePatchId}
+        isMidiOffline={!midi.hasMidiOutput}
         actions={
           <>
             {/* The selected bank reads back as a lit slot, as on the panel. */}
@@ -1071,7 +1087,20 @@ export function LibrarianPage({
                 </div>
               </details>
             </span>
+            {sendNote ? (
+              <span
+                className="sr-only"
+                id={sendNoteId}
+                // Keyed by its text: a page translator's replaced text would otherwise stay
+                // behind when the reason changes.
+                key={sendNote}
+              >
+                {sendNote}
+              </span>
+            ) : null}
             <button
+              aria-describedby={sendNote ? sendNoteId : undefined}
+              aria-disabled={!midi.hasMidiOutput || undefined}
               className={cn(
                 'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none md:ml-auto md:flex-none',
                 // A barber pole while the bank is on its way, rather than the dimmed look of a

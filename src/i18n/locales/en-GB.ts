@@ -440,6 +440,7 @@ export default {
     panicUnavailable: 'MIDI panic: {{reason}}',
     online: 'MIDI online',
     offline: 'MIDI offline',
+    offlineHint: 'Switch on to reach the FM1',
     connectFirst: 'Connect a MIDI output first',
     chooseOutput: 'Choose a MIDI output',
     switchOnFirst: 'Switch MIDI on first',
@@ -541,6 +542,12 @@ export default {
     loadDemo: 'Load demo bank',
     editSelected: 'Edit',
     slotTitle: 'Click to play {{name}} on the FM1; double-click to edit',
+    sendOffline: 'Switch MIDI online to send. Until then, clicking a patch only selects it.',
+    sendNoOutput:
+      'Choose a MIDI output in Settings to send. Until then, clicking a patch only selects it.',
+    sendUnidentified:
+      'Firmware not identified: the FM1 gets a plain DX7 bank, and patches as unsaved edits.',
+    slotOfflineTitle: 'MIDI is offline, so a click only selects {{name}}; double-click to edit',
     slotEditBufferTitle: 'Click to play {{name}} through the FM1 edit buffer; double-click to edit',
     slotEditTitle: 'Double-click or press Enter to edit {{name}}',
     sendPatch: 'Send {{slot}} {{name}} to FM1',
