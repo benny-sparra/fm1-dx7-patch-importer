@@ -28,6 +28,51 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Worth doing
 
+- [ ] **Stock firmware V16 (`FM-1_016`).** M-VAVE published it on 2026-10-21 (forum topic 23,
+      "FM-1 Official Firmware Update Summary", file `FM-1_016.fwsc`) as the successor to V15. It
+      identifies as `FM-1_016`, so the editor already classes it `mvave`. Ranked first because
+      the editor's effect sends may now do the wrong thing on it. None of the release notes below is
+      confirmed on hardware; treat every row as **Needs hardware test** until a run is recorded in
+      `docs/hardware-runs/` and `docs/fm1-research.md`.
+  1. **Effect controllers moved (urgent).** The notes say FX control is now CC 70–93 on the Effect
+     Ch channel (Filter 70–73, Reverb 74–77, Delay 78–81, Distortion 82–85, Chorus 86–89,
+     Phaser 90–93), and "the former CC0–23 FX mapping is no longer active". The editor sends
+     CC 0–23, and on V16 CC 1, 2, 4, 7, and 11 are modulation, master volume, and expression, so an
+     effect send could change the sound or the volume rather than an effect. Until a V16 run shows
+     what happens, give V16 no `effectControllers` and keep its effects local, as Official Open
+     does: add a stock release threshold to `familyProfiles` (`mvave` lists `effectControllers`
+     from release 0 today, so the capability becomes "0 to 15", which the profile's
+     first-release shape cannot say; extend it, never branch in the sender). Then, once the run
+     confirms CC 70–93, send them on V16 and later.
+  2. **Say what V16 is.** The badge, the firmware setting, and the bank instructions word stock as
+     one thing. Add V16's differences once they are confirmed: eight parts, 20 voices shared, the
+     effects as one shared library of 128 groups that no longer follows the preset.
+  3. **Voice sends with eight parts.** V16 gives each of eight Voices its own preset and MIDI
+     receive channel. Check on hardware where a single-voice dump, the 155 parameter changes, and a
+     Program Change land: the Voice on the note channel, Voice 1, or every Voice. Check the editor's
+     audition notes too. The editor may need to say which Voice it edits.
+  4. **Bank Export into the library.** V16 sends the 32 saved presets of a bank as a standard DX7
+     `.syx` (voice data only: no ENV, effects, Voice setup, or patterns). If a run shows the
+     FM1 sends that as ordinary Yamaha bulk-dump messages, the existing **Receive patch…** listener
+     could take the bank, giving the first supported way to read a stock FM1 back. Needs a capture
+     first (the format, its pacing, and whether it is a bulk dump or the vendor protocol), and its
+     own approval in `AGENTS.md` if it sends anything. Bank import now waits for a destination bank
+     choice on the FM1, which may change how **Send to FM1** instructions read.
+  5. **New CCs worth knowing, not building yet.** CC 7 master volume, CC 11 expression, panic on
+     holding PLAY/STOP, and key LEDs lit by notes 0–26 on the Effect Ch channel. The editor's
+     MIDI panic already sends Note Offs; do not add these without a use.
+  6. **Sequencer and arrangement changes.** Patterns grow to 64 steps with ratchets, and an
+     eight-track arrangement replaces chaining. This reopens none of the parked sequencer
+     (see [the roadmap](fm1-roadmap.md)); record it in `docs/fm1-research.md` so the next
+     attempt starts from V16, not V15.
+  7. **Housekeeping.** Update the firmware page's stock entry to V16 (`data-updated`
+     2026-10-21, the Latest strip, and `npm run firmware:stars`), and add the release notes to
+     `docs/fm1-research.md`.
+  - Order: 1 (a safe default, before anyone on V16 sends effects), then 7, then the hardware run
+    that settles 1, 3, and 4 together, then 2, then 4's build if the capture allows it.
+  - Tests: a `firmware-profile.test.ts` case on each side of the V16 threshold, a rendered test
+    that V16 sends no effect controller, and fixtures for any capture.
+
 - [x] **Effect presets.** A presets menu in each effect's box on the effects panel, like the pitch
       envelope presets, that sets that FM1 effect (filter, reverb, delay, distortion, chorus, phaser)
       without touching the DX7 voice or the other effects.
