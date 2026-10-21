@@ -371,6 +371,7 @@ export function LibrarianPage({
   const otherFilesMenuHeadingId = useId()
   const backupMenuHeadingId = useId()
   const lastBackupId = useId()
+  const sendOfflineReasonId = useId()
   const sysexContentsId = useId()
   const sendButtonRef = useRef<HTMLButtonElement>(null)
   // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
@@ -1021,6 +1022,7 @@ export function LibrarianPage({
       ) : null}
       <PatchGrid
         activePatchId={activePatchId}
+        isMidiOffline={!midi.hasMidiOutput}
         actions={
           <>
             {/* The selected bank reads back as a lit slot, as on the panel. */}
@@ -1072,6 +1074,8 @@ export function LibrarianPage({
               </details>
             </span>
             <button
+              aria-describedby={midi.hasMidiOutput ? undefined : sendOfflineReasonId}
+              aria-disabled={!midi.hasMidiOutput || undefined}
               className={cn(
                 'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none md:ml-auto md:flex-none',
                 // A barber pole while the bank is on its way, rather than the dimmed look of a
@@ -1103,6 +1107,11 @@ export function LibrarianPage({
               <Send aria-hidden="true" className="size-3.5" />
               <span>{isSending ? t('banks.sending') : t('banks.send')}</span>
             </button>
+            {midi.hasMidiOutput ? null : (
+              <span className="sr-only" id={sendOfflineReasonId}>
+                {t('midi.connectFirst')}
+              </span>
+            )}
           </>
         }
         headerActions={

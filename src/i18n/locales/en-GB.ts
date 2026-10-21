@@ -541,6 +541,7 @@ export default {
     loadDemo: 'Load demo bank',
     editSelected: 'Edit',
     slotTitle: 'Click to play {{name}} on the FM1; double-click to edit',
+    slotOfflineTitle: 'MIDI is offline, so a click only selects {{name}}; double-click to edit',
     slotEditBufferTitle: 'Click to play {{name}} through the FM1 edit buffer; double-click to edit',
     slotEditTitle: 'Double-click or press Enter to edit {{name}}',
     sendPatch: 'Send {{slot}} {{name}} to FM1',

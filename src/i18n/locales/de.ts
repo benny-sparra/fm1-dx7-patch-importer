@@ -1342,6 +1342,8 @@ export default {
     loadDemo: 'Demo-Bank laden',
     editSelected: 'Bearbeiten',
     slotTitle: 'Klicken, um {{name}} auf dem FM1 zu spielen; Doppelklick zum Bearbeiten',
+    slotOfflineTitle:
+      'MIDI ist offline, ein Klick wählt {{name}} daher nur aus; Doppelklick zum Bearbeiten',
     slotEditBufferTitle:
       'Klicken, um {{name}} über den Bearbeitungspuffer des FM1 zu spielen; Doppelklick zum Bearbeiten',
     slotEditTitle: 'Doppelklicken oder Eingabetaste drücken, um {{name}} zu bearbeiten',

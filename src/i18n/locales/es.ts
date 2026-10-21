@@ -1325,6 +1325,8 @@ export default {
     loadDemo: 'Cargar banco de demostración',
     editSelected: 'Editar',
     slotTitle: 'Haz clic para tocar {{name}} en el FM1; doble clic para editarlo',
+    slotOfflineTitle:
+      'MIDI está sin conexión, así que un clic solo selecciona {{name}}; doble clic para editarlo',
     slotEditBufferTitle:
       'Haz clic para escuchar {{name}} a través del búfer de edición del FM1; doble clic para editar',
     slotEditTitle: 'Haz doble clic o pulsa Intro para editar {{name}}',

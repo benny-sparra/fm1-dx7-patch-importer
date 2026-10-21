@@ -647,7 +647,7 @@ describe('LibrarianPage slot tooltips', () => {
         { bank: 'A', family: 'DX7', id: 'bank-A-2', name: 'Added Pad', number: 2 },
       ],
     }
-    renderLibrarianPage({ library: slotLibrary })
+    renderLibrarianPage({ library: slotLibrary, midi: makeLibrarianMidi({ hasMidiOutput: true }) })
 
     expect(
       screen.getByRole('button', { name: sendSlotName('Hardware Keys') }).getAttribute('title'),
@@ -1055,6 +1055,78 @@ describe('LibrarianPage bank menu dialogs', () => {
 
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(document.activeElement).toBe(send)
+  })
+})
+
+describe('LibrarianPage while MIDI has no output', () => {
+  const offlineSlotTitle =
+    'MIDI is offline, so a click only selects Alpha Piano; double-click to edit'
+
+  it('marks Send to FM1 aria-disabled with the reason, keeps it focusable, and still opens the connect dialog', async () => {
+    const user = userEvent.setup()
+    renderLibrarianPage()
+    const send = screen.getByRole('button', { name: 'Send to FM1' })
+
+    expect(send.getAttribute('aria-disabled')).toBe('true')
+    expect(send.hasAttribute('disabled')).toBe(false)
+    expect(send.getAttribute('aria-describedby')).not.toBeNull()
+    expect(
+      screen.getByRole('button', {
+        name: 'Send to FM1',
+        description: 'Connect a MIDI output first',
+      }),
+    ).toBe(send)
+    send.focus()
+    expect(document.activeElement).toBe(send)
+
+    await user.click(send)
+
+    expect(screen.getByRole('dialog', { name: 'Connect MIDI to send this bank' })).toBeTruthy()
+  })
+
+  it('leaves Send to FM1 live, with no offline description, while MIDI has an output', () => {
+    renderLibrarianPage({
+      midi: makeLibrarianMidi({ hasMidiOutput: true, sysexAvailable: true }),
+    })
+    const send = screen.getByRole('button', { name: 'Send to FM1' })
+
+    expect(send.hasAttribute('aria-disabled')).toBe(false)
+    expect(send.hasAttribute('aria-describedby')).toBe(false)
+    expect(screen.queryByText('Connect a MIDI output first')).toBeNull()
+  })
+
+  it('says in a slot’s description that MIDI is offline, and not once it is online', () => {
+    const { unmount } = renderLibrarianPage()
+    expect(
+      screen.getByRole('button', {
+        name: sendSlotName('Alpha Piano'),
+        description: offlineSlotTitle,
+      }),
+    ).toBeTruthy()
+    unmount()
+
+    renderLibrarianPage({ midi: makeLibrarianMidi({ hasMidiOutput: true }) })
+    expect(
+      screen.getByRole('button', { name: sendSlotName('Alpha Piano') }).getAttribute('title'),
+    ).toBe('Click to play Alpha Piano on the FM1; double-click to edit')
+  })
+
+  it('shows both offline messages in Ukrainian without breaking under a page translator', async () => {
+    await setLocale('uk')
+    try {
+      renderLibrarianPage()
+      const send = screen.getByRole('button', { name: 'Надіслати на FM1' })
+      expect(send.getAttribute('aria-disabled')).toBe('true')
+      expect(screen.getByText('Спершу підключіть MIDI-вихід')).toBeTruthy()
+      expect(
+        screen.getByTitle('MIDI офлайн, тож клік лише вибирає Alpha Piano; двічі — щоб редагувати'),
+      ).toBeTruthy()
+
+      translatePageText(document.body)
+      expect(screen.getByText('Спершу підключіть MIDI-вихід')).toBeTruthy()
+    } finally {
+      await setLocale('en-GB')
+    }
   })
 })
 

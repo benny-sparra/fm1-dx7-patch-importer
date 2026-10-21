@@ -1202,6 +1202,7 @@ export default {
     loadDemo: '加载演示音色库',
     editSelected: '编辑',
     slotTitle: '单击可在 FM1 上演奏 {{name}}；双击可编辑',
+    slotOfflineTitle: 'MIDI 处于离线状态，单击只会选中 {{name}}；双击可编辑',
     slotEditBufferTitle: '单击通过 FM1 编辑缓冲区试听 {{name}}；双击进行编辑',
     slotEditTitle: '双击或按 Enter 键编辑 {{name}}',
     sendPatch: '将 {{slot}} {{name}} 发送到 FM1',

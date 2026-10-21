@@ -1329,6 +1329,8 @@ export default {
     loadDemo: 'Charger la banque démo',
     editSelected: 'Modifier',
     slotTitle: 'Cliquer pour jouer {{name}} sur le FM1 ; double-cliquer pour le modifier',
+    slotOfflineTitle:
+      'MIDI est hors ligne : un clic ne fait que sélectionner {{name}} ; double-cliquer pour le modifier',
     slotEditBufferTitle:
       'Cliquez pour écouter {{name}} via le tampon d’édition du FM1 ; double-cliquez pour le modifier',
     slotEditTitle: 'Double-cliquer ou appuyer sur Entrée pour modifier {{name}}',

@@ -1382,6 +1382,7 @@ export default {
     loadDemo: 'Відкрити демобанк',
     editSelected: 'Редагувати',
     slotTitle: 'Натисніть, щоб зіграти {{name}} на FM1; двічі — щоб редагувати',
+    slotOfflineTitle: 'MIDI офлайн, тож клік лише вибирає {{name}}; двічі — щоб редагувати',
     slotEditBufferTitle:
       'Натисніть, щоб зіграти {{name}} на FM1, не перезаписуючи пресет; двічі — щоб редагувати',
     slotEditTitle: 'Натисніть двічі або Enter, щоб редагувати {{name}}',

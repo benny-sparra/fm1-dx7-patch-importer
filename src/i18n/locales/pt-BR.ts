@@ -1312,6 +1312,8 @@ export default {
     loadDemo: 'Carregar banco de demonstração',
     editSelected: 'Editar',
     slotTitle: 'Clique para tocar {{name}} no FM1; clique duas vezes para editar',
+    slotOfflineTitle:
+      'O MIDI está offline, então um clique só seleciona {{name}}; clique duas vezes para editar',
     slotEditBufferTitle:
       'Clique para tocar {{name}} pelo buffer de edição do FM1; clique duas vezes para editar',
     slotEditTitle: 'Clique duas vezes ou pressione Enter para editar {{name}}',
