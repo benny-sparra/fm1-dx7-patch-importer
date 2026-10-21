@@ -394,10 +394,12 @@ export default {
     noDeviceSelected: 'No device selected',
   },
   help: {
-    open: 'How to use the FM1 editor and librarian',
+    caption: 'Help',
+    open: 'Help: how to use the FM1 editor and librarian',
   },
 
   colorway: {
+    caption: 'Finish',
     legend: 'FM1 colour finish',
     option: '{{colour}} FM1 finish',
     black: 'Black',
@@ -435,6 +437,7 @@ export default {
     officialOpenBadgeTitle:
       'The FM1 runs M-VAVE’s Open firmware, {{release}}, an eight-track groovebox. A patch you click or edit goes to the track on the note channel when that track runs DX7. It ignores DX7 banks, and the effect controls send nothing, since it would take them as changes to its tracks.',
     panic: 'MIDI panic',
+    panicLabel: 'Panic',
     panicHelp:
       'MIDI panic: send a note-off for every note on the note channel, to stop hanging notes',
     panicUnavailable: 'MIDI panic: {{reason}}',

@@ -1051,7 +1051,8 @@ export default {
     noDeviceSelected: 'Пристрій не обрано',
   },
   help: {
-    open: 'Як користуватися редактором і менеджером FM1',
+    caption: 'Довідка',
+    open: 'Довідка: як користуватися редактором і менеджером FM1',
     title: 'Ласкаво просимо до редактора і менеджера FM1',
     guideTitle: 'Довідка',
     close: 'Закрити довідку',
@@ -1100,6 +1101,7 @@ export default {
   },
 
   colorway: {
+    caption: 'Корпус',
     legend: 'Колір корпусу FM1',
     option: 'Корпус FM1: {{colour}}',
     black: 'Чорний',
@@ -1257,6 +1259,7 @@ export default {
     officialOpenBadgeTitle:
       'На FM1 працює прошивка Open від M-VAVE, {{release}}, groovebox на вісім доріжок. Патч, який ви клацаєте чи редагуєте, надходить на доріжку на каналі нот, якщо ця доріжка працює на DX7. Банки DX7 вона ігнорує, а керування ефектами нічого не надсилає, бо вона сприйняла б його як зміни своїх доріжок.',
     panic: 'MIDI panic',
+    panicLabel: 'Panic',
     panicHelp:
       'MIDI panic: надіслати Note Off для кожної ноти на каналі нот, щоб зупинити завислі ноти',
     panicUnavailable: 'MIDI panic: {{reason}}',

@@ -590,6 +590,29 @@
     }
   }
 
+  /*
+   * On a phone the title runs the header's full width, beneath the controls at
+   * its top right, and wraps as words rather than as a block per line, so it
+   * takes two lines. Its size follows the width, so the longest word of any
+   * locale's subtitle, French's “bibliothécaire”, still fits at 320 px.
+   */
+  @media (width < 40rem) {
+    .synthwave-title[data-layout='full'] {
+      display: block;
+      font-size: clamp(1.25rem, calc((100vw - 2rem) / 10), 2.25rem);
+    }
+
+    .synthwave-title[data-layout='full'] .synthwave-hero-accent {
+      margin-inline-start: 0.3em;
+    }
+
+    /* The brand line keeps the height of the captioned controls beside it. */
+    .synthwave-title[data-layout='full'] .synthwave-brand-row {
+      align-items: center;
+      min-height: 2.5rem;
+    }
+  }
+
   .synthwave-brand-row {
     display: flex;
     flex-basis: 100%;
@@ -624,6 +647,23 @@
     border-right: 1px solid var(--crt-shadow);
     border-bottom: 1px solid var(--crt-shadow);
     letter-spacing: 0.08em;
+  }
+
+  /* A header key over its caption, the way the FM1 prints a name under a button. */
+  .hero-captioned {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .hero-caption {
+    color: var(--hero-supporting-foreground);
+    font-size: 0.625rem;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .hero-action:hover {

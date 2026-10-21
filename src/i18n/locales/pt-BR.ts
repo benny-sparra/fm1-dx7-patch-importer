@@ -981,7 +981,8 @@ export default {
     noDeviceSelected: 'Nenhum dispositivo selecionado',
   },
   help: {
-    open: 'Como usar o editor e bibliotecário FM1',
+    caption: 'Ajuda',
+    open: 'Ajuda: como usar o editor e bibliotecário FM1',
     title: 'Boas-vindas ao editor e bibliotecário FM1',
     guideTitle: 'Guia',
     close: 'Fechar ajuda',
@@ -1028,6 +1029,7 @@ export default {
   },
 
   colorway: {
+    caption: 'Acabamento',
     legend: 'Cor do acabamento do FM1',
     option: 'Acabamento {{colour}} do FM1',
     black: 'Preto',
@@ -1184,6 +1186,7 @@ export default {
     officialOpenBadgeTitle:
       'O FM1 usa o firmware Open da M-VAVE, {{release}}, uma groovebox de oito faixas. Um som em que você clica ou que edita vai para a faixa do canal de notas quando essa faixa usa DX7. Ele ignora bancos DX7, e os controles de efeito não enviam nada, porque ele os trataria como mudanças nas faixas.',
     panic: 'Pânico MIDI',
+    panicLabel: 'Pânico',
     panicHelp:
       'Pânico MIDI: envia um note-off para cada nota do canal de notas e interrompe as notas presas',
     panicUnavailable: 'Pânico MIDI: {{reason}}',

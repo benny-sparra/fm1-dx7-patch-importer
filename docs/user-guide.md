@@ -5,7 +5,7 @@ see the [README](../README.md).
 
 ## Welcome and guide
 
-A first visit opens a short welcome: what the app does and three steps to start. **Full guide** turns it into the guide. Once closed, by **Start editing** or **✕**, it does not open itself again in that browser. The **?** button in the header opens the guide whenever you want it. Its **Getting started** tab explains connecting, playing and editing, sending, and keeping a backup, and, once the FM1 is identified as running Baud Girl's FM-1+VA, what that firmware adds. Its **Keyboard shortcuts** tab lists the shortcuts below.
+A first visit opens a short welcome: what the app does and three steps to start. **Full guide** turns it into the guide. Once closed, by **Start editing** or **✕**, it does not open itself again in that browser. The **Help** button (**?**) in the header opens the guide whenever you want it; beside it, **Finish** chooses the colour of the FM1 the page follows, and **Settings** holds the language and MIDI settings. Its **Getting started** tab explains connecting, playing and editing, sending, and keeping a backup, and, once the FM1 is identified as running Baud Girl's FM-1+VA, what that firmware adds. Its **Keyboard shortcuts** tab lists the shortcuts below.
 
 A link to a shared patch opens that patch instead of the welcome.
 
