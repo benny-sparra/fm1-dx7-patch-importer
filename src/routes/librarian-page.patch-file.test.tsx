@@ -10,7 +10,7 @@ import { updateDx7VoiceName } from '@/lib/dx7'
 import { makeDx7VoiceFile, parseDx7VoiceFile } from '@/lib/dx7-voice-file'
 import { downloadFile } from '@/lib/download-file'
 import { emptyPatchLibrary, makeDemoVoices } from '@/lib/patch-library'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { makeLibrarianLibrary, makeLibrarianMidi, slotMenuName } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -65,7 +65,7 @@ async function openSlotMenu(library = makeLibrary()) {
       />
     </ToastProvider>,
   )
-  await user.click(screen.getByRole('button', { name: 'Actions for ALPHA' }))
+  await user.click(screen.getByRole('button', { name: slotMenuName('ALPHA') }))
   return { library, user }
 }
 

@@ -22,7 +22,13 @@ import {
   makePatches,
   type PatchLibrarySnapshot,
 } from '@/lib/patch-library'
-import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
+import {
+  favouriteSlotName,
+  makeLibrarianLibrary,
+  makeLibrarianMidi,
+  sendSlotName,
+  slotMenuName,
+} from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -108,8 +114,8 @@ describe('LibrarianPage hearts in a bank', () => {
   it('shows which slots hold a favourite sound', () => {
     renderPage(makeLibrary(makeWorkspace(1)))
 
-    const favourite = screen.getByRole('button', { name: `Favourite ${voices[0].name}` })
-    const other = screen.getByRole('button', { name: `Favourite ${voices[1].name}` })
+    const favourite = screen.getByRole('button', { name: favouriteSlotName(voices[0].name) })
+    const other = screen.getByRole('button', { name: favouriteSlotName(voices[1].name) })
     expect(favourite.getAttribute('aria-pressed')).toBe('true')
     expect(other.getAttribute('aria-pressed')).toBe('false')
   })
@@ -119,7 +125,7 @@ describe('LibrarianPage hearts in a bank', () => {
     const toggle = vi.fn<Library['toggleFavourite']>(() => ({ added: true, changed: snapshot }))
     const user = renderPage(makeLibrary(snapshot, { toggleFavourite: toggle }))
 
-    await user.click(screen.getByRole('button', { name: `Favourite ${voices[1].name}` }))
+    await user.click(screen.getByRole('button', { name: favouriteSlotName(voices[1].name) }))
 
     expect(toggle).toHaveBeenCalledExactlyOnceWith('bank-A-2')
     // The heart lighting is the confirmation; a notification for each would pile up.
@@ -147,7 +153,7 @@ describe('LibrarianPage Favourites', () => {
     const user = renderPage(makeLibrary(makeWorkspace(1)))
     await user.click(screen.getByRole('button', { name: 'Favourites' }))
 
-    await user.click(screen.getByRole('button', { name: `Actions for ${voices[0].name}` }))
+    await user.click(screen.getByRole('button', { name: slotMenuName(voices[0].name) }))
 
     expect(screen.getByRole('menuitem', { name: 'Copy to…' })).toBeTruthy()
     expect(screen.queryByRole('menuitem', { name: 'Import patch…' })).toBeNull()
@@ -157,7 +163,7 @@ describe('LibrarianPage Favourites', () => {
     const user = renderPage(makeLibrary(makeWorkspace(1)))
     await user.click(screen.getByRole('button', { name: 'Favourites' }))
 
-    await user.click(screen.getByRole('button', { name: `Actions for ${voices[0].name}` }))
+    await user.click(screen.getByRole('button', { name: slotMenuName(voices[0].name) }))
     await user.click(screen.getByRole('menuitem', { name: 'Copy to…' }))
     const dialog = await screen.findByRole('dialog', { name: `Copy ${voices[0].name}` })
 
@@ -176,7 +182,7 @@ describe('LibrarianPage Favourites', () => {
     )
     await user.click(screen.getByRole('button', { name: 'Favourites' }))
 
-    await user.click(screen.getByRole('button', { name: `Favourite ${voices[0].name}` }))
+    await user.click(screen.getByRole('button', { name: favouriteSlotName(voices[0].name) }))
     await screen.findByText(`Removed “${voices[0].name}” from Favourites.`)
     await user.click(screen.getByRole('button', { name: 'Undo' }))
 
@@ -301,6 +307,8 @@ describe('LibrarianPage Favourites', () => {
     renderPage(makeLibrary(makeWorkspace(1)))
 
     expect(screen.getByRole('button', { name: 'Favorites' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: `Favorite ${voices[0].name}` })).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: favouriteSlotName(voices[0].name, 'Favorite') }),
+    ).toBeTruthy()
   })
 })

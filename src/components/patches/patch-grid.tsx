@@ -258,7 +258,8 @@ export function PatchGrid({
               value={search}
             />
           </label>
-          {headerActions ? <div className="shrink-0">{headerActions}</div> : null}
+          {/* At the row's end even when it wraps below the title, since its menu opens leftwards. */}
+          {headerActions ? <div className="shrink-0 max-sm:ml-auto">{headerActions}</div> : null}
         </div>
       </CardHeader>
       {/* The bank rail shares the grid's drag context, so a slot can be dropped on a bank's tab. */}

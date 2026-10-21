@@ -26,6 +26,7 @@ import type { OfficialOpenTrackStatus as TrackStatus } from '@/components/midi/o
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
 import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dialog'
 import type { MidiController } from '@/hooks/use-midi'
+import { useLastBackupTime } from '@/hooks/use-workspace-backup'
 import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { isUnsupportedBrowser } from '@/lib/browser'
@@ -79,7 +80,8 @@ type RootLayoutProps = {
 }
 
 export function RootLayout({ children, compact = false, midi }: RootLayoutProps) {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
+  const lastBackupTime = useLastBackupTime()
   const intro = splitIntroLink(t('root.intro'))
   const unsupportedBrowser = isUnsupportedBrowser()
   const { colorway, setColorway } = useFm1Colorway()
@@ -281,7 +283,16 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             {/* InfoNotice's sunken fill without its sign, which would put the sign's pixels in the entry. */}
             <p className="crt-inset max-w-sm bg-[color-mix(in_srgb,var(--crt-sel-bg)_55%,var(--crt-bg-well))] px-3.5 py-2.5 text-sm leading-6 text-[var(--crt-ink-2)]">
-              {t('root.localOnly')}
+              <span className="block">{t('root.localOnly')}</span>
+              {/* How old the one copy outside this browser is, beside the line that says it is
+                  needed, so the reminder comes with the backup it points to. */}
+              <span className="block text-xs leading-5">
+                {lastBackupTime
+                  ? t('backup.lastBackup', {
+                      date: new Date(lastBackupTime).toLocaleDateString(i18n.resolvedLanguage),
+                    })
+                  : t('root.noBackup')}
+              </span>
             </p>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

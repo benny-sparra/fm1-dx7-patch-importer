@@ -261,6 +261,7 @@ export function PatchButton({
               isFavourite={isFavourite}
               name={patch.name}
               onToggle={() => onToggleFavourite(patch)}
+              slot={patchSlotCode(patch)}
             />
           ) : null}
           {/* Above the slot's own button, like the grip, so opening it does not also play the slot. */}
@@ -275,6 +276,7 @@ export function PatchButton({
               onReceive={onReceive && (() => onReceive(patch))}
               onReplace={onReplace && (() => onReplace(patch))}
               onShare={onShare && (() => onShare(patch))}
+              slot={patchSlotCode(patch)}
             />
           ) : null}
         </span>

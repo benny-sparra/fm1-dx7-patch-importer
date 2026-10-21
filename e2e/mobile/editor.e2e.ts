@@ -8,9 +8,9 @@ async function openEditor(page: Page) {
   await page.goto('/')
   const slot = page.getByRole('button', { name: /^Send .+ to FM1$/ }).first()
   const label = (await slot.getAttribute('aria-label')) ?? ''
-  const name = label.replace(/^Send \S+ (.+) to FM1$/, '$1')
+  const slotAndName = label.replace(/^Send (.+) to FM1$/, '$1')
   await page
-    .getByRole('button', { exact: true, name: `Actions for ${name}` })
+    .getByRole('button', { exact: true, name: `Actions for ${slotAndName}` })
     .first()
     .tap()
   await page.getByRole('menuitem', { name: 'Edit' }).tap()

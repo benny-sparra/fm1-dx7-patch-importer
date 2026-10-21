@@ -568,11 +568,16 @@ test('plays a slot on a single click and stays in the library', async ({ page })
   await expect(page.getByRole('button', { name: 'Back to patch banks' })).toHaveCount(0)
 })
 
-/** The ⋮ button on a slot, named after its sound; the bank menus share the "Actions for" wording. */
+/** The ⋮ button on a slot, named after its code and sound; the bank menus share "Actions for". */
 async function slotMenuButton(page: Page, index: number) {
   const label = (await slotNames(page)).at(index) ?? ''
   const name = label.replace(/^Send \S+ (.+) to FM1$/, '$1')
-  return { button: page.getByRole('button', { exact: true, name: `Actions for ${name}` }), name }
+  const slot = label.replace(/^Send (\S+) .+ to FM1$/, '$1')
+  return {
+    button: page.getByRole('button', { exact: true, name: `Actions for ${slot} ${name}` }),
+    name,
+    slot,
+  }
 }
 
 test('reaches the editor from the keyboard through a slot menu', async ({ page }) => {
@@ -787,11 +792,11 @@ test('gives every patch card control a 24 px target', async ({ page }) => {
 test('adds a slot to Favourites from its heart without playing it', async ({ page }) => {
   await openLibrarian(page)
   const slot = slotButtons(page).first()
-  const name =
-    (await slot.getAttribute('aria-label'))?.replace(/^Send \S+ (.+) to FM1$/, '$1') ?? ''
+  const slotAndName =
+    (await slot.getAttribute('aria-label'))?.replace(/^Send (.+) to FM1$/, '$1') ?? ''
 
   // The heart sits above the slot's own button, which plays the slot when it gets the click.
-  const heart = page.getByRole('button', { exact: true, name: `Favourite ${name}` })
+  const heart = page.getByRole('button', { exact: true, name: `Favourite ${slotAndName}` })
   await heart.click()
 
   await expect(heart).toHaveAttribute('aria-pressed', 'true')
@@ -800,13 +805,13 @@ test('adds a slot to Favourites from its heart without playing it', async ({ pag
 
 test('adds a slot to Favourites by dropping it on the Favourites tab', async ({ page }) => {
   await openLibrarian(page)
-  const { name } = await slotMenuButton(page, 0)
+  const { name, slot } = await slotMenuButton(page, 0)
 
   await dragGrip(page, name, page.getByRole('button', { exact: true, name: 'Favourites' }))
 
   await expect(page.getByText(`Added “${name}” to Favourites.`)).toBeVisible()
   await expect(
-    page.getByRole('button', { exact: true, name: `Favourite ${name}` }),
+    page.getByRole('button', { exact: true, name: `Favourite ${slot} ${name}` }),
   ).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('dialog')).toHaveCount(0)
 })

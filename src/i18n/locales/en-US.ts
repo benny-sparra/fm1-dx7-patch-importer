@@ -38,6 +38,7 @@ export default {
     title: 'Favorites',
     tabTitle: 'Show your favorite patches',
     toggle: 'Favorite {{name}}',
+    toggleSlot: 'Favorite {{slot}} {{name}}',
     addTitle: 'Add to Favorites',
     removeTitle: 'Remove from Favorites',
     added: 'Added “{{patch}}” to Favorites.',

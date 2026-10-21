@@ -14,6 +14,7 @@ import {
   makeLibrarianMidi,
   reorderSlotName,
   sendSlotName,
+  slotMenuName,
 } from '@/test/librarian-fakes'
 import { translatePageText } from '@/test/page-translator'
 
@@ -139,7 +140,7 @@ describe('LibrarianPage slot actions', () => {
 
     onEditPatch.mockClear()
     onSelectPatch.mockClear()
-    await user.click(screen.getByRole('button', { name: 'Actions for Alpha Piano' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('Alpha Piano') }))
     await user.click(screen.getByRole('menuitem', { name: 'Edit' }))
     expect(onEditPatch).toHaveBeenCalledExactlyOnceWith(library.patches[0])
     expect(onSelectPatch).not.toHaveBeenCalled()
@@ -448,7 +449,7 @@ describe('LibrarianPage moving a slot from its menu', () => {
   }
 
   const openMenu = (user: ReturnType<typeof userEvent.setup>, name: string, label: string) =>
-    user.click(screen.getByRole('button', { name: `${label} ${name}` }))
+    user.click(screen.getByRole('button', { name: slotMenuName(name, label) }))
 
   it('moves a slot one place later in one change, and focuses it where it landed', async () => {
     const { moveVoice, user } = renderSlots()
@@ -1084,6 +1085,32 @@ describe('LibrarianPage bank menu dialogs', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(document.activeElement).toBe(send)
   })
+
+  it('goes on to send the bank from the MIDI connection message once MIDI reaches the FM1', async () => {
+    const user = userEvent.setup()
+    const offlineMidi = makeLibrarianMidi()
+    const { rerender } = renderLibrarianPage({ midi: offlineMidi })
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    await user.click(screen.getByRole('button', { name: 'Switch MIDI online' }))
+    rerender(
+      librarianPage({
+        midi: {
+          ...offlineMidi,
+          hasMidiOutput: true,
+          midiAccess: true,
+          selectedOutputId: 'out-1',
+          sysexAvailable: true,
+        },
+      }),
+    )
+    const message = screen.getByRole('dialog', { name: 'Connect MIDI to send this bank' })
+    await user.click(within(message).getByRole('button', { name: 'Send to FM1' }))
+
+    expect(offlineMidi.connectMidi).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('dialog', { name: 'Connect MIDI to send this bank' })).toBeNull()
+    expect(offlineMidi.sendBank).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('LibrarianPage while MIDI has no output', () => {
@@ -1274,7 +1301,7 @@ describe('LibrarianPage copying a sound', () => {
     vi.mocked(library.copyVoice).mockReturnValueOnce(changed as never)
     const user = renderLibrarian('')
 
-    await user.click(screen.getByRole('button', { name: 'Actions for Alpha Piano' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('Alpha Piano') }))
     await user.click(screen.getByRole('menuitem', { name: 'Copy to…' }))
     const dialog = await screen.findByRole('dialog', { name: 'Copy Alpha Piano' })
     await user.click(within(dialog).getByRole('button', { name: 'Replace B01' }))
@@ -1290,7 +1317,7 @@ describe('LibrarianPage copying a sound', () => {
     vi.mocked(library.swapVoices).mockReturnValueOnce(changed as never)
     const user = renderLibrarian('')
 
-    await user.click(screen.getByRole('button', { name: 'Actions for Alpha Piano' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('Alpha Piano') }))
     await user.click(screen.getByRole('menuitem', { name: 'Copy to…' }))
     const dialog = await screen.findByRole('dialog', { name: 'Copy Alpha Piano' })
     await user.click(within(dialog).getByRole('button', { name: 'Swap with B01' }))
@@ -1307,7 +1334,9 @@ describe('LibrarianPage copying a sound', () => {
     await setLocale('de')
     const user = renderLibrarian('bank-A-1')
 
-    await user.click(screen.getByRole('button', { name: 'Aktionen für Alpha Piano' }))
+    await user.click(
+      screen.getByRole('button', { name: slotMenuName('Alpha Piano', 'Aktionen für') }),
+    )
     await user.click(screen.getByRole('menuitem', { name: 'Kopieren nach…' }))
     await user.click(await screen.findByRole('button', { name: 'Mit B01 tauschen' }))
 
@@ -1319,7 +1348,9 @@ describe('LibrarianPage copying a sound', () => {
     await setLocale('de')
     const user = renderLibrarian('bank-A-1')
 
-    await user.click(screen.getByRole('button', { name: 'Aktionen für Alpha Piano' }))
+    await user.click(
+      screen.getByRole('button', { name: slotMenuName('Alpha Piano', 'Aktionen für') }),
+    )
     await user.click(screen.getByRole('menuitem', { name: 'Kopieren nach…' }))
     await user.click(await screen.findByRole('button', { name: 'B01 ersetzen' }))
 

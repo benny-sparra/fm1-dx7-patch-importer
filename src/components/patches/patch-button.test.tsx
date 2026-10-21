@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PatchButton } from '@/components/patches/patch-button'
 import type { Patch } from '@/data/patches'
 import { setLocale } from '@/i18n'
+import { slotMenuName } from '@/test/librarian-fakes'
 
 afterEach(async () => {
   cleanup()
@@ -68,7 +69,7 @@ describe('PatchButton slot menu', () => {
     return { onCopy, onDownload, onEdit, onReplace, onSelect, user: userEvent.setup() }
   }
 
-  const trigger = () => screen.getByRole('button', { name: 'Actions for Alpha Piano' })
+  const trigger = () => screen.getByRole('button', { name: slotMenuName('Alpha Piano') })
 
   it('offers its actions without playing the slot', async () => {
     const { onSelect, user } = renderSlot()
@@ -164,7 +165,7 @@ describe('PatchButton slot menu', () => {
   it('offers no menu on a slot that cannot be used yet', () => {
     renderSlot({ disabled: true })
 
-    expect(screen.queryByRole('button', { name: 'Actions for Alpha Piano' })).toBeNull()
+    expect(screen.queryByRole('button', { name: slotMenuName('Alpha Piano') })).toBeNull()
   })
 })
 
@@ -175,8 +176,18 @@ describe('PatchButton slot names', () => {
     render(
       <DndContext>
         <SortableContext items={[patch.id, second.id]}>
-          <PatchButton onSelect={vi.fn()} patch={patch} />
-          <PatchButton onSelect={vi.fn()} patch={second} />
+          <PatchButton
+            onEdit={vi.fn()}
+            onSelect={vi.fn()}
+            onToggleFavourite={vi.fn()}
+            patch={patch}
+          />
+          <PatchButton
+            onEdit={vi.fn()}
+            onSelect={vi.fn()}
+            onToggleFavourite={vi.fn()}
+            patch={second}
+          />
         </SortableContext>
       </DndContext>,
     )
@@ -189,6 +200,10 @@ describe('PatchButton slot names', () => {
     expect(screen.getByRole('button', { name: 'Send A02 Alpha Piano to FM1' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Reorder A01 Alpha Piano' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Reorder A02 Alpha Piano' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Actions for A01 Alpha Piano' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Actions for A02 Alpha Piano' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Favourite A01 Alpha Piano' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Favourite A02 Alpha Piano' })).toBeTruthy()
   })
 
   it('tells them apart in the interface language', async () => {
@@ -200,5 +215,7 @@ describe('PatchButton slot names', () => {
     expect(screen.getByRole('button', { name: 'A02 Alpha Piano an FM1 senden' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'A01 Alpha Piano verschieben' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'A02 Alpha Piano verschieben' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Aktionen für A02 Alpha Piano' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Favorit: A02 Alpha Piano' })).toBeTruthy()
   })
 })

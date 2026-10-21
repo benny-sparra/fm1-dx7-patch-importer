@@ -34,6 +34,8 @@ type FavouriteButtonProps = {
   isFavourite: boolean
   name: string
   onToggle: () => void
+  /** A slot's code, which tells apart slots holding patches of one name. */
+  slot?: string
 }
 
 /**
@@ -41,12 +43,14 @@ type FavouriteButtonProps = {
  * a favourite from its pressed state. It sits above the card's own button, so it does not also play
  * the sound.
  */
-export function FavouriteButton({ isFavourite, name, onToggle }: FavouriteButtonProps) {
+export function FavouriteButton({ isFavourite, name, onToggle, slot }: FavouriteButtonProps) {
   const { t } = useTranslation()
 
   return (
     <button
-      aria-label={t('favourites.toggle', { name })}
+      aria-label={
+        slot ? t('favourites.toggleSlot', { name, slot }) : t('favourites.toggle', { name })
+      }
       aria-pressed={isFavourite}
       className={cn(
         'z-[1] -my-1 grid size-6 shrink-0 cursor-pointer place-items-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)]',

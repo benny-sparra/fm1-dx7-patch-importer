@@ -29,7 +29,7 @@ describe('MidiPanicButton', () => {
     const { button } = renderButton({ hasMidiOutput: false, midiAccess: false })
 
     expect(button.getAttribute('aria-disabled')).toBe('true')
-    expect(button.title).toBe('MIDI panic: Switch MIDI on first')
+    expect(button.title).toBe('MIDI panic: Switch MIDI online first')
   })
 
   it('names itself and asks for an output while online without one', () => {

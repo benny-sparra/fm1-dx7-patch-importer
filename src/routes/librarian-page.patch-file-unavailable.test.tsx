@@ -7,7 +7,12 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { makeDemoVoices } from '@/lib/patch-library'
-import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
+import {
+  makeLibrarianLibrary,
+  makeLibrarianMidi,
+  sendSlotName,
+  slotMenuName,
+} from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -59,7 +64,7 @@ async function chooseFromSlotMenu(item: string) {
       />
     </ToastProvider>,
   )
-  await user.click(screen.getByRole('button', { name: 'Actions for ALPHA' }))
+  await user.click(screen.getByRole('button', { name: slotMenuName('ALPHA') }))
   await user.click(screen.getByRole('menuitem', { name: item }))
 }
 

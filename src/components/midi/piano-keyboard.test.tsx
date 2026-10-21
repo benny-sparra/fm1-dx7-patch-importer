@@ -56,7 +56,7 @@ describe('PianoKeyboard trigger', () => {
   it('asks for MIDI to be switched on while offline', () => {
     const button = trigger({ hasMidiOutput: false, midiAccess: false })
     expect(button.disabled).toBe(true)
-    expect(button.title).toBe('Switch MIDI on first')
+    expect(button.title).toBe('Switch MIDI online first')
   })
 
   it('asks for an output while online without one', () => {

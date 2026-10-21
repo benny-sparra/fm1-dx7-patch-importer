@@ -17,6 +17,14 @@ export const sendSlotName = (name: string) =>
 export const reorderSlotName = (name: string) =>
   new RegExp(`^Reorder [A-Z]?\\d+ ${escapeRegExp(name)}$`)
 
+/** The name of a patch slot's ⋮ menu, in English unless another locale's words are given. */
+export const slotMenuName = (name: string, words = 'Actions for') =>
+  new RegExp(`^${escapeRegExp(words)} [A-Z]?\\d+ ${escapeRegExp(name)}$`)
+
+/** The name of a patch slot's heart, in British English unless other words are given. */
+export const favouriteSlotName = (name: string, words = 'Favourite') =>
+  new RegExp(`^${escapeRegExp(words)} [A-Z]?\\d+ ${escapeRegExp(name)}$`)
+
 /**
  * A stand-in for the patch library the librarian page reads: an empty workspace whose actions are
  * mocks. A test overrides what it relies on. When the page starts reading another member, it has
@@ -81,6 +89,7 @@ export function makeLibrarianMidi(overrides: Partial<Midi> = {}): Midi {
     channel: 1,
     connectMidi: vi.fn<Midi['connectMidi']>(),
     disconnectMidi: vi.fn<Midi['disconnectMidi']>(),
+    error: null,
     firmware: { identity: 'FM-1_015', kind: 'mvave' },
     hasMidiOutput: false,
     inputs: [],
@@ -91,6 +100,7 @@ export function makeLibrarianMidi(overrides: Partial<Midi> = {}): Midi {
     selectedInputId: '',
     selectedOutputId: '',
     sendBank: vi.fn<Midi['sendBank']>(),
+    setSelectedOutputId: vi.fn<Midi['setSelectedOutputId']>(),
     sysexAvailable: false,
     ...overrides,
   }

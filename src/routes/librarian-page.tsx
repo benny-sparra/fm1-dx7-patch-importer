@@ -286,6 +286,7 @@ type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof ImportFm1VaPresetsDialog>['midi'] &
   ComponentProps<typeof WriteFm1VaPresetsDialog>['midi'] &
   ComponentProps<typeof ReceivePatchDialog>['midi'] &
+  ComponentProps<typeof MidiConnectionRequiredDialog>['midi'] &
   Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
 type LibrarianPageProps = {
@@ -1114,7 +1115,9 @@ export function LibrarianPage({
                 isSearching
                   ? t('banks.sendFromSearch')
                   : !midi.hasMidiOutput
-                    ? t('midi.connectFirst')
+                    ? midi.midiAccess
+                      ? t('midi.chooseOutput')
+                      : t('midi.switchOnFirst')
                     : showsFavourites
                       ? favouriteCount === 0
                         ? t('favourites.addFirst')
@@ -1136,12 +1139,15 @@ export function LibrarianPage({
         }
         headerActions={
           <details className="group relative" ref={allBanksMenuRef}>
+            {/* Named in words, not only by its icon: the backup, the only copy of the library
+                outside this browser, is in this menu, and the welcome points users to it. */}
             <summary
               aria-label={t('banks.moreActions')}
-              className="grid size-6 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] transition-colors hover:bg-[var(--crt-sel-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
+              className="inline-flex h-7 cursor-pointer list-none items-center gap-1.5 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 text-xs tracking-[0.06em] whitespace-nowrap text-[var(--crt-acc-lt)] transition-colors hover:bg-[var(--crt-sel-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
               title={t('banks.moreActions')}
             >
-              <EllipsisVertical className="size-3.5" />
+              <EllipsisVertical aria-hidden="true" className="size-3.5" />
+              <span>{t('banks.moreActions')}</span>
             </summary>
             <div className="menu-surface absolute top-full right-0 z-50 mt-1 w-90 max-w-[calc(100vw-2rem)] border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
               {/* The backup comes first: it is the only copy of FM1 effects and saved banks. */}
@@ -1462,7 +1468,14 @@ export function LibrarianPage({
         />
       ) : null}
       {sendGuide === 'midi-required' ? (
-        <MidiConnectionRequiredDialog onClose={closeSendGuide} />
+        <MidiConnectionRequiredDialog
+          midi={midi}
+          onClose={closeSendGuide}
+          onSend={() => {
+            closeSendGuide()
+            sendSelectedBank()
+          }}
+        />
       ) : null}
       {isAddingBank ? (
         <ErrorBoundary

@@ -10,7 +10,7 @@ import { updateDx7VoiceName } from '@/lib/dx7'
 import { makeDx7VoiceFile } from '@/lib/dx7-voice-file'
 import { emptyPatchLibrary, makeDemoVoices } from '@/lib/patch-library'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { makeLibrarianLibrary, makeLibrarianMidi, slotMenuName } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -68,7 +68,7 @@ async function openReceiveDialog() {
       />
     </ToastProvider>,
   )
-  await user.click(screen.getByRole('button', { name: 'Actions for ALPHA' }))
+  await user.click(screen.getByRole('button', { name: slotMenuName('ALPHA') }))
   await user.click(screen.getByRole('menuitem', { name: 'Receive patch…' }))
   const dialog = await screen.findByRole('dialog', { name: 'Receive a patch into A01 “ALPHA”' })
   return { dialog, input: ports.input, library, ports, user }

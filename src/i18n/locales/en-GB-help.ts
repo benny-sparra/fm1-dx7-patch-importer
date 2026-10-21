@@ -11,7 +11,7 @@ export default {
     close: 'Close help',
     lead: 'Edit and organise patches for your M-VAVE FM1, in the browser.',
     quickSteps: {
-      connect: 'Plug in the FM1 and switch MIDI online on.',
+      connect: 'Plug in the FM1 and switch MIDI online.',
       play: 'Click a patch to hear it, double-click to edit.',
       send: 'Send to FM1 puts a whole bank on the synth.',
     },
@@ -36,7 +36,7 @@ export default {
     steps: {
       connectTitle: 'Connect your FM1',
       connectBody:
-        'Plug in the FM1 and switch MIDI online on. The browser asks to allow MIDI the first time.',
+        'Plug in the FM1 and switch MIDI online. The browser asks to allow MIDI the first time.',
       playTitle: 'Hear and edit',
       playBody:
         'Click a patch to hear it on the FM1. Double-click it to open the voice editor, and save to keep your changes.',
