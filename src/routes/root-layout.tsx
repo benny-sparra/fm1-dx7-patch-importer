@@ -67,6 +67,7 @@ type RootLayoutProps = {
   compact?: boolean
   midi: ComponentProps<typeof MidiConnectActions>['midi'] &
     ComponentProps<typeof MidiConnectionError>['midi'] &
+    ComponentProps<typeof MidiActivityLeds>['midi'] &
     ComponentProps<typeof HelpButton>['midi'] &
     ComponentProps<typeof MidiFirmwareBadge>['midi'] &
     ComponentProps<typeof MidiPanicButton>['midi'] &
@@ -179,7 +180,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               }
             >
               <MidiConnectActions midi={midi} />
-              <MidiActivityLeds />
+              <MidiActivityLeds midi={midi} />
               {/* On a phone the badge takes the last line, so the MIDI buttons keep one row. */}
               <MidiFirmwareBadge
                 className="order-last inline-flex min-h-8 w-full items-center gap-2 sm:order-none sm:w-auto"
