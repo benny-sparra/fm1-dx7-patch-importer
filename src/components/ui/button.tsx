@@ -18,32 +18,37 @@ const bevelSunken =
   'border-t border-r border-b border-l border-t-[var(--crt-shadow)] border-r-[var(--crt-line-lt2)] border-b-[var(--crt-line-lt2)] border-l-[var(--crt-shadow)]'
 
 /*
+ * A disabled button dims, so it reads as waiting. `secondary` dims less: its label is the lighter
+ * ink on a dark face, and at half opacity it fell to 3.6:1 (`src/test/colour-contrast.test.ts`).
+ */
+const dimmed = 'disabled:opacity-50'
+
+/*
  * `cn` does not resolve conflicting classes, so each variant sets its own colours and each size
  * its own dimensions and type, and a `className` passed in must not repeat either. A button that
  * needs other colours or another size gets a variant here, or `bare`, which sets none.
  */
 const buttonVariants = cva(
-  'inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 tracking-[0.08em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-3.5',
+  'inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 tracking-[0.08em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] focus-visible:outline-none disabled:pointer-events-none [&_svg]:size-3.5',
   {
     variants: {
       variant: {
-        default: `${bevelLight} bg-[var(--crt-btn)] text-white hover:bg-[var(--crt-btn-hover)]`,
+        default: `${bevelLight} bg-[var(--crt-btn)] text-white hover:bg-[var(--crt-btn-hover)] ${dimmed}`,
         /**
          * An action nothing can undo, such as deleting a saved bank or writing presets to the FM1.
          */
-        danger: `${bevelLight} bg-destructive text-destructive-foreground hover:bg-destructive/90`,
+        danger: `${bevelLight} bg-destructive text-destructive-foreground hover:bg-destructive/90 ${dimmed}`,
         /** An action that replaces or removes data, which Undo can still reverse. */
-        destructive: `${bevel} bg-[var(--crt-btn-face)] text-destructive hover:bg-destructive hover:text-destructive-foreground`,
-        secondary: `${bevel} bg-[var(--crt-btn-face)] text-[var(--crt-ink-2)] hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)]`,
-        outline: `${bevelSunken} bg-[var(--crt-bg-1)] text-[var(--crt-ink-2)] hover:bg-[var(--crt-bg-head)] hover:text-[var(--crt-acc-lt)]`,
+        destructive: `${bevel} bg-[var(--crt-btn-face)] text-destructive hover:bg-destructive hover:text-destructive-foreground ${dimmed}`,
+        secondary: `${bevel} bg-[var(--crt-btn-face)] text-[var(--crt-ink-2)] hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] disabled:opacity-70`,
+        outline: `${bevelSunken} bg-[var(--crt-bg-1)] text-[var(--crt-ink-2)] hover:bg-[var(--crt-bg-head)] hover:text-[var(--crt-acc-lt)] ${dimmed}`,
         /** A toggle shown pressed, lit like an LED. */
-        pressed: `${bevelSunken} bg-[var(--crt-led)] text-[var(--crt-bg-0)] hover:bg-[var(--crt-led)] hover:text-[var(--crt-bg-0)]`,
-        ghost:
-          'text-[var(--crt-ink-2)] hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)]',
+        pressed: `${bevelSunken} bg-[var(--crt-led)] text-[var(--crt-bg-0)] hover:bg-[var(--crt-led)] hover:text-[var(--crt-bg-0)] ${dimmed}`,
+        ghost: `text-[var(--crt-ink-2)] hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] ${dimmed}`,
         /** A flat icon button for a destructive action. */
-        ghostDanger: 'text-destructive hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)]',
+        ghostDanger: `text-destructive hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] ${dimmed}`,
         /** No colours, for a button that sets its own through `className`. */
-        bare: '',
+        bare: dimmed,
       },
       size: {
         default: 'h-8 px-3 text-xs font-semibold',

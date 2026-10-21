@@ -279,9 +279,10 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
       <footer className="hero-footer-text synthwave-hero border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-xs sm:px-5 lg:px-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <span>{t('root.localOnly')}</span>
-            </div>
+            {/* InfoNotice's sunken fill without its sign, which would put the sign's pixels in the entry. */}
+            <p className="crt-inset max-w-sm bg-[color-mix(in_srgb,var(--crt-sel-bg)_55%,var(--crt-bg-well))] px-3.5 py-2.5 text-sm leading-6 text-[var(--crt-ink-2)]">
+              {t('root.localOnly')}
+            </p>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <MidiLogDialog logStore={midi.logStore} />

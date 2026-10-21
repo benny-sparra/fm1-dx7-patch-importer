@@ -39,6 +39,8 @@ type Pairing = {
   background: string
   minimum: number
   where: string
+  /** A whole control drawn at `opacity` over `over`, as a disabled button is: both colours mix with it. */
+  dimmed?: { opacity: number; over: string }
 }
 
 const textTokens = [
@@ -227,6 +229,39 @@ const pairings: Pairing[] = [
     where: 'help popover body',
   },
 
+  // The footer's line, links and disclaimer sit on the hatched strip, under either stripe.
+  ...['--crt-hatch-a', '--crt-hatch-b'].map((background) => ({
+    foreground: '--hero-footer-foreground',
+    background,
+    minimum: TEXT,
+    where: `footer text and links on ${background}`,
+  })),
+
+  // A patch card's heart, grip and ⋮ glyphs, unlit, on the card at rest, hovered, and selected.
+  ...['--crt-bg-panel3', '--crt-bg-head', '--crt-sel-bg'].map((background) => ({
+    foreground: '--crt-ink-4',
+    background,
+    minimum: NON_TEXT,
+    where: `heart, grip and ⋮ glyphs on ${background}`,
+  })),
+
+  // The Keyboard button while it waits for a MIDI output: a secondary button at half opacity.
+  ...['--crt-hatch-a', '--crt-hatch-b'].map((over) => ({
+    foreground: '--crt-ink-2',
+    background: '--crt-btn-face',
+    minimum: TEXT,
+    where: `disabled Keyboard label over ${over}`,
+    dimmed: { opacity: 0.7, over },
+  })),
+
+  // The browser-storage notice: ink on InfoNotice's sunken fill.
+  {
+    foreground: '--crt-ink-2',
+    background: '--crt-sel-bg|--crt-bg-well|0.55',
+    minimum: TEXT,
+    where: 'browser-storage notice',
+  },
+
   // Each unselected operator column heads with its number in its own colour.
   ...operatorColors.map((foreground, index) => ({
     foreground,
@@ -304,7 +339,10 @@ function contrastRatio(a: Rgb, b: Rgb) {
   return (lighter + 0.05) / (darker + 0.05)
 }
 
-function pairingContrast(tokens: Record<string, string>, { foreground, background }: Pairing) {
+function pairingContrast(
+  tokens: Record<string, string>,
+  { foreground, background, dimmed }: Pairing,
+) {
   const [top, base, fillAlpha] = background.split('|')
   const backgroundRgb = base
     ? blend(parseColor(tokens, top), parseColor(tokens, base), Number(fillAlpha))
@@ -312,6 +350,14 @@ function pairingContrast(tokens: Record<string, string>, { foreground, backgroun
 
   const [color, alpha = '1'] = foreground.split('@')
   const foregroundRgb = blend(parseColor(tokens, color), backgroundRgb, Number(alpha))
+
+  if (dimmed) {
+    const over = parseColor(tokens, dimmed.over)
+    return contrastRatio(
+      blend(foregroundRgb, over, dimmed.opacity),
+      blend(backgroundRgb, over, dimmed.opacity),
+    )
+  }
 
   return contrastRatio(foregroundRgb, backgroundRgb)
 }
@@ -370,5 +416,12 @@ describe('field edges', () => {
     ['the pitch envelope presets dropdown', '../components/editor/global-configuration-panel.tsx'],
   ])('gives %s the field edge, not the sunken well edge', (_, path) => {
     expect(source(path)).toMatch(/\bcrt-field\b/)
+  })
+})
+
+describe('disabled secondary buttons', () => {
+  it('dim to the opacity the contrast pairing measures', () => {
+    const button = readFileSync(new URL('../components/ui/button.tsx', import.meta.url), 'utf8')
+    expect(/secondary: `[^`]*\bdisabled:opacity-70\b/.test(button)).toBe(true)
   })
 })
