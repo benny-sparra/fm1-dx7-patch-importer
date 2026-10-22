@@ -974,7 +974,6 @@ export default {
     unsupportedBody:
       'Dieser Librarian benötigt einen Browser mit Web-MIDI- und SysEx-Unterstützung, etwa Chrome, Edge, Firefox oder Opera. Chrome unter Android funktioniert ebenfalls.',
     localOnly: 'Deine Sounds bleiben in diesem Browser',
-    noBackup: 'Noch keine Sicherung heruntergeladen',
     projectLinks: 'Projektlinks',
     firmwareLink: 'FM1-Firmware',
     reportIssue: 'Problem melden',
@@ -1014,7 +1013,6 @@ export default {
     noDeviceSelected: 'Kein Gerät ausgewählt',
   },
   help: {
-    caption: 'Hilfe',
     open: 'Hilfe: FM1 Editor und Librarian verwenden',
     title: 'Willkommen beim FM1 Editor und Librarian',
     guideTitle: 'Anleitung',
@@ -1064,9 +1062,8 @@ export default {
   },
 
   colorway: {
-    caption: 'Finish',
-    legend: 'FM1-Farbausführung',
-    option: 'FM1-Finish {{colour}}',
+    legend: 'FM1-Farbe',
+    option: 'FM1-Farbe {{colour}}',
     black: 'Schwarz',
     purple: 'Violett',
     orange: 'Orange',
@@ -1224,7 +1221,6 @@ export default {
     officialOpenBadgeTitle:
       'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',
     panic: 'MIDI-Panik',
-    panicLabel: 'Panik',
     panicHelp:
       'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',
     panicUnavailable: 'MIDI-Panik: {{reason}}',

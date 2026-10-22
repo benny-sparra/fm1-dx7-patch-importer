@@ -1019,7 +1019,6 @@ export default {
     unsupportedBody:
       'Цьому застосунку потрібен браузер із підтримкою Web MIDI і SysEx, як-от Chrome, Edge, Firefox чи Opera. Chrome на Android теж підходить.',
     localOnly: 'Ваші патчі лишаються у цьому браузері',
-    noBackup: 'Резервну копію ще не завантажено',
     projectLinks: 'Посилання проєкту',
     firmwareLink: 'Прошивки FM1',
     reportIssue: 'Повідомити про проблему',
@@ -1058,7 +1057,6 @@ export default {
     noDeviceSelected: 'Пристрій не обрано',
   },
   help: {
-    caption: 'Довідка',
     open: 'Довідка: як користуватися редактором і менеджером FM1',
     title: 'Ласкаво просимо до редактора і менеджера FM1',
     guideTitle: 'Довідка',
@@ -1108,7 +1106,6 @@ export default {
   },
 
   colorway: {
-    caption: 'Корпус',
     legend: 'Колір корпусу FM1',
     option: 'Корпус FM1: {{colour}}',
     black: 'Чорний',
@@ -1268,7 +1265,6 @@ export default {
     officialOpenBadgeTitle:
       'На FM1 працює прошивка Open від M-VAVE, {{release}}, groovebox на вісім доріжок. Патч, який ви клацаєте чи редагуєте, надходить на доріжку на каналі нот, якщо ця доріжка працює на DX7. Банки DX7 вона ігнорує, а керування ефектами нічого не надсилає, бо вона сприйняла б його як зміни своїх доріжок.',
     panic: 'MIDI panic',
-    panicLabel: 'Panic',
     panicHelp:
       'MIDI panic: надіслати Note Off для кожної ноти на каналі нот, щоб зупинити завислі ноти',
     panicUnavailable: 'MIDI panic: {{reason}}',

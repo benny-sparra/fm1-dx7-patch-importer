@@ -65,7 +65,7 @@ function renderPage() {
 
 async function openImport(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByTitle('Library actions'))
-  await user.click(screen.getByRole('button', { name: 'Import Baud Girl presets file…' }))
+  await user.click(screen.getByRole('button', { name: 'Import Baud Girl presets…' }))
   return screen.findByRole('dialog', { name: 'Import Baud Girl presets file' })
 }
 

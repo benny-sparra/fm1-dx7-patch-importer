@@ -385,7 +385,7 @@ test('chooses a knob from a picker that hangs over the panel below', async ({ pa
   await installFakeMidi(page, { firmware: 'fm1-va-097' })
   await openLibrarian(page)
   await page.getByLabel('Library actions').click()
-  await page.getByRole('button', { name: 'Import Baud Girl presets file…' }).click()
+  await page.getByRole('button', { name: 'Import Baud Girl presets…' }).click()
   const dialog = page.getByRole('dialog', { name: 'Import Baud Girl presets file' })
   await dialog.locator('input[type="file"]').setInputFiles(fm1VaPresetsFile())
   await dialog.getByRole('button', { name: 'Import 4 banks' }).click()
@@ -417,7 +417,7 @@ test('switches an FM-1+VA bank and chooses where it goes without folding it, and
 }) => {
   await openLibrarian(page)
   await page.getByLabel('Library actions').click()
-  await page.getByRole('button', { name: 'Import Baud Girl presets file…' }).click()
+  await page.getByRole('button', { name: 'Import Baud Girl presets…' }).click()
   const dialog = page.getByRole('dialog', { name: 'Import Baud Girl presets file' })
   // The dialog's title names the file too, so the input is found by its type.
   await dialog.locator('input[type="file"]').setInputFiles(fm1VaPresetsFile())
@@ -758,22 +758,16 @@ for (const width of [320, 375]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
   })
 
-  // A tooltip never shows on touch, so each header key says what it is under it.
-  test(`names each header key in view at ${width} px`, async ({ page }) => {
+  test(`keeps each header key in view at ${width} px`, async ({ page }) => {
     await page.setViewportSize({ height: 812, width })
     await openLibrarian(page)
     const header = page.getByRole('banner')
 
-    // The closed settings menu repeats its name as its heading, after the caption.
-    for (const caption of ['Finish', 'Help', 'Settings']) {
-      await expect(header.getByText(caption, { exact: true }).first()).toBeInViewport()
-    }
-    await expect(page.getByRole('button', { name: 'MIDI panic' })).toContainText('Panic')
-
-    // A tap on the caption opens the choice of finishes, as a tap on the swatch does.
-    await header.getByText('Finish', { exact: true }).click()
-    await expect(page.getByRole('radio', { name: 'Black FM1 finish' })).toBeFocused()
-    await expect(header.getByTitle('Orange', { exact: true })).toBeVisible()
+    await expect(header.getByRole('radio', { name: 'Black FM1 colour' })).toBeAttached()
+    await expect(header.locator('fieldset')).toBeInViewport()
+    await expect(header.getByRole('button', { name: /^Help/ })).toBeInViewport()
+    await expect(header.getByLabel('Settings', { exact: true })).toBeInViewport()
+    await expect(page.getByRole('button', { name: 'MIDI panic' })).toBeInViewport()
   })
 }
 
@@ -991,10 +985,10 @@ test('switches the favicon to the chosen colourway and keeps it after a reload',
   // The other finishes slide out from the lit swatch on hover or focus. Focus keeps them out
   // wherever the pointer lands; a layout shift after a hover can leave it off the picker, so
   // the swatches collapse again before the click.
-  await page.getByRole('radio', { name: 'Black FM1 finish' }).focus()
+  await page.getByRole('radio', { name: 'Black FM1 colour' }).focus()
   await page.getByTitle('Orange', { exact: true }).click()
 
-  await expect(page.getByRole('radio', { name: 'Orange FM1 finish' })).toBeChecked()
+  await expect(page.getByRole('radio', { name: 'Orange FM1 colour' })).toBeChecked()
   await expect(favicon).toHaveAttribute('href', '/favicon-orange.svg')
   const icon = await page.request.get('/favicon-orange.svg')
   expect(icon.ok()).toBe(true)

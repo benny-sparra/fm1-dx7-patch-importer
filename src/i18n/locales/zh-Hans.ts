@@ -859,7 +859,6 @@ export default {
     unsupportedBody:
       '此音色库工具需要支持 Web MIDI 和 SysEx 的浏览器，例如 Chrome、Edge、Firefox 或 Opera。Android 上的 Chrome 同样可用。',
     localOnly: '您的音色仅保存在此浏览器中',
-    noBackup: '尚未下载备份',
     projectLinks: '项目链接',
     firmwareLink: 'FM1 固件',
     reportIssue: '报告问题',
@@ -896,7 +895,6 @@ export default {
     noDeviceSelected: '未选择设备',
   },
   help: {
-    caption: '帮助',
     open: '帮助：FM1 编辑器与音色库使用说明',
     title: '欢迎使用 FM1 音色编辑器与音色库',
     guideTitle: '使用指南',
@@ -941,7 +939,6 @@ export default {
   },
 
   colorway: {
-    caption: '配色',
     legend: 'FM1 配色',
     option: 'FM1 {{colour}}配色',
     black: '黑色',
@@ -1099,7 +1096,6 @@ export default {
     officialOpenBadgeTitle:
       'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
     panic: 'MIDI 紧急停止',
-    panicLabel: '紧急停止',
     panicHelp: 'MIDI 紧急停止：在音符通道上为每个音符发送音符关闭消息，以停止悬挂的音符',
     panicUnavailable: 'MIDI 紧急停止：{{reason}}',
     online: 'MIDI 在线',

@@ -59,7 +59,7 @@ names (NES ROCK first), 113–128 marked **VA**, and the line "16 presets are 8-
 can't hold yet. Their slots keep their patches." Switch bank D off and close the dialog without
 importing.
 
-**F3. The presets file.** Choose **Import Baud Girl presets file…** and select the pack backup
+**F3. The presets file.** Choose **Import Baud Girl presets…** and select the pack backup
 from §0.3. Expected: the file is accepted, and bank D shows exactly what F2 showed. Close without
 importing.
 

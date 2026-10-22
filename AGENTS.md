@@ -390,7 +390,7 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive dialog, with the dump reader and its listener, when **Receive patch…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets file…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive dialog, with the dump reader and its listener, when **Receive patch…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -643,18 +643,18 @@ open everything an earlier release could have saved.
   when its usual action cannot, such as **Send to FM1** without a MIDI output opening the dialog
   that connects one, is not `aria-disabled`: a screen reader would call a working control
   unavailable. Its description says what a click does instead.
-- A header control that shows only an icon carries a caption under it (`hero-captioned`,
-  `hero-caption` in `index.css`), as the FM1 prints a name under a button: **Finish**, **Help**,
-  and **Settings**, and the MIDI panic says **Panic** beside its icon. A tooltip never shows on
-  touch, so it cannot be the only name. The caption is a word of the control's accessible name
-  (WCAG 2.5.3), and pressing it does what pressing the control does: the finish's caption is a
-  `<label>` for the current finish, which opens the choice as a tap on the swatch does.
+- The header's colour swatch, **?** and ⋮ show no caption under them (removed on 2026-10-22 at
+  the owner's request); each keeps its accessible name and tooltip. The swatch's choice is named
+  **FM1 colour**, never finish, which also reads as the end. The MIDI panic shows only its icon too,
+  named **MIDI panic**.
 - A message about something the user must do first fixes it where it can rather than saying where
   to go: **Send to FM1** while MIDI is offline opens `MidiConnectionRequiredDialog`, whose one
   primary button switches MIDI online, waits as an `aria-disabled` button with its reason while the
   output is chosen in the dialog and the FM1 is identified, then sends. Library actions, which holds
-  the backup, is named in words on its trigger, and the footer's "Your patches stay in this browser"
-  box says when the last backup was made.
+  the backup, shows only its ⋮ and keeps the name in its `aria-label` and tooltip (2026-10-22, the
+  owner's request), and its **Download backup** item says when the
+  last backup was made. The footer says "Your patches stay in this browser" as plain text, with no
+  box and no backup date (2026-10-22, the owner's request).
 - On a phone the full title runs the header's width beneath those controls and wraps as words, at
   a size that follows the width, so it takes two lines at 320 and 375 px with the MIDI switch in
   the first screen (`e2e/librarian.e2e.ts`). The loading stand-in for the patch banks or editor
@@ -1008,7 +1008,9 @@ open everything an earlier release could have saved.
   the open operator's ⋮ menu in the rack, opens in a portal. Build it with `PortalMenu` from
   `src/components/ui/portal-menu.tsx` rather than another copy. It is not a `<details>` menu, so it
   claims Escape with `preventDefault`, and Tab closes it onto its toggle, since the portal puts it
-  at the end of the page.
+  at the end of the page. A run of items it heads, such as a patch's **Transfer** and **Order**,
+  is a `role="group"` named by its heading, as the **Library actions** groups are, so a screen
+  reader hears the grouping a sighted user sees.
 - The patch banks panel does not clip its overflow, because each bank's ⋮ menu in the rail hangs
   out beside its tab and, with enough banks, below the panel. Clipping it there hid the last bank's
   menu items (issue 202); `e2e/librarian.e2e.ts` checks the last item can be reached.

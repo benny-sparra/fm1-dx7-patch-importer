@@ -495,7 +495,7 @@ export function LibrarianPage({
     toast.success(t('toasts.bankDownloadStarted', { bank: patch.name }))
   }
   // A Virtual Analog or 8-Bit patch is not a DX7 voice, so it downloads as a presets file of one
-  // preset, as Baud Girl's Device Manager saves one, which **Import Baud Girl presets file…** reads.
+  // preset, as Baud Girl's Device Manager saves one, which **Import Baud Girl presets…** reads.
   const downloadPresetFile = async (patch: Patch, voice: Uint8Array, record: Uint8Array) => {
     let presetFile: typeof import('@/lib/fm1-va-preset-download')
     try {
@@ -1167,15 +1167,14 @@ export function LibrarianPage({
         }
         headerActions={
           <details className="group relative" ref={allBanksMenuRef}>
-            {/* Named in words, not only by its icon: the backup, the only copy of the library
-                outside this browser, is in this menu, and the welcome points users to it. */}
+            {/* Shows only its icon; its name and tooltip say Library actions, which holds the
+                backup, the only copy of the library outside this browser. */}
             <summary
               aria-label={t('banks.moreActions')}
-              className="inline-flex h-7 cursor-pointer list-none items-center gap-1.5 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 text-xs tracking-[0.06em] whitespace-nowrap text-[var(--crt-acc-lt)] transition-colors hover:bg-[var(--crt-sel-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
+              className="inline-flex size-7 cursor-pointer list-none items-center justify-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] transition-colors hover:bg-[var(--crt-sel-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
               title={t('banks.moreActions')}
             >
               <EllipsisVertical aria-hidden="true" className="size-3.5" />
-              <span>{t('banks.moreActions')}</span>
             </summary>
             <div className="menu-surface absolute top-full right-0 z-50 mt-1 w-90 max-w-[calc(100vw-2rem)] border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
               {/* The backup comes first: it is the only copy of FM1 effects and saved banks. */}

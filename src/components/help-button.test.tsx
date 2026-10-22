@@ -50,14 +50,6 @@ describe('HelpButton', () => {
     expect(await screen.findByRole('tab', { name: 'Getting started' })).toBeTruthy()
   })
 
-  // A phone shows no tooltip, so the key carries a caption, which its name begins with.
-  it('shows its caption under the key', () => {
-    localStorage.setItem('fm1-librarian-help-seen', 'true')
-    render(<HelpButton colorway="black" midi={midi} />)
-
-    expect(within(helpButton()).getByText('Help')).toBeTruthy()
-  })
-
   it('opens the welcome on a first visit without waiting to be asked', async () => {
     render(<HelpButton colorway="black" midi={midi} />)
 

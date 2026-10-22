@@ -13,6 +13,16 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Housekeeping
 
+- [ ] **Name Vivaldi among the browsers that work.** Issue 334 reports the editor works perfectly
+      in Vivaldi. No code needs to change: `isUnsupportedBrowser` accepts any browser that offers
+      Web MIDI, whatever its name. Only the lists that name browsers leave it out: the tables in
+      the README and `docs/user-guide.md`, which leave out Opera too, the unsupported-browser
+      messages in `en-GB.ts` (one names Opera, the other does not), and the guide's warning in
+      `en-GB-help.ts`. Add Vivaldi and Opera to both tables as desktop browsers, name them in each
+      message, and change the strings in every locale. Name only browsers someone has seen drive
+      an FM1, as Vivaldi has now, never a browser just because it is built on Chromium. Ranked
+      first because it is a few strings and answers a user directly.
+
 - [x] **Stop cutting off port names in Settings.** On macOS the closed **Output** and **Input
       monitor** lists show "USB Composite Dev", cut without an ellipsis (seen 2026-09-29). Let the
       name wrap or end in an ellipsis, with the full name in its title, at every width from 360 px.
@@ -31,8 +41,9 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 - [ ] **Stock firmware V16 (`FM-1_016`).** M-VAVE published it on 2026-10-21 (forum topic 23,
       "FM-1 Official Firmware Update Summary", file `FM-1_016.fwsc`) as the successor to V15. It
       identifies as `FM-1_016`, so the editor already classes it `mvave`. Ranked first because
-      the editor's effect sends may now do the wrong thing on it. None of the release notes below is
-      confirmed on hardware; treat every row as **Needs hardware test** until a run is recorded in
+      the editor's effect sends may now do the wrong thing on it. Issue 334 asks for this item:
+      editor support for V16 (steps 1–3) and reading patches back from an FM1 running it (step 4).
+      None of the release notes below is confirmed on hardware; treat every row as **Needs hardware test** until a run is recorded in
       `docs/hardware-runs/` and `docs/fm1-research.md`.
   1. **Effect controllers moved (urgent).** The notes say FX control is now CC 70–93 on the Effect
      Ch channel (Filter 70–73, Reverb 74–77, Delay 78–81, Distortion 82–85, Chorus 86–89,
@@ -59,7 +70,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
      could take the bank, giving the first supported way to read a stock FM1 back. Needs a capture
      first (the format, its pacing, and whether it is a bulk dump or the vendor protocol), and its
      own approval in `AGENTS.md` if it sends anything. Bank import now waits for a destination bank
-     choice on the FM1, which may change how **Send to FM1** instructions read.
+     choice on the FM1, which may change how **Send to FM1** instructions read. Issue 334's
+     reporter reads patches back on Baud Girl's firmware and asks for the same on V16. Until this
+     step ships, `docs/user-guide.md` and the help guide should say plainly that the stock firmware
+     cannot be read back; today they only describe reading Baud Girl's presets.
   5. **New CCs worth knowing, not building yet.** CC 7 master volume, CC 11 expression, panic on
      holding PLAY/STOP, and key LEDs lit by notes 0–26 on the Effect Ch channel. The editor's
      MIDI panic already sends Note Offs; do not add these without a use.
@@ -67,9 +81,9 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
      eight-track arrangement replaces chaining. This reopens none of the parked sequencer
      (see [the roadmap](fm1-roadmap.md)); record it in `docs/fm1-research.md` so the next
      attempt starts from V16, not V15.
-  7. **Housekeeping.** Update the firmware page's stock entry to V16 (`data-updated`
-     2026-10-21, the Latest strip, and `npm run firmware:stars`), and add the release notes to
-     `docs/fm1-research.md`.
+  7. **Housekeeping.** Add the release notes to `docs/fm1-research.md`. The firmware page's stock
+     entry moved to V16 in the 22 October update (#337); its **Works with this editor** tag stays
+     until the V16 hardware run.
   - Order: 1 (a safe default, before anyone on V16 sends effects), then 7, then the hardware run
     that settles 1, 3, and 4 together, then 2, then 4's build if the capture allows it.
   - Tests: a `firmware-profile.test.ts` case on each side of the V16 threshold, a rendered test

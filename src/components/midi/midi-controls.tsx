@@ -255,11 +255,8 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
         className="group/settings cursor-pointer list-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
         title={t('common.settings')}
       >
-        <span className="hero-captioned">
-          <span className="hero-action flex size-[26px] items-center justify-center transition group-hover/settings:bg-[var(--crt-sel-bg)] group-hover/settings:text-[var(--crt-acc-lt)]">
-            <MoreVertical aria-hidden="true" className="size-4" />
-          </span>
-          <span className="hero-caption">{t('common.settings')}</span>
+        <span className="hero-action flex size-[26px] items-center justify-center transition group-hover/settings:bg-[var(--crt-sel-bg)] group-hover/settings:text-[var(--crt-acc-lt)]">
+          <MoreVertical aria-hidden="true" className="size-4" />
         </span>
       </summary>
       <div className="menu-surface absolute top-[calc(100%+0.5rem)] right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-3 text-[var(--crt-ink)] sm:grid-cols-2">

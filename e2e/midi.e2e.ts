@@ -400,7 +400,7 @@ test.describe('with an FM-1 on FM-1+VA firmware', () => {
 
   test('shows FM-1+VA on the screen of the FM1 photo in the chosen finish', async ({ page }) => {
     // The other finishes slide out from the lit swatch while the picker has focus.
-    await page.getByRole('radio', { name: 'Black FM1 finish' }).focus()
+    await page.getByRole('radio', { name: 'Black FM1 colour' }).focus()
     await page.getByTitle('Orange', { exact: true }).click()
 
     const photo = page.getByRole('img', { name: 'M-VAVE FM1 synthesiser front panel' })
