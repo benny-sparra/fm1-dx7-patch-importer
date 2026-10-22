@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useStickyHeaderOffset } from '@/hooks/use-sticky-header-offset'
 import { HelpPopover } from '@/components/ui/help-popover'
 import type { Patch } from '@/data/patches'
 import type { ChangedSlots } from '@/hooks/use-changed-slots'
@@ -104,6 +105,9 @@ function PixelBankIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+/** The widths below `md`, where the bank row sticks above the list. */
+const phoneQuery = '(max-width: 767.98px)'
+
 export function PatchGrid({
   activePatchId = '',
   actions,
@@ -144,6 +148,9 @@ export function PatchGrid({
   const { t } = useTranslation()
   const searchHint = useMemo(() => formatShortcut(librarianShortcuts.search, isApplePlatform()), [])
   const slotRefs = useRef(new Map<string, HTMLButtonElement>())
+  const actionsRef = useRef<HTMLDivElement>(null)
+  // On a phone the bank row sticks, so focus scrolls in below it rather than behind it.
+  useStickyHeaderOffset(actionsRef, phoneQuery)
   const [focusedPatchId, setFocusedPatchId] = useState('')
   const [draggedId, setDraggedId] = useState<UniqueIdentifier | null>(null)
   // The slot a menu move landed on, which takes focus once the grid shows the move. Each move is
@@ -274,7 +281,14 @@ export function PatchGrid({
         <div className="patch-area-surface flex min-w-0 items-stretch">
           {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
           <div className="min-w-0 flex-1">
-            <div className="crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]">
+            <div
+              className={cn(
+                'crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]',
+                // Below md the bank's name, menu, and Send stay in view down the whole list.
+                actions && 'max-md:sticky max-md:top-0 max-md:z-30',
+              )}
+              ref={actionsRef}
+            >
               {actions ? (
                 <div className="flex w-full max-w-full min-w-0 flex-wrap items-center gap-2">
                   {actions}
@@ -290,7 +304,7 @@ export function PatchGrid({
             {/* A dragged slot has to reach the bank tabs, so the grid stops clipping and rises above the rail. */}
             <CardContent
               className={cn(
-                'relative isolate space-y-4 bg-[var(--crt-bg-panel)] p-[9px]',
+                'relative isolate space-y-4 bg-[var(--crt-bg-panel)] p-1.5 min-[360px]:p-[9px]',
                 draggedId === null ? 'overflow-hidden' : 'z-20',
               )}
               // What switches off like a CRT when its bank is deleted.

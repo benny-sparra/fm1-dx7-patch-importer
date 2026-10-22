@@ -29,9 +29,9 @@ afterEach(() => {
   disconnect.mockClear()
 })
 
-function Header() {
+function Header({ whileMatching }: { whileMatching?: string }) {
   const ref = useRef<HTMLElement>(null)
-  useStickyHeaderOffset(ref)
+  useStickyHeaderOffset(ref, whileMatching)
   return <header ref={ref}>Header</header>
 }
 
@@ -77,5 +77,23 @@ describe('useStickyHeaderOffset', () => {
     render(<Header />)
 
     expect(offset()).toBe('48px')
+  })
+
+  it('leaves the page alone while the bar does not stick at this width', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query }))
+    setHeaderHeight(80)
+
+    render(<Header whileMatching="(max-width: 767.98px)" />)
+
+    expect(offset()).toBe('')
+  })
+
+  it('gives the page the bar’s height while its width matches', () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: true, media: query }))
+    setHeaderHeight(80)
+
+    render(<Header whileMatching="(max-width: 767.98px)" />)
+
+    expect(offset()).toBe('80px')
   })
 })
