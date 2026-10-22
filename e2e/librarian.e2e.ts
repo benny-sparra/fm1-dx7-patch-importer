@@ -385,7 +385,7 @@ test('chooses a knob from a picker that hangs over the panel below', async ({ pa
   await installFakeMidi(page, { firmware: 'fm1-va-097' })
   await openLibrarian(page)
   await page.getByLabel('Library actions').click()
-  await page.getByRole('button', { name: 'Import Baud Girl presets file…' }).click()
+  await page.getByRole('button', { name: 'Import Baud Girl presets…' }).click()
   const dialog = page.getByRole('dialog', { name: 'Import Baud Girl presets file' })
   await dialog.locator('input[type="file"]').setInputFiles(fm1VaPresetsFile())
   await dialog.getByRole('button', { name: 'Import 4 banks' }).click()
@@ -417,7 +417,7 @@ test('switches an FM-1+VA bank and chooses where it goes without folding it, and
 }) => {
   await openLibrarian(page)
   await page.getByLabel('Library actions').click()
-  await page.getByRole('button', { name: 'Import Baud Girl presets file…' }).click()
+  await page.getByRole('button', { name: 'Import Baud Girl presets…' }).click()
   const dialog = page.getByRole('dialog', { name: 'Import Baud Girl presets file' })
   // The dialog's title names the file too, so the input is found by its type.
   await dialog.locator('input[type="file"]').setInputFiles(fm1VaPresetsFile())

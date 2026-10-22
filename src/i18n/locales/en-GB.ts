@@ -194,7 +194,7 @@ export default {
     },
   },
   fm1VaImport: {
-    menuItem: 'Import Baud Girl presets file…',
+    menuItem: 'Import Baud Girl presets…',
     menuRead: 'Read presets from the FM1…',
     menuHeading: 'Baud Girl (FM-1+VA)',
     openFailed: 'The Baud Girl preset import could not be opened. Reload the page and try again.',

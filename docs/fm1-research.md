@@ -101,7 +101,7 @@ messages). The `.syx` file is 29,568 bytes: 128 preset writes of 231 bytes each,
 that converts to the library's packed voice like any other. `<sum>` covers only the 223 payload
 bytes after the slot, not the command or the slot: the low seven bits of the sum of each byte's
 seven-bit complement. Every byte between `F0` and `F7` is seven-bit. The editor reads this file in
-**Import Baud Girl presets file…** (`src/lib/fm1-va-preset-file.ts`), voices only.
+**Import Baud Girl presets…** (`src/lib/fm1-va-preset-file.ts`), voices only.
 
 **The engine marker. Confirmed** (three backups, 2026-09-29 and 2026-10-01, 384 presets). The
 record travels in 8-into-7 groups, each starting with the byte that carries the high bits of the

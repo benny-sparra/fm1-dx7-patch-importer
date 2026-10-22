@@ -495,7 +495,7 @@ export function LibrarianPage({
     toast.success(t('toasts.bankDownloadStarted', { bank: patch.name }))
   }
   // A Virtual Analog or 8-Bit patch is not a DX7 voice, so it downloads as a presets file of one
-  // preset, as Baud Girl's Device Manager saves one, which **Import Baud Girl presets file…** reads.
+  // preset, as Baud Girl's Device Manager saves one, which **Import Baud Girl presets…** reads.
   const downloadPresetFile = async (patch: Patch, voice: Uint8Array, record: Uint8Array) => {
     let presetFile: typeof import('@/lib/fm1-va-preset-download')
     try {
