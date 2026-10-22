@@ -41,6 +41,23 @@ describe('resolveFirmwareProfile', () => {
     ).toBe(true)
   })
 
+  it('keeps the effect controllers to M-VAVE releases before V16, which moved them', () => {
+    const effectControllers = (identity: string) =>
+      resolveFirmwareProfile({ identity, kind: 'mvave' }).capabilities.effectControllers
+    expect(effectControllers('FM-1_001')).toBe(true)
+    expect(effectControllers('FM-1_015')).toBe(true)
+    expect(effectControllers('FM-1_016')).toBe(false)
+    expect(effectControllers('FM-1_019')).toBe(false)
+  })
+
+  it('still sends V16 single-voice dumps, parameter changes, and Program Change', () => {
+    expect(resolveFirmwareProfile({ identity: 'FM-1_016', kind: 'mvave' })).toEqual({
+      capabilities: { ...cautious, effectControllers: false, singleVoiceDumps: true },
+      family: 'mvave',
+      presetWriteTiming: presetsPageTiming,
+    })
+  })
+
   it('gives Felucca cautious, as it ignores DX7 voice data', () => {
     expect(resolveFirmwareProfile({ identity: 'FM-1_904', kind: 'felucca' })).toEqual({
       capabilities: cautious,

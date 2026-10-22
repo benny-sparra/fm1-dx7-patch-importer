@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { midiChannels, type MidiController } from '@/hooks/use-midi'
 import { fm1FirmwareRelease, mayBeSloop } from '@/lib/fm1-firmware'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { localeNames, supportedLocales, type SupportedLocale } from '@/i18n/locale'
 import { setLocale } from '@/i18n'
@@ -225,6 +226,13 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
       <span className="text-[11px] text-muted-foreground">
         {t(firmwareSendingKey(midi.firmware))}
       </span>
+      {/* M-VAVE's V16 moved the effect unit's controllers, so the effects send nothing there. */}
+      {midi.firmware.kind === 'mvave' &&
+      !resolveFirmwareProfile(midi.firmware).capabilities.effectControllers ? (
+        <span className="text-[11px] text-muted-foreground">
+          {t('settings.firmwareEffectsNotSent')}
+        </span>
+      ) : null}
       {needsInput ? (
         <span className="text-[11px] text-muted-foreground">
           {t('settings.firmwareNeedsInput')}

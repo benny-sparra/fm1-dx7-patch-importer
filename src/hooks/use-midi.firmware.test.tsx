@@ -14,6 +14,7 @@ import {
   fm1VaIdentityReply,
   makeFakeFm1Ports,
   mvaveIdentityReply,
+  mvaveV16IdentityReply,
   officialOpenIdentityReply,
 } from '@/test/fake-fm1-midi'
 
@@ -401,6 +402,28 @@ describe('useMidi effect controllers by firmware', () => {
     await act(() => vi.advanceTimersByTimeAsync(1_000))
 
     expect(ports.output.sendControlChange).not.toHaveBeenCalled()
+  })
+
+  it('sends M-VAVE’s V16 no effect controller, since it moved the effect unit off CC 0–23', async () => {
+    const ports = makeFakeFm1Ports({ reply: mvaveV16IdentityReply })
+    const { result } = await connect(ports)
+    expect(result.current.firmware).toEqual({ identity: 'FM-1_016', kind: 'mvave' })
+
+    expect(result.current.sendEffectParameter(7, 100)).toBe(false)
+    await expect(result.current.sendEffectSettings(new Uint8Array(24))).resolves.toBe(true)
+    await act(() => vi.advanceTimersByTimeAsync(1_000))
+
+    expect(ports.output.sendControlChange).not.toHaveBeenCalled()
+  })
+
+  it('still sends V15 the effect controllers', async () => {
+    const ports = makeFakeFm1Ports({ reply: mvaveIdentityReply })
+    const { result } = await connect(ports)
+
+    expect(result.current.sendEffectParameter(7, 100)).toBe(true)
+    await act(() => vi.advanceTimersByTimeAsync(1_000))
+
+    expect(ports.output.sendControlChange).toHaveBeenCalledWith(7, 100, { channels: 2 })
   })
 
   it('sends the effect controllers while the firmware is still being checked', async () => {

@@ -1041,6 +1041,8 @@ export default {
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca або SLOOP {{identity}}',
     firmwareEditBuffer: 'Коли ви граєте патч, він потрапляє в буфер редагування FM1.',
+    firmwareEffectsNotSent:
+      'Керування ефектами поки нічого не надсилає, бо у V16 його перенесено на інші контролери.',
     firmwareParameterChanges:
       'Коли ви граєте патч, він надходить як зміна параметрів, тож FM1 не записує його поверх обраного пресету.',
     firmwareIgnoresPatches:

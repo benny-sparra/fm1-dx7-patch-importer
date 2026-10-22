@@ -35,7 +35,8 @@ export type FirmwareProfile = {
  * - `programChanges`: a slot's Program Change, which selects its stored preset. M-VAVE's Official
  *   Open takes it on a DX7 track as replacing the track's voice with a built-in sound.
  * - `effectControllers`: the effect unit's controllers on the FX channel. Official Open has no such
- *   unit and takes them as the volume, pan, and modulation of the track on that channel.
+ *   unit and takes them as the volume, pan, and modulation of the track on that channel, and
+ *   M-VAVE's own firmware moved them in V16.
  */
 type FirmwareCapability =
   | 'bitcrush'
@@ -72,12 +73,19 @@ const presetsPageTiming: PresetWriteTiming = { listenMs: 1500, spacingMs: 3000 }
  */
 const deviceManagerTiming: PresetWriteTiming = { listenMs: 0, spacingMs: 320 }
 
+/**
+ * The first release with a capability, or the releases from the first to the one before `before`,
+ * for a capability a later release takes away.
+ */
+type ReleaseRange = number | { before: number; from: number }
+
 type FamilyProfile = {
   /**
-   * The first release with each capability. A capability not listed is never offered, and 0 is
-   * every release, one not yet known included.
+   * The releases with each capability. A capability not listed is never offered, and 0 is every
+   * release, one not yet known included. A range with an end is offered only once the release is
+   * known to be before it.
    */
-  capabilities: Partial<Record<FirmwareCapability, number>>
+  capabilities: Partial<Record<FirmwareCapability, ReleaseRange>>
   /** A faster preset write timing and the first release it was tested on. */
   presetWriteTiming?: { from: number; timing: PresetWriteTiming }
 }
@@ -102,7 +110,16 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
     },
     presetWriteTiming: { from: 96, timing: deviceManagerTiming },
   },
-  mvave: { capabilities: { ...channelMessages, singleVoiceDumps: 0 } },
+  mvave: {
+    capabilities: {
+      ...channelMessages,
+      // M-VAVE's notes for V16 (2026-10-21) move the effect unit to CC 70–93 and say CC 0–23 no
+      // longer reach it, and V16 takes CC 1, 2, 4, 7, and 11 as modulation, volume, and
+      // expression. Until a hardware run confirms the new controllers, V16 and later get none.
+      effectControllers: { before: 16, from: 0 },
+      singleVoiceDumps: 0,
+    },
+  },
   // M-VAVE's Official Open is an eight-track groovebox, not a bank of DX7 presets, and takes a
   // slot's Program Change and the effect controllers as changes to its tracks
   // (docs/fm1-research.md, "Official Open: released source"). It takes a single-voice dump into
@@ -121,9 +138,11 @@ function releaseNumber(firmware: Fm1Firmware) {
 /** What the editor may do with `firmware`. */
 export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
   const release = releaseNumber(firmware)
-  const from = (firstRelease: number | undefined) =>
-    firstRelease === 0 ||
-    (release !== null && firstRelease !== undefined && release >= firstRelease)
+  const from = (range: ReleaseRange | undefined) => {
+    if (range === undefined) return false
+    if (typeof range === 'number') return range === 0 || (release !== null && release >= range)
+    return release !== null && release >= range.from && release < range.before
+  }
   const { capabilities, presetWriteTiming: fasterTiming } = familyProfiles[firmware.kind]
   return {
     capabilities: {

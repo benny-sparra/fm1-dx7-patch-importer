@@ -54,7 +54,9 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
      does: add a stock release threshold to `familyProfiles` (`mvave` lists `effectControllers`
      from release 0 today, so the capability becomes "0 to 15", which the profile's
      first-release shape cannot say; extend it, never branch in the sender). Then, once the run
-     confirms CC 70–93, send them on V16 and later.
+     confirms CC 70–93, send them on V16 and later. _The safe default is done (2026-10-22): the
+     stock profile lists `effectControllers` only before release 16, and the firmware setting
+     says the effect controls send nothing yet. Sending CC 70–93 waits for the run._
   2. **Say what V16 is.** The badge, the firmware setting, and the bank instructions word stock as
      one thing. Add V16's differences once they are confirmed: eight parts, 20 voices shared, the
      effects as one shared library of 128 groups that no longer follows the preset.

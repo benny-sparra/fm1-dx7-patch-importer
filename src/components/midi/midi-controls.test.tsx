@@ -95,6 +95,34 @@ describe('MidiSettingsMenu firmware', () => {
     expect(screen.getByText('Patches you play go to the FM1’s edit buffer.')).toBeTruthy()
   })
 
+  it('says V16’s effect controls send nothing yet, since it moved the effects', () => {
+    renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
+
+    expect(screen.getByText('Patches you play go to the FM1’s edit buffer.')).toBeTruthy()
+    expect(
+      screen.getByText(
+        'The effect controls send nothing yet, as V16 moved them to other controllers.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('says nothing about the effect controls on V15', () => {
+    renderSettings({ identity: 'FM-1_015', kind: 'mvave' })
+
+    expect(screen.queryByText(/The effect controls send nothing yet/)).toBeNull()
+  })
+
+  it('says V16’s effect controls send nothing yet in German', async () => {
+    await setLocale('de')
+    renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
+
+    expect(
+      screen.getByText(
+        'Die Effektregler senden noch nichts, da V16 sie auf andere Controller gelegt hat.',
+      ),
+    ).toBeTruthy()
+  })
+
   it('names FM-1+VA firmware and why patches are sent as parameter changes, in German', async () => {
     await setLocale('de')
 

@@ -203,9 +203,10 @@ open everything an earlier release could have saved.
   `resolveFirmwareProfile` gives its family, its capabilities (`singleVoiceDumps`, `presetRead`,
   `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`, `programChanges`,
   `effectControllers`), and its preset write timing. A family
-  lists the first release with each capability, so a new firmware, a release that adds one, or
-  another device's firmware is an entry in `familyProfiles`, never a predicate in the module that
-  uses it. A capability a family does not list is never offered, which keeps a firmware being
+  lists the first release with each capability, or a range ending `before` the release that took
+  it away, so a new firmware, a release that adds or removes one, or another device's firmware is
+  an entry in `familyProfiles`, never a predicate in the module that uses it. A range with an end
+  is offered only once the release is known to be inside it. A capability a family does not list is never offered, which keeps a firmware being
   checked, an unidentified one, and Felucca on the cautious parameter changes. Code reads a
   capability from the profile rather than comparing `Fm1Firmware`'s `kind` or release; compare the
   family only to word what users read about it, such as the badge. The module imports nothing but
@@ -218,6 +219,12 @@ open everything an earlier release could have saved.
   neither `programChanges` nor `effectControllers`: a slot click selects no program there, and the
   effects send nothing. Every other family lists both from release 0, which counts for a firmware
   not yet identified too. The badge, the firmware setting, and the bank instructions say so.
+- M-VAVE's V16 (`FM-1_016`, 2026-10-21) moved its effect unit to CC 70–93 by its release notes,
+  and takes CC 1, 2, 4, 7, and 11 as modulation, volume, and expression, so the stock profile lists
+  `effectControllers` only before release 16 and V16's effects stay in the library. The firmware
+  setting says the effect controls send nothing yet, in one short line, since the entry pays for
+  the string. Sending CC 70–93 waits for a
+  hardware run recorded in `docs/hardware-runs/` (`docs/feature-backlog.md`, "Stock firmware V16").
 - On Official Open the editor may send two things, both approved on 2026-10-16. The DX7
   single-voice dump goes only on note channels 1–7 or 10, the channels of tracks 1–8, and only
   after command 0 has shown that channel's track running DX7, since a dump to another engine is
