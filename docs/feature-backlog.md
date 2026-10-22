@@ -351,6 +351,22 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     `parseDx7VoiceFile`. It sends nothing. A later dump replaces the one shown; the replacement is
     one library change with Undo, as **Import patch…** is. No analytics event or stored state.
 
+- [ ] **Set V16's screen colours from the browser.** V16 adds RGB colour editing in GLOBE for the
+      page background, parameter widgets, footer, waveform, text, page text, and borders, previewed
+      at once and saved with SAVE (release notes, `docs/fm1-research.md`, "M-VAVE's V16 stock
+      firmware"). Ben suggested it on 2026-10-22, with the orange FM1 on V16. The editor could offer
+      colour pickers for each element, and starting points such as one matched to the page's FM1
+      colour, so the screen and the editor look alike.
+  - **Blocked on the protocol.** The notes name no MIDI message for the colours, and the editor may
+    send none it does not know: a vendor command stays **Dangerous / excluded** until classified.
+    First, change one colour on the FM1 with the MIDI log open and see whether it sends anything;
+    then look for the setting in M-VAVE's updated manual or a later release's notes. Without a
+    documented message, or one captured and approved in `AGENTS.md`, this does not get built.
+  - Stock only, from release 16, through a capability in the firmware profile, so earlier releases
+    and other firmware never see it.
+  - The colours are global settings, so a write changes the FM1 for every preset; say so before
+    sending, and say whether SAVE → Globe is still needed to keep them.
+
 - [ ] **Share a patch as a link.** **Copy share link** in a slot's ⋮ menu copies a URL that carries
       the patch in its fragment (the part after `#`), so someone else can open it in their own
       library. The fragment never reaches a server, so this needs none: it is not the rejected
