@@ -640,6 +640,12 @@ open everything an earlier release could have saved.
   touch, so it cannot be the only name. The caption is a word of the control's accessible name
   (WCAG 2.5.3), and pressing it does what pressing the control does: the finish's caption is a
   `<label>` for the current finish, which opens the choice as a tap on the swatch does.
+- A message about something the user must do first fixes it where it can rather than saying where
+  to go: **Send to FM1** while MIDI is offline opens `MidiConnectionRequiredDialog`, whose one
+  primary button switches MIDI online, waits as an `aria-disabled` button with its reason while the
+  output is chosen in the dialog and the FM1 is identified, then sends. Library actions, which holds
+  the backup, is named in words on its trigger, and the footer's "Your patches stay in this browser"
+  box says when the last backup was made.
 - On a phone the full title runs the header's width beneath those controls and wraps as words, at
   a size that follows the width, so it takes two lines at 320 and 375 px with the MIDI switch in
   the first screen (`e2e/librarian.e2e.ts`). The loading stand-in for the patch banks or editor
@@ -748,7 +754,9 @@ open everything an earlier release could have saved.
   pointer-only hint such as the piano's drag handle, give it a `title`.
 - A patch slot's accessible names carry its slot code, as its card shows it: `banks.sendPatch` is
   "Send A01 NAME to FM1" and `banks.reorderPatch` "Reorder A01 NAME" (`patchSlotCode`), so a bank
-  of INIT VOICE patches does not give every slot one name (WCAG 2.5.3). `banks.reorder` names an
+  of INIT VOICE patches does not give every slot one name (WCAG 2.5.3). Its ⋮ menu and heart carry
+  the code too (`banks.patchMenu`, `favourites.toggleSlot`); `banks.bankMenu` names a bank's menu
+  only. A search result, which is not in a slot, keeps `favourites.toggle`. `banks.reorder` names an
   effect's grip, which has no slot. The code is part of the name, so a test that finds a slot uses
   `sendSlotName` and `reorderSlotName` from `src/test/librarian-fakes.ts`, and one that compares
   names across a reorder compares the patch names alone, since the codes stay where they are.

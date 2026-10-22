@@ -61,7 +61,23 @@ const openDialogs = {
       onSend={vi.fn()}
     />
   ),
-  'midi-required': () => <MidiConnectionRequiredDialog onClose={vi.fn()} />,
+  'midi-required': () => (
+    <MidiConnectionRequiredDialog
+      midi={{
+        connectMidi: vi.fn(),
+        error: null,
+        firmware: { kind: 'unidentified' },
+        hasMidiOutput: false,
+        isConnecting: false,
+        midiAccess: false,
+        outputs: [],
+        selectedOutputId: '',
+        setSelectedOutputId: vi.fn(),
+      }}
+      onClose={vi.fn()}
+      onSend={vi.fn()}
+    />
+  ),
   'restore-factory': () => (
     <RestoreFactoryBanksDialog onClose={vi.fn()} onRestore={() => Promise.resolve()} />
   ),

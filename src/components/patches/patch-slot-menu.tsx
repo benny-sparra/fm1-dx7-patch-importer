@@ -20,6 +20,8 @@ type PatchSlotMenuProps = {
   onReceive?: () => void
   onReplace?: () => void
   onShare?: () => void
+  /** The slot's code, so slots holding patches of one name keep menus of their own names. */
+  slot: string
 }
 
 /**
@@ -36,6 +38,7 @@ export function PatchSlotMenu({
   onReceive,
   onReplace,
   onShare,
+  slot,
 }: PatchSlotMenuProps) {
   const { t } = useTranslation()
   const transfer = t('banks.menuTransfer')
@@ -71,7 +74,7 @@ export function PatchSlotMenu({
       ].filter(({ onSelect }) => onSelect)}
       menuLabel={name}
       triggerClassName="z-[1] -my-1 -mr-1"
-      triggerLabel={t('banks.bankMenu', { bank: name })}
+      triggerLabel={t('banks.patchMenu', { name, slot })}
     />
   )
 }

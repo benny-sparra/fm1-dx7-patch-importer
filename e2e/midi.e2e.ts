@@ -110,7 +110,7 @@ test.describe('with an FM-1 connected', () => {
 
   test('sends Favourites as a bank, with INIT VOICE in the slots after it', async ({ page }) => {
     const heart = page.getByRole('button', { name: /^Favourite / }).first()
-    const name = (await heart.getAttribute('aria-label'))?.replace(/^Favourite /, '') ?? ''
+    const name = (await heart.getAttribute('aria-label'))?.replace(/^Favourite \S+ /, '') ?? ''
     await heart.click()
     await expect(heart).toHaveAttribute('aria-pressed', 'true')
     await page.getByRole('button', { exact: true, name: 'Favourites' }).click()
@@ -144,9 +144,9 @@ test.describe('with an FM-1 connected', () => {
   test('sends each voice edit to the FM1 as a parameter change', async ({ page }) => {
     // Opened from the slot's menu, since a double-click's first click also plays the slot.
     const label = (await slotButtons(page).first().getAttribute('aria-label')) ?? ''
-    const name = label.replace(/^Send \S+ (.+) to FM1$/, '$1')
+    const slotAndName = label.replace(/^Send (.+) to FM1$/, '$1')
     await page
-      .getByRole('button', { exact: true, name: `Actions for ${name}` })
+      .getByRole('button', { exact: true, name: `Actions for ${slotAndName}` })
       .first()
       .click()
     await page.getByRole('menuitem', { name: 'Edit' }).click()

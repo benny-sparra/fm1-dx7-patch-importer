@@ -26,6 +26,12 @@ async function firstSlotName(page: Page) {
   return label.replace(/^Send \S+ (.+) to FM1$/, '$1')
 }
 
+/** The first slot's code and patch name, as its menu and heart are named. */
+async function firstSlotCodeAndName(page: Page) {
+  const label = (await slotButtons(page).first().getAttribute('aria-label')) ?? ''
+  return label.replace(/^Send (.+) to FM1$/, '$1')
+}
+
 test('fits the patch banks to the screen without sideways scrolling', async ({ page }) => {
   await openLibrarian(page)
 
@@ -61,10 +67,10 @@ test('opens a patch in the editor with a double tap', async ({ page }) => {
 
 test('opens a patch in the editor from its menu with taps', async ({ page }) => {
   await openLibrarian(page)
-  const name = await firstSlotName(page)
+  const slotAndName = await firstSlotCodeAndName(page)
 
   await page
-    .getByRole('button', { exact: true, name: `Actions for ${name}` })
+    .getByRole('button', { exact: true, name: `Actions for ${slotAndName}` })
     .first()
     .tap()
   await page.getByRole('menuitem', { name: 'Edit' }).tap()

@@ -49,8 +49,9 @@ test('copies a slot’s share link that opens the same patch', async ({
   await expect(helpDialog).toBeHidden()
   const label = (await slotButtons(page).nth(1).getAttribute('aria-label')) ?? ''
   const name = label.replace(/^Send \S+ (.+) to FM1$/, '$1')
+  const slotAndName = label.replace(/^Send (.+) to FM1$/, '$1')
 
-  await page.getByRole('button', { name: `Actions for ${name}` }).click()
+  await page.getByRole('button', { name: `Actions for ${slotAndName}` }).click()
   await page.getByRole('menuitem', { name: 'Copy share link' }).click()
   await expect(page.getByText(`Copied a share link for “${name}”.`)).toBeVisible()
   const link = await page.evaluate(() => navigator.clipboard.readText())
@@ -81,9 +82,9 @@ test('shows a refused copy’s explanation in view of the slot it was copied fro
   await helpDialog.getByRole('button', { name: 'Close help' }).click()
   await expect(helpDialog).toBeHidden()
   const label = (await slotButtons(page).first().getAttribute('aria-label')) ?? ''
-  const name = label.replace(/^Send \S+ (.+) to FM1$/, '$1')
+  const slotAndName = label.replace(/^Send (.+) to FM1$/, '$1')
 
-  await page.getByRole('button', { name: `Actions for ${name}` }).click()
+  await page.getByRole('button', { name: `Actions for ${slotAndName}` }).click()
   await page.getByRole('menuitem', { name: 'Copy share link' }).click()
 
   await expect(

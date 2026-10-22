@@ -69,7 +69,7 @@ describe('HelpDialog welcome', () => {
     ).toBeTruthy()
     const steps = within(within(dialog).getByRole('list')).getAllByRole('listitem')
     expect(steps.map((step) => step.textContent)).toEqual([
-      '1Plug in the FM1 and switch MIDI online on.',
+      '1Plug in the FM1 and switch MIDI online.',
       '2Click a patch to hear it, double-click to edit.',
       '3Send to FM1 puts a whole bank on the synth.',
     ])
@@ -103,7 +103,7 @@ describe('HelpDialog welcome', () => {
       ),
     ).toBeTruthy()
     expect(screen.getByText('You can still browse and edit patches here.')).toBeTruthy()
-    expect(screen.queryByText('Plug in the FM1 and switch MIDI online on.')).toBeNull()
+    expect(screen.queryByText('Plug in the FM1 and switch MIDI online.')).toBeNull()
   })
 
   it('opens the full guide in place and moves focus to its first tab', async () => {

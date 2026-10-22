@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
+import { recordBackupTime, resetLastBackupTimeForTests } from '@/lib/last-backup'
 import { makeLogEntry } from '@/lib/midi'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { expectNoAxeViolations } from '@/test/accessibility'
@@ -408,5 +409,51 @@ describe('RootLayout footer', () => {
     const link = screen.getByRole('link', { name: 'FM1 firmware' })
     expect(link.getAttribute('href')).toBe('/firmware/')
     expect(link.hasAttribute('target')).toBe(false)
+  })
+})
+
+describe('RootLayout backup reminder', () => {
+  afterEach(async () => {
+    localStorage.removeItem('fm1-last-backup')
+    resetLastBackupTimeForTests()
+    await setLocale('en-GB')
+  })
+
+  function renderFooter() {
+    render(
+      <RootLayout midi={midi}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+    return screen.getByText('Your patches stay in this browser').parentElement!
+  }
+
+  it('says no backup has been downloaded beside the line that the patches stay in this browser', () => {
+    expect(renderFooter().textContent).toContain('No backup downloaded yet')
+  })
+
+  it('dates the last backup in the interface language', async () => {
+    localStorage.setItem('fm1-last-backup', '2026-10-12T09:00:00.000Z')
+    await setLocale('de')
+    render(
+      <RootLayout midi={midi}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    expect(
+      screen.getByText('Deine Sounds bleiben in diesem Browser').parentElement!.textContent,
+    ).toContain('12.10.2026')
+  })
+
+  it('updates when a backup is downloaded', () => {
+    const footer = renderFooter()
+
+    act(() => recordBackupTime('2026-10-12T09:00:00.000Z'))
+
+    expect(footer.textContent).not.toContain('No backup downloaded yet')
+    expect(footer.textContent).toContain('Last backed up:')
   })
 })

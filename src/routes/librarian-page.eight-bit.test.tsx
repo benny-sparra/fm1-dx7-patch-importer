@@ -17,7 +17,13 @@ import {
   makePatches,
 } from '@/lib/patch-library'
 import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
-import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
+import {
+  favouriteSlotName,
+  makeLibrarianLibrary,
+  makeLibrarianMidi,
+  sendSlotName,
+  slotMenuName,
+} from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -127,7 +133,7 @@ describe('LibrarianPage with an 8-Bit preset', () => {
   it('offers editing, copying, and downloading the slot, but not changing it to FM', async () => {
     const { user } = renderPage()
 
-    await user.click(screen.getByRole('button', { name: 'Actions for NES ROCK' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('NES ROCK') }))
 
     expect(screen.getByRole('menuitem', { name: 'Copy to…' })).toBeTruthy()
     expect(screen.getByRole('menuitem', { name: 'Download patch' })).toBeTruthy()
@@ -137,7 +143,7 @@ describe('LibrarianPage with an 8-Bit preset', () => {
 
   it('downloads the patch as a Baud Girl presets file naming its own slot', async () => {
     const { user } = renderPage()
-    await user.click(screen.getByRole('button', { name: 'Actions for NES ROCK' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('NES ROCK') }))
 
     await user.click(screen.getByRole('menuitem', { name: 'Download patch' }))
 
@@ -156,7 +162,7 @@ describe('LibrarianPage with an 8-Bit preset', () => {
     snapshot.eightBit['bank-A-3'][110] |= 0x60
     renderPageWith(snapshot)
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: 'Aktionen für NES ROCK' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('NES ROCK', 'Aktionen für') }))
 
     await user.click(screen.getByRole('menuitem', { name: 'Sound herunterladen' }))
 
@@ -180,10 +186,10 @@ describe('LibrarianPage with an 8-Bit preset', () => {
     renderPage()
 
     expect(
-      within(cardOf('NES ROCK')).queryByRole('button', { name: 'Favourite NES ROCK' }),
+      within(cardOf('NES ROCK')).queryByRole('button', { name: favouriteSlotName('NES ROCK') }),
     ).toBeNull()
     expect(
-      within(cardOf('E.PIANO1')).getByRole('button', { name: 'Favourite E.PIANO1' }),
+      within(cardOf('E.PIANO1')).getByRole('button', { name: favouriteSlotName('E.PIANO1') }),
     ).toBeTruthy()
   })
 

@@ -7,7 +7,12 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { reloadPage } from '@/lib/reload-page'
-import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
+import {
+  makeLibrarianLibrary,
+  makeLibrarianMidi,
+  sendSlotName,
+  slotMenuName,
+} from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -61,7 +66,7 @@ async function openFailingCopyDialog() {
     </ToastProvider>,
   )
 
-  await user.click(screen.getByRole('button', { name: 'Actions for Alpha Piano' }))
+  await user.click(screen.getByRole('button', { name: slotMenuName('Alpha Piano') }))
   await user.click(screen.getByRole('menuitem', { name: 'Copy to…' }))
   return user
 }
@@ -76,7 +81,7 @@ describe('LibrarianPage copy dialog that fails to load', () => {
       ),
     ).toBeTruthy()
     expect(screen.getByRole('button', { name: sendSlotName('Alpha Piano') })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Actions for Alpha Piano' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: slotMenuName('Alpha Piano') })).toBeTruthy()
   })
 
   it('reloads the app when the failure notice offers it', async () => {

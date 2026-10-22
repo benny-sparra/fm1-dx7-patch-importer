@@ -21,7 +21,7 @@ import { LibrarianPage } from '@/routes/librarian-page'
 import { expectNoAxeViolations } from '@/test/accessibility'
 import { makeWorkspaceWithCopies } from '@/test/factory-voices'
 import { makeFm1VaBackupFile } from '@/test/fm1-va-backup-file'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { favouriteSlotName, makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
@@ -228,7 +228,7 @@ describe('rendered accessibility', () => {
       </ToastProvider>,
     )
     expect(
-      screen.getByRole('button', { name: `Favourite ${voice.name}`, pressed: true }),
+      screen.getByRole('button', { name: favouriteSlotName(voice.name), pressed: true }),
     ).toBeTruthy()
     await expectNoAxeViolations(container)
 

@@ -9,7 +9,7 @@ import { ToastProvider } from '@/components/ui/toast'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { decodePatchSharePayload, encodePatchSharePayload } from '@/lib/patch-share-link'
 import { makeDemoVoices, type PatchLibrarySnapshot } from '@/lib/patch-library'
-import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
+import { makeLibrarianLibrary, makeLibrarianMidi, slotMenuName } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -80,7 +80,7 @@ describe('LibrarianPage share links', () => {
   it('copies a share link to this site, carrying the slot’s voice and effects', async () => {
     const { user } = renderPage()
 
-    await user.click(screen.getByRole('button', { name: `Actions for ${voice.name}` }))
+    await user.click(screen.getByRole('button', { name: slotMenuName(voice.name) }))
     await user.click(screen.getByRole('menuitem', { name: 'Copy share link' }))
 
     expect(await screen.findByText(`Copied a share link for “${voice.name}”.`)).toBeTruthy()
@@ -96,7 +96,7 @@ describe('LibrarianPage share links', () => {
     const { user } = renderPage()
     vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('NotAllowedError'))
 
-    await user.click(screen.getByRole('button', { name: `Aktionen für ${voice.name}` }))
+    await user.click(screen.getByRole('button', { name: slotMenuName(voice.name, 'Aktionen für') }))
     await user.click(screen.getByRole('menuitem', { name: 'Freigabelink kopieren' }))
 
     expect(
@@ -113,7 +113,7 @@ describe('LibrarianPage share links', () => {
     const { user } = renderPage()
     vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new Error('NotAllowedError'))
 
-    await user.click(screen.getByRole('button', { name: `Actions for ${voice.name}` }))
+    await user.click(screen.getByRole('button', { name: slotMenuName(voice.name) }))
     await user.click(screen.getByRole('menuitem', { name: 'Copy share link' }))
 
     const alert = await screen.findByRole('alert')
@@ -126,7 +126,7 @@ describe('LibrarianPage share links', () => {
     await setLocale('de')
     const { user } = renderPage()
 
-    await user.click(screen.getByRole('button', { name: `Aktionen für ${voice.name}` }))
+    await user.click(screen.getByRole('button', { name: slotMenuName(voice.name, 'Aktionen für') }))
     await user.click(screen.getByRole('menuitem', { name: 'Freigabelink kopieren' }))
 
     expect(await screen.findByText(`Freigabelink für „${voice.name}“ kopiert.`)).toBeTruthy()

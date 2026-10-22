@@ -20,7 +20,12 @@ import {
   capturedVirtualAnalogRecord,
   virtualAnalogVoiceBeyondDx7Ranges,
 } from '@/test/fm1-va-virtual-analog'
-import { makeLibrarianLibrary, makeLibrarianMidi, sendSlotName } from '@/test/librarian-fakes'
+import {
+  makeLibrarianLibrary,
+  makeLibrarianMidi,
+  sendSlotName,
+  slotMenuName,
+} from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -109,7 +114,7 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
   it('offers editing, copying, and downloading the slot', async () => {
     const { user } = renderPage()
 
-    await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('VOICE 97') }))
 
     expect(screen.getByRole('menuitem', { name: 'Copy to…' })).toBeTruthy()
     expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeTruthy()
@@ -118,7 +123,7 @@ describe('LibrarianPage with a Virtual Analog preset, on M-VAVE’s firmware', (
 
   it('downloads the patch as a Baud Girl presets file of one preset', async () => {
     const { user } = renderPage()
-    await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('VOICE 97') }))
 
     await user.click(screen.getByRole('menuitem', { name: 'Download patch' }))
 
@@ -254,10 +259,10 @@ describe('LibrarianPage changing a Virtual Analog patch to FM', () => {
   it('offers the change on a Virtual Analog patch only', async () => {
     const { user } = renderPage()
 
-    await user.click(screen.getByRole('button', { name: 'Actions for E.PIANO1' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('E.PIANO1') }))
     expect(screen.queryByRole('menuitem', { name: 'Change to FM…' })).toBeNull()
     await user.keyboard('{Escape}')
-    await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('VOICE 97') }))
 
     expect(screen.getByRole('menuitem', { name: 'Change to FM…' })).toBeTruthy()
   })
@@ -265,7 +270,7 @@ describe('LibrarianPage changing a Virtual Analog patch to FM', () => {
   it('replaces it with INIT VOICE under the name typed, keeping its effects, with Undo', async () => {
     const { library, user } = renderPage()
     vi.mocked(library.replaceVoice).mockReturnValue(workspace())
-    await user.click(screen.getByRole('button', { name: 'Actions for VOICE 97' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('VOICE 97') }))
     await user.click(screen.getByRole('menuitem', { name: 'Change to FM…' }))
 
     const dialog = await screen.findByRole('dialog', { name: 'Change A03 “VOICE 97” to FM?' })
@@ -284,7 +289,7 @@ describe('LibrarianPage changing a Virtual Analog patch to FM', () => {
   it('names the slot it changes in the interface language', async () => {
     await setLocale('de')
     const { user } = renderPage()
-    await user.click(screen.getByRole('button', { name: 'Aktionen für VOICE 97' }))
+    await user.click(screen.getByRole('button', { name: slotMenuName('VOICE 97', 'Aktionen für') }))
 
     await user.click(screen.getByRole('menuitem', { name: 'In FM umwandeln…' }))
 
