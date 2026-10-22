@@ -33,7 +33,6 @@ export function MidiPanicButton({ midi }: MidiPanicButtonProps) {
         aria-describedby={unavailableReason ? reasonId : undefined}
         aria-disabled={!midi.hasMidiOutput || undefined}
         aria-label={t('midi.panic')}
-        className="font-vt323"
         onClick={() => {
           if (midi.hasMidiOutput && midi.sendMidiPanic()) toast.success(t('toasts.midiPanicSent'))
         }}
@@ -42,11 +41,11 @@ export function MidiPanicButton({ midi }: MidiPanicButtonProps) {
             ? t('midi.panicUnavailable', { reason: unavailableReason })
             : t('midi.panicHelp')
         }
+        size="icon"
         type="button"
         variant="secondary"
       >
         <OctagonAlert aria-hidden="true" />
-        <span>{t('midi.panicLabel')}</span>
       </Button>
       {unavailableReason ? (
         <span className="sr-only" id={reasonId}>

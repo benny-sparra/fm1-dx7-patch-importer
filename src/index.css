@@ -649,23 +649,6 @@
     letter-spacing: 0.08em;
   }
 
-  /* A header key over its caption, the way the FM1 prints a name under a button. */
-  .hero-captioned {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-  }
-
-  .hero-caption {
-    color: var(--hero-supporting-foreground);
-    font-size: 0.625rem;
-    line-height: 1;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
   .hero-action:hover {
     color: var(--hero-action-hover-foreground);
     background: var(--crt-sel-bg);
