@@ -878,8 +878,7 @@ export default {
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca 或 SLOOP {{identity}}',
     firmwareEditBuffer: '你试听的音色会进入 FM1 的编辑缓冲区。',
-    firmwareEditBufferEffectsLocal:
-      '你试听的音色会进入 FM1 的编辑缓冲区。效果控制暂时不会发送任何内容：此版本把效果移到了其他控制器上，这些控制器还需要在 FM1 上验证。',
+    firmwareEffectsNotSent: '效果控制暂时不会发送任何内容，因为 V16 把它们移到了其他控制器上。',
     firmwareParameterChanges:
       '你试听的音色会以参数变化的方式发送，因此 FM1 绝不会把它们保存到所选预设上。',
     firmwareIgnoresPatches: 'Felucca 会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
@@ -1090,8 +1089,6 @@ export default {
     mvaveBadgeLabel: 'M-VAVE 固件，{{release}}',
     mvaveBadgeTitle:
       'FM1 运行的是 M-VAVE 原厂固件（{{release}}）。你试听的音色会进入它的编辑缓冲区。',
-    mvaveEffectsLocalBadgeTitle:
-      'FM1 运行的是 M-VAVE 原厂固件（{{release}}）。你试听的音色会进入它的编辑缓冲区。效果控制暂时不会发送任何内容：此版本把效果移到了其他控制器上，这些控制器还需要在 FM1 上验证。',
     officialOpenBadgeLabel: 'M-VAVE Open 固件，{{release}}',
     officialOpenBadgeTitle:
       'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',

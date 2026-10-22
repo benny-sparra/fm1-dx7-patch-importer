@@ -129,16 +129,11 @@ export function MidiFirmwareBadge({
   }
   const release = fm1FirmwareRelease(firmware)
   const badge = firmwareBadges[mayBeSloop(firmware) ? 'feluccaOrSloop' : firmware.kind]
-  // M-VAVE's V16 moved the effect unit's controllers, so its badge says the effects send nothing.
-  const title =
-    firmware.kind === 'mvave' && !resolveFirmwareProfile(firmware).capabilities.effectControllers
-      ? 'midi.mvaveEffectsLocalBadgeTitle'
-      : badge.title
 
   return (
     <span
       className={className ?? 'inline-flex min-h-8 items-center gap-2'}
-      title={t(title, { release })}
+      title={t(badge.title, { release })}
     >
       <span aria-hidden="true" className="text-xs font-bold tracking-[0.1em] text-[var(--crt-ink)]">
         {badge.maker}
@@ -209,11 +204,7 @@ function firmwareName(firmware: MidiController['firmware'], t: TFunction) {
 
 // What the firmware does with the patches the editor plays; any other gets parameter changes.
 function firmwareSendingKey(firmware: MidiController['firmware']) {
-  if (firmware.kind === 'mvave') {
-    return resolveFirmwareProfile(firmware).capabilities.effectControllers
-      ? 'settings.firmwareEditBuffer'
-      : 'settings.firmwareEditBufferEffectsLocal'
-  }
+  if (firmware.kind === 'mvave') return 'settings.firmwareEditBuffer'
   if (mayBeSloop(firmware)) return 'settings.firmwareFeluccaOrSloopIgnoresPatches'
   if (firmware.kind === 'felucca') return 'settings.firmwareIgnoresPatches'
   if (firmware.kind === 'official-open') return 'settings.firmwareOfficialOpenSends'
@@ -235,6 +226,13 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
       <span className="text-[11px] text-muted-foreground">
         {t(firmwareSendingKey(midi.firmware))}
       </span>
+      {/* M-VAVE's V16 moved the effect unit's controllers, so the effects send nothing there. */}
+      {midi.firmware.kind === 'mvave' &&
+      !resolveFirmwareProfile(midi.firmware).capabilities.effectControllers ? (
+        <span className="text-[11px] text-muted-foreground">
+          {t('settings.firmwareEffectsNotSent')}
+        </span>
+      ) : null}
       {needsInput ? (
         <span className="text-[11px] text-muted-foreground">
           {t('settings.firmwareNeedsInput')}

@@ -381,8 +381,8 @@ export default {
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca or SLOOP {{identity}}',
     firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
-    firmwareEditBufferEffectsLocal:
-      'Patches you play go to the FM1’s edit buffer. The effect controls send nothing yet: this release moved the effects to other controllers, which have still to be checked on an FM1.',
+    firmwareEffectsNotSent:
+      'The effect controls send nothing yet, as V16 moved them to other controllers.',
     firmwareParameterChanges:
       'Patches you play are sent as parameter changes, so the FM1 never stores them over the selected preset.',
     firmwareIgnoresPatches:
@@ -437,8 +437,6 @@ export default {
     mvaveBadgeLabel: 'M-VAVE firmware, {{release}}',
     mvaveBadgeTitle:
       'The FM1 runs M-VAVE’s own firmware, {{release}}. Patches you play go to its edit buffer.',
-    mvaveEffectsLocalBadgeTitle:
-      'The FM1 runs M-VAVE’s own firmware, {{release}}. Patches you play go to its edit buffer. The effect controls send nothing yet: this release moved the effects to other controllers, which have still to be checked on an FM1.',
     officialOpenBadgeLabel: 'M-VAVE Open firmware, {{release}}',
     officialOpenBadgeTitle:
       'The FM1 runs M-VAVE’s Open firmware, {{release}}, an eight-track groovebox. A patch you click or edit goes to the track on the note channel when that track runs DX7. It ignores DX7 banks, and the effect controls send nothing, since it would take them as changes to its tracks.',
