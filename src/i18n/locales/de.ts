@@ -492,6 +492,8 @@ export default {
       over: '{{name}} befindet sich über {{target}}.',
       pickedUp: '{{name}} wurde aufgenommen.',
       roleDescription: 'sortierbares Element',
+      slotInstructions:
+        'Um einen Sound zu verschieben, fokussiere seinen Griff und drücke Leertaste oder Eingabetaste. Verschiebe ihn mit den Pfeiltasten und lege ihn mit Leertaste oder Eingabetaste ab. Mit Escape brichst du ab. Auf den Reiter einer Bank gezogen, wird der Sound stattdessen in diese Bank kopiert; „Kopieren nach…“ in seinem Menü tut dasselbe per Tastatur.',
     },
     auditionGroup: 'Operator {{number}} vorhören',
     mute: 'Stumm',

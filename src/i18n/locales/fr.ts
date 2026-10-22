@@ -486,6 +486,8 @@ export default {
       over: '{{name}} est au-dessus de {{target}}.',
       pickedUp: '{{name}} a été saisi.',
       roleDescription: 'élément triable',
+      slotInstructions:
+        'Pour déplacer un son, placez le focus sur sa poignée et appuyez sur Espace ou Entrée. Déplacez-le avec les flèches, puis appuyez sur Espace ou Entrée pour le déposer, ou sur Échap pour annuler. Glissé sur l’onglet d’une banque, le son y est copié ; « Copier vers… » dans son menu fait de même au clavier.',
     },
     auditionGroup: 'Écoute de l’opérateur {{number}}',
     mute: 'Couper',

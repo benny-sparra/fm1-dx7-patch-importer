@@ -5,11 +5,13 @@ import type { TFunction } from 'i18next'
  * What a screen reader hears while something is dragged, in the interface language. dnd-kit's own
  * announcements and instructions are English and name an item only by its id, so every drag
  * context passes these. `nameOf` gives what an id is called aloud, or nothing for an id that is
- * not an item; nothing is announced for one.
+ * not an item; nothing is announced for one. `instructions` replaces the shared instructions for a
+ * context whose drag does more than move, as the slot grid's copies onto a bank tab.
  */
 export function makeDragAccessibility(
   t: TFunction,
   nameOf: (id: UniqueIdentifier) => string | undefined,
+  instructions = t('ui.drag.instructions'),
 ) {
   const announcements: Announcements = {
     onDragCancel: ({ active }) => {
@@ -37,6 +39,6 @@ export function makeDragAccessibility(
   }
   return {
     announcements,
-    screenReaderInstructions: { draggable: t('ui.drag.instructions') },
+    screenReaderInstructions: { draggable: instructions },
   }
 }

@@ -479,6 +479,8 @@ export default {
       over: '{{name}} está sobre {{target}}.',
       pickedUp: '{{name}} foi pego.',
       roleDescription: 'item reordenável',
+      slotInstructions:
+        'Para mover um som, foque a alça dele e pressione Espaço ou Enter. Use as setas para movê-lo e pressione Espaço ou Enter para soltá-lo, ou Esc para cancelar. Arrastado para a aba de um banco, o som é copiado para esse banco; “Copiar para…” no menu dele faz o mesmo pelo teclado.',
     },
     auditionGroup: 'Audição do operador {{number}}',
     mute: 'Silenciar',

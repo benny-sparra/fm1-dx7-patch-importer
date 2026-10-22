@@ -1014,6 +1014,20 @@ describe('LibrarianPage search', () => {
     expect(screen.getByRole('button', { name: reorderSlotName('Alpha Piano') })).toBeTruthy()
   })
 
+  // A sighted user learns from the grip's tooltip that a drop on a bank tab copies; a screen reader
+  // hears it in the drag instructions, with Copy to… for the keyboard.
+  it('tells a screen reader that dropping a slot on a bank tab copies it, and names Copy to…', () => {
+    renderLibrarian({ library: voicedLibrary })
+    const grip = screen.getByRole('button', { name: reorderSlotName('Alpha Piano') })
+
+    const instructions = document.getElementById(
+      grip.getAttribute('aria-describedby') ?? '',
+    )?.textContent
+    expect(instructions).toMatch(/^To move a patch, focus its grip/)
+    expect(instructions).toContain('Dragged onto a bank’s tab, the patch is copied to that bank')
+    expect(instructions).toContain('Copy to… in its menu does the same from the keyboard.')
+  })
+
   it('reads a slot’s drag instructions and announcements in the interface language', async () => {
     await setLocale('de')
     const user = renderLibrarian({ library: voicedLibrary })
@@ -1022,7 +1036,7 @@ describe('LibrarianPage search', () => {
     expect(grip.getAttribute('aria-roledescription')).toBe('sortierbares Element')
     expect(
       document.getElementById(grip.getAttribute('aria-describedby') ?? '')?.textContent,
-    ).toMatch(/^Um ein Element zu verschieben/)
+    ).toMatch(/^Um einen Sound zu verschieben.*„Kopieren nach…“/)
     grip.focus()
     await user.keyboard('[Space]')
 

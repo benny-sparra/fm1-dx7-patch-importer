@@ -426,6 +426,8 @@ export default {
       over: '{{name}} 位于 {{target}} 上方。',
       pickedUp: '已拿起 {{name}}。',
       roleDescription: '可排序项目',
+      slotInstructions:
+        '要移动音色，请聚焦其拖动手柄并按空格键或回车键。用方向键移动，再按空格键或回车键放下，或按 Esc 取消。拖到某个音色库的标签上，音色会改为复制到该音色库；其菜单中的“复制到…”可用键盘完成同样操作。',
     },
     auditionGroup: '试听操作器 {{number}}',
     mute: '静音',

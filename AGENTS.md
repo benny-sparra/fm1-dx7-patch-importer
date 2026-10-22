@@ -773,7 +773,10 @@ open everything an earlier release could have saved.
   (`ui.drag.roleDescription`), because dnd-kit's own instructions, announcements, and "sortable"
   are English and name an item only by its id (WCAG 3.1.2). `nameOf` gives what an id is called
   aloud: a slot's code and name, a bank tab's bank, an effect's name. Add a string to every locale
-  with it, since the drag strings are in the entry.
+  with it, since the drag strings are in the entry. A drag that does more than move passes its own
+  instructions: the slot grid's (`ui.drag.slotInstructions`) say that a drop on a bank tab copies
+  the patch and that **Copy to…** does the same from the keyboard, since the page shows those
+  gestures only in tooltips and the welcome (2026-10-22: no visible hint, by the owner's choice).
 - If a feature body becomes lazy, keep its trigger eager. One activation must eventually open the
   requested feature; repeated activation must not duplicate imports or dialogs.
 - Use focused `Suspense` or loading states that do not replace the whole librarian page.
