@@ -373,6 +373,7 @@ export function LibrarianPage({
   const backupMenuHeadingId = useId()
   const lastBackupId = useId()
   const sendNoteId = useId()
+  const sendBlockedReasonId = useId()
   const sysexContentsId = useId()
   const sendButtonRef = useRef<HTMLButtonElement>(null)
   // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
@@ -750,6 +751,23 @@ export function LibrarianPage({
         : firmwareProfile.family === 'unidentified'
           ? t('banks.sendUnidentified')
           : null
+  // What stops Send to FM1 acting at all, read with it rather than only in its tooltip. Send is
+  // aria-disabled rather than disabled meanwhile, so the keyboard and a screen reader still reach it
+  // and its reason. Sending is said by the status beside it instead.
+  const sendBlockedReason = isSending
+    ? null
+    : isSearching
+      ? t('banks.sendFromSearch')
+      : canSendDestination
+        ? null
+        : showsFavourites
+          ? t('favourites.addFirst')
+          : t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+  const isSendBlocked = isSending || sendBlockedReason !== null
+  const sendDescribedBy =
+    [sendBlockedReason ? sendBlockedReasonId : null, sendNote ? sendNoteId : null]
+      .filter(Boolean)
+      .join(' ') || undefined
   // A bank holds 32 DX7 voices, so the destination instructions say before sending what Favourites
   // becomes on the FM1, or that a bank's Virtual Analog and 8-Bit presets become INIT VOICE.
   const destinationInitVoiceCount = showsFavourites ? 0 : initVoiceCount(destinationBank)
@@ -1099,17 +1117,26 @@ export function LibrarianPage({
                 {sendNote}
               </span>
             ) : null}
+            {sendBlockedReason ? (
+              <span className="sr-only" id={sendBlockedReasonId} key={sendBlockedReason}>
+                {sendBlockedReason}
+              </span>
+            ) : null}
+            {/* Stays mounted, so the working label is announced as the bank goes. */}
+            <span className="sr-only" role="status">
+              {isSending ? <span key="sending">{t('banks.sending')}</span> : null}
+            </span>
             <button
-              aria-describedby={sendNote ? sendNoteId : undefined}
-              aria-disabled={!midi.hasMidiOutput || undefined}
+              aria-describedby={sendDescribedBy}
+              aria-disabled={isSendBlocked || !midi.hasMidiOutput || undefined}
               className={cn(
-                'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none md:ml-auto md:flex-none',
-                // A barber pole while the bank is on its way, rather than the dimmed look of a
-                // button that cannot be used.
-                isSending ? 'barber-pole' : 'disabled:opacity-50',
+                'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] md:ml-auto md:flex-none',
+                // A barber pole while the bank is on its way.
+                isSending && 'barber-pole',
               )}
-              disabled={isSending || isSearching || !canSendDestination}
-              onClick={sendSelectedBank}
+              onClick={() => {
+                if (!isSendBlocked) sendSelectedBank()
+              }}
               ref={sendButtonRef}
               title={
                 isSearching

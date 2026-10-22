@@ -189,13 +189,20 @@ describe('LibrarianPage Favourites', () => {
     expect(undoChange).toHaveBeenCalledExactlyOnceWith(snapshot)
   })
 
-  it('explains an empty Favourites and cannot send it', async () => {
+  it('explains an empty Favourites and says why it cannot be sent', async () => {
     const user = renderPage(makeLibrary(makeWorkspace(0)), connectedMidi())
 
     await user.click(screen.getByRole('button', { name: 'Favourites' }))
 
     expect(screen.getByRole('heading', { name: 'No favourites yet' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Send to FM1' }).hasAttribute('disabled')).toBe(true)
+    expect(
+      screen
+        .getByRole('button', {
+          name: 'Send to FM1',
+          description: 'Add a favourite before sending Favourites',
+        })
+        .getAttribute('aria-disabled'),
+    ).toBe('true')
   })
 
   it('says a short Favourites is sent with INIT VOICE in the slots after it', async () => {
