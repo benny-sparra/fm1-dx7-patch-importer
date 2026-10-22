@@ -150,7 +150,7 @@ export function PatchGrid({
   const slotRefs = useRef(new Map<string, HTMLButtonElement>())
   const actionsRef = useRef<HTMLDivElement>(null)
   // On a phone the bank row sticks, so focus scrolls in below it rather than behind it.
-  useStickyHeaderOffset(actionsRef, phoneQuery)
+  useStickyHeaderOffset(actionsRef, phoneQuery, 8)
   const [focusedPatchId, setFocusedPatchId] = useState('')
   const [draggedId, setDraggedId] = useState<UniqueIdentifier | null>(null)
   // The slot a menu move landed on, which takes focus once the grid shows the move. Each move is
