@@ -7,7 +7,7 @@ import {
   maxPhraseTempo,
   minPhraseTempo,
 } from '@/lib/audition-phrases'
-import en from '@/i18n/locales/en-GB'
+import keyboard from '@/i18n/locales/en-GB-keyboard'
 
 describe('audition phrases', () => {
   it('gives every phrase a unique id', () => {
@@ -18,7 +18,9 @@ describe('audition phrases', () => {
 
   it('names every phrase in the English locale', () => {
     for (const phrase of auditionPhrases) {
-      expect(en.ui.phrases[phrase.id as keyof typeof en.ui.phrases]).toEqual(expect.any(String))
+      expect(keyboard.ui.phrases[phrase.id as keyof typeof keyboard.ui.phrases]).toEqual(
+        expect.any(String),
+      )
     }
   })
 

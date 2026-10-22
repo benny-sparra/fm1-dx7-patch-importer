@@ -1250,6 +1250,8 @@ export default {
       'Bänke und Sounds können nicht übertragen werden. Trenne MIDI, stelle die Verbindung erneut her und erlaube bei der Abfrage den SysEx-Zugriff.',
     log: 'MIDI-Protokoll',
     closeLog: 'MIDI-Protokoll schließen',
+    logOpenFailed:
+      'Das MIDI-Protokoll konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     entries: 'Letzte MIDI-Protokolleinträge',
     hideData: 'Daten ausblenden',
     viewData: 'Daten anzeigen',

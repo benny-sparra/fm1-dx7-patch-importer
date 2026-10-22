@@ -2,6 +2,7 @@ import { Copy, Download, FolderOpen, Pencil, Save, Trash2 } from 'lucide-react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/librarian-dialogs'
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import type { LoadNamedBankDialogProps } from '@/components/patches/named-bank-dialog-types'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'

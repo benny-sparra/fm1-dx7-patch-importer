@@ -2,6 +2,7 @@ import { ChevronDown, Play, Square } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/keyboard'
 import { Button } from '@/components/ui/button'
 import { auditionPhrases, maxPhraseTempo, minPhraseTempo } from '@/lib/audition-phrases'
 import { rangeStyle } from '@/lib/range-style'

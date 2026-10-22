@@ -4,6 +4,7 @@ import de from './locales/de'
 import britishEnglish from './locales/en-GB'
 import britishEnglishEditorHelp from './locales/en-GB-editor-help'
 import britishEnglishHelp from './locales/en-GB-help'
+import britishEnglishKeyboard from './locales/en-GB-keyboard'
 import britishEnglishLibrarianDialogs from './locales/en-GB-librarian-dialogs'
 import britishEnglishOfficialOpen from './locales/en-GB-official-open'
 import enUS from './locales/en-US'
@@ -46,6 +47,11 @@ const lazyBritishEnglish = [
     strings: britishEnglishHelp,
   },
   {
+    module: '@/i18n/keyboard',
+    reader: '/src/components/midi/piano-keyboard-dialog.tsx',
+    strings: britishEnglishKeyboard,
+  },
+  {
     module: '@/i18n/official-open',
     reader: '/src/components/midi/official-open-track-status.tsx',
     strings: britishEnglishOfficialOpen,
@@ -53,16 +59,15 @@ const lazyBritishEnglish = [
 ]
 
 // British English as a page sees it once every lazy chunk has added its strings.
-const en = mergeStrings(
-  mergeStrings(
-    mergeStrings(
-      mergeStrings(britishEnglish, britishEnglishEditorHelp),
-      britishEnglishLibrarianDialogs,
-    ),
-    britishEnglishHelp,
-  ),
-  britishEnglishOfficialOpen,
-)
+const en = lazyBritishEnglish.reduce<Strings>(
+  (merged, { strings }) => mergeStrings(merged, strings),
+  britishEnglish,
+) as typeof britishEnglish &
+  typeof britishEnglishEditorHelp &
+  typeof britishEnglishLibrarianDialogs &
+  typeof britishEnglishHelp &
+  typeof britishEnglishKeyboard &
+  typeof britishEnglishOfficialOpen
 
 const resources = {
   de: { translation: de },
@@ -177,6 +182,32 @@ describe('translation resources', () => {
   // Strings that load with a lazy chunk must stay out of the page's English, and a module that reads
   // one must bring them. A key read through a template, such as `controlHelp.${id}`, counts by the
   // part before the placeholder.
+  const sources = Object.entries(
+    import.meta.glob<string>(['/src/**/*.{ts,tsx}', '!/src/**/*.test.*'], {
+      eager: true,
+      import: 'default',
+      query: '?raw',
+    }),
+  ).filter(([path]) => !path.startsWith('/src/i18n/'))
+
+  function readersOf(key: string, sections: string[]) {
+    const keyReference = new RegExp(
+      `['"\`]((?:${sections.join('|')})\\.[^'"\`$\\n]*)(['"\`]|\\$)`,
+      'g',
+    )
+    return sources
+      .filter(([, source]) =>
+        [...source.matchAll(keyReference)].some(([, reference, end]) =>
+          end === '$'
+            ? key.startsWith(reference)
+            : key === reference ||
+              key.startsWith(`${reference}_`) ||
+              key.startsWith(`${reference}.`),
+        ),
+      )
+      .map(([path]) => path)
+  }
+
   describe.each(lazyBritishEnglish)('strings added by $module', ({ module, reader, strings }) => {
     const lazyKeys = flattenKeys(strings)
 
@@ -187,35 +218,35 @@ describe('translation resources', () => {
     })
 
     it('is imported by every module that reads them', () => {
-      const sources = import.meta.glob<string>(['/src/**/*.{ts,tsx}', '!/src/**/*.test.*'], {
-        eager: true,
-        import: 'default',
-        query: '?raw',
-      })
-      const sections = Object.keys(strings).join('|')
-      const keyReference = new RegExp(`['"\`]((?:${sections})\\.[^'"\`$\\n]*)(['"\`]|\\$)`, 'g')
-      const readsLazyKey = (reference: string, end: string) =>
-        lazyKeys.some((key) =>
-          end === '$'
-            ? key.startsWith(reference)
-            : key === reference ||
-              key.startsWith(`${reference}_`) ||
-              key.startsWith(`${reference}.`),
-        )
-      const readers = Object.entries(sources).filter(
-        ([path, source]) =>
-          !path.startsWith('/src/i18n/') &&
-          [...source.matchAll(keyReference)].some(([, reference, end]) =>
-            readsLazyKey(reference, end),
-          ),
+      const readers = new Set(lazyKeys.flatMap((key) => readersOf(key, Object.keys(strings))))
+      const importsModule = new Map(sources)
+      const missingImport = [...readers].filter(
+        (path) => !importsModule.get(path)?.includes(`import '${module}'`),
       )
-      const missingImport = readers
-        .filter(([, source]) => !source.includes(`import '${module}'`))
-        .map(([path]) => path)
 
-      expect(readers.map(([path]) => path)).toContain(reader)
+      expect([...readers]).toContain(reader)
       expect(missingImport).toEqual([])
     })
+  })
+
+  // A string in the page's English that only one lazy chunk's modules read costs the entry bytes it
+  // never shows, so it belongs in that chunk's strings. A module that brings a chunk's strings is
+  // in that chunk, since the page imports none of them. The words in `common`, such as Cancel, stay
+  // in the page for whichever part of it reads them next.
+  it('keeps strings only one lazy chunk reads out of the page’s English', () => {
+    const sourceOf = new Map(sources)
+    const sections = Object.keys(britishEnglish)
+    const lazyOnly = flattenKeys(britishEnglish).filter((key) => {
+      if (key.startsWith('common.')) return false
+      const readers = readersOf(key, sections)
+      return lazyBritishEnglish.some(
+        ({ module }) =>
+          readers.length > 0 &&
+          readers.every((path) => sourceOf.get(path)?.includes(`import '${module}'`)),
+      )
+    })
+
+    expect(lazyOnly).toEqual([])
   })
 
   it('provides Simplified Chinese text for editor help tooltips', () => {

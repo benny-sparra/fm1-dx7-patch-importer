@@ -66,7 +66,7 @@ covered.
   Fine: Each goes through its normaliser, such as `normalizeWorkspaceBankNameForSave`, before it is kept.
 - **Web storage.** `grep -rnE 'localStorage|sessionStorage' src public`.
   Fine: Every access inside `try/catch`.
-- **Privacy.** `grep -rnE 'captureException|setContext|setTag|trackAnalyticsEvent\(' src`, then read `src/lib/monitoring.ts` and `src/lib/analytics.ts`.
+- **Privacy.** `grep -rnE 'captureException|setContext|setTag|trackAnalyticsEvent\(' src`, then read `src/lib/monitoring.ts`, `src/lib/monitoring-setup.ts`, and `src/lib/analytics.ts`.
   Fine: Fixed event names, enumerated values; nothing user-authored reaches either.
 - **MIDI.** `grep -rnE '0x7d\b|0x32\b' src` and `grep -rnE 'sendSysex|\.send\(' src`.
   Fine: Only the builders `AGENTS.md` names send vendor bytes; the FX probe is gated by `import.meta.env.DEV`.

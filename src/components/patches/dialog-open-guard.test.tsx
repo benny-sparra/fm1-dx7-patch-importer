@@ -7,12 +7,14 @@ import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-
 import { DeleteWorkspaceBankDialog } from '@/components/patches/delete-workspace-bank-dialog'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
+import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
 import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
 import { DuplicatePatchesDialog } from '@/components/patches/duplicate-patches-dialog'
 import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog'
 import { ReceivePatchDialog } from '@/components/patches/receive-patch-dialog'
 import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
+import { MidiLogStore } from '@/lib/midi-log-store'
 import { makeWorkspaceWithCopies } from '@/test/factory-voices'
 
 // Browsers before the HTML spec changed it throw when a dialog that is already open is opened
@@ -106,6 +108,7 @@ const openDialogs = {
       patch={{ bank: 'A', family: 'DX7', id: 'bank-A-1', name: 'ALPHA', number: 1 }}
     />
   ),
+  'midi-log': () => <MidiLogDialog logStore={new MidiLogStore([])} onClose={vi.fn()} />,
 }
 
 describe('a dialog that opens itself as it mounts', () => {
