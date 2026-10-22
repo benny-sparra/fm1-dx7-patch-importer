@@ -22,6 +22,7 @@ import {
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   formatMidiBytes,
+  isFm1V16EffectController,
   makeFm1EffectDiagnosticControlMessage,
   getMidiSupport,
   isHighRateMidiMessage,
@@ -41,6 +42,7 @@ import {
   sendNoteOn,
   sendDx7Bank,
   sendDx7Voice,
+  type Fm1EffectProbeMode,
   type MidiDevice,
   type MidiLogEntry,
 } from '@/lib/midi'
@@ -703,14 +705,20 @@ export function useMidi() {
   )
 
   const sendEffectDiagnosticControl = useCallback(
-    (controller: number, value: number) => {
+    (controller: number, value: number, mode: Fm1EffectProbeMode = 'profile') => {
       if (!import.meta.env.DEV) return false
 
       if (!selectedOutput) {
         appendLog(noOutputEntry('send development FX probe'))
         return false
       }
-      if (!resolveFirmwareProfile(firmware).capabilities.effectControllers) {
+      // V16 research sends whatever the FM1 runs, since V16's profile offers no effect controller
+      // until the run settles them; otherwise only what the profile offers, CC 0–23.
+      if (
+        mode === 'profile' &&
+        (isFm1V16EffectController(controller) ||
+          !resolveFirmwareProfile(firmware).capabilities.effectControllers)
+      ) {
         appendLog(makeLogEntry('system', 'This firmware takes no FM1 effect controllers.'))
         return false
       }
@@ -720,7 +728,7 @@ export function useMidi() {
         makeMessage: () => makeFm1EffectDiagnosticControlMessage(controller, value, effectChannel),
         send: () =>
           sendFm1EffectDiagnosticControl(selectedOutput, effectChannel, controller, value),
-        sent: `Sent development FX probe CC ${controller} = ${value} on channel ${effectChannel}.`,
+        sent: `Sent ${mode === 'v16-research' ? 'V16 research' : 'development'} FX probe CC ${controller} = ${value} on channel ${effectChannel}.`,
         failure: 'Development FX probe failed.',
       })
     },

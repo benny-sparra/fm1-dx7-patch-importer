@@ -4,6 +4,7 @@ import {
   formatMidiBytes,
   getMidiSupport,
   isHighRateMidiMessage,
+  fm1V16EffectControllerGroups,
   makeFm1EffectDiagnosticControlMessage,
   makeFm1EffectControlMessage,
   makeFm1ParameterPayload,
@@ -160,9 +161,21 @@ describe('makeFm1EffectDiagnosticControlMessage', () => {
     expect(output.sendControlChange).toHaveBeenCalledWith(3, 126, { channels: 2 })
   })
 
+  it.each([70, 81, 93])('encodes V16’s effect controller CC %i, by its release notes', (cc) => {
+    expect(Array.from(makeFm1EffectDiagnosticControlMessage(cc, 64, 2))).toEqual([0xb1, cc, 64])
+  })
+
+  it('lists four V16 controllers for each effect, CC 70 to 93 without a gap', () => {
+    expect(
+      fm1V16EffectControllerGroups.flatMap(({ first }) => [first, first + 1, first + 2, first + 3]),
+    ).toEqual(Array.from({ length: 24 }, (_, index) => 70 + index))
+  })
+
   it.each([
     ['controller below the FX block', -1, 0, 2],
     ['controller above the FX block', 24, 0, 2],
+    ['controller just below V16’s block', 69, 0, 2],
+    ['controller above V16’s block', 94, 0, 2],
     ['fractional value', 0, 1.5, 2],
     ['value below zero', 0, -1, 2],
     ['value above MIDI 7-bit range', 0, 128, 2],

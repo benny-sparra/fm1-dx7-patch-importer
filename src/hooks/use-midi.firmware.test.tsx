@@ -416,6 +416,35 @@ describe('useMidi effect controllers by firmware', () => {
     expect(ports.output.sendControlChange).not.toHaveBeenCalled()
   })
 
+  it('sends V16’s CC 70–93 from the FX probe’s V16 research mode', async () => {
+    const ports = makeFakeFm1Ports({ reply: mvaveV16IdentityReply })
+    const { result } = await connect(ports)
+
+    expect(result.current.sendEffectDiagnosticControl(74, 64, 'v16-research')).toBe(true)
+    expect(result.current.sendEffectDiagnosticControl(7, 0, 'v16-research')).toBe(true)
+    await act(() => vi.advanceTimersByTimeAsync(1_000))
+
+    expect(ports.output.sendControlChange.mock.calls).toEqual([
+      [74, 64, { channels: 2 }],
+      [7, 0, { channels: 2 }],
+    ])
+  })
+
+  it('keeps the FX probe to what the profile offers outside V16 research', async () => {
+    const v16 = makeFakeFm1Ports({ reply: mvaveV16IdentityReply })
+    const { result } = await connect(v16)
+    expect(result.current.sendEffectDiagnosticControl(7, 0)).toBe(false)
+    cleanup()
+
+    const v15 = makeFakeFm1Ports({ reply: mvaveIdentityReply })
+    const v15Result = (await connect(v15)).result
+    expect(v15Result.current.sendEffectDiagnosticControl(74, 64)).toBe(false)
+    await act(() => vi.advanceTimersByTimeAsync(1_000))
+
+    expect(v16.output.sendControlChange).not.toHaveBeenCalled()
+    expect(v15.output.sendControlChange).not.toHaveBeenCalled()
+  })
+
   it('still sends V15 the effect controllers', async () => {
     const ports = makeFakeFm1Ports({ reply: mvaveIdentityReply })
     const { result } = await connect(ports)

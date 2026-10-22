@@ -178,9 +178,44 @@ export function sendFm1EffectControl(
   midiActivity.signal('out')
 }
 
+/**
+ * M-VAVE's V16 effect controllers by its release notes (docs/fm1-research.md, "M-VAVE's V16 stock
+ * firmware"): four for each effect on the FX channel, from Filter's 70 to Phaser's 93. Which is
+ * which parameter needs a hardware test, so only the development FX probe sends them.
+ */
+export const fm1V16EffectControllerGroups = [
+  { effect: 'Filter', first: 70 },
+  { effect: 'Reverb', first: 74 },
+  { effect: 'Delay', first: 78 },
+  { effect: 'Distortion', first: 82 },
+  { effect: 'Chorus', first: 86 },
+  { effect: 'Phaser', first: 90 },
+] as const
+
+const firstV16EffectController = 70
+const lastV16EffectController = 93
+
+/**
+ * How the development FX probe chooses what it may send: `profile` sends CC 0–23 only where the
+ * firmware profile offers `effectControllers`; `v16-research` sends CC 0–23 or 70–93 whatever the
+ * FM1 runs, for the V16 hardware run (docs/hardware-runs/stock-v16-run-sheet.md).
+ */
+export type Fm1EffectProbeMode = 'profile' | 'v16-research'
+
+/** Whether `controller` is one of V16's effect controllers by its release notes. */
+export function isFm1V16EffectController(controller: number) {
+  return controller >= firstV16EffectController && controller <= lastV16EffectController
+}
+
 function assertFm1EffectDiagnosticControl(controller: number, value: number, channel: number) {
-  if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
-    throw new RangeError('FM1 effect diagnostic controller must be an integer from 0 to 23.')
+  const known =
+    Number.isInteger(controller) &&
+    ((controller >= 0 && controller < fm1EffectParameterCount) ||
+      isFm1V16EffectController(controller))
+  if (!known) {
+    throw new RangeError(
+      'FM1 effect diagnostic controller must be an integer from 0 to 23 or from 70 to 93.',
+    )
   }
   if (!Number.isInteger(value) || value < 0 || value > 127) {
     throw new RangeError('FM1 effect diagnostic value must be an integer from 0 to 127.')
@@ -189,7 +224,8 @@ function assertFm1EffectDiagnosticControl(controller: number, value: number, cha
 }
 
 /**
- * Development-only hardware-research probe for the known FM1 FX CC block.
+ * Development-only hardware-research probe for the known FM1 FX CC blocks: V15's CC 0–23 and, by
+ * its release notes, V16's CC 70–93.
  *
  * Unlike normal editor writes, this deliberately permits every MIDI 7-bit value so a hardware
  * test can establish whether a historical editor maximum is accepted or clamped by the device.

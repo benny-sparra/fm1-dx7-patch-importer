@@ -224,7 +224,10 @@ open everything an earlier release could have saved.
   `effectControllers` only before release 16 and V16's effects stay in the library. The firmware
   setting says the effect controls send nothing yet, in one short line, since the entry pays for
   the string. Sending CC 70–93 waits for a
-  hardware run recorded in `docs/hardware-runs/` (`docs/feature-backlog.md`, "Stock firmware V16").
+  hardware run recorded in `docs/hardware-runs/` (`docs/feature-backlog.md`, "Stock firmware V16"),
+  planned in `docs/hardware-runs/stock-v16-run-sheet.md`. Until then only the development FX
+  probe sends CC 70–93, in its **V16 research** mode (`Fm1EffectProbeMode`), which sends them and
+  CC 0–23 whatever the FM1 runs; its default mode keeps to what the profile offers.
 - On Official Open the editor may send two things, both approved on 2026-10-16. The DX7
   single-voice dump goes only on note channels 1–7 or 10, the channels of tracks 1–8, and only
   after command 0 has shown that channel's track running DX7, since a dump to another engine is
