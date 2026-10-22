@@ -1092,7 +1092,7 @@ export function LibrarianPage({
               >
                 <summary
                   aria-label={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
-                  className="grid h-6 w-5 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] text-[var(--crt-led)] transition-colors group-open:bg-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
+                  className="grid h-6 w-6 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] text-[var(--crt-led)] transition-colors group-open:bg-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
                   title={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
                 >
                   <EllipsisVertical className="size-3.5" />
@@ -1421,42 +1421,46 @@ export function LibrarianPage({
         setSearch={setSearch}
         toolbar={
           <>
-            <div className="flex h-full w-16 flex-col border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px]">
-              <WorkspaceBankSelector
-                acceptsDrop={(bank) => library.loadedBanks.includes(bank)}
-                banks={banks.map((bank) => {
-                  const name = bankDisplayName(bank)
-                  return {
-                    actionsLabel: t('banks.bankMenu', { bank: name }),
-                    description: library.bankDescriptions[bank] ?? '',
-                    id: bank,
-                    name,
-                  }
-                })}
-                label={t('banks.destination')}
-                onSelect={selectDestinationBank}
-                renderActions={renderBankActions}
-                selectedBank={destinationBank}
-                showsSelection={!isSearching && !showsFavourites}
-              />
-              {nextBank ? (
-                <button
-                  aria-label={t('banks.addBank')}
-                  className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] md:justify-start"
-                  onClick={() => setIsAddingBank(true)}
-                  ref={addBankButtonRef}
-                  title={t('banks.addBank')}
-                  type="button"
-                >
-                  <Plus className="size-4 shrink-0" />
-                  <span className="hidden md:inline">{t('banks.addBank')}</span>
-                </button>
-              ) : null}
-              <FavouritesTab
-                count={favouriteCount}
-                onSelect={() => selectDestinationBank(favouritesBank)}
-                selected={showsFavourites}
-              />
+            <div className="h-full w-16 border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px]">
+              {/* On a phone the rail stays in view beside the list, when the screen is tall
+                  enough to hold it. */}
+              <div className="flex flex-col max-md:top-0 max-md:[@media(min-height:560px)]:sticky">
+                <WorkspaceBankSelector
+                  acceptsDrop={(bank) => library.loadedBanks.includes(bank)}
+                  banks={banks.map((bank) => {
+                    const name = bankDisplayName(bank)
+                    return {
+                      actionsLabel: t('banks.bankMenu', { bank: name }),
+                      description: library.bankDescriptions[bank] ?? '',
+                      id: bank,
+                      name,
+                    }
+                  })}
+                  label={t('banks.destination')}
+                  onSelect={selectDestinationBank}
+                  renderActions={renderBankActions}
+                  selectedBank={destinationBank}
+                  showsSelection={!isSearching && !showsFavourites}
+                />
+                {nextBank ? (
+                  <button
+                    aria-label={t('banks.addBank')}
+                    className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] md:justify-start"
+                    onClick={() => setIsAddingBank(true)}
+                    ref={addBankButtonRef}
+                    title={t('banks.addBank')}
+                    type="button"
+                  >
+                    <Plus className="size-4 shrink-0" />
+                    <span className="hidden md:inline">{t('banks.addBank')}</span>
+                  </button>
+                ) : null}
+                <FavouritesTab
+                  count={favouriteCount}
+                  onSelect={() => selectDestinationBank(favouritesBank)}
+                  selected={showsFavourites}
+                />
+              </div>
             </div>
             <input
               accept={sysexFileAccept}

@@ -789,6 +789,63 @@ test('gives every patch card control a 24 px target', async ({ page }) => {
   expect(small).toEqual([])
 })
 
+// Phone: 32 stacked cards run far below the first screen, so the bank's name, menu, and Send stay
+// in view, and the rail with them. A full ten-character name still fits a card at 320 px.
+for (const width of [320, 360, 375]) {
+  test.describe(`the phone bank row at ${width} px`, () => {
+    test.beforeEach(async ({ page }) => {
+      await page.setViewportSize({ height: 700, width })
+      await openLibrarian(page)
+    })
+
+    test('stays under the top edge, with a 24 px menu, after scrolling down the list', async ({
+      page,
+    }) => {
+      const send = page.getByRole('button', { name: 'Send to FM1' })
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+
+      await expect(send).toBeInViewport()
+      expect((await send.boundingBox())?.y).toBeLessThan(120)
+      const menuBox = await page
+        .getByLabel('Actions for Bank 1')
+        .locator('visible=true')
+        .boundingBox()
+      expect(menuBox?.width).toBeGreaterThanOrEqual(24)
+      expect(menuBox?.height).toBeGreaterThanOrEqual(24)
+      expect(menuBox?.y).toBeLessThan(120)
+    })
+
+    test('does not hide a control that takes focus, walking up the list', async ({ page }) => {
+      await page.getByRole('contentinfo').locator('a, button').last().focus()
+      let walked = 0
+      for (let step = 0; step < 80; step += 1) {
+        await page.keyboard.press('Shift+Tab')
+        const covered = await page.evaluate(() => {
+          const active = document.activeElement
+          const row = document.querySelector('[data-patch-grid]')?.previousElementSibling
+          if (!active || !row) return null
+          if (row.contains(active)) return 0
+          if (!(row.compareDocumentPosition(active) & Node.DOCUMENT_POSITION_FOLLOWING)) return null
+          return row.getBoundingClientRect().bottom - active.getBoundingClientRect().top
+        })
+        if (covered === null) break
+        walked += 1
+        expect(covered, `control ${walked} up from the end`).toBeLessThanOrEqual(1)
+      }
+      expect(walked).toBeGreaterThan(10)
+    })
+
+    test('leaves a ten-character patch name whole', async ({ page }) => {
+      const name = page.locator('.patch-name').filter({ hasText: 'SYN LEAD 1' }).first()
+      const { clientWidth, scrollWidth } = await name.evaluate((element) => ({
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+      }))
+      expect(scrollWidth).toBeLessThanOrEqual(clientWidth)
+    })
+  })
+}
+
 test('adds a slot to Favourites from its heart without playing it', async ({ page }) => {
   await openLibrarian(page)
   const slot = slotButtons(page).first()

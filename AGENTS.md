@@ -963,6 +963,12 @@ open everything an earlier release could have saved.
   and `index.css` reads it as the page's `scroll-padding-top`. Another sticky bar does the same,
   or the two would need their heights added. `e2e/editor.e2e.ts` walks Shift+Tab up the editor at
   375 px.
+- Below `md` the librarian's bank row (letter, name, bank menu, and Send) sticks to the top of the
+  patch list, and the bank rail with it on a screen 560 px tall or more, so a bank can be changed
+  and sent from anywhere in 32 stacked cards. `PatchGrid` gives the row to
+  `useStickyHeaderOffset` while `(max-width: 767.98px)` matches, so a focused card scrolls in below
+  it; `e2e/librarian.e2e.ts` walks Shift+Tab up the list at 320, 360, and 375 px. At 320 px the
+  card's surround tightens (`p-1.5` below 360 px) so a ten-character name fits, never the name.
 - The page has landmarks: the masthead is the one `<header>` (banner), `<main id="main-content">`
   holds only the view, and the `<footer>` is its sibling (contentinfo). The first focusable
   element is the **Skip to main content** link, which moves focus into `main` (`tabIndex={-1}`)
