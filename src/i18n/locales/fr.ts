@@ -1238,6 +1238,7 @@ export default {
       'Les banques et les sons ne peuvent pas être envoyés. Déconnectez le MIDI, reconnectez-le et autorisez l’accès SysEx lorsque vous y êtes invité.',
     log: 'Journal MIDI',
     closeLog: 'Fermer le journal MIDI',
+    logOpenFailed: 'Impossible d’ouvrir le journal MIDI. Rechargez la page et réessayez.',
     entries: 'Entrées récentes du journal MIDI',
     hideData: 'Masquer les données',
     viewData: 'Voir les données',

@@ -1235,6 +1235,7 @@ export default {
       'No se pueden enviar bancos ni patches. Desconecta MIDI, vuelve a conectarlo y permite el acceso SysEx cuando se solicite.',
     log: 'Registro MIDI',
     closeLog: 'Cerrar el registro MIDI',
+    logOpenFailed: 'No se pudo abrir el registro MIDI. Recarga la página e inténtalo de nuevo.',
     entries: 'Entradas recientes del registro MIDI',
     hideData: 'Ocultar datos',
     viewData: 'Ver datos',

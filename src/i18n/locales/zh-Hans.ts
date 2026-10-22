@@ -1118,6 +1118,7 @@ export default {
     sysexWarningBody: '无法发送音色库或音色。请断开 MIDI 后重新连接，并在提示时允许 SysEx 访问。',
     log: 'MIDI 日志',
     closeLog: '关闭 MIDI 日志',
+    logOpenFailed: '无法打开 MIDI 日志。请重新加载页面后重试。',
     entries: '最近的 MIDI 日志条目',
     hideData: '隐藏数据',
     viewData: '查看数据',

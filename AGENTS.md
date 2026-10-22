@@ -321,7 +321,7 @@ open everything an earlier release could have saved.
 - English is the dependable eager fallback. Other locales must remain separate dynamic imports.
 - English comes in two locales. `en-GB` is complete and every locale falls back to it. `en-US`
   holds only the strings British English spells differently, and i18next's fallback chain reads the
-  rest from `en-GB`, so it loads eagerly too (about 200 B). Give every `en-GB` string with a British
+  rest from `en-GB`, so it loads eagerly too (about 550 B). Give every `en-GB` string with a British
   spelling an `en-US` override in the same change; `src/i18n/resources.test.ts` checks. Releases
   before the split stored `fm1-language` as plain `en`, which `resolveLocale` reads as the
   browser's own English.
@@ -343,14 +343,17 @@ open everything an earlier release could have saved.
   FM1's banks cannot. Add all three with every new count.
 - Every `en-GB` string in `en-GB.ts` is in the entry, so British English keeps the strings only lazy
   chunks show in files of their own, and other locales keep them in their own file. The editor's
-  help (`controlHelp`, `effectHelp`, `effectParameterHelp`) and the `editor` strings the page does
-  not read are in `src/i18n/locales/en-GB-editor-help.ts`, added by `@/i18n/editor-help`; the
-  dialogs the patch banks open on demand keep theirs in
-  `src/i18n/locales/en-GB-librarian-dialogs.ts`, added by `@/i18n/librarian-dialogs`. A section the
+  help (`controlHelp`, `effectHelp`, `effectParameterHelp`) and the `editor` and `ui` strings only
+  the editor reads are in `src/i18n/locales/en-GB-editor-help.ts`, added by `@/i18n/editor-help`;
+  the dialogs the patch banks open on demand keep theirs in
+  `src/i18n/locales/en-GB-librarian-dialogs.ts`, added by `@/i18n/librarian-dialogs`, and the
+  keyboard dialog its own in `src/i18n/locales/en-GB-keyboard.ts`, added by `@/i18n/keyboard`. A section the
   page reads a few keys from, such as a menu item and its load failure, keeps those keys in
   `en-GB.ts` and the rest in the lazy file, merged when the lazy file is added. Every module that
   reads a lazy key imports the module that adds it, and a new string only a lazy chunk shows goes in
-  that chunk's file; `src/i18n/resources.test.ts` checks both. `addBritishEnglish` reaches `i18next`
+  that chunk's file; `src/i18n/resources.test.ts` checks both, and fails when a page string is read
+  only by modules that add one lazy file, apart from the shared words in `common`. That check came
+  after about 190 such strings had built up in the entry; moving them saved 2.2 KiB. `addBritishEnglish` reaches `i18next`
   directly: importing `@/i18n` from the editor's chunk made Rolldown split `Button` and Lucide out
   of the entry, costing 800 B. Since a test can import a lazy module before `@/i18n`, it waits for
   `initialized`. Moving the dialogs' strings and the editor's out of the entry saved 2.4 KiB.
@@ -391,7 +394,7 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive dialog, with the dump reader and its listener, when **Receive patch…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases and their player, when **Keyboard** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive dialog, with the dump reader and its listener, when **Receive patch…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.

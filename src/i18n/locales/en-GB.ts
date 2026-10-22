@@ -330,6 +330,7 @@ export default {
       'Bank and patch transfers cannot be sent. Disconnect MIDI, reconnect it, and allow SysEx access when prompted.',
     log: 'MIDI log',
     closeLog: 'Close MIDI log',
+    logOpenFailed: 'The MIDI log could not be opened. Reload the page and try again.',
     entries: 'Recent MIDI log entries',
     hideData: 'Hide data',
     viewData: 'View data',

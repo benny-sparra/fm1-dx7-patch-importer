@@ -18,7 +18,7 @@ import {
   MidiSettingsMenu,
 } from '@/components/midi/midi-controls'
 import { MidiActivityLeds } from '@/components/midi/midi-activity-leds'
-import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
+import { MidiLogButton } from '@/components/midi/midi-log-button'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
 import type { Fm1VaPresetProbe as PresetProbe } from '@/components/midi/fm1-va-preset-probe'
 import { MidiPanicButton } from '@/components/midi/midi-panic-button'
@@ -282,7 +282,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             <p className="text-sm leading-6 text-[var(--crt-ink-2)]">{t('root.localOnly')}</p>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              <MidiLogDialog logStore={midi.logStore} />
+              <MidiLogButton logStore={midi.logStore} />
               <nav
                 aria-label={t('root.projectLinks')}
                 className="flex flex-wrap items-center gap-x-4 gap-y-2"
