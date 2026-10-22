@@ -2192,6 +2192,45 @@ Open questions:
    the screen's is not checked.
 4. ~~Does command 22 answer as the source says?~~ Yes, read 2026-10-20.
 
+### M-VAVE's V16 stock firmware
+
+M-VAVE released V16 (`FM-1_016`, file `FM-1_016.fwsc`, 701.4 KB) on 2026-10-21, in the forum post
+"M-VAVE FM-1 Official Firmware Update Summary" (https://forum.m-vave.com/topic/23, read
+2026-10-22), which compares it with V15. The notes are the only source: no V16 FM1 has been run
+with the editor, so every row below is **Needs hardware test** unless it says otherwise. The run
+that settles the questions at the end is planned in
+[`hardware-runs/stock-v16-run-sheet.md`](hardware-runs/stock-v16-run-sheet.md).
+
+V16 identifies as `FM-1_016`, which `classifyFm1Firmware` already counts as M-VAVE's own
+(`FM-1_000` to `FM-1_019`). The editor's identity query is the updater's, so V16 answering it at
+all is part of the run.
+
+#### What the notes say changed
+
+| Area                 | V16 per the notes                                                                                                                                                                                                                                                                                        | Editor consequence                                                                                                                                                                                                 |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Parts and voices     | Eight Voices (timbral parts), each with its own preset, On/Off, MIDI receive channel, level, pan, pitch-bend ranges, glide, and a Fine Tune of −100 to +100 cents. Polyphony rises from 12 to 20, shared across all eight. Voices on one channel layer.                                                  | Where a single-voice dump, the 155 parameter changes, and a Program Change land is unknown: the Voice on the note channel, Voice 1, or every Voice on it. The editor says nothing about parts yet.                 |
+| Effects library      | Effect settings are a library of 128 FX groups (FX001–FX128, each with its own order, On/Off states, parameters, and a 10-character name), saved with SAVE → Globe or ALL, never into a sound preset. All Voices share one stereo chain, and changing a preset, Pattern, or column no longer changes it. | The library's per-patch FM1 effects no longer travel with a preset on V16. Sending them would change the shared group, which is the FX setting every Voice hears.                                                  |
+| Effect controllers   | External FX control is CC 70–93 on the Effect Ch channel: Filter 70–73, Reverb 74–77, Delay 78–81, Distortion 82–85, Chorus 86–89, Phaser 90–93. "Each group controls the corresponding effect's On/Off state and parameters." The CC 0–23 mapping "is no longer active".                                | The editor sends V16 no effect controller (the stock profile lists `effectControllers` before release 16 only, 2026-10-22). Which CC in each group is which parameter, and the value ranges, are not in the notes. |
+| Controllers now used | CC 1, 2, and 4 stay sound modulation, CC 7 is master volume, CC 11 is expression (CC 121 resets it to 127), on the Voices' channels. CC 7, CC 11, and sustain are routed correctly when an instrument channel overlaps Effect Ch.                                                                        | CC 1, 2, 4, 7, and 11 were the editor's Filter Type, Filter Cutoff, Reverb Enabled, Reverb Mix, and Delay Mix controllers, which is why V16 gets none.                                                             |
+| Key LEDs             | In normal mode, notes 0–26 on Effect Ch light the 27 key LEDs; they do not sound.                                                                                                                                                                                                                        | The editor's notes go on the note channel. With both channels the same, low notes would light LEDs rather than sound: check.                                                                                       |
+| Panic                | Holding PLAY/STOP stops the sequencer and arpeggiator and clears stuck notes.                                                                                                                                                                                                                            | **MIDI panic** keeps sending Note Off for every note; nothing to change.                                                                                                                                           |
+| Bank Export          | Sends the selected bank's 32 saved presets as standard DX7 SysEx (`.syx`): DX7 sound data only, without ENV, FX, Voice setup, Patterns, or global settings.                                                                                                                                              | The first way to read a stock FM1's bank back, if it arrives as ordinary Yamaha bulk dumps. **Receive patch…** takes single voices only; a bank receiver needs the capture first.                                  |
+| Bank import          | After a 32-voice bank arrives, the FM1 waits for a destination bank to be chosen before writing; nothing is written without one, and a failure allows another choice.                                                                                                                                    | The bank destination instructions describe V15's prompt and need rewording for V16 once seen.                                                                                                                      |
+| SEQ                  | Patterns grow from 16 to 64 steps, with per-step ratchets ×1–×4; the pool stays at 16. An eight-track, eight-column arrangement replaces chaining, one row per Voice.                                                                                                                                    | Recorded for the parked sequencer work ([roadmap](fm1-roadmap.md)); its next attempt starts from V16. Nothing to build.                                                                                            |
+| Other                | ARP takes external notes as triggers; USB Loopback; RGB screen colours; Btn BL and Key BL; the firmware version on the last GLOBE page; SAVE offers ALL, Globe, Preset, and Pattern.                                                                                                                     | None for the editor. The GLOBE page lets the run confirm the release without the editor.                                                                                                                           |
+
+#### Questions for the hardware run
+
+1. Does V16 answer the identity query as `FM-1_016`?
+2. Which parameter is each of CC 70–93, what range does each take, and do CC 0–23 on Effect Ch now
+   do nothing to the effects?
+3. Does a single-voice dump still reach an edit buffer, and which Voice's? Do the 155 parameter
+   changes and a Program Change reach the same Voice?
+4. What does Bank Export send: Yamaha 32-voice bulk dumps (`F0 43 0n 09 …`), single-voice dumps, or
+   vendor messages, in how many messages, and how fast?
+5. Does a 32-voice bank sent by **Send to FM1** reach the new destination prompt?
+
 ### FM1 Editor
 
 Repository:
@@ -3076,6 +3115,9 @@ the UI and code use decimal values; the message's `cc` and `vv` bytes are transm
 
 The table's “encoded/device range” is the range the editor will transmit, not a claim that every
 value is accepted or interpreted across that full range by stock firmware.
+
+This table is V15's and earlier. V16 moved the effect controllers to CC 70–93 and stopped taking
+CC 0–23 as effects, by its release notes; see [M-VAVE's V16 stock firmware](#m-vaves-v16-stock-firmware).
 
 ## 7.5 Audit findings and follow-up candidates
 
