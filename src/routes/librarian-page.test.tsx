@@ -222,12 +222,44 @@ describe('LibrarianPage transfer analytics', () => {
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
     const sending = screen.getByRole('button', { name: 'Sending…' })
     expect(sending.classList).toContain('barber-pole')
+    expect(sending.getAttribute('aria-disabled')).toBe('true')
+    expect(sending.hasAttribute('disabled')).toBe(false)
 
     finishSending()
 
     expect((await screen.findByRole('button', { name: 'Send to FM1' })).classList).not.toContain(
       'barber-pole',
     )
+  })
+
+  it('says Sending… in a status region while the bank is on the way, and ignores another press', async () => {
+    const user = userEvent.setup()
+    let finishSending = (): void => undefined
+    const connectedMidi = makeLibrarianMidi({
+      hasMidiOutput: true,
+      sendBank: vi.fn(
+        () =>
+          new Promise<{ ok: true }>((resolve) => {
+            finishSending = () => resolve({ ok: true })
+          }),
+      ),
+      sysexAvailable: true,
+    })
+    renderLibrarianPage({ midi: connectedMidi })
+    const status = screen
+      .getAllByRole('status')
+      .find((region) =>
+        region.parentElement?.contains(screen.getByRole('button', { name: 'Send to FM1' })),
+      )
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    await user.click(screen.getByRole('button', { name: 'Sending…' }))
+
+    expect(status?.textContent).toBe('Sending…')
+    expect(connectedMidi.sendBank).toHaveBeenCalledTimes(1)
+    finishSending()
+    await screen.findByRole('button', { name: 'Send to FM1' })
+    expect(status?.textContent).toBe('')
   })
 
   it('shows a failed bank transfer as an error on the page', async () => {
@@ -848,14 +880,26 @@ describe('LibrarianPage search', () => {
     expect(isBankTitled('Studio Favourites')).toBe(true)
   })
 
-  it('disables sending a bank while showing search results', async () => {
+  it('marks Send to FM1 aria-disabled with its reason while showing search results', async () => {
     const user = renderLibrarian()
 
     await user.type(screen.getByPlaceholderText('Search'), 'bass')
 
-    const send = screen.getByRole('button', { name: 'Send to FM1' })
-    expect(send.hasAttribute('disabled')).toBe(true)
-    expect(send.getAttribute('title')).toBe('Choose a bank to send it to the FM1')
+    const send = screen.getByRole('button', {
+      name: 'Send to FM1',
+      description: 'Choose a bank to send it to the FM1',
+    })
+    expect(send.getAttribute('aria-disabled')).toBe('true')
+    expect(send.hasAttribute('disabled')).toBe(false)
+  })
+
+  it('does nothing when Send to FM1 is pressed while showing search results', async () => {
+    const user = renderLibrarian()
+
+    await user.type(screen.getByPlaceholderText('Search'), 'bass')
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   it('enables sending again once the search is cleared', async () => {
@@ -864,7 +908,48 @@ describe('LibrarianPage search', () => {
     await user.type(screen.getByPlaceholderText('Search'), 'bass')
     await user.clear(screen.getByPlaceholderText('Search'))
 
-    expect(screen.getByRole('button', { name: 'Send to FM1' }).hasAttribute('disabled')).toBe(false)
+    const send = screen.getByRole('button', { name: 'Send to FM1' })
+    expect(send.hasAttribute('disabled')).toBe(false)
+    expect(screen.queryByText('Choose a bank to send it to the FM1')).toBeNull()
+  })
+
+  it('says to import the bank first when Send to FM1 has nothing to send', async () => {
+    const user = userEvent.setup()
+    const connectedMidi = makeLibrarianMidi({
+      hasMidiOutput: true,
+      midiAccess: true,
+      sysexAvailable: true,
+    })
+    renderLibrarianPage({ library: { ...library, loadedBanks: [] }, midi: connectedMidi })
+    const send = screen.getByRole('button', {
+      name: 'Send to FM1',
+      description: 'Import bank Studio Favourites first',
+    })
+
+    expect(send.getAttribute('aria-disabled')).toBe('true')
+    await user.click(send)
+
+    expect(connectedMidi.sendBank).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('reads why Send to FM1 cannot act in the interface language', async () => {
+    await setLocale('de')
+    try {
+      renderLibrarianPage({
+        library: { ...library, loadedBanks: [] },
+        midi: makeLibrarianMidi({ hasMidiOutput: true, midiAccess: true, sysexAvailable: true }),
+      })
+
+      expect(
+        screen.getByRole('button', {
+          name: 'An FM1 senden',
+          description: 'Zuerst Bank Studio Favourites importieren',
+        }),
+      ).toBeTruthy()
+    } finally {
+      await setLocale('en-GB')
+    }
   })
 
   it('shows no bank as selected while showing search results', async () => {
