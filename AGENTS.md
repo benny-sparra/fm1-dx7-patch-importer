@@ -1003,6 +1003,9 @@ open everything an earlier release could have saved.
 - The patch banks panel does not clip its overflow, because each bank's ⋮ menu in the rail hangs
   out beside its tab and, with enough banks, below the panel. Clipping it there hid the last bank's
   menu items (issue 202); `e2e/librarian.e2e.ts` checks the last item can be reached.
+- A `PortalMenu` too tall for either side of its trigger, as on a short phone screen, takes the
+  roomier side and scrolls (`positionMenu`) rather than being clamped over its own row, where a
+  tap meant for the next row's ⋮ chose an item. A scroll inside the menu keeps it open.
 - A key chosen for its position, such as the piano's two-row note layout, is matched by
   `KeyboardEvent.code` and labelled with the user's layout letter (`useKeyboardKeyLabel`). A key
   chosen for its letter, such as Cmd/Ctrl + Z, is matched by `KeyboardEvent.key`.
