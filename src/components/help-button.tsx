@@ -39,7 +39,6 @@ export function HelpButton({ colorway, midi }: HelpButtonProps) {
 
   return (
     <>
-      {/* The caption under the key names it on a phone, where no tooltip shows. */}
       <Button
         aria-label={t('help.open')}
         className="group/help"
@@ -55,14 +54,11 @@ export function HelpButton({ colorway, midi }: HelpButtonProps) {
         type="button"
         variant="bare"
       >
-        <span className="hero-captioned">
-          <span
-            aria-hidden="true"
-            className="hero-action font-dot-matrix grid size-[26px] place-items-center text-base leading-none font-bold text-[var(--crt-acc-lt)] group-hover/help:bg-[var(--crt-sel-bg)]"
-          >
-            ?
-          </span>
-          <span className="hero-caption">{t('help.caption')}</span>
+        <span
+          aria-hidden="true"
+          className="hero-action font-dot-matrix grid size-[26px] place-items-center text-base leading-none font-bold text-[var(--crt-acc-lt)] group-hover/help:bg-[var(--crt-sel-bg)]"
+        >
+          ?
         </span>
       </Button>
       {loadFailed ? <LoadFailedNotice message={t('ui.helpOpenFailed')} /> : null}

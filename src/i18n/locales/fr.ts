@@ -962,7 +962,6 @@ export default {
     unsupportedBody:
       'Ce bibliothécaire nécessite un navigateur compatible avec Web MIDI et SysEx, comme Chrome, Edge, Firefox ou Opera. Chrome sur Android fonctionne aussi.',
     localOnly: 'Vos sons restent dans ce navigateur',
-    noBackup: 'Aucune sauvegarde téléchargée pour l’instant',
     projectLinks: 'Liens du projet',
     firmwareLink: 'Firmwares du FM1',
     reportIssue: 'Signaler un problème',
@@ -1000,7 +999,6 @@ export default {
     noDeviceSelected: 'Aucun périphérique sélectionné',
   },
   help: {
-    caption: 'Aide',
     open: 'Aide : comment utiliser l’éditeur et le bibliothécaire FM1',
     title: 'Bienvenue dans l’éditeur et le bibliothécaire FM1',
     guideTitle: 'Guide',
@@ -1050,7 +1048,6 @@ export default {
   },
 
   colorway: {
-    caption: 'Finition',
     legend: 'Couleur du FM1',
     option: 'Finition FM1 {{colour}}',
     black: 'Noir',
@@ -1208,7 +1205,6 @@ export default {
     officialOpenBadgeTitle:
       'Le FM1 utilise le firmware Open de M-VAVE, {{release}}, une groovebox à huit pistes. Un son sur lequel vous cliquez ou que vous modifiez va à la piste du canal des notes quand cette piste utilise DX7. Il ignore les banques DX7, et les commandes d’effets n’envoient rien, car il les prendrait pour des modifications de ses pistes.',
     panic: 'Panique MIDI',
-    panicLabel: 'Panique',
     panicHelp:
       'Panique MIDI : envoie un note-off pour chaque note du canal des notes afin d’arrêter les notes bloquées',
     panicUnavailable: 'Panique MIDI : {{reason}}',

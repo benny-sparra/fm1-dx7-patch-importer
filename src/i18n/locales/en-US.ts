@@ -16,7 +16,8 @@ export default {
     lead: 'Edit and organize patches for your M-VAVE FM1, in the browser.',
   },
   colorway: {
-    legend: 'FM1 color finish',
+    legend: 'FM1 color',
+    option: '{{colour}} FM1 color',
   },
   editor: {
     minimisePanel: 'Minimize {{panel}}',

@@ -634,18 +634,18 @@ open everything an earlier release could have saved.
   `role="status"` that reads **Sending…** beside Send, and the reason as `sr-only` text named by
   `aria-describedby` on `MidiPanicButton`. `index.css` dims `button[aria-disabled='true']`, so the
   look stays in the stylesheet rather than in every button's classes.
-- A header control that shows only an icon carries a caption under it (`hero-captioned`,
-  `hero-caption` in `index.css`), as the FM1 prints a name under a button: **Finish**, **Help**,
-  and **Settings**, and the MIDI panic says **Panic** beside its icon. A tooltip never shows on
-  touch, so it cannot be the only name. The caption is a word of the control's accessible name
-  (WCAG 2.5.3), and pressing it does what pressing the control does: the finish's caption is a
-  `<label>` for the current finish, which opens the choice as a tap on the swatch does.
+- The header's colour swatch, **?** and ⋮ show no caption under them (removed on 2026-10-22 at
+  the owner's request); each keeps its accessible name and tooltip. The swatch's choice is named
+  **FM1 colour**, never finish, which also reads as the end. The MIDI panic shows only its icon too,
+  named **MIDI panic**.
 - A message about something the user must do first fixes it where it can rather than saying where
   to go: **Send to FM1** while MIDI is offline opens `MidiConnectionRequiredDialog`, whose one
   primary button switches MIDI online, waits as an `aria-disabled` button with its reason while the
   output is chosen in the dialog and the FM1 is identified, then sends. Library actions, which holds
-  the backup, is named in words on its trigger, and the footer's "Your patches stay in this browser"
-  box says when the last backup was made.
+  the backup, shows only its ⋮ and keeps the name in its `aria-label` and tooltip (2026-10-22, the
+  owner's request), and its **Download backup** item says when the
+  last backup was made. The footer says "Your patches stay in this browser" as plain text, with no
+  box and no backup date (2026-10-22, the owner's request).
 - On a phone the full title runs the header's width beneath those controls and wraps as words, at
   a size that follows the width, so it takes two lines at 320 and 375 px with the MIDI switch in
   the first screen (`e2e/librarian.e2e.ts`). The loading stand-in for the patch banks or editor
