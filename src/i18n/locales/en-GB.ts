@@ -60,6 +60,8 @@ export default {
       over: '{{name}} is over {{target}}.',
       pickedUp: 'Picked up {{name}}.',
       roleDescription: 'sortable item',
+      slotInstructions:
+        'To move a patch, focus its grip and press Space or Enter. Use the arrow keys to move it, then press Space or Enter to drop it, or Escape to cancel. Dragged onto a bank’s tab, the patch is copied to that bank instead; Copy to… in its menu does the same from the keyboard.',
     },
     auditionGroup: 'Operator {{number}} audition',
     mute: 'Mute',

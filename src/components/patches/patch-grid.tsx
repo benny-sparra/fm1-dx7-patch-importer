@@ -209,13 +209,19 @@ export function PatchGrid({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
-  // A slot is read as its code and name, and a bank tab it is dragged over as the bank.
-  const dragAccessibility = makeDragAccessibility(t, (id) => {
-    const bank = droppedBank(id)
-    if (bank !== undefined) return bankLabel(bank)
-    const patch = patches.find((candidate) => candidate.id === id)
-    return patch ? `${patchSlotCode(patch)} ${patch.name}` : undefined
-  })
+  // A slot is read as its code and name, and a bank tab it is dragged over as the bank. Its
+  // instructions also say that a drop on a bank tab copies, which a sighted user learns only from
+  // the grip's tooltip, and name Copy to… for the keyboard.
+  const dragAccessibility = makeDragAccessibility(
+    t,
+    (id) => {
+      const bank = droppedBank(id)
+      if (bank !== undefined) return bankLabel(bank)
+      const patch = patches.find((candidate) => candidate.id === id)
+      return patch ? `${patchSlotCode(patch)} ${patch.name}` : undefined
+    },
+    t('ui.drag.slotInstructions'),
+  )
 
   const finishDrag = ({ active, over }: DragEndEvent) => {
     setDraggedId(null)

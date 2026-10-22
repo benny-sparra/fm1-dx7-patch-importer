@@ -487,6 +487,8 @@ export default {
       over: '{{name}} está sobre {{target}}.',
       pickedUp: 'Se recogió {{name}}.',
       roleDescription: 'elemento ordenable',
+      slotInstructions:
+        'Para mover un sonido, enfoca su asa y pulsa Espacio o Intro. Usa las flechas para moverlo, y pulsa Espacio o Intro para soltarlo, o Escape para cancelar. Si lo arrastras a la pestaña de un banco, el sonido se copia en ese banco; «Copiar a…» en su menú hace lo mismo desde el teclado.',
     },
     auditionGroup: 'Prueba del operador {{number}}',
     mute: 'Silenciar',
