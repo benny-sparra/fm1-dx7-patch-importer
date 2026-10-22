@@ -24,3 +24,37 @@ export function positionHelpPopover(
     top: Math.max(margin, Math.min(preferredTop, viewportHeight - popoverHeight - margin)),
   }
 }
+
+export type MenuPosition = HelpPopoverPosition & { maxHeight?: number }
+
+/**
+ * Places a menu as `positionHelpPopover` places a popover, except that a menu too tall for either
+ * side of its trigger, as on a short phone screen, scrolls on the roomier side rather than being
+ * clamped over the trigger and the row it acts on, where a tap meant for that row's neighbour
+ * would choose an item.
+ */
+export function positionMenu(
+  trigger: Rect,
+  menuWidth: number,
+  menuHeight: number,
+  viewportWidth: number,
+  viewportHeight: number,
+  gap = 8,
+  margin = 12,
+): MenuPosition {
+  const position = positionHelpPopover(
+    trigger,
+    menuWidth,
+    menuHeight,
+    viewportWidth,
+    viewportHeight,
+    gap,
+    margin,
+  )
+  const roomAbove = trigger.top - gap - margin
+  const roomBelow = viewportHeight - trigger.bottom - gap - margin
+  if (menuHeight <= Math.max(roomAbove, roomBelow)) return position
+  return roomBelow >= roomAbove
+    ? { left: position.left, maxHeight: roomBelow, top: trigger.bottom + gap }
+    : { left: position.left, maxHeight: roomAbove, top: margin }
+}

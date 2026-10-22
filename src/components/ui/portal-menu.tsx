@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 
-import { positionHelpPopover, type HelpPopoverPosition } from '@/lib/help-popover'
+import { positionMenu, type MenuPosition } from '@/lib/help-popover'
 import { cn } from '@/lib/utils'
 
 type PortalMenuItem = {
@@ -63,7 +63,7 @@ export function PortalMenu({
   triggerTitle,
 }: PortalMenuProps) {
   const [open, setOpen] = useState(false)
-  const [position, setPosition] = useState<HelpPopoverPosition>({ left: 12, top: 12 })
+  const [position, setPosition] = useState<MenuPosition>({ left: 12, top: 12 })
   const hintId = useId()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -84,7 +84,7 @@ export function PortalMenu({
       left: trigger.right - offsetWidth + 8,
       top: trigger.top,
     }
-    setPosition(positionHelpPopover(anchor, offsetWidth, offsetHeight, innerWidth, innerHeight))
+    setPosition(positionMenu(anchor, offsetWidth, offsetHeight, innerWidth, innerHeight))
     ;(enabledItems(menu)[0] ?? menu).focus()
   }, [open])
 
@@ -99,7 +99,10 @@ export function PortalMenu({
       event.preventDefault()
       close(true)
     }
-    const closeOnMove = () => close(false)
+    // A menu that scrolls itself, as a tall one on a short screen does, stays open.
+    const closeOnMove = (event: Event) => {
+      if (!menuRef.current?.contains(event.target as Node)) close(false)
+    }
     document.addEventListener('pointerdown', closeOnOutsidePointer)
     document.addEventListener('keydown', closeOnEscape)
     window.addEventListener('scroll', closeOnMove, true)
@@ -148,7 +151,7 @@ export function PortalMenu({
         ? createPortal(
             <div
               aria-label={menuLabel}
-              className="menu-surface fixed z-[100] min-w-40 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]"
+              className="menu-surface fixed z-[100] min-w-40 overflow-y-auto overscroll-contain border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]"
               onBlur={(event) => {
                 const next = event.relatedTarget as Node | null
                 if (next && !menuRef.current?.contains(next) && next !== triggerRef.current) {

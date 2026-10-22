@@ -1336,9 +1336,9 @@ export default {
     editSelected: 'Modifier',
     slotTitle: 'Cliquer pour jouer {{name}} sur le FM1 ; double-cliquer pour le modifier',
     sendOffline:
-      'Passez le MIDI en ligne pour envoyer. D’ici là, un clic sur un son ne fait que le sélectionner.',
+      'Le MIDI est hors ligne : « Envoyer au FM1 » propose d’abord de le passer en ligne. D’ici là, un clic sur un son ne fait que le sélectionner.',
     sendNoOutput:
-      'Choisissez une sortie MIDI dans Réglages pour envoyer. D’ici là, un clic sur un son ne fait que le sélectionner.',
+      'Aucune sortie MIDI n’est choisie : « Envoyer au FM1 » en demande d’abord une. D’ici là, un clic sur un son ne fait que le sélectionner.',
     sendUnidentified:
       'Firmware non identifié : le FM1 reçoit une banque DX7 simple, et les sons comme des modifications non enregistrées.',
     slotOfflineTitle:

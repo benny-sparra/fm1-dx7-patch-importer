@@ -1202,17 +1202,18 @@ describe('LibrarianPage while MIDI has no output', () => {
   const offlineSlotTitle =
     'MIDI is offline, so a click only selects Alpha Piano; double-click to edit'
 
-  const offlineNote = 'Switch MIDI online to send. Until then, clicking a patch only selects it.'
+  const offlineNote =
+    'MIDI is offline, so Send to FM1 asks to switch it online first. Until then, clicking a patch only selects it.'
 
-  it('marks Send to FM1 aria-disabled with its reason as its description, keeps it focusable, and sends nothing', async () => {
+  it('leaves Send to FM1 live with its offline note as its description, and opens the MIDI connection dialog', async () => {
     const user = userEvent.setup()
     const offlineMidi = makeLibrarianMidi()
     renderLibrarianPage({ midi: offlineMidi })
     const send = screen.getByRole('button', { name: 'Send to FM1' })
 
-    expect(send.getAttribute('aria-disabled')).toBe('true')
+    expect(send.hasAttribute('aria-disabled')).toBe(false)
     expect(send.hasAttribute('disabled')).toBe(false)
-    expect(screen.getByText(offlineNote)).toBeTruthy()
+    expect(send.getAttribute('title')).toBe(offlineNote)
     expect(screen.getByRole('button', { name: 'Send to FM1', description: offlineNote })).toBe(send)
     send.focus()
     expect(document.activeElement).toBe(send)
@@ -1223,7 +1224,7 @@ describe('LibrarianPage while MIDI has no output', () => {
     expect(screen.getByRole('dialog', { name: 'Connect MIDI to send this bank' })).toBeTruthy()
   })
 
-  it('says to choose an output while MIDI is online without one', () => {
+  it('says Send to FM1 asks for an output while MIDI is online without one, and leaves it live', () => {
     renderLibrarianPage({ midi: makeLibrarianMidi({ midiAccess: true }) })
 
     expect(
@@ -1231,10 +1232,10 @@ describe('LibrarianPage while MIDI has no output', () => {
         .getByRole('button', {
           name: 'Send to FM1',
           description:
-            'Choose a MIDI output in Settings to send. Until then, clicking a patch only selects it.',
+            'No MIDI output is chosen, so Send to FM1 asks for one first. Until then, clicking a patch only selects it.',
         })
-        .getAttribute('aria-disabled'),
-    ).toBe('true')
+        .hasAttribute('aria-disabled'),
+    ).toBe(false)
   })
 
   it('shows no reason while MIDI left connected is connecting', () => {
@@ -1298,9 +1299,11 @@ describe('LibrarianPage while MIDI has no output', () => {
     try {
       const { rerender } = renderLibrarianPage()
       const send = screen.getByRole('button', { name: 'Надіслати на FM1' })
-      expect(send.getAttribute('aria-disabled')).toBe('true')
+      expect(send.hasAttribute('aria-disabled')).toBe(false)
       expect(
-        screen.getByText('Увімкніть MIDI, щоб надсилати. Доти клік на патчі лише вибирає його.'),
+        screen.getByText(
+          'MIDI офлайн, тож «Надіслати на FM1» спершу запропонує його увімкнути. Доти клік на патчі лише вибирає його.',
+        ),
       ).toBeTruthy()
       expect(
         screen.getByTitle('MIDI офлайн, тож клік лише вибирає Alpha Piano; двічі — щоб редагувати'),
@@ -1310,7 +1313,7 @@ describe('LibrarianPage while MIDI has no output', () => {
       rerender(librarianPage({ midi: makeLibrarianMidi({ midiAccess: true }) }))
       expect(
         screen.getByText(
-          'Оберіть MIDI-вихід у налаштуваннях, щоб надсилати. Доти клік на патчі лише вибирає його.',
+          'MIDI-вихід не обрано, тож «Надіслати на FM1» спершу попросить його обрати. Доти клік на патчі лише вибирає його.',
         ),
       ).toBeTruthy()
     } finally {
