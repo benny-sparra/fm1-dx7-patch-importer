@@ -84,6 +84,10 @@ Baud Girl's firmware stores a single patch sent as one SysEx message straight ov
 open as its 155 individual parameter changes instead. The FM1 holds those as an unsaved edit of the
 selected preset, which it drops when you change preset. They arrive in well under a second. Press **SAVE** on the FM1 to keep the patch there.
 
+M-VAVE's V16 moved the FM1's effect controls to other MIDI controllers. Until those are checked on
+an FM1, the app sends V16 no effect changes: the effects you set stay in the library, and the
+**FM1 firmware** setting says so. Patches still reach V16's edit buffer.
+
 Baud Girl's firmware also chooses a bank's destination differently. When a bank arrives it asks **Replace Bank
 A?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names
 the bank you want, then turn **SELECT** to **Replace** and press **SEL**, or press **HOME** to

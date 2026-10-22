@@ -105,6 +105,16 @@ describe('MidiSettingsMenu firmware', () => {
     expect(screen.getByText('Patches you play go to the FM1’s edit buffer.')).toBeTruthy()
   })
 
+  it('says V16’s effect controls send nothing yet, since it moved the effects', () => {
+    renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
+
+    expect(
+      screen.getByText(
+        'Patches you play go to the FM1’s edit buffer. The effect controls send nothing yet: this release moved the effects to other controllers, which have still to be checked on an FM1.',
+      ),
+    ).toBeTruthy()
+  })
+
   it('names FM-1+VA firmware and why patches are sent as parameter changes, in German', async () => {
     await setLocale('de')
 
@@ -220,6 +230,26 @@ describe('MidiFirmwareBadge', () => {
     expect(container.textContent).toContain('M-VAVEV15')
     expect(container.textContent).not.toContain('FM-1+VA')
     expect(screen.getByTitle(/^The FM1 runs M-VAVE’s own firmware, V15\./)).toBeTruthy()
+  })
+
+  it('says on V16’s badge that the effect controls send nothing yet, in German', async () => {
+    await setLocale('de')
+
+    render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_016', kind: 'mvave' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
+
+    expect(
+      screen.getByTitle(
+        /^Auf dem FM1 läuft die eigene Firmware von M-VAVE, V16\..*Die Effektregler senden noch nichts/,
+      ),
+    ).toBeTruthy()
   })
 
   it('names M-VAVE with its version in French', async () => {

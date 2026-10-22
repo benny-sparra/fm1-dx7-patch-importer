@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { midiChannels, type MidiController } from '@/hooks/use-midi'
 import { fm1FirmwareRelease, mayBeSloop } from '@/lib/fm1-firmware'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { localeNames, supportedLocales, type SupportedLocale } from '@/i18n/locale'
 import { setLocale } from '@/i18n'
@@ -128,11 +129,16 @@ export function MidiFirmwareBadge({
   }
   const release = fm1FirmwareRelease(firmware)
   const badge = firmwareBadges[mayBeSloop(firmware) ? 'feluccaOrSloop' : firmware.kind]
+  // M-VAVE's V16 moved the effect unit's controllers, so its badge says the effects send nothing.
+  const title =
+    firmware.kind === 'mvave' && !resolveFirmwareProfile(firmware).capabilities.effectControllers
+      ? 'midi.mvaveEffectsLocalBadgeTitle'
+      : badge.title
 
   return (
     <span
       className={className ?? 'inline-flex min-h-8 items-center gap-2'}
-      title={t(badge.title, { release })}
+      title={t(title, { release })}
     >
       <span aria-hidden="true" className="text-xs font-bold tracking-[0.1em] text-[var(--crt-ink)]">
         {badge.maker}
@@ -203,7 +209,11 @@ function firmwareName(firmware: MidiController['firmware'], t: TFunction) {
 
 // What the firmware does with the patches the editor plays; any other gets parameter changes.
 function firmwareSendingKey(firmware: MidiController['firmware']) {
-  if (firmware.kind === 'mvave') return 'settings.firmwareEditBuffer'
+  if (firmware.kind === 'mvave') {
+    return resolveFirmwareProfile(firmware).capabilities.effectControllers
+      ? 'settings.firmwareEditBuffer'
+      : 'settings.firmwareEditBufferEffectsLocal'
+  }
   if (mayBeSloop(firmware)) return 'settings.firmwareFeluccaOrSloopIgnoresPatches'
   if (firmware.kind === 'felucca') return 'settings.firmwareIgnoresPatches'
   if (firmware.kind === 'official-open') return 'settings.firmwareOfficialOpenSends'

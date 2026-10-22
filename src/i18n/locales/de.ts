@@ -995,6 +995,8 @@ export default {
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca oder SLOOP {{identity}}',
     firmwareEditBuffer: 'Sounds, die du anspielst, gehen in den Bearbeitungspuffer des FM1.',
+    firmwareEditBufferEffectsLocal:
+      'Sounds, die du anspielst, gehen in den Bearbeitungspuffer des FM1. Die Effektregler senden noch nichts: Diese Version hat die Effekte auf andere Controller gelegt, die noch an einem FM1 geprüft werden müssen.',
     firmwareParameterChanges:
       'Sounds, die du anspielst, werden als Parameteränderungen gesendet, damit der FM1 sie nie über das gewählte Preset speichert.',
     firmwareIgnoresPatches:
@@ -1216,6 +1218,8 @@ export default {
     mvaveBadgeLabel: 'Firmware von M-VAVE, {{release}}',
     mvaveBadgeTitle:
       'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer.',
+    mvaveEffectsLocalBadgeTitle:
+      'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer. Die Effektregler senden noch nichts: Diese Version hat die Effekte auf andere Controller gelegt, die noch an einem FM1 geprüft werden müssen.',
     officialOpenBadgeLabel: 'Open-Firmware von M-VAVE, {{release}}',
     officialOpenBadgeTitle:
       'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',

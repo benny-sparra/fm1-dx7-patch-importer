@@ -11,6 +11,14 @@ export const mvaveIdentityReply = Uint8Array.from([
   0x1a, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
 ])
 
+// Not captured: built for FM-1_016, the name M-VAVE's V16 reports (forum topic 23), with V15's
+// checksum as above.
+// prettier-ignore
+export const mvaveV16IdentityReply = Uint8Array.from([
+  0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x26, 0x0c,
+  0x1b, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
+])
+
 // Captured from an FM1 on FM-1+VA's FM-1_089, 2026-09-29. It names FM-1_089 but keeps the checksum
 // of M-VAVE's V15 reply above.
 // prettier-ignore

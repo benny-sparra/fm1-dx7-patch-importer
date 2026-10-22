@@ -1040,6 +1040,8 @@ export default {
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca або SLOOP {{identity}}',
     firmwareEditBuffer: 'Коли ви граєте патч, він потрапляє в буфер редагування FM1.',
+    firmwareEditBufferEffectsLocal:
+      'Коли ви граєте патч, він потрапляє в буфер редагування FM1. Керування ефектами поки нічого не надсилає: у цьому випуску ефекти перенесено на інші контролери, які ще треба перевірити на FM1.',
     firmwareParameterChanges:
       'Коли ви граєте патч, він надходить як зміна параметрів, тож FM1 не записує його поверх обраного пресету.',
     firmwareIgnoresPatches:
@@ -1260,6 +1262,8 @@ export default {
     mvaveBadgeLabel: 'Прошивка M-VAVE, {{release}}',
     mvaveBadgeTitle:
       'На FM1 працює власна прошивка M-VAVE, {{release}}. Коли ви граєте патч, він потрапляє в буфер редагування FM1.',
+    mvaveEffectsLocalBadgeTitle:
+      'На FM1 працює власна прошивка M-VAVE, {{release}}. Коли ви граєте патч, він потрапляє в буфер редагування FM1. Керування ефектами поки нічого не надсилає: у цьому випуску ефекти перенесено на інші контролери, які ще треба перевірити на FM1.',
     officialOpenBadgeLabel: 'Прошивка Open від M-VAVE, {{release}}',
     officialOpenBadgeTitle:
       'На FM1 працює прошивка Open від M-VAVE, {{release}}, groovebox на вісім доріжок. Патч, який ви клацаєте чи редагуєте, надходить на доріжку на каналі нот, якщо ця доріжка працює на DX7. Банки DX7 вона ігнорує, а керування ефектами нічого не надсилає, бо вона сприйняла б його як зміни своїх доріжок.',
