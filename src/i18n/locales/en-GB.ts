@@ -550,9 +550,10 @@ export default {
     loadDemo: 'Load demo bank',
     editSelected: 'Edit',
     slotTitle: 'Click to play {{name}} on the FM1; double-click to edit',
-    sendOffline: 'Switch MIDI online to send. Until then, clicking a patch only selects it.',
+    sendOffline:
+      'MIDI is offline, so Send to FM1 asks to switch it online first. Until then, clicking a patch only selects it.',
     sendNoOutput:
-      'Choose a MIDI output in Settings to send. Until then, clicking a patch only selects it.',
+      'No MIDI output is chosen, so Send to FM1 asks for one first. Until then, clicking a patch only selects it.',
     sendUnidentified:
       'Firmware not identified: the FM1 gets a plain DX7 bank, and patches as unsaved edits.',
     slotOfflineTitle: 'MIDI is offline, so a click only selects {{name}}; double-click to edit',

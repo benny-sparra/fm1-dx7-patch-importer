@@ -633,7 +633,10 @@ open everything an earlier release could have saved.
   `aria-disabled`, guard its `onClick`, and say what changed or what stops it in text: a
   `role="status"` that reads **Sending…** beside Send, and the reason as `sr-only` text named by
   `aria-describedby` on `MidiPanicButton`. `index.css` dims `button[aria-disabled='true']`, so the
-  look stays in the stylesheet rather than in every button's classes.
+  look stays in the stylesheet rather than in every button's classes. A button that still acts
+  when its usual action cannot, such as **Send to FM1** without a MIDI output opening the dialog
+  that connects one, is not `aria-disabled`: a screen reader would call a working control
+  unavailable. Its description says what a click does instead.
 - A header control that shows only an icon carries a caption under it (`hero-captioned`,
   `hero-caption` in `index.css`), as the FM1 prints a name under a button: **Finish**, **Help**,
   and **Settings**, and the MIDI panic says **Panic** beside its icon. A tooltip never shows on
@@ -1005,6 +1008,9 @@ open everything an earlier release could have saved.
 - The patch banks panel does not clip its overflow, because each bank's ⋮ menu in the rail hangs
   out beside its tab and, with enough banks, below the panel. Clipping it there hid the last bank's
   menu items (issue 202); `e2e/librarian.e2e.ts` checks the last item can be reached.
+- A `PortalMenu` too tall for either side of its trigger, as on a short phone screen, takes the
+  roomier side and scrolls (`positionMenu`) rather than being clamped over its own row, where a
+  tap meant for the next row's ⋮ chose an item. A scroll inside the menu keeps it open.
 - A key chosen for its position, such as the piano's two-row note layout, is matched by
   `KeyboardEvent.code` and labelled with the user's layout letter (`useKeyboardKeyLabel`). A key
   chosen for its letter, such as Cmd/Ctrl + Z, is matched by `KeyboardEvent.key`.

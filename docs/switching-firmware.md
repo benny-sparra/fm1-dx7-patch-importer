@@ -41,7 +41,7 @@ The FM1 cannot send its presets back to this app, so your library is your only c
 - In this app, choose **Download backup** from the menu in the patch-bank header.
 - Leaving FM-1+VA: in its Device Manager, press **Back up everything**. It saves all 128 presets as
   one `.syx` file and the 16 patterns as another. Only FM-1+VA can restore them, with **Install a
-  backup** in the Device Manager; this app's **Import Baud Girl presets file…** reads only the
+  backup** in the Device Manager; this app's **Import Baud Girl presets…** reads only the
   presets file's patches.
 - Leaving SLOOP: in its [web editor](https://isod89.github.io/sloop-fm1/webapp/editor/), open
   **Library** and use **Export bank** under **User presets on the device**, and **Export library**

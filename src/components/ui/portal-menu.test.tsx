@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -83,5 +83,23 @@ describe('PortalMenu', () => {
 
     await user.keyboard('{ArrowDown}{ArrowDown}')
     expect(document.activeElement?.textContent).toBe('Download patch')
+  })
+
+  it('stays open while the menu scrolls itself, and closes when the page scrolls', async () => {
+    const user = userEvent.setup()
+    render(
+      <PortalMenu
+        items={[{ label: 'Edit' }, { label: 'Move later' }]}
+        menuLabel="Patch actions"
+        triggerLabel="Actions for A1"
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: 'Actions for A1' }))
+
+    fireEvent.scroll(screen.getByRole('menu', { name: 'Patch actions' }))
+    expect(screen.getByRole('menu', { name: 'Patch actions' })).toBeTruthy()
+
+    fireEvent.scroll(document)
+    expect(screen.queryByRole('menu', { name: 'Patch actions' })).toBeNull()
   })
 })
