@@ -1321,9 +1321,10 @@ export default {
     loadDemo: 'Carregar banco de demonstração',
     editSelected: 'Editar',
     slotTitle: 'Clique para tocar {{name}} no FM1; clique duas vezes para editar',
-    sendOffline: 'Coloque o MIDI online para enviar. Até lá, um clique em um som só o seleciona.',
+    sendOffline:
+      'O MIDI está offline, então “Enviar ao FM1” oferece primeiro colocá-lo online. Até lá, um clique em um som só o seleciona.',
     sendNoOutput:
-      'Escolha uma saída MIDI em Configurações para enviar. Até lá, um clique em um som só o seleciona.',
+      'Nenhuma saída MIDI foi escolhida, então “Enviar ao FM1” pede uma primeiro. Até lá, um clique em um som só o seleciona.',
     sendUnidentified:
       'Firmware não identificado: o FM1 recebe um banco DX7 simples, e os sons como alterações não salvas.',
     slotOfflineTitle:

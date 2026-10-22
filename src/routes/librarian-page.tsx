@@ -738,9 +738,9 @@ export function LibrarianPage({
   const showsFavourites = !isSearching && destinationBank === favouritesBank
   const favouriteCount = library.favourites.length
   const canSendDestination = showsFavourites ? favouriteCount > 0 : isDestinationBankLoaded
-  // Send to FM1's description, read with it rather than only in its tooltip: what stops it and
-  // what a slot click does meanwhile, or what an FM1 whose firmware is not identified gets. None
-  // while MIDI connects, when the switch beside it already says so.
+  // Send to FM1's description, read with it rather than only in its tooltip: that it connects MIDI
+  // first and what a slot click does meanwhile, or what an FM1 whose firmware is not identified
+  // gets. None while MIDI connects, when the switch beside it already says so.
   const sendNote =
     isSearching || midi.isConnecting
       ? null
@@ -1128,7 +1128,8 @@ export function LibrarianPage({
             </span>
             <button
               aria-describedby={sendDescribedBy}
-              aria-disabled={isSendBlocked || !midi.hasMidiOutput || undefined}
+              // Not disabled without a MIDI output: a click opens the dialog that connects one.
+              aria-disabled={isSendBlocked || undefined}
               className={cn(
                 'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] md:ml-auto md:flex-none',
                 // A barber pole while the bank is on its way.
@@ -1143,8 +1144,8 @@ export function LibrarianPage({
                   ? t('banks.sendFromSearch')
                   : !midi.hasMidiOutput
                     ? midi.midiAccess
-                      ? t('midi.chooseOutput')
-                      : t('midi.switchOnFirst')
+                      ? t('banks.sendNoOutput')
+                      : t('banks.sendOffline')
                     : showsFavourites
                       ? favouriteCount === 0
                         ? t('favourites.addFirst')

@@ -633,7 +633,10 @@ open everything an earlier release could have saved.
   `aria-disabled`, guard its `onClick`, and say what changed or what stops it in text: a
   `role="status"` that reads **Sending…** beside Send, and the reason as `sr-only` text named by
   `aria-describedby` on `MidiPanicButton`. `index.css` dims `button[aria-disabled='true']`, so the
-  look stays in the stylesheet rather than in every button's classes.
+  look stays in the stylesheet rather than in every button's classes. A button that still acts
+  when its usual action cannot, such as **Send to FM1** without a MIDI output opening the dialog
+  that connects one, is not `aria-disabled`: a screen reader would call a working control
+  unavailable. Its description says what a click does instead.
 - A header control that shows only an icon carries a caption under it (`hero-captioned`,
   `hero-caption` in `index.css`), as the FM1 prints a name under a button: **Finish**, **Help**,
   and **Settings**, and the MIDI panic says **Panic** beside its icon. A tooltip never shows on

@@ -1212,8 +1212,9 @@ export default {
     loadDemo: '加载演示音色库',
     editSelected: '编辑',
     slotTitle: '单击可在 FM1 上演奏 {{name}}；双击可编辑',
-    sendOffline: '开启 MIDI 后才能发送。在此之前，单击音色只会选中它。',
-    sendNoOutput: '请在设置中选择 MIDI 输出后再发送。在此之前，单击音色只会选中它。',
+    sendOffline: 'MIDI 处于离线状态，“发送到 FM1”会先提示开启 MIDI。在此之前，单击音色只会选中它。',
+    sendNoOutput:
+      '尚未选择 MIDI 输出，“发送到 FM1”会先请你选择一个。在此之前，单击音色只会选中它。',
     sendUnidentified: '未识别固件：FM1 会收到普通的 DX7 音色库，音色则作为未保存的编辑发送。',
     slotOfflineTitle: 'MIDI 处于离线状态，单击只会选中 {{name}}；双击可编辑',
     slotEditBufferTitle: '单击通过 FM1 编辑缓冲区试听 {{name}}；双击进行编辑',
