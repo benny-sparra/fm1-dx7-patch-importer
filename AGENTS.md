@@ -524,9 +524,13 @@ open everything an earlier release could have saved.
   does not recognise. Do not widen it to a version, an engine, or a device.
 - Monitoring must remain disabled in development and tests, and a failed optional monitoring import
   must never prevent the app from rendering.
+- Only the wrapper in `src/lib/monitoring.ts` is in the initial JavaScript: the Sentry options,
+  filters, and report builders live in `src/lib/monitoring-setup.ts`, which loads beside the SDK
+  once the page is idle, as moving them out of the entry saved 1 KiB. Eager code reports through
+  the wrapper's functions and imports only types from the setup module.
 - A lazy chunk that fails to load after a deployment, and that an error boundary contains, is expected
   and is not reported to Sentry. React reports such a failure to `onRecoverableError` as well as to
-  `onCaughtError`, so both drop it in `src/lib/monitoring.ts`; filtering only `onCaughtError` still
+  `onCaughtError`, so both drop it in `src/lib/monitoring-setup.ts`; filtering only `onCaughtError` still
   lets one event per failure through. `onUncaughtError` stays unfiltered, so the same failure
   outside any boundary is still reported.
 - Errors raised by code a host app injects, such as the Android in-app browser's navigation logger

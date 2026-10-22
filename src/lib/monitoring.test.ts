@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { createMonitoringInitializer } from './monitoring'
 import {
   captureBankTransferFailure,
-  createMonitoringInitializer,
   resolveCoarsePlatform,
   runSentryVerification,
-} from './monitoring'
+} from './monitoring-setup'
 
 function createSdk() {
   const reactErrorHandler = vi.fn()
@@ -455,6 +455,19 @@ describe('Sentry monitoring', () => {
     })
 
     await expect(initialize()).resolves.toEqual({})
+  })
+
+  it('lets the application start without starting the SDK when the setup chunk cannot load', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+      loadSetup: () => Promise.reject(new Error('stale deployment chunk')),
+    })
+
+    await expect(initialize()).resolves.toEqual({})
+    expect(sdk.init).not.toHaveBeenCalled()
   })
 
   it('sends the fixed onboarding log and metric before throwing the verification error', () => {
