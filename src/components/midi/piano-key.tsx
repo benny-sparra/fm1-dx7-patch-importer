@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/keyboard'
 import { PIANO_KEY_WIDTH, type PianoKey } from '@/lib/piano-keyboard'
 import { cn } from '@/lib/utils'
 

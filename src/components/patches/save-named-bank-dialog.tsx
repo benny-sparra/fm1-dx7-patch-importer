@@ -2,6 +2,7 @@ import { Save } from 'lucide-react'
 import { type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/librarian-dialogs'
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { Button } from '@/components/ui/button'
 import {

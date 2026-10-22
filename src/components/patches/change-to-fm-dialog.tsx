@@ -2,6 +2,7 @@ import { ArrowRightLeft } from 'lucide-react'
 import { type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/librarian-dialogs'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,

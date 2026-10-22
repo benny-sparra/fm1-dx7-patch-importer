@@ -2,6 +2,7 @@ import { Copy, FileMusic } from 'lucide-react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/librarian-dialogs'
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { EngineTag, engineName, type PresetEngine } from '@/components/patches/engine-tag'
 import { FavouriteButton } from '@/components/patches/favourite-button'

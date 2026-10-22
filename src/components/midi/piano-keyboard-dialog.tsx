@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, GripHorizontal, X } from 'lucide-react'
 import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/keyboard'
 import { Button } from '@/components/ui/button'
 import { PhraseTransport } from '@/components/midi/phrase-transport'
 import { PianoKeyButton } from '@/components/midi/piano-key'

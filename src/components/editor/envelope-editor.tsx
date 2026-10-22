@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import '@/i18n/editor-help'
 import { HelpPopover } from '@/components/ui/help-popover'
 import {
   clampEnvelopeValue,
