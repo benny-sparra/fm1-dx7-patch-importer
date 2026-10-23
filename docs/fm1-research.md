@@ -2220,16 +2220,128 @@ all is part of the run.
 | SEQ                  | Patterns grow from 16 to 64 steps, with per-step ratchets ×1–×4; the pool stays at 16. An eight-track, eight-column arrangement replaces chaining, one row per Voice.                                                                                                                                    | Recorded for the parked sequencer work ([roadmap](fm1-roadmap.md)); its next attempt starts from V16. Nothing to build.                                                                                            |
 | Other                | ARP takes external notes as triggers; USB Loopback; RGB screen colours; Btn BL and Key BL; the firmware version on the last GLOBE page; SAVE offers ALL, Globe, Preset, and Pattern.                                                                                                                     | None for the editor. The GLOBE page lets the run confirm the release without the editor.                                                                                                                           |
 
+#### What the firmware shows
+
+**Likely** (static reading of `FM-1_016.fwsc`, SHA-256
+`d017fb65e70aca97ee29d944470c3515a74581df5c0576bf70de917c7b2b61d5`, against V15's, 2026-10-23).
+Nothing below has been run on an FM1.
+
+**Method.**
+
+- **Decryption.** The package decrypts with upstream's SFC cipher and chip key `0x980F`. In file
+  terms, each 32-byte block from offset 20 is XORed with a CRC-16 (`0x1021`) keystream starting
+  at `0x980A ^ (((offset + 0x3BC00) >> 2) & 0xFFFF)`. The same reading gives V15's `app.bin`
+  with upstream's SHA-256 (`306e4706…3203`).
+- **Layout.** V16's app is 597,928 bytes at XIP `0x02000140`; V15's was at `0x02000120`. Its C
+  runtime copies `0x15048` bytes from file `0x7CF40` to RAM `0x01C00000`; V15 copied `0xA05C`.
+  The app area adds `DX7.bin` (128 KiB) and `SEQ64`, and drops `USR`.
+- **Disassembly.** Ghidra 12.2 with edco's `ghidra-jieli` fork (pi32v2 `ac7911b8`, which
+  decodes the six-byte `80 ff` call), with the RAM copy mapped. Function addresses below are
+  V16's.
+
+**MIDI input.**
+
+- V16 parses each port's bytes (`FUN_02025e2c`) into 5-byte events in a 128-entry queue that
+  the main loop applies (`FUN_02012cc4`).
+- A newer event with the same port, status, and first data byte replaces a queued one, so a
+  burst of one controller collapses to its last value.
+- The parser still reboots into UBOOT on `F0 22 24 35 7D F7`, as V15 does.
+
+**Effect controllers.**
+
+- `FUN_02012cc4` from `0x02013304` takes a three-byte Control Change on **Effect Ch** whose
+  `cc − 70` is at most 23 (the check is `ja r2,0x17`).
+- The effect is `(cc − 70) >> 2`, in the order Filter, Reverb, Delay, Distortion, Chorus,
+  Phaser, and the parameter is `(cc − 70) & 3`.
+- This is V15's CC 0–23 handler with 70 added, and its rules are unchanged:
+  - A group's first controller turns its effect on for any value but 0.
+  - Filter's and Reverb's second is the type, limited to 2.
+  - Filter Cutoff is limited to 107 and Q to 10; every other parameter to 100.
+  - A larger value is clamped to the limit, not scaled.
+- That is the editor's own table of 24 effect parameters (`fm1EffectParameters`): the same
+  order, maximums, and switches, so only the controller numbers differ.
+- Each change also moves the FM1's FX page to that effect. It changes the live FX group, which
+  stays unsaved until SAVE.
+- CC 0–23 no longer reach the effects.
+- CC 70–93 still reach them when Effect Ch is also a Voice's channel.
+- Code for CC 94 and 95 is present but unreachable behind the range check.
+
+**Voices.**
+
+- Eight 12-byte records at `0x01C3508E`, checked in `FUN_0200be30`, hold:
+  - preset 0–127, and MIDI channel 0–16, where 0 is All;
+  - level 0–100, and pan −100 to +100;
+  - On/Off, and pitch bend up and down, 1–24 each;
+  - Glide On/Off, glide time 0–100, and Fine Tune −100 to +100.
+- A Program Change loads its program into every Voice that is On and listens on its channel or
+  on All (`FUN_02010da6`).
+
+**DX7 SysEx received.** `FUN_02025c66` takes only these messages, each whole, and checks each
+checksum:
+
+- **Parameter change.** `F0 43 10 gg pp vv F7`, from device 1 only. The address `gg × 128 + pp`
+  must be below 156 and the value within that parameter's limit.
+- **Single-voice dump.** `F0 43 0n 00 01 1B`, 155 bytes, and a checksum. It is applied only
+  while a flag at `0x01C3402C` is set; what sets the flag is not found.
+- **32-voice bank.** `F0 43 0n 09 20 00`, 4096 bytes, and a checksum. The FM1 then waits for a
+  destination bank (`FUN_0201041a`).
+- **`F0 22 24 36 a b c F7`**, a new M-VAVE command with `a` below 2, `b` up to 127, and `c` up to
+  100:
+  - It sets Voice 2's On/Off to `a`, its preset to `b`, and its level to `c`.
+  - It then sets Voice 1's level to 100, or to `100 − c` while Voice 2 is on: a two-Voice layer
+    or crossfade.
+  - It is unclassified, so **Dangerous / excluded**.
+
+**Where an edit lands.**
+
+- Parameter changes and single-voice dumps write one 155-byte edit buffer. It belongs to the
+  preset loaded on the Voice selected on the FM1's screen, since `FUN_02007d74` sets the two
+  together.
+- Committing it (`FUN_02007a12`) keeps a RAM copy of that preset (`FUN_020079b4`, one heap block
+  per preset). Every Voice playing that preset reloads, and loading a preset prefers the RAM copy.
+- Nothing is written to Flash, so on V16 a dump is an unsaved edit of one preset, heard on every
+  Voice that plays it. That is V15's behaviour, not FM-1+VA's.
+
+**Bank Export** (`FUN_0200ED88`, from `0x0200F100`).
+
+- **Banks.** Only banks A–D.
+- **What it sends.** One 4104-byte message: `F0 43 0n 09 20 00`, 4096 bytes of bank data,
+  `(−sum) & 0x7F`, and `F7`.
+- **Header.** Bytes 4 and 5 come through a paired instruction (`mov r0,#0x20` beside
+  `clr r0_r1`), which Ghidra's decompiler reads as `00 00`. Upstream's rule that a pair reads
+  its operands before either writes gives `20 00`, and the `mov` would otherwise be dead.
+- **`n`.** A setting minus one, or 0 when the setting is 0, so probably the MIDI channel with
+  All giving 0.
+- **Checks before sending.** Every byte must be 7-bit, USB must be connected (**Connect USB**),
+  and no transfer may be running (**USB Busy**).
+- **Transport.** Sent over USB-MIDI only (`FUN_02025162`), 64 bytes per transfer, with a
+  progress percentage and a timeout (**Receive Timeout**).
+
+**Also in the event loop.**
+
+- A Note On or Off on Effect Ch below note 27 lights or clears a key LED rather than sounding,
+  while the LED setting allows.
+- CC 123 and a sustain release (CC 64 below 64) release the channel's voices.
+
 #### Questions for the hardware run
 
-1. Does V16 answer the identity query as `FM-1_016`?
+Each question carries the firmware's answer, still to be checked on hardware.
+
+1. Does V16 answer the identity query as `FM-1_016`? The string is in the firmware; the reply
+   path was not traced.
 2. Which parameter is each of CC 70–93, what range does each take, and do CC 0–23 on Effect Ch now
-   do nothing to the effects?
+   do nothing to the effects? Firmware: V15's map plus 70, clamped, and CC 0–23 do nothing to
+   them.
 3. Does a single-voice dump still reach an edit buffer, and which Voice's? Do the 155 parameter
-   changes and a Program Change reach the same Voice?
+   changes and a Program Change reach the same Voice? Firmware: the dump and parameter changes
+   edit the preset on the Voice selected on the FM1's screen, unsaved, heard on every Voice
+   playing it. A Program Change reaches every Voice that is On on its channel.
 4. What does Bank Export send: Yamaha 32-voice bulk dumps (`F0 43 0n 09 …`), single-voice dumps, or
-   vendor messages, in how many messages, and how fast?
-5. Does a 32-voice bank sent by **Send to FM1** reach the new destination prompt?
+   vendor messages, in how many messages, and how fast? Firmware: one `F0 43 0n 09 20 00` message
+   of 4104 bytes, over USB only.
+5. Does a 32-voice bank sent by **Send to FM1** reach the new destination prompt? Firmware: yes,
+   once its header and checksum pass.
+6. What sets the flag at `0x01C3402C`, without which a single-voice dump is dropped?
 
 ### FM1 Editor
 
