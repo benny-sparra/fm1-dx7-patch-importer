@@ -7,6 +7,7 @@ import {
   yamahaManufacturerId,
   type Dx7Voice,
 } from '@/lib/dx7'
+import type { EffectControllerBase } from '@/lib/firmware-profile'
 import { fm1EffectParameterMaximums, fm1EffectParameterCount } from '@/lib/fm1-effects'
 import { fm1VoiceParameterMaximums } from '@/lib/fm1-parameters'
 import { createId } from '@/lib/id'
@@ -150,38 +151,57 @@ export function sendFm1Parameter(output: Output, parameter: number, value: numbe
   midiActivity.signal('out')
 }
 
-function assertFm1EffectControl(controller: number, value: number, channel: number) {
-  if (!Number.isInteger(controller) || controller < 0 || controller >= fm1EffectParameterCount) {
-    throw new RangeError('FM1 effect controller must be an integer from 0 to 23.')
+/**
+ * Checks effect parameter `parameter`, 0 to 23 in the editor's order, and its value, and gives the
+ * controller it goes as: `base` (the firmware profile's `effectControllerBase`) plus `parameter`.
+ */
+function resolveFm1EffectControl(
+  parameter: number,
+  value: number,
+  channel: number,
+  base: EffectControllerBase,
+) {
+  if (!Number.isInteger(parameter) || parameter < 0 || parameter >= fm1EffectParameterCount) {
+    throw new RangeError('FM1 effect parameter must be an integer from 0 to 23.')
   }
-  if (!Number.isInteger(value) || value < 0 || value > fm1EffectParameterMaximums[controller]) {
+  if (!Number.isInteger(value) || value < 0 || value > fm1EffectParameterMaximums[parameter]) {
     throw new RangeError(
-      `FM1 effect controller ${controller} value must be an integer from 0 to ${fm1EffectParameterMaximums[controller]}.`,
+      `FM1 effect parameter ${parameter} value must be an integer from 0 to ${fm1EffectParameterMaximums[parameter]}.`,
     )
   }
+  if (base !== 0 && base !== 70) {
+    throw new RangeError('FM1 effect controllers start at CC 0 or CC 70.')
+  }
   assertMidiChannel(channel)
+  return base + parameter
 }
 
-export function makeFm1EffectControlMessage(controller: number, value: number, channel = 2) {
-  assertFm1EffectControl(controller, value, channel)
+export function makeFm1EffectControlMessage(
+  parameter: number,
+  value: number,
+  channel = 2,
+  base: EffectControllerBase = 0,
+) {
+  const controller = resolveFm1EffectControl(parameter, value, channel, base)
   return Uint8Array.from([0xb0 | ((channel - 1) & 0x0f), controller, value])
 }
 
 export function sendFm1EffectControl(
   output: Output,
   channel: number,
-  controller: number,
+  parameter: number,
   value: number,
+  base: EffectControllerBase = 0,
 ) {
-  assertFm1EffectControl(controller, value, channel)
+  const controller = resolveFm1EffectControl(parameter, value, channel, base)
   output.sendControlChange(controller, value, { channels: channel })
   midiActivity.signal('out')
 }
 
 /**
- * M-VAVE's V16 effect controllers by its release notes (docs/fm1-research.md, "M-VAVE's V16 stock
- * firmware"): four for each effect on the FX channel, from Filter's 70 to Phaser's 93. Which is
- * which parameter needs a hardware test, so only the development FX probe sends them.
+ * M-VAVE's V16 effect controllers (docs/fm1-research.md, "M-VAVE's V16 stock firmware"): four for
+ * each effect on the FX channel, from Filter's 70 to Phaser's 93. The development FX probe's V16
+ * research mode sends every value from 0 to 127 to them, to check where the FM1 clamps each.
  */
 export const fm1V16EffectControllerGroups = [
   { effect: 'Filter', first: 70 },
@@ -196,14 +216,15 @@ const firstV16EffectController = 70
 const lastV16EffectController = 93
 
 /**
- * How the development FX probe chooses what it may send: `profile` sends CC 0–23 only where the
- * firmware profile offers `effectControllers`; `v16-research` sends CC 0–23 or 70–93 whatever the
- * FM1 runs, for the V16 hardware run (docs/hardware-runs/stock-v16-run-sheet.md).
+ * How the development FX probe chooses what it may send: `profile` sends only the controllers the
+ * firmware profile places the effects at, CC 0–23 or V16's 70–93, and only where it offers
+ * `effectControllers`; `v16-research` sends CC 0–23 or 70–93 whatever the FM1 runs, for the V16
+ * hardware run (docs/hardware-runs/stock-v16-run-sheet.md).
  */
 export type Fm1EffectProbeMode = 'profile' | 'v16-research'
 
-/** Whether `controller` is one of V16's effect controllers by its release notes. */
-export function isFm1V16EffectController(controller: number) {
+/** Whether `controller` is one of V16's effect controllers. */
+function isFm1V16EffectController(controller: number) {
   return controller >= firstV16EffectController && controller <= lastV16EffectController
 }
 

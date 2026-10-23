@@ -226,11 +226,11 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
       <span className="text-[11px] text-muted-foreground">
         {t(firmwareSendingKey(midi.firmware))}
       </span>
-      {/* M-VAVE's V16 moved the effect unit's controllers, so the effects send nothing there. */}
+      {/* M-VAVE's V16 shares one FX group among its Voices, so a patch's effects go only as edited. */}
       {midi.firmware.kind === 'mvave' &&
-      !resolveFirmwareProfile(midi.firmware).capabilities.effectControllers ? (
+      !resolveFirmwareProfile(midi.firmware).capabilities.presetEffects ? (
         <span className="text-[11px] text-muted-foreground">
-          {t('settings.firmwareEffectsNotSent')}
+          {t('settings.firmwareSharedEffects')}
         </span>
       ) : null}
       {needsInput ? (

@@ -255,6 +255,29 @@ describe('App slot audition', () => {
     expect(sendEffectSettings).toHaveBeenCalledExactlyOnceWith(pianoEffects)
   })
 
+  it('plays a slot on M-VAVE’s V16 with its voice and leaves the shared effects alone', async () => {
+    midiState.firmware = { identity: 'FM-1_016', kind: 'mvave' }
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+    await waitFor(() => expect(sendVoice).toHaveBeenCalledExactlyOnceWith(pianoVoice))
+    await sendVoice.mock.results[0].value
+
+    expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(0)
+    expect(sendEffectSettings).not.toHaveBeenCalled()
+  })
+
+  it('selects a slot on V16 without SysEx and sends no effects either', async () => {
+    midiState.firmware = { identity: 'FM-1_016', kind: 'mvave' }
+    midiState.sysexAvailable = false
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(0)
+    expect(sendEffectSettings).not.toHaveBeenCalled()
+  })
+
   it('auditions an added bank slot through the FM1 edit buffer with its effects', async () => {
     const user = renderApp()
 

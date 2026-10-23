@@ -22,7 +22,6 @@ import {
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   formatMidiBytes,
-  isFm1V16EffectController,
   makeFm1EffectDiagnosticControlMessage,
   getMidiSupport,
   isHighRateMidiMessage,
@@ -691,13 +690,14 @@ export function useMidi() {
         appendLog(noOutputEntry('send FM1 effect'))
         return false
       }
-      if (!resolveFirmwareProfile(firmware).capabilities.effectControllers) return false
+      const { capabilities, effectControllerBase: base } = resolveFirmwareProfile(firmware)
+      if (!capabilities.effectControllers) return false
 
       return enqueueLogged({
         key: `effect-${controller}`,
-        makeMessage: () => makeFm1EffectControlMessage(controller, value, effectChannel),
-        send: () => sendFm1EffectControl(selectedOutput, effectChannel, controller, value),
-        sent: `Sent FM1 effect CC ${controller} = ${value} on channel ${effectChannel}.`,
+        makeMessage: () => makeFm1EffectControlMessage(controller, value, effectChannel, base),
+        send: () => sendFm1EffectControl(selectedOutput, effectChannel, controller, value, base),
+        sent: `Sent FM1 effect CC ${base + controller} = ${value} on channel ${effectChannel}.`,
         failure: 'FM1 effect write failed.',
       })
     },
@@ -712,13 +712,14 @@ export function useMidi() {
         appendLog(noOutputEntry('send development FX probe'))
         return false
       }
-      // V16 research sends whatever the FM1 runs, since V16's profile offers no effect controller
-      // until the run settles them; otherwise only what the profile offers, CC 0–23.
-      if (
-        mode === 'profile' &&
-        (isFm1V16EffectController(controller) ||
-          !resolveFirmwareProfile(firmware).capabilities.effectControllers)
-      ) {
+      // V16 research sends whatever the FM1 runs, for the V16 hardware run; otherwise only the
+      // controllers the profile places the effects at.
+      const { capabilities, effectControllerBase: base } = resolveFirmwareProfile(firmware)
+      const offered =
+        capabilities.effectControllers &&
+        controller >= base &&
+        controller < base + fm1EffectParameterCount
+      if (mode === 'profile' && !offered) {
         appendLog(makeLogEntry('system', 'This firmware takes no FM1 effect controllers.'))
         return false
       }
@@ -744,7 +745,8 @@ export function useMidi() {
       }
       // Official Open has no FX Channel effect unit and takes these as the track's volume and pan,
       // so there is nothing to send, and a patch it is sent with has still gone as far as it can.
-      if (!resolveFirmwareProfile(firmware).capabilities.effectControllers) {
+      const { capabilities, effectControllerBase: base } = resolveFirmwareProfile(firmware)
+      if (!capabilities.effectControllers) {
         appendLog(makeLogEntry('system', 'This firmware takes no FM1 effect controllers.'))
         return Promise.resolve(true)
       }
@@ -752,7 +754,13 @@ export function useMidi() {
       const transfers = Array.from({ length: fm1EffectParameterCount }, (_, controller) =>
         transferQueue.enqueue(
           () =>
-            sendFm1EffectControl(selectedOutput, effectChannel, controller, normalized[controller]),
+            sendFm1EffectControl(
+              selectedOutput,
+              effectChannel,
+              controller,
+              normalized[controller],
+              base,
+            ),
           `effect-${controller}`,
         ),
       )
