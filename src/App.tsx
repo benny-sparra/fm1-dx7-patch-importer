@@ -135,6 +135,12 @@ function App() {
   // voice with a built-in sound, so there a slot sends no program, as an added bank's does.
   const slotProgram = (patch: Patch) =>
     resolveFirmwareProfile(midi.firmware).capabilities.programChanges ? patch.program : undefined
+  // M-VAVE's V16 shares one FX group among its eight Voices, so playing a patch there leaves the
+  // effects alone; they reach the FM1 only as they are edited.
+  const sendPlayedEffects = (effects: Uint8Array | undefined) => {
+    if (!resolveFirmwareProfile(midi.firmware).capabilities.presetEffects) return
+    void midi.sendEffectSettings(normalizeFm1Effects(effects))
+  }
   const auditionPatch = (patch: Patch) => {
     const program = slotProgram(patch)
     if (patch.family === virtualAnalogFamily || patch.family === eightBitFamily) {
@@ -153,9 +159,7 @@ function App() {
       return
     }
     editBufferAudition.current = null
-    if (midi.sendProgramChange(program)) {
-      void midi.sendEffectSettings(normalizeFm1Effects(effects))
-    }
+    if (midi.sendProgramChange(program)) sendPlayedEffects(effects)
   }
   // Sends a sound to the FM1 edit buffer with its effects, after selecting its program when it has
   // one. A sound without effects, such as one from the catalog, gets the defaults, so it does not
@@ -194,7 +198,7 @@ function App() {
         if (editBufferAudition.current === audition) editBufferAudition.current = null
         return
       }
-      void midi.sendEffectSettings(normalizeFm1Effects(storedEffects))
+      sendPlayedEffects(storedEffects)
     })
   }
   const selectPatch = (patchId: string) => {

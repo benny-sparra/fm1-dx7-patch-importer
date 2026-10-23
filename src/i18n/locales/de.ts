@@ -1001,8 +1001,8 @@ export default {
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca oder SLOOP {{identity}}',
     firmwareEditBuffer: 'Sounds, die du anspielst, gehen in den Bearbeitungspuffer des FM1.',
-    firmwareEffectsNotSent:
-      'Die Effektregler senden noch nichts, da V16 sie auf andere Controller gelegt hat.',
+    firmwareSharedEffects:
+      'Auf V16 teilen sich alle Voices die Effekte, daher gehen sie nur raus, wenn du sie im Editor änderst.',
     firmwareParameterChanges:
       'Sounds, die du anspielst, werden als Parameteränderungen gesendet, damit der FM1 sie nie über das gewählte Preset speichert.',
     firmwareIgnoresPatches:

@@ -2196,29 +2196,74 @@ Open questions:
 
 M-VAVE released V16 (`FM-1_016`, file `FM-1_016.fwsc`, 701.4 KB) on 2026-10-21, in the forum post
 "M-VAVE FM-1 Official Firmware Update Summary" (https://forum.m-vave.com/topic/23, read
-2026-10-22), which compares it with V15. The notes are the only source: no V16 FM1 has been run
-with the editor, so every row below is **Needs hardware test** unless it says otherwise. The run
-that settles the questions at the end is planned in
+2026-10-22), which compares it with V15. The table below is the notes; the firmware reading after
+it is **Likely**, and the first hardware run
+([`hardware-runs/stock-v16-2026-10-23.md`](hardware-runs/stock-v16-2026-10-23.md), on the
+orange FM1) confirmed what "Confirmed on hardware" lists. Anything not listed there is still
+**Needs hardware test**. The run sheet is
 [`hardware-runs/stock-v16-run-sheet.md`](hardware-runs/stock-v16-run-sheet.md).
 
-V16 identifies as `FM-1_016`, which `classifyFm1Firmware` already counts as M-VAVE's own
-(`FM-1_000` to `FM-1_019`). The editor's identity query is the updater's, so V16 answering it at
-all is part of the run.
+V16 identifies as `FM-1_016`, which `classifyFm1Firmware` counts as M-VAVE's own (`FM-1_000` to
+`FM-1_019`), and it answers the updater's identity query, which the editor sends (**Confirmed**,
+2026-10-23).
 
 #### What the notes say changed
 
-| Area                 | V16 per the notes                                                                                                                                                                                                                                                                                        | Editor consequence                                                                                                                                                                                                 |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Parts and voices     | Eight Voices (timbral parts), each with its own preset, On/Off, MIDI receive channel, level, pan, pitch-bend ranges, glide, and a Fine Tune of −100 to +100 cents. Polyphony rises from 12 to 20, shared across all eight. Voices on one channel layer.                                                  | Where a single-voice dump, the 155 parameter changes, and a Program Change land is unknown: the Voice on the note channel, Voice 1, or every Voice on it. The editor says nothing about parts yet.                 |
-| Effects library      | Effect settings are a library of 128 FX groups (FX001–FX128, each with its own order, On/Off states, parameters, and a 10-character name), saved with SAVE → Globe or ALL, never into a sound preset. All Voices share one stereo chain, and changing a preset, Pattern, or column no longer changes it. | The library's per-patch FM1 effects no longer travel with a preset on V16. Sending them would change the shared group, which is the FX setting every Voice hears.                                                  |
-| Effect controllers   | External FX control is CC 70–93 on the Effect Ch channel: Filter 70–73, Reverb 74–77, Delay 78–81, Distortion 82–85, Chorus 86–89, Phaser 90–93. "Each group controls the corresponding effect's On/Off state and parameters." The CC 0–23 mapping "is no longer active".                                | The editor sends V16 no effect controller (the stock profile lists `effectControllers` before release 16 only, 2026-10-22). Which CC in each group is which parameter, and the value ranges, are not in the notes. |
-| Controllers now used | CC 1, 2, and 4 stay sound modulation, CC 7 is master volume, CC 11 is expression (CC 121 resets it to 127), on the Voices' channels. CC 7, CC 11, and sustain are routed correctly when an instrument channel overlaps Effect Ch.                                                                        | CC 1, 2, 4, 7, and 11 were the editor's Filter Type, Filter Cutoff, Reverb Enabled, Reverb Mix, and Delay Mix controllers, which is why V16 gets none.                                                             |
-| Key LEDs             | In normal mode, notes 0–26 on Effect Ch light the 27 key LEDs; they do not sound.                                                                                                                                                                                                                        | The editor's notes go on the note channel. With both channels the same, low notes would light LEDs rather than sound: check.                                                                                       |
-| Panic                | Holding PLAY/STOP stops the sequencer and arpeggiator and clears stuck notes.                                                                                                                                                                                                                            | **MIDI panic** keeps sending Note Off for every note; nothing to change.                                                                                                                                           |
-| Bank Export          | Sends the selected bank's 32 saved presets as standard DX7 SysEx (`.syx`): DX7 sound data only, without ENV, FX, Voice setup, Patterns, or global settings.                                                                                                                                              | The first way to read a stock FM1's bank back. **Receive patch…** takes it (2026-10-23) and hands it to the DX7 bank import; it sends nothing.                                                                     |
-| Bank import          | After a 32-voice bank arrives, the FM1 waits for a destination bank to be chosen before writing; nothing is written without one, and a failure allows another choice.                                                                                                                                    | The bank destination instructions describe V15's prompt and need rewording for V16 once seen.                                                                                                                      |
-| SEQ                  | Patterns grow from 16 to 64 steps, with per-step ratchets ×1–×4; the pool stays at 16. An eight-track, eight-column arrangement replaces chaining, one row per Voice.                                                                                                                                    | Recorded for the parked sequencer work ([roadmap](fm1-roadmap.md)); its next attempt starts from V16. Nothing to build.                                                                                            |
-| Other                | ARP takes external notes as triggers; USB Loopback; RGB screen colours; Btn BL and Key BL; the firmware version on the last GLOBE page; SAVE offers ALL, Globe, Preset, and Pattern.                                                                                                                     | None for the editor. The GLOBE page lets the run confirm the release without the editor.                                                                                                                           |
+| Area                 | V16 per the notes                                                                                                                                                                                                                                                                                        | Editor consequence                                                                                                                                                                                 |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Parts and voices     | Eight Voices (timbral parts), each with its own preset, On/Off, MIDI receive channel, level, pan, pitch-bend ranges, glide, and a Fine Tune of −100 to +100 cents. Polyphony rises from 12 to 20, shared across all eight. Voices on one channel layer.                                                  | Where a single-voice dump, the 155 parameter changes, and a Program Change land is unknown: the Voice on the note channel, Voice 1, or every Voice on it. The editor says nothing about parts yet. |
+| Effects library      | Effect settings are a library of 128 FX groups (FX001–FX128, each with its own order, On/Off states, parameters, and a 10-character name), saved with SAVE → Globe or ALL, never into a sound preset. All Voices share one stereo chain, and changing a preset, Pattern, or column no longer changes it. | The library's per-patch FM1 effects no longer travel with a preset on V16. Sending them would change the shared group, which is the FX setting every Voice hears.                                  |
+| Effect controllers   | External FX control is CC 70–93 on the Effect Ch channel: Filter 70–73, Reverb 74–77, Delay 78–81, Distortion 82–85, Chorus 86–89, Phaser 90–93. "Each group controls the corresponding effect's On/Off state and parameters." The CC 0–23 mapping "is no longer active".                                | The editor sends V16 its effects at CC 70–93 (`effectControllerBase` 70 from release 16), only as they are edited; the map and ranges are below, **Confirmed** on 2026-10-23.                      |
+| Controllers now used | CC 1, 2, and 4 stay sound modulation, CC 7 is master volume, CC 11 is expression (CC 121 resets it to 127), on the Voices' channels. CC 7, CC 11, and sustain are routed correctly when an instrument channel overlaps Effect Ch.                                                                        | CC 1, 2, 4, 7, and 11 were the editor's Filter Type, Filter Cutoff, Reverb Enabled, Reverb Mix, and Delay Mix controllers, which is why V16 gets none.                                             |
+| Key LEDs             | In normal mode, notes 0–26 on Effect Ch light the 27 key LEDs; they do not sound.                                                                                                                                                                                                                        | The editor's notes go on the note channel. With both channels the same, low notes would light LEDs rather than sound: check.                                                                       |
+| Panic                | Holding PLAY/STOP stops the sequencer and arpeggiator and clears stuck notes.                                                                                                                                                                                                                            | **MIDI panic** keeps sending Note Off for every note; nothing to change.                                                                                                                           |
+| Bank Export          | Sends the selected bank's 32 saved presets as standard DX7 SysEx (`.syx`): DX7 sound data only, without ENV, FX, Voice setup, Patterns, or global settings.                                                                                                                                              | The first way to read a stock FM1's bank back. **Receive patch…** takes it (2026-10-23) and hands it to the DX7 bank import; it sends nothing.                                                     |
+| Bank import          | After a 32-voice bank arrives, the FM1 waits for a destination bank to be chosen before writing; nothing is written without one, and a failure allows another choice.                                                                                                                                    | The bank destination instructions describe V15's prompt and need rewording for V16 once seen.                                                                                                      |
+| SEQ                  | Patterns grow from 16 to 64 steps, with per-step ratchets ×1–×4; the pool stays at 16. An eight-track, eight-column arrangement replaces chaining, one row per Voice.                                                                                                                                    | Recorded for the parked sequencer work ([roadmap](fm1-roadmap.md)); its next attempt starts from V16. Nothing to build.                                                                            |
+| Other                | ARP takes external notes as triggers; USB Loopback; RGB screen colours; Btn BL and Key BL; the firmware version on the last GLOBE page; SAVE offers ALL, Globe, Preset, and Pattern.                                                                                                                     | None for the editor. The GLOBE page lets the run confirm the release without the editor.                                                                                                           |
+
+#### Confirmed on hardware
+
+**Confirmed** by the run of 2026-10-23
+([`hardware-runs/stock-v16-2026-10-23.md`](hardware-runs/stock-v16-2026-10-23.md)): `FM-1_016`
+on the orange FM1, with the editor's PR #349 and the development FX probe. Each matched the firmware
+reading below.
+
+- **Identity.** V16 answers `F0 00 32 45 00 00 00 40 7F F7` with the 41-byte reply the editor
+  reads as `FM-1_016`.
+- **Effect controllers.** CC 70–93 on Effect Ch are the editor's 24 effect parameters, in its
+  order:
+  - Filter 70–73, Reverb 74–77, Delay 78–81, Distortion 82–85, Chorus 86–89, Phaser 90–93.
+  - A group's first controller turns its effect on at any value but 0.
+  - Values are clamped to V15's limits rather than scaled: the types to 2, Cutoff to 107, Q to 10,
+    and the rest to 100. The FM1 shows Cutoff in hertz, 64 as 2789 Hz.
+  - CC 0–23 no longer reach the effects, CC 94 and 95 do nothing, and the FM1 sends nothing back
+    for an effect change.
+  - They reached the effects with Voices 1 and 2 listening on All, so on Effect Ch too.
+- **The FX group is live state.** Effect controllers change the live FX group only:
+  - SAVE offers Globe and ALL for it.
+  - Turning to another preset leaves it as it is.
+  - A power cycle without saving restores the stored group.
+- **Single-voice dumps and parameter changes.** Both reach the edit buffer of Voice 1's preset
+  (Voice 1 alone On, on All): the FM1 shows and plays the dumped patch's name and sound, and
+  follows each parameter change.
+- **Keeping an edit.** SAVE opened from a voice editing page offers Preset, which stores the
+  edited patch over that preset. It survives a power cycle. Opened from the preset screen or
+  GLOBE, SAVE offers only ALL and Globe: it offers what the page it opens from can save.
+- **Bank Export.** One 4104-byte Yamaha 32-voice bulk dump, `F0 43 00 09 20 00`, with the
+  checksum `(−sum) & 7F` and only 7-bit data, over USB. `n` was 0 with Voice 1 on All.
+- **Voice channels.** V16 has no single MIDI channel on GLOBE; each Voice has its own, 0 being
+  All.
+- **Key presses.** The FM1 sends its own key presses on the Voice channel, Note On at velocity 90
+  and Note Off at 100.
+
+Still **Needs hardware test**:
+
+- which Voice a dump reaches with two Voices On, where the firmware says the Voice selected on
+  screen;
+- a bank sent to the FM1;
+- Bank Export without USB;
+- whether a short press of SAVE on a voice page offers Preset as a hold does.
 
 #### What the firmware shows
 
@@ -2331,23 +2376,24 @@ checksum:
 
 #### Questions for the hardware run
 
-Each question carries the firmware's answer, still to be checked on hardware.
+Each question carries the firmware's answer. The run of 2026-10-23 settled the first two, part of
+the third, and the fourth.
 
-1. Does V16 answer the identity query as `FM-1_016`? The string is in the firmware; the reply
-   path was not traced.
-2. Which parameter is each of CC 70–93, what range does each take, and do CC 0–23 on Effect Ch now
-   do nothing to the effects? Firmware: V15's map plus 70, clamped, and CC 0–23 do nothing to
-   them.
+1. ~~Does V16 answer the identity query as `FM-1_016`?~~ Yes (2026-10-23).
+2. ~~Which parameter is each of CC 70–93, what range does each take, and do CC 0–23 on Effect Ch
+   now do nothing to the effects?~~ V15's map plus 70, clamped, and CC 0–23 do nothing to them
+   (2026-10-23).
 3. Does a single-voice dump still reach an edit buffer, and which Voice's? Do the 155 parameter
    changes and a Program Change reach the same Voice? Firmware: the dump and parameter changes
    edit the preset on the Voice selected on the FM1's screen, unsaved, heard on every Voice
-   playing it. A Program Change reaches every Voice that is On on its channel.
-4. What does Bank Export send: Yamaha 32-voice bulk dumps (`F0 43 0n 09 …`), single-voice dumps, or
-   vendor messages, in how many messages, and how fast? Firmware: one `F0 43 0n 09 20 00` message
-   of 4104 bytes, over USB only.
+   playing it. A Program Change reaches every Voice that is On on its channel. With one Voice On,
+   the dump and the parameter changes reach it (2026-10-23); two Voices are still to check.
+4. ~~What does Bank Export send?~~ One `F0 43 00 09 20 00` message of 4104 bytes, over USB
+   (2026-10-23).
 5. Does a 32-voice bank sent by **Send to FM1** reach the new destination prompt? Firmware: yes,
    once its header and checksum pass.
-6. What sets the flag at `0x01C3402C`, without which a single-voice dump is dropped?
+6. What sets the flag at `0x01C3402C`, without which a single-voice dump is dropped? It was set in
+   normal use on 2026-10-23, since the dump arrived.
 
 ### FM1 Editor
 

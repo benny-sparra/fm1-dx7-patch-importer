@@ -404,16 +404,43 @@ describe('useMidi effect controllers by firmware', () => {
     expect(ports.output.sendControlChange).not.toHaveBeenCalled()
   })
 
-  it('sends M-VAVE’s V16 no effect controller, since it moved the effect unit off CC 0–23', async () => {
+  it('sends M-VAVE’s V16 the effect parameters at CC 70–93, where it moved them', async () => {
     const ports = makeFakeFm1Ports({ reply: mvaveV16IdentityReply })
     const { result } = await connect(ports)
     expect(result.current.firmware).toEqual({ identity: 'FM-1_016', kind: 'mvave' })
 
-    expect(result.current.sendEffectParameter(7, 100)).toBe(false)
-    await expect(result.current.sendEffectSettings(new Uint8Array(24))).resolves.toBe(true)
+    expect(result.current.sendEffectParameter(2, 107)).toBe(true)
+    expect(result.current.sendEffectParameter(7, 100)).toBe(true)
     await act(() => vi.advanceTimersByTimeAsync(1_000))
 
-    expect(ports.output.sendControlChange).not.toHaveBeenCalled()
+    expect(ports.output.sendControlChange.mock.calls).toEqual([
+      [72, 107, { channels: 2 }],
+      [77, 100, { channels: 2 }],
+    ])
+  })
+
+  it('sends V16 a whole effect unit at CC 70–93', async () => {
+    const ports = makeFakeFm1Ports({ reply: mvaveV16IdentityReply })
+    const { result } = await connect(ports)
+
+    const sent = result.current.sendEffectSettings(new Uint8Array(24))
+    await act(() => vi.advanceTimersByTimeAsync(1_000))
+    await expect(sent).resolves.toBe(true)
+
+    expect(ports.output.sendControlChange.mock.calls.map(([controller]) => controller)).toEqual(
+      Array.from({ length: 24 }, (_, parameter) => 70 + parameter),
+    )
+  })
+
+  it('lets the FX probe send V16’s CC 70–93, and not CC 0–23, outside V16 research', async () => {
+    const ports = makeFakeFm1Ports({ reply: mvaveV16IdentityReply })
+    const { result } = await connect(ports)
+
+    expect(result.current.sendEffectDiagnosticControl(77, 127)).toBe(true)
+    expect(result.current.sendEffectDiagnosticControl(7, 0)).toBe(false)
+    await act(() => vi.advanceTimersByTimeAsync(1_000))
+
+    expect(ports.output.sendControlChange.mock.calls).toEqual([[77, 127, { channels: 2 }]])
   })
 
   it('sends V16’s CC 70–93 from the FX probe’s V16 research mode', async () => {
