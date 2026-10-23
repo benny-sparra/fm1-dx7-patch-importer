@@ -43,6 +43,7 @@ export const responsiveImageConfig = [
   { height: 480, source: 'firmware-tribe.webp', width: 480, widths: [460] },
   { height: 480, source: 'firmware-araminta.webp', width: 960, widths: [460] },
   { height: 697, source: 'firmware-hyp-1.webp', width: 960, widths: [460] },
+  { height: 640, source: 'firmware-tessera.webp', width: 1280, widths: [460] },
   { height: 477, source: 'fm1-synth.webp', width: 500, widths: [240, 360] },
   { height: 476, source: 'fm1-va-bank-screen.webp', width: 500, widths: [240, 360] },
 ]
