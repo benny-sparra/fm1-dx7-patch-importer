@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 import { makeDx7BankFile, parseDx7Bank } from '@/lib/dx7'
 import { makeDx7VoiceFile } from '@/lib/dx7-voice-file'
+import { stockV16BankExport, stockV16BankExportNames } from '@/test/stock-v16-bank-export'
 
 import { Dx7VoiceReceiver, type Dx7VoiceReceipt } from './dx7-voice-receiver'
 
@@ -118,8 +119,68 @@ describe('Dx7VoiceReceiver', () => {
     expect(problemOf(new Dx7VoiceReceiver().receive(short))).toBe('size')
   })
 
-  it('names a 32-voice bank dump as a bank', () => {
-    expect(problemOf(new Dx7VoiceReceiver().receive(makeDx7BankFile(factoryBank)))).toBe('bank')
+  it('reads the bank a stock FM1 on V16 sends with Bank Export', () => {
+    const receipt = new Dx7VoiceReceiver().receive(stockV16BankExport())
+
+    expect(receipt?.kind).toBe('bank')
+    if (receipt?.kind !== 'bank') return
+    expect(receipt.voices).toHaveLength(32)
+    expect(receipt.voices.slice(0, 4).map((voice) => voice.name.trim())).toEqual(
+      stockV16BankExportNames,
+    )
+  })
+
+  it('reads a 32-voice bank another device sends', () => {
+    const receipt = new Dx7VoiceReceiver().receive(makeDx7BankFile(factoryBank))
+
+    expect(receipt?.kind === 'bank' && receipt.voices.map((voice) => voice.name)).toEqual(
+      factoryBank.map((voice) => voice.name),
+    )
+  })
+
+  it('joins a bank split across several messages', () => {
+    const receiver = new Dx7VoiceReceiver()
+    const bytes = stockV16BankExport()
+
+    expect(receiver.receive(bytes.slice(0, 1000))).toBeNull()
+    expect(receiver.receive(bytes.slice(1000, 3000))).toBeNull()
+    expect(receiver.receive(bytes.slice(3000))?.kind).toBe('bank')
+  })
+
+  it('rejects a bank whose checksum does not match', () => {
+    const bytes = stockV16BankExport()
+    bytes[bytes.length - 2] = (bytes[bytes.length - 2] + 1) & 0x7f
+
+    expect(problemOf(new Dx7VoiceReceiver().receive(bytes))).toBe('checksum')
+  })
+
+  it('rejects a bank that ends early', () => {
+    const bytes = stockV16BankExport()
+    const short = [...bytes.slice(0, 2000), 0xf7]
+
+    expect(problemOf(new Dx7VoiceReceiver().receive(short))).toBe('size')
+  })
+
+  it('drops a bank cut off by another message before its end', () => {
+    const receiver = new Dx7VoiceReceiver()
+    const bytes = stockV16BankExport()
+
+    receiver.receive(bytes.slice(0, 2000))
+    receiver.receive([0x90, 60, 100])
+
+    expect(receiver.receive(bytes.slice(2000))).toBeNull()
+  })
+
+  it('reads a bank after a longer message without keeping more than a bank', () => {
+    const receiver = new Dx7VoiceReceiver()
+    const long = [
+      ...stockV16BankExport().slice(0, -1),
+      ...Array.from({ length: 5000 }, () => 0),
+      0xf7,
+    ]
+
+    expect(problemOf(receiver.receive(long))).toBe('size')
+    expect(receiver.receive(stockV16BankExport())?.kind).toBe('bank')
   })
 
   it('rejects a dump whose checksum does not match', () => {

@@ -28,6 +28,11 @@ type ImportDx7BankDialogProps = {
   bankName: string
   /** A file already chosen, as when one joining several banks was picked for an empty bank. */
   initialFile?: File
+  /**
+   * A bank received over MIDI, such as a stock FM1's Export, in place of a file: the dialog then
+   * shows only its patches.
+   */
+  received?: Dx7Voice[]
   library: Pick<PatchLibrary, 'importBank' | 'undoChange'>
   onClose: () => void
   /** Plays a patch through the FM1 edit buffer with the default effects, as a search result is. */
@@ -53,6 +58,7 @@ export function ImportDx7BankDialog({
   library,
   onClose,
   onPlay,
+  received,
   replacing,
 }: ImportDx7BankDialogProps) {
   const { i18n, t } = useTranslation()
@@ -66,7 +72,7 @@ export function ImportDx7BankDialog({
   // The chosen file's banks, read as soon as it is chosen so they can be heard before anything is
   // replaced, with null for a damaged one. Each voice keeps one object while the dialog is open, so
   // playing a patch twice sends it once.
-  const [banks, setBanks] = useState<(Dx7Voice[] | null)[] | null>(null)
+  const [banks, setBanks] = useState<(Dx7Voice[] | null)[] | null>(received ? [received] : null)
   const [chosenBank, setChosenBank] = useState(0)
   const [playingIndex, setPlayingIndex] = useState<number | null>(null)
   const readingFile = useRef<File | null>(null)
@@ -75,7 +81,10 @@ export function ImportDx7BankDialog({
   // bank screen goes once the file says otherwise.
   const joinsSeveral = banks === null || banks.length > 1
 
-  const screens: Screen[] = ['file', ...(joinsSeveral ? (['fileBank'] as const) : []), 'preview']
+  // A received bank has no file to choose or bank in it to pick.
+  const screens: Screen[] = received
+    ? ['preview']
+    : ['file', ...(joinsSeveral ? (['fileBank'] as const) : []), 'preview']
   const { focusFirstControl, formRef, goToScreen, isLastScreen, screen, screenIndex } =
     useWizardScreens(screens, {
       // A file chosen before the dialog opened has been chosen already, so it opens on its banks.
@@ -145,7 +154,7 @@ export function ImportDx7BankDialog({
     setError('')
     try {
       const changed = library.importBank(bank, imported)
-      trackAnalyticsEvent({ data: { source: 'file' }, name: 'bank_imported' })
+      trackAnalyticsEvent({ data: { source: received ? 'midi' : 'file' }, name: 'bank_imported' })
       toast.success(
         t('toasts.bankImported', { bank: bankName }),
         undoToastOptions(t, library, changed),
@@ -210,7 +219,11 @@ export function ImportDx7BankDialog({
               ) : null}
               <section aria-labelledby="import-dx7-bank-preview-title" className="grid gap-2">
                 <h3 className="text-sm font-semibold" id="import-dx7-bank-preview-title">
-                  {t('overwriteImport.previewTitle')}
+                  {t(
+                    received
+                      ? 'overwriteImport.previewTitleReceived'
+                      : 'overwriteImport.previewTitle',
+                  )}
                 </h3>
                 <ul className="dither-well grid grid-cols-2 gap-1 border border-[var(--crt-line-dk)] p-2 sm:grid-cols-4">
                   {voices.map((voice, index) => (

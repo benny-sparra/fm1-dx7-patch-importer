@@ -73,7 +73,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
      choice on the FM1, which may change how **Send to FM1** instructions read. Issue 334's
      reporter reads patches back on Baud Girl's firmware and asks for the same on V16. Until this
      step ships, `docs/user-guide.md` and the help guide should say plainly that the stock firmware
-     cannot be read back; today they only describe reading Baud Girl's presets.
+     cannot be read back; today they only describe reading Baud Girl's presets. _Done
+     (2026-10-23): the capture showed one standard 4104-byte bulk dump, so **Receive patch…**
+     takes a 32-voice bank and hands it to the DX7 bank import, sending nothing. Receiving it
+     through the dialog on an FM1 is still to be run._
   5. **New CCs worth knowing, not building yet.** CC 7 master volume, CC 11 expression, panic on
      holding PLAY/STOP, and key LEDs lit by notes 0–26 on the Effect Ch channel. The editor's
      MIDI panic already sends Note Offs; do not add these without a use.

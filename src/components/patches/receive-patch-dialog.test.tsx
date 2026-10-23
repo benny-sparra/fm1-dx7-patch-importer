@@ -12,6 +12,7 @@ import { makeDx7VoiceFile } from '@/lib/dx7-voice-file'
 import { makeDemoVoices } from '@/lib/patch-library'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
 import { translatePageText } from '@/test/page-translator'
+import { stockV16BankExport } from '@/test/stock-v16-bank-export'
 
 import { ReceivePatchDialog } from './receive-patch-dialog'
 
@@ -42,12 +43,30 @@ function renderDialog(midiOverrides: Partial<ReceiveMidi> = {}) {
   const replaceVoice = vi.fn(() => null)
   const onClose = vi.fn()
   const onReplaced = vi.fn<(voice: Dx7Voice, changed: unknown) => void>()
-  const props = { library: { replaceVoice }, midi, onClose, onReplaced, patch }
+  const onImportBank = vi.fn<(voices: Dx7Voice[]) => void>()
+  const props = {
+    bankName: 'Leads',
+    library: { replaceVoice },
+    midi,
+    onClose,
+    onImportBank,
+    onReplaced,
+    patch,
+  }
   const view = render(<ReceivePatchDialog {...props} />)
   const rerender = (next: Partial<ReceiveMidi>) =>
     view.rerender(<ReceivePatchDialog {...props} midi={{ ...midi, ...next }} />)
   const receive = (bytes: Uint8Array | number[]) => act(() => ports.input.receive(bytes))
-  return { ...view, input: ports.input, onReplaced, receive, replaceVoice, rerender }
+  return {
+    ...view,
+    input: ports.input,
+    onClose,
+    onImportBank,
+    onReplaced,
+    receive,
+    replaceVoice,
+    rerender,
+  }
 }
 
 const replaceButton = () => screen.getByRole('button', { name: 'Replace patch' })
@@ -137,12 +156,82 @@ describe('ReceivePatchDialog', () => {
     expect(screen.getByRole('alert').textContent).toBe('That patch arrived damaged. Send it again.')
   })
 
-  it('explains a bank that arrived in place of a patch', () => {
+  it('shows a bank a stock FM1 on V16 sent with Export', () => {
     const { receive } = renderDialog()
 
-    receive(makeDx7BankFile(makeDemoVoices()))
+    receive(stockV16BankExport())
 
-    expect(screen.getByRole('alert').textContent).toContain('That was a 32-voice DX7 bank.')
+    expect(screen.getByRole('status').textContent).toContain(
+      'Received a 32-voice bank starting with “j.piano 7+”.',
+    )
+    expect(screen.queryByRole('button', { name: 'Replace patch' })).toBeNull()
+  })
+
+  it('hands a received bank on to the bank import without replacing the slot', async () => {
+    const { onClose, onImportBank, receive, replaceVoice } = renderDialog()
+    receive(stockV16BankExport())
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Import bank into “Leads”…' }))
+
+    expect(onImportBank).toHaveBeenCalledOnce()
+    expect(onImportBank.mock.calls[0][0].map((voice) => voice.name.trim()).slice(0, 2)).toEqual([
+      'j.piano 7+',
+      'ORGAN 1',
+    ])
+    expect(onClose).toHaveBeenCalledOnce()
+    expect(replaceVoice).not.toHaveBeenCalled()
+  })
+
+  it('takes a patch sent after a bank in its place', async () => {
+    const { receive, replaceVoice } = renderDialog()
+    receive(makeDx7BankFile(makeDemoVoices()))
+    receive(makeDx7VoiceFile(sentVoice))
+
+    await userEvent.setup().click(replaceButton())
+
+    expect(replaceVoice).toHaveBeenCalledOnce()
+  })
+
+  it('reads a bank that arrives split across messages', () => {
+    const { receive } = renderDialog()
+    const bytes = stockV16BankExport()
+
+    receive(bytes.slice(0, 2048))
+    receive(bytes.slice(2048))
+
+    expect(screen.getByRole('status').textContent).toContain('Received a 32-voice bank')
+  })
+
+  it('explains a damaged bank in words', () => {
+    const { onImportBank, receive } = renderDialog()
+    const bytes = stockV16BankExport()
+    bytes[bytes.length - 2] ^= 0x01
+
+    receive(bytes)
+
+    expect(screen.getByRole('alert').textContent).toBe('That bank arrived damaged. Send it again.')
+    expect(onImportBank).not.toHaveBeenCalled()
+  })
+
+  it('explains a bank cut short as not a patch or bank', () => {
+    const { receive } = renderDialog()
+
+    receive([...stockV16BankExport().slice(0, 3000), 0xf7])
+
+    expect(screen.getByRole('alert').textContent).toContain('That wasn’t a DX7 patch or bank.')
+  })
+
+  it('explains a damaged bank in Ukrainian', async () => {
+    await setLocale('uk')
+    const { receive } = renderDialog()
+    const bytes = stockV16BankExport()
+    bytes[bytes.length - 2] ^= 0x01
+
+    receive(bytes)
+
+    expect(screen.getByRole('alert').textContent).toBe(
+      'Банк надійшов пошкодженим. Надішліть його ще раз.',
+    )
   })
 
   it('explains a damaged patch in the interface language', async () => {

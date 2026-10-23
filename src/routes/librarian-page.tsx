@@ -380,9 +380,10 @@ export function LibrarianPage({
   // menu toggle that focus returns to.
   const [bankPendingDeletion, setBankPendingDeletion] = useState<BankMenuRequest | null>(null)
   // An import into an empty bank opens the dialog only when its file joins several banks, which
-  // arrives with the file chosen.
+  // arrives with the file chosen. A bank received over MIDI arrives with its patches and the slot
+  // it was received from, for focus to return to.
   const [bankPendingImport, setBankPendingImport] = useState<
-    (BankMenuRequest & { file?: File }) | null
+    (BankMenuRequest & { file?: File; received?: { patchId: string; voices: Dx7Voice[] } }) | null
   >(null)
   // The bank menu toggle an import into an empty bank was started from, for focus to return to.
   const emptyBankImportOpenerRef = useRef<HTMLElement | null>(null)
@@ -1644,12 +1645,19 @@ export function LibrarianPage({
               library={library}
               onClose={() => {
                 setBankPendingImport(null)
-                bankPendingImport.opener?.focus()
+                const { opener, received } = bankPendingImport
+                if (received) setSlotFocusRequest({ patchId: received.patchId })
+                else opener?.focus()
               }}
               // A file's patch has no FM1 effects, so it plays with the defaults, as a catalog
               // result does.
               onPlay={(voice) => onPlaySearchResult(voice, undefined)}
-              replacing={!bankPendingImport.file}
+              received={bankPendingImport.received?.voices}
+              replacing={
+                bankPendingImport.received
+                  ? library.loadedBanks.includes(bankPendingImport.bank)
+                  : !bankPendingImport.file
+              }
             />
           </Suspense>
         </ErrorBoundary>
@@ -1819,9 +1827,18 @@ export function LibrarianPage({
         >
           <Suspense fallback={null}>
             <ReceivePatchDialog
+              bankName={bankDisplayName(receiveTarget.bank)}
               library={library}
               midi={midi}
               onClose={() => setReceiveTarget(null)}
+              onImportBank={(voices) =>
+                setBankPendingImport({
+                  bank: receiveTarget.bank,
+                  name: bankDisplayName(receiveTarget.bank),
+                  opener: null,
+                  received: { patchId: receiveTarget.id, voices },
+                })
+              }
               onReplaced={(voice, changed) =>
                 toast.success(
                   t('toasts.patchReplaced', {

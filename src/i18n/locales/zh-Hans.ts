@@ -569,15 +569,19 @@ export default {
   receivePatch: {
     action: '替换音色',
     title: '接收音色到 {{slot}}“{{patch}}”',
-    listening: '正在监听输入。请从 Dexed、DX7 或其他编辑器发送一个 DX7 音色。',
+    listening:
+      '正在监听输入。请从 Dexed、DX7 或其他编辑器发送一个 DX7 音色，或发送 32 音色的音色库，例如运行 M-VAVE V16 的 FM1 通过 GLOBE → Export 发送的音色库。',
     noInput: '请打开 MIDI，并将发送音色的设备选为监听输入。',
     noSysex: '接收音色需要 SysEx。请重新连接 MIDI，并在浏览器询问时允许 SysEx 访问。',
     received: '已接收“{{patch}}”。再发送一个即可改为接收它。',
+    receivedBank: '已接收以“{{patch}}”开头的 32 音色音色库。再发送一个即可改为接收它。',
+    importBank: '将音色库导入“{{bank}}”…',
     warning: '此位置的音色将被接收到的音色替换，其 FM1 效果将恢复为默认值。',
     errors: {
-      bank: '收到的是 32 音色的 DX7 音色库。请发送单个音色，或将音色库存为文件，然后在音色库菜单中选择“导入 DX7 音色库…”。',
+      bankDamaged: '收到的音色库已损坏。请重新发送。',
       damaged: '收到的音色已损坏。请重新发送。',
-      format: '收到的不是 DX7 音色。请发送只包含一个音色的单音色转储。',
+      format:
+        '收到的既不是 DX7 音色也不是 DX7 音色库。请发送只包含一个音色的单音色转储，或 32 音色的音色库。',
     },
   },
   bankFile: {
@@ -597,6 +601,7 @@ export default {
     play: '试听 {{name}}（第 {{number}} 个音色）',
     previewHelp: '单击音色即可在 FM1 上试听。在你替换之前，音色库保持不变。',
     previewTitle: '此文件中的音色',
+    previewTitleReceived: '已接收的音色',
     title: '覆盖“{{bank}}”吗？',
     warning: '此音色库的现有内容将被清除，并替换为导入的音色。',
   },

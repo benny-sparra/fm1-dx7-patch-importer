@@ -10,7 +10,13 @@ import { updateDx7VoiceName } from '@/lib/dx7'
 import { makeDx7VoiceFile } from '@/lib/dx7-voice-file'
 import { emptyPatchLibrary, makeDemoVoices } from '@/lib/patch-library'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
-import { makeLibrarianLibrary, makeLibrarianMidi, slotMenuName } from '@/test/librarian-fakes'
+import {
+  makeLibrarianLibrary,
+  makeLibrarianMidi,
+  sendSlotName,
+  slotMenuName,
+} from '@/test/librarian-fakes'
+import { stockV16BankExport } from '@/test/stock-v16-bank-export'
 
 import { LibrarianPage } from './librarian-page'
 
@@ -39,6 +45,7 @@ async function openReceiveDialog() {
     bankDescriptions: {},
     bankNames: { A: 'Studio Favourites' },
     getBankVoices: vi.fn(() => []),
+    importBank: vi.fn(() => changed),
     loadedBanks: ['A'],
     namedBanks: [],
     patches: [{ bank: 'A', family: 'DX7', id: 'bank-A-1', name: 'ALPHA', number: 1, program: 0 }],
@@ -115,5 +122,46 @@ describe('LibrarianPage receiving a patch over MIDI', () => {
 
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(input.removeListener).toHaveBeenCalledWith('midimessage', listener)
+  })
+
+  it('imports a bank a stock FM1 sends with Export through the bank import, with Undo', async () => {
+    const { dialog, input, library, ports, user } = await openReceiveDialog()
+    act(() => input.receive(stockV16BankExport()))
+
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Import bank into “Studio Favourites”…' }),
+    )
+    const importDialog = await screen.findByRole('dialog', {
+      name: 'Import over “Studio Favourites”?',
+    })
+    expect(within(importDialog).getByText(/will be wiped/)).toBeTruthy()
+    expect(library.importBank).not.toHaveBeenCalled()
+
+    await user.click(within(importDialog).getByRole('button', { name: 'Replace bank contents' }))
+
+    expect(library.importBank).toHaveBeenCalledExactlyOnceWith(
+      'A',
+      expect.arrayContaining([expect.objectContaining({ name: 'j.piano 7+' })]),
+    )
+    expect(library.replaceVoice).not.toHaveBeenCalled()
+    expect(ports.output.send).not.toHaveBeenCalled()
+    await user.click(await screen.findByRole('button', { name: 'Undo' }))
+    expect(library.undoChange).toHaveBeenCalledExactlyOnceWith(changed)
+  })
+
+  it('returns focus to the slot when the bank import is closed', async () => {
+    const { dialog, input, user } = await openReceiveDialog()
+    act(() => input.receive(stockV16BankExport()))
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Import bank into “Studio Favourites”…' }),
+    )
+    const importDialog = await screen.findByRole('dialog', {
+      name: 'Import over “Studio Favourites”?',
+    })
+
+    await user.click(within(importDialog).getByRole('button', { name: 'Close' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: sendSlotName('ALPHA') }))
   })
 })

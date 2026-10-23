@@ -641,17 +641,21 @@ export default {
     action: 'Sound ersetzen',
     title: 'Sound in {{slot}} „{{patch}}“ empfangen',
     listening:
-      'Der Monitoring-Eingang wird abgehört. Sende einen DX7-Sound aus Dexed, einem DX7 oder einem anderen Editor.',
+      'Der Monitoring-Eingang wird abgehört. Sende einen DX7-Sound aus Dexed, einem DX7 oder einem anderen Editor, oder eine Bank mit 32 Voices, wie ein FM1 mit M-VAVEs V16 sie über GLOBE → Export sendet.',
     noInput: 'Schalte MIDI ein und wähle das Gerät, das den Sound sendet, als Monitoring-Eingang.',
     noSysex:
       'Zum Empfangen eines Sounds wird SysEx benötigt. Verbinde MIDI neu und erlaube den SysEx-Zugriff, wenn der Browser fragt.',
     received: '„{{patch}}“ empfangen. Sende einen anderen, um stattdessen ihn zu empfangen.',
+    receivedBank:
+      'Bank mit 32 Voices empfangen, beginnend mit „{{patch}}“. Sende eine andere, um stattdessen sie zu empfangen.',
+    importBank: 'Bank in „{{bank}}“ importieren…',
     warning:
       'Der Sound in diesem Slot wird durch den empfangenen Sound ersetzt, und seine FM1-Effekte werden auf die Standardwerte zurückgesetzt.',
     errors: {
-      bank: 'Das war eine DX7-Bank mit 32 Voices. Sende einen einzelnen Sound, oder speichere die Bank als Datei und wähle „DX7-Bank importieren…“ im Menü der Bank.',
+      bankDamaged: 'Diese Bank ist beschädigt angekommen. Sende sie erneut.',
       damaged: 'Dieser Sound ist beschädigt angekommen. Sende ihn erneut.',
-      format: 'Das war kein DX7-Sound. Sende einen Single-Voice-Dump mit einem Sound.',
+      format:
+        'Das war weder ein DX7-Sound noch eine DX7-Bank. Sende einen Single-Voice-Dump mit einem Sound oder eine Bank mit 32 Voices.',
     },
   },
   bankFile: {
@@ -674,6 +678,7 @@ export default {
     previewHelp:
       'Klicke auf einen Sound, um ihn am FM1 zu hören. Deine Bank bleibt unverändert, bis du sie ersetzt.',
     previewTitle: 'Sounds in dieser Datei',
+    previewTitleReceived: 'Empfangene Sounds',
     title: '„{{bank}}“ überschreiben?',
     warning:
       'Der aktuelle Inhalt der Bank wird gelöscht und durch die importierten Sounds ersetzt.',
