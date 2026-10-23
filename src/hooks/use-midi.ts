@@ -579,7 +579,8 @@ export function useMidi() {
         return Promise.resolve(false)
       }
 
-      const { singleVoiceDumps, trackEngineRead } = resolveFirmwareProfile(firmware).capabilities
+      const { presetEffects, singleVoiceDumps, trackEngineRead } =
+        resolveFirmwareProfile(firmware).capabilities
       if (trackEngineRead) {
         const signal = trackReads.current.signal
         return import('@/lib/official-open-track-send')
@@ -609,13 +610,17 @@ export function useMidi() {
       const payload = makeDx7SingleVoicePayload(voice, channel)
       const message = makeYamahaSysexMessage(payload)
       appendLog(makeLogEntry('out', `Sending ${voice.name} to the FM1 edit buffer…`, message))
+      // Only M-VAVE's firmware reaches here. V16, which moved the effects out of the preset, offers
+      // Preset in its SAVE menu only when SAVE opens from a voice editing page
+      // (docs/hardware-runs/stock-v16-2026-10-23.md, step 5).
+      const storeHint = presetEffects
+        ? 'Hold SAVE on the FM1 to store it.'
+        : 'To store it, open SAVE on the FM1 from a voice editing page, such as OSC, and choose Preset.'
 
       return transferQueue
         .enqueue(() => sendDx7Voice(selectedOutput, channel, voice))
         .then(() => {
-          appendLog(
-            makeLogEntry('out', `Sent ${voice.name}. Hold SAVE on the FM1 to store it.`, message),
-          )
+          appendLog(makeLogEntry('out', `Sent ${voice.name}. ${storeHint}`, message))
           return true
         })
         .catch((caughtError) => {

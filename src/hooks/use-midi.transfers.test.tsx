@@ -7,7 +7,7 @@ import { makeDx7SingleVoicePayload } from '@/lib/dx7'
 import { makeFm1ParameterPayload } from '@/lib/midi'
 import { midiActivity } from '@/lib/midi-activity'
 import { makeDemoVoices } from '@/lib/patch-library'
-import { makeFakeFm1Ports, mvaveIdentityReply } from '@/test/fake-fm1-midi'
+import { makeFakeFm1Ports, mvaveIdentityReply, mvaveV16IdentityReply } from '@/test/fake-fm1-midi'
 
 import { useMidi } from './use-midi'
 
@@ -79,9 +79,12 @@ async function connectOutput(output = makeOutput()) {
   return { ...hook, output }
 }
 
-/** An FM1 on M-VAVE firmware, which takes a patch into its edit buffer as one SysEx message. */
-async function connectMvaveFm1() {
-  const { input, output } = makeFakeFm1Ports({ reply: mvaveIdentityReply })
+/**
+ * An FM1 on M-VAVE firmware, V15 unless `reply` says otherwise, which takes a patch into its edit
+ * buffer as one SysEx message.
+ */
+async function connectMvaveFm1(reply = mvaveIdentityReply) {
+  const { input, output } = makeFakeFm1Ports({ reply })
   webMidi.inputs = [input]
   webMidi.outputs = [output]
   const hook = await connect()
@@ -107,6 +110,18 @@ describe('useMidi edit-buffer voice transfer', () => {
     expect(logMessages(result)).toContainEqual([
       'out',
       `Sent ${voice.name}. Hold SAVE on the FM1 to store it.`,
+    ])
+  })
+
+  it('tells V16 to store a sent voice from a voice editing page, where SAVE offers Preset', async () => {
+    const { result } = await connectMvaveFm1(mvaveV16IdentityReply)
+    await waitFor(() => expect(result.current.firmware).toMatchObject({ identity: 'FM-1_016' }))
+
+    await expect(result.current.sendVoice(voice)).resolves.toBe(true)
+
+    expect(logMessages(result)).toContainEqual([
+      'out',
+      `Sent ${voice.name}. To store it, open SAVE on the FM1 from a voice editing page, such as OSC, and choose Preset.`,
     ])
   })
 
