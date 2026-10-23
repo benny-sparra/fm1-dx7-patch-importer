@@ -5,18 +5,7 @@ import { promisify } from 'node:util'
 // patched release. It stops matching, and the audit fails, when the advisory's range changes, the
 // package publishes a version after `checkedLatestVersion`, or the review date passes. Remove the
 // entry once a fix ships, then run `npm run lockfile:refresh`.
-export const auditAllowlist = [
-  {
-    advisory: 'GHSA-vfj7-8cjw-p6xm',
-    packageName: 'braces',
-    range: '<=3.0.3',
-    checkedLatestVersion: '3.0.3',
-    reviewBy: '2027-01-03',
-    reason:
-      'Stack exhaustion from deeply nested brace patterns. Reached only through stylelint -> ' +
-      'globby/fast-glob -> micromatch, which expands the CSS globs written in package.json.',
-  },
-]
+export const auditAllowlist = []
 
 const blockingSeverities = new Set(['high', 'critical'])
 
