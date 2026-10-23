@@ -79,8 +79,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
      step ships, `docs/user-guide.md` and the help guide should say plainly that the stock firmware
      cannot be read back; today they only describe reading Baud Girl's presets. _Done
      (2026-10-23): the capture showed one standard 4104-byte bulk dump, so **Receive patch…**
-     takes a 32-voice bank and hands it to the DX7 bank import, sending nothing. Receiving it
-     through the dialog on an FM1 is still to be run._
+     takes a 32-voice bank and hands it to the DX7 bank import, sending nothing (#351). Receiving
+     V16's Export of bank A through the dialog worked on the orange FM1 the same day; Undo after
+     the import was not tried there. The flow reads as disjointed: see **Receive from the FM1 as
+     a wizard** below._
   5. **New CCs worth knowing, not building yet.** CC 7 master volume, CC 11 expression, panic on
      holding PLAY/STOP, and key LEDs lit by notes 0–26 on the Effect Ch channel. The editor's
      MIDI panic already sends Note Offs; do not add these without a use.
@@ -95,6 +97,36 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     that settles 1, 3, and 4 together, then 2, then 4's build if the capture allows it.
   - Tests: a `firmware-profile.test.ts` case on each side of the V16 threshold, a rendered test
     that V16 sends no effect controller, and fixtures for any capture.
+
+- [ ] **Receive from the FM1 as a wizard.** Receiving a bank from V16's Bank Export works (#351)
+      but felt disjointed when tried on 2026-10-23, and says too little about what is happening.
+  - **What felt wrong:**
+    - It starts from one patch's ⋮ menu, as **Receive patch…**, and its title stays "Receive a
+      patch into A01 “ORGAN 3”" after a whole bank has arrived.
+    - The bank then takes a second dialog, **Import over “…”?**, reached through **Import bank
+      into “…”…**, so one task crosses two dialogs with different titles.
+    - Nothing says what to do on the FM1 (GLOBE → Export, over USB), that the editor sends
+      nothing and only listens, or what it has heard so far.
+  - **Shape:** one wizard built from `src/components/patches/bank-wizard.tsx`, with its
+    Back/Next footer and one decision per screen, as **Add new bank…** and **Import DX7 bank…**
+    are.
+    1. **Source.** What is sending: an FM1 on V16's Bank Export, or one patch from Dexed, a DX7,
+       or another editor. Each comes with its own short steps, such as "On the FM1, open GLOBE,
+       choose Export, and pick a bank", and a line that the editor only listens.
+    2. **Listening.** Live status in a `role="status"` region: waiting, receiving with a byte
+       count, received, or a translated error with how to retry. Name the input monitor it
+       listens on, and fix a missing input or SysEx there rather than sending the user
+       elsewhere.
+    3. **Review.** A received bank shows the **Patches received** grid to audition, and a single
+       patch its name, with a button to listen.
+    4. **Destination and confirm.** Which slot or bank it replaces, with the replace warning,
+       then **Replace**, and Undo in the notification.
+  - **Where it starts:** a bank's ⋮ menu and **Library actions** can offer **Receive from the
+    FM1…** for a bank, beside the slot menu's patch item. The firmware profile decides whether to
+    show the V16 Export steps.
+  - **Shipped when:** strings are in every locale, the receive dialog stays lazy, the bundle is
+    measured with `npm run bundle:check`, and a rendered test walks each screen with the Bank
+    Export capture (`docs/hardware-runs/stock-v16-bank-export-2026-10-23.json`) as its fixture.
 
 - [x] **Effect presets.** A presets menu in each effect's box on the effects panel, like the pitch
       envelope presets, that sets that FM1 effect (filter, reverb, delay, distortion, chorus, phaser)
