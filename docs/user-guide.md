@@ -88,7 +88,9 @@ M-VAVE's V16 moved the FM1's effect controls to other MIDI controllers, and the 
 there. On V16 every Voice shares one set of effects rather than each preset keeping its own, so
 playing a patch from its slot leaves the FM1's effects as they are. A patch's effects go to the FM1
 only when you change them in the editor, and the **FM1 firmware** setting says so. Press **SAVE**
-and choose **Globe** on the FM1 to keep them. Patches still reach V16's edit buffer.
+and choose **Globe** on the FM1 to keep them. Patches still reach V16's edit buffer. To keep a
+patch there, open **SAVE** from one of the FM1's voice editing pages, such as OSC, and choose
+**Preset**: from the preset screen or GLOBE, SAVE offers only ALL and Globe.
 
 Baud Girl's firmware also chooses a bank's destination differently. When a bank arrives it asks **Replace Bank
 A?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names

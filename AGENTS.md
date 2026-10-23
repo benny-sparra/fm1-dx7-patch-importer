@@ -229,8 +229,9 @@ open everything an earlier release could have saved.
   sends the voice but no effects, the open editor sends none as it opens, and its sync sends only
   the effect parameters that changed since the editor last sent them, so an edit, undo, or compare
   reaches the FX group and playing a patch never does. The firmware setting says so in one short
-  line, since the entry pays for the string. This waits to merge until the hardware run recorded
-  in `docs/hardware-runs/` confirms the controllers (`docs/hardware-runs/stock-v16-run-sheet.md`).
+  line, since the entry pays for the string. The hardware run of 2026-10-23
+  (`docs/hardware-runs/stock-v16-2026-10-23.md`) confirmed the controllers, their limits, and that
+  they change only the live FX group, which a power cycle without SAVE restores.
   The development FX probe's **V16 research** mode (`Fm1EffectProbeMode`) sends CC 0–23 or 70–93
   whatever the FM1 runs, with any 7-bit value; its default mode keeps to the controllers the
   profile places the effects at.
@@ -575,6 +576,9 @@ open everything an earlier release could have saved.
   `src/assets/generated/`; run `npm run images:generate` after a source image changes.
 - Keep explicit image dimensions and responsive `srcSet`/`sizes` data to avoid layout shift. Run the
   image checks and `npm run test:cls` for image, font, initial-render, or loading-layout changes.
+- A photo committed with research notes, such as one in `docs/hardware-runs/`, goes in without its
+  metadata: a phone's photo records where it was taken. Re-encode it without EXIF (on macOS,
+  `sips` to BMP and back to JPEG) and check that no GPS or camera fields remain.
 - `public/icon-*.png` are rendered from `public/favicon.svg`. Do not hand-edit them; run
   `npm run icons:generate` after changing the favicon or the manifest icon list.
 - `public/favicon-<colourway>.svg` are hand-authored, one per finish. Keep them in step with the

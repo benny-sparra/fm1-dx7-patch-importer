@@ -56,9 +56,9 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
      first-release shape cannot say; extend it, never branch in the sender). Then, once the run
      confirms CC 70–93, send them on V16 and later. _The safe default is done (2026-10-22): the
      stock profile lists `effectControllers` only before release 16, and the firmware setting
-     says the effect controls send nothing yet. Sending CC 70–93 waits for the run._ _The send
-     is ready (2026-10-23), waiting to merge until the run confirms it: V16's firmware takes the
-     editor's 24 effect parameters at CC 70–93, so the profile gives V16 an
+     says the effect controls send nothing yet. Sending CC 70–93 waits for the run._ _Done
+     (2026-10-23), confirmed on hardware that day (`docs/hardware-runs/stock-v16-2026-10-23.md`):
+     V16 takes the editor's 24 effect parameters at CC 70–93, so the profile gives V16 an
      `effectControllerBase` of 70, and since its Voices share one FX group, a patch's effects go
      only as they are edited, never on a slot click (the owner's choice)._
   2. **Say what V16 is.** The badge, the firmware setting, and the bank instructions word stock as
