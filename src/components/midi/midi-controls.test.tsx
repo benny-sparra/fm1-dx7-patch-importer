@@ -95,30 +95,30 @@ describe('MidiSettingsMenu firmware', () => {
     expect(screen.getByText('Patches you play go to the FM1’s edit buffer.')).toBeTruthy()
   })
 
-  it('says V16’s effect controls send nothing yet, since it moved the effects', () => {
+  it('says V16’s Voices share the effects, so they go only as they are edited', () => {
     renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
 
     expect(screen.getByText('Patches you play go to the FM1’s edit buffer.')).toBeTruthy()
     expect(
       screen.getByText(
-        'The effect controls send nothing yet, as V16 moved them to other controllers.',
+        'Every Voice shares the effects on V16, so they go only when you change them in the editor.',
       ),
     ).toBeTruthy()
   })
 
-  it('says nothing about the effect controls on V15', () => {
+  it('says nothing about shared effects on V15', () => {
     renderSettings({ identity: 'FM-1_015', kind: 'mvave' })
 
-    expect(screen.queryByText(/The effect controls send nothing yet/)).toBeNull()
+    expect(screen.queryByText(/Every Voice shares the effects/)).toBeNull()
   })
 
-  it('says V16’s effect controls send nothing yet in German', async () => {
+  it('says V16’s Voices share the effects in German', async () => {
     await setLocale('de')
     renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
 
     expect(
       screen.getByText(
-        'Die Effektregler senden noch nichts, da V16 sie auf andere Controller gelegt hat.',
+        'Auf V16 teilen sich alle Voices die Effekte, daher gehen sie nur raus, wenn du sie im Editor änderst.',
       ),
     ).toBeTruthy()
   })

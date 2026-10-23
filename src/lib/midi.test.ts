@@ -144,6 +144,30 @@ describe('makeFm1EffectControlMessage', () => {
   ])('rejects %s', (_name, controller, value, channel) => {
     expect(() => makeFm1EffectControlMessage(controller, value, channel)).toThrow(RangeError)
   })
+
+  it.each(fm1EffectMappingFixture)(
+    'encodes $effect $control at CC 70 + $controller for V16, within the same limits',
+    ({ controller, max }) => {
+      expect(Array.from(makeFm1EffectControlMessage(controller, max, 2, 70))).toEqual([
+        0xb1,
+        70 + controller,
+        max,
+      ])
+      expect(() => makeFm1EffectControlMessage(controller, max + 1, 2, 70)).toThrow(RangeError)
+    },
+  )
+
+  it('sends a V16 effect through the Control Change transport at CC 70 and above', () => {
+    const output = { sendControlChange: vi.fn() }
+
+    sendFm1EffectControl(output as never, 2, 23, 100, 70)
+
+    expect(output.sendControlChange).toHaveBeenCalledWith(93, 100, { channels: 2 })
+  })
+
+  it('refuses effect controllers anywhere but CC 0 or CC 70', () => {
+    expect(() => makeFm1EffectControlMessage(0, 0, 2, 24 as never)).toThrow(RangeError)
+  })
 })
 
 describe('makeFm1EffectDiagnosticControlMessage', () => {

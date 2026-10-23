@@ -11,10 +11,21 @@ import type { Fm1Firmware } from '@/lib/fm1-firmware'
  */
 export type FirmwareProfile = {
   capabilities: Readonly<Record<FirmwareCapability, boolean>>
+  /**
+   * The controller of the first effect parameter, Filter's switch, where `effectControllers` is
+   * offered: the editor's effect parameter `n` goes as CC `effectControllerBase + n`.
+   */
+  effectControllerBase: EffectControllerBase
   family: Fm1Firmware['kind']
   /** How to pace preset writes: faster only on the releases it was tested on. */
   presetWriteTiming: PresetWriteTiming
 }
+
+/**
+ * CC 0–23, where the effect unit has always been, or CC 70–93, where M-VAVE's V16 moved it
+ * (docs/fm1-research.md, "What the firmware shows").
+ */
+export type EffectControllerBase = 0 | 70
 
 /**
  * - `singleVoiceDumps`: a patch may go as a DX7 single-voice dump, which M-VAVE's firmware puts in
@@ -34,15 +45,19 @@ export type FirmwareProfile = {
  * - `knobChoices`: what KNOB1–4 play on FM-1+VA's Preset knob bank.
  * - `programChanges`: a slot's Program Change, which selects its stored preset. M-VAVE's Official
  *   Open takes it on a DX7 track as replacing the track's voice with a built-in sound.
- * - `effectControllers`: the effect unit's controllers on the FX channel. Official Open has no such
- *   unit and takes them as the volume, pan, and modulation of the track on that channel, and
- *   M-VAVE's own firmware moved them in V16.
+ * - `effectControllers`: the effect unit's controllers on the FX channel, from
+ *   `effectControllerBase`. Official Open has no such unit and takes them as the volume, pan, and
+ *   modulation of the track on that channel.
+ * - `presetEffects`: the effect unit follows the preset that plays, so a patch played from its slot
+ *   sends its effects with its voice. M-VAVE's V16 gives every Voice one shared FX group, so there
+ *   a patch's effects go only as they are edited, and playing a patch leaves the group alone.
  */
 type FirmwareCapability =
   | 'bitcrush'
   | 'effectControllers'
   | 'knobChoices'
   | 'parameterChanges'
+  | 'presetEffects'
   | 'presetRead'
   | 'presetWrite'
   | 'programChanges'
@@ -86,12 +101,19 @@ type FamilyProfile = {
    * known to be before it.
    */
   capabilities: Partial<Record<FirmwareCapability, ReleaseRange>>
+  /** The effect controllers' new place and the first release that moved them there. */
+  effectControllerBase?: { base: EffectControllerBase; from: number }
   /** A faster preset write timing and the first release it was tested on. */
   presetWriteTiming?: { from: number; timing: PresetWriteTiming }
 }
 
 /** What every firmware but Official Open takes, as it always has. */
-const channelMessages = { effectControllers: 0, parameterChanges: 0, programChanges: 0 } as const
+const channelMessages = {
+  effectControllers: 0,
+  parameterChanges: 0,
+  presetEffects: 0,
+  programChanges: 0,
+} as const
 
 const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
   checking: { capabilities: channelMessages },
@@ -113,12 +135,13 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
   mvave: {
     capabilities: {
       ...channelMessages,
-      // M-VAVE's notes for V16 (2026-10-21) move the effect unit to CC 70–93 and say CC 0–23 no
-      // longer reach it, and V16 takes CC 1, 2, 4, 7, and 11 as modulation, volume, and
-      // expression. Until a hardware run confirms the new controllers, V16 and later get none.
-      effectControllers: { before: 16, from: 0 },
+      // V16's firmware takes the effect unit's controllers at CC 70–93, V15's CC 0–23 handler with
+      // 70 added, and its FX group is shared by all eight Voices rather than following a preset
+      // (docs/fm1-research.md, "What the firmware shows", 2026-10-23).
+      presetEffects: { before: 16, from: 0 },
       singleVoiceDumps: 0,
     },
+    effectControllerBase: { base: 70, from: 16 },
   },
   // M-VAVE's Official Open is an eight-track groovebox, not a bank of DX7 presets, and takes a
   // slot's Program Change and the effect controllers as changes to its tracks
@@ -143,13 +166,18 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
     if (typeof range === 'number') return range === 0 || (release !== null && release >= range)
     return release !== null && release >= range.from && release < range.before
   }
-  const { capabilities, presetWriteTiming: fasterTiming } = familyProfiles[firmware.kind]
+  const {
+    capabilities,
+    effectControllerBase: movedControllers,
+    presetWriteTiming: fasterTiming,
+  } = familyProfiles[firmware.kind]
   return {
     capabilities: {
       bitcrush: from(capabilities.bitcrush),
       effectControllers: from(capabilities.effectControllers),
       knobChoices: from(capabilities.knobChoices),
       parameterChanges: from(capabilities.parameterChanges),
+      presetEffects: from(capabilities.presetEffects),
       presetRead: from(capabilities.presetRead),
       presetWrite: from(capabilities.presetWrite),
       programChanges: from(capabilities.programChanges),
@@ -157,6 +185,8 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       soundControls: from(capabilities.soundControls),
       trackEngineRead: from(capabilities.trackEngineRead),
     },
+    effectControllerBase:
+      movedControllers && from(movedControllers.from) ? movedControllers.base : 0,
     family: firmware.kind,
     presetWriteTiming:
       fasterTiming && from(fasterTiming.from) ? fasterTiming.timing : presetsPageTiming,

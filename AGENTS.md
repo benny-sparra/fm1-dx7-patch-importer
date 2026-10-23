@@ -202,7 +202,8 @@ open everything an earlier release could have saved.
 - What each firmware can take is its profile in `src/lib/firmware-profile.ts`, and nowhere else:
   `resolveFirmwareProfile` gives its family, its capabilities (`singleVoiceDumps`, `presetRead`,
   `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`, `programChanges`,
-  `effectControllers`), and its preset write timing. A family
+  `effectControllers`, `presetEffects`), where its effect controllers start
+  (`effectControllerBase`), and its preset write timing. A family
   lists the first release with each capability, or a range ending `before` the release that took
   it away, so a new firmware, a release that adds or removes one, or another device's firmware is
   an entry in `familyProfiles`, never a predicate in the module that uses it. A range with an end
@@ -219,15 +220,21 @@ open everything an earlier release could have saved.
   neither `programChanges` nor `effectControllers`: a slot click selects no program there, and the
   effects send nothing. Every other family lists both from release 0, which counts for a firmware
   not yet identified too. The badge, the firmware setting, and the bank instructions say so.
-- M-VAVE's V16 (`FM-1_016`, 2026-10-21) moved its effect unit to CC 70–93 by its release notes,
-  and takes CC 1, 2, 4, 7, and 11 as modulation, volume, and expression, so the stock profile lists
-  `effectControllers` only before release 16 and V16's effects stay in the library. The firmware
-  setting says the effect controls send nothing yet, in one short line, since the entry pays for
-  the string. Sending CC 70–93 waits for a
-  hardware run recorded in `docs/hardware-runs/` (`docs/feature-backlog.md`, "Stock firmware V16"),
-  planned in `docs/hardware-runs/stock-v16-run-sheet.md`. Until then only the development FX
-  probe sends CC 70–93, in its **V16 research** mode (`Fm1EffectProbeMode`), which sends them and
-  CC 0–23 whatever the FM1 runs; its default mode keeps to what the profile offers.
+- M-VAVE's V16 (`FM-1_016`, 2026-10-21) moved its effect unit to CC 70–93 and takes CC 1, 2, 4,
+  7, and 11 as modulation, volume, and expression. Its firmware takes V15's 24 effect parameters
+  at CC 70–93 in the editor's order and with its limits (docs/fm1-research.md, "What the firmware
+  shows"), so the profile's `effectControllerBase` is 70 from release 16, and an effect parameter
+  `n` goes as CC `base + n` through `makeFm1EffectControlMessage`, which refuses any other base.
+  V16's eight Voices share one FX group, so its profile leaves out `presetEffects`: a slot click
+  sends the voice but no effects, the open editor sends none as it opens, and its sync sends only
+  the effect parameters that changed since the editor last sent them, so an edit, undo, or compare
+  reaches the FX group and playing a patch never does. The firmware setting says so in one short
+  line, since the entry pays for the string. The hardware run of 2026-10-23
+  (`docs/hardware-runs/stock-v16-2026-10-23.md`) confirmed the controllers, their limits, and that
+  they change only the live FX group, which a power cycle without SAVE restores.
+  The development FX probe's **V16 research** mode (`Fm1EffectProbeMode`) sends CC 0–23 or 70–93
+  whatever the FM1 runs, with any 7-bit value; its default mode keeps to the controllers the
+  profile places the effects at.
 - On Official Open the editor may send two things, both approved on 2026-10-16. The DX7
   single-voice dump goes only on note channels 1–7 or 10, the channels of tracks 1–8, and only
   after command 0 has shown that channel's track running DX7, since a dump to another engine is
@@ -569,6 +576,9 @@ open everything an earlier release could have saved.
   `src/assets/generated/`; run `npm run images:generate` after a source image changes.
 - Keep explicit image dimensions and responsive `srcSet`/`sizes` data to avoid layout shift. Run the
   image checks and `npm run test:cls` for image, font, initial-render, or loading-layout changes.
+- A photo committed with research notes, such as one in `docs/hardware-runs/`, goes in without its
+  metadata: a phone's photo records where it was taken. Re-encode it without EXIF (on macOS,
+  `sips` to BMP and back to JPEG) and check that no GPS or camera fields remain.
 - `public/icon-*.png` are rendered from `public/favicon.svg`. Do not hand-edit them; run
   `npm run icons:generate` after changing the favicon or the manifest icon list.
 - `public/favicon-<colourway>.svg` are hand-authored, one per finish. Keep them in step with the

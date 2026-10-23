@@ -1,0 +1,246 @@
+{
+  "output": "FM-1",
+  "input": "FM-1",
+  "record": [
+    {
+      "at": 1,
+      "dir": "out",
+      "hex": "90 3c 5a",
+      "note": "hold middle C"
+    },
+    {
+      "at": 1,
+      "dir": "out",
+      "hex": "b1 46 7f",
+      "note": "Filter On, and the FX page shows it"
+    },
+    {
+      "at": 3003,
+      "dir": "out",
+      "hex": "b1 47 7f",
+      "note": "Filter Type: High Pass, and the FX page shows it"
+    },
+    {
+      "at": 6005,
+      "dir": "out",
+      "hex": "b1 48 7f",
+      "note": "Filter Cutoff: 107, and the FX page shows it"
+    },
+    {
+      "at": 9007,
+      "dir": "out",
+      "hex": "b1 49 7f",
+      "note": "Filter Q: 10, and the FX page shows it"
+    },
+    {
+      "at": 12008,
+      "dir": "out",
+      "hex": "b1 4a 7f",
+      "note": "Reverb On, and the FX page shows it"
+    },
+    {
+      "at": 15011,
+      "dir": "out",
+      "hex": "b1 4b 7f",
+      "note": "Reverb Type: Plate, and the FX page shows it"
+    },
+    {
+      "at": 18013,
+      "dir": "out",
+      "hex": "b1 4c 7f",
+      "note": "Reverb Decay (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 21014,
+      "dir": "out",
+      "hex": "b1 4d 7f",
+      "note": "Reverb Mix (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 24016,
+      "dir": "out",
+      "hex": "b1 4e 7f",
+      "note": "Delay On, and the FX page shows it"
+    },
+    {
+      "at": 27018,
+      "dir": "out",
+      "hex": "b1 4f 7f",
+      "note": "Delay Decay (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 30020,
+      "dir": "out",
+      "hex": "b1 50 7f",
+      "note": "Delay Rate (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 33022,
+      "dir": "out",
+      "hex": "b1 51 7f",
+      "note": "Delay Mix (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 36024,
+      "dir": "out",
+      "hex": "b1 52 7f",
+      "note": "Distortion On, and the FX page shows it"
+    },
+    {
+      "at": 39026,
+      "dir": "out",
+      "hex": "b1 53 7f",
+      "note": "Distortion Gain (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 42029,
+      "dir": "out",
+      "hex": "b1 54 7f",
+      "note": "Distortion Tone (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 45031,
+      "dir": "out",
+      "hex": "b1 55 7f",
+      "note": "Distortion Level (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 48033,
+      "dir": "out",
+      "hex": "b1 56 7f",
+      "note": "Chorus On, and the FX page shows it"
+    },
+    {
+      "at": 51034,
+      "dir": "out",
+      "hex": "b1 57 7f",
+      "note": "Chorus Freq (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 54037,
+      "dir": "out",
+      "hex": "b1 58 7f",
+      "note": "Chorus Depth (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 57038,
+      "dir": "out",
+      "hex": "b1 59 7f",
+      "note": "Chorus Mix (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 60040,
+      "dir": "out",
+      "hex": "b1 5a 7f",
+      "note": "Phaser On, and the FX page shows it"
+    },
+    {
+      "at": 63042,
+      "dir": "out",
+      "hex": "b1 5b 7f",
+      "note": "Phaser Freq (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 66044,
+      "dir": "out",
+      "hex": "b1 5c 7f",
+      "note": "Phaser Depth (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 69047,
+      "dir": "out",
+      "hex": "b1 5d 7f",
+      "note": "Phaser Mix (guide's name): 100, and the FX page shows it"
+    },
+    {
+      "at": 72049,
+      "dir": "out",
+      "hex": "b1 47 00",
+      "note": "Filter Type: Low Pass"
+    },
+    {
+      "at": 75052,
+      "dir": "out",
+      "hex": "b1 47 01",
+      "note": "Filter Type: Band Pass"
+    },
+    {
+      "at": 78054,
+      "dir": "out",
+      "hex": "b1 47 02",
+      "note": "Filter Type: High Pass"
+    },
+    {
+      "at": 81056,
+      "dir": "out",
+      "hex": "b1 4a 00",
+      "note": "Reverb Off"
+    },
+    {
+      "at": 84058,
+      "dir": "out",
+      "hex": "b1 4a 01",
+      "note": "Reverb On (any value but 0)"
+    },
+    {
+      "at": 87060,
+      "dir": "out",
+      "hex": "b1 48 40",
+      "note": "Filter Cutoff: 64"
+    },
+    {
+      "at": 90062,
+      "dir": "out",
+      "hex": "b1 5e 01",
+      "note": "Nothing changes"
+    },
+    {
+      "at": 93063,
+      "dir": "out",
+      "hex": "b1 5f 01",
+      "note": "Nothing changes"
+    },
+    {
+      "at": 96065,
+      "dir": "out",
+      "hex": "b1 01 00",
+      "note": "No effect changes (V15’s Filter Type)"
+    },
+    {
+      "at": 99067,
+      "dir": "out",
+      "hex": "b1 01 7f",
+      "note": "No effect changes (restores modulation)"
+    },
+    {
+      "at": 102069,
+      "dir": "out",
+      "hex": "b1 07 00",
+      "note": "No effect changes; volume may drop"
+    },
+    {
+      "at": 105071,
+      "dir": "out",
+      "hex": "b1 07 7f",
+      "note": "No effect changes; volume back"
+    },
+    {
+      "at": 108073,
+      "dir": "out",
+      "hex": "b1 0b 00",
+      "note": "No effect changes; expression may drop"
+    },
+    {
+      "at": 111074,
+      "dir": "out",
+      "hex": "b1 0b 7f",
+      "note": "No effect changes; expression back"
+    },
+    {
+      "at": 114077,
+      "dir": "out",
+      "hex": "80 3c 00",
+      "note": "release middle C"
+    }
+  ]
+}

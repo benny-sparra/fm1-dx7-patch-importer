@@ -112,6 +112,13 @@ export class PatchEditorSession {
   /** The revision when the open gesture began, which a whole-voice send waits on. */
   private gestureRevision = 0
   private revision = 0
+  /**
+   * The effect values this editor last sent, starting as the patch's own. Where the FM1's effects
+   * do not follow its preset (`presetEffects`), as on M-VAVE's V16, a sync sends only the ones that
+   * differ, so opening a patch leaves the shared FX group alone and an edit, undo, or compare
+   * reaches it.
+   */
+  private sentEffects: Uint8Array
   /** Whether a patch has reached the FM1 yet, which only the first send announces. */
   private sentOnce = false
   private sentName: Uint8Array
@@ -129,6 +136,7 @@ export class PatchEditorSession {
       syncState: 'sending',
     }
     this.sentName = voiceNameParameters(parameters)
+    this.sentEffects = getFm1EffectParameters(parameters)
     this.sync = createPatchSyncCoordinator({
       // While a gesture is open, a firmware that takes the whole voice for each edit is sent the
       // version from before it, so one drag reaches the FM1 as one dump as it ends.
@@ -148,8 +156,7 @@ export class PatchEditorSession {
           )
         }
       },
-      sendEffects: (sentParameters) =>
-        this.getMidi().sendEffectSettings(getFm1EffectParameters(sentParameters)),
+      sendEffects: (sentParameters) => this.sendEffects(getFm1EffectParameters(sentParameters)),
       sendVoice: async (sentParameters) => {
         const voice = packDx7Voice(getFm1VoiceParameters(sentParameters))
         const sent = await this.getMidi().sendVoice(voice, !this.sentOnce)
@@ -285,7 +292,7 @@ export class PatchEditorSession {
       [[resolveEffectEditorIndex(controller), value, definition.min, definition.max]],
       false,
     )
-    if (this.isLive()) this.getMidi().sendEffectParameter(controller, value)
+    if (this.isLive()) this.sendEffectParameter(controller, value)
   }
 
   /**
@@ -434,9 +441,8 @@ export class PatchEditorSession {
     this.gestureStart = null
     this.commitHistory(next)
     if (this.isLive()) {
-      const midi = this.getMidi()
       controllers.forEach((controller) =>
-        midi.sendEffectParameter(controller, settings[controller]),
+        this.sendEffectParameter(controller, settings[controller]),
       )
     }
   }
@@ -455,6 +461,28 @@ export class PatchEditorSession {
   private canSync() {
     const midi = this.getMidi()
     return midi.hasMidiOutput && midi.sysexAvailable
+  }
+
+  private sendEffectParameter(controller: number, value: number) {
+    const sent = this.getMidi().sendEffectParameter(controller, value)
+    if (sent) this.sentEffects[controller] = value
+    return sent
+  }
+
+  /** Sends the effects of the version being synchronised, as `sentEffects` describes. */
+  private sendEffects(effects: Uint8Array) {
+    const midi = this.getMidi()
+    const { effectControllers, presetEffects } = resolveFirmwareProfile(midi.firmware).capabilities
+    if (presetEffects || !effectControllers) {
+      return midi.sendEffectSettings(effects).then((sent) => {
+        if (sent) this.sentEffects = effects.slice()
+        return sent
+      })
+    }
+    effects.forEach((value, controller) => {
+      if (value !== this.sentEffects[controller]) this.sendEffectParameter(controller, value)
+    })
+    return Promise.resolve(true)
   }
 
   private isLive() {

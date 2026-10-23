@@ -446,4 +446,62 @@ describe('PatchEditorSession voice name', () => {
     expect(session.getState().syncState).toBe('local')
     expect(midi.sendParameter).not.toHaveBeenCalled()
   })
+
+  describe('on M-VAVE’s V16, whose Voices share one FX group', () => {
+    const v16 = () => makeMidi({ firmware: { identity: 'FM-1_016', kind: 'mvave' } })
+
+    it('sends no effects as a patch opens', async () => {
+      const { midi } = await openLiveSession(v16())
+
+      expect(midi.sendVoice).toHaveBeenCalledOnce()
+      expect(midi.sendEffectSettings).not.toHaveBeenCalled()
+      expect(midi.sendEffectParameter).not.toHaveBeenCalled()
+    })
+
+    it('sends an effect as it is edited, and its earlier value when the edit is undone', async () => {
+      const { midi, session } = await openLiveSession(v16())
+
+      session.setEffectParameter(2, 80)
+      session.undo()
+      await vi.waitFor(() => expect(session.getState().syncState).toBe('live'))
+
+      expect(vi.mocked(midi.sendEffectParameter).mock.calls).toEqual([
+        [2, 80],
+        [2, 0],
+      ])
+      expect(midi.sendEffectSettings).not.toHaveBeenCalled()
+    })
+
+    it('resends no effect when an edit to the voice syncs the patch', async () => {
+      const { midi, session } = await openLiveSession(v16())
+
+      session.setEffectParameter(7, 50)
+      session.replaceVoice((parameters) => {
+        const next = parameters.slice()
+        next[0] = 40
+        return next
+      })
+      await vi.waitFor(() => expect(midi.sendVoice).toHaveBeenCalledTimes(2))
+      await vi.waitFor(() => expect(session.getState().syncState).toBe('live'))
+
+      expect(vi.mocked(midi.sendEffectParameter).mock.calls).toEqual([[7, 50]])
+    })
+
+    it('sends an effect edited before the FM1 was live once the patch reaches it', async () => {
+      const midi = v16()
+      const session = new PatchEditorSession(new Uint8Array(FM1_EDITOR_PARAMETER_COUNT), () => midi)
+
+      session.setEffectParameter(4, 1)
+      session.synchronize('a-1')
+      await vi.waitFor(() => expect(session.getState().syncState).toBe('live'))
+
+      expect(vi.mocked(midi.sendEffectParameter).mock.calls).toEqual([[4, 1]])
+    })
+
+    it('still sends every effect with the patch on V15, where the effects follow the preset', async () => {
+      const { midi } = await openLiveSession()
+
+      expect(midi.sendEffectSettings).toHaveBeenCalledOnce()
+    })
+  })
 })
