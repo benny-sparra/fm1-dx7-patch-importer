@@ -1,4 +1,10 @@
-import { yamahaManufacturerId, type Dx7Voice } from '@/lib/dx7'
+import {
+  Dx7BankFileError,
+  dx7BankFileSize,
+  parseDx7Bank,
+  yamahaManufacturerId,
+  type Dx7Voice,
+} from '@/lib/dx7'
 import {
   Dx7VoiceFileError,
   dx7VoiceFileSize,
@@ -14,17 +20,20 @@ const realTimeStatusStart = 0xf8
 
 /** What one incoming MIDI message did to a dump being received. */
 export type Dx7VoiceReceipt =
-  { kind: 'voice'; voice: Dx7Voice } | { error: Dx7VoiceFileError; kind: 'error' }
+  | { kind: 'bank'; voices: Dx7Voice[] }
+  | { kind: 'voice'; voice: Dx7Voice }
+  | { error: Dx7BankFileError | Dx7VoiceFileError; kind: 'error' }
 
 /**
- * Collects a Yamaha DX7 single-voice dump from incoming MIDI messages, checking it as
- * `parseDx7VoiceFile` checks a file.
+ * Collects a Yamaha DX7 single-voice dump or 32-voice bank from incoming MIDI messages, checking
+ * them as `parseDx7VoiceFile` and `parseDx7Bank` check a file. A stock FM1 on M-VAVE's V16 sends
+ * its Bank Export as one such bank.
  *
  * The Web MIDI API hands each SysEx message over in one event, but some systems split a long one
  * across several, each later part starting with a data byte, so the parts are joined until F7.
  * Everything that is not a Yamaha bulk dump is ignored: notes, controllers, clocks, a Yamaha
  * parameter change, such as Dexed sends as a knob turns, and another maker's SysEx. A dump is kept
- * to the size of a voice, so a long message cannot fill memory, but its length is still counted to
+ * to the size of a bank, so a long message cannot fill memory, but its length is still counted to
  * say what it was.
  */
 export class Dx7VoiceReceiver {
@@ -34,8 +43,8 @@ export class Dx7VoiceReceiver {
   private receiving = false
 
   /**
-   * Takes one incoming message. Returns the voice when a valid dump is complete, an error when a
-   * complete Yamaha bulk dump is not one, and nothing for everything else.
+   * Takes one incoming message. Returns the voice or bank when a valid dump is complete, an error
+   * when a complete Yamaha bulk dump is neither, and nothing for everything else.
    */
   receive(data: ArrayLike<number>): Dx7VoiceReceipt | null {
     if (data.length === 0) return null
@@ -71,7 +80,7 @@ export class Dx7VoiceReceiver {
   private take(byte: number) {
     this.length += 1
     if (this.ignoring) return
-    if (this.bytes.length < dx7VoiceFileSize) this.bytes.push(byte)
+    if (this.bytes.length < dx7BankFileSize) this.bytes.push(byte)
     // F0 43 0n is a Yamaha bulk dump on channel n; F0 43 1n is a parameter change.
     if (this.bytes.length === 2 && this.bytes[1] !== yamahaManufacturerId) this.ignoring = true
     if (this.bytes.length === 3 && (this.bytes[2] & 0xf0) !== 0) this.ignoring = true
@@ -85,10 +94,14 @@ export class Dx7VoiceReceiver {
     if (ignored) return null
 
     try {
+      const buffer = Uint8Array.from(bytes).buffer
+      if (length === dx7BankFileSize) return { kind: 'bank', voices: parseDx7Bank(buffer) }
       if (length !== dx7VoiceFileSize) throw dx7VoiceSizeError(length)
-      return { kind: 'voice', voice: parseDx7VoiceFile(Uint8Array.from(bytes).buffer) }
+      return { kind: 'voice', voice: parseDx7VoiceFile(buffer) }
     } catch (error) {
-      if (error instanceof Dx7VoiceFileError) return { error, kind: 'error' }
+      if (error instanceof Dx7VoiceFileError || error instanceof Dx7BankFileError) {
+        return { error, kind: 'error' }
+      }
       throw error
     }
   }

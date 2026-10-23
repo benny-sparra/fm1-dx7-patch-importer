@@ -10,7 +10,7 @@ type VoiceReceiverMidi = Pick<MidiController, 'inputs' | 'selectedInputId' | 'sy
 export type Dx7VoiceReceiverState = 'listening' | 'no-input' | 'no-sysex'
 
 /**
- * Listens on the selected MIDI input for a DX7 single-voice dump while the component using it is
+ * Listens on the selected MIDI input for a DX7 single-voice dump or 32-voice bank while the component using it is
  * mounted, and only then. It sends nothing. Switching MIDI off, losing SysEx, choosing another
  * input, and unmounting each remove the listener and forget a dump part-way through, so a message
  * arriving afterwards reaches nothing.

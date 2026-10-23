@@ -80,17 +80,21 @@ export default {
     action: 'Replace patch',
     title: 'Receive a patch into {{slot}} “{{patch}}”',
     listening:
-      'Listening on the input monitor. Send one DX7 patch from Dexed, a DX7, or another editor.',
+      'Listening on the input monitor. Send one DX7 patch from Dexed, a DX7, or another editor, or a 32-voice bank, as an FM1 on M-VAVE’s V16 sends from GLOBE → Export.',
     noInput: 'Switch MIDI on and choose the device sending the patch as the input monitor.',
     noSysex:
       'Receiving a patch needs SysEx. Reconnect MIDI and allow SysEx access when the browser asks.',
     received: 'Received “{{patch}}”. Send another to receive it instead.',
+    receivedBank:
+      'Received a 32-voice bank starting with “{{patch}}”. Send another to receive it instead.',
+    importBank: 'Import bank into “{{bank}}”…',
     warning:
       'The patch in this slot will be replaced by the one received, and its FM1 effects reset to their defaults.',
     errors: {
-      bank: 'That was a 32-voice DX7 bank. Send a single patch, or save the bank as a file and choose “Import DX7 bank…” from the bank’s menu.',
+      bankDamaged: 'That bank arrived damaged. Send it again.',
       damaged: 'That patch arrived damaged. Send it again.',
-      format: 'That wasn’t a DX7 patch. Send a single-voice dump of one patch.',
+      format:
+        'That wasn’t a DX7 patch or bank. Send a single-voice dump of one patch, or a 32-voice bank.',
     },
   },
   bankFile: {
@@ -111,6 +115,7 @@ export default {
     previewHelp:
       'Click a patch to hear it on the FM1. Your bank stays as it is until you replace it.',
     previewTitle: 'Patches in this file',
+    previewTitleReceived: 'Patches received',
     title: 'Import over “{{bank}}”?',
     warning: 'The bank’s current contents will be wiped and replaced by the imported patches.',
   },

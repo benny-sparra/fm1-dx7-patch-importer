@@ -634,18 +634,22 @@ export default {
     action: 'Reemplazar sonido',
     title: 'Recibir un sonido en {{slot}} «{{patch}}»',
     listening:
-      'Escuchando la entrada de monitorización. Envía un sonido DX7 desde Dexed, un DX7 u otro editor.',
+      'Escuchando la entrada de monitorización. Envía un sonido DX7 desde Dexed, un DX7 u otro editor, o un banco de 32 voces, como lo envía un FM1 con la V16 de M-VAVE desde GLOBE → Export.',
     noInput:
       'Activa MIDI y elige como entrada de monitorización el dispositivo que envía el sonido.',
     noSysex:
       'Para recibir un sonido se necesita SysEx. Reconecta MIDI y permite el acceso SysEx cuando el navegador lo pida.',
     received: 'Se recibió «{{patch}}». Envía otro para recibirlo en su lugar.',
+    receivedBank:
+      'Se recibió un banco de 32 voces que empieza por «{{patch}}». Envía otro para recibirlo en su lugar.',
+    importBank: 'Importar el banco en «{{bank}}»…',
     warning:
       'El sonido de esta ranura se sustituirá por el recibido y sus efectos FM1 volverán a los valores predeterminados.',
     errors: {
-      bank: 'Eso era un banco DX7 de 32 voces. Envía un solo sonido, o guarda el banco como archivo y elige «Importar banco DX7…» en el menú del banco.',
+      bankDamaged: 'Ese banco llegó dañado. Envíalo de nuevo.',
       damaged: 'Ese sonido llegó dañado. Envíalo de nuevo.',
-      format: 'Eso no era un sonido DX7. Envía un volcado de una sola voz con un sonido.',
+      format:
+        'Eso no era un sonido ni un banco DX7. Envía un volcado de una sola voz o un banco de 32 voces.',
     },
   },
   bankFile: {
@@ -666,6 +670,7 @@ export default {
     previewHelp:
       'Haz clic en un sonido para escucharlo en el FM1. Tu banco no cambia hasta que lo reemplaces.',
     previewTitle: 'Sonidos de este archivo',
+    previewTitleReceived: 'Sonidos recibidos',
     title: '¿Importar sobre «{{bank}}»?',
     warning: 'El contenido actual del banco se borrará y se sustituirá por los sonidos importados.',
   },

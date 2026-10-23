@@ -634,17 +634,21 @@ export default {
     action: 'Remplacer le son',
     title: 'Recevoir un son dans {{slot}} « {{patch}} »',
     listening:
-      'Écoute de l’entrée de contrôle. Envoyez un son DX7 depuis Dexed, un DX7 ou un autre éditeur.',
+      'Écoute de l’entrée de contrôle. Envoyez un son DX7 depuis Dexed, un DX7 ou un autre éditeur, ou une banque de 32 voix, comme l’envoie un FM1 sous la V16 de M-VAVE depuis GLOBE → Export.',
     noInput: 'Activez le MIDI et choisissez l’appareil qui envoie le son comme entrée de contrôle.',
     noSysex:
       'Recevoir un son nécessite SysEx. Reconnectez le MIDI et autorisez l’accès SysEx quand le navigateur le demande.',
     received: '« {{patch}} » reçu. Envoyez-en un autre pour le recevoir à la place.',
+    receivedBank:
+      'Banque de 32 voix reçue, commençant par « {{patch}} ». Envoyez-en une autre pour la recevoir à la place.',
+    importBank: 'Importer la banque dans « {{bank}} »…',
     warning:
       'Le son de cet emplacement sera remplacé par celui reçu, et ses effets FM1 reviendront à leurs valeurs par défaut.',
     errors: {
-      bank: 'C’était une banque DX7 de 32 voix. Envoyez un seul son, ou enregistrez la banque dans un fichier et choisissez « Importer une banque DX7… » dans le menu de la banque.',
+      bankDamaged: 'Cette banque est arrivée endommagée. Envoyez-la de nouveau.',
       damaged: 'Ce son est arrivé endommagé. Envoyez-le de nouveau.',
-      format: 'Ce n’était pas un son DX7. Envoyez le dump d’une seule voix.',
+      format:
+        'Ce n’était ni un son ni une banque DX7. Envoyez le dump d’une seule voix ou une banque de 32 voix.',
     },
   },
   bankFile: {
@@ -666,6 +670,7 @@ export default {
     previewHelp:
       'Cliquez sur un son pour l’écouter sur le FM1. Votre banque reste inchangée tant que vous ne la remplacez pas.',
     previewTitle: 'Sons de ce fichier',
+    previewTitleReceived: 'Sons reçus',
     title: 'Importer par-dessus « {{bank}} » ?',
     warning: 'Le contenu actuel de la banque sera effacé et remplacé par les sons importés.',
   },

@@ -101,9 +101,11 @@ const openDialogs = {
   ),
   'receive-patch': () => (
     <ReceivePatchDialog
+      bankName="Leads"
       library={{ replaceVoice: vi.fn() }}
       midi={{ inputs: [], selectedInputId: '', sysexAvailable: false }}
       onClose={vi.fn()}
+      onImportBank={vi.fn()}
       onReplaced={vi.fn()}
       patch={{ bank: 'A', family: 'DX7', id: 'bank-A-1', name: 'ALPHA', number: 1 }}
     />

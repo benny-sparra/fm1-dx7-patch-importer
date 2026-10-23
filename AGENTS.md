@@ -175,7 +175,10 @@ open everything an earlier release could have saved.
   never the FM1's readback, and sends nothing. It listens on the selected input only while its
   dialog is open (`useDx7VoiceReceiver`), and `Dx7VoiceReceiver` joins a dump split across
   messages, ignores everything but a Yamaha bulk dump, such as Dexed's parameter changes, and
-  checks it with `parseDx7VoiceFile`.
+  checks it with `parseDx7VoiceFile`. A 32-voice bank, as a stock FM1 on V16 sends from GLOBE →
+  Export (one 4104-byte bulk dump, confirmed 2026-10-23), is checked with `parseDx7Bank` and
+  offered to the slot's bank through the DX7 bank import dialog (`received`), which keeps its
+  replace warning and Undo; the receive dialog itself replaces nothing with it.
 - **MIDI panic** sends a Note Off for each of the 128 notes on the note channel
   (`sendEveryNoteOff`), because the FM1 takes Control Change only for its effect controllers, so
   All Notes Off (CC 123) never reaches its voices. Do not call the button All notes off, which
