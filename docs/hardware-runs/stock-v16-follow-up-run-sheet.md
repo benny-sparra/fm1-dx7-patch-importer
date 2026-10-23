@@ -18,23 +18,21 @@ dumps, parameter changes, a 32-voice bank, and notes. Bank Export is started on 
    channel** on 1.
 4. Open the **MIDI log** and leave it open; download it at the end of each section.
 
-## 1. Bank Export through Receive patch…
+## 1. Back up bank B through Receive patch…
 
-Firmware and the last run: Bank Export sends one 4104-byte `F0 43 00 09 20 00` bulk dump over USB.
-**Receive patch…** takes it as a 32-voice bank and offers it to the slot's bank through the DX7
-bank import, sending nothing.
+Already run: on 2026-10-23 the orange FM1's Export of bank A arrived through **Receive patch…**
+and imported through the DX7 bank import (`docs/feature-backlog.md`, the V16 item's step 4).
+Undo after the import, and the MIDI log while the dialog listened, were not checked.
 
-This also backs up the FM1 bank that section 3 replaces, so choose that bank here.
+This section backs up the FM1 bank that section 3 replaces, and checks those two.
 
 1. In the editor, **Add new bank…** from any built-in bank, named `V16 bank B`; the import
    replaces its patches. Open a slot's ⋮ and choose **Receive patch…**.
-2. On the FM1, GLOBE → Export, choose bank **B**, and start it. Does the dialog say “Received a
-   32-voice bank starting with …”, naming B01? ______
-3. Choose **Import bank into “V16 bank B”…**. Do the 32 names match bank B on the FM1, in
-   order? ______
-4. Did the MIDI log record anything sent while the dialog was open? Expected: nothing. ______
-5. Undo the import from its notification. Do the built-in patches come back? Then import it
-   again, since section 3 restores bank B from it. ______
+2. On the FM1, GLOBE → Export bank **B**, then choose **Import bank into “V16 bank B”…** and
+   import it.
+3. Did the MIDI log record anything sent while the dialog was open? Expected: nothing. ______
+4. Undo the import from its notification. Do the built-in patches come back? ______ Then import
+   it again, since section 3 restores bank B from it.
 
 ## 2. Bank Export without USB
 
@@ -100,9 +98,8 @@ Put the Voices back as you found them.
 
 ## What the results decide
 
-- Section 1 confirms **Receive patch…** on the FM1, so `docs/user-guide.md` and the help guide can
-  say a stock V16 FM1 can be read back, and the receive wizard on the backlog has a recorded run
-  to build on.
+- Section 1 completes the record of **Receive patch…** on the FM1 with Undo and the MIDI log, so
+  `docs/user-guide.md` and the help guide can say a stock V16 FM1 can be read back.
 - Section 2 moves Bank Export without USB from **Likely** to **Confirmed**, or replaces it.
 - Section 3 rewords the bank destination instructions for V16 (`dialogs.bank*`), in every locale.
 - Section 4 decides whether the editor must say which Voice it edits, and whether a slot click
