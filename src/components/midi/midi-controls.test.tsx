@@ -251,6 +251,39 @@ describe('MidiFirmwareBadge', () => {
     expect(screen.getByText('Firmware von Baud Girl, FM-1_089')).toBeTruthy()
   })
 
+  it('says V16 has eight Voices sharing one FX group, and V15 says nothing of Voices', () => {
+    const badge = (identity: string) => (
+      <MidiFirmwareBadge
+        midi={{ firmware: { identity, kind: 'mvave' }, isConnecting: false, midiAccess: true }}
+      />
+    )
+    const { rerender } = render(badge('FM-1_016'))
+    expect(
+      screen.getByTitle(
+        'The FM1 runs M-VAVE’s own firmware, V16: eight Voices, each on its own channel, sharing one FX group. Patches you play go to its edit buffer.',
+      ),
+    ).toBeTruthy()
+
+    rerender(badge('FM-1_015'))
+    expect(screen.queryByTitle(/Voices/)).toBeNull()
+  })
+
+  it('says V16 has eight Voices sharing one FX group in German', async () => {
+    await setLocale('de')
+
+    render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_016', kind: 'mvave' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
+
+    expect(screen.getByTitle(/V16: acht Voices, jede auf einem eigenen Kanal/)).toBeTruthy()
+  })
+
   it('names M-VAVE with its version as M-VAVE numbers it', () => {
     const { container } = render(
       <MidiFirmwareBadge

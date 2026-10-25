@@ -1235,6 +1235,8 @@ export default {
     mvaveBadgeLabel: 'Firmware da M-VAVE, {{release}}',
     mvaveBadgeTitle:
       'O FM1 usa o firmware original da M-VAVE, {{release}}. Os sons que você toca vão para o buffer de edição dele.',
+    mvaveV16BadgeTitle:
+      'O FM1 usa o firmware original da M-VAVE, {{release}}: oito Voices, cada uma no seu próprio canal, com um único grupo de FX compartilhado. Os sons que você toca vão para o buffer de edição dele.',
     officialOpenBadgeLabel: 'Firmware Open da M-VAVE, {{release}}',
     officialOpenBadgeTitle:
       'O FM1 usa o firmware Open da M-VAVE, {{release}}, uma groovebox de oito faixas. Um som em que você clica ou que edita vai para a faixa do canal de notas quando essa faixa usa DX7. Ele ignora bancos DX7, e os controles de efeito não enviam nada, porque ele os trataria como mudanças nas faixas.',
