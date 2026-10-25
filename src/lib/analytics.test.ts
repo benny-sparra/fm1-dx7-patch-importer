@@ -13,10 +13,10 @@ describe('trackAnalyticsEvent', () => {
     const track = vi.fn()
     window.umami = { track }
 
-    trackAnalyticsEvent({ name: 'editor_opened' })
+    trackAnalyticsEvent({ name: 'patch_saved' })
 
     expect(track).toHaveBeenCalledOnce()
-    expect(track).toHaveBeenCalledWith('editor_opened', undefined)
+    expect(track).toHaveBeenCalledWith('patch_saved', undefined)
   })
 
   it('forwards only the fixed diagnostic properties supplied by the event contract', () => {
@@ -26,17 +26,15 @@ describe('trackAnalyticsEvent', () => {
     trackAnalyticsEvent({
       data: {
         method: 'manual',
-        output: 'missing',
-        sysex: 'enabled',
+        reason: 'permission_denied',
       },
-      name: 'midi_connected',
+      name: 'midi_connection_failed',
     })
 
     expect(track).toHaveBeenCalledOnce()
-    expect(track).toHaveBeenCalledWith('midi_connected', {
+    expect(track).toHaveBeenCalledWith('midi_connection_failed', {
       method: 'manual',
-      output: 'missing',
-      sysex: 'enabled',
+      reason: 'permission_denied',
     })
   })
 

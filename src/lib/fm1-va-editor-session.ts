@@ -79,7 +79,6 @@ export class Fm1VaEditorSession<Id extends string> {
   private readonly envelopeIndex: number | undefined
   private readonly envelopeRowIndexes: ReadonlySet<number>
   private active = true
-  private editStarted = false
   private gestureStart: EditorHistory | null = null
   private state: Fm1VaEditorState
 
@@ -339,10 +338,6 @@ export class Fm1VaEditorSession<Id extends string> {
   private commitHistory(next: EditorHistory) {
     const current = this.state.history
     if (next === current) return false
-    if (!parametersMatch(current.present, next.present) && !this.editStarted) {
-      this.editStarted = true
-      trackAnalyticsEvent({ name: 'patch_edit_started' })
-    }
     this.update({ history: next })
     this.sendChanges(current.present, next.present)
     return true

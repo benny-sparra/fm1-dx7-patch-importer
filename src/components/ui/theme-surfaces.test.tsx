@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import '@/i18n'
 
@@ -31,22 +31,6 @@ describe('themed overlay surfaces', () => {
     await user.hover(screen.getByRole('button', { name: 'Help: Algorithm' }))
 
     expect(screen.getByRole('note').classList.contains('popover-surface')).toBe(true)
-  })
-
-  it('tracks a contextual help view without sending its translated label or text', async () => {
-    const user = userEvent.setup()
-    const track = vi.fn()
-    window.umami = { track }
-    render(<HelpPopover label="Algorithm" text="Choose an FM algorithm." />)
-
-    const helpButton = screen.getByRole('button', { name: 'Help: Algorithm' })
-    await user.hover(helpButton)
-    await user.click(helpButton)
-    await user.unhover(helpButton)
-    await user.hover(helpButton)
-
-    expect(track).toHaveBeenCalledOnce()
-    expect(track).toHaveBeenCalledWith('help_opened', { surface: 'contextual' })
   })
 
   it('marks a portalled toast as a semantic toast surface', async () => {

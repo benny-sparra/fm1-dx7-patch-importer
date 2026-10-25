@@ -2,9 +2,7 @@ type AnalyticsEvent =
   | { name: 'backup_downloaded' }
   | { name: 'backup_restored' }
   | { name: 'bank_transfer_completed' }
-  | { name: 'editor_opened' }
   | { name: 'fm1_va_presets_written' }
-  | { name: 'patch_edit_started' }
   | { name: 'patch_saved' }
   | {
       data: { scope: 'all' | 'single' }
@@ -25,18 +23,6 @@ type AnalyticsEvent =
       // each release, so it never leaves the browser.
       data: { firmware: 'felucca' | 'fm1-va' | 'mvave' | 'official-open' | 'unidentified' }
       name: 'fm1_identified'
-    }
-  | {
-      data: { surface: 'contextual' | 'guide' }
-      name: 'help_opened'
-    }
-  | {
-      data: {
-        method: 'automatic' | 'manual'
-        output: 'available' | 'missing'
-        sysex: 'disabled' | 'enabled'
-      }
-      name: 'midi_connected'
     }
   | {
       data: {

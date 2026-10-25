@@ -643,20 +643,6 @@ describe('PatchEditorPage MIDI paths', () => {
 })
 
 describe('PatchEditorPage analytics', () => {
-  it('tracks the first real edit once per editor session', async () => {
-    const track = vi.fn()
-    window.umami = { track }
-    setup()
-    await waitFor(() => expect(screen.getByRole('slider', { name: 'Feedback' })).toBeTruthy())
-
-    const feedback = screen.getByRole('slider', { name: 'Feedback' })
-    fireEvent.change(feedback, { target: { value: '6' } })
-    fireEvent.change(feedback, { target: { value: '5' } })
-
-    expect(track).toHaveBeenCalledOnce()
-    expect(track).toHaveBeenCalledWith('patch_edit_started', undefined)
-  })
-
   it('tracks saving an edited patch', async () => {
     const user = userEvent.setup()
     const track = vi.fn()
@@ -669,7 +655,7 @@ describe('PatchEditorPage analytics', () => {
 
     await user.click(screen.getByRole('button', { name: 'Save to library' }))
 
-    expect(track).toHaveBeenNthCalledWith(2, 'patch_saved', undefined)
+    expect(track).toHaveBeenCalledExactlyOnceWith('patch_saved', undefined)
   })
 })
 

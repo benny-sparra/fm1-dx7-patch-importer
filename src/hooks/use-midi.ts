@@ -352,14 +352,6 @@ export function useMidi() {
             `MIDI connected${activeWebMidi.sysexEnabled ? ' with SysEx enabled' : ''}.`,
           ),
         )
-        trackAnalyticsEvent({
-          data: {
-            method,
-            output: activeWebMidi.outputs.length > 0 ? 'available' : 'missing',
-            sysex: activeWebMidi.sysexEnabled ? 'enabled' : 'disabled',
-          },
-          name: 'midi_connected',
-        })
       } catch (caughtError) {
         const reason = midiConnectionFailureReason(caughtError)
         setError(reason)

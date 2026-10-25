@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import type { MidiController } from '@/hooks/use-midi'
-import { trackAnalyticsEvent } from '@/lib/analytics'
 import type { Fm1Colorway } from '@/lib/fm1-colorway'
 import { hasSeenHelp } from '@/lib/help-seen'
 import { sharedPatchPayload } from '@/lib/share-link-fragment'
@@ -43,7 +42,6 @@ export function HelpButton({ colorway, midi }: HelpButtonProps) {
         aria-label={t('help.open')}
         className="group/help"
         onClick={() => {
-          trackAnalyticsEvent({ data: { surface: 'guide' }, name: 'help_opened' })
           setLoadFailed(false)
           setFirstVisit(false)
           setRequested(true)

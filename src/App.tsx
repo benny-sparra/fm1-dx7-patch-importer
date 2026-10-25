@@ -28,7 +28,6 @@ import {
 } from '@/lib/patch-library'
 import { fm1VaEightBitName } from '@/lib/fm1-va-eight-bit'
 import { fm1VaVirtualAnalogName } from '@/lib/fm1-va-virtual-analog'
-import { trackAnalyticsEvent } from '@/lib/analytics'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { visibleBox, zoomRects } from '@/lib/zoom-rects'
 import {
@@ -241,7 +240,6 @@ function App() {
     setAuditionedPatchId(patch.id)
     beginDynamicImportRecovery(patch.id)
     setSelectedPatchId(patch.id)
-    trackAnalyticsEvent({ name: 'editor_opened' })
   }
   const closeEditor = () => {
     cancelDynamicImportRecovery()
