@@ -28,7 +28,8 @@ For PR #364, on the orange FM1 (stock V16). Tick each step as you go.
 8. Click **Undo**.
    - [ ] The bank goes back to how it was.
 9. Click **MIDI log** and look at what was sent.
-   - [ ] Nothing was sent during this test, apart from an identity query when MIDI went online.
+   - [ ] The only messages sent are an identity query when MIDI went online, and the patches you
+         clicked in step 5. Nothing is sent while listening, receiving, or replacing.
 
 ## Test 2: start Export too early
 
