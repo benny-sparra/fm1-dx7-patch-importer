@@ -1013,6 +1013,7 @@ export default {
   },
   root: {
     skipToContent: 'Zum Hauptinhalt springen',
+    channelShort: 'Kan. {{number}}',
     subtitle: 'Editor und Librarian',
     intro:
       'FM1-Sounds bearbeiten, organisieren und übertragen oder <link>DX7-SysEx-Bänke importieren</link>.',

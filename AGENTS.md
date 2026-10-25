@@ -692,6 +692,10 @@ open everything an earlier release could have saved.
   when its usual action cannot, such as **Send to FM1** without a MIDI output opening the dialog
   that connects one, is not `aria-disabled`: a screen reader would call a working control
   unavailable. Its description says what a click does instead.
+- The header carries the note channel as **Ch n** (`NoteChannelSelect`, 2026-10-25): the same state
+  as the Settings menu's Note channel, shown whether or not MIDI is online and for every firmware
+  so the header never shifts, and it sends nothing. On a phone it sits on the last line with the
+  badge and the panic.
 - The header's colour swatch, **?** and ⋮ show no caption under them (removed on 2026-10-22 at
   the owner's request); each keeps its accessible name and tooltip. The swatch's choice is named
   **FM1 colour**, never finish, which also reads as the end. The MIDI panic shows only its icon too,
