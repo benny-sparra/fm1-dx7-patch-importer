@@ -21,6 +21,7 @@ import { MidiActivityLeds } from '@/components/midi/midi-activity-leds'
 import { MidiLogButton } from '@/components/midi/midi-log-button'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
 import type { Fm1VaPresetProbe as PresetProbe } from '@/components/midi/fm1-va-preset-probe'
+import { NoteChannelSelect } from '@/components/midi/note-channel-select'
 import { MidiPanicButton } from '@/components/midi/midi-panic-button'
 import type { OfficialOpenTrackStatus as TrackStatus } from '@/components/midi/official-open-track-status'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
@@ -71,6 +72,7 @@ type RootLayoutProps = {
     ComponentProps<typeof HelpButton>['midi'] &
     ComponentProps<typeof MidiFirmwareBadge>['midi'] &
     ComponentProps<typeof MidiPanicButton>['midi'] &
+    ComponentProps<typeof NoteChannelSelect>['midi'] &
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
     ComponentProps<typeof PianoKeyboard>['midi'] &
     ComponentProps<typeof PresetProbe>['midi'] &
@@ -196,7 +198,8 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                   className="inline-flex min-h-8 min-w-0 flex-1 items-center gap-2 sm:flex-none"
                   midi={midi}
                 />
-                <span className="ml-auto flex sm:order-last sm:ml-0">
+                <NoteChannelSelect midi={midi} />
+                <span className="flex sm:order-last">
                   <MidiPanicButton midi={midi} />
                 </span>
               </div>

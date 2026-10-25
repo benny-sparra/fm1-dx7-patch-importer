@@ -986,6 +986,7 @@ export default {
   },
   root: {
     skipToContent: 'Ir para o conteúdo principal',
+    channelShort: 'Can. {{number}}',
     subtitle: 'editor e bibliotecário',
     intro: 'Edite, organize e transfira sons do FM1 ou <link>importe bancos SysEx do DX7</link>.',
     synthAlt: 'Painel frontal do sintetizador M-VAVE FM1',
