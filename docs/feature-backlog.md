@@ -111,6 +111,79 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     that settles 1, 3, and 4 together, then 2, then 4's build if the capture allows it.
   - Tests: a `firmware-profile.test.ts` case on each side of the V16 threshold, a rendered test
     that V16 sends no effect controller, and fixtures for any capture.
+  - **Still open (2026-10-25)** before this item is ticked:
+    - Step 2's badge wording is PR #366.
+    - Steps 6 and 7 are done (the SEQ row and the release notes are in `docs/fm1-research.md`)
+      but not marked.
+    - A run on the orange FM1 of the **Receive patches** wizard
+      (`docs/hardware-runs/receive-wizard-run-sheet.md`, now from `main`), including Undo after a
+      received bank, which has never been tried on hardware.
+    - On the same run: a double-clicked slot sends one Program Change and one dump (#363), and
+      the V16 lines in the badge, the firmware setting, and the editor read right.
+    - Then record the run in `docs/hardware-runs/` and answer issue 334 together with the Vivaldi
+      item above.
+
+- [ ] **Use V16's eight Voices (multitimbral).** Discussed on 2026-10-25; nothing is decided
+      beyond step 1. V16 plays eight Voices, each with its own preset, MIDI channel, On/Off,
+      level, pan, bend range, glide, and fine tune, saved on the FM1 with SAVE → Globe or ALL.
+      There is one Voice setup on the FM1, and V16 gives it no name; this item calls a stored
+      set of eight a **setup** (the discussion said "scene"). Not everyone wants a multitimbral
+      FM1, so everything here is opt-in, and the one-patch-at-a-time model stays the default.
+  - **What the hardware allows** (`docs/fm1-research.md`, "M-VAVE's V16 stock firmware"):
+    - The editor cannot read the Voice setup back: Bank Export leaves it out.
+    - No known message sets a Voice's channel, On/Off, level, pan, glide, or tune. The one
+      near it, `F0 22 24 36`, sets only Voice 2 and stays **Dangerous / excluded**.
+    - A Program Change loads its program into every Voice that is On and listens on its
+      channel or on All (**Confirmed**), so the editor can choose each Voice's preset.
+    - A single-voice dump reaches only the Voice selected on the FM1's screen, whatever its
+      channel, and parameter changes reach it only while it listens on channel 1 or All.
+    - An edit changes the preset, not the Voice: the FM1 keeps one edited copy of a preset, and
+      every Voice playing that preset hears it (**Likely**, firmware reading).
+    - A Program Change can only choose a preset stored on the FM1, so only patches in banks A–D
+      can be given to a Voice. Whether the FM1's presets match the library depends on banks A–D
+      having been sent (each needs a knob press on the FM1 to save).
+  - **Design decisions so far:**
+    - A Voice points at a preset number (A01–D32), as the FM1 stores it, never at a copy of the
+      patch. Editing a Voice's sound edits the patch in that slot, which matches the hardware,
+      and preset numbers survive deleting a bank, which moves the later letters.
+    - A patch from a bank beyond D could offer "Copy into A–D and assign".
+    - Not everyone will want this, so start patch-first and let setups build on the slots
+      people already have.
+  - **Steps:**
+    1. **Note channel in the header.** A **Note channel** picker beside the MIDI controls, for
+       every firmware (Official Open chooses its track by the note channel too), sharing the
+       Settings menu's setting. Choosing a Voice's channel and clicking a patch then loads it
+       on that Voice. Handed to a Sonnet session on 2026-10-25 (branch
+       `feature/header-note-channel`); the owner may restyle it later.
+    2. **A Voices panel, opt-in.** A switch such as "Play several Voices", offered where the
+       profile says the firmware is multitimbral (a new capability from V16). Eight rows, each
+       with its channel, a preset from A–D, and a button that plays a note on its channel.
+       **Send** sends one Program Change per row. The panel shows which channels it expects and
+       says to set the Voices up once on the FM1: channels 1–8, all On, none on All (a Voice on
+       All takes every Program Change), then SAVE → Globe.
+    3. **Edit from a Voice.** Opens the normal editor on that slot, playing on that Voice's
+       channel, and says "Select Voice n on the FM1", since the editor cannot select it. Off
+       channel 1 live parameter changes do not arrive, so the editor sends the whole voice once
+       per gesture, as it does for Official Open.
+    4. **Several named setups in the library**, fired by their Program Changes. A new stored
+       record: a version bump, a fixture, backup format 6, and the upgrade paths `AGENTS.md`
+       asks for. Only if people ask for it; steps 2 and 3 do not depend on it.
+  - **Questions for a hardware run first:**
+    - Does CC 7 on a Voice's channel set that Voice's level? If so, a setup could carry a mix.
+    - Does a dump change a preset for every Voice playing it, as the firmware reading says?
+    - Does a Voice switched Off ignore a Program Change, so a setup cannot switch Voices on?
+    - Does one dump per gesture feel usable while holding a Voice selected on the FM1?
+  - **Questions to discuss:**
+    - **The word Voice.** `AGENTS.md` uses voice for DX7 voice data (the voice editor, Init
+      voice), and also says names printed on the FM1 stay as printed, which makes V16's Voice a
+      part. One rule has to give, for instance always "Voice 1–8" with its number for a part,
+      and patch for the sound in anything users read.
+    - **Who wants it.** Issue 334 asked for V16 support, not multitimbral use. Step 2 is cheap
+      enough to try the idea before committing to step 4.
+    - **Keeping track.** The FM1 cannot say how its Voices are set up, so a channel changed on
+      the device makes the editor send to the wrong Voice unseen. A "play Voice n" test button
+      on each row helps; nothing can detect it.
+    - Keyboard shortcuts to step the note channel, left out of step 1.
 
 - [x] **Receive from the FM1 as a wizard.** Receiving a bank from V16's Bank Export works (#351)
       but felt disjointed when tried on 2026-10-23, and says too little about what is happening.
