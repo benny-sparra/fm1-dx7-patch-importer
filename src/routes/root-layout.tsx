@@ -115,9 +115,11 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   return (
     <div className="synthwave-shell flex min-h-screen flex-col text-foreground" ref={screenRef}>
       {/* The first stop for the keyboard. It moves focus without going to an address, which the
-          share link's fragment would otherwise take for a link. */}
+          share link's fragment would otherwise take for a link. It shows only for focus the
+          keyboard put there (`focus-visible`): a browser or an embedding app that focuses the
+          first control as the page opens would otherwise leave it on screen. */}
       <a
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:border focus:border-[var(--crt-acc)] focus:bg-[var(--crt-bg-panel)] focus:px-3 focus:py-2 focus:text-sm focus:text-[var(--crt-led)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+        className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:z-[200] focus-visible:border focus-visible:border-[var(--crt-acc)] focus-visible:bg-[var(--crt-bg-panel)] focus-visible:px-3 focus-visible:py-2 focus-visible:text-sm focus-visible:text-[var(--crt-led)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
         href="#main-content"
         onClick={(event) => {
           event.preventDefault()
