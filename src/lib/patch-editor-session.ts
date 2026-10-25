@@ -187,17 +187,35 @@ export class PatchEditorSession {
 
   /**
    * Sends the patch to the FM1 the first time it can sync, and marks the editor local whenever it
-   * cannot.
+   * cannot. `delivered` is a send of this same patch already under way, as from the slot click a
+   * double-click opens the editor with: the editor waits for it rather than sending the patch
+   * twice, and sends it itself only if that send fails or the patch is edited before it lands.
    */
-  synchronize = (patchId: string) => {
+  synchronize = (patchId: string, delivered?: Promise<boolean>) => {
     if (this.synchronizedPatch === patchId) {
       if (!this.canSync()) this.setSyncState('local')
       return
     }
 
     this.synchronizedPatch = patchId
-    if (this.canSync()) void this.sync.requestInitialSync(patchId)
-    else this.setSyncState('local')
+    if (!this.canSync()) {
+      this.setSyncState('local')
+      return
+    }
+    if (!delivered) {
+      void this.sync.requestInitialSync(patchId)
+      return
+    }
+    const revision = this.revision
+    void delivered
+      .catch(() => false)
+      .then((sent) => {
+        if (!this.active) return
+        if (sent && this.revision === revision && this.canSync()) {
+          this.sentOnce = true
+          this.setSyncState('live')
+        } else void this.sync.requestInitialSync(patchId)
+      })
   }
 
   /** Sends the version now shown to the FM1, resolving whether it arrived. */

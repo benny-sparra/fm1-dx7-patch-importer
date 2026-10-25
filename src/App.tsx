@@ -88,8 +88,13 @@ function App() {
     effects: Uint8Array | undefined
     outputId: string
     program: number | undefined
+    /** Whether the voice arrived, which an editor opened by a double-click waits on. */
+    sent: Promise<boolean>
     voice: Dx7Voice
   } | null>(null)
+  // The send a double-click's first click started, which the editor it opens takes over rather
+  // than sending the patch a second time.
+  const [openingSend, setOpeningSend] = useState<Promise<boolean>>()
   const selectedPatch = library.patches.find((patch) => patch.id === selectedPatchId)
   const selectedVoice = selectedPatch ? library.voices[selectedPatch.id] : undefined
   // A Virtual Analog or 8-Bit preset opens its engine's own editor, which needs its settings record
@@ -169,30 +174,23 @@ function App() {
     storedEffects: Uint8Array | undefined,
     program?: number,
   ) => {
-    const previous = editBufferAudition.current
-    if (
-      previous?.voice === voice &&
-      previous.channel === midi.channel &&
-      previous.effects === storedEffects &&
-      previous.outputId === midi.selectedOutputId &&
-      previous.program === program
-    ) {
-      return
-    }
+    if (currentAudition(voice, storedEffects, program)) return
     // The voice follows the Program Change, so it replaces the preset the change selected.
     if (program !== undefined && !midi.sendProgramChange(program)) {
       editBufferAudition.current = null
       return
     }
+    const sending = midi.sendVoice(voice)
     const audition = {
       channel: midi.channel,
       effects: storedEffects,
       outputId: midi.selectedOutputId,
       program,
+      sent: sending,
       voice,
     }
     editBufferAudition.current = audition
-    void midi.sendVoice(voice).then((sent) => {
+    void sending.then((sent) => {
       if (!sent) {
         // Let the next click try again rather than assume the sound arrived.
         if (editBufferAudition.current === audition) editBufferAudition.current = null
@@ -200,6 +198,21 @@ function App() {
       }
       sendPlayedEffects(storedEffects)
     })
+  }
+  // The last audition, if it put this same sound in the FM1 through the same output and channel.
+  const currentAudition = (
+    voice: Dx7Voice,
+    effects: Uint8Array | undefined,
+    program: number | undefined,
+  ) => {
+    const previous = editBufferAudition.current
+    return previous?.voice === voice &&
+      previous.channel === midi.channel &&
+      previous.effects === effects &&
+      previous.outputId === midi.selectedOutputId &&
+      previous.program === program
+      ? previous
+      : null
   }
   const selectPatch = (patchId: string) => {
     const patch = findPatch(patchId)
@@ -216,10 +229,14 @@ function App() {
     const patch = findPatch(patchId)
     if (!patch) return
     // The editor sends an added bank's sound itself as it opens, so only a slot in banks A–D is
-    // selected on the way in.
-    editBufferAudition.current = null
+    // selected on the way in. A double-click's first click has already selected it and sent its
+    // sound, so the editor waits for that send rather than repeating both.
     const program = slotProgram(patch)
-    if (program !== undefined) midi.sendProgramChange(program)
+    const voice = library.voices[patch.id]
+    const playing = voice && currentAudition(voice, library.effects[patch.id], program)
+    editBufferAudition.current = null
+    if (program !== undefined && !playing) midi.sendProgramChange(program)
+    setOpeningSend(playing ? playing.sent : undefined)
     zoomRects(slotBox(patch.id), viewAreaBox())
     setAuditionedPatchId(patch.id)
     beginDynamicImportRecovery(patch.id)
@@ -350,6 +367,7 @@ function App() {
                   copiedOperator={copiedOperator}
                   midi={midi}
                   onBack={closeEditor}
+                  openingSend={openingSend}
                   onCopyOperator={(copied) => {
                     setCopiedOperator(copied)
                     toast.success(t('toasts.operatorCopied', { number: copied.operator }))

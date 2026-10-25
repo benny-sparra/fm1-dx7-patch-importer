@@ -72,10 +72,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
      on their channel, a dump the Voice selected on the FM1's screen, and parameter changes that
      Voice only while it listens on channel 1 or All. A slot click on another channel can put the
      program on one Voice and the sound on another, and live edits reach no Voice off channel 1.
-     Still to build: on V16, say so where the editor sends (the firmware setting or the editor's
-     notice), such as "Select on the FM1 the Voice on this channel; live edits reach it only on
-     channel 1 or All." Check first why one slot click at 11:29:53 sent its program and dump
-     twice._
+     _Done (2026-10-25): the editor says so on V16 (`selectedVoiceEdits`), naming the note
+     channel. The double send at 11:29:53 was a double-click: the click played the slot and the
+     editor it opened sent the program and patch again; the editor now waits for the click's send
+     instead._
   4. **Bank Export into the library.** V16 sends the 32 saved presets of a bank as a standard DX7
      `.syx` (voice data only: no ENV, effects, Voice setup, or patterns). If a run shows the
      FM1 sends that as ordinary Yamaha bulk-dump messages, the existing **Receive patch…** listener

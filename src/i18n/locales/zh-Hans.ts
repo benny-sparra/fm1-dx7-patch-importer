@@ -954,6 +954,8 @@ export default {
     whiteBlue: '白蓝',
   },
   editor: {
+    selectedVoiceNotice:
+      '在 V16 上，此音色会发送到 FM1 屏幕上选中的 Voice；只有当该 Voice 设在 MIDI 通道 1 或 All 时，你的编辑才会实时生效。要在这里听到它，请选中通道 {{channel}} 上的 Voice。',
     back: '返回音色库',
     editName: '编辑音色名称',
     patchName: '音色名称',

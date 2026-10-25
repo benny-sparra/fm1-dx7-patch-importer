@@ -1079,6 +1079,8 @@ export default {
     whiteBlue: 'Weiß-Blau',
   },
   editor: {
+    selectedVoiceNotice:
+      'Auf V16 landet dieser Sound auf der Voice, die am Bildschirm des FM1 ausgewählt ist, und deine Änderungen erreichen sie sofort nur, solange diese Voice auf MIDI-Kanal 1 oder All steht. Damit du ihn hier hörst, wähle die Voice auf Kanal {{channel}}.',
     back: 'Zurück zu den Bänken',
     editName: 'Soundnamen bearbeiten',
     patchName: 'Soundname',

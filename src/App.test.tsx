@@ -223,6 +223,29 @@ describe('App slot audition', () => {
     )
   })
 
+  it('selects and sends a double-clicked slot once, leaving the editor to take over that send', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+    await user.click(screen.getByRole('button', { name: 'Edit Piano' }))
+    await screen.findByRole('alert')
+
+    expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(0)
+    expect(sendVoice).toHaveBeenCalledExactlyOnceWith(pianoVoice)
+  })
+
+  it('selects a slot’s program as it opens the editor when the slot was not played first', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Edit Piano' }))
+    await screen.findByRole('alert')
+
+    expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(0)
+    expect(sendVoice).not.toHaveBeenCalled()
+  })
+
   it('sends the saved effects of a slot in banks A to D after its voice', async () => {
     const user = renderApp()
 
