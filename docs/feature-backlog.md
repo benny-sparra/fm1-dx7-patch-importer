@@ -193,9 +193,17 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     - It cannot choose an FX group, store one, or set the effect order: no known message does,
       so those stay on the FM1. Sending a setup's effects changes the live group, unsaved until
       SAVE.
-    - Open: which patch's effects the editor shows while a Voice is aimed at, since they no
-      longer belong to the patch on V16. Perhaps the setup's, with the patch's own kept for
-      other firmware.
+    - Where the effects are edited (agreed 2026-10-25): the effects panel stays in the patch
+      editor for every firmware, since V15 and earlier send a patch's effects with it and
+      FM-1+VA writes them into the preset. Only V16's presentation changes, in three stages:
+      1. **Now, small:** on V16 the panel says it edits the FM1's effects, shared by all
+         Voices, and that the FM1 does not keep them with the patch. The firmware setting
+         already says so; the editor is where people change them.
+      2. **With the Voice strip (step 2):** a standalone effects editor opened from the strip,
+         beside **Send setup**, reusing the effects panel and editing the current setup's
+         effects. On V16 the patch editor's panel then points to it.
+      3. **With named setups (step 4):** each setup stores its effects, and that editor is
+         where V16's effects live. Other firmware never sees a change.
   - **Questions for a hardware run first:**
     - Does CC 7 on a Voice's channel set that Voice's level? If so, a setup could carry a mix.
     - Does a dump change a preset for every Voice playing it, as the firmware reading says?
