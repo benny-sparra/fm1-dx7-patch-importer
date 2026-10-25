@@ -1085,19 +1085,6 @@ export default {
     firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca або SLOOP {{identity}}',
-    firmwareEditBuffer: 'Коли ви граєте патч, він потрапляє в буфер редагування FM1.',
-    firmwareSharedEffects:
-      'У V16 ефекти спільні для всіх Voice, тому вони надсилаються лише тоді, коли ви змінюєте їх у редакторі.',
-    firmwareV16Voice:
-      'Оберіть на FM1 Voice на каналі нот. Зміни наживо доходять до неї лише тоді, коли вона слухає канал 1 або All.',
-    firmwareParameterChanges:
-      'Коли ви граєте патч, він надходить як зміна параметрів, тож FM1 не записує його поверх обраного пресету.',
-    firmwareIgnoresPatches:
-      'Felucca відтворює ваші ноти, але ігнорує патчі й банки DX7 та керування ефектами.',
-    firmwareFeluccaOrSloopIgnoresPatches:
-      'Felucca і SLOOP мають однакову назву прошивки, тож редактор їх не розрізняє. Обидві відтворюють ваші ноти, але ігнорують патчі й банки DX7 та керування ефектами.',
-    firmwareOfficialOpenSends:
-      'Прошивка Open від M-VAVE відтворює ваші ноти, а патч, який ви клацаєте чи редагуєте, надходить на доріжку на каналі нот, якщо ця доріжка працює на DX7. Банки DX7 вона ігнорує, а керування ефектами нічого не надсилає, бо вона сприйняла б його як зміни своїх доріжок.',
     firmwareNeedsInput: 'Оберіть FM1 як вхід, щоб редактор зміг визначити його прошивку.',
     noteChannel: 'Канал нот',
     fxChannel: 'Канал ефектів',

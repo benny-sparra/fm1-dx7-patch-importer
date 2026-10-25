@@ -40,10 +40,6 @@ test.describe('with an FM-1 connected', () => {
   test('selects the FM1 program for a slot in a factory bank, then sends its voice and effects once', async ({
     page,
   }) => {
-    // Until the FM1 names its firmware, a patch goes as parameter changes rather than a dump.
-    await expect(
-      page.getByText('Patches you play go to the FM1’s edit buffer.').first(),
-    ).toBeAttached()
     const slot = slotButtons(page).nth(2)
 
     await slot.click()
