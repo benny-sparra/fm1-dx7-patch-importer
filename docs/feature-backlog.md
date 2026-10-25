@@ -173,6 +173,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     - Does a dump change a preset for every Voice playing it, as the firmware reading says?
     - Does a Voice switched Off ignore a Program Change, so a setup cannot switch Voices on?
     - Does one dump per gesture feel usable while holding a Voice selected on the FM1?
+    - Which channel do the FM1's own key presses arrive on with several Voices? On 2026-10-23
+      they came on channel 1 with Voice 1 alone on All. If they follow the Voice selected on the
+      FM1's screen, the editor could learn that Voice's channel from a key press and offer to
+      switch the header picker to it. Nothing else tells the editor which Voice is selected.
   - **Questions to discuss:**
     - **The word Voice.** `AGENTS.md` uses voice for DX7 voice data (the voice editor, Init
       voice), and also says names printed on the FM1 stay as printed, which makes V16's Voice a
@@ -465,6 +469,18 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     [Find duplicate patches](#nice-to-have).
 
 ## Nice to have
+
+- [ ] **Mark what a received bank changes.** On the **Receive patches** wizard's review screen,
+      say how many received patches differ from the bank they would replace, such as "12 of 32
+      differ from bank A", and mark those slots in the audition grid. It answers the one
+      question asked at that point, whether replacing loses anything, without a new idea to
+      learn. Chosen on 2026-10-25 instead of a sync with the FM1 (see
+      [Decided against](#decided-against)).
+  - Compare by voice data alone (`soundKey`'s DX7 part), since an Export carries no FM1 effects
+    and the library's would make every slot differ.
+  - Only for a bank, and only once a destination bank is known; the count follows the
+    destination when it changes. Nothing changes on an empty destination.
+  - Strings in every locale, with a rendered test in one non-English locale for the count.
 
 - [x] **Receive a DX7 voice over MIDI.** Offer to place a standard DX7 single-voice dump arriving at
       the MIDI input, from Dexed, a DX7, or another editor, into a chosen slot, with the same checks
@@ -1106,3 +1122,11 @@ with a shared sample bank. What its source says is in
   entry, strings in every locale, and CSV quoting to keep correct.
 - **Paste part of an operator.** **Paste operator** already covers the case that came up, and
   pasting only an envelope or only a frequency was never asked for. Add it if someone asks.
+- **Sync with the FM1** (2026-10-25). V16's Bank Export is the first way to read a stock FM1's
+  patches back, which suggested a two-way sync: receive banks A–D, compare them with the library,
+  and choose slot by slot which side wins. Decided against because "sync" promises a matching
+  that V16 cannot keep: Export is started by hand on the FM1, carries only saved presets and only
+  their DX7 voice data (no effects, ENV, or Voice setup), and the editor can write back only whole
+  banks, each saved with a knob press. A merge screen would ask people to reason about three
+  versions of a bank with half the data, and it blurs the library being the source of truth.
+  [Mark what a received bank changes](#nice-to-have) takes the useful part.
