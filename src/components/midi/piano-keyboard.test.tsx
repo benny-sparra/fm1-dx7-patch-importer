@@ -8,9 +8,11 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { setLocale } from '@/i18n'
 import german from '@/i18n/locales/de'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
+import { rememberDialogOpeners } from '@/lib/dialog-zoom'
 import { editorShortcuts, shouldRunShortcut } from '@/lib/keyboard-shortcuts'
 
 beforeAll(() => {
+  rememberDialogOpeners()
   HTMLDialogElement.prototype.show = function show() {
     this.open = true
   }
@@ -650,5 +652,26 @@ describe('PianoKeyboard audition phrases', () => {
     unmount()
 
     expect(midi.stopNote).toHaveBeenCalledWith(48)
+  })
+})
+
+describe('PianoKeyboard zoom', () => {
+  it('zooms out of the Keyboard button as it opens, as other dialogs do', async () => {
+    const user = userEvent.setup()
+    setup()
+    const trigger = screen.getByRole('button', { name: 'Keyboard' })
+    trigger.getBoundingClientRect = () => new DOMRect(900, 20, 120, 32)
+
+    await user.click(trigger)
+    const dialog = (await waitFor(() => {
+      const found = keyboardDialog()
+      expect(found?.open).toBe(true)
+      return found
+    }))!
+    dialog.getBoundingClientRect = () => new DOMRect(100, 200, 800, 300)
+    dialog.dispatchEvent(Object.assign(new Event('toggle'), { newState: 'open', oldState: '' }))
+
+    expect(document.querySelectorAll('.zoom-rects')).toHaveLength(1)
+    document.querySelectorAll('.zoom-rects').forEach((layer) => layer.remove())
   })
 })

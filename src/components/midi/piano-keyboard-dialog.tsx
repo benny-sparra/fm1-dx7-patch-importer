@@ -14,6 +14,7 @@ import {
   maxPhraseTempo,
   minPhraseTempo,
 } from '@/lib/audition-phrases'
+import { holdDialogForZoom, zoomDialogClosed, zoomDialogOpen } from '@/lib/dialog-zoom'
 import { defaultNoteVelocity, maxNoteVelocity, minNoteVelocity } from '@/lib/note-velocity'
 import { createPhrasePlayer } from '@/lib/phrase-player'
 import { rangeStyle } from '@/lib/range-style'
@@ -55,6 +56,8 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
     stopNote: sendMidiNoteOff,
   } = midi
   const dialogRef = useRef<HTMLDialogElement>(null)
+  // What the keyboard zoomed out of as it opened, and so zooms back into as it closes.
+  const zoomedFrom = useRef<Element | undefined>(undefined)
   const dragOffsetRef = useRef<{ x: number; y: number } | null>(null)
   const activeNotesRef = useRef<Set<number>>(new Set())
   const activeComputerKeysRef = useRef<Map<string, number>>(new Map())
@@ -444,6 +447,18 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
       aria-label={t('ui.pianoKeyboard')}
       className="synthwave-keyboard fixed inset-0 z-50 m-auto max-h-[calc(100svh-1rem)] w-[min(1010px,calc(100vw-1rem))] overflow-auto rounded-xl bg-card p-0 whitespace-normal text-card-foreground"
       data-plain-keys-only
+      onBeforeToggle={(event) => {
+        if (event.newState === 'open') {
+          holdDialogForZoom(event.currentTarget)
+          return
+        }
+        if (!zoomedFrom.current) return
+        zoomDialogClosed(event.currentTarget, zoomedFrom.current)
+        zoomedFrom.current = undefined
+      }}
+      onToggle={(event) => {
+        if (event.newState === 'open') zoomedFrom.current = zoomDialogOpen(event.currentTarget)
+      }}
       onCancel={() => {
         releaseAllNotes()
         stopPhrase()
