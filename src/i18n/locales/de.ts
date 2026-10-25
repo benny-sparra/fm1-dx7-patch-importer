@@ -1266,6 +1266,8 @@ export default {
     mvaveBadgeLabel: 'Firmware von M-VAVE, {{release}}',
     mvaveBadgeTitle:
       'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer.',
+    mvaveV16BadgeTitle:
+      'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}: acht Voices, jede auf einem eigenen Kanal, mit einer gemeinsamen FX-Gruppe. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer.',
     officialOpenBadgeLabel: 'Open-Firmware von M-VAVE, {{release}}',
     officialOpenBadgeTitle:
       'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',

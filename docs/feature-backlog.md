@@ -64,6 +64,11 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   2. **Say what V16 is.** The badge, the firmware setting, and the bank instructions word stock as
      one thing. Add V16's differences once they are confirmed: eight parts, 20 voices shared, the
      effects as one shared library of 128 groups that no longer follows the preset.
+     _Done (2026-10-25): the badge's description says V16 has eight Voices, each on its own
+     channel, sharing one FX group, all confirmed on hardware. The firmware setting already says
+     the effects are shared and which Voice the editor reaches (steps 1 and 3), and the bank
+     instructions already say what V16's prompt does (#360), so neither changed. Left out because
+     only the release notes give them: 20-voice polyphony and the library of 128 FX groups._
   3. **Voice sends with eight parts.** V16 gives each of eight Voices its own preset and MIDI
      receive channel. Check on hardware where a single-voice dump, the 155 parameter changes, and a
      Program Change land: the Voice on the note channel, Voice 1, or every Voice. Check the editor's
