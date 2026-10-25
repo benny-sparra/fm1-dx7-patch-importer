@@ -2227,7 +2227,10 @@ V16 identifies as `FM-1_016`, which `classifyFm1Firmware` counts as M-VAVE's own
 **Confirmed** by the run of 2026-10-23
 ([`hardware-runs/stock-v16-2026-10-23.md`](hardware-runs/stock-v16-2026-10-23.md)): `FM-1_016`
 on the orange FM1, with the editor's PR #349 and the development FX probe. Each matched the firmware
-reading below.
+reading below. The run of 2026-10-25
+([`hardware-runs/stock-v16-2026-10-25.md`](hardware-runs/stock-v16-2026-10-25.md)), on the same
+FM1, checked two Voices, a bank sent to the FM1, and Bank Export without USB; only the last
+differed from the firmware reading.
 
 - **Identity.** V16 answers `F0 00 32 45 00 00 00 40 7F F7` with the 41-byte reply the editor
   reads as `FM-1_016`.
@@ -2247,22 +2250,39 @@ reading below.
 - **Single-voice dumps and parameter changes.** Both reach the edit buffer of Voice 1's preset
   (Voice 1 alone On, on All): the FM1 shows and plays the dumped patch's name and sound, and
   follows each parameter change.
+- **Which Voice a message reaches** (2026-10-25, Voice 1 on channel 1 and Voice 2 on channel 3,
+  both On):
+  - A Program Change reaches the Voice on its channel, and notes play the Voice on theirs.
+  - A single-voice dump reaches the preset of the Voice selected on the FM1's screen, whatever
+    device it is sent on. A slot click on note channel 3 with Voice 1 selected moved Voice 2 to
+    the program and put the sound on Voice 1.
+  - Parameter changes, which are taken from device 1 only, reach the selected Voice only while it
+    listens on channel 1 or All. With Voice 2 selected on channel 3 they reached no Voice; moved to
+    channel 1, it took them.
+  - The preset list marks an edited preset with `*` and shows a new name at once; the header above
+    it keeps the old name until the preset is selected again.
 - **Keeping an edit.** SAVE opened from a voice editing page offers Preset, which stores the
   edited patch over that preset. It survives a power cycle. Opened from the preset screen or
-  GLOBE, SAVE offers only ALL and Globe: it offers what the page it opens from can save.
+  GLOBE, SAVE offers only ALL and Globe: it offers what the page it opens from can save. A short
+  press offers the same as a hold (2026-10-25).
+- **A 32-voice bank sent to the FM1** (2026-10-25) brings up V15's **32 Voice Save To …** with
+  A–D over whatever page is showing. Knob 1–4 stores it in that bank at once, with no
+  confirmation, and it survives a power cycle. Turning SELECT left closes the prompt and writes
+  nothing; left alone, it does not time out.
 - **Bank Export.** One 4104-byte Yamaha 32-voice bulk dump, `F0 43 00 09 20 00`, with the
   checksum `(−sum) & 7F` and only 7-bit data, over USB. `n` was 0 with Voice 1 on All.
+  **Receive patch…** takes it and sends nothing while it listens (2026-10-25).
+- **Bank Export without a USB host** (2026-10-25, cable out at the computer's end) does not show
+  **Connect USB**. It shows "Sending Bank A / 0%", then **Receive Timeout**; an Export straight
+  after shows **USB Busy**, and plugging in during a send **USB Disconnected**. The next Export with
+  a host listening works, with no power cycle.
 - **Voice channels.** V16 has no single MIDI channel on GLOBE; each Voice has its own, 0 being
   All.
 - **Key presses.** The FM1 sends its own key presses on the Voice channel, Note On at velocity 90
   and Note Off at 100.
 
-Still **Needs hardware test**:
-
-- which Voice a dump reaches with two Voices On, where the firmware says the Voice selected on
-  screen;
-- Bank Export without USB;
-- whether a short press of SAVE on a voice page offers Preset as a hold does.
+Still **Needs hardware test**: what sets the flag at `0x01C3402C` that a single-voice dump needs
+(question 6), though it was set in normal use on both runs.
 
 #### What the firmware shows
 
@@ -2357,7 +2377,8 @@ checksum:
 - **`n`.** A setting minus one, or 0 when the setting is 0, so probably the MIDI channel with
   All giving 0.
 - **Checks before sending.** Every byte must be 7-bit, USB must be connected (**Connect USB**),
-  and no transfer may be running (**USB Busy**).
+  and no transfer may be running (**USB Busy**). On hardware, with no host, Export started and
+  timed out instead of showing **Connect USB** (2026-10-25).
 - **Transport.** Sent over USB-MIDI only (`FUN_02025162`), 64 bytes per transfer, with a
   progress percentage and a timeout (**Receive Timeout**).
 - **In the editor.** **Receive patch…** takes the message as a 32-voice bank
@@ -2365,7 +2386,7 @@ checksum:
   DX7 bank import, with its replace warning and Undo. The editor sends nothing to start it: the
   user starts Export on the FM1 while the dialog listens. **Confirmed** by the capture of
   2026-10-23 (`docs/hardware-runs/stock-v16-bank-export-2026-10-23.json`), which is the
-  receiver's test fixture; receiving it through the dialog on hardware is still to be run.
+  receiver's test fixture; receiving it through the dialog worked on 2026-10-23 and 2026-10-25.
 
 **Also in the event loop.**
 
@@ -2376,21 +2397,19 @@ checksum:
 #### Questions for the hardware run
 
 Each question carries the firmware's answer. The run of 2026-10-23 settled the first two, part of
-the third, and the fourth.
+the third, and the fourth; the run of 2026-10-25 the rest of the third, and the fifth.
 
 1. ~~Does V16 answer the identity query as `FM-1_016`?~~ Yes (2026-10-23).
 2. ~~Which parameter is each of CC 70–93, what range does each take, and do CC 0–23 on Effect Ch
    now do nothing to the effects?~~ V15's map plus 70, clamped, and CC 0–23 do nothing to them
    (2026-10-23).
-3. Does a single-voice dump still reach an edit buffer, and which Voice's? Do the 155 parameter
-   changes and a Program Change reach the same Voice? Firmware: the dump and parameter changes
-   edit the preset on the Voice selected on the FM1's screen, unsaved, heard on every Voice
-   playing it. A Program Change reaches every Voice that is On on its channel. With one Voice On,
-   the dump and the parameter changes reach it (2026-10-23); two Voices are still to check.
+3. ~~Does a single-voice dump still reach an edit buffer, and which Voice's?~~ The selected
+   Voice's, whatever device it comes on; parameter changes reach it only while it listens on
+   channel 1 or All, and a Program Change the Voice on its channel (2026-10-25).
 4. ~~What does Bank Export send?~~ One `F0 43 00 09 20 00` message of 4104 bytes, over USB
    (2026-10-23).
-5. Does a 32-voice bank sent by **Send to FM1** reach the new destination prompt? Firmware: yes,
-   once its header and checksum pass.
+5. ~~Does a 32-voice bank sent by **Send to FM1** reach the new destination prompt?~~ Yes:
+   **32 Voice Save To …**, as on V15 (2026-10-25).
 6. What sets the flag at `0x01C3402C`, without which a single-voice dump is dropped? It was set in
    normal use on 2026-10-23, since the dump arrived.
 
