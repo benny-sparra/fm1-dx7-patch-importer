@@ -174,7 +174,7 @@ export function OperatorTable(props: OperatorLayoutProps) {
                 output={summary.output}
               />
               <output
-                className="font-seven-segment w-6 shrink-0 text-right text-[20px] leading-none text-[var(--crt-led)] [text-shadow:0_0_8px_var(--crt-led-glow)]"
+                className="font-seven-segment w-7 shrink-0 text-right text-[20px] leading-none text-[var(--crt-led)] [text-shadow:0_0_8px_var(--crt-led-glow)]"
                 data-ghost={segmentGhost(String(summary.output))}
               >
                 {summary.output}

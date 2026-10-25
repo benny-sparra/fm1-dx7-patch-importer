@@ -20,10 +20,13 @@ describe('seven-segment numbers', () => {
     expect(dseg7Face()).toContain('unicode-range: U+002D-002E, U+0030-0039;')
   })
 
-  it('scales its digits to the advance of VT323 so a readout keeps its width as it loads', () => {
-    const sizeAdjust = Number(dseg7Face().match(/size-adjust: ([\d.]+)%/)?.[1])
-    const digitAdvance = 0.816
-    expect(digitAdvance * (sizeAdjust / 100)).toBeCloseTo(0.55, 1)
+  it('keeps the line box of VT323, so a readout is as tall as it was', () => {
+    const face = dseg7Face()
+    const sizeAdjust = Number(face.match(/size-adjust: ([\d.]+)%/)?.[1]) / 100
+    const ascent = Number(face.match(/ascent-override: ([\d.]+)%/)?.[1]) / 100
+    const descent = Number(face.match(/descent-override: ([\d.]+)%/)?.[1]) / 100
+    expect(ascent * sizeAdjust).toBeCloseTo(1.1, 2)
+    expect(descent * sizeAdjust).toBeCloseTo(0.275, 2)
   })
 
   it('falls back to VT323 for every character it lacks', () => {
