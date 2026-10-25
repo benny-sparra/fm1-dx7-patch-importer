@@ -353,9 +353,9 @@ export default {
     mono: 'Monofônico',
     initPatch: 'Inicializar',
     initPatchHelp: 'O preset 8-Bit vazio do próprio FM1. Efeitos desligados.',
-    live: 'O envelope, o LFO e os efeitos tocam no FM1 assim que você os muda. O resto é ouvido quando o som é gravado no FM1.',
+    live: 'O envelope, o LFO e os efeitos tocam ao vivo. O resto é ouvido quando o som é gravado no FM1.',
     noFirmware:
-      'Com o firmware da Baud Girl FM-1_096 ou posterior e o MIDI ligado, o envelope, o LFO e os efeitos tocam no FM1 assim que você os muda. Até lá, suas mudanças são ouvidas quando o som é gravado no FM1.',
+      'O modo ao vivo exige o firmware da Baud Girl FM-1_096 ou posterior e o MIDI ligado. Até lá, as mudanças são ouvidas quando o som é gravado no FM1.',
   },
   virtualAnalog: {
     help: {
@@ -429,15 +429,14 @@ export default {
     decay: 'Decaimento',
     sustain: 'Sustentação',
     release: 'Liberação',
-    checking: 'Verificando o preset {{preset}} do FM1…',
     noProgram:
-      'Este som não está nos bancos A–D, então nenhum preset do FM1 o toca. Suas mudanças são ouvidas quando o som é gravado no FM1.',
+      'Este som não está nos bancos A–D. As mudanças são ouvidas quando ele é gravado no FM1.',
     noFirmware:
-      'Com o firmware da Baud Girl FM-1_086 ou posterior e o MIDI ligado, suas mudanças tocam no FM1 assim que você as faz. Até lá, elas são ouvidas quando o som é gravado no FM1.',
+      'O modo ao vivo exige o firmware da Baud Girl FM-1_086 ou posterior e o MIDI ligado. Até lá, as mudanças são ouvidas quando o som é gravado no FM1.',
     otherEngine:
-      'O preset {{preset}} do FM1 não é um preset Virtual Analog, então suas mudanças não são enviadas a ele. Elas são ouvidas quando o som é gravado no FM1.',
+      'O preset {{preset}} do FM1 não é Virtual Analog, então as mudanças não são enviadas. Elas são ouvidas quando o som é gravado no FM1.',
     readFailed:
-      'O FM1 não respondeu quando seu preset {{preset}} foi pedido, então suas mudanças não são enviadas a ele. Elas são ouvidas quando o som é gravado no FM1.',
+      'O FM1 não respondeu sobre o preset {{preset}}, então as mudanças não são enviadas. Elas são ouvidas quando o som é gravado no FM1.',
     presets: 'Predefinições de som',
     initPatch: 'Inicializar',
     initPatchHelp: 'Onda dente de serra simples, filtro aberto. Efeitos desligados.',
@@ -1080,7 +1079,7 @@ export default {
   },
   editor: {
     selectedVoiceNotice:
-      'Na V16, este som vai para a Voice selecionada na tela do FM1, e suas edições só chegam a ela na hora enquanto essa Voice está no canal MIDI 1 ou All. Para ouvi-lo daqui, selecione a Voice do canal {{channel}}.',
+      'Na V16, este som vai para a Voice selecionada na tela do FM1. As edições só tocam ao vivo no canal 1 ou All; para ouvi-lo, selecione a Voice do canal {{channel}}.',
     effectsSharedNotice:
       'No V16, estes são os efeitos do FM1, compartilhados pelas oito Voices. O FM1 não os guarda com este patch: pressione SAVE e escolha Globe no FM1 para mantê-los.',
     back: 'Voltar aos bancos',
@@ -1124,6 +1123,7 @@ export default {
     revert: 'Reverter ao salvo',
     revertHelp: 'Descartar edições e restaurar o som salvo.',
     compare: 'Comparar com o salvo',
+    showNotice: 'Mostrar aviso sobre o FM1',
     compareShort: 'Comparar',
     stopComparing: 'Parar de comparar e voltar às suas edições',
     comparingTitle: 'Tocando o som salvo',

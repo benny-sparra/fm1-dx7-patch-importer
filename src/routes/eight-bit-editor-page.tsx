@@ -31,7 +31,6 @@ import {
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
 import { BevelRadio } from '@/components/ui/bevel-radio'
-import { InfoNotice } from '@/components/ui/info-notice'
 import {
   RackPanelCollapseToggle,
   RackPanelCollapsibleBody,
@@ -41,6 +40,7 @@ import type { Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import { useFm1VaSoundControl } from '@/hooks/use-fm1-va-sound-control'
+import { useInfoToast } from '@/hooks/use-info-toast'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import type { MidiController } from '@/hooks/use-midi'
 import {
@@ -680,10 +680,22 @@ export function EightBitEditorPage({
   const drumScope = (options: ControlOptions = {}) => ({ ...options, scope: drumTitle })
   const envelopeOn = value('envelope') === 1
   const presetNumber = program === undefined ? '' : fm1VaPresetNumber(program)
+  // Says what plays on the FM1 as it changes, and why nothing does when nothing can.
+  const showNotice = useInfoToast(
+    liveStatus === 'checking'
+      ? null
+      : t(
+          liveStatus === 'live' || liveStatus === 'noFirmware'
+            ? `eightBit.${liveStatus}`
+            : `virtualAnalog.${liveStatus}`,
+          { preset: presetNumber },
+        ),
+  )
 
   return (
     <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-2.5 px-3 pt-2.5 pb-4 sm:px-5 lg:px-8">
       <PatchEditorHeader
+        onShowNotice={showNotice}
         canRedo={history.future.length > 0}
         canSync={liveStatus === 'live'}
         canUndo={history.past.length > 0}
@@ -740,20 +752,6 @@ export function EightBitEditorPage({
         saveMenuRef={saveMenuRef}
         syncState={syncState}
       />
-
-      {/* Says what plays on the FM1 as it changes, and why nothing does when nothing can. */}
-      <div role="status">
-        <InfoNotice>
-          <p>
-            {t(
-              liveStatus === 'live' || liveStatus === 'noFirmware'
-                ? `eightBit.${liveStatus}`
-                : `virtualAnalog.${liveStatus}`,
-              { preset: presetNumber },
-            )}
-          </p>
-        </InfoNotice>
-      </div>
 
       <div className="relative min-w-0">
         <div

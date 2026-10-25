@@ -1,4 +1,4 @@
-import { CheckCircle2, X } from 'lucide-react'
+import { CheckCircle2, Info, X } from 'lucide-react'
 import {
   createContext,
   type ReactNode,
@@ -11,13 +11,17 @@ import {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { cn } from '@/lib/utils'
 import { appendToast, removeToast, type ToastAction, type ToastMessage } from '@/lib/toast'
 
 const toastDuration = 4_500
 /** Long enough to read what happened and reach its action, such as Undo, from the keyboard. */
 const actionToastDuration = 10_000
+/** Information is a sentence or two the user may need to reread. */
+const infoToastDuration = 9_000
 
 type ToastContextValue = {
+  info: (message: string) => void
   success: (message: string, options?: { action?: ToastAction }) => void
 }
 
@@ -56,18 +60,29 @@ function ToastItem({ dismiss, toast }: { dismiss: (id: number) => void; toast: T
 
   useEffect(() => {
     if (paused) return
-    const duration = toast.action ? actionToastDuration : toastDuration
+    const duration = toast.action
+      ? actionToastDuration
+      : toast.kind === 'info'
+        ? infoToastDuration
+        : toastDuration
     const timeout = window.setTimeout(() => dismiss(toast.id), duration)
     return () => window.clearTimeout(timeout)
-  }, [dismiss, paused, toast.action, toast.id])
+  }, [dismiss, paused, toast.action, toast.id, toast.kind])
 
   return (
     <div
-      className="toast-surface pointer-events-auto flex w-full items-start gap-3 rounded-lg border border-emerald-400/25 bg-card px-4 py-3 text-foreground"
+      className={cn(
+        'toast-surface pointer-events-auto flex w-full items-start gap-3 rounded-lg border bg-card px-4 py-3 text-foreground',
+        toast.kind === 'info' ? 'border-sky-400/25' : 'border-emerald-400/25',
+      )}
       ref={itemRef}
       role="status"
     >
-      <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-emerald-400" />
+      {toast.kind === 'info' ? (
+        <Info aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-sky-400" />
+      ) : (
+        <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-emerald-400" />
+      )}
       <p className="min-w-0 flex-1 text-sm leading-5 font-semibold">{toast.message}</p>
       {toast.action ? (
         <button
@@ -109,7 +124,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }
     setToasts((current) => appendToast(current, toast))
   }, [])
-  const value = useMemo(() => ({ success }), [success])
+  const info = useCallback((message: string) => {
+    const toast: ToastMessage = { id: ++nextId.current, kind: 'info', message }
+    // The same note said again replaces the one showing: StrictMode runs the effect that says it
+    // twice in development, and the replay button can be pressed while it is still up.
+    setToasts((current) =>
+      appendToast(
+        current.filter((shown) => shown.kind !== 'info' || shown.message !== message),
+        toast,
+      ),
+    )
+  }, [])
+  const value = useMemo(() => ({ info, success }), [info, success])
 
   return (
     <ToastContext.Provider value={value}>

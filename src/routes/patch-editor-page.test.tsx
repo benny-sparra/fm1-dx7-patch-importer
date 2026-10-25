@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { type ComponentProps, useState } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -14,6 +14,7 @@ import { getEffectParameterDefinition, resolveOperatorParameterIndex } from '@/l
 import type { CopiedOperator } from '@/lib/operator-clipboard'
 import { capturedVirtualAnalogDistortionReply } from '@/test/fm1-va-captures'
 import { PatchEditorPage } from '@/routes/patch-editor-page'
+import { renderWithToasts } from '@/test/render-with-toasts'
 
 type EditorMidi = ComponentProps<typeof PatchEditorPage>['midi']
 
@@ -65,7 +66,7 @@ function setup(
   const onBack = vi.fn()
   const onSave = vi.fn()
   const browserBackRef: { current: (() => void) | null } = { current: null }
-  const view = render(
+  const view = renderWithToasts(
     <PatchEditorPage
       browserBackRef={browserBackRef}
       copiedOperator={null}
@@ -114,9 +115,26 @@ describe('PatchEditorPage MIDI paths', () => {
 
     expect(
       screen.getByText(
-        'On V16 this patch goes to the Voice selected on the FM1’s screen, and your edits reach it as you make them only while that Voice is on MIDI channel 1 or All. To hear it from here, select the Voice on channel 3.',
+        'On V16 this goes to the FM1’s selected Voice. Edits play live only on channel 1 or All; to hear it, select the Voice on channel 3.',
       ),
     ).toBeTruthy()
+  })
+
+  it('says the V16 note again from the header once its notification is dismissed', () => {
+    setup({ channel: 3, firmware: { identity: 'FM-1_016', kind: 'mvave' } })
+    const note = /^On V16 this goes to the FM1’s selected Voice/
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss notification' }))
+    expect(screen.queryByText(note)).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show FM1 note' }))
+
+    expect(screen.getByText(note)).toBeTruthy()
+  })
+
+  it('offers no note button on firmware with nothing to say', () => {
+    setup()
+
+    expect(screen.queryByRole('button', { name: 'Show FM1 note' })).toBeNull()
   })
 
   it('says which Voice the patch reaches in German', async () => {
@@ -811,7 +829,7 @@ describe('PatchEditorPage operator copy and paste', () => {
       sendVoice: vi.fn(async () => true),
       sysexAvailable: true,
     }
-    const view = render(<ClipboardHarness midi={midi} patch={firstPatch} />)
+    const view = renderWithToasts(<ClipboardHarness midi={midi} patch={firstPatch} />)
     await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
     return { midi, view }
   }
@@ -977,7 +995,7 @@ describe('PatchEditorPage operator copy and paste', () => {
       sysexAvailable: true,
     }
     const onBack = vi.fn()
-    render(
+    renderWithToasts(
       <PatchEditorPage
         copiedOperator={null}
         effects={new Uint8Array(24)}
@@ -1321,7 +1339,7 @@ const hardClipRecord = (
 /** Opens the editor on a patch with `record`, if any, as the FM1 named by `firmware`. */
 function renderWithRecord(firmware: Fm1Firmware, record?: Uint8Array) {
   const onSave = vi.fn()
-  render(
+  renderWithToasts(
     <PatchEditorPage
       copiedOperator={null}
       effects={new Uint8Array(24)}

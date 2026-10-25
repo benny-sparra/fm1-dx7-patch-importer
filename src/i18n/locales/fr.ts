@@ -360,9 +360,9 @@ export default {
     mono: 'Monophonique',
     initPatch: 'Initialiser',
     initPatchHelp: 'Le preset 8-Bit vide du FM1 lui-même. Effets coupés.',
-    live: 'L’enveloppe, le LFO et les effets jouent sur le FM1 dès que vous les changez. Le reste s’entend une fois le son écrit sur le FM1.',
+    live: 'L’enveloppe, le LFO et les effets jouent en direct. Le reste s’entend une fois le son écrit sur le FM1.',
     noFirmware:
-      'Avec le firmware de Baud Girl FM-1_096 ou plus récent et le MIDI activé, l’enveloppe, le LFO et les effets jouent sur le FM1 dès que vous les changez. D’ici là, vos modifications s’entendent une fois le son écrit sur le FM1.',
+      'Le direct demande le firmware de Baud Girl FM-1_096 ou plus récent et le MIDI activé. D’ici là, les modifications s’entendent une fois le son écrit sur le FM1.',
   },
   virtualAnalog: {
     help: {
@@ -436,15 +436,14 @@ export default {
     decay: 'Déclin',
     sustain: 'Maintien',
     release: 'Relâchement',
-    checking: 'Vérification du preset {{preset}} du FM1…',
     noProgram:
-      'Ce son n’est pas dans les banques A–D : aucun preset du FM1 ne le joue. Vos modifications s’entendent une fois le son écrit sur le FM1.',
+      'Ce son n’est pas dans les banques A–D. Les modifications s’entendent une fois le son écrit sur le FM1.',
     noFirmware:
-      'Avec le firmware de Baud Girl FM-1_086 ou plus récent et le MIDI activé, vos modifications jouent sur le FM1 dès que vous les faites. D’ici là, elles s’entendent une fois le son écrit sur le FM1.',
+      'Le direct demande le firmware de Baud Girl FM-1_086 ou plus récent et le MIDI activé. D’ici là, les modifications s’entendent une fois le son écrit sur le FM1.',
     otherEngine:
-      'Le preset {{preset}} du FM1 n’est pas un preset Virtual Analog : vos modifications ne lui sont pas envoyées. Elles s’entendent une fois le son écrit sur le FM1.',
+      'Le preset {{preset}} du FM1 n’est pas Virtual Analog : les modifications ne lui sont pas envoyées. Elles s’entendent une fois le son écrit sur le FM1.',
     readFailed:
-      'Le FM1 n’a pas répondu quand on lui a demandé son preset {{preset}} : vos modifications ne lui sont pas envoyées. Elles s’entendent une fois le son écrit sur le FM1.',
+      'Le FM1 n’a pas répondu pour son preset {{preset}} : les modifications ne lui sont pas envoyées. Elles s’entendent une fois le son écrit sur le FM1.',
     presets: 'Préréglages de son',
     initPatch: 'Initialiser',
     initPatchHelp: 'Simple onde en dents de scie, filtre ouvert. Effets coupés.',
@@ -1098,7 +1097,7 @@ export default {
   },
   editor: {
     selectedVoiceNotice:
-      'Sur la V16, ce son va à la Voice sélectionnée sur l’écran du FM1, et vos modifications ne l’atteignent en direct que si cette Voice est sur le canal MIDI 1 ou All. Pour l’entendre d’ici, sélectionnez la Voice du canal {{channel}}.',
+      'Sur la V16, ce son va à la Voice sélectionnée sur l’écran du FM1. Les modifications ne jouent en direct que sur le canal 1 ou All ; pour l’entendre, sélectionnez la Voice du canal {{channel}}.',
     effectsSharedNotice:
       'Sur V16, ce sont les effets du FM1, partagés par les huit Voices. Le FM1 ne les conserve pas avec ce patch : appuyez sur SAVE et choisissez Globe sur le FM1 pour les garder.',
     back: 'Retour aux banques',
@@ -1142,6 +1141,7 @@ export default {
     revert: 'Rétablir la version enregistrée',
     revertHelp: 'Abandonner les modifications et restaurer le son enregistré.',
     compare: 'Comparer avec la version enregistrée',
+    showNotice: 'Afficher la note sur le FM1',
     compareShort: 'Comparer',
     stopComparing: 'Arrêter la comparaison et revenir à vos modifications',
     comparingTitle: 'Lecture du son enregistré',

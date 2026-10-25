@@ -305,9 +305,9 @@ export default {
     mono: '单音',
     initPatch: '初始化音色',
     initPatchHelp: 'FM1 自带的空白 8-Bit 预设。效果关闭。',
-    live: '包络、LFO 和效果会在你更改时立即在 FM1 上播放。其他设置要等音色写入 FM1 后才能听到。',
+    live: '包络、LFO 和效果会实时播放。其他设置要等音色写入 FM1 后才能听到。',
     noFirmware:
-      '使用 Baud Girl 固件 FM-1_096 或更高版本并打开 MIDI 后，包络、LFO 和效果会立即在 FM1 上播放。在此之前，要等音色写入 FM1 后才能听到你的更改。',
+      '实时播放需要 Baud Girl 固件 FM-1_096 或更高版本并打开 MIDI。在此之前，要等音色写入 FM1 后才能听到更改。',
   },
   virtualAnalog: {
     help: {
@@ -376,14 +376,12 @@ export default {
     decay: '衰减',
     sustain: '延音',
     release: '释音',
-    checking: '正在检查 FM1 的预设 {{preset}}…',
-    noProgram: '此音色不在 A–D 音色库中，FM1 上没有播放它的预设。音色写入 FM1 后才能听到你的更改。',
+    noProgram: '此音色不在 A–D 音色库中，更改要等音色写入 FM1 后才能听到。',
     noFirmware:
-      '使用 Baud Girl 固件 FM-1_086 或更高版本并打开 MIDI 后，你的更改会立即在 FM1 上播放。在此之前，要等音色写入 FM1 后才能听到。',
+      '实时播放需要 Baud Girl 固件 FM-1_086 或更高版本并打开 MIDI。在此之前，要等音色写入 FM1 后才能听到更改。',
     otherEngine:
-      'FM1 的预设 {{preset}} 不是 Virtual Analog 预设，因此不会向它发送你的更改。音色写入 FM1 后才能听到。',
-    readFailed:
-      '向 FM1 请求预设 {{preset}} 时它没有回应，因此不会向它发送你的更改。音色写入 FM1 后才能听到。',
+      'FM1 的预设 {{preset}} 不是 Virtual Analog 预设，因此不会发送更改。音色写入 FM1 后才能听到。',
+    readFailed: 'FM1 对预设 {{preset}} 没有回应，因此不会发送更改。音色写入 FM1 后才能听到。',
     presets: '声音预设',
     initPatch: '初始化音色',
     initPatchHelp: '简单的锯齿波，滤波器全开，效果关闭。',
@@ -981,7 +979,7 @@ export default {
   },
   editor: {
     selectedVoiceNotice:
-      '在 V16 上，此音色会发送到 FM1 屏幕上选中的 Voice；只有当该 Voice 设在 MIDI 通道 1 或 All 时，你的编辑才会实时生效。要在这里听到它，请选中通道 {{channel}} 上的 Voice。',
+      '在 V16 上，此音色会发送到 FM1 屏幕上选中的 Voice，只有它设在通道 1 或 All 时编辑才会实时生效。要在这里听到，请选中通道 {{channel}} 上的 Voice。',
     effectsSharedNotice:
       '在 V16 上，这些是 FM1 的效果，由全部八个 Voice 共用。FM1 不会把它们与此音色一起保存：在 FM1 上按 SAVE 并选择 Globe 即可保留。',
     back: '返回音色库',
@@ -1025,6 +1023,7 @@ export default {
     revert: '还原到已保存版本',
     revertHelp: '放弃编辑并恢复已保存的音色。',
     compare: '与已保存版本比较',
+    showNotice: '显示 FM1 提示',
     compareShort: '比较',
     stopComparing: '停止比较并返回你的编辑',
     comparingTitle: '正在播放已保存的音色',
