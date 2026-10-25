@@ -5,7 +5,7 @@ For PR #364, on the orange FM1 (stock V16). Tick each step as you go.
 ## Before you start
 
 1. Connect the orange FM1 to the Mac with USB.
-2. Open the editor from the dev server (`https://127.0.0.1:5174`).
+2. Open the editor from a dev server running this PR's branch, not `main`'s.
 3. Leave **MIDI offline** for now.
 
 ## Test 1: receive a bank from the FM1
