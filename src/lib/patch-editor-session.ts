@@ -107,7 +107,6 @@ export class PatchEditorSession {
   private readonly listeners = new Set<() => void>()
   private readonly sync: PatchSyncCoordinator
   private active = true
-  private editStarted = false
   private gestureStart: EditorHistory | null = null
   /** The revision when the open gesture began, which a whole-voice send waits on. */
   private gestureRevision = 0
@@ -533,10 +532,6 @@ export class PatchEditorSession {
 
     if (!parametersMatch(current.present, next.present)) {
       this.revision += 1
-      if (!this.editStarted) {
-        this.editStarted = true
-        trackAnalyticsEvent({ name: 'patch_edit_started' })
-      }
     }
     this.update({ history: next })
     return true

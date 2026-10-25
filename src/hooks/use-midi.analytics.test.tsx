@@ -46,19 +46,15 @@ afterEach(() => {
 })
 
 describe('useMidi connection analytics', () => {
-  it('reports a successful manual connection without exposing port identity', async () => {
+  it('sends no analytics event for a successful manual connection', async () => {
     const track = vi.fn()
     window.umami = { track }
     const { result } = renderHook(() => useMidi())
 
     await act(() => result.current.connectMidi())
 
-    expect(track).toHaveBeenCalledOnce()
-    expect(track).toHaveBeenCalledWith('midi_connected', {
-      method: 'manual',
-      output: 'missing',
-      sysex: 'enabled',
-    })
+    expect(result.current.midiAccess).toBe(true)
+    expect(track).not.toHaveBeenCalled()
   })
 
   it('exposes when a successful MIDI connection has no SysEx access', async () => {
@@ -89,7 +85,7 @@ describe('useMidi connection analytics', () => {
     expect(result.current.error).toBe('permission_denied')
   })
 
-  it('attempts and reports automatic reconnection only once in Strict Mode', async () => {
+  it('attempts automatic reconnection only once in Strict Mode', async () => {
     localStorage.setItem('fm1-midi-auto-connect', 'true')
     const track = vi.fn()
     window.umami = { track }
@@ -97,13 +93,8 @@ describe('useMidi connection analytics', () => {
 
     renderHook(() => useMidi(), { wrapper })
 
-    await waitFor(() => expect(track).toHaveBeenCalledOnce())
-    expect(webMidi.enable).toHaveBeenCalledOnce()
-    expect(track).toHaveBeenCalledWith('midi_connected', {
-      method: 'automatic',
-      output: 'missing',
-      sysex: 'enabled',
-    })
+    await waitFor(() => expect(webMidi.enable).toHaveBeenCalledOnce())
+    expect(track).not.toHaveBeenCalled()
   })
 })
 
