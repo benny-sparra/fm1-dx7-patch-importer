@@ -308,6 +308,36 @@
     font-family: 'VT323', 'VT323 Metrics Fallback', ui-monospace, monospace;
   }
 
+  /* Figures in seven segments; DSEG7 holds only digits, so any other character falls to VT323. */
+  .font-seven-segment {
+    font-family: 'DSEG7', 'VT323', 'VT323 Metrics Fallback', ui-monospace, monospace;
+  }
+
+  /*
+   * A readout with data-ghost shows the unlit segments behind its figures: the ghost text (every
+   * digit as an 8, from segmentGhost) sits under the live text in a dim share of its colour, so
+   * each readout and a disabled one dim together. isolation keeps the ghost above the element's
+   * own background.
+   */
+  .font-seven-segment[data-ghost] {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .font-seven-segment[data-ghost]::before {
+    content: attr(data-ghost);
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    padding: inherit;
+    overflow: hidden;
+    color: color-mix(in srgb, currentColor 26%, transparent);
+    text-align: inherit;
+    text-shadow: none;
+    white-space: pre;
+    pointer-events: none;
+  }
+
   .patch-editor-page :is(select, details) {
     font-family: 'VT323', 'VT323 Metrics Fallback', ui-monospace, monospace;
   }

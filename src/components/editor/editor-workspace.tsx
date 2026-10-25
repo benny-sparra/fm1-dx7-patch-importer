@@ -21,6 +21,7 @@ import {
 } from '@/lib/fm1-parameters'
 import type { PatchSyncState } from '@/lib/patch-sync-coordinator'
 import { rangeStyle } from '@/lib/range-style'
+import { segmentGhost } from '@/lib/segment-ghost'
 import { cn } from '@/lib/utils'
 
 const feedbackMax = getGlobalParameterDefinition('global.feedback').max
@@ -343,7 +344,10 @@ export function AlgorithmPanel({
             aria-label={t('ui.chooseAlgorithm', { number: algorithm + 1 })}
             className="crt-inset flex cursor-pointer list-none items-center gap-2 bg-[var(--crt-bg-1)] py-0.5 pr-2 pl-3 transition-colors hover:bg-[var(--crt-bg-head)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
           >
-            <span className="font-vt323 text-[30px] leading-none text-[var(--crt-led)] [text-shadow:0_0_10px_var(--crt-led-glow)]">
+            <span
+              className="font-seven-segment text-[30px] leading-none text-[var(--crt-led)] [text-shadow:0_0_10px_var(--crt-led-glow)]"
+              data-ghost={segmentGhost(String(algorithm + 1).padStart(2, '0'))}
+            >
               {String(algorithm + 1).padStart(2, '0')}
             </span>
             <ChevronDown className="size-4 shrink-0 text-[var(--crt-acc-lt)] transition-transform group-open:rotate-180 motion-reduce:transition-none" />
@@ -427,7 +431,10 @@ export function AlgorithmPanel({
           type="range"
           value={feedback}
         />
-        <output className="font-vt323 text-right text-xl leading-none text-[var(--crt-led)]">
+        <output
+          className="font-seven-segment text-right text-xl leading-none text-[var(--crt-led)]"
+          data-ghost={segmentGhost(String(feedback))}
+        >
           {feedback}
         </output>
       </div>
@@ -539,7 +546,7 @@ export function OperatorIdentity({
   return (
     <span className="@container/operator-head flex min-w-0 flex-1 items-center gap-1.5">
       <span
-        className="font-vt323 w-4 shrink-0 text-center text-[22px] leading-none"
+        className="font-seven-segment w-4 shrink-0 text-center text-[22px] leading-none"
         style={{ color: isSelected ? 'var(--crt-ink)' : operatorColors[operator - 1] }}
       >
         {operator}
@@ -815,7 +822,10 @@ export function OperatorRack({
                           <span className="block truncate text-[10px] tracking-[0.1em] text-[var(--crt-ink-4)]">
                             R{point + 1}/L{point + 1}
                           </span>
-                          <span className="font-vt323 block text-[17px] leading-tight text-[var(--crt-led)]">
+                          <span
+                            className="font-seven-segment block text-[17px] leading-tight text-[var(--crt-led)]"
+                            data-ghost={segmentGhost(`${rate}/${levels[point]}`)}
+                          >
                             {rate}/{levels[point]}
                           </span>
                         </span>
@@ -829,7 +839,10 @@ export function OperatorRack({
                           key={label}
                         >
                           <span>{label}</span>
-                          <span className="font-vt323 max-w-full truncate text-[15px] leading-none text-[var(--crt-ink)]">
+                          <span
+                            className="font-seven-segment max-w-full truncate text-[15px] leading-none text-[var(--crt-ink)]"
+                            data-ghost={segmentGhost(String(value))}
+                          >
                             {value}
                           </span>
                         </span>
@@ -872,7 +885,10 @@ export function OperatorRack({
                     />
                   ) : null}
                 </span>
-                <output className="font-vt323 text-[22px] leading-[1.2] text-[var(--crt-led)] [text-shadow:0_0_8px_var(--crt-led-glow)]">
+                <output
+                  className="font-seven-segment text-[22px] leading-[1.2] text-[var(--crt-led)] [text-shadow:0_0_8px_var(--crt-led-glow)]"
+                  data-ghost={segmentGhost(String(output))}
+                >
                   {output}
                 </output>
               </div>

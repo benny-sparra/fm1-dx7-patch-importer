@@ -5,10 +5,12 @@ import { useTranslation } from 'react-i18next'
 import '@/i18n/editor-help'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { SegmentGhost } from '@/components/ui/segment-ghost'
 import { Switch } from '@/components/ui/switch'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { rotaryControlAngle } from '@/lib/editor-visuals'
 import { rangeStyle } from '@/lib/range-style'
+import { segmentGhost } from '@/lib/segment-ghost'
 import { cn } from '@/lib/utils'
 
 const lfoWaveKeys = [
@@ -24,7 +26,7 @@ const lfoWaveKeys = [
 const captionClass = 'text-[11px] font-normal tracking-[0.1em] text-[var(--crt-ink-3)] uppercase'
 
 /** An LED readout: the amber VT323 figures every value on the rack uses. */
-const ledClass = 'font-vt323 text-[var(--crt-led)]'
+const ledClass = 'font-seven-segment text-[var(--crt-led)]'
 
 /** A sunken field — selects, number entry and the wave picker's trigger. */
 const fieldSurfaceClass =
@@ -301,12 +303,20 @@ export function RotaryParameterControl({
       {/* The readout takes a typed value, so the knob can be set without a drag (WCAG 2.5.7). The
           label behind the field sizes it, and shows a formatted value, such as a cutoff in hertz,
           until the field is focused for editing in the knob's own steps. */}
-      <span className="grid border border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)]">
+      <span className="group grid border border-[var(--crt-line-dk)] bg-[var(--crt-bg-1)]">
+        <SegmentGhost
+          className={cn(
+            'px-1.5 py-0.5 text-center text-[19px]',
+            disabled ? 'text-[var(--crt-ink-4)]' : 'text-[var(--crt-led)]',
+            isFormatted && 'group-focus-within:invisible',
+          )}
+          text={isFormatted ? displayValue : (draft ?? String(value))}
+        />
         <input
           aria-label={name}
           aria-describedby={isFormatted ? valueLabelId : undefined}
           className={cn(
-            'peer font-vt323 w-0 min-w-full [appearance:textfield] bg-transparent px-1.5 py-0.5 text-center text-[19px] outline-none [grid-area:1/1] focus:bg-[var(--crt-sel-bg)] focus-visible:outline-1 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
+            'peer font-seven-segment w-0 min-w-full [appearance:textfield] bg-transparent px-1.5 py-0.5 text-center text-[19px] outline-none [grid-area:1/1] focus:bg-[var(--crt-sel-bg)] focus-visible:outline-1 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
             disabled
               ? 'text-[var(--crt-ink-4)]'
               : isFormatted
@@ -340,7 +350,7 @@ export function RotaryParameterControl({
         <span
           aria-hidden="true"
           className={cn(
-            'font-vt323 pointer-events-none min-w-11 px-1.5 py-0.5 text-center text-[19px] whitespace-nowrap [grid-area:1/1]',
+            'font-seven-segment pointer-events-none min-w-11 px-1.5 py-0.5 text-center text-[19px] whitespace-nowrap [grid-area:1/1]',
             isFormatted ? 'peer-focus:invisible' : 'invisible',
             disabled ? 'text-[var(--crt-ink-4)]' : 'text-[var(--crt-led)]',
           )}
@@ -391,7 +401,10 @@ export function SliderParameterControl({
           type="range"
           value={value}
         />
-        <output className={cn(ledClass, 'min-w-7 shrink-0 text-right text-lg')}>
+        <output
+          className={cn(ledClass, 'min-w-7 shrink-0 text-right text-lg')}
+          data-ghost={segmentGhost(valueLabel(value))}
+        >
           {valueLabel(value)}
         </output>
       </span>
@@ -525,7 +538,10 @@ export function FaderParameterControl({
           style={{ bottom: `calc(0.25rem + (100% - 0.5rem) * ${percent / 100})` }}
         />
       </div>
-      <output className={cn(ledClass, 'min-w-7 text-center text-2xl', disabled && 'opacity-40')}>
+      <output
+        className={cn(ledClass, 'min-w-7 text-center text-2xl', disabled && 'opacity-40')}
+        data-ghost={segmentGhost(displayValue)}
+      >
         {displayValue}
       </output>
     </div>
@@ -673,7 +689,7 @@ export function ParameterControl({
           aria-label={accessibleLabel ?? label}
           className={cn(
             fieldFrameClass,
-            'font-vt323 text-base text-[var(--crt-led)] disabled:opacity-50',
+            'font-seven-segment text-base text-[var(--crt-led)] disabled:opacity-50',
           )}
           disabled={disabled}
           id={fieldId}
@@ -749,7 +765,7 @@ export function TypedValueControl({
           autoComplete="off"
           className={cn(
             fieldFrameClass,
-            'font-vt323 w-28 justify-self-start text-base text-[var(--crt-led)]',
+            'font-seven-segment w-28 justify-self-start text-base text-[var(--crt-led)]',
           )}
           id={fieldId}
           inputMode="decimal"
