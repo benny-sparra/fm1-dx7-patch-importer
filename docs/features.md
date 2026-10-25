@@ -23,7 +23,7 @@ The full feature list. The [README](../README.md) has the short version,
 - Search every bank at once, and reorder patches with pointer or keyboard drag-and-drop
 - Find duplicate patches: the patches in your banks whose voice settings match, renamed copies included, with a way to go to each one
 - Search your saved banks and the 76 bundled DX7 catalog banks at the same time, play any match through the FM1 edit buffer, and copy it into a slot of your own, or double-click it to copy it and open it in the editor
-- Export one bank as `.syx`, or every loaded bank as a `.zip` of SysEx files for Dexed, a DX7, or other DX7 tools (DX7 data only, without FM1 effects)
+- Export one bank as `.syx`, or every loaded bank as a `.zip` of SysEx files for Dexed, a DX7, or other DX7 tools
 - Edit all standard DX7 voice parameters with live MIDI updates
 - Compare the six operators as table rows under shared column headings on a wide window, and open any one in place beneath its row with its full controls; narrower windows show them as a rack of columns
 - Type an operator's ratio, or its fixed frequency in hertz, and Coarse and Fine move to the nearest setting the FM1 can play

@@ -1500,7 +1500,6 @@ export default {
   },
   backup: {
     menuOtherFiles: 'Outros arquivos',
-    sysexContents: 'Só dados DX7, sem efeitos FM1',
     menuHeading: 'Backup',
     download: 'Baixar backup',
     restore: 'Restaurar de um backup…',

@@ -762,8 +762,7 @@ open everything an earlier release could have saved.
   its contents in a positioned element too, or hidden text in a folded section stretches the body.
 - The patch-bank header's **Library actions** menu groups its items under headings only where a
   heading holds more than one item, and keeps each label on one line at the menu's width in
-  English. An item has a line under it only to say what its label cannot, such as the SysEx
-  download leaving out FM1 effects or the date of the last backup, never to restate the label;
+  English. An item has a line under it only to say what its label cannot, such as the date of the last backup, never to restate the label;
   that line fits one line too, and the item lines its icon up with the label's line
   (`menuItemWithHintClassName`). An item
   that replaces patches, such as **Reset to factory patches…**, goes last in the danger colour,

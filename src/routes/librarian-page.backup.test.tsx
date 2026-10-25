@@ -104,9 +104,7 @@ describe('LibrarianPage backup', () => {
     expect(within(backup).getByRole('button', { name: 'Download backup' })).toBeTruthy()
     expect(within(backup).getByRole('button', { name: 'Restore from backup…' })).toBeTruthy()
     const zip = within(otherFiles).getByRole('button', { name: 'Download SysEx banks (.zip)' })
-    expect(document.getElementById(zip.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
-      'DX7 data only, no FM1 effects',
-    )
+    expect(zip.getAttribute('aria-describedby')).toBeNull()
     expect(
       within(otherFiles).getByRole('button', { name: 'Import Baud Girl presets…' }),
     ).toBeTruthy()

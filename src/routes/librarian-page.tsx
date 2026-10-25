@@ -385,7 +385,6 @@ export function LibrarianPage({
   const lastBackupId = useId()
   const sendNoteId = useId()
   const sendBlockedReasonId = useId()
-  const sysexContentsId = useId()
   const sendButtonRef = useRef<HTMLButtonElement>(null)
   // The bank a bank menu asked to delete or import over, kept while its dialog is open with the
   // menu toggle that focus returns to.
@@ -1246,9 +1245,7 @@ export function LibrarianPage({
                   {t('backup.menuOtherFiles')}
                 </p>
                 <button
-                  aria-describedby={sysexContentsId}
-                  aria-label={t('banks.downloadAll')}
-                  className={menuItemWithHintClassName}
+                  className={menuItemClassName}
                   disabled={library.loadedBanks.length === 0}
                   onClick={() => {
                     allBanksMenuRef.current?.removeAttribute('open')
@@ -1256,13 +1253,8 @@ export function LibrarianPage({
                   }}
                   type="button"
                 >
-                  <FileMusic className={menuHintedIconClassName} />
-                  <span className="grid">
-                    <span>{t('banks.downloadAll')}</span>
-                    <span className="text-xs text-[var(--crt-ink-3)]" id={sysexContentsId}>
-                      {t('backup.sysexContents')}
-                    </span>
-                  </span>
+                  <FileMusic className="size-4 shrink-0" />
+                  {t('banks.downloadAll')}
                 </button>
                 <button
                   className={menuItemClassName}

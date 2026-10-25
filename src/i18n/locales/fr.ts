@@ -1518,7 +1518,6 @@ export default {
   },
   backup: {
     menuOtherFiles: 'Autres fichiers',
-    sysexContents: 'Données DX7 seules, sans effets FM1',
     menuHeading: 'Sauvegarde',
     download: 'Télécharger une sauvegarde',
     restore: 'Restaurer une sauvegarde…',

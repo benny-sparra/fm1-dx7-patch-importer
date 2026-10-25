@@ -1369,7 +1369,6 @@ export default {
   },
   backup: {
     menuOtherFiles: '其他文件',
-    sysexContents: '仅含 DX7 数据，不含 FM1 效果',
     menuHeading: '备份',
     download: '下载备份',
     restore: '从备份恢复…',
