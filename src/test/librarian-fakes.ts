@@ -1,3 +1,5 @@
+import { screen, within } from '@testing-library/react'
+import type { UserEvent } from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { vi } from 'vitest'
 
@@ -12,6 +14,17 @@ const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&
 /** A patch slot's accessible name: it names the slot code the card shows, then the patch. */
 export const sendSlotName = (name: string) =>
   new RegExp(`^Send [A-Z]?\\d+ ${escapeRegExp(name)} to FM1$`)
+
+/**
+ * Presses the bank's **Send to FM1**, then the one in the destination instructions it opens, and
+ * returns those instructions, which stay open while the bank is sent.
+ */
+export async function sendBankThroughGuide(user: UserEvent) {
+  await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+  const guide = screen.getByRole('dialog', { name: 'Choose the destination bank on your FM1' })
+  await user.click(within(guide).getByRole('button', { name: 'Send to FM1' }))
+  return guide
+}
 
 /** The name of a patch slot's drag grip. */
 export const reorderSlotName = (name: string) =>

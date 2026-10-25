@@ -5,8 +5,9 @@ export default {
       'Lorsque le FM1 est prêt, lancez le transfert SysEx et terminez l’importation sur l’appareil.',
     bankClose: 'Fermer les instructions de sélection',
     bankStep1: 'Attendez que l’écran de sélection de banque apparaisse sur le FM1.',
-    bankStep2: 'Tournez le bouton 1, 2, 3 ou 4 pour choisir la banque A, B, C ou D.',
-    bankStep3: 'Le FM1 enregistre automatiquement les 32 sons après un court délai.',
+    bankStep2:
+      'Tournez le bouton 1, 2, 3 ou 4 pour choisir la banque A, B, C ou D, ou tournez SELECT vers la gauche pour annuler.',
+    bankStep3: 'Le FM1 enregistre les 32 sons dès que vous choisissez une banque.',
     bankFm1VaStep1:
       'Le FM1 demande « Replace Bank A? » et commence sur la banque A, quelle que soit la banque envoyée.',
     bankFm1VaStep2:
@@ -25,7 +26,6 @@ export default {
       'Écran du FM1 sous le firmware de Baud Girl demandant « Replace Bank A? », avec Cancel et Replace',
     bankImage:
       'Écran du FM1 sous le firmware de M-VAVE affichant « 32 Voice Save To … » au-dessus des banques A, B, C et D',
-    dontShow: 'Ne plus afficher pendant cette session',
     midiTitle: 'Connectez le MIDI pour envoyer cette banque',
     midiIntro: 'Le FM1 doit être connecté comme sortie MIDI avant l’envoi d’une banque.',
     midiClose: 'Fermer le message de connexion MIDI',

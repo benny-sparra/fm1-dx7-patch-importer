@@ -4,8 +4,9 @@ export default {
     bankIntro: 'When the FM1 is ready, start the SysEx transfer and finish the import on the unit.',
     bankClose: 'Close bank selection instructions',
     bankStep1: 'Wait for the bank selection screen to appear on the FM1 display.',
-    bankStep2: 'Turn Knob 1, 2, 3 or 4 to choose destination bank A, B, C or D.',
-    bankStep3: 'The FM1 saves the 32 patches automatically after a brief delay.',
+    bankStep2:
+      'Turn Knob 1, 2, 3 or 4 to choose destination bank A, B, C or D, or turn SELECT left to cancel.',
+    bankStep3: 'The FM1 saves the 32 patches as soon as you choose a bank.',
     bankFm1VaStep1: 'The FM1 asks “Replace Bank A?” and starts on bank A, whichever bank you send.',
     bankFm1VaStep2: 'Turn ALGORITHM until the question names the destination bank: A, B, C or D.',
     bankFm1VaStep3:
@@ -21,7 +22,6 @@ export default {
       'FM1 display running Baud Girl’s firmware, asking “Replace Bank A?” with Cancel and Replace',
     bankImage:
       'FM1 display running M-VAVE’s firmware, showing “32 Voice Save To …” above banks A, B, C and D',
-    dontShow: 'Don’t show me again this session',
     midiTitle: 'Connect MIDI to send this bank',
     midiIntro: 'The FM1 must be connected as a MIDI output before a bank of patches can be sent.',
     midiClose: 'Close MIDI connection message',

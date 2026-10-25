@@ -4,8 +4,8 @@ export default {
     bankIntro: 'FM1 准备就绪后，开始 SysEx 传输并在设备上完成导入。',
     bankClose: '关闭音色库选择说明',
     bankStep1: '等待 FM1 屏幕显示音色库选择界面。',
-    bankStep2: '转动旋钮 1、2、3 或 4，选择目标音色库 A、B、C 或 D。',
-    bankStep3: '稍等片刻，FM1 会自动保存全部 32 个音色。',
+    bankStep2: '转动旋钮 1、2、3 或 4，选择目标音色库 A、B、C 或 D；向左转动 SELECT 可取消。',
+    bankStep3: '选定音色库后，FM1 会立即保存全部 32 个音色。',
     bankFm1VaStep1: 'FM1 会询问“Replace Bank A?”，并且无论你发送哪个音色库，都会先停在音色库 A。',
     bankFm1VaStep2: '转动 ALGORITHM，直到提示中显示目标音色库：A、B、C 或 D。',
     bankFm1VaStep3:
@@ -20,7 +20,6 @@ export default {
     bankFm1VaImage:
       '运行 Baud Girl 固件的 FM1 显示屏，询问“Replace Bank A?”，下方有 Cancel 和 Replace',
     bankImage: '运行 M-VAVE 固件的 FM1 显示屏，显示“32 Voice Save To …”，下方是音色库 A、B、C 和 D',
-    dontShow: '本次会话中不再显示',
     midiTitle: '连接 MIDI 以发送此音色库',
     midiIntro: '必须先将 FM1 连接为 MIDI 输出，才能发送音色库。',
     midiClose: '关闭 MIDI 连接提示',
