@@ -191,7 +191,6 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               }
             >
               <MidiConnectActions midi={midi} />
-              <MidiActivityLeds midi={midi} />
               {/* On a phone the badge and the panic take the last line, so the MIDI switch and the
                   keyboard keep one row. From the small breakpoint the line dissolves into the row,
                   and the panic follows the keyboard. */}
@@ -205,6 +204,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                   <MidiPanicButton midi={midi} />
                 </span>
               </div>
+              <MidiActivityLeds midi={midi} />
               <PianoKeyboard midi={midi} />
             </div>
 

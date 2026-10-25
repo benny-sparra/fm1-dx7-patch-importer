@@ -918,17 +918,6 @@ export default {
     firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca 或 SLOOP {{identity}}',
-    firmwareEditBuffer: '你试听的音色会进入 FM1 的编辑缓冲区。',
-    firmwareSharedEffects: '在 V16 上，所有 Voice 共用效果，因此只有在编辑器中修改效果时才会发送。',
-    firmwareV16Voice:
-      '请在 FM1 上选中音符通道上的 Voice。只有它监听通道 1 或 All 时，实时修改才会传到它。',
-    firmwareParameterChanges:
-      '你试听的音色会以参数变化的方式发送，因此 FM1 绝不会把它们保存到所选预设上。',
-    firmwareIgnoresPatches: 'Felucca 会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
-    firmwareFeluccaOrSloopIgnoresPatches:
-      'Felucca 和 SLOOP 都会报告这个名称。两者都会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',
-    firmwareOfficialOpenSends:
-      'M-VAVE 的 Open 固件会演奏你弹的音符，你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
     firmwareNeedsInput: '请把 FM1 选为监听输入，这样编辑器才能询问它运行的固件。',
     noteChannel: '音符通道',
     fxChannel: '效果通道',

@@ -60,7 +60,7 @@ send the file with `amidi`, using the port that `amidi -l` lists for the FM1:
 amidi -p hw:2,0,0 -s bank.syx
 ```
 
-Beside **MIDI online**, two activity lights flicker like the MIDI light on a synth's panel: **IN** as a message arrives from the MIDI input, and **OUT** as the app sends one. They leave out MIDI clock and active sensing, and are hidden on narrow phone screens. The **MIDI log** in the footer lists recent messages the app sent and received. **Download log** saves it as a text file, with the full data of each message and your browser version, to attach to a bug report. The file stays on your computer until you share it.
+Beside the **Keyboard** button, two activity lights flicker like the MIDI light on a synth's panel: **IN** as a message arrives from the MIDI input, and **OUT** as the app sends one. They leave out MIDI clock and active sensing, and are hidden on narrow phone screens. The **MIDI log** in the footer lists recent messages the app sent and received. **Download log** saves it as a text file, with the full data of each message and your browser version, to attach to a bug report. The file stays on your computer until you share it.
 
 The selected bank in the browser does not determine the hardware destination—the final destination is chosen on the FM1 itself.
 
@@ -87,8 +87,8 @@ selected preset, which it drops when you change preset. They arrive in well unde
 M-VAVE's V16 moved the FM1's effect controls to other MIDI controllers, and the app sends them
 there. On V16 every Voice shares one set of effects rather than each preset keeping its own, so
 playing a patch from its slot leaves the FM1's effects as they are. A patch's effects go to the FM1
-only when you change them in the editor, and the **FM1 firmware** setting says so. Press **SAVE**
-and choose **Globe** on the FM1 to keep them; the editor's Effects panel says the same on V16. V16 plays eight Voices, each on its own MIDI channel, and the firmware badge's tooltip says so. A patch the app sends goes to the Voice selected on the FM1's screen, and edits in the editor reach it as you make them only while that Voice is on channel 1 or All, so the editor says so on V16, and so does the firmware setting under MIDI settings: select the Voice on the app's note channel to hear the patch you are editing. Choose the channel of the Voice you want in the **Note channel** picker in the header (the **Ch** box beside the MIDI switch, also in **Settings**), then click a patch. Patches still reach V16's edit buffer. To keep a
+only when you change them in the editor. Press **SAVE**
+and choose **Globe** on the FM1 to keep them; the editor's Effects panel says the same on V16. V16 plays eight Voices, each on its own MIDI channel, and the firmware badge's tooltip says so. A patch the app sends goes to the Voice selected on the FM1's screen, and edits in the editor reach it as you make them only while that Voice is on channel 1 or All, so the editor says so on V16: select the Voice on the app's note channel to hear the patch you are editing. Choose the channel of the Voice you want in the **Note channel** picker in the header (the **Ch** box beside the MIDI switch, also in **Settings**), then click a patch. Patches still reach V16's edit buffer. To keep a
 patch there, open **SAVE** from one of the FM1's voice editing pages, such as OSC, and choose
 **Preset**: from the preset screen or GLOBE, SAVE offers only ALL and Globe. V16 can also send a bank back to the library: connect the FM1 by USB, choose **Receive from
 the FM1…** in a bank's menu or **Library actions**, and choose **Next** so the app is listening

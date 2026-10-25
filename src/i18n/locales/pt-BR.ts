@@ -1013,19 +1013,6 @@ export default {
     firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca ou SLOOP {{identity}}',
-    firmwareEditBuffer: 'Os sons que você toca vão para o buffer de edição do FM1.',
-    firmwareSharedEffects:
-      'No V16, todas as Voices compartilham os efeitos, então eles só são enviados quando você os altera no editor.',
-    firmwareV16Voice:
-      'Selecione no FM1 a Voice do canal de notas. As edições ao vivo só chegam a ela enquanto ela escuta no canal 1 ou All.',
-    firmwareParameterChanges:
-      'Os sons que você toca são enviados como mudanças de parâmetros, para que o FM1 nunca os salve sobre o preset selecionado.',
-    firmwareIgnoresPatches:
-      'O Felucca toca suas notas, mas ignora sons DX7, bancos e os controles de efeito.',
-    firmwareFeluccaOrSloopIgnoresPatches:
-      'O Felucca e o SLOOP informam o mesmo nome. Os dois tocam suas notas, mas ignoram sons DX7, bancos e os controles de efeito.',
-    firmwareOfficialOpenSends:
-      'O firmware Open da M-VAVE toca suas notas, e um som em que você clica ou que edita vai para a faixa do canal de notas quando essa faixa usa DX7. Ele ignora bancos DX7, e os controles de efeito não enviam nada, porque ele os trataria como mudanças nas faixas.',
     firmwareNeedsInput:
       'Escolha o FM1 como entrada de monitoração para que o editor possa perguntar qual firmware ele usa.',
     noteChannel: 'Canal de notas',

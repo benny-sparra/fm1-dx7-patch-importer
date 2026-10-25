@@ -88,80 +88,13 @@ describe('MidiConnectActions', () => {
 })
 
 describe('MidiSettingsMenu firmware', () => {
-  it('names M-VAVE firmware and says patches go to the edit buffer', () => {
-    renderSettings({ identity: 'FM-1_015', kind: 'mvave' })
-
-    expect(screen.getByText('M-VAVE FM-1_015')).toBeTruthy()
-    expect(screen.getByText('Patches you play go to the FM1’s edit buffer.')).toBeTruthy()
-  })
-
-  it('says V16’s Voices share the effects, so they go only as they are edited', () => {
+  it('names the firmware without a paragraph about what it does with patches', () => {
     renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
 
-    expect(screen.getByText('Patches you play go to the FM1’s edit buffer.')).toBeTruthy()
-    expect(
-      screen.getByText(
-        'Every Voice shares the effects on V16, so they go only when you change them in the editor.',
-      ),
-    ).toBeTruthy()
-  })
-
-  it('tells V16 users to select the Voice on the note channel, and nobody else', () => {
-    const line = /Select on the FM1 the Voice on the note channel/
-    const { unmount } = renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
-    expect(screen.getByText(line)).toBeTruthy()
-    unmount()
-
-    for (const firmware of [
-      { identity: 'FM-1_015', kind: 'mvave' },
-      { identity: 'FM-1_089', kind: 'fm1-va' },
-      { identity: 'FM-1_8000012', kind: 'official-open' },
-    ] as const) {
-      const { unmount: close } = renderSettings(firmware)
-      expect(screen.queryByText(line)).toBeNull()
-      close()
-    }
-  })
-
-  it('tells V16 users which Voice the editor reaches in German', async () => {
-    await setLocale('de')
-    renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
-
-    expect(
-      screen.getByText(
-        'Wähle am FM1 die Voice auf dem Notenkanal aus. Live-Änderungen erreichen sie nur, solange sie auf Kanal 1 oder All hört.',
-      ),
-    ).toBeTruthy()
-  })
-
-  it('says nothing about shared effects on V15', () => {
-    renderSettings({ identity: 'FM-1_015', kind: 'mvave' })
-
-    expect(screen.queryByText(/Every Voice shares the effects/)).toBeNull()
-  })
-
-  it('says V16’s Voices share the effects in German', async () => {
-    await setLocale('de')
-    renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
-
-    expect(
-      screen.getByText(
-        'Auf V16 teilen sich alle Voices die Effekte, daher gehen sie nur raus, wenn du sie im Editor änderst.',
-      ),
-    ).toBeTruthy()
-  })
-
-  it('names FM-1+VA firmware and why patches are sent as parameter changes, in German', async () => {
-    await setLocale('de')
-
-    renderSettings({ identity: 'FM-1_089', kind: 'fm1-va' })
-
-    expect(screen.getByText('Baud Girl FM-1_089')).toBeTruthy()
-    expect(
-      screen.getByText(
-        'Sounds, die du anspielst, werden als Parameteränderungen gesendet, damit der FM1 sie nie über das gewählte Preset speichert.',
-      ),
-    ).toBeTruthy()
+    expect(screen.getByText('M-VAVE FM-1_016')).toBeTruthy()
+    expect(screen.queryByText(/edit buffer/)).toBeNull()
+    expect(screen.queryByText(/Every Voice shares/)).toBeNull()
+    expect(screen.queryByText(/Select on the FM1/)).toBeNull()
   })
 
   it('asks for the FM1 as the input when no input can hear its answer', () => {
@@ -171,41 +104,6 @@ describe('MidiSettingsMenu firmware', () => {
     expect(
       screen.getByText(
         'Choose the FM1 as the input monitor so the editor can ask which firmware it runs.',
-      ),
-    ).toBeTruthy()
-  })
-
-  it('names Felucca firmware and says it ignores the patches you play', () => {
-    renderSettings({ identity: 'FM-1_908', kind: 'felucca' })
-
-    expect(screen.getByText('Felucca FM-1_908')).toBeTruthy()
-    expect(
-      screen.getByText(
-        'Felucca plays your notes but ignores DX7 patches, banks, and the effect controls.',
-      ),
-    ).toBeTruthy()
-    expect(screen.queryByText(/sent as parameter changes/)).toBeNull()
-  })
-
-  it('names M-VAVE’s Official Open and says where patches go and what is not sent', () => {
-    renderSettings({ identity: 'FM-1_8000012', kind: 'official-open' })
-
-    expect(screen.getByText('M-VAVE Open FM-1_8000012')).toBeTruthy()
-    expect(
-      screen.getByText(
-        'M-VAVE’s Open firmware plays your notes, and a patch you click or edit goes to the track on the note channel when that track runs DX7. It ignores DX7 banks, and the effect controls send nothing, since it would take them as changes to its tracks.',
-      ),
-    ).toBeTruthy()
-    expect(screen.queryByText(/sent as parameter changes/)).toBeNull()
-  })
-
-  it('names Felucca and SLOOP for FM-1_900, the name both report', () => {
-    renderSettings({ identity: 'FM-1_900', kind: 'felucca' })
-
-    expect(screen.getByText('Felucca or SLOOP FM-1_900')).toBeTruthy()
-    expect(
-      screen.getByText(
-        'Felucca and SLOOP both report this name. Either plays your notes but ignores DX7 patches, banks, and the effect controls.',
       ),
     ).toBeTruthy()
   })

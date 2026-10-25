@@ -191,16 +191,7 @@ function firmwareName(firmware: MidiController['firmware'], t: TFunction) {
   }
 }
 
-// What the firmware does with the patches the editor plays; any other gets parameter changes.
-function firmwareSendingKey(firmware: MidiController['firmware']) {
-  if (firmware.kind === 'mvave') return 'settings.firmwareEditBuffer'
-  if (mayBeSloop(firmware)) return 'settings.firmwareFeluccaOrSloopIgnoresPatches'
-  if (firmware.kind === 'felucca') return 'settings.firmwareIgnoresPatches'
-  if (firmware.kind === 'official-open') return 'settings.firmwareOfficialOpenSends'
-  return 'settings.firmwareParameterChanges'
-}
-
-/** Which firmware the FM1 runs, and what that means for the patches the editor plays on it. */
+/** Which firmware the FM1 runs. */
 function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'selectedInputId'> }) {
   const { t } = useTranslation()
   const needsInput = midi.firmware.kind === 'unidentified' && !midi.selectedInputId
@@ -212,20 +203,6 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
         <span>{t('settings.firmware')}</span>
       </span>
       <span className="text-sm">{firmwareName(midi.firmware, t)}</span>
-      <span className="text-[11px] text-muted-foreground">
-        {t(firmwareSendingKey(midi.firmware))}
-      </span>
-      {/* M-VAVE's V16 shares one FX group among its Voices, so a patch's effects go only as edited. */}
-      {midi.firmware.kind === 'mvave' &&
-      !resolveFirmwareProfile(midi.firmware).capabilities.presetEffects ? (
-        <span className="text-[11px] text-muted-foreground">
-          {t('settings.firmwareSharedEffects')}
-        </span>
-      ) : null}
-      {/* V16's Voices each listen on their own channel, so say which one the editor reaches. */}
-      {resolveFirmwareProfile(midi.firmware).capabilities.selectedVoiceEdits ? (
-        <span className="text-[11px] text-muted-foreground">{t('settings.firmwareV16Voice')}</span>
-      ) : null}
       {needsInput ? (
         <span className="text-[11px] text-muted-foreground">
           {t('settings.firmwareNeedsInput')}

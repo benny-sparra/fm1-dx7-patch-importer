@@ -155,24 +155,64 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        Settings menu's setting. Choosing a Voice's channel and clicking a patch then loads it
        on that Voice. Handed to a Sonnet session on 2026-10-25 (branch
        `feature/header-note-channel`); the owner may restyle it later.
-    2. **A Voices panel, opt-in.** A switch such as "Play several Voices", offered where the
-       profile says the firmware is multitimbral (a new capability from V16). Eight rows, each
-       with its channel, a preset from A–D, and a button that plays a note on its channel.
-       **Send** sends one Program Change per row. The panel shows which channels it expects and
-       says to set the Voices up once on the FM1: channels 1–8, all On, none on All (a Voice on
-       All takes every Program Change), then SAVE → Globe.
+    2. **A Voice strip, opt-in.** A switch such as "Play several Voices", offered where the
+       profile says the firmware is multitimbral (a new capability from V16), turns the header's
+       note channel picker into a strip of eight Voices, never a second row of tabs beside the
+       banks (the owner's choice, 2026-10-25, from a mock-up). Each shows its number, its
+       channel, and the patch it plays.
+       - Clicking a Voice aims at it: the note channel becomes its channel, and the keyboard
+         plays it.
+       - Clicking a patch in banks A–D assigns it to the Voice aimed at, with a Program Change
+         on that Voice's channel. A patch beyond D offers "Copy into A–D and assign".
+       - Each slot tags the Voices playing it (V1, V3), so a preset two Voices share shows.
+       - **Send setup** sends one Program Change per Voice; **Channels** sets which channel each
+         Voice listens on, Voice n on channel n by default.
+       - It says to set the Voices up once on the FM1: channels 1–8, all On, none on All (a
+         Voice on All takes every Program Change), then SAVE → Globe.
+       - On a phone the strip is eight numbered buttons, the patch names in their tooltips.
+       - Switching it off leaves the plain note channel picker.
+       - The one current setup is kept between visits, as the note channel is, which makes it a
+         stored format (`AGENTS.md`'s legacy rules); the strip works without it.
     3. **Edit from a Voice.** Opens the normal editor on that slot, playing on that Voice's
        channel, and says "Select Voice n on the FM1", since the editor cannot select it. Off
        channel 1 live parameter changes do not arrive, so the editor sends the whole voice once
        per gesture, as it does for Official Open.
-    4. **Several named setups in the library**, fired by their Program Changes. A new stored
-       record: a version bump, a fixture, backup format 6, and the upgrade paths `AGENTS.md`
-       asks for. Only if people ask for it; steps 2 and 3 do not depend on it.
+    4. **Several named setups in the library**, fired by their Program Changes, each carrying
+       the eight presets and one effects setting (see the effects below). A new stored record:
+       a version bump, a fixture, backup format 6, and the upgrade paths `AGENTS.md` asks for.
+       Only if people ask for it; steps 2 and 3 do not depend on it.
+  - **Effects across the Voices.** On V16 the eight Voices share one stereo effects chain. The
+    FM1 keeps a library of 128 FX groups (FX001–FX128, each with its order, switches, parameters,
+    and a name), saved with SAVE → Globe or ALL, and changing a preset no longer changes the
+    effects. The editor already sends its effect controls to the live FX group at CC 70–93 on
+    the effect channel, and a slot click sends none (step 1 of the V16 item). So:
+    - A patch's effects in the library no longer travel with it on V16; whatever was last sent
+      or loaded on the FM1 is what all eight Voices hear.
+    - Effects belong to the setup, not to a Voice. A setup could store one effects setting and
+      send its 24 controllers with **Send setup**: switches, types, and parameters.
+    - It cannot choose an FX group, store one, or set the effect order: no known message does,
+      so those stay on the FM1. Sending a setup's effects changes the live group, unsaved until
+      SAVE.
+    - Where the effects are edited (agreed 2026-10-25): the effects panel stays in the patch
+      editor for every firmware, since V15 and earlier send a patch's effects with it and
+      FM-1+VA writes them into the preset. Only V16's presentation changes, in three stages:
+      1. **Now, small:** on V16 the panel says it edits the FM1's effects, shared by all
+         Voices, and that the FM1 does not keep them with the patch. The firmware setting
+         already says so; the editor is where people change them.
+      2. **With the Voice strip (step 2):** a standalone effects editor opened from the strip,
+         beside **Send setup**, reusing the effects panel and editing the current setup's
+         effects. On V16 the patch editor's panel then points to it.
+      3. **With named setups (step 4):** each setup stores its effects, and that editor is
+         where V16's effects live. Other firmware never sees a change.
   - **Questions for a hardware run first:**
     - Does CC 7 on a Voice's channel set that Voice's level? If so, a setup could carry a mix.
     - Does a dump change a preset for every Voice playing it, as the firmware reading says?
     - Does a Voice switched Off ignore a Program Change, so a setup cannot switch Voices on?
     - Does one dump per gesture feel usable while holding a Voice selected on the FM1?
+    - Which channel do the FM1's own key presses arrive on with several Voices? On 2026-10-23
+      they came on channel 1 with Voice 1 alone on All. If they follow the Voice selected on the
+      FM1's screen, the editor could learn that Voice's channel from a key press and offer to
+      switch the header picker to it. Nothing else tells the editor which Voice is selected.
   - **Questions to discuss:**
     - **The word Voice.** `AGENTS.md` uses voice for DX7 voice data (the voice editor, Init
       voice), and also says names printed on the FM1 stay as printed, which makes V16's Voice a
@@ -465,6 +505,18 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     [Find duplicate patches](#nice-to-have).
 
 ## Nice to have
+
+- [ ] **Mark what a received bank changes.** On the **Receive patches** wizard's review screen,
+      say how many received patches differ from the bank they would replace, such as "12 of 32
+      differ from bank A", and mark those slots in the audition grid. It answers the one
+      question asked at that point, whether replacing loses anything, without a new idea to
+      learn. Chosen on 2026-10-25 instead of a sync with the FM1 (see
+      [Decided against](#decided-against)).
+  - Compare by voice data alone (`soundKey`'s DX7 part), since an Export carries no FM1 effects
+    and the library's would make every slot differ.
+  - Only for a bank, and only once a destination bank is known; the count follows the
+    destination when it changes. Nothing changes on an empty destination.
+  - Strings in every locale, with a rendered test in one non-English locale for the count.
 
 - [x] **Receive a DX7 voice over MIDI.** Offer to place a standard DX7 single-voice dump arriving at
       the MIDI input, from Dexed, a DX7, or another editor, into a chosen slot, with the same checks
@@ -1106,3 +1158,11 @@ with a shared sample bank. What its source says is in
   entry, strings in every locale, and CSV quoting to keep correct.
 - **Paste part of an operator.** **Paste operator** already covers the case that came up, and
   pasting only an envelope or only a frequency was never asked for. Add it if someone asks.
+- **Sync with the FM1** (2026-10-25). V16's Bank Export is the first way to read a stock FM1's
+  patches back, which suggested a two-way sync: receive banks A–D, compare them with the library,
+  and choose slot by slot which side wins. Decided against because "sync" promises a matching
+  that V16 cannot keep: Export is started by hand on the FM1, carries only saved presets and only
+  their DX7 voice data (no effects, ENV, or Voice setup), and the editor can write back only whole
+  banks, each saved with a knob press. A merge screen would ask people to reason about three
+  versions of a bank with half the data, and it blurs the library being the source of truth.
+  [Mark what a received bank changes](#nice-to-have) takes the useful part.
