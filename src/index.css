@@ -243,7 +243,7 @@
     min-width: 320px;
     line-height: 1.5;
     font-family:
-      'IBM Plex Mono', 'IBM Plex Mono Metrics Fallback', ui-monospace, SFMono-Regular, Menlo,
+      'JetBrains Mono', 'JetBrains Mono Metrics Fallback', ui-monospace, SFMono-Regular, Menlo,
       monospace;
     background: var(--crt-bg-0);
   }
