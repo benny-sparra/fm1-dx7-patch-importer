@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next'
-import { Upload } from 'lucide-react'
+import { Cable, Upload } from 'lucide-react'
 import { type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -26,6 +26,8 @@ import { sysexFileAccept } from '@/lib/sysex-file'
 type ReplacePatchDialogProps = {
   library: Pick<PatchLibrary, 'replaceVoice'>
   onClose: () => void
+  /** Leaves for the receive wizard, to take the patch over MIDI instead of from a file. */
+  onReceive: () => void
   onReplaced: (voice: Dx7Voice, changed: PatchLibrarySnapshot | null) => void
   patch: Patch
 }
@@ -55,6 +57,7 @@ function voiceFileErrorMessage(t: TFunction, error: unknown) {
 export function ReplacePatchDialog({
   library,
   onClose,
+  onReceive,
   onReplaced,
   patch,
 }: ReplacePatchDialogProps) {
@@ -141,6 +144,17 @@ export function ReplacePatchDialog({
         </form>
       </DialogBody>
       <DialogFooter>
+        <Button
+          disabled={working}
+          onClick={() => {
+            dialogRef.current?.close()
+            onReceive()
+          }}
+          variant="ghost"
+        >
+          <Cable />
+          <span>{t('replacePatch.receive')}</span>
+        </Button>
         <Button disabled={working || !file} form={formId} type="submit" variant="destructive">
           <Upload />
           <span>{t(working ? 'replacePatch.replacing' : 'replacePatch.action')}</span>

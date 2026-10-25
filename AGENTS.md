@@ -172,8 +172,8 @@ open everything an earlier release could have saved.
   should be, because a hidden tab holds timers back for up to a minute and the backlog would reach
   the FM1 as hundreds of notes at once.
 - **Receive patches** (`ReceiveFromFm1Dialog`) is one wizard, opened by **Receive from the
-  FM1…** in a bank's ⋮ menu and **Library actions**, and by a slot's **Receive patch…** on its
-  single-patch path with that slot as the destination (the owner's choice, 2026-10-25). It
+  FM1…** in a bank's ⋮ menu and **Library actions**, and by **Receive over MIDI…** in a slot's **Import patch…**
+  dialog, on its single-patch path with that slot as the destination (the owner's choice, 2026-10-25). It
   listens for a standard Yamaha DX7 single-voice dump or 32-voice bank from another device, never
   the FM1's readback, and sends nothing: no message starts an export or is sent while it listens.
   It listens on the selected input only while its listening screen shows

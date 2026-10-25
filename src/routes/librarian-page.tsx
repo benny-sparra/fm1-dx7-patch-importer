@@ -1392,11 +1392,6 @@ export function LibrarianPage({
         onPatchShare={copyShareLink}
         // Importing a file puts it in a bank slot; Favourites takes sounds through their hearts.
         onPatchReplace={showsFavourites ? undefined : requestReplace}
-        onPatchReceive={
-          showsFavourites
-            ? undefined
-            : (patch) => requestReceive({ bank: patch.bank, opener: null, patch })
-        }
         onPatchChangeToFm={showsFavourites ? undefined : requestChangeToFm}
         onPatchEdit={(patch) => {
           followPlayedPatch(patch)
@@ -1832,6 +1827,11 @@ export function LibrarianPage({
             <ReplacePatchDialog
               library={library}
               onClose={() => setReplaceTarget(null)}
+              // Another synth's dump goes to the same slot, through the receive wizard.
+              onReceive={() => {
+                setReplaceTarget(null)
+                requestReceive({ bank: replaceTarget.bank, opener: null, patch: replaceTarget })
+              }}
               onReplaced={(voice, changed) =>
                 toast.success(
                   t('toasts.patchReplaced', {
