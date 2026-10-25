@@ -1,8 +1,9 @@
 # Receive patches wizard: run sheet
 
 Checks for PR #364 on the orange FM1 (stock V16, `FM-1_016`), with the editor from the dev server
-over HTTPS. Keep the **MIDI log** open throughout: nothing but the identity query, on a port change,
-should appear as sent.
+over HTTPS. The **MIDI log** is a dialog, so it cannot stay open while you work, but it keeps its
+history: open it at the end of each section, or download it once at the end. Nothing but the
+identity query, sent when a port changes, should appear as sent.
 
 ## 1. Entry points
 
@@ -26,7 +27,7 @@ should appear as sent.
    and the warning follows.
 6. **Replace**: the notification says the patches were imported, and **Undo** puts the bank back.
    (Undo after a received bank was never tried on hardware before.)
-7. MIDI log: nothing sent during steps 3–6.
+7. Open the MIDI log: nothing sent since step 3.
 
 ## 3. Bank Export started too early
 
