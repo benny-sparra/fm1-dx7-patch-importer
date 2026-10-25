@@ -63,7 +63,6 @@ import {
   workspaceBankAfterDeletion,
 } from '@/lib/patch-library'
 import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
-import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import type { Fm1VaPresetSource } from '@/components/patches/import-fm1-va-presets-dialog'
 import { soundKey } from '@/lib/sound-key'
@@ -688,11 +687,7 @@ export function LibrarianPage({
       setFm1VaWrite({ sendBank: destinationBank })
       return
     }
-    if (shouldShowFm1BankSelectionDialog()) {
-      setSendGuide('bank-selection')
-      return
-    }
-    void transferSelectedBank()
+    setSendGuide('bank-selection')
   }
 
   const importSelectedBankFile = async (event: ChangeEvent<HTMLInputElement>) => {

@@ -6,7 +6,6 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import '@/i18n'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
-import { shouldShowFm1BankSelectionDialog } from '@/lib/session'
 import { translatePageText } from '@/test/page-translator'
 
 beforeAll(() => {
@@ -15,10 +14,7 @@ beforeAll(() => {
   }
 })
 
-afterEach(() => {
-  cleanup()
-  sessionStorage.clear()
-})
+afterEach(cleanup)
 
 const mvave: Fm1Firmware = { identity: 'FM-1_015', kind: 'mvave' }
 
@@ -56,26 +52,11 @@ describe('Fm1BankSelectionDialog', () => {
     expect(screen.queryByRole('button', { hidden: true, name: 'Close' })).toBeNull()
   })
 
-  it('stops showing for the session once closed with its Don’t show switch on', () => {
-    render(renderDialog(true))
-    const dontShow = screen.getByRole<HTMLInputElement>('switch', {
-      hidden: true,
-      name: 'Don’t show me again this session',
-    })
-
-    fireEvent.click(dontShow)
-    fireEvent(screen.getByRole('dialog', { hidden: true }), new Event('close'))
-
-    expect(dontShow.checked).toBe(true)
-    expect(shouldShowFm1BankSelectionDialog()).toBe(false)
-  })
-
-  it('shows again next time when closed with its Don’t show switch off', () => {
+  // A bank is sent rarely enough that the steps are worth reading every time.
+  it('offers no switch to stop showing the steps', () => {
     render(renderDialog(true))
 
-    fireEvent(screen.getByRole('dialog', { hidden: true }), new Event('close'))
-
-    expect(shouldShowFm1BankSelectionDialog()).toBe(true)
+    expect(screen.queryByRole('switch', { hidden: true })).toBeNull()
   })
 
   it('runs a barber pole on its Send button while the bank is on the way', () => {
@@ -124,7 +105,12 @@ describe('Fm1BankSelectionDialog', () => {
     render(renderDialog(true))
 
     expect(
-      screen.getByText('Turn Knob 1, 2, 3 or 4 to choose destination bank A, B, C or D.'),
+      screen.getByText(
+        'Turn Knob 1, 2, 3 or 4 to choose destination bank A, B, C or D, or turn SELECT left to cancel.',
+      ),
+    ).toBeTruthy()
+    expect(
+      screen.getByText('The FM1 saves the 32 patches as soon as you choose a bank.'),
     ).toBeTruthy()
     expect(screen.queryByText(/FM-1\+VA/)).toBeNull()
   })

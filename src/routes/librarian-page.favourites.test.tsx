@@ -3,7 +3,7 @@
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import { updateDx7VoiceName } from '@/lib/dx7'
@@ -27,6 +27,7 @@ import {
   makeLibrarianLibrary,
   makeLibrarianMidi,
   sendSlotName,
+  sendBankThroughGuide,
   slotMenuName,
 } from '@/test/librarian-fakes'
 
@@ -43,14 +44,8 @@ beforeAll(() => {
   }
 })
 
-beforeEach(() => {
-  // Sends straight away, as after the FM1's bank guide has been dismissed for the session.
-  sessionStorage.setItem('fm1-bank-selection-dialog-dismissed', 'true')
-})
-
 afterEach(async () => {
   cleanup()
-  sessionStorage.clear()
   await setLocale('en-GB')
 })
 
@@ -210,7 +205,7 @@ describe('LibrarianPage Favourites', () => {
     const user = renderPage(makeLibrary(makeWorkspace(3)), midi)
     await user.click(screen.getByRole('button', { name: 'Favourites' }))
 
-    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    await sendBankThroughGuide(user)
 
     await waitFor(() => expect(midi.sendBank).toHaveBeenCalledOnce())
     const [bank, sent] = vi.mocked(midi.sendBank).mock.calls[0]
@@ -230,7 +225,7 @@ describe('LibrarianPage Favourites', () => {
     const user = renderPage(makeLibrary(makeWorkspace(34)), midi)
     await user.click(screen.getByRole('button', { name: 'Favourites' }))
 
-    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    await sendBankThroughGuide(user)
 
     await waitFor(() => expect(midi.sendBank).toHaveBeenCalledOnce())
     expect(vi.mocked(midi.sendBank).mock.calls[0][1]).toEqual(voices)
@@ -244,7 +239,6 @@ describe('LibrarianPage Favourites', () => {
   })
 
   it('repeats the INIT VOICE note in the destination instructions', async () => {
-    sessionStorage.removeItem('fm1-bank-selection-dialog-dismissed')
     const user = renderPage(makeLibrary(makeWorkspace(3)), connectedMidi())
     await user.click(screen.getByRole('button', { name: 'Favourites' }))
 
@@ -259,7 +253,6 @@ describe('LibrarianPage Favourites', () => {
   })
 
   it('repeats the first-32 note in the destination instructions', async () => {
-    sessionStorage.removeItem('fm1-bank-selection-dialog-dismissed')
     const user = renderPage(makeLibrary(makeWorkspace(34)), connectedMidi())
     await user.click(screen.getByRole('button', { name: 'Favourites' }))
 
@@ -274,7 +267,6 @@ describe('LibrarianPage Favourites', () => {
   })
 
   it('adds no note to the destination instructions for a workspace bank', async () => {
-    sessionStorage.removeItem('fm1-bank-selection-dialog-dismissed')
     const user = renderPage(makeLibrary(makeWorkspace(3)), connectedMidi())
 
     await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
@@ -284,7 +276,6 @@ describe('LibrarianPage Favourites', () => {
   })
 
   it('adds no note to the destination instructions for exactly 32 favourites', async () => {
-    sessionStorage.removeItem('fm1-bank-selection-dialog-dismissed')
     const user = renderPage(makeLibrary(makeWorkspace(32)), connectedMidi())
     await user.click(screen.getByRole('button', { name: 'Favourites' }))
 
@@ -295,7 +286,6 @@ describe('LibrarianPage Favourites', () => {
   })
 
   it('writes the INIT VOICE note in German with the count in place', async () => {
-    sessionStorage.removeItem('fm1-bank-selection-dialog-dismissed')
     await setLocale('de')
     const user = renderPage(makeLibrary(makeWorkspace(3)), connectedMidi())
     await user.click(screen.getByRole('button', { name: 'Favoriten' }))

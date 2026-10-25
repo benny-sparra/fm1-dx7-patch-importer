@@ -14,6 +14,7 @@ import {
   makeLibrarianMidi,
   reorderSlotName,
   sendSlotName,
+  sendBankThroughGuide,
   slotMenuName,
 } from '@/test/librarian-fakes'
 import { translatePageText } from '@/test/page-translator'
@@ -40,12 +41,10 @@ beforeAll(() => {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  sessionStorage.setItem('fm1-bank-selection-dialog-dismissed', 'true')
 })
 
 afterEach(() => {
   cleanup()
-  sessionStorage.clear()
   delete window.umami
 })
 
@@ -149,7 +148,6 @@ describe('LibrarianPage slot actions', () => {
 
 describe('LibrarianPage transfer analytics', () => {
   it('waits for confirmation in the bank guide before starting its first transfer', async () => {
-    sessionStorage.removeItem('fm1-bank-selection-dialog-dismissed')
     const user = userEvent.setup()
     const connectedMidi = makeLibrarianMidi({
       hasMidiOutput: true,
@@ -182,7 +180,7 @@ describe('LibrarianPage transfer analytics', () => {
     })
     renderLibrarianPage({ midi: connectedMidi })
 
-    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    await sendBankThroughGuide(user)
 
     expect(track).toHaveBeenCalledOnce()
     expect(track).toHaveBeenCalledWith('bank_transfer_completed', undefined)
@@ -197,7 +195,7 @@ describe('LibrarianPage transfer analytics', () => {
     })
     renderLibrarianPage({ midi: connectedMidi })
 
-    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    await sendBankThroughGuide(user)
 
     expect(
       await screen.findAllByText(/was sent\. Choose its destination on the FM1\./),
@@ -219,7 +217,10 @@ describe('LibrarianPage transfer analytics', () => {
     })
     renderLibrarianPage({ midi: connectedMidi })
 
-    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    const guide = await sendBankThroughGuide(user)
+    await user.click(
+      within(guide).getByRole('button', { name: 'Close bank selection instructions' }),
+    )
     const sending = screen.getByRole('button', { name: 'Sending…' })
     expect(sending.classList).toContain('barber-pole')
     expect(sending.getAttribute('aria-disabled')).toBe('true')
@@ -252,13 +253,13 @@ describe('LibrarianPage transfer analytics', () => {
         region.parentElement?.contains(screen.getByRole('button', { name: 'Send to FM1' })),
       )
 
-    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
-    await user.click(screen.getByRole('button', { name: 'Sending…' }))
+    const guide = await sendBankThroughGuide(user)
+    await user.click(within(guide).getByRole('button', { name: 'Sending…' }))
 
     expect(status?.textContent).toBe('Sending…')
     expect(connectedMidi.sendBank).toHaveBeenCalledTimes(1)
     finishSending()
-    await screen.findByRole('button', { name: 'Send to FM1' })
+    await within(guide).findByRole('button', { name: 'Send to FM1' })
     expect(status?.textContent).toBe('')
   })
 
@@ -271,7 +272,7 @@ describe('LibrarianPage transfer analytics', () => {
     })
     renderLibrarianPage({ midi: connectedMidi })
 
-    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    await sendBankThroughGuide(user)
 
     expect((await screen.findByRole('alert')).textContent).toContain(
       'The bank was not sent. Open the MIDI log for details, then retry.',
@@ -314,7 +315,7 @@ describe('LibrarianPage transfer analytics', () => {
     })
     renderLibrarianPage({ midi: connectedMidi })
 
-    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+    await sendBankThroughGuide(user)
 
     expect(reportBankTransferFailure).toHaveBeenCalledOnce()
     expect(reportBankTransferFailure).toHaveBeenCalledWith({
@@ -1205,6 +1206,8 @@ describe('LibrarianPage bank menu dialogs', () => {
     )
     const message = screen.getByRole('dialog', { name: 'Connect MIDI to send this bank' })
     await user.click(within(message).getByRole('button', { name: 'Send to FM1' }))
+    const guide = screen.getByRole('dialog', { name: 'Choose the destination bank on your FM1' })
+    await user.click(within(guide).getByRole('button', { name: 'Send to FM1' }))
 
     expect(offlineMidi.connectMidi).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('dialog', { name: 'Connect MIDI to send this bank' })).toBeNull()

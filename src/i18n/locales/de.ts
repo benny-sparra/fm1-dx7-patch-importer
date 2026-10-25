@@ -5,8 +5,9 @@ export default {
       'Wenn der FM1 bereit ist, starte die SysEx-Übertragung und schließe den Import am Gerät ab.',
     bankClose: 'Anweisungen zur Bankauswahl schließen',
     bankStep1: 'Warte, bis die Bankauswahl im Display des FM1 erscheint.',
-    bankStep2: 'Wähle mit Regler 1, 2, 3 oder 4 die Zielbank A, B, C oder D.',
-    bankStep3: 'Der FM1 speichert die 32 Sounds nach kurzer Wartezeit automatisch.',
+    bankStep2:
+      'Wähle mit Regler 1, 2, 3 oder 4 die Zielbank A, B, C oder D, oder dreh SELECT nach links, um abzubrechen.',
+    bankStep3: 'Der FM1 speichert die 32 Sounds, sobald du eine Bank wählst.',
     bankFm1VaStep1:
       'Der FM1 fragt „Replace Bank A?“ und beginnt bei Bank A, egal welche Bank du sendest.',
     bankFm1VaStep2: 'Drehe ALGORITHM, bis die Frage die Zielbank nennt: A, B, C oder D.',
@@ -24,7 +25,6 @@ export default {
       'FM1-Display mit der Firmware von Baud Girl, das „Replace Bank A?“ fragt, mit Cancel und Replace',
     bankImage:
       'FM1-Display mit der M-VAVE-Firmware, das „32 Voice Save To …“ über den Bänken A, B, C und D zeigt',
-    dontShow: 'In dieser Sitzung nicht erneut anzeigen',
     midiTitle: 'MIDI verbinden, um diese Bank zu senden',
     midiIntro:
       'Der FM1 muss als MIDI-Ausgang verbunden sein, bevor eine Bank gesendet werden kann.',

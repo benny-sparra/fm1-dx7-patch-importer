@@ -1,5 +1,5 @@
 import { Cable, CircleCheck, Info, Send, TriangleAlert } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -11,11 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Switch } from '@/components/ui/switch'
 import type { MidiController } from '@/hooks/use-midi'
 import { mayBeSloop } from '@/lib/fm1-firmware'
 import { fm1SynthImage, fm1VaBankScreenImage } from '@/lib/fm1-responsive-images'
-import { dismissFm1BankSelectionDialogForSession } from '@/lib/session'
 
 type Fm1BankSelectionDialogProps = {
   isSending: boolean
@@ -38,7 +36,6 @@ export function Fm1BankSelectionDialog({
 }: Fm1BankSelectionDialogProps) {
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const [dontShowAgain, setDontShowAgain] = useState(false)
   const sysexUnavailable = !midi.sysexAvailable
   // M-VAVE's firmware and FM-1+VA choose the destination bank differently. Until the editor knows
   // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs. Felucca, SLOOP,
@@ -77,15 +74,7 @@ export function Fm1BankSelectionDialog({
   }
 
   return (
-    <Dialog
-      aria-labelledby="fm1-bank-selection-title"
-      onClose={() => {
-        if (!sysexUnavailable && dontShowAgain) dismissFm1BankSelectionDialogForSession()
-        onClose()
-      }}
-      ref={dialogRef}
-      size="xl"
-    >
+    <Dialog aria-labelledby="fm1-bank-selection-title" onClose={onClose} ref={dialogRef} size="xl">
       <DialogHeader>
         <DialogTitle id="fm1-bank-selection-title">
           {t(sysexUnavailable ? 'midi.sysexWarningTitle' : 'dialogs.bankTitle')}
@@ -183,14 +172,7 @@ export function Fm1BankSelectionDialog({
           </Button>
         </DialogFooter>
       ) : (
-        <DialogFooter className="items-center justify-between gap-4" key="bank-selection">
-          <Switch
-            checked={dontShowAgain}
-            className="inline-flex min-h-8 items-center gap-2 px-2 text-sm transition-colors"
-            onChange={setDontShowAgain}
-          >
-            <span>{t('dialogs.dontShow')}</span>
-          </Switch>
+        <DialogFooter key="bank-selection">
           {/* Not `disabled` while sending, which would drop focus: the button stays where the
               keyboard is, and a press is ignored. The status tells a screen reader what changed. */}
           <Button
