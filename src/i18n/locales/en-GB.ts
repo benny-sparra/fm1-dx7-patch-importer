@@ -245,6 +245,8 @@ export default {
     firmwareEditBuffer: 'Patches you play go to the FM1’s edit buffer.',
     firmwareSharedEffects:
       'Every Voice shares the effects on V16, so they go only when you change them in the editor.',
+    firmwareV16Voice:
+      'Select on the FM1 the Voice on the note channel. Live edits reach it only while it listens on channel 1 or All.',
     firmwareParameterChanges:
       'Patches you play are sent as parameter changes, so the FM1 never stores them over the selected preset.',
     firmwareIgnoresPatches:

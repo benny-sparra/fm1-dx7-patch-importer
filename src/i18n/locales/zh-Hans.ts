@@ -919,6 +919,8 @@ export default {
     firmwareFeluccaOrSloop: 'Felucca 或 SLOOP {{identity}}',
     firmwareEditBuffer: '你试听的音色会进入 FM1 的编辑缓冲区。',
     firmwareSharedEffects: '在 V16 上，所有 Voice 共用效果，因此只有在编辑器中修改效果时才会发送。',
+    firmwareV16Voice:
+      '请在 FM1 上选中音符通道上的 Voice。只有它监听通道 1 或 All 时，实时修改才会传到它。',
     firmwareParameterChanges:
       '你试听的音色会以参数变化的方式发送，因此 FM1 绝不会把它们保存到所选预设上。',
     firmwareIgnoresPatches: 'Felucca 会演奏你弹的音符，但会忽略 DX7 音色、音色库和效果控制。',

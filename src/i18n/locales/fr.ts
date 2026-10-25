@@ -1031,6 +1031,8 @@ export default {
     firmwareEditBuffer: 'Les sons que vous jouez vont dans le tampon d’édition du FM1.',
     firmwareSharedEffects:
       'Sur V16, toutes les Voices partagent les effets, qui ne sont donc envoyés que lorsque vous les modifiez dans l’éditeur.',
+    firmwareV16Voice:
+      'Sélectionnez sur le FM1 la Voice du canal de notes. Les modifications en direct ne l’atteignent que tant qu’elle écoute sur le canal 1 ou All.',
     firmwareParameterChanges:
       'Les sons que vous jouez sont envoyés sous forme de changements de paramètres, pour que le FM1 ne les enregistre jamais sur le preset sélectionné.',
     firmwareIgnoresPatches:
