@@ -130,6 +130,32 @@ describe('PatchEditorPage MIDI paths', () => {
     }
   })
 
+  it('says on V16 that the effects are the FM1’s, shared by all Voices', () => {
+    setup({ firmware: { identity: 'FM-1_016', kind: 'mvave' } })
+
+    expect(screen.getByText(/^On V16 these are the FM1’s effects/)).toBeTruthy()
+  })
+
+  it('says the shared effects in Ukrainian', async () => {
+    await setLocale('uk')
+    try {
+      setup({ firmware: { identity: 'FM-1_016', kind: 'mvave' } })
+
+      expect(screen.getByText(/^На V16 це ефекти FM1/)).toBeTruthy()
+    } finally {
+      await setLocale('en-GB')
+    }
+  })
+
+  it('leaves the effects panel unannotated before V16 and on Baud Girl’s firmware', () => {
+    setup()
+    expect(screen.queryByText(/these are the FM1’s effects/)).toBeNull()
+    cleanup()
+
+    setup({ firmware: { identity: 'FM-1_096', kind: 'fm1-va' } })
+    expect(screen.queryByText(/these are the FM1’s effects/)).toBeNull()
+  })
+
   it('says nothing about Voices before V16, which plays one', () => {
     setup()
 

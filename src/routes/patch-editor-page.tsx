@@ -231,6 +231,9 @@ export function PatchEditorPage({
   // that the patch keeps is named, since the FM1 does not play it.
   const distortionType = parameters[FM1_VA_DISTORTION_TYPE_INDEX]
   const firmwareCapabilities = resolveFirmwareProfile(midi.firmware).capabilities
+  // Effect controllers without effects that follow a preset: the FM1's one shared FX group (V16).
+  const sharesEffects =
+    firmwareCapabilities.effectControllers && !firmwareCapabilities.presetEffects
   const writesDistortionType = firmwareCapabilities.presetWrite
   const keptDistortionType =
     !writesDistortionType && record && distortionType !== 0 && midi.firmware.kind !== 'checking'
@@ -525,6 +528,13 @@ export function PatchEditorPage({
               title={t('editor.effects')}
             />
             <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="effects-unit">
+              {sharesEffects ? (
+                <InfoNotice>
+                  <p>
+                    <span>{t('editor.effectsSharedNotice')}</span>
+                  </p>
+                </InfoNotice>
+              ) : null}
               <EffectsUnit
                 distortionType={
                   writesDistortionType
