@@ -768,6 +768,7 @@ for (const width of [320, 375]) {
     await expect(header.getByRole('button', { name: /^Help/ })).toBeInViewport()
     await expect(header.getByLabel('Settings', { exact: true })).toBeInViewport()
     await expect(page.getByRole('button', { name: 'MIDI panic' })).toBeInViewport()
+    await expect(header.getByRole('combobox', { name: 'Note channel' }).last()).toBeInViewport()
   })
 }
 

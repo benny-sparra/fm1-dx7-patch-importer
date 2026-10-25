@@ -1001,6 +1001,7 @@ export default {
   },
   root: {
     skipToContent: 'Aller au contenu principal',
+    channelShort: 'Can. {{number}}',
     subtitle: 'éditeur et bibliothécaire',
     intro:
       'Modifiez, organisez et transférez les sons du FM1, ou <link>importez des banques SysEx DX7</link>.',

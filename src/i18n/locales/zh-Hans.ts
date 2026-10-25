@@ -892,6 +892,7 @@ export default {
   },
   root: {
     skipToContent: '跳到主要内容',
+    channelShort: '通道 {{number}}',
     subtitle: '音色编辑器与音色库',
     intro: '编辑、整理和传输 FM1 音色，或<link>导入 DX7 SysEx 音色库</link>。',
     synthAlt: 'M-VAVE FM1 合成器前面板',

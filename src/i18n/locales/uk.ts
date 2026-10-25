@@ -1058,6 +1058,7 @@ export default {
   },
   root: {
     skipToContent: 'Перейти до основного вмісту',
+    channelShort: 'Кан. {{number}}',
     subtitle: 'редактор і менеджер',
     intro:
       'Редагуйте й упорядковуйте патчі, надсилайте їх на FM1 або <link>імпортуйте готові банки DX7 SysEx</link>.',
