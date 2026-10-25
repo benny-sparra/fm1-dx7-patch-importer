@@ -110,4 +110,5 @@ This does not cover third-party material bundled with it, which keeps its own te
   [Acknowledgements](#acknowledgements), and banks contributed to the catalog keep the licence their
   author chose.
 - **Fonts**: Doto, Space Grotesk, IBM Plex Mono, and VT323 are installed from npm under the SIL Open
-  Font License 1.1. Departure Mono is under the same licence.
+  Font License 1.1. Departure Mono is under the same licence. DSEG7 Classic (keshikan), which draws
+  the editor's numbers, is vendored in `src/fonts/dseg/` under it too.

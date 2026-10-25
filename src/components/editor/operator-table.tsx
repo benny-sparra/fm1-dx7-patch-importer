@@ -13,6 +13,7 @@ import {
 } from '@/components/editor/editor-workspace'
 import '@/i18n/editor-help'
 import { FM1_OPERATOR_COUNT } from '@/lib/fm1-parameters'
+import { segmentGhost } from '@/lib/segment-ghost'
 import { cn } from '@/lib/utils'
 
 /*
@@ -144,7 +145,8 @@ export function OperatorTable(props: OperatorLayoutProps) {
               {summary.readouts.map(({ label, value }) => (
                 <span
                   aria-hidden="true"
-                  className="font-vt323 truncate text-center text-[17px] leading-none text-[var(--crt-ink)]"
+                  className="font-seven-segment truncate text-center text-[17px] leading-none text-[var(--crt-ink)]"
+                  data-ghost={segmentGhost(String(value))}
                   key={label}
                 >
                   {value}
@@ -153,7 +155,8 @@ export function OperatorTable(props: OperatorLayoutProps) {
               {summary.rates.map((rate, point) => (
                 <span
                   aria-hidden="true"
-                  className="font-vt323 truncate text-center text-[17px] leading-none text-[var(--crt-led)]"
+                  className="font-seven-segment truncate text-center text-[17px] leading-none text-[var(--crt-led)]"
+                  data-ghost={segmentGhost(`${rate}/${summary.levels[point]}`)}
                   key={point}
                 >
                   {rate}/{summary.levels[point]}
@@ -170,7 +173,10 @@ export function OperatorTable(props: OperatorLayoutProps) {
                 operator={operator}
                 output={summary.output}
               />
-              <output className="font-vt323 w-6 shrink-0 text-right text-[20px] leading-none text-[var(--crt-led)] [text-shadow:0_0_8px_var(--crt-led-glow)]">
+              <output
+                className="font-seven-segment w-7 shrink-0 text-right text-[20px] leading-none text-[var(--crt-led)] [text-shadow:0_0_8px_var(--crt-led-glow)]"
+                data-ghost={segmentGhost(String(summary.output))}
+              >
                 {summary.output}
               </output>
             </span>

@@ -50,6 +50,7 @@ import {
 } from '@/lib/fm1-va-record-effects'
 import { makeDragAccessibility } from '@/lib/drag-accessibility'
 import { rangeStyle } from '@/lib/range-style'
+import { segmentGhost } from '@/lib/segment-ghost'
 import { cn } from '@/lib/utils'
 
 type EffectsUnitProps = {
@@ -378,9 +379,10 @@ function EffectControl({
       />
       <output
         className={cn(
-          'font-vt323 text-right text-lg leading-none',
+          'font-seven-segment text-right text-lg leading-none',
           disabled ? 'text-[var(--crt-ink-4)]' : 'text-[var(--crt-led)]',
         )}
+        data-ghost={segmentGhost(`${value}${parameter.suffix ?? ''}`)}
       >
         {value}
         {parameter.suffix}
@@ -596,9 +598,10 @@ function BitcrushSection({
               />
               <output
                 className={cn(
-                  'font-vt323 text-right text-lg leading-none',
+                  'font-seven-segment text-right text-lg leading-none',
                   disabled ? 'text-[var(--crt-ink-4)]' : 'text-[var(--crt-led)]',
                 )}
+                data-ghost={segmentGhost(valueText(id, value))}
               >
                 {valueText(id, value)}
               </output>

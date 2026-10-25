@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { SegmentGhost } from '@/components/ui/segment-ghost'
 import {
   clampEnvelopeValue,
   envelopePath,
@@ -165,7 +166,7 @@ export function EnvelopeEditor({
   }
 
   const inputClass =
-    'font-vt323 h-6 w-full min-w-0 bg-transparent text-center text-[17px] leading-none text-[var(--crt-led)] outline-none [appearance:textfield] focus:bg-[var(--crt-sel-bg)] focus-visible:outline-1 focus-visible:outline-[var(--crt-led)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
+    '[grid-area:1/1] font-seven-segment h-6 w-full min-w-0 bg-transparent text-center text-[17px] leading-none text-[var(--crt-led)] outline-none [appearance:textfield] focus:bg-[var(--crt-sel-bg)] focus-visible:outline-1 focus-visible:outline-[var(--crt-led)] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
 
   return (
     <div
@@ -249,7 +250,7 @@ export function EnvelopeEditor({
             {points.map((point, index) => (
               <g key={index}>
                 <text
-                  className="font-vt323"
+                  className="font-seven-segment"
                   fill="var(--crt-ink-4)"
                   fontSize="14"
                   textAnchor="middle"
@@ -310,51 +311,63 @@ export function EnvelopeEditor({
           >
             <label className="grid min-w-0 text-center text-[10px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase">
               R{index + 1}
-              <input
-                aria-label={t('ui.envelopeRate', { point: index + 1, title })}
-                className={inputClass}
-                inputMode="numeric"
-                max={99}
-                min={0}
-                onBlur={onGestureEnd}
-                onChange={(event) =>
-                  updateNumericValue('rate', event.currentTarget.valueAsNumber, index)
-                }
-                onFocus={(event) => {
-                  onGestureStart()
-                  event.currentTarget.select()
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') event.currentTarget.blur()
-                }}
-                step={1}
-                type="number"
-                value={rate}
-              />
+              <span className="grid min-w-0">
+                <SegmentGhost
+                  className="text-center text-[17px] leading-6 text-[var(--crt-led)]"
+                  text={String(rate)}
+                />
+                <input
+                  aria-label={t('ui.envelopeRate', { point: index + 1, title })}
+                  className={inputClass}
+                  inputMode="numeric"
+                  max={99}
+                  min={0}
+                  onBlur={onGestureEnd}
+                  onChange={(event) =>
+                    updateNumericValue('rate', event.currentTarget.valueAsNumber, index)
+                  }
+                  onFocus={(event) => {
+                    onGestureStart()
+                    event.currentTarget.select()
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') event.currentTarget.blur()
+                  }}
+                  step={1}
+                  type="number"
+                  value={rate}
+                />
+              </span>
             </label>
             <label className="grid min-w-0 text-center text-[10px] tracking-[0.1em] text-[var(--crt-ink-4)] uppercase">
               L{index + 1}
-              <input
-                aria-label={t('ui.envelopeLevel', { point: index + 1, title })}
-                className={inputClass}
-                inputMode="numeric"
-                max={99}
-                min={0}
-                onBlur={onGestureEnd}
-                onChange={(event) =>
-                  updateNumericValue('level', event.currentTarget.valueAsNumber, index)
-                }
-                onFocus={(event) => {
-                  onGestureStart()
-                  event.currentTarget.select()
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') event.currentTarget.blur()
-                }}
-                step={1}
-                type="number"
-                value={levels[index] ?? 0}
-              />
+              <span className="grid min-w-0">
+                <SegmentGhost
+                  className="text-center text-[17px] leading-6 text-[var(--crt-led)]"
+                  text={String(levels[index] ?? 0)}
+                />
+                <input
+                  aria-label={t('ui.envelopeLevel', { point: index + 1, title })}
+                  className={inputClass}
+                  inputMode="numeric"
+                  max={99}
+                  min={0}
+                  onBlur={onGestureEnd}
+                  onChange={(event) =>
+                    updateNumericValue('level', event.currentTarget.valueAsNumber, index)
+                  }
+                  onFocus={(event) => {
+                    onGestureStart()
+                    event.currentTarget.select()
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') event.currentTarget.blur()
+                  }}
+                  step={1}
+                  type="number"
+                  value={levels[index] ?? 0}
+                />
+              </span>
             </label>
           </div>
         ))}
