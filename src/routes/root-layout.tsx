@@ -11,9 +11,9 @@ import {
 import { useTranslation } from 'react-i18next'
 
 import { HelpButton } from '@/components/help-button'
+import { MidiConnectionError } from '@/components/midi/midi-connection-error'
 import {
   MidiConnectActions,
-  MidiConnectionError,
   MidiFirmwareBadge,
   MidiSettingsMenu,
 } from '@/components/midi/midi-controls'

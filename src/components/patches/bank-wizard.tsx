@@ -1,22 +1,26 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { PreviewPatchButton } from '@/components/patches/preview-patch-button'
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
 import { InfoNotice } from '@/components/ui/info-notice'
 import '@/i18n/librarian-dialogs'
+import type { Dx7Voice } from '@/lib/dx7'
 import { sysexFileAccept } from '@/lib/sysex-file'
 
 /*
- * The pieces the librarian's step-by-step dialogs share: **Add new bank…** and **Import DX7
- * bank…** each put one decision on a screen, moved through with Back and Next in the footer.
+ * The pieces the librarian's step-by-step dialogs share: **Add new bank…**, **Import DX7 bank…**,
+ * and **Receive from the FM1…** each put one decision on a screen, moved through with Back and
+ * Next in the footer.
  */
 
 /** Focuses a screen's first control: its chosen radio, or else its first field or button. */
 function focusFirstControl(form: HTMLFormElement | null) {
   const control =
-    form?.querySelector<HTMLElement>('input:checked, input:not(:disabled), textarea') ??
+    form?.querySelector<HTMLElement>('input:checked') ??
+    form?.querySelector<HTMLElement>('input:not(:disabled), select:not(:disabled), textarea') ??
     form?.querySelector<HTMLElement>('button')
   control?.focus({ preventScroll: true })
 }
@@ -133,5 +137,43 @@ export function BankFileScreen({ disabled = false, file, onChoose }: BankFileScr
         </ul>
       </InfoNotice>
     </>
+  )
+}
+
+type BankPreviewProps = {
+  heading: string
+  onPlay: (index: number) => void
+  playingIndex: number | null
+  voices: Dx7Voice[]
+}
+
+/** A bank's patches before it replaces anything, each played on the FM1 when clicked. */
+export function BankPreview({ heading, onPlay, playingIndex, voices }: BankPreviewProps) {
+  const { i18n, t } = useTranslation()
+  const headingId = useId()
+  const numberFormat = new Intl.NumberFormat(i18n.resolvedLanguage)
+  return (
+    <section aria-labelledby={headingId} className="grid gap-2">
+      <h3 className="text-sm font-semibold" id={headingId}>
+        {heading}
+      </h3>
+      <ul className="dither-well grid grid-cols-2 gap-1 border border-[var(--crt-line-dk)] p-2 sm:grid-cols-4">
+        {voices.map((voice, index) => (
+          <li key={index}>
+            <PreviewPatchButton
+              isPlaying={index === playingIndex}
+              label={t('overwriteImport.play', {
+                name: voice.name.trim(),
+                number: numberFormat.format(index + 1),
+              })}
+              name={voice.name}
+              number={index + 1}
+              onClick={() => onPlay(index)}
+              playingLabel={t('banks.auditioning')}
+            />
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }

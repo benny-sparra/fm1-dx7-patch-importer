@@ -4,9 +4,9 @@ import { cleanup, render, screen } from '@testing-library/react'
 import type { ComponentProps } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { MidiConnectionError } from '@/components/midi/midi-connection-error'
 import {
   MidiConnectActions,
-  MidiConnectionError,
   MidiFirmwareBadge,
   MidiSettingsMenu,
 } from '@/components/midi/midi-controls'

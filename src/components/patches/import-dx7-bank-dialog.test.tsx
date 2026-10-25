@@ -9,10 +9,9 @@ import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { setLocale } from '@/i18n'
 import german from '@/i18n/locales/de'
 import ukrainian from '@/i18n/locales/uk'
-import { makeDx7BankFile, parseDx7Bank, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
+import { makeDx7BankFile, updateDx7VoiceName } from '@/lib/dx7'
 import { type PatchLibrarySnapshot, WorkspaceBankUnavailableError } from '@/lib/patch-library'
 import { translatePageText } from '@/test/page-translator'
-import { stockV16BankExport } from '@/test/stock-v16-bank-export'
 
 import { ImportDx7BankDialog } from './import-dx7-bank-dialog'
 
@@ -83,11 +82,7 @@ function slowSyxFile(name: string, prefix: string) {
 
 function renderDialog(
   importBank: PatchLibrary['importBank'],
-  {
-    initialFile,
-    received,
-    replacing = true,
-  }: { initialFile?: File; received?: Dx7Voice[]; replacing?: boolean } = {},
+  { initialFile, replacing = true }: { initialFile?: File; replacing?: boolean } = {},
 ) {
   const onClose = vi.fn()
   const onPlay = vi.fn()
@@ -101,7 +96,6 @@ function renderDialog(
         library={{ importBank, undoChange }}
         onClose={onClose}
         onPlay={onPlay}
-        received={received}
         replacing={replacing}
       />
     </ToastProvider>,
@@ -517,47 +511,5 @@ describe('ImportDx7BankDialog reading the file', () => {
     expect(
       screen.getByRole('heading', { name: ukrainian.overwriteImport.previewTitle }),
     ).toBeTruthy()
-  })
-})
-
-describe('ImportDx7BankDialog with a bank received over MIDI', () => {
-  const received = () => parseDx7Bank(stockV16BankExport().buffer)
-
-  it('opens on the received patches, with no file to choose and no way back', () => {
-    renderDialog(vi.fn(), { received: received() })
-
-    expect(screen.getByRole('heading', { name: 'Patches received' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Play j.piano 7+, patch 1' })).toBeTruthy()
-    expect(screen.queryByLabelText('Choose a DX7 SysEx file')).toBeNull()
-    expect(backButton()).toBeNull()
-  })
-
-  it('warns before replacing a bank that holds patches', () => {
-    renderDialog(vi.fn(), { received: received() })
-
-    expect(screen.getByText(/will be wiped/)).toBeTruthy()
-  })
-
-  it('imports the received bank and offers to undo it', async () => {
-    const importBank = vi.fn<PatchLibrary['importBank']>(() => changed)
-    const voices = received()
-    const { undoChange, user } = renderDialog(importBank, { received: voices })
-
-    await user.click(replaceButton())
-
-    expect(importBank).toHaveBeenCalledExactlyOnceWith('B', voices)
-    expect(await screen.findByText('Imported patches into “Leads”.')).toBeTruthy()
-    await user.click(screen.getByRole('button', { name: 'Undo' }))
-    expect(undoChange).toHaveBeenCalledWith(changed)
-  })
-
-  it('imports into an empty bank without warning', async () => {
-    const importBank = vi.fn<PatchLibrary['importBank']>(() => changed)
-    const { user } = renderDialog(importBank, { received: received(), replacing: false })
-
-    expect(screen.queryByText(/will be wiped/)).toBeNull()
-    await user.click(screen.getByRole('button', { name: 'Import bank' }))
-
-    expect(importBank).toHaveBeenCalledOnce()
   })
 })

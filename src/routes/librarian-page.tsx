@@ -1,4 +1,5 @@
 import {
+  Cable,
   Database,
   Download,
   EllipsisVertical,
@@ -149,10 +150,11 @@ const ReplacePatchDialog = lazy(() =>
     default: module.ReplacePatchDialog,
   })),
 )
-// Receiving a slot's patch over MIDI opens from its menu, with the dump reader, on first use.
-const ReceivePatchDialog = lazy(() =>
-  import('@/components/patches/receive-patch-dialog').then((module) => ({
-    default: module.ReceivePatchDialog,
+// Receiving a bank or patch over MIDI opens from a slot's or bank's menu, or Library actions, with
+// the dump reader, on first use.
+const ReceiveFromFm1Dialog = lazy(() =>
+  import('@/components/patches/receive-from-fm1-dialog').then((module) => ({
+    default: module.ReceiveFromFm1Dialog,
   })),
 )
 
@@ -216,6 +218,16 @@ type BankMenuRequest = { bank: string; name: string; opener: HTMLElement | null 
 /** The toggle of the menu holding `item`, which stays in view once the menu closes. */
 function menuToggleOf(item: HTMLElement | undefined) {
   return item?.closest('details')?.querySelector('summary') ?? null
+}
+
+/**
+ * Receiving over MIDI, waiting for its dialog: the bank, and for a slot's menu the slot, it starts
+ * on, and where focus returns.
+ */
+type ReceiveRequest = {
+  bank: string
+  opener: HTMLElement | null
+  patch?: Patch
 }
 
 type SavedBanksRequest = { bank: string; closeMenu: () => void; mode: 'load' | 'save' }
@@ -284,7 +296,7 @@ type LibrarianLibrary = BackupLibrary &
 type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof ImportFm1VaPresetsDialog>['midi'] &
   ComponentProps<typeof WriteFm1VaPresetsDialog>['midi'] &
-  ComponentProps<typeof ReceivePatchDialog>['midi'] &
+  ComponentProps<typeof ReceiveFromFm1Dialog>['midi'] &
   ComponentProps<typeof MidiConnectionRequiredDialog>['midi'] &
   Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
@@ -345,7 +357,7 @@ export function LibrarianPage({
   // The slot whose menu chose to replace it from a file, kept while its dialog is open.
   const [replaceTarget, setReplaceTarget] = useState<Patch | null>(null)
   // The slot whose menu chose to receive a patch over MIDI, kept while its dialog is open.
-  const [receiveTarget, setReceiveTarget] = useState<Patch | null>(null)
+  const [receiveRequest, setReceiveRequest] = useState<ReceiveRequest | null>(null)
   // The Virtual Analog patch a slot menu asked to change to FM, while its dialog is open.
   const [changeToFmTarget, setChangeToFmTarget] = useState<Patch | null>(null)
   const [isImporting, setIsImporting] = useState(false)
@@ -382,7 +394,7 @@ export function LibrarianPage({
   // arrives with the file chosen. A bank received over MIDI arrives with its patches and the slot
   // it was received from, for focus to return to.
   const [bankPendingImport, setBankPendingImport] = useState<
-    (BankMenuRequest & { file?: File; received?: { patchId: string; voices: Dx7Voice[] } }) | null
+    (BankMenuRequest & { file?: File }) | null
   >(null)
   // The bank menu toggle an import into an empty bank was started from, for focus to return to.
   const emptyBankImportOpenerRef = useRef<HTMLElement | null>(null)
@@ -466,9 +478,9 @@ export function LibrarianPage({
     setDialogLoadError('')
     setReplaceTarget(patch)
   }
-  const requestReceive = (patch: Patch) => {
+  const requestReceive = (request: ReceiveRequest) => {
     setDialogLoadError('')
-    setReceiveTarget(patch)
+    setReceiveRequest(request)
   }
   const requestChangeToFm = (patch: Patch) => {
     setDialogLoadError('')
@@ -1003,6 +1015,17 @@ export function LibrarianPage({
           <span>{isImporting ? t('banks.importing') : t('banks.import')}</span>
         </button>
         <button
+          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+          onClick={(event) => {
+            closeMenu()
+            requestReceive({ bank, opener: menuToggleOf(event.currentTarget) })
+          }}
+          type="button"
+        >
+          <Cable className="size-4 shrink-0" />
+          {t('banks.receiveFromFm1')}
+        </button>
+        <button
           className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
           disabled={!library.loadedBanks.includes(bank)}
           onClick={() => {
@@ -1291,6 +1314,20 @@ export function LibrarianPage({
               <div className="my-1 border-t" />
               <button
                 className={menuItemClassName}
+                onClick={() => {
+                  allBanksMenuRef.current?.removeAttribute('open')
+                  requestReceive({
+                    bank: destinationBank,
+                    opener: allBanksMenuRef.current?.querySelector('summary') ?? null,
+                  })
+                }}
+                type="button"
+              >
+                <Cable className="size-4 shrink-0" />
+                {t('banks.receiveFromFm1')}
+              </button>
+              <button
+                className={menuItemClassName}
                 disabled={library.loadedBanks.length === 0}
                 onClick={() => {
                   allBanksMenuRef.current?.removeAttribute('open')
@@ -1355,7 +1392,11 @@ export function LibrarianPage({
         onPatchShare={copyShareLink}
         // Importing a file puts it in a bank slot; Favourites takes sounds through their hearts.
         onPatchReplace={showsFavourites ? undefined : requestReplace}
-        onPatchReceive={showsFavourites ? undefined : requestReceive}
+        onPatchReceive={
+          showsFavourites
+            ? undefined
+            : (patch) => requestReceive({ bank: patch.bank, opener: null, patch })
+        }
         onPatchChangeToFm={showsFavourites ? undefined : requestChangeToFm}
         onPatchEdit={(patch) => {
           followPlayedPatch(patch)
@@ -1640,19 +1681,12 @@ export function LibrarianPage({
               library={library}
               onClose={() => {
                 setBankPendingImport(null)
-                const { opener, received } = bankPendingImport
-                if (received) setSlotFocusRequest({ patchId: received.patchId })
-                else opener?.focus()
+                bankPendingImport.opener?.focus()
               }}
               // A file's patch has no FM1 effects, so it plays with the defaults, as a catalog
               // result does.
               onPlay={(voice) => onPlaySearchResult(voice, undefined)}
-              received={bankPendingImport.received?.voices}
-              replacing={
-                bankPendingImport.received
-                  ? library.loadedBanks.includes(bankPendingImport.bank)
-                  : !bankPendingImport.file
-              }
+              replacing={!bankPendingImport.file}
             />
           </Suspense>
         </ErrorBoundary>
@@ -1812,38 +1846,30 @@ export function LibrarianPage({
           </Suspense>
         </ErrorBoundary>
       ) : null}
-      {receiveTarget ? (
+      {receiveRequest ? (
         <ErrorBoundary
-          key={receiveTarget.id}
           onError={() => {
-            setReceiveTarget(null)
+            setReceiveRequest(null)
             setDialogLoadError(t('banks.receivePatchUnavailable'))
           }}
         >
           <Suspense fallback={null}>
-            <ReceivePatchDialog
-              bankName={bankDisplayName(receiveTarget.bank)}
+            <ReceiveFromFm1Dialog
+              banks={banks.map((bank) => ({ id: bank, name: bankDisplayName(bank) }))}
+              initialBank={receiveRequest.bank}
+              initialSlot={receiveRequest.patch?.number}
+              initialSource={receiveRequest.patch ? 'patch' : 'fm1'}
               library={library}
               midi={midi}
-              onClose={() => setReceiveTarget(null)}
-              onImportBank={(voices) =>
-                setBankPendingImport({
-                  bank: receiveTarget.bank,
-                  name: bankDisplayName(receiveTarget.bank),
-                  opener: null,
-                  received: { patchId: receiveTarget.id, voices },
-                })
-              }
-              onReplaced={(voice, changed) =>
-                toast.success(
-                  t('toasts.patchReplaced', {
-                    patch: voice.name,
-                    slot: patchSlotCode(receiveTarget),
-                  }),
-                  undoToastOptions(t, library, changed),
-                )
-              }
-              patch={receiveTarget}
+              onClose={() => {
+                setReceiveRequest(null)
+                const { opener, patch } = receiveRequest
+                if (patch) setSlotFocusRequest({ patchId: patch.id })
+                else opener?.focus()
+              }}
+              // A received patch has no FM1 effects, so it plays with the defaults, as a catalog
+              // result does.
+              onPlay={(voice) => onPlaySearchResult(voice, undefined)}
             />
           </Suspense>
         </ErrorBoundary>

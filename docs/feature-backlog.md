@@ -106,8 +106,14 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Tests: a `firmware-profile.test.ts` case on each side of the V16 threshold, a rendered test
     that V16 sends no effect controller, and fixtures for any capture.
 
-- [ ] **Receive from the FM1 as a wizard.** Receiving a bank from V16's Bank Export works (#351)
+- [x] **Receive from the FM1 as a wizard.** Receiving a bank from V16's Bank Export works (#351)
       but felt disjointed when tried on 2026-10-23, and says too little about what is happening.
+  - **Built (2026-10-25):** **Receive patches** (`receive-from-fm1-dialog.tsx`) opens from
+    **Receive from the FM1…** in a bank's menu and **Library actions**, and from a slot's
+    **Receive patch…** on its single-patch path, the owner's choice. The bank import lost its
+    `received` mode. Left out: a byte count while receiving, since Web MIDI hands the bank over
+    as one message, and the firmware profile choosing the steps, since both sources stay offered
+    whatever the FM1 runs. Still needs a run on the orange FM1.
   - **What felt wrong:**
     - It starts from one patch's ⋮ menu, as **Receive patch…**, and its title stays "Receive a
       patch into A01 “ORGAN 3”" after a whole bank has arrived.

@@ -113,6 +113,7 @@ export function makeLibrarianMidi(overrides: Partial<Midi> = {}): Midi {
     selectedInputId: '',
     selectedOutputId: '',
     sendBank: vi.fn<Midi['sendBank']>(),
+    setSelectedInputId: vi.fn<Midi['setSelectedInputId']>(),
     setSelectedOutputId: vi.fn<Midi['setSelectedOutputId']>(),
     sysexAvailable: false,
     ...overrides,

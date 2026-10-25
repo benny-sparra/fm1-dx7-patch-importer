@@ -11,7 +11,7 @@ import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
 import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-banks-dialog'
 import { DuplicatePatchesDialog } from '@/components/patches/duplicate-patches-dialog'
 import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog'
-import { ReceivePatchDialog } from '@/components/patches/receive-patch-dialog'
+import { ReceiveFromFm1Dialog } from '@/components/patches/receive-from-fm1-dialog'
 import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
 import { MidiLogStore } from '@/lib/midi-log-store'
@@ -99,15 +99,30 @@ const openDialogs = {
       replacing
     />
   ),
-  'receive-patch': () => (
-    <ReceivePatchDialog
-      bankName="Leads"
-      library={{ replaceVoice: vi.fn() }}
-      midi={{ inputs: [], selectedInputId: '', sysexAvailable: false }}
+  'receive-from-fm1': () => (
+    <ReceiveFromFm1Dialog
+      banks={[{ id: 'A', name: 'Leads' }]}
+      initialBank="A"
+      initialSource="fm1"
+      library={{
+        importBank: vi.fn(),
+        loadedBanks: ['A'],
+        patches: [],
+        replaceVoice: vi.fn(),
+        undoChange: vi.fn(),
+      }}
+      midi={{
+        connectMidi: vi.fn(),
+        error: null,
+        inputs: [],
+        isConnecting: false,
+        midiAccess: false,
+        selectedInputId: '',
+        setSelectedInputId: vi.fn(),
+        sysexAvailable: false,
+      }}
       onClose={vi.fn()}
-      onImportBank={vi.fn()}
-      onReplaced={vi.fn()}
-      patch={{ bank: 'A', family: 'DX7', id: 'bank-A-1', name: 'ALPHA', number: 1 }}
+      onPlay={vi.fn()}
     />
   ),
   'midi-log': () => <MidiLogDialog logStore={new MidiLogStore([])} onClose={vi.fn()} />,
