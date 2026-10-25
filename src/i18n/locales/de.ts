@@ -631,6 +631,7 @@ export default {
   },
   replacePatch: {
     replacing: 'Wird ersetzt…',
+    receive: 'Per MIDI empfangen…',
     action: 'Sound ersetzen',
     title: '{{slot}} „{{patch}}“ ersetzen?',
     warning:
@@ -1434,7 +1435,6 @@ export default {
     copyOpenFailed:
       'Die Kopieroptionen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     importPatchFile: 'Sound importieren…',
-    receivePatch: 'Sound empfangen…',
     receiveFromFm1: 'Vom FM1 empfangen…',
     downloadPatchFile: 'Sound herunterladen',
     bankFileUnavailable:

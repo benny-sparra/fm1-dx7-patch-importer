@@ -624,6 +624,7 @@ export default {
   },
   replacePatch: {
     replacing: 'Remplacement…',
+    receive: 'Recevoir par MIDI…',
     action: 'Remplacer le son',
     title: 'Remplacer {{slot}} « {{patch}} » ?',
     warning:
@@ -1418,7 +1419,6 @@ export default {
       'Impossible d’ouvrir les options de nouvelle banque. Rechargez la page et réessayez.',
     copyOpenFailed: 'Impossible d’ouvrir les options de copie. Rechargez la page et réessayez.',
     importPatchFile: 'Importer un son…',
-    receivePatch: 'Recevoir un son…',
     receiveFromFm1: 'Recevoir du FM1…',
     downloadPatchFile: 'Télécharger le son',
     bankFileUnavailable:

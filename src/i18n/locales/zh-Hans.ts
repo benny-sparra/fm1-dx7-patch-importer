@@ -559,6 +559,7 @@ export default {
   },
   replacePatch: {
     replacing: '正在替换…',
+    receive: '通过 MIDI 接收…',
     action: '替换音色',
     title: '替换 {{slot}}“{{patch}}”吗？',
     warning: '此位置的音色将被文件中的音色替换，其 FM1 效果将恢复为默认值。',
@@ -1279,7 +1280,6 @@ export default {
     addBankOpenFailed: '无法打开新音色库选项。请重新加载页面后重试。',
     copyOpenFailed: '无法打开复制选项。请重新加载页面后重试。',
     importPatchFile: '导入音色…',
-    receivePatch: '接收音色…',
     receiveFromFm1: '从 FM1 接收…',
     downloadPatchFile: '下载音色',
     bankFileUnavailable: '无法读取音色库文件。请重新加载页面后重试。',

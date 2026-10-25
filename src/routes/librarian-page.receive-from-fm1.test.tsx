@@ -81,7 +81,10 @@ function renderPage() {
 async function openFromSlot() {
   const page = renderPage()
   await page.user.click(screen.getByRole('button', { name: slotMenuName('ALPHA') }))
-  await page.user.click(screen.getByRole('menuitem', { name: 'Receive patch…' }))
+  await page.user.click(screen.getByRole('menuitem', { name: 'Import patch…' }))
+  await page.user.click(
+    await screen.findByRole('button', { name: 'Receive over MIDI…' }, { timeout: 5000 }),
+  )
   const dialog = await screen.findByRole('dialog', { name: 'Receive patches' })
   return { ...page, dialog }
 }

@@ -246,7 +246,7 @@ To copy a patch into another slot, open the slot's **⋮** menu and choose **Cop
 
 A slot's **⋮** menu lists **Edit** first, then the items that move a patch in or out under a **Transfer** heading, and **Move earlier** and **Move later** under **Order**. It also works with single patches as files. **Download patch** saves the patch as a standard 163-byte DX7 single-voice SysEx file, named after its slot and patch, such as `fm1-A05-PIANO-2.syx`. It holds the DX7 voice only, as a bank download does, so the FM1 effects are not included. A Virtual Analogue or 8-Bit patch is not a DX7 voice, so it is saved instead as a 231-byte Baud Girl presets file holding that one preset with its effects and settings. The file names the patch's own FM1 preset, or for a bank after D the same slot in bank A, which is where importing it puts it. **Import patch…** asks before it replaces the slot, then reads a DX7 single-voice file into it. A file that is not a single DX7 patch, or that looks damaged, is refused with an explanation and leaves the slot as it was. A whole 32-voice bank is recognised and pointed to **Import DX7 bank…** in the bank's menu. The file carries no FM1 effects, so the slot's effects return to their defaults. The notification offers **Undo**.
 
-**Receive patch…** in the same menu takes a patch sent over MIDI instead of from a file, such as one Dexed, a DX7, or another editor sends as a single-voice dump. It opens **Receive patches**, which also opens from **Receive from the FM1…** in a bank's menu and in **Library actions**, and takes you through one step at a time with **Back** and **Next**:
+**Receive over MIDI…**, in the **Import patch…** dialog's footer, takes a patch sent over MIDI instead of from a file, such as one Dexed, a DX7, or another editor sends as a single-voice dump. It opens **Receive patches**, which also opens from **Receive from the FM1…** in a bank's menu and in **Library actions**, and takes you through one step at a time with **Back** and **Next**:
 
 1. **What is sending:** an FM1 on M-VAVE's V16, which sends a bank of 32 patches with **GLOBE → Export**, or one patch from another device. Each comes with its own short steps. From a slot's menu it starts on one patch; from a bank's menu or **Library actions**, on the FM1.
 2. **Listening:** the app listens on the input monitor while this step shows, and says which input it is. If MIDI is offline, switch it online here; if no input is chosen, choose it here. Then start the transfer: on the FM1, choose **GLOBE → Export** and a bank, connected by USB, since Export sends over USB only. If the FM1 says **Receive Timeout**, start Export again while this step is open. The step says what arrived; send another and it takes that one instead. Notes, controllers, and every other message are ignored, and a dump that is not a DX7 patch or bank, or that arrives damaged, is explained with how to send it again.
@@ -413,7 +413,7 @@ normally inside the search field, where `Esc` clears it.
 
 `Enter` gives the keyboard the route the mouse already had through double-click: it plays an unlit
 slot as a click would, and opens the slot that is already lit. Each slot's **⋮** menu also
-offers **Edit**, **Copy to…**, **Import patch…**, **Receive patch…**, **Download patch**, and **Copy share link**; it opens with `Enter` and moves between its items with the arrow keys.
+offers **Edit**, **Copy to…**, **Import patch…**, **Download patch**, and **Copy share link**; it opens with `Enter` and moves between its items with the arrow keys.
 
 Individual controls keep their own keyboard behaviour. Rotary controls and envelope points respond
 to the arrow keys, `Home`, `End`, `Page Up`, and `Page Down`, and the bank tabs move with the arrow
@@ -464,7 +464,7 @@ these checks is marked damaged and cannot be chosen, while the rest of the file 
 file holding one bank is refused when that bank fails, with the reason. Importing into an empty
 bank takes a single-bank file at once, and asks which bank only when the file holds several.
 
-Single-voice dumps, which **Import patch…** and **Receive patch…** read, and banks using another SysEx format are not
+Single-voice dumps, which **Import patch…** and **Receive over MIDI…** read, and banks using another SysEx format are not
 accepted.
 
 The browser library is the source of truth. Only M-VAVE's V16 sends a stored bank back, through its Export and **Receive from the FM1…** (see [M-VAVE and Baud Girl firmware](#m-vave-and-baud-girl-firmware)); earlier stock firmware cannot, and Baud Girl's firmware is read with **Read presets from the FM1…**. Download a backup regularly (see [Backing up your library](#backing-up-your-library)).

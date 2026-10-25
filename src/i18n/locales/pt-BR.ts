@@ -614,6 +614,7 @@ export default {
   },
   replacePatch: {
     replacing: 'Substituindo…',
+    receive: 'Receber por MIDI…',
     action: 'Substituir som',
     title: 'Substituir {{slot}} “{{patch}}”?',
     warning:
@@ -1399,7 +1400,6 @@ export default {
     copyOpenFailed:
       'Não foi possível abrir as opções de cópia. Recarregue a página e tente novamente.',
     importPatchFile: 'Importar som…',
-    receivePatch: 'Receber som…',
     receiveFromFm1: 'Receber do FM1…',
     downloadPatchFile: 'Baixar som',
     bankFileUnavailable:

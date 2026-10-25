@@ -71,6 +71,7 @@ export default {
   },
   replacePatch: {
     replacing: 'Replacing…',
+    receive: 'Receive over MIDI…',
     action: 'Replace patch',
     title: 'Replace {{slot}} “{{patch}}”?',
     warning:

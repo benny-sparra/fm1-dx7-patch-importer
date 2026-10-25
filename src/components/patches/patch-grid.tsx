@@ -67,7 +67,6 @@ type PatchGridProps = {
   onPatchChangeToFm?: (patch: Patch) => void
   onPatchCopy?: (patch: Patch) => void
   onPatchDownload?: (patch: Patch) => void
-  onPatchReceive?: (patch: Patch) => void
   onPatchReplace?: (patch: Patch) => void
   onPatchShare?: (patch: Patch) => void
   onPatchMove: (patch: Patch, target: Patch) => void
@@ -124,7 +123,6 @@ export function PatchGrid({
   onPatchChangeToFm,
   onPatchCopy,
   onPatchDownload,
-  onPatchReceive,
   onPatchReplace,
   onPatchShare,
   onPatchMove,
@@ -343,7 +341,6 @@ export function PatchGrid({
                             onChangeToFm={onPatchChangeToFm}
                             onCopy={onPatchCopy}
                             onDownload={onPatchDownload}
-                            onReceive={onPatchReceive}
                             onReplace={onPatchReplace}
                             onShare={onPatchShare}
                             onEdit={onPatchEdit}

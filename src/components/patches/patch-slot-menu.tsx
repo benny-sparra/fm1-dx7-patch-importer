@@ -1,4 +1,13 @@
-import { ArrowRightLeft, Cable, Copy, Download, Link, Pencil, Upload } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowRightLeft,
+  ArrowUp,
+  Copy,
+  Download,
+  Link,
+  Pencil,
+  Upload,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { PortalMenu } from '@/components/ui/portal-menu'
@@ -17,7 +26,6 @@ type PatchSlotMenuProps = {
   onCopy?: () => void
   onDownload?: () => void
   onEdit?: () => void
-  onReceive?: () => void
   onReplace?: () => void
   onShare?: () => void
   /** The slot's code, so slots holding patches of one name keep menus of their own names. */
@@ -35,7 +43,6 @@ export function PatchSlotMenu({
   onCopy,
   onDownload,
   onEdit,
-  onReceive,
   onReplace,
   onShare,
   slot,
@@ -51,7 +58,6 @@ export function PatchSlotMenu({
         { Icon: ArrowRightLeft, label: t('changeToFm.menuItem'), onSelect: onChangeToFm },
         { Icon: Copy, group: transfer, label: t('banks.copySelected'), onSelect: onCopy },
         { Icon: Upload, group: transfer, label: t('banks.importPatchFile'), onSelect: onReplace },
-        { Icon: Cable, group: transfer, label: t('banks.receivePatch'), onSelect: onReceive },
         {
           Icon: Download,
           group: transfer,
@@ -60,12 +66,14 @@ export function PatchSlotMenu({
         },
         { Icon: Link, group: transfer, label: t('shareLink.menuItem'), onSelect: onShare },
         {
+          Icon: ArrowUp,
           disabled: move && !move.canMoveEarlier,
           group: order,
           label: t('banks.moveEarlier'),
           onSelect: move && (() => move.onMove(-1)),
         },
         {
+          Icon: ArrowDown,
           disabled: move && !move.canMoveLater,
           group: order,
           label: t('banks.moveLater'),

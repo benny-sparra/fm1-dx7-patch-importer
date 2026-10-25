@@ -52,16 +52,18 @@ function syxFile(bytes: Uint8Array<ArrayBuffer>, name = 'voice.syx') {
 function renderDialog() {
   const replaceVoice = vi.fn(() => null)
   const onClose = vi.fn()
+  const onReceive = vi.fn()
   const onReplaced = vi.fn<(voice: Dx7Voice, changed: unknown) => void>()
   render(
     <ReplacePatchDialog
       library={{ replaceVoice }}
       onClose={onClose}
+      onReceive={onReceive}
       onReplaced={onReplaced}
       patch={patch}
     />,
   )
-  return { onClose, onReplaced, replaceVoice, user: userEvent.setup() }
+  return { onClose, onReceive, onReplaced, replaceVoice, user: userEvent.setup() }
 }
 
 async function chooseAndReplace(user: ReturnType<typeof userEvent.setup>, file: File) {
@@ -74,6 +76,15 @@ describe('ReplacePatchDialog', () => {
     renderDialog()
 
     expect(screen.getByRole('dialog', { name: 'Replace A05 “PIANO 2”?' })).toBeTruthy()
+  })
+
+  it('leaves for the receive wizard when the patch comes over MIDI instead', async () => {
+    const { onReceive, replaceVoice, user } = renderDialog()
+
+    await user.click(screen.getByRole('button', { name: 'Receive over MIDI…' }))
+
+    expect(onReceive).toHaveBeenCalledOnce()
+    expect(replaceVoice).not.toHaveBeenCalled()
   })
 
   it('waits for a file before offering to replace', () => {

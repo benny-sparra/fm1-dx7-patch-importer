@@ -612,6 +612,7 @@ export default {
   },
   replacePatch: {
     replacing: 'Заміна…',
+    receive: 'Отримати через MIDI…',
     action: 'Замінити патч',
     title: 'Замінити {{slot}} «{{patch}}»?',
     warning:
@@ -1466,7 +1467,6 @@ export default {
     copyOpenFailed:
       'Не вдалося відкрити параметри копіювання. Перезавантажте сторінку й спробуйте ще раз.',
     importPatchFile: 'Імпортувати патч…',
-    receivePatch: 'Отримати патч…',
     receiveFromFm1: 'Отримати з FM1…',
     downloadPatchFile: 'Завантажити патч',
     bankFileUnavailable:
