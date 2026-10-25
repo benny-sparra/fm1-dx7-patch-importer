@@ -217,6 +217,10 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
           {t('settings.firmwareSharedEffects')}
         </span>
       ) : null}
+      {/* V16's Voices each listen on their own channel, so say which one the editor reaches. */}
+      {resolveFirmwareProfile(midi.firmware).capabilities.selectedVoiceEdits ? (
+        <span className="text-[11px] text-muted-foreground">{t('settings.firmwareV16Voice')}</span>
+      ) : null}
       {needsInput ? (
         <span className="text-[11px] text-muted-foreground">
           {t('settings.firmwareNeedsInput')}

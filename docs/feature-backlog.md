@@ -75,7 +75,8 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
      _Done (2026-10-25): the editor says so on V16 (`selectedVoiceEdits`), naming the note
      channel. The double send at 11:29:53 was a double-click: the click played the slot and the
      editor it opened sent the program and patch again; the editor now waits for the click's send
-     instead._
+     instead. The firmware setting says the same in one line (2026-10-25), beside the effects
+     line._
   4. **Bank Export into the library.** V16 sends the 32 saved presets of a bank as a standard DX7
      `.syx` (voice data only: no ENV, effects, Voice setup, or patterns). If a run shows the
      FM1 sends that as ordinary Yamaha bulk-dump messages, the existing **Receive patch…** listener

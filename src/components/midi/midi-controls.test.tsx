@@ -106,6 +106,34 @@ describe('MidiSettingsMenu firmware', () => {
     ).toBeTruthy()
   })
 
+  it('tells V16 users to select the Voice on the note channel, and nobody else', () => {
+    const line = /Select on the FM1 the Voice on the note channel/
+    const { unmount } = renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
+    expect(screen.getByText(line)).toBeTruthy()
+    unmount()
+
+    for (const firmware of [
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_089', kind: 'fm1-va' },
+      { identity: 'FM-1_8000012', kind: 'official-open' },
+    ] as const) {
+      const { unmount: close } = renderSettings(firmware)
+      expect(screen.queryByText(line)).toBeNull()
+      close()
+    }
+  })
+
+  it('tells V16 users which Voice the editor reaches in German', async () => {
+    await setLocale('de')
+    renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
+
+    expect(
+      screen.getByText(
+        'Wähle am FM1 die Voice auf dem Notenkanal aus. Live-Änderungen erreichen sie nur, solange sie auf Kanal 1 oder All hört.',
+      ),
+    ).toBeTruthy()
+  })
+
   it('says nothing about shared effects on V15', () => {
     renderSettings({ identity: 'FM-1_015', kind: 'mvave' })
 
