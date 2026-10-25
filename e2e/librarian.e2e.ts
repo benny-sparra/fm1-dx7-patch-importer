@@ -594,7 +594,7 @@ test('reaches the editor from the keyboard through a slot menu', async ({ page }
 test('scrolls a slot menu too tall for a short phone beside its row, so the next ⋮ still opens its own', async ({
   page,
 }) => {
-  await page.setViewportSize({ height: 640, width: 320 })
+  await page.setViewportSize({ height: 520, width: 320 })
   await openLibrarian(page)
   const before = await patchNames(page)
   const { button } = await slotMenuButton(page, 4)
@@ -607,6 +607,7 @@ test('scrolls a slot menu too tall for a short phone beside its row, so the next
   const triggerBox = await button.boundingBox()
   expect(menuBox && triggerBox).toBeTruthy()
   if (!menuBox || !triggerBox) return
+  expect(await menu.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true)
   // Too tall for either side here, the menu takes one side and scrolls rather than covering the row.
   expect(
     menuBox.y + menuBox.height <= triggerBox.y || menuBox.y >= triggerBox.y + triggerBox.height,
