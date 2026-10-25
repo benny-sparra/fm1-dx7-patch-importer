@@ -128,11 +128,16 @@ export function MidiFirmwareBadge({
   }
   const release = fm1FirmwareRelease(firmware)
   const badge = firmwareBadges[mayBeSloop(firmware) ? 'feluccaOrSloop' : firmware.kind]
+  // M-VAVE's V16 plays eight Voices, which its badge names; earlier stock firmware has no such line.
+  const title =
+    firmware.kind === 'mvave' && resolveFirmwareProfile(firmware).capabilities.selectedVoiceEdits
+      ? 'midi.mvaveV16BadgeTitle'
+      : badge.title
 
   return (
     <span
       className={className ?? 'inline-flex min-h-8 items-center gap-2'}
-      title={t(badge.title, { release })}
+      title={t(title, { release })}
     >
       <span aria-hidden="true" className="text-xs font-bold tracking-[0.1em] text-[var(--crt-ink)]">
         {badge.maker}

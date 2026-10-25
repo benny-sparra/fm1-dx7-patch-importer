@@ -301,6 +301,8 @@ export default {
     mvaveBadgeLabel: 'M-VAVE firmware, {{release}}',
     mvaveBadgeTitle:
       'The FM1 runs M-VAVE’s own firmware, {{release}}. Patches you play go to its edit buffer.',
+    mvaveV16BadgeTitle:
+      'The FM1 runs M-VAVE’s own firmware, {{release}}: eight Voices, each on its own channel, sharing one FX group. Patches you play go to its edit buffer.',
     officialOpenBadgeLabel: 'M-VAVE Open firmware, {{release}}',
     officialOpenBadgeTitle:
       'The FM1 runs M-VAVE’s Open firmware, {{release}}, an eight-track groovebox. A patch you click or edit goes to the track on the note channel when that track runs DX7. It ignores DX7 banks, and the effect controls send nothing, since it would take them as changes to its tracks.',

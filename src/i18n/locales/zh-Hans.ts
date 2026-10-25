@@ -1134,6 +1134,8 @@ export default {
     mvaveBadgeLabel: 'M-VAVE 固件，{{release}}',
     mvaveBadgeTitle:
       'FM1 运行的是 M-VAVE 原厂固件（{{release}}）。你试听的音色会进入它的编辑缓冲区。',
+    mvaveV16BadgeTitle:
+      'FM1 运行的是 M-VAVE 原厂固件（{{release}}）：八个 Voice，各自使用独立的通道，共用一个 FX 组。你试听的音色会进入它的编辑缓冲区。',
     officialOpenBadgeLabel: 'M-VAVE Open 固件，{{release}}',
     officialOpenBadgeTitle:
       'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
