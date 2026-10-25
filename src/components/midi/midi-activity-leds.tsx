@@ -18,7 +18,7 @@ export function MidiActivityLeds({ midi }: { midi: Pick<MidiController, 'midiAcc
     <span
       aria-hidden="true"
       data-offline={midi.midiAccess ? undefined : true}
-      className="midi-activity crt-inset hidden h-8 items-center gap-2.5 px-2.5 text-[10px] tracking-[0.1em] sm:inline-flex"
+      className="midi-activity crt-inset hidden h-8 items-center gap-2.5 px-2.5 text-[10px] tracking-[0.1em] sm:ml-auto sm:inline-flex"
       title={t('midi.activityTitle')}
     >
       <span className="inline-flex items-center gap-1.5">

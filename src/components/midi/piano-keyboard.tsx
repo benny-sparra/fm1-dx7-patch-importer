@@ -48,7 +48,7 @@ export function PianoKeyboard({ midi }: PianoKeyboardProps) {
   return (
     <>
       <Button
-        className="font-vt323 ml-auto"
+        className="font-vt323 ml-auto sm:ml-0"
         disabled={!midi.hasMidiOutput}
         onClick={() => {
           setLoadFailed(false)
