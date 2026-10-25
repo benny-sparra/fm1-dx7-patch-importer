@@ -39,7 +39,10 @@ For PR #364, on the orange FM1 (stock V16). Tick each step as you go.
 3. In the editor, click **Next**. Then start **Export** on the FM1 again.
    - [ ] The bank arrives, without turning the FM1 off and on.
 
-## Test 3: receive one patch
+## Test 3: receive one patch (optional)
+
+Needs a program that sends one DX7 patch, such as Dexed. Skip it without one: the FM1 plays no
+part, and the automated tests cover this path.
 
 1. Click **⋮** on any patch, then **Receive patch…**.
    - [ ] **One patch from another device** is already chosen.
