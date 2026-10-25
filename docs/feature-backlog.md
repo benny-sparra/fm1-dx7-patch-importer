@@ -1031,6 +1031,29 @@ V15. Before it can be built:
 Reopen only if a stock control or an official M-VAVE app is found that changes the order. FM-1+VA
 stores the order in each preset's record; see [FM-1+VA firmware](#fm-1va-firmware), item 5.
 
+**Reopened 2026-10-25 for V16.** M-VAVE's V16 notes say each of the 128 FX groups has "its own
+order, On/Off states, parameters, and a 10-character name" (`docs/fm1-research.md`, "What the
+notes say changed"), so V16 stores an order, and it is the first stock firmware to say so. The
+goal is the same reorderable effect boxes FM-1+VA's editor offers. To test, on the orange FM1 with
+V16, one value at a time as the hardware research discipline asks:
+
+- [ ] **Find how V16 changes the order.** Look on the FM1's FX screens (and GLOBE → SAVE) for a
+      control that moves an effect in the chain. Record where it is, and whether the CC 70–93
+      controllers still reach the same effect after a reorder, since each group is named for its
+      effect.
+- [ ] **Capture, if the order travels over MIDI.** Baseline, change exactly one position, capture
+      again, diff, repeat across several orders, and confirm after a power cycle. Capture only: a
+      guessed CC, SysEx, or vendor command is never sent, and one that is not a stock control stays
+      Dangerous / excluded.
+- [ ] **Listen with the cross-block order test** in `docs/fx-003-hardware-verification.md`, and
+      find whether the order is per FX group, so shared by all eight Voices, and whether it
+      persists across SAVE and a power cycle.
+- [ ] **Decide the editor.** If MIDI can set it, add an `effectOrder` capability to V16's profile
+      (`src/lib/firmware-profile.ts`) and offer the existing drag-to-reorder boxes, sent only as the
+      order changes and only to the live FX group, like V16's other effects. If it can only be read
+      or set on the FM1's own screen, record that and leave the editor as it is. Write the run up in
+      `docs/hardware-runs/` and `docs/fm1-research.md`.
+
 ### MIDI clock and transport
 
 A tempo control with Start and Stop, sending MIDI clock (`F8`) at a chosen BPM with Start (`FA`),
