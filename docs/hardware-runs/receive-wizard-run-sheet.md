@@ -1,53 +1,63 @@
-# Receive patches wizard: run sheet
+# Receive patches wizard: step-by-step checks
 
-Checks for PR #364 on the orange FM1 (stock V16, `FM-1_016`), with the editor from the dev server
-over HTTPS. The **MIDI log** is a dialog, so it cannot stay open while you work, but it keeps its
-history: open it at the end of each section, or download it once at the end. Nothing but the
-identity query, sent when a port changes, should appear as sent.
+For PR #364, on the orange FM1 (stock V16). Tick each step as you go.
 
-## 1. Entry points
+## Before you start
 
-1. **Library actions** (⋮ beside the search) lists **Receive from the FM1…** above **Find duplicate
-   patches…**, on one line. It opens **Receive patches** with **An FM1 on M-VAVE's V16** chosen.
-2. A bank's ⋮ menu lists **Receive from the FM1…** under **Import DX7 bank…**. Closing the wizard
-   returns focus to that menu's ⋮.
-3. A slot's ⋮ menu still lists **Receive patch…**. It opens the wizard with **One patch from another
-   device** chosen. Closing it returns focus to the slot.
+1. Connect the orange FM1 to the Mac with USB.
+2. Open the editor from the dev server (`https://127.0.0.1:5174`).
+3. Leave **MIDI offline** for now.
 
-## 2. Bank Export, the normal way
+## Test 1: receive a bank from the FM1
 
-1. With MIDI offline, open the wizard and choose **Next**. The listening step offers **Switch MIDI
-   online** and does not yet say to start Export.
-2. Switch MIDI online from there. The input monitor dropdown appears, set to the FM1, and the
-   status says **Listening on "…"**, then "Now open GLOBE on the FM1…".
-3. On the FM1, GLOBE → Export a recognisable bank. The status says a bank of 32 arrived and names
-   its first patch. **Next** is enabled.
-4. **Next**: the 32 patches show. Click two or three: each plays on the FM1.
-5. **Next**: the bank you opened from is chosen, with the warning naming it. Choose another bank,
-   and the warning follows.
-6. **Replace**: the notification says the patches were imported, and **Undo** puts the bank back.
-   (Undo after a received bank was never tried on hardware before.)
-7. Open the MIDI log: nothing sent since step 3.
+1. Click **⋮** beside the search box, then **Receive from the FM1…**.
+   - [ ] A window called **Receive patches** opens.
+   - [ ] **An FM1 on M-VAVE's V16** is already chosen.
+2. Click **Next**.
+   - [ ] It shows a **Switch MIDI online** button.
+3. Click **Switch MIDI online**.
+   - [ ] It says **Listening on "…"** and tells you to open GLOBE on the FM1.
+4. On the FM1, press **GLOBE**, choose **Export**, and pick a bank.
+   - [ ] The editor says it received a bank of 32 patches.
+5. Click **Next**.
+   - [ ] You see 32 patches. Click a couple, and each one plays on the FM1.
+6. Click **Next**.
+   - [ ] A bank is chosen, and a yellow warning says what will be replaced.
+7. Click **Replace**.
+   - [ ] The window closes, and a message offers **Undo**.
+8. Click **Undo**.
+   - [ ] The bank goes back to how it was.
+9. Click **MIDI log** and look at what was sent.
+   - [ ] Nothing was sent during this test, apart from an identity query when MIDI went online.
 
-## 3. Bank Export started too early
+## Test 2: start Export too early
 
-1. Open the wizard but stay on the source step. Start Export on the FM1. It should end in
-   **Receive Timeout** (2026-10-25).
-2. Choose **Next** in the wizard, then start Export again. The bank arrives with no power cycle.
-   The listening step's timeout line says to do exactly this.
+1. Open **Receive from the FM1…** again, but don't click **Next**.
+2. On the FM1, start **Export**.
+   - [ ] After a while the FM1 says **Receive Timeout**.
+3. In the editor, click **Next**. Then start **Export** on the FM1 again.
+   - [ ] The bank arrives, without turning the FM1 off and on.
 
-## 4. One patch
+## Test 3: receive one patch
 
-1. From a slot's **Receive patch…**, choose **Next**, then send one patch from Dexed (or another
-   editor) as a DX7 single-voice dump.
-2. The status names it. **Next** shows it with a play button that plays it on the FM1.
-3. **Next**: the slot it was opened from is chosen in **Slot to replace**, with the warning naming
-   both patches. **Replace**, then **Undo**.
+1. Click **⋮** on any patch, then **Receive patch…**.
+   - [ ] **One patch from another device** is already chosen.
+2. Click **Next**. Send one patch from Dexed.
+   - [ ] The editor names the patch it received.
+3. Click **Next**, then **Next** again.
+   - [ ] The slot you started from is already chosen.
+4. Click **Replace**, then **Undo** in the message.
+   - [ ] The slot goes back to its old patch.
 
-## 5. Look and feel
+## Test 4: the other menu item
 
-1. At 320 px (phone), each step fits without sideways scrolling, and **Back** and **Next** stay in
-   the footer.
-2. Keyboard only: Tab and the arrow keys reach every choice; **Next** moves focus to the new
-   step's first control.
-3. Switch the language to Deutsch and Українська, and check that the steps read naturally.
+1. Click **⋮** on a bank in the list on the left.
+   - [ ] **Receive from the FM1…** is in the menu.
+2. Open it, then click the **X** to close.
+   - [ ] You're back on that bank's **⋮**.
+
+## Test 5: phone size (optional)
+
+1. Make the window as narrow as a phone.
+2. Open **Receive from the FM1…** and click through the steps.
+   - [ ] Everything fits, and **Back** and **Next** stay at the bottom.
