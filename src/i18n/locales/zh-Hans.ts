@@ -980,6 +980,8 @@ export default {
   editor: {
     selectedVoiceNotice:
       '在 V16 上，此音色会发送到 FM1 屏幕上选中的 Voice，只有它设在通道 1 或 All 时编辑才会实时生效。要在这里听到，请选中通道 {{channel}} 上的 Voice。',
+    effectsSharedNotice:
+      '在 V16 上，这些是 FM1 的效果，由全部八个 Voice 共用。FM1 不会把它们与此音色一起保存：在 FM1 上按 SAVE 并选择 Globe 即可保留。',
     back: '返回音色库',
     editName: '编辑音色名称',
     patchName: '音色名称',

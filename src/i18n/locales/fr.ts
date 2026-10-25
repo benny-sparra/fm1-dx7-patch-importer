@@ -1098,6 +1098,8 @@ export default {
   editor: {
     selectedVoiceNotice:
       'Sur la V16, ce son va à la Voice sélectionnée sur l’écran du FM1. Les modifications ne jouent en direct que sur le canal 1 ou All ; pour l’entendre, sélectionnez la Voice du canal {{channel}}.',
+    effectsSharedNotice:
+      'Sur V16, ce sont les effets du FM1, partagés par les huit Voices. Le FM1 ne les conserve pas avec ce patch : appuyez sur SAVE et choisissez Globe sur le FM1 pour les garder.',
     back: 'Retour aux banques',
     editName: 'Modifier le nom du son',
     patchName: 'Nom du son',

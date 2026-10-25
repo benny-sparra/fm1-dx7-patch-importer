@@ -1153,6 +1153,8 @@ export default {
   editor: {
     selectedVoiceNotice:
       'На V16 цей патч потрапляє на Voice, обрану на екрані FM1. Зміни звучать наживо лише на MIDI-каналі 1 або All; щоб почути його, оберіть Voice на каналі {{channel}}.',
+    effectsSharedNotice:
+      'На V16 це ефекти FM1, спільні для всіх восьми Voice. FM1 не зберігає їх разом із цим патчем: натисніть SAVE і оберіть Globe на FM1, щоб зберегти їх.',
     back: 'До банків',
     editName: 'Змінити назву патча',
     patchName: 'Назва патча',

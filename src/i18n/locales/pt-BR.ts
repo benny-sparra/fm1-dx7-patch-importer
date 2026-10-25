@@ -1080,6 +1080,8 @@ export default {
   editor: {
     selectedVoiceNotice:
       'Na V16, este som vai para a Voice selecionada na tela do FM1. As edições só tocam ao vivo no canal 1 ou All; para ouvi-lo, selecione a Voice do canal {{channel}}.',
+    effectsSharedNotice:
+      'No V16, estes são os efeitos do FM1, compartilhados pelas oito Voices. O FM1 não os guarda com este patch: pressione SAVE e escolha Globe no FM1 para mantê-los.',
     back: 'Voltar aos bancos',
     editName: 'Editar nome do som',
     patchName: 'Nome do som',

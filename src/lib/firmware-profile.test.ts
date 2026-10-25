@@ -63,6 +63,25 @@ describe('resolveFirmwareProfile', () => {
     expect(presetEffects('FM-1_019')).toBe(false)
   })
 
+  it('shares effects across Voices only where controllers are sent but no preset carries them', () => {
+    const sharesEffects = (firmware: Parameters<typeof resolveFirmwareProfile>[0]) => {
+      const { capabilities } = resolveFirmwareProfile(firmware)
+      return capabilities.effectControllers && !capabilities.presetEffects
+    }
+    expect(sharesEffects({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
+    expect(sharesEffects({ identity: 'FM-1_016', kind: 'mvave' })).toBe(true)
+    expect(sharesEffects({ identity: 'FM-1_019', kind: 'mvave' })).toBe(true)
+    for (const firmware of [
+      { kind: 'checking' },
+      { kind: 'unidentified' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { identity: 'FM-1_908', kind: 'felucca' },
+      { identity: 'FM1_OFFICIAL_OPEN', kind: 'official-open' },
+    ] as const) {
+      expect(sharesEffects(firmware)).toBe(false)
+    }
+  })
+
   it('says which Voice the editor reaches only from V16, which plays eight', () => {
     const selectedVoiceEdits = (identity: string) =>
       resolveFirmwareProfile({ identity, kind: 'mvave' }).capabilities.selectedVoiceEdits

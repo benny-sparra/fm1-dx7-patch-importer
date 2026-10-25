@@ -21,6 +21,7 @@ import { OperatorTable } from '@/components/editor/operator-table'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
 import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
+import { InfoNotice } from '@/components/ui/info-notice'
 import {
   RackPanelCollapseToggle,
   RackPanelCollapsibleBody,
@@ -238,6 +239,9 @@ export function PatchEditorPage({
       ? t('editor.selectedVoiceNotice', { channel: midi.channel })
       : null,
   )
+  // Effect controllers without effects that follow a preset: the FM1's one shared FX group (V16).
+  const sharesEffects =
+    firmwareCapabilities.effectControllers && !firmwareCapabilities.presetEffects
   const writesDistortionType = firmwareCapabilities.presetWrite
   const keptDistortionType =
     !writesDistortionType && record && distortionType !== 0 && midi.firmware.kind !== 'checking'
@@ -520,6 +524,13 @@ export function PatchEditorPage({
               title={t('editor.effects')}
             />
             <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="effects-unit">
+              {sharesEffects ? (
+                <InfoNotice>
+                  <p>
+                    <span>{t('editor.effectsSharedNotice')}</span>
+                  </p>
+                </InfoNotice>
+              ) : null}
               <EffectsUnit
                 distortionType={
                   writesDistortionType
