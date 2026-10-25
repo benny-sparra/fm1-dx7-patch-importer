@@ -11,6 +11,7 @@ const nothing = {
   presetRead: false,
   presetWrite: false,
   programChanges: false,
+  selectedVoiceEdits: false,
   singleVoiceDumps: false,
   soundControls: false,
   trackEngineRead: false,
@@ -62,9 +63,23 @@ describe('resolveFirmwareProfile', () => {
     expect(presetEffects('FM-1_019')).toBe(false)
   })
 
+  it('says which Voice the editor reaches only from V16, which plays eight', () => {
+    const selectedVoiceEdits = (identity: string) =>
+      resolveFirmwareProfile({ identity, kind: 'mvave' }).capabilities.selectedVoiceEdits
+    expect(selectedVoiceEdits('FM-1_015')).toBe(false)
+    expect(selectedVoiceEdits('FM-1_016')).toBe(true)
+    expect(selectedVoiceEdits('FM-1_019')).toBe(true)
+    expect(resolveFirmwareProfile({ kind: 'checking' }).capabilities.selectedVoiceEdits).toBe(false)
+  })
+
   it('still sends V16 single-voice dumps, parameter changes, and Program Change', () => {
     expect(resolveFirmwareProfile({ identity: 'FM-1_016', kind: 'mvave' })).toEqual({
-      capabilities: { ...cautious, presetEffects: false, singleVoiceDumps: true },
+      capabilities: {
+        ...cautious,
+        presetEffects: false,
+        selectedVoiceEdits: true,
+        singleVoiceDumps: true,
+      },
       effectControllerBase: 70,
       family: 'mvave',
       presetWriteTiming: presetsPageTiming,

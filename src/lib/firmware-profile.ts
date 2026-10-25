@@ -51,6 +51,10 @@ export type EffectControllerBase = 0 | 70
  * - `presetEffects`: the effect unit follows the preset that plays, so a patch played from its slot
  *   sends its effects with its voice. M-VAVE's V16 gives every Voice one shared FX group, so there
  *   a patch's effects go only as they are edited, and playing a patch leaves the group alone.
+ * - `selectedVoiceEdits`: the FM1 plays several Voices, each on its own channel, and a dump edits
+ *   the Voice selected on its screen while parameter changes reach that Voice only on channel 1 or
+ *   All, so the editor says which Voice it reaches. M-VAVE's V16 (docs/fm1-research.md,
+ *   "Confirmed on hardware", 2026-10-25).
  */
 type FirmwareCapability =
   | 'bitcrush'
@@ -61,6 +65,7 @@ type FirmwareCapability =
   | 'presetRead'
   | 'presetWrite'
   | 'programChanges'
+  | 'selectedVoiceEdits'
   | 'singleVoiceDumps'
   | 'soundControls'
   | 'trackEngineRead'
@@ -139,6 +144,8 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
       // 70 added, and its FX group is shared by all eight Voices rather than following a preset
       // (docs/fm1-research.md, "What the firmware shows", 2026-10-23).
       presetEffects: { before: 16, from: 0 },
+      // V16's eight Voices take a dump on the one selected on screen (2026-10-25).
+      selectedVoiceEdits: 16,
       singleVoiceDumps: 0,
     },
     effectControllerBase: { base: 70, from: 16 },
@@ -181,6 +188,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       presetRead: from(capabilities.presetRead),
       presetWrite: from(capabilities.presetWrite),
       programChanges: from(capabilities.programChanges),
+      selectedVoiceEdits: from(capabilities.selectedVoiceEdits),
       singleVoiceDumps: from(capabilities.singleVoiceDumps),
       soundControls: from(capabilities.soundControls),
       trackEngineRead: from(capabilities.trackEngineRead),

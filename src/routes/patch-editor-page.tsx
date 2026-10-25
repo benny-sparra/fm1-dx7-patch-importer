@@ -21,6 +21,7 @@ import { OperatorTable } from '@/components/editor/operator-table'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
 import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
+import { InfoNotice } from '@/components/ui/info-notice'
 import {
   RackPanelCollapseToggle,
   RackPanelCollapsibleBody,
@@ -80,6 +81,7 @@ type PatchEditorPageProps = {
   effects: Uint8Array
   midi: Pick<
     MidiController,
+    | 'channel'
     | 'firmware'
     | 'hasMidiOutput'
     | 'midiAccess'
@@ -93,6 +95,8 @@ type PatchEditorPageProps = {
   onCopyOperator: (copied: CopiedOperator) => void
   /** Saves the sound, with its FM-1+VA settings record when it has one. */
   onSave: (voice: Dx7Voice, effects: Uint8Array, record?: Uint8Array) => void
+  /** A send of this patch already under way as the editor opens, which it waits on. */
+  openingSend?: Promise<boolean>
   patch: Patch
   /**
    * The patch's FM-1+VA settings record, which holds its Distortion type, Bitcrush, effect order,
@@ -113,6 +117,7 @@ export function PatchEditorPage({
   onBack,
   onCopyOperator,
   onSave,
+  openingSend,
   patch,
   record,
   voice,
@@ -177,8 +182,8 @@ export function PatchEditorPage({
   }, [isDirty])
 
   useEffect(() => {
-    editor.synchronize(patch.id)
-  }, [canSync, editor, patch.id])
+    editor.synchronize(patch.id, openingSend)
+  }, [canSync, editor, openingSend, patch.id])
 
   const storedName = useMemo(
     () =>
@@ -396,6 +401,19 @@ export function PatchEditorPage({
       />
 
       {midi.midiAccess && !midi.sysexAvailable ? <MidiSysexWarning /> : null}
+
+      {/*
+        V16 puts the patch on the Voice selected on the FM1 and takes live edits only on channel 1,
+        so the editor says which Voice it reaches (docs/fm1-research.md, 2026-10-25). The region
+        stays mounted, so the notice is read out when the FM1 is identified as running V16.
+      */}
+      <div className={cn('empty:hidden')} role="status">
+        {canSync && firmwareCapabilities.selectedVoiceEdits ? (
+          <InfoNotice>
+            <p>{t('editor.selectedVoiceNotice', { channel: midi.channel })}</p>
+          </InfoNotice>
+        ) : null}
+      </div>
 
       {/*
         The artboard's rack, top to bottom: the six operator columns, then a

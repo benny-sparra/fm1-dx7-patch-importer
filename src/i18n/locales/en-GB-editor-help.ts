@@ -6,6 +6,8 @@
  */
 export default {
   editor: {
+    selectedVoiceNotice:
+      'On V16 this patch goes to the Voice selected on the FM1’s screen, and your edits reach it as you make them only while that Voice is on MIDI channel 1 or All. To hear it from here, select the Voice on channel {{channel}}.',
     editName: 'Edit patch name',
     patchName: 'Patch name',
     unsaved: 'Unsaved changes',

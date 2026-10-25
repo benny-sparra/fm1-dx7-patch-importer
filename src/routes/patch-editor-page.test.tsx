@@ -46,8 +46,12 @@ async function chooseRandomise(user: ReturnType<typeof userEvent.setup>) {
   expect(screen.getByLabelText('Voice presets').closest('details')?.open).toBe(false)
 }
 
-function setup(overrides: Partial<EditorMidi> = {}) {
+function setup(
+  overrides: Partial<EditorMidi> = {},
+  { openingSend }: { openingSend?: Promise<boolean> } = {},
+) {
   const midi: EditorMidi = {
+    channel: 1,
     firmware: { identity: 'FM-1_015', kind: 'mvave' },
     hasMidiOutput: true,
     midiAccess: true,
@@ -70,6 +74,7 @@ function setup(overrides: Partial<EditorMidi> = {}) {
       onBack={onBack}
       onCopyOperator={vi.fn()}
       onSave={onSave}
+      openingSend={openingSend}
       patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
       voice={{ data: new Uint8Array(128), name: 'INIT' }}
     />,
@@ -84,6 +89,7 @@ function setup(overrides: Partial<EditorMidi> = {}) {
         onBack={onBack}
         onCopyOperator={vi.fn()}
         onSave={onSave}
+        openingSend={openingSend}
         patch={{ bank: 'A', family: 'Keys', id: 'a-1', name: 'INIT', number: 1, program: 0 }}
         voice={{ data: new Uint8Array(128), name: 'INIT' }}
       />,
@@ -92,6 +98,44 @@ function setup(overrides: Partial<EditorMidi> = {}) {
 }
 
 describe('PatchEditorPage MIDI paths', () => {
+  it('waits for a send already under way as it opens rather than sending the patch again', async () => {
+    const { midi } = setup({}, { openingSend: Promise.resolve(true) })
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole<HTMLButtonElement>('button', { name: 'Back to patch banks' }).disabled,
+      ).toBe(false),
+    )
+    expect(midi.sendVoice).not.toHaveBeenCalled()
+  })
+
+  it('says on V16 which Voice the patch reaches, naming the note channel', () => {
+    setup({ channel: 3, firmware: { identity: 'FM-1_016', kind: 'mvave' } })
+
+    expect(
+      screen.getByText(
+        'On V16 this patch goes to the Voice selected on the FM1’s screen, and your edits reach it as you make them only while that Voice is on MIDI channel 1 or All. To hear it from here, select the Voice on channel 3.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('says which Voice the patch reaches in German', async () => {
+    await setLocale('de')
+    try {
+      setup({ channel: 3, firmware: { identity: 'FM-1_016', kind: 'mvave' } })
+
+      expect(screen.getByText(/wähle die Voice auf Kanal 3\.$/)).toBeTruthy()
+    } finally {
+      await setLocale('en-GB')
+    }
+  })
+
+  it('says nothing about Voices before V16, which plays one', () => {
+    setup()
+
+    expect(screen.queryByText(/Voice selected on the FM1/)).toBeNull()
+  })
+
   it('marks the patch FM beside its slot code while the FM1 runs Baud Girl’s firmware', () => {
     setup({ firmware: { identity: 'FM-1_096', kind: 'fm1-va' } })
 
@@ -731,6 +775,7 @@ function ClipboardHarness({ midi, patch }: { midi: EditorMidi; patch: Patch }) {
 describe('PatchEditorPage operator copy and paste', () => {
   const setupClipboard = async () => {
     const midi: EditorMidi = {
+      channel: 1,
       firmware: { identity: 'FM-1_015', kind: 'mvave' },
       hasMidiOutput: true,
       midiAccess: true,
@@ -895,6 +940,7 @@ describe('PatchEditorPage operator copy and paste', () => {
   it('closes the operator menu on Escape without leaving the editor', async () => {
     const user = userEvent.setup()
     const midi: EditorMidi = {
+      channel: 1,
       firmware: { identity: 'FM-1_015', kind: 'mvave' },
       hasMidiOutput: true,
       midiAccess: true,
@@ -1254,6 +1300,7 @@ function renderWithRecord(firmware: Fm1Firmware, record?: Uint8Array) {
       copiedOperator={null}
       effects={new Uint8Array(24)}
       midi={{
+        channel: 1,
         firmware,
         hasMidiOutput: true,
         midiAccess: true,

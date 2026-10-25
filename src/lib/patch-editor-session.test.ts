@@ -504,4 +504,44 @@ describe('PatchEditorSession voice name', () => {
       expect(midi.sendEffectSettings).toHaveBeenCalledOnce()
     })
   })
+
+  describe('opening on a patch the FM1 is already receiving', () => {
+    it('goes live once that send lands, without sending the patch again', async () => {
+      const midi = makeMidi()
+      const delivered = deferred<boolean>()
+      const session = new PatchEditorSession(new Uint8Array(FM1_EDITOR_PARAMETER_COUNT), () => midi)
+
+      session.synchronize('a-1', delivered.promise)
+      expect(session.getState().syncState).toBe('sending')
+      delivered.resolve(true)
+
+      await vi.waitFor(() => expect(session.getState().syncState).toBe('live'))
+      expect(midi.sendVoice).not.toHaveBeenCalled()
+      expect(midi.sendEffectSettings).not.toHaveBeenCalled()
+    })
+
+    it('sends the patch itself when that send fails', async () => {
+      const midi = makeMidi()
+      const session = new PatchEditorSession(new Uint8Array(FM1_EDITOR_PARAMETER_COUNT), () => midi)
+
+      session.synchronize('a-1', Promise.resolve(false))
+
+      await vi.waitFor(() => expect(session.getState().syncState).toBe('live'))
+      expect(midi.sendVoice).toHaveBeenCalledOnce()
+    })
+
+    it('sends the edited patch when it is edited before that send lands', async () => {
+      const midi = makeMidi()
+      const delivered = deferred<boolean>()
+      const session = new PatchEditorSession(new Uint8Array(FM1_EDITOR_PARAMETER_COUNT), () => midi)
+
+      session.synchronize('a-1', delivered.promise)
+      session.setParameter(operatorOutputParameter(1), 50, 99)
+      delivered.resolve(true)
+
+      await vi.waitFor(() => expect(session.getState().syncState).toBe('live'))
+      expect(midi.sendVoice).toHaveBeenCalledOnce()
+      expect(midi.sendParameter).not.toHaveBeenCalled()
+    })
+  })
 })

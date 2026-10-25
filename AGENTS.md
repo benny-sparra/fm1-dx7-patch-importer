@@ -204,7 +204,7 @@ open everything an earlier release could have saved.
   monitoring, because a release has few enough FM1s on it to single one out.
 - What each firmware can take is its profile in `src/lib/firmware-profile.ts`, and nowhere else:
   `resolveFirmwareProfile` gives its family, its capabilities (`singleVoiceDumps`, `presetRead`,
-  `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`, `programChanges`,
+  `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`, `programChanges`, `selectedVoiceEdits`,
   `effectControllers`, `presetEffects`), where its effect controllers start
   (`effectControllerBase`), and its preset write timing. A family
   lists the first release with each capability, or a range ending `before` the release that took
@@ -235,6 +235,12 @@ open everything an earlier release could have saved.
   line, since the entry pays for the string. The hardware run of 2026-10-23
   (`docs/hardware-runs/stock-v16-2026-10-23.md`) confirmed the controllers, their limits, and that
   they change only the live FX group, which a power cycle without SAVE restores.
+  The run of 2026-10-25 (`docs/hardware-runs/stock-v16-2026-10-25.md`) found that a dump reaches
+  the Voice selected on the FM1's screen, whatever its channel, while the Program Change reaches
+  the Voice on the note channel and parameter changes the selected Voice only on channel 1 or All.
+  The editor cannot address another Voice, so on V16 (the profile's `selectedVoiceEdits`) it says
+  so in an `InfoNotice` naming the note channel; the string is the editor's, so the entry pays
+  nothing for it.
   The development FX probe's **V16 research** mode (`Fm1EffectProbeMode`) sends CC 0–23 or 70–93
   whatever the FM1 runs, with any 7-bit value; its default mode keeps to the controllers the
   profile places the effects at.
@@ -327,7 +333,11 @@ open everything an earlier release could have saved.
 - Do not resend unchanged data to the FM1 on repeated interaction, such as a double-click. Forget
   what was sent as soon as anything else replaces that device state, and after a failed send.
   The edit-buffer audition compares voice objects by identity, so a library change that puts a
-  sound in a slot, such as copying, gives it new voice and effect objects.
+  sound in a slot, such as copying, gives it new voice and effect objects. A double-click plays
+  the slot and then opens it, so the editor opened on the sound the click is sending takes over
+  that send (`openingSend`, `PatchEditorSession.synchronize`) rather than selecting the program
+  and sending the patch again; it sends the patch itself only if that send fails or the patch is
+  edited before it lands.
 
 ### Internationalisation
 
