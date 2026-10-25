@@ -224,6 +224,38 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       the device makes the editor send to the wrong Voice unseen. A "play Voice n" test button
       on each row helps; nothing can detect it.
     - Keyboard shortcuts to step the note channel, left out of step 1.
+  - **Before building step 2** (agreed 2026-10-25, to pick up next). Step 2 sends only Program
+    Changes, which the editor already sends, so it needs no new protocol approval. In order:
+    1. **Decide** (the owner's calls):
+       - **The word Voice**, above. Suggested: a part is always "Voice" with its number, and
+         anything users read calls the sound a patch. Record the rule in `AGENTS.md`'s
+         terminology lines in the same change.
+       - **Whether the current setup is kept between visits.** Keeping it adds a `localStorage`
+         key that every later release must read (`AGENTS.md`, legacy stored data), so agree its
+         name and a versioned shape first: eight preset numbers (0–127 or none) and eight
+         channels (1–16), read inside `try/catch` with a safe default.
+       - **Whether the standalone effects editor (effects stage 2) ships with the strip** or
+         after it. Suggested: after, so the strip lands small.
+    2. **Hardware run** on the orange FM1, with
+       [`hardware-runs/stock-v16-voices-run-sheet.md`](hardware-runs/stock-v16-voices-run-sheet.md):
+       eight Voices on channels 1–8 each taking only their own Program Change, a Voice switched
+       Off, the key-press channel, and CC 7 if a tool can send it. It can share the session with
+       the **Receive patches** wizard's run sheet. Record the run in `docs/hardware-runs/` and
+       `docs/fm1-research.md`.
+    3. **Design the strip.** The mock-up of 2026-10-25 showed the hard parts: at desktop width
+       "Voice 1 · Ch 1" wraps and patch names cut to "BRASS…", eight boxes will not fit a
+       320 px phone, and the strip has to sit with #369's header channel picker. The owner
+       planned to design UI in Figma and load it as a design system; design the strip there, or
+       agree its look, before the build.
+    4. **Then build**, planning for:
+       - **Bundle:** the header is in the entry, with about 3.4 KiB to spare. Keep the "Play
+         several Voices" switch eager and load the strip lazily when it is switched on, so
+         people who never use it pay nothing. Measure with `npm run bundle:check`.
+       - **Profile:** a new capability (`multitimbral` or similar) from release 16 in
+         `src/lib/firmware-profile.ts`, with tests on each side of the threshold.
+       - **Tests:** a rendered test that a Voice aims the note channel and a slot click sends
+         one Program Change on its channel; one non-English locale; the stored setup's fixture
+         if step 1 keeps it; Playwright for the phone layout.
 
 - [x] **Receive from the FM1 as a wizard.** Receiving a bank from V16's Bank Export works (#351)
       but felt disjointed when tried on 2026-10-23, and says too little about what is happening.
