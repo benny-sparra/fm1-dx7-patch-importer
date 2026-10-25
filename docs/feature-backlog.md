@@ -153,8 +153,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     1. **Note channel in the header.** A **Note channel** picker beside the MIDI controls, for
        every firmware (Official Open chooses its track by the note channel too), sharing the
        Settings menu's setting. Choosing a Voice's channel and clicking a patch then loads it
-       on that Voice. Handed to a Sonnet session on 2026-10-25 (branch
-       `feature/header-note-channel`); the owner may restyle it later.
+       on that Voice. _Done (2026-10-25, #369); the owner may restyle it later._
     2. **A Voice strip, opt-in.** A switch such as "Play several Voices", offered where the
        profile says the firmware is multitimbral (a new capability from V16), turns the header's
        note channel picker into a strip of eight Voices, never a second row of tabs beside the
@@ -198,7 +197,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       FM-1+VA writes them into the preset. Only V16's presentation changes, in three stages:
       1. **Now, small:** on V16 the panel says it edits the FM1's effects, shared by all
          Voices, and that the FM1 does not keep them with the patch. The firmware setting
-         already says so; the editor is where people change them.
+         already says so; the editor is where people change them. _Done (2026-10-25, #375): an
+         `InfoNotice` at the top of the Effects panel while the profile has
+         `effectControllers` but not `presetEffects`. #370 has since removed the firmware
+         setting's line, so the panel is now the one place that says it._
       2. **With the Voice strip (step 2):** a standalone effects editor opened from the strip,
          beside **Send setup**, reusing the effects panel and editing the current setup's
          effects. On V16 the patch editor's panel then points to it.
