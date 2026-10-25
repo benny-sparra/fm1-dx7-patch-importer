@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -18,6 +18,7 @@ import {
   capturedVirtualAnalogRecord,
   capturedVirtualAnalogVoice,
 } from '@/test/fm1-va-virtual-analog'
+import { renderWithToasts } from '@/test/render-with-toasts'
 
 type Midi = ComponentProps<typeof VirtualAnalogEditorPage>['midi']
 
@@ -65,7 +66,7 @@ function setup({
   const onSave = vi.fn<(voice: Uint8Array, effects: Uint8Array, record: Uint8Array) => void>()
   const record = capturedVirtualAnalogRecord()
   const voice = capturedVirtualAnalogVoice()
-  render(
+  renderWithToasts(
     <VirtualAnalogEditorPage
       effects={makeDefaultFm1Effects()}
       midi={midi}
@@ -229,7 +230,7 @@ describe('VirtualAnalogEditorPage', () => {
   it('says changes play live only from FM-1_086', () => {
     const { ports } = setup({ firmware: 'FM-1_085' })
 
-    expect(screen.getByText(/^With Baud Girl’s firmware FM-1_086 or later/)).toBeTruthy()
+    expect(screen.getByText(/^Live playback needs Baud Girl’s FM-1_086/)).toBeTruthy()
     expect(ports.output.send).not.toHaveBeenCalled()
   })
 

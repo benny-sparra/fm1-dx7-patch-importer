@@ -33,6 +33,7 @@ function renderHeader(
       onNameBlur={noop}
       onNameChange={noop}
       onRedo={noop}
+      onShowNotice={null}
       onResend={noop}
       onRevert={noop}
       onSave={noop}

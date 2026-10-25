@@ -360,9 +360,9 @@ export default {
     mono: 'Monofónico',
     initPatch: 'Inicializar',
     initPatchHelp: 'El preset 8-Bit vacío del propio FM1. Efectos apagados.',
-    live: 'La envolvente, el LFO y los efectos suenan en el FM1 en cuanto los cambias. Lo demás se oye cuando el sonido se escribe en el FM1.',
+    live: 'La envolvente, el LFO y los efectos suenan en directo. Lo demás se oye cuando el sonido se escribe en el FM1.',
     noFirmware:
-      'Con el firmware de Baud Girl FM-1_096 o posterior y MIDI activado, la envolvente, el LFO y los efectos suenan en el FM1 en cuanto los cambias. Hasta entonces, tus cambios se oyen cuando el sonido se escribe en el FM1.',
+      'El directo requiere el firmware de Baud Girl FM-1_096 o posterior y MIDI activado. Hasta entonces, los cambios se oyen cuando el sonido se escribe en el FM1.',
   },
   virtualAnalog: {
     help: {
@@ -437,15 +437,14 @@ export default {
     decay: 'Caída',
     sustain: 'Sostenido',
     release: 'Liberación',
-    checking: 'Comprobando el preset {{preset}} del FM1…',
     noProgram:
-      'Este sonido no está en los bancos A–D, así que ningún preset del FM1 lo toca. Tus cambios se oyen cuando el sonido se escribe en el FM1.',
+      'Este sonido no está en los bancos A–D. Los cambios se oyen cuando se escribe en el FM1.',
     noFirmware:
-      'Con el firmware de Baud Girl FM-1_086 o posterior y MIDI activado, tus cambios suenan en el FM1 en cuanto los haces. Hasta entonces, se oyen cuando el sonido se escribe en el FM1.',
+      'El directo requiere el firmware de Baud Girl FM-1_086 o posterior y MIDI activado. Hasta entonces, los cambios se oyen cuando el sonido se escribe en el FM1.',
     otherEngine:
-      'El preset {{preset}} del FM1 no es un preset Virtual Analog, así que tus cambios no se le envían. Se oyen cuando el sonido se escribe en el FM1.',
+      'El preset {{preset}} del FM1 no es Virtual Analog, así que no se le envían los cambios. Se oyen cuando el sonido se escribe en el FM1.',
     readFailed:
-      'El FM1 no respondió al pedirle su preset {{preset}}, así que tus cambios no se le envían. Se oyen cuando el sonido se escribe en el FM1.',
+      'El FM1 no respondió por su preset {{preset}}, así que no se le envían los cambios. Se oyen cuando el sonido se escribe en el FM1.',
     presets: 'Preajustes de sonido',
     initPatch: 'Inicializar',
     initPatchHelp: 'Onda de sierra simple, filtro abierto. Efectos apagados.',
@@ -1093,7 +1092,7 @@ export default {
   },
   editor: {
     selectedVoiceNotice:
-      'En la V16, este sonido va a la Voice seleccionada en la pantalla del FM1, y tus cambios solo le llegan en directo mientras esa Voice está en el canal MIDI 1 o All. Para oírlo desde aquí, selecciona la Voice del canal {{channel}}.',
+      'En la V16, este sonido va a la Voice seleccionada en la pantalla del FM1. Los cambios solo suenan en directo en el canal 1 o All; para oírlo, selecciona la Voice del canal {{channel}}.',
     back: 'Volver a los bancos',
     editName: 'Editar nombre del sonido',
     patchName: 'Nombre del sonido',
@@ -1135,6 +1134,7 @@ export default {
     revert: 'Restaurar lo guardado',
     revertHelp: 'Descartar los cambios y restaurar el sonido guardado.',
     compare: 'Comparar con lo guardado',
+    showNotice: 'Mostrar nota sobre el FM1',
     compareShort: 'Comparar',
     stopComparing: 'Dejar de comparar y volver a tus cambios',
     comparingTitle: 'Sonando el sonido guardado',

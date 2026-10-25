@@ -130,3 +130,57 @@ describe('ToastProvider action timing', () => {
     expect(screen.queryByText('Deleted Bank 2.')).toBeNull()
   })
 })
+
+describe('ToastProvider information', () => {
+  it('shows information that stays a little longer than a confirmation', () => {
+    function Inform() {
+      const toast = useToast()
+      return (
+        <button onClick={() => toast.info('Plays live on channel 1.')} type="button">
+          Inform
+        </button>
+      )
+    }
+    render(
+      <ToastProvider>
+        <Inform />
+      </ToastProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Inform' }))
+
+    act(() => {
+      vi.advanceTimersByTime(4_600)
+    })
+    expect(screen.getByText('Plays live on channel 1.')).toBeTruthy()
+
+    act(() => {
+      vi.advanceTimersByTime(4_500)
+    })
+    expect(screen.queryByText('Plays live on channel 1.')).toBeNull()
+  })
+
+  it('shows the same information once, however often it is said', () => {
+    function Repeat() {
+      const toast = useToast()
+      return (
+        <button
+          onClick={() => {
+            toast.info('Plays live on channel 1.')
+            toast.info('Plays live on channel 1.')
+          }}
+          type="button"
+        >
+          Repeat
+        </button>
+      )
+    }
+    render(
+      <ToastProvider>
+        <Repeat />
+      </ToastProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Repeat' }))
+
+    expect(screen.getAllByText('Plays live on channel 1.')).toHaveLength(1)
+  })
+})

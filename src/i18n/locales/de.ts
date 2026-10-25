@@ -363,9 +363,9 @@ export default {
     mono: 'Monophon',
     initPatch: 'Initialisieren',
     initPatchHelp: 'Das leere 8-Bit-Preset des FM1. Effekte aus.',
-    live: 'Hüllkurve, LFO und Effekte erklingen sofort auf dem FM1. Alles andere hörst du, sobald der Sound auf den FM1 geschrieben ist.',
+    live: 'Hüllkurve, LFO und Effekte erklingen sofort. Alles andere hörst du, sobald der Sound auf den FM1 geschrieben ist.',
     noFirmware:
-      'Mit der Firmware von Baud Girl ab FM-1_096 und eingeschaltetem MIDI erklingen Hüllkurve, LFO und Effekte sofort auf dem FM1. Bis dahin hörst du deine Änderungen, sobald der Sound auf den FM1 geschrieben ist.',
+      'Live-Wiedergabe braucht die Firmware von Baud Girl ab FM-1_096 und eingeschaltetes MIDI. Bis dahin hörst du Änderungen, sobald der Sound auf den FM1 geschrieben ist.',
   },
   virtualAnalog: {
     help: {
@@ -442,15 +442,14 @@ export default {
     decay: 'Decay',
     sustain: 'Sustain',
     release: 'Release',
-    checking: 'Preset {{preset}} des FM1 wird geprüft …',
     noProgram:
-      'Dieser Sound liegt nicht in den Bänken A–D, daher spielt ihn kein Preset des FM1. Deine Änderungen hörst du, sobald der Sound auf den FM1 geschrieben ist.',
+      'Dieser Sound liegt nicht in den Bänken A–D. Änderungen hörst du, sobald er auf den FM1 geschrieben ist.',
     noFirmware:
-      'Mit der Firmware von Baud Girl ab FM-1_086 und eingeschaltetem MIDI erklingen deine Änderungen sofort auf dem FM1. Bis dahin hörst du sie, sobald der Sound auf den FM1 geschrieben ist.',
+      'Live-Wiedergabe braucht die Firmware von Baud Girl ab FM-1_086 und eingeschaltetes MIDI. Bis dahin hörst du Änderungen, sobald der Sound auf den FM1 geschrieben ist.',
     otherEngine:
-      'Preset {{preset}} des FM1 ist kein Virtual-Analog-Preset, daher werden deine Änderungen nicht dorthin gesendet. Du hörst sie, sobald der Sound auf den FM1 geschrieben ist.',
+      'Preset {{preset}} des FM1 ist kein Virtual-Analog-Preset, daher werden Änderungen nicht gesendet. Du hörst sie, sobald der Sound auf den FM1 geschrieben ist.',
     readFailed:
-      'Der FM1 hat auf die Abfrage seines Presets {{preset}} nicht geantwortet, daher werden deine Änderungen nicht gesendet. Du hörst sie, sobald der Sound auf den FM1 geschrieben ist.',
+      'Der FM1 hat nicht auf Preset {{preset}} geantwortet, daher werden Änderungen nicht gesendet. Du hörst sie, sobald der Sound auf den FM1 geschrieben ist.',
     presets: 'Klang-Vorlagen',
     initPatch: 'Initialisieren',
     initPatchHelp: 'Einfache Sägezahnwelle, Filter offen. Effekte aus.',
@@ -1110,7 +1109,7 @@ export default {
   },
   editor: {
     selectedVoiceNotice:
-      'Auf V16 landet dieser Sound auf der Voice, die am Bildschirm des FM1 ausgewählt ist, und deine Änderungen erreichen sie sofort nur, solange diese Voice auf MIDI-Kanal 1 oder All steht. Damit du ihn hier hörst, wähle die Voice auf Kanal {{channel}}.',
+      'Auf V16 geht dieser Sound an die am FM1 gewählte Voice. Änderungen erklingen nur auf Kanal 1 oder All live; zum Hören wähle die Voice auf Kanal {{channel}}.',
     back: 'Zurück zu den Bänken',
     editName: 'Soundnamen bearbeiten',
     patchName: 'Soundname',
@@ -1152,6 +1151,7 @@ export default {
     revert: 'Gespeicherten Stand laden',
     revertHelp: 'Änderungen verwerfen und den gespeicherten Sound wiederherstellen.',
     compare: 'Mit gespeichertem Stand vergleichen',
+    showNotice: 'FM1-Hinweis anzeigen',
     compareShort: 'Vergleichen',
     stopComparing: 'Vergleich beenden und zu deinen Änderungen zurückkehren',
     comparingTitle: 'Gespeicherter Klang läuft',

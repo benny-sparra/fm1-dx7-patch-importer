@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
@@ -18,6 +18,7 @@ import { capturedEightBitReply } from '@/test/fm1-va-captures'
 import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
 import { makeFm1VaPresetReply } from '@/test/fm1-va-replies'
+import { renderWithToasts } from '@/test/render-with-toasts'
 
 type Midi = ComponentProps<typeof EightBitEditorPage>['midi']
 
@@ -75,7 +76,7 @@ function setup({
   }
   const onBack = vi.fn()
   const onSave = vi.fn<(voice: Uint8Array, effects: Uint8Array, record: Uint8Array) => void>()
-  render(
+  renderWithToasts(
     <EightBitEditorPage
       effects={makeDefaultFm1Effects()}
       midi={midi}
@@ -171,7 +172,7 @@ describe('EightBitEditorPage', () => {
     const { controlChanges, ports } = setup()
 
     await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
-    expect(screen.getByText(/^The Envelope, LFO, and effects play on the FM1/)).toBeTruthy()
+    expect(screen.getByText(/^The Envelope, LFO, and effects play live/)).toBeTruthy()
     const read = ports.output.send.mock.calls.find(([data]) => data[4] === 0x10)
     expect(read?.[0][5]).toBe(96)
     // Going live sends the LFO's controllers; the Envelope is off, so its four wait.
@@ -215,7 +216,7 @@ describe('EightBitEditorPage', () => {
   it('says the Envelope, LFO, and effects play live only on FM-1+VA', () => {
     const { ports } = setup({ firmware: 'FM-1_085' })
 
-    expect(screen.getByText(/^With Baud Girl’s firmware FM-1_096 or later/)).toBeTruthy()
+    expect(screen.getByText(/^Live playback needs Baud Girl’s FM-1_096/)).toBeTruthy()
     expect(ports.output.send).not.toHaveBeenCalled()
   })
 

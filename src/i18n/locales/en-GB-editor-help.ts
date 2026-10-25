@@ -7,7 +7,7 @@
 export default {
   editor: {
     selectedVoiceNotice:
-      'On V16 this patch goes to the Voice selected on the FM1’s screen, and your edits reach it as you make them only while that Voice is on MIDI channel 1 or All. To hear it from here, select the Voice on channel {{channel}}.',
+      'On V16 this goes to the FM1’s selected Voice. Edits play live only on channel 1 or All; to hear it, select the Voice on channel {{channel}}.',
     editName: 'Edit patch name',
     patchName: 'Patch name',
     unsaved: 'Unsaved changes',
@@ -45,6 +45,7 @@ export default {
     revert: 'Revert to saved',
     revertHelp: 'Discard edits and restore the saved patch.',
     compare: 'Compare with saved',
+    showNotice: 'Show FM1 note',
     compareShort: 'Compare',
     comparingTitle: 'Playing the saved sound',
     comparingBody: 'Editing is paused. Press Esc or Compare to return to your edits.',
@@ -428,9 +429,9 @@ export default {
     mono: 'Mono',
     initPatch: 'Init patch',
     initPatchHelp: 'The FM1’s own blank 8-Bit preset. Effects switch off.',
-    live: 'The Envelope, LFO, and effects play on the FM1 as you change them. Everything else is heard once the patch is written to the FM1.',
+    live: 'The Envelope, LFO, and effects play live. Everything else is heard once the patch is written to the FM1.',
     noFirmware:
-      'With Baud Girl’s firmware FM-1_096 or later and MIDI on, the Envelope, LFO, and effects play on the FM1 as you change them. Until then, your changes are heard once the patch is written to the FM1.',
+      'Live playback needs Baud Girl’s FM-1_096 or later and MIDI on. Until then, changes are heard once the patch is written to the FM1.',
   },
   virtualAnalog: {
     help: {
@@ -504,15 +505,13 @@ export default {
     decay: 'Decay',
     sustain: 'Sustain',
     release: 'Release',
-    checking: 'Checking the FM1’s preset {{preset}}…',
-    noProgram:
-      'This patch isn’t in banks A–D, so the FM1 has no preset playing it. Your changes are heard once the patch is written to the FM1.',
+    noProgram: 'This patch isn’t in banks A–D, so changes are heard once it’s written to the FM1.',
     noFirmware:
-      'With Baud Girl’s firmware FM-1_086 or later and MIDI on, your changes play on the FM1 as you make them. Until then, they’re heard once the patch is written to the FM1.',
+      'Live playback needs Baud Girl’s FM-1_086 or later and MIDI on. Until then, changes are heard once the patch is written to the FM1.',
     otherEngine:
-      'The FM1’s preset {{preset}} plays another engine, so your changes aren’t sent to it. They’re heard once the patch is written to the FM1.',
+      'The FM1’s preset {{preset}} plays another engine, so changes aren’t sent. They’re heard once the patch is written to the FM1.',
     readFailed:
-      'The FM1 didn’t answer when asked for its preset {{preset}}, so your changes aren’t sent to it. They’re heard once the patch is written to the FM1.',
+      'The FM1 didn’t answer for its preset {{preset}}, so changes aren’t sent. They’re heard once the patch is written to the FM1.',
     presets: 'Sound presets',
     initPatch: 'Init patch',
     initPatchHelp: 'A plain saw wave, filter open. Effects switch off.',

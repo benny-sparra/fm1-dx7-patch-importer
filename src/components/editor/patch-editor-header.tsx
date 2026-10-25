@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   ChevronDown,
   GitCompareArrows,
+  Info,
   Pencil,
   Redo2,
   RefreshCw,
@@ -59,6 +60,8 @@ type PatchEditorHeaderProps = {
     menuRef: RefObject<HTMLDetailsElement | null>
   }
   onRedo: () => void
+  /** Says the editor's note about the FM1 again; null while it has none. */
+  onShowNotice: (() => void) | null
   onResend: () => void
   onRevert: () => void
   onSave: () => void
@@ -98,6 +101,7 @@ export function PatchEditorHeader({
   onStopCompare,
   onNameChange,
   onRedo,
+  onShowNotice,
   onResend,
   onRevert,
   onSave,
@@ -217,6 +221,18 @@ export function PatchEditorHeader({
           >
             <Redo2 />
           </Button>
+          {onShowNotice ? (
+            <Button
+              aria-label={t('editor.showNotice')}
+              onClick={onShowNotice}
+              size="icon"
+              title={t('editor.showNotice')}
+              type="button"
+              variant="outline"
+            >
+              <Info />
+            </Button>
+          ) : null}
           {presets ? (
             <>
               <ToolbarDivider />

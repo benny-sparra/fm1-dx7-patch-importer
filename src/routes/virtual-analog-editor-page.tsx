@@ -34,7 +34,6 @@ import {
 } from '@/components/editor/parameter-controls'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
-import { InfoNotice } from '@/components/ui/info-notice'
 import {
   RackPanelCollapseToggle,
   RackPanelCollapsibleBody,
@@ -44,6 +43,7 @@ import type { Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import { useFm1VaSoundControl } from '@/hooks/use-fm1-va-sound-control'
+import { useInfoToast } from '@/hooks/use-info-toast'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import type { MidiController } from '@/hooks/use-midi'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
@@ -423,10 +423,17 @@ export function VirtualAnalogEditorPage({
   )
   const envelopeOn = value('envelope') === 1
   const presetNumber = program === undefined ? '' : fm1VaPresetNumber(program)
+  // Says why changes do not play on the FM1 as they are made; while they do, it is silent.
+  const showNotice = useInfoToast(
+    liveStatus === 'live' || liveStatus === 'checking'
+      ? null
+      : t(`virtualAnalog.${liveStatus}`, { preset: presetNumber }),
+  )
 
   return (
     <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-2.5 px-3 pt-2.5 pb-4 sm:px-5 lg:px-8">
       <PatchEditorHeader
+        onShowNotice={showNotice}
         canRedo={history.future.length > 0}
         canSync={liveStatus === 'live'}
         canUndo={history.past.length > 0}
@@ -484,15 +491,6 @@ export function VirtualAnalogEditorPage({
         saveMenuRef={saveMenuRef}
         syncState={syncState}
       />
-
-      {/* Says why changes do not play on the FM1 as they are made; while they do, it is silent. */}
-      <div className="empty:hidden" role="status">
-        {liveStatus === 'live' ? null : (
-          <InfoNotice>
-            <p>{t(`virtualAnalog.${liveStatus}`, { preset: presetNumber })}</p>
-          </InfoNotice>
-        )}
-      </div>
 
       <div className="relative min-w-0">
         <div

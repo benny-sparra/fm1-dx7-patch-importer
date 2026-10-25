@@ -21,7 +21,6 @@ import { OperatorTable } from '@/components/editor/operator-table'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
 import { MidiSysexWarning } from '@/components/midi/midi-sysex-warning'
-import { InfoNotice } from '@/components/ui/info-notice'
 import {
   RackPanelCollapseToggle,
   RackPanelCollapsibleBody,
@@ -29,6 +28,7 @@ import {
 } from '@/components/ui/rack-panel'
 import type { Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
+import { useInfoToast } from '@/hooks/use-info-toast'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import type { MidiController } from '@/hooks/use-midi'
@@ -231,6 +231,13 @@ export function PatchEditorPage({
   // that the patch keeps is named, since the FM1 does not play it.
   const distortionType = parameters[FM1_VA_DISTORTION_TYPE_INDEX]
   const firmwareCapabilities = resolveFirmwareProfile(midi.firmware).capabilities
+  // V16 puts the patch on the Voice selected on the FM1 and takes live edits only on channel 1, so
+  // the editor says which Voice it reaches (docs/fm1-research.md, 2026-10-25).
+  const showNotice = useInfoToast(
+    canSync && firmwareCapabilities.selectedVoiceEdits
+      ? t('editor.selectedVoiceNotice', { channel: midi.channel })
+      : null,
+  )
   const writesDistortionType = firmwareCapabilities.presetWrite
   const keptDistortionType =
     !writesDistortionType && record && distortionType !== 0 && midi.firmware.kind !== 'checking'
@@ -346,6 +353,7 @@ export function PatchEditorPage({
   return (
     <section className="patch-editor-page mx-auto grid max-w-[90rem] min-w-0 gap-2.5 px-3 pt-2.5 pb-4 sm:px-5 lg:px-8">
       <PatchEditorHeader
+        onShowNotice={showNotice}
         canSync={canSync}
         canRedo={history.future.length > 0}
         canUndo={history.past.length > 0}
@@ -401,19 +409,6 @@ export function PatchEditorPage({
       />
 
       {midi.midiAccess && !midi.sysexAvailable ? <MidiSysexWarning /> : null}
-
-      {/*
-        V16 puts the patch on the Voice selected on the FM1 and takes live edits only on channel 1,
-        so the editor says which Voice it reaches (docs/fm1-research.md, 2026-10-25). The region
-        stays mounted, so the notice is read out when the FM1 is identified as running V16.
-      */}
-      <div className={cn('empty:hidden')} role="status">
-        {canSync && firmwareCapabilities.selectedVoiceEdits ? (
-          <InfoNotice>
-            <p>{t('editor.selectedVoiceNotice', { channel: midi.channel })}</p>
-          </InfoNotice>
-        ) : null}
-      </div>
 
       {/*
         The artboard's rack, top to bottom: the six operator columns, then a

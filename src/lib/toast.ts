@@ -1,4 +1,4 @@
-type ToastKind = 'success'
+type ToastKind = 'info' | 'success'
 
 export type ToastAction = {
   label: string
