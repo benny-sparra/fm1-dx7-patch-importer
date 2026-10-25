@@ -461,7 +461,6 @@ export default {
   },
   backup: {
     menuOtherFiles: 'Other files',
-    sysexContents: 'DX7 data only, no FM1 effects',
     menuHeading: 'Backup',
     download: 'Download backup',
     restore: 'Restore from backup…',

@@ -1538,7 +1538,6 @@ export default {
   },
   backup: {
     menuOtherFiles: 'Weitere Dateien',
-    sysexContents: 'Nur DX7-Daten, keine FM1-Effekte',
     menuHeading: 'Sicherung',
     download: 'Sicherung herunterladen',
     restore: 'Aus Sicherung wiederherstellen…',

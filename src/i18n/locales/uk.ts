@@ -1588,7 +1588,6 @@ export default {
   },
   backup: {
     menuOtherFiles: 'Інші файли',
-    sysexContents: 'Лише дані DX7, без ефектів FM1',
     menuHeading: 'Резервна копія',
     download: 'Завантажити резервну копію',
     restore: 'Відновити з резервної копії…',
