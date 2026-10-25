@@ -18,7 +18,7 @@ The full feature list. The [README](../README.md) has the short version,
 - Retry browser-storage failures or continue explicitly with a session-only library without overwriting unreadable saved data
 - Import standard Yamaha DX7 32-voice bulk SysEx banks
 - Download a single patch as a DX7 `.syx` file, or import one over a slot, from the slot's **⋮** menu (**Download patch** and **Import patch…**)
-- Receive a standard DX7 single-voice dump from Dexed, a DX7, or another editor over MIDI into a slot, with **Receive patch…** in its **⋮** menu: it listens on the input monitor only while its dialog is open, sends nothing, and offers Undo. It also takes a 32-voice bank, such as a stock FM1 on V16 sends with Export, through the DX7 bank import
+- Receive patches over MIDI with a step-by-step wizard: a 32-voice bank from a stock FM1 on V16's Bank Export, with **Receive from the FM1…** in a bank's **⋮** menu or **Library actions**, or one DX7 single-voice dump from Dexed, a DX7, or another editor, with **Receive patch…** in a slot's **⋮** menu. It says what to do on the sending device, listens on the input monitor only while its listening step shows, sends nothing, lets you hear what arrived, and offers Undo
 - Share a patch as a link with **Copy share link** in its **⋮** menu: the patch travels in the link's `#` fragment, which never reaches a server, and opening the link shows the patch to play and add to a slot of your choice, with Undo
 - Search every bank at once, and reorder patches with pointer or keyboard drag-and-drop
 - Find duplicate patches: the patches in your banks whose voice settings match, renamed copies included, with a way to go to each one

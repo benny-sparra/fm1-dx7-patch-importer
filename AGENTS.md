@@ -171,14 +171,23 @@ open everything an earlier release could have saved.
   `phraseLatenessLimitMs` the phrase player drops the missed notes and rejoins the loop where it
   should be, because a hidden tab holds timers back for up to a minute and the backlog would reach
   the FM1 as hundreds of notes at once.
-- **Receive patch…** listens for a standard Yamaha DX7 single-voice dump from another device,
-  never the FM1's readback, and sends nothing. It listens on the selected input only while its
-  dialog is open (`useDx7VoiceReceiver`), and `Dx7VoiceReceiver` joins a dump split across
-  messages, ignores everything but a Yamaha bulk dump, such as Dexed's parameter changes, and
-  checks it with `parseDx7VoiceFile`. A 32-voice bank, as a stock FM1 on V16 sends from GLOBE →
-  Export (one 4104-byte bulk dump, confirmed 2026-10-23), is checked with `parseDx7Bank` and
-  offered to the slot's bank through the DX7 bank import dialog (`received`), which keeps its
-  replace warning and Undo; the receive dialog itself replaces nothing with it.
+- **Receive patches** (`ReceiveFromFm1Dialog`) is one wizard, opened by **Receive from the
+  FM1…** in a bank's ⋮ menu and **Library actions**, and by a slot's **Receive patch…** on its
+  single-patch path with that slot as the destination (the owner's choice, 2026-10-25). It
+  listens for a standard Yamaha DX7 single-voice dump or 32-voice bank from another device, never
+  the FM1's readback, and sends nothing: no message starts an export or is sent while it listens.
+  It listens on the selected input only while its listening screen shows
+  (`useDx7VoiceReceiver`), and `Dx7VoiceReceiver` joins a dump split across messages, ignores
+  everything but a Yamaha bulk dump, such as Dexed's parameter changes, and checks it with
+  `parseDx7VoiceFile` or, for a bank such as a stock FM1 on V16 sends from GLOBE → Export (one
+  4104-byte bulk dump, confirmed 2026-10-23), `parseDx7Bank`. Its screens are the source, each
+  with its own steps; listening, which switches MIDI online and chooses the input monitor there;
+  review, to audition what arrived; and the destination, with the replace warning, **Replace**,
+  and Undo. Bank Export sends over USB only, and without a USB host the FM1 shows **Receive
+  Timeout** rather than **Connect USB** (2026-10-25), so the FM1's steps say to connect USB and
+  open the listening screen before starting Export, and to start it again after a timeout. A
+  patch goes only to a bank holding patches, since it replaces one; a bank may go to an empty
+  bank, as **Import bank**.
 - **MIDI panic** sends a Note Off for each of the 128 notes on the note channel
   (`sendEveryNoteOff`), because the FM1 takes Control Change only for its effect controllers, so
   All Notes Off (CC 123) never reaches its voices. Do not call the button All notes off, which
@@ -407,7 +416,7 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive dialog, with the dump reader and its listener, when **Receive patch…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -432,7 +441,11 @@ open everything an earlier release could have saved.
 - The same holds for values. A lazy chunk that needs a small constant from a large module the entry
   uses takes it from a leaf module both import, as the piano keyboard takes its velocity limits
   from `src/lib/note-velocity.ts` rather than `src/lib/midi.ts`. Importing `midi.ts` itself made
-  Rolldown split `fm1-effects` out of the entry and cost 412 B. The other way round, an error class
+  Rolldown split `fm1-effects` out of the entry and cost 412 B. Likewise a lazy dialog that says
+  why MIDI did not connect takes `MidiConnectionError` from
+  `src/components/midi/midi-connection-error.tsx`, never `midi-controls`, whose `@/i18n` import
+  made Rolldown split i18next out of the entry, about 380 B, when the receive wizard took it from
+  there. The other way round, an error class
   eager code recognises lives in a module the entry already holds: `bankErrorMessage` once took
   `Dx7CatalogBankUnavailableError` from `src/lib/dx7-bank-catalog.ts`, which put the whole catalog
   list in the entry for 1.3 KiB, so the class is in `src/lib/dx7.ts`.
@@ -640,9 +653,11 @@ open everything an earlier release could have saved.
   for a file that joins several; then the bank's patches to audition, with the replace warning
   when the bank holds patches, and **Replace bank contents** (`destructive`) or **Import bank** in
   place of **Next**. A file chosen before it opens, as importing into an empty bank passes on, opens
-  it on the bank screen. Both wizards take their screen state, focus on each screen, the
-  Back/Next footer, and the file screen from `src/components/patches/bank-wizard.tsx`, and the
-  bank screen from `FileBankPicker`; a new step-by-step dialog uses them rather than another copy.
+  it on the bank screen. Both wizards, and **Receive patches**, take their screen state, focus on
+  each screen (the chosen radio first, then the first field, dropdown, or button), the Back/Next
+  footer, the file screen, and the bank's audition grid (`BankPreview`) from
+  `src/components/patches/bank-wizard.tsx`, and the bank screen from `FileBankPicker`; a new
+  step-by-step dialog uses them rather than another copy.
   The footer wraps, so **Back** and a long action fit a 320 px phone (`e2e/librarian.e2e.ts`).
 - A dialog that opens without a click, as the help guide does on a first visit, checks that it is
   connected, not already open, and has `showModal` before calling it. Crawlers and extensions can

@@ -637,26 +637,67 @@ export default {
     warning:
       'Der Sound in diesem Slot wird durch den Sound aus der Datei ersetzt, und seine FM1-Effekte werden auf die Standardwerte zurückgesetzt.',
   },
-  receivePatch: {
-    action: 'Sound ersetzen',
-    title: 'Sound in {{slot}} „{{patch}}“ empfangen',
-    listening:
-      'Der Monitoring-Eingang wird abgehört. Sende einen DX7-Sound aus Dexed, einem DX7 oder einem anderen Editor, oder eine Bank mit 32 Voices, wie ein FM1 mit M-VAVEs V16 sie über GLOBE → Export sendet.',
-    noInput: 'Schalte MIDI ein und wähle das Gerät, das den Sound sendet, als Monitoring-Eingang.',
+  receiveWizard: {
+    title: 'Sounds empfangen',
+    help: {
+      source:
+        'Wähle, was sendet. Der Editor hört nur zu: Er sendet nichts, um eine Übertragung zu starten.',
+      listen: 'Lass diesen Schritt offen, bis die Sounds ankommen.',
+      review:
+        'Klicke auf einen Sound, um ihn auf dem FM1 zu hören. Deine Bibliothek bleibt, wie sie ist, bis du etwas ersetzt.',
+      destination: 'Wähle, wohin die Sounds kommen.',
+    },
+    sourceLegend: 'Was sendet',
+    sources: {
+      fm1: 'Ein FM1 mit M-VAVEs V16',
+      fm1Hint: 'Eine Bank mit 32 Sounds, gesendet über GLOBE → Export.',
+      patch: 'Ein Sound von einem anderen Gerät',
+      patchHint: 'Aus Dexed, einem DX7 oder einem anderen Editor.',
+    },
+    stepsHeading: 'Schritte',
+    steps: {
+      fm1Connect: 'Verbinde den FM1 per USB mit diesem Computer. Export sendet nur über USB.',
+      next: 'Wähle Weiter, damit der Editor zuhört, bevor etwas gesendet wird.',
+      fm1Export: 'Öffne auf dem FM1 GLOBE, wähle Export und dann eine Bank.',
+      patchConnect:
+        'Verbinde das Gerät oder öffne Dexed bzw. den anderen Editor, sodass sein MIDI-Ausgang diesen Computer erreicht.',
+      patchSend: 'Sende von dort einen Sound als DX7-Single-Voice-Dump.',
+    },
+    startFm1: 'Öffne jetzt GLOBE auf dem FM1, wähle Export und dann eine Bank.',
+    startPatch: 'Sende jetzt den Sound als DX7-Single-Voice-Dump.',
+    listening: 'Abgehört wird „{{input}}“. Der Editor sendet nichts.',
+    noMidi: 'MIDI ist offline. Schalte es online, um zuzuhören.',
+    noInput: 'Wähle das Gerät, das die Sounds sendet, als Monitoring-Eingang.',
     noSysex:
-      'Zum Empfangen eines Sounds wird SysEx benötigt. Verbinde MIDI neu und erlaube den SysEx-Zugriff, wenn der Browser fragt.',
-    received: '„{{patch}}“ empfangen. Sende einen anderen, um stattdessen ihn zu empfangen.',
+      'Zum Empfangen von Sounds wird SysEx benötigt. Verbinde MIDI neu und erlaube den SysEx-Zugriff, wenn der Browser fragt.',
+    received:
+      '„{{patch}}“ empfangen. Wähle Weiter, oder sende einen anderen, um stattdessen ihn zu empfangen.',
     receivedBank:
-      'Bank mit 32 Voices empfangen, beginnend mit „{{patch}}“. Sende eine andere, um stattdessen sie zu empfangen.',
-    importBank: 'Bank in „{{bank}}“ importieren…',
-    warning:
-      'Der Sound in diesem Slot wird durch den empfangenen Sound ersetzt, und seine FM1-Effekte werden auf die Standardwerte zurückgesetzt.',
+      'Bank mit 32 Sounds empfangen, beginnend mit „{{patch}}“. Wähle Weiter, um sie zu hören, oder sende eine andere, um stattdessen sie zu empfangen.',
+    timeout:
+      'Zeigt der FM1 Receive Timeout, starte Export erneut, während dieser Schritt offen ist.',
     errors: {
       bankDamaged: 'Diese Bank ist beschädigt angekommen. Sende sie erneut.',
+      bankDamagedFm1: 'Diese Bank ist beschädigt angekommen. Starte Export auf dem FM1 erneut.',
       damaged: 'Dieser Sound ist beschädigt angekommen. Sende ihn erneut.',
       format:
         'Das war weder ein DX7-Sound noch eine DX7-Bank. Sende einen Single-Voice-Dump mit einem Sound oder eine Bank mit 32 Voices.',
     },
+    receivedTitle: 'Empfangene Sounds',
+    receivedPatchTitle: 'Empfangener Sound',
+    play: '{{name}} spielen',
+    bankLegend: 'Zu ersetzende Bank',
+    emptyBank: 'Leer',
+    bankWarning:
+      'Jeder Sound in „{{bank}}“ wird durch die 32 empfangenen ersetzt, und ihre FM1-Effekte werden auf die Standardwerte zurückgesetzt.',
+    patchBankLegend: 'Bank',
+    slotLabel: 'Zu ersetzender Slot',
+    slotOption: '{{slot}} {{patch}}',
+    patchWarning:
+      '{{slot}} „{{patch}}“ wird durch „{{received}}“ ersetzt, und seine FM1-Effekte werden auf die Standardwerte zurückgesetzt.',
+    noBanks:
+      'Ein Sound kann nur einen ersetzen, der schon in einer Bank ist. Füge zuerst eine Bank mit Sounds hinzu.',
+    replace: 'Ersetzen',
   },
   bankFile: {
     legend: 'Bänke in dieser Datei',
@@ -678,7 +719,6 @@ export default {
     previewHelp:
       'Klicke auf einen Sound, um ihn am FM1 zu hören. Deine Bank bleibt unverändert, bis du sie ersetzt.',
     previewTitle: 'Sounds in dieser Datei',
-    previewTitleReceived: 'Empfangene Sounds',
     title: '„{{bank}}“ überschreiben?',
     warning:
       'Der aktuelle Inhalt der Bank wird gelöscht und durch die importierten Sounds ersetzt.',
@@ -1399,6 +1439,7 @@ export default {
       'Die Kopieroptionen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     importPatchFile: 'Sound importieren…',
     receivePatch: 'Sound empfangen…',
+    receiveFromFm1: 'Vom FM1 empfangen…',
     downloadPatchFile: 'Sound herunterladen',
     bankFileUnavailable:
       'Bankdateien konnten nicht gelesen werden. Lade die Seite neu und versuche es erneut.',

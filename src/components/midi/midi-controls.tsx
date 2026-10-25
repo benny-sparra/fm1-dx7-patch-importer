@@ -9,7 +9,6 @@ import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { localeNames, supportedLocales, type SupportedLocale } from '@/i18n/locale'
 import { setLocale } from '@/i18n'
 import { Switch } from '@/components/ui/switch'
-import { ErrorNotice } from '@/components/ui/error-notice'
 
 import { DeviceSelect, SettingsSelect } from './device-select'
 
@@ -149,21 +148,6 @@ export function MidiFirmwareBadge({
       <span className="sr-only">{t(badge.label, { release })}</span>
     </span>
   )
-}
-
-const midiConnectionErrorKeys = {
-  disconnect_failed: 'midi.errors.disconnectFailed',
-  enable_failed: 'midi.errors.enableFailed',
-  insecure_context: 'midi.errors.insecureContext',
-  permission_denied: 'midi.errors.permissionDenied',
-  unsupported_browser: 'midi.errors.unsupportedBrowser',
-} as const satisfies Record<NonNullable<MidiController['error']>, string>
-
-export function MidiConnectionError({ midi }: { midi: Pick<MidiController, 'error'> }) {
-  const { t } = useTranslation()
-  if (!midi.error) return null
-
-  return <ErrorNotice>{t(midiConnectionErrorKeys[midi.error])}</ErrorNotice>
 }
 
 type MidiSettingsMenuProps = {

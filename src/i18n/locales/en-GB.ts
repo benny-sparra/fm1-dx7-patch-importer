@@ -420,6 +420,7 @@ export default {
     copyOpenFailed: 'The copy options could not be opened. Reload the page and try again.',
     importPatchFile: 'Import patch…',
     receivePatch: 'Receive patch…',
+    receiveFromFm1: 'Receive from the FM1…',
     downloadPatchFile: 'Download patch',
     bankFileUnavailable: 'Bank files could not be read. Reload the page and try again.',
     patchFileUnavailable: 'Patch files could not be opened. Reload the page and try again.',

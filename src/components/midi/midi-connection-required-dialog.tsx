@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog'
 
 import { DeviceSelect } from './device-select'
-import { MidiConnectionError } from './midi-controls'
+import { MidiConnectionError } from './midi-connection-error'
 
 type MidiConnectionRequiredDialogProps = {
   midi: Pick<
