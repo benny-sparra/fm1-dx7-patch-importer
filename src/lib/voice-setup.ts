@@ -8,7 +8,7 @@
 const storageKey = 'fm1-voice-setup'
 const storedVersion = 1
 
-export const voiceCount = 8
+const voiceCount = 8
 const lastPreset = 127
 const lastChannel = 16
 
