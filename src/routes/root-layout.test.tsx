@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { makeLogEntry } from '@/lib/midi'
+import { resetVoiceSetupForTests, setVoiceSetupEnabled } from '@/lib/voice-setup'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { expectNoAxeViolations } from '@/test/accessibility'
 
@@ -77,6 +78,52 @@ describe('RootLayout note channel', () => {
     const pickers = screen.getAllByRole<HTMLSelectElement>('combobox', { name: 'Note channel' })
     expect(pickers.length).toBeGreaterThanOrEqual(2)
     expect(pickers.map((picker) => picker.value)).toEqual(pickers.map(() => '4'))
+  })
+})
+
+describe('RootLayout Voice strip', () => {
+  const voices = { onSendSetup: vi.fn(() => 0), presetLabel: () => '' }
+
+  afterEach(() => {
+    localStorage.clear()
+    resetVoiceSetupForTests()
+  })
+
+  function renderHeader(firmware: ComponentProps<typeof RootLayout>['midi']['firmware']) {
+    return render(
+      <ToastProvider>
+        <RootLayout midi={{ ...midi, firmware }} voices={voices}>
+          <div>Library</div>
+        </RootLayout>
+      </ToastProvider>,
+    )
+  }
+
+  it('turns the note channel picker into the eight Voices once switched on, on V16', async () => {
+    setVoiceSetupEnabled(true)
+    renderHeader({ identity: 'FM-1_016', kind: 'mvave' })
+    const header = screen.getByRole('banner')
+
+    const strip = await within(header).findByRole('group', { name: 'Voices 1–8' })
+
+    expect(within(strip).getAllByRole('button')).toHaveLength(8)
+    // Only the Settings menu's Note channel is left.
+    expect(within(header).getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
+  })
+
+  it('keeps the note channel picker while the switch is off', () => {
+    renderHeader({ identity: 'FM-1_016', kind: 'mvave' })
+
+    expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
+    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(2)
+  })
+
+  it('keeps the note channel picker on firmware that plays one Voice, whatever was stored', () => {
+    setVoiceSetupEnabled(true)
+    renderHeader({ identity: 'FM-1_015', kind: 'mvave' })
+
+    expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
+    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(2)
   })
 })
 

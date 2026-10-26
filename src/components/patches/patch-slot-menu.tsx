@@ -3,6 +3,7 @@ import {
   ArrowRightLeft,
   ArrowUp,
   Copy,
+  CopyPlus,
   Download,
   Link,
   Pencil,
@@ -24,6 +25,7 @@ type PatchSlotMenuProps = {
   name: string
   onChangeToFm?: () => void
   onCopy?: () => void
+  onCopyAndAssign?: () => void
   onDownload?: () => void
   onEdit?: () => void
   onReplace?: () => void
@@ -41,6 +43,7 @@ export function PatchSlotMenu({
   name,
   onChangeToFm,
   onCopy,
+  onCopyAndAssign,
   onDownload,
   onEdit,
   onReplace,
@@ -57,6 +60,12 @@ export function PatchSlotMenu({
         { Icon: Pencil, label: t('banks.editSelected'), onSelect: onEdit },
         { Icon: ArrowRightLeft, label: t('changeToFm.menuItem'), onSelect: onChangeToFm },
         { Icon: Copy, group: transfer, label: t('banks.copySelected'), onSelect: onCopy },
+        {
+          Icon: CopyPlus,
+          group: transfer,
+          label: t('voices.copyAndAssign'),
+          onSelect: onCopyAndAssign,
+        },
         { Icon: Upload, group: transfer, label: t('banks.importPatchFile'), onSelect: onReplace },
         {
           Icon: Download,

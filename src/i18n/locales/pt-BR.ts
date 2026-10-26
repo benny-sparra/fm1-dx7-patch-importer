@@ -1021,6 +1021,32 @@ export default {
     noDevice: 'Nenhum dispositivo encontrado',
     noDeviceSelected: 'Nenhum dispositivo selecionado',
   },
+  voices: {
+    playSeveral: 'Tocar várias Voices',
+    playSeveralHint:
+      'Mostra as Voices 1 a 8 no lugar do canal de notas, cada uma tocando um som dos bancos A a D.',
+    voice: 'Voice {{number}}',
+    tag: 'V{{number}}',
+    playedBy: 'Tocado por {{voices}}',
+    copyAndAssign: 'Copiar para A–D e atribuir…',
+    loadFailed: 'Não foi possível carregar as Voices 1 a 8.',
+    strip: 'Voices 1 a 8',
+    aim: 'Voice {{number}}, can. {{channel}}: {{patch}}',
+    noPatch: 'Sem som',
+    sendSetup: 'Enviar configuração',
+    sendSetupOffline: 'Ative o MIDI para enviar a configuração.',
+    sendSetupEmpty:
+      'Nenhuma das Voices 1 a 8 tem som ainda: clique em uma e depois em um som dos bancos A a D.',
+    sendSetupFailed:
+      'Alguns sons não chegaram ao FM1. Verifique a saída MIDI e envie a configuração de novo.',
+    setupSent: 'Configuração enviada para {{voices}}',
+    channels: 'Canais',
+    channelOf: 'Canal da Voice {{number}}',
+    setupNote:
+      'Configure uma vez as Voices 1 a 8 no FM1: coloque-as nos canais 1 a 8, cada uma em On e nenhuma em All; depois aperte SAVE e escolha Globe. Uma em Off ignora o seu som e não o pega ao voltar para On, e uma em All recebe todo som enviado.',
+    howToAssign:
+      'Clique em uma das Voices 1 a 8 para tocá-la pelo teclado e depois em um som dos bancos A a D para atribuí-lo a ela. “Enviar configuração” envia de novo o som de cada uma.',
+  },
   help: {
     open: 'Ajuda: como usar o editor e bibliotecário FM1',
     title: 'Boas-vindas ao editor e bibliotecário FM1',

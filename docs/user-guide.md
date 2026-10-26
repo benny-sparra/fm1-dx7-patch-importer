@@ -95,6 +95,31 @@ the FM1…** in a bank's menu or **Library actions**, and choose **Next** so the
 before you choose **GLOBE → Export** on the FM1. Without a USB host the FM1 starts sending, then
 says **Receive Timeout**; start Export again while the app listens.
 
+#### Playing several Voices on V16
+
+To give each of V16's Voices its own patch from the app, switch on **Play several Voices** in
+**Settings** (offered once the FM1 is identified as running V16). The **Ch** box in the header
+becomes a strip of Voice 1 to Voice 8, each showing its channel and the patch it plays; on a phone
+each is a numbered button, with the patch in its tooltip. The app keeps this setup for your next
+visit. Switch it off to go back to the plain note channel.
+
+1. Set the Voices up once on the FM1: put Voice 1 to Voice 8 on channels 1 to 8, switch each one
+   **On**, leave none on **All**, then press **SAVE** and choose **Globe**. A Voice that is Off
+   ignores the patch the app gives it, and does not take it when switched back On; a Voice on All
+   takes every patch the app sends to any Voice. The app cannot read or change these settings.
+2. Click a Voice to aim at it: the note channel becomes its channel, so the keyboard plays it.
+3. Click a patch in banks A to D to give it to that Voice. The app sends the patch's Program Change
+   on the Voice's channel, as any slot click does, and each slot shows **V1** to **V8** for the
+   Voices playing it. A Voice points at an FM1 preset, A01 to D32, never at a copy of the patch, so
+   the FM1 plays what it stores there: send banks A to D to the FM1 first.
+4. A patch in a bank after D has no FM1 preset. Choose **Copy into A–D and assign…** in its ⋮ menu
+   to copy it into a slot in banks A to D and give that slot to the Voice.
+5. **Send setup** sends every Voice that has a patch its Program Change again, on its own channel,
+   for instance after the FM1 was switched on. **Channels** sets which channel each Voice listens
+   on, Voice n on channel n unless you change it, and repeats the setup steps above.
+
+The effects are still the FM1's one shared set, edited from the editor's Effects panel.
+
 Baud Girl's firmware also chooses a bank's destination differently. When a bank arrives it asks **Replace Bank
 A?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names
 the bank you want, then turn **SELECT** to **Replace** and press **SEL**, or press **HOME** to

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -12,6 +13,7 @@ import {
 } from '@/components/midi/midi-controls'
 import { setLocale } from '@/i18n'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
+import { getVoiceSetup, resetVoiceSetupForTests } from '@/lib/voice-setup'
 
 afterEach(async () => {
   cleanup()
@@ -395,5 +397,39 @@ describe('MidiFirmwareBadge', () => {
 
     expect(container.firstElementChild).toBe(place)
     expect(screen.getByText('M-VAVE firmware, V15')).toBeTruthy()
+  })
+})
+
+describe('Play several Voices', () => {
+  afterEach(() => {
+    localStorage.clear()
+    resetVoiceSetupForTests()
+  })
+
+  it('is offered on V16 and keeps the choice for the next visit', async () => {
+    renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
+    const voices = screen.getByRole('switch', { name: 'Play several Voices' })
+    expect(voices.getAttribute('aria-checked')).toBe('false')
+
+    await userEvent.setup().click(voices)
+
+    expect(voices.getAttribute('aria-checked')).toBe('true')
+    expect(getVoiceSetup().enabled).toBe(true)
+    expect(JSON.parse(localStorage.getItem('fm1-voice-setup') ?? '')).toMatchObject({
+      enabled: true,
+      version: 1,
+    })
+  })
+
+  it('is not offered on firmware that plays one Voice, or one not yet identified', () => {
+    for (const firmware of [
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { kind: 'checking' },
+    ] as const satisfies readonly Fm1Firmware[]) {
+      renderSettings(firmware)
+      expect(screen.queryByRole('switch', { name: 'Play several Voices' })).toBeNull()
+      cleanup()
+    }
   })
 })

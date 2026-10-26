@@ -21,6 +21,7 @@ import {
   Suspense,
   useDeferredValue,
   useEffect,
+  useEffectEvent,
   useId,
   useMemo,
   useRef,
@@ -58,6 +59,7 @@ import {
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   bankInitVoiceCount,
+  browserBanks,
   getNextWorkspaceBank,
   patchMatchesSearch,
   patchSlotCode,
@@ -67,6 +69,8 @@ import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import type { Fm1VaPresetSource } from '@/components/patches/import-fm1-va-presets-dialog'
 import { soundKey } from '@/lib/sound-key'
+import { aimedVoice } from '@/lib/voice-setup'
+import { useVoiceSetup } from '@/hooks/use-voice-setup'
 import { cn } from '@/lib/utils'
 import { crtSwitchOff } from '@/lib/crt-switch-off'
 import { useChangedSlots } from '@/hooks/use-changed-slots'
@@ -234,6 +238,8 @@ type SavedBanksRequest = { bank: string; closeMenu: () => void; mode: 'load' | '
 
 /** A copy waiting for its dialog: what is copied, how, and the bank to open on. */
 type CopyRequest = {
+  /** Plays the copy once it lands, which gives it to the V16 Voice aimed at. */
+  assign?: boolean
   bank?: string
   copy: ComponentProps<typeof CopyPatchDialog>['onCopy']
   /** Opens the editor on the copy, for a search result someone asked to edit. */
@@ -408,6 +414,19 @@ export function LibrarianPage({
   const firmwareProfile = resolveFirmwareProfile(midi.firmware)
   const sendsByPresetWrite = firmwareProfile.capabilities.presetWrite
   const workspaceBankLabel = useWorkspaceBankLabel(library)
+  // On V16, with the Voice strip on, a slot click in banks A–D gives its preset to the Voice on the
+  // note channel, so each slot tags the Voices playing it.
+  const { aimed, setup: voiceSetup } = useVoiceSetup()
+  const playsVoices = voiceSetup.enabled && firmwareProfile.capabilities.multitimbral
+  const hasAimedVoice = playsVoices && aimedVoice(voiceSetup, midi.channel, aimed) !== null
+  const voiceTags = playsVoices
+    ? (patch: Patch) =>
+        patch.program === undefined
+          ? []
+          : voiceSetup.voices.flatMap((voice, index) =>
+              voice.preset === patch.program ? [index + 1] : [],
+            )
+    : undefined
   // Favourites shows in the bank rail, so its name reads wherever a bank's name would.
   const bankDisplayName = (bank: string) =>
     bank === favouritesBank ? t('favourites.title') : workspaceBankLabel(bank)
@@ -415,16 +434,18 @@ export function LibrarianPage({
     setDialogLoadError('')
     setSavedBanksRequest(request)
   }
-  const requestCopy = (patch: Patch, bank?: string) => {
+  const requestCopy = (patch: Patch, bank?: string, assign = false) => {
     setDialogLoadError('')
     setCopyRequest({
+      assign,
       bank,
       copy: (targetBank, slot) => library.copyVoice(patch.id, targetBank, slot),
       key: patch.id,
       source: patch,
-      // A favourite is a copy kept apart from the banks, with no slot to take the other sound.
+      // A favourite is a copy kept apart from the banks, with no slot to take the other sound, and
+      // a copy for a Voice leaves the patch where it was.
       swap:
-        patch.bank === favouritesBank
+        patch.bank === favouritesBank || assign
           ? undefined
           : (targetBank, slot) => library.swapVoices(patch.id, targetBank, slot),
     })
@@ -918,6 +939,21 @@ export function LibrarianPage({
   // clearing the search returns to.
   const followPlayedPatch = (patch: Patch) => setDestinationBank(patch.bank)
 
+  // A copy for a Voice is played once the library holds it, so the click sends the copy rather
+  // than the sound the slot held before.
+  const [copyToPlay, setCopyToPlay] = useState<string | null>(null)
+  const playCopy = useEffectEvent((patchId: string) => {
+    const patch = library.patches.find((candidate) => candidate.id === patchId)
+    if (!patch) return
+    followPlayedPatch(patch)
+    onSelectPatch(patch)
+  })
+  useEffect(() => {
+    if (copyToPlay === null) return
+    setCopyToPlay(null)
+    playCopy(copyToPlay)
+  }, [copyToPlay])
+
   // Choosing a bank asks to see that bank, so it leaves the results.
   const selectDestinationBank = (bank: string) => {
     setSearch('')
@@ -1377,6 +1413,10 @@ export function LibrarianPage({
           toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
         }}
         onPatchCopy={requestCopy}
+        // A Voice plays only a preset the FM1 stores, in banks A–D.
+        onPatchCopyAndAssign={
+          hasAimedVoice ? (patch) => requestCopy(patch, browserBanks[0], true) : undefined
+        }
         onPatchDropOnBank={(patch, bank) =>
           bank === favouritesBank ? dropOnFavourites(patch) : requestCopy(patch, bank)
         }
@@ -1401,6 +1441,7 @@ export function LibrarianPage({
         onPatchToggleFavourite={toggleFavourite}
         patchOrigin={showsFavourites ? favouriteOrigin : undefined}
         tagsEngines={midi.firmware.kind === 'fm1-va'}
+        voiceTags={voiceTags}
         changedSlots={changedSlots}
         patches={visiblePatches}
         reorderable={!isSearching}
@@ -1722,7 +1763,16 @@ export function LibrarianPage({
           <Suspense fallback={null}>
             <CopyPatchDialog
               initialBank={copyRequest.bank}
-              library={library}
+              library={
+                copyRequest.assign
+                  ? {
+                      ...library,
+                      workspaceBanks: library.workspaceBanks.filter((bank) =>
+                        (browserBanks as readonly string[]).includes(bank),
+                      ),
+                    }
+                  : library
+              }
               onClose={() => setCopyRequest(null)}
               onCopy={copyRequest.copy}
               opensEditor={copyRequest.edit}
@@ -1746,6 +1796,7 @@ export function LibrarianPage({
                   followPlayedPatch(target)
                   onEditPatch(target)
                 }
+                if (copyRequest.assign) setCopyToPlay(target.id)
               }}
               onSwap={copyRequest.swap}
               onSwapped={(target, changed) => {

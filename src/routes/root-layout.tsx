@@ -24,16 +24,19 @@ import type { Fm1VaPresetProbe as PresetProbe } from '@/components/midi/fm1-va-p
 import { NoteChannelSelect } from '@/components/midi/note-channel-select'
 import { MidiPanicButton } from '@/components/midi/midi-panic-button'
 import type { OfficialOpenTrackStatus as TrackStatus } from '@/components/midi/official-open-track-status'
+import type { VoiceStrip as VoiceStripComponent } from '@/components/midi/voice-strip'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
 import { Dx7BankSourcesDialog } from '@/components/patches/dx7-bank-sources-dialog'
 import type { MidiController } from '@/hooks/use-midi'
 import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { useMediaQuery } from '@/hooks/use-media-query'
+import { useVoiceSetup } from '@/hooks/use-voice-setup'
 import { isUnsupportedBrowser } from '@/lib/browser'
 import { fm1ColorwayImages, type Fm1ColorwayImages } from '@/lib/fm1-colorway-images'
 import { degauss } from '@/lib/degauss'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 
 // Development builds alone load the preset probe. Importing it statically gave the entry a path
@@ -52,6 +55,11 @@ const OfficialOpenTrackStatus = lazy(() =>
   import('@/components/midi/official-open-track-status').then((module) => ({
     default: module.OfficialOpenTrackStatus,
   })),
+)
+
+// Only someone who switches on V16's Voices loads the strip that shows them.
+const VoiceStrip = lazy(() =>
+  import('@/components/midi/voice-strip').then((module) => ({ default: module.VoiceStrip })),
 )
 
 // The intro marks the words that open the bank sources as <link>…</link>, so each language puts
@@ -77,10 +85,13 @@ type RootLayoutProps = {
     ComponentProps<typeof PianoKeyboard>['midi'] &
     ComponentProps<typeof PresetProbe>['midi'] &
     ComponentProps<typeof TrackStatus>['midi'] &
+    ComponentProps<typeof VoiceStripComponent>['midi'] &
     Pick<MidiController, 'logStore' | 'midiAccess' | 'sendEffectDiagnosticControl'>
+  /** The library's side of the V16 Voice strip; without it the note channel picker stays. */
+  voices?: Omit<ComponentProps<typeof VoiceStripComponent>, 'midi'>
 }
 
-export function RootLayout({ children, compact = false, midi }: RootLayoutProps) {
+export function RootLayout({ children, compact = false, midi, voices }: RootLayoutProps) {
   const { t } = useTranslation()
   const intro = splitIntroLink(t('root.intro'))
   const unsupportedBrowser = isUnsupportedBrowser()
@@ -93,6 +104,11 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const showFm1VaImage = showHardwareBay && midi.firmware.kind === 'fm1-va'
   const [fm1VaColorwayImages, setFm1VaColorwayImages] = useState<Fm1ColorwayImages>()
   const colorwayImage = ((showFm1VaImage && fm1VaColorwayImages) || fm1ColorwayImages)[colorway]
+  const voiceSetup = useVoiceSetup().setup
+  const firmwareProfile = resolveFirmwareProfile(midi.firmware)
+  const showsVoiceStrip = Boolean(
+    voices && voiceSetup.enabled && firmwareProfile.capabilities.multitimbral,
+  )
   // Switching MIDI off switches off the screen in the photo like a CRT, and it stays dark until
   // MIDI is back. A page that opens offline keeps the photo as it is. Once the screen is dark it
   // stays still, so hiding and showing the photo again does not replay the switch-off.
@@ -199,13 +215,32 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                   className="inline-flex min-h-8 min-w-0 flex-1 items-center gap-2 sm:flex-none"
                   midi={midi}
                 />
-                <NoteChannelSelect midi={midi} />
+                {showsVoiceStrip ? null : <NoteChannelSelect midi={midi} />}
                 <span className="flex sm:order-last">
                   <MidiPanicButton midi={midi} />
                 </span>
               </div>
               <MidiActivityLeds midi={midi} />
               <PianoKeyboard midi={midi} />
+              {/* The note channel grows into V16's eight Voices, on a line of their own. */}
+              {voices && showsVoiceStrip ? (
+                <div className="order-last w-full">
+                  <ErrorBoundary
+                    fallback={
+                      <span className="flex flex-wrap items-center gap-2.5">
+                        <NoteChannelSelect midi={midi} />
+                        <LoadFailedNotice message={t('voices.loadFailed')} />
+                      </span>
+                    }
+                  >
+                    <Suspense
+                      fallback={<div aria-hidden="true" className="h-[4.25rem] sm:h-32 lg:h-20" />}
+                    >
+                      <VoiceStrip midi={midi} {...voices} />
+                    </Suspense>
+                  </ErrorBoundary>
+                </div>
+              ) : null}
             </div>
 
             {showHardwareBay ? (
@@ -248,7 +283,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           </div>
 
           <MidiConnectionError midi={midi} />
-          {resolveFirmwareProfile(midi.firmware).capabilities.trackEngineRead ? (
+          {firmwareProfile.capabilities.trackEngineRead ? (
             <ErrorBoundary>
               <Suspense fallback={null}>
                 <OfficialOpenTrackStatus midi={midi} />

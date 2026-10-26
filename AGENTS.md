@@ -430,7 +430,7 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the V16 Voice strip, with its strings (`src/i18n/locales/en-GB-voices.ts`), when **Play several Voices** is on and the FM1 is identified as multitimbral, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -459,7 +459,9 @@ open everything an earlier release could have saved.
   why MIDI did not connect takes `MidiConnectionError` from
   `src/components/midi/midi-connection-error.tsx`, never `midi-controls`, whose `@/i18n` import
   made Rolldown split i18next out of the entry, about 380 B, when the receive wizard took it from
-  there. The other way round, an error class
+  there. The Voice strip takes the MIDI channel list from `src/lib/midi-channels.ts`: taking
+  `midiChannels` from `use-midi` cut the entry's shared code into four new chunks and cost about
+  1.4 KiB. The other way round, an error class
   eager code recognises lives in a module the entry already holds: `bankErrorMessage` once took
   `Dx7CatalogBankUnavailableError` from `src/lib/dx7-bank-catalog.ts`, which put the whole catalog
   list in the entry for 1.3 KiB, so the class is in `src/lib/dx7.ts`.
@@ -700,6 +702,21 @@ open everything an earlier release could have saved.
   as the Settings menu's Note channel, shown whether or not MIDI is online and for every firmware
   so the header never shifts, and it sends nothing. On a phone it sits on the last line with the
   badge and the panic.
+- On V16, **Play several Voices** in Settings (the profile's `multitimbral`, stored as `enabled` in
+  `fm1-voice-setup`) swaps that box for `VoiceStrip`, a line of its own below the MIDI row: eight
+  numbered buttons on a phone, the patch in each tooltip, and from `sm` each Voice's channel and
+  patch, four to a row until `lg` fits eight. A Voice is aimed at by setting the note channel to
+  its channel, never by state of its own, so the Voice listening on the note channel is the one a
+  slot click in banks A–D assigns (`aimedVoice`; the Voice clicked last wins a shared channel),
+  whether or not MIDI is online, and editing a slot assigns it too, since its Program Change
+  reaches that Voice. A Voice holds a preset number only. Each slot tags the Voices playing it
+  (V1–V8) below its heart and menu, never beside the name. **Send setup** sends one Program
+  Change per Voice with a preset, on its channel, through `sendProgramChange`, and forgets the
+  edit-buffer audition, which those changes replace. The strip says to set the Voices up on the FM1
+  (channels 1–8, every Voice On, none on All, SAVE → Globe), since the editor cannot read or set
+  them and an Off Voice ignores its Program Change unseen (`docs/hardware-runs/stock-v16-voices-2026-10-26.md`).
+  A patch beyond bank D offers **Copy into A–D and assign…**, the copy dialog limited to A–D,
+  which then plays the copy as a slot click, once the library holds it.
 - The header's colour swatch, **?** and ⋮ show no caption under them (removed on 2026-10-22 at
   the owner's request); each keeps its accessible name and tooltip. The swatch's choice is named
   **FM1 colour**, never finish, which also reads as the end. The MIDI panic shows only its icon too,

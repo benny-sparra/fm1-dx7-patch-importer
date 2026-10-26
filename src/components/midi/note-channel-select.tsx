@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 
 import { SettingsSelect } from '@/components/midi/device-select'
-import { midiChannels, type MidiController } from '@/hooks/use-midi'
+import type { MidiController } from '@/hooks/use-midi'
+import { midiChannels } from '@/lib/midi-channels'
 
 type NoteChannelSelectProps = {
   midi: Pick<MidiController, 'channel' | 'setChannel'>

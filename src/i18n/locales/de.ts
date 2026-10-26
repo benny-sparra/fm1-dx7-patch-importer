@@ -1049,6 +1049,32 @@ export default {
     noDevice: 'Kein Gerät gefunden',
     noDeviceSelected: 'Kein Gerät ausgewählt',
   },
+  voices: {
+    playSeveral: 'Mehrere Voices spielen',
+    playSeveralHint:
+      'Zeigt Voice 1–8 anstelle des Notenkanals, jede mit einem Sound aus den Bänken A–D.',
+    voice: 'Voice {{number}}',
+    tag: 'V{{number}}',
+    playedBy: 'Gespielt von {{voices}}',
+    copyAndAssign: 'In A–D kopieren und zuweisen…',
+    loadFailed: 'Voice 1–8 konnten nicht geladen werden.',
+    strip: 'Voice 1–8',
+    aim: 'Voice {{number}}, Kan. {{channel}}: {{patch}}',
+    noPatch: 'Kein Sound',
+    sendSetup: 'Setup senden',
+    sendSetupOffline: 'Schalte MIDI online, um das Setup zu senden.',
+    sendSetupEmpty:
+      'Noch hat keine der Voices 1–8 einen Sound: Klicke eine an, dann einen Sound in den Bänken A–D.',
+    sendSetupFailed:
+      'Nicht jeder Sound hat den FM1 erreicht. Prüfe den MIDI-Ausgang und sende das Setup erneut.',
+    setupSent: 'Setup gesendet an {{voices}}',
+    channels: 'Kanäle',
+    channelOf: 'Kanal von Voice {{number}}',
+    setupNote:
+      'Richte Voice 1–8 einmal am FM1 ein: auf die Kanäle 1–8, jede auf On, keine auf All, dann SAVE drücken und Globe wählen. Eine auf Off ignoriert ihren Sound und übernimmt ihn auch nicht, wenn sie wieder auf On geht, und eine auf All nimmt jeden gesendeten Sound.',
+    howToAssign:
+      'Klicke eine der Voices 1–8 an, um sie über die Tastatur zu spielen, dann einen Sound in den Bänken A–D, um ihn ihr zu geben. „Setup senden“ schickt jeder ihren Sound erneut.',
+  },
   help: {
     open: 'Hilfe: FM1 Editor und Librarian verwenden',
     title: 'Willkommen beim FM1 Editor und Librarian',

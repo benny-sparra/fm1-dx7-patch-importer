@@ -251,6 +251,16 @@ export default {
     noDevice: 'No device found',
     noDeviceSelected: 'No device selected',
   },
+  voices: {
+    playSeveral: 'Play several Voices',
+    playSeveralHint:
+      'Shows Voices 1–8 in place of the note channel, each playing a patch from banks A–D.',
+    voice: 'Voice {{number}}',
+    tag: 'V{{number}}',
+    playedBy: 'Played by {{voices}}',
+    copyAndAssign: 'Copy into A–D and assign…',
+    loadFailed: 'Voices 1–8 could not be loaded.',
+  },
   help: {
     open: 'Help: how to use the FM1 editor and librarian',
   },

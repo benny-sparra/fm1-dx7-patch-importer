@@ -1,8 +1,8 @@
 import type { Page } from '@playwright/test'
 
 // The FM1's answers to the identity query, captured from M-VAVE's V15 firmware, from FM-1+VA's
-// FM-1_089, and from Official Open V12 (see src/test/fake-fm1-midi.ts), and FM-1_089's with the
-// name changed to FM-1_097.
+// FM-1_089, and from Official Open V12 (see src/test/fake-fm1-midi.ts), FM-1_089's with the name
+// changed to FM-1_097, and V15's with the name changed to FM-1_016.
 // prettier-ignore
 const identityReplies = {
   'fm1-va': [
@@ -16,6 +16,11 @@ const identityReplies = {
   mvave: [
     0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x26, 0x4c,
     0x1a, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
+  ],
+  // Built for FM-1_016, the name M-VAVE's V16 reports, as `mvaveV16IdentityReply` is.
+  'mvave-v16': [
+    0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x26, 0x0c,
+    0x1b, ...Array<number>(21).fill(0), 0x20, 0x06, 0xf7,
   ],
   'official-open': [
     0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x07, 0x0c,

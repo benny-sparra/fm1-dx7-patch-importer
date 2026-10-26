@@ -23,6 +23,9 @@ export type VoiceSetup = {
 }
 
 const listeners = new Set<() => void>()
+// The Voice last clicked in the strip, which settles which Voice a note channel two Voices share
+// aims at. It is not stored: the stored format above is fixed.
+let aimed: number | null = null
 // Kept in memory as well, so a setup made while storage is blocked still works this session. It is
 // loaded on first use and replaced as a whole, so the snapshot stays the same until it changes.
 let current: VoiceSetup | null = null
@@ -122,6 +125,32 @@ export function setVoiceChannel(voice: number, channel: number) {
   if (isChannel(channel)) updateVoice(voice, { channel })
 }
 
+/** Remembers Voice `voice` (0–7) as the one aimed at, for `aimedVoice` to prefer. */
+export function aimVoice(voice: number) {
+  if (aimed === voice || !Number.isInteger(voice) || voice < 0 || voice >= voiceCount) return
+  aimed = voice
+  listeners.forEach((listener) => listener())
+}
+
+export function getAimedVoice() {
+  return aimed
+}
+
+/**
+ * The Voice (0–7) a slot click reaches: the one listening on the note channel, since its Program
+ * Change goes there. Aiming at a Voice sets the note channel to its channel, so the Voice aimed at
+ * last wins when two share one. None when no Voice listens on the note channel.
+ */
+export function aimedVoice(
+  setup: VoiceSetup,
+  noteChannel: number,
+  preferred: number | null = getAimedVoice(),
+) {
+  if (preferred !== null && setup.voices[preferred]?.channel === noteChannel) return preferred
+  const index = setup.voices.findIndex((voice) => voice.channel === noteChannel)
+  return index === -1 ? null : index
+}
+
 export function subscribeVoiceSetup(listener: () => void) {
   listeners.add(listener)
   return () => {
@@ -132,4 +161,5 @@ export function subscribeVoiceSetup(listener: () => void) {
 /** Forgets the setup held in memory, so each test starts from storage. */
 export function resetVoiceSetupForTests() {
   current = null
+  aimed = null
 }

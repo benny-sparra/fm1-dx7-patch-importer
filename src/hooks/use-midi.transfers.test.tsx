@@ -162,6 +162,24 @@ describe('useMidi program selection', () => {
     expect(output.sendProgramChange).toHaveBeenCalledExactlyOnceWith(37, { channels: 2 })
   })
 
+  it('selects a program on another channel when given one, as a V16 Voice setup does', async () => {
+    const { output, result } = await connectOutput()
+    act(() => result.current.setChannel(2))
+
+    expect(result.current.sendProgramChange(12, 7)).toBe(true)
+
+    expect(output.sendProgramChange).toHaveBeenCalledExactlyOnceWith(12, { channels: 7 })
+    expect(result.current.channel).toBe(2)
+  })
+
+  it('refuses a channel outside 1 to 16 without sending', async () => {
+    const { output, result } = await connectOutput()
+
+    expect(result.current.sendProgramChange(12, 17)).toBe(false)
+
+    expect(output.sendProgramChange).not.toHaveBeenCalled()
+  })
+
   it('refuses a program outside 0 to 127 without sending it', async () => {
     const { output, result } = await connectOutput()
 

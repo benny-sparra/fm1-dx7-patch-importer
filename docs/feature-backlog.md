@@ -160,7 +160,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        Settings menu's setting. Choosing a Voice's channel and clicking a patch then loads it
        on that Voice. Handed to a Sonnet session on 2026-10-25 (branch
        `feature/header-note-channel`); the owner may restyle it later.
-    2. **A Voice strip, opt-in.** A switch such as "Play several Voices", offered where the
+    2. **A Voice strip, opt-in.** _Built (2026-10-26)._ A switch such as "Play several Voices", offered where the
        profile says the firmware is multitimbral (a new capability from V16), turns the header's
        note channel picker into a strip of eight Voices, never a second row of tabs beside the
        banks (the owner's choice, 2026-10-25, from a mock-up). Each shows its number, its
@@ -178,6 +178,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        - Switching it off leaves the plain note channel picker.
        - The one current setup is kept between visits, as the note channel is, which makes it a
          stored format (`AGENTS.md`'s legacy rules); the strip works without it.
+         _Done (2026-10-26): **Play several Voices** in Settings, offered from V16 (`multitimbral`),
+         swaps the header's **Ch** box for the lazy `VoiceStrip`. A Voice aims by setting the note
+         channel, so the Voice on the note channel is the one a slot click assigns (the last clicked
+         wins when two share one); **Copy into A–D and assign…** in a slot's menu beyond bank D copies
+         through the copy dialog limited to A–D and then plays the copy. **Send setup** sends one
+         Program Change per Voice with a patch, through `useMidi`'s `sendProgramChange` given the
+         Voice's channel. It cost the entry 1,857 B gzip. Not yet tried on the orange FM1._
     3. **Edit from a Voice.** Opens the normal editor on that slot, playing on that Voice's
        channel, and says "Select Voice n on the FM1", since the editor cannot select it. Off
        channel 1 live parameter changes do not arrive, so the editor sends the whole voice once

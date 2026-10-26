@@ -2,10 +2,13 @@ import { Cpu, KeyboardMusic, Languages, MoreVertical, Radio, SlidersHorizontal }
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 
-import { midiChannels, type MidiController } from '@/hooks/use-midi'
+import type { MidiController } from '@/hooks/use-midi'
+import { midiChannels } from '@/lib/midi-channels'
 import { fm1FirmwareRelease, mayBeSloop } from '@/lib/fm1-firmware'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
+import { useVoiceSetup } from '@/hooks/use-voice-setup'
+import { setVoiceSetupEnabled } from '@/lib/voice-setup'
 import { localeNames, supportedLocales, type SupportedLocale } from '@/i18n/locale'
 import { setLocale } from '@/i18n'
 import { Switch } from '@/components/ui/switch'
@@ -212,6 +215,21 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
   )
 }
 
+/** The opt-in to V16's eight Voices, which turns the header's note channel into the Voice strip. */
+function PlaySeveralVoices() {
+  const { t } = useTranslation()
+  const { setup } = useVoiceSetup()
+
+  return (
+    <div className="settings-option flex flex-col gap-2 rounded-lg border px-4 py-3 sm:col-span-2">
+      <Switch checked={setup.enabled} onChange={setVoiceSetupEnabled}>
+        <span>{t('voices.playSeveral')}</span>
+      </Switch>
+      <span className="text-[11px] text-muted-foreground">{t('voices.playSeveralHint')}</span>
+    </div>
+  )
+}
+
 export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
   const menuRef = useDismissableDetails()
   const { i18n, t } = useTranslation()
@@ -296,6 +314,9 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
           </SettingsSelect>
           <span className="text-[11px] text-muted-foreground">{t('settings.defaultChannel')}</span>
         </label>
+        {resolveFirmwareProfile(midi.firmware).capabilities.multitimbral ? (
+          <PlaySeveralVoices />
+        ) : null}
       </div>
     </details>
   )

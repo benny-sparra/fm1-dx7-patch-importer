@@ -66,6 +66,8 @@ type PatchGridProps = {
   isPatchDisabled?: (patch: Patch) => boolean
   onPatchChangeToFm?: (patch: Patch) => void
   onPatchCopy?: (patch: Patch) => void
+  /** Offered on a slot beyond bank D while a V16 Voice is aimed at. */
+  onPatchCopyAndAssign?: (patch: Patch) => void
   onPatchDownload?: (patch: Patch) => void
   onPatchReplace?: (patch: Patch) => void
   onPatchShare?: (patch: Patch) => void
@@ -90,6 +92,8 @@ type PatchGridProps = {
   searchRef?: RefObject<HTMLInputElement | null>
   setSearch: (search: string) => void
   toolbar?: ReactNode
+  /** The V16 Voices, numbered 1–8, that play a slot's FM1 preset, while the Voice strip shows. */
+  voiceTags?: (patch: Patch) => readonly number[]
 }
 
 function PixelBankIcon(props: SVGProps<SVGSVGElement>) {
@@ -122,6 +126,7 @@ export function PatchGrid({
   isPatchDisabled = () => false,
   onPatchChangeToFm,
   onPatchCopy,
+  onPatchCopyAndAssign,
   onPatchDownload,
   onPatchReplace,
   onPatchShare,
@@ -142,6 +147,7 @@ export function PatchGrid({
   tagsEngines = false,
   setSearch,
   toolbar,
+  voiceTags,
 }: PatchGridProps) {
   const { t } = useTranslation()
   const searchHint = useMemo(() => formatShortcut(librarianShortcuts.search, isApplePlatform()), [])
@@ -340,6 +346,9 @@ export function PatchGrid({
                             disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
                             onChangeToFm={onPatchChangeToFm}
                             onCopy={onPatchCopy}
+                            onCopyAndAssign={
+                              patch.program === undefined ? onPatchCopyAndAssign : undefined
+                            }
                             onDownload={onPatchDownload}
                             onReplace={onPatchReplace}
                             onShare={onPatchShare}
@@ -360,6 +369,7 @@ export function PatchGrid({
                             registerButton={registerSlot}
                             tabIndex={patch.id === rovingSlot ? 0 : -1}
                             tagsEngine={tagsEngines}
+                            voices={voiceTags?.(patch)}
                           />
                         </div>
                       ))}

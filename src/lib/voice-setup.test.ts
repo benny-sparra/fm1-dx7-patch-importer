@@ -2,7 +2,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  aimedVoice,
+  aimVoice,
   assignVoicePreset,
+  getAimedVoice,
   getVoiceSetup,
   resetVoiceSetupForTests,
   setVoiceChannel,
@@ -193,5 +196,42 @@ describe('voice setup', () => {
     assignVoicePreset(3, 99)
     resetVoiceSetupForTests()
     expect(getVoiceSetup().voices[3]?.preset).toBe(99)
+  })
+})
+
+describe('the Voice aimed at', () => {
+  it('is the Voice listening on the note channel', () => {
+    expect(aimedVoice(getVoiceSetup(), 3)).toBe(2)
+  })
+
+  it('is none when no Voice listens on the note channel', () => {
+    expect(aimedVoice(getVoiceSetup(), 12)).toBeNull()
+  })
+
+  it('is the Voice clicked last when two share the note channel', () => {
+    setVoiceChannel(5, 2)
+    expect(aimedVoice(getVoiceSetup(), 2)).toBe(1)
+
+    aimVoice(5)
+
+    expect(aimedVoice(getVoiceSetup(), 2)).toBe(5)
+  })
+
+  it('follows the note channel away from the Voice clicked last', () => {
+    aimVoice(5)
+    expect(aimedVoice(getVoiceSetup(), 4)).toBe(3)
+  })
+
+  it('tells subscribers once per change, and is not stored', () => {
+    const listener = vi.fn()
+    subscribeVoiceSetup(listener)
+
+    aimVoice(4)
+    aimVoice(4)
+    aimVoice(8)
+
+    expect(getAimedVoice()).toBe(4)
+    expect(listener).toHaveBeenCalledTimes(1)
+    expect(localStorage.getItem(key)).toBeNull()
   })
 })

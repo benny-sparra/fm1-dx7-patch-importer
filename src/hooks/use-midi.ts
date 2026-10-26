@@ -47,6 +47,7 @@ import {
 } from '@/lib/midi'
 import { MidiTransferCancelledError, MidiTransferQueue } from '@/lib/midi-transfer-queue'
 import { midiActivity } from '@/lib/midi-activity'
+import { midiChannels } from '@/lib/midi-channels'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { defaultNoteVelocity } from '@/lib/note-velocity'
 import type { OfficialOpenTrackDelivery } from '@/lib/official-open-track-send'
@@ -65,8 +66,6 @@ export type BankTransferResult =
       ok: false
       reason: 'invalid_bank' | 'no_output' | 'sysex_unavailable' | 'transport'
     }
-
-export const midiChannels = Array.from({ length: 16 }, (_, index) => index + 1)
 
 type MidiConnectionErrorCode =
   | 'disconnect_failed'
@@ -636,18 +635,23 @@ export function useMidi() {
     ],
   )
 
+  // On the note channel unless another is given, as sending a V16 Voice setup gives each Voice's.
   const sendProgramChange = useCallback(
-    (program: number) => {
+    (program: number, programChannel = channel) => {
       if (!selectedOutput) {
         appendLog(noOutputEntry('select an FM1 program'))
         return false
       }
 
       try {
-        const message = makeFm1ProgramChangeMessage(program, channel)
-        sendFm1ProgramChange(selectedOutput, channel, program)
+        const message = makeFm1ProgramChangeMessage(program, programChannel)
+        sendFm1ProgramChange(selectedOutput, programChannel, program)
         appendLog(
-          makeLogEntry('out', `Selected FM1 program ${program} on channel ${channel}.`, message),
+          makeLogEntry(
+            'out',
+            `Selected FM1 program ${program} on channel ${programChannel}.`,
+            message,
+          ),
         )
         return true
       } catch (caughtError) {
