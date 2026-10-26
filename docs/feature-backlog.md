@@ -82,7 +82,8 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
      editor it opened sent the program and patch again; the editor now waits for the click's send
      instead. The firmware setting says the same in one line (2026-10-25), beside the effects
      line._
-  4. **Bank Export into the library.** V16 sends the 32 saved presets of a bank as a standard DX7
+  4. **Bank Export into the library.** V16 sends the 32 presets of a bank (the release notes say saved ones; an export
+     includes unsaved edits, 2026-10-26) as a standard DX7
      `.syx` (voice data only: no ENV, effects, Voice setup, or patterns). If a run shows the
      FM1 sends that as ordinary Yamaha bulk-dump messages, the existing **Receive patch…** listener
      could take the bank, giving the first supported way to read a stock FM1 back. Needs a capture
@@ -1246,8 +1247,8 @@ with a shared sample bank. What its source says is in
 - **Sync with the FM1** (2026-10-25). V16's Bank Export is the first way to read a stock FM1's
   patches back, which suggested a two-way sync: receive banks A–D, compare them with the library,
   and choose slot by slot which side wins. Decided against because "sync" promises a matching
-  that V16 cannot keep: Export is started by hand on the FM1, carries only saved presets and only
-  their DX7 voice data (no effects, ENV, or Voice setup), and the editor can write back only whole
+  that V16 cannot keep: Export is started by hand on the FM1, carries only the presets' DX7 voice data (no
+  effects, ENV, or Voice setup), and does include edits never saved on the FM1 (2026-10-26), and the editor can write back only whole
   banks, each saved with a knob press. A merge screen would ask people to reason about three
   versions of a bank with half the data, and it blurs the library being the source of truth.
   [Mark what a received bank changes](#nice-to-have) takes the useful part.
