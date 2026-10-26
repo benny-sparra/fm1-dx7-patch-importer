@@ -3,7 +3,7 @@
  * under the legacy rules in AGENTS.md. Version 1 is
  * `{ "version": 1, "enabled": boolean, "voices": [{ "preset": number | null, "channel": number }
  * × 8] }`: `preset` is the FM1 preset number 0–127 (A01 is 0, D32 is 127) or null for none,
- * `channel` is 1–16, and `enabled` is the "Play several Voices" switch.
+ * `channel` is 1–16, and `enabled` is the header's Multitimbral mode switch.
  */
 const storageKey = 'fm1-voice-setup'
 const storedVersion = 1

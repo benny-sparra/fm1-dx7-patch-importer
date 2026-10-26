@@ -45,7 +45,7 @@ for (const width of [320, 375]) {
     // The patch a Voice plays is in its tooltip.
     await expect(voices.first()).toHaveAttribute('title', /^Voice 1, Ch 1: A01 \S/)
     await expect(page.getByRole('button', { name: 'Send setup' })).toBeInViewport()
-    await expect(page.getByRole('button', { name: 'Channels' })).toBeInViewport()
+    await expect(page.getByRole('button', { name: 'Channels…' })).toBeInViewport()
     await expect(page.getByRole('button', { name: 'MIDI panic' })).toBeInViewport()
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
   })

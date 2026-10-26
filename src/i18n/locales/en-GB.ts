@@ -232,7 +232,6 @@ export default {
       'Independent, open-source project. Not affiliated with or endorsed by M-VAVE or Yamaha.',
   },
   settings: {
-    description: 'Choose the interface language, MIDI ports, and channels.',
     output: 'Output',
     inputMonitor: 'Input monitor',
     firmware: 'FM1 firmware',
@@ -252,7 +251,7 @@ export default {
     noDeviceSelected: 'No device selected',
   },
   voices: {
-    playSeveral: 'Play several Voices',
+    playSeveral: 'Multitimbral mode',
     playSeveralHint:
       'Shows Voices 1–8 in place of the note channel, each playing a patch from banks A–D.',
     voice: 'Voice {{number}}',

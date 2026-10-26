@@ -12,6 +12,7 @@ import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-
 import { DuplicatePatchesDialog } from '@/components/patches/duplicate-patches-dialog'
 import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog'
 import { ReceiveFromFm1Dialog } from '@/components/patches/receive-from-fm1-dialog'
+import { VoiceChannelsDialog } from '@/components/midi/voice-channels-dialog'
 import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
 import { MidiLogStore } from '@/lib/midi-log-store'
@@ -124,6 +125,9 @@ const openDialogs = {
       onClose={vi.fn()}
       onPlay={vi.fn()}
     />
+  ),
+  'voice-channels': () => (
+    <VoiceChannelsDialog midi={{ channel: 1, setChannel: vi.fn() }} onClose={vi.fn()} />
   ),
   'midi-log': () => <MidiLogDialog logStore={new MidiLogStore([])} onClose={vi.fn()} />,
 }

@@ -16,6 +16,7 @@ import {
   MidiConnectActions,
   MidiFirmwareBadge,
   MidiSettingsMenu,
+  VoicesSwitch,
 } from '@/components/midi/midi-controls'
 import { MidiActivityLeds } from '@/components/midi/midi-activity-leds'
 import { MidiLogButton } from '@/components/midi/midi-log-button'
@@ -215,6 +216,7 @@ export function RootLayout({ children, compact = false, midi, voices }: RootLayo
                   className="inline-flex min-h-8 min-w-0 flex-1 items-center gap-2 sm:flex-none"
                   midi={midi}
                 />
+                {voices && firmwareProfile.capabilities.multitimbral ? <VoicesSwitch /> : null}
                 {showsVoiceStrip ? null : <NoteChannelSelect midi={midi} />}
                 <span className="flex sm:order-last">
                   <MidiPanicButton midi={midi} />

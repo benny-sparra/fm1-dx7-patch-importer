@@ -111,11 +111,32 @@ describe('RootLayout Voice strip', () => {
     expect(within(header).getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
   })
 
+  it('offers the Voices switch in the header on V16, and the switch turns the strip on', async () => {
+    renderHeader({ identity: 'FM-1_016', kind: 'mvave' })
+    const header = screen.getByRole('banner')
+
+    await userEvent.setup().click(within(header).getByRole('switch', { name: 'Multitimbral mode' }))
+
+    expect(await within(header).findByRole('group', { name: 'Voices 1–8' })).toBeTruthy()
+  })
+
   it('keeps the note channel picker while the switch is off', () => {
     renderHeader({ identity: 'FM-1_016', kind: 'mvave' })
 
     expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
     expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(2)
+  })
+
+  it('offers no Voices switch while the firmware is unidentified or plays one Voice', () => {
+    for (const firmware of [
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { kind: 'checking' },
+    ] as const) {
+      renderHeader(firmware)
+      expect(screen.queryByRole('switch', { name: 'Multitimbral mode' })).toBeNull()
+      cleanup()
+    }
   })
 
   it('keeps the note channel picker on firmware that plays one Voice, whatever was stored', () => {

@@ -169,7 +169,9 @@ for (const locale of testedLocales) {
       await openLibrarian(page, locale)
 
       await page.getByLabel(translate(locale, 'common.settings'), { exact: true }).click()
-      await expect(page.getByText(translate(locale, 'settings.description'))).toBeVisible()
+      await expect(
+        page.getByText(translate(locale, 'common.settings'), { exact: true }),
+      ).toBeVisible()
 
       await expectNoClippedLayout(page, testInfo, `settings-${locale}-${viewport.name}`)
     })

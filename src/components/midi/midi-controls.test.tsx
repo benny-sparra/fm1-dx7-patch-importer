@@ -10,6 +10,7 @@ import {
   MidiConnectActions,
   MidiFirmwareBadge,
   MidiSettingsMenu,
+  VoicesSwitch,
 } from '@/components/midi/midi-controls'
 import { setLocale } from '@/i18n'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
@@ -400,15 +401,15 @@ describe('MidiFirmwareBadge', () => {
   })
 })
 
-describe('Play several Voices', () => {
+describe('Voices switch', () => {
   afterEach(() => {
     localStorage.clear()
     resetVoiceSetupForTests()
   })
 
-  it('is offered on V16 and keeps the choice for the next visit', async () => {
-    renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
-    const voices = screen.getByRole('switch', { name: 'Play several Voices' })
+  it('keeps the choice for the next visit', async () => {
+    render(<VoicesSwitch />)
+    const voices = screen.getByRole('switch', { name: 'Multitimbral mode' })
     expect(voices.getAttribute('aria-checked')).toBe('false')
 
     await userEvent.setup().click(voices)
@@ -421,15 +422,15 @@ describe('Play several Voices', () => {
     })
   })
 
-  it('is not offered on firmware that plays one Voice, or one not yet identified', () => {
-    for (const firmware of [
-      { identity: 'FM-1_015', kind: 'mvave' },
-      { identity: 'FM-1_097', kind: 'fm1-va' },
-      { kind: 'checking' },
-    ] as const satisfies readonly Fm1Firmware[]) {
-      renderSettings(firmware)
-      expect(screen.queryByRole('switch', { name: 'Play several Voices' })).toBeNull()
-      cleanup()
-    }
+  it('explains itself in a tooltip', () => {
+    render(<VoicesSwitch />)
+
+    expect(screen.getByTitle(/in place of the note channel/)).toBeTruthy()
+  })
+
+  it('is no longer in the Settings menu', () => {
+    renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
+
+    expect(screen.queryByRole('switch', { name: 'Multitimbral mode' })).toBeNull()
   })
 })

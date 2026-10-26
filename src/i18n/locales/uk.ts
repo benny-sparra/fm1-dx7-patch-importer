@@ -1074,7 +1074,6 @@ export default {
       'Це незалежний проєкт із відкритим кодом, який не пов’язаний із M-VAVE чи Yamaha та не схвалений ними.',
   },
   settings: {
-    description: 'Оберіть мову інтерфейсу, MIDI-порти та канали.',
     output: 'Вихід',
     inputMonitor: 'Вхід',
     firmware: 'Прошивка FM1',
@@ -1093,7 +1092,7 @@ export default {
     noDeviceSelected: 'Пристрій не обрано',
   },
   voices: {
-    playSeveral: 'Грати кількома Voice',
+    playSeveral: 'Мультитембральний режим',
     playSeveralHint: 'Показує Voice 1–8 замість каналу нот, кожен грає патч із банків A–D.',
     voice: 'Voice {{number}}',
     tag: 'V{{number}}',
@@ -1109,7 +1108,9 @@ export default {
     sendSetupFailed:
       'Деякі патчі не дійшли до FM1. Перевірте MIDI-вихід і надішліть налаштування знову.',
     setupSent: 'Налаштування надіслано на {{voices}}',
-    channels: 'Канали',
+    channels: 'Канали…',
+    channelsTitle: 'Канали Voice 1–8',
+    channelsClose: 'Закрити канали Voice',
     channelOf: 'Канал Voice {{number}}',
     setupNote:
       'Один раз налаштуйте Voice 1–8 на FM1: поставте їх на канали 1–8, кожен увімкніть (On), жоден не ставте на All, потім натисніть SAVE і оберіть Globe. Вимкнений (Off) ігнорує свій патч і не підхоплює його, коли його знову вмикають, а той, що на All, бере кожен надісланий патч.',

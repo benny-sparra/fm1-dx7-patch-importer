@@ -2,18 +2,16 @@ import { Send, SlidersHorizontal } from 'lucide-react'
 import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { SettingsSelect } from '@/components/midi/device-select'
+import { VoiceChannelsDialog } from '@/components/midi/voice-channels-dialog'
 import { bevelClassName } from '@/components/ui/bevel-radio'
 import { Button } from '@/components/ui/button'
 import { ErrorNotice } from '@/components/ui/error-notice'
-import { InfoNotice } from '@/components/ui/info-notice'
 import { useToast } from '@/components/ui/toast'
 import '@/i18n/voices'
 import type { MidiController } from '@/hooks/use-midi'
 import { useVoiceSetup } from '@/hooks/use-voice-setup'
-import { midiChannels } from '@/lib/midi-channels'
 import { cn } from '@/lib/utils'
-import { aimedVoice, aimVoice, setVoiceChannel } from '@/lib/voice-setup'
+import { aimedVoice, aimVoice } from '@/lib/voice-setup'
 
 type VoiceStripProps = {
   midi: Pick<MidiController, 'channel' | 'hasMidiOutput' | 'setChannel'>
@@ -38,7 +36,6 @@ export function VoiceStrip({ midi, onSendSetup, presetLabel }: VoiceStripProps) 
   const aimedIndex = aimedVoice(setup, midi.channel, aimed)
   const [showsChannels, setShowsChannels] = useState(false)
   const [sendFailed, setSendFailed] = useState(false)
-  const channelsId = useId()
   const sendReasonId = useId()
   const assigned = setup.voices.filter((voice) => voice.preset !== null).length
   const sendBlockedReason = !midi.hasMidiOutput
@@ -155,50 +152,20 @@ export function VoiceStrip({ midi, onSendSetup, presetLabel }: VoiceStripProps) 
           </span>
         ) : null}
         <Button
-          aria-controls={channelsId}
-          aria-expanded={showsChannels}
-          onClick={() => setShowsChannels((shows) => !shows)}
+          aria-haspopup="dialog"
+          onClick={() => setShowsChannels(true)}
           size="sm"
           type="button"
-          variant={showsChannels ? 'pressed' : 'secondary'}
+          variant="secondary"
         >
           <SlidersHorizontal aria-hidden="true" />
           <span>{t('voices.channels')}</span>
         </Button>
       </span>
       {sendFailed ? <ErrorNotice>{t('voices.sendSetupFailed')}</ErrorNotice> : null}
-      <div className="grid gap-2" hidden={!showsChannels} id={channelsId}>
-        <InfoNotice>
-          <p>{t('voices.setupNote')}</p>
-          <p>{t('voices.howToAssign')}</p>
-        </InfoNotice>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
-          {setup.voices.map((voice, index) => {
-            const number = index + 1
-            return (
-              <label className="grid gap-1 text-[11px] tracking-[0.1em] uppercase" key={number}>
-                <span className="text-muted-foreground">{t('voices.voice', { number })}</span>
-                <SettingsSelect
-                  aria-label={t('voices.channelOf', { number })}
-                  onChange={(event) => {
-                    const channel = Number(event.target.value)
-                    setVoiceChannel(index, channel)
-                    // The aim stays on the Voice, so the note channel follows it.
-                    if (index === aimedIndex) midi.setChannel(channel)
-                  }}
-                  value={voice.channel}
-                >
-                  {midiChannels.map((midiChannel) => (
-                    <option key={midiChannel} value={midiChannel}>
-                      {t('root.channelShort', { number: midiChannel })}
-                    </option>
-                  ))}
-                </SettingsSelect>
-              </label>
-            )
-          })}
-        </div>
-      </div>
+      {showsChannels ? (
+        <VoiceChannelsDialog midi={midi} onClose={() => setShowsChannels(false)} />
+      ) : null}
     </div>
   )
 }

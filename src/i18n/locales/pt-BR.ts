@@ -1002,7 +1002,6 @@ export default {
       'Projeto independente de código aberto. Não é afiliado nem endossado pela M-VAVE ou Yamaha.',
   },
   settings: {
-    description: 'Escolha o idioma da interface, as portas MIDI e os canais.',
     output: 'Saída',
     inputMonitor: 'Entrada de monitoração',
     firmware: 'Firmware do FM1',
@@ -1022,7 +1021,7 @@ export default {
     noDeviceSelected: 'Nenhum dispositivo selecionado',
   },
   voices: {
-    playSeveral: 'Tocar várias Voices',
+    playSeveral: 'Modo multitimbral',
     playSeveralHint:
       'Mostra as Voices 1 a 8 no lugar do canal de notas, cada uma tocando um som dos bancos A a D.',
     voice: 'Voice {{number}}',
@@ -1040,7 +1039,9 @@ export default {
     sendSetupFailed:
       'Alguns sons não chegaram ao FM1. Verifique a saída MIDI e envie a configuração de novo.',
     setupSent: 'Configuração enviada para {{voices}}',
-    channels: 'Canais',
+    channels: 'Canais…',
+    channelsTitle: 'Canais das Voices 1 a 8',
+    channelsClose: 'Fechar os canais das Voices',
     channelOf: 'Canal da Voice {{number}}',
     setupNote:
       'Configure uma vez as Voices 1 a 8 no FM1: coloque-as nos canais 1 a 8, cada uma em On e nenhuma em All; depois aperte SAVE e escolha Globe. Uma em Off ignora o seu som e não o pega ao voltar para On, e uma em All recebe todo som enviado.',

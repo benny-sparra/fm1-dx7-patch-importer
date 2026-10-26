@@ -906,7 +906,6 @@ export default {
     disclaimer: '独立开源项目，与 M-VAVE 或 Yamaha 无隶属关系，也未获其认可。',
   },
   settings: {
-    description: '选择界面语言、MIDI 端口和通道。',
     output: '输出',
     inputMonitor: '监听输入',
     firmware: 'FM1 固件',
@@ -925,7 +924,7 @@ export default {
     noDeviceSelected: '未选择设备',
   },
   voices: {
-    playSeveral: '演奏多个 Voice',
+    playSeveral: '多音色模式',
     playSeveralHint: '用 Voice 1–8 取代音符通道，每个 Voice 演奏 A–D 库中的一个音色。',
     voice: 'Voice {{number}}',
     tag: 'V{{number}}',
@@ -940,7 +939,9 @@ export default {
     sendSetupEmpty: 'Voice 1–8 还都没有音色：先点击其中一个，再点击 A–D 库中的音色。',
     sendSetupFailed: '有些音色没有送到 FM1。请检查 MIDI 输出，然后重新发送设置。',
     setupSent: '已将设置发送到 {{voices}}',
-    channels: '通道',
+    channels: '通道…',
+    channelsTitle: 'Voice 1–8 的通道',
+    channelsClose: '关闭 Voice 通道',
     channelOf: 'Voice {{number}} 的通道',
     setupNote:
       '请在 FM1 上一次性设好 Voice 1–8：分别放在通道 1–8，全部设为 On，不要设为 All，然后按 SAVE 并选择 Globe。设为 Off 的 Voice 会忽略它的音色，重新设为 On 后也不会接收；设为 All 的 Voice 会接收每一个发送的音色。',

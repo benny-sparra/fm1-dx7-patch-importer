@@ -3,7 +3,7 @@
 import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import { VoiceStrip } from '@/components/midi/voice-strip'
@@ -15,6 +15,17 @@ import {
   setVoiceChannel,
 } from '@/lib/voice-setup'
 import { translatePageText } from '@/test/page-translator'
+
+beforeAll(() => {
+  // jsdom has no modal dialogs.
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.open = true
+  }
+  HTMLDialogElement.prototype.close = function close() {
+    this.open = false
+    this.dispatchEvent(new Event('close'))
+  }
+})
 
 // The labels the app gives FM1 presets 0 (A01) and 66 (C03); any other is its slot code alone.
 const presetLabels = new Map([
@@ -151,21 +162,26 @@ describe('VoiceStrip', () => {
     )
   })
 
-  it('opens the channels with the note on setting the Voices up on the FM1', async () => {
+  it('keeps the channels in a dialog, with the note on setting the Voices up on the FM1', async () => {
+    const user = userEvent.setup()
     render(<Strip />)
-    const channels = screen.getByRole('button', { name: 'Channels', expanded: false })
+    expect(screen.queryByRole('combobox')).toBeNull()
 
-    await userEvent.setup().click(channels)
+    await user.click(screen.getByRole('button', { name: 'Channels…' }))
 
-    expect(channels.getAttribute('aria-expanded')).toBe('true')
-    expect(screen.getByText(/switch each one On, leave none on All/)).toBeTruthy()
-    expect(screen.getAllByRole('combobox')).toHaveLength(8)
+    const dialog = screen.getByRole('dialog', { name: 'Channels of Voices 1–8' })
+    expect(within(dialog).getByText(/switch each one On, leave none on All/)).toBeTruthy()
+    expect(within(dialog).getAllByRole('combobox')).toHaveLength(8)
+
+    await user.click(within(dialog).getByRole('button', { name: 'Close' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   it('stores a Voice’s channel, and moves the note channel with the Voice aimed at', async () => {
     const user = userEvent.setup()
     render(<Strip initialChannel={2} />)
-    await user.click(screen.getByRole('button', { name: 'Channels' }))
+    await user.click(screen.getByRole('button', { name: 'Channels…' }))
 
     await user.selectOptions(screen.getByRole('combobox', { name: 'Voice 2 channel' }), 'Ch 9')
     await user.selectOptions(screen.getByRole('combobox', { name: 'Voice 5 channel' }), 'Ch 12')
@@ -196,7 +212,7 @@ describe('VoiceStrip', () => {
 
     await user.click(screen.getByRole('button', { name: /^Voice 3,/ }))
     act(() => assignVoicePreset(2, 0))
-    await user.click(screen.getByRole('button', { name: 'Channels' }))
+    await user.click(screen.getByRole('button', { name: 'Channels…' }))
 
     expect(screen.getByRole('button', { name: 'Voice 3, Ch 3: A01 BRASS 1' })).toBeTruthy()
   })

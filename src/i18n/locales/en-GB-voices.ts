@@ -14,7 +14,9 @@ export default {
     sendSetupFailed:
       'Some patches did not reach the FM1. Check the MIDI output, then send the setup again.',
     setupSent: 'Sent the setup to {{voices}}',
-    channels: 'Channels',
+    channels: 'Channels…',
+    channelsTitle: 'Channels of Voices 1–8',
+    channelsClose: 'Close the Voice channels',
     channelOf: 'Voice {{number}} channel',
     setupNote:
       'Set up Voices 1–8 once on the FM1: put them on channels 1–8, switch each one On, leave none on All, then press SAVE and choose Globe. One that is Off ignores its patch and does not take it when switched back On, and one on All takes every patch sent.',
