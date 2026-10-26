@@ -235,7 +235,7 @@ export function HelpDialog({ colorway, firstVisit, midi, onClose }: HelpDialogPr
               )}
             </div>
           </DialogBody>
-          <DialogFooter className="justify-between gap-2">
+          <DialogFooter className="flex-wrap justify-between gap-2">
             <Button
               onClick={() => {
                 focusTabsOnGuide.current = true
