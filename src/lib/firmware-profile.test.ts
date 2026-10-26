@@ -6,6 +6,7 @@ const nothing = {
   bitcrush: false,
   effectControllers: false,
   knobChoices: false,
+  multitimbral: false,
   parameterChanges: false,
   presetEffects: false,
   presetRead: false,
@@ -91,10 +92,28 @@ describe('resolveFirmwareProfile', () => {
     expect(resolveFirmwareProfile({ kind: 'checking' }).capabilities.selectedVoiceEdits).toBe(false)
   })
 
+  it('lists several Voices only for M-VAVE’s stock firmware from V16', () => {
+    const multitimbral = (firmware: Parameters<typeof resolveFirmwareProfile>[0]) =>
+      resolveFirmwareProfile(firmware).capabilities.multitimbral
+    expect(multitimbral({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
+    expect(multitimbral({ identity: 'FM-1_016', kind: 'mvave' })).toBe(true)
+    expect(multitimbral({ identity: 'FM-1_019', kind: 'mvave' })).toBe(true)
+    for (const firmware of [
+      { kind: 'checking' },
+      { kind: 'unidentified' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { identity: 'FM-1_908', kind: 'felucca' },
+      { identity: 'FM1_OFFICIAL_OPEN', kind: 'official-open' },
+    ] as const) {
+      expect(multitimbral(firmware)).toBe(false)
+    }
+  })
+
   it('still sends V16 single-voice dumps, parameter changes, and Program Change', () => {
     expect(resolveFirmwareProfile({ identity: 'FM-1_016', kind: 'mvave' })).toEqual({
       capabilities: {
         ...cautious,
+        multitimbral: true,
         presetEffects: false,
         selectedVoiceEdits: true,
         singleVoiceDumps: true,

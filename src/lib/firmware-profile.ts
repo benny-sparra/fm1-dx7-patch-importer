@@ -55,11 +55,14 @@ export type EffectControllerBase = 0 | 70
  *   the Voice selected on its screen while parameter changes reach that Voice only on channel 1 or
  *   All, so the editor says which Voice it reaches. M-VAVE's V16 (docs/fm1-research.md,
  *   "Confirmed on hardware", 2026-10-25).
+ * - `multitimbral`: the FM1 plays several Voices, each with its own preset and MIDI channel.
+ *   M-VAVE's V16 (docs/hardware-runs/stock-v16-voices-2026-10-26.md).
  */
 type FirmwareCapability =
   | 'bitcrush'
   | 'effectControllers'
   | 'knobChoices'
+  | 'multitimbral'
   | 'parameterChanges'
   | 'presetEffects'
   | 'presetRead'
@@ -144,6 +147,8 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
       // 70 added, and its FX group is shared by all eight Voices rather than following a preset
       // (docs/fm1-research.md, "What the firmware shows", 2026-10-23).
       presetEffects: { before: 16, from: 0 },
+      // V16's eight Voices each play their own preset on their own channel (2026-10-26).
+      multitimbral: 16,
       // V16's eight Voices take a dump on the one selected on screen (2026-10-25).
       selectedVoiceEdits: 16,
       singleVoiceDumps: 0,
@@ -183,6 +188,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       bitcrush: from(capabilities.bitcrush),
       effectControllers: from(capabilities.effectControllers),
       knobChoices: from(capabilities.knobChoices),
+      multitimbral: from(capabilities.multitimbral),
       parameterChanges: from(capabilities.parameterChanges),
       presetEffects: from(capabilities.presetEffects),
       presetRead: from(capabilities.presetRead),

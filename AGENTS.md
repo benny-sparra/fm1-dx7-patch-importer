@@ -119,7 +119,8 @@ open everything an earlier release could have saved.
   versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
   versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
-  `fm1-colourway`, `fm1-last-backup`, and the MIDI port and help-dialog keys. Do not rename,
+  `fm1-colourway`, `fm1-last-backup`, `fm1-voice-setup` (V16's Voice setup: a version 1 record
+  of the "Play several Voices" switch and each of eight Voices' preset and channel), and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them. A patch's share link (`#p=`, `src/lib/patch-share-link.ts`) is
   one too: links live for years in chats and forums, so every release reads version 1, and its
   version 1 fixtures stay in the codec's test.
@@ -214,7 +215,7 @@ open everything an earlier release could have saved.
 - What each firmware can take is its profile in `src/lib/firmware-profile.ts`, and nowhere else:
   `resolveFirmwareProfile` gives its family, its capabilities (`singleVoiceDumps`, `presetRead`,
   `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`, `programChanges`, `selectedVoiceEdits`,
-  `effectControllers`, `presetEffects`), where its effect controllers start
+  `multitimbral`, `effectControllers`, `presetEffects`), where its effect controllers start
   (`effectControllerBase`), and its preset write timing. A family
   lists the first release with each capability, or a range ending `before` the release that took
   it away, so a new firmware, a release that adds or removes one, or another device's firmware is
