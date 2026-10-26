@@ -115,9 +115,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     - Step 2's badge wording is PR #366.
     - Steps 6 and 7 are done (the SEQ row and the release notes are in `docs/fm1-research.md`)
       but not marked.
-    - A run on the orange FM1 of the **Receive patches** wizard
+    - ~~A run on the orange FM1 of the **Receive patches** wizard
       (`docs/hardware-runs/receive-wizard-run-sheet.md`, now from `main`), including Undo after a
-      received bank, which has never been tried on hardware.
+      received bank, which has never been tried on hardware.~~ _Done (2026-10-26,
+      `hardware-runs/stock-v16-voices-2026-10-26.md`): a bank arrived from GLOBE → Export, nothing
+      was sent while it listened, and Replace offered Undo, which Ben reported put the bank back;
+      the slots were not compared, so the check is not independent. The one-patch path (Dexed) was
+      not run. Export started before the wizard was listening showed no **Receive Timeout**._
     - On the same run: a double-clicked slot sends one Program Change and one dump (#363), and
       the V16 lines in the badge, the firmware setting, and the editor read right.
     - Then record the run in `docs/hardware-runs/` and answer issue 334 together with the Vivaldi
@@ -204,15 +208,26 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
          effects. On V16 the patch editor's panel then points to it.
       3. **With named setups (step 4):** each setup stores its effects, and that editor is
          where V16's effects live. Other firmware never sees a change.
-  - **Questions for a hardware run first:**
+  - **Questions for a hardware run first** (the run of 2026-10-26, `hardware-runs/stock-v16-voices-2026-10-26.md`,
+    answered two of the four and left the others open):
     - Does CC 7 on a Voice's channel set that Voice's level? If so, a setup could carry a mix.
+      _Open: not run, as no tool to hand sends a Control Change._
     - Does a dump change a preset for every Voice playing it, as the firmware reading says?
+      _Open: not run._
     - Does a Voice switched Off ignore a Program Change, so a setup cannot switch Voices on?
+      _Answered (2026-10-26): yes. A Voice that is Off ignores it and does not take it when
+      switched back On, and the editor cannot see that a Voice is Off. **Send setup** to an Off
+      Voice silently does nothing, so the strip has to say Voices must be On._
     - Does one dump per gesture feel usable while holding a Voice selected on the FM1?
-    - Which channel do the FM1's own key presses arrive on with several Voices? On 2026-10-23
-      they came on channel 1 with Voice 1 alone on All. If they follow the Voice selected on the
-      FM1's screen, the editor could learn that Voice's channel from a key press and offer to
-      switch the header picker to it. Nothing else tells the editor which Voice is selected.
+      _Open: not run._
+    - Which channel do the FM1's own key presses arrive on with several Voices?
+      _Answered (2026-10-26): channel 1, with Voice 3 selected and with Voice 6 selected, as with
+      Voice 1 alone on All on 2026-10-23. They do not follow the Voice selected on the screen, so
+      the editor cannot learn that Voice's channel from a key press, and nothing else tells it
+      which Voice is selected._
+    - Also settled (2026-10-26): with Voices 1–8 On on channels 1–8 and none on All, a Program
+      Change reaches only the Voice on its channel, for all eight, so step 2's one Program Change
+      per Voice works as planned. A Voice on All takes every Program Change.
   - **Questions to discuss:**
     - **The word Voice.** `AGENTS.md` uses voice for DX7 voice data (the voice editor, Init
       voice), and also says names printed on the FM1 stay as printed, which makes V16's Voice a
@@ -241,7 +256,14 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        eight Voices on channels 1–8 each taking only their own Program Change, a Voice switched
        Off, the key-press channel, and CC 7 if a tool can send it. It can share the session with
        the **Receive patches** wizard's run sheet. Record the run in `docs/hardware-runs/` and
-       `docs/fm1-research.md`.
+       `docs/fm1-research.md`. _Done (2026-10-26,
+       [`hardware-runs/stock-v16-voices-2026-10-26.md`](hardware-runs/stock-v16-voices-2026-10-26.md)):
+       all eight Voices took only their own Program Change; a Voice that is Off ignores it; the
+       keys send on channel 1 whichever Voice is selected; CC 7 was not run, since no tool to hand
+       sends it. This changes the plan in two ways, and nothing else: the strip's note on setting
+       up the Voices must say each is On as well as on its own channel, since **Send setup** to an
+       Off Voice does nothing the editor can see, and a key press cannot be used to learn the
+       selected Voice's channel._
     3. **Design the strip.** The mock-up of 2026-10-25 showed the hard parts: at desktop width
        "Voice 1 · Ch 1" wraps and patch names cut to "BRASS…", eight boxes will not fit a
        320 px phone, and the strip has to sit with #369's header channel picker. The owner
@@ -292,6 +314,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - **Shipped when:** strings are in every locale, the receive dialog stays lazy, the bundle is
     measured with `npm run bundle:check`, and a rendered test walks each screen with the Bank
     Export capture (`docs/hardware-runs/stock-v16-bank-export-2026-10-23.json`) as its fixture.
+
+  - **Tidying, low priority** (from the hardware run of 2026-10-26, the owner's notes): the
+    listening screen carries a lot of text once MIDI is online; the layout of the screen with
+    **Switch MIDI online** needs work; and on a phone the first screen's second option is cut off
+    below the first, so drop the small description under each option at narrow widths. Also from
+    the run: a bank exported from the FM1 includes edits never saved on it, which the steps could
+    say, and the replace warning is red, where the run sheet expected yellow.
 
 - [x] **Effect presets.** A presets menu in each effect's box on the effects panel, like the pitch
       envelope presets, that sets that FM1 effect (filter, reverb, delay, distortion, chorus, phaser)
