@@ -25,6 +25,7 @@ export const responsiveImageConfig = [
   { height: 720, source: 'firmware-fm1-quest.webp', width: 720, widths: [460] },
   { height: 720, source: 'firmware-orbit.webp', width: 720, widths: [460] },
   { height: 720, source: 'firmware-fimba.webp', width: 720, widths: [460] },
+  { height: 720, source: 'firmware-fizz.webp', width: 720, widths: [460] },
   { height: 720, source: 'firmware-rainbow-mode.webp', width: 720, widths: [460] },
   { height: 720, source: 'firmware-fumi.webp', width: 720, widths: [460] },
   { height: 770, source: 'firmware-melodee.webp', width: 1010, widths: [460] },
