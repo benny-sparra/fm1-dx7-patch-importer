@@ -395,6 +395,9 @@ open everything an earlier release could have saved.
 - Call a library item a patch, and say sound only for what you hear. Voice means the DX7 voice data,
   as in the voice editor and Init voice. German uses Sound for a patch and Klang for what you hear;
   Simplified Chinese uses 音色 and 声音; Ukrainian uses патч and звук.
+- On V16 the FM1 prints Voice for each of its eight parts, so a part is always "Voice" with its
+  number ("Voice 3"), never Voice alone, and the sound it plays is a patch (the owner, 2026-10-26).
+  Voice stays in English in every locale, as other names printed on the FM1 do.
 - Ukrainian keeps in English what is printed on the FM1, on the editor's panels, or on synths and
   plugins, and what musicians who speak Ukrainian know by its English name, such as the audition
   phrases (Pad, Lead, Bass): effect, parameter, option, waveform, mode, and preset names, used in
