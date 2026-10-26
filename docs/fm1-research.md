@@ -2230,7 +2230,9 @@ on the orange FM1, with the editor's PR #349 and the development FX probe. Each 
 reading below. The run of 2026-10-25
 ([`hardware-runs/stock-v16-2026-10-25.md`](hardware-runs/stock-v16-2026-10-25.md)), on the same
 FM1, checked two Voices, a bank sent to the FM1, and Bank Export without USB; only the last
-differed from the firmware reading.
+differed from the firmware reading. The run of 2026-10-26
+([`hardware-runs/stock-v16-voices-2026-10-26.md`](hardware-runs/stock-v16-voices-2026-10-26.md))
+checked eight Voices, a Voice switched Off, the key-press channel, and the receive wizard.
 
 - **Identity.** V16 answers `F0 00 32 45 00 00 00 40 7F F7` with the 41-byte reply the editor
   reads as `FM-1_016`.
@@ -2278,8 +2280,22 @@ differed from the firmware reading.
   a host listening works, with no power cycle.
 - **Voice channels.** V16 has no single MIDI channel on GLOBE; each Voice has its own, 0 being
   All.
-- **Key presses.** The FM1 sends its own key presses on the Voice channel, Note On at velocity 90
-  and Note Off at 100.
+- **Key presses.** The FM1 sends its own key presses on channel 1, Note On at velocity 90 and
+  Note Off at 100, whichever Voice is selected on its screen (2026-10-26, Voice 3 and Voice 6
+  selected; on 2026-10-23 it was Voice 1 on All).
+- **Eight Voices** (2026-10-26, Voices 1–8 On on channels 1–8, none on All): a Program Change on
+  channel _n_ moved only the Voice on channel _n_, for every _n_ from 1 to 8, and slot A0*n*'s
+  program gave preset `00n`. A Voice on All takes every Program Change.
+- **A Voice switched Off** ignores a Program Change on its channel, and does not take it when it
+  is switched back On (2026-10-26, Voice 4). A single-voice dump still reached the Voice selected
+  on the screen while that Voice was Off.
+- **Bank Export** includes presets edited by a dump and never saved: a bank exported after the
+  editor dumped a patch to the selected Voice's preset held that patch in the slot (2026-10-26).
+- **Receive patches** took a V16 bank from GLOBE → Export on the orange FM1 and sent nothing
+  while it listened. The FM1's Export, started with the editor's MIDI already online but the
+  wizard not yet listening, returned to the GLOBE screen with no **Receive Timeout**
+  (2026-10-26; one run, the cause not found).
+  ([`hardware-runs/stock-v16-voices-2026-10-26.md`](hardware-runs/stock-v16-voices-2026-10-26.md))
 
 Still **Needs hardware test**: what sets the flag at `0x01C3402C` that a single-voice dump needs
 (question 6), though it was set in normal use on both runs.
@@ -2414,6 +2430,14 @@ the third, and the fourth; the run of 2026-10-25 the rest of the third, and the 
    **32 Voice Save To …**, as on V15 (2026-10-25).
 6. What sets the flag at `0x01C3402C`, without which a single-voice dump is dropped? It was set in
    normal use on 2026-10-23, since the dump arrived.
+7. ~~Does a Program Change reach each of eight Voices on channels 1–8, and does a Voice switched
+   Off ignore it?~~ Each Voice takes its own channel's, and a Voice that is Off takes none
+   (2026-10-26).
+8. ~~Do the FM1's key presses follow the Voice selected on its screen?~~ No: channel 1 whichever
+   Voice is selected (2026-10-26).
+9. Does CC 7 on a Voice's channel set that Voice's level? Not run (2026-10-26): no tool to send
+   it.
+10. Does a dump change a preset for every Voice playing it? Not run.
 
 ### FM1 Editor
 
