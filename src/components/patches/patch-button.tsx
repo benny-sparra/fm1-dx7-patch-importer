@@ -272,21 +272,10 @@ export function PatchButton({
         ) : null}
         {engine ? <span className="sr-only">{engine.label}</span> : null}
       </span>
-      {/* Tucked under the heart and menu, so the name keeps its room. */}
+      {/* Which Voices play the slot is said to assistive technology and in the tooltip only. */}
       {playedBy ? (
-        <span className="pointer-events-none absolute right-2 bottom-px flex gap-1">
-          <span className="sr-only" id={voicesId}>
-            {playedBy}
-          </span>
-          {voices.map((number) => (
-            <span
-              aria-hidden="true"
-              className="font-vt323 text-[13px] leading-none text-[var(--crt-led)]"
-              key={number}
-            >
-              {t('voices.tag', { number })}
-            </span>
-          ))}
+        <span className="sr-only" id={voicesId}>
+          {playedBy}
         </span>
       ) : null}
       {/* The heart and menu share one gap, so a full ten-character name fits beside them. */}

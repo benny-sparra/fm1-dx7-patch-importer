@@ -14,6 +14,8 @@ import {
   getVoiceSetup,
   resetVoiceSetupForTests,
   setVoiceChannel,
+  setVoiceOn,
+  setVoiceSetupEnabled,
 } from '@/lib/voice-setup'
 import { translatePageText } from '@/test/page-translator'
 
@@ -42,10 +44,12 @@ function presetLabel(preset: number) {
 function Strip({
   hasMidiOutput = true,
   initialChannel = 1,
+  onAim = vi.fn(),
   onSendSetup = vi.fn(() => 0),
 }: {
   hasMidiOutput?: boolean
   initialChannel?: number
+  onAim?: (preset: number | null) => void
   onSendSetup?: () => number
 }) {
   const [channel, setChannel] = useState(initialChannel)
@@ -54,6 +58,7 @@ function Strip({
       <p>Note channel {channel}</p>
       <VoiceStrip
         midi={{ channel, hasMidiOutput, setChannel }}
+        onAim={onAim}
         onSendSetup={onSendSetup}
         presetLabel={presetLabel}
         renderHelp={(label, text) => <HelpPopover label={label} text={text} />}
@@ -80,24 +85,62 @@ describe('VoiceStrip', () => {
 
     const voices = within(screen.getByRole('group', { name: 'Voices 1–8' })).getAllByRole('button')
     expect(voices.map((voice) => voice.getAttribute('aria-label'))).toEqual([
-      'Voice 1, Ch 1: A01 BRASS 1',
-      'Voice 2, Ch 2: No patch',
-      'Voice 3, Ch 3: C03 E.PIANO 1',
-      'Voice 4, Ch 4: No patch',
-      'Voice 5, Ch 5: No patch',
-      'Voice 6, Ch 6: No patch',
-      'Voice 7, Ch 7: No patch',
-      'Voice 8, Ch 8: No patch',
+      'Voice 1, Ch 1: A01 BRASS 1, on',
+      'Voice 2, Ch 2: No patch, on',
+      'Voice 3, Ch 3: C03 E.PIANO 1, on',
+      'Voice 4, Ch 4: No patch, on',
+      'Voice 5, Ch 5: No patch, on',
+      'Voice 6, Ch 6: No patch, on',
+      'Voice 7, Ch 7: No patch, on',
+      'Voice 8, Ch 8: No patch, on',
     ])
-    // On a phone each Voice is its number, with what it plays in the tooltip.
-    expect(voices[2]?.title).toBe('Voice 3, Ch 3: C03 E.PIANO 1')
+    // Its tooltip says the same, since the cell shows only the Voice's number.
+    expect(voices[2]?.title).toBe('Voice 3, Ch 3: C03 E.PIANO 1, on')
+  })
+
+  it('switches a Voice on and off without aiming at it', async () => {
+    const user = userEvent.setup()
+    render(<Strip initialChannel={4} />)
+
+    const toggle = screen.getByRole('switch', { name: 'Voice 2 on' })
+    expect(toggle.getAttribute('aria-checked')).toBe('true')
+    await user.click(toggle)
+
+    expect(screen.getByRole('switch', { name: 'Voice 2 on' }).getAttribute('aria-checked')).toBe(
+      'false',
+    )
+    expect(getVoiceSetup().voices[1]?.on).toBe(false)
+    expect(screen.getByText('Note channel 4')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Voice 4,/, pressed: true })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Voice 2, Ch 2: No patch, off' })).toBeTruthy()
+  })
+
+  it('lets a Voice that is off be aimed at, so its patch and channel can be set first', async () => {
+    const user = userEvent.setup()
+    setVoiceOn(2, false)
+    render(<Strip />)
+
+    await user.click(screen.getByRole('button', { name: /^Voice 3,/ }))
+
+    expect(screen.getByText('Note channel 3')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Voice 3,.*off$/, pressed: true })).toBeTruthy()
+    expect(screen.getByRole('switch', { name: 'Voice 3 on' }).getAttribute('aria-checked')).toBe(
+      'false',
+    )
+  })
+
+  it('has one switch for each Voice, and no tab list that would hold them', () => {
+    render(<Strip />)
+
+    expect(screen.getAllByRole('switch')).toHaveLength(8)
+    expect(screen.queryByRole('tablist')).toBeNull()
   })
 
   it('names a Voice’s preset as the app labels it', () => {
     assignVoicePreset(1, 127)
     render(<Strip />)
 
-    expect(screen.getByRole('button', { name: 'Voice 2, Ch 2: D32' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Voice 2, Ch 2: D32, on' })).toBeTruthy()
   })
 
   it('aims at the Voice on the note channel', () => {
@@ -157,6 +200,7 @@ describe('VoiceStrip', () => {
 
   it('says in one line that the FM1 needs setting up first, with the steps behind help', async () => {
     const user = userEvent.setup()
+    setVoiceSetupEnabled(true)
     render(<Strip />)
     const notice = screen.getByRole('status')
     expect(notice.textContent).toBe('Set up your FM1’s Voices first.')
@@ -178,6 +222,7 @@ describe('VoiceStrip', () => {
   it('writes the setup line and its steps in the interface language', async () => {
     await setLocale('de')
     const user = userEvent.setup()
+    setVoiceSetupEnabled(true)
     render(<Strip />)
 
     expect(screen.getByText('Richte zuerst die Voices am FM1 ein.')).toBeTruthy()
@@ -230,8 +275,8 @@ describe('VoiceStrip', () => {
     assignVoicePreset(3, 66)
     render(<Strip onSendSetup={() => 2} />)
 
-    expect(screen.getByRole('button', { name: 'Voice 1, Kan. 1: A01 BRASS 1' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Voice 2, Kan. 2: Kein Sound' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Voice 1, Kan. 1: A01 BRASS 1, ein' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Voice 2, Kan. 2: Kein Sound, ein' })).toBeTruthy()
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'Setup senden' }))
 
@@ -247,7 +292,20 @@ describe('VoiceStrip', () => {
     act(() => assignVoicePreset(2, 0))
     await user.click(screen.getByRole('button', { name: 'Channels…' }))
 
-    expect(screen.getByRole('button', { name: 'Voice 3, Ch 3: A01 BRASS 1' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Voice 3, Ch 3: A01 BRASS 1, on' })).toBeTruthy()
     expect(screen.getByRole('dialog').textContent).toContain('doesn’t change the FM1')
+  })
+
+  it('tells the page which preset the clicked Voice plays, or none', async () => {
+    const user = userEvent.setup()
+    assignVoicePreset(2, 66)
+    const onAim = vi.fn()
+    render(<Strip onAim={onAim} />)
+
+    await user.click(screen.getByRole('button', { name: /^Voice 3,/ }))
+    await user.click(screen.getByRole('button', { name: /^Voice 4,/ }))
+    await user.click(screen.getByRole('switch', { name: 'Voice 3 on' }))
+
+    expect(onAim.mock.calls).toEqual([[66], [null]])
   })
 })

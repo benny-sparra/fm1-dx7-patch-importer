@@ -228,6 +228,7 @@ export function VoicesSwitch({ midi }: { midi: Pick<MidiController, 'setChannel'
     <span className="inline-flex" title={t('voices.playSeveralHint')}>
       <Switch
         checked={setup.enabled}
+        flat
         onChange={(enabled) => {
           setVoiceSetupEnabled(enabled)
           if (!enabled) midi.setChannel(setup.voices[0].channel)

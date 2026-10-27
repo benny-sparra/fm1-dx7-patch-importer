@@ -769,6 +769,14 @@
     background: var(--crt-btn-face);
   }
 
+  /* A switch that sits straight on its surface, with no face or bevel of its own. */
+  .midi-switch[data-flat],
+  .midi-switch[data-flat]:hover,
+  .midi-switch[data-flat]:has(:disabled):hover {
+    background: transparent;
+    border-color: transparent;
+  }
+
   /*
    * Busy, such as MIDI connecting. The handle stays in the off position but
    * blinks, so the wait looks like the switch working rather than the switch

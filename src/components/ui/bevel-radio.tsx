@@ -3,7 +3,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 /** The librarian's bevelled bank tab and patch cell: raised, with the chosen one tinted. */
-export function bevelClassName(selected: boolean) {
+function bevelClassName(selected: boolean) {
   return cn(
     'border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] transition-colors',
     selected

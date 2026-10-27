@@ -119,8 +119,9 @@ open everything an earlier release could have saved.
   versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
   versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
-  `fm1-colourway`, `fm1-last-backup`, `fm1-voice-setup` (V16's Voice setup: a version 1 record
-  of the "Play several Voices" switch and each of eight Voices' preset and channel), and the MIDI port and help-dialog keys. Do not rename,
+  `fm1-colourway`, `fm1-last-backup`, `fm1-voice-setup` (V16's Voice setup: a version 2 record
+  of the Multitimbral mode switch and each of eight Voices' preset, channel, and On switch; version 1,
+  which has no On switch, reads every Voice as on), and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them. A patch's share link (`#p=`, `src/lib/patch-share-link.ts`) is
   one too: links live for years in chats and forums, so every release reads version 1, and its
   version 1 fixtures stay in the codec's test.
@@ -701,17 +702,32 @@ open everything an earlier release could have saved.
 - The header has no note channel picker (removed 2026-10-27, the owner's request): the note channel is
   the Settings menu's **Note channel**, and on V16 the Voice strip aims it.
 - On V16, **Multitimbral mode** (the profile's `multitimbral`, stored as `enabled` in
-  `fm1-voice-setup`) is a switch in a bar above the patch banks, in the librarian page, so the editor
-  has no bar. Switched on, the bar adds `VoiceStrip`, loaded lazily into the same wrapping row
-  (the switch stays mounted, so it keeps focus as the strip arrives). The mode is the editor's: no known message sets a Voice's channel or On/Off, so the FM1 is set up once by hand, which the strip says while no Voice has a patch (no new field in `fm1-voice-setup`) and **Channels…** keeps. Switching the mode off sets the note channel to Voice 1's channel, so a set-up FM1 plays single-sound: **Send setup** and **Channels…**
-  beside the switch, and below them eight
-  numbered buttons on a phone, the patch in each tooltip, and from `sm` each Voice's channel and
-  patch, four to a row until `lg` fits eight. A Voice is aimed at by setting the note channel to
+  `fm1-voice-setup`) is a switch in the Voices bar above the patch banks, in the librarian page, so
+  the editor has no bar. The page makes the bar's grid (`voice-bar-layout.ts`) and holds the switch;
+  on V16 the lazy `VoiceStrip` adds the eight Voices, **Send setup**, and **Channels…** as more
+  cells of that grid, whether or not the mode is on (the owner, 2026-10-27); on any other firmware none of the bar shows. Each
+  Voice's LED comes before its label. With the mode on, the lit slot in the bank grid is the one the
+  aimed Voice plays, and none for a Voice with no patch (a preset two Voices share lights only for
+  the aimed one; the other is still named in its tooltip), and selecting a Voice's tab shows the bank holding its
+  patch (the owner, 2026-10-27). The FM1 setup line shows only while the mode is on. The Voices are tabs fused to the
+  panel's top edge, which they overlap by its 2px border (owner's design, 2026-10-27, option C): from
+  `lg` one row with the switch and the two buttons, icon-only with tooltips, at its right end; from
+  `sm` a 36px bar of its own above the tabs, which share the row, with the buttons' labels back;
+  below `sm` the same bar above a 4 × 2 grid of cells, not fused, the aimed one lit with an amber
+  ring. Each Voice is two buttons, never a tablist, since ARIA keeps a switch out of one: the tab
+  (`aria-pressed`, named "Voice 1, Ch 1: A01 BRASS 1, on") aims at the Voice, and its 10px LED
+  (`role="switch"`, "Voice 1 on", 24px target) is the Voice's own On value, which aims at nothing,
+  so a Voice that is off can still be aimed at, and sends nothing. The mode is the editor's: no
+  known message sets a Voice's channel or On/Off, so the On value is the editor's note of what the FM1
+  has, never sent (the Voice record gained it, version 2 of `fm1-voice-setup`), and the FM1 is set up
+  once by hand, which the strip says while no Voice has a patch, with **Channels…** keeping it.
+  Switching the mode off sets the note channel to Voice 1's channel, so a set-up FM1 plays
+  single-sound. A Voice is aimed at by setting the note channel to
   its channel, never by state of its own, so the Voice listening on the note channel is the one a
   slot click in banks A–D assigns (`aimedVoice`; the Voice clicked last wins a shared channel),
   whether or not MIDI is online, and editing a slot assigns it too, since its Program Change
-  reaches that Voice. A Voice holds a preset number only. Each slot tags the Voices playing it
-  (V1–V8) below its heart and menu, never beside the name. **Send setup** sends one Program
+  reaches that Voice. A Voice holds a preset number only. Each slot names the Voices playing it
+  in its tooltip and to assistive technology, with no tag drawn on the card (the owner, 2026-10-27). **Send setup** sends one Program
   Change per Voice with a preset, on its channel, through `sendProgramChange`, and forgets the
   edit-buffer audition, which those changes replace. The strip's one-line notice, while no Voice has a patch, says to set the Voices up on the FM1, with the steps in a `HelpPopover`; the channels dialog (`VoiceChannelsDialog`, opened by **Channels…**) says in one line that it does not change the FM1
   (channels 1–8, every Voice On, none on All, SAVE → Globe), since the editor cannot read or set

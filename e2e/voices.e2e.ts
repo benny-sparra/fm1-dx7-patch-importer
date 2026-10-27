@@ -11,9 +11,10 @@ async function openWithVoices(page: Page) {
       'fm1-voice-setup',
       JSON.stringify({
         enabled: true,
-        version: 1,
+        version: 2,
         voices: Array.from({ length: 8 }, (_, index) => ({
           channel: index + 1,
+          on: true,
           preset: index === 0 ? 0 : null,
         })),
       }),
@@ -28,7 +29,7 @@ async function openWithVoices(page: Page) {
 }
 
 for (const width of [320, 375]) {
-  test(`shows the eight Voices as numbered buttons in view at ${width} px`, async ({ page }) => {
+  test(`shows the eight Voices, each with its switch, in view at ${width} px`, async ({ page }) => {
     await page.setViewportSize({ height: 812, width })
     const strip = await openWithVoices(page)
     const voices = strip.getByRole('button')
@@ -37,10 +38,17 @@ for (const width of [320, 375]) {
     for (let index = 0; index < 8; index += 1) {
       const voice = voices.nth(index)
       await expect(voice).toBeInViewport()
-      expect(await voice.innerText()).toBe(String(index + 1))
+      // The whole label shows, not cut short by its neighbour the switch.
+      expect(await voice.innerText()).toBe(`Voice ${index + 1}`)
+      expect(await voice.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true)
       const box = await voice.boundingBox()
       expect(box?.width).toBeGreaterThanOrEqual(24)
       expect(box?.height).toBeGreaterThanOrEqual(24)
+      const toggle = page.getByRole('switch', { name: `Voice ${index + 1} on` })
+      await expect(toggle).toBeInViewport()
+      const toggleBox = await toggle.boundingBox()
+      expect(toggleBox?.width).toBeGreaterThanOrEqual(24)
+      expect(toggleBox?.height).toBeGreaterThanOrEqual(24)
     }
     // The patch a Voice plays is in its tooltip.
     await expect(voices.first()).toHaveAttribute('title', /^Voice 1, Ch 1: A01 \S/)
@@ -68,7 +76,10 @@ test('aims at a Voice and gives it a slot’s preset with one Program Change on 
     .slice(before)
     .filter(([status]) => (status & 0xf0) === 0xc0)
   expect(programChanges).toEqual([[0xc2, 1]])
-  await expect(page.locator('.patch-cell').nth(1).getByText('V3', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Send A02 .+ to FM1$/ })).toHaveAttribute(
+    'title',
+    /Played by Voice 3/,
+  )
 })
 
 test('sends the setup as one Program Change per Voice with a patch', async ({ page }) => {

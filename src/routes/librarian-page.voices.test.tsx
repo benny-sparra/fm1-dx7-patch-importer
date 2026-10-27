@@ -65,6 +65,7 @@ function renderPage({
   })
   function Page() {
     const [patches, setPatches] = useState(startingPatches)
+    const [noteChannel, setNoteChannel] = useState(channel)
     return (
       <LibrarianPage
         activePatchId=""
@@ -86,7 +87,7 @@ function renderPage({
           patches,
           workspaceBanks: ['A', 'E'],
         })}
-        midi={makeLibrarianMidi({ channel, firmware })}
+        midi={makeLibrarianMidi({ channel: noteChannel, firmware, setChannel: setNoteChannel })}
         onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
         onPlaySearchResult={vi.fn()}
@@ -104,17 +105,22 @@ function renderPage({
 }
 
 describe('LibrarianPage with V16’s Voices', () => {
-  it('heads the patch banks with the Multitimbral mode switch, and the switch brings the Voices', async () => {
+  it('shows the Voice tabs on V16 with the Multitimbral mode switch off, and keeps them when it is switched on', async () => {
     const { user } = renderPage()
-    expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Send setup' })).toBeNull()
-
-    await user.click(screen.getByRole('switch', { name: 'Multitimbral mode' }))
+    const mode = screen.getByRole('switch', { name: 'Multitimbral mode' })
+    expect(mode.getAttribute('aria-checked')).toBe('false')
 
     const strip = await screen.findByRole('group', { name: 'Voices 1–8' })
     expect(within(strip).getAllByRole('button')).toHaveLength(8)
     expect(screen.getByRole('button', { name: 'Send setup' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Channels…' })).toBeTruthy()
+    // The FM1 setup line belongs to the mode, so it waits for the switch.
+    expect(screen.queryByText('Set up your FM1’s Voices first.')).toBeNull()
+
+    await user.click(mode)
+
+    expect(await screen.findByText('Set up your FM1’s Voices first.')).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Voices 1–8' })).toBe(strip)
   })
 
   it('labels a Voice’s preset as its slot shows it, or by its slot code when no patch is there', () => {
@@ -128,9 +134,9 @@ describe('LibrarianPage with V16’s Voices', () => {
         .getAllByRole('button')
         .map((button) => button.title)
       expect(titles.slice(0, 3)).toEqual([
-        'Voice 1, Ch 1: A01 Alpha Piano',
-        'Voice 2, Ch 2: D32',
-        'Voice 3, Ch 3: No patch',
+        'Voice 1, Ch 1: A01 Alpha Piano, on',
+        'Voice 2, Ch 2: D32, on',
+        'Voice 3, Ch 3: No patch, on',
       ])
     })
   })
@@ -156,9 +162,8 @@ describe('LibrarianPage with V16’s Voices', () => {
     renderPage()
 
     const slot = screen.getByRole('button', { name: sendSlotName('Alpha Piano') })
-    const cell = slot.parentElement as HTMLElement
-    expect(within(cell).getByText('V1')).toBeTruthy()
-    expect(within(cell).getByText('V3')).toBeTruthy()
+    // No tag is drawn on the card; the Voices are in its description and tooltip.
+    expect(within(slot.parentElement as HTMLElement).queryByText('V1')).toBeNull()
     expect(document.getElementById(slot.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
       'Played by Voice 1 and Voice 3',
     )
@@ -166,6 +171,59 @@ describe('LibrarianPage with V16’s Voices', () => {
     expect(screen.getByRole('button', { name: sendSlotName('Alpha Organ') }).title).not.toContain(
       'Played by',
     )
+  })
+
+  it('lights the slot the aimed Voice plays, and none for a Voice with no patch', async () => {
+    setVoiceSetupEnabled(true)
+    assignVoicePreset(0, 0)
+    assignVoicePreset(1, 1)
+    const { user } = renderPage()
+    const piano = screen.getByRole('button', { name: sendSlotName('Alpha Piano') })
+    const organ = screen.getByRole('button', { name: sendSlotName('Alpha Organ') })
+    expect(piano.getAttribute('aria-current')).toBe('true')
+    expect(organ.getAttribute('aria-current')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: /^Voice 2,/ }))
+    expect(organ.getAttribute('aria-current')).toBe('true')
+    expect(piano.getAttribute('aria-current')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: /^Voice 3,/ }))
+    expect(document.querySelector('[aria-current="true"]')).toBeNull()
+  })
+
+  it('lights a shared preset only for the aimed Voice, and the other is still named in its tooltip', async () => {
+    setVoiceSetupEnabled(true)
+    assignVoicePreset(0, 0)
+    assignVoicePreset(1, 0)
+    const { user } = renderPage()
+    const piano = screen.getByRole('button', { name: sendSlotName('Alpha Piano') })
+    expect(piano.title.split('\n')).toContain('Played by Voice 1 and Voice 2')
+    await user.click(screen.getByRole('button', { name: /^Voice 3,/ }))
+    expect(piano.getAttribute('aria-current')).toBeNull()
+    await user.click(screen.getByRole('button', { name: /^Voice 2,/ }))
+    expect(piano.getAttribute('aria-current')).toBe('true')
+  })
+
+  it('shows the bank holding a Voice’s patch when its tab is selected', async () => {
+    setVoiceSetupEnabled(true)
+    assignVoicePreset(1, 1)
+    const { user } = renderPage()
+    await user.click(screen.getByRole('button', { name: /^E — / }))
+    expect(screen.queryByRole('button', { name: sendSlotName('Alpha Organ') })).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: /^Voice 2,/ }))
+
+    expect(screen.getByRole('button', { name: sendSlotName('Alpha Organ') })).toBeTruthy()
+  })
+
+  it('leaves the bank alone when the Voice has no patch', async () => {
+    setVoiceSetupEnabled(true)
+    const { user } = renderPage()
+    await user.click(screen.getByRole('button', { name: /^E — / }))
+
+    await user.click(screen.getByRole('button', { name: /^Voice 2,/ }))
+
+    expect(screen.getByRole('button', { name: sendSlotName('Echo Pad') })).toBeTruthy()
   })
 
   it('tags no slot while the strip is off', () => {

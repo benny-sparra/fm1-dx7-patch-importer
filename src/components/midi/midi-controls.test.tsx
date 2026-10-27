@@ -418,7 +418,7 @@ describe('Voices switch', () => {
     expect(getVoiceSetup().enabled).toBe(true)
     expect(JSON.parse(localStorage.getItem('fm1-voice-setup') ?? '')).toMatchObject({
       enabled: true,
-      version: 1,
+      version: 2,
     })
   })
 

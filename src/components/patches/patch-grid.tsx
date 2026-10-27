@@ -92,6 +92,8 @@ type PatchGridProps = {
   searchRef?: RefObject<HTMLInputElement | null>
   setSearch: (search: string) => void
   toolbar?: ReactNode
+  /** The V16 Voices bar, whose tabs fuse to the top of the panel below. */
+  voiceBar?: ReactNode
   /** The V16 Voices, numbered 1–8, that play a slot's FM1 preset, while the Voice strip shows. */
   voiceTags?: (patch: Patch) => readonly number[]
 }
@@ -147,6 +149,7 @@ export function PatchGrid({
   tagsEngines = false,
   setSearch,
   toolbar,
+  voiceBar,
   voiceTags,
 }: PatchGridProps) {
   const { t } = useTranslation()
@@ -241,173 +244,178 @@ export function PatchGrid({
   }
 
   return (
-    <Card className="synthwave-panel">
-      <CardHeader className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
-        {/* Search covers every bank, so it sits above the bank rail rather than beside one bank. */}
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-          <CardTitle className="font-dot-matrix flex items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase">
-            <PixelBankIcon aria-hidden="true" className="size-4 shrink-0" />
-            {t('banks.gridTitle')}
-            <HelpPopover
-              className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
-              label={t('banks.gridTitle')}
-              text={t('banks.gridDescription')}
-            />
-          </CardTitle>
-          <label className="relative order-last block w-full sm:order-none sm:ml-auto sm:w-64">
-            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
-            <input
-              aria-label={t('banks.search')}
-              className="patch-search-input crt-field h-7 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={searchDisabled}
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => {
-                // The page-level Escape stays out of text fields, so the
-                // field clears itself where the user is most likely to press it.
-                if (event.key !== 'Escape' || !search) return
-                event.preventDefault()
-                setSearch('')
-              }}
-              placeholder={t('banks.search')}
-              ref={searchRef}
-              title={`${t('banks.search')} (${searchHint})`}
-              type="search"
-              value={search}
-            />
-          </label>
-          {/* At the row's end even when it wraps below the title, since its menu opens leftwards. */}
-          {headerActions ? <div className="shrink-0 max-sm:ml-auto">{headerActions}</div> : null}
-        </div>
-      </CardHeader>
-      {/* The bank rail shares the grid's drag context, so a slot can be dropped on a bank's tab. */}
-      <DndContext
-        accessibility={dragAccessibility}
-        collisionDetection={patchDragCollision}
-        onDragCancel={() => setDraggedId(null)}
-        onDragEnd={finishDrag}
-        onDragStart={({ active }) => setDraggedId(active.id)}
-        sensors={sensors}
-      >
-        <div className="patch-area-surface flex min-w-0 items-stretch">
-          {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
-          <div className="min-w-0 flex-1">
-            <div
-              className={cn(
-                'crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]',
-                // Below md the bank's name, menu, and Send stay in view down the whole list.
-                actions && 'max-md:sticky max-md:top-0 max-md:z-30',
-              )}
-              ref={actionsRef}
-            >
-              {actions ? (
-                <div className="flex w-full max-w-full min-w-0 flex-wrap items-center gap-2">
-                  {actions}
-                </div>
-              ) : null}
-            </div>
-            {/*
+    <div className="min-w-0">
+      {voiceBar}
+      <Card className="synthwave-panel">
+        <CardHeader className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
+          {/* Search covers every bank, so it sits above the bank rail rather than beside one bank. */}
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+            <CardTitle className="font-dot-matrix flex items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase">
+              <PixelBankIcon aria-hidden="true" className="size-4 shrink-0" />
+              {t('banks.gridTitle')}
+              <HelpPopover
+                className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
+                label={t('banks.gridTitle')}
+                text={t('banks.gridDescription')}
+              />
+            </CardTitle>
+            <label className="relative order-last block w-full sm:order-none sm:ml-auto sm:w-64">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
+              <input
+                aria-label={t('banks.search')}
+                className="patch-search-input crt-field h-7 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={searchDisabled}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  // The page-level Escape stays out of text fields, so the
+                  // field clears itself where the user is most likely to press it.
+                  if (event.key !== 'Escape' || !search) return
+                  event.preventDefault()
+                  setSearch('')
+                }}
+                placeholder={t('banks.search')}
+                ref={searchRef}
+                title={`${t('banks.search')} (${searchHint})`}
+                type="search"
+                value={search}
+              />
+            </label>
+            {/* At the row's end even when it wraps below the title, since its menu opens leftwards. */}
+            {headerActions ? <div className="shrink-0 max-sm:ml-auto">{headerActions}</div> : null}
+          </div>
+        </CardHeader>
+        {/* The bank rail shares the grid's drag context, so a slot can be dropped on a bank's tab. */}
+        <DndContext
+          accessibility={dragAccessibility}
+          collisionDetection={patchDragCollision}
+          onDragCancel={() => setDraggedId(null)}
+          onDragEnd={finishDrag}
+          onDragStart={({ active }) => setDraggedId(active.id)}
+          sensors={sensors}
+        >
+          <div className="patch-area-surface flex min-w-0 items-stretch">
+            {toolbar ? <div className="shrink-0">{toolbar}</div> : null}
+            <div className="min-w-0 flex-1">
+              <div
+                className={cn(
+                  'crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]',
+                  // Below md the bank's name, menu, and Send stay in view down the whole list.
+                  actions && 'max-md:sticky max-md:top-0 max-md:z-30',
+                )}
+                ref={actionsRef}
+              >
+                {actions ? (
+                  <div className="flex w-full max-w-full min-w-0 flex-wrap items-center gap-2">
+                    {actions}
+                  </div>
+                ) : null}
+              </div>
+              {/*
             The hardware photo used to sit behind the grid as a half-opacity
             watermark. Against the terminal's near-black panel it washed the
             slots out rather than receding, and the masthead already carries
             the same photo, so the grid is now a plain well.
           */}
-            {/* A dragged slot has to reach the bank tabs, so the grid stops clipping and rises above the rail. */}
-            <CardContent
-              className={cn(
-                'relative isolate space-y-4 bg-[var(--crt-bg-panel)] p-1.5 min-[360px]:p-[9px]',
-                draggedId === null ? 'overflow-hidden' : 'z-20',
-              )}
-              // What switches off like a CRT when its bank is deleted.
-              data-patch-grid=""
-            >
-              <div className="relative z-10">
-                {patches.length > 0 && resultsHeading ? (
-                  <h3 className="font-dot-matrix mb-2 text-[13px] font-bold tracking-[0.1em] text-[var(--crt-acc-lt)] uppercase">
-                    {resultsHeading}
-                  </h3>
-                ) : null}
-                {patches.length > 0 ? (
-                  <SortableContext
-                    items={patches.map((patch) => patch.id)}
-                    strategy={rectSortingStrategy}
-                  >
-                    <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
-                      {patches.map((patch, index) => (
-                        <div className="h-full w-full" key={patch.id}>
-                          <PatchButton
-                            changeGlow={
-                              changedSlots?.ids.has(patch.id) ? changedSlots.key : undefined
-                            }
-                            bankName={
-                              patchOrigin?.(patch) ??
-                              (reorderable ? undefined : bankLabel(patch.bank))
-                            }
-                            disabled={isPatchDisabled(patch)}
-                            disabledTitle={t('banks.importFirst', { bank: bankLabel(patch.bank) })}
-                            onChangeToFm={onPatchChangeToFm}
-                            onCopy={onPatchCopy}
-                            onCopyAndAssign={
-                              patch.program === undefined ? onPatchCopyAndAssign : undefined
-                            }
-                            onDownload={onPatchDownload}
-                            onReplace={onPatchReplace}
-                            onShare={onPatchShare}
-                            onEdit={onPatchEdit}
-                            onNavigate={navigateSlots}
-                            onSelect={onPatchSelect}
-                            onToggleFavourite={onPatchToggleFavourite}
-                            isFavourite={isFavourite(patch)}
-                            isMidiOffline={isMidiOffline}
-                            move={{
-                              canMoveEarlier: patches[index - 1]?.bank === patch.bank,
-                              canMoveLater: patches[index + 1]?.bank === patch.bank,
-                              onMove: (offset) => moveSlot(patch, offset),
-                            }}
-                            patch={patch}
-                            reorderable={reorderable}
-                            isActive={patch.id === activePatchId}
-                            registerButton={registerSlot}
-                            tabIndex={patch.id === rovingSlot ? 0 : -1}
-                            tagsEngine={tagsEngines}
-                            voices={voiceTags?.(patch)}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </SortableContext>
-                ) : extraResults ? null : emptyState ? (
-                  emptyState
-                ) : (
-                  <div className="dither-well grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] p-6 text-center">
-                    <div className="max-w-md border border-[var(--crt-line)] bg-[var(--crt-bg-panel3)] p-6">
-                      <FileMusic className="mx-auto size-10 text-[var(--crt-acc-dim)]" />
-                      <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
-                        {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
-                      </h3>
-                      {!isBankLoaded ? (
-                        <>
-                          <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
-                            {t('banks.emptyHelp')}
-                          </p>
-                          <div className="mt-4 flex flex-wrap justify-center gap-2">
-                            <Button onClick={onImportEmptyBank} type="button">
-                              {t('banks.import')}
-                            </Button>
-                            <Button onClick={onLoadDemoBank} type="button" variant="secondary">
-                              {t('banks.loadDemo')}
-                            </Button>
-                          </div>
-                        </>
-                      ) : null}
-                    </div>
-                  </div>
+              {/* A dragged slot has to reach the bank tabs, so the grid stops clipping and rises above the rail. */}
+              <CardContent
+                className={cn(
+                  'relative isolate space-y-4 bg-[var(--crt-bg-panel)] p-1.5 min-[360px]:p-[9px]',
+                  draggedId === null ? 'overflow-hidden' : 'z-20',
                 )}
-                {extraResults}
-              </div>
-            </CardContent>
+                // What switches off like a CRT when its bank is deleted.
+                data-patch-grid=""
+              >
+                <div className="relative z-10">
+                  {patches.length > 0 && resultsHeading ? (
+                    <h3 className="font-dot-matrix mb-2 text-[13px] font-bold tracking-[0.1em] text-[var(--crt-acc-lt)] uppercase">
+                      {resultsHeading}
+                    </h3>
+                  ) : null}
+                  {patches.length > 0 ? (
+                    <SortableContext
+                      items={patches.map((patch) => patch.id)}
+                      strategy={rectSortingStrategy}
+                    >
+                      <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
+                        {patches.map((patch, index) => (
+                          <div className="h-full w-full" key={patch.id}>
+                            <PatchButton
+                              changeGlow={
+                                changedSlots?.ids.has(patch.id) ? changedSlots.key : undefined
+                              }
+                              bankName={
+                                patchOrigin?.(patch) ??
+                                (reorderable ? undefined : bankLabel(patch.bank))
+                              }
+                              disabled={isPatchDisabled(patch)}
+                              disabledTitle={t('banks.importFirst', {
+                                bank: bankLabel(patch.bank),
+                              })}
+                              onChangeToFm={onPatchChangeToFm}
+                              onCopy={onPatchCopy}
+                              onCopyAndAssign={
+                                patch.program === undefined ? onPatchCopyAndAssign : undefined
+                              }
+                              onDownload={onPatchDownload}
+                              onReplace={onPatchReplace}
+                              onShare={onPatchShare}
+                              onEdit={onPatchEdit}
+                              onNavigate={navigateSlots}
+                              onSelect={onPatchSelect}
+                              onToggleFavourite={onPatchToggleFavourite}
+                              isFavourite={isFavourite(patch)}
+                              isMidiOffline={isMidiOffline}
+                              move={{
+                                canMoveEarlier: patches[index - 1]?.bank === patch.bank,
+                                canMoveLater: patches[index + 1]?.bank === patch.bank,
+                                onMove: (offset) => moveSlot(patch, offset),
+                              }}
+                              patch={patch}
+                              reorderable={reorderable}
+                              isActive={patch.id === activePatchId}
+                              registerButton={registerSlot}
+                              tabIndex={patch.id === rovingSlot ? 0 : -1}
+                              tagsEngine={tagsEngines}
+                              voices={voiceTags?.(patch)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </SortableContext>
+                  ) : extraResults ? null : emptyState ? (
+                    emptyState
+                  ) : (
+                    <div className="dither-well grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] p-6 text-center">
+                      <div className="max-w-md border border-[var(--crt-line)] bg-[var(--crt-bg-panel3)] p-6">
+                        <FileMusic className="mx-auto size-10 text-[var(--crt-acc-dim)]" />
+                        <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
+                          {isBankLoaded ? t('banks.noMatches') : t('banks.bankEmpty')}
+                        </h3>
+                        {!isBankLoaded ? (
+                          <>
+                            <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
+                              {t('banks.emptyHelp')}
+                            </p>
+                            <div className="mt-4 flex flex-wrap justify-center gap-2">
+                              <Button onClick={onImportEmptyBank} type="button">
+                                {t('banks.import')}
+                              </Button>
+                              <Button onClick={onLoadDemoBank} type="button" variant="secondary">
+                                {t('banks.loadDemo')}
+                              </Button>
+                            </div>
+                          </>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+                  {extraResults}
+                </div>
+              </CardContent>
+            </div>
           </div>
-        </div>
-      </DndContext>
-    </Card>
+        </DndContext>
+      </Card>
+    </div>
   )
 }

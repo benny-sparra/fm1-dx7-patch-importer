@@ -92,6 +92,11 @@ import { sharedPatchPayload } from '@/lib/share-link-fragment'
 import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
 import type { VoiceStrip as VoiceStripComponent } from '@/components/midi/voice-strip'
 import { VoicesSwitch } from '@/components/midi/midi-controls'
+import {
+  voiceBarClassName,
+  voiceSwitchCellClassName,
+  voiceToolbarBackdropClassName,
+} from '@/components/midi/voice-bar-layout'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
@@ -432,6 +437,34 @@ export function LibrarianPage({
   const { aimed, setup: voiceSetup } = useVoiceSetup()
   const playsVoices = voiceSetup.enabled && firmwareProfile.capabilities.multitimbral
   const hasAimedVoice = playsVoices && aimedVoice(voiceSetup, midi.channel, aimed) !== null
+  const showsVoiceBar = onSendVoiceSetup !== undefined && firmwareProfile.capabilities.multitimbral
+  const voicePresetLabel = (preset: number) => {
+    const patch = patches.find((candidate) => candidate.program === preset)
+    return patch
+      ? `${patchSlotCode(patch)} ${patch.name}`
+      : patchSlotCode({
+          bank: browserBanks[Math.floor(preset / dx7BankVoiceCount)],
+          number: (preset % dx7BankVoiceCount) + 1,
+        })
+  }
+  // With the Voices on, the lit slot is the one the aimed Voice plays, and none for a Voice with
+  // no patch; two Voices on one preset light it only for the aimed one, the other keeps its tag.
+  const aimedVoicePatch = playsVoices
+    ? patches.find(
+        (candidate) =>
+          candidate.program !== undefined &&
+          candidate.program ===
+            voiceSetup.voices[aimedVoice(voiceSetup, midi.channel, aimed) ?? -1]?.preset,
+      )
+    : undefined
+  const litPatchId = playsVoices ? (aimedVoicePatch?.id ?? '') : activePatchId
+  // Selecting a Voice's tab shows the bank holding its patch.
+  const aimAtVoicePreset = (preset: number | null) => {
+    const patch = playsVoices
+      ? patches.find((candidate) => candidate.program === preset)
+      : undefined
+    if (patch) setDestinationBank(patch.bank)
+  }
   const voiceTags = playsVoices
     ? (patch: Patch) =>
         patch.program === undefined
@@ -1120,47 +1153,46 @@ export function LibrarianPage({
           </Suspense>
         </ErrorBoundary>
       ) : null}
-      {onSendVoiceSetup && firmwareProfile.capabilities.multitimbral ? (
-        // V16's eight Voices: the switch, and once it is on the Voices with Send setup and Channels.
-        <div className="flex flex-wrap items-center gap-2">
-          <VoicesSwitch midi={midi} />
-          {voiceSetup.enabled ? (
-            <ErrorBoundary
-              fallback={
-                <div className="w-full basis-full">
-                  <LoadFailedNotice message={t('voices.loadFailed')} />
-                </div>
-              }
-            >
-              <Suspense
-                fallback={
-                  <div
-                    aria-hidden="true"
-                    className="h-[4.25rem] w-full basis-full sm:h-24 lg:h-12"
-                  />
-                }
-              >
-                <VoiceStrip
-                  midi={midi}
-                  onSendSetup={onSendVoiceSetup}
-                  renderHelp={(label, text) => <HelpPopover label={label} text={text} />}
-                  presetLabel={(preset) => {
-                    const patch = patches.find((candidate) => candidate.program === preset)
-                    return patch
-                      ? `${patchSlotCode(patch)} ${patch.name}`
-                      : patchSlotCode({
-                          bank: browserBanks[Math.floor(preset / dx7BankVoiceCount)],
-                          number: (preset % dx7BankVoiceCount) + 1,
-                        })
-                  }}
-                />
-              </Suspense>
-            </ErrorBoundary>
-          ) : null}
-        </div>
-      ) : null}
       <PatchGrid
-        activePatchId={activePatchId}
+        voiceBar={
+          showsVoiceBar ? (
+            // V16's eight Voices, tabs fused to the panel below, with the Multitimbral switch, Send
+            // setup and Channels, whether or not the mode is on.
+            <div className={voiceBarClassName()}>
+              <span aria-hidden="true" className={voiceToolbarBackdropClassName} />
+              <span className={voiceSwitchCellClassName}>
+                <VoicesSwitch midi={midi} />
+              </span>
+              {
+                <ErrorBoundary
+                  fallback={
+                    <div className="col-span-full row-start-3">
+                      <LoadFailedNotice message={t('voices.loadFailed')} />
+                    </div>
+                  }
+                >
+                  <Suspense
+                    fallback={
+                      <div
+                        aria-hidden="true"
+                        className="col-span-full row-start-3 mt-2 h-[8.75rem] min-[23.5rem]:h-[4.25rem] min-[52.5rem]:h-8 xl:col-span-1 xl:col-start-1 xl:row-start-2 xl:mt-0"
+                      />
+                    }
+                  >
+                    <VoiceStrip
+                      midi={midi}
+                      onAim={aimAtVoicePreset}
+                      onSendSetup={onSendVoiceSetup}
+                      presetLabel={voicePresetLabel}
+                      renderHelp={(label, text) => <HelpPopover label={label} text={text} />}
+                    />
+                  </Suspense>
+                </ErrorBoundary>
+              }
+            </div>
+          ) : undefined
+        }
+        activePatchId={litPatchId}
         isMidiOffline={!midi.hasMidiOutput}
         actions={
           <>

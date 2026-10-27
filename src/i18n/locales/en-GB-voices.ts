@@ -7,7 +7,10 @@ export default {
   voices: {
     channelShort: 'Ch {{number}}',
     strip: 'Voices 1–8',
-    aim: 'Voice {{number}}, Ch {{channel}}: {{patch}}',
+    aim: 'Voice {{number}}, Ch {{channel}}: {{patch}}, {{state}}',
+    stateOn: 'on',
+    stateOff: 'off',
+    voiceSwitch: 'Voice {{number}} on',
     noPatch: 'No patch',
     sendSetup: 'Send setup',
     sendSetupOffline: 'Switch MIDI online to send the setup.',

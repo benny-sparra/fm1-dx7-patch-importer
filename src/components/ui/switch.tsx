@@ -10,6 +10,7 @@ export function Switch({
   children,
   className,
   disabled = false,
+  flat = false,
   onChange,
 }: {
   /** Waiting on what the switch started, such as MIDI connecting: it blinks and takes no press. */
@@ -19,11 +20,14 @@ export function Switch({
   /** Sizes and places the switch; its colours come from `.midi-switch`. */
   className?: string
   disabled?: boolean
+  /** No face or bevel: the switch sits straight on what holds it. */
+  flat?: boolean
   onChange: (checked: boolean) => void
 }) {
   return (
     <label
       data-busy={busy || undefined}
+      data-flat={flat || undefined}
       className={`midi-switch ${className ?? 'inline-flex min-h-8 items-center gap-2 px-2.5 text-xs tracking-[0.1em] uppercase transition-colors'}`}
     >
       <input

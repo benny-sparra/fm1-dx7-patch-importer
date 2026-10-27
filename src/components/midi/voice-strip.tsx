@@ -3,7 +3,11 @@ import { useId, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { VoiceChannelsDialog } from '@/components/midi/voice-channels-dialog'
-import { bevelClassName } from '@/components/ui/bevel-radio'
+import {
+  voiceActionsCellClassName,
+  voiceNoticesCellClassName,
+  voiceTabsCellClassName,
+} from '@/components/midi/voice-bar-layout'
 import { Button } from '@/components/ui/button'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { InfoNotice } from '@/components/ui/info-notice'
@@ -12,10 +16,12 @@ import '@/i18n/voices'
 import type { MidiController } from '@/hooks/use-midi'
 import { useVoiceSetup } from '@/hooks/use-voice-setup'
 import { cn } from '@/lib/utils'
-import { aimedVoice, aimVoice } from '@/lib/voice-setup'
+import { aimedVoice, aimVoice, setVoiceOn } from '@/lib/voice-setup'
 
 type VoiceStripProps = {
   midi: Pick<MidiController, 'channel' | 'hasMidiOutput' | 'setChannel'>
+  /** Told which FM1 preset, 0–127, the Voice just aimed at plays, or null for none. */
+  onAim: (preset: number | null) => void
   /** Sends each Voice's preset as a Program Change on its channel, returning how many went. */
   onSendSetup: () => number
   /**
@@ -30,12 +36,30 @@ type VoiceStripProps = {
   presetLabel: (preset: number) => string
 }
 
+/** How a Voice's cell is drawn: a raised tab fused to the panel from `sm`, a grid cell below it. */
+function voiceCellClassName(isAimed: boolean) {
+  return cn(
+    'flex min-w-0 items-center border',
+    isAimed
+      ? // The aimed tab is the panel's own face, open at the bottom and topped with the amber bar;
+        // on a phone it is a lit grid cell with an amber ring.
+        'h-8 border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)] shadow-[inset_0_0_0_1px_var(--crt-led)] min-[52.5rem]:flex-1 min-[52.5rem]:border-r-[var(--crt-bevel-lt)] min-[52.5rem]:border-b-[var(--crt-bg-panel)] min-[52.5rem]:bg-[var(--crt-bg-panel)] min-[52.5rem]:shadow-[inset_0_2px_0_var(--crt-led)] xl:flex-none'
+      : 'h-8 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)] min-[52.5rem]:mb-0.5 min-[52.5rem]:h-[26px] min-[52.5rem]:flex-1 xl:flex-none',
+  )
+}
+
+const focusRing =
+  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
+
 /**
- * The eight Voices of M-VAVE's V16, with Send setup and Channels, as the cells of the bar above the
- * patch banks that the Multitimbral mode switch heads. Clicking a Voice aims at it, setting the note channel to its channel, so the keyboard plays it and a slot click
- * gives it that slot's preset. Each Voice points at an FM1 preset, never a copy of the patch.
+ * The eight Voices of M-VAVE's V16, with Send setup and Channels, as the cells the librarian page's
+ * Voices bar adds beside the Multitimbral mode switch (`voice-bar-layout`). A Voice's tab and its
+ * own switch are two buttons: clicking the tab aims at the Voice, setting the note channel to its
+ * channel, so the keyboard plays it and a slot click gives it that slot's preset; the switch says
+ * whether the Voice is On and aims at nothing. Each Voice points at an FM1 preset, never a copy of
+ * the patch.
  */
-export function VoiceStrip({ midi, onSendSetup, presetLabel, renderHelp }: VoiceStripProps) {
+export function VoiceStrip({ midi, onAim, onSendSetup, presetLabel, renderHelp }: VoiceStripProps) {
   const { i18n, t } = useTranslation()
   const toast = useToast()
   const { aimed, setup } = useVoiceSetup()
@@ -67,18 +91,99 @@ export function VoiceStrip({ midi, onSendSetup, presetLabel, renderHelp }: Voice
 
   return (
     <>
-      <span className="ml-auto flex items-center gap-2">
+      {/* The one-time FM1 setup is the first thing to do, in one line with its steps behind help. */}
+      <div className={voiceNoticesCellClassName}>
+        <div className="empty:hidden" role="status">
+          {setup.enabled && assigned === 0 ? (
+            <div className="mb-2">
+              <InfoNotice>
+                <span className="flex items-center gap-1">
+                  <span>{t('voices.setupShort')}</span>
+                  {renderHelp(t('voices.setupHelpLabel'), t('voices.setupSteps'))}
+                </span>
+              </InfoNotice>
+            </div>
+          ) : null}
+        </div>
+        {sendFailed ? (
+          <div className="mb-2">
+            <ErrorNotice>{t('voices.sendSetupFailed')}</ErrorNotice>
+          </div>
+        ) : null}
+      </div>
+      {/* Not a tab list: ARIA keeps a switch out of one, so each Voice is a pair of buttons. */}
+      <div aria-label={t('voices.strip')} className={voiceTabsCellClassName} role="group">
+        {setup.voices.map((voice, index) => {
+          const number = index + 1
+          const isAimed = index === aimedIndex
+          const playing = voice.preset === null ? t('voices.noPatch') : presetLabel(voice.preset)
+          const label = t('voices.aim', {
+            channel: voice.channel,
+            number,
+            patch: playing,
+            state: t(voice.on ? 'voices.stateOn' : 'voices.stateOff'),
+          })
+          return (
+            <div className={voiceCellClassName(isAimed)} key={number}>
+              <button
+                aria-label={label}
+                aria-pressed={isAimed}
+                className={cn(
+                  'font-vt323 -ml-2 h-full min-w-0 flex-1 cursor-pointer truncate pr-2.5 pl-1.5 text-left text-[14px] leading-none whitespace-nowrap min-[26.25rem]:text-[16px]',
+                  focusRing,
+                  !voice.on
+                    ? 'text-[var(--crt-ink-4)]'
+                    : isAimed
+                      ? 'text-[var(--crt-acc-br)]'
+                      : 'text-[var(--crt-acc-lt)]',
+                )}
+                onClick={() => {
+                  aimVoice(index)
+                  midi.setChannel(voice.channel)
+                  onAim(voice.preset)
+                }}
+                title={label}
+                type="button"
+              >
+                {t('voices.voice', { number })}
+              </button>
+              <button
+                aria-checked={voice.on}
+                aria-label={t('voices.voiceSwitch', { number })}
+                className={cn(
+                  'order-first grid size-6 shrink-0 cursor-pointer place-items-center',
+                  focusRing,
+                )}
+                onClick={() => setVoiceOn(index, !voice.on)}
+                role="switch"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'block size-2.5 border',
+                    voice.on
+                      ? 'border-[var(--crt-led)] bg-[var(--crt-led)] shadow-[0_0_6px_var(--crt-led-glow)]'
+                      : 'border-t-[var(--crt-shadow)] border-r-[var(--crt-line-lt2)] border-b-[var(--crt-line-lt2)] border-l-[var(--crt-shadow)] bg-[var(--crt-bg-well)]',
+                  )}
+                />
+              </button>
+            </div>
+          )
+        })}
+      </div>
+      <span className={voiceActionsCellClassName}>
         <Button
           aria-describedby={sendBlockedReason ? sendReasonId : undefined}
           aria-disabled={sendBlockedReason ? true : undefined}
           onClick={sendSetup}
           size="sm"
-          title={sendBlockedReason ?? undefined}
+          title={sendBlockedReason ?? t('voices.sendSetup')}
           type="button"
-          variant="secondary"
+          variant="ghost"
         >
           <Send aria-hidden="true" />
-          <span>{t('voices.sendSetup')}</span>
+          <span className="max-[42.49rem]:sr-only xl:sr-only">{t('voices.sendSetup')}</span>
         </Button>
         {sendBlockedReason ? (
           <span className="sr-only" id={sendReasonId}>
@@ -89,101 +194,14 @@ export function VoiceStrip({ midi, onSendSetup, presetLabel, renderHelp }: Voice
           aria-haspopup="dialog"
           onClick={() => setShowsChannels(true)}
           size="sm"
+          title={t('voices.channels')}
           type="button"
-          variant="secondary"
+          variant="ghost"
         >
           <SlidersHorizontal aria-hidden="true" />
-          <span>{t('voices.channels')}</span>
+          <span className="max-[42.49rem]:sr-only xl:sr-only">{t('voices.channels')}</span>
         </Button>
       </span>
-      {/* Eight numbers on a phone; from the small breakpoint each Voice names its channel and
-          patch, four to a row until there is room for eight. */}
-      <div
-        aria-label={t('voices.strip')}
-        className="grid w-full basis-full grid-cols-8 gap-1 sm:grid-cols-4 lg:grid-cols-8"
-        role="group"
-      >
-        {setup.voices.map((voice, index) => {
-          const number = index + 1
-          const isAimed = index === aimedIndex
-          const playing = voice.preset === null ? t('voices.noPatch') : presetLabel(voice.preset)
-          const label = t('voices.aim', { channel: voice.channel, number, patch: playing })
-          return (
-            <button
-              aria-label={label}
-              aria-pressed={isAimed}
-              className={cn(
-                bevelClassName(isAimed),
-                // The Voice aimed at is lit round its edge, as a lit slot's code is.
-                isAimed && 'shadow-[inset_0_0_0_1px_var(--crt-led)]',
-                'flex h-8 min-w-0 cursor-pointer flex-col items-center justify-center px-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] sm:h-11 sm:items-stretch sm:gap-0.5 sm:px-2',
-              )}
-              key={number}
-              onClick={() => {
-                aimVoice(index)
-                midi.setChannel(voice.channel)
-              }}
-              title={label}
-              type="button"
-            >
-              <span
-                aria-hidden="true"
-                className={cn(
-                  'font-vt323 text-[18px] leading-none sm:hidden',
-                  isAimed ? 'text-[var(--crt-acc-br)]' : 'text-[var(--crt-acc-lt)]',
-                )}
-              >
-                {number}
-              </span>
-              <span
-                aria-hidden="true"
-                className="hidden items-baseline justify-between gap-1 sm:flex"
-              >
-                <span
-                  className={cn(
-                    'font-vt323 truncate text-[16px] leading-none',
-                    isAimed ? 'text-[var(--crt-acc-br)]' : 'text-[var(--crt-acc-lt)]',
-                  )}
-                >
-                  {t('voices.voice', { number })}
-                </span>
-                <span className="shrink-0 text-[10px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
-                  {t('voices.channelShort', { number: voice.channel })}
-                </span>
-              </span>
-              <span
-                aria-hidden="true"
-                className={cn(
-                  'font-dot-matrix hidden truncate text-left text-[12px] font-bold whitespace-pre sm:block',
-                  voice.preset === null
-                    ? 'text-[var(--crt-ink-4)]'
-                    : isAimed
-                      ? 'text-white'
-                      : 'text-[var(--crt-ink)]',
-                )}
-              >
-                {playing}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-      {/* The one-time FM1 setup is the first thing to do, in one line with its steps behind help. */}
-      <div className="w-full basis-full empty:hidden" role="status">
-        {assigned === 0 ? (
-          <InfoNotice>
-            <span className="flex items-center gap-1">
-              <span>{t('voices.setupShort')}</span>
-              {renderHelp(t('voices.setupHelpLabel'), t('voices.setupSteps'))}
-            </span>
-          </InfoNotice>
-        ) : null}
-      </div>
-      {sendFailed ? (
-        <div className="w-full basis-full">
-          <ErrorNotice>{t('voices.sendSetupFailed')}</ErrorNotice>
-        </div>
-      ) : null}
       {showsChannels ? (
         <VoiceChannelsDialog midi={midi} onClose={() => setShowsChannels(false)} />
       ) : null}

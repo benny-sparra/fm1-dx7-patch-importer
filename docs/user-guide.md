@@ -101,9 +101,12 @@ says **Receive Timeout**; start Export again while the app listens.
 does, and the app cannot switch it between modes. Off, which is how it starts, the editor works as it
 always has, on the **Note channel** in **Settings**, and nothing on the FM1 needs changing. Switch
 **Multitimbral mode** on, above the patch banks (offered once the FM1 is identified as running V16),
-to give each Voice its own patch. A strip of Voice 1 to Voice 8 appears beneath it, each showing its
-channel and the patch it plays; on a phone each is a numbered button, with the patch in its tooltip.
-The app keeps the mode and the setup for your next visit.
+to give each Voice its own patch; the Voice tabs show on V16 either way. Voice 1 to Voice 8 appear as tabs fused to the top of the Patch
+banks panel, with the Multitimbral switch, **Send setup** and **Channels…** at the right (above the
+tabs on a narrower screen, and a grid of eight on a phone). Each tab has its own small light, the
+Voice's On switch: it only records whether you have that Voice On on the FM1, which the app cannot
+read, so switching it does not aim at the Voice or send anything. The app keeps the mode and the setup for
+your next visit.
 
 The FM1 needs setting up once for this (step 1 below, and the bar says so until a Voice has a
 patch). After that it still works as a single-sound FM1 on channel 1, since notes and patches reach
@@ -114,10 +117,10 @@ channel, so the editor plays Voice 1, and needs no change on the FM1.
    **On**, leave none on **All**, then press **SAVE** and choose **Globe**. A Voice that is Off
    ignores the patch the app gives it, and does not take it when switched back On; a Voice on All
    takes every patch the app sends to any Voice. The app cannot read or change these settings.
-2. Click a Voice to aim at it: the note channel becomes its channel, so the keyboard plays it.
+2. Click a Voice's tab to aim at it (a Voice that is off can still be aimed at): the note channel becomes its channel, so the keyboard plays it. The slot it plays lights up, and the bank holding it opens.
 3. Click a patch in banks A to D to give it to that Voice. The app sends the patch's Program Change
-   on the Voice's channel, as any slot click does, and each slot shows **V1** to **V8** for the
-   Voices playing it. A Voice points at an FM1 preset, A01 to D32, never at a copy of the patch, so
+   on the Voice's channel, as any slot click does, and each slot's tooltip names the Voices
+   playing it. A Voice points at an FM1 preset, A01 to D32, never at a copy of the patch, so
    the FM1 plays what it stores there: send banks A to D to the FM1 first.
 4. A patch in a bank after D has no FM1 preset. Choose **Copy into A–D and assign…** in its ⋮ menu
    to copy it into a slot in banks A to D and give that slot to the Voice.
