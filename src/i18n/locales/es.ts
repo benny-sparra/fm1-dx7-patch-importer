@@ -1052,7 +1052,9 @@ export default {
       'Algunos sonidos no llegaron al FM1. Revisa la salida MIDI y vuelve a enviar la configuración.',
     setupSent: 'Configuración enviada a {{voices}}',
     channels: 'Canales…',
-    channelsTitle: 'Canales de las Voices 1 a 8',
+    channelsTitle: 'Canales de las Voices (como están en tu FM1)',
+    channelsNote:
+      'Aquí le dices al editor en qué canal escucha cada Voice. Cambiarlos aquí no cambia el FM1: configura allí los mismos canales.',
     channelsClose: 'Cerrar los canales de las Voices',
     channelOf: 'Canal de la Voice {{number}}',
     firstUse:

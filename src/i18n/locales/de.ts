@@ -1068,7 +1068,9 @@ export default {
       'Nicht jeder Sound hat den FM1 erreicht. Prüfe den MIDI-Ausgang und sende das Setup erneut.',
     setupSent: 'Setup gesendet an {{voices}}',
     channels: 'Kanäle…',
-    channelsTitle: 'Kanäle von Voice 1–8',
+    channelsTitle: 'Voice-Kanäle (wie am FM1 eingestellt)',
+    channelsNote:
+      'Hier legst du fest, auf welchem Kanal der Editor jede Voice ansteuert. Das ändert den FM1 nicht: Stelle dort dieselben Kanäle ein.',
     channelsClose: 'Voice-Kanäle schließen',
     channelOf: 'Kanal von Voice {{number}}',
     firstUse:

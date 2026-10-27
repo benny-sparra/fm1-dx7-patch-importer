@@ -188,8 +188,9 @@ describe('VoiceStrip', () => {
 
     await user.click(screen.getByRole('button', { name: 'Channels…' }))
 
-    const dialog = screen.getByRole('dialog', { name: 'Channels of Voices 1–8' })
+    const dialog = screen.getByRole('dialog', { name: 'Voice channels (as set on your FM1)' })
     expect(within(dialog).getByText(/switch each one On, leave none on All/)).toBeTruthy()
+    expect(within(dialog).getByText(/doesn’t change the FM1/)).toBeTruthy()
     expect(within(dialog).getAllByRole('combobox')).toHaveLength(8)
 
     await user.click(within(dialog).getByRole('button', { name: 'Close' }))
@@ -234,5 +235,6 @@ describe('VoiceStrip', () => {
     await user.click(screen.getByRole('button', { name: 'Channels…' }))
 
     expect(screen.getByRole('button', { name: 'Voice 3, Ch 3: A01 BRASS 1' })).toBeTruthy()
+    expect(screen.getByRole('dialog').textContent).toContain('doesn’t change the FM1')
   })
 })

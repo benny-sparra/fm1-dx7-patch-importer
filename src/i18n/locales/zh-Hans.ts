@@ -941,7 +941,9 @@ export default {
     sendSetupFailed: '有些音色没有送到 FM1。请检查 MIDI 输出，然后重新发送设置。',
     setupSent: '已将设置发送到 {{voices}}',
     channels: '通道…',
-    channelsTitle: 'Voice 1–8 的通道',
+    channelsTitle: 'Voice 通道（与你的 FM1 设置一致）',
+    channelsNote:
+      '这里告诉编辑器每个 Voice 监听哪个通道。在此更改不会改变 FM1：请在 FM1 上设置相同的通道。',
     channelsClose: '关闭 Voice 通道',
     channelOf: 'Voice {{number}} 的通道',
     firstUse:

@@ -1110,7 +1110,9 @@ export default {
       'Деякі патчі не дійшли до FM1. Перевірте MIDI-вихід і надішліть налаштування знову.',
     setupSent: 'Налаштування надіслано на {{voices}}',
     channels: 'Канали…',
-    channelsTitle: 'Канали Voice 1–8',
+    channelsTitle: 'Канали Voice (як налаштовано на вашому FM1)',
+    channelsNote:
+      'Вони повідомляють редактору, на якому каналі слухає кожен Voice. Зміна тут не змінює FM1: налаштуйте ті самі канали на ньому.',
     channelsClose: 'Закрити канали Voice',
     channelOf: 'Канал Voice {{number}}',
     firstUse:

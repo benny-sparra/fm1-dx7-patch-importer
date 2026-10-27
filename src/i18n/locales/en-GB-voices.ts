@@ -16,7 +16,9 @@ export default {
       'Some patches did not reach the FM1. Check the MIDI output, then send the setup again.',
     setupSent: 'Sent the setup to {{voices}}',
     channels: 'Channels…',
-    channelsTitle: 'Channels of Voices 1–8',
+    channelsTitle: 'Voice channels (as set on your FM1)',
+    channelsNote:
+      'These tell the editor which channel each Voice listens on. Changing them here doesn’t change the FM1: set the same channels there.',
     channelsClose: 'Close the Voice channels',
     channelOf: 'Voice {{number}} channel',
     firstUse:

@@ -53,6 +53,7 @@ export function VoiceChannelsDialog({ midi, onClose }: VoiceChannelsDialogProps)
             <p>{t('voices.setupNote')}</p>
             <p>{t('voices.howToAssign')}</p>
           </InfoNotice>
+          <p className="text-sm leading-5">{t('voices.channelsNote')}</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {setup.voices.map((voice, index) => {
               const number = index + 1
