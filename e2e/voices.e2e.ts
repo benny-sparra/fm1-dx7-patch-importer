@@ -52,8 +52,7 @@ for (const width of [320, 375]) {
     }
     // The patch a Voice plays is in its tooltip.
     await expect(voices.first()).toHaveAttribute('title', /^Voice 1, Ch 1: A01 \S/)
-    await expect(page.getByRole('button', { name: 'Send setup' })).toBeInViewport()
-    await expect(page.getByRole('button', { name: 'Channels…' })).toBeInViewport()
+    await expect(page.getByRole('button', { name: 'Voice actions' })).toBeInViewport()
     await expect(page.getByRole('button', { name: 'MIDI panic' })).toBeInViewport()
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
   })
@@ -90,9 +89,10 @@ test('sends the setup as one Program Change per Voice with a patch', async ({ pa
   await page.getByRole('button', { name: /^Send A05 .+ to FM1$/ }).click()
   const before = (await sentMidi(page)).length
 
-  await page.getByRole('button', { name: 'Send setup' }).click()
+  await page.getByRole('button', { name: 'Voice actions' }).click()
+  await page.getByRole('menuitem', { name: 'Recall Voices' }).click()
 
-  await expect(page.getByText('Sent the setup to Voice 1 and Voice 4')).toBeVisible()
+  await expect(page.getByText('Recalled Voice 1 and Voice 4')).toBeVisible()
   const programChanges = (await sentMidi(page))
     .slice(before)
     .filter(([status]) => (status & 0xf0) === 0xc0)

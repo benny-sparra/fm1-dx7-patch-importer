@@ -102,7 +102,7 @@ does, and the app cannot switch it between modes. Off, which is how it starts, t
 always has, on the **Note channel** in **Settings**, and nothing on the FM1 needs changing. Switch
 **Multitimbral mode** on, above the patch banks (offered once the FM1 is identified as running V16),
 to give each Voice its own patch; the Voice tabs show on V16 either way. Voice 1 to Voice 8 appear as tabs fused to the top of the Patch
-banks panel, with the Multitimbral switch, **Send setup** and **Channels…** at the right (above the
+banks panel, with the Multitimbral switch, a ⋮ menu at the right holding **Recall Voices** and **Channels…** (above the
 tabs on a narrower screen, and a grid of eight on a phone). Each tab has its own small light, the
 Voice's On switch: it only records whether you have that Voice On on the FM1, which the app cannot
 read, so switching it does not aim at the Voice or send anything. The app keeps the mode and the setup for
@@ -124,7 +124,7 @@ channel, so the editor plays Voice 1, and needs no change on the FM1.
    the FM1 plays what it stores there: send banks A to D to the FM1 first.
 4. A patch in a bank after D has no FM1 preset. Choose **Copy into A–D and assign…** in its ⋮ menu
    to copy it into a slot in banks A to D and give that slot to the Voice.
-5. **Send setup** sends every Voice that has a patch its Program Change again, on its own channel,
+5. **Recall Voices** sends every Voice that has a patch its Program Change again, on its own channel,
    for instance after the FM1 was switched on. **Channels** sets which channel each Voice listens
    on, Voice n on channel n unless you change it, and repeats the setup steps above.
 

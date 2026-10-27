@@ -98,6 +98,7 @@ import {
   voiceToolbarBackdropClassName,
 } from '@/components/midi/voice-bar-layout'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { PortalMenu } from '@/components/ui/portal-menu'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { useToast } from '@/components/ui/toast'
@@ -1185,6 +1186,9 @@ export function LibrarianPage({
                       onSendSetup={onSendVoiceSetup}
                       presetLabel={voicePresetLabel}
                       renderHelp={(label, text) => <HelpPopover label={label} text={text} />}
+                      renderMenu={({ items, menuLabel }) => (
+                        <PortalMenu items={items} menuLabel={menuLabel} triggerLabel={menuLabel} />
+                      )}
                     />
                   </Suspense>
                 </ErrorBoundary>

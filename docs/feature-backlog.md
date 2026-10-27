@@ -170,7 +170,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        - Clicking a patch in banks A–D assigns it to the Voice aimed at, with a Program Change
          on that Voice's channel. A patch beyond D offers "Copy into A–D and assign".
        - Each slot tags the Voices playing it (V1, V3), so a preset two Voices share shows.
-       - **Send setup** sends one Program Change per Voice; **Channels** sets which channel each
+       - **Recall Voices** sends one Program Change per Voice; **Channels** sets which channel each
          Voice listens on, Voice n on channel n by default.
        - It says to set the Voices up once on the FM1: channels 1–8, all On, none on All (a
          Voice on All takes every Program Change), then SAVE → Globe.
@@ -182,7 +182,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
          swaps the header's **Ch** box for the lazy `VoiceStrip`. A Voice aims by setting the note
          channel, so the Voice on the note channel is the one a slot click assigns (the last clicked
          wins when two share one); **Copy into A–D and assign…** in a slot's menu beyond bank D copies
-         through the copy dialog limited to A–D and then plays the copy. **Send setup** sends one
+         through the copy dialog limited to A–D and then plays the copy. **Recall Voices** sends one
          Program Change per Voice with a patch, through `useMidi`'s `sendProgramChange` given the
          Voice's channel. It cost the entry 1,857 B gzip. Not yet tried on the orange FM1._
     3. **Edit from a Voice.** Opens the normal editor on that slot, playing on that Voice's
@@ -201,7 +201,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     - A patch's effects in the library no longer travel with it on V16; whatever was last sent
       or loaded on the FM1 is what all eight Voices hear.
     - Effects belong to the setup, not to a Voice. A setup could store one effects setting and
-      send its 24 controllers with **Send setup**: switches, types, and parameters.
+      send its 24 controllers with **Recall Voices**: switches, types, and parameters.
     - It cannot choose an FX group, store one, or set the effect order: no known message does,
       so those stay on the FM1. Sending a setup's effects changes the live group, unsaved until
       SAVE.
@@ -212,7 +212,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
          Voices, and that the FM1 does not keep them with the patch. The firmware setting
          already says so; the editor is where people change them.
       2. **With the Voice strip (step 2):** a standalone effects editor opened from the strip,
-         beside **Send setup**, reusing the effects panel and editing the current setup's
+         beside **Recall Voices**, reusing the effects panel and editing the current setup's
          effects. On V16 the patch editor's panel then points to it.
       3. **With named setups (step 4):** each setup stores its effects, and that editor is
          where V16's effects live. Other firmware never sees a change.
@@ -224,7 +224,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       _Open: not run._
     - Does a Voice switched Off ignore a Program Change, so a setup cannot switch Voices on?
       _Answered (2026-10-26): yes. A Voice that is Off ignores it and does not take it when
-      switched back On, and the editor cannot see that a Voice is Off. **Send setup** to an Off
+      switched back On, and the editor cannot see that a Voice is Off. **Recall Voices** to an Off
       Voice silently does nothing, so the strip has to say Voices must be On._
     - Does one dump per gesture feel usable while holding a Voice selected on the FM1?
       _Open: not run._
@@ -277,7 +277,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        all eight Voices took only their own Program Change; a Voice that is Off ignores it; the
        keys send on channel 1 whichever Voice is selected; CC 7 was not run, since no tool to hand
        sends it. This changes the plan in two ways, and nothing else: the strip's note on setting
-       up the Voices must say each is On as well as on its own channel, since **Send setup** to an
+       up the Voices must say each is On as well as on its own channel, since **Recall Voices** to an
        Off Voice does nothing the editor can see, and a key press cannot be used to learn the
        selected Voice's channel._
     3. **Design the strip.** The mock-up of 2026-10-25 showed the hard parts: at desktop width

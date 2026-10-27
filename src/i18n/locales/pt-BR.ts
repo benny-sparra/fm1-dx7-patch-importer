@@ -1034,13 +1034,15 @@ export default {
     stateOff: 'desligada',
     voiceSwitch: 'Voice {{number}} ligada',
     noPatch: 'Sem som',
-    sendSetup: 'Enviar configuração',
-    sendSetupOffline: 'Ative o MIDI para enviar a configuração.',
-    sendSetupEmpty:
+    recall: 'Recuperar Voices',
+    recallHint: 'Escolhe de novo o preset de cada Voice. Não salva nada.',
+    menu: 'Ações das Voices',
+    recallOffline: 'Ative o MIDI para recuperar as Voices.',
+    recallEmpty:
       'Nenhuma das Voices 1 a 8 tem som ainda: clique em uma e depois em um som dos bancos A a D.',
-    sendSetupFailed:
-      'Alguns sons não chegaram ao FM1. Verifique a saída MIDI e envie a configuração de novo.',
-    setupSent: 'Configuração enviada para {{voices}}',
+    recallFailed:
+      'Alguns sons não chegaram ao FM1. Verifique a saída MIDI e recupere as Voices de novo.',
+    recalled: 'Recuperadas: {{voices}}',
     channels: 'Canais…',
     channelsTitle: 'Canais das Voices (como definidos no seu FM1)',
     setupShort: 'Configure primeiro as Voices do FM1.',

@@ -6,7 +6,7 @@
  *
  * A tab needs about 96px, its label and its 24px switch (VT323 sets "Voice 1" 62px wide), so eight
  * need 780px and one row with the controls 1070px. From `xl` the tabs and controls share one row:
- * tabs, then the switch, then Send setup and Channels…. From 840px the switch and the two buttons
+ * tabs, then the switch, then the ⋮ menu of Recall Voices and Channels…. From 840px the switch and the two buttons
  * are a bar of their own above the tabs, which share the row, fused to the Patch banks panel. Below
  * 840px the same bar sits above a 4 × 2 grid of cells, not fused, or 2 × 4 below 376px where a
  * cell no longer fits its label.

@@ -112,8 +112,7 @@ describe('LibrarianPage with V16’s Voices', () => {
 
     const strip = await screen.findByRole('group', { name: 'Voices 1–8' })
     expect(within(strip).getAllByRole('button')).toHaveLength(8)
-    expect(screen.getByRole('button', { name: 'Send setup' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Channels…' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Voice actions' })).toBeTruthy()
     // The FM1 setup line belongs to the mode, so it waits for the switch.
     expect(screen.queryByText('Set up your FM1’s Voices first.')).toBeNull()
 

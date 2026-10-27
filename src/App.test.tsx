@@ -93,7 +93,7 @@ vi.mock('@/routes/librarian-page', () => ({
   }) => (
     <>
       <button onClick={() => onSendVoiceSetup?.()} type="button">
-        Send setup
+        Recall Voices
       </button>
       <p>Lit slot: {activePatchId || 'none'}</p>
       <button onClick={() => onEditPatch({ id: 'patch-1' })} type="button">
@@ -455,7 +455,7 @@ describe('App with V16’s Voices', () => {
     setVoiceChannel(4, 12)
     const user = renderApp()
 
-    await user.click(screen.getByRole('button', { name: 'Send setup' }))
+    await user.click(screen.getByRole('button', { name: 'Recall Voices' }))
 
     expect(sendProgramChange.mock.calls).toEqual([
       [5, 1],
@@ -463,7 +463,7 @@ describe('App with V16’s Voices', () => {
     ])
   })
 
-  it('plays a slot again after Send setup, which replaced what the edit buffer held', async () => {
+  it('plays a slot again after Recall Voices, which replaced what the edit buffer held', async () => {
     playSeveralVoices()
     assignVoicePreset(0, 0)
     const user = renderApp()
@@ -471,7 +471,7 @@ describe('App with V16’s Voices', () => {
     await waitFor(() => expect(sendVoice).toHaveBeenCalledOnce())
     await sendVoice.mock.results[0].value
 
-    await user.click(screen.getByRole('button', { name: 'Send setup' }))
+    await user.click(screen.getByRole('button', { name: 'Recall Voices' }))
     await user.click(screen.getByRole('button', { name: 'Play Piano' }))
 
     await waitFor(() => expect(sendVoice).toHaveBeenCalledTimes(2))

@@ -1,5 +1,5 @@
-import { Send, SlidersHorizontal } from 'lucide-react'
-import { useId, useState, type ReactNode } from 'react'
+import { RotateCcw, SlidersHorizontal } from 'lucide-react'
+import { useState, type ComponentProps, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { VoiceChannelsDialog } from '@/components/midi/voice-channels-dialog'
@@ -8,9 +8,9 @@ import {
   voiceNoticesCellClassName,
   voiceTabsCellClassName,
 } from '@/components/midi/voice-bar-layout'
-import { Button } from '@/components/ui/button'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { InfoNotice } from '@/components/ui/info-notice'
+import type { PortalMenu } from '@/components/ui/portal-menu'
 import { useToast } from '@/components/ui/toast'
 import '@/i18n/voices'
 import type { MidiController } from '@/hooks/use-midi'
@@ -22,13 +22,18 @@ type VoiceStripProps = {
   midi: Pick<MidiController, 'channel' | 'hasMidiOutput' | 'setChannel'>
   /** Told which FM1 preset, 0–127, the Voice just aimed at plays, or null for none. */
   onAim: (preset: number | null) => void
-  /** Sends each Voice's preset as a Program Change on its channel, returning how many went. */
+  /** Recalls each Voice's preset as a Program Change on its channel, returning how many went. */
   onSendSetup: () => number
   /**
    * The help button beside the setup line. The page makes it, since importing `HelpPopover` here
    * made Rolldown split it out of the entry, about 1.2 KiB.
    */
   renderHelp: (label: string, text: string) => ReactNode
+  /**
+   * The ⋮ menu of the bar's actions. The page makes it, since importing `PortalMenu` here made
+   * Rolldown split it out of the entry.
+   */
+  renderMenu: (props: Pick<ComponentProps<typeof PortalMenu>, 'items' | 'menuLabel'>) => ReactNode
   /**
    * An FM1 preset, 0–127, as banks A–D show it: its slot code and patch name, or the slot code
    * alone where the library holds no patch.
@@ -52,29 +57,35 @@ const focusRing =
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
 
 /**
- * The eight Voices of M-VAVE's V16, with Send setup and Channels, as the cells the librarian page's
+ * The eight Voices of M-VAVE's V16, with a menu of Recall Voices and Channels…, as the cells the librarian page's
  * Voices bar adds beside the Multitimbral mode switch (`voice-bar-layout`). A Voice's tab and its
  * own switch are two buttons: clicking the tab aims at the Voice, setting the note channel to its
  * channel, so the keyboard plays it and a slot click gives it that slot's preset; the switch says
  * whether the Voice is On and aims at nothing. Each Voice points at an FM1 preset, never a copy of
  * the patch.
  */
-export function VoiceStrip({ midi, onAim, onSendSetup, presetLabel, renderHelp }: VoiceStripProps) {
+export function VoiceStrip({
+  midi,
+  onAim,
+  onSendSetup,
+  presetLabel,
+  renderHelp,
+  renderMenu,
+}: VoiceStripProps) {
   const { i18n, t } = useTranslation()
   const toast = useToast()
   const { aimed, setup } = useVoiceSetup()
   const aimedIndex = aimedVoice(setup, midi.channel, aimed)
   const [showsChannels, setShowsChannels] = useState(false)
   const [sendFailed, setSendFailed] = useState(false)
-  const sendReasonId = useId()
   const assigned = setup.voices.filter((voice) => voice.preset !== null).length
   const sendBlockedReason = !midi.hasMidiOutput
-    ? t('voices.sendSetupOffline')
+    ? t('voices.recallOffline')
     : assigned === 0
-      ? t('voices.sendSetupEmpty')
+      ? t('voices.recallEmpty')
       : null
 
-  const sendSetup = () => {
+  const recallVoices = () => {
     if (sendBlockedReason) return
     const sent = onSendSetup()
     setSendFailed(sent < assigned)
@@ -83,7 +94,7 @@ export function VoiceStrip({ midi, onAim, onSendSetup, presetLabel, renderHelp }
       voice.preset === null ? [] : [t('voices.voice', { number: index + 1 })],
     )
     toast.success(
-      t('voices.setupSent', {
+      t('voices.recalled', {
         voices: new Intl.ListFormat(i18n.resolvedLanguage, { type: 'conjunction' }).format(voices),
       }),
     )
@@ -107,7 +118,7 @@ export function VoiceStrip({ midi, onAim, onSendSetup, presetLabel, renderHelp }
         </div>
         {sendFailed ? (
           <div className="mb-2">
-            <ErrorNotice>{t('voices.sendSetupFailed')}</ErrorNotice>
+            <ErrorNotice>{t('voices.recallFailed')}</ErrorNotice>
           </div>
         ) : null}
       </div>
@@ -173,34 +184,23 @@ export function VoiceStrip({ midi, onAim, onSendSetup, presetLabel, renderHelp }
         })}
       </div>
       <span className={voiceActionsCellClassName}>
-        <Button
-          aria-describedby={sendBlockedReason ? sendReasonId : undefined}
-          aria-disabled={sendBlockedReason ? true : undefined}
-          onClick={sendSetup}
-          size="sm"
-          title={sendBlockedReason ?? t('voices.sendSetup')}
-          type="button"
-          variant="ghost"
-        >
-          <Send aria-hidden="true" />
-          <span className="max-[42.49rem]:sr-only xl:sr-only">{t('voices.sendSetup')}</span>
-        </Button>
-        {sendBlockedReason ? (
-          <span className="sr-only" id={sendReasonId}>
-            {sendBlockedReason}
-          </span>
-        ) : null}
-        <Button
-          aria-haspopup="dialog"
-          onClick={() => setShowsChannels(true)}
-          size="sm"
-          title={t('voices.channels')}
-          type="button"
-          variant="ghost"
-        >
-          <SlidersHorizontal aria-hidden="true" />
-          <span className="max-[42.49rem]:sr-only xl:sr-only">{t('voices.channels')}</span>
-        </Button>
+        {renderMenu({
+          items: [
+            {
+              disabled: sendBlockedReason !== null,
+              hint: sendBlockedReason ?? t('voices.recallHint'),
+              Icon: RotateCcw,
+              label: t('voices.recall'),
+              onSelect: recallVoices,
+            },
+            {
+              Icon: SlidersHorizontal,
+              label: t('voices.channels'),
+              onSelect: () => setShowsChannels(true),
+            },
+          ],
+          menuLabel: t('voices.menu'),
+        })}
       </span>
       {showsChannels ? (
         <VoiceChannelsDialog midi={midi} onClose={() => setShowsChannels(false)} />

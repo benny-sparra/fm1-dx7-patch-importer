@@ -704,7 +704,7 @@ open everything an earlier release could have saved.
 - On V16, **Multitimbral mode** (the profile's `multitimbral`, stored as `enabled` in
   `fm1-voice-setup`) is a switch in the Voices bar above the patch banks, in the librarian page, so
   the editor has no bar. The page makes the bar's grid (`voice-bar-layout.ts`) and holds the switch;
-  on V16 the lazy `VoiceStrip` adds the eight Voices, **Send setup**, and **Channels…** as more
+  on V16 the lazy `VoiceStrip` adds the eight Voices and a ⋮ menu of **Recall Voices** and **Channels…** as more
   cells of that grid, whether or not the mode is on (the owner, 2026-10-27); on any other firmware none of the bar shows. Each
   Voice's LED comes before its label. With the mode on, the lit slot in the bank grid is the one the
   aimed Voice plays, and none for a Voice with no patch (a preset two Voices share lights only for
@@ -727,7 +727,7 @@ open everything an earlier release could have saved.
   slot click in banks A–D assigns (`aimedVoice`; the Voice clicked last wins a shared channel),
   whether or not MIDI is online, and editing a slot assigns it too, since its Program Change
   reaches that Voice. A Voice holds a preset number only. Each slot names the Voices playing it
-  in its tooltip and to assistive technology, with no tag drawn on the card (the owner, 2026-10-27). **Send setup** sends one Program
+  in its tooltip and to assistive technology, with no tag drawn on the card (the owner, 2026-10-27). **Recall Voices** sends one Program
   Change per Voice with a preset, on its channel, through `sendProgramChange`, and forgets the
   edit-buffer audition, which those changes replace. The strip's one-line notice, while no Voice has a patch, says to set the Voices up on the FM1, with the steps in a `HelpPopover`; the channels dialog (`VoiceChannelsDialog`, opened by **Channels…**) says in one line that it does not change the FM1
   (channels 1–8, every Voice On, none on All, SAVE → Globe), since the editor cannot read or set

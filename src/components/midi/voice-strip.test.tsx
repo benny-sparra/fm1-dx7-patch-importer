@@ -8,6 +8,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { setLocale } from '@/i18n'
 import { VoiceStrip } from '@/components/midi/voice-strip'
 import { HelpPopover } from '@/components/ui/help-popover'
+import { PortalMenu } from '@/components/ui/portal-menu'
 import { ToastProvider } from '@/components/ui/toast'
 import {
   assignVoicePreset,
@@ -37,6 +38,15 @@ const presetLabels = new Map([
   [127, 'D32'],
 ])
 
+async function chooseFromMenu(
+  user: ReturnType<typeof userEvent.setup>,
+  name: string,
+  menu = 'Voice actions',
+) {
+  await user.click(screen.getByRole('button', { name: menu }))
+  await user.click(screen.getByRole('menuitem', { name }))
+}
+
 function presetLabel(preset: number) {
   return presetLabels.get(preset) ?? `#${preset}`
 }
@@ -62,6 +72,9 @@ function Strip({
         onSendSetup={onSendSetup}
         presetLabel={presetLabel}
         renderHelp={(label, text) => <HelpPopover label={label} text={text} />}
+        renderMenu={({ items, menuLabel }) => (
+          <PortalMenu items={items} menuLabel={menuLabel} triggerLabel={menuLabel} />
+        )}
       />
     </ToastProvider>
   )
@@ -160,16 +173,16 @@ describe('VoiceStrip', () => {
     expect(screen.getByRole('button', { name: /^Voice 6,/, pressed: true })).toBeTruthy()
   })
 
-  it('sends the setup and names the Voices it went to', async () => {
+  it('recalls the Voices from the menu and names the Voices it went to', async () => {
     assignVoicePreset(0, 0)
     assignVoicePreset(2, 66)
     const onSendSetup = vi.fn(() => 2)
     render(<Strip onSendSetup={onSendSetup} />)
 
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Send setup' }))
+    await chooseFromMenu(userEvent.setup(), 'Recall Voices')
 
     expect(onSendSetup).toHaveBeenCalledOnce()
-    expect(await screen.findByText('Sent the setup to Voice 1 and Voice 3')).toBeTruthy()
+    expect(await screen.findByText('Recalled Voice 1 and Voice 3')).toBeTruthy()
   })
 
   it('says so in an alert, and not in a notification, when a patch did not go', async () => {
@@ -177,24 +190,36 @@ describe('VoiceStrip', () => {
     assignVoicePreset(2, 66)
     render(<Strip onSendSetup={() => 1} />)
 
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Send setup' }))
+    await chooseFromMenu(userEvent.setup(), 'Recall Voices')
 
     expect(screen.getByRole('alert').textContent).toContain('Some patches did not reach the FM1')
-    expect(screen.queryByText(/^Sent the setup/)).toBeNull()
+    expect(screen.queryByText(/^Recalled/)).toBeNull()
   })
 
-  it('keeps Send setup reachable but unavailable, saying why, with no patch on any Voice', async () => {
+  it('holds Recall Voices in a menu, with no Send setup button beside it', async () => {
+    assignVoicePreset(0, 0)
+    const user = userEvent.setup()
+    render(<Strip />)
+    expect(screen.queryByRole('button', { name: /Send setup|Recall Voices/ })).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Voice actions' }))
+
+    const item = screen.getByRole('menuitem', { name: 'Recall Voices' })
+    expect(item.textContent).toContain('Selects each Voice’s preset again. Stores nothing.')
+    expect(screen.getByRole('menuitem', { name: 'Channels…' })).toBeTruthy()
+  })
+
+  it('says why Recall Voices is unavailable, in the menu, with no patch on any Voice', async () => {
     const onSendSetup = vi.fn(() => 0)
+    const user = userEvent.setup()
     render(<Strip onSendSetup={onSendSetup} />)
-    const send = screen.getByRole('button', { name: 'Send setup' })
 
-    await userEvent.setup().click(send)
+    await user.click(screen.getByRole('button', { name: 'Voice actions' }))
+    const item = screen.getByRole('menuitem', { name: 'Recall Voices' })
 
-    expect(send.getAttribute('aria-disabled')).toBe('true')
-    expect(send.getAttribute('aria-describedby')).toBeTruthy()
-    expect(
-      document.getElementById(send.getAttribute('aria-describedby') ?? '')?.textContent,
-    ).toMatch(/^None of Voices 1–8 has a patch yet/)
+    expect((item as HTMLButtonElement).disabled).toBe(true)
+    expect(item.textContent).toMatch(/None of Voices 1–8 has a patch yet/)
+    await user.click(item)
     expect(onSendSetup).not.toHaveBeenCalled()
   })
 
@@ -230,13 +255,26 @@ describe('VoiceStrip', () => {
     expect(screen.getByRole('note').textContent).toMatch(/braucht einmalig eine Einrichtung am FM1/)
   })
 
-  it('keeps Send setup unavailable without a MIDI output', () => {
+  it('keeps Recall Voices unavailable, saying why, without a MIDI output', async () => {
     assignVoicePreset(0, 0)
+    const user = userEvent.setup()
     render(<Strip hasMidiOutput={false} />)
 
-    expect(screen.getByRole('button', { name: 'Send setup' }).title).toBe(
-      'Switch MIDI online to send the setup.',
-    )
+    await user.click(screen.getByRole('button', { name: 'Voice actions' }))
+
+    const item = screen.getByRole('menuitem', { name: 'Recall Voices' })
+    expect((item as HTMLButtonElement).disabled).toBe(true)
+    expect(item.textContent).toContain('Switch MIDI online to recall the Voices.')
+  })
+
+  it('writes the menu in the interface language', async () => {
+    await setLocale('de')
+    const user = userEvent.setup()
+    render(<Strip />)
+
+    await user.click(screen.getByRole('button', { name: 'Voice-Aktionen' }))
+
+    expect(screen.getByRole('menuitem', { name: 'Voices abrufen' })).toBeTruthy()
   })
 
   it('keeps the channels in a dialog, with the note on setting the Voices up on the FM1', async () => {
@@ -244,7 +282,7 @@ describe('VoiceStrip', () => {
     render(<Strip />)
     expect(screen.queryByRole('combobox')).toBeNull()
 
-    await user.click(screen.getByRole('button', { name: 'Channels…' }))
+    await chooseFromMenu(user, 'Channels…')
 
     const dialog = screen.getByRole('dialog', { name: 'Voice channels (as set on your FM1)' })
     expect(within(dialog).getByText(/doesn’t change the FM1/)).toBeTruthy()
@@ -259,7 +297,7 @@ describe('VoiceStrip', () => {
   it('stores a Voice’s channel, and moves the note channel with the Voice aimed at', async () => {
     const user = userEvent.setup()
     render(<Strip initialChannel={2} />)
-    await user.click(screen.getByRole('button', { name: 'Channels…' }))
+    await chooseFromMenu(user, 'Channels…')
 
     await user.selectOptions(screen.getByRole('combobox', { name: 'Voice 2 channel' }), 'Ch 9')
     await user.selectOptions(screen.getByRole('combobox', { name: 'Voice 5 channel' }), 'Ch 12')
@@ -269,7 +307,7 @@ describe('VoiceStrip', () => {
     expect(screen.getByRole('button', { name: /^Voice 2, Ch 9/, pressed: true })).toBeTruthy()
   })
 
-  it('writes the Voices and the setup notification in the interface language', async () => {
+  it('writes the Voices and the recall notification in the interface language', async () => {
     await setLocale('de')
     assignVoicePreset(0, 0)
     assignVoicePreset(3, 66)
@@ -278,9 +316,9 @@ describe('VoiceStrip', () => {
     expect(screen.getByRole('button', { name: 'Voice 1, Kan. 1: A01 BRASS 1, ein' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Voice 2, Kan. 2: Kein Sound, ein' })).toBeTruthy()
 
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Setup senden' }))
+    await chooseFromMenu(userEvent.setup(), 'Voices abrufen', 'Voice-Aktionen')
 
-    expect(await screen.findByText('Setup gesendet an Voice 1 und Voice 4')).toBeTruthy()
+    expect(await screen.findByText('Abgerufen: Voice 1 und Voice 4')).toBeTruthy()
   })
 
   it('keeps working once a page translator has replaced its text', async () => {
@@ -290,7 +328,7 @@ describe('VoiceStrip', () => {
 
     await user.click(screen.getByRole('button', { name: /^Voice 3,/ }))
     act(() => assignVoicePreset(2, 0))
-    await user.click(screen.getByRole('button', { name: 'Channels…' }))
+    await chooseFromMenu(user, 'Channels…')
 
     expect(screen.getByRole('button', { name: 'Voice 3, Ch 3: A01 BRASS 1, on' })).toBeTruthy()
     expect(screen.getByRole('dialog').textContent).toContain('doesn’t change the FM1')
