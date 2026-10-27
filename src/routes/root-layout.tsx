@@ -21,6 +21,7 @@ import { MidiActivityLeds } from '@/components/midi/midi-activity-leds'
 import { MidiLogButton } from '@/components/midi/midi-log-button'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
 import type { Fm1VaPresetProbe as PresetProbe } from '@/components/midi/fm1-va-preset-probe'
+import type { V16SettingsProbe as SettingsProbe } from '@/components/midi/v16-settings-probe'
 import { MidiPanicButton } from '@/components/midi/midi-panic-button'
 import type { OfficialOpenTrackStatus as TrackStatus } from '@/components/midi/official-open-track-status'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
@@ -42,6 +43,16 @@ const Fm1VaPresetProbe = import.meta.env.DEV
   ? lazy(() =>
       import('@/components/midi/fm1-va-preset-probe').then((module) => ({
         default: module.Fm1VaPresetProbe,
+      })),
+    )
+  : null
+
+// The V16 settings probe is development only for the same reason, and its module is not named by
+// any production path.
+const V16SettingsProbe = import.meta.env.DEV
+  ? lazy(() =>
+      import('@/components/midi/v16-settings-probe').then((module) => ({
+        default: module.V16SettingsProbe,
       })),
     )
   : null
@@ -75,6 +86,7 @@ type RootLayoutProps = {
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
     ComponentProps<typeof PianoKeyboard>['midi'] &
     ComponentProps<typeof PresetProbe>['midi'] &
+    ComponentProps<typeof SettingsProbe>['midi'] &
     ComponentProps<typeof TrackStatus>['midi'] &
     Pick<MidiController, 'logStore' | 'midiAccess' | 'sendEffectDiagnosticControl'>
 }
@@ -329,6 +341,13 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                   <ErrorBoundary>
                     <Suspense fallback={null}>
                       <Fm1VaPresetProbe midi={midi} />
+                    </Suspense>
+                  </ErrorBoundary>
+                ) : null}
+                {V16SettingsProbe ? (
+                  <ErrorBoundary>
+                    <Suspense fallback={null}>
+                      <V16SettingsProbe midi={midi} />
                     </Suspense>
                   </ErrorBoundary>
                 ) : null}

@@ -55,12 +55,17 @@ export type EffectControllerBase = 0 | 70
  *   the Voice selected on its screen while parameter changes reach that Voice only on channel 1 or
  *   All, so the editor says which Voice it reaches. M-VAVE's V16 (docs/fm1-research.md,
  *   "Confirmed on hardware", 2026-10-25).
+ * - `effectOrder`: V16's effect order, read and written as the FX order bytes of the updater's
+ *   object 4 settings block (`src/lib/v16-settings-block.ts`, approved 2026-10-27). Off for every
+ *   firmware until the hardware run of `docs/hardware-runs/stock-v16-effect-order-run-sheet.md`
+ *   passes.
  * - `multitimbral`: the FM1 plays several Voices, each with its own preset and MIDI channel.
  *   M-VAVE's V16 (docs/hardware-runs/stock-v16-voices-2026-10-26.md).
  */
 type FirmwareCapability =
   | 'bitcrush'
   | 'effectControllers'
+  | 'effectOrder'
   | 'knobChoices'
   | 'multitimbral'
   | 'parameterChanges'
@@ -187,6 +192,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
     capabilities: {
       bitcrush: from(capabilities.bitcrush),
       effectControllers: from(capabilities.effectControllers),
+      effectOrder: from(capabilities.effectOrder),
       knobChoices: from(capabilities.knobChoices),
       multitimbral: from(capabilities.multitimbral),
       parameterChanges: from(capabilities.parameterChanges),

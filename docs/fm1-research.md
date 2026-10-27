@@ -2504,6 +2504,36 @@ saving a received bank first calls `FUN_02011fd0`, whose failure shows **FX save
 whether that sets the flag was not followed. That fits both runs, where it was set in normal use.
 **Likely**.
 
+**Object 4: the FX order** (2026-10-27). The owner approved sending command `0x23` (read) and
+`0x22` (write) on object 4, the write only to put the block back with the FX order bytes changed
+(`AGENTS.md`, "MIDI"), so the editor can reorder V16's effects. What the notes above and the
+restore decode in §6.3 settle, and what they leave open:
+
+| Fact                                                                                                                                                                                                                                                        | Confidence                                                     |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| A frame is `F0`, then `00 59 <cmd> <length, 3 bytes LE> <payload> <checksum>` packed seven bits at a time, least significant bit first, then `F7`                                                                                                           | Confirmed (identity)                                           |
+| The checksum is the complement of the payload's byte sum, `~sum(payload) & 0xFF` (V15's identity reply, 34-byte block, checked 2026-10-27: `19`)                                                                                                            | Confirmed (identity)                                           |
+| A request's payload is the object, a 32-bit offset, and a 24-bit length (`0x21`: object and offset), then for `0x22` the data. The restore's frames fit it: `00 59 22 08 04 00 05 <offset> 00 04 00` is length 1032 = 8 + 1024, object 5                    | Likely (object 5 decode)                                       |
+| Object 4 is 176 bytes (`0xB0`), version `0x0E`, read with `0x23` and written with `0x22`; the write takes a partial write over the current block, checks every field, rejects the block for one bad value, applies what changed, and marks settings unsaved | Likely (firmware, not run)                                     |
+| The editor reads at offset 0 with length 176 (`00 00 00 00`, `B0 00 00`), so the order of the offset's bytes never matters                                                                                                                                  | Likely                                                         |
+| The FX order is 27 bytes at `0x92`, inside the block                                                                                                                                                                                                        | Likely (firmware, not run)                                     |
+| The version `0x0E` is the block's first byte                                                                                                                                                                                                                | Needs hardware test: the notes name the version, not its place |
+| The reply to `0x23` is `00 59 23` and a payload of the 176 bytes alone, or of the request's 8-byte prefix and then the 176                                                                                                                                  | Needs hardware test: the notes do not give the reply's layout  |
+| What the 27 bytes mean: which effect each holds, whether they are a list of six effects and what the rest is for, and what a 7-bit or 8-bit value means in them                                                                                             | Needs hardware test: **not decoded**                           |
+| Whether writing the block back unchanged, or with the order changed, touches anything else, and whether it reaches Flash                                                                                                                                    | Needs hardware test                                            |
+
+The editor's codec (`src/lib/v16-settings-block.ts`) therefore reads a block and finds the 27 bytes,
+and writes back a block read just before with the order bytes it is given, byte for byte, and
+nothing else. It does not know what an order is. **V16 has six effects (Filter, Reverb, Delay,
+Distortion, Chorus, Phaser) and FM-1+VA's record seven (adding Bitcrush), so the 27 bytes are not
+assumed to share FM-1+VA's encoding**, which keeps the order in a few record bytes
+(`fm1VaRecordWithEffectOrder`). 27 is not six or seven, so the block may hold more than a list. The
+reordering UI waits for the run in
+[`hardware-runs/stock-v16-effect-order-run-sheet.md`](hardware-runs/stock-v16-effect-order-run-sheet.md),
+which reads the bytes with the FX order page in each of several states, so the encoding can be
+read from what changes. Nothing here is the OTA or loader path: object 4 is the settings block, and
+objects 5 and 8, `0x30`, and the loader stay **Dangerous / excluded**.
+
 #### Questions for the hardware run
 
 Each question carries the firmware's answer. The run of 2026-10-23 settled the first two, part of
@@ -2534,6 +2564,9 @@ the third, and the fourth; the run of 2026-10-25 the rest of the third, and the 
 11. Does M-VAVE's Windows updater send command `0x22` or `0x23` on object 4, the settings block
     that holds the selected Voice's channel? Capture only, nothing sent by the editor
     ([`hardware-runs/stock-v16-voice-settings-capture.md`](hardware-runs/stock-v16-voice-settings-capture.md)).
+12. How does object 4's FX order encode V16's six effects' order, and does writing the block back
+    unchanged or with the order changed touch anything else? Run sheet:
+    [`hardware-runs/stock-v16-effect-order-run-sheet.md`](hardware-runs/stock-v16-effect-order-run-sheet.md).
 
 ### FM1 Editor
 
