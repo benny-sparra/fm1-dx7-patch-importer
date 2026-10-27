@@ -1122,7 +1122,7 @@ export function LibrarianPage({
       {onSendVoiceSetup && firmwareProfile.capabilities.multitimbral ? (
         // V16's eight Voices: the switch, and once it is on the Voices with Send setup and Channels.
         <div className="flex flex-wrap items-center gap-2">
-          <VoicesSwitch />
+          <VoicesSwitch midi={midi} />
           {voiceSetup.enabled ? (
             <ErrorBoundary
               fallback={

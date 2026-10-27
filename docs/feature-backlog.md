@@ -236,6 +236,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     - Also settled (2026-10-26): with Voices 1–8 On on channels 1–8 and none on All, a Program
       Change reaches only the Voice on its channel, for all eight, so step 2's one Program Change
       per Voice works as planned. A Voice on All takes every Program Change.
+  - **Open research question:** is there a MIDI message that sets the Voices' channels and
+    On/Off on V16, found in the firmware or captured from M-VAVE's own tools? It would allow a true
+    one-click switch between modes. It needs a capture, and an approval recorded in `AGENTS.md`,
+    before anything sends it; `F0 22 24 36` stays **Dangerous / excluded**. Until then the mode
+    lives in the editor (decided 2026-10-27): Multitimbral mode shows the strip and the one-time
+    FM1 setup steps, and switching it off puts the note channel back on Voice 1's channel, which on
+    a set-up FM1 is the single-sound behaviour.
   - **Questions to discuss:**
     - **The word Voice.** `AGENTS.md` uses voice for DX7 voice data (the voice editor, Init
       voice), and also says names printed on the FM1 stay as printed, which makes V16's Voice a

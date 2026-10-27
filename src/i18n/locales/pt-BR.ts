@@ -1023,7 +1023,7 @@ export default {
     channelShort: 'Can. {{number}}',
     playSeveral: 'Modo multitimbral',
     playSeveralHint:
-      'Mostra as Voices 1 a 8 no lugar do canal de notas, cada uma tocando um som dos bancos A a D.',
+      'Toca as Voices 1 a 8, cada uma com um som dos bancos A a D. Ao desativar, volta ao canal da Voice 1.',
     voice: 'Voice {{number}}',
     tag: 'V{{number}}',
     playedBy: 'Tocado por {{voices}}',
@@ -1043,6 +1043,8 @@ export default {
     channelsTitle: 'Canais das Voices 1 a 8',
     channelsClose: 'Fechar os canais das Voices',
     channelOf: 'Canal da Voice {{number}}',
+    firstUse:
+      'O modo multitimbral exige preparar o FM1 uma única vez: coloque as Voices 1 a 8 nos canais 1 a 8, ligue cada uma (On), não deixe nenhuma em All, pressione SAVE e escolha Globe. Desativar o modo depois não exige nenhuma mudança no FM1.',
     setupNote:
       'Configure uma vez as Voices 1 a 8 no FM1: coloque-as nos canais 1 a 8, cada uma em On e nenhuma em All; depois aperte SAVE e escolha Globe. Uma em Off ignora o seu som e não o pega ao voltar para On, e uma em All recebe todo som enviado.',
     howToAssign:

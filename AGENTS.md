@@ -703,7 +703,7 @@ open everything an earlier release could have saved.
 - On V16, **Multitimbral mode** (the profile's `multitimbral`, stored as `enabled` in
   `fm1-voice-setup`) is a switch in a bar above the patch banks, in the librarian page, so the editor
   has no bar. Switched on, the bar adds `VoiceStrip`, loaded lazily into the same wrapping row
-  (the switch stays mounted, so it keeps focus as the strip arrives): **Send setup** and **Channels…**
+  (the switch stays mounted, so it keeps focus as the strip arrives). The mode is the editor's: no known message sets a Voice's channel or On/Off, so the FM1 is set up once by hand, which the strip says while no Voice has a patch (no new field in `fm1-voice-setup`) and **Channels…** keeps. Switching the mode off sets the note channel to Voice 1's channel, so a set-up FM1 plays single-sound: **Send setup** and **Channels…**
   beside the switch, and below them eight
   numbered buttons on a phone, the patch in each tooltip, and from `sm` each Voice's channel and
   patch, four to a row until `lg` fits eight. A Voice is aimed at by setting the note channel to

@@ -252,7 +252,7 @@ export default {
   voices: {
     playSeveral: 'Multitimbral mode',
     playSeveralHint:
-      'Shows Voices 1–8 in place of the note channel, each playing a patch from banks A–D.',
+      'Plays Voices 1–8, each with a patch from banks A–D. Switching it off returns to Voice 1’s channel.',
     voice: 'Voice {{number}}',
     tag: 'V{{number}}',
     playedBy: 'Played by {{voices}}',

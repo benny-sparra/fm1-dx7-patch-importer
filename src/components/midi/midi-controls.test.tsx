@@ -14,7 +14,7 @@ import {
 } from '@/components/midi/midi-controls'
 import { setLocale } from '@/i18n'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
-import { getVoiceSetup, resetVoiceSetupForTests } from '@/lib/voice-setup'
+import { getVoiceSetup, resetVoiceSetupForTests, setVoiceChannel } from '@/lib/voice-setup'
 
 afterEach(async () => {
   cleanup()
@@ -408,7 +408,7 @@ describe('Voices switch', () => {
   })
 
   it('keeps the choice for the next visit', async () => {
-    render(<VoicesSwitch />)
+    render(<VoicesSwitch midi={{ setChannel: vi.fn() }} />)
     const voices = screen.getByRole('switch', { name: 'Multitimbral mode' })
     expect(voices.getAttribute('aria-checked')).toBe('false')
 
@@ -422,10 +422,25 @@ describe('Voices switch', () => {
     })
   })
 
-  it('explains itself in a tooltip', () => {
-    render(<VoicesSwitch />)
+  it('puts the note channel back on Voice 1’s channel when switched off, and only then', async () => {
+    const setChannel = vi.fn()
+    setVoiceChannel(0, 6)
+    const user = userEvent.setup()
+    render(<VoicesSwitch midi={{ setChannel }} />)
+    const voices = screen.getByRole('switch', { name: 'Multitimbral mode' })
 
-    expect(screen.getByTitle(/in place of the note channel/)).toBeTruthy()
+    await user.click(voices)
+    expect(setChannel).not.toHaveBeenCalled()
+
+    await user.click(voices)
+    expect(setChannel).toHaveBeenCalledExactlyOnceWith(6)
+    expect(getVoiceSetup().enabled).toBe(false)
+  })
+
+  it('explains itself in a tooltip', () => {
+    render(<VoicesSwitch midi={{ setChannel: vi.fn() }} />)
+
+    expect(screen.getByTitle(/returns to Voice 1’s channel/)).toBeTruthy()
   })
 
   it('is no longer in the Settings menu', () => {

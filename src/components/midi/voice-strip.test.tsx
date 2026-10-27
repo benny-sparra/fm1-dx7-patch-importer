@@ -153,6 +153,25 @@ describe('VoiceStrip', () => {
     expect(onSendSetup).not.toHaveBeenCalled()
   })
 
+  it('shows the one-time FM1 setup while no Voice has a patch, and not once one does', () => {
+    const { unmount } = render(<Strip />)
+    expect(screen.getByText(/needs the FM1 set up once/)).toBeTruthy()
+    expect(screen.getByText(/switch each one On, leave none on All/)).toBeTruthy()
+    unmount()
+
+    act(() => assignVoicePreset(0, 0))
+    render(<Strip />)
+
+    expect(screen.queryByText(/needs the FM1 set up once/)).toBeNull()
+  })
+
+  it('writes the one-time FM1 setup in the interface language', async () => {
+    await setLocale('de')
+    render(<Strip />)
+
+    expect(screen.getByText(/braucht einmalig eine Einrichtung am FM1/)).toBeTruthy()
+  })
+
   it('keeps Send setup unavailable without a MIDI output', () => {
     assignVoicePreset(0, 0)
     render(<Strip hasMidiOutput={false} />)

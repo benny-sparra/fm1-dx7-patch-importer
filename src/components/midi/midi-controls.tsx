@@ -216,16 +216,23 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
 }
 
 /**
- * The opt-in to V16's eight Voices, in the header beside the note channel it turns into the Voice
- * strip. The hint is its tooltip, since the label is one word.
+ * The opt-in to V16's eight Voices, heading the bar above the patch banks. Switching it off puts
+ * the note channel back on Voice 1's channel, so the editor plays Voice 1, which on an FM1 set up
+ * for the Voices is the single-sound behaviour. The hint is its tooltip, since the label is short.
  */
-export function VoicesSwitch() {
+export function VoicesSwitch({ midi }: { midi: Pick<MidiController, 'setChannel'> }) {
   const { t } = useTranslation()
   const { setup } = useVoiceSetup()
 
   return (
     <span className="inline-flex" title={t('voices.playSeveralHint')}>
-      <Switch checked={setup.enabled} onChange={setVoiceSetupEnabled}>
+      <Switch
+        checked={setup.enabled}
+        onChange={(enabled) => {
+          setVoiceSetupEnabled(enabled)
+          if (!enabled) midi.setChannel(setup.voices[0].channel)
+        }}
+      >
         <span>{t('voices.playSeveral')}</span>
       </Switch>
     </span>

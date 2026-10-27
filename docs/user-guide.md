@@ -97,10 +97,18 @@ says **Receive Timeout**; start Export again while the app listens.
 
 #### Playing several Voices on V16
 
-To give each of V16's Voices its own patch from the app, switch on **Multitimbral mode**, above the
-patch banks (offered once the FM1 is identified as running V16). A strip of Voice 1 to Voice 8 appears beneath it, each showing its channel and the patch it plays; on a phone
-each is a numbered button, with the patch in its tooltip. The app keeps this setup for your next
-visit. Switch it off to go back to the **Note channel** picker in **Settings**.
+**Multitimbral mode** is the editor's, not the FM1's: the FM1 plays eight Voices whatever the app
+does, and the app cannot switch it between modes. Off, which is how it starts, the editor works as it
+always has, on the **Note channel** in **Settings**, and nothing on the FM1 needs changing. Switch
+**Multitimbral mode** on, above the patch banks (offered once the FM1 is identified as running V16),
+to give each Voice its own patch. A strip of Voice 1 to Voice 8 appears beneath it, each showing its
+channel and the patch it plays; on a phone each is a numbered button, with the patch in its tooltip.
+The app keeps the mode and the setup for your next visit.
+
+The FM1 needs setting up once for this (step 1 below, and the bar says so until a Voice has a
+patch). After that it still works as a single-sound FM1 on channel 1, since notes and patches reach
+only the Voice on their channel. Switching the mode off puts the note channel back on Voice 1's
+channel, so the editor plays Voice 1, and needs no change on the FM1.
 
 1. Set the Voices up once on the FM1: put Voice 1 to Voice 8 on channels 1 to 8, switch each one
    **On**, leave none on **All**, then press **SAVE** and choose **Globe**. A Voice that is Off

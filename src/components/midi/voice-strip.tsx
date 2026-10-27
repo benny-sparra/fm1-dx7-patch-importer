@@ -6,6 +6,7 @@ import { VoiceChannelsDialog } from '@/components/midi/voice-channels-dialog'
 import { bevelClassName } from '@/components/ui/bevel-radio'
 import { Button } from '@/components/ui/button'
 import { ErrorNotice } from '@/components/ui/error-notice'
+import { InfoNotice } from '@/components/ui/info-notice'
 import { useToast } from '@/components/ui/toast'
 import '@/i18n/voices'
 import type { MidiController } from '@/hooks/use-midi'
@@ -162,6 +163,12 @@ export function VoiceStrip({ midi, onSendSetup, presetLabel }: VoiceStripProps) 
           )
         })}
       </div>
+      {assigned === 0 ? (
+        // The FM1 has to be set up once before the Voices answer, which is the first thing to do.
+        <div className="w-full basis-full">
+          <InfoNotice>{t('voices.firstUse')}</InfoNotice>
+        </div>
+      ) : null}
       {sendFailed ? (
         <div className="w-full basis-full">
           <ErrorNotice>{t('voices.sendSetupFailed')}</ErrorNotice>

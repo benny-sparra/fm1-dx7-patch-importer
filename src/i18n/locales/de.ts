@@ -1051,7 +1051,7 @@ export default {
     channelShort: 'Kan. {{number}}',
     playSeveral: 'Multitimbraler Modus',
     playSeveralHint:
-      'Zeigt Voice 1–8 anstelle des Notenkanals, jede mit einem Sound aus den Bänken A–D.',
+      'Spielt Voice 1–8, jede mit einem Sound aus den Bänken A–D. Beim Ausschalten geht es zurück zum Kanal von Voice 1.',
     voice: 'Voice {{number}}',
     tag: 'V{{number}}',
     playedBy: 'Gespielt von {{voices}}',
@@ -1071,6 +1071,8 @@ export default {
     channelsTitle: 'Kanäle von Voice 1–8',
     channelsClose: 'Voice-Kanäle schließen',
     channelOf: 'Kanal von Voice {{number}}',
+    firstUse:
+      'Der Multitimbral-Modus braucht einmalig eine Einrichtung am FM1: Voice 1–8 auf die Kanäle 1–8 legen, jede einschalten (On), keine auf All lassen, dann SAVE drücken und Globe wählen. Das Ausschalten des Modus erfordert später keine Änderung am FM1.',
     setupNote:
       'Richte Voice 1–8 einmal am FM1 ein: auf die Kanäle 1–8, jede auf On, keine auf All, dann SAVE drücken und Globe wählen. Eine auf Off ignoriert ihren Sound und übernimmt ihn auch nicht, wenn sie wieder auf On geht, und eine auf All nimmt jeden gesendeten Sound.',
     howToAssign:

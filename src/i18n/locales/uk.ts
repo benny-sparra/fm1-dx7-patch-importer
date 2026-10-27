@@ -1093,7 +1093,8 @@ export default {
   voices: {
     channelShort: 'Кан. {{number}}',
     playSeveral: 'Мультитембральний режим',
-    playSeveralHint: 'Показує Voice 1–8 замість каналу нот, кожен грає патч із банків A–D.',
+    playSeveralHint:
+      'Грає Voice 1–8, кожен із патчем із банків A–D. Вимкнення повертає на канал Voice 1.',
     voice: 'Voice {{number}}',
     tag: 'V{{number}}',
     playedBy: 'Грає {{voices}}',
@@ -1112,6 +1113,8 @@ export default {
     channelsTitle: 'Канали Voice 1–8',
     channelsClose: 'Закрити канали Voice',
     channelOf: 'Канал Voice {{number}}',
+    firstUse:
+      'Мультитембральний режим потребує одноразового налаштування FM1: поставте Voice 1–8 на канали 1–8, увімкніть кожен (On), жодного не лишайте на All, потім натисніть SAVE і виберіть Globe. Пізніше вимкнення режиму не потребує змін на FM1.',
     setupNote:
       'Один раз налаштуйте Voice 1–8 на FM1: поставте їх на канали 1–8, кожен увімкніть (On), жоден не ставте на All, потім натисніть SAVE і оберіть Globe. Вимкнений (Off) ігнорує свій патч і не підхоплює його, коли його знову вмикають, а той, що на All, бере кожен надісланий патч.',
     howToAssign:

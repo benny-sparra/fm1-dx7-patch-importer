@@ -19,6 +19,8 @@ export default {
     channelsTitle: 'Channels of Voices 1–8',
     channelsClose: 'Close the Voice channels',
     channelOf: 'Voice {{number}} channel',
+    firstUse:
+      'Multitimbral mode needs the FM1 set up once: put Voices 1–8 on channels 1–8, switch each one On, leave none on All, then press SAVE and choose Globe. Switching the mode off later needs no change on the FM1.',
     setupNote:
       'Set up Voices 1–8 once on the FM1: put them on channels 1–8, switch each one On, leave none on All, then press SAVE and choose Globe. One that is Off ignores its patch and does not take it when switched back On, and one on All takes every patch sent.',
     howToAssign:
