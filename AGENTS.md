@@ -259,21 +259,27 @@ open everything an earlier release could have saved.
   The development FX probe's **V16 research** mode (`Fm1EffectProbeMode`) sends CC 0–23 or 70–93
   whatever the FM1 runs, with any 7-bit value; its default mode keeps to the controllers the
   profile places the effects at.
-- On M-VAVE's stock V16 the editor may send two more updater-protocol (`00 32`) commands, both on
-  object 4, the 176-byte settings block, approved by the owner on 2026-10-27: `0x23`, a read, and
-  `0x22`, a write, and the write only to read the block and write it back with the FX order bytes
-  (offset `0x92`, 27 bytes) changed. No other command, object, offset, or field: object 5 writes the
-  banks to Flash, `0x30`, object 8, and the loader stay **Dangerous / excluded**, and the identity
-  query rule stays. They live in `src/lib/v16-settings-block.ts`, which builds a write only from a
-  block it read (`readV16SettingsBlock`), refuses every other object, command, offset, and length,
-  and changes nothing outside the order bytes. The profile's `effectOrder` capability gates them
-  and is **off for every firmware** until the hardware run in
+- On M-VAVE's stock V16 the editor may send two more updater-protocol (`00 32`) frames, both on
+  object 4, the 176-byte settings block, approved by the owner on 2026-10-27 and narrowed the same
+  day: command `0x23`, a read of the block (offset 0, length 176), and command `0x22`, a write of
+  exactly the 27 FX table bytes at offset `0x92`, never the whole block, because a whole-block
+  write applies its preset, channel, bend, and glide to whichever Voice is selected when it
+  arrives. In those 27 bytes only byte 0 of entries 0–5 changes, as an arrangement of 0–5 (the
+  chain order); every other byte is written as read, entries 6–8 untouched. No other command,
+  object, offset, length, or value: object 5 writes the banks to Flash, `0x30`, object 8, and the
+  loader stay **Dangerous / excluded**, and the identity query rule stays. They live in
+  `src/lib/v16-settings-block.ts` (`readV16SettingsBlock`, `makeEffectOrderWrite`), which builds
+  the write only from a block a read produced, refuses a table that is not an order of the six
+  effects, and refuses any other order. A move reads the block immediately before its one write,
+  since the table also holds each effect's On/Off and Type, which CC 70–93 change. The profile's
+  `effectOrder` capability gates the Effects tab's reordering (`useV16EffectOrder`) and is **off
+  for every firmware** until the hardware run in
   `docs/hardware-runs/stock-v16-effect-order-run-sheet.md` confirms that a read, an unchanged
   write, and a reordering behave as expected and touch nothing else; then it is listed for the
   `mvave` family from release 16 and this rule says so. Until then only the development probe
-  (`V16SettingsProbe`, loaded behind `import.meta.env.DEV`) sends them. The probe's writes carry
-  the order bytes it is given as they are, since how the 27 bytes encode an order is not decoded
-  (`docs/fm1-research.md`, "Object 4: the FX order"); the Effects tab's reordering waits for that.
+  (`V16SettingsProbe`, behind `import.meta.env.DEV`) sends them. The firmware decode is **Likely**
+  (docs/fm1-research.md, "Controlling Voices and effects more fully"), and which end of the chain
+  position 0 is, and the reply's layout, wait for the run.
 - On Official Open the editor may send two things, both approved on 2026-10-16. The DX7
   single-voice dump goes only on note channels 1–7 or 10, the channels of tracks 1–8, and only
   after command 0 has shown that channel's track running DX7, since a dump to another engine is

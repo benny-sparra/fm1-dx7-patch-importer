@@ -939,6 +939,12 @@ export default {
     recallHint: '重新选择每个 Voice 的预设并发送效果，不会保存任何内容。',
     effectsTab: '效果',
     effectsTitle: '效果',
+    effectOrderReading: '正在从 FM1 读取效果顺序…',
+    effectOrderFailed: 'FM1 没有返回效果顺序，因此无法在此更改。',
+    effectOrderWriteFailed: 'FM1 没有接受新的顺序，请重试。',
+    effectOrderUnsaved: '新的顺序在 FM1 上按下 SAVE 之前不会保存。',
+    effectOrderDragTitle:
+      '拖动以改变此效果在声音所经顺序中的位置，第一个在左上角。使用键盘时，按空格键，再按方向键。FM1 会立即按新顺序播放。',
     menu: 'Voice 操作',
     recallOffline: '请先让 MIDI 上线，再重新调用 Voice。',
     recallEmpty: 'Voice 1–8 还都没有音色：先点击其中一个，再点击 A–D 库中的音色。',

@@ -15,13 +15,14 @@ import type { MidiController } from '@/hooks/use-midi'
 import { formatMidiBytes, makeLogEntry } from '@/lib/midi'
 import { midiActivity } from '@/lib/midi-activity'
 import {
-  fxOrderLength,
-  fxOrderOffset,
-  makeSettingsBlockReadRequest,
-  makeSettingsBlockWrite,
-  parseSettingsBlockReply,
-  readFxOrderBytes,
+  effectOrderSize,
+  fxTableLength,
+  fxTableOffset,
+  makeEffectOrderWrite,
+  readEffectOrder,
+  readV16SettingsBlock,
   type V16SettingsBlock,
+  type V16SettingsLink,
 } from '@/lib/v16-settings-block'
 
 type V16SettingsProbeProps = {
@@ -45,7 +46,6 @@ type ProbeRead = {
 }
 
 const hex = (byte: number) => byte.toString(16).padStart(2, '0').toUpperCase()
-const replyTimeoutMs = 2000
 /** How long the FM1 gets to apply a write before the probe reads the block again. */
 const settleMs = 400
 
@@ -55,20 +55,14 @@ function changedIndexes(bytes: Uint8Array, previous: Uint8Array | undefined) {
 }
 
 function parseOrderText(text: string) {
-  const tokens = text
+  const order = text
     .trim()
     .split(/[\s,]+/)
     .filter(Boolean)
-  const bytes = tokens.map((token) => (/^[0-9a-f]{1,2}$/i.test(token) ? parseInt(token, 16) : NaN))
-  return bytes.length === fxOrderLength && bytes.every((byte) => !Number.isNaN(byte)) ? bytes : null
-}
-
-const problemText = {
-  checksum: 'its checksum was wrong',
-  layout: 'its payload was neither the block nor the request’s prefix and the block',
-  length: 'its payload was not 176 bytes',
-  'seven-bit': 'it held a byte above 7 bits',
-  version: 'its first byte was not the version 0x0E',
+    .map(Number)
+  return order.length === effectOrderSize && order.every((effect) => Number.isInteger(effect))
+    ? order
+    : null
 }
 
 /**
@@ -98,45 +92,38 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
   const log = (direction: 'out' | 'system', message: string, data?: Uint8Array) =>
     logStore.append(makeLogEntry(direction, message, data))
 
-  /** Sends the read request and resolves with the block, rejecting with why it is unusable. */
-  function readBlock() {
-    return new Promise<V16SettingsBlock>((resolve, reject) => {
-      if (!input || !output) {
-        reject(new Error('Select the FM1’s input and output.'))
-        return
-      }
-      const stop = () => {
-        clearTimeout(timer)
-        input.removeListener('midimessage', handle)
-      }
-      const handle = (event: MessageEvent) => {
-        const answer = parseSettingsBlockReply(event.data)
-        if (!answer) return
-        stop()
-        if (answer.type === 'block') {
-          log('system', 'Read the V16 settings block.')
-          resolve(answer.block)
-        } else {
-          setHeard((messages) => [...messages, formatMidiBytes(Uint8Array.from(event.data))])
-          reject(new Error(`The FM1 answered, but ${problemText[answer.problem]}.`))
+  /** The ports as a read talks through them; any `00 32` reply that is heard is kept for the capture. */
+  function makeLink(): V16SettingsLink {
+    return {
+      listen: (hear) => {
+        const handle = (event: MessageEvent) => {
+          const data = Uint8Array.from(event.data)
+          if (data[1] === 0x00 && data[2] === 0x32) {
+            setHeard((messages) => [...messages.slice(-9), formatMidiBytes(data)])
+          }
+          hear(data)
         }
-      }
-      const timer = setTimeout(() => {
-        stop()
-        reject(new Error('The FM1 did not answer the read of its settings block.'))
-      }, replyTimeoutMs)
-      input.addListener('midimessage', handle)
-      const request = makeSettingsBlockReadRequest()
-      output.send(request)
-      midiActivity.signal('out')
-      log('out', 'Asked the FM1 for its settings block (object 4).', request)
-    })
+        input?.addListener('midimessage', handle)
+        return () => input?.removeListener('midimessage', handle)
+      },
+      send: (message) => {
+        output?.send(message)
+        midiActivity.signal('out')
+        log('out', 'Asked the FM1 for its settings block (object 4).', message)
+      },
+    }
+  }
+
+  async function readBlock() {
+    const block = await readV16SettingsBlock(makeLink())
+    log('system', 'Read the V16 settings block.')
+    return block
   }
 
   function showRead(block: V16SettingsBlock) {
     setRead({ block, previous: last.current, readAt: new Date() })
     last.current = block
-    setOrderText(Array.from(readFxOrderBytes(block), hex).join(' '))
+    setOrderText(readEffectOrder(block)?.join(' ') ?? '')
   }
 
   async function run(action: () => Promise<void>) {
@@ -163,7 +150,7 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
       if (!output) return
       const before = await readBlock()
       showRead(before)
-      const message = makeSettingsBlockWrite(before, order ?? readFxOrderBytes(before))
+      const message = makeEffectOrderWrite(before, order ?? readEffectOrder(before) ?? [])
       output.send(message)
       midiActivity.signal('out')
       log('out', 'Wrote the V16 settings block (object 4).', message)
@@ -172,7 +159,7 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
       showRead(after)
       const changed = changedIndexes(after.bytes, before.bytes)
       setOutcome(
-        `Wrote the block ${order ? 'with the order bytes you gave' : 'back unchanged'}. The read after it ${
+        `Wrote the block ${order ? 'with the order you gave' : 'back unchanged'}. The read after it ${
           changed.length === 0
             ? 'matches the read before it, byte for byte.'
             : `differs at ${changed.map((index) => `${index}: ${hex(before.bytes[index])} → ${hex(after.bytes[index])}`).join(', ')}.`
@@ -223,9 +210,10 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
           <div className="space-y-4 p-4 text-sm">
             <p className="leading-6 text-[var(--crt-ink-3)]">
               Development only, stock V16. Reads the settings block (object 4) and writes it back,
-              unchanged or with the {fxOrderLength} FX order bytes at {fxOrderOffset} replaced, then
-              reads it again. Follow the run sheet, and never press SAVE on the FM1 except where it
-              says. Firmware: {firmware.kind === 'mvave' ? firmware.identity : firmware.kind}.
+              unchanged or with the chain order changed, then reads it again. A write sends only the
+              {fxTableLength} FX table bytes at {fxTableOffset}. Follow the run sheet, and never
+              press SAVE on the FM1 except where it says. Firmware:{' '}
+              {firmware.kind === 'mvave' ? firmware.identity : firmware.kind}.
             </p>
             {!canRun ? (
               <p>Connect an FM1 on M-VAVE&rsquo;s V16, with SysEx and its input and output.</p>
@@ -254,7 +242,8 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
             </div>
             <div className="flex flex-wrap items-end gap-2">
               <label className="flex min-w-0 flex-1 flex-col gap-1 font-medium" htmlFor={orderId}>
-                FX order bytes ({fxOrderLength}, hex)
+                Chain order, effect numbers by position (0 Filter, 1 Reverb, 2 Delay, 3 Distortion,
+                4 Chorus, 5 Phaser)
                 <input
                   className="h-10 rounded-md border bg-background px-2 font-mono"
                   id={orderId}
@@ -268,7 +257,7 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
                 type="button"
                 variant="secondary"
               >
-                <span>Write with these order bytes</span>
+                <span>Write this order</span>
               </Button>
             </div>
             {failure ? <ErrorNotice>{failure}</ErrorNotice> : null}
@@ -280,13 +269,13 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
                   {read.previous
                     ? `${changedIndexes(read.block.bytes, read.previous.bytes).length} bytes changed since the last read.`
                     : 'First read.'}{' '}
-                  The order bytes are {fxOrderOffset}–{fxOrderOffset + fxOrderLength - 1}.
+                  The FX table is bytes {fxTableOffset}–{fxTableOffset + fxTableLength - 1}.
                 </p>
                 <ol className="grid grid-cols-4 gap-1 font-mono text-xs sm:grid-cols-8">
                   {Array.from(read.block.bytes, (byte, index) => {
                     const changed =
                       read.previous !== undefined && read.previous.bytes[index] !== byte
-                    const inOrder = index >= fxOrderOffset && index < fxOrderOffset + fxOrderLength
+                    const inOrder = index >= fxTableOffset && index < fxTableOffset + fxTableLength
                     return (
                       <li
                         className={

@@ -7,7 +7,7 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { MidiLogStore } from '@/lib/midi-log-store'
 import {
-  fxOrderOffset,
+  fxTableOffset,
   makeSettingsBlockReadRequest,
   settingsBlockLength,
   settingsBlockVersion,
@@ -29,6 +29,12 @@ afterEach(cleanup)
 
 const blockBytes = Array.from({ length: settingsBlockLength }, (_, index) => (index * 3) % 100)
 blockBytes[0] = settingsBlockVersion
+// An FX table of nine entries, byte 0 the effect at that chain position.
+;[2, 0, 1, 3, 5, 4, 6, 7, 8].forEach((effect, entry) => {
+  blockBytes[fxTableOffset + entry * 3] = effect
+  blockBytes[fxTableOffset + entry * 3 + 1] = entry % 2
+  blockBytes[fxTableOffset + entry * 3 + 2] = entry % 3
+})
 
 /** An FM1 that answers a read of object 4 with `block`, and records the writes it is sent. */
 function makeProbeMidi(block: number[] = blockBytes) {
@@ -57,35 +63,30 @@ async function openProbe(midi: Midi) {
 }
 
 describe('V16SettingsProbe', () => {
-  it('reads the block and shows the order bytes it found', async () => {
+  it('reads the block and shows the chain order it found', async () => {
     const { midi, writes } = makeProbeMidi()
     const user = await openProbe(midi)
     await user.click(screen.getByRole('button', { name: 'Read block' }))
     expect(await screen.findByRole('region', { name: 'Settings block read' })).toBeTruthy()
-    expect(screen.getByLabelText(/FX order bytes/)).toHaveProperty(
-      'value',
-      blockBytes
-        .slice(fxOrderOffset, fxOrderOffset + 27)
-        .map((byte) => byte.toString(16).padStart(2, '0').toUpperCase())
-        .join(' '),
-    )
+    expect(screen.getByLabelText(/Chain order/)).toHaveProperty('value', '2 0 1 3 5 4')
     expect(writes).toEqual([])
   })
 
-  it('sends exactly one write, carrying the block unchanged, when writing back unchanged', async () => {
+  it('sends exactly one write, carrying the table unchanged, when writing back unchanged', async () => {
     const { midi, writes } = makeProbeMidi()
     const user = await openProbe(midi)
     await user.click(screen.getByRole('button', { name: 'Write back unchanged' }))
     await waitFor(() => expect(screen.getByRole('status').textContent).toMatch(/byte for byte/))
     expect(writes).toHaveLength(1)
     expect(writes[0][0]).toBe(0xf0)
+    expect(writes[0].length).toBeLessThan(60)
   })
 
   it('reports an answer it cannot use instead of writing', async () => {
     const { midi, writes } = makeProbeMidi([0x0d, ...blockBytes.slice(1)])
     const user = await openProbe(midi)
     await user.click(screen.getByRole('button', { name: 'Write back unchanged' }))
-    expect((await screen.findByRole('alert')).textContent).toMatch(/version 0x0E/)
+    expect((await screen.findByRole('alert')).textContent).toMatch(/unusably \(version\)/)
     expect(writes).toEqual([])
   })
 

@@ -1036,6 +1036,13 @@ export default {
     recallHint: 'Escolhe de novo o preset de cada Voice e envia os efeitos. Não salva nada.',
     effectsTab: 'Efeitos',
     effectsTitle: 'Efeitos',
+    effectOrderReading: 'Lendo a ordem dos efeitos do FM1…',
+    effectOrderFailed:
+      'O FM1 não informou a ordem dos efeitos, então ela não pode ser alterada aqui.',
+    effectOrderWriteFailed: 'O FM1 não aceitou a nova ordem. Tente novamente.',
+    effectOrderUnsaved: 'Uma nova ordem só é salva no FM1 quando você pressiona SAVE.',
+    effectOrderDragTitle:
+      'Arraste para mudar o lugar deste efeito na ordem por que o som passa, o primeiro no alto à esquerda. Pelo teclado, pressione Espaço e depois as setas. O FM1 toca a nova ordem na hora.',
     menu: 'Ações das Voices',
     recallOffline: 'Ative o MIDI para recuperar as Voices.',
     recallEmpty:

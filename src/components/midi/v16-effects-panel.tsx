@@ -5,12 +5,13 @@ import { useTranslation } from 'react-i18next'
 import { EffectsUnit } from '@/components/editor/effects-unit'
 import { RackPanelTitle } from '@/components/ui/rack-panel'
 import '@/i18n/voices'
+import { useV16EffectOrder } from '@/hooks/use-v16-effect-order'
 import type { MidiController } from '@/hooks/use-midi'
 import { applyEffectPreset, type EffectPresetId } from '@/lib/effect-presets'
 import { getV16Effects, setV16Effects, subscribeV16Effects } from '@/lib/v16-effects'
 
 type V16EffectsPanelProps = {
-  midi: Pick<MidiController, 'hasMidiOutput' | 'sendEffectParameter'>
+  midi: Pick<MidiController, 'sendEffectParameter'> & Parameters<typeof useV16EffectOrder>[0]
 }
 
 /**
@@ -22,6 +23,17 @@ type V16EffectsPanelProps = {
 export function V16EffectsPanel({ midi }: V16EffectsPanelProps) {
   const { t } = useTranslation()
   const effects = useSyncExternalStore(subscribeV16Effects, getV16Effects)
+  const chain = useV16EffectOrder(midi)
+  const notice =
+    chain.status === 'reading'
+      ? t('voices.effectOrderReading')
+      : chain.status === 'failed'
+        ? t('voices.effectOrderFailed')
+        : chain.writeFailed
+          ? t('voices.effectOrderWriteFailed')
+          : chain.status === 'ready'
+            ? t('voices.effectOrderUnsaved')
+            : undefined
 
   const change = (next: Uint8Array) => {
     const changed = setV16Effects(next)
@@ -44,6 +56,17 @@ export function V16EffectsPanel({ midi }: V16EffectsPanelProps) {
         title={t('voices.effectsTitle')}
       />
       <EffectsUnit
+        effectOrder={
+          chain.status === 'unavailable'
+            ? undefined
+            : {
+                disabled: chain.status !== 'ready',
+                dragTitle: t('voices.effectOrderDragTitle'),
+                notice,
+                onMove: chain.move,
+                order: chain.order,
+              }
+        }
         onApplyPreset={applyPreset}
         onChange={setParameter}
         onGestureEnd={noGesture}

@@ -1,14 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
-  fxOrderLength,
-  fxOrderOffset,
+  fxTableLength,
+  fxTableOffset,
+  makeEffectOrderWrite,
   makeSettingsBlockReadRequest,
-  makeSettingsBlockWrite,
   parseSettingsBlockReply,
-  readFxOrderBytes,
+  readEffectOrder,
+  readV16SettingsBlock,
   settingsBlockLength,
   settingsBlockVersion,
+  V16SettingsReadError,
   type V16SettingsBlock,
 } from '@/lib/v16-settings-block'
 
@@ -45,10 +47,17 @@ function frame(command: number, payload: number[]) {
 
 const prefix = [4, 0, 0, 0, 0, 0xb0, 0, 0]
 
-// A block as a V16 might send it: made up, with the version first and the order bytes counting.
+// A block as a V16 might send it: made up, with the version first. Its FX table is nine entries,
+// byte 0 the effect at that chain position (Delay, Filter, Reverb, Distortion, Phaser, Chorus,
+// then the unused 6–8), bytes 1 and 2 effect e's On/Off and Type by number.
+const tableOrder = [2, 0, 1, 3, 5, 4]
 const blockBytes = Array.from({ length: settingsBlockLength }, (_, index) => (index * 7) % 100)
 blockBytes[0] = settingsBlockVersion
-for (let index = 0; index < fxOrderLength; index += 1) blockBytes[fxOrderOffset + index] = index
+;[...tableOrder, 6, 7, 8].forEach((effect, entry) => {
+  blockBytes[fxTableOffset + entry * 3] = effect
+  blockBytes[fxTableOffset + entry * 3 + 1] = entry % 2
+  blockBytes[fxTableOffset + entry * 3 + 2] = entry % 3
+})
 
 function readBlock(payload = blockBytes): V16SettingsBlock {
   const answer = parseSettingsBlockReply(frame(0x23, payload))
@@ -121,20 +130,34 @@ describe('parseSettingsBlockReply', () => {
   })
 })
 
-describe('readFxOrderBytes', () => {
-  it('returns the 27 bytes at offset 0x92', () => {
-    expect([...readFxOrderBytes(readBlock())]).toEqual(Array.from({ length: 27 }, (_, i) => i))
-    expect(fxOrderOffset).toBe(0x92)
+describe('readEffectOrder', () => {
+  it('gives the effect at each chain position', () => {
+    expect(readEffectOrder(readBlock())).toEqual(tableOrder)
+    expect(fxTableOffset).toBe(0x92)
+  })
+
+  it.each([
+    ['an effect twice', 3, 0],
+    ['an unused effect among the six', 3, 6],
+    ['a number above 8', 3, 9],
+  ])('returns null for a table with %s', (_name, entry, value) => {
+    const bytes = [...blockBytes]
+    bytes[fxTableOffset + entry * 3] = value
+    expect(readEffectOrder(readBlock(bytes))).toBeNull()
+  })
+
+  it('refuses a block that did not come from a read', () => {
+    const made: V16SettingsBlock = { bytes: Uint8Array.from(blockBytes), reply: new Uint8Array() }
+    expect(() => readEffectOrder(made)).toThrow(TypeError)
   })
 })
 
-describe('makeSettingsBlockWrite', () => {
+describe('makeEffectOrderWrite', () => {
   function unpackWrite(message: Uint8Array) {
-    const septets = [...message.subarray(1, -1)]
     const bytes: number[] = []
     let accumulator = 0
     let count = 0
-    for (const septet of septets) {
+    for (const septet of message.subarray(1, -1)) {
       accumulator |= septet << count
       count += 7
       while (count >= 8) {
@@ -146,79 +169,122 @@ describe('makeSettingsBlockWrite', () => {
     return bytes
   }
 
-  it('writes the block back unchanged when given its own order bytes', () => {
-    const block = readBlock()
-    const bytes = unpackWrite(makeSettingsBlockWrite(block, readFxOrderBytes(block)))
-    expect(bytes.slice(0, 6)).toEqual([0x00, 0x59, 0x22, 184, 0, 0])
-    expect(bytes.slice(6, 14)).toEqual(prefix)
-    expect(bytes.slice(14, 14 + settingsBlockLength)).toEqual(blockBytes)
-    const checksum = ~bytes.slice(6, 6 + 184).reduce((sum, byte) => sum + byte, 0) & 0xff
-    expect(bytes[6 + 184]).toBe(checksum)
+  const tableOf = (bytes: number[]) => bytes.slice(14, 14 + fxTableLength)
+
+  it('writes 27 bytes at offset 0x92 of object 4, not the block', () => {
+    const bytes = unpackWrite(makeEffectOrderWrite(readBlock(), tableOrder))
+    expect(bytes.slice(0, 6)).toEqual([0x00, 0x59, 0x22, 35, 0, 0])
+    expect(bytes.slice(6, 14)).toEqual([4, 0x92, 0, 0, 0, 27, 0, 0])
+    const payload = bytes.slice(6, 6 + 35)
+    expect(bytes[6 + 35]).toBe(~payload.reduce((sum, byte) => sum + byte, 0) & 0xff)
   })
 
-  it('changes only the 27 order bytes', () => {
-    const block = readBlock()
-    const order = Array.from({ length: 27 }, (_, index) => 26 - index)
-    const bytes = unpackWrite(makeSettingsBlockWrite(block, order)).slice(14, 14 + 176)
-    const changed = bytes.flatMap((byte, index) => (byte === blockBytes[index] ? [] : [index]))
-    expect(changed.every((index) => index >= 0x92 && index < 0x92 + 27)).toBe(true)
-    expect(bytes.slice(0x92, 0x92 + 27)).toEqual(order)
-    expect([...block.bytes]).toEqual(blockBytes)
+  it('carries the table as read when the order is unchanged', () => {
+    const bytes = unpackWrite(makeEffectOrderWrite(readBlock(), tableOrder))
+    expect(tableOf(bytes)).toEqual(blockBytes.slice(0x92, 0x92 + 27))
+  })
+
+  it('changes only byte 0 of entries 0–5, keeping every On/Off, Type, and entries 6–8', () => {
+    const order = [5, 4, 3, 2, 1, 0]
+    const table = tableOf(unpackWrite(makeEffectOrderWrite(readBlock(), order)))
+    const expected = blockBytes.slice(0x92, 0x92 + 27)
+    order.forEach((effect, position) => {
+      expected[position * 3] = effect
+    })
+    expect(table).toEqual(expected)
   })
 
   it('refuses a block that did not come from a read', () => {
     const made: V16SettingsBlock = { bytes: Uint8Array.from(blockBytes), reply: new Uint8Array() }
-    expect(() =>
-      makeSettingsBlockWrite(
-        made,
-        Array.from({ length: 27 }, () => 0),
-      ),
-    ).toThrow(TypeError)
-    expect(() => readFxOrderBytes(made)).toThrow(TypeError)
+    expect(() => makeEffectOrderWrite(made, tableOrder)).toThrow(TypeError)
   })
 
-  it('refuses an order of the wrong length or with a value that is not a byte', () => {
-    const block = readBlock()
-    expect(() =>
-      makeSettingsBlockWrite(
-        block,
-        Array.from({ length: 26 }, () => 0),
-      ),
-    ).toThrow(RangeError)
-    expect(() =>
-      makeSettingsBlockWrite(
-        block,
-        Array.from({ length: 28 }, () => 0),
-      ),
-    ).toThrow(RangeError)
-    expect(() =>
-      makeSettingsBlockWrite(
-        block,
-        Array.from({ length: 27 }, () => 256),
-      ),
-    ).toThrow(RangeError)
-    expect(() =>
-      makeSettingsBlockWrite(
-        block,
-        Array.from({ length: 27 }, () => -1),
-      ),
-    ).toThrow(RangeError)
-    expect(() =>
-      makeSettingsBlockWrite(
-        block,
-        Array.from({ length: 27 }, () => 1.5),
-      ),
-    ).toThrow(RangeError)
+  it('refuses a table that is not an order of the six effects', () => {
+    const bytes = [...blockBytes]
+    bytes[fxTableOffset] = 6
+    expect(() => makeEffectOrderWrite(readBlock(bytes), tableOrder)).toThrow(RangeError)
+  })
+
+  it.each([
+    ['too few', [0, 1, 2, 3, 4]],
+    ['too many', [0, 1, 2, 3, 4, 5, 6]],
+    ['a repeat', [0, 1, 2, 3, 4, 4]],
+    ['an unused effect', [0, 1, 2, 3, 4, 6]],
+    ['a negative number', [0, 1, 2, 3, 4, -1]],
+    ['a fraction', [0, 1, 2, 3, 4, 5.5]],
+  ])('refuses an order with %s', (_name, order) => {
+    expect(() => makeEffectOrderWrite(readBlock(), order)).toThrow(RangeError)
   })
 
   it('sends only 7-bit bytes between F0 and F7', () => {
-    const block = readBlock()
-    const message = makeSettingsBlockWrite(
-      block,
-      Array.from({ length: 27 }, () => 255),
-    )
+    const message = makeEffectOrderWrite(readBlock(), [5, 4, 3, 2, 1, 0])
     expect(message[0]).toBe(0xf0)
     expect(message[message.length - 1]).toBe(0xf7)
     expect([...message.subarray(1, -1)].every((byte) => byte < 0x80)).toBe(true)
+  })
+})
+
+describe('readV16SettingsBlock', () => {
+  function makeLink(answers: (Uint8Array | null)[]) {
+    const sent: Uint8Array[] = []
+    let hear: (message: Uint8Array) => void = () => {}
+    const link = {
+      listen: (listener: (message: Uint8Array) => void) => {
+        hear = listener
+        return () => {
+          hear = () => {}
+        }
+      },
+      send: (message: Uint8Array) => {
+        sent.push(message)
+        const answer = answers[sent.length - 1]
+        if (answer) hear(answer)
+      },
+    }
+    return { link, sent }
+  }
+
+  it('sends the read request once and resolves with the block', async () => {
+    const { link, sent } = makeLink([frame(0x23, blockBytes)])
+    const block = await readV16SettingsBlock(link)
+    expect([...block.bytes]).toEqual(blockBytes)
+    expect(sent).toHaveLength(1)
+    expect(sent[0]).toEqual(makeSettingsBlockReadRequest())
+  })
+
+  it('asks again when the first request is not answered', async () => {
+    vi.useFakeTimers()
+    const { link, sent } = makeLink([null, frame(0x23, blockBytes)])
+    const read = readV16SettingsBlock(link, { timeoutMs: 100 })
+    await vi.advanceTimersByTimeAsync(100)
+    expect((await read).bytes.length).toBe(settingsBlockLength)
+    expect(sent).toHaveLength(2)
+    vi.useRealTimers()
+  })
+
+  it('gives up with no-reply after its attempts', async () => {
+    vi.useFakeTimers()
+    const { link, sent } = makeLink([null, null, null])
+    const read = readV16SettingsBlock(link, { attempts: 2, timeoutMs: 100 })
+    const outcome = read.catch((error: unknown) => error)
+    await vi.advanceTimersByTimeAsync(300)
+    expect(await outcome).toMatchObject({ problem: 'no-reply' })
+    expect(sent).toHaveLength(2)
+    vi.useRealTimers()
+  })
+
+  it('fails at once on a reply it cannot use, without asking again', async () => {
+    const { link, sent } = makeLink([frame(0x23, [0x0d, ...blockBytes.slice(1)])])
+    await expect(readV16SettingsBlock(link)).rejects.toMatchObject({ problem: 'unusable' })
+    expect(sent).toHaveLength(1)
+  })
+
+  it('rejects as cancelled when its signal aborts', async () => {
+    const { link } = makeLink([null])
+    const controller = new AbortController()
+    const read = readV16SettingsBlock(link, { signal: controller.signal })
+    controller.abort()
+    await expect(read).rejects.toBeInstanceOf(V16SettingsReadError)
+    await expect(read).rejects.toMatchObject({ problem: 'cancelled' })
   })
 })

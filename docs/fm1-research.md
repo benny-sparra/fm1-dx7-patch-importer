@@ -2505,34 +2505,35 @@ whether that sets the flag was not followed. That fits both runs, where it was s
 **Likely**.
 
 **Object 4: the FX order** (2026-10-27). The owner approved sending command `0x23` (read) and
-`0x22` (write) on object 4, the write only to put the block back with the FX order bytes changed
-(`AGENTS.md`, "MIDI"), so the editor can reorder V16's effects. What the notes above and the
-restore decode in §6.3 settle, and what they leave open:
+`0x22` (write) on object 4 so the editor can reorder V16's effects, and narrowed it the same day:
+the write is exactly the 27 FX table bytes at offset `0x92`, never the whole block
+(`AGENTS.md`, "MIDI"). The firmware reading of
+"Controlling Voices and effects more fully" (PR #402) decodes the table; what the editor relies on:
 
-| Fact                                                                                                                                                                                                                                                        | Confidence                                                     |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| A frame is `F0`, then `00 59 <cmd> <length, 3 bytes LE> <payload> <checksum>` packed seven bits at a time, least significant bit first, then `F7`                                                                                                           | Confirmed (identity)                                           |
-| The checksum is the complement of the payload's byte sum, `~sum(payload) & 0xFF` (V15's identity reply, 34-byte block, checked 2026-10-27: `19`)                                                                                                            | Confirmed (identity)                                           |
-| A request's payload is the object, a 32-bit offset, and a 24-bit length (`0x21`: object and offset), then for `0x22` the data. The restore's frames fit it: `00 59 22 08 04 00 05 <offset> 00 04 00` is length 1032 = 8 + 1024, object 5                    | Likely (object 5 decode)                                       |
-| Object 4 is 176 bytes (`0xB0`), version `0x0E`, read with `0x23` and written with `0x22`; the write takes a partial write over the current block, checks every field, rejects the block for one bad value, applies what changed, and marks settings unsaved | Likely (firmware, not run)                                     |
-| The editor reads at offset 0 with length 176 (`00 00 00 00`, `B0 00 00`), so the order of the offset's bytes never matters                                                                                                                                  | Likely                                                         |
-| The FX order is 27 bytes at `0x92`, inside the block                                                                                                                                                                                                        | Likely (firmware, not run)                                     |
-| The version `0x0E` is the block's first byte                                                                                                                                                                                                                | Needs hardware test: the notes name the version, not its place |
-| The reply to `0x23` is `00 59 23` and a payload of the 176 bytes alone, or of the request's 8-byte prefix and then the 176                                                                                                                                  | Needs hardware test: the notes do not give the reply's layout  |
-| What the 27 bytes mean: which effect each holds, whether they are a list of six effects and what the rest is for, and what a 7-bit or 8-bit value means in them                                                                                             | Needs hardware test: **not decoded**                           |
-| Whether writing the block back unchanged, or with the order changed, touches anything else, and whether it reaches Flash                                                                                                                                    | Needs hardware test                                            |
+| Fact                                                                                                                          | Confidence                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| A frame is `F0`, then `00 59 <cmd> <length, 3 bytes LE> <payload> <checksum>` packed seven bits at a time, LSB first, `F7`    | Confirmed (identity)                                                    |
+| The checksum is `~sum(payload) & 0xFF` (checked on V15's identity reply: `19`)                                                | Confirmed (identity)                                                    |
+| A request's payload is the object, a 32-bit LE offset, a 24-bit LE length, then for `0x22` the data (fits object 5's restore) | Likely                                                                  |
+| Object 4 is 176 bytes, byte 0 the version `0x0E`; `0x23` reads it, `0x22` takes a partial write laid over the current block   | Likely (firmware)                                                       |
+| The FX table is 27 bytes at `0x92`: nine 3-byte entries                                                                       | Likely (firmware)                                                       |
+| Byte 0 of entry `p` (0–5) is the effect at chain position `p`: 0 Filter, 1 Reverb, 2 Delay, 3 Distortion, 4 Chorus, 5 Phaser  | Likely (firmware)                                                       |
+| Bytes 1–2 of entry `e` are effect `e`'s On/Off and Type, by number, not position; entries 6–8 hold 6–8                        | Likely (firmware)                                                       |
+| The write rejects the block unless the nine byte 0s are at most 8 and all different, byte 1 at most 1, byte 2 at most 2       | Likely (firmware)                                                       |
+| A write of the 27 bytes touches nothing else; it does not reach Flash, and the FM1's next SAVE stores the order               | Likely (firmware); Needs hardware test                                  |
+| The reply to `0x23` is `00 59 23` and a payload of the 176 bytes alone, or of the request's 8-byte prefix and the 176         | Needs hardware test                                                     |
+| Which end of the chain position 0 is (first or last in the signal)                                                            | Needs hardware test (the FX page shows it)                              |
+| Whether CC 70–93 edits between a read and a write are put back by the write's On/Off and Type bytes                           | By design: the editor reads just before each write; Needs hardware test |
 
-The editor's codec (`src/lib/v16-settings-block.ts`) therefore reads a block and finds the 27 bytes,
-and writes back a block read just before with the order bytes it is given, byte for byte, and
-nothing else. It does not know what an order is. **V16 has six effects (Filter, Reverb, Delay,
-Distortion, Chorus, Phaser) and FM-1+VA's record seven (adding Bitcrush), so the 27 bytes are not
-assumed to share FM-1+VA's encoding**, which keeps the order in a few record bytes
-(`fm1VaRecordWithEffectOrder`). 27 is not six or seven, so the block may hold more than a list. The
-reordering UI waits for the run in
-[`hardware-runs/stock-v16-effect-order-run-sheet.md`](hardware-runs/stock-v16-effect-order-run-sheet.md),
-which reads the bytes with the FX order page in each of several states, so the encoding can be
-read from what changes. Nothing here is the OTA or loader path: object 4 is the settings block, and
-objects 5 and 8, `0x30`, and the loader stay **Dangerous / excluded**.
+The editor's codec (`src/lib/v16-settings-block.ts`) reads a block and finds the chain order, and
+writes only the 27 table bytes at `0x92`, taken from a block read just before, with byte 0 of
+entries 0–5 replaced by an arrangement of 0–5 and every other byte as read. It refuses a table that
+is not an order of the six effects, since putting 6–8 among the first six passes the firmware's
+check and drops an effect. The Effects tab's reordering is built behind the profile's `effectOrder`
+capability, off until the run in
+[`hardware-runs/stock-v16-effect-order-run-sheet.md`](hardware-runs/stock-v16-effect-order-run-sheet.md).
+Nothing here is the OTA or loader path: object 4 is the settings block, and objects 5 and 8,
+`0x30`, and the loader stay **Dangerous / excluded**.
 
 #### Questions for the hardware run
 
@@ -2564,8 +2565,8 @@ the third, and the fourth; the run of 2026-10-25 the rest of the third, and the 
 11. Does M-VAVE's Windows updater send command `0x22` or `0x23` on object 4, the settings block
     that holds the selected Voice's channel? Capture only, nothing sent by the editor
     ([`hardware-runs/stock-v16-voice-settings-capture.md`](hardware-runs/stock-v16-voice-settings-capture.md)).
-12. How does object 4's FX order encode V16's six effects' order, and does writing the block back
-    unchanged or with the order changed touch anything else? Run sheet:
+12. Does object 4's FX table behave as the firmware reading says (chain order in byte 0 of entries
+    0–5, position 0 first or last), and does the 27-byte write touch anything else? Run sheet:
     [`hardware-runs/stock-v16-effect-order-run-sheet.md`](hardware-runs/stock-v16-effect-order-run-sheet.md).
 
 ### FM1 Editor
