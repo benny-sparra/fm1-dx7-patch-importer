@@ -406,7 +406,7 @@ function ResultGroup({
                 )}
                 <span
                   className={cn(
-                    'patch-slot font-seven-segment pointer-events-none relative shrink-0 border bg-[var(--crt-bg-well)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none',
+                    'patch-slot font-seven-segment pointer-events-none relative shrink-0 border bg-[var(--crt-bg-well)] px-1.5 pt-1.5 pb-1 text-[16px] leading-none',
                     isActive
                       ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
                       : 'border-[var(--crt-line)] text-[var(--crt-acc-lt)]',
