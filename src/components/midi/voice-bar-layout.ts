@@ -15,7 +15,7 @@ export const voiceBarClassName = () =>
 
 export const voiceNoticesCellClassName = 'col-span-full row-start-1 grid'
 export const voiceActionsCellClassName =
-  'relative z-[1] col-start-2 row-start-2 justify-self-end min-[62rem]:mb-0.5'
+  'relative z-[1] col-start-2 row-start-2 justify-self-end min-[62rem]:self-center'
 export const voiceTabsCellClassName =
   'relative z-10 col-start-1 row-start-2 grid grid-cols-2 gap-1 min-[23.5rem]:grid-cols-4 min-[62rem]:flex min-[62rem]:items-end min-[62rem]:gap-0.5'
 /** The Effects tab: a row of its own below 992px, one more tab beside the Voices from there. */
