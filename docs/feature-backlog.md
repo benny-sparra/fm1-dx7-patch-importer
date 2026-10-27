@@ -209,7 +209,8 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
             there last and nothing has gone there since, which is all it can know;
          2. one Program Change per Voice on its channel, as the strip's send does;
          3. the 24 effect controllers on the effect channel.
-         The FM1 keeps it only after SAVE → ALL, which the confirmation says in one line.
+       - **Keeping it on the FM1** takes SAVE → ALL there, which the confirmation says in one
+         line.
        - **What a set cannot do,** and says in a help popover rather than a notice: set the
          Voices' channels or On/Off (no message does, `fm1-research.md`; they are set once on
          the FM1), choose or store an FX group, or set the effect order. A mix (each Voice's
