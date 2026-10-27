@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 import { installFakeMidi, sentMidi } from './fake-midi'
 
-// V16's Voice strip, switched on as a returning visitor left it, with the help already seen.
+// V16's Voice strip, as a returning visitor left it, with the help already seen.
 async function openWithVoices(page: Page) {
   await installFakeMidi(page, { firmware: 'mvave-v16' })
   await page.addInitScript(() => {

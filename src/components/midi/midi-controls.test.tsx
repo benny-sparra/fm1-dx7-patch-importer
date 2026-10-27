@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -10,11 +9,9 @@ import {
   MidiConnectActions,
   MidiFirmwareBadge,
   MidiSettingsMenu,
-  VoicesSwitch,
 } from '@/components/midi/midi-controls'
 import { setLocale } from '@/i18n'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
-import { getVoiceSetup, resetVoiceSetupForTests, setVoiceChannel } from '@/lib/voice-setup'
 
 afterEach(async () => {
   cleanup()
@@ -401,49 +398,8 @@ describe('MidiFirmwareBadge', () => {
   })
 })
 
-describe('Voices switch', () => {
-  afterEach(() => {
-    localStorage.clear()
-    resetVoiceSetupForTests()
-  })
-
-  it('keeps the choice for the next visit', async () => {
-    render(<VoicesSwitch midi={{ setChannel: vi.fn() }} />)
-    const voices = screen.getByRole('switch', { name: 'Multitimbral mode' })
-    expect(voices.getAttribute('aria-checked')).toBe('false')
-
-    await userEvent.setup().click(voices)
-
-    expect(voices.getAttribute('aria-checked')).toBe('true')
-    expect(getVoiceSetup().enabled).toBe(true)
-    expect(JSON.parse(localStorage.getItem('fm1-voice-setup') ?? '')).toMatchObject({
-      enabled: true,
-      version: 2,
-    })
-  })
-
-  it('puts the note channel back on Voice 1’s channel when switched off, and only then', async () => {
-    const setChannel = vi.fn()
-    setVoiceChannel(0, 6)
-    const user = userEvent.setup()
-    render(<VoicesSwitch midi={{ setChannel }} />)
-    const voices = screen.getByRole('switch', { name: 'Multitimbral mode' })
-
-    await user.click(voices)
-    expect(setChannel).not.toHaveBeenCalled()
-
-    await user.click(voices)
-    expect(setChannel).toHaveBeenCalledExactlyOnceWith(6)
-    expect(getVoiceSetup().enabled).toBe(false)
-  })
-
-  it('explains itself in a tooltip', () => {
-    render(<VoicesSwitch midi={{ setChannel: vi.fn() }} />)
-
-    expect(screen.getByTitle(/returns to Voice 1’s channel/)).toBeTruthy()
-  })
-
-  it('is no longer in the Settings menu', () => {
+describe('Settings menu on V16', () => {
+  it('has no Multitimbral mode switch, since V16 always plays the Voices', () => {
     renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
 
     expect(screen.queryByRole('switch', { name: 'Multitimbral mode' })).toBeNull()

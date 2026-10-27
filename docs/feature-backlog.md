@@ -239,10 +239,12 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - **Open research question:** is there a MIDI message that sets the Voices' channels and
     On/Off on V16, found in the firmware or captured from M-VAVE's own tools? It would allow a true
     one-click switch between modes. It needs a capture, and an approval recorded in `AGENTS.md`,
-    before anything sends it; `F0 22 24 36` stays **Dangerous / excluded**. Until then the mode
-    lives in the editor (decided 2026-10-27): Multitimbral mode shows the strip and the one-time
-    FM1 setup steps, and switching it off puts the note channel back on Voice 1's channel, which on
-    a set-up FM1 is the single-sound behaviour.
+    before anything sends it; `F0 22 24 36` stays **Dangerous / excluded**. Until then the Voices
+    live in the editor (decided 2026-10-27): V16 is always multitimbral, so the Voice tabs show
+    whenever the firmware is V16 (Ben's request, 2026-10-27), with no Multitimbral mode switch;
+    Voice 1 is aimed by default, the one-time FM1 setup steps show until a Voice has a patch, and
+    a set-up FM1 plays single-sound on Voice 1's channel. `enabled` stays in `fm1-voice-setup`
+    unread.
   - **Questions to discuss:**
     - **The word Voice.** `AGENTS.md` uses voice for DX7 voice data (the voice editor, Init
       voice), and also says names printed on the FM1 stay as printed, which makes V16's Voice a

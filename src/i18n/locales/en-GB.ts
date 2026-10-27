@@ -250,9 +250,6 @@ export default {
     noDeviceSelected: 'No device selected',
   },
   voices: {
-    playSeveral: 'Multitimbral mode',
-    playSeveralHint:
-      'Plays Voices 1–8, each with a patch from banks A–D. Switching it off returns to Voice 1’s channel.',
     voice: 'Voice {{number}}',
     playedBy: 'Played by {{voices}}',
     copyAndAssign: 'Copy into A–D and assign…',

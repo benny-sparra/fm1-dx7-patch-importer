@@ -48,8 +48,8 @@ function voiceCellClassName(isAimed: boolean) {
     isAimed
       ? // The aimed tab is the panel's own face, open at the bottom and topped with the amber bar;
         // on a phone it is a lit grid cell with an amber ring.
-        'h-8 border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)] shadow-[inset_0_0_0_1px_var(--crt-led)] min-[52.5rem]:flex-1 min-[52.5rem]:border-r-[var(--crt-bevel-lt)] min-[52.5rem]:border-b-[var(--crt-bg-panel)] min-[52.5rem]:bg-[var(--crt-bg-panel)] min-[52.5rem]:shadow-[inset_0_2px_0_var(--crt-led)] xl:flex-none'
-      : 'h-8 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)] min-[52.5rem]:mb-0.5 min-[52.5rem]:h-[26px] min-[52.5rem]:flex-1 xl:flex-none',
+        'crt-hatch h-10 border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] shadow-[inset_0_0_0_1px_var(--crt-led)] min-[52.5rem]:flex-1 min-[52.5rem]:border-r-[var(--crt-bevel-lt)] min-[52.5rem]:border-b-[var(--crt-hatch-b)] min-[52.5rem]:shadow-[inset_0_2px_0_var(--crt-led)] xl:flex-none'
+      : 'h-10 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)] min-[52.5rem]:mb-0.5 min-[52.5rem]:h-[34px] min-[52.5rem]:flex-1 xl:flex-none',
   )
 }
 
@@ -58,7 +58,7 @@ const focusRing =
 
 /**
  * The eight Voices of M-VAVE's V16, with a menu of Recall Voices and Channels…, as the cells the librarian page's
- * Voices bar adds beside the Multitimbral mode switch (`voice-bar-layout`). A Voice's tab and its
+ * Voices bar holds (`voice-bar-layout`). A Voice's tab and its
  * own switch are two buttons: clicking the tab aims at the Voice, setting the note channel to its
  * channel, so the keyboard plays it and a slot click gives it that slot's preset; the switch says
  * whether the Voice is On and aims at nothing. Each Voice points at an FM1 preset, never a copy of
@@ -105,7 +105,7 @@ export function VoiceStrip({
       {/* The one-time FM1 setup is the first thing to do, in one line with its steps behind help. */}
       <div className={voiceNoticesCellClassName}>
         <div className="empty:hidden" role="status">
-          {setup.enabled && assigned === 0 ? (
+          {assigned === 0 ? (
             <div className="mb-2">
               <InfoNotice>
                 <span className="flex items-center gap-1">
@@ -140,7 +140,7 @@ export function VoiceStrip({
                 aria-label={label}
                 aria-pressed={isAimed}
                 className={cn(
-                  'font-vt323 -ml-2 h-full min-w-0 flex-1 cursor-pointer truncate pr-2.5 pl-1.5 text-left text-[14px] leading-none whitespace-nowrap min-[26.25rem]:text-[16px]',
+                  'font-dot-matrix -ml-2 h-full min-w-0 flex-1 cursor-pointer truncate pr-2.5 pl-1.5 text-left text-[13px] leading-none font-bold whitespace-nowrap min-[26.25rem]:text-[14px]',
                   focusRing,
                   !voice.on
                     ? 'text-[var(--crt-ink-4)]'

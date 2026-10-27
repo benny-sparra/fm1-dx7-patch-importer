@@ -9,7 +9,7 @@ import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import type { Patch } from '@/data/patches'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
-import { assignVoicePreset, resetVoiceSetupForTests, setVoiceSetupEnabled } from '@/lib/voice-setup'
+import { assignVoicePreset, resetVoiceSetupForTests } from '@/lib/voice-setup'
 import {
   makeLibrarianLibrary,
   makeLibrarianMidi,
@@ -105,25 +105,18 @@ function renderPage({
 }
 
 describe('LibrarianPage with V16’s Voices', () => {
-  it('shows the Voice tabs on V16 with the Multitimbral mode switch off, and keeps them when it is switched on', async () => {
-    const { user } = renderPage()
-    const mode = screen.getByRole('switch', { name: 'Multitimbral mode' })
-    expect(mode.getAttribute('aria-checked')).toBe('false')
+  it('shows the Voice tabs on V16 with no switch to turn them on, Voice 1 selected', async () => {
+    renderPage()
+    expect(screen.queryByRole('switch', { name: 'Multitimbral mode' })).toBeNull()
 
     const strip = await screen.findByRole('group', { name: 'Voices 1–8' })
     expect(within(strip).getAllByRole('button')).toHaveLength(8)
     expect(screen.getByRole('button', { name: 'Voice actions' })).toBeTruthy()
-    // The FM1 setup line belongs to the mode, so it waits for the switch.
-    expect(screen.queryByText('Set up your FM1’s Voices first.')).toBeNull()
-
-    await user.click(mode)
-
+    expect(within(strip).getByRole('button', { name: /^Voice 1,/, pressed: true })).toBeTruthy()
     expect(await screen.findByText('Set up your FM1’s Voices first.')).toBeTruthy()
-    expect(screen.getByRole('group', { name: 'Voices 1–8' })).toBe(strip)
   })
 
   it('labels a Voice’s preset as its slot shows it, or by its slot code when no patch is there', () => {
-    setVoiceSetupEnabled(true)
     assignVoicePreset(0, 0)
     assignVoicePreset(1, 127)
     renderPage()
@@ -140,22 +133,19 @@ describe('LibrarianPage with V16’s Voices', () => {
     })
   })
 
-  it('offers no Multitimbral mode on firmware that plays one Voice, whatever was stored', () => {
-    setVoiceSetupEnabled(true)
+  it('shows no Voices on firmware that plays one Voice, whatever was stored', () => {
     for (const firmware of [
       { identity: 'FM-1_015', kind: 'mvave' },
       { identity: 'FM-1_097', kind: 'fm1-va' },
       { kind: 'checking' },
     ] as const satisfies readonly Fm1Firmware[]) {
       renderPage({ firmware })
-      expect(screen.queryByRole('switch', { name: 'Multitimbral mode' })).toBeNull()
       expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
       cleanup()
     }
   })
 
   it('tags a slot with the Voices playing its preset', () => {
-    setVoiceSetupEnabled(true)
     assignVoicePreset(0, 0)
     assignVoicePreset(2, 0)
     renderPage()
@@ -173,7 +163,6 @@ describe('LibrarianPage with V16’s Voices', () => {
   })
 
   it('lights the slot the aimed Voice plays, and none for a Voice with no patch', async () => {
-    setVoiceSetupEnabled(true)
     assignVoicePreset(0, 0)
     assignVoicePreset(1, 1)
     const { user } = renderPage()
@@ -191,7 +180,6 @@ describe('LibrarianPage with V16’s Voices', () => {
   })
 
   it('lights a shared preset only for the aimed Voice, and the other is still named in its tooltip', async () => {
-    setVoiceSetupEnabled(true)
     assignVoicePreset(0, 0)
     assignVoicePreset(1, 0)
     const { user } = renderPage()
@@ -204,7 +192,6 @@ describe('LibrarianPage with V16’s Voices', () => {
   })
 
   it('shows the bank holding a Voice’s patch when its tab is selected', async () => {
-    setVoiceSetupEnabled(true)
     assignVoicePreset(1, 1)
     const { user } = renderPage()
     await user.click(screen.getByRole('button', { name: /^E — / }))
@@ -216,7 +203,6 @@ describe('LibrarianPage with V16’s Voices', () => {
   })
 
   it('leaves the bank alone when the Voice has no patch', async () => {
-    setVoiceSetupEnabled(true)
     const { user } = renderPage()
     await user.click(screen.getByRole('button', { name: /^E — / }))
 
@@ -233,7 +219,6 @@ describe('LibrarianPage with V16’s Voices', () => {
   })
 
   it('copies a patch from beyond bank D into a slot in A–D and plays the copy there', async () => {
-    setVoiceSetupEnabled(true)
     const { copyVoice, onSelectPatch, user } = renderPage()
     await user.click(screen.getByRole('button', { name: /^E — / }))
 
@@ -255,7 +240,6 @@ describe('LibrarianPage with V16’s Voices', () => {
   })
 
   it('offers the copy only beyond bank D, with the strip on and a Voice on the note channel', async () => {
-    setVoiceSetupEnabled(true)
     const { user } = renderPage({ channel: 12 })
     await user.click(screen.getByRole('button', { name: slotMenuName('Alpha Piano') }))
     expect(screen.queryByRole('menuitem', { name: 'Copy into A–D and assign…' })).toBeNull()

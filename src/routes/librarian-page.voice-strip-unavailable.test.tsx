@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
-import { resetVoiceSetupForTests, setVoiceSetupEnabled } from '@/lib/voice-setup'
+import { resetVoiceSetupForTests } from '@/lib/voice-setup'
 import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
@@ -25,10 +25,9 @@ afterEach(() => {
 })
 
 describe('LibrarianPage Voice strip that fails to load', () => {
-  it('explains the failure and offers a reload, leaving the switch and the banks', async () => {
+  it('explains the failure and offers a reload, leaving the banks', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined)
     localStorage.setItem('fm1-librarian-help-seen', 'true')
-    setVoiceSetupEnabled(true)
     render(
       <ToastProvider>
         <LibrarianPage
@@ -47,6 +46,6 @@ describe('LibrarianPage Voice strip that fails to load', () => {
     const alert = await screen.findByRole('alert')
     expect(within(alert).getByText('Voices 1–8 could not be loaded.')).toBeTruthy()
     expect(within(alert).getByRole('button', { name: 'Reload app' })).toBeTruthy()
-    expect(screen.getByRole('switch', { name: 'Multitimbral mode' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Send to FM1' })).toBeTruthy()
   })
 })

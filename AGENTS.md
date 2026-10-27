@@ -120,7 +120,8 @@ open everything an earlier release could have saved.
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
   versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
   `fm1-colourway`, `fm1-last-backup`, `fm1-voice-setup` (V16's Voice setup: a version 2 record
-  of the Multitimbral mode switch and each of eight Voices' preset, channel, and On switch; version 1,
+  of the retired Multitimbral mode switch (`enabled`, still read and written back as it was but no
+  longer shown or used, since V16 is always multitimbral) and each of eight Voices' preset, channel, and On switch; version 1,
   which has no On switch, reads every Voice as on), and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them. A patch's share link (`#p=`, `src/lib/patch-share-link.ts`) is
   one too: links live for years in chats and forums, so every release reads version 1, and its
@@ -431,7 +432,7 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the V16 Voice strip, with its strings (`src/i18n/locales/en-GB-voices.ts`), when **Multitimbral mode** is on and the FM1 is identified as multitimbral, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the V16 Voice strip, with its strings (`src/i18n/locales/en-GB-voices.ts`), when the FM1 is identified as multitimbral, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -701,28 +702,27 @@ open everything an earlier release could have saved.
   unavailable. Its description says what a click does instead.
 - The header has no note channel picker (removed 2026-10-27, the owner's request): the note channel is
   the Settings menu's **Note channel**, and on V16 the Voice strip aims it.
-- On V16, **Multitimbral mode** (the profile's `multitimbral`, stored as `enabled` in
-  `fm1-voice-setup`) is a switch in the Voices bar above the patch banks, in the librarian page, so
-  the editor has no bar. The page makes the bar's grid (`voice-bar-layout.ts`) and holds the switch;
-  on V16 the lazy `VoiceStrip` adds the eight Voices and a ⋮ menu of **Recall Voices** and **Channels…** as more
-  cells of that grid, whether or not the mode is on (the owner, 2026-10-27); on any other firmware none of the bar shows. Each
-  Voice's LED comes before its label. With the mode on, the lit slot in the bank grid is the one the
+- On V16 (the profile's `multitimbral`) the Voices bar sits above the patch banks, in the librarian
+  page, so the editor has no bar. There is no Multitimbral mode switch (removed 2026-10-27, the
+  owner's request: V16 always has eight Voices); `enabled` in `fm1-voice-setup` is kept as stored
+  and nothing reads it. The page makes the bar's grid (`voice-bar-layout.ts`); on V16 the lazy
+  `VoiceStrip` adds the eight Voices, with a ⋮ menu of **Recall Voices** and **Channels…** at the
+  end of the tab row; on any other firmware none of the bar shows. Voice 1 is aimed at by default,
+  since the note channel starts on its channel. Each
+  Voice's LED comes before its label. The lit slot in the bank grid is the one the
   aimed Voice plays, and none for a Voice with no patch (a preset two Voices share lights only for
   the aimed one; the other is still named in its tooltip), and selecting a Voice's tab shows the bank holding its
-  patch (the owner, 2026-10-27). The FM1 setup line shows only while the mode is on. The Voices are tabs fused to the
+  patch (the owner, 2026-10-27). The FM1 setup line shows while no Voice has a patch. The Voices are tabs fused to the
   panel's top edge, which they overlap by its 2px border (owner's design, 2026-10-27, option C): from
-  `lg` one row with the switch and the two buttons, icon-only with tooltips, at its right end; from
-  `sm` a 36px bar of its own above the tabs, which share the row, with the buttons' labels back;
-  below `sm` the same bar above a 4 × 2 grid of cells, not fused, the aimed one lit with an amber
-  ring. Each Voice is two buttons, never a tablist, since ARIA keeps a switch out of one: the tab
+  `52.5rem` one row of tabs with the ⋮ menu at its right end; below it a 4 × 2 grid of cells (2 × 4
+  below 376px), not fused, the aimed one lit with an amber ring, the menu beside its first row. Each Voice is two buttons, never a tablist, since ARIA keeps a switch out of one: the tab
   (`aria-pressed`, named "Voice 1, Ch 1: A01 BRASS 1, on") aims at the Voice, and its 10px LED
   (`role="switch"`, "Voice 1 on", 24px target) is the Voice's own On value, which aims at nothing,
-  so a Voice that is off can still be aimed at, and sends nothing. The mode is the editor's: no
+  so a Voice that is off can still be aimed at, and sends nothing. No
   known message sets a Voice's channel or On/Off, so the On value is the editor's note of what the FM1
   has, never sent (the Voice record gained it, version 2 of `fm1-voice-setup`), and the FM1 is set up
   once by hand, which the strip says while no Voice has a patch, with **Channels…** keeping it.
-  Switching the mode off sets the note channel to Voice 1's channel, so a set-up FM1 plays
-  single-sound. A Voice is aimed at by setting the note channel to
+  A Voice is aimed at by setting the note channel to
   its channel, never by state of its own, so the Voice listening on the note channel is the one a
   slot click in banks A–D assigns (`aimedVoice`; the Voice clicked last wins a shared channel),
   whether or not MIDI is online, and editing a slot assigns it too, since its Program Change

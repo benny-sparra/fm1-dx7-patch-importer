@@ -25,7 +25,7 @@ export default {
     setupShort: 'Set up your FM1’s Voices first.',
     setupHelpLabel: 'setting up the FM1’s Voices',
     setupSteps:
-      'Multitimbral mode needs the FM1 set up once: put Voices 1–8 on channels 1–8, switch each one On, leave none on All, then press SAVE and choose Globe. One that is Off ignores its patch and does not take it when switched back On, and one on All takes every patch sent. Switching the mode off later needs no change on the FM1.',
+      'The FM1 needs setting up once: put Voices 1–8 on channels 1–8, switch each one On, leave none on All, then press SAVE and choose Globe. One that is Off ignores its patch and does not take it when switched back On, and one on All takes every patch sent.',
     channelsNote: 'Changing these doesn’t change the FM1: set the same channels there.',
     channelsClose: 'Close the Voice channels',
     channelOf: 'Voice {{number}} channel',

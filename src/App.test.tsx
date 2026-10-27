@@ -13,7 +13,6 @@ import {
   getVoiceSetup,
   resetVoiceSetupForTests,
   setVoiceChannel,
-  setVoiceSetupEnabled,
 } from '@/lib/voice-setup'
 
 const sendProgramChange = vi.hoisted(() => vi.fn(() => true))
@@ -400,7 +399,6 @@ describe('App with V16’s Voices', () => {
 
   function playSeveralVoices() {
     midiState.firmware = { identity: 'FM-1_016', kind: 'mvave' }
-    setVoiceSetupEnabled(true)
   }
 
   it('gives the Voice on the note channel the slot’s preset with one Program Change', async () => {
@@ -433,16 +431,9 @@ describe('App with V16’s Voices', () => {
     expect(getVoiceSetup().voices.every((voice) => voice.preset === null)).toBe(true)
   })
 
-  it('gives a Voice nothing while the strip is off or the FM1 plays one Voice', async () => {
+  it('gives a Voice nothing while the FM1 plays one Voice', async () => {
     midiState.firmware = { identity: 'FM-1_015', kind: 'mvave' }
-    setVoiceSetupEnabled(true)
     const user = renderApp()
-    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
-    cleanup()
-
-    midiState.firmware = { identity: 'FM-1_016', kind: 'mvave' }
-    setVoiceSetupEnabled(false)
-    renderApp()
     await user.click(screen.getByRole('button', { name: 'Play Piano' }))
 
     expect(getVoiceSetup().voices.every((voice) => voice.preset === null)).toBe(true)

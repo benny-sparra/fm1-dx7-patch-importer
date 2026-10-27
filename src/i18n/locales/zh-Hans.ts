@@ -924,9 +924,6 @@ export default {
   },
   voices: {
     channelShort: '通道 {{number}}',
-    playSeveral: '多音色模式',
-    playSeveralHint:
-      '演奏 Voice 1–8，每个 Voice 演奏 A–D 库中的一个音色。关闭后回到 Voice 1 的通道。',
     voice: 'Voice {{number}}',
     playedBy: '由 {{voices}} 演奏',
     copyAndAssign: '复制到 A–D 并分配…',
@@ -949,7 +946,7 @@ export default {
     setupShort: '请先设置 FM1 的 Voice。',
     setupHelpLabel: '设置 FM1 的 Voice',
     setupSteps:
-      '多音色模式需要对 FM1 做一次设置：将 Voice 1–8 设到通道 1–8，把每个都设为 On，不要让任何一个停在 All，然后按 SAVE 并选择 Globe。设为 Off 的 Voice 会忽略它的音色，重新设为 On 后也不会接收；设为 All 的 Voice 会接收每一个发送的音色。之后关闭此模式无需在 FM1 上做任何更改。',
+      'FM1 需要做一次设置：将 Voice 1–8 设到通道 1–8，把每个都设为 On，不要让任何一个停在 All，然后按 SAVE 并选择 Globe。设为 Off 的 Voice 会忽略它的音色，重新设为 On 后也不会接收；设为 All 的 Voice 会接收每一个发送的音色。',
     channelsNote: '更改这里不会改变 FM1：请在 FM1 上设置相同的通道。',
     channelsClose: '关闭 Voice 通道',
     channelOf: 'Voice {{number}} 的通道',

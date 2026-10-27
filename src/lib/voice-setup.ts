@@ -4,8 +4,8 @@
  * `{ "version": 2, "enabled": boolean, "voices": [{ "preset": number | null, "channel": number,
  * "on": boolean } × 8] }`: `preset` is the FM1 preset number 0–127 (A01 is 0, D32 is 127) or null
  * for none, `channel` is 1–16, `on` is the Voice's own switch in the strip (the editor's note of
- * whether the Voice is On on the FM1, which it cannot read), and `enabled` is the Multitimbral
- * mode switch. Version 1 has no `on`: every Voice reads as on.
+ * whether the Voice is On on the FM1, which it cannot read), and `enabled` is the old Multitimbral
+ * mode switch, kept and written back as read but no longer shown or read (V16 is always multitimbral). Version 1 has no `on`: every Voice reads as on.
  */
 const storageKey = 'fm1-voice-setup'
 const storedVersion = 2
@@ -121,11 +121,6 @@ function updateVoice(voice: number, change: Partial<VoiceSetupEntry>) {
     ...setup,
     voices: setup.voices.map((item, index) => (index === voice ? entry : item)),
   })
-}
-
-export function setVoiceSetupEnabled(enabled: boolean) {
-  const setup = getVoiceSetup()
-  if (setup.enabled !== enabled) updateVoiceSetup({ ...setup, enabled })
 }
 
 /** Gives Voice `voice` (0–7, Voice 1 is 0) the preset 0–127, or none for null; others are refused. */

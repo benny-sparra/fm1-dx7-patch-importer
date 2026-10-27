@@ -216,14 +216,13 @@ function App() {
       ? previous
       : null
   }
-  // On V16 with the Voice strip on, a slot's Program Change goes to the Voice listening on the note
+  // On V16 a slot's Program Change goes to the Voice listening on the note
   // channel, so that Voice now plays the slot's preset, whether or not MIDI is online to send it.
   const assignToAimedVoice = (program: number | undefined) => {
     const voice = aimedVoice(voiceSetup, midi.channel, aimed)
     if (
       program !== undefined &&
       voice !== null &&
-      voiceSetup.enabled &&
       resolveFirmwareProfile(midi.firmware).capabilities.multitimbral
     ) {
       assignVoicePreset(voice, program)

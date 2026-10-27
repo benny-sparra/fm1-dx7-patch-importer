@@ -7,8 +7,6 @@ import { midiChannels } from '@/lib/midi-channels'
 import { fm1FirmwareRelease, mayBeSloop } from '@/lib/fm1-firmware'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
-import { useVoiceSetup } from '@/hooks/use-voice-setup'
-import { setVoiceSetupEnabled } from '@/lib/voice-setup'
 import { localeNames, supportedLocales, type SupportedLocale } from '@/i18n/locale'
 import { setLocale } from '@/i18n'
 import { Switch } from '@/components/ui/switch'
@@ -212,31 +210,6 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
         </span>
       ) : null}
     </div>
-  )
-}
-
-/**
- * The opt-in to V16's eight Voices, heading the bar above the patch banks. Switching it off puts
- * the note channel back on Voice 1's channel, so the editor plays Voice 1, which on an FM1 set up
- * for the Voices is the single-sound behaviour. The hint is its tooltip, since the label is short.
- */
-export function VoicesSwitch({ midi }: { midi: Pick<MidiController, 'setChannel'> }) {
-  const { t } = useTranslation()
-  const { setup } = useVoiceSetup()
-
-  return (
-    <span className="inline-flex" title={t('voices.playSeveralHint')}>
-      <Switch
-        checked={setup.enabled}
-        flat
-        onChange={(enabled) => {
-          setVoiceSetupEnabled(enabled)
-          if (!enabled) midi.setChannel(setup.voices[0].channel)
-        }}
-      >
-        <span>{t('voices.playSeveral')}</span>
-      </Switch>
-    </span>
   )
 }
 

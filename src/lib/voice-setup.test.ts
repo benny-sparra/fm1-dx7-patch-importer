@@ -10,7 +10,6 @@ import {
   resetVoiceSetupForTests,
   setVoiceChannel,
   setVoiceOn,
-  setVoiceSetupEnabled,
   subscribeVoiceSetup,
 } from './voice-setup'
 
@@ -184,10 +183,16 @@ describe('voice setup', () => {
     expect(localStorage.getItem(key)).toBe(newer)
   })
 
+  it('writes the retired enabled flag back as it was read, which nothing shows any more', () => {
+    storeRecord({ enabled: true, version: 2, voices: [{ preset: 1, channel: 2, on: true }] })
+    setVoiceChannel(1, 3)
+    expect(JSON.parse(localStorage.getItem(key) ?? '')).toMatchObject({ enabled: true, version: 2 })
+  })
+
   it('replaces a newer version only once the user changes the setup', () => {
     localStorage.setItem(key, JSON.stringify({ enabled: true, version: 3, voices: [] }))
-    setVoiceSetupEnabled(true)
-    expect(JSON.parse(localStorage.getItem(key) ?? '')).toMatchObject({ enabled: true, version: 2 })
+    setVoiceChannel(0, 5)
+    expect(JSON.parse(localStorage.getItem(key) ?? '')).toMatchObject({ version: 2 })
   })
 
   it('works from the default when reading storage throws', () => {
@@ -205,34 +210,32 @@ describe('voice setup', () => {
     })
     const listener = vi.fn()
     subscribeVoiceSetup(listener)
-    setVoiceSetupEnabled(true)
-    expect(getVoiceSetup().enabled).toBe(true)
+    setVoiceChannel(0, 5)
+    expect(getVoiceSetup().voices[0]?.channel).toBe(5)
     expect(listener).toHaveBeenCalledTimes(1)
   })
 
   it('notifies subscribers and writes version 2 on each update', () => {
     const listener = vi.fn()
     const unsubscribe = subscribeVoiceSetup(listener)
-    setVoiceSetupEnabled(true)
     assignVoicePreset(2, 31)
     setVoiceChannel(7, 16)
-    expect(listener).toHaveBeenCalledTimes(3)
+    expect(listener).toHaveBeenCalledTimes(2)
     expect(JSON.parse(localStorage.getItem(key) ?? '')).toEqual({
-      enabled: true,
+      enabled: false,
       version: 2,
       voices: defaultVoices.map((voice, index) =>
         index === 2 ? { ...voice, preset: 31 } : index === 7 ? { ...voice, channel: 16 } : voice,
       ),
     })
     unsubscribe()
-    setVoiceSetupEnabled(false)
-    expect(listener).toHaveBeenCalledTimes(3)
+    setVoiceChannel(1, 3)
+    expect(listener).toHaveBeenCalledTimes(2)
   })
 
   it('does not notify or write when an update changes nothing', () => {
     const listener = vi.fn()
     subscribeVoiceSetup(listener)
-    setVoiceSetupEnabled(false)
     assignVoicePreset(0, null)
     setVoiceChannel(0, 1)
     expect(listener).not.toHaveBeenCalled()

@@ -97,21 +97,18 @@ says **Receive Timeout**; start Export again while the app listens.
 
 #### Playing several Voices on V16
 
-**Multitimbral mode** is the editor's, not the FM1's: the FM1 plays eight Voices whatever the app
-does, and the app cannot switch it between modes. Off, which is how it starts, the editor works as it
-always has, on the **Note channel** in **Settings**, and nothing on the FM1 needs changing. Switch
-**Multitimbral mode** on, above the patch banks (offered once the FM1 is identified as running V16),
-to give each Voice its own patch; the Voice tabs show on V16 either way. Voice 1 to Voice 8 appear as tabs fused to the top of the Patch
-banks panel, with the Multitimbral switch, a ⋮ menu at the right holding **Recall Voices** and **Channels…** (above the
-tabs on a narrower screen, and a grid of eight on a phone). Each tab has its own small light, the
-Voice's On switch: it only records whether you have that Voice On on the FM1, which the app cannot
-read, so switching it does not aim at the Voice or send anything. The app keeps the mode and the setup for
-your next visit.
+On V16 the FM1 plays eight Voices, each with its own patch and MIDI channel, so once the FM1 is
+identified as running V16 the editor shows them as Voice 1 to Voice 8 tabs fused to the top of the
+Patch banks panel, with a ⋮ menu at the right holding **Recall Voices** and **Channels…** (a grid
+of eight on a phone). There is nothing to switch on: Voice 1 is selected to start with, so if you
+never touch the tabs the editor works as it always has, on the **Note channel** in **Settings**.
+Each tab has its own small light, the Voice's On switch: it only records whether you have that
+Voice On on the FM1, which the app cannot read, so switching it does not aim at the Voice or send
+anything. The app keeps the setup for your next visit.
 
 The FM1 needs setting up once for this (step 1 below, and the bar says so until a Voice has a
 patch). After that it still works as a single-sound FM1 on channel 1, since notes and patches reach
-only the Voice on their channel. Switching the mode off puts the note channel back on Voice 1's
-channel, so the editor plays Voice 1, and needs no change on the FM1.
+only the Voice on their channel.
 
 1. Set the Voices up once on the FM1: put Voice 1 to Voice 8 on channels 1 to 8, switch each one
    **On**, leave none on **All**, then press **SAVE** and choose **Globe**. A Voice that is Off

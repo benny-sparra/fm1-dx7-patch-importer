@@ -91,12 +91,7 @@ import { downloadFile } from '@/lib/download-file'
 import { sharedPatchPayload } from '@/lib/share-link-fragment'
 import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
 import type { VoiceStrip as VoiceStripComponent } from '@/components/midi/voice-strip'
-import { VoicesSwitch } from '@/components/midi/midi-controls'
-import {
-  voiceBarClassName,
-  voiceSwitchCellClassName,
-  voiceToolbarBackdropClassName,
-} from '@/components/midi/voice-bar-layout'
+import { voiceBarClassName } from '@/components/midi/voice-bar-layout'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { PortalMenu } from '@/components/ui/portal-menu'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
@@ -333,7 +328,7 @@ type LibrarianPageProps = {
   onSelectPatch: (patch: Patch) => void
   /**
    * Sends each Voice's preset as a Program Change on its channel, returning how many went. Without
-   * it the page offers no Multitimbral mode.
+   * it the page shows no Voices bar.
    */
   onSendVoiceSetup?: () => number
   /** Held by the app so the bank and search survive the editor; the page keeps its own without it. */
@@ -433,10 +428,10 @@ export function LibrarianPage({
   const firmwareProfile = resolveFirmwareProfile(midi.firmware)
   const sendsByPresetWrite = firmwareProfile.capabilities.presetWrite
   const workspaceBankLabel = useWorkspaceBankLabel(library)
-  // On V16, with the Voice strip on, a slot click in banks A–D gives its preset to the Voice on the
+  // On V16 a slot click in banks A–D gives its preset to the Voice on the
   // note channel, so each slot tags the Voices playing it.
   const { aimed, setup: voiceSetup } = useVoiceSetup()
-  const playsVoices = voiceSetup.enabled && firmwareProfile.capabilities.multitimbral
+  const playsVoices = firmwareProfile.capabilities.multitimbral
   const hasAimedVoice = playsVoices && aimedVoice(voiceSetup, midi.channel, aimed) !== null
   const showsVoiceBar = onSendVoiceSetup !== undefined && firmwareProfile.capabilities.multitimbral
   const voicePresetLabel = (preset: number) => {
@@ -1157,17 +1152,13 @@ export function LibrarianPage({
       <PatchGrid
         voiceBar={
           showsVoiceBar ? (
-            // V16's eight Voices, tabs fused to the panel below, with the Multitimbral switch, Send
-            // setup and Channels, whether or not the mode is on.
+            // V16's eight Voices, tabs fused to the panel below, with a ⋮ menu of Recall Voices and
+            // Channels…. V16 is always multitimbral, so there is no switch.
             <div className={voiceBarClassName()}>
-              <span aria-hidden="true" className={voiceToolbarBackdropClassName} />
-              <span className={voiceSwitchCellClassName}>
-                <VoicesSwitch midi={midi} />
-              </span>
               {
                 <ErrorBoundary
                   fallback={
-                    <div className="col-span-full row-start-3">
+                    <div className="col-span-full row-start-2">
                       <LoadFailedNotice message={t('voices.loadFailed')} />
                     </div>
                   }
@@ -1176,7 +1167,7 @@ export function LibrarianPage({
                     fallback={
                       <div
                         aria-hidden="true"
-                        className="col-span-full row-start-3 mt-2 h-[8.75rem] min-[23.5rem]:h-[4.25rem] min-[52.5rem]:h-8 xl:col-span-1 xl:col-start-1 xl:row-start-2 xl:mt-0"
+                        className="col-start-1 row-start-2 h-[8.75rem] min-[23.5rem]:h-[4.25rem] min-[52.5rem]:h-8"
                       />
                     }
                   >

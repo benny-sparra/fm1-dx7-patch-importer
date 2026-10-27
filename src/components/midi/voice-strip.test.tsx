@@ -16,7 +16,6 @@ import {
   resetVoiceSetupForTests,
   setVoiceChannel,
   setVoiceOn,
-  setVoiceSetupEnabled,
 } from '@/lib/voice-setup'
 import { translatePageText } from '@/test/page-translator'
 
@@ -225,7 +224,6 @@ describe('VoiceStrip', () => {
 
   it('says in one line that the FM1 needs setting up first, with the steps behind help', async () => {
     const user = userEvent.setup()
-    setVoiceSetupEnabled(true)
     render(<Strip />)
     const notice = screen.getByRole('status')
     expect(notice.textContent).toBe('Set up your FM1’s Voices first.')
@@ -233,7 +231,7 @@ describe('VoiceStrip', () => {
     await user.hover(within(notice).getByRole('button', { name: /^Help: setting up/ }))
 
     expect(screen.getByRole('note').textContent).toMatch(/switch each one On, leave none on All/)
-    expect(screen.getByRole('note').textContent).toMatch(/needs no change on the FM1/)
+    expect(screen.getByRole('note').textContent).toMatch(/leave none on All/)
   })
 
   it('drops the setup line once a Voice has a patch', () => {
@@ -247,12 +245,11 @@ describe('VoiceStrip', () => {
   it('writes the setup line and its steps in the interface language', async () => {
     await setLocale('de')
     const user = userEvent.setup()
-    setVoiceSetupEnabled(true)
     render(<Strip />)
 
     expect(screen.getByText('Richte zuerst die Voices am FM1 ein.')).toBeTruthy()
     await user.hover(screen.getByRole('button', { name: /^Hilfe: / }))
-    expect(screen.getByRole('note').textContent).toMatch(/braucht einmalig eine Einrichtung am FM1/)
+    expect(screen.getByRole('note').textContent).toMatch(/braucht einmalig eine Einrichtung/)
   })
 
   it('keeps Recall Voices unavailable, saying why, without a MIDI output', async () => {
