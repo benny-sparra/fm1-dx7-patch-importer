@@ -17,15 +17,12 @@ export default {
     setupSent: 'Sent the setup to {{voices}}',
     channels: 'Channels…',
     channelsTitle: 'Voice channels (as set on your FM1)',
-    channelsNote:
-      'These tell the editor which channel each Voice listens on. Changing them here doesn’t change the FM1: set the same channels there.',
+    setupShort: 'Set up your FM1’s Voices first.',
+    setupHelpLabel: 'setting up the FM1’s Voices',
+    setupSteps:
+      'Multitimbral mode needs the FM1 set up once: put Voices 1–8 on channels 1–8, switch each one On, leave none on All, then press SAVE and choose Globe. One that is Off ignores its patch and does not take it when switched back On, and one on All takes every patch sent. Switching the mode off later needs no change on the FM1.',
+    channelsNote: 'Changing these doesn’t change the FM1: set the same channels there.',
     channelsClose: 'Close the Voice channels',
     channelOf: 'Voice {{number}} channel',
-    firstUse:
-      'Multitimbral mode needs the FM1 set up once: put Voices 1–8 on channels 1–8, switch each one On, leave none on All, then press SAVE and choose Globe. Switching the mode off later needs no change on the FM1.',
-    setupNote:
-      'Set up Voices 1–8 once on the FM1: put them on channels 1–8, switch each one On, leave none on All, then press SAVE and choose Globe. One that is Off ignores its patch and does not take it when switched back On, and one on All takes every patch sent.',
-    howToAssign:
-      'Click one of Voices 1–8 to play it from the keyboard, then click a patch in banks A–D to give it that patch. Send setup sends each one its patch again.',
   },
 }

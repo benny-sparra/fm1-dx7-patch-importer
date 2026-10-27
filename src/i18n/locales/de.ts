@@ -1069,16 +1069,13 @@ export default {
     setupSent: 'Setup gesendet an {{voices}}',
     channels: 'Kanäle…',
     channelsTitle: 'Voice-Kanäle (wie am FM1 eingestellt)',
-    channelsNote:
-      'Hier legst du fest, auf welchem Kanal der Editor jede Voice ansteuert. Das ändert den FM1 nicht: Stelle dort dieselben Kanäle ein.',
+    setupShort: 'Richte zuerst die Voices am FM1 ein.',
+    setupHelpLabel: 'Einrichten der Voices am FM1',
+    setupSteps:
+      'Der Multitimbral-Modus braucht einmalig eine Einrichtung am FM1: Voice 1–8 auf die Kanäle 1–8 legen, jede einschalten (On), keine auf All lassen, dann SAVE drücken und Globe wählen. Eine auf Off ignoriert ihren Sound und übernimmt ihn auch nicht, wenn sie wieder auf On geht, und eine auf All nimmt jeden gesendeten Sound. Das Ausschalten des Modus erfordert später keine Änderung am FM1.',
+    channelsNote: 'Änderungen hier ändern den FM1 nicht: Stelle dort dieselben Kanäle ein.',
     channelsClose: 'Voice-Kanäle schließen',
     channelOf: 'Kanal von Voice {{number}}',
-    firstUse:
-      'Der Multitimbral-Modus braucht einmalig eine Einrichtung am FM1: Voice 1–8 auf die Kanäle 1–8 legen, jede einschalten (On), keine auf All lassen, dann SAVE drücken und Globe wählen. Das Ausschalten des Modus erfordert später keine Änderung am FM1.',
-    setupNote:
-      'Richte Voice 1–8 einmal am FM1 ein: auf die Kanäle 1–8, jede auf On, keine auf All, dann SAVE drücken und Globe wählen. Eine auf Off ignoriert ihren Sound und übernimmt ihn auch nicht, wenn sie wieder auf On geht, und eine auf All nimmt jeden gesendeten Sound.',
-    howToAssign:
-      'Klicke eine der Voices 1–8 an, um sie über die Tastatur zu spielen, dann einen Sound in den Bänken A–D, um ihn ihr zu geben. „Setup senden“ schickt jeder ihren Sound erneut.',
   },
   help: {
     open: 'Hilfe: FM1 Editor und Librarian verwenden',

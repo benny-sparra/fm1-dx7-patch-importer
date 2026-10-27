@@ -1,5 +1,5 @@
 import { Send, SlidersHorizontal } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { VoiceChannelsDialog } from '@/components/midi/voice-channels-dialog'
@@ -19,6 +19,11 @@ type VoiceStripProps = {
   /** Sends each Voice's preset as a Program Change on its channel, returning how many went. */
   onSendSetup: () => number
   /**
+   * The help button beside the setup line. The page makes it, since importing `HelpPopover` here
+   * made Rolldown split it out of the entry, about 1.2 KiB.
+   */
+  renderHelp: (label: string, text: string) => ReactNode
+  /**
    * An FM1 preset, 0–127, as banks A–D show it: its slot code and patch name, or the slot code
    * alone where the library holds no patch.
    */
@@ -30,7 +35,7 @@ type VoiceStripProps = {
  * patch banks that the Multitimbral mode switch heads. Clicking a Voice aims at it, setting the note channel to its channel, so the keyboard plays it and a slot click
  * gives it that slot's preset. Each Voice points at an FM1 preset, never a copy of the patch.
  */
-export function VoiceStrip({ midi, onSendSetup, presetLabel }: VoiceStripProps) {
+export function VoiceStrip({ midi, onSendSetup, presetLabel, renderHelp }: VoiceStripProps) {
   const { i18n, t } = useTranslation()
   const toast = useToast()
   const { aimed, setup } = useVoiceSetup()
@@ -163,12 +168,17 @@ export function VoiceStrip({ midi, onSendSetup, presetLabel }: VoiceStripProps) 
           )
         })}
       </div>
-      {assigned === 0 ? (
-        // The FM1 has to be set up once before the Voices answer, which is the first thing to do.
-        <div className="w-full basis-full">
-          <InfoNotice>{t('voices.firstUse')}</InfoNotice>
-        </div>
-      ) : null}
+      {/* The one-time FM1 setup is the first thing to do, in one line with its steps behind help. */}
+      <div className="w-full basis-full empty:hidden" role="status">
+        {assigned === 0 ? (
+          <InfoNotice>
+            <span className="flex items-center gap-1">
+              <span>{t('voices.setupShort')}</span>
+              {renderHelp(t('voices.setupHelpLabel'), t('voices.setupSteps'))}
+            </span>
+          </InfoNotice>
+        ) : null}
+      </div>
       {sendFailed ? (
         <div className="w-full basis-full">
           <ErrorNotice>{t('voices.sendSetupFailed')}</ErrorNotice>

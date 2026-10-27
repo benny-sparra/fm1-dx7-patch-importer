@@ -1041,16 +1041,13 @@ export default {
     setupSent: 'Configuração enviada para {{voices}}',
     channels: 'Canais…',
     channelsTitle: 'Canais das Voices (como definidos no seu FM1)',
-    channelsNote:
-      'Eles dizem ao editor em qual canal cada Voice escuta. Alterá-los aqui não muda o FM1: defina os mesmos canais nele.',
+    setupShort: 'Configure primeiro as Voices do FM1.',
+    setupHelpLabel: 'configurar as Voices do FM1',
+    setupSteps:
+      'O modo multitimbral exige preparar o FM1 uma única vez: coloque as Voices 1 a 8 nos canais 1 a 8, ligue cada uma (On), não deixe nenhuma em All, pressione SAVE e escolha Globe. Uma em Off ignora o seu som e não o pega ao voltar para On, e uma em All recebe todo som enviado. Desativar o modo depois não exige nenhuma mudança no FM1.',
+    channelsNote: 'Alterar isto não muda o FM1: defina os mesmos canais nele.',
     channelsClose: 'Fechar os canais das Voices',
     channelOf: 'Canal da Voice {{number}}',
-    firstUse:
-      'O modo multitimbral exige preparar o FM1 uma única vez: coloque as Voices 1 a 8 nos canais 1 a 8, ligue cada uma (On), não deixe nenhuma em All, pressione SAVE e escolha Globe. Desativar o modo depois não exige nenhuma mudança no FM1.',
-    setupNote:
-      'Configure uma vez as Voices 1 a 8 no FM1: coloque-as nos canais 1 a 8, cada uma em On e nenhuma em All; depois aperte SAVE e escolha Globe. Uma em Off ignora o seu som e não o pega ao voltar para On, e uma em All recebe todo som enviado.',
-    howToAssign:
-      'Clique em uma das Voices 1 a 8 para tocá-la pelo teclado e depois em um som dos bancos A a D para atribuí-lo a ela. “Enviar configuração” envia de novo o som de cada uma.',
   },
   help: {
     open: 'Ajuda: como usar o editor e bibliotecário FM1',

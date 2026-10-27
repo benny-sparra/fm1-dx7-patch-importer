@@ -713,7 +713,7 @@ open everything an earlier release could have saved.
   reaches that Voice. A Voice holds a preset number only. Each slot tags the Voices playing it
   (V1–V8) below its heart and menu, never beside the name. **Send setup** sends one Program
   Change per Voice with a preset, on its channel, through `sendProgramChange`, and forgets the
-  edit-buffer audition, which those changes replace. The channels dialog (`VoiceChannelsDialog`, opened by **Channels…**) says to set the Voices up on the FM1
+  edit-buffer audition, which those changes replace. The strip's one-line notice, while no Voice has a patch, says to set the Voices up on the FM1, with the steps in a `HelpPopover`; the channels dialog (`VoiceChannelsDialog`, opened by **Channels…**) says in one line that it does not change the FM1
   (channels 1–8, every Voice On, none on All, SAVE → Globe), since the editor cannot read or set
   them and an Off Voice ignores its Program Change unseen (`docs/hardware-runs/stock-v16-voices-2026-10-26.md`).
   A patch beyond bank D offers **Copy into A–D and assign…**, the copy dialog limited to A–D,
@@ -819,7 +819,10 @@ open everything an earlier release could have saved.
   `ErrorNotice`; information the page or action works around, such as why an editor's changes
   are not playing on the FM1 yet, is `InfoNotice`: the sunken message box with the 8-bit info
   sign. It has no role of its own, so a notice that comes and goes sits in a `role="status"` region
-  that stays mounted.
+  that stays mounted. A notice is one short line that says what to do. Steps, reasons, and caveats
+  go behind a `HelpPopover`, a dialog, or the guide, because a paragraph in an `InfoNotice` goes
+  unread (the owner, 2026-10-27). A `HelpPopover` portals to `document.body`, so it cannot sit
+  inside a modal dialog, which hides it: a dialog keeps to its one line. A lazy chunk takes the popover as an element made by eager code (`renderHelp` on `VoiceStrip`), since importing `HelpPopover` there made Rolldown split it out of the entry, about 1.2 KiB.
 - Confirm an action that finished with a notification (`toast.success`), never a status line on the
   page, as sending a bank to the FM1 does. Show progress on the control that started the action,
   such as the button's working label, and keep only an error the user must act on on the page, in

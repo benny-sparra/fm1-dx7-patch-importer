@@ -942,16 +942,13 @@ export default {
     setupSent: '已将设置发送到 {{voices}}',
     channels: '通道…',
     channelsTitle: 'Voice 通道（与你的 FM1 设置一致）',
-    channelsNote:
-      '这里告诉编辑器每个 Voice 监听哪个通道。在此更改不会改变 FM1：请在 FM1 上设置相同的通道。',
+    setupShort: '请先设置 FM1 的 Voice。',
+    setupHelpLabel: '设置 FM1 的 Voice',
+    setupSteps:
+      '多音色模式需要对 FM1 做一次设置：将 Voice 1–8 设到通道 1–8，把每个都设为 On，不要让任何一个停在 All，然后按 SAVE 并选择 Globe。设为 Off 的 Voice 会忽略它的音色，重新设为 On 后也不会接收；设为 All 的 Voice 会接收每一个发送的音色。之后关闭此模式无需在 FM1 上做任何更改。',
+    channelsNote: '更改这里不会改变 FM1：请在 FM1 上设置相同的通道。',
     channelsClose: '关闭 Voice 通道',
     channelOf: 'Voice {{number}} 的通道',
-    firstUse:
-      '多音色模式需要对 FM1 做一次设置：将 Voice 1–8 设到通道 1–8，把每个都设为 On，不要让任何一个停在 All，然后按 SAVE 并选择 Globe。之后关闭此模式无需在 FM1 上做任何更改。',
-    setupNote:
-      '请在 FM1 上一次性设好 Voice 1–8：分别放在通道 1–8，全部设为 On，不要设为 All，然后按 SAVE 并选择 Globe。设为 Off 的 Voice 会忽略它的音色，重新设为 On 后也不会接收；设为 All 的 Voice 会接收每一个发送的音色。',
-    howToAssign:
-      '点击 Voice 1–8 中的一个，即可用键盘演奏它；再点击 A–D 库中的音色，把该音色分配给它。“发送设置”会重新把各自的音色发送给每个 Voice。',
   },
   help: {
     open: '帮助：FM1 编辑器与音色库使用说明',

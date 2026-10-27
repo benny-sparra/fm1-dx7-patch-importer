@@ -92,6 +92,7 @@ import { sharedPatchPayload } from '@/lib/share-link-fragment'
 import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
 import type { VoiceStrip as VoiceStripComponent } from '@/components/midi/voice-strip'
 import { VoicesSwitch } from '@/components/midi/midi-controls'
+import { HelpPopover } from '@/components/ui/help-popover'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { useToast } from '@/components/ui/toast'
@@ -1142,6 +1143,7 @@ export function LibrarianPage({
                 <VoiceStrip
                   midi={midi}
                   onSendSetup={onSendVoiceSetup}
+                  renderHelp={(label, text) => <HelpPopover label={label} text={text} />}
                   presetLabel={(preset) => {
                     const patch = patches.find((candidate) => candidate.program === preset)
                     return patch

@@ -7,6 +7,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 
 import { setLocale } from '@/i18n'
 import { VoiceStrip } from '@/components/midi/voice-strip'
+import { HelpPopover } from '@/components/ui/help-popover'
 import { ToastProvider } from '@/components/ui/toast'
 import {
   assignVoicePreset,
@@ -55,6 +56,7 @@ function Strip({
         midi={{ channel, hasMidiOutput, setChannel }}
         onSendSetup={onSendSetup}
         presetLabel={presetLabel}
+        renderHelp={(label, text) => <HelpPopover label={label} text={text} />}
       />
     </ToastProvider>
   )
@@ -153,23 +155,34 @@ describe('VoiceStrip', () => {
     expect(onSendSetup).not.toHaveBeenCalled()
   })
 
-  it('shows the one-time FM1 setup while no Voice has a patch, and not once one does', () => {
-    const { unmount } = render(<Strip />)
-    expect(screen.getByText(/needs the FM1 set up once/)).toBeTruthy()
-    expect(screen.getByText(/switch each one On, leave none on All/)).toBeTruthy()
-    unmount()
+  it('says in one line that the FM1 needs setting up first, with the steps behind help', async () => {
+    const user = userEvent.setup()
+    render(<Strip />)
+    const notice = screen.getByRole('status')
+    expect(notice.textContent).toBe('Set up your FM1’s Voices first.')
 
+    await user.hover(within(notice).getByRole('button', { name: /^Help: setting up/ }))
+
+    expect(screen.getByRole('note').textContent).toMatch(/switch each one On, leave none on All/)
+    expect(screen.getByRole('note').textContent).toMatch(/needs no change on the FM1/)
+  })
+
+  it('drops the setup line once a Voice has a patch', () => {
     act(() => assignVoicePreset(0, 0))
     render(<Strip />)
 
-    expect(screen.queryByText(/needs the FM1 set up once/)).toBeNull()
+    expect(screen.queryByText(/Set up your FM1’s Voices first/)).toBeNull()
+    expect(screen.getByRole('status').textContent).toBe('')
   })
 
-  it('writes the one-time FM1 setup in the interface language', async () => {
+  it('writes the setup line and its steps in the interface language', async () => {
     await setLocale('de')
+    const user = userEvent.setup()
     render(<Strip />)
 
-    expect(screen.getByText(/braucht einmalig eine Einrichtung am FM1/)).toBeTruthy()
+    expect(screen.getByText('Richte zuerst die Voices am FM1 ein.')).toBeTruthy()
+    await user.hover(screen.getByRole('button', { name: /^Hilfe: / }))
+    expect(screen.getByRole('note').textContent).toMatch(/braucht einmalig eine Einrichtung am FM1/)
   })
 
   it('keeps Send setup unavailable without a MIDI output', () => {
@@ -189,8 +202,8 @@ describe('VoiceStrip', () => {
     await user.click(screen.getByRole('button', { name: 'Channels…' }))
 
     const dialog = screen.getByRole('dialog', { name: 'Voice channels (as set on your FM1)' })
-    expect(within(dialog).getByText(/switch each one On, leave none on All/)).toBeTruthy()
     expect(within(dialog).getByText(/doesn’t change the FM1/)).toBeTruthy()
+    expect(within(dialog).queryByText(/leave none on All/)).toBeNull()
     expect(within(dialog).getAllByRole('combobox')).toHaveLength(8)
 
     await user.click(within(dialog).getByRole('button', { name: 'Close' }))
