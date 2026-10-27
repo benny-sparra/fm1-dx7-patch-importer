@@ -921,7 +921,9 @@ export function useMidi() {
 
     const handleMidiMessage = (event: MessageEvent) => {
       if (isHighRateMidiMessage(event.data)) return
-      midiActivity.signal('in')
+      const status = event.data[0] ?? 0
+      // A channel message names its channel in the status byte's low nibble.
+      midiActivity.signal('in', status >= 0x80 && status < 0xf0 ? (status & 0x0f) + 1 : undefined)
       appendLog(makeLogEntry('in', formatMidiBytes(event.data), event.data))
     }
 

@@ -10,6 +10,7 @@ import { VoiceStrip } from '@/components/midi/voice-strip'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { PortalMenu } from '@/components/ui/portal-menu'
 import { ToastProvider } from '@/components/ui/toast'
+import { midiActivity, midiActivityLitMs } from '@/lib/midi-activity'
 import {
   assignVoicePreset,
   getVoiceSetup,
@@ -90,6 +91,29 @@ afterEach(async () => {
 })
 
 describe('VoiceStrip', () => {
+  it('lights a Voice’s indicator while its channel carries MIDI, and darkens it after', () => {
+    vi.useFakeTimers()
+    try {
+      setVoiceChannel(2, 5)
+      render(<Strip />)
+      const lamp = (number: number) =>
+        screen.getByRole('switch', { name: `Voice ${number} on` }).firstElementChild
+      expect(lamp(3)?.hasAttribute('data-lit')).toBe(false)
+
+      act(() => midiActivity.signal('out', 5))
+      expect(lamp(3)?.hasAttribute('data-lit')).toBe(true)
+      expect(lamp(4)?.hasAttribute('data-lit')).toBe(false)
+
+      act(() => {
+        vi.advanceTimersToNextFrame()
+        vi.advanceTimersByTime(midiActivityLitMs)
+      })
+      expect(lamp(3)?.hasAttribute('data-lit')).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('shows each Voice with its channel and the patch it plays', () => {
     assignVoicePreset(0, 0)
     assignVoicePreset(2, 66)

@@ -332,7 +332,7 @@ describe('useMidi incoming message log', () => {
     act(() => input.receive([0xf8]))
     act(() => input.receive([0x90, 60, 100]))
 
-    expect(signal).toHaveBeenCalledExactlyOnceWith('in')
+    expect(signal).toHaveBeenCalledExactlyOnceWith('in', 1)
     signal.mockRestore()
   })
 

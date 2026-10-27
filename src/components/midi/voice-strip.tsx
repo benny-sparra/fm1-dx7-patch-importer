@@ -1,5 +1,5 @@
 import { RotateCcw, SlidersHorizontal } from 'lucide-react'
-import { useState, type ComponentProps, type ReactNode } from 'react'
+import { useState, useSyncExternalStore, type ComponentProps, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { VoiceChannelsDialog } from '@/components/midi/voice-channels-dialog'
@@ -15,6 +15,7 @@ import { useToast } from '@/components/ui/toast'
 import '@/i18n/voices'
 import type { MidiController } from '@/hooks/use-midi'
 import { useVoiceSetup } from '@/hooks/use-voice-setup'
+import { midiActivity } from '@/lib/midi-activity'
 import { cn } from '@/lib/utils'
 import { aimedVoice, aimVoice, setVoiceOn } from '@/lib/voice-setup'
 
@@ -48,7 +49,7 @@ function voiceCellClassName(isAimed: boolean) {
     isAimed
       ? // The aimed tab is the panel's own face, open at the bottom and topped with the amber bar;
         // on a phone it is a lit grid cell with an amber ring.
-        'crt-hatch h-10 border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] shadow-[inset_0_0_0_1px_var(--crt-led)] min-[52.5rem]:flex-1 min-[52.5rem]:border-r-[var(--crt-bevel-lt)] min-[52.5rem]:border-b-[var(--crt-hatch-b)] min-[52.5rem]:shadow-[inset_0_2px_0_var(--crt-led)] xl:flex-none'
+        'crt-hatch h-10 border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] shadow-[inset_0_0_0_1px_var(--crt-led)] min-[52.5rem]:flex-1 min-[52.5rem]:border-t-[var(--crt-bevel)] min-[52.5rem]:border-r-[var(--crt-bevel)] min-[52.5rem]:border-b-transparent min-[52.5rem]:border-l-[var(--crt-bevel)] min-[52.5rem]:bg-origin-border min-[52.5rem]:shadow-[inset_0_2px_0_var(--crt-led)] xl:flex-none'
       : 'h-10 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)] min-[52.5rem]:mb-0.5 min-[52.5rem]:h-[34px] min-[52.5rem]:flex-1 xl:flex-none',
   )
 }
@@ -76,6 +77,7 @@ export function VoiceStrip({
   const toast = useToast()
   const { aimed, setup } = useVoiceSetup()
   const aimedIndex = aimedVoice(setup, midi.channel, aimed)
+  const litChannels = useSyncExternalStore(midiActivity.subscribe, midiActivity.getChannelSnapshot)
   const [showsChannels, setShowsChannels] = useState(false)
   const [sendFailed, setSendFailed] = useState(false)
   const assigned = setup.voices.filter((voice) => voice.preset !== null).length
@@ -171,8 +173,11 @@ export function VoiceStrip({
               >
                 <span
                   aria-hidden="true"
+                  data-lit={
+                    voice.on && (litChannels & (1 << (voice.channel - 1))) !== 0 ? true : undefined
+                  }
                   className={cn(
-                    'block size-2.5 border',
+                    'block size-2.5 border transition-[box-shadow,filter] duration-150 data-[lit]:shadow-[0_0_10px_2px_var(--crt-led)] data-[lit]:brightness-125 data-[lit]:duration-0 motion-reduce:transition-none',
                     voice.on
                       ? 'border-[var(--crt-led)] bg-[var(--crt-led)] shadow-[0_0_6px_var(--crt-led-glow)]'
                       : 'border-t-[var(--crt-shadow)] border-r-[var(--crt-line-lt2)] border-b-[var(--crt-line-lt2)] border-l-[var(--crt-shadow)] bg-[var(--crt-bg-well)]',
