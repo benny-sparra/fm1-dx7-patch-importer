@@ -113,6 +113,8 @@ export function makeLibrarianMidi(overrides: Partial<Midi> = {}): Midi {
     selectedInputId: '',
     selectedOutputId: '',
     sendBank: vi.fn<Midi['sendBank']>(),
+    sendEffectParameter: vi.fn<Midi['sendEffectParameter']>(() => true),
+    sendEffectSettings: vi.fn<Midi['sendEffectSettings']>(() => Promise.resolve(true)),
     setChannel: vi.fn<Midi['setChannel']>(),
     setSelectedInputId: vi.fn<Midi['setSelectedInputId']>(),
     setSelectedOutputId: vi.fn<Midi['setSelectedOutputId']>(),

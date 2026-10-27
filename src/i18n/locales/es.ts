@@ -1037,6 +1037,7 @@ export default {
     playedBy: 'Lo toca {{voices}}',
     copyAndAssign: 'Copiar a A–D y asignar…',
     loadFailed: 'No se pudieron cargar las Voices 1 a 8.',
+    effectsLoadFailed: 'No se pudieron cargar los efectos.',
     strip: 'Voices 1 a 8',
     aim: 'Voice {{number}}, can. {{channel}}: {{patch}}, {{state}}',
     stateOn: 'activada',
@@ -1044,7 +1045,10 @@ export default {
     voiceSwitch: 'Voice {{number}} activada',
     noPatch: 'Sin sonido',
     recall: 'Recuperar Voices',
-    recallHint: 'Vuelve a elegir el preset de cada Voice. No guarda nada.',
+    recallHint: 'Vuelve a elegir el preset de cada Voice y envía los efectos. No guarda nada.',
+    effectsTab: 'Efectos',
+    effectsTitle: 'Efectos',
+    effectsNote: 'Las ocho Voices comparten estos efectos. SAVE en el FM1 los conserva.',
     menu: 'Acciones de Voice',
     recallOffline: 'Activa el MIDI para recuperar las Voices.',
     recallEmpty:
@@ -1052,7 +1056,7 @@ export default {
     recallFailed:
       'Algunos sonidos no llegaron al FM1. Revisa la salida MIDI y vuelve a recuperar las Voices.',
     recalled: 'Recuperadas: {{voices}}',
-    channels: 'Canales…',
+    channels: 'Canales de Voice…',
     channelsTitle: 'Canales de las Voices (como están en tu FM1)',
     setupShort: 'Configura primero las Voices del FM1.',
     setupHelpLabel: 'configurar las Voices del FM1',
@@ -1124,7 +1128,7 @@ export default {
     selectedVoiceNotice:
       'En la V16, este sonido va a la Voice seleccionada en la pantalla del FM1. Los cambios solo suenan en directo en el canal 1 o All; para oírlo, selecciona la Voice del canal {{channel}}.',
     effectsSharedNotice:
-      'En V16 estos son los efectos del FM1, compartidos por las ocho Voices. El FM1 no los guarda con este patch: pulsa SAVE y elige Globe en el FM1 para conservarlos.',
+      'En V16 todas las Voices comparten los efectos: cámbialos en la pestaña Efectos, junto a las Voices.',
     back: 'Volver a los bancos',
     editName: 'Editar nombre del sonido',
     patchName: 'Nombre del sonido',

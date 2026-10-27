@@ -9,6 +9,7 @@ import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import type { Patch } from '@/data/patches'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
+import { resetV16EffectsForTests } from '@/lib/v16-effects'
 import { assignVoicePreset, resetVoiceSetupForTests } from '@/lib/voice-setup'
 import {
   makeLibrarianLibrary,
@@ -37,6 +38,7 @@ afterEach(() => {
   cleanup()
   localStorage.clear()
   resetVoiceSetupForTests()
+  resetV16EffectsForTests()
   vi.restoreAllMocks()
 })
 
@@ -52,10 +54,12 @@ function renderPage({
   channel = 1,
   firmware = v16,
   onSelectPatch = vi.fn<(patch: Patch) => void>(),
+  midi: midiOverrides = {},
   onSendVoiceSetup = vi.fn(() => 0),
 }: {
   channel?: number
   firmware?: Fm1Firmware
+  midi?: Parameters<typeof makeLibrarianMidi>[0]
   onSelectPatch?: (patch: Patch) => void
   onSendVoiceSetup?: () => number
 } = {}) {
@@ -87,7 +91,12 @@ function renderPage({
           patches,
           workspaceBanks: ['A', 'E'],
         })}
-        midi={makeLibrarianMidi({ channel: noteChannel, firmware, setChannel: setNoteChannel })}
+        midi={makeLibrarianMidi({
+          channel: noteChannel,
+          firmware,
+          setChannel: setNoteChannel,
+          ...midiOverrides,
+        })}
         onBankDeleted={vi.fn()}
         onEditPatch={vi.fn()}
         onPlaySearchResult={vi.fn()}
@@ -110,10 +119,64 @@ describe('LibrarianPage with V16’s Voices', () => {
     expect(screen.queryByRole('switch', { name: 'Multitimbral mode' })).toBeNull()
 
     const strip = await screen.findByRole('group', { name: 'Voices 1–8' })
-    expect(within(strip).getAllByRole('button')).toHaveLength(8)
+    expect(within(strip).getAllByRole('button')).toHaveLength(9)
+    expect(within(strip).getByRole('button', { name: 'Effects', pressed: false })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Voice actions' })).toBeTruthy()
     expect(within(strip).getByRole('button', { name: /^Voice 1,/, pressed: true })).toBeTruthy()
     expect(await screen.findByText('Set up your FM1’s Voices first.')).toBeTruthy()
+  })
+
+  it('opens the Effects tab in place of the patch banks, sending nothing, and Voice tabs bring the banks back', async () => {
+    const sendEffectParameter = vi.fn(() => true)
+    const sendEffectSettings = vi.fn(() => Promise.resolve(true))
+    const { user } = renderPage({
+      midi: { hasMidiOutput: true, sendEffectParameter, sendEffectSettings },
+    })
+    expect(screen.getByRole('button', { name: sendSlotName('Alpha Piano') })).toBeTruthy()
+
+    await user.click(await screen.findByRole('button', { name: 'Effects' }))
+
+    expect(await screen.findByRole('heading', { name: 'Effects' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: sendSlotName('Alpha Piano') })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Effects' }).getAttribute('aria-pressed')).toBe(
+      'true',
+    )
+    expect(sendEffectParameter).not.toHaveBeenCalled()
+    expect(sendEffectSettings).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: /^Voice 1,/ }))
+
+    expect(screen.queryByRole('heading', { name: 'Effects' })).toBeNull()
+    expect(screen.getByRole('button', { name: sendSlotName('Alpha Piano') })).toBeTruthy()
+  })
+
+  it('sends only the controller an effects edit changed, and remembers it', async () => {
+    const sendEffectParameter = vi.fn((controller: number, value: number) => {
+      void controller
+      void value
+      return true
+    })
+    const { user } = renderPage({ midi: { hasMidiOutput: true, sendEffectParameter } })
+    await user.click(await screen.findByRole('button', { name: 'Effects' }))
+
+    await user.click(await screen.findByRole('switch', { name: 'Reverb' }))
+
+    // Reverb's switch is the controller after Filter's three, at its place among the 24.
+    expect(sendEffectParameter).toHaveBeenCalledOnce()
+    const [controller, value] = sendEffectParameter.mock.calls[0]
+    expect(value).toBe(1)
+    expect(JSON.parse(localStorage.getItem('fm1-v16-effects') ?? '{}').effects[controller]).toBe(1)
+  })
+
+  it('keeps an effects edit without a MIDI output, sending nothing', async () => {
+    const sendEffectParameter = vi.fn(() => true)
+    const { user } = renderPage({ midi: { hasMidiOutput: false, sendEffectParameter } })
+    await user.click(await screen.findByRole('button', { name: 'Effects' }))
+
+    await user.click(await screen.findByRole('switch', { name: 'Reverb' }))
+
+    expect(sendEffectParameter).not.toHaveBeenCalled()
+    expect(screen.getByRole('switch', { name: 'Reverb' }).getAttribute('aria-checked')).toBe('true')
   })
 
   it('labels a Voice’s preset as its slot shows it, or by its slot code when no patch is there', () => {
@@ -124,6 +187,7 @@ describe('LibrarianPage with V16’s Voices', () => {
     return screen.findByRole('group', { name: 'Voices 1–8' }).then((strip) => {
       const titles = within(strip)
         .getAllByRole('button')
+        .filter((button) => button.title)
         .map((button) => button.title)
       expect(titles.slice(0, 3)).toEqual([
         'Voice 1, Ch 1: A01 Alpha Piano, on',

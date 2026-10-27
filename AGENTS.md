@@ -122,7 +122,10 @@ open everything an earlier release could have saved.
   `fm1-colourway`, `fm1-last-backup`, `fm1-voice-setup` (V16's Voice setup: a version 2 record
   of the retired Multitimbral mode switch (`enabled`, still read and written back as it was but no
   longer shown or used, since V16 is always multitimbral) and each of eight Voices' preset, channel, and On switch; version 1,
-  which has no On switch, reads every Voice as on), and the MIDI port and help-dialog keys. Do not rename,
+  which has no On switch, reads every Voice as on), `fm1-v16-effects` (V16's shared effects: a
+  version 1 record `{ version, effects: number[24] }` in a patch's FM1 effects order and limits,
+  normalised field by field, an unknown version read as all off and left in storage until the
+  effects change; its fixture is in `src/lib/v16-effects.test.ts`), and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them. A patch's share link (`#p=`, `src/lib/patch-share-link.ts`) is
   one too: links live for years in chats and forums, so every release reads version 1, and its
   version 1 fixtures stay in the codec's test.
@@ -714,8 +717,9 @@ open everything an earlier release could have saved.
   the aimed one; the other is still named in its tooltip), and selecting a Voice's tab shows the bank holding its
   patch (the owner, 2026-10-27). The FM1 setup line shows while no Voice has a patch. The Voices are tabs fused to the
   panel's top edge, which they overlap by its 2px border (owner's design, 2026-10-27, option C): from
-  `52.5rem` one row of tabs with the ⋮ menu at its right end; below it a 4 × 2 grid of cells (2 × 4
-  below 376px), not fused, the aimed one lit with an amber ring, the menu beside its first row. Each Voice is two buttons, never a tablist, since ARIA keeps a switch out of one: the tab
+  `62rem` one row of nine tabs, the Effects tab last, with the ⋮ menu at its right end; below it a
+  4 × 2 grid of cells (2 × 4 below 376px) with the Effects tab across the row beneath, not fused, the
+  aimed one lit with an amber ring, the menu beside its first row. Each Voice is two buttons, never a tablist, since ARIA keeps a switch out of one: the tab
   (`aria-pressed`, named "Voice 1, Ch 1: A01 BRASS 1, on") aims at the Voice, and its 10px LED
   (`role="switch"`, "Voice 1 on", 24px target) is the Voice's own On value, which aims at nothing,
   so a Voice that is off can still be aimed at, and sends nothing. No
@@ -734,6 +738,23 @@ open everything an earlier release could have saved.
   them and an Off Voice ignores its Program Change unseen (`docs/hardware-runs/stock-v16-voices-2026-10-26.md`).
   A patch beyond bank D offers **Copy into A–D and assign…**, the copy dialog limited to A–D,
   which then plays the copy as a slot click, once the library holds it.
+- V16's **Effects** tab (the owner, 2026-10-27) follows the eight Voice tabs and swaps the patch banks
+  for the editor's own effects panel (`EffectsUnit`, never a copy) on the one FX group the Voices
+  share (`V16EffectsPanel`, lazy from `librarian-page` with `LoadFailedNotice`; the tab itself is
+  in the strip, and `PatchGrid` takes the panel as `panel`). While it is open no Voice tab is lit,
+  and a Voice tab brings the banks back. Its 24 values are the stored `fm1-v16-effects`
+  (`src/lib/v16-effects.ts`, read with `useSyncExternalStore`, all off to start). Opening the tab
+  sends nothing; an edit or preset sends only the controllers it changed, as CC 70–93 on the effect
+  channel through `sendEffectParameter`, and only with a MIDI output (without one the edit is kept
+  and sent by nothing); **Recall Voices** sends all 24 after the Program Changes through
+  `sendEffectSettings`. The editor cannot read the FM1's effects, so the stored values are its note
+  of what it last sent, unsaved on the FM1 until SAVE. There is no undo, since the effects are not
+  part of a patch and the editor's history belongs to one. The patch editor keeps its effects panel
+  on V16 with one short line naming the tab (`editor.effectsSharedNotice`). Both are offered by
+  the profile's capabilities (`multitimbral`, `effectControllers`, no `presetEffects`), never the
+  firmware kind. The tab's strings are in `en-GB-voices.ts`, except its load failure, which the
+  page reads. The panel's chunk shares `effects-unit` with the editor, which cost about 1.1 KiB of
+  the entry (Rolldown split `fm1-parameters` and `fm1-effects` out of it).
 - The header's colour swatch, **?** and ⋮ show no caption under them (removed on 2026-10-22 at
   the owner's request); each keeps its accessible name and tooltip. The swatch's choice is named
   **FM1 colour**, never finish, which also reads as the end. The MIDI panic shows only its icon too,

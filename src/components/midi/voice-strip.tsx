@@ -1,10 +1,11 @@
-import { RotateCcw, SlidersHorizontal } from 'lucide-react'
+import { RotateCcw, Sparkles, SlidersHorizontal } from 'lucide-react'
 import { useState, useSyncExternalStore, type ComponentProps, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { VoiceChannelsDialog } from '@/components/midi/voice-channels-dialog'
 import {
   voiceActionsCellClassName,
+  voiceEffectsCellClassName,
   voiceNoticesCellClassName,
   voiceTabsCellClassName,
 } from '@/components/midi/voice-bar-layout'
@@ -17,10 +18,15 @@ import type { MidiController } from '@/hooks/use-midi'
 import { useVoiceSetup } from '@/hooks/use-voice-setup'
 import { midiActivity } from '@/lib/midi-activity'
 import { cn } from '@/lib/utils'
+import { getV16Effects } from '@/lib/v16-effects'
 import { aimedVoice, aimVoice, setVoiceOn } from '@/lib/voice-setup'
 
 type VoiceStripProps = {
-  midi: Pick<MidiController, 'channel' | 'hasMidiOutput' | 'setChannel'>
+  midi: Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendEffectSettings' | 'setChannel'>
+  /** Whether the Effects tab, after the Voices, is the one open: no Voice tab is then lit. */
+  effectsOpen: boolean
+  /** Opens the Effects tab, or closes it for the Voice a tab aims at. */
+  onEffectsOpenChange: (open: boolean) => void
   /** Told which FM1 preset, 0–127, the Voice just aimed at plays, or null for none. */
   onAim: (preset: number | null) => void
   /** Recalls each Voice's preset as a Program Change on its channel, returning how many went. */
@@ -49,8 +55,8 @@ function voiceCellClassName(isAimed: boolean) {
     isAimed
       ? // The aimed tab is the panel's own face, open at the bottom and topped with the amber bar;
         // on a phone it is a lit grid cell with an amber ring.
-        'crt-hatch h-10 border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] shadow-[inset_0_0_0_1px_var(--crt-led)] min-[52.5rem]:flex-1 min-[52.5rem]:border-t-[var(--crt-bevel)] min-[52.5rem]:border-r-[var(--crt-bevel)] min-[52.5rem]:border-b-transparent min-[52.5rem]:border-l-[var(--crt-bevel)] min-[52.5rem]:bg-origin-border min-[52.5rem]:shadow-[inset_0_2px_0_var(--crt-led)] xl:flex-none'
-      : 'h-10 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)] min-[52.5rem]:mb-0.5 min-[52.5rem]:h-[34px] min-[52.5rem]:flex-1 xl:flex-none',
+        'crt-hatch h-10 border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] shadow-[inset_0_0_0_1px_var(--crt-led)] min-[62rem]:flex-1 min-[62rem]:border-t-[var(--crt-bevel)] min-[62rem]:border-r-[var(--crt-bevel)] min-[62rem]:border-b-transparent min-[62rem]:border-l-[var(--crt-bevel)] min-[62rem]:bg-origin-border min-[62rem]:shadow-[inset_0_2px_0_var(--crt-led)] xl:flex-none'
+      : 'h-10 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)] min-[62rem]:mb-0.5 min-[62rem]:h-[34px] min-[62rem]:flex-1 xl:flex-none',
   )
 }
 
@@ -58,7 +64,7 @@ const focusRing =
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]'
 
 /**
- * The eight Voices of M-VAVE's V16, with a menu of Recall Voices and Channels…, as the cells the librarian page's
+ * The eight Voices of M-VAVE's V16, with a menu of Recall voices and Voice channels…, as the cells the librarian page's
  * Voices bar holds (`voice-bar-layout`). A Voice's tab and its
  * own switch are two buttons: clicking the tab aims at the Voice, setting the note channel to its
  * channel, so the keyboard plays it and a slot click gives it that slot's preset; the switch says
@@ -66,7 +72,9 @@ const focusRing =
  * the patch.
  */
 export function VoiceStrip({
+  effectsOpen,
   midi,
+  onEffectsOpenChange,
   onAim,
   onSendSetup,
   presetLabel,
@@ -76,7 +84,7 @@ export function VoiceStrip({
   const { i18n, t } = useTranslation()
   const toast = useToast()
   const { aimed, setup } = useVoiceSetup()
-  const aimedIndex = aimedVoice(setup, midi.channel, aimed)
+  const aimedIndex = effectsOpen ? null : aimedVoice(setup, midi.channel, aimed)
   const litChannels = useSyncExternalStore(midiActivity.subscribe, midiActivity.getChannelSnapshot)
   const [showsChannels, setShowsChannels] = useState(false)
   const [sendFailed, setSendFailed] = useState(false)
@@ -92,6 +100,10 @@ export function VoiceStrip({
     const sent = onSendSetup()
     setSendFailed(sent < assigned)
     if (sent < assigned) return
+    // The Voices share one FX group, which no Program Change sets, so the effects follow them.
+    void midi.sendEffectSettings(getV16Effects()).then((sentEffects) => {
+      if (!sentEffects) setSendFailed(true)
+    })
     const voices = setup.voices.flatMap((voice, index) =>
       voice.preset === null ? [] : [t('voices.voice', { number: index + 1 })],
     )
@@ -151,6 +163,7 @@ export function VoiceStrip({
                       : 'text-[var(--crt-acc-lt)]',
                 )}
                 onClick={() => {
+                  onEffectsOpenChange(false)
                   aimVoice(index)
                   midi.setChannel(voice.channel)
                   onAim(voice.preset)
@@ -187,6 +200,22 @@ export function VoiceStrip({
             </div>
           )
         })}
+        {/* The Voices' shared effects: one more tab, which swaps the patch banks for the panel. */}
+        <div className={cn(voiceCellClassName(effectsOpen), voiceEffectsCellClassName)}>
+          <button
+            aria-pressed={effectsOpen}
+            className={cn(
+              'font-dot-matrix flex h-full min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 px-3 text-[13px] leading-none font-bold whitespace-nowrap min-[26.25rem]:text-[14px]',
+              focusRing,
+              effectsOpen ? 'text-[var(--crt-acc-br)]' : 'text-[var(--crt-acc-lt)]',
+            )}
+            onClick={() => onEffectsOpenChange(!effectsOpen)}
+            type="button"
+          >
+            <Sparkles aria-hidden="true" className="size-3.5 shrink-0" />
+            <span>{t('voices.effectsTab')}</span>
+          </button>
+        </div>
       </div>
       <span className={voiceActionsCellClassName}>
         {renderMenu({

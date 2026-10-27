@@ -1041,6 +1041,7 @@ export default {
     playedBy: 'Joué par {{voices}}',
     copyAndAssign: 'Copier dans A–D et attribuer…',
     loadFailed: 'Les Voices 1 à 8 n’ont pas pu être chargées.',
+    effectsLoadFailed: 'Impossible de charger les effets.',
     strip: 'Voices 1 à 8',
     aim: 'Voice {{number}}, can. {{channel}} : {{patch}}, {{state}}',
     stateOn: 'activée',
@@ -1048,7 +1049,11 @@ export default {
     voiceSwitch: 'Voice {{number}} activée',
     noPatch: 'Aucun son',
     recall: 'Rappeler les Voices',
-    recallHint: 'Choisit à nouveau le preset de chaque Voice. N’enregistre rien.',
+    recallHint:
+      'Choisit à nouveau le preset de chaque Voice et envoie les effets. N’enregistre rien.',
+    effectsTab: 'Effets',
+    effectsTitle: 'Effets',
+    effectsNote: 'Les huit Voices partagent ces effets. SAVE sur le FM1 les conserve.',
     menu: 'Actions des Voices',
     recallOffline: 'Passez le MIDI en ligne pour rappeler les Voices.',
     recallEmpty:
@@ -1056,7 +1061,7 @@ export default {
     recallFailed:
       'Certains sons ne sont pas parvenus au FM1. Vérifiez la sortie MIDI, puis rappelez les Voices.',
     recalled: 'Rappelées : {{voices}}',
-    channels: 'Canaux…',
+    channels: 'Canaux des Voices…',
     channelsTitle: 'Canaux des Voices (tels que réglés sur votre FM1)',
     setupShort: 'Réglez d’abord les Voices du FM1.',
     setupHelpLabel: 'le réglage des Voices du FM1',
@@ -1129,7 +1134,7 @@ export default {
     selectedVoiceNotice:
       'Sur la V16, ce son va à la Voice sélectionnée sur l’écran du FM1. Les modifications ne jouent en direct que sur le canal 1 ou All ; pour l’entendre, sélectionnez la Voice du canal {{channel}}.',
     effectsSharedNotice:
-      'Sur V16, ce sont les effets du FM1, partagés par les huit Voices. Le FM1 ne les conserve pas avec ce patch : appuyez sur SAVE et choisissez Globe sur le FM1 pour les garder.',
+      'Sur V16, les Voices partagent les mêmes effets : modifiez-les dans l’onglet Effets, à côté des Voices.',
     back: 'Retour aux banques',
     editName: 'Modifier le nom du son',
     patchName: 'Nom du son',

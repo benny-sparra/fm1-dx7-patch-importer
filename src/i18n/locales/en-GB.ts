@@ -254,6 +254,7 @@ export default {
     playedBy: 'Played by {{voices}}',
     copyAndAssign: 'Copy into A–D and assign…',
     loadFailed: 'Voices 1–8 could not be loaded.',
+    effectsLoadFailed: 'The effects could not be loaded.',
   },
   help: {
     open: 'Help: how to use the FM1 editor and librarian',

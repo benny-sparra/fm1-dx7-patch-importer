@@ -90,6 +90,7 @@ import { copyTextToClipboard } from '@/lib/copy-text'
 import { downloadFile } from '@/lib/download-file'
 import { sharedPatchPayload } from '@/lib/share-link-fragment'
 import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
+import type { V16EffectsPanel as V16EffectsPanelComponent } from '@/components/midi/v16-effects-panel'
 import type { VoiceStrip as VoiceStripComponent } from '@/components/midi/voice-strip'
 import { voiceBarClassName } from '@/components/midi/voice-bar-layout'
 import { HelpPopover } from '@/components/ui/help-popover'
@@ -142,6 +143,12 @@ const CopyPatchDialog = lazy(() =>
 // widened.
 const VoiceStrip = lazy(() =>
   import('@/components/midi/voice-strip').then((module) => ({ default: module.VoiceStrip })),
+)
+// V16's Effects tab opens the editor's effects panel on the FM1's shared FX group.
+const V16EffectsPanel = lazy(() =>
+  import('@/components/midi/v16-effects-panel').then((module) => ({
+    default: module.V16EffectsPanel,
+  })),
 )
 const SearchEverywhereResults = lazy(() =>
   import('@/components/patches/search-everywhere-results').then((module) => ({
@@ -312,6 +319,7 @@ type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof ReceiveFromFm1Dialog>['midi'] &
   ComponentProps<typeof MidiConnectionRequiredDialog>['midi'] &
   ComponentProps<typeof VoiceStripComponent>['midi'] &
+  ComponentProps<typeof V16EffectsPanelComponent>['midi'] &
   Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
 type LibrarianPageProps = {
@@ -419,6 +427,7 @@ export function LibrarianPage({
   const emptyBankImportOpenerRef = useRef<HTMLElement | null>(null)
   const [isRestoringFactoryBanks, setIsRestoringFactoryBanks] = useState(false)
   // Sending a bank first explains what it needs: a MIDI output, or the destination on the FM1.
+  const [effectsOpen, setEffectsOpen] = useState(false)
   const [sendGuide, setSendGuide] = useState<'bank-selection' | 'midi-required' | null>(null)
   const allBanksMenuRef = useDismissableDetails()
   const bankMenuRef = useDismissableDetails()
@@ -434,6 +443,7 @@ export function LibrarianPage({
   const playsVoices = firmwareProfile.capabilities.multitimbral
   const hasAimedVoice = playsVoices && aimedVoice(voiceSetup, midi.channel, aimed) !== null
   const showsVoiceBar = onSendVoiceSetup !== undefined && firmwareProfile.capabilities.multitimbral
+  const showsEffects = showsVoiceBar && effectsOpen
   const voicePresetLabel = (preset: number) => {
     const patch = patches.find((candidate) => candidate.program === preset)
     return patch
@@ -1150,10 +1160,23 @@ export function LibrarianPage({
         </ErrorBoundary>
       ) : null}
       <PatchGrid
+        panel={
+          showsEffects ? (
+            <ErrorBoundary
+              fallback={
+                <LoadFailedNotice className="py-4" message={t('voices.effectsLoadFailed')} />
+              }
+            >
+              <Suspense fallback={<div aria-hidden="true" className="synthwave-panel min-h-svh" />}>
+                <V16EffectsPanel midi={midi} />
+              </Suspense>
+            </ErrorBoundary>
+          ) : undefined
+        }
         voiceBar={
           showsVoiceBar ? (
-            // V16's eight Voices, tabs fused to the panel below, with a ⋮ menu of Recall Voices and
-            // Channels…. V16 is always multitimbral, so there is no switch.
+            // V16's eight Voices, tabs fused to the panel below, with a ⋮ menu of Recall voices and
+            // Voice channels…. V16 is always multitimbral, so there is no switch.
             <div className={voiceBarClassName()}>
               {
                 <ErrorBoundary
@@ -1167,12 +1190,14 @@ export function LibrarianPage({
                     fallback={
                       <div
                         aria-hidden="true"
-                        className="col-start-1 row-start-2 h-[8.75rem] min-[23.5rem]:h-[4.25rem] min-[52.5rem]:h-8"
+                        className="col-start-1 row-start-2 h-[11rem] min-[23.5rem]:h-[6.5rem] min-[62rem]:h-8"
                       />
                     }
                   >
                     <VoiceStrip
+                      effectsOpen={showsEffects}
                       midi={midi}
+                      onEffectsOpenChange={setEffectsOpen}
                       onAim={aimAtVoicePreset}
                       onSendSetup={onSendVoiceSetup}
                       presetLabel={voicePresetLabel}

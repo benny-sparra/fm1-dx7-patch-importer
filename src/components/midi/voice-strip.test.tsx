@@ -56,19 +56,24 @@ function Strip({
   initialChannel = 1,
   onAim = vi.fn(),
   onSendSetup = vi.fn(() => 0),
+  sendEffectSettings = vi.fn(() => Promise.resolve(true)),
 }: {
   hasMidiOutput?: boolean
   initialChannel?: number
   onAim?: (preset: number | null) => void
   onSendSetup?: () => number
+  sendEffectSettings?: (settings: Uint8Array) => Promise<boolean>
 }) {
   const [channel, setChannel] = useState(initialChannel)
+  const [effectsOpen, setEffectsOpen] = useState(false)
   return (
     <ToastProvider>
       <p>Note channel {channel}</p>
       <VoiceStrip
-        midi={{ channel, hasMidiOutput, setChannel }}
+        effectsOpen={effectsOpen}
+        midi={{ channel, hasMidiOutput, sendEffectSettings, setChannel }}
         onAim={onAim}
+        onEffectsOpenChange={setEffectsOpen}
         onSendSetup={onSendSetup}
         presetLabel={presetLabel}
         renderHelp={(label, text) => <HelpPopover label={label} text={text} />}
@@ -119,7 +124,9 @@ describe('VoiceStrip', () => {
     assignVoicePreset(2, 66)
     render(<Strip />)
 
-    const voices = within(screen.getByRole('group', { name: 'Voices 1–8' })).getAllByRole('button')
+    const voices = within(screen.getByRole('group', { name: 'Voices 1–8' }))
+      .getAllByRole('button')
+      .filter((button) => button.hasAttribute('aria-label'))
     expect(voices.map((voice) => voice.getAttribute('aria-label'))).toEqual([
       'Voice 1, Ch 1: A01 BRASS 1, on',
       'Voice 2, Ch 2: No patch, on',
@@ -202,7 +209,7 @@ describe('VoiceStrip', () => {
     const onSendSetup = vi.fn(() => 2)
     render(<Strip onSendSetup={onSendSetup} />)
 
-    await chooseFromMenu(userEvent.setup(), 'Recall Voices')
+    await chooseFromMenu(userEvent.setup(), 'Recall voices')
 
     expect(onSendSetup).toHaveBeenCalledOnce()
     expect(await screen.findByText('Recalled Voice 1 and Voice 3')).toBeTruthy()
@@ -213,32 +220,79 @@ describe('VoiceStrip', () => {
     assignVoicePreset(2, 66)
     render(<Strip onSendSetup={() => 1} />)
 
-    await chooseFromMenu(userEvent.setup(), 'Recall Voices')
+    await chooseFromMenu(userEvent.setup(), 'Recall voices')
 
     expect(screen.getByRole('alert').textContent).toContain('Some patches did not reach the FM1')
     expect(screen.queryByText(/^Recalled/)).toBeNull()
   })
 
-  it('holds Recall Voices in a menu, with no Send setup button beside it', async () => {
+  it('has an Effects tab after the eight Voices, which lights in place of the Voice aimed at', async () => {
+    const user = userEvent.setup()
+    render(<Strip />)
+    const group = screen.getByRole('group', { name: 'Voices 1–8' })
+    const buttons = within(group).getAllByRole('button')
+    const effects = within(group).getByRole('button', { name: 'Effects' })
+    expect(buttons.at(-1)).toBe(effects)
+    expect(effects.getAttribute('aria-pressed')).toBe('false')
+    expect(screen.getByRole('button', { name: /^Voice 1,/ }).getAttribute('aria-pressed')).toBe(
+      'true',
+    )
+
+    await user.click(effects)
+
+    expect(effects.getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: /^Voice 1,/ }).getAttribute('aria-pressed')).toBe(
+      'false',
+    )
+    await user.click(screen.getByRole('button', { name: /^Voice 3,/ }))
+    expect(effects.getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('sends all 24 effects after the Voices when recalling them, and sends none when opening the tab', async () => {
+    assignVoicePreset(0, 0)
+    const sendEffectSettings = vi.fn((_settings: Uint8Array) => Promise.resolve(true))
+    const user = userEvent.setup()
+    render(<Strip onSendSetup={() => 1} sendEffectSettings={sendEffectSettings} />)
+    await user.click(screen.getByRole('button', { name: 'Effects' }))
+    expect(sendEffectSettings).not.toHaveBeenCalled()
+
+    await chooseFromMenu(user, 'Recall voices')
+
+    expect(sendEffectSettings).toHaveBeenCalledOnce()
+    expect(sendEffectSettings.mock.calls[0][0]).toHaveLength(24)
+  })
+
+  it('says so when the effects did not reach the FM1 on recall', async () => {
+    assignVoicePreset(0, 0)
+    render(<Strip onSendSetup={() => 1} sendEffectSettings={() => Promise.resolve(false)} />)
+
+    await chooseFromMenu(userEvent.setup(), 'Recall voices')
+
+    expect((await screen.findByRole('alert')).textContent).toContain('did not reach the FM1')
+  })
+
+  it('holds Recall voices in a menu, with no Send setup button beside it', async () => {
     assignVoicePreset(0, 0)
     const user = userEvent.setup()
     render(<Strip />)
-    expect(screen.queryByRole('button', { name: /Send setup|Recall Voices/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Send setup|Recall voices/ })).toBeNull()
 
     await user.click(screen.getByRole('button', { name: 'Voice actions' }))
 
-    const item = screen.getByRole('menuitem', { name: 'Recall Voices' })
-    expect(item.textContent).toContain('Selects each Voice’s preset again. Stores nothing.')
-    expect(screen.getByRole('menuitem', { name: 'Channels…' })).toBeTruthy()
+    const item = screen.getByRole('menuitem', { name: 'Recall voices' })
+    expect(item.textContent).toContain(
+      'Selects each Voice’s preset again and sends the effects. Stores nothing.',
+    )
+    expect(screen.getByRole('menuitem', { name: 'Voice channels…' })).toBeTruthy()
   })
 
-  it('says why Recall Voices is unavailable, in the menu, with no patch on any Voice', async () => {
+  it('says why Recall voices is unavailable, in the menu, with no patch on any Voice', async () => {
     const onSendSetup = vi.fn(() => 0)
     const user = userEvent.setup()
     render(<Strip onSendSetup={onSendSetup} />)
 
     await user.click(screen.getByRole('button', { name: 'Voice actions' }))
-    const item = screen.getByRole('menuitem', { name: 'Recall Voices' })
+    const item = screen.getByRole('menuitem', { name: 'Recall voices' })
 
     expect((item as HTMLButtonElement).disabled).toBe(true)
     expect(item.textContent).toMatch(/None of Voices 1–8 has a patch yet/)
@@ -276,14 +330,14 @@ describe('VoiceStrip', () => {
     expect(screen.getByRole('note').textContent).toMatch(/braucht einmalig eine Einrichtung/)
   })
 
-  it('keeps Recall Voices unavailable, saying why, without a MIDI output', async () => {
+  it('keeps Recall voices unavailable, saying why, without a MIDI output', async () => {
     assignVoicePreset(0, 0)
     const user = userEvent.setup()
     render(<Strip hasMidiOutput={false} />)
 
     await user.click(screen.getByRole('button', { name: 'Voice actions' }))
 
-    const item = screen.getByRole('menuitem', { name: 'Recall Voices' })
+    const item = screen.getByRole('menuitem', { name: 'Recall voices' })
     expect((item as HTMLButtonElement).disabled).toBe(true)
     expect(item.textContent).toContain('Switch MIDI online to recall the Voices.')
   })
@@ -303,7 +357,7 @@ describe('VoiceStrip', () => {
     render(<Strip />)
     expect(screen.queryByRole('combobox')).toBeNull()
 
-    await chooseFromMenu(user, 'Channels…')
+    await chooseFromMenu(user, 'Voice channels…')
 
     const dialog = screen.getByRole('dialog', { name: 'Voice channels (as set on your FM1)' })
     expect(within(dialog).getByText(/doesn’t change the FM1/)).toBeTruthy()
@@ -318,7 +372,7 @@ describe('VoiceStrip', () => {
   it('stores a Voice’s channel, and moves the note channel with the Voice aimed at', async () => {
     const user = userEvent.setup()
     render(<Strip initialChannel={2} />)
-    await chooseFromMenu(user, 'Channels…')
+    await chooseFromMenu(user, 'Voice channels…')
 
     await user.selectOptions(screen.getByRole('combobox', { name: 'Voice 2 channel' }), 'Ch 9')
     await user.selectOptions(screen.getByRole('combobox', { name: 'Voice 5 channel' }), 'Ch 12')
@@ -349,7 +403,7 @@ describe('VoiceStrip', () => {
 
     await user.click(screen.getByRole('button', { name: /^Voice 3,/ }))
     act(() => assignVoicePreset(2, 0))
-    await chooseFromMenu(user, 'Channels…')
+    await chooseFromMenu(user, 'Voice channels…')
 
     expect(screen.getByRole('button', { name: 'Voice 3, Ch 3: A01 BRASS 1, on' })).toBeTruthy()
     expect(screen.getByRole('dialog').textContent).toContain('doesn’t change the FM1')

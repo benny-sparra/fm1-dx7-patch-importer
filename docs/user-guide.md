@@ -99,7 +99,7 @@ says **Receive Timeout**; start Export again while the app listens.
 
 On V16 the FM1 plays eight Voices, each with its own patch and MIDI channel, so once the FM1 is
 identified as running V16 the editor shows them as Voice 1 to Voice 8 tabs fused to the top of the
-Patch banks panel, with a ⋮ menu at the right holding **Recall Voices** and **Channels…** (a grid
+Patch banks panel, with a ⋮ menu at the right holding **Recall voices** and **Voice channels…** (a grid
 of eight on a phone). There is nothing to switch on: Voice 1 is selected to start with, so if you
 never touch the tabs the editor works as it always has, on the **Note channel** in **Settings**.
 Each tab has its own small light, the Voice's On switch: it only records whether you have that
@@ -121,11 +121,18 @@ only the Voice on their channel.
    the FM1 plays what it stores there: send banks A to D to the FM1 first.
 4. A patch in a bank after D has no FM1 preset. Choose **Copy into A–D and assign…** in its ⋮ menu
    to copy it into a slot in banks A to D and give that slot to the Voice.
-5. **Recall Voices** sends every Voice that has a patch its Program Change again, on its own channel,
-   for instance after the FM1 was switched on. **Channels** sets which channel each Voice listens
+5. **Recall voices** sends every Voice that has a patch its Program Change again, on its own channel,
+   and then the effects, for instance after the FM1 was switched on. **Channels** sets which channel each Voice listens
    on, Voice n on channel n unless you change it, and repeats the setup steps above.
 
-The effects are still the FM1's one shared set, edited from the editor's Effects panel.
+The **Effects** tab after Voice 8 is the FM1's one shared set of effects, which all eight Voices
+play. It swaps the patch banks for the same effects panel the patch editor has, and a Voice tab
+brings the banks back. Opening it sends nothing; changing a control sends just that control, on
+the effect channel, and **Recall voices** sends all of them. The app cannot read the FM1's effects,
+so the tab shows what it last sent (kept in this browser, all off to start), and the FM1 keeps
+them only after you press **SAVE** and choose **Globe**. It has no undo, and it does not choose
+the FM1's effect group or its order. The patch editor's Effects panel still works on V16, with a
+line pointing to the tab.
 
 Baud Girl's firmware also chooses a bank's destination differently. When a bank arrives it asks **Replace Bank
 A?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names

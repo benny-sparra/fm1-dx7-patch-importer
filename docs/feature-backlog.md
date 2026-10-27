@@ -211,9 +211,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       1. **Now, small:** on V16 the panel says it edits the FM1's effects, shared by all
          Voices, and that the FM1 does not keep them with the patch. The firmware setting
          already says so; the editor is where people change them.
-      2. **With the Voice strip (step 2):** a standalone effects editor opened from the strip,
-         beside **Recall Voices**, reusing the effects panel and editing the current setup's
-         effects. On V16 the patch editor's panel then points to it.
+      2. **With the Voice strip (step 2) — done (2026-10-27, Ben's decisions):** an **Effects**
+         tab after the eight Voice tabs opens the editor's effects panel on the FM1's shared FX
+         group. Its values are kept in `fm1-v16-effects` (a versioned localStorage record, all
+         off to start); opening the tab sends nothing, an edit sends only the controllers it
+         changed, and **Recall Voices** sends all 24 after the Program Changes. The patch
+         editor keeps its panel on V16 with one line naming the tab. No undo: the effects are
+         not part of a patch.
       3. **With named setups (step 4):** each setup stores its effects, and that editor is
          where V16's effects live. Other firmware never sees a change.
   - **Questions for a hardware run first** (the run of 2026-10-26, `hardware-runs/stock-v16-voices-2026-10-26.md`,
@@ -226,6 +230,9 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       _Answered (2026-10-26): yes. A Voice that is Off ignores it and does not take it when
       switched back On, and the editor cannot see that a Voice is Off. **Recall Voices** to an Off
       Voice silently does nothing, so the strip has to say Voices must be On._
+    - Does CC 70–93 on the effect channel disturb a Voice set to that same channel? The Effects
+      tab sends on the effect channel (2 by default), which Voice 2 also listens on.
+      _Open: not run._
     - Does one dump per gesture feel usable while holding a Voice selected on the FM1?
       _Open: not run._
     - Which channel do the FM1's own key presses arrive on with several Voices?

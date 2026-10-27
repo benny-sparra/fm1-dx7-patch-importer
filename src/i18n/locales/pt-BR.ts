@@ -1025,6 +1025,7 @@ export default {
     playedBy: 'Tocado por {{voices}}',
     copyAndAssign: 'Copiar para A–D e atribuir…',
     loadFailed: 'Não foi possível carregar as Voices 1 a 8.',
+    effectsLoadFailed: 'Não foi possível carregar os efeitos.',
     strip: 'Voices 1 a 8',
     aim: 'Voice {{number}}, can. {{channel}}: {{patch}}, {{state}}',
     stateOn: 'ligada',
@@ -1032,7 +1033,10 @@ export default {
     voiceSwitch: 'Voice {{number}} ligada',
     noPatch: 'Sem som',
     recall: 'Recuperar Voices',
-    recallHint: 'Escolhe de novo o preset de cada Voice. Não salva nada.',
+    recallHint: 'Escolhe de novo o preset de cada Voice e envia os efeitos. Não salva nada.',
+    effectsTab: 'Efeitos',
+    effectsTitle: 'Efeitos',
+    effectsNote: 'As oito Voices compartilham estes efeitos. SAVE no FM1 os mantém.',
     menu: 'Ações das Voices',
     recallOffline: 'Ative o MIDI para recuperar as Voices.',
     recallEmpty:
@@ -1040,7 +1044,7 @@ export default {
     recallFailed:
       'Alguns sons não chegaram ao FM1. Verifique a saída MIDI e recupere as Voices de novo.',
     recalled: 'Recuperadas: {{voices}}',
-    channels: 'Canais…',
+    channels: 'Canais de Voice…',
     channelsTitle: 'Canais das Voices (como definidos no seu FM1)',
     setupShort: 'Configure primeiro as Voices do FM1.',
     setupHelpLabel: 'configurar as Voices do FM1',
@@ -1111,7 +1115,7 @@ export default {
     selectedVoiceNotice:
       'Na V16, este som vai para a Voice selecionada na tela do FM1. As edições só tocam ao vivo no canal 1 ou All; para ouvi-lo, selecione a Voice do canal {{channel}}.',
     effectsSharedNotice:
-      'No V16, estes são os efeitos do FM1, compartilhados pelas oito Voices. O FM1 não os guarda com este patch: pressione SAVE e escolha Globe no FM1 para mantê-los.',
+      'No V16, todas as Voices compartilham os efeitos: altere-os na aba Efeitos, ao lado das Voices.',
     back: 'Voltar aos bancos',
     editName: 'Editar nome do som',
     patchName: 'Nome do som',
