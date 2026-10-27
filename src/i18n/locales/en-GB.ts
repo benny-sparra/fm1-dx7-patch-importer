@@ -216,7 +216,6 @@ export default {
   },
   root: {
     skipToContent: 'Skip to main content',
-    channelShort: 'Ch {{number}}',
     subtitle: 'editor & librarian',
     intro: 'Edit, organise and transfer FM1 patches, or <link>import DX7 SysEx banks</link>.',
     synthAlt: 'M-VAVE FM1 synthesiser front panel',

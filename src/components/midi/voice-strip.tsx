@@ -113,7 +113,7 @@ export function VoiceStrip({ midi, onSendSetup, presetLabel }: VoiceStripProps) 
                   {t('voices.voice', { number })}
                 </span>
                 <span className="shrink-0 text-[10px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
-                  {t('root.channelShort', { number: voice.channel })}
+                  {t('voices.channelShort', { number: voice.channel })}
                 </span>
               </span>
               <span

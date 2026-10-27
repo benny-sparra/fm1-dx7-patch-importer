@@ -5,6 +5,7 @@
  */
 export default {
   voices: {
+    channelShort: 'Ch {{number}}',
     strip: 'Voices 1–8',
     aim: 'Voice {{number}}, Ch {{channel}}: {{patch}}',
     noPatch: 'No patch',

@@ -1057,7 +1057,6 @@ export default {
   },
   root: {
     skipToContent: 'Перейти до основного вмісту',
-    channelShort: 'Кан. {{number}}',
     subtitle: 'редактор і менеджер',
     intro:
       'Редагуйте й упорядковуйте патчі, надсилайте їх на FM1 або <link>імпортуйте готові банки DX7 SysEx</link>.',
@@ -1092,6 +1091,7 @@ export default {
     noDeviceSelected: 'Пристрій не обрано',
   },
   voices: {
+    channelShort: 'Кан. {{number}}',
     playSeveral: 'Мультитембральний режим',
     playSeveralHint: 'Показує Voice 1–8 замість каналу нот, кожен грає патч із банків A–D.',
     voice: 'Voice {{number}}',

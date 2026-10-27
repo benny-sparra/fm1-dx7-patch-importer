@@ -891,7 +891,6 @@ export default {
   },
   root: {
     skipToContent: '跳到主要内容',
-    channelShort: '通道 {{number}}',
     subtitle: '音色编辑器与音色库',
     intro: '编辑、整理和传输 FM1 音色，或<link>导入 DX7 SysEx 音色库</link>。',
     synthAlt: 'M-VAVE FM1 合成器前面板',
@@ -924,6 +923,7 @@ export default {
     noDeviceSelected: '未选择设备',
   },
   voices: {
+    channelShort: '通道 {{number}}',
     playSeveral: '多音色模式',
     playSeveralHint: '用 Voice 1–8 取代音符通道，每个 Voice 演奏 A–D 库中的一个音色。',
     voice: 'Voice {{number}}',

@@ -1001,7 +1001,6 @@ export default {
   },
   root: {
     skipToContent: 'Aller au contenu principal',
-    channelShort: 'Can. {{number}}',
     subtitle: 'éditeur et bibliothécaire',
     intro:
       'Modifiez, organisez et transférez les sons du FM1, ou <link>importez des banques SysEx DX7</link>.',
@@ -1037,6 +1036,7 @@ export default {
     noDeviceSelected: 'Aucun périphérique sélectionné',
   },
   voices: {
+    channelShort: 'Can. {{number}}',
     playSeveral: 'Mode multitimbral',
     playSeveralHint:
       'Affiche les Voices 1 à 8 à la place du canal des notes, chacune jouant un son des banques A à D.',

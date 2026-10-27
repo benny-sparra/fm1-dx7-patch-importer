@@ -71,7 +71,7 @@ export function VoiceChannelsDialog({ midi, onClose }: VoiceChannelsDialogProps)
                   >
                     {midiChannels.map((midiChannel) => (
                       <option key={midiChannel} value={midiChannel}>
-                        {t('root.channelShort', { number: midiChannel })}
+                        {t('voices.channelShort', { number: midiChannel })}
                       </option>
                     ))}
                   </SettingsSelect>

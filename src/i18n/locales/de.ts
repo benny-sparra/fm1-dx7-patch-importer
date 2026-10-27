@@ -1013,7 +1013,6 @@ export default {
   },
   root: {
     skipToContent: 'Zum Hauptinhalt springen',
-    channelShort: 'Kan. {{number}}',
     subtitle: 'Editor und Librarian',
     intro:
       'FM1-Sounds bearbeiten, organisieren und übertragen oder <link>DX7-SysEx-Bänke importieren</link>.',
@@ -1049,6 +1048,7 @@ export default {
     noDeviceSelected: 'Kein Gerät ausgewählt',
   },
   voices: {
+    channelShort: 'Kan. {{number}}',
     playSeveral: 'Multitimbraler Modus',
     playSeveralHint:
       'Zeigt Voice 1–8 anstelle des Notenkanals, jede mit einem Sound aus den Bänken A–D.',

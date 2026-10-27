@@ -986,7 +986,6 @@ export default {
   },
   root: {
     skipToContent: 'Ir para o conteúdo principal',
-    channelShort: 'Can. {{number}}',
     subtitle: 'editor e bibliotecário',
     intro: 'Edite, organize e transfira sons do FM1 ou <link>importe bancos SysEx do DX7</link>.',
     synthAlt: 'Painel frontal do sintetizador M-VAVE FM1',
@@ -1021,6 +1020,7 @@ export default {
     noDeviceSelected: 'Nenhum dispositivo selecionado',
   },
   voices: {
+    channelShort: 'Can. {{number}}',
     playSeveral: 'Modo multitimbral',
     playSeveralHint:
       'Mostra as Voices 1 a 8 no lugar do canal de notas, cada uma tocando um som dos bancos A a D.',
