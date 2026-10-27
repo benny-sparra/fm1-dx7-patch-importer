@@ -1107,7 +1107,6 @@ export default {
     recallHint: 'Знову вибирає пресет кожного Voice і надсилає ефекти. Нічого не зберігає.',
     effectsTab: 'Effects',
     effectsTitle: 'Effects',
-    effectsNote: 'Ці ефекти спільні для всіх восьми Voice. SAVE на FM1 зберігає їх.',
     menu: 'Дії Voice',
     recallOffline: 'Увімкніть MIDI, щоб викликати Voice.',
     recallEmpty: 'Жоден із Voice 1–8 ще не має патча: клацніть один, а потім патч у банках A–D.',

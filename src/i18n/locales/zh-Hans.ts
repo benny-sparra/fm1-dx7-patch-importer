@@ -939,7 +939,6 @@ export default {
     recallHint: '重新选择每个 Voice 的预设并发送效果，不会保存任何内容。',
     effectsTab: '效果',
     effectsTitle: '效果',
-    effectsNote: '八个 Voice 共用这些效果。在 FM1 上按 SAVE 即可保留。',
     menu: 'Voice 操作',
     recallOffline: '请先让 MIDI 上线，再重新调用 Voice。',
     recallEmpty: 'Voice 1–8 还都没有音色：先点击其中一个，再点击 A–D 库中的音色。',

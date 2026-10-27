@@ -1053,7 +1053,6 @@ export default {
       'Choisit à nouveau le preset de chaque Voice et envoie les effets. N’enregistre rien.',
     effectsTab: 'Effets',
     effectsTitle: 'Effets',
-    effectsNote: 'Les huit Voices partagent ces effets. SAVE sur le FM1 les conserve.',
     menu: 'Actions des Voices',
     recallOffline: 'Passez le MIDI en ligne pour rappeler les Voices.',
     recallEmpty:

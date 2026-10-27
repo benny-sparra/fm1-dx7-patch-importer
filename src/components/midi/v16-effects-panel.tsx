@@ -3,7 +3,6 @@ import { useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { EffectsUnit } from '@/components/editor/effects-unit'
-import { InfoNotice } from '@/components/ui/info-notice'
 import { RackPanelTitle } from '@/components/ui/rack-panel'
 import '@/i18n/voices'
 import type { MidiController } from '@/hooks/use-midi'
@@ -39,13 +38,6 @@ export function V16EffectsPanel({ midi }: V16EffectsPanelProps) {
   return (
     <section aria-labelledby="v16-effects-heading" className="synthwave-panel min-w-0">
       <RackPanelTitle icon={Sparkles} id="v16-effects-heading" title={t('voices.effectsTitle')} />
-      <div className="px-[9px] pt-[9px]">
-        <InfoNotice>
-          <p>
-            <span>{t('voices.effectsNote')}</span>
-          </p>
-        </InfoNotice>
-      </div>
       <EffectsUnit
         onApplyPreset={applyPreset}
         onChange={setParameter}

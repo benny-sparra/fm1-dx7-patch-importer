@@ -16,7 +16,6 @@ export default {
     recallHint: 'Selects each Voice’s preset again and sends the effects. Stores nothing.',
     effectsTab: 'Effects',
     effectsTitle: 'Effects',
-    effectsNote: 'All eight Voices share these effects. SAVE on the FM1 keeps them.',
     menu: 'Voice actions',
     recallOffline: 'Switch MIDI online to recall the Voices.',
     recallEmpty: 'None of Voices 1–8 has a patch yet: click one, then a patch in banks A–D.',
