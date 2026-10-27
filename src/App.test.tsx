@@ -72,21 +72,7 @@ vi.mock('@/hooks/use-patch-library', () => ({
 }))
 
 vi.mock('@/routes/root-layout', () => ({
-  RootLayout: ({
-    children,
-    voices,
-  }: {
-    children: React.ReactNode
-    voices?: { onSendSetup: () => number; presetLabel: (preset: number) => string }
-  }) => (
-    <main>
-      <p>Presets: {[0, 2, 127].map((preset) => voices?.presetLabel(preset)).join(', ')}</p>
-      <button onClick={() => voices?.onSendSetup()} type="button">
-        Send setup
-      </button>
-      {children}
-    </main>
-  ),
+  RootLayout: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
 }))
 
 vi.mock('@/routes/librarian-page', () => ({
@@ -96,14 +82,19 @@ vi.mock('@/routes/librarian-page', () => ({
     onEditPatch,
     onPlaySearchResult,
     onSelectPatch,
+    onSendVoiceSetup,
   }: {
     activePatchId: string
     onBankDeleted: (bank: string) => void
     onEditPatch: (patch: { id: string }) => void
     onPlaySearchResult: (voice: unknown, effects: Uint8Array | undefined) => void
     onSelectPatch: (patch: { id: string }) => void
+    onSendVoiceSetup?: () => number
   }) => (
     <>
+      <button onClick={() => onSendVoiceSetup?.()} type="button">
+        Send setup
+      </button>
       <p>Lit slot: {activePatchId || 'none'}</p>
       <button onClick={() => onEditPatch({ id: 'patch-1' })} type="button">
         Edit Piano
@@ -455,12 +446,6 @@ describe('App with V16’s Voices', () => {
     await user.click(screen.getByRole('button', { name: 'Play Piano' }))
 
     expect(getVoiceSetup().voices.every((voice) => voice.preset === null)).toBe(true)
-  })
-
-  it('labels a Voice’s preset as its slot shows it, or by its slot code when no patch is there', () => {
-    renderApp()
-
-    expect(screen.getByText('Presets: A01 Piano, A03 VOICE 97, D32')).toBeTruthy()
   })
 
   it('sends each Voice its preset as a Program Change on its own channel', async () => {

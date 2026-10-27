@@ -52,10 +52,12 @@ function renderPage({
   channel = 1,
   firmware = v16,
   onSelectPatch = vi.fn<(patch: Patch) => void>(),
+  onSendVoiceSetup = vi.fn(() => 0),
 }: {
   channel?: number
   firmware?: Fm1Firmware
   onSelectPatch?: (patch: Patch) => void
+  onSendVoiceSetup?: () => number
 } = {}) {
   const copyVoice = vi.fn((sourceId: string, bank: string, number: number) => {
     void sourceId
@@ -89,6 +91,7 @@ function renderPage({
         onEditPatch={vi.fn()}
         onPlaySearchResult={vi.fn()}
         onSelectPatch={onSelectPatch}
+        onSendVoiceSetup={onSendVoiceSetup}
       />
     )
   }
@@ -101,6 +104,51 @@ function renderPage({
 }
 
 describe('LibrarianPage with V16’s Voices', () => {
+  it('heads the patch banks with the Multitimbral mode switch, and the switch brings the Voices', async () => {
+    const { user } = renderPage()
+    expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Send setup' })).toBeNull()
+
+    await user.click(screen.getByRole('switch', { name: 'Multitimbral mode' }))
+
+    const strip = await screen.findByRole('group', { name: 'Voices 1–8' })
+    expect(within(strip).getAllByRole('button')).toHaveLength(8)
+    expect(screen.getByRole('button', { name: 'Send setup' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Channels…' })).toBeTruthy()
+  })
+
+  it('labels a Voice’s preset as its slot shows it, or by its slot code when no patch is there', () => {
+    setVoiceSetupEnabled(true)
+    assignVoicePreset(0, 0)
+    assignVoicePreset(1, 127)
+    renderPage()
+
+    return screen.findByRole('group', { name: 'Voices 1–8' }).then((strip) => {
+      const titles = within(strip)
+        .getAllByRole('button')
+        .map((button) => button.title)
+      expect(titles.slice(0, 3)).toEqual([
+        'Voice 1, Ch 1: A01 Alpha Piano',
+        'Voice 2, Ch 2: D32',
+        'Voice 3, Ch 3: No patch',
+      ])
+    })
+  })
+
+  it('offers no Multitimbral mode on firmware that plays one Voice, whatever was stored', () => {
+    setVoiceSetupEnabled(true)
+    for (const firmware of [
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { kind: 'checking' },
+    ] as const satisfies readonly Fm1Firmware[]) {
+      renderPage({ firmware })
+      expect(screen.queryByRole('switch', { name: 'Multitimbral mode' })).toBeNull()
+      expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
+      cleanup()
+    }
+  })
+
   it('tags a slot with the Voices playing its preset', () => {
     setVoiceSetupEnabled(true)
     assignVoicePreset(0, 0)

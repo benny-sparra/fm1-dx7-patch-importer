@@ -97,8 +97,8 @@ says **Receive Timeout**; start Export again while the app listens.
 
 #### Playing several Voices on V16
 
-To give each of V16's Voices its own patch from the app, switch on **Multitimbral mode** in the header
-(offered once the FM1 is identified as running V16). A strip of Voice 1 to Voice 8 appears below the MIDI row, each showing its channel and the patch it plays; on a phone
+To give each of V16's Voices its own patch from the app, switch on **Multitimbral mode**, above the
+patch banks (offered once the FM1 is identified as running V16). A strip of Voice 1 to Voice 8 appears beneath it, each showing its channel and the patch it plays; on a phone
 each is a numbered button, with the patch in its tooltip. The app keeps this setup for your next
 visit. Switch it off to go back to the **Note channel** picker in **Settings**.
 

@@ -90,6 +90,8 @@ import { copyTextToClipboard } from '@/lib/copy-text'
 import { downloadFile } from '@/lib/download-file'
 import { sharedPatchPayload } from '@/lib/share-link-fragment'
 import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
+import type { VoiceStrip as VoiceStripComponent } from '@/components/midi/voice-strip'
+import { VoicesSwitch } from '@/components/midi/midi-controls'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { useToast } from '@/components/ui/toast'
@@ -136,6 +138,9 @@ const CopyPatchDialog = lazy(() =>
 
 // Results from saved banks and the catalog load, with the catalog's patch names, once the search is
 // widened.
+const VoiceStrip = lazy(() =>
+  import('@/components/midi/voice-strip').then((module) => ({ default: module.VoiceStrip })),
+)
 const SearchEverywhereResults = lazy(() =>
   import('@/components/patches/search-everywhere-results').then((module) => ({
     default: module.SearchEverywhereResults,
@@ -304,6 +309,7 @@ type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof WriteFm1VaPresetsDialog>['midi'] &
   ComponentProps<typeof ReceiveFromFm1Dialog>['midi'] &
   ComponentProps<typeof MidiConnectionRequiredDialog>['midi'] &
+  ComponentProps<typeof VoiceStripComponent>['midi'] &
   Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
 type LibrarianPageProps = {
@@ -318,6 +324,11 @@ type LibrarianPageProps = {
   /** Plays a search result from a saved bank or the catalog through the FM1 edit buffer. */
   onPlaySearchResult: (voice: Dx7Voice, effects: Uint8Array | undefined) => void
   onSelectPatch: (patch: Patch) => void
+  /**
+   * Sends each Voice's preset as a Program Change on its channel, returning how many went. Without
+   * it the page offers no Multitimbral mode.
+   */
+  onSendVoiceSetup?: () => number
   /** Held by the app so the bank and search survive the editor; the page keeps its own without it. */
   view?: LibrarianView
 }
@@ -331,6 +342,7 @@ export function LibrarianPage({
   onEditPatch,
   onPlaySearchResult,
   onSelectPatch,
+  onSendVoiceSetup,
   view,
 }: LibrarianPageProps) {
   const { i18n, t } = useTranslation()
@@ -1106,6 +1118,44 @@ export function LibrarianPage({
             <SentryVerificationButton />
           </Suspense>
         </ErrorBoundary>
+      ) : null}
+      {onSendVoiceSetup && firmwareProfile.capabilities.multitimbral ? (
+        // V16's eight Voices: the switch, and once it is on the Voices with Send setup and Channels.
+        <div className="flex flex-wrap items-center gap-2">
+          <VoicesSwitch />
+          {voiceSetup.enabled ? (
+            <ErrorBoundary
+              fallback={
+                <div className="w-full basis-full">
+                  <LoadFailedNotice message={t('voices.loadFailed')} />
+                </div>
+              }
+            >
+              <Suspense
+                fallback={
+                  <div
+                    aria-hidden="true"
+                    className="h-[4.25rem] w-full basis-full sm:h-24 lg:h-12"
+                  />
+                }
+              >
+                <VoiceStrip
+                  midi={midi}
+                  onSendSetup={onSendVoiceSetup}
+                  presetLabel={(preset) => {
+                    const patch = patches.find((candidate) => candidate.program === preset)
+                    return patch
+                      ? `${patchSlotCode(patch)} ${patch.name}`
+                      : patchSlotCode({
+                          bank: browserBanks[Math.floor(preset / dx7BankVoiceCount)],
+                          number: (preset % dx7BankVoiceCount) + 1,
+                        })
+                  }}
+                />
+              </Suspense>
+            </ErrorBoundary>
+          ) : null}
+        </div>
       ) : null}
       <PatchGrid
         activePatchId={activePatchId}

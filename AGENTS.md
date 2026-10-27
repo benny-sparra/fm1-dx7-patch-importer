@@ -700,8 +700,11 @@ open everything an earlier release could have saved.
   unavailable. Its description says what a click does instead.
 - The header has no note channel picker (removed 2026-10-27, the owner's request): the note channel is
   the Settings menu's **Note channel**, and on V16 the Voice strip aims it.
-- On V16, the header's **Multitimbral mode** switch (the profile's `multitimbral`, stored as `enabled` in
-  `fm1-voice-setup`) shows `VoiceStrip`, a line of its own below the MIDI row: eight
+- On V16, **Multitimbral mode** (the profile's `multitimbral`, stored as `enabled` in
+  `fm1-voice-setup`) is a switch in a bar above the patch banks, in the librarian page, so the editor
+  has no bar. Switched on, the bar adds `VoiceStrip`, loaded lazily into the same wrapping row
+  (the switch stays mounted, so it keeps focus as the strip arrives): **Send setup** and **Channels…**
+  beside the switch, and below them eight
   numbered buttons on a phone, the patch in each tooltip, and from `sm` each Voice's channel and
   patch, four to a row until `lg` fits eight. A Voice is aimed at by setting the note channel to
   its channel, never by state of its own, so the Voice listening on the note channel is the one a
@@ -710,7 +713,7 @@ open everything an earlier release could have saved.
   reaches that Voice. A Voice holds a preset number only. Each slot tags the Voices playing it
   (V1–V8) below its heart and menu, never beside the name. **Send setup** sends one Program
   Change per Voice with a preset, on its channel, through `sendProgramChange`, and forgets the
-  edit-buffer audition, which those changes replace. The strip says to set the Voices up on the FM1
+  edit-buffer audition, which those changes replace. The channels dialog (`VoiceChannelsDialog`, opened by **Channels…**) says to set the Voices up on the FM1
   (channels 1–8, every Voice On, none on All, SAVE → Globe), since the editor cannot read or set
   them and an Off Voice ignores its Program Change unseen (`docs/hardware-runs/stock-v16-voices-2026-10-26.md`).
   A patch beyond bank D offers **Copy into A–D and assign…**, the copy dialog limited to A–D,

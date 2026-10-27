@@ -18,15 +18,13 @@ import { useVoiceSetup } from '@/hooks/use-voice-setup'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { RootLayout } from '@/routes/root-layout'
 import type { Patch } from '@/data/patches'
-import { dx7BankVoiceCount, type Dx7Voice } from '@/lib/dx7'
+import type { Dx7Voice } from '@/lib/dx7'
 import type { CopiedOperator } from '@/lib/operator-clipboard'
 import { favouritesBank } from '@/lib/favourites'
 import { normalizeFm1Effects } from '@/lib/fm1-effects'
 import {
-  browserBanks,
   eightBitFamily,
   isRenumberedByBankDeletion,
-  patchSlotCode,
   virtualAnalogFamily,
 } from '@/lib/patch-library'
 import { fm1VaEightBitName } from '@/lib/fm1-va-eight-bit'
@@ -325,22 +323,7 @@ function App() {
   )
 
   return (
-    <RootLayout
-      compact={isEditorOpen}
-      midi={midi}
-      voices={{
-        onSendSetup: sendVoiceSetup,
-        presetLabel: (preset) => {
-          const patch = library.patches.find((candidate) => candidate.program === preset)
-          return patch
-            ? `${patchSlotCode(patch)} ${patch.name}`
-            : patchSlotCode({
-                bank: browserBanks[Math.floor(preset / dx7BankVoiceCount)],
-                number: (preset % dx7BankVoiceCount) + 1,
-              })
-        },
-      }}
-    >
+    <RootLayout compact={isEditorOpen} midi={midi}>
       {library.workspaceLoading ? (
         loadingSection(t('common.loadingLibrary'))
       ) : library.persistenceStatus === 'load-error' ? (
@@ -442,6 +425,7 @@ function App() {
               onCloseEditor={closeEditor}
               onEditPatch={(patch) => editPatch(patch.id)}
               onPlaySearchResult={playSearchResult}
+              onSendVoiceSetup={sendVoiceSetup}
               onSelectPatch={(patch) => selectPatch(patch.id)}
               view={librarianView}
             />

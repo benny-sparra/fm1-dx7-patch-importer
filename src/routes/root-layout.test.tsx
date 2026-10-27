@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -8,7 +8,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { makeLogEntry } from '@/lib/midi'
-import { resetVoiceSetupForTests, setVoiceSetupEnabled } from '@/lib/voice-setup'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { expectNoAxeViolations } from '@/test/accessibility'
 
@@ -66,73 +65,6 @@ describe('RootLayout note channel', () => {
 
     expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
     expect(screen.queryByRole('option', { name: 'Ch 4' })).toBeNull()
-  })
-})
-
-describe('RootLayout Voice strip', () => {
-  const voices = { onSendSetup: vi.fn(() => 0), presetLabel: () => '' }
-
-  afterEach(() => {
-    localStorage.clear()
-    resetVoiceSetupForTests()
-  })
-
-  function renderHeader(firmware: ComponentProps<typeof RootLayout>['midi']['firmware']) {
-    return render(
-      <ToastProvider>
-        <RootLayout midi={{ ...midi, firmware }} voices={voices}>
-          <div>Library</div>
-        </RootLayout>
-      </ToastProvider>,
-    )
-  }
-
-  it('turns the note channel picker into the eight Voices once switched on, on V16', async () => {
-    setVoiceSetupEnabled(true)
-    renderHeader({ identity: 'FM-1_016', kind: 'mvave' })
-    const header = screen.getByRole('banner')
-
-    const strip = await within(header).findByRole('group', { name: 'Voices 1–8' })
-
-    expect(within(strip).getAllByRole('button')).toHaveLength(8)
-    // Only the Settings menu's Note channel is left, as without the strip.
-    expect(within(header).getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
-  })
-
-  it('offers the Voices switch in the header on V16, and the switch turns the strip on', async () => {
-    renderHeader({ identity: 'FM-1_016', kind: 'mvave' })
-    const header = screen.getByRole('banner')
-
-    await userEvent.setup().click(within(header).getByRole('switch', { name: 'Multitimbral mode' }))
-
-    expect(await within(header).findByRole('group', { name: 'Voices 1–8' })).toBeTruthy()
-  })
-
-  it('shows no strip while the switch is off', () => {
-    renderHeader({ identity: 'FM-1_016', kind: 'mvave' })
-
-    expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
-    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
-  })
-
-  it('offers no Voices switch while the firmware is unidentified or plays one Voice', () => {
-    for (const firmware of [
-      { identity: 'FM-1_015', kind: 'mvave' },
-      { identity: 'FM-1_097', kind: 'fm1-va' },
-      { kind: 'checking' },
-    ] as const) {
-      renderHeader(firmware)
-      expect(screen.queryByRole('switch', { name: 'Multitimbral mode' })).toBeNull()
-      cleanup()
-    }
-  })
-
-  it('shows no strip on firmware that plays one Voice, whatever was stored', () => {
-    setVoiceSetupEnabled(true)
-    renderHeader({ identity: 'FM-1_015', kind: 'mvave' })
-
-    expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
-    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
   })
 })
 

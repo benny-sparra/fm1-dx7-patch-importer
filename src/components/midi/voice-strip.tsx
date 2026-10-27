@@ -25,8 +25,8 @@ type VoiceStripProps = {
 }
 
 /**
- * The eight Voices of M-VAVE's V16 in place of the header's note channel picker. Clicking a Voice
- * aims at it, setting the note channel to its channel, so the keyboard plays it and a slot click
+ * The eight Voices of M-VAVE's V16, with Send setup and Channels, as the cells of the bar above the
+ * patch banks that the Multitimbral mode switch heads. Clicking a Voice aims at it, setting the note channel to its channel, so the keyboard plays it and a slot click
  * gives it that slot's preset. Each Voice points at an FM1 preset, never a copy of the patch.
  */
 export function VoiceStrip({ midi, onSendSetup, presetLabel }: VoiceStripProps) {
@@ -60,12 +60,41 @@ export function VoiceStrip({ midi, onSendSetup, presetLabel }: VoiceStripProps) 
   }
 
   return (
-    <div className="grid w-full gap-2">
+    <>
+      <span className="ml-auto flex items-center gap-2">
+        <Button
+          aria-describedby={sendBlockedReason ? sendReasonId : undefined}
+          aria-disabled={sendBlockedReason ? true : undefined}
+          onClick={sendSetup}
+          size="sm"
+          title={sendBlockedReason ?? undefined}
+          type="button"
+          variant="secondary"
+        >
+          <Send aria-hidden="true" />
+          <span>{t('voices.sendSetup')}</span>
+        </Button>
+        {sendBlockedReason ? (
+          <span className="sr-only" id={sendReasonId}>
+            {sendBlockedReason}
+          </span>
+        ) : null}
+        <Button
+          aria-haspopup="dialog"
+          onClick={() => setShowsChannels(true)}
+          size="sm"
+          type="button"
+          variant="secondary"
+        >
+          <SlidersHorizontal aria-hidden="true" />
+          <span>{t('voices.channels')}</span>
+        </Button>
+      </span>
       {/* Eight numbers on a phone; from the small breakpoint each Voice names its channel and
           patch, four to a row until there is room for eight. */}
       <div
         aria-label={t('voices.strip')}
-        className="grid grid-cols-8 gap-1 sm:grid-cols-4 lg:grid-cols-8"
+        className="grid w-full basis-full grid-cols-8 gap-1 sm:grid-cols-4 lg:grid-cols-8"
         role="group"
       >
         {setup.voices.map((voice, index) => {
@@ -133,39 +162,14 @@ export function VoiceStrip({ midi, onSendSetup, presetLabel }: VoiceStripProps) 
           )
         })}
       </div>
-      <span className="flex items-center gap-2 sm:justify-end">
-        <Button
-          aria-describedby={sendBlockedReason ? sendReasonId : undefined}
-          aria-disabled={sendBlockedReason ? true : undefined}
-          onClick={sendSetup}
-          size="sm"
-          title={sendBlockedReason ?? undefined}
-          type="button"
-          variant="secondary"
-        >
-          <Send aria-hidden="true" />
-          <span>{t('voices.sendSetup')}</span>
-        </Button>
-        {sendBlockedReason ? (
-          <span className="sr-only" id={sendReasonId}>
-            {sendBlockedReason}
-          </span>
-        ) : null}
-        <Button
-          aria-haspopup="dialog"
-          onClick={() => setShowsChannels(true)}
-          size="sm"
-          type="button"
-          variant="secondary"
-        >
-          <SlidersHorizontal aria-hidden="true" />
-          <span>{t('voices.channels')}</span>
-        </Button>
-      </span>
-      {sendFailed ? <ErrorNotice>{t('voices.sendSetupFailed')}</ErrorNotice> : null}
+      {sendFailed ? (
+        <div className="w-full basis-full">
+          <ErrorNotice>{t('voices.sendSetupFailed')}</ErrorNotice>
+        </div>
+      ) : null}
       {showsChannels ? (
         <VoiceChannelsDialog midi={midi} onClose={() => setShowsChannels(false)} />
       ) : null}
-    </div>
+    </>
   )
 }
