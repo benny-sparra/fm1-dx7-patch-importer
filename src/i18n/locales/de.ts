@@ -1079,8 +1079,6 @@ export default {
       'Der FM1 braucht einmalig eine Einrichtung: Voice 1–8 auf die Kanäle 1–8 legen, jede einschalten (On), keine auf All lassen, dann SAVE drücken und Globe wählen. Eine auf Off ignoriert ihren Sound und übernimmt ihn auch nicht, wenn sie wieder auf On geht, und eine auf All nimmt jeden gesendeten Sound.',
     setupOpen: 'Voices einrichten…',
     setupLoadFailed: '„Voices einrichten“ konnte nicht geladen werden.',
-    guidedPrompt: 'Richte die Voices deines FM1 ein',
-    guidedDismiss: 'Hinweis zur Voice-Einrichtung schließen',
     channelsNote: 'Änderungen hier ändern den FM1 nicht: Stelle dort dieselben Kanäle ein.',
     channelsClose: 'Voice-Kanäle schließen',
     channelOf: 'Kanal von Voice {{number}}',

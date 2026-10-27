@@ -95,7 +95,7 @@ beforeEach(() => {
   localStorage.clear()
   resetVoiceSetupForTests()
   resetVoiceSetupGuidedForTests()
-  // The first-time line has its own tests; the others run as if it were done with.
+  // The wizard opens by itself once; the other tests run as if it already had.
   markVoiceSetupGuided()
 })
 
@@ -431,56 +431,41 @@ describe('VoiceStrip', () => {
     expect(onAim.mock.calls).toEqual([[66], [null]])
   })
 
-  describe('the first-time Set up Voices line', () => {
+  describe('the first-time Set up Voices wizard', () => {
     beforeEach(() => {
       localStorage.clear()
       resetVoiceSetupGuidedForTests()
     })
 
-    it('shows one line that opens the wizard, in place of the older setup line', async () => {
-      const user = userEvent.setup()
+    it('opens by itself the first time the Voices show and stores that', async () => {
       render(<Strip />)
-
-      expect(screen.getByRole('status').textContent).toBe('Set up your FM1’s Voices')
-      expect(screen.queryByText(/Voices first/)).toBeNull()
-
-      await user.click(screen.getByRole('button', { name: 'Set up your FM1’s Voices' }))
 
       expect(await screen.findByRole('dialog', { name: 'Set up Voices' })).toBeTruthy()
+      expect(localStorage.getItem('fm1-voice-setup-guided')).toBe('1')
+      expect(getVoiceSetupGuided()).toBe(true)
     })
 
-    it('stays gone for good once closed, here and on the next visit', async () => {
-      const user = userEvent.setup()
+    it('opens once, not again when the Voices show on a later visit', async () => {
       const { unmount } = render(<Strip />)
-
-      await user.click(screen.getByRole('button', { name: 'Dismiss the Voice setup line' }))
-      expect(screen.queryByRole('button', { name: 'Set up your FM1’s Voices' })).toBeNull()
-      expect(getVoiceSetupGuided()).toBe(true)
-
+      const user = userEvent.setup()
+      await user.click(
+        within(await screen.findByRole('dialog', { name: 'Set up Voices' })).getByRole('button', {
+          name: 'Close Set up Voices',
+        }),
+      )
       unmount()
       resetVoiceSetupGuidedForTests()
+
       render(<Strip />)
-      expect(screen.queryByRole('button', { name: 'Set up your FM1’s Voices' })).toBeNull()
+
+      expect(screen.queryByRole('dialog', { name: 'Set up Voices' })).toBeNull()
     })
 
-    it('goes once the wizard finishes', async () => {
-      const user = userEvent.setup()
+    it('has no first-time line above the tabs', async () => {
       render(<Strip />)
-      await user.click(screen.getByRole('button', { name: 'Set up your FM1’s Voices' }))
-      const dialog = await screen.findByRole('dialog', { name: 'Set up Voices' })
-      for (let step = 0; step < 4; step += 1) {
-        await user.click(within(dialog).getByRole('button', { name: /^Next/ }))
-      }
-      await user.click(within(dialog).getByRole('button', { name: 'Finish' }))
+      await screen.findByRole('dialog', { name: 'Set up Voices' })
 
       expect(screen.queryByRole('button', { name: 'Set up your FM1’s Voices' })).toBeNull()
-    })
-
-    it('writes the line in the interface language', async () => {
-      await setLocale('de')
-      render(<Strip />)
-
-      expect(screen.getByRole('button', { name: 'Richte die Voices deines FM1 ein' })).toBeTruthy()
     })
   })
 

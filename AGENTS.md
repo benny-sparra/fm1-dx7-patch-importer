@@ -738,10 +738,10 @@ open everything an earlier release could have saved.
   them and an Off Voice ignores its Program Change unseen (`docs/hardware-runs/stock-v16-voices-2026-10-26.md`).
   A patch beyond bank D offers **Copy into A–D and assign…**, the copy dialog limited to A–D,
   which then plays the copy as a slot click, once the library holds it.
-- **Set up Voices…** (`VoiceSetupWizard`, the owner, 2026-10-27) is in the Voices ⋮ menu, and the
-  first time the strip shows a line above the tabs, **Set up your FM1's Voices** with a close
-  button, opens it; closing the line or finishing the wizard stores `fm1-voice-setup-guided` and
-  the line never returns (it replaces the older setup line until then). It is a lazy dialog from
+- **Set up Voices…** (`VoiceSetupWizard`, the owner, 2026-10-27) is in the Voices ⋮ menu, and opens
+  by itself the first time the strip shows, which is the first time this browser meets V16, storing
+  `fm1-voice-setup-guided` as it opens so it never opens by itself again, however it is closed. It
+  carries no line above the tabs (the owner removed that, 2026-10-27). It is a lazy dialog from
   the strip with its strings in `en-GB-voice-setup.ts`, on `bank-wizard.tsx`'s screens: the
   channels (PRESETS, then each Voice's MIDI Ch and On/Off, Voice 1 off All), the effect channel,
   SAVE → Globe, a sound test, and a summary. The editor cannot read or set any of it, so the test

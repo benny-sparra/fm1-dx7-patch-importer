@@ -7,7 +7,6 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { VoiceSetupWizard } from '@/components/midi/voice-setup-wizard'
 import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
-import { getVoiceSetupGuided, resetVoiceSetupGuidedForTests } from '@/lib/voice-setup-guided'
 import { resetVoiceSetupForTests, setVoiceChannel } from '@/lib/voice-setup'
 import { makeLibrarianMidi } from '@/test/librarian-fakes'
 import { translatePageText } from '@/test/page-translator'
@@ -26,7 +25,6 @@ beforeAll(() => {
 beforeEach(() => {
   localStorage.clear()
   resetVoiceSetupForTests()
-  resetVoiceSetupGuidedForTests()
 })
 
 afterEach(async () => {
@@ -228,7 +226,7 @@ describe('VoiceSetupWizard', () => {
     expect(midi.stopNote).toHaveBeenCalledTimes(1)
   })
 
-  it('summarises the Voices to fix, marks the setup guided and closes with a toast', async () => {
+  it('summarises the Voices to fix, closes with a toast', async () => {
     const user = userEvent.setup()
     const { onClose } = renderWizard()
     await reachSoundTest(user)
@@ -240,23 +238,11 @@ describe('VoiceSetupWizard', () => {
     expect(screen.getByText(/Some Voices need another look/)).toBeTruthy()
     expect(screen.getByText(/Voice 2: not heard/)).toBeTruthy()
     expect(screen.getByText('Voice 3: not tested.')).toBeTruthy()
-    expect(getVoiceSetupGuided()).toBe(false)
 
     await user.click(screen.getByRole('button', { name: 'Finish' }))
 
-    expect(getVoiceSetupGuided()).toBe(true)
     expect(screen.getByText('Voices set up: 1 of 8 heard.')).toBeTruthy()
     expect(onClose).toHaveBeenCalled()
-  })
-
-  it('does not mark the setup guided when it is closed before the end', async () => {
-    const user = userEvent.setup()
-    const { onClose } = renderWizard()
-
-    await user.click(screen.getByRole('button', { name: 'Close Set up Voices' }))
-
-    expect(onClose).toHaveBeenCalled()
-    expect(getVoiceSetupGuided()).toBe(false)
   })
 
   it('says every Voice played when all eight were heard', async () => {

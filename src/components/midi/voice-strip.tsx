@@ -1,7 +1,8 @@
-import { ListChecks, RotateCcw, Sparkles, SlidersHorizontal, X } from 'lucide-react'
+import { ListChecks, RotateCcw, Sparkles, SlidersHorizontal } from 'lucide-react'
 import {
   lazy,
   Suspense,
+  useEffect,
   useState,
   useSyncExternalStore,
   type ComponentProps,
@@ -30,13 +31,9 @@ import { midiActivity } from '@/lib/midi-activity'
 import { cn } from '@/lib/utils'
 import { getV16Effects } from '@/lib/v16-effects'
 import { aimedVoice, aimVoice, setVoiceOn } from '@/lib/voice-setup'
-import {
-  getVoiceSetupGuided,
-  markVoiceSetupGuided,
-  subscribeVoiceSetupGuided,
-} from '@/lib/voice-setup-guided'
+import { getVoiceSetupGuided, markVoiceSetupGuided } from '@/lib/voice-setup-guided'
 
-// The wizard loads when it is first opened; the menu item and the first-time line stay here.
+// The wizard loads when it is first opened; the menu item and the first-connect opening stay here.
 const VoiceSetupWizard = lazy(() =>
   import('@/components/midi/voice-setup-wizard').then((module) => ({
     default: module.VoiceSetupWizard,
@@ -118,7 +115,6 @@ export function VoiceStrip({
   const [showsChannels, setShowsChannels] = useState(false)
   const [showsSetup, setShowsSetup] = useState(false)
   const [setupLoadFailed, setSetupLoadFailed] = useState(false)
-  const guided = useSyncExternalStore(subscribeVoiceSetupGuided, getVoiceSetupGuided, () => true)
   const [sendFailed, setSendFailed] = useState(false)
   const assigned = setup.voices.filter((voice) => voice.preset !== null).length
   const sendBlockedReason = !midi.hasMidiOutput
@@ -126,6 +122,14 @@ export function VoiceStrip({
     : assigned === 0
       ? t('voices.recallEmpty')
       : null
+
+  // The first time the Voices show, which is the first time this browser meets V16, the wizard
+  // opens by itself, and the flag is stored so that never happens again.
+  useEffect(() => {
+    if (getVoiceSetupGuided()) return
+    markVoiceSetupGuided()
+    setShowsSetup(true)
+  }, [])
 
   const openSetup = () => {
     setSetupLoadFailed(false)
@@ -156,32 +160,7 @@ export function VoiceStrip({
       {/* The one-time FM1 setup is the first thing to do, in one line with its steps behind help. */}
       <div className={voiceNoticesCellClassName}>
         <div className="empty:hidden" role="status">
-          {!guided ? (
-            <div className="mb-2">
-              <InfoNotice>
-                <span className="flex items-center gap-2">
-                  <button
-                    className={cn('cursor-pointer text-left underline', focusRing)}
-                    onClick={() => openSetup()}
-                    type="button"
-                  >
-                    {t('voices.guidedPrompt')}
-                  </button>
-                  <button
-                    aria-label={t('voices.guidedDismiss')}
-                    className={cn(
-                      'ml-auto grid size-6 shrink-0 cursor-pointer place-items-center',
-                      focusRing,
-                    )}
-                    onClick={markVoiceSetupGuided}
-                    type="button"
-                  >
-                    <X aria-hidden="true" className="size-4" />
-                  </button>
-                </span>
-              </InfoNotice>
-            </div>
-          ) : assigned === 0 ? (
+          {assigned === 0 ? (
             <div className="mb-2">
               <InfoNotice>
                 <span className="flex items-center gap-1">

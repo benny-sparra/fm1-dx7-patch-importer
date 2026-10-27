@@ -33,7 +33,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   localStorage.setItem('fm1-librarian-help-seen', 'true')
-  // The first-time Set up Voices line has its own tests in the strip's.
+  // The wizard that opens by itself has its own tests in the strip's.
   markVoiceSetupGuided()
 })
 

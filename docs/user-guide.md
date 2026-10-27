@@ -110,13 +110,11 @@ The FM1 needs setting up once for this (step 1 below, and the bar says so until 
 patch). After that it still works as a single-sound FM1 on channel 1, since notes and patches reach
 only the Voice on their channel.
 
-1. Set the Voices up once on the FM1. The first time the Voice tabs show, a line above them says
-   **Set up your FM1’s Voices**; it opens **Set up Voices…**, which is also in the ⋮ menu. The
+1. Set the Voices up once on the FM1. The first time V16 connects, **Set up Voices…** opens by itself; it is also in the ⋮ menu. The
    wizard lists the steps on the FM1 (channels, the effect channel, then **SAVE** → **Globe**) and
    checks them by ear: the editor plays one short middle C on each Voice's channel, and you answer
    **Heard it**, **Didn't hear it**, or **Heard two sounds** (a sign that a Voice is still on
-   **All**). It sends only those notes, nothing else. Closing the line, or finishing the wizard, ends
-   the line for good. By hand: put Voice 1 to Voice 8 on channels 1 to 8, switch each one
+   **All**). It sends only those notes, nothing else. It opens by itself only once. By hand: put Voice 1 to Voice 8 on channels 1 to 8, switch each one
    **On**, leave none on **All**, then press **SAVE** and choose **Globe**. A Voice that is Off
    ignores the patch the app gives it, and does not take it when switched back On; a Voice on All
    takes every patch the app sends to any Voice. The app cannot read or change these settings.

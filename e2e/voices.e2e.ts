@@ -192,12 +192,9 @@ for (const width of [992, 1280]) {
   })
 }
 
-test('sets the Voices up from the first-time line and tests two Voices with notes only', async ({
-  page,
-}) => {
+test('sets the Voices up by itself and tests two Voices with notes only', async ({ page }) => {
   await page.setViewportSize({ height: 900, width: 1280 })
   await openWithVoices(page, { guided: false })
-  await page.getByRole('button', { name: 'Set up your FM1’s Voices' }).click()
   const wizard = page.getByRole('dialog', { name: 'Set up Voices' })
   await expect(wizard).toBeVisible()
   await expect(wizard.getByText('Voice 8: Ch 8')).toBeVisible()
@@ -226,14 +223,25 @@ test('sets the Voices up from the first-time line and tests two Voices with note
   await wizard.getByRole('button', { name: 'Finish' }).click()
   await expect(wizard).toBeHidden()
   await expect(page.getByText('Voices set up: 2 of 8 heard.')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Set up your FM1’s Voices' })).toHaveCount(0)
   expect(await page.evaluate(() => localStorage.getItem('fm1-voice-setup-guided'))).toBe('1')
+})
+
+test('opens the wizard by itself only the first time V16 connects', async ({ page }) => {
+  await page.setViewportSize({ height: 900, width: 1280 })
+  await openWithVoices(page, { guided: false })
+  const wizard = page.getByRole('dialog', { name: 'Set up Voices' })
+  await expect(wizard).toBeVisible()
+  await wizard.getByRole('button', { name: 'Close Set up Voices' }).click()
+  await expect(wizard).toBeHidden()
+
+  await page.reload()
+  await expect(page.getByRole('group', { name: 'Voices 1–8' })).toBeVisible()
+  await expect(wizard).toBeHidden()
 })
 
 test('fits the Set up Voices wizard and its sound test in a 320 px phone', async ({ page }) => {
   await page.setViewportSize({ height: 640, width: 320 })
   await openWithVoices(page, { guided: false })
-  await page.getByRole('button', { name: 'Set up your FM1’s Voices' }).click()
   const wizard = page.getByRole('dialog', { name: 'Set up Voices' })
   for (let step = 0; step < 3; step += 1) {
     await wizard.getByRole('button', { name: /^Next/ }).click()

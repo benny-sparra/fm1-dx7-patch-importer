@@ -1,20 +1,20 @@
 /**
- * Whether the V16 Voice strip's first-time "Set up your FM1's Voices" line is done with. The
+ * Whether the V16 Set up Voices wizard has opened by itself in this browser. The
  * `fm1-voice-setup-guided` key is stored data under the legacy rules in AGENTS.md. Version 1 is
- * the string `1`, written when the line is closed or the Set up Voices wizard finishes. A later
- * version writes another value, which every release reads the same way: any value in the key
- * means the line was dismissed, so it never comes back.
+ * the string `1`, written as the wizard first opens on its own when the Voice strip first shows.
+ * A later version writes another value, which every release reads the same way: any value in the
+ * key means it already opened, so it never opens by itself again. **Set up Voices…** in the
+ * Voices menu opens it whenever it is wanted.
  */
 const storageKey = 'fm1-voice-setup-guided'
 const writtenValue = '1'
 
-const listeners = new Set<() => void>()
-// Kept in memory as well, so closing the line works this session when storage is blocked.
-let dismissedInMemory = false
+// Kept in memory as well, so it opens once a session even when storage is blocked.
+let openedInMemory = false
 
-/** Whether the line has been closed or the wizard finished, in this session or an earlier one. */
+/** Whether the wizard has opened by itself, in this session or an earlier one. */
 export function getVoiceSetupGuided() {
-  if (dismissedInMemory) return true
+  if (openedInMemory) return true
   try {
     return localStorage.getItem(storageKey) !== null
   } catch {
@@ -23,24 +23,15 @@ export function getVoiceSetupGuided() {
 }
 
 export function markVoiceSetupGuided() {
-  if (getVoiceSetupGuided()) return
-  dismissedInMemory = true
+  openedInMemory = true
   try {
     localStorage.setItem(storageKey, writtenValue)
   } catch {
-    // The line stays closed for this session; only keeping it closed for the next visit is lost.
-  }
-  listeners.forEach((listener) => listener())
-}
-
-export function subscribeVoiceSetupGuided(listener: () => void) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
+    // It stays done for this session; only keeping it done for the next visit is lost.
   }
 }
 
 /** Forgets what is held in memory, so each test starts from storage. */
 export function resetVoiceSetupGuidedForTests() {
-  dismissedInMemory = false
+  openedInMemory = false
 }

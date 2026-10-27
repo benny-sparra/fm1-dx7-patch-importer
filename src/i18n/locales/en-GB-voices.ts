@@ -30,8 +30,6 @@ export default {
       'The FM1 needs setting up once: put Voices 1–8 on channels 1–8, switch each one On, leave none on All, then press SAVE and choose Globe. One that is Off ignores its patch and does not take it when switched back On, and one on All takes every patch sent.',
     setupOpen: 'Set up Voices…',
     setupLoadFailed: 'Set up Voices could not be loaded.',
-    guidedPrompt: 'Set up your FM1’s Voices',
-    guidedDismiss: 'Dismiss the Voice setup line',
     channelsNote: 'Changing these doesn’t change the FM1: set the same channels there.',
     channelsClose: 'Close the Voice channels',
     channelOf: 'Voice {{number}} channel',

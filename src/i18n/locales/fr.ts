@@ -1068,8 +1068,6 @@ export default {
       'Le FM1 demande à être préparé une seule fois : mettez les Voices 1 à 8 sur les canaux 1 à 8, activez chacune (On), n’en laissez aucune sur All, puis appuyez sur SAVE et choisissez Globe. Une Voice sur Off ignore son son et ne le reprend pas quand elle repasse sur On, et une Voice sur All prend chaque son envoyé.',
     setupOpen: 'Régler les Voices…',
     setupLoadFailed: '« Régler les Voices » n’a pas pu être chargé.',
-    guidedPrompt: 'Réglez les Voices de votre FM1',
-    guidedDismiss: 'Fermer la ligne de réglage des Voices',
     channelsNote: 'Modifier ceci ne change pas le FM1 : réglez-y les mêmes canaux.',
     channelsClose: 'Fermer les canaux des Voices',
     channelOf: 'Canal de la Voice {{number}}',

@@ -222,9 +222,8 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
          where V16's effects live. Other firmware never sees a change.
   - **Set up Voices… wizard — built (2026-10-27, the owner's request).** The editor cannot read or
     set the Voices' channels or On/Off (`docs/fm1-research.md`, "Setting a Voice's channel or
-    On/Off from outside"), so the one-time FM1 setup is a wizard in the Voices ⋮ menu, and a
-    one-line **Set up your FM1's Voices** above the tabs the first time they show (kept by
-    `fm1-voice-setup-guided`). Five screens: the channels (PRESETS → MIDI Ch and On/Off, Voice 1
+    On/Off from outside"), so the one-time FM1 setup is a wizard in the Voices ⋮ menu that also
+    opens by itself the first time V16 connects (kept by `fm1-voice-setup-guided`). Five screens: the channels (PRESETS → MIDI Ch and On/Off, Voice 1
     off All), the FX channel, SAVE → Globe, a sound test (one Note On and Off of middle C on each
     Voice's channel, answered Heard it, Didn't hear it, or Heard two sounds), and a summary.
     _Not confirmed on hardware:_ where the FM1 keeps **Effect Ch** (the wizard says only "on the

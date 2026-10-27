@@ -19,7 +19,6 @@ import { useVoiceSetup } from '@/hooks/use-voice-setup'
 import '@/i18n/voice-setup'
 import '@/i18n/voices'
 import { cn } from '@/lib/utils'
-import { markVoiceSetupGuided } from '@/lib/voice-setup-guided'
 
 type VoiceSetupWizardProps = {
   midi: Pick<
@@ -283,7 +282,10 @@ export function VoiceSetupWizard({ midi, onClose }: VoiceSetupWizardProps) {
 
   useEffect(() => {
     const dialog = dialogRef.current
-    if (!dialog || dialog.open) return
+    // It can open without a click, so check the dialog can be shown, as the guide does.
+    if (!dialog || dialog.open || !dialog.isConnected || typeof dialog.showModal !== 'function') {
+      return
+    }
     dialog.showModal()
   }, [])
 
@@ -296,7 +298,6 @@ export function VoiceSetupWizard({ midi, onClose }: VoiceSetupWizardProps) {
   }
 
   const finish = () => {
-    markVoiceSetupGuided()
     toast.success(t('voiceSetup.done.toast', { heard }))
     dialogRef.current?.close()
   }
