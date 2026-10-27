@@ -255,7 +255,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
           <MoreVertical aria-hidden="true" className="size-4" />
         </span>
       </summary>
-      <div className="menu-surface absolute top-[calc(100%+0.5rem)] right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-3 text-[var(--crt-ink)] sm:grid-cols-2">
+      <div className="menu-surface absolute top-[calc(100%+0.5rem)] right-0 z-30 grid w-[min(34rem,calc(100vw-2.5rem))] gap-3 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-3 text-[var(--crt-ink)] sm:grid-cols-2">
         <p className="font-dot-matrix px-1 pt-1 text-base font-semibold sm:col-span-2">
           {t('common.settings')}
         </p>
