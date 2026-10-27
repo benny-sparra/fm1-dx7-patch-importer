@@ -37,7 +37,12 @@ export function V16EffectsPanel({ midi }: V16EffectsPanelProps) {
 
   return (
     <section aria-labelledby="v16-effects-heading" className="synthwave-panel min-w-0">
-      <RackPanelTitle icon={Sparkles} id="v16-effects-heading" title={t('voices.effectsTitle')} />
+      <RackPanelTitle
+        icon={Sparkles}
+        id="v16-effects-heading"
+        tall
+        title={t('voices.effectsTitle')}
+      />
       <EffectsUnit
         onApplyPreset={applyPreset}
         onChange={setParameter}

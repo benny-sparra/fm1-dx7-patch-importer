@@ -749,8 +749,8 @@ open everything an earlier release could have saved.
   and sent by nothing); **Recall Voices** sends all 24 after the Program Changes through
   `sendEffectSettings`. The editor cannot read the FM1's effects, so the stored values are its note
   of what it last sent, unsaved on the FM1 until SAVE. There is no undo, since the effects are not
-  part of a patch and the editor's history belongs to one. The patch editor keeps its effects panel
-  on V16 with one short line naming the tab (`editor.effectsSharedNotice`). Both are offered by
+  part of a patch and the editor's history belongs to one. The patch editor leaves its effects panel
+  out on V16 (the owner, 2026-10-27), since the Effects tab holds them. Both are offered by
   the profile's capabilities (`multitimbral`, `effectControllers`, no `presetEffects`), never the
   firmware kind. The tab's strings are in `en-GB-voices.ts`, except its load failure, which the
   page reads. The panel's chunk shares `effects-unit` with the editor, which cost about 1.1 KiB of

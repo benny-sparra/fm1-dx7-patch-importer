@@ -86,8 +86,8 @@ selected preset, which it drops when you change preset. They arrive in well unde
 
 M-VAVE's V16 moved the FM1's effect controls to other MIDI controllers, and the app sends them
 there. On V16 every Voice shares one set of effects rather than each preset keeping its own, so
-playing a patch from its slot leaves the FM1's effects as they are. A patch's effects go to the FM1
-only when you change them in the editor. Press **SAVE**
+playing a patch from its slot leaves the FM1's effects as they are. The patch editor has no effects
+panel on V16; change them in the **Effects** tab beside the Voices. Press **SAVE**
 and choose **Globe** on the FM1 to keep them; the editor's Effects panel says the same on V16. V16 plays eight Voices, each on its own MIDI channel, and the firmware badge's tooltip says so. A patch the app sends goes to the Voice selected on the FM1's screen, and edits in the editor reach it as you make them only while that Voice is on channel 1 or All, so the editor says so in a notification when it opens on V16: select the Voice on the app's note channel to hear the patch you are editing. Choose the channel of the Voice you want in the **Note channel** picker in **Settings**, then click a patch. Patches still reach V16's edit buffer. To keep a
 patch there, open **SAVE** from one of the FM1's voice editing pages, such as OSC, and choose
 **Preset**: from the preset screen or GLOBE, SAVE offers only ALL and Globe. V16 can also send a bank back to the library: connect the FM1 by USB, choose **Receive from
@@ -126,7 +126,7 @@ only the Voice on their channel.
    on, Voice n on channel n unless you change it, and repeats the setup steps above.
 
 The **Effects** tab after Voice 8 is the FM1's one shared set of effects, which all eight Voices
-play. It swaps the patch banks for the same effects panel the patch editor has, and a Voice tab
+play. It swaps the patch banks for the same effects panel the patch editor has on other firmware, and a Voice tab
 brings the banks back. Opening it sends nothing; changing a control sends just that control, on
 the effect channel, and **Recall voices** sends all of them. The app cannot read the FM1's effects,
 so the tab shows what it last sent (kept in this browser, all off to start), and the FM1 keeps

@@ -1143,8 +1143,6 @@ export default {
   editor: {
     selectedVoiceNotice:
       'Auf V16 geht dieser Sound an die am FM1 gewählte Voice. Änderungen erklingen nur auf Kanal 1 oder All live; zum Hören wähle die Voice auf Kanal {{channel}}.',
-    effectsSharedNotice:
-      'Auf V16 teilen sich alle Voices einen Effektsatz: Ändere ihn im Tab Effekte neben den Voices.',
     back: 'Zurück zu den Bänken',
     editName: 'Soundnamen bearbeiten',
     patchName: 'Soundname',

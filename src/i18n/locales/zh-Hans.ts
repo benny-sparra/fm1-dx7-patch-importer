@@ -1011,8 +1011,6 @@ export default {
   editor: {
     selectedVoiceNotice:
       '在 V16 上，此音色会发送到 FM1 屏幕上选中的 Voice，只有它设在通道 1 或 All 时编辑才会实时生效。要在这里听到，请选中通道 {{channel}} 上的 Voice。',
-    effectsSharedNotice:
-      '在 V16 上，所有 Voice 共用同一组效果：请在 Voice 旁的“效果”标签页中修改。',
     back: '返回音色库',
     editName: '编辑音色名称',
     patchName: '音色名称',

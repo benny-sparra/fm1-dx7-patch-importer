@@ -175,5 +175,14 @@ for (const width of [992, 1280]) {
     expect(Math.max(...tops) - Math.min(...tops)).toBeLessThan(8)
     await expect(page.getByRole('button', { name: 'Voice actions' })).toBeInViewport()
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
+
+    // The Effects panel takes the patch banks' place, so its title bar matches theirs.
+    const titleBarHeight = (heading: string) =>
+      page
+        .getByRole('heading', { name: heading })
+        .evaluate((el) => Math.round(el.closest('.crt-hatch')?.getBoundingClientRect().height ?? 0))
+    const banksTitleBar = await titleBarHeight('Patch banks')
+    await strip.getByRole('button', { name: 'Effects' }).click()
+    expect(await titleBarHeight('Effects')).toBe(banksTitleBar)
   })
 }
