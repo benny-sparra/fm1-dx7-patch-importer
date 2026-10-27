@@ -2504,6 +2504,201 @@ saving a received bank first calls `FUN_02011fd0`, whose failure shows **FX save
 whether that sets the flag was not followed. That fits both runs, where it was set in normal use.
 **Likely**.
 
+#### Controlling Voices and effects more fully (2026-10-27)
+
+**Likely** throughout (static reading of the same `FM-1_016.fwsc`, SHA-256 `d017fb65…5d5`, with
+the Ghidra setup above; nothing was sent to an FM1). It follows on from the section above and
+answers four questions: can a message reach **each** Voice, what is in object 4, what are object 8
+and `0x30`, and does anything else change Voice setup from outside. Public sources were checked
+too: AL-255's FM-1-RE (https://github.com/AL-255/FM-1-RE, `docs/io/11-ota-protocol.md`) documents
+the `00 59` commands for V13 and V14 but no object behind them and nothing about V16; the
+MatrixSynth post on V16 (https://www.matrixsynth.com/2026/10/m-vave-fm-1-official-v16-firmware.html)
+describes the eight parts only as set on the FM1. No public tool sets V16's Voices.
+
+**The updater's methods, settled.** FM-1-RE gives the dispatcher: `0x21` calls an object's method
+`+0`, `0x23` method `+4` ("read-shaped"), `0x22` method `+8` ("write-shaped"). On V16 the objects'
+tables (`FUN_020237b6`) are:
+
+| Object | `+0` (`0x21` begin)  | `+4` (`0x23` read)                         | `+8` (`0x22` write)                                     |
+| ------ | -------------------- | ------------------------------------------ | ------------------------------------------------------- |
+| 4      | none                 | settings block, 176 bytes (`FUN_0200bd02`) | settings block, partial writes allowed (`FUN_0200c124`) |
+| 5      | bank buffer (`c950`) | **edit buffer and stored data** (`c970`)   | 16 KiB of banks, saved to Flash (`d04e`)                |
+| 8      | none                 | a 24-character text from Flash (`d374`)    | appends that text to a Flash area (`d404`)              |
+
+Objects 4 and 5 run in the main loop through the mailbox; object 8 runs in the USB task itself.
+The `+4`/`+8` order corrects the section above only in naming object 5's read, which it did not
+describe.
+
+##### 1. A message that reaches each Voice: no
+
+- **Nothing outside the FM1 selects a Voice.** `FUN_02007d74` writes the selected Voice
+  (`0x01C33EEB`). Its callers are a Program Change, a dump or edit commit, and `FUN_0200be30`,
+  which all keep the Voice already selected, and `FUN_0200895c` and `FUN_02007dca`, which select
+  a given Voice. Those two are reached only from the front panel, start-up, a bank reload, and the
+  sequencer: in SEQ mode `FUN_02010aa4` selects the SEQ's own Voice (`0x01C33F0E`, set only on
+  the SEQ pages), and object 4's SEQ fields (`0x72`, `0x76`) reach `FUN_02007dca` with that same
+  Voice. None takes a Voice number from a message.
+- **Nothing writes another Voice's record.** The six writers of the Voice records stand as listed
+  above. Object 4's write reaches only the selected Voice; `F0 22 24 36` only Voice 2.
+- **Program Change on All.** A Program Change loads into every Voice that is On and whose channel
+  is that channel or All (`FUN_02012cc4`, the loop at `0x01C3508F`), so Voices on All all take
+  every Program Change. That is the confirmed run of 2026-10-26, nothing more.
+- **Bank Select.** CC 0 and CC 32 take the general controller path (`FUN_02007410`, which passes a
+  controller on to MIDI Thru), and no code reads them as a bank: a Program Change chooses among
+  the 128 presets alone.
+- **CC 7 is the master volume, not a Voice's level.** On any channel an On Voice listens on, CC 7
+  goes to `FUN_02010a74`, which sets one global volume byte and shows its popup. CC 2 and CC 11
+  go to the Voice path; CC 1, 4, and other controllers outside 70–93 take the general path. So
+  question 9 below has a firmware answer: no.
+- **The FM1's own keys** reach the Voices only as the front-panel queue, which no message fills.
+
+So the editor still cannot set Voices 1–8 itself. The only per-Voice route left is the user
+selecting each Voice on the FM1 while the editor writes object 4 (channel, preset, bend, glide) or
+sends a dump, which saves nothing over the FM1's own Voice page.
+
+##### 2. Object 4 in full
+
+The block is built by `FUN_0200bba0` and checked and applied by `FUN_0200c124`. **Sel.** marks a
+field taken from, and written to, the selected Voice's record. A write is checked as a whole after
+the written bytes are laid over the current block, and one bad field rejects it all.
+
+| Offset        | Field                                              | Valid on write    |
+| ------------- | -------------------------------------------------- | ----------------- |
+| `0x00`        | version, `0x0E`                                    | must be `0x0E`    |
+| `0x01`        | FX page focus, the position the FX page shows      | 0–5               |
+| `0x02`        | Sel. preset                                        | 0–127             |
+| `0x03`        | octave                                             | −3…+3             |
+| `0x04`        | transpose                                          | −12…+12           |
+| `0x05`        | Sel. MIDI channel, 0 = All                         | 0–16              |
+| `0x06`        | Effect Ch, 0-based                                 | 0–15              |
+| `0x07`        | Sel. pitch bend up                                 | 1–24              |
+| `0x08`        | Sel. pitch bend down                               | 1–24              |
+| `0x09`        | global setting (unnamed)                           | 1 and up          |
+| `0x0A`        | global setting (unnamed)                           | 0–6               |
+| `0x0B`        | global setting (unnamed)                           | 0–3               |
+| `0x0C`        | tempo setting; indexes a table that caps the tempo | 0–9               |
+| `0x0D`        | global switch (unnamed)                            | 0–1               |
+| `0x0E`        | global setting (unnamed)                           | 20–100            |
+| `0x0F`        | global setting (unnamed)                           | 50–75             |
+| `0x10`        | tempo, 16-bit little-endian                        | 30–300            |
+| `0x12`        | 16 patterns: a value each                          | 20–100            |
+| `0x22`        | 16 patterns: a value each (swing's range)          | 50–75             |
+| `0x32`        | 16 patterns: a value each                          | 0–9               |
+| `0x42`        | 16 patterns: tempo, 16-bit little-endian           | 30–300            |
+| `0x62`        | 16 patterns: length in steps                       | 1–64              |
+| `0x72`        | current SEQ pattern                                | 0–15              |
+| `0x73`–`0x75` | three switches                                     | 0–1               |
+| `0x76`        | 16 patterns: preset                                | 0–127             |
+| `0x86`        | a channel                                          | 1–16              |
+| `0x87`        | Sel. glide time                                    | 0–100             |
+| `0x88`        | Sel. glide on                                      | 0–1               |
+| `0x89`        | global setting (unnamed)                           | 0–7               |
+| `0x8A`        | eight settings                                     | 0–5, last two 0–1 |
+| `0x92`        | **FX table**, 27 bytes, below                      | below             |
+| `0xAD`        | FX page parameter focus                            | 0–2               |
+| `0xAE`–`0xAF` | reserved                                           | must be 0         |
+
+- **The glide offsets are settled:** `0x87` is glide time (record byte 8) and `0x88` glide on (record
+  byte 7), from the read's machine code (`0x0200BCB0`–`0x0200BCC4`).
+- The pattern fields go with the 16 SEQ patterns; their names are inferred from their limits and
+  the SEQ page strings (Tempo, Swing, Length), so they stay unnamed where a limit fits several.
+- **A write of the selected Voice's fields changes whichever Voice is selected when it arrives.**
+  If preset, channel, bend, or glide differ from the current block, the write rewrites the selected
+  Voice's record (`FUN_0200be30`). A block read while Voice 3 was selected and written back after
+  the user selected Voice 5 gives Voice 5 Voice 3's channel and preset.
+- **Partial writes are allowed.** `FUN_0200c124` checks that offset plus length fits in 176 bytes,
+  lays the bytes over the block it builds at that moment, and applies only what differs. A write of
+  the 27 bytes at `0x92` therefore touches nothing else, whatever changed on the FM1 since a read.
+
+**The FX table at `0x92`.** It is the live table at `0x01C360B6`, also the first 27 bytes of each of
+the 128 stored FX groups (64-byte records at `0x01C42DEA`, followed by 27 bytes of effect values).
+It is nine 3-byte entries, but **two arrays interleaved**:
+
+- **Byte 0 of entry `p` is the effect at position `p` in the chain.** The chain builder
+  (`FUN_02009064`) walks positions 0–5, reads byte 0 as an effect number, and looks that effect's
+  settings up by number. The CC handler finds the FX page's focus by searching positions 0–5 for
+  the effect number.
+- **Bytes 1 and 2 of entry `e` belong to effect `e`, by number, not by position.** Byte 1 is its
+  On/Off (CC `70 + 4e` writes `e·3 + 1`); byte 2 its Type, 0–2, used by Filter (Low Pass, Band Pass,
+  High Pass) and Reverb (Room, Hall, Plate) (CC 71 and 75 write `e·3 + 2`).
+- Effect numbers are the CC order: 0 Filter, 1 Reverb, 2 Delay, 3 Distortion, 4 Chorus, 5 Phaser.
+  Reverb and Delay are the two that get DSP memory (`FUN_0200099e`), which fits.
+- **Entries 6–8** carry numbers 6–8 for effects V16 does not have; the chain reads only positions
+  0–5.
+- **The write's check** (`FUN_0200c124`): every entry's byte 0 at most 8 and the nine all
+  different, byte 1 at most 1, byte 2 at most 2. Anything else rejects the whole write.
+- **So a reorder changes byte 0 of entries 0–5 only**, to another arrangement of 0–5, and leaves
+  bytes 1–2 and entries 6–8 as read. Moving whole entries would move On/Off and Type to other
+  effects. Putting 6–8 among positions 0–5 would pass the check and drop an effect from the chain.
+- Which end of the chain position 0 is (first or last in the signal) is not settled by the code
+  read; the FX page shows it, so the run sheet below checks it.
+
+**Does the write reach Flash? No, but it is saved by the FM1's next SAVE.** The FX table write
+copies the table into the live and pending tables, marks the current FX group changed
+(`FUN_0200c0ba`: a bit in `0x01C344E3` and the flag `0x01C34020`), and asks the main loop to rebuild
+the effects (`0x01C34024`). Nothing in it writes Flash. The FX library is written by
+`FUN_02011fd0` (**FX save failed - retry**), called from the front panel's SAVE paths and at
+start-up, and before a received bank is saved only while `0x01C3402C` is clear. So a power cycle
+without SAVE restores the order; after a SAVE on the FM1 the new order is stored in that FX group.
+Other fields set "unsaved" (`0x01C34010`) and the Globe-changed flag; the Globe block itself is
+stored only by the front panel's Globe save.
+
+**Object 5's read is a readback.** `0x23` on object 5 (`FUN_0200c970`), with no begin:
+
+- Offsets below `0x10000000`, up to 215 bytes: a snapshot of the selected Voice's edit buffer
+  (`0x01C35F28`, the 156-byte voice), then the 27 live effect values (`0x01C3609B`, three per
+  effect by number) at `0x9C`, then the FX table at `0xB7`. It changes nothing.
+- Offsets from `0x10000000`: raw bytes of the FM1's stored-data area (`FUN_02002f42`, a pointer and
+  size set at start-up when that area's header, `F70U`, checks out), 1,024 bytes at a time. That
+  area holds the stored presets, FX library, and Globe block in an item store not yet decoded.
+- Both are reads. The first would let the editor read what the selected Voice plays, with the live
+  effects, and the second the FM1's banks, which the editor cannot read today. Neither is approved:
+  the first is a `00 32` message outside the approved list, and the second is a raw Flash read,
+  which "Vendor/syscmd safety" excludes. **Dangerous / excluded** until approved and run.
+
+##### 3. Object 8 and `0x30`
+
+- **Object 8** is a 24-character printable text kept in a 256-byte Flash area that holds up to
+  five copies, the newest last (`FUN_0200d404` appends and verifies; `FUN_0200d374` reads the
+  newest). The text is shown on one of the FM1's information pages (`0x0200FAB4`); which page was
+  not followed. It has nothing to do with Voices or effects. Its write is a raw Flash write:
+  **Dangerous / excluded**. Its read is harmless and useless to the editor.
+- **`0x30`** is the host's half of a transfer the FM1 starts. `FUN_020233b2` sends
+  `00 59 30 08 00 00 00 <address, 4 bytes> <length, 3 bytes>` and waits up to 500 ms; a `0x30`
+  from the host is copied into the waiting buffer only when its address and length match the
+  request. FM-1-RE describes the same pull for OTA reads. The function sits in a device-operations
+  table (`0x02040398`), so it reads a file from the host, the update path. It touches neither
+  Voices nor effects. **Dangerous / excluded** (OTA).
+
+##### 4. Anything else
+
+- **A stored Globe block the editor could send:** no. The Globe block (version 3: the eight Voice
+  records at `+4`, the FX table at `+0x64`, the effect values at `+0x7F`, the FX group at `+0x9A`) is
+  written only by the front panel's Globe save and read only at start-up. No message carries one;
+  object 5's write is the four banks alone.
+- **`F0 22 24 36`** stays the only message that switches a Voice: Voice 2, with Voice 1's level as
+  its complement. **Dangerous / excluded**.
+
+##### What this means for the editor
+
+- **Automatic Voice setup is not possible on V16**: no message selects a Voice or sets another
+  Voice's channel or On/Off. The Set up Voices wizard, which walks the user through the FM1's Voice
+  page, stays the way.
+- **The v16-fx-order work should write byte 0 of entries 0–5 only**, never move whole entries, and
+  keep entries 6–8 as read. It should write the 27 bytes alone, at offset `0x92`, rather than the
+  whole block it read, so a Voice selected since the read keeps its own settings. That write is
+  inside the approval of 2026-10-27 (only the FX order bytes).
+- The order holds until power-off unless the user presses SAVE on the FM1, which stores it in the
+  current FX group. The editor should say so.
+- **Worth asking Ben to approve, read only:** object 5's `0x23` below `0x10000000`, which reads the
+  selected Voice's voice, its live effect values, and the FX table without touching the settings
+  block. The stored-data read from `0x10000000` is a bigger step (raw Flash, undecoded format) and
+  stays excluded.
+- Object 8, `0x30`, object 5's write, and `F0 22 24 36` stay **Dangerous / excluded**.
+
+The run sheet is
+[`hardware-runs/stock-v16-control-research-run-sheet.md`](hardware-runs/stock-v16-control-research-run-sheet.md).
+
 #### Questions for the hardware run
 
 Each question carries the firmware's answer. The run of 2026-10-23 settled the first two, part of
@@ -2529,11 +2724,16 @@ the third, and the fourth; the run of 2026-10-25 the rest of the third, and the 
 8. ~~Do the FM1's key presses follow the Voice selected on its screen?~~ No: channel 1 whichever
    Voice is selected (2026-10-26).
 9. Does CC 7 on a Voice's channel set that Voice's level? Not run (2026-10-26): no tool to send
-   it.
+   it. The firmware says no: CC 7 is the master volume (2026-10-27, above).
 10. Does a dump change a preset for every Voice playing it? Not run.
 11. Does M-VAVE's Windows updater send command `0x22` or `0x23` on object 4, the settings block
     that holds the selected Voice's channel? Capture only, nothing sent by the editor
     ([`hardware-runs/stock-v16-voice-settings-capture.md`](hardware-runs/stock-v16-voice-settings-capture.md)).
+12. Is byte 0 of the FX table's entries 0–5 the chain order, with bytes 1–2 kept per effect, and
+    which end is position 0? Does a write of the 27 bytes alone at `0x92` reorder the effects and
+    last until power-off unless SAVE is pressed? Run sheet:
+    [`hardware-runs/stock-v16-control-research-run-sheet.md`](hardware-runs/stock-v16-control-research-run-sheet.md).
+    (Numbered 13 because the v16-fx-order branch adds question 12.)
 
 ### FM1 Editor
 
