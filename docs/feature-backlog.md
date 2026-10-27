@@ -138,6 +138,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     - The editor cannot read the Voice setup back: Bank Export leaves it out.
     - No known message sets a Voice's channel, On/Off, level, pan, glide, or tune. The one
       near it, `F0 22 24 36`, sets only Voice 2 and stays **Dangerous / excluded**.
+      _Researched 2026-10-27 (firmware reading, **Likely**; `docs/fm1-research.md`, "Setting a
+      Voice's channel or On/Off from outside"): the FM1's own controls and `F0 22 24 36` are the
+      only ways to a Voice's On/Off. The updater's `00 32` settings block (object 4) sets only the
+      selected Voice's channel, and nothing outside the FM1 selects a Voice, so the setup by
+      hand stays. Sending that block would need an approval in `AGENTS.md` first; a capture of
+      M-VAVE's Windows updater (`docs/hardware-runs/stock-v16-voice-settings-capture.md`) would
+      show whether any M-VAVE tool uses it._
     - A Program Change loads its program into every Voice that is On and listens on its
       channel or on All (**Confirmed**), so the editor can choose each Voice's preset.
     - A single-voice dump reaches only the Voice selected on the FM1's screen, whatever its
