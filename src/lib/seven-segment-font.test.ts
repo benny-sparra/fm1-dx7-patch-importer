@@ -16,8 +16,10 @@ describe('seven-segment numbers', () => {
     expect(readFileSync('src/fonts/dseg/LICENSE', 'utf8')).toContain('SIL OPEN FONT LICENSE')
   })
 
-  it('takes only the figures, the point, and the minus, which are all the font draws', () => {
-    expect(dseg7Face()).toContain('unicode-range: U+002D-002E, U+0030-0039;')
+  it('takes the figures, the point, the minus, and the letters, which are all the font draws', () => {
+    expect(dseg7Face()).toContain(
+      'unicode-range: U+002D-002E, U+0030-0039, U+0041-005A, U+0061-007A;',
+    )
   })
 
   it('keeps the line box of VT323, so a readout is as tall as it was', () => {
