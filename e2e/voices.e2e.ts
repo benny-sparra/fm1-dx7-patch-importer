@@ -158,7 +158,17 @@ for (const width of [992, 1280]) {
     for (let index = 0; index < 9; index += 1) {
       const tab = tabs.nth(index)
       await expect(tab).toBeInViewport()
-      expect(await tab.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true)
+      // The text's own width, since a centred label that overflows leaves scrollWidth unchanged.
+      expect(
+        await tab.evaluate((el) => {
+          const range = document.createRange()
+          range.selectNodeContents(el)
+          const style = getComputedStyle(el)
+          const room =
+            el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+          return range.getBoundingClientRect().width <= room + 0.5
+        }),
+      ).toBe(true)
       tops.add(Math.round((await tab.boundingBox())?.y ?? -1))
     }
     // The lit tab stands a few pixels taller than the rest, so the row's tops differ by that much.

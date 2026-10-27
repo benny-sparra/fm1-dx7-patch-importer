@@ -48,15 +48,21 @@ type VoiceStripProps = {
   presetLabel: (preset: number) => string
 }
 
-/** How a Voice's cell is drawn: a raised tab fused to the panel from `sm`, a grid cell below it. */
-function voiceCellClassName(isAimed: boolean) {
+/**
+ * How a Voice's cell is drawn: a raised tab fused to the panel from `sm`, a grid cell below it.
+ * In the one-row layout the Voices share the row equally, while the Effects tab (`grow` false)
+ * takes its label's width, which is wider than a Voice's.
+ */
+function voiceCellClassName(isAimed: boolean, grow = true) {
+  const width = grow ? 'min-[62rem]:flex-1' : 'min-[62rem]:flex-none'
   return cn(
     'flex min-w-0 items-center border',
     isAimed
       ? // The aimed tab is the panel's own face, open at the bottom and topped with the amber bar;
         // on a phone it is a lit grid cell with an amber ring.
-        'crt-hatch h-10 border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] shadow-[inset_0_0_0_1px_var(--crt-led)] min-[62rem]:flex-1 min-[62rem]:border-t-[var(--crt-bevel)] min-[62rem]:border-r-[var(--crt-bevel)] min-[62rem]:border-b-transparent min-[62rem]:border-l-[var(--crt-bevel)] min-[62rem]:bg-origin-border min-[62rem]:shadow-[inset_0_2px_0_var(--crt-led)] xl:flex-none'
-      : 'h-10 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)] min-[62rem]:mb-0.5 min-[62rem]:h-[34px] min-[62rem]:flex-1 xl:flex-none',
+        'crt-hatch h-10 border-t-[var(--crt-bevel-lt)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel-lt)] shadow-[inset_0_0_0_1px_var(--crt-led)] min-[62rem]:border-t-[var(--crt-bevel)] min-[62rem]:border-r-[var(--crt-bevel)] min-[62rem]:border-b-transparent min-[62rem]:border-l-[var(--crt-bevel)] min-[62rem]:bg-origin-border min-[62rem]:shadow-[inset_0_2px_0_var(--crt-led)] xl:flex-none'
+      : 'h-10 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel3)] hover:bg-[var(--crt-bg-head)] min-[62rem]:mb-0.5 min-[62rem]:h-[34px] xl:flex-none',
+    width,
   )
 }
 
@@ -154,7 +160,7 @@ export function VoiceStrip({
                 aria-label={label}
                 aria-pressed={isAimed}
                 className={cn(
-                  'font-dot-matrix -ml-2 h-full min-w-0 flex-1 cursor-pointer truncate pr-2.5 pl-1.5 text-left text-[13px] leading-none font-bold whitespace-nowrap min-[26.25rem]:text-[14px]',
+                  'font-dot-matrix -ml-2 h-full min-w-0 flex-1 cursor-pointer truncate pr-1.5 pl-1.5 text-left text-[13px] leading-none font-bold whitespace-nowrap min-[26.25rem]:text-[14px] xl:pr-2.5',
                   focusRing,
                   !voice.on
                     ? 'text-[var(--crt-ink-4)]'
@@ -201,7 +207,7 @@ export function VoiceStrip({
           )
         })}
         {/* The Voices' shared effects: one more tab, which swaps the patch banks for the panel. */}
-        <div className={cn(voiceCellClassName(effectsOpen), voiceEffectsCellClassName)}>
+        <div className={cn(voiceCellClassName(effectsOpen, false), voiceEffectsCellClassName)}>
           <button
             aria-pressed={effectsOpen}
             className={cn(
