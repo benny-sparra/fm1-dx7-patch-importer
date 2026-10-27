@@ -22,7 +22,6 @@ import { MidiActivityLeds } from '@/components/midi/midi-activity-leds'
 import { MidiLogButton } from '@/components/midi/midi-log-button'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
 import type { Fm1VaPresetProbe as PresetProbe } from '@/components/midi/fm1-va-preset-probe'
-import { NoteChannelSelect } from '@/components/midi/note-channel-select'
 import { MidiPanicButton } from '@/components/midi/midi-panic-button'
 import type { OfficialOpenTrackStatus as TrackStatus } from '@/components/midi/official-open-track-status'
 import type { VoiceStrip as VoiceStripComponent } from '@/components/midi/voice-strip'
@@ -81,14 +80,13 @@ type RootLayoutProps = {
     ComponentProps<typeof HelpButton>['midi'] &
     ComponentProps<typeof MidiFirmwareBadge>['midi'] &
     ComponentProps<typeof MidiPanicButton>['midi'] &
-    ComponentProps<typeof NoteChannelSelect>['midi'] &
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
     ComponentProps<typeof PianoKeyboard>['midi'] &
     ComponentProps<typeof PresetProbe>['midi'] &
     ComponentProps<typeof TrackStatus>['midi'] &
     ComponentProps<typeof VoiceStripComponent>['midi'] &
     Pick<MidiController, 'logStore' | 'midiAccess' | 'sendEffectDiagnosticControl'>
-  /** The library's side of the V16 Voice strip; without it the note channel picker stays. */
+  /** The library's side of the V16 Voice strip;  */
   voices?: Omit<ComponentProps<typeof VoiceStripComponent>, 'midi'>
 }
 
@@ -217,24 +215,16 @@ export function RootLayout({ children, compact = false, midi, voices }: RootLayo
                   midi={midi}
                 />
                 {voices && firmwareProfile.capabilities.multitimbral ? <VoicesSwitch /> : null}
-                {showsVoiceStrip ? null : <NoteChannelSelect midi={midi} />}
                 <span className="flex sm:order-last">
                   <MidiPanicButton midi={midi} />
                 </span>
               </div>
               <MidiActivityLeds midi={midi} />
               <PianoKeyboard midi={midi} />
-              {/* The note channel grows into V16's eight Voices, on a line of their own. */}
+              {/* V16's eight Voices, on a line of their own. */}
               {voices && showsVoiceStrip ? (
                 <div className="order-last w-full">
-                  <ErrorBoundary
-                    fallback={
-                      <span className="flex flex-wrap items-center gap-2.5">
-                        <NoteChannelSelect midi={midi} />
-                        <LoadFailedNotice message={t('voices.loadFailed')} />
-                      </span>
-                    }
-                  >
+                  <ErrorBoundary fallback={<LoadFailedNotice message={t('voices.loadFailed')} />}>
                     <Suspense
                       fallback={<div aria-hidden="true" className="h-[4.25rem] sm:h-32 lg:h-20" />}
                     >

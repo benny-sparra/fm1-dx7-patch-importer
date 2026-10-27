@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useState, type ComponentProps } from 'react'
+import type { ComponentProps } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
@@ -55,29 +55,17 @@ afterEach(() => {
 })
 
 describe('RootLayout note channel', () => {
-  it('puts the note channel in the header and keeps it in step with the Settings menu', async () => {
-    function Page() {
-      const [channel, setChannel] = useState(1)
-      return (
-        <ToastProvider>
-          <RootLayout midi={{ ...midi, channel, setChannel }}>
-            <div>Library</div>
-          </RootLayout>
-        </ToastProvider>
-      )
-    }
-    render(<Page />)
-    const header = screen.getByRole('banner')
+  it('leaves the note channel to the Settings menu, not the header', () => {
+    render(
+      <ToastProvider>
+        <RootLayout midi={midi}>
+          <div>Library</div>
+        </RootLayout>
+      </ToastProvider>,
+    )
 
-    // The Settings menu's select, which sits earlier in the header, spells channels in full.
-    const headerPicker = within(header)
-      .getAllByRole('combobox', { name: 'Note channel' })
-      .find((picker) => within(picker).queryByRole('option', { name: 'Ch 4' }))
-    await userEvent.setup().selectOptions(headerPicker!, 'Ch 4')
-
-    const pickers = screen.getAllByRole<HTMLSelectElement>('combobox', { name: 'Note channel' })
-    expect(pickers.length).toBeGreaterThanOrEqual(2)
-    expect(pickers.map((picker) => picker.value)).toEqual(pickers.map(() => '4'))
+    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
+    expect(screen.queryByRole('option', { name: 'Ch 4' })).toBeNull()
   })
 })
 
@@ -107,7 +95,7 @@ describe('RootLayout Voice strip', () => {
     const strip = await within(header).findByRole('group', { name: 'Voices 1–8' })
 
     expect(within(strip).getAllByRole('button')).toHaveLength(8)
-    // Only the Settings menu's Note channel is left.
+    // Only the Settings menu's Note channel is left, as without the strip.
     expect(within(header).getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
   })
 
@@ -120,11 +108,11 @@ describe('RootLayout Voice strip', () => {
     expect(await within(header).findByRole('group', { name: 'Voices 1–8' })).toBeTruthy()
   })
 
-  it('keeps the note channel picker while the switch is off', () => {
+  it('shows no strip while the switch is off', () => {
     renderHeader({ identity: 'FM-1_016', kind: 'mvave' })
 
     expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
-    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(2)
+    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
   })
 
   it('offers no Voices switch while the firmware is unidentified or plays one Voice', () => {
@@ -139,12 +127,12 @@ describe('RootLayout Voice strip', () => {
     }
   })
 
-  it('keeps the note channel picker on firmware that plays one Voice, whatever was stored', () => {
+  it('shows no strip on firmware that plays one Voice, whatever was stored', () => {
     setVoiceSetupEnabled(true)
     renderHeader({ identity: 'FM-1_015', kind: 'mvave' })
 
     expect(screen.queryByRole('group', { name: 'Voices 1–8' })).toBeNull()
-    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(2)
+    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
   })
 })
 

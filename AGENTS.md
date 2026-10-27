@@ -698,12 +698,10 @@ open everything an earlier release could have saved.
   when its usual action cannot, such as **Send to FM1** without a MIDI output opening the dialog
   that connects one, is not `aria-disabled`: a screen reader would call a working control
   unavailable. Its description says what a click does instead.
-- The header carries the note channel as **Ch n** (`NoteChannelSelect`, 2026-10-25): the same state
-  as the Settings menu's Note channel, shown whether or not MIDI is online and for every firmware
-  so the header never shifts, and it sends nothing. On a phone it sits on the last line with the
-  badge and the panic.
+- The header has no note channel picker (removed 2026-10-27, the owner's request): the note channel is
+  the Settings menu's **Note channel**, and on V16 the Voice strip aims it.
 - On V16, the header's **Multitimbral mode** switch (the profile's `multitimbral`, stored as `enabled` in
-  `fm1-voice-setup`) swaps that box for `VoiceStrip`, a line of its own below the MIDI row: eight
+  `fm1-voice-setup`) shows `VoiceStrip`, a line of its own below the MIDI row: eight
   numbered buttons on a phone, the patch in each tooltip, and from `sm` each Voice's channel and
   patch, four to a row until `lg` fits eight. A Voice is aimed at by setting the note channel to
   its channel, never by state of its own, so the Voice listening on the note channel is the one a

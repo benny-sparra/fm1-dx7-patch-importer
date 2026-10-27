@@ -59,7 +59,7 @@ afterEach(() => {
 })
 
 describe('RootLayout Voice strip that fails to load', () => {
-  it('explains the failure, offers a reload, and keeps the note channel picker', async () => {
+  it('explains the failure, offers a reload', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined)
     localStorage.setItem('fm1-librarian-help-seen', 'true')
     setVoiceSetupEnabled(true)
@@ -74,6 +74,6 @@ describe('RootLayout Voice strip that fails to load', () => {
     const alert = await screen.findByRole('alert')
     expect(within(alert).getByText('Voices 1–8 could not be loaded.')).toBeTruthy()
     expect(within(alert).getByRole('button', { name: 'Reload app' })).toBeTruthy()
-    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(2)
+    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
   })
 })
