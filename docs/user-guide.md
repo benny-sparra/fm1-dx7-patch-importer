@@ -99,7 +99,7 @@ says **Receive Timeout**; start Export again while the app listens.
 
 On V16 the FM1 plays eight Voices, each with its own patch and MIDI channel, so once the FM1 is
 identified as running V16 the editor shows them as Voice 1 to Voice 8 tabs fused to the top of the
-Patch banks panel, with a ⋮ menu at the right holding **Recall voices** and **Voice channels…** (a grid
+Patch banks panel, with a ⋮ menu at the right holding **Recall voices**, **Set up Voices…**, and **Voice channels…** (a grid
 of eight on a phone). There is nothing to switch on: Voice 1 is selected to start with, so if you
 never touch the tabs the editor works as it always has, on the **Note channel** in **Settings**.
 Each tab has its own small light, the Voice's On switch: it only records whether you have that
@@ -110,7 +110,13 @@ The FM1 needs setting up once for this (step 1 below, and the bar says so until 
 patch). After that it still works as a single-sound FM1 on channel 1, since notes and patches reach
 only the Voice on their channel.
 
-1. Set the Voices up once on the FM1: put Voice 1 to Voice 8 on channels 1 to 8, switch each one
+1. Set the Voices up once on the FM1. The first time the Voice tabs show, a line above them says
+   **Set up your FM1’s Voices**; it opens **Set up Voices…**, which is also in the ⋮ menu. The
+   wizard lists the steps on the FM1 (channels, the effect channel, then **SAVE** → **Globe**) and
+   checks them by ear: the editor plays one short middle C on each Voice's channel, and you answer
+   **Heard it**, **Didn't hear it**, or **Heard two sounds** (a sign that a Voice is still on
+   **All**). It sends only those notes, nothing else. Closing the line, or finishing the wizard, ends
+   the line for good. By hand: put Voice 1 to Voice 8 on channels 1 to 8, switch each one
    **On**, leave none on **All**, then press **SAVE** and choose **Globe**. A Voice that is Off
    ignores the patch the app gives it, and does not take it when switched back On; a Voice on All
    takes every patch the app sends to any Voice. The app cannot read or change these settings.

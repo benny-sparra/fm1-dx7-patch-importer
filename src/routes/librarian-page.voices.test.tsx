@@ -11,6 +11,7 @@ import type { Patch } from '@/data/patches'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
 import { resetV16EffectsForTests } from '@/lib/v16-effects'
 import { assignVoicePreset, resetVoiceSetupForTests } from '@/lib/voice-setup'
+import { markVoiceSetupGuided, resetVoiceSetupGuidedForTests } from '@/lib/voice-setup-guided'
 import {
   makeLibrarianLibrary,
   makeLibrarianMidi,
@@ -32,12 +33,15 @@ beforeAll(() => {
 
 beforeEach(() => {
   localStorage.setItem('fm1-librarian-help-seen', 'true')
+  // The first-time Set up Voices line has its own tests in the strip's.
+  markVoiceSetupGuided()
 })
 
 afterEach(() => {
   cleanup()
   localStorage.clear()
   resetVoiceSetupForTests()
+  resetVoiceSetupGuidedForTests()
   resetV16EffectsForTests()
   vi.restoreAllMocks()
 })

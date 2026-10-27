@@ -3,10 +3,15 @@ import { expect, test, type Page } from '@playwright/test'
 import { installFakeMidi, sentMidi } from './fake-midi'
 
 // V16's Voice strip, as a returning visitor left it, with the help already seen.
-async function openWithVoices(page: Page) {
+async function openWithVoices(page: Page, { guided = true }: { guided?: boolean } = {}) {
   await installFakeMidi(page, { firmware: 'mvave-v16' })
   await page.addInitScript(() => {
     localStorage.setItem('fm1-librarian-help-seen', 'true')
+  })
+  if (guided) {
+    await page.addInitScript(() => localStorage.setItem('fm1-voice-setup-guided', '1'))
+  }
+  await page.addInitScript(() => {
     localStorage.setItem(
       'fm1-voice-setup',
       JSON.stringify({
@@ -186,3 +191,58 @@ for (const width of [992, 1280]) {
     expect(await titleBarHeight('Effects')).toBe(banksTitleBar)
   })
 }
+
+test('sets the Voices up from the first-time line and tests two Voices with notes only', async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 900, width: 1280 })
+  await openWithVoices(page, { guided: false })
+  await page.getByRole('button', { name: 'Set up your FM1’s Voices' }).click()
+  const wizard = page.getByRole('dialog', { name: 'Set up Voices' })
+  await expect(wizard).toBeVisible()
+  await expect(wizard.getByText('Voice 8: Ch 8')).toBeVisible()
+  await wizard.getByRole('button', { name: /^Next/ }).click()
+  await expect(wizard.getByText(/set Effect Ch to \d+/)).toBeVisible()
+  await wizard.getByRole('button', { name: /^Next/ }).click()
+  await expect(wizard.getByText('On the FM1, press SAVE and choose Globe.')).toBeVisible()
+  await wizard.getByRole('button', { name: /^Next/ }).click()
+
+  const before = (await sentMidi(page)).length
+  await wizard.getByRole('button', { name: 'Play note' }).click()
+  await wizard.getByRole('button', { name: 'Heard it' }).click()
+  await wizard.getByRole('button', { name: 'Play note' }).click()
+  await wizard.getByRole('button', { name: 'Heard it' }).click()
+  await expect.poll(async () => (await sentMidi(page)).slice(before).length).toBe(4)
+
+  // Only Note On, then Note Off, on each Voice's own channel: nothing else reached the FM1.
+  expect((await sentMidi(page)).slice(before)).toEqual([
+    [0x90, 60, 80],
+    [0x80, 60, 0],
+    [0x91, 60, 80],
+    [0x81, 60, 0],
+  ])
+
+  await wizard.getByRole('button', { name: /^Next/ }).click()
+  await wizard.getByRole('button', { name: 'Finish' }).click()
+  await expect(wizard).toBeHidden()
+  await expect(page.getByText('Voices set up: 2 of 8 heard.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Set up your FM1’s Voices' })).toHaveCount(0)
+  expect(await page.evaluate(() => localStorage.getItem('fm1-voice-setup-guided'))).toBe('1')
+})
+
+test('fits the Set up Voices wizard and its sound test in a 320 px phone', async ({ page }) => {
+  await page.setViewportSize({ height: 640, width: 320 })
+  await openWithVoices(page, { guided: false })
+  await page.getByRole('button', { name: 'Set up your FM1’s Voices' }).click()
+  const wizard = page.getByRole('dialog', { name: 'Set up Voices' })
+  for (let step = 0; step < 3; step += 1) {
+    await wizard.getByRole('button', { name: /^Next/ }).click()
+  }
+
+  for (const name of ['Play note', 'Heard it', 'Didn’t hear it', 'Skip']) {
+    await expect(wizard.getByRole('button', { name })).toBeVisible()
+  }
+  await expect(wizard.getByRole('button', { name: 'Back' })).toBeInViewport()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320)
+  expect(await wizard.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+})

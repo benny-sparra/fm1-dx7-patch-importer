@@ -738,6 +738,18 @@ open everything an earlier release could have saved.
   them and an Off Voice ignores its Program Change unseen (`docs/hardware-runs/stock-v16-voices-2026-10-26.md`).
   A patch beyond bank D offers **Copy into A–D and assign…**, the copy dialog limited to A–D,
   which then plays the copy as a slot click, once the library holds it.
+- **Set up Voices…** (`VoiceSetupWizard`, the owner, 2026-10-27) is in the Voices ⋮ menu, and the
+  first time the strip shows a line above the tabs, **Set up your FM1's Voices** with a close
+  button, opens it; closing the line or finishing the wizard stores `fm1-voice-setup-guided` and
+  the line never returns (it replaces the older setup line until then). It is a lazy dialog from
+  the strip with its strings in `en-GB-voice-setup.ts`, on `bank-wizard.tsx`'s screens: the
+  channels (PRESETS, then each Voice's MIDI Ch and On/Off, Voice 1 off All), the effect channel,
+  SAVE → Globe, a sound test, and a summary. The editor cannot read or set any of it, so the test
+  is by ear: it sends only a Note On and a Note Off (middle C, velocity 80, 400 ms) on a Voice's
+  channel through `startNote`/`stopNote`'s `channel` option, never SysEx, and releases the note,
+  through the output it struck it on, when the screen closes, the output changes, MIDI goes
+  offline, or the panic count changes. It says "on the FM1" where the FM1's screen for a setting
+  is not documented (Effect Ch). Do not add another message to it.
 - V16's **Effects** tab (the owner, 2026-10-27) follows the eight Voice tabs and swaps the patch banks
   for the editor's own effects panel (`EffectsUnit`, never a copy) on the one FX group the Voices
   share (`V16EffectsPanel`, lazy from `librarian-page` with `LoadFailedNotice`; the tab itself is

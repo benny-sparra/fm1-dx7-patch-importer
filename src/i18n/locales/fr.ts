@@ -1066,9 +1066,71 @@ export default {
     setupHelpLabel: 'le réglage des Voices du FM1',
     setupSteps:
       'Le FM1 demande à être préparé une seule fois : mettez les Voices 1 à 8 sur les canaux 1 à 8, activez chacune (On), n’en laissez aucune sur All, puis appuyez sur SAVE et choisissez Globe. Une Voice sur Off ignore son son et ne le reprend pas quand elle repasse sur On, et une Voice sur All prend chaque son envoyé.',
+    setupOpen: 'Régler les Voices…',
+    setupLoadFailed: '« Régler les Voices » n’a pas pu être chargé.',
+    guidedPrompt: 'Réglez les Voices de votre FM1',
+    guidedDismiss: 'Fermer la ligne de réglage des Voices',
     channelsNote: 'Modifier ceci ne change pas le FM1 : réglez-y les mêmes canaux.',
     channelsClose: 'Fermer les canaux des Voices',
     channelOf: 'Canal de la Voice {{number}}',
+  },
+  voiceSetup: {
+    title: 'Régler les Voices',
+    close: 'Fermer « Régler les Voices »',
+    stepOf: 'Étape {{current}} sur {{total}}',
+    steps: {
+      channels: 'Canaux',
+      fx: 'Canal d’effets',
+      save: 'Enregistrer',
+      test: 'Test sonore',
+      done: 'Terminé',
+    },
+    channels: {
+      step1: 'Sur le FM1, ouvrez PRESETS et sélectionnez une Voice.',
+      step2: 'Réglez son MIDI Ch sur le canal ci-dessous et son On/Off sur On.',
+      step3:
+        'Faites de même pour chaque Voice. Un FM1 neuf a la Voice 1 sur All : mettez-la sur Ch 1.',
+      expected: 'Canaux attendus par l’éditeur',
+      voiceOnChannel: '{{voice}} : {{channel}}',
+    },
+    fx: {
+      step: 'Sur le FM1, réglez Effect Ch sur {{channel}}.',
+      why: 'L’éditeur envoie les changements de l’onglet Effects sur son canal d’effets ; le FM1 doit écouter sur celui-ci.',
+    },
+    save: {
+      step: 'Sur le FM1, appuyez sur SAVE et choisissez Globe.',
+      why: 'Sans cela, éteindre le FM1 rétablit tous les réglages.',
+    },
+    test: {
+      heading: '{{voice}}, {{channel}}',
+      instruction: 'Jouez la note, puis dites si {{voice}} l’a jouée.',
+      play: 'Jouer la note',
+      playAgain: 'Rejouer',
+      playing: 'Lecture…',
+      heard: 'Entendu',
+      notHeard: 'Pas entendu',
+      heardTwo: 'Deux sons entendus',
+      skip: 'Passer',
+      notHeardHint:
+        '{{voice}} : pas entendue. Vérifiez sur le FM1 qu’elle est sur On et sur {{channel}}.',
+      heardTwoHint:
+        '{{voice}} : une autre Voice a joué aussi. Vérifiez que la Voice 1 n’est pas sur All.',
+      progress: 'Résultats',
+      stateNone: 'non testée',
+      stateHeard: 'entendue',
+      stateNotHeard: 'pas entendue',
+      stateTwo: 'deux sons',
+      stateSkipped: 'passée',
+      connect: 'Passez le MIDI en ligne pour jouer la note.',
+    },
+    done: {
+      allHeard: 'Chaque Voice a joué sur son propre canal.',
+      issues:
+        'Certaines Voices demandent un nouvel essai. Utilisez Retour pour les tester de nouveau.',
+      notTested: '{{voice}} : non testée.',
+      finish: 'Terminer',
+      toast: 'Voices réglées : {{heard}} sur 8 entendues.',
+    },
   },
   help: {
     open: 'Aide : comment utiliser l’éditeur et le bibliothécaire FM1',

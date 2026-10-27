@@ -220,6 +220,16 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
          not part of a patch.
       3. **With named setups (step 4):** each setup stores its effects, and that editor is
          where V16's effects live. Other firmware never sees a change.
+  - **Set up Voices… wizard — built (2026-10-27, the owner's request).** The editor cannot read or
+    set the Voices' channels or On/Off (`docs/fm1-research.md`, "Setting a Voice's channel or
+    On/Off from outside"), so the one-time FM1 setup is a wizard in the Voices ⋮ menu, and a
+    one-line **Set up your FM1's Voices** above the tabs the first time they show (kept by
+    `fm1-voice-setup-guided`). Five screens: the channels (PRESETS → MIDI Ch and On/Off, Voice 1
+    off All), the FX channel, SAVE → Globe, a sound test (one Note On and Off of middle C on each
+    Voice's channel, answered Heard it, Didn't hear it, or Heard two sounds), and a summary.
+    _Not confirmed on hardware:_ where the FM1 keeps **Effect Ch** (the wizard says only "on the
+    FM1"), and whether SAVE → Globe stores every Voice's channel and On/Off. The orange FM1 needs
+    a run of the sound test.
   - **Questions for a hardware run first** (the run of 2026-10-26, `hardware-runs/stock-v16-voices-2026-10-26.md`,
     answered two of the four and left the others open):
     - Does CC 7 on a Voice's channel set that Voice's level? If so, a setup could carry a mix.

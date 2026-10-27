@@ -1,5 +1,12 @@
-import { RotateCcw, Sparkles, SlidersHorizontal } from 'lucide-react'
-import { useState, useSyncExternalStore, type ComponentProps, type ReactNode } from 'react'
+import { ListChecks, RotateCcw, Sparkles, SlidersHorizontal, X } from 'lucide-react'
+import {
+  lazy,
+  Suspense,
+  useState,
+  useSyncExternalStore,
+  type ComponentProps,
+  type ReactNode,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { VoiceChannelsDialog } from '@/components/midi/voice-channels-dialog'
@@ -9,8 +16,11 @@ import {
   voiceNoticesCellClassName,
   voiceTabsCellClassName,
 } from '@/components/midi/voice-bar-layout'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { InfoNotice } from '@/components/ui/info-notice'
+import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
+import type { VoiceSetupWizard as VoiceSetupWizardComponent } from '@/components/midi/voice-setup-wizard'
 import type { PortalMenu } from '@/components/ui/portal-menu'
 import { useToast } from '@/components/ui/toast'
 import '@/i18n/voices'
@@ -20,9 +30,22 @@ import { midiActivity } from '@/lib/midi-activity'
 import { cn } from '@/lib/utils'
 import { getV16Effects } from '@/lib/v16-effects'
 import { aimedVoice, aimVoice, setVoiceOn } from '@/lib/voice-setup'
+import {
+  getVoiceSetupGuided,
+  markVoiceSetupGuided,
+  subscribeVoiceSetupGuided,
+} from '@/lib/voice-setup-guided'
+
+// The wizard loads when it is first opened; the menu item and the first-time line stay here.
+const VoiceSetupWizard = lazy(() =>
+  import('@/components/midi/voice-setup-wizard').then((module) => ({
+    default: module.VoiceSetupWizard,
+  })),
+)
 
 type VoiceStripProps = {
-  midi: Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendEffectSettings' | 'setChannel'>
+  midi: Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendEffectSettings' | 'setChannel'> &
+    ComponentProps<typeof VoiceSetupWizardComponent>['midi']
   /** Whether the Effects tab, after the Voices, is the one open: no Voice tab is then lit. */
   effectsOpen: boolean
   /** Opens the Effects tab, or closes it for the Voice a tab aims at. */
@@ -93,6 +116,9 @@ export function VoiceStrip({
   const aimedIndex = effectsOpen ? null : aimedVoice(setup, midi.channel, aimed)
   const litChannels = useSyncExternalStore(midiActivity.subscribe, midiActivity.getChannelSnapshot)
   const [showsChannels, setShowsChannels] = useState(false)
+  const [showsSetup, setShowsSetup] = useState(false)
+  const [setupLoadFailed, setSetupLoadFailed] = useState(false)
+  const guided = useSyncExternalStore(subscribeVoiceSetupGuided, getVoiceSetupGuided, () => true)
   const [sendFailed, setSendFailed] = useState(false)
   const assigned = setup.voices.filter((voice) => voice.preset !== null).length
   const sendBlockedReason = !midi.hasMidiOutput
@@ -100,6 +126,11 @@ export function VoiceStrip({
     : assigned === 0
       ? t('voices.recallEmpty')
       : null
+
+  const openSetup = () => {
+    setSetupLoadFailed(false)
+    setShowsSetup(true)
+  }
 
   const recallVoices = () => {
     if (sendBlockedReason) return
@@ -125,7 +156,32 @@ export function VoiceStrip({
       {/* The one-time FM1 setup is the first thing to do, in one line with its steps behind help. */}
       <div className={voiceNoticesCellClassName}>
         <div className="empty:hidden" role="status">
-          {assigned === 0 ? (
+          {!guided ? (
+            <div className="mb-2">
+              <InfoNotice>
+                <span className="flex items-center gap-2">
+                  <button
+                    className={cn('cursor-pointer text-left underline', focusRing)}
+                    onClick={() => openSetup()}
+                    type="button"
+                  >
+                    {t('voices.guidedPrompt')}
+                  </button>
+                  <button
+                    aria-label={t('voices.guidedDismiss')}
+                    className={cn(
+                      'ml-auto grid size-6 shrink-0 cursor-pointer place-items-center',
+                      focusRing,
+                    )}
+                    onClick={markVoiceSetupGuided}
+                    type="button"
+                  >
+                    <X aria-hidden="true" className="size-4" />
+                  </button>
+                </span>
+              </InfoNotice>
+            </div>
+          ) : assigned === 0 ? (
             <div className="mb-2">
               <InfoNotice>
                 <span className="flex items-center gap-1">
@@ -136,6 +192,7 @@ export function VoiceStrip({
             </div>
           ) : null}
         </div>
+        {setupLoadFailed ? <LoadFailedNotice message={t('voices.setupLoadFailed')} /> : null}
         {sendFailed ? (
           <div className="mb-2">
             <ErrorNotice>{t('voices.recallFailed')}</ErrorNotice>
@@ -234,6 +291,11 @@ export function VoiceStrip({
               onSelect: recallVoices,
             },
             {
+              Icon: ListChecks,
+              label: t('voices.setupOpen'),
+              onSelect: openSetup,
+            },
+            {
               Icon: SlidersHorizontal,
               label: t('voices.channels'),
               onSelect: () => setShowsChannels(true),
@@ -242,6 +304,18 @@ export function VoiceStrip({
           menuLabel: t('voices.menu'),
         })}
       </span>
+      {showsSetup ? (
+        <ErrorBoundary
+          onError={() => {
+            setShowsSetup(false)
+            setSetupLoadFailed(true)
+          }}
+        >
+          <Suspense fallback={null}>
+            <VoiceSetupWizard midi={midi} onClose={() => setShowsSetup(false)} />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
       {showsChannels ? (
         <VoiceChannelsDialog midi={midi} onClose={() => setShowsChannels(false)} />
       ) : null}

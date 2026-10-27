@@ -108,7 +108,9 @@ export function makeLibrarianMidi(overrides: Partial<Midi> = {}): Midi {
     inputs: [],
     isConnecting: false,
     logStore: new MidiLogStore([]),
+    effectChannel: 2,
     midiAccess: false,
+    midiPanicCount: 0,
     outputs: [],
     selectedInputId: '',
     selectedOutputId: '',
@@ -118,6 +120,8 @@ export function makeLibrarianMidi(overrides: Partial<Midi> = {}): Midi {
     setChannel: vi.fn<Midi['setChannel']>(),
     setSelectedInputId: vi.fn<Midi['setSelectedInputId']>(),
     setSelectedOutputId: vi.fn<Midi['setSelectedOutputId']>(),
+    startNote: vi.fn<Midi['startNote']>(),
+    stopNote: vi.fn<Midi['stopNote']>(),
     sysexAvailable: false,
     ...overrides,
   }

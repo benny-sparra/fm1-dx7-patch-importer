@@ -18,6 +18,12 @@ import {
   setVoiceChannel,
   setVoiceOn,
 } from '@/lib/voice-setup'
+import { makeLibrarianMidi } from '@/test/librarian-fakes'
+import {
+  getVoiceSetupGuided,
+  markVoiceSetupGuided,
+  resetVoiceSetupGuidedForTests,
+} from '@/lib/voice-setup-guided'
 import { translatePageText } from '@/test/page-translator'
 
 beforeAll(() => {
@@ -71,7 +77,7 @@ function Strip({
       <p>Note channel {channel}</p>
       <VoiceStrip
         effectsOpen={effectsOpen}
-        midi={{ channel, hasMidiOutput, sendEffectSettings, setChannel }}
+        midi={makeLibrarianMidi({ channel, hasMidiOutput, sendEffectSettings, setChannel })}
         onAim={onAim}
         onEffectsOpenChange={setEffectsOpen}
         onSendSetup={onSendSetup}
@@ -88,6 +94,9 @@ function Strip({
 beforeEach(() => {
   localStorage.clear()
   resetVoiceSetupForTests()
+  resetVoiceSetupGuidedForTests()
+  // The first-time line has its own tests; the others run as if it were done with.
+  markVoiceSetupGuided()
 })
 
 afterEach(async () => {
@@ -420,5 +429,71 @@ describe('VoiceStrip', () => {
     await user.click(screen.getByRole('switch', { name: 'Voice 3 on' }))
 
     expect(onAim.mock.calls).toEqual([[66], [null]])
+  })
+
+  describe('the first-time Set up Voices line', () => {
+    beforeEach(() => {
+      localStorage.clear()
+      resetVoiceSetupGuidedForTests()
+    })
+
+    it('shows one line that opens the wizard, in place of the older setup line', async () => {
+      const user = userEvent.setup()
+      render(<Strip />)
+
+      expect(screen.getByRole('status').textContent).toBe('Set up your FM1’s Voices')
+      expect(screen.queryByText(/Voices first/)).toBeNull()
+
+      await user.click(screen.getByRole('button', { name: 'Set up your FM1’s Voices' }))
+
+      expect(await screen.findByRole('dialog', { name: 'Set up Voices' })).toBeTruthy()
+    })
+
+    it('stays gone for good once closed, here and on the next visit', async () => {
+      const user = userEvent.setup()
+      const { unmount } = render(<Strip />)
+
+      await user.click(screen.getByRole('button', { name: 'Dismiss the Voice setup line' }))
+      expect(screen.queryByRole('button', { name: 'Set up your FM1’s Voices' })).toBeNull()
+      expect(getVoiceSetupGuided()).toBe(true)
+
+      unmount()
+      resetVoiceSetupGuidedForTests()
+      render(<Strip />)
+      expect(screen.queryByRole('button', { name: 'Set up your FM1’s Voices' })).toBeNull()
+    })
+
+    it('goes once the wizard finishes', async () => {
+      const user = userEvent.setup()
+      render(<Strip />)
+      await user.click(screen.getByRole('button', { name: 'Set up your FM1’s Voices' }))
+      const dialog = await screen.findByRole('dialog', { name: 'Set up Voices' })
+      for (let step = 0; step < 4; step += 1) {
+        await user.click(within(dialog).getByRole('button', { name: /^Next/ }))
+      }
+      await user.click(within(dialog).getByRole('button', { name: 'Finish' }))
+
+      expect(screen.queryByRole('button', { name: 'Set up your FM1’s Voices' })).toBeNull()
+    })
+
+    it('writes the line in the interface language', async () => {
+      await setLocale('de')
+      render(<Strip />)
+
+      expect(screen.getByRole('button', { name: 'Richte die Voices deines FM1 ein' })).toBeTruthy()
+    })
+  })
+
+  it('opens the wizard from Set up Voices… in the menu, beside Voice channels…', async () => {
+    const user = userEvent.setup()
+    render(<Strip />)
+
+    await user.click(screen.getByRole('button', { name: 'Voice actions' }))
+    const items = screen.getAllByRole('menuitem').map((item) => item.textContent)
+    expect(items.some((text) => text?.startsWith('Set up Voices…'))).toBe(true)
+    expect(items.some((text) => text?.startsWith('Voice channels…'))).toBe(true)
+    await user.click(screen.getByRole('menuitem', { name: /^Set up Voices…/ }))
+
+    expect(await screen.findByRole('dialog', { name: 'Set up Voices' })).toBeTruthy()
   })
 })

@@ -55,6 +55,8 @@ import type { OfficialOpenTrackDelivery } from '@/lib/official-open-track-send'
 type WebMidiApi = (typeof import('webmidi'))['WebMidi']
 
 export type StartNoteOptions = {
+  /** Strikes the note on this channel rather than the note channel, such as a Voice's own. */
+  channel?: number
   /** Keeps the note out of the MIDI log, for notes a loop repeats several times a second. */
   quiet?: boolean
   velocity?: number
@@ -780,6 +782,7 @@ export function useMidi() {
   const startNote = useCallback(
     (note: number, label: string, options?: StartNoteOptions) => {
       const velocity = options?.velocity ?? defaultNoteVelocity
+      const noteChannel = options?.channel ?? channel
 
       if (!selectedOutput) {
         if (!options?.quiet) {
@@ -789,13 +792,13 @@ export function useMidi() {
       }
 
       try {
-        sendNoteOn(selectedOutput, channel, note, velocity)
+        sendNoteOn(selectedOutput, noteChannel, note, velocity)
         // A looping phrase sends notes several times a second, which would bury the log it
         // shares with everything else the editor sends, so it logs itself starting instead.
         if (!options?.quiet) {
           appendLog(
-            makeLogEntry('out', `Ch ${channel} Note On: ${label}`, [
-              0x90 | ((channel - 1) & 0x0f),
+            makeLogEntry('out', `Ch ${noteChannel} Note On: ${label}`, [
+              0x90 | ((noteChannel - 1) & 0x0f),
               note,
               velocity,
             ]),
@@ -822,10 +825,10 @@ export function useMidi() {
   )
 
   const stopNote = useCallback(
-    (note: number) => {
+    (note: number, noteChannel = channel) => {
       if (selectedOutput) {
         try {
-          sendNoteOff(selectedOutput, channel, note)
+          sendNoteOff(selectedOutput, noteChannel, note)
         } catch (caughtError) {
           appendLog(failureEntry(caughtError, 'MIDI note-off failed.'))
         }
