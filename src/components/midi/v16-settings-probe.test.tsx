@@ -8,6 +8,7 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import {
   fxTableOffset,
+  makeObject5LiveReadRequest,
   makeSettingsBlockReadRequest,
   settingsBlockLength,
   settingsBlockVersion,
@@ -52,7 +53,7 @@ function makeProbeMidi(block: number[] = blockBytes) {
     sysexAvailable: true,
     ...makeFakeFm1Devices(ports),
   }
-  return { midi, writes }
+  return { midi, ports, writes }
 }
 
 async function openProbe(midi: Midi) {
@@ -95,5 +96,22 @@ describe('V16SettingsProbe', () => {
     const user = await openProbe({ ...midi, firmware: { identity: 'FM-1_097', kind: 'fm1-va' } })
     expect(screen.getByRole('button', { name: 'Read block' }).hasAttribute('disabled')).toBe(true)
     expect(user).toBeTruthy()
+  })
+
+  it('sends only the fixed object 5 read and shows its reply as heard, undecoded', async () => {
+    const { midi, ports, writes } = makeProbeMidi()
+    const live = makeObject5LiveReadRequest()
+    const answer = Uint8Array.of(0xf0, 0x00, 0x32, 0x0d, 0x41, 0x01, 0x02, 0xf7)
+    ports.output.send.mockImplementation((data) => {
+      if (data.length === live.length && data.every((byte, i) => byte === live[i])) {
+        ports.input.receive(answer)
+      } else writes.push(data)
+    })
+    const user = await openProbe(midi)
+    await user.click(screen.getByRole('button', { name: 'Read object 5 (live)' }))
+    const region = await screen.findByRole('region', { name: 'Object 5 reads' }, { timeout: 4000 })
+    expect(region.textContent).toContain('Raw: F0 00 32 0D 41 01 02 F7')
+    expect(writes).toEqual([])
+    expect(ports.output.send).toHaveBeenCalledTimes(1)
   })
 })

@@ -85,6 +85,18 @@ export function makeSettingsBlockReadRequest() {
   return makeUpdaterFrame(readCommand, requestPrefix)
 }
 
+/**
+ * `F0 00 32 …`: reads 215 bytes of object 5 from offset 0 (command `0x23`), which the firmware
+ * reading says hold the selected Voice's patch, the 27 live effect values at `0x9C`, and the FX
+ * table at `0xB7` (**Likely**). Approved on 2026-10-29 for the hardware run and the development
+ * probe only (AGENTS.md, "MIDI"): nothing in production sends it, and it is a fixed message with
+ * no object, offset, or length to choose. Object 5's writes, which save banks to Flash, are never
+ * built here.
+ */
+export function makeObject5LiveReadRequest() {
+  return makeUpdaterFrame(readCommand, [5, 0, 0, 0, 0, 215, 0, 0])
+}
+
 /** A settings block exactly as the FM1 sent it. Only a read makes one. */
 export type V16SettingsBlock = {
   /** The 176 bytes, eight bits each. */

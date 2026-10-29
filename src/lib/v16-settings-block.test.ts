@@ -4,6 +4,7 @@ import {
   fxTableLength,
   fxTableOffset,
   makeEffectOrderWrite,
+  makeObject5LiveReadRequest,
   makeSettingsBlockReadRequest,
   parseSettingsBlockReply,
   readEffectOrder,
@@ -286,5 +287,38 @@ describe('readV16SettingsBlock', () => {
     controller.abort()
     await expect(read).rejects.toBeInstanceOf(V16SettingsReadError)
     await expect(read).rejects.toMatchObject({ problem: 'cancelled' })
+  })
+})
+
+describe('makeObject5LiveReadRequest', () => {
+  it('reads object 5 at offset 0, length 215, as one packed updater frame', () => {
+    const request = makeObject5LiveReadRequest()
+    expect(request).toEqual(frame(0x23, [5, 0, 0, 0, 0, 215, 0, 0]))
+    expect([...request]).toEqual([
+      0xf0, 0x00, 0x32, 0x0d, 0x41, 0x00, 0x00, 0x40, 0x02, 0x00, 0x00, 0x00, 0x00, 0x70, 0x1a,
+      0x00, 0x00, 0x23, 0x00, 0xf7,
+    ])
+  })
+
+  it('takes no argument, so no other object, offset, or length can be asked for', () => {
+    expect(makeObject5LiveReadRequest.length).toBe(0)
+    expect(makeObject5LiveReadRequest()).not.toEqual(makeSettingsBlockReadRequest())
+  })
+
+  it('is a read: command 0x23, and never the begin or write that save banks', () => {
+    const unpacked: number[] = []
+    let accumulator = 0
+    let count = 0
+    for (const septet of makeObject5LiveReadRequest().subarray(1, -1)) {
+      accumulator |= septet << count
+      count += 7
+      while (count >= 8) {
+        unpacked.push(accumulator & 0xff)
+        accumulator >>= 8
+        count -= 8
+      }
+    }
+    expect(unpacked.slice(0, 3)).toEqual([0x00, 0x59, 0x23])
+    expect(unpacked[6]).toBe(5)
   })
 })

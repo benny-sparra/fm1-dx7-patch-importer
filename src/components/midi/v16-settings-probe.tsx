@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import type { MidiController } from '@/hooks/use-midi'
+import { unpackSevenBitStream } from '@/lib/fm1-firmware'
 import { formatMidiBytes, makeLogEntry } from '@/lib/midi'
 import { midiActivity } from '@/lib/midi-activity'
 import {
@@ -19,6 +20,7 @@ import {
   fxTableLength,
   fxTableOffset,
   makeEffectOrderWrite,
+  makeObject5LiveReadRequest,
   readEffectOrder,
   readV16SettingsBlock,
   type V16SettingsBlock,
@@ -44,6 +46,11 @@ type ProbeRead = {
   previous?: V16SettingsBlock
   readAt: Date
 }
+
+/** An object 5 live read: the reply as it came, and unpacked, with nothing decoded. */
+type LiveRead = { note: string; raw: string; readAt: Date; unpacked: string }
+
+const liveReplyWaitMs = 1500
 
 const hex = (byte: number) => byte.toString(16).padStart(2, '0').toUpperCase()
 /** How long the FM1 gets to apply a write before the probe reads the block again. */
@@ -85,6 +92,7 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
   const [orderText, setOrderText] = useState('')
   const [outcome, setOutcome] = useState<string | null>(null)
   const [heard, setHeard] = useState<string[]>([])
+  const [live, setLive] = useState<LiveRead[]>([])
   const last = useRef<V16SettingsBlock | undefined>(undefined)
   const titleId = useId()
   const orderId = useId()
@@ -167,17 +175,56 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
       )
     })
 
+  /**
+   * Approved on 2026-10-29 for the hardware run: one fixed read of object 5, length 215. The
+   * reply is shown and logged exactly as heard; nothing in it is decoded.
+   */
+  async function readLive(note: string) {
+    if (!input || !output) return
+    const replies: Uint8Array[] = []
+    const handle = (event: MessageEvent) => {
+      const data = Uint8Array.from(event.data)
+      if (data[1] === 0x00 && data[2] === 0x32) replies.push(data)
+    }
+    input.addListener('midimessage', handle)
+    const request = makeObject5LiveReadRequest()
+    output.send(request)
+    midiActivity.signal('out')
+    log('out', 'Read 215 bytes of object 5 (live read, dev probe).', request)
+    await new Promise((resolve) => setTimeout(resolve, liveReplyWaitMs))
+    input.removeListener('midimessage', handle)
+    if (replies.length === 0) throw new Error('The FM1 did not answer the object 5 read.')
+    for (const reply of replies) {
+      logStore.append(makeLogEntry('system', 'Heard the object 5 reply.', reply))
+    }
+    setLive((reads) => [
+      ...reads,
+      ...replies.map((reply) => ({
+        note,
+        raw: formatMidiBytes(reply),
+        readAt: new Date(),
+        unpacked: formatMidiBytes(Uint8Array.from(unpackSevenBitStream(reply.subarray(1, -1)))),
+      })),
+    ])
+  }
+
   async function copyCapture() {
-    if (!read) return
+    if (!read && live.length === 0) return
     const capture = JSON.stringify(
       {
-        block: formatMidiBytes(read.block.bytes),
-        changedBytes: changedIndexes(read.block.bytes, read.previous?.bytes),
+        block: read && formatMidiBytes(read.block.bytes),
+        changedBytes: read && changedIndexes(read.block.bytes, read.previous?.bytes),
+        object5Reads: live.map(({ note, raw, readAt, unpacked }) => ({
+          note,
+          raw,
+          readAt: readAt.toISOString(),
+          unpacked,
+        })),
         firmware: firmware.kind === 'mvave' ? firmware.identity : firmware.kind,
         heardOnInvalid: heard,
         outcome,
-        readAt: read.readAt.toISOString(),
-        reply: formatMidiBytes(read.block.reply),
+        readAt: read?.readAt.toISOString(),
+        reply: read && formatMidiBytes(read.block.reply),
       },
       null,
       2,
@@ -231,7 +278,15 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
                 <span>Write back unchanged</span>
               </Button>
               <Button
-                disabled={!read}
+                disabled={!canRun || busy}
+                onClick={() => void run(() => readLive(`read ${live.length + 1}`))}
+                type="button"
+                variant="secondary"
+              >
+                <span>Read object 5 (live)</span>
+              </Button>
+              <Button
+                disabled={!read && live.length === 0}
                 onClick={() => void copyCapture()}
                 type="button"
                 variant="secondary"
@@ -262,6 +317,19 @@ export function V16SettingsProbe({ midi }: V16SettingsProbeProps) {
             </div>
             {failure ? <ErrorNotice>{failure}</ErrorNotice> : null}
             {outcome ? <p role="status">{outcome}</p> : null}
+            {live.length > 0 ? (
+              <section aria-label="Object 5 reads" className="space-y-2">
+                {live.map(({ note, raw, readAt, unpacked }, index) => (
+                  <details key={index}>
+                    <summary>
+                      Object 5, {note}, at {readAt.toLocaleTimeString()}
+                    </summary>
+                    <p className="font-mono text-xs break-all">Raw: {raw}</p>
+                    <p className="font-mono text-xs break-all">Unpacked: {unpacked}</p>
+                  </details>
+                ))}
+              </section>
+            ) : null}
             {read ? (
               <section aria-label="Settings block read" className="space-y-2">
                 <p>

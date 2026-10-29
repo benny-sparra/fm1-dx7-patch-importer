@@ -280,6 +280,14 @@ open everything an earlier release could have saved.
   (`V16SettingsProbe`, behind `import.meta.env.DEV`) sends them. The firmware decode is **Likely**
   (docs/fm1-research.md, "Controlling Voices and effects more fully"), and which end of the chain
   position 0 is, and the reply's layout, wait for the run.
+  The owner approved one more frame on 2026-10-29, for the hardware run and the development
+  probe only: command `0x23` on **object 5** at offset 0, length 215 (`makeObject5LiveReadRequest`,
+  a fixed message with nothing to choose), which the firmware reading says returns the selected
+  Voice's patch, the 27 live effect values at `0x9C`, and the FX table at `0xB7` (**Likely**,
+  docs/fm1-research.md). Nothing in production sends it, and `V16SettingsProbe` shows and logs its
+  reply exactly as heard and decodes none of it, so the Effects tab reads nothing from it until a
+  capture confirms the layout and this rule says so. Object 5's other commands, which save banks to
+  Flash, stay **Dangerous / excluded**, as do object 8 and `0x30`.
 - On Official Open the editor may send two things, both approved on 2026-10-16. The DX7
   single-voice dump goes only on note channels 1–7 or 10, the channels of tracks 1–8, and only
   after command 0 has shown that channel's track running DX7, since a dump to another engine is

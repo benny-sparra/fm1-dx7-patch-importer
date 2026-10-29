@@ -61,7 +61,14 @@ Copy the probe's capture (**Copy capture**) after each step and paste it into
 10. **Drag in the Effects tab.** Drag each effect once, and use **Move earlier** and **Move later**
     from a box's menu. Does each move show on the FM1's FX page, once, at the end the editor
     shows? Close and reopen the tab: does it show the FM1's order?
-11. After each write, check Voices 1–8's preset, channel, On/Off, and the selected Voice against
+11. **Capture object 5 around a write** (approved 2026-10-29, for this run only). Press **Read
+    object 5 (live)** twice before a write, and note whether the two replies are the same. Then
+    write a changed order (step 6) and press it again. Copy the capture: it holds each reply raw and
+    unpacked, nothing decoded. The firmware reading says the 215 bytes are the selected Voice's
+    patch, the 27 live effect values at `0x9C`, and the FX table at `0xB7`: compare the table at
+    `0xB7` before and after with the order you wrote, and the effect values at `0x9C` with the FM1's
+    FX page. Press it only through the probe, and never press anything that writes object 5.
+12. After each write, check Voices 1–8's preset, channel, On/Off, and the selected Voice against
     step 1.
 
 ## What this decides
@@ -72,6 +79,7 @@ Copy the probe's capture (**Copy capture**) after each step and paste it into
 | Steps 3, 6: the table's meaning, and which end position 0 is | Whether the tab's order is first-to-last or must be reversed    |
 | Steps 4, 5, 9: nothing else changed                          | That the 27-byte write is safe, and the read-before-write works |
 | Steps 7, 8: reverts without SAVE; kept after SAVE            | The tab's note that a move is unsaved on the FM1 until SAVE     |
+| Step 11: object 5's layout, and the live order it shows      | Whether the editor can read the live effects and order later    |
 | Step 10: the tab                                             | That `effectOrder` can be listed for the `mvave` family         |
 
 Record the run as `stock-v16-effect-order-<date>.md`, answer question 12 in
