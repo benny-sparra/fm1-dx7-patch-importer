@@ -365,8 +365,8 @@
 
 /*
  * DSEG7 Classic 0.46 (keshikan, SIL OFL 1.1, LICENSE beside the file) draws the editor's numbers as
- * seven-segment digits (`font-seven-segment` in index.css). It holds only the figures, the point,
- * and the minus, so every other character, such as the slash in 5/3 or a unit, stays in VT323. Its
+ * seven-segment digits (`font-seven-segment` in index.css). It is used for the figures, the point, the minus, and
+ * the letters (slot codes and bank letters), so every other character, such as the slash in 5/3 or a unit, stays in VT323. Its
  * digits advance 0.816em and fill the em; scaled to 76% they advance 0.62em, a little wider
  * and taller than VT323's 0.55em, and keep VT323's line box, so a readout's height is unchanged.
  */
@@ -380,5 +380,5 @@
   ascent-override: 144.74%;
   descent-override: 36.18%;
   line-gap-override: 0%;
-  unicode-range: U+002D-002E, U+0030-0039;
+  unicode-range: U+002D-002E, U+0030-0039, U+0041-005A, U+0061-007A;
 }

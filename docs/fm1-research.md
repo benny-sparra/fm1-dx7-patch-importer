@@ -2370,6 +2370,7 @@ checksum:
   - It sets Voice 2's On/Off to `a`, its preset to `b`, and its level to `c`.
   - It then sets Voice 1's level to 100, or to `100 − c` while Voice 2 is on: a two-Voice layer
     or crossfade.
+  - It never changes a channel, and reaches no Voice but 1 and 2 (2026-10-27, below).
   - It is unclassified, so **Dangerous / excluded**.
 
 **Where an edit lands.**
@@ -2412,6 +2413,398 @@ checksum:
   while the LED setting allows.
 - CC 123 and a sustain release (CC 64 below 64) release the channel's voices.
 
+#### Setting a Voice's channel or On/Off from outside
+
+**Likely** (static reading of the same `FM-1_016.fwsc`, 2026-10-27, by the method above; nothing
+was sent to an FM1). The question was whether any MIDI message sets a Voice's MIDI channel or
+On/Off, so the editor could set the Voices up itself.
+
+**Answer.** No MIDI message reaches another Voice's channel or any Voice's On/Off except
+`F0 22 24 36`, which switches Voice 2 alone. One vendor message reaches a channel: a write of
+the updater protocol's settings block (below), which sets the channel of **the Voice selected on
+the FM1's screen** only, and never On/Off. Nothing outside the FM1's own controls changes which
+Voice is selected, so the editor cannot set Voices 1–8 to channels 1–8 with any known message.
+Setting the Voices up by hand stays the way.
+
+**Who writes the Voice records.** Byte 1 (channel) and byte 4 (On/Off) of the records at
+`0x01C3508E` are written only by the boot defaults in `FUN_0201ff7e` and by `FUN_0200be30`, which
+checks a whole 12-byte record and applies it to one Voice. `FUN_02010da6`, the Program Change,
+writes byte 0 (preset) alone. `FUN_0200be30` has six callers:
+
+| Caller                  | Reached from                                                                                                                                                 | What it sets                                                                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `FUN_020121cc`          | The front-panel event queue (`0x070D45C0`, 32 entries), filled only by the key scan `FUN_0201a7e8` and the encoder scan `FUN_0201aa84`, both timer callbacks | The selected Voice's channel, level, pan, or On/Off, one per encoder turn                                                        |
+| `FUN_0200ed88`          | A page handler in the page table at `0x0204024C`, given encoder events (`0x07xxxxxx`)                                                                        | The Voice page: channel 0–16, level, pan, On/Off, bend up and down, Fine Tune, glide, glide time                                 |
+| `FUN_02016d0c`          | A page handler in the page table at `0x020402A4` (the SEQ arrangement, tempo 30–300)                                                                         | A track's Voice On/Off                                                                                                           |
+| `FUN_0201ff7e`          | Start-up (`FUN_02021c5a`)                                                                                                                                    | All eight from the stored Globe block (version 3, records at `+4`), after defaults                                               |
+| `FUN_02012cc4`, event 4 | The MIDI parser, `F0 22 24 36 a b c F7`                                                                                                                      | Voice 2's On/Off `a`, preset `b`, and level `c`, keeping its channel; then Voice 1's level, 100 or `100 − c` while Voice 2 is on |
+| `FUN_0200c124`          | The updater protocol, command `0x22` on object 4 (below)                                                                                                     | The selected Voice's preset, channel, bend up and down, glide, and glide time, keeping its level, pan, and On/Off                |
+
+The selected Voice (`0x01C33EEB`) is written only by `FUN_02007d74`, whose callers keep it as it
+is (a Program Change, a dump, a bank reload) or come from the front panel and start-up.
+
+**`F0 22 24 36`, more precisely.** At start-up, before the stored Globe block is applied,
+`FUN_0201ff7e` reads a 16-byte stored item (`0x23`) whose three bytes pass the same limits
+(`a` below 2, `b` up to 127, `c` up to 100) and uses them for Voices 1 and 2's defaults. The
+command looks like a two-Voice layer or crossfade kept from an earlier design. Where its stored
+copy is written was not found. Still **Dangerous / excluded**: it changes Voice 2, and it cannot
+set a channel.
+
+**The updater protocol reaches the main loop.** The `00 32 …` family (§6.3) is the 7-bit
+packing of `00 59 <cmd> <len, 3 bytes> <payload> <checksum>`, as the Official Open notes show.
+On V16 it is taken in the USB stack (`FUN_0202472e`), ahead of the MIDI parser and beside the
+`F0 22 24 35` loader check, from USB-MIDI SysEx (event 4) and from a second USB interface
+(events 1 and 3). Whether TRS MIDI carries it was not traced. `FUN_020237e8` handles a frame:
+
+- `0x11` identity (the one the editor sends), `0x12` 13 bytes of device information, `0x15` a
+  ring-buffer read.
+- `0x21` begin, `0x22` write, and `0x23` read (at most 1,024 bytes), each with an object number
+  at payload byte 0, a 32-bit offset, and for `0x22` and `0x23` a 24-bit length. `0x24` answers
+  with an error.
+- `0x30` copies a block into a buffer through code in RAM; not followed, so **Dangerous /
+  excluded** with the rest.
+- An object's handlers come from `FUN_020237b6`: object 4 (`0x02043C0C`), object 5
+  (`0x02043C00`), and object 8 (`0x02043C24`, not followed). The USB task hands each request to
+  the main loop through a mailbox (`FUN_0200d13c`, applied in `FUN_02010018` at the top of
+  `FUN_02012cc4`).
+- **Object 5** is the four banks: `0x21` and `0x22` fill a 16 KiB buffer, and once every byte
+  has arrived `FUN_0200cfb4` saves each bank to Flash (`FUN_0200cf52`, whose failure shows
+  **Bank save failed - retry**) and reloads the Voices. That is §6.3's preset restore: its setup
+  messages unpack to `00 59 21 05 00 00 05 <offset>` for offsets `0x0000`–`0x3000`, and its
+  blocks to `00 59 22 08 04 00 05 <offset> 00 04 00` and 1,024 bytes. The Workbench's
+  `restoreFactory` (`sdk/WebUpdate.js`) sends the same commands on object 5, in 512-byte
+  chunks. **Dangerous /
+  excluded**: it writes Flash.
+- **Object 4** is a 176-byte settings block, version `0x0E`, built by `FUN_0200bba0` (read,
+  `FUN_0200bd02`) and applied by `FUN_0200c124` (write, which takes a partial write over the
+  current block). It has no begin. It keeps V15's single-channel layout, filled from the selected
+  Voice's record: byte 2 its preset, byte 5 its channel (0–16, 0 being All), bytes 7 and 8 its
+  bend ranges (1–24), and two later bytes its glide settings; the exact offsets of those two were
+  not settled. The rest are global settings,
+  among them the FX order (`0x92`, 27 bytes). The write checks every field, rejects the whole
+  block for one bad value, applies what changed, and marks the settings unsaved; it was not
+  seen writing Flash. Neither the Workbench's source nor §6.3's capture uses it.
+
+**What this means for the editor.**
+
+- A read of object 4 (`0x23`) would give the selected Voice's preset and channel, and a write
+  (`0x22`) would set them, but only for that one Voice, which the user picks on the FM1. That
+  saves no work over the FM1's own Voice page, and on Voice 1 it is not needed at all.
+- Both are `00 32` messages, which §6.3 keeps **Dangerous / excluded** apart from the identity
+  query. Sending either needs its own approval recorded in `AGENTS.md` first, and nothing in the
+  editor builds them.
+- No M-VAVE tool is known to set Voice settings: the forum's V16 post describes them only on the
+  FM1's screen, the Official Open Workbench uses only identity, capability, update, and object 5,
+  and §6.3's capture is object 5. A capture of M-VAVE's Windows updater could show whether it
+  uses object 4 ([`hardware-runs/stock-v16-voice-settings-capture.md`](hardware-runs/stock-v16-voice-settings-capture.md)).
+
+**A side answer to question 6.** The flag at `0x01C3402C` that a single-voice dump needs is set
+at start-up when the stored FX library loads (`FUN_02002d5e(5, …)` returns 0). While it is clear,
+saving a received bank first calls `FUN_02011fd0`, whose failure shows **FX save failed - retry**;
+whether that sets the flag was not followed. That fits both runs, where it was set in normal use.
+**Likely**.
+
+#### Codex firmware reading (2026-10-28)
+
+Independent offline reading of stock `FM-1_016.fwsc`. **Likely** denotes a static behavioural
+conclusion below; **Confirmed (static)** denotes a directly checked instruction or byte layout,
+not a new hardware result. No device was connected by this investigation, no message was sent,
+and no application code or approval rule was changed. Hardware-dependent conclusions remain
+**Needs hardware test**. All newly discussed vendor operations remain **Dangerous / excluded**.
+
+##### Corrections and comparison with the earlier readings
+
+Compared against `main` at `b03bcf81` and
+[PR #402 at `fb4147dc`](https://github.com/benny-sparra/fm1-dx7-patch-importer/pull/402).
+PRs #393, #401 and #402 were not changed.
+
+- **Confirmed (static): the stored FX record includes its name.** A 64-byte record starts at
+  `0x01C42DE0 + 64*g`, not `0x01C42DEA + 64*g`. Its ten-byte name is at `+0`, its 27-byte
+  table at `+10`, and its 27 values at `+37`. #402's table address is correct, but calling
+  it the record's first 27 bytes omits the name. `FUN_0201fcc2`, instructions
+  `0x0201FD4A–0x0201FDA0`, initializes the name and the two arrays; `FUN_020110b4` loads
+  them and `FUN_02010fce` stages the live arrays back into the record.
+- **The important FX-table decoding in #402 agrees.** At `0x0200969A–0x020096BE`,
+  `FUN_02009064` reads `table[3*position]` as an effect number, then reads
+  `table[3*effect+1]` and `table[3*effect+2]` as its On/Off and Type. This is an instruction
+  check, not just the decompiler's expression. The CC path independently indexes these
+  settings by effect. Reordering whole triples would be wrong. This finding does not
+  overturn the interpretation on which #401 builds.
+- **Likely: a partial 27-byte write is not protected against concurrent FX changes.** It
+  avoids overwriting the selected Voice's fields outside `0x92–0xAC`, but stale On/Off or
+  Type bytes inside that range can overwrite newer settings. If the owner changes FX group
+  between read and write, it acts on the new group. `FUN_0200c124` overlays supplied bytes
+  on a fresh block; it has no expected-group or revision comparison. #402's protection
+  against changes elsewhere must not be read as an atomic update guarantee.
+- **Confirmed (static): queue coalescing is narrower than the earlier MIDI-input summary.**
+  `FUN_02025b08` (`0x02025B0C–0x02025B3E`) enables it only for three-byte CC 70–93 on
+  Effect Ch. `FUN_02025b40` then matches the port, status and controller. This does not
+  establish coalescing for notes, Program Change, CC 7, CC 11 or DX7 parameter changes.
+- **Confirmed (static): updater command `0x15` copies into a ring buffer.** At
+  `0x02023A8C–0x02023ABE` in `FUN_020237e8`, the ring destination is the first argument
+  of `FUN_0203f4f0` and the incoming payload the second; the producer position advances,
+  followed by `FUN_020048e6(1)`. Calling it a ring-buffer **read**, as #402 does, reverses
+  the direction. The downstream trace below identifies a MIDI-input route. It remains
+  **Dangerous / excluded**, not a newly available readback operation.
+
+The conclusions about CC 7, Program Change, the selected Voice's edit buffer, and absence of a
+normal MIDI Voice-setup selector agree with the prior reading, within the limits below.
+
+##### Reproducible scope and limits
+
+The source is the owner's file from [M-VAVE's official topic](https://forum.m-vave.com/topic/23).
+Its complete SHA-256 was checked before copying it to scratch:
+`d017fb65e70aca97ee29d944470c3515a74581df5c0576bf70de917c7b2b61d5` (718,196 bytes).
+The previously documented SFC algorithm was reapplied to that copy. The application occupies
+597,928 bytes at decrypted-package offset `0x4554`; its SHA-256 is
+`79a81738461e889704aafb4868ecca7537cd0fb25466b11b9499a4ac23493e54`, matching the earlier
+extraction byte for byte. A fresh Ghidra 12.2 project used the installed edco JieLi processor,
+`pi32v2:LE:32:ac7911b8`, with the application at `0x02000140` and its `0x15048`-byte RAM
+copy from application offset `0x7CF40` at `0x01C00000`. Here `ac7911b8` names the processor
+variant; it is not a verified Git revision of the installed extension.
+
+Addresses below are runtime addresses. An XIP address `A` maps to application offset
+`A - 0x02000140` and decrypted-package offset `0x4554 + A - 0x02000140`. RAM addresses are
+runtime state unless explicitly described as the copied RAM image. Firmware, decrypted images,
+Ghidra projects and generated disassembly remain outside the repository and are not PR artifacts.
+
+Ghidra sometimes loses arguments, misreads paired instructions, and fails to recover computed
+branches. Critical sizes, indexing and flag writes were therefore checked in the instruction
+listing. In particular, decompiling `FUN_020237e8` fails; its command dispatch was read as
+instructions. Cross-reference results alone cannot prove that no indirect or aliased writer
+exists. The negative findings below cover the decoded runtime parser, controller path and
+identified settings objects, not arbitrary update/loader behaviour or every instruction in the
+image. No malformed-command or out-of-bounds route was sought or proposed.
+
+##### 1. Automatic Voice setup and the parser's boundaries
+
+**No complete remote setup route found; Likely.** A Program Change can already set the preset
+of every enabled Voice on its channel or All (`FUN_02012cc4`, loop at `0x02013164`, and
+`FUN_02010da6`). That is not a way to set a Voice's receive channel or switch it On. Object 4
+can read or change some fields of the Voice the owner has selected, and the legacy `22 24 36`
+message addresses Voice 2 only. Neither supplies arbitrary Voice 1–8 addressing.
+
+**Selected Voice.** The direct writer found for `0x01C33EEB` is `FUN_02007d74` at
+`0x02007D82`. Its callers are `FUN_0200895c`, `FUN_02007dca`, `FUN_0200be30` and
+`FUN_02010da6`. Program Change refreshes the selected buffer only if the changed Voice was
+already selected. The other routes lead to UI/start-up/bank reload or sequencer state.
+`FUN_02010aa4` gets the sequencer's locally configured Voice through `FUN_02002b36`, then
+selects that Voice/pattern via `FUN_02007e26`/`FUN_02007dca`. Object 4's pattern/preset
+fields similarly use that existing selection. No decoded field supplies a new Voice index.
+
+This needs a precise qualification: MIDI can make the sequencer run, and its existing setup
+can then influence selection. That is an indirect consequence of the hardware's current state,
+not a discovered command to choose any requested Voice. The ordinary parser also consumes
+Song Position Pointer without applying it; it provides no remote arrangement-position selector.
+
+**Complete ordinary SysEx decision list, Confirmed (static).** `FUN_02025e2c` handles the
+loader shortcut before streaming bytes; `FUN_02025c66` recognizes only these completed frames:
+
+| Path                             | Recognition and action                                                                                                         | Boundary                                                                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Yamaha parameter change          | Seven bytes, manufacturer `43`, substatus exactly `10`; parameter address and value pass `FUN_020100e4`. Queues an edit event. | No Voice index or read request.                                                                                |
+| Yamaha single voice              | 163 bytes, `43 0n 00 01 1B`, checksum checked; marks the shared receive buffer ready.                                          | Main loop applies it only with the FX-library flag set; see below.                                             |
+| Yamaha bank                      | 4104 bytes, `43 0n 09 20 00`, checksum checked; marks a bank ready.                                                            | Opens the destination workflow; does not encode Voice setup.                                                   |
+| Vendor `22 24 36`                | Eight bytes; On/Off below 2, preset below 128, level at most 100.                                                              | Event type 4 changes Voice 2 and complementary Voice 1 level through `FUN_0200be30`. **Dangerous / excluded**. |
+| Vendor `22 24 35`, selector `7D` | Separate exact-frame shortcut in `FUN_02025e2c`.                                                                               | Calls RAM loader entry `FUN_01c028ac`; **Dangerous / excluded**.                                               |
+| Everything else in this parser   | Fails these recognition checks or completes without an action.                                                                 | No Yamaha request, NRPN SysEx, pattern upload or arbitrary Voice-selector branch found.                        |
+
+**Separate USB handling matters.** This list alone is not a whole-device negative proof.
+`FUN_0202472e` intercepts packed updater traffic before ordinary MIDI. It also intercepts the
+`22 24 35` USB frame with selector `7D` (loader), or `7F` (sets `0x01C33F3D`, later invokes
+`FUN_020246fe`). The latter handshake is not classified as a normal runtime operation here;
+both remain **Dangerous / excluded**. The decoded `00 59` dispatcher at `FUN_020237e8`
+has these command cases (IDs are hexadecimal):
+
+| Command                | Observed path                                                                                                    | Research boundary                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `11`                   | Identity reply, dispatch at `0x02023920`.                                                                        | Existing approved query only.                                                 |
+| `12`                   | Fixed 13-byte information response at `0x02023A5C`.                                                              | No Voice-table read found; unapproved.                                        |
+| `15`                   | Payload-to-ring copy at `0x02023A64`.                                                                            | Feeds the MIDI-input worker; not readback, excluded.                          |
+| `21`, `22`, `23`, `24` | Object-method dispatch through the table selected by `FUN_020237b6`; special handling for object 8.              | Objects 4, 5, 8 only in that selector. This does not authorize any operation. |
+| `30`                   | Copies a response into an already waiting transfer buffer after address/length checks (`0x020239AE–0x02023A5A`). | Update-transfer path, excluded.                                               |
+| Other command IDs      | No further case in this dispatch.                                                                                | Not permission to probe unknown IDs or other transports.                      |
+
+Object 4 is the 176-byte selected-Voice/global settings block. Object 5's write is bank storage,
+not a Globe/Voice-setup loader. Object 8 is stored text, not an FX name.
+
+**Command `0x15` is a MIDI-input route, Likely.** Its ring descriptor at `0x01C0FEF0`
+is also written by the BLE-input path (`0x02027B1A–0x02027B60`). The source-pointer table
+at `0x02043C78` and routing pair at `0x020442C0` connect it to source 4. The worker starting
+at `0x02025F7E` drains input through `FUN_02024e74` at `0x02026170`, then calls the ordinary
+parser `FUN_02025e2c` for complete messages (`0x02026154`) and assembled SysEx
+(`0x02026248`). These worker instructions were disassembled explicitly because the initial
+analysis missed the function. This supplies no new Voice-address field: it feeds the same parser.
+It also reaches that parser's loader shortcut, so testing this vendor wrapper remains
+**Dangerous / excluded** even though its direction and downstream consumer are now identified.
+
+##### 2. Readback
+
+**Yes, partial selected-Voice readback exists in the binary; no approved full setup read was
+found. Likely; vendor reads remain Dangerous / excluded.**
+
+- Object 4's builder `FUN_0200bba0` obtains the selected record using
+  `FUN_02007e88(0x01C33EEB)`. At offsets `0x02`, `0x05`, `0x07`, `0x08`, `0x87`, `0x88`
+  it exposes preset, channel, bend up/down, glide time and glide On. It does not copy all
+  eight 12-byte Voice records, their On/Off and level, or the selected Voice's index.
+  A value returned for the selected Voice is therefore not a tagged snapshot of a named Voice.
+- Object 5's live read, `FUN_0200c970`, validates `offset + length` within `0xD7` (215)
+  without overflow by checking against the remaining size. It first copies **all 215 bytes**
+  from `0x01C35F28`, then overlays 27 live effect values at `0x9C` and the 27-byte live FX
+  table at `0xB7`. The final five bytes `0xD2–0xD6` remain from
+  `0x01C35FFA–0x01C35FFE`, with meaning not mapped in this pass. They are not uninitialized
+  stack data: `r2=0xD7` survives `FUN_0200bb7e` into the copy at `0x0200C9DC`.
+- This is a live patch/effects snapshot, not a read of the requested stored preset. High offsets
+  from `0x10000000` use the separate raw stored-data path (`FUN_02002f42`). Stored data could
+  include saved names/setup, but that would not establish the current unsaved state, and
+  this pass did not implement or validate a stored-item decoder. Raw storage remains excluded.
+
+##### 3. FX groups
+
+**No normal MIDI group selector or live name/number readback found; Likely.** The current group
+is `0x01C33EF0`. `FUN_020110b4` validates an index below 128, stages the old live group, loads
+the new group's arrays, and changes this index. The direct caller chain is
+`FUN_02011194` (front-panel event dispatcher) → `FUN_02011166` → `FUN_020110b4`.
+The observed calls are encoder paths, not MIDI CC, Program Change or object 4 writes.
+
+The stored names do exist: group `g` has ten bytes at `0x01C42DE0 + 64*g`, initialized as
+`FX001` through `FX128` with space padding (`FUN_0201fcc2`). Neither object 4's builder nor
+object 5's live read copies that name or the group index. An object's FX **page focus** is a
+position within the chain, not one of the 128 groups. Reading stored names through raw storage
+is a separate, still excluded investigation.
+
+The interleaved order table at object 4 offset `0x92` agrees with #402, including the need to
+preserve entries 6–8 and effect-indexed settings. A fresh read immediately before a write and a
+readback afterward would be useful checks, but cannot make a read/modify/write atomic against
+front-panel changes. The owner must keep the group and FX controls unchanged during any future
+approved test. This investigation does not add approval for a write.
+
+##### 4. Single-voice dumps: the gate and shared presets
+
+**Yes: the gate can now be accounted for, Confirmed (static).** Start-up `FUN_0201ff7e`
+clears `0x01C3402C` at `0x020205E2`. It reads stored item 5, the FX library, into
+`0x01C42DE0` (`0x0202074E–0x02020760`). On success it sets the flag at `0x0202077C`.
+If the item read returns 1, it attempts initialization with `FUN_0201fcc2`, marks the library
+changed and calls `FUN_02011fd0` (`0x020207B6–0x020207D6`). That save helper also sets
+the flag after `FUN_02011e9a` succeeds (`0x02012020`); on failure it does not. This completes
+#402's previously untraced save branch. It is not a MIDI channel or SysEx-permission flag.
+Do not force it by triggering a save, an update or a factory reset from the editor.
+
+The single-dump path checks it at `0x02012CF0–0x02012CF4`, then validates all 155 values
+(`0x02012CFE–0x02012D10`), copies the voice and commits it. A closed gate therefore silently
+drops an otherwise valid dump; it does not produce an acknowledgement the editor could use.
+Hardware behaviour when the stored library cannot load is **Needs hardware test**, not a reason
+to deliberately damage storage to test it.
+
+**Yes: all Voices currently playing the same preset are refreshed; Likely, audibility still
+Needs hardware test.** `FUN_02007a12` caches the edited preset through `FUN_020079b4`, then
+walks all eight loaded-preset entries at `0x01C343D2`. For every entry equal to the edited
+preset it calls `FUN_020047a0` (`0x02007A46–0x02007A60`). The cache holds one 215-byte
+record per preset, not per Voice; `FUN_020079b4` allocates and copies that record in RAM.
+This path writes no Flash. An edit can consequently affect layered Voices on other MIDI channels
+if they share the preset. It does not turn an Off Voice On. The run sheet tests the result using
+new notes, without assuming how already sounding notes are revoiced.
+
+##### 5. Other useful behaviour and things not to assume
+
+**Controller inventory, Likely; the branch inventory is Confirmed (static).** The main loop
+`FUN_02012cc4`, the general wrapper `FUN_020073ac`/`FUN_02007410`, and the engine
+`FUN_02006762` together account for the following CC cases. These are distinct from writes to
+the persistent twelve-byte Voice record.
+
+| CC numbers                 | Observed handling                                                                                                                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1, 2, 4                    | Separate performance-controller lanes in the engine; no channel, preset, pan or On/Off setup write.                                                                                       |
+| 7                          | Main-loop special case calls `FUN_02010a74`, setting the global volume, not the addressed Voice's stored level.                                                                           |
+| 11                         | Per-channel performance expression lane; not the Voice-page level setting.                                                                                                                |
+| 64                         | Sustain state; release also gets the early note-release path.                                                                                                                             |
+| 70–93                      | On Effect Ch, the six known effect groups and their four controllers. Outside that route there is no corresponding Voice-setup case.                                                      |
+| 120                        | The general wrapper explicitly suppresses it before the engine, despite an internal engine branch. Do not replace the existing panic with it.                                             |
+| 121                        | Engine default branch resets the expression lane to 127 (`0x0200697E–0x02006994`); not evidence that every controller is reset.                                                           |
+| 123                        | Early release handling in the main loop and engine. Hardware panic behaviour still needs its own test; retain the existing explicit Note Off panic.                                       |
+| All remaining 0–127 values | No settings-changing case in these paths. In particular Bank Select 0/32, pan 10, portamento 5/65, Data Entry 6/38, NRPN 98/99 and RPN 100/101 do not provide the missing setup controls. |
+
+The engine also takes channel pressure and pitch-bend messages. That is not a way to configure
+bend range, pan or glide: selected-Voice bend/glide fields belong to object 4, and the Voice-page
+pan lives in the Voice record. Unreachable CC 94/95 code behind the 70–93 range check remains
+unreachable; its presence does not make a control available.
+
+**MIDI clock/transport, Likely.** `FUN_02025a50` receives realtime bytes even while SysEx is
+being collected. `F8` accumulates groups of 24 ticks and estimates tempo; the main loop applies
+the estimate within 30–300 BPM when the applicable ARP/SEQ external-sync setting is enabled.
+`FA` and `FB` enter the same start-request branch, and `FC` enters the stop-request branch;
+`FUN_02012cc4` applies transport to externally synchronized SEQ. No distinct Continue-position
+restoration or Song Position Pointer handling was found. The clock accumulator is global here,
+not selected per input port: concurrent clocks from two sources are a hardware-test concern.
+Do not describe this as precise song-position synchronization or an arbitrary pattern selector.
+
+**Queue pressure, Likely.** The 128-slot event ring sets an overflow flag and does not append
+when the next write position equals the read position (`FUN_02025b40`). Only the FX controls
+get the coalescing described above. The editor should retain paced transfers and not infer that
+an unacknowledged burst of ordinary edits was received merely because it was sent.
+
+##### Public reverse-engineering cross-check
+
+[AL-255/FM-1-RE](https://github.com/AL-255/FM-1-RE) is valuable primary reverse-engineering
+work, but its documented application images are V13/V14. Its
+[September “V16 to V15” proof](https://github.com/AL-255/FM-1-RE/blob/ec832f281ca165a7d5e0722985f3acb1465046d5/docs/io/12-v15-reflash-proof.md)
+explicitly concerns a modified V15 image with its identity raised to 16, **not** October's
+stock V16. Its
+[OTA analysis](https://github.com/AL-255/FM-1-RE/blob/ec832f281ca165a7d5e0722985f3acb1465046d5/docs/io/11-ota-protocol.md)
+supports investigation of framing and callbacks, not transplanting old function addresses or
+assuming that an unidentified command is safe. The
+[original SFC implementation](https://github.com/kagaimiq/jl-misctools/blob/main/firmware/jltech/cipher.py)
+and [edco processor module](https://github.com/edco/ghidra-jieli) supply tooling context.
+The [czietz patcher](https://github.com/czietz/fm1-firmware-patcher) targets a different, pinned
+V15 hash; its detune/aftertouch fixes were not demonstrated to apply to this V16 image.
+
+The additional GitHub search on 2026-10-28 used `FM-1_016`, V16/reverse-engineering terms,
+and the exact package SHA-256, excluding this editor's own results. **Confirmed (source inspection):**
+
+- [Skiff's installer](https://github.com/illuminus5/skiff/blob/4382e9cf5e5bfc8263ee3775c11c7f45373617a0/tools/fm1_install.py)
+  pins the exact stock V16 hash as an accepted official package. This is package/update support,
+  not a published decompilation of its runtime controls.
+- [m-flasher's development notes](https://github.com/jvitkauskas/m-flasher/blob/67858a6530861a8bad64a29e38c4e33392e4f6e5/docs/development.md)
+  use the same hash as an optional package fixture for extraction and installation tests.
+  [fm1buddy's catalog](https://github.com/konsumer/fm1buddy/blob/bf12a7dc3648669c4c5661c20bdd7c3f9f0a2e8d/src/app/catalog.cpp)
+  also identifies it by hash. Neither inspected file supplies a Voice-setup protocol.
+- [czietz/fm1-read-voice](https://github.com/czietz/fm1-read-voice) documents current-voice
+  readback tested on V14/V15, not a V16 eight-Voice setup read. The similarly named
+  [charlesvestal/fm1-reader](https://github.com/charlesvestal/fm1-reader) is a screen reader
+  for participating custom firmwares, not stock V16 readback.
+- [aroum's reverse-engineering notes](https://github.com/aroum/fm1-custom-fw/blob/main/REVERSE_ENGINEERING.md)
+  mention V16, but show a truncated hash starting `a21368`, which differs from the verified
+  `d017fb` image here. Their V15 entropy/updater analysis and V16 feature summary are not
+  independent instruction-level confirmation of this image. The provenance discrepancy remains
+  unresolved; the locally verified input was not replaced.
+
+**Search result, not a proof of absence:** no independent published runtime disassembly of this
+exact stock V16 image was located in the inspected results. Useful older reverse engineering,
+package tools and custom-firmware sources do exist. GitHub indexing and the bounded search cannot
+exclude an unindexed branch, private repository or later publication. No downloaded installer or
+readback tool was executed.
+
+##### What this means for the editor
+
+- Keep manual Voice setup. Program Change sets presets for enabled matching Voices, but does
+  not supply full automatic channel/On/Off/level setup or a tagged eight-Voice readback.
+- Keep the warning that edits target the selected preset; additionally test and document that
+  other Voices using that preset share its edits.
+- Keep #402's interleaved FX-order interpretation, but distinguish stored record base, live
+  table, group identity and page focus. Do not promise atomic preservation of concurrent FX edits.
+- Treat the selected-patch readback as a possible future bounded read requiring its own approval
+  and capture, not as an already supported bank, Voice-setup or FX-library read.
+- Retain paced sends and the existing panic. CC 7, CC 121 and MIDI Continue have narrower or
+  different meanings than a generic MIDI-control implementation might assume.
+- Do not add retries that trigger saves or update operations to open the dump gate. No vendor,
+  raw-storage or loader exclusion is loosened by this research.
+
+The unperformed hardware follow-up is
+[`hardware-runs/stock-v16-codex-2026-10-28-run-sheet.md`](hardware-runs/stock-v16-codex-2026-10-28-run-sheet.md).
+No hardware fixtures or application tests were added: there are no new hardware captures or
+application changes. The proposed tests must supply fixtures before production behaviour relies
+on their results.
+
 #### Questions for the hardware run
 
 Each question carries the firmware's answer. The run of 2026-10-23 settled the first two, part of
@@ -2430,6 +2823,7 @@ the third, and the fourth; the run of 2026-10-25 the rest of the third, and the 
    **32 Voice Save To …**, as on V15 (2026-10-25).
 6. What sets the flag at `0x01C3402C`, without which a single-voice dump is dropped? It was set in
    normal use on 2026-10-23, since the dump arrived.
+   The firmware sets it when the stored FX library loads at start-up (2026-10-27, above).
 7. ~~Does a Program Change reach each of eight Voices on channels 1–8, and does a Voice switched
    Off ignore it?~~ Each Voice takes its own channel's, and a Voice that is Off takes none
    (2026-10-26).
@@ -2438,6 +2832,9 @@ the third, and the fourth; the run of 2026-10-25 the rest of the third, and the 
 9. Does CC 7 on a Voice's channel set that Voice's level? Not run (2026-10-26): no tool to send
    it.
 10. Does a dump change a preset for every Voice playing it? Not run.
+11. Does M-VAVE's Windows updater send command `0x22` or `0x23` on object 4, the settings block
+    that holds the selected Voice's channel? Capture only, nothing sent by the editor
+    ([`hardware-runs/stock-v16-voice-settings-capture.md`](hardware-runs/stock-v16-voice-settings-capture.md)).
 
 ### FM1 Editor
 
@@ -3209,6 +3606,13 @@ instead.
 Resolved on 2026-09-14 by the contributor re-reading the capture: the header is 16 bytes after `F0`
 (1,190 bytes per block), and the 48 logged rows are 44 restore messages plus 4 identify polls sent to
 another MIDI destination.
+
+Partly answered on 2026-10-27 from V16's firmware (**Likely**, read only; see
+[M-VAVE's V16 stock firmware](#m-vaves-v16-stock-firmware), "Setting a Voice's channel or On/Off
+from outside"): unpacked, the setup messages are command `0x21` (begin) on object 5 at offsets
+`0x0000`–`0x3000`, one per bank, and the blocks command `0x22` (write) on object 5, 1,024 bytes at
+a time. V16 saves the four banks to Flash once all 16 KiB have arrived (questions 1, 3, and 5).
+The family also has a read, command `0x23` (question 9). All of it stays **Dangerous / excluded**.
 
 ---
 

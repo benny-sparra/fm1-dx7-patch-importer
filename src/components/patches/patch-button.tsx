@@ -247,7 +247,7 @@ export function PatchButton({
       )}
       <span
         className={cn(
-          'patch-slot font-vt323 pointer-events-none relative shrink-0 border px-1.5 pt-1.5 pb-1 text-[18px] leading-none',
+          'patch-slot font-seven-segment pointer-events-none relative shrink-0 border px-1.5 pt-1.5 pb-1 text-[16px] leading-none',
           'bg-[var(--crt-bg-well)]',
           isActive
             ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'

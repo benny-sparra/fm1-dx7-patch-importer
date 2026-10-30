@@ -100,6 +100,35 @@ function isSafariExtensionMessageError(event: {
   )
 }
 
+// A script injected into a WKWebView, such as an in-app browser's or a content blocker's, reads
+// `window.webkit.messageHandlers` where the host has not defined it. The app never touches
+// `window.webkit`, and the rejection reaches the page with native frames only.
+const webkitMessageHandlersError =
+  /^undefined is not an object \(evaluating 'window\.webkit\.messageHandlers'\)$/u
+
+function isWebkitMessageHandlersError(event: {
+  exception?: {
+    values?: {
+      stacktrace?: { frames?: { filename?: string }[] }
+      type?: string
+      value?: string
+    }[]
+  }
+}) {
+  const exceptions = event.exception?.values ?? []
+  return (
+    exceptions.length > 0 &&
+    exceptions.every(
+      (exception) =>
+        exception.type === 'TypeError' &&
+        webkitMessageHandlersError.test(exception.value ?? '') &&
+        (exception.stacktrace?.frames ?? []).every(
+          (frame) => !frame.filename || frame.filename === '[native code]',
+        ),
+    )
+  )
+}
+
 // The browser's own rejection event always carries `reason`, so Sentry reports the event object
 // itself only when another script, such as an extension or a Bluebird-style promise library,
 // dispatches an `unhandledrejection` event of its own with nothing in it the app rejected.
@@ -148,6 +177,7 @@ export function startMonitoring(
         isAndroidNavigationLoggerError(event) ||
         isIosWebMidiShimCallbackError(event) ||
         isSafariExtensionMessageError(event) ||
+        isWebkitMessageHandlersError(event) ||
         isSyntheticUnhandledRejection(hint.originalException)
       ) {
         return null
