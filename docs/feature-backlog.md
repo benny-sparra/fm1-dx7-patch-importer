@@ -136,8 +136,18 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       FM1, so everything here is opt-in, and the one-patch-at-a-time model stays the default.
   - **What the hardware allows** (`docs/fm1-research.md`, "M-VAVE's V16 stock firmware"):
     - The editor cannot read the Voice setup back: Bank Export leaves it out.
-    - No known message sets a Voice's channel, On/Off, level, pan, glide, or tune. The one
-      near it, `F0 22 24 36`, sets only Voice 2 and stays **Dangerous / excluded**.
+    - No known safe message sets a Voice's channel, On/Off, glide, or tune. V16 documents CC 7
+      as volume on the Voices' channels, and CC 10 is the standard MIDI pan controller, but an
+      isolated hardware run has not established whether either addresses one Voice, changes its
+      saved Voice setup value, or only changes a live MIDI mix. The message near the setup,
+      `F0 22 24 36`, sets only Voice 2 and stays **Dangerous / excluded**.
+      _Researched 2026-10-27 (firmware reading, **Likely**; `docs/fm1-research.md`, "Setting a
+      Voice's channel or On/Off from outside"): the FM1's own controls and `F0 22 24 36` are the
+      only ways to a Voice's On/Off. The updater's `00 32` settings block (object 4) sets only the
+      selected Voice's channel, and nothing outside the FM1 selects a Voice, so the setup by
+      hand stays. Sending that block would need an approval in `AGENTS.md` first; a capture of
+      M-VAVE's Windows updater (`docs/hardware-runs/stock-v16-voice-settings-capture.md`) would
+      show whether any M-VAVE tool uses it._
     - A Program Change loads its program into every Voice that is On and listens on its
       channel or on All (**Confirmed**), so the editor can choose each Voice's preset.
     - A single-voice dump reaches only the Voice selected on the FM1's screen, whatever its
@@ -182,10 +192,65 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        channel, and says "Select Voice n on the FM1", since the editor cannot select it. Off
        channel 1 live parameter changes do not arrive, so the editor sends the whole voice once
        per gesture, as it does for Official Open.
-    4. **Several named setups in the library**, fired by their Program Changes, each carrying
-       the eight presets and one effects setting (see the effects below). A new stored record:
-       a version bump, a fixture, backup format 6, and the upgrade paths `AGENTS.md` asks for.
-       Only if people ask for it; steps 2 and 3 do not depend on it.
+    4. **Sets: all eight Voices and the effects, ready to load** (design agreed by the owner,
+       2026-10-27). A set is what an FM1 owner picks to make the whole instrument sound one way,
+       such as "Ambient" or "Keys & Bass", and the editor can ship some as well as let people
+       make their own. Steps 2 and 3 do not depend on it.
+       - **A set is a bank with a Voices page.** V16 takes a dump only on the Voice selected on
+         the FM1's screen (the run of 2026-10-25), so the only way to give eight Voices eight
+         sounds is to store them in banks A–D and select each with a Program Change. A set
+         therefore carries its patches rather than pointing at FM1 slots, whose contents the
+         editor cannot read back. It holds:
+         - its own 32-slot bank: the patches Voices 1–8 play, and room for alternatives;
+         - the Voice map: the slot each Voice plays, and the channel the set expects each
+           Voice on;
+         - one effects setting, the 24 values the Effects tab edits;
+         - a name and a description, as a saved bank has.
+       - **Loading a set** is one action, in order:
+         1. send its bank to an FM1 bank the user chooses, through the existing bank send and
+            its **32 Voice Save To …** knob press. Skip it when the editor sent this set's bank
+            there last and nothing has gone there since, which is all it can know;
+         2. one Program Change per Voice on its channel, as the strip's send does;
+         3. the 24 effect controllers on the effect channel.
+       - **Keeping it on the FM1** takes SAVE → ALL there, which the confirmation says in one
+         line.
+       - **What a set cannot do,** and says in a help popover rather than a notice: set the
+         Voices' channels or On/Off (no message does, `fm1-research.md`; they are set once on
+         the FM1), choose or store an FX group, or set the effect order. A mix (each Voice's
+         level and pan) is possible only if CC 7 and CC 10 address one Voice on its channel,
+         still open below.
+       - **Where sets live:** in this browser beside saved banks, in a store or record of their
+         own, and in the backup file. Both are new stored formats: a versioned shape, a fixture
+         test for version 1, backup format 6, and the upgrade paths `AGENTS.md` asks for. The
+         current setup (`fm1-voice-setup`) and the Effects tab's `fm1-v16-effects` stay as they
+         are; loading a set writes them through their normal paths.
+       - **Starter sets:** a few bundled sets made from catalog patches, shipped like the catalog
+         banks in `public/` and loaded on demand, so a new V16 owner hears the eight Voices at
+         once. The owner chooses the sounds; each is heard on an FM1 before it ships, as the
+         effect presets were.
+       - **Sharing:** a set downloads and imports as a file first; a link like the patch share
+         link (`#p=`) may follow, and would be a public format from its first release.
+       - **Order:** after #393 (the Voice strip and the Effects tab) merges; then a hardware run
+         for CC 7 per Voice and for a bank received while Voices play it; then storage, the
+         Voices page on a bank, and loading; starter sets last. The build is mechanical enough
+         for a Sonnet session once the stored shapes are fixed; the sounds are the owner's.
+  - **A live mixer for the eight Voices (idea, 2026-10-30).** If a hardware run confirms that
+    V16 routes CC 7 and CC 10 independently on each Voice's receive channel, the large-screen
+    interface can add eight channel strips: a level fader sending CC 7 and a pan control sending
+    CC 10, labelled with the Voice, its channel, and its assigned patch.
+    - MIDI controllers address channels, not Voice numbers. Independent strips require Voices
+      1–8 to be On, assigned distinct channels, and not set to All. Voices sharing a channel move
+      together, and a Voice on All may take every strip's controllers.
+    - The editor cannot set or read those receive channels, so its channel map must match a setup
+      made and saved on the FM1. Each strip needs a way to play or identify its expected Voice so
+      a mismatch can be found.
+    - Keep the mix in the browser and resend all level and pan controllers with **Send setup**.
+      This is useful even if the controllers change only live gain and pan rather than the values
+      saved by SAVE → Globe or ALL.
+    - A temporary mute may send CC 7 = 0 and later restore the browser's previous level. It is not
+      the FM1's Voice On/Off setting, and it cannot safely restore a level the editor did not set.
+    - This would be a live mixer, not a complete Voice setup editor: Voice On/Off, receive-channel
+      assignment, and selecting which Voice receives a patch edit remain unsolved.
   - **Effects across the Voices.** On V16 the eight Voices share one stereo effects chain. The
     FM1 keeps a library of 128 FX groups (FX001–FX128, each with its order, switches, parameters,
     and a name), saved with SAVE → Globe or ALL, and changing a preset no longer changes the
@@ -207,13 +272,20 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       2. **With the Voice strip (step 2):** a standalone effects editor opened from the strip,
          beside **Send setup**, reusing the effects panel and editing the current setup's
          effects. On V16 the patch editor's panel then points to it.
-      3. **With named setups (step 4):** each setup stores its effects, and that editor is
-         where V16's effects live. Other firmware never sees a change.
+      3. **With sets (step 4):** each set stores its effects, and the Effects tab edits the
+         set's as well as the live ones. Other firmware never sees a change.
   - **Questions for a hardware run first** (the run of 2026-10-26, `hardware-runs/stock-v16-voices-2026-10-26.md`,
     answered two of the four and left the others open):
-    - Does CC 7 on a Voice's channel set that Voice's level? If so, a setup could carry a mix.
-      _Open: not run, as no tool to hand sends a Control Change._
+    - Do CC 7 and CC 10 on one Voice's channel set only that Voice's level and pan? Test two held
+      Voices on distinct channels, then check whether the FM1's displayed Voice setup values
+      change, whether SAVE → Globe or ALL keeps them, and whether a Program Change or power cycle
+      resets them. If they are independent even as live-only controllers, a setup can carry a mix.
+      _Open: CC 7 was not run because no tool to hand sent a Control Change; CC 10 has not been
+      tested on stock V16._
     - Does a dump change a preset for every Voice playing it, as the firmware reading says?
+      _Open: not run._
+    - Does a 32-voice bank received and stored while Voices play its presets reach those
+      Voices at once, or only after a Program Change? Loading a set (step 4) depends on it.
       _Open: not run._
     - Does a Voice switched Off ignore a Program Change, so a setup cannot switch Voices on?
       _Answered (2026-10-26): yes. A Voice that is Off ignores it and does not take it when
