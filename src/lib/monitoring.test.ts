@@ -315,6 +315,45 @@ describe('Sentry monitoring', () => {
     expect(options.beforeSend?.(event, {})).toBe(event)
   })
 
+  it('drops a WKWebView host script reading window.webkit.messageHandlers from native frames', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const value = "undefined is not an object (evaluating 'window.webkit.messageHandlers')"
+    const event = {
+      exception: {
+        values: [
+          {
+            type: 'TypeError',
+            value,
+            stacktrace: { frames: [{ filename: '[native code]' }] },
+          },
+        ],
+      },
+    }
+
+    expect(options.beforeSend?.(event, {})).toBeNull()
+
+    const fromApp = {
+      exception: {
+        values: [
+          {
+            type: 'TypeError',
+            value,
+            stacktrace: { frames: [{ filename: 'https://fm1-editor.com/assets/index.js' }] },
+          },
+        ],
+      },
+    }
+    expect(options.beforeSend?.(fromApp, {})).toBe(fromApp)
+  })
+
   it('drops an unhandledrejection event another script dispatched with no rejection in it', async () => {
     const { sdk } = createSdk()
     const initialize = createMonitoringInitializer({
