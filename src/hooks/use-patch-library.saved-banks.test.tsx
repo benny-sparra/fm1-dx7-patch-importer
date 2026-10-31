@@ -39,7 +39,7 @@ async function storedBankIds() {
 async function renderWithSavedBanks() {
   // A stored workspace keeps the hook from autosaving a new factory one while a test runs, so the
   // only writes are the saved-bank changes under test.
-  await saveStoredPatchLibrary(emptyPatchLibrary())
+  await saveStoredPatchLibrary(emptyPatchLibrary(), null)
   await addStoredNamedBank(makeSavedBank('older', '2026-09-01T10:00:00.000Z'))
   await addStoredNamedBank(makeSavedBank('newer', '2026-09-02T10:00:00.000Z'))
   const hook = renderHook(() => usePatchLibrary())
@@ -267,7 +267,7 @@ describe('usePatchLibrary copying a saved bank', () => {
 
 describe('usePatchLibrary changing saved banks while their list is still loading', () => {
   async function renderBeforeListLoads() {
-    await saveStoredPatchLibrary(emptyPatchLibrary())
+    await saveStoredPatchLibrary(emptyPatchLibrary(), null)
     await addStoredNamedBank(makeSavedBank('older', '2026-09-01T10:00:00.000Z'))
     await addStoredNamedBank(makeSavedBank('newer', '2026-09-02T10:00:00.000Z'))
     const hook = renderHook(() => usePatchLibrary())
@@ -296,5 +296,19 @@ describe('usePatchLibrary changing saved banks while their list is still loading
     await waitFor(() => expect(hook.result.current.namedBanksLoading).toBe(false))
 
     expect(listedBankIds(hook)).toEqual(['older'])
+  })
+})
+
+describe('usePatchLibrary saving a bank with empty slots', () => {
+  it('saves each empty slot as INIT VOICE', async () => {
+    const hook = await renderWithSavedBanks()
+
+    await act(() => hook.result.current.saveNamedBank('A', 'Read from the FM1', ''))
+
+    const saved = (await storedBanks()).find(({ name }) => name === 'Read from the FM1')
+    expect(saved?.slots).toHaveLength(32)
+    expect(saved?.slots.every((slot) => 'voice' in slot && slot.voice.name === 'INIT VOICE')).toBe(
+      true,
+    )
   })
 })

@@ -2,15 +2,18 @@
 
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
 import { makeDx7BankFile, updateDx7VoiceName } from '@/lib/dx7'
-import { makeDemoVoices } from '@/lib/patch-library'
+import { emptyPatchLibrary, makeDemoVoices } from '@/lib/patch-library'
 import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
 import { LibrarianPage } from './librarian-page'
+
+type Library = ComponentProps<typeof LibrarianPage>['library']
 
 beforeAll(() => {
   HTMLDialogElement.prototype.showModal = function showModal() {
@@ -39,13 +42,13 @@ function bankBytes(name: string) {
 }
 
 // Bank B has no patches, so importing into it skips the replacement dialog for a single bank.
-function renderPage() {
+function renderPage(imported: ReturnType<Library['importBank']> = emptyPatchLibrary()) {
   const library = makeLibrarianLibrary({
     bankDescriptions: {},
     bankNames: { A: 'Studio Favourites', B: 'Electric Keys' },
     effects: {},
     getBankVoices: vi.fn(() => []),
-    importBank: vi.fn(() => null),
+    importBank: vi.fn(() => imported),
     loadedBanks: ['A'],
     namedBanks: [],
     patches: [
@@ -89,6 +92,23 @@ describe('LibrarianPage bank import into an empty bank', () => {
     expect(vi.mocked(library.importBank).mock.calls[0][0]).toBe('B')
     expect(vi.mocked(library.importBank).mock.calls[0][1][0].name).toBe('ONLY ONE')
     expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('imports only while the bank is the same empty one it started with', async () => {
+    const { library, user } = renderPage()
+
+    await importIntoEmptyBank(user, new File([bankBytes('ONLY ONE')], 'one.syx'))
+
+    await waitFor(() => expect(library.importBank).toHaveBeenCalledOnce())
+    expect(vi.mocked(library.importBank).mock.calls[0][2]).toEqual(['A', 'B'])
+  })
+
+  it('asks before importing when the bank changed while the file was read', async () => {
+    const { user } = renderPage(null)
+
+    await importIntoEmptyBank(user, new File([bankBytes('ONLY ONE')], 'one.syx'))
+
+    expect(await screen.findByRole('dialog', { name: 'Import into “Electric Keys”' })).toBeTruthy()
   })
 
   it('asks which bank to import when the file joins several', async () => {

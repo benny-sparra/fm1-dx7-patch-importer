@@ -49,6 +49,14 @@ describe('Dx7VoiceReceiver', () => {
     expect(receiver.receive(bytes.slice(100))?.kind).toBe('voice')
   })
 
+  it('completes a dump whose F7 arrives alone in the next message', () => {
+    const receiver = new Dx7VoiceReceiver()
+    const bytes = dump()
+
+    expect(receiver.receive(bytes.slice(0, -1))).toBeNull()
+    expect(receiver.receive([0xf7])?.kind).toBe('voice')
+  })
+
   it('keeps joining a split dump through a timing clock between its parts', () => {
     const receiver = new Dx7VoiceReceiver()
     const bytes = dump()

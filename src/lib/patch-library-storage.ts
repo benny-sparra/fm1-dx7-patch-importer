@@ -20,7 +20,20 @@ const namedBankStoreName = 'named-banks'
 const recordKey = 'current'
 
 export type PatchLibraryStorageErrorCode =
-  'unavailable' | 'read-failed' | 'incompatible' | 'write-failed'
+  'unavailable' | 'read-failed' | 'incompatible' | 'write-failed' | 'conflict'
+
+/**
+ * Which stored workspace a tab last loaded or wrote: its `savedAt`, `''` for a record that has
+ * none, or `null` when there was no record. A save refuses to replace any other.
+ */
+export type StoredWorkspaceRevision = string | null
+
+const currentWorkspaceVersion = 9
+
+function storedRevision(stored: unknown): StoredWorkspaceRevision {
+  if (!stored || typeof stored !== 'object') return null
+  return 'savedAt' in stored && typeof stored.savedAt === 'string' ? stored.savedAt : ''
+}
 
 export class PatchLibraryStorageError extends Error {
   readonly code: PatchLibraryStorageErrorCode
@@ -150,22 +163,27 @@ function openDatabase() {
 async function runTransaction<T>(
   storeName: string,
   mode: IDBTransactionMode,
-  operation: (store: IDBObjectStore) => IDBRequest<T>,
+  operation: (store: IDBObjectStore, transaction: IDBTransaction) => IDBRequest<T>,
 ) {
   const database = await openDatabase()
   return new Promise<T>((resolve, reject) => {
     let transaction: IDBTransaction
     let request: IDBRequest<T>
     try {
-      transaction = database.transaction(storeName, mode)
-      request = operation(transaction.objectStore(storeName))
+      // Strict durability reports a write complete only once it is on disk; browsers without the
+      // option ignore it.
+      transaction = database.transaction(
+        storeName,
+        mode,
+        mode === 'readwrite' ? { durability: 'strict' } : undefined,
+      )
+      request = operation(transaction.objectStore(storeName), transaction)
     } catch (error) {
       database.close()
       reject(error instanceof Error ? error : new Error(String(error)))
       return
     }
     let finished = false
-    let result: T
 
     const fail = (error: DOMException | null, fallback: string) => {
       if (finished) return
@@ -175,14 +193,12 @@ async function runTransaction<T>(
     }
 
     request.onerror = () => fail(request.error, 'Browser storage operation failed.')
-    request.onsuccess = () => {
-      result = request.result
-    }
     transaction.oncomplete = () => {
       if (finished) return
       finished = true
       database.close()
-      resolve(result)
+      // Read here rather than in `onsuccess`, which an operation may use to chain another request.
+      resolve(request.result)
     }
     transaction.onabort = () => fail(transaction.error, 'Browser storage transaction was aborted.')
     transaction.onerror = () => fail(transaction.error, 'Browser storage transaction failed.')
@@ -410,7 +426,13 @@ export async function loadStoredPatchLibrary() {
         ...Object.keys(compacted.eightBit),
       ].map((id) => [id, normalizeFm1Effects(compacted.effects[id])]),
     )
-    return { ...compacted, effects, savedAt: stored.savedAt, version: 9 as const, voices }
+    return {
+      ...compacted,
+      effects,
+      savedAt: storedRevision(stored) ?? '',
+      version: 9 as const,
+      voices,
+    }
   } catch (error) {
     throw asStorageError(
       error,
@@ -420,23 +442,61 @@ export async function loadStoredPatchLibrary() {
   }
 }
 
+/**
+ * Saves the workspace over the stored one only if that is still the revision this tab loaded or
+ * last wrote, and returns the new revision. Another tab's save, or a newer release's record, in
+ * between makes it refuse with a `conflict` error and leave storage unchanged.
+ */
 export async function saveStoredPatchLibrary(
   library: Omit<StoredPatchLibrary, 'savedAt' | 'version'>,
-) {
+  expected: StoredWorkspaceRevision,
+): Promise<string> {
+  let conflict = false
+  let writeError: unknown
+  let savedAt = new Date().toISOString()
   try {
-    return await runTransaction<IDBValidKey>(workspaceStoreName, 'readwrite', (store) =>
-      store.put(
-        {
-          ...library,
-          savedAt: new Date().toISOString(),
-          version: 9,
-        } satisfies StoredPatchLibrary,
-        recordKey,
-      ),
-    )
+    await runTransaction(workspaceStoreName, 'readwrite', (store, transaction) => {
+      const read = store.get(recordKey)
+      read.onsuccess = () => {
+        const stored: unknown = read.result
+        const current = storedRevision(stored)
+        const version =
+          stored && typeof stored === 'object' && 'version' in stored ? stored.version : undefined
+        if (
+          current !== expected ||
+          (typeof version === 'number' && version > currentWorkspaceVersion)
+        ) {
+          conflict = true
+          transaction.abort()
+          return
+        }
+        // Each write moves the revision forward, even within one millisecond of the last.
+        const previous = Date.parse(current ?? '')
+        if (Number.isFinite(previous) && Date.parse(savedAt) <= previous) {
+          savedAt = new Date(previous + 1).toISOString()
+        }
+        try {
+          store.put(
+            { ...library, savedAt, version: currentWorkspaceVersion } satisfies StoredPatchLibrary,
+            recordKey,
+          )
+        } catch (error) {
+          writeError = error
+          transaction.abort()
+        }
+      }
+      return read
+    })
   } catch (error) {
-    throw asStorageError(error, 'write-failed', 'The workspace could not be saved.')
+    if (conflict) {
+      throw new PatchLibraryStorageError(
+        'conflict',
+        'Another tab saved the library after this tab loaded it.',
+      )
+    }
+    throw asStorageError(writeError ?? error, 'write-failed', 'The workspace could not be saved.')
   }
+  return savedAt
 }
 
 /**

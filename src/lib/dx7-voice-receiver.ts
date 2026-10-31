@@ -53,7 +53,8 @@ export class Dx7VoiceReceiver {
 
     if (first === sysexStart) this.start()
     // Any other status byte starts another message, so a dump still being received was cut off.
-    else if (first >= 0x80) this.reset()
+    // F7 alone is not one: it ends the dump, as some systems send it in a message of its own.
+    else if (first >= 0x80 && first !== sysexEnd) this.reset()
     if (!this.receiving) return null
 
     for (let index = 0; index < data.length; index += 1) {

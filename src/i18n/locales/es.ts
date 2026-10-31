@@ -883,6 +883,9 @@ export default {
     sessionOnlyTitle: 'Biblioteca solo para esta sesión',
     sessionOnlyBody:
       'Los datos existentes del navegador no se han modificado. Los cambios de esta sesión se perderán al cerrar la página.',
+    conflictTitle: 'Otra pestaña cambió tu biblioteca',
+    conflictBody:
+      'Tus cambios en esta pestaña siguen aquí, pero no se guardaron, así que no reemplazan los de la otra pestaña. Descarga una copia de seguridad para conservarlos y luego recarga para abrir la biblioteca tal como está guardada.',
     saveErrorTitle: 'Los cambios no están guardados de forma segura',
     saveErrorBody:
       'Tus últimos cambios siguen disponibles aquí, pero el navegador no pudo guardarlos. Reinténtalo cuando el almacenamiento esté disponible.',
