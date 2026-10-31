@@ -106,6 +106,32 @@ test('opens the lazy editor and returns to the patch library', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Patch banks' })).toBeVisible()
 })
 
+test('uses the independent Effects view and keeps a named FX preset offline', async ({ page }) => {
+  await openLibrarian(page)
+
+  await page.getByRole('button', { name: 'Effects' }).click()
+  await expect(page.getByRole('heading', { name: 'Effects' })).toBeVisible()
+  await expect(page.getByRole('tab', { name: /Voice/ })).toHaveCount(0)
+  await page.getByRole('button', { name: 'FX presets…' }).click()
+
+  const dialog = page.getByRole('dialog', { name: 'FX presets' })
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Save current as…' }).click()
+  await dialog.getByRole('textbox', { name: 'Preset name' }).fill('Offline hall')
+  await dialog.getByRole('button', { name: 'Save preset' }).click()
+  await expect(dialog.getByRole('option', { name: 'Offline hall' })).toBeVisible()
+  await dialog.getByRole('option', { name: 'Offline hall' }).click()
+  await dialog.getByRole('button', { name: 'Load into Effects' }).click()
+  await expect(dialog.getByText('Loaded into the browser’s V16 effects.')).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(page.getByRole('button', { name: 'FX presets…' })).toBeFocused()
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Effects' }).click()
+  await page.getByRole('button', { name: 'FX presets…' }).click()
+  await expect(page.getByRole('option', { name: 'Offline hall' })).toBeVisible()
+})
+
 test('zooms out of the slot as a patch opens and back into it as the editor closes', async ({
   page,
 }) => {

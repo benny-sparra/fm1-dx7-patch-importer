@@ -1,4 +1,7 @@
+import fxPresets from './fr-fx-presets'
+
 export default {
+  ...fxPresets,
   dialogs: {
     bankTitle: 'Choisissez la banque de destination sur votre FM1',
     bankIntro:
@@ -999,6 +1002,12 @@ export default {
     reloadApp: 'Recharger l’application',
     backToLibrary: 'Retour à la bibliothèque',
   },
+  libraryViews: {
+    label: 'Vue de la bibliothèque',
+    sounds: 'Sons',
+    effects: 'Effets',
+    effectsLoadFailed: 'Impossible d’ouvrir les effets. Rechargez la page et réessayez.',
+  },
   root: {
     skipToContent: 'Aller au contenu principal',
     channelShort: 'Can. {{number}}',
@@ -1100,7 +1109,7 @@ export default {
     selectedVoiceNotice:
       'Sur la V16, ce son va à la Voice sélectionnée sur l’écran du FM1. Les modifications ne jouent en direct que sur le canal 1 ou All ; pour l’entendre, sélectionnez la Voice du canal {{channel}}.',
     effectsSharedNotice:
-      'Sur V16, ce sont les effets du FM1, partagés par les huit Voices. Le FM1 ne les conserve pas avec ce patch : appuyez sur SAVE et choisissez Globe sur le FM1 pour les garder.',
+      'Sur V16, les huit Voices partagent les effets du FM1 ; ils ne font pas partie de ce patch. Revenez à la bibliothèque et ouvrez Effets pour les modifier ou les rappeler. Appuyez sur SAVE et choisissez Globe sur le FM1 pour les garder.',
     back: 'Retour aux banques',
     editName: 'Modifier le nom du son',
     patchName: 'Nom du son',
@@ -1519,6 +1528,8 @@ export default {
       '« {{name}} » a été téléchargée, avec INIT VOICE à la place de ses {{count, number}} presets Virtual Analog ou 8-Bit.',
   },
   backup: {
+    fxPresets: 'Presets FX',
+    notInOlderBackup: 'Non inclus (ancienne sauvegarde)',
     menuOtherFiles: 'Autres fichiers',
     menuHeading: 'Sauvegarde',
     download: 'Télécharger une sauvegarde',
@@ -1529,6 +1540,8 @@ export default {
       'Téléchargement d’une sauvegarde de vos banques. Les banques enregistrées sont illisibles et n’y figurent pas.',
     downloadedWithoutDamaged:
       'Téléchargement d’une sauvegarde. Certaines banques enregistrées sont illisibles et n’y figurent pas.',
+    downloadedWithoutDamagedFx:
+      'Téléchargement d’une sauvegarde. Certains presets FX étaient illisibles et n’y figurent pas.',
     unavailable: 'Les sauvegardes n’ont pas pu s’ouvrir. Rechargez la page et réessayez.',
     unavailableUnsaved:
       'La sauvegarde n’a pas pu être préparée. Gardez cet onglet ouvert, car vos dernières modifications ne sont pas enregistrées, puis réessayez.',
@@ -1548,6 +1561,8 @@ export default {
       'Vos banques et tous leurs sons sont remplacés par ceux de la sauvegarde. Annuler dans la notification qui suit les rétablit.',
     savedBanksEffect:
       'Les banques enregistrées sont seulement ajoutées. Une banque déjà présente dans ce navigateur reste telle quelle, et Annuler ne retire pas celles ajoutées.',
+    fxPresetsEffect:
+      'Les presets FX sont fusionnés. Les entrées identiques sont conservées, les conflits d’identifiant deviennent de nouvelles copies et les presets locaux ne sont jamais remplacés.',
     restoreAction: 'Restaurer la sauvegarde',
     restoring: 'Restauration…',
     restored: 'Sauvegarde du {{date}} restaurée.',
@@ -1562,6 +1577,8 @@ export default {
       read: 'Impossible de lire le fichier. Choisissez-le de nouveau.',
       savedBanksFailed:
         'Le stockage du navigateur n’a pas pu conserver les banques enregistrées de cette sauvegarde, votre bibliothèque n’a donc pas changé. Réessayez.',
+      restoreFailed:
+        'Le stockage du navigateur n’a pas pu terminer la restauration. L’espace de travail n’a pas été remplacé ; les banques ou presets FX déjà ajoutés sont conservés. Réessayez.',
     },
   },
   officialOpenTracks: {

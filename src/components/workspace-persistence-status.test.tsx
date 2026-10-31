@@ -2,11 +2,12 @@
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
+import { installFakeIndexedDb } from '@/test/fake-indexed-db'
 
 import { WorkspacePersistenceStatus } from './workspace-persistence-status'
 
@@ -43,9 +44,12 @@ function renderStatus(library: ReturnType<typeof makeLibrary>) {
   return render(<WorkspacePersistenceStatus library={library} />, { wrapper: ToastProvider })
 }
 
+beforeEach(() => installFakeIndexedDb())
+
 afterEach(async () => {
   cleanup()
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
   await setLocale('en-GB')
 })
 

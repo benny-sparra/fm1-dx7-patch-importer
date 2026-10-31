@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveFirmwareProfile } from './firmware-profile'
+import { hasSharedEffects, resolveFirmwareProfile } from './firmware-profile'
 
 const nothing = {
   bitcrush: false,
@@ -65,10 +65,8 @@ describe('resolveFirmwareProfile', () => {
   })
 
   it('shares effects across Voices only where controllers are sent but no preset carries them', () => {
-    const sharesEffects = (firmware: Parameters<typeof resolveFirmwareProfile>[0]) => {
-      const { capabilities } = resolveFirmwareProfile(firmware)
-      return capabilities.effectControllers && !capabilities.presetEffects
-    }
+    const sharesEffects = (firmware: Parameters<typeof resolveFirmwareProfile>[0]) =>
+      hasSharedEffects(resolveFirmwareProfile(firmware))
     expect(sharesEffects({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
     expect(sharesEffects({ identity: 'FM-1_016', kind: 'mvave' })).toBe(true)
     expect(sharesEffects({ identity: 'FM-1_019', kind: 'mvave' })).toBe(true)

@@ -10,8 +10,12 @@ import {
   unpackDx7Voice,
   type Dx7Voice,
 } from '@/lib/dx7'
-import { resolveFirmwareProfile } from '@/lib/firmware-profile'
-import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
+import { hasSharedEffects, resolveFirmwareProfile } from '@/lib/firmware-profile'
+import {
+  fm1EffectParameterCount,
+  fm1EffectParameterMaximums,
+  normalizeFm1Effects,
+} from '@/lib/fm1-effects'
 import {
   classifyFm1Firmware,
   fm1IdentityQuery,
@@ -64,6 +68,14 @@ export type BankTransferResult =
   | {
       ok: false
       reason: 'invalid_bank' | 'no_output' | 'sysex_unavailable' | 'transport'
+    }
+
+export type SharedEffectTransferResult =
+  | { ok: true; sent: 24 }
+  | {
+      ok: false
+      reason: 'cancelled' | 'ineligible' | 'invalid' | 'no-output' | 'transport'
+      sent: number
     }
 
 export const midiChannels = Array.from({ length: 16 }, (_, index) => index + 1)
@@ -205,6 +217,8 @@ export function useMidi() {
     () => new MidiLogStore([makeLogEntry('system', 'Ready. Connect MIDI to begin.')]),
   )
   const [transferQueue] = useState(() => new MidiTransferQueue({ minimumIntervalMs: 35 }))
+  const sharedEffectBatches = useRef(new Set<string>())
+  const nextSharedEffectBatch = useRef(0)
   const webMidi = useRef<WebMidiApi | null>(null)
   const webMidiLoader = useRef<Promise<WebMidiApi> | null>(null)
   const preferredOutputId = useRef(readStoredValue(midiStorageKeys.outputId))
@@ -409,6 +423,15 @@ export function useMidi() {
     // closed port. The queue stays usable after `clear`, so a Strict Mode remount keeps working.
     return () => transferQueue.clear(outputChangedMessage)
   }, [selectedOutput, transferQueue])
+
+  useEffect(() => {
+    // A full shared-effects recall belongs to the output, Effect channel, and identified firmware
+    // it started with. A change drops only its unsent controls, never redirects them.
+    const batches = sharedEffectBatches.current
+    return () => {
+      batches.forEach((group) => transferQueue.clearGroup(group, 'The shared FX route changed.'))
+    }
+  }, [effectChannel, firmware, selectedOutput, transferQueue])
 
   useEffect(() => {
     const reads = new AbortController()
@@ -701,6 +724,14 @@ export function useMidi() {
     [appendLog, effectChannel, enqueueLogged, firmware, selectedOutput],
   )
 
+  const sendSharedEffectParameter = useCallback(
+    (controller: number, value: number) => {
+      if (!hasSharedEffects(resolveFirmwareProfile(firmware))) return false
+      return sendEffectParameter(controller, value)
+    },
+    [firmware, sendEffectParameter],
+  )
+
   const sendEffectDiagnosticControl = useCallback(
     (controller: number, value: number, mode: Fm1EffectProbeMode = 'profile') => {
       if (!import.meta.env.DEV) return false
@@ -769,6 +800,81 @@ export function useMidi() {
           appendLog(failureEntry(caughtError, 'FM1 effect transfer failed.'))
           return false
         })
+    },
+    [appendLog, effectChannel, firmware, selectedOutput, transferQueue],
+  )
+
+  const sendSharedEffectSettings = useCallback(
+    async (settings: Uint8Array): Promise<SharedEffectTransferResult> => {
+      if (
+        !(settings instanceof Uint8Array) ||
+        settings.length !== fm1EffectParameterCount ||
+        settings.some((value, controller) => value > fm1EffectParameterMaximums[controller])
+      ) {
+        appendLog(makeLogEntry('system', 'The shared FX preset is invalid and was not sent.'))
+        return { ok: false, reason: 'invalid', sent: 0 }
+      }
+      if (!selectedOutput) {
+        appendLog(noOutputEntry('send shared FM1 effects'))
+        return { ok: false, reason: 'no-output', sent: 0 }
+      }
+      const profile = resolveFirmwareProfile(firmware)
+      if (!hasSharedEffects(profile)) {
+        return { ok: false, reason: 'ineligible', sent: 0 }
+      }
+
+      const captured = settings.slice()
+      const group = `shared-effects-${++nextSharedEffectBatch.current}`
+      sharedEffectBatches.current.add(group)
+      let sent = 0
+      let transportError: unknown
+      const transfers = Array.from(captured, (value, controller) =>
+        transferQueue.enqueue(
+          () => {
+            try {
+              sendFm1EffectControl(
+                selectedOutput,
+                effectChannel,
+                controller,
+                value,
+                profile.effectControllerBase,
+              )
+              sent += 1
+            } catch (caughtError) {
+              transportError = caughtError
+              transferQueue.clearGroup(group, 'The shared FX transfer stopped after a failure.')
+              throw caughtError
+            }
+          },
+          undefined,
+          { group },
+        ),
+      )
+      appendLog(makeLogEntry('out', `Sending shared FM1 effects on channel ${effectChannel}…`))
+      try {
+        await Promise.all(transfers)
+        appendLog(makeLogEntry('out', 'Sent the shared FM1 effects.'))
+        return { ok: true, sent: 24 }
+      } catch (caughtError) {
+        const cancelled =
+          transportError === undefined && caughtError instanceof MidiTransferCancelledError
+        transferQueue.clearGroup(
+          group,
+          cancelled ? caughtError.message : 'The shared FX transfer stopped after a failure.',
+        )
+        await Promise.allSettled(transfers)
+        appendLog(
+          cancelled
+            ? makeLogEntry(
+                'system',
+                `The shared FM1 effects were not all sent. ${caughtError.message}`,
+              )
+            : failureEntry(transportError ?? caughtError, 'Shared FM1 effect transfer failed.'),
+        )
+        return { ok: false, reason: cancelled ? 'cancelled' : 'transport', sent }
+      } finally {
+        sharedEffectBatches.current.delete(group)
+      }
     },
     [appendLog, effectChannel, firmware, selectedOutput, transferQueue],
   )
@@ -946,6 +1052,8 @@ export function useMidi() {
     sendEffectDiagnosticControl,
     sendEffectParameter,
     sendEffectSettings,
+    sendSharedEffectParameter,
+    sendSharedEffectSettings,
     sendParameter,
     sendProgramChange,
     sendVoice,

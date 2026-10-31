@@ -530,36 +530,37 @@ export function PatchEditorPage({
                     <span>{t('editor.effectsSharedNotice')}</span>
                   </p>
                 </InfoNotice>
-              ) : null}
-              <EffectsUnit
-                distortionType={
-                  writesDistortionType
-                    ? { onChange: editor.setDistortionType, type: record ? distortionType : null }
-                    : undefined
-                }
-                bitcrush={
-                  offersBitcrush
-                    ? {
-                        onApplyPreset: editor.selectBitcrushPreset,
-                        onChange: editor.setBitcrushSetting,
-                        values: record ? bitcrush : null,
-                      }
-                    : undefined
-                }
-                effectOrder={
-                  offersBitcrush
-                    ? { onMove: editor.moveEffect, order: record ? effectOrder : null }
-                    : undefined
-                }
-                keepsBitcrush={keepsBitcrush}
-                keepsEffectOrder={keepsEffectOrder}
-                keptDistortionType={keptDistortionType}
-                onApplyPreset={editor.selectEffectPreset}
-                onChange={editor.setEffectParameter}
-                onGestureEnd={editor.endGesture}
-                onGestureStart={editor.beginGesture}
-                values={getFm1EffectParameters(parameters)}
-              />
+              ) : (
+                <EffectsUnit
+                  distortionType={
+                    writesDistortionType
+                      ? { onChange: editor.setDistortionType, type: record ? distortionType : null }
+                      : undefined
+                  }
+                  bitcrush={
+                    offersBitcrush
+                      ? {
+                          onApplyPreset: editor.selectBitcrushPreset,
+                          onChange: editor.setBitcrushSetting,
+                          values: record ? bitcrush : null,
+                        }
+                      : undefined
+                  }
+                  effectOrder={
+                    offersBitcrush
+                      ? { onMove: editor.moveEffect, order: record ? effectOrder : null }
+                      : undefined
+                  }
+                  keepsBitcrush={keepsBitcrush}
+                  keepsEffectOrder={keepsEffectOrder}
+                  keptDistortionType={keptDistortionType}
+                  onApplyPreset={editor.selectEffectPreset}
+                  onChange={editor.setEffectParameter}
+                  onGestureEnd={editor.endGesture}
+                  onGestureStart={editor.beginGesture}
+                  values={getFm1EffectParameters(parameters)}
+                />
+              )}
             </RackPanelCollapsibleBody>
           </section>
         </div>

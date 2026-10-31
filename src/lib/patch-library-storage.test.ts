@@ -548,7 +548,10 @@ describe('saveStoredPatchLibrary', () => {
 
   it('upgrades the database without replacing the existing workspace store', async () => {
     const fake = installIndexedDb()
-    fake.database.objectStoreNames.contains.mockReturnValueOnce(true).mockReturnValueOnce(false)
+    fake.database.objectStoreNames.contains
+      .mockReturnValueOnce(true)
+      .mockReturnValueOnce(true)
+      .mockReturnValueOnce(false)
     const saving = saveStoredPatchLibrary(emptyPatchLibrary())
 
     fake.openRequest.onupgradeneeded?.()
@@ -557,9 +560,9 @@ describe('saveStoredPatchLibrary', () => {
     fake.transaction.oncomplete?.()
     await saving
 
-    expect(fake.open).toHaveBeenCalledWith('fm1-librarian', 2)
+    expect(fake.open).toHaveBeenCalledWith('fm1-librarian', 3)
     expect(fake.database.createObjectStore).toHaveBeenCalledOnce()
-    expect(fake.database.createObjectStore).toHaveBeenCalledWith('named-banks', { keyPath: 'id' })
+    expect(fake.database.createObjectStore).toHaveBeenCalledWith('fx-presets', { keyPath: 'id' })
   })
 
   it('resolves only after the write transaction commits', async () => {

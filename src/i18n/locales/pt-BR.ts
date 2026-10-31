@@ -1,4 +1,7 @@
+import fxPresets from './pt-BR-fx-presets'
+
 export default {
+  ...fxPresets,
   dialogs: {
     bankTitle: 'Escolha o banco de destino no FM1',
     bankIntro:
@@ -984,6 +987,12 @@ export default {
     reloadApp: 'Recarregar aplicativo',
     backToLibrary: 'Voltar à biblioteca',
   },
+  libraryViews: {
+    label: 'Visualização da biblioteca',
+    sounds: 'Sons',
+    effects: 'Efeitos',
+    effectsLoadFailed: 'Não foi possível abrir os efeitos. Recarregue a página e tente novamente.',
+  },
   root: {
     skipToContent: 'Ir para o conteúdo principal',
     channelShort: 'Can. {{number}}',
@@ -1082,7 +1091,7 @@ export default {
     selectedVoiceNotice:
       'Na V16, este som vai para a Voice selecionada na tela do FM1. As edições só tocam ao vivo no canal 1 ou All; para ouvi-lo, selecione a Voice do canal {{channel}}.',
     effectsSharedNotice:
-      'No V16, estes são os efeitos do FM1, compartilhados pelas oito Voices. O FM1 não os guarda com este patch: pressione SAVE e escolha Globe no FM1 para mantê-los.',
+      'No V16, as oito Voices compartilham os efeitos do FM1; eles não fazem parte deste patch. Volte à biblioteca e abra Efeitos para alterá-los ou recuperá-los. Pressione SAVE e escolha Globe no FM1 para mantê-los.',
     back: 'Voltar aos bancos',
     editName: 'Editar nome do som',
     patchName: 'Nome do som',
@@ -1501,6 +1510,8 @@ export default {
       '“{{name}}” foi baixado, com INIT VOICE no lugar dos seus {{count, number}} presets Virtual Analog ou 8-Bit.',
   },
   backup: {
+    fxPresets: 'Presets de FX',
+    notInOlderBackup: 'Não incluído (backup antigo)',
     menuOtherFiles: 'Outros arquivos',
     menuHeading: 'Backup',
     download: 'Baixar backup',
@@ -1511,6 +1522,8 @@ export default {
       'Baixando um backup dos seus bancos. Não foi possível ler os bancos salvos, então eles não estão incluídos.',
     downloadedWithoutDamaged:
       'Baixando um backup. Alguns bancos salvos não puderam ser lidos, então não estão incluídos.',
+    downloadedWithoutDamagedFx:
+      'Baixando um backup. Alguns presets de FX não puderam ser lidos e não foram incluídos.',
     unavailable: 'Não foi possível abrir os backups. Recarregue a página e tente novamente.',
     unavailableUnsaved:
       'Não foi possível preparar o backup. Mantenha esta aba aberta, porque suas últimas alterações não estão salvas, e tente novamente.',
@@ -1529,6 +1542,8 @@ export default {
       'Seus bancos e todos os seus sons são substituídos pelos do backup. Desfazer na notificação seguinte os traz de volta.',
     savedBanksEffect:
       'Os bancos salvos só são adicionados. Um que já esteja neste navegador fica como está, e Desfazer não remove os adicionados.',
+    fxPresetsEffect:
+      'Os presets de FX são mesclados. Registros iguais são mantidos, conflitos de ID viram novas cópias e os presets locais nunca são substituídos.',
     restoreAction: 'Restaurar backup',
     restoring: 'Restaurando…',
     restored: 'O backup de {{date}} foi restaurado.',
@@ -1543,6 +1558,8 @@ export default {
       read: 'Não foi possível ler o arquivo. Escolha-o de novo.',
       savedBanksFailed:
         'O armazenamento do navegador não conseguiu guardar os bancos salvos deste backup, então sua biblioteca não mudou. Tente novamente.',
+      restoreFailed:
+        'O armazenamento do navegador não conseguiu concluir a restauração. O espaço de trabalho não foi substituído; bancos ou presets de FX já adicionados foram mantidos. Tente novamente.',
     },
   },
   officialOpenTracks: {

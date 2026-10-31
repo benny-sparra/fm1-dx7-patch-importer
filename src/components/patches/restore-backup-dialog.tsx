@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { WarningNotice } from '@/components/ui/warning-notice'
+import type { FxLibrary } from '@/hooks/use-fx-library'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import type { PatchLibrarySnapshot } from '@/lib/patch-library'
 import {
@@ -24,6 +25,7 @@ import {
 } from '@/lib/workspace-backup'
 
 type RestoreBackupDialogProps = {
+  fxLibrary?: Pick<FxLibrary, 'restorePresets'>
   library: Pick<PatchLibrary, 'namedBanks' | 'namedBanksLoadFailed' | 'restoreBackup'>
   onClose: () => void
   onRestored: (savedAt: string, changed: PatchLibrarySnapshot | null) => void
@@ -39,7 +41,12 @@ function backupFileErrorMessage(t: TFunction, error: unknown) {
  * Reads a backup file, shows what restoring it will change, and restores it once confirmed. It
  * opens as soon as it is rendered and reports closing, so the page can drop it.
  */
-export function RestoreBackupDialog({ library, onClose, onRestored }: RestoreBackupDialogProps) {
+export function RestoreBackupDialog({
+  fxLibrary,
+  library,
+  onClose,
+  onRestored,
+}: RestoreBackupDialogProps) {
   const { i18n, t } = useTranslation()
   const titleId = useId()
   const introId = useId()
@@ -82,11 +89,23 @@ export function RestoreBackupDialog({ library, onClose, onRestored }: RestoreBac
     setWorking(true)
     setError('')
     try {
-      const { changed } = await library.restoreBackup(backup)
+      const { changed } = await library.restoreBackup(
+        backup,
+        backup.hasFxPresets
+          ? async () => {
+              if (fxLibrary) {
+                await fxLibrary.restorePresets(backup.fxPresets ?? [])
+              } else {
+                const { mergeStoredFxLibraryPresets } = await import('@/lib/fx-library-storage')
+                await mergeStoredFxLibraryPresets(backup.fxPresets ?? [])
+              }
+            }
+          : undefined,
+      )
       dialogRef.current?.close()
       onRestored(backup.savedAt, changed)
     } catch {
-      setError(t('backup.errors.savedBanksFailed'))
+      setError(t('backup.errors.restoreFailed'))
       setWorking(false)
     }
   }
@@ -106,6 +125,12 @@ export function RestoreBackupDialog({ library, onClose, onRestored }: RestoreBac
       [t('backup.patches'), formatNumber(Object.keys(backup.workspace.voices).length)],
       [t('favourites.title'), formatNumber(backup.workspace.favourites.length)],
       [t('backup.savedBanks'), formatNumber(backup.savedBanks.length)],
+      [
+        t('backup.fxPresets'),
+        backup.hasFxPresets
+          ? formatNumber(backup.fxPresets?.length ?? 0)
+          : t('backup.notInOlderBackup'),
+      ],
     )
     // Without the stored list, which saved banks are already here is unknown until restoring.
     if (!library.namedBanksLoadFailed && backup.savedBanks.length > 0) {
@@ -173,6 +198,7 @@ export function RestoreBackupDialog({ library, onClose, onRestored }: RestoreBac
               <WarningNotice>
                 <p>{t('backup.workspaceEffect')}</p>
                 <p>{t('backup.savedBanksEffect')}</p>
+                {backup.hasFxPresets ? <p>{t('backup.fxPresetsEffect')}</p> : null}
               </WarningNotice>
             </>
           ) : null}

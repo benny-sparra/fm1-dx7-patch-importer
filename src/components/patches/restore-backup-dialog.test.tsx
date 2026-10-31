@@ -189,7 +189,7 @@ describe('RestoreBackupDialog', () => {
 
     expect(await screen.findByRole('alert')).toHaveProperty(
       'textContent',
-      'Browser storage could not keep the saved banks from this backup, so your library was not changed. Try again.',
+      'Browser storage could not finish the restore. The workspace was not replaced; any saved banks or FX presets already added were kept. Try again.',
     )
     expect(onClose).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: 'Restore backup' }))

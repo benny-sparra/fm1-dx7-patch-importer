@@ -38,6 +38,19 @@ test('fits the patch banks to the screen without sideways scrolling', async ({ p
   await expectNoSidewaysScroll(page)
 })
 
+test('fits the independent Effects view and its preset dialog on a narrow screen', async ({
+  page,
+}) => {
+  await openLibrarian(page)
+
+  await page.getByRole('button', { name: 'Effects' }).tap()
+  await expect(page.getByRole('heading', { name: 'Effects' })).toBeVisible()
+  await expectNoSidewaysScroll(page)
+  await page.getByRole('button', { name: 'FX presets…' }).tap()
+  await expect(page.getByRole('dialog', { name: 'FX presets' })).toBeVisible()
+  await expectNoSidewaysScroll(page)
+})
+
 test('gives every control on the patch banks a 24 px target', async ({ page }) => {
   await openLibrarian(page)
 

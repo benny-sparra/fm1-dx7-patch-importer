@@ -48,6 +48,7 @@ import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
+import { Button } from '@/components/ui/button'
 import { dx7BankVoiceCount, makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import {
   favouritesBank,
@@ -71,6 +72,7 @@ import { cn } from '@/lib/utils'
 import { crtSwitchOff } from '@/lib/crt-switch-off'
 import { useChangedSlots } from '@/hooks/use-changed-slots'
 import type { MidiController } from '@/hooks/use-midi'
+import type { FxLibrary } from '@/hooks/use-fx-library'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
@@ -107,6 +109,12 @@ const SentryVerificationButton = sentryVerificationEnabled
       })),
     )
   : null
+
+const V16EffectsPanel = lazy(() =>
+  import('@/components/midi/v16-effects-panel').then((module) => ({
+    default: module.V16EffectsPanel,
+  })),
+)
 
 // Adding a bank opens from the bank rack, so its dialog and the sound catalogue it lists load on
 // first use rather than with the page.
@@ -298,10 +306,20 @@ type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof WriteFm1VaPresetsDialog>['midi'] &
   ComponentProps<typeof ReceiveFromFm1Dialog>['midi'] &
   ComponentProps<typeof MidiConnectionRequiredDialog>['midi'] &
-  Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
+  Pick<MidiController, 'channel' | 'firmware' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'> &
+  Partial<
+    Pick<
+      MidiController,
+      | 'effectChannel'
+      | 'selectedOutputId'
+      | 'sendSharedEffectParameter'
+      | 'sendSharedEffectSettings'
+    >
+  >
 
 type LibrarianPageProps = {
   activePatchId: string
+  fxLibrary?: FxLibrary
   library: LibrarianLibrary
   midi: LibrarianMidi
   /** Called as a bank is deleted, before later banks move up a letter. */
@@ -318,6 +336,7 @@ type LibrarianPageProps = {
 
 export function LibrarianPage({
   activePatchId,
+  fxLibrary,
   library,
   midi,
   onBankDeleted,
@@ -335,8 +354,10 @@ export function LibrarianPage({
   const ownView = useLibrarianView()
   const {
     bank: destinationBank,
+    section,
     search: typedSearch,
     setBank: setDestinationBank,
+    setSection,
     setSearch,
   } = view ?? ownView
   // A search can show 320 cards and look through every saved bank and the catalog, so the results
@@ -1071,433 +1092,458 @@ export function LibrarianPage({
           </Suspense>
         </ErrorBoundary>
       ) : null}
-      <PatchGrid
-        activePatchId={activePatchId}
-        isMidiOffline={!midi.hasMidiOutput}
-        actions={
-          <>
-            {/* The selected bank reads back as a lit slot, as on the panel. */}
-            {/* The rail drops bank names on narrow screens, so here the name takes
+      <nav aria-label={t('libraryViews.label')} className="flex border-b border-[var(--crt-line)]">
+        {(['sounds', 'effects'] as const).map((candidate) => (
+          <Button
+            aria-current={section === candidate ? 'page' : undefined}
+            key={candidate}
+            onClick={() => setSection(candidate)}
+            type="button"
+            variant={section === candidate ? 'pressed' : 'secondary'}
+          >
+            {t(`libraryViews.${candidate}`)}
+          </Button>
+        ))}
+      </nav>
+      {section === 'effects' ? (
+        <ErrorBoundary
+          fallback={<LoadFailedNotice message={t('libraryViews.effectsLoadFailed')} />}
+        >
+          <Suspense fallback={<p>{t('common.loading')}</p>}>
+            <V16EffectsPanel fxLibrary={fxLibrary} midi={midi} />
+          </Suspense>
+        </ErrorBoundary>
+      ) : (
+        <PatchGrid
+          activePatchId={activePatchId}
+          isMidiOffline={!midi.hasMidiOutput}
+          actions={
+            <>
+              {/* The selected bank reads back as a lit slot, as on the panel. */}
+              {/* The rail drops bank names on narrow screens, so here the name takes
                 its own line above the buttons rather than disappearing too. */}
-            <span className="flex w-full min-w-0 items-center gap-[9px] md:mr-1.5 md:w-auto md:shrink-0">
-              {/* Results come from every bank, so no bank's letter, name, or menu shows. */}
-              {isSearching ? null : showsFavourites ? (
-                <span className="grid h-[26px] w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] text-[var(--crt-led)]">
-                  <PixelHeartIcon aria-hidden="true" className="size-3.5" filled />
-                </span>
-              ) : (
-                <span className="font-vt323 grid w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
-                  {destinationBank}
-                </span>
-              )}
-              <span
-                className={cn(
-                  'font-dot-matrix block min-w-0 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)]',
-                  !isSearching && 'md:max-w-40',
-                )}
-              >
-                {isSearching
-                  ? t('banks.searchResults', { search: search.trim() })
-                  : bankDisplayName(destinationBank)}
-              </span>
-              {/* Favourites has no bank actions: it is not a bank a file or saved bank fills. */}
-              <details
-                className={cn(
-                  'group relative ml-auto shrink-0 md:hidden',
-                  (isSearching || showsFavourites) && 'hidden',
-                )}
-                ref={bankMenuRef}
-              >
-                <summary
-                  aria-label={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
-                  className="grid h-6 w-6 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] text-[var(--crt-led)] transition-colors group-open:bg-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
-                  title={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
-                >
-                  <EllipsisVertical className="size-3.5" />
-                </summary>
-                <div className="menu-surface absolute top-full right-0 z-40 mt-1 min-w-56 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
-                  {showsFavourites
-                    ? null
-                    : renderBankActions({ id: destinationBank }, () =>
-                        bankMenuRef.current?.removeAttribute('open'),
-                      )}
-                </div>
-              </details>
-            </span>
-            {sendNote ? (
-              <span
-                className="sr-only"
-                id={sendNoteId}
-                // Keyed by its text: a page translator's replaced text would otherwise stay
-                // behind when the reason changes.
-                key={sendNote}
-              >
-                {sendNote}
-              </span>
-            ) : null}
-            {sendBlockedReason ? (
-              <span className="sr-only" id={sendBlockedReasonId} key={sendBlockedReason}>
-                {sendBlockedReason}
-              </span>
-            ) : null}
-            {/* Stays mounted, so the working label is announced as the bank goes. */}
-            <span className="sr-only" role="status">
-              {isSending ? <span key="sending">{t('banks.sending')}</span> : null}
-            </span>
-            <button
-              aria-describedby={sendDescribedBy}
-              // Not disabled without a MIDI output: a click opens the dialog that connects one.
-              aria-disabled={isSendBlocked || undefined}
-              className={cn(
-                'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] md:ml-auto md:flex-none',
-                // A barber pole while the bank is on its way.
-                isSending && 'barber-pole',
-              )}
-              onClick={() => {
-                if (!isSendBlocked) sendSelectedBank()
-              }}
-              ref={sendButtonRef}
-              title={
-                isSearching
-                  ? t('banks.sendFromSearch')
-                  : !midi.hasMidiOutput
-                    ? midi.midiAccess
-                      ? t('banks.sendNoOutput')
-                      : t('banks.sendOffline')
-                    : showsFavourites
-                      ? favouriteCount === 0
-                        ? t('favourites.addFirst')
-                        : sendsByPresetWrite
-                          ? t('fm1VaSend.favouritesTooltip')
-                          : t('favourites.sendTitle')
-                      : !isDestinationBankLoaded
-                        ? t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
-                        : sendsByPresetWrite
-                          ? t('fm1VaSend.bankTooltip')
-                          : t('banks.sendTitle')
-              }
-              type="button"
-            >
-              <Send aria-hidden="true" className="size-3.5" />
-              <span>{isSending ? t('banks.sending') : t('banks.send')}</span>
-            </button>
-          </>
-        }
-        headerActions={
-          <details className="group relative" ref={allBanksMenuRef}>
-            {/* Shows only its icon; its name and tooltip say Library actions, which holds the
-                backup, the only copy of the library outside this browser. */}
-            <summary
-              aria-label={t('banks.moreActions')}
-              className="inline-flex size-7 cursor-pointer list-none items-center justify-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] transition-colors hover:bg-[var(--crt-sel-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
-              title={t('banks.moreActions')}
-            >
-              <EllipsisVertical aria-hidden="true" className="size-3.5" />
-            </summary>
-            <div className="menu-surface absolute top-full right-0 z-50 mt-1 w-90 max-w-[calc(100vw-2rem)] border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
-              {/* The backup comes first: it is the only copy of FM1 effects and saved banks. */}
-              <div aria-labelledby={backupMenuHeadingId} role="group">
-                <p className={menuHeadingClassName} id={backupMenuHeadingId}>
-                  {t('backup.menuHeading')}
-                </p>
-                <button
-                  aria-describedby={lastBackupTime ? lastBackupId : undefined}
-                  aria-label={t('backup.download')}
-                  className={menuItemWithHintClassName}
-                  // Saved banks are read as the page opens; a backup waits for them.
-                  disabled={library.namedBanksLoading}
-                  onClick={() => {
-                    allBanksMenuRef.current?.removeAttribute('open')
-                    void downloadBackup().then((downloaded) => {
-                      if (!downloaded) setDialogLoadError(t('backup.unavailable'))
-                    })
-                  }}
-                  type="button"
-                >
-                  <HardDriveDownload className={menuHintedIconClassName} />
-                  <span className="grid">
-                    <span>{t('backup.download')}</span>
-                    {lastBackupTime ? (
-                      <span className="text-xs text-[var(--crt-ink-3)]" id={lastBackupId}>
-                        {t('backup.lastBackup', {
-                          date: new Date(lastBackupTime).toLocaleDateString(i18n.resolvedLanguage),
-                        })}
-                      </span>
-                    ) : null}
+              <span className="flex w-full min-w-0 items-center gap-[9px] md:mr-1.5 md:w-auto md:shrink-0">
+                {/* Results come from every bank, so no bank's letter, name, or menu shows. */}
+                {isSearching ? null : showsFavourites ? (
+                  <span className="grid h-[26px] w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] text-[var(--crt-led)]">
+                    <PixelHeartIcon aria-hidden="true" className="size-3.5" filled />
                   </span>
-                </button>
+                ) : (
+                  <span className="font-vt323 grid w-[26px] shrink-0 place-items-center border border-[var(--crt-led)] bg-[var(--crt-bg-1)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none text-[var(--crt-led)]">
+                    {destinationBank}
+                  </span>
+                )}
+                <span
+                  className={cn(
+                    'font-dot-matrix block min-w-0 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)]',
+                    !isSearching && 'md:max-w-40',
+                  )}
+                >
+                  {isSearching
+                    ? t('banks.searchResults', { search: search.trim() })
+                    : bankDisplayName(destinationBank)}
+                </span>
+                {/* Favourites has no bank actions: it is not a bank a file or saved bank fills. */}
+                <details
+                  className={cn(
+                    'group relative ml-auto shrink-0 md:hidden',
+                    (isSearching || showsFavourites) && 'hidden',
+                  )}
+                  ref={bankMenuRef}
+                >
+                  <summary
+                    aria-label={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
+                    className="grid h-6 w-6 cursor-pointer list-none place-items-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] text-[var(--crt-led)] transition-colors group-open:bg-[var(--crt-bg-1)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
+                    title={t('banks.bankMenu', { bank: bankDisplayName(destinationBank) })}
+                  >
+                    <EllipsisVertical className="size-3.5" />
+                  </summary>
+                  <div className="menu-surface absolute top-full right-0 z-40 mt-1 min-w-56 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
+                    {showsFavourites
+                      ? null
+                      : renderBankActions({ id: destinationBank }, () =>
+                          bankMenuRef.current?.removeAttribute('open'),
+                        )}
+                  </div>
+                </details>
+              </span>
+              {sendNote ? (
+                <span
+                  className="sr-only"
+                  id={sendNoteId}
+                  // Keyed by its text: a page translator's replaced text would otherwise stay
+                  // behind when the reason changes.
+                  key={sendNote}
+                >
+                  {sendNote}
+                </span>
+              ) : null}
+              {sendBlockedReason ? (
+                <span className="sr-only" id={sendBlockedReasonId} key={sendBlockedReason}>
+                  {sendBlockedReason}
+                </span>
+              ) : null}
+              {/* Stays mounted, so the working label is announced as the bank goes. */}
+              <span className="sr-only" role="status">
+                {isSending ? <span key="sending">{t('banks.sending')}</span> : null}
+              </span>
+              <button
+                aria-describedby={sendDescribedBy}
+                // Not disabled without a MIDI output: a click opens the dialog that connects one.
+                aria-disabled={isSendBlocked || undefined}
+                className={cn(
+                  'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] md:ml-auto md:flex-none',
+                  // A barber pole while the bank is on its way.
+                  isSending && 'barber-pole',
+                )}
+                onClick={() => {
+                  if (!isSendBlocked) sendSelectedBank()
+                }}
+                ref={sendButtonRef}
+                title={
+                  isSearching
+                    ? t('banks.sendFromSearch')
+                    : !midi.hasMidiOutput
+                      ? midi.midiAccess
+                        ? t('banks.sendNoOutput')
+                        : t('banks.sendOffline')
+                      : showsFavourites
+                        ? favouriteCount === 0
+                          ? t('favourites.addFirst')
+                          : sendsByPresetWrite
+                            ? t('fm1VaSend.favouritesTooltip')
+                            : t('favourites.sendTitle')
+                        : !isDestinationBankLoaded
+                          ? t('banks.importFirst', { bank: bankDisplayName(destinationBank) })
+                          : sendsByPresetWrite
+                            ? t('fm1VaSend.bankTooltip')
+                            : t('banks.sendTitle')
+                }
+                type="button"
+              >
+                <Send aria-hidden="true" className="size-3.5" />
+                <span>{isSending ? t('banks.sending') : t('banks.send')}</span>
+              </button>
+            </>
+          }
+          headerActions={
+            <details className="group relative" ref={allBanksMenuRef}>
+              {/* Shows only its icon; its name and tooltip say Library actions, which holds the
+                backup, the only copy of the library outside this browser. */}
+              <summary
+                aria-label={t('banks.moreActions')}
+                className="inline-flex size-7 cursor-pointer list-none items-center justify-center border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] transition-colors hover:bg-[var(--crt-sel-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] [&::-webkit-details-marker]:hidden"
+                title={t('banks.moreActions')}
+              >
+                <EllipsisVertical aria-hidden="true" className="size-3.5" />
+              </summary>
+              <div className="menu-surface absolute top-full right-0 z-50 mt-1 w-90 max-w-[calc(100vw-2rem)] border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-1 text-[var(--crt-ink)]">
+                {/* The backup comes first: it is the only copy of FM1 effects and saved banks. */}
+                <div aria-labelledby={backupMenuHeadingId} role="group">
+                  <p className={menuHeadingClassName} id={backupMenuHeadingId}>
+                    {t('backup.menuHeading')}
+                  </p>
+                  <button
+                    aria-describedby={lastBackupTime ? lastBackupId : undefined}
+                    aria-label={t('backup.download')}
+                    className={menuItemWithHintClassName}
+                    // Saved banks are read as the page opens; a backup waits for them.
+                    disabled={library.namedBanksLoading}
+                    onClick={() => {
+                      allBanksMenuRef.current?.removeAttribute('open')
+                      void downloadBackup().then((downloaded) => {
+                        if (!downloaded) setDialogLoadError(t('backup.unavailable'))
+                      })
+                    }}
+                    type="button"
+                  >
+                    <HardDriveDownload className={menuHintedIconClassName} />
+                    <span className="grid">
+                      <span>{t('backup.download')}</span>
+                      {lastBackupTime ? (
+                        <span className="text-xs text-[var(--crt-ink-3)]" id={lastBackupId}>
+                          {t('backup.lastBackup', {
+                            date: new Date(lastBackupTime).toLocaleDateString(
+                              i18n.resolvedLanguage,
+                            ),
+                          })}
+                        </span>
+                      ) : null}
+                    </span>
+                  </button>
+                  <button
+                    className={menuItemClassName}
+                    onClick={() => {
+                      allBanksMenuRef.current?.removeAttribute('open')
+                      setDialogLoadError('')
+                      setIsRestoringBackup(true)
+                    }}
+                    type="button"
+                  >
+                    <HardDriveUpload className="size-4 shrink-0" />
+                    {t('backup.restore')}
+                  </button>
+                </div>
+                {/* DX7 banks for other tools go out, and FM-1+VA's own file comes in. */}
+                <div aria-labelledby={otherFilesMenuHeadingId} className="mt-1" role="group">
+                  <p className={menuHeadingClassName} id={otherFilesMenuHeadingId}>
+                    {t('backup.menuOtherFiles')}
+                  </p>
+                  <button
+                    className={menuItemClassName}
+                    disabled={library.loadedBanks.length === 0}
+                    onClick={() => {
+                      allBanksMenuRef.current?.removeAttribute('open')
+                      void downloadAllBanks()
+                    }}
+                    type="button"
+                  >
+                    <FileMusic className="size-4 shrink-0" />
+                    {t('banks.downloadAll')}
+                  </button>
+                  <button
+                    className={menuItemClassName}
+                    onClick={() => {
+                      allBanksMenuRef.current?.removeAttribute('open')
+                      setDialogLoadError('')
+                      setFm1VaImportSource('file')
+                    }}
+                    type="button"
+                  >
+                    <Upload className="size-4 shrink-0" />
+                    {t('fm1VaImport.menuItem')}
+                  </button>
+                </div>
+                {/* Reading and writing the FM1's presets need Baud Girl's firmware, so they show only
+                  while the FM1 runs it, together under her name. A write is confirmed by reading
+                  it back, so a firmware that writes presets reads them too. */}
+                {sendsByPresetWrite ? (
+                  <div aria-labelledby={baudGirlMenuHeadingId} className="mt-1" role="group">
+                    <p className={menuHeadingClassName} id={baudGirlMenuHeadingId}>
+                      {t('fm1VaImport.menuHeading')}
+                    </p>
+                    <button
+                      className={menuItemClassName}
+                      onClick={() => {
+                        allBanksMenuRef.current?.removeAttribute('open')
+                        setDialogLoadError('')
+                        setFm1VaImportSource('fm1')
+                      }}
+                      type="button"
+                    >
+                      <Download className="size-4 shrink-0" />
+                      {t('fm1VaImport.menuRead')}
+                    </button>
+                    <button
+                      className={menuItemClassName}
+                      onClick={() => {
+                        allBanksMenuRef.current?.removeAttribute('open')
+                        setDialogLoadError('')
+                        setFm1VaWrite({})
+                      }}
+                      type="button"
+                    >
+                      <Send className="size-4 shrink-0" />
+                      {t('fm1VaWrite.menuItem')}
+                    </button>
+                  </div>
+                ) : null}
+                <div className="my-1 border-t" />
                 <button
                   className={menuItemClassName}
                   onClick={() => {
                     allBanksMenuRef.current?.removeAttribute('open')
-                    setDialogLoadError('')
-                    setIsRestoringBackup(true)
+                    requestReceive({
+                      bank: destinationBank,
+                      opener: allBanksMenuRef.current?.querySelector('summary') ?? null,
+                    })
                   }}
                   type="button"
                 >
-                  <HardDriveUpload className="size-4 shrink-0" />
-                  {t('backup.restore')}
+                  <Cable className="size-4 shrink-0" />
+                  {t('banks.receiveFromFm1')}
                 </button>
-              </div>
-              {/* DX7 banks for other tools go out, and FM-1+VA's own file comes in. */}
-              <div aria-labelledby={otherFilesMenuHeadingId} className="mt-1" role="group">
-                <p className={menuHeadingClassName} id={otherFilesMenuHeadingId}>
-                  {t('backup.menuOtherFiles')}
-                </p>
                 <button
                   className={menuItemClassName}
                   disabled={library.loadedBanks.length === 0}
                   onClick={() => {
                     allBanksMenuRef.current?.removeAttribute('open')
-                    void downloadAllBanks()
+                    setDialogLoadError('')
+                    setIsFindingDuplicates(true)
                   }}
                   type="button"
                 >
-                  <FileMusic className="size-4 shrink-0" />
-                  {t('banks.downloadAll')}
+                  <Files className="size-4 shrink-0" />
+                  {t('duplicates.menuItem')}
                 </button>
+                {/* Last, in the danger colour, as it replaces banks A to D. */}
                 <button
-                  className={menuItemClassName}
+                  className={menuDangerItemClassName}
                   onClick={() => {
                     allBanksMenuRef.current?.removeAttribute('open')
-                    setDialogLoadError('')
-                    setFm1VaImportSource('file')
+                    setIsRestoringFactoryBanks(true)
                   }}
                   type="button"
                 >
-                  <Upload className="size-4 shrink-0" />
-                  {t('fm1VaImport.menuItem')}
+                  <RotateCcw className="size-4 shrink-0" />
+                  {t('banks.restoreAll')}
                 </button>
               </div>
-              {/* Reading and writing the FM1's presets need Baud Girl's firmware, so they show only
-                  while the FM1 runs it, together under her name. A write is confirmed by reading
-                  it back, so a firmware that writes presets reads them too. */}
-              {sendsByPresetWrite ? (
-                <div aria-labelledby={baudGirlMenuHeadingId} className="mt-1" role="group">
-                  <p className={menuHeadingClassName} id={baudGirlMenuHeadingId}>
-                    {t('fm1VaImport.menuHeading')}
+            </details>
+          }
+          bankLabel={bankDisplayName}
+          focusRequest={slotFocusRequest}
+          emptyState={
+            showsFavourites ? (
+              <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
+                <div className="max-w-md">
+                  <PixelHeartIcon
+                    aria-hidden="true"
+                    className="mx-auto size-10 text-[var(--crt-acc-dim)]"
+                  />
+                  <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
+                    {t('favourites.empty')}
+                  </h3>
+                  <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
+                    {t('favourites.emptyHelp')}
                   </p>
-                  <button
-                    className={menuItemClassName}
-                    onClick={() => {
-                      allBanksMenuRef.current?.removeAttribute('open')
-                      setDialogLoadError('')
-                      setFm1VaImportSource('fm1')
-                    }}
-                    type="button"
-                  >
-                    <Download className="size-4 shrink-0" />
-                    {t('fm1VaImport.menuRead')}
-                  </button>
-                  <button
-                    className={menuItemClassName}
-                    onClick={() => {
-                      allBanksMenuRef.current?.removeAttribute('open')
-                      setDialogLoadError('')
-                      setFm1VaWrite({})
-                    }}
-                    type="button"
-                  >
-                    <Send className="size-4 shrink-0" />
-                    {t('fm1VaWrite.menuItem')}
-                  </button>
                 </div>
-              ) : null}
-              <div className="my-1 border-t" />
-              <button
-                className={menuItemClassName}
-                onClick={() => {
-                  allBanksMenuRef.current?.removeAttribute('open')
-                  requestReceive({
-                    bank: destinationBank,
-                    opener: allBanksMenuRef.current?.querySelector('summary') ?? null,
-                  })
-                }}
-                type="button"
-              >
-                <Cable className="size-4 shrink-0" />
-                {t('banks.receiveFromFm1')}
-              </button>
-              <button
-                className={menuItemClassName}
-                disabled={library.loadedBanks.length === 0}
-                onClick={() => {
-                  allBanksMenuRef.current?.removeAttribute('open')
-                  setDialogLoadError('')
-                  setIsFindingDuplicates(true)
-                }}
-                type="button"
-              >
-                <Files className="size-4 shrink-0" />
-                {t('duplicates.menuItem')}
-              </button>
-              {/* Last, in the danger colour, as it replaces banks A to D. */}
-              <button
-                className={menuDangerItemClassName}
-                onClick={() => {
-                  allBanksMenuRef.current?.removeAttribute('open')
-                  setIsRestoringFactoryBanks(true)
-                }}
-                type="button"
-              >
-                <RotateCcw className="size-4 shrink-0" />
-                {t('banks.restoreAll')}
-              </button>
-            </div>
-          </details>
-        }
-        bankLabel={bankDisplayName}
-        focusRequest={slotFocusRequest}
-        emptyState={
-          showsFavourites ? (
-            <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
-              <div className="max-w-md">
-                <PixelHeartIcon
-                  aria-hidden="true"
-                  className="mx-auto size-10 text-[var(--crt-acc-dim)]"
-                />
-                <h3 className="font-dot-matrix mt-3 text-base font-bold tracking-[0.08em] text-[var(--crt-acc-lt)] uppercase">
-                  {t('favourites.empty')}
-                </h3>
-                <p className="mt-1 text-xs leading-6 text-[var(--crt-ink-3)]">
-                  {t('favourites.emptyHelp')}
-                </p>
               </div>
-            </div>
-          ) : undefined
-        }
-        isBankLoaded={isDestinationBankLoaded || isSearching}
-        isFavourite={isFavourite}
-        isPatchDisabled={(patch) =>
-          patch.bank !== favouritesBank && !library.loadedBanks.includes(patch.bank)
-        }
-        onImportEmptyBank={() => beginImport(destinationBank)}
-        onLoadDemoBank={() => {
-          library.loadDemoBank(destinationBank)
-          toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
-        }}
-        onPatchCopy={requestCopy}
-        onPatchDropOnBank={(patch, bank) =>
-          bank === favouritesBank ? dropOnFavourites(patch) : requestCopy(patch, bank)
-        }
-        onPatchDownload={(patch) => void downloadPatch(patch)}
-        onPatchShare={copyShareLink}
-        // Importing a file puts it in a bank slot; Favourites takes sounds through their hearts.
-        onPatchReplace={showsFavourites ? undefined : requestReplace}
-        onPatchChangeToFm={showsFavourites ? undefined : requestChangeToFm}
-        onPatchEdit={(patch) => {
-          followPlayedPatch(patch)
-          onEditPatch(patch)
-        }}
-        onPatchSelect={(patch) => {
-          followPlayedPatch(patch)
-          onSelectPatch(patch)
-        }}
-        onPatchMove={(patch, target) => {
-          setMoveCount((count) => count + 1)
-          if (patch.bank === favouritesBank) library.moveFavourite(patch.number, target.number)
-          else library.moveVoice(patch.bank, patch.number, target.number)
-        }}
-        onPatchToggleFavourite={toggleFavourite}
-        patchOrigin={showsFavourites ? favouriteOrigin : undefined}
-        tagsEngines={midi.firmware.kind === 'fm1-va'}
-        changedSlots={changedSlots}
-        patches={visiblePatches}
-        reorderable={!isSearching}
-        extraResults={
-          isSearching ? (
-            <ErrorBoundary
-              fallback={<LoadFailedNotice message={t('banks.everywhere.loadFailed')} />}
-            >
-              {/* The results show their own loading line while the search code arrives. */}
-              <Suspense fallback={null}>
-                <SearchEverywhereResults
-                  activePatchId={activePatchId}
-                  favouriteKeys={library.favouriteKeys}
-                  hasDamagedNamedBanks={library.hasDamagedNamedBanks}
-                  namedBanks={library.namedBanks}
-                  namedBanksLoadFailed={library.namedBanksLoadFailed}
-                  onCopy={requestResultCopy}
-                  onPlay={onPlaySearchResult}
-                  onToggleFavourite={(sound, bankName) =>
-                    announceFavourite(
-                      sound.voice.name,
-                      library.toggleFavouriteSound(sound, { bankName }),
-                    )
-                  }
-                  search={search}
-                  tagsEngines={midi.firmware.kind === 'fm1-va'}
-                  workspaceEffects={library.effects}
-                  workspaceRecords={library.records}
-                  workspaceMatches={visiblePatches}
-                  workspaceEightBit={library.eightBit}
-                  workspaceVirtualAnalog={library.virtualAnalog}
-                  workspaceVoices={library.voices}
-                />
-              </Suspense>
-            </ErrorBoundary>
-          ) : undefined
-        }
-        resultsHeading={isSearching ? t('banks.everywhere.workspace') : undefined}
-        search={typedSearch}
-        searchDisabled={!hasLoadedBank}
-        searchRef={searchRef}
-        setSearch={setSearch}
-        toolbar={
-          <>
-            <div className="h-full w-16 border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px]">
-              {/* On a phone the rail stays in view beside the list, when the screen is tall
-                  enough to hold it. */}
-              <div className="flex flex-col max-md:top-0 max-md:[@media(min-height:560px)]:sticky">
-                <WorkspaceBankSelector
-                  acceptsDrop={(bank) => library.loadedBanks.includes(bank)}
-                  banks={banks.map((bank) => {
-                    const name = bankDisplayName(bank)
-                    return {
-                      actionsLabel: t('banks.bankMenu', { bank: name }),
-                      description: library.bankDescriptions[bank] ?? '',
-                      id: bank,
-                      name,
+            ) : undefined
+          }
+          isBankLoaded={isDestinationBankLoaded || isSearching}
+          isFavourite={isFavourite}
+          isPatchDisabled={(patch) =>
+            patch.bank !== favouritesBank && !library.loadedBanks.includes(patch.bank)
+          }
+          onImportEmptyBank={() => beginImport(destinationBank)}
+          onLoadDemoBank={() => {
+            library.loadDemoBank(destinationBank)
+            toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
+          }}
+          onPatchCopy={requestCopy}
+          onPatchDropOnBank={(patch, bank) =>
+            bank === favouritesBank ? dropOnFavourites(patch) : requestCopy(patch, bank)
+          }
+          onPatchDownload={(patch) => void downloadPatch(patch)}
+          onPatchShare={copyShareLink}
+          // Importing a file puts it in a bank slot; Favourites takes sounds through their hearts.
+          onPatchReplace={showsFavourites ? undefined : requestReplace}
+          onPatchChangeToFm={showsFavourites ? undefined : requestChangeToFm}
+          onPatchEdit={(patch) => {
+            followPlayedPatch(patch)
+            onEditPatch(patch)
+          }}
+          onPatchSelect={(patch) => {
+            followPlayedPatch(patch)
+            onSelectPatch(patch)
+          }}
+          onPatchMove={(patch, target) => {
+            setMoveCount((count) => count + 1)
+            if (patch.bank === favouritesBank) library.moveFavourite(patch.number, target.number)
+            else library.moveVoice(patch.bank, patch.number, target.number)
+          }}
+          onPatchToggleFavourite={toggleFavourite}
+          patchOrigin={showsFavourites ? favouriteOrigin : undefined}
+          tagsEngines={midi.firmware.kind === 'fm1-va'}
+          changedSlots={changedSlots}
+          patches={visiblePatches}
+          reorderable={!isSearching}
+          extraResults={
+            isSearching ? (
+              <ErrorBoundary
+                fallback={<LoadFailedNotice message={t('banks.everywhere.loadFailed')} />}
+              >
+                {/* The results show their own loading line while the search code arrives. */}
+                <Suspense fallback={null}>
+                  <SearchEverywhereResults
+                    activePatchId={activePatchId}
+                    favouriteKeys={library.favouriteKeys}
+                    hasDamagedNamedBanks={library.hasDamagedNamedBanks}
+                    namedBanks={library.namedBanks}
+                    namedBanksLoadFailed={library.namedBanksLoadFailed}
+                    onCopy={requestResultCopy}
+                    onPlay={onPlaySearchResult}
+                    onToggleFavourite={(sound, bankName) =>
+                      announceFavourite(
+                        sound.voice.name,
+                        library.toggleFavouriteSound(sound, { bankName }),
+                      )
                     }
-                  })}
-                  label={t('banks.destination')}
-                  onSelect={selectDestinationBank}
-                  renderActions={renderBankActions}
-                  selectedBank={destinationBank}
-                  showsSelection={!isSearching && !showsFavourites}
-                />
-                {nextBank ? (
-                  <button
-                    aria-label={t('banks.addBank')}
-                    className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] md:justify-start"
-                    onClick={() => setIsAddingBank(true)}
-                    ref={addBankButtonRef}
-                    title={t('banks.addBank')}
-                    type="button"
-                  >
-                    <Plus className="size-4 shrink-0" />
-                    <span className="hidden md:inline">{t('banks.addBank')}</span>
-                  </button>
-                ) : null}
-                <FavouritesTab
-                  count={favouriteCount}
-                  onSelect={() => selectDestinationBank(favouritesBank)}
-                  selected={showsFavourites}
-                />
+                    search={search}
+                    tagsEngines={midi.firmware.kind === 'fm1-va'}
+                    workspaceEffects={library.effects}
+                    workspaceRecords={library.records}
+                    workspaceMatches={visiblePatches}
+                    workspaceEightBit={library.eightBit}
+                    workspaceVirtualAnalog={library.virtualAnalog}
+                    workspaceVoices={library.voices}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            ) : undefined
+          }
+          resultsHeading={isSearching ? t('banks.everywhere.workspace') : undefined}
+          search={typedSearch}
+          searchDisabled={!hasLoadedBank}
+          searchRef={searchRef}
+          setSearch={setSearch}
+          toolbar={
+            <>
+              <div className="h-full w-16 border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px]">
+                {/* On a phone the rail stays in view beside the list, when the screen is tall
+                  enough to hold it. */}
+                <div className="flex flex-col max-md:top-0 max-md:[@media(min-height:560px)]:sticky">
+                  <WorkspaceBankSelector
+                    acceptsDrop={(bank) => library.loadedBanks.includes(bank)}
+                    banks={banks.map((bank) => {
+                      const name = bankDisplayName(bank)
+                      return {
+                        actionsLabel: t('banks.bankMenu', { bank: name }),
+                        description: library.bankDescriptions[bank] ?? '',
+                        id: bank,
+                        name,
+                      }
+                    })}
+                    label={t('banks.destination')}
+                    onSelect={selectDestinationBank}
+                    renderActions={renderBankActions}
+                    selectedBank={destinationBank}
+                    showsSelection={!isSearching && !showsFavourites}
+                  />
+                  {nextBank ? (
+                    <button
+                      aria-label={t('banks.addBank')}
+                      className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] md:justify-start"
+                      onClick={() => setIsAddingBank(true)}
+                      ref={addBankButtonRef}
+                      title={t('banks.addBank')}
+                      type="button"
+                    >
+                      <Plus className="size-4 shrink-0" />
+                      <span className="hidden md:inline">{t('banks.addBank')}</span>
+                    </button>
+                  ) : null}
+                  <FavouritesTab
+                    count={favouriteCount}
+                    onSelect={() => selectDestinationBank(favouritesBank)}
+                    selected={showsFavourites}
+                  />
+                </div>
               </div>
-            </div>
-            <input
-              accept={sysexFileAccept}
-              aria-label={t('banks.importFile')}
-              className="sr-only"
-              disabled={isImporting}
-              onChange={(event) => void importSelectedBankFile(event)}
-              ref={importInputRef}
-              type="file"
-            />
-          </>
-        }
-      />
+              <input
+                accept={sysexFileAccept}
+                aria-label={t('banks.importFile')}
+                className="sr-only"
+                disabled={isImporting}
+                onChange={(event) => void importSelectedBankFile(event)}
+                ref={importInputRef}
+                type="file"
+              />
+            </>
+          }
+        />
+      )}
 
       {transferError ? <ErrorNotice>{transferError}</ErrorNotice> : null}
 
@@ -1562,6 +1608,7 @@ export function LibrarianPage({
         >
           <Suspense fallback={null}>
             <RestoreBackupDialog
+              fxLibrary={fxLibrary}
               library={library}
               onClose={() => {
                 setIsRestoringBackup(false)

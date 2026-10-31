@@ -446,7 +446,7 @@ export function usePatchLibrary() {
    * remove the added saved banks.
    */
   const restoreBackup = useCallback(
-    async (backup: WorkspaceBackup) => {
+    async (backup: WorkspaceBackup, beforeWorkspaceCommit?: () => Promise<void>) => {
       const added: NamedBank[] = []
       let kept = 0
       try {
@@ -463,6 +463,7 @@ export function usePatchLibrary() {
           )
         }
       }
+      await beforeWorkspaceCommit?.()
       const changed = commit(() => backup.workspace)
       return { added: added.length, changed, kept }
     },

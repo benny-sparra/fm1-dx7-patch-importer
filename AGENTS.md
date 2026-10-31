@@ -119,7 +119,8 @@ open everything an earlier release could have saved.
   versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
   versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
-  `fm1-colourway`, `fm1-last-backup`, `fm1-voice-setup` (V16's Voice setup: a version 1 record
+  `fm1-colourway`, `fm1-last-backup`, `fm1-v16-effects` (the current shared V16 effects, version
+  1), and `fm1-voice-setup` (V16's Voice setup: a version 1 record
   of the "Play several Voices" switch and each of eight Voices' preset and channel), and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them. A patch's share link (`#p=`, `src/lib/patch-share-link.ts`) is
   one too: links live for years in chats and forums, so every release reads version 1, and its
@@ -132,6 +133,10 @@ open everything an earlier release could have saved.
   successfully.
 - Only bump the IndexedDB schema version for additive changes. `onupgradeneeded` may create stores
   and indexes but must not delete stores, clear records, or reshape existing data.
+- IndexedDB schema version 3 adds the independent `fx-presets` store, keyed by `id`. Each named FX
+  preset is a version 1 public record. Full-library backup version 6 carries those records; versions
+  1–5 have no FX section and leave the browser's FX presets untouched when restored. The dedicated
+  `fm1-fx-presets` JSON format is independently versioned at 1.
 - New fields must be optional when read, with safe defaults for records that predate them. Unknown
   or out-of-range values from old records are normalised, not treated as a reason to discard the
   workspace; genuinely unreadable data surfaces the `incompatible` error rather than being replaced.

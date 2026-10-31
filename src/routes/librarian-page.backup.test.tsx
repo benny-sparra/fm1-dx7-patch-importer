@@ -9,6 +9,7 @@ import { ToastProvider } from '@/components/ui/toast'
 import { resetLastBackupTimeForTests } from '@/lib/last-backup'
 import { emptyPatchLibrary, importVoices, makeDemoVoices, voiceId } from '@/lib/patch-library'
 import { makeWorkspaceBackup } from '@/lib/workspace-backup'
+import { installFakeIndexedDb } from '@/test/fake-indexed-db'
 import { translatePageText } from '@/test/page-translator'
 import { makeLibrarianLibrary, makeLibrarianMidi } from '@/test/librarian-fakes'
 
@@ -31,6 +32,7 @@ beforeAll(() => {
 let createObjectURL: ReturnType<typeof vi.fn<(blob: Blob) => string>>
 
 beforeEach(() => {
+  installFakeIndexedDb()
   localStorage.clear()
   resetLastBackupTimeForTests()
   createObjectURL = vi.fn((_blob: Blob) => 'blob:backup')
@@ -41,6 +43,7 @@ beforeEach(() => {
 afterEach(async () => {
   cleanup()
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
   await setLocale('en-GB')
 })
 
@@ -133,7 +136,7 @@ describe('LibrarianPage backup', () => {
       await screen.findByText('Downloading a backup of your banks and saved banks.'),
     ).toBeTruthy()
     const backup = JSON.parse(await createObjectURL.mock.calls[0][0].text())
-    expect(backup).toMatchObject({ format: 'fm1-librarian-backup', version: 5 })
+    expect(backup).toMatchObject({ format: 'fm1-librarian-backup', fxPresets: [], version: 6 })
     expect(backup.workspace.slots).toHaveLength(32)
   })
 

@@ -9,6 +9,7 @@ import {
 } from '@/lib/dx7'
 import { type Favourite, type FavouriteOrigin, readFavourites } from '@/lib/favourites'
 import { fm1EffectParameterCount, normalizeFm1Effects } from '@/lib/fm1-effects'
+import { readStoredFxLibraryPreset, type FxLibraryPreset } from '@/lib/fx-library-preset'
 import { isFm1VaEightBitVoice } from '@/lib/fm1-va-eight-bit'
 import { isFm1VaVirtualAnalogVoice } from '@/lib/fm1-va-virtual-analog'
 import { recordBackupTime } from '@/lib/last-backup'
@@ -29,8 +30,8 @@ import {
  * version written before it. Its version is independent of the IndexedDB record versions, which
  * change for different reasons.
  */
-export const workspaceBackupFormat = 'fm1-librarian-backup'
-export const workspaceBackupVersion = 5
+const workspaceBackupFormat = 'fm1-librarian-backup'
+export const workspaceBackupVersion = 6
 export const workspaceBackupFileAccept = '.json,application/json'
 
 /**
@@ -127,6 +128,20 @@ type BackupFileV5 = Omit<BackupFileV4, 'savedBanks' | 'version' | 'workspace'> &
   }
 }
 
+type BackupFxPresetV6 = {
+  createdAt: string
+  effects: string
+  id: string
+  name: string
+  updatedAt: string
+}
+
+/** Version 6 adds the independent named FX preset collection. */
+type BackupFileV6 = Omit<BackupFileV5, 'version'> & {
+  fxPresets: BackupFxPresetV6[]
+  version: 6
+}
+
 // 'format' is not a backup at all, 'newer' was written by a later release, and 'damaged' is a
 // backup whose workspace cannot be read.
 type WorkspaceBackupProblem = 'damaged' | 'format' | 'newer' | 'size'
@@ -145,6 +160,9 @@ export class WorkspaceBackupError extends Error {
 export type WorkspaceBackup = {
   /** Saved banks in the file that could not be read, and are left out of the restore. */
   damagedSavedBankCount: number
+  fxPresets?: FxLibraryPreset[]
+  /** False for versions 1–5, whose restore leaves the browser's FX collection untouched. */
+  hasFxPresets?: boolean
   savedAt: string
   savedBanks: NamedBank[]
   workspace: PatchLibrarySnapshot
@@ -196,13 +214,13 @@ function encodeSlot(sound: SlotSound, slot: number): BackupSlotV5 {
 }
 
 /**
- * Writes the workspace, with its favourites, records, and Virtual Analog and 8-Bit presets, and the
- * saved banks as a version 5 file.
+ * Writes the workspace, its saved banks, and the independent named FX preset collection.
  */
 export function makeWorkspaceBackup(
   snapshot: PatchLibrarySnapshot,
   savedBanks: readonly NamedBank[],
   savedAt: string,
+  fxPresets: readonly FxLibraryPreset[] = [],
 ) {
   const slots = snapshot.workspaceBanks.flatMap((bank) =>
     Array.from({ length: dx7BankVoiceCount }, (_, index) => index + 1).flatMap((slot) => {
@@ -220,7 +238,17 @@ export function makeWorkspaceBackup(
       return []
     }),
   )
-  const file: BackupFileV5 = {
+  const file: BackupFileV6 = {
+    fxPresets: fxPresets.map((preset) => {
+      const readable = readStoredFxLibraryPreset(preset)
+      return {
+        createdAt: readable.createdAt,
+        effects: encodeBase64(readable.effects),
+        id: readable.id,
+        name: readable.name,
+        updatedAt: readable.updatedAt,
+      }
+    }),
     format: workspaceBackupFormat,
     savedAt,
     savedBanks: savedBanks.map((bank) => ({
@@ -257,10 +285,15 @@ export function makeWorkspaceBackupFilename(date: Date) {
 }
 
 /** What a backup download holds, for the notification that confirms it. */
-export type WorkspaceBackupDownload =
-  'downloaded' | 'downloadedWithoutDamaged' | 'downloadedWithoutSavedBanks'
+type WorkspaceBackupDownload =
+  | 'downloaded'
+  | 'downloadedWithoutDamaged'
+  | 'downloadedWithoutDamagedFx'
+  | 'downloadedWithoutSavedBanks'
 
 type BackupSource = {
+  damagedFxPresetCount?: number
+  fxPresets?: readonly FxLibraryPreset[]
   hasDamagedNamedBanks: boolean
   namedBanks: readonly NamedBank[]
   namedBanksLoadFailed: boolean
@@ -270,11 +303,17 @@ type BackupSource = {
 /** Downloads the workspace and the saved banks as one backup file, and remembers when. */
 export function downloadWorkspaceBackup(source: BackupSource): WorkspaceBackupDownload {
   const now = new Date()
-  const text = makeWorkspaceBackup(source.workspace, source.namedBanks, now.toISOString())
+  const text = makeWorkspaceBackup(
+    source.workspace,
+    source.namedBanks,
+    now.toISOString(),
+    source.fxPresets,
+  )
   downloadFile(new Blob([text], { type: 'application/json' }), makeWorkspaceBackupFilename(now))
   recordBackupTime(now.toISOString())
   trackAnalyticsEvent({ name: 'backup_downloaded' })
   if (source.namedBanksLoadFailed) return 'downloadedWithoutSavedBanks'
+  if (source.damagedFxPresetCount) return 'downloadedWithoutDamagedFx'
   return source.hasDamagedNamedBanks ? 'downloadedWithoutDamaged' : 'downloaded'
 }
 
@@ -459,6 +498,19 @@ function readSavedBank(value: unknown, version: number): NamedBank | null {
   }
 }
 
+function readBackupFxPresets(value: unknown): FxLibraryPreset[] {
+  if (!Array.isArray(value)) damaged('The backup has no readable FX preset list.')
+  return value.map((entry) => {
+    if (!isRecord(entry)) damaged('The backup contains an unreadable FX preset.')
+    const effects = decodeBase64(entry.effects)
+    try {
+      return readStoredFxLibraryPreset({ ...entry, effects, version: 1 })
+    } catch {
+      damaged('The backup contains an unreadable FX preset.')
+    }
+  })
+}
+
 /**
  * Reads a backup file's text. A workspace that cannot be read refuses the whole file, because a
  * restore replaces the workspace; a damaged saved bank is left out and counted, as the saved-bank
@@ -494,7 +546,15 @@ export function parseWorkspaceBackup(text: string): WorkspaceBackup {
     else if (!savedBanks.some(({ id }) => id === bank.id)) savedBanks.push(bank)
   }
 
-  return { damagedSavedBankCount, savedAt: file.savedAt, savedBanks, workspace }
+  const hasFxPresets = file.version >= 6
+  return {
+    damagedSavedBankCount,
+    fxPresets: hasFxPresets ? readBackupFxPresets(file.fxPresets) : [],
+    hasFxPresets,
+    savedAt: file.savedAt,
+    savedBanks,
+    workspace,
+  }
 }
 
 /**

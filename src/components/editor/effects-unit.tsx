@@ -54,6 +54,8 @@ import { segmentGhost } from '@/lib/segment-ghost'
 import { cn } from '@/lib/utils'
 
 type EffectsUnitProps = {
+  /** Temporarily prevents edits while one complete shared-effects snapshot is being sent. */
+  disabled?: boolean
   /**
    * FM-1+VA's Bitcrush, offered while the FM1 runs FM-1_096 or later. `values` holds its switch,
    * Bits, Sample Rate, and Mix, or null for a patch without a settings record, which has nowhere to
@@ -733,6 +735,7 @@ function SortableEffect({
 
 export function EffectsUnit({
   bitcrush,
+  disabled = false,
   distortionType,
   effectOrder,
   keepsBitcrush,
@@ -780,6 +783,7 @@ export function EffectsUnit({
             <Switch
               checked={enabled}
               className="-ml-[3px] inline-flex min-h-6 min-w-0 items-center gap-2 px-1 transition-colors"
+              disabled={disabled}
               onChange={(checked) => onChange(switchController, checked ? 1 : 0)}
             >
               <span className="truncate">{translatedEffect}</span>
@@ -791,21 +795,21 @@ export function EffectsUnit({
         <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
           <EffectScope enabled={enabled} name={effect.name} values={values} />
           <EffectPresetControl
-            disabled={!enabled}
+            disabled={disabled || !enabled}
             effectKey={effect.name.toLowerCase()}
             onApplyPreset={onApplyPreset}
             presets={effectPresetsFor(effect.name.toLowerCase())}
           />
           {effect.name === 'Distortion' && distortionType ? (
             <DistortionTypeControl
-              disabled={!enabled}
+              disabled={disabled || !enabled}
               onChange={distortionType.onChange}
               type={distortionType.type}
             />
           ) : null}
           {effect.parameters.map((parameter) => (
             <EffectControl
-              disabled={!enabled}
+              disabled={disabled || !enabled}
               effectName={effect.name}
               key={parameter.id}
               onChange={onChange}
@@ -841,7 +845,7 @@ export function EffectsUnit({
               key={effect}
               onMove={(offset) => effectOrder?.onMove(place, place + offset)}
               place={place}
-              sortable={sortable}
+              sortable={sortable && !disabled}
             >
               {(handle, menu) =>
                 effect === orderEffectKeys.indexOf('bitcrush') ? (

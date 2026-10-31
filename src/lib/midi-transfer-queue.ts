@@ -1,6 +1,7 @@
 export type MidiTransferTask = () => void | Promise<void>
 
 type QueuedTask = {
+  group?: string
   key?: string
   minimumIntervalMs?: number
   run: MidiTransferTask
@@ -13,6 +14,8 @@ export type MidiTransferQueueOptions = {
 }
 
 export type MidiTransferOptions = {
+  /** A batch whose waiting work can be cancelled without dropping unrelated MIDI traffic. */
+  group?: string
   /** The gap before this transfer, in place of the queue's own minimum interval. */
   minimumIntervalMs?: number
 }
@@ -40,9 +43,13 @@ export class MidiTransferQueue {
     this.minimumIntervalMs = Math.max(0, minimumIntervalMs)
   }
 
-  enqueue(run: MidiTransferTask, key?: string, { minimumIntervalMs }: MidiTransferOptions = {}) {
+  enqueue(
+    run: MidiTransferTask,
+    key?: string,
+    { group, minimumIntervalMs }: MidiTransferOptions = {},
+  ) {
     return new Promise<void>((resolve, reject) => {
-      const task = { key, minimumIntervalMs, run, resolve, reject }
+      const task = { group, key, minimumIntervalMs, run, resolve, reject }
       if (key) {
         const pendingIndex = this.queue.findIndex((pending) => pending.key === key)
 
@@ -62,6 +69,16 @@ export class MidiTransferQueue {
   clear(reason = 'MIDI transfer queue was cleared.') {
     const error = new MidiTransferCancelledError(reason)
     this.queue.splice(0).forEach((task) => task.reject(error))
+  }
+
+  clearGroup(group: string, reason = 'MIDI transfer batch was cancelled.') {
+    const error = new MidiTransferCancelledError(reason)
+    const kept: QueuedTask[] = []
+    this.queue.forEach((task) => {
+      if (task.group === group) task.reject(error)
+      else kept.push(task)
+    })
+    this.queue = kept
   }
 
   private async drain() {

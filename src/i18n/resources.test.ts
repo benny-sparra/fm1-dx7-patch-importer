@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import de from './locales/de'
 import britishEnglish from './locales/en-GB'
 import britishEnglishEditorHelp from './locales/en-GB-editor-help'
+import britishEnglishFxPresets from './locales/en-GB-fx-presets'
 import britishEnglishHelp from './locales/en-GB-help'
 import britishEnglishKeyboard from './locales/en-GB-keyboard'
 import britishEnglishLibrarianDialogs from './locales/en-GB-librarian-dialogs'
@@ -31,6 +32,11 @@ function mergeStrings<T extends object, U extends object>(target: T, source: U):
 // British English strings that load with the lazy chunks that show them, each with the module that
 // adds it and one module known to read it.
 const lazyBritishEnglish = [
+  {
+    module: '@/i18n/fx-presets',
+    reader: '/src/components/midi/fx-preset-library-dialog.tsx',
+    strings: britishEnglishFxPresets,
+  },
   {
     module: '@/i18n/editor-help',
     reader: '/src/routes/patch-editor-page.tsx',

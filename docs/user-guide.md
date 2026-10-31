@@ -95,6 +95,31 @@ the FM1…** in a bank's menu or **Library actions**, and choose **Next** so the
 before you choose **GLOBE → Export** on the FM1. Without a USB host the FM1 starts sending, then
 says **Receive Timeout**; start Export again while the app listens.
 
+### Effects and FX presets
+
+The main library has separate **Sounds** and **Effects** views. Effects is available without
+selecting a sound or connecting MIDI, and keeps the 24 controls shown there in this browser. Merely
+opening the view sends nothing. On M-VAVE V16, changing a control sends only that changed effect to
+the shared FX group on the **Effect channel**. Other firmware can still use the view locally, but
+the app sends it no shared-FX messages.
+
+Choose **FX presets…** to keep named snapshots of all 24 controls. **Save current as…** makes a new
+preset; Rename, Duplicate, Update, Delete, search, selection, import, and export are browser-library
+operations and send no MIDI. **Export selected** or **Export all** writes
+`fm1-fx-presets.json`; **Import…** adds valid presets with new identities and keeps everything
+already present.
+
+Select a preset and use **Load into Effects** while offline or on other firmware. This replaces the
+browser's current Effects controls only and is not sent later when MIDI reconnects. With an
+identified M-VAVE V16 online, **Load and apply** also sends all 24 controls once, in their existing
+order, to the shared FX group. **Sent to FM1** means the browser handed over the messages; the FM1
+does not acknowledge or verify them. **Send again** deliberately repeats the full send.
+
+FX presets do not contain the hardware's effect-chain order, and the editor cannot read changes
+made on the FM1's front panel. Loading does not select a Voice, change Voice setup, save on the FM1,
+or choose another hardware FX group. Use the FM1's own Save flow when you want to keep its live
+shared effects after power-off.
+
 Baud Girl's firmware also chooses a bank's destination differently. When a bank arrives it asks **Replace Bank
 A?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names
 the bank you want, then turn **SELECT** to **Replace** and press **SEL**, or press **HOME** to
@@ -436,7 +461,7 @@ pressing one releases any note held from the computer keyboard.
 
 Your patches, their FM1 effects, and your saved banks exist only in this browser. Clearing site data, or a browser that removes storage, loses them. The FM1 cannot send its banks back, so nothing else holds a copy.
 
-Open the menu in the patch-bank header and choose **Download backup**, under **Backup** at the top, to save everything in one `.json` file: every bank with its title and description, each patch's FM1 effects and FM-1+VA preset settings, your Favourites, and every saved bank. The menu shows when you last made one. If the browser cannot save your work, the warning at the top of the page offers the same download.
+Open the menu in the patch-bank header and choose **Download backup**, under **Backup** at the top, to save everything in one `.json` file: every bank with its title and description, each patch's FM1 effects and FM-1+VA preset settings, your Favourites, every saved bank, and every readable named FX preset. The menu waits for pending FX saves. If an unreadable FX preset must be omitted, the notification says the backup is partial. The menu shows when you last made one. If the browser cannot save your work, the warning at the top of the page offers the same download.
 
 A backup file can only be read by this app. To use patches in Dexed, a DX7, or another editor, choose **Download SysEx banks (.zip)** under **Other files** instead: a `.syx` file holds DX7 voice data only, without FM1 effects or saved banks.
 
@@ -444,6 +469,7 @@ To restore, choose **Restore from backup…** and pick the file. The dialog show
 
 - replaces your banks and their patches, and your Favourites, with the ones in the backup. A backup made before Favourites existed restores an empty Favourites. **Undo** in the notification, or `Cmd`/`Ctrl` + `Z`, puts your previous library back.
 - adds the backup's saved banks. A saved bank already in this browser is kept as it is and never overwritten. Undo does not remove saved banks that were added.
+- merges named FX presets from a current backup. An identical record is kept, an ID collision with different content becomes a new copy, and a local preset is never overwritten. Older backups have no FX section and leave local FX presets untouched. Restoring does not load a preset into the current Effects controls or send MIDI.
 
 A backup made by a newer version of the app cannot be restored until the page is reloaded to update it.
 

@@ -206,3 +206,13 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       fasterTiming && from(fasterTiming.from) ? fasterTiming.timing : presetsPageTiming,
   }
 }
+
+/**
+ * The one shared FX group introduced by stock V16: it is multitimbral, takes effect controllers,
+ * and those effects no longer follow each preset. Consumers use this capability combination rather
+ * than naming a firmware or adding a second profile fact for the same behaviour.
+ */
+export function hasSharedEffects(profile: FirmwareProfile) {
+  const { effectControllers, multitimbral, presetEffects } = profile.capabilities
+  return multitimbral && effectControllers && !presetEffects
+}

@@ -151,7 +151,8 @@ describe('PatchEditorPage MIDI paths', () => {
   it('says on V16 that the effects are the FM1’s, shared by all Voices', () => {
     setup({ firmware: { identity: 'FM-1_016', kind: 'mvave' } })
 
-    expect(screen.getByText(/^On V16 these are the FM1’s effects/)).toBeTruthy()
+    expect(screen.getByText(/^On V16 the FM1’s effects/)).toBeTruthy()
+    expect(screen.queryByRole('switch', { name: 'Filter' })).toBeNull()
   })
 
   it('says the shared effects in Ukrainian', async () => {
@@ -159,7 +160,7 @@ describe('PatchEditorPage MIDI paths', () => {
     try {
       setup({ firmware: { identity: 'FM-1_016', kind: 'mvave' } })
 
-      expect(screen.getByText(/^На V16 це ефекти FM1/)).toBeTruthy()
+      expect(screen.getByText(/^На V16 усі вісім/)).toBeTruthy()
     } finally {
       await setLocale('en-GB')
     }

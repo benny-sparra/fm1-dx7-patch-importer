@@ -214,6 +214,12 @@ export default {
     reloadApp: 'Reload app',
     backToLibrary: 'Back to library',
   },
+  libraryViews: {
+    label: 'Library view',
+    sounds: 'Sounds',
+    effects: 'Effects',
+    effectsLoadFailed: 'Effects could not be opened. Reload the page and try again.',
+  },
   root: {
     skipToContent: 'Skip to main content',
     channelShort: 'Ch {{number}}',
@@ -459,6 +465,8 @@ export default {
     loaded: 'Loaded “{{name}}” into “{{bank}}”.',
   },
   backup: {
+    fxPresets: 'FX presets',
+    notInOlderBackup: 'Not included (older backup)',
     menuOtherFiles: 'Other files',
     menuHeading: 'Backup',
     download: 'Download backup',
@@ -469,6 +477,8 @@ export default {
       'Downloading a backup of your banks. Saved banks could not be read, so they are not in it.',
     downloadedWithoutDamaged:
       'Downloading a backup. Some saved banks could not be read, so they are not in it.',
+    downloadedWithoutDamagedFx:
+      'Downloading a backup. Some FX presets could not be read, so they are not in it.',
     unavailable: 'Backups could not be opened. Reload the page and try again.',
     unavailableUnsaved:
       'The backup could not be prepared. Keep this tab open, because your latest changes are not saved, and try again.',
@@ -488,6 +498,8 @@ export default {
       'Your banks and all their patches are replaced by the ones in the backup. Undo in the notification afterwards puts them back.',
     savedBanksEffect:
       'Saved banks are only added. One already in this browser is kept as it is, and Undo does not remove the ones added.',
+    fxPresetsEffect:
+      'FX presets are merged. Matching records are kept, ID conflicts become new copies, and local presets are never overwritten.',
     restoreAction: 'Restore backup',
     restoring: 'Restoring…',
     restored: 'Restored the backup from {{date}}.',
@@ -501,6 +513,8 @@ export default {
       read: 'The file could not be read. Choose it again.',
       savedBanksFailed:
         'Browser storage could not keep the saved banks from this backup, so your library was not changed. Try again.',
+      restoreFailed:
+        'Browser storage could not finish the restore. The workspace was not replaced; any saved banks or FX presets already added were kept. Try again.',
     },
   },
 } as const

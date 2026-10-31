@@ -38,12 +38,20 @@ export function useDownloadWorkspaceBackup(library: BackupLibrary) {
 
   return useCallback(async () => {
     let backup: typeof import('@/lib/workspace-backup')
+    let fxPresets: Awaited<
+      ReturnType<(typeof import('@/lib/fx-library-storage'))['listStoredFxLibraryPresets']>
+    >
     try {
-      backup = await import('@/lib/workspace-backup')
+      ;[backup, fxPresets] = await Promise.all([
+        import('@/lib/workspace-backup'),
+        import('@/lib/fx-library-storage').then((storage) => storage.listStoredFxLibraryPresets()),
+      ])
     } catch {
       return false
     }
     const downloaded = backup.downloadWorkspaceBackup({
+      damagedFxPresetCount: fxPresets.damagedCount,
+      fxPresets: fxPresets.presets,
       hasDamagedNamedBanks: library.hasDamagedNamedBanks,
       namedBanks: library.namedBanks,
       namedBanksLoadFailed: library.namedBanksLoadFailed,
