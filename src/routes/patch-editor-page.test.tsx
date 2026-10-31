@@ -697,6 +697,42 @@ describe('PatchEditorPage keyboard shortcuts', () => {
     expect(onSave).toHaveBeenCalledTimes(1)
   })
 
+  it('shows and sends the undone name after undo in the patch name field', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const field = screen.getByRole<HTMLInputElement>('textbox', { name: 'Patch name' })
+
+    await user.click(field)
+    await user.keyboard('BRASS')
+    await user.keyboard('{Meta>}z{/Meta}')
+    expect(field.value).toBe('BRAS')
+    // Undo sends the whole voice, BRAS included.
+    await waitFor(() => expect(midi.sendVoice).toHaveBeenCalledTimes(2))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Back to patch banks' })).toHaveProperty(
+        'disabled',
+        false,
+      ),
+    )
+
+    fireEvent.blur(field)
+
+    expect(midi.sendParameter).not.toHaveBeenCalledWith(145 + 4, 'S'.charCodeAt(0))
+  })
+
+  it('keeps a trailing space while the patch name is typed', async () => {
+    const user = userEvent.setup()
+    const { midi } = setup()
+    await waitFor(() => expect(midi.sendEffectSettings).toHaveBeenCalledTimes(1))
+    const field = screen.getByRole<HTMLInputElement>('textbox', { name: 'Patch name' })
+
+    await user.click(field)
+    await user.keyboard('E PIANO')
+
+    expect(field.value).toBe('E PIANO')
+  })
+
   it('saves without leaving the patch name field, where the space bar still types', async () => {
     const user = userEvent.setup()
     const { onSave } = await setupEdited()

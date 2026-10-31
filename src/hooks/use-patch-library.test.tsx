@@ -61,6 +61,7 @@ describe('usePatchLibrary page lifecycle', () => {
 
     expect(storage.saveStoredPatchLibrary).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({ bankNames: { A: 'Stage' } }),
+      '2026-09-13T12:00:00.000Z',
     )
   })
 
@@ -74,7 +75,49 @@ describe('usePatchLibrary page lifecycle', () => {
 
     expect(storage.saveStoredPatchLibrary).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({ bankNames: { A: 'Stage' } }),
+      '2026-09-13T12:00:00.000Z',
     )
+  })
+
+  it('saves each edit over the revision its previous save wrote', async () => {
+    storage.saveStoredPatchLibrary.mockResolvedValueOnce('2026-09-13T12:05:00.000Z')
+    const hook = await renderLoadedLibrary()
+    act(() => hook.result.current.renameBank('A', 'One'))
+    act(() => {
+      window.dispatchEvent(new Event('pagehide'))
+    })
+    await waitFor(() => expect(hook.result.current.persistenceStatus).toBe('ready'))
+
+    act(() => hook.result.current.renameBank('A', 'Two'))
+    act(() => {
+      window.dispatchEvent(new Event('pagehide'))
+    })
+
+    expect(storage.saveStoredPatchLibrary).toHaveBeenLastCalledWith(
+      expect.objectContaining({ bankNames: { A: 'Two' } }),
+      '2026-09-13T12:05:00.000Z',
+    )
+  })
+
+  it('keeps the edit and reports a conflict when another tab saved first', async () => {
+    storage.saveStoredPatchLibrary.mockRejectedValueOnce(
+      Object.assign(new storage.PatchLibraryStorageError(), {
+        code: 'conflict',
+        technicalMessage: 'Another tab saved the library after this tab loaded it.',
+      }),
+    )
+    const hook = await renderLoadedLibrary()
+    act(() => hook.result.current.renameBank('A', 'Stage'))
+    act(() => {
+      window.dispatchEvent(new Event('pagehide'))
+    })
+
+    await waitFor(() => expect(hook.result.current.persistenceStatus).toBe('save-error'))
+    expect(hook.result.current.persistenceError?.code).toBe('conflict')
+    expect(hook.result.current.bankNames).toMatchObject({ A: 'Stage' })
+    const leaving = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(leaving)
+    expect(leaving.defaultPrevented).toBe(true)
   })
 
   it('does not write when the page is hidden with nothing waiting to save', async () => {
@@ -204,6 +247,39 @@ describe('usePatchLibrary changes', () => {
 
     act(() => hook.result.current.redo())
     expect(hook.result.current.bankNames).toEqual({ A: 'Stage' })
+  })
+})
+
+describe('usePatchLibrary import into an empty bank', () => {
+  it('refuses the import once a deleted bank moved another into its letter', async () => {
+    const hook = await renderLoadedLibrary()
+    act(() => {
+      hook.result.current.importBank('D', makeDemoVoices())
+    })
+    const banksAtStart = hook.result.current.workspaceBanks
+    act(() => {
+      hook.result.current.deleteBank('B')
+    })
+    const before = hook.result.current.getBankVoices('C')
+
+    let changed: ReturnType<typeof hook.result.current.importBank> = null
+    act(() => {
+      changed = hook.result.current.importBank('C', makeDemoVoices().toReversed(), banksAtStart)
+    })
+
+    expect(changed).toBeNull()
+    expect(hook.result.current.getBankVoices('C')).toEqual(before)
+  })
+
+  it('imports while the bank is still empty and no letter moved', async () => {
+    const hook = await renderLoadedLibrary()
+    const banksAtStart = hook.result.current.workspaceBanks
+
+    act(() => {
+      hook.result.current.importBank('C', makeDemoVoices(), banksAtStart)
+    })
+
+    expect(hook.result.current.loadedBanks).toContain('C')
   })
 })
 
@@ -404,6 +480,7 @@ describe('usePatchLibrary favourites', () => {
           expect.objectContaining({ voice: expect.objectContaining({ name: voices[1].name }) }),
         ],
       }),
+      '2026-09-27T12:00:00.000Z',
     )
   })
 })

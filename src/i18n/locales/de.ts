@@ -898,6 +898,9 @@ export default {
     sessionOnlyTitle: 'Nur temporäre Bibliothek',
     sessionOnlyBody:
       'Vorhandene Browserdaten wurden nicht verändert. Änderungen dieser Sitzung gehen beim Schließen der Seite verloren.',
+    conflictTitle: 'Ein anderer Tab hat Ihre Bibliothek geändert',
+    conflictBody:
+      'Ihre Änderungen in diesem Tab sind noch hier, wurden aber nicht gespeichert und ersetzen die des anderen Tabs nicht. Laden Sie eine Sicherung herunter, um sie zu behalten, und laden Sie die App dann neu, um die gespeicherte Bibliothek zu öffnen.',
     saveErrorTitle: 'Änderungen sind nicht sicher gespeichert',
     saveErrorBody:
       'Die neuesten Änderungen sind hier noch verfügbar, konnten aber nicht gespeichert werden. Versuchen Sie es erneut, sobald der Browserspeicher verfügbar ist.',

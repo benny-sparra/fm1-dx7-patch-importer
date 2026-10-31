@@ -21,6 +21,7 @@ import {
   favouriteSlotName,
   makeLibrarianLibrary,
   makeLibrarianMidi,
+  sendBankThroughGuide,
   sendSlotName,
   slotMenuName,
 } from '@/test/librarian-fakes'
@@ -225,5 +226,21 @@ describe('LibrarianPage with an 8-Bit preset', () => {
     await waitFor(() => expect(createObjectURL).toHaveBeenCalledOnce())
     const file = await createObjectURL.mock.calls[0][0].arrayBuffer()
     expect(parseDx7Bank(file)[2].name).toBe('INIT VOICE')
+  })
+
+  it('sends a bank with an empty slot as 32 voices, INIT VOICE in the empty one', async () => {
+    const sounds = Array.from({ length: 32 }, (_, index) =>
+      index === 2 ? { eightBit: capturedEightBitVoice(), record: capturedEightBitRecord() } : null,
+    )
+    const { midi, user } = renderPageWith(
+      importFetchedBanks(emptyPatchLibrary(['A']), [{ bank: 'A', sounds }]),
+    )
+
+    await sendBankThroughGuide(user)
+
+    await waitFor(() => expect(midi.sendBank).toHaveBeenCalledOnce())
+    const [, voices] = vi.mocked(midi.sendBank).mock.calls[0]
+    expect(voices).toHaveLength(32)
+    expect(voices.every((voice) => voice.name === 'INIT VOICE')).toBe(true)
   })
 })

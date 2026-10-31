@@ -1091,6 +1091,23 @@ describe('Virtual Analog presets in the workspace', () => {
     expect(getBankVoices(library, 'A', initVoice)[2]).toBe(initVoice)
     expect(bankInitVoiceCount(library, 'A')).toBe(1)
   })
+
+  it('puts INIT VOICE in an empty slot of a DX7 bank, keeping every slot in its place', () => {
+    const [read] = makeDemoVoices()
+    const library = importFetchedBanks(emptyPatchLibrary(['A']), [
+      {
+        newBankTitle: 'Read',
+        sounds: Array.from({ length: 32 }, (_, i) => (i === 2 ? { voice: read } : null)),
+      },
+    ])
+    const [, initVoice] = makeDemoVoices()
+
+    const voices = getBankVoices(library, 'B', initVoice)
+
+    expect(voices).toHaveLength(32)
+    expect(voices[2]).toBe(read)
+    expect(voices[0]).toBe(initVoice)
+  })
 })
 
 describe('replaceWithVirtualAnalog', () => {

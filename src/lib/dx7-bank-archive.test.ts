@@ -52,6 +52,10 @@ describe('parseDx7BankArchive', () => {
     expect(firstNames(join(rom1a, damaged(rom1b), rom1a))).toEqual(['BRASS   1', null, 'BRASS   1'])
   })
 
+  it('keeps the next bank when a bank is missing its final F7', () => {
+    expect(firstNames(join(rom1a.slice(0, -1), rom1b))).toEqual([null, 'PIANO   4'])
+  })
+
   it('reports a bank cut short as damaged', () => {
     const cut = rom1b.slice(0, 2000)
 

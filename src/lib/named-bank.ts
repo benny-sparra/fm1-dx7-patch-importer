@@ -151,10 +151,15 @@ export function validateNamedBank(value: unknown): asserts value is NamedBank {
   })
 }
 
+/**
+ * A saved bank of a workspace bank's 32 slots. A saved bank has no empty slot, so one the bank
+ * leaves empty, as a bank read from the FM1 can, takes `initVoice`, and saving fails without it.
+ */
 export function createNamedBank(
   snapshot: PatchLibrarySnapshot,
   sourceBank: string,
   options: CreateNamedBankOptions,
+  initVoice?: Dx7Voice,
 ): NamedBank {
   if (!snapshot.workspaceBanks.includes(sourceBank)) {
     throw new Error('The source browser bank is invalid.')
@@ -163,7 +168,7 @@ export function createNamedBank(
   const slots = Array.from({ length: 32 }, (_, index) => {
     const slot = index + 1
     const id = voiceId(sourceBank, slot)
-    const voice = snapshot.voices[id]
+    const voice = snapshot.voices[id] ?? initVoice
     const virtualAnalog = snapshot.virtualAnalog[id]
     const eightBit = snapshot.eightBit[id]
     const record = snapshot.records[id]

@@ -17,7 +17,7 @@ day), or L (several days). Tick an item off, with its pull request, when it land
       reply arrived, up to 3 s, so a slot click sent a single-voice dump, which FM-1+VA writes over
       a stored preset. The answer is now forgotten when a selected port goes away or MIDI is
       switched off.
-- [ ] **Two open tabs overwrite each other's workspace.** (M)
+- [x] **Two open tabs overwrite each other's workspace.** (M) Fixed on fix/review-findings.
       `src/lib/patch-library-storage.ts:311-328`, `src/lib/workspace-persistence.ts:249-296`. Each
       tab `put`s its whole snapshot over `'current'`. A tab left open since yesterday overwrites a
       day's work in another with one heart click, and Undo cannot reach it. A tab still on the old
@@ -27,7 +27,7 @@ day), or L (several days). Tick an item off, with its pull request, when it land
       `version` is newer than this release knows. Report it as a new `'conflict'` storage error
       with a translated message offering a reload or a backup. `runTransaction` needs to accept a
       get-then-put operation. Web Locks single-writer election is the alternative.
-- [ ] **IndexedDB writes use the browser's default durability.** (S)
+- [x] **IndexedDB writes use the browser's default durability.** (S) Fixed on fix/review-findings.
       `src/lib/patch-library-storage.ts:122` opens transactions without options. Chromium defaults
       to `relaxed`, so `oncomplete`, which clears `hasUnsavedChanges`, can fire before the data
       reaches disk, and a crash can lose a save the app showed as saved. Fix: pass

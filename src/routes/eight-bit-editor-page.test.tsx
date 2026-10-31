@@ -57,10 +57,12 @@ function preset(changeRecord: (record: Uint8Array) => void = () => {}) {
 function setup({
   firmware = 'FM-1_098',
   presetReply = () => capturedEightBitReply,
+  online = true,
   shownPatch = patch,
   stored = preset(),
 }: {
   firmware?: string
+  online?: boolean
   presetReply?: (slot: number) => Uint8Array
   shownPatch?: Patch
   stored?: { record: Uint8Array; voice: Uint8Array }
@@ -71,28 +73,46 @@ function setup({
     firmware: { identity: firmware, kind: 'fm1-va' },
     logStore: new MidiLogStore([]),
     sendEffectParameter: vi.fn(() => true),
+    // As useMidi does, through the output in use.
+    sendProgramChange: vi.fn((program: number) => {
+      ports.output.send(Uint8Array.from([0xc0, program]))
+      return true
+    }),
     sysexAvailable: true,
     ...makeFakeFm1Devices(ports),
   }
+  const offline = { inputs: [], outputs: [], selectedInputId: '', selectedOutputId: '' }
   const onBack = vi.fn()
   const onSave = vi.fn<(voice: Uint8Array, effects: Uint8Array, record: Uint8Array) => void>()
-  renderWithToasts(
+  const page = (shownMidi: Midi) => (
     <EightBitEditorPage
       effects={makeDefaultFm1Effects()}
-      midi={midi}
+      midi={shownMidi}
       onBack={onBack}
       onSave={onSave}
       patch={shownPatch}
       record={stored.record}
       voice={stored.voice}
-    />,
+    />
   )
+  const { rerender } = renderWithToasts(page(online ? midi : { ...midi, ...offline }))
+  /** Switches MIDI online with the editor open, as the MIDI switch does. */
+  const goOnline = () => rerender(page(midi))
   const controlChanges = () =>
     ports.output.send.mock.calls
       .map(([data]) => Array.from(data))
       .filter((data) => data[0] === 0xb0)
       .map(([, controller, value]) => [controller, value])
-  return { controlChanges, midi, onBack, onSave, ports, ...stored, user: userEvent.setup() }
+  return {
+    controlChanges,
+    goOnline,
+    midi,
+    onBack,
+    onSave,
+    ports,
+    ...stored,
+    user: userEvent.setup(),
+  }
 }
 
 const sliderValue = (name: string) =>
@@ -184,6 +204,24 @@ describe('EightBitEditorPage', () => {
     ports.output.send.mockClear()
     fireEvent.keyDown(screen.getByRole('slider', { name: 'LFO speed' }), { key: 'End' })
     expect(controlChanges()).toEqual([[76, 127]])
+  })
+
+  it('selects the slot’s program before playing changes when MIDI goes online with it open', async () => {
+    const { controlChanges, goOnline, ports } = setup({ online: false })
+    goOnline()
+
+    await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
+    const sent = ports.output.send.mock.calls.map(([data]) => data[0])
+    const programChange = sent.indexOf(0xc0)
+    expect(ports.output.send.mock.calls[programChange]?.[0][1]).toBe(96)
+    expect(programChange).toBeLessThan(sent.indexOf(0xb0))
+  })
+
+  it('leaves the program the slot click selected as it opened online', async () => {
+    const { controlChanges, midi } = setup()
+
+    await waitFor(() => expect(controlChanges().length).toBeGreaterThan(0))
+    expect(midi.sendProgramChange).not.toHaveBeenCalled()
   })
 
   it('sends nothing for a setting no controller reaches on an 8-Bit preset', async () => {

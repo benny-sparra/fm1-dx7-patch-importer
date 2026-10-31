@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { type BackupLibrary, useDownloadWorkspaceBackup } from '@/hooks/use-workspace-backup'
+import { reloadPage } from '@/lib/reload-page'
 
 type PersistenceLibrary = BackupLibrary &
   Pick<
@@ -74,6 +75,14 @@ export function WorkspacePersistenceStatus({ library }: { library: PersistenceLi
     )
   }
 
+  // Another tab saved over the library this tab loaded, so retrying would fail the same way.
+  const conflict = persistenceStatus === 'save-error' && persistenceError?.code === 'conflict'
+  const [title, body] = conflict
+    ? [t('persistence.conflictTitle'), t('persistence.conflictBody')]
+    : persistenceStatus === 'save-error'
+      ? [t('persistence.saveErrorTitle'), t('persistence.saveErrorBody')]
+      : [t('persistence.sessionOnlyTitle'), t('persistence.sessionOnlyBody')]
+
   return (
     <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-5 lg:px-8">
       <div
@@ -83,20 +92,8 @@ export function WorkspacePersistenceStatus({ library }: { library: PersistenceLi
         <div className="flex items-start gap-3">
           <AlertTriangle aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-amber-700" />
           <div className="grid gap-1">
-            <p className="font-bold">
-              {t(
-                persistenceStatus === 'save-error'
-                  ? 'persistence.saveErrorTitle'
-                  : 'persistence.sessionOnlyTitle',
-              )}
-            </p>
-            <p className="text-sm leading-5">
-              {t(
-                persistenceStatus === 'save-error'
-                  ? 'persistence.saveErrorBody'
-                  : 'persistence.sessionOnlyBody',
-              )}
-            </p>
+            <p className="font-bold">{title}</p>
+            <p className="text-sm leading-5">{body}</p>
             {technicalDetails}
           </div>
         </div>
@@ -114,7 +111,11 @@ export function WorkspacePersistenceStatus({ library }: { library: PersistenceLi
             <HardDriveDownload />
             <span>{t('backup.download')}</span>
           </Button>
-          {persistenceStatus === 'save-error' ? (
+          {conflict ? (
+            <Button onClick={reloadPage} size="sm" type="button" variant="outline">
+              {t('common.reloadApp')}
+            </Button>
+          ) : persistenceStatus === 'save-error' ? (
             <Button
               onClick={library.retryWorkspaceSaving}
               size="sm"
@@ -126,7 +127,7 @@ export function WorkspacePersistenceStatus({ library }: { library: PersistenceLi
           ) : null}
         </div>
       </div>
-      {/* A reload would lose the unsaved work, so unlike elsewhere no reload is offered. */}
+      {/* A reload would lose the unsaved work, so only a conflict, which nothing else resolves, offers one. */}
       {backupUnavailable ? (
         <ErrorNotice className="mt-2">{t('backup.unavailableUnsaved')}</ErrorNotice>
       ) : null}

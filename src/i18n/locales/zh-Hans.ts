@@ -786,6 +786,9 @@ export default {
     technicalDetails: '技术详情',
     sessionOnlyTitle: '仅限本次会话的音色库',
     sessionOnlyBody: '浏览器中现有的数据没有被更改。本次会话的更改将在页面关闭时丢失。',
+    conflictTitle: '另一个标签页更改了你的音色库',
+    conflictBody:
+      '此标签页中的更改仍在这里，但尚未保存，因此不会覆盖另一个标签页的更改。请下载备份以保留它们，然后重新加载以打开已保存的音色库。',
     saveErrorTitle: '音色库更改尚未安全保存',
     saveErrorBody: '最新更改仍保留在此页面中，但浏览器无法保存。请在浏览器存储可用后重试。',
     loadErrors: {
