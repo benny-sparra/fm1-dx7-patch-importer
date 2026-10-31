@@ -123,7 +123,8 @@
     {
       "files": [
         "src/components/midi/midi-connection-required-dialog.tsx",
-        "src/components/midi/fm1-bank-selection-dialog.tsx"
+        "src/components/midi/fm1-bank-selection-dialog.tsx",
+        "src/components/midi/voice-channels-dialog.tsx"
       ],
       "rules": {
         // Opening a modal must move focus inside it; these dialogs focus their safe close action.

@@ -35,10 +35,10 @@ export function SettingsSelect(props: Omit<ComponentProps<'select'>, 'className'
 export function DeviceSelect({ devices, icon, label, onChange, value }: DeviceSelectProps) {
   const { t } = useTranslation()
   const selected = devices.find((device) => device.id === value)
-  // A port's name, such as macOS's USB Composite Device, needs the panel's full width; one longer
-  // still ends in an ellipsis, with the whole name in the tooltip.
+  // A port name too long for its half of the settings menu (34rem wide, so macOS's USB Composite Device fits) ends in an ellipsis, with the whole
+  // name in the tooltip.
   return (
-    <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3 sm:col-span-2">
+    <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3">
       <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
         <span className="[&_svg]:size-3.5">{icon}</span>
         {label}

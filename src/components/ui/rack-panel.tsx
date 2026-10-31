@@ -3,6 +3,7 @@ import type { ComponentProps, ComponentType, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Switch } from '@/components/ui/switch'
+import { cn } from '@/lib/utils'
 
 /**
  * The bevelled title strip, minimise control, and folding body that the editor's rack panels and
@@ -19,6 +20,7 @@ export function RackPanelTitle({
   help,
   icon: Icon,
   id,
+  tall = false,
   title,
   titleSwitch,
 }: {
@@ -33,6 +35,11 @@ export function RackPanelTitle({
   /** A Lucide icon, or a drawing of its size and stroke where Lucide has none to fit. */
   icon?: ComponentType<{ className?: string; 'aria-hidden'?: 'true' }>
   id?: string
+  /**
+   * As tall as a strip holding a 28px text field, such as the Patch banks header with its search,
+   * for a panel that takes the patch banks' place, as V16's Effects tab does.
+   */
+  tall?: boolean
   title: string
   /**
    * Makes the title the label of an on/off switch at its left, such as "Import FM1 bank A" in the
@@ -44,7 +51,12 @@ export function RackPanelTitle({
 }) {
   const Heading = `h${headingLevel}` as const
   return (
-    <div className="crt-hatch relative flex min-h-8 items-center justify-between gap-3 border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
+    <div
+      className={cn(
+        'crt-hatch relative flex items-center justify-between gap-3 border-b border-[var(--crt-shadow)] px-[9px] py-1.5',
+        tall ? 'min-h-[41px]' : 'min-h-8',
+      )}
+    >
       <Heading
         className="font-dot-matrix flex min-w-0 items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase"
         id={id}

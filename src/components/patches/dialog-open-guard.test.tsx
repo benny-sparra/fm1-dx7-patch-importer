@@ -12,9 +12,12 @@ import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-
 import { DuplicatePatchesDialog } from '@/components/patches/duplicate-patches-dialog'
 import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog'
 import { ReceiveFromFm1Dialog } from '@/components/patches/receive-from-fm1-dialog'
+import { VoiceSetupWizard } from '@/components/midi/voice-setup-wizard'
+import { VoiceChannelsDialog } from '@/components/midi/voice-channels-dialog'
 import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
 import { MidiLogStore } from '@/lib/midi-log-store'
+import { makeLibrarianMidi } from '@/test/librarian-fakes'
 import { makeWorkspaceWithCopies } from '@/test/factory-voices'
 
 // Browsers before the HTML spec changed it throw when a dialog that is already open is opened
@@ -125,6 +128,10 @@ const openDialogs = {
       onPlay={vi.fn()}
     />
   ),
+  'voice-channels': () => (
+    <VoiceChannelsDialog midi={{ channel: 1, setChannel: vi.fn() }} onClose={vi.fn()} />
+  ),
+  'voice-setup': () => <VoiceSetupWizard midi={makeLibrarianMidi()} onClose={vi.fn()} />,
   'midi-log': () => <MidiLogDialog logStore={new MidiLogStore([])} onClose={vi.fn()} />,
 }
 

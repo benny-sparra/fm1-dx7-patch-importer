@@ -2,7 +2,7 @@ import { useDndMonitor } from '@dnd-kit/core'
 import { useSortable, type AnimateLayoutChanges } from '@dnd-kit/sortable'
 import { CSS, type Transform } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
-import { useState, type KeyboardEvent } from 'react'
+import { useId, useState, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { Patch } from '@/data/patches'
@@ -32,6 +32,8 @@ type PatchButtonProps = {
   /** Offered on a Virtual Analog patch only. */
   onChangeToFm?: (patch: Patch) => void
   onCopy?: (patch: Patch) => void
+  /** Copies a patch from beyond bank D into banks A–D for the Voice aimed at, on V16. */
+  onCopyAndAssign?: (patch: Patch) => void
   onDownload?: (patch: Patch) => void
   onShare?: (patch: Patch) => void
   onEdit?: (patch: Patch) => void
@@ -52,6 +54,8 @@ type PatchButtonProps = {
   registerButton?: (patchId: string, button: HTMLButtonElement | null) => void
   /** The grid is one tab stop: only its roving slot is reachable with Tab. */
   tabIndex?: number
+  /** The V16 Voices, numbered 1–8, that play this slot's FM1 preset. */
+  voices?: readonly number[]
 }
 
 const animateWhileSorting: AnimateLayoutChanges = ({ isSorting }) => isSorting
@@ -67,6 +71,7 @@ export function PatchButton({
   move,
   onChangeToFm,
   onCopy,
+  onCopyAndAssign,
   onDownload,
   onShare,
   onEdit,
@@ -79,8 +84,18 @@ export function PatchButton({
   registerButton,
   tabIndex,
   tagsEngine = false,
+  voices = [],
 }: PatchButtonProps) {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
+  const voicesId = useId()
+  const playedBy =
+    voices.length > 0
+      ? t('voices.playedBy', {
+          voices: new Intl.ListFormat(i18n.resolvedLanguage, { type: 'conjunction' }).format(
+            voices.map((number) => t('voices.voice', { number })),
+          ),
+        })
+      : null
   // Set by a click and cleared when the selection animation finishes, so the
   // animation plays only in response to the user and never on mount.
   const [flash, setFlash] = useState(false)
@@ -178,6 +193,7 @@ export function PatchButton({
       {!disabled && (onSelect || onEdit) ? (
         <button
           aria-current={isActive ? 'true' : undefined}
+          aria-describedby={playedBy ? voicesId : undefined}
           aria-label={t('banks.sendPatch', { name: patch.name, slot: patchSlotCode(patch) })}
           className="absolute inset-0 z-0 cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
           onClick={() => {
@@ -197,7 +213,12 @@ export function PatchButton({
           }}
           ref={(button) => registerButton?.(patch.id, button)}
           tabIndex={tabIndex}
-          title={engine ? t('banks.engineTitle', { action, engine: engine.label }) : action}
+          title={[
+            engine ? t('banks.engineTitle', { action, engine: engine.label }) : action,
+            playedBy,
+          ]
+            .filter(Boolean)
+            .join('\n')}
           type="button"
         />
       ) : null}
@@ -251,6 +272,12 @@ export function PatchButton({
         ) : null}
         {engine ? <span className="sr-only">{engine.label}</span> : null}
       </span>
+      {/* Which Voices play the slot is said to assistive technology and in the tooltip only. */}
+      {playedBy ? (
+        <span className="sr-only" id={voicesId}>
+          {playedBy}
+        </span>
+      ) : null}
       {/* The heart and menu share one gap, so a full ten-character name fits beside them. */}
       {!disabled && (onToggleFavourite || onEdit || onCopy) ? (
         <span className="flex shrink-0 items-center">
@@ -263,12 +290,13 @@ export function PatchButton({
             />
           ) : null}
           {/* Above the slot's own button, like the grip, so opening it does not also play the slot. */}
-          {editSlot || onCopy ? (
+          {editSlot || onCopy || onCopyAndAssign ? (
             <PatchSlotMenu
               move={canReorder ? move : undefined}
               name={patch.name}
               onChangeToFm={onChangeToFm && isVirtualAnalog ? () => onChangeToFm(patch) : undefined}
               onCopy={onCopy && (() => onCopy(patch))}
+              onCopyAndAssign={onCopyAndAssign && (() => onCopyAndAssign(patch))}
               onDownload={onDownload && (() => onDownload(patch))}
               onEdit={editSlot && (() => editSlot(patch))}
               onReplace={onReplace && (() => onReplace(patch))}

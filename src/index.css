@@ -769,6 +769,14 @@
     background: var(--crt-btn-face);
   }
 
+  /* A switch that sits straight on its surface, with no face or bevel of its own. */
+  .midi-switch[data-flat],
+  .midi-switch[data-flat]:hover,
+  .midi-switch[data-flat]:has(:disabled):hover {
+    background: transparent;
+    border-color: transparent;
+  }
+
   /*
    * Busy, such as MIDI connecting. The handle stays in the off position but
    * blinks, so the wait looks like the switch working rather than the switch
@@ -995,12 +1003,13 @@
     box-shadow: inset 0 -14px 20px hsl(0 0% 0% / 12%);
   }
 
+  /* A faint tint only: a stronger one under the resting pointer reads as a key left pressed. */
   .synthwave-piano-key-white:hover {
     background: linear-gradient(
       180deg,
-      hsl(0 0% 100%),
-      color-mix(in srgb, var(--crt-acc-lt) 42%, var(--crt-ink)) 62%,
-      var(--crt-acc-mid)
+      var(--crt-ink) 0%,
+      color-mix(in srgb, var(--crt-ink) 80%, var(--crt-acc-mid)) 62%,
+      color-mix(in srgb, var(--crt-ink) 52%, var(--crt-acc-mid))
     );
   }
 

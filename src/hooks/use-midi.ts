@@ -47,6 +47,7 @@ import {
 } from '@/lib/midi'
 import { MidiTransferCancelledError, MidiTransferQueue } from '@/lib/midi-transfer-queue'
 import { midiActivity } from '@/lib/midi-activity'
+import { midiChannels } from '@/lib/midi-channels'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { defaultNoteVelocity } from '@/lib/note-velocity'
 import type { OfficialOpenTrackDelivery } from '@/lib/official-open-track-send'
@@ -54,6 +55,8 @@ import type { OfficialOpenTrackDelivery } from '@/lib/official-open-track-send'
 type WebMidiApi = (typeof import('webmidi'))['WebMidi']
 
 export type StartNoteOptions = {
+  /** Strikes the note on this channel rather than the note channel, such as a Voice's own. */
+  channel?: number
   /** Keeps the note out of the MIDI log, for notes a loop repeats several times a second. */
   quiet?: boolean
   velocity?: number
@@ -65,8 +68,6 @@ export type BankTransferResult =
       ok: false
       reason: 'invalid_bank' | 'no_output' | 'sysex_unavailable' | 'transport'
     }
-
-export const midiChannels = Array.from({ length: 16 }, (_, index) => index + 1)
 
 type MidiConnectionErrorCode =
   | 'disconnect_failed'
@@ -636,18 +637,23 @@ export function useMidi() {
     ],
   )
 
+  // On the note channel unless another is given, as sending a V16 Voice setup gives each Voice's.
   const sendProgramChange = useCallback(
-    (program: number) => {
+    (program: number, programChannel = channel) => {
       if (!selectedOutput) {
         appendLog(noOutputEntry('select an FM1 program'))
         return false
       }
 
       try {
-        const message = makeFm1ProgramChangeMessage(program, channel)
-        sendFm1ProgramChange(selectedOutput, channel, program)
+        const message = makeFm1ProgramChangeMessage(program, programChannel)
+        sendFm1ProgramChange(selectedOutput, programChannel, program)
         appendLog(
-          makeLogEntry('out', `Selected FM1 program ${program} on channel ${channel}.`, message),
+          makeLogEntry(
+            'out',
+            `Selected FM1 program ${program} on channel ${programChannel}.`,
+            message,
+          ),
         )
         return true
       } catch (caughtError) {
@@ -776,6 +782,7 @@ export function useMidi() {
   const startNote = useCallback(
     (note: number, label: string, options?: StartNoteOptions) => {
       const velocity = options?.velocity ?? defaultNoteVelocity
+      const noteChannel = options?.channel ?? channel
 
       if (!selectedOutput) {
         if (!options?.quiet) {
@@ -785,13 +792,13 @@ export function useMidi() {
       }
 
       try {
-        sendNoteOn(selectedOutput, channel, note, velocity)
+        sendNoteOn(selectedOutput, noteChannel, note, velocity)
         // A looping phrase sends notes several times a second, which would bury the log it
         // shares with everything else the editor sends, so it logs itself starting instead.
         if (!options?.quiet) {
           appendLog(
-            makeLogEntry('out', `Ch ${channel} Note On: ${label}`, [
-              0x90 | ((channel - 1) & 0x0f),
+            makeLogEntry('out', `Ch ${noteChannel} Note On: ${label}`, [
+              0x90 | ((noteChannel - 1) & 0x0f),
               note,
               velocity,
             ]),
@@ -818,10 +825,10 @@ export function useMidi() {
   )
 
   const stopNote = useCallback(
-    (note: number) => {
+    (note: number, noteChannel = channel) => {
       if (selectedOutput) {
         try {
-          sendNoteOff(selectedOutput, channel, note)
+          sendNoteOff(selectedOutput, noteChannel, note)
         } catch (caughtError) {
           appendLog(failureEntry(caughtError, 'MIDI note-off failed.'))
         }
@@ -917,7 +924,9 @@ export function useMidi() {
 
     const handleMidiMessage = (event: MessageEvent) => {
       if (isHighRateMidiMessage(event.data)) return
-      midiActivity.signal('in')
+      const status = event.data[0] ?? 0
+      // A channel message names its channel in the status byte's low nibble.
+      midiActivity.signal('in', status >= 0x80 && status < 0xf0 ? (status & 0x0f) + 1 : undefined)
       appendLog(makeLogEntry('in', formatMidiBytes(event.data), event.data))
     }
 

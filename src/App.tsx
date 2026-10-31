@@ -14,6 +14,7 @@ import { useEditorHistoryEntry } from '@/hooks/use-editor-history-entry'
 import { useLibrarianView } from '@/hooks/use-librarian-view'
 import { useMidi } from '@/hooks/use-midi'
 import { usePatchLibrary } from '@/hooks/use-patch-library'
+import { useVoiceSetup } from '@/hooks/use-voice-setup'
 import { LibrarianPage } from '@/routes/librarian-page'
 import { RootLayout } from '@/routes/root-layout'
 import type { Patch } from '@/data/patches'
@@ -29,6 +30,7 @@ import {
 import { fm1VaEightBitName } from '@/lib/fm1-va-eight-bit'
 import { fm1VaVirtualAnalogName } from '@/lib/fm1-va-virtual-analog'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
+import { aimedVoice, assignVoicePreset } from '@/lib/voice-setup'
 import { visibleBox, zoomRects } from '@/lib/zoom-rects'
 import {
   beginDynamicImportRecovery,
@@ -68,6 +70,7 @@ function App() {
   const toast = useToast()
   const midi = useMidi()
   const library = usePatchLibrary()
+  const { aimed, setup: voiceSetup } = useVoiceSetup()
   const [selectedPatchId, setSelectedPatchId] = useState(() => {
     const recoveryPatchId = getDynamicImportRecoveryIntent()
     if (recoveryPatchId) beginDynamicImportRecovery(recoveryPatchId)
@@ -213,9 +216,30 @@ function App() {
       ? previous
       : null
   }
+  // On V16 a slot's Program Change goes to the Voice listening on the note
+  // channel, so that Voice now plays the slot's preset, whether or not MIDI is online to send it.
+  const assignToAimedVoice = (program: number | undefined) => {
+    const voice = aimedVoice(voiceSetup, midi.channel, aimed)
+    if (
+      program !== undefined &&
+      voice !== null &&
+      resolveFirmwareProfile(midi.firmware).capabilities.multitimbral
+    ) {
+      assignVoicePreset(voice, program)
+    }
+  }
+  // Each Voice's preset on its own channel. The Voice on the note channel then plays its stored
+  // preset rather than the sound a click put in the edit buffer, so that click is forgotten.
+  const sendVoiceSetup = () => {
+    editBufferAudition.current = null
+    return voiceSetup.voices.filter(
+      (voice) => voice.preset !== null && midi.sendProgramChange(voice.preset, voice.channel),
+    ).length
+  }
   const selectPatch = (patchId: string) => {
     const patch = findPatch(patchId)
     if (!patch) return
+    assignToAimedVoice(slotProgram(patch))
     auditionPatch(patch)
     setAuditionedPatchId(patch.id)
   }
@@ -231,6 +255,7 @@ function App() {
     // selected on the way in. A double-click's first click has already selected it and sent its
     // sound, so the editor waits for that send rather than repeating both.
     const program = slotProgram(patch)
+    assignToAimedVoice(program)
     const voice = library.voices[patch.id]
     const playing = voice && currentAudition(voice, library.effects[patch.id], program)
     editBufferAudition.current = null
@@ -399,6 +424,7 @@ function App() {
               onCloseEditor={closeEditor}
               onEditPatch={(patch) => editPatch(patch.id)}
               onPlaySearchResult={playSearchResult}
+              onSendVoiceSetup={sendVoiceSetup}
               onSelectPatch={(patch) => selectPatch(patch.id)}
               view={librarianView}
             />

@@ -7,6 +7,8 @@ import britishEnglishHelp from './locales/en-GB-help'
 import britishEnglishKeyboard from './locales/en-GB-keyboard'
 import britishEnglishLibrarianDialogs from './locales/en-GB-librarian-dialogs'
 import britishEnglishOfficialOpen from './locales/en-GB-official-open'
+import britishEnglishVoiceSetup from './locales/en-GB-voice-setup'
+import britishEnglishVoices from './locales/en-GB-voices'
 import enUS from './locales/en-US'
 import es from './locales/es'
 import fr from './locales/fr'
@@ -56,6 +58,16 @@ const lazyBritishEnglish = [
     reader: '/src/components/midi/official-open-track-status.tsx',
     strings: britishEnglishOfficialOpen,
   },
+  {
+    module: '@/i18n/voices',
+    reader: '/src/components/midi/voice-strip.tsx',
+    strings: britishEnglishVoices,
+  },
+  {
+    module: '@/i18n/voice-setup',
+    reader: '/src/components/midi/voice-setup-wizard.tsx',
+    strings: britishEnglishVoiceSetup,
+  },
 ]
 
 // British English as a page sees it once every lazy chunk has added its strings.
@@ -67,7 +79,9 @@ const en = lazyBritishEnglish.reduce<Strings>(
   typeof britishEnglishLibrarianDialogs &
   typeof britishEnglishHelp &
   typeof britishEnglishKeyboard &
-  typeof britishEnglishOfficialOpen
+  typeof britishEnglishOfficialOpen &
+  typeof britishEnglishVoices &
+  typeof britishEnglishVoiceSetup
 
 const resources = {
   de: { translation: de },

@@ -21,6 +21,7 @@ import {
   Suspense,
   useDeferredValue,
   useEffect,
+  useEffectEvent,
   useId,
   useMemo,
   useRef,
@@ -58,6 +59,7 @@ import {
 import { reportBankTransferFailure } from '@/lib/monitoring'
 import {
   bankInitVoiceCount,
+  browserBanks,
   getNextWorkspaceBank,
   patchMatchesSearch,
   patchSlotCode,
@@ -67,6 +69,8 @@ import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import type { Fm1VaPresetSource } from '@/components/patches/import-fm1-va-presets-dialog'
 import { soundKey } from '@/lib/sound-key'
+import { aimedVoice } from '@/lib/voice-setup'
+import { useVoiceSetup } from '@/hooks/use-voice-setup'
 import { cn } from '@/lib/utils'
 import { crtSwitchOff } from '@/lib/crt-switch-off'
 import { useChangedSlots } from '@/hooks/use-changed-slots'
@@ -86,6 +90,11 @@ import { copyTextToClipboard } from '@/lib/copy-text'
 import { downloadFile } from '@/lib/download-file'
 import { sharedPatchPayload } from '@/lib/share-link-fragment'
 import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
+import type { V16EffectsPanel as V16EffectsPanelComponent } from '@/components/midi/v16-effects-panel'
+import type { VoiceStrip as VoiceStripComponent } from '@/components/midi/voice-strip'
+import { voiceBarClassName } from '@/components/midi/voice-bar-layout'
+import { HelpPopover } from '@/components/ui/help-popover'
+import { PortalMenu } from '@/components/ui/portal-menu'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { useToast } from '@/components/ui/toast'
@@ -132,6 +141,15 @@ const CopyPatchDialog = lazy(() =>
 
 // Results from saved banks and the catalog load, with the catalog's patch names, once the search is
 // widened.
+const VoiceStrip = lazy(() =>
+  import('@/components/midi/voice-strip').then((module) => ({ default: module.VoiceStrip })),
+)
+// V16's Effects tab opens the editor's effects panel on the FM1's shared FX group.
+const V16EffectsPanel = lazy(() =>
+  import('@/components/midi/v16-effects-panel').then((module) => ({
+    default: module.V16EffectsPanel,
+  })),
+)
 const SearchEverywhereResults = lazy(() =>
   import('@/components/patches/search-everywhere-results').then((module) => ({
     default: module.SearchEverywhereResults,
@@ -234,6 +252,8 @@ type SavedBanksRequest = { bank: string; closeMenu: () => void; mode: 'load' | '
 
 /** A copy waiting for its dialog: what is copied, how, and the bank to open on. */
 type CopyRequest = {
+  /** Plays the copy once it lands, which gives it to the V16 Voice aimed at. */
+  assign?: boolean
   bank?: string
   copy: ComponentProps<typeof CopyPatchDialog>['onCopy']
   /** Opens the editor on the copy, for a search result someone asked to edit. */
@@ -298,6 +318,8 @@ type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof WriteFm1VaPresetsDialog>['midi'] &
   ComponentProps<typeof ReceiveFromFm1Dialog>['midi'] &
   ComponentProps<typeof MidiConnectionRequiredDialog>['midi'] &
+  ComponentProps<typeof VoiceStripComponent>['midi'] &
+  ComponentProps<typeof V16EffectsPanelComponent>['midi'] &
   Pick<MidiController, 'channel' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
 type LibrarianPageProps = {
@@ -312,6 +334,11 @@ type LibrarianPageProps = {
   /** Plays a search result from a saved bank or the catalog through the FM1 edit buffer. */
   onPlaySearchResult: (voice: Dx7Voice, effects: Uint8Array | undefined) => void
   onSelectPatch: (patch: Patch) => void
+  /**
+   * Sends each Voice's preset as a Program Change on its channel, returning how many went. Without
+   * it the page shows no Voices bar.
+   */
+  onSendVoiceSetup?: () => number
   /** Held by the app so the bank and search survive the editor; the page keeps its own without it. */
   view?: LibrarianView
 }
@@ -325,6 +352,7 @@ export function LibrarianPage({
   onEditPatch,
   onPlaySearchResult,
   onSelectPatch,
+  onSendVoiceSetup,
   view,
 }: LibrarianPageProps) {
   const { i18n, t } = useTranslation()
@@ -399,6 +427,7 @@ export function LibrarianPage({
   const emptyBankImportOpenerRef = useRef<HTMLElement | null>(null)
   const [isRestoringFactoryBanks, setIsRestoringFactoryBanks] = useState(false)
   // Sending a bank first explains what it needs: a MIDI output, or the destination on the FM1.
+  const [effectsOpen, setEffectsOpen] = useState(false)
   const [sendGuide, setSendGuide] = useState<'bank-selection' | 'midi-required' | null>(null)
   const allBanksMenuRef = useDismissableDetails()
   const bankMenuRef = useDismissableDetails()
@@ -408,6 +437,48 @@ export function LibrarianPage({
   const firmwareProfile = resolveFirmwareProfile(midi.firmware)
   const sendsByPresetWrite = firmwareProfile.capabilities.presetWrite
   const workspaceBankLabel = useWorkspaceBankLabel(library)
+  // On V16 a slot click in banks A–D gives its preset to the Voice on the
+  // note channel, so each slot tags the Voices playing it.
+  const { aimed, setup: voiceSetup } = useVoiceSetup()
+  const playsVoices = firmwareProfile.capabilities.multitimbral
+  const hasAimedVoice = playsVoices && aimedVoice(voiceSetup, midi.channel, aimed) !== null
+  const showsVoiceBar = onSendVoiceSetup !== undefined && firmwareProfile.capabilities.multitimbral
+  const showsEffects = showsVoiceBar && effectsOpen
+  const voicePresetLabel = (preset: number) => {
+    const patch = patches.find((candidate) => candidate.program === preset)
+    return patch
+      ? `${patchSlotCode(patch)} ${patch.name}`
+      : patchSlotCode({
+          bank: browserBanks[Math.floor(preset / dx7BankVoiceCount)],
+          number: (preset % dx7BankVoiceCount) + 1,
+        })
+  }
+  // With the Voices on, the lit slot is the one the aimed Voice plays, and none for a Voice with
+  // no patch; two Voices on one preset light it only for the aimed one, the other keeps its tag.
+  const aimedVoicePatch = playsVoices
+    ? patches.find(
+        (candidate) =>
+          candidate.program !== undefined &&
+          candidate.program ===
+            voiceSetup.voices[aimedVoice(voiceSetup, midi.channel, aimed) ?? -1]?.preset,
+      )
+    : undefined
+  const litPatchId = playsVoices ? (aimedVoicePatch?.id ?? '') : activePatchId
+  // Selecting a Voice's tab shows the bank holding its patch.
+  const aimAtVoicePreset = (preset: number | null) => {
+    const patch = playsVoices
+      ? patches.find((candidate) => candidate.program === preset)
+      : undefined
+    if (patch) setDestinationBank(patch.bank)
+  }
+  const voiceTags = playsVoices
+    ? (patch: Patch) =>
+        patch.program === undefined
+          ? []
+          : voiceSetup.voices.flatMap((voice, index) =>
+              voice.preset === patch.program ? [index + 1] : [],
+            )
+    : undefined
   // Favourites shows in the bank rail, so its name reads wherever a bank's name would.
   const bankDisplayName = (bank: string) =>
     bank === favouritesBank ? t('favourites.title') : workspaceBankLabel(bank)
@@ -415,16 +486,18 @@ export function LibrarianPage({
     setDialogLoadError('')
     setSavedBanksRequest(request)
   }
-  const requestCopy = (patch: Patch, bank?: string) => {
+  const requestCopy = (patch: Patch, bank?: string, assign = false) => {
     setDialogLoadError('')
     setCopyRequest({
+      assign,
       bank,
       copy: (targetBank, slot) => library.copyVoice(patch.id, targetBank, slot),
       key: patch.id,
       source: patch,
-      // A favourite is a copy kept apart from the banks, with no slot to take the other sound.
+      // A favourite is a copy kept apart from the banks, with no slot to take the other sound, and
+      // a copy for a Voice leaves the patch where it was.
       swap:
-        patch.bank === favouritesBank
+        patch.bank === favouritesBank || assign
           ? undefined
           : (targetBank, slot) => library.swapVoices(patch.id, targetBank, slot),
     })
@@ -918,6 +991,21 @@ export function LibrarianPage({
   // clearing the search returns to.
   const followPlayedPatch = (patch: Patch) => setDestinationBank(patch.bank)
 
+  // A copy for a Voice is played once the library holds it, so the click sends the copy rather
+  // than the sound the slot held before.
+  const [copyToPlay, setCopyToPlay] = useState<string | null>(null)
+  const playCopy = useEffectEvent((patchId: string) => {
+    const patch = library.patches.find((candidate) => candidate.id === patchId)
+    if (!patch) return
+    followPlayedPatch(patch)
+    onSelectPatch(patch)
+  })
+  useEffect(() => {
+    if (copyToPlay === null) return
+    setCopyToPlay(null)
+    playCopy(copyToPlay)
+  }, [copyToPlay])
+
   // Choosing a bank asks to see that bank, so it leaves the results.
   const selectDestinationBank = (bank: string) => {
     setSearch('')
@@ -1072,7 +1160,59 @@ export function LibrarianPage({
         </ErrorBoundary>
       ) : null}
       <PatchGrid
-        activePatchId={activePatchId}
+        panel={
+          showsEffects ? (
+            <ErrorBoundary
+              fallback={
+                <LoadFailedNotice className="py-4" message={t('voices.effectsLoadFailed')} />
+              }
+            >
+              <Suspense fallback={<div aria-hidden="true" className="synthwave-panel min-h-svh" />}>
+                <V16EffectsPanel midi={midi} />
+              </Suspense>
+            </ErrorBoundary>
+          ) : undefined
+        }
+        voiceBar={
+          showsVoiceBar ? (
+            // V16's eight Voices, tabs fused to the panel below, with a ⋮ menu of Recall voices and
+            // Voice channels…. V16 is always multitimbral, so there is no switch.
+            <div className={voiceBarClassName()}>
+              {
+                <ErrorBoundary
+                  fallback={
+                    <div className="col-span-full row-start-2">
+                      <LoadFailedNotice message={t('voices.loadFailed')} />
+                    </div>
+                  }
+                >
+                  <Suspense
+                    fallback={
+                      <div
+                        aria-hidden="true"
+                        className="col-start-1 row-start-2 h-[11rem] min-[23.5rem]:h-[6.5rem] min-[62rem]:h-8"
+                      />
+                    }
+                  >
+                    <VoiceStrip
+                      effectsOpen={showsEffects}
+                      midi={midi}
+                      onEffectsOpenChange={setEffectsOpen}
+                      onAim={aimAtVoicePreset}
+                      onSendSetup={onSendVoiceSetup}
+                      presetLabel={voicePresetLabel}
+                      renderHelp={(label, text) => <HelpPopover label={label} text={text} />}
+                      renderMenu={({ items, menuLabel }) => (
+                        <PortalMenu items={items} menuLabel={menuLabel} triggerLabel={menuLabel} />
+                      )}
+                    />
+                  </Suspense>
+                </ErrorBoundary>
+              }
+            </div>
+          ) : undefined
+        }
+        activePatchId={litPatchId}
         isMidiOffline={!midi.hasMidiOutput}
         actions={
           <>
@@ -1377,6 +1517,10 @@ export function LibrarianPage({
           toast.success(t('toasts.demoLoaded', { bank: bankDisplayName(destinationBank) }))
         }}
         onPatchCopy={requestCopy}
+        // A Voice plays only a preset the FM1 stores, in banks A–D.
+        onPatchCopyAndAssign={
+          hasAimedVoice ? (patch) => requestCopy(patch, browserBanks[0], true) : undefined
+        }
         onPatchDropOnBank={(patch, bank) =>
           bank === favouritesBank ? dropOnFavourites(patch) : requestCopy(patch, bank)
         }
@@ -1401,6 +1545,7 @@ export function LibrarianPage({
         onPatchToggleFavourite={toggleFavourite}
         patchOrigin={showsFavourites ? favouriteOrigin : undefined}
         tagsEngines={midi.firmware.kind === 'fm1-va'}
+        voiceTags={voiceTags}
         changedSlots={changedSlots}
         patches={visiblePatches}
         reorderable={!isSearching}
@@ -1722,7 +1867,16 @@ export function LibrarianPage({
           <Suspense fallback={null}>
             <CopyPatchDialog
               initialBank={copyRequest.bank}
-              library={library}
+              library={
+                copyRequest.assign
+                  ? {
+                      ...library,
+                      workspaceBanks: library.workspaceBanks.filter((bank) =>
+                        (browserBanks as readonly string[]).includes(bank),
+                      ),
+                    }
+                  : library
+              }
               onClose={() => setCopyRequest(null)}
               onCopy={copyRequest.copy}
               opensEditor={copyRequest.edit}
@@ -1746,6 +1900,7 @@ export function LibrarianPage({
                   followPlayedPatch(target)
                   onEditPatch(target)
                 }
+                if (copyRequest.assign) setCopyToPlay(target.id)
               }}
               onSwap={copyRequest.swap}
               onSwapped={(target, changed) => {

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useState, type ComponentProps } from 'react'
+import type { ComponentProps } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
@@ -54,29 +54,17 @@ afterEach(() => {
 })
 
 describe('RootLayout note channel', () => {
-  it('puts the note channel in the header and keeps it in step with the Settings menu', async () => {
-    function Page() {
-      const [channel, setChannel] = useState(1)
-      return (
-        <ToastProvider>
-          <RootLayout midi={{ ...midi, channel, setChannel }}>
-            <div>Library</div>
-          </RootLayout>
-        </ToastProvider>
-      )
-    }
-    render(<Page />)
-    const header = screen.getByRole('banner')
+  it('leaves the note channel to the Settings menu, not the header', () => {
+    render(
+      <ToastProvider>
+        <RootLayout midi={midi}>
+          <div>Library</div>
+        </RootLayout>
+      </ToastProvider>,
+    )
 
-    // The Settings menu's select, which sits earlier in the header, spells channels in full.
-    const headerPicker = within(header)
-      .getAllByRole('combobox', { name: 'Note channel' })
-      .find((picker) => within(picker).queryByRole('option', { name: 'Ch 4' }))
-    await userEvent.setup().selectOptions(headerPicker!, 'Ch 4')
-
-    const pickers = screen.getAllByRole<HTMLSelectElement>('combobox', { name: 'Note channel' })
-    expect(pickers.length).toBeGreaterThanOrEqual(2)
-    expect(pickers.map((picker) => picker.value)).toEqual(pickers.map(() => '4'))
+    expect(screen.getAllByRole('combobox', { name: 'Note channel' })).toHaveLength(1)
+    expect(screen.queryByRole('option', { name: 'Ch 4' })).toBeNull()
   })
 })
 

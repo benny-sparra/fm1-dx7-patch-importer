@@ -1001,7 +1001,6 @@ export default {
   },
   root: {
     skipToContent: 'Aller au contenu principal',
-    channelShort: 'Can. {{number}}',
     subtitle: 'éditeur et bibliothécaire',
     intro:
       'Modifiez, organisez et transférez les sons du FM1, ou <link>importez des banques SysEx DX7</link>.',
@@ -1018,7 +1017,6 @@ export default {
       'Projet open source indépendant, non affilié à M-VAVE ou Yamaha et non approuvé par ces sociétés.',
   },
   settings: {
-    description: 'Choisissez la langue de l’interface, les ports MIDI et les canaux.',
     output: 'Sortie',
     inputMonitor: 'Entrée de contrôle',
     firmware: 'Firmware du FM1',
@@ -1036,6 +1034,101 @@ export default {
     defaultChannel: 'Valeur FM1 par défaut : canal 2',
     noDevice: 'Aucun périphérique détecté',
     noDeviceSelected: 'Aucun périphérique sélectionné',
+  },
+  voices: {
+    channelShort: 'Can. {{number}}',
+    voice: 'Voice {{number}}',
+    playedBy: 'Joué par {{voices}}',
+    copyAndAssign: 'Copier dans A–D et attribuer…',
+    loadFailed: 'Les Voices 1 à 8 n’ont pas pu être chargées.',
+    effectsLoadFailed: 'Impossible de charger les effets.',
+    strip: 'Voices 1 à 8',
+    aim: 'Voice {{number}}, can. {{channel}} : {{patch}}, {{state}}',
+    stateOn: 'activée',
+    stateOff: 'désactivée',
+    voiceSwitch: 'Voice {{number}} activée',
+    noPatch: 'Aucun son',
+    recall: 'Rappeler les Voices',
+    recallHint:
+      'Choisit à nouveau le preset de chaque Voice et envoie les effets. N’enregistre rien.',
+    effectsTab: 'Effets',
+    effectsTitle: 'Effets',
+    menu: 'Actions des Voices',
+    recallOffline: 'Passez le MIDI en ligne pour rappeler les Voices.',
+    recallEmpty:
+      'Aucune des Voices 1 à 8 n’a encore de son : cliquez sur l’une d’elles, puis sur un son des banques A à D.',
+    recallFailed:
+      'Certains sons ne sont pas parvenus au FM1. Vérifiez la sortie MIDI, puis rappelez les Voices.',
+    recalled: 'Rappelées : {{voices}}',
+    channels: 'Canaux des Voices…',
+    channelsTitle: 'Canaux des Voices (tels que réglés sur votre FM1)',
+    setupShort: 'Réglez d’abord les Voices du FM1.',
+    setupHelpLabel: 'le réglage des Voices du FM1',
+    setupSteps:
+      'Le FM1 demande à être préparé une seule fois : mettez les Voices 1 à 8 sur les canaux 1 à 8, activez chacune (On), n’en laissez aucune sur All, puis appuyez sur SAVE et choisissez Globe. Une Voice sur Off ignore son son et ne le reprend pas quand elle repasse sur On, et une Voice sur All prend chaque son envoyé.',
+    setupOpen: 'Régler les Voices…',
+    setupLoadFailed: '« Régler les Voices » n’a pas pu être chargé.',
+    channelsNote: 'Modifier ceci ne change pas le FM1 : réglez-y les mêmes canaux.',
+    channelsClose: 'Fermer les canaux des Voices',
+    channelOf: 'Canal de la Voice {{number}}',
+  },
+  voiceSetup: {
+    title: 'Régler les Voices',
+    close: 'Fermer « Régler les Voices »',
+    stepOf: 'Étape {{current}} sur {{total}}',
+    steps: {
+      channels: 'Canaux',
+      fx: 'Canal d’effets',
+      save: 'Enregistrer',
+      test: 'Test sonore',
+      done: 'Terminé',
+    },
+    channels: {
+      step1: 'Sur le FM1, ouvrez PRESETS et sélectionnez une Voice.',
+      step2: 'Réglez son MIDI Ch sur le canal ci-dessous et son On/Off sur On.',
+      step3:
+        'Faites de même pour chaque Voice. Un FM1 neuf a la Voice 1 sur All : mettez-la sur Ch 1.',
+      expected: 'Canaux attendus par l’éditeur',
+      voiceOnChannel: '{{voice}} : {{channel}}',
+    },
+    fx: {
+      step: 'Sur le FM1, réglez Effect Ch sur {{channel}}.',
+      why: 'L’éditeur envoie les changements de l’onglet Effects sur son canal d’effets ; le FM1 doit écouter sur celui-ci.',
+    },
+    save: {
+      step: 'Sur le FM1, appuyez sur SAVE et choisissez Globe.',
+      why: 'Sans cela, éteindre le FM1 rétablit tous les réglages.',
+    },
+    test: {
+      heading: '{{voice}}, {{channel}}',
+      instruction: 'Jouez la note, puis dites si {{voice}} l’a jouée.',
+      play: 'Jouer la note',
+      playAgain: 'Rejouer',
+      playing: 'Lecture…',
+      heard: 'Entendu',
+      notHeard: 'Pas entendu',
+      heardTwo: 'Deux sons entendus',
+      skip: 'Passer',
+      notHeardHint:
+        '{{voice}} : pas entendue. Vérifiez sur le FM1 qu’elle est sur On et sur {{channel}}.',
+      heardTwoHint:
+        '{{voice}} : une autre Voice a joué aussi. Vérifiez que la Voice 1 n’est pas sur All.',
+      progress: 'Résultats',
+      stateNone: 'non testée',
+      stateHeard: 'entendue',
+      stateNotHeard: 'pas entendue',
+      stateTwo: 'deux sons',
+      stateSkipped: 'passée',
+      connect: 'Passez le MIDI en ligne pour jouer la note.',
+    },
+    done: {
+      allHeard: 'Chaque Voice a joué sur son propre canal.',
+      issues:
+        'Certaines Voices demandent un nouvel essai. Utilisez Retour pour les tester de nouveau.',
+      notTested: '{{voice}} : non testée.',
+      finish: 'Terminer',
+      toast: 'Voices réglées : {{heard}} sur 8 entendues.',
+    },
   },
   help: {
     open: 'Aide : comment utiliser l’éditeur et le bibliothécaire FM1',
@@ -1099,8 +1192,6 @@ export default {
   editor: {
     selectedVoiceNotice:
       'Sur la V16, ce son va à la Voice sélectionnée sur l’écran du FM1. Les modifications ne jouent en direct que sur le canal 1 ou All ; pour l’entendre, sélectionnez la Voice du canal {{channel}}.',
-    effectsSharedNotice:
-      'Sur V16, ce sont les effets du FM1, partagés par les huit Voices. Le FM1 ne les conserve pas avec ce patch : appuyez sur SAVE et choisissez Globe sur le FM1 pour les garder.',
     back: 'Retour aux banques',
     editName: 'Modifier le nom du son',
     patchName: 'Nom du son',

@@ -170,7 +170,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        Settings menu's setting. Choosing a Voice's channel and clicking a patch then loads it
        on that Voice. Handed to a Sonnet session on 2026-10-25 (branch
        `feature/header-note-channel`); the owner may restyle it later.
-    2. **A Voice strip, opt-in.** A switch such as "Play several Voices", offered where the
+    2. **A Voice strip, opt-in.** _Built (2026-10-26)._ A switch such as "Play several Voices", offered where the
        profile says the firmware is multitimbral (a new capability from V16), turns the header's
        note channel picker into a strip of eight Voices, never a second row of tabs beside the
        banks (the owner's choice, 2026-10-25, from a mock-up). Each shows its number, its
@@ -180,7 +180,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        - Clicking a patch in banks A–D assigns it to the Voice aimed at, with a Program Change
          on that Voice's channel. A patch beyond D offers "Copy into A–D and assign".
        - Each slot tags the Voices playing it (V1, V3), so a preset two Voices share shows.
-       - **Send setup** sends one Program Change per Voice; **Channels** sets which channel each
+       - **Recall Voices** sends one Program Change per Voice; **Channels** sets which channel each
          Voice listens on, Voice n on channel n by default.
        - It says to set the Voices up once on the FM1: channels 1–8, all On, none on All (a
          Voice on All takes every Program Change), then SAVE → Globe.
@@ -188,6 +188,13 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        - Switching it off leaves the plain note channel picker.
        - The one current setup is kept between visits, as the note channel is, which makes it a
          stored format (`AGENTS.md`'s legacy rules); the strip works without it.
+         _Done (2026-10-26): **Play several Voices** in Settings, offered from V16 (`multitimbral`),
+         swaps the header's **Ch** box for the lazy `VoiceStrip`. A Voice aims by setting the note
+         channel, so the Voice on the note channel is the one a slot click assigns (the last clicked
+         wins when two share one); **Copy into A–D and assign…** in a slot's menu beyond bank D copies
+         through the copy dialog limited to A–D and then plays the copy. **Recall Voices** sends one
+         Program Change per Voice with a patch, through `useMidi`'s `sendProgramChange` given the
+         Voice's channel. It cost the entry 1,857 B gzip. Not yet tried on the orange FM1._
     3. **Edit from a Voice.** Opens the normal editor on that slot, playing on that Voice's
        channel, and says "Select Voice n on the FM1", since the editor cannot select it. Off
        channel 1 live parameter changes do not arrive, so the editor sends the whole voice once
@@ -259,7 +266,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     - A patch's effects in the library no longer travel with it on V16; whatever was last sent
       or loaded on the FM1 is what all eight Voices hear.
     - Effects belong to the setup, not to a Voice. A setup could store one effects setting and
-      send its 24 controllers with **Send setup**: switches, types, and parameters.
+      send its 24 controllers with **Recall Voices**: switches, types, and parameters.
     - It cannot choose an FX group, store one, or set the effect order: no known message does,
       so those stay on the FM1. Sending a setup's effects changes the live group, unsaved until
       SAVE.
@@ -269,11 +276,24 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       1. **Now, small:** on V16 the panel says it edits the FM1's effects, shared by all
          Voices, and that the FM1 does not keep them with the patch. The firmware setting
          already says so; the editor is where people change them.
-      2. **With the Voice strip (step 2):** a standalone effects editor opened from the strip,
-         beside **Send setup**, reusing the effects panel and editing the current setup's
-         effects. On V16 the patch editor's panel then points to it.
+      2. **With the Voice strip (step 2) — done (2026-10-27, Ben's decisions):** an **Effects**
+         tab after the eight Voice tabs opens the editor's effects panel on the FM1's shared FX
+         group. Its values are kept in `fm1-v16-effects` (a versioned localStorage record, all
+         off to start); opening the tab sends nothing, an edit sends only the controllers it
+         changed, and **Recall Voices** sends all 24 after the Program Changes. The patch
+         editor keeps its panel on V16 with one line naming the tab. No undo: the effects are
+         not part of a patch.
       3. **With sets (step 4):** each set stores its effects, and the Effects tab edits the
          set's as well as the live ones. Other firmware never sees a change.
+  - **Set up Voices… wizard — built (2026-10-27, the owner's request).** The editor cannot read or
+    set the Voices' channels or On/Off (`docs/fm1-research.md`, "Setting a Voice's channel or
+    On/Off from outside"), so the one-time FM1 setup is a wizard in the Voices ⋮ menu that also
+    opens by itself the first time V16 connects (kept by `fm1-voice-setup-guided`). Five screens: the channels (PRESETS → MIDI Ch and On/Off, Voice 1
+    off All), the FX channel, SAVE → Globe, a sound test (one Note On and Off of middle C on each
+    Voice's channel, answered Heard it, Didn't hear it, or Heard two sounds), and a summary.
+    _Not confirmed on hardware:_ where the FM1 keeps **Effect Ch** (the wizard says only "on the
+    FM1"), and whether SAVE → Globe stores every Voice's channel and On/Off. The orange FM1 needs
+    a run of the sound test.
   - **Questions for a hardware run first** (the run of 2026-10-26, `hardware-runs/stock-v16-voices-2026-10-26.md`,
     answered two of the four and left the others open):
     - Do CC 7 and CC 10 on one Voice's channel set only that Voice's level and pan? Test two held
@@ -289,8 +309,11 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       _Open: not run._
     - Does a Voice switched Off ignore a Program Change, so a setup cannot switch Voices on?
       _Answered (2026-10-26): yes. A Voice that is Off ignores it and does not take it when
-      switched back On, and the editor cannot see that a Voice is Off. **Send setup** to an Off
+      switched back On, and the editor cannot see that a Voice is Off. **Recall Voices** to an Off
       Voice silently does nothing, so the strip has to say Voices must be On._
+    - Does CC 70–93 on the effect channel disturb a Voice set to that same channel? The Effects
+      tab sends on the effect channel (2 by default), which Voice 2 also listens on.
+      _Open: not run._
     - Does one dump per gesture feel usable while holding a Voice selected on the FM1?
       _Open: not run._
     - Which channel do the FM1's own key presses arrive on with several Voices?
@@ -301,6 +324,15 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
     - Also settled (2026-10-26): with Voices 1–8 On on channels 1–8 and none on All, a Program
       Change reaches only the Voice on its channel, for all eight, so step 2's one Program Change
       per Voice works as planned. A Voice on All takes every Program Change.
+  - **Open research question:** is there a MIDI message that sets the Voices' channels and
+    On/Off on V16, found in the firmware or captured from M-VAVE's own tools? It would allow a true
+    one-click switch between modes. It needs a capture, and an approval recorded in `AGENTS.md`,
+    before anything sends it; `F0 22 24 36` stays **Dangerous / excluded**. Until then the Voices
+    live in the editor (decided 2026-10-27): V16 is always multitimbral, so the Voice tabs show
+    whenever the firmware is V16 (Ben's request, 2026-10-27), with no Multitimbral mode switch;
+    Voice 1 is aimed by default, the one-time FM1 setup steps show until a Voice has a patch, and
+    a set-up FM1 plays single-sound on Voice 1's channel. `enabled` stays in `fm1-voice-setup`
+    unread.
   - **Questions to discuss:**
     - **The word Voice.** `AGENTS.md` uses voice for DX7 voice data (the voice editor, Init
       voice), and also says names printed on the FM1 stay as printed, which makes V16's Voice a
@@ -335,7 +367,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
        all eight Voices took only their own Program Change; a Voice that is Off ignores it; the
        keys send on channel 1 whichever Voice is selected; CC 7 was not run, since no tool to hand
        sends it. This changes the plan in two ways, and nothing else: the strip's note on setting
-       up the Voices must say each is On as well as on its own channel, since **Send setup** to an
+       up the Voices must say each is On as well as on its own channel, since **Recall Voices** to an
        Off Voice does nothing the editor can see, and a key press cannot be used to learn the
        selected Voice's channel._
     3. **Design the strip.** The mock-up of 2026-10-25 showed the hard parts: at desktop width

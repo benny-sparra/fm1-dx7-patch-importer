@@ -216,7 +216,6 @@ export default {
   },
   root: {
     skipToContent: 'Skip to main content',
-    channelShort: 'Ch {{number}}',
     subtitle: 'editor & librarian',
     intro: 'Edit, organise and transfer FM1 patches, or <link>import DX7 SysEx banks</link>.',
     synthAlt: 'M-VAVE FM1 synthesiser front panel',
@@ -232,7 +231,6 @@ export default {
       'Independent, open-source project. Not affiliated with or endorsed by M-VAVE or Yamaha.',
   },
   settings: {
-    description: 'Choose the interface language, MIDI ports, and channels.',
     output: 'Output',
     inputMonitor: 'Input monitor',
     firmware: 'FM1 firmware',
@@ -250,6 +248,13 @@ export default {
     defaultChannel: 'FM1 default: channel 2',
     noDevice: 'No device found',
     noDeviceSelected: 'No device selected',
+  },
+  voices: {
+    voice: 'Voice {{number}}',
+    playedBy: 'Played by {{voices}}',
+    copyAndAssign: 'Copy into A–D and assign…',
+    loadFailed: 'Voices 1–8 could not be loaded.',
+    effectsLoadFailed: 'The effects could not be loaded.',
   },
   help: {
     open: 'Help: how to use the FM1 editor and librarian',

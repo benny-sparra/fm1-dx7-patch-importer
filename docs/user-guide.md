@@ -86,14 +86,57 @@ selected preset, which it drops when you change preset. They arrive in well unde
 
 M-VAVE's V16 moved the FM1's effect controls to other MIDI controllers, and the app sends them
 there. On V16 every Voice shares one set of effects rather than each preset keeping its own, so
-playing a patch from its slot leaves the FM1's effects as they are. A patch's effects go to the FM1
-only when you change them in the editor. Press **SAVE**
-and choose **Globe** on the FM1 to keep them; the editor's Effects panel says the same on V16. V16 plays eight Voices, each on its own MIDI channel, and the firmware badge's tooltip says so. A patch the app sends goes to the Voice selected on the FM1's screen, and edits in the editor reach it as you make them only while that Voice is on channel 1 or All, so the editor says so in a notification when it opens on V16: select the Voice on the app's note channel to hear the patch you are editing. Choose the channel of the Voice you want in the **Note channel** picker in the header (the **Ch** box beside the MIDI switch, also in **Settings**), then click a patch. Patches still reach V16's edit buffer. To keep a
+playing a patch from its slot leaves the FM1's effects as they are. The patch editor has no effects
+panel on V16; change them in the **Effects** tab beside the Voices. Press **SAVE**
+and choose **Globe** on the FM1 to keep them. V16 plays eight Voices, each on its own MIDI channel, and the firmware badge's tooltip says so. A patch the app sends goes to the Voice selected on the FM1's screen, and edits in the editor reach it as you make them only while that Voice is on channel 1 or All, so the editor says so in a notification when it opens on V16: select the Voice on the app's note channel to hear the patch you are editing. Choose the channel of the Voice you want in the **Note channel** picker in **Settings**, then click a patch. Patches still reach V16's edit buffer. To keep a
 patch there, open **SAVE** from one of the FM1's voice editing pages, such as OSC, and choose
 **Preset**: from the preset screen or GLOBE, SAVE offers only ALL and Globe. V16 can also send a bank back to the library: connect the FM1 by USB, choose **Receive from
 the FM1…** in a bank's menu or **Library actions**, and choose **Next** so the app is listening
 before you choose **GLOBE → Export** on the FM1. Without a USB host the FM1 starts sending, then
 says **Receive Timeout**; start Export again while the app listens.
+
+#### Playing several Voices on V16
+
+On V16 the FM1 plays eight Voices, each with its own patch and MIDI channel, so once the FM1 is
+identified as running V16 the editor shows them as Voice 1 to Voice 8 tabs fused to the top of the
+Patch banks panel, with a ⋮ menu at the right holding **Recall voices**, **Set up Voices…**, and **Voice channels…** (a grid
+of eight on a phone). There is nothing to switch on: Voice 1 is selected to start with, so if you
+never touch the tabs the editor works as it always has, on the **Note channel** in **Settings**.
+Each tab has its own small light, the Voice's On switch: it only records whether you have that
+Voice On on the FM1, which the app cannot read, so switching it does not aim at the Voice or send
+anything. The app keeps the setup for your next visit.
+
+The FM1 needs setting up once for this (step 1 below, and the bar says so until a Voice has a
+patch). After that it still works as a single-sound FM1 on channel 1, since notes and patches reach
+only the Voice on their channel.
+
+1. Set the Voices up once on the FM1. The first time V16 connects, **Set up Voices…** opens by itself; it is also in the ⋮ menu. The
+   wizard lists the steps on the FM1 (channels, the effect channel, then **SAVE** → **Globe**) and
+   checks them by ear: the editor plays one short middle C on each Voice's channel, and you answer
+   **Heard it**, **Didn't hear it**, or **Heard two sounds** (a sign that a Voice is still on
+   **All**). It sends only those notes, nothing else. It opens by itself only once. By hand: put Voice 1 to Voice 8 on channels 1 to 8, switch each one
+   **On**, leave none on **All**, then press **SAVE** and choose **Globe**. A Voice that is Off
+   ignores the patch the app gives it, and does not take it when switched back On; a Voice on All
+   takes every patch the app sends to any Voice. The app cannot read or change these settings.
+2. Click a Voice's tab to aim at it (a Voice that is off can still be aimed at): the note channel becomes its channel, so the keyboard plays it. The slot it plays lights up, and the bank holding it opens.
+3. Click a patch in banks A to D to give it to that Voice. The app sends the patch's Program Change
+   on the Voice's channel, as any slot click does, and each slot's tooltip names the Voices
+   playing it. A Voice points at an FM1 preset, A01 to D32, never at a copy of the patch, so
+   the FM1 plays what it stores there: send banks A to D to the FM1 first.
+4. A patch in a bank after D has no FM1 preset. Choose **Copy into A–D and assign…** in its ⋮ menu
+   to copy it into a slot in banks A to D and give that slot to the Voice.
+5. **Recall voices** sends every Voice that has a patch its Program Change again, on its own channel,
+   and then the effects, for instance after the FM1 was switched on. **Channels** sets which channel each Voice listens
+   on, Voice n on channel n unless you change it, and repeats the setup steps above.
+
+The **Effects** tab after Voice 8 is the FM1's one shared set of effects, which all eight Voices
+play. It swaps the patch banks for the same effects panel the patch editor has on other firmware, and a Voice tab
+brings the banks back. Opening it sends nothing; changing a control sends just that control, on
+the effect channel, and **Recall voices** sends all of them. The app cannot read the FM1's effects,
+so the tab shows what it last sent (kept in this browser, all off to start), and the FM1 keeps
+them only after you press **SAVE** and choose **Globe**. It has no undo, and it does not choose
+the FM1's effect group or its order. The patch editor's Effects panel still works on V16, with a
+line pointing to the tab.
 
 Baud Girl's firmware also chooses a bank's destination differently. When a bank arrives it asks **Replace Bank
 A?** and starts on bank A, whichever bank you sent: turn **ALGORITHM** until the question names
@@ -116,7 +159,7 @@ shows as **Not identified**, and the app sends it patches as parameter changes.
 
 M-VAVE's Official Open, which the app names **M-VAVE OPEN**, is an eight-track groovebox: tracks 1
 to 7 listen on MIDI channels 1 to 7, and track 8 on channel 10. A patch you click, open, or edit
-goes to the track on the **Note channel** (the picker in the header, also in **Settings**), as an unsaved edit of the project, and only when that
+goes to the track on the **Note channel** (the picker in **Settings**), as an unsaved edit of the project, and only when that
 track runs DX7: before each patch the app asks the FM1 which engine every track runs. If the track
 runs another engine, or the note channel reaches no track, nothing is sent and the app says how to
 fix it: set the track to DX7 on the FM1, or choose the note channel of a DX7 track. Save the
@@ -374,7 +417,7 @@ Each phrase is written for its own tempo, which the **Tempo** slider takes up wh
 
 A phrase is sent live over MIDI and is never stored on the FM1: it has nothing to do with the unit's own sequencer. It stops when you close the keyboard, when the MIDI output disconnects or you choose another, and when you change the note channel. Browsers slow down a hidden tab, so a phrase left playing in one skips the notes it would play late rather than sending them all at once. Its notes are kept out of the MIDI log, which records only that a phrase started and stopped.
 
-If a note keeps sounding on the FM1 after you let go of it, press the **MIDI panic** button, the octagon with an exclamation mark next to **Keyboard**. It sends a note-off for every note on the note channel in the header, and stops a phrase that is playing. A notification confirms it was sent.
+If a note keeps sounding on the FM1 after you let go of it, press the **MIDI panic** button, the octagon with an exclamation mark next to **Keyboard**. It sends a note-off for every note on the note channel (in **Settings**), and stops a phrase that is playing. A notification confirms it was sent.
 
 ## Keyboard shortcuts
 

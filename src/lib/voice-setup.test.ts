@@ -2,11 +2,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  aimedVoice,
+  aimVoice,
   assignVoicePreset,
+  getAimedVoice,
   getVoiceSetup,
   resetVoiceSetupForTests,
   setVoiceChannel,
-  setVoiceSetupEnabled,
+  setVoiceOn,
   subscribeVoiceSetup,
 } from './voice-setup'
 
@@ -14,6 +17,7 @@ const key = 'fm1-voice-setup'
 
 const defaultVoices = Array.from({ length: 8 }, (_, index) => ({
   channel: index + 1,
+  on: true,
   preset: null,
 }))
 
@@ -23,6 +27,14 @@ const version1Fixture =
   '{"enabled":true,"version":1,"voices":[{"preset":0,"channel":1},{"preset":127,"channel":9},' +
   '{"preset":null,"channel":3},{"preset":42,"channel":16},{"preset":5,"channel":5},' +
   '{"preset":null,"channel":6},{"preset":64,"channel":2},{"preset":null,"channel":8}]}'
+
+// A version 2 record exactly as it is written now.
+const version2Fixture =
+  '{"enabled":true,"version":2,"voices":[{"preset":0,"channel":1,"on":true},' +
+  '{"preset":127,"channel":9,"on":false},{"preset":null,"channel":3,"on":true},' +
+  '{"preset":42,"channel":16,"on":false},{"preset":5,"channel":5,"on":true},' +
+  '{"preset":null,"channel":6,"on":true},{"preset":64,"channel":2,"on":true},' +
+  '{"preset":null,"channel":8,"on":false}]}'
 
 beforeEach(() => {
   localStorage.clear()
@@ -42,21 +54,62 @@ describe('voice setup', () => {
     expect(getVoiceSetup()).toEqual({ enabled: false, voices: defaultVoices })
   })
 
-  it('reads a version 1 record back as it was stored', () => {
+  it('reads a version 1 record, which has no switches, with every Voice on', () => {
     localStorage.setItem(key, version1Fixture)
     expect(getVoiceSetup()).toEqual({
       enabled: true,
       voices: [
-        { channel: 1, preset: 0 },
-        { channel: 9, preset: 127 },
-        { channel: 3, preset: null },
-        { channel: 16, preset: 42 },
-        { channel: 5, preset: 5 },
-        { channel: 6, preset: null },
-        { channel: 2, preset: 64 },
-        { channel: 8, preset: null },
+        { channel: 1, on: true, preset: 0 },
+        { channel: 9, on: true, preset: 127 },
+        { channel: 3, on: true, preset: null },
+        { channel: 16, on: true, preset: 42 },
+        { channel: 5, on: true, preset: 5 },
+        { channel: 6, on: true, preset: null },
+        { channel: 2, on: true, preset: 64 },
+        { channel: 8, on: true, preset: null },
       ],
     })
+  })
+
+  it('reads a version 2 record back as it was stored, each Voice with its own switch', () => {
+    localStorage.setItem(key, version2Fixture)
+    expect(getVoiceSetup().voices.map((voice) => voice.on)).toEqual([
+      true,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+    ])
+    expect(getVoiceSetup().voices[1]).toEqual({ channel: 9, on: false, preset: 127 })
+  })
+
+  it('reads a switch that is not a boolean as on', () => {
+    storeRecord({ enabled: true, version: 2, voices: [{ preset: 1, channel: 2, on: 'no' }] })
+    expect(getVoiceSetup().voices[0]).toEqual({ channel: 2, on: true, preset: 1 })
+  })
+
+  it('switches a Voice on or off without touching the others or the note channel', () => {
+    const listener = vi.fn()
+    subscribeVoiceSetup(listener)
+    setVoiceOn(2, false)
+    expect(getVoiceSetup().voices.map((voice) => voice.on)).toEqual([
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+    ])
+    expect(getAimedVoice()).toBeNull()
+    expect(JSON.parse(localStorage.getItem(key) ?? '').voices[2].on).toBe(false)
+    setVoiceOn(2, false)
+    setVoiceOn(8, false)
+    expect(listener).toHaveBeenCalledTimes(1)
   })
 
   it('returns the same snapshot until an update replaces it', () => {
@@ -97,7 +150,10 @@ describe('voice setup', () => {
 
   it('fills a short voices list and cuts a long one to eight entries', () => {
     storeRecord({ enabled: false, version: 1, voices: [{ channel: 12, preset: 3 }] })
-    expect(getVoiceSetup().voices).toEqual([{ channel: 12, preset: 3 }, ...defaultVoices.slice(1)])
+    expect(getVoiceSetup().voices).toEqual([
+      { channel: 12, on: true, preset: 3 },
+      ...defaultVoices.slice(1),
+    ])
 
     resetVoiceSetupForTests()
     storeRecord({
@@ -121,16 +177,22 @@ describe('voice setup', () => {
   })
 
   it('reads an unknown or newer version as the default and leaves it stored when read', () => {
-    const newer = JSON.stringify({ enabled: true, version: 2, voices: [{ preset: 1, channel: 2 }] })
+    const newer = JSON.stringify({ enabled: true, version: 3, voices: [{ preset: 1, channel: 2 }] })
     localStorage.setItem(key, newer)
     expect(getVoiceSetup()).toEqual({ enabled: false, voices: defaultVoices })
     expect(localStorage.getItem(key)).toBe(newer)
   })
 
+  it('writes the retired enabled flag back as it was read, which nothing shows any more', () => {
+    storeRecord({ enabled: true, version: 2, voices: [{ preset: 1, channel: 2, on: true }] })
+    setVoiceChannel(1, 3)
+    expect(JSON.parse(localStorage.getItem(key) ?? '')).toMatchObject({ enabled: true, version: 2 })
+  })
+
   it('replaces a newer version only once the user changes the setup', () => {
-    localStorage.setItem(key, JSON.stringify({ enabled: true, version: 2, voices: [] }))
-    setVoiceSetupEnabled(true)
-    expect(JSON.parse(localStorage.getItem(key) ?? '')).toMatchObject({ enabled: true, version: 1 })
+    localStorage.setItem(key, JSON.stringify({ enabled: true, version: 3, voices: [] }))
+    setVoiceChannel(0, 5)
+    expect(JSON.parse(localStorage.getItem(key) ?? '')).toMatchObject({ version: 2 })
   })
 
   it('works from the default when reading storage throws', () => {
@@ -148,34 +210,32 @@ describe('voice setup', () => {
     })
     const listener = vi.fn()
     subscribeVoiceSetup(listener)
-    setVoiceSetupEnabled(true)
-    expect(getVoiceSetup().enabled).toBe(true)
+    setVoiceChannel(0, 5)
+    expect(getVoiceSetup().voices[0]?.channel).toBe(5)
     expect(listener).toHaveBeenCalledTimes(1)
   })
 
-  it('notifies subscribers and writes version 1 on each update', () => {
+  it('notifies subscribers and writes version 2 on each update', () => {
     const listener = vi.fn()
     const unsubscribe = subscribeVoiceSetup(listener)
-    setVoiceSetupEnabled(true)
     assignVoicePreset(2, 31)
     setVoiceChannel(7, 16)
-    expect(listener).toHaveBeenCalledTimes(3)
+    expect(listener).toHaveBeenCalledTimes(2)
     expect(JSON.parse(localStorage.getItem(key) ?? '')).toEqual({
-      enabled: true,
-      version: 1,
+      enabled: false,
+      version: 2,
       voices: defaultVoices.map((voice, index) =>
         index === 2 ? { ...voice, preset: 31 } : index === 7 ? { ...voice, channel: 16 } : voice,
       ),
     })
     unsubscribe()
-    setVoiceSetupEnabled(false)
-    expect(listener).toHaveBeenCalledTimes(3)
+    setVoiceChannel(1, 3)
+    expect(listener).toHaveBeenCalledTimes(2)
   })
 
   it('does not notify or write when an update changes nothing', () => {
     const listener = vi.fn()
     subscribeVoiceSetup(listener)
-    setVoiceSetupEnabled(false)
     assignVoicePreset(0, null)
     setVoiceChannel(0, 1)
     expect(listener).not.toHaveBeenCalled()
@@ -193,5 +253,42 @@ describe('voice setup', () => {
     assignVoicePreset(3, 99)
     resetVoiceSetupForTests()
     expect(getVoiceSetup().voices[3]?.preset).toBe(99)
+  })
+})
+
+describe('the Voice aimed at', () => {
+  it('is the Voice listening on the note channel', () => {
+    expect(aimedVoice(getVoiceSetup(), 3)).toBe(2)
+  })
+
+  it('is none when no Voice listens on the note channel', () => {
+    expect(aimedVoice(getVoiceSetup(), 12)).toBeNull()
+  })
+
+  it('is the Voice clicked last when two share the note channel', () => {
+    setVoiceChannel(5, 2)
+    expect(aimedVoice(getVoiceSetup(), 2)).toBe(1)
+
+    aimVoice(5)
+
+    expect(aimedVoice(getVoiceSetup(), 2)).toBe(5)
+  })
+
+  it('follows the note channel away from the Voice clicked last', () => {
+    aimVoice(5)
+    expect(aimedVoice(getVoiceSetup(), 4)).toBe(3)
+  })
+
+  it('tells subscribers once per change, and is not stored', () => {
+    const listener = vi.fn()
+    subscribeVoiceSetup(listener)
+
+    aimVoice(4)
+    aimVoice(4)
+    aimVoice(8)
+
+    expect(getAimedVoice()).toBe(4)
+    expect(listener).toHaveBeenCalledTimes(1)
+    expect(localStorage.getItem(key)).toBeNull()
   })
 })

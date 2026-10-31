@@ -8,11 +8,18 @@ import '@/i18n'
 import App from '@/App'
 import { ToastProvider } from '@/components/ui/toast'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
+import {
+  assignVoicePreset,
+  getVoiceSetup,
+  resetVoiceSetupForTests,
+  setVoiceChannel,
+} from '@/lib/voice-setup'
 
 const sendProgramChange = vi.hoisted(() => vi.fn(() => true))
 const sendVoice = vi.hoisted(() => vi.fn(async () => true))
 const sendEffectSettings = vi.hoisted(() => vi.fn(async () => true))
 const midiState = vi.hoisted(() => ({
+  channel: 1,
   firmware: { kind: 'checking' } as Fm1Firmware,
   sysexAvailable: true,
 }))
@@ -32,6 +39,7 @@ const loadPatchEditorPage = vi.hoisted(() =>
 
 vi.mock('@/hooks/use-midi', () => ({
   useMidi: () => ({
+    channel: midiState.channel,
     firmware: midiState.firmware,
     sendEffectSettings,
     sendProgramChange,
@@ -73,14 +81,19 @@ vi.mock('@/routes/librarian-page', () => ({
     onEditPatch,
     onPlaySearchResult,
     onSelectPatch,
+    onSendVoiceSetup,
   }: {
     activePatchId: string
     onBankDeleted: (bank: string) => void
     onEditPatch: (patch: { id: string }) => void
     onPlaySearchResult: (voice: unknown, effects: Uint8Array | undefined) => void
     onSelectPatch: (patch: { id: string }) => void
+    onSendVoiceSetup?: () => number
   }) => (
     <>
+      <button onClick={() => onSendVoiceSetup?.()} type="button">
+        Recall voices
+      </button>
       <p>Lit slot: {activePatchId || 'none'}</p>
       <button onClick={() => onEditPatch({ id: 'patch-1' })} type="button">
         Edit Piano
@@ -133,6 +146,9 @@ vi.mock('@/routes/load-patch-editor-page', () => ({
 }))
 
 afterEach(() => {
+  localStorage.clear()
+  resetVoiceSetupForTests()
+  midiState.channel = 1
   midiState.firmware = { kind: 'checking' }
   midiState.sysexAvailable = true
   cleanup()
@@ -368,6 +384,88 @@ describe('App slot audition', () => {
     await user.click(screen.getByRole('button', { name: 'Edit Virtual Analog' }))
 
     expect(sendProgramChange).not.toHaveBeenCalled()
+  })
+})
+
+describe('App with V16’s Voices', () => {
+  function renderApp() {
+    render(
+      <ToastProvider>
+        <App />
+      </ToastProvider>,
+    )
+    return userEvent.setup()
+  }
+
+  function playSeveralVoices() {
+    midiState.firmware = { identity: 'FM-1_016', kind: 'mvave' }
+  }
+
+  it('gives the Voice on the note channel the slot’s preset with one Program Change', async () => {
+    playSeveralVoices()
+    midiState.channel = 3
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    expect(getVoiceSetup().voices.map((voice) => voice.preset)).toEqual([
+      null,
+      null,
+      0,
+      null,
+      null,
+      null,
+      null,
+      null,
+    ])
+    // useMidi sends a program on the note channel, which aiming set to Voice 3's.
+    expect(sendProgramChange).toHaveBeenCalledExactlyOnceWith(0)
+  })
+
+  it('gives a Voice nothing for a patch beyond bank D, which has no FM1 preset', async () => {
+    playSeveralVoices()
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Play Pad' }))
+
+    expect(getVoiceSetup().voices.every((voice) => voice.preset === null)).toBe(true)
+  })
+
+  it('gives a Voice nothing while the FM1 plays one Voice', async () => {
+    midiState.firmware = { identity: 'FM-1_015', kind: 'mvave' }
+    const user = renderApp()
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    expect(getVoiceSetup().voices.every((voice) => voice.preset === null)).toBe(true)
+  })
+
+  it('sends each Voice its preset as a Program Change on its own channel', async () => {
+    playSeveralVoices()
+    assignVoicePreset(0, 5)
+    assignVoicePreset(4, 40)
+    setVoiceChannel(4, 12)
+    const user = renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'Recall voices' }))
+
+    expect(sendProgramChange.mock.calls).toEqual([
+      [5, 1],
+      [40, 12],
+    ])
+  })
+
+  it('plays a slot again after Recall voices, which replaced what the edit buffer held', async () => {
+    playSeveralVoices()
+    assignVoicePreset(0, 0)
+    const user = renderApp()
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+    await waitFor(() => expect(sendVoice).toHaveBeenCalledOnce())
+    await sendVoice.mock.results[0].value
+
+    await user.click(screen.getByRole('button', { name: 'Recall voices' }))
+    await user.click(screen.getByRole('button', { name: 'Play Piano' }))
+
+    await waitFor(() => expect(sendVoice).toHaveBeenCalledTimes(2))
   })
 })
 

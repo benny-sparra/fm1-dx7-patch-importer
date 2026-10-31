@@ -1,12 +1,15 @@
 /**
  * The Voice setup of M-VAVE's V16, kept between visits. The `fm1-voice-setup` key is stored data
- * under the legacy rules in AGENTS.md. Version 1 is
- * `{ "version": 1, "enabled": boolean, "voices": [{ "preset": number | null, "channel": number }
- * × 8] }`: `preset` is the FM1 preset number 0–127 (A01 is 0, D32 is 127) or null for none,
- * `channel` is 1–16, and `enabled` is the "Play several Voices" switch.
+ * under the legacy rules in AGENTS.md. Version 2 is
+ * `{ "version": 2, "enabled": boolean, "voices": [{ "preset": number | null, "channel": number,
+ * "on": boolean } × 8] }`: `preset` is the FM1 preset number 0–127 (A01 is 0, D32 is 127) or null
+ * for none, `channel` is 1–16, `on` is the Voice's own switch in the strip (the editor's note of
+ * whether the Voice is On on the FM1, which it cannot read), and `enabled` is the old Multitimbral
+ * mode switch, kept and written back as read but no longer shown or read (V16 is always multitimbral). Version 1 has no `on`: every Voice reads as on.
  */
 const storageKey = 'fm1-voice-setup'
-const storedVersion = 1
+const storedVersion = 2
+const firstVersion = 1
 
 const voiceCount = 8
 const lastPreset = 127
@@ -14,6 +17,8 @@ const lastChannel = 16
 
 export type VoiceSetupEntry = {
   channel: number
+  /** The Voice's own switch: whether the editor takes it as On on the FM1. */
+  on: boolean
   preset: number | null
 }
 
@@ -23,6 +28,9 @@ export type VoiceSetup = {
 }
 
 const listeners = new Set<() => void>()
+// The Voice last clicked in the strip, which settles which Voice a note channel two Voices share
+// aims at. It is not stored: the stored format above is fixed.
+let aimed: number | null = null
 // Kept in memory as well, so a setup made while storage is blocked still works this session. It is
 // loaded on first use and replaced as a whole, so the snapshot stays the same until it changes.
 let current: VoiceSetup | null = null
@@ -32,6 +40,7 @@ function makeDefaultSetup(): VoiceSetup {
     enabled: false,
     voices: Array.from({ length: voiceCount }, (_, index) => ({
       channel: index + 1,
+      on: true,
       preset: null,
     })),
   }
@@ -49,18 +58,19 @@ function normaliseSetup(record: unknown): VoiceSetup {
   const fallback = makeDefaultSetup()
   if (typeof record !== 'object' || record === null) return fallback
   const { enabled, version, voices } = record as Record<string, unknown>
-  if (version !== storedVersion) return fallback
+  if (version !== storedVersion && version !== firstVersion) return fallback
   const stored = Array.isArray(voices) ? (voices as unknown[]) : []
   return {
     enabled: enabled === true,
     voices: fallback.voices.map((voice, index) => {
       const entry = stored[index]
-      const { channel, preset } =
+      const { channel, on, preset } =
         typeof entry === 'object' && entry !== null
           ? (entry as Record<string, unknown>)
-          : { channel: undefined, preset: undefined }
+          : { channel: undefined, on: undefined, preset: undefined }
       return {
         channel: isChannel(channel) ? channel : voice.channel,
+        on: on !== false,
         preset: isPreset(preset) ? preset : null,
       }
     }),
@@ -100,16 +110,17 @@ function updateVoice(voice: number, change: Partial<VoiceSetupEntry>) {
   const existing = setup.voices[voice]
   if (!existing) return
   const entry = { ...existing, ...change }
-  if (entry.channel === existing.channel && entry.preset === existing.preset) return
+  if (
+    entry.channel === existing.channel &&
+    entry.on === existing.on &&
+    entry.preset === existing.preset
+  ) {
+    return
+  }
   updateVoiceSetup({
     ...setup,
     voices: setup.voices.map((item, index) => (index === voice ? entry : item)),
   })
-}
-
-export function setVoiceSetupEnabled(enabled: boolean) {
-  const setup = getVoiceSetup()
-  if (setup.enabled !== enabled) updateVoiceSetup({ ...setup, enabled })
 }
 
 /** Gives Voice `voice` (0–7, Voice 1 is 0) the preset 0–127, or none for null; others are refused. */
@@ -117,9 +128,40 @@ export function assignVoicePreset(voice: number, preset: number | null) {
   if (preset === null || isPreset(preset)) updateVoice(voice, { preset })
 }
 
+/** Switches Voice `voice` (0–7, Voice 1 is 0) on or off in the strip, which aims at nothing. */
+export function setVoiceOn(voice: number, on: boolean) {
+  updateVoice(voice, { on })
+}
+
 /** Puts Voice `voice` (0–7, Voice 1 is 0) on MIDI channel 1–16; any other channel is refused. */
 export function setVoiceChannel(voice: number, channel: number) {
   if (isChannel(channel)) updateVoice(voice, { channel })
+}
+
+/** Remembers Voice `voice` (0–7) as the one aimed at, for `aimedVoice` to prefer. */
+export function aimVoice(voice: number) {
+  if (aimed === voice || !Number.isInteger(voice) || voice < 0 || voice >= voiceCount) return
+  aimed = voice
+  listeners.forEach((listener) => listener())
+}
+
+export function getAimedVoice() {
+  return aimed
+}
+
+/**
+ * The Voice (0–7) a slot click reaches: the one listening on the note channel, since its Program
+ * Change goes there. Aiming at a Voice sets the note channel to its channel, so the Voice aimed at
+ * last wins when two share one. None when no Voice listens on the note channel.
+ */
+export function aimedVoice(
+  setup: VoiceSetup,
+  noteChannel: number,
+  preferred: number | null = getAimedVoice(),
+) {
+  if (preferred !== null && setup.voices[preferred]?.channel === noteChannel) return preferred
+  const index = setup.voices.findIndex((voice) => voice.channel === noteChannel)
+  return index === -1 ? null : index
 }
 
 export function subscribeVoiceSetup(listener: () => void) {
@@ -132,4 +174,5 @@ export function subscribeVoiceSetup(listener: () => void) {
 /** Forgets the setup held in memory, so each test starts from storage. */
 export function resetVoiceSetupForTests() {
   current = null
+  aimed = null
 }

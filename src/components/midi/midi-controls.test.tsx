@@ -397,3 +397,11 @@ describe('MidiFirmwareBadge', () => {
     expect(screen.getByText('M-VAVE firmware, V15')).toBeTruthy()
   })
 })
+
+describe('Settings menu on V16', () => {
+  it('has no Multitimbral mode switch, since V16 always plays the Voices', () => {
+    renderSettings({ identity: 'FM-1_016', kind: 'mvave' })
+
+    expect(screen.queryByRole('switch', { name: 'Multitimbral mode' })).toBeNull()
+  })
+})

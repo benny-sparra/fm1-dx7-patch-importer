@@ -21,7 +21,6 @@ import { MidiActivityLeds } from '@/components/midi/midi-activity-leds'
 import { MidiLogButton } from '@/components/midi/midi-log-button'
 import { FxHardwareProbe } from '@/components/midi/fx-hardware-probe'
 import type { Fm1VaPresetProbe as PresetProbe } from '@/components/midi/fm1-va-preset-probe'
-import { NoteChannelSelect } from '@/components/midi/note-channel-select'
 import { MidiPanicButton } from '@/components/midi/midi-panic-button'
 import type { OfficialOpenTrackStatus as TrackStatus } from '@/components/midi/official-open-track-status'
 import { PianoKeyboard } from '@/components/midi/piano-keyboard'
@@ -54,6 +53,7 @@ const OfficialOpenTrackStatus = lazy(() =>
   })),
 )
 
+// Only someone who switches on V16's Voices loads the strip that shows them.
 // The intro marks the words that open the bank sources as <link>…</link>, so each language puts
 // the link where its own sentence needs it.
 function splitIntroLink(intro: string) {
@@ -72,7 +72,6 @@ type RootLayoutProps = {
     ComponentProps<typeof HelpButton>['midi'] &
     ComponentProps<typeof MidiFirmwareBadge>['midi'] &
     ComponentProps<typeof MidiPanicButton>['midi'] &
-    ComponentProps<typeof NoteChannelSelect>['midi'] &
     ComponentProps<typeof MidiSettingsMenu>['midi'] &
     ComponentProps<typeof PianoKeyboard>['midi'] &
     ComponentProps<typeof PresetProbe>['midi'] &
@@ -92,6 +91,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const showHardwareBay = !compact && showColorwayImage
   const showFm1VaImage = showHardwareBay && midi.firmware.kind === 'fm1-va'
   const [fm1VaColorwayImages, setFm1VaColorwayImages] = useState<Fm1ColorwayImages>()
+  const firmwareProfile = resolveFirmwareProfile(midi.firmware)
   const colorwayImage = ((showFm1VaImage && fm1VaColorwayImages) || fm1ColorwayImages)[colorway]
   // Switching MIDI off switches off the screen in the photo like a CRT, and it stays dark until
   // MIDI is back. A page that opens offline keeps the photo as it is. Once the screen is dark it
@@ -199,7 +199,6 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                   className="inline-flex min-h-8 min-w-0 flex-1 items-center gap-2 sm:flex-none"
                   midi={midi}
                 />
-                <NoteChannelSelect midi={midi} />
                 <span className="flex sm:order-last">
                   <MidiPanicButton midi={midi} />
                 </span>
@@ -248,7 +247,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           </div>
 
           <MidiConnectionError midi={midi} />
-          {resolveFirmwareProfile(midi.firmware).capabilities.trackEngineRead ? (
+          {firmwareProfile.capabilities.trackEngineRead ? (
             <ErrorBoundary>
               <Suspense fallback={null}>
                 <OfficialOpenTrackStatus midi={midi} />

@@ -23,7 +23,14 @@ export class MidiActivityStore {
   private frames: Partial<Record<MidiActivityDirection, number>> = {}
   private timers: Partial<Record<MidiActivityDirection, number>> = {}
 
+  /** The channels lit, as a bit mask: channel n is bit n − 1. */
+  private channelMask = 0
+  private channelFrames = new Map<number, number>()
+  private channelTimers = new Map<number, number>()
+
   readonly getSnapshot = () => this.snapshot
+
+  readonly getChannelSnapshot = () => this.channelMask
 
   readonly subscribe = (listener: () => void) => {
     this.listeners.add(listener)
@@ -32,9 +39,38 @@ export class MidiActivityStore {
     }
   }
 
-  signal(direction: MidiActivityDirection) {
+  /**
+   * Lights `channel`'s indicator, as the Voices' lights show traffic on a Voice's channel. Heard
+   * from `signal`, so a message on a channel lights it beside the IN or OUT LED.
+   */
+  private signalChannel(channel: number) {
+    if (!Number.isInteger(channel) || channel < 1 || channel > 16) return
+    window.cancelAnimationFrame(this.channelFrames.get(channel) ?? 0)
+    window.clearTimeout(this.channelTimers.get(channel))
+    this.setChannel(channel, true)
+    this.channelFrames.set(
+      channel,
+      window.requestAnimationFrame(() => {
+        this.channelTimers.set(
+          channel,
+          window.setTimeout(() => this.setChannel(channel, false), midiActivityLitMs),
+        )
+      }),
+    )
+  }
+
+  private setChannel(channel: number, lit: boolean) {
+    const bit = 1 << (channel - 1)
+    const next = lit ? this.channelMask | bit : this.channelMask & ~bit
+    if (next === this.channelMask) return
+    this.channelMask = next
+    this.listeners.forEach((listener) => listener())
+  }
+
+  signal(direction: MidiActivityDirection, channel?: number) {
     // Nothing shows the LEDs, so there is nothing to light.
     if (this.listeners.size === 0) return
+    if (channel !== undefined) this.signalChannel(channel)
     window.cancelAnimationFrame(this.frames[direction] ?? 0)
     window.clearTimeout(this.timers[direction])
     this.set(direction, true)
