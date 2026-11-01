@@ -102,6 +102,7 @@ type VirtualAnalogEditorPageProps = {
     | 'selectedInputId'
     | 'selectedOutputId'
     | 'sendEffectParameter'
+    | 'sendProgramChange'
     | 'sysexAvailable'
   >
   onBack: () => void
@@ -192,7 +193,16 @@ export function VirtualAnalogEditorPage({
   const saveMenuRef = useDismissableDetails()
   const presetsMenuRef = useDismissableDetails()
   const program = patch.program
-  const canCheck = soundControl.canSend && reader.canRead
+  const canCheck =
+    soundControl.canSend &&
+    reader.canRead &&
+    resolveFirmwareProfile(midi.firmware).capabilities.programChanges
+  // Opening the editor selected the slot's program through the output and channel then in use.
+  // Once either changes or the output goes away, the FM1 may play another preset, which takes the
+  // same controllers as other settings, so going live selects the program again first.
+  const outputConnected = midi.outputs.some((device) => device.id === midi.selectedOutputId)
+  const programRoute = outputConnected ? `${midi.selectedOutputId}/${midi.channel}` : ''
+  const programSelectedOn = useRef(programRoute)
 
   // The session sends through this ref. It follows committed renders only, and a layout effect
   // updates it before the passive effects below or any later event can send through it.
@@ -220,6 +230,10 @@ export function VirtualAnalogEditorPage({
   // sure it is a Virtual Analog one, since FM presets read some of the same controllers as their
   // own settings. Changing the ports reads it again.
   const { readPreset } = reader
+  const { sendProgramChange } = midi
+  useEffect(() => {
+    if (programSelectedOn.current !== programRoute) programSelectedOn.current = ''
+  }, [programRoute])
   useEffect(() => {
     if (program === undefined || !canCheck) {
       editor.goLocal()
@@ -236,13 +250,17 @@ export function VirtualAnalogEditorPage({
         result = 'readFailed'
       }
       if (read.signal.aborted) return
+      if (result === 'live' && programSelectedOn.current !== programRoute) {
+        if (sendProgramChange(program)) programSelectedOn.current = programRoute
+        else result = 'readFailed'
+      }
       setChecked({ readPreset, result })
       if (result === 'live') editor.goLive()
       else editor.goLocal()
     }
     void check()
     return () => read.abort()
-  }, [canCheck, editor, program, readPreset])
+  }, [canCheck, editor, program, programRoute, readPreset, sendProgramChange])
 
   const liveStatus: LiveStatus =
     program === undefined

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import type { Dx7Voice } from '@/lib/dx7'
+import { dx7BankVoiceCount, type Dx7Voice } from '@/lib/dx7'
 import {
   favouriteSoundKeys,
   type FavouriteOrigin,
@@ -18,6 +18,7 @@ import {
   type NamedBank,
 } from '@/lib/named-bank'
 import {
+  bankInitVoiceCount,
   bankOfVoiceId,
   copyVoice as copyLibraryVoice,
   createWorkspaceBank,
@@ -48,6 +49,7 @@ import {
   loadStoredPatchLibrary,
   saveStoredNamedBank,
   saveStoredPatchLibrary,
+  type StoredWorkspaceRevision,
 } from '@/lib/patch-library-storage'
 import {
   shouldWarnBeforeUnload,
@@ -91,6 +93,8 @@ export function usePatchLibrary() {
   const persistenceController = useRef<WorkspacePersistenceController | null>(null)
 
   useEffect(() => {
+    // The stored workspace this tab last read or wrote, so a save never replaces another tab's.
+    let revision: StoredWorkspaceRevision = null
     const controller = new WorkspacePersistenceController({
       createFactory: async () => {
         const { makeFactoryPatchLibrary } = await import('@/lib/factory-patch-library')
@@ -98,6 +102,7 @@ export function usePatchLibrary() {
       },
       load: async () => {
         const stored = await loadStoredPatchLibrary()
+        revision = stored ? stored.savedAt : null
         return stored
           ? {
               bankDescriptions: stored.bankDescriptions,
@@ -118,7 +123,9 @@ export function usePatchLibrary() {
         historyRef.current = loaded
         setHistory(loaded)
       },
-      save: saveStoredPatchLibrary,
+      save: async (workspace) => {
+        revision = await saveStoredPatchLibrary(workspace, revision)
+      },
     })
     persistenceController.current = controller
     const unsubscribe = controller.subscribe(setPersistence)
@@ -205,9 +212,19 @@ export function usePatchLibrary() {
     [replaceHistory],
   )
 
+  /**
+   * Replaces a bank's patches. Given the workspace banks an import into an empty bank started with,
+   * it imports only while they are unchanged and the bank still empty, and returns null otherwise:
+   * a bank deleted or restored meanwhile moves letters, so the letter could name a full bank.
+   */
   const importBank = useCallback(
-    (bank: string, imported: Dx7Voice[]) =>
-      commit((current) => importVoices(current, bank, imported)),
+    (bank: string, imported: Dx7Voice[], emptyAmong?: readonly string[]) =>
+      commit((current) =>
+        emptyAmong &&
+        (current.workspaceBanks.join() !== emptyAmong.join() || current.loadedBanks.includes(bank))
+          ? current
+          : importVoices(current, bank, imported),
+      ),
     [commit],
   )
 
@@ -394,12 +411,20 @@ export function usePatchLibrary() {
   const saveNamedBank = useCallback(
     async (sourceBank: string, name: string, description: string) => {
       const now = new Date().toISOString()
-      const bank = createNamedBank(historyRef.current.present, sourceBank, {
-        description,
-        id: createId(),
-        name,
-        now,
-      })
+      const snapshot = historyRef.current.present
+      // An empty slot is saved as INIT VOICE, which comes with the editor's voice code.
+      const hasEmptySlot =
+        selectBankVoices(snapshot, sourceBank).length + bankInitVoiceCount(snapshot, sourceBank) <
+        dx7BankVoiceCount
+      const initVoice = hasEmptySlot
+        ? (await import('@/lib/init-voice')).makeInitDx7Voice()
+        : undefined
+      const bank = createNamedBank(
+        snapshot,
+        sourceBank,
+        { description, id: createId(), name, now },
+        initVoice,
+      )
       await saveStoredNamedBank(bank)
       setNamedBanks((current) => [bank, ...current])
       return bank

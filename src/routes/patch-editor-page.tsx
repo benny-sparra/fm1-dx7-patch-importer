@@ -110,6 +110,14 @@ type PatchEditorPageProps = {
 const algorithmParameter = getGlobalParameterDefinition('global.algorithm')
 const outputParameter = getOperatorParameterDefinition('operator.outputLevel')
 
+function voiceName(parameters: Uint8Array) {
+  return String.fromCharCode(
+    ...parameters.slice(FM1_VOICE_NAME_START, FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH),
+  )
+    .replace(/[^\x20-\x7e]/g, ' ')
+    .trimEnd()
+}
+
 export function PatchEditorPage({
   browserBackRef,
   copiedOperator,
@@ -143,8 +151,9 @@ export function PatchEditorPage({
   const [isNavigationPending, setIsNavigationPending] = useState(false)
   // Holds exactly what the user has typed into the name field, including the
   // trailing spaces the stored name trims away, so the space bar works while
-  // typing a two-word name.
-  const [nameDraft, setNameDraft] = useState<string | null>(null)
+  // typing a two-word name. It holds only while the parameters it was typed into are shown, so
+  // undo, redo, compare, and revert show their own name.
+  const [nameDraft, setNameDraft] = useState<{ parameters: Uint8Array; text: string } | null>(null)
   const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
   const [isOperatorRackCollapsed, setIsOperatorRackCollapsed] = useState(false)
   const [isEffectsCollapsed, setIsEffectsCollapsed] = useState(false)
@@ -186,26 +195,18 @@ export function PatchEditorPage({
     editor.synchronize(patch.id, openingSend)
   }, [canSync, editor, openingSend, patch.id])
 
-  const storedName = useMemo(
-    () =>
-      String.fromCharCode(
-        ...parameters.slice(FM1_VOICE_NAME_START, FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH),
-      )
-        .replace(/[^\x20-\x7e]/g, ' ')
-        .trimEnd(),
-    [parameters],
-  )
-  const liveName = nameDraft ?? storedName
+  const storedName = useMemo(() => voiceName(parameters), [parameters])
+  const liveName = nameDraft?.parameters === parameters ? nameDraft.text : storedName
 
   const updateName = (name: string) => {
     if (editor.getState().isComparing) return
-    setNameDraft(name)
     editor.editName(name)
+    setNameDraft({ parameters: displayedParameters(editor.getState()), text: name })
   }
 
   const commitName = () => {
     setNameDraft(null)
-    editor.sendName(liveName)
+    editor.sendName(voiceName(displayedParameters(editor.getState())))
   }
 
   const saveToLibrary = () =>

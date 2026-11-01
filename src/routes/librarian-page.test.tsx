@@ -57,7 +57,7 @@ const library = makeLibrarianLibrary({
   bankNames: { A: 'Studio Favourites', B: 'Electric Keys' },
   deleteBank: vi.fn(),
   effects: {},
-  getBankVoices: vi.fn(() => []),
+  getBankVoices: vi.fn(() => makeDemoVoices()),
   importBank: vi.fn(),
   loadDemoBank: vi.fn(),
   loadedBanks: ['A', 'B'],
@@ -322,7 +322,7 @@ describe('LibrarianPage transfer analytics', () => {
       channel: 6,
       stage: 'page',
       sysexAvailable: true,
-      voiceCount: 0,
+      voiceCount: 32,
     })
   })
 
