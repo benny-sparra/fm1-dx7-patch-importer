@@ -7,8 +7,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
+import { reloadPage } from '@/lib/reload-page'
 
 import { WorkspacePersistenceStatus } from './workspace-persistence-status'
+
+vi.mock('@/lib/reload-page', () => ({ reloadPage: vi.fn() }))
 
 type Status = PatchLibrary['persistenceStatus']
 
@@ -130,6 +133,19 @@ describe('WorkspacePersistenceStatus', () => {
     await user.click(within(alert).getByRole('button', { name: 'Retry saving' }))
 
     expect(library.retryWorkspaceSaving).toHaveBeenCalledTimes(1)
+  })
+
+  it('says another tab saved first and offers a reload rather than a retry', async () => {
+    const user = userEvent.setup()
+    await setLocale('de')
+    renderStatus(makeLibrary('save-error', { code: 'conflict', detail: '' }))
+
+    const alert = screen.getByRole('alert')
+    expect(within(alert).getByText('Ein anderer Tab hat Ihre Bibliothek geändert')).toBeTruthy()
+    expect(within(alert).queryByRole('button', { name: 'Speichern erneut versuchen' })).toBeNull()
+    await user.click(within(alert).getByRole('button', { name: 'App neu laden' }))
+
+    expect(reloadPage).toHaveBeenCalledTimes(1)
   })
 
   it('warns that a session-only workspace is lost on close, with no retry', () => {

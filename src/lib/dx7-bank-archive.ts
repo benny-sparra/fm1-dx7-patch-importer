@@ -28,13 +28,22 @@ function isBankHeader(bytes: Uint8Array<ArrayBuffer>, start: number) {
   )
 }
 
-/** Each bank dump in the file, from its F0 to its F7 or the end of the file. */
+/**
+ * Each bank dump in the file, from its F0 to its F7, the next F0, or the end of the file. A dump
+ * missing its F7 ends where the next begins, so it reads as damaged without swallowing that one.
+ */
 function findBankMessages(bytes: Uint8Array<ArrayBuffer>) {
   const messages: Uint8Array<ArrayBuffer>[] = []
   let start = bytes.indexOf(0xf0)
   while (start !== -1) {
     const end = bytes.indexOf(0xf7, start)
-    const next = end === -1 ? bytes.length : end + 1
+    const nextStart = bytes.indexOf(0xf0, start + 1)
+    const next =
+      nextStart !== -1 && (end === -1 || nextStart < end)
+        ? nextStart
+        : end === -1
+          ? bytes.length
+          : end + 1
     if (isBankHeader(bytes, start)) messages.push(bytes.slice(start, next))
     start = bytes.indexOf(0xf0, next)
   }

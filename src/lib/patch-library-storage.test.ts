@@ -15,6 +15,7 @@ import {
   saveStoredNamedBank,
   saveStoredPatchLibrary,
 } from '@/lib/patch-library-storage'
+import { installFakeIndexedDb } from '@/test/fake-indexed-db'
 
 type FakeRequest<T> = {
   error: DOMException | null
@@ -549,11 +550,11 @@ describe('saveStoredPatchLibrary', () => {
   it('upgrades the database without replacing the existing workspace store', async () => {
     const fake = installIndexedDb()
     fake.database.objectStoreNames.contains.mockReturnValueOnce(true).mockReturnValueOnce(false)
-    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary(), null)
 
     fake.openRequest.onupgradeneeded?.()
     await openDatabase(fake.openRequest)
-    fake.writeRequest.onsuccess?.()
+    fake.readRequest.onsuccess?.()
     fake.transaction.oncomplete?.()
     await saving
 
@@ -564,14 +565,14 @@ describe('saveStoredPatchLibrary', () => {
 
   it('resolves only after the write transaction commits', async () => {
     const fake = installIndexedDb()
-    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary(), null)
     let settled = false
     void saving.finally(() => {
       settled = true
     })
 
     await openDatabase(fake.openRequest)
-    fake.writeRequest.onsuccess?.()
+    fake.readRequest.onsuccess?.()
     await Promise.resolve()
     await Promise.resolve()
 
@@ -579,7 +580,7 @@ describe('saveStoredPatchLibrary', () => {
 
     fake.transaction.oncomplete?.()
 
-    await expect(saving).resolves.toBe('current')
+    await expect(saving).resolves.toEqual(expect.any(String))
     expect(fake.put).toHaveBeenCalledWith(
       expect.objectContaining({
         bankDescriptions: {},
@@ -595,10 +596,10 @@ describe('saveStoredPatchLibrary', () => {
 
   it('rejects when the write transaction aborts after its request succeeds', async () => {
     const fake = installIndexedDb()
-    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary(), null)
 
     await openDatabase(fake.openRequest)
-    fake.writeRequest.onsuccess?.()
+    fake.readRequest.onsuccess?.()
     fake.transaction.error = new DOMException('Write aborted', 'AbortError')
     fake.transaction.onabort?.()
 
@@ -608,10 +609,10 @@ describe('saveStoredPatchLibrary', () => {
 
   it('rejects when the write transaction fails after its request succeeds', async () => {
     const fake = installIndexedDb()
-    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary(), null)
 
     await openDatabase(fake.openRequest)
-    fake.writeRequest.onsuccess?.()
+    fake.readRequest.onsuccess?.()
     fake.transaction.error = new DOMException('Commit failed', 'UnknownError')
     fake.transaction.onerror?.()
 
@@ -635,7 +636,9 @@ describe('saveStoredPatchLibrary', () => {
     fake.transaction.oncomplete?.()
 
     await expect(saving).resolves.toBe('current')
-    expect(fake.database.transaction).toHaveBeenCalledWith('named-banks', 'readwrite')
+    expect(fake.database.transaction).toHaveBeenCalledWith('named-banks', 'readwrite', {
+      durability: 'strict',
+    })
     expect(fake.put).toHaveBeenCalledWith(bank)
   })
 })
@@ -979,7 +982,7 @@ describe('opening browser storage', () => {
 
   it('reports a save as unavailable, not as a failed write, when storage cannot be opened', async () => {
     const fake = installIndexedDb()
-    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary(), null)
 
     fake.openRequest.onblocked?.()
 
@@ -1008,7 +1011,7 @@ describe('opening browser storage', () => {
     fake.database.transaction.mockImplementation(() => {
       throw new DOMException('The store is missing.', 'NotFoundError')
     })
-    const saving = saveStoredPatchLibrary(emptyPatchLibrary())
+    const saving = saveStoredPatchLibrary(emptyPatchLibrary(), null)
 
     await openDatabase(fake.openRequest)
 
@@ -1088,6 +1091,95 @@ describe('loadStoredPatchLibrary workspace bank list', () => {
     await expect(loading).resolves.toMatchObject({
       voices: { 'bank-A-1': { name: 'MINE' } },
       workspaceBanks: ['A', 'B'],
+    })
+  })
+})
+
+describe('saveStoredPatchLibrary across two tabs', () => {
+  /** Puts a record straight into storage, as another tab or release would have written it. */
+  async function putRecord(record: Record<string, unknown>) {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('fm1-librarian', 2)
+      request.onupgradeneeded = () => {
+        request.result.createObjectStore('library')
+        request.result.createObjectStore('named-banks', { keyPath: 'id' })
+      }
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(new Error('open failed'))
+    })
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction('library', 'readwrite')
+      transaction.objectStore('library').put(record, 'current')
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(new Error('put failed'))
+    })
+    database.close()
+  }
+
+  function renamed(name: string) {
+    return { ...emptyPatchLibrary(), bankNames: { A: name } }
+  }
+
+  it('refuses a stale tab’s save and keeps the other tab’s work', async () => {
+    installFakeIndexedDb()
+    const first = await saveStoredPatchLibrary(renamed('Start'), null)
+    const tabA = (await loadStoredPatchLibrary())!.savedAt
+    const tabB = (await loadStoredPatchLibrary())!.savedAt
+    expect(tabA).toBe(first)
+
+    await saveStoredPatchLibrary(renamed('Tab A'), tabA)
+
+    await expect(saveStoredPatchLibrary(renamed('Tab B'), tabB)).rejects.toMatchObject({
+      code: 'conflict',
+      name: 'PatchLibraryStorageError',
+    })
+    expect((await loadStoredPatchLibrary())?.bankNames).toEqual({ A: 'Tab A' })
+  })
+
+  it('accepts consecutive saves from one tab, each changing the revision', async () => {
+    installFakeIndexedDb()
+    let revision = await saveStoredPatchLibrary(renamed('One'), null)
+    const revisions = [revision]
+    for (const name of ['Two', 'Three', 'Four']) {
+      revision = await saveStoredPatchLibrary(renamed(name), revision)
+      revisions.push(revision)
+    }
+
+    expect(new Set(revisions).size).toBe(4)
+    expect((await loadStoredPatchLibrary())?.bankNames).toEqual({ A: 'Four' })
+  })
+
+  it('refuses a first save when another tab saved the missing workspace first', async () => {
+    installFakeIndexedDb()
+    await saveStoredPatchLibrary(renamed('Other tab'), null)
+
+    await expect(saveStoredPatchLibrary(renamed('Mine'), null)).rejects.toMatchObject({
+      code: 'conflict',
+    })
+  })
+
+  it('saves over a legacy record that has no savedAt', async () => {
+    installFakeIndexedDb()
+    await putRecord({
+      loadedBanks: [],
+      version: 1,
+      voices: { 'bank-A-1': { data: new Uint8Array(128), name: 'OLD' } },
+    })
+    const loaded = await loadStoredPatchLibrary()
+
+    const saved = await saveStoredPatchLibrary(renamed('Upgraded'), loaded!.savedAt)
+
+    expect(saved).toEqual(expect.any(String))
+    expect((await loadStoredPatchLibrary())?.bankNames).toEqual({ A: 'Upgraded' })
+  })
+
+  it('refuses to write over a record from a newer release', async () => {
+    installFakeIndexedDb()
+    const revision = await saveStoredPatchLibrary(renamed('Mine'), null)
+    await putRecord({ loadedBanks: [], savedAt: revision, version: 10, voices: {} })
+
+    await expect(saveStoredPatchLibrary(renamed('Older'), revision)).rejects.toMatchObject({
+      code: 'conflict',
     })
   })
 })

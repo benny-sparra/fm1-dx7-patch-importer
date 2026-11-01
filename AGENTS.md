@@ -93,6 +93,10 @@ files when that is clearer.
 - Treat a missing workspace differently from an unreadable or incompatible workspace.
 - Keep session-only recovery explicit, preserve unsaved in-memory data after write failures, and
   serialize saves so an older snapshot cannot become final storage.
+- Another open tab, or a tab on an older release, must never overwrite the workspace. A save
+  passes `saveStoredPatchLibrary` the revision (`savedAt`) this tab last loaded or wrote, and one
+  readwrite transaction refuses it as a `conflict`, keeping the edits in memory, when the stored
+  record has moved on or is a newer version. Readwrite transactions use strict durability.
 - Cancellation, retry, disposal, and completions arriving after unmount are normal cases and require
   deterministic handling and tests.
 - Debounced saves must not lose recent edits: write any pending save immediately when the page is
@@ -277,8 +281,10 @@ open everything an earlier release could have saved.
   that does not answer send nothing and show an `InfoNotice` naming the track and how to fix it.
   Official Open drops DX7 parameter changes, which its profile marks by leaving out
   `parameterChanges`, so the voice editor sends each edit as the whole voice: a gesture as one dump
-  when it ends, a preset or randomise as one, so the FM1's undo steps match the editor's. The
-  engine names (DX7, 303, 808, PSG, PLUCK, SAMPLER) are printed on the FM1 and stay in English.
+  when it ends, a preset or randomise as one, so the FM1's undo steps match the editor's. Operator
+  mute and solo go the same way, as a dump whose silenced operators' output levels are 0, set in
+  the copy sent and never in the patch; every whole-voice sync carries them. The engine names
+  (DX7, 303, 808, PSG, PLUCK, SAMPLER) are printed on the FM1 and stay in English.
 - Of FM-1+VA's own `F0 43 00 7D` commands, the editor may send only the preset read,
   `7D 10 <slot>` (`readFm1VaPreset` in `src/lib/fm1-va-preset-read.ts`, approved 2026-10-02),
   and only while the profile's `presetRead` allows it: FM-1+VA from `FM-1_079`, the release that
@@ -872,6 +878,9 @@ open everything an earlier release could have saved.
   (`Fm1BankSelectionDialog`'s `note`) and in the sent message. Written preset by preset on
   FM-1+VA, a shorter list writes only its own presets and leaves the rest of the FM1 bank as it
   is, which the write dialog says before writing.
+- A bank can hold empty slots, as one read from the FM1 into a new bank does. A DX7 bank, sent
+  or downloaded, and a saved bank keep all 32 places and take INIT VOICE in an empty slot, without
+  a notice, since nothing is lost (`getBankVoices` with its `initVoice`).
 - Deleting a workspace bank moves every later bank up a letter. Anything that keeps a bank letter or
   slot id across the deletion, such as the selected bank or the lit slot, must follow the move or be
   cleared.

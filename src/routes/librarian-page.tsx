@@ -393,7 +393,7 @@ export function LibrarianPage({
   // arrives with the file chosen. A bank received over MIDI arrives with its patches and the slot
   // it was received from, for focus to return to.
   const [bankPendingImport, setBankPendingImport] = useState<
-    (BankMenuRequest & { file?: File }) | null
+    (Omit<BankMenuRequest, 'name'> & { file?: File }) | null
   >(null)
   // The bank menu toggle an import into an empty bank was started from, for focus to return to.
   const emptyBankImportOpenerRef = useRef<HTMLElement | null>(null)
@@ -534,11 +534,7 @@ export function LibrarianPage({
   }
   const beginImport = (bank: string, opener?: HTMLElement) => {
     if (library.loadedBanks.includes(bank)) {
-      setBankPendingImport({
-        bank,
-        name: bankDisplayName(bank),
-        opener: menuToggleOf(opener),
-      })
+      setBankPendingImport({ bank, opener: menuToggleOf(opener) })
       return
     }
     emptyBankImportOpenerRef.current = menuToggleOf(opener)
@@ -546,11 +542,14 @@ export function LibrarianPage({
     importInputRef.current?.click()
   }
 
-  // A DX7 bank has no place for a Virtual Analog or 8-Bit preset, so its slot takes INIT VOICE, which comes
-  // with the editor's voice code only when a bank needs it.
+  // A DX7 bank has no place for a Virtual Analog or 8-Bit preset, so its slot takes INIT VOICE, as
+  // an empty slot does without a word, which comes with the editor's voice code only when a bank
+  // needs it.
   const initVoiceCount = (bank: string) => bankInitVoiceCount(library, bank)
   const bankDx7Voices = async (sentBanks: readonly string[]) => {
-    const initVoice = sentBanks.some((bank) => initVoiceCount(bank) > 0)
+    const initVoice = sentBanks.some(
+      (bank) => library.getBankVoices(bank).length < dx7BankVoiceCount,
+    )
       ? (await import('@/lib/init-voice')).makeInitDx7Voice()
       : undefined
     return sentBanks.map((bank) => library.getBankVoices(bank, initVoice))
@@ -706,6 +705,7 @@ export function LibrarianPage({
     if (!file) return
     const importTarget = importTargetRef.current.consume()
     if (!importTarget) return
+    const banksAtStart = library.workspaceBanks
     setIsImporting(true)
     let archive: typeof import('@/lib/dx7-bank-archive')
     try {
@@ -720,16 +720,20 @@ export function LibrarianPage({
       const fileBanks = await archive.readDx7BankArchive(file)
       setImportError('')
       const [only] = fileBanks
-      if (fileBanks.length > 1 || !only.voices) {
+      // The import goes straight in only while the bank is the same empty one; otherwise the
+      // dialog asks, naming the bank the letter holds now.
+      if (
+        fileBanks.length > 1 ||
+        !only.voices ||
+        !library.importBank(importTarget, only.voices, banksAtStart)
+      ) {
         setBankPendingImport({
           bank: importTarget,
           file,
-          name: bankDisplayName(importTarget),
           opener: emptyBankImportOpenerRef.current,
         })
         return
       }
-      library.importBank(importTarget, only.voices)
       trackAnalyticsEvent({ data: { source: 'file' }, name: 'bank_imported' })
       toast.success(t('toasts.bankImported', { bank: bankDisplayName(importTarget) }))
     } catch (error) {
@@ -1663,7 +1667,7 @@ export function LibrarianPage({
           <Suspense fallback={null}>
             <ImportDx7BankDialog
               bank={bankPendingImport.bank}
-              bankName={bankPendingImport.name}
+              bankName={bankDisplayName(bankPendingImport.bank)}
               initialFile={bankPendingImport.file}
               library={library}
               onClose={() => {
@@ -1673,7 +1677,7 @@ export function LibrarianPage({
               // A file's patch has no FM1 effects, so it plays with the defaults, as a catalog
               // result does.
               onPlay={(voice) => onPlaySearchResult(voice, undefined)}
-              replacing={!bankPendingImport.file}
+              replacing={library.loadedBanks.includes(bankPendingImport.bank)}
             />
           </Suspense>
         </ErrorBoundary>

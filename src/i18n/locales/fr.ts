@@ -884,6 +884,9 @@ export default {
     sessionOnlyTitle: 'Bibliothèque temporaire',
     sessionOnlyBody:
       'Les données existantes du navigateur n’ont pas été modifiées. Les changements de cette session seront perdus à la fermeture de cette page.',
+    conflictTitle: 'Un autre onglet a modifié votre bibliothèque',
+    conflictBody:
+      'Vos changements dans cet onglet sont toujours là, mais ils n’ont pas été enregistrés et ne remplacent donc pas ceux de l’autre onglet. Téléchargez une sauvegarde pour les garder, puis rechargez pour ouvrir la bibliothèque telle qu’elle est enregistrée.',
     saveErrorTitle: 'Les changements ne sont pas enregistrés en sécurité',
     saveErrorBody:
       'Vos derniers changements restent disponibles ici, mais le navigateur n’a pas pu les enregistrer. Réessayez lorsque le stockage est disponible.',
