@@ -227,11 +227,12 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
           <MoreVertical aria-hidden="true" className="size-4" />
         </span>
       </summary>
-      <div className="menu-surface absolute top-[calc(100%+0.5rem)] right-0 z-30 grid w-[min(30rem,calc(100vw-2.5rem))] gap-3 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-3 text-[var(--crt-ink)] sm:grid-cols-2">
+      <div className="menu-surface absolute top-[calc(100%+0.5rem)] right-0 z-30 grid w-[min(34rem,calc(100vw-2.5rem))] gap-3 border-t-2 border-r-2 border-b-2 border-l-2 border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-bg-panel2)] p-3 text-[var(--crt-ink)] sm:grid-cols-2">
         <div className="px-1 pt-1 sm:col-span-2">
           <p className="font-dot-matrix text-base font-semibold">{t('common.settings')}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">{t('settings.description')}</p>
         </div>
+        <FirmwareStatus midi={midi} />
         <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3 sm:col-span-2">
           <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <Languages className="size-3.5" />
@@ -262,7 +263,6 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
           onChange={midi.setSelectedInputId}
           value={midi.selectedInputId}
         />
-        <FirmwareStatus midi={midi} />
         <label className="settings-option flex min-h-16 flex-col justify-start gap-2 rounded-lg border px-4 py-3">
           <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <SlidersHorizontal className="size-3.5" />
