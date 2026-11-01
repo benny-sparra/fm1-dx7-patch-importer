@@ -2,7 +2,9 @@ export default {
   fxPresets: {
     unsavedEffects: 'Effets non enregistrés',
     saveButton: 'Enregistrer',
-    saveAs: 'Enregistrer sous…',
+    newPreset: 'Nouveau preset FX…',
+    revert: 'Rétablir',
+    reverted: '« {{name}} » rétabli.',
     loaded: '« {{name}} » chargé.',
     edited: 'modifié',
     empty: 'Aucun preset FX pour l’instant.',

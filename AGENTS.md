@@ -392,9 +392,12 @@ open everything an earlier release could have saved.
   preset's name when the rack matches it, with a dim “edited” beside it once any value differs, or
   **Unsaved effects** when it never came from a preset or that preset was deleted. The loaded id
   sits beside the current effects in session state; the `fm1-v16-effects` record is unchanged.
-  Two save verbs sit beside the name: **Save** overwrites the loaded preset, shown only while it is
-  edited, with no confirmation and an Undo toast; **Save as…** names a new preset in a modal, which
-  becomes the loaded one. There is no other save or update entry point. Recall stays one click and sends as above, then
+  Saving mirrors the bank rail (the owner's choice, 2026-11-01): **New FX preset…** sits at the
+  rail's foot, styled as **Add new bank…**, and names the rack as a new preset in a modal, which
+  becomes the loaded one. While a loaded preset is edited, **Save** and **Revert** sit beside its
+  name: **Save** overwrites it with no confirmation and an Undo toast, and **Revert** loads it
+  again as a recall does, sending it and offering Undo. There is no other save or update entry
+  point, so the strip otherwise holds only the name and **Send to FM1**. Recall stays one click and sends as above, then
   `toast.success` “Loaded “name”” offers **Undo**: it puts back the previous 24 values and loaded
   id and sends them through the same sender when MIDI is eligible. One step, no history; it is
   built in the component, since `undoToastOptions` takes a patch-library snapshot.

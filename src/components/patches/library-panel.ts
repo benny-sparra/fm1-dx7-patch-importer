@@ -23,3 +23,7 @@ export const librarySendButtonClassName =
 export const libraryRailClassName = 'border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)]'
 
 export const libraryContentClassName = 'bg-[var(--crt-bg-panel)] p-1.5 min-[360px]:p-[9px]'
+
+/** The rail's last row, which adds to it: **Add new bank…** and **New FX preset…**. */
+export const libraryRailAddButtonClassName =
+  'font-dot-matrix flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] md:justify-start'

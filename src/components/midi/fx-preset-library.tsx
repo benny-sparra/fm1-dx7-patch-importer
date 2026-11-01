@@ -1,4 +1,4 @@
-import { ChevronDown, Download, Search, Send, Upload } from 'lucide-react'
+import { ChevronDown, Download, Plus, Search, Send, Upload } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { type ReactNode, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -14,6 +14,7 @@ import type { FxLibrary } from '@/hooks/use-fx-library'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import {
   libraryContentClassName,
+  libraryRailAddButtonClassName,
   libraryRailClassName,
   librarySendButtonClassName,
   libraryStripClassName,
@@ -250,13 +251,16 @@ export function FxPresetLibrary({
   }
 
   /** One click recalls a preset; Undo, for one step only, puts the previous rack back. */
-  const load = (preset: FxLibraryPreset) => {
+  const load = (
+    preset: FxLibraryPreset,
+    message = t('fxPresets.loaded', { name: preset.name }),
+  ) => {
     if (sendInFlight.current || mutationInFlight.current) return
     const before = { effects: current.slice(), id: loadedId }
     const changed = preset.id !== loadedId || !sameBytes(preset.effects, current)
     const done = recall(preset.effects, preset.id, false)
     if (changed) {
-      toast.success(t('fxPresets.loaded', { name: preset.name }), {
+      toast.success(message, {
         action: {
           label: t('toasts.undo'),
           onAction: () => void recall(before.effects, before.id, true),
@@ -434,6 +438,20 @@ export function FxPresetLibrary({
           </p>
         )
       ) : null}
+      {fxLibrary.status === 'ready' ? (
+        <button
+          aria-disabled={unavailable || mode !== null}
+          className={libraryRailAddButtonClassName}
+          onClick={() => {
+            setSheetOpen(false)
+            startSave()
+          }}
+          type="button"
+        >
+          <Plus aria-hidden="true" className="size-4 shrink-0" />
+          <span>{t('fxPresets.newPreset')}</span>
+        </button>
+      ) : null}
     </>
   )
 
@@ -475,7 +493,7 @@ export function FxPresetLibrary({
         <div className={libraryStripClassName}>
           <h3
             className={cn(
-              'flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 break-words',
+              'flex min-w-0 flex-wrap items-baseline gap-x-2 break-words',
               libraryStripNameClassName,
             )}
           >
@@ -498,27 +516,36 @@ export function FxPresetLibrary({
               </span>
             ) : null}
           </h3>
-          <div className="flex min-w-0 flex-wrap items-center gap-2 md:ml-auto">
-            {loaded && modified ? (
+          {/* An edited preset is saved or put back beside its name; a new one starts in the rail. */}
+          {loaded && modified ? (
+            <span className="flex items-center gap-1">
               <Button
                 aria-disabled={unavailable || mode !== null}
                 onClick={() => {
                   if (!unavailable && mode === null) void updateCurrent()
                 }}
+                size="sm"
                 type="button"
-                variant="outline"
+                variant="ghost"
               >
                 {t('fxPresets.saveButton')}
               </Button>
-            ) : null}
-            <Button
-              aria-disabled={unavailable || mode !== null}
-              onClick={startSave}
-              type="button"
-              variant="outline"
-            >
-              {t('fxPresets.saveAs')}
-            </Button>
+              <Button
+                aria-disabled={unavailable || mode !== null}
+                onClick={() => {
+                  if (!unavailable && mode === null) {
+                    void load(loaded, t('fxPresets.reverted', { name: loaded.name }))
+                  }
+                }}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                {t('fxPresets.revert')}
+              </Button>
+            </span>
+          ) : null}
+          <div className="flex min-w-0 flex-wrap items-center gap-2 md:ml-auto">
             {/* Sends the whole rack, as it is, to the shared FX group: after the FM1's own knobs
                 changed it, a power cycle, or a send that failed. */}
             <Button

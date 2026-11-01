@@ -2,7 +2,9 @@ export default {
   fxPresets: {
     unsavedEffects: 'Незбережені ефекти',
     saveButton: 'Зберегти',
-    saveAs: 'Зберегти як…',
+    newPreset: 'Новий пресет FX…',
+    revert: 'Скасувати зміни',
+    reverted: '«{{name}}» відновлено.',
     loaded: '«{{name}}» завантажено.',
     edited: 'змінено',
     empty: 'Пресетів FX ще немає.',

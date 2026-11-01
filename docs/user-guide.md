@@ -104,10 +104,10 @@ the shared FX group on the **Effect channel**. Other firmware does not offer the
 sends it no shared-FX messages.
 
 The title strip above the rack always names it: the loaded preset's name, with “edited” beside it
-once you change a control, or **Unsaved effects**. Beside the name, **Save as…** names a snapshot of
-the 24 controls shown and saves it as a new preset, which then loads; a toast confirms. While a
-loaded preset is edited, **Save** also appears and replaces that preset at once, with **Undo** in
-its toast. The searchable list is alphabetical. Each preset’s **⋮** menu offers Rename…, Duplicate,
+once you change a control, or **Unsaved effects**. **New FX preset…** at the foot of the list
+names a snapshot of the 24 controls shown and saves it as a new preset, which then loads; a toast
+confirms. While a loaded preset is edited, **Save** and **Revert** appear beside its name: **Save**
+replaces that preset at once, with **Undo** in its toast, and **Revert** puts it back as saved. The searchable list is alphabetical. Each preset’s **⋮** menu offers Rename…, Duplicate,
 Download preset, and Delete…, which offers **Undo** and leaves the current effects unchanged. On a
 phone the list opens from the name in the title strip, and choosing a preset closes it. Switching
 between Patches and Effects keeps the selected FX preset and any unsaved edits. Saving, renaming,

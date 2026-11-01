@@ -3,7 +3,9 @@ export default {
   fxPresets: {
     unsavedEffects: 'Unsaved effects',
     saveButton: 'Save',
-    saveAs: 'Save as…',
+    newPreset: 'New FX preset…',
+    revert: 'Revert',
+    reverted: 'Reverted “{{name}}”.',
     loaded: 'Loaded “{{name}}”.',
     edited: 'edited',
     empty: 'No FX presets yet.',

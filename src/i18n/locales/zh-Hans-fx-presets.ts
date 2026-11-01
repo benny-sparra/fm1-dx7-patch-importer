@@ -2,7 +2,9 @@ export default {
   fxPresets: {
     unsavedEffects: '未保存的效果',
     saveButton: '保存',
-    saveAs: '另存为…',
+    newPreset: '新建 FX 预设…',
+    revert: '还原',
+    reverted: '已还原“{{name}}”。',
     loaded: '已载入“{{name}}”。',
     edited: '已编辑',
     empty: '还没有 FX 预设。',

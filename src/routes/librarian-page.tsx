@@ -34,6 +34,7 @@ import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { PixelHeartIcon } from '@/components/patches/favourite-button'
 import { FavouritesTab } from '@/components/patches/favourites-tab'
 import {
+  libraryRailAddButtonClassName,
   libraryRailClassName,
   librarySendButtonClassName,
   libraryStripNameClassName,
@@ -1539,7 +1540,7 @@ export function LibrarianPage({
                   {nextBank ? (
                     <button
                       aria-label={t('banks.addBank')}
-                      className="font-dot-matrix mx-2 mb-2 flex cursor-pointer items-center justify-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--crt-led)] md:justify-start"
+                      className={cn('mx-2 mb-2', libraryRailAddButtonClassName)}
                       onClick={() => setIsAddingBank(true)}
                       ref={addBankButtonRef}
                       title={t('banks.addBank')}
