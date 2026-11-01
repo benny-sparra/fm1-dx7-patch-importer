@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" role="img" aria-label="FM1 Editor &amp; Librarian">
+  <title>FM1 Editor &amp; Librarian</title>
+  <defs>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#60a5fa"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="160" rx="24" fill="#10191c"/>
+  <rect x="24" y="24" width="112" height="112" rx="24" fill="#0b1214" stroke="url(#wave)" stroke-width="3"/>
+  <path d="M38 80L50 80L58 56L66 80L74 120L82 80L90 36L98 80L106 112L114 80L120 62L126 80L132 80" transform="translate(-4 0)" fill="none" stroke="url(#wave)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <g font-family="'JetBrains Mono', 'Space Grotesk', ui-monospace, monospace" fill="#e6f4f1">
+    <text x="164" y="66" font-size="20" letter-spacing="6" fill="#7aa3a0">M-VAVE</text>
+    <text x="162" y="112" font-size="52" font-weight="700" letter-spacing="2">FM1 <tspan fill="url(#wave)">EDITOR</tspan></text>
+    <text x="164" y="140" font-size="16" letter-spacing="4" fill="#7aa3a0">&amp; LIBRARIAN</text>
+  </g>
+</svg>
