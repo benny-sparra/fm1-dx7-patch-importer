@@ -166,13 +166,16 @@ describe('PatchEditorPage MIDI paths', () => {
     }
   })
 
-  it('leaves the effects panel unannotated before V16 and on Baud Girl’s firmware', () => {
-    setup()
-    expect(screen.queryByText(/these are the FM1’s effects/)).toBeNull()
-    cleanup()
-
-    setup({ firmware: { identity: 'FM-1_096', kind: 'fm1-va' } })
-    expect(screen.queryByText(/these are the FM1’s effects/)).toBeNull()
+  it('keeps the patch’s effects in the editor before V16 and on Baud Girl’s firmware', () => {
+    for (const firmware of [
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_096', kind: 'fm1-va' },
+    ] as const) {
+      setup({ firmware })
+      expect(screen.getByRole('switch', { name: 'Filter' })).toBeTruthy()
+      expect(screen.queryByText(/^On V16 the FM1’s effects/)).toBeNull()
+      cleanup()
+    }
   })
 
   it('says nothing about Voices before V16, which plays one', () => {
