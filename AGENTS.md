@@ -764,7 +764,8 @@ open everything an earlier release could have saved.
   unavailable. Its description says what a click does instead.
 - The header carries the note channel as **Ch n** (`NoteChannelSelect`, 2026-10-25): the same state
   as the Settings menu's Note channel, shown whether or not MIDI is online and for every firmware
-  so the header never shifts, and it sends nothing. On a phone it sits on the last line with the
+  so the header never shifts, and it sends nothing. From the small breakpoint it sits between
+  the IN/OUT LEDs and **Keyboard**, before the panic; on a phone it sits on the last line with the
   badge and the panic.
 - The header's colour swatch, **?** and ⋮ show no caption under them (removed on 2026-10-22 at
   the owner's request); each keeps its accessible name and tooltip. The swatch's choice is named

@@ -192,20 +192,24 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             >
               <MidiConnectActions midi={midi} />
               {/* On a phone the badge and the panic take the last line, so the MIDI switch and the
-                  keyboard keep one row. From the small breakpoint the line dissolves into the row,
-                  and the panic follows the keyboard. */}
+                  keyboard keep one row. From the small breakpoint the line dissolves into the row:
+                  the LEDs, Ch n, the keyboard, then the panic (CSS order). */}
               <div className="order-last flex w-full items-center gap-2.5 sm:contents">
                 <MidiFirmwareBadge
                   className="inline-flex min-h-8 min-w-0 flex-1 items-center gap-2 sm:flex-none"
                   midi={midi}
                 />
-                <NoteChannelSelect midi={midi} />
+                <span className="flex sm:order-1">
+                  <NoteChannelSelect midi={midi} />
+                </span>
                 <span className="flex sm:order-last">
                   <MidiPanicButton midi={midi} />
                 </span>
               </div>
               <MidiActivityLeds midi={midi} />
-              <PianoKeyboard midi={midi} />
+              <span className="flex max-sm:ml-auto sm:order-2">
+                <PianoKeyboard midi={midi} />
+              </span>
             </div>
 
             {showHardwareBay ? (
