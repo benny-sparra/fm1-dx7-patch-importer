@@ -76,6 +76,28 @@ describe('named bank operations', () => {
     ).toThrow('32')
   })
 
+  it('saves an empty slot as the INIT VOICE it is given', () => {
+    const [read] = makeDemoVoices()
+    const library = importFetchedBanks(emptyPatchLibrary(['A']), [
+      {
+        bank: 'A',
+        sounds: Array.from({ length: 32 }, (_, i) => (i === 2 ? { voice: read } : null)),
+      },
+    ])
+    const initVoice = makeInitDx7Voice()
+
+    const bank = createNamedBank(
+      library,
+      'A',
+      { description: '', id: 'bank-1', name: 'Read', now: createdAt },
+      initVoice,
+    )
+
+    expect(slotVoice(bank.slots[0]).name).toBe('INIT VOICE')
+    expect(slotVoice(bank.slots[2]).name).toBe(read.name)
+    expect(() => validateNamedBank(bank)).not.toThrow()
+  })
+
   it('loads a saved bank into a different workspace destination', () => {
     const source = makeLoadedLibrary()
     source.effects[voiceId('A', 1)][0] = 1

@@ -109,6 +109,9 @@ export default {
     sessionOnlyTitle: 'Session-only library',
     sessionOnlyBody:
       'Existing browser data has not been changed. Changes made in this session will be lost when this page closes.',
+    conflictTitle: 'Another tab changed your library',
+    conflictBody:
+      'Your changes in this tab are still here but were not saved, so they do not replace the other tab’s. Download a backup to keep them, then reload to open the library as saved.',
     saveErrorTitle: 'Library changes are not safely stored',
     saveErrorBody:
       'Your latest changes are still available here, but the browser could not save them. Retry when browser storage is available.',

@@ -795,16 +795,14 @@ export function patchMatchesSearch(patch: Pick<Patch, 'bank' | 'name' | 'number'
 
 /**
  * A workspace bank's DX7 voices in slot order. A DX7 bank has no place for a Virtual Analog or
- * 8-Bit preset, so its slot takes `initVoice` when one is given and is left out otherwise.
+ * 8-Bit preset, and a bank read from the FM1 can leave a slot empty, so every slot without a DX7
+ * voice takes `initVoice` when one is given and is left out otherwise.
  */
 export function getBankVoices(snapshot: PatchLibrarySnapshot, bank: string, initVoice?: Dx7Voice) {
-  return Array.from({ length: dx7BankVoiceCount }, (_, index) => {
-    const id = voiceId(bank, index + 1)
-    return (
-      snapshot.voices[id] ??
-      (snapshot.virtualAnalog[id] || snapshot.eightBit[id] ? initVoice : undefined)
-    )
-  }).filter((voice): voice is Dx7Voice => Boolean(voice))
+  return Array.from(
+    { length: dx7BankVoiceCount },
+    (_, index) => snapshot.voices[voiceId(bank, index + 1)] ?? initVoice,
+  ).filter((voice): voice is Dx7Voice => Boolean(voice))
 }
 
 /**

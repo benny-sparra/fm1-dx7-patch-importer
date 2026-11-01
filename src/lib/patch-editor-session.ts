@@ -148,7 +148,7 @@ export class PatchEditorSession {
       onSynchronized: (sentParameters) => {
         this.sentName = voiceNameParameters(sentParameters)
         const { mutedOperators, soloOperator } = this.state
-        if (mutedOperators.size > 0 || soloOperator !== null) {
+        if ((mutedOperators.size > 0 || soloOperator !== null) && !this.sendsWholeVoice()) {
           const midi = this.getMidi()
           makeOperatorAuditionEdits(sentParameters, mutedOperators, soloOperator).forEach(
             ([parameter, value]) => midi.sendParameter(parameter, value),
@@ -157,7 +157,16 @@ export class PatchEditorSession {
       },
       sendEffects: (sentParameters) => this.sendEffects(getFm1EffectParameters(sentParameters)),
       sendVoice: async (sentParameters) => {
-        const voice = packDx7Voice(getFm1VoiceParameters(sentParameters))
+        // Where parameter changes are dropped, the dump itself carries the mute and solo; the
+        // working copy keeps its levels.
+        const outgoing = sentParameters.slice()
+        if (this.sendsWholeVoice()) {
+          const { mutedOperators, soloOperator } = this.state
+          makeOperatorAuditionEdits(outgoing, mutedOperators, soloOperator).forEach(
+            ([parameter, value]) => (outgoing[parameter] = value),
+          )
+        }
+        const voice = packDx7Voice(getFm1VoiceParameters(outgoing))
         const sent = await this.getMidi().sendVoice(voice, !this.sentOnce)
         if (sent) this.sentOnce = true
         return sent
@@ -548,6 +557,13 @@ export class PatchEditorSession {
     soloOperator: number | null,
     send = this.isLive(),
   ) {
+    if (this.sendsWholeVoice()) {
+      // A new revision makes a send already in flight follow up with the audition now set.
+      this.revision += 1
+      this.update({ mutedOperators, soloOperator })
+      if (send) void this.requestSync()
+      return
+    }
     this.update({ mutedOperators, soloOperator })
     if (send && this.canSync()) {
       const midi = this.getMidi()

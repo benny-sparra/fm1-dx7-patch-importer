@@ -12,10 +12,10 @@ function bevelClassName(selected: boolean) {
   )
 }
 
-/** The boxed VT323 slot code beside a patch's name, or a bank's letter in the rail. */
+/** The boxed seven-segment slot code beside a patch's name, or a bank's letter in the rail. */
 export function slotBadgeClassName(selected: boolean) {
   return cn(
-    'font-vt323 grid min-w-[26px] shrink-0 place-items-center border bg-[var(--crt-bg-well)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none',
+    'font-seven-segment grid min-w-[26px] shrink-0 place-items-center border bg-[var(--crt-bg-well)] px-1.5 pt-1.5 pb-1 text-[18px] leading-none',
     selected
       ? 'border-[var(--crt-acc)] text-[var(--crt-acc-br)]'
       : 'border-[var(--crt-line)] text-[var(--crt-acc-lt)]',

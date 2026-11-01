@@ -364,6 +364,39 @@ describe('PatchEditorSession on Official Open', () => {
     ])
   })
 
+  // Operator 1 is the last of the six packed operators, its output level the 15th of 17 bytes.
+  const packedOperator1Output = 5 * 17 + 14
+
+  it('sends a mute as a dump with the operator silenced, leaving the working copy as it was', async () => {
+    const { midi, session } = await openLiveSession(officialOpen())
+    session.setParameter(operatorOutputParameter(1), 90)
+    await vi.waitFor(() => expect(midi.sendVoice).toHaveBeenCalledTimes(2))
+    await vi.waitFor(() => expect(session.getState().syncState).toBe('live'))
+    vi.mocked(midi.sendVoice).mockClear()
+
+    session.toggleOperatorMute(1)
+
+    await vi.waitFor(() => expect(midi.sendVoice).toHaveBeenCalledOnce())
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+    expect(vi.mocked(midi.sendVoice).mock.calls[0][0].data[packedOperator1Output]).toBe(0)
+    expect(session.getState().history.present[operatorOutputParameter(1)]).toBe(90)
+  })
+
+  it('keeps a soloed operator alone in a later edit’s dump', async () => {
+    const { midi, session } = await openLiveSession(officialOpen())
+    session.setParameter(operatorOutputParameter(1), 90)
+    session.toggleOperatorSolo(2)
+    await vi.waitFor(() => expect(session.getState().syncState).toBe('live'))
+    vi.mocked(midi.sendVoice).mockClear()
+
+    session.setParameter(0, 12)
+
+    await vi.waitFor(() => expect(midi.sendVoice).toHaveBeenCalledOnce())
+    const [[voice]] = vi.mocked(midi.sendVoice).mock.calls
+    expect([voice.data[0], voice.data[packedOperator1Output]]).toEqual([12, 0])
+    expect(midi.sendParameter).not.toHaveBeenCalled()
+  })
+
   it('sends a committed name as a dump only when it changed', async () => {
     const { midi, session } = await openLiveSession(officialOpen())
     vi.mocked(midi.sendVoice).mockClear()

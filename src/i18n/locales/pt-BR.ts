@@ -872,6 +872,9 @@ export default {
     sessionOnlyTitle: 'Biblioteca somente para esta sessão',
     sessionOnlyBody:
       'Os dados existentes do navegador não foram alterados. As mudanças desta sessão serão perdidas quando a página for fechada.',
+    conflictTitle: 'Outra aba mudou sua biblioteca',
+    conflictBody:
+      'As mudanças nesta aba continuam aqui, mas não foram salvas, então não substituem as da outra aba. Baixe um backup para mantê-las e depois recarregue para abrir a biblioteca como está salva.',
     saveErrorTitle: 'As mudanças não estão salvas com segurança',
     saveErrorBody:
       'As mudanças mais recentes continuam disponíveis aqui, mas o navegador não conseguiu salvá-las. Tente novamente quando o armazenamento estiver disponível.',
